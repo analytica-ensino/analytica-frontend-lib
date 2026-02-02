@@ -5,15 +5,7 @@ import {
   useCallback,
   type ReactNode,
 } from 'react';
-import {
-  PencilSimple,
-  Paperclip,
-  X,
-  Star,
-  Medal,
-  WarningCircle,
-} from 'phosphor-react';
-import type { Icon } from 'phosphor-react';
+import { PencilSimple, Paperclip, X } from 'phosphor-react';
 import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
@@ -23,6 +15,7 @@ import TextArea from '../TextArea/TextArea';
 import { CardAccordation, AccordionGroup } from '../Accordation';
 import { generateFileId } from '../FileAttachment/FileAttachment';
 import type { AttachedFile } from '../FileAttachment/FileAttachment';
+import { StatCard } from '../shared/StatCard';
 import { cn } from '../../utils/utils';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import {
@@ -30,6 +23,7 @@ import {
   type SaveQuestionCorrectionPayload,
   getQuestionStatusBadgeConfig,
   getQuestionStatusFromData,
+  QUESTION_STATUS,
 } from '../../utils/studentActivityCorrection';
 import {
   renderQuestionAlternative,
@@ -40,6 +34,7 @@ import {
   renderQuestionImage,
   renderQuestionConnectDots,
 } from '../../utils/questionRenderer/index';
+import useToastStore from '../Toast/utils/ToastStore';
 
 /**
  * Props for the CorrectActivityModal component
@@ -66,88 +61,11 @@ export interface CorrectActivityModalProps {
   ) => Promise<void>;
 }
 
-/**
- * Props for the StatCard component
- */
-interface StatCardProps {
-  label: string;
-  value: string | number;
-  variant: 'score' | 'correct' | 'incorrect';
-}
-
-/**
- * Configuration for each stat card variant
- */
-const variantConfig: Record<
-  StatCardProps['variant'],
-  {
-    bg: string;
-    text: string;
-    iconBg: string;
-    iconColor: string;
-    IconComponent: Icon;
-  }
-> = {
-  score: {
-    bg: 'bg-warning-background',
-    text: 'text-warning-600',
-    iconBg: 'bg-warning-300',
-    iconColor: 'text-white',
-    IconComponent: Star,
-  },
-  correct: {
-    bg: 'bg-success-200',
-    text: 'text-success-700',
-    iconBg: 'bg-indicator-positive',
-    iconColor: 'text-text-950',
-    IconComponent: Medal,
-  },
-  incorrect: {
-    bg: 'bg-error-100',
-    text: 'text-error-700',
-    iconBg: 'bg-indicator-negative',
-    iconColor: 'text-white',
-    IconComponent: WarningCircle,
-  },
-};
-
-/**
- * Stat card component for displaying statistics with icon
- * @param props - Component props
- * @returns JSX element
- */
-const StatCard = ({ label, value, variant }: StatCardProps) => {
-  const config = variantConfig[variant];
-  const IconComponent = config.IconComponent;
-
-  return (
-    <div
-      className={cn(
-        'border border-border-50 rounded-xl py-4 px-3 flex flex-col items-center justify-center gap-1',
-        config.bg
-      )}
-    >
-      <div
-        className={cn(
-          'w-[30px] h-[30px] rounded-2xl flex items-center justify-center',
-          config.iconBg
-        )}
-      >
-        <IconComponent
-          size={16}
-          className={config.iconColor}
-          weight="regular"
-        />
-      </div>
-      <Text
-        className={cn('text-2xs font-bold uppercase text-center', config.text)}
-      >
-        {label}
-      </Text>
-      <Text className={cn('text-xl font-bold', config.text)}>{value}</Text>
-    </div>
-  );
-};
+/** Field names for essay correction state updates */
+const EssayCorrectionField = {
+  IsCorrect: 'isCorrect',
+  TeacherFeedback: 'teacherFeedback',
+} as const;
 
 /**
  * Modal component for correcting or viewing student activity details
@@ -188,6 +106,9 @@ const CorrectActivityModal = ({
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Toast store for notifications
+  const addToast = useToastStore((state) => state.addToast);
+
   // State for essay question corrections
   const [essayCorrections, setEssayCorrections] = useState<
     Record<
@@ -196,6 +117,7 @@ const CorrectActivityModal = ({
         isCorrect: boolean | null;
         teacherFeedback: string;
         isSaving: boolean;
+        isSaved: boolean;
       }
     >
   >({});
@@ -228,6 +150,7 @@ const CorrectActivityModal = ({
           isCorrect: boolean | null;
           teacherFeedback: string;
           isSaving: boolean;
+          isSaved: boolean;
         }
       > = {};
       data?.questions?.forEach((questionData) => {
@@ -236,6 +159,7 @@ const CorrectActivityModal = ({
             isCorrect: questionData.correction?.isCorrect ?? null,
             teacherFeedback: questionData.correction?.teacherFeedback || '',
             isSaving: false,
+            isSaved: questionData.correction?.isCorrect != null,
           };
         }
       });
@@ -341,13 +265,39 @@ const CorrectActivityModal = ({
           isCorrect: correction.isCorrect,
           teacherFeedback: correction.teacherFeedback,
         });
+
+        // Mark as saved and show success toast
+        setEssayCorrections((prev) => ({
+          ...prev,
+          [questionNumber]: {
+            ...prev[questionNumber],
+            isSaving: false,
+            isSaved: true,
+          },
+        }));
+
+        addToast({
+          title: 'Correção salva',
+          description: `A correção da questão ${questionNumber} foi salva com sucesso.`,
+          variant: 'solid',
+          action: 'success',
+          position: 'top-right',
+        });
       } catch (error) {
         console.error('Erro ao salvar correção da questão:', error);
-      } finally {
+
         setEssayCorrections((prev) => ({
           ...prev,
           [questionNumber]: { ...prev[questionNumber], isSaving: false },
         }));
+
+        addToast({
+          title: 'Erro ao salvar correção',
+          description: 'Não foi possível salvar a correção. Tente novamente.',
+          variant: 'solid',
+          action: 'warning',
+          position: 'top-right',
+        });
       }
     },
     [
@@ -355,16 +305,20 @@ const CorrectActivityModal = ({
       data?.questions,
       essayCorrections,
       onQuestionCorrectionSubmit,
+      addToast,
     ]
   );
 
   /**
    * Update essay correction state
+   * Resets isSaved to false when isCorrect changes so badge only updates after saving
    */
   const updateEssayCorrection = useCallback(
     (
       questionNumber: number,
-      field: 'isCorrect' | 'teacherFeedback',
+      field:
+        | (typeof EssayCorrectionField)['IsCorrect']
+        | (typeof EssayCorrectionField)['TeacherFeedback'],
       value: boolean | string
     ) => {
       setEssayCorrections((prev) => ({
@@ -372,6 +326,10 @@ const CorrectActivityModal = ({
         [questionNumber]: {
           ...prev[questionNumber],
           [field]: value,
+          // Reset isSaved when isCorrect changes so badge doesn't update until saved
+          ...(field === EssayCorrectionField.IsCorrect
+            ? { isSaved: false }
+            : {}),
         },
       }));
     },
@@ -530,7 +488,7 @@ const CorrectActivityModal = ({
                 if (e.target.checked) {
                   updateEssayCorrection(
                     questionData.questionNumber,
-                    'isCorrect',
+                    EssayCorrectionField.IsCorrect,
                     true
                   );
                 }
@@ -547,7 +505,7 @@ const CorrectActivityModal = ({
                 if (e.target.checked) {
                   updateEssayCorrection(
                     questionData.questionNumber,
-                    'isCorrect',
+                    EssayCorrectionField.IsCorrect,
                     false
                   );
                 }
@@ -566,7 +524,7 @@ const CorrectActivityModal = ({
             onChange={(e) => {
               updateEssayCorrection(
                 questionData.questionNumber,
-                'teacherFeedback',
+                EssayCorrectionField.TeacherFeedback,
                 e.target.value
               );
             }}
@@ -851,8 +809,26 @@ const CorrectActivityModal = ({
           <Text className="text-sm font-bold text-text-950">Respostas</Text>
           <AccordionGroup type="multiple" className="space-y-2">
             {data.questions?.map((questionData) => {
-              const status = getQuestionStatusFromData(questionData);
-              const badgeConfig = getQuestionStatusBadgeConfig(status);
+              // Check if we have a local correction for essay questions
+              const localCorrection =
+                essayCorrections[questionData.questionNumber];
+              const isEssayWithLocalCorrection =
+                questionData.question.questionType ===
+                  QUESTION_TYPE.DISSERTATIVA &&
+                localCorrection?.isSaved &&
+                localCorrection?.isCorrect != null;
+
+              // Use local correction status for essay questions, otherwise use original
+              let badgeConfig;
+              if (isEssayWithLocalCorrection) {
+                const localStatus = localCorrection.isCorrect
+                  ? QUESTION_STATUS.CORRETA
+                  : QUESTION_STATUS.INCORRETA;
+                badgeConfig = getQuestionStatusBadgeConfig(localStatus);
+              } else {
+                const status = getQuestionStatusFromData(questionData);
+                badgeConfig = getQuestionStatusBadgeConfig(status);
+              }
 
               return (
                 <CardAccordation

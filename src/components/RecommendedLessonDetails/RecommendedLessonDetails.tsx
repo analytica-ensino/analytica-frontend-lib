@@ -1,30 +1,34 @@
 import { useMemo, useState, useCallback } from 'react';
 import Text from '../Text/Text';
+import useToastStore from '../Toast/utils/ToastStore';
 import { cn } from '../../utils/utils';
 import type { LessonDetailsData } from '../../types/recommendedLessons';
 import type { SubjectEnum } from '../../enums/SubjectEnum';
+import type { BaseApiClient } from '../../types/api';
 import {
   Breadcrumb,
   LessonHeader,
   LoadingSkeleton,
   ResultsSection,
   StudentsTable,
-  StudentPerformanceModal,
+  StudentActivityPerformanceModal,
 } from './components';
 import { transformStudentForDisplay } from './utils/lessonDetailsUtils';
+import {
+  convertStudentAnswersToPerformanceData,
+  type StudentAnswersResponse,
+} from './utils/performanceUtils';
 import {
   DEFAULT_LABELS,
   type BreadcrumbItem,
   type LessonDetailsLabels,
-  type StudentPerformanceData,
+  type StudentActivityPerformanceData,
 } from './types';
 
 /**
  * Props for RecommendedLessonDetails component
  */
 export interface RecommendedLessonDetailsProps {
-  /** RecommendedClass ID for fetching student performance */
-  recommendedClassId?: string;
   /** Lesson data to display (from API responses) */
   data: LessonDetailsData | null;
   /** Loading state */
@@ -34,14 +38,10 @@ export interface RecommendedLessonDetailsProps {
   /** Callback when "Ver aula" button is clicked */
   onViewLesson?: () => void;
   /**
-   * Function to fetch student performance data.
-   * When provided, the component manages the performance modal internally.
-   * Must be memoized (using useCallback) to prevent re-fetches on every render.
+   * API client for making requests.
+   * When provided, enables the "Corrigir atividade" functionality.
    */
-  fetchStudentPerformance?: (
-    recommendedClassId: string,
-    studentId: string
-  ) => Promise<StudentPerformanceData>;
+  apiClient?: BaseApiClient;
   /** Callback for breadcrumb navigation */
   onBreadcrumbClick?: (path: string) => void;
   /** Function to map subject name to SubjectEnum */
@@ -71,19 +71,18 @@ export interface RecommendedLessonDetailsProps {
  *     details: detailsData, // from /recommendedClass/{id}/details
  *     breakdown: breakdown, // optional, from /recommended-class/history
  *   }}
+ *   apiClient={api}
  *   onViewLesson={() => navigate('/view-lesson')}
- *   onViewStudentPerformance={(id) => navigate(`/student/${id}`)}
  *   mapSubjectNameToEnum={mapSubjectNameToEnum}
  * />
  * ```
  */
 const RecommendedLessonDetails = ({
-  recommendedClassId,
   data,
   loading = false,
   error = null,
   onViewLesson,
-  fetchStudentPerformance,
+  apiClient,
   onBreadcrumbClick,
   mapSubjectNameToEnum,
   breadcrumbs,
@@ -95,19 +94,43 @@ const RecommendedLessonDetails = ({
     [customLabels]
   );
 
-  // Student performance modal state
+  // Toast store for notifications
+  const addToast = useToastStore((state) => state.addToast);
+
+  // Activity performance modal state
   const [performanceModalOpen, setPerformanceModalOpen] = useState(false);
   const [performanceData, setPerformanceData] =
-    useState<StudentPerformanceData | null>(null);
+    useState<StudentActivityPerformanceData | null>(null);
   const [performanceLoading, setPerformanceLoading] = useState(false);
   const [performanceError, setPerformanceError] = useState<string | null>(null);
 
   /**
-   * Handle view student performance action
+   * Handle correct activity action
+   * Fetches all activities and lessons for the student and opens the performance modal
    */
-  const handleViewStudentPerformance = useCallback(
+  const handleCorrectActivity = useCallback(
     async (studentId: string) => {
-      if (!fetchStudentPerformance || !recommendedClassId) return;
+      if (!apiClient || !data?.recommendedClass.id) return;
+
+      // Find student from data
+      const student = data?.details.students.find(
+        (s) => s.userInstitutionId === studentId
+      );
+
+      // Guard: ensure student and userId are valid before proceeding
+      if (!student?.userId) {
+        addToast({
+          title: 'Erro ao carregar aluno',
+          description: 'Não foi possível identificar o aluno. Tente novamente.',
+          variant: 'solid',
+          action: 'warning',
+          position: 'top-right',
+        });
+        return;
+      }
+
+      const studentName = student.name;
+      const userId = student.userId;
 
       setPerformanceModalOpen(true);
       setPerformanceLoading(true);
@@ -115,13 +138,22 @@ const RecommendedLessonDetails = ({
       setPerformanceError(null);
 
       try {
-        const result = await fetchStudentPerformance(
-          recommendedClassId,
-          studentId
+        // Fetch all answers for the student in this recommended class
+        const response = await apiClient.get<StudentAnswersResponse>(
+          `/recommended-class/${data.recommendedClass.id}/student/${studentId}/answers`
         );
-        setPerformanceData(result);
+
+        // Convert API response to performance data format
+        const performanceData = convertStudentAnswersToPerformanceData(
+          response.data,
+          studentId,
+          userId,
+          studentName
+        );
+
+        setPerformanceData(performanceData);
       } catch (err) {
-        console.error('Error fetching student performance:', err);
+        console.error('Error fetching activity performance data:', err);
         setPerformanceError(
           err instanceof Error
             ? err.message
@@ -131,7 +163,7 @@ const RecommendedLessonDetails = ({
         setPerformanceLoading(false);
       }
     },
-    [fetchStudentPerformance, recommendedClassId]
+    [apiClient, data?.recommendedClass.id, data?.details.students, addToast]
   );
 
   /**
@@ -216,21 +248,20 @@ const RecommendedLessonDetails = ({
         {/* Students table */}
         <StudentsTable
           students={displayStudents}
-          onViewPerformance={
-            fetchStudentPerformance ? handleViewStudentPerformance : undefined
-          }
+          onCorrectActivity={apiClient ? handleCorrectActivity : undefined}
           labels={labels}
         />
       </div>
 
-      {/* Student Performance Modal */}
-      {fetchStudentPerformance && (
-        <StudentPerformanceModal
+      {/* Student Activity Performance Modal */}
+      {apiClient && (
+        <StudentActivityPerformanceModal
           isOpen={performanceModalOpen}
           onClose={handleClosePerformanceModal}
           data={performanceData}
           loading={performanceLoading}
           error={performanceError}
+          apiClient={apiClient}
         />
       )}
     </>

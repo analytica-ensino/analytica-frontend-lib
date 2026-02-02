@@ -645,4 +645,163 @@ describe('AccordionGroup', () => {
       expect(item1Button).toHaveAttribute('aria-expanded', 'true');
     });
   });
+
+  describe('Nested AccordionGroups', () => {
+    it('should allow independent control of nested AccordionGroups', () => {
+      render(
+        <AccordionGroup type="single" data-testid="outer-group">
+          <CardAccordation trigger="Activity 1" value="activity-1">
+            <AccordionGroup type="multiple" data-testid="inner-group">
+              <CardAccordation trigger="Question 1" value="question-1">
+                Question 1 Content
+              </CardAccordation>
+              <CardAccordation trigger="Question 2" value="question-2">
+                Question 2 Content
+              </CardAccordation>
+            </AccordionGroup>
+          </CardAccordation>
+          <CardAccordation trigger="Activity 2" value="activity-2">
+            Activity 2 Content
+          </CardAccordation>
+        </AccordionGroup>
+      );
+
+      const activity1Button = screen.getByText('Activity 1').closest('button')!;
+
+      // Open activity 1
+      fireEvent.click(activity1Button);
+      expect(activity1Button).toHaveAttribute('aria-expanded', 'true');
+
+      // Now the questions should be visible
+      const question1Button = screen.getByText('Question 1').closest('button')!;
+      const question2Button = screen.getByText('Question 2').closest('button')!;
+
+      // Open question 1 - should NOT close activity 1
+      fireEvent.click(question1Button);
+      expect(question1Button).toHaveAttribute('aria-expanded', 'true');
+      expect(activity1Button).toHaveAttribute('aria-expanded', 'true');
+
+      // Open question 2 - should keep question 1 open (multiple mode)
+      fireEvent.click(question2Button);
+      expect(question1Button).toHaveAttribute('aria-expanded', 'true');
+      expect(question2Button).toHaveAttribute('aria-expanded', 'true');
+      expect(activity1Button).toHaveAttribute('aria-expanded', 'true');
+    });
+
+    it('should not affect parent accordion when clicking nested accordion', () => {
+      render(
+        <AccordionGroup type="single">
+          <CardAccordation trigger="Parent 1" value="parent-1">
+            <AccordionGroup type="single">
+              <CardAccordation trigger="Child 1" value="child-1">
+                Child 1 Content
+              </CardAccordation>
+              <CardAccordation trigger="Child 2" value="child-2">
+                Child 2 Content
+              </CardAccordation>
+            </AccordionGroup>
+          </CardAccordation>
+          <CardAccordation trigger="Parent 2" value="parent-2">
+            Parent 2 Content
+          </CardAccordation>
+        </AccordionGroup>
+      );
+
+      const parent1Button = screen.getByText('Parent 1').closest('button')!;
+
+      // Open parent 1
+      fireEvent.click(parent1Button);
+      expect(parent1Button).toHaveAttribute('aria-expanded', 'true');
+
+      // Now click child accordions
+      const child1Button = screen.getByText('Child 1').closest('button')!;
+      const child2Button = screen.getByText('Child 2').closest('button')!;
+
+      // Open child 1 - parent should stay open
+      fireEvent.click(child1Button);
+      expect(child1Button).toHaveAttribute('aria-expanded', 'true');
+      expect(parent1Button).toHaveAttribute('aria-expanded', 'true');
+
+      // Open child 2 - child 1 should close (single mode), parent should stay open
+      fireEvent.click(child2Button);
+      expect(child1Button).toHaveAttribute('aria-expanded', 'false');
+      expect(child2Button).toHaveAttribute('aria-expanded', 'true');
+      expect(parent1Button).toHaveAttribute('aria-expanded', 'true');
+    });
+
+    it('should handle deeply nested AccordionGroups independently', () => {
+      render(
+        <AccordionGroup type="single">
+          <CardAccordation trigger="Level 1" value="level-1">
+            <AccordionGroup type="single">
+              <CardAccordation trigger="Level 2" value="level-2">
+                <AccordionGroup type="multiple">
+                  <CardAccordation trigger="Level 3A" value="level-3a">
+                    Level 3A Content
+                  </CardAccordation>
+                  <CardAccordation trigger="Level 3B" value="level-3b">
+                    Level 3B Content
+                  </CardAccordation>
+                </AccordionGroup>
+              </CardAccordation>
+            </AccordionGroup>
+          </CardAccordation>
+        </AccordionGroup>
+      );
+
+      // Open all levels
+      const level1Button = screen.getByText('Level 1').closest('button')!;
+      fireEvent.click(level1Button);
+      expect(level1Button).toHaveAttribute('aria-expanded', 'true');
+
+      const level2Button = screen.getByText('Level 2').closest('button')!;
+      fireEvent.click(level2Button);
+      expect(level2Button).toHaveAttribute('aria-expanded', 'true');
+      expect(level1Button).toHaveAttribute('aria-expanded', 'true');
+
+      const level3aButton = screen.getByText('Level 3A').closest('button')!;
+      const level3bButton = screen.getByText('Level 3B').closest('button')!;
+
+      // Open both level 3 items (multiple mode)
+      fireEvent.click(level3aButton);
+      fireEvent.click(level3bButton);
+
+      // All should be expanded
+      expect(level3aButton).toHaveAttribute('aria-expanded', 'true');
+      expect(level3bButton).toHaveAttribute('aria-expanded', 'true');
+      expect(level2Button).toHaveAttribute('aria-expanded', 'true');
+      expect(level1Button).toHaveAttribute('aria-expanded', 'true');
+    });
+
+    it('should maintain separate onValueChange handlers for nested groups', () => {
+      const outerOnValueChange = jest.fn();
+      const innerOnValueChange = jest.fn();
+
+      render(
+        <AccordionGroup type="single" onValueChange={outerOnValueChange}>
+          <CardAccordation trigger="Outer 1" value="outer-1">
+            <AccordionGroup type="multiple" onValueChange={innerOnValueChange}>
+              <CardAccordation trigger="Inner 1" value="inner-1">
+                Inner 1 Content
+              </CardAccordation>
+            </AccordionGroup>
+          </CardAccordation>
+        </AccordionGroup>
+      );
+
+      const outer1Button = screen.getByText('Outer 1').closest('button')!;
+
+      // Click outer accordion
+      fireEvent.click(outer1Button);
+      expect(outerOnValueChange).toHaveBeenCalledWith('outer-1');
+      expect(innerOnValueChange).not.toHaveBeenCalled();
+
+      // Click inner accordion
+      const inner1Button = screen.getByText('Inner 1').closest('button')!;
+      fireEvent.click(inner1Button);
+      expect(innerOnValueChange).toHaveBeenCalledWith(['inner-1']);
+      // Outer should not be called again
+      expect(outerOnValueChange).toHaveBeenCalledTimes(1);
+    });
+  });
 });

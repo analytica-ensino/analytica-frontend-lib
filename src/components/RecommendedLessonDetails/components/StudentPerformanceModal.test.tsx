@@ -10,10 +10,14 @@ const mockLessonWithQuestions: LessonProgress = {
   questions: [
     {
       id: 'q1',
+      answerId: 'answer-1',
+      activityId: 'activity-1',
       title: 'Questão 1',
       statement:
         'Qual é a sequência correta das categorias taxonômicas, da mais ampla para a mais específica?',
+      questionType: 'MULTIPLA_ESCOLHA',
       isCorrect: true,
+      teacherFeedback: null,
       alternatives: [
         {
           id: 'a1',
@@ -37,9 +41,13 @@ const mockLessonWithQuestions: LessonProgress = {
     },
     {
       id: 'q2',
+      answerId: 'answer-2',
+      activityId: 'activity-1',
       title: 'Questão 2',
       statement: 'Qual categoria taxonômica agrupa espécies semelhantes?',
+      questionType: 'MULTIPLA_ESCOLHA',
       isCorrect: false,
+      teacherFeedback: null,
       alternatives: [
         {
           id: 'b1',
