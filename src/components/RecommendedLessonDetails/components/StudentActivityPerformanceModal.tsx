@@ -6,7 +6,7 @@ import {
   type ReactNode,
 } from 'react';
 import { Timer, Trophy, Warning, User, WarningCircle } from 'phosphor-react';
-import type { Icon } from '@phosphor-icons/react';
+import type { Icon } from 'phosphor-react';
 import Modal from '../../Modal/Modal';
 import Text from '../../Text/Text';
 import Badge from '../../Badge/Badge';
