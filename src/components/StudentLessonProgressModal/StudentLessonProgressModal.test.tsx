@@ -201,18 +201,16 @@ describe('StudentLessonProgressModal', () => {
     it('expands nested item when clicked', () => {
       render(<StudentLessonProgressModal {...defaultProps} />);
 
-      // Initially, nested content should be hidden (max-h-0)
-      const expandableContent = screen
-        .getByText('Aspectos iniciais')
-        .closest('div[class*="max-h-"]');
-      expect(expandableContent).toHaveClass('max-h-0');
+      // Initially, nested content should be collapsed
+      const expandableContent = screen.getByTestId('accordion-content-topic-1');
+      expect(expandableContent).toHaveAttribute('data-expanded', 'false');
 
       // Click on parent topic to expand
       const topicButton = screen.getByText('Cinemática').closest('button');
       fireEvent.click(topicButton!);
 
-      // Now nested content should be expanded (max-h-[2000px])
-      expect(expandableContent).toHaveClass('max-h-[2000px]');
+      // Now nested content should be expanded
+      expect(expandableContent).toHaveAttribute('data-expanded', 'true');
     });
 
     it('expands deeply nested items', () => {
@@ -256,8 +254,9 @@ describe('StudentLessonProgressModal', () => {
         />
       );
       expect(screen.getByText('Desempenho')).toBeInTheDocument();
-      const skeletons = document.querySelectorAll('.animate-pulse');
-      expect(skeletons.length).toBeGreaterThan(0);
+      expect(
+        screen.getByTestId('lesson-progress-skeleton')
+      ).toBeInTheDocument();
     });
 
     it('renders modal with loading state even when data is null', () => {
@@ -280,11 +279,11 @@ describe('StudentLessonProgressModal', () => {
           isOpen={true}
           onClose={jest.fn()}
           data={null}
-          error="Erro ao carregar dados do aluno"
+          error="Falha na conexão"
         />
       );
       expect(
-        screen.getByText('Erro ao carregar dados do aluno')
+        screen.getByText('Erro ao carregar dados: Falha na conexão')
       ).toBeInTheDocument();
     });
 
@@ -298,7 +297,9 @@ describe('StudentLessonProgressModal', () => {
         />
       );
       expect(screen.getByText('Desempenho')).toBeInTheDocument();
-      expect(screen.getByText('Network error')).toBeInTheDocument();
+      expect(
+        screen.getByText('Erro ao carregar dados: Network error')
+      ).toBeInTheDocument();
     });
 
     it('does not render when data, loading, and error are all null/false', () => {
@@ -386,6 +387,36 @@ describe('StudentLessonProgressModal', () => {
       );
       expect(screen.getByText('Aula pendente')).toBeInTheDocument();
     });
+
+    it('uses custom error message prefix when provided', () => {
+      render(
+        <StudentLessonProgressModal
+          isOpen={true}
+          onClose={jest.fn()}
+          data={null}
+          error="Connection failed"
+          labels={{
+            errorMessagePrefix: 'Falha',
+          }}
+        />
+      );
+      expect(screen.getByText('Falha: Connection failed')).toBeInTheDocument();
+    });
+
+    it('renders error message without prefix when prefix is empty', () => {
+      render(
+        <StudentLessonProgressModal
+          isOpen={true}
+          onClose={jest.fn()}
+          data={null}
+          error="Connection timeout"
+          labels={{
+            errorMessagePrefix: '',
+          }}
+        />
+      );
+      expect(screen.getByText('Connection timeout')).toBeInTheDocument();
+    });
   });
 
   describe('Modal Behavior', () => {
@@ -438,14 +469,14 @@ describe('StudentLessonProgressModal', () => {
       );
 
       // All items are flat, so buttons should be disabled
-      const buttons = screen
-        .getAllByRole('button')
-        .filter((btn) => btn.closest('.bg-background'));
+      // Get buttons inside lesson items using data-testid
+      const lessonItems = ['1', '2', '3'].map((id) =>
+        screen.getByTestId(`lesson-item-${id}`)
+      );
 
-      buttons.forEach((button) => {
-        if (!button.textContent?.includes('Fechar')) {
-          expect(button).toHaveAttribute('disabled');
-        }
+      lessonItems.forEach((item) => {
+        const button = item.querySelector('button');
+        expect(button).toHaveAttribute('disabled');
       });
     });
   });

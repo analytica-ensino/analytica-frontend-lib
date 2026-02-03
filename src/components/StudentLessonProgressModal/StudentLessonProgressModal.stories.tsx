@@ -125,6 +125,24 @@ const mockFlatData: StudentLessonProgressData = {
 };
 
 /**
+ * Deterministic progress values for consistent visual testing
+ */
+const DETERMINISTIC_PROGRESS = [
+  85,
+  42,
+  null,
+  100,
+  67,
+  23,
+  null,
+  91,
+  54,
+  78,
+  36,
+  null,
+];
+
+/**
  * Mock data with many items for scroll testing
  */
 const mockManyItemsData: StudentLessonProgressData = {
@@ -135,7 +153,7 @@ const mockManyItemsData: StudentLessonProgressData = {
   lessonProgress: Array.from({ length: 12 }, (_, i) => ({
     id: `topic-${i + 1}`,
     topic: `Tópico ${i + 1} - ${['Biologia', 'Física', 'Química', 'Matemática'][i % 4]}`,
-    progress: Math.round(Math.random() * 100),
+    progress: DETERMINISTIC_PROGRESS[i],
     status: ['completed', 'in_progress', 'no_data'][i % 3] as
       | 'completed'
       | 'in_progress'
@@ -233,7 +251,7 @@ export const AllVariations: Story = () => {
         isOpen={openModals['error'] || false}
         onClose={() => closeModal('error')}
         data={null}
-        error="Erro ao carregar os dados do aluno. Tente novamente."
+        error="Tente novamente mais tarde."
       />
     </div>
   );
@@ -351,7 +369,7 @@ export const ErrorState: Story = () => {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         data={null}
-        error="Erro ao carregar os dados do aluno. Tente novamente."
+        error="Tente novamente mais tarde."
       />
     </>
   );

@@ -1,9 +1,9 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import {
-  MagnifyingGlass,
+  MagnifyingGlassIcon,
   XCircleIcon,
-  Medal,
-  SealWarning,
+  MedalIcon,
+  SealWarningIcon,
 } from '@phosphor-icons/react';
 import { CaretRight } from 'phosphor-react';
 import Modal from '../Modal/Modal';
@@ -120,6 +120,8 @@ const LessonAccordionItem = ({
       {/* Children (expanded content) */}
       {hasChildren && (
         <div
+          data-testid={`accordion-content-${item.id}`}
+          data-expanded={isExpanded}
           className={cn(
             'transition-all duration-300 ease-in-out overflow-hidden',
             isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
@@ -145,7 +147,10 @@ const LessonAccordionItem = ({
  * Loading skeleton for the modal content
  */
 const LoadingSkeleton = () => (
-  <div className="flex flex-col gap-4 animate-pulse">
+  <div
+    data-testid="lesson-progress-skeleton"
+    className="flex flex-col gap-4 animate-pulse"
+  >
     <div className="h-6 bg-background-200 rounded w-48" />
     <div className="flex flex-row gap-3">
       <div className="w-[107px] h-[107px] bg-background-200 rounded-full" />
@@ -164,7 +169,13 @@ const LoadingSkeleton = () => (
 /**
  * Error state component
  */
-const ErrorContent = ({ message }: { message: string }) => (
+const ErrorContent = ({
+  message,
+  prefix,
+}: {
+  message: string;
+  prefix?: string;
+}) => (
   <div className="flex flex-col items-center justify-center py-8 gap-3">
     <Text
       as="span"
@@ -173,7 +184,7 @@ const ErrorContent = ({ message }: { message: string }) => (
       <XCircleIcon size={24} className="text-error-700" weight="fill" />
     </Text>
     <Text size="md" className="text-error-700 text-center">
-      {message}
+      {prefix ? `${prefix}: ${message}` : message}
     </Text>
   </div>
 );
@@ -195,7 +206,11 @@ const ProgressContent = ({
         as="span"
         className="size-6 rounded-full bg-primary-100 flex items-center justify-center"
       >
-        <MagnifyingGlass size={14} className="text-primary-800" weight="bold" />
+        <MagnifyingGlassIcon
+          size={14}
+          className="text-primary-800"
+          weight="bold"
+        />
       </Text>
       <Text size="md" className="text-text-950">
         {data.name}
@@ -217,7 +232,9 @@ const ProgressContent = ({
 
       {/* Best result card */}
       <CardActivitiesResults
-        icon={<Medal size={16} weight="regular" className="text-text-950" />}
+        icon={
+          <MedalIcon size={16} weight="regular" className="text-text-950" />
+        }
         title={labels.bestResultLabel}
         subTitle={data.bestResult || '-'}
         header=""
@@ -226,7 +243,9 @@ const ProgressContent = ({
 
       {/* Biggest difficulty card */}
       <CardActivitiesResults
-        icon={<SealWarning size={16} weight="regular" className="text-white" />}
+        icon={
+          <SealWarningIcon size={16} weight="regular" className="text-white" />
+        }
         title={labels.biggestDifficultyLabel}
         subTitle={data.biggestDifficulty || '-'}
         header=""
@@ -244,6 +263,7 @@ const ProgressContent = ({
           {data.lessonProgress.map((item) => (
             <div
               key={item.id}
+              data-testid={`lesson-item-${item.id}`}
               className="bg-background rounded-xl border border-border-50"
             >
               <LessonAccordionItem
@@ -260,6 +280,7 @@ const ProgressContent = ({
 
 /**
  * Renders the modal content based on loading, error, and data state
+ * Returns null if no content should be displayed
  */
 const renderModalContent = (
   loading: boolean,
@@ -272,13 +293,14 @@ const renderModalContent = (
   }
 
   if (error) {
-    return <ErrorContent message={error} />;
+    return <ErrorContent message={error} prefix={labels.errorMessagePrefix} />;
   }
 
   if (data) {
     return <ProgressContent data={data} labels={labels} />;
   }
 
+  // No content to display when all conditions are false
   return null;
 };
 
@@ -330,7 +352,10 @@ export const StudentLessonProgressModal = ({
     [customLabels]
   );
 
-  if (!data && !loading && !error) {
+  const content = renderModalContent(loading, error, data, labels);
+
+  // Don't render modal if there's no content to display
+  if (!content) {
     return null;
   }
 
@@ -342,7 +367,7 @@ export const StudentLessonProgressModal = ({
       size="lg"
       contentClassName="max-h-[80vh] overflow-y-auto"
     >
-      {renderModalContent(loading, error, data, labels)}
+      {content}
     </Modal>
   );
 };
