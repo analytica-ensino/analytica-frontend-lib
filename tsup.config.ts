@@ -153,6 +153,10 @@ export default defineConfig({
     'StudentPerformanceDetailsModal/index':
       'src/components/StudentPerformanceDetailsModal/index.ts',
 
+    // StudentLessonProgressModal
+    'StudentLessonProgressModal/index':
+      'src/components/StudentLessonProgressModal/index.ts',
+
     // Styles
     styles: 'src/styles.css',
   },
