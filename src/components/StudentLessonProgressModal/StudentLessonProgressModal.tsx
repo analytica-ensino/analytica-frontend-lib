@@ -11,6 +11,11 @@ import Text from '../Text/Text';
 import ProgressBar from '../ProgressBar/ProgressBar';
 import ProgressCircle from '../ProgressCircle/ProgressCircle';
 import { CardActivitiesResults } from '../Card/Card';
+import {
+  Skeleton,
+  SkeletonCircle,
+  SkeletonRounded,
+} from '../Skeleton/Skeleton';
 import type {
   StudentLessonProgressModalProps,
   StudentLessonProgressData,
@@ -145,23 +150,28 @@ const LessonAccordionItem = ({
 
 /**
  * Loading skeleton for the modal content
+ * Uses the shared Skeleton components for consistency
  */
 const LoadingSkeleton = () => (
-  <div
-    data-testid="lesson-progress-skeleton"
-    className="flex flex-col gap-4 animate-pulse"
-  >
-    <div className="h-6 bg-background-200 rounded w-48" />
+  <div data-testid="lesson-progress-skeleton" className="flex flex-col gap-4">
+    {/* Student name skeleton */}
+    <Skeleton variant="text" width="12rem" height={24} />
+
+    {/* Stats cards row skeleton */}
     <div className="flex flex-row gap-3">
-      <div className="w-[107px] h-[107px] bg-background-200 rounded-full" />
-      <div className="flex-1 h-[107px] bg-background-200 rounded-xl" />
-      <div className="flex-1 h-[107px] bg-background-200 rounded-xl" />
+      <SkeletonCircle width={107} height={107} />
+      <SkeletonRounded className="flex-1" height={107} />
+      <SkeletonRounded className="flex-1" height={107} />
     </div>
-    <div className="h-6 bg-background-200 rounded w-36 mt-4" />
+
+    {/* Lesson progress title skeleton */}
+    <Skeleton variant="text" width="9rem" height={24} className="mt-4" />
+
+    {/* Lesson items skeleton */}
     <div className="flex flex-col gap-2">
-      <div className="h-20 bg-background-200 rounded-xl" />
-      <div className="h-20 bg-background-200 rounded-xl" />
-      <div className="h-20 bg-background-200 rounded-xl" />
+      <SkeletonRounded height={80} />
+      <SkeletonRounded height={80} />
+      <SkeletonRounded height={80} />
     </div>
   </div>
 );
