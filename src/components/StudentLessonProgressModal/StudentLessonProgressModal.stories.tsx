@@ -40,7 +40,8 @@ const mockCompleteData: StudentLessonProgressData = {
             },
             {
               id: '1-1-3',
-              topic: 'Explorando o Movimento Uniforme: Sua Relevância na Física',
+              topic:
+                'Explorando o Movimento Uniforme: Sua Relevância na Física',
               progress: 70,
               status: 'in_progress',
             },
@@ -135,7 +136,10 @@ const mockManyItemsData: StudentLessonProgressData = {
     id: `topic-${i + 1}`,
     topic: `Tópico ${i + 1} - ${['Biologia', 'Física', 'Química', 'Matemática'][i % 4]}`,
     progress: Math.round(Math.random() * 100),
-    status: ['completed', 'in_progress', 'no_data'][i % 3] as 'completed' | 'in_progress' | 'no_data',
+    status: ['completed', 'in_progress', 'no_data'][i % 3] as
+      | 'completed'
+      | 'in_progress'
+      | 'no_data',
   })),
 };
 
@@ -177,14 +181,17 @@ export const AllVariations: Story = () => {
         Student Lesson Progress Modal
       </Text>
       <Text as="p" className="text-text-700">
-        Modal para exibição do progresso de aulas do aluno com estrutura aninhada
+        Modal para exibição do progresso de aulas do aluno com estrutura
+        aninhada
       </Text>
 
       <div className="flex flex-wrap gap-4">
         <Button onClick={() => openModal('complete')}>
           Dados Completos (Aninhado)
         </Button>
-        <Button onClick={() => openModal('flat')}>Dados Flat (API Atual)</Button>
+        <Button onClick={() => openModal('flat')}>
+          Dados Flat (API Atual)
+        </Button>
         <Button onClick={() => openModal('many')}>Muitos Itens (Scroll)</Button>
         <Button onClick={() => openModal('partial')}>Dados Parciais</Button>
         <Button onClick={() => openModal('loading')}>Estado de Loading</Button>

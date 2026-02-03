@@ -62,7 +62,11 @@ const mockStudentData: StudentLessonProgressData = {
   overallCompletionRate: 90,
   bestResult: 'Fotossíntese',
   biggestDifficulty: 'Células',
-  lessonProgress: [mockNestedLessonItem, mockFlatLessonItem, mockCompletedLessonItem],
+  lessonProgress: [
+    mockNestedLessonItem,
+    mockFlatLessonItem,
+    mockCompletedLessonItem,
+  ],
 };
 
 /**
@@ -198,7 +202,9 @@ describe('StudentLessonProgressModal', () => {
       render(<StudentLessonProgressModal {...defaultProps} />);
 
       // Initially, nested content should be hidden (max-h-0)
-      const expandableContent = screen.getByText('Aspectos iniciais').closest('div[class*="max-h-"]');
+      const expandableContent = screen
+        .getByText('Aspectos iniciais')
+        .closest('div[class*="max-h-"]');
       expect(expandableContent).toHaveClass('max-h-0');
 
       // Click on parent topic to expand
@@ -217,18 +223,24 @@ describe('StudentLessonProgressModal', () => {
       fireEvent.click(topicButton!);
 
       // Expand second level
-      const subtopicButton = screen.getByText('Aspectos iniciais').closest('button');
+      const subtopicButton = screen
+        .getByText('Aspectos iniciais')
+        .closest('button');
       fireEvent.click(subtopicButton!);
 
       // Third level should now be visible
-      expect(screen.getByText('Fundamentos do Movimento Uniforme')).toBeVisible();
+      expect(
+        screen.getByText('Fundamentos do Movimento Uniforme')
+      ).toBeVisible();
     });
 
     it('does not show expand arrow for items without children', () => {
       render(<StudentLessonProgressModal {...defaultProps} />);
 
       // "Grandezas físicas" has no children
-      const itemButton = screen.getByText('Grandezas físicas').closest('button');
+      const itemButton = screen
+        .getByText('Grandezas físicas')
+        .closest('button');
       expect(itemButton).toHaveAttribute('disabled');
     });
   });
@@ -390,9 +402,7 @@ describe('StudentLessonProgressModal', () => {
     });
 
     it('does not render when isOpen is false', () => {
-      render(
-        <StudentLessonProgressModal {...defaultProps} isOpen={false} />
-      );
+      render(<StudentLessonProgressModal {...defaultProps} isOpen={false} />);
       expect(screen.queryByText('Desempenho')).not.toBeInTheDocument();
     });
   });
@@ -408,7 +418,9 @@ describe('StudentLessonProgressModal', () => {
       // "Frações" appears twice: once in bestResult card and once in lesson progress
       expect(screen.getAllByText('Frações').length).toBeGreaterThanOrEqual(1);
       // "Geometria Espacial" appears twice: once in biggestDifficulty card and once in lesson progress
-      expect(screen.getAllByText('Geometria Espacial').length).toBeGreaterThanOrEqual(1);
+      expect(
+        screen.getAllByText('Geometria Espacial').length
+      ).toBeGreaterThanOrEqual(1);
     });
 
     it('renders progress percentages for flat data', () => {

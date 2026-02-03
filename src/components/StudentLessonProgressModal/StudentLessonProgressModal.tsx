@@ -1,5 +1,10 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { MagnifyingGlass, XCircleIcon, Medal, SealWarning } from '@phosphor-icons/react';
+import {
+  MagnifyingGlass,
+  XCircleIcon,
+  Medal,
+  SealWarning,
+} from '@phosphor-icons/react';
 import { CaretRight } from 'phosphor-react';
 import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
@@ -67,7 +72,11 @@ const LessonAccordionItem = ({
             ) : (
               <div className="flex flex-row items-center gap-2">
                 <div className="flex-1">
-                  <ProgressBar value={progressValue} variant="green" size="medium" />
+                  <ProgressBar
+                    value={progressValue}
+                    variant="green"
+                    size="medium"
+                  />
                 </div>
                 <Text
                   size="xs"
