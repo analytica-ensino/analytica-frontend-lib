@@ -7,6 +7,11 @@ import {
   mapApiStatusToInternal,
   mapInternalStatusToApi,
 } from './support';
+import type {
+  SupportType,
+  SupportFeatureFlags,
+  SupportApiClient,
+} from './support';
 
 describe('Support Types', () => {
   describe('SupportStatus enum', () => {
@@ -116,6 +121,68 @@ describe('Support Types', () => {
 
     it('deve retornar "ABERTO" como padrão para status desconhecido', () => {
       expect(mapInternalStatusToApi('unknown' as SupportStatus)).toBe('ABERTO');
+    });
+  });
+
+  describe('SupportType', () => {
+    it('deve aceitar NATIVE como valor válido', () => {
+      const type: SupportType = 'NATIVE';
+      expect(type).toBe('NATIVE');
+    });
+
+    it('deve aceitar ZENDESK como valor válido', () => {
+      const type: SupportType = 'ZENDESK';
+      expect(type).toBe('ZENDESK');
+    });
+  });
+
+  describe('SupportFeatureFlags', () => {
+    it('deve aceitar objeto com estrutura correta', () => {
+      const featureFlag: SupportFeatureFlags = {
+        institutionId: 'inst-123',
+        page: 'SUPPORT',
+        version: { supportType: 'NATIVE' },
+      };
+
+      expect(featureFlag.institutionId).toBe('inst-123');
+      expect(featureFlag.page).toBe('SUPPORT');
+      expect(featureFlag.version.supportType).toBe('NATIVE');
+    });
+
+    it('deve aceitar ZENDESK como supportType na version', () => {
+      const featureFlag: SupportFeatureFlags = {
+        institutionId: 'inst-456',
+        page: 'SUPPORT',
+        version: { supportType: 'ZENDESK' },
+      };
+
+      expect(featureFlag.version.supportType).toBe('ZENDESK');
+    });
+  });
+
+  describe('SupportApiClient', () => {
+    it('deve aceitar objeto com métodos get, post e patch', () => {
+      const client: SupportApiClient = {
+        get: jest.fn().mockResolvedValue({ data: {} }),
+        post: jest.fn().mockResolvedValue({ data: {} }),
+        patch: jest.fn().mockResolvedValue({ data: {} }),
+      };
+
+      expect(typeof client.get).toBe('function');
+      expect(typeof client.post).toBe('function');
+      expect(typeof client.patch).toBe('function');
+    });
+
+    it('get deve retornar Promise com data tipado', async () => {
+      const mockData = { message: 'ok' };
+      const client: SupportApiClient = {
+        get: jest.fn().mockResolvedValue({ data: mockData }),
+        post: jest.fn(),
+        patch: jest.fn(),
+      };
+
+      const result = await client.get<{ message: string }>('/test');
+      expect(result.data).toEqual(mockData);
     });
   });
 });
