@@ -576,7 +576,20 @@ export type {
   SubmitSupportAnswerRequest,
   SubmitSupportAnswerResponse,
   SupportApiClient,
+  SupportFeatureFlags,
+  SupportType,
 } from './types/support';
+
+// Zendesk Widget Component
+export { ZendeskWidget } from './components/ZendeskWidget';
+export type { ZendeskWidgetProps } from './components/ZendeskWidget';
+
+// Support Feature Flag Hook
+export { useSupportFeatureFlag } from './hooks/useSupportFeatureFlag';
+export type {
+  UseSupportFeatureFlagConfig,
+  UseSupportFeatureFlagReturn,
+} from './hooks/useSupportFeatureFlag';
 
 // SendActivityModal Component
 export { SendActivityModal } from './components/SendActivityModal';

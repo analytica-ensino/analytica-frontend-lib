@@ -78,17 +78,44 @@ describe('performanceUtils', () => {
         isCorrect: true,
         teacherFeedback: 'Good job!',
         alternatives: [
-          { id: 'option-1', text: 'São Paulo', isCorrect: false, isSelected: false },
-          { id: 'option-2', text: 'Brasília', isCorrect: true, isSelected: false },
-          { id: 'option-3', text: 'Rio de Janeiro', isCorrect: false, isSelected: false },
+          {
+            id: 'option-1',
+            text: 'São Paulo',
+            isCorrect: false,
+            isSelected: false,
+          },
+          {
+            id: 'option-2',
+            text: 'Brasília',
+            isCorrect: true,
+            isSelected: false,
+          },
+          {
+            id: 'option-3',
+            text: 'Rio de Janeiro',
+            isCorrect: false,
+            isSelected: false,
+          },
         ],
       });
     });
 
     it('should generate correct title based on index', () => {
-      const result0 = convertAnswerToLessonQuestion(baseAnswer, 0, 'activity-1');
-      const result1 = convertAnswerToLessonQuestion(baseAnswer, 1, 'activity-1');
-      const result4 = convertAnswerToLessonQuestion(baseAnswer, 4, 'activity-1');
+      const result0 = convertAnswerToLessonQuestion(
+        baseAnswer,
+        0,
+        'activity-1'
+      );
+      const result1 = convertAnswerToLessonQuestion(
+        baseAnswer,
+        1,
+        'activity-1'
+      );
+      const result4 = convertAnswerToLessonQuestion(
+        baseAnswer,
+        4,
+        'activity-1'
+      );
 
       expect(result0.title).toBe('Questão 1');
       expect(result1.title).toBe('Questão 2');
@@ -101,7 +128,11 @@ describe('performanceUtils', () => {
         answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
       };
 
-      const result = convertAnswerToLessonQuestion(incorrectAnswer, 0, 'activity-1');
+      const result = convertAnswerToLessonQuestion(
+        incorrectAnswer,
+        0,
+        'activity-1'
+      );
       expect(result.isCorrect).toBe(false);
     });
 
@@ -111,7 +142,11 @@ describe('performanceUtils', () => {
         answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
       };
 
-      const result = convertAnswerToLessonQuestion(pendingAnswer, 0, 'activity-1');
+      const result = convertAnswerToLessonQuestion(
+        pendingAnswer,
+        0,
+        'activity-1'
+      );
       expect(result.isCorrect).toBe(null);
     });
 
@@ -121,7 +156,11 @@ describe('performanceUtils', () => {
         selectedOptions: [{ optionId: 'option-2' }],
       };
 
-      const result = convertAnswerToLessonQuestion(answerWithSelection, 0, 'activity-1');
+      const result = convertAnswerToLessonQuestion(
+        answerWithSelection,
+        0,
+        'activity-1'
+      );
 
       expect(result.alternatives[0].isSelected).toBe(false);
       expect(result.alternatives[1].isSelected).toBe(true);
@@ -134,7 +173,11 @@ describe('performanceUtils', () => {
         selectedOptions: [{ optionId: 'option-1' }, { optionId: 'option-3' }],
       };
 
-      const result = convertAnswerToLessonQuestion(answerWithMultipleSelections, 0, 'activity-1');
+      const result = convertAnswerToLessonQuestion(
+        answerWithMultipleSelections,
+        0,
+        'activity-1'
+      );
 
       expect(result.alternatives[0].isSelected).toBe(true);
       expect(result.alternatives[1].isSelected).toBe(false);
@@ -147,7 +190,11 @@ describe('performanceUtils', () => {
         options: undefined,
       };
 
-      const result = convertAnswerToLessonQuestion(answerWithoutOptions, 0, 'activity-1');
+      const result = convertAnswerToLessonQuestion(
+        answerWithoutOptions,
+        0,
+        'activity-1'
+      );
       expect(result.alternatives).toEqual([]);
     });
 
@@ -157,7 +204,11 @@ describe('performanceUtils', () => {
         options: [],
       };
 
-      const result = convertAnswerToLessonQuestion(answerWithEmptyOptions, 0, 'activity-1');
+      const result = convertAnswerToLessonQuestion(
+        answerWithEmptyOptions,
+        0,
+        'activity-1'
+      );
       expect(result.alternatives).toEqual([]);
     });
 
@@ -167,7 +218,11 @@ describe('performanceUtils', () => {
         statement: null as unknown as string,
       };
 
-      const result = convertAnswerToLessonQuestion(answerWithNullStatement, 0, 'activity-1');
+      const result = convertAnswerToLessonQuestion(
+        answerWithNullStatement,
+        0,
+        'activity-1'
+      );
       expect(result.statement).toBe('');
     });
 
@@ -177,7 +232,11 @@ describe('performanceUtils', () => {
         statement: '',
       };
 
-      const result = convertAnswerToLessonQuestion(answerWithEmptyStatement, 0, 'activity-1');
+      const result = convertAnswerToLessonQuestion(
+        answerWithEmptyStatement,
+        0,
+        'activity-1'
+      );
       expect(result.statement).toBe('');
     });
 
@@ -187,7 +246,11 @@ describe('performanceUtils', () => {
         teacherFeedback: null,
       };
 
-      const result = convertAnswerToLessonQuestion(answerWithNullFeedback, 0, 'activity-1');
+      const result = convertAnswerToLessonQuestion(
+        answerWithNullFeedback,
+        0,
+        'activity-1'
+      );
       expect(result.teacherFeedback).toBe(null);
     });
 
@@ -195,11 +258,19 @@ describe('performanceUtils', () => {
       const answerWithUndefinedIsCorrect = {
         ...baseAnswer,
         options: [
-          { id: 'option-1', option: 'Option A', isCorrect: undefined as unknown as boolean },
+          {
+            id: 'option-1',
+            option: 'Option A',
+            isCorrect: undefined as unknown as boolean,
+          },
         ],
       };
 
-      const result = convertAnswerToLessonQuestion(answerWithUndefinedIsCorrect, 0, 'activity-1');
+      const result = convertAnswerToLessonQuestion(
+        answerWithUndefinedIsCorrect,
+        0,
+        'activity-1'
+      );
       expect(result.alternatives[0].isCorrect).toBe(false);
     });
 
@@ -209,7 +280,11 @@ describe('performanceUtils', () => {
         selectedOptions: undefined as unknown as Array<{ optionId: string }>,
       };
 
-      const result = convertAnswerToLessonQuestion(answerWithUndefinedSelectedOptions, 0, 'activity-1');
+      const result = convertAnswerToLessonQuestion(
+        answerWithUndefinedSelectedOptions,
+        0,
+        'activity-1'
+      );
       expect(result.alternatives[0].isSelected).toBe(false);
     });
   });
@@ -540,17 +615,26 @@ describe('performanceUtils', () => {
             {
               ...baseResponse.data.activities[0],
               id: 'activity-1',
-              statistics: { ...baseResponse.data.activities[0].statistics, score: 8 },
+              statistics: {
+                ...baseResponse.data.activities[0].statistics,
+                score: 8,
+              },
             },
             {
               ...baseResponse.data.activities[0],
               id: 'activity-2',
-              statistics: { ...baseResponse.data.activities[0].statistics, score: null },
+              statistics: {
+                ...baseResponse.data.activities[0].statistics,
+                score: null,
+              },
             },
             {
               ...baseResponse.data.activities[0],
               id: 'activity-3',
-              statistics: { ...baseResponse.data.activities[0].statistics, score: 10 },
+              statistics: {
+                ...baseResponse.data.activities[0].statistics,
+                score: 10,
+              },
             },
           ],
         },

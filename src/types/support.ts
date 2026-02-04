@@ -184,3 +184,14 @@ export interface SupportApiClient {
   post: <T>(url: string, data?: unknown) => Promise<{ data: T }>;
   patch: <T>(url: string, data?: unknown) => Promise<{ data: T }>;
 }
+
+// Feature Flag Support Types
+export type SupportType = 'NATIVE' | 'ZENDESK';
+
+export interface SupportFeatureFlags {
+  institutionId: string;
+  page: string;
+  version: {
+    supportType: SupportType;
+  };
+}
