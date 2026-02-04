@@ -26,7 +26,10 @@ export const useSupportFeatureFlag = (
   const { institutionId } = useAppStore();
 
   useEffect(() => {
-    if (!institutionId) return;
+    if (!institutionId) {
+      setLoading(false);
+      return;
+    }
 
     const fetchSupportFlag = async () => {
       try {

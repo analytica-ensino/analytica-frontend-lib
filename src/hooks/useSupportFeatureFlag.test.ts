@@ -131,15 +131,20 @@ describe('useSupportFeatureFlag', () => {
       });
     });
 
-    it('não deve fazer fetch quando institutionId é null', () => {
+    it('não deve fazer fetch quando institutionId é null', async () => {
       act(() => {
         useAppStore.setState({ institutionId: null });
       });
 
       const apiClient = createMockApiClient();
-      renderHook(() => useSupportFeatureFlag({ apiClient }));
+      const { result } = renderHook(() => useSupportFeatureFlag({ apiClient }));
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
 
       expect(apiClient.get).not.toHaveBeenCalled();
+      expect(result.current.supportType).toBe('NATIVE');
     });
   });
 
