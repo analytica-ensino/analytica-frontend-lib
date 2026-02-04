@@ -559,6 +559,7 @@ export {
   getCategoryText,
   mapApiStatusToInternal,
   mapInternalStatusToApi,
+  SupportType,
 } from './types/support';
 export type {
   TicketStatus,
@@ -577,7 +578,6 @@ export type {
   SubmitSupportAnswerResponse,
   SupportApiClient,
   SupportFeatureFlags,
-  SupportType,
 } from './types/support';
 
 // Zendesk Widget Component

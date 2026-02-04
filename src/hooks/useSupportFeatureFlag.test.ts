@@ -1,7 +1,7 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useSupportFeatureFlag } from '@/hooks/useSupportFeatureFlag';
 import { useAppStore } from '@/store/appStore';
-import type { SupportApiClient } from '@/types/support';
+import { SupportType, type SupportApiClient } from '@/types/support';
 
 const createMockApiClient = (
   response?: unknown,
@@ -34,7 +34,7 @@ describe('useSupportFeatureFlag', () => {
       const apiClient = createMockApiClient();
       const { result } = renderHook(() => useSupportFeatureFlag({ apiClient }));
 
-      expect(result.current.supportType).toBe('NATIVE');
+      expect(result.current.supportType).toBe(SupportType.NATIVE);
       expect(result.current.loading).toBe(true);
       expect(result.current.isNative).toBe(true);
       expect(result.current.isZendesk).toBe(false);
@@ -55,7 +55,7 @@ describe('useSupportFeatureFlag', () => {
           featureFlags: {
             institutionId: 'institution-123',
             page: 'SUPPORT',
-            version: { supportType: 'NATIVE' },
+            version: { supportType: SupportType.NATIVE },
           },
         },
       });
@@ -75,7 +75,7 @@ describe('useSupportFeatureFlag', () => {
           featureFlags: {
             institutionId: 'institution-123',
             page: 'SUPPORT',
-            version: { supportType: 'ZENDESK' },
+            version: { supportType: SupportType.ZENDESK },
           },
         },
       });
@@ -86,7 +86,7 @@ describe('useSupportFeatureFlag', () => {
         expect(result.current.loading).toBe(false);
       });
 
-      expect(result.current.supportType).toBe('ZENDESK');
+      expect(result.current.supportType).toBe(SupportType.ZENDESK);
       expect(result.current.isZendesk).toBe(true);
       expect(result.current.isNative).toBe(false);
     });
@@ -97,7 +97,7 @@ describe('useSupportFeatureFlag', () => {
           featureFlags: {
             institutionId: 'institution-123',
             page: 'SUPPORT',
-            version: { supportType: 'NATIVE' },
+            version: { supportType: SupportType.NATIVE },
           },
         },
       });
@@ -108,7 +108,7 @@ describe('useSupportFeatureFlag', () => {
         expect(result.current.loading).toBe(false);
       });
 
-      expect(result.current.supportType).toBe('NATIVE');
+      expect(result.current.supportType).toBe(SupportType.NATIVE);
       expect(result.current.isNative).toBe(true);
       expect(result.current.isZendesk).toBe(false);
     });
@@ -119,7 +119,7 @@ describe('useSupportFeatureFlag', () => {
           featureFlags: {
             institutionId: 'institution-123',
             page: 'SUPPORT',
-            version: { supportType: 'NATIVE' },
+            version: { supportType: SupportType.NATIVE },
           },
         },
       });
@@ -144,7 +144,7 @@ describe('useSupportFeatureFlag', () => {
       });
 
       expect(apiClient.get).not.toHaveBeenCalled();
-      expect(result.current.supportType).toBe('NATIVE');
+      expect(result.current.supportType).toBe(SupportType.NATIVE);
     });
   });
 
@@ -158,7 +158,7 @@ describe('useSupportFeatureFlag', () => {
         expect(result.current.loading).toBe(false);
       });
 
-      expect(result.current.supportType).toBe('NATIVE');
+      expect(result.current.supportType).toBe(SupportType.NATIVE);
       expect(result.current.isNative).toBe(true);
     });
 
@@ -183,7 +183,7 @@ describe('useSupportFeatureFlag', () => {
         expect(result.current.loading).toBe(false);
       });
 
-      expect(result.current.supportType).toBe('NATIVE');
+      expect(result.current.supportType).toBe(SupportType.NATIVE);
     });
   });
 
@@ -225,7 +225,7 @@ describe('useSupportFeatureFlag', () => {
           featureFlags: {
             institutionId: 'institution-123',
             page: 'SUPPORT',
-            version: { supportType: 'NATIVE' },
+            version: { supportType: SupportType.NATIVE },
           },
         },
       });

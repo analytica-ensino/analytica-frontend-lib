@@ -6,16 +6,13 @@ import {
   getCategoryText,
   mapApiStatusToInternal,
   mapInternalStatusToApi,
-} from './support';
-import type {
   SupportType,
-  SupportFeatureFlags,
-  SupportApiClient,
 } from './support';
+import type { SupportFeatureFlags, SupportApiClient } from './support';
 
 describe('Support Types', () => {
   describe('SupportStatus enum', () => {
-    it('deve ter os valores corretos', () => {
+    it('should have the correct values', () => {
       expect(SupportStatus.ABERTO).toBe('aberto');
       expect(SupportStatus.RESPONDIDO).toBe('respondido');
       expect(SupportStatus.ENCERRADO).toBe('encerrado');
@@ -23,7 +20,7 @@ describe('Support Types', () => {
   });
 
   describe('SupportCategory enum', () => {
-    it('deve ter os valores corretos', () => {
+    it('should have the correct values', () => {
       expect(SupportCategory.ACESSO).toBe('acesso');
       expect(SupportCategory.TECNICO).toBe('tecnico');
       expect(SupportCategory.OUTROS).toBe('outros');
@@ -31,137 +28,137 @@ describe('Support Types', () => {
   });
 
   describe('getStatusBadgeAction', () => {
-    it('deve retornar "success" para status ABERTO', () => {
+    it('should return "success" for ABERTO status', () => {
       expect(getStatusBadgeAction(SupportStatus.ABERTO)).toBe('success');
     });
 
-    it('deve retornar "warning" para status RESPONDIDO', () => {
+    it('should return "warning" for RESPONDIDO status', () => {
       expect(getStatusBadgeAction(SupportStatus.RESPONDIDO)).toBe('warning');
     });
 
-    it('deve retornar "info" para status ENCERRADO', () => {
+    it('should return "info" for ENCERRADO status', () => {
       expect(getStatusBadgeAction(SupportStatus.ENCERRADO)).toBe('info');
     });
 
-    it('deve retornar "info" para status desconhecido', () => {
+    it('should return "info" for unknown status', () => {
       expect(getStatusBadgeAction('unknown' as SupportStatus)).toBe('info');
     });
   });
 
   describe('getStatusText', () => {
-    it('deve retornar "Aberto" para status ABERTO', () => {
+    it('should return "Aberto" for ABERTO status', () => {
       expect(getStatusText(SupportStatus.ABERTO)).toBe('Aberto');
     });
 
-    it('deve retornar "Respondido" para status RESPONDIDO', () => {
+    it('should return "Respondido" for RESPONDIDO status', () => {
       expect(getStatusText(SupportStatus.RESPONDIDO)).toBe('Respondido');
     });
 
-    it('deve retornar "Encerrado" para status ENCERRADO', () => {
+    it('should return "Encerrado" for ENCERRADO status', () => {
       expect(getStatusText(SupportStatus.ENCERRADO)).toBe('Encerrado');
     });
 
-    it('deve retornar o próprio valor para status desconhecido', () => {
+    it('should return the raw value for unknown status', () => {
       expect(getStatusText('unknown' as SupportStatus)).toBe('unknown');
     });
   });
 
   describe('getCategoryText', () => {
-    it('deve retornar "Acesso" para categoria ACESSO', () => {
+    it('should return "Acesso" for ACESSO category', () => {
       expect(getCategoryText(SupportCategory.ACESSO)).toBe('Acesso');
     });
 
-    it('deve retornar "Técnico" para categoria TECNICO', () => {
+    it('should return "Técnico" for TECNICO category', () => {
       expect(getCategoryText(SupportCategory.TECNICO)).toBe('Técnico');
     });
 
-    it('deve retornar "Outros" para categoria OUTROS', () => {
+    it('should return "Outros" for OUTROS category', () => {
       expect(getCategoryText(SupportCategory.OUTROS)).toBe('Outros');
     });
 
-    it('deve retornar string vazia para null', () => {
+    it('should return empty string for null', () => {
       expect(getCategoryText(null)).toBe('');
     });
 
-    it('deve retornar o próprio valor para categoria desconhecida', () => {
+    it('should return the raw value for unknown category', () => {
       expect(getCategoryText('unknown' as SupportCategory)).toBe('unknown');
     });
   });
 
   describe('mapApiStatusToInternal', () => {
-    it('deve mapear "ABERTO" para SupportStatus.ABERTO', () => {
+    it('should map "ABERTO" to SupportStatus.ABERTO', () => {
       expect(mapApiStatusToInternal('ABERTO')).toBe(SupportStatus.ABERTO);
     });
 
-    it('deve mapear "PENDENTE" para SupportStatus.RESPONDIDO', () => {
+    it('should map "PENDENTE" to SupportStatus.RESPONDIDO', () => {
       expect(mapApiStatusToInternal('PENDENTE')).toBe(SupportStatus.RESPONDIDO);
     });
 
-    it('deve mapear "FECHADO" para SupportStatus.ENCERRADO', () => {
+    it('should map "FECHADO" to SupportStatus.ENCERRADO', () => {
       expect(mapApiStatusToInternal('FECHADO')).toBe(SupportStatus.ENCERRADO);
     });
 
-    it('deve retornar ABERTO como padrão para status desconhecido', () => {
+    it('should default to ABERTO for unknown status', () => {
       expect(mapApiStatusToInternal('UNKNOWN')).toBe(SupportStatus.ABERTO);
     });
   });
 
   describe('mapInternalStatusToApi', () => {
-    it('deve mapear SupportStatus.ABERTO para "ABERTO"', () => {
+    it('should map SupportStatus.ABERTO to "ABERTO"', () => {
       expect(mapInternalStatusToApi(SupportStatus.ABERTO)).toBe('ABERTO');
     });
 
-    it('deve mapear SupportStatus.RESPONDIDO para "PENDENTE"', () => {
+    it('should map SupportStatus.RESPONDIDO to "PENDENTE"', () => {
       expect(mapInternalStatusToApi(SupportStatus.RESPONDIDO)).toBe('PENDENTE');
     });
 
-    it('deve mapear SupportStatus.ENCERRADO para "FECHADO"', () => {
+    it('should map SupportStatus.ENCERRADO to "FECHADO"', () => {
       expect(mapInternalStatusToApi(SupportStatus.ENCERRADO)).toBe('FECHADO');
     });
 
-    it('deve retornar "ABERTO" como padrão para status desconhecido', () => {
+    it('should default to "ABERTO" for unknown status', () => {
       expect(mapInternalStatusToApi('unknown' as SupportStatus)).toBe('ABERTO');
     });
   });
 
   describe('SupportType', () => {
-    it('deve aceitar NATIVE como valor válido', () => {
-      const type: SupportType = 'NATIVE';
-      expect(type).toBe('NATIVE');
+    it('should accept NATIVE as a valid value', () => {
+      const type: SupportType = SupportType.NATIVE;
+      expect(type).toBe(SupportType.NATIVE);
     });
 
-    it('deve aceitar ZENDESK como valor válido', () => {
-      const type: SupportType = 'ZENDESK';
-      expect(type).toBe('ZENDESK');
+    it('should accept ZENDESK as a valid value', () => {
+      const type: SupportType = SupportType.ZENDESK;
+      expect(type).toBe(SupportType.ZENDESK);
     });
   });
 
   describe('SupportFeatureFlags', () => {
-    it('deve aceitar objeto com estrutura correta', () => {
+    it('should accept an object with the correct structure', () => {
       const featureFlag: SupportFeatureFlags = {
         institutionId: 'inst-123',
         page: 'SUPPORT',
-        version: { supportType: 'NATIVE' },
+        version: { supportType: SupportType.NATIVE },
       };
 
       expect(featureFlag.institutionId).toBe('inst-123');
       expect(featureFlag.page).toBe('SUPPORT');
-      expect(featureFlag.version.supportType).toBe('NATIVE');
+      expect(featureFlag.version.supportType).toBe(SupportType.NATIVE);
     });
 
-    it('deve aceitar ZENDESK como supportType na version', () => {
+    it('should accept ZENDESK as supportType in version', () => {
       const featureFlag: SupportFeatureFlags = {
         institutionId: 'inst-456',
         page: 'SUPPORT',
-        version: { supportType: 'ZENDESK' },
+        version: { supportType: SupportType.ZENDESK },
       };
 
-      expect(featureFlag.version.supportType).toBe('ZENDESK');
+      expect(featureFlag.version.supportType).toBe(SupportType.ZENDESK);
     });
   });
 
   describe('SupportApiClient', () => {
-    it('deve aceitar objeto com métodos get, post e patch', () => {
+    it('should accept an object with get, post and patch methods', () => {
       const client: SupportApiClient = {
         get: jest.fn().mockResolvedValue({ data: {} }),
         post: jest.fn().mockResolvedValue({ data: {} }),
@@ -173,7 +170,7 @@ describe('Support Types', () => {
       expect(typeof client.patch).toBe('function');
     });
 
-    it('get deve retornar Promise com data tipado', async () => {
+    it('get should return a Promise with typed data', async () => {
       const mockData = { message: 'ok' };
       const client: SupportApiClient = {
         get: jest.fn().mockResolvedValue({ data: mockData }),

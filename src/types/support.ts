@@ -186,7 +186,10 @@ export interface SupportApiClient {
 }
 
 // Feature Flag Support Types
-export type SupportType = 'NATIVE' | 'ZENDESK';
+export enum SupportType {
+  NATIVE = 'NATIVE',
+  ZENDESK = 'ZENDESK',
+}
 
 export interface SupportFeatureFlags {
   institutionId: string;

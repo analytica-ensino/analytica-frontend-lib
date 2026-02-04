@@ -7,10 +7,8 @@ describe('ZendeskWidget', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     _resetWidgetCount();
-    // Limpa scripts do Zendesk do DOM
     const existingScript = document.getElementById('ze-snippet');
     if (existingScript) existingScript.remove();
-    // Limpa window.zE
     delete (globalThis as unknown as Record<string, unknown>).zE;
   });
 
@@ -20,20 +18,20 @@ describe('ZendeskWidget', () => {
     delete (globalThis as unknown as Record<string, unknown>).zE;
   });
 
-  describe('renderização', () => {
-    it('deve retornar null (não renderiza nada visível)', () => {
+  describe('rendering', () => {
+    it('should return null (renders nothing visible)', () => {
       const { container } = render(<ZendeskWidget zendeskKey={testKey} />);
       expect(container.innerHTML).toBe('');
     });
 
-    it('não deve adicionar script quando zendeskKey é vazio', () => {
+    it('should not add script when zendeskKey is empty', () => {
       render(<ZendeskWidget zendeskKey="" />);
       expect(document.getElementById('ze-snippet')).toBeNull();
     });
   });
 
-  describe('injeção do script', () => {
-    it('deve adicionar o script do Zendesk ao body', () => {
+  describe('script injection', () => {
+    it('should add the Zendesk script to the body', () => {
       render(<ZendeskWidget zendeskKey={testKey} />);
 
       const script = document.getElementById('ze-snippet');
@@ -41,7 +39,7 @@ describe('ZendeskWidget', () => {
       expect(script?.tagName).toBe('SCRIPT');
     });
 
-    it('deve configurar a URL correta com a key', () => {
+    it('should set the correct URL with the key', () => {
       render(<ZendeskWidget zendeskKey={testKey} />);
 
       const script = document.getElementById('ze-snippet') as HTMLScriptElement;
@@ -50,14 +48,14 @@ describe('ZendeskWidget', () => {
       );
     });
 
-    it('deve configurar o script como async', () => {
+    it('should set the script as async', () => {
       render(<ZendeskWidget zendeskKey={testKey} />);
 
       const script = document.getElementById('ze-snippet') as HTMLScriptElement;
       expect(script.async).toBe(true);
     });
 
-    it('não deve duplicar o script se já existir', () => {
+    it('should not duplicate the script if it already exists', () => {
       const existingScript = document.createElement('script');
       existingScript.id = 'ze-snippet';
       document.body.appendChild(existingScript);
@@ -70,14 +68,13 @@ describe('ZendeskWidget', () => {
   });
 
   describe('onload callback', () => {
-    it('deve configurar locale pt-BR quando o script carrega', () => {
+    it('should set locale to pt-BR when the script loads', () => {
       const mockZE = jest.fn();
 
       render(<ZendeskWidget zendeskKey={testKey} />);
 
       const script = document.getElementById('ze-snippet') as HTMLScriptElement;
 
-      // Simula window.zE antes de chamar onload
       (globalThis as unknown as Record<string, unknown>).zE = mockZE;
 
       act(() => {
@@ -87,7 +84,7 @@ describe('ZendeskWidget', () => {
       expect(mockZE).toHaveBeenCalledWith('messenger:set', 'locale', 'pt-BR');
     });
 
-    it('não deve falhar se window.zE não existir no onload', () => {
+    it('should not fail if globalThis.zE does not exist on load', () => {
       render(<ZendeskWidget zendeskKey={testKey} />);
 
       const script = document.getElementById('ze-snippet') as HTMLScriptElement;
@@ -100,8 +97,8 @@ describe('ZendeskWidget', () => {
     });
   });
 
-  describe('cleanup no unmount', () => {
-    it('deve remover o script do DOM ao desmontar', () => {
+  describe('cleanup on unmount', () => {
+    it('should remove the script from the DOM on unmount', () => {
       const { unmount } = render(<ZendeskWidget zendeskKey={testKey} />);
 
       expect(document.getElementById('ze-snippet')).not.toBeNull();
@@ -111,7 +108,7 @@ describe('ZendeskWidget', () => {
       expect(document.getElementById('ze-snippet')).toBeNull();
     });
 
-    it('deve chamar zE messenger close ao desmontar', () => {
+    it('should call zE messenger close on unmount', () => {
       const mockZE = jest.fn();
       (globalThis as unknown as Record<string, unknown>).zE = mockZE;
 
@@ -122,7 +119,7 @@ describe('ZendeskWidget', () => {
       expect(mockZE).toHaveBeenCalledWith('messenger', 'close');
     });
 
-    it('não deve falhar no cleanup se window.zE não existir', () => {
+    it('should not fail on cleanup if globalThis.zE does not exist', () => {
       const { unmount } = render(<ZendeskWidget zendeskKey={testKey} />);
 
       delete (globalThis as unknown as Record<string, unknown>).zE;
@@ -131,8 +128,8 @@ describe('ZendeskWidget', () => {
     });
   });
 
-  describe('reference-count com múltiplas instâncias', () => {
-    it('não deve remover o script quando apenas uma de duas instâncias desmonta', () => {
+  describe('reference counting with multiple instances', () => {
+    it('should not remove the script when only one of two instances unmounts', () => {
       const { unmount: unmount1 } = render(
         <ZendeskWidget zendeskKey={testKey} />
       );
@@ -144,16 +141,14 @@ describe('ZendeskWidget', () => {
 
       unmount1();
 
-      // Script deve permanecer porque a segunda instância ainda está montada
       expect(document.getElementById('ze-snippet')).not.toBeNull();
 
       unmount2();
 
-      // Agora sim deve remover
       expect(document.getElementById('ze-snippet')).toBeNull();
     });
 
-    it('deve chamar zE close apenas quando a última instância desmonta', () => {
+    it('should call zE close only when the last instance unmounts', () => {
       const mockZE = jest.fn();
       (globalThis as unknown as Record<string, unknown>).zE = mockZE;
 
@@ -174,8 +169,8 @@ describe('ZendeskWidget', () => {
     });
   });
 
-  describe('mudança de zendeskKey', () => {
-    it('deve recriar o script ao mudar a key', () => {
+  describe('zendeskKey change', () => {
+    it('should recreate the script when the key changes', () => {
       const { rerender } = render(<ZendeskWidget zendeskKey={testKey} />);
 
       const firstScript = document.getElementById(
@@ -183,7 +178,6 @@ describe('ZendeskWidget', () => {
       ) as HTMLScriptElement;
       expect(firstScript.src).toContain(testKey);
 
-      // Remove o script (simula cleanup do effect anterior)
       rerender(<ZendeskWidget zendeskKey="new-key-456" />);
 
       const newScript = document.getElementById(

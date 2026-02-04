@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useAppStore } from '@/store/appStore';
-import type {
+import {
   SupportType,
-  SupportFeatureFlags,
-  SupportApiClient,
+  type SupportFeatureFlags,
+  type SupportApiClient,
 } from '@/types/support';
 
 export interface UseSupportFeatureFlagConfig {
@@ -21,7 +21,7 @@ export interface UseSupportFeatureFlagReturn {
 export const useSupportFeatureFlag = (
   config: UseSupportFeatureFlagConfig
 ): UseSupportFeatureFlagReturn => {
-  const [supportType, setSupportType] = useState<SupportType>('NATIVE');
+  const [supportType, setSupportType] = useState<SupportType>(SupportType.NATIVE);
   const [loading, setLoading] = useState(true);
   const { institutionId } = useAppStore();
 
@@ -42,7 +42,7 @@ export const useSupportFeatureFlag = (
           setSupportType(type);
         }
       } catch {
-        setSupportType('NATIVE');
+        setSupportType(SupportType.NATIVE);
       } finally {
         setLoading(false);
       }
@@ -67,8 +67,8 @@ export const useSupportFeatureFlag = (
   return {
     supportType,
     loading,
-    isZendesk: supportType === 'ZENDESK',
-    isNative: supportType === 'NATIVE',
+    isZendesk: supportType === SupportType.ZENDESK,
+    isNative: supportType === SupportType.NATIVE,
     openZendeskChat,
   };
 };
