@@ -50,11 +50,11 @@ export const useSupportFeatureFlag = (
 
   const openZendeskChat = () => {
     if (
-      typeof window !== 'undefined' &&
-      (window as unknown as Record<string, unknown>).zE
+      typeof globalThis !== 'undefined' &&
+      (globalThis as unknown as Record<string, unknown>).zE
     ) {
       (
-        (window as unknown as Record<string, unknown>).zE as (
+        (globalThis as unknown as Record<string, unknown>).zE as (
           ...args: unknown[]
         ) => void
       )('messenger', 'open');

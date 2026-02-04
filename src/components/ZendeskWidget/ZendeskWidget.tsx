@@ -16,7 +16,7 @@ export const ZendeskWidget = ({ zendeskKey }: ZendeskWidgetProps) => {
     script.async = true;
 
     script.onload = () => {
-      const zE = (window as unknown as Record<string, unknown>).zE as
+      const zE = (globalThis as unknown as Record<string, unknown>).zE as
         | ((...args: unknown[]) => void)
         | undefined;
       if (zE) {
@@ -31,7 +31,7 @@ export const ZendeskWidget = ({ zendeskKey }: ZendeskWidgetProps) => {
       if (existingScript) {
         existingScript.remove();
       }
-      const zE = (window as unknown as Record<string, unknown>).zE as
+      const zE = (globalThis as unknown as Record<string, unknown>).zE as
         | ((...args: unknown[]) => void)
         | undefined;
       if (zE) {

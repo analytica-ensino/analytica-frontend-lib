@@ -184,7 +184,7 @@ describe('useSupportFeatureFlag', () => {
   describe('openZendeskChat', () => {
     it('deve chamar window.zE com messenger open quando zE existe', () => {
       const mockZE = jest.fn();
-      (window as unknown as Record<string, unknown>).zE = mockZE;
+      (globalThis as unknown as Record<string, unknown>).zE = mockZE;
 
       const apiClient = createMockApiClient();
       const { result } = renderHook(() => useSupportFeatureFlag({ apiClient }));
@@ -195,11 +195,11 @@ describe('useSupportFeatureFlag', () => {
 
       expect(mockZE).toHaveBeenCalledWith('messenger', 'open');
 
-      delete (window as unknown as Record<string, unknown>).zE;
+      delete (globalThis as unknown as Record<string, unknown>).zE;
     });
 
     it('não deve lançar erro quando window.zE não existe', () => {
-      delete (window as unknown as Record<string, unknown>).zE;
+      delete (globalThis as unknown as Record<string, unknown>).zE;
 
       const apiClient = createMockApiClient();
       const { result } = renderHook(() => useSupportFeatureFlag({ apiClient }));

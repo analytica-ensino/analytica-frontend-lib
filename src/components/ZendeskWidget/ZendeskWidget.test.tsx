@@ -10,13 +10,13 @@ describe('ZendeskWidget', () => {
     const existingScript = document.getElementById('ze-snippet');
     if (existingScript) existingScript.remove();
     // Limpa window.zE
-    delete (window as unknown as Record<string, unknown>).zE;
+    delete (globalThis as unknown as Record<string, unknown>).zE;
   });
 
   afterEach(() => {
     const existingScript = document.getElementById('ze-snippet');
     if (existingScript) existingScript.remove();
-    delete (window as unknown as Record<string, unknown>).zE;
+    delete (globalThis as unknown as Record<string, unknown>).zE;
   });
 
   describe('renderização', () => {
@@ -77,7 +77,7 @@ describe('ZendeskWidget', () => {
       const script = document.getElementById('ze-snippet') as HTMLScriptElement;
 
       // Simula window.zE antes de chamar onload
-      (window as unknown as Record<string, unknown>).zE = mockZE;
+      (globalThis as unknown as Record<string, unknown>).zE = mockZE;
 
       act(() => {
         script.onload?.(new Event('load'));
@@ -112,7 +112,7 @@ describe('ZendeskWidget', () => {
 
     it('deve chamar zE messenger close ao desmontar', () => {
       const mockZE = jest.fn();
-      (window as unknown as Record<string, unknown>).zE = mockZE;
+      (globalThis as unknown as Record<string, unknown>).zE = mockZE;
 
       const { unmount } = render(<ZendeskWidget zendeskKey={testKey} />);
 
@@ -124,7 +124,7 @@ describe('ZendeskWidget', () => {
     it('não deve falhar no cleanup se window.zE não existir', () => {
       const { unmount } = render(<ZendeskWidget zendeskKey={testKey} />);
 
-      delete (window as unknown as Record<string, unknown>).zE;
+      delete (globalThis as unknown as Record<string, unknown>).zE;
 
       expect(() => unmount()).not.toThrow();
     });
