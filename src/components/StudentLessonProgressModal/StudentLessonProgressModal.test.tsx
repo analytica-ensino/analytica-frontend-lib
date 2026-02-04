@@ -1,57 +1,87 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { StudentLessonProgressModal } from './StudentLessonProgressModal';
-import type { StudentLessonProgressData, LessonProgressItem } from './types';
+import type {
+  StudentLessonProgressData,
+  TopicProgressItem,
+  SubtopicProgressItem,
+  ContentProgressItem,
+} from './types';
 
 /**
- * Mock lesson progress item with children (nested)
+ * Mock content item (deepest level)
  */
-const mockNestedLessonItem: LessonProgressItem = {
-  id: 'topic-1',
-  topic: 'Cinemática',
+const mockContentItem: ContentProgressItem = {
+  content: {
+    id: 'content-1-1-1',
+    name: 'Fundamentos do Movimento Uniforme',
+  },
+  progress: 70,
+  isCompleted: false,
+};
+
+/**
+ * Mock subtopic item with contents
+ */
+const mockSubtopicWithContents: SubtopicProgressItem = {
+  subtopic: {
+    id: 'subtopic-1-1',
+    name: 'Aspectos iniciais',
+  },
   progress: 70,
   status: 'in_progress',
-  children: [
-    {
-      id: 'subtopic-1-1',
-      topic: 'Aspectos iniciais',
-      progress: 70,
-      status: 'in_progress',
-      children: [
-        {
-          id: 'lesson-1-1-1',
-          topic: 'Fundamentos do Movimento Uniforme',
-          progress: 70,
-          status: 'in_progress',
-        },
-      ],
-    },
-    {
-      id: 'subtopic-1-2',
-      topic: 'Movimento uniforme',
-      progress: 70,
-      status: 'in_progress',
-    },
-  ],
+  contents: [mockContentItem],
 };
 
 /**
- * Mock lesson progress item without children (flat)
+ * Mock subtopic item without contents
  */
-const mockFlatLessonItem: LessonProgressItem = {
-  id: 'topic-2',
-  topic: 'Grandezas físicas',
-  progress: null,
+const mockSubtopicWithoutContents: SubtopicProgressItem = {
+  subtopic: {
+    id: 'subtopic-1-2',
+    name: 'Movimento uniforme',
+  },
+  progress: 70,
+  status: 'in_progress',
+  contents: [],
+};
+
+/**
+ * Mock topic with subtopics (nested)
+ */
+const mockNestedTopicItem: TopicProgressItem = {
+  topic: {
+    id: 'topic-1',
+    name: 'Cinemática',
+  },
+  progress: 70,
+  status: 'in_progress',
+  subtopics: [mockSubtopicWithContents, mockSubtopicWithoutContents],
+};
+
+/**
+ * Mock topic without subtopics (flat)
+ */
+const mockFlatTopicItem: TopicProgressItem = {
+  topic: {
+    id: 'topic-2',
+    name: 'Grandezas físicas',
+  },
+  progress: 0,
   status: 'no_data',
+  subtopics: [],
 };
 
 /**
- * Mock lesson progress item with completed status
+ * Mock topic with completed status
  */
-const mockCompletedLessonItem: LessonProgressItem = {
-  id: 'topic-3',
-  topic: 'Mecânica',
+const mockCompletedTopicItem: TopicProgressItem = {
+  topic: {
+    id: 'topic-3',
+    name: 'Mecânica',
+  },
   progress: 100,
   status: 'completed',
+  subtopics: [],
 };
 
 /**
@@ -63,9 +93,9 @@ const mockStudentData: StudentLessonProgressData = {
   bestResult: 'Fotossíntese',
   biggestDifficulty: 'Células',
   lessonProgress: [
-    mockNestedLessonItem,
-    mockFlatLessonItem,
-    mockCompletedLessonItem,
+    mockNestedTopicItem,
+    mockFlatTopicItem,
+    mockCompletedTopicItem,
   ],
 };
 
@@ -81,7 +111,7 @@ const mockStudentDataWithNullValues: StudentLessonProgressData = {
 };
 
 /**
- * Mock flat data (simulating current API response)
+ * Mock flat data (simulating current API response with no nested items)
  */
 const mockFlatData: StudentLessonProgressData = {
   name: 'Maria Santos',
@@ -90,22 +120,22 @@ const mockFlatData: StudentLessonProgressData = {
   biggestDifficulty: 'Geometria Espacial',
   lessonProgress: [
     {
-      id: '1',
-      topic: 'Números Inteiros',
+      topic: { id: '1', name: 'Números Inteiros' },
       progress: 100,
       status: 'completed',
+      subtopics: [],
     },
     {
-      id: '2',
-      topic: 'Frações',
+      topic: { id: '2', name: 'Frações' },
       progress: 60,
       status: 'in_progress',
+      subtopics: [],
     },
     {
-      id: '3',
-      topic: 'Geometria Espacial',
-      progress: null,
+      topic: { id: '3', name: 'Geometria Espacial' },
+      progress: 0,
       status: 'no_data',
+      subtopics: [],
     },
   ],
 };
@@ -198,7 +228,7 @@ describe('StudentLessonProgressModal', () => {
   });
 
   describe('Nested Accordion Behavior', () => {
-    it('expands nested item when clicked', () => {
+    it('expands topic item when clicked', () => {
       render(<StudentLessonProgressModal {...defaultProps} />);
 
       // Initially, nested content should be collapsed
@@ -213,33 +243,47 @@ describe('StudentLessonProgressModal', () => {
       expect(expandableContent).toHaveAttribute('data-expanded', 'true');
     });
 
-    it('expands deeply nested items', () => {
+    it('expands deeply nested items (subtopic to content)', () => {
       render(<StudentLessonProgressModal {...defaultProps} />);
 
-      // Expand first level
+      // Expand first level (topic)
       const topicButton = screen.getByText('Cinemática').closest('button');
       fireEvent.click(topicButton!);
 
-      // Expand second level
+      // Expand second level (subtopic)
       const subtopicButton = screen
         .getByText('Aspectos iniciais')
         .closest('button');
       fireEvent.click(subtopicButton!);
 
-      // Third level should now be visible
+      // Third level (content) should now be visible
       expect(
         screen.getByText('Fundamentos do Movimento Uniforme')
       ).toBeVisible();
     });
 
-    it('does not show expand arrow for items without children', () => {
+    it('does not show expand arrow for topics without subtopics', () => {
       render(<StudentLessonProgressModal {...defaultProps} />);
 
-      // "Grandezas físicas" has no children
+      // "Grandezas físicas" has no subtopics
       const itemButton = screen
         .getByText('Grandezas físicas')
         .closest('button');
       expect(itemButton).toHaveAttribute('disabled');
+    });
+
+    it('does not show expand arrow for subtopics without contents', () => {
+      render(<StudentLessonProgressModal {...defaultProps} />);
+
+      // Expand topic first
+      const topicButton = screen.getByText('Cinemática').closest('button');
+      fireEvent.click(topicButton!);
+
+      // "Movimento uniforme" has no contents
+      const subtopicButton = screen
+        .getByText('Movimento uniforme')
+        .closest('button');
+      expect(subtopicButton).toHaveAttribute('disabled');
     });
   });
 
@@ -438,7 +482,7 @@ describe('StudentLessonProgressModal', () => {
     });
   });
 
-  describe('Flat Data (Current API Response)', () => {
+  describe('Flat Data (Topics without nested items)', () => {
     it('renders flat data structure correctly', () => {
       render(
         <StudentLessonProgressModal {...defaultProps} data={mockFlatData} />
@@ -468,8 +512,7 @@ describe('StudentLessonProgressModal', () => {
         <StudentLessonProgressModal {...defaultProps} data={mockFlatData} />
       );
 
-      // All items are flat, so buttons should be disabled
-      // Get buttons inside lesson items using data-testid
+      // All items are flat (no subtopics), so buttons should be disabled
       const lessonItems = ['1', '2', '3'].map((id) =>
         screen.getByTestId(`lesson-item-${id}`)
       );

@@ -21,7 +21,9 @@ export interface UseSupportFeatureFlagReturn {
 export const useSupportFeatureFlag = (
   config: UseSupportFeatureFlagConfig
 ): UseSupportFeatureFlagReturn => {
-  const [supportType, setSupportType] = useState<SupportType>(SupportType.NATIVE);
+  const [supportType, setSupportType] = useState<SupportType>(
+    SupportType.NATIVE
+  );
   const [loading, setLoading] = useState(true);
   const { institutionId } = useAppStore();
 
