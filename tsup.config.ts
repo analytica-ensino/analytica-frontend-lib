@@ -153,6 +153,10 @@ export default defineConfig({
     'StudentPerformanceDetailsModal/index':
       'src/components/StudentPerformanceDetailsModal/index.ts',
 
+    // StudentLessonProgressModal
+    'StudentLessonProgressModal/index':
+      'src/components/StudentLessonProgressModal/index.ts',
+
     // Styles
     styles: 'src/styles.css',
   },
@@ -173,4 +177,7 @@ export default defineConfig({
   target: 'es2022',
   sourcemap: true,
   dts: false, // Use tsc directly for better memory efficiency
+  loader: {
+    '.png': 'dataurl',
+  },
 });

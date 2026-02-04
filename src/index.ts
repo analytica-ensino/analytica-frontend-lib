@@ -991,3 +991,14 @@ export type {
   StudentPerformanceDetailsLabels,
   ActivityProgress,
 } from './components/StudentPerformanceDetailsModal';
+
+// Student Lesson Progress Modal
+export { StudentLessonProgressModal } from './components/StudentLessonProgressModal';
+export type {
+  StudentLessonProgressModalProps,
+  StudentLessonProgressData,
+  StudentLessonProgressLabels,
+  LessonProgressItem,
+  LessonProgressStatus,
+} from './components/StudentLessonProgressModal';
+export { DEFAULT_LESSON_PROGRESS_LABELS } from './components/StudentLessonProgressModal';
