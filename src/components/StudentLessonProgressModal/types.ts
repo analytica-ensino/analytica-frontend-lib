@@ -4,25 +4,46 @@
 export type LessonProgressStatus = 'completed' | 'in_progress' | 'no_data';
 
 /**
- * Lesson progress item with optional nested children
- * Supports multi-level hierarchy: Topic > Subtopic > Lesson
+ * Content item (deepest level - individual lessons)
  */
-export interface LessonProgressItem {
-  /** Unique identifier */
-  id: string;
-  /** Topic/subtopic/lesson name */
-  topic: string;
-  /** Progress percentage (0-100), null if no data */
-  progress: number | null;
-  /** Progress status */
+export interface ContentProgressItem {
+  content: {
+    id: string;
+    name: string;
+  };
+  progress: number;
+  isCompleted: boolean;
+}
+
+/**
+ * Subtopic item with contents
+ */
+export interface SubtopicProgressItem {
+  subtopic: {
+    id: string;
+    name: string;
+  };
+  progress: number;
   status: LessonProgressStatus;
-  /** Nested children for hierarchical display */
-  children?: LessonProgressItem[];
+  contents: ContentProgressItem[];
+}
+
+/**
+ * Topic item with subtopics (top level)
+ */
+export interface TopicProgressItem {
+  topic: {
+    id: string;
+    name: string;
+  };
+  progress: number;
+  status: LessonProgressStatus;
+  subtopics: SubtopicProgressItem[];
 }
 
 /**
  * Student lesson progress data structure
- * Matches backend GET /performance/student/:studentId response
+ * Matches backend GET /performance/student/:studentId response directly
  */
 export interface StudentLessonProgressData {
   /** Student name */
@@ -33,8 +54,8 @@ export interface StudentLessonProgressData {
   bestResult: string | null;
   /** Topic with biggest difficulty */
   biggestDifficulty: string | null;
-  /** Lesson progress items (can be nested) */
-  lessonProgress: LessonProgressItem[];
+  /** Lesson progress items by topic */
+  lessonProgress: TopicProgressItem[];
 }
 
 /**

@@ -998,7 +998,9 @@ export type {
   StudentLessonProgressModalProps,
   StudentLessonProgressData,
   StudentLessonProgressLabels,
-  LessonProgressItem,
+  TopicProgressItem,
+  SubtopicProgressItem,
+  ContentProgressItem,
   LessonProgressStatus,
 } from './components/StudentLessonProgressModal';
 export { DEFAULT_LESSON_PROGRESS_LABELS } from './components/StudentLessonProgressModal';
