@@ -35,6 +35,7 @@ describe('useSupportFeatureFlag', () => {
       const { result } = renderHook(() => useSupportFeatureFlag({ apiClient }));
 
       expect(result.current.supportType).toBe('NATIVE');
+      expect(result.current.loading).toBe(true);
       expect(result.current.isNative).toBe(true);
       expect(result.current.isZendesk).toBe(false);
     });

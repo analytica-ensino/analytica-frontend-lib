@@ -1,11 +1,12 @@
 import { render, act } from '@testing-library/react';
-import { ZendeskWidget } from './ZendeskWidget';
+import { ZendeskWidget, _resetWidgetCount } from './ZendeskWidget';
 
 describe('ZendeskWidget', () => {
   const testKey = 'test-zendesk-key-123';
 
   beforeEach(() => {
     jest.clearAllMocks();
+    _resetWidgetCount();
     // Limpa scripts do Zendesk do DOM
     const existingScript = document.getElementById('ze-snippet');
     if (existingScript) existingScript.remove();
@@ -127,6 +128,49 @@ describe('ZendeskWidget', () => {
       delete (globalThis as unknown as Record<string, unknown>).zE;
 
       expect(() => unmount()).not.toThrow();
+    });
+  });
+
+  describe('reference-count com múltiplas instâncias', () => {
+    it('não deve remover o script quando apenas uma de duas instâncias desmonta', () => {
+      const { unmount: unmount1 } = render(
+        <ZendeskWidget zendeskKey={testKey} />
+      );
+      const { unmount: unmount2 } = render(
+        <ZendeskWidget zendeskKey={testKey} />
+      );
+
+      expect(document.getElementById('ze-snippet')).not.toBeNull();
+
+      unmount1();
+
+      // Script deve permanecer porque a segunda instância ainda está montada
+      expect(document.getElementById('ze-snippet')).not.toBeNull();
+
+      unmount2();
+
+      // Agora sim deve remover
+      expect(document.getElementById('ze-snippet')).toBeNull();
+    });
+
+    it('deve chamar zE close apenas quando a última instância desmonta', () => {
+      const mockZE = jest.fn();
+      (globalThis as unknown as Record<string, unknown>).zE = mockZE;
+
+      const { unmount: unmount1 } = render(
+        <ZendeskWidget zendeskKey={testKey} />
+      );
+      const { unmount: unmount2 } = render(
+        <ZendeskWidget zendeskKey={testKey} />
+      );
+
+      unmount1();
+      expect(mockZE).not.toHaveBeenCalledWith('messenger', 'close');
+
+      unmount2();
+      expect(mockZE).toHaveBeenCalledWith('messenger', 'close');
+
+      delete (globalThis as unknown as Record<string, unknown>).zE;
     });
   });
 
