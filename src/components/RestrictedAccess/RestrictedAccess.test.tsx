@@ -94,60 +94,6 @@ describe('RestrictedAccess', () => {
     expect(mockOnClick).toHaveBeenCalledTimes(1);
   });
 
-  it('should redirect to loginUrl when provided and button is clicked', () => {
-    const loginUrl = 'https://example.com/login';
-    const originalLocation = globalThis.location;
-
-    // Mock globalThis.location
-    const mockLocation = { href: '' };
-    Object.defineProperty(globalThis, 'location', {
-      value: mockLocation,
-      writable: true,
-      configurable: true,
-    });
-
-    render(<RestrictedAccess loginUrl={loginUrl} />);
-
-    const button = screen.getByRole('button');
-    fireEvent.click(button);
-
-    expect(mockLocation.href).toBe(loginUrl);
-
-    // Restore original location
-    Object.defineProperty(globalThis, 'location', {
-      value: originalLocation,
-      writable: true,
-      configurable: true,
-    });
-  });
-
-  it('should prefer onLoginClick over loginUrl when both are provided', () => {
-    const mockOnClick = jest.fn();
-    const loginUrl = 'https://example.com/login';
-    const originalLocation = globalThis.location;
-
-    const mockLocation = { href: '' };
-    Object.defineProperty(globalThis, 'location', {
-      value: mockLocation,
-      writable: true,
-      configurable: true,
-    });
-
-    render(<RestrictedAccess onLoginClick={mockOnClick} loginUrl={loginUrl} />);
-
-    const button = screen.getByRole('button');
-    fireEvent.click(button);
-
-    expect(mockOnClick).toHaveBeenCalledTimes(1);
-    expect(mockLocation.href).toBe(''); // Should not redirect
-
-    Object.defineProperty(globalThis, 'location', {
-      value: originalLocation,
-      writable: true,
-      configurable: true,
-    });
-  });
-
   it('should not render button when neither onLoginClick nor loginUrl is provided', () => {
     render(<RestrictedAccess />);
 
@@ -168,5 +114,54 @@ describe('RestrictedAccess', () => {
 
     const logo = screen.getByAltText('Logo');
     expect(logo).toBeInTheDocument();
+  });
+
+  describe('loginUrl redirect behavior', () => {
+    let originalLocation: Location;
+    let mockLocation: { href: string };
+
+    beforeEach(() => {
+      originalLocation = globalThis.location;
+      mockLocation = { href: '' };
+      Object.defineProperty(globalThis, 'location', {
+        value: mockLocation,
+        writable: true,
+        configurable: true,
+      });
+    });
+
+    afterEach(() => {
+      Object.defineProperty(globalThis, 'location', {
+        value: originalLocation,
+        writable: true,
+        configurable: true,
+      });
+    });
+
+    it('should redirect to loginUrl when provided and button is clicked', () => {
+      const loginUrl = 'https://example.com/login';
+
+      render(<RestrictedAccess loginUrl={loginUrl} />);
+
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+
+      expect(mockLocation.href).toBe(loginUrl);
+    });
+
+    it('should prefer onLoginClick over loginUrl when both are provided', () => {
+      const mockOnClick = jest.fn();
+      const loginUrl = 'https://example.com/login';
+
+      render(
+        <RestrictedAccess onLoginClick={mockOnClick} loginUrl={loginUrl} />
+      );
+
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+
+      expect(mockOnClick).toHaveBeenCalledTimes(1);
+      expect(mockLocation.href).toBe(''); // Should not redirect
+    });
   });
 });

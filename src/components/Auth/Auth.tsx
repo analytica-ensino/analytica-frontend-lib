@@ -380,16 +380,21 @@ export interface PublicRouteProps {
 }
 
 /**
- * Helper function to check if URL has authentication tokens
+ * Hook to check if authentication tokens are present in the URL (reactive to SPA navigations)
  * @private
  */
-const hasTokensInUrl = (): boolean => {
-  if (typeof window === 'undefined') return false;
-  const searchParams = new URLSearchParams(window.location.search);
-  const token = searchParams.get('token');
-  const refreshToken = searchParams.get('refreshToken');
-  const sessionId = searchParams.get('sessionId');
-  return !!(token && refreshToken && sessionId);
+const useTokenInUrl = () => {
+  const location = useLocation();
+
+  const hasTokenInUrl = useMemo(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const token = searchParams.get('token');
+    const refreshToken = searchParams.get('refreshToken');
+    const sessionId = searchParams.get('sessionId');
+    return !!(token && refreshToken && sessionId);
+  }, [location.search]);
+
+  return { hasTokenInUrl };
 };
 
 /**
@@ -411,9 +416,10 @@ export const PublicRoute = ({
   tokenValidationComponent,
 }: PublicRouteProps) => {
   const { isAuthenticated, isLoading } = useAuth();
+  const { hasTokenInUrl } = useTokenInUrl();
 
   // Se tem tokens na URL, mostrar componente de validação (se fornecido)
-  if (hasTokensInUrl() && tokenValidationComponent) {
+  if (hasTokenInUrl && tokenValidationComponent) {
     return <>{tokenValidationComponent}</>;
   }
 
