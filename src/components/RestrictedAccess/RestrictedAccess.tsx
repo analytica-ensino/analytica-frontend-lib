@@ -2,6 +2,7 @@ import Text from '../Text/Text';
 import Button from '../Button/Button';
 import { cn } from '../../utils/utils';
 import { ShieldCheck } from 'phosphor-react';
+import { getRootDomain } from '../Auth/Auth';
 
 /**
  * Props interface for the RestrictedAccess component
@@ -10,8 +11,6 @@ import { ShieldCheck } from 'phosphor-react';
  * @property {string} [title] - Custom title text (default: "Área Restrita")
  * @property {string} [description] - Custom description text
  * @property {string} [buttonText] - Custom button text (default: "Fazer Login")
- * @property {() => void} [onLoginClick] - Callback function for login button click
- * @property {string} [loginUrl] - URL to redirect for login (alternative to onLoginClick)
  * @property {string} [logoSrc] - Logo image source URL
  * @property {string} [logoAlt] - Logo image alt text
  * @property {string} [footerText] - Footer text to display
@@ -21,8 +20,6 @@ export interface RestrictedAccessProps {
   title?: string;
   description?: string;
   buttonText?: string;
-  onLoginClick?: () => void;
-  loginUrl?: string;
   logoSrc?: string;
   logoAlt?: string;
   footerText?: string;
@@ -33,25 +30,17 @@ export interface RestrictedAccessProps {
  * RestrictedAccess component for displaying login/authentication required pages
  *
  * A reusable component for displaying restricted access pages with configurable
- * content, logo, and login action.
+ * content, logo, and login action. Clicking the login button redirects to the
+ * root domain using getRootDomain() (e.g., backoffice.example.com -> example.com).
  *
  * @param {RestrictedAccessProps} props - The component props
  * @returns {JSX.Element} The RestrictedAccess component
  *
  * @example
  * ```typescript
- * // With callback function
  * <RestrictedAccess
- *   onLoginClick={() => redirectToLogin()}
  *   logoSrc="/logo.png"
  *   footerText="My Application"
- * />
- *
- * // With URL redirect
- * <RestrictedAccess
- *   loginUrl="https://auth.example.com/login"
- *   title="Acesso Restrito"
- *   description="Faça login para continuar"
  * />
  * ```
  */
@@ -59,19 +48,13 @@ const RestrictedAccess = ({
   title = 'Área Restrita',
   description = 'Este é um painel administrativo. Faça login para acessar o sistema.',
   buttonText = 'Fazer Login',
-  onLoginClick,
-  loginUrl,
   logoSrc,
   logoAlt = 'Logo',
   footerText,
   className = '',
 }: RestrictedAccessProps) => {
   const handleLoginClick = () => {
-    if (onLoginClick) {
-      onLoginClick();
-    } else if (loginUrl) {
-      globalThis.location.href = loginUrl;
-    }
+    globalThis.location.href = getRootDomain();
   };
 
   return (
@@ -100,11 +83,9 @@ const RestrictedAccess = ({
             </Text>
           </div>
 
-          {(onLoginClick || loginUrl) && (
-            <Button onClick={handleLoginClick} className="w-full">
-              {buttonText}
-            </Button>
-          )}
+          <Button onClick={handleLoginClick} className="w-full">
+            {buttonText}
+          </Button>
         </div>
 
         {footerText && (

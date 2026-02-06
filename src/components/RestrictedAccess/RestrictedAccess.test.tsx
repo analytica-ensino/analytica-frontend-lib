@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import RestrictedAccess from './RestrictedAccess';
+import * as AuthModule from '../Auth/Auth';
 
 describe('RestrictedAccess', () => {
   it('should render with default content', () => {
@@ -58,46 +59,21 @@ describe('RestrictedAccess', () => {
     expect(footerElements.length).toBe(0);
   });
 
-  it('should render button with custom text when onLoginClick is provided', () => {
-    const mockOnClick = jest.fn();
+  it('should render button with custom text', () => {
     const customButtonText = 'Custom Login';
 
-    render(
-      <RestrictedAccess
-        onLoginClick={mockOnClick}
-        buttonText={customButtonText}
-      />
-    );
+    render(<RestrictedAccess buttonText={customButtonText} />);
 
     const button = screen.getByRole('button');
     expect(button).toBeInTheDocument();
     expect(button).toHaveTextContent(customButtonText);
   });
 
-  it('should render button with default text when buttonText is not provided', () => {
-    const mockOnClick = jest.fn();
-
-    render(<RestrictedAccess onLoginClick={mockOnClick} />);
+  it('should render button with default text', () => {
+    render(<RestrictedAccess />);
 
     const button = screen.getByRole('button');
     expect(button).toHaveTextContent('Fazer Login');
-  });
-
-  it('should call onLoginClick when button is clicked', () => {
-    const mockOnClick = jest.fn();
-
-    render(<RestrictedAccess onLoginClick={mockOnClick} />);
-
-    const button = screen.getByRole('button');
-    fireEvent.click(button);
-
-    expect(mockOnClick).toHaveBeenCalledTimes(1);
-  });
-
-  it('should not render button when neither onLoginClick nor loginUrl is provided', () => {
-    render(<RestrictedAccess />);
-
-    expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
   it('should apply custom className', () => {
@@ -116,7 +92,7 @@ describe('RestrictedAccess', () => {
     expect(logo).toBeInTheDocument();
   });
 
-  describe('loginUrl redirect behavior', () => {
+  describe('login redirect behavior', () => {
     let originalLocation: Location;
     let mockLocation: { href: string };
 
@@ -138,30 +114,20 @@ describe('RestrictedAccess', () => {
       });
     });
 
-    it('should redirect to loginUrl when provided and button is clicked', () => {
-      const loginUrl = 'https://example.com/login';
+    it('should redirect to root domain when button is clicked', () => {
+      const mockGetRootDomain = jest
+        .spyOn(AuthModule, 'getRootDomain')
+        .mockReturnValue('https://example.com');
 
-      render(<RestrictedAccess loginUrl={loginUrl} />);
-
-      const button = screen.getByRole('button');
-      fireEvent.click(button);
-
-      expect(mockLocation.href).toBe(loginUrl);
-    });
-
-    it('should prefer onLoginClick over loginUrl when both are provided', () => {
-      const mockOnClick = jest.fn();
-      const loginUrl = 'https://example.com/login';
-
-      render(
-        <RestrictedAccess onLoginClick={mockOnClick} loginUrl={loginUrl} />
-      );
+      render(<RestrictedAccess />);
 
       const button = screen.getByRole('button');
       fireEvent.click(button);
 
-      expect(mockOnClick).toHaveBeenCalledTimes(1);
-      expect(mockLocation.href).toBe(''); // Should not redirect
+      expect(mockGetRootDomain).toHaveBeenCalled();
+      expect(mockLocation.href).toBe('https://example.com');
+
+      mockGetRootDomain.mockRestore();
     });
   });
 });
