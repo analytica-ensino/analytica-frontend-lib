@@ -9,6 +9,7 @@ import {
   useMemo,
 } from 'react';
 import { useLocation, Navigate } from 'react-router-dom';
+import { useTokenInUrl } from './useTokenInUrl';
 
 /**
  * Interface for basic authentication tokens
@@ -378,24 +379,6 @@ export interface PublicRouteProps {
    */
   tokenValidationComponent?: ReactNode;
 }
-
-/**
- * Hook to check if authentication tokens are present in the URL (reactive to SPA navigations)
- * @private
- */
-const useTokenInUrl = () => {
-  const location = useLocation();
-
-  const hasTokenInUrl = useMemo(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const token = searchParams.get('token');
-    const refreshToken = searchParams.get('refreshToken');
-    const sessionId = searchParams.get('sessionId');
-    return !!(token && refreshToken && sessionId);
-  }, [location.search]);
-
-  return { hasTokenInUrl };
-};
 
 /**
  * Componente para rotas públicas (login, recuperação de senha, etc.)
