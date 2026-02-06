@@ -772,6 +772,142 @@ describe('Auth Components', () => {
 
       expect(screen.getByText('Carregando...')).toBeInTheDocument();
     });
+
+    describe('tokenValidationComponent', () => {
+      let originalLocation: Location;
+
+      beforeEach(() => {
+        originalLocation = window.location;
+      });
+
+      afterEach(() => {
+        Object.defineProperty(window, 'location', {
+          value: originalLocation,
+          writable: true,
+          configurable: true,
+        });
+      });
+
+      it('should render tokenValidationComponent when tokens are in URL', () => {
+        const checkAuthFn = jest.fn().mockResolvedValue(false);
+
+        // Mock window.location with tokens in search params
+        const mockLocation = {
+          ...originalLocation,
+          search: '?token=abc123&refreshToken=refresh456&sessionId=session789',
+        };
+
+        Object.defineProperty(window, 'location', {
+          value: mockLocation,
+          writable: true,
+          configurable: true,
+        });
+
+        renderWithAuth(
+          <PublicRoute
+            tokenValidationComponent={
+              <div data-testid="token-validation">Validating...</div>
+            }
+          >
+            <TestComponent />
+          </PublicRoute>,
+          { checkAuthFn }
+        );
+
+        expect(screen.getByTestId('token-validation')).toBeInTheDocument();
+        expect(screen.queryByTestId('test-component')).not.toBeInTheDocument();
+      });
+
+      it('should render children when no tokens in URL', () => {
+        const checkAuthFn = jest.fn().mockResolvedValue(false);
+
+        // Mock window.location without tokens
+        const mockLocation = {
+          ...originalLocation,
+          search: '',
+        };
+
+        Object.defineProperty(window, 'location', {
+          value: mockLocation,
+          writable: true,
+          configurable: true,
+        });
+
+        renderWithAuth(
+          <PublicRoute
+            tokenValidationComponent={
+              <div data-testid="token-validation">Validating...</div>
+            }
+          >
+            <TestComponent />
+          </PublicRoute>,
+          { checkAuthFn }
+        );
+
+        expect(
+          screen.queryByTestId('token-validation')
+        ).not.toBeInTheDocument();
+        expect(screen.getByTestId('test-component')).toBeInTheDocument();
+      });
+
+      it('should render children when only partial tokens in URL', () => {
+        const checkAuthFn = jest.fn().mockResolvedValue(false);
+
+        // Mock window.location with only some tokens (missing sessionId)
+        const mockLocation = {
+          ...originalLocation,
+          search: '?token=abc123&refreshToken=refresh456',
+        };
+
+        Object.defineProperty(window, 'location', {
+          value: mockLocation,
+          writable: true,
+          configurable: true,
+        });
+
+        renderWithAuth(
+          <PublicRoute
+            tokenValidationComponent={
+              <div data-testid="token-validation">Validating...</div>
+            }
+          >
+            <TestComponent />
+          </PublicRoute>,
+          { checkAuthFn }
+        );
+
+        expect(
+          screen.queryByTestId('token-validation')
+        ).not.toBeInTheDocument();
+        expect(screen.getByTestId('test-component')).toBeInTheDocument();
+      });
+
+      it('should render children when tokenValidationComponent is not provided', () => {
+        const checkAuthFn = jest.fn().mockResolvedValue(false);
+
+        // Mock window.location with tokens
+        const mockLocation = {
+          ...originalLocation,
+          search: '?token=abc123&refreshToken=refresh456&sessionId=session789',
+        };
+
+        Object.defineProperty(window, 'location', {
+          value: mockLocation,
+          writable: true,
+          configurable: true,
+        });
+
+        renderWithAuth(
+          <PublicRoute>
+            <TestComponent />
+          </PublicRoute>,
+          { checkAuthFn }
+        );
+
+        // Should render children because tokenValidationComponent is not provided
+        expect(screen.getByTestId('test-component')).toBeInTheDocument();
+      });
+    });
   });
 
   describe('withAuth HOC', () => {
