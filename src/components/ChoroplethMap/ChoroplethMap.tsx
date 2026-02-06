@@ -185,22 +185,11 @@ const ChoroplethMap = ({
     googleMapsApiKey: apiKey,
   });
 
-  // DEBUG: Log Google Maps loading state
-  console.log('🗺️ ChoroplethMap DEBUG:', {
-    isLoaded,
-    loadError: loadError?.message || null,
-    dataLength: data.length,
-    hasApiKey: !!apiKey,
-    loading,
-    hasBounds: !!bounds,
-  });
-
   /**
    * Handle map load event
    */
   const onLoad = useCallback(
     (mapInstance: google.maps.Map) => {
-      console.log('🗺️ GoogleMap onLoad: Map instance created');
       setMap(mapInstance);
 
       // Fit bounds if provided
@@ -226,16 +215,7 @@ const ChoroplethMap = ({
    * Add GeoJSON data to map
    */
   useEffect(() => {
-    console.log('🗺️ useEffect GeoJSON:', {
-      hasMap: !!map,
-      dataLength: data.length,
-    });
     if (!map || !data.length) return;
-
-    console.log(
-      '🗺️ Adding GeoJSON to map, regions:',
-      data.map((r) => r.name)
-    );
 
     // Clear existing data
     map.data.forEach((feature) => {
@@ -277,15 +257,24 @@ const ChoroplethMap = ({
       };
     });
 
-    // Handle hover events
+    // Handle hover events - highlight all cities in the same NRE
+    let currentNRE: string | null = null;
+    let revertTimeout: ReturnType<typeof setTimeout> | null = null;
+
     const mouseoverListener = map.data.addListener(
       'mouseover',
       (event: google.maps.Data.MouseEvent) => {
+        // Cancel pending revert (when moving between cities in same NRE)
+        if (revertTimeout) {
+          clearTimeout(revertTimeout);
+          revertTimeout = null;
+        }
+
         const regionId = event.feature.getProperty('regionId') as string;
+        const regionName = event.feature.getProperty('regionName') as string;
         const region = data.find((r) => r.id === regionId);
         if (region) {
           setHoveredRegion(region);
-          // Get screen coordinates
           if (event.domEvent) {
             setInfoPosition({
               x: (event.domEvent as MouseEvent).clientX,
@@ -294,22 +283,45 @@ const ChoroplethMap = ({
           }
         }
 
-        // Highlight the region
-        map.data.overrideStyle(event.feature, {
-          fillOpacity: 1,
-          strokeWeight: 2,
-        });
+        // Highlight all features in the same NRE group
+        if (currentNRE !== regionName) {
+          if (currentNRE) {
+            const prevNRE = currentNRE;
+            map.data.forEach((f) => {
+              if (f.getProperty('regionName') === prevNRE) {
+                map.data.revertStyle(f);
+              }
+            });
+          }
+          currentNRE = regionName;
+          map.data.forEach((f) => {
+            if (f.getProperty('regionName') === regionName) {
+              map.data.overrideStyle(f, {
+                fillOpacity: 1,
+                strokeWeight: 2,
+              });
+            }
+          });
+        }
       }
     );
 
-    const mouseoutListener = map.data.addListener(
-      'mouseout',
-      (event: google.maps.Data.MouseEvent) => {
+    const mouseoutListener = map.data.addListener('mouseout', () => {
+      // Defer revert to avoid flicker when moving between cities in same NRE
+      revertTimeout = setTimeout(() => {
         setHoveredRegion(null);
         setInfoPosition(null);
-        map.data.revertStyle(event.feature);
-      }
-    );
+        if (currentNRE) {
+          const prevNRE = currentNRE;
+          map.data.forEach((f) => {
+            if (f.getProperty('regionName') === prevNRE) {
+              map.data.revertStyle(f);
+            }
+          });
+          currentNRE = null;
+        }
+      }, 50);
+    });
 
     const mousemoveListener = map.data.addListener(
       'mousemove',
@@ -336,6 +348,7 @@ const ChoroplethMap = ({
     );
 
     return () => {
+      if (revertTimeout) clearTimeout(revertTimeout);
       google.maps.event.removeListener(mouseoverListener);
       google.maps.event.removeListener(mouseoutListener);
       google.maps.event.removeListener(mousemoveListener);
