@@ -338,6 +338,10 @@ export {
 
 // Media Components
 export { default as NotFound } from './components/NotFound/NotFound';
+export { default as RestrictedAccess } from './components/RestrictedAccess/RestrictedAccess';
+export type { RestrictedAccessProps } from './components/RestrictedAccess/RestrictedAccess';
+export { default as TokenValidation } from './components/TokenValidation/TokenValidation';
+export type { TokenValidationProps } from './components/TokenValidation/TokenValidation';
 export { default as NoSearchResult } from './components/NoSearchResult/NoSearchResult';
 export type { NoSearchResultProps } from './components/NoSearchResult/NoSearchResult';
 export { default as EmptyState } from './components/EmptyState/EmptyState';
@@ -362,6 +366,7 @@ export {
   useRouteAuth,
   getRootDomain,
 } from './components/Auth/Auth';
+export { useTokenInUrl } from './components/Auth/useTokenInUrl';
 export {
   CardAccordation,
   AccordionGroup,
