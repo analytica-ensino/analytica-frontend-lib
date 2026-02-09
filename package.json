@@ -72,6 +72,8 @@
   },
   "dependencies": {
     "@react-google-maps/api": "^2.20.8",
+    "@turf/helpers": "^7.3.4",
+    "@turf/union": "^7.3.4",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.18",
     "dompurify": "^3.3.0",

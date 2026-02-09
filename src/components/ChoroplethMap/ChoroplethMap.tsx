@@ -1,6 +1,8 @@
 /* global google */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
+import union from '@turf/union';
+import type { Feature, MultiPolygon, Polygon } from 'geojson';
 import { cn } from '../../utils/utils';
 import type {
   ChoroplethMapProps,
@@ -73,6 +75,42 @@ const getColorClass = (value: number): ColorClass => {
 };
 
 /**
+ * Compute NRE boundary polygons by merging city polygons that share the same regionName
+ * @param data - Array of region data with individual city GeoJSON features
+ * @returns Array of GeoJSON features representing NRE boundaries
+ */
+const computeNREBoundaries = (
+  data: RegionData[]
+): Feature<Polygon | MultiPolygon>[] => {
+  const groups = new Map<string, RegionData[]>();
+  data.forEach((region) => {
+    const existing = groups.get(region.name) ?? [];
+    existing.push(region);
+    groups.set(region.name, existing);
+  });
+
+  const boundaries: Feature<Polygon | MultiPolygon>[] = [];
+  groups.forEach((regions) => {
+    let merged: Feature<Polygon | MultiPolygon> | null = null;
+    for (const region of regions) {
+      const feature = region.geoJson as Feature<Polygon | MultiPolygon>;
+      if (!merged) {
+        merged = feature;
+      } else {
+        const result: Feature<Polygon | MultiPolygon> | null = union({
+          type: 'FeatureCollection' as const,
+          features: [merged, feature],
+        });
+        if (result) merged = result;
+      }
+    }
+    if (merged) boundaries.push(merged);
+  });
+
+  return boundaries;
+};
+
+/**
  * Create style function for Data Layer features
  * @param opacity - Current fill opacity
  * @returns Style function for map.data.setStyle
@@ -84,7 +122,7 @@ const createStyleFunction = (opacity: number) => {
     return {
       fillColor: colorClass.fillColor,
       fillOpacity: opacity,
-      strokeColor: '#FFFFFF',
+      strokeColor: '#64B5F6',
       strokeWeight: 0.3,
       cursor: 'pointer',
     };
@@ -184,6 +222,7 @@ const LoadingSkeleton = () => (
  * Displays an interactive Google Map with colored regions based on normalized values.
  * Uses 4 color classes to represent different performance levels.
  * Includes fade-in animation, smooth hover transitions, and zoom-to-region on click.
+ * NRE boundaries are rendered as a separate overlay with thicker strokes.
  *
  * @param data - Array of region data with GeoJSON and values
  * @param apiKey - Google Maps API key
@@ -225,6 +264,7 @@ const ChoroplethMap = ({
   );
   const fadeAnimationRef = useRef<number | null>(null);
   const hoverAnimationRef = useRef<number | null>(null);
+  const nreBoundaryLayerRef = useRef<google.maps.Data | null>(null);
 
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
@@ -260,6 +300,9 @@ const ChoroplethMap = ({
    * Handle map unmount
    */
   const onUnmount = useCallback(() => {
+    if (nreBoundaryLayerRef.current) {
+      nreBoundaryLayerRef.current.setMap(null);
+    }
     setMap(null);
   }, []);
 
@@ -273,6 +316,12 @@ const ChoroplethMap = ({
     map.data.forEach((feature) => {
       map.data.remove(feature);
     });
+
+    // Clear existing NRE boundary layer
+    if (nreBoundaryLayerRef.current) {
+      nreBoundaryLayerRef.current.setMap(null);
+      nreBoundaryLayerRef.current = null;
+    }
 
     // Add each region's GeoJSON
     data.forEach((region) => {
@@ -297,6 +346,21 @@ const ChoroplethMap = ({
 
     // Start with opacity 0 for fade-in animation
     map.data.setStyle(createStyleFunction(0));
+
+    // Compute and add NRE boundary overlay
+    const nreLayer = new google.maps.Data();
+    const nreBoundaries = computeNREBoundaries(data);
+    nreBoundaries.forEach((boundary) => {
+      nreLayer.addGeoJson(boundary);
+    });
+    nreLayer.setStyle({
+      fillOpacity: 0,
+      strokeColor: '#1565C0',
+      strokeWeight: 1.5,
+      clickable: false,
+    });
+    nreLayer.setMap(map);
+    nreBoundaryLayerRef.current = nreLayer;
 
     // Animate fade-in from 0 to TARGET_OPACITY
     const startTime = performance.now();
@@ -341,7 +405,7 @@ const ChoroplethMap = ({
         features.forEach((f) => {
           map.data.overrideStyle(f, {
             fillOpacity: opacity,
-            strokeColor: '#FFFFFF',
+            strokeColor: '#64B5F6',
             strokeWeight: weight,
           });
         });
@@ -467,6 +531,10 @@ const ChoroplethMap = ({
       if (hoverAnimationRef.current)
         cancelAnimationFrame(hoverAnimationRef.current);
       if (revertTimeout) clearTimeout(revertTimeout);
+      if (nreBoundaryLayerRef.current) {
+        nreBoundaryLayerRef.current.setMap(null);
+        nreBoundaryLayerRef.current = null;
+      }
       google.maps.event.removeListener(mouseoverListener);
       google.maps.event.removeListener(mouseoutListener);
       google.maps.event.removeListener(mousemoveListener);

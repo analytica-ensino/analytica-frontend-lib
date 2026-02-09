@@ -2062,6 +2062,40 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@turf/helpers@npm:7.3.4, @turf/helpers@npm:^7.3.4":
+  version: 7.3.4
+  resolution: "@turf/helpers@npm:7.3.4"
+  dependencies:
+    "@types/geojson": "npm:^7946.0.10"
+    tslib: "npm:^2.8.1"
+  checksum: 10c0/e10cc2e9d4e25c46e79310847a9b1a3c8613558defaa8bcc0b2e8622d106c875e4e4c7895942bc89687ab72b12bdce0835cac10362118f8eeb3c0939042a5ccd
+  languageName: node
+  linkType: hard
+
+"@turf/meta@npm:7.3.4":
+  version: 7.3.4
+  resolution: "@turf/meta@npm:7.3.4"
+  dependencies:
+    "@turf/helpers": "npm:7.3.4"
+    "@types/geojson": "npm:^7946.0.10"
+    tslib: "npm:^2.8.1"
+  checksum: 10c0/756bb9e227323fbd9262fbe8323962f0d82852a6452e9e4db1ac5f6947081a450b9389a71b15f109d1d0621cc1b45cc1b68ee4b6c8eaf7e01442ef5cb2dee71b
+  languageName: node
+  linkType: hard
+
+"@turf/union@npm:^7.3.4":
+  version: 7.3.4
+  resolution: "@turf/union@npm:7.3.4"
+  dependencies:
+    "@turf/helpers": "npm:7.3.4"
+    "@turf/meta": "npm:7.3.4"
+    "@types/geojson": "npm:^7946.0.10"
+    polyclip-ts: "npm:^0.16.8"
+    tslib: "npm:^2.8.1"
+  checksum: 10c0/44a6b3c5481d69791d4597e0912f5a25735311854b204948e4378f916e3925340be1ec491aff7e031d8ac2af562cf75a0700de086b2c3f5f708bbeb809f71168
+  languageName: node
+  linkType: hard
+
 "@tybys/wasm-util@npm:^0.9.0":
   version: 0.9.0
   resolution: "@tybys/wasm-util@npm:0.9.0"
@@ -2160,7 +2194,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/geojson@npm:^7946.0.16":
+"@types/geojson@npm:^7946.0.10, @types/geojson@npm:^7946.0.16":
   version: 7946.0.16
   resolution: "@types/geojson@npm:7946.0.16"
   checksum: 10c0/1ff24a288bd5860b766b073ead337d31d73bdc715e5b50a2cee5cb0af57a1ed02cc04ef295f5fa68dc40fe3e4f104dd31282b2b818a5ba3231bc1001ba084e3c
@@ -2674,6 +2708,8 @@ __metadata:
     "@testing-library/jest-dom": "npm:^6.6.3"
     "@testing-library/react": "npm:^16.3.0"
     "@testing-library/user-event": "npm:^14.6.1"
+    "@turf/helpers": "npm:^7.3.4"
+    "@turf/union": "npm:^7.3.4"
     "@types/dompurify": "npm:^3.2.0"
     "@types/geojson": "npm:^7946.0.16"
     "@types/identity-obj-proxy": "npm:^3"
@@ -3012,6 +3048,13 @@ __metadata:
   version: 2.0.3
   resolution: "bcp-47-match@npm:2.0.3"
   checksum: 10c0/ae5c202854df8a9ad4777dc3b49562578495a69164869f365a88c1a089837a9fbbce4c0c44f6f1a5e44c7841f47e91fe6fea00306ca49ce5ec95a7eb71f839c4
+  languageName: node
+  linkType: hard
+
+"bignumber.js@npm:^9.1.0":
+  version: 9.3.1
+  resolution: "bignumber.js@npm:9.3.1"
+  checksum: 10c0/61342ba5fe1c10887f0ecf5be02ff6709271481aff48631f86b4d37d55a99b87ce441cfd54df3d16d10ee07ceab7e272fc0be430c657ffafbbbf7b7d631efb75
   languageName: node
   linkType: hard
 
@@ -8154,6 +8197,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"polyclip-ts@npm:^0.16.8":
+  version: 0.16.8
+  resolution: "polyclip-ts@npm:0.16.8"
+  dependencies:
+    bignumber.js: "npm:^9.1.0"
+    splaytree-ts: "npm:^1.0.2"
+  checksum: 10c0/8de02c32e566421875c70890fe6d3d7bd55a92fc39867446e65999e042c4632fb27ab1a7e106e96edd12d63b32a643f3a690d9a980aeda655a41ddf4e8750f5d
+  languageName: node
+  linkType: hard
+
 "postcss-load-config@npm:^6.0.1":
   version: 6.0.1
   resolution: "postcss-load-config@npm:6.0.1"
@@ -9102,6 +9155,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"splaytree-ts@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "splaytree-ts@npm:1.0.2"
+  checksum: 10c0/4c34573891a749055ffe22381ea841ae03dbf7b55a3ea4a1d7df5013bfbe128e79f6c468579358ec573734cdbdf5f77a97ae7185f155248eb8be58151428c85e
+  languageName: node
+  linkType: hard
+
 "split-on-first@npm:^3.0.0":
   version: 3.0.0
   resolution: "split-on-first@npm:3.0.0"
@@ -9664,7 +9724,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:^2.4.0, tslib@npm:^2.8.0":
+"tslib@npm:^2.4.0, tslib@npm:^2.8.0, tslib@npm:^2.8.1":
   version: 2.8.1
   resolution: "tslib@npm:2.8.1"
   checksum: 10c0/9c4759110a19c53f992d9aae23aac5ced636e99887b51b9e61def52611732872ff7668757d4e4c61f19691e36f4da981cd9485e869b4a7408d689f6bf1f14e62

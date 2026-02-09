@@ -5,6 +5,12 @@ import '@testing-library/jest-dom';
 import ChoroplethMap from './ChoroplethMap';
 import type { RegionData, MapBounds } from './ChoroplethMap.types';
 
+// Mock @turf/union - returns first argument for simplicity
+jest.mock('@turf/union', () => ({
+  __esModule: true,
+  default: jest.fn((a: unknown) => a),
+}));
+
 // Mock requestAnimationFrame for animation tests
 let rafCallbacks: ((time: number) => void)[] = [];
 jest.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
@@ -59,6 +65,16 @@ const mockLatLngBounds = jest.fn().mockImplementation(() => ({
   isEmpty: mockIsEmpty,
 }));
 
+// Mock for google.maps.Data constructor (NRE boundary layer)
+const mockNreSetStyle = jest.fn();
+const mockNreSetMap = jest.fn();
+const mockNreAddGeoJson = jest.fn();
+const mockDataConstructor = jest.fn().mockImplementation(() => ({
+  setStyle: mockNreSetStyle,
+  setMap: mockNreSetMap,
+  addGeoJson: mockNreAddGeoJson,
+}));
+
 jest.mock('@react-google-maps/api', () => ({
   GoogleMap: jest.fn(({ children, onLoad }) => {
     // Simulate map load
@@ -77,6 +93,7 @@ jest.mock('@react-google-maps/api', () => ({
 const mockGoogle = {
   maps: {
     LatLngBounds: mockLatLngBounds,
+    Data: mockDataConstructor,
     event: {
       removeListener: jest.fn(),
       addListenerOnce: jest.fn(
@@ -562,7 +579,7 @@ describe('ChoroplethMap animations', () => {
     };
     const initialStyle = initialStyleFn(mockFeature);
     expect(initialStyle.fillOpacity).toBe(0);
-    expect(initialStyle.strokeColor).toBe('#72706F');
+    expect(initialStyle.strokeColor).toBe('#64B5F6');
     expect(initialStyle.strokeWeight).toBe(0.3);
   });
 
@@ -660,7 +677,7 @@ describe('ChoroplethMap animations', () => {
     expect(mockOverrideStyle).toHaveBeenCalledWith(
       mockFeatureObj,
       expect.objectContaining({
-        strokeColor: '#72706F',
+        strokeColor: '#64B5F6',
       })
     );
   });
@@ -752,6 +769,134 @@ describe('ChoroplethMap animations', () => {
 
     // requestAnimationFrame should have been called for fade-in
     expect(rafCallbacks.length).toBeGreaterThan(0);
+  });
+});
+
+describe('ChoroplethMap NRE boundary layer', () => {
+  const mockApiKey = 'test-api-key';
+
+  const mockRegionData: RegionData[] = [
+    {
+      id: 'r1',
+      name: 'NRE Alpha',
+      value: 0.9,
+      accessCount: 100,
+      geoJson: {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [-51, -24],
+              [-50, -24],
+              [-50, -25],
+              [-51, -25],
+              [-51, -24],
+            ],
+          ],
+        },
+      },
+    },
+    {
+      id: 'r2',
+      name: 'NRE Alpha',
+      value: 0.8,
+      accessCount: 80,
+      geoJson: {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [-50, -24],
+              [-49, -24],
+              [-49, -25],
+              [-50, -25],
+              [-50, -24],
+            ],
+          ],
+        },
+      },
+    },
+    {
+      id: 'r3',
+      name: 'NRE Beta',
+      value: 0.3,
+      accessCount: 50,
+      geoJson: {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [-52, -25],
+              [-51, -25],
+              [-51, -26],
+              [-52, -26],
+              [-52, -25],
+            ],
+          ],
+        },
+      },
+    },
+  ];
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockForEach.mockReset();
+    rafCallbacks = [];
+    mockAddGeoJson.mockReturnValue([{ setProperty: jest.fn() }]);
+  });
+
+  it('creates NRE boundary layer with merged polygons', async () => {
+    render(<ChoroplethMap data={mockRegionData} apiKey={mockApiKey} />);
+
+    await waitFor(() => {
+      expect(mockDataConstructor).toHaveBeenCalled();
+    });
+
+    // Should add one boundary per NRE group (2 groups: Alpha and Beta)
+    expect(mockNreAddGeoJson).toHaveBeenCalledTimes(2);
+  });
+
+  it('styles NRE boundary layer with thick stroke and no fill', async () => {
+    render(<ChoroplethMap data={mockRegionData} apiKey={mockApiKey} />);
+
+    await waitFor(() => {
+      expect(mockNreSetStyle).toHaveBeenCalledWith({
+        fillOpacity: 0,
+        strokeColor: '#1565C0',
+        strokeWeight: 1.5,
+        clickable: false,
+      });
+    });
+  });
+
+  it('attaches NRE boundary layer to the map', async () => {
+    render(<ChoroplethMap data={mockRegionData} apiKey={mockApiKey} />);
+
+    await waitFor(() => {
+      expect(mockNreSetMap).toHaveBeenCalledWith(mockMap);
+    });
+  });
+
+  it('cleans up NRE boundary layer on unmount', async () => {
+    const { unmount } = render(
+      <ChoroplethMap data={mockRegionData} apiKey={mockApiKey} />
+    );
+
+    await waitFor(() => {
+      expect(mockNreSetMap).toHaveBeenCalledWith(mockMap);
+    });
+
+    mockNreSetMap.mockClear();
+
+    unmount();
+
+    expect(mockNreSetMap).toHaveBeenCalledWith(null);
   });
 });
 
