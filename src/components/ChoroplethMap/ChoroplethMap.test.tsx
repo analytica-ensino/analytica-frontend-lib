@@ -154,6 +154,7 @@ describe('ChoroplethMap', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockForEach.mockReset();
     rafCallbacks = [];
     mockAddGeoJson.mockReturnValue([
       {
@@ -359,8 +360,12 @@ describe('ChoroplethMap', () => {
   });
 
   it('clears existing data before adding new data', async () => {
-    mockForEach.mockImplementation((callback) => {
-      callback({ id: 'existing-feature' });
+    mockForEach.mockImplementation((callback: (f: unknown) => void) => {
+      callback({
+        id: 'existing-feature',
+        getProperty: () => 0.5,
+        getGeometry: () => ({ forEachLatLng: jest.fn() }),
+      });
     });
 
     render(<ChoroplethMap data={mockRegionData} apiKey={mockApiKey} />);
@@ -377,6 +382,7 @@ describe('ChoroplethMap color classification', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockForEach.mockReset();
     rafCallbacks = [];
     mockAddGeoJson.mockReturnValue([{ setProperty: jest.fn() }]);
   });
@@ -447,6 +453,7 @@ describe('ChoroplethMap static map and styling', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockForEach.mockReset();
     rafCallbacks = [];
     mockAddGeoJson.mockReturnValue([{ setProperty: jest.fn() }]);
   });
@@ -522,6 +529,7 @@ describe('ChoroplethMap animations', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockForEach.mockReset();
     rafCallbacks = [];
     mockAddGeoJson.mockReturnValue([{ setProperty: jest.fn() }]);
   });
@@ -775,6 +783,7 @@ describe('ChoroplethMap legend interaction', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockForEach.mockReset();
     rafCallbacks = [];
     mockAddGeoJson.mockReturnValue([{ setProperty: jest.fn() }]);
   });

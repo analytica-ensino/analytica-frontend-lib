@@ -476,9 +476,13 @@ const ChoroplethMap = ({
 
   /**
    * Apply visibility filter based on active legend classes
+   * and adjust map bounds to fit visible features
    */
   useEffect(() => {
     if (!map || !data.length) return;
+
+    const visibleBounds = new google.maps.LatLngBounds();
+    let hasVisibleFeatures = false;
 
     map.data.forEach((feature: google.maps.Data.Feature) => {
       const value = feature.getProperty('regionValue') as number;
@@ -487,10 +491,18 @@ const ChoroplethMap = ({
 
       if (activeClasses.has(classIndex)) {
         map.data.revertStyle(feature);
+        feature.getGeometry()?.forEachLatLng((latLng) => {
+          visibleBounds.extend(latLng);
+        });
+        hasVisibleFeatures = true;
       } else {
         map.data.overrideStyle(feature, { visible: false });
       }
     });
+
+    if (hasVisibleFeatures && !visibleBounds.isEmpty()) {
+      map.fitBounds(visibleBounds, 20);
+    }
   }, [map, data, activeClasses]);
 
   /**
