@@ -133,17 +133,31 @@ const mapOptions: google.maps.MapOptions = {
 
 /**
  * Legend Item component for the map
+ * @param color - Fill color of the legend circle
+ * @param label - Text label for the legend item
+ * @param borderColor - Optional border color for the legend circle
+ * @param active - Whether the legend class is active (visible on map)
+ * @param onClick - Callback when the legend item is clicked
  */
 const LegendItem = ({
   color,
   label,
   borderColor,
+  active = true,
+  onClick,
 }: {
   color: string;
   label: string;
   borderColor?: string;
+  active?: boolean;
+  onClick?: () => void;
 }) => (
-  <div className="flex items-center gap-2">
+  <button
+    type="button"
+    className="flex items-center gap-2 cursor-pointer transition-opacity duration-200"
+    style={{ opacity: active ? 1 : 0.4 }}
+    onClick={onClick}
+  >
     <div
       className="w-3 h-3 rounded-full"
       style={{
@@ -152,7 +166,7 @@ const LegendItem = ({
       }}
     />
     <span className="text-sm font-medium text-[#737373]">{label}</span>
-  </div>
+  </button>
 );
 
 /**
@@ -206,6 +220,9 @@ const ChoroplethMap = ({
     x: number;
     y: number;
   } | null>(null);
+  const [activeClasses, setActiveClasses] = useState<Set<number>>(
+    new Set([0, 1, 2, 3])
+  );
   const fadeAnimationRef = useRef<number | null>(null);
   const hoverAnimationRef = useRef<number | null>(null);
 
@@ -457,6 +474,41 @@ const ChoroplethMap = ({
     };
   }, [map, data, onRegionClick]);
 
+  /**
+   * Apply visibility filter based on active legend classes
+   */
+  useEffect(() => {
+    if (!map || !data.length) return;
+
+    map.data.forEach((feature: google.maps.Data.Feature) => {
+      const value = feature.getProperty('regionValue') as number;
+      const colorClass = getColorClass(value ?? 0);
+      const classIndex = COLOR_CLASSES.indexOf(colorClass);
+
+      if (activeClasses.has(classIndex)) {
+        map.data.revertStyle(feature);
+      } else {
+        map.data.overrideStyle(feature, { visible: false });
+      }
+    });
+  }, [map, data, activeClasses]);
+
+  /**
+   * Toggle a color class on/off in the legend filter
+   * @param index - Index of the color class in COLOR_CLASSES
+   */
+  const toggleClass = (index: number) => {
+    setActiveClasses((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return next;
+    });
+  };
+
   if (loadError) {
     return (
       <div className="p-5 bg-white border border-[#F3F3F3] rounded-xl">
@@ -480,14 +532,20 @@ const ChoroplethMap = ({
 
         {/* Legend */}
         <div className="flex flex-wrap gap-8">
-          <LegendItem color="#1C61B2" label="Destaque" />
-          <LegendItem color="#2883D7" label="Acima da média" />
-          <LegendItem color="#91C7F1" label="Abaixo da média" />
-          <LegendItem
-            color="#E3F1FB"
-            borderColor="#1C61B2"
-            label="Ponto de atenção"
-          />
+          {COLOR_CLASSES.map((colorClass, index) => (
+            <LegendItem
+              key={colorClass.label}
+              color={colorClass.fillColor}
+              borderColor={
+                colorClass.fillColor === colorClass.strokeColor
+                  ? undefined
+                  : colorClass.strokeColor
+              }
+              label={colorClass.label}
+              active={activeClasses.has(index)}
+              onClick={() => toggleClass(index)}
+            />
+          ))}
         </div>
       </div>
 

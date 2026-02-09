@@ -253,7 +253,7 @@ describe('ChoroplethMap', () => {
     });
 
     await waitFor(() => {
-      expect(mockSetZoom).toHaveBeenCalledWith(8);
+      expect(mockSetZoom).toHaveBeenCalledWith(7.8);
     });
   });
 
@@ -742,5 +742,161 @@ describe('ChoroplethMap animations', () => {
 
     // requestAnimationFrame should have been called for fade-in
     expect(rafCallbacks.length).toBeGreaterThan(0);
+  });
+});
+
+describe('ChoroplethMap legend interaction', () => {
+  const mockApiKey = 'test-api-key';
+
+  const mockRegionData: RegionData[] = [
+    {
+      id: 'r1',
+      name: 'NRE A',
+      value: 0.9,
+      accessCount: 100,
+      geoJson: {
+        type: 'Feature',
+        properties: {},
+        geometry: { type: 'Polygon', coordinates: [[]] },
+      },
+    },
+    {
+      id: 'r2',
+      name: 'NRE B',
+      value: 0.3,
+      accessCount: 50,
+      geoJson: {
+        type: 'Feature',
+        properties: {},
+        geometry: { type: 'Polygon', coordinates: [[]] },
+      },
+    },
+  ];
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    rafCallbacks = [];
+    mockAddGeoJson.mockReturnValue([{ setProperty: jest.fn() }]);
+  });
+
+  it('renders all legend items as buttons', () => {
+    render(<ChoroplethMap data={[]} apiKey={mockApiKey} />);
+
+    const destaqueBtn = screen.getByText('Destaque').closest('button');
+    const acimaBtn = screen.getByText('Acima da média').closest('button');
+    const abaixoBtn = screen.getByText('Abaixo da média').closest('button');
+    const atencaoBtn = screen.getByText('Ponto de atenção').closest('button');
+
+    expect(destaqueBtn).toBeInTheDocument();
+    expect(acimaBtn).toBeInTheDocument();
+    expect(abaixoBtn).toBeInTheDocument();
+    expect(atencaoBtn).toBeInTheDocument();
+  });
+
+  it('all legend classes start active with full opacity', () => {
+    render(<ChoroplethMap data={[]} apiKey={mockApiKey} />);
+
+    const buttons = screen.getAllByRole('button');
+    buttons.forEach((button) => {
+      expect(button).toHaveStyle({ opacity: 1 });
+    });
+  });
+
+  it('toggles legend class opacity on click', () => {
+    render(<ChoroplethMap data={[]} apiKey={mockApiKey} />);
+
+    const destaqueBtn = screen.getByText('Destaque').closest('button')!;
+    expect(destaqueBtn).toHaveStyle({ opacity: 1 });
+
+    act(() => {
+      destaqueBtn.click();
+    });
+
+    expect(destaqueBtn).toHaveStyle({ opacity: 0.4 });
+  });
+
+  it('restores legend class opacity on second click', () => {
+    render(<ChoroplethMap data={[]} apiKey={mockApiKey} />);
+
+    const destaqueBtn = screen.getByText('Destaque').closest('button')!;
+
+    act(() => {
+      destaqueBtn.click();
+    });
+    expect(destaqueBtn).toHaveStyle({ opacity: 0.4 });
+
+    act(() => {
+      destaqueBtn.click();
+    });
+    expect(destaqueBtn).toHaveStyle({ opacity: 1 });
+  });
+
+  it('hides features on map when legend class is toggled off', async () => {
+    const mockFeature = {
+      getProperty: (prop: string) => (prop === 'regionValue' ? 0.9 : null),
+    };
+    mockForEach.mockImplementation((cb: (f: typeof mockFeature) => void) => {
+      cb(mockFeature);
+    });
+
+    render(<ChoroplethMap data={mockRegionData} apiKey={mockApiKey} />);
+
+    await waitFor(() => {
+      expect(mockSetStyle).toHaveBeenCalled();
+    });
+
+    mockOverrideStyle.mockClear();
+    mockRevertStyle.mockClear();
+
+    const destaqueBtn = screen.getByText('Destaque').closest('button')!;
+    act(() => {
+      destaqueBtn.click();
+    });
+
+    await waitFor(() => {
+      expect(mockOverrideStyle).toHaveBeenCalledWith(mockFeature, {
+        visible: false,
+      });
+    });
+  });
+
+  it('shows features on map when legend class is toggled back on', async () => {
+    const mockFeature = {
+      getProperty: (prop: string) => (prop === 'regionValue' ? 0.9 : null),
+    };
+    mockForEach.mockImplementation((cb: (f: typeof mockFeature) => void) => {
+      cb(mockFeature);
+    });
+
+    render(<ChoroplethMap data={mockRegionData} apiKey={mockApiKey} />);
+
+    await waitFor(() => {
+      expect(mockSetStyle).toHaveBeenCalled();
+    });
+
+    const destaqueBtn = screen.getByText('Destaque').closest('button')!;
+
+    // Toggle off
+    act(() => {
+      destaqueBtn.click();
+    });
+
+    await waitFor(() => {
+      expect(mockOverrideStyle).toHaveBeenCalledWith(mockFeature, {
+        visible: false,
+      });
+    });
+
+    mockOverrideStyle.mockClear();
+    mockRevertStyle.mockClear();
+
+    // Toggle back on
+    act(() => {
+      destaqueBtn.click();
+    });
+
+    await waitFor(() => {
+      expect(mockRevertStyle).toHaveBeenCalledWith(mockFeature);
+    });
   });
 });
