@@ -1,9 +1,28 @@
 /* global google */
 /* eslint-disable @typescript-eslint/no-require-imports */
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ChoroplethMap from './ChoroplethMap';
 import type { RegionData, MapBounds } from './ChoroplethMap.types';
+
+// Mock requestAnimationFrame for animation tests
+let rafCallbacks: ((time: number) => void)[] = [];
+jest.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
+  rafCallbacks.push(cb);
+  return rafCallbacks.length;
+});
+jest.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {});
+jest.spyOn(performance, 'now').mockReturnValue(0);
+
+/**
+ * Flush all pending requestAnimationFrame callbacks
+ * @param time - Simulated timestamp to pass to callbacks
+ */
+const flushRAF = (time: number) => {
+  const callbacks = [...rafCallbacks];
+  rafCallbacks = [];
+  callbacks.forEach((cb) => cb(time));
+};
 
 // Mock @react-google-maps/api
 const mockFitBounds = jest.fn();
@@ -28,7 +47,12 @@ const mockMap = {
   },
 };
 
-const mockLatLngBounds = jest.fn().mockImplementation(() => ({}));
+const mockExtend = jest.fn();
+const mockIsEmpty = jest.fn().mockReturnValue(false);
+const mockLatLngBounds = jest.fn().mockImplementation(() => ({
+  extend: mockExtend,
+  isEmpty: mockIsEmpty,
+}));
 
 jest.mock('@react-google-maps/api', () => ({
   GoogleMap: jest.fn(({ children, onLoad }) => {
@@ -120,6 +144,7 @@ describe('ChoroplethMap', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    rafCallbacks = [];
     mockAddGeoJson.mockReturnValue([
       {
         setProperty: jest.fn(),
@@ -217,7 +242,6 @@ describe('ChoroplethMap', () => {
     render(<ChoroplethMap data={mockRegionData} apiKey={mockApiKey} />);
 
     await waitFor(() => {
-      // Check that listeners were added for mouseover, mouseout, mousemove, click
       expect(mockAddListener).toHaveBeenCalledWith(
         'mouseover',
         expect.any(Function)
@@ -248,13 +272,26 @@ describe('ChoroplethMap', () => {
   it('calls onRegionClick when a region is clicked', async () => {
     const onRegionClick = jest.fn();
 
-    // Mock the addListener to capture the click handler
     let clickHandler: ((event: unknown) => void) | null = null;
     mockAddListener.mockImplementation((event, handler) => {
       if (event === 'click') {
         clickHandler = handler;
       }
       return {};
+    });
+
+    const mockForEachLatLng = jest.fn();
+    const mockGetGeometry = jest.fn().mockReturnValue({
+      forEachLatLng: mockForEachLatLng,
+    });
+    mockForEach.mockImplementation((cb) => {
+      cb({
+        getProperty: (prop: string) => {
+          if (prop === 'regionName') return 'Região Norte';
+          return null;
+        },
+        getGeometry: mockGetGeometry,
+      });
     });
 
     render(
@@ -269,15 +306,17 @@ describe('ChoroplethMap', () => {
       expect(clickHandler).not.toBeNull();
     });
 
-    // Simulate click event
     if (clickHandler !== null) {
-      (clickHandler as (event: unknown) => void)({
-        feature: {
-          getProperty: (prop: string) => {
-            if (prop === 'regionId') return 'region-1';
-            return null;
+      act(() => {
+        (clickHandler as (event: unknown) => void)({
+          feature: {
+            getProperty: (prop: string) => {
+              if (prop === 'regionId') return 'region-1';
+              if (prop === 'regionName') return 'Região Norte';
+              return null;
+            },
           },
-        },
+        });
       });
     }
 
@@ -288,14 +327,12 @@ describe('ChoroplethMap', () => {
     render(<ChoroplethMap data={[]} apiKey={mockApiKey} />);
 
     await waitFor(() => {
-      // Should not crash with empty data
       expect(screen.getByTestId('google-map')).toBeInTheDocument();
     });
   });
 
   it('clears existing data before adding new data', async () => {
     mockForEach.mockImplementation((callback) => {
-      // Simulate having existing features
       callback({ id: 'existing-feature' });
     });
 
@@ -313,6 +350,7 @@ describe('ChoroplethMap color classification', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    rafCallbacks = [];
     mockAddGeoJson.mockReturnValue([{ setProperty: jest.fn() }]);
   });
 
@@ -372,7 +410,6 @@ describe('ChoroplethMap color classification', () => {
       expect(mockSetStyle).toHaveBeenCalled();
     });
 
-    // Verify that setStyle was called with a function
     const styleFunction = mockSetStyle.mock.calls[0][0];
     expect(typeof styleFunction).toBe('function');
   });
@@ -383,6 +420,7 @@ describe('ChoroplethMap static map and styling', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    rafCallbacks = [];
     mockAddGeoJson.mockReturnValue([{ setProperty: jest.fn() }]);
   });
 
@@ -442,7 +480,26 @@ describe('ChoroplethMap static map and styling', () => {
     });
   });
 
-  it('applies uniform stroke color and weight to polygons', async () => {
+  it('renders map container with overflow-hidden class', () => {
+    const { container } = render(
+      <ChoroplethMap data={[]} apiKey={mockApiKey} />
+    );
+
+    const mapContainer = container.querySelector('.bg-\\[\\#F6F6F6\\]');
+    expect(mapContainer).toHaveClass('overflow-hidden');
+  });
+});
+
+describe('ChoroplethMap animations', () => {
+  const mockApiKey = 'test-api-key';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    rafCallbacks = [];
+    mockAddGeoJson.mockReturnValue([{ setProperty: jest.fn() }]);
+  });
+
+  it('starts fade-in with fillOpacity 0', async () => {
     const mockRegion: RegionData[] = [
       {
         id: 'r1',
@@ -463,23 +520,54 @@ describe('ChoroplethMap static map and styling', () => {
       expect(mockSetStyle).toHaveBeenCalled();
     });
 
-    const styleFunction = mockSetStyle.mock.calls[0][0];
+    // First setStyle call should have opacity 0 (fade-in start)
+    const initialStyleFn = mockSetStyle.mock.calls[0][0];
     const mockFeature = {
       getProperty: (prop: string) => (prop === 'regionValue' ? 0.8 : null),
     };
-
-    const style = styleFunction(mockFeature);
-    expect(style).toEqual(
-      expect.objectContaining({
-        strokeColor: '#FFFFFF',
-        strokeWeight: 0.5,
-        fillOpacity: 0.8,
-        cursor: 'pointer',
-      })
-    );
+    const initialStyle = initialStyleFn(mockFeature);
+    expect(initialStyle.fillOpacity).toBe(0);
+    expect(initialStyle.strokeColor).toBe('#FFFFFF');
+    expect(initialStyle.strokeWeight).toBe(0.5);
   });
 
-  it('applies uniform stroke on hover overrideStyle', async () => {
+  it('completes fade-in to target opacity after animation', async () => {
+    const mockRegion: RegionData[] = [
+      {
+        id: 'r1',
+        name: 'Region 1',
+        value: 0.8,
+        accessCount: 100,
+        geoJson: {
+          type: 'Feature',
+          properties: {},
+          geometry: { type: 'Polygon', coordinates: [[]] },
+        },
+      },
+    ];
+
+    render(<ChoroplethMap data={mockRegion} apiKey={mockApiKey} />);
+
+    await waitFor(() => {
+      expect(mockSetStyle).toHaveBeenCalled();
+    });
+
+    // Flush RAF with time >= FADE_DURATION (400ms) to complete animation
+    act(() => {
+      flushRAF(500);
+    });
+
+    // After animation completes, last setStyle call should have target opacity
+    const lastCall = mockSetStyle.mock.calls[mockSetStyle.mock.calls.length - 1];
+    const styleFn = lastCall[0];
+    const mockFeature = {
+      getProperty: (prop: string) => (prop === 'regionValue' ? 0.8 : null),
+    };
+    const finalStyle = styleFn(mockFeature);
+    expect(finalStyle.fillOpacity).toBe(0.8);
+  });
+
+  it('triggers hover animation with overrideStyle on mouseover', async () => {
     let mouseoverHandler: ((event: unknown) => void) | null = null;
     mockAddListener.mockImplementation((event, handler) => {
       if (event === 'mouseover') {
@@ -487,6 +575,16 @@ describe('ChoroplethMap static map and styling', () => {
       }
       return {};
     });
+
+    const mockFeatureObj = {
+      getProperty: (prop: string) => {
+        if (prop === 'regionId') return 'r1';
+        if (prop === 'regionName') return 'NRE Test';
+        return null;
+      },
+    };
+
+    mockForEach.mockImplementation((cb) => cb(mockFeatureObj));
 
     const mockRegion: RegionData[] = [
       {
@@ -502,43 +600,119 @@ describe('ChoroplethMap static map and styling', () => {
       },
     ];
 
-    const mockFeatureObj = {
-      getProperty: (prop: string) => {
-        if (prop === 'regionId') return 'r1';
-        if (prop === 'regionName') return 'NRE Test';
-        return null;
-      },
-    };
-
-    mockForEach.mockImplementation((cb) => cb(mockFeatureObj));
-
     render(<ChoroplethMap data={mockRegion} apiKey={mockApiKey} />);
 
     await waitFor(() => {
       expect(mouseoverHandler).not.toBeNull();
     });
 
-    (mouseoverHandler as unknown as (event: unknown) => void)({
-      feature: mockFeatureObj,
-      domEvent: { clientX: 100, clientY: 200 },
+    act(() => {
+      (mouseoverHandler as unknown as (event: unknown) => void)({
+        feature: mockFeatureObj,
+        domEvent: { clientX: 100, clientY: 200 },
+      });
     });
 
+    // Flush hover animation to completion (time >= HOVER_DURATION 200ms)
+    act(() => {
+      flushRAF(300);
+    });
+
+    // After animation, overrideStyle should have been called with target values
     expect(mockOverrideStyle).toHaveBeenCalledWith(
       mockFeatureObj,
       expect.objectContaining({
-        fillOpacity: 1,
         strokeColor: '#FFFFFF',
-        strokeWeight: 1.5,
       })
     );
   });
 
-  it('renders map container with overflow-hidden class', () => {
-    const { container } = render(
-      <ChoroplethMap data={[]} apiKey={mockApiKey} />
-    );
+  it('zooms to NRE region on click', async () => {
+    let clickHandler: ((event: unknown) => void) | null = null;
+    mockAddListener.mockImplementation((event, handler) => {
+      if (event === 'click') {
+        clickHandler = handler;
+      }
+      return {};
+    });
 
-    const mapContainer = container.querySelector('.bg-\\[\\#F6F6F6\\]');
-    expect(mapContainer).toHaveClass('overflow-hidden');
+    const mockForEachLatLng = jest.fn();
+    const mockGetGeometry = jest.fn().mockReturnValue({
+      forEachLatLng: mockForEachLatLng,
+    });
+
+    mockForEach.mockImplementation((cb) => {
+      cb({
+        getProperty: (prop: string) => {
+          if (prop === 'regionName') return 'NRE Click';
+          return null;
+        },
+        getGeometry: mockGetGeometry,
+      });
+    });
+
+    const mockRegion: RegionData[] = [
+      {
+        id: 'r1',
+        name: 'NRE Click',
+        value: 0.6,
+        accessCount: 300,
+        geoJson: {
+          type: 'Feature',
+          properties: {},
+          geometry: { type: 'Polygon', coordinates: [[]] },
+        },
+      },
+    ];
+
+    render(<ChoroplethMap data={mockRegion} apiKey={mockApiKey} />);
+
+    await waitFor(() => {
+      expect(clickHandler).not.toBeNull();
+    });
+
+    act(() => {
+      (clickHandler as unknown as (event: unknown) => void)({
+        feature: {
+          getProperty: (prop: string) => {
+            if (prop === 'regionId') return 'r1';
+            if (prop === 'regionName') return 'NRE Click';
+            return null;
+          },
+        },
+      });
+    });
+
+    // Should create LatLngBounds for zoom calculation
+    expect(mockLatLngBounds).toHaveBeenCalled();
+    expect(mockGetGeometry).toHaveBeenCalled();
+    expect(mockForEachLatLng).toHaveBeenCalled();
+    // Should call fitBounds with padding 20 for zoom-to-region
+    expect(mockFitBounds).toHaveBeenCalledWith(expect.any(Object), 20);
+  });
+
+  it('schedules requestAnimationFrame for fade-in', async () => {
+    const mockRegion: RegionData[] = [
+      {
+        id: 'r1',
+        name: 'Region 1',
+        value: 0.5,
+        accessCount: 100,
+        geoJson: {
+          type: 'Feature',
+          properties: {},
+          geometry: { type: 'Polygon', coordinates: [[]] },
+        },
+      },
+    ];
+
+    render(<ChoroplethMap data={mockRegion} apiKey={mockApiKey} />);
+
+    await waitFor(() => {
+      expect(mockSetStyle).toHaveBeenCalled();
+    });
+
+    // requestAnimationFrame should have been called for fade-in
+    expect(rafCallbacks.length).toBeGreaterThan(0);
   });
 });

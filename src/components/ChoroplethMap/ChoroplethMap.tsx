@@ -1,5 +1,5 @@
 /* global google */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
 import { cn } from '../../utils/utils';
 import type {
@@ -7,6 +7,21 @@ import type {
   ColorClass,
   RegionData,
 } from './ChoroplethMap.types';
+
+/**
+ * Fade-in animation duration in milliseconds
+ */
+const FADE_DURATION = 400;
+
+/**
+ * Hover animation duration in milliseconds
+ */
+const HOVER_DURATION = 200;
+
+/**
+ * Target fill opacity for polygons
+ */
+const TARGET_OPACITY = 0.8;
 
 /**
  * Color classes for the choropleth map (4 classes)
@@ -55,6 +70,25 @@ const getColorClass = (value: number): ColorClass => {
     }
   }
   return COLOR_CLASSES[COLOR_CLASSES.length - 1];
+};
+
+/**
+ * Create style function for Data Layer features
+ * @param opacity - Current fill opacity
+ * @returns Style function for map.data.setStyle
+ */
+const createStyleFunction = (opacity: number) => {
+  return (feature: google.maps.Data.Feature) => {
+    const value = feature.getProperty('regionValue') as number;
+    const colorClass = getColorClass(value ?? 0);
+    return {
+      fillColor: colorClass.fillColor,
+      fillOpacity: opacity,
+      strokeColor: '#FFFFFF',
+      strokeWeight: 0.5,
+      cursor: 'pointer',
+    };
+  };
 };
 
 /**
@@ -135,6 +169,7 @@ const LoadingSkeleton = () => (
  *
  * Displays an interactive Google Map with colored regions based on normalized values.
  * Uses 4 color classes to represent different performance levels.
+ * Includes fade-in animation, smooth hover transitions, and zoom-to-region on click.
  *
  * @param data - Array of region data with GeoJSON and values
  * @param apiKey - Google Maps API key
@@ -171,6 +206,8 @@ const ChoroplethMap = ({
     x: number;
     y: number;
   } | null>(null);
+  const fadeAnimationRef = useRef<number | null>(null);
+  const hoverAnimationRef = useRef<number | null>(null);
 
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
@@ -204,7 +241,7 @@ const ChoroplethMap = ({
   }, []);
 
   /**
-   * Add GeoJSON data to map
+   * Add GeoJSON data to map with animations
    */
   useEffect(() => {
     if (!map || !data.length) return;
@@ -235,23 +272,85 @@ const ChoroplethMap = ({
       }
     });
 
-    // Style the features based on value
-    map.data.setStyle((feature) => {
-      const value = feature.getProperty('regionValue') as number;
-      const colorClass = getColorClass(value ?? 0);
+    // Start with opacity 0 for fade-in animation
+    map.data.setStyle(createStyleFunction(0));
 
-      return {
-        fillColor: colorClass.fillColor,
-        fillOpacity: 0.8,
-        strokeColor: '#FFFFFF',
-        strokeWeight: 0.5,
-        cursor: 'pointer',
+    // Animate fade-in from 0 to TARGET_OPACITY
+    const startTime = performance.now();
+    const animateFadeIn = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / FADE_DURATION, 1);
+      const currentOpacity = progress * TARGET_OPACITY;
+
+      map.data.setStyle(createStyleFunction(currentOpacity));
+
+      if (progress < 1) {
+        fadeAnimationRef.current = requestAnimationFrame(animateFadeIn);
+      } else {
+        fadeAnimationRef.current = null;
+      }
+    };
+    fadeAnimationRef.current = requestAnimationFrame(animateFadeIn);
+
+    /**
+     * Animate hover transition for a group of features
+     * @param features - Target features to animate
+     * @param from - Starting opacity
+     * @param to - Target opacity
+     * @param fromWeight - Starting stroke weight
+     * @param toWeight - Target stroke weight
+     */
+    const animateHover = (
+      features: google.maps.Data.Feature[],
+      from: number,
+      to: number,
+      fromWeight: number,
+      toWeight: number
+    ) => {
+      if (hoverAnimationRef.current) {
+        cancelAnimationFrame(hoverAnimationRef.current);
+      }
+      const start = performance.now();
+      const animate = (now: number) => {
+        const progress = Math.min((now - start) / HOVER_DURATION, 1);
+        const opacity = from + (to - from) * progress;
+        const weight = fromWeight + (toWeight - fromWeight) * progress;
+        features.forEach((f) => {
+          map.data.overrideStyle(f, {
+            fillOpacity: opacity,
+            strokeColor: '#FFFFFF',
+            strokeWeight: weight,
+          });
+        });
+        if (progress < 1) {
+          hoverAnimationRef.current = requestAnimationFrame(animate);
+        } else {
+          hoverAnimationRef.current = null;
+        }
       };
-    });
+      hoverAnimationRef.current = requestAnimationFrame(animate);
+    };
 
     // Handle hover events - highlight all cities in the same NRE
     let currentNRE: string | null = null;
     let revertTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    /**
+     * Collect all features belonging to a given NRE name
+     * @param nreName - NRE region name to match
+     * @returns Array of matching features
+     */
+    const collectNREFeatures = (
+      nreName: string
+    ): google.maps.Data.Feature[] => {
+      const features: google.maps.Data.Feature[] = [];
+      map.data.forEach((f) => {
+        if (f.getProperty('regionName') === nreName) {
+          features.push(f);
+        }
+      });
+      return features;
+    };
 
     const mouseoverListener = map.data.addListener(
       'mouseover',
@@ -275,26 +374,15 @@ const ChoroplethMap = ({
           }
         }
 
-        // Highlight all features in the same NRE group
+        // Animate highlight for all features in the same NRE group
         if (currentNRE !== regionName) {
           if (currentNRE) {
-            const prevNRE = currentNRE;
-            map.data.forEach((f) => {
-              if (f.getProperty('regionName') === prevNRE) {
-                map.data.revertStyle(f);
-              }
-            });
+            const prevFeatures = collectNREFeatures(currentNRE);
+            animateHover(prevFeatures, 1, TARGET_OPACITY, 1.5, 0.5);
           }
           currentNRE = regionName;
-          map.data.forEach((f) => {
-            if (f.getProperty('regionName') === regionName) {
-              map.data.overrideStyle(f, {
-                fillOpacity: 1,
-                strokeColor: '#FFFFFF',
-                strokeWeight: 1.5,
-              });
-            }
-          });
+          const nreFeatures = collectNREFeatures(regionName);
+          animateHover(nreFeatures, TARGET_OPACITY, 1, 0.5, 1.5);
         }
       }
     );
@@ -305,12 +393,8 @@ const ChoroplethMap = ({
         setHoveredRegion(null);
         setInfoPosition(null);
         if (currentNRE) {
-          const prevNRE = currentNRE;
-          map.data.forEach((f) => {
-            if (f.getProperty('regionName') === prevNRE) {
-              map.data.revertStyle(f);
-            }
-          });
+          const prevFeatures = collectNREFeatures(currentNRE);
+          animateHover(prevFeatures, 1, TARGET_OPACITY, 1.5, 0.5);
           currentNRE = null;
         }
       }, 50);
@@ -328,19 +412,37 @@ const ChoroplethMap = ({
       }
     );
 
-    // Handle click events
+    // Handle click events - zoom to NRE region
     const clickListener = map.data.addListener(
       'click',
       (event: google.maps.Data.MouseEvent) => {
         const regionId = event.feature.getProperty('regionId') as string;
+        const regionName = event.feature.getProperty('regionName') as string;
         const region = data.find((r) => r.id === regionId);
         if (region && onRegionClick) {
           onRegionClick(region);
+        }
+
+        // Calculate bounds for all polygons in the clicked NRE and zoom
+        const nreBounds = new google.maps.LatLngBounds();
+        map.data.forEach((f) => {
+          if (f.getProperty('regionName') === regionName) {
+            f.getGeometry()?.forEachLatLng((latLng) => {
+              nreBounds.extend(latLng);
+            });
+          }
+        });
+        if (!nreBounds.isEmpty()) {
+          map.fitBounds(nreBounds, 20);
         }
       }
     );
 
     return () => {
+      if (fadeAnimationRef.current)
+        cancelAnimationFrame(fadeAnimationRef.current);
+      if (hoverAnimationRef.current)
+        cancelAnimationFrame(hoverAnimationRef.current);
       if (revertTimeout) clearTimeout(revertTimeout);
       google.maps.event.removeListener(mouseoverListener);
       google.maps.event.removeListener(mouseoutListener);
