@@ -7,12 +7,8 @@ import {
   formatVariation,
   getTrendDirection,
 } from './TimeReport';
-import type {
-  TimeReportTab,
-  TimeCardData,
-  TimeReportData,
-  TimeReportProfile,
-} from './TimeReport';
+import type { TimeReportTab, TimeCardData, TimeReportData } from './TimeReport';
+import { TimeReportProfile } from './TimeReport';
 import Text from '../Text/Text';
 import {
   Student,
@@ -138,25 +134,25 @@ const otherApiResponse: TimeReportData = {
  */
 const figmaTabs: TimeReportTab[] = [
   {
-    value: 'STUDENT' satisfies TimeReportProfile,
+    value: TimeReportProfile.STUDENT,
     label: 'Estudante',
     icon: <Student size={17} />,
     cards: studentCardsFromApi(studentApiResponse),
   },
   {
-    value: 'TEACHER' satisfies TimeReportProfile,
+    value: TimeReportProfile.TEACHER,
     label: 'Professor',
     icon: <PencilRuler size={17} />,
     cards: defaultCardsFromApi(otherApiResponse),
   },
   {
-    value: 'UNIT_MANAGER' satisfies TimeReportProfile,
+    value: TimeReportProfile.UNIT_MANAGER,
     label: 'Gestor unidade',
     icon: <MapPinSimple size={17} />,
     cards: defaultCardsFromApi(otherApiResponse),
   },
   {
-    value: 'REGIONAL_MANAGER' satisfies TimeReportProfile,
+    value: TimeReportProfile.REGIONAL_MANAGER,
     label: 'Gestor regional',
     icon: <MapPinSimpleArea size={17} />,
     cards: defaultCardsFromApi(otherApiResponse),
@@ -176,7 +172,7 @@ export const FigmaDesign: Story = () => (
  * Controlled tab state
  */
 export const Controlled: Story = () => {
-  const [activeTab, setActiveTab] = useState<string>('STUDENT');
+  const [activeTab, setActiveTab] = useState<string>(TimeReportProfile.STUDENT);
 
   return (
     <div className="flex flex-col gap-4 p-4">

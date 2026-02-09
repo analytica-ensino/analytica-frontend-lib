@@ -1,24 +1,30 @@
 import { type HTMLAttributes, type ReactNode, useState } from 'react';
 import { TrendUp, TrendDown } from 'phosphor-react';
+import dayjs from 'dayjs';
+import duration from 'dayjs/plugin/duration';
 import Text from '../Text/Text';
 import Menu, { MenuContent, MenuItem } from '../Menu/Menu';
 import { cn } from '../../utils/utils';
 
+dayjs.extend(duration);
+
 /**
  * API types matching backend structure
  */
-export type TimeReportPeriod =
-  | '7_DAYS'
-  | '1_MONTH'
-  | '3_MONTHS'
-  | '6_MONTHS'
-  | '1_YEAR';
+export enum TimeReportPeriod {
+  SEVEN_DAYS = '7_DAYS',
+  ONE_MONTH = '1_MONTH',
+  THREE_MONTHS = '3_MONTHS',
+  SIX_MONTHS = '6_MONTHS',
+  ONE_YEAR = '1_YEAR',
+}
 
-export type TimeReportProfile =
-  | 'STUDENT'
-  | 'TEACHER'
-  | 'UNIT_MANAGER'
-  | 'REGIONAL_MANAGER';
+export enum TimeReportProfile {
+  STUDENT = 'STUDENT',
+  TEACHER = 'TEACHER',
+  UNIT_MANAGER = 'UNIT_MANAGER',
+  REGIONAL_MANAGER = 'REGIONAL_MANAGER',
+}
 
 export interface TimeReportRequest {
   period: TimeReportPeriod;
@@ -50,8 +56,9 @@ export interface TimeReportResponse {
  * Format decimal hours to "Xh Ymin" display string
  */
 export const formatHoursToTime = (hours: number): string => {
-  const h = Math.floor(hours);
-  const min = Math.round((hours - h) * 60);
+  const d = dayjs.duration(hours, 'hours');
+  const h = Math.floor(d.asHours());
+  const min = d.minutes();
   return `${h}h ${min}min`;
 };
 

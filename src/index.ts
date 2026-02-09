@@ -1014,6 +1014,8 @@ export { DEFAULT_LESSON_PROGRESS_LABELS } from './components/StudentLessonProgre
 export {
   TimeReport,
   TimeCard,
+  TimeReportPeriod,
+  TimeReportProfile,
   formatHoursToTime,
   getTrendDirection,
   formatVariation,
@@ -1024,8 +1026,6 @@ export type {
   TimeReportTab,
   TimeCardData,
   TimeCardTrend,
-  TimeReportPeriod,
-  TimeReportProfile,
   TimeReportRequest,
   TimeMetric,
   TimeReportData,

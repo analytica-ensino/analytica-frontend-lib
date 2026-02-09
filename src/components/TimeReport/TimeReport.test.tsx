@@ -266,6 +266,10 @@ describe('formatHoursToTime', () => {
   it('rounds minutes correctly', () => {
     expect(formatHoursToTime(1.75)).toBe('1h 45min');
   });
+
+  it('does not produce 60min for edge case values', () => {
+    expect(formatHoursToTime(2.9999)).toBe('2h 59min');
+  });
 });
 
 describe('getTrendDirection', () => {
