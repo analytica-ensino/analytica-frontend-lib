@@ -8,7 +8,7 @@ import {
   getTrendDirection,
 } from './TimeReport';
 import type { TimeReportTab, TimeCardData, TimeReportData } from './TimeReport';
-import { TimeReportProfile } from './TimeReport';
+import { PROFILE_ROLES } from './TimeReport';
 import Text from '../Text/Text';
 import {
   StudentIcon,
@@ -137,25 +137,25 @@ const otherApiResponse: TimeReportData = {
  */
 const figmaTabs: TimeReportTab[] = [
   {
-    value: TimeReportProfile.STUDENT,
+    value: PROFILE_ROLES.STUDENT,
     label: 'Estudante',
     icon: <StudentIcon size={17} />,
     cards: studentCardsFromApi(studentApiResponse),
   },
   {
-    value: TimeReportProfile.TEACHER,
+    value: PROFILE_ROLES.TEACHER,
     label: 'Professor',
     icon: <PencilRulerIcon size={17} />,
     cards: defaultCardsFromApi(otherApiResponse),
   },
   {
-    value: TimeReportProfile.UNIT_MANAGER,
+    value: PROFILE_ROLES.UNIT_MANAGER,
     label: 'Gestor unidade',
     icon: <MapPinSimpleIcon size={17} />,
     cards: defaultCardsFromApi(otherApiResponse),
   },
   {
-    value: TimeReportProfile.REGIONAL_MANAGER,
+    value: PROFILE_ROLES.REGIONAL_MANAGER,
     label: 'Gestor regional',
     icon: <MapPinSimpleAreaIcon size={17} />,
     cards: defaultCardsFromApi(otherApiResponse),
@@ -175,7 +175,7 @@ export const FigmaDesign: Story = () => (
  * Controlled tab state
  */
 export const Controlled: Story = () => {
-  const [activeTab, setActiveTab] = useState<string>(TimeReportProfile.STUDENT);
+  const [activeTab, setActiveTab] = useState<string>(PROFILE_ROLES.STUDENT);
 
   return (
     <div className="flex flex-col gap-4 p-4">

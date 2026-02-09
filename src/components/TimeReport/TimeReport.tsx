@@ -5,30 +5,20 @@ import duration from 'dayjs/plugin/duration';
 import Text from '../Text/Text';
 import Menu, { MenuContent, MenuItem } from '../Menu/Menu';
 import { cn } from '../../utils/utils';
+import { PROFILE_ROLES } from '../../types/chat';
+import type { StudentsHighlightPeriod } from '../../hooks/useStudentsHighlight';
 
 dayjs.extend(duration);
 
 /**
- * API types matching backend structure
+ * API types - reusing existing enums/types from the project
  */
-export enum TimeReportPeriod {
-  SEVEN_DAYS = '7_DAYS',
-  ONE_MONTH = '1_MONTH',
-  THREE_MONTHS = '3_MONTHS',
-  SIX_MONTHS = '6_MONTHS',
-  ONE_YEAR = '1_YEAR',
-}
-
-export enum TimeReportProfile {
-  STUDENT = 'STUDENT',
-  TEACHER = 'TEACHER',
-  UNIT_MANAGER = 'UNIT_MANAGER',
-  REGIONAL_MANAGER = 'REGIONAL_MANAGER',
-}
+export { PROFILE_ROLES };
+export type { StudentsHighlightPeriod as TimeReportPeriod };
 
 export interface TimeReportRequest {
-  period: TimeReportPeriod;
-  profile?: TimeReportProfile;
+  period: StudentsHighlightPeriod;
+  profile?: PROFILE_ROLES;
   school_group_ids?: string[];
   school_ids?: string[];
   all_school_groups?: boolean;
