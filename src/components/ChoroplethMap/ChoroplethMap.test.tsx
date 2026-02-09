@@ -311,6 +311,11 @@ describe('ChoroplethMap', () => {
 describe('ChoroplethMap color classification', () => {
   const mockApiKey = 'test-api-key';
 
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockAddGeoJson.mockReturnValue([{ setProperty: jest.fn() }]);
+  });
+
   it('renders regions with appropriate color classes based on values', async () => {
     const dataWithDifferentValues: RegionData[] = [
       {
@@ -359,8 +364,6 @@ describe('ChoroplethMap color classification', () => {
       },
     ];
 
-    mockAddGeoJson.mockReturnValue([{ setProperty: jest.fn() }]);
-
     render(
       <ChoroplethMap data={dataWithDifferentValues} apiKey={mockApiKey} />
     );
@@ -372,5 +375,170 @@ describe('ChoroplethMap color classification', () => {
     // Verify that setStyle was called with a function
     const styleFunction = mockSetStyle.mock.calls[0][0];
     expect(typeof styleFunction).toBe('function');
+  });
+});
+
+describe('ChoroplethMap static map and styling', () => {
+  const mockApiKey = 'test-api-key';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockAddGeoJson.mockReturnValue([{ setProperty: jest.fn() }]);
+  });
+
+  it('passes static map options with zoom enabled', () => {
+    const { GoogleMap } = require('@react-google-maps/api');
+
+    render(<ChoroplethMap data={[]} apiKey={mockApiKey} />);
+
+    const mapProps = GoogleMap.mock.calls[0][0];
+    expect(mapProps.options).toEqual(
+      expect.objectContaining({
+        disableDefaultUI: true,
+        zoomControl: true,
+        scrollwheel: true,
+        draggable: true,
+      })
+    );
+  });
+
+  it('hides all base map features via styles', () => {
+    const { GoogleMap } = require('@react-google-maps/api');
+
+    render(<ChoroplethMap data={[]} apiKey={mockApiKey} />);
+
+    const mapProps = GoogleMap.mock.calls[0][0];
+    const styles = mapProps.options.styles;
+
+    expect(styles).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          featureType: 'all',
+          elementType: 'all',
+          stylers: [{ visibility: 'off' }],
+        }),
+        expect.objectContaining({
+          featureType: 'landscape',
+          elementType: 'geometry',
+          stylers: expect.arrayContaining([
+            { visibility: 'on' },
+            { color: '#F6F6F6' },
+          ]),
+        }),
+      ])
+    );
+  });
+
+  it('passes container style with borderRadius', () => {
+    const { GoogleMap } = require('@react-google-maps/api');
+
+    render(<ChoroplethMap data={[]} apiKey={mockApiKey} />);
+
+    const mapProps = GoogleMap.mock.calls[0][0];
+    expect(mapProps.mapContainerStyle).toEqual({
+      width: '100%',
+      height: '415px',
+      borderRadius: '0.5rem',
+    });
+  });
+
+  it('applies uniform stroke color and weight to polygons', async () => {
+    const mockRegion: RegionData[] = [
+      {
+        id: 'r1',
+        name: 'Region 1',
+        value: 0.8,
+        accessCount: 100,
+        geoJson: {
+          type: 'Feature',
+          properties: {},
+          geometry: { type: 'Polygon', coordinates: [[]] },
+        },
+      },
+    ];
+
+    render(<ChoroplethMap data={mockRegion} apiKey={mockApiKey} />);
+
+    await waitFor(() => {
+      expect(mockSetStyle).toHaveBeenCalled();
+    });
+
+    const styleFunction = mockSetStyle.mock.calls[0][0];
+    const mockFeature = {
+      getProperty: (prop: string) => (prop === 'regionValue' ? 0.8 : null),
+    };
+
+    const style = styleFunction(mockFeature);
+    expect(style).toEqual(
+      expect.objectContaining({
+        strokeColor: '#FFFFFF',
+        strokeWeight: 0.5,
+        fillOpacity: 0.8,
+        cursor: 'pointer',
+      })
+    );
+  });
+
+  it('applies uniform stroke on hover overrideStyle', async () => {
+    let mouseoverHandler: ((event: unknown) => void) | null = null;
+    mockAddListener.mockImplementation((event, handler) => {
+      if (event === 'mouseover') {
+        mouseoverHandler = handler;
+      }
+      return {};
+    });
+
+    const mockRegion: RegionData[] = [
+      {
+        id: 'r1',
+        name: 'NRE Test',
+        value: 0.5,
+        accessCount: 200,
+        geoJson: {
+          type: 'Feature',
+          properties: {},
+          geometry: { type: 'Polygon', coordinates: [[]] },
+        },
+      },
+    ];
+
+    const mockFeatureObj = {
+      getProperty: (prop: string) => {
+        if (prop === 'regionId') return 'r1';
+        if (prop === 'regionName') return 'NRE Test';
+        return null;
+      },
+    };
+
+    mockForEach.mockImplementation((cb) => cb(mockFeatureObj));
+
+    render(<ChoroplethMap data={mockRegion} apiKey={mockApiKey} />);
+
+    await waitFor(() => {
+      expect(mouseoverHandler).not.toBeNull();
+    });
+
+    (mouseoverHandler as unknown as (event: unknown) => void)({
+      feature: mockFeatureObj,
+      domEvent: { clientX: 100, clientY: 200 },
+    });
+
+    expect(mockOverrideStyle).toHaveBeenCalledWith(
+      mockFeatureObj,
+      expect.objectContaining({
+        fillOpacity: 1,
+        strokeColor: '#FFFFFF',
+        strokeWeight: 1.5,
+      })
+    );
+  });
+
+  it('renders map container with overflow-hidden class', () => {
+    const { container } = render(
+      <ChoroplethMap data={[]} apiKey={mockApiKey} />
+    );
+
+    const mapContainer = container.querySelector('.bg-\\[\\#F6F6F6\\]');
+    expect(mapContainer).toHaveClass('overflow-hidden');
   });
 });

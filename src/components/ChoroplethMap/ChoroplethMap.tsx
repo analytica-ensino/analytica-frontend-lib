@@ -64,6 +64,7 @@ const getColorClass = (value: number): ColorClass => {
 const containerStyle = {
   width: '100%',
   height: '415px',
+  borderRadius: '0.5rem',
 };
 
 /**
@@ -81,26 +82,17 @@ const mapOptions: google.maps.MapOptions = {
   disableDefaultUI: true,
   zoomControl: true,
   scrollwheel: true,
+  draggable: true,
   styles: [
     {
       featureType: 'all',
-      elementType: 'labels',
-      stylers: [{ visibility: 'off' }],
-    },
-    {
-      featureType: 'administrative',
-      elementType: 'geometry.stroke',
+      elementType: 'all',
       stylers: [{ visibility: 'off' }],
     },
     {
       featureType: 'landscape',
       elementType: 'geometry',
-      stylers: [{ color: '#F6F6F6' }],
-    },
-    {
-      featureType: 'water',
-      elementType: 'geometry',
-      stylers: [{ color: '#C9E4FA' }],
+      stylers: [{ visibility: 'on' }, { color: '#F6F6F6' }],
     },
   ],
 };
@@ -198,7 +190,7 @@ const ChoroplethMap = ({
           { lat: bounds.south, lng: bounds.west },
           { lat: bounds.north, lng: bounds.east }
         );
-        mapInstance.fitBounds(googleBounds, 20);
+        mapInstance.fitBounds(googleBounds, 0);
       }
     },
     [bounds]
@@ -251,8 +243,8 @@ const ChoroplethMap = ({
       return {
         fillColor: colorClass.fillColor,
         fillOpacity: 0.8,
-        strokeColor: colorClass.strokeColor,
-        strokeWeight: 1,
+        strokeColor: '#FFFFFF',
+        strokeWeight: 0.5,
         cursor: 'pointer',
       };
     });
@@ -298,7 +290,8 @@ const ChoroplethMap = ({
             if (f.getProperty('regionName') === regionName) {
               map.data.overrideStyle(f, {
                 fillOpacity: 1,
-                strokeWeight: 2,
+                strokeColor: '#FFFFFF',
+                strokeWeight: 1.5,
               });
             }
           });
@@ -391,7 +384,7 @@ const ChoroplethMap = ({
       </div>
 
       {/* Map Container */}
-      <div className="bg-[#F6F6F6] rounded-lg h-[415px] relative">
+      <div className="bg-[#F6F6F6] rounded-lg h-[415px] relative overflow-hidden">
         {loading || !isLoaded ? (
           <LoadingSkeleton />
         ) : (
