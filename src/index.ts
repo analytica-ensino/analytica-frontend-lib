@@ -1009,3 +1009,25 @@ export type {
   LessonProgressStatus,
 } from './components/StudentLessonProgressModal';
 export { DEFAULT_LESSON_PROGRESS_LABELS } from './components/StudentLessonProgressModal';
+
+// TimeReport Components
+export {
+  TimeReport,
+  TimeCard,
+  formatHoursToTime,
+  getTrendDirection,
+  formatVariation,
+} from './components/TimeReport/TimeReport';
+export type {
+  TimeReportProps,
+  TimeCardProps,
+  TimeReportTab,
+  TimeCardData,
+  TimeCardTrend,
+  TimeReportPeriod,
+  TimeReportProfile,
+  TimeReportRequest,
+  TimeMetric,
+  TimeReportData,
+  TimeReportResponse,
+} from './components/TimeReport/TimeReport';
