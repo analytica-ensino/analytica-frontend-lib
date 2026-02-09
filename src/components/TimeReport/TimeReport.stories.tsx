@@ -11,17 +11,15 @@ import type { TimeReportTab, TimeCardData, TimeReportData } from './TimeReport';
 import { TimeReportProfile } from './TimeReport';
 import Text from '../Text/Text';
 import {
-  Student,
-  Monitor,
-  File,
-  Exam,
-  BookOpen,
-  ChalkboardTeacher,
-} from 'phosphor-react';
-import {
-  PencilRuler,
-  MapPinSimple,
-  MapPinSimpleArea,
+  StudentIcon,
+  MonitorIcon,
+  FileIcon,
+  ExamIcon,
+  BookOpenIcon,
+  ChalkboardTeacherIcon,
+  PencilRulerIcon,
+  MapPinSimpleIcon,
+  MapPinSimpleAreaIcon,
 } from '@phosphor-icons/react';
 
 /**
@@ -49,13 +47,13 @@ const studentCardsFromApi = (data: TimeReportData): TimeCardData[] => {
     metricToCard(
       'platform',
       'TEMPO NA PLATAFORMA',
-      <Monitor />,
+      <MonitorIcon />,
       data.total_platform_time
     ),
     metricToCard(
       'activity',
       'TEMPO EM ATIVIDADES',
-      <File />,
+      <FileIcon />,
       data.activity_time
     ),
   ];
@@ -64,7 +62,7 @@ const studentCardsFromApi = (data: TimeReportData): TimeCardData[] => {
       metricToCard(
         'simulation',
         'TEMPO EM SIMULADOS',
-        <Exam />,
+        <ExamIcon />,
         data.exam_simulation_time
       )
     );
@@ -74,7 +72,7 @@ const studentCardsFromApi = (data: TimeReportData): TimeCardData[] => {
       metricToCard(
         'content',
         'TEMPO EM CONTEÚDO',
-        <ChalkboardTeacher />,
+        <ChalkboardTeacherIcon />,
         data.content_time
       )
     );
@@ -83,7 +81,7 @@ const studentCardsFromApi = (data: TimeReportData): TimeCardData[] => {
     metricToCard(
       'lessons',
       'TEMPO EM AULAS RECOMENDADAS',
-      <BookOpen />,
+      <BookOpenIcon />,
       data.recommended_classes_time
     )
   );
@@ -97,14 +95,19 @@ const defaultCardsFromApi = (data: TimeReportData): TimeCardData[] => [
   metricToCard(
     'platform',
     'TEMPO NA PLATAFORMA',
-    <Monitor />,
+    <MonitorIcon />,
     data.total_platform_time
   ),
-  metricToCard('activity', 'TEMPO EM ATIVIDADES', <File />, data.activity_time),
+  metricToCard(
+    'activity',
+    'TEMPO EM ATIVIDADES',
+    <FileIcon />,
+    data.activity_time
+  ),
   metricToCard(
     'lessons',
     'TEMPO EM AULAS RECOMENDADAS',
-    <BookOpen />,
+    <BookOpenIcon />,
     data.recommended_classes_time
   ),
 ];
@@ -136,25 +139,25 @@ const figmaTabs: TimeReportTab[] = [
   {
     value: TimeReportProfile.STUDENT,
     label: 'Estudante',
-    icon: <Student size={17} />,
+    icon: <StudentIcon size={17} />,
     cards: studentCardsFromApi(studentApiResponse),
   },
   {
     value: TimeReportProfile.TEACHER,
     label: 'Professor',
-    icon: <PencilRuler size={17} />,
+    icon: <PencilRulerIcon size={17} />,
     cards: defaultCardsFromApi(otherApiResponse),
   },
   {
     value: TimeReportProfile.UNIT_MANAGER,
     label: 'Gestor unidade',
-    icon: <MapPinSimple size={17} />,
+    icon: <MapPinSimpleIcon size={17} />,
     cards: defaultCardsFromApi(otherApiResponse),
   },
   {
     value: TimeReportProfile.REGIONAL_MANAGER,
     label: 'Gestor regional',
-    icon: <MapPinSimpleArea size={17} />,
+    icon: <MapPinSimpleAreaIcon size={17} />,
     cards: defaultCardsFromApi(otherApiResponse),
   },
 ];
@@ -232,19 +235,21 @@ export const IndividualCards: Story = () => (
     </Text>
     <div className="grid grid-cols-3 gap-4">
       <TimeCard
-        data={metricToCard('up', 'TEMPO NA PLATAFORMA', <Monitor />, {
+        data={metricToCard('up', 'TEMPO NA PLATAFORMA', <MonitorIcon />, {
           hours: 150.5,
           variation_percent: 12.3,
         })}
       />
       <TimeCard
-        data={metricToCard('down', 'TEMPO EM CONTEÚDO', <ChalkboardTeacher />, {
-          hours: 25.8,
-          variation_percent: -5.2,
-        })}
+        data={metricToCard(
+          'down',
+          'TEMPO EM CONTEÚDO',
+          <ChalkboardTeacherIcon />,
+          { hours: 25.8, variation_percent: -5.2 }
+        )}
       />
       <TimeCard
-        data={metricToCard('none', 'TEMPO EM SIMULADOS', <Exam />, {
+        data={metricToCard('none', 'TEMPO EM SIMULADOS', <ExamIcon />, {
           hours: 200.0,
           variation_percent: null,
         })}
