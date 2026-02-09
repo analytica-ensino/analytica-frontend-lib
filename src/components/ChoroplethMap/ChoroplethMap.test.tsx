@@ -562,8 +562,8 @@ describe('ChoroplethMap animations', () => {
     };
     const initialStyle = initialStyleFn(mockFeature);
     expect(initialStyle.fillOpacity).toBe(0);
-    expect(initialStyle.strokeColor).toBe('#FFFFFF');
-    expect(initialStyle.strokeWeight).toBe(0.5);
+    expect(initialStyle.strokeColor).toBe('#72706F');
+    expect(initialStyle.strokeWeight).toBe(0.3);
   });
 
   it('completes fade-in to target opacity after animation', async () => {
@@ -616,8 +616,10 @@ describe('ChoroplethMap animations', () => {
       getProperty: (prop: string) => {
         if (prop === 'regionId') return 'r1';
         if (prop === 'regionName') return 'NRE Test';
+        if (prop === 'regionValue') return 0.5;
         return null;
       },
+      getGeometry: () => ({ forEachLatLng: jest.fn() }),
     };
 
     mockForEach.mockImplementation((cb) => cb(mockFeatureObj));
@@ -658,7 +660,7 @@ describe('ChoroplethMap animations', () => {
     expect(mockOverrideStyle).toHaveBeenCalledWith(
       mockFeatureObj,
       expect.objectContaining({
-        strokeColor: '#FFFFFF',
+        strokeColor: '#72706F',
       })
     );
   });
@@ -843,6 +845,7 @@ describe('ChoroplethMap legend interaction', () => {
   it('hides features on map when legend class is toggled off', async () => {
     const mockFeature = {
       getProperty: (prop: string) => (prop === 'regionValue' ? 0.9 : null),
+      getGeometry: () => ({ forEachLatLng: jest.fn() }),
     };
     mockForEach.mockImplementation((cb: (f: typeof mockFeature) => void) => {
       cb(mockFeature);
@@ -872,6 +875,7 @@ describe('ChoroplethMap legend interaction', () => {
   it('shows features on map when legend class is toggled back on', async () => {
     const mockFeature = {
       getProperty: (prop: string) => (prop === 'regionValue' ? 0.9 : null),
+      getGeometry: () => ({ forEachLatLng: jest.fn() }),
     };
     mockForEach.mockImplementation((cb: (f: typeof mockFeature) => void) => {
       cb(mockFeature);
@@ -906,6 +910,37 @@ describe('ChoroplethMap legend interaction', () => {
 
     await waitFor(() => {
       expect(mockRevertStyle).toHaveBeenCalledWith(mockFeature);
+    });
+  });
+
+  it('adjusts map zoom to fit visible features when legend toggled', async () => {
+    const mockForEachLatLng = jest.fn();
+    const mockFeature = {
+      getProperty: (prop: string) => (prop === 'regionValue' ? 0.9 : null),
+      getGeometry: () => ({ forEachLatLng: mockForEachLatLng }),
+    };
+    mockForEach.mockImplementation((cb: (f: typeof mockFeature) => void) => {
+      cb(mockFeature);
+    });
+
+    render(<ChoroplethMap data={mockRegionData} apiKey={mockApiKey} />);
+
+    await waitFor(() => {
+      expect(mockSetStyle).toHaveBeenCalled();
+    });
+
+    mockFitBounds.mockClear();
+    mockLatLngBounds.mockClear();
+
+    // Toggle off "Abaixo da média" (index 2) — "Destaque" stays visible
+    const abaixoBtn = screen.getByText('Abaixo da média').closest('button')!;
+    act(() => {
+      abaixoBtn.click();
+    });
+
+    await waitFor(() => {
+      expect(mockLatLngBounds).toHaveBeenCalled();
+      expect(mockFitBounds).toHaveBeenCalledWith(expect.any(Object), 20);
     });
   });
 });

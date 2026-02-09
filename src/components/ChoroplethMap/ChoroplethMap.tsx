@@ -85,7 +85,7 @@ const createStyleFunction = (opacity: number) => {
       fillColor: colorClass.fillColor,
       fillOpacity: opacity,
       strokeColor: '#FFFFFF',
-      strokeWeight: 0.5,
+      strokeWeight: 0.3,
       cursor: 'pointer',
     };
   };
