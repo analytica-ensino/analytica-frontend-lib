@@ -119,13 +119,13 @@ const LegendItem = ({
 }) => (
   <div className="flex items-center gap-2">
     <div
-      className="w-4 h-4 rounded-xs"
+      className="w-3 h-3 rounded-full"
       style={{
         backgroundColor: color,
-        border: borderColor ? `2px solid ${borderColor}` : 'none',
+        border: borderColor ? `1px solid ${borderColor}` : 'none',
       }}
     />
-    <span className="text-sm text-[#525252]">{label}</span>
+    <span className="text-sm font-medium text-[#737373]">{label}</span>
   </div>
 );
 
@@ -373,10 +373,12 @@ const ChoroplethMap = ({
     >
       {/* Header */}
       <div className="flex flex-col gap-4">
-        <h2 className="font-bold text-lg text-[#171717]">{title}</h2>
+        <h2 className="font-bold text-lg leading-[21px] tracking-[0.2px] text-[#171717]">
+          {title}
+        </h2>
 
         {/* Legend */}
-        <div className="flex flex-wrap gap-4 sm:gap-8">
+        <div className="flex flex-wrap gap-8">
           <LegendItem color="#1C61B2" label="Destaque" />
           <LegendItem color="#2883D7" label="Acima da média" />
           <LegendItem color="#91C7F1" label="Abaixo da média" />
