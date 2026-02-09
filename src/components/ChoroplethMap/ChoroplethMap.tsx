@@ -221,13 +221,19 @@ const ChoroplethMap = ({
     (mapInstance: google.maps.Map) => {
       setMap(mapInstance);
 
-      // Fit bounds if provided
+      // Fit bounds if provided, then bump zoom to fill the container
       if (bounds) {
         const googleBounds = new google.maps.LatLngBounds(
           { lat: bounds.south, lng: bounds.west },
           { lat: bounds.north, lng: bounds.east }
         );
         mapInstance.fitBounds(googleBounds, 0);
+        google.maps.event.addListenerOnce(mapInstance, 'idle', () => {
+          const currentZoom = mapInstance.getZoom();
+          if (currentZoom) {
+            mapInstance.setZoom(currentZoom + 0.8);
+          }
+        });
       }
     },
     [bounds]

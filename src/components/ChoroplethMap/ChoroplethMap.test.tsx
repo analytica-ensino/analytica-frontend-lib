@@ -34,8 +34,13 @@ const mockRemove = jest.fn();
 const mockOverrideStyle = jest.fn();
 const mockRevertStyle = jest.fn();
 
+const mockGetZoom = jest.fn().mockReturnValue(7);
+const mockSetZoom = jest.fn();
+
 const mockMap = {
   fitBounds: mockFitBounds,
+  getZoom: mockGetZoom,
+  setZoom: mockSetZoom,
   data: {
     setStyle: mockSetStyle,
     addGeoJson: mockAddGeoJson,
@@ -74,6 +79,11 @@ const mockGoogle = {
     LatLngBounds: mockLatLngBounds,
     event: {
       removeListener: jest.fn(),
+      addListenerOnce: jest.fn(
+        (_instance: unknown, _event: string, cb: () => void) => {
+          setTimeout(cb, 0);
+        }
+      ),
     },
   },
 };
@@ -227,6 +237,23 @@ describe('ChoroplethMap', () => {
         { lat: mockBounds.south, lng: mockBounds.west },
         { lat: mockBounds.north, lng: mockBounds.east }
       );
+      expect(mockFitBounds).toHaveBeenCalled();
+    });
+  });
+
+  it('bumps zoom by 1 after fitBounds completes', async () => {
+    render(<ChoroplethMap data={[]} apiKey={mockApiKey} bounds={mockBounds} />);
+
+    await waitFor(() => {
+      expect(mockGoogle.maps.event.addListenerOnce).toHaveBeenCalledWith(
+        expect.anything(),
+        'idle',
+        expect.any(Function)
+      );
+    });
+
+    await waitFor(() => {
+      expect(mockSetZoom).toHaveBeenCalledWith(8);
     });
   });
 
@@ -558,7 +585,8 @@ describe('ChoroplethMap animations', () => {
     });
 
     // After animation completes, last setStyle call should have target opacity
-    const lastCall = mockSetStyle.mock.calls[mockSetStyle.mock.calls.length - 1];
+    const lastCall =
+      mockSetStyle.mock.calls[mockSetStyle.mock.calls.length - 1];
     const styleFn = lastCall[0];
     const mockFeature = {
       getProperty: (prop: string) => (prop === 'regionValue' ? 0.8 : null),
