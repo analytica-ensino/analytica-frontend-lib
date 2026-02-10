@@ -772,6 +772,102 @@ describe('Auth Components', () => {
 
       expect(screen.getByText('Carregando...')).toBeInTheDocument();
     });
+
+    describe('tokenValidationComponent', () => {
+      it('should render tokenValidationComponent when tokens are in URL', () => {
+        const checkAuthFn = jest.fn().mockResolvedValue(false);
+
+        render(
+          <MemoryRouter
+            initialEntries={[
+              '/?token=abc123&refreshToken=refresh456&sessionId=session789',
+            ]}
+          >
+            <AuthProvider checkAuthFn={checkAuthFn}>
+              <PublicRoute
+                tokenValidationComponent={
+                  <div data-testid="token-validation">Validating...</div>
+                }
+              >
+                <TestComponent />
+              </PublicRoute>
+            </AuthProvider>
+          </MemoryRouter>
+        );
+
+        expect(screen.getByTestId('token-validation')).toBeInTheDocument();
+        expect(screen.queryByTestId('test-component')).not.toBeInTheDocument();
+      });
+
+      it('should render children when no tokens in URL', () => {
+        const checkAuthFn = jest.fn().mockResolvedValue(false);
+
+        render(
+          <MemoryRouter initialEntries={['/']}>
+            <AuthProvider checkAuthFn={checkAuthFn}>
+              <PublicRoute
+                tokenValidationComponent={
+                  <div data-testid="token-validation">Validating...</div>
+                }
+              >
+                <TestComponent />
+              </PublicRoute>
+            </AuthProvider>
+          </MemoryRouter>
+        );
+
+        expect(
+          screen.queryByTestId('token-validation')
+        ).not.toBeInTheDocument();
+        expect(screen.getByTestId('test-component')).toBeInTheDocument();
+      });
+
+      it('should render children when only partial tokens in URL', () => {
+        const checkAuthFn = jest.fn().mockResolvedValue(false);
+
+        render(
+          <MemoryRouter
+            initialEntries={['/?token=abc123&refreshToken=refresh456']}
+          >
+            <AuthProvider checkAuthFn={checkAuthFn}>
+              <PublicRoute
+                tokenValidationComponent={
+                  <div data-testid="token-validation">Validating...</div>
+                }
+              >
+                <TestComponent />
+              </PublicRoute>
+            </AuthProvider>
+          </MemoryRouter>
+        );
+
+        expect(
+          screen.queryByTestId('token-validation')
+        ).not.toBeInTheDocument();
+        expect(screen.getByTestId('test-component')).toBeInTheDocument();
+      });
+
+      it('should render children when tokenValidationComponent is not provided', () => {
+        const checkAuthFn = jest.fn().mockResolvedValue(false);
+
+        render(
+          <MemoryRouter
+            initialEntries={[
+              '/?token=abc123&refreshToken=refresh456&sessionId=session789',
+            ]}
+          >
+            <AuthProvider checkAuthFn={checkAuthFn}>
+              <PublicRoute>
+                <TestComponent />
+              </PublicRoute>
+            </AuthProvider>
+          </MemoryRouter>
+        );
+
+        // Should render children because tokenValidationComponent is not provided
+        expect(screen.getByTestId('test-component')).toBeInTheDocument();
+      });
+    });
   });
 
   describe('withAuth HOC', () => {

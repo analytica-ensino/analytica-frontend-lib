@@ -6,7 +6,9 @@ export type {
   StudentLessonProgressModalProps,
   StudentLessonProgressData,
   StudentLessonProgressLabels,
-  LessonProgressItem,
+  TopicProgressItem,
+  SubtopicProgressItem,
+  ContentProgressItem,
   LessonProgressStatus,
 } from './types';
 export { DEFAULT_LESSON_PROGRESS_LABELS } from './types';

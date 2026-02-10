@@ -9,6 +9,7 @@ import {
   useMemo,
 } from 'react';
 import { useLocation, Navigate } from 'react-router-dom';
+import { useTokenInUrl } from './useTokenInUrl';
 
 /**
  * Interface for basic authentication tokens
@@ -357,6 +358,7 @@ export const ProtectedRoute = ({
  * @property {string} [redirectTo] - Path to redirect to (default: '/painel')
  * @property {boolean} [redirectIfAuthenticated] - Whether to redirect if authenticated
  * @property {boolean} [checkAuthBeforeRender] - Whether to check auth before rendering
+ * @property {ReactNode} [tokenValidationComponent] - Component to show while validating tokens from URL
  */
 export interface PublicRouteProps {
   children: ReactNode;
@@ -372,6 +374,10 @@ export interface PublicRouteProps {
    * Se deve verificar autenticação antes de renderizar
    */
   checkAuthBeforeRender?: boolean;
+  /**
+   * Componente a ser exibido enquanto valida tokens da URL
+   */
+  tokenValidationComponent?: ReactNode;
 }
 
 /**
@@ -390,8 +396,15 @@ export const PublicRoute = ({
   redirectTo = '/painel',
   redirectIfAuthenticated = false,
   checkAuthBeforeRender = false,
+  tokenValidationComponent,
 }: PublicRouteProps) => {
   const { isAuthenticated, isLoading } = useAuth();
+  const { hasTokenInUrl } = useTokenInUrl();
+
+  // Se tem tokens na URL, mostrar componente de validação (se fornecido)
+  if (hasTokenInUrl && tokenValidationComponent) {
+    return <>{tokenValidationComponent}</>;
+  }
 
   // Se deve aguardar verificação de auth antes de renderizar
   if (checkAuthBeforeRender && isLoading) {

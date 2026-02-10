@@ -3,10 +3,11 @@ import { useState } from 'react';
 import { StudentLessonProgressModal } from './StudentLessonProgressModal';
 import Button from '../Button/Button';
 import Text from '../Text/Text';
-import type { StudentLessonProgressData } from './types';
+import type { StudentLessonProgressData, TopicProgressItem } from './types';
 
 /**
  * Complete mock data matching Figma design with nested structure
+ * Using the new API structure: topic > subtopics > contents
  */
 const mockCompleteData: StudentLessonProgressData = {
   name: 'Lucas Oliveira',
@@ -15,81 +16,84 @@ const mockCompleteData: StudentLessonProgressData = {
   biggestDifficulty: 'Células',
   lessonProgress: [
     {
-      id: '1',
-      topic: 'Cinemática',
+      topic: { id: '1', name: 'Cinemática' },
       progress: 70,
       status: 'in_progress',
-      children: [
+      subtopics: [
         {
-          id: '1-1',
-          topic: 'Aspectos iniciais',
+          subtopic: { id: '1-1', name: 'Aspectos iniciais' },
           progress: 70,
           status: 'in_progress',
-          children: [
+          contents: [
             {
-              id: '1-1-1',
-              topic: 'Fundamentos do Movimento Uniforme: Conceitos Essenciais',
+              content: {
+                id: '1-1-1',
+                name: 'Fundamentos do Movimento Uniforme: Conceitos Essenciais',
+              },
               progress: 70,
-              status: 'in_progress',
+              isCompleted: false,
             },
             {
-              id: '1-1-2',
-              topic: 'Movimento Uniforme: Definições e Exemplos Reais',
+              content: {
+                id: '1-1-2',
+                name: 'Movimento Uniforme: Definições e Exemplos Reais',
+              },
               progress: 70,
-              status: 'in_progress',
+              isCompleted: false,
             },
             {
-              id: '1-1-3',
-              topic:
-                'Explorando o Movimento Uniforme: Sua Relevância na Física',
+              content: {
+                id: '1-1-3',
+                name: 'Explorando o Movimento Uniforme: Sua Relevância na Física',
+              },
               progress: 70,
-              status: 'in_progress',
+              isCompleted: false,
             },
           ],
         },
         {
-          id: '1-2',
-          topic: 'Movimento uniforme',
+          subtopic: { id: '1-2', name: 'Movimento uniforme' },
           progress: 70,
           status: 'in_progress',
+          contents: [],
         },
         {
-          id: '1-3',
-          topic: 'Movimento uniformemente variado',
+          subtopic: { id: '1-3', name: 'Movimento uniformemente variado' },
           progress: 70,
           status: 'in_progress',
+          contents: [],
         },
       ],
     },
     {
-      id: '2',
-      topic: 'Grandezas físicas',
-      progress: null,
+      topic: { id: '2', name: 'Grandezas físicas' },
+      progress: 0,
       status: 'no_data',
+      subtopics: [],
     },
     {
-      id: '3',
-      topic: 'Mecânica e fluidos',
+      topic: { id: '3', name: 'Mecânica e fluidos' },
       progress: 70,
       status: 'in_progress',
+      subtopics: [],
     },
     {
-      id: '4',
-      topic: 'Mecânica',
+      topic: { id: '4', name: 'Mecânica' },
       progress: 70,
       status: 'in_progress',
+      subtopics: [],
     },
     {
-      id: '5',
-      topic: 'Ondulatória',
+      topic: { id: '5', name: 'Ondulatória' },
       progress: 70,
       status: 'in_progress',
+      subtopics: [],
     },
   ],
 };
 
 /**
- * Flat structure mock data (simulating current API response)
+ * Flat structure mock data (topics without nested items)
  */
 const mockFlatData: StudentLessonProgressData = {
   name: 'João Silva',
@@ -98,28 +102,28 @@ const mockFlatData: StudentLessonProgressData = {
   biggestDifficulty: 'Geometria Espacial',
   lessonProgress: [
     {
-      id: '1',
-      topic: 'Números Inteiros',
+      topic: { id: '1', name: 'Números Inteiros' },
       progress: 100,
       status: 'completed',
+      subtopics: [],
     },
     {
-      id: '2',
-      topic: 'Frações',
+      topic: { id: '2', name: 'Frações' },
       progress: 60,
       status: 'in_progress',
+      subtopics: [],
     },
     {
-      id: '3',
-      topic: 'Geometria Espacial',
-      progress: null,
+      topic: { id: '3', name: 'Geometria Espacial' },
+      progress: 0,
       status: 'no_data',
+      subtopics: [],
     },
     {
-      id: '4',
-      topic: 'Álgebra',
+      topic: { id: '4', name: 'Álgebra' },
       progress: 85,
       status: 'in_progress',
+      subtopics: [],
     },
   ],
 };
@@ -127,20 +131,7 @@ const mockFlatData: StudentLessonProgressData = {
 /**
  * Deterministic progress values for consistent visual testing
  */
-const DETERMINISTIC_PROGRESS = [
-  85,
-  42,
-  null,
-  100,
-  67,
-  23,
-  null,
-  91,
-  54,
-  78,
-  36,
-  null,
-];
+const DETERMINISTIC_PROGRESS = [85, 42, 0, 100, 67, 23, 0, 91, 54, 78, 36, 0];
 
 /**
  * Mock data with many items for scroll testing
@@ -150,15 +141,21 @@ const mockManyItemsData: StudentLessonProgressData = {
   overallCompletionRate: 65,
   bestResult: 'Biologia Celular',
   biggestDifficulty: 'Genética',
-  lessonProgress: Array.from({ length: 12 }, (_, i) => ({
-    id: `topic-${i + 1}`,
-    topic: `Tópico ${i + 1} - ${['Biologia', 'Física', 'Química', 'Matemática'][i % 4]}`,
-    progress: DETERMINISTIC_PROGRESS[i],
-    status: ['completed', 'in_progress', 'no_data'][i % 3] as
-      | 'completed'
-      | 'in_progress'
-      | 'no_data',
-  })),
+  lessonProgress: Array.from(
+    { length: 12 },
+    (_, i): TopicProgressItem => ({
+      topic: {
+        id: `topic-${i + 1}`,
+        name: `Tópico ${i + 1} - ${['Biologia', 'Física', 'Química', 'Matemática'][i % 4]}`,
+      },
+      progress: DETERMINISTIC_PROGRESS[i],
+      status: ['completed', 'in_progress', 'no_data'][i % 3] as
+        | 'completed'
+        | 'in_progress'
+        | 'no_data',
+      subtopics: [],
+    })
+  ),
 };
 
 /**
@@ -171,10 +168,10 @@ const mockPartialData: StudentLessonProgressData = {
   biggestDifficulty: null,
   lessonProgress: [
     {
-      id: '1',
-      topic: 'Introdução',
-      progress: null,
+      topic: { id: '1', name: 'Introdução' },
+      progress: 0,
       status: 'no_data',
+      subtopics: [],
     },
   ],
 };
@@ -208,7 +205,7 @@ export const AllVariations: Story = () => {
           Dados Completos (Aninhado)
         </Button>
         <Button onClick={() => openModal('flat')}>
-          Dados Flat (API Atual)
+          Dados Flat (Sem aninhamento)
         </Button>
         <Button onClick={() => openModal('many')}>Muitos Itens (Scroll)</Button>
         <Button onClick={() => openModal('partial')}>Dados Parciais</Button>
@@ -278,16 +275,14 @@ export const NestedData: Story = () => {
 };
 
 /**
- * Modal with flat data (simulating current API response)
+ * Modal with flat data (topics without nested items)
  */
 export const FlatData: Story = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <>
-      <Button onClick={() => setIsOpen(true)}>
-        Abrir Modal - Dados Flat (API Atual)
-      </Button>
+      <Button onClick={() => setIsOpen(true)}>Abrir Modal - Dados Flat</Button>
       <StudentLessonProgressModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
