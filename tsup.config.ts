@@ -177,6 +177,8 @@ export default defineConfig({
     '@hookform/resolvers/zod',
     '@phosphor-icons/react',
     '@react-google-maps/api',
+    '@turf/union',
+    '@turf/helpers',
   ],
   target: 'es2022',
   sourcemap: true,

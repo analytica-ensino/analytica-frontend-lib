@@ -89,7 +89,7 @@ const getColorClass = (
       return colorClass;
     }
   }
-  return colorClasses.at(-1)!;
+  return colorClasses[0];
 };
 
 /**
@@ -111,6 +111,7 @@ const computeNREBoundaries = (
   groups.forEach((regions) => {
     let merged: Feature<Polygon | MultiPolygon> | null = null;
     for (const region of regions) {
+      if (region.geoJson.type !== 'Feature') continue;
       const feature: Feature<Polygon | MultiPolygon> = region.geoJson;
       if (merged) {
         const result: Feature<Polygon | MultiPolygon> | null = union({
@@ -194,6 +195,7 @@ const LegendItem = ({
 }) => (
   <button
     type="button"
+    aria-pressed={active}
     className="flex items-center gap-2 cursor-pointer transition-opacity duration-200"
     style={{ opacity: active ? 1 : 0.4 }}
     onClick={onClick}
@@ -267,6 +269,8 @@ const ChoroplethMap = ({
   const fadeAnimationRef = useRef<number | null>(null);
   const hoverAnimationRef = useRef<number | null>(null);
   const nreBoundaryLayerRef = useRef<google.maps.Data | null>(null);
+  const onRegionClickRef = useRef(onRegionClick);
+  onRegionClickRef.current = onRegionClick;
 
   const colorClasses = useMemo(() => getColorClasses(), []);
 
@@ -572,8 +576,8 @@ const ChoroplethMap = ({
         const regionId = event.feature.getProperty('regionId') as string;
         const regionName = event.feature.getProperty('regionName') as string;
         const region = data.find((r) => r.id === regionId);
-        if (region && onRegionClick) {
-          onRegionClick(region);
+        if (region) {
+          onRegionClickRef.current?.(region);
         }
 
         const nreBounds = computeNREBounds(regionName);
@@ -598,7 +602,7 @@ const ChoroplethMap = ({
       google.maps.event.removeListener(mousemoveListener);
       google.maps.event.removeListener(clickListener);
     };
-  }, [map, data, onRegionClick, colorClasses]);
+  }, [map, data, colorClasses]);
 
   /**
    * Apply visibility filter based on active legend classes
@@ -707,8 +711,8 @@ const ChoroplethMap = ({
           <div
             className="fixed z-50 bg-background border border-border-50 shadow-lg rounded-lg p-3 pointer-events-none"
             style={{
-              left: infoPosition.x + 10,
-              top: infoPosition.y + 10,
+              left: Math.min(infoPosition.x + 10, window.innerWidth - 220),
+              top: Math.min(infoPosition.y + 10, window.innerHeight - 80),
             }}
           >
             <p className="font-semibold text-sm text-text-950">

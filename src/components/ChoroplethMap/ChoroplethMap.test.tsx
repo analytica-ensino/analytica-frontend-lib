@@ -27,7 +27,9 @@ jest.spyOn(performance, 'now').mockReturnValue(0);
 const flushRAF = (time: number) => {
   const callbacks = [...rafCallbacks];
   rafCallbacks = [];
-  callbacks.forEach((cb) => cb(time));
+  callbacks.forEach((cb) => {
+    cb(time);
+  });
 };
 
 // Mock @react-google-maps/api
@@ -259,7 +261,7 @@ describe('ChoroplethMap', () => {
     });
   });
 
-  it('bumps zoom by 1 after fitBounds completes', async () => {
+  it('bumps zoom by 0.8 after fitBounds completes', async () => {
     render(<ChoroplethMap data={[]} apiKey={mockApiKey} bounds={mockBounds} />);
 
     await waitFor(() => {

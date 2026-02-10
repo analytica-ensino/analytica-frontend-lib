@@ -285,10 +285,14 @@ export const CustomTitle: Story = () => (
  * All regions with high performance (Destaque)
  */
 export const AllHighPerformance: Story = () => {
-  const highPerformanceData = mockRegionData.map((region) => ({
+  const highValues = [0.95, 0.88, 0.82, 0.91, 0.86, 0.93, 0.84, 0.97, 0.89];
+  const highCounts = [
+    14200, 12800, 11500, 13600, 12100, 14800, 11900, 14500, 13200,
+  ];
+  const highPerformanceData = mockRegionData.map((region, i) => ({
     ...region,
-    value: 0.8 + Math.random() * 0.2,
-    accessCount: 10000 + Math.floor(Math.random() * 5000),
+    value: highValues[i],
+    accessCount: highCounts[i],
   }));
 
   return (
@@ -307,10 +311,12 @@ export const AllHighPerformance: Story = () => {
  * All regions with low performance (Ponto de atenção)
  */
 export const AllLowPerformance: Story = () => {
-  const lowPerformanceData = mockRegionData.map((region) => ({
+  const lowValues = [0.18, 0.12, 0.22, 0.08, 0.15, 0.2, 0.1, 0.24, 0.06];
+  const lowCounts = [720, 480, 890, 320, 610, 800, 410, 950, 250];
+  const lowPerformanceData = mockRegionData.map((region, i) => ({
     ...region,
-    value: Math.random() * 0.25,
-    accessCount: Math.floor(Math.random() * 1000),
+    value: lowValues[i],
+    accessCount: lowCounts[i],
   }));
 
   return (
