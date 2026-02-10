@@ -13,8 +13,8 @@ dayjs.extend(duration);
 /**
  * API types - reusing existing enums/types from the project
  */
-export { PROFILE_ROLES };
-export type { StudentsHighlightPeriod as TimeReportPeriod };
+export { PROFILE_ROLES } from '../../types/chat';
+export type { StudentsHighlightPeriod as TimeReportPeriod } from '../../hooks/useStudentsHighlight';
 
 export interface TimeReportRequest {
   period: StudentsHighlightPeriod;
