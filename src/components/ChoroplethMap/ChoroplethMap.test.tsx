@@ -497,8 +497,9 @@ describe('ChoroplethMap static map and styling', () => {
     render(<ChoroplethMap data={[]} apiKey={mockApiKey} />);
 
     const mapProps = GoogleMap.mock.calls[0][0];
-    const styles = mapProps.options.styles;
+    const { styles, backgroundColor } = mapProps.options;
 
+    expect(backgroundColor).toBe('#F6F6F6');
     expect(styles).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -508,6 +509,14 @@ describe('ChoroplethMap static map and styling', () => {
         }),
         expect.objectContaining({
           featureType: 'landscape',
+          elementType: 'geometry',
+          stylers: expect.arrayContaining([
+            { visibility: 'on' },
+            { color: '#F6F6F6' },
+          ]),
+        }),
+        expect.objectContaining({
+          featureType: 'water',
           elementType: 'geometry',
           stylers: expect.arrayContaining([
             { visibility: 'on' },
@@ -536,7 +545,7 @@ describe('ChoroplethMap static map and styling', () => {
       <ChoroplethMap data={[]} apiKey={mockApiKey} />
     );
 
-    const mapContainer = container.querySelector('.bg-\\[\\#F6F6F6\\]');
+    const mapContainer = container.querySelector('.bg-background-50');
     expect(mapContainer).toHaveClass('overflow-hidden');
   });
 });

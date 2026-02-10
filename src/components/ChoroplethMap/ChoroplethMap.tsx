@@ -1,5 +1,5 @@
 /* global google */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
 import union from '@turf/union';
 import type { Feature, MultiPolygon, Polygon } from 'geojson';
@@ -26,36 +26,50 @@ const HOVER_DURATION = 200;
 const TARGET_OPACITY = 0.8;
 
 /**
- * Color classes for the choropleth map (4 classes)
- * Based on value ranges from 0 to 1
+ * Read a CSS custom property value from the document root
+ * @param name - CSS variable name (e.g. '--color-map-highlight')
+ * @param fallback - Fallback value when running outside browser
+ * @returns Resolved CSS variable value
  */
-const COLOR_CLASSES: ColorClass[] = [
+const getCssVar = (name: string, fallback = ''): string => {
+  if (typeof document === 'undefined') return fallback;
+  return (
+    getComputedStyle(document.documentElement).getPropertyValue(name).trim() ||
+    fallback
+  );
+};
+
+/**
+ * Build color classes from CSS variables
+ * @returns Color class array for the choropleth map
+ */
+const getColorClasses = (): ColorClass[] => [
   {
     min: 0.75,
     max: 1.01,
-    fillColor: '#1C61B2',
-    strokeColor: '#1C61B2',
+    fillColor: getCssVar('--color-map-highlight', '#1C61B2'),
+    strokeColor: getCssVar('--color-map-highlight', '#1C61B2'),
     label: 'Destaque',
   },
   {
     min: 0.5,
     max: 0.75,
-    fillColor: '#2883D7',
-    strokeColor: '#2883D7',
+    fillColor: getCssVar('--color-map-above-avg', '#2883D7'),
+    strokeColor: getCssVar('--color-map-above-avg', '#2883D7'),
     label: 'Acima da média',
   },
   {
     min: 0.25,
     max: 0.5,
-    fillColor: '#91C7F1',
-    strokeColor: '#91C7F1',
+    fillColor: getCssVar('--color-map-below-avg', '#91C7F1'),
+    strokeColor: getCssVar('--color-map-below-avg', '#91C7F1'),
     label: 'Abaixo da média',
   },
   {
     min: 0,
     max: 0.25,
-    fillColor: '#E3F1FB',
-    strokeColor: '#1C61B2',
+    fillColor: getCssVar('--color-map-attention', '#E3F1FB'),
+    strokeColor: getCssVar('--color-map-highlight', '#1C61B2'),
     label: 'Ponto de atenção',
   },
 ];
@@ -63,15 +77,19 @@ const COLOR_CLASSES: ColorClass[] = [
 /**
  * Get color class based on value
  * @param value - Normalized value between 0 and 1
+ * @param colorClasses - Array of color class configurations
  * @returns Color class configuration
  */
-const getColorClass = (value: number): ColorClass => {
-  for (const colorClass of COLOR_CLASSES) {
+const getColorClass = (
+  value: number,
+  colorClasses: ColorClass[]
+): ColorClass => {
+  for (const colorClass of colorClasses) {
     if (value >= colorClass.min && value < colorClass.max) {
       return colorClass;
     }
   }
-  return COLOR_CLASSES[COLOR_CLASSES.length - 1];
+  return colorClasses[colorClasses.length - 1];
 };
 
 /**
@@ -113,16 +131,22 @@ const computeNREBoundaries = (
 /**
  * Create style function for Data Layer features
  * @param opacity - Current fill opacity
+ * @param colorClasses - Array of color class configurations
+ * @param strokeCityColor - Stroke color for city borders
  * @returns Style function for map.data.setStyle
  */
-const createStyleFunction = (opacity: number) => {
+const createStyleFunction = (
+  opacity: number,
+  colorClasses: ColorClass[],
+  strokeCityColor: string
+) => {
   return (feature: google.maps.Data.Feature) => {
     const value = feature.getProperty('regionValue') as number;
-    const colorClass = getColorClass(value ?? 0);
+    const colorClass = getColorClass(value ?? 0, colorClasses);
     return {
       fillColor: colorClass.fillColor,
       fillOpacity: opacity,
-      strokeColor: '#64B5F6',
+      strokeColor: strokeCityColor,
       strokeWeight: 0.3,
       cursor: 'pointer',
     };
@@ -145,28 +169,6 @@ const containerStyle = {
 const defaultCenter = {
   lat: -24.7,
   lng: -51.5,
-};
-
-/**
- * Map options for clean display
- */
-const mapOptions: google.maps.MapOptions = {
-  disableDefaultUI: true,
-  zoomControl: true,
-  scrollwheel: true,
-  draggable: true,
-  styles: [
-    {
-      featureType: 'all',
-      elementType: 'all',
-      stylers: [{ visibility: 'off' }],
-    },
-    {
-      featureType: 'landscape',
-      elementType: 'geometry',
-      stylers: [{ visibility: 'on' }, { color: '#F6F6F6' }],
-    },
-  ],
 };
 
 /**
@@ -203,7 +205,7 @@ const LegendItem = ({
         border: borderColor ? `1px solid ${borderColor}` : 'none',
       }}
     />
-    <span className="text-sm font-medium text-[#737373]">{label}</span>
+    <span className="text-sm font-medium text-text-600">{label}</span>
   </button>
 );
 
@@ -211,8 +213,8 @@ const LegendItem = ({
  * Loading skeleton component
  */
 const LoadingSkeleton = () => (
-  <div className="w-full h-full flex items-center justify-center bg-[#F6F6F6] rounded-lg animate-pulse">
-    <div className="text-[#9CA3AF] text-sm">Carregando mapa...</div>
+  <div className="w-full h-full flex items-center justify-center bg-background-50 rounded-lg animate-pulse">
+    <div className="text-text-400 text-sm">Carregando mapa...</div>
   </div>
 );
 
@@ -266,6 +268,36 @@ const ChoroplethMap = ({
   const hoverAnimationRef = useRef<number | null>(null);
   const nreBoundaryLayerRef = useRef<google.maps.Data | null>(null);
 
+  const colorClasses = useMemo(() => getColorClasses(), []);
+
+  const mapOptions: google.maps.MapOptions = useMemo(() => {
+    const bgColor = getCssVar('--color-background-50', '#F6F6F6');
+    return {
+      disableDefaultUI: true,
+      zoomControl: true,
+      scrollwheel: true,
+      draggable: true,
+      backgroundColor: bgColor,
+      styles: [
+        {
+          featureType: 'all',
+          elementType: 'all',
+          stylers: [{ visibility: 'off' }],
+        },
+        {
+          featureType: 'landscape',
+          elementType: 'geometry',
+          stylers: [{ visibility: 'on' }, { color: bgColor }],
+        },
+        {
+          featureType: 'water',
+          elementType: 'geometry',
+          stylers: [{ visibility: 'on' }, { color: bgColor }],
+        },
+      ],
+    };
+  }, []);
+
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: apiKey,
@@ -312,6 +344,9 @@ const ChoroplethMap = ({
   useEffect(() => {
     if (!map || !data.length) return;
 
+    const strokeCityColor = getCssVar('--color-map-stroke-city', '#64B5F6');
+    const strokeNreColor = getCssVar('--color-map-stroke-nre', '#1565C0');
+
     // Clear existing data
     map.data.forEach((feature) => {
       map.data.remove(feature);
@@ -345,7 +380,7 @@ const ChoroplethMap = ({
     });
 
     // Start with opacity 0 for fade-in animation
-    map.data.setStyle(createStyleFunction(0));
+    map.data.setStyle(createStyleFunction(0, colorClasses, strokeCityColor));
 
     // Compute and add NRE boundary overlay
     const nreLayer = new google.maps.Data();
@@ -355,7 +390,7 @@ const ChoroplethMap = ({
     });
     nreLayer.setStyle({
       fillOpacity: 0,
-      strokeColor: '#1565C0',
+      strokeColor: strokeNreColor,
       strokeWeight: 1.5,
       clickable: false,
     });
@@ -369,7 +404,9 @@ const ChoroplethMap = ({
       const progress = Math.min(elapsed / FADE_DURATION, 1);
       const currentOpacity = progress * TARGET_OPACITY;
 
-      map.data.setStyle(createStyleFunction(currentOpacity));
+      map.data.setStyle(
+        createStyleFunction(currentOpacity, colorClasses, strokeCityColor)
+      );
 
       if (progress < 1) {
         fadeAnimationRef.current = requestAnimationFrame(animateFadeIn);
@@ -405,7 +442,7 @@ const ChoroplethMap = ({
         features.forEach((f) => {
           map.data.overrideStyle(f, {
             fillOpacity: opacity,
-            strokeColor: '#64B5F6',
+            strokeColor: strokeCityColor,
             strokeWeight: weight,
           });
         });
@@ -540,7 +577,7 @@ const ChoroplethMap = ({
       google.maps.event.removeListener(mousemoveListener);
       google.maps.event.removeListener(clickListener);
     };
-  }, [map, data, onRegionClick]);
+  }, [map, data, onRegionClick, colorClasses]);
 
   /**
    * Apply visibility filter based on active legend classes
@@ -554,8 +591,8 @@ const ChoroplethMap = ({
 
     map.data.forEach((feature: google.maps.Data.Feature) => {
       const value = feature.getProperty('regionValue') as number;
-      const colorClass = getColorClass(value ?? 0);
-      const classIndex = COLOR_CLASSES.indexOf(colorClass);
+      const colorClass = getColorClass(value ?? 0, colorClasses);
+      const classIndex = colorClasses.indexOf(colorClass);
 
       if (activeClasses.has(classIndex)) {
         map.data.revertStyle(feature);
@@ -571,11 +608,11 @@ const ChoroplethMap = ({
     if (hasVisibleFeatures && !visibleBounds.isEmpty()) {
       map.fitBounds(visibleBounds, 20);
     }
-  }, [map, data, activeClasses]);
+  }, [map, data, activeClasses, colorClasses]);
 
   /**
    * Toggle a color class on/off in the legend filter
-   * @param index - Index of the color class in COLOR_CLASSES
+   * @param index - Index of the color class in colorClasses
    */
   const toggleClass = (index: number) => {
     setActiveClasses((prev) => {
@@ -591,7 +628,7 @@ const ChoroplethMap = ({
 
   if (loadError) {
     return (
-      <div className="p-5 bg-white border border-[#F3F3F3] rounded-xl">
+      <div className="p-5 bg-background border border-border-50 rounded-xl">
         <p className="text-error-700">Erro ao carregar o mapa</p>
       </div>
     );
@@ -600,19 +637,19 @@ const ChoroplethMap = ({
   return (
     <div
       className={cn(
-        'p-5 bg-white border border-[#F3F3F3] rounded-xl flex flex-col gap-4',
+        'p-5 bg-background border border-border-50 rounded-xl flex flex-col gap-4',
         className
       )}
     >
       {/* Header */}
       <div className="flex flex-col gap-4">
-        <h2 className="font-bold text-lg leading-[21px] tracking-[0.2px] text-[#171717]">
+        <h2 className="font-bold text-lg leading-[21px] tracking-[0.2px] text-text-950">
           {title}
         </h2>
 
         {/* Legend */}
         <div className="flex flex-wrap gap-8">
-          {COLOR_CLASSES.map((colorClass, index) => (
+          {colorClasses.map((colorClass, index) => (
             <LegendItem
               key={colorClass.label}
               color={colorClass.fillColor}
@@ -630,7 +667,7 @@ const ChoroplethMap = ({
       </div>
 
       {/* Map Container */}
-      <div className="bg-[#F6F6F6] rounded-lg h-[415px] relative overflow-hidden">
+      <div className="bg-background-50 rounded-lg h-[415px] relative overflow-hidden">
         {loading || !isLoaded ? (
           <LoadingSkeleton />
         ) : (
@@ -647,16 +684,16 @@ const ChoroplethMap = ({
         {/* Tooltip */}
         {hoveredRegion && infoPosition && (
           <div
-            className="fixed z-50 bg-white shadow-lg rounded-lg p-3 pointer-events-none"
+            className="fixed z-50 bg-background border border-border-50 shadow-lg rounded-lg p-3 pointer-events-none"
             style={{
               left: infoPosition.x + 10,
               top: infoPosition.y + 10,
             }}
           >
-            <p className="font-semibold text-sm text-[#171717]">
+            <p className="font-semibold text-sm text-text-950">
               {hoveredRegion.name}
             </p>
-            <p className="text-xs text-[#525252]">
+            <p className="text-xs text-text-700">
               Acessos: {hoveredRegion.accessCount.toLocaleString('pt-BR')}
             </p>
           </div>
