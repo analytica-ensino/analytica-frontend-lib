@@ -13,13 +13,55 @@ import type { TimeChartData } from './TimeChart';
 const studentData: TimeChartData = {
   categories: STUDENT_CATEGORIES,
   hoursByPeriod: [
-    { label: 'SEG', activities: 3, content: 4, simulations: 3, questionnaires: 1 },
-    { label: 'TER', activities: 2, content: 3, simulations: 0, questionnaires: 1 },
-    { label: 'QUA', activities: 4, content: 1, simulations: 2, questionnaires: 0 },
-    { label: 'QUI', activities: 1, content: 2, simulations: 3, questionnaires: 1 },
-    { label: 'SEX', activities: 2, content: 1, simulations: 1, questionnaires: 2 },
-    { label: 'SAB', activities: 0.5, content: 0.5, simulations: 0, questionnaires: 0 },
-    { label: 'DOM', activities: 0, content: 0, simulations: 0, questionnaires: 0 },
+    {
+      label: 'SEG',
+      activities: 3,
+      content: 4,
+      simulations: 3,
+      questionnaires: 1,
+    },
+    {
+      label: 'TER',
+      activities: 2,
+      content: 3,
+      simulations: 0,
+      questionnaires: 1,
+    },
+    {
+      label: 'QUA',
+      activities: 4,
+      content: 1,
+      simulations: 2,
+      questionnaires: 0,
+    },
+    {
+      label: 'QUI',
+      activities: 1,
+      content: 2,
+      simulations: 3,
+      questionnaires: 1,
+    },
+    {
+      label: 'SEX',
+      activities: 2,
+      content: 1,
+      simulations: 1,
+      questionnaires: 2,
+    },
+    {
+      label: 'SAB',
+      activities: 0.5,
+      content: 0.5,
+      simulations: 0,
+      questionnaires: 0,
+    },
+    {
+      label: 'DOM',
+      activities: 0,
+      content: 0,
+      simulations: 0,
+      questionnaires: 0,
+    },
   ],
 };
 
@@ -39,8 +81,20 @@ const teacherData: TimeChartData = {
 const zeroData: TimeChartData = {
   categories: STUDENT_CATEGORIES,
   hoursByPeriod: [
-    { label: 'SEG', activities: 0, content: 0, simulations: 0, questionnaires: 0 },
-    { label: 'TER', activities: 0, content: 0, simulations: 0, questionnaires: 0 },
+    {
+      label: 'SEG',
+      activities: 0,
+      content: 0,
+      simulations: 0,
+      questionnaires: 0,
+    },
+    {
+      label: 'TER',
+      activities: 0,
+      content: 0,
+      simulations: 0,
+      questionnaires: 0,
+    },
   ],
 };
 
@@ -102,9 +156,7 @@ describe('TimeChart', () => {
       expect(
         screen.getByTestId('bar-segment-SEG-activities')
       ).toBeInTheDocument();
-      expect(
-        screen.getByTestId('bar-segment-SEG-content')
-      ).toBeInTheDocument();
+      expect(screen.getByTestId('bar-segment-SEG-content')).toBeInTheDocument();
       expect(
         screen.getByTestId('bar-segment-SEG-simulations')
       ).toBeInTheDocument();
@@ -148,7 +200,9 @@ describe('TimeChart', () => {
       expect(screen.getByTestId('pie-slice-activities')).toBeInTheDocument();
       expect(screen.getByTestId('pie-slice-content')).toBeInTheDocument();
       expect(screen.getByTestId('pie-slice-simulations')).toBeInTheDocument();
-      expect(screen.getByTestId('pie-slice-questionnaires')).toBeInTheDocument();
+      expect(
+        screen.getByTestId('pie-slice-questionnaires')
+      ).toBeInTheDocument();
     });
 
     it('displays percentage labels for slices >= 5%', () => {
@@ -213,8 +267,8 @@ describe('calculateHourTicks', () => {
     expect(calculateHourTicks(12)).toEqual([12, 9, 6, 3, 0]);
   });
 
-  it('returns [3, 2, 2, 1, 0] for small maxHours', () => {
-    expect(calculateHourTicks(1)).toEqual([3, 2, 2, 1, 0]);
+  it('returns deduplicated ticks for small maxHours', () => {
+    expect(calculateHourTicks(1)).toEqual([3, 2, 1, 0]);
   });
 
   it('returns [6, 5, 3, 2, 0] for maxHours = 5', () => {
@@ -262,9 +316,7 @@ describe('hoursByItem prop', () => {
   it('uses hoursByItem for pie chart when provided', () => {
     const data: TimeChartData = {
       categories: DEFAULT_CATEGORIES,
-      hoursByPeriod: [
-        { label: 'SEG', activities: 1, recommendedLessons: 1 },
-      ],
+      hoursByPeriod: [{ label: 'SEG', activities: 1, recommendedLessons: 1 }],
       hoursByItem: { activities: 30, recommendedLessons: 70 },
     };
     render(<TimeChart data={data} />);
@@ -303,10 +355,11 @@ describe('Hover interactions', () => {
       const slice = screen.getByTestId('pie-slice-activities');
       fireEvent.mouseEnter(slice);
       // Pie tooltip shows percentage (e.g., "Atividades: 19%")
-      const pieTooltip = screen.getByText((_, el) =>
-        el?.tagName === 'SPAN' &&
-        el?.className.includes('font-bold') &&
-        /Atividades:.*%/.test(el?.textContent ?? '')
+      const pieTooltip = screen.getByText(
+        (_, el) =>
+          el?.tagName === 'SPAN' &&
+          el?.className.includes('font-bold') &&
+          /Atividades:.*%/.test(el?.textContent ?? '')
       );
       expect(pieTooltip).toBeInTheDocument();
     });
@@ -317,18 +370,20 @@ describe('Hover interactions', () => {
       const pieChart = screen.getByTestId('pie-chart');
 
       fireEvent.mouseEnter(slice);
-      const pieTooltip = screen.queryByText((_, el) =>
-        el?.tagName === 'SPAN' &&
-        el?.className.includes('font-bold') &&
-        /Atividades:.*%/.test(el?.textContent ?? '')
+      const pieTooltip = screen.queryByText(
+        (_, el) =>
+          el?.tagName === 'SPAN' &&
+          el?.className.includes('font-bold') &&
+          /Atividades:.*%/.test(el?.textContent ?? '')
       );
       expect(pieTooltip).toBeInTheDocument();
 
       fireEvent.mouseLeave(pieChart);
-      const pieTooltipAfter = screen.queryByText((_, el) =>
-        el?.tagName === 'SPAN' &&
-        el?.className.includes('font-bold') &&
-        /Atividades:.*%/.test(el?.textContent ?? '')
+      const pieTooltipAfter = screen.queryByText(
+        (_, el) =>
+          el?.tagName === 'SPAN' &&
+          el?.className.includes('font-bold') &&
+          /Atividades:.*%/.test(el?.textContent ?? '')
       );
       expect(pieTooltipAfter).not.toBeInTheDocument();
     });
@@ -372,10 +427,19 @@ describe('Branch coverage: nullish coalescing fallbacks', () => {
     const data: TimeChartData = {
       categories: STUDENT_CATEGORIES,
       hoursByPeriod: [
-        { label: 'SEG', activities: 5, content: 3, simulations: 2, questionnaires: 1 },
+        {
+          label: 'SEG',
+          activities: 5,
+          content: 3,
+          simulations: 2,
+          questionnaires: 1,
+        },
       ],
       // Missing 'questionnaires' key — should fallback to 0
-      hoursByItem: { activities: 50, content: 30, simulations: 20 } as Record<string, number>,
+      hoursByItem: { activities: 50, content: 30, simulations: 20 } as Record<
+        string,
+        number
+      >,
     };
     expect(() => render(<TimeChart data={data} />)).not.toThrow();
     const pieChart = screen.getByTestId('pie-chart');

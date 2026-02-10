@@ -210,13 +210,15 @@ export const calculateHourTicks = (maxHours: number): number[] => {
   const niceMax = Math.ceil(maxHours / 3) * 3;
   const step = niceMax / 4;
 
-  return [
+  const ticks = [
     niceMax,
     Math.round(step * 3),
     Math.round(step * 2),
     Math.round(step),
     0,
   ];
+
+  return [...new Set(ticks)];
 };
 
 /**
@@ -402,8 +404,7 @@ const StackedBar = ({
             if (segmentHeight === 0) return null;
 
             const isFirst = cat === nonZeroCategories[0];
-            const isLast =
-              cat === nonZeroCategories[nonZeroCategories.length - 1];
+            const isLast = cat === nonZeroCategories.at(-1);
 
             return (
               <div
@@ -417,7 +418,6 @@ const StackedBar = ({
                   isFirst && isLast && 'rounded-md'
                 )}
                 style={{ height: `${segmentHeight}px` }}
-                role="img"
                 aria-label={`${cat.label}: ${value}h`}
               />
             );
@@ -450,10 +450,7 @@ const PieChart = ({
 }) => {
   const [hoveredSlice, setHoveredSlice] = useState<string | null>(null);
 
-  const grandTotal = categories.reduce(
-    (sum, cat) => sum + totals[cat.key],
-    0
-  );
+  const grandTotal = categories.reduce((sum, cat) => sum + totals[cat.key], 0);
 
   if (grandTotal === 0) {
     const radius = size * 0.4;
@@ -667,8 +664,7 @@ export const TimeChart = ({
   const categoryTotals: Record<string, number> = {};
   if (hoursByItem) {
     for (const cat of categories) {
-      categoryTotals[cat.key] =
-        (hoursByItem as Record<string, number>)[cat.key] ?? 0;
+      categoryTotals[cat.key] = hoursByItem[cat.key] ?? 0;
     }
   } else {
     for (const cat of categories) {
@@ -693,9 +689,9 @@ export const TimeChart = ({
           <div className="flex-1 relative">
             <GridLines ticks={yAxisTicks} chartHeight={chartHeight} />
             <div className="flex flex-row flex-1 gap-2 relative z-10">
-              {hoursByPeriod.map((day) => (
+              {hoursByPeriod.map((day, index) => (
                 <StackedBar
-                  key={day.label}
+                  key={`${day.label}-${index}`}
                   day={day}
                   categories={categories}
                   maxValue={adjustedMax}
