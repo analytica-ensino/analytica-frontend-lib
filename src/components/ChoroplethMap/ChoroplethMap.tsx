@@ -89,7 +89,7 @@ const getColorClass = (
       return colorClass;
     }
   }
-  return colorClasses[colorClasses.length - 1];
+  return colorClasses.at(-1)!;
 };
 
 /**
@@ -111,15 +111,15 @@ const computeNREBoundaries = (
   groups.forEach((regions) => {
     let merged: Feature<Polygon | MultiPolygon> | null = null;
     for (const region of regions) {
-      const feature = region.geoJson as Feature<Polygon | MultiPolygon>;
-      if (!merged) {
-        merged = feature;
-      } else {
+      const feature: Feature<Polygon | MultiPolygon> = region.geoJson;
+      if (merged) {
         const result: Feature<Polygon | MultiPolygon> | null = union({
           type: 'FeatureCollection' as const,
           features: [merged, feature],
         });
         if (result) merged = result;
+      } else {
+        merged = feature;
       }
     }
     if (merged) boundaries.push(merged);
@@ -417,6 +417,26 @@ const ChoroplethMap = ({
     fadeAnimationRef.current = requestAnimationFrame(animateFadeIn);
 
     /**
+     * Apply style overrides to a list of features
+     * @param features - Features to style
+     * @param opacity - Fill opacity
+     * @param weight - Stroke weight
+     */
+    const applyHoverStyle = (
+      features: google.maps.Data.Feature[],
+      opacity: number,
+      weight: number
+    ) => {
+      features.forEach((f) => {
+        map.data.overrideStyle(f, {
+          fillOpacity: opacity,
+          strokeColor: strokeCityColor,
+          strokeWeight: weight,
+        });
+      });
+    };
+
+    /**
      * Animate hover transition for a group of features
      * @param features - Target features to animate
      * @param from - Starting opacity
@@ -439,13 +459,7 @@ const ChoroplethMap = ({
         const progress = Math.min((now - start) / HOVER_DURATION, 1);
         const opacity = from + (to - from) * progress;
         const weight = fromWeight + (toWeight - fromWeight) * progress;
-        features.forEach((f) => {
-          map.data.overrideStyle(f, {
-            fillOpacity: opacity,
-            strokeColor: strokeCityColor,
-            strokeWeight: weight,
-          });
-        });
+        applyHoverStyle(features, opacity, weight);
         if (progress < 1) {
           hoverAnimationRef.current = requestAnimationFrame(animate);
         } else {
@@ -536,6 +550,21 @@ const ChoroplethMap = ({
       }
     );
 
+    /**
+     * Compute bounds for all features matching a given NRE name
+     * @param nreName - NRE region name to match
+     * @returns LatLngBounds encompassing all matching features
+     */
+    const computeNREBounds = (nreName: string): google.maps.LatLngBounds => {
+      const nreBounds = new google.maps.LatLngBounds();
+      for (const f of collectNREFeatures(nreName)) {
+        f.getGeometry()?.forEachLatLng((latLng) => {
+          nreBounds.extend(latLng);
+        });
+      }
+      return nreBounds;
+    };
+
     // Handle click events - zoom to NRE region
     const clickListener = map.data.addListener(
       'click',
@@ -547,15 +576,7 @@ const ChoroplethMap = ({
           onRegionClick(region);
         }
 
-        // Calculate bounds for all polygons in the clicked NRE and zoom
-        const nreBounds = new google.maps.LatLngBounds();
-        map.data.forEach((f) => {
-          if (f.getProperty('regionName') === regionName) {
-            f.getGeometry()?.forEachLatLng((latLng) => {
-              nreBounds.extend(latLng);
-            });
-          }
-        });
+        const nreBounds = computeNREBounds(regionName);
         if (!nreBounds.isEmpty()) {
           map.fitBounds(nreBounds, 20);
         }
