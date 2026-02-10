@@ -253,12 +253,13 @@ export const TimeReport = ({
   const firstTabValue = tabs[0]?.value ?? '';
   const [internalTab, setInternalTab] = useState(defaultTab ?? firstTabValue);
 
-  const activeTabValue = controlledTab ?? internalTab;
+  const isControlled = controlledTab !== undefined;
+  const activeTabValue = isControlled ? controlledTab : internalTab;
   const activeTabData = tabs.find((t) => t.value === activeTabValue);
   const cards = activeTabData?.cards ?? [];
 
   const handleTabChange = (value: string) => {
-    if (!controlledTab) {
+    if (!isControlled) {
       setInternalTab(value);
     }
     onTabChange?.(value);
