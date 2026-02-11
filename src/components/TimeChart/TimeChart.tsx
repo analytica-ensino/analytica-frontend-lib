@@ -376,9 +376,9 @@ const StackedBar = ({
               className="w-2 h-2 rounded-full shrink-0"
               style={{ background: bgClassToCssVar(cat.colorClass) }}
             />
-            <span className="text-xs font-medium">
+            <Text as="span" size="xs" weight="medium">
               {cat.label}: {getDayValue(day, cat.key)}h
-            </span>
+            </Text>
           </div>
         ))}
       </div>
@@ -599,9 +599,14 @@ const PieChart = ({
                 background: bgClassToCssVar(hoveredData.cat.colorClass),
               }}
             />
-            <span className="text-xs font-bold whitespace-nowrap">
+            <Text
+              as="span"
+              size="xs"
+              weight="bold"
+              className="whitespace-nowrap"
+            >
               {hoveredData.cat.label}: {Math.round(hoveredData.percentage)}%
-            </span>
+            </Text>
           </div>
         </div>
       )}
