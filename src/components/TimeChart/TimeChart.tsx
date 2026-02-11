@@ -202,23 +202,16 @@ export const bgClassToCssVar = (bgClass: string): string => {
 
 /**
  * Calculate Y-axis tick values formatted for hours display.
- * Rounds up to the nearest multiple of 3 for clean labels (3h, 6h, 9h, 12h).
+ * Rounds up to the nearest multiple of 4 so that dividing into 4 equal
+ * intervals always produces integer ticks with uniform spacing.
  */
 export const calculateHourTicks = (maxHours: number): number[] => {
   if (maxHours <= 0) return [0];
 
-  const niceMax = Math.ceil(maxHours / 3) * 3;
+  const niceMax = Math.ceil(maxHours / 4) * 4;
   const step = niceMax / 4;
 
-  const ticks = [
-    niceMax,
-    Math.round(step * 3),
-    Math.round(step * 2),
-    Math.round(step),
-    0,
-  ];
-
-  return [...new Set(ticks)];
+  return [niceMax, step * 3, step * 2, step, 0];
 };
 
 /**
@@ -376,7 +369,7 @@ const StackedBar = ({
               className="w-2 h-2 rounded-full shrink-0"
               style={{ background: bgClassToCssVar(cat.colorClass) }}
             />
-            <Text as="span" size="xs" weight="medium">
+            <Text as="span" size="xs" weight="medium" color="text-white">
               {cat.label}: {getDayValue(day, cat.key)}h
             </Text>
           </div>
@@ -608,6 +601,7 @@ const PieChart = ({
               as="span"
               size="xs"
               weight="bold"
+              color="text-white"
               className="whitespace-nowrap"
             >
               {hoveredData.cat.label}: {Math.round(hoveredData.percentage)}%

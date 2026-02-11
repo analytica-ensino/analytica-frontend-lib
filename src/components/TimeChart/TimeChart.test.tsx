@@ -267,12 +267,12 @@ describe('calculateHourTicks', () => {
     expect(calculateHourTicks(12)).toEqual([12, 9, 6, 3, 0]);
   });
 
-  it('returns deduplicated ticks for small maxHours', () => {
-    expect(calculateHourTicks(1)).toEqual([3, 2, 1, 0]);
+  it('returns evenly spaced ticks for small maxHours', () => {
+    expect(calculateHourTicks(1)).toEqual([4, 3, 2, 1, 0]);
   });
 
-  it('returns [6, 5, 3, 2, 0] for maxHours = 5', () => {
-    expect(calculateHourTicks(5)).toEqual([6, 5, 3, 2, 0]);
+  it('returns [8, 6, 4, 2, 0] for maxHours = 5', () => {
+    expect(calculateHourTicks(5)).toEqual([8, 6, 4, 2, 0]);
   });
 });
 
