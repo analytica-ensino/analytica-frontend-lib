@@ -281,6 +281,19 @@ const ChoroplethMap = ({
 
   const { isDark } = useTheme();
 
+  const stableDataRef = useRef(data);
+  if (
+    data.length !== stableDataRef.current.length ||
+    data.some(
+      (d, i) =>
+        d.id !== stableDataRef.current[i].id ||
+        d.value !== stableDataRef.current[i].value
+    )
+  ) {
+    stableDataRef.current = data;
+  }
+  const stableData = stableDataRef.current;
+
   const colorClasses = useMemo(() => getColorClasses(), [isDark]);
 
   const mapOptions: google.maps.MapOptions = useMemo(() => {
@@ -308,7 +321,7 @@ const ChoroplethMap = ({
   }, [isDark]);
 
   const { isLoaded, loadError } = useJsApiLoader({
-    id: 'google-map-script',
+    id: `google-map-${apiKey}`,
     googleMapsApiKey: apiKey,
   });
 
@@ -351,7 +364,7 @@ const ChoroplethMap = ({
    * Add GeoJSON data to map with animations
    */
   useEffect(() => {
-    if (!map || !data.length) return;
+    if (!map || !stableData.length) return;
 
     const strokeCityColor = getCssVar('--color-map-stroke-city', '#64B5F6');
     const strokeNreColor = getCssVar('--color-map-stroke-nre', '#1565C0');
@@ -368,7 +381,7 @@ const ChoroplethMap = ({
     }
 
     // Add each region's GeoJSON
-    data.forEach((region) => {
+    stableData.forEach((region) => {
       try {
         const feature = map.data.addGeoJson(region.geoJson);
         // Store region data in the feature
@@ -393,7 +406,7 @@ const ChoroplethMap = ({
 
     // Compute and add NRE boundary overlay
     const nreLayer = new google.maps.Data();
-    const nreBoundaries = computeNREBoundaries(data);
+    const nreBoundaries = computeNREBoundaries(stableData);
     nreBoundaries.forEach((boundary) => {
       nreLayer.addGeoJson(boundary);
     });
@@ -510,7 +523,7 @@ const ChoroplethMap = ({
 
         const regionId = event.feature.getProperty('regionId') as string;
         const regionName = event.feature.getProperty('regionName') as string;
-        const region = data.find((r) => r.id === regionId);
+        const region = stableData.find((r) => r.id === regionId);
         if (region) {
           setHoveredRegion(region);
           if (event.domEvent) {
@@ -580,7 +593,7 @@ const ChoroplethMap = ({
       (event: google.maps.Data.MouseEvent) => {
         const regionId = event.feature.getProperty('regionId') as string;
         const regionName = event.feature.getProperty('regionName') as string;
-        const region = data.find((r) => r.id === regionId);
+        const region = stableData.find((r) => r.id === regionId);
         if (region) {
           onRegionClickRef.current?.(region);
         }
@@ -607,14 +620,14 @@ const ChoroplethMap = ({
       google.maps.event.removeListener(mousemoveListener);
       google.maps.event.removeListener(clickListener);
     };
-  }, [map, data, colorClasses]);
+  }, [map, stableData, colorClasses]);
 
   /**
    * Apply visibility filter based on active legend classes
    * and adjust map bounds to fit visible features
    */
   useEffect(() => {
-    if (!map || !data.length) return;
+    if (!map || !stableData.length) return;
 
     const visibleBounds = new google.maps.LatLngBounds();
     let hasVisibleFeatures = false;
@@ -625,7 +638,7 @@ const ChoroplethMap = ({
       const classIndex = colorClasses.indexOf(colorClass);
 
       if (activeClasses.has(classIndex)) {
-        map.data.revertStyle(feature);
+        map.data.overrideStyle(feature, { visible: true });
         feature.getGeometry()?.forEachLatLng((latLng) => {
           visibleBounds.extend(latLng);
         });
@@ -638,7 +651,7 @@ const ChoroplethMap = ({
     if (hasVisibleFeatures && !visibleBounds.isEmpty()) {
       map.fitBounds(visibleBounds, 20);
     }
-  }, [map, data, activeClasses, colorClasses]);
+  }, [map, stableData, activeClasses, colorClasses]);
 
   /**
    * Toggle a color class on/off in the legend filter

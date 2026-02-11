@@ -1051,7 +1051,6 @@ describe('ChoroplethMap legend interaction', () => {
     });
 
     mockOverrideStyle.mockClear();
-    mockRevertStyle.mockClear();
 
     // Toggle back on
     act(() => {
@@ -1059,7 +1058,9 @@ describe('ChoroplethMap legend interaction', () => {
     });
 
     await waitFor(() => {
-      expect(mockRevertStyle).toHaveBeenCalledWith(mockFeature);
+      expect(mockOverrideStyle).toHaveBeenCalledWith(mockFeature, {
+        visible: true,
+      });
     });
   });
 

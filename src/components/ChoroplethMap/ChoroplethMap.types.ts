@@ -44,7 +44,7 @@ export interface MapBounds {
  * Props interface for ChoroplethMap component
  */
 export interface ChoroplethMapProps {
-  /** Array of region data to display on the map */
+  /** Array of region data to display on the map. Should be memoized to avoid unnecessary re-renders. */
   data: RegionData[];
   /** Google Maps API key */
   apiKey: string;
