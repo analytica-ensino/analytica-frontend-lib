@@ -1020,6 +1020,30 @@ export type {
 } from './components/StudentLessonProgressModal';
 export { DEFAULT_LESSON_PROGRESS_LABELS } from './components/StudentLessonProgressModal';
 
+// TimeChart Components
+export {
+  TimeChart,
+  TIME_CHART_CATEGORY_KEY,
+  STUDENT_CATEGORIES,
+  DEFAULT_CATEGORIES,
+  calculateHourTicks,
+  bgClassToCssVar,
+} from './components/TimeChart/TimeChart';
+export type {
+  TimeChartProps,
+  TimeChartData,
+  TimeChartCategory,
+  TimeChartDayData,
+  TimeChartRequest,
+  TimeChartStudentPeriodItem,
+  TimeChartStudentItemBreakdown,
+  TimeChartStudentData,
+  TimeChartDefaultPeriodItem,
+  TimeChartDefaultItemBreakdown,
+  TimeChartDefaultData,
+  TimeChartResponse,
+} from './components/TimeChart/TimeChart';
+
 // TimeReport Components
 export {
   TimeReport,
