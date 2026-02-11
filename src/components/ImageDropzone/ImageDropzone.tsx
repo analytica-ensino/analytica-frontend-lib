@@ -318,9 +318,9 @@ export default function ImageDropzone({
           </Text>
         )}
         {errorMessage && (
-          <p className="flex gap-1 items-center text-xs text-indicator-error">
+          <Text size="xs" color="text-indicator-error">
             <WarningCircle size={14} /> {errorMessage}
-          </p>
+          </Text>
         )}
       </div>
     </div>

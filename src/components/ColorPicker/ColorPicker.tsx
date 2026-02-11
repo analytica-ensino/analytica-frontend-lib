@@ -1,6 +1,7 @@
 import { forwardRef, useId, InputHTMLAttributes, ChangeEvent } from 'react';
 import { WarningCircle } from 'phosphor-react';
 import { cn } from '../../utils/utils';
+import Text from '../Text/Text';
 
 /**
  * ColorPicker component props interface
@@ -139,12 +140,14 @@ const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
 
         <div className="mt-1">
           {helperText && !errorMessage && (
-            <p className="text-xs text-text-500">{helperText}</p>
+            <Text size="xs" color="text-text-500">
+              {helperText}
+            </Text>
           )}
           {errorMessage && (
-            <p className="flex gap-1 items-center text-xs text-indicator-error">
+            <Text size="xs" color="text-indicator-error">
               <WarningCircle size={14} /> {errorMessage}
-            </p>
+            </Text>
           )}
         </div>
       </div>
