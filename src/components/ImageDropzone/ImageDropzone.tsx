@@ -1,7 +1,9 @@
 import type React from 'react';
 import { useRef, useState, useCallback, useId } from 'react';
-import { Upload, WarningCircle, X } from 'phosphor-react';
+import { Upload, WarningCircle } from 'phosphor-react';
 import Text from '../Text/Text';
+import Button from '../Button/Button';
+import IconRender from '../IconRender/IconRender';
 import { cn } from '../../utils/utils';
 
 export interface ImageDropzoneProps {
@@ -195,13 +197,19 @@ export default function ImageDropzone({
     }
   };
 
+  const getBorderClasses = () => {
+    if (hasError) {
+      return 'border-indicator-error hover:border-indicator-error';
+    }
+    if (isDragging) {
+      return 'border-primary-500 bg-primary-50';
+    }
+    return 'border-border-200 hover:border-primary-500';
+  };
+
   const dropzoneClasses = cn(
     'flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer transition-colors',
-    hasError
-      ? 'border-indicator-error hover:border-indicator-error'
-      : isDragging
-        ? 'border-primary-500 bg-primary-50'
-        : 'border-border-200 hover:border-primary-500',
+    getBorderClasses(),
     disabled && 'cursor-not-allowed opacity-50'
   );
 
@@ -216,26 +224,39 @@ export default function ImageDropzone({
         </label>
       )}
 
-      <label
-        className={dropzoneClasses}
-        onDragEnter={handleDragEnter}
-        onDragLeave={handleDragLeave}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-      >
-        <input
-          ref={fileInputRef}
-          id={inputId}
-          type="file"
-          accept={accept}
-          onChange={handleFileChange}
-          className="hidden"
-          disabled={disabled}
-        />
+      <div className="relative">
+        {onRemoveFile && !disabled && displayUrl && (
+          <Button
+            type="button"
+            onClick={handleRemove}
+            className="absolute -top-2 -right-2 z-10 transition-colors cursor-pointer bg-transparent hover:bg-transparent border-0"
+            size="extra-small"
+            aria-label="Remover imagem"
+          >
+            <span className="text-indicator-error">
+              <IconRender iconName="X" size={14} />
+            </span>
+          </Button>
+        )}
+        <label
+          className={dropzoneClasses}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+        >
+          <input
+            ref={fileInputRef}
+            id={inputId}
+            type="file"
+            accept={accept}
+            onChange={handleFileChange}
+            className="hidden"
+            disabled={disabled}
+          />
 
-        {displayUrl ? (
-          <div className="flex flex-col items-center gap-2 relative">
-            <div className="relative">
+          {displayUrl ? (
+            <div className="flex flex-col items-center gap-2">
               <img
                 src={displayUrl}
                 alt="Preview da imagem"
@@ -244,31 +265,23 @@ export default function ImageDropzone({
                   previewMaxHeight
                 )}
               />
-              {onRemoveFile && !disabled && (
-                <button
-                  type="button"
-                  onClick={handleRemove}
-                  className="absolute -top-2 -right-2 bg-indicator-error text-white rounded-full p-1 hover:bg-red-600 transition-colors"
-                  aria-label="Remover imagem"
-                >
-                  <X size={14} />
-                </button>
-              )}
+              <Text size="xs" className="text-text-500">
+                {changeText}
+              </Text>
             </div>
-            <Text size="xs" className="text-text-500">
-              {changeText}
-            </Text>
-          </div>
-        ) : (
-          <>
-            <Upload size={24} className="text-primary-500 mb-2" />
-            <Text size="sm" className="text-text-600 text-center">
-              <span className="text-primary-500 font-medium">Clique aqui</span>{' '}
-              {placeholder.replace('Clique aqui ', '')}
-            </Text>
-          </>
-        )}
-      </label>
+          ) : (
+            <>
+              <Upload size={24} className="text-primary-500 mb-2" />
+              <Text size="sm" className="text-text-600 text-center">
+                <span className="text-primary-500 font-medium">
+                  Clique aqui
+                </span>{' '}
+                {placeholder.replace('Clique aqui ', '')}
+              </Text>
+            </>
+          )}
+        </label>
+      </div>
 
       <div className="mt-1">
         {helperText && !errorMessage && (
