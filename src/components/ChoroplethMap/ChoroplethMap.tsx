@@ -4,6 +4,7 @@ import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
 import union from '@turf/union';
 import type { Feature, MultiPolygon, Polygon } from 'geojson';
 import { cn } from '../../utils/utils';
+import Text from '../Text/Text';
 import type {
   ChoroplethMapProps,
   ColorClass,
@@ -193,7 +194,8 @@ const LegendItem = ({
   active?: boolean;
   onClick?: () => void;
 }) => (
-  <button
+  <Text
+    as="button"
     type="button"
     aria-pressed={active}
     className="flex items-center gap-2 cursor-pointer transition-opacity duration-200"
@@ -207,8 +209,10 @@ const LegendItem = ({
         border: borderColor ? `1px solid ${borderColor}` : 'none',
       }}
     />
-    <span className="text-sm font-medium text-text-600">{label}</span>
-  </button>
+    <Text as="span" size="sm" weight="medium" color="text-text-600">
+      {label}
+    </Text>
+  </Text>
 );
 
 /**
@@ -216,7 +220,9 @@ const LegendItem = ({
  */
 const LoadingSkeleton = () => (
   <div className="w-full h-full flex items-center justify-center bg-background-50 rounded-lg animate-pulse">
-    <div className="text-text-400 text-sm">Carregando mapa...</div>
+    <Text size="sm" color="text-text-400">
+      Carregando mapa...
+    </Text>
   </div>
 );
 
@@ -285,18 +291,28 @@ const ChoroplethMap = ({
       styles: [
         {
           featureType: 'all',
+          elementType: 'labels',
+          stylers: [{ visibility: 'off' }],
+        },
+        {
+          featureType: 'all',
+          elementType: 'geometry',
+          stylers: [{ color: bgColor }],
+        },
+        {
+          featureType: 'road',
+          elementType: 'geometry',
+          stylers: [{ visibility: 'off' }],
+        },
+        {
+          featureType: 'transit',
           elementType: 'all',
           stylers: [{ visibility: 'off' }],
         },
         {
-          featureType: 'landscape',
-          elementType: 'geometry',
-          stylers: [{ visibility: 'on' }, { color: bgColor }],
-        },
-        {
-          featureType: 'water',
-          elementType: 'geometry',
-          stylers: [{ visibility: 'on' }, { color: bgColor }],
+          featureType: 'poi',
+          elementType: 'all',
+          stylers: [{ visibility: 'off' }],
         },
       ],
     };
@@ -654,7 +670,7 @@ const ChoroplethMap = ({
   if (loadError) {
     return (
       <div className="p-5 bg-background border border-border-50 rounded-xl">
-        <p className="text-error-700">Erro ao carregar o mapa</p>
+        <Text color="text-error-700">Erro ao carregar o mapa</Text>
       </div>
     );
   }
@@ -668,9 +684,14 @@ const ChoroplethMap = ({
     >
       {/* Header */}
       <div className="flex flex-col gap-4">
-        <h2 className="font-bold text-lg leading-[21px] tracking-[0.2px] text-text-950">
+        <Text
+          as="h2"
+          size="lg"
+          weight="bold"
+          className="leading-[21px] tracking-[0.2px]"
+        >
           {title}
-        </h2>
+        </Text>
 
         {/* Legend */}
         <div className="flex flex-wrap gap-8">
@@ -715,12 +736,12 @@ const ChoroplethMap = ({
               top: Math.min(infoPosition.y + 10, window.innerHeight - 80),
             }}
           >
-            <p className="font-semibold text-sm text-text-950">
+            <Text size="sm" weight="semibold">
               {hoveredRegion.name}
-            </p>
-            <p className="text-xs text-text-700">
+            </Text>
+            <Text size="xs" color="text-text-700">
               Acessos: {hoveredRegion.accessCount.toLocaleString('pt-BR')}
-            </p>
+            </Text>
           </div>
         )}
       </div>

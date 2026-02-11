@@ -506,24 +506,28 @@ describe('ChoroplethMap static map and styling', () => {
       expect.arrayContaining([
         expect.objectContaining({
           featureType: 'all',
+          elementType: 'labels',
+          stylers: [{ visibility: 'off' }],
+        }),
+        expect.objectContaining({
+          featureType: 'all',
+          elementType: 'geometry',
+          stylers: [{ color: '#F6F6F6' }],
+        }),
+        expect.objectContaining({
+          featureType: 'road',
+          elementType: 'geometry',
+          stylers: [{ visibility: 'off' }],
+        }),
+        expect.objectContaining({
+          featureType: 'transit',
           elementType: 'all',
           stylers: [{ visibility: 'off' }],
         }),
         expect.objectContaining({
-          featureType: 'landscape',
-          elementType: 'geometry',
-          stylers: expect.arrayContaining([
-            { visibility: 'on' },
-            { color: '#F6F6F6' },
-          ]),
-        }),
-        expect.objectContaining({
-          featureType: 'water',
-          elementType: 'geometry',
-          stylers: expect.arrayContaining([
-            { visibility: 'on' },
-            { color: '#F6F6F6' },
-          ]),
+          featureType: 'poi',
+          elementType: 'all',
+          stylers: [{ visibility: 'off' }],
         }),
       ])
     );
