@@ -1,13 +1,16 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import ImageDropzone from './ImageDropzone';
 
-// Mock URL.createObjectURL
+// Mock URL.createObjectURL and URL.revokeObjectURL
 const mockCreateObjectURL = jest.fn(() => 'mock-url');
+const mockRevokeObjectURL = jest.fn();
 window.URL.createObjectURL = mockCreateObjectURL;
+window.URL.revokeObjectURL = mockRevokeObjectURL;
 
 describe('ImageDropzone', () => {
   beforeEach(() => {
     mockCreateObjectURL.mockClear();
+    mockRevokeObjectURL.mockClear();
   });
 
   it('should render with label', () => {
