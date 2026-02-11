@@ -5,13 +5,7 @@ import type { RegionData, MapBounds } from './ChoroplethMap.types';
 /**
  * Google Maps API key for Ladle stories
  */
-const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-
-if (!apiKey) {
-  console.warn(
-    'VITE_GOOGLE_MAPS_API_KEY is not set. Map stories will not load.'
-  );
-}
+const apiKey = 'AIzaSyDXRwbTVCtDx_NmQnhtp5zFNCvn6kJelbA';
 
 /**
  * Mock data with multiple cities per NRE to demonstrate NRE boundary merging
