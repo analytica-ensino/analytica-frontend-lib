@@ -1,5 +1,5 @@
 import type React from 'react';
-import { useRef, useState, useCallback, useId } from 'react';
+import { useRef, useState, useCallback, useId, useEffect } from 'react';
 import { Upload, WarningCircle } from 'phosphor-react';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
@@ -21,7 +21,9 @@ export interface ImageDropzoneProps {
   onFileSelect?: (file: File) => void;
   /** Callback when file is removed */
   onRemoveFile?: () => void;
-  /** Text shown when no image is selected */
+  /** Action text shown as link (default: "Clique aqui") */
+  actionText?: string;
+  /** Description text shown after action text */
   placeholder?: string;
   /** Text shown when hovering over an existing image */
   changeText?: string;
@@ -82,7 +84,8 @@ export default function ImageDropzone({
   selectedFile,
   onFileSelect,
   onRemoveFile,
-  placeholder = 'Clique aqui para subir o arquivo ou arraste aqui',
+  actionText = 'Clique aqui',
+  placeholder = 'para subir o arquivo ou arraste aqui',
   changeText = 'Clique para alterar a imagem',
   accept = 'image/*',
   disabled = false,
@@ -101,10 +104,24 @@ export default function ImageDropzone({
 
   const hasError = Boolean(errorMessage);
 
-  // Generate preview URL from selected file
-  const imagePreviewUrl =
-    previewUrl || (selectedFile ? URL.createObjectURL(selectedFile) : null);
-  const displayUrl = imagePreviewUrl || imageUrl;
+  // Manage object URL for selectedFile with proper cleanup
+  useEffect(() => {
+    if (selectedFile && !previewUrl) {
+      const url = URL.createObjectURL(selectedFile);
+      setPreviewUrl(url);
+    }
+  }, [selectedFile, previewUrl]);
+
+  // Cleanup object URL on unmount or when previewUrl changes
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
+  const displayUrl = previewUrl || imageUrl;
 
   const validateFile = useCallback(
     (file: File): boolean => {
@@ -127,7 +144,7 @@ export default function ImageDropzone({
       }
 
       // Validate file size
-      if (maxSize && file.size > maxSize) {
+      if (maxSize != null && file.size > maxSize) {
         onSizeError?.(file, maxSize);
         return false;
       }
@@ -142,7 +159,10 @@ export default function ImageDropzone({
     if (!file || disabled) return;
 
     if (validateFile(file)) {
-      // Create preview URL
+      // Revoke previous URL before creating new one
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
       onFileSelect?.(file);
@@ -182,6 +202,10 @@ export default function ImageDropzone({
     if (!file) return;
 
     if (validateFile(file)) {
+      // Revoke previous URL before creating new one
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
       onFileSelect?.(file);
@@ -192,6 +216,10 @@ export default function ImageDropzone({
     e.preventDefault();
     e.stopPropagation();
     if (!disabled) {
+      // Revoke URL before clearing
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
       setPreviewUrl(null);
       onRemoveFile?.();
     }
@@ -274,9 +302,9 @@ export default function ImageDropzone({
               <Upload size={24} className="text-primary-500 mb-2" />
               <Text size="sm" className="text-text-600 text-center">
                 <span className="text-primary-500 font-medium">
-                  Clique aqui
+                  {actionText}
                 </span>{' '}
-                {placeholder.replace('Clique aqui ', '')}
+                {placeholder}
               </Text>
             </>
           )}
