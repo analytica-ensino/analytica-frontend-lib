@@ -4,6 +4,7 @@ import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
 import union from '@turf/union';
 import type { Feature, MultiPolygon, Polygon } from 'geojson';
 import { cn } from '../../utils/utils';
+import { useTheme } from '../../hooks/useTheme';
 import Text from '../Text/Text';
 import type {
   ChoroplethMapProps,
@@ -278,7 +279,9 @@ const ChoroplethMap = ({
   const onRegionClickRef = useRef(onRegionClick);
   onRegionClickRef.current = onRegionClick;
 
-  const colorClasses = useMemo(() => getColorClasses(), []);
+  const { isDark } = useTheme();
+
+  const colorClasses = useMemo(() => getColorClasses(), [isDark]);
 
   const mapOptions: google.maps.MapOptions = useMemo(() => {
     const bgColor = getCssVar('--color-background-50', '#F6F6F6');
@@ -302,7 +305,7 @@ const ChoroplethMap = ({
         },
       ],
     };
-  }, []);
+  }, [isDark]);
 
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',

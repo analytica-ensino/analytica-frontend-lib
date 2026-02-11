@@ -5,6 +5,11 @@ import '@testing-library/jest-dom';
 import ChoroplethMap from './ChoroplethMap';
 import type { RegionData, MapBounds } from './ChoroplethMap.types';
 
+// Mock useTheme - return light mode by default
+jest.mock('../../hooks/useTheme', () => ({
+  useTheme: () => ({ isDark: false }),
+}));
+
 // Mock @turf/union - returns first argument for simplicity
 jest.mock('@turf/union', () => ({
   __esModule: true,
@@ -13,11 +18,11 @@ jest.mock('@turf/union', () => ({
 
 // Mock requestAnimationFrame for animation tests
 let rafCallbacks: ((time: number) => void)[] = [];
-jest.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
+jest.spyOn(globalThis, 'requestAnimationFrame').mockImplementation((cb) => {
   rafCallbacks.push(cb);
   return rafCallbacks.length;
 });
-jest.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {});
+jest.spyOn(globalThis, 'cancelAnimationFrame').mockImplementation(() => {});
 jest.spyOn(performance, 'now').mockReturnValue(0);
 
 /**
@@ -129,11 +134,11 @@ describe('ChoroplethMap', () => {
           type: 'Polygon',
           coordinates: [
             [
-              [-51.0, -24.0],
-              [-50.0, -24.0],
-              [-50.0, -25.0],
-              [-51.0, -25.0],
-              [-51.0, -24.0],
+              [-51, -24],
+              [-50, -24],
+              [-50, -25],
+              [-51, -25],
+              [-51, -24],
             ],
           ],
         },
@@ -152,11 +157,11 @@ describe('ChoroplethMap', () => {
           type: 'Polygon',
           coordinates: [
             [
-              [-52.0, -25.0],
-              [-51.0, -25.0],
-              [-51.0, -26.0],
-              [-52.0, -26.0],
-              [-52.0, -25.0],
+              [-52, -25],
+              [-51, -25],
+              [-51, -26],
+              [-52, -26],
+              [-52, -25],
             ],
           ],
         },
@@ -165,10 +170,10 @@ describe('ChoroplethMap', () => {
   ];
 
   const mockBounds: MapBounds = {
-    north: -23.0,
-    south: -27.0,
-    east: -48.0,
-    west: -55.0,
+    north: -23,
+    south: -27,
+    east: -48,
+    west: -55,
   };
 
   beforeEach(() => {
@@ -611,8 +616,7 @@ describe('ChoroplethMap animations', () => {
     });
 
     // After animation completes, last setStyle call should have target opacity
-    const lastCall =
-      mockSetStyle.mock.calls[mockSetStyle.mock.calls.length - 1];
+    const lastCall = mockSetStyle.mock.calls.at(-1)!;
     const styleFn = lastCall[0];
     const mockFeature = {
       getProperty: (prop: string) => (prop === 'regionValue' ? 0.8 : null),
