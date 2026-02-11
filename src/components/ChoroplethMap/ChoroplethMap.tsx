@@ -290,28 +290,14 @@ const ChoroplethMap = ({
       backgroundColor: bgColor,
       styles: [
         {
-          featureType: 'all',
+          stylers: [{ color: bgColor }],
+        },
+        {
           elementType: 'labels',
           stylers: [{ visibility: 'off' }],
         },
         {
-          featureType: 'all',
-          elementType: 'geometry',
-          stylers: [{ color: bgColor }],
-        },
-        {
-          featureType: 'road',
-          elementType: 'geometry',
-          stylers: [{ visibility: 'off' }],
-        },
-        {
-          featureType: 'transit',
-          elementType: 'all',
-          stylers: [{ visibility: 'off' }],
-        },
-        {
-          featureType: 'poi',
-          elementType: 'all',
+          elementType: 'geometry.stroke',
           stylers: [{ visibility: 'off' }],
         },
       ],
