@@ -450,7 +450,11 @@ const PieChart = ({
 }) => {
   const [hoveredSlice, setHoveredSlice] = useState<string | null>(null);
 
-  const grandTotal = categories.reduce((sum, cat) => sum + totals[cat.key], 0);
+  const grandTotal = categories.reduce(
+    // istanbul ignore next -- defensive: parent always provides all keys
+    (sum, cat) => sum + (totals[cat.key] ?? 0),
+    0
+  );
 
   if (grandTotal === 0) {
     const radius = size * 0.4;
@@ -479,7 +483,8 @@ const PieChart = ({
 
   const slices = categories
     .map((cat) => {
-      const value = totals[cat.key];
+      // istanbul ignore next -- defensive: parent always provides all keys
+      const value = totals[cat.key] ?? 0;
       const percentage = (value / grandTotal) * 100;
       const angle = (percentage / 100) * 360;
       const startAngle = cumulativeAngle;
