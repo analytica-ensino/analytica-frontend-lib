@@ -106,20 +106,18 @@ export default function ImageDropzone({
 
   // Manage object URL for selectedFile with proper cleanup
   useEffect(() => {
-    if (selectedFile && !previewUrl) {
-      const url = URL.createObjectURL(selectedFile);
-      setPreviewUrl(url);
+    if (!selectedFile) {
+      setPreviewUrl(null);
+      return;
     }
-  }, [selectedFile, previewUrl]);
 
-  // Cleanup object URL on unmount or when previewUrl changes
-  useEffect(() => {
+    const url = URL.createObjectURL(selectedFile);
+    setPreviewUrl(url);
+
     return () => {
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-      }
+      URL.revokeObjectURL(url);
     };
-  }, [previewUrl]);
+  }, [selectedFile]);
 
   const displayUrl = previewUrl || imageUrl;
 
@@ -159,12 +157,6 @@ export default function ImageDropzone({
     if (!file || disabled) return;
 
     if (validateFile(file)) {
-      // Revoke previous URL before creating new one
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-      }
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
       onFileSelect?.(file);
     }
 
@@ -202,12 +194,6 @@ export default function ImageDropzone({
     if (!file) return;
 
     if (validateFile(file)) {
-      // Revoke previous URL before creating new one
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-      }
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
       onFileSelect?.(file);
     }
   };
@@ -216,11 +202,6 @@ export default function ImageDropzone({
     e.preventDefault();
     e.stopPropagation();
     if (!disabled) {
-      // Revoke URL before clearing
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-      }
-      setPreviewUrl(null);
       onRemoveFile?.();
     }
   };
