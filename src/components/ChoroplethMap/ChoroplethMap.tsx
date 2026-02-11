@@ -1,5 +1,12 @@
 /* global google */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
 import union from '@turf/union';
 import type { Feature, MultiPolygon, Polygon } from 'geojson';
@@ -264,6 +271,7 @@ const ChoroplethMap = ({
   onRegionClick,
   className,
 }: ChoroplethMapProps) => {
+  const mapId = useId();
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [hoveredRegion, setHoveredRegion] = useState<RegionData | null>(null);
   const [infoPosition, setInfoPosition] = useState<{
@@ -321,7 +329,7 @@ const ChoroplethMap = ({
   }, [isDark]);
 
   const { isLoaded, loadError } = useJsApiLoader({
-    id: `google-map-${apiKey}`,
+    id: mapId,
     googleMapsApiKey: apiKey,
   });
 
