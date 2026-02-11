@@ -24,6 +24,8 @@ export { default as SelectionButton } from './components/SelectionButton/Selecti
 export { default as CheckBox } from './components/CheckBox/CheckBox';
 export { default as ImageUpload } from './components/ImageUpload/ImageUpload';
 export type { ImageUploadProps } from './components/ImageUpload/ImageUpload';
+export { default as ImageDropzone } from './components/ImageDropzone/ImageDropzone';
+export type { ImageDropzoneProps } from './components/ImageDropzone/ImageDropzone';
 export {
   default as CheckboxList,
   CheckboxListItem,
@@ -58,6 +60,8 @@ export { default as Toaster } from './components/Toast/utils/Toaster';
 export { default as Divider } from './components/Divider/Divider';
 export { default as useToastStore } from './components/Toast/utils/ToastStore';
 export { default as Input } from './components/Input/Input';
+export { default as ColorPicker } from './components/ColorPicker/ColorPicker';
+export type { ColorPickerProps } from './components/ColorPicker/ColorPicker';
 export { default as Search } from './components/Search/Search';
 export { default as Chips } from './components/Chips/Chips';
 export { default as ProgressBar } from './components/ProgressBar/ProgressBar';

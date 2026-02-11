@@ -4,7 +4,7 @@ import {
   SupportType,
   type SupportFeatureFlags,
   type SupportApiClient,
-} from '@/types/support';
+} from '../types/support';
 
 export interface UseSupportFeatureFlagConfig {
   apiClient: SupportApiClient;
