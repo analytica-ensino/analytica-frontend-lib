@@ -289,21 +289,14 @@ const ChoroplethMap = ({
 
   const { isDark } = useTheme();
 
-  const stableDataRef = useRef(data);
-  if (
-    data.length !== stableDataRef.current.length ||
-    data.some(
-      (d, i) =>
-        d.id !== stableDataRef.current[i].id ||
-        d.value !== stableDataRef.current[i].value ||
-        d.name !== stableDataRef.current[i].name ||
-        d.accessCount !== stableDataRef.current[i].accessCount ||
-        d.geoJson !== stableDataRef.current[i].geoJson
-    )
-  ) {
-    stableDataRef.current = data;
-  }
-  const stableData = stableDataRef.current;
+  const dataSignature = useMemo(
+    () =>
+      data
+        .map((d) => `${d.id}:${d.value}:${d.name}:${d.accessCount}`)
+        .join('|'),
+    [data]
+  );
+  const stableData = useMemo(() => data, [dataSignature]);
 
   const colorClasses = useMemo(() => getColorClasses(), [isDark]);
 
@@ -371,6 +364,11 @@ const ChoroplethMap = ({
     setMap(null);
   }, []);
 
+  const nreBoundaries = useMemo(
+    () => computeNREBoundaries(stableData),
+    [stableData]
+  );
+
   /**
    * Add GeoJSON data to map with animations
    */
@@ -426,9 +424,8 @@ const ChoroplethMap = ({
     // Start with opacity 0 for fade-in animation
     map.data.setStyle(createStyleFunction(0, colorClasses, strokeCityColor));
 
-    // Compute and add NRE boundary overlay
+    // Add NRE boundary overlay
     const nreLayer = new google.maps.Data();
-    const nreBoundaries = computeNREBoundaries(stableData);
     nreBoundaries.forEach((boundary) => {
       nreLayer.addGeoJson(boundary);
     });
@@ -636,7 +633,7 @@ const ChoroplethMap = ({
       google.maps.event.removeListener(mousemoveListener);
       google.maps.event.removeListener(clickListener);
     };
-  }, [map, stableData, colorClasses]);
+  }, [map, stableData, colorClasses, nreBoundaries]);
 
   /**
    * Apply visibility filter based on active legend classes
