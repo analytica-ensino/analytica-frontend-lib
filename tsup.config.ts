@@ -157,6 +157,9 @@ export default defineConfig({
     'StudentLessonProgressModal/index':
       'src/components/StudentLessonProgressModal/index.ts',
 
+    // ChoroplethMap
+    'ChoroplethMap/index': 'src/components/ChoroplethMap/ChoroplethMap.tsx',
+
     // Styles
     styles: 'src/styles.css',
   },
@@ -173,6 +176,9 @@ export default defineConfig({
     'react-hook-form',
     '@hookform/resolvers/zod',
     '@phosphor-icons/react',
+    '@react-google-maps/api',
+    '@turf/union',
+    '@turf/helpers',
   ],
   target: 'es2022',
   sourcemap: true,

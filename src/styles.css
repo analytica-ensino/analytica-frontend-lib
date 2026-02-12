@@ -198,6 +198,14 @@
   --color-typography-1: #b00c9e;
   --color-typography-2: #745a07;
 
+  /* Map Choropleth Colors */
+  --color-map-highlight: #1C61B2;
+  --color-map-above-avg: #2883D7;
+  --color-map-below-avg: #91C7F1;
+  --color-map-attention: #E3F1FB;
+  --color-map-stroke-city: #64B5F6;
+  --color-map-stroke-nre: #1565C0;
+
   /* Hard Shadow Colors */
   --shadow-hard-shadow-1: -2px 2px 8px rgba(38, 38, 38, 0.2);
   --shadow-hard-shadow-2: 0px 3px 10px rgba(38, 38, 38, 0.2);
@@ -434,6 +442,14 @@
     --color-typography-1: #fccff6;
     --color-typography-2: #f9e5a4;
 
+    /* Map Choropleth Colors */
+    --color-map-highlight: #1C61B2;
+    --color-map-above-avg: #2883D7;
+    --color-map-below-avg: #91C7F1;
+    --color-map-attention: #E3F1FB;
+    --color-map-stroke-city: #64B5F6;
+    --color-map-stroke-nre: #1565C0;
+
     /* Hard Shadow Colors */
     --shadow-hard-shadow-1: -2px 2px 8px rgba(255, 255, 255, 0.1);
     --shadow-hard-shadow-2: 0px 3px 10px rgba(255, 255, 255, 0.1);
@@ -624,6 +640,14 @@
     --color-subject-16: #badfc8;
     --color-typography-1: #b00c9e;
     --color-typography-2: #745a07;
+
+    /* Map Choropleth Colors */
+    --color-map-highlight: #1C61B2;
+    --color-map-above-avg: #2883D7;
+    --color-map-below-avg: #91C7F1;
+    --color-map-attention: #E3F1FB;
+    --color-map-stroke-city: #64B5F6;
+    --color-map-stroke-nre: #1565C0;
 
     /* Hard Shadow Colors */
     --shadow-hard-shadow-1: -2px 2px 8px rgba(38, 38, 38, 0.2);
