@@ -295,7 +295,10 @@ const ChoroplethMap = ({
     data.some(
       (d, i) =>
         d.id !== stableDataRef.current[i].id ||
-        d.value !== stableDataRef.current[i].value
+        d.value !== stableDataRef.current[i].value ||
+        d.name !== stableDataRef.current[i].name ||
+        d.accessCount !== stableDataRef.current[i].accessCount ||
+        d.geoJson !== stableDataRef.current[i].geoJson
     )
   ) {
     stableDataRef.current = data;
