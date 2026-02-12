@@ -409,6 +409,17 @@ const ChoroplethMap = ({
       }
     });
 
+    // Build NRE feature index for O(1) lookup by region name
+    const nreFeatureIndex = new Map<string, google.maps.Data.Feature[]>();
+    map.data.forEach((f) => {
+      const name = f.getProperty('regionName') as string;
+      if (name) {
+        const list = nreFeatureIndex.get(name) ?? [];
+        list.push(f);
+        nreFeatureIndex.set(name, list);
+      }
+    });
+
     // Start with opacity 0 for fade-in animation
     map.data.setStyle(createStyleFunction(0, colorClasses, strokeCityColor));
 
@@ -504,20 +515,14 @@ const ChoroplethMap = ({
     let revertTimeout: ReturnType<typeof setTimeout> | null = null;
 
     /**
-     * Collect all features belonging to a given NRE name
+     * Collect all features belonging to a given NRE name (O(1) index lookup)
      * @param nreName - NRE region name to match
      * @returns Array of matching features
      */
     const collectNREFeatures = (
       nreName: string
     ): google.maps.Data.Feature[] => {
-      const features: google.maps.Data.Feature[] = [];
-      map.data.forEach((f) => {
-        if (f.getProperty('regionName') === nreName) {
-          features.push(f);
-        }
-      });
-      return features;
+      return nreFeatureIndex.get(nreName) ?? [];
     };
 
     const mouseoverListener = map.data.addListener(
