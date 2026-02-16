@@ -284,6 +284,12 @@ export default function FileDropzone({
     disabled && 'cursor-not-allowed opacity-50'
   );
 
+  const getAriaDescribedBy = (): string | undefined => {
+    if (errorMessage) return `${inputId}-error`;
+    if (helperText) return `${inputId}-helper`;
+    return undefined;
+  };
+
   const renderFilePreview = () => {
     // For images with showPreview enabled
     if (fileType === 'image' && showPreview && displayUrl) {
@@ -375,13 +381,7 @@ export default function FileDropzone({
           className="hidden"
           disabled={disabled}
           aria-invalid={hasError}
-          aria-describedby={
-            errorMessage
-              ? `${inputId}-error`
-              : helperText
-                ? `${inputId}-helper`
-                : undefined
-          }
+          aria-describedby={getAriaDescribedBy()}
         />
 
         {renderFilePreview()}
