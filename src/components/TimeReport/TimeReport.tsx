@@ -1,13 +1,12 @@
-import { type HTMLAttributes, type ReactNode, useState } from 'react';
+import { type HTMLAttributes, type ReactNode } from 'react';
 import { TrendUp, TrendDown } from 'phosphor-react';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 import Text from '../Text/Text';
-import Menu, { MenuContent, MenuItem } from '../Menu/Menu';
 import { cn } from '../../utils/utils';
 import { PROFILE_ROLES } from '../../types/chat';
-import { getGridColumnsClass } from '../shared/ReportGridUtils';
 import type { StudentsHighlightPeriod } from '../../hooks/useStudentsHighlight';
+import { ReportLayout } from '../shared/ReportLayout';
 
 dayjs.extend(duration);
 
@@ -235,74 +234,21 @@ export const TimeCard = ({ data, className, ...props }: TimeCardProps) => {
 export const TimeReport = ({
   tabs,
   defaultTab,
-  activeTab: controlledTab,
+  activeTab,
   onTabChange,
   className,
   ...props
-}: TimeReportProps) => {
-  const firstTabValue = tabs[0]?.value ?? '';
-  const [internalTab, setInternalTab] = useState(defaultTab ?? firstTabValue);
-
-  const isControlled = controlledTab !== undefined;
-  const activeTabValue = isControlled ? controlledTab : internalTab;
-  const activeTabData = tabs.find((t) => t.value === activeTabValue);
-  const cards = activeTabData?.cards ?? [];
-
-  const handleTabChange = (value: string) => {
-    if (!isControlled) {
-      setInternalTab(value);
-    }
-    onTabChange?.(value);
-  };
-
-  if (tabs.length === 0) {
-    return null;
-  }
-
-  return (
-    <div className={cn('flex flex-col gap-4', className)} {...props}>
-      {/* Tab Navigation */}
-      {tabs.length > 1 && (
-        <Menu
-          defaultValue={defaultTab ?? firstTabValue}
-          value={controlledTab}
-          variant="menu2"
-          onValueChange={handleTabChange}
-        >
-          <MenuContent variant="menu2">
-            {tabs.map((tab) => (
-              <MenuItem
-                key={tab.value}
-                value={tab.value}
-                variant="menu-overflow"
-                className="!text-sm !leading-[100%] !tracking-[0.2px]"
-              >
-                {tab.icon && (
-                  <span className="[&>svg]:w-[21px] [&>svg]:h-[21px]">
-                    {tab.icon}
-                  </span>
-                )}
-                {tab.label}
-              </MenuItem>
-            ))}
-          </MenuContent>
-        </Menu>
-      )}
-
-      {/* Cards Grid */}
-      <div
-        className={cn(
-          'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4',
-          getGridColumnsClass(cards.length)
-        )}
-        data-testid="time-report-cards"
-      >
-        {cards.map((card) => (
-          <TimeCard key={card.id} data={card} />
-        ))}
-      </div>
-    </div>
-  );
-};
+}: TimeReportProps) => (
+  <ReportLayout
+    tabs={tabs}
+    defaultTab={defaultTab}
+    activeTab={activeTab}
+    onTabChange={onTabChange}
+    renderCard={(card) => <TimeCard key={card.id} data={card} />}
+    gridTestId="time-report-cards"
+    className={className}
+    {...props}
+  />
+);
 
 export default TimeReport;

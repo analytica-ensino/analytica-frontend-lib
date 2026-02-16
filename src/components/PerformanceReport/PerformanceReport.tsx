@@ -1,10 +1,9 @@
-import { type HTMLAttributes, type ReactNode, useState } from 'react';
+import { type HTMLAttributes, type ReactNode } from 'react';
 import Text from '../Text/Text';
-import Menu, { MenuContent, MenuItem } from '../Menu/Menu';
 import { cn } from '../../utils/utils';
 import { PROFILE_ROLES } from '../../types/chat';
 import type { StudentsHighlightPeriod } from '../../hooks/useStudentsHighlight';
-import { getGridColumnsClass } from '../shared/ReportGridUtils';
+import { ReportLayout } from '../shared/ReportLayout';
 
 /**
  * API types - reusing existing enums/types from the project
@@ -156,74 +155,21 @@ export const PerformanceCard = ({
 export const PerformanceReport = ({
   tabs,
   defaultTab,
-  activeTab: controlledTab,
+  activeTab,
   onTabChange,
   className,
   ...props
-}: PerformanceReportProps) => {
-  const firstTabValue = tabs[0]?.value ?? '';
-  const [internalTab, setInternalTab] = useState(defaultTab ?? firstTabValue);
-
-  const isControlled = controlledTab !== undefined;
-  const activeTabValue = isControlled ? controlledTab : internalTab;
-  const activeTabData = tabs.find((t) => t.value === activeTabValue);
-  const cards = activeTabData?.cards ?? [];
-
-  const handleTabChange = (value: string) => {
-    if (!isControlled) {
-      setInternalTab(value);
-    }
-    onTabChange?.(value);
-  };
-
-  if (tabs.length === 0) {
-    return null;
-  }
-
-  return (
-    <div className={cn('flex flex-col gap-4', className)} {...props}>
-      {/* Tab Navigation */}
-      {tabs.length > 1 && (
-        <Menu
-          defaultValue={defaultTab ?? firstTabValue}
-          value={controlledTab}
-          variant="menu2"
-          onValueChange={handleTabChange}
-        >
-          <MenuContent variant="menu2">
-            {tabs.map((tab) => (
-              <MenuItem
-                key={tab.value}
-                value={tab.value}
-                variant="menu-overflow"
-                className="!text-sm !leading-[100%] !tracking-[0.2px]"
-              >
-                {tab.icon && (
-                  <span className="[&>svg]:w-[21px] [&>svg]:h-[21px]">
-                    {tab.icon}
-                  </span>
-                )}
-                {tab.label}
-              </MenuItem>
-            ))}
-          </MenuContent>
-        </Menu>
-      )}
-
-      {/* Cards Grid */}
-      <div
-        className={cn(
-          'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4',
-          getGridColumnsClass(cards.length)
-        )}
-        data-testid="performance-report-cards"
-      >
-        {cards.map((card) => (
-          <PerformanceCard key={card.id} data={card} />
-        ))}
-      </div>
-    </div>
-  );
-};
+}: PerformanceReportProps) => (
+  <ReportLayout
+    tabs={tabs}
+    defaultTab={defaultTab}
+    activeTab={activeTab}
+    onTabChange={onTabChange}
+    renderCard={(card) => <PerformanceCard key={card.id} data={card} />}
+    gridTestId="performance-report-cards"
+    className={className}
+    {...props}
+  />
+);
 
 export default PerformanceReport;
