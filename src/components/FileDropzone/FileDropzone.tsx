@@ -144,6 +144,7 @@ export default function FileDropzone({
   previewMaxHeight = 'max-h-48',
 }: Readonly<FileDropzoneProps>) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dragCounterRef = useRef(0);
   const [isDragging, setIsDragging] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const generatedId = useId();
@@ -223,7 +224,8 @@ export default function FileDropzone({
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!disabled) {
+    dragCounterRef.current += 1;
+    if (!disabled && dragCounterRef.current === 1) {
       setIsDragging(true);
     }
   };
@@ -231,7 +233,10 @@ export default function FileDropzone({
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragging(false);
+    dragCounterRef.current -= 1;
+    if (dragCounterRef.current === 0) {
+      setIsDragging(false);
+    }
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -242,6 +247,7 @@ export default function FileDropzone({
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    dragCounterRef.current = 0;
     setIsDragging(false);
 
     if (disabled) return;

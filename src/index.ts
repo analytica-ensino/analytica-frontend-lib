@@ -24,8 +24,6 @@ export { default as SelectionButton } from './components/SelectionButton/Selecti
 export { default as CheckBox } from './components/CheckBox/CheckBox';
 export { default as ImageUpload } from './components/ImageUpload/ImageUpload';
 export type { ImageUploadProps } from './components/ImageUpload/ImageUpload';
-export { default as ImageDropzone } from './components/ImageDropzone/ImageDropzone';
-export type { ImageDropzoneProps } from './components/ImageDropzone/ImageDropzone';
 export { default as FileDropzone } from './components/FileDropzone/FileDropzone';
 export type {
   FileDropzoneProps,
