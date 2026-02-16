@@ -4,6 +4,7 @@ import Menu, { MenuContent, MenuItem } from '../Menu/Menu';
 import { cn } from '../../utils/utils';
 import { PROFILE_ROLES } from '../../types/chat';
 import type { StudentsHighlightPeriod } from '../../hooks/useStudentsHighlight';
+import { getGridColumnsClass } from '../shared/ReportGridUtils';
 
 /**
  * API types - reusing existing enums/types from the project
@@ -86,17 +87,6 @@ export interface PerformanceReportProps extends HTMLAttributes<HTMLDivElement> {
   /** Callback when active tab changes */
   onTabChange?: (value: string) => void;
 }
-
-/**
- * Get responsive grid columns class based on item count
- */
-const getGridColumnsClass = (count: number): string => {
-  if (count >= 5) return 'lg:grid-cols-5';
-  if (count === 4) return 'lg:grid-cols-4';
-  if (count === 3) return 'lg:grid-cols-3';
-  if (count === 2) return 'lg:grid-cols-2';
-  return '';
-};
 
 /**
  * PerformanceCard component - displays a single performance statistic
