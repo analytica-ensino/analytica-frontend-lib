@@ -16,10 +16,15 @@ describe('FileDropzone', () => {
 
     it('should render with helper text', () => {
       render(
-        <FileDropzone {...defaultProps} helperText="Formatos aceitos: JPG, PNG" />
+        <FileDropzone
+          {...defaultProps}
+          helperText="Formatos aceitos: JPG, PNG"
+        />
       );
 
-      expect(screen.getByText('Formatos aceitos: JPG, PNG')).toBeInTheDocument();
+      expect(
+        screen.getByText('Formatos aceitos: JPG, PNG')
+      ).toBeInTheDocument();
     });
 
     it('should render with error message', () => {
@@ -126,7 +131,11 @@ describe('FileDropzone', () => {
     it('should not call onFileSelect when disabled', () => {
       const handleFileSelect = jest.fn();
       render(
-        <FileDropzone {...defaultProps} onFileSelect={handleFileSelect} disabled />
+        <FileDropzone
+          {...defaultProps}
+          onFileSelect={handleFileSelect}
+          disabled
+        />
       );
 
       const input = document.querySelector(
@@ -192,7 +201,9 @@ describe('FileDropzone', () => {
         'input[type="file"]'
       ) as HTMLInputElement;
       const largeContent = 'x'.repeat(2048); // 2KB
-      const file = new File([largeContent], 'large.jpg', { type: 'image/jpeg' });
+      const file = new File([largeContent], 'large.jpg', {
+        type: 'image/jpeg',
+      });
       Object.defineProperty(input, 'files', { value: [file] });
       fireEvent.change(input);
 
@@ -279,7 +290,11 @@ describe('FileDropzone', () => {
     it('should not accept drop when disabled', () => {
       const handleFileSelect = jest.fn();
       render(
-        <FileDropzone {...defaultProps} onFileSelect={handleFileSelect} disabled />
+        <FileDropzone
+          {...defaultProps}
+          onFileSelect={handleFileSelect}
+          disabled
+        />
       );
 
       const dropzone = document.querySelector('label.flex') as HTMLElement;
@@ -306,9 +321,7 @@ describe('FileDropzone', () => {
       const file = new File(['test'], 'documento.pdf', {
         type: 'application/pdf',
       });
-      render(
-        <FileDropzone accept=".pdf" fileType="pdf" selectedFile={file} />
-      );
+      render(<FileDropzone accept=".pdf" fileType="pdf" selectedFile={file} />);
 
       expect(screen.getByText('documento.pdf')).toBeInTheDocument();
     });

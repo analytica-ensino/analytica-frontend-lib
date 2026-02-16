@@ -254,7 +254,9 @@ export const Disabled: Story = () => (
  * Com erro
  */
 export const WithError: Story = () => {
-  const [errorMessage] = useState('Arquivo muito grande. Máximo permitido: 5MB');
+  const [errorMessage] = useState(
+    'Arquivo muito grande. Máximo permitido: 5MB'
+  );
 
   return (
     <div className="p-4 max-w-md">

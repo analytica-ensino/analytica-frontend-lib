@@ -63,15 +63,15 @@
   "peerDependencies": {
     "@hookform/resolvers": ">=3.0.0",
     "@phosphor-icons/react": ">=2.0.0",
+    "@react-google-maps/api": ">=2.20.0",
+    "@turf/helpers": ">=7.0.0",
+    "@turf/union": ">=7.0.0",
     "dayjs": ">=1.11.18",
     "react": ">=19.0.0",
     "react-dom": ">=19.0.0",
     "react-hook-form": ">=7.0.0",
     "react-router-dom": "^7.6.2",
-    "zod": ">=3.0.0",
-    "@turf/union": ">=7.0.0",
-    "@turf/helpers": ">=7.0.0",
-    "@react-google-maps/api": ">=2.20.0"
+    "zod": ">=3.0.0"
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -89,19 +89,19 @@
     "zustand": "^5.0.5"
   },
   "devDependencies": {
-    "@react-google-maps/api": "^2.20.8",
-    "@turf/helpers": "^7.3.4",
-    "@turf/union": "^7.3.4",
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.28.0",
     "@hookform/resolvers": "^3.10.0",
     "@ladle/react": "^5.0.3",
     "@phosphor-icons/react": "^2.1.7",
+    "@react-google-maps/api": "^2.20.8",
     "@tailwindcss/postcss": "^4.1.8",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
+    "@turf/helpers": "^7.3.4",
+    "@turf/union": "^7.3.4",
     "@types/dompurify": "^3.2.0",
     "@types/geojson": "^7946.0.16",
     "@types/identity-obj-proxy": "^3",
