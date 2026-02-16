@@ -68,7 +68,10 @@
     "react-dom": ">=19.0.0",
     "react-hook-form": ">=7.0.0",
     "react-router-dom": "^7.6.2",
-    "zod": ">=3.0.0"
+    "zod": ">=3.0.0",
+    "@turf/union": ">=7.0.0",
+    "@turf/helpers": ">=7.0.0",
+    "@react-google-maps/api": ">=2.20.0"
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -86,6 +89,9 @@
     "zustand": "^5.0.5"
   },
   "devDependencies": {
+    "@react-google-maps/api": "^2.20.8",
+    "@turf/helpers": "^7.3.4",
+    "@turf/union": "^7.3.4",
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.28.0",
     "@hookform/resolvers": "^3.10.0",
@@ -97,6 +103,7 @@
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/dompurify": "^3.2.0",
+    "@types/geojson": "^7946.0.16",
     "@types/identity-obj-proxy": "^3",
     "@types/jest": "^29.5.14",
     "@types/katex": "^0.16.7",

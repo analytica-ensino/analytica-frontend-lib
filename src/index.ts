@@ -104,6 +104,16 @@ export { default as LoadingModal } from './components/LoadingModal/loadingModal'
 export { default as NotificationCard } from './components/NotificationCard/NotificationCard';
 export { ThemeToggle } from './components/ThemeToggle/ThemeToggle';
 
+// Choropleth Map Component
+export { default as ChoroplethMap } from './components/ChoroplethMap/ChoroplethMap';
+export type {
+  ChoroplethMapProps,
+  RegionData,
+  MapBounds,
+  LegendItem,
+  ColorClass,
+} from './components/ChoroplethMap/ChoroplethMap.types';
+
 // Export notification card types
 export type {
   NotificationItem,
