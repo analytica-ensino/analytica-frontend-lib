@@ -160,6 +160,10 @@ export default defineConfig({
     // ChoroplethMap
     'ChoroplethMap/index': 'src/components/ChoroplethMap/ChoroplethMap.tsx',
 
+    // Map Data
+    'hooks/useMapData/index': 'src/hooks/useMapData.ts',
+    'types/mapData/index': 'src/types/mapData.ts',
+
     // Styles
     styles: 'src/styles.css',
   },
