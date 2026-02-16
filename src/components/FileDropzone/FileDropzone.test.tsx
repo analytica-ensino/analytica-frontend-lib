@@ -509,9 +509,7 @@ describe('FileDropzone', () => {
     });
 
     it('should not have hover border styles when disabled with error', () => {
-      render(
-        <FileDropzone {...defaultProps} disabled errorMessage="Erro" />
-      );
+      render(<FileDropzone {...defaultProps} disabled errorMessage="Erro" />);
 
       const dropzone = document.querySelector('label.flex') as HTMLElement;
       expect(dropzone.className).not.toContain('hover:border-indicator-error');
