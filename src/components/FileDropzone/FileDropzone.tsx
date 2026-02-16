@@ -374,6 +374,14 @@ export default function FileDropzone({
           onChange={handleFileChange}
           className="hidden"
           disabled={disabled}
+          aria-invalid={hasError}
+          aria-describedby={
+            errorMessage
+              ? `${inputId}-error`
+              : helperText
+                ? `${inputId}-helper`
+                : undefined
+          }
         />
 
         {renderFilePreview()}
@@ -381,12 +389,12 @@ export default function FileDropzone({
 
       <div className="mt-1">
         {helperText && !errorMessage && (
-          <Text size="xs" className="text-text-500">
+          <Text id={`${inputId}-helper`} size="xs" className="text-text-500">
             {helperText}
           </Text>
         )}
         {errorMessage && (
-          <Text size="xs" color="text-indicator-error">
+          <Text id={`${inputId}-error`} size="xs" color="text-indicator-error">
             <WarningCircle size={14} /> {errorMessage}
           </Text>
         )}
