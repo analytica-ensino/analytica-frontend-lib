@@ -1068,3 +1068,37 @@ export type {
   TimeReportData,
   TimeReportResponse,
 } from './components/TimeReport/TimeReport';
+
+// PerformanceReport Components
+export {
+  PerformanceReport,
+  PerformanceCard,
+} from './components/PerformanceReport/PerformanceReport';
+export type {
+  PerformanceReportProps,
+  PerformanceCardProps,
+  PerformanceReportTab,
+  PerformanceCardData,
+  PerformanceReportPeriod,
+  PerformanceReportRequest,
+  PerformanceStudentData,
+  PerformanceDefaultData,
+  PerformanceReportResponse,
+} from './components/PerformanceReport/PerformanceReport';
+
+// PerformanceQuestionsData Components
+export {
+  PerformanceQuestionsData,
+  PerformanceQuestionsVariant,
+} from './components/PerformanceQuestionsData/PerformanceQuestionsData';
+export type {
+  PerformanceQuestionsDataProps,
+  QuestionsVariantData,
+  ContentVariantData,
+  PerformanceFilterOption,
+  PerformanceFilterConfig,
+  PerformanceQuestionsPeriod,
+  PerformanceQuestionsRequest,
+  PerformanceQuestionsStudentResponse,
+  PerformanceQuestionsDefaultResponse,
+} from './components/PerformanceQuestionsData/PerformanceQuestionsData';

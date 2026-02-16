@@ -2758,6 +2758,9 @@ __metadata:
   peerDependencies:
     "@hookform/resolvers": ">=3.0.0"
     "@phosphor-icons/react": ">=2.0.0"
+    "@react-google-maps/api": ">=2.20.0"
+    "@turf/helpers": ">=7.0.0"
+    "@turf/union": ">=7.0.0"
     dayjs: ">=1.11.18"
     react: ">=19.0.0"
     react-dom: ">=19.0.0"
