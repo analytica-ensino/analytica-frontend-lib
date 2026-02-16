@@ -271,7 +271,7 @@ describe('FileDropzone', () => {
       expect(handleFileSelect).toHaveBeenCalledWith(file);
     });
 
-    it('should reject file with empty MIME type when extension does not match', () => {
+    it('should reject file with empty MIME type when only wildcard mime accept is specified', () => {
       const handleTypeError = jest.fn();
       render(
         <FileDropzone
@@ -284,7 +284,7 @@ describe('FileDropzone', () => {
       const input = document.querySelector(
         'input[type="file"]'
       ) as HTMLInputElement;
-      // File with empty MIME type and no matching extension pattern
+      // File with empty MIME type - wildcard MIME check fails without file.type
       const file = new File(['test'], 'video.mp4', { type: '' });
       Object.defineProperty(input, 'files', { value: [file] });
       fireEvent.change(input);
