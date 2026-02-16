@@ -6,6 +6,7 @@ import type {
   Polygon,
 } from 'geojson';
 import { createUseMapData } from './useMapData';
+import { REPORT_PERIOD } from '../types/mapData';
 import type { MapFilters, MapDataApiResponse } from '../types/mapData';
 
 /**
@@ -33,7 +34,7 @@ function createMockFeature(
 }
 
 const defaultFilters: MapFilters = {
-  period: '7_DAYS',
+  period: REPORT_PERIOD.SEVEN_DAYS,
   targetProfile: 'STUDENT',
   deviceType: 'todos',
 };
@@ -425,6 +426,160 @@ describe('useMapData', () => {
       });
 
       expect(result.current.geoJSON).toBeNull();
+    });
+  });
+
+  describe('filter changes', () => {
+    it('should refetch when filters change', async () => {
+      const response1: MapDataApiResponse = {
+        message: 'Success',
+        data: {
+          state: 'PR',
+          regions: [],
+          bounds: mockBounds,
+        },
+      };
+
+      const geoJSON: FeatureCollection<Polygon | MultiPolygon> = {
+        type: 'FeatureCollection',
+        features: [
+          createMockFeature({
+            GEOCODIGO: '4106902',
+            NOME: 'Curitiba',
+            NRE: 'Curitiba',
+            value: 90,
+            totalAcessos: 2000,
+          }),
+        ],
+      };
+
+      const response2: MapDataApiResponse = {
+        message: 'Success',
+        data: {
+          state: 'PR',
+          regions: [],
+          bounds: mockBounds,
+          geoJSON,
+        },
+      };
+
+      mockFetchMapData
+        .mockResolvedValueOnce(response1)
+        .mockResolvedValueOnce(response2);
+
+      const newFilters: MapFilters = {
+        period: REPORT_PERIOD.ONE_MONTH,
+        targetProfile: 'TEACHER',
+        deviceType: 'mobile',
+      };
+
+      const { result, rerender } = renderHook(
+        ({ filters }) => useMapData(filters),
+        { initialProps: { filters: defaultFilters } }
+      );
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(mockFetchMapData).toHaveBeenCalledTimes(1);
+      expect(result.current.data).toEqual([]);
+
+      rerender({ filters: newFilters });
+
+      await waitFor(() => {
+        expect(mockFetchMapData).toHaveBeenCalledTimes(2);
+      });
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(mockFetchMapData).toHaveBeenLastCalledWith(newFilters);
+      expect(result.current.data).toHaveLength(1);
+      expect(result.current.data[0].id).toBe('4106902');
+    });
+
+    it('should ignore stale responses when filters change rapidly', async () => {
+      let resolveFirst!: (value: MapDataApiResponse) => void;
+      const slowPromise = new Promise<MapDataApiResponse>((resolve) => {
+        resolveFirst = resolve;
+      });
+
+      const fastResponse: MapDataApiResponse = {
+        message: 'Success',
+        data: {
+          state: 'PR',
+          regions: [],
+          bounds: mockBounds,
+          geoJSON: {
+            type: 'FeatureCollection',
+            features: [
+              createMockFeature({
+                GEOCODIGO: '4106902',
+                NOME: 'Curitiba',
+                NRE: 'Curitiba',
+                value: 99,
+                totalAcessos: 5000,
+              }),
+            ],
+          },
+        },
+      };
+
+      const staleResponse: MapDataApiResponse = {
+        message: 'Success',
+        data: {
+          state: 'PR',
+          regions: [],
+          bounds: mockBounds,
+          geoJSON: {
+            type: 'FeatureCollection',
+            features: [
+              createMockFeature({
+                GEOCODIGO: '0000000',
+                NOME: 'Stale',
+                NRE: 'Stale',
+                value: 1,
+                totalAcessos: 1,
+              }),
+            ],
+          },
+        },
+      };
+
+      mockFetchMapData
+        .mockReturnValueOnce(slowPromise)
+        .mockResolvedValueOnce(fastResponse);
+
+      const newFilters: MapFilters = {
+        period: REPORT_PERIOD.ONE_MONTH,
+        targetProfile: 'TEACHER',
+        deviceType: 'mobile',
+      };
+
+      const { result, rerender } = renderHook(
+        ({ filters }) => useMapData(filters),
+        { initialProps: { filters: defaultFilters } }
+      );
+
+      rerender({ filters: newFilters });
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.data).toHaveLength(1);
+      expect(result.current.data[0].id).toBe('4106902');
+      expect(result.current.data[0].value).toBe(99);
+
+      await act(async () => {
+        resolveFirst(staleResponse);
+      });
+
+      expect(result.current.data).toHaveLength(1);
+      expect(result.current.data[0].id).toBe('4106902');
+      expect(result.current.data[0].value).toBe(99);
     });
   });
 });

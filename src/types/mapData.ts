@@ -21,7 +21,7 @@ export enum REPORT_PERIOD {
  * Map filters interface for API requests
  */
 export interface MapFilters {
-  period: string;
+  period: `${REPORT_PERIOD}`;
   targetProfile: string;
   deviceType: string;
   schoolGroupIds?: string[];

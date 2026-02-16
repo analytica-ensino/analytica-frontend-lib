@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { FeatureCollection, MultiPolygon, Polygon } from 'geojson';
 import type { RegionData as ChoroplethRegionData } from '../components/ChoroplethMap/ChoroplethMap.types';
 import type {
@@ -92,6 +92,11 @@ export const createUseMapData = (
   fetchMapDataApi: (filters: MapFilters) => Promise<MapDataApiResponse>
 ) => {
   return (filters: MapFilters): UseMapDataReturn => {
+    const filtersRef = useRef(filters);
+    filtersRef.current = filters;
+    const filtersKey = JSON.stringify(filters);
+    const fetchIdRef = useRef(0);
+
     const [data, setData] = useState<ChoroplethRegionData[]>([]);
     const [bounds, setBounds] = useState<MapDataBounds | null>(null);
     const [geoJSON, setGeoJSON] = useState<FeatureCollection<
@@ -101,11 +106,13 @@ export const createUseMapData = (
     const [error, setError] = useState<string | null>(null);
 
     const fetchData = useCallback(async () => {
+      const fetchId = ++fetchIdRef.current;
       setLoading(true);
       setError(null);
 
       try {
-        const mapData = await fetchMapDataApi(filters);
+        const mapData = await fetchMapDataApi(filtersRef.current);
+        if (fetchIdRef.current !== fetchId) return;
 
         const transformedRegions = mapData.data.geoJSON
           ? transformGeoJSONFeatures(mapData.data.geoJSON)
@@ -116,6 +123,7 @@ export const createUseMapData = (
         setBounds(mapData.data.bounds);
         setGeoJSON(mapData.data.geoJSON ?? null);
       } catch (err) {
+        if (fetchIdRef.current !== fetchId) return;
         const errorMessage =
           err instanceof Error ? err.message : 'Erro ao carregar dados do mapa';
         setError(errorMessage);
@@ -123,9 +131,11 @@ export const createUseMapData = (
         setBounds(null);
         setGeoJSON(null);
       } finally {
-        setLoading(false);
+        if (fetchIdRef.current === fetchId) {
+          setLoading(false);
+        }
       }
-    }, [filters]);
+    }, [filtersKey]);
 
     useEffect(() => {
       fetchData();
