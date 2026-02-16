@@ -249,6 +249,48 @@ describe('FileDropzone', () => {
 
       expect(handleFileSelect).toHaveBeenCalledWith(file);
     });
+
+    it('should accept file with empty MIME type when extension matches', () => {
+      const handleFileSelect = jest.fn();
+      render(
+        <FileDropzone
+          accept=".mp4,video/*"
+          fileType="video"
+          onFileSelect={handleFileSelect}
+        />
+      );
+
+      const input = document.querySelector(
+        'input[type="file"]'
+      ) as HTMLInputElement;
+      // File with empty MIME type (can happen in some browsers)
+      const file = new File(['test'], 'video.mp4', { type: '' });
+      Object.defineProperty(input, 'files', { value: [file] });
+      fireEvent.change(input);
+
+      expect(handleFileSelect).toHaveBeenCalledWith(file);
+    });
+
+    it('should reject file with empty MIME type when extension does not match', () => {
+      const handleTypeError = jest.fn();
+      render(
+        <FileDropzone
+          accept="video/*"
+          fileType="video"
+          onTypeError={handleTypeError}
+        />
+      );
+
+      const input = document.querySelector(
+        'input[type="file"]'
+      ) as HTMLInputElement;
+      // File with empty MIME type and no matching extension pattern
+      const file = new File(['test'], 'video.mp4', { type: '' });
+      Object.defineProperty(input, 'files', { value: [file] });
+      fireEvent.change(input);
+
+      expect(handleTypeError).toHaveBeenCalledWith(file);
+    });
   });
 
   describe('Drag and drop', () => {
@@ -457,6 +499,22 @@ describe('FileDropzone', () => {
         'input[type="file"]'
       ) as HTMLInputElement;
       expect(input).toBeDisabled();
+    });
+
+    it('should not have hover border styles when disabled', () => {
+      render(<FileDropzone {...defaultProps} disabled />);
+
+      const dropzone = document.querySelector('label.flex') as HTMLElement;
+      expect(dropzone.className).not.toContain('hover:border-primary-500');
+    });
+
+    it('should not have hover border styles when disabled with error', () => {
+      render(
+        <FileDropzone {...defaultProps} disabled errorMessage="Erro" />
+      );
+
+      const dropzone = document.querySelector('label.flex') as HTMLElement;
+      expect(dropzone.className).not.toContain('hover:border-indicator-error');
     });
   });
 

@@ -183,12 +183,15 @@ export default function FileDropzone({
       // Validate file type
       const acceptedTypes = accept.split(',').map((type) => type.trim());
       const isValidType = acceptedTypes.some((type) => {
+        if (type.startsWith('.')) {
+          return file.name.toLowerCase().endsWith(type.toLowerCase());
+        }
+        if (!file.type) {
+          return false;
+        }
         if (type.endsWith('/*')) {
           const mainType = type.split('/')[0];
           return file.type.startsWith(mainType + '/');
-        }
-        if (type.startsWith('.')) {
-          return file.name.toLowerCase().endsWith(type.toLowerCase());
         }
         return file.type === type;
       });
@@ -270,12 +273,16 @@ export default function FileDropzone({
 
   const getBorderClasses = () => {
     if (hasError) {
-      return 'border-indicator-error hover:border-indicator-error';
+      return disabled
+        ? 'border-indicator-error'
+        : 'border-indicator-error hover:border-indicator-error';
     }
     if (isDragging) {
       return 'border-primary-500 bg-primary-50';
     }
-    return 'border-border-200 hover:border-primary-500';
+    return disabled
+      ? 'border-border-200'
+      : 'border-border-200 hover:border-primary-500';
   };
 
   const dropzoneClasses = cn(
