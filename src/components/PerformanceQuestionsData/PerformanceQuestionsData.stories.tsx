@@ -57,9 +57,9 @@ export const QuestionsVariant: Story = () => {
         variant={PerformanceQuestionsVariant.QUESTIONS}
         data={{
           total: 150,
-          corretas: 95,
-          incorretas: 40,
-          emBranco: 15,
+          correct: 95,
+          incorrect: 40,
+          blank: 15,
         }}
         subjectFilter={subjectFilter}
         activityTypeFilter={activityTypeFilter}
@@ -94,11 +94,11 @@ export const MaterialVariant: Story = () => {
   return (
     <div className="p-8 bg-gray-100 min-h-screen">
       <PerformanceQuestionsData
-        variant={PerformanceQuestionsVariant.MATERIAL}
+        variant={PerformanceQuestionsVariant.CONTENT}
         data={{
           total: 37,
-          totalAtividades: 25,
-          totalAulasRecomendadas: 12,
+          totalActivities: 25,
+          totalRecommendedLessons: 12,
         }}
         subjectFilter={subjectFilter}
         activityTypeFilter={activityTypeFilter}
@@ -116,9 +116,9 @@ export const WithoutFilters: Story = () => (
       variant={PerformanceQuestionsVariant.QUESTIONS}
       data={{
         total: 100,
-        corretas: 60,
-        incorretas: 30,
-        emBranco: 10,
+        correct: 60,
+        incorrect: 30,
+        blank: 10,
       }}
     />
   </div>
@@ -133,9 +133,9 @@ export const ZeroValues: Story = () => (
       variant={PerformanceQuestionsVariant.QUESTIONS}
       data={{
         total: 0,
-        corretas: 0,
-        incorretas: 0,
-        emBranco: 0,
+        correct: 0,
+        incorrect: 0,
+        blank: 0,
       }}
     />
   </div>
@@ -150,9 +150,9 @@ export const LargeNumbers: Story = () => (
       variant={PerformanceQuestionsVariant.QUESTIONS}
       data={{
         total: 1500,
-        corretas: 1200,
-        incorretas: 250,
-        emBranco: 50,
+        correct: 1200,
+        incorrect: 250,
+        blank: 50,
       }}
     />
   </div>

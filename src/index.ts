@@ -1084,7 +1084,7 @@ export {
 export type {
   PerformanceQuestionsDataProps,
   QuestionsVariantData,
-  MaterialVariantData,
+  ContentVariantData,
   PerformanceFilterOption,
   PerformanceFilterConfig,
   PerformanceQuestionsPeriod,

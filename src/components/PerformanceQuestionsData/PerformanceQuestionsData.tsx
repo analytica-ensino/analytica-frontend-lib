@@ -30,18 +30,18 @@ export type { StudentsHighlightPeriod as PerformanceQuestionsPeriod } from '../.
  */
 export interface QuestionsVariantData {
   total: number;
-  corretas: number;
-  incorretas: number;
-  emBranco: number;
+  correct: number;
+  incorrect: number;
+  blank: number;
 }
 
 /**
- * Data for non-STUDENT variant: material produced
+ * Data for non-STUDENT variant: produced content
  */
-export interface MaterialVariantData {
+export interface ContentVariantData {
   total: number;
-  totalAtividades: number;
-  totalAulasRecomendadas: number;
+  totalActivities: number;
+  totalRecommendedLessons: number;
 }
 
 // --- Filter types ---
@@ -80,14 +80,14 @@ export interface PerformanceQuestionsStudentResponse {
 
 export interface PerformanceQuestionsDefaultResponse {
   message: string;
-  data: MaterialVariantData;
+  data: ContentVariantData;
 }
 
 // --- Component types ---
 
 export enum PerformanceQuestionsVariant {
   QUESTIONS = 'questions',
-  MATERIAL = 'material',
+  CONTENT = 'content',
 }
 
 export interface PerformanceQuestionsDataProps
@@ -95,7 +95,7 @@ export interface PerformanceQuestionsDataProps
   /** Variant determines title, bars, and colors */
   variant: PerformanceQuestionsVariant;
   /** Chart data (shape depends on variant) */
-  data: QuestionsVariantData | MaterialVariantData;
+  data: QuestionsVariantData | ContentVariantData;
   /** Subject/discipline filter configuration */
   subjectFilter?: PerformanceFilterConfig;
   /** Activity type filter configuration */
@@ -110,22 +110,22 @@ export interface PerformanceQuestionsDataProps
 
 const QUESTIONS_COLORS = {
   total: 'bg-info-600',
-  corretas: 'bg-success-200',
-  incorretas: 'bg-warning-400',
-  emBranco: 'bg-background-300',
+  correct: 'bg-success-200',
+  incorrect: 'bg-warning-400',
+  blank: 'bg-background-300',
 } as const;
 
-const MATERIAL_COLORS = {
+const CONTENT_COLORS = {
   total: 'bg-info-600',
-  totalAtividades: 'bg-success-700',
-  totalAulasRecomendadas: 'bg-warning-300',
+  totalActivities: 'bg-success-700',
+  totalRecommendedLessons: 'bg-warning-300',
 } as const;
 
 // --- Variant titles ---
 
 const VARIANT_TITLES: Record<PerformanceQuestionsVariant, string> = {
   questions: 'Dados de questões',
-  material: 'Dados de material produzido',
+  content: 'Dados de material produzido',
 };
 
 // --- Bar builders ---
@@ -144,52 +144,52 @@ const buildQuestionsBarItems = (
     colorClass: QUESTIONS_COLORS.total,
   },
   {
-    key: 'corretas',
+    key: 'correct',
     label: 'Corretas',
     legendLabel: 'Questões corretas',
-    value: data.corretas,
-    colorClass: QUESTIONS_COLORS.corretas,
+    value: data.correct,
+    colorClass: QUESTIONS_COLORS.correct,
   },
   {
-    key: 'incorretas',
+    key: 'incorrect',
     label: 'Incorretas',
     legendLabel: 'Questões incorretas',
-    value: data.incorretas,
-    colorClass: QUESTIONS_COLORS.incorretas,
+    value: data.incorrect,
+    colorClass: QUESTIONS_COLORS.incorrect,
   },
   {
-    key: 'emBranco',
+    key: 'blank',
     label: 'Em branco',
     legendLabel: 'Questões em branco',
-    value: data.emBranco,
-    colorClass: QUESTIONS_COLORS.emBranco,
+    value: data.blank,
+    colorClass: QUESTIONS_COLORS.blank,
   },
 ];
 
 /**
- * Build bar items for the "material" variant (non-STUDENT)
+ * Build bar items for the "content" variant (non-STUDENT)
  */
-const buildMaterialBarItems = (data: MaterialVariantData): BarItemConfig[] => [
+const buildContentBarItems = (data: ContentVariantData): BarItemConfig[] => [
   {
     key: 'total',
     label: 'Total',
     legendLabel: 'Total',
     value: data.total,
-    colorClass: MATERIAL_COLORS.total,
+    colorClass: CONTENT_COLORS.total,
   },
   {
-    key: 'totalAtividades',
+    key: 'totalActivities',
     label: 'Atividades',
     legendLabel: 'Atividades',
-    value: data.totalAtividades,
-    colorClass: MATERIAL_COLORS.totalAtividades,
+    value: data.totalActivities,
+    colorClass: CONTENT_COLORS.totalActivities,
   },
   {
-    key: 'totalAulasRecomendadas',
+    key: 'totalRecommendedLessons',
     label: 'Aulas recomendadas',
     legendLabel: 'Aulas recomendadas',
-    value: data.totalAulasRecomendadas,
-    colorClass: MATERIAL_COLORS.totalAulasRecomendadas,
+    value: data.totalRecommendedLessons,
+    colorClass: CONTENT_COLORS.totalRecommendedLessons,
   },
 ];
 
@@ -231,8 +231,8 @@ const FilterSelect = ({ filter }: { filter: PerformanceFilterConfig }) => (
  * PerformanceQuestionsData component - displays a vertical bar chart
  * with variant-specific data for performance reports.
  *
- * - `variant="questions"` (STUDENT): Total, Corretas, Incorretas, Em branco
- * - `variant="material"` (non-STUDENT): Total, Atividades, Aulas recomendadas
+ * - `variant="questions"` (STUDENT): Total, Correct, Incorrect, Blank
+ * - `variant="content"` (non-STUDENT): Total, Activities, Recommended Lessons
  *
  * Includes optional integrated Select filters for subjects and activity types.
  *
@@ -240,7 +240,7 @@ const FilterSelect = ({ filter }: { filter: PerformanceFilterConfig }) => (
  * ```tsx
  * <PerformanceQuestionsData
  *   variant="questions"
- *   data={{ total: 100, corretas: 60, incorretas: 30, emBranco: 10 }}
+ *   data={{ total: 100, correct: 60, incorrect: 30, blank: 10 }}
  *   subjectFilter={{
  *     options: [{ value: 'all', label: 'Todos componentes' }],
  *     value: 'all',
@@ -265,7 +265,7 @@ export const PerformanceQuestionsData = ({
   const barItems =
     variant === PerformanceQuestionsVariant.QUESTIONS
       ? buildQuestionsBarItems(data as QuestionsVariantData)
-      : buildMaterialBarItems(data as MaterialVariantData);
+      : buildContentBarItems(data as ContentVariantData);
 
   const chartMaxValue = maxValue ?? data.total;
   const yAxisTicks = calculateYAxisTicks(chartMaxValue);

@@ -5,21 +5,21 @@ import {
 } from './PerformanceQuestionsData';
 import type {
   QuestionsVariantData,
-  MaterialVariantData,
+  ContentVariantData,
   PerformanceFilterConfig,
 } from './PerformanceQuestionsData';
 
 const mockQuestionsData: QuestionsVariantData = {
   total: 100,
-  corretas: 60,
-  incorretas: 30,
-  emBranco: 10,
+  correct: 60,
+  incorrect: 30,
+  blank: 10,
 };
 
-const mockMaterialData: MaterialVariantData = {
+const mockMaterialData: ContentVariantData = {
   total: 37,
-  totalAtividades: 25,
-  totalAulasRecomendadas: 12,
+  totalActivities: 25,
+  totalRecommendedLessons: 12,
 };
 
 const mockSubjectFilter: PerformanceFilterConfig = {
@@ -102,7 +102,7 @@ describe('PerformanceQuestionsData', () => {
     it('should render with default title for material variant', () => {
       render(
         <PerformanceQuestionsData
-          variant={PerformanceQuestionsVariant.MATERIAL}
+          variant={PerformanceQuestionsVariant.CONTENT}
           data={mockMaterialData}
         />
       );
@@ -115,7 +115,7 @@ describe('PerformanceQuestionsData', () => {
     it('should render legend items and bar labels for material variant', () => {
       render(
         <PerformanceQuestionsData
-          variant={PerformanceQuestionsVariant.MATERIAL}
+          variant={PerformanceQuestionsVariant.CONTENT}
           data={mockMaterialData}
         />
       );
@@ -134,7 +134,7 @@ describe('PerformanceQuestionsData', () => {
     it('should render 3 bars for material variant', () => {
       const { container } = render(
         <PerformanceQuestionsData
-          variant={PerformanceQuestionsVariant.MATERIAL}
+          variant={PerformanceQuestionsVariant.CONTENT}
           data={mockMaterialData}
         />
       );
@@ -251,11 +251,11 @@ describe('PerformanceQuestionsData', () => {
     it('should calculate nice tick values for odd numbers', () => {
       render(
         <PerformanceQuestionsData
-          variant={PerformanceQuestionsVariant.MATERIAL}
+          variant={PerformanceQuestionsVariant.CONTENT}
           data={{
             total: 87,
-            totalAtividades: 50,
-            totalAulasRecomendadas: 30,
+            totalActivities: 50,
+            totalRecommendedLessons: 30,
           }}
         />
       );
@@ -310,7 +310,7 @@ describe('PerformanceQuestionsData', () => {
       const { container } = render(
         <PerformanceQuestionsData
           variant={PerformanceQuestionsVariant.QUESTIONS}
-          data={{ total: 0, corretas: 0, incorretas: 0, emBranco: 0 }}
+          data={{ total: 0, correct: 0, incorrect: 0, blank: 0 }}
         />
       );
 
@@ -366,7 +366,7 @@ describe('PerformanceQuestionsData', () => {
     it('should render correct bar colors for material variant', () => {
       const { container } = render(
         <PerformanceQuestionsData
-          variant={PerformanceQuestionsVariant.MATERIAL}
+          variant={PerformanceQuestionsVariant.CONTENT}
           data={mockMaterialData}
         />
       );
@@ -389,7 +389,7 @@ describe('PerformanceQuestionsData', () => {
 
       const { container: materialContainer } = render(
         <PerformanceQuestionsData
-          variant={PerformanceQuestionsVariant.MATERIAL}
+          variant={PerformanceQuestionsVariant.CONTENT}
           data={mockMaterialData}
         />
       );
@@ -452,9 +452,9 @@ describe('PerformanceQuestionsData', () => {
           variant={PerformanceQuestionsVariant.QUESTIONS}
           data={{
             total: 10000,
-            corretas: 8000,
-            incorretas: 1500,
-            emBranco: 500,
+            correct: 8000,
+            incorrect: 1500,
+            blank: 500,
           }}
         />
       );
