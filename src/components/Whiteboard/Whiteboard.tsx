@@ -132,20 +132,20 @@ const Whiteboard = ({
                 </div>
               ) : (
                 <button
-                    type="button"
-                    onClick={() => handleDownload(image)}
-                    className="absolute inset-0 w-full h-full cursor-pointer border-none p-0 bg-transparent"
-                    aria-label={`Ampliar ${image.title || 'imagem'}`}
-                  >
-                    <img
-                      src={image.imageUrl}
-                      alt={image.title || `Whiteboard ${image.id}`}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                      onError={() => handleImageError(image.id)}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
-                  </button>
+                  type="button"
+                  onClick={() => handleDownload(image)}
+                  className="absolute inset-0 w-full h-full cursor-pointer border-none p-0 bg-transparent"
+                  aria-label={`Ampliar ${image.title || 'imagem'}`}
+                >
+                  <img
+                    src={image.imageUrl}
+                    alt={image.title || `Whiteboard ${image.id}`}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    onError={() => handleImageError(image.id)}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+                </button>
               )}
             </div>
             {showDownload && (
