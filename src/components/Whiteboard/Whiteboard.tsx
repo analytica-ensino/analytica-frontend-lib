@@ -135,11 +135,12 @@ const Whiteboard = ({
                   <img
                     src={image.imageUrl}
                     alt={image.title || `Whiteboard ${image.id}`}
-                    className="absolute inset-0 w-full h-full object-cover"
+                    className="absolute inset-0 w-full h-full object-cover cursor-pointer"
                     loading="lazy"
+                    onClick={() => handleDownload(image)}
                     onError={() => handleImageError(image.id)}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
                 </>
               )}
             </div>
