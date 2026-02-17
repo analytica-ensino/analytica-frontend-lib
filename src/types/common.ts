@@ -64,3 +64,15 @@ export const mapApiStatusToDisplay = (
   };
   return statusMap[apiStatus];
 };
+
+/**
+ * Report period enum for time-based filters
+ * Shared across map data, questions data, and students highlight
+ */
+export enum REPORT_PERIOD {
+  SEVEN_DAYS = '7_DAYS',
+  ONE_MONTH = '1_MONTH',
+  THREE_MONTHS = '3_MONTHS',
+  SIX_MONTHS = '6_MONTHS',
+  ONE_YEAR = '1_YEAR',
+}

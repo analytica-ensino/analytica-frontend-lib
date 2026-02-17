@@ -28,7 +28,7 @@ export interface UseMapDataReturn {
 
 /**
  * Transform enriched GeoJSON features to ChoroplethMap region data
- * Each city feature has NRE, value, totalAcessos from backend enrichment
+ * Each city feature has NRE, value, totalAccess from backend enrichment
  * @param geoJSON - Enriched GeoJSON FeatureCollection from backend
  * @returns Array of region data for ChoroplethMap
  */
@@ -41,7 +41,7 @@ function transformGeoJSONFeatures(
       ? `NRE ${feature.properties.NRE}`
       : feature.properties?.NOME || '',
     value: feature.properties?.value ?? 0,
-    accessCount: feature.properties?.totalAcessos ?? 0,
+    accessCount: feature.properties?.totalAccess ?? 0,
     geoJson: feature,
   }));
 }
@@ -63,7 +63,7 @@ function transformRegionData(
     name: region.schoolGroupName,
     code: region.schoolGroupCode,
     value: region.value,
-    accessCount: region.totalAcessos,
+    accessCount: region.totalAccess,
     geoJson: region.geoJson,
   };
 }

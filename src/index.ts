@@ -115,7 +115,7 @@ export type {
 // Map Data Hook
 export { createUseMapData } from './hooks/useMapData';
 export type { UseMapDataReturn } from './hooks/useMapData';
-export { REPORT_PERIOD } from './types/mapData';
+export { REPORT_PERIOD } from './types/common';
 export type {
   MapFilters as MapDataFilters,
   MapDataRegion,

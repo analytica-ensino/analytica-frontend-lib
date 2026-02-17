@@ -79,7 +79,7 @@ describe('useMapData', () => {
             NOME: 'Curitiba',
             NRE: 'Curitiba',
             value: 85,
-            totalAcessos: 1200,
+            totalAccess: 1200,
           }),
         ],
       };
@@ -120,7 +120,7 @@ describe('useMapData', () => {
             GEOCODIGO: '4106902',
             NOME: 'Curitiba',
             value: 50,
-            totalAcessos: 300,
+            totalAccess: 300,
           }),
         ],
       };
@@ -152,7 +152,7 @@ describe('useMapData', () => {
         features: [
           createMockFeature({
             value: 10,
-            totalAcessos: 5,
+            totalAccess: 5,
           }),
         ],
       };
@@ -179,7 +179,7 @@ describe('useMapData', () => {
       expect(result.current.data[0].name).toBe('');
     });
 
-    it('should default value and totalAcessos to 0 when missing', async () => {
+    it('should default value and totalAccess to 0 when missing', async () => {
       const geoJSON: FeatureCollection<Polygon | MultiPolygon> = {
         type: 'FeatureCollection',
         features: [
@@ -229,7 +229,7 @@ describe('useMapData', () => {
               schoolGroupId: 'sg-1',
               schoolGroupName: 'NRE Curitiba',
               schoolGroupCode: 'NRE-01',
-              totalAcessos: 500,
+              totalAccess: 500,
               value: 72,
               geoJson: mockFeature,
             },
@@ -268,7 +268,7 @@ describe('useMapData', () => {
               schoolGroupId: 'sg-1',
               schoolGroupName: 'NRE Curitiba',
               schoolGroupCode: 'NRE-01',
-              totalAcessos: 500,
+              totalAccess: 500,
               value: 72,
               geoJson: mockFeature,
             },
@@ -276,7 +276,7 @@ describe('useMapData', () => {
               schoolGroupId: 'sg-2',
               schoolGroupName: 'NRE Londrina',
               schoolGroupCode: null,
-              totalAcessos: 0,
+              totalAccess: 0,
               value: 0,
               geoJson: null,
             },
@@ -346,7 +346,7 @@ describe('useMapData', () => {
             NOME: 'Curitiba',
             NRE: 'Curitiba',
             value: 90,
-            totalAcessos: 2000,
+            totalAccess: 2000,
           }),
         ],
       };
@@ -448,7 +448,7 @@ describe('useMapData', () => {
             NOME: 'Curitiba',
             NRE: 'Curitiba',
             value: 90,
-            totalAcessos: 2000,
+            totalAccess: 2000,
           }),
         ],
       };
@@ -520,7 +520,7 @@ describe('useMapData', () => {
                 NOME: 'Curitiba',
                 NRE: 'Curitiba',
                 value: 99,
-                totalAcessos: 5000,
+                totalAccess: 5000,
               }),
             ],
           },
@@ -541,7 +541,7 @@ describe('useMapData', () => {
                 NOME: 'Stale',
                 NRE: 'Stale',
                 value: 1,
-                totalAcessos: 1,
+                totalAccess: 1,
               }),
             ],
           },

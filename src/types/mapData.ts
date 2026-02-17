@@ -4,18 +4,9 @@ import type {
   MultiPolygon,
   Polygon,
 } from 'geojson';
+import { REPORT_PERIOD } from './common';
 
-/**
- * Report period enum
- * Matches backend REPORT_PERIOD enum values
- */
-export enum REPORT_PERIOD {
-  SEVEN_DAYS = '7_DAYS',
-  ONE_MONTH = '1_MONTH',
-  THREE_MONTHS = '3_MONTHS',
-  SIX_MONTHS = '6_MONTHS',
-  ONE_YEAR = '1_YEAR',
-}
+export { REPORT_PERIOD };
 
 /**
  * Map filters interface for API requests
@@ -45,7 +36,7 @@ export interface MapDataRegion {
   schoolGroupId: string;
   schoolGroupName: string;
   schoolGroupCode: string | null;
-  totalAcessos: number;
+  totalAccess: number;
   value: number;
   geoJson: Feature<MultiPolygon | Polygon> | null;
 }
