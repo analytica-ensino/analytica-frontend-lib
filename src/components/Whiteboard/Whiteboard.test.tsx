@@ -306,7 +306,7 @@ describe('Whiteboard Component', () => {
       const buttons = container.querySelectorAll('button');
 
       expect(images).toHaveLength(2);
-      expect(buttons).toHaveLength(2);
+      expect(buttons).toHaveLength(4);
     });
   });
 
