@@ -74,7 +74,7 @@ const Toast = ({
   const IconAction = iconMap[action] || iconMap['success'];
 
   const baseClasses =
-    'max-w-[390px] w-full flex flex-row items-start justify-between shadow-lg rounded-lg border p-4 gap-6 group';
+    'max-w-[390px] w-full flex flex-row items-start justify-between shadow-lg rounded-lg border p-4 gap-6 group z-50';
 
   return (
     <div
