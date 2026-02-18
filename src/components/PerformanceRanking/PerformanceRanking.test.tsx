@@ -148,9 +148,7 @@ describe('PerformanceRanking', () => {
     });
 
     it('should render position badges', () => {
-      const { container } = render(
-        <PerformanceRanking data={mockStateData} />
-      );
+      const { container } = render(<PerformanceRanking data={mockStateData} />);
 
       const positionBadges = container.querySelectorAll('.rounded-full.w-5');
       expect(positionBadges.length).toBeGreaterThanOrEqual(6);
@@ -168,9 +166,7 @@ describe('PerformanceRanking', () => {
 
   describe('Trend Icons', () => {
     it('should render trend icons for items', () => {
-      const { container } = render(
-        <PerformanceRanking data={mockStateData} />
-      );
+      const { container } = render(<PerformanceRanking data={mockStateData} />);
 
       const svgElements = container.querySelectorAll('svg');
       // At least: 2 header icons + 6 trend icons
@@ -182,29 +178,17 @@ describe('PerformanceRanking', () => {
     it('should render shift and grade inline with name', () => {
       render(<PerformanceRanking data={mockClassData} />);
 
-      expect(
-        screen.getByText('Turma A (Manhã) (9º Ano)')
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText('Turma B (Tarde) (8º Ano)')
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText('Turma C (Manhã) (7º Ano)')
-      ).toBeInTheDocument();
+      expect(screen.getByText('Turma A (Manhã) (9º Ano)')).toBeInTheDocument();
+      expect(screen.getByText('Turma B (Tarde) (8º Ano)')).toBeInTheDocument();
+      expect(screen.getByText('Turma C (Manhã) (7º Ano)')).toBeInTheDocument();
     });
 
     it('should render attention class names with shift and grade', () => {
       render(<PerformanceRanking data={mockClassData} />);
 
-      expect(
-        screen.getByText('Turma F (Noite) (9º Ano)')
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText('Turma E (Tarde) (6º Ano)')
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText('Turma D (Manhã) (8º Ano)')
-      ).toBeInTheDocument();
+      expect(screen.getByText('Turma F (Noite) (9º Ano)')).toBeInTheDocument();
+      expect(screen.getByText('Turma E (Tarde) (6º Ano)')).toBeInTheDocument();
+      expect(screen.getByText('Turma D (Manhã) (8º Ano)')).toBeInTheDocument();
     });
 
     it('should render plain names when shift/grade are absent', () => {
@@ -265,9 +249,7 @@ describe('PerformanceRanking', () => {
 
   describe('Styles', () => {
     it('should have correct layout classes', () => {
-      const { container } = render(
-        <PerformanceRanking data={mockStateData} />
-      );
+      const { container } = render(<PerformanceRanking data={mockStateData} />);
 
       const wrapper = container.firstChild as HTMLElement;
       expect(wrapper).toHaveClass('flex');
@@ -275,9 +257,7 @@ describe('PerformanceRanking', () => {
     });
 
     it('should render highlight cards with gradient green backgrounds', () => {
-      const { container } = render(
-        <PerformanceRanking data={mockStateData} />
-      );
+      const { container } = render(<PerformanceRanking data={mockStateData} />);
 
       expect(container.querySelector('.bg-success-200')).toBeInTheDocument();
       expect(container.querySelector('.bg-success-100')).toBeInTheDocument();
@@ -287,9 +267,7 @@ describe('PerformanceRanking', () => {
     });
 
     it('should render attention cards with gradient red backgrounds', () => {
-      const { container } = render(
-        <PerformanceRanking data={mockStateData} />
-      );
+      const { container } = render(<PerformanceRanking data={mockStateData} />);
 
       expect(container.querySelector('.bg-error-200')).toBeInTheDocument();
       expect(container.querySelector('.bg-error-100')).toBeInTheDocument();

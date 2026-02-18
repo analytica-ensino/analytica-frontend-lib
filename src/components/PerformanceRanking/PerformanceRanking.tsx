@@ -49,7 +49,8 @@ export interface PerformanceRankingData {
 /**
  * Props for the PerformanceRanking component
  */
-export interface PerformanceRankingProps extends HTMLAttributes<HTMLDivElement> {
+export interface PerformanceRankingProps
+  extends HTMLAttributes<HTMLDivElement> {
   /** Ranking data from the API */
   data: PerformanceRankingData;
   /** Title for the highlight card */
@@ -125,7 +126,9 @@ function PerformanceItemCard({
 }) {
   const backgroundClass = getPositionBackgroundClass(variant, item.position);
   const displayName = buildDisplayName(item);
-  const countText = countLabel ? `${item.count} ${countLabel}` : String(item.count);
+  const countText = countLabel
+    ? `${item.count} ${countLabel}`
+    : String(item.count);
 
   return (
     <div
