@@ -171,6 +171,16 @@ describe('Whiteboard Component', () => {
       expect(onDownloadMock).toHaveBeenCalledWith(mockImages[0]);
     });
 
+    it('should call onDownload when clicking on the image', () => {
+      const onDownloadMock = jest.fn();
+      render(<Whiteboard {...defaultProps} onDownload={onDownloadMock} />);
+
+      const image = screen.getByAltText('Board 1');
+      fireEvent.click(image);
+
+      expect(onDownloadMock).toHaveBeenCalledWith(mockImages[0]);
+    });
+
     it('should handle multiple download clicks', () => {
       const onDownloadMock = jest.fn();
       render(<Whiteboard {...defaultProps} onDownload={onDownloadMock} />);
@@ -296,7 +306,7 @@ describe('Whiteboard Component', () => {
       const buttons = container.querySelectorAll('button');
 
       expect(images).toHaveLength(2);
-      expect(buttons).toHaveLength(2);
+      expect(buttons).toHaveLength(4);
     });
   });
 

@@ -112,6 +112,17 @@ export type {
   ColorClass,
 } from './components/ChoroplethMap/ChoroplethMap.types';
 
+// Map Data Hook
+export { createUseMapData } from './hooks/useMapData';
+export type { UseMapDataReturn } from './hooks/useMapData';
+export { REPORT_PERIOD } from './types/common';
+export type {
+  MapFilters as MapDataFilters,
+  MapDataRegion,
+  MapDataApiResponse,
+  MapDataBounds,
+} from './types/mapData';
+
 // Export notification card types
 export type {
   NotificationItem,
