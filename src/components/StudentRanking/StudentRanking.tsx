@@ -1,8 +1,21 @@
-import { HTMLAttributes } from 'react';
-import { Trophy, Warning, TrendUp, TrendDown } from 'phosphor-react';
+import { type HTMLAttributes } from 'react';
+import { TrendUp, TrendDown } from 'phosphor-react';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
 import type { StudentHighlightItem } from '../../hooks/useStudentsHighlight';
+import {
+  type RankingVariant,
+  BADGE_BACKGROUND_CLASSES,
+  PERCENTAGE_BADGE_CLASSES,
+  getPositionBackgroundClass,
+  BaseRankingCard,
+  RankingLayout,
+} from '../shared/RankingShared';
+
+/**
+ * Re-export RankingVariant as StudentRankingVariant for backwards compatibility
+ */
+export type StudentRankingVariant = RankingVariant;
 
 /**
  * Re-export StudentHighlightItem as StudentRankingItem for backwards compatibility
@@ -14,74 +27,15 @@ export type StudentRankingItem = Pick<
 >;
 
 /**
- * Card variant type
- */
-export type StudentRankingVariant = 'highlight' | 'attention';
-
-/**
- * Props for individual student card
- */
-interface StudentCardProps {
-  student: StudentRankingItem;
-  variant: StudentRankingVariant;
-}
-
-/**
- * Lookup table for card background colors by position
- * Position 1 = most intense, Position 3+ = lightest
- */
-const CARD_BACKGROUND_CLASSES = {
-  highlight: {
-    1: 'bg-success-200',
-    2: 'bg-success-100',
-    3: 'bg-success-background',
-  },
-  attention: {
-    1: 'bg-error-200',
-    2: 'bg-error-100',
-    3: 'bg-error-background',
-  },
-} as const;
-
-/**
- * Lookup table for badge background colors
- */
-const BADGE_BACKGROUND_CLASSES = {
-  highlight: 'bg-indicator-positive',
-  attention: 'bg-indicator-negative',
-} as const;
-
-/**
- * Lookup table for percentage badge background colors
- */
-const PERCENTAGE_BADGE_CLASSES = {
-  highlight: 'bg-success-700',
-  attention: 'bg-indicator-negative',
-} as const;
-
-/**
- * Lookup table for header badge background colors
- */
-const HEADER_BADGE_CLASSES = {
-  highlight: 'bg-indicator-positive',
-  attention: 'bg-indicator-negative',
-} as const;
-
-/**
- * Get background class based on position (1, 2, or 3+)
- */
-const getPositionBackgroundClass = (
-  variant: StudentRankingVariant,
-  position: number
-): string => {
-  const positionKey = Math.max(1, Math.min(position, 3)) as 1 | 2 | 3;
-  return CARD_BACKGROUND_CLASSES[variant][positionKey];
-};
-
-/**
  * Individual student card component
  */
-const StudentCard = ({ student, variant }: StudentCardProps) => {
+const StudentCard = ({
+  student,
+  variant,
+}: {
+  student: StudentRankingItem;
+  variant: RankingVariant;
+}) => {
   const TrendIcon = variant === 'highlight' ? TrendUp : TrendDown;
   const backgroundClass = getPositionBackgroundClass(variant, student.position);
 
@@ -138,7 +92,7 @@ export interface RankingCardProps extends HTMLAttributes<HTMLDivElement> {
   /** Card title */
   title: string;
   /** Card variant: highlight (best students) or attention (needs attention) */
-  variant: StudentRankingVariant;
+  variant: RankingVariant;
   /** List of students to display */
   students: StudentRankingItem[];
 }
@@ -152,56 +106,22 @@ export const RankingCard = ({
   students,
   className,
   ...props
-}: RankingCardProps) => {
-  const HeaderIcon = variant === 'highlight' ? Trophy : Warning;
-
-  return (
-    <div
-      className={cn(
-        'flex flex-col flex-1 min-h-[254px] p-5 gap-4 bg-background border border-border-50 rounded-xl',
-        className
-      )}
-      {...props}
-    >
-      {/* Header */}
-      <div className="flex flex-row justify-between items-center h-6 gap-4">
-        <Text
-          as="h3"
-          size="lg"
-          weight="bold"
-          className="text-text-950 tracking-[0.2px]"
-        >
-          {title}
-        </Text>
-
-        {/* Header badge with icon */}
-        <span
-          className={cn(
-            'w-6 h-6 rounded-full flex items-center justify-center',
-            HEADER_BADGE_CLASSES[variant]
-          )}
-        >
-          <HeaderIcon
-            size={14}
-            weight="fill"
-            className={variant === 'highlight' ? 'text-text-950' : 'text-text'}
-          />
-        </span>
-      </div>
-
-      {/* Students list */}
-      <div className="flex flex-col gap-2">
-        {students.map((student, index) => (
-          <StudentCard
-            key={`${variant}-${index}-${student.position}`}
-            student={student}
-            variant={variant}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};
+}: RankingCardProps) => (
+  <BaseRankingCard
+    title={title}
+    variant={variant}
+    items={students}
+    renderItem={(student, v, index) => (
+      <StudentCard
+        key={`${v}-${index}-${student.position}`}
+        student={student}
+        variant={v}
+      />
+    )}
+    className={className}
+    {...props}
+  />
+);
 
 /**
  * Props for the StudentRanking component
@@ -223,7 +143,6 @@ export interface StudentRankingProps extends HTMLAttributes<HTMLDivElement> {
  *
  * @example
  * ```tsx
- * // Basic usage with static data
  * <StudentRanking
  *   highlightTitle="Estudantes em destaque"
  *   attentionTitle="Estudantes precisando de atenção"
@@ -239,34 +158,6 @@ export interface StudentRankingProps extends HTMLAttributes<HTMLDivElement> {
  *   ]}
  * />
  * ```
- *
- * @example
- * ```tsx
- * // Usage with useStudentsHighlight hook (direct usage - no transformation needed)
- * const fetchStudentsHighlight = async (filters) => {
- *   const response = await api.get('/performance/students-highlight', { params: filters });
- *   return response.data;
- * };
- *
- * const useStudentsHighlight = createUseStudentsHighlight(fetchStudentsHighlight);
- *
- * function MyComponent() {
- *   const { topStudents, bottomStudents, loading, fetchStudentsHighlight } = useStudentsHighlight();
- *
- *   useEffect(() => {
- *     fetchStudentsHighlight({ period: '1_MONTH' });
- *   }, [fetchStudentsHighlight]);
- *
- *   if (loading) return <Skeleton />;
- *
- *   return (
- *     <StudentRanking
- *       highlightStudents={topStudents}
- *       attentionStudents={bottomStudents}
- *     />
- *   );
- * }
- * ```
  */
 export const StudentRanking = ({
   highlightTitle = 'Estudantes em destaque',
@@ -277,10 +168,7 @@ export const StudentRanking = ({
   ...props
 }: StudentRankingProps) => {
   return (
-    <div
-      className={cn('flex flex-col md:flex-row w-full gap-4', className)}
-      {...props}
-    >
+    <RankingLayout className={className} {...props}>
       <RankingCard
         title={highlightTitle}
         variant="highlight"
@@ -291,7 +179,7 @@ export const StudentRanking = ({
         variant="attention"
         students={attentionStudents}
       />
-    </div>
+    </RankingLayout>
   );
 };
 

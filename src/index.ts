@@ -1116,3 +1116,13 @@ export type {
   PerformanceQuestionsStudentResponse,
   PerformanceQuestionsDefaultResponse,
 } from './components/PerformanceQuestionsData/PerformanceQuestionsData';
+
+// PerformanceRanking Components
+export { PerformanceRanking } from './components/PerformanceRanking/PerformanceRanking';
+export type {
+  PerformanceRankingProps,
+  PerformanceRankingItem,
+  PerformanceRankingData,
+  GroupedBy,
+  CountLabel,
+} from './components/PerformanceRanking/PerformanceRanking';
