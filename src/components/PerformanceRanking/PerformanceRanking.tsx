@@ -1,6 +1,6 @@
 import { type HTMLAttributes } from 'react';
 import { TrendUp, TrendDown } from 'phosphor-react';
-import { Medal, SealWarning } from '@phosphor-icons/react';
+import { MedalIcon, SealWarningIcon } from '@phosphor-icons/react';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
 import {
@@ -28,11 +28,6 @@ export interface PerformanceRankingItem {
 }
 
 /**
- * Label shown next to the count badge (e.g. "estudantes", "escolas")
- */
-export type CountLabel = string;
-
-/**
  * How the ranking data is grouped
  */
 export type GroupedBy = 'state' | 'municipality' | 'class';
@@ -58,12 +53,9 @@ export interface PerformanceRankingProps
   /** Title for the attention card */
   attentionTitle?: string;
   /** Label displayed next to the count value (e.g. "estudantes") */
-  countLabel?: CountLabel;
+  countLabel?: string;
 }
 
-/**
- * Count badge classes — neutral color to distinguish from percentage
- */
 /**
  * Position badge text color per variant
  */
@@ -86,17 +78,19 @@ const COUNT_BADGE_CLASSES = {
 function TrendIcon({
   trend,
   variant,
-}: {
+}: Readonly<{
   trend: 'up' | 'down' | null;
   variant: RankingVariant;
-}) {
+}>) {
   if (trend === 'up') {
     return <TrendUp size={16} weight="bold" aria-hidden="true" />;
   }
   if (trend === 'down') {
     return <TrendDown size={16} weight="bold" aria-hidden="true" />;
   }
-  // null trend — use variant-based default icon for visual consistency
+  // Intentional UX decision: when the API returns null (trend unavailable),
+  // we show the variant's default direction (up for highlight, down for attention)
+  // so the badge layout stays uniform across all rows — confirmed in Figma.
   const DefaultIcon = variant === 'highlight' ? TrendUp : TrendDown;
   return <DefaultIcon size={16} weight="bold" aria-hidden="true" />;
 }
@@ -119,11 +113,11 @@ function PerformanceItemCard({
   item,
   variant,
   countLabel,
-}: {
+}: Readonly<{
   item: PerformanceRankingItem;
   variant: RankingVariant;
   countLabel?: string;
-}) {
+}>) {
   const backgroundClass = getPositionBackgroundClass(variant, item.position);
   const displayName = buildDisplayName(item);
   const countText = countLabel
@@ -265,14 +259,14 @@ export const PerformanceRanking = ({
         variant="highlight"
         items={data.highlighted}
         renderItem={renderItem}
-        headerIcon={<Medal size={14} className="text-text-950" />}
+        headerIcon={<MedalIcon size={14} className="text-text-950" />}
       />
       <BaseRankingCard
         title={attentionTitle}
         variant="attention"
         items={data.needsAttention}
         renderItem={renderItem}
-        headerIcon={<SealWarning size={14} className="text-text" />}
+        headerIcon={<SealWarningIcon size={14} className="text-text" />}
       />
     </RankingLayout>
   );

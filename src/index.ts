@@ -1124,5 +1124,4 @@ export type {
   PerformanceRankingItem,
   PerformanceRankingData,
   GroupedBy,
-  CountLabel,
 } from './components/PerformanceRanking/PerformanceRanking';
