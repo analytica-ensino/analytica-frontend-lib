@@ -1,6 +1,10 @@
 import { type HTMLAttributes } from 'react';
-import { TrendUp, TrendDown } from 'phosphor-react';
-import { MedalIcon, SealWarningIcon } from '@phosphor-icons/react';
+import {
+  TrendUpIcon,
+  TrendDownIcon,
+  MedalIcon,
+  SealWarningIcon,
+} from '@phosphor-icons/react';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
 import {
@@ -36,6 +40,8 @@ export type GroupedBy = 'state' | 'municipality' | 'class';
  * Full ranking data from the API
  */
 export interface PerformanceRankingData {
+  /** Informational only — the component does not branch on this value.
+   *  Class-specific rendering (shift/grade) is derived from field presence. */
   groupedBy: GroupedBy;
   highlighted: (PerformanceRankingItem | null)[];
   needsAttention: (PerformanceRankingItem | null)[];
@@ -83,21 +89,18 @@ function TrendIcon({
   variant: RankingVariant;
 }>) {
   if (trend === 'up') {
-    return <TrendUp size={16} weight="bold" aria-hidden="true" />;
+    return <TrendUpIcon size={16} weight="bold" aria-hidden="true" />;
   }
   if (trend === 'down') {
-    return <TrendDown size={16} weight="bold" aria-hidden="true" />;
+    return <TrendDownIcon size={16} weight="bold" aria-hidden="true" />;
   }
   // Intentional UX decision: when the API returns null (trend unavailable),
   // we show the variant's default direction (up for highlight, down for attention)
   // so the badge layout stays uniform across all rows — confirmed in Figma.
-  const DefaultIcon = variant === 'highlight' ? TrendUp : TrendDown;
+  const DefaultIcon = variant === 'highlight' ? TrendUpIcon : TrendDownIcon;
   return <DefaultIcon size={16} weight="bold" aria-hidden="true" />;
 }
 
-/**
- * Individual performance ranking item card
- */
 /**
  * Build the display name including shift/grade inline when present.
  * e.g. "Turma A (Manhã) (3° ano)"
@@ -109,6 +112,9 @@ function buildDisplayName(item: PerformanceRankingItem): string {
   return parts.join(' ');
 }
 
+/**
+ * Individual performance ranking item card
+ */
 function PerformanceItemCard({
   item,
   variant,

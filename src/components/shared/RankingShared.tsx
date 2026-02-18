@@ -1,4 +1,4 @@
-import { type HTMLAttributes, type ReactNode } from 'react';
+import { Fragment, type HTMLAttributes, type ReactNode } from 'react';
 import { Trophy, Warning } from 'phosphor-react';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
@@ -123,7 +123,9 @@ export function BaseRankingCard<T>({
 
       {/* Items list */}
       <div className="flex flex-col gap-2">
-        {items.map((item, index) => renderItem(item, variant, index))}
+        {items.map((item, index) => (
+          <Fragment key={index}>{renderItem(item, variant, index)}</Fragment>
+        ))}
       </div>
     </div>
   );

@@ -148,10 +148,10 @@ describe('PerformanceRanking', () => {
     });
 
     it('should render position badges', () => {
-      const { container } = render(<PerformanceRanking data={mockStateData} />);
+      render(<PerformanceRanking data={mockStateData} />);
 
-      const positionBadges = container.querySelectorAll('.rounded-full.w-5');
-      expect(positionBadges.length).toBeGreaterThanOrEqual(6);
+      const positionBadges = screen.getAllByLabelText(/^Position \d+$/);
+      expect(positionBadges).toHaveLength(6);
     });
 
     it('should apply additional className', () => {
@@ -165,12 +165,15 @@ describe('PerformanceRanking', () => {
   });
 
   describe('Trend Icons', () => {
-    it('should render trend icons for items', () => {
-      const { container } = render(<PerformanceRanking data={mockStateData} />);
+    it('should render trend icons for all items', () => {
+      render(<PerformanceRanking data={mockStateData} />);
 
-      const svgElements = container.querySelectorAll('svg');
-      // At least: 2 header icons + 6 trend icons
-      expect(svgElements.length).toBeGreaterThanOrEqual(8);
+      const performanceBadges = screen.getAllByLabelText(/^Performance \d+%$/);
+      expect(performanceBadges).toHaveLength(6);
+      // Each performance badge contains a trend SVG icon
+      performanceBadges.forEach((badge) => {
+        expect(badge.querySelector('svg')).toBeInTheDocument();
+      });
     });
   });
 
