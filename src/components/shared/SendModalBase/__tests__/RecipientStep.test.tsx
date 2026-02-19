@@ -118,9 +118,14 @@ describe('RecipientStep', () => {
 
   it('should have scrollable container', () => {
     render(<RecipientStep {...defaultProps} />);
-    const scrollContainer = screen.getByTestId('checkbox-group').parentElement;
+    const scrollContainer = screen.getByTestId('scroll-container');
     expect(scrollContainer).toHaveClass('overflow-y-auto');
     expect(scrollContainer).toHaveClass('flex-1');
     expect(scrollContainer).toHaveClass('min-h-0');
+  });
+
+  it('should render scroll container with testId prefix when provided', () => {
+    render(<RecipientStep {...defaultProps} testIdPrefix="lesson" />);
+    expect(screen.getByTestId('lesson-scroll-container')).toBeInTheDocument();
   });
 });

@@ -51,6 +51,7 @@ export const RecipientStep: FC<RecipientStepProps> = ({
           'flex-1 min-h-0 overflow-y-auto',
           'scrollbar-thin scrollbar-thumb-border-300 scrollbar-track-transparent'
         )}
+        data-testid={testIdPrefix ? `${testIdPrefix}-scroll-container` : 'scroll-container'}
       >
         <CheckboxGroup
           categories={categories}
