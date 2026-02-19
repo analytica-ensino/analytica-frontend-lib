@@ -118,9 +118,9 @@ describe('RecipientStep', () => {
 
   it('should have scrollable container', () => {
     render(<RecipientStep {...defaultProps} />);
-    const scrollContainer = screen
-      .getByTestId('checkbox-group')
-      .closest(String.raw`.max-h-\[300px\]`);
+    const scrollContainer = screen.getByTestId('checkbox-group').parentElement;
     expect(scrollContainer).toHaveClass('overflow-y-auto');
+    expect(scrollContainer).toHaveClass('flex-1');
+    expect(scrollContainer).toHaveClass('min-h-0');
   });
 });

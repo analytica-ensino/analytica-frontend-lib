@@ -37,7 +37,12 @@ export const RecipientStep: FC<RecipientStepProps> = ({
       className="flex flex-col gap-4 min-h-0 flex-1"
       data-testid={testIdPrefix ? `${testIdPrefix}-recipient-step` : undefined}
     >
-      <Text size="sm" weight="medium" color="text-text-700" className="flex-shrink-0">
+      <Text
+        size="sm"
+        weight="medium"
+        color="text-text-700"
+        className="flex-shrink-0"
+      >
         Para quem você vai enviar {entityNameWithArticle}?
       </Text>
 
