@@ -485,7 +485,8 @@ describe('questionRenderer', () => {
       );
 
       expect(container).toBeInTheDocument();
-      expect(screen.getByText(/a\) O Brasil é um país/)).toBeInTheDocument();
+      // Text is split across elements due to HtmlMathRenderer
+      expect(screen.getByText('O Brasil é um país')).toBeInTheDocument();
     });
 
     it('should show selected and correct answer', () => {
@@ -683,11 +684,10 @@ describe('questionRenderer', () => {
 
       render(renderQuestionTrueOrFalse({ question, result }));
 
-      expect(screen.getByText(/a\) O Brasil é um país/)).toBeInTheDocument();
-      expect(
-        screen.getByText(/b\) A Lua é feita de queijo/)
-      ).toBeInTheDocument();
-      expect(screen.getByText(/c\) A água é líquida/)).toBeInTheDocument();
+      // Text is split across elements due to HtmlMathRenderer, so we match just the option text
+      expect(screen.getByText('O Brasil é um país')).toBeInTheDocument();
+      expect(screen.getByText('A Lua é feita de queijo')).toBeInTheDocument();
+      expect(screen.getByText('A água é líquida')).toBeInTheDocument();
     });
   });
 

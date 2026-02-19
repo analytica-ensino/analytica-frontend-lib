@@ -727,10 +727,11 @@ describe('ActivityCardQuestionBanks', () => {
           questionType={QUESTION_TYPE.VERDADEIRO_FALSO}
         />
       );
-      expect(screen.getByText(/^a\) /)).toBeInTheDocument();
-      expect(screen.getByText(/^b\) /)).toBeInTheDocument();
-      expect(screen.getByText(/^c\) /)).toBeInTheDocument();
-      expect(screen.getByText(/^d\) /)).toBeInTheDocument();
+      // Letter prefixes are rendered in Text component, HtmlMathRenderer is inline for option content
+      expect(screen.getByText(/a\)/)).toBeInTheDocument();
+      expect(screen.getByText(/b\)/)).toBeInTheDocument();
+      expect(screen.getByText(/c\)/)).toBeInTheDocument();
+      expect(screen.getByText(/d\)/)).toBeInTheDocument();
     });
 
     it('should apply correct background styles for all options', () => {
@@ -744,8 +745,10 @@ describe('ActivityCardQuestionBanks', () => {
       const optionText = screen.getByText(
         /A fotossíntese ocorre apenas durante o dia/
       );
-      const optionContainers = optionText.closest('div');
-      expect(optionContainers).toHaveClass(
+      // HtmlMathRenderer wraps the text, need to traverse up to find the styled container
+      const optionContainer = optionText.closest('.bg-success-background');
+      expect(optionContainer).toBeInTheDocument();
+      expect(optionContainer).toHaveClass(
         'bg-success-background',
         'border-success-300'
       );
@@ -1045,9 +1048,10 @@ describe('ActivityCardQuestionBanks', () => {
         />
       );
       const statement = screen.getByText(customEnunciado);
-      expect(statement).toHaveClass('text-text-950', 'text-md');
-      expect(statement).toHaveAttribute('data-weight', 'medium');
-      expect(statement).toHaveAttribute('data-size', 'md');
+      // HtmlMathRenderer is used for enunciado, find the parent container with styles
+      const statementContainer = statement.closest('.text-text-950');
+      expect(statementContainer).toBeInTheDocument();
+      expect(statementContainer).toHaveClass('text-text-950', 'text-md', 'font-medium');
     });
 
     it('should render button section at the bottom', () => {
