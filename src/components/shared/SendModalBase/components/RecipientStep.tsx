@@ -34,16 +34,16 @@ export const RecipientStep: FC<RecipientStepProps> = ({
 }) => {
   return (
     <div
-      className="flex flex-col gap-4"
+      className="flex flex-col gap-4 min-h-0 flex-1"
       data-testid={testIdPrefix ? `${testIdPrefix}-recipient-step` : undefined}
     >
-      <Text size="sm" weight="medium" color="text-text-700">
+      <Text size="sm" weight="medium" color="text-text-700" className="flex-shrink-0">
         Para quem você vai enviar {entityNameWithArticle}?
       </Text>
 
       <div
         className={cn(
-          'max-h-[300px] overflow-y-auto',
+          'flex-1 min-h-0 overflow-y-auto',
           'scrollbar-thin scrollbar-thumb-border-300 scrollbar-track-transparent'
         )}
       >
@@ -58,6 +58,7 @@ export const RecipientStep: FC<RecipientStepProps> = ({
       <SendModalError
         error={studentsError}
         testId={testIdPrefix ? `${testIdPrefix}-students-error` : undefined}
+        className="flex-shrink-0"
       />
     </div>
   );

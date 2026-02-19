@@ -327,7 +327,12 @@ const Modal = ({
         {/* Content */}
         {children && (
           <div className={cn('px-6 pb-6', contentClassName)}>
-            <div className="text-text-500 font-normal text-sm leading-6">
+            <div
+              className={cn(
+                'text-text-500 font-normal text-sm leading-6',
+                contentClassName?.includes('flex') && 'flex flex-col flex-1 min-h-0'
+              )}
+            >
               {children}
             </div>
           </div>
