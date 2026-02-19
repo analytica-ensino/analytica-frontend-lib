@@ -1110,7 +1110,7 @@ const CreateActivity = ({
   return (
     <div
       data-testid="create-activity-page"
-      className="flex flex-col w-full h-screen overflow-hidden p-5 bg-background"
+      className="flex flex-col w-full h-full overflow-hidden p-5 bg-background"
     >
       {/* Header Section */}
       <ActivityCreateHeader
@@ -1164,15 +1164,17 @@ const CreateActivity = ({
           </div>
 
           {/* Content Area - Single Column */}
-          <div className="flex-1 min-w-0 overflow-hidden h-full">
+          <div className="flex-1 min-w-0 relative">
             {selectedView === 'questions' ? (
-              <ActivityListQuestions
-                apiClient={apiClient}
-                onAddQuestion={handleAddQuestion}
-                addedQuestionIds={addedQuestionIds}
-              />
+              <div className="absolute inset-0 overflow-hidden">
+                <ActivityListQuestions
+                  apiClient={apiClient}
+                  onAddQuestion={handleAddQuestion}
+                  addedQuestionIds={addedQuestionIds}
+                />
+              </div>
             ) : (
-              <div className="w-full h-full overflow-hidden min-h-0">
+              <div className="absolute inset-0 overflow-hidden">
                 {loadingInitialQuestions ? (
                   <div className="flex flex-col gap-4 p-4">
                     <div className="flex flex-col gap-2">
@@ -1229,12 +1231,14 @@ const CreateActivity = ({
           </div>
 
           {/* Second Column - Center, fills remaining space */}
-          <div className="flex-1 min-w-0 overflow-hidden h-full">
-            <ActivityListQuestions
-              apiClient={apiClient}
-              onAddQuestion={handleAddQuestion}
-              addedQuestionIds={addedQuestionIds}
-            />
+          <div className="flex-1 min-w-0 relative">
+            <div className="absolute inset-0 overflow-hidden">
+              <ActivityListQuestions
+                apiClient={apiClient}
+                onAddQuestion={handleAddQuestion}
+                addedQuestionIds={addedQuestionIds}
+              />
+            </div>
           </div>
 
           {/* Third Column - Activity Preview */}

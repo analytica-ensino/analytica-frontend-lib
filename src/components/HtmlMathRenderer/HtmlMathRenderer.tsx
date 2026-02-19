@@ -106,7 +106,7 @@ const HtmlMathRenderer = forwardRef<HTMLDivElement, HtmlMathRendererProps>(
         ref={ref}
         className={cn(
           // Base styles
-          'whitespace-pre-wrap leading-relaxed',
+          'leading-relaxed',
           // Paragraph styles
           '[&_p]:mb-0',
           // Table styles
