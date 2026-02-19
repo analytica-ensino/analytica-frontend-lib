@@ -120,7 +120,9 @@ export const ActivityListQuestions = ({
   const effectivePagination = useMemo(() => {
     if (pagination && cachedPagination) {
       // Prefer hook's pagination if it has loaded more pages
-      return pagination.page > cachedPagination.page ? pagination : cachedPagination;
+      return pagination.page > cachedPagination.page
+        ? pagination
+        : cachedPagination;
     }
     if (filtersMatchCache && cachedPagination) {
       return cachedPagination;
