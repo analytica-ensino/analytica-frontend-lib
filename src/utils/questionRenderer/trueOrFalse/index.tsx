@@ -5,6 +5,7 @@ import Text from '../../../components/Text/Text';
 import { cn } from '../../../utils/utils';
 import type { QuestionRendererProps } from '../types';
 import { getStatusBadge } from '../components';
+import { HtmlMathRenderer } from '../../../components/HtmlMathRenderer';
 
 /**
  * Render true or false question
@@ -54,7 +55,8 @@ export const renderQuestionTrueOrFalse = ({
                 )}
               >
                 <Text size="sm" weight="normal" color="text-text-900">
-                  {getLetterByIndex(index).concat(') ').concat(option.option)}
+                  {getLetterByIndex(index).concat(') ')}
+                  <HtmlMathRenderer content={option.option} className="inline" />
                 </Text>
 
                 {shouldShowStatus && (

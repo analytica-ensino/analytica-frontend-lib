@@ -31,6 +31,7 @@ import type {
 } from '../types';
 import { DEFAULT_ACTIVITY_PERFORMANCE_LABELS } from '../types';
 import { cn } from '../../../utils/utils';
+import { HtmlMathRenderer } from '../../HtmlMathRenderer';
 
 /** Status of an alternative (correct/incorrect) for display */
 const AlternativeStatus = {
@@ -562,9 +563,10 @@ export const StudentActivityPerformanceModal = ({
       >
         <div className="flex flex-col gap-4">
           {/* Question statement */}
-          <Text size="sm" className="text-text-700">
-            {question.statement}
-          </Text>
+          <HtmlMathRenderer
+            content={question.statement}
+            className="text-sm text-text-700"
+          />
 
           {/* Alternatives (for multiple choice questions) */}
           {question.alternatives.length > 0 && (

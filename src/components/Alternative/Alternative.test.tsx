@@ -861,7 +861,8 @@ describe('HeaderAlternative', () => {
       const contentElement = screen.getByText(
         'Resolva a equação quadrática x² + 5x + 6 = 0.'
       );
-      expect(contentElement).toHaveClass('text-text-950', 'text-md');
+      // HtmlMathRenderer wraps content in a div with the styling classes
+      expect(contentElement.closest('.text-text-950')).toBeInTheDocument();
     });
 
     it('has correct flex structure', () => {
@@ -1091,7 +1092,8 @@ describe('HeaderAlternative', () => {
 
       expect(titleElement.tagName).toBe('P');
       expect(subtitleElement.tagName).toBe('P');
-      expect(contentElement.tagName).toBe('P');
+      // HtmlMathRenderer uses a div wrapper for proper HTML/LaTeX rendering
+      expect(contentElement.tagName).toBe('DIV');
     });
   });
 
