@@ -376,10 +376,7 @@ const HeaderAlternative = forwardRef<HTMLDivElement, HeaderAlternativeProps>(
           <p className="text-text-700 text-sm ">{subTitle}</p>
         </span>
 
-        <HtmlMathRenderer
-          content={content}
-          className="text-text-950 text-md"
-        />
+        <HtmlMathRenderer content={content} className="text-text-950 text-md" />
       </div>
     );
   }

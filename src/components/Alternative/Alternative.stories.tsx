@@ -851,9 +851,7 @@ export const HeaderAlternativeWithMath: Story = () => {
 
       <div className="space-y-6">
         <div className="space-y-4">
-          <h3 className="text-xl font-semibold text-text-800">
-            LaTeX Inline
-          </h3>
+          <h3 className="text-xl font-semibold text-text-800">LaTeX Inline</h3>
           <HeaderAlternative
             title="Questão 1"
             subTitle="Física - Movimento Uniforme"
@@ -876,9 +874,7 @@ $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$`}
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-xl font-semibold text-text-800">
-            Matrizes
-          </h3>
+          <h3 className="text-xl font-semibold text-text-800">Matrizes</h3>
           <HeaderAlternative
             title="Questão 3"
             subTitle="Matemática - Álgebra Linear"
@@ -906,9 +902,7 @@ $$CH_4 + 2O_2 \\rightarrow CO_2 + 2H_2O$$
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-xl font-semibold text-text-800">
-            Trigonometria
-          </h3>
+          <h3 className="text-xl font-semibold text-text-800">Trigonometria</h3>
           <HeaderAlternative
             title="Questão 5"
             subTitle="Matemática - Trigonometria"
@@ -920,9 +914,7 @@ $$\\sin(2x) + \\cos(x) = 0$$
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-xl font-semibold text-text-800">
-            Integral
-          </h3>
+          <h3 className="text-xl font-semibold text-text-800">Integral</h3>
           <HeaderAlternative
             title="Questão 6"
             subTitle="Matemática - Cálculo"

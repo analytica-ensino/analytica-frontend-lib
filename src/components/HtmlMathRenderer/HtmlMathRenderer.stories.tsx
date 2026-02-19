@@ -320,7 +320,9 @@ export const AllFormats: Story = () => (
     </div>
 
     <div className="p-4 bg-gray-50 rounded">
-      <h3 className="text-lg font-bold mb-2">5. Editor format (math-formula span)</h3>
+      <h3 className="text-lg font-bold mb-2">
+        5. Editor format (math-formula span)
+      </h3>
       <HtmlMathRenderer content='<span class="math-formula" data-latex="E = mc^2">E = mc²</span>' />
     </div>
 

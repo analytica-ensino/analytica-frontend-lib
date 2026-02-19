@@ -151,9 +151,7 @@ $$B = \\begin{pmatrix} 1 & 0 \\\\ 2 & 1 \\end{pmatrix}$$
 
   return (
     <div className="p-6 flex flex-col gap-6">
-      <h2 className="font-bold text-2xl text-text-900">
-        Preview com matrizes
-      </h2>
+      <h2 className="font-bold text-2xl text-text-900">Preview com matrizes</h2>
 
       <ActivityCardQuestionPreview
         subjectName="Matemática - Álgebra Linear"
@@ -220,7 +218,11 @@ export const ENEMStyleQuestion: Story = () => {
 </ul>`;
 
   const alternatives: Alternative[] = [
-    { value: 'a', label: '$r \\approx 0,54m$ e $h \\approx 1,08m$', status: 'correct' },
+    {
+      value: 'a',
+      label: '$r \\approx 0,54m$ e $h \\approx 1,08m$',
+      status: 'correct',
+    },
     { value: 'b', label: '$r \\approx 0,40m$ e $h \\approx 2,00m$' },
     { value: 'c', label: '$r \\approx 0,60m$ e $h \\approx 0,88m$' },
     { value: 'd', label: '$r \\approx 0,50m$ e $h \\approx 1,27m$' },
@@ -229,9 +231,7 @@ export const ENEMStyleQuestion: Story = () => {
 
   return (
     <div className="p-6 flex flex-col gap-6">
-      <h2 className="font-bold text-2xl text-text-900">
-        Questão estilo ENEM
-      </h2>
+      <h2 className="font-bold text-2xl text-text-900">Questão estilo ENEM</h2>
 
       <ActivityCardQuestionPreview
         subjectName="Matemática - Geometria"
@@ -293,7 +293,8 @@ export const MultipleQuestionsWithMath: Story = () => {
       subject: 'Física',
       color: '#EF4444',
       icon: 'Atom',
-      enunciado: '<p>Calcule a energia cinética de um objeto com massa $m = 5kg$ e velocidade $v = 10m/s$.</p><p>Use a fórmula: $E_c = \\frac{1}{2}mv^2$</p>',
+      enunciado:
+        '<p>Calcule a energia cinética de um objeto com massa $m = 5kg$ e velocidade $v = 10m/s$.</p><p>Use a fórmula: $E_c = \\frac{1}{2}mv^2$</p>',
       position: 1,
     },
     {
@@ -307,7 +308,8 @@ export const MultipleQuestionsWithMath: Story = () => {
       subject: 'Química',
       color: '#10B981',
       icon: 'Flask',
-      enunciado: '<p>Balanceie a equação química:</p>$$Fe + O_2 \\rightarrow Fe_2O_3$$',
+      enunciado:
+        '<p>Balanceie a equação química:</p>$$Fe + O_2 \\rightarrow Fe_2O_3$$',
       position: 3,
     },
   ];

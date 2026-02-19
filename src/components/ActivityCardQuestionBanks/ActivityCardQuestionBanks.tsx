@@ -188,7 +188,10 @@ export const ActivityCardQuestionBanks = ({
                 >
                   <Text size="sm" className="text-text-900">
                     {getLetterByIndex(index).concat(') ')}
-                    <HtmlMathRenderer content={option.option} className="inline" />
+                    <HtmlMathRenderer
+                      content={option.option}
+                      className="inline"
+                    />
                   </Text>
 
                   <div className="flex flex-row items-center gap-2 flex-shrink-0">

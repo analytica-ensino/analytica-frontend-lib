@@ -1,4 +1,4 @@
-import { CSSProperties, forwardRef, memo } from 'react';
+import { CSSProperties, forwardRef, memo, ReactNode } from 'react';
 import 'katex/dist/katex.min.css';
 import { InlineMath, BlockMath } from 'react-katex';
 import { cn } from '../../utils/utils';
@@ -14,7 +14,7 @@ export interface HtmlMathRendererProps {
   /** Whether to sanitize HTML before rendering (default: true) */
   sanitize?: boolean;
   /** Custom error renderer for math errors */
-  renderMathError?: (latex: string) => React.ReactNode;
+  renderMathError?: (latex: string) => ReactNode;
   /** Test ID for testing */
   testId?: string;
 }
@@ -39,14 +39,7 @@ export interface HtmlMathRendererProps {
  */
 const HtmlMathRenderer = forwardRef<HTMLDivElement, HtmlMathRendererProps>(
   (
-    {
-      content,
-      className,
-      style,
-      sanitize = true,
-      renderMathError,
-      testId,
-    },
+    { content, className, style, sanitize = true, renderMathError, testId },
     ref
   ) => {
     const defaultErrorRenderer = (latex: string) => (
@@ -88,10 +81,7 @@ const HtmlMathRenderer = forwardRef<HTMLDivElement, HtmlMathRendererProps>(
               );
             } else if (part.type === 'block-math' && part.latex) {
               return (
-                <div
-                  key={index}
-                  className="my-2.5 text-center"
-                >
+                <div key={index} className="my-2.5 text-center">
                   <BlockMath
                     math={part.latex}
                     renderError={() => errorRenderer(part.latex!)}

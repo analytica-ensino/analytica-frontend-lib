@@ -56,7 +56,10 @@ export const renderQuestionTrueOrFalse = ({
               >
                 <Text size="sm" weight="normal" color="text-text-900">
                   {getLetterByIndex(index).concat(') ')}
-                  <HtmlMathRenderer content={option.option} className="inline" />
+                  <HtmlMathRenderer
+                    content={option.option}
+                    className="inline"
+                  />
                 </Text>
 
                 {shouldShowStatus && (

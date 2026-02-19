@@ -22,7 +22,9 @@ jest.mock('react-katex', () => ({
 describe('HtmlMathRenderer', () => {
   describe('basic rendering', () => {
     it('should render plain HTML content', () => {
-      render(<HtmlMathRenderer content="<p>Hello World</p>" testId="renderer" />);
+      render(
+        <HtmlMathRenderer content="<p>Hello World</p>" testId="renderer" />
+      );
       expect(screen.getByTestId('renderer')).toHaveTextContent('Hello World');
     });
 
@@ -43,7 +45,12 @@ describe('HtmlMathRenderer', () => {
     });
 
     it('should render null content without errors', () => {
-      render(<HtmlMathRenderer content={null as unknown as string} testId="renderer" />);
+      render(
+        <HtmlMathRenderer
+          content={null as unknown as string}
+          testId="renderer"
+        />
+      );
       expect(screen.getByTestId('renderer')).toBeInTheDocument();
     });
   });
@@ -97,7 +104,10 @@ describe('HtmlMathRenderer', () => {
   describe('latex tag support', () => {
     it('should render content with <latex> tags', () => {
       render(
-        <HtmlMathRenderer content="Formula: <latex>x^2</latex>" testId="renderer" />
+        <HtmlMathRenderer
+          content="Formula: <latex>x^2</latex>"
+          testId="renderer"
+        />
       );
       expect(screen.getByTestId('inline-math')).toHaveTextContent('x^2');
     });
@@ -258,15 +268,15 @@ describe('utils', () => {
     });
 
     it('should remove LaTeX environments', () => {
-      expect(
-        stripHtml('Matrix: \\begin{pmatrix}1\\end{pmatrix} done')
-      ).toBe('Matrix:  done');
+      expect(stripHtml('Matrix: \\begin{pmatrix}1\\end{pmatrix} done')).toBe(
+        'Matrix:  done'
+      );
     });
 
     it('should remove HTML and math combined', () => {
-      expect(
-        stripHtml('<p>The area is $A = \\pi r^2$ for a circle.</p>')
-      ).toBe('The area is  for a circle.');
+      expect(stripHtml('<p>The area is $A = \\pi r^2$ for a circle.</p>')).toBe(
+        'The area is  for a circle.'
+      );
     });
   });
 });
