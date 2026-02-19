@@ -40,13 +40,8 @@ export const PERCENTAGE_BADGE_CLASSES = {
   attention: 'bg-indicator-negative',
 } as const;
 
-/**
- * Header badge background colors
- */
-export const HEADER_BADGE_CLASSES = {
-  highlight: 'bg-indicator-positive',
-  attention: 'bg-indicator-negative',
-} as const;
+/** Header icon badge uses the same palette as position badges */
+export const HEADER_BADGE_CLASSES = BADGE_BACKGROUND_CLASSES;
 
 /**
  * Get background class based on position (1, 2, or 3+)
