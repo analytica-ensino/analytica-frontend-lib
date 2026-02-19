@@ -10,6 +10,8 @@ export interface SendModalErrorProps {
   error?: string;
   /** Optional test ID */
   testId?: string;
+  /** Optional className for additional styling */
+  className?: string;
 }
 
 /**
@@ -19,6 +21,7 @@ export interface SendModalErrorProps {
 export const SendModalError: React.FC<SendModalErrorProps> = ({
   error,
   testId,
+  className,
 }) => {
   if (!error) return null;
 
@@ -27,7 +30,7 @@ export const SendModalError: React.FC<SendModalErrorProps> = ({
       as="p"
       size="sm"
       color="text-error-600"
-      className="flex items-center gap-1 mt-1"
+      className={`flex items-center gap-1 mt-1 ${className || ''}`}
       data-testid={testId}
       aria-live="polite"
     >
