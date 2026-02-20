@@ -54,12 +54,9 @@ export const renderQuestionTrueOrFalse = ({
                   shouldShowStatus ? getStatusStyles(variantCorrect) : ''
                 )}
               >
-                <Text size="sm" weight="normal" color="text-text-900">
+                <Text as="span" size="sm" weight="normal" color="text-text-900">
                   {getLetterByIndex(index).concat(') ')}
-                  <HtmlMathRenderer
-                    content={option.option}
-                    className="inline"
-                  />
+                  <HtmlMathRenderer content={option.option} inline />
                 </Text>
 
                 {shouldShowStatus && (
