@@ -301,7 +301,7 @@ const AlternativesList = ({
                           : 'cursor-pointer'
                       )}
                     >
-                      <HtmlMathRenderer content={alternative.label} />
+                      <HtmlMathRenderer content={alternative.label} inline />
                     </label>
                     {alternative.description && (
                       <p className="text-sm text-text-600 mt-1">
@@ -343,7 +343,7 @@ const AlternativesList = ({
                   alternative.disabled ? 'cursor-not-allowed' : 'cursor-pointer'
                 )}
               >
-                <HtmlMathRenderer content={alternative.label} />
+                <HtmlMathRenderer content={alternative.label} inline />
               </label>
             </div>
             {statusBadge && <div className="flex-shrink-0">{statusBadge}</div>}

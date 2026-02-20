@@ -1,4 +1,4 @@
-import { CSSProperties, forwardRef, memo, ReactNode } from 'react';
+import { CSSProperties, forwardRef, memo, ReactNode, Ref } from 'react';
 import 'katex/dist/katex.min.css';
 import { InlineMath, BlockMath } from 'react-katex';
 import { cn } from '../../utils/utils';
@@ -17,6 +17,8 @@ export interface HtmlMathRendererProps {
   renderMathError?: (latex: string) => ReactNode;
   /** Test ID for testing */
   testId?: string;
+  /** Whether to render as inline element (span) instead of block (div). Use when inside labels or other phrasing content. */
+  inline?: boolean;
 }
 
 /**
@@ -37,9 +39,17 @@ export interface HtmlMathRendererProps {
  * />
  * ```
  */
-const HtmlMathRenderer = forwardRef<HTMLDivElement, HtmlMathRendererProps>(
+const HtmlMathRenderer = forwardRef<HTMLElement, HtmlMathRendererProps>(
   (
-    { content, className, style, sanitize = true, renderMathError, testId },
+    {
+      content,
+      className,
+      style,
+      sanitize = true,
+      renderMathError,
+      testId,
+      inline = false,
+    },
     ref
   ) => {
     const defaultErrorRenderer = (latex: string) => (
@@ -59,8 +69,10 @@ const HtmlMathRenderer = forwardRef<HTMLDivElement, HtmlMathRendererProps>(
 
       // If no parts or all text, render as plain HTML
       if (parts.length === 0 || parts.every((part) => part.type === 'text')) {
+        // Use span for inline mode to allow valid nesting in labels
+        const Element = inline ? 'span' : 'div';
         return (
-          <div
+          <Element
             dangerouslySetInnerHTML={{
               __html: processedContent,
             }}
@@ -101,26 +113,41 @@ const HtmlMathRenderer = forwardRef<HTMLDivElement, HtmlMathRendererProps>(
       );
     };
 
+    const sharedClassName = cn(
+      // Base styles
+      'leading-relaxed',
+      // Paragraph styles
+      '[&_p]:mb-0',
+      // Table styles (only relevant for block mode, but harmless for inline)
+      '[&_table]:border-collapse [&_table]:w-full [&_table]:my-2.5 [&_table]:table-auto',
+      '[&_table_td]:border [&_table_td]:border-border-200 [&_table_td]:p-2 [&_table_td]:min-w-[50px] [&_table_td]:align-top',
+      '[&_table_th]:border [&_table_th]:border-border-200 [&_table_th]:p-2 [&_table_th]:min-w-[50px] [&_table_th]:align-top [&_table_th]:bg-background-50 [&_table_th]:font-semibold',
+      '[&_table_tr:nth-child(even)]:bg-background-50/50',
+      '[&_table_tr:hover]:bg-background-100/50',
+      // Image styles
+      '[&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-md [&_img]:my-2',
+      // Link styles
+      '[&_a]:text-primary-500 [&_a]:underline [&_a:hover]:text-primary-600',
+      className
+    );
+
+    if (inline) {
+      return (
+        <span
+          ref={ref as Ref<HTMLSpanElement>}
+          className={sharedClassName}
+          style={style}
+          data-testid={testId}
+        >
+          {renderContent()}
+        </span>
+      );
+    }
+
     return (
       <div
-        ref={ref}
-        className={cn(
-          // Base styles
-          'leading-relaxed',
-          // Paragraph styles
-          '[&_p]:mb-0',
-          // Table styles
-          '[&_table]:border-collapse [&_table]:w-full [&_table]:my-2.5 [&_table]:table-auto',
-          '[&_table_td]:border [&_table_td]:border-border-200 [&_table_td]:p-2 [&_table_td]:min-w-[50px] [&_table_td]:align-top',
-          '[&_table_th]:border [&_table_th]:border-border-200 [&_table_th]:p-2 [&_table_th]:min-w-[50px] [&_table_th]:align-top [&_table_th]:bg-background-50 [&_table_th]:font-semibold',
-          '[&_table_tr:nth-child(even)]:bg-background-50/50',
-          '[&_table_tr:hover]:bg-background-100/50',
-          // Image styles
-          '[&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-md [&_img]:my-2',
-          // Link styles
-          '[&_a]:text-primary-500 [&_a]:underline [&_a:hover]:text-primary-600',
-          className
-        )}
+        ref={ref as Ref<HTMLDivElement>}
+        className={sharedClassName}
         style={style}
         data-testid={testId}
       >
