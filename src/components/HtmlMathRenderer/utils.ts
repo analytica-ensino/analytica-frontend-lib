@@ -141,6 +141,9 @@ export const processHtmlWithMath = (htmlContent: string): MathPart[] => {
   let processedContent = htmlContent;
   const parts: MathPart[] = [];
 
+  // Generate unique sentinel per call to avoid collision with content
+  const sentinel = `__MATH_${Math.random().toString(36).slice(2, 10)}_`;
+
   // Step 1: Handle math-formula spans (from the editor)
   const mathFormulaPattern =
     /<span[^>]*class="math-formula"[^>]*data-latex="([^"]*)"[^>]*>[\s\S]*?<\/span>/g;
@@ -148,7 +151,7 @@ export const processHtmlWithMath = (htmlContent: string): MathPart[] => {
     mathFormulaPattern,
     (match, latex) => {
       const isDisplayMode = match.includes('data-display-mode="true"');
-      const placeholder = `__MATH_${parts.length}__`;
+      const placeholder = `${sentinel}${parts.length}__`;
       parts.push({
         type: isDisplayMode ? 'block-math' : 'math',
         content: match,
@@ -164,7 +167,7 @@ export const processHtmlWithMath = (htmlContent: string): MathPart[] => {
   processedContent = processedContent.replaceAll(
     wrappedMathPattern,
     (match, latex) => {
-      const placeholder = `__MATH_${parts.length}__`;
+      const placeholder = `${sentinel}${parts.length}__`;
       parts.push({
         type: 'math',
         content: match,
@@ -179,7 +182,7 @@ export const processHtmlWithMath = (htmlContent: string): MathPart[] => {
   processedContent = processedContent.replaceAll(
     doubleDollarPattern,
     (match, latex) => {
-      const placeholder = `__MATH_${parts.length}__`;
+      const placeholder = `${sentinel}${parts.length}__`;
       parts.push({
         type: 'block-math',
         content: match,
@@ -194,7 +197,7 @@ export const processHtmlWithMath = (htmlContent: string): MathPart[] => {
   processedContent = processedContent.replaceAll(
     singleDollarPattern,
     (match, latex) => {
-      const placeholder = `__MATH_${parts.length}__`;
+      const placeholder = `${sentinel}${parts.length}__`;
       parts.push({
         type: 'math',
         content: match,
@@ -210,7 +213,7 @@ export const processHtmlWithMath = (htmlContent: string): MathPart[] => {
   processedContent = processedContent.replaceAll(
     latexTagPattern,
     (match, latex) => {
-      const placeholder = `__MATH_${parts.length}__`;
+      const placeholder = `${sentinel}${parts.length}__`;
       parts.push({
         type: 'math',
         content: match,
@@ -223,7 +226,7 @@ export const processHtmlWithMath = (htmlContent: string): MathPart[] => {
   // Step 6: Handle standalone LaTeX environments (align, equation, pmatrix, etc.)
   const latexEnvPattern = /\\begin\{([^}]+)\}([\s\S]*?)\\end\{\1\}/g;
   processedContent = processedContent.replaceAll(latexEnvPattern, (match) => {
-    const placeholder = `__MATH_${parts.length}__`;
+    const placeholder = `${sentinel}${parts.length}__`;
     parts.push({
       type: 'block-math',
       content: match,
@@ -235,7 +238,9 @@ export const processHtmlWithMath = (htmlContent: string): MathPart[] => {
   // Step 7: Split remaining content by placeholders
   const finalParts: MathPart[] = [];
   let currentIndex = 0;
-  const placeholderPattern = /__MATH_(\d+)__/g;
+  // Escape sentinel for regex (though it should be safe alphanumeric)
+  const escapedSentinel = sentinel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const placeholderPattern = new RegExp(`${escapedSentinel}(\\d+)__`, 'g');
   let match;
 
   while ((match = placeholderPattern.exec(processedContent)) !== null) {
