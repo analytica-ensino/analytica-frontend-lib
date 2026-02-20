@@ -17,25 +17,92 @@ export const cleanLatex = (str: string): string => {
 };
 
 /**
+ * Dangerous attributes that should be removed for XSS protection
+ */
+const DANGEROUS_ATTRIBUTES = [
+  'contenteditable',
+  'srcdoc',
+  'formaction',
+  'xlink:href',
+];
+
+/**
+ * Dangerous URI schemes that should be removed from href/src attributes
+ */
+const DANGEROUS_URI_PATTERN = /^\s*(javascript|vbscript|data):/i;
+
+/**
  * Sanitizes HTML content for safe display
- * Removes contenteditable attributes and other potentially dangerous attributes
+ * Removes event handlers, dangerous attributes, script/style tags, and javascript: URIs
  */
 export const sanitizeHtmlForDisplay = (htmlContent: string): string => {
   if (!htmlContent) return htmlContent;
 
   // Create a temporary div to parse HTML
   if (typeof document === 'undefined') {
-    // Server-side: just return as-is
-    return htmlContent;
+    // Server-side: use regex-based sanitization as fallback
+    let sanitized = htmlContent;
+    // Remove script tags
+    sanitized = sanitized.replace(
+      /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+      ''
+    );
+    // Remove style tags
+    sanitized = sanitized.replace(
+      /<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi,
+      ''
+    );
+    // Remove on* event handlers
+    sanitized = sanitized.replace(
+      /\s+on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi,
+      ''
+    );
+    // Remove javascript: URIs
+    sanitized = sanitized.replace(
+      /\s+(href|src)\s*=\s*(?:"javascript:[^"]*"|'javascript:[^']*')/gi,
+      ''
+    );
+    return sanitized;
   }
 
   const tempDiv = document.createElement('div');
   tempDiv.innerHTML = htmlContent;
 
-  // Remove contenteditable attributes
-  const editableElements = tempDiv.querySelectorAll('[contenteditable]');
-  editableElements.forEach((element) => {
-    element.removeAttribute('contenteditable');
+  // Remove script and style tags entirely
+  const dangerousTags = tempDiv.querySelectorAll(
+    'script, style, iframe, object, embed'
+  );
+  dangerousTags.forEach((element) => element.remove());
+
+  // Process all elements
+  const allElements = tempDiv.querySelectorAll('*');
+  allElements.forEach((element) => {
+    // Get all attribute names
+    const attributeNames = element.getAttributeNames();
+
+    attributeNames.forEach((attrName) => {
+      const lowerAttrName = attrName.toLowerCase();
+
+      // Remove all on* event handler attributes (onclick, onerror, onload, etc.)
+      if (lowerAttrName.startsWith('on')) {
+        element.removeAttribute(attrName);
+        return;
+      }
+
+      // Remove dangerous attributes
+      if (DANGEROUS_ATTRIBUTES.includes(lowerAttrName)) {
+        element.removeAttribute(attrName);
+        return;
+      }
+
+      // Check href and src for dangerous URIs
+      if (lowerAttrName === 'href' || lowerAttrName === 'src') {
+        const value = element.getAttribute(attrName);
+        if (value && DANGEROUS_URI_PATTERN.test(value)) {
+          element.removeAttribute(attrName);
+        }
+      }
+    });
   });
 
   return tempDiv.innerHTML;

@@ -192,6 +192,108 @@ describe('utils', () => {
     it('should return empty string for empty input', () => {
       expect(sanitizeHtmlForDisplay('')).toBe('');
     });
+
+    describe('XSS protection', () => {
+      it('should remove onclick event handlers', () => {
+        const html = '<div onclick="alert(1)">Click me</div>';
+        const sanitized = sanitizeHtmlForDisplay(html);
+        expect(sanitized).not.toContain('onclick');
+        expect(sanitized).toContain('Click me');
+      });
+
+      it('should remove onerror event handlers', () => {
+        const html = '<img src="x" onerror="alert(1)">';
+        const sanitized = sanitizeHtmlForDisplay(html);
+        expect(sanitized).not.toContain('onerror');
+      });
+
+      it('should remove onload event handlers', () => {
+        const html = '<body onload="alert(1)">Content</body>';
+        const sanitized = sanitizeHtmlForDisplay(html);
+        expect(sanitized).not.toContain('onload');
+      });
+
+      it('should remove onmouseover event handlers', () => {
+        const html = '<a onmouseover="alert(1)">Hover</a>';
+        const sanitized = sanitizeHtmlForDisplay(html);
+        expect(sanitized).not.toContain('onmouseover');
+      });
+
+      it('should remove all on* event handlers', () => {
+        const html =
+          '<div onclick="x" onmouseenter="y" onfocus="z" onblur="w">Text</div>';
+        const sanitized = sanitizeHtmlForDisplay(html);
+        expect(sanitized).not.toMatch(/on\w+=/i);
+      });
+
+      it('should remove script tags', () => {
+        const html = '<p>Safe</p><script>alert(1)</script><p>Also safe</p>';
+        const sanitized = sanitizeHtmlForDisplay(html);
+        expect(sanitized).not.toContain('<script');
+        expect(sanitized).not.toContain('alert');
+        expect(sanitized).toContain('Safe');
+        expect(sanitized).toContain('Also safe');
+      });
+
+      it('should remove style tags', () => {
+        const html = '<style>body{display:none}</style><p>Content</p>';
+        const sanitized = sanitizeHtmlForDisplay(html);
+        expect(sanitized).not.toContain('<style');
+        expect(sanitized).toContain('Content');
+      });
+
+      it('should remove javascript: URIs from href', () => {
+        const html = '<a href="javascript:alert(1)">Click</a>';
+        const sanitized = sanitizeHtmlForDisplay(html);
+        expect(sanitized).not.toContain('javascript:');
+        expect(sanitized).toContain('Click');
+      });
+
+      it('should remove javascript: URIs from src', () => {
+        const html = '<img src="javascript:alert(1)">';
+        const sanitized = sanitizeHtmlForDisplay(html);
+        expect(sanitized).not.toContain('javascript:');
+      });
+
+      it('should remove data: URIs from src', () => {
+        const html = '<img src="data:text/html,<script>alert(1)</script>">';
+        const sanitized = sanitizeHtmlForDisplay(html);
+        expect(sanitized).not.toContain('data:');
+      });
+
+      it('should remove iframe tags', () => {
+        const html = '<iframe src="evil.html"></iframe><p>Safe</p>';
+        const sanitized = sanitizeHtmlForDisplay(html);
+        expect(sanitized).not.toContain('<iframe');
+        expect(sanitized).toContain('Safe');
+      });
+
+      it('should remove srcdoc attribute', () => {
+        const html = '<iframe srcdoc="<script>alert(1)</script>"></iframe>';
+        const sanitized = sanitizeHtmlForDisplay(html);
+        expect(sanitized).not.toContain('srcdoc');
+      });
+
+      it('should preserve safe HTML content', () => {
+        const html =
+          '<p class="text">Hello <strong>World</strong></p><a href="https://example.com">Link</a>';
+        const sanitized = sanitizeHtmlForDisplay(html);
+        expect(sanitized).toContain('class="text"');
+        expect(sanitized).toContain('<strong>World</strong>');
+        expect(sanitized).toContain('href="https://example.com"');
+      });
+
+      it('should handle mixed safe and unsafe content', () => {
+        const html =
+          '<p onclick="alert(1)">Text</p><script>bad()</script><a href="javascript:x">Link</a>';
+        const sanitized = sanitizeHtmlForDisplay(html);
+        expect(sanitized).not.toContain('onclick');
+        expect(sanitized).not.toContain('<script');
+        expect(sanitized).not.toContain('javascript:');
+        expect(sanitized).toContain('Text');
+        expect(sanitized).toContain('Link');
+      });
+    });
   });
 
   describe('processHtmlWithMath', () => {
