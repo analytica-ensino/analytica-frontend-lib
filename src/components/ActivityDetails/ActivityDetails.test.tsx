@@ -641,6 +641,78 @@ describe('ActivityDetails', () => {
       });
     });
 
+    it('should display dash when notAnswered is 0', async () => {
+      const mockDataWithZeroNotAnswered: ActivityDetailsData = {
+        ...mockActivityData,
+        questionStats: {
+          ...mockActivityData.questionStats,
+          notAnswered: 0,
+        },
+      };
+
+      const mockFetchActivityDetailsZero = jest
+        .fn()
+        .mockResolvedValue(mockDataWithZeroNotAnswered);
+
+      (useActivityDetails as jest.Mock).mockReturnValue({
+        fetchActivityDetails: mockFetchActivityDetailsZero,
+        fetchStudentCorrection: jest.fn(),
+        submitObservation: jest.fn(),
+        submitQuestionCorrection: jest.fn(),
+      });
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Total de questões não respondidas')
+        ).toBeInTheDocument();
+      });
+
+      // Find the card containing "Total de questões não respondidas" and check for "-"
+      const notAnsweredLabel = screen.getByText(
+        'Total de questões não respondidas'
+      );
+      const notAnsweredCard = notAnsweredLabel.closest('div');
+      expect(notAnsweredCard).toHaveTextContent('-');
+    });
+
+    it('should display count when notAnswered is greater than 0', async () => {
+      const mockDataWithNotAnswered: ActivityDetailsData = {
+        ...mockActivityData,
+        questionStats: {
+          ...mockActivityData.questionStats,
+          notAnswered: 15,
+        },
+      };
+
+      const mockFetchActivityDetailsWithCount = jest
+        .fn()
+        .mockResolvedValue(mockDataWithNotAnswered);
+
+      (useActivityDetails as jest.Mock).mockReturnValue({
+        fetchActivityDetails: mockFetchActivityDetailsWithCount,
+        fetchStudentCorrection: jest.fn(),
+        submitObservation: jest.fn(),
+        submitQuestionCorrection: jest.fn(),
+      });
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Total de questões não respondidas')
+        ).toBeInTheDocument();
+      });
+
+      // Find the card and verify the count is displayed
+      const notAnsweredLabel = screen.getByText(
+        'Total de questões não respondidas'
+      );
+      const notAnsweredCard = notAnsweredLabel.closest('div');
+      expect(notAnsweredCard).toHaveTextContent('15');
+    });
+
     it('should render students in table', async () => {
       render(<ActivityDetails {...defaultProps} />);
 
