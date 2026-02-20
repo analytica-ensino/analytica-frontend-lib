@@ -93,15 +93,16 @@ export const ActivityListQuestions = ({
     return areFiltersEqual(appliedFilters, cachedFilters);
   }, [appliedFilters, cachedFilters, cachedQuestions]);
 
-  // Use hook's questions if it has more items (after loading more pages),
-  // otherwise use cached questions. Filter out questions that are already added.
   const questions = useMemo(() => {
     let sourceQuestions: typeof allQuestions;
 
-    if (allQuestions.length > 0 && cachedQuestions.length > 0) {
-      // Prefer hook's questions if it has loaded more
+    if (
+      filtersMatchCache &&
+      allQuestions.length > 0 &&
+      cachedQuestions.length > 0
+    ) {
       sourceQuestions =
-        allQuestions.length > cachedQuestions.length
+        allQuestions.length >= cachedQuestions.length
           ? allQuestions
           : cachedQuestions;
     } else if (filtersMatchCache && cachedQuestions.length > 0) {
@@ -118,9 +119,10 @@ export const ActivityListQuestions = ({
   // Use hook's pagination if it has more pages loaded, otherwise use cached
   // This ensures we track progress when loading more pages via infinite scroll
   const effectivePagination = useMemo(() => {
-    if (pagination && cachedPagination) {
+    if (filtersMatchCache && pagination && cachedPagination) {
+      // Only compare pages when cache is valid for current filters
       // Prefer hook's pagination if it has loaded more pages
-      return pagination.page > cachedPagination.page
+      return pagination.page >= cachedPagination.page
         ? pagination
         : cachedPagination;
     }
