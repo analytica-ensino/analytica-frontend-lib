@@ -849,6 +849,10 @@ describe('Quiz', () => {
 
     describe('canRetry and onRepeat props', () => {
       it('should render repeat button when canRetry is true and onRepeat is provided', () => {
+        mockUseQuizStore.mockReturnValue({
+          quiz: { type: 'QUESTIONARIO' },
+        } as MockQuizStore);
+
         const handleRepeat = jest.fn();
 
         render(
@@ -867,9 +871,7 @@ describe('Quiz', () => {
           <QuizResultHeaderTitle canRetry={false} onRepeat={handleRepeat} />
         );
 
-        expect(
-          screen.queryByRole('button', { name: 'Repetir questionário' })
-        ).not.toBeInTheDocument();
+        expect(screen.queryByRole('button')).not.toBeInTheDocument();
       });
 
       it('should not render repeat button when canRetry is undefined', () => {
@@ -877,12 +879,14 @@ describe('Quiz', () => {
 
         render(<QuizResultHeaderTitle onRepeat={handleRepeat} />);
 
-        expect(
-          screen.queryByRole('button', { name: 'Repetir questionário' })
-        ).not.toBeInTheDocument();
+        expect(screen.queryByRole('button')).not.toBeInTheDocument();
       });
 
       it('should call onRepeat when repeat button is clicked', () => {
+        mockUseQuizStore.mockReturnValue({
+          quiz: { type: 'QUESTIONARIO' },
+        } as MockQuizStore);
+
         const handleRepeat = jest.fn();
 
         render(
@@ -900,14 +904,12 @@ describe('Quiz', () => {
       it('should not render repeat button when onRepeat is not provided', () => {
         render(<QuizResultHeaderTitle canRetry={true} />);
 
-        expect(
-          screen.queryByRole('button', { name: 'Repetir questionário' })
-        ).not.toBeInTheDocument();
+        expect(screen.queryByRole('button')).not.toBeInTheDocument();
       });
 
       it('should render repeat button with badge when both are enabled', () => {
         const mockQuiz = {
-          type: 'Simulado',
+          type: 'QUESTIONARIO',
           subtype: 'ENEM_PROVA_1',
         };
 
@@ -932,6 +934,10 @@ describe('Quiz', () => {
       });
 
       it('should render repeat button without badge when showBadge is false', () => {
+        mockUseQuizStore.mockReturnValue({
+          quiz: { type: 'QUESTIONARIO' },
+        } as MockQuizStore);
+
         const handleRepeat = jest.fn();
 
         render(
@@ -949,6 +955,10 @@ describe('Quiz', () => {
       });
 
       it('should have correct button styling for repeat button', () => {
+        mockUseQuizStore.mockReturnValue({
+          quiz: { type: 'QUESTIONARIO' },
+        } as MockQuizStore);
+
         const handleRepeat = jest.fn();
 
         render(
@@ -961,6 +971,38 @@ describe('Quiz', () => {
         expect(button).toBeInTheDocument();
         // Button component doesn't expose data-variant as HTML attribute
         // We just verify the button renders correctly
+      });
+
+      it('should show "Refazer atividade" for ATIVIDADE type', () => {
+        mockUseQuizStore.mockReturnValue({
+          quiz: { type: 'ATIVIDADE' },
+        } as MockQuizStore);
+
+        const handleRepeat = jest.fn();
+
+        render(
+          <QuizResultHeaderTitle canRetry={true} onRepeat={handleRepeat} />
+        );
+
+        expect(
+          screen.getByRole('button', { name: 'Refazer atividade' })
+        ).toBeInTheDocument();
+      });
+
+      it('should show "Repetir simulado" for SIMULADO type', () => {
+        mockUseQuizStore.mockReturnValue({
+          quiz: { type: 'SIMULADO' },
+        } as MockQuizStore);
+
+        const handleRepeat = jest.fn();
+
+        render(
+          <QuizResultHeaderTitle canRetry={true} onRepeat={handleRepeat} />
+        );
+
+        expect(
+          screen.getByRole('button', { name: 'Repetir simulado' })
+        ).toBeInTheDocument();
       });
     });
   });

@@ -4,6 +4,7 @@ import {
   ANSWER_STATUS,
   Question,
   QUESTION_DIFFICULTY,
+  QUIZ_TYPE,
   SUBTYPE_ENUM,
   useQuizStore,
 } from './useQuizStore';
@@ -134,6 +135,19 @@ const QuizHeaderResult = forwardRef<HTMLDivElement, { className?: string }>(
   }
 );
 
+const getRetryButtonLabel = (type: QUIZ_TYPE | undefined) => {
+  switch (type) {
+    case QUIZ_TYPE.ATIVIDADE:
+      return 'Refazer atividade';
+    case QUIZ_TYPE.QUESTIONARIO:
+      return 'Repetir questionário';
+    case QUIZ_TYPE.SIMULADO:
+      return 'Repetir simulado';
+    default:
+      return 'Refazer';
+  }
+};
+
 const QuizResultHeaderTitle = forwardRef<
   HTMLDivElement,
   {
@@ -162,7 +176,7 @@ const QuizResultHeaderTitle = forwardRef<
             size="medium"
             onClick={onRepeat}
           >
-            Repetir questionário
+            {getRetryButtonLabel(quiz?.type)}
           </Button>
         )}
 
