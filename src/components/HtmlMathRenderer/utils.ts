@@ -295,8 +295,11 @@ export const stripHtml = (htmlContent: string): string => {
   );
 
   // Remove LaTeX environments like \begin{...}...\end{...}
-  // Using a more specific pattern to avoid ReDoS vulnerability
-  content = content.replace(/\\begin\{([a-zA-Z*]+)\}[^]*?\\end\{\1\}/g, '');
+  // Using non-greedy match without backreference to avoid ReDoS vulnerability
+  content = content.replace(
+    /\\begin\{[a-zA-Z*]+\}[\s\S]*?\\end\{[a-zA-Z*]+\}/g,
+    ''
+  );
 
   // Remove HTML tags
   if (typeof document === 'undefined') {
