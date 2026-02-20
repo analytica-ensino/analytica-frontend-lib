@@ -67,8 +67,8 @@ const HtmlMathRenderer = forwardRef<HTMLElement, HtmlMathRendererProps>(
 
       const parts = processHtmlWithMath(processedContent);
 
-      // If no parts or all text, render as plain HTML
-      if (parts.length === 0 || parts.every((part) => part.type === 'text')) {
+      // If all parts are text (or empty), render as plain HTML
+      if (parts.every((part) => part.type === 'text')) {
         // Use span for inline mode to allow valid nesting in labels
         const Element = inline ? 'span' : 'div';
         return (
@@ -80,20 +80,27 @@ const HtmlMathRenderer = forwardRef<HTMLElement, HtmlMathRendererProps>(
         );
       }
 
+      // Generate stable keys based on content
+      const getPartKey = (part: (typeof parts)[0], idx: number) => {
+        const contentHash = (part.latex || part.content).slice(0, 20);
+        return `${part.type}-${idx}-${contentHash}`;
+      };
+
       return (
         <>
           {parts.map((part, index) => {
+            const key = getPartKey(part, index);
             if (part.type === 'math' && part.latex) {
               return (
                 <InlineMath
-                  key={index}
+                  key={key}
                   math={part.latex}
                   renderError={() => errorRenderer(part.latex!)}
                 />
               );
             } else if (part.type === 'block-math' && part.latex) {
               return (
-                <div key={index} className="my-2.5 text-center">
+                <div key={key} className="my-2.5 text-center">
                   <BlockMath
                     math={part.latex}
                     renderError={() => errorRenderer(part.latex!)}
@@ -103,7 +110,7 @@ const HtmlMathRenderer = forwardRef<HTMLElement, HtmlMathRendererProps>(
             } else {
               return (
                 <span
-                  key={index}
+                  key={key}
                   dangerouslySetInnerHTML={{ __html: part.content }}
                 />
               );
