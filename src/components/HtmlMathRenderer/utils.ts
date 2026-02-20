@@ -13,18 +13,18 @@ export interface MathPart {
  */
 export const cleanLatex = (str: string): string => {
   // Remove zero-width characters, invisible characters, and other problematic Unicode
-  return str.replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
+  return str.replaceAll(/[\u200B-\u200D\uFEFF]/g, '').trim();
 };
 
 /**
  * Dangerous attributes that should be removed for XSS protection
  */
-const DANGEROUS_ATTRIBUTES = [
+const DANGEROUS_ATTRIBUTES = new Set([
   'contenteditable',
   'srcdoc',
   'formaction',
   'xlink:href',
-];
+]);
 
 /**
  * Dangerous URI schemes that should be removed from href/src attributes
@@ -43,24 +43,24 @@ export const sanitizeHtmlForDisplay = (htmlContent: string): string => {
     // Server-side: use regex-based sanitization as fallback
     let sanitized = htmlContent;
     // Remove script tags
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
       ''
     );
     // Remove style tags
-    sanitized = sanitized.replace(
+    sanitized = sanitized.replaceAll(
       /<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi,
       ''
     );
     // Remove on* event handlers (split into separate patterns to avoid ReDoS)
-    sanitized = sanitized.replace(/ on[a-z]+="[^"]*"/gi, '');
-    sanitized = sanitized.replace(/ on[a-z]+='[^']*'/gi, '');
-    sanitized = sanitized.replace(/ on[a-z]+=[^\s>"']+/gi, '');
+    sanitized = sanitized.replaceAll(/ on[a-z]+="[^"]*"/gi, '');
+    sanitized = sanitized.replaceAll(/ on[a-z]+='[^']*'/gi, '');
+    sanitized = sanitized.replaceAll(/ on[a-z]+=[^\s>"']+/gi, '');
     // Remove javascript: URIs
-    sanitized = sanitized.replace(/ href="javascript:[^"]*"/gi, '');
-    sanitized = sanitized.replace(/ href='javascript:[^']*'/gi, '');
-    sanitized = sanitized.replace(/ src="javascript:[^"]*"/gi, '');
-    sanitized = sanitized.replace(/ src='javascript:[^']*'/gi, '');
+    sanitized = sanitized.replaceAll(/ href="javascript:[^"]*"/gi, '');
+    sanitized = sanitized.replaceAll(/ href='javascript:[^']*'/gi, '');
+    sanitized = sanitized.replaceAll(/ src="javascript:[^"]*"/gi, '');
+    sanitized = sanitized.replaceAll(/ src='javascript:[^']*'/gi, '');
     return sanitized;
   }
 
@@ -89,7 +89,7 @@ export const sanitizeHtmlForDisplay = (htmlContent: string): string => {
       }
 
       // Remove dangerous attributes
-      if (DANGEROUS_ATTRIBUTES.includes(lowerAttrName)) {
+      if (DANGEROUS_ATTRIBUTES.has(lowerAttrName)) {
         element.removeAttribute(attrName);
         return;
       }
@@ -120,7 +120,7 @@ export const processHtmlWithMath = (htmlContent: string): MathPart[] => {
   // Step 1: Handle math-formula spans (from the editor)
   const mathFormulaPattern =
     /<span[^>]*class="math-formula"[^>]*data-latex="([^"]*)"[^>]*>[\s\S]*?<\/span>/g;
-  processedContent = processedContent.replace(
+  processedContent = processedContent.replaceAll(
     mathFormulaPattern,
     (match, latex) => {
       const isDisplayMode = match.includes('data-display-mode="true"');
@@ -137,7 +137,7 @@ export const processHtmlWithMath = (htmlContent: string): MathPart[] => {
   // Step 2: Handle wrapped math expressions (from math modal - legacy)
   const wrappedMathPattern =
     /<span[^>]*class="math-expression"[^>]*data-math="([^"]*)"[^>]*>.*?<\/span>/g;
-  processedContent = processedContent.replace(
+  processedContent = processedContent.replaceAll(
     wrappedMathPattern,
     (match, latex) => {
       const placeholder = `__MATH_${parts.length}__`;
@@ -152,7 +152,7 @@ export const processHtmlWithMath = (htmlContent: string): MathPart[] => {
 
   // Step 3: Handle raw $$...$$ expressions (display mode) - BEFORE single $
   const doubleDollarPattern = /(?<!\\)\$\$([\s\S]+?)\$\$/g;
-  processedContent = processedContent.replace(
+  processedContent = processedContent.replaceAll(
     doubleDollarPattern,
     (match, latex) => {
       const placeholder = `__MATH_${parts.length}__`;
@@ -167,7 +167,7 @@ export const processHtmlWithMath = (htmlContent: string): MathPart[] => {
 
   // Step 4: Handle single $...$ expressions for inline math
   const singleDollarPattern = /(?<!\\)\$([\s\S]+?)\$/g;
-  processedContent = processedContent.replace(
+  processedContent = processedContent.replaceAll(
     singleDollarPattern,
     (match, latex) => {
       const placeholder = `__MATH_${parts.length}__`;
@@ -183,7 +183,7 @@ export const processHtmlWithMath = (htmlContent: string): MathPart[] => {
   // Step 5: Handle <latex>...</latex> tags for inline math
   const latexTagPattern =
     /(?:<latex>|&lt;latex&gt;)([\s\S]*?)(?:<\/latex>|&lt;\/latex&gt;)/g;
-  processedContent = processedContent.replace(
+  processedContent = processedContent.replaceAll(
     latexTagPattern,
     (match, latex) => {
       const placeholder = `__MATH_${parts.length}__`;
@@ -198,7 +198,7 @@ export const processHtmlWithMath = (htmlContent: string): MathPart[] => {
 
   // Step 6: Handle standalone LaTeX environments (align, equation, pmatrix, etc.)
   const latexEnvPattern = /\\begin\{([^}]+)\}([\s\S]*?)\\end\{\1\}/g;
-  processedContent = processedContent.replace(latexEnvPattern, (match) => {
+  processedContent = processedContent.replaceAll(latexEnvPattern, (match) => {
     const placeholder = `__MATH_${parts.length}__`;
     parts.push({
       type: 'block-math',
@@ -271,32 +271,32 @@ export const stripHtml = (htmlContent: string): string => {
   let content = htmlContent;
 
   // Remove math-formula spans (keep nothing as the LaTeX is in data attribute)
-  content = content.replace(
+  content = content.replaceAll(
     /<span[^>]*class="math-formula"[^>]*>[\s\S]*?<\/span>/g,
     ''
   );
 
   // Remove math-expression spans (legacy)
-  content = content.replace(
+  content = content.replaceAll(
     /<span[^>]*class="math-expression"[^>]*>[\s\S]*?<\/span>/g,
     ''
   );
 
   // Remove $$...$$ block math
-  content = content.replace(/\$\$[\s\S]+?\$\$/g, '');
+  content = content.replaceAll(/\$\$[\s\S]+?\$\$/g, '');
 
   // Remove $...$ inline math
-  content = content.replace(/\$[^$]+\$/g, '');
+  content = content.replaceAll(/\$[^$]+\$/g, '');
 
   // Remove <latex>...</latex> tags
-  content = content.replace(
+  content = content.replaceAll(
     /(?:<latex>|&lt;latex&gt;)[\s\S]*?(?:<\/latex>|&lt;\/latex&gt;)/g,
     ''
   );
 
   // Remove LaTeX environments like \begin{...}...\end{...}
   // Using non-greedy match without backreference to avoid ReDoS vulnerability
-  content = content.replace(
+  content = content.replaceAll(
     /\\begin\{[a-zA-Z*]+\}[\s\S]*?\\end\{[a-zA-Z*]+\}/g,
     ''
   );
@@ -304,7 +304,7 @@ export const stripHtml = (htmlContent: string): string => {
   // Remove HTML tags
   if (typeof document === 'undefined') {
     // Server-side: use regex (excluding both < and > prevents quadratic backtracking)
-    return content.replace(/<[^<>]*>/g, '').trim();
+    return content.replaceAll(/<[^<>]*>/g, '').trim();
   }
 
   const tempDiv = document.createElement('div');
