@@ -99,6 +99,16 @@ const HtmlMathRenderer = forwardRef<HTMLElement, HtmlMathRendererProps>(
                 />
               );
             } else if (part.type === 'block-math' && part.latex) {
+              // When inline mode, use InlineMath to avoid block-level elements inside span
+              if (inline) {
+                return (
+                  <InlineMath
+                    key={key}
+                    math={part.latex}
+                    renderError={() => errorRenderer(part.latex!)}
+                  />
+                );
+              }
               return (
                 <div key={key} className="my-2.5 text-center">
                   <BlockMath

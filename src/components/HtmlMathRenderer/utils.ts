@@ -56,11 +56,23 @@ export const sanitizeHtmlForDisplay = (htmlContent: string): string => {
     sanitized = sanitized.replaceAll(/ on[a-z]+="[^"]*"/gi, '');
     sanitized = sanitized.replaceAll(/ on[a-z]+='[^']*'/gi, '');
     sanitized = sanitized.replaceAll(/ on[a-z]+=[^\s>"']+/gi, '');
-    // Remove javascript: URIs
-    sanitized = sanitized.replaceAll(/ href="javascript:[^"]*"/gi, '');
-    sanitized = sanitized.replaceAll(/ href='javascript:[^']*'/gi, '');
-    sanitized = sanitized.replaceAll(/ src="javascript:[^"]*"/gi, '');
-    sanitized = sanitized.replaceAll(/ src='javascript:[^']*'/gi, '');
+    // Remove dangerous URI schemes (javascript, vbscript, data) - matching client-side DANGEROUS_URI_PATTERN
+    sanitized = sanitized.replaceAll(
+      / href="(?:javascript|vbscript|data):[^"]*"/gi,
+      ''
+    );
+    sanitized = sanitized.replaceAll(
+      / href='(?:javascript|vbscript|data):[^']*'/gi,
+      ''
+    );
+    sanitized = sanitized.replaceAll(
+      / src="(?:javascript|vbscript|data):[^"]*"/gi,
+      ''
+    );
+    sanitized = sanitized.replaceAll(
+      / src='(?:javascript|vbscript|data):[^']*'/gi,
+      ''
+    );
     return sanitized;
   }
 
