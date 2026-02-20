@@ -303,8 +303,8 @@ export const stripHtml = (htmlContent: string): string => {
 
   // Remove HTML tags
   if (typeof document === 'undefined') {
-    // Server-side: use regex (safe pattern with negated character class)
-    return content.replace(/<[^>]*>/g, '').trim();
+    // Server-side: use regex (excluding both < and > prevents quadratic backtracking)
+    return content.replace(/<[^<>]*>/g, '').trim();
   }
 
   const tempDiv = document.createElement('div');
