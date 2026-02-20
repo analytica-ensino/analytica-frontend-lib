@@ -16,10 +16,7 @@ export interface MathPart {
  */
 const generateSecureRandomId = (): string => {
   // Browser environment or Node.js 19+
-  if (
-    globalThis.crypto !== undefined &&
-    globalThis.crypto.getRandomValues !== undefined
-  ) {
+  if (globalThis.crypto?.getRandomValues) {
     const array = new Uint8Array(8);
     globalThis.crypto.getRandomValues(array);
     return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join(
