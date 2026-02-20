@@ -1,5 +1,5 @@
 import type { Story } from '@ladle/react';
-import { HtmlMathRenderer } from './HtmlMathRenderer';
+import HtmlMathRenderer from './HtmlMathRenderer';
 
 /**
  * Default HtmlMathRenderer story
