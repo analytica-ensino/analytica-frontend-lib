@@ -296,11 +296,12 @@ export const stripHtml = (htmlContent: string): string => {
   );
 
   // Remove LaTeX environments like \begin{...}...\end{...}
-  content = content.replace(/\\begin\{[^}]+\}[\s\S]*?\\end\{[^}]+\}/g, '');
+  // Using a more specific pattern to avoid ReDoS vulnerability
+  content = content.replace(/\\begin\{([a-zA-Z*]+)\}[^]*?\\end\{\1\}/g, '');
 
   // Remove HTML tags
   if (typeof document === 'undefined') {
-    // Server-side: use regex
+    // Server-side: use regex (safe pattern with negated character class)
     return content.replace(/<[^>]*>/g, '').trim();
   }
 
