@@ -239,7 +239,10 @@ export const processHtmlWithMath = (htmlContent: string): MathPart[] => {
   const finalParts: MathPart[] = [];
   let currentIndex = 0;
   // Escape sentinel for regex (though it should be safe alphanumeric)
-  const escapedSentinel = sentinel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const escapedSentinel = sentinel.replaceAll(
+    /[.*+?^${}()|[\]\\]/g,
+    String.raw`\$&`
+  );
   const placeholderPattern = new RegExp(`${escapedSentinel}(\\d+)__`, 'g');
   let match;
 
@@ -253,7 +256,7 @@ export const processHtmlWithMath = (htmlContent: string): MathPart[] => {
     }
 
     // Add math expression
-    const mathIndex = parseInt(match[1]);
+    const mathIndex = Number.parseInt(match[1], 10);
     if (parts[mathIndex]) {
       finalParts.push(parts[mathIndex]);
     }
