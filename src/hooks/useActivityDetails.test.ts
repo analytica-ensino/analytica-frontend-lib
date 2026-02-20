@@ -69,7 +69,7 @@ describe('useActivityDetails', () => {
     questionStats: {
       mostCorrect: [0, 1],
       mostIncorrect: [2],
-      notAnswered: [],
+      notAnswered: 0,
     },
   };
 

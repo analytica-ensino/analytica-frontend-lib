@@ -350,7 +350,7 @@ const mockActivityData: ActivityDetailsData = {
   questionStats: {
     mostCorrect: [0, 2],
     mostIncorrect: [1, 3],
-    notAnswered: [4],
+    notAnswered: 1,
   },
 };
 
@@ -636,7 +636,7 @@ describe('ActivityDetails', () => {
         ).toBeInTheDocument();
         expect(screen.getByText('Questões com mais erros')).toBeInTheDocument();
         expect(
-          screen.getByText('Questões não respondidas')
+          screen.getByText('Total de questões não respondidas')
         ).toBeInTheDocument();
       });
     });
