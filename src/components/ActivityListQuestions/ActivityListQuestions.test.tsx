@@ -1002,9 +1002,11 @@ describe('ActivityListQuestions', () => {
     });
 
     it('should call loadMore when scroll threshold is reached', () => {
+      const mockPagination = { total: 10, hasNext: true, page: 1, pageSize: 10, totalPages: 1, hasPrevious: false };
+
       Object.assign(mockUseQuestionsListReturn, {
         questions: [mockQuestion],
-        pagination: { total: 10, hasNext: true, page: 1 },
+        pagination: mockPagination,
         loading: false,
         loadingMore: false,
       });
@@ -1015,7 +1017,11 @@ describe('ActivityListQuestions', () => {
       // Simulate scrolling past the 80% threshold (page 1 threshold)
       simulateScroll(scrollContainer, 850, 1000, 100);
 
-      expect(mockLoadMore).toHaveBeenCalled();
+      // First argument can be undefined when no filters applied, second is pagination
+      expect(mockLoadMore).toHaveBeenCalledWith(
+        undefined,
+        expect.objectContaining({ hasNext: true, page: 1 })
+      );
     });
 
     it('should not call loadMore when already loading', () => {
