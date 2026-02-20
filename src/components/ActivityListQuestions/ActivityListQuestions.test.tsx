@@ -980,9 +980,18 @@ describe('ActivityListQuestions', () => {
       scrollHeight: number,
       clientHeight: number
     ) => {
-      Object.defineProperty(container, 'scrollTop', { value: scrollTop, configurable: true });
-      Object.defineProperty(container, 'scrollHeight', { value: scrollHeight, configurable: true });
-      Object.defineProperty(container, 'clientHeight', { value: clientHeight, configurable: true });
+      Object.defineProperty(container, 'scrollTop', {
+        value: scrollTop,
+        configurable: true,
+      });
+      Object.defineProperty(container, 'scrollHeight', {
+        value: scrollHeight,
+        configurable: true,
+      });
+      Object.defineProperty(container, 'clientHeight', {
+        value: clientHeight,
+        configurable: true,
+      });
       fireEvent.scroll(container);
     };
 
@@ -1002,7 +1011,14 @@ describe('ActivityListQuestions', () => {
     });
 
     it('should call loadMore when scroll threshold is reached', () => {
-      const mockPagination = { total: 10, hasNext: true, page: 1, pageSize: 10, totalPages: 1, hasPrevious: false };
+      const mockPagination = {
+        total: 10,
+        hasNext: true,
+        page: 1,
+        pageSize: 10,
+        totalPages: 1,
+        hasPrevious: false,
+      };
 
       Object.assign(mockUseQuestionsListReturn, {
         questions: [mockQuestion],
@@ -1012,7 +1028,9 @@ describe('ActivityListQuestions', () => {
       });
 
       const { container } = render(<ActivityListQuestions {...defaultProps} />);
-      const scrollContainer = container.querySelector('.overflow-auto') as HTMLElement;
+      const scrollContainer = container.querySelector(
+        '.overflow-auto'
+      ) as HTMLElement;
 
       // Simulate scrolling past the 80% threshold (page 1 threshold)
       simulateScroll(scrollContainer, 850, 1000, 100);
@@ -1033,7 +1051,9 @@ describe('ActivityListQuestions', () => {
       });
 
       const { container } = render(<ActivityListQuestions {...defaultProps} />);
-      const scrollContainer = container.querySelector('.overflow-auto') as HTMLElement;
+      const scrollContainer = container.querySelector(
+        '.overflow-auto'
+      ) as HTMLElement;
 
       // Simulate scroll past threshold
       simulateScroll(scrollContainer, 900, 1000, 100);
@@ -1050,7 +1070,9 @@ describe('ActivityListQuestions', () => {
       });
 
       const { container } = render(<ActivityListQuestions {...defaultProps} />);
-      const scrollContainer = container.querySelector('.overflow-auto') as HTMLElement;
+      const scrollContainer = container.querySelector(
+        '.overflow-auto'
+      ) as HTMLElement;
 
       // Simulate scroll past threshold
       simulateScroll(scrollContainer, 900, 1000, 100);
@@ -1483,15 +1505,23 @@ describe('ActivityListQuestions', () => {
         loadingMore: false,
       });
 
-      const removeEventListenerSpy = jest.spyOn(HTMLElement.prototype, 'removeEventListener');
+      const removeEventListenerSpy = jest.spyOn(
+        HTMLElement.prototype,
+        'removeEventListener'
+      );
 
-      const { unmount, container } = render(<ActivityListQuestions {...defaultProps} />);
+      const { unmount, container } = render(
+        <ActivityListQuestions {...defaultProps} />
+      );
       const scrollContainer = container.querySelector('.overflow-auto');
       expect(scrollContainer).toBeInTheDocument();
 
       unmount();
 
-      expect(removeEventListenerSpy).toHaveBeenCalledWith('scroll', expect.any(Function));
+      expect(removeEventListenerSpy).toHaveBeenCalledWith(
+        'scroll',
+        expect.any(Function)
+      );
       removeEventListenerSpy.mockRestore();
     });
   });

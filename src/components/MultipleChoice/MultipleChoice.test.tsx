@@ -241,7 +241,9 @@ describe('MultipleChoiceList', () => {
 
       // Find the disabled item by looking for the opacity class in the parent container
       // HtmlMathRenderer wraps the text, so we need to traverse up to find the styled container
-      const disabledItem = screen.getByText('Alternativa B').closest('.opacity-50');
+      const disabledItem = screen
+        .getByText('Alternativa B')
+        .closest('.opacity-50');
       expect(disabledItem).toBeInTheDocument();
     });
   });

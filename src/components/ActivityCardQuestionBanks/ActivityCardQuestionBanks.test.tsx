@@ -1051,7 +1051,11 @@ describe('ActivityCardQuestionBanks', () => {
       // HtmlMathRenderer is used for enunciado, find the parent container with styles
       const statementContainer = statement.closest('.text-text-950');
       expect(statementContainer).toBeInTheDocument();
-      expect(statementContainer).toHaveClass('text-text-950', 'text-md', 'font-medium');
+      expect(statementContainer).toHaveClass(
+        'text-text-950',
+        'text-md',
+        'font-medium'
+      );
     });
 
     it('should render button section at the bottom', () => {
