@@ -73,6 +73,14 @@ export const sanitizeHtmlForDisplay = (htmlContent: string): string => {
       / src='(?:javascript|vbscript|data):[^']*'/gi,
       ''
     );
+    sanitized = sanitized.replaceAll(
+      / action="(?:javascript|vbscript|data):[^"]*"/gi,
+      ''
+    );
+    sanitized = sanitized.replaceAll(
+      / action='(?:javascript|vbscript|data):[^']*'/gi,
+      ''
+    );
     return sanitized;
   }
 
@@ -106,8 +114,12 @@ export const sanitizeHtmlForDisplay = (htmlContent: string): string => {
         return;
       }
 
-      // Check href and src for dangerous URIs
-      if (lowerAttrName === 'href' || lowerAttrName === 'src') {
+      // Check href, src, and action for dangerous URIs
+      if (
+        lowerAttrName === 'href' ||
+        lowerAttrName === 'src' ||
+        lowerAttrName === 'action'
+      ) {
         const value = element.getAttribute(attrName);
         if (value && DANGEROUS_URI_PATTERN.test(value)) {
           element.removeAttribute(attrName);
