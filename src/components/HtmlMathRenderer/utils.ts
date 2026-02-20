@@ -52,16 +52,15 @@ export const sanitizeHtmlForDisplay = (htmlContent: string): string => {
       /<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi,
       ''
     );
-    // Remove on* event handlers
-    sanitized = sanitized.replace(
-      /\s+on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi,
-      ''
-    );
+    // Remove on* event handlers (split into separate patterns to avoid ReDoS)
+    sanitized = sanitized.replace(/ on[a-z]+="[^"]*"/gi, '');
+    sanitized = sanitized.replace(/ on[a-z]+='[^']*'/gi, '');
+    sanitized = sanitized.replace(/ on[a-z]+=[^\s>"']+/gi, '');
     // Remove javascript: URIs
-    sanitized = sanitized.replace(
-      /\s+(href|src)\s*=\s*(?:"javascript:[^"]*"|'javascript:[^']*')/gi,
-      ''
-    );
+    sanitized = sanitized.replace(/ href="javascript:[^"]*"/gi, '');
+    sanitized = sanitized.replace(/ href='javascript:[^']*'/gi, '');
+    sanitized = sanitized.replace(/ src="javascript:[^"]*"/gi, '');
+    sanitized = sanitized.replace(/ src='javascript:[^']*'/gi, '');
     return sanitized;
   }
 
