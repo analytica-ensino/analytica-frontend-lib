@@ -9,6 +9,29 @@ export interface MathPart {
 }
 
 /**
+ * Generates a cryptographically secure random ID for placeholder uniqueness
+ * Uses Web Crypto API (browser) or Node.js crypto module (server)
+ */
+const generateSecureRandomId = (): string => {
+  // Browser environment or Node.js 19+
+  if (
+    typeof globalThis.crypto !== 'undefined' &&
+    typeof globalThis.crypto.getRandomValues === 'function'
+  ) {
+    const array = new Uint8Array(8);
+    globalThis.crypto.getRandomValues(array);
+    return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join(
+      ''
+    );
+  }
+
+  // Node.js environment fallback
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const nodeCrypto = require('crypto') as typeof import('crypto');
+  return nodeCrypto.randomBytes(8).toString('hex');
+};
+
+/**
  * Cleans LaTeX string from invisible characters
  */
 export const cleanLatex = (str: string): string => {
@@ -142,7 +165,7 @@ export const processHtmlWithMath = (htmlContent: string): MathPart[] => {
   const parts: MathPart[] = [];
 
   // Generate unique sentinel per call to avoid collision with content
-  const sentinel = `__MATH_${Math.random().toString(36).slice(2, 10)}_`;
+  const sentinel = `__MATH_${generateSecureRandomId()}_`;
 
   // Step 1: Handle math-formula spans (from the editor)
   const mathFormulaPattern =
