@@ -51,8 +51,7 @@ export interface UseRecommendedClassModelsState {
 /**
  * Hook return type
  */
-export interface UseRecommendedClassModelsReturn
-  extends UseRecommendedClassModelsState {
+export interface UseRecommendedClassModelsReturn extends UseRecommendedClassModelsState {
   fetchModels: (
     filters?: RecommendedClassModelFilters,
     subjectsMap?: Map<string, string>
