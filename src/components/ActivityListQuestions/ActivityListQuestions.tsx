@@ -235,6 +235,16 @@ export const ActivityListQuestions = ({
   ]);
 
   /**
+   * Update lastLoadedPageRef when pagination page changes (confirms successful load)
+   * This allows retry if a load fails, since we only update the ref on success
+   */
+  useEffect(() => {
+    if (effectivePagination?.page) {
+      lastLoadedPageRef.current = effectivePagination.page;
+    }
+  }, [effectivePagination?.page]);
+
+  /**
    * Calculate progressive scroll threshold based on current page
    * - Pages 1-4: 80%, 85%, 90%, 95% (increase by 5%)
    * - Pages 5-8: 96%, 97%, 98%, 99% (increase by 1%)
@@ -277,7 +287,6 @@ export const ActivityListQuestions = ({
         effectivePagination?.hasNext &&
         lastLoadedPageRef.current < nextPage
       ) {
-        lastLoadedPageRef.current = nextPage;
         const apiFilters = appliedFilters
           ? convertActivityFiltersToQuestionsFilter(appliedFilters)
           : undefined;
