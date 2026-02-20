@@ -2,6 +2,8 @@
  * Utilities for processing HTML content with LaTeX math expressions
  */
 
+import { randomBytes } from 'node:crypto';
+
 export interface MathPart {
   type: 'text' | 'math' | 'block-math';
   content: string;
@@ -15,8 +17,8 @@ export interface MathPart {
 const generateSecureRandomId = (): string => {
   // Browser environment or Node.js 19+
   if (
-    typeof globalThis.crypto !== 'undefined' &&
-    typeof globalThis.crypto.getRandomValues === 'function'
+    globalThis.crypto !== undefined &&
+    globalThis.crypto.getRandomValues !== undefined
   ) {
     const array = new Uint8Array(8);
     globalThis.crypto.getRandomValues(array);
@@ -26,9 +28,7 @@ const generateSecureRandomId = (): string => {
   }
 
   // Node.js environment fallback
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const nodeCrypto = require('crypto') as typeof import('crypto');
-  return nodeCrypto.randomBytes(8).toString('hex');
+  return randomBytes(8).toString('hex');
 };
 
 /**
@@ -266,7 +266,10 @@ export const processHtmlWithMath = (htmlContent: string): MathPart[] => {
     /[.*+?^${}()|[\]\\]/g,
     String.raw`\$&`
   );
-  const placeholderPattern = new RegExp(`${escapedSentinel}(\\d+)__`, 'g');
+  const placeholderPattern = new RegExp(
+    String.raw`${escapedSentinel}(\d+)__`,
+    'g'
+  );
   let match;
 
   while ((match = placeholderPattern.exec(processedContent)) !== null) {
