@@ -460,9 +460,10 @@ describe('AlternativesList', () => {
       );
 
       // Initially, all labels should have text-text-600 (not selected)
-      const labelA = screen.getByText('Alternativa A');
-      const labelB = screen.getByText('Alternativa B');
-      const labelC = screen.getByText('Alternativa C');
+      // HtmlMathRenderer wraps text, so we need to find the parent label element
+      const labelA = screen.getByText('Alternativa A').closest('label')!;
+      const labelB = screen.getByText('Alternativa B').closest('label')!;
+      const labelC = screen.getByText('Alternativa C').closest('label')!;
 
       expect(labelA).toHaveClass('text-text-600');
       expect(labelA).not.toHaveClass('text-primary-950');
@@ -507,8 +508,9 @@ describe('AlternativesList', () => {
       );
 
       // Initially, all labels should have text-text-600 (not selected)
-      const labelA = screen.getByText('Alternativa A');
-      const labelB = screen.getByText('Alternativa B');
+      // HtmlMathRenderer wraps text, so we need to find the parent label element
+      const labelA = screen.getByText('Alternativa A').closest('label')!;
+      const labelB = screen.getByText('Alternativa B').closest('label')!;
 
       expect(labelA).toHaveClass('text-text-600');
       expect(labelA).not.toHaveClass('text-text-950');
@@ -531,7 +533,8 @@ describe('AlternativesList', () => {
       render(<AlternativesList alternatives={mockAlternatives} />);
 
       const radioA = screen.getByDisplayValue('a');
-      const labelA = screen.getByText('Alternativa A');
+      // HtmlMathRenderer wraps text, so we need to find the parent label element
+      const labelA = screen.getByText('Alternativa A').closest('label')!;
 
       expect(labelA).toHaveAttribute('for', radioA.id);
     });
@@ -861,7 +864,8 @@ describe('HeaderAlternative', () => {
       const contentElement = screen.getByText(
         'Resolva a equação quadrática x² + 5x + 6 = 0.'
       );
-      expect(contentElement).toHaveClass('text-text-950', 'text-md');
+      // HtmlMathRenderer wraps content in a div with the styling classes
+      expect(contentElement.closest('.text-text-950')).toBeInTheDocument();
     });
 
     it('has correct flex structure', () => {
@@ -1091,7 +1095,8 @@ describe('HeaderAlternative', () => {
 
       expect(titleElement.tagName).toBe('P');
       expect(subtitleElement.tagName).toBe('P');
-      expect(contentElement.tagName).toBe('P');
+      // HtmlMathRenderer uses a div wrapper for proper HTML/LaTeX rendering
+      expect(contentElement.tagName).toBe('DIV');
     });
   });
 

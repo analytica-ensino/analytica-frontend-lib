@@ -16,6 +16,7 @@ import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
 import { useMemo } from 'react';
 import { cn } from '../../utils/utils';
 import { questionTypeLabels } from '../../types/questionTypes';
+import { HtmlMathRenderer } from '../HtmlMathRenderer';
 
 interface QuestionOption {
   id: string;
@@ -186,7 +187,11 @@ export const ActivityCardQuestionBanks = ({
                   )}
                 >
                   <Text size="sm" className="text-text-900">
-                    {getLetterByIndex(index).concat(') ').concat(option.option)}
+                    {getLetterByIndex(index).concat(') ')}
+                    <HtmlMathRenderer
+                      content={option.option}
+                      className="inline"
+                    />
                   </Text>
 
                   <div className="flex flex-row items-center gap-2 flex-shrink-0">
@@ -252,9 +257,16 @@ export const ActivityCardQuestionBanks = ({
       </section>
 
       <section className="flex flex-col gap-1">
-        <Text size="md" weight="medium" className="text-text-950 text-md">
-          {enunciado || 'Enunciado não informado'}
-        </Text>
+        {enunciado ? (
+          <HtmlMathRenderer
+            content={enunciado}
+            className="text-text-950 text-md font-medium"
+          />
+        ) : (
+          <Text size="md" weight="medium" className="text-text-950 text-md">
+            Enunciado não informado
+          </Text>
+        )}
 
         {renderFromMap(questionRenderers, questionType)}
       </section>

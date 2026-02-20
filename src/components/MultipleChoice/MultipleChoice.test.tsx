@@ -240,10 +240,11 @@ describe('MultipleChoiceList', () => {
       );
 
       // Find the disabled item by looking for the opacity class in the parent container
+      // HtmlMathRenderer wraps the text, so we need to traverse up to find the styled container
       const disabledItem = screen
         .getByText('Alternativa B')
-        .closest('div')?.parentElement;
-      expect(disabledItem).toHaveClass('opacity-50');
+        .closest('.opacity-50');
+      expect(disabledItem).toBeInTheDocument();
     });
   });
 
@@ -333,11 +334,13 @@ describe('MultipleChoiceList', () => {
       render(<MultipleChoiceList choices={mockChoices} />);
 
       const checkboxA = screen.getByDisplayValue('a');
-      const labelA = screen.getByText('Alternativa A');
+      // HtmlMathRenderer wraps the text, so we need to find the parent label element
+      const labelA = screen.getByText('Alternativa A').closest('label');
 
       expect(checkboxA).toHaveAttribute('id');
       // The label should be associated with the checkbox
-      expect(labelA.tagName).toBe('LABEL');
+      expect(labelA).toBeInTheDocument();
+      expect(labelA?.tagName).toBe('LABEL');
     });
 
     it('has proper cursor styles', () => {

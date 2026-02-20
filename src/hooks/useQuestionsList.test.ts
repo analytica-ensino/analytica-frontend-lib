@@ -673,6 +673,61 @@ describe('useQuestionsList', () => {
       expect(mockApiClient.post).toHaveBeenCalledTimes(1);
     });
 
+    it('should load more using external filters and pagination when internal state is empty', async () => {
+      const secondPageQuestions: Question[] = [
+        buildQuestion({
+          id: 'question-2',
+          statement: 'Question 2',
+          questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
+        }),
+      ];
+
+      const secondPageResponse: QuestionsListResponseActivity = {
+        message: 'Success',
+        data: {
+          questions: secondPageQuestions,
+          pagination: {
+            page: 2,
+            limit: 1,
+            total: 2,
+            totalPages: 2,
+            hasNext: false,
+            hasPrev: true,
+          },
+        },
+      };
+
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce({
+        data: secondPageResponse,
+      });
+
+      const { result } = renderHook(() => useQuestionsList());
+
+      const externalFilters = { types: [QUESTION_TYPE.ALTERNATIVA] };
+      const externalPagination: Pagination = {
+        page: 1,
+        pageSize: 1,
+        total: 2,
+        totalPages: 2,
+        hasNext: true,
+        hasPrevious: false,
+      };
+
+      await act(async () => {
+        await result.current.loadMore(externalFilters, externalPagination);
+      });
+
+      await waitFor(() => {
+        expect(result.current.loadingMore).toBe(false);
+      });
+
+      expect(mockApiClient.post).toHaveBeenCalledWith('/questions/list', {
+        types: [QUESTION_TYPE.ALTERNATIVA],
+        page: 2,
+      });
+      expect(result.current.questions).toEqual(secondPageQuestions);
+    });
+
     it('should set loadingMore state during load more', async () => {
       const firstPageResponse: QuestionsListResponseActivity = {
         message: 'Success',

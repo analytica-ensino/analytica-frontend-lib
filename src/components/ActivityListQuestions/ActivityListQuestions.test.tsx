@@ -973,59 +973,90 @@ describe('ActivityListQuestions', () => {
   });
 
   describe('Infinite Scroll', () => {
-    it('should setup IntersectionObserver', () => {
+    // Helper to simulate scroll event on container
+    const simulateScroll = (
+      container: HTMLElement,
+      scrollTop: number,
+      scrollHeight: number,
+      clientHeight: number
+    ) => {
+      Object.defineProperty(container, 'scrollTop', {
+        value: scrollTop,
+        configurable: true,
+      });
+      Object.defineProperty(container, 'scrollHeight', {
+        value: scrollHeight,
+        configurable: true,
+      });
+      Object.defineProperty(container, 'clientHeight', {
+        value: clientHeight,
+        configurable: true,
+      });
+      fireEvent.scroll(container);
+    };
+
+    it('should setup scroll listener on container', () => {
       Object.assign(mockUseQuestionsListReturn, {
         questions: [mockQuestion],
-        pagination: { total: 10, hasNext: true },
+        pagination: { total: 10, hasNext: true, page: 1 },
         loading: false,
         loadingMore: false,
       });
 
-      render(<ActivityListQuestions {...defaultProps} />);
+      const { container } = render(<ActivityListQuestions {...defaultProps} />);
 
-      expect(IntersectionObserver).toHaveBeenCalled();
+      // Find the scroll container (the one with overflow-auto)
+      const scrollContainer = container.querySelector('.overflow-auto');
+      expect(scrollContainer).toBeInTheDocument();
     });
 
-    it('should call loadMore when intersection occurs', () => {
+    it('should call loadMore when scroll threshold is reached', () => {
+      const mockPagination = {
+        total: 10,
+        hasNext: true,
+        page: 1,
+        pageSize: 10,
+        totalPages: 1,
+        hasPrevious: false,
+      };
+
       Object.assign(mockUseQuestionsListReturn, {
         questions: [mockQuestion],
-        pagination: { total: 10, hasNext: true },
+        pagination: mockPagination,
         loading: false,
         loadingMore: false,
       });
 
-      render(<ActivityListQuestions {...defaultProps} />);
+      const { container } = render(<ActivityListQuestions {...defaultProps} />);
+      const scrollContainer = container.querySelector(
+        '.overflow-auto'
+      ) as HTMLElement;
 
-      const observerInstance = (IntersectionObserver as jest.Mock).mock
-        .results[0].value;
+      // Simulate scrolling past the 80% threshold (page 1 threshold)
+      simulateScroll(scrollContainer, 850, 1000, 100);
 
-      const mockEntry = {
-        isIntersecting: true,
-      } as IntersectionObserverEntry;
-
-      observerInstance.trigger([mockEntry]);
-
-      expect(mockLoadMore).toHaveBeenCalled();
+      // First argument can be undefined when no filters applied, second is pagination
+      expect(mockLoadMore).toHaveBeenCalledWith(
+        undefined,
+        expect.objectContaining({ hasNext: true, page: 1 })
+      );
     });
 
     it('should not call loadMore when already loading', () => {
       Object.assign(mockUseQuestionsListReturn, {
         questions: [mockQuestion],
-        pagination: { total: 10, hasNext: true },
+        pagination: { total: 10, hasNext: true, page: 1 },
         loading: false,
         loadingMore: true,
       });
 
-      render(<ActivityListQuestions {...defaultProps} />);
+      const { container } = render(<ActivityListQuestions {...defaultProps} />);
+      const scrollContainer = container.querySelector(
+        '.overflow-auto'
+      ) as HTMLElement;
 
-      const observerInstance = (IntersectionObserver as jest.Mock).mock
-        .results[0].value;
-
-      const mockEntry = {
-        isIntersecting: true,
-      } as IntersectionObserverEntry;
-
-      observerInstance.trigger([mockEntry]);
+      // Simulate scroll past threshold
+      simulateScroll(scrollContainer, 900, 1000, 100);
 
       expect(mockLoadMore).not.toHaveBeenCalled();
     });
@@ -1033,21 +1064,18 @@ describe('ActivityListQuestions', () => {
     it('should not call loadMore when no next page', () => {
       Object.assign(mockUseQuestionsListReturn, {
         questions: [mockQuestion],
-        pagination: { total: 10, hasNext: false },
+        pagination: { total: 10, hasNext: false, page: 1 },
         loading: false,
         loadingMore: false,
       });
 
-      render(<ActivityListQuestions {...defaultProps} />);
+      const { container } = render(<ActivityListQuestions {...defaultProps} />);
+      const scrollContainer = container.querySelector(
+        '.overflow-auto'
+      ) as HTMLElement;
 
-      const observerInstance = (IntersectionObserver as jest.Mock).mock
-        .results[0].value;
-
-      const mockEntry = {
-        isIntersecting: true,
-      } as IntersectionObserverEntry;
-
-      observerInstance.trigger([mockEntry]);
+      // Simulate scroll past threshold
+      simulateScroll(scrollContainer, 900, 1000, 100);
 
       expect(mockLoadMore).not.toHaveBeenCalled();
     });
@@ -1055,7 +1083,7 @@ describe('ActivityListQuestions', () => {
     it('should render loading skeleton when loadingMore is true', () => {
       Object.assign(mockUseQuestionsListReturn, {
         questions: [mockQuestion],
-        pagination: { total: 10, hasNext: true },
+        pagination: { total: 10, hasNext: true, page: 1 },
         loading: false,
         loadingMore: true,
       });
@@ -1066,18 +1094,19 @@ describe('ActivityListQuestions', () => {
       expect(skeletons.length).toBeGreaterThan(0);
     });
 
-    it('should render observer target div when hasNext is true', () => {
+    it('should have scroll container for infinite scroll', () => {
       Object.assign(mockUseQuestionsListReturn, {
         questions: [mockQuestion],
-        pagination: { total: 10, hasNext: true },
+        pagination: { total: 10, hasNext: true, page: 1 },
         loading: false,
         loadingMore: false,
       });
 
       const { container } = render(<ActivityListQuestions {...defaultProps} />);
 
-      const observerTarget = container.querySelector('div.h-4.w-full');
-      expect(observerTarget).toBeInTheDocument();
+      // The scroll container should have overflow-auto class
+      const scrollContainer = container.querySelector('.overflow-auto');
+      expect(scrollContainer).toBeInTheDocument();
     });
   });
 
@@ -1468,22 +1497,32 @@ describe('ActivityListQuestions', () => {
       expect(cards).toHaveLength(3);
     });
 
-    it('should handle cleanup of IntersectionObserver', () => {
+    it('should handle cleanup of scroll listener on unmount', () => {
       Object.assign(mockUseQuestionsListReturn, {
         questions: [mockQuestion],
-        pagination: { total: 10, hasNext: true },
+        pagination: { total: 10, hasNext: true, page: 1 },
         loading: false,
         loadingMore: false,
       });
 
-      const { unmount } = render(<ActivityListQuestions {...defaultProps} />);
+      const removeEventListenerSpy = jest.spyOn(
+        HTMLElement.prototype,
+        'removeEventListener'
+      );
 
-      const observerInstance = (IntersectionObserver as jest.Mock).mock
-        .results[0].value;
+      const { unmount, container } = render(
+        <ActivityListQuestions {...defaultProps} />
+      );
+      const scrollContainer = container.querySelector('.overflow-auto');
+      expect(scrollContainer).toBeInTheDocument();
 
       unmount();
 
-      expect(observerInstance.unobserve).toHaveBeenCalled();
+      expect(removeEventListenerSpy).toHaveBeenCalledWith(
+        'scroll',
+        expect.any(Function)
+      );
+      removeEventListenerSpy.mockRestore();
     });
   });
 });

@@ -15,6 +15,18 @@ export { default as Badge } from './components/Badge/Badge';
 export { default as Alert } from './components/Alert/Alert';
 export { default as LatexRenderer } from './components/LatexRenderer/LatexRenderer';
 export type { LatexRendererProps } from './components/LatexRenderer/LatexRenderer';
+export {
+  HtmlMathRenderer,
+  processHtmlWithMath,
+  sanitizeHtmlForDisplay,
+  cleanLatex,
+  containsMath,
+  stripHtml,
+} from './components/HtmlMathRenderer';
+export type {
+  HtmlMathRendererProps,
+  MathPart,
+} from './components/HtmlMathRenderer';
 export { default as IconButton } from './components/IconButton/IconButton';
 export { Tooltip } from './components/Tooltip/Tooltip';
 export type { TooltipProps } from './components/Tooltip/Tooltip';

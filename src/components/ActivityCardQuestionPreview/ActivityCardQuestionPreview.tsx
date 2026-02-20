@@ -16,6 +16,7 @@ import {
   renderFromMap,
   type QuestionRendererMap,
 } from '../../utils/questionRenderer/index';
+import { HtmlMathRenderer, stripHtml } from '../HtmlMathRenderer';
 
 interface ActivityCardQuestionPreviewProps {
   subjectName?: string;
@@ -293,7 +294,7 @@ export const ActivityCardQuestionPreview = ({
               weight="medium"
               className="text-text-950 truncate px-3"
             >
-              {enunciado}
+              {stripHtml(enunciado)}
             </Text>
           </div>
         </div>
@@ -324,19 +325,16 @@ export const ActivityCardQuestionPreview = ({
                 weight="medium"
                 className="text-text-950 truncate px-3"
               >
-                {enunciado}
+                {stripHtml(enunciado)}
               </Text>
             )}
           </div>
         }
       >
-        <Text
-          size="md"
-          weight="medium"
-          className="text-text-950 break-words whitespace-pre-wrap"
-        >
-          {enunciado}
-        </Text>
+        <HtmlMathRenderer
+          content={enunciado}
+          className="text-text-950 text-md break-words"
+        />
         {renderFromMap(questionRenderers, questionType)}
         {children}
       </CardAccordation>

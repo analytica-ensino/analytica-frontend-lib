@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Notebook } from 'phosphor-react';
 import {
   ActivityCardQuestionBanks,
@@ -93,24 +93,47 @@ export const ActivityListQuestions = ({
     return areFiltersEqual(appliedFilters, cachedFilters);
   }, [appliedFilters, cachedFilters, cachedQuestions]);
 
-  // Use cached questions if filters match, otherwise use hook's questions
-  // Filter out questions that are already added
   const questions = useMemo(() => {
-    const sourceQuestions =
-      filtersMatchCache && cachedQuestions.length > 0
-        ? cachedQuestions
-        : allQuestions;
+    let sourceQuestions: typeof allQuestions;
+
+    if (
+      filtersMatchCache &&
+      allQuestions.length > 0 &&
+      cachedQuestions.length > 0
+    ) {
+      sourceQuestions =
+        allQuestions.length >= cachedQuestions.length
+          ? allQuestions
+          : cachedQuestions;
+    } else if (filtersMatchCache && cachedQuestions.length > 0) {
+      sourceQuestions = cachedQuestions;
+    } else {
+      sourceQuestions = allQuestions;
+    }
 
     return sourceQuestions.filter(
       (question) => !addedQuestionIds.includes(question.id)
     );
   }, [allQuestions, cachedQuestions, filtersMatchCache, addedQuestionIds]);
 
-  // Use cached pagination if filters match, otherwise use hook's pagination
-  const effectivePagination =
-    filtersMatchCache && cachedPagination ? cachedPagination : pagination;
+  // Use hook's pagination if it has more pages loaded, otherwise use cached
+  // This ensures we track progress when loading more pages via infinite scroll
+  const effectivePagination = useMemo(() => {
+    if (filtersMatchCache && pagination && cachedPagination) {
+      // Only compare pages when cache is valid for current filters
+      // Prefer hook's pagination if it has loaded more pages
+      return pagination.page >= cachedPagination.page
+        ? pagination
+        : cachedPagination;
+    }
+    if (filtersMatchCache && cachedPagination) {
+      return cachedPagination;
+    }
+    return pagination;
+  }, [pagination, cachedPagination, filtersMatchCache]);
 
-  const observerTarget = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const lastLoadedPageRef = useRef<number>(1);
 
   /**
    * Convert question options to the format expected by ActivityCardQuestionBanks
@@ -156,11 +179,17 @@ export const ActivityListQuestions = ({
    * Only fetch if cache is invalid or filters changed
    */
   useEffect(() => {
+    // Reset page tracking when filters change
+    lastLoadedPageRef.current = 1;
+
     if (appliedFilters) {
       // Check if we have valid cached data
       if (filtersMatchCache && cachedQuestions.length > 0) {
+        // Update page ref to match cached pagination
+        if (cachedPagination?.page) {
+          lastLoadedPageRef.current = cachedPagination.page;
+        }
         // Skip fetch - use cached data
-        // The hook will maintain its own state, but we prevent unnecessary API calls
         return;
       }
 
@@ -182,10 +211,11 @@ export const ActivityListQuestions = ({
     reset,
     filtersMatchCache,
     clearCachedQuestions,
+    cachedPagination,
   ]);
 
   /**
-   * Update cache when questions are successfully fetched
+   * Update cache and page tracking when questions are successfully fetched
    */
   useEffect(() => {
     if (
@@ -195,6 +225,8 @@ export const ActivityListQuestions = ({
       !filtersMatchCache
     ) {
       setCachedQuestions(allQuestions, pagination, appliedFilters);
+      // Update page tracking to current page
+      lastLoadedPageRef.current = pagination.page;
     }
   }, [
     allQuestions,
@@ -205,36 +237,71 @@ export const ActivityListQuestions = ({
   ]);
 
   /**
-   * Intersection Observer for infinite scroll
-   * Loads more questions when user scrolls to the bottom
+   * Update lastLoadedPageRef when pagination page changes (confirms successful load)
+   * This allows retry if a load fails, since we only update the ref on success
    */
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (
-          entries[0].isIntersecting &&
-          !loading &&
-          !loadingMore &&
-          effectivePagination?.hasNext &&
-          !filtersMatchCache
-        ) {
-          loadMore();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    const currentTarget = observerTarget.current;
-    if (currentTarget) {
-      observer.observe(currentTarget);
+    if (effectivePagination?.page) {
+      lastLoadedPageRef.current = effectivePagination.page;
     }
+  }, [effectivePagination?.page]);
 
-    return () => {
-      if (currentTarget) {
-        observer.unobserve(currentTarget);
+  /**
+   * Calculate progressive scroll threshold based on current page
+   * - Pages 1-4: 80%, 85%, 90%, 95% (increase by 5%)
+   * - Pages 5-8: 96%, 97%, 98%, 99% (increase by 1%)
+   * - Pages 9+: 99.1%, 99.2%, ... (increase by 0.1%, max 99.9%)
+   */
+  const calculateScrollThreshold = useCallback((page: number): number => {
+    if (page <= 4) {
+      // Pages 1-4: 80%, 85%, 90%, 95%
+      return 0.8 + (page - 1) * 0.05;
+    } else if (page <= 8) {
+      // Pages 5-8: 96%, 97%, 98%, 99%
+      return 0.95 + (page - 4) * 0.01;
+    } else {
+      // Pages 9+: 99.1%, 99.2%, ... max 99.9%
+      return Math.min(0.99 + (page - 8) * 0.001, 0.999);
+    }
+  }, []);
+
+  /**
+   * Scroll event listener for infinite scroll
+   * Loads more questions when user scrolls close to the end
+   */
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
+
+      const currentPage = effectivePagination?.page ?? 1;
+      const nextPage = currentPage + 1;
+
+      const scrollThreshold = calculateScrollThreshold(currentPage);
+
+      if (
+        scrollPercentage >= scrollThreshold &&
+        !loading &&
+        !loadingMore &&
+        effectivePagination?.hasNext &&
+        lastLoadedPageRef.current < nextPage
+      ) {
+        const apiFilters = appliedFilters
+          ? convertActivityFiltersToQuestionsFilter(appliedFilters)
+          : undefined;
+        loadMore(apiFilters, effectivePagination ?? undefined);
       }
     };
-  }, [loading, loadingMore, pagination, loadMore]);
+
+    container.addEventListener('scroll', handleScroll);
+
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+    };
+  }, [loading, loadingMore, effectivePagination, loadMore, appliedFilters]);
 
   const totalQuestions = effectivePagination?.total || 0;
 
@@ -355,17 +422,13 @@ export const ActivityListQuestions = ({
             />
           );
         })}
-        {effectivePagination?.hasNext && (
-          <div ref={observerTarget} className="h-4 w-full">
-            {loadingMore && (
-              <div className="flex flex-col gap-2 py-4">
-                {[1, 2].map((i) => (
-                  <div key={i} className="p-4 border rounded">
-                    <SkeletonText lines={2} />
-                  </div>
-                ))}
+        {loadingMore && (
+          <div className="flex flex-col gap-2 py-4">
+            {[1, 2].map((i) => (
+              <div key={i} className="p-4 border rounded">
+                <SkeletonText lines={2} />
               </div>
-            )}
+            ))}
           </div>
         )}
       </>
@@ -397,7 +460,10 @@ export const ActivityListQuestions = ({
         </section>
       </div>
 
-      <div className="flex flex-col gap-3 overflow-auto flex-1 min-h-0">
+      <div
+        ref={scrollContainerRef}
+        className="flex flex-col gap-3 overflow-auto flex-1 min-h-0"
+      >
         {renderQuestionsContent()}
       </div>
 

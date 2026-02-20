@@ -833,6 +833,117 @@ export const HeaderAlternativeVariations: Story = () => {
   );
 };
 
+/**
+ * HeaderAlternative with mathematical content using LaTeX
+ * Demonstrates the HtmlMathRenderer integration
+ */
+export const HeaderAlternativeWithMath: Story = () => {
+  return (
+    <div className="space-y-8">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold text-text-900 mb-2">
+          Questões com Conteúdo Matemático
+        </h1>
+        <p className="text-text-600">
+          Demonstração da renderização de LaTeX e HTML no HeaderAlternative
+        </p>
+      </div>
+
+      <div className="space-y-6">
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-text-800">LaTeX Inline</h3>
+          <HeaderAlternative
+            title="Questão 1"
+            subTitle="Física - Movimento Uniforme"
+            content="<p>Um carro se move em linha reta com velocidade constante de $v = 20 \, m/s$. Calcule a distância percorrida após $t = 5 \, s$.</p>"
+          />
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-text-800">
+            Equação em Bloco
+          </h3>
+          <HeaderAlternative
+            title="Questão 2"
+            subTitle="Matemática - Álgebra"
+            content={`<p>Resolva a equação quadrática:</p>
+$$x^2 - 5x + 6 = 0$$
+<p>Utilizando a fórmula de Bhaskara:</p>
+$$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$`}
+          />
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-text-800">Matrizes</h3>
+          <HeaderAlternative
+            title="Questão 3"
+            subTitle="Matemática - Álgebra Linear"
+            content={`<p>Considere a matriz $A$ definida como:</p>
+$$A = \\begin{pmatrix} 2 & 3 \\\\ 1 & 4 \\end{pmatrix}$$
+<p>Calcule o <strong>determinante</strong> de $A$.</p>`}
+          />
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-text-800">
+            Química com Equações
+          </h3>
+          <HeaderAlternative
+            title="Questão 4"
+            subTitle="Química - Estequiometria"
+            content={`<p>A reação de combustão do metano é representada por:</p>
+$$CH_4 + 2O_2 \\rightarrow CO_2 + 2H_2O$$
+<p>Calcule a quantidade de $CO_2$ produzida quando $16g$ de metano são queimados.</p>
+<ul>
+<li>Massa molar do $CH_4$: $16 \\, g/mol$</li>
+<li>Massa molar do $CO_2$: $44 \\, g/mol$</li>
+</ul>`}
+          />
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-text-800">Trigonometria</h3>
+          <HeaderAlternative
+            title="Questão 5"
+            subTitle="Matemática - Trigonometria"
+            content={`<p>Determine o valor de $x$ na equação:</p>
+$$\\sin(2x) + \\cos(x) = 0$$
+<p>Para $0 \\leq x < 2\\pi$.</p>
+<p><em>Dica:</em> Use a identidade $\\sin(2x) = 2\\sin(x)\\cos(x)$</p>`}
+          />
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-text-800">Integral</h3>
+          <HeaderAlternative
+            title="Questão 6"
+            subTitle="Matemática - Cálculo"
+            content={`<p>Calcule a integral definida:</p>
+$$\\int_0^1 x^2 \\, dx$$`}
+          />
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-text-800">
+            Questão Estilo ENEM
+          </h3>
+          <HeaderAlternative
+            title="Questão 7"
+            subTitle="Matemática - Geometria"
+            content={`<p><strong>(ENEM 2023)</strong> Um fabricante de caixas d'água precisa construir um reservatório cilíndrico com capacidade para $1000$ litros.</p>
+<p>O volume de um cilindro é dado por $V = \\pi r^2 h$, onde $r$ é o raio da base e $h$ é a altura.</p>
+<p><strong>Dados:</strong></p>
+<ul>
+<li>Área da base: $A_{base} = \\pi r^2$</li>
+<li>Área lateral: $A_{lat} = 2\\pi rh$</li>
+</ul>`}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Story para casos extremos
 export const HeaderAlternativeEdgeCases: Story = () => {
   return (

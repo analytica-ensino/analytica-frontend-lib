@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { ANSWER_STATUS } from '../../../components/Quiz/useQuizStore';
 import Text from '../../../components/Text/Text';
 import type { QuestionRendererProps } from '../types';
+import { HtmlMathRenderer } from '../../../components/HtmlMathRenderer';
 
 /**
  * Render essay/dissertative question (readonly mode for correction)
@@ -19,9 +20,16 @@ export const renderQuestionDissertative = ({
           Resposta do aluno
         </Text>
         <div className="p-3 bg-background-50 rounded-lg border border-border-100">
-          <Text size="sm" weight="normal" color="text-text-700">
-            {localAnswer || 'Nenhuma resposta fornecida'}
-          </Text>
+          {localAnswer ? (
+            <HtmlMathRenderer
+              content={localAnswer}
+              className="text-sm text-text-700"
+            />
+          ) : (
+            <Text size="sm" weight="normal" color="text-text-700">
+              Nenhuma resposta fornecida
+            </Text>
+          )}
         </div>
       </div>
 
@@ -32,9 +40,10 @@ export const renderQuestionDissertative = ({
               Observação do professor:
             </Text>
             <div className="p-3 bg-background-50 rounded-lg border border-border-100">
-              <Text size="sm" weight="normal" color="text-text-700">
-                {result.teacherFeedback}
-              </Text>
+              <HtmlMathRenderer
+                content={result.teacherFeedback}
+                className="text-sm text-text-700"
+              />
             </div>
           </div>
         )}

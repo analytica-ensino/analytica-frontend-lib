@@ -3,6 +3,7 @@ import CheckboxList, { CheckboxListItem } from '../CheckBox/CheckboxList';
 import { cn } from '../../utils/utils';
 import { CheckCircle, XCircle, Check } from 'phosphor-react';
 import Badge from '../Badge/Badge';
+import { HtmlMathRenderer } from '../HtmlMathRenderer';
 
 interface Choice {
   value: string;
@@ -99,7 +100,8 @@ const MultipleChoiceList = ({
             >
               <div className="flex items-center gap-2 flex-1">
                 {renderVisualCheckbox(isSelected, choice.disabled || disabled)}
-                <span
+                <HtmlMathRenderer
+                  content={choice.label}
                   className={cn(
                     'flex-1',
                     isSelected || (choice.status && choice.status != 'neutral')
@@ -109,9 +111,7 @@ const MultipleChoiceList = ({
                       ? 'cursor-not-allowed'
                       : 'cursor-default'
                   )}
-                >
-                  {choice.label}
-                </span>
+                />
               </div>
               {statusBadge && (
                 <div className="flex-shrink-0">{statusBadge}</div>
@@ -162,7 +162,7 @@ const MultipleChoiceList = ({
                   : 'cursor-pointer'
               )}
             >
-              {choice.label}
+              <HtmlMathRenderer content={choice.label} />
             </label>
           </div>
         ))}

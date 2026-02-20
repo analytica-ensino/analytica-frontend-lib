@@ -35,6 +35,7 @@ import {
   renderQuestionConnectDots,
 } from '../../utils/questionRenderer/index';
 import useToastStore from '../Toast/utils/ToastStore';
+import { HtmlMathRenderer } from '../HtmlMathRenderer';
 
 /**
  * Props for the CorrectActivityModal component
@@ -855,14 +856,10 @@ const CorrectActivityModal = ({
                   <div className="space-y-4 pt-2">
                     {/* Question statement */}
                     {questionData.question.statement && (
-                      <Text
-                        size="sm"
-                        weight="normal"
-                        color="text-text-700"
-                        className="whitespace-pre-wrap"
-                      >
-                        {questionData.question.statement}
-                      </Text>
+                      <HtmlMathRenderer
+                        content={questionData.question.statement}
+                        className="text-sm text-text-700"
+                      />
                     )}
 
                     {/* Question content based on type */}

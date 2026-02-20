@@ -43,7 +43,10 @@ export interface UseQuestionsListReturn extends UseQuestionsListState {
     filters?: Partial<QuestionsFilterBody>
   ) => Promise<Question[]>;
   fetchQuestionsByIds: (questionIds: string[]) => Promise<Question[]>;
-  loadMore: () => Promise<void>;
+  loadMore: (
+    externalFilters?: Partial<QuestionsFilterBody>,
+    externalPagination?: Pagination
+  ) => Promise<void>;
   reset: () => void;
 }
 
@@ -213,29 +216,46 @@ const useQuestionsListImpl = (
     [apiClient, handleError]
   );
 
-  const loadMore = useCallback(async () => {
-    setState((prev) => {
-      const { currentFilters, pagination, loadingMore: isLoadingMore } = prev;
+  const loadMore = useCallback(
+    async (
+      externalFilters?: Partial<QuestionsFilterBody>,
+      externalPagination?: Pagination
+    ) => {
+      setState((prev) => {
+        const {
+          currentFilters,
+          pagination: internalPagination,
+          loadingMore: isLoadingMore,
+        } = prev;
 
-      if (isLoadingMore || !currentFilters || !pagination?.hasNext) {
-        return prev;
-      }
+        const effectiveFilters = currentFilters || externalFilters;
+        const effectivePagination = internalPagination || externalPagination;
 
-      const nextPageFilters = {
-        ...currentFilters,
-        page: pagination.page + 1,
-      };
+        if (
+          isLoadingMore ||
+          !effectiveFilters ||
+          !effectivePagination?.hasNext
+        ) {
+          return prev;
+        }
 
-      fetchQuestions(nextPageFilters, true).catch((error) => {
-        console.error('Erro ao carregar mais questões:', error);
+        const nextPageFilters = {
+          ...effectiveFilters,
+          page: effectivePagination.page + 1,
+        };
+
+        fetchQuestions(nextPageFilters, true).catch((error) => {
+          console.error('Erro ao carregar mais questões:', error);
+        });
+
+        return {
+          ...prev,
+          loadingMore: true,
+        };
       });
-
-      return {
-        ...prev,
-        loadingMore: true,
-      };
-    });
-  }, [fetchQuestions]);
+    },
+    [fetchQuestions]
+  );
 
   /**
    * Reset questions list

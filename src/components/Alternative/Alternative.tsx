@@ -3,6 +3,7 @@ import Badge from '../Badge/Badge';
 import { RadioGroup, RadioGroupItem } from '../Radio/Radio';
 import { forwardRef, HTMLAttributes, useId, useState } from 'react';
 import { cn } from '../../utils/utils';
+import { HtmlMathRenderer } from '../HtmlMathRenderer';
 
 /**
  * Interface para definir uma alternativa
@@ -189,16 +190,15 @@ const AlternativesList = ({
             <div className="flex items-start gap-3 flex-1">
               <div className="mt-1">{renderRadio()}</div>
               <div className="flex-1">
-                <p
+                <HtmlMathRenderer
+                  content={alternative.label}
                   className={cn(
                     'block font-medium',
                     selectedValue === alternative.value || statusBadge
                       ? 'text-text-950'
                       : 'text-text-600'
                   )}
-                >
-                  {alternative.label}
-                </p>
+                />
                 {alternative.description && (
                   <p className="text-sm text-text-600 mt-1">
                     {alternative.description}
@@ -223,16 +223,15 @@ const AlternativesList = ({
       >
         <div className="flex items-center gap-2 flex-1">
           {renderRadio()}
-          <span
+          <HtmlMathRenderer
+            content={alternative.label}
             className={cn(
               'flex-1',
               selectedValue === alternative.value || statusBadge
                 ? 'text-text-950'
                 : 'text-text-600'
             )}
-          >
-            {alternative.label}
-          </span>
+          />
         </div>
         {statusBadge && <div className="flex-shrink-0">{statusBadge}</div>}
       </div>
@@ -302,7 +301,7 @@ const AlternativesList = ({
                           : 'cursor-pointer'
                       )}
                     >
-                      {alternative.label}
+                      <HtmlMathRenderer content={alternative.label} inline />
                     </label>
                     {alternative.description && (
                       <p className="text-sm text-text-600 mt-1">
@@ -344,7 +343,7 @@ const AlternativesList = ({
                   alternative.disabled ? 'cursor-not-allowed' : 'cursor-pointer'
                 )}
               >
-                {alternative.label}
+                <HtmlMathRenderer content={alternative.label} inline />
               </label>
             </div>
             {statusBadge && <div className="flex-shrink-0">{statusBadge}</div>}
@@ -377,7 +376,7 @@ const HeaderAlternative = forwardRef<HTMLDivElement, HeaderAlternativeProps>(
           <p className="text-text-700 text-sm ">{subTitle}</p>
         </span>
 
-        <p className="text-text-950 text-md">{content}</p>
+        <HtmlMathRenderer content={content} className="text-text-950 text-md" />
       </div>
     );
   }

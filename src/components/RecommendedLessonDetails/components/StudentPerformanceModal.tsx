@@ -22,6 +22,7 @@ import type {
   LessonQuestion,
 } from '../types';
 import { DEFAULT_PERFORMANCE_LABELS } from '../types';
+import { HtmlMathRenderer } from '../../HtmlMathRenderer';
 
 /**
  * Props for StudentPerformanceModal component
@@ -189,9 +190,10 @@ const QuestionAccordionItem = ({
   >
     <div className="flex flex-col gap-3">
       {/* Question statement */}
-      <Text size="sm" className="text-text-700">
-        {question.statement}
-      </Text>
+      <HtmlMathRenderer
+        content={question.statement}
+        className="text-sm text-text-700"
+      />
 
       {/* Alternatives accordion */}
       <CardAccordation
