@@ -129,7 +129,7 @@ const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
           aria-hidden={!isExpanded}
           className={cn(
             'transition-all duration-300 ease-in-out overflow-hidden',
-            isExpanded ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
+            isExpanded ? 'opacity-100' : 'max-h-0 opacity-0'
           )}
           data-testid="accordion-content"
           data-value={value}
