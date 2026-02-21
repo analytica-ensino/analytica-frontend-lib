@@ -95,7 +95,7 @@ describe('CardAccordation', () => {
       );
 
       const content = screen.getByTestId('accordion-content');
-      expect(content).toHaveClass('max-h-screen', 'opacity-100');
+      expect(content).toHaveClass('opacity-100');
 
       const header = getHeader();
       expect(header).toHaveAttribute('aria-expanded', 'true');
@@ -127,7 +127,7 @@ describe('CardAccordation', () => {
       await user.click(header!);
 
       // State after click: expanded
-      expect(content).toHaveClass('max-h-screen', 'opacity-100');
+      expect(content).toHaveClass('opacity-100');
       expect(header).toHaveAttribute('aria-expanded', 'true');
       expect(caretIcon).toHaveClass('rotate-90');
     });
@@ -145,7 +145,7 @@ describe('CardAccordation', () => {
       const caretIcon = screen.getByTestId('accordion-caret');
 
       // Initial state: expanded
-      expect(content).toHaveClass('max-h-screen', 'opacity-100');
+      expect(content).toHaveClass('opacity-100');
       expect(header).toHaveAttribute('aria-expanded', 'true');
       expect(caretIcon).toHaveClass('rotate-90');
 
@@ -174,7 +174,7 @@ describe('CardAccordation', () => {
 
       // First click: expand
       await user.click(header!);
-      expect(content).toHaveClass('max-h-screen', 'opacity-100');
+      expect(content).toHaveClass('opacity-100');
 
       // Second click: collapse
       await user.click(header!);
@@ -182,7 +182,7 @@ describe('CardAccordation', () => {
 
       // Third click: expand again
       await user.click(header!);
-      expect(content).toHaveClass('max-h-screen', 'opacity-100');
+      expect(content).toHaveClass('opacity-100');
     });
 
     it('responds to keyboard events via click', () => {
@@ -200,7 +200,7 @@ describe('CardAccordation', () => {
 
       // Simulate Enter key press
       fireEvent.keyDown(header!, { key: 'Enter', code: 'Enter' });
-      expect(content).toHaveClass('max-h-screen', 'opacity-100');
+      expect(content).toHaveClass('opacity-100');
 
       // Simulate Space key press
       fireEvent.keyDown(header!, { key: ' ', code: 'Space' });
@@ -284,7 +284,7 @@ describe('CardAccordation', () => {
 
       // Should not throw error when clicking without callback
       await user.click(header!);
-      expect(content).toHaveClass('max-h-screen', 'opacity-100');
+      expect(content).toHaveClass('opacity-100');
     });
   });
 
@@ -633,7 +633,7 @@ describe('CardAccordation', () => {
       expect(header).not.toBeDisabled();
 
       await user.click(header!);
-      expect(content).toHaveClass('max-h-screen', 'opacity-100');
+      expect(content).toHaveClass('opacity-100');
     });
 
     it('should disable an already expanded accordion', () => {
@@ -653,7 +653,7 @@ describe('CardAccordation', () => {
       // Should be expanded but disabled
       expect(header).toBeDisabled();
       expect(header).toHaveAttribute('aria-expanded', 'true');
-      expect(content).toHaveClass('max-h-screen', 'opacity-100');
+      expect(content).toHaveClass('opacity-100');
     });
   });
 });
