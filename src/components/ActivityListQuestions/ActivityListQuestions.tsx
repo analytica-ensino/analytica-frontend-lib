@@ -234,7 +234,7 @@ export const ActivityListQuestions = ({
   ]);
 
   useEffect(() => {
-    if (appliedFilters && pagination && allQuestions.length >= 0) {
+    if (appliedFilters && pagination) {
       setCachedQuestions(allQuestions, pagination, appliedFilters);
       lastLoadedPageRef.current = pagination.page;
     }
