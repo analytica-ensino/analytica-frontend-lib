@@ -96,12 +96,9 @@ export const ActivityListQuestions = ({
   const questions = useMemo(() => {
     let sourceQuestions: typeof allQuestions;
 
-    // When not loading and we have pagination (API responded), prefer hook's allQuestions
-    // This ensures fresh data (including empty results) is shown instead of stale cache
     const hasFreshData = !loading && pagination !== null;
 
     if (hasFreshData) {
-      // Use fresh data from API, prefer larger set if both have data
       if (
         allQuestions.length > 0 &&
         cachedQuestions.length > allQuestions.length &&
@@ -211,11 +208,9 @@ export const ActivityListQuestions = ({
         if (cachedPagination?.page) {
           lastLoadedPageRef.current = cachedPagination.page;
         }
-        // Skip fetch - use cached data
         return;
       }
 
-      // Fetch new data if cache is invalid or filters changed
       const apiFilters = {
         ...convertActivityFiltersToQuestionsFilter(appliedFilters),
         ...(addedQuestionIdsRef.current.length > 0 && {
@@ -236,14 +231,9 @@ export const ActivityListQuestions = ({
     cachedPagination,
   ]);
 
-  /**
-   * Update cache and page tracking when questions are successfully fetched
-   * Cache is updated even when results are empty to ensure proper filter tracking
-   */
   useEffect(() => {
     if (appliedFilters && pagination && !filtersMatchCache) {
       setCachedQuestions(allQuestions, pagination, appliedFilters);
-      // Update page tracking to current page
       lastLoadedPageRef.current = pagination.page;
     }
   }, [
