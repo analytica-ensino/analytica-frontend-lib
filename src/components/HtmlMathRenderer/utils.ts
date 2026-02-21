@@ -2,8 +2,6 @@
  * Utilities for processing HTML content with LaTeX math expressions
  */
 
-import { randomBytes } from 'node:crypto';
-
 export interface MathPart {
   type: 'text' | 'math' | 'block-math';
   content: string;
@@ -11,22 +9,12 @@ export interface MathPart {
 }
 
 /**
- * Generates a cryptographically secure random ID for placeholder uniqueness
- * Uses Web Crypto API (browser) or Node.js crypto module (server)
+ * Generates a random ID for placeholder uniqueness
+ * Uses crypto.randomUUID() (Web Crypto API - available in all modern browsers)
  */
 const generateSecureRandomId = (): string => {
-  // Browser environment or Node.js 19+
-  if (globalThis.crypto?.getRandomValues) {
-    const array = new Uint8Array(8);
-    globalThis.crypto.getRandomValues(array);
-    return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join(
-      ''
-    );
-  }
-
-  // Node.js environment fallback
-  return randomBytes(8).toString('hex');
-};
+  return crypto.randomUUID();
+};7
 
 /**
  * Cleans LaTeX string from invisible characters

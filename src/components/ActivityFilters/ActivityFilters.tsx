@@ -46,6 +46,11 @@ const questionTypesFallback = [
 ];
 
 /**
+ * Special constant for filtering questions without subject
+ */
+export const NO_SUBJECT_FILTER = '__NO_SUBJECT__';
+
+/**
  * Type guard to check if an item has a valid bankId
  * @param item - The item to validate
  * @param bankIds - Array of valid bank IDs to check against
@@ -655,6 +660,15 @@ export const ActivityFilters = ({
               <Text size="sm" weight="bold">
                 Matéria
               </Text>
+              {selectedSubject && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedSubject(null)}
+                  className="text-sm text-primary-600 hover:text-primary-700 hover:underline"
+                >
+                  Limpar
+                </button>
+              )}
             </div>
             <SubjectsFilter
               knowledgeAreas={knowledgeAreas}
@@ -662,10 +676,12 @@ export const ActivityFilters = ({
               onSubjectChange={handleSubjectChange}
               loading={loadingSubjects}
               error={subjectsError}
+              showNoSubjectOption={true}
+              noSubjectValue={NO_SUBJECT_FILTER}
             />
           </div>
 
-          {selectedSubject && (
+          {selectedSubject && selectedSubject !== NO_SUBJECT_FILTER && (
             <KnowledgeStructureFilter
               knowledgeStructure={knowledgeStructure}
               knowledgeCategories={knowledgeCategories}

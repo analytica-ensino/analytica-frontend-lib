@@ -69,6 +69,8 @@ export interface QuestionsFilterBody {
   pageSize?: number;
   selectedQuestionsIds?: string[];
   randomQuestions?: number;
+  /** Filter for questions without any subject association */
+  noSubject?: boolean;
   [key: string]: unknown;
 }
 

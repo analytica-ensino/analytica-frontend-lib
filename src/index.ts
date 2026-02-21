@@ -290,6 +290,7 @@ export type {
 export {
   ActivityFilters,
   ActivityFiltersPopover,
+  NO_SUBJECT_FILTER,
 } from './components/ActivityFilters/ActivityFilters';
 export type {
   ActivityFiltersProps,
