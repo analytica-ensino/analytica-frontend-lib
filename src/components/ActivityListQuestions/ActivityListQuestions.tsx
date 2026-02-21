@@ -85,13 +85,22 @@ export const ActivityListQuestions = ({
   } = useQuestionsList();
 
   /**
-   * Check if cached questions match current filters using areFiltersEqual
+   * Check if we already have a valid cache result for current filters
+   * This is true even if the result is empty (0 questions)
+   */
+  const hasValidCacheResult = useMemo(() => {
+    if (!appliedFilters || !cachedFilters || !cachedPagination) return false;
+    return areFiltersEqual(appliedFilters, cachedFilters);
+  }, [appliedFilters, cachedFilters, cachedPagination]);
+
+  /**
+   * Check if cached questions match current filters AND have data
+   * Used for displaying cached data while loading or for pagination
    */
   const filtersMatchCache = useMemo(() => {
-    if (!appliedFilters || !cachedFilters) return false;
-    if (cachedQuestions.length === 0) return false;
-    return areFiltersEqual(appliedFilters, cachedFilters);
-  }, [appliedFilters, cachedFilters, cachedQuestions]);
+    if (!hasValidCacheResult) return false;
+    return cachedQuestions.length > 0;
+  }, [hasValidCacheResult, cachedQuestions]);
 
   const questions = useMemo(() => {
     let sourceQuestions: typeof allQuestions;
@@ -99,24 +108,18 @@ export const ActivityListQuestions = ({
     const hasFreshData = !loading && pagination !== null;
 
     if (hasFreshData) {
-      if (
-        allQuestions.length > 0 &&
+      const shouldUseCacheForPagination =
+        filtersMatchCache &&
         cachedQuestions.length > allQuestions.length &&
-        filtersMatchCache
-      ) {
-        sourceQuestions = cachedQuestions;
-      } else {
-        sourceQuestions = allQuestions;
-      }
-    } else if (
-      filtersMatchCache &&
-      allQuestions.length > 0 &&
-      cachedQuestions.length > 0
-    ) {
-      sourceQuestions =
-        allQuestions.length >= cachedQuestions.length
-          ? allQuestions
-          : cachedQuestions;
+        pagination.page === 1 &&
+        allQuestions.length > 0;
+
+      sourceQuestions = shouldUseCacheForPagination
+        ? cachedQuestions
+        : allQuestions;
+    } else if (loading && filtersMatchCache && cachedQuestions.length > 0) {
+      // While loading, show cached data only if filters match
+      sourceQuestions = cachedQuestions;
     } else if (filtersMatchCache && cachedQuestions.length > 0) {
       sourceQuestions = cachedQuestions;
     } else {
@@ -202,8 +205,7 @@ export const ActivityListQuestions = ({
     lastLoadedPageRef.current = 1;
 
     if (appliedFilters) {
-      // Check if we have valid cached data
-      if (filtersMatchCache && cachedQuestions.length > 0) {
+      if (hasValidCacheResult) {
         // Update page ref to match cached pagination
         if (cachedPagination?.page) {
           lastLoadedPageRef.current = cachedPagination.page;
@@ -226,23 +228,17 @@ export const ActivityListQuestions = ({
     appliedFilters,
     fetchQuestions,
     reset,
-    filtersMatchCache,
+    hasValidCacheResult,
     clearCachedQuestions,
     cachedPagination,
   ]);
 
   useEffect(() => {
-    if (appliedFilters && pagination && !filtersMatchCache) {
+    if (appliedFilters && pagination && allQuestions.length >= 0) {
       setCachedQuestions(allQuestions, pagination, appliedFilters);
       lastLoadedPageRef.current = pagination.page;
     }
-  }, [
-    allQuestions,
-    pagination,
-    appliedFilters,
-    filtersMatchCache,
-    setCachedQuestions,
-  ]);
+  }, [allQuestions, pagination, appliedFilters, setCachedQuestions]);
 
   /**
    * Update lastLoadedPageRef when pagination page changes (confirms successful load)
