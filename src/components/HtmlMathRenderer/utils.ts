@@ -14,7 +14,7 @@ export interface MathPart {
  */
 const generateSecureRandomId = (): string => {
   return crypto.randomUUID();
-};7
+};
 
 /**
  * Cleans LaTeX string from invisible characters

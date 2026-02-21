@@ -14,7 +14,9 @@ export const convertActivityFiltersToQuestionsFilter = (
 ): QuestionsFilterBody => {
   // Check if "Sem matéria" filter is selected
   const hasNoSubjectFilter = filters.subjectIds.includes(NO_SUBJECT_FILTER);
-  const subjectIds = filters.subjectIds.filter((id) => id !== NO_SUBJECT_FILTER);
+  const subjectIds = filters.subjectIds.filter(
+    (id) => id !== NO_SUBJECT_FILTER
+  );
 
   return {
     questionType: filters.types,
