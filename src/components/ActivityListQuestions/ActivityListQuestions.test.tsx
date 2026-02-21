@@ -1427,6 +1427,238 @@ describe('ActivityListQuestions', () => {
     });
   });
 
+  describe('Fresh Data Priority', () => {
+    it('should show empty results when API returns 0 questions', () => {
+      const filters = {
+        types: [QUESTION_TYPE.ALTERNATIVA],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject-1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      const cachedQuestion: Question = {
+        ...mockQuestion,
+        id: 'cached-question-1',
+      };
+
+      const mockPagination = {
+        page: 1,
+        pageSize: 10,
+        total: 0,
+        totalPages: 0,
+        hasNext: false,
+        hasPrevious: false,
+      };
+
+      mockAppliedFilters.mockReturnValue(filters);
+      mockStoreState.cachedQuestions = [cachedQuestion];
+      mockStoreState.cachedPagination = { ...mockPagination, total: 1 };
+      mockStoreState.cachedFilters = { ...filters, subjectIds: ['other'] };
+
+      jest.mocked(areFiltersEqual).mockReturnValue(false);
+
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [],
+        pagination: mockPagination,
+        loading: false,
+        loadingMore: false,
+      });
+
+      render(<ActivityListQuestions {...defaultProps} />);
+
+      expect(
+        screen.getByText(
+          'Nenhuma questão encontrada. Aplique os filtros para buscar questões.'
+        )
+      ).toBeInTheDocument();
+    });
+
+    it('should prefer fresh API data over stale cache when not loading', () => {
+      const filters = {
+        types: [QUESTION_TYPE.ALTERNATIVA],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject-1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      const cachedQuestion: Question = {
+        ...mockQuestion,
+        id: 'cached-question-old',
+        statement: 'Old cached question',
+      };
+
+      const freshQuestion: Question = {
+        ...mockQuestion,
+        id: 'fresh-question',
+        statement: 'Fresh API question',
+      };
+
+      const mockPagination = {
+        page: 1,
+        pageSize: 10,
+        total: 1,
+        totalPages: 1,
+        hasNext: false,
+        hasPrevious: false,
+      };
+
+      mockAppliedFilters.mockReturnValue(filters);
+      mockStoreState.cachedQuestions = [cachedQuestion];
+      mockStoreState.cachedPagination = mockPagination;
+      mockStoreState.cachedFilters = filters;
+
+      jest.mocked(areFiltersEqual).mockReturnValue(true);
+
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [freshQuestion],
+        pagination: mockPagination,
+        loading: false,
+        loadingMore: false,
+      });
+
+      render(<ActivityListQuestions {...defaultProps} />);
+
+      const card = screen.getByTestId('activity-card-question-banks');
+      expect(card).toHaveAttribute('data-enunciado', 'Fresh API question');
+    });
+
+    it('should use cached questions while loading', () => {
+      const filters = {
+        types: [QUESTION_TYPE.ALTERNATIVA],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject-1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      const cachedQuestion: Question = {
+        ...mockQuestion,
+        id: 'cached-question',
+        statement: 'Cached question',
+      };
+
+      const mockPagination = {
+        page: 1,
+        pageSize: 10,
+        total: 1,
+        totalPages: 1,
+        hasNext: false,
+        hasPrevious: false,
+      };
+
+      mockAppliedFilters.mockReturnValue(filters);
+      mockStoreState.cachedQuestions = [cachedQuestion];
+      mockStoreState.cachedPagination = mockPagination;
+      mockStoreState.cachedFilters = filters;
+
+      jest.mocked(areFiltersEqual).mockReturnValue(true);
+
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [cachedQuestion],
+        pagination: null,
+        loading: true,
+        loadingMore: false,
+      });
+
+      render(<ActivityListQuestions {...defaultProps} />);
+
+      const card = screen.getByTestId('activity-card-question-banks');
+      expect(card).toHaveAttribute('data-enunciado', 'Cached question');
+    });
+
+    it('should update cache even when API returns empty results', async () => {
+      const filters = {
+        types: [QUESTION_TYPE.ALTERNATIVA],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject-1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      const mockPagination = {
+        page: 1,
+        pageSize: 10,
+        total: 0,
+        totalPages: 0,
+        hasNext: false,
+        hasPrevious: false,
+      };
+
+      mockAppliedFilters.mockReturnValue(filters);
+      mockStoreState.cachedQuestions = [];
+      mockStoreState.cachedPagination = null;
+      mockStoreState.cachedFilters = null;
+
+      jest.mocked(areFiltersEqual).mockReturnValue(false);
+
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [],
+        pagination: mockPagination,
+        loading: false,
+        loadingMore: false,
+      });
+
+      render(<ActivityListQuestions {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(mockSetCachedQuestions).toHaveBeenCalledWith(
+          [],
+          mockPagination,
+          filters
+        );
+      });
+    });
+
+    it('should show 0 questions total when API returns empty array', () => {
+      const filters = {
+        types: [QUESTION_TYPE.ALTERNATIVA],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject-1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      const mockPagination = {
+        page: 1,
+        pageSize: 10,
+        total: 0,
+        totalPages: 0,
+        hasNext: false,
+        hasPrevious: false,
+      };
+
+      mockAppliedFilters.mockReturnValue(filters);
+      mockStoreState.cachedQuestions = [];
+      mockStoreState.cachedPagination = null;
+      mockStoreState.cachedFilters = null;
+
+      jest.mocked(areFiltersEqual).mockReturnValue(false);
+
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [],
+        pagination: mockPagination,
+        loading: false,
+        loadingMore: false,
+      });
+
+      render(<ActivityListQuestions {...defaultProps} />);
+
+      expect(screen.getByText('0 questões total')).toBeInTheDocument();
+    });
+  });
+
   describe('Edge Cases', () => {
     it('should handle question with null subject', () => {
       const questionWithNullSubject = {
