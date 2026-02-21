@@ -90,7 +90,7 @@ const mockActivityData: ActivityDetailsData = {
   questionStats: {
     mostCorrect: [0, 2, 4],
     mostIncorrect: [1, 3],
-    notAnswered: [5],
+    notAnswered: 1,
   },
 };
 

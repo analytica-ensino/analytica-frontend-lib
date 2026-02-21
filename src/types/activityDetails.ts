@@ -66,7 +66,7 @@ export interface GeneralStats {
 export interface QuestionStats {
   mostCorrect: number[];
   mostIncorrect: number[];
-  notAnswered: number[];
+  notAnswered: number;
 }
 
 /**
