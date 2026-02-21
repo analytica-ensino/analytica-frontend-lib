@@ -90,8 +90,7 @@ export enum PerformanceQuestionsVariant {
   CONTENT = 'content',
 }
 
-export interface PerformanceQuestionsDataProps
-  extends HTMLAttributes<HTMLDivElement> {
+export interface PerformanceQuestionsDataProps extends HTMLAttributes<HTMLDivElement> {
   /** Variant determines title, bars, and colors */
   variant: PerformanceQuestionsVariant;
   /** Chart data (shape depends on variant) */
