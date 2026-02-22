@@ -85,26 +85,41 @@ export const ActivityListQuestions = ({
   } = useQuestionsList();
 
   /**
-   * Check if cached questions match current filters using areFiltersEqual
+   * Check if we already have a valid cache result for current filters
+   * This is true even if the result is empty (0 questions)
+   */
+  const hasValidCacheResult = useMemo(() => {
+    if (!appliedFilters || !cachedFilters || !cachedPagination) return false;
+    return areFiltersEqual(appliedFilters, cachedFilters);
+  }, [appliedFilters, cachedFilters, cachedPagination]);
+
+  /**
+   * Check if cached questions match current filters AND have data
+   * Used for displaying cached data while loading or for pagination
    */
   const filtersMatchCache = useMemo(() => {
-    if (!appliedFilters || !cachedFilters) return false;
-    if (cachedQuestions.length === 0) return false;
-    return areFiltersEqual(appliedFilters, cachedFilters);
-  }, [appliedFilters, cachedFilters, cachedQuestions]);
+    if (!hasValidCacheResult) return false;
+    return cachedQuestions.length > 0;
+  }, [hasValidCacheResult, cachedQuestions]);
 
   const questions = useMemo(() => {
     let sourceQuestions: typeof allQuestions;
 
-    if (
-      filtersMatchCache &&
-      allQuestions.length > 0 &&
-      cachedQuestions.length > 0
-    ) {
-      sourceQuestions =
-        allQuestions.length >= cachedQuestions.length
-          ? allQuestions
-          : cachedQuestions;
+    const hasFreshData = !loading && pagination !== null;
+
+    if (hasFreshData) {
+      const shouldUseCacheForPagination =
+        filtersMatchCache &&
+        cachedQuestions.length > allQuestions.length &&
+        pagination.page === 1 &&
+        allQuestions.length > 0;
+
+      sourceQuestions = shouldUseCacheForPagination
+        ? cachedQuestions
+        : allQuestions;
+    } else if (loading && filtersMatchCache && cachedQuestions.length > 0) {
+      // While loading, show cached data only if filters match
+      sourceQuestions = cachedQuestions;
     } else if (filtersMatchCache && cachedQuestions.length > 0) {
       sourceQuestions = cachedQuestions;
     } else {
@@ -114,7 +129,14 @@ export const ActivityListQuestions = ({
     return sourceQuestions.filter(
       (question) => !addedQuestionIds.includes(question.id)
     );
-  }, [allQuestions, cachedQuestions, filtersMatchCache, addedQuestionIds]);
+  }, [
+    allQuestions,
+    cachedQuestions,
+    filtersMatchCache,
+    addedQuestionIds,
+    loading,
+    pagination,
+  ]);
 
   // Use hook's pagination if it has more pages loaded, otherwise use cached
   // This ensures we track progress when loading more pages via infinite scroll
@@ -183,17 +205,14 @@ export const ActivityListQuestions = ({
     lastLoadedPageRef.current = 1;
 
     if (appliedFilters) {
-      // Check if we have valid cached data
-      if (filtersMatchCache && cachedQuestions.length > 0) {
+      if (hasValidCacheResult) {
         // Update page ref to match cached pagination
         if (cachedPagination?.page) {
           lastLoadedPageRef.current = cachedPagination.page;
         }
-        // Skip fetch - use cached data
         return;
       }
 
-      // Fetch new data if cache is invalid or filters changed
       const apiFilters = {
         ...convertActivityFiltersToQuestionsFilter(appliedFilters),
         ...(addedQuestionIdsRef.current.length > 0 && {
@@ -209,32 +228,17 @@ export const ActivityListQuestions = ({
     appliedFilters,
     fetchQuestions,
     reset,
-    filtersMatchCache,
+    hasValidCacheResult,
     clearCachedQuestions,
     cachedPagination,
   ]);
 
-  /**
-   * Update cache and page tracking when questions are successfully fetched
-   */
   useEffect(() => {
-    if (
-      appliedFilters &&
-      allQuestions.length > 0 &&
-      pagination &&
-      !filtersMatchCache
-    ) {
+    if (appliedFilters && pagination) {
       setCachedQuestions(allQuestions, pagination, appliedFilters);
-      // Update page tracking to current page
       lastLoadedPageRef.current = pagination.page;
     }
-  }, [
-    allQuestions,
-    pagination,
-    appliedFilters,
-    filtersMatchCache,
-    setCachedQuestions,
-  ]);
+  }, [allQuestions, pagination, appliedFilters, setCachedQuestions]);
 
   /**
    * Update lastLoadedPageRef when pagination page changes (confirms successful load)

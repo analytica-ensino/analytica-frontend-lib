@@ -6,6 +6,7 @@ import {
   getSubjectColorWithOpacity,
 } from '../../..';
 import type { KnowledgeArea } from '../../../types/activityFilters';
+import { Prohibit } from 'phosphor-react';
 
 export interface SubjectsFilterProps {
   knowledgeAreas: KnowledgeArea[];
@@ -13,6 +14,10 @@ export interface SubjectsFilterProps {
   onSubjectChange: (subjectId: string) => void;
   loading?: boolean;
   error?: string | null;
+  /** Show "Sem matéria" option to filter questions without subject */
+  showNoSubjectOption?: boolean;
+  /** Value to use for "Sem matéria" option */
+  noSubjectValue?: string;
 }
 
 /**
@@ -26,6 +31,8 @@ export const SubjectsFilter = ({
   onSubjectChange,
   loading = false,
   error = null,
+  showNoSubjectOption = false,
+  noSubjectValue = '__NO_SUBJECT__',
 }: SubjectsFilterProps) => {
   const { isDark } = useTheme();
 
@@ -47,6 +54,28 @@ export const SubjectsFilter = ({
 
   return (
     <div className="grid grid-cols-3 gap-3">
+      {showNoSubjectOption && (
+        <Radio
+          key={noSubjectValue}
+          value={noSubjectValue}
+          checked={selectedSubject === noSubjectValue}
+          onChange={() => onSubjectChange(noSubjectValue)}
+          label={
+            <div className="flex items-center gap-2 w-full min-w-0">
+              <span className="size-4 rounded-sm flex items-center justify-center shrink-0 text-text-600 bg-background-100">
+                <Prohibit size={14} weight="bold" />
+              </span>
+              <Text
+                size="sm"
+                weight="normal"
+                className="truncate flex-1 text-text-600"
+              >
+                Sem matéria
+              </Text>
+            </div>
+          }
+        />
+      )}
       {knowledgeAreas.map((area: KnowledgeArea) => (
         <Radio
           key={area.id}
@@ -70,7 +99,9 @@ export const SubjectsFilter = ({
                   color="currentColor"
                 />
               </span>
-              <span className="truncate flex-1">{area.name}</span>
+              <Text size="sm" weight="normal" className="truncate flex-1">
+                {area.name}
+              </Text>
             </div>
           }
         />
