@@ -65,7 +65,13 @@ export const SubjectsFilter = ({
               <span className="size-4 rounded-sm flex items-center justify-center shrink-0 text-text-600 bg-background-100">
                 <Prohibit size={14} weight="bold" />
               </span>
-              <span className="truncate flex-1 text-text-600">Sem matéria</span>
+              <Text
+                size="sm"
+                weight="normal"
+                className="truncate flex-1 text-text-600"
+              >
+                Sem matéria
+              </Text>
             </div>
           }
         />
@@ -93,7 +99,9 @@ export const SubjectsFilter = ({
                   color="currentColor"
                 />
               </span>
-              <span className="truncate flex-1">{area.name}</span>
+              <Text size="sm" weight="normal" className="truncate flex-1">
+                {area.name}
+              </Text>
             </div>
           }
         />

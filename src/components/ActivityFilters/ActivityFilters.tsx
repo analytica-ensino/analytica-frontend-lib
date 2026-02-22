@@ -661,13 +661,14 @@ export const ActivityFilters = ({
                 Matéria
               </Text>
               {selectedSubject && (
-                <button
+                <Button
                   type="button"
+                  variant="link"
                   onClick={() => setSelectedSubject(null)}
-                  className="text-sm text-primary-600 hover:text-primary-700 hover:underline"
+                  size="small"
                 >
                   Limpar
-                </button>
+                </Button>
               )}
             </div>
             <SubjectsFilter
@@ -701,10 +702,8 @@ export const ActivityFilters = ({
   );
 };
 
-export interface ActivityFiltersPopoverProps extends Omit<
-  ActivityFiltersProps,
-  'variant' | 'onFiltersChange'
-> {
+export interface ActivityFiltersPopoverProps
+  extends Omit<ActivityFiltersProps, 'variant' | 'onFiltersChange'> {
   onFiltersChange: (filters: ActivityFiltersData) => void;
   triggerLabel?: string;
 }
