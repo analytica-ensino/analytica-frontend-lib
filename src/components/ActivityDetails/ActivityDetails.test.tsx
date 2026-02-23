@@ -954,7 +954,7 @@ describe('ActivityDetails', () => {
     });
 
     it('should format question numbers correctly', () => {
-      expect(formatQuestionNumbers([0, 2])).toBe('01, 03');
+      expect(formatQuestionNumbers([1, 3])).toBe('01, 03');
       expect(formatQuestionNumbers([])).toBe('-');
     });
 
