@@ -93,24 +93,24 @@ describe('activityDetailsUtils', () => {
       expect(formatQuestionNumbers([])).toBe('-');
     });
 
-    it('should format single element (0-indexed to 1-indexed)', () => {
-      expect(formatQuestionNumbers([0])).toBe('01');
+    it('should format single element with padding', () => {
+      expect(formatQuestionNumbers([1])).toBe('01');
     });
 
     it('should format multiple elements with comma separator', () => {
-      expect(formatQuestionNumbers([0, 1, 2])).toBe('01, 02, 03');
+      expect(formatQuestionNumbers([1, 2, 3])).toBe('01, 02, 03');
     });
 
     it('should format non-sequential numbers correctly', () => {
-      expect(formatQuestionNumbers([0, 5, 10])).toBe('01, 06, 11');
+      expect(formatQuestionNumbers([1, 6, 11])).toBe('01, 06, 11');
     });
 
     it('should format double-digit numbers correctly', () => {
-      expect(formatQuestionNumbers([9, 10, 11])).toBe('10, 11, 12');
+      expect(formatQuestionNumbers([10, 11, 12])).toBe('10, 11, 12');
     });
 
     it('should handle single large number', () => {
-      expect(formatQuestionNumbers([99])).toBe('100');
+      expect(formatQuestionNumbers([100])).toBe('100');
     });
   });
 

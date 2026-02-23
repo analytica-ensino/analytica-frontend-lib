@@ -59,13 +59,13 @@ export const formatTimeSpent = (seconds: number): string => {
 
 /**
  * Format question numbers to display
- * @param numbers - Array of zero-based question indices
- * @returns Formatted string with question numbers (1-indexed, padded)
+ * @param numbers - Array of question numbers (1-indexed from API)
+ * @returns Formatted string with question numbers (padded)
  */
 export const formatQuestionNumbers = (numbers: number[]): string => {
   if (numbers.length === 0) return '-';
 
-  return numbers.map((n) => String(n + 1).padStart(2, '0')).join(', ');
+  return numbers.map((n) => String(n).padStart(2, '0')).join(', ');
 };
 
 /**
