@@ -40,6 +40,7 @@ export interface SessionInfo {
   sessionId: string;
   userId: string;
   profileId: string;
+  profileName: string;
   institutionId: string;
   schoolId: string;
   schoolYearId: string;
