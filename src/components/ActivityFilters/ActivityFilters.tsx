@@ -46,11 +46,6 @@ const questionTypesFallback = [
 ];
 
 /**
- * Special constant for filtering questions without subject
- */
-export const NO_SUBJECT_FILTER = '__NO_SUBJECT__';
-
-/**
  * Type guard to check if an item has a valid bankId
  * @param item - The item to validate
  * @param bankIds - Array of valid bank IDs to check against
