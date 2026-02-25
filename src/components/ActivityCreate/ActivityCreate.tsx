@@ -980,6 +980,15 @@ const CreateActivity = ({
    * Handle opening the send activity modal
    */
   const handleOpenSendModal = useCallback(async () => {
+    if (!draftFilters?.subjectIds?.length) {
+      addToast({
+        title: 'Selecione ao menos uma matéria para pesquisar',
+        action: 'warning',
+        position: 'top-right',
+      });
+      return;
+    }
+
     try {
       if (categories.length === 0) {
         await handleLoadCategoriesData();
@@ -999,7 +1008,7 @@ const CreateActivity = ({
         position: 'top-right',
       });
     }
-  }, [questions.length, categories.length, handleLoadCategoriesData, addToast]);
+  }, [draftFilters, categories.length, handleLoadCategoriesData, addToast]);
 
   /**
    * Handle sending activity to students
