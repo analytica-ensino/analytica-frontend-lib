@@ -987,6 +987,32 @@ describe('CreateActivity', () => {
       expect(filterButton).toBeDisabled();
     });
 
+    it('should show toast when clicking filter button without subject selected', () => {
+      mockDraftFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      render(<CreateActivity {...defaultProps} />);
+
+      const filterButton = screen.getByText('Filtrar');
+      fireEvent.click(filterButton);
+
+      expect(mockAddToast).toHaveBeenCalledWith({
+        title: 'Selecione ao menos uma matéria para pesquisar',
+        action: 'warning',
+        position: 'top-right',
+      });
+
+      // applyFilters should not be called
+      expect(mockApplyFilters).not.toHaveBeenCalled();
+    });
+
     it('should initialize filters from activity when id is in URL', async () => {
       mockParams.id = 'act1';
       mockParams.type = 'rascunho';
@@ -1708,6 +1734,39 @@ describe('CreateActivity', () => {
 
       const sendButton = screen.getByText('Enviar atividade');
       expect(sendButton).toBeDisabled();
+    });
+
+    it('should show toast when clicking send activity without subject selected', async () => {
+      // Clear draftFilters to simulate no subject selected
+      mockDraftFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      render(<CreateActivity {...defaultProps} />);
+
+      // Add a question to enable the send button
+      fireEvent.click(screen.getByTestId('add-question'));
+
+      // Click send activity button
+      fireEvent.click(screen.getByText('Enviar atividade'));
+
+      // Should show toast warning
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith({
+          title: 'Selecione ao menos uma matéria para pesquisar',
+          action: 'warning',
+          position: 'top-right',
+        });
+      });
+
+      // Modal should not open
+      expect(screen.queryByTestId('send-activity-modal')).not.toBeInTheDocument();
     });
 
     it('should load categories when opening modal', async () => {
