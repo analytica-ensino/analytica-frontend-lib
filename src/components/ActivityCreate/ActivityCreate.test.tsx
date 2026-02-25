@@ -1654,6 +1654,15 @@ describe('CreateActivity', () => {
         subtopicIds: [],
         contentIds: [],
       };
+      mockDraftFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
     });
 
     it('should open send modal when button is clicked with questions', async () => {
@@ -3996,6 +4005,24 @@ describe('CreateActivity', () => {
     ];
 
     beforeEach(() => {
+      mockDraftFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+      mockAppliedFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
       mockApiClient.get = jest.fn().mockImplementation((url: string) => {
         if (url === '/school') {
           return Promise.resolve({
