@@ -50,7 +50,8 @@ export interface PerformanceRankingData {
 /**
  * Props for the PerformanceRanking component
  */
-export interface PerformanceRankingProps extends HTMLAttributes<HTMLDivElement> {
+export interface PerformanceRankingProps
+  extends HTMLAttributes<HTMLDivElement> {
   /** Ranking data from the API */
   data: PerformanceRankingData;
   /** Title for the highlight card */

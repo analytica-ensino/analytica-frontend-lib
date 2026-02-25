@@ -695,10 +695,8 @@ export const ActivityFilters = ({
   );
 };
 
-export interface ActivityFiltersPopoverProps extends Omit<
-  ActivityFiltersProps,
-  'variant' | 'onFiltersChange'
-> {
+export interface ActivityFiltersPopoverProps
+  extends Omit<ActivityFiltersProps, 'variant' | 'onFiltersChange'> {
   onFiltersChange: (filters: ActivityFiltersData) => void;
   triggerLabel?: string;
 }

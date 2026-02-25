@@ -82,7 +82,8 @@ export interface UseRecommendedLessonsHistoryState {
 /**
  * Hook return type
  */
-export interface UseRecommendedLessonsHistoryReturn extends UseRecommendedLessonsHistoryState {
+export interface UseRecommendedLessonsHistoryReturn
+  extends UseRecommendedLessonsHistoryState {
   fetchRecommendedClass: (
     filters?: RecommendedClassHistoryFilters
   ) => Promise<void>;

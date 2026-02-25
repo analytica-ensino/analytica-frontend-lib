@@ -1766,7 +1766,9 @@ describe('CreateActivity', () => {
       });
 
       // Modal should not open
-      expect(screen.queryByTestId('send-activity-modal')).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId('send-activity-modal')
+      ).not.toBeInTheDocument();
     });
 
     it('should load categories when opening modal', async () => {

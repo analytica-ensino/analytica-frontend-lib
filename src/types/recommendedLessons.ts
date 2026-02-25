@@ -511,10 +511,8 @@ export interface RecommendedClassModelResponse {
 /**
  * Recommended Class model table item for display in models table
  */
-export interface RecommendedClassModelTableItem extends Record<
-  string,
-  unknown
-> {
+export interface RecommendedClassModelTableItem
+  extends Record<string, unknown> {
   id: string;
   title: string;
   savedAt: string;
