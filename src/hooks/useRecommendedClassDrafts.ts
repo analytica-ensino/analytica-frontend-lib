@@ -24,7 +24,8 @@ export interface UseRecommendedClassDraftsState {
 /**
  * Hook return type for recommendedClass drafts
  */
-export interface UseRecommendedClassDraftsReturn extends UseRecommendedClassDraftsState {
+export interface UseRecommendedClassDraftsReturn
+  extends UseRecommendedClassDraftsState {
   fetchModels: (
     filters?: RecommendedClassModelFilters,
     subjectsMap?: Map<string, string>

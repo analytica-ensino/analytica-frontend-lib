@@ -187,7 +187,8 @@ export interface UseRecommendedLessonDetailsState {
 /**
  * Hook return type
  */
-export interface UseRecommendedLessonDetailsReturn extends UseRecommendedLessonDetailsState {
+export interface UseRecommendedLessonDetailsReturn
+  extends UseRecommendedLessonDetailsState {
   refetch: () => Promise<void>;
 }
 

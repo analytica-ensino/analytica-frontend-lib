@@ -189,8 +189,16 @@ const CreateActivity = ({
   );
 
   const handleApplyFilters = useCallback(() => {
+    if (!draftFilters?.subjectIds?.length) {
+      addToast({
+        title: 'Selecione ao menos uma matéria para pesquisar',
+        action: 'warning',
+        position: 'top-right',
+      });
+      return;
+    }
     applyFilters();
-  }, [applyFilters]);
+  }, [applyFilters, draftFilters, addToast]);
 
   /**
    * Handle back button click - resets everything before calling onBack
@@ -972,6 +980,15 @@ const CreateActivity = ({
    * Handle opening the send activity modal
    */
   const handleOpenSendModal = useCallback(async () => {
+    if (!draftFilters?.subjectIds?.length) {
+      addToast({
+        title: 'Selecione ao menos uma matéria para pesquisar',
+        action: 'warning',
+        position: 'top-right',
+      });
+      return;
+    }
+
     try {
       if (categories.length === 0) {
         await handleLoadCategoriesData();
@@ -991,7 +1008,7 @@ const CreateActivity = ({
         position: 'top-right',
       });
     }
-  }, [questions.length, categories.length, handleLoadCategoriesData, addToast]);
+  }, [draftFilters, categories.length, handleLoadCategoriesData, addToast]);
 
   /**
    * Handle sending activity to students
