@@ -189,8 +189,16 @@ const CreateActivity = ({
   );
 
   const handleApplyFilters = useCallback(() => {
+    if (!draftFilters?.subjectIds?.length) {
+      addToast({
+        title: 'Selecione ao menos uma matéria para pesquisar',
+        action: 'warning',
+        position: 'top-right',
+      });
+      return;
+    }
     applyFilters();
-  }, [applyFilters]);
+  }, [applyFilters, draftFilters, addToast]);
 
   /**
    * Handle back button click - resets everything before calling onBack

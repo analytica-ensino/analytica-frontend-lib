@@ -677,12 +677,10 @@ export const ActivityFilters = ({
               onSubjectChange={handleSubjectChange}
               loading={loadingSubjects}
               error={subjectsError}
-              showNoSubjectOption={true}
-              noSubjectValue={NO_SUBJECT_FILTER}
             />
           </div>
 
-          {selectedSubject && selectedSubject !== NO_SUBJECT_FILTER && (
+          {selectedSubject && (
             <KnowledgeStructureFilter
               knowledgeStructure={knowledgeStructure}
               knowledgeCategories={knowledgeCategories}
