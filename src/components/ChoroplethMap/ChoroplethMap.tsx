@@ -1,12 +1,5 @@
 /* global google */
-import {
-  useCallback,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
 import union from '@turf/union';
 import type { Feature, MultiPolygon, Polygon } from 'geojson';
@@ -18,6 +11,12 @@ import type {
   ColorClass,
   RegionData,
 } from './ChoroplethMap.types';
+
+/**
+ * Stable ID for the Google Maps script loader singleton.
+ * Must NOT use useId() — the loader rejects re-initialization with different IDs.
+ */
+const GOOGLE_MAPS_LOADER_ID = 'google-maps-script';
 
 /**
  * Fade-in animation duration in milliseconds
@@ -271,7 +270,7 @@ const ChoroplethMap = ({
   onRegionClick,
   className,
 }: ChoroplethMapProps) => {
-  const mapId = useId();
+  const mapId = GOOGLE_MAPS_LOADER_ID;
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [hoveredRegion, setHoveredRegion] = useState<RegionData | null>(null);
   const [infoPosition, setInfoPosition] = useState<{
