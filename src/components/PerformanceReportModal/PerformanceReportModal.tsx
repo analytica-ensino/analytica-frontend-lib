@@ -111,13 +111,38 @@ export enum PerformanceReportModalVariant {
   PROFESSIONAL = 'professional',
 }
 
-export interface PerformanceReportModalProps {
+interface PerformanceReportModalBaseProps {
   isOpen: boolean;
   onClose: () => void;
   /** Modal title (default: "Desempenho em 1 ano") */
   title?: string;
-  variant: PerformanceReportModalVariant;
-  data: UserPerformanceStudentData | UserPerformanceProfessionalData | null;
+  loading?: boolean;
+  error?: string | null;
+}
+
+type PerformanceReportModalStudentProps = {
+  variant: PerformanceReportModalVariant.STUDENT;
+  data: UserPerformanceStudentData | null;
+  /**
+   * Optional icon mapper for the downloaded lessons table.
+   * The API does not return icons; the parent can derive them from lesson data.
+   */
+  getLessonIcon?: (lesson: UserPerformanceLesson) => ReactNode;
+  /**
+   * Optional activity/questionnaire/simulation done counts.
+   * These are not part of the API response — pass them from other data sources.
+   */
+  studentActivityCounts?: {
+    activities?: number;
+    questionnaires?: number;
+    simulations?: number;
+  };
+  professionalUserInfo?: never;
+};
+
+type PerformanceReportModalProfessionalProps = {
+  variant: PerformanceReportModalVariant.PROFESSIONAL;
+  data: UserPerformanceProfessionalData | null;
   /**
    * Display info for the professional modal header.
    * The professional API response does not include user/school context,
@@ -129,24 +154,15 @@ export interface PerformanceReportModalProps {
     className: string;
     year: string | number;
   };
-  /**
-   * Optional icon mapper for the downloaded lessons table (student variant).
-   * The API does not return icons; the parent can derive them from the lesson data.
-   */
-  getLessonIcon?: (lesson: UserPerformanceLesson) => ReactNode;
-  /**
-   * Optional activity/questionnaire/simulation done counts for the student modal.
-   * These are not part of the main API response — pass them from other data sources
-   * when available (e.g. from a separate endpoint or table row context).
-   */
-  studentActivityCounts?: {
-    activities?: number;
-    questionnaires?: number;
-    simulations?: number;
-  };
-  loading?: boolean;
-  error?: string | null;
-}
+  getLessonIcon?: never;
+  studentActivityCounts?: never;
+};
+
+export type PerformanceReportModalProps = PerformanceReportModalBaseProps &
+  (
+    | PerformanceReportModalStudentProps
+    | PerformanceReportModalProfessionalProps
+  );
 
 // ─── Status → Badge variant mapping ──────────────────────────
 
@@ -659,13 +675,9 @@ export const PerformanceReportModal = ({
   isOpen,
   onClose,
   title = 'Desempenho em 1 ano',
-  variant,
-  data,
-  professionalUserInfo,
-  getLessonIcon,
-  studentActivityCounts,
   loading = false,
   error = null,
+  ...variantProps
 }: PerformanceReportModalProps) => {
   let content: ReactNode;
 
@@ -673,20 +685,20 @@ export const PerformanceReportModal = ({
     content = <LoadingSkeleton />;
   } else if (error) {
     content = <ErrorContent message={error} />;
-  } else if (data !== null) {
-    if (variant === PerformanceReportModalVariant.STUDENT) {
+  } else if (variantProps.data !== null) {
+    if (variantProps.variant === PerformanceReportModalVariant.STUDENT) {
       content = (
         <StudentModalContent
-          data={data as UserPerformanceStudentData}
-          getLessonIcon={getLessonIcon}
-          activityCounts={studentActivityCounts}
+          data={variantProps.data}
+          getLessonIcon={variantProps.getLessonIcon}
+          activityCounts={variantProps.studentActivityCounts}
         />
       );
     } else {
       content = (
         <ProfessionalModalContent
-          data={data as UserPerformanceProfessionalData}
-          userInfo={professionalUserInfo}
+          data={variantProps.data}
+          userInfo={variantProps.professionalUserInfo}
         />
       );
     }
