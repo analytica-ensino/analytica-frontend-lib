@@ -1,39 +1,69 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { RichEditor } from './RichEditor';
+import { useEditor } from '@tiptap/react';
 
 // Mock katex
 jest.mock('katex', () => ({
-  renderToString: jest.fn((latex: string) => `<span class="katex">${latex}</span>`),
+  renderToString: jest.fn(
+    (latex: string) => `<span class="katex">${latex}</span>`
+  ),
 }));
 
 // Mock do useEditor do TipTap
-const mockChain = jest.fn(() => ({
-  focus: jest.fn(() => mockChain()),
-  toggleBold: jest.fn(() => mockChain()),
-  toggleItalic: jest.fn(() => mockChain()),
-  toggleUnderline: jest.fn(() => mockChain()),
-  toggleStrike: jest.fn(() => mockChain()),
-  toggleSubscript: jest.fn(() => mockChain()),
-  toggleSuperscript: jest.fn(() => mockChain()),
-  toggleCode: jest.fn(() => mockChain()),
-  toggleHeading: jest.fn(() => mockChain()),
-  setTextAlign: jest.fn(() => mockChain()),
-  toggleBulletList: jest.fn(() => mockChain()),
-  toggleOrderedList: jest.fn(() => mockChain()),
-  toggleBlockquote: jest.fn(() => mockChain()),
-  setHorizontalRule: jest.fn(() => mockChain()),
-  extendMarkRange: jest.fn(() => mockChain()),
-  setLink: jest.fn(() => mockChain()),
-  unsetLink: jest.fn(() => mockChain()),
-  insertContent: jest.fn(() => mockChain()),
-  setContent: jest.fn(() => mockChain()),
+interface MockChainResult {
+  focus: jest.Mock;
+  toggleBold: jest.Mock;
+  toggleItalic: jest.Mock;
+  toggleUnderline: jest.Mock;
+  toggleStrike: jest.Mock;
+  toggleSubscript: jest.Mock;
+  toggleSuperscript: jest.Mock;
+  toggleCode: jest.Mock;
+  toggleHeading: jest.Mock;
+  setTextAlign: jest.Mock;
+  toggleBulletList: jest.Mock;
+  toggleOrderedList: jest.Mock;
+  toggleBlockquote: jest.Mock;
+  setHorizontalRule: jest.Mock;
+  extendMarkRange: jest.Mock;
+  setLink: jest.Mock;
+  unsetLink: jest.Mock;
+  insertContent: jest.Mock;
+  setContent: jest.Mock;
+  run: jest.Mock;
+}
+
+const createMockChain = (): MockChainResult => ({
+  focus: jest.fn(() => createMockChain()),
+  toggleBold: jest.fn(() => createMockChain()),
+  toggleItalic: jest.fn(() => createMockChain()),
+  toggleUnderline: jest.fn(() => createMockChain()),
+  toggleStrike: jest.fn(() => createMockChain()),
+  toggleSubscript: jest.fn(() => createMockChain()),
+  toggleSuperscript: jest.fn(() => createMockChain()),
+  toggleCode: jest.fn(() => createMockChain()),
+  toggleHeading: jest.fn(() => createMockChain()),
+  setTextAlign: jest.fn(() => createMockChain()),
+  toggleBulletList: jest.fn(() => createMockChain()),
+  toggleOrderedList: jest.fn(() => createMockChain()),
+  toggleBlockquote: jest.fn(() => createMockChain()),
+  setHorizontalRule: jest.fn(() => createMockChain()),
+  extendMarkRange: jest.fn(() => createMockChain()),
+  setLink: jest.fn(() => createMockChain()),
+  unsetLink: jest.fn(() => createMockChain()),
+  insertContent: jest.fn(() => createMockChain()),
+  setContent: jest.fn(() => createMockChain()),
   run: jest.fn(),
-}));
+});
+
+const mockChain = jest.fn(createMockChain);
 
 const mockEditor = {
   chain: jest.fn(() => mockChain()),
-  isActive: jest.fn(() => false),
+  isActive: jest.fn(
+    (_name?: string, _attributes?: Record<string, unknown>) => false
+  ),
   getHTML: jest.fn(() => '<p>Test content</p>'),
   getJSON: jest.fn(() => ({ type: 'doc', content: [] })),
   commands: {
@@ -44,7 +74,9 @@ const mockEditor = {
 jest.mock('@tiptap/react', () => ({
   useEditor: jest.fn(() => mockEditor),
   EditorContent: jest.fn(({ editor }) => (
-    <div data-testid="editor-content">{editor ? 'Editor loaded' : 'No editor'}</div>
+    <div data-testid="editor-content">
+      {editor ? 'Editor loaded' : 'No editor'}
+    </div>
   )),
 }));
 
@@ -241,7 +273,9 @@ describe('RichEditor', () => {
 
   describe('Link', () => {
     it('deve abrir prompt ao clicar no botão de link', () => {
-      (globalThis.window.prompt as jest.Mock).mockReturnValue('https://example.com');
+      (globalThis.window.prompt as jest.Mock).mockReturnValue(
+        'https://example.com'
+      );
 
       render(<RichEditor />);
 
@@ -251,7 +285,9 @@ describe('RichEditor', () => {
     });
 
     it('deve definir link quando URL é fornecida', () => {
-      (globalThis.window.prompt as jest.Mock).mockReturnValue('https://example.com');
+      (globalThis.window.prompt as jest.Mock).mockReturnValue(
+        'https://example.com'
+      );
 
       render(<RichEditor />);
 
@@ -290,7 +326,9 @@ describe('RichEditor', () => {
 
       // Verifica se o modal com o título foi aberto
       expect(screen.getByRole('dialog')).toBeInTheDocument();
-      expect(screen.getByRole('heading', { name: 'Inserir fórmula' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { name: 'Inserir fórmula' })
+      ).toBeInTheDocument();
     });
 
     it('deve fechar FormulaDialog ao clicar em Cancelar', () => {
@@ -316,13 +354,21 @@ describe('RichEditor', () => {
 
       // Aguardar e clicar em inserir (botão dentro do footer do modal)
       await waitFor(() => {
-        const insertButtons = screen.getAllByRole('button', { name: 'Inserir fórmula' });
-        const footerButton = insertButtons.find(btn => !btn.hasAttribute('disabled') || btn.closest('footer'));
+        const insertButtons = screen.getAllByRole('button', {
+          name: 'Inserir fórmula',
+        });
+        const footerButton = insertButtons.find(
+          (btn) => !btn.hasAttribute('disabled') || btn.closest('footer')
+        );
         expect(footerButton).toBeDefined();
       });
 
-      const insertButtons = screen.getAllByRole('button', { name: 'Inserir fórmula' });
-      const enabledButton = insertButtons.find(btn => !btn.hasAttribute('disabled'));
+      const insertButtons = screen.getAllByRole('button', {
+        name: 'Inserir fórmula',
+      });
+      const enabledButton = insertButtons.find(
+        (btn) => !btn.hasAttribute('disabled')
+      );
       if (enabledButton) {
         fireEvent.click(enabledButton);
       }
@@ -360,7 +406,7 @@ describe('RichEditor', () => {
   describe('Estados da Toolbar', () => {
     it('deve aplicar classe ativa quando formatação está ativa', () => {
       // Simular que negrito está ativo
-      mockEditor.isActive.mockImplementation((format: string) => format === 'bold');
+      mockEditor.isActive.mockImplementation((format) => format === 'bold');
 
       render(<RichEditor />);
 
@@ -380,8 +426,7 @@ describe('RichEditor', () => {
 
   describe('Editor null', () => {
     it('deve retornar null quando editor não está pronto', () => {
-      const { useEditor } = require('@tiptap/react');
-      useEditor.mockReturnValue(null);
+      (useEditor as jest.Mock).mockReturnValue(null);
 
       const { container } = render(<RichEditor />);
 
