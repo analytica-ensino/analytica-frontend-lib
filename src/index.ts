@@ -391,6 +391,15 @@ export type { EmptyStateProps } from './components/EmptyState/EmptyState';
 export { default as VideoPlayer } from './components/VideoPlayer/VideoPlayer';
 export { default as Whiteboard } from './components/Whiteboard/Whiteboard';
 export { default as DownloadButton } from './components/DownloadButton/DownloadButton';
+
+// RichEditor - WYSIWYG editor with LaTeX support (requires @tiptap/* dependencies)
+export { RichEditor } from './components/RichEditor/RichEditor';
+export { FormulaDialog } from './components/RichEditor/FormulaDialog';
+export { MathNode } from './components/RichEditor/MathNode';
+export {
+  processLatexInHtml,
+  unprocessLatexInHtml,
+} from './components/RichEditor/utils';
 export type {
   DownloadContent,
   DownloadButtonProps,
