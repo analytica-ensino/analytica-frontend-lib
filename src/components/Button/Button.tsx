@@ -60,8 +60,8 @@ type ButtonProps = {
   iconRight?: ReactNode;
   /** Size of the button */
   size?: 'extra-small' | 'small' | 'medium' | 'large' | 'extra-large';
-  /** Visual variant of the button */
-  variant?: 'solid' | 'outline' | 'link';
+  /** Visual variant of the button. Use 'raw' for no default styling */
+  variant?: 'solid' | 'outline' | 'link' | 'raw';
   /** Action type of the button */
   action?: 'primary' | 'secondary' | 'positive' | 'negative';
   /** Additional CSS classes to apply */
@@ -100,6 +100,19 @@ const Button = ({
   type = 'button',
   ...props
 }: ButtonProps) => {
+  // Raw variant: no default styling, only className
+  if (variant === 'raw') {
+    return (
+      <button className={className} disabled={disabled} type={type} {...props}>
+        {iconLeft && <span className="mr-2 flex items-center">{iconLeft}</span>}
+        {children}
+        {iconRight && (
+          <span className="ml-2 flex items-center">{iconRight}</span>
+        )}
+      </button>
+    );
+  }
+
   // Get classes from lookup tables
   const sizeClasses = SIZE_CLASSES[size];
   const variantClasses = VARIANT_ACTION_CLASSES[variant][action];
