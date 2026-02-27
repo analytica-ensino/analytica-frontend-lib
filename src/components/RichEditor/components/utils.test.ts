@@ -66,7 +66,9 @@ describe('unprocessLatexInHtml', () => {
 
   it('deve retornar o mesmo valor quando input é null/undefined', () => {
     expect(unprocessLatexInHtml(null as unknown as string)).toBe(null);
-    expect(unprocessLatexInHtml(undefined as unknown as string)).toBe(undefined);
+    expect(unprocessLatexInHtml(undefined as unknown as string)).toBe(
+      undefined
+    );
   });
 
   it('deve converter span math-inline de volta para $...$', () => {

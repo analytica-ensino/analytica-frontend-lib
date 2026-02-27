@@ -3,12 +3,14 @@ import '@testing-library/jest-dom';
 import { FormulaDialog } from './FormulaDialog';
 
 // Mock katex
-const mockRenderToString = jest.fn((latex: string, options?: { throwOnError?: boolean }) => {
-  if (options?.throwOnError && latex === 'invalid{') {
-    throw new Error('KaTeX parse error');
+const mockRenderToString = jest.fn(
+  (latex: string, options?: { throwOnError?: boolean }) => {
+    if (options?.throwOnError && latex === 'invalid{') {
+      throw new Error('KaTeX parse error');
+    }
+    return `<span class="katex">${latex}</span>`;
   }
-  return `<span class="katex">${latex}</span>`;
-});
+);
 
 jest.mock('katex', () => ({
   renderToString: (latex: string, options?: { throwOnError?: boolean }) =>
@@ -30,7 +32,9 @@ describe('FormulaDialog', () => {
     it('deve renderizar o modal quando open é true', () => {
       render(<FormulaDialog {...defaultProps} />);
 
-      expect(screen.getByRole('heading', { name: 'Inserir fórmula' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { name: 'Inserir fórmula' })
+      ).toBeInTheDocument();
     });
 
     it('não deve renderizar quando open é false', () => {
@@ -74,7 +78,9 @@ describe('FormulaDialog', () => {
       render(<FormulaDialog {...defaultProps} />);
 
       expect(screen.getByText('Cancelar')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Inserir fórmula' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Inserir fórmula' })
+      ).toBeInTheDocument();
     });
 
     it('deve renderizar input de LaTeX', () => {
@@ -139,7 +145,9 @@ describe('FormulaDialog', () => {
     it('deve destacar fórmula selecionada', () => {
       render(<FormulaDialog {...defaultProps} />);
 
-      const formulaButton = screen.getByText('Teorema de Pitágoras').closest('button');
+      const formulaButton = screen
+        .getByText('Teorema de Pitágoras')
+        .closest('button');
       fireEvent.click(formulaButton!);
 
       expect(formulaButton).toHaveClass('border-primary-500');
@@ -199,7 +207,9 @@ describe('FormulaDialog', () => {
 
       // Aguardar o estado atualizar e o botão ficar habilitado
       await waitFor(() => {
-        const insertButton = screen.getByRole('button', { name: 'Inserir fórmula' });
+        const insertButton = screen.getByRole('button', {
+          name: 'Inserir fórmula',
+        });
         expect(insertButton).toBeEnabled();
       });
 
@@ -211,7 +221,9 @@ describe('FormulaDialog', () => {
     it('deve desabilitar botão Inserir quando input está vazio', () => {
       render(<FormulaDialog {...defaultProps} />);
 
-      const insertButton = screen.getByRole('button', { name: 'Inserir fórmula' });
+      const insertButton = screen.getByRole('button', {
+        name: 'Inserir fórmula',
+      });
       expect(insertButton).toBeDisabled();
     });
 
@@ -223,7 +235,9 @@ describe('FormulaDialog', () => {
       fireEvent.change(input, { target: { value: 'invalid{' } });
 
       await waitFor(() => {
-        const insertButton = screen.getByRole('button', { name: 'Inserir fórmula' });
+        const insertButton = screen.getByRole('button', {
+          name: 'Inserir fórmula',
+        });
         expect(insertButton).toBeDisabled();
       });
     });
@@ -241,7 +255,9 @@ describe('FormulaDialog', () => {
       fireEvent.click(screen.getByText('Cancelar'));
 
       // Reabrir o modal
-      rerender(<FormulaDialog {...defaultProps} open={true} onClose={onClose} />);
+      rerender(
+        <FormulaDialog {...defaultProps} open={true} onClose={onClose} />
+      );
 
       // Input deve estar vazio novamente
       const input = screen.getByPlaceholderText(/Ex: \\sqrt\{x\^2 \+ y\^2\}/);
@@ -267,10 +283,14 @@ describe('FormulaDialog', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Inserir fórmula' }));
 
       // Reabrir o modal
-      rerender(<FormulaDialog {...defaultProps} open={true} onInsert={onInsert} />);
+      rerender(
+        <FormulaDialog {...defaultProps} open={true} onInsert={onInsert} />
+      );
 
       // Input deve estar vazio
-      const inputAfter = screen.getByPlaceholderText(/Ex: \\sqrt\{x\^2 \+ y\^2\}/);
+      const inputAfter = screen.getByPlaceholderText(
+        /Ex: \\sqrt\{x\^2 \+ y\^2\}/
+      );
       expect(inputAfter).toHaveValue('');
     });
   });
