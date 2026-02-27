@@ -158,6 +158,9 @@ export default defineConfig({
     'StudentLessonProgressModal/index':
       'src/components/StudentLessonProgressModal/index.ts',
 
+    // DownloadModal
+    'DownloadModal/index': 'src/components/DownloadModal/DownloadModal.tsx',
+
     // ChoroplethMap
     'ChoroplethMap/index': 'src/components/ChoroplethMap/ChoroplethMap.tsx',
 

@@ -1163,3 +1163,11 @@ export type {
   UserPerformanceStudentData,
   UserPerformanceProfessionalData,
 } from './components/PerformanceReportModal/PerformanceReportModal';
+
+// DownloadModal Components
+export { default as DownloadModal } from './components/DownloadModal/DownloadModal';
+export { DOWNLOAD_FORMAT } from './enums/DownloadFormat';
+export type {
+  DownloadModalProps,
+  DownloadFormat,
+} from './components/DownloadModal/DownloadModal';
