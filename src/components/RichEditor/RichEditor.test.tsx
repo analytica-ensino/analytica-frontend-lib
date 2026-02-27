@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { RichEditor } from './RichEditor';
+import { RichEditor } from './RichEditorCore';
 import { useEditor } from '@tiptap/react';
 
 // Mock katex

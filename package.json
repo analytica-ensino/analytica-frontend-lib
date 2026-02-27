@@ -90,6 +90,23 @@
     "react-router-dom": "^7.6.2",
     "zod": ">=3.0.0"
   },
+  "peerDependenciesMeta": {
+    "@tiptap/core": { "optional": true },
+    "@tiptap/extension-color": { "optional": true },
+    "@tiptap/extension-highlight": { "optional": true },
+    "@tiptap/extension-link": { "optional": true },
+    "@tiptap/extension-placeholder": { "optional": true },
+    "@tiptap/extension-subscript": { "optional": true },
+    "@tiptap/extension-superscript": { "optional": true },
+    "@tiptap/extension-text-align": { "optional": true },
+    "@tiptap/extension-text-style": { "optional": true },
+    "@tiptap/extension-underline": { "optional": true },
+    "@tiptap/react": { "optional": true },
+    "@tiptap/starter-kit": { "optional": true },
+    "@react-google-maps/api": { "optional": true },
+    "@turf/helpers": { "optional": true },
+    "@turf/union": { "optional": true }
+  },
   "dependencies": {
     "clsx": "^2.1.1",
     "dayjs": "^1.11.18",
