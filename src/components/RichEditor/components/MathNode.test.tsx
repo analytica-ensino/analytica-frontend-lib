@@ -1,10 +1,12 @@
-import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { MathNode } from './MathNode';
 
 // Mock katex
 const mockRenderToString = jest.fn(
-  (latex: string, _options?: { throwOnError?: boolean; displayMode?: boolean }) => {
+  (
+    latex: string,
+    _options?: { throwOnError?: boolean; displayMode?: boolean }
+  ) => {
     if (latex === 'error-latex') {
       throw new Error('KaTeX parse error');
     }
@@ -28,6 +30,20 @@ jest.mock('@tiptap/react', () => ({
     </span>
   )),
 }));
+
+// Helper para chamar métodos de config com contexto mockado
+const getConfigMethod = <T,>(
+  method: (() => T) | null | undefined
+): T | undefined => {
+  if (!method) return undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (method as any).call({
+    name: 'mathInline',
+    options: {},
+    storage: {},
+    parent: undefined,
+  });
+};
 
 describe('MathNode Extension', () => {
   describe('Configuration', () => {
@@ -54,7 +70,9 @@ describe('MathNode Extension', () => {
 
   describe('Attributes', () => {
     it('deve definir atributo latex com valor padrão vazio', () => {
-      const attributes = MathNode.config.addAttributes?.();
+      const attributes = getConfigMethod(MathNode.config.addAttributes) as
+        | { latex: { default: string } }
+        | undefined;
       expect(attributes).toHaveProperty('latex');
       expect(attributes?.latex.default).toBe('');
     });
@@ -62,13 +80,13 @@ describe('MathNode Extension', () => {
 
   describe('parseHTML', () => {
     it('deve retornar regras de parse corretas', () => {
-      const parseRules = MathNode.config.parseHTML?.();
+      const parseRules = getConfigMethod(MathNode.config.parseHTML);
       expect(parseRules).toHaveLength(1);
       expect(parseRules?.[0].tag).toBe('span[data-type="math-inline"]');
     });
 
     it('deve extrair atributo latex do dataset', () => {
-      const parseRules = MathNode.config.parseHTML?.();
+      const parseRules = getConfigMethod(MathNode.config.parseHTML);
       const getAttrs = parseRules?.[0].getAttrs;
 
       const mockDom = {
@@ -87,10 +105,11 @@ describe('MathNode Extension', () => {
         attrs: { latex: 'a^2 + b^2 = c^2' },
       };
 
-      const result = renderHTML?.({
-        node: mockNode,
-        HTMLAttributes: {},
-      } as Parameters<NonNullable<typeof renderHTML>>[0]);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = (renderHTML as any)?.call(
+        { name: 'mathInline', options: {}, storage: {} },
+        { node: mockNode, HTMLAttributes: {} }
+      );
 
       expect(result).toEqual([
         'span',
@@ -107,10 +126,11 @@ describe('MathNode Extension', () => {
         attrs: { latex: 'pi' },
       };
 
-      const result = renderHTML?.({
-        node: mockNode,
-        HTMLAttributes: { class: 'custom-class' },
-      } as Parameters<NonNullable<typeof renderHTML>>[0]);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = (renderHTML as any)?.call(
+        { name: 'mathInline', options: {}, storage: {} },
+        { node: mockNode, HTMLAttributes: { class: 'custom-class' } }
+      );
 
       expect(result).toEqual([
         'span',
@@ -125,27 +145,27 @@ describe('MathNode Extension', () => {
 
   describe('addInputRules', () => {
     it('deve retornar array vazio (input rules desabilitadas)', () => {
-      const inputRules = MathNode.config.addInputRules?.();
+      const inputRules = getConfigMethod(MathNode.config.addInputRules);
       expect(inputRules).toEqual([]);
     });
   });
 
   describe('addKeyboardShortcuts', () => {
     it('deve definir atalho para Space', () => {
-      const shortcuts = MathNode.config.addKeyboardShortcuts?.();
+      const shortcuts = getConfigMethod(MathNode.config.addKeyboardShortcuts);
       expect(shortcuts).toHaveProperty('Space');
       expect(typeof shortcuts?.Space).toBe('function');
     });
 
     it('deve definir atalho para Backspace', () => {
-      const shortcuts = MathNode.config.addKeyboardShortcuts?.();
+      const shortcuts = getConfigMethod(MathNode.config.addKeyboardShortcuts);
       expect(shortcuts).toHaveProperty('Backspace');
       expect(typeof shortcuts?.Backspace).toBe('function');
     });
 
     describe('Space shortcut', () => {
       it('deve retornar false quando não há padrão $...$ antes do cursor', () => {
-        const shortcuts = MathNode.config.addKeyboardShortcuts?.();
+        const shortcuts = getConfigMethod(MathNode.config.addKeyboardShortcuts);
         const spaceHandler = shortcuts?.Space;
 
         const mockEditor = {
@@ -172,7 +192,7 @@ describe('MathNode Extension', () => {
       });
 
       it('deve converter $latex$ para math node quando Space é pressionado', () => {
-        const shortcuts = MathNode.config.addKeyboardShortcuts?.();
+        const shortcuts = getConfigMethod(MathNode.config.addKeyboardShortcuts);
         const spaceHandler = shortcuts?.Space;
 
         const mockChain = {
@@ -209,7 +229,7 @@ describe('MathNode Extension', () => {
       });
 
       it('deve retornar false quando $...$ está vazio', () => {
-        const shortcuts = MathNode.config.addKeyboardShortcuts?.();
+        const shortcuts = getConfigMethod(MathNode.config.addKeyboardShortcuts);
         const spaceHandler = shortcuts?.Space;
 
         const mockEditor = {
@@ -235,7 +255,7 @@ describe('MathNode Extension', () => {
 
     describe('Backspace shortcut', () => {
       it('deve retornar false quando não há math node antes do cursor', () => {
-        const shortcuts = MathNode.config.addKeyboardShortcuts?.();
+        const shortcuts = getConfigMethod(MathNode.config.addKeyboardShortcuts);
         const backspaceHandler = shortcuts?.Backspace;
 
         const mockEditor = {
@@ -255,7 +275,7 @@ describe('MathNode Extension', () => {
       });
 
       it('deve retornar false quando node antes não é mathInline', () => {
-        const shortcuts = MathNode.config.addKeyboardShortcuts?.();
+        const shortcuts = getConfigMethod(MathNode.config.addKeyboardShortcuts);
         const backspaceHandler = shortcuts?.Backspace;
 
         const mockEditor = {
@@ -277,7 +297,7 @@ describe('MathNode Extension', () => {
       });
 
       it('deve converter math node de volta para texto editável', () => {
-        const shortcuts = MathNode.config.addKeyboardShortcuts?.();
+        const shortcuts = getConfigMethod(MathNode.config.addKeyboardShortcuts);
         const backspaceHandler = shortcuts?.Backspace;
 
         const mockChain = {
@@ -315,34 +335,13 @@ describe('MathNode Extension', () => {
 
   describe('addNodeView', () => {
     it('deve retornar ReactNodeViewRenderer', () => {
-      const nodeView = MathNode.config.addNodeView?.();
+      const nodeView = getConfigMethod(MathNode.config.addNodeView);
       expect(nodeView).toBeDefined();
     });
   });
 });
 
 describe('MathNodeView Component', () => {
-  // Precisamos testar o componente MathNodeView separadamente
-  // Vamos importar e testar diretamente
-  const createMockProps = (latex: string) => ({
-    node: {
-      attrs: { latex },
-      nodeSize: 1,
-    },
-    editor: {
-      chain: jest.fn(() => ({
-        focus: jest.fn().mockReturnThis(),
-        deleteRange: jest.fn().mockReturnThis(),
-        insertContent: jest.fn().mockReturnThis(),
-        run: jest.fn(),
-      })),
-      commands: {
-        setTextSelection: jest.fn(),
-      },
-    },
-    getPos: jest.fn(() => 5),
-  });
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
