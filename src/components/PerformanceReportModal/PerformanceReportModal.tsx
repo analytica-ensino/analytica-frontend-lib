@@ -1,16 +1,15 @@
-import { useState, type ReactNode } from 'react';
-import { UserIcon, XCircleIcon } from '@phosphor-icons/react';
+import { type ReactNode } from 'react';
 import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
 import Badge from '../Badge/Badge';
-import { cn } from '../../utils/utils';
-import {
-  bgClassToCssVar,
-  polarToCartesian,
-  describeArc,
-} from '../../utils/chartUtils';
 import { MetricBox } from '../shared/MetricBox';
-import { REPORT_PERIOD } from '../../types/common';
+import { LegendPieCard, type PieSlice } from '../shared/ChartComponents';
+import {
+  SectionTitle,
+  UserHeader,
+  ErrorContent,
+} from '../shared/ModalComponents';
+import { REPORT_PERIOD, REPORT_MODAL_VARIANT } from '../../types/common';
 import { PERFORMANCE_TAG_CONFIG } from '../../types/performance';
 
 // ─── API Types (match backend exactly) ───────────────────────
@@ -106,10 +105,8 @@ export interface UserPerformanceProfessionalData {
   generalStats: UserPerformanceMaterialStats;
 }
 
-export enum PerformanceReportModalVariant {
-  STUDENT = 'student',
-  PROFESSIONAL = 'professional',
-}
+/** @deprecated Use {@link REPORT_MODAL_VARIANT} instead. Re-exported for backwards compatibility. */
+export { REPORT_MODAL_VARIANT as PerformanceReportModalVariant };
 
 interface PerformanceReportModalBaseProps {
   isOpen: boolean;
@@ -121,7 +118,7 @@ interface PerformanceReportModalBaseProps {
 }
 
 type PerformanceReportModalStudentProps = {
-  variant: PerformanceReportModalVariant.STUDENT;
+  variant: REPORT_MODAL_VARIANT.STUDENT;
   data: UserPerformanceStudentData | null;
   /**
    * Optional icon mapper for the downloaded lessons table.
@@ -141,7 +138,7 @@ type PerformanceReportModalStudentProps = {
 };
 
 type PerformanceReportModalProfessionalProps = {
-  variant: PerformanceReportModalVariant.PROFESSIONAL;
+  variant: REPORT_MODAL_VARIANT.PROFESSIONAL;
   data: UserPerformanceProfessionalData | null;
   /**
    * Display info for the professional modal header.
@@ -175,15 +172,7 @@ function getStatusVariant(
   );
 }
 
-// ─── Internal pie slice type ──────────────────────────────────
-
-interface PieSlice {
-  label: string;
-  value: number;
-  colorClass: string;
-  /** Direct CSS color value — takes precedence over colorClass when provided */
-  color?: string;
-}
+// ─── Pie slice builders ───────────────────────────────────────
 
 function buildQuestionsSlices(stats: UserPerformanceQuestionStats): PieSlice[] {
   return [
@@ -223,207 +212,6 @@ function buildMaterialSlices(stats: UserPerformanceMaterialStats): PieSlice[] {
 }
 
 // ─── Sub-components ──────────────────────────────────────────
-
-const SimplePieChart = ({
-  slices,
-  size = 130,
-}: {
-  slices: PieSlice[];
-  size?: number;
-}) => {
-  const [hovered, setHovered] = useState<string | null>(null);
-
-  const total = slices.reduce((sum, s) => sum + s.value, 0);
-  const r = size * 0.44;
-  const c = size / 2;
-
-  if (total === 0) {
-    return (
-      <svg
-        width={size}
-        height={size}
-        viewBox={`0 0 ${size} ${size}`}
-        aria-hidden="true"
-      >
-        <circle cx={c} cy={c} r={r} className="fill-background-200" />
-      </svg>
-    );
-  }
-
-  let cumAngle = 0;
-  const computed = slices
-    .map((s) => {
-      const pct = (s.value / total) * 100;
-      const startAngle = cumAngle;
-      cumAngle += (pct / 100) * 360;
-      const endAngle = cumAngle;
-      const midAngle = startAngle + (endAngle - startAngle) / 2;
-      return { ...s, pct, startAngle, endAngle, midAngle };
-    })
-    .filter((s) => s.pct > 0);
-
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox={`0 0 ${size} ${size}`}
-      aria-hidden="true"
-      onMouseLeave={() => setHovered(null)}
-    >
-      {computed.map((slice) => {
-        const isHovered = hovered === slice.label;
-        const isWhole = slice.pct >= 99.99;
-        const path = isWhole
-          ? undefined
-          : describeArc(c, c, r, slice.startAngle, slice.endAngle);
-        const labelPos = polarToCartesian(c, c, r * 0.62, slice.midAngle);
-        const fill = slice.color ?? bgClassToCssVar(slice.colorClass);
-
-        return (
-          <g
-            key={slice.label}
-            onMouseEnter={() => setHovered(slice.label)}
-            className="cursor-pointer"
-          >
-            {isWhole ? (
-              <circle cx={c} cy={c} r={r} fill={fill} />
-            ) : (
-              <path d={path} fill={fill} />
-            )}
-            {isHovered &&
-              (isWhole ? (
-                <circle
-                  cx={c}
-                  cy={c}
-                  r={r}
-                  fill="white"
-                  opacity={0.4}
-                  style={{ pointerEvents: 'none' }}
-                />
-              ) : (
-                <path
-                  d={path}
-                  fill="white"
-                  opacity={0.4}
-                  style={{ pointerEvents: 'none' }}
-                />
-              ))}
-            {slice.pct >= 5 && (
-              <text
-                x={labelPos.x}
-                y={labelPos.y}
-                textAnchor="middle"
-                dominantBaseline="central"
-                fill="var(--color-text-950)"
-                style={{
-                  fontSize: 14,
-                  fontWeight: 500,
-                  fontFamily: 'Roboto, sans-serif',
-                  lineHeight: 1,
-                  letterSpacing: 0,
-                  pointerEvents: 'none',
-                }}
-              >
-                {`${Math.round(slice.pct)}%`}
-              </text>
-            )}
-          </g>
-        );
-      })}
-    </svg>
-  );
-};
-
-const LegendRow = ({
-  colorClass,
-  color,
-  label,
-  value,
-}: {
-  colorClass: string;
-  color?: string;
-  label: string;
-  value: number;
-}) => (
-  <div className="flex items-center gap-2">
-    <div
-      className={cn('w-2 h-2 rounded-full shrink-0', !color && colorClass)}
-      style={color ? { backgroundColor: color } : undefined}
-    />
-    <Text size="sm" weight="medium" className="text-text-950 flex-1">
-      {label}
-    </Text>
-    <Text size="sm" weight="medium" className="text-text-600 ml-3">
-      {value}
-    </Text>
-  </div>
-);
-
-const LegendPieCard = ({ slices }: { slices: PieSlice[] }) => (
-  <div className="flex items-center justify-between gap-4 p-4 bg-background border border-border-50 rounded-xl">
-    <div className="flex flex-col gap-2">
-      {slices.map((s) => (
-        <LegendRow
-          key={s.label}
-          colorClass={s.colorClass}
-          color={s.color}
-          label={s.label}
-          value={s.value}
-        />
-      ))}
-    </div>
-    <SimplePieChart slices={slices} />
-  </div>
-);
-
-const SectionTitle = ({ children }: { children: ReactNode }) => (
-  <Text
-    as="h3"
-    size="md"
-    weight="bold"
-    className="text-text-950 tracking-[0.2px]"
-  >
-    {children}
-  </Text>
-);
-
-const UserHeader = ({
-  name,
-  school,
-  className,
-  year,
-  status,
-}: {
-  name: string;
-  school: string;
-  className: string;
-  year: string | number;
-  status?: string;
-}) => (
-  <div className="flex flex-col gap-2 pb-4 border-b border-border-50">
-    <div className="flex items-center justify-between gap-3">
-      <div className="flex items-center gap-2">
-        <Text
-          as="span"
-          className="size-8 rounded-full bg-background-100 flex items-center justify-center shrink-0"
-        >
-          <UserIcon size={18} className="text-text-500" weight="fill" />
-        </Text>
-        <Text size="md" weight="medium" className="text-text-950">
-          {name}
-        </Text>
-      </div>
-      {status && (
-        <Badge variant="solid" action={getStatusVariant(status)} size="small">
-          {status.toUpperCase()}
-        </Badge>
-      )}
-    </div>
-    <Text size="xs" className="text-text-600">
-      {school} • {className} • {year}
-    </Text>
-  </div>
-);
 
 /**
  * A questions stats section: one or two metrics + legend + pie chart.
@@ -535,7 +323,17 @@ const StudentModalContent = ({
       school={data.school.schoolName}
       className={data.class.className}
       year={data.schoolYear.schoolYearName}
-      status={data.status}
+      statusBadge={
+        data.status ? (
+          <Badge
+            variant="solid"
+            action={getStatusVariant(data.status)}
+            size="small"
+          >
+            {data.status.toUpperCase()}
+          </Badge>
+        ) : undefined
+      }
     />
 
     <QuestionsSection
@@ -616,20 +414,6 @@ const LoadingSkeleton = () => (
   </div>
 );
 
-const ErrorContent = ({ message }: { message: string }) => (
-  <div className="flex flex-col items-center justify-center py-10 gap-3">
-    <Text
-      as="span"
-      className="size-10 rounded-full bg-error-100 flex items-center justify-center"
-    >
-      <XCircleIcon size={20} className="text-error-700" weight="fill" />
-    </Text>
-    <Text size="sm" className="text-error-700 text-center">
-      {message}
-    </Text>
-  </div>
-);
-
 // ─── Main component ───────────────────────────────────────────
 
 /**
@@ -686,7 +470,7 @@ export const PerformanceReportModal = ({
   } else if (error) {
     content = <ErrorContent message={error} />;
   } else if (variantProps.data !== null) {
-    if (variantProps.variant === PerformanceReportModalVariant.STUDENT) {
+    if (variantProps.variant === REPORT_MODAL_VARIANT.STUDENT) {
       content = (
         <StudentModalContent
           data={variantProps.data}

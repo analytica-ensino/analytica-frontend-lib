@@ -110,7 +110,9 @@ describe('RichEditor Wrapper', () => {
         const yarnCommand = screen.getByText(/yarn add/);
         expect(yarnCommand.textContent).toContain('@tiptap/core');
         expect(yarnCommand.textContent).toContain('@tiptap/starter-kit');
-        expect(yarnCommand.textContent).toContain('@tiptap/extension-underline');
+        expect(yarnCommand.textContent).toContain(
+          '@tiptap/extension-underline'
+        );
         expect(yarnCommand.textContent).toContain('@tiptap/extension-link');
       });
     });
@@ -140,7 +142,9 @@ describe('RichEditor Wrapper', () => {
         expect(
           screen.getByText('Erro ao carregar o RichEditor')
         ).toBeInTheDocument();
-        expect(screen.getByText('Erro genérico de runtime')).toBeInTheDocument();
+        expect(
+          screen.getByText('Erro genérico de runtime')
+        ).toBeInTheDocument();
       });
     });
 
@@ -151,7 +155,9 @@ describe('RichEditor Wrapper', () => {
       render(<RichEditor />);
 
       await waitFor(() => {
-        expect(screen.getByText('Erro ao carregar o RichEditor')).toBeInTheDocument();
+        expect(
+          screen.getByText('Erro ao carregar o RichEditor')
+        ).toBeInTheDocument();
       });
 
       expect(screen.queryByText('Usando Yarn:')).not.toBeInTheDocument();

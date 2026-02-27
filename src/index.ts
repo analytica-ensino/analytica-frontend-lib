@@ -129,7 +129,7 @@ export type {
 // Map Data Hook
 export { createUseMapData } from './hooks/useMapData';
 export type { UseMapDataReturn } from './hooks/useMapData';
-export { REPORT_PERIOD } from './types/common';
+export { REPORT_PERIOD, REPORT_MODAL_VARIANT } from './types/common';
 export type {
   MapFilters as MapDataFilters,
   MapDataRegion,
@@ -1163,6 +1163,18 @@ export type {
   UserPerformanceStudentData,
   UserPerformanceProfessionalData,
 } from './components/PerformanceReportModal/PerformanceReportModal';
+
+// AccessReportModal Components
+export {
+  AccessReportModal,
+  AccessReportModalVariant,
+} from './components/AccessReportModal/AccessReportModal';
+export type {
+  AccessReportModalProps,
+  AccessReportStudentData,
+  AccessReportProfessionalData,
+  AccessReportPlatformStats,
+} from './components/AccessReportModal/AccessReportModal';
 
 // DownloadModal Components
 export { default as DownloadModal } from './components/DownloadModal/DownloadModal';
