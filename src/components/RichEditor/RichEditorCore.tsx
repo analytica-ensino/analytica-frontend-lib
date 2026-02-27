@@ -114,7 +114,6 @@ export function RichEditor({
   // Update editor content when prop changes externally (e.g., from loadQuestion)
   useEffect(() => {
     if (editor && content !== undefined && content !== lastContentRef.current) {
-      isExternalUpdateRef.current = true;
       const processedContent = processLatexInHtml(content || '');
       editor.commands.setContent(processedContent, false);
       lastContentRef.current = content;
