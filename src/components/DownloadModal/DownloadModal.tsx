@@ -52,6 +52,8 @@ const DownloadModal = ({
       onDownloadPdf();
       handleClose();
     } else if (selectedFormat === 'excel') {
+      // Excel generation is async — the modal stays open to show skeleton
+      // loading state. The parent closes it via onClose after completion.
       onDownloadExcel();
     }
   }, [selectedFormat, onDownloadPdf, onDownloadExcel, handleClose]);
@@ -109,6 +111,8 @@ const DownloadModal = ({
             <button
               data-testid="download-pdf-option"
               type="button"
+              aria-label="PDF"
+              aria-pressed={selectedFormat === 'pdf'}
               className={`${cardBase} ${selectedFormat === 'pdf' ? cardSelected : cardDefault}`}
               onClick={() => setSelectedFormat('pdf')}
             >
@@ -118,6 +122,8 @@ const DownloadModal = ({
             <button
               data-testid="download-excel-option"
               type="button"
+              aria-label="Excel"
+              aria-pressed={selectedFormat === 'excel'}
               className={`${cardBase} ${selectedFormat === 'excel' ? cardSelected : cardDefault}`}
               onClick={() => setSelectedFormat('excel')}
             >
