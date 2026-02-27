@@ -224,6 +224,109 @@ describe('Button', () => {
     });
   });
 
+  describe('Raw variant', () => {
+    it('renders raw variant without default styling classes', () => {
+      render(<Button variant="raw">Test</Button>);
+      const button = screen.getByRole('button');
+      // Should not have base classes
+      expect(button).not.toHaveClass('inline-flex');
+      expect(button).not.toHaveClass('rounded-full');
+      expect(button).not.toHaveClass('cursor-pointer');
+      // Should not have variant classes
+      expect(button).not.toHaveClass('bg-primary-950');
+      expect(button).not.toHaveClass('border-primary-950');
+      // Should not have size classes
+      expect(button).not.toHaveClass('px-5');
+      expect(button).not.toHaveClass('py-2.5');
+    });
+
+    it('applies only custom className when using raw variant', () => {
+      render(
+        <Button variant="raw" className="custom-raw-class">
+          Test
+        </Button>
+      );
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass('custom-raw-class');
+      expect(button.className).toBe('custom-raw-class');
+    });
+
+    it('renders children correctly with raw variant', () => {
+      render(<Button variant="raw">Raw Button Content</Button>);
+      expect(screen.getByRole('button')).toHaveTextContent(
+        'Raw Button Content'
+      );
+    });
+
+    it('handles disabled state with raw variant', () => {
+      render(
+        <Button variant="raw" disabled>
+          Test
+        </Button>
+      );
+      const button = screen.getByRole('button');
+      expect(button).toBeDisabled();
+    });
+
+    it('renders left icon with raw variant', () => {
+      const LeftIcon = () => <span data-testid="left-icon">←</span>;
+      render(
+        <Button variant="raw" iconLeft={<LeftIcon />}>
+          Test
+        </Button>
+      );
+      expect(screen.getByTestId('left-icon')).toBeInTheDocument();
+    });
+
+    it('renders right icon with raw variant', () => {
+      const RightIcon = () => <span data-testid="right-icon">→</span>;
+      render(
+        <Button variant="raw" iconRight={<RightIcon />}>
+          Test
+        </Button>
+      );
+      expect(screen.getByTestId('right-icon')).toBeInTheDocument();
+    });
+
+    it('renders both icons with raw variant', () => {
+      const LeftIcon = () => <span data-testid="left-icon">←</span>;
+      const RightIcon = () => <span data-testid="right-icon">→</span>;
+      render(
+        <Button variant="raw" iconLeft={<LeftIcon />} iconRight={<RightIcon />}>
+          Test
+        </Button>
+      );
+      expect(screen.getByTestId('left-icon')).toBeInTheDocument();
+      expect(screen.getByTestId('right-icon')).toBeInTheDocument();
+    });
+
+    it('has default type="button" with raw variant', () => {
+      render(<Button variant="raw">Test</Button>);
+      const button = screen.getByRole('button');
+      expect(button).toHaveAttribute('type', 'button');
+    });
+
+    it('allows type to be overridden with raw variant', () => {
+      render(
+        <Button variant="raw" type="submit">
+          Test
+        </Button>
+      );
+      const button = screen.getByRole('button');
+      expect(button).toHaveAttribute('type', 'submit');
+    });
+
+    it('passes through additional props with raw variant', () => {
+      render(
+        <Button variant="raw" data-testid="raw-button" aria-label="Raw action">
+          Test
+        </Button>
+      );
+      const button = screen.getByTestId('raw-button');
+      expect(button).toHaveAttribute('aria-label', 'Raw action');
+    });
+  });
+
   describe('Combined variant, action and size classes', () => {
     it('combines outline variant with positive action and large size correctly', () => {
       render(

@@ -34,6 +34,8 @@ export { default as IconRoundedButton } from './components/IconRoundedButton/Ico
 export { default as NavButton } from './components/NavButton/NavButton';
 export { default as SelectionButton } from './components/SelectionButton/SelectionButton';
 export { default as CheckBox } from './components/CheckBox/CheckBox';
+export { default as ToggleSwitch } from './components/ToggleSwitch/ToggleSwitch';
+export type { ToggleSwitchProps } from './components/ToggleSwitch/ToggleSwitch';
 export { default as ImageUpload } from './components/ImageUpload/ImageUpload';
 export type { ImageUploadProps } from './components/ImageUpload/ImageUpload';
 export { default as FileDropzone } from './components/FileDropzone/FileDropzone';
@@ -389,6 +391,15 @@ export type { EmptyStateProps } from './components/EmptyState/EmptyState';
 export { default as VideoPlayer } from './components/VideoPlayer/VideoPlayer';
 export { default as Whiteboard } from './components/Whiteboard/Whiteboard';
 export { default as DownloadButton } from './components/DownloadButton/DownloadButton';
+
+// RichEditor - WYSIWYG editor with LaTeX support (requires @tiptap/* dependencies)
+export { RichEditor } from './components/RichEditor/RichEditor';
+export { FormulaDialog } from './components/RichEditor/components/FormulaDialog';
+export { MathNode } from './components/RichEditor/components/MathNode';
+export {
+  processLatexInHtml,
+  unprocessLatexInHtml,
+} from './components/RichEditor/components/utils';
 export type {
   DownloadContent,
   DownloadButtonProps,
@@ -1137,6 +1148,21 @@ export type {
   PerformanceRankingData,
   GroupedBy,
 } from './components/PerformanceRanking/PerformanceRanking';
+
+// PerformanceReportModal Components
+export {
+  PerformanceReportModal,
+  PerformanceReportModalVariant,
+} from './components/PerformanceReportModal/PerformanceReportModal';
+export type {
+  PerformanceReportModalProps,
+  UserPerformanceRequest,
+  UserPerformanceQuestionStats,
+  UserPerformanceMaterialStats,
+  UserPerformanceLesson,
+  UserPerformanceStudentData,
+  UserPerformanceProfessionalData,
+} from './components/PerformanceReportModal/PerformanceReportModal';
 
 // DownloadModal Components
 export { default as DownloadModal } from './components/DownloadModal/DownloadModal';
