@@ -142,6 +142,6 @@ export function RichEditor(props: RichEditorProps) {
   );
 }
 
-function MissingDependenciesErrorFallback(error: Error) {
+function MissingDependenciesErrorFallback(error: Readonly<Error>) {
   return <MissingDependenciesError error={error} />;
 }
