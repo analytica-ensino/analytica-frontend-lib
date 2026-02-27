@@ -17,8 +17,9 @@ export interface ReportLayoutTab<TCard extends { id: string }> {
 /**
  * Props for the ReportLayout component.
  */
-export interface ReportLayoutProps<TCard extends { id: string }>
-  extends HTMLAttributes<HTMLDivElement> {
+export interface ReportLayoutProps<
+  TCard extends { id: string },
+> extends HTMLAttributes<HTMLDivElement> {
   /** Tab configurations */
   tabs: ReportLayoutTab<TCard>[];
   /** Default active tab value */

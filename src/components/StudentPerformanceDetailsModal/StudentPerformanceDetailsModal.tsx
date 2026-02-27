@@ -12,6 +12,7 @@ import type {
   ActivityProgress,
 } from './types';
 import { DEFAULT_PERFORMANCE_DETAILS_LABELS } from './types';
+import { MetricBox } from '../shared/MetricBox';
 
 /**
  * Performance stat card with colored header and white footer
@@ -116,32 +117,6 @@ const PerformanceStatCard = ({
     </div>
   );
 };
-
-/**
- * Metric card for secondary/tertiary stats
- * Used for ATIVIDADES REALIZADAS, CONTEÚDOS, ACESSOS, etc.
- */
-interface MetricCardProps {
-  /** Card label */
-  label: string;
-  /** Value to display */
-  value: string | number;
-}
-
-const MetricCard = ({ label, value }: MetricCardProps) => (
-  <div className="flex flex-col items-center justify-center gap-2 px-3 sm:px-4 py-3 sm:py-4 rounded-xl border border-border-50 bg-background">
-    <Text
-      size="2xs"
-      weight="medium"
-      className="text-text-600 uppercase text-center"
-    >
-      {label}
-    </Text>
-    <Badge size="large" action="info">
-      {value}
-    </Badge>
-  </div>
-);
 
 /**
  * Activity progress card with expandable accordion content
@@ -330,21 +305,18 @@ const PerformanceContent = ({
 
     {/* Secondary stats row */}
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-      <MetricCard
+      <MetricBox
         label={labels.activitiesLabel}
         value={data.activitiesCompleted}
       />
-      <MetricCard
-        label={labels.questionsLabel}
-        value={data.questionsAnswered}
-      />
+      <MetricBox label={labels.questionsLabel} value={data.questionsAnswered} />
     </div>
 
     {/* Tertiary stats row */}
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
-      <MetricCard label={labels.accessCountLabel} value={data.accessCount} />
-      <MetricCard label={labels.timeOnlineLabel} value={data.timeOnline} />
-      <MetricCard label={labels.lastLoginLabel} value={data.lastLogin} />
+      <MetricBox label={labels.accessCountLabel} value={data.accessCount} />
+      <MetricBox label={labels.timeOnlineLabel} value={data.timeOnline} />
+      <MetricBox label={labels.lastLoginLabel} value={data.lastLogin} />
     </div>
 
     {/* Activities progress section */}
