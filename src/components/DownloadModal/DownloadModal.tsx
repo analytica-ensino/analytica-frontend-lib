@@ -8,11 +8,12 @@ import Modal from '../Modal/Modal';
 import Button from '../Button/Button';
 import Text from '../Text/Text';
 import { Skeleton } from '../Skeleton/Skeleton';
+import { DOWNLOAD_FORMAT } from '../../enums/DownloadFormat';
 
 /**
- * Supported download format options
+ * Download format type alias
  */
-export type DownloadFormat = 'pdf' | 'excel';
+export type DownloadFormat = DOWNLOAD_FORMAT;
 
 /**
  * Props for the DownloadModal component
@@ -48,10 +49,10 @@ const DownloadModal = ({
   }, [onClose]);
 
   const handleDownload = useCallback(() => {
-    if (selectedFormat === 'pdf') {
+    if (selectedFormat === DOWNLOAD_FORMAT.PDF) {
       onDownloadPdf();
       handleClose();
-    } else if (selectedFormat === 'excel') {
+    } else if (selectedFormat === DOWNLOAD_FORMAT.EXCEL) {
       // Excel generation is async — the modal stays open to show skeleton
       // loading state. The parent closes it via onClose after completion.
       onDownloadExcel();
@@ -112,9 +113,9 @@ const DownloadModal = ({
               data-testid="download-pdf-option"
               type="button"
               aria-label="PDF"
-              aria-pressed={selectedFormat === 'pdf'}
-              className={`${cardBase} ${selectedFormat === 'pdf' ? cardSelected : cardDefault}`}
-              onClick={() => setSelectedFormat('pdf')}
+              aria-pressed={selectedFormat === DOWNLOAD_FORMAT.PDF}
+              className={`${cardBase} ${selectedFormat === DOWNLOAD_FORMAT.PDF ? cardSelected : cardDefault}`}
+              onClick={() => setSelectedFormat(DOWNLOAD_FORMAT.PDF)}
             >
               <FilePdfIcon size={24} className="text-text-700" />
             </button>
@@ -123,9 +124,9 @@ const DownloadModal = ({
               data-testid="download-excel-option"
               type="button"
               aria-label="Excel"
-              aria-pressed={selectedFormat === 'excel'}
-              className={`${cardBase} ${selectedFormat === 'excel' ? cardSelected : cardDefault}`}
-              onClick={() => setSelectedFormat('excel')}
+              aria-pressed={selectedFormat === DOWNLOAD_FORMAT.EXCEL}
+              className={`${cardBase} ${selectedFormat === DOWNLOAD_FORMAT.EXCEL ? cardSelected : cardDefault}`}
+              onClick={() => setSelectedFormat(DOWNLOAD_FORMAT.EXCEL)}
             >
               <FileXlsIcon size={24} className="text-text-700" />
             </button>

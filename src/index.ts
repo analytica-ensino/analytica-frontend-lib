@@ -1140,6 +1140,7 @@ export type {
 
 // DownloadModal Components
 export { default as DownloadModal } from './components/DownloadModal/DownloadModal';
+export { DOWNLOAD_FORMAT } from './enums/DownloadFormat';
 export type {
   DownloadModalProps,
   DownloadFormat,
