@@ -58,8 +58,9 @@ export const getPositionBackgroundClass = (
  * Generic ranking card wrapper — renders a header (title + icon badge)
  * followed by a list of items using the provided render function.
  */
-export interface BaseRankingCardProps<T>
-  extends HTMLAttributes<HTMLDivElement> {
+export interface BaseRankingCardProps<
+  T,
+> extends HTMLAttributes<HTMLDivElement> {
   title: string;
   variant: RankingVariant;
   items: T[];

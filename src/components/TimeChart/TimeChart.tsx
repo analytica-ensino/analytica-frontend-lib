@@ -2,6 +2,13 @@ import { useState, type HTMLAttributes, type ReactNode } from 'react';
 import Text from '../Text/Text';
 import { Tooltip } from '../Tooltip/Tooltip';
 import { cn } from '../../utils/utils';
+import {
+  bgClassToCssVar,
+  polarToCartesian,
+  describeArc,
+} from '../../utils/chartUtils';
+
+export { bgClassToCssVar } from '../../utils/chartUtils';
 import { PROFILE_ROLES } from '../../types/chat';
 import type { StudentsHighlightPeriod } from '../../hooks/useStudentsHighlight';
 
@@ -192,15 +199,6 @@ export interface TimeChartResponse<
 // ─── Utilities ───────────────────────────────────────────────
 
 /**
- * Extracts CSS variable from a Tailwind bg- class for SVG fill/stroke usage.
- * E.g., "bg-success-800" -> "var(--color-success-800)"
- */
-export const bgClassToCssVar = (bgClass: string): string => {
-  const colorToken = bgClass.replace('bg-', '');
-  return `var(--color-${colorToken})`;
-};
-
-/**
  * Calculate Y-axis tick values formatted for hours display.
  * Rounds up to the nearest multiple of 4 so that dividing into 4 equal
  * intervals always produces integer ticks with uniform spacing.
@@ -219,39 +217,6 @@ export const calculateHourTicks = (maxHours: number): number[] => {
  */
 const getDayValue = (day: TimeChartDayData, key: string): number =>
   Number(day[key]) || 0;
-
-/**
- * Converts polar coordinates to cartesian for SVG path calculations
- */
-const polarToCartesian = (
-  cx: number,
-  cy: number,
-  r: number,
-  angleDeg: number
-) => {
-  const angleRad = ((angleDeg - 90) * Math.PI) / 180;
-  return {
-    x: cx + r * Math.cos(angleRad),
-    y: cy + r * Math.sin(angleRad),
-  };
-};
-
-/**
- * Generates an SVG arc path for a pie slice
- */
-const describeArc = (
-  cx: number,
-  cy: number,
-  r: number,
-  startAngle: number,
-  endAngle: number
-): string => {
-  const start = polarToCartesian(cx, cy, r, endAngle);
-  const end = polarToCartesian(cx, cy, r, startAngle);
-  const largeArcFlag = endAngle - startAngle > 180 ? 1 : 0;
-
-  return `M ${cx} ${cy} L ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} 0 ${end.x} ${end.y} Z`;
-};
 
 // ─── Sub-components ──────────────────────────────────────────
 
