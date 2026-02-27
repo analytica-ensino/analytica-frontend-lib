@@ -1137,3 +1137,10 @@ export type {
   PerformanceRankingData,
   GroupedBy,
 } from './components/PerformanceRanking/PerformanceRanking';
+
+// DownloadModal Components
+export { default as DownloadModal } from './components/DownloadModal/DownloadModal';
+export type {
+  DownloadModalProps,
+  DownloadFormat,
+} from './components/DownloadModal/DownloadModal';
