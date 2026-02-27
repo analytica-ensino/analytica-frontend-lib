@@ -109,27 +109,29 @@ const DownloadModal = ({
           </div>
         ) : (
           <div className="flex flex-row gap-4">
-            <button
+            <Button
               data-testid="download-pdf-option"
-              type="button"
               aria-label="PDF"
               aria-pressed={selectedFormat === DOWNLOAD_FORMAT.PDF}
+              variant="outline"
+              action="secondary"
               className={`${cardBase} ${selectedFormat === DOWNLOAD_FORMAT.PDF ? cardSelected : cardDefault}`}
               onClick={() => setSelectedFormat(DOWNLOAD_FORMAT.PDF)}
             >
               <FilePdfIcon size={24} className="text-text-700" />
-            </button>
+            </Button>
 
-            <button
+            <Button
               data-testid="download-excel-option"
-              type="button"
               aria-label="Excel"
               aria-pressed={selectedFormat === DOWNLOAD_FORMAT.EXCEL}
+              variant="outline"
+              action="secondary"
               className={`${cardBase} ${selectedFormat === DOWNLOAD_FORMAT.EXCEL ? cardSelected : cardDefault}`}
               onClick={() => setSelectedFormat(DOWNLOAD_FORMAT.EXCEL)}
             >
               <FileXlsIcon size={24} className="text-text-700" />
-            </button>
+            </Button>
           </div>
         )}
       </div>
