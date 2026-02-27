@@ -57,11 +57,6 @@ describe('RichEditor Module Exports', () => {
     expect(typeof module.FormulaDialog).toBe('function');
   });
 
-  it('deve exportar MathNode', async () => {
-    const module = await import('./index');
-    expect(module.MathNode).toBeDefined();
-  });
-
   it('deve exportar processLatexInHtml', async () => {
     const module = await import('./index');
     expect(module.processLatexInHtml).toBeDefined();
@@ -79,7 +74,6 @@ describe('RichEditor Module Exports', () => {
     const expectedExports = [
       'RichEditor',
       'FormulaDialog',
-      'MathNode',
       'processLatexInHtml',
       'unprocessLatexInHtml',
     ];
@@ -96,6 +90,7 @@ describe('RichEditor Module Exports', () => {
     expect(module).not.toHaveProperty('RichEditorCore');
     expect(module).not.toHaveProperty('ToolbarBtn');
     expect(module).not.toHaveProperty('Divider');
+    expect(module).not.toHaveProperty('MathNode');
     expect(module).not.toHaveProperty('MathNodeView');
     expect(module).not.toHaveProperty('LoadingFallback');
     expect(module).not.toHaveProperty('MissingDependenciesError');
@@ -148,15 +143,5 @@ describe('FormulaDialog component type', () => {
     const { FormulaDialog } = await import('./index');
 
     expect(typeof FormulaDialog).toBe('function');
-  });
-});
-
-describe('MathNode extension', () => {
-  it('deve ter propriedade name', async () => {
-    const { MathNode } = await import('./index');
-
-    // MathNode é uma extensão do TipTap
-    expect(MathNode).toBeDefined();
-    expect(MathNode.name).toBe('mathInline');
   });
 });
