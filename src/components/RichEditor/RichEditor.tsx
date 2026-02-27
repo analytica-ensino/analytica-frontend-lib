@@ -59,7 +59,7 @@ const TIPTAP_DEPENDENCIES = [
   '@tiptap/extension-placeholder',
 ];
 
-function MissingDependenciesError({ error }: { error: Error }) {
+function MissingDependenciesError({ error }: { readonly error: Error }) {
   const isTiptapError =
     error.message.includes('@tiptap') ||
     error.message.includes("Cannot find module '@tiptap");
@@ -134,12 +134,14 @@ function LoadingFallback() {
 
 export function RichEditor(props: RichEditorProps) {
   return (
-    <RichEditorErrorBoundary
-      fallback={(error) => <MissingDependenciesError error={error} />}
-    >
+    <RichEditorErrorBoundary fallback={MissingDependenciesErrorFallback}>
       <Suspense fallback={<LoadingFallback />}>
         <RichEditorCore {...props} />
       </Suspense>
     </RichEditorErrorBoundary>
   );
+}
+
+function MissingDependenciesErrorFallback(error: Error) {
+  return <MissingDependenciesError error={error} />;
 }
