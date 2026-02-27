@@ -9,6 +9,6 @@
  */
 
 export { RichEditor } from './RichEditor';
-export { FormulaDialog } from './FormulaDialog';
-export { MathNode } from './MathNode';
-export { processLatexInHtml, unprocessLatexInHtml } from './utils';
+export { FormulaDialog } from './components/FormulaDialog';
+export { MathNode } from './components/MathNode';
+export { processLatexInHtml, unprocessLatexInHtml } from './components/utils';

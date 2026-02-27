@@ -1,10 +1,10 @@
 import { useState, useEffect, ChangeEvent } from 'react';
-import Button from '../Button/Button';
-import Input from '../Input/Input';
-import Menu, { MenuContent, MenuItem } from '../Menu/Menu';
-import Modal from '../Modal/Modal';
-import Text from '../Text/Text';
-import TextArea from '../TextArea/TextArea';
+import Button from '../../Button/Button';
+import Input from '../../Input/Input';
+import Menu, { MenuContent, MenuItem } from '../../Menu/Menu';
+import Modal from '../../Modal/Modal';
+import Text from '../../Text/Text';
+import TextArea from '../../TextArea/TextArea';
 import { Sparkle } from 'phosphor-react';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';

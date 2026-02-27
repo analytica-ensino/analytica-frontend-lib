@@ -9,8 +9,8 @@ import Subscript from '@tiptap/extension-subscript';
 import Superscript from '@tiptap/extension-superscript';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
-import { MathNode } from './MathNode';
-import { processLatexInHtml } from './utils';
+import { MathNode } from './components/MathNode';
+import { processLatexInHtml } from './components/utils';
 import 'katex/dist/katex.min.css';
 import {
   TextBolder,
@@ -33,7 +33,7 @@ import {
   MathOperations,
 } from 'phosphor-react';
 import { useState, useRef, useEffect, ReactNode } from 'react';
-import { FormulaDialog } from './FormulaDialog';
+import { FormulaDialog } from './components/FormulaDialog';
 import Button from '../Button/Button';
 import Text from '../Text/Text';
 

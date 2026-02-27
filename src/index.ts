@@ -394,12 +394,12 @@ export { default as DownloadButton } from './components/DownloadButton/DownloadB
 
 // RichEditor - WYSIWYG editor with LaTeX support (requires @tiptap/* dependencies)
 export { RichEditor } from './components/RichEditor/RichEditor';
-export { FormulaDialog } from './components/RichEditor/FormulaDialog';
-export { MathNode } from './components/RichEditor/MathNode';
+export { FormulaDialog } from './components/RichEditor/components/FormulaDialog';
+export { MathNode } from './components/RichEditor/components/MathNode';
 export {
   processLatexInHtml,
   unprocessLatexInHtml,
-} from './components/RichEditor/utils';
+} from './components/RichEditor/components/utils';
 export type {
   DownloadContent,
   DownloadButtonProps,
