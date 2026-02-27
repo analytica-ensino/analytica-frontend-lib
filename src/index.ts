@@ -1137,3 +1137,18 @@ export type {
   PerformanceRankingData,
   GroupedBy,
 } from './components/PerformanceRanking/PerformanceRanking';
+
+// PerformanceReportModal Components
+export {
+  PerformanceReportModal,
+  PerformanceReportModalVariant,
+} from './components/PerformanceReportModal/PerformanceReportModal';
+export type {
+  PerformanceReportModalProps,
+  UserPerformanceRequest,
+  UserPerformanceQuestionStats,
+  UserPerformanceMaterialStats,
+  UserPerformanceLesson,
+  UserPerformanceStudentData,
+  UserPerformanceProfessionalData,
+} from './components/PerformanceReportModal/PerformanceReportModal';
