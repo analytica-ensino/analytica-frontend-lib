@@ -169,7 +169,7 @@ function buildProfessionalHoursSlices(
     {
       label: 'Aulas recomendadas',
       value: hoursByItem.recommendedLessons,
-      colorClass: 'bg-warning-300',
+      colorClass: 'bg-indicator-positive',
       color: 'var(--Indicator-Indicator-Positive, #F8CC2E)',
     },
   ];
@@ -317,22 +317,22 @@ export const AccessReportModal = ({
     content = <LoadingSkeleton />;
   } else if (error) {
     content = <ErrorContent message={error} />;
-  } else if (variantProps.data !== null) {
-    if (variantProps.variant === REPORT_MODAL_VARIANT.STUDENT) {
-      content = (
-        <StudentModalContent
-          data={variantProps.data}
-          userInfo={variantProps.studentUserInfo}
-        />
-      );
-    } else {
-      content = (
-        <ProfessionalModalContent
-          data={variantProps.data}
-          userInfo={variantProps.professionalUserInfo}
-        />
-      );
-    }
+  } else if (variantProps.data === null) {
+    content = <ErrorContent message="Nenhum dado disponível." />;
+  } else if (variantProps.variant === REPORT_MODAL_VARIANT.STUDENT) {
+    content = (
+      <StudentModalContent
+        data={variantProps.data}
+        userInfo={variantProps.studentUserInfo}
+      />
+    );
+  } else {
+    content = (
+      <ProfessionalModalContent
+        data={variantProps.data}
+        userInfo={variantProps.professionalUserInfo}
+      />
+    );
   }
 
   return (
