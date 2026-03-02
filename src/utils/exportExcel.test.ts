@@ -1,4 +1,4 @@
-import type { SheetConfig } from '../types/report';
+import type { SheetConfig } from './exportExcel';
 
 const mockXLSX = {
   utils: {

@@ -170,9 +170,7 @@ export default defineConfig({
 
     // Report Export
     'utils/exportExcel/index': 'src/utils/exportExcel.ts',
-    'utils/reportExcelSheets/index': 'src/utils/reportExcelSheets.ts',
     'utils/exportPdf/index': 'src/utils/exportPdf.ts',
-    'types/report/index': 'src/types/report.ts',
 
     // Styles
     styles: 'src/styles.css',

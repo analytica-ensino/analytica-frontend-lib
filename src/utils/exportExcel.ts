@@ -1,5 +1,18 @@
 import * as XLSX from 'xlsx';
-import type { ExcelCell, SheetConfig } from '../types/report';
+
+/**
+ * A single Excel cell value
+ */
+export type ExcelCell = string | number | null;
+
+/**
+ * Configuration for a single Excel sheet
+ */
+export interface SheetConfig {
+  name: string;
+  headers: string[];
+  rows: ExcelCell[][];
+}
 
 /**
  * Generate and download an Excel file with multiple sheets.

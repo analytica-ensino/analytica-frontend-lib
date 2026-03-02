@@ -1174,17 +1174,7 @@ export type {
 
 // Report Export Utils
 export { downloadExcel } from './utils/exportExcel';
-export {
-  buildAccessSheets,
-  buildPerformanceSheets,
-} from './utils/reportExcelSheets';
-export { printReportAsPdf } from './utils/exportPdf';
+export { printAsPdf } from './utils/exportPdf';
 
 // Report Export Types
-export type {
-  AccessUserRow,
-  PerformanceStudentRow,
-  PerformanceProfessionalRow,
-  ExcelCell,
-  SheetConfig,
-} from './types/report';
+export type { ExcelCell, SheetConfig } from './utils/exportExcel';
