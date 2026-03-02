@@ -326,13 +326,15 @@ export const AccessReportModal = ({
         userInfo={variantProps.studentUserInfo}
       />
     );
-  } else {
+  } else if (variantProps.variant === REPORT_MODAL_VARIANT.PROFESSIONAL) {
     content = (
       <ProfessionalModalContent
         data={variantProps.data}
         userInfo={variantProps.professionalUserInfo}
       />
     );
+  } else {
+    content = <ErrorContent message="Variante de relatório inválida." />;
   }
 
   return (
