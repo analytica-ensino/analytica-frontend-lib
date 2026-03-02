@@ -10,37 +10,61 @@ import {
 // ─── Mock data ────────────────────────────────────────────────
 
 const studentData: AccessReportStudentData = {
-  totalTime: '42h15min',
-  content: 18,
-  recommendedLessons: 12,
-  simulations: 5,
-  accessCount: 87,
-  lastAccess: '27/02/2026',
-  platformAccess: {
-    web: 65,
-    mobile: 35,
+  user: {
+    id: '550e8400-e29b-41d4-a716-446655440001',
+    name: 'João Silva',
+    profileType: 'STUDENT',
+    school: 'Escola Municipal São Paulo',
+    group: 'NRE Centro',
+    class: '9A',
+    year: 2026,
+  },
+  accessData: {
+    totalTime: '42h15min',
+    activitiesTime: '15h00min',
+    contentTime: '10h30min',
+    recommendedLessonsTime: '8h00min',
+    simulationsTime: '5h45min',
+    questionnairesTime: '3h00min',
+    accessCount: 87,
+    lastAccess: '27/02/2026',
+  },
+  accessByPlatform: {
+    web: { time: '27h30min', percentage: 65 },
+    mobile: { time: '14h45min', percentage: 35 },
   },
   hoursByItem: {
-    activities: 20,
-    content: 10,
-    simulations: 8,
-    questionnaires: 4,
+    activities: { time: '20h00min', percentage: 47 },
+    content: { time: '10h00min', percentage: 24 },
+    simulations: { time: '8h00min', percentage: 19 },
+    questionnaires: { time: '4h15min', percentage: 10 },
   },
 };
 
 const professionalData: AccessReportProfessionalData = {
-  totalTime: '18h30min',
-  activities: 24,
-  recommendedLessons: 10,
-  accessCount: 45,
-  lastAccess: '26/02/2026',
-  platformAccess: {
-    web: 80,
-    mobile: 20,
+  user: {
+    id: '550e8400-e29b-41d4-a716-446655440002',
+    name: 'Maria Souza',
+    profileType: 'TEACHER',
+    school: 'Escola Estadual Paraná',
+    group: 'NRE Sul',
+    class: 'Turma B',
+    year: 2026,
+  },
+  accessData: {
+    totalTime: '18h30min',
+    activitiesTime: '12h00min',
+    recommendedLessonsTime: '6h30min',
+    accessCount: 45,
+    lastAccess: '26/02/2026',
+  },
+  accessByPlatform: {
+    web: { time: '14h50min', percentage: 80 },
+    mobile: { time: '3h40min', percentage: 20 },
   },
   hoursByItem: {
-    activities: 12,
-    recommendedLessons: 6,
+    activities: { time: '12h00min', percentage: 67 },
+    recommendedLessons: { time: '6h30min', percentage: 33 },
   },
 };
 
@@ -60,33 +84,9 @@ function OpenButton({ onClick }: { onClick: () => void }) {
 // ─── Stories ─────────────────────────────────────────────────
 
 /**
- * Student – with user info header (padrão)
+ * Student — full access data
  */
-export const StudentWithUserInfo: Story = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  return (
-    <div className="p-8 bg-gray-100 min-h-screen">
-      <OpenButton onClick={() => setIsOpen(true)} />
-      <AccessReportModal
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-        variant={AccessReportModalVariant.STUDENT}
-        data={studentData}
-        studentUserInfo={{
-          userName: 'João Silva',
-          schoolName: 'Escola Municipal São Paulo',
-          className: '9A',
-          year: '9º Ano',
-        }}
-      />
-    </div>
-  );
-};
-
-/**
- * Student – with all access data (without user info)
- */
-export const StudentWithData: Story = () => {
+export const Student: Story = () => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div className="p-8 bg-gray-100 min-h-screen">
@@ -102,33 +102,9 @@ export const StudentWithData: Story = () => {
 };
 
 /**
- * Professional – with user info header (from table row)
+ * Professional — full access data
  */
-export const ProfessionalWithUserInfo: Story = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  return (
-    <div className="p-8 bg-gray-100 min-h-screen">
-      <OpenButton onClick={() => setIsOpen(true)} />
-      <AccessReportModal
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-        variant={AccessReportModalVariant.PROFESSIONAL}
-        data={professionalData}
-        professionalUserInfo={{
-          userName: 'Maria Souza',
-          schoolName: 'Escola Estadual Paraná',
-          className: 'Turma B',
-          year: '2026',
-        }}
-      />
-    </div>
-  );
-};
-
-/**
- * Professional – without user info header
- */
-export const ProfessionalWithoutUserInfo: Story = () => {
+export const Professional: Story = () => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div className="p-8 bg-gray-100 min-h-screen">
@@ -195,6 +171,27 @@ export const WithCustomTitle: Story = () => {
         title="Relatório de acesso — Março 2026"
         variant={AccessReportModalVariant.STUDENT}
         data={studentData}
+      />
+    </div>
+  );
+};
+
+/**
+ * Null lastAccess fallback
+ */
+export const WithNullLastAccess: Story = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <div className="p-8 bg-gray-100 min-h-screen">
+      <OpenButton onClick={() => setIsOpen(true)} />
+      <AccessReportModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        variant={AccessReportModalVariant.STUDENT}
+        data={{
+          ...studentData,
+          accessData: { ...studentData.accessData, lastAccess: null },
+        }}
       />
     </div>
   );

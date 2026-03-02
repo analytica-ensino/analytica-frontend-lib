@@ -9,51 +9,79 @@ import {
 } from '../shared/ModalComponents';
 import { REPORT_MODAL_VARIANT } from '../../types/common';
 
-// ─── Placeholder API Types ────────────────────────────────────
-// Replace with real backend types once the access report API is ready.
+// ─── API Types ────────────────────────────────────────────────
 
 /**
- * Platform breakdown — how many hours were spent on each platform.
+ * Time + percentage pair returned by the backend for platform/hours breakdowns.
  */
-export interface AccessReportPlatformStats {
-  web: number;
-  mobile: number;
+export interface AccessReportTimePercentage {
+  time: string;
+  percentage: number;
+}
+
+/**
+ * User context returned by the backend inside every access report response.
+ */
+export interface AccessReportUser {
+  id: string;
+  name: string;
+  profileType: string;
+  school: string;
+  group: string | null;
+  class: string | null;
+  year: number;
+}
+
+/**
+ * Platform access breakdown — web vs mobile.
+ */
+export interface AccessReportByPlatform {
+  web: AccessReportTimePercentage;
+  mobile: AccessReportTimePercentage;
 }
 
 /**
  * Full 200 response for STUDENT access report.
- * Mirrors the expected backend StudentAccessReport shape (placeholder).
+ * Mirrors backend shape from GET /access-report/access/user/:userId (student variant).
  */
 export interface AccessReportStudentData {
-  totalTime: string;
-  content: number;
-  recommendedLessons: number;
-  simulations: number;
-  accessCount: number;
-  lastAccess: string;
-  platformAccess: AccessReportPlatformStats;
+  user: AccessReportUser;
+  accessData: {
+    totalTime: string;
+    activitiesTime: string;
+    contentTime: string;
+    recommendedLessonsTime: string;
+    simulationsTime: string;
+    questionnairesTime: string;
+    accessCount: number;
+    lastAccess: string | null;
+  };
+  accessByPlatform: AccessReportByPlatform;
   hoursByItem: {
-    activities: number;
-    content: number;
-    simulations: number;
-    questionnaires: number;
+    activities: AccessReportTimePercentage;
+    content: AccessReportTimePercentage;
+    simulations: AccessReportTimePercentage;
+    questionnaires: AccessReportTimePercentage;
   };
 }
 
 /**
  * Full 200 response for TEACHER / UNIT_MANAGER / REGIONAL_MANAGER access report.
- * Mirrors the expected backend ProfessionalAccessReport shape (placeholder).
+ * Mirrors backend shape from GET /access-report/access/user/:userId (professional variant).
  */
 export interface AccessReportProfessionalData {
-  totalTime: string;
-  activities: number;
-  recommendedLessons: number;
-  accessCount: number;
-  lastAccess: string;
-  platformAccess: AccessReportPlatformStats;
+  user: AccessReportUser;
+  accessData: {
+    totalTime: string;
+    activitiesTime: string;
+    recommendedLessonsTime: string;
+    accessCount: number;
+    lastAccess: string | null;
+  };
+  accessByPlatform: AccessReportByPlatform;
   hoursByItem: {
-    activities: number;
-    recommendedLessons: number;
+    activities: AccessReportTimePercentage;
+    recommendedLessons: AccessReportTimePercentage;
   };
 }
 
@@ -72,35 +100,11 @@ interface AccessReportModalBaseProps {
 type AccessReportModalStudentProps = {
   variant: REPORT_MODAL_VARIANT.STUDENT;
   data: AccessReportStudentData | null;
-  /**
-   * Display info for the student modal header.
-   * The student API response may not include user/school context,
-   * so the parent can supply this from the table row data.
-   */
-  studentUserInfo?: {
-    userName: string;
-    schoolName: string;
-    className: string;
-    year: string | number;
-  };
-  professionalUserInfo?: never;
 };
 
 type AccessReportModalProfessionalProps = {
   variant: REPORT_MODAL_VARIANT.PROFESSIONAL;
   data: AccessReportProfessionalData | null;
-  /**
-   * Display info for the professional modal header.
-   * The professional API response does not include user/school context,
-   * so the parent should supply this from the table row data.
-   */
-  professionalUserInfo?: {
-    userName: string;
-    schoolName: string;
-    className: string;
-    year: string | number;
-  };
-  studentUserInfo?: never;
 };
 
 export type AccessReportModalProps = AccessReportModalBaseProps &
@@ -108,17 +112,17 @@ export type AccessReportModalProps = AccessReportModalBaseProps &
 
 // ─── Pie slice builders ───────────────────────────────────────
 
-function buildPlatformSlices(stats: AccessReportPlatformStats): PieSlice[] {
+function buildPlatformSlices(platform: AccessReportByPlatform): PieSlice[] {
   return [
     {
       label: 'Web',
-      value: stats.web,
+      value: platform.web.percentage,
       colorClass: 'bg-success-700',
       color: 'var(--Success-success700, #206F3E)',
     },
     {
       label: 'Celular',
-      value: stats.mobile,
+      value: platform.mobile.percentage,
       colorClass: 'bg-success-300',
       color: 'var(--Success-success300, #66B584)',
     },
@@ -131,25 +135,25 @@ function buildStudentHoursSlices(
   return [
     {
       label: 'Atividades',
-      value: hoursByItem.activities,
+      value: hoursByItem.activities.percentage,
       colorClass: 'bg-success-700',
       color: 'var(--Success-success700, #206F3E)',
     },
     {
       label: 'Conteúdo',
-      value: hoursByItem.content,
+      value: hoursByItem.content.percentage,
       colorClass: 'bg-success-300',
       color: 'var(--Success-success300, #66B584)',
     },
     {
       label: 'Simulados',
-      value: hoursByItem.simulations,
+      value: hoursByItem.simulations.percentage,
       colorClass: 'bg-warning-300',
       color: 'var(--Warning-warning300, #FDAD74)',
     },
     {
       label: 'Questionários',
-      value: hoursByItem.questionnaires,
+      value: hoursByItem.questionnaires.percentage,
       colorClass: 'bg-indicator-positive',
       color: 'var(--Indicator-Indicator-Positive, #F8CC2E)',
     },
@@ -162,50 +166,50 @@ function buildProfessionalHoursSlices(
   return [
     {
       label: 'Atividades',
-      value: hoursByItem.activities,
+      value: hoursByItem.activities.percentage,
       colorClass: 'bg-success-700',
       color: 'var(--Success-success700, #206F3E)',
     },
     {
       label: 'Aulas recomendadas',
-      value: hoursByItem.recommendedLessons,
+      value: hoursByItem.recommendedLessons.percentage,
       colorClass: 'bg-indicator-positive',
       color: 'var(--Indicator-Indicator-Positive, #F8CC2E)',
     },
   ];
 }
 
-// ─── Sub-components ──────────────────────────────────────────
-
 // ─── Modal content ────────────────────────────────────────────
 
-const StudentModalContent = ({
-  data,
-  userInfo,
-}: {
-  data: AccessReportStudentData;
-  userInfo?: AccessReportModalProps['studentUserInfo'];
-}) => {
-  const platformSlices = buildPlatformSlices(data.platformAccess);
+const StudentModalContent = ({ data }: { data: AccessReportStudentData }) => {
+  const platformSlices = buildPlatformSlices(data.accessByPlatform);
   const hoursSlices = buildStudentHoursSlices(data.hoursByItem);
 
   return (
     <div className="flex flex-col gap-6">
-      {userInfo && (
-        <UserHeader
-          name={userInfo.userName}
-          school={userInfo.schoolName}
-          className={userInfo.className}
-          year={userInfo.year}
-        />
-      )}
+      <UserHeader
+        name={data.user.name}
+        school={data.user.school}
+        className={data.user.class ?? ''}
+        year={data.user.year}
+      />
+
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <MetricBox label="Tempo total" value={data.totalTime} />
-        <MetricBox label="Conteúdo" value={data.content} />
-        <MetricBox label="Aulas recomendadas" value={data.recommendedLessons} />
-        <MetricBox label="Simulados" value={data.simulations} />
-        <MetricBox label="Quantidade de acessos" value={data.accessCount} />
-        <MetricBox label="Último acesso" value={data.lastAccess} />
+        <MetricBox label="Tempo total" value={data.accessData.totalTime} />
+        <MetricBox label="Conteúdo" value={data.accessData.contentTime} />
+        <MetricBox
+          label="Aulas recomendadas"
+          value={data.accessData.recommendedLessonsTime}
+        />
+        <MetricBox label="Simulados" value={data.accessData.simulationsTime} />
+        <MetricBox
+          label="Quantidade de acessos"
+          value={data.accessData.accessCount}
+        />
+        <MetricBox
+          label="Último acesso"
+          value={data.accessData.lastAccess ?? '—'}
+        />
       </div>
 
       <div className="flex flex-col gap-3">
@@ -223,31 +227,36 @@ const StudentModalContent = ({
 
 const ProfessionalModalContent = ({
   data,
-  userInfo,
 }: {
   data: AccessReportProfessionalData;
-  userInfo?: AccessReportModalProps['professionalUserInfo'];
 }) => {
-  const platformSlices = buildPlatformSlices(data.platformAccess);
+  const platformSlices = buildPlatformSlices(data.accessByPlatform);
   const hoursSlices = buildProfessionalHoursSlices(data.hoursByItem);
 
   return (
     <div className="flex flex-col gap-6">
-      {userInfo && (
-        <UserHeader
-          name={userInfo.userName}
-          school={userInfo.schoolName}
-          className={userInfo.className}
-          year={userInfo.year}
-        />
-      )}
+      <UserHeader
+        name={data.user.name}
+        school={data.user.school}
+        className={data.user.class ?? ''}
+        year={data.user.year}
+      />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <MetricBox label="Tempo total" value={data.totalTime} />
-        <MetricBox label="Atividades" value={data.activities} />
-        <MetricBox label="Aulas recomendadas" value={data.recommendedLessons} />
-        <MetricBox label="Quantidade de acessos" value={data.accessCount} />
-        <MetricBox label="Último acesso" value={data.lastAccess} />
+        <MetricBox label="Tempo total" value={data.accessData.totalTime} />
+        <MetricBox label="Atividades" value={data.accessData.activitiesTime} />
+        <MetricBox
+          label="Aulas recomendadas"
+          value={data.accessData.recommendedLessonsTime}
+        />
+        <MetricBox
+          label="Quantidade de acessos"
+          value={data.accessData.accessCount}
+        />
+        <MetricBox
+          label="Último acesso"
+          value={data.accessData.lastAccess ?? '—'}
+        />
       </div>
 
       <div className="flex flex-col gap-3">
@@ -288,9 +297,9 @@ const LoadingSkeleton = () => (
  * Displays a modal with access data for a user.
  *
  * Two variants driven by the profile type:
- * - `STUDENT` — 6 metric boxes (totalTime, content, recommendedLessons, simulations,
- *   accessCount, lastAccess) + platform pie chart + hours-by-item pie chart
- * - `PROFESSIONAL` — 5 metric boxes (totalTime, activities, recommendedLessons,
+ * - `STUDENT` — 6 metric boxes (totalTime, contentTime, recommendedLessonsTime,
+ *   simulationsTime, accessCount, lastAccess) + platform pie chart + hours-by-item pie chart
+ * - `PROFESSIONAL` — 5 metric boxes (totalTime, activitiesTime, recommendedLessonsTime,
  *   accessCount, lastAccess) + platform pie chart + hours-by-item pie chart
  *
  * @example
@@ -298,7 +307,7 @@ const LoadingSkeleton = () => (
  * <AccessReportModal
  *   isOpen={isOpen}
  *   onClose={() => setIsOpen(false)}
- *   variant={AccessReportModalVariant.STUDENT}
+ *   variant={REPORT_MODAL_VARIANT.STUDENT}
  *   data={apiResponse.data}
  * />
  * ```
@@ -320,19 +329,9 @@ export const AccessReportModal = ({
   } else if (variantProps.data === null) {
     content = <ErrorContent message="Nenhum dado disponível." />;
   } else if (variantProps.variant === REPORT_MODAL_VARIANT.STUDENT) {
-    content = (
-      <StudentModalContent
-        data={variantProps.data}
-        userInfo={variantProps.studentUserInfo}
-      />
-    );
+    content = <StudentModalContent data={variantProps.data} />;
   } else if (variantProps.variant === REPORT_MODAL_VARIANT.PROFESSIONAL) {
-    content = (
-      <ProfessionalModalContent
-        data={variantProps.data}
-        userInfo={variantProps.professionalUserInfo}
-      />
-    );
+    content = <ProfessionalModalContent data={variantProps.data} />;
   } else {
     content = <ErrorContent message="Variante de relatório inválida." />;
   }

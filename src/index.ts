@@ -1173,7 +1173,9 @@ export type {
   AccessReportModalProps,
   AccessReportStudentData,
   AccessReportProfessionalData,
-  AccessReportPlatformStats,
+  AccessReportTimePercentage,
+  AccessReportUser,
+  AccessReportByPlatform,
 } from './components/AccessReportModal/AccessReportModal';
 
 // DownloadModal Components

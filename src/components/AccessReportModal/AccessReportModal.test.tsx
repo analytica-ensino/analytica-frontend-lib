@@ -10,29 +10,62 @@ import {
 // ─── Mock data ────────────────────────────────────────────────
 
 const mockStudentData: AccessReportStudentData = {
-  totalTime: '42h15min',
-  content: 18,
-  recommendedLessons: 12,
-  simulations: 5,
-  accessCount: 87,
-  lastAccess: '27/02/2026',
-  platformAccess: { web: 65, mobile: 35 },
+  user: {
+    id: '550e8400-e29b-41d4-a716-446655440001',
+    name: 'João Silva',
+    profileType: 'STUDENT',
+    school: 'Escola Municipal São Paulo',
+    group: 'NRE Centro',
+    class: '9A',
+    year: 2026,
+  },
+  accessData: {
+    totalTime: '42h15min',
+    activitiesTime: '15h00min',
+    contentTime: '10h30min',
+    recommendedLessonsTime: '8h00min',
+    simulationsTime: '5h45min',
+    questionnairesTime: '3h00min',
+    accessCount: 87,
+    lastAccess: '27/02/2026',
+  },
+  accessByPlatform: {
+    web: { time: '27h30min', percentage: 65 },
+    mobile: { time: '14h45min', percentage: 35 },
+  },
   hoursByItem: {
-    activities: 20,
-    content: 10,
-    simulations: 8,
-    questionnaires: 4,
+    activities: { time: '20h00min', percentage: 47 },
+    content: { time: '10h00min', percentage: 24 },
+    simulations: { time: '8h00min', percentage: 19 },
+    questionnaires: { time: '4h15min', percentage: 10 },
   },
 };
 
 const mockProfessionalData: AccessReportProfessionalData = {
-  totalTime: '18h30min',
-  activities: 24,
-  recommendedLessons: 10,
-  accessCount: 45,
-  lastAccess: '26/02/2026',
-  platformAccess: { web: 80, mobile: 20 },
-  hoursByItem: { activities: 12, recommendedLessons: 6 },
+  user: {
+    id: '550e8400-e29b-41d4-a716-446655440002',
+    name: 'Maria Souza',
+    profileType: 'TEACHER',
+    school: 'Escola Estadual Paraná',
+    group: 'NRE Sul',
+    class: 'Turma B',
+    year: 2026,
+  },
+  accessData: {
+    totalTime: '18h30min',
+    activitiesTime: '12h00min',
+    recommendedLessonsTime: '6h30min',
+    accessCount: 45,
+    lastAccess: '26/02/2026',
+  },
+  accessByPlatform: {
+    web: { time: '14h50min', percentage: 80 },
+    mobile: { time: '3h40min', percentage: 20 },
+  },
+  hoursByItem: {
+    activities: { time: '12h00min', percentage: 67 },
+    recommendedLessons: { time: '6h30min', percentage: 33 },
+  },
 };
 
 // ─── Tests ───────────────────────────────────────────────────
@@ -92,10 +125,8 @@ describe('AccessReportModal', () => {
         />
       );
       expect(screen.getByText('Tempo total')).toBeInTheDocument();
-      // "Conteúdo" appears in MetricBox label and pie chart legend
       expect(screen.getAllByText('Conteúdo').length).toBeGreaterThan(0);
       expect(screen.getByText('Aulas recomendadas')).toBeInTheDocument();
-      // "Simulados" appears in MetricBox label and pie chart legend
       expect(screen.getAllByText('Simulados').length).toBeGreaterThan(0);
       expect(screen.getByText('Quantidade de acessos')).toBeInTheDocument();
       expect(screen.getByText('Último acesso')).toBeInTheDocument();
@@ -111,24 +142,18 @@ describe('AccessReportModal', () => {
         />
       );
       expect(screen.getByText('42h15min')).toBeInTheDocument();
-      expect(screen.getByText('18')).toBeInTheDocument();
+      expect(screen.getByText('10h30min')).toBeInTheDocument();
       expect(screen.getByText('87')).toBeInTheDocument();
       expect(screen.getByText('27/02/2026')).toBeInTheDocument();
     });
 
-    it('should render user header when studentUserInfo is provided', () => {
+    it('should render user header from data.user', () => {
       render(
         <AccessReportModal
           isOpen={true}
           onClose={() => {}}
           variant={AccessReportModalVariant.STUDENT}
           data={mockStudentData}
-          studentUserInfo={{
-            userName: 'João Silva',
-            schoolName: 'Escola Municipal São Paulo',
-            className: '9A',
-            year: '9º Ano',
-          }}
         />
       );
       expect(screen.getByText('João Silva')).toBeInTheDocument();
@@ -136,18 +161,6 @@ describe('AccessReportModal', () => {
         screen.getByText(/Escola Municipal São Paulo/)
       ).toBeInTheDocument();
       expect(screen.getByText(/9A/)).toBeInTheDocument();
-    });
-
-    it('should not render user header when studentUserInfo is absent', () => {
-      render(
-        <AccessReportModal
-          isOpen={true}
-          onClose={() => {}}
-          variant={AccessReportModalVariant.STUDENT}
-          data={mockStudentData}
-        />
-      );
-      expect(screen.queryByText('João Silva')).not.toBeInTheDocument();
     });
 
     it('should render platform section title and legend labels', () => {
@@ -203,9 +216,7 @@ describe('AccessReportModal', () => {
         />
       );
       expect(screen.getByText('Tempo total')).toBeInTheDocument();
-      // "Atividades" appears in MetricBox label and pie chart legend
       expect(screen.getAllByText('Atividades').length).toBeGreaterThan(0);
-      // "Aulas recomendadas" appears in MetricBox label and pie chart legend
       expect(screen.getAllByText('Aulas recomendadas').length).toBeGreaterThan(
         0
       );
@@ -223,9 +234,23 @@ describe('AccessReportModal', () => {
         />
       );
       expect(screen.getByText('18h30min')).toBeInTheDocument();
-      expect(screen.getByText('24')).toBeInTheDocument();
+      expect(screen.getByText('12h00min')).toBeInTheDocument();
       expect(screen.getByText('45')).toBeInTheDocument();
       expect(screen.getByText('26/02/2026')).toBeInTheDocument();
+    });
+
+    it('should render user header from data.user', () => {
+      render(
+        <AccessReportModal
+          isOpen={true}
+          onClose={() => {}}
+          variant={AccessReportModalVariant.PROFESSIONAL}
+          data={mockProfessionalData}
+        />
+      );
+      expect(screen.getByText('Maria Souza')).toBeInTheDocument();
+      expect(screen.getByText(/Escola Estadual Paraná/)).toBeInTheDocument();
+      expect(screen.getByText(/Turma B/)).toBeInTheDocument();
     });
 
     it('should render platform and hours section titles', () => {
@@ -239,38 +264,6 @@ describe('AccessReportModal', () => {
       );
       expect(screen.getByText('Plataforma de acesso')).toBeInTheDocument();
       expect(screen.getByText('Horas por item')).toBeInTheDocument();
-    });
-
-    it('should render user header when professionalUserInfo is provided', () => {
-      render(
-        <AccessReportModal
-          isOpen={true}
-          onClose={() => {}}
-          variant={AccessReportModalVariant.PROFESSIONAL}
-          data={mockProfessionalData}
-          professionalUserInfo={{
-            userName: 'Maria Souza',
-            schoolName: 'Escola Estadual Paraná',
-            className: 'Turma B',
-            year: '2026',
-          }}
-        />
-      );
-      expect(screen.getByText('Maria Souza')).toBeInTheDocument();
-      expect(screen.getByText(/Escola Estadual Paraná/)).toBeInTheDocument();
-      expect(screen.getByText(/Turma B/)).toBeInTheDocument();
-    });
-
-    it('should not render user header when professionalUserInfo is absent', () => {
-      render(
-        <AccessReportModal
-          isOpen={true}
-          onClose={() => {}}
-          variant={AccessReportModalVariant.PROFESSIONAL}
-          data={mockProfessionalData}
-        />
-      );
-      expect(screen.queryByText('Maria Souza')).not.toBeInTheDocument();
     });
   });
 
@@ -333,7 +326,7 @@ describe('AccessReportModal', () => {
   });
 
   describe('Null data', () => {
-    it('should render empty modal when data is null and not loading', () => {
+    it('should render empty state message when data is null and not loading', () => {
       render(
         <AccessReportModal
           isOpen={true}
@@ -343,7 +336,27 @@ describe('AccessReportModal', () => {
         />
       );
       expect(screen.getByRole('dialog')).toBeInTheDocument();
-      expect(screen.queryByText('Tempo total')).not.toBeInTheDocument();
+      expect(
+        screen.getByText('Nenhum dado disponível.')
+      ).toBeInTheDocument();
+    });
+  });
+
+  describe('Null lastAccess', () => {
+    it('should render fallback when lastAccess is null', () => {
+      const dataWithNullLastAccess: AccessReportStudentData = {
+        ...mockStudentData,
+        accessData: { ...mockStudentData.accessData, lastAccess: null },
+      };
+      render(
+        <AccessReportModal
+          isOpen={true}
+          onClose={() => {}}
+          variant={AccessReportModalVariant.STUDENT}
+          data={dataWithNullLastAccess}
+        />
+      );
+      expect(screen.getByText('—')).toBeInTheDocument();
     });
   });
 
@@ -390,7 +403,7 @@ describe('AccessReportModal', () => {
   });
 
   describe('Pie chart fallback', () => {
-    it('should render fallback circle when all platform values are zero', () => {
+    it('should render fallback circle when all platform percentages are zero', () => {
       const { container } = render(
         <AccessReportModal
           isOpen={true}
@@ -398,7 +411,10 @@ describe('AccessReportModal', () => {
           variant={AccessReportModalVariant.STUDENT}
           data={{
             ...mockStudentData,
-            platformAccess: { web: 0, mobile: 0 },
+            accessByPlatform: {
+              web: { time: '0h00min', percentage: 0 },
+              mobile: { time: '0h00min', percentage: 0 },
+            },
           }}
         />
       );
