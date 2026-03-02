@@ -1183,17 +1183,8 @@ export { printReportAsPdf } from './utils/exportPdf';
 // Report Export Types
 export type {
   AccessUserRow,
-  AccessUsersPagination,
   PerformanceStudentRow,
   PerformanceProfessionalRow,
   ExcelCell,
   SheetConfig,
-  ReportFilters,
-  UseReportExportApiClient,
-  UseReportExportParams,
-  UseReportExportReturn,
 } from './types/report';
-
-// Report Export Hook Factory
-export { createUseReportExport } from './hooks/useReportExport';
-export type { UseReportExportConfig } from './hooks/useReportExport';

@@ -169,7 +169,6 @@ export default defineConfig({
     'types/mapData/index': 'src/types/mapData.ts',
 
     // Report Export
-    'hooks/useReportExport/index': 'src/hooks/useReportExport.ts',
     'utils/exportExcel/index': 'src/utils/exportExcel.ts',
     'utils/reportExcelSheets/index': 'src/utils/reportExcelSheets.ts',
     'utils/exportPdf/index': 'src/utils/exportPdf.ts',
