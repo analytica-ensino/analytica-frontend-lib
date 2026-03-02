@@ -13,6 +13,13 @@ interface FormulaDialogProps {
   readonly open: boolean;
   readonly onClose: () => void;
   readonly onInsert: (latex: string) => void;
+  /**
+   * Optional callback to generate LaTeX using AI
+   * If provided, the AI generation feature will be enabled
+   * @param description - Natural language description of the formula
+   * @returns Promise resolving to the LaTeX string
+   */
+  readonly onGenerateWithAI?: (description: string) => Promise<string>;
 }
 
 type FormulaCategory = 'matematica' | 'fisica' | 'quimica' | 'simbolos';
@@ -139,12 +146,19 @@ const categoryLabels: Record<FormulaCategory, string> = {
   simbolos: 'Símbolos',
 };
 
-export function FormulaDialog({ open, onClose, onInsert }: FormulaDialogProps) {
+export function FormulaDialog({
+  open,
+  onClose,
+  onInsert,
+  onGenerateWithAI,
+}: FormulaDialogProps) {
   const [category, setCategory] = useState<FormulaCategory>('matematica');
   const [latex, setLatex] = useState('');
   const [preview, setPreview] = useState('');
   const [error, setError] = useState('');
   const [aiDescription, setAiDescription] = useState('');
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [aiError, setAiError] = useState('');
 
   useEffect(() => {
     if (!latex.trim()) {
@@ -181,7 +195,26 @@ export function FormulaDialog({ open, onClose, onInsert }: FormulaDialogProps) {
     setError('');
     setPreview('');
     setAiDescription('');
+    setAiError('');
     setCategory('matematica');
+  };
+
+  const handleGenerateWithAI = async () => {
+    if (!onGenerateWithAI || !aiDescription.trim()) return;
+
+    setIsGeneratingAI(true);
+    setAiError('');
+
+    try {
+      const generatedLatex = await onGenerateWithAI(aiDescription.trim());
+      setLatex(generatedLatex);
+    } catch (err) {
+      setAiError(
+        err instanceof Error ? err.message : 'Erro ao gerar fórmula com IA'
+      );
+    } finally {
+      setIsGeneratingAI(false);
+    }
   };
 
   const selectFormula = (formula: FormulaItem) => {
@@ -338,20 +371,29 @@ export function FormulaDialog({ open, onClose, onInsert }: FormulaDialogProps) {
               }
               placeholder="Ex: área do círculo, bhaskara, velocidade média..."
               rows={2}
-              disabled
+              disabled={isGeneratingAI}
             />
             <Text size="xs" className="text-text-400 mt-1">
-              Descreva em linguagem natural e a IA gerará o LaTeX
-              correspondente.
+              {onGenerateWithAI
+                ? 'Descreva em linguagem natural e a IA gerará o LaTeX correspondente.'
+                : 'Funcionalidade de IA não disponível.'}
             </Text>
+            {aiError && (
+              <Text size="xs" className="text-error-600 mt-1">
+                {aiError}
+              </Text>
+            )}
             <Button
               variant="outline"
               size="small"
-              disabled
+              disabled={
+                !onGenerateWithAI || !aiDescription.trim() || isGeneratingAI
+              }
+              onClick={handleGenerateWithAI}
               className="mt-2 ml-auto flex items-center gap-1"
             >
               <Sparkle size={14} />
-              Gerar fórmula
+              {isGeneratingAI ? 'Gerando...' : 'Gerar fórmula'}
             </Button>
           </div>
         </div>
