@@ -267,7 +267,10 @@ const LoadingSkeleton = () => (
   <div className="flex flex-col gap-4 animate-pulse">
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
       {Array.from({ length: 6 }, (_, i) => (
-        <div key={`skeleton-${String(i)}`} className="h-16 bg-background-200 rounded-xl" />
+        <div
+          key={`skeleton-${String(i)}`}
+          className="h-16 bg-background-200 rounded-xl"
+        />
       ))}
     </div>
     <div className="h-5 bg-background-200 rounded w-40 mt-2" />
