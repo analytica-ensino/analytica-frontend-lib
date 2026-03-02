@@ -168,6 +168,13 @@ export default defineConfig({
     'hooks/useMapData/index': 'src/hooks/useMapData.ts',
     'types/mapData/index': 'src/types/mapData.ts',
 
+    // Report Export
+    'hooks/useReportExport/index': 'src/hooks/useReportExport.ts',
+    'utils/exportExcel/index': 'src/utils/exportExcel.ts',
+    'utils/reportExcelSheets/index': 'src/utils/reportExcelSheets.ts',
+    'utils/exportPdf/index': 'src/utils/exportPdf.ts',
+    'types/report/index': 'src/types/report.ts',
+
     // Styles
     styles: 'src/styles.css',
   },
@@ -200,6 +207,7 @@ export default defineConfig({
     '@tiptap/extension-superscript',
     '@tiptap/extension-link',
     '@tiptap/extension-placeholder',
+    'xlsx',
   ],
   target: 'es2022',
   sourcemap: true,
