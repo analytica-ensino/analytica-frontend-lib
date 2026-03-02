@@ -1185,3 +1185,10 @@ export type {
   DownloadModalProps,
   DownloadFormat,
 } from './components/DownloadModal/DownloadModal';
+
+// Report Export Utils
+export { downloadExcel } from './utils/exportExcel';
+export { printAsPdf } from './utils/exportPdf';
+
+// Report Export Types
+export type { ExcelCell, SheetConfig } from './utils/exportExcel';
