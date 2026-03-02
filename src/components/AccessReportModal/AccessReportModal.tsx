@@ -271,10 +271,10 @@ const ProfessionalModalContent = ({
   />
 );
 
-const LoadingSkeleton = () => (
+const LoadingSkeleton = ({ metricCount }: { metricCount: number }) => (
   <div className="flex flex-col gap-4 animate-pulse">
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-      {Array.from({ length: 6 }, (_, i) => (
+      {Array.from({ length: metricCount }, (_, i) => (
         <div
           key={`skeleton-${String(i)}`}
           className="h-16 bg-background-200 rounded-xl"
@@ -321,8 +321,11 @@ export const AccessReportModal = ({
 }: AccessReportModalProps) => {
   let content: ReactNode;
 
+  const metricCount =
+    variantProps.variant === REPORT_MODAL_VARIANT.STUDENT ? 6 : 5;
+
   if (loading) {
-    content = <LoadingSkeleton />;
+    content = <LoadingSkeleton metricCount={metricCount} />;
   } else if (error) {
     content = <ErrorContent message={error} />;
   } else if (variantProps.data === null) {
