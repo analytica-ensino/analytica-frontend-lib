@@ -1,5 +1,11 @@
+import { useState } from 'react';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
+import {
+  bgClassToCssVar,
+  polarToCartesian,
+  describeArc,
+} from '../../utils/chartUtils';
 
 /**
  * Bar item configuration used by chart components
@@ -137,5 +143,182 @@ export const YAxis = ({
         {tick}
       </Text>
     ))}
+  </div>
+);
+
+// ─── Pie chart ────────────────────────────────────────────────
+
+/**
+ * A single slice of a pie chart.
+ * Provide either `colorClass` (Tailwind bg-* class) or `color` (direct CSS value).
+ * When `color` is set it takes precedence over `colorClass`.
+ */
+export interface PieSlice {
+  label: string;
+  value: number;
+  colorClass: string;
+  /** Direct CSS color value — takes precedence over colorClass when provided */
+  color?: string;
+}
+
+/**
+ * Interactive SVG pie chart built from PieSlice data.
+ * Shows percentage labels for slices >= 5%. Renders a grey circle when all values are zero.
+ */
+export const SimplePieChart = ({
+  slices,
+  size = 130,
+}: {
+  slices: PieSlice[];
+  size?: number;
+}) => {
+  const [hovered, setHovered] = useState<string | null>(null);
+
+  const total = slices.reduce((sum, s) => sum + s.value, 0);
+  const r = size * 0.44;
+  const c = size / 2;
+
+  if (total === 0) {
+    return (
+      <svg
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        aria-hidden="true"
+      >
+        <circle cx={c} cy={c} r={r} className="fill-background-200" />
+      </svg>
+    );
+  }
+
+  let cumAngle = 0;
+  const computed = slices
+    .map((s) => {
+      const pct = (s.value / total) * 100;
+      const startAngle = cumAngle;
+      cumAngle += (pct / 100) * 360;
+      const endAngle = cumAngle;
+      const midAngle = startAngle + (endAngle - startAngle) / 2;
+      return { ...s, pct, startAngle, endAngle, midAngle };
+    })
+    .filter((s) => s.pct > 0);
+
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      aria-hidden="true"
+      onMouseLeave={() => setHovered(null)}
+    >
+      {computed.map((slice) => {
+        const isHovered = hovered === slice.label;
+        const isWhole = slice.pct >= 99.99;
+        const path = isWhole
+          ? undefined
+          : describeArc(c, c, r, slice.startAngle, slice.endAngle);
+        const labelPos = polarToCartesian(c, c, r * 0.62, slice.midAngle);
+        const fill = slice.color ?? bgClassToCssVar(slice.colorClass);
+
+        return (
+          <g
+            key={slice.label}
+            onMouseEnter={() => setHovered(slice.label)}
+            className="cursor-pointer"
+          >
+            {isWhole ? (
+              <circle cx={c} cy={c} r={r} fill={fill} />
+            ) : (
+              <path d={path} fill={fill} />
+            )}
+            {isHovered &&
+              (isWhole ? (
+                <circle
+                  cx={c}
+                  cy={c}
+                  r={r}
+                  fill="white"
+                  opacity={0.4}
+                  style={{ pointerEvents: 'none' }}
+                />
+              ) : (
+                <path
+                  d={path}
+                  fill="white"
+                  opacity={0.4}
+                  style={{ pointerEvents: 'none' }}
+                />
+              ))}
+            {slice.pct >= 5 && (
+              <text
+                x={labelPos.x}
+                y={labelPos.y}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fill="var(--color-text-950)"
+                style={{
+                  fontSize: 14,
+                  fontWeight: 500,
+                  fontFamily: 'Roboto, sans-serif',
+                  lineHeight: 1,
+                  letterSpacing: 0,
+                  pointerEvents: 'none',
+                }}
+              >
+                {`${Math.round(slice.pct)}%`}
+              </text>
+            )}
+          </g>
+        );
+      })}
+    </svg>
+  );
+};
+
+/**
+ * A single legend row: colour dot + label + value.
+ */
+export const LegendRow = ({
+  colorClass,
+  color,
+  label,
+  value,
+}: {
+  colorClass: string;
+  color?: string;
+  label: string;
+  value: number;
+}) => (
+  <div className="flex items-center gap-2">
+    <div
+      className={cn('w-2 h-2 rounded-full shrink-0', !color && colorClass)}
+      style={color ? { backgroundColor: color } : undefined}
+    />
+    <Text size="sm" weight="medium" className="text-text-950 flex-1">
+      {label}
+    </Text>
+    <Text size="sm" weight="medium" className="text-text-600 ml-3">
+      {value}
+    </Text>
+  </div>
+);
+
+/**
+ * Card with a legend list and a pie chart side by side.
+ */
+export const LegendPieCard = ({ slices }: { slices: PieSlice[] }) => (
+  <div className="flex items-center justify-between gap-4 p-4 bg-background border border-border-50 rounded-xl">
+    <div className="flex flex-col gap-2">
+      {slices.map((s) => (
+        <LegendRow
+          key={s.label}
+          colorClass={s.colorClass}
+          color={s.color}
+          label={s.label}
+          value={s.value}
+        />
+      ))}
+    </div>
+    <SimplePieChart slices={slices} />
   </div>
 );
