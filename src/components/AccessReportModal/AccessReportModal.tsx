@@ -181,20 +181,46 @@ function buildProfessionalHoursSlices(
 
 // ─── Modal content ────────────────────────────────────────────
 
-const StudentModalContent = ({ data }: { data: AccessReportStudentData }) => {
-  const platformSlices = buildPlatformSlices(data.accessByPlatform);
-  const hoursSlices = buildStudentHoursSlices(data.hoursByItem);
+const ReportContentLayout = ({
+  user,
+  metricBoxes,
+  platformSlices,
+  hoursSlices,
+}: {
+  user: AccessReportUser;
+  metricBoxes: ReactNode;
+  platformSlices: PieSlice[];
+  hoursSlices: PieSlice[];
+}) => (
+  <div className="flex flex-col gap-6">
+    <UserHeader
+      name={user.name}
+      school={user.school}
+      className={user.class ?? ''}
+      year={user.year}
+    />
 
-  return (
-    <div className="flex flex-col gap-6">
-      <UserHeader
-        name={data.user.name}
-        school={data.user.school}
-        className={data.user.class ?? ''}
-        year={data.user.year}
-      />
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{metricBoxes}</div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+    <div className="flex flex-col gap-3">
+      <SectionTitle>Plataforma de acesso</SectionTitle>
+      <LegendPieCard slices={platformSlices} />
+    </div>
+
+    <div className="flex flex-col gap-3">
+      <SectionTitle>Horas por item</SectionTitle>
+      <LegendPieCard slices={hoursSlices} />
+    </div>
+  </div>
+);
+
+const StudentModalContent = ({ data }: { data: AccessReportStudentData }) => (
+  <ReportContentLayout
+    user={data.user}
+    platformSlices={buildPlatformSlices(data.accessByPlatform)}
+    hoursSlices={buildStudentHoursSlices(data.hoursByItem)}
+    metricBoxes={
+      <>
         <MetricBox label="Tempo total" value={data.accessData.totalTime} />
         <MetricBox label="Conteúdo" value={data.accessData.contentTime} />
         <MetricBox
@@ -210,39 +236,22 @@ const StudentModalContent = ({ data }: { data: AccessReportStudentData }) => {
           label="Último acesso"
           value={data.accessData.lastAccess ?? '—'}
         />
-      </div>
-
-      <div className="flex flex-col gap-3">
-        <SectionTitle>Plataforma de acesso</SectionTitle>
-        <LegendPieCard slices={platformSlices} />
-      </div>
-
-      <div className="flex flex-col gap-3">
-        <SectionTitle>Horas por item</SectionTitle>
-        <LegendPieCard slices={hoursSlices} />
-      </div>
-    </div>
-  );
-};
+      </>
+    }
+  />
+);
 
 const ProfessionalModalContent = ({
   data,
 }: {
   data: AccessReportProfessionalData;
-}) => {
-  const platformSlices = buildPlatformSlices(data.accessByPlatform);
-  const hoursSlices = buildProfessionalHoursSlices(data.hoursByItem);
-
-  return (
-    <div className="flex flex-col gap-6">
-      <UserHeader
-        name={data.user.name}
-        school={data.user.school}
-        className={data.user.class ?? ''}
-        year={data.user.year}
-      />
-
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+}) => (
+  <ReportContentLayout
+    user={data.user}
+    platformSlices={buildPlatformSlices(data.accessByPlatform)}
+    hoursSlices={buildProfessionalHoursSlices(data.hoursByItem)}
+    metricBoxes={
+      <>
         <MetricBox label="Tempo total" value={data.accessData.totalTime} />
         <MetricBox label="Atividades" value={data.accessData.activitiesTime} />
         <MetricBox
@@ -257,20 +266,10 @@ const ProfessionalModalContent = ({
           label="Último acesso"
           value={data.accessData.lastAccess ?? '—'}
         />
-      </div>
-
-      <div className="flex flex-col gap-3">
-        <SectionTitle>Plataforma de acesso</SectionTitle>
-        <LegendPieCard slices={platformSlices} />
-      </div>
-
-      <div className="flex flex-col gap-3">
-        <SectionTitle>Horas por item</SectionTitle>
-        <LegendPieCard slices={hoursSlices} />
-      </div>
-    </div>
-  );
-};
+      </>
+    }
+  />
+);
 
 const LoadingSkeleton = () => (
   <div className="flex flex-col gap-4 animate-pulse">
