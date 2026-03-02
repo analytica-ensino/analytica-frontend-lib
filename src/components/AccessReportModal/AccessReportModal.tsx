@@ -10,7 +10,7 @@ import {
 import { REPORT_MODAL_VARIANT } from '../../types/common';
 
 // ─── Placeholder API Types ────────────────────────────────────
-// TODO: Replace with real backend types once the access report API is ready.
+// Replace with real backend types once the access report API is ready.
 
 /**
  * Platform breakdown — how many hours were spent on each platform.
@@ -58,7 +58,7 @@ export interface AccessReportProfessionalData {
 }
 
 /** @deprecated Use {@link REPORT_MODAL_VARIANT} instead. Re-exported for backwards compatibility. */
-export { REPORT_MODAL_VARIANT as AccessReportModalVariant };
+export { REPORT_MODAL_VARIANT as AccessReportModalVariant } from '../../types/common';
 
 interface AccessReportModalBaseProps {
   isOpen: boolean;
@@ -266,8 +266,8 @@ const ProfessionalModalContent = ({
 const LoadingSkeleton = () => (
   <div className="flex flex-col gap-4 animate-pulse">
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="h-16 bg-background-200 rounded-xl" />
+      {Array.from({ length: 6 }, (_, i) => (
+        <div key={`skeleton-${String(i)}`} className="h-16 bg-background-200 rounded-xl" />
       ))}
     </div>
     <div className="h-5 bg-background-200 rounded w-40 mt-2" />

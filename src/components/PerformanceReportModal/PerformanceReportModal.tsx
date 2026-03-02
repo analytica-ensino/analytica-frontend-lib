@@ -106,7 +106,7 @@ export interface UserPerformanceProfessionalData {
 }
 
 /** @deprecated Use {@link REPORT_MODAL_VARIANT} instead. Re-exported for backwards compatibility. */
-export { REPORT_MODAL_VARIANT as PerformanceReportModalVariant };
+export { REPORT_MODAL_VARIANT as PerformanceReportModalVariant } from '../../types/common';
 
 interface PerformanceReportModalBaseProps {
   isOpen: boolean;
