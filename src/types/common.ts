@@ -76,3 +76,12 @@ export enum REPORT_PERIOD {
   SIX_MONTHS = '6_MONTHS',
   ONE_YEAR = '1_YEAR',
 }
+
+/**
+ * Variant selector shared by all report modals (PerformanceReportModal, AccessReportModal, etc.).
+ * Drives which data shape and content layout to render.
+ */
+export enum REPORT_MODAL_VARIANT {
+  STUDENT = 'student',
+  PROFESSIONAL = 'professional',
+}

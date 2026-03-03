@@ -158,12 +158,19 @@ export default defineConfig({
     'StudentLessonProgressModal/index':
       'src/components/StudentLessonProgressModal/index.ts',
 
+    // DownloadModal
+    'DownloadModal/index': 'src/components/DownloadModal/DownloadModal.tsx',
+
     // ChoroplethMap
     'ChoroplethMap/index': 'src/components/ChoroplethMap/ChoroplethMap.tsx',
 
     // Map Data
     'hooks/useMapData/index': 'src/hooks/useMapData.ts',
     'types/mapData/index': 'src/types/mapData.ts',
+
+    // Report Export
+    'utils/exportExcel/index': 'src/utils/exportExcel.ts',
+    'utils/exportPdf/index': 'src/utils/exportPdf.ts',
 
     // Styles
     styles: 'src/styles.css',
@@ -197,6 +204,7 @@ export default defineConfig({
     '@tiptap/extension-superscript',
     '@tiptap/extension-link',
     '@tiptap/extension-placeholder',
+    'xlsx',
   ],
   target: 'es2022',
   sourcemap: true,
