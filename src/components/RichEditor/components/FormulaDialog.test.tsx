@@ -303,8 +303,8 @@ describe('FormulaDialog', () => {
     });
   });
 
-  describe('Geração de LaTeX com IA', () => {
-    it('deve mostrar mensagem de indisponível quando onGenerateWithAI não é fornecido', () => {
+  describe('AI LaTeX Generation', () => {
+    it('should show unavailable message when onGenerateWithAI is not provided', () => {
       render(<FormulaDialog {...defaultProps} />);
 
       expect(
@@ -312,7 +312,7 @@ describe('FormulaDialog', () => {
       ).toBeInTheDocument();
     });
 
-    it('deve mostrar mensagem de disponível quando onGenerateWithAI é fornecido', () => {
+    it('should show available message when onGenerateWithAI is provided', () => {
       const onGenerateWithAI = jest.fn();
       render(
         <FormulaDialog {...defaultProps} onGenerateWithAI={onGenerateWithAI} />
@@ -325,7 +325,7 @@ describe('FormulaDialog', () => {
       ).toBeInTheDocument();
     });
 
-    it('deve manter botão "Gerar fórmula" desabilitado quando descrição está vazia', () => {
+    it('should keep "Gerar fórmula" button disabled when description is empty', () => {
       const onGenerateWithAI = jest.fn();
       render(
         <FormulaDialog {...defaultProps} onGenerateWithAI={onGenerateWithAI} />
@@ -334,7 +334,7 @@ describe('FormulaDialog', () => {
       expect(screen.getByText('Gerar fórmula')).toBeDisabled();
     });
 
-    it('deve habilitar botão "Gerar fórmula" quando descrição é preenchida', () => {
+    it('should enable "Gerar fórmula" button when description is filled', () => {
       const onGenerateWithAI = jest.fn();
       render(
         <FormulaDialog {...defaultProps} onGenerateWithAI={onGenerateWithAI} />
@@ -348,7 +348,7 @@ describe('FormulaDialog', () => {
       expect(screen.getByText('Gerar fórmula')).toBeEnabled();
     });
 
-    it('deve chamar onGenerateWithAI com a descrição ao clicar em "Gerar fórmula"', async () => {
+    it('should call onGenerateWithAI with description when clicking "Gerar fórmula"', async () => {
       const onGenerateWithAI = jest
         .fn()
         .mockResolvedValue(String.raw`A = \pi r^2`);
@@ -367,7 +367,7 @@ describe('FormulaDialog', () => {
       });
     });
 
-    it('deve preencher input de LaTeX com o resultado da IA', async () => {
+    it('should fill LaTeX input with AI result', async () => {
       const onGenerateWithAI = jest
         .fn()
         .mockResolvedValue(String.raw`A = \pi r^2`);
@@ -387,7 +387,7 @@ describe('FormulaDialog', () => {
       });
     });
 
-    it('deve mostrar estado de loading enquanto gera fórmula', async () => {
+    it('should show loading state while generating formula', async () => {
       let resolvePromise: (value: string) => void;
       const onGenerateWithAI = jest.fn().mockImplementation(
         () =>
@@ -407,7 +407,6 @@ describe('FormulaDialog', () => {
 
       expect(screen.getByText('Gerando...')).toBeInTheDocument();
 
-      // Resolver a promise
       resolvePromise!(String.raw`A = \pi r^2`);
 
       await waitFor(() => {
@@ -415,7 +414,7 @@ describe('FormulaDialog', () => {
       });
     });
 
-    it('deve desabilitar textarea durante geração', async () => {
+    it('should disable textarea during generation', async () => {
       let resolvePromise: (value: string) => void;
       const onGenerateWithAI = jest.fn().mockImplementation(
         () =>
@@ -442,7 +441,7 @@ describe('FormulaDialog', () => {
       });
     });
 
-    it('deve mostrar mensagem de erro quando a geração falha', async () => {
+    it('should show error message when generation fails', async () => {
       const onGenerateWithAI = jest
         .fn()
         .mockRejectedValue(new Error('Erro de conexão com a API'));
@@ -461,8 +460,8 @@ describe('FormulaDialog', () => {
       });
     });
 
-    it('deve mostrar mensagem de erro genérica quando erro não é instância de Error', async () => {
-      const onGenerateWithAI = jest.fn().mockRejectedValue('erro desconhecido');
+    it('should show generic error message when error is not an Error instance', async () => {
+      const onGenerateWithAI = jest.fn().mockRejectedValue('unknown error');
       render(
         <FormulaDialog {...defaultProps} onGenerateWithAI={onGenerateWithAI} />
       );
@@ -480,7 +479,7 @@ describe('FormulaDialog', () => {
       });
     });
 
-    it('deve limpar erro de IA ao fechar o modal', async () => {
+    it('should clear AI error when closing modal', async () => {
       const onGenerateWithAI = jest
         .fn()
         .mockRejectedValue(new Error('Erro de teste'));
@@ -503,10 +502,8 @@ describe('FormulaDialog', () => {
         expect(screen.getByText('Erro de teste')).toBeInTheDocument();
       });
 
-      // Fechar o modal
       fireEvent.click(screen.getByText('Cancelar'));
 
-      // Reabrir o modal
       rerender(
         <FormulaDialog
           {...defaultProps}
@@ -516,11 +513,10 @@ describe('FormulaDialog', () => {
         />
       );
 
-      // Erro não deve estar visível
       expect(screen.queryByText('Erro de teste')).not.toBeInTheDocument();
     });
 
-    it('deve limpar descrição de IA ao fechar o modal', () => {
+    it('should clear AI description when closing modal', () => {
       const onGenerateWithAI = jest.fn();
       const onClose = jest.fn();
       const { rerender } = render(
@@ -536,10 +532,8 @@ describe('FormulaDialog', () => {
       );
       fireEvent.change(textarea, { target: { value: 'área do círculo' } });
 
-      // Fechar o modal
       fireEvent.click(screen.getByText('Cancelar'));
 
-      // Reabrir o modal
       rerender(
         <FormulaDialog
           {...defaultProps}
@@ -549,14 +543,13 @@ describe('FormulaDialog', () => {
         />
       );
 
-      // Textarea deve estar vazia
       const textareaAfter = screen.getByPlaceholderText(
         'Ex: área do círculo, bhaskara, velocidade média...'
       );
       expect(textareaAfter).toHaveValue('');
     });
 
-    it('deve permitir inserir fórmula gerada pela IA', async () => {
+    it('should allow inserting AI-generated formula', async () => {
       const onGenerateWithAI = jest
         .fn()
         .mockResolvedValue(String.raw`E = mc^2`);
@@ -573,7 +566,7 @@ describe('FormulaDialog', () => {
         'Ex: área do círculo, bhaskara, velocidade média...'
       );
       fireEvent.change(textarea, {
-        target: { value: 'equação de equivalência massa-energia' },
+        target: { value: 'mass-energy equivalence equation' },
       });
       fireEvent.click(screen.getByText('Gerar fórmula'));
 
@@ -587,7 +580,7 @@ describe('FormulaDialog', () => {
       expect(onInsert).toHaveBeenCalledWith(String.raw`E = mc^2`);
     });
 
-    it('deve fazer trim na descrição antes de chamar onGenerateWithAI', async () => {
+    it('should trim description before calling onGenerateWithAI', async () => {
       const onGenerateWithAI = jest
         .fn()
         .mockResolvedValue(String.raw`x^2`);
@@ -598,11 +591,11 @@ describe('FormulaDialog', () => {
       const textarea = screen.getByPlaceholderText(
         'Ex: área do círculo, bhaskara, velocidade média...'
       );
-      fireEvent.change(textarea, { target: { value: '  x ao quadrado  ' } });
+      fireEvent.change(textarea, { target: { value: '  x squared  ' } });
       fireEvent.click(screen.getByText('Gerar fórmula'));
 
       await waitFor(() => {
-        expect(onGenerateWithAI).toHaveBeenCalledWith('x ao quadrado');
+        expect(onGenerateWithAI).toHaveBeenCalledWith('x squared');
       });
     });
   });
