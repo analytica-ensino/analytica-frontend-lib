@@ -456,7 +456,9 @@ describe('FormulaDialog', () => {
       fireEvent.click(screen.getByText('Gerar fórmula'));
 
       await waitFor(() => {
-        expect(screen.getByText('Erro de conexão com a API')).toBeInTheDocument();
+        expect(
+          screen.getByText('Erro de conexão com a API')
+        ).toBeInTheDocument();
       });
     });
 
@@ -581,9 +583,7 @@ describe('FormulaDialog', () => {
     });
 
     it('should trim description before calling onGenerateWithAI', async () => {
-      const onGenerateWithAI = jest
-        .fn()
-        .mockResolvedValue(String.raw`x^2`);
+      const onGenerateWithAI = jest.fn().mockResolvedValue(String.raw`x^2`);
       render(
         <FormulaDialog {...defaultProps} onGenerateWithAI={onGenerateWithAI} />
       );
