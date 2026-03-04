@@ -64,12 +64,20 @@ interface RichEditorProps {
   readonly content?: string;
   readonly onChange?: (data: { json: object; html: string }) => void;
   readonly placeholder?: string;
+  /**
+   * Optional callback to generate LaTeX using AI
+   * If provided, the AI generation feature will be enabled in the formula dialog
+   * @param description - Natural language description of the formula
+   * @returns Promise resolving to the LaTeX string
+   */
+  readonly onGenerateLatexWithAI?: (description: string) => Promise<string>;
 }
 
 export function RichEditor({
   content,
   onChange,
   placeholder = 'Digite aqui...',
+  onGenerateLatexWithAI,
 }: RichEditorProps) {
   const [formulaOpen, setFormulaOpen] = useState(false);
   const isExternalUpdateRef = useRef(false);
@@ -339,6 +347,7 @@ export function RichEditor({
         open={formulaOpen}
         onClose={() => setFormulaOpen(false)}
         onInsert={insertFormula}
+        onGenerateWithAI={onGenerateLatexWithAI}
       />
     </div>
   );
