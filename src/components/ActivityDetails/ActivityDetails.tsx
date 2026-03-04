@@ -927,12 +927,10 @@ export const ActivityDetails = ({
               />
             </div>
             <Text className="text-2xs font-bold uppercase text-center text-info-700">
-              Total de questões não respondidas
+              Questões não respondidas
             </Text>
             <Text className="text-xl font-bold text-info-700">
-              {data.questionStats.notAnswered > 0
-                ? data.questionStats.notAnswered
-                : '-'}
+              {formatQuestionNumbers(data.questionStats.notAnswered)}
             </Text>
           </div>
         </div>
