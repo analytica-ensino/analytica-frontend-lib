@@ -11,6 +11,9 @@
 @source inline("{bg,text,border}-{subject-1,subject-2,subject-3,subject-4,subject-5,subject-6,subject-7,subject-8,subject-9,subject-10,subject-11,subject-12,subject-13,subject-14,subject-15,subject-16}");
 @source inline("{bg,text,border}-{typography-1,typography-2}");
 
+/* Safelist para cores de tipos de questão */
+@source inline("{bg,text,border,ring}-{question-type-multiple-choice,question-type-fill-blank,question-type-image,question-type-matching}");
+
 /* Safelist para breakpoints */
 @source inline("{sm,md,lg}:{flex,inline-flex,flex-row,flex-row-reverse,flex-col,flex-col-reverse,flex-wrap,flex-nowrap,flex-wrap-reverse,items-start,items-center,items-end,items-stretch,items-baseline,justify-start,justify-center,justify-end,justify-between,justify-around,justify-evenly,content-start,content-center,content-end,content-between,content-around,content-evenly,self-auto,self-start,self-center,self-end,self-stretch,flex-1,flex-auto,flex-initial,flex-none,basis-0,basis-1/2,basis-full,gap-0,gap-0.5,gap-1,gap-1.5,gap-2,gap-2.5,gap-3,gap-3.5,gap-4,gap-5,gap-6,gap-7,gap-8,gap-9,gap-10,gap-11,gap-12}");
 @source inline("{sm,md,lg}:{p,px,py,pt,pr,pb,pl,m,mx,my,mt,mr,mb,ml,space-x,space-y}-{0,0.5,1,1.5,2,2.5,3,3.5,4,5,6,7,8,9,10,11,12,14,16,20,24,28,32,36,40,44,48,52,56,60,64,72,80,96}");
@@ -197,6 +200,12 @@
   --color-subject-16: #badfc8;
   --color-typography-1: #b00c9e;
   --color-typography-2: #745a07;
+
+  /* Question Type Colors */
+  --color-question-type-multiple-choice: #6B21A8;
+  --color-question-type-fill-blank: #0D4E6E;
+  --color-question-type-image: #715904;
+  --color-question-type-matching: #660CB0;
 
   /* Map Choropleth Colors */
   --color-map-highlight: #1C61B2;
@@ -442,6 +451,12 @@
     --color-typography-1: #fccff6;
     --color-typography-2: #f9e5a4;
 
+    /* Question Type Colors */
+    --color-question-type-multiple-choice: #A855F7;
+    --color-question-type-fill-blank: #22D3EE;
+    --color-question-type-image: #EAB308;
+    --color-question-type-matching: #C084FC;
+
     /* Map Choropleth Colors */
     --color-map-highlight: #1C61B2;
     --color-map-above-avg: #2883D7;
@@ -640,6 +655,12 @@
     --color-subject-16: #badfc8;
     --color-typography-1: #b00c9e;
     --color-typography-2: #745a07;
+
+    /* Question Type Colors */
+    --color-question-type-multiple-choice: #6B21A8;
+    --color-question-type-fill-blank: #0D4E6E;
+    --color-question-type-image: #715904;
+    --color-question-type-matching: #660CB0;
 
     /* Map Choropleth Colors */
     --color-map-highlight: #1C61B2;
