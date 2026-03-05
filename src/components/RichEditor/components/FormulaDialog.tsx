@@ -252,13 +252,17 @@ export function FormulaDialog({
       className={isTablet ? 'max-w-[90vw] max-h-[90vh] overflow-y-auto' : ''}
       footer={
         <>
-          <Button variant="outline" size="medium" onClick={handleClose}>
+          <Button
+            variant="outline"
+            size={isTablet ? 'extra-small' : 'medium'}
+            onClick={handleClose}
+          >
             Cancelar
           </Button>
           <Button
             variant="solid"
             action="primary"
-            size="medium"
+            size={isTablet ? 'extra-small' : 'medium'}
             onClick={handleInsert}
             disabled={!latex.trim() || !!error}
           >
