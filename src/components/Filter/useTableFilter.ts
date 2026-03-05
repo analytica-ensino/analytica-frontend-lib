@@ -7,6 +7,24 @@ export type FilterConfig = {
   categories: CategoryConfig[];
 };
 
+/**
+ * Merge new filter configs with previous state, preserving user selections
+ */
+const mergeConfigsWithSelections = (
+  newConfigs: FilterConfig[],
+  prevConfigs: FilterConfig[]
+): FilterConfig[] =>
+  newConfigs.map((newConfig, i) => ({
+    ...newConfig,
+    categories: newConfig.categories.map((newCat, j) => {
+      const prevCat = prevConfigs[i]?.categories[j];
+      if (prevCat?.key === newCat.key && prevCat?.selectedIds?.length) {
+        return { ...newCat, selectedIds: prevCat.selectedIds };
+      }
+      return newCat;
+    }),
+  }));
+
 export type UseTableFilterOptions = {
   syncWithUrl?: boolean;
 };
@@ -153,6 +171,13 @@ export const useTableFilter = (
       globalThis.window.history.replaceState({}, '', url.toString());
     }
   }, [filterConfigs, syncWithUrl]);
+
+  // Sync filter configs when initialConfigs items change (e.g., async data loaded)
+  useEffect(() => {
+    setFilterConfigs((prev) =>
+      mergeConfigsWithSelections(initialConfigs, prev)
+    );
+  }, [initialConfigs]);
 
   // Sync with URL on mount and when URL changes externally
   useEffect(() => {

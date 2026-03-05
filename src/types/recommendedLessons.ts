@@ -61,6 +61,8 @@ export interface RecommendedClassBreakdown {
   className: string;
   schoolId: string;
   schoolName: string;
+  schoolYearId?: string;
+  schoolYearName?: string;
   studentCount: number;
   completedCount: number;
 }

@@ -154,11 +154,6 @@ const buildFiltersFromParams = (
   if (classFilter.single) filters.classId = classFilter.single;
   if (classFilter.multiple) filters.classIds = classFilter.multiple;
 
-  // Students filter (always multiple)
-  if (Array.isArray(params.students) && params.students.length > 0) {
-    filters.studentIds = params.students;
-  }
-
   // Subject filter (single selection)
   if (Array.isArray(params.subject) && params.subject.length > 0) {
     filters.subjectId = params.subject[0];
@@ -186,19 +181,6 @@ const getSchoolOptions = (
 };
 
 /**
- * Get subject options from user data
- */
-const getSubjectOptions = (
-  data: RecommendedClassUserFilterData | undefined
-): RecommendedClassFilterOption[] => {
-  if (!data?.subjects) return [];
-  return data.subjects.map((subject) => ({
-    id: subject.id,
-    name: subject.name,
-  }));
-};
-
-/**
  * Get school year options from user data
  */
 const getSchoolYearOptions = (
@@ -221,6 +203,19 @@ const getClassOptions = (
   return data.classes.map((cls) => ({
     id: cls.id,
     name: cls.name,
+  }));
+};
+
+/**
+ * Get subject options from user data
+ */
+const getSubjectOptions = (
+  data: RecommendedClassUserFilterData | undefined
+): RecommendedClassFilterOption[] => {
+  if (!data?.subjects) return [];
+  return data.subjects.map((subject) => ({
+    id: subject.id,
+    name: subject.name,
   }));
 };
 
@@ -252,12 +247,6 @@ const createRecommendedClassFiltersConfig = (
         selectedIds: [],
         itens: getClassOptions(userData),
       },
-      {
-        key: 'students',
-        label: 'Alunos',
-        selectedIds: [],
-        itens: [],
-      },
     ],
   },
   {
@@ -265,34 +254,10 @@ const createRecommendedClassFiltersConfig = (
     label: 'CONTEÚDO',
     categories: [
       {
-        key: 'knowledgeArea',
-        label: 'Área de conhecimento',
-        selectedIds: [],
-        itens: [],
-      },
-      {
         key: 'subject',
         label: 'Matéria',
         selectedIds: [],
         itens: getSubjectOptions(userData),
-      },
-      {
-        key: 'theme',
-        label: 'Tema',
-        selectedIds: [],
-        itens: [],
-      },
-      {
-        key: 'subtheme',
-        label: 'Subtema',
-        selectedIds: [],
-        itens: [],
-      },
-      {
-        key: 'topic',
-        label: 'Assunto',
-        selectedIds: [],
-        itens: [],
       },
     ],
   },

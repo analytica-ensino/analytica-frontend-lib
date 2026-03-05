@@ -152,6 +152,7 @@ export interface UseRecommendedLessonsPageReturn {
       schools: Array<{ id: string; name: string }>;
       classes: Array<{ id: string; name: string }>;
       subjects: Array<{ id: string; name: string }>;
+      schoolYears: Array<{ id: string; name: string }>;
     };
     subjectsMap: Map<string, string>;
     title: string;
@@ -289,6 +290,113 @@ const getSubjectOptions = (
  * const { historyProps, modalProps, navigate } = useRecommendedLessonsPage();
  * ```
  */
+type FilterDataState = {
+  schools: Array<{ id: string; name: string }>;
+  classes: Array<{ id: string; name: string }>;
+  subjects: Array<{ id: string; name: string }>;
+  schoolYears: Array<{ id: string; name: string }>;
+};
+
+/**
+ * Convert a Map of id→name pairs to an array of {id, name} objects
+ */
+const toFilterArray = (m: Map<string, string>) =>
+  Array.from(m.entries()).map(([id, name]) => ({ id, name }));
+
+/**
+ * Collect school, class and schoolYear data from a single breakdown entry
+ */
+const collectBreakdownData = (
+  b: RecommendedClassHistoryItem['breakdown'][number],
+  schoolMap: Map<string, string>,
+  classMap: Map<string, string>,
+  schoolYearMap: Map<string, string>
+) => {
+  if (b.schoolId && b.schoolName) {
+    schoolMap.set(b.schoolId, b.schoolName);
+  }
+  if (b.classId && b.className) {
+    classMap.set(b.classId, b.className);
+  }
+  if (b.schoolYearId && b.schoolYearName) {
+    schoolYearMap.set(b.schoolYearId, b.schoolYearName);
+  }
+};
+
+/**
+ * Extract filter maps from history response items
+ */
+const extractMapsFromItems = (
+  items: RecommendedClassHistoryItem[]
+): {
+  schoolMap: Map<string, string>;
+  classMap: Map<string, string>;
+  subjectMap: Map<string, string>;
+  schoolYearMap: Map<string, string>;
+} => {
+  const schoolMap = new Map<string, string>();
+  const classMap = new Map<string, string>();
+  const subjectMap = new Map<string, string>();
+  const schoolYearMap = new Map<string, string>();
+
+  for (const item of items) {
+    if (item.subject?.id && item.subject?.name) {
+      subjectMap.set(item.subject.id, item.subject.name);
+    }
+    for (const b of item.breakdown) {
+      collectBreakdownData(b, schoolMap, classMap, schoolYearMap);
+    }
+  }
+
+  return { schoolMap, classMap, subjectMap, schoolYearMap };
+};
+
+/**
+ * Merge new filter maps with previous filter state, returning prev if unchanged
+ */
+const mergeFilterData = (
+  prev: FilterDataState,
+  maps: {
+    schoolMap: Map<string, string>;
+    classMap: Map<string, string>;
+    subjectMap: Map<string, string>;
+    schoolYearMap: Map<string, string>;
+  }
+): FilterDataState => {
+  const mergedSchools = new Map([
+    ...prev.schools.map((s) => [s.id, s.name] as [string, string]),
+    ...maps.schoolMap,
+  ]);
+  const mergedClasses = new Map([
+    ...prev.classes.map((c) => [c.id, c.name] as [string, string]),
+    ...maps.classMap,
+  ]);
+  const mergedSubjects = new Map([
+    ...prev.subjects.map((s) => [s.id, s.name] as [string, string]),
+    ...maps.subjectMap,
+  ]);
+  const mergedSchoolYears = new Map([
+    ...prev.schoolYears.map((y) => [y.id, y.name] as [string, string]),
+    ...maps.schoolYearMap,
+  ]);
+
+  if (
+    mergedSchools.size === prev.schools.length &&
+    mergedClasses.size === prev.classes.length &&
+    mergedSubjects.size === prev.subjects.length &&
+    mergedSchoolYears.size === prev.schoolYears.length
+  ) {
+    return prev;
+  }
+
+  return {
+    schools: toFilterArray(mergedSchools),
+    classes: toFilterArray(mergedClasses),
+    subjects: toFilterArray(mergedSubjects),
+    schoolYears: toFilterArray(mergedSchoolYears),
+  };
+};
+
 export const createUseRecommendedLessonsPage = (
   config: UseRecommendedLessonsPageConfig
 ): (() => UseRecommendedLessonsPageReturn) => {
@@ -310,6 +418,16 @@ export const createUseRecommendedLessonsPage = (
       Map<string, RecommendedClassHistoryItem>
     >(new Map());
 
+    // Filter data extracted from history API responses
+    const [historyFilterData, setHistoryFilterData] = useState<FilterDataState>(
+      {
+        schools: [],
+        classes: [],
+        subjects: [],
+        schoolYears: [],
+      }
+    );
+
     // SendLessonModal state
     const [sendModalOpen, setSendModalOpen] = useState(false);
     const [selectedModel, setSelectedModel] =
@@ -319,23 +437,43 @@ export const createUseRecommendedLessonsPage = (
       CategoryConfig[]
     >([]);
 
-    // Build user filter data from user data
+    // Build user filter data: prefer history data, fallback to userData
     const userFilterData = useMemo(
       () => ({
-        schools: getSchoolOptions(userData),
-        classes: getClassOptions(userData),
-        subjects: getSubjectOptions(userData),
+        schools:
+          historyFilterData.schools.length > 0
+            ? historyFilterData.schools
+            : getSchoolOptions(userData),
+        classes:
+          historyFilterData.classes.length > 0
+            ? historyFilterData.classes
+            : getClassOptions(userData),
+        subjects:
+          historyFilterData.subjects.length > 0
+            ? historyFilterData.subjects
+            : getSubjectOptions(userData),
+        schoolYears: historyFilterData.schoolYears,
       }),
-      [userData]
+      [userData, historyFilterData]
     );
 
     // Memoized subjects map for models display
     const subjectsMap = useMemo(() => {
       const map = new Map<string, string>();
-      const subjects = getSubjectOptions(userData);
-      subjects.forEach((s) => map.set(s.id, s.name));
+      userFilterData.subjects.forEach((s) => map.set(s.id, s.name));
       return map;
-    }, [userData]);
+    }, [userFilterData.subjects]);
+
+    /**
+     * Extract unique filter options from history response data
+     */
+    const extractFilterDataFromHistory = useCallback(
+      (items: RecommendedClassHistoryItem[]) => {
+        const maps = extractMapsFromItems(items);
+        setHistoryFilterData((prev) => mergeFilterData(prev, maps));
+      },
+      []
+    );
 
     /**
      * Fetch recommendedClass history from API
@@ -351,17 +489,17 @@ export const createUseRecommendedLessonsPage = (
         );
 
         // Store original recommendedClass data for later use in navigation
-        const recommendedClass = response.data.data.recommendedClass;
-        recommendedClass.forEach((recommendedClass) => {
-          recommendedClassMapRef.current.set(
-            recommendedClass.recommendedClass.id,
-            recommendedClass
-          );
+        const items = response.data.data.recommendedClass;
+        items.forEach((item) => {
+          recommendedClassMapRef.current.set(item.recommendedClass.id, item);
         });
+
+        // Extract filter options from response data
+        extractFilterDataFromHistory(items);
 
         return response.data;
       },
-      [api, endpoints.recommendedClassHistory]
+      [api, endpoints.recommendedClassHistory, extractFilterDataFromHistory]
     );
 
     /**
