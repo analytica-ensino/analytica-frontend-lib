@@ -466,7 +466,6 @@ export {
   ANSWER_STATUS,
   SUBTYPE_ENUM,
   QUIZ_TYPE,
-  QUIZ_STATUS,
 } from './components/Quiz/useQuizStore';
 export { SubjectEnum } from './enums/SubjectEnum';
 export type {

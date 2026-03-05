@@ -47,13 +47,6 @@ export enum SUBTYPE_ENUM {
   SIMULADAO = 'SIMULADAO',
 }
 
-export enum QUIZ_STATUS {
-  ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
-  DRAFT = 'DRAFT',
-  FINISHED = 'FINISHED',
-}
-
 export interface QuestionResult {
   answers: {
     id: string;
@@ -164,7 +157,7 @@ export interface QuizInterface {
   subtype: SUBTYPE_ENUM | string;
   difficulty: string | null;
   notification: string | null;
-  status: QUIZ_STATUS | string;
+  status: string;
   startDate: string | null;
   finalDate: string | null;
   canRetry: boolean;
