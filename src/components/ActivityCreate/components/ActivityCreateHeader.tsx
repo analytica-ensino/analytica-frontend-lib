@@ -67,7 +67,11 @@ export const ActivityCreateHeader = ({
                 {isSaving ? 'Salvando...' : 'Nenhum rascunho salvo'}
               </Text>
             )}
-            <Button size="small" onClick={onSaveModel}>
+            <Button
+              size="small"
+              onClick={onSaveModel}
+              disabled={!activity || isSaving}
+            >
               Salvar modelo
             </Button>
             {isRecommendedLessonMode ? (
