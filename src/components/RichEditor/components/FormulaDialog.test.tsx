@@ -17,6 +17,12 @@ jest.mock('katex', () => ({
     mockRenderToString(latex, options),
 }));
 
+// Mock useMobile hook
+const mockUseMobile = jest.fn();
+jest.mock('../../../hooks/useMobile', () => ({
+  useMobile: () => mockUseMobile(),
+}));
+
 describe('FormulaDialog', () => {
   const defaultProps = {
     open: true,
@@ -26,6 +32,8 @@ describe('FormulaDialog', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default: desktop mode
+    mockUseMobile.mockReturnValue({ isTablet: false, isMobile: false });
   });
 
   describe('Renderização', () => {
@@ -597,6 +605,69 @@ describe('FormulaDialog', () => {
       await waitFor(() => {
         expect(onGenerateWithAI).toHaveBeenCalledWith('x squared');
       });
+    });
+  });
+
+  describe('Responsive Layout', () => {
+    it('should apply responsive classes to modal when on tablet', () => {
+      mockUseMobile.mockReturnValue({ isTablet: true, isMobile: false });
+      render(<FormulaDialog {...defaultProps} />);
+
+      const dialog = document.querySelector('dialog');
+      expect(dialog).toHaveClass('max-w-[90vw]');
+      expect(dialog).toHaveClass('max-h-[90vh]');
+      expect(dialog).toHaveClass('overflow-y-auto');
+    });
+
+    it('should not apply responsive classes to modal on desktop', () => {
+      mockUseMobile.mockReturnValue({ isTablet: false, isMobile: false });
+      render(<FormulaDialog {...defaultProps} />);
+
+      const dialog = document.querySelector('dialog');
+      expect(dialog).not.toHaveClass('max-w-[90vw]');
+      expect(dialog).not.toHaveClass('max-h-[90vh]');
+      expect(dialog).not.toHaveClass('overflow-y-auto');
+    });
+
+    it('should use column layout for content when on tablet', () => {
+      mockUseMobile.mockReturnValue({ isTablet: true, isMobile: false });
+      render(<FormulaDialog {...defaultProps} />);
+
+      const container = screen
+        .getByText('Fórmulas e símbolos mais usados')
+        .closest('.flex');
+      expect(container).toHaveClass('flex-col');
+    });
+
+    it('should use row layout for content when on desktop', () => {
+      mockUseMobile.mockReturnValue({ isTablet: false, isMobile: false });
+      render(<FormulaDialog {...defaultProps} />);
+
+      const container = screen
+        .getByText('Fórmulas e símbolos mais usados')
+        .closest('.flex');
+      expect(container).toHaveClass('flex');
+      expect(container).not.toHaveClass('flex-col');
+    });
+
+    it('should use 1 column grid for formulas when on tablet', () => {
+      mockUseMobile.mockReturnValue({ isTablet: true, isMobile: false });
+      render(<FormulaDialog {...defaultProps} />);
+
+      const formulaGrid = screen
+        .getByText('Teorema de Pitágoras')
+        .closest('.grid');
+      expect(formulaGrid).toHaveClass('grid-cols-1');
+    });
+
+    it('should use 2 column grid for formulas when on desktop', () => {
+      mockUseMobile.mockReturnValue({ isTablet: false, isMobile: false });
+      render(<FormulaDialog {...defaultProps} />);
+
+      const formulaGrid = screen
+        .getByText('Teorema de Pitágoras')
+        .closest('.grid');
+      expect(formulaGrid).toHaveClass('grid-cols-2');
     });
   });
 });

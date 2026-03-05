@@ -178,8 +178,7 @@ const Modal = ({
   const baseClasses =
     'bg-secondary-50 rounded-3xl shadow-hard-shadow-2 border border-border-100 w-full mx-4';
   // Reset dialog default styles to prevent positioning issues
-  const dialogResetClasses =
-    'p-0 m-0 border-none outline-none max-h-none static';
+  const dialogResetClasses = 'p-0 m-0 border-none outline-none static';
   const modalClasses = cn(
     baseClasses,
     sizeClasses,

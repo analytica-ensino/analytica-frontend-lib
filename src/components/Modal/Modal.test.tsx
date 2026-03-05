@@ -90,6 +90,58 @@ describe('Modal', () => {
     expect(modalContent).toHaveClass('custom-class');
   });
 
+  describe('Custom CSS classes', () => {
+    it('should apply viewport classes (max-w-[95vw])', () => {
+      render(<Modal {...defaultProps} className="max-w-[95vw]" />);
+
+      const modalContent = document.querySelector('dialog');
+      expect(modalContent).toHaveClass('max-w-[95vw]');
+    });
+
+    it('should apply max-height classes with viewport units', () => {
+      render(<Modal {...defaultProps} className="max-h-[90vh]" />);
+
+      const modalContent = document.querySelector('dialog');
+      expect(modalContent).toHaveClass('max-h-[90vh]');
+    });
+
+    it('should apply overflow classes', () => {
+      render(<Modal {...defaultProps} className="overflow-y-auto" />);
+
+      const modalContent = document.querySelector('dialog');
+      expect(modalContent).toHaveClass('overflow-y-auto');
+    });
+
+    it('should apply multiple custom classes simultaneously', () => {
+      render(
+        <Modal
+          {...defaultProps}
+          className="max-w-[95vw] max-h-[90vh] overflow-y-auto"
+        />
+      );
+
+      const modalContent = document.querySelector('dialog');
+      expect(modalContent).toHaveClass('max-w-[95vw]');
+      expect(modalContent).toHaveClass('max-h-[90vh]');
+      expect(modalContent).toHaveClass('overflow-y-auto');
+    });
+
+    it('should combine custom classes with modal size classes', () => {
+      render(
+        <Modal
+          {...defaultProps}
+          size="lg"
+          className="max-h-[90vh] overflow-y-auto"
+        />
+      );
+
+      const modalContent = document.querySelector('dialog');
+      expect(modalContent).toHaveClass('max-w-[640px]');
+      expect(modalContent).toHaveClass('max-h-[90vh]');
+      expect(modalContent).toHaveClass('overflow-y-auto');
+    });
+  });
+
   it('deve bloquear o scroll do body quando o modal está aberto', () => {
     render(<Modal {...defaultProps} />);
 
