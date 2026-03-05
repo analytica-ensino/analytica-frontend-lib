@@ -4,6 +4,9 @@ import {
   forwardRef,
   useState,
   useId,
+  useEffect,
+  useRef,
+  useImperativeHandle,
   ChangeEvent,
   FocusEvent,
 } from 'react';
@@ -100,6 +103,10 @@ export type TextAreaProps = {
   labelClassName?: string;
   /** Show character count when maxLength is provided */
   showCharacterCount?: boolean;
+  /** Enable auto-resize based on content */
+  autoResize?: boolean;
+  /** Minimum height when autoResize is enabled (default: 96px) */
+  minHeight?: number;
 } & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'size'>;
 
 /**
@@ -122,6 +129,9 @@ export type TextAreaProps = {
  *
  * // Disabled state
  * <TextArea disabled label="Read-only field" />
+ *
+ * // Auto-resize textarea
+ * <TextArea autoResize minHeight={200} placeholder="Grows with content..." />
  * ```
  */
 const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
@@ -142,6 +152,8 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
       showCharacterCount = false,
       maxLength,
       value,
+      autoResize = false,
+      minHeight = 96,
       ...props
     },
     ref
@@ -150,12 +162,27 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
     const generatedId = useId();
     const inputId = id ?? `textarea-${generatedId}`;
 
+    // Internal ref for auto-resize
+    const internalRef = useRef<HTMLTextAreaElement>(null);
+
+    // Expose ref to parent
+    useImperativeHandle(ref, () => internalRef.current as HTMLTextAreaElement);
+
     // Internal state for focus tracking
     const [isFocused, setIsFocused] = useState(false);
 
     // Calculate current character count
     const currentLength = typeof value === 'string' ? value.length : 0;
     const isNearLimit = maxLength && currentLength >= maxLength * 0.8;
+
+    // Auto-resize effect
+    useEffect(() => {
+      if (autoResize && internalRef.current) {
+        const textarea = internalRef.current;
+        textarea.style.height = 'auto';
+        textarea.style.height = `${Math.max(textarea.scrollHeight, minHeight)}px`;
+      }
+    }, [autoResize, minHeight, value]);
 
     // Handle change events
     const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
@@ -192,10 +219,21 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
     // Get styling classes
     const stateClasses = STATE_CLASSES[currentState];
 
+    // Get height classes based on autoResize
+    const heightClasses = autoResize
+      ? 'h-auto overflow-hidden'
+      : sizeClasses.textarea;
+
+    // Get font size from size classes (extract only the text size)
+    const fontSizeClass =
+      sizeClasses.textarea.split(' ').find((c) => c.startsWith('text-')) ??
+      'text-base';
+
     // Get final textarea classes
     const textareaClasses = cn(
       BASE_TEXTAREA_CLASSES,
-      sizeClasses.textarea,
+      autoResize ? fontSizeClass : sizeClasses.textarea,
+      heightClasses,
       stateClasses.base,
       stateClasses.hover,
       stateClasses.focus,
@@ -221,7 +259,7 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
 
         {/* Textarea */}
         <textarea
-          ref={ref}
+          ref={internalRef}
           id={inputId}
           disabled={disabled}
           onChange={handleChange}
