@@ -225,7 +225,9 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
       : sizeClasses.textarea;
 
     // Get font size from size classes (extract only the text size)
-    const fontSizeClass = sizeClasses.textarea.split(' ').find((c) => c.startsWith('text-')) ?? 'text-base';
+    const fontSizeClass =
+      sizeClasses.textarea.split(' ').find((c) => c.startsWith('text-')) ??
+      'text-base';
 
     // Get final textarea classes
     const textareaClasses = cn(
