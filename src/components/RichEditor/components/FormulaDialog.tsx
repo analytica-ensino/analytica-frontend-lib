@@ -6,6 +6,7 @@ import Modal from '../../Modal/Modal';
 import Text from '../../Text/Text';
 import TextArea from '../../TextArea/TextArea';
 import { Sparkle } from 'phosphor-react';
+import { useMobile } from '../../../hooks/useMobile';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
 
@@ -152,6 +153,7 @@ export function FormulaDialog({
   onInsert,
   onGenerateWithAI,
 }: FormulaDialogProps) {
+  const { isTablet } = useMobile();
   const [category, setCategory] = useState<FormulaCategory>('matematica');
   const [latex, setLatex] = useState('');
   const [preview, setPreview] = useState('');
@@ -247,6 +249,7 @@ export function FormulaDialog({
       onClose={handleClose}
       title="Inserir fórmula"
       size="xl"
+      className={isTablet ? 'max-w-[90vw] max-h-[90vh] overflow-y-auto' : ''}
       footer={
         <>
           <Button variant="outline" size="medium" onClick={handleClose}>
@@ -264,7 +267,7 @@ export function FormulaDialog({
         </>
       }
     >
-      <div className="flex gap-6">
+      <div className={isTablet ? 'flex flex-col gap-6' : 'flex gap-6'}>
         {/* Left side - Predefined formulas */}
         <div className="flex-1">
           <Text size="sm" weight="bold" className="text-text-900 mb-4">
@@ -291,7 +294,9 @@ export function FormulaDialog({
           </Menu>
 
           {/* Formula cards grid */}
-          <div className="grid grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-2">
+          <div
+            className={`grid ${isTablet ? 'grid-cols-1' : 'grid-cols-2 max-h-[300px] overflow-y-auto pr-2'} gap-3`}
+          >
             {formulas[category].map((formula) => (
               <Button
                 key={formula.label}
