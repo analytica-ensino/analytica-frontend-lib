@@ -93,12 +93,68 @@ describe('ActivityCreateHeader', () => {
   });
 
   it('should call onSaveModel when save button is clicked', () => {
-    render(<ActivityCreateHeader {...defaultProps} />);
+    const activity = {
+      id: '1',
+      type: ActivityType.RASCUNHO,
+      title: 'Test Activity',
+      subjectId: 'subject-1',
+      filters: {},
+      questionIds: [],
+    };
+
+    render(<ActivityCreateHeader {...defaultProps} activity={activity} />);
 
     const saveButton = screen.getByText('Salvar modelo');
     fireEvent.click(saveButton);
 
     expect(defaultProps.onSaveModel).toHaveBeenCalled();
+  });
+
+  it('should disable save model button when no activity exists', () => {
+    render(<ActivityCreateHeader {...defaultProps} activity={undefined} />);
+
+    const saveButton = screen.getByText('Salvar modelo').closest('button');
+    expect(saveButton).toBeDisabled();
+  });
+
+  it('should disable save model button when isSaving is true', () => {
+    const activity = {
+      id: '1',
+      type: ActivityType.RASCUNHO,
+      title: 'Test Activity',
+      subjectId: 'subject-1',
+      filters: {},
+      questionIds: [],
+    };
+
+    render(
+      <ActivityCreateHeader {...defaultProps} activity={activity} isSaving />
+    );
+
+    const saveButton = screen.getByText('Salvar modelo').closest('button');
+    expect(saveButton).toBeDisabled();
+  });
+
+  it('should enable save model button when activity exists and not saving', () => {
+    const activity = {
+      id: '1',
+      type: ActivityType.RASCUNHO,
+      title: 'Test Activity',
+      subjectId: 'subject-1',
+      filters: {},
+      questionIds: [],
+    };
+
+    render(
+      <ActivityCreateHeader
+        {...defaultProps}
+        activity={activity}
+        isSaving={false}
+      />
+    );
+
+    const saveButton = screen.getByText('Salvar modelo').closest('button');
+    expect(saveButton).not.toBeDisabled();
   });
 
   it('should call onSendActivity when send button is clicked', () => {
