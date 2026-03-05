@@ -128,7 +128,11 @@ describe('Modal', () => {
 
     it('should combine custom classes with modal size classes', () => {
       render(
-        <Modal {...defaultProps} size="lg" className="max-h-[90vh] overflow-y-auto" />
+        <Modal
+          {...defaultProps}
+          size="lg"
+          className="max-h-[90vh] overflow-y-auto"
+        />
       );
 
       const modalContent = document.querySelector('dialog');
