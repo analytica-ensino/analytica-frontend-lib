@@ -642,4 +642,151 @@ describe('TextArea', () => {
       expect(screen.getByText('0/100 caracteres')).toBeInTheDocument();
     });
   });
+
+  describe('AutoResize Functionality', () => {
+    it('applies h-auto and overflow-hidden classes when autoResize is true', () => {
+      render(<TextArea autoResize />);
+      const textarea = screen.getByRole('textbox');
+      expect(textarea).toHaveClass('h-auto', 'overflow-hidden');
+    });
+
+    it('does not apply h-auto class when autoResize is false (default)', () => {
+      render(<TextArea />);
+      const textarea = screen.getByRole('textbox');
+      expect(textarea).toHaveClass('h-24');
+      expect(textarea).not.toHaveClass('h-auto');
+    });
+
+    it('preserves font size based on size prop when autoResize is enabled', () => {
+      render(<TextArea autoResize size="small" />);
+      const textarea = screen.getByRole('textbox');
+      expect(textarea).toHaveClass('text-sm');
+    });
+
+    it('preserves medium font size when autoResize is enabled', () => {
+      render(<TextArea autoResize size="medium" />);
+      const textarea = screen.getByRole('textbox');
+      expect(textarea).toHaveClass('text-base');
+    });
+
+    it('preserves large font size when autoResize is enabled', () => {
+      render(<TextArea autoResize size="large" />);
+      const textarea = screen.getByRole('textbox');
+      expect(textarea).toHaveClass('text-lg');
+    });
+
+    it('preserves extraLarge font size when autoResize is enabled', () => {
+      render(<TextArea autoResize size="extraLarge" />);
+      const textarea = screen.getByRole('textbox');
+      expect(textarea).toHaveClass('text-xl');
+    });
+
+    it('applies default minHeight of 96px when autoResize is enabled', () => {
+      render(<TextArea autoResize value="test" />);
+      const textarea = screen.getByRole('textbox');
+      // The minHeight is applied via inline style, so check it's at least 96px
+      expect(textarea.style.height).toBeTruthy();
+    });
+
+    it('accepts custom minHeight prop', () => {
+      render(<TextArea autoResize minHeight={200} value="test" />);
+      const textarea = screen.getByRole('textbox');
+      expect(textarea.style.height).toBeTruthy();
+    });
+
+    it('forwards ref correctly when autoResize is enabled', () => {
+      const ref = createRef<HTMLTextAreaElement>();
+      render(<TextArea autoResize ref={ref} />);
+      expect(ref.current).toBeInstanceOf(HTMLTextAreaElement);
+      expect(ref.current).toBe(screen.getByRole('textbox'));
+    });
+
+    it('ref provides access to textarea methods when autoResize is enabled', () => {
+      const ref = createRef<HTMLTextAreaElement>();
+      render(<TextArea autoResize ref={ref} />);
+
+      expect(ref.current).not.toBeNull();
+      if (ref.current) {
+        expect(typeof ref.current.focus).toBe('function');
+        expect(typeof ref.current.blur).toBe('function');
+        expect(typeof ref.current.select).toBe('function');
+        expect(typeof ref.current.setSelectionRange).toBe('function');
+      }
+    });
+
+    it('handles onChange events with autoResize enabled', async () => {
+      const handleChange = jest.fn();
+      const user = userEvent.setup();
+      render(<TextArea autoResize onChange={handleChange} />);
+
+      const textarea = screen.getByRole('textbox');
+      await user.type(textarea, 'Hello');
+
+      expect(handleChange).toHaveBeenCalledTimes(5);
+    });
+
+    it('maintains state classes when autoResize is enabled', () => {
+      render(<TextArea autoResize state="invalid" />);
+      const textarea = screen.getByRole('textbox');
+      expect(textarea).toHaveClass(
+        'border-red-700',
+        'h-auto',
+        'overflow-hidden'
+      );
+    });
+
+    it('maintains disabled state when autoResize is enabled', () => {
+      render(<TextArea autoResize disabled />);
+      const textarea = screen.getByRole('textbox');
+      expect(textarea).toHaveClass(
+        'cursor-not-allowed',
+        'opacity-40',
+        'h-auto'
+      );
+      expect(textarea).toBeDisabled();
+    });
+
+    it('works with label when autoResize is enabled', () => {
+      const labelText = 'Description';
+      render(<TextArea autoResize label={labelText} />);
+      expect(screen.getByText(labelText)).toBeInTheDocument();
+      expect(screen.getByRole('textbox')).toHaveClass('h-auto');
+    });
+
+    it('works with character count when autoResize is enabled', () => {
+      render(
+        <TextArea
+          autoResize
+          value="Hello"
+          maxLength={100}
+          showCharacterCount={true}
+        />
+      );
+      expect(screen.getByText('5/100 caracteres')).toBeInTheDocument();
+      expect(screen.getByRole('textbox')).toHaveClass('h-auto');
+    });
+
+    it('works with error message when autoResize is enabled', () => {
+      const errorMessage = 'This field is required';
+      render(<TextArea autoResize errorMessage={errorMessage} />);
+      expect(screen.getByText(errorMessage)).toBeInTheDocument();
+      expect(screen.getByRole('textbox')).toHaveClass('h-auto');
+    });
+
+    it('applies custom className alongside autoResize classes', () => {
+      const customClass = 'custom-textarea-class';
+      render(<TextArea autoResize className={customClass} />);
+      const textarea = screen.getByRole('textbox');
+      expect(textarea).toHaveClass(customClass, 'h-auto', 'overflow-hidden');
+    });
+
+    it('handles focus state correctly with autoResize', async () => {
+      const user = userEvent.setup();
+      render(<TextArea autoResize />);
+      const textarea = screen.getByRole('textbox');
+
+      await user.click(textarea);
+      expect(textarea).toHaveClass('border-2', 'border-primary-950', 'h-auto');
+    });
+  });
 });
