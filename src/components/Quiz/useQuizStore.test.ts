@@ -889,6 +889,7 @@ describe('useQuizStore', () => {
     });
 
     it('should remove visibilitychange listener when timer stops', () => {
+      const addSpy = jest.spyOn(document, 'addEventListener');
       const removeSpy = jest.spyOn(document, 'removeEventListener');
       const { result } = renderQuizStoreHook();
 
@@ -897,10 +898,13 @@ describe('useQuizStore', () => {
         result.current.stopTimer();
       });
 
-      expect(removeSpy).toHaveBeenCalledWith(
-        'visibilitychange',
-        expect.any(Function)
-      );
+      const handler = addSpy.mock.calls.find(
+        ([eventName]) => eventName === 'visibilitychange'
+      )?.[1];
+
+      expect(handler).toEqual(expect.any(Function));
+      expect(removeSpy).toHaveBeenCalledWith('visibilitychange', handler);
+      addSpy.mockRestore();
       removeSpy.mockRestore();
     });
 

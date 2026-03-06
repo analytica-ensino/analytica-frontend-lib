@@ -685,6 +685,27 @@ describe('Quiz', () => {
       expect(badge).toBeInTheDocument();
     });
 
+    it('should show error badge when remaining time is exactly 5 minutes (boundary)', () => {
+      const mockGetRemainingTime = jest.fn().mockReturnValue(300);
+      mockFormatTime.mockReturnValue('05:00');
+
+      mockUseQuizStore.mockReturnValue({
+        currentQuestionIndex: 0,
+        getTotalQuestions: mockGetTotalQuestions,
+        getQuizTitle: mockGetQuizTitle,
+        timeElapsed: 3300,
+        formatTime: mockFormatTime,
+        isStarted: true,
+        timeLimit: 3600,
+        getRemainingTime: mockGetRemainingTime,
+      });
+
+      const { container } = render(<QuizTitle />);
+
+      const badge = container.querySelector('[data-action="error"]');
+      expect(badge).toBeInTheDocument();
+    });
+
     it('should show info badge when remaining time is more than 5 minutes', () => {
       const mockGetRemainingTime = jest.fn().mockReturnValue(600);
       mockFormatTime.mockReturnValue('10:00');

@@ -134,6 +134,16 @@ const QuizTitle = forwardRef<
   const totalQuestions = getTotalQuestions();
   const quizTitle = getQuizTitle();
 
+  const hasTimeLimit = timeLimit !== null;
+  const remainingTime = getRemainingTime() ?? 0;
+  const isTimeRunningOut = hasTimeLimit && remainingTime <= 300;
+
+  const getTimerDisplay = () => {
+    if (!isStarted) return '00:00';
+    if (hasTimeLimit) return formatTime(remainingTime);
+    return formatTime(timeElapsed);
+  };
+
   const handleBackClick = () => {
     if (isStarted) {
       setShowExitConfirmation(true);
@@ -187,20 +197,10 @@ const QuizTitle = forwardRef<
         <span className="flex flex-row items-center justify-center">
           <Badge
             variant="outlined"
-            action={
-              isStarted &&
-              timeLimit !== null &&
-              (getRemainingTime() ?? 0) <= 300
-                ? 'error'
-                : 'info'
-            }
+            action={isStarted && isTimeRunningOut ? 'error' : 'info'}
             iconLeft={<Clock />}
           >
-            {isStarted
-              ? timeLimit !== null
-                ? formatTime(getRemainingTime() ?? 0)
-                : formatTime(timeElapsed)
-              : '00:00'}
+            {getTimerDisplay()}
           </Badge>
         </span>
       </div>

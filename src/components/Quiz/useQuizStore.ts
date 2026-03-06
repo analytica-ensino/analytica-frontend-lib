@@ -287,11 +287,17 @@ export const useQuizStore = create<QuizState>()(
       let timerStartedAt: number | null = null;
       let timerBaseElapsed = 0;
 
+      const clampElapsed = (elapsed: number) => {
+        const { timeLimit } = get();
+        return timeLimit === null ? elapsed : Math.min(elapsed, timeLimit);
+      };
+
       const handleVisibilityChange = () => {
         if (document.visibilityState === 'visible' && timerStartedAt !== null) {
           const now = Date.now();
-          const elapsed =
-            timerBaseElapsed + Math.floor((now - timerStartedAt) / 1000);
+          const elapsed = clampElapsed(
+            timerBaseElapsed + Math.floor((now - timerStartedAt) / 1000)
+          );
           set({ timeElapsed: elapsed });
           checkTimeLimit(elapsed);
         }
@@ -322,8 +328,9 @@ export const useQuizStore = create<QuizState>()(
         timerInterval = setInterval(() => {
           if (timerStartedAt === null) return;
           const now = Date.now();
-          const elapsed =
-            timerBaseElapsed + Math.floor((now - timerStartedAt) / 1000);
+          const elapsed = clampElapsed(
+            timerBaseElapsed + Math.floor((now - timerStartedAt) / 1000)
+          );
           set({ timeElapsed: elapsed });
           checkTimeLimit(elapsed);
         }, 1000);
@@ -730,7 +737,14 @@ export const useQuizStore = create<QuizState>()(
         },
 
         // Timer
-        updateTime: (time) => set({ timeElapsed: time }),
+        updateTime: (time) => {
+          timerBaseElapsed = time;
+          if (timerStartedAt !== null) {
+            timerStartedAt = Date.now();
+          }
+          set({ timeElapsed: time });
+          checkTimeLimit(time);
+        },
         startTimer,
         stopTimer,
         setTimeLimit: (seconds) => set({ timeLimit: seconds }),
