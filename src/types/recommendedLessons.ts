@@ -61,6 +61,8 @@ export interface RecommendedClassBreakdown {
   className: string;
   schoolId: string;
   schoolName: string;
+  schoolYearId?: string;
+  schoolYearName?: string;
   studentCount: number;
   completedCount: number;
 }
@@ -129,6 +131,8 @@ export interface RecommendedClassHistoryFilters {
   subjectId?: string;
   schoolId?: string;
   schoolIds?: string[];
+  schoolYearId?: string;
+  schoolYearIds?: string[];
   classId?: string;
   classIds?: string[];
   studentIds?: string[];
