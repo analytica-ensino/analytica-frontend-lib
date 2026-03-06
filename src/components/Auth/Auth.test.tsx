@@ -1327,6 +1327,60 @@ describe('Auth Components', () => {
       // Should apply normal domain logic, not IP logic
       expect(result).toBe('https://example.com');
     });
+
+    it('should redirect to hml login for hml .com.br subdomains', () => {
+      const mockLocation = {
+        hostname: 'hml-aluno.analiticaensino.com.br',
+        protocol: 'https:',
+        port: '',
+      };
+
+      Object.defineProperty(window, 'location', {
+        value: mockLocation,
+        writable: true,
+        configurable: true,
+      });
+
+      const result = getRootDomain();
+
+      expect(result).toBe('https://hml.analiticaensino.com.br');
+    });
+
+    it('should redirect to hml login for hml .com subdomains', () => {
+      const mockLocation = {
+        hostname: 'hml-aluno.example.com',
+        protocol: 'https:',
+        port: '',
+      };
+
+      Object.defineProperty(window, 'location', {
+        value: mockLocation,
+        writable: true,
+        configurable: true,
+      });
+
+      const result = getRootDomain();
+
+      expect(result).toBe('https://hml.example.com');
+    });
+
+    it('should not add hml prefix for production .com.br subdomains', () => {
+      const mockLocation = {
+        hostname: 'aluno.analiticaensino.com.br',
+        protocol: 'https:',
+        port: '',
+      };
+
+      Object.defineProperty(window, 'location', {
+        value: mockLocation,
+        writable: true,
+        configurable: true,
+      });
+
+      const result = getRootDomain();
+
+      expect(result).toBe('https://analiticaensino.com.br');
+    });
   });
 
   describe('useAuth hook', () => {
