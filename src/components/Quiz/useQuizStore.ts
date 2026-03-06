@@ -191,6 +191,8 @@ export interface QuizState {
   variant: 'result' | 'default';
   minuteCallback: (() => void) | null;
   dissertativeCharLimit?: number;
+  timeLimit: number | null;
+  onTimeUp: (() => void) | null;
   // Actions
   setQuiz: (quiz: QuizInterface) => void;
   setQuestionResult: (questionResult: QuestionResult) => void;
@@ -219,6 +221,9 @@ export interface QuizState {
   updateTime: (time: number) => void;
   startTimer: () => void;
   stopTimer: () => void;
+  setTimeLimit: (seconds: number | null) => void;
+  setOnTimeUp: (callback: (() => void) | null) => void;
+  getRemainingTime: () => number | null;
 
   // Minute Callback
   setMinuteCallback: (callback: (() => void) | null) => void;
@@ -279,6 +284,26 @@ export const useQuizStore = create<QuizState>()(
     (set, get) => {
       let timerInterval: ReturnType<typeof setInterval> | null = null;
       let minuteCallbackInterval: ReturnType<typeof setInterval> | null = null;
+      let timerStartedAt: number | null = null;
+      let timerBaseElapsed = 0;
+
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible' && timerStartedAt !== null) {
+          const now = Date.now();
+          const elapsed =
+            timerBaseElapsed + Math.floor((now - timerStartedAt) / 1000);
+          set({ timeElapsed: elapsed });
+          checkTimeLimit(elapsed);
+        }
+      };
+
+      const checkTimeLimit = (elapsed: number) => {
+        const { timeLimit, isFinished, onTimeUp } = get();
+        if (timeLimit !== null && elapsed >= timeLimit && !isFinished) {
+          get().finishQuiz();
+          onTimeUp?.();
+        }
+      };
 
       const startTimer = () => {
         if (get().isFinished) {
@@ -289,9 +314,18 @@ export const useQuizStore = create<QuizState>()(
           clearInterval(timerInterval);
         }
 
+        timerStartedAt = Date.now();
+        timerBaseElapsed = get().timeElapsed;
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
         timerInterval = setInterval(() => {
-          const { timeElapsed } = get();
-          set({ timeElapsed: timeElapsed + 1 });
+          if (timerStartedAt === null) return;
+          const now = Date.now();
+          const elapsed =
+            timerBaseElapsed + Math.floor((now - timerStartedAt) / 1000);
+          set({ timeElapsed: elapsed });
+          checkTimeLimit(elapsed);
         }, 1000);
       };
 
@@ -300,6 +334,12 @@ export const useQuizStore = create<QuizState>()(
           clearInterval(timerInterval);
           timerInterval = null;
         }
+        timerStartedAt = null;
+        timerBaseElapsed = 0;
+        document.removeEventListener(
+          'visibilitychange',
+          handleVisibilityChange
+        );
       };
 
       const setMinuteCallback = (callback: (() => void) | null) => {
@@ -352,6 +392,8 @@ export const useQuizStore = create<QuizState>()(
         variant: 'default',
         minuteCallback: null,
         dissertativeCharLimit: undefined,
+        timeLimit: null,
+        onTimeUp: null,
         questionsResult: null,
         currentQuestionResult: null,
         // Setters
@@ -680,6 +722,8 @@ export const useQuizStore = create<QuizState>()(
             variant: 'default',
             minuteCallback: null,
             dissertativeCharLimit: undefined,
+            timeLimit: null,
+            onTimeUp: null,
             questionsResult: null,
             currentQuestionResult: null,
           });
@@ -689,6 +733,13 @@ export const useQuizStore = create<QuizState>()(
         updateTime: (time) => set({ timeElapsed: time }),
         startTimer,
         stopTimer,
+        setTimeLimit: (seconds) => set({ timeLimit: seconds }),
+        setOnTimeUp: (callback) => set({ onTimeUp: callback }),
+        getRemainingTime: () => {
+          const { timeLimit, timeElapsed } = get();
+          if (timeLimit === null) return null;
+          return Math.max(0, timeLimit - timeElapsed);
+        },
 
         // Minute Callback
         setMinuteCallback,

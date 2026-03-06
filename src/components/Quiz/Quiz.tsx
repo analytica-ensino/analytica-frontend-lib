@@ -125,6 +125,8 @@ const QuizTitle = forwardRef<
     timeElapsed,
     formatTime,
     isStarted,
+    timeLimit,
+    getRemainingTime,
   } = useQuizStore();
 
   const [showExitConfirmation, setShowExitConfirmation] = useState(false);
@@ -183,8 +185,22 @@ const QuizTitle = forwardRef<
         </span>
 
         <span className="flex flex-row items-center justify-center">
-          <Badge variant="outlined" action="info" iconLeft={<Clock />}>
-            {isStarted ? formatTime(timeElapsed) : '00:00'}
+          <Badge
+            variant="outlined"
+            action={
+              isStarted &&
+              timeLimit !== null &&
+              (getRemainingTime() ?? 0) <= 300
+                ? 'error'
+                : 'info'
+            }
+            iconLeft={<Clock />}
+          >
+            {isStarted
+              ? timeLimit !== null
+                ? formatTime(getRemainingTime() ?? 0)
+                : formatTime(timeElapsed)
+              : '00:00'}
           </Badge>
         </span>
       </div>

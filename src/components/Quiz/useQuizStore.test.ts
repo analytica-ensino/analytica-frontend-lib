@@ -802,6 +802,119 @@ describe('useQuizStore', () => {
       // Should only increment by 1 second, not by multiple intervals
       expect(result.current.timeElapsed).toBe(1);
     });
+
+    it('should set and get timeLimit', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setTimeLimit(3600);
+      });
+
+      expect(result.current.timeLimit).toBe(3600);
+    });
+
+    it('should calculate remaining time correctly', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setTimeLimit(3600);
+        result.current.startQuiz();
+        jest.advanceTimersByTime(60000); // 60 seconds
+      });
+
+      expect(result.current.getRemainingTime()).toBe(3540);
+    });
+
+    it('should return null for remaining time when no timeLimit is set', () => {
+      const { result } = renderQuizStoreHook();
+
+      expect(result.current.getRemainingTime()).toBeNull();
+    });
+
+    it('should auto-finish quiz when timeLimit is reached', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setTimeLimit(5);
+        result.current.startQuiz();
+        jest.advanceTimersByTime(5000);
+      });
+
+      expect(result.current.isFinished).toBe(true);
+      expect(result.current.getRemainingTime()).toBe(0);
+    });
+
+    it('should call onTimeUp callback when time expires', () => {
+      const onTimeUp = jest.fn();
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setTimeLimit(3);
+        result.current.setOnTimeUp(onTimeUp);
+        result.current.startQuiz();
+        jest.advanceTimersByTime(3000);
+      });
+
+      expect(onTimeUp).toHaveBeenCalledTimes(1);
+      expect(result.current.isFinished).toBe(true);
+    });
+
+    it('should reset timeLimit and onTimeUp when resetting quiz', () => {
+      const onTimeUp = jest.fn();
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setTimeLimit(3600);
+        result.current.setOnTimeUp(onTimeUp);
+        result.current.resetQuiz();
+      });
+
+      expect(result.current.timeLimit).toBeNull();
+      expect(result.current.onTimeUp).toBeNull();
+    });
+
+    it('should register visibilitychange listener when timer starts', () => {
+      const addSpy = jest.spyOn(document, 'addEventListener');
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.startQuiz();
+      });
+
+      expect(addSpy).toHaveBeenCalledWith(
+        'visibilitychange',
+        expect.any(Function)
+      );
+      addSpy.mockRestore();
+    });
+
+    it('should remove visibilitychange listener when timer stops', () => {
+      const removeSpy = jest.spyOn(document, 'removeEventListener');
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.startQuiz();
+        result.current.stopTimer();
+      });
+
+      expect(removeSpy).toHaveBeenCalledWith(
+        'visibilitychange',
+        expect.any(Function)
+      );
+      removeSpy.mockRestore();
+    });
+
+    it('should not exceed timeLimit for remaining time', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setTimeLimit(5);
+        result.current.startQuiz();
+        jest.advanceTimersByTime(10000); // 10 seconds, past the limit
+      });
+
+      expect(result.current.getRemainingTime()).toBe(0);
+    });
   });
 
   describe('Getters', () => {

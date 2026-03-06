@@ -574,6 +574,8 @@ describe('Quiz', () => {
         timeElapsed: 120,
         formatTime: mockFormatTime,
         isStarted: true,
+        timeLimit: null,
+        getRemainingTime: jest.fn().mockReturnValue(null),
       });
 
       mockGetTotalQuestions.mockReturnValue(10);
@@ -609,6 +611,8 @@ describe('Quiz', () => {
         timeElapsed: 120,
         formatTime: mockFormatTime,
         isStarted: true,
+        timeLimit: null,
+        getRemainingTime: jest.fn().mockReturnValue(null),
       });
 
       render(<QuizTitle />);
@@ -630,6 +634,8 @@ describe('Quiz', () => {
         timeElapsed: 120,
         formatTime: mockFormatTime,
         isStarted: false,
+        timeLimit: null,
+        getRemainingTime: jest.fn().mockReturnValue(null),
       });
 
       render(<QuizTitle />);
@@ -688,6 +694,8 @@ describe('Quiz', () => {
         timeElapsed: 180,
         formatTime: mockFormatTime,
         isStarted: true,
+        timeLimit: null,
+        getRemainingTime: jest.fn().mockReturnValue(null),
       });
 
       rerender(<QuizTitle />);
@@ -719,6 +727,8 @@ describe('Quiz', () => {
         timeElapsed: 0,
         formatTime: mockFormatTime,
         isStarted: false, // Not started, should call history.back directly
+        timeLimit: null,
+        getRemainingTime: jest.fn().mockReturnValue(null),
       });
 
       render(<QuizTitle />);
@@ -769,6 +779,8 @@ describe('Quiz', () => {
           timeElapsed: 0,
           formatTime: mockFormatTime,
           isStarted: false,
+          timeLimit: null,
+          getRemainingTime: jest.fn().mockReturnValue(null),
         });
 
         render(<QuizTitle />);
@@ -829,6 +841,8 @@ describe('Quiz', () => {
           timeElapsed: 120,
           formatTime: mockFormatTime,
           isStarted: true,
+          timeLimit: null,
+          getRemainingTime: jest.fn().mockReturnValue(null),
         });
 
         render(<QuizTitle />);
@@ -853,6 +867,8 @@ describe('Quiz', () => {
           timeElapsed: 120,
           formatTime: mockFormatTime,
           isStarted: true,
+          timeLimit: null,
+          getRemainingTime: jest.fn().mockReturnValue(null),
         });
 
         render(<QuizTitle />);
@@ -876,6 +892,8 @@ describe('Quiz', () => {
           timeElapsed: 120,
           formatTime: mockFormatTime,
           isStarted: true,
+          timeLimit: null,
+          getRemainingTime: jest.fn().mockReturnValue(null),
         });
 
         render(<QuizTitle />);
@@ -937,6 +955,8 @@ describe('Quiz', () => {
           timeElapsed: 0,
           formatTime: mockFormatTime,
           isStarted: false, // Not started
+          timeLimit: null,
+          getRemainingTime: jest.fn().mockReturnValue(null),
         });
 
         render(<QuizTitle onBack={mockOnBack} />);
@@ -956,6 +976,8 @@ describe('Quiz', () => {
           timeElapsed: 0,
           formatTime: mockFormatTime,
           isStarted: false, // Not started
+          timeLimit: null,
+          getRemainingTime: jest.fn().mockReturnValue(null),
         });
 
         render(<QuizTitle />);
@@ -976,6 +998,8 @@ describe('Quiz', () => {
           timeElapsed: 120,
           formatTime: mockFormatTime,
           isStarted: true, // Started
+          timeLimit: null,
+          getRemainingTime: jest.fn().mockReturnValue(null),
         });
 
         render(<QuizTitle onBack={mockOnBack} />);
@@ -1003,6 +1027,8 @@ describe('Quiz', () => {
           timeElapsed: 120,
           formatTime: mockFormatTime,
           isStarted: true, // Started
+          timeLimit: null,
+          getRemainingTime: jest.fn().mockReturnValue(null),
         });
 
         render(<QuizTitle />);
@@ -1031,6 +1057,8 @@ describe('Quiz', () => {
           timeElapsed: 120,
           formatTime: mockFormatTime,
           isStarted: true, // Started
+          timeLimit: null,
+          getRemainingTime: jest.fn().mockReturnValue(null),
         });
 
         render(<QuizTitle onBack={mockOnBack} />);
@@ -1058,6 +1086,8 @@ describe('Quiz', () => {
           timeElapsed: 0,
           formatTime: mockFormatTime,
           isStarted: false, // Not started
+          timeLimit: null,
+          getRemainingTime: jest.fn().mockReturnValue(null),
         });
 
         render(<QuizTitle onBack={undefined} />);
@@ -1077,6 +1107,8 @@ describe('Quiz', () => {
           timeElapsed: 0,
           formatTime: mockFormatTime,
           isStarted: false, // Not started
+          timeLimit: null,
+          getRemainingTime: jest.fn().mockReturnValue(null),
         });
 
         render(<QuizTitle onBack={null as unknown as () => void} />);
@@ -1098,6 +1130,8 @@ describe('Quiz', () => {
           timeElapsed: 0,
           formatTime: mockFormatTime,
           isStarted: false,
+          timeLimit: null,
+          getRemainingTime: jest.fn().mockReturnValue(null),
         });
 
         const { rerender } = render(<QuizTitle />);
@@ -1128,6 +1162,8 @@ describe('Quiz', () => {
           timeElapsed: 0,
           formatTime: mockFormatTime,
           isStarted: false,
+          timeLimit: null,
+          getRemainingTime: jest.fn().mockReturnValue(null),
         });
 
         const { container } = render(
