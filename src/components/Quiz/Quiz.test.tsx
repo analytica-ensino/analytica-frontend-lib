@@ -574,6 +574,8 @@ describe('Quiz', () => {
         timeElapsed: 120,
         formatTime: mockFormatTime,
         isStarted: true,
+        timeLimit: null,
+        getRemainingTime: jest.fn().mockReturnValue(null),
       });
 
       mockGetTotalQuestions.mockReturnValue(10);
@@ -609,6 +611,8 @@ describe('Quiz', () => {
         timeElapsed: 120,
         formatTime: mockFormatTime,
         isStarted: true,
+        timeLimit: null,
+        getRemainingTime: jest.fn().mockReturnValue(null),
       });
 
       render(<QuizTitle />);
@@ -630,11 +634,97 @@ describe('Quiz', () => {
         timeElapsed: 120,
         formatTime: mockFormatTime,
         isStarted: false,
+        timeLimit: null,
+        getRemainingTime: jest.fn().mockReturnValue(null),
       });
 
       render(<QuizTitle />);
 
       expect(screen.getByText('00:00')).toBeInTheDocument();
+    });
+
+    it('should display remaining time when timeLimit is set', () => {
+      const mockGetRemainingTime = jest.fn().mockReturnValue(1800);
+      mockFormatTime.mockReturnValue('30:00');
+
+      mockUseQuizStore.mockReturnValue({
+        currentQuestionIndex: 0,
+        getTotalQuestions: mockGetTotalQuestions,
+        getQuizTitle: mockGetQuizTitle,
+        timeElapsed: 1800,
+        formatTime: mockFormatTime,
+        isStarted: true,
+        timeLimit: 3600,
+        getRemainingTime: mockGetRemainingTime,
+      });
+
+      render(<QuizTitle />);
+
+      expect(mockFormatTime).toHaveBeenCalledWith(1800);
+      expect(screen.getByText('30:00')).toBeInTheDocument();
+    });
+
+    it('should show error badge when remaining time is 5 minutes or less', () => {
+      const mockGetRemainingTime = jest.fn().mockReturnValue(250);
+      mockFormatTime.mockReturnValue('04:10');
+
+      mockUseQuizStore.mockReturnValue({
+        currentQuestionIndex: 0,
+        getTotalQuestions: mockGetTotalQuestions,
+        getQuizTitle: mockGetQuizTitle,
+        timeElapsed: 3350,
+        formatTime: mockFormatTime,
+        isStarted: true,
+        timeLimit: 3600,
+        getRemainingTime: mockGetRemainingTime,
+      });
+
+      const { container } = render(<QuizTitle />);
+
+      const badge = container.querySelector('[data-action="error"]');
+      expect(badge).toBeInTheDocument();
+    });
+
+    it('should show error badge when remaining time is exactly 5 minutes (boundary)', () => {
+      const mockGetRemainingTime = jest.fn().mockReturnValue(300);
+      mockFormatTime.mockReturnValue('05:00');
+
+      mockUseQuizStore.mockReturnValue({
+        currentQuestionIndex: 0,
+        getTotalQuestions: mockGetTotalQuestions,
+        getQuizTitle: mockGetQuizTitle,
+        timeElapsed: 3300,
+        formatTime: mockFormatTime,
+        isStarted: true,
+        timeLimit: 3600,
+        getRemainingTime: mockGetRemainingTime,
+      });
+
+      const { container } = render(<QuizTitle />);
+
+      const badge = container.querySelector('[data-action="error"]');
+      expect(badge).toBeInTheDocument();
+    });
+
+    it('should show info badge when remaining time is more than 5 minutes', () => {
+      const mockGetRemainingTime = jest.fn().mockReturnValue(600);
+      mockFormatTime.mockReturnValue('10:00');
+
+      mockUseQuizStore.mockReturnValue({
+        currentQuestionIndex: 0,
+        getTotalQuestions: mockGetTotalQuestions,
+        getQuizTitle: mockGetQuizTitle,
+        timeElapsed: 3000,
+        formatTime: mockFormatTime,
+        isStarted: true,
+        timeLimit: 3600,
+        getRemainingTime: mockGetRemainingTime,
+      });
+
+      const { container } = render(<QuizTitle />);
+
+      const badge = container.querySelector('[data-action="info"]');
+      expect(badge).toBeInTheDocument();
     });
 
     it('should apply custom className', () => {
@@ -688,6 +778,8 @@ describe('Quiz', () => {
         timeElapsed: 180,
         formatTime: mockFormatTime,
         isStarted: true,
+        timeLimit: null,
+        getRemainingTime: jest.fn().mockReturnValue(null),
       });
 
       rerender(<QuizTitle />);
@@ -719,6 +811,8 @@ describe('Quiz', () => {
         timeElapsed: 0,
         formatTime: mockFormatTime,
         isStarted: false, // Not started, should call history.back directly
+        timeLimit: null,
+        getRemainingTime: jest.fn().mockReturnValue(null),
       });
 
       render(<QuizTitle />);
@@ -769,6 +863,8 @@ describe('Quiz', () => {
           timeElapsed: 0,
           formatTime: mockFormatTime,
           isStarted: false,
+          timeLimit: null,
+          getRemainingTime: jest.fn().mockReturnValue(null),
         });
 
         render(<QuizTitle />);
@@ -829,6 +925,8 @@ describe('Quiz', () => {
           timeElapsed: 120,
           formatTime: mockFormatTime,
           isStarted: true,
+          timeLimit: null,
+          getRemainingTime: jest.fn().mockReturnValue(null),
         });
 
         render(<QuizTitle />);
@@ -853,6 +951,8 @@ describe('Quiz', () => {
           timeElapsed: 120,
           formatTime: mockFormatTime,
           isStarted: true,
+          timeLimit: null,
+          getRemainingTime: jest.fn().mockReturnValue(null),
         });
 
         render(<QuizTitle />);
@@ -876,6 +976,8 @@ describe('Quiz', () => {
           timeElapsed: 120,
           formatTime: mockFormatTime,
           isStarted: true,
+          timeLimit: null,
+          getRemainingTime: jest.fn().mockReturnValue(null),
         });
 
         render(<QuizTitle />);
@@ -937,6 +1039,8 @@ describe('Quiz', () => {
           timeElapsed: 0,
           formatTime: mockFormatTime,
           isStarted: false, // Not started
+          timeLimit: null,
+          getRemainingTime: jest.fn().mockReturnValue(null),
         });
 
         render(<QuizTitle onBack={mockOnBack} />);
@@ -956,6 +1060,8 @@ describe('Quiz', () => {
           timeElapsed: 0,
           formatTime: mockFormatTime,
           isStarted: false, // Not started
+          timeLimit: null,
+          getRemainingTime: jest.fn().mockReturnValue(null),
         });
 
         render(<QuizTitle />);
@@ -976,6 +1082,8 @@ describe('Quiz', () => {
           timeElapsed: 120,
           formatTime: mockFormatTime,
           isStarted: true, // Started
+          timeLimit: null,
+          getRemainingTime: jest.fn().mockReturnValue(null),
         });
 
         render(<QuizTitle onBack={mockOnBack} />);
@@ -1003,6 +1111,8 @@ describe('Quiz', () => {
           timeElapsed: 120,
           formatTime: mockFormatTime,
           isStarted: true, // Started
+          timeLimit: null,
+          getRemainingTime: jest.fn().mockReturnValue(null),
         });
 
         render(<QuizTitle />);
@@ -1031,6 +1141,8 @@ describe('Quiz', () => {
           timeElapsed: 120,
           formatTime: mockFormatTime,
           isStarted: true, // Started
+          timeLimit: null,
+          getRemainingTime: jest.fn().mockReturnValue(null),
         });
 
         render(<QuizTitle onBack={mockOnBack} />);
@@ -1058,6 +1170,8 @@ describe('Quiz', () => {
           timeElapsed: 0,
           formatTime: mockFormatTime,
           isStarted: false, // Not started
+          timeLimit: null,
+          getRemainingTime: jest.fn().mockReturnValue(null),
         });
 
         render(<QuizTitle onBack={undefined} />);
@@ -1077,6 +1191,8 @@ describe('Quiz', () => {
           timeElapsed: 0,
           formatTime: mockFormatTime,
           isStarted: false, // Not started
+          timeLimit: null,
+          getRemainingTime: jest.fn().mockReturnValue(null),
         });
 
         render(<QuizTitle onBack={null as unknown as () => void} />);
@@ -1098,6 +1214,8 @@ describe('Quiz', () => {
           timeElapsed: 0,
           formatTime: mockFormatTime,
           isStarted: false,
+          timeLimit: null,
+          getRemainingTime: jest.fn().mockReturnValue(null),
         });
 
         const { rerender } = render(<QuizTitle />);
@@ -1128,6 +1246,8 @@ describe('Quiz', () => {
           timeElapsed: 0,
           formatTime: mockFormatTime,
           isStarted: false,
+          timeLimit: null,
+          getRemainingTime: jest.fn().mockReturnValue(null),
         });
 
         const { container } = render(
