@@ -915,6 +915,68 @@ describe('useQuizStore', () => {
 
       expect(result.current.getRemainingTime()).toBe(0);
     });
+
+    it('should correct elapsed time on visibilitychange event', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.startQuiz();
+        // Simulate 5 seconds passing via Date.now but without setInterval ticking
+        jest.spyOn(Date, 'now').mockReturnValue(Date.now() + 5000);
+        // Trigger visibilitychange
+        Object.defineProperty(document, 'visibilityState', {
+          value: 'visible',
+          writable: true,
+        });
+        document.dispatchEvent(new Event('visibilitychange'));
+      });
+
+      expect(result.current.timeElapsed).toBe(5);
+      jest.restoreAllMocks();
+    });
+
+    it('should not update time on visibilitychange when document is hidden', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.startQuiz();
+        jest.advanceTimersByTime(2000);
+      });
+
+      const timeAfterTwoSeconds = result.current.timeElapsed;
+
+      act(() => {
+        Object.defineProperty(document, 'visibilityState', {
+          value: 'hidden',
+          writable: true,
+        });
+        document.dispatchEvent(new Event('visibilitychange'));
+      });
+
+      expect(result.current.timeElapsed).toBe(timeAfterTwoSeconds);
+    });
+
+    it('should auto-finish via visibilitychange when timeLimit is exceeded', () => {
+      const onTimeUp = jest.fn();
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setTimeLimit(10);
+        result.current.setOnTimeUp(onTimeUp);
+        result.current.startQuiz();
+        // Simulate 15 seconds passing
+        jest.spyOn(Date, 'now').mockReturnValue(Date.now() + 15000);
+        Object.defineProperty(document, 'visibilityState', {
+          value: 'visible',
+          writable: true,
+        });
+        document.dispatchEvent(new Event('visibilitychange'));
+      });
+
+      expect(result.current.isFinished).toBe(true);
+      expect(onTimeUp).toHaveBeenCalledTimes(1);
+      jest.restoreAllMocks();
+    });
   });
 
   describe('Getters', () => {
