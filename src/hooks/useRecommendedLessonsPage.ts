@@ -404,6 +404,11 @@ const mergeFilterOptions = (
   base: Array<{ id: string; name: string }>,
   extra: Array<{ id: string; name: string }>
 ): Array<{ id: string; name: string }> => {
+  if (extra.length === 0) return base;
+  const baseIds = new Set(base.map((item) => item.id));
+  const hasNew = extra.some((item) => !baseIds.has(item.id));
+  if (!hasNew) return base;
+
   const map = new Map(base.map((item) => [item.id, item.name] as const));
   extra.forEach((item) => {
     if (!map.has(item.id)) {

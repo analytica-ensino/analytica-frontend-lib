@@ -13,23 +13,36 @@ export type FilterConfig = {
 const mergeConfigsWithSelections = (
   newConfigs: FilterConfig[],
   prevConfigs: FilterConfig[]
-): FilterConfig[] =>
-  newConfigs.map((newConfig, i) => ({
+): FilterConfig[] => {
+  let changed = false;
+
+  const result = newConfigs.map((newConfig, i) => ({
     ...newConfig,
     categories: newConfig.categories.map((newCat, j) => {
       const prevCat = prevConfigs[i]?.categories[j];
+      const prevItems = prevCat?.itens ?? [];
+      const newItems = newCat.itens ?? [];
+
+      if (prevItems.length !== newItems.length) {
+        changed = true;
+      }
+
       if (prevCat?.key === newCat.key && prevCat?.selectedIds?.length) {
-        const availableIds = new Set(
-          (newCat.itens ?? []).map((item) => item.id)
-        );
+        const availableIds = new Set(newItems.map((item) => item.id));
         const selectedIds = prevCat.selectedIds.filter((id) =>
           availableIds.has(id)
         );
+        if (selectedIds.length !== prevCat.selectedIds.length) {
+          changed = true;
+        }
         return { ...newCat, selectedIds };
       }
       return newCat;
     }),
   }));
+
+  return changed ? result : prevConfigs;
+};
 
 export type UseTableFilterOptions = {
   syncWithUrl?: boolean;
