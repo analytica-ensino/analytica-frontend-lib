@@ -125,12 +125,24 @@ const QuizTitle = forwardRef<
     timeElapsed,
     formatTime,
     isStarted,
+    timeLimit,
+    getRemainingTime,
   } = useQuizStore();
 
   const [showExitConfirmation, setShowExitConfirmation] = useState(false);
 
   const totalQuestions = getTotalQuestions();
   const quizTitle = getQuizTitle();
+
+  const hasTimeLimit = timeLimit !== null;
+  const remainingTime = getRemainingTime() ?? 0;
+  const isTimeRunningOut = hasTimeLimit && remainingTime <= 300;
+
+  const getTimerDisplay = () => {
+    if (!isStarted) return '00:00';
+    if (hasTimeLimit) return formatTime(remainingTime);
+    return formatTime(timeElapsed);
+  };
 
   const handleBackClick = () => {
     if (isStarted) {
@@ -183,8 +195,12 @@ const QuizTitle = forwardRef<
         </span>
 
         <span className="flex flex-row items-center justify-center">
-          <Badge variant="outlined" action="info" iconLeft={<Clock />}>
-            {isStarted ? formatTime(timeElapsed) : '00:00'}
+          <Badge
+            variant="outlined"
+            action={isStarted && isTimeRunningOut ? 'error' : 'info'}
+            iconLeft={<Clock />}
+          >
+            {getTimerDisplay()}
           </Badge>
         </span>
       </div>
