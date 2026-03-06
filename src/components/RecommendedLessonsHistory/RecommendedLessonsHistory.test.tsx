@@ -1079,6 +1079,54 @@ describe('RecommendedLessonsHistory', () => {
       });
     });
 
+    it('should call fetchRecommendedClass with single schoolYear filter', async () => {
+      render(<RecommendedLessonsHistory {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(capturedOnParamsChange).toBeDefined();
+      });
+
+      mockFetchRecommendedClassHistory.mockClear();
+
+      capturedOnParamsChange?.({
+        page: 1,
+        limit: 10,
+        schoolYear: ['year-1'],
+      });
+
+      await waitFor(() => {
+        expect(mockFetchRecommendedClassHistory).toHaveBeenCalledWith({
+          page: 1,
+          limit: 10,
+          schoolYearId: 'year-1',
+        });
+      });
+    });
+
+    it('should call fetchRecommendedClass with multiple schoolYear filters', async () => {
+      render(<RecommendedLessonsHistory {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(capturedOnParamsChange).toBeDefined();
+      });
+
+      mockFetchRecommendedClassHistory.mockClear();
+
+      capturedOnParamsChange?.({
+        page: 1,
+        limit: 10,
+        schoolYear: ['year-1', 'year-2'],
+      });
+
+      await waitFor(() => {
+        expect(mockFetchRecommendedClassHistory).toHaveBeenCalledWith({
+          page: 1,
+          limit: 10,
+          schoolYearIds: ['year-1', 'year-2'],
+        });
+      });
+    });
+
     it('should not include empty array filters', async () => {
       render(<RecommendedLessonsHistory {...defaultProps} />);
 

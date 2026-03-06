@@ -397,6 +397,22 @@ const mergeFilterData = (
   };
 };
 
+/**
+ * Merge two arrays of filter options, deduplicating by id
+ */
+const mergeFilterOptions = (
+  base: Array<{ id: string; name: string }>,
+  extra: Array<{ id: string; name: string }>
+): Array<{ id: string; name: string }> => {
+  const map = new Map(base.map((item) => [item.id, item.name] as const));
+  extra.forEach((item) => {
+    if (!map.has(item.id)) {
+      map.set(item.id, item.name);
+    }
+  });
+  return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+};
+
 export const createUseRecommendedLessonsPage = (
   config: UseRecommendedLessonsPageConfig
 ): (() => UseRecommendedLessonsPageReturn) => {
@@ -437,30 +453,25 @@ export const createUseRecommendedLessonsPage = (
       CategoryConfig[]
     >([]);
 
-    // Build user filter data: prefer history data, fallback to userData
-    const userFilterData = useMemo(
-      () => ({
-        schools:
-          historyFilterData.schools.length > 0
-            ? historyFilterData.schools
-            : getSchoolOptions(userData),
-        classes:
-          historyFilterData.classes.length > 0
-            ? historyFilterData.classes
-            : getClassOptions(userData),
-        subjects:
-          historyFilterData.subjects.length > 0
-            ? historyFilterData.subjects
-            : getSubjectOptions(userData),
+    // Build user filter data: merge userData with historyFilterData (union, dedupe by id)
+    const userFilterData = useMemo(() => {
+      const baseSchools = getSchoolOptions(userData);
+      const baseClasses = getClassOptions(userData);
+      const baseSubjects = getSubjectOptions(userData);
+      return {
+        schools: mergeFilterOptions(baseSchools, historyFilterData.schools),
+        classes: mergeFilterOptions(baseClasses, historyFilterData.classes),
+        subjects: mergeFilterOptions(baseSubjects, historyFilterData.subjects),
         schoolYears: historyFilterData.schoolYears,
-      }),
-      [userData, historyFilterData]
-    );
+      };
+    }, [userData, historyFilterData]);
 
     // Memoized subjects map for models display
     const subjectsMap = useMemo(() => {
       const map = new Map<string, string>();
-      userFilterData.subjects.forEach((s) => map.set(s.id, s.name));
+      userFilterData.subjects.forEach((s) => {
+        map.set(s.id, s.name);
+      });
       return map;
     }, [userFilterData.subjects]);
 

@@ -50,11 +50,11 @@ const mockInitialConfigs: FilterConfig[] = [
 describe('useTableFilter', () => {
   beforeEach(() => {
     // Mock history.replaceState
-    window.history.replaceState = jest.fn();
+    globalThis.history.replaceState = jest.fn();
 
-    // Reset window.location with proper URL structure
-    delete (window as { location?: unknown }).location;
-    Object.defineProperty(window, 'location', {
+    // Reset globalThis.location with proper URL structure
+    delete (globalThis as { location?: unknown }).location;
+    Object.defineProperty(globalThis, 'location', {
       value: {
         href: 'http://localhost/',
         search: '',
@@ -80,7 +80,7 @@ describe('useTableFilter', () => {
     });
 
     it('should initialize with URL state when syncWithUrl is enabled', () => {
-      Object.defineProperty(window, 'location', {
+      Object.defineProperty(globalThis, 'location', {
         value: {
           href: 'http://localhost/?filter_escola=1,2&filter_materia=1',
           search: '?filter_escola=1,2&filter_materia=1',
@@ -105,7 +105,7 @@ describe('useTableFilter', () => {
     });
 
     it('should not read URL when syncWithUrl is false', () => {
-      Object.defineProperty(window, 'location', {
+      Object.defineProperty(globalThis, 'location', {
         value: {
           href: 'http://localhost/?filter_escola=1,2',
           search: '?filter_escola=1,2',
@@ -126,7 +126,7 @@ describe('useTableFilter', () => {
     });
 
     it('should handle invalid URL parameters gracefully', () => {
-      Object.defineProperty(window, 'location', {
+      Object.defineProperty(globalThis, 'location', {
         value: {
           href: 'http://localhost/?filter_nonexistent=1,2',
           search: '?filter_nonexistent=1,2',
@@ -145,7 +145,7 @@ describe('useTableFilter', () => {
     });
 
     it('should handle empty URL parameter values', () => {
-      Object.defineProperty(window, 'location', {
+      Object.defineProperty(globalThis, 'location', {
         value: {
           href: 'http://localhost/?filter_escola=',
           search: '?filter_escola=',
@@ -210,7 +210,7 @@ describe('useTableFilter', () => {
         result.current.updateFilters(updatedConfigs);
       });
 
-      expect(window.history.replaceState).not.toHaveBeenCalled();
+      expect(globalThis.history.replaceState).not.toHaveBeenCalled();
     });
   });
 
@@ -244,7 +244,8 @@ describe('useTableFilter', () => {
         result.current.applyFilters();
       });
 
-      const lastCall = (window.history.replaceState as jest.Mock).mock.calls[0];
+      const lastCall = (globalThis.history.replaceState as jest.Mock).mock
+        .calls[0];
       const urlString = lastCall[2] as string;
 
       expect(urlString).toContain('filter_escola=1');
@@ -276,11 +277,11 @@ describe('useTableFilter', () => {
         result.current.applyFilters();
       });
 
-      expect(window.history.replaceState).not.toHaveBeenCalled();
+      expect(globalThis.history.replaceState).not.toHaveBeenCalled();
     });
 
     it('should remove URL parameters for cleared categories', () => {
-      Object.defineProperty(window, 'location', {
+      Object.defineProperty(globalThis, 'location', {
         value: {
           href: 'http://localhost/?filter_escola=1&filter_materia=2',
           search: '?filter_escola=1&filter_materia=2',
@@ -319,7 +320,8 @@ describe('useTableFilter', () => {
         result.current.applyFilters();
       });
 
-      const lastCall = (window.history.replaceState as jest.Mock).mock.calls[0];
+      const lastCall = (globalThis.history.replaceState as jest.Mock).mock
+        .calls[0];
       const urlString = lastCall[2] as string;
 
       expect(urlString).not.toContain('filter_escola');
@@ -327,7 +329,7 @@ describe('useTableFilter', () => {
     });
 
     it('should preserve other URL parameters', () => {
-      Object.defineProperty(window, 'location', {
+      Object.defineProperty(globalThis, 'location', {
         value: {
           href: 'http://localhost/?sortBy=name&sort=ASC&page=2',
           search: '?sortBy=name&sort=ASC&page=2',
@@ -361,7 +363,8 @@ describe('useTableFilter', () => {
         result.current.applyFilters();
       });
 
-      const lastCall = (window.history.replaceState as jest.Mock).mock.calls[0];
+      const lastCall = (globalThis.history.replaceState as jest.Mock).mock
+        .calls[0];
       const urlString = lastCall[2] as string;
 
       expect(urlString).toContain('sortBy=name');
@@ -412,7 +415,7 @@ describe('useTableFilter', () => {
     });
 
     it('should clear URL parameters when syncWithUrl is enabled', () => {
-      Object.defineProperty(window, 'location', {
+      Object.defineProperty(globalThis, 'location', {
         value: {
           href: 'http://localhost/?filter_escola=1&filter_materia=2',
           search: '?filter_escola=1&filter_materia=2',
@@ -431,7 +434,8 @@ describe('useTableFilter', () => {
         result.current.clearFilters();
       });
 
-      const lastCall = (window.history.replaceState as jest.Mock).mock.calls[0];
+      const lastCall = (globalThis.history.replaceState as jest.Mock).mock
+        .calls[0];
       const urlString = lastCall[2] as string;
 
       expect(urlString).not.toContain('filter_escola');
@@ -439,7 +443,7 @@ describe('useTableFilter', () => {
     });
 
     it('should preserve other URL parameters when clearing', () => {
-      Object.defineProperty(window, 'location', {
+      Object.defineProperty(globalThis, 'location', {
         value: {
           href: 'http://localhost/?sortBy=name&filter_escola=1&page=2',
           search: '?sortBy=name&filter_escola=1&page=2',
@@ -458,7 +462,8 @@ describe('useTableFilter', () => {
         result.current.clearFilters();
       });
 
-      const lastCall = (window.history.replaceState as jest.Mock).mock.calls[0];
+      const lastCall = (globalThis.history.replaceState as jest.Mock).mock
+        .calls[0];
       const urlString = lastCall[2] as string;
 
       expect(urlString).toContain('sortBy=name');
@@ -506,9 +511,90 @@ describe('useTableFilter', () => {
     });
   });
 
+  describe('initialConfigs sync', () => {
+    it('should preserve valid selections when initialConfigs items change', () => {
+      const { result, rerender } = renderHook(
+        ({ configs }) => useTableFilter(configs),
+        { initialProps: { configs: mockInitialConfigs } }
+      );
+
+      // Set selections
+      const updatedConfigs = [
+        {
+          ...mockInitialConfigs[0],
+          categories: [
+            { ...mockInitialConfigs[0].categories[0], selectedIds: ['1'] },
+            mockInitialConfigs[0].categories[1],
+          ],
+        },
+        mockInitialConfigs[1],
+      ];
+
+      act(() => {
+        result.current.updateFilters(updatedConfigs);
+      });
+
+      expect(result.current.filterConfigs[0].categories[0].selectedIds).toEqual(
+        ['1']
+      );
+
+      // Rerender with same items - selection should be preserved
+      rerender({ configs: mockInitialConfigs });
+
+      expect(result.current.filterConfigs[0].categories[0].selectedIds).toEqual(
+        ['1']
+      );
+    });
+
+    it('should drop stale selections when items are removed from initialConfigs', () => {
+      const { result, rerender } = renderHook(
+        ({ configs }) => useTableFilter(configs),
+        { initialProps: { configs: mockInitialConfigs } }
+      );
+
+      // Select id '2' in escola
+      const updatedConfigs = [
+        {
+          ...mockInitialConfigs[0],
+          categories: [
+            { ...mockInitialConfigs[0].categories[0], selectedIds: ['2'] },
+            mockInitialConfigs[0].categories[1],
+          ],
+        },
+        mockInitialConfigs[1],
+      ];
+
+      act(() => {
+        result.current.updateFilters(updatedConfigs);
+      });
+
+      // Now rerender with initialConfigs that no longer have id '2' in escola
+      const narrowedConfigs: FilterConfig[] = [
+        {
+          ...mockInitialConfigs[0],
+          categories: [
+            {
+              ...mockInitialConfigs[0].categories[0],
+              itens: [{ id: '1', name: 'Escola 1' }], // removed Escola 2
+            },
+            mockInitialConfigs[0].categories[1],
+          ],
+        },
+        mockInitialConfigs[1],
+      ];
+
+      rerender({ configs: narrowedConfigs });
+
+      // Selection '2' should be dropped because it no longer exists in itens
+      expect(result.current.filterConfigs[0].categories[0].selectedIds).toEqual(
+        []
+      );
+    });
+  });
+
   describe('popstate event', () => {
     it('should update state when browser back/forward is used', () => {
-      Object.defineProperty(window, 'location', {
+      Object.defineProperty(globalThis, 'location', {
         value: {
           href: 'http://localhost/?filter_escola=1',
           search: '?filter_escola=1',
@@ -528,7 +614,7 @@ describe('useTableFilter', () => {
       );
 
       // Simulate browser back button
-      Object.defineProperty(window, 'location', {
+      Object.defineProperty(globalThis, 'location', {
         value: {
           href: 'http://localhost/',
           search: '',
@@ -540,7 +626,7 @@ describe('useTableFilter', () => {
       });
 
       act(() => {
-        window.dispatchEvent(new Event('popstate'));
+        globalThis.dispatchEvent(new Event('popstate'));
       });
 
       rerender();

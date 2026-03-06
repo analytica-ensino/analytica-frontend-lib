@@ -149,6 +149,12 @@ const buildFiltersFromParams = (
   if (schoolFilter.single) filters.schoolId = schoolFilter.single;
   if (schoolFilter.multiple) filters.schoolIds = schoolFilter.multiple;
 
+  // School year filter
+  const schoolYearFilter = extractFilterValue(params.schoolYear);
+  if (schoolYearFilter.single) filters.schoolYearId = schoolYearFilter.single;
+  if (schoolYearFilter.multiple)
+    filters.schoolYearIds = schoolYearFilter.multiple;
+
   // Class filter
   const classFilter = extractFilterValue(params.class);
   if (classFilter.single) filters.classId = classFilter.single;

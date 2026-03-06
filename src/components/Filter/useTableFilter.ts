@@ -19,7 +19,13 @@ const mergeConfigsWithSelections = (
     categories: newConfig.categories.map((newCat, j) => {
       const prevCat = prevConfigs[i]?.categories[j];
       if (prevCat?.key === newCat.key && prevCat?.selectedIds?.length) {
-        return { ...newCat, selectedIds: prevCat.selectedIds };
+        const availableIds = new Set(
+          (newCat.itens ?? []).map((item) => item.id)
+        );
+        const selectedIds = prevCat.selectedIds.filter((id) =>
+          availableIds.has(id)
+        );
+        return { ...newCat, selectedIds };
       }
       return newCat;
     }),

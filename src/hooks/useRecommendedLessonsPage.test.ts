@@ -686,6 +686,70 @@ describe('useRecommendedLessonsPage', () => {
     expect(result.current.historyProps.subjectsMap.size).toBe(1);
   });
 
+  it('edge case: should merge history filter data with userData options', async () => {
+    const historyResponseWithExtraSchool: RecommendedClassHistoryApiResponse = {
+      message: 'Success',
+      data: {
+        recommendedClass: [
+          {
+            recommendedClass: {
+              id: '123e4567-e89b-12d3-a456-426614174000',
+              title: 'Test',
+              startDate: null,
+              finalDate: null,
+              createdAt: '2024-06-01T10:00:00Z',
+              progress: 0,
+              totalLessons: 1,
+            },
+            subject: { id: 'subject-3', name: 'Science' },
+            creator: null,
+            stats: {
+              totalStudents: 10,
+              completedCount: 0,
+              completionPercentage: 0,
+            },
+            breakdown: [
+              {
+                classId: 'class-3',
+                className: 'Class C',
+                schoolId: 'school-3',
+                schoolName: 'School Three',
+                studentCount: 10,
+                completedCount: 0,
+              },
+            ],
+          },
+        ],
+        total: 1,
+      },
+    };
+
+    (mockApi.get as jest.Mock).mockResolvedValueOnce({
+      data: historyResponseWithExtraSchool,
+    });
+
+    const { result } = setupHook();
+
+    await act(async () => {
+      await result.current.historyProps.fetchRecommendedClassHistory({
+        page: 1,
+        limit: 10,
+      });
+    });
+
+    const { userFilterData } = result.current.historyProps;
+
+    // Should have schools from userData (2) + history (1 new)
+    expect(userFilterData.schools.length).toBeGreaterThanOrEqual(3);
+    expect(userFilterData.schools.some((s) => s.name === 'School Three')).toBe(
+      true
+    );
+    // Original userData schools should still be present
+    expect(userFilterData.schools.some((s) => s.name === 'School One')).toBe(
+      true
+    );
+  });
+
   it('edge case: onSendLesson with no classes should open modal with empty categories', () => {
     const { result } = setupHook({
       userData: {
