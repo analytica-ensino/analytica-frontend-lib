@@ -252,6 +252,24 @@ const getSubjectOptions = (
 };
 
 /**
+ * Get school year options from user data
+ */
+const getSchoolYearOptions = (
+  userData: RecommendedLessonsUserData | null
+): Array<{ id: string; name: string }> => {
+  if (!userData?.userInstitutions) return [];
+
+  const yearMap = new Map<string, string>();
+  userData.userInstitutions.forEach((inst) => {
+    if (inst.schoolYear?.id && inst.schoolYear?.name) {
+      yearMap.set(inst.schoolYear.id, inst.schoolYear.name);
+    }
+  });
+
+  return Array.from(yearMap.entries()).map(([id, name]) => ({ id, name }));
+};
+
+/**
  * Factory function to create useRecommendedLessonsPage hook
  *
  * @param config - Configuration object with API client, navigation, user data, paths, etc.
@@ -352,6 +370,17 @@ const extractMapsFromItems = (
 };
 
 /**
+ * Check if a merged map differs from the previous array (size or name changes)
+ */
+const hasMapChanged = (
+  merged: Map<string, string>,
+  prev: Array<{ id: string; name: string }>
+): boolean => {
+  if (merged.size !== prev.length) return true;
+  return prev.some((item) => merged.get(item.id) !== item.name);
+};
+
+/**
  * Merge new filter maps with previous filter state, returning prev if unchanged
  */
 const mergeFilterData = (
@@ -381,10 +410,10 @@ const mergeFilterData = (
   ]);
 
   if (
-    mergedSchools.size === prev.schools.length &&
-    mergedClasses.size === prev.classes.length &&
-    mergedSubjects.size === prev.subjects.length &&
-    mergedSchoolYears.size === prev.schoolYears.length
+    !hasMapChanged(mergedSchools, prev.schools) &&
+    !hasMapChanged(mergedClasses, prev.classes) &&
+    !hasMapChanged(mergedSubjects, prev.subjects) &&
+    !hasMapChanged(mergedSchoolYears, prev.schoolYears)
   ) {
     return prev;
   }
@@ -463,11 +492,15 @@ export const createUseRecommendedLessonsPage = (
       const baseSchools = getSchoolOptions(userData);
       const baseClasses = getClassOptions(userData);
       const baseSubjects = getSubjectOptions(userData);
+      const baseSchoolYears = getSchoolYearOptions(userData);
       return {
         schools: mergeFilterOptions(baseSchools, historyFilterData.schools),
         classes: mergeFilterOptions(baseClasses, historyFilterData.classes),
         subjects: mergeFilterOptions(baseSubjects, historyFilterData.subjects),
-        schoolYears: historyFilterData.schoolYears,
+        schoolYears: mergeFilterOptions(
+          baseSchoolYears,
+          historyFilterData.schoolYears
+        ),
       };
     }, [userData, historyFilterData]);
 
