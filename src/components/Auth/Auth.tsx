@@ -555,6 +555,7 @@ export const getRootDomain = () => {
   }
 
   const parts = hostname.split('.');
+  const isHml = hostname.includes('hml');
 
   // Handle Brazilian .com.br domains and similar patterns
   if (
@@ -568,6 +569,10 @@ export const getRootDomain = () => {
     }
     // For domains like aluno.analiticaensino.com.br, return analiticaensino.com.br
     const base = parts.slice(-3).join('.');
+    // If in hml environment, redirect to hml.base (e.g., hml.analiticaensino.com.br)
+    if (isHml) {
+      return `${protocol}//hml.${base}${portStr}`;
+    }
     return `${protocol}//${base}${portStr}`;
   }
 
@@ -575,6 +580,9 @@ export const getRootDomain = () => {
   if (parts.length > 2) {
     // Return the last 2 parts as the root domain (example.com)
     const base = parts.slice(-2).join('.');
+    if (isHml) {
+      return `${protocol}//hml.${base}${portStr}`;
+    }
     return `${protocol}//${base}${portStr}`;
   }
 
