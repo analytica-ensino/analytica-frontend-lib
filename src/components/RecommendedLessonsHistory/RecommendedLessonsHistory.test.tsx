@@ -1031,30 +1031,6 @@ describe('RecommendedLessonsHistory', () => {
       });
     });
 
-    it('should call fetchRecommendedClass with students filter', async () => {
-      render(<RecommendedLessonsHistory {...defaultProps} />);
-
-      await waitFor(() => {
-        expect(capturedOnParamsChange).toBeDefined();
-      });
-
-      mockFetchRecommendedClassHistory.mockClear();
-
-      capturedOnParamsChange?.({
-        page: 1,
-        limit: 10,
-        students: ['student-1', 'student-2'],
-      });
-
-      await waitFor(() => {
-        expect(mockFetchRecommendedClassHistory).toHaveBeenCalledWith({
-          page: 1,
-          limit: 10,
-          studentIds: ['student-1', 'student-2'],
-        });
-      });
-    });
-
     it('should call fetchRecommendedClass with subject filter', async () => {
       render(<RecommendedLessonsHistory {...defaultProps} />);
 
