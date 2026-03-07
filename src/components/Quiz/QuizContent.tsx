@@ -957,7 +957,10 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
           <QuizContainer className="h-auto pb-0">
             <div className="px-4">
               <p
-                className={cn('text-lg text-text-900 leading-10', paddingBottom)}
+                className={cn(
+                  'text-lg text-text-900 leading-10',
+                  paddingBottom
+                )}
               >
                 {renderHtmlWithSelects(additionalContent, true).map(
                   (element) => (

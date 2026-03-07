@@ -162,9 +162,9 @@ describe('questionTypeUtils', () => {
       });
 
       it('should return PREENCHER_LACUNAS fallback', () => {
-        expect(mapQuestionTypeToEnum('invalid', QUESTION_TYPE.PREENCHER_LACUNAS)).toBe(
-          QUESTION_TYPE.PREENCHER_LACUNAS
-        );
+        expect(
+          mapQuestionTypeToEnum('invalid', QUESTION_TYPE.PREENCHER_LACUNAS)
+        ).toBe(QUESTION_TYPE.PREENCHER_LACUNAS);
       });
     });
 
@@ -176,9 +176,9 @@ describe('questionTypeUtils', () => {
       });
 
       it('should not use fallback when type is valid', () => {
-        expect(mapQuestionTypeToEnum('imagem', QUESTION_TYPE.PREENCHER_LACUNAS)).toBe(
-          QUESTION_TYPE.IMAGEM
-        );
+        expect(
+          mapQuestionTypeToEnum('imagem', QUESTION_TYPE.PREENCHER_LACUNAS)
+        ).toBe(QUESTION_TYPE.IMAGEM);
       });
     });
   });

@@ -1441,8 +1441,7 @@ export const General: Story = () => {
         },
         {
           id: 'q6-preencher',
-          statement:
-            'Complete as lacunas sobre o movimento uniforme:',
+          statement: 'Complete as lacunas sobre o movimento uniforme:',
           questionType: QUESTION_TYPE.PREENCHER_LACUNAS,
           difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           description: 'Questão de preenchimento de lacunas',
