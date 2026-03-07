@@ -41,8 +41,8 @@ describe('questionTypeUtils', () => {
         );
       });
 
-      it('should map PREENCHER correctly', () => {
-        expect(mapQuestionTypeToEnum('PREENCHER')).toBe(
+      it('should map PREENCHER_LACUNAS correctly', () => {
+        expect(mapQuestionTypeToEnum('PREENCHER_LACUNAS')).toBe(
           QUESTION_TYPE.PREENCHER_LACUNAS
         );
       });
@@ -161,7 +161,7 @@ describe('questionTypeUtils', () => {
         ).toBe(QUESTION_TYPE.LIGAR_PONTOS);
       });
 
-      it('should return PREENCHER fallback', () => {
+      it('should return PREENCHER_LACUNAS fallback', () => {
         expect(mapQuestionTypeToEnum('invalid', QUESTION_TYPE.PREENCHER_LACUNAS)).toBe(
           QUESTION_TYPE.PREENCHER_LACUNAS
         );
@@ -267,7 +267,7 @@ describe('questionTypeUtils', () => {
         ).toBe(QUESTION_TYPE.LIGAR_PONTOS);
       });
 
-      it('should return PREENCHER as custom fallback', () => {
+      it('should return PREENCHER_LACUNAS as custom fallback', () => {
         expect(
           mapQuestionTypeToEnumRequired('abc', QUESTION_TYPE.PREENCHER_LACUNAS)
         ).toBe(QUESTION_TYPE.PREENCHER_LACUNAS);

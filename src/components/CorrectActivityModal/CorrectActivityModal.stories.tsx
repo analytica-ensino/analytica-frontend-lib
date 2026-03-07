@@ -475,7 +475,7 @@ const mockDataWithTrueOrFalse: StudentActivityCorrectionData = {
 };
 
 /**
- * Mock data with fill questions (PREENCHER type)
+ * Mock data with fill questions (PREENCHER_LACUNAS type)
  */
 const mockDataWithFillQuestions: StudentActivityCorrectionData = {
   studentId: 'student-303',
@@ -489,7 +489,7 @@ const mockDataWithFillQuestions: StudentActivityCorrectionData = {
       question: createQuestion(
         'q1',
         'Complete a frase: A capital do Brasil é {{cidade}}.',
-        QUESTION_TYPE.PREENCHER
+        QUESTION_TYPE.PREENCHER_LACUNAS
       ),
       result: createQuestionResult(
         'a1',
@@ -503,7 +503,7 @@ const mockDataWithFillQuestions: StudentActivityCorrectionData = {
       question: createQuestion(
         'q2',
         'Complete: O maior planeta do sistema solar é {{planeta}}.',
-        QUESTION_TYPE.PREENCHER
+        QUESTION_TYPE.PREENCHER_LACUNAS
       ),
       result: createQuestionResult(
         'a2',
@@ -517,7 +517,7 @@ const mockDataWithFillQuestions: StudentActivityCorrectionData = {
       question: createQuestion(
         'q3',
         'Preencha: A fórmula química da água é {{formula}}.',
-        QUESTION_TYPE.PREENCHER
+        QUESTION_TYPE.PREENCHER_LACUNAS
       ),
       result: createQuestionResult(
         'a3',

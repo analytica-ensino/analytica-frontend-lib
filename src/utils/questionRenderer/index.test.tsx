@@ -92,7 +92,7 @@ describe('questionRenderer', () => {
           [QUESTION_TYPE.DISSERTATIVA]: () => 'disc',
           [QUESTION_TYPE.VERDADEIRO_FALSO]: () => 'vf',
           [QUESTION_TYPE.LIGAR_PONTOS]: () => 'ligar',
-          [QUESTION_TYPE.PREENCHER]: () => 'fill',
+          [QUESTION_TYPE.PREENCHER_LACUNAS]: () => 'fill',
           [QUESTION_TYPE.IMAGEM]: () => 'img',
         },
         undefined
@@ -111,7 +111,7 @@ describe('questionRenderer', () => {
           [QUESTION_TYPE.DISSERTATIVA]: () => 'disc',
           [QUESTION_TYPE.VERDADEIRO_FALSO]: () => 'vf',
           [QUESTION_TYPE.LIGAR_PONTOS]: () => 'ligar',
-          [QUESTION_TYPE.PREENCHER]: () => 'fill',
+          [QUESTION_TYPE.PREENCHER_LACUNAS]: () => 'fill',
           [QUESTION_TYPE.IMAGEM]: () => 'img',
         },
         QUESTION_TYPE.ALTERNATIVA
@@ -128,7 +128,7 @@ describe('questionRenderer', () => {
         [QUESTION_TYPE.DISSERTATIVA]: () => 'disc',
         [QUESTION_TYPE.VERDADEIRO_FALSO]: () => 'vf',
         [QUESTION_TYPE.LIGAR_PONTOS]: () => 'ligar',
-        [QUESTION_TYPE.PREENCHER]: () => 'fill',
+        [QUESTION_TYPE.PREENCHER_LACUNAS]: () => 'fill',
         [QUESTION_TYPE.IMAGEM]: () => 'img',
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
@@ -797,7 +797,7 @@ describe('questionRenderer', () => {
       const question = createQuestion(
         'q1',
         'O Brasil está localizado na {{continente}}.',
-        QUESTION_TYPE.PREENCHER,
+        QUESTION_TYPE.PREENCHER_LACUNAS,
         [{ id: 'opt1', option: 'América' }],
         []
       );
@@ -829,7 +829,7 @@ describe('questionRenderer', () => {
       const question = createQuestion(
         'q1',
         'O Brasil está localizado na {{continente}}.',
-        QUESTION_TYPE.PREENCHER,
+        QUESTION_TYPE.PREENCHER_LACUNAS,
         [],
         []
       );
@@ -853,7 +853,7 @@ describe('questionRenderer', () => {
       const question = createQuestion(
         'q1',
         'O Brasil está na {{continente}} e fala {{idioma}}.',
-        QUESTION_TYPE.PREENCHER,
+        QUESTION_TYPE.PREENCHER_LACUNAS,
         [
           { id: 'opt1', option: 'América' },
           { id: 'opt2', option: 'Português' },
@@ -894,7 +894,7 @@ describe('questionRenderer', () => {
       const question = createQuestion(
         'q1',
         'O Brasil está na {{continente}}.',
-        QUESTION_TYPE.PREENCHER,
+        QUESTION_TYPE.PREENCHER_LACUNAS,
         [{ id: 'opt1', option: 'América' }],
         []
       );
@@ -923,7 +923,7 @@ describe('questionRenderer', () => {
       const question = createQuestion(
         'q1',
         'O Brasil está na {{continente}}.',
-        QUESTION_TYPE.PREENCHER,
+        QUESTION_TYPE.PREENCHER_LACUNAS,
         [],
         []
       );
@@ -944,7 +944,7 @@ describe('questionRenderer', () => {
       const question = createQuestion(
         'q1',
         'O Brasil está na {{continente}}.',
-        QUESTION_TYPE.PREENCHER,
+        QUESTION_TYPE.PREENCHER_LACUNAS,
         [{ id: 'opt1', option: 'América' }],
         []
       );
@@ -967,7 +967,7 @@ describe('questionRenderer', () => {
       const question = createQuestion(
         'q1',
         'O {{pais}} está na {{continente}} e fala {{idioma}}.',
-        QUESTION_TYPE.PREENCHER,
+        QUESTION_TYPE.PREENCHER_LACUNAS,
         [
           { id: 'opt1', option: 'Brasil' },
           { id: 'opt2', option: 'América' },
@@ -1010,7 +1010,7 @@ describe('questionRenderer', () => {
       const question = createQuestion(
         'q1',
         'Texto antes {{placeholder}} texto depois.',
-        QUESTION_TYPE.PREENCHER,
+        QUESTION_TYPE.PREENCHER_LACUNAS,
         [{ id: 'opt1', option: 'resposta' }],
         []
       );
@@ -1039,7 +1039,7 @@ describe('questionRenderer', () => {
       const question = createQuestion(
         'q1',
         'O Brasil está na {{continente}}.',
-        QUESTION_TYPE.PREENCHER,
+        QUESTION_TYPE.PREENCHER_LACUNAS,
         [],
         []
       );
@@ -1060,7 +1060,7 @@ describe('questionRenderer', () => {
       const question = createQuestion(
         'q1',
         'O Brasil está na {{continente}}.',
-        QUESTION_TYPE.PREENCHER,
+        QUESTION_TYPE.PREENCHER_LACUNAS,
         [],
         []
       );
@@ -1081,7 +1081,7 @@ describe('questionRenderer', () => {
       const question = createQuestion(
         'q1',
         'O Brasil está na {{continente}}.',
-        QUESTION_TYPE.PREENCHER,
+        QUESTION_TYPE.PREENCHER_LACUNAS,
         [],
         []
       );
@@ -1360,11 +1360,11 @@ describe('questionRenderer', () => {
       expect(container).toBeInTheDocument();
     });
 
-    it('should render PREENCHER question type', () => {
+    it('should render PREENCHER_LACUNAS question type', () => {
       const question = createQuestion(
         'q1',
         'O Brasil está localizado na {{continente}}.',
-        QUESTION_TYPE.PREENCHER,
+        QUESTION_TYPE.PREENCHER_LACUNAS,
         [{ id: 'opt1', option: 'América' }],
         []
       );

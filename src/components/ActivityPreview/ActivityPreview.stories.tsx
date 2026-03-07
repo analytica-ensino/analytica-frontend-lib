@@ -143,7 +143,7 @@ export const AllQuestionTypes: Story = () => {
       subjectName: 'Matemática',
       subjectColor: '#14b8a6',
       iconName: 'MathOperations',
-      questionType: QUESTION_TYPE.PREENCHER,
+      questionType: QUESTION_TYPE.PREENCHER_LACUNAS,
       enunciado:
         'Complete: A soma dos ângulos internos de um triângulo é ____.',
       question: {

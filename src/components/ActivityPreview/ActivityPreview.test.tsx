@@ -49,7 +49,7 @@ jest.mock('../../index', () => {
       IMAGEM: 'IMAGEM',
       MULTIPLA_ESCOLHA: 'MULTIPLA_ESCOLHA',
       LIGAR_PONTOS: 'LIGAR_PONTOS',
-      PREENCHER: 'PREENCHER',
+      PREENCHER_LACUNAS: 'PREENCHER_LACUNAS',
     },
   };
 });
