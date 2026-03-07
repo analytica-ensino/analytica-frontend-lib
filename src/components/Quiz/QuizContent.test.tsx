@@ -106,7 +106,7 @@ jest.mock('./useQuizStore', () => ({
     DISSERTATIVA: 'DISSERTATIVA',
     VERDADEIRO_FALSO: 'VERDADEIRO_FALSO',
     LIGAR_PONTOS: 'LIGAR_PONTOS',
-    PREENCHER: 'PREENCHER',
+    PREENCHER_LACUNAS: 'PREENCHER_LACUNAS',
     IMAGEM: 'IMAGEM',
   },
   QUESTION_DIFFICULTY: {
@@ -1693,8 +1693,35 @@ describe('QuizContent', () => {
   });
 
   describe('QuizFill Component', () => {
+    const mockGetCurrentQuestion = jest.fn();
+    const mockGetQuestionResultByQuestionId = jest.fn();
+    const mockGetCurrentAnswer = jest.fn();
+    const mockSelectDissertativeAnswer = jest.fn();
+
+    const mockQuestion = {
+      id: 'fill-question-1',
+      additionalContent:
+        'A meteorologia é a {opt-ciencia} que estuda os fenômenos atmosféricos e as {opt-variacoes} climáticas. O {opt-objetivo} da meteorologia é {opt-compreender} o tempo.',
+      options: [
+        { id: 'opt-ciencia', option: 'ciência' },
+        { id: 'opt-variacoes', option: 'variações' },
+        { id: 'opt-objetivo', option: 'objetivo' },
+        { id: 'opt-compreender', option: 'compreender' },
+      ],
+    };
+
     beforeEach(() => {
+      jest.clearAllMocks();
+
+      mockGetCurrentQuestion.mockReturnValue(mockQuestion);
+      mockGetQuestionResultByQuestionId.mockReturnValue(null);
+      mockGetCurrentAnswer.mockReturnValue(null);
+
       mockUseQuizStore.mockReturnValue({
+        getCurrentQuestion: mockGetCurrentQuestion,
+        getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
+        getCurrentAnswer: mockGetCurrentAnswer,
+        selectDissertativeAnswer: mockSelectDissertativeAnswer,
         variant: 'default',
       } as unknown as ReturnType<typeof useQuizStore>);
     });
@@ -1702,15 +1729,10 @@ describe('QuizContent', () => {
     it('should render fill-in-the-blanks text correctly', () => {
       render(<QuizFill paddingBottom="pb-4" />);
 
-      expect(screen.getByText('Alternativas')).toBeInTheDocument();
-
       // Should render the text content (checking for parts of the text)
       expect(screen.getByText(/A meteorologia é a/)).toBeInTheDocument();
       expect(
         screen.getByText(/que estuda os fenômenos atmosféricos/)
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText(/Os meteorologistas utilizam diversos/)
       ).toBeInTheDocument();
     });
 
@@ -1718,9 +1740,8 @@ describe('QuizContent', () => {
       render(<QuizFill />);
 
       // Should render select components for each placeholder in the text
-      // The text has placeholders: {{ciencia}}, {{variações}}, {{objetivo}}, {{instrumentos}}, {{equipamentos}}
       const selectComponents = screen.getAllByTestId('quiz-select');
-      expect(selectComponents.length).toBeGreaterThan(0); // Should have selects for placeholders
+      expect(selectComponents.length).toBe(4); // 4 placeholders
     });
 
     it('should render placeholders correctly in default variant', () => {
@@ -1728,71 +1749,64 @@ describe('QuizContent', () => {
 
       // Should have select placeholder text
       const placeholders = screen.getAllByText('Selecione opção');
-      expect(placeholders.length).toBeGreaterThan(0);
+      expect(placeholders.length).toBe(4);
     });
 
     it('should render badges in result variant', () => {
+      const mockQuestionResult = {
+        answer: JSON.stringify({
+          'opt-ciencia': 'opt-variacoes', // Wrong answer
+          'opt-variacoes': 'opt-variacoes', // Correct
+          'opt-objetivo': 'opt-ciencia', // Wrong
+          'opt-compreender': 'opt-compreender', // Correct
+        }),
+      };
+
+      mockGetQuestionResultByQuestionId.mockReturnValue(mockQuestionResult);
+
       mockUseQuizStore.mockReturnValue({
+        getCurrentQuestion: mockGetCurrentQuestion,
+        getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
+        getCurrentAnswer: mockGetCurrentAnswer,
+        selectDissertativeAnswer: mockSelectDissertativeAnswer,
         variant: 'result',
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizFill />);
 
-      // Should render badges based on mock user answers
-      // Check for specific badge elements with text content
-      expect(screen.getByText('tecnologia')).toBeInTheDocument(); // Incorrect answer for 'ciencia'
-      expect(screen.getByText('estudar')).toBeInTheDocument(); // Incorrect answer for 'objetivo'
-      expect(screen.getByText('ferramentas')).toBeInTheDocument(); // Incorrect answer for 'instrumentos'
-
-      // Check if badges exist by counting quiz-badge test ids
+      // Should render badges
       const badges = screen.getAllByTestId('quiz-badge');
-      expect(badges.length).toBe(5); // Should have 5 badges for 5 placeholders
+      expect(badges.length).toBe(4);
     });
 
-    it('should show resultado section in result variant', () => {
+    it('should show resposta correta section in result variant', () => {
+      const mockQuestionResult = {
+        answer: JSON.stringify({
+          'opt-ciencia': 'opt-ciencia',
+          'opt-variacoes': 'opt-variacoes',
+          'opt-objetivo': 'opt-objetivo',
+          'opt-compreender': 'opt-compreender',
+        }),
+      };
+
+      mockGetQuestionResultByQuestionId.mockReturnValue(mockQuestionResult);
+
       mockUseQuizStore.mockReturnValue({
+        getCurrentQuestion: mockGetCurrentQuestion,
+        getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
+        getCurrentAnswer: mockGetCurrentAnswer,
+        selectDissertativeAnswer: mockSelectDissertativeAnswer,
         variant: 'result',
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizFill />);
 
       // Should show the resolution section
-      expect(screen.getAllByText('Resultado')).toHaveLength(1);
-
-      // Should show correct answers in the resolution
-      expect(screen.getByText('ciência')).toBeInTheDocument();
-      expect(screen.getByText('compreender')).toBeInTheDocument();
-      expect(screen.getByText('instrumentos')).toBeInTheDocument();
+      expect(screen.getByText('Resposta correta')).toBeInTheDocument();
     });
 
-    it('should apply paddingBottom correctly in default variant', () => {
-      const { container } = render(<QuizFill paddingBottom="pb-8" />);
-
-      // Should apply paddingBottom to the text content in default variant
-      const textContent = container.querySelector(
-        '.text-lg.text-text-900.leading-8'
-      );
-      expect(textContent).toHaveClass('pb-8');
-    });
-
-    it('should apply paddingBottom correctly in result variant', () => {
-      mockUseQuizStore.mockReturnValue({
-        variant: 'result',
-      } as unknown as ReturnType<typeof useQuizStore>);
-
-      const { container } = render(<QuizFill paddingBottom="pb-8" />);
-
-      // Should apply paddingBottom to the resolution section in result variant
-      const resolutionContent = container.querySelectorAll(
-        '.text-lg.text-text-900.leading-8'
-      )[1]; // Second one is resolution
-      expect(resolutionContent).toHaveClass('pb-8');
-    });
-
-    it('should have correct structure with subtitle and container', () => {
+    it('should have correct structure with container', () => {
       render(<QuizFill />);
-
-      expect(screen.getByText('Alternativas')).toBeInTheDocument();
 
       // Should have the main container structure
       const container = document.querySelector('.bg-background');
@@ -1803,13 +1817,9 @@ describe('QuizContent', () => {
     it('should handle text parsing correctly', () => {
       render(<QuizFill />);
 
-      // The component should parse the text and find placeholders
-      // We can't easily test the regex directly, but we can check the rendered structure
-      expect(screen.getByText('Alternativas')).toBeInTheDocument();
-
       // Should have processed the text without errors
-      const textContainer = document.querySelector('.space-y-6.px-4.h-auto');
-      expect(textContainer).toBeInTheDocument();
+      const selectComponents = screen.getAllByTestId('quiz-select');
+      expect(selectComponents.length).toBe(4);
     });
 
     it('should initialize with empty state in default variant', () => {
@@ -1817,37 +1827,66 @@ describe('QuizContent', () => {
 
       // All selects should start with placeholder text
       const placeholders = screen.getAllByText('Selecione opção');
-      expect(placeholders.length).toBeGreaterThan(0);
+      expect(placeholders.length).toBe(4);
     });
 
     it('should handle variant switching correctly', () => {
       const { rerender } = render(<QuizFill />);
 
       // Initially in default variant - should have selects
-      expect(screen.getAllByTestId('quiz-select').length).toBeGreaterThan(0);
+      expect(screen.getAllByTestId('quiz-select').length).toBe(4);
 
       // Switch to result variant
+      const mockQuestionResult = {
+        answer: JSON.stringify({
+          'opt-ciencia': 'opt-ciencia',
+          'opt-variacoes': 'opt-variacoes',
+          'opt-objetivo': 'opt-objetivo',
+          'opt-compreender': 'opt-compreender',
+        }),
+      };
+
+      mockGetQuestionResultByQuestionId.mockReturnValue(mockQuestionResult);
+
       mockUseQuizStore.mockReturnValue({
+        getCurrentQuestion: mockGetCurrentQuestion,
+        getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
+        getCurrentAnswer: mockGetCurrentAnswer,
+        selectDissertativeAnswer: mockSelectDissertativeAnswer,
         variant: 'result',
       } as unknown as ReturnType<typeof useQuizStore>);
 
       rerender(<QuizFill />);
 
-      // Should now show badges and resultado section
-      expect(screen.getAllByText('Resultado')).toHaveLength(1);
-      expect(screen.getByText('tecnologia')).toBeInTheDocument();
+      // Should now show badges and resposta correta section
+      expect(screen.getByText('Resposta correta')).toBeInTheDocument();
     });
 
     it('should render correct structure for both sections in result variant', () => {
+      const mockQuestionResult = {
+        answer: JSON.stringify({
+          'opt-ciencia': 'opt-ciencia',
+          'opt-variacoes': 'opt-variacoes',
+          'opt-objetivo': 'opt-objetivo',
+          'opt-compreender': 'opt-compreender',
+        }),
+      };
+
+      mockGetQuestionResultByQuestionId.mockReturnValue(mockQuestionResult);
+
       mockUseQuizStore.mockReturnValue({
+        getCurrentQuestion: mockGetCurrentQuestion,
+        getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
+        getCurrentAnswer: mockGetCurrentAnswer,
+        selectDissertativeAnswer: mockSelectDissertativeAnswer,
         variant: 'result',
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizFill />);
 
-      // Should have both Alternativas and Resultado sections
-      expect(screen.getByText('Alternativas')).toBeInTheDocument();
-      expect(screen.getAllByText('Resultado')).toHaveLength(1);
+      // Should have Preencha as lacunas and Resposta correta sections
+      expect(screen.getByText('Preencha as lacunas')).toBeInTheDocument();
+      expect(screen.getByText('Resposta correta')).toBeInTheDocument();
 
       // Should have two QuizContainer elements
       const containers = document.querySelectorAll(
@@ -1856,32 +1895,60 @@ describe('QuizContent', () => {
       expect(containers).toHaveLength(2);
     });
 
-    it('should handle unicode characters in placeholders', () => {
-      // The component uses a regex that supports Unicode: /\{\{([\p{L}\p{M}\d_]+)\}\}/gu
-      // This allows placeholders like {{variações}} with accented characters
+    it('should handle null question gracefully', () => {
+      mockGetCurrentQuestion.mockReturnValue(null);
+
       render(<QuizFill />);
 
-      // Should render without errors even with unicode characters
-      expect(screen.getByText('Alternativas')).toBeInTheDocument();
-
-      // Check if select options with unicode characters exist
-      const selectOptions = screen.getAllByRole('button', {
-        name: /variações/,
-      });
-      expect(selectOptions.length).toBeGreaterThan(0);
+      // Should render without errors - no selects since no question
+      expect(screen.queryAllByTestId('quiz-select').length).toBe(0);
     });
 
-    it('should handle mock user answers correctly in result variant', () => {
+    it('should handle question with no additionalContent', () => {
+      mockGetCurrentQuestion.mockReturnValue({
+        id: 'fill-question-empty',
+        additionalContent: '',
+        options: [],
+      });
+
+      render(<QuizFill />);
+
+      // Should render without errors
+      expect(screen.queryAllByTestId('quiz-select').length).toBe(0);
+    });
+
+    it('should generate unique IDs for elements', () => {
+      const { container } = render(<QuizFill />);
+
+      // Should have processed text elements with unique keys
+      const spans = container.querySelectorAll('span');
+      expect(spans.length).toBeGreaterThan(0);
+    });
+
+    it('should show correct and incorrect badges in result mode', () => {
+      const mockQuestionResult = {
+        answer: JSON.stringify({
+          'opt-ciencia': 'opt-ciencia', // Correct (same as placeholder ID)
+          'opt-variacoes': 'opt-objetivo', // Wrong
+          'opt-objetivo': 'opt-objetivo', // Correct
+          'opt-compreender': 'opt-ciencia', // Wrong
+        }),
+      };
+
+      mockGetQuestionResultByQuestionId.mockReturnValue(mockQuestionResult);
+
       mockUseQuizStore.mockReturnValue({
+        getCurrentQuestion: mockGetCurrentQuestion,
+        getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
+        getCurrentAnswer: mockGetCurrentAnswer,
+        selectDissertativeAnswer: mockSelectDissertativeAnswer,
         variant: 'result',
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizFill />);
 
-      // Should render user answers from the mock data
-      // Check for badges with correct data attributes for success/error
       const badges = screen.getAllByTestId('quiz-badge');
-      expect(badges.length).toBe(5); // Should have 5 badges total
+      expect(badges.length).toBe(4);
 
       // Count badges by action type
       const successBadges = badges.filter(
@@ -1891,56 +1958,8 @@ describe('QuizContent', () => {
         (badge) => badge.getAttribute('data-action') === 'error'
       );
 
-      expect(successBadges.length).toBe(2); // variações and equipamentos are correct
-      expect(errorBadges.length).toBe(3); // tecnologia, estudar, ferramentas are incorrect
-
-      // Verify all answers are rendered as text content
-      expect(screen.getAllByText('tecnologia')).toHaveLength(1);
-      expect(screen.getAllByText('estudar')).toHaveLength(1);
-      expect(screen.getAllByText('ferramentas')).toHaveLength(1);
-      expect(screen.getAllByText('variações')).toHaveLength(2); // One in badge, one in resolution
-      expect(screen.getAllByText('equipamentos')).toHaveLength(2); // One in badge, one in resolution
-    });
-
-    it('should apply default paddingBottom when not provided', () => {
-      const { container } = render(<QuizFill />);
-
-      // Should use default paddingBottom when prop is not provided
-      // The component uses paddingBottom as a prop default value, not a class
-      const textContent = container.querySelector(
-        '.text-lg.text-text-900.leading-8'
-      );
-      expect(textContent).toBeInTheDocument();
-
-      // Since paddingBottom is applied conditionally and the default is handled internally,
-      // we just verify the component renders without errors
-      expect(screen.getByText('Alternativas')).toBeInTheDocument();
-    });
-
-    it('should handle state management correctly for selects', () => {
-      render(<QuizFill />);
-
-      // Component should manage internal state for answers
-      // We can't easily test the state directly, but we can check structure
-      expect(screen.getByText('Alternativas')).toBeInTheDocument();
-
-      // Should have select components with proper structure
-      const selectComponents = screen.getAllByTestId('quiz-select');
-      expect(selectComponents.length).toBeGreaterThan(0);
-    });
-
-    it('should generate unique IDs for elements', () => {
-      const { container } = render(<QuizFill />);
-
-      // Component uses useId() to generate unique IDs
-      // We can check that elements are rendered properly
-      expect(
-        container.querySelector('.space-y-6.px-4.h-auto')
-      ).toBeInTheDocument();
-
-      // Should have processed text elements with unique keys
-      const spans = container.querySelectorAll('span');
-      expect(spans.length).toBeGreaterThan(0);
+      expect(successBadges.length).toBe(2);
+      expect(errorBadges.length).toBe(2);
     });
   });
 

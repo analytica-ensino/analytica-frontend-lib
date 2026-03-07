@@ -624,7 +624,7 @@ describe('ActivityListQuestions', () => {
         QUESTION_TYPE.VERDADEIRO_FALSO,
         QUESTION_TYPE.IMAGEM,
         QUESTION_TYPE.LIGAR_PONTOS,
-        QUESTION_TYPE.PREENCHER,
+        QUESTION_TYPE.PREENCHER_LACUNAS,
       ];
 
       questionTypes.forEach((type) => {

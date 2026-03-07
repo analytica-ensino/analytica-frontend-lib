@@ -1826,7 +1826,7 @@ describe('CorrectActivityModal', () => {
             question: createQuestion(
               'q1',
               'O Brasil está localizado na {{continente}}.',
-              QUESTION_TYPE.PREENCHER,
+              QUESTION_TYPE.PREENCHER_LACUNAS,
               [{ id: 'opt1', option: 'América' }],
               []
             ),
@@ -1845,7 +1845,7 @@ describe('CorrectActivityModal', () => {
               [{ id: 'opt1', option: 'América', isCorrect: true }],
               null,
               'O Brasil está localizado na {{continente}}.',
-              QUESTION_TYPE.PREENCHER
+              QUESTION_TYPE.PREENCHER_LACUNAS
             ),
             questionNumber: 1,
           },

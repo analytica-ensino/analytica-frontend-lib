@@ -43,7 +43,7 @@ describe('questionTypeUtils', () => {
 
       it('should map PREENCHER correctly', () => {
         expect(mapQuestionTypeToEnum('PREENCHER')).toBe(
-          QUESTION_TYPE.PREENCHER
+          QUESTION_TYPE.PREENCHER_LACUNAS
         );
       });
     });
@@ -85,7 +85,7 @@ describe('questionTypeUtils', () => {
 
       it('should map lowercase preencher', () => {
         expect(mapQuestionTypeToEnum('preencher')).toBe(
-          QUESTION_TYPE.PREENCHER
+          QUESTION_TYPE.PREENCHER_LACUNAS
         );
       });
 
@@ -162,8 +162,8 @@ describe('questionTypeUtils', () => {
       });
 
       it('should return PREENCHER fallback', () => {
-        expect(mapQuestionTypeToEnum('invalid', QUESTION_TYPE.PREENCHER)).toBe(
-          QUESTION_TYPE.PREENCHER
+        expect(mapQuestionTypeToEnum('invalid', QUESTION_TYPE.PREENCHER_LACUNAS)).toBe(
+          QUESTION_TYPE.PREENCHER_LACUNAS
         );
       });
     });
@@ -176,7 +176,7 @@ describe('questionTypeUtils', () => {
       });
 
       it('should not use fallback when type is valid', () => {
-        expect(mapQuestionTypeToEnum('imagem', QUESTION_TYPE.PREENCHER)).toBe(
+        expect(mapQuestionTypeToEnum('imagem', QUESTION_TYPE.PREENCHER_LACUNAS)).toBe(
           QUESTION_TYPE.IMAGEM
         );
       });
@@ -211,7 +211,7 @@ describe('questionTypeUtils', () => {
           QUESTION_TYPE.LIGAR_PONTOS
         );
         expect(mapQuestionTypeToEnumRequired('preencher')).toBe(
-          QUESTION_TYPE.PREENCHER
+          QUESTION_TYPE.PREENCHER_LACUNAS
         );
       });
     });
@@ -269,8 +269,8 @@ describe('questionTypeUtils', () => {
 
       it('should return PREENCHER as custom fallback', () => {
         expect(
-          mapQuestionTypeToEnumRequired('abc', QUESTION_TYPE.PREENCHER)
-        ).toBe(QUESTION_TYPE.PREENCHER);
+          mapQuestionTypeToEnumRequired('abc', QUESTION_TYPE.PREENCHER_LACUNAS)
+        ).toBe(QUESTION_TYPE.PREENCHER_LACUNAS);
       });
     });
 
@@ -284,7 +284,7 @@ describe('questionTypeUtils', () => {
       it('should not use custom fallback when type is valid', () => {
         expect(
           mapQuestionTypeToEnumRequired('preencher', QUESTION_TYPE.ALTERNATIVA)
-        ).toBe(QUESTION_TYPE.PREENCHER);
+        ).toBe(QUESTION_TYPE.PREENCHER_LACUNAS);
       });
     });
 

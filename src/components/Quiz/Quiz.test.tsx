@@ -1528,15 +1528,17 @@ describe('Quiz', () => {
       expect(screen.getByTestId('alternatives-list')).toBeInTheDocument();
     });
 
-    it('should return null when no current question', () => {
+    it('should show error message when no current question', () => {
       mockGetCurrentQuestion.mockReturnValue(null);
 
-      const { container } = render(<QuizContent />);
+      render(<QuizContent />);
 
-      expect(container.firstChild).toBeNull();
+      expect(
+        screen.getByText('Tipo de questão não suportado')
+      ).toBeInTheDocument();
     });
 
-    it('should return null when question type is not supported', () => {
+    it('should show error message when question type is not supported', () => {
       const mockQuestion = {
         id: 'question-1',
         questionType: 'UNSUPPORTED_TYPE',
@@ -1544,9 +1546,11 @@ describe('Quiz', () => {
 
       mockGetCurrentQuestion.mockReturnValue(mockQuestion);
 
-      const { container } = render(<QuizContent />);
+      render(<QuizContent />);
 
-      expect(container.firstChild).toBeNull();
+      expect(
+        screen.getByText('Tipo de questão não suportado')
+      ).toBeInTheDocument();
     });
 
     it('should pass paddingBottom prop to question component', () => {
