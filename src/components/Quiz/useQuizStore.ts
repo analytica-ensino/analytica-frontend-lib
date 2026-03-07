@@ -20,7 +20,7 @@ export enum QUESTION_TYPE {
   MULTIPLA_ESCOLHA = 'MULTIPLA_ESCOLHA',
   VERDADEIRO_FALSO = 'VERDADEIRO_FALSO',
   LIGAR_PONTOS = 'LIGAR_PONTOS',
-  PREENCHER = 'PREENCHER',
+  PREENCHER_LACUNAS = 'PREENCHER_LACUNAS',
   IMAGEM = 'IMAGEM',
 }
 
@@ -117,6 +117,7 @@ export interface Question {
   examBoard: string | null;
   examYear: string | null;
   solutionExplanation: string | null;
+  additionalContent: string | null;
   answer: null;
   answerStatus: ANSWER_STATUS;
   options: {

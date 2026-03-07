@@ -1442,16 +1442,24 @@ export const General: Story = () => {
         {
           id: 'q6-preencher',
           statement:
-            'Complete a frase: "A fórmula da velocidade média é v = ___ / ___", onde v é velocidade, ___ é distância e ___ é tempo.',
-          questionType: QUESTION_TYPE.PREENCHER,
+            'Complete as lacunas sobre o movimento uniforme:',
+          questionType: QUESTION_TYPE.PREENCHER_LACUNAS,
           difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
-          description: 'Questão de preenchimento',
+          description: 'Questão de preenchimento de lacunas',
           examBoard: 'ENEM',
           examYear: '2024',
-          solutionExplanation: 'd,t',
+          solutionExplanation:
+            'A fórmula da velocidade média é v = d/t, onde d é a distância e t é o tempo.',
+          additionalContent:
+            'A fórmula da velocidade média é v = {opt-distancia} / {opt-tempo}, onde {opt-distancia} representa a distância percorrida e {opt-tempo} representa o intervalo de tempo.',
           answer: null,
-          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-          options: [],
+          answerStatus: ANSWER_STATUS.NAO_RESPONDIDO,
+          options: [
+            { id: 'opt-distancia', option: 'd' },
+            { id: 'opt-tempo', option: 't' },
+            { id: 'opt-velocidade', option: 'v' },
+            { id: 'opt-aceleracao', option: 'a' },
+          ],
           knowledgeMatrix: [
             {
               areaKnowledge: {

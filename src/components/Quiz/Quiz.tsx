@@ -37,6 +37,7 @@ import {
   QuizTrueOrFalse,
 } from './QuizContent';
 import { CardStatus } from '../Card/Card';
+import Text from '../Text/Text';
 
 // Função para obter configuração do tipo de quiz
 export const getQuizTypeConfig = (type: QUIZ_TYPE) => {
@@ -252,7 +253,8 @@ const QuizContent = ({ paddingBottom }: { paddingBottom?: string }) => {
     [QUESTION_TYPE.DISSERTATIVA]: QuizDissertative,
     [QUESTION_TYPE.VERDADEIRO_FALSO]: QuizTrueOrFalse,
     [QUESTION_TYPE.LIGAR_PONTOS]: QuizConnectDots,
-    [QUESTION_TYPE.PREENCHER]: QuizFill,
+    [QUESTION_TYPE.PREENCHER_LACUNAS]: QuizFill,
+    PREENCHER: QuizFill, // Backward compatibility alias
     [QUESTION_TYPE.IMAGEM]: QuizImageQuestion,
   };
 
@@ -262,7 +264,13 @@ const QuizContent = ({ paddingBottom }: { paddingBottom?: string }) => {
 
   return QuestionComponent ? (
     <QuestionComponent paddingBottom={paddingBottom} />
-  ) : null;
+  ) : (
+    <>
+      <Text size="md" weight="medium" className="text-text-950 text-md">
+        Tipo de questão não suportado
+      </Text>
+    </>
+  );
 };
 
 interface QuizVariantInterface {
