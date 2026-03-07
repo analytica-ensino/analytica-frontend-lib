@@ -683,156 +683,181 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
   );
 };
 
-interface FillUserAnswer {
-  selectId: string;
-  userAnswer: string;
-  correctAnswer: string;
-  isCorrect: boolean;
-}
-
 const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
-  const { variant } = useQuizStore();
-  const options = [
-    'ciência',
-    'disciplina',
-    'área',
-    'especialidade',
-    'variações',
-  ];
+  const {
+    getCurrentQuestion,
+    getQuestionResultByQuestionId,
+    getCurrentAnswer,
+    selectDissertativeAnswer,
+    variant,
+  } = useQuizStore();
 
-  const exampleText = `A meteorologia é a {{ciencia}} que estuda os fenômenos atmosféricos e suas {{variações}}. Esta disciplina científica tem como objetivo principal {{objetivo}} o comportamento da atmosfera terrestre.
+  const currentQuestion = getCurrentQuestion();
+  const currentQuestionResult = getQuestionResultByQuestionId(
+    currentQuestion?.id || ''
+  );
+  const currentAnswer = getCurrentAnswer();
 
-  Os meteorologistas utilizam diversos {{instrumentos}} para coletar dados atmosféricos, incluindo termômetros, barômetros e {{equipamentos}} modernos como radares meteorológicos.`;
+  const baseId = useId();
 
-  // Mock data for result variant - simulating user answers
-  const mockUserAnswers: FillUserAnswer[] = [
-    {
-      selectId: 'ciencia',
-      userAnswer: 'tecnologia',
-      correctAnswer: 'ciência',
-      isCorrect: false,
-    },
-    {
-      selectId: 'variações',
-      userAnswer: 'variações',
-      correctAnswer: 'variações',
-      isCorrect: true,
-    },
-    {
-      selectId: 'objetivo',
-      userAnswer: 'estudar',
-      correctAnswer: 'compreender',
-      isCorrect: false,
-    },
-    {
-      selectId: 'instrumentos',
-      userAnswer: 'ferramentas',
-      correctAnswer: 'instrumentos',
-      isCorrect: false,
-    },
-    {
-      selectId: 'equipamentos',
-      userAnswer: 'equipamentos',
-      correctAnswer: 'equipamentos',
-      isCorrect: true,
-    },
-  ];
+  // Get the additionalContent from the question (contains text with {optionId} placeholders)
+  const additionalContent = currentQuestion?.additionalContent || '';
 
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const baseId = useId(); // Generate base ID for this component instance
+  // Get the options from the question
+  const questionOptions = currentQuestion?.options || [];
 
-  // Get available options for a specific select
-  const getAvailableOptionsForSelect = (selectId: string) => {
-    const usedOptions = new Set(
-      Object.entries(answers)
-        .filter(([key]) => key !== selectId) // Exclude the current selection itself
-        .map(([, value]) => value)
-    );
+  // Parse current answers from the stored JSON string
+  const parsedAnswers: Record<string, string> = useMemo(() => {
+    if (variant === 'result' && currentQuestionResult?.answer) {
+      try {
+        return JSON.parse(currentQuestionResult.answer);
+      } catch {
+        return {};
+      }
+    }
+    if (currentAnswer?.answer) {
+      try {
+        return JSON.parse(currentAnswer.answer);
+      } catch {
+        return {};
+      }
+    }
+    return {};
+  }, [variant, currentQuestionResult?.answer, currentAnswer?.answer]);
 
-    return options.filter((option) => !usedOptions.has(option));
+  const [localAnswers, setLocalAnswers] =
+    useState<Record<string, string>>(parsedAnswers);
+
+  // Sync local answers when question changes
+  useEffect(() => {
+    setLocalAnswers(parsedAnswers);
+  }, [parsedAnswers, currentQuestion?.id]);
+
+  // Handle select change
+  const handleSelectChange = (placeholderId: string, optionId: string) => {
+    const newAnswers = { ...localAnswers, [placeholderId]: optionId };
+    setLocalAnswers(newAnswers);
+
+    // Save to store as JSON string
+    if (currentQuestion) {
+      selectDissertativeAnswer(currentQuestion.id, JSON.stringify(newAnswers));
+    }
   };
 
-  const handleSelectChange = (selectId: string, value: string) => {
-    const newAnswers = { ...answers, [selectId]: value };
-    setAnswers(newAnswers);
+  // Get option text by ID
+  const getOptionTextById = (optionId: string): string => {
+    const option = questionOptions.find((opt) => opt.id === optionId);
+    return option?.option || '';
   };
 
-  const renderResolutionElement = (selectId: string) => {
-    const mockAnswer = mockUserAnswers.find(
-      (answer) => answer.selectId === selectId
-    );
+  // Check if an answer is correct (for result mode)
+  const isAnswerCorrect = (placeholderId: string): boolean => {
+    const selectedOptionId = localAnswers[placeholderId];
+    // The placeholder ID is the correct option ID
+    return selectedOptionId === placeholderId;
+  };
+
+  // Render the select for default mode
+  const renderDefaultSelect = (placeholderId: string) => {
+    const selectedOptionId = localAnswers[placeholderId];
 
     return (
-      <p className="inline-flex mb-2.5 text-success-600 font-semibold text-md border-b-2 border-success-600">
-        {mockAnswer?.correctAnswer}
-      </p>
-    );
-  };
-
-  const renderDefaultElement = (
-    selectId: string,
-    startIndex: number,
-    selectedValue: string,
-    availableOptionsForThisSelect: string[]
-  ) => {
-    return (
-      <Select
-        key={`${selectId}-${startIndex}`}
-        value={selectedValue}
-        onValueChange={(value) => handleSelectChange(selectId, value)}
-        className="inline-flex mb-2.5"
+      <span
+        key={placeholderId}
+        className="inline-block align-middle mx-1"
+        style={{ display: 'inline-block', verticalAlign: 'middle' }}
       >
-        <SelectTrigger className="inline-flex w-auto min-w-[140px] h-8 mx-1 bg-background border-gray-300">
-          <SelectValue placeholder="Selecione opção" />
-        </SelectTrigger>
-        <SelectContent>
-          {availableOptionsForThisSelect.map((option, index) => (
-            <SelectItem key={`${option}-${index}`} value={option}>
-              {option}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+        <Select
+          value={selectedOptionId || undefined}
+          onValueChange={(value) => handleSelectChange(placeholderId, value)}
+        >
+          <SelectTrigger className="w-auto min-w-[120px] h-7 px-2 bg-background border-gray-300">
+            <SelectValue placeholder="Selecione opção" />
+          </SelectTrigger>
+          <SelectContent>
+            {questionOptions.map((option) => (
+              <SelectItem key={option.id} value={option.id}>
+                {option.option}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </span>
     );
   };
 
-  const renderResultElement = (selectId: string) => {
-    const mockAnswer = mockUserAnswers.find(
-      (answer) => answer.selectId === selectId
-    );
+  // Render the result badge
+  const renderResultBadge = (placeholderId: string) => {
+    const selectedOptionId = localAnswers[placeholderId];
+    const selectedOptionText = getOptionTextById(selectedOptionId);
+    const isCorrect = isAnswerCorrect(placeholderId);
 
-    if (!mockAnswer) return null;
-
-    const action = mockAnswer.isCorrect ? 'success' : 'error';
-    const icon = mockAnswer.isCorrect ? <CheckCircle /> : <XCircle />;
+    if (!selectedOptionId) {
+      return (
+        <span
+          key={placeholderId}
+          className="inline-block align-middle mx-1"
+          style={{ display: 'inline-block', verticalAlign: 'middle' }}
+        >
+          <Badge
+            variant="solid"
+            action="error"
+            iconRight={<XCircle />}
+            size="large"
+            className="py-1 px-2"
+          >
+            <span className="text-text-900">Não respondido</span>
+          </Badge>
+        </span>
+      );
+    }
 
     return (
-      <Badge
-        key={selectId}
-        variant="solid"
-        action={action}
-        iconRight={icon}
-        size="large"
-        className="py-3 w-[180px] justify-between mb-2.5"
+      <span
+        key={placeholderId}
+        className="inline-block align-middle mx-1"
+        style={{ display: 'inline-block', verticalAlign: 'middle' }}
       >
-        <span className="text-text-900">{mockAnswer.userAnswer}</span>
-      </Badge>
+        <Badge
+          variant="solid"
+          action={isCorrect ? 'success' : 'error'}
+          iconRight={isCorrect ? <CheckCircle /> : <XCircle />}
+          size="large"
+          className="py-1 px-2"
+        >
+          <span className="text-text-900">{selectedOptionText}</span>
+        </Badge>
+      </span>
     );
   };
 
+  // Render the correct answer for resolution
+  const renderResolutionAnswer = (placeholderId: string) => {
+    // The placeholderId IS the correct option ID
+    const correctOptionText = getOptionTextById(placeholderId);
+
+    return (
+      <span className="inline mx-1 text-success-600 font-semibold border-b-2 border-success-600">
+        {correctOptionText}
+      </span>
+    );
+  };
+
+  // Parse text and render with selects
   const renderTextWithSelects = (text: string, isResolution?: boolean) => {
     const elements: Array<{ element: string | ReactNode; id: string }> = [];
     let lastIndex = 0;
     let elementCounter = 0;
 
-    // Support Unicode letters/marks and digits: allows placeholders like {{variações}}
-    const regex = /\{\{([\p{L}\p{M}\d_]+)\}\}/gu;
+    // Match {uuid} placeholders (UUID format or any alphanumeric with hyphens)
+    const regex = /\{([a-zA-Z0-9-]+)\}/g;
     let match;
 
     while ((match = regex.exec(text)) !== null) {
-      const [fullMatch, selectId] = match;
+      const [fullMatch, placeholderId] = match;
       const startIndex = match.index;
 
+      // Add text before the placeholder
       if (startIndex > lastIndex) {
         elements.push({
           element: text.slice(lastIndex, startIndex),
@@ -840,38 +865,28 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
         });
       }
 
-      const selectedValue = answers[selectId];
-      const availableOptionsForThisSelect =
-        getAvailableOptionsForSelect(selectId);
-
+      // Add the appropriate element based on variant and mode
       if (isResolution) {
         elements.push({
-          element: renderResolutionElement(selectId),
+          element: renderResolutionAnswer(placeholderId),
           id: `${baseId}-resolution-${++elementCounter}`,
         });
       } else if (variant === 'default') {
         elements.push({
-          element: renderDefaultElement(
-            selectId,
-            startIndex,
-            selectedValue,
-            availableOptionsForThisSelect
-          ),
+          element: renderDefaultSelect(placeholderId),
           id: `${baseId}-select-${++elementCounter}`,
         });
       } else {
-        const resultElement = renderResultElement(selectId);
-        if (resultElement) {
-          elements.push({
-            element: resultElement,
-            id: `${baseId}-result-${++elementCounter}`,
-          });
-        }
+        elements.push({
+          element: renderResultBadge(placeholderId),
+          id: `${baseId}-result-${++elementCounter}`,
+        });
       }
 
       lastIndex = match.index + fullMatch.length;
     }
 
+    // Add remaining text
     if (lastIndex < text.length) {
       elements.push({
         element: text.slice(lastIndex),
@@ -882,38 +897,76 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
     return elements;
   };
 
+  // Strip HTML tags for rendering (additionalContent may contain HTML from RichEditor)
+  const stripHtmlTags = (html: string): string => {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    return doc.body.textContent || '';
+  };
+
+  // Render HTML content with selects replacing placeholders
+  const renderHtmlWithSelects = (
+    htmlContent: string,
+    isResolution?: boolean
+  ) => {
+    // For now, we'll strip HTML and render plain text with selects
+    // This preserves the placeholder functionality while handling HTML content
+    const textContent = stripHtmlTags(htmlContent);
+    return renderTextWithSelects(textContent, isResolution);
+  };
+
+  if (!currentQuestion || !additionalContent) {
+    return (
+      <>
+        <QuizSubTitle subTitle="Preenchimento" />
+        <QuizContainer className="h-auto pb-0">
+          <div className="space-y-6 px-4 h-auto">
+            <p className="text-text-600 text-md">
+              Nenhum conteúdo disponível para esta questão.
+            </p>
+          </div>
+        </QuizContainer>
+      </>
+    );
+  }
+
   return (
     <>
-      <QuizSubTitle subTitle="Alternativas" />
+      <QuizSubTitle subTitle="Preencha as lacunas" />
 
       <QuizContainer className="h-auto pb-0">
-        <div className="space-y-6 px-4 h-auto">
-          <div
+        <div className="px-4 h-auto">
+          <p
             className={cn(
-              'text-lg text-text-900 leading-8 h-auto',
-              variant != 'result' && paddingBottom
+              'text-lg text-text-900 leading-10 h-auto',
+              variant !== 'result' && paddingBottom
             )}
           >
-            {renderTextWithSelects(exampleText).map((element) => (
-              <span key={element.id}>{element.element}</span>
+            {renderHtmlWithSelects(additionalContent).map((element) => (
+              <span key={element.id} className="inline">
+                {element.element}
+              </span>
             ))}
-          </div>
+          </p>
         </div>
       </QuizContainer>
 
       {variant === 'result' && (
         <>
-          <QuizSubTitle subTitle="Resultado" />
+          <QuizSubTitle subTitle="Resposta correta" />
 
           <QuizContainer className="h-auto pb-0">
-            <div className="space-y-6 px-4">
-              <div
-                className={cn('text-lg text-text-900 leading-8', paddingBottom)}
+            <div className="px-4">
+              <p
+                className={cn('text-lg text-text-900 leading-10', paddingBottom)}
               >
-                {renderTextWithSelects(exampleText, true).map((element) => (
-                  <span key={element.id}>{element.element}</span>
-                ))}
-              </div>
+                {renderHtmlWithSelects(additionalContent, true).map(
+                  (element) => (
+                    <span key={element.id} className="inline">
+                      {element.element}
+                    </span>
+                  )
+                )}
+              </p>
             </div>
           </QuizContainer>
         </>
