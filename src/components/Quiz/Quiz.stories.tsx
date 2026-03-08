@@ -1179,6 +1179,7 @@ export const General: Story = () => {
             { id: 'opt4', option: 'Salvador' },
           ],
           correctOptionIds: ['opt3'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1225,6 +1226,7 @@ export const General: Story = () => {
             { id: 'opt4', option: 'Salvador' },
           ],
           correctOptionIds: ['opt3'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1274,6 +1276,7 @@ export const General: Story = () => {
             { id: 'opt6', option: 'Vênus' },
           ],
           correctOptionIds: ['opt1', 'opt2', 'opt3', 'opt4'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1315,6 +1318,7 @@ export const General: Story = () => {
           answer: null,
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1360,6 +1364,7 @@ export const General: Story = () => {
             { id: 'opt2', option: 'Falso' },
           ],
           correctOptionIds: ['opt1'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1412,6 +1417,7 @@ export const General: Story = () => {
             },
           ],
           correctOptionIds: ['opt1', 'opt2', 'opt3', 'opt4'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1441,17 +1447,24 @@ export const General: Story = () => {
         },
         {
           id: 'q6-preencher',
-          statement:
-            'Complete a frase: "A fórmula da velocidade média é v = ___ / ___", onde v é velocidade, ___ é distância e ___ é tempo.',
-          questionType: QUESTION_TYPE.PREENCHER,
+          statement: 'Complete as lacunas sobre o movimento uniforme:',
+          questionType: QUESTION_TYPE.PREENCHER_LACUNAS,
           difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
-          description: 'Questão de preenchimento',
+          description: 'Questão de preenchimento de lacunas',
           examBoard: 'ENEM',
           examYear: '2024',
-          solutionExplanation: 'd,t',
+          solutionExplanation:
+            'A fórmula da velocidade média é v = d/t, onde d é a distância e t é o tempo.',
+          additionalContent:
+            'A fórmula da velocidade média é v = {opt-distancia} / {opt-tempo}, onde {opt-distancia} representa a distância percorrida e {opt-tempo} representa o intervalo de tempo.',
           answer: null,
-          answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
-          options: [],
+          answerStatus: ANSWER_STATUS.NAO_RESPONDIDO,
+          options: [
+            { id: 'opt-distancia', option: 'd' },
+            { id: 'opt-tempo', option: 't' },
+            { id: 'opt-velocidade', option: 'v' },
+            { id: 'opt-aceleracao', option: 'a' },
+          ],
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1569,6 +1582,7 @@ export const GeneralForResults: Story = () => {
             { id: 'opt4', option: 'Salvador' },
           ],
           correctOptionIds: ['opt3'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1616,6 +1630,7 @@ export const GeneralForResults: Story = () => {
             { id: 'opt4', option: 'Salvador' },
           ],
           correctOptionIds: ['opt3'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1663,6 +1678,7 @@ export const GeneralForResults: Story = () => {
             { id: 'alt-opt4', option: 'Salvador' },
           ],
           correctOptionIds: ['alt-opt3'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1710,6 +1726,7 @@ export const GeneralForResults: Story = () => {
             { id: 'alt-opt4', option: 'Netuno' },
           ],
           correctOptionIds: ['alt-opt1'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1765,6 +1782,7 @@ export const GeneralForResults: Story = () => {
             'multi-opt3',
             'multi-opt4',
           ],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1813,6 +1831,7 @@ export const GeneralForResults: Story = () => {
             { id: 'multi-opt4', option: 'Temperatura' },
           ],
           correctOptionIds: ['multi-opt1', 'multi-opt2', 'multi-opt3'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1855,6 +1874,7 @@ export const GeneralForResults: Story = () => {
           answer: null,
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1897,6 +1917,7 @@ export const GeneralForResults: Story = () => {
           answer: null,
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1943,6 +1964,7 @@ export const GeneralForResults: Story = () => {
             { id: 'opt2', option: 'Falso' },
           ],
           correctOptionIds: ['opt1'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1988,6 +2010,7 @@ export const GeneralForResults: Story = () => {
             { id: 'opt2', option: 'Falso' },
           ],
           correctOptionIds: ['opt2'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2046,6 +2069,7 @@ export const GeneralForResults: Story = () => {
           score: 100,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2094,6 +2118,7 @@ export const GeneralForResults: Story = () => {
           score: 0,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2141,6 +2166,7 @@ export const GeneralForResults: Story = () => {
           score: 100,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2190,6 +2216,7 @@ export const GeneralForResults: Story = () => {
           score: 0,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2244,6 +2271,7 @@ export const GeneralForResults: Story = () => {
           score: 75, // Partial score for partial answer
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2298,6 +2326,7 @@ export const GeneralForResults: Story = () => {
           score: 25, // Partial score
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'teacher',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2347,6 +2376,7 @@ export const GeneralForResults: Story = () => {
           score: 95,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'teacher',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2395,6 +2425,7 @@ export const GeneralForResults: Story = () => {
           score: 20,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'teacher',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2540,6 +2571,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
             { id: 'opt4', option: 'Resposta incorreta' },
           ],
           correctOptionIds: ['opt1'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2586,6 +2618,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
             { id: 'opt4', option: 'Resposta incorreta' },
           ],
           correctOptionIds: ['opt1', 'opt2'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2626,6 +2659,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           answer: null,
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2672,6 +2706,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
             { id: 'opt4', option: 'Resposta incorreta' },
           ],
           correctOptionIds: ['opt3'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2718,6 +2753,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
             { id: 'opt4', option: 'Resposta incorreta' },
           ],
           correctOptionIds: ['opt2'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2778,6 +2814,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           score: 100,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2830,6 +2867,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           score: 100,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2878,6 +2916,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           score: 95,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'teacher',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2930,6 +2969,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           score: 100,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2982,6 +3022,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           score: 100,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -3201,6 +3242,7 @@ export const Questionario: Story = () => {
             { id: 'alt-opt4', option: 'Salvador' },
           ],
           correctOptionIds: ['alt-opt3'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -3258,6 +3300,7 @@ export const Questionario: Story = () => {
           score: 100,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -3382,6 +3425,7 @@ export const QuestionarioTodasIncorretas: Story = () => {
             { id: 'alt-opt4', option: 'Salvador' },
           ],
           correctOptionIds: ['alt-opt3'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -3439,6 +3483,7 @@ export const QuestionarioTodasIncorretas: Story = () => {
           score: 0,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {

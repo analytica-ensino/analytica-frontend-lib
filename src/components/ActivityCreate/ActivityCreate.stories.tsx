@@ -548,7 +548,7 @@ const mockApiClientAllTypes = createMockApiClient([
   'MULTIPLA_ESCOLHA',
   'VERDADEIRO_FALSO',
   'LIGAR_PONTOS',
-  'PREENCHER',
+  'PREENCHER_LACUNAS',
   'IMAGEM',
 ]);
 
@@ -679,7 +679,7 @@ export const WithActivityDebug: Story = () => {
               'MULTIPLA_ESCOLHA',
               'VERDADEIRO_FALSO',
               'LIGAR_PONTOS',
-              'PREENCHER',
+              'PREENCHER_LACUNAS',
               'IMAGEM',
             ],
             (method: string, url: string, payload: unknown) => {

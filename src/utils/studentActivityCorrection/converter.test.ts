@@ -19,6 +19,7 @@ describe('studentActivityCorrectionConverter', () => {
       selectedOptions: [],
       answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
       statement: 'Test question statement',
+      additionalContent: null,
       questionType: QUESTION_TYPE.ALTERNATIVA,
       difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
       solutionExplanation: null,
@@ -306,6 +307,7 @@ describe('studentActivityCorrectionConverter', () => {
       expect(result.questions[0].question).toEqual({
         id: 'q1',
         statement: 'Test question',
+        additionalContent: null,
         questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
         difficultyLevel: QUESTION_DIFFICULTY.DIFICIL,
         description: '',

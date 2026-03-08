@@ -38,7 +38,7 @@ const questionRendererMap = {
   [QUESTION_TYPE.MULTIPLA_ESCOLHA]: renderQuestionMultipleChoice,
   [QUESTION_TYPE.VERDADEIRO_FALSO]: renderQuestionTrueOrFalse,
   [QUESTION_TYPE.DISSERTATIVA]: renderQuestionDissertative,
-  [QUESTION_TYPE.PREENCHER]: renderQuestionFill,
+  [QUESTION_TYPE.PREENCHER_LACUNAS]: renderQuestionFill,
   [QUESTION_TYPE.IMAGEM]: renderQuestionImage,
   [QUESTION_TYPE.LIGAR_PONTOS]: renderQuestionConnectDots,
 };
@@ -71,7 +71,7 @@ export const renderQuestion = (props: QuestionRendererProps): ReactNode => {
     case QUESTION_TYPE.ALTERNATIVA:
     case QUESTION_TYPE.MULTIPLA_ESCOLHA:
     case QUESTION_TYPE.VERDADEIRO_FALSO:
-    case QUESTION_TYPE.PREENCHER:
+    case QUESTION_TYPE.PREENCHER_LACUNAS:
       return renderer(props);
     default:
       return null;
