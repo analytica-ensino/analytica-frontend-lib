@@ -19,6 +19,7 @@ describe('studentActivityCorrectionConverter', () => {
       selectedOptions: [],
       answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
       statement: 'Test question statement',
+      additionalContent: null,
       questionType: QUESTION_TYPE.ALTERNATIVA,
       difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
       solutionExplanation: null,

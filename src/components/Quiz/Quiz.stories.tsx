@@ -1179,6 +1179,7 @@ export const General: Story = () => {
             { id: 'opt4', option: 'Salvador' },
           ],
           correctOptionIds: ['opt3'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1225,6 +1226,7 @@ export const General: Story = () => {
             { id: 'opt4', option: 'Salvador' },
           ],
           correctOptionIds: ['opt3'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1274,6 +1276,7 @@ export const General: Story = () => {
             { id: 'opt6', option: 'Vênus' },
           ],
           correctOptionIds: ['opt1', 'opt2', 'opt3', 'opt4'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1315,6 +1318,7 @@ export const General: Story = () => {
           answer: null,
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1360,6 +1364,7 @@ export const General: Story = () => {
             { id: 'opt2', option: 'Falso' },
           ],
           correctOptionIds: ['opt1'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1412,6 +1417,7 @@ export const General: Story = () => {
             },
           ],
           correctOptionIds: ['opt1', 'opt2', 'opt3', 'opt4'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1576,6 +1582,7 @@ export const GeneralForResults: Story = () => {
             { id: 'opt4', option: 'Salvador' },
           ],
           correctOptionIds: ['opt3'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1623,6 +1630,7 @@ export const GeneralForResults: Story = () => {
             { id: 'opt4', option: 'Salvador' },
           ],
           correctOptionIds: ['opt3'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1670,6 +1678,7 @@ export const GeneralForResults: Story = () => {
             { id: 'alt-opt4', option: 'Salvador' },
           ],
           correctOptionIds: ['alt-opt3'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1717,6 +1726,7 @@ export const GeneralForResults: Story = () => {
             { id: 'alt-opt4', option: 'Netuno' },
           ],
           correctOptionIds: ['alt-opt1'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1772,6 +1782,7 @@ export const GeneralForResults: Story = () => {
             'multi-opt3',
             'multi-opt4',
           ],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1820,6 +1831,7 @@ export const GeneralForResults: Story = () => {
             { id: 'multi-opt4', option: 'Temperatura' },
           ],
           correctOptionIds: ['multi-opt1', 'multi-opt2', 'multi-opt3'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1862,6 +1874,7 @@ export const GeneralForResults: Story = () => {
           answer: null,
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1904,6 +1917,7 @@ export const GeneralForResults: Story = () => {
           answer: null,
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1950,6 +1964,7 @@ export const GeneralForResults: Story = () => {
             { id: 'opt2', option: 'Falso' },
           ],
           correctOptionIds: ['opt1'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -1995,6 +2010,7 @@ export const GeneralForResults: Story = () => {
             { id: 'opt2', option: 'Falso' },
           ],
           correctOptionIds: ['opt2'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2053,6 +2069,7 @@ export const GeneralForResults: Story = () => {
           score: 100,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2101,6 +2118,7 @@ export const GeneralForResults: Story = () => {
           score: 0,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2148,6 +2166,7 @@ export const GeneralForResults: Story = () => {
           score: 100,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2197,6 +2216,7 @@ export const GeneralForResults: Story = () => {
           score: 0,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2251,6 +2271,7 @@ export const GeneralForResults: Story = () => {
           score: 75, // Partial score for partial answer
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2305,6 +2326,7 @@ export const GeneralForResults: Story = () => {
           score: 25, // Partial score
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'teacher',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2354,6 +2376,7 @@ export const GeneralForResults: Story = () => {
           score: 95,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'teacher',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2402,6 +2425,7 @@ export const GeneralForResults: Story = () => {
           score: 20,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'teacher',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2547,6 +2571,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
             { id: 'opt4', option: 'Resposta incorreta' },
           ],
           correctOptionIds: ['opt1'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2593,6 +2618,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
             { id: 'opt4', option: 'Resposta incorreta' },
           ],
           correctOptionIds: ['opt1', 'opt2'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2633,6 +2659,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           answer: null,
           answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
           options: [],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2679,6 +2706,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
             { id: 'opt4', option: 'Resposta incorreta' },
           ],
           correctOptionIds: ['opt3'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2725,6 +2753,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
             { id: 'opt4', option: 'Resposta incorreta' },
           ],
           correctOptionIds: ['opt2'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2785,6 +2814,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           score: 100,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2837,6 +2867,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           score: 100,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2885,6 +2916,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           score: 95,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'teacher',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2937,6 +2969,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           score: 100,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -2989,6 +3022,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
           score: 100,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -3208,6 +3242,7 @@ export const Questionario: Story = () => {
             { id: 'alt-opt4', option: 'Salvador' },
           ],
           correctOptionIds: ['alt-opt3'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -3265,6 +3300,7 @@ export const Questionario: Story = () => {
           score: 100,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -3389,6 +3425,7 @@ export const QuestionarioTodasIncorretas: Story = () => {
             { id: 'alt-opt4', option: 'Salvador' },
           ],
           correctOptionIds: ['alt-opt3'],
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {
@@ -3446,6 +3483,7 @@ export const QuestionarioTodasIncorretas: Story = () => {
           score: 0,
           gradedAt: '2024-01-01T00:00:00Z',
           gradedBy: 'system',
+          additionalContent: null,
           knowledgeMatrix: [
             {
               areaKnowledge: {

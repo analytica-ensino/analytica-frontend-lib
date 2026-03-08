@@ -57,6 +57,7 @@ export interface QuestionResult {
     }[];
     answerStatus: ANSWER_STATUS;
     statement: string;
+    additionalContent: string | null;
     questionType: QUESTION_TYPE;
     difficultyLevel: QUESTION_DIFFICULTY;
     solutionExplanation: string | null;

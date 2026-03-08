@@ -35,6 +35,7 @@ const createQuestion = (
     examBoard: null,
     examYear: null,
     solutionExplanation: null,
+    additionalContent: null,
     answer: null,
     answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
     options: options || [],
@@ -75,6 +76,7 @@ const createQuestionResult = (
     selectedOptions,
     answerStatus,
     statement: '',
+    additionalContent: null,
     questionType: QUESTION_TYPE.ALTERNATIVA,
     difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
     solutionExplanation: null,
@@ -1051,6 +1053,7 @@ export const WithNewApiStructureMultipleChoice: Story = () => {
         selectedOptions: [],
         answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
         statement: 'Qual é a derivada da função f(x) = x³ + 2x² - 5x + 1?',
+        additionalContent: null,
         questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
         difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
         solutionExplanation:
@@ -1119,6 +1122,7 @@ export const WithNewApiStructureMultipleChoice: Story = () => {
         selectedOptions: [],
         answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
         statement: 'Qual é o valor de log₂(32)?',
+        additionalContent: null,
         questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
         difficultyLevel: QUESTION_DIFFICULTY.FACIL,
         solutionExplanation: 'log₂(32) = log₂(2⁵) = 5',
@@ -1221,6 +1225,7 @@ export const WithNewApiStructureAlternatives: Story = () => {
         ],
         answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
         statement: 'Qual é o resultado de (2³)²?',
+        additionalContent: null,
         questionType: QUESTION_TYPE.ALTERNATIVA,
         difficultyLevel: QUESTION_DIFFICULTY.FACIL,
         solutionExplanation: '(2³)² = 2⁶ = 64',
@@ -1297,6 +1302,7 @@ export const WithNewApiStructureAlternatives: Story = () => {
         ],
         answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
         statement: 'Qual é a raiz quadrada de 144?',
+        additionalContent: null,
         questionType: QUESTION_TYPE.ALTERNATIVA,
         difficultyLevel: QUESTION_DIFFICULTY.FACIL,
         solutionExplanation: '√144 = 12',
@@ -1402,6 +1408,7 @@ export const WithNewApiStructureDissertative: Story = () => {
         answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
         statement:
           'Explique o processo de fotossíntese e sua importância para os seres vivos.',
+        additionalContent: null,
         questionType: QUESTION_TYPE.DISSERTATIVA,
         difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
         solutionExplanation:
@@ -1451,6 +1458,7 @@ export const WithNewApiStructureDissertative: Story = () => {
         answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
         statement:
           'Analise o impacto da Revolução Industrial na sociedade moderna.',
+        additionalContent: null,
         questionType: QUESTION_TYPE.DISSERTATIVA,
         difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
         solutionExplanation:
