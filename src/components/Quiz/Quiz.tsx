@@ -264,11 +264,9 @@ const QuizContent = ({ paddingBottom }: { paddingBottom?: string }) => {
   return QuestionComponent ? (
     <QuestionComponent paddingBottom={paddingBottom} />
   ) : (
-    <>
-      <Text size="md" weight="medium" className="text-text-950 text-md">
-        Tipo de questão não suportado
-      </Text>
-    </>
+    <Text size="md" weight="medium" className="text-text-950 text-md">
+      Tipo de questão não suportado
+    </Text>
   );
 };
 
