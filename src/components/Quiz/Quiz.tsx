@@ -257,8 +257,6 @@ const QuizContent = ({ paddingBottom }: { paddingBottom?: string }) => {
     [QUESTION_TYPE.IMAGEM]: QuizImageQuestion,
   };
 
-  console.log('currentQuestion', currentQuestion);
-
   const QuestionComponent = currentQuestion
     ? questionComponents[currentQuestion.questionType]
     : null;
