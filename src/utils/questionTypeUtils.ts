@@ -22,6 +22,7 @@ export function mapQuestionTypeToEnum(
     IMAGEM: QUESTION_TYPE.IMAGEM,
     LIGAR_PONTOS: QUESTION_TYPE.LIGAR_PONTOS,
     PREENCHER_LACUNAS: QUESTION_TYPE.PREENCHER_LACUNAS,
+    PREENCHER: QUESTION_TYPE.PREENCHER_LACUNAS, // Alias para compatibilidade
   };
 
   return typeMap[upperType] ?? fallback ?? null;

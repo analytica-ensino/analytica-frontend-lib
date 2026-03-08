@@ -307,6 +307,7 @@ describe('studentActivityCorrectionConverter', () => {
       expect(result.questions[0].question).toEqual({
         id: 'q1',
         statement: 'Test question',
+        additionalContent: null,
         questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
         difficultyLevel: QUESTION_DIFFICULTY.DIFICIL,
         description: '',
