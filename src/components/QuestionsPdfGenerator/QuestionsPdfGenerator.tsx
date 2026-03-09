@@ -196,7 +196,7 @@ export const QuestionsPdfContent = forwardRef<
       [QUESTION_TYPE.DISSERTATIVA]: () => renderDissertative(),
       [QUESTION_TYPE.VERDADEIRO_FALSO]: renderTrueOrFalse,
       [QUESTION_TYPE.LIGAR_PONTOS]: () => null,
-      [QUESTION_TYPE.PREENCHER]: () => null,
+      [QUESTION_TYPE.PREENCHER_LACUNAS]: () => null,
       [QUESTION_TYPE.IMAGEM]: () => null,
     };
 

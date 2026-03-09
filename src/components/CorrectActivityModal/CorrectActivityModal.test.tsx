@@ -37,6 +37,7 @@ const createQuestion = (
     examBoard: null,
     examYear: null,
     solutionExplanation: null,
+    additionalContent: null,
     answer: null,
     answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
     options: options || [],
@@ -81,6 +82,7 @@ const createQuestionResult = (
     selectedOptions,
     answerStatus,
     statement,
+    additionalContent: null,
     questionType,
     difficultyLevel,
     solutionExplanation,
@@ -1826,7 +1828,7 @@ describe('CorrectActivityModal', () => {
             question: createQuestion(
               'q1',
               'O Brasil está localizado na {{continente}}.',
-              QUESTION_TYPE.PREENCHER,
+              QUESTION_TYPE.PREENCHER_LACUNAS,
               [{ id: 'opt1', option: 'América' }],
               []
             ),
@@ -1845,7 +1847,7 @@ describe('CorrectActivityModal', () => {
               [{ id: 'opt1', option: 'América', isCorrect: true }],
               null,
               'O Brasil está localizado na {{continente}}.',
-              QUESTION_TYPE.PREENCHER
+              QUESTION_TYPE.PREENCHER_LACUNAS
             ),
             questionNumber: 1,
           },

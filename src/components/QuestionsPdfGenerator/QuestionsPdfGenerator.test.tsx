@@ -261,10 +261,10 @@ describe('QuestionsPdfContent', () => {
     expect(container.textContent).not.toContain('R:');
   });
 
-  it('renders PREENCHER question type as null', () => {
+  it('renders PREENCHER_LACUNAS question type as null', () => {
     const question: PreviewQuestion = {
       ...baseQuestion,
-      questionType: QUESTION_TYPE.PREENCHER,
+      questionType: QUESTION_TYPE.PREENCHER_LACUNAS,
     };
 
     const { container } = render(

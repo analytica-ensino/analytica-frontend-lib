@@ -348,7 +348,7 @@ const CorrectActivityModal = ({
         return 'Alternativas';
       case QUESTION_TYPE.DISSERTATIVA:
         return 'Resposta';
-      case QUESTION_TYPE.PREENCHER:
+      case QUESTION_TYPE.PREENCHER_LACUNAS:
         return 'Preencher Lacunas';
       case QUESTION_TYPE.IMAGEM:
         return 'Imagem';
@@ -404,7 +404,7 @@ const CorrectActivityModal = ({
           </>
         );
         break;
-      case QUESTION_TYPE.PREENCHER:
+      case QUESTION_TYPE.PREENCHER_LACUNAS:
         content = renderQuestionFill({
           question,
           result,

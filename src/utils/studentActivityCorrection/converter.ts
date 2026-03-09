@@ -25,6 +25,7 @@ const buildQuestionFromAnswer = (
     examBoard: null,
     examYear: null,
     solutionExplanation: answer.solutionExplanation || null,
+    additionalContent: answer.additionalContent || null,
     answer: null,
     answerStatus: answer.answerStatus,
     options: answer.options || [],

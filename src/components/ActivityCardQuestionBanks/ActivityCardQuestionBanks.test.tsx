@@ -314,11 +314,11 @@ describe('ActivityCardQuestionBanks', () => {
       expect(screen.getByText('Ligar Pontos')).toBeInTheDocument();
     });
 
-    it('should render correct label for PREENCHER', () => {
+    it('should render correct label for PREENCHER_LACUNAS', () => {
       render(
         <ActivityCardQuestionBanks
           {...defaultProps}
-          questionType={QUESTION_TYPE.PREENCHER}
+          questionType={QUESTION_TYPE.PREENCHER_LACUNAS}
         />
       );
       expect(screen.getByText('Preencher Lacunas')).toBeInTheDocument();
