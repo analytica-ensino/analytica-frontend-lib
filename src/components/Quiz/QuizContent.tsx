@@ -707,8 +707,12 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
   const questionOptions = currentQuestion?.options || [];
 
   // Parse current answers from the stored JSON string
+  // In result mode, only use persisted results (never fall back to draft answers)
   const parsedAnswers: Record<string, string> = useMemo(() => {
-    if (variant === 'result' && currentQuestionResult?.answer) {
+    if (variant === 'result') {
+      if (!currentQuestionResult?.answer) {
+        return {};
+      }
       try {
         return JSON.parse(currentQuestionResult.answer);
       } catch {
@@ -898,9 +902,14 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
   };
 
   // Strip HTML tags for rendering (additionalContent may contain HTML from RichEditor)
+  // SSR-safe: uses DOMParser in browser, regex fallback on server
   const stripHtmlTags = (html: string): string => {
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    return doc.body.textContent || '';
+    if (typeof window !== 'undefined' && typeof DOMParser !== 'undefined') {
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      return doc.body.textContent || '';
+    }
+    // Server-side fallback: simple regex to strip HTML tags
+    return html.replace(/<[^>]*>/g, '');
   };
 
   // Render HTML content with selects replacing placeholders
