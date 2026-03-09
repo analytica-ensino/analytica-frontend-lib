@@ -23,7 +23,7 @@ import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
 import Badge from '../Badge/Badge';
 import { CheckCircle, XCircle } from 'phosphor-react';
 import ImageQuestion from '../../assets/img/mock-image-question.png';
-
+import Text from '../Text/Text';
 export const getStatusBadge = (status?: 'correct' | 'incorrect') => {
   switch (status) {
     case 'correct':
@@ -920,9 +920,14 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
         <QuizSubTitle subTitle="Preenchimento" />
         <QuizContainer className="h-auto pb-0">
           <div className="space-y-6 px-4 h-auto">
-            <p className="text-text-600 text-md">
+            <Text
+              size="md"
+              color="text-text-600"
+              weight="normal"
+              className={cn(paddingBottom)}
+            >
               Nenhum conteúdo disponível para esta questão.
-            </p>
+            </Text>
           </div>
         </QuizContainer>
       </>
@@ -935,18 +940,18 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
 
       <QuizContainer className="h-auto pb-0">
         <div className="px-4 h-auto">
-          <p
-            className={cn(
-              'text-lg text-text-900 leading-10 h-auto',
-              variant !== 'result' && paddingBottom
-            )}
+          <Text
+            size="lg"
+            color="text-text-900"
+            weight="normal"
+            className={cn(variant !== 'result' && paddingBottom)}
           >
             {renderHtmlWithSelects(additionalContent).map((element) => (
               <span key={element.id} className="inline">
                 {element.element}
               </span>
             ))}
-          </p>
+          </Text>
         </div>
       </QuizContainer>
 
@@ -956,11 +961,11 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
 
           <QuizContainer className="h-auto pb-0">
             <div className="px-4">
-              <p
-                className={cn(
-                  'text-lg text-text-900 leading-10',
-                  paddingBottom
-                )}
+              <Text
+                size="lg"
+                color="text-text-900"
+                weight="normal"
+                className={cn(paddingBottom)}
               >
                 {renderHtmlWithSelects(additionalContent, true).map(
                   (element) => (
@@ -969,7 +974,7 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
                     </span>
                   )
                 )}
-              </p>
+              </Text>
             </div>
           </QuizContainer>
         </>

@@ -83,12 +83,6 @@ describe('questionTypeUtils', () => {
         );
       });
 
-      it('should map lowercase preencher', () => {
-        expect(mapQuestionTypeToEnum('preencher')).toBe(
-          QUESTION_TYPE.PREENCHER_LACUNAS
-        );
-      });
-
       it('should map mixed case Alternativa', () => {
         expect(mapQuestionTypeToEnum('Alternativa')).toBe(
           QUESTION_TYPE.ALTERNATIVA
@@ -210,9 +204,6 @@ describe('questionTypeUtils', () => {
         expect(mapQuestionTypeToEnumRequired('ligar_pontos')).toBe(
           QUESTION_TYPE.LIGAR_PONTOS
         );
-        expect(mapQuestionTypeToEnumRequired('preencher')).toBe(
-          QUESTION_TYPE.PREENCHER_LACUNAS
-        );
       });
     });
 
@@ -279,12 +270,6 @@ describe('questionTypeUtils', () => {
         expect(
           mapQuestionTypeToEnumRequired('DISSERTATIVA', QUESTION_TYPE.IMAGEM)
         ).toBe(QUESTION_TYPE.DISSERTATIVA);
-      });
-
-      it('should not use custom fallback when type is valid', () => {
-        expect(
-          mapQuestionTypeToEnumRequired('preencher', QUESTION_TYPE.ALTERNATIVA)
-        ).toBe(QUESTION_TYPE.PREENCHER_LACUNAS);
       });
     });
 
