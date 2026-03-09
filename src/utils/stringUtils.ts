@@ -10,7 +10,10 @@
  * stripHtmlTags('No tags here') // 'No tags here'
  */
 export function stripHtmlTags(html: string): string {
-  if (typeof window !== 'undefined' && typeof DOMParser !== 'undefined') {
+  if (
+    typeof globalThis.global.window !== 'undefined' &&
+    typeof DOMParser !== 'undefined'
+  ) {
     const doc = new DOMParser().parseFromString(html, 'text/html');
     return doc.body.textContent || '';
   }
