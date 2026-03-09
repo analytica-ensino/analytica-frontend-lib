@@ -702,10 +702,20 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
   const baseId = useId();
 
   // Get the additionalContent from the question (contains text with {optionId} placeholders)
-  const additionalContent = currentQuestion?.additionalContent || '';
+  // In result mode, prefer the persisted snapshot to match parsedAnswers
+  const additionalContent =
+    variant === 'result'
+      ? currentQuestionResult?.additionalContent ||
+        currentQuestion?.additionalContent ||
+        ''
+      : currentQuestion?.additionalContent || '';
 
   // Get the options from the question
-  const questionOptions = currentQuestion?.options || [];
+  // In result mode, prefer the persisted snapshot to match parsedAnswers
+  const questionOptions =
+    variant === 'result'
+      ? currentQuestionResult?.options || currentQuestion?.options || []
+      : currentQuestion?.options || [];
 
   // Parse current answers from the stored JSON string
   // In result mode, only use persisted results (never fall back to draft answers)
