@@ -11,6 +11,7 @@ import {
 } from 'react';
 import { ANSWER_STATUS, useQuizStore } from './useQuizStore';
 import { cn } from '../../utils/utils';
+import { stripHtmlTags } from '../../utils/stringUtils';
 import Select, {
   SelectContent,
   SelectItem,
@@ -899,17 +900,6 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
     }
 
     return elements;
-  };
-
-  // Strip HTML tags for rendering (additionalContent may contain HTML from RichEditor)
-  // SSR-safe: uses DOMParser in browser, regex fallback on server
-  const stripHtmlTags = (html: string): string => {
-    if (typeof window !== 'undefined' && typeof DOMParser !== 'undefined') {
-      const doc = new DOMParser().parseFromString(html, 'text/html');
-      return doc.body.textContent || '';
-    }
-    // Server-side fallback: simple regex to strip HTML tags
-    return html.replace(/<[^>]*>/g, '');
   };
 
   // Render HTML content with selects replacing placeholders
