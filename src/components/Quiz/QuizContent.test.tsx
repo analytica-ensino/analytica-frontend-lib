@@ -1520,11 +1520,15 @@ describe('QuizContent', () => {
       ],
     };
 
-    const mockGetCurrentQuestionConnectDots = jest.fn(() => mockConnectDotsQuestion);
+    const mockGetCurrentQuestionConnectDots = jest.fn(
+      () => mockConnectDotsQuestion
+    );
 
     beforeEach(() => {
       jest.clearAllMocks();
-      mockGetCurrentQuestionConnectDots.mockReturnValue(mockConnectDotsQuestion);
+      mockGetCurrentQuestionConnectDots.mockReturnValue(
+        mockConnectDotsQuestion
+      );
       mockUseQuizStore.mockReturnValue({
         variant: 'default',
         getCurrentQuestion: mockGetCurrentQuestionConnectDots,
@@ -1576,7 +1580,9 @@ describe('QuizContent', () => {
       render(<QuizConnectDots />);
 
       // Without user interaction, all selections show "Nenhuma"
-      expect(screen.getAllByText('Resposta selecionada: Nenhuma')).toHaveLength(4);
+      expect(screen.getAllByText('Resposta selecionada: Nenhuma')).toHaveLength(
+        4
+      );
 
       // Should show correct answers for all options
       expect(screen.getByText('Resposta correta: Ração')).toBeInTheDocument();
