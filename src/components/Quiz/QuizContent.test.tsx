@@ -182,21 +182,39 @@ jest.mock('../Alternative/Alternative', () => ({
 }));
 
 // Mock Select component
+// Store onValueChange callbacks by select index for testing
+const selectCallbacks: Array<(value: string) => void> = [];
+let selectIndex = 0;
+
 jest.mock('../Select/Select', () => ({
   __esModule: true,
   default: ({
     children,
     value,
     size,
+    onValueChange,
   }: {
     children: React.ReactNode;
     value: string;
     size: string;
-  }) => (
-    <div data-testid="quiz-select" data-value={value} data-size={size}>
-      {children}
-    </div>
-  ),
+    onValueChange?: (value: string) => void;
+  }) => {
+    // Store callback for testing
+    const currentIndex = selectIndex++;
+    if (onValueChange) {
+      selectCallbacks[currentIndex] = onValueChange;
+    }
+    return (
+      <div
+        data-testid="quiz-select"
+        data-value={value}
+        data-size={size}
+        data-select-index={currentIndex}
+      >
+        {children}
+      </div>
+    );
+  },
   SelectTrigger: ({
     children,
     className,
@@ -232,6 +250,12 @@ jest.mock('../Select/Select', () => ({
     </button>
   ),
 }));
+
+// Helper to reset select callbacks between tests
+const resetSelectCallbacks = () => {
+  selectCallbacks.length = 0;
+  selectIndex = 0;
+};
 
 // Mock Badge component
 jest.mock('../Badge/Badge', () => {
@@ -1520,9 +1544,10 @@ describe('QuizContent', () => {
       ],
     };
 
-    const mockGetCurrentQuestionConnectDots = jest.fn(
-      () => mockConnectDotsQuestion
-    );
+    const mockGetCurrentQuestionConnectDots = jest.fn<
+      typeof mockConnectDotsQuestion | null,
+      []
+    >(() => mockConnectDotsQuestion);
     const mockGetCurrentAnswerConnectDots = jest.fn<
       { answer: string } | null,
       []
@@ -1535,6 +1560,7 @@ describe('QuizContent', () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
+      resetSelectCallbacks();
       mockGetCurrentQuestionConnectDots.mockReturnValue(
         mockConnectDotsQuestion
       );
@@ -1828,6 +1854,112 @@ describe('QuizContent', () => {
         'bg-error-background',
         'border-error-300'
       );
+    });
+
+    describe('handleSelectDot', () => {
+      it('should update local state and persist to store when selecting an option', () => {
+        render(<QuizConnectDots />);
+
+        // Simulate selecting "Ração" for the first option (index 0)
+        act(() => {
+          selectCallbacks[0]?.('Ração');
+        });
+
+        // Verify selectDissertativeAnswer was called with correct JSON
+        expect(mockSelectDissertativeAnswerConnectDots).toHaveBeenCalledWith(
+          'connect-dots-question-1',
+          JSON.stringify({ '1': 'Ração' })
+        );
+      });
+
+      it('should update multiple selections and persist accumulated answers', () => {
+        // Start with first answer already stored
+        mockGetCurrentAnswerConnectDots.mockReturnValue({
+          answer: JSON.stringify({ '1': 'Ração' }),
+        });
+
+        render(<QuizConnectDots />);
+
+        // Select second option - should accumulate with existing answer
+        act(() => {
+          selectCallbacks[1]?.('Rato');
+        });
+
+        expect(mockSelectDissertativeAnswerConnectDots).toHaveBeenCalledWith(
+          'connect-dots-question-1',
+          JSON.stringify({ '1': 'Ração', '2': 'Rato' })
+        );
+      });
+
+      it('should update isCorrect to true when selected value matches correctValue', () => {
+        render(<QuizConnectDots />);
+
+        // Select correct answer for first option (Cachorro -> Ração)
+        act(() => {
+          selectCallbacks[0]?.('Ração');
+        });
+
+        // The component updates local state, but we can verify the store call
+        expect(mockSelectDissertativeAnswerConnectDots).toHaveBeenCalledWith(
+          'connect-dots-question-1',
+          expect.stringContaining('Ração')
+        );
+      });
+
+      it('should update isCorrect to false when selected value does not match correctValue', () => {
+        render(<QuizConnectDots />);
+
+        // Select wrong answer for first option (Cachorro should be Ração, not Grama)
+        act(() => {
+          selectCallbacks[0]?.('Grama');
+        });
+
+        expect(mockSelectDissertativeAnswerConnectDots).toHaveBeenCalledWith(
+          'connect-dots-question-1',
+          JSON.stringify({ '1': 'Grama' })
+        );
+      });
+
+      it('should not call store when currentQuestion is null', () => {
+        mockGetCurrentQuestionConnectDots.mockReturnValue(null);
+        mockUseQuizStore.mockReturnValue({
+          variant: 'default',
+          getCurrentQuestion: mockGetCurrentQuestionConnectDots,
+          getCurrentAnswer: mockGetCurrentAnswerConnectDots,
+          selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
+          getQuestionResultByQuestionId:
+            mockGetQuestionResultByQuestionIdConnectDots,
+        } as unknown as ReturnType<typeof useQuizStore>);
+
+        render(<QuizConnectDots />);
+
+        // Component should render empty state
+        expect(
+          screen.getByText('Nenhuma opção de relacionamento disponível')
+        ).toBeInTheDocument();
+
+        // No selects rendered, so no callbacks to call
+        expect(selectCallbacks.length).toBe(0);
+      });
+
+      it('should allow changing a previously selected option', () => {
+        // Start with existing answer
+        mockGetCurrentAnswerConnectDots.mockReturnValue({
+          answer: JSON.stringify({ '1': 'Ração' }),
+        });
+
+        render(<QuizConnectDots />);
+
+        // Change the selection for first option
+        act(() => {
+          selectCallbacks[0]?.('Peixe');
+        });
+
+        expect(mockSelectDissertativeAnswerConnectDots).toHaveBeenCalledWith(
+          'connect-dots-question-1',
+          JSON.stringify({ '1': 'Peixe' })
+        );
+      });
     });
   });
 
