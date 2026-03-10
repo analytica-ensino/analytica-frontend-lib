@@ -311,7 +311,7 @@ describe('ActivityCardQuestionBanks', () => {
           questionType={QUESTION_TYPE.RELACIONAR}
         />
       );
-      expect(screen.getByText('Ligar Pontos')).toBeInTheDocument();
+      expect(screen.getByText('Relacionar')).toBeInTheDocument();
     });
 
     it('should render correct label for PREENCHER_LACUNAS', () => {

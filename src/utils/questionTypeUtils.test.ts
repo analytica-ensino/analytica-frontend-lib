@@ -77,8 +77,8 @@ describe('questionTypeUtils', () => {
         expect(mapQuestionTypeToEnum('imagem')).toBe(QUESTION_TYPE.IMAGEM);
       });
 
-      it('should map lowercase ligar_pontos', () => {
-        expect(mapQuestionTypeToEnum('ligar_pontos')).toBe(
+      it('should map lowercase relacionar', () => {
+        expect(mapQuestionTypeToEnum('relacionar')).toBe(
           QUESTION_TYPE.RELACIONAR
         );
       });
@@ -201,7 +201,7 @@ describe('questionTypeUtils', () => {
         expect(mapQuestionTypeToEnumRequired('imagem')).toBe(
           QUESTION_TYPE.IMAGEM
         );
-        expect(mapQuestionTypeToEnumRequired('ligar_pontos')).toBe(
+        expect(mapQuestionTypeToEnumRequired('relacionar')).toBe(
           QUESTION_TYPE.RELACIONAR
         );
       });

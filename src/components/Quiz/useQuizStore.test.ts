@@ -6037,4 +6037,128 @@ describe('useQuizStore', () => {
       expect(userAnswer?.answer).toBe('');
     });
   });
+
+  describe('RELACIONAR question type', () => {
+    const mockRelacionarQuestion = {
+      ...mockQuestion1,
+      id: 'relacionar-q1',
+      questionType: QUESTION_TYPE.RELACIONAR,
+      statement: 'Relacione os animais com seus alimentos',
+      options: [
+        { id: 'opt1', option: 'Gato' },
+        { id: 'opt2', option: 'Cachorro' },
+        { id: 'opt3', option: 'Galinha' },
+      ],
+    };
+
+    const mockSimuladoWithRelacionar = {
+      ...mockSimulado,
+      questions: [mockRelacionarQuestion, mockQuestion2],
+    };
+
+    it('should include RELACIONAR in QUESTION_TYPE enum', () => {
+      expect(QUESTION_TYPE.RELACIONAR).toBe('RELACIONAR');
+    });
+
+    it('should handle RELACIONAR question in quiz', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setQuiz(mockSimuladoWithRelacionar);
+      });
+
+      const firstQuestion = result.current.getCurrentQuestion();
+      expect(firstQuestion?.questionType).toBe(QUESTION_TYPE.RELACIONAR);
+      expect(firstQuestion?.id).toBe('relacionar-q1');
+    });
+
+    it('should track user answers for RELACIONAR questions', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setQuiz(mockSimuladoWithRelacionar);
+        result.current.setUserId('test-user-id');
+        result.current.setUserAnswers([
+          {
+            questionId: 'relacionar-q1',
+            activityId: 'test-activity',
+            userId: 'test-user-id',
+            answer: JSON.stringify([
+              { optionId: 'opt1', selectedValue: 'Leite' },
+              { optionId: 'opt2', selectedValue: 'Ração' },
+            ]),
+            optionId: null,
+            questionType: QUESTION_TYPE.RELACIONAR,
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          },
+        ]);
+      });
+
+      const userAnswer =
+        result.current.getUserAnswerByQuestionId('relacionar-q1');
+      expect(userAnswer).toBeTruthy();
+      expect(userAnswer?.questionType).toBe(QUESTION_TYPE.RELACIONAR);
+      expect(userAnswer?.answerStatus).toBe(ANSWER_STATUS.RESPOSTA_CORRETA);
+    });
+
+    it('should correctly identify answered RELACIONAR questions', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setQuiz(mockSimuladoWithRelacionar);
+        result.current.setUserId('test-user-id');
+        result.current.setUserAnswers([
+          {
+            questionId: 'relacionar-q1',
+            activityId: 'test-activity',
+            userId: 'test-user-id',
+            answer: JSON.stringify([
+              { optionId: 'opt1', selectedValue: 'Leite' },
+            ]),
+            optionId: null,
+            questionType: QUESTION_TYPE.RELACIONAR,
+            answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+          },
+        ]);
+      });
+
+      // isQuestionAnsweredByUserAnswers correctly checks both optionId and answer
+      expect(
+        result.current.isQuestionAnsweredByUserAnswers('relacionar-q1')
+      ).toBe(true);
+    });
+
+    it('should handle unanswered RELACIONAR questions', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setQuiz(mockSimuladoWithRelacionar);
+        result.current.setUserId('test-user-id');
+      });
+
+      expect(
+        result.current.isQuestionAnsweredByUserAnswers('relacionar-q1')
+      ).toBe(false);
+      expect(
+        result.current.getQuestionStatusFromUserAnswers('relacionar-q1')
+      ).toBe('unanswered');
+    });
+
+    it('should include RELACIONAR question in getQuestionsGroupedBySubject', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setQuiz(mockSimuladoWithRelacionar);
+      });
+
+      const grouped = result.current.getQuestionsGroupedBySubject();
+      // Find the group that contains our RELACIONAR question
+      const allQuestions = Object.values(grouped).flat();
+      const relacionarQuestion = allQuestions.find(
+        (q) => q.questionType === QUESTION_TYPE.RELACIONAR
+      );
+      expect(relacionarQuestion).toBeDefined();
+      expect(relacionarQuestion?.id).toBe('relacionar-q1');
+    });
+  });
 });
