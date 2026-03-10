@@ -239,7 +239,7 @@ export const ActivityCardQuestionPreview = ({
     [QUESTION_TYPE.MULTIPLA_ESCOLHA]: renderMultipleChoice,
     [QUESTION_TYPE.DISSERTATIVA]: renderDissertative,
     [QUESTION_TYPE.VERDADEIRO_FALSO]: renderTrueOrFalse,
-    [QUESTION_TYPE.LIGAR_PONTOS]: renderConnectDots,
+    [QUESTION_TYPE.RELACIONAR]: renderConnectDots,
     [QUESTION_TYPE.PREENCHER_LACUNAS]: renderFill,
     [QUESTION_TYPE.IMAGEM]: renderImage,
   };
