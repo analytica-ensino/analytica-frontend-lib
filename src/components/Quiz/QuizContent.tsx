@@ -522,81 +522,64 @@ interface UserAnswer {
 }
 
 const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
-  const { variant } = useQuizStore();
-  const dotsOptions = [
-    { label: 'Ração' },
-    { label: 'Rato' },
-    { label: 'Grama' },
-    { label: 'Peixe' },
-  ];
+  const { variant, getCurrentQuestion } = useQuizStore();
 
-  const options = [
-    {
-      label: 'Cachorro',
-      correctOption: 'Ração',
-    },
-    {
-      label: 'Gato',
-      correctOption: 'Rato',
-    },
-    {
-      label: 'Cabra',
-      correctOption: 'Grama',
-    },
-    {
-      label: 'Baleia',
-      correctOption: 'Peixe',
-    },
-  ];
+  const currentQuestion = getCurrentQuestion();
 
-  const mockUserAnswers = [
-    {
-      option: 'Cachorro',
-      dotOption: 'Ração',
-      correctOption: 'Ração',
-      isCorrect: true,
-    },
-    {
-      option: 'Gato',
-      dotOption: 'Rato',
-      correctOption: 'Rato',
-      isCorrect: true,
-    },
-    {
-      option: 'Cabra',
-      dotOption: 'Peixe',
-      correctOption: 'Grama',
-      isCorrect: false,
-    },
-    {
-      option: 'Baleia',
-      dotOption: 'Grama',
-      correctOption: 'Peixe',
-      isCorrect: false,
-    },
-  ];
+  // Extract options from the current question
+  // Each option has: id, option (left column), correctValue (right column)
+  type MatchingOption = {
+    id: string;
+    option: string;
+    correctValue?: string | null;
+  };
+  const questionOptions: MatchingOption[] = useMemo(() => {
+    if (!currentQuestion?.options) return [];
+    return currentQuestion.options as MatchingOption[];
+  }, [currentQuestion?.options]);
 
-  const [userAnswers, setUserAnswers] = useState<UserAnswer[]>(() => {
-    if (variant === 'result') {
-      return mockUserAnswers;
-    }
-    return options.map((option) => ({
-      option: option.label,
-      dotOption: null,
-      correctOption: option.correctOption,
-      isCorrect: null,
+  // Build dotsOptions from correctValue of each option (right column values)
+  const dotsOptions = useMemo(() => {
+    return questionOptions
+      .map((opt) => ({ label: opt.correctValue || '' }))
+      .filter((opt) => opt.label !== '');
+  }, [questionOptions]);
+
+  // Build options for display (left column with correct answer mapping)
+  const options = useMemo(() => {
+    return questionOptions.map((opt) => ({
+      id: opt.id,
+      label: opt.option,
+      correctOption: opt.correctValue || '',
     }));
-  });
+  }, [questionOptions]);
+
+  const [userAnswers, setUserAnswers] = useState<UserAnswer[]>([]);
+
+  // Initialize userAnswers when options change
+  useEffect(() => {
+    if (options.length > 0) {
+      setUserAnswers(
+        options.map((option) => ({
+          option: option.label,
+          dotOption: null,
+          correctOption: option.correctOption,
+          isCorrect: null,
+        }))
+      );
+    }
+  }, [options]);
 
   const handleSelectDot = (optionIndex: number, dotValue: string) => {
     setUserAnswers((prev) => {
       const next = [...prev];
-      const { label: optionLabel, correctOption } = options[optionIndex];
+      const option = options[optionIndex];
+      if (!option) return prev;
       next[optionIndex] = {
-        option: optionLabel,
+        option: option.label,
         dotOption: dotValue,
-        correctOption,
-        isCorrect: dotValue ? dotValue === correctOption : null,
+        correctOption: option.correctOption,
+        isCorrect: dotValue ? dotValue === option.correctOption : null,
       };
       return next;
     });
@@ -609,6 +592,16 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
     userAnswers.map((a) => a.dotOption).filter(Boolean)
   );
 
+  if (options.length === 0) {
+    return (
+      <QuizContainer className={cn('', paddingBottom)}>
+        <Text size="sm" className="text-text-500 italic">
+          Nenhuma opção de relacionamento disponível
+        </Text>
+      </QuizContainer>
+    );
+  }
+
   return (
     <>
       <QuizSubTitle subTitle="Alternativas" />
@@ -616,13 +609,18 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
       <QuizContainer className={cn('', paddingBottom)}>
         <div className="flex flex-col gap-3.5">
           {options.map((option, index) => {
-            const answer = userAnswers[index];
+            const answer = userAnswers[index] || {
+              option: option.label,
+              dotOption: null,
+              correctOption: option.correctOption,
+              isCorrect: null,
+            };
             const variantCorrect = answer.isCorrect ? 'correct' : 'incorrect';
             return (
-              <section key={option.label} className="flex flex-col gap-2">
+              <section key={option.id} className="flex flex-col gap-2">
                 <div
                   className={cn(
-                    'flex flex-row justify-between items-center gap-2 p-2 rounded-md',
+                    'grid grid-cols-[1fr_auto] items-center gap-4 p-2 rounded-md',
                     isDefaultVariant ? '' : getStatusStyles(variantCorrect)
                   )}
                 >
@@ -655,7 +653,7 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
                       </SelectContent>
                     </Select>
                   ) : (
-                    <div className="flex-shrink-0">
+                    <div>
                       {answer.isCorrect === null
                         ? null
                         : getStatusBadge(variantCorrect)}
