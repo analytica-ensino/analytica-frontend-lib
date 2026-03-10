@@ -55,6 +55,33 @@ export const getStatusStyles = (variantCorrect?: string) => {
   }
 };
 
+/**
+ * Parses JSON answers from stored answer string.
+ * In result mode, uses persisted results. Otherwise, uses current draft answers.
+ */
+const parseStoredAnswers = (
+  variant: 'result' | 'default',
+  resultAnswer: string | null | undefined,
+  currentAnswer: string | null | undefined
+): Record<string, string> => {
+  if (variant === 'result') {
+    if (!resultAnswer) return {};
+    try {
+      return JSON.parse(resultAnswer);
+    } catch {
+      return {};
+    }
+  }
+  if (currentAnswer) {
+    try {
+      return JSON.parse(currentAnswer);
+    } catch {
+      return {};
+    }
+  }
+  return {};
+};
+
 enum Status {
   CORRECT = 'correct',
   INCORRECT = 'incorrect',
@@ -561,26 +588,15 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
 
   // Parse stored matching answers from JSON
   // Format: { "optionId": "selectedValue", ... }
-  const parsedAnswers: Record<string, string> = useMemo(() => {
-    if (variant === 'result') {
-      if (!currentQuestionResult?.answer) {
-        return {};
-      }
-      try {
-        return JSON.parse(currentQuestionResult.answer);
-      } catch {
-        return {};
-      }
-    }
-    if (currentAnswer?.answer) {
-      try {
-        return JSON.parse(currentAnswer.answer);
-      } catch {
-        return {};
-      }
-    }
-    return {};
-  }, [variant, currentQuestionResult?.answer, currentAnswer?.answer]);
+  const parsedAnswers: Record<string, string> = useMemo(
+    () =>
+      parseStoredAnswers(
+        variant,
+        currentQuestionResult?.answer,
+        currentAnswer?.answer
+      ),
+    [variant, currentQuestionResult?.answer, currentAnswer?.answer]
+  );
 
   const [userAnswers, setUserAnswers] = useState<UserAnswer[]>([]);
 
@@ -758,26 +774,15 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
 
   // Parse current answers from the stored JSON string
   // In result mode, only use persisted results (never fall back to draft answers)
-  const parsedAnswers: Record<string, string> = useMemo(() => {
-    if (variant === 'result') {
-      if (!currentQuestionResult?.answer) {
-        return {};
-      }
-      try {
-        return JSON.parse(currentQuestionResult.answer);
-      } catch {
-        return {};
-      }
-    }
-    if (currentAnswer?.answer) {
-      try {
-        return JSON.parse(currentAnswer.answer);
-      } catch {
-        return {};
-      }
-    }
-    return {};
-  }, [variant, currentQuestionResult?.answer, currentAnswer?.answer]);
+  const parsedAnswers: Record<string, string> = useMemo(
+    () =>
+      parseStoredAnswers(
+        variant,
+        currentQuestionResult?.answer,
+        currentAnswer?.answer
+      ),
+    [variant, currentQuestionResult?.answer, currentAnswer?.answer]
+  );
 
   const [localAnswers, setLocalAnswers] =
     useState<Record<string, string>>(parsedAnswers);
