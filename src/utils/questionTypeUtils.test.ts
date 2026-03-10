@@ -150,9 +150,9 @@ describe('questionTypeUtils', () => {
       });
 
       it('should return RELACIONAR fallback', () => {
-        expect(
-          mapQuestionTypeToEnum('invalid', QUESTION_TYPE.RELACIONAR)
-        ).toBe(QUESTION_TYPE.RELACIONAR);
+        expect(mapQuestionTypeToEnum('invalid', QUESTION_TYPE.RELACIONAR)).toBe(
+          QUESTION_TYPE.RELACIONAR
+        );
       });
 
       it('should return PREENCHER_LACUNAS fallback', () => {
