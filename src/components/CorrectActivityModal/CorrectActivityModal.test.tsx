@@ -1908,7 +1908,7 @@ describe('CorrectActivityModal', () => {
             question: createQuestion(
               'q1',
               'Ligue os pontos',
-              QUESTION_TYPE.LIGAR_PONTOS,
+              QUESTION_TYPE.RELACIONAR,
               [],
               []
             ),
@@ -1921,7 +1921,7 @@ describe('CorrectActivityModal', () => {
               [],
               null,
               'Ligue os pontos',
-              QUESTION_TYPE.LIGAR_PONTOS
+              QUESTION_TYPE.RELACIONAR
             ),
             questionNumber: 1,
           },

@@ -93,7 +93,7 @@ describe('questionRenderer', () => {
           [QUESTION_TYPE.MULTIPLA_ESCOLHA]: () => 'multi',
           [QUESTION_TYPE.DISSERTATIVA]: () => 'disc',
           [QUESTION_TYPE.VERDADEIRO_FALSO]: () => 'vf',
-          [QUESTION_TYPE.LIGAR_PONTOS]: () => 'ligar',
+          [QUESTION_TYPE.RELACIONAR]: () => 'ligar',
           [QUESTION_TYPE.PREENCHER_LACUNAS]: () => 'fill',
           [QUESTION_TYPE.IMAGEM]: () => 'img',
         },
@@ -112,7 +112,7 @@ describe('questionRenderer', () => {
           [QUESTION_TYPE.MULTIPLA_ESCOLHA]: () => 'multi',
           [QUESTION_TYPE.DISSERTATIVA]: () => 'disc',
           [QUESTION_TYPE.VERDADEIRO_FALSO]: () => 'vf',
-          [QUESTION_TYPE.LIGAR_PONTOS]: () => 'ligar',
+          [QUESTION_TYPE.RELACIONAR]: () => 'ligar',
           [QUESTION_TYPE.PREENCHER_LACUNAS]: () => 'fill',
           [QUESTION_TYPE.IMAGEM]: () => 'img',
         },
@@ -129,7 +129,7 @@ describe('questionRenderer', () => {
         [QUESTION_TYPE.MULTIPLA_ESCOLHA]: () => 'multi',
         [QUESTION_TYPE.DISSERTATIVA]: () => 'disc',
         [QUESTION_TYPE.VERDADEIRO_FALSO]: () => 'vf',
-        [QUESTION_TYPE.LIGAR_PONTOS]: () => 'ligar',
+        [QUESTION_TYPE.RELACIONAR]: () => 'ligar',
         [QUESTION_TYPE.PREENCHER_LACUNAS]: () => 'fill',
         [QUESTION_TYPE.IMAGEM]: () => 'img',
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1432,11 +1432,11 @@ describe('questionRenderer', () => {
       expect(container).toBeInTheDocument();
     });
 
-    it('should render LIGAR_PONTOS question type', () => {
+    it('should render RELACIONAR question type', () => {
       const question = createQuestion(
         'q1',
         'Ligue os pontos',
-        QUESTION_TYPE.LIGAR_PONTOS,
+        QUESTION_TYPE.RELACIONAR,
         [],
         []
       );

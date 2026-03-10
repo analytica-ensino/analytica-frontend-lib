@@ -352,7 +352,7 @@ const CorrectActivityModal = ({
         return 'Preencher Lacunas';
       case QUESTION_TYPE.IMAGEM:
         return 'Imagem';
-      case QUESTION_TYPE.LIGAR_PONTOS:
+      case QUESTION_TYPE.RELACIONAR:
         return 'Ligar Pontos';
       default:
         return 'Resposta';
@@ -415,7 +415,7 @@ const CorrectActivityModal = ({
           result,
         });
         break;
-      case QUESTION_TYPE.LIGAR_PONTOS:
+      case QUESTION_TYPE.RELACIONAR:
         content = renderQuestionConnectDots({ paddingBottom: '' });
         break;
       default:
