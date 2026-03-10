@@ -1523,15 +1523,24 @@ describe('QuizContent', () => {
     const mockGetCurrentQuestionConnectDots = jest.fn(
       () => mockConnectDotsQuestion
     );
+    const mockGetCurrentAnswerConnectDots = jest.fn(() => null);
+    const mockSelectDissertativeAnswerConnectDots = jest.fn();
+    const mockGetQuestionResultByQuestionIdConnectDots = jest.fn(() => null);
 
     beforeEach(() => {
       jest.clearAllMocks();
       mockGetCurrentQuestionConnectDots.mockReturnValue(
         mockConnectDotsQuestion
       );
+      mockGetCurrentAnswerConnectDots.mockReturnValue(null);
+      mockGetQuestionResultByQuestionIdConnectDots.mockReturnValue(null);
       mockUseQuizStore.mockReturnValue({
         variant: 'default',
         getCurrentQuestion: mockGetCurrentQuestionConnectDots,
+        getCurrentAnswer: mockGetCurrentAnswerConnectDots,
+        selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
+        getQuestionResultByQuestionId:
+          mockGetQuestionResultByQuestionIdConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
     });
 
@@ -1562,6 +1571,10 @@ describe('QuizContent', () => {
       mockUseQuizStore.mockReturnValue({
         variant: 'result',
         getCurrentQuestion: mockGetCurrentQuestionConnectDots,
+        getCurrentAnswer: mockGetCurrentAnswerConnectDots,
+        selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
+        getQuestionResultByQuestionId:
+          mockGetQuestionResultByQuestionIdConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizConnectDots />);
@@ -1575,6 +1588,10 @@ describe('QuizContent', () => {
       mockUseQuizStore.mockReturnValue({
         variant: 'result',
         getCurrentQuestion: mockGetCurrentQuestionConnectDots,
+        getCurrentAnswer: mockGetCurrentAnswerConnectDots,
+        selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
+        getQuestionResultByQuestionId:
+          mockGetQuestionResultByQuestionIdConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizConnectDots />);
@@ -1595,6 +1612,10 @@ describe('QuizContent', () => {
       mockUseQuizStore.mockReturnValue({
         variant: 'result',
         getCurrentQuestion: mockGetCurrentQuestionConnectDots,
+        getCurrentAnswer: mockGetCurrentAnswerConnectDots,
+        selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
+        getQuestionResultByQuestionId:
+          mockGetQuestionResultByQuestionIdConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizConnectDots />);
@@ -1610,6 +1631,10 @@ describe('QuizContent', () => {
       mockUseQuizStore.mockReturnValue({
         variant: 'result',
         getCurrentQuestion: mockGetCurrentQuestionConnectDots,
+        getCurrentAnswer: mockGetCurrentAnswerConnectDots,
+        selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
+        getQuestionResultByQuestionId:
+          mockGetQuestionResultByQuestionIdConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       const { container } = render(<QuizConnectDots />);
@@ -1660,6 +1685,10 @@ describe('QuizContent', () => {
       mockUseQuizStore.mockReturnValue({
         variant: 'result',
         getCurrentQuestion: mockGetCurrentQuestionConnectDots,
+        getCurrentAnswer: mockGetCurrentAnswerConnectDots,
+        selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
+        getQuestionResultByQuestionId:
+          mockGetQuestionResultByQuestionIdConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       rerender(<QuizConnectDots />);
@@ -1698,6 +1727,10 @@ describe('QuizContent', () => {
       mockUseQuizStore.mockReturnValue({
         variant: 'result',
         getCurrentQuestion: mockGetCurrentQuestionConnectDots,
+        getCurrentAnswer: mockGetCurrentAnswerConnectDots,
+        selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
+        getQuestionResultByQuestionId:
+          mockGetQuestionResultByQuestionIdConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       // We can't easily mock the internal state, but we can test the render

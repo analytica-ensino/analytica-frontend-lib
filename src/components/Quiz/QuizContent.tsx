@@ -522,20 +522,25 @@ interface UserAnswer {
 }
 
 const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
-  const { variant, getCurrentQuestion } = useQuizStore();
+  const {
+    variant,
+    getCurrentQuestion,
+    getCurrentAnswer,
+    selectDissertativeAnswer,
+    getQuestionResultByQuestionId,
+  } = useQuizStore();
 
   const currentQuestion = getCurrentQuestion();
+  const currentQuestionResult = getQuestionResultByQuestionId(
+    currentQuestion?.id || ''
+  );
+  const currentAnswer = getCurrentAnswer();
 
   // Extract options from the current question
   // Each option has: id, option (left column), correctValue (right column)
-  type MatchingOption = {
-    id: string;
-    option: string;
-    correctValue?: string | null;
-  };
-  const questionOptions: MatchingOption[] = useMemo(() => {
+  const questionOptions = useMemo(() => {
     if (!currentQuestion?.options) return [];
-    return currentQuestion.options as MatchingOption[];
+    return currentQuestion.options;
   }, [currentQuestion?.options]);
 
   // Build dotsOptions from correctValue of each option (right column values)
@@ -554,27 +559,57 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
     }));
   }, [questionOptions]);
 
+  // Parse stored matching answers from JSON
+  // Format: { "optionId": "selectedValue", ... }
+  const parsedAnswers: Record<string, string> = useMemo(() => {
+    if (variant === 'result') {
+      if (!currentQuestionResult?.answer) {
+        return {};
+      }
+      try {
+        return JSON.parse(currentQuestionResult.answer);
+      } catch {
+        return {};
+      }
+    }
+    if (currentAnswer?.answer) {
+      try {
+        return JSON.parse(currentAnswer.answer);
+      } catch {
+        return {};
+      }
+    }
+    return {};
+  }, [variant, currentQuestionResult?.answer, currentAnswer?.answer]);
+
   const [userAnswers, setUserAnswers] = useState<UserAnswer[]>([]);
 
-  // Initialize userAnswers when options change
+  // Initialize userAnswers from options and stored answers
   useEffect(() => {
     if (options.length > 0) {
       setUserAnswers(
-        options.map((option) => ({
-          option: option.label,
-          dotOption: null,
-          correctOption: option.correctOption,
-          isCorrect: null,
-        }))
+        options.map((option) => {
+          const storedValue = parsedAnswers[option.id] || null;
+          return {
+            option: option.label,
+            dotOption: storedValue,
+            correctOption: option.correctOption,
+            isCorrect: storedValue
+              ? storedValue === option.correctOption
+              : null,
+          };
+        })
       );
     }
-  }, [options]);
+  }, [options, parsedAnswers]);
 
   const handleSelectDot = (optionIndex: number, dotValue: string) => {
+    const option = options[optionIndex];
+    if (!option) return;
+
+    // Update local state
     setUserAnswers((prev) => {
       const next = [...prev];
-      const option = options[optionIndex];
-      if (!option) return prev;
       next[optionIndex] = {
         option: option.label,
         dotOption: dotValue,
@@ -583,6 +618,12 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
       };
       return next;
     });
+
+    // Persist to shared store as JSON
+    if (currentQuestion) {
+      const newAnswers = { ...parsedAnswers, [option.id]: dotValue };
+      selectDissertativeAnswer(currentQuestion.id, JSON.stringify(newAnswers));
+    }
   };
 
   const getLetterByIndex = (index: number) => String.fromCodePoint(97 + index); // 'a', 'b', 'c'...

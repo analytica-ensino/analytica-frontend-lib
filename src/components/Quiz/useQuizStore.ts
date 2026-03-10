@@ -124,6 +124,7 @@ export interface Question {
   options: {
     id: string;
     option: string;
+    correctValue?: string | null;
   }[];
   knowledgeMatrix: {
     areaKnowledge: {
