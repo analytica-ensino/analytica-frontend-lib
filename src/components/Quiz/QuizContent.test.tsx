@@ -1510,9 +1510,24 @@ describe('QuizContent', () => {
   });
 
   describe('QuizConnectDots Component', () => {
+    const mockConnectDotsQuestion = {
+      id: 'connect-dots-question-1',
+      options: [
+        { id: '1', option: 'Cachorro', correctValue: 'Ração' },
+        { id: '2', option: 'Gato', correctValue: 'Rato' },
+        { id: '3', option: 'Cabra', correctValue: 'Grama' },
+        { id: '4', option: 'Baleia', correctValue: 'Peixe' },
+      ],
+    };
+
+    const mockGetCurrentQuestionConnectDots = jest.fn(() => mockConnectDotsQuestion);
+
     beforeEach(() => {
+      jest.clearAllMocks();
+      mockGetCurrentQuestionConnectDots.mockReturnValue(mockConnectDotsQuestion);
       mockUseQuizStore.mockReturnValue({
         variant: 'default',
+        getCurrentQuestion: mockGetCurrentQuestionConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
     });
 
@@ -1542,82 +1557,75 @@ describe('QuizContent', () => {
     it('should render status badges in result variant', () => {
       mockUseQuizStore.mockReturnValue({
         variant: 'result',
+        getCurrentQuestion: mockGetCurrentQuestionConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizConnectDots />);
 
-      // Should render status badges for answered questions
-      expect(screen.getAllByText('Resposta correta')).toHaveLength(2); // Cachorro and Gato are correct
-      expect(screen.getAllByText('Resposta incorreta')).toHaveLength(2); // Cabra and Baleia are incorrect
+      // In result variant without user selections, no badges are shown
+      // since isCorrect is null when no selection has been made
+      expect(screen.getByText('Alternativas')).toBeInTheDocument();
     });
 
-    it('should show selected and correct answers in result variant', () => {
+    it('should show selected answers as Nenhuma when no selection in result variant', () => {
       mockUseQuizStore.mockReturnValue({
         variant: 'result',
+        getCurrentQuestion: mockGetCurrentQuestionConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizConnectDots />);
 
-      // Should show selected answers
-      expect(
-        screen.getByText('Resposta selecionada: Ração')
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText('Resposta selecionada: Rato')
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText('Resposta selecionada: Peixe')
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText('Resposta selecionada: Grama')
-      ).toBeInTheDocument();
+      // Without user interaction, all selections show "Nenhuma"
+      expect(screen.getAllByText('Resposta selecionada: Nenhuma')).toHaveLength(4);
 
-      // Should show correct answers for incorrect options
-      expect(screen.getByText('Resposta correta: Grama')).toBeInTheDocument(); // For Cabra
-      expect(screen.getByText('Resposta correta: Peixe')).toBeInTheDocument(); // For Baleia
+      // Should show correct answers for all options
+      expect(screen.getByText('Resposta correta: Ração')).toBeInTheDocument();
+      expect(screen.getByText('Resposta correta: Rato')).toBeInTheDocument();
+      expect(screen.getByText('Resposta correta: Grama')).toBeInTheDocument();
+      expect(screen.getByText('Resposta correta: Peixe')).toBeInTheDocument();
     });
 
-    it('should not show correct answer text for correct options in result variant', () => {
+    it('should show all correct answers in result variant when no selections made', () => {
       mockUseQuizStore.mockReturnValue({
         variant: 'result',
+        getCurrentQuestion: mockGetCurrentQuestionConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizConnectDots />);
 
-      // Correct options (Cachorro and Gato) shouldn't show "Resposta correta:"
-      expect(
-        screen.queryByText('Resposta correta: Ração')
-      ).not.toBeInTheDocument();
-      expect(
-        screen.queryByText('Resposta correta: Rato')
-      ).not.toBeInTheDocument();
+      // When no selections are made (isCorrect is null), all correct answers are shown
+      expect(screen.getByText('Resposta correta: Ração')).toBeInTheDocument();
+      expect(screen.getByText('Resposta correta: Rato')).toBeInTheDocument();
+      expect(screen.getByText('Resposta correta: Grama')).toBeInTheDocument();
+      expect(screen.getByText('Resposta correta: Peixe')).toBeInTheDocument();
     });
 
-    it('should apply correct styling in result variant', () => {
+    it('should apply error styling in result variant when no selections made', () => {
       mockUseQuizStore.mockReturnValue({
         variant: 'result',
+        getCurrentQuestion: mockGetCurrentQuestionConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       const { container } = render(<QuizConnectDots />);
 
-      // Check if status styles are applied
+      // When no selections are made (isCorrect is null), it evaluates to falsy -> 'incorrect' styling
       const sections = container.querySelectorAll('section');
       expect(sections[0].querySelector('div')).toHaveClass(
-        'bg-success-background',
-        'border-success-300'
-      ); // Cachorro - correct
+        'bg-error-background',
+        'border-error-300'
+      );
       expect(sections[1].querySelector('div')).toHaveClass(
-        'bg-success-background',
-        'border-success-300'
-      ); // Gato - correct
+        'bg-error-background',
+        'border-error-300'
+      );
       expect(sections[2].querySelector('div')).toHaveClass(
         'bg-error-background',
         'border-error-300'
-      ); // Cabra - incorrect
+      );
       expect(sections[3].querySelector('div')).toHaveClass(
         'bg-error-background',
         'border-error-300'
-      ); // Baleia - incorrect
+      );
     });
 
     it('should have correct letter indexing', () => {
@@ -1645,6 +1653,7 @@ describe('QuizContent', () => {
       // Switch to result variant
       mockUseQuizStore.mockReturnValue({
         variant: 'result',
+        getCurrentQuestion: mockGetCurrentQuestionConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       rerender(<QuizConnectDots />);
@@ -1682,6 +1691,7 @@ describe('QuizContent', () => {
       // Test the case where isCorrect is null (no answer given)
       mockUseQuizStore.mockReturnValue({
         variant: 'result',
+        getCurrentQuestion: mockGetCurrentQuestionConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       // We can't easily mock the internal state, but we can test the render
@@ -1689,6 +1699,9 @@ describe('QuizContent', () => {
 
       // The component should render without throwing errors
       expect(screen.getByText('Alternativas')).toBeInTheDocument();
+      // No badges since no selections were made (isCorrect is null)
+      expect(screen.queryAllByText('Resposta correta')).toHaveLength(0);
+      expect(screen.queryAllByText('Resposta incorreta')).toHaveLength(0);
     });
   });
 
