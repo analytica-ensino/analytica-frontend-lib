@@ -1523,9 +1523,15 @@ describe('QuizContent', () => {
     const mockGetCurrentQuestionConnectDots = jest.fn(
       () => mockConnectDotsQuestion
     );
-    const mockGetCurrentAnswerConnectDots = jest.fn(() => null);
+    const mockGetCurrentAnswerConnectDots = jest.fn<
+      { answer: string } | null,
+      []
+    >(() => null);
     const mockSelectDissertativeAnswerConnectDots = jest.fn();
-    const mockGetQuestionResultByQuestionIdConnectDots = jest.fn(() => null);
+    const mockGetQuestionResultByQuestionIdConnectDots = jest.fn<
+      { answer: string } | null,
+      []
+    >(() => null);
 
     beforeEach(() => {
       jest.clearAllMocks();
@@ -1741,6 +1747,87 @@ describe('QuizContent', () => {
       // No badges since no selections were made (isCorrect is null)
       expect(screen.queryAllByText('Resposta correta')).toHaveLength(0);
       expect(screen.queryAllByText('Resposta incorreta')).toHaveLength(0);
+    });
+
+    it('should render all correct values as select options', () => {
+      render(<QuizConnectDots />);
+
+      // All correct values should be available as options
+      expect(screen.getAllByTestId('select-item-Ração')).toHaveLength(4);
+      expect(screen.getAllByTestId('select-item-Rato')).toHaveLength(4);
+      expect(screen.getAllByTestId('select-item-Grama')).toHaveLength(4);
+      expect(screen.getAllByTestId('select-item-Peixe')).toHaveLength(4);
+    });
+
+    it('should hydrate user answers from stored answer on mount', () => {
+      // Mock stored answer
+      mockGetCurrentAnswerConnectDots.mockReturnValue({
+        answer: JSON.stringify({ '1': 'Ração', '2': 'Rato' }),
+      });
+
+      render(<QuizConnectDots />);
+
+      // Should show the stored selections
+      expect(screen.getByText('Ração')).toBeInTheDocument();
+      expect(screen.getByText('Rato')).toBeInTheDocument();
+    });
+
+    it('should show correct styling when answer matches correctValue in result variant', () => {
+      // Mock stored answer with correct selections
+      mockGetQuestionResultByQuestionIdConnectDots.mockReturnValue({
+        answer: JSON.stringify({ '1': 'Ração', '2': 'Rato' }),
+      });
+
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+        getCurrentQuestion: mockGetCurrentQuestionConnectDots,
+        getCurrentAnswer: mockGetCurrentAnswerConnectDots,
+        selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
+        getQuestionResultByQuestionId:
+          mockGetQuestionResultByQuestionIdConnectDots,
+      } as unknown as ReturnType<typeof useQuizStore>);
+
+      const { container } = render(<QuizConnectDots />);
+
+      // First two options should have correct styling (Ração and Rato are correct)
+      const sections = container.querySelectorAll('section');
+      expect(sections[0].querySelector('div')).toHaveClass(
+        'bg-success-background',
+        'border-success-300'
+      );
+      expect(sections[1].querySelector('div')).toHaveClass(
+        'bg-success-background',
+        'border-success-300'
+      );
+    });
+
+    it('should show incorrect styling when answer does not match correctValue in result variant', () => {
+      // Mock stored answer with incorrect selections (swapped answers)
+      mockGetQuestionResultByQuestionIdConnectDots.mockReturnValue({
+        answer: JSON.stringify({ '1': 'Rato', '2': 'Ração' }), // Wrong answers
+      });
+
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+        getCurrentQuestion: mockGetCurrentQuestionConnectDots,
+        getCurrentAnswer: mockGetCurrentAnswerConnectDots,
+        selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
+        getQuestionResultByQuestionId:
+          mockGetQuestionResultByQuestionIdConnectDots,
+      } as unknown as ReturnType<typeof useQuizStore>);
+
+      const { container } = render(<QuizConnectDots />);
+
+      // First two options should have incorrect styling
+      const sections = container.querySelectorAll('section');
+      expect(sections[0].querySelector('div')).toHaveClass(
+        'bg-error-background',
+        'border-error-300'
+      );
+      expect(sections[1].querySelector('div')).toHaveClass(
+        'bg-error-background',
+        'border-error-300'
+      );
     });
   });
 
