@@ -56,8 +56,38 @@ export const getStatusStyles = (variantCorrect?: string) => {
 };
 
 /**
+ * Normalizes parsed answer data to Record<string, string> format.
+ * Handles legacy array format [{ optionId, selectedValue }] by converting to { [optionId]: selectedValue }.
+ */
+const normalizeAnswerData = (parsed: unknown): Record<string, string> => {
+  // Handle legacy array format: [{ optionId: string, selectedValue: string }]
+  if (Array.isArray(parsed)) {
+    const result: Record<string, string> = {};
+    for (const item of parsed) {
+      if (
+        item &&
+        typeof item === 'object' &&
+        'optionId' in item &&
+        'selectedValue' in item
+      ) {
+        result[item.optionId as string] = item.selectedValue as string;
+      }
+    }
+    return result;
+  }
+
+  // Handle expected object format: { [optionId]: selectedValue }
+  if (parsed && typeof parsed === 'object') {
+    return parsed as Record<string, string>;
+  }
+
+  return {};
+};
+
+/**
  * Parses JSON answers from stored answer string.
  * In result mode, uses persisted results. Otherwise, uses current draft answers.
+ * Normalizes legacy array format to expected Record<string, string> map.
  */
 const parseStoredAnswers = (
   variant: 'result' | 'default',
@@ -67,14 +97,16 @@ const parseStoredAnswers = (
   if (variant === 'result') {
     if (!resultAnswer) return {};
     try {
-      return JSON.parse(resultAnswer);
+      const parsed = JSON.parse(resultAnswer);
+      return normalizeAnswerData(parsed);
     } catch {
       return {};
     }
   }
   if (currentAnswer) {
     try {
-      return JSON.parse(currentAnswer);
+      const parsed = JSON.parse(currentAnswer);
+      return normalizeAnswerData(parsed);
     } catch {
       return {};
     }

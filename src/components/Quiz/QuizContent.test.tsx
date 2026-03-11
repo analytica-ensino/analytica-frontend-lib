@@ -182,9 +182,9 @@ jest.mock('../Alternative/Alternative', () => ({
 }));
 
 // Mock Select component
-// Store onValueChange callbacks by select index for testing
-const selectCallbacks: Array<(value: string) => void> = [];
-let selectIndex = 0;
+// Store onValueChange callbacks by stable key for testing
+const selectCallbacks: Record<string, (value: string) => void> = {};
+let selectCounter = 0;
 
 jest.mock('../Select/Select', () => ({
   __esModule: true,
@@ -193,23 +193,25 @@ jest.mock('../Select/Select', () => ({
     value,
     size,
     onValueChange,
+    id,
   }: {
     children: React.ReactNode;
     value: string;
     size: string;
     onValueChange?: (value: string) => void;
+    id?: string;
   }) => {
-    // Store callback for testing
-    const currentIndex = selectIndex++;
+    // Use stable key based on id or value, fallback to counter for uniqueness
+    const stableKey = id || `select-${selectCounter++}`;
     if (onValueChange) {
-      selectCallbacks[currentIndex] = onValueChange;
+      selectCallbacks[stableKey] = onValueChange;
     }
     return (
       <div
         data-testid="quiz-select"
         data-value={value}
         data-size={size}
-        data-select-index={currentIndex}
+        data-select-id={stableKey}
       >
         {children}
       </div>
@@ -253,9 +255,12 @@ jest.mock('../Select/Select', () => ({
 
 // Helper to reset select callbacks between tests
 const resetSelectCallbacks = () => {
-  selectCallbacks.length = 0;
-  selectIndex = 0;
+  Object.keys(selectCallbacks).forEach((key) => delete selectCallbacks[key]);
+  selectCounter = 0;
 };
+
+// Helper to get callback by index (for backward compatibility with tests)
+const getSelectCallback = (index: number) => selectCallbacks[`select-${index}`];
 
 // Mock Badge component
 jest.mock('../Badge/Badge', () => {
@@ -1878,7 +1883,7 @@ describe('QuizContent', () => {
 
         // Simulate selecting "Ração" for the first option (index 0)
         act(() => {
-          selectCallbacks[0]?.('Ração');
+          getSelectCallback(0)?.('Ração');
         });
 
         // Verify selectDissertativeAnswer was called with correct JSON
@@ -1898,7 +1903,7 @@ describe('QuizContent', () => {
 
         // Select second option - should accumulate with existing answer
         act(() => {
-          selectCallbacks[1]?.('Rato');
+          getSelectCallback(1)?.('Rato');
         });
 
         expect(mockSelectDissertativeAnswerConnectDots).toHaveBeenCalledWith(
@@ -1912,7 +1917,7 @@ describe('QuizContent', () => {
 
         // Select correct answer for first option (Cachorro -> Ração)
         act(() => {
-          selectCallbacks[0]?.('Ração');
+          getSelectCallback(0)?.('Ração');
         });
 
         // The component updates local state, but we can verify the store call
@@ -1927,7 +1932,7 @@ describe('QuizContent', () => {
 
         // Select wrong answer for first option (Cachorro should be Ração, not Grama)
         act(() => {
-          selectCallbacks[0]?.('Grama');
+          getSelectCallback(0)?.('Grama');
         });
 
         expect(mockSelectDissertativeAnswerConnectDots).toHaveBeenCalledWith(
@@ -1955,7 +1960,7 @@ describe('QuizContent', () => {
         ).toBeInTheDocument();
 
         // No selects rendered, so no callbacks to call
-        expect(selectCallbacks.length).toBe(0);
+        expect(Object.keys(selectCallbacks).length).toBe(0);
       });
 
       it('should allow changing a previously selected option', () => {
@@ -1968,7 +1973,7 @@ describe('QuizContent', () => {
 
         // Change the selection for first option
         act(() => {
-          selectCallbacks[0]?.('Peixe');
+          getSelectCallback(0)?.('Peixe');
         });
 
         expect(mockSelectDissertativeAnswerConnectDots).toHaveBeenCalledWith(
