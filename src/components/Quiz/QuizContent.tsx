@@ -672,13 +672,21 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
               correctOption: option.correctOption,
               isCorrect: null,
             };
-            const variantCorrect = answer.isCorrect ? 'correct' : 'incorrect';
+            // Only derive status when isCorrect is a boolean (answered)
+            const variantCorrect =
+              answer.isCorrect === true
+                ? 'correct'
+                : answer.isCorrect === false
+                  ? 'incorrect'
+                  : undefined;
             return (
               <section key={option.id} className="flex flex-col gap-2">
                 <div
                   className={cn(
                     'grid grid-cols-[1fr_auto] items-center gap-4 p-2 rounded-md',
-                    isDefaultVariant ? '' : getStatusStyles(variantCorrect)
+                    !isDefaultVariant && variantCorrect
+                      ? getStatusStyles(variantCorrect)
+                      : ''
                   )}
                 >
                   <p className="text-text-900 text-sm">
@@ -723,7 +731,7 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
                     <p className="text-text-800 text-2xs">
                       Resposta selecionada: {answer.dotOption || 'Nenhuma'}
                     </p>
-                    {!answer.isCorrect && (
+                    {answer.isCorrect === false && (
                       <p className="text-text-800 text-2xs">
                         Resposta correta: {answer.correctOption}
                       </p>

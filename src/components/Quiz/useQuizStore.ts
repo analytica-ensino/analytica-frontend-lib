@@ -551,17 +551,21 @@ export const useQuizStore = create<QuizState>()(
           }
 
           const question = quiz.questions.find((q) => q.id === questionId);
-          if (
-            !question ||
-            question.questionType !== QUESTION_TYPE.DISSERTATIVA
-          ) {
+          // Allow free-text question types: DISSERTATIVA, RELACIONAR, PREENCHER_LACUNAS
+          const allowedTypes = [
+            QUESTION_TYPE.DISSERTATIVA,
+            QUESTION_TYPE.RELACIONAR,
+            QUESTION_TYPE.PREENCHER_LACUNAS,
+          ];
+          if (!question || !allowedTypes.includes(question.questionType)) {
             // Silent validation - wrong question type
             return;
           }
 
-          // Validate character limit if set
+          // Validate character limit if set (only for DISSERTATIVA)
           let validatedAnswer = answer;
           if (
+            question.questionType === QUESTION_TYPE.DISSERTATIVA &&
             dissertativeCharLimit !== undefined &&
             answer.length > dissertativeCharLimit
           ) {
@@ -578,7 +582,7 @@ export const useQuizStore = create<QuizState>()(
             userId,
             answer: validatedAnswer,
             optionId: null,
-            questionType: QUESTION_TYPE.DISSERTATIVA,
+            questionType: question.questionType,
             answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
           };
 

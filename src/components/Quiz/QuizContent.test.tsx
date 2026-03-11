@@ -1633,14 +1633,21 @@ describe('QuizContent', () => {
         4
       );
 
-      // Should show correct answers for all options
-      expect(screen.getByText('Resposta correta: Ração')).toBeInTheDocument();
-      expect(screen.getByText('Resposta correta: Rato')).toBeInTheDocument();
-      expect(screen.getByText('Resposta correta: Grama')).toBeInTheDocument();
-      expect(screen.getByText('Resposta correta: Peixe')).toBeInTheDocument();
+      // Should NOT show "Resposta correta" for unanswered items (isCorrect is null)
+      expect(
+        screen.queryByText('Resposta correta: Ração')
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Resposta correta: Rato')
+      ).not.toBeInTheDocument();
     });
 
-    it('should show all correct answers in result variant when no selections made', () => {
+    it('should show correct answer only when user answered incorrectly', () => {
+      // Mock stored answer with incorrect selection (Cachorro -> Grama instead of Ração)
+      mockGetQuestionResultByQuestionIdConnectDots.mockReturnValue({
+        answer: JSON.stringify({ '1': 'Grama' }),
+      });
+
       mockUseQuizStore.mockReturnValue({
         variant: 'result',
         getCurrentQuestion: mockGetCurrentQuestionConnectDots,
@@ -1652,14 +1659,16 @@ describe('QuizContent', () => {
 
       render(<QuizConnectDots />);
 
-      // When no selections are made (isCorrect is null), all correct answers are shown
+      // Should show correct answer for the incorrectly answered item
       expect(screen.getByText('Resposta correta: Ração')).toBeInTheDocument();
-      expect(screen.getByText('Resposta correta: Rato')).toBeInTheDocument();
-      expect(screen.getByText('Resposta correta: Grama')).toBeInTheDocument();
-      expect(screen.getByText('Resposta correta: Peixe')).toBeInTheDocument();
+
+      // Should NOT show correct answer for unanswered items
+      expect(
+        screen.queryByText('Resposta correta: Rato')
+      ).not.toBeInTheDocument();
     });
 
-    it('should apply error styling in result variant when no selections made', () => {
+    it('should apply neutral styling in result variant when no selections made', () => {
       mockUseQuizStore.mockReturnValue({
         variant: 'result',
         getCurrentQuestion: mockGetCurrentQuestionConnectDots,
@@ -1671,23 +1680,19 @@ describe('QuizContent', () => {
 
       const { container } = render(<QuizConnectDots />);
 
-      // When no selections are made (isCorrect is null), it evaluates to falsy -> 'incorrect' styling
+      // When no selections are made (isCorrect is null), styling should be neutral (no error/success classes)
       const sections = container.querySelectorAll('section');
-      expect(sections[0].querySelector('div')).toHaveClass(
-        'bg-error-background',
-        'border-error-300'
+      expect(sections[0].querySelector('div')).not.toHaveClass(
+        'bg-error-background'
       );
-      expect(sections[1].querySelector('div')).toHaveClass(
-        'bg-error-background',
-        'border-error-300'
+      expect(sections[0].querySelector('div')).not.toHaveClass(
+        'bg-success-background'
       );
-      expect(sections[2].querySelector('div')).toHaveClass(
-        'bg-error-background',
-        'border-error-300'
+      expect(sections[1].querySelector('div')).not.toHaveClass(
+        'bg-error-background'
       );
-      expect(sections[3].querySelector('div')).toHaveClass(
-        'bg-error-background',
-        'border-error-300'
+      expect(sections[1].querySelector('div')).not.toHaveClass(
+        'bg-success-background'
       );
     });
 
