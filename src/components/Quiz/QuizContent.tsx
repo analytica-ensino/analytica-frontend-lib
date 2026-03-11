@@ -542,9 +542,9 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
                     isDefaultVariant ? '' : getStatusStyles(variantCorrect)
                   )}
                 >
-                  <p className="text-text-900 text-sm">
+                  <Text size="sm" className="text-text-900">
                     {getLetterByIndex(index).concat(') ').concat(option.label)}
-                  </p>
+                  </Text>
 
                   {isDefaultVariant ? (
                     <Select size="medium">
@@ -566,13 +566,13 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
 
                 {!isDefaultVariant && (
                   <span className="flex flex-row gap-2 items-center">
-                    <p className="text-text-800 text-2xs">
+                    <Text size="2xs" className="text-text-800">
                       Resposta selecionada: V
-                    </p>
+                    </Text>
                     {!option.isCorrect && (
-                      <p className="text-text-800 text-2xs">
+                      <Text size="2xs" className="text-text-800">
                         Resposta correta: F
-                      </p>
+                      </Text>
                     )}
                   </span>
                 )}
@@ -727,9 +727,9 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
                       : ''
                   )}
                 >
-                  <p className="text-text-900 text-sm">
+                  <Text size="sm" className="text-text-900">
                     {getLetterByIndex(index) + ') ' + option.label}
-                  </p>
+                  </Text>
 
                   {isDefaultVariant ? (
                     <Select
@@ -766,13 +766,13 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
 
                 {!isDefaultVariant && (
                   <span className="flex flex-row gap-2 items-center">
-                    <p className="text-text-800 text-2xs">
+                    <Text size="2xs" className="text-text-800">
                       Resposta selecionada: {answer.dotOption || 'Nenhuma'}
-                    </p>
+                    </Text>
                     {answer.isCorrect === false && (
-                      <p className="text-text-800 text-2xs">
+                      <Text size="2xs" className="text-text-800">
                         Resposta correta: {answer.correctOption}
-                      </p>
+                      </Text>
                     )}
                   </span>
                 )}
