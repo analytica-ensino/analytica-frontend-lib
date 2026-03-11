@@ -1798,9 +1798,20 @@ describe('QuizContent', () => {
 
       render(<QuizConnectDots />);
 
-      // Should show the stored selections
-      expect(screen.getByText('Ração')).toBeInTheDocument();
-      expect(screen.getByText('Rato')).toBeInTheDocument();
+      // Verify select elements have the correct hydrated values
+      const selectElements = screen.getAllByTestId('quiz-select');
+
+      // First select (option id '1') should have value 'Ração'
+      expect(selectElements[0]).toHaveAttribute('data-value', 'Ração');
+
+      // Second select (option id '2') should have value 'Rato'
+      expect(selectElements[1]).toHaveAttribute('data-value', 'Rato');
+
+      // Third and fourth selects should have no value (undefined)
+      expect(selectElements[2]).not.toHaveAttribute('data-value', 'Ração');
+      expect(selectElements[2]).not.toHaveAttribute('data-value', 'Rato');
+      expect(selectElements[3]).not.toHaveAttribute('data-value', 'Ração');
+      expect(selectElements[3]).not.toHaveAttribute('data-value', 'Rato');
     });
 
     it('should show correct styling when answer matches correctValue in result variant', () => {
