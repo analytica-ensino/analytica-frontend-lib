@@ -245,4 +245,63 @@ describe('ActivityCardQuestionPreview', () => {
     expect(badges).toContain('success');
     expect(badges).toContain('error');
   });
+
+  it('renders RELACIONAR matching pairs with correct values', () => {
+    render(
+      <ActivityCardQuestionPreview
+        {...baseProps}
+        questionType={QUESTION_TYPE.RELACIONAR}
+        matchingPairs={[
+          { id: '1', option: 'Gato', correctValue: 'Leite' },
+          { id: '2', option: 'Cachorro', correctValue: 'Ração' },
+          { id: '3', option: 'Galinha', correctValue: 'Milho' },
+        ]}
+        defaultExpanded
+      />
+    );
+
+    // Check that the title is rendered
+    expect(screen.getByText('Alternativas')).toBeInTheDocument();
+
+    // Check that options are rendered with letters
+    expect(screen.getByText('a) Gato')).toBeInTheDocument();
+    expect(screen.getByText('b) Cachorro')).toBeInTheDocument();
+    expect(screen.getByText('c) Galinha')).toBeInTheDocument();
+
+    // Check that correct values are displayed
+    expect(screen.getByText('Resposta correta: Leite')).toBeInTheDocument();
+    expect(screen.getByText('Resposta correta: Ração')).toBeInTheDocument();
+    expect(screen.getByText('Resposta correta: Milho')).toBeInTheDocument();
+
+    // Check that success badges are rendered
+    const badges = screen
+      .getAllByTestId('badge')
+      .filter((b) => b.getAttribute('data-action') === 'success');
+    expect(badges).toHaveLength(3);
+  });
+
+  it('renders nothing for RELACIONAR when matchingPairs is empty', () => {
+    render(
+      <ActivityCardQuestionPreview
+        {...baseProps}
+        questionType={QUESTION_TYPE.RELACIONAR}
+        matchingPairs={[]}
+        defaultExpanded
+      />
+    );
+
+    expect(screen.queryByText('Alternativas')).not.toBeInTheDocument();
+  });
+
+  it('renders nothing for RELACIONAR when matchingPairs is undefined', () => {
+    render(
+      <ActivityCardQuestionPreview
+        {...baseProps}
+        questionType={QUESTION_TYPE.RELACIONAR}
+        defaultExpanded
+      />
+    );
+
+    expect(screen.queryByText('Alternativas')).not.toBeInTheDocument();
+  });
 });

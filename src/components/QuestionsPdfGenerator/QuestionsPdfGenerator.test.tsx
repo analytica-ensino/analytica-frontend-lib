@@ -246,10 +246,10 @@ describe('QuestionsPdfContent', () => {
     expect(container.textContent).not.toContain('R:');
   });
 
-  it('renders LIGAR_PONTOS question type as null', () => {
+  it('renders RELACIONAR question type as null', () => {
     const question: PreviewQuestion = {
       ...baseQuestion,
-      questionType: QUESTION_TYPE.LIGAR_PONTOS,
+      questionType: QUESTION_TYPE.RELACIONAR,
     };
 
     const { container } = render(

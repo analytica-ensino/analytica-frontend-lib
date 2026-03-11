@@ -19,10 +19,63 @@ export enum QUESTION_TYPE {
   DISSERTATIVA = 'DISSERTATIVA',
   MULTIPLA_ESCOLHA = 'MULTIPLA_ESCOLHA',
   VERDADEIRO_FALSO = 'VERDADEIRO_FALSO',
-  LIGAR_PONTOS = 'LIGAR_PONTOS',
+  RELACIONAR = 'RELACIONAR',
   PREENCHER_LACUNAS = 'PREENCHER_LACUNAS',
   IMAGEM = 'IMAGEM',
 }
+
+/**
+ * Determines if a user answer has meaningful content.
+ * For option-based questions: checks if optionId is not null
+ * For free-text questions (DISSERTATIVA): checks if answer is non-empty string
+ * For structured questions (RELACIONAR, PREENCHER_LACUNAS): checks if answer is valid JSON with values
+ *
+ * @param answer - The user answer item to check (can be null/undefined)
+ * @returns true if the answer has meaningful content, false otherwise
+ */
+export const hasMeaningfulAnswer = (
+  answer:
+    | {
+        optionId: string | null;
+        answer: string | null;
+        questionType: QUESTION_TYPE;
+      }
+    | null
+    | undefined
+): boolean => {
+  if (!answer) return false;
+
+  // For free-text question types, check the answer field
+  const freeTextTypes = [
+    QUESTION_TYPE.DISSERTATIVA,
+    QUESTION_TYPE.RELACIONAR,
+    QUESTION_TYPE.PREENCHER_LACUNAS,
+  ];
+
+  if (freeTextTypes.includes(answer.questionType)) {
+    // Check if answer has content (non-empty string)
+    if (!answer.answer || answer.answer.trim() === '') return false;
+
+    // For RELACIONAR/PREENCHER_LACUNAS, also check if JSON has actual values
+    if (
+      answer.questionType === QUESTION_TYPE.RELACIONAR ||
+      answer.questionType === QUESTION_TYPE.PREENCHER_LACUNAS
+    ) {
+      try {
+        const parsed = JSON.parse(answer.answer);
+        return typeof parsed === 'object' && Object.keys(parsed).length > 0;
+      } catch {
+        return false;
+      }
+    }
+
+    // For DISSERTATIVA, non-empty string is meaningful
+    return true;
+  }
+
+  // For option-based question types, check optionId (not null and not empty string)
+  return answer.optionId !== null && answer.optionId !== '';
+};
 
 export enum QUESTION_STATUS {
   PENDENTE_AVALIACAO = 'PENDENTE_AVALIACAO',
@@ -124,6 +177,7 @@ export interface Question {
   options: {
     id: string;
     option: string;
+    correctValue?: string | null;
   }[];
   knowledgeMatrix: {
     areaKnowledge: {
@@ -550,17 +604,21 @@ export const useQuizStore = create<QuizState>()(
           }
 
           const question = quiz.questions.find((q) => q.id === questionId);
-          if (
-            !question ||
-            question.questionType !== QUESTION_TYPE.DISSERTATIVA
-          ) {
+          // Allow free-text question types: DISSERTATIVA, RELACIONAR, PREENCHER_LACUNAS
+          const allowedTypes = [
+            QUESTION_TYPE.DISSERTATIVA,
+            QUESTION_TYPE.RELACIONAR,
+            QUESTION_TYPE.PREENCHER_LACUNAS,
+          ];
+          if (!question || !allowedTypes.includes(question.questionType)) {
             // Silent validation - wrong question type
             return;
           }
 
-          // Validate character limit if set
+          // Validate character limit if set (only for DISSERTATIVA)
           let validatedAnswer = answer;
           if (
+            question.questionType === QUESTION_TYPE.DISSERTATIVA &&
             dissertativeCharLimit !== undefined &&
             answer.length > dissertativeCharLimit
           ) {
@@ -577,7 +635,7 @@ export const useQuizStore = create<QuizState>()(
             userId,
             answer: validatedAnswer,
             optionId: null,
-            questionType: QUESTION_TYPE.DISSERTATIVA,
+            questionType: question.questionType,
             answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
           };
 
@@ -781,9 +839,8 @@ export const useQuizStore = create<QuizState>()(
 
         getAnsweredQuestions: () => {
           const { userAnswers } = get();
-          return userAnswers.filter(
-            (answer) => answer.optionId !== null || answer.answer !== null
-          ).length;
+          return userAnswers.filter((answer) => hasMeaningfulAnswer(answer))
+            .length;
         },
 
         getUnansweredQuestions: () => {
@@ -796,13 +853,9 @@ export const useQuizStore = create<QuizState>()(
             const userAnswer = userAnswers.find(
               (answer) => answer.questionId === question.id
             );
-            const isAnswered =
-              userAnswer &&
-              (userAnswer.optionId !== null || userAnswer.answer !== null);
-            const isSkipped =
-              userAnswer &&
-              userAnswer.optionId === null &&
-              userAnswer.answer === null;
+            const isAnswered = hasMeaningfulAnswer(userAnswer);
+            // Question is skipped if it has a userAnswer entry but no meaningful content
+            const isSkipped = userAnswer && !hasMeaningfulAnswer(userAnswer);
 
             if (!isAnswered && !isSkipped) {
               unansweredQuestions.push(index + 1); // index + 1 para mostrar número da questão
@@ -813,9 +866,8 @@ export const useQuizStore = create<QuizState>()(
 
         getSkippedQuestions: () => {
           const { userAnswers } = get();
-          return userAnswers.filter(
-            (answer) => answer.optionId === null && answer.answer === null
-          ).length;
+          return userAnswers.filter((answer) => !hasMeaningfulAnswer(answer))
+            .length;
         },
 
         getProgress: () => {
@@ -831,9 +883,7 @@ export const useQuizStore = create<QuizState>()(
           const userAnswer = userAnswers.find(
             (answer) => answer.questionId === questionId
           );
-          return userAnswer
-            ? userAnswer.optionId !== null || userAnswer.answer !== null
-            : false;
+          return hasMeaningfulAnswer(userAnswer);
         },
 
         isQuestionSkipped: (questionId) => {
@@ -841,9 +891,8 @@ export const useQuizStore = create<QuizState>()(
           const userAnswer = userAnswers.find(
             (answer) => answer.questionId === questionId
           );
-          return userAnswer
-            ? userAnswer.optionId === null && userAnswer.answer === null
-            : false;
+          // Question is skipped if it has a userAnswer entry but no meaningful content
+          return userAnswer ? !hasMeaningfulAnswer(userAnswer) : false;
         },
 
         getCurrentAnswer: () => {
@@ -857,12 +906,7 @@ export const useQuizStore = create<QuizState>()(
           );
 
           // Retorna undefined se a resposta está vazia (não respondida)
-          const hasAnswerContent = (ua?: UserAnswerItem | null) =>
-            !!ua &&
-            ((ua.optionId !== null && ua.optionId !== '') ||
-              (ua.answer !== null && ua.answer !== ''));
-
-          if (!hasAnswerContent(userAnswer)) {
+          if (!hasMeaningfulAnswer(userAnswer)) {
             return undefined;
           }
 
@@ -909,13 +953,9 @@ export const useQuizStore = create<QuizState>()(
             const userAnswer = userAnswers.find(
               (answer) => answer.questionId === question.id
             );
-            const hasAnswer =
-              userAnswer &&
-              (userAnswer.optionId !== null || userAnswer.answer !== null);
-            const isSkipped =
-              userAnswer &&
-              userAnswer.optionId === null &&
-              userAnswer.answer === null;
+            const hasAnswer = hasMeaningfulAnswer(userAnswer);
+            // Question is skipped if it has a userAnswer entry but no meaningful content
+            const isSkipped = userAnswer && !hasMeaningfulAnswer(userAnswer);
 
             // Se não há resposta do usuário OU se a questão foi pulada
             if (!hasAnswer || isSkipped) {
@@ -963,9 +1003,7 @@ export const useQuizStore = create<QuizState>()(
           const answer = userAnswers.find(
             (answer) => answer.questionId === questionId
           );
-          return answer
-            ? answer.optionId !== null || answer.answer !== null
-            : false;
+          return hasMeaningfulAnswer(answer);
         },
         getQuestionStatusFromUserAnswers: (questionId) => {
           const { userAnswers } = get();
@@ -973,8 +1011,8 @@ export const useQuizStore = create<QuizState>()(
             (answer) => answer.questionId === questionId
           );
           if (!answer) return 'unanswered';
-          if (answer.optionId === null) return 'skipped';
-          return 'answered';
+          if (hasMeaningfulAnswer(answer)) return 'answered';
+          return 'skipped';
         },
         getUserAnswersForActivity: () => {
           const { userAnswers } = get();

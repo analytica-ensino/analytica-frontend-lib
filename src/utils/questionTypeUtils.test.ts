@@ -35,9 +35,9 @@ describe('questionTypeUtils', () => {
         expect(mapQuestionTypeToEnum('IMAGEM')).toBe(QUESTION_TYPE.IMAGEM);
       });
 
-      it('should map LIGAR_PONTOS correctly', () => {
-        expect(mapQuestionTypeToEnum('LIGAR_PONTOS')).toBe(
-          QUESTION_TYPE.LIGAR_PONTOS
+      it('should map RELACIONAR correctly', () => {
+        expect(mapQuestionTypeToEnum('RELACIONAR')).toBe(
+          QUESTION_TYPE.RELACIONAR
         );
       });
 
@@ -77,9 +77,9 @@ describe('questionTypeUtils', () => {
         expect(mapQuestionTypeToEnum('imagem')).toBe(QUESTION_TYPE.IMAGEM);
       });
 
-      it('should map lowercase ligar_pontos', () => {
-        expect(mapQuestionTypeToEnum('ligar_pontos')).toBe(
-          QUESTION_TYPE.LIGAR_PONTOS
+      it('should map lowercase relacionar', () => {
+        expect(mapQuestionTypeToEnum('relacionar')).toBe(
+          QUESTION_TYPE.RELACIONAR
         );
       });
 
@@ -149,10 +149,10 @@ describe('questionTypeUtils', () => {
         );
       });
 
-      it('should return LIGAR_PONTOS fallback', () => {
-        expect(
-          mapQuestionTypeToEnum('invalid', QUESTION_TYPE.LIGAR_PONTOS)
-        ).toBe(QUESTION_TYPE.LIGAR_PONTOS);
+      it('should return RELACIONAR fallback', () => {
+        expect(mapQuestionTypeToEnum('invalid', QUESTION_TYPE.RELACIONAR)).toBe(
+          QUESTION_TYPE.RELACIONAR
+        );
       });
 
       it('should return PREENCHER_LACUNAS fallback', () => {
@@ -201,8 +201,8 @@ describe('questionTypeUtils', () => {
         expect(mapQuestionTypeToEnumRequired('imagem')).toBe(
           QUESTION_TYPE.IMAGEM
         );
-        expect(mapQuestionTypeToEnumRequired('ligar_pontos')).toBe(
-          QUESTION_TYPE.LIGAR_PONTOS
+        expect(mapQuestionTypeToEnumRequired('relacionar')).toBe(
+          QUESTION_TYPE.RELACIONAR
         );
       });
     });
@@ -252,10 +252,10 @@ describe('questionTypeUtils', () => {
         ).toBe(QUESTION_TYPE.IMAGEM);
       });
 
-      it('should return LIGAR_PONTOS as custom fallback', () => {
+      it('should return RELACIONAR as custom fallback', () => {
         expect(
-          mapQuestionTypeToEnumRequired('test', QUESTION_TYPE.LIGAR_PONTOS)
-        ).toBe(QUESTION_TYPE.LIGAR_PONTOS);
+          mapQuestionTypeToEnumRequired('test', QUESTION_TYPE.RELACIONAR)
+        ).toBe(QUESTION_TYPE.RELACIONAR);
       });
 
       it('should return PREENCHER_LACUNAS as custom fallback', () => {

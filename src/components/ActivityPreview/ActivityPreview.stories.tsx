@@ -131,7 +131,7 @@ export const AllQuestionTypes: Story = () => {
       subjectName: 'Geografia',
       subjectColor: '#8b5cf6',
       iconName: 'GlobeHemisphereWest',
-      questionType: QUESTION_TYPE.LIGAR_PONTOS,
+      questionType: QUESTION_TYPE.RELACIONAR,
       enunciado: 'Associe países às suas capitais.',
       question: {
         options: [],

@@ -55,6 +55,77 @@ export const getStatusStyles = (variantCorrect?: string) => {
   }
 };
 
+/**
+ * Normalizes parsed answer data to Record<string, string> format.
+ * Handles legacy array format [{ optionId, selectedValue }] by converting to { [optionId]: selectedValue }.
+ */
+const normalizeAnswerData = (parsed: unknown): Record<string, string> => {
+  // Handle legacy array format: [{ optionId: string, selectedValue: string }]
+  if (Array.isArray(parsed)) {
+    const result: Record<string, string> = {};
+    for (const item of parsed) {
+      if (
+        item &&
+        typeof item === 'object' &&
+        'optionId' in item &&
+        'selectedValue' in item
+      ) {
+        result[item.optionId as string] = item.selectedValue as string;
+      }
+    }
+    return result;
+  }
+
+  // Handle expected object format: { [optionId]: selectedValue }
+  if (parsed && typeof parsed === 'object') {
+    return parsed as Record<string, string>;
+  }
+
+  return {};
+};
+
+/**
+ * Parses JSON answers from stored answer string.
+ * In result mode, uses persisted results. Otherwise, uses current draft answers.
+ * Normalizes legacy array format to expected Record<string, string> map.
+ */
+const parseStoredAnswers = (
+  variant: 'result' | 'default',
+  resultAnswer: string | null | undefined,
+  currentAnswer: string | null | undefined
+): Record<string, string> => {
+  if (variant === 'result') {
+    if (!resultAnswer) return {};
+    try {
+      const parsed = JSON.parse(resultAnswer);
+      return normalizeAnswerData(parsed);
+    } catch {
+      return {};
+    }
+  }
+  if (currentAnswer) {
+    try {
+      const parsed = JSON.parse(currentAnswer);
+      return normalizeAnswerData(parsed);
+    } catch {
+      return {};
+    }
+  }
+  return {};
+};
+
+/**
+ * Converts isCorrect boolean to status variant string.
+ * Returns undefined for null/unanswered to keep neutral styling.
+ */
+const getAnswerStatus = (
+  isCorrect: boolean | null
+): 'correct' | 'incorrect' | undefined => {
+  if (isCorrect === true) return 'correct';
+  if (isCorrect === false) return 'incorrect';
+  return undefined;
+};
+
 enum Status {
   CORRECT = 'correct',
   INCORRECT = 'incorrect',
@@ -471,9 +542,9 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
                     isDefaultVariant ? '' : getStatusStyles(variantCorrect)
                   )}
                 >
-                  <p className="text-text-900 text-sm">
+                  <Text size="sm" className="text-text-900">
                     {getLetterByIndex(index).concat(') ').concat(option.label)}
-                  </p>
+                  </Text>
 
                   {isDefaultVariant ? (
                     <Select size="medium">
@@ -495,13 +566,13 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
 
                 {!isDefaultVariant && (
                   <span className="flex flex-row gap-2 items-center">
-                    <p className="text-text-800 text-2xs">
+                    <Text size="2xs" className="text-text-800">
                       Resposta selecionada: V
-                    </p>
+                    </Text>
                     {!option.isCorrect && (
-                      <p className="text-text-800 text-2xs">
+                      <Text size="2xs" className="text-text-800">
                         Resposta correta: F
-                      </p>
+                      </Text>
                     )}
                   </span>
                 )}
@@ -522,84 +593,97 @@ interface UserAnswer {
 }
 
 const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
-  const { variant } = useQuizStore();
-  const dotsOptions = [
-    { label: 'Ração' },
-    { label: 'Rato' },
-    { label: 'Grama' },
-    { label: 'Peixe' },
-  ];
+  const {
+    variant,
+    getCurrentQuestion,
+    getCurrentAnswer,
+    selectDissertativeAnswer,
+    getQuestionResultByQuestionId,
+  } = useQuizStore();
 
-  const options = [
-    {
-      label: 'Cachorro',
-      correctOption: 'Ração',
-    },
-    {
-      label: 'Gato',
-      correctOption: 'Rato',
-    },
-    {
-      label: 'Cabra',
-      correctOption: 'Grama',
-    },
-    {
-      label: 'Baleia',
-      correctOption: 'Peixe',
-    },
-  ];
+  const currentQuestion = getCurrentQuestion();
+  const currentQuestionResult = getQuestionResultByQuestionId(
+    currentQuestion?.id || ''
+  );
+  const currentAnswer = getCurrentAnswer();
 
-  const mockUserAnswers = [
-    {
-      option: 'Cachorro',
-      dotOption: 'Ração',
-      correctOption: 'Ração',
-      isCorrect: true,
-    },
-    {
-      option: 'Gato',
-      dotOption: 'Rato',
-      correctOption: 'Rato',
-      isCorrect: true,
-    },
-    {
-      option: 'Cabra',
-      dotOption: 'Peixe',
-      correctOption: 'Grama',
-      isCorrect: false,
-    },
-    {
-      option: 'Baleia',
-      dotOption: 'Grama',
-      correctOption: 'Peixe',
-      isCorrect: false,
-    },
-  ];
+  // Extract options from the current question
+  // Each option has: id, option (left column), correctValue (right column)
+  const questionOptions = useMemo(() => {
+    if (!currentQuestion?.options) return [];
+    return currentQuestion.options;
+  }, [currentQuestion?.options]);
 
-  const [userAnswers, setUserAnswers] = useState<UserAnswer[]>(() => {
-    if (variant === 'result') {
-      return mockUserAnswers;
-    }
-    return options.map((option) => ({
-      option: option.label,
-      dotOption: null,
-      correctOption: option.correctOption,
-      isCorrect: null,
+  // Build dotsOptions from correctValue of each option (right column values)
+  const dotsOptions = useMemo(() => {
+    return questionOptions
+      .map((opt) => ({ label: opt.correctValue || '' }))
+      .filter((opt) => opt.label !== '');
+  }, [questionOptions]);
+
+  // Build options for display (left column with correct answer mapping)
+  const options = useMemo(() => {
+    return questionOptions.map((opt) => ({
+      id: opt.id,
+      label: opt.option,
+      correctOption: opt.correctValue || '',
     }));
-  });
+  }, [questionOptions]);
+
+  // Parse stored matching answers from JSON
+  // Format: { "optionId": "selectedValue", ... }
+  const parsedAnswers: Record<string, string> = useMemo(
+    () =>
+      parseStoredAnswers(
+        variant,
+        currentQuestionResult?.answer,
+        currentAnswer?.answer
+      ),
+    [variant, currentQuestionResult?.answer, currentAnswer?.answer]
+  );
+
+  const [userAnswers, setUserAnswers] = useState<UserAnswer[]>([]);
+
+  // Initialize userAnswers from options and stored answers
+  useEffect(() => {
+    if (options.length > 0) {
+      setUserAnswers(
+        options.map((option) => {
+          const storedValue = parsedAnswers[option.id] || null;
+          return {
+            option: option.label,
+            dotOption: storedValue,
+            correctOption: option.correctOption,
+            isCorrect: storedValue
+              ? storedValue === option.correctOption
+              : null,
+          };
+        })
+      );
+    }
+  }, [options, parsedAnswers]);
 
   const handleSelectDot = (optionIndex: number, dotValue: string) => {
+    const option = options[optionIndex];
+    if (!option) return;
+
+    // Update local state
     setUserAnswers((prev) => {
       const next = [...prev];
-      const { label: optionLabel, correctOption } = options[optionIndex];
       next[optionIndex] = {
-        option: optionLabel,
+        option: option.label,
         dotOption: dotValue,
-        correctOption,
-        isCorrect: dotValue ? dotValue === correctOption : null,
+        correctOption: option.correctOption,
+        isCorrect: dotValue ? dotValue === option.correctOption : null,
       };
       return next;
     });
+
+    // Persist to shared store as JSON
+    if (currentQuestion) {
+      const newAnswers = { ...parsedAnswers, [option.id]: dotValue };
+      selectDissertativeAnswer(currentQuestion.id, JSON.stringify(newAnswers));
+    }
   };
 
   const getLetterByIndex = (index: number) => String.fromCodePoint(97 + index); // 'a', 'b', 'c'...
@@ -609,6 +693,16 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
     userAnswers.map((a) => a.dotOption).filter(Boolean)
   );
 
+  if (options.length === 0) {
+    return (
+      <QuizContainer className={cn('', paddingBottom)}>
+        <Text size="sm" className="text-text-500 italic">
+          Nenhuma opção de relacionamento disponível
+        </Text>
+      </QuizContainer>
+    );
+  }
+
   return (
     <>
       <QuizSubTitle subTitle="Alternativas" />
@@ -616,19 +710,26 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
       <QuizContainer className={cn('', paddingBottom)}>
         <div className="flex flex-col gap-3.5">
           {options.map((option, index) => {
-            const answer = userAnswers[index];
-            const variantCorrect = answer.isCorrect ? 'correct' : 'incorrect';
+            const answer = userAnswers[index] || {
+              option: option.label,
+              dotOption: null,
+              correctOption: option.correctOption,
+              isCorrect: null,
+            };
+            const variantCorrect = getAnswerStatus(answer.isCorrect);
             return (
-              <section key={option.label} className="flex flex-col gap-2">
+              <section key={option.id} className="flex flex-col gap-2">
                 <div
                   className={cn(
-                    'flex flex-row justify-between items-center gap-2 p-2 rounded-md',
-                    isDefaultVariant ? '' : getStatusStyles(variantCorrect)
+                    'grid grid-cols-[1fr_auto] items-center gap-4 p-2 rounded-md',
+                    !isDefaultVariant && variantCorrect
+                      ? getStatusStyles(variantCorrect)
+                      : ''
                   )}
                 >
-                  <p className="text-text-900 text-sm">
+                  <Text size="sm" className="text-text-900">
                     {getLetterByIndex(index) + ') ' + option.label}
-                  </p>
+                  </Text>
 
                   {isDefaultVariant ? (
                     <Select
@@ -655,7 +756,7 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
                       </SelectContent>
                     </Select>
                   ) : (
-                    <div className="flex-shrink-0">
+                    <div>
                       {answer.isCorrect === null
                         ? null
                         : getStatusBadge(variantCorrect)}
@@ -665,13 +766,13 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
 
                 {!isDefaultVariant && (
                   <span className="flex flex-row gap-2 items-center">
-                    <p className="text-text-800 text-2xs">
+                    <Text size="2xs" className="text-text-800">
                       Resposta selecionada: {answer.dotOption || 'Nenhuma'}
-                    </p>
-                    {!answer.isCorrect && (
-                      <p className="text-text-800 text-2xs">
+                    </Text>
+                    {answer.isCorrect === false && (
+                      <Text size="2xs" className="text-text-800">
                         Resposta correta: {answer.correctOption}
-                      </p>
+                      </Text>
                     )}
                   </span>
                 )}
@@ -719,26 +820,15 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
 
   // Parse current answers from the stored JSON string
   // In result mode, only use persisted results (never fall back to draft answers)
-  const parsedAnswers: Record<string, string> = useMemo(() => {
-    if (variant === 'result') {
-      if (!currentQuestionResult?.answer) {
-        return {};
-      }
-      try {
-        return JSON.parse(currentQuestionResult.answer);
-      } catch {
-        return {};
-      }
-    }
-    if (currentAnswer?.answer) {
-      try {
-        return JSON.parse(currentAnswer.answer);
-      } catch {
-        return {};
-      }
-    }
-    return {};
-  }, [variant, currentQuestionResult?.answer, currentAnswer?.answer]);
+  const parsedAnswers: Record<string, string> = useMemo(
+    () =>
+      parseStoredAnswers(
+        variant,
+        currentQuestionResult?.answer,
+        currentAnswer?.answer
+      ),
+    [variant, currentQuestionResult?.answer, currentAnswer?.answer]
+  );
 
   const [localAnswers, setLocalAnswers] =
     useState<Record<string, string>>(parsedAnswers);
