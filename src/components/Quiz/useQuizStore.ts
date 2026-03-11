@@ -24,6 +24,20 @@ export enum QUESTION_TYPE {
   IMAGEM = 'IMAGEM',
 }
 
+/** @deprecated Use QUESTION_TYPE.RELACIONAR instead. This alias exists for backward compatibility. */
+export const QUESTION_TYPE_LIGAR_PONTOS = QUESTION_TYPE.RELACIONAR;
+
+/**
+ * Normalizes question type strings, converting deprecated LIGAR_PONTOS to RELACIONAR.
+ * Use this when receiving question types from external sources (API, etc.).
+ */
+export const normalizeQuestionType = (type: string): QUESTION_TYPE => {
+  if (type === 'LIGAR_PONTOS') {
+    return QUESTION_TYPE.RELACIONAR;
+  }
+  return type as QUESTION_TYPE;
+};
+
 export enum QUESTION_STATUS {
   PENDENTE_AVALIACAO = 'PENDENTE_AVALIACAO',
   RESPOSTA_CORRETA = 'RESPOSTA_CORRETA',
@@ -978,6 +992,38 @@ export const useQuizStore = create<QuizState>()(
             (answer) => answer.questionId === questionId
           );
           if (!answer) return 'unanswered';
+
+          // For free-text question types, check the answer field
+          const freeTextTypes = [
+            QUESTION_TYPE.DISSERTATIVA,
+            QUESTION_TYPE.RELACIONAR,
+            QUESTION_TYPE.PREENCHER_LACUNAS,
+          ];
+          if (freeTextTypes.includes(answer.questionType)) {
+            // Check if answer has content (non-empty string or valid JSON with values)
+            if (!answer.answer || answer.answer.trim() === '') return 'skipped';
+            // For RELACIONAR/PREENCHER_LACUNAS, also check if JSON has actual values
+            if (
+              answer.questionType === QUESTION_TYPE.RELACIONAR ||
+              answer.questionType === QUESTION_TYPE.PREENCHER_LACUNAS
+            ) {
+              try {
+                const parsed = JSON.parse(answer.answer);
+                if (
+                  typeof parsed === 'object' &&
+                  Object.keys(parsed).length > 0
+                ) {
+                  return 'answered';
+                }
+                return 'skipped';
+              } catch {
+                return 'skipped';
+              }
+            }
+            return 'answered';
+          }
+
+          // For option-based question types, check optionId
           if (answer.optionId === null) return 'skipped';
           return 'answered';
         },
