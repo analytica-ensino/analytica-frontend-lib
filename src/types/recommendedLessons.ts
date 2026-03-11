@@ -506,6 +506,7 @@ export interface RecommendedClassModelResponse {
   description: string | null;
   creatorUserInstitutionId: string;
   subjectId: string | null;
+  subject?: { id: string; name: string } | null;
   startDate: string | null;
   finalDate: string | null;
   createdAt: string;

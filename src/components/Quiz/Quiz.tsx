@@ -252,7 +252,7 @@ const QuizContent = ({ paddingBottom }: { paddingBottom?: string }) => {
     [QUESTION_TYPE.MULTIPLA_ESCOLHA]: QuizMultipleChoice,
     [QUESTION_TYPE.DISSERTATIVA]: QuizDissertative,
     [QUESTION_TYPE.VERDADEIRO_FALSO]: QuizTrueOrFalse,
-    [QUESTION_TYPE.LIGAR_PONTOS]: QuizConnectDots,
+    [QUESTION_TYPE.RELACIONAR]: QuizConnectDots,
     [QUESTION_TYPE.PREENCHER_LACUNAS]: QuizFill,
     [QUESTION_TYPE.IMAGEM]: QuizImageQuestion,
   };

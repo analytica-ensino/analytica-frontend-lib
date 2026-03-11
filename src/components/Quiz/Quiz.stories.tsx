@@ -1395,7 +1395,7 @@ export const General: Story = () => {
         {
           id: 'q5-ligar-pontos',
           statement: 'Ligue os conceitos às suas definições corretas.',
-          questionType: QUESTION_TYPE.LIGAR_PONTOS,
+          questionType: QUESTION_TYPE.RELACIONAR,
           difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
           description: 'Questão de ligar pontos',
           examBoard: 'ENEM',

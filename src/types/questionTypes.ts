@@ -9,6 +9,6 @@ export const questionTypeLabels: Record<QUESTION_TYPE, string> = {
   [QUESTION_TYPE.DISSERTATIVA]: 'Discursiva',
   [QUESTION_TYPE.IMAGEM]: 'Imagem',
   [QUESTION_TYPE.MULTIPLA_ESCOLHA]: 'Múltipla Escolha',
-  [QUESTION_TYPE.LIGAR_PONTOS]: 'Ligar Pontos',
+  [QUESTION_TYPE.RELACIONAR]: 'Relacionar',
   [QUESTION_TYPE.PREENCHER_LACUNAS]: 'Preencher Lacunas',
 };

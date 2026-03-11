@@ -3190,6 +3190,223 @@ describe('useQuizStore', () => {
           'skipped'
         );
       });
+
+      describe('free-text question types', () => {
+        it('should return answered for DISSERTATIVA with non-empty answer', () => {
+          const { result } = renderQuizStoreHook();
+
+          act(() => {
+            result.current.setQuiz({
+              ...mockSimulado,
+              questions: [
+                {
+                  ...mockQuestion1,
+                  id: 'dissertativa-q1',
+                  questionType: QUESTION_TYPE.DISSERTATIVA,
+                },
+              ],
+            });
+            result.current.setUserId('test-user-id');
+            result.current.selectDissertativeAnswer(
+              'dissertativa-q1',
+              'Minha resposta dissertativa'
+            );
+          });
+
+          expect(
+            result.current.getQuestionStatusFromUserAnswers('dissertativa-q1')
+          ).toBe('answered');
+        });
+
+        it('should return skipped for DISSERTATIVA with empty answer', () => {
+          const { result } = renderQuizStoreHook();
+
+          act(() => {
+            result.current.setQuiz({
+              ...mockSimulado,
+              questions: [
+                {
+                  ...mockQuestion1,
+                  id: 'dissertativa-q1',
+                  questionType: QUESTION_TYPE.DISSERTATIVA,
+                },
+              ],
+            });
+            result.current.setUserId('test-user-id');
+            result.current.selectDissertativeAnswer('dissertativa-q1', '');
+          });
+
+          expect(
+            result.current.getQuestionStatusFromUserAnswers('dissertativa-q1')
+          ).toBe('skipped');
+        });
+
+        it('should return skipped for DISSERTATIVA with whitespace-only answer', () => {
+          const { result } = renderQuizStoreHook();
+
+          act(() => {
+            result.current.setQuiz({
+              ...mockSimulado,
+              questions: [
+                {
+                  ...mockQuestion1,
+                  id: 'dissertativa-q1',
+                  questionType: QUESTION_TYPE.DISSERTATIVA,
+                },
+              ],
+            });
+            result.current.setUserId('test-user-id');
+            result.current.selectDissertativeAnswer('dissertativa-q1', '   ');
+          });
+
+          expect(
+            result.current.getQuestionStatusFromUserAnswers('dissertativa-q1')
+          ).toBe('skipped');
+        });
+
+        it('should return answered for RELACIONAR with valid JSON answer', () => {
+          const { result } = renderQuizStoreHook();
+
+          act(() => {
+            result.current.setQuiz({
+              ...mockSimulado,
+              questions: [
+                {
+                  ...mockQuestion1,
+                  id: 'relacionar-q1',
+                  questionType: QUESTION_TYPE.RELACIONAR,
+                  options: [
+                    { id: '1', option: 'Gato', correctValue: 'Rato' },
+                    { id: '2', option: 'Cachorro', correctValue: 'Ração' },
+                  ],
+                },
+              ],
+            });
+            result.current.setUserId('test-user-id');
+            result.current.selectDissertativeAnswer(
+              'relacionar-q1',
+              JSON.stringify({ '1': 'Rato', '2': 'Ração' })
+            );
+          });
+
+          expect(
+            result.current.getQuestionStatusFromUserAnswers('relacionar-q1')
+          ).toBe('answered');
+        });
+
+        it('should return skipped for RELACIONAR with empty JSON object', () => {
+          const { result } = renderQuizStoreHook();
+
+          act(() => {
+            result.current.setQuiz({
+              ...mockSimulado,
+              questions: [
+                {
+                  ...mockQuestion1,
+                  id: 'relacionar-q1',
+                  questionType: QUESTION_TYPE.RELACIONAR,
+                },
+              ],
+            });
+            result.current.setUserId('test-user-id');
+            result.current.selectDissertativeAnswer(
+              'relacionar-q1',
+              JSON.stringify({})
+            );
+          });
+
+          expect(
+            result.current.getQuestionStatusFromUserAnswers('relacionar-q1')
+          ).toBe('skipped');
+        });
+
+        it('should return skipped for RELACIONAR with invalid JSON', () => {
+          const { result } = renderQuizStoreHook();
+
+          act(() => {
+            result.current.setQuiz({
+              ...mockSimulado,
+              questions: [
+                {
+                  ...mockQuestion1,
+                  id: 'relacionar-q1',
+                  questionType: QUESTION_TYPE.RELACIONAR,
+                },
+              ],
+            });
+            result.current.setUserId('test-user-id');
+            result.current.setUserAnswers([
+              {
+                questionId: 'relacionar-q1',
+                activityId: mockSimulado.id,
+                userId: 'test-user-id',
+                answer: 'invalid json {',
+                optionId: null,
+                questionType: QUESTION_TYPE.RELACIONAR,
+                answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
+              },
+            ]);
+          });
+
+          expect(
+            result.current.getQuestionStatusFromUserAnswers('relacionar-q1')
+          ).toBe('skipped');
+        });
+
+        it('should return answered for PREENCHER_LACUNAS with valid JSON answer', () => {
+          const { result } = renderQuizStoreHook();
+
+          act(() => {
+            result.current.setQuiz({
+              ...mockSimulado,
+              questions: [
+                {
+                  ...mockQuestion1,
+                  id: 'preencher-q1',
+                  questionType: QUESTION_TYPE.PREENCHER_LACUNAS,
+                  additionalContent: 'O {opt1} é um animal.',
+                  options: [{ id: 'opt1', option: 'gato' }],
+                },
+              ],
+            });
+            result.current.setUserId('test-user-id');
+            result.current.selectDissertativeAnswer(
+              'preencher-q1',
+              JSON.stringify({ opt1: 'gato' })
+            );
+          });
+
+          expect(
+            result.current.getQuestionStatusFromUserAnswers('preencher-q1')
+          ).toBe('answered');
+        });
+
+        it('should return skipped for PREENCHER_LACUNAS with empty JSON object', () => {
+          const { result } = renderQuizStoreHook();
+
+          act(() => {
+            result.current.setQuiz({
+              ...mockSimulado,
+              questions: [
+                {
+                  ...mockQuestion1,
+                  id: 'preencher-q1',
+                  questionType: QUESTION_TYPE.PREENCHER_LACUNAS,
+                },
+              ],
+            });
+            result.current.setUserId('test-user-id');
+            result.current.selectDissertativeAnswer(
+              'preencher-q1',
+              JSON.stringify({})
+            );
+          });
+
+          expect(
+            result.current.getQuestionStatusFromUserAnswers('preencher-q1')
+          ).toBe('skipped');
+        });
+      });
     });
 
     describe('getUserAnswersForActivity', () => {
@@ -6035,6 +6252,130 @@ describe('useQuizStore', () => {
         result.current.getUserAnswerByQuestionId('dissertative-q1');
       expect(userAnswer).toBeTruthy();
       expect(userAnswer?.answer).toBe('');
+    });
+  });
+
+  describe('RELACIONAR question type', () => {
+    const mockRelacionarQuestion = {
+      ...mockQuestion1,
+      id: 'relacionar-q1',
+      questionType: QUESTION_TYPE.RELACIONAR,
+      statement: 'Relacione os animais com seus alimentos',
+      options: [
+        { id: 'opt1', option: 'Gato' },
+        { id: 'opt2', option: 'Cachorro' },
+        { id: 'opt3', option: 'Galinha' },
+      ],
+    };
+
+    const mockSimuladoWithRelacionar = {
+      ...mockSimulado,
+      questions: [mockRelacionarQuestion, mockQuestion2],
+    };
+
+    it('should include RELACIONAR in QUESTION_TYPE enum', () => {
+      expect(QUESTION_TYPE.RELACIONAR).toBe('RELACIONAR');
+    });
+
+    it('should handle RELACIONAR question in quiz', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setQuiz(mockSimuladoWithRelacionar);
+      });
+
+      const firstQuestion = result.current.getCurrentQuestion();
+      expect(firstQuestion?.questionType).toBe(QUESTION_TYPE.RELACIONAR);
+      expect(firstQuestion?.id).toBe('relacionar-q1');
+    });
+
+    it('should track user answers for RELACIONAR questions', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setQuiz(mockSimuladoWithRelacionar);
+        result.current.setUserId('test-user-id');
+        result.current.setUserAnswers([
+          {
+            questionId: 'relacionar-q1',
+            activityId: 'test-activity',
+            userId: 'test-user-id',
+            answer: JSON.stringify([
+              { optionId: 'opt1', selectedValue: 'Leite' },
+              { optionId: 'opt2', selectedValue: 'Ração' },
+            ]),
+            optionId: null,
+            questionType: QUESTION_TYPE.RELACIONAR,
+            answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+          },
+        ]);
+      });
+
+      const userAnswer =
+        result.current.getUserAnswerByQuestionId('relacionar-q1');
+      expect(userAnswer).toBeTruthy();
+      expect(userAnswer?.questionType).toBe(QUESTION_TYPE.RELACIONAR);
+      expect(userAnswer?.answerStatus).toBe(ANSWER_STATUS.RESPOSTA_CORRETA);
+    });
+
+    it('should correctly identify answered RELACIONAR questions', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setQuiz(mockSimuladoWithRelacionar);
+        result.current.setUserId('test-user-id');
+        result.current.setUserAnswers([
+          {
+            questionId: 'relacionar-q1',
+            activityId: 'test-activity',
+            userId: 'test-user-id',
+            answer: JSON.stringify([
+              { optionId: 'opt1', selectedValue: 'Leite' },
+            ]),
+            optionId: null,
+            questionType: QUESTION_TYPE.RELACIONAR,
+            answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+          },
+        ]);
+      });
+
+      // isQuestionAnsweredByUserAnswers correctly checks both optionId and answer
+      expect(
+        result.current.isQuestionAnsweredByUserAnswers('relacionar-q1')
+      ).toBe(true);
+    });
+
+    it('should handle unanswered RELACIONAR questions', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setQuiz(mockSimuladoWithRelacionar);
+        result.current.setUserId('test-user-id');
+      });
+
+      expect(
+        result.current.isQuestionAnsweredByUserAnswers('relacionar-q1')
+      ).toBe(false);
+      expect(
+        result.current.getQuestionStatusFromUserAnswers('relacionar-q1')
+      ).toBe('unanswered');
+    });
+
+    it('should include RELACIONAR question in getQuestionsGroupedBySubject', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setQuiz(mockSimuladoWithRelacionar);
+      });
+
+      const grouped = result.current.getQuestionsGroupedBySubject();
+      // Find the group that contains our RELACIONAR question
+      const allQuestions = Object.values(grouped).flat();
+      const relacionarQuestion = allQuestions.find(
+        (q) => q.questionType === QUESTION_TYPE.RELACIONAR
+      );
+      expect(relacionarQuestion).toBeDefined();
+      expect(relacionarQuestion?.id).toBe('relacionar-q1');
     });
   });
 });

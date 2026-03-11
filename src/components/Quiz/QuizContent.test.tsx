@@ -105,7 +105,7 @@ jest.mock('./useQuizStore', () => ({
     MULTIPLA_ESCOLHA: 'MULTIPLA_ESCOLHA',
     DISSERTATIVA: 'DISSERTATIVA',
     VERDADEIRO_FALSO: 'VERDADEIRO_FALSO',
-    LIGAR_PONTOS: 'LIGAR_PONTOS',
+    RELACIONAR: 'RELACIONAR',
     PREENCHER_LACUNAS: 'PREENCHER_LACUNAS',
     IMAGEM: 'IMAGEM',
   },
@@ -182,21 +182,41 @@ jest.mock('../Alternative/Alternative', () => ({
 }));
 
 // Mock Select component
+// Store onValueChange callbacks by stable key for testing
+const selectCallbacks: Record<string, (value: string) => void> = {};
+let selectCounter = 0;
+
 jest.mock('../Select/Select', () => ({
   __esModule: true,
   default: ({
     children,
     value,
     size,
+    onValueChange,
+    id,
   }: {
     children: React.ReactNode;
     value: string;
     size: string;
-  }) => (
-    <div data-testid="quiz-select" data-value={value} data-size={size}>
-      {children}
-    </div>
-  ),
+    onValueChange?: (value: string) => void;
+    id?: string;
+  }) => {
+    // Use stable key based on id or value, fallback to counter for uniqueness
+    const stableKey = id || `select-${selectCounter++}`;
+    if (onValueChange) {
+      selectCallbacks[stableKey] = onValueChange;
+    }
+    return (
+      <div
+        data-testid="quiz-select"
+        data-value={value}
+        data-size={size}
+        data-select-id={stableKey}
+      >
+        {children}
+      </div>
+    );
+  },
   SelectTrigger: ({
     children,
     className,
@@ -232,6 +252,15 @@ jest.mock('../Select/Select', () => ({
     </button>
   ),
 }));
+
+// Helper to reset select callbacks between tests
+const resetSelectCallbacks = () => {
+  Object.keys(selectCallbacks).forEach((key) => delete selectCallbacks[key]);
+  selectCounter = 0;
+};
+
+// Helper to get callback by index (for backward compatibility with tests)
+const getSelectCallback = (index: number) => selectCallbacks[`select-${index}`];
 
 // Mock Badge component
 jest.mock('../Badge/Badge', () => {
@@ -1510,9 +1539,45 @@ describe('QuizContent', () => {
   });
 
   describe('QuizConnectDots Component', () => {
+    const mockConnectDotsQuestion = {
+      id: 'connect-dots-question-1',
+      options: [
+        { id: '1', option: 'Cachorro', correctValue: 'Ração' },
+        { id: '2', option: 'Gato', correctValue: 'Rato' },
+        { id: '3', option: 'Cabra', correctValue: 'Grama' },
+        { id: '4', option: 'Baleia', correctValue: 'Peixe' },
+      ],
+    };
+
+    const mockGetCurrentQuestionConnectDots = jest.fn<
+      typeof mockConnectDotsQuestion | null,
+      []
+    >(() => mockConnectDotsQuestion);
+    const mockGetCurrentAnswerConnectDots = jest.fn<
+      { answer: string } | null,
+      []
+    >(() => null);
+    const mockSelectDissertativeAnswerConnectDots = jest.fn();
+    const mockGetQuestionResultByQuestionIdConnectDots = jest.fn<
+      { answer: string } | null,
+      []
+    >(() => null);
+
     beforeEach(() => {
+      jest.clearAllMocks();
+      resetSelectCallbacks();
+      mockGetCurrentQuestionConnectDots.mockReturnValue(
+        mockConnectDotsQuestion
+      );
+      mockGetCurrentAnswerConnectDots.mockReturnValue(null);
+      mockGetQuestionResultByQuestionIdConnectDots.mockReturnValue(null);
       mockUseQuizStore.mockReturnValue({
         variant: 'default',
+        getCurrentQuestion: mockGetCurrentQuestionConnectDots,
+        getCurrentAnswer: mockGetCurrentAnswerConnectDots,
+        selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
+        getQuestionResultByQuestionId:
+          mockGetQuestionResultByQuestionIdConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
     });
 
@@ -1542,49 +1607,38 @@ describe('QuizContent', () => {
     it('should render status badges in result variant', () => {
       mockUseQuizStore.mockReturnValue({
         variant: 'result',
+        getCurrentQuestion: mockGetCurrentQuestionConnectDots,
+        getCurrentAnswer: mockGetCurrentAnswerConnectDots,
+        selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
+        getQuestionResultByQuestionId:
+          mockGetQuestionResultByQuestionIdConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizConnectDots />);
 
-      // Should render status badges for answered questions
-      expect(screen.getAllByText('Resposta correta')).toHaveLength(2); // Cachorro and Gato are correct
-      expect(screen.getAllByText('Resposta incorreta')).toHaveLength(2); // Cabra and Baleia are incorrect
+      // In result variant without user selections, no badges are shown
+      // since isCorrect is null when no selection has been made
+      expect(screen.getByText('Alternativas')).toBeInTheDocument();
     });
 
-    it('should show selected and correct answers in result variant', () => {
+    it('should show selected answers as Nenhuma when no selection in result variant', () => {
       mockUseQuizStore.mockReturnValue({
         variant: 'result',
+        getCurrentQuestion: mockGetCurrentQuestionConnectDots,
+        getCurrentAnswer: mockGetCurrentAnswerConnectDots,
+        selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
+        getQuestionResultByQuestionId:
+          mockGetQuestionResultByQuestionIdConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizConnectDots />);
 
-      // Should show selected answers
-      expect(
-        screen.getByText('Resposta selecionada: Ração')
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText('Resposta selecionada: Rato')
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText('Resposta selecionada: Peixe')
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText('Resposta selecionada: Grama')
-      ).toBeInTheDocument();
+      // Without user interaction, all selections show "Nenhuma"
+      expect(screen.getAllByText('Resposta selecionada: Nenhuma')).toHaveLength(
+        4
+      );
 
-      // Should show correct answers for incorrect options
-      expect(screen.getByText('Resposta correta: Grama')).toBeInTheDocument(); // For Cabra
-      expect(screen.getByText('Resposta correta: Peixe')).toBeInTheDocument(); // For Baleia
-    });
-
-    it('should not show correct answer text for correct options in result variant', () => {
-      mockUseQuizStore.mockReturnValue({
-        variant: 'result',
-      } as unknown as ReturnType<typeof useQuizStore>);
-
-      render(<QuizConnectDots />);
-
-      // Correct options (Cachorro and Gato) shouldn't show "Resposta correta:"
+      // Should NOT show "Resposta correta" for unanswered items (isCorrect is null)
       expect(
         screen.queryByText('Resposta correta: Ração')
       ).not.toBeInTheDocument();
@@ -1593,31 +1647,58 @@ describe('QuizContent', () => {
       ).not.toBeInTheDocument();
     });
 
-    it('should apply correct styling in result variant', () => {
+    it('should show correct answer only when user answered incorrectly', () => {
+      // Mock stored answer with incorrect selection (Cachorro -> Grama instead of Ração)
+      mockGetQuestionResultByQuestionIdConnectDots.mockReturnValue({
+        answer: JSON.stringify({ '1': 'Grama' }),
+      });
+
       mockUseQuizStore.mockReturnValue({
         variant: 'result',
+        getCurrentQuestion: mockGetCurrentQuestionConnectDots,
+        getCurrentAnswer: mockGetCurrentAnswerConnectDots,
+        selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
+        getQuestionResultByQuestionId:
+          mockGetQuestionResultByQuestionIdConnectDots,
+      } as unknown as ReturnType<typeof useQuizStore>);
+
+      render(<QuizConnectDots />);
+
+      // Should show correct answer for the incorrectly answered item
+      expect(screen.getByText('Resposta correta: Ração')).toBeInTheDocument();
+
+      // Should NOT show correct answer for unanswered items
+      expect(
+        screen.queryByText('Resposta correta: Rato')
+      ).not.toBeInTheDocument();
+    });
+
+    it('should apply neutral styling in result variant when no selections made', () => {
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+        getCurrentQuestion: mockGetCurrentQuestionConnectDots,
+        getCurrentAnswer: mockGetCurrentAnswerConnectDots,
+        selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
+        getQuestionResultByQuestionId:
+          mockGetQuestionResultByQuestionIdConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       const { container } = render(<QuizConnectDots />);
 
-      // Check if status styles are applied
+      // When no selections are made (isCorrect is null), styling should be neutral (no error/success classes)
       const sections = container.querySelectorAll('section');
-      expect(sections[0].querySelector('div')).toHaveClass(
-        'bg-success-background',
-        'border-success-300'
-      ); // Cachorro - correct
-      expect(sections[1].querySelector('div')).toHaveClass(
-        'bg-success-background',
-        'border-success-300'
-      ); // Gato - correct
-      expect(sections[2].querySelector('div')).toHaveClass(
-        'bg-error-background',
-        'border-error-300'
-      ); // Cabra - incorrect
-      expect(sections[3].querySelector('div')).toHaveClass(
-        'bg-error-background',
-        'border-error-300'
-      ); // Baleia - incorrect
+      expect(sections[0].querySelector('div')).not.toHaveClass(
+        'bg-error-background'
+      );
+      expect(sections[0].querySelector('div')).not.toHaveClass(
+        'bg-success-background'
+      );
+      expect(sections[1].querySelector('div')).not.toHaveClass(
+        'bg-error-background'
+      );
+      expect(sections[1].querySelector('div')).not.toHaveClass(
+        'bg-success-background'
+      );
     });
 
     it('should have correct letter indexing', () => {
@@ -1645,6 +1726,11 @@ describe('QuizContent', () => {
       // Switch to result variant
       mockUseQuizStore.mockReturnValue({
         variant: 'result',
+        getCurrentQuestion: mockGetCurrentQuestionConnectDots,
+        getCurrentAnswer: mockGetCurrentAnswerConnectDots,
+        selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
+        getQuestionResultByQuestionId:
+          mockGetQuestionResultByQuestionIdConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       rerender(<QuizConnectDots />);
@@ -1682,6 +1768,11 @@ describe('QuizContent', () => {
       // Test the case where isCorrect is null (no answer given)
       mockUseQuizStore.mockReturnValue({
         variant: 'result',
+        getCurrentQuestion: mockGetCurrentQuestionConnectDots,
+        getCurrentAnswer: mockGetCurrentAnswerConnectDots,
+        selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
+        getQuestionResultByQuestionId:
+          mockGetQuestionResultByQuestionIdConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       // We can't easily mock the internal state, but we can test the render
@@ -1689,6 +1780,207 @@ describe('QuizContent', () => {
 
       // The component should render without throwing errors
       expect(screen.getByText('Alternativas')).toBeInTheDocument();
+      // No badges since no selections were made (isCorrect is null)
+      expect(screen.queryAllByText('Resposta correta')).toHaveLength(0);
+      expect(screen.queryAllByText('Resposta incorreta')).toHaveLength(0);
+    });
+
+    it('should render all correct values as select options', () => {
+      render(<QuizConnectDots />);
+
+      // All correct values should be available as options
+      expect(screen.getAllByTestId('select-item-Ração')).toHaveLength(4);
+      expect(screen.getAllByTestId('select-item-Rato')).toHaveLength(4);
+      expect(screen.getAllByTestId('select-item-Grama')).toHaveLength(4);
+      expect(screen.getAllByTestId('select-item-Peixe')).toHaveLength(4);
+    });
+
+    it('should hydrate user answers from stored answer on mount', () => {
+      // Mock stored answer
+      mockGetCurrentAnswerConnectDots.mockReturnValue({
+        answer: JSON.stringify({ '1': 'Ração', '2': 'Rato' }),
+      });
+
+      render(<QuizConnectDots />);
+
+      // Verify select elements have the correct hydrated values
+      const selectElements = screen.getAllByTestId('quiz-select');
+
+      // First select (option id '1') should have value 'Ração'
+      expect(selectElements[0]).toHaveAttribute('data-value', 'Ração');
+
+      // Second select (option id '2') should have value 'Rato'
+      expect(selectElements[1]).toHaveAttribute('data-value', 'Rato');
+
+      // Third and fourth selects should have no value (undefined)
+      expect(selectElements[2]).not.toHaveAttribute('data-value', 'Ração');
+      expect(selectElements[2]).not.toHaveAttribute('data-value', 'Rato');
+      expect(selectElements[3]).not.toHaveAttribute('data-value', 'Ração');
+      expect(selectElements[3]).not.toHaveAttribute('data-value', 'Rato');
+    });
+
+    it('should show correct styling when answer matches correctValue in result variant', () => {
+      // Mock stored answer with correct selections
+      mockGetQuestionResultByQuestionIdConnectDots.mockReturnValue({
+        answer: JSON.stringify({ '1': 'Ração', '2': 'Rato' }),
+      });
+
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+        getCurrentQuestion: mockGetCurrentQuestionConnectDots,
+        getCurrentAnswer: mockGetCurrentAnswerConnectDots,
+        selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
+        getQuestionResultByQuestionId:
+          mockGetQuestionResultByQuestionIdConnectDots,
+      } as unknown as ReturnType<typeof useQuizStore>);
+
+      const { container } = render(<QuizConnectDots />);
+
+      // First two options should have correct styling (Ração and Rato are correct)
+      const sections = container.querySelectorAll('section');
+      expect(sections[0].querySelector('div')).toHaveClass(
+        'bg-success-background',
+        'border-success-300'
+      );
+      expect(sections[1].querySelector('div')).toHaveClass(
+        'bg-success-background',
+        'border-success-300'
+      );
+    });
+
+    it('should show incorrect styling when answer does not match correctValue in result variant', () => {
+      // Mock stored answer with incorrect selections (swapped answers)
+      mockGetQuestionResultByQuestionIdConnectDots.mockReturnValue({
+        answer: JSON.stringify({ '1': 'Rato', '2': 'Ração' }), // Wrong answers
+      });
+
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+        getCurrentQuestion: mockGetCurrentQuestionConnectDots,
+        getCurrentAnswer: mockGetCurrentAnswerConnectDots,
+        selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
+        getQuestionResultByQuestionId:
+          mockGetQuestionResultByQuestionIdConnectDots,
+      } as unknown as ReturnType<typeof useQuizStore>);
+
+      const { container } = render(<QuizConnectDots />);
+
+      // First two options should have incorrect styling
+      const sections = container.querySelectorAll('section');
+      expect(sections[0].querySelector('div')).toHaveClass(
+        'bg-error-background',
+        'border-error-300'
+      );
+      expect(sections[1].querySelector('div')).toHaveClass(
+        'bg-error-background',
+        'border-error-300'
+      );
+    });
+
+    describe('handleSelectDot', () => {
+      it('should update local state and persist to store when selecting an option', () => {
+        render(<QuizConnectDots />);
+
+        // Simulate selecting "Ração" for the first option (index 0)
+        act(() => {
+          getSelectCallback(0)?.('Ração');
+        });
+
+        // Verify selectDissertativeAnswer was called with correct JSON
+        expect(mockSelectDissertativeAnswerConnectDots).toHaveBeenCalledWith(
+          'connect-dots-question-1',
+          JSON.stringify({ '1': 'Ração' })
+        );
+      });
+
+      it('should update multiple selections and persist accumulated answers', () => {
+        // Start with first answer already stored
+        mockGetCurrentAnswerConnectDots.mockReturnValue({
+          answer: JSON.stringify({ '1': 'Ração' }),
+        });
+
+        render(<QuizConnectDots />);
+
+        // Select second option - should accumulate with existing answer
+        act(() => {
+          getSelectCallback(1)?.('Rato');
+        });
+
+        expect(mockSelectDissertativeAnswerConnectDots).toHaveBeenCalledWith(
+          'connect-dots-question-1',
+          JSON.stringify({ '1': 'Ração', '2': 'Rato' })
+        );
+      });
+
+      it('should update isCorrect to true when selected value matches correctValue', () => {
+        render(<QuizConnectDots />);
+
+        // Select correct answer for first option (Cachorro -> Ração)
+        act(() => {
+          getSelectCallback(0)?.('Ração');
+        });
+
+        // The component updates local state, but we can verify the store call
+        expect(mockSelectDissertativeAnswerConnectDots).toHaveBeenCalledWith(
+          'connect-dots-question-1',
+          expect.stringContaining('Ração')
+        );
+      });
+
+      it('should update isCorrect to false when selected value does not match correctValue', () => {
+        render(<QuizConnectDots />);
+
+        // Select wrong answer for first option (Cachorro should be Ração, not Grama)
+        act(() => {
+          getSelectCallback(0)?.('Grama');
+        });
+
+        expect(mockSelectDissertativeAnswerConnectDots).toHaveBeenCalledWith(
+          'connect-dots-question-1',
+          JSON.stringify({ '1': 'Grama' })
+        );
+      });
+
+      it('should not call store when currentQuestion is null', () => {
+        mockGetCurrentQuestionConnectDots.mockReturnValue(null);
+        mockUseQuizStore.mockReturnValue({
+          variant: 'default',
+          getCurrentQuestion: mockGetCurrentQuestionConnectDots,
+          getCurrentAnswer: mockGetCurrentAnswerConnectDots,
+          selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
+          getQuestionResultByQuestionId:
+            mockGetQuestionResultByQuestionIdConnectDots,
+        } as unknown as ReturnType<typeof useQuizStore>);
+
+        render(<QuizConnectDots />);
+
+        // Component should render empty state
+        expect(
+          screen.getByText('Nenhuma opção de relacionamento disponível')
+        ).toBeInTheDocument();
+
+        // No selects rendered, so no callbacks to call
+        expect(Object.keys(selectCallbacks).length).toBe(0);
+      });
+
+      it('should allow changing a previously selected option', () => {
+        // Start with existing answer
+        mockGetCurrentAnswerConnectDots.mockReturnValue({
+          answer: JSON.stringify({ '1': 'Ração' }),
+        });
+
+        render(<QuizConnectDots />);
+
+        // Change the selection for first option
+        act(() => {
+          getSelectCallback(0)?.('Peixe');
+        });
+
+        expect(mockSelectDissertativeAnswerConnectDots).toHaveBeenCalledWith(
+          'connect-dots-question-1',
+          JSON.stringify({ '1': 'Peixe' })
+        );
+      });
     });
   });
 

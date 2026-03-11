@@ -361,6 +361,145 @@ describe('useRecommendedLessonsPage', () => {
     expect(response).toEqual(validRecommendedClassModelsResponse);
   });
 
+  it('fetchRecommendedClassModels: should extract subjects and update userFilterData', async () => {
+    const responseWithSubject: RecommendedClassModelsApiResponse = {
+      message: 'Success',
+      data: {
+        drafts: [
+          {
+            id: '123e4567-e89b-12d3-a456-426614174001',
+            type: RecommendedClassDraftType.MODELO,
+            title: 'Test Model',
+            description: null,
+            creatorUserInstitutionId: '123e4567-e89b-12d3-a456-426614174002',
+            subjectId: 'subject-3',
+            subject: { id: 'subject-3', name: 'Science' },
+            startDate: null,
+            finalDate: null,
+            createdAt: '2024-06-01T10:00:00Z',
+            updatedAt: '2024-06-01T10:00:00Z',
+          },
+        ],
+        total: 1,
+      },
+    };
+
+    (mockApi.get as jest.Mock).mockResolvedValueOnce({
+      data: responseWithSubject,
+    });
+
+    const { result } = setupHook();
+
+    await act(async () => {
+      await result.current.historyProps.fetchRecommendedClassModels({});
+    });
+
+    expect(
+      result.current.historyProps.userFilterData.subjects.some(
+        (s) => s.id === 'subject-3' && s.name === 'Science'
+      )
+    ).toBe(true);
+  });
+
+  it('fetchRecommendedClassModels: should not update filterData when no subjects in response', async () => {
+    (mockApi.get as jest.Mock).mockResolvedValueOnce({
+      data: validRecommendedClassModelsResponse,
+    });
+
+    const { result } = setupHook({ userData: null });
+
+    const subjectsBefore =
+      result.current.historyProps.userFilterData.subjects.length;
+
+    await act(async () => {
+      await result.current.historyProps.fetchRecommendedClassModels({});
+    });
+
+    expect(result.current.historyProps.userFilterData.subjects.length).toBe(
+      subjectsBefore
+    );
+  });
+
+  it('fetchRecommendedClassDrafts: should fetch with RASCUNHO type', async () => {
+    (mockApi.get as jest.Mock).mockResolvedValueOnce({
+      data: validRecommendedClassModelsResponse,
+    });
+
+    const { result } = setupHook();
+    let response: RecommendedClassModelsApiResponse | undefined;
+
+    await act(async () => {
+      response = await result.current.historyProps.fetchRecommendedClassDrafts({
+        page: 1,
+        limit: 10,
+      });
+    });
+
+    expect(mockApi.get).toHaveBeenCalledWith('/recommended-class/drafts', {
+      params: { page: 1, limit: 10, type: RecommendedClassDraftType.RASCUNHO },
+    });
+    expect(response).toEqual(validRecommendedClassModelsResponse);
+  });
+
+  it('fetchRecommendedClassDrafts: should extract subjects and update userFilterData', async () => {
+    const responseWithSubject: RecommendedClassModelsApiResponse = {
+      message: 'Success',
+      data: {
+        drafts: [
+          {
+            id: '123e4567-e89b-12d3-a456-426614174001',
+            type: RecommendedClassDraftType.RASCUNHO,
+            title: 'Test Draft',
+            description: null,
+            creatorUserInstitutionId: '123e4567-e89b-12d3-a456-426614174002',
+            subjectId: 'subject-4',
+            subject: { id: 'subject-4', name: 'History' },
+            startDate: null,
+            finalDate: null,
+            createdAt: '2024-06-01T10:00:00Z',
+            updatedAt: '2024-06-01T10:00:00Z',
+          },
+        ],
+        total: 1,
+      },
+    };
+
+    (mockApi.get as jest.Mock).mockResolvedValueOnce({
+      data: responseWithSubject,
+    });
+
+    const { result } = setupHook();
+
+    await act(async () => {
+      await result.current.historyProps.fetchRecommendedClassDrafts({});
+    });
+
+    expect(
+      result.current.historyProps.userFilterData.subjects.some(
+        (s) => s.id === 'subject-4' && s.name === 'History'
+      )
+    ).toBe(true);
+  });
+
+  it('fetchRecommendedClassDrafts: should not update filterData when no subjects in response', async () => {
+    (mockApi.get as jest.Mock).mockResolvedValueOnce({
+      data: validRecommendedClassModelsResponse,
+    });
+
+    const { result } = setupHook({ userData: null });
+
+    const subjectsBefore =
+      result.current.historyProps.userFilterData.subjects.length;
+
+    await act(async () => {
+      await result.current.historyProps.fetchRecommendedClassDrafts({});
+    });
+
+    expect(result.current.historyProps.userFilterData.subjects.length).toBe(
+      subjectsBefore
+    );
+  });
+
   // deleteRecommendedClassModel tests
   it('deleteRecommendedClassModel: should call delete API', async () => {
     (mockApi.delete as jest.Mock).mockResolvedValueOnce({ data: {} });

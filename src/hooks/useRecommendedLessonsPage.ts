@@ -15,6 +15,7 @@ import {
   type RecommendedClassModelFilters,
   type RecommendedClassModelsApiResponse,
   type RecommendedClassModelTableItem,
+  type RecommendedClassModelResponse,
 } from '../types/recommendedLessons';
 import type {
   SendLessonFormData,
@@ -370,6 +371,21 @@ const extractMapsFromItems = (
 };
 
 /**
+ * Extract unique subjects from draft/model items for filter population
+ */
+const extractSubjectsFromDraftItems = (
+  drafts: RecommendedClassModelResponse[]
+): Array<{ id: string; name: string }> => {
+  const subjectMap = new Map<string, string>();
+  for (const draft of drafts) {
+    if (draft.subject?.id && draft.subject?.name) {
+      subjectMap.set(draft.subject.id, draft.subject.name);
+    }
+  }
+  return Array.from(subjectMap.entries()).map(([id, name]) => ({ id, name }));
+};
+
+/**
  * Check if a merged map differs from the previous array (size or name changes)
  */
 const hasMapChanged = (
@@ -566,6 +582,18 @@ export const createUseRecommendedLessonsPage = (
           endpoints.recommendedClassDrafts,
           { params }
         );
+
+        // Extract subjects from response to populate the subject filter
+        const subjects = extractSubjectsFromDraftItems(
+          response.data.data.drafts
+        );
+        if (subjects.length > 0) {
+          setHistoryFilterData((prev) => ({
+            ...prev,
+            subjects: mergeFilterOptions(prev.subjects, subjects),
+          }));
+        }
+
         return response.data;
       },
       [api, endpoints.recommendedClassDrafts]
@@ -596,6 +624,18 @@ export const createUseRecommendedLessonsPage = (
           endpoints.recommendedClassDrafts,
           { params }
         );
+
+        // Extract subjects from response to populate the subject filter
+        const subjects = extractSubjectsFromDraftItems(
+          response.data.data.drafts
+        );
+        if (subjects.length > 0) {
+          setHistoryFilterData((prev) => ({
+            ...prev,
+            subjects: mergeFilterOptions(prev.subjects, subjects),
+          }));
+        }
+
         return response.data;
       },
       [api, endpoints.recommendedClassDrafts]

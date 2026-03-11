@@ -304,14 +304,14 @@ describe('ActivityCardQuestionBanks', () => {
       expect(screen.getByText('Verdadeiro ou Falso')).toBeInTheDocument();
     });
 
-    it('should render correct label for LIGAR_PONTOS', () => {
+    it('should render correct label for RELACIONAR', () => {
       render(
         <ActivityCardQuestionBanks
           {...defaultProps}
-          questionType={QUESTION_TYPE.LIGAR_PONTOS}
+          questionType={QUESTION_TYPE.RELACIONAR}
         />
       );
-      expect(screen.getByText('Ligar Pontos')).toBeInTheDocument();
+      expect(screen.getByText('Relacionar')).toBeInTheDocument();
     });
 
     it('should render correct label for PREENCHER_LACUNAS', () => {

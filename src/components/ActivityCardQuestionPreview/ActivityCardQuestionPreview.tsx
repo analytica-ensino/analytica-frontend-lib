@@ -18,6 +18,12 @@ import {
 } from '../../utils/questionRenderer/index';
 import { HtmlMathRenderer, stripHtml } from '../HtmlMathRenderer';
 
+export interface MatchingPairPreview {
+  id: string;
+  option: string; // Left column value (e.g., "Gato")
+  correctValue: string; // Right column value (e.g., "Leite")
+}
+
 interface ActivityCardQuestionPreviewProps {
   subjectName?: string;
   subjectColor?: string;
@@ -33,6 +39,11 @@ interface ActivityCardQuestionPreviewProps {
     options: { id: string; option: string }[];
     correctOptionIds?: string[];
   };
+  /**
+   * Matching pairs for RELACIONAR question type.
+   * Each pair has an option (left column) and correctValue (right column).
+   */
+  matchingPairs?: MatchingPairPreview[];
   defaultExpanded?: boolean;
   value?: string;
   className?: string;
@@ -95,6 +106,7 @@ export const ActivityCardQuestionPreview = ({
   questionTypeLabel,
   enunciado = 'Enunciado não informado',
   question,
+  matchingPairs,
   defaultExpanded = false,
   value,
   className,
@@ -230,7 +242,51 @@ export const ActivityCardQuestionPreview = ({
     );
   };
 
-  const renderConnectDots = () => null;
+  const renderConnectDots = () => {
+    if (!matchingPairs || matchingPairs.length === 0) return null;
+
+    return (
+      <div className="mt-4">
+        <Text size="sm" weight="medium" className="text-text-700 mb-3">
+          Alternativas
+        </Text>
+        <div className="flex flex-col gap-3.5">
+          {matchingPairs.map((pair, index) => {
+            const letter = String.fromCodePoint(97 + index); // 'a', 'b', 'c'...
+
+            return (
+              <section key={pair.id} className="flex flex-col gap-2">
+                <div
+                  className={cn(
+                    'flex flex-row justify-between items-center gap-2 p-2 rounded-md border',
+                    'bg-success-background border-success-300'
+                  )}
+                >
+                  <Text size="sm" className="text-text-900">
+                    {letter}) {pair.option}
+                  </Text>
+
+                  <div className="flex flex-row items-center gap-2 shrink-0">
+                    <Text size="sm" className="text-text-700">
+                      Resposta correta: {pair.correctValue}
+                    </Text>
+                    <Badge
+                      variant="solid"
+                      action="success"
+                      iconLeft={<CheckCircle />}
+                    >
+                      Resposta correta
+                    </Badge>
+                  </div>
+                </div>
+              </section>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   const renderFill = () => null;
   const renderImage = () => null;
 
@@ -239,7 +295,7 @@ export const ActivityCardQuestionPreview = ({
     [QUESTION_TYPE.MULTIPLA_ESCOLHA]: renderMultipleChoice,
     [QUESTION_TYPE.DISSERTATIVA]: renderDissertative,
     [QUESTION_TYPE.VERDADEIRO_FALSO]: renderTrueOrFalse,
-    [QUESTION_TYPE.LIGAR_PONTOS]: renderConnectDots,
+    [QUESTION_TYPE.RELACIONAR]: renderConnectDots,
     [QUESTION_TYPE.PREENCHER_LACUNAS]: renderFill,
     [QUESTION_TYPE.IMAGEM]: renderImage,
   };

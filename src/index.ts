@@ -515,7 +515,10 @@ export { ActivityCardQuestionBanks } from './components/ActivityCardQuestionBank
 export { ActivityCardQuestionPreview } from './components/ActivityCardQuestionPreview/ActivityCardQuestionPreview';
 export { ActivityListQuestions } from './components/ActivityListQuestions/ActivityListQuestions';
 export type { ActivityListQuestionsProps } from './components/ActivityListQuestions/ActivityListQuestions';
-export type { ActivityCardQuestionPreviewProps } from './components/ActivityCardQuestionPreview/ActivityCardQuestionPreview';
+export type {
+  ActivityCardQuestionPreviewProps,
+  MatchingPairPreview,
+} from './components/ActivityCardQuestionPreview/ActivityCardQuestionPreview';
 export { ActivityPreview } from './components/ActivityPreview/ActivityPreview';
 export type {
   ActivityPreviewProps,

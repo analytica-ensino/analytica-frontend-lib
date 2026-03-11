@@ -40,7 +40,7 @@ const questionRendererMap = {
   [QUESTION_TYPE.DISSERTATIVA]: renderQuestionDissertative,
   [QUESTION_TYPE.PREENCHER_LACUNAS]: renderQuestionFill,
   [QUESTION_TYPE.IMAGEM]: renderQuestionImage,
-  [QUESTION_TYPE.LIGAR_PONTOS]: renderQuestionConnectDots,
+  [QUESTION_TYPE.RELACIONAR]: renderQuestionConnectDots,
 };
 
 /**
@@ -66,7 +66,7 @@ export const renderQuestion = (props: QuestionRendererProps): ReactNode => {
       return renderQuestionDissertative({ result: props.result });
     case QUESTION_TYPE.IMAGEM:
       return renderQuestionImage({ result: props.result });
-    case QUESTION_TYPE.LIGAR_PONTOS:
+    case QUESTION_TYPE.RELACIONAR:
       return renderQuestionConnectDots({ paddingBottom: '' });
     case QUESTION_TYPE.ALTERNATIVA:
     case QUESTION_TYPE.MULTIPLA_ESCOLHA:
