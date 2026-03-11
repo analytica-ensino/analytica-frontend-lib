@@ -82,6 +82,18 @@ const parseStoredAnswers = (
   return {};
 };
 
+/**
+ * Converts isCorrect boolean to status variant string.
+ * Returns undefined for null/unanswered to keep neutral styling.
+ */
+const getAnswerStatus = (
+  isCorrect: boolean | null
+): 'correct' | 'incorrect' | undefined => {
+  if (isCorrect === true) return 'correct';
+  if (isCorrect === false) return 'incorrect';
+  return undefined;
+};
+
 enum Status {
   CORRECT = 'correct',
   INCORRECT = 'incorrect',
@@ -672,13 +684,7 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
               correctOption: option.correctOption,
               isCorrect: null,
             };
-            // Only derive status when isCorrect is a boolean (answered)
-            const variantCorrect =
-              answer.isCorrect === true
-                ? 'correct'
-                : answer.isCorrect === false
-                  ? 'incorrect'
-                  : undefined;
+            const variantCorrect = getAnswerStatus(answer.isCorrect);
             return (
               <section key={option.id} className="flex flex-col gap-2">
                 <div
