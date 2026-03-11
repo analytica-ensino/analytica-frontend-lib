@@ -21,6 +21,7 @@ const recommendedClassModelResponseSchema = z.object({
   description: z.string().nullable(),
   creatorUserInstitutionId: z.string().uuid(),
   subjectId: z.string().uuid().nullable(),
+  subject: z.object({ id: z.string(), name: z.string() }).nullable().optional(),
   startDate: z.string().nullable(),
   finalDate: z.string().nullable(),
   createdAt: z.string(),
@@ -80,9 +81,9 @@ export const transformRecommendedClassModelToTableItem = (
   model: RecommendedClassModelResponse,
   subjectsMap?: Map<string, string>
 ): RecommendedClassModelTableItem => {
-  const subjectName = model.subjectId
-    ? subjectsMap?.get(model.subjectId) || ''
-    : '';
+  const subjectName =
+    model.subject?.name ||
+    (model.subjectId ? subjectsMap?.get(model.subjectId) || '' : '');
 
   return {
     id: model.id,
