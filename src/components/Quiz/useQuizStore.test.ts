@@ -6417,8 +6417,7 @@ describe('useQuizStore', () => {
         );
       });
 
-      const userAnswer =
-        result.current.getUserAnswerByQuestionId('imagem-q1');
+      const userAnswer = result.current.getUserAnswerByQuestionId('imagem-q1');
       expect(userAnswer).toBeTruthy();
       expect(userAnswer?.answer).toBe('{"x":50,"y":50}');
       expect(userAnswer?.optionId).toBeNull();
@@ -6465,9 +6464,9 @@ describe('useQuizStore', () => {
       });
 
       expect(result.current.isQuestionAnswered('imagem-q1')).toBe(true);
-      expect(
-        result.current.getQuestionStatusFromUserAnswers('imagem-q1')
-      ).toBe('answered');
+      expect(result.current.getQuestionStatusFromUserAnswers('imagem-q1')).toBe(
+        'answered'
+      );
     });
 
     it('should not truncate IMAGEM answer with character limit set', () => {
@@ -6512,12 +6511,12 @@ describe('useQuizStore', () => {
         result.current.setUserId('test-user-id');
       });
 
-      expect(
-        result.current.isQuestionAnsweredByUserAnswers('imagem-q1')
-      ).toBe(false);
-      expect(
-        result.current.getQuestionStatusFromUserAnswers('imagem-q1')
-      ).toBe('unanswered');
+      expect(result.current.isQuestionAnsweredByUserAnswers('imagem-q1')).toBe(
+        false
+      );
+      expect(result.current.getQuestionStatusFromUserAnswers('imagem-q1')).toBe(
+        'unanswered'
+      );
     });
   });
 });

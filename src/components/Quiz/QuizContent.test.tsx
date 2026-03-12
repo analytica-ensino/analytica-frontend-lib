@@ -2743,7 +2743,10 @@ describe('QuizContent', () => {
       render(<QuizImageQuestion />);
 
       const image = screen.getByTestId('quiz-image');
-      expect(image).toHaveAttribute('src', 'https://example.com/test-image.jpg');
+      expect(image).toHaveAttribute(
+        'src',
+        'https://example.com/test-image.jpg'
+      );
     });
 
     it('should parse correct coordinates from options', () => {
