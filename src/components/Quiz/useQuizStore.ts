@@ -50,6 +50,7 @@ export const hasMeaningfulAnswer = (
     QUESTION_TYPE.DISSERTATIVA,
     QUESTION_TYPE.RELACIONAR,
     QUESTION_TYPE.PREENCHER_LACUNAS,
+    QUESTION_TYPE.IMAGEM,
   ];
 
   if (freeTextTypes.includes(answer.questionType)) {
