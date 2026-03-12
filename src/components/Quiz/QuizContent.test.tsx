@@ -2256,9 +2256,19 @@ describe('QuizContent', () => {
   });
 
   describe('QuizImageQuestion Component', () => {
+    const defaultMockQuestion = {
+      id: 'image-q1',
+      additionalContent: '',
+      options: [],
+    };
+
     beforeEach(() => {
       mockUseQuizStore.mockReturnValue({
         variant: 'default',
+        getCurrentQuestion: () => defaultMockQuestion,
+        getCurrentAnswer: () => null,
+        selectDissertativeAnswer: jest.fn(),
+        getQuestionResultByQuestionId: () => null,
       } as unknown as ReturnType<typeof useQuizStore>);
     });
 
@@ -2312,6 +2322,13 @@ describe('QuizContent', () => {
     it('should show legend in result variant', () => {
       mockUseQuizStore.mockReturnValue({
         variant: 'result',
+        getCurrentQuestion: () => ({
+          ...defaultMockQuestion,
+          options: [{ id: 'opt-1', option: '{"x": 50, "y": 50}' }],
+        }),
+        getCurrentAnswer: () => null,
+        selectDissertativeAnswer: jest.fn(),
+        getQuestionResultByQuestionId: () => ({ answer: '{"x": 60, "y": 60}' }),
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizImageQuestion />);
@@ -2325,6 +2342,13 @@ describe('QuizContent', () => {
     it('should show correct circle in result variant', () => {
       mockUseQuizStore.mockReturnValue({
         variant: 'result',
+        getCurrentQuestion: () => ({
+          ...defaultMockQuestion,
+          options: [{ id: 'opt-1', option: '{"x": 50, "y": 50}' }],
+        }),
+        getCurrentAnswer: () => null,
+        selectDissertativeAnswer: jest.fn(),
+        getQuestionResultByQuestionId: () => ({ answer: '{"x": 60, "y": 60}' }),
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizImageQuestion />);
@@ -2342,6 +2366,13 @@ describe('QuizContent', () => {
     it('should show user circle in result variant with mock position', () => {
       mockUseQuizStore.mockReturnValue({
         variant: 'result',
+        getCurrentQuestion: () => ({
+          ...defaultMockQuestion,
+          options: [{ id: 'opt-1', option: '{"x": 50, "y": 50}' }],
+        }),
+        getCurrentAnswer: () => null,
+        selectDissertativeAnswer: jest.fn(),
+        getQuestionResultByQuestionId: () => ({ answer: '{"x": 72, "y": 35}' }),
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizImageQuestion />);
@@ -2383,6 +2414,13 @@ describe('QuizContent', () => {
     it('should not handle click events in result variant', () => {
       mockUseQuizStore.mockReturnValue({
         variant: 'result',
+        getCurrentQuestion: () => ({
+          ...defaultMockQuestion,
+          options: [{ id: 'opt-1', option: '{"x": 50, "y": 50}' }],
+        }),
+        getCurrentAnswer: () => null,
+        selectDissertativeAnswer: jest.fn(),
+        getQuestionResultByQuestionId: () => ({ answer: '{"x": 72, "y": 35}' }),
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizImageQuestion />);
@@ -2450,6 +2488,13 @@ describe('QuizContent', () => {
     it('should not handle keyboard events in result variant', () => {
       mockUseQuizStore.mockReturnValue({
         variant: 'result',
+        getCurrentQuestion: () => ({
+          ...defaultMockQuestion,
+          options: [{ id: 'opt-1', option: '{"x": 50, "y": 50}' }],
+        }),
+        getCurrentAnswer: () => null,
+        selectDissertativeAnswer: jest.fn(),
+        getQuestionResultByQuestionId: () => ({ answer: '{"x": 72, "y": 35}' }),
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizImageQuestion />);
@@ -2515,6 +2560,13 @@ describe('QuizContent', () => {
       // Switch to result variant
       mockUseQuizStore.mockReturnValue({
         variant: 'result',
+        getCurrentQuestion: () => ({
+          ...defaultMockQuestion,
+          options: [{ id: 'opt-1', option: '{"x": 50, "y": 50}' }],
+        }),
+        getCurrentAnswer: () => null,
+        selectDissertativeAnswer: jest.fn(),
+        getQuestionResultByQuestionId: () => ({ answer: '{"x": 72, "y": 35}' }),
       } as unknown as ReturnType<typeof useQuizStore>);
 
       rerender(<QuizImageQuestion />);
@@ -2527,6 +2579,13 @@ describe('QuizContent', () => {
     it('should calculate correct position and radius correctly', () => {
       mockUseQuizStore.mockReturnValue({
         variant: 'result',
+        getCurrentQuestion: () => ({
+          ...defaultMockQuestion,
+          options: [{ id: 'opt-1', option: '{"x": 48, "y": 45}' }],
+        }),
+        getCurrentAnswer: () => null,
+        selectDissertativeAnswer: jest.fn(),
+        getQuestionResultByQuestionId: () => ({ answer: '{"x": 72, "y": 35}' }),
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizImageQuestion />);
@@ -2549,13 +2608,20 @@ describe('QuizContent', () => {
     it('should have correct user circle styling based on correctness', () => {
       mockUseQuizStore.mockReturnValue({
         variant: 'result',
+        getCurrentQuestion: () => ({
+          ...defaultMockQuestion,
+          options: [{ id: 'opt-1', option: '{"x": 48, "y": 45}' }],
+        }),
+        getCurrentAnswer: () => null,
+        selectDissertativeAnswer: jest.fn(),
+        getQuestionResultByQuestionId: () => ({ answer: '{"x": 72, "y": 35}' }),
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizImageQuestion />);
 
       const userCircle = screen.getByTestId('quiz-user-circle');
 
-      // The mock position (0.72, 0.348) should be outside the correct area
+      // The mock position (0.72, 0.35) should be outside the correct area
       // So it should have error styling
       expect(userCircle).toHaveClass('bg-indicator-error/70', 'border-white');
     });
@@ -2638,6 +2704,10 @@ describe('QuizContent', () => {
       // Test the default case in getUserCircleColorClasses
       mockUseQuizStore.mockReturnValue({
         variant: 'unknown-variant', // Neither 'default' nor 'result'
+        getCurrentQuestion: () => defaultMockQuestion,
+        getCurrentAnswer: () => null,
+        selectDissertativeAnswer: jest.fn(),
+        getQuestionResultByQuestionId: () => null,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizImageQuestion />);
@@ -2653,6 +2723,261 @@ describe('QuizContent', () => {
 
       // Should use the default case styling: 'bg-success-600/70 border-white'
       expect(userCircle).toHaveClass('bg-success-600/70', 'border-white');
+    });
+
+    it('should display image from additionalContent when available', () => {
+      const mockQuestion = {
+        id: 'image-question-1',
+        additionalContent: 'https://example.com/test-image.jpg',
+        options: [{ id: 'opt-1', option: '{"x": 50, "y": 50}' }],
+      };
+
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+        getCurrentQuestion: () => mockQuestion,
+        getCurrentAnswer: () => null,
+        selectDissertativeAnswer: jest.fn(),
+        getQuestionResultByQuestionId: () => null,
+      } as unknown as ReturnType<typeof useQuizStore>);
+
+      render(<QuizImageQuestion />);
+
+      const image = screen.getByTestId('quiz-image');
+      expect(image).toHaveAttribute(
+        'src',
+        'https://example.com/test-image.jpg'
+      );
+    });
+
+    it('should parse correct coordinates from options', () => {
+      const mockQuestion = {
+        id: 'image-question-1',
+        additionalContent: 'https://example.com/test-image.jpg',
+        options: [{ id: 'opt-1', option: '{"x": 75, "y": 25}' }],
+      };
+
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+        getCurrentQuestion: () => mockQuestion,
+        getCurrentAnswer: () => null,
+        selectDissertativeAnswer: jest.fn(),
+        getQuestionResultByQuestionId: () => ({
+          answer: '{"x": 70, "y": 30}',
+        }),
+      } as unknown as ReturnType<typeof useQuizStore>);
+
+      render(<QuizImageQuestion />);
+
+      const correctCircle = screen.getByTestId('quiz-correct-circle');
+      // Correct position at 75% x, 25% y
+      expect(correctCircle).toHaveStyle({
+        left: 'calc(75% - 7.5%)',
+        top: 'calc(25% - 15%)',
+      });
+    });
+
+    it('should call selectDissertativeAnswer when image is clicked', () => {
+      const mockSelectDissertativeAnswer = jest.fn();
+      const mockQuestion = {
+        id: 'image-question-1',
+        additionalContent: 'https://example.com/test-image.jpg',
+        options: [{ id: 'opt-1', option: '{"x": 50, "y": 50}' }],
+      };
+
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+        getCurrentQuestion: () => mockQuestion,
+        getCurrentAnswer: () => null,
+        selectDissertativeAnswer: mockSelectDissertativeAnswer,
+        getQuestionResultByQuestionId: () => null,
+      } as unknown as ReturnType<typeof useQuizStore>);
+
+      render(<QuizImageQuestion />);
+
+      const button = screen.getByTestId('quiz-image-button');
+
+      const mockGetBoundingClientRect = jest.fn(() => ({
+        left: 0,
+        top: 0,
+        width: 100,
+        height: 100,
+        right: 100,
+        bottom: 100,
+        x: 0,
+        y: 0,
+        toJSON: () => {},
+      }));
+      button.getBoundingClientRect =
+        mockGetBoundingClientRect as unknown as () => DOMRect;
+
+      act(() => {
+        fireEvent.click(button, { clientX: 60, clientY: 40 });
+      });
+
+      expect(mockSelectDissertativeAnswer).toHaveBeenCalledWith(
+        'image-question-1',
+        '{"x":60,"y":40}'
+      );
+    });
+
+    it('should display stored user answer from currentAnswer', () => {
+      const mockQuestion = {
+        id: 'image-question-1',
+        additionalContent: 'https://example.com/test-image.jpg',
+        options: [{ id: 'opt-1', option: '{"x": 50, "y": 50}' }],
+      };
+
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+        getCurrentQuestion: () => mockQuestion,
+        getCurrentAnswer: () => ({
+          answer: '{"x": 30, "y": 70}',
+        }),
+        selectDissertativeAnswer: jest.fn(),
+        getQuestionResultByQuestionId: () => null,
+      } as unknown as ReturnType<typeof useQuizStore>);
+
+      render(<QuizImageQuestion />);
+
+      const userCircle = screen.getByTestId('quiz-user-circle');
+      // User answer at 30% x, 70% y
+      expect(userCircle).toHaveStyle({
+        left: 'calc(30% - 2.5%)',
+        top: 'calc(70% - 2.5%)',
+      });
+    });
+
+    it('should use default center coordinates when options are empty', () => {
+      const mockQuestion = {
+        id: 'image-question-1',
+        additionalContent: 'https://example.com/test-image.jpg',
+        options: [],
+      };
+
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+        getCurrentQuestion: () => mockQuestion,
+        getCurrentAnswer: () => null,
+        selectDissertativeAnswer: jest.fn(),
+        getQuestionResultByQuestionId: () => ({
+          answer: '{"x": 50, "y": 50}',
+        }),
+      } as unknown as ReturnType<typeof useQuizStore>);
+
+      render(<QuizImageQuestion />);
+
+      const correctCircle = screen.getByTestId('quiz-correct-circle');
+      // Default center position at 50%, 50%
+      expect(correctCircle).toHaveStyle({
+        left: 'calc(50% - 7.5%)',
+        top: 'calc(50% - 15%)',
+      });
+    });
+
+    it('should use default center coordinates when options JSON is invalid', () => {
+      const mockQuestion = {
+        id: 'image-question-1',
+        additionalContent: 'https://example.com/test-image.jpg',
+        options: [{ id: 'opt-1', option: 'invalid-json' }],
+      };
+
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+        getCurrentQuestion: () => mockQuestion,
+        getCurrentAnswer: () => null,
+        selectDissertativeAnswer: jest.fn(),
+        getQuestionResultByQuestionId: () => ({
+          answer: '{"x": 50, "y": 50}',
+        }),
+      } as unknown as ReturnType<typeof useQuizStore>);
+
+      render(<QuizImageQuestion />);
+
+      const correctCircle = screen.getByTestId('quiz-correct-circle');
+      // Default center position at 50%, 50%
+      expect(correctCircle).toHaveStyle({
+        left: 'calc(50% - 7.5%)',
+        top: 'calc(50% - 15%)',
+      });
+    });
+
+    it('should display user answer from questionResult in result variant', () => {
+      const mockQuestion = {
+        id: 'image-question-1',
+        additionalContent: 'https://example.com/test-image.jpg',
+        options: [{ id: 'opt-1', option: '{"x": 50, "y": 50}' }],
+      };
+
+      mockUseQuizStore.mockReturnValue({
+        variant: 'result',
+        getCurrentQuestion: () => mockQuestion,
+        getCurrentAnswer: () => null,
+        selectDissertativeAnswer: jest.fn(),
+        getQuestionResultByQuestionId: () => ({
+          answer: '{"x": 80, "y": 20}',
+        }),
+      } as unknown as ReturnType<typeof useQuizStore>);
+
+      render(<QuizImageQuestion />);
+
+      const userCircle = screen.getByTestId('quiz-user-circle');
+      // User answer at 80% x, 20% y from question result
+      expect(userCircle).toHaveStyle({
+        left: 'calc(80% - 2.5%)',
+        top: 'calc(20% - 2.5%)',
+      });
+    });
+
+    it('should call selectDissertativeAnswer with center position on keyboard activation', () => {
+      const mockSelectDissertativeAnswer = jest.fn();
+      const mockQuestion = {
+        id: 'image-question-1',
+        additionalContent: 'https://example.com/test-image.jpg',
+        options: [{ id: 'opt-1', option: '{"x": 50, "y": 50}' }],
+      };
+
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+        getCurrentQuestion: () => mockQuestion,
+        getCurrentAnswer: () => null,
+        selectDissertativeAnswer: mockSelectDissertativeAnswer,
+        getQuestionResultByQuestionId: () => null,
+      } as unknown as ReturnType<typeof useQuizStore>);
+
+      render(<QuizImageQuestion />);
+
+      const button = screen.getByTestId('quiz-image-button');
+
+      act(() => {
+        fireEvent.keyDown(button, { key: 'Enter' });
+      });
+
+      expect(mockSelectDissertativeAnswer).toHaveBeenCalledWith(
+        'image-question-1',
+        '{"x":50,"y":50}'
+      );
+    });
+
+    it('should fallback to mock image when additionalContent is empty', () => {
+      const mockQuestion = {
+        id: 'image-question-1',
+        additionalContent: '',
+        options: [],
+      };
+
+      mockUseQuizStore.mockReturnValue({
+        variant: 'default',
+        getCurrentQuestion: () => mockQuestion,
+        getCurrentAnswer: () => null,
+        selectDissertativeAnswer: jest.fn(),
+        getQuestionResultByQuestionId: () => null,
+      } as unknown as ReturnType<typeof useQuizStore>);
+
+      render(<QuizImageQuestion />);
+
+      const image = screen.getByTestId('quiz-image');
+      // Should fallback to the mock image stub
+      expect(image).toHaveAttribute('src', 'test-file-stub');
     });
   });
 });

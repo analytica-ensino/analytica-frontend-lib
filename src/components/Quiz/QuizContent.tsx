@@ -1083,8 +1083,39 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
 };
 
 const QuizImageQuestion = ({ paddingBottom }: QuizVariantInterface) => {
-  const { variant } = useQuizStore();
-  const correctPositionRelative = { x: 0.48, y: 0.45 };
+  const {
+    variant,
+    getCurrentQuestion,
+    getCurrentAnswer,
+    selectDissertativeAnswer,
+    getQuestionResultByQuestionId,
+  } = useQuizStore();
+
+  const currentQuestion = getCurrentQuestion();
+  const currentAnswer = getCurrentAnswer();
+  const currentQuestionResult = getQuestionResultByQuestionId(
+    currentQuestion?.id || ''
+  );
+
+  // Get image URL from additionalContent
+  const imageUrl = currentQuestion?.additionalContent || '';
+
+  // Parse correct coordinates from first option (stored as JSON: {"x": number, "y": number})
+  const correctPositionRelative = useMemo(() => {
+    if (!currentQuestion?.options || currentQuestion.options.length === 0) {
+      return { x: 0.5, y: 0.5 }; // Default center
+    }
+    try {
+      const coords = JSON.parse(currentQuestion.options[0].option);
+      if (typeof coords.x === 'number' && typeof coords.y === 'number') {
+        // Coordinates are stored as percentages (0-100), convert to relative (0-1)
+        return { x: coords.x / 100, y: coords.y / 100 };
+      }
+    } catch {
+      // Fall back to default
+    }
+    return { x: 0.5, y: 0.5 };
+  }, [currentQuestion?.options]);
 
   // Calculate correctRadiusRelative automatically based on the circle dimensions
   const calculateCorrectRadiusRelative = (): number => {
@@ -1103,12 +1134,40 @@ const QuizImageQuestion = ({ paddingBottom }: QuizVariantInterface) => {
   };
 
   const correctRadiusRelative = calculateCorrectRadiusRelative();
-  const mockUserAnswerRelative = { x: 0.72, y: 0.348 };
+
+  // Parse user's answer from stored JSON or result
+  const storedUserAnswer = useMemo(() => {
+    if (variant === 'result' && currentQuestionResult?.answer) {
+      try {
+        const coords = JSON.parse(currentQuestionResult.answer);
+        if (typeof coords.x === 'number' && typeof coords.y === 'number') {
+          return { x: coords.x / 100, y: coords.y / 100 };
+        }
+      } catch {
+        // Fall back to null
+      }
+    } else if (currentAnswer?.answer) {
+      try {
+        const coords = JSON.parse(currentAnswer.answer);
+        if (typeof coords.x === 'number' && typeof coords.y === 'number') {
+          return { x: coords.x / 100, y: coords.y / 100 };
+        }
+      } catch {
+        // Fall back to null
+      }
+    }
+    return null;
+  }, [variant, currentQuestionResult?.answer, currentAnswer?.answer]);
 
   const [clickPositionRelative, setClickPositionRelative] = useState<{
     x: number;
     y: number;
-  } | null>(variant == 'result' ? mockUserAnswerRelative : null);
+  } | null>(storedUserAnswer);
+
+  // Sync with stored answer when it changes
+  useEffect(() => {
+    setClickPositionRelative(storedUserAnswer);
+  }, [storedUserAnswer]);
 
   // Helper function to safely convert click coordinates to relative coordinates
   const convertToRelativeCoordinates = (
@@ -1137,12 +1196,31 @@ const QuizImageQuestion = ({ paddingBottom }: QuizVariantInterface) => {
     // Use helper function for safe conversion
     const positionRelative = convertToRelativeCoordinates(x, y, rect);
     setClickPositionRelative(positionRelative);
+
+    // Save the answer to the store (as percentages 0-100)
+    if (currentQuestion) {
+      const answerJson = JSON.stringify({
+        x: Math.round(positionRelative.x * 100),
+        y: Math.round(positionRelative.y * 100),
+      });
+      selectDissertativeAnswer(currentQuestion.id, answerJson);
+    }
   };
 
   const handleKeyboardActivate = () => {
     if (variant === 'result') return;
     // Choose a deterministic position for keyboard activation; center is a reasonable default
-    setClickPositionRelative({ x: 0.5, y: 0.5 });
+    const centerPosition = { x: 0.5, y: 0.5 };
+    setClickPositionRelative(centerPosition);
+
+    // Save the answer to the store (as percentages 0-100)
+    if (currentQuestion) {
+      const answerJson = JSON.stringify({
+        x: Math.round(centerPosition.x * 100),
+        y: Math.round(centerPosition.y * 100),
+      });
+      selectDissertativeAnswer(currentQuestion.id, answerJson);
+    }
   };
 
   const isCorrect = () => {
@@ -1220,7 +1298,7 @@ const QuizImageQuestion = ({ paddingBottom }: QuizVariantInterface) => {
           >
             <img
               data-testid="quiz-image"
-              src={ImageQuestion}
+              src={imageUrl || ImageQuestion}
               alt="Question"
               className="w-full h-auto rounded-md"
             />
