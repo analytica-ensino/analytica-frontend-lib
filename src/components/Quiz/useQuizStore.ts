@@ -604,11 +604,12 @@ export const useQuizStore = create<QuizState>()(
           }
 
           const question = quiz.questions.find((q) => q.id === questionId);
-          // Allow free-text question types: DISSERTATIVA, RELACIONAR, PREENCHER_LACUNAS
+          // Allow free-text question types: DISSERTATIVA, RELACIONAR, PREENCHER_LACUNAS, IMAGEM
           const allowedTypes = [
             QUESTION_TYPE.DISSERTATIVA,
             QUESTION_TYPE.RELACIONAR,
             QUESTION_TYPE.PREENCHER_LACUNAS,
+            QUESTION_TYPE.IMAGEM,
           ];
           if (!question || !allowedTypes.includes(question.questionType)) {
             // Silent validation - wrong question type
