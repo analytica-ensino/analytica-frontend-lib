@@ -1011,6 +1011,25 @@ export {
 } from './utils/chatUtils';
 export type { ChatUserInfo } from './utils/chatUtils';
 
+// Forum Component
+export { Forum } from './components/Forum/Forum';
+export type { ForumProps } from './components/Forum/Forum';
+
+// Forum Hook
+export { createUseForum } from './hooks/useForum';
+export type { UseForumReturn } from './hooks/useForum';
+
+// Forum Types
+export type {
+  ForumPostBase,
+  ForumTopic,
+  ForumReply,
+  ForumPagination,
+  ForumTopicsResponse,
+  ForumTopicDetailResponse,
+  ForumApiClient,
+} from './types/forum';
+
 // General Activity Types (calendar, activity list)
 export {
   ActivityStatus as GeneralActivityStatus,
