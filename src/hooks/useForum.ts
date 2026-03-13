@@ -39,6 +39,24 @@ export type UseForumReturn = UseForumState & {
   clearError: () => void;
 };
 
+/* -- State updaters (extracted to reduce nesting depth — SonarQube) -- */
+
+const replaceTopicById =
+  (topicId: string, body: { content?: string; imageUrl?: string | null }) =>
+  (prev: ForumTopic[]) =>
+    prev.map((t) => (t.id === topicId ? { ...t, ...body } : t));
+
+const removeTopicById = (topicId: string) => (prev: ForumTopic[]) =>
+  prev.filter((t) => t.id !== topicId);
+
+const replaceReplyById =
+  (replyId: string, body: { content?: string; imageUrl?: string | null }) =>
+  (prev: ForumReply[]) =>
+    prev.map((r) => (r.id === replyId ? { ...r, ...body } : r));
+
+const removeReplyById = (replyId: string) => (prev: ForumReply[]) =>
+  prev.filter((r) => r.id !== replyId);
+
 export const createUseForum = (apiClient: ForumApiClient) => {
   return (): UseForumReturn => {
     const [topics, setTopics] = useState<ForumTopic[]>([]);
@@ -49,6 +67,23 @@ export const createUseForum = (apiClient: ForumApiClient) => {
     const [isLoadingTopic, setIsLoadingTopic] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    /** Wraps a mutation call with isSubmitting / error handling. */
+    const withSubmit = useCallback(
+      async (action: () => Promise<void>, errorMsg: string) => {
+        setIsSubmitting(true);
+        setError(null);
+        try {
+          await action();
+        } catch {
+          setError(errorMsg);
+          throw new Error(errorMsg);
+        } finally {
+          setIsSubmitting(false);
+        }
+      },
+      []
+    );
 
     const fetchTopics = useCallback(
       async (params?: { limit?: number; offset?: number }) => {
@@ -85,119 +120,63 @@ export const createUseForum = (apiClient: ForumApiClient) => {
     );
 
     const createTopic = useCallback(
-      async (body: { content: string; imageUrl?: string }) => {
-        setIsSubmitting(true);
-        setError(null);
-        try {
-          await apiClient.createTopic(body);
-        } catch {
-          const msg = 'Erro ao criar o tópico.';
-          setError(msg);
-          throw new Error(msg);
-        } finally {
-          setIsSubmitting(false);
-        }
-      },
-      [apiClient]
+      async (body: { content: string; imageUrl?: string }) =>
+        withSubmit(
+          () => apiClient.createTopic(body),
+          'Erro ao criar o tópico.'
+        ),
+      [apiClient, withSubmit]
     );
 
     const updateTopic = useCallback(
       async (
         topicId: string,
         body: { content?: string; imageUrl?: string | null }
-      ) => {
-        setIsSubmitting(true);
-        setError(null);
-        try {
+      ) =>
+        withSubmit(async () => {
           await apiClient.updateTopic(topicId, body);
-          setTopics((prev) =>
-            prev.map((t) => (t.id === topicId ? { ...t, ...body } : t))
-          );
-        } catch {
-          const msg = 'Erro ao atualizar o tópico.';
-          setError(msg);
-          throw new Error(msg);
-        } finally {
-          setIsSubmitting(false);
-        }
-      },
-      [apiClient]
+          setTopics(replaceTopicById(topicId, body));
+        }, 'Erro ao atualizar o tópico.'),
+      [apiClient, withSubmit]
     );
 
     const deleteTopic = useCallback(
-      async (topicId: string) => {
-        setIsSubmitting(true);
-        setError(null);
-        try {
+      async (topicId: string) =>
+        withSubmit(async () => {
           await apiClient.deleteTopic(topicId);
-          setTopics((prev) => prev.filter((t) => t.id !== topicId));
-        } catch {
-          const msg = 'Erro ao excluir o tópico.';
-          setError(msg);
-          throw new Error(msg);
-        } finally {
-          setIsSubmitting(false);
-        }
-      },
-      [apiClient]
+          setTopics(removeTopicById(topicId));
+        }, 'Erro ao excluir o tópico.'),
+      [apiClient, withSubmit]
     );
 
     const createReply = useCallback(
-      async (topicId: string, body: { content: string; imageUrl?: string }) => {
-        setIsSubmitting(true);
-        setError(null);
-        try {
-          await apiClient.createReply(topicId, body);
-        } catch {
-          const msg = 'Erro ao criar a resposta.';
-          setError(msg);
-          throw new Error(msg);
-        } finally {
-          setIsSubmitting(false);
-        }
-      },
-      [apiClient]
+      async (topicId: string, body: { content: string; imageUrl?: string }) =>
+        withSubmit(
+          () => apiClient.createReply(topicId, body),
+          'Erro ao criar a resposta.'
+        ),
+      [apiClient, withSubmit]
     );
 
     const updateReply = useCallback(
       async (
         replyId: string,
         body: { content?: string; imageUrl?: string | null }
-      ) => {
-        setIsSubmitting(true);
-        setError(null);
-        try {
+      ) =>
+        withSubmit(async () => {
           await apiClient.updateReply(replyId, body);
-          setReplies((prev) =>
-            prev.map((r) => (r.id === replyId ? { ...r, ...body } : r))
-          );
-        } catch {
-          const msg = 'Erro ao atualizar a resposta.';
-          setError(msg);
-          throw new Error(msg);
-        } finally {
-          setIsSubmitting(false);
-        }
-      },
-      [apiClient]
+          setReplies(replaceReplyById(replyId, body));
+        }, 'Erro ao atualizar a resposta.'),
+      [apiClient, withSubmit]
     );
 
     const deleteReply = useCallback(
-      async (replyId: string) => {
-        setIsSubmitting(true);
-        setError(null);
-        try {
+      async (replyId: string) =>
+        withSubmit(async () => {
           await apiClient.deleteReply(replyId);
-          setReplies((prev) => prev.filter((r) => r.id !== replyId));
-        } catch {
-          const msg = 'Erro ao excluir a resposta.';
-          setError(msg);
-          throw new Error(msg);
-        } finally {
-          setIsSubmitting(false);
-        }
-      },
-      [apiClient]
+          setReplies(removeReplyById(replyId));
+        }, 'Erro ao excluir a resposta.'),
+      [apiClient, withSubmit]
     );
 
     const selectTopic = useCallback((topic: ForumTopic | null) => {

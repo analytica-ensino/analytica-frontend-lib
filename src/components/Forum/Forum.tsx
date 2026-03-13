@@ -72,8 +72,8 @@ function formatReplyCount(count: number): string {
 // ---------------------------------------------------------------------------
 
 interface AuthorAvatarProps {
-  name: string;
-  photoUrl: string | null;
+  readonly name: string;
+  readonly photoUrl: string | null;
 }
 
 function AuthorAvatar({ name, photoUrl }: AuthorAvatarProps) {
@@ -94,9 +94,9 @@ function AuthorAvatar({ name, photoUrl }: AuthorAvatarProps) {
 }
 
 interface AuthorMetaProps {
-  authorName: string;
-  authorPhoto: string | null;
-  createdAt: string;
+  readonly authorName: string;
+  readonly authorPhoto: string | null;
+  readonly createdAt: string;
 }
 
 function AuthorMeta({ authorName, authorPhoto, createdAt }: AuthorMetaProps) {
@@ -117,8 +117,8 @@ function AuthorMeta({ authorName, authorPhoto, createdAt }: AuthorMetaProps) {
 }
 
 interface PostActionsMenuProps {
-  onEdit: () => void;
-  onDelete: () => void;
+  readonly onEdit: () => void;
+  readonly onDelete: () => void;
 }
 
 function PostActionsMenu({ onEdit, onDelete }: PostActionsMenuProps) {
@@ -143,24 +143,24 @@ function PostActionsMenu({ onEdit, onDelete }: PostActionsMenuProps) {
 }
 
 interface PostContentModalProps {
-  isOpen: boolean;
-  title: string;
-  submitLabel: string;
-  content: string;
-  imageUrl: string | undefined;
-  isSubmitting: boolean;
-  onContentChange: (value: string) => void;
-  onClose: () => void;
-  onSubmit: () => void;
-  onUploadImage?: (file: File) => Promise<string>;
-  onImageUploaded: (url: string) => void;
-  maxLength: number;
+  readonly isOpen: boolean;
+  readonly title: string;
+  readonly submitLabel: string;
+  readonly content: string;
+  readonly imageUrl: string | undefined;
+  readonly isSubmitting: boolean;
+  readonly onContentChange: (value: string) => void;
+  readonly onClose: () => void;
+  readonly onSubmit: () => void;
+  readonly onUploadImage?: (file: File) => Promise<string>;
+  readonly onImageUploaded: (url: string) => void;
+  readonly maxLength: number;
   /** Use RichEditor with toolbar instead of plain TextArea */
-  richText?: boolean;
+  readonly richText?: boolean;
   /** Show "Este fórum vale nota no boletim?" question (professor only) */
-  showGradeQuestion?: boolean;
-  countsForGrade?: boolean;
-  onCountsForGradeChange?: (value: boolean) => void;
+  readonly showGradeQuestion?: boolean;
+  readonly countsForGrade?: boolean;
+  readonly onCountsForGradeChange?: (value: boolean) => void;
 }
 
 function PostContentModal({
@@ -350,24 +350,24 @@ function TopicDetailSkeleton() {
 
 export type ForumProps = {
   /** API client with forum CRUD methods */
-  apiClient: ForumApiClient;
+  readonly apiClient: ForumApiClient;
   /** Current user's userInstitutionId — used to identify own posts */
-  currentUserId: string;
+  readonly currentUserId: string;
   /** User role — enables professor-specific features (e.g. grade question on create) */
-  userRole?: PROFILE_ROLES.STUDENT | PROFILE_ROLES.TEACHER;
+  readonly userRole?: PROFILE_ROLES.STUDENT | PROFILE_ROLES.TEACHER;
   /** Forum page title */
-  title?: string;
+  readonly title?: string;
   /** Forum page subtitle */
-  subtitle?: string;
+  readonly subtitle?: string;
   /** Callback to upload an image file and return its hosted URL */
-  onUploadImage?: (file: File) => Promise<string>;
+  readonly onUploadImage?: (file: File) => Promise<string>;
   /**
    * Callback to evaluate a reply (teacher only).
    * If provided, an "Avaliar" button appears on each reply when the topic counts for grade.
    */
-  onEvaluateReply?: (replyId: string, grade: number) => Promise<void>;
+  readonly onEvaluateReply?: (replyId: string, grade: number) => Promise<void>;
   /** Additional CSS classes */
-  className?: string;
+  readonly className?: string;
 };
 
 export function Forum({
@@ -695,6 +695,196 @@ export function Forum({
     }
   }, [pendingDelete, handleDeleteTopic, handleDeleteReply]);
 
+  /* ---- Extracted render blocks (avoids nested ternaries — SonarQube) ---- */
+
+  const topicListContent = (() => {
+    if (isLoadingTopics) return <TopicListSkeleton />;
+
+    if (topics.length === 0) {
+      return (
+        <div className="flex items-center justify-center py-16 border border-border-200 rounded-lg">
+          <Text size="md" color="text-text-500">
+            Nenhum tópico ainda. Seja o primeiro a criar um post!
+          </Text>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex flex-col gap-4">
+        {topics.map((topic) => (
+          <div
+            key={topic.id}
+            className="flex items-start bg-white border border-border-100 rounded-lg pt-4 pr-2 pb-4 pl-2 shadow-sm"
+          >
+            {/* Clickable content area */}
+            <button
+              type="button"
+              className="flex flex-col gap-3 flex-1 min-w-0 text-left hover:opacity-90 transition-opacity"
+              onClick={() => handleTopicClick(topic)}
+            >
+              <AuthorMeta
+                authorName={topic.authorName}
+                authorPhoto={topic.authorPhoto}
+                createdAt={topic.createdAt}
+              />
+              <p className="text-sm text-text-950 leading-normal line-clamp-3 ml-10">
+                {stripHtml(topic.content)}
+              </p>
+              <div className="flex items-center gap-1 text-text-600 ml-10">
+                <ChatCircleTextIcon size={16} />
+                <span className="text-xs">
+                  {formatReplyCount(topic.replyCount)}
+                </span>
+              </div>
+            </button>
+
+            {/* Actions menu — only for own posts */}
+            {topic.userInstitutionId === currentUserId && (
+              <PostActionsMenu
+                onEdit={() => handleOpenEditTopic(topic)}
+                onDelete={() =>
+                  setPendingDelete({ type: 'topic', id: topic.id })
+                }
+              />
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  })();
+
+  const topicDetailContent = (() => {
+    if (isLoadingTopic) return <TopicDetailSkeleton />;
+
+    if (!selectedTopic) return null;
+
+    return (
+      <>
+        {/* Original post */}
+        <div className="flex items-start gap-2">
+          <div className="flex flex-col gap-3 flex-1 min-w-0">
+            <AuthorMeta
+              authorName={selectedTopic.authorName}
+              authorPhoto={selectedTopic.authorPhoto}
+              createdAt={selectedTopic.createdAt}
+            />
+            <div
+              className="text-sm text-text-950 leading-normal ml-10 prose prose-sm max-w-none"
+              dangerouslySetInnerHTML={{
+                __html: sanitizeHtmlForDisplay(selectedTopic.content),
+              }}
+            />
+            {selectedTopic.imageUrl && (
+              <img
+                src={selectedTopic.imageUrl}
+                alt="Imagem do post"
+                className="ml-10 max-w-lg rounded-lg"
+              />
+            )}
+          </div>
+          {selectedTopic.userInstitutionId === currentUserId && (
+            <PostActionsMenu
+              onEdit={() => handleOpenEditTopic(selectedTopic)}
+              onDelete={() =>
+                setPendingDelete({ type: 'topic', id: selectedTopic.id })
+              }
+            />
+          )}
+        </div>
+
+        {/* Replies header */}
+        <div className="flex items-center justify-between">
+          <Text size="sm" color="text-text-600">
+            {formatReplyCount(selectedTopic.replyCount)}
+          </Text>
+          <Button
+            variant="solid"
+            action="primary"
+            size="medium"
+            onClick={() => setIsReplyModalOpen(true)}
+          >
+            Responder
+          </Button>
+        </div>
+
+        {/* Replies list */}
+        {replies.length > 0 && (
+          <div className="flex flex-col divide-y divide-border-200">
+            {replies.map((reply) => (
+              <div key={reply.id} className="flex items-start gap-2 py-4">
+                <div className="flex flex-col gap-3 flex-1 min-w-0">
+                  <AuthorMeta
+                    authorName={reply.authorName}
+                    authorPhoto={reply.authorPhoto}
+                    createdAt={reply.createdAt}
+                  />
+                  <div
+                    className="text-sm text-text-950 leading-normal ml-10 prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{
+                      __html: sanitizeHtmlForDisplay(reply.content),
+                    }}
+                  />
+                  {reply.imageUrl && (
+                    <img
+                      src={reply.imageUrl}
+                      alt="Imagem da resposta"
+                      className="ml-10 max-w-lg rounded-lg"
+                    />
+                  )}
+                  {isTeacher &&
+                    selectedTopic?.countsForGrade &&
+                    onEvaluateReply &&
+                    (reply.grade ? (
+                      /* Grade already set — teacher sees it with edit pencil */
+                      <div className="flex items-center gap-1.5 ml-10">
+                        <span className="text-sm text-text-600">
+                          Nota {reply.grade}
+                        </span>
+                        <button
+                          type="button"
+                          className="text-text-600 hover:text-text-950 transition-colors"
+                          onClick={() => handleOpenEditGrade(reply)}
+                        >
+                          <PencilSimpleIcon size={14} />
+                        </button>
+                      </div>
+                    ) : (
+                      /* Not yet graded — show Avaliar button */
+                      <button
+                        type="button"
+                        className="flex items-center gap-1.5 text-text-600 text-sm hover:text-text-950 transition-colors w-fit ml-10"
+                        onClick={() => handleOpenEvaluate(reply)}
+                      >
+                        <CheckIcon size={16} />
+                        Avaliar
+                      </button>
+                    ))}
+                  {!isTeacher &&
+                    reply.grade &&
+                    reply.userInstitutionId === currentUserId &&
+                    selectedTopic?.countsForGrade && (
+                      <span className="text-sm text-text-600 ml-10">
+                        Nota {reply.grade}
+                      </span>
+                    )}
+                </div>
+                {reply.userInstitutionId === currentUserId && (
+                  <PostActionsMenu
+                    onEdit={() => handleOpenEditReply(reply)}
+                    onDelete={() =>
+                      setPendingDelete({ type: 'reply', id: reply.id })
+                    }
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </>
+    );
+  })();
+
   return (
     <div className={cn('flex flex-col gap-4', className)}>
       {view === 'list' ? (
@@ -720,56 +910,7 @@ export function Forum({
               {subtitle}
             </Text>
 
-            {isLoadingTopics ? (
-              <TopicListSkeleton />
-            ) : topics.length === 0 ? (
-              <div className="flex items-center justify-center py-16 border border-border-200 rounded-lg">
-                <Text size="md" color="text-text-500">
-                  Nenhum tópico ainda. Seja o primeiro a criar um post!
-                </Text>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-4">
-                {topics.map((topic) => (
-                  <div
-                    key={topic.id}
-                    className="flex items-start bg-white border border-border-100 rounded-lg pt-4 pr-2 pb-4 pl-2 shadow-sm"
-                  >
-                    {/* Clickable content area */}
-                    <button
-                      type="button"
-                      className="flex flex-col gap-3 flex-1 min-w-0 text-left hover:opacity-90 transition-opacity"
-                      onClick={() => handleTopicClick(topic)}
-                    >
-                      <AuthorMeta
-                        authorName={topic.authorName}
-                        authorPhoto={topic.authorPhoto}
-                        createdAt={topic.createdAt}
-                      />
-                      <p className="text-sm text-text-950 leading-normal line-clamp-3 ml-10">
-                        {stripHtml(topic.content)}
-                      </p>
-                      <div className="flex items-center gap-1 text-text-600 ml-10">
-                        <ChatCircleTextIcon size={16} />
-                        <span className="text-xs">
-                          {formatReplyCount(topic.replyCount)}
-                        </span>
-                      </div>
-                    </button>
-
-                    {/* Actions menu — only for own posts */}
-                    {topic.userInstitutionId === currentUserId && (
-                      <PostActionsMenu
-                        onEdit={() => handleOpenEditTopic(topic)}
-                        onDelete={() =>
-                          setPendingDelete({ type: 'topic', id: topic.id })
-                        }
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+            {topicListContent}
           </div>
         </>
       ) : (
@@ -786,132 +927,7 @@ export function Forum({
             </Text>
           </button>
 
-          {isLoadingTopic ? (
-            <TopicDetailSkeleton />
-          ) : selectedTopic ? (
-            <>
-              {/* Original post */}
-              <div className="flex items-start gap-2">
-                <div className="flex flex-col gap-3 flex-1 min-w-0">
-                  <AuthorMeta
-                    authorName={selectedTopic.authorName}
-                    authorPhoto={selectedTopic.authorPhoto}
-                    createdAt={selectedTopic.createdAt}
-                  />
-                  <div
-                    className="text-sm text-text-950 leading-normal ml-10 prose prose-sm max-w-none"
-                    dangerouslySetInnerHTML={{
-                      __html: sanitizeHtmlForDisplay(selectedTopic.content),
-                    }}
-                  />
-                  {selectedTopic.imageUrl && (
-                    <img
-                      src={selectedTopic.imageUrl}
-                      alt="Imagem do post"
-                      className="ml-10 max-w-lg rounded-lg"
-                    />
-                  )}
-                </div>
-                {selectedTopic.userInstitutionId === currentUserId && (
-                  <PostActionsMenu
-                    onEdit={() => handleOpenEditTopic(selectedTopic)}
-                    onDelete={() =>
-                      setPendingDelete({ type: 'topic', id: selectedTopic.id })
-                    }
-                  />
-                )}
-              </div>
-
-              {/* Replies header */}
-              <div className="flex items-center justify-between">
-                <Text size="sm" color="text-text-600">
-                  {formatReplyCount(selectedTopic.replyCount)}
-                </Text>
-                <Button
-                  variant="solid"
-                  action="primary"
-                  size="medium"
-                  onClick={() => setIsReplyModalOpen(true)}
-                >
-                  Responder
-                </Button>
-              </div>
-
-              {/* Replies list */}
-              {replies.length > 0 && (
-                <div className="flex flex-col divide-y divide-border-200">
-                  {replies.map((reply) => (
-                    <div key={reply.id} className="flex items-start gap-2 py-4">
-                      <div className="flex flex-col gap-3 flex-1 min-w-0">
-                        <AuthorMeta
-                          authorName={reply.authorName}
-                          authorPhoto={reply.authorPhoto}
-                          createdAt={reply.createdAt}
-                        />
-                        <div
-                          className="text-sm text-text-950 leading-normal ml-10 prose prose-sm max-w-none"
-                          dangerouslySetInnerHTML={{
-                            __html: sanitizeHtmlForDisplay(reply.content),
-                          }}
-                        />
-                        {reply.imageUrl && (
-                          <img
-                            src={reply.imageUrl}
-                            alt="Imagem da resposta"
-                            className="ml-10 max-w-lg rounded-lg"
-                          />
-                        )}
-                        {isTeacher &&
-                          selectedTopic?.countsForGrade &&
-                          onEvaluateReply &&
-                          (reply.grade ? (
-                            /* Grade already set — teacher sees it with edit pencil */
-                            <div className="flex items-center gap-1.5 ml-10">
-                              <span className="text-sm text-text-600">
-                                Nota {reply.grade}
-                              </span>
-                              <button
-                                type="button"
-                                className="text-text-600 hover:text-text-950 transition-colors"
-                                onClick={() => handleOpenEditGrade(reply)}
-                              >
-                                <PencilSimpleIcon size={14} />
-                              </button>
-                            </div>
-                          ) : (
-                            /* Not yet graded — show Avaliar button */
-                            <button
-                              type="button"
-                              className="flex items-center gap-1.5 text-text-600 text-sm hover:text-text-950 transition-colors w-fit ml-10"
-                              onClick={() => handleOpenEvaluate(reply)}
-                            >
-                              <CheckIcon size={16} />
-                              Avaliar
-                            </button>
-                          ))}
-                        {!isTeacher &&
-                          reply.grade &&
-                          reply.userInstitutionId === currentUserId &&
-                          selectedTopic?.countsForGrade && (
-                            <span className="text-sm text-text-600 ml-10">
-                              Nota {reply.grade}
-                            </span>
-                          )}
-                      </div>
-                      {reply.userInstitutionId === currentUserId && (
-                        <PostActionsMenu
-                          onEdit={() => handleOpenEditReply(reply)}
-                          onDelete={() =>
-                            setPendingDelete({ type: 'reply', id: reply.id })
-                          }
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </>
-          ) : null}
+          {topicDetailContent}
         </>
       )}
 

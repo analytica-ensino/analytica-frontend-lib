@@ -727,6 +727,94 @@ describe('Forum — teacher features', () => {
     });
   });
 
+  it('allows teacher to edit grade on already-graded reply (pencil icon)', async () => {
+    const onEvaluateReply = jest.fn().mockResolvedValue(undefined);
+    const gradedReply: ForumReply = { ...mockReply, grade: 7 };
+    const apiClient = buildApiClient({
+      getTopic: jest.fn().mockResolvedValue({
+        topic: { ...mockTopicWithReplies, countsForGrade: true },
+        replies: [gradedReply],
+      }),
+    });
+    render(
+      <Forum
+        apiClient={apiClient}
+        {...teacherProps}
+        onEvaluateReply={onEvaluateReply}
+      />
+    );
+
+    await waitFor(() => screen.getByText(mockTopic.content));
+    fireEvent.click(screen.getByText(mockTopic.content));
+
+    // Should show existing grade and pencil button instead of "Avaliar"
+    await waitFor(() => {
+      expect(screen.getByText('Nota 7')).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /avaliar/i })
+      ).not.toBeInTheDocument();
+    });
+
+    // Click pencil icon to edit grade
+    const pencilButton = screen
+      .getByText('Nota 7')
+      .parentElement!.querySelector('button')!;
+    fireEvent.click(pencilButton);
+
+    // Modal should open with edit title and pre-filled value
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { name: 'Edite a nota da atividade' })
+      ).toBeInTheDocument();
+    });
+
+    const gradeInput = screen.getByPlaceholderText(
+      'Nota (0-10)'
+    ) as HTMLInputElement;
+    expect(gradeInput.value).toBe('7');
+
+    await userEvent.clear(gradeInput);
+    await userEvent.type(gradeInput, '9');
+
+    const submitButtons = screen.getAllByRole('button', { name: /salvar/i });
+    fireEvent.click(submitButtons[submitButtons.length - 1]);
+
+    await waitFor(() => {
+      expect(onEvaluateReply).toHaveBeenCalledWith('reply-1', 9);
+    });
+  });
+
+  it('passes countsForGrade: false when teacher selects Não', async () => {
+    const apiClient = buildApiClient();
+    render(<Forum apiClient={apiClient} {...teacherProps} />);
+
+    await waitFor(() => screen.getByRole('button', { name: 'Criar post' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Criar post' }));
+
+    await waitFor(() => screen.getByText('Este fórum vale nota no boletim?'));
+
+    // First select Sim, then switch to Não
+    fireEvent.click(screen.getByText('Sim'));
+    fireEvent.click(screen.getByText('Não'));
+
+    const textarea = await screen.findByPlaceholderText(
+      'Escreva o conteúdo do seu post aqui.'
+    );
+    await userEvent.type(textarea, 'Post sem nota');
+
+    const buttons = screen.getAllByRole('button', { name: 'Criar post' });
+    fireEvent.click(buttons[buttons.length - 1]);
+
+    await waitFor(() => {
+      expect(apiClient.createTopic).toHaveBeenCalledWith(
+        expect.objectContaining({
+          content: 'Post sem nota',
+          countsForGrade: false,
+        })
+      );
+    });
+  });
+
   it('student sees their own grade but not Avaliar button', async () => {
     const gradedReply: ForumReply = {
       ...mockReply,
@@ -750,6 +838,205 @@ describe('Forum — teacher features', () => {
       expect(
         screen.queryByRole('button', { name: /avaliar/i })
       ).not.toBeInTheDocument();
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// AuthorAvatar with photo
+// ---------------------------------------------------------------------------
+
+describe('Forum — author avatar', () => {
+  it('renders author photo when available', async () => {
+    const topicWithPhoto: ForumTopic = {
+      ...mockTopic,
+      authorPhoto: 'https://example.com/photo.jpg',
+    };
+    const apiClient = buildApiClient({
+      getTopics: jest.fn().mockResolvedValue({
+        topics: [topicWithPhoto],
+        pagination: { total: 1, limit: 50, offset: 0, hasMore: false },
+      }),
+    });
+    render(<Forum {...defaultProps} apiClient={apiClient} />);
+
+    await waitFor(() => {
+      const img = screen.getByAltText('Ana Silva');
+      expect(img).toBeInTheDocument();
+      expect(img).toHaveAttribute('src', 'https://example.com/photo.jpg');
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Image upload
+// ---------------------------------------------------------------------------
+
+describe('Forum — image upload', () => {
+  it('calls onUploadImage when a file is selected and shows preview', async () => {
+    const onUploadImage = jest
+      .fn()
+      .mockResolvedValue('https://example.com/uploaded.jpg');
+    const apiClient = buildApiClient();
+    render(
+      <Forum
+        {...defaultProps}
+        apiClient={apiClient}
+        onUploadImage={onUploadImage}
+      />
+    );
+
+    await waitFor(() => screen.getByRole('button', { name: 'Criar post' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Criar post' }));
+
+    await waitFor(() =>
+      screen.getByPlaceholderText('Escreva o conteúdo do seu post aqui.')
+    );
+
+    // Find the hidden file input and simulate file selection
+    const fileInput = document.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement;
+    expect(fileInput).toBeTruthy();
+
+    const file = new File(['img'], 'test.png', { type: 'image/png' });
+    await userEvent.upload(fileInput, file);
+
+    await waitFor(() => {
+      expect(onUploadImage).toHaveBeenCalledWith(file);
+    });
+
+    // Image preview should be shown
+    await waitFor(() => {
+      expect(screen.getByAltText('Preview da imagem')).toHaveAttribute(
+        'src',
+        'https://example.com/uploaded.jpg'
+      );
+    });
+  });
+
+  it('handles upload error silently', async () => {
+    const onUploadImage = jest.fn().mockRejectedValue(new Error('upload fail'));
+    const apiClient = buildApiClient();
+    render(
+      <Forum
+        {...defaultProps}
+        apiClient={apiClient}
+        onUploadImage={onUploadImage}
+      />
+    );
+
+    await waitFor(() => screen.getByRole('button', { name: 'Criar post' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Criar post' }));
+
+    await waitFor(() =>
+      screen.getByPlaceholderText('Escreva o conteúdo do seu post aqui.')
+    );
+
+    const fileInput = document.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement;
+    const file = new File(['img'], 'test.png', { type: 'image/png' });
+    await userEvent.upload(fileInput, file);
+
+    await waitFor(() => {
+      expect(onUploadImage).toHaveBeenCalled();
+    });
+
+    // No preview should be shown and no error thrown
+    expect(screen.queryByAltText('Preview da imagem')).not.toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Detail view — own topic actions
+// ---------------------------------------------------------------------------
+
+describe('Forum — own topic actions in detail view', () => {
+  it('shows edit/delete menu for own topic in detail view', async () => {
+    const apiClient = buildApiClient();
+    render(<Forum apiClient={apiClient} currentUserId="user-1" />);
+
+    await waitFor(() => screen.getByText(mockTopic.content));
+    fireEvent.click(screen.getByText(mockTopic.content));
+
+    await waitFor(() => screen.getByText('Voltar'));
+
+    // Own topic should show the three-dots menu in detail view
+    expect(getMenuTriggerButton()).toBeInTheDocument();
+  });
+
+  it('calls updateTopic and refreshes detail when editing topic from detail view', async () => {
+    const apiClient = buildApiClient();
+    render(<Forum apiClient={apiClient} currentUserId="user-1" />);
+
+    await waitFor(() => screen.getByText(mockTopic.content));
+    fireEvent.click(screen.getByText(mockTopic.content));
+    await waitFor(() => screen.getByText('Voltar'));
+
+    fireEvent.click(getMenuTriggerButton());
+    await waitFor(() => screen.getByRole('menu'));
+    fireEvent.click(screen.getByRole('menuitem', { name: /editar/i }));
+
+    const textarea = await screen.findByPlaceholderText(
+      'Escreva o conteúdo do seu post aqui.'
+    );
+    await userEvent.clear(textarea);
+    await userEvent.type(textarea, 'Editado no detalhe');
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
+
+    await waitFor(() => {
+      expect(apiClient.updateTopic).toHaveBeenCalledWith(
+        'topic-1',
+        expect.objectContaining({ content: 'Editado no detalhe' })
+      );
+      // Should refresh topic detail (not list)
+      expect(apiClient.getTopic).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it('closes delete modal via X button (onClose)', async () => {
+    const apiClient = buildApiClient();
+    render(<Forum apiClient={apiClient} currentUserId="user-1" />);
+
+    await waitFor(() => screen.getByText(mockTopic.content));
+    fireEvent.click(getMenuTriggerButton());
+    await waitFor(() => screen.getByRole('menu'));
+    fireEvent.click(screen.getByRole('menuitem', { name: /deletar/i }));
+
+    await waitFor(() => screen.getByText('Deseja deletar post?'));
+
+    // Close via the modal X button instead of Cancelar
+    const closeButtons = screen.getAllByLabelText('Fechar modal');
+    fireEvent.click(closeButtons[closeButtons.length - 1]);
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText('Deseja deletar post?')
+      ).not.toBeInTheDocument();
+      expect(apiClient.deleteTopic).not.toHaveBeenCalled();
+    });
+  });
+
+  it('calls deleteTopic and returns to list when deleting topic from detail view', async () => {
+    const apiClient = buildApiClient();
+    render(<Forum apiClient={apiClient} currentUserId="user-1" />);
+
+    await waitFor(() => screen.getByText(mockTopic.content));
+    fireEvent.click(screen.getByText(mockTopic.content));
+    await waitFor(() => screen.getByText('Voltar'));
+
+    fireEvent.click(getMenuTriggerButton());
+    await waitFor(() => screen.getByRole('menu'));
+    fireEvent.click(screen.getByRole('menuitem', { name: /deletar/i }));
+
+    await waitFor(() => screen.getByText('Deseja deletar post?'));
+    fireEvent.click(screen.getByRole('button', { name: 'Deletar' }));
+
+    await waitFor(() => {
+      expect(apiClient.deleteTopic).toHaveBeenCalledWith('topic-1');
+      // Should navigate back to list view
+      expect(screen.getByText('Fórum')).toBeInTheDocument();
     });
   });
 });

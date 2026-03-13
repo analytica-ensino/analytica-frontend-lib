@@ -1021,6 +1021,7 @@ export type { UseForumReturn } from './hooks/useForum';
 
 // Forum Types
 export type {
+  ForumPostBase,
   ForumTopic,
   ForumReply,
   ForumPagination,

@@ -1,6 +1,5 @@
-export type ForumTopic = {
+export type ForumPostBase = {
   id: string;
-  classId: string;
   userInstitutionId: string;
   content: string;
   imageUrl: string | null;
@@ -9,22 +8,17 @@ export type ForumTopic = {
   authorName: string;
   authorPhoto: string | null;
   authorRole: string;
+};
+
+export type ForumTopic = ForumPostBase & {
+  classId: string;
   replyCount: number;
   /** Whether participation in this topic counts toward the student's grade */
   countsForGrade?: boolean;
 };
 
-export type ForumReply = {
-  id: string;
+export type ForumReply = ForumPostBase & {
   topicId: string;
-  userInstitutionId: string;
-  content: string;
-  imageUrl: string | null;
-  createdAt: string;
-  updatedAt: string;
-  authorName: string;
-  authorPhoto: string | null;
-  authorRole: string;
   /** Grade assigned by teacher when topic counts for grade (0-10) */
   grade?: number;
 };
