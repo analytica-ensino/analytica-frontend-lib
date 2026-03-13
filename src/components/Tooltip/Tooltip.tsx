@@ -67,7 +67,7 @@ export function Tooltip({
         className={cn(
           'absolute z-50 whitespace-nowrap',
           'px-4 py-2 rounded-lg',
-          'bg-background-900 text-white',
+          'bg-background-dark text-white',
           'text-sm font-medium',
           'shadow-[0px_3px_10px_0px_rgba(38,38,38,0.2)]',
           'opacity-0 invisible',
