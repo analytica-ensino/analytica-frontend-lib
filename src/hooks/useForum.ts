@@ -103,6 +103,8 @@ export const createUseForum = (apiClient: ForumApiClient) => {
       []
     );
 
+    const clearReplies = useCallback(() => setReplies([]), []);
+
     const fetchTopics = useCallback(
       async (params?: { limit?: number; offset?: number }) => {
         setIsLoadingTopics(true);
@@ -168,9 +170,7 @@ export const createUseForum = (apiClient: ForumApiClient) => {
         withSubmit(async () => {
           await apiClient.deleteTopic(topicId);
           setTopics(removeTopicById(topicId));
-          setSelectedTopic(
-            clearSelectedTopicIfMatch(topicId, () => setReplies([]))
-          );
+          setSelectedTopic(clearSelectedTopicIfMatch(topicId, clearReplies));
         }, 'Erro ao excluir o tópico.'),
       [apiClient, withSubmit]
     );
