@@ -6378,4 +6378,145 @@ describe('useQuizStore', () => {
       expect(relacionarQuestion?.id).toBe('relacionar-q1');
     });
   });
+
+  describe('IMAGEM question type', () => {
+    const mockImagemQuestion = {
+      ...mockQuestion1,
+      id: 'imagem-q1',
+      questionType: QUESTION_TYPE.IMAGEM,
+      statement: 'Clique no coração nesta imagem do corpo humano',
+      additionalContent: 'https://example.com/body-image.jpg',
+      options: [{ id: 'img-opt-1', option: '{"x": 45, "y": 35}' }],
+    };
+
+    const mockSimuladoWithImagem: QuizInterface = {
+      id: 'quiz-imagem-1',
+      title: 'Quiz com questão de imagem',
+      type: QUIZ_TYPE.SIMULADO,
+      subtype: 'SIMULADO',
+      difficulty: 'MEDIO',
+      notification: null,
+      status: 'STARTED',
+      startDate: null,
+      finalDate: null,
+      canRetry: false,
+      createdAt: null,
+      updatedAt: null,
+      questions: [mockImagemQuestion],
+    };
+
+    it('should allow selectDissertativeAnswer for IMAGEM question type', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setQuiz(mockSimuladoWithImagem);
+        result.current.setUserId('test-user-id');
+        result.current.selectDissertativeAnswer(
+          'imagem-q1',
+          JSON.stringify({ x: 50, y: 50 })
+        );
+      });
+
+      const userAnswer = result.current.getUserAnswerByQuestionId('imagem-q1');
+      expect(userAnswer).toBeTruthy();
+      expect(userAnswer?.answer).toBe('{"x":50,"y":50}');
+      expect(userAnswer?.optionId).toBeNull();
+      expect(userAnswer?.questionType).toBe(QUESTION_TYPE.IMAGEM);
+      expect(userAnswer?.answerStatus).toBe(ANSWER_STATUS.PENDENTE_AVALIACAO);
+    });
+
+    it('should update IMAGEM answer when clicking a different position', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setQuiz(mockSimuladoWithImagem);
+        result.current.setUserId('test-user-id');
+        result.current.selectDissertativeAnswer(
+          'imagem-q1',
+          JSON.stringify({ x: 30, y: 40 })
+        );
+      });
+
+      let userAnswer = result.current.getUserAnswerByQuestionId('imagem-q1');
+      expect(userAnswer?.answer).toBe('{"x":30,"y":40}');
+
+      act(() => {
+        result.current.selectDissertativeAnswer(
+          'imagem-q1',
+          JSON.stringify({ x: 70, y: 80 })
+        );
+      });
+
+      userAnswer = result.current.getUserAnswerByQuestionId('imagem-q1');
+      expect(userAnswer?.answer).toBe('{"x":70,"y":80}');
+    });
+
+    it('should mark IMAGEM question as answered when coordinates are provided', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setQuiz(mockSimuladoWithImagem);
+        result.current.setUserId('test-user-id');
+        result.current.selectDissertativeAnswer(
+          'imagem-q1',
+          JSON.stringify({ x: 45, y: 35 })
+        );
+      });
+
+      expect(result.current.isQuestionAnswered('imagem-q1')).toBe(true);
+      expect(result.current.getQuestionStatusFromUserAnswers('imagem-q1')).toBe(
+        'answered'
+      );
+    });
+
+    it('should not truncate IMAGEM answer with character limit set', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setQuiz(mockSimuladoWithImagem);
+        result.current.setUserId('test-user-id');
+        result.current.setDissertativeCharLimit(10); // Very small limit
+        result.current.selectDissertativeAnswer(
+          'imagem-q1',
+          JSON.stringify({ x: 50, y: 50 })
+        );
+      });
+
+      const userAnswer = result.current.getUserAnswerByQuestionId('imagem-q1');
+      // Character limit should NOT apply to IMAGEM questions
+      expect(userAnswer?.answer).toBe('{"x":50,"y":50}');
+    });
+
+    it('should include IMAGEM question in getQuestionsGroupedBySubject', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setQuiz(mockSimuladoWithImagem);
+      });
+
+      const grouped = result.current.getQuestionsGroupedBySubject();
+      const allQuestions = Object.values(grouped).flat();
+      const imagemQuestion = allQuestions.find(
+        (q) => q.questionType === QUESTION_TYPE.IMAGEM
+      );
+      expect(imagemQuestion).toBeDefined();
+      expect(imagemQuestion?.id).toBe('imagem-q1');
+    });
+
+    it('should return unanswered status for IMAGEM question without answer', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setQuiz(mockSimuladoWithImagem);
+        result.current.setUserId('test-user-id');
+      });
+
+      expect(result.current.isQuestionAnsweredByUserAnswers('imagem-q1')).toBe(
+        false
+      );
+      expect(result.current.getQuestionStatusFromUserAnswers('imagem-q1')).toBe(
+        'unanswered'
+      );
+    });
+  });
 });
