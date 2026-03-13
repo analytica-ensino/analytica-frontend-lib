@@ -213,7 +213,7 @@ describe('Tooltip', () => {
       expect(tooltip).toHaveClass('px-4');
       expect(tooltip).toHaveClass('py-2');
       expect(tooltip).toHaveClass('rounded-lg');
-      expect(tooltip).toHaveClass('bg-background-900');
+      expect(tooltip).toHaveClass('bg-background-dark');
       expect(tooltip).toHaveClass('text-white');
       expect(tooltip).toHaveClass('text-sm');
       expect(tooltip).toHaveClass('font-medium');
