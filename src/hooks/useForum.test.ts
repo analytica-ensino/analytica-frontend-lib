@@ -153,6 +153,23 @@ describe('createUseForum — createTopic', () => {
     });
   });
 
+  it('passes countsForGrade to the api client', async () => {
+    const apiClient = buildApiClient();
+    const { result } = renderHook(() => createUseForum(apiClient)());
+
+    await act(async () => {
+      await result.current.createTopic({
+        content: 'Tópico avaliativo',
+        countsForGrade: true,
+      });
+    });
+
+    expect(apiClient.createTopic).toHaveBeenCalledWith({
+      content: 'Tópico avaliativo',
+      countsForGrade: true,
+    });
+  });
+
   it('throws and sets error on failure', async () => {
     const apiClient = buildApiClient({
       createTopic: jest.fn().mockRejectedValue(new Error('fail')),
@@ -190,6 +207,40 @@ describe('createUseForum — updateTopic', () => {
     expect(result.current.topics[0].content).toBe('Editado');
   });
 
+  it('also updates selectedTopic when it matches', async () => {
+    const apiClient = buildApiClient();
+    const { result } = renderHook(() => createUseForum(apiClient)());
+
+    // Seed topics and select topic-1
+    await act(async () => {
+      await result.current.fetchTopic('topic-1');
+    });
+
+    expect(result.current.selectedTopic?.content).toBe('Conteúdo do tópico');
+
+    await act(async () => {
+      await result.current.updateTopic('topic-1', { content: 'Editado' });
+    });
+
+    expect(result.current.selectedTopic?.content).toBe('Editado');
+  });
+
+  it('does not change selectedTopic when ids differ', async () => {
+    const apiClient = buildApiClient();
+    const { result } = renderHook(() => createUseForum(apiClient)());
+
+    await act(async () => {
+      await result.current.fetchTopics();
+      await result.current.fetchTopic('topic-1');
+    });
+
+    await act(async () => {
+      await result.current.updateTopic('topic-999', { content: 'Outro' });
+    });
+
+    expect(result.current.selectedTopic?.content).toBe('Conteúdo do tópico');
+  });
+
   it('throws and sets error on failure', async () => {
     const apiClient = buildApiClient({
       updateTopic: jest.fn().mockRejectedValue(new Error('fail')),
@@ -224,6 +275,42 @@ describe('createUseForum — deleteTopic', () => {
     });
 
     expect(result.current.topics).toEqual([]);
+  });
+
+  it('clears selectedTopic and replies when deleting the selected topic', async () => {
+    const apiClient = buildApiClient();
+    const { result } = renderHook(() => createUseForum(apiClient)());
+
+    // Select topic-1 (populates selectedTopic + replies)
+    await act(async () => {
+      await result.current.fetchTopic('topic-1');
+    });
+
+    expect(result.current.selectedTopic).not.toBeNull();
+    expect(result.current.replies).toHaveLength(1);
+
+    await act(async () => {
+      await result.current.deleteTopic('topic-1');
+    });
+
+    expect(result.current.selectedTopic).toBeNull();
+    expect(result.current.replies).toEqual([]);
+  });
+
+  it('keeps selectedTopic when deleting a different topic', async () => {
+    const apiClient = buildApiClient();
+    const { result } = renderHook(() => createUseForum(apiClient)());
+
+    await act(async () => {
+      await result.current.fetchTopic('topic-1');
+    });
+
+    await act(async () => {
+      await result.current.deleteTopic('topic-999');
+    });
+
+    expect(result.current.selectedTopic).toEqual(mockTopic);
+    expect(result.current.replies).toEqual([mockReply]);
   });
 
   it('throws and sets error on failure', async () => {

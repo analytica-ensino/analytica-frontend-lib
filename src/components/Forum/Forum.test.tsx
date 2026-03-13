@@ -840,6 +840,59 @@ describe('Forum — teacher features', () => {
       ).not.toBeInTheDocument();
     });
   });
+
+  it('renders grade 0 correctly (falsy-zero regression)', async () => {
+    const onEvaluateReply = jest.fn().mockResolvedValue(undefined);
+    const zeroGradeReply: ForumReply = { ...mockReply, grade: 0 };
+    const apiClient = buildApiClient({
+      getTopic: jest.fn().mockResolvedValue({
+        topic: { ...mockTopicWithReplies, countsForGrade: true },
+        replies: [zeroGradeReply],
+      }),
+    });
+
+    // Teacher should see "Nota 0" with pencil, not "Avaliar"
+    render(
+      <Forum
+        apiClient={apiClient}
+        {...teacherProps}
+        onEvaluateReply={onEvaluateReply}
+      />
+    );
+
+    await waitFor(() => screen.getByText(mockTopic.content));
+    fireEvent.click(screen.getByText(mockTopic.content));
+
+    await waitFor(() => {
+      expect(screen.getByText('Nota 0')).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /avaliar/i })
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  it('student sees grade 0 correctly (falsy-zero regression)', async () => {
+    const zeroGradeReply: ForumReply = {
+      ...mockReply,
+      userInstitutionId: 'user-99',
+      grade: 0,
+    };
+    const apiClient = buildApiClient({
+      getTopic: jest.fn().mockResolvedValue({
+        topic: { ...mockTopicWithReplies, countsForGrade: true },
+        replies: [zeroGradeReply],
+      }),
+    });
+
+    render(<Forum apiClient={apiClient} currentUserId="user-99" />);
+
+    await waitFor(() => screen.getByText(mockTopic.content));
+    fireEvent.click(screen.getByText(mockTopic.content));
+
+    await waitFor(() => {
+      expect(screen.getByText('Nota 0')).toBeInTheDocument();
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------

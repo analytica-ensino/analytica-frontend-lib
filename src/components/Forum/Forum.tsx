@@ -124,7 +124,10 @@ interface PostActionsMenuProps {
 function PostActionsMenu({ onEdit, onDelete }: PostActionsMenuProps) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="p-1 rounded hover:bg-background-100 transition-colors shrink-0">
+      <DropdownMenuTrigger
+        aria-label="Abrir ações do post"
+        className="p-1 rounded hover:bg-background-100 transition-colors shrink-0"
+      >
         <DotsThreeVerticalIcon size={20} className="text-text-600" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -200,10 +203,10 @@ function PostContentModal({
     [onUploadImage, onImageUploaded]
   );
 
-  // Determine if content is effectively empty (handles both plain text and HTML)
-  const isContentEmpty = richText
-    ? !stripHtml(content).trim()
-    : !content.trim();
+  // Determine if content is effectively empty or exceeds the limit
+  const plainTextContent = richText ? stripHtml(content) : content;
+  const isContentEmpty = !plainTextContent.trim();
+  const exceedsMaxLength = plainTextContent.trim().length > maxLength;
 
   return (
     <Modal
@@ -225,7 +228,7 @@ function PostContentModal({
             variant="solid"
             action="primary"
             size="medium"
-            disabled={isContentEmpty || isSubmitting}
+            disabled={isContentEmpty || exceedsMaxLength || isSubmitting}
             onClick={onSubmit}
           >
             {submitLabel}
@@ -493,7 +496,7 @@ export function Forum({
           }),
       });
       handleCloseCreateModal();
-      fetchTopics();
+      await fetchTopics();
     } finally {
       setIsSubmitting(false);
     }
@@ -530,9 +533,9 @@ export function Forum({
       });
       handleCloseEditTopic();
       if (view === 'list') {
-        fetchTopics();
+        await fetchTopics();
       } else {
-        fetchTopic(editingTopic.id);
+        await fetchTopic(editingTopic.id);
       }
     } finally {
       setIsSubmitting(false);
@@ -556,7 +559,7 @@ export function Forum({
         if (view === 'detail') {
           handleBack();
         } else {
-          fetchTopics();
+          await fetchTopics();
         }
       } finally {
         setIsSubmitting(false);
@@ -582,7 +585,7 @@ export function Forum({
         ...(replyImageUrl && { imageUrl: replyImageUrl }),
       });
       handleCloseReplyModal();
-      fetchTopic(selectedTopic.id);
+      await fetchTopic(selectedTopic.id);
     } finally {
       setIsSubmitting(false);
     }
@@ -617,7 +620,7 @@ export function Forum({
         imageUrl: editReplyImageUrl ?? null,
       });
       handleCloseEditReply();
-      fetchTopic(selectedTopic.id);
+      await fetchTopic(selectedTopic.id);
     } finally {
       setIsSubmitting(false);
     }
@@ -637,7 +640,7 @@ export function Forum({
       setIsSubmitting(true);
       try {
         await apiClient.deleteReply(replyId);
-        fetchTopic(selectedTopic.id);
+        await fetchTopic(selectedTopic.id);
       } finally {
         setIsSubmitting(false);
         setPendingDelete(null);
@@ -664,8 +667,14 @@ export function Forum({
     setIsEditingGrade(true);
   }, []);
 
+  const isValidGrade =
+    gradeValue !== null &&
+    Number.isInteger(gradeValue) &&
+    gradeValue >= 0 &&
+    gradeValue <= 10;
+
   const handleSubmitEvaluation = useCallback(async () => {
-    if (!evaluatingReplyId || gradeValue === null || !onEvaluateReply) return;
+    if (!evaluatingReplyId || !isValidGrade || !onEvaluateReply) return;
     setIsSubmitting(true);
     try {
       await onEvaluateReply(evaluatingReplyId, gradeValue);
@@ -682,6 +691,7 @@ export function Forum({
   }, [
     evaluatingReplyId,
     gradeValue,
+    isValidGrade,
     onEvaluateReply,
     handleCloseEvaluateModal,
   ]);
@@ -835,7 +845,7 @@ export function Forum({
                   {isTeacher &&
                     selectedTopic?.countsForGrade &&
                     onEvaluateReply &&
-                    (reply.grade ? (
+                    (reply.grade != null ? (
                       /* Grade already set — teacher sees it with edit pencil */
                       <div className="flex items-center gap-1.5 ml-10">
                         <span className="text-sm text-text-600">
@@ -861,7 +871,7 @@ export function Forum({
                       </button>
                     ))}
                   {!isTeacher &&
-                    reply.grade &&
+                    reply.grade != null &&
                     reply.userInstitutionId === currentUserId &&
                     selectedTopic?.countsForGrade && (
                       <span className="text-sm text-text-600 ml-10">
@@ -1026,7 +1036,7 @@ export function Forum({
               variant="solid"
               action="primary"
               size="medium"
-              disabled={gradeValue === null || isSubmitting}
+              disabled={!isValidGrade || isSubmitting}
               onClick={handleSubmitEvaluation}
             >
               {isEditingGrade ? 'Salvar' : 'Avaliar'}
@@ -1043,7 +1053,8 @@ export function Forum({
           value={gradeValue ?? ''}
           onChange={(e) => {
             const val = e.target.value;
-            setGradeValue(val === '' ? null : Number(val));
+            const parsed = Number(val);
+            setGradeValue(val === '' || Number.isNaN(parsed) ? null : parsed);
           }}
           className="w-full rounded-lg border border-border-200 px-3 py-2 text-sm text-text-950 placeholder:text-text-400 focus:outline-none focus:ring-2 focus:ring-primary-600"
         />

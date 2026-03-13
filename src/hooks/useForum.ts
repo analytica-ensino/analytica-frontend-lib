@@ -20,7 +20,11 @@ type UseForumState = {
 export type UseForumReturn = UseForumState & {
   fetchTopics: (params?: { limit?: number; offset?: number }) => Promise<void>;
   fetchTopic: (topicId: string) => Promise<void>;
-  createTopic: (body: { content: string; imageUrl?: string }) => Promise<void>;
+  createTopic: (body: {
+    content: string;
+    imageUrl?: string;
+    countsForGrade?: boolean;
+  }) => Promise<void>;
   updateTopic: (
     topicId: string,
     body: { content?: string; imageUrl?: string | null }
@@ -120,7 +124,11 @@ export const createUseForum = (apiClient: ForumApiClient) => {
     );
 
     const createTopic = useCallback(
-      async (body: { content: string; imageUrl?: string }) =>
+      async (body: {
+        content: string;
+        imageUrl?: string;
+        countsForGrade?: boolean;
+      }) =>
         withSubmit(
           () => apiClient.createTopic(body),
           'Erro ao criar o tópico.'
@@ -136,6 +144,9 @@ export const createUseForum = (apiClient: ForumApiClient) => {
         withSubmit(async () => {
           await apiClient.updateTopic(topicId, body);
           setTopics(replaceTopicById(topicId, body));
+          setSelectedTopic((prev) =>
+            prev?.id === topicId ? { ...prev, ...body } : prev
+          );
         }, 'Erro ao atualizar o tópico.'),
       [apiClient, withSubmit]
     );
@@ -145,6 +156,13 @@ export const createUseForum = (apiClient: ForumApiClient) => {
         withSubmit(async () => {
           await apiClient.deleteTopic(topicId);
           setTopics(removeTopicById(topicId));
+          setSelectedTopic((prev) => {
+            if (prev?.id === topicId) {
+              setReplies([]);
+              return null;
+            }
+            return prev;
+          });
         }, 'Erro ao excluir o tópico.'),
       [apiClient, withSubmit]
     );
