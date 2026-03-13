@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   CaretLeftIcon,
   ChatCircleTextIcon,
@@ -10,6 +10,7 @@ import {
 } from '@phosphor-icons/react';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
+import Input from '../Input/Input';
 import TextArea from '../TextArea/TextArea';
 import Modal from '../Modal/Modal';
 import Radio from '../Radio/Radio';
@@ -19,6 +20,8 @@ import DropdownMenu, {
   DropdownMenuItem,
 } from '../DropdownMenu/DropdownMenu';
 import { RichEditor } from '../RichEditor/RichEditor';
+import ImageUpload from '../ImageUpload/ImageUpload';
+import { SkeletonList, SkeletonCard } from '../Skeleton/Skeleton';
 import { stripHtml, sanitizeHtmlForDisplay } from '../HtmlMathRenderer';
 import { cn } from '../../utils/utils';
 import type { ForumApiClient, ForumTopic, ForumReply } from '../../types/forum';
@@ -87,8 +90,10 @@ function AuthorAvatar({ name, photoUrl }: AuthorAvatarProps) {
     );
   }
   return (
-    <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white text-xs font-semibold shrink-0">
-      {getInitials(name)}
+    <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center shrink-0">
+      <Text size="xs" weight="semibold" color="text-white">
+        {getInitials(name)}
+      </Text>
     </div>
   );
 }
@@ -103,14 +108,13 @@ function AuthorMeta({ authorName, authorPhoto, createdAt }: AuthorMetaProps) {
   return (
     <div className="flex items-center gap-2">
       <AuthorAvatar name={authorName} photoUrl={authorPhoto} />
-      <div>
-        <span className="text-xs font-semibold text-primary-700">
+      <div className="flex items-center gap-1">
+        <Text size="xs" weight="semibold" color="text-primary-700">
           Postado por {authorName}
-        </span>
-        <span className="text-xs text-text-600">
-          {' '}
+        </Text>
+        <Text size="xs" color="text-text-600">
           • {formatForumDate(createdAt)}
-        </span>
+        </Text>
       </div>
     </div>
   );
@@ -184,21 +188,15 @@ function PostContentModal({
   countsForGrade,
   onCountsForGradeChange,
 }: PostContentModalProps) {
-  const imageInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileChange = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file && onUploadImage) {
-        try {
-          const url = await onUploadImage(file);
-          onImageUploaded(url);
-        } catch {
-          // silently fail — consuming app should handle upload errors
-        }
+  const handleImageSelect = useCallback(
+    async (file: File) => {
+      if (!onUploadImage) return;
+      try {
+        const url = await onUploadImage(file);
+        onImageUploaded(url);
+      } catch {
+        // silently fail — consuming app should handle upload errors
       }
-      // reset input so the same file can be re-selected
-      e.target.value = '';
     },
     [onUploadImage, onImageUploaded]
   );
@@ -256,21 +254,11 @@ function PostContentModal({
           />
         )}
 
-        <button
-          type="button"
-          className="flex items-center gap-1.5 text-primary-950 text-sm font-medium leading-none hover:opacity-80 transition-opacity w-fit"
-          onClick={() => imageInputRef.current?.click()}
-        >
-          <ImageIcon size={16} />
-          Inserir imagem
-        </button>
-
-        <input
-          ref={imageInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleFileChange}
+        <ImageUpload
+          variant="compact"
+          onFileSelect={handleImageSelect}
+          onRemoveFile={() => onImageUploaded('')}
+          buttonIcon={<ImageIcon size={16} />}
         />
         {imageUrl && (
           <img
@@ -282,9 +270,9 @@ function PostContentModal({
 
         {showGradeQuestion && (
           <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-text-950">
+            <Text size="sm" weight="medium">
               Este fórum vale nota no boletim?
-            </span>
+            </Text>
             <div className="flex items-center gap-4">
               <Radio
                 name="countsForGrade"
@@ -316,34 +304,25 @@ function PostContentModal({
 
 function TopicListSkeleton() {
   return (
-    <div className="flex flex-col gap-4">
-      {[1, 2, 3].map((i) => (
-        <div
-          key={i}
-          className="bg-white border border-border-100 rounded-lg pt-4 pr-2 pb-4 pl-2 animate-pulse"
-        >
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-full bg-border-200 shrink-0" />
-            <div className="h-3 w-48 bg-border-200 rounded" />
-          </div>
-          <div className="h-4 w-full bg-border-200 rounded ml-10 mb-2" />
-          <div className="h-3 w-20 bg-border-200 rounded ml-10" />
-        </div>
-      ))}
-    </div>
+    <SkeletonList
+      items={3}
+      showAvatar
+      showTitle
+      showDescription
+      lines={2}
+    />
   );
 }
 
 function TopicDetailSkeleton() {
   return (
-    <div className="animate-pulse flex flex-col gap-3">
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-full bg-border-200 shrink-0" />
-        <div className="h-3 w-48 bg-border-200 rounded" />
-      </div>
-      <div className="h-4 w-full bg-border-200 rounded ml-10" />
-      <div className="h-4 w-3/4 bg-border-200 rounded ml-10" />
-    </div>
+    <SkeletonCard
+      showAvatar
+      showTitle
+      showDescription
+      showActions={false}
+      lines={2}
+    />
   );
 }
 
@@ -738,14 +717,14 @@ export function Forum({
                 authorPhoto={topic.authorPhoto}
                 createdAt={topic.createdAt}
               />
-              <p className="text-sm text-text-950 leading-normal line-clamp-3 ml-10">
+              <Text size="sm" className="leading-normal line-clamp-3 ml-10">
                 {stripHtml(topic.content)}
-              </p>
+              </Text>
               <div className="flex items-center gap-1 text-text-600 ml-10">
                 <ChatCircleTextIcon size={16} />
-                <span className="text-xs">
+                <Text size="xs">
                   {formatReplyCount(topic.replyCount)}
-                </span>
+                </Text>
               </div>
             </button>
 
@@ -858,9 +837,9 @@ export function Forum({
                     ) : (
                       /* Grade already set — teacher sees it with edit pencil */
                       <div className="flex items-center gap-1.5 ml-10">
-                        <span className="text-sm text-text-600">
+                        <Text size="sm" color="text-text-600">
                           Nota {reply.grade}
-                        </span>
+                        </Text>
                         <button
                           type="button"
                           className="text-text-600 hover:text-text-950 transition-colors"
@@ -874,9 +853,9 @@ export function Forum({
                     reply.grade != null &&
                     reply.userInstitutionId === currentUserId &&
                     selectedTopic?.countsForGrade && (
-                      <span className="text-sm text-text-600 ml-10">
+                      <Text size="sm" color="text-text-600" className="ml-10">
                         Nota {reply.grade}
-                      </span>
+                      </Text>
                     )}
                 </div>
                 {reply.userInstitutionId === currentUserId && (
@@ -931,8 +910,8 @@ export function Forum({
             className="flex items-center gap-2 hover:opacity-80 transition-opacity w-fit"
             onClick={handleBack}
           >
-            <CaretLeftIcon size={20} className="text-text-950" />
-            <Text as="span" size="lg" weight="semibold" color="text-text-950">
+            <CaretLeftIcon size={24} className="text-text-950" />
+            <Text size="2xl" weight="bold">
               Voltar
             </Text>
           </button>
@@ -1044,7 +1023,7 @@ export function Forum({
           </div>
         }
       >
-        <input
+        <Input
           type="number"
           min={0}
           max={10}
@@ -1056,7 +1035,6 @@ export function Forum({
             const parsed = Number(val);
             setGradeValue(val === '' || Number.isNaN(parsed) ? null : parsed);
           }}
-          className="w-full rounded-lg border border-border-200 px-3 py-2 text-sm text-text-950 placeholder:text-text-400 focus:outline-none focus:ring-2 focus:ring-primary-600"
         />
       </Modal>
 
