@@ -845,7 +845,17 @@ export function Forum({
                   {isTeacher &&
                     selectedTopic?.countsForGrade &&
                     onEvaluateReply &&
-                    (reply.grade != null ? (
+                    (reply.grade == null ? (
+                      /* Not yet graded — show Avaliar button */
+                      <button
+                        type="button"
+                        className="flex items-center gap-1.5 text-text-600 text-sm hover:text-text-950 transition-colors w-fit ml-10"
+                        onClick={() => handleOpenEvaluate(reply)}
+                      >
+                        <CheckIcon size={16} />
+                        Avaliar
+                      </button>
+                    ) : (
                       /* Grade already set — teacher sees it with edit pencil */
                       <div className="flex items-center gap-1.5 ml-10">
                         <span className="text-sm text-text-600">
@@ -859,16 +869,6 @@ export function Forum({
                           <PencilSimpleIcon size={14} />
                         </button>
                       </div>
-                    ) : (
-                      /* Not yet graded — show Avaliar button */
-                      <button
-                        type="button"
-                        className="flex items-center gap-1.5 text-text-600 text-sm hover:text-text-950 transition-colors w-fit ml-10"
-                        onClick={() => handleOpenEvaluate(reply)}
-                      >
-                        <CheckIcon size={16} />
-                        Avaliar
-                      </button>
                     ))}
                   {!isTeacher &&
                     reply.grade != null &&

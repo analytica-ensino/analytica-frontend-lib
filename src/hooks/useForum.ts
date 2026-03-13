@@ -58,6 +58,20 @@ const replaceReplyById =
   (prev: ForumReply[]) =>
     prev.map((r) => (r.id === replyId ? { ...r, ...body } : r));
 
+const updateSelectedTopic =
+  (topicId: string, body: { content?: string; imageUrl?: string | null }) =>
+  (prev: ForumTopic | null) =>
+    prev?.id === topicId ? { ...prev, ...body } : prev;
+
+const clearSelectedTopicIfMatch =
+  (topicId: string, clearReplies: () => void) => (prev: ForumTopic | null) => {
+    if (prev?.id === topicId) {
+      clearReplies();
+      return null;
+    }
+    return prev;
+  };
+
 const removeReplyById = (replyId: string) => (prev: ForumReply[]) =>
   prev.filter((r) => r.id !== replyId);
 
@@ -144,9 +158,7 @@ export const createUseForum = (apiClient: ForumApiClient) => {
         withSubmit(async () => {
           await apiClient.updateTopic(topicId, body);
           setTopics(replaceTopicById(topicId, body));
-          setSelectedTopic((prev) =>
-            prev?.id === topicId ? { ...prev, ...body } : prev
-          );
+          setSelectedTopic(updateSelectedTopic(topicId, body));
         }, 'Erro ao atualizar o tópico.'),
       [apiClient, withSubmit]
     );
@@ -156,13 +168,9 @@ export const createUseForum = (apiClient: ForumApiClient) => {
         withSubmit(async () => {
           await apiClient.deleteTopic(topicId);
           setTopics(removeTopicById(topicId));
-          setSelectedTopic((prev) => {
-            if (prev?.id === topicId) {
-              setReplies([]);
-              return null;
-            }
-            return prev;
-          });
+          setSelectedTopic(
+            clearSelectedTopicIfMatch(topicId, () => setReplies([]))
+          );
         }, 'Erro ao excluir o tópico.'),
       [apiClient, withSubmit]
     );
