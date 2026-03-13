@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   CaretLeftIcon,
   ChatCircleTextIcon,
@@ -19,10 +19,7 @@ import DropdownMenu, {
   DropdownMenuItem,
 } from '../DropdownMenu/DropdownMenu';
 import { RichEditor } from '../RichEditor/RichEditor';
-import {
-  stripHtml,
-  sanitizeHtmlForDisplay,
-} from '../HtmlMathRenderer';
+import { stripHtml, sanitizeHtmlForDisplay } from '../HtmlMathRenderer';
 import { cn } from '../../utils/utils';
 import type { ForumApiClient, ForumTopic, ForumReply } from '../../types/forum';
 import { PROFILE_ROLES } from '../../types/chat';
@@ -137,10 +134,7 @@ function PostActionsMenu({ onEdit, onDelete }: PostActionsMenuProps) {
         >
           Editar
         </DropdownMenuItem>
-        <DropdownMenuItem
-          iconLeft={<TrashIcon size={16} />}
-          onClick={onDelete}
-        >
+        <DropdownMenuItem iconLeft={<TrashIcon size={16} />} onClick={onDelete}>
           Deletar
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -203,7 +197,7 @@ function PostContentModal({
       // reset input so the same file can be re-selected
       e.target.value = '';
     },
-    [onUploadImage, onImageUploaded],
+    [onUploadImage, onImageUploaded]
   );
 
   // Determine if content is effectively empty (handles both plain text and HTML)
@@ -371,7 +365,7 @@ export type ForumProps = {
    * Callback to evaluate a reply (teacher only).
    * If provided, an "Avaliar" button appears on each reply when the topic counts for grade.
    */
-  onEvaluateReply?: (replyId: string, grade: string) => Promise<void>;
+  onEvaluateReply?: (replyId: string, grade: number) => Promise<void>;
   /** Additional CSS classes */
   className?: string;
 };
@@ -399,7 +393,9 @@ export function Forum({
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [createContent, setCreateContent] = useState('');
   const [createImageUrl, setCreateImageUrl] = useState<string | undefined>();
-  const [createCountsForGrade, setCreateCountsForGrade] = useState<boolean | undefined>();
+  const [createCountsForGrade, setCreateCountsForGrade] = useState<
+    boolean | undefined
+  >();
 
   // Reply modal state
   const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
@@ -409,16 +405,22 @@ export function Forum({
   // Edit topic modal state
   const [editingTopic, setEditingTopic] = useState<ForumTopic | null>(null);
   const [editTopicContent, setEditTopicContent] = useState('');
-  const [editTopicImageUrl, setEditTopicImageUrl] = useState<string | undefined>();
+  const [editTopicImageUrl, setEditTopicImageUrl] = useState<
+    string | undefined
+  >();
 
   // Edit reply modal state
   const [editingReply, setEditingReply] = useState<ForumReply | null>(null);
   const [editReplyContent, setEditReplyContent] = useState('');
-  const [editReplyImageUrl, setEditReplyImageUrl] = useState<string | undefined>();
+  const [editReplyImageUrl, setEditReplyImageUrl] = useState<
+    string | undefined
+  >();
 
   // Evaluate reply modal state (teacher only)
-  const [evaluatingReplyId, setEvaluatingReplyId] = useState<string | null>(null);
-  const [gradeText, setGradeText] = useState('');
+  const [evaluatingReplyId, setEvaluatingReplyId] = useState<string | null>(
+    null
+  );
+  const [gradeValue, setGradeValue] = useState<number | null>(null);
   const [isEditingGrade, setIsEditingGrade] = useState(false);
 
   // Delete confirmation state
@@ -447,7 +449,7 @@ export function Forum({
         setIsLoadingTopic(false);
       }
     },
-    [apiClient],
+    [apiClient]
   );
 
   useEffect(() => {
@@ -460,7 +462,7 @@ export function Forum({
       setView('detail');
       fetchTopic(topic.id);
     },
-    [fetchTopic],
+    [fetchTopic]
   );
 
   const handleBack = useCallback(() => {
@@ -485,14 +487,25 @@ export function Forum({
       await apiClient.createTopic({
         content: createContent.trim(),
         ...(createImageUrl && { imageUrl: createImageUrl }),
-        ...(isTeacher && createCountsForGrade !== undefined && { countsForGrade: createCountsForGrade }),
+        ...(isTeacher &&
+          createCountsForGrade !== undefined && {
+            countsForGrade: createCountsForGrade,
+          }),
       });
       handleCloseCreateModal();
       fetchTopics();
     } finally {
       setIsSubmitting(false);
     }
-  }, [apiClient, createContent, createImageUrl, createCountsForGrade, isTeacher, handleCloseCreateModal, fetchTopics]);
+  }, [
+    apiClient,
+    createContent,
+    createImageUrl,
+    createCountsForGrade,
+    isTeacher,
+    handleCloseCreateModal,
+    fetchTopics,
+  ]);
 
   // Edit topic
   const handleOpenEditTopic = useCallback((topic: ForumTopic) => {
@@ -524,7 +537,16 @@ export function Forum({
     } finally {
       setIsSubmitting(false);
     }
-  }, [apiClient, editingTopic, editTopicContent, editTopicImageUrl, handleCloseEditTopic, view, fetchTopics, fetchTopic]);
+  }, [
+    apiClient,
+    editingTopic,
+    editTopicContent,
+    editTopicImageUrl,
+    handleCloseEditTopic,
+    view,
+    fetchTopics,
+    fetchTopic,
+  ]);
 
   const handleDeleteTopic = useCallback(
     async (topicId: string) => {
@@ -541,7 +563,7 @@ export function Forum({
         setPendingDelete(null);
       }
     },
-    [apiClient, view, handleBack, fetchTopics],
+    [apiClient, view, handleBack, fetchTopics]
   );
 
   // Reply
@@ -564,7 +586,14 @@ export function Forum({
     } finally {
       setIsSubmitting(false);
     }
-  }, [apiClient, selectedTopic, replyContent, replyImageUrl, handleCloseReplyModal, fetchTopic]);
+  }, [
+    apiClient,
+    selectedTopic,
+    replyContent,
+    replyImageUrl,
+    handleCloseReplyModal,
+    fetchTopic,
+  ]);
 
   // Edit reply
   const handleOpenEditReply = useCallback((reply: ForumReply) => {
@@ -592,7 +621,15 @@ export function Forum({
     } finally {
       setIsSubmitting(false);
     }
-  }, [apiClient, editingReply, editReplyContent, editReplyImageUrl, handleCloseEditReply, selectedTopic, fetchTopic]);
+  }, [
+    apiClient,
+    editingReply,
+    editReplyContent,
+    editReplyImageUrl,
+    handleCloseEditReply,
+    selectedTopic,
+    fetchTopic,
+  ]);
 
   const handleDeleteReply = useCallback(
     async (replyId: string) => {
@@ -606,43 +643,48 @@ export function Forum({
         setPendingDelete(null);
       }
     },
-    [apiClient, selectedTopic, fetchTopic],
+    [apiClient, selectedTopic, fetchTopic]
   );
 
   const handleCloseEvaluateModal = useCallback(() => {
     setEvaluatingReplyId(null);
-    setGradeText('');
+    setGradeValue(null);
     setIsEditingGrade(false);
   }, []);
 
   const handleOpenEvaluate = useCallback((reply: ForumReply) => {
     setEvaluatingReplyId(reply.id);
-    setGradeText('');
+    setGradeValue(null);
     setIsEditingGrade(false);
   }, []);
 
   const handleOpenEditGrade = useCallback((reply: ForumReply) => {
     setEvaluatingReplyId(reply.id);
-    setGradeText(reply.grade ?? '');
+    setGradeValue(reply.grade ?? null);
     setIsEditingGrade(true);
   }, []);
 
   const handleSubmitEvaluation = useCallback(async () => {
-    if (!evaluatingReplyId || !gradeText.trim() || !onEvaluateReply) return;
+    if (!evaluatingReplyId || gradeValue === null || !onEvaluateReply) return;
     setIsSubmitting(true);
     try {
-      await onEvaluateReply(evaluatingReplyId, gradeText.trim());
+      await onEvaluateReply(evaluatingReplyId, gradeValue);
       // Optimistically update grade in local state
       setReplies((prev) =>
         prev.map((r) =>
-          r.id === evaluatingReplyId ? { ...r, grade: gradeText.trim() } : r,
-        ),
+          r.id === evaluatingReplyId ? { ...r, grade: gradeValue } : r
+        )
       );
       handleCloseEvaluateModal();
     } finally {
       setIsSubmitting(false);
     }
-  }, [evaluatingReplyId, gradeText, onEvaluateReply, handleCloseEvaluateModal]);
+  }, [
+    evaluatingReplyId,
+    gradeValue,
+    onEvaluateReply,
+    handleCloseEvaluateModal,
+  ]);
 
   const handleConfirmDelete = useCallback(async () => {
     if (!pendingDelete) return;
@@ -719,7 +761,9 @@ export function Forum({
                     {topic.userInstitutionId === currentUserId && (
                       <PostActionsMenu
                         onEdit={() => handleOpenEditTopic(topic)}
-                        onDelete={() => setPendingDelete({ type: 'topic', id: topic.id })}
+                        onDelete={() =>
+                          setPendingDelete({ type: 'topic', id: topic.id })
+                        }
                       />
                     )}
                   </div>
@@ -771,7 +815,9 @@ export function Forum({
                 {selectedTopic.userInstitutionId === currentUserId && (
                   <PostActionsMenu
                     onEdit={() => handleOpenEditTopic(selectedTopic)}
-                    onDelete={() => setPendingDelete({ type: 'topic', id: selectedTopic.id })}
+                    onDelete={() =>
+                      setPendingDelete({ type: 'topic', id: selectedTopic.id })
+                    }
                   />
                 )}
               </div>
@@ -795,10 +841,7 @@ export function Forum({
               {replies.length > 0 && (
                 <div className="flex flex-col divide-y divide-border-200">
                   {replies.map((reply) => (
-                    <div
-                      key={reply.id}
-                      className="flex items-start gap-2 py-4"
-                    >
+                    <div key={reply.id} className="flex items-start gap-2 py-4">
                       <div className="flex flex-col gap-3 flex-1 min-w-0">
                         <AuthorMeta
                           authorName={reply.authorName}
@@ -818,8 +861,10 @@ export function Forum({
                             className="ml-10 max-w-lg rounded-lg"
                           />
                         )}
-                        {isTeacher && selectedTopic?.countsForGrade && onEvaluateReply && (
-                          reply.grade ? (
+                        {isTeacher &&
+                          selectedTopic?.countsForGrade &&
+                          onEvaluateReply &&
+                          (reply.grade ? (
                             /* Grade already set — teacher sees it with edit pencil */
                             <div className="flex items-center gap-1.5 ml-10">
                               <span className="text-sm text-text-600">
@@ -843,18 +888,22 @@ export function Forum({
                               <CheckIcon size={16} />
                               Avaliar
                             </button>
-                          )
-                        )}
-                        {!isTeacher && reply.grade && reply.userInstitutionId === currentUserId && selectedTopic?.countsForGrade && (
-                          <span className="text-sm text-text-600 ml-10">
-                            Nota {reply.grade}
-                          </span>
-                        )}
+                          ))}
+                        {!isTeacher &&
+                          reply.grade &&
+                          reply.userInstitutionId === currentUserId &&
+                          selectedTopic?.countsForGrade && (
+                            <span className="text-sm text-text-600 ml-10">
+                              Nota {reply.grade}
+                            </span>
+                          )}
                       </div>
                       {reply.userInstitutionId === currentUserId && (
                         <PostActionsMenu
                           onEdit={() => handleOpenEditReply(reply)}
-                          onDelete={() => setPendingDelete({ type: 'reply', id: reply.id })}
+                          onDelete={() =>
+                            setPendingDelete({ type: 'reply', id: reply.id })
+                          }
                         />
                       )}
                     </div>
@@ -941,7 +990,11 @@ export function Forum({
       <Modal
         isOpen={!!evaluatingReplyId}
         onClose={handleCloseEvaluateModal}
-        title={isEditingGrade ? 'Edite a nota da atividade' : 'Defina a nota da atividade'}
+        title={
+          isEditingGrade
+            ? 'Edite a nota da atividade'
+            : 'Defina a nota da atividade'
+        }
         size="md"
         footer={
           <div className="flex justify-end gap-2">
@@ -957,7 +1010,7 @@ export function Forum({
               variant="solid"
               action="primary"
               size="medium"
-              disabled={!gradeText.trim() || isSubmitting}
+              disabled={gradeValue === null || isSubmitting}
               onClick={handleSubmitEvaluation}
             >
               {isEditingGrade ? 'Salvar' : 'Avaliar'}
@@ -965,12 +1018,18 @@ export function Forum({
           </div>
         }
       >
-        <TextArea
-          placeholder="Escreva a nota aqui."
-          value={gradeText}
-          onChange={(e) => setGradeText(e.target.value)}
-          autoResize
-          minHeight={120}
+        <input
+          type="number"
+          min={0}
+          max={10}
+          step={1}
+          placeholder="Nota (0-10)"
+          value={gradeValue ?? ''}
+          onChange={(e) => {
+            const val = e.target.value;
+            setGradeValue(val === '' ? null : Number(val));
+          }}
+          className="w-full rounded-lg border border-border-200 px-3 py-2 text-sm text-text-950 placeholder:text-text-400 focus:outline-none focus:ring-2 focus:ring-primary-600"
         />
       </Modal>
 

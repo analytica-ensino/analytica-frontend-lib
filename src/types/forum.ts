@@ -25,8 +25,8 @@ export type ForumReply = {
   authorName: string;
   authorPhoto: string | null;
   authorRole: string;
-  /** Grade assigned by teacher when topic counts for grade */
-  grade?: string;
+  /** Grade assigned by teacher when topic counts for grade (0-10) */
+  grade?: number;
 };
 
 export type ForumPagination = {
@@ -53,7 +53,7 @@ export type ForumApiClient = {
   }) => Promise<ForumTopicsResponse>;
   getTopic: (
     topicId: string,
-    params?: { limit?: number; offset?: number },
+    params?: { limit?: number; offset?: number }
   ) => Promise<ForumTopicDetailResponse>;
   createTopic: (body: {
     content: string;
@@ -63,16 +63,16 @@ export type ForumApiClient = {
   }) => Promise<void>;
   updateTopic: (
     topicId: string,
-    body: { content?: string; imageUrl?: string | null },
+    body: { content?: string; imageUrl?: string | null }
   ) => Promise<void>;
   deleteTopic: (topicId: string) => Promise<void>;
   createReply: (
     topicId: string,
-    body: { content: string; imageUrl?: string },
+    body: { content: string; imageUrl?: string }
   ) => Promise<void>;
   updateReply: (
     replyId: string,
-    body: { content?: string; imageUrl?: string | null },
+    body: { content?: string; imageUrl?: string | null }
   ) => Promise<void>;
   deleteReply: (replyId: string) => Promise<void>;
 };

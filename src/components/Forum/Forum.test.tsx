@@ -19,9 +19,7 @@ jest.mock('../RichEditor/RichEditor', () => ({
     <textarea
       placeholder={placeholder}
       defaultValue={content}
-      onChange={(e) =>
-        onChange?.({ json: {}, html: e.target.value })
-      }
+      onChange={(e) => onChange?.({ json: {}, html: e.target.value })}
     />
   ),
 }));
@@ -62,7 +60,9 @@ const mockReply: ForumReply = {
   authorRole: 'STUDENT',
 };
 
-const buildApiClient = (overrides: Partial<ForumApiClient> = {}): ForumApiClient => ({
+const buildApiClient = (
+  overrides: Partial<ForumApiClient> = {}
+): ForumApiClient => ({
   getTopics: jest.fn().mockResolvedValue({
     topics: [mockTopic],
     pagination: { total: 1, limit: 50, offset: 0, hasMore: false },
@@ -96,8 +96,12 @@ describe('Forum — list view', () => {
     await waitFor(() => {
       expect(screen.getByText('Fórum')).toBeInTheDocument();
     });
-    expect(screen.getByText('Espaço para troca de conhecimento')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Criar post' })).toBeInTheDocument();
+    expect(
+      screen.getByText('Espaço para troca de conhecimento')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Criar post' })
+    ).toBeInTheDocument();
   });
 
   it('accepts custom title and subtitle', async () => {
@@ -108,13 +112,15 @@ describe('Forum — list view', () => {
         apiClient={apiClient}
         title="Discussões"
         subtitle="Troque ideias com seus colegas"
-      />,
+      />
     );
 
     await waitFor(() => {
       expect(screen.getByText('Discussões')).toBeInTheDocument();
     });
-    expect(screen.getByText('Troque ideias com seus colegas')).toBeInTheDocument();
+    expect(
+      screen.getByText('Troque ideias com seus colegas')
+    ).toBeInTheDocument();
   });
 
   it('fetches topics on mount and renders them', async () => {
@@ -185,7 +191,7 @@ describe('Forum — create topic modal', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByPlaceholderText('Escreva o conteúdo do seu post aqui.'),
+        screen.getByPlaceholderText('Escreva o conteúdo do seu post aqui.')
       ).toBeInTheDocument();
     });
   });
@@ -213,7 +219,7 @@ describe('Forum — create topic modal', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Criar post' }));
 
     const textarea = await screen.findByPlaceholderText(
-      'Escreva o conteúdo do seu post aqui.',
+      'Escreva o conteúdo do seu post aqui.'
     );
     await userEvent.type(textarea, 'Novo tópico de teste');
 
@@ -240,14 +246,14 @@ describe('Forum — create topic modal', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Criar post' }));
 
     const textarea = await screen.findByPlaceholderText(
-      'Escreva o conteúdo do seu post aqui.',
+      'Escreva o conteúdo do seu post aqui.'
     );
     await userEvent.type(textarea, 'Some content');
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
 
     await waitFor(() => {
       expect(
-        screen.queryByPlaceholderText('Escreva o conteúdo do seu post aqui.'),
+        screen.queryByPlaceholderText('Escreva o conteúdo do seu post aqui.')
       ).not.toBeInTheDocument();
     });
   });
@@ -348,9 +354,12 @@ describe('Forum — reply modal', () => {
 
     await waitFor(() => {
       // Modal title is rendered as a heading
-      expect(screen.getByRole('heading', { name: 'Responder' })).toBeInTheDocument();
       expect(
-        screen.getAllByPlaceholderText('Escreva o conteúdo do seu post aqui.').length,
+        screen.getByRole('heading', { name: 'Responder' })
+      ).toBeInTheDocument();
+      expect(
+        screen.getAllByPlaceholderText('Escreva o conteúdo do seu post aqui.')
+          .length
       ).toBeGreaterThan(0);
     });
   });
@@ -362,7 +371,7 @@ describe('Forum — reply modal', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Responder' }));
 
     const textarea = await screen.findByPlaceholderText(
-      'Escreva o conteúdo do seu post aqui.',
+      'Escreva o conteúdo do seu post aqui.'
     );
     await userEvent.type(textarea, 'Minha resposta');
 
@@ -386,14 +395,6 @@ describe('Forum — reply modal', () => {
 function getMenuTriggerButton() {
   const buttons = screen.getAllByRole('button');
   return buttons.find((btn) => !btn.textContent?.trim())!;
-}
-
-/** Navigates to the detail view and waits for replies to appear. */
-async function openDetailView(apiClient: ForumApiClient) {
-  render(<Forum apiClient={apiClient} currentUserId="user-1" />);
-  await waitFor(() => screen.getByText(mockTopic.content));
-  fireEvent.click(screen.getByText(mockTopic.content));
-  await waitFor(() => screen.getByText(mockReply.content));
 }
 
 // ---------------------------------------------------------------------------
@@ -432,7 +433,9 @@ describe('Forum — own topic actions', () => {
     fireEvent.click(screen.getByRole('menuitem', { name: /editar/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Editar' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { name: 'Editar' })
+      ).toBeInTheDocument();
     });
   });
 
@@ -445,7 +448,9 @@ describe('Forum — own topic actions', () => {
     await waitFor(() => screen.getByRole('menu'));
     fireEvent.click(screen.getByRole('menuitem', { name: /editar/i }));
 
-    const textarea = await screen.findByPlaceholderText('Escreva o conteúdo do seu post aqui.');
+    const textarea = await screen.findByPlaceholderText(
+      'Escreva o conteúdo do seu post aqui.'
+    );
     expect(textarea).toHaveValue(mockTopic.content);
   });
 
@@ -458,7 +463,9 @@ describe('Forum — own topic actions', () => {
     await waitFor(() => screen.getByRole('menu'));
     fireEvent.click(screen.getByRole('menuitem', { name: /editar/i }));
 
-    const textarea = await screen.findByPlaceholderText('Escreva o conteúdo do seu post aqui.');
+    const textarea = await screen.findByPlaceholderText(
+      'Escreva o conteúdo do seu post aqui.'
+    );
     await userEvent.clear(textarea);
     await userEvent.type(textarea, 'Conteúdo editado');
     fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
@@ -466,7 +473,7 @@ describe('Forum — own topic actions', () => {
     await waitFor(() => {
       expect(apiClient.updateTopic).toHaveBeenCalledWith(
         'topic-1',
-        expect.objectContaining({ content: 'Conteúdo editado' }),
+        expect.objectContaining({ content: 'Conteúdo editado' })
       );
     });
   });
@@ -518,7 +525,9 @@ describe('Forum — own topic actions', () => {
 
     await waitFor(() => {
       expect(apiClient.deleteTopic).not.toHaveBeenCalled();
-      expect(screen.queryByText('Deseja deletar post?')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Deseja deletar post?')
+      ).not.toBeInTheDocument();
     });
   });
 });
@@ -553,7 +562,9 @@ describe('Forum — own reply actions', () => {
     await waitFor(() => screen.getByRole('menu'));
     fireEvent.click(screen.getByRole('menuitem', { name: /editar/i }));
 
-    const textarea = await screen.findByPlaceholderText('Escreva o conteúdo do seu post aqui.');
+    const textarea = await screen.findByPlaceholderText(
+      'Escreva o conteúdo do seu post aqui.'
+    );
     await userEvent.clear(textarea);
     await userEvent.type(textarea, 'Resposta editada');
     fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
@@ -561,7 +572,7 @@ describe('Forum — own reply actions', () => {
     await waitFor(() => {
       expect(apiClient.updateReply).toHaveBeenCalledWith(
         'reply-1',
-        expect.objectContaining({ content: 'Resposta editada' }),
+        expect.objectContaining({ content: 'Resposta editada' })
       );
     });
   });
@@ -592,7 +603,10 @@ describe('Forum — own reply actions', () => {
 // ---------------------------------------------------------------------------
 
 describe('Forum — teacher features', () => {
-  const teacherProps = { currentUserId: 'user-1', userRole: PROFILE_ROLES.TEACHER } as const;
+  const teacherProps = {
+    currentUserId: 'user-1',
+    userRole: PROFILE_ROLES.TEACHER,
+  } as const;
 
   it('shows grade question radio buttons in create modal for teacher', async () => {
     const apiClient = buildApiClient();
@@ -603,7 +617,9 @@ describe('Forum — teacher features', () => {
 
     // Radio uses a custom button + visibility:hidden input; query by label text
     await waitFor(() => {
-      expect(screen.getByText('Este fórum vale nota no boletim?')).toBeInTheDocument();
+      expect(
+        screen.getByText('Este fórum vale nota no boletim?')
+      ).toBeInTheDocument();
       expect(screen.getByText('Sim')).toBeInTheDocument();
       expect(screen.getByText('Não')).toBeInTheDocument();
     });
@@ -617,9 +633,11 @@ describe('Forum — teacher features', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Criar post' }));
 
     await waitFor(() =>
-      screen.getByPlaceholderText('Escreva o conteúdo do seu post aqui.'),
+      screen.getByPlaceholderText('Escreva o conteúdo do seu post aqui.')
     );
-    expect(screen.queryByText('Este fórum vale nota no boletim?')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Este fórum vale nota no boletim?')
+    ).not.toBeInTheDocument();
   });
 
   it('passes countsForGrade to createTopic when teacher selects Sim', async () => {
@@ -629,7 +647,9 @@ describe('Forum — teacher features', () => {
     await waitFor(() => screen.getByRole('button', { name: 'Criar post' }));
     fireEvent.click(screen.getByRole('button', { name: 'Criar post' }));
 
-    const textarea = await screen.findByPlaceholderText('Escreva o conteúdo do seu post aqui.');
+    const textarea = await screen.findByPlaceholderText(
+      'Escreva o conteúdo do seu post aqui.'
+    );
     await userEvent.type(textarea, 'Tópico com nota');
     // Radio uses a custom button + visibility:hidden input; clicking the label triggers onChange
     fireEvent.click(screen.getByText('Sim'));
@@ -639,7 +659,10 @@ describe('Forum — teacher features', () => {
 
     await waitFor(() => {
       expect(apiClient.createTopic).toHaveBeenCalledWith(
-        expect.objectContaining({ content: 'Tópico com nota', countsForGrade: true }),
+        expect.objectContaining({
+          content: 'Tópico com nota',
+          countsForGrade: true,
+        })
       );
     });
   });
@@ -653,14 +676,20 @@ describe('Forum — teacher features', () => {
       }),
     });
     render(
-      <Forum apiClient={apiClient} {...teacherProps} onEvaluateReply={onEvaluateReply} />,
+      <Forum
+        apiClient={apiClient}
+        {...teacherProps}
+        onEvaluateReply={onEvaluateReply}
+      />
     );
 
     await waitFor(() => screen.getByText(mockTopic.content));
     fireEvent.click(screen.getByText(mockTopic.content));
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /avaliar/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /avaliar/i })
+      ).toBeInTheDocument();
     });
   });
 
@@ -673,7 +702,11 @@ describe('Forum — teacher features', () => {
       }),
     });
     render(
-      <Forum apiClient={apiClient} {...teacherProps} onEvaluateReply={onEvaluateReply} />,
+      <Forum
+        apiClient={apiClient}
+        {...teacherProps}
+        onEvaluateReply={onEvaluateReply}
+      />
     );
 
     await waitFor(() => screen.getByText(mockTopic.content));
@@ -682,20 +715,24 @@ describe('Forum — teacher features', () => {
     await waitFor(() => screen.getByRole('button', { name: /avaliar/i }));
     fireEvent.click(screen.getByRole('button', { name: /avaliar/i }));
 
-    const gradeInput = await screen.findByPlaceholderText('Escreva a nota aqui.');
-    await userEvent.type(gradeInput, '8.5');
+    const gradeInput = await screen.findByPlaceholderText('Nota (0-10)');
+    await userEvent.type(gradeInput, '8');
     // Two "Avaliar" buttons exist: the reply button and the modal submit — click the modal one (last)
     const avaliarButtons = screen.getAllByRole('button', { name: /avaliar/i });
     fireEvent.click(avaliarButtons[avaliarButtons.length - 1]);
 
     await waitFor(() => {
-      expect(onEvaluateReply).toHaveBeenCalledWith('reply-1', '8.5');
-      expect(screen.getByText('Nota 8.5')).toBeInTheDocument();
+      expect(onEvaluateReply).toHaveBeenCalledWith('reply-1', 8);
+      expect(screen.getByText('Nota 8')).toBeInTheDocument();
     });
   });
 
   it('student sees their own grade but not Avaliar button', async () => {
-    const gradedReply: ForumReply = { ...mockReply, userInstitutionId: 'user-99', grade: '9.0' };
+    const gradedReply: ForumReply = {
+      ...mockReply,
+      userInstitutionId: 'user-99',
+      grade: 9,
+    };
     const apiClient = buildApiClient({
       getTopic: jest.fn().mockResolvedValue({
         topic: { ...mockTopicWithReplies, countsForGrade: true },
@@ -709,8 +746,10 @@ describe('Forum — teacher features', () => {
     fireEvent.click(screen.getByText(mockTopic.content));
 
     await waitFor(() => {
-      expect(screen.getByText('Nota 9.0')).toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: /avaliar/i })).not.toBeInTheDocument();
+      expect(screen.getByText('Nota 9')).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /avaliar/i })
+      ).not.toBeInTheDocument();
     });
   });
 });

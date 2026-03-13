@@ -12,7 +12,8 @@ const mockTopics: ForumTopic[] = [
     id: 'topic-1',
     classId: 'class-1',
     userInstitutionId: 'user-2',
-    content: 'Alguém já começou a trabalhar no projeto em grupo da turma do Professor Wilson?',
+    content:
+      'Alguém já começou a trabalhar no projeto em grupo da turma do Professor Wilson?',
     imageUrl: null,
     createdAt: '2025-05-05T09:35:00.000Z',
     updatedAt: '2025-05-05T09:35:00.000Z',
@@ -53,7 +54,8 @@ const mockTopics: ForumTopic[] = [
     id: 'topic-4',
     classId: 'class-1',
     userInstitutionId: 'user-5',
-    content: 'Olá, estudante! Este é um espaço onde você poderá debater, trocar conhecimento e conversar com seus colegas de turma. Basta criar um post para iniciar!',
+    content:
+      'Olá, estudante! Este é um espaço onde você poderá debater, trocar conhecimento e conversar com seus colegas de turma. Basta criar um post para iniciar!',
     imageUrl: null,
     createdAt: '2025-05-05T09:35:00.000Z',
     updatedAt: '2025-05-05T09:35:00.000Z',
@@ -135,12 +137,20 @@ const mockReplies: ForumReply[] = [
 const buildMockApiClient = (): ForumApiClient => ({
   getTopics: async () => ({
     topics: mockTopics,
-    pagination: { total: mockTopics.length, limit: 50, offset: 0, hasMore: false },
+    pagination: {
+      total: mockTopics.length,
+      limit: 50,
+      offset: 0,
+      hasMore: false,
+    },
   }),
   getTopic: async (topicId) => {
     const topic = mockTopics.find((t) => t.id === topicId) ?? mockTopics[0];
     return {
-      topic: { ...topic, replyCount: mockReplies.filter((r) => r.topicId === topicId).length },
+      topic: {
+        ...topic,
+        replyCount: mockReplies.filter((r) => r.topicId === topicId).length,
+      },
       replies: mockReplies.filter((r) => r.topicId === topicId),
     };
   },
@@ -158,10 +168,7 @@ const buildMockApiClient = (): ForumApiClient => ({
 
 export const Default: Story = () => (
   <div className="max-w-3xl mx-auto p-6">
-    <Forum
-      apiClient={buildMockApiClient()}
-      currentUserId="user-1"
-    />
+    <Forum apiClient={buildMockApiClient()} currentUserId="user-1" />
   </div>
 );
 Default.storyName = 'Lista de tópicos';
@@ -199,10 +206,7 @@ WithImageUpload.storyName = 'Com upload de imagem';
 
 export const WithOwnPosts: Story = () => (
   <div className="max-w-3xl mx-auto p-6">
-    <Forum
-      apiClient={buildMockApiClient()}
-      currentUserId="user-2"
-    />
+    <Forum apiClient={buildMockApiClient()} currentUserId="user-2" />
   </div>
 );
 WithOwnPosts.storyName = 'Com posts próprios (editar/deletar)';
@@ -216,13 +220,24 @@ export const TeacherView: Story = () => (
           topics: mockTopics.map((t) =>
             t.id === 'topic-2' ? { ...t, countsForGrade: true } : t
           ),
-          pagination: { total: mockTopics.length, limit: 50, offset: 0, hasMore: false },
+          pagination: {
+            total: mockTopics.length,
+            limit: 50,
+            offset: 0,
+            hasMore: false,
+          },
         }),
         getTopic: async (topicId) => {
-          const topic = mockTopics.find((t) => t.id === topicId) ?? mockTopics[0];
-          const withGrade = topicId === 'topic-2' ? { ...topic, countsForGrade: true } : topic;
+          const topic =
+            mockTopics.find((t) => t.id === topicId) ?? mockTopics[0];
+          const withGrade =
+            topicId === 'topic-2' ? { ...topic, countsForGrade: true } : topic;
           return {
-            topic: { ...withGrade, replyCount: mockReplies.filter((r) => r.topicId === topicId).length },
+            topic: {
+              ...withGrade,
+              replyCount: mockReplies.filter((r) => r.topicId === topicId)
+                .length,
+            },
             replies: mockReplies.filter((r) => r.topicId === topicId),
           };
         },

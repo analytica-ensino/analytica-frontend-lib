@@ -33,7 +33,9 @@ const mockReply: ForumReply = {
   authorRole: 'STUDENT',
 };
 
-const buildApiClient = (overrides: Partial<ForumApiClient> = {}): ForumApiClient => ({
+const buildApiClient = (
+  overrides: Partial<ForumApiClient> = {}
+): ForumApiClient => ({
   getTopics: jest.fn().mockResolvedValue({
     topics: [mockTopic],
     pagination: { total: 1, limit: 50, offset: 0, hasMore: false },
@@ -65,7 +67,12 @@ describe('createUseForum — fetchTopics', () => {
     });
 
     expect(result.current.topics).toEqual([mockTopic]);
-    expect(result.current.pagination).toEqual({ total: 1, limit: 50, offset: 0, hasMore: false });
+    expect(result.current.pagination).toEqual({
+      total: 1,
+      limit: 50,
+      offset: 0,
+      hasMore: false,
+    });
     expect(result.current.isLoadingTopics).toBe(false);
     expect(result.current.error).toBeNull();
   });
@@ -141,7 +148,9 @@ describe('createUseForum — createTopic', () => {
       await result.current.createTopic({ content: 'Novo tópico' });
     });
 
-    expect(apiClient.createTopic).toHaveBeenCalledWith({ content: 'Novo tópico' });
+    expect(apiClient.createTopic).toHaveBeenCalledWith({
+      content: 'Novo tópico',
+    });
   });
 
   it('throws and sets error on failure', async () => {
@@ -151,9 +160,9 @@ describe('createUseForum — createTopic', () => {
     const { result } = renderHook(() => createUseForum(apiClient)());
 
     await act(async () => {
-      await expect(result.current.createTopic({ content: 'x' })).rejects.toThrow(
-        'Erro ao criar o tópico.'
-      );
+      await expect(
+        result.current.createTopic({ content: 'x' })
+      ).rejects.toThrow('Erro ao criar o tópico.');
     });
 
     expect(result.current.error).toBe('Erro ao criar o tópico.');
