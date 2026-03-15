@@ -240,11 +240,12 @@ export const ActivityCardQuestionBanks = ({
   }, [question?.options]);
 
   const renderFill = () => {
-    if (!enunciado || fillInBlanksOptions.length === 0) return null;
+    // For PREENCHER_LACUNAS, additionalContent contains the fill-in text with placeholders
+    if (!additionalContent || fillInBlanksOptions.length === 0) return null;
 
     return (
       <FillInBlanks
-        content={enunciado}
+        content={additionalContent}
         options={fillInBlanksOptions}
         mode="readonly"
         showCorrectLabel={true}
