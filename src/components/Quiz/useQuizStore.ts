@@ -51,16 +51,18 @@ export const hasMeaningfulAnswer = (
     QUESTION_TYPE.RELACIONAR,
     QUESTION_TYPE.PREENCHER_LACUNAS,
     QUESTION_TYPE.IMAGEM,
+    QUESTION_TYPE.VERDADEIRO_FALSO,
   ];
 
   if (freeTextTypes.includes(answer.questionType)) {
     // Check if answer has content (non-empty string)
     if (!answer.answer || answer.answer.trim() === '') return false;
 
-    // For RELACIONAR/PREENCHER_LACUNAS, also check if JSON has actual values
+    // For RELACIONAR/PREENCHER_LACUNAS/VERDADEIRO_FALSO, also check if JSON has actual values
     if (
       answer.questionType === QUESTION_TYPE.RELACIONAR ||
-      answer.questionType === QUESTION_TYPE.PREENCHER_LACUNAS
+      answer.questionType === QUESTION_TYPE.PREENCHER_LACUNAS ||
+      answer.questionType === QUESTION_TYPE.VERDADEIRO_FALSO
     ) {
       try {
         const parsed = JSON.parse(answer.answer);
@@ -605,12 +607,13 @@ export const useQuizStore = create<QuizState>()(
           }
 
           const question = quiz.questions.find((q) => q.id === questionId);
-          // Allow free-text question types: DISSERTATIVA, RELACIONAR, PREENCHER_LACUNAS, IMAGEM
+          // Allow free-text question types: DISSERTATIVA, RELACIONAR, PREENCHER_LACUNAS, IMAGEM, VERDADEIRO_FALSO
           const allowedTypes = [
             QUESTION_TYPE.DISSERTATIVA,
             QUESTION_TYPE.RELACIONAR,
             QUESTION_TYPE.PREENCHER_LACUNAS,
             QUESTION_TYPE.IMAGEM,
+            QUESTION_TYPE.VERDADEIRO_FALSO,
           ];
           if (!question || !allowedTypes.includes(question.questionType)) {
             // Silent validation - wrong question type

@@ -503,13 +503,13 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
   const {
     variant,
     getCurrentQuestion,
-    getAllCurrentAnswer,
-    selectMultipleAnswer,
+    getCurrentAnswer,
+    selectDissertativeAnswer,
     getQuestionResultByQuestionId,
   } = useQuizStore();
 
   const currentQuestion = getCurrentQuestion();
-  const allCurrentAnswers = getAllCurrentAnswer();
+  const currentAnswer = getCurrentAnswer();
   const currentQuestionResult = getQuestionResultByQuestionId(
     currentQuestion?.id || ''
   );
@@ -519,43 +519,57 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
     return currentQuestion?.options || [];
   }, [currentQuestion?.options]);
 
-  // Get selected option IDs (options marked as "Verdadeiro" by the student)
-  const selectedOptionIds = useMemo(() => {
+  // Parse stored answers from JSON string: { "optionId": "V" | "F", ... }
+  const parsedAnswers: Record<string, string> = useMemo(() => {
     if (variant === 'result') {
-      return (
-        currentQuestionResult?.selectedOptions?.map((op) => op.optionId) || []
-      );
+      // In result mode, parse from the persisted result answer
+      if (!currentQuestionResult?.answer) return {};
+      try {
+        const parsed = JSON.parse(currentQuestionResult.answer);
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          return parsed as Record<string, string>;
+        }
+      } catch {
+        // Invalid JSON
+      }
+      return {};
     }
-    return (
-      allCurrentAnswers
-        ?.map((answer) => answer.optionId)
-        .filter((id): id is string => id !== null) || []
-    );
-  }, [variant, currentQuestionResult?.selectedOptions, allCurrentAnswers]);
+    // In default mode, parse from current draft answer
+    if (!currentAnswer?.answer) return {};
+    try {
+      const parsed = JSON.parse(currentAnswer.answer);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        return parsed as Record<string, string>;
+      }
+    } catch {
+      // Invalid JSON
+    }
+    return {};
+  }, [variant, currentQuestionResult?.answer, currentAnswer?.answer]);
+
+  // Local state to track answers: { "optionId": "V" | "F" }
+  const [localAnswers, setLocalAnswers] =
+    useState<Record<string, string>>(parsedAnswers);
+
+  // Sync local answers when question changes or parsed answers update
+  useEffect(() => {
+    setLocalAnswers(parsedAnswers);
+  }, [parsedAnswers, currentQuestion?.id]);
 
   // Handle select change for an option
   const handleSelectChange = (optionId: string, value: string) => {
     if (!currentQuestion) return;
 
-    let newSelectedIds: string[];
-    if (value === 'V') {
-      // Add to selected if not already there
-      if (!selectedOptionIds.includes(optionId)) {
-        newSelectedIds = [...selectedOptionIds, optionId];
-      } else {
-        newSelectedIds = selectedOptionIds;
-      }
-    } else {
-      // Remove from selected
-      newSelectedIds = selectedOptionIds.filter((id) => id !== optionId);
-    }
+    const newAnswers = { ...localAnswers, [optionId]: value };
+    setLocalAnswers(newAnswers);
 
-    selectMultipleAnswer(currentQuestion.id, newSelectedIds);
+    // Save to store as JSON string
+    selectDissertativeAnswer(currentQuestion.id, JSON.stringify(newAnswers));
   };
 
   // Get the current selection for an option
   const getOptionSelection = (optionId: string): string | undefined => {
-    return selectedOptionIds.includes(optionId) ? 'V' : 'F';
+    return localAnswers[optionId];
   };
 
   const getLetterByIndex = (index: number) => String.fromCodePoint(97 + index); // 97 = 'a' in ASCII
@@ -592,9 +606,9 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
                   )?.isCorrect || false
                 : false;
 
-            // Check if student marked this as True
-            const studentMarkedTrue = selectedOptionIds.includes(option.id);
-            const studentAnswer = studentMarkedTrue ? 'V' : 'F';
+            // Check if student marked this as True (from local answers)
+            const studentMarkedTrue = localAnswers[option.id] === 'V';
+            const studentAnswer = localAnswers[option.id] || '-';
             const correctAnswer = isStatementTrue ? 'V' : 'F';
 
             // Student is correct if their answer matches whether the statement is true
@@ -625,7 +639,7 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
               >
                 <div
                   className={cn(
-                    'grid grid-cols-[1fr_auto] items-start gap-4 p-2 rounded-md border',
+                    'w-full grid grid-cols-[1fr_auto] items-start gap-4 p-2 rounded-md border',
                     !isDefaultVariant && shouldShowStatus
                       ? getStatusStyles(variantCorrect)
                       : 'border-transparent'
