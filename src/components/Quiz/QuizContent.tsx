@@ -979,7 +979,7 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
     return (
       <span
         key={placeholderId}
-        className="inline-block align-middle mx-1"
+        className="inline-block align-middle mx-1 my-2"
         style={{ display: 'inline-block', verticalAlign: 'middle' }}
       >
         <Select
@@ -1011,7 +1011,7 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
       return (
         <span
           key={placeholderId}
-          className="inline-block align-middle mx-1"
+          className="inline-block align-middle mx-1 my-2"
           style={{ display: 'inline-block', verticalAlign: 'middle' }}
         >
           <Badge
@@ -1030,7 +1030,7 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
     return (
       <span
         key={placeholderId}
-        className="inline-block align-middle mx-1"
+        className="inline-block align-middle mx-1 my-2"
         style={{ display: 'inline-block', verticalAlign: 'middle' }}
       >
         <Badge
@@ -1153,7 +1153,7 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
             size="lg"
             color="text-text-900"
             weight="normal"
-            className={cn(variant !== 'result' && paddingBottom)}
+            className={cn('leading-[2.5]', variant !== 'result' && paddingBottom)}
           >
             {renderHtmlWithSelects(additionalContent).map((element) => (
               <span key={element.id} className="inline">
@@ -1174,7 +1174,7 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
                 size="lg"
                 color="text-text-900"
                 weight="normal"
-                className={cn(paddingBottom)}
+                className={cn('leading-[2.5]', paddingBottom)}
               >
                 {renderHtmlWithSelects(additionalContent, true).map(
                   (element) => (
