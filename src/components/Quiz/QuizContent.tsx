@@ -499,29 +499,82 @@ const QuizDissertative = ({ paddingBottom }: QuizVariantInterface) => {
 };
 
 const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
-  const { variant } = useQuizStore();
-  const options = [
-    {
-      label: '25 metros',
-      isCorrect: true,
-    },
-    {
-      label: '30 metros',
-      isCorrect: false,
-    },
-    {
-      label: '40 metros',
-      isCorrect: false,
-    },
-    {
-      label: '50 metros',
-      isCorrect: false,
-    },
-  ];
+  const {
+    variant,
+    getCurrentQuestion,
+    getAllCurrentAnswer,
+    selectMultipleAnswer,
+    getQuestionResultByQuestionId,
+  } = useQuizStore();
+
+  const currentQuestion = getCurrentQuestion();
+  const allCurrentAnswers = getAllCurrentAnswer();
+  const currentQuestionResult = getQuestionResultByQuestionId(
+    currentQuestion?.id || ''
+  );
+
+  // Get the options from the question
+  const options = useMemo(() => {
+    return currentQuestion?.options || [];
+  }, [currentQuestion?.options]);
+
+  // Get selected option IDs (options marked as "Verdadeiro" by the student)
+  const selectedOptionIds = useMemo(() => {
+    if (variant === 'result') {
+      return (
+        currentQuestionResult?.selectedOptions?.map((op) => op.optionId) || []
+      );
+    }
+    return (
+      allCurrentAnswers
+        ?.map((answer) => answer.optionId)
+        .filter((id): id is string => id !== null) || []
+    );
+  }, [variant, currentQuestionResult?.selectedOptions, allCurrentAnswers]);
+
+  // Handle select change for an option
+  const handleSelectChange = (optionId: string, value: string) => {
+    if (!currentQuestion) return;
+
+    let newSelectedIds: string[];
+    if (value === 'V') {
+      // Add to selected if not already there
+      if (!selectedOptionIds.includes(optionId)) {
+        newSelectedIds = [...selectedOptionIds, optionId];
+      } else {
+        newSelectedIds = selectedOptionIds;
+      }
+    } else {
+      // Remove from selected
+      newSelectedIds = selectedOptionIds.filter((id) => id !== optionId);
+    }
+
+    selectMultipleAnswer(currentQuestion.id, newSelectedIds);
+  };
+
+  // Get the current selection for an option
+  const getOptionSelection = (optionId: string): string | undefined => {
+    return selectedOptionIds.includes(optionId) ? 'V' : 'F';
+  };
 
   const getLetterByIndex = (index: number) => String.fromCodePoint(97 + index); // 97 = 'a' in ASCII
 
   const isDefaultVariant = variant === 'default';
+
+  // Check if we should show correct/incorrect status
+  const shouldShowStatus =
+    currentQuestionResult?.answerStatus !== ANSWER_STATUS.PENDENTE_AVALIACAO &&
+    currentQuestionResult?.answerStatus !== ANSWER_STATUS.NAO_RESPONDIDO;
+
+  if (options.length === 0) {
+    return (
+      <QuizContainer className={cn('', paddingBottom)}>
+        <Text size="sm" className="text-text-500 italic">
+          Nenhuma opção disponível para esta questão
+        </Text>
+      </QuizContainer>
+    );
+  }
 
   return (
     <>
@@ -530,26 +583,51 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
       <QuizContainer className={cn('', paddingBottom)}>
         <div className="flex flex-col gap-3.5">
           {options.map((option, index) => {
-            const variantCorrect = option.isCorrect ? 'correct' : 'incorrect';
+            // In result mode, get isCorrect from the persisted result options
+            const isStatementTrue =
+              variant === 'result'
+                ? currentQuestionResult?.options?.find(
+                    (op) => op.id === option.id
+                  )?.isCorrect || false
+                : false;
+
+            // Check if student marked this as True
+            const studentMarkedTrue = selectedOptionIds.includes(option.id);
+            const studentAnswer = studentMarkedTrue ? 'V' : 'F';
+            const correctAnswer = isStatementTrue ? 'V' : 'F';
+
+            // Student is correct if their answer matches whether the statement is true
+            const isStudentCorrect = studentMarkedTrue === isStatementTrue;
+
+            const variantCorrect = isStudentCorrect ? 'correct' : 'incorrect';
+
             return (
               <section
-                key={option.label.concat(`-${index}`)}
+                key={option.id || `option-${index}`}
                 className="flex flex-col gap-2"
               >
                 <div
                   className={cn(
-                    'flex flex-row justify-between items-center gap-2 p-2 rounded-md',
-                    isDefaultVariant ? '' : getStatusStyles(variantCorrect)
+                    'flex flex-row justify-between items-center gap-2 p-2 rounded-md border',
+                    !isDefaultVariant && shouldShowStatus
+                      ? getStatusStyles(variantCorrect)
+                      : 'border-transparent'
                   )}
                 >
                   <Text size="sm" className="text-text-900">
-                    {getLetterByIndex(index).concat(') ').concat(option.label)}
+                    {getLetterByIndex(index).concat(') ').concat(option.option)}
                   </Text>
 
                   {isDefaultVariant ? (
-                    <Select size="medium">
+                    <Select
+                      size="medium"
+                      value={getOptionSelection(option.id)}
+                      onValueChange={(value) =>
+                        handleSelectChange(option.id, value)
+                      }
+                    >
                       <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Selecione opcão" />
+                        <SelectValue placeholder="Selecione opção" />
                       </SelectTrigger>
 
                       <SelectContent>
@@ -558,20 +636,22 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
                       </SelectContent>
                     </Select>
                   ) : (
-                    <div className="flex-shrink-0">
-                      {getStatusBadge(variantCorrect)}
-                    </div>
+                    shouldShowStatus && (
+                      <div className="flex-shrink-0">
+                        {getStatusBadge(variantCorrect)}
+                      </div>
+                    )
                   )}
                 </div>
 
-                {!isDefaultVariant && (
+                {!isDefaultVariant && shouldShowStatus && (
                   <span className="flex flex-row gap-2 items-center">
                     <Text size="2xs" className="text-text-800">
-                      Resposta selecionada: V
+                      Resposta selecionada: {studentAnswer}
                     </Text>
-                    {!option.isCorrect && (
+                    {!isStudentCorrect && (
                       <Text size="2xs" className="text-text-800">
-                        Resposta correta: F
+                        Resposta correta: {correctAnswer}
                       </Text>
                     )}
                   </span>

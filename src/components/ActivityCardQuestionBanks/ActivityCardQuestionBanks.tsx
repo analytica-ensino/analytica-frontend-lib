@@ -3,9 +3,8 @@ import {
   getSubjectColorWithOpacity,
   IconRender,
   Text,
-  Badge,
 } from '../../index';
-import { Plus, CheckCircle, XCircle } from 'phosphor-react';
+import { Plus } from 'phosphor-react';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import {
   renderFromMap,
@@ -16,7 +15,6 @@ import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
 import { FillInBlanks } from '../FillInBlanks/FillInBlanks';
 import { ConnectDots } from '../ConnectDots/ConnectDots';
 import { useMemo } from 'react';
-import { cn } from '../../utils/utils';
 import { questionTypeLabels } from '../../types/questionTypes';
 import { HtmlMathRenderer } from '../HtmlMathRenderer';
 
@@ -102,34 +100,6 @@ export const ActivityCardQuestionBanks = ({
     return question?.correctOptionIds || [];
   }, [question]);
 
-  // Helper function to get status badge
-  const getStatusBadge = (status: 'correct' | 'incorrect') => {
-    switch (status) {
-      case 'correct':
-        return (
-          <Badge variant="solid" action="success" iconLeft={<CheckCircle />}>
-            Resposta correta
-          </Badge>
-        );
-      case 'incorrect':
-        return (
-          <Badge variant="solid" action="error" iconLeft={<XCircle />}>
-            Resposta incorreta
-          </Badge>
-        );
-    }
-  };
-
-  // Helper function to get status styles
-  const getStatusStyles = (status: 'correct' | 'incorrect') => {
-    switch (status) {
-      case 'correct':
-        return 'bg-success-background border-success-300';
-      case 'incorrect':
-        return 'bg-error-background border-error-300';
-    }
-  };
-
   // Helper function to get letter by index
   const getLetterByIndex = (index: number) => String.fromCodePoint(97 + index); // 97 = 'a' in ASCII
 
@@ -173,6 +143,16 @@ export const ActivityCardQuestionBanks = ({
     );
   };
 
+  // Helper to prepend letter to HTML content (handles <p> tags)
+  const prependLetterToHtml = (letter: string, html: string): string => {
+    // If content starts with <p>, insert letter after opening tag
+    if (html.trim().startsWith('<p>')) {
+      return html.replace(/^(\s*<p>)/, `$1${letter}) `);
+    }
+    // Otherwise, just prepend
+    return `${letter}) ${html}`;
+  };
+
   const renderTrueOrFalse = () => {
     if (!question || question.options.length === 0) return null;
     return (
@@ -181,30 +161,26 @@ export const ActivityCardQuestionBanks = ({
           {question.options.map((option, index) => {
             const isCorrect = correctOptionIds.includes(option.id);
             const correctAnswer = isCorrect ? 'Verdadeiro' : 'Falso';
-            const variantCorrect = 'correct';
+            const letter = getLetterByIndex(index);
+            const contentWithLetter = prependLetterToHtml(
+              letter,
+              option.option
+            );
 
             return (
               <section key={option.id} className="flex flex-col gap-2">
-                <div
-                  className={cn(
-                    'flex flex-row justify-between items-center gap-2 p-2 rounded-md border',
-                    getStatusStyles(variantCorrect)
-                  )}
-                >
-                  <Text size="sm" className="text-text-900">
-                    {getLetterByIndex(index).concat(') ')}
-                    <HtmlMathRenderer
-                      content={option.option}
-                      className="inline"
-                    />
-                  </Text>
+                <div className="flex flex-row justify-between items-start gap-2 p-2 rounded-md border border-border-200">
+                  <HtmlMathRenderer
+                    content={contentWithLetter}
+                    className="text-text-900 text-sm flex-1"
+                  />
 
-                  <div className="flex flex-row items-center gap-2 flex-shrink-0">
-                    <Text size="sm" className="text-text-700">
-                      Resposta correta: {correctAnswer}
-                    </Text>
-                    {getStatusBadge(variantCorrect)}
-                  </div>
+                  <Text
+                    size="sm"
+                    className="text-text-700 shrink-0 whitespace-nowrap"
+                  >
+                    Resposta correta: {correctAnswer}
+                  </Text>
                 </div>
               </section>
             );
