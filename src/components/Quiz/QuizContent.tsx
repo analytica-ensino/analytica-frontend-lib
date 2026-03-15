@@ -25,6 +25,7 @@ import Badge from '../Badge/Badge';
 import { CheckCircle, XCircle } from 'phosphor-react';
 import ImageQuestion from '../../assets/img/mock-image-question.png';
 import Text from '../Text/Text';
+import { HtmlMathRenderer } from '../HtmlMathRenderer';
 export const getStatusBadge = (status?: 'correct' | 'incorrect') => {
   switch (status) {
     case 'correct':
@@ -601,6 +602,22 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
 
             const variantCorrect = isStudentCorrect ? 'correct' : 'incorrect';
 
+            // Helper to prepend letter to HTML content
+            const prependLetterToHtml = (
+              letter: string,
+              html: string
+            ): string => {
+              if (html.trim().startsWith('<p>')) {
+                return html.replace(/^(\s*<p>)/, `$1${letter}) `);
+              }
+              return `${letter}) ${html}`;
+            };
+
+            const contentWithLetter = prependLetterToHtml(
+              getLetterByIndex(index),
+              option.option
+            );
+
             return (
               <section
                 key={option.id || `option-${index}`}
@@ -608,15 +625,16 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
               >
                 <div
                   className={cn(
-                    'flex flex-row justify-between items-center gap-2 p-2 rounded-md border',
+                    'grid grid-cols-[1fr_auto] items-start gap-4 p-2 rounded-md border',
                     !isDefaultVariant && shouldShowStatus
                       ? getStatusStyles(variantCorrect)
                       : 'border-transparent'
                   )}
                 >
-                  <Text size="sm" className="text-text-900">
-                    {getLetterByIndex(index).concat(') ').concat(option.option)}
-                  </Text>
+                  <HtmlMathRenderer
+                    content={contentWithLetter}
+                    className="text-text-900 text-sm"
+                  />
 
                   {isDefaultVariant ? (
                     <Select
@@ -626,8 +644,8 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
                         handleSelectChange(option.id, value)
                       }
                     >
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Selecione opção" />
+                      <SelectTrigger className="w-[120px]">
+                        <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
 
                       <SelectContent>
@@ -637,9 +655,7 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
                     </Select>
                   ) : (
                     shouldShowStatus && (
-                      <div className="flex-shrink-0">
-                        {getStatusBadge(variantCorrect)}
-                      </div>
+                      <div>{getStatusBadge(variantCorrect)}</div>
                     )
                   )}
                 </div>
