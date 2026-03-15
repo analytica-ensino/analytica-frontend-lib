@@ -41,6 +41,7 @@ export interface Question {
   knowledgeMatrix?: KnowledgeMatrixItemActivity[];
   options?: QuestionOptionActivity[];
   createdBy?: string;
+  additionalContent?: string | null;
 }
 
 /**

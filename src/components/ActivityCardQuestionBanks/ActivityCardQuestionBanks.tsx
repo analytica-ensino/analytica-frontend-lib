@@ -38,6 +38,7 @@ interface ActivityCardQuestionBanksProps {
   onAddToActivity?: () => void;
   assunto?: string;
   enunciado?: string;
+  additionalContent?: string | null;
 }
 
 export const ActivityCardQuestionBanks = ({
@@ -49,6 +50,7 @@ export const ActivityCardQuestionBanks = ({
   onAddToActivity,
   assunto,
   enunciado,
+  additionalContent,
 }: ActivityCardQuestionBanksProps = {}) => {
   // Transform question options into Alternative format for teacher view
   const alternatives = useMemo(() => {
@@ -218,7 +220,16 @@ export const ActivityCardQuestionBanks = ({
   };
 
   const renderImage = () => {
-    return null;
+    if (!additionalContent) return null;
+    return (
+      <div className="mt-4">
+        <img
+          src={additionalContent}
+          alt="Imagem da questão"
+          className="max-w-full h-auto rounded-md border border-border-200"
+        />
+      </div>
+    );
   };
 
   // Map question types to render functions

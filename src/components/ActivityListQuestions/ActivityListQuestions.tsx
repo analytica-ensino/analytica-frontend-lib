@@ -418,6 +418,7 @@ export const ActivityListQuestions = ({
               isDark={isDark}
               assunto={subjectInfo.assunto}
               enunciado={question.statement}
+              additionalContent={question.additionalContent}
               onAddToActivity={() => {
                 if (onAddQuestion) {
                   onAddQuestion(question);
