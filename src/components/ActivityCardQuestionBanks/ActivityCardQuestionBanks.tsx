@@ -252,15 +252,43 @@ export const ActivityCardQuestionBanks = ({
     );
   };
 
+  // Parse image coordinates from options for IMAGEM questions
+  const imageCoordinates = useMemo(() => {
+    if (
+      questionType !== QUESTION_TYPE.IMAGEM ||
+      !question?.options?.[0]?.option
+    )
+      return null;
+
+    try {
+      const coords = JSON.parse(question.options[0].option);
+      if (typeof coords.x === 'number' && typeof coords.y === 'number') {
+        return { x: coords.x, y: coords.y };
+      }
+    } catch {
+      // Invalid JSON, return null
+    }
+    return null;
+  }, [question?.options, questionType]);
+
   const renderImage = () => {
     if (!additionalContent) return null;
     return (
-      <div className="mt-4">
+      <div className="mt-4 relative inline-block">
         <img
           src={additionalContent}
           alt="Imagem da questão"
           className="max-w-full h-auto rounded-md border border-border-200"
         />
+        {imageCoordinates && (
+          <div
+            className="absolute w-5 h-5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-success-500 border-2 border-white shadow-md"
+            style={{
+              left: `${imageCoordinates.x}%`,
+              top: `${imageCoordinates.y}%`,
+            }}
+          />
+        )}
       </div>
     );
   };
