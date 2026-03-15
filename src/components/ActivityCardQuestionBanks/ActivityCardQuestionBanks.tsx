@@ -13,6 +13,7 @@ import {
 } from '../../utils/questionRenderer/index';
 import { AlternativesList, type Alternative } from '../Alternative/Alternative';
 import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
+import { FillInBlanks } from '../FillInBlanks/FillInBlanks';
 import { useMemo } from 'react';
 import { cn } from '../../utils/utils';
 import { questionTypeLabels } from '../../types/questionTypes';
@@ -215,8 +216,41 @@ export const ActivityCardQuestionBanks = ({
     return null;
   };
 
+  // Check if this is a fill-in-blanks question
+  const isFillInBlanks = questionType === QUESTION_TYPE.PREENCHER_LACUNAS;
+
+  // Process enunciado for PREENCHER_LACUNAS - replace UUIDs with blanks for display
+  const processedEnunciado = useMemo(() => {
+    if (!isFillInBlanks || !enunciado) return enunciado;
+
+    // Pattern to match {uuid} placeholders
+    const placeholderPattern = /\{[a-f0-9-]{36}\}/g;
+
+    // Replace UUIDs with blank underscores
+    return enunciado.replace(placeholderPattern, '_____');
+  }, [enunciado, isFillInBlanks]);
+
+  // Transform options for FillInBlanks component
+  const fillInBlanksOptions = useMemo(() => {
+    if (!question?.options) return [];
+    return question.options.map((opt) => ({
+      id: opt.id,
+      option: opt.option,
+    }));
+  }, [question?.options]);
+
   const renderFill = () => {
-    return null;
+    if (!enunciado || fillInBlanksOptions.length === 0) return null;
+
+    return (
+      <FillInBlanks
+        content={enunciado}
+        options={fillInBlanksOptions}
+        mode="readonly"
+        showCorrectLabel={true}
+        className="mt-4"
+      />
+    );
   };
 
   const renderImage = () => {
@@ -270,7 +304,7 @@ export const ActivityCardQuestionBanks = ({
       <section className="flex flex-col gap-1">
         {enunciado ? (
           <HtmlMathRenderer
-            content={enunciado}
+            content={isFillInBlanks ? processedEnunciado || '' : enunciado}
             className="text-text-950 text-md font-medium"
           />
         ) : (

@@ -478,6 +478,11 @@ export type {
 
 // Multiple Choice and Icon Components
 export { MultipleChoiceList } from './components/MultipleChoice/MultipleChoice';
+export { FillInBlanks } from './components/FillInBlanks/FillInBlanks';
+export type {
+  FillInBlanksProps,
+  FillInBlanksOption,
+} from './components/FillInBlanks/FillInBlanks';
 export { default as IconRender } from './components/IconRender/IconRender';
 
 // Hooks
