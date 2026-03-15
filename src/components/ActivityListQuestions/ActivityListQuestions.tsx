@@ -161,11 +161,16 @@ export const ActivityListQuestions = ({
    * Convert question options to the format expected by ActivityCardQuestionBanks
    */
   const formatQuestionOptions = (
-    questionOptions: { id: string; option: string }[]
+    questionOptions: {
+      id: string;
+      option: string;
+      correctValue?: string | null;
+    }[]
   ) => {
     return questionOptions.map((opt) => ({
       id: opt.id,
       option: opt.option,
+      correctValue: opt.correctValue,
     }));
   };
 
@@ -406,7 +411,11 @@ export const ActivityListQuestions = ({
                 question.options
                   ? {
                       options: formatQuestionOptions(
-                        question.options as { id: string; option: string }[]
+                        question.options as {
+                          id: string;
+                          option: string;
+                          correctValue?: string | null;
+                        }[]
                       ),
                       correctOptionIds: [],
                     }

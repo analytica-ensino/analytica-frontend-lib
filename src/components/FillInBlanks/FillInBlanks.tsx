@@ -28,8 +28,6 @@ export interface FillInBlanksProps extends HtmlHTMLAttributes<HTMLDivElement> {
   mode?: 'interactive' | 'readonly' | 'result';
   /** Whether component is disabled (only for interactive mode) */
   disabled?: boolean;
-  /** Show correct answers label above the content (only for readonly mode) */
-  showCorrectLabel?: boolean;
 }
 
 /**
@@ -110,7 +108,6 @@ const FillInBlanks = ({
   onAnswerChange,
   mode = 'interactive',
   disabled = false,
-  showCorrectLabel = true,
   className,
   ...props
 }: FillInBlanksProps) => {
@@ -247,28 +244,9 @@ const FillInBlanks = ({
     });
   }, [parsedParts, baseId, mode, answers, options, disabled]);
 
-  if (mode === 'readonly' && showCorrectLabel) {
-    return (
-      <div
-        className={cn(
-          'p-3 bg-success-50 rounded-lg border border-success-200',
-          className
-        )}
-        {...props}
-      >
-        <Text size="xs" weight="medium" className="text-success-700 mb-2">
-          Resposta correta:
-        </Text>
-        <Text size="sm" className="text-text-900 leading-relaxed">
-          {renderedContent}
-        </Text>
-      </div>
-    );
-  }
-
   return (
     <div className={cn('leading-relaxed', className)} {...props}>
-      <Text size="lg" color="text-text-900" weight="normal">
+      <Text size="sm" className="text-text-900">
         {renderedContent}
       </Text>
     </div>

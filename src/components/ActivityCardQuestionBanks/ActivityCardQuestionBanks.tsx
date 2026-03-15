@@ -14,6 +14,7 @@ import {
 import { AlternativesList, type Alternative } from '../Alternative/Alternative';
 import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
 import { FillInBlanks } from '../FillInBlanks/FillInBlanks';
+import { ConnectDots } from '../ConnectDots/ConnectDots';
 import { useMemo } from 'react';
 import { cn } from '../../utils/utils';
 import { questionTypeLabels } from '../../types/questionTypes';
@@ -23,6 +24,7 @@ interface QuestionOption {
   id: string;
   option: string;
   correct?: boolean;
+  correctValue?: string | null;
 }
 
 interface QuestionData {
@@ -212,8 +214,29 @@ export const ActivityCardQuestionBanks = ({
     );
   };
 
+  // Transform options for ConnectDots component
+  const connectDotsOptions = useMemo(() => {
+    if (!question?.options || questionType !== QUESTION_TYPE.RELACIONAR)
+      return [];
+    return question.options
+      .filter((opt) => opt.correctValue)
+      .map((opt) => ({
+        id: opt.id,
+        option: opt.option,
+        correctValue: opt.correctValue as string,
+      }));
+  }, [question?.options, questionType]);
+
   const renderConnectDots = () => {
-    return null;
+    if (connectDotsOptions.length === 0) return null;
+
+    return (
+      <ConnectDots
+        options={connectDotsOptions}
+        mode="readonly"
+        className="mt-4"
+      />
+    );
   };
 
   // Check if this is a fill-in-blanks question
@@ -248,7 +271,6 @@ export const ActivityCardQuestionBanks = ({
         content={additionalContent}
         options={fillInBlanksOptions}
         mode="readonly"
-        showCorrectLabel={true}
         className="mt-4"
       />
     );

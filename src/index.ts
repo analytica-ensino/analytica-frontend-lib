@@ -483,6 +483,11 @@ export type {
   FillInBlanksProps,
   FillInBlanksOption,
 } from './components/FillInBlanks/FillInBlanks';
+export { ConnectDots } from './components/ConnectDots/ConnectDots';
+export type {
+  ConnectDotsProps,
+  ConnectDotsOption,
+} from './components/ConnectDots/ConnectDots';
 export { default as IconRender } from './components/IconRender/IconRender';
 
 // Hooks

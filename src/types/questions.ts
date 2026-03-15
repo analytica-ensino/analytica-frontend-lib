@@ -93,6 +93,7 @@ export interface QuestionOptionActivity {
   id: string;
   option: string;
   correct?: boolean;
+  correctValue?: string | null;
 }
 
 /**
