@@ -3,6 +3,7 @@ import { cn } from '../../utils/utils';
 import { CheckCircle, XCircle, ArrowRight } from 'phosphor-react';
 import Badge from '../Badge/Badge';
 import Text from '../Text/Text';
+import { HtmlMathRenderer } from '../HtmlMathRenderer';
 import Select, {
   SelectContent,
   SelectItem,
@@ -98,9 +99,10 @@ const ConnectDots = ({
         )}
       >
         <div className="flex-1">
-          <Text size="sm" className="text-text-900">
-            {option.option}
-          </Text>
+          <HtmlMathRenderer
+            content={option.option}
+            className="text-text-900 text-sm"
+          />
         </div>
 
         <ArrowRight size={20} className="text-text-400 flex-shrink-0" />
@@ -134,9 +136,10 @@ const ConnectDots = ({
         className="flex flex-row items-center gap-3 p-3 rounded-md border border-success-300 bg-success-50"
       >
         <div className="flex-1">
-          <Text size="sm" className="text-text-900">
-            {option.option}
-          </Text>
+          <HtmlMathRenderer
+            content={option.option}
+            className="text-text-900 text-sm"
+          />
         </div>
 
         <ArrowRight size={20} className="text-success-600 flex-shrink-0" />
@@ -169,9 +172,10 @@ const ConnectDots = ({
         )}
       >
         <div className="flex-1">
-          <Text size="sm" className="text-text-900">
-            {option.option}
-          </Text>
+          <HtmlMathRenderer
+            content={option.option}
+            className="text-text-900 text-sm"
+          />
         </div>
 
         <ArrowRight
