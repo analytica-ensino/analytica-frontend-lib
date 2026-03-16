@@ -289,8 +289,16 @@ describe('ActivityModelDetails', () => {
           .textContent!
       );
       expect(firstOptions).toHaveLength(2);
-      expect(firstOptions[0]).toEqual({ id: 'opt1', option: 'Option A', isCorrect: true });
-      expect(firstOptions[1]).toEqual({ id: 'opt2', option: 'Option B', isCorrect: false });
+      expect(firstOptions[0]).toEqual({
+        id: 'opt1',
+        option: 'Option A',
+        isCorrect: true,
+      });
+      expect(firstOptions[1]).toEqual({
+        id: 'opt2',
+        option: 'Option B',
+        isCorrect: false,
+      });
 
       // Second question options (empty)
       const secondOptions = JSON.parse(

@@ -188,7 +188,11 @@ const mockActivityDetails: Record<string, ActivityData> = {
         ],
         options: [
           { id: 'opt9', option: 'Glicose e oxigênio', isCorrect: true },
-          { id: 'opt10', option: 'Água e dióxido de carbono', isCorrect: false },
+          {
+            id: 'opt10',
+            option: 'Água e dióxido de carbono',
+            isCorrect: false,
+          },
           { id: 'opt11', option: 'Proteínas e lipídios', isCorrect: false },
           { id: 'opt12', option: 'Aminoácidos e vitaminas', isCorrect: false },
         ],

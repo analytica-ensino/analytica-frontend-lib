@@ -1,26 +1,33 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import { FillInBlanks } from './FillInBlanks';
 
 // Mock the Select component
 jest.mock('../Select/Select', () => ({
   __esModule: true,
-  default: ({ children, value, onValueChange }: any) => (
+  default: ({ children, value }: { children: ReactNode; value: string }) => (
     <div data-testid="select-root" data-value={value}>
       {children}
     </div>
   ),
-  SelectTrigger: ({ children, className }: any) => (
+  SelectTrigger: ({
+    children,
+    className,
+  }: {
+    children: ReactNode;
+    className?: string;
+  }) => (
     <button data-testid="select-trigger" className={className}>
       {children}
     </button>
   ),
-  SelectValue: ({ placeholder }: any) => (
+  SelectValue: ({ placeholder }: { placeholder?: string }) => (
     <span data-testid="select-value">{placeholder}</span>
   ),
-  SelectContent: ({ children }: any) => (
+  SelectContent: ({ children }: { children: ReactNode }) => (
     <div data-testid="select-content">{children}</div>
   ),
-  SelectItem: ({ children, value }: any) => (
+  SelectItem: ({ children, value }: { children: ReactNode; value: string }) => (
     <div data-testid={`select-item-${value}`} data-value={value}>
       {children}
     </div>
@@ -40,16 +47,14 @@ const mockOptions = [
   { id: 'uuid-4', option: 'estrela' },
 ];
 
-const contentWithPlaceholders = 'A {uuid-1} é um {uuid-2}. O {uuid-3} é uma {uuid-4}.';
+const contentWithPlaceholders =
+  'A {uuid-1} é um {uuid-2}. O {uuid-3} é uma {uuid-4}.';
 
 describe('FillInBlanks', () => {
   describe('Basic Rendering', () => {
     it('renders without crashing', () => {
       render(
-        <FillInBlanks
-          content={contentWithPlaceholders}
-          options={mockOptions}
-        />
+        <FillInBlanks content={contentWithPlaceholders} options={mockOptions} />
       );
       expect(screen.getByText(/A/)).toBeInTheDocument();
     });
@@ -84,7 +89,9 @@ describe('FillInBlanks', () => {
           data-testid="fill-blanks"
         />
       );
-      expect(container.querySelector('[data-testid="fill-blanks"]')).toBeInTheDocument();
+      expect(
+        container.querySelector('[data-testid="fill-blanks"]')
+      ).toBeInTheDocument();
     });
 
     it('defaults to interactive mode', () => {
@@ -131,8 +138,12 @@ describe('FillInBlanks', () => {
         />
       );
       mockOptions.forEach((option) => {
-        expect(screen.getByTestId(`select-item-${option.id}`)).toBeInTheDocument();
-        expect(screen.getByTestId(`select-item-${option.id}`)).toHaveTextContent(option.option);
+        expect(
+          screen.getByTestId(`select-item-${option.id}`)
+        ).toBeInTheDocument();
+        expect(
+          screen.getByTestId(`select-item-${option.id}`)
+        ).toHaveTextContent(option.option);
       });
     });
 
@@ -145,7 +156,9 @@ describe('FillInBlanks', () => {
           disabled={true}
         />
       );
-      const selectWrapper = screen.getByTestId('select-trigger').closest('span');
+      const selectWrapper = screen
+        .getByTestId('select-trigger')
+        .closest('span');
       expect(selectWrapper).toHaveClass('opacity-50');
       expect(selectWrapper).toHaveClass('pointer-events-none');
     });
@@ -159,7 +172,9 @@ describe('FillInBlanks', () => {
           disabled={false}
         />
       );
-      const selectWrapper = screen.getByTestId('select-trigger').closest('span');
+      const selectWrapper = screen
+        .getByTestId('select-trigger')
+        .closest('span');
       expect(selectWrapper).not.toHaveClass('opacity-50');
     });
 
@@ -301,7 +316,9 @@ describe('FillInBlanks', () => {
           answers={{ 'uuid-1': 'uuid-1' }}
         />
       );
-      const badgeWrapper = container.querySelector('.inline-block.align-middle');
+      const badgeWrapper = container.querySelector(
+        '.inline-block.align-middle'
+      );
       expect(badgeWrapper).toBeInTheDocument();
     });
   });
@@ -315,7 +332,9 @@ describe('FillInBlanks', () => {
           mode="readonly"
         />
       );
-      expect(screen.getByText('Just plain text without any placeholders.')).toBeInTheDocument();
+      expect(
+        screen.getByText('Just plain text without any placeholders.')
+      ).toBeInTheDocument();
     });
 
     it('handles content with HTML tags', () => {
@@ -383,9 +402,7 @@ describe('FillInBlanks', () => {
 
   describe('Edge Cases', () => {
     it('handles empty content', () => {
-      const { container } = render(
-        <FillInBlanks content="" options={[]} />
-      );
+      const { container } = render(<FillInBlanks content="" options={[]} />);
       expect(container.firstChild).toBeInTheDocument();
     });
 
@@ -421,7 +438,7 @@ describe('FillInBlanks', () => {
           mode="readonly"
         />
       );
-      expect(screen.getByText("Special <>&\"")).toBeInTheDocument();
+      expect(screen.getByText('Special <>&"')).toBeInTheDocument();
     });
 
     it('handles very long content', () => {

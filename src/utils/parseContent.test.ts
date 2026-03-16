@@ -1,4 +1,4 @@
-import { parseContent, ParsedContentPart } from './parseContent';
+import { parseContent } from './parseContent';
 
 describe('parseContent', () => {
   describe('Basic Parsing', () => {
@@ -23,16 +23,12 @@ describe('parseContent', () => {
 
     it('parses content with no placeholders', () => {
       const result = parseContent('Just plain text');
-      expect(result).toEqual([
-        { type: 'text', value: 'Just plain text' },
-      ]);
+      expect(result).toEqual([{ type: 'text', value: 'Just plain text' }]);
     });
 
     it('parses content with only placeholder', () => {
       const result = parseContent('{uuid-1}');
-      expect(result).toEqual([
-        { type: 'placeholder', value: 'uuid-1' },
-      ]);
+      expect(result).toEqual([{ type: 'placeholder', value: 'uuid-1' }]);
     });
 
     it('handles empty string', () => {
@@ -87,9 +83,7 @@ describe('parseContent', () => {
 
     it('parses alphanumeric IDs', () => {
       const result = parseContent('{option1}');
-      expect(result).toEqual([
-        { type: 'placeholder', value: 'option1' },
-      ]);
+      expect(result).toEqual([{ type: 'placeholder', value: 'option1' }]);
     });
 
     it('parses IDs with hyphens', () => {
@@ -101,9 +95,7 @@ describe('parseContent', () => {
 
     it('parses uppercase IDs', () => {
       const result = parseContent('{UUID-ABC-123}');
-      expect(result).toEqual([
-        { type: 'placeholder', value: 'UUID-ABC-123' },
-      ]);
+      expect(result).toEqual([{ type: 'placeholder', value: 'UUID-ABC-123' }]);
     });
 
     it('parses mixed case IDs', () => {
@@ -124,7 +116,9 @@ describe('parseContent', () => {
     });
 
     it('strips nested HTML tags', () => {
-      const result = parseContent('<div><p><strong>Bold {uuid-1}</strong></p></div>');
+      const result = parseContent(
+        '<div><p><strong>Bold {uuid-1}</strong></p></div>'
+      );
       expect(result).toEqual([
         { type: 'text', value: 'Bold ' },
         { type: 'placeholder', value: 'uuid-1' },
@@ -133,9 +127,7 @@ describe('parseContent', () => {
 
     it('strips HTML tags with attributes', () => {
       const result = parseContent('<span class="highlight">{uuid-1}</span>');
-      expect(result).toEqual([
-        { type: 'placeholder', value: 'uuid-1' },
-      ]);
+      expect(result).toEqual([{ type: 'placeholder', value: 'uuid-1' }]);
     });
 
     it('decodes HTML entities', () => {
@@ -166,11 +158,13 @@ describe('parseContent', () => {
     it('handles escaped-like braces', () => {
       const result = parseContent('Text with \\{uuid-1\\}');
       // The regex won't match because of the backslash
-      expect(result.some(p => p.type === 'placeholder')).toBe(false);
+      expect(result.some((p) => p.type === 'placeholder')).toBe(false);
     });
 
     it('handles special regex characters in text', () => {
-      const result = parseContent('Special chars .+*?^${}()|[]\\  and {uuid-1}');
+      const result = parseContent(
+        'Special chars .+*?^${}()|[]\\  and {uuid-1}'
+      );
       expect(result).toHaveLength(2);
       expect(result[1]).toEqual({ type: 'placeholder', value: 'uuid-1' });
     });
@@ -197,23 +191,17 @@ describe('parseContent', () => {
   describe('Invalid Placeholders', () => {
     it('ignores placeholders with spaces', () => {
       const result = parseContent('{uuid 1}');
-      expect(result).toEqual([
-        { type: 'text', value: '{uuid 1}' },
-      ]);
+      expect(result).toEqual([{ type: 'text', value: '{uuid 1}' }]);
     });
 
     it('ignores placeholders with special characters', () => {
       const result = parseContent('{uuid@1}');
-      expect(result).toEqual([
-        { type: 'text', value: '{uuid@1}' },
-      ]);
+      expect(result).toEqual([{ type: 'text', value: '{uuid@1}' }]);
     });
 
     it('ignores empty placeholders', () => {
       const result = parseContent('{}');
-      expect(result).toEqual([
-        { type: 'text', value: '{}' },
-      ]);
+      expect(result).toEqual([{ type: 'text', value: '{}' }]);
     });
 
     it('ignores nested braces', () => {
@@ -226,18 +214,20 @@ describe('parseContent', () => {
 
   describe('Real-world Scenarios', () => {
     it('parses a complete fill-in-blanks sentence', () => {
-      const result = parseContent('A {uuid-1} é um {uuid-2}. O {uuid-3} é uma {uuid-4}.');
+      const result = parseContent(
+        'A {uuid-1} é um {uuid-2}. O {uuid-3} é uma {uuid-4}.'
+      );
       expect(result).toHaveLength(9); // 5 text parts + 4 placeholders
-      expect(result.filter(p => p.type === 'placeholder')).toHaveLength(4);
-      expect(result.filter(p => p.type === 'text')).toHaveLength(5);
+      expect(result.filter((p) => p.type === 'placeholder')).toHaveLength(4);
+      expect(result.filter((p) => p.type === 'text')).toHaveLength(5);
     });
 
     it('parses HTML formatted question', () => {
       const result = parseContent(
         '<p>Complete a frase: A <strong>{uuid-1}</strong> é um <em>{uuid-2}</em>.</p>'
       );
-      expect(result.filter(p => p.type === 'placeholder')).toHaveLength(2);
-      expect(result.filter(p => p.type === 'text')).toHaveLength(3);
+      expect(result.filter((p) => p.type === 'placeholder')).toHaveLength(2);
+      expect(result.filter((p) => p.type === 'text')).toHaveLength(3);
     });
 
     it('parses long educational content', () => {
@@ -247,7 +237,7 @@ describe('parseContent', () => {
         As principais características incluíam o {uuid-3} e a {uuid-4}.
       `;
       const result = parseContent(content);
-      expect(result.filter(p => p.type === 'placeholder')).toHaveLength(4);
+      expect(result.filter((p) => p.type === 'placeholder')).toHaveLength(4);
     });
   });
 
@@ -259,7 +249,7 @@ describe('parseContent', () => {
 
     it('returns correct type structure', () => {
       const result = parseContent('Hello {uuid-1} world');
-      result.forEach(part => {
+      result.forEach((part) => {
         expect(part).toHaveProperty('type');
         expect(part).toHaveProperty('value');
         expect(['text', 'placeholder']).toContain(part.type);
@@ -269,7 +259,15 @@ describe('parseContent', () => {
 
     it('preserves order of parts', () => {
       const result = parseContent('1{a}2{b}3{c}4');
-      expect(result.map(p => p.value)).toEqual(['1', 'a', '2', 'b', '3', 'c', '4']);
+      expect(result.map((p) => p.value)).toEqual([
+        '1',
+        'a',
+        '2',
+        'b',
+        '3',
+        'c',
+        '4',
+      ]);
     });
   });
 });
