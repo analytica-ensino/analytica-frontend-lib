@@ -110,9 +110,15 @@ const ConnectDots = ({
         <div className="w-[150px] flex-shrink-0">
           <Select
             value={selectedValue || undefined}
-            onValueChange={(value) => onAnswerChange?.(option.id, value)}
+            onValueChange={(value) => {
+              if (disabled) return;
+              onAnswerChange?.(option.id, value);
+            }}
           >
-            <SelectTrigger className="w-full h-8 px-2 bg-background border-gray-300">
+            <SelectTrigger
+              disabled={disabled}
+              className="w-full h-8 px-2 bg-background border-gray-300"
+            >
               <SelectValue placeholder="Selecione" />
             </SelectTrigger>
             <SelectContent>
