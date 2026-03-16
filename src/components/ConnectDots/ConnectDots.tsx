@@ -159,16 +159,19 @@ const ConnectDots = ({
     const isCorrect = isAnswerCorrect(option.id);
     const hasAnswer = !!selectedValue;
 
+    // Only show success styling when answered correctly
+    const isSuccess = hasAnswer && isCorrect;
+    const borderStyles = isSuccess
+      ? 'border-success-300 bg-success-50'
+      : 'border-error-300 bg-error-50';
+    const arrowColor = isSuccess ? 'text-success-600' : 'text-error-600';
+
     return (
       <div
         key={`${baseId}-result-${index}`}
         className={cn(
           'flex flex-row items-center gap-3 p-3 rounded-md border',
-          hasAnswer
-            ? isCorrect
-              ? 'border-success-300 bg-success-50'
-              : 'border-error-300 bg-error-50'
-            : 'border-error-300 bg-error-50'
+          borderStyles
         )}
       >
         <div className="flex-1">
@@ -180,13 +183,7 @@ const ConnectDots = ({
 
         <ArrowRight
           size={20}
-          className={cn(
-            'flex-shrink-0',
-            hasAnswer
-              ? isCorrect
-                ? 'text-success-600'
-                : 'text-error-600'
-              : 'text-error-600'
+          className={cn('flex-shrink-0', arrowColor
           )}
         />
 

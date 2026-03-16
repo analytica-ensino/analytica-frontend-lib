@@ -232,7 +232,7 @@ export const ActivityCardQuestionBanks = ({
     const placeholderPattern = /\{[a-f0-9-]{36}\}/g;
 
     // Replace UUIDs with blank underscores
-    return enunciado.replace(placeholderPattern, '_____');
+    return enunciado.replaceAll(placeholderPattern, '_____');
   }, [enunciado, isFillInBlanks]);
 
   // Transform options for FillInBlanks component

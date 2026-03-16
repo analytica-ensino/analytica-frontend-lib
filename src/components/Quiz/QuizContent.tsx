@@ -10,6 +10,10 @@ import {
   useState,
 } from 'react';
 import { ANSWER_STATUS, useQuizStore } from './useQuizStore';
+import {
+  prependLetterToHtml,
+  getTrueOrFalseOptionState,
+} from './Quiz.utils';
 import { cn } from '../../utils/utils';
 import { stripHtmlTags } from '../../utils/stringUtils';
 import Select, {
@@ -603,62 +607,19 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
       <QuizContainer className={cn('', paddingBottom)}>
         <div className="flex flex-col gap-3.5">
           {options.map((option, index) => {
-            // In result mode, get isCorrect from the persisted result options
-            // options[].isCorrect = whether the statement is TRUE or FALSE
-            const isStatementTrue =
-              variant === 'result'
-                ? currentQuestionResult?.options?.find(
-                    (op) => op.id === option.id
-                  )?.isCorrect || false
-                : false;
-
-            // In result mode, get student's answer from selectedOptions
-            // selectedOptions[].isCorrect = what user marked (true=V, false=F)
-            const studentSelection =
-              variant === 'result'
-                ? currentQuestionResult?.selectedOptions?.find(
-                    (op) => op.optionId === option.id
-                  )
-                : undefined;
-
-            // For default mode, use localAnswers; for result mode, use selectedOptions
-            const hasAnswered =
-              variant === 'result'
-                ? studentSelection !== undefined
-                : !!localAnswers[option.id];
-
-            const studentMarkedTrue =
-              variant === 'result'
-                ? (studentSelection?.isCorrect ?? false)
-                : localAnswers[option.id] === 'V';
-
-            const studentAnswer =
-              variant === 'result'
-                ? hasAnswered
-                  ? studentMarkedTrue
-                    ? 'V'
-                    : 'F'
-                  : '-'
-                : localAnswers[option.id] || '-';
-
-            const correctAnswer = isStatementTrue ? 'V' : 'F';
-
-            // Student is correct if they answered AND their answer matches the statement truth
-            const isStudentCorrect =
-              hasAnswered && studentMarkedTrue === isStatementTrue;
-
-            const variantCorrect = isStudentCorrect ? 'correct' : 'incorrect';
-
-            // Helper to prepend letter to HTML content
-            const prependLetterToHtml = (
-              letter: string,
-              html: string
-            ): string => {
-              if (html.trim().startsWith('<p>')) {
-                return html.replace(/^(\s*<p>)/, `$1${letter}) `);
-              }
-              return `${letter}) ${html}`;
-            };
+            // Use helper to compute all option state
+            const {
+              hasAnswered,
+              studentAnswer,
+              correctAnswer,
+              isStudentCorrect,
+              variantCorrect,
+            } = getTrueOrFalseOptionState(
+              option.id,
+              variant,
+              currentQuestionResult,
+              localAnswers
+            );
 
             const contentWithLetter = prependLetterToHtml(
               getLetterByIndex(index),
