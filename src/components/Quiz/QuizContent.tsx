@@ -515,10 +515,13 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
     currentQuestion?.id || ''
   );
 
-  // Get the options from the question
+  // Get the options - prefer persisted result options in result mode, fallback to live question
   const options = useMemo(() => {
+    if (variant === 'result' && currentQuestionResult?.options) {
+      return currentQuestionResult.options;
+    }
     return currentQuestion?.options || [];
-  }, [currentQuestion?.options]);
+  }, [variant, currentQuestionResult?.options, currentQuestion?.options]);
 
   // Parse stored answers from JSON string: { "optionId": "V" | "F", ... }
   const parsedAnswers: Record<string, string> = useMemo(() => {
