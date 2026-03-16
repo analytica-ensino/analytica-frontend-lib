@@ -6,6 +6,7 @@ import {
 } from '../../index';
 import { Plus } from 'phosphor-react';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
+import { prependLetterToHtml } from '../Quiz/Quiz.utils';
 import {
   renderFromMap,
   type QuestionRendererMap,
@@ -145,16 +146,6 @@ export const ActivityCardQuestionBanks = ({
         </Text>
       </div>
     );
-  };
-
-  // Helper to prepend letter to HTML content (handles <p> tags)
-  const prependLetterToHtml = (letter: string, html: string): string => {
-    // If content starts with <p>, insert letter after opening tag
-    if (html.trim().startsWith('<p>')) {
-      return html.replace(/^(\s*<p>)/, `$1${letter}) `);
-    }
-    // Otherwise, just prepend
-    return `${letter}) ${html}`;
   };
 
   const renderTrueOrFalse = () => {
