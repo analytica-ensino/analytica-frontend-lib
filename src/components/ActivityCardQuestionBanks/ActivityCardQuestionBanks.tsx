@@ -224,14 +224,14 @@ export const ActivityCardQuestionBanks = ({
   // Check if this is a fill-in-blanks question
   const isFillInBlanks = questionType === QUESTION_TYPE.PREENCHER_LACUNAS;
 
-  // Process enunciado for PREENCHER_LACUNAS - replace UUIDs with blanks for display
+  // Process enunciado for PREENCHER_LACUNAS - replace placeholders with blanks for display
   const processedEnunciado = useMemo(() => {
     if (!isFillInBlanks || !enunciado) return enunciado;
 
-    // Pattern to match {uuid} placeholders
-    const placeholderPattern = /\{[a-f0-9-]{36}\}/g;
+    // Pattern to match {placeholder} tokens (alphanumeric with hyphens, same as parseContent)
+    const placeholderPattern = /\{[a-zA-Z0-9-]+\}/g;
 
-    // Replace UUIDs with blank underscores
+    // Replace placeholders with blank underscores
     return enunciado.replaceAll(placeholderPattern, '_____');
   }, [enunciado, isFillInBlanks]);
 
