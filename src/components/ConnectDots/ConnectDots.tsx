@@ -73,8 +73,8 @@ const ConnectDots = ({
   // Get all unique correct values for the dropdown options
   const availableValues = useMemo(() => {
     const values = options.map((opt) => opt.correctValue);
-    // Remove duplicates and sort
-    return [...new Set(values)].sort();
+    // Remove duplicates and sort alphabetically using localeCompare
+    return [...new Set(values)].sort((a, b) => a.localeCompare(b));
   }, [options]);
 
   // Check if an answer is correct

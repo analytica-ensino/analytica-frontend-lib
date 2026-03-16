@@ -1,5 +1,6 @@
 import { HtmlHTMLAttributes, useMemo, useId, ReactNode } from 'react';
 import { cn } from '../../utils/utils';
+import { stripHtmlTags } from '../../utils/stringUtils';
 import { CheckCircle, XCircle } from 'phosphor-react';
 import Badge from '../Badge/Badge';
 import Text from '../Text/Text';
@@ -42,7 +43,7 @@ function parseContent(
   let match;
 
   // Strip HTML tags for cleaner parsing
-  const cleanContent = content.replace(/<[^>]*>/g, '');
+  const cleanContent = stripHtmlTags(content);
 
   while ((match = regex.exec(cleanContent)) !== null) {
     // Add text before the placeholder
