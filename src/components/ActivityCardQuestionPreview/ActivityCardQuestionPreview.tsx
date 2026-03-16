@@ -40,7 +40,6 @@ interface ActivityCardQuestionPreviewProps {
       id: string;
       option: string;
       isCorrect?: boolean;
-      correct?: boolean;
     }[];
     correctOptionIds?: string[];
   };
@@ -197,11 +196,9 @@ export const ActivityCardQuestionPreview = ({
       <div className="mt-4">
         <div className="flex flex-col gap-3.5">
           {question.options.map((option, index) => {
-            // For VERDADEIRO_FALSO, use option.isCorrect or option.correct directly
+            // For VERDADEIRO_FALSO, use isCorrect from option
             const isCorrect =
-              option.isCorrect ??
-              option.correct ??
-              correctOptionIds.includes(option.id);
+              option.isCorrect ?? correctOptionIds.includes(option.id);
             const correctAnswer = isCorrect ? 'Verdadeiro' : 'Falso';
 
             return (

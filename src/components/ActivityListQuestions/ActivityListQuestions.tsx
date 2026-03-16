@@ -171,7 +171,7 @@ export const ActivityListQuestions = ({
     return questionOptions.map((opt) => ({
       id: opt.id,
       option: opt.option,
-      correct: opt.isCorrect, // Map isCorrect to correct for ActivityCardQuestionBanks
+      isCorrect: opt.isCorrect,
       correctValue: opt.correctValue,
     }));
   };

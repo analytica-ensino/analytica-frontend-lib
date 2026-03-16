@@ -21,7 +21,7 @@ import { HtmlMathRenderer } from '../HtmlMathRenderer';
 interface QuestionOption {
   id: string;
   option: string;
-  correct?: boolean;
+  isCorrect?: boolean;
   correctValue?: string | null;
 }
 
@@ -61,7 +61,9 @@ export const ActivityCardQuestionBanks = ({
     const correctOptionIds = question.correctOptionIds || [];
 
     return question.options.map((option) => {
-      const isCorrect = correctOptionIds.includes(option.id);
+      // Check isCorrect from option, fallback to correctOptionIds
+      const isCorrect =
+        option.isCorrect ?? correctOptionIds.includes(option.id);
       return {
         value: option.id,
         label: option.option,
@@ -86,7 +88,9 @@ export const ActivityCardQuestionBanks = ({
     const correctOptionIds = question.correctOptionIds || [];
 
     return question.options.map((option) => {
-      const isCorrect = correctOptionIds.includes(option.id);
+      // Check isCorrect from option, fallback to correctOptionIds
+      const isCorrect =
+        option.isCorrect ?? correctOptionIds.includes(option.id);
       return {
         value: option.id,
         label: option.option,
@@ -159,9 +163,9 @@ export const ActivityCardQuestionBanks = ({
       <div className="mt-4">
         <div className="flex flex-col gap-3.5">
           {question.options.map((option, index) => {
-            // For VERDADEIRO_FALSO, use option.correct directly (from isCorrect in API)
+            // For VERDADEIRO_FALSO, use isCorrect from option
             const isCorrect =
-              option.correct ?? correctOptionIds.includes(option.id);
+              option.isCorrect ?? correctOptionIds.includes(option.id);
             const correctAnswer = isCorrect ? 'Verdadeiro' : 'Falso';
             const letter = getLetterByIndex(index);
             const contentWithLetter = prependLetterToHtml(
