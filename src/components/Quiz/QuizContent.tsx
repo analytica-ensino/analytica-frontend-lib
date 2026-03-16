@@ -13,6 +13,7 @@ import { ANSWER_STATUS, useQuizStore } from './useQuizStore';
 import {
   prependLetterToHtml,
   getTrueOrFalseOptionState,
+  shuffleWithSeed,
 } from './Quiz.utils';
 import { cn } from '../../utils/utils';
 import { stripHtmlTags } from '../../utils/stringUtils';
@@ -726,28 +727,6 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
     return currentQuestion.options;
   }, [currentQuestion?.options]);
 
-  // Shuffle array using a seed for consistent ordering per question
-  const shuffleWithSeed = (array: { label: string }[], seed: string) => {
-    const shuffled = [...array];
-    // Simple hash function to convert string seed to number
-    let hash = 0;
-    for (let i = 0; i < seed.length; i++) {
-      const char = seed.charCodeAt(i);
-      hash = (hash << 5) - hash + char;
-      hash = hash & hash; // Convert to 32bit integer
-    }
-    // Fisher-Yates shuffle with seeded random
-    const seededRandom = (max: number) => {
-      hash = (hash * 1103515245 + 12345) & 0x7fffffff;
-      return hash % max;
-    };
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = seededRandom(i + 1);
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-  };
-
   // Build dotsOptions from correctValue of each option (right column values)
   // Shuffle them so they don't appear in the same order as the left column
   const dotsOptions = useMemo(() => {
@@ -973,28 +952,6 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
     variant === 'result'
       ? currentQuestionResult?.options || currentQuestion?.options || []
       : currentQuestion?.options || [];
-
-  // Shuffle array using a seed for consistent ordering per question
-  const shuffleWithSeed = <T,>(array: T[], seed: string): T[] => {
-    const shuffled = [...array];
-    // Simple hash function to convert string seed to number
-    let hash = 0;
-    for (let i = 0; i < seed.length; i++) {
-      const char = seed.charCodeAt(i);
-      hash = (hash << 5) - hash + char;
-      hash = hash & hash; // Convert to 32bit integer
-    }
-    // Fisher-Yates shuffle with seeded random
-    const seededRandom = (max: number) => {
-      hash = (hash * 1103515245 + 12345) & 0x7fffffff;
-      return hash % max;
-    };
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = seededRandom(i + 1);
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-  };
 
   // Shuffled options for dropdown display (consistent per question)
   const shuffledOptions = useMemo(() => {
