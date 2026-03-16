@@ -127,6 +127,11 @@ export interface QuestionResult {
       id: string;
       option: string;
       isCorrect: boolean;
+      correctValue?: string | null;
+    }[];
+    matchingAnswers?: {
+      optionId: string;
+      selectedValue: string;
     }[];
     knowledgeMatrix: {
       areaKnowledge: {

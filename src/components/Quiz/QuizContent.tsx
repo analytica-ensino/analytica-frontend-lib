@@ -794,17 +794,25 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
     }));
   }, [questionOptions]);
 
-  // Parse stored matching answers from JSON
-  // Format: { "optionId": "selectedValue", ... }
-  const parsedAnswers: Record<string, string> = useMemo(
-    () =>
-      parseStoredAnswers(
-        variant,
-        currentQuestionResult?.answer,
-        currentAnswer?.answer
-      ),
-    [variant, currentQuestionResult?.answer, currentAnswer?.answer]
-  );
+  // Parse stored matching answers
+  // In result mode, read from matchingAnswers array
+  // In default mode, read from currentAnswer.answer JSON string
+  const parsedAnswers: Record<string, string> = useMemo(() => {
+    if (variant === 'result' && currentQuestionResult?.matchingAnswers) {
+      // Convert matchingAnswers array to Record<optionId, selectedValue>
+      const answers: Record<string, string> = {};
+      for (const match of currentQuestionResult.matchingAnswers) {
+        answers[match.optionId] = match.selectedValue;
+      }
+      return answers;
+    }
+    // For default mode, parse from answer JSON string
+    return parseStoredAnswers(variant, null, currentAnswer?.answer);
+  }, [
+    variant,
+    currentQuestionResult?.matchingAnswers,
+    currentAnswer?.answer,
+  ]);
 
   const [userAnswers, setUserAnswers] = useState<UserAnswer[]>([]);
 
