@@ -221,20 +221,6 @@ export const ActivityCardQuestionBanks = ({
     );
   };
 
-  // Check if this is a fill-in-blanks question
-  const isFillInBlanks = questionType === QUESTION_TYPE.PREENCHER_LACUNAS;
-
-  // Process enunciado for PREENCHER_LACUNAS - replace placeholders with blanks for display
-  const processedEnunciado = useMemo(() => {
-    if (!isFillInBlanks || !enunciado) return enunciado;
-
-    // Pattern to match {placeholder} tokens (alphanumeric with hyphens, same as parseContent)
-    const placeholderPattern = /\{[a-zA-Z0-9-]+\}/g;
-
-    // Replace placeholders with blank underscores
-    return enunciado.replaceAll(placeholderPattern, '_____');
-  }, [enunciado, isFillInBlanks]);
-
   // Transform options for FillInBlanks component
   const fillInBlanksOptions = useMemo(() => {
     if (!question?.options) return [];
@@ -337,7 +323,7 @@ export const ActivityCardQuestionBanks = ({
       <section className="flex flex-col gap-1">
         {enunciado ? (
           <HtmlMathRenderer
-            content={isFillInBlanks ? processedEnunciado || '' : enunciado}
+            content={enunciado}
             className="text-text-950 text-md font-medium"
           />
         ) : (
