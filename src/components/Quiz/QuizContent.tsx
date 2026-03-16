@@ -523,32 +523,13 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
     return currentQuestion?.options || [];
   }, [variant, currentQuestionResult?.options, currentQuestion?.options]);
 
-  // Parse stored answers from JSON string: { "optionId": "V" | "F", ... }
+  // Parse stored answers from JSON string, handling both object and legacy array formats
   const parsedAnswers: Record<string, string> = useMemo(() => {
-    if (variant === 'result') {
-      // In result mode, parse from the persisted result answer
-      if (!currentQuestionResult?.answer) return {};
-      try {
-        const parsed = JSON.parse(currentQuestionResult.answer);
-        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-          return parsed as Record<string, string>;
-        }
-      } catch {
-        // Invalid JSON
-      }
-      return {};
-    }
-    // In default mode, parse from current draft answer
-    if (!currentAnswer?.answer) return {};
-    try {
-      const parsed = JSON.parse(currentAnswer.answer);
-      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-        return parsed as Record<string, string>;
-      }
-    } catch {
-      // Invalid JSON
-    }
-    return {};
+    return parseStoredAnswers(
+      variant,
+      currentQuestionResult?.answer,
+      currentAnswer?.answer
+    );
   }, [variant, currentQuestionResult?.answer, currentAnswer?.answer]);
 
   // Local state to track answers: { "optionId": "V" | "F" }
