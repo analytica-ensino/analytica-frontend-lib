@@ -164,12 +164,14 @@ export const ActivityListQuestions = ({
     questionOptions: {
       id: string;
       option: string;
+      isCorrect?: boolean;
       correctValue?: string | null;
     }[]
   ) => {
     return questionOptions.map((opt) => ({
       id: opt.id,
       option: opt.option,
+      correct: opt.isCorrect, // Map isCorrect to correct for ActivityCardQuestionBanks
       correctValue: opt.correctValue,
     }));
   };
@@ -414,6 +416,7 @@ export const ActivityListQuestions = ({
                         question.options as {
                           id: string;
                           option: string;
+                          isCorrect?: boolean;
                           correctValue?: string | null;
                         }[]
                       ),

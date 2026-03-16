@@ -506,6 +506,7 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
     getCurrentAnswer,
     selectDissertativeAnswer,
     getQuestionResultByQuestionId,
+    getUserAnswerByQuestionId,
   } = useQuizStore();
 
   const currentQuestion = getCurrentQuestion();
@@ -560,11 +561,27 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
   const handleSelectChange = (optionId: string, value: string) => {
     if (!currentQuestion) return;
 
-    const newAnswers = { ...localAnswers, [optionId]: value };
-    setLocalAnswers(newAnswers);
+    // Get the LATEST answers directly from the store (not from closure)
+    // This is critical to avoid stale closure issues when user selects options quickly
+    const latestStoreAnswer = getUserAnswerByQuestionId(currentQuestion.id);
+    let baseAnswers: Record<string, string> = {};
+    if (latestStoreAnswer?.answer) {
+      try {
+        const parsed = JSON.parse(latestStoreAnswer.answer);
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          baseAnswers = parsed;
+        }
+      } catch {
+        // Invalid JSON, start fresh
+      }
+    }
+
+    // Merge: store answers + local state + new selection
+    const mergedAnswers = { ...baseAnswers, ...localAnswers, [optionId]: value };
+    setLocalAnswers(mergedAnswers);
 
     // Save to store as JSON string
-    selectDissertativeAnswer(currentQuestion.id, JSON.stringify(newAnswers));
+    selectDissertativeAnswer(currentQuestion.id, JSON.stringify(mergedAnswers));
   };
 
   // Get the current selection for an option
@@ -599,6 +616,7 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
         <div className="flex flex-col gap-3.5">
           {options.map((option, index) => {
             // In result mode, get isCorrect from the persisted result options
+            // options[].isCorrect = whether the statement is TRUE or FALSE
             const isStatementTrue =
               variant === 'result'
                 ? currentQuestionResult?.options?.find(
@@ -606,13 +624,39 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
                   )?.isCorrect || false
                 : false;
 
-            // Check if student marked this as True (from local answers)
-            const studentMarkedTrue = localAnswers[option.id] === 'V';
-            const studentAnswer = localAnswers[option.id] || '-';
+            // In result mode, get student's answer from selectedOptions
+            // selectedOptions[].isCorrect = what user marked (true=V, false=F)
+            const studentSelection =
+              variant === 'result'
+                ? currentQuestionResult?.selectedOptions?.find(
+                    (op) => op.optionId === option.id
+                  )
+                : undefined;
+
+            // For default mode, use localAnswers; for result mode, use selectedOptions
+            const hasAnswered =
+              variant === 'result'
+                ? studentSelection !== undefined
+                : !!localAnswers[option.id];
+
+            const studentMarkedTrue =
+              variant === 'result'
+                ? studentSelection?.isCorrect ?? false
+                : localAnswers[option.id] === 'V';
+
+            const studentAnswer =
+              variant === 'result'
+                ? hasAnswered
+                  ? studentMarkedTrue
+                    ? 'V'
+                    : 'F'
+                  : '-'
+                : localAnswers[option.id] || '-';
+
             const correctAnswer = isStatementTrue ? 'V' : 'F';
 
-            // Student is correct if their answer matches whether the statement is true
-            const isStudentCorrect = studentMarkedTrue === isStatementTrue;
+            // Student is correct if they answered AND their answer matches the statement truth
+            const isStudentCorrect = hasAnswered && studentMarkedTrue === isStatementTrue;
 
             const variantCorrect = isStudentCorrect ? 'correct' : 'incorrect';
 
@@ -640,7 +684,7 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
                 <div
                   className={cn(
                     'w-full grid grid-cols-[1fr_auto] items-start gap-4 p-2 rounded-md border',
-                    !isDefaultVariant && shouldShowStatus
+                    !isDefaultVariant && shouldShowStatus && hasAnswered
                       ? getStatusStyles(variantCorrect)
                       : 'border-transparent'
                   )}
@@ -668,20 +712,29 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
                       </SelectContent>
                     </Select>
                   ) : (
-                    shouldShowStatus && (
+                    shouldShowStatus &&
+                    hasAnswered && (
                       <div>{getStatusBadge(variantCorrect)}</div>
                     )
                   )}
                 </div>
 
                 {!isDefaultVariant && shouldShowStatus && (
-                  <span className="flex flex-row gap-2 items-center">
-                    <Text size="2xs" className="text-text-800">
-                      Resposta selecionada: {studentAnswer}
-                    </Text>
-                    {!isStudentCorrect && (
+                  <span className="flex flex-row gap-2 items-center flex-wrap">
+                    {hasAnswered ? (
+                      <>
+                        <Text size="2xs" className="text-text-800">
+                          Resposta selecionada: {studentAnswer}
+                        </Text>
+                        {!isStudentCorrect && (
+                          <Text size="2xs" className="text-text-800">
+                            | Resposta correta: {correctAnswer}
+                          </Text>
+                        )}
+                      </>
+                    ) : (
                       <Text size="2xs" className="text-text-800">
-                        Resposta correta: {correctAnswer}
+                        Não respondida | Resposta correta: {correctAnswer}
                       </Text>
                     )}
                   </span>
@@ -709,6 +762,7 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
     getCurrentAnswer,
     selectDissertativeAnswer,
     getQuestionResultByQuestionId,
+    getUserAnswerByQuestionId,
   } = useQuizStore();
 
   const currentQuestion = getCurrentQuestion();
@@ -775,7 +829,7 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
 
   const handleSelectDot = (optionIndex: number, dotValue: string) => {
     const option = options[optionIndex];
-    if (!option) return;
+    if (!option || !currentQuestion) return;
 
     // Update local state
     setUserAnswers((prev) => {
@@ -789,11 +843,21 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
       return next;
     });
 
-    // Persist to shared store as JSON
-    if (currentQuestion) {
-      const newAnswers = { ...parsedAnswers, [option.id]: dotValue };
-      selectDissertativeAnswer(currentQuestion.id, JSON.stringify(newAnswers));
+    // Get the LATEST answers directly from the store (not from closure)
+    const latestStoreAnswer = getUserAnswerByQuestionId(currentQuestion.id);
+    let baseAnswers: Record<string, string> = {};
+    if (latestStoreAnswer?.answer) {
+      try {
+        const parsed = JSON.parse(latestStoreAnswer.answer);
+        baseAnswers = normalizeAnswerData(parsed);
+      } catch {
+        // Invalid JSON, start fresh
+      }
     }
+
+    // Persist to shared store as JSON
+    const newAnswers = { ...baseAnswers, ...parsedAnswers, [option.id]: dotValue };
+    selectDissertativeAnswer(currentQuestion.id, JSON.stringify(newAnswers));
   };
 
   const getLetterByIndex = (index: number) => String.fromCodePoint(97 + index); // 'a', 'b', 'c'...
@@ -902,6 +966,7 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
     getCurrentAnswer,
     selectDissertativeAnswer,
     variant,
+    getUserAnswerByQuestionId,
   } = useQuizStore();
 
   const currentQuestion = getCurrentQuestion();
@@ -950,13 +1015,25 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
 
   // Handle select change
   const handleSelectChange = (placeholderId: string, optionId: string) => {
-    const newAnswers = { ...localAnswers, [placeholderId]: optionId };
+    if (!currentQuestion) return;
+
+    // Get the LATEST answers directly from the store (not from closure)
+    const latestStoreAnswer = getUserAnswerByQuestionId(currentQuestion.id);
+    let baseAnswers: Record<string, string> = {};
+    if (latestStoreAnswer?.answer) {
+      try {
+        const parsed = JSON.parse(latestStoreAnswer.answer);
+        baseAnswers = normalizeAnswerData(parsed);
+      } catch {
+        // Invalid JSON, start fresh
+      }
+    }
+
+    const newAnswers = { ...baseAnswers, ...localAnswers, [placeholderId]: optionId };
     setLocalAnswers(newAnswers);
 
     // Save to store as JSON string
-    if (currentQuestion) {
-      selectDissertativeAnswer(currentQuestion.id, JSON.stringify(newAnswers));
-    }
+    selectDissertativeAnswer(currentQuestion.id, JSON.stringify(newAnswers));
   };
 
   // Get option text by ID

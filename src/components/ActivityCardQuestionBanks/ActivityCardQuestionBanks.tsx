@@ -159,7 +159,8 @@ export const ActivityCardQuestionBanks = ({
       <div className="mt-4">
         <div className="flex flex-col gap-3.5">
           {question.options.map((option, index) => {
-            const isCorrect = correctOptionIds.includes(option.id);
+            // For VERDADEIRO_FALSO, use option.correct directly (from isCorrect in API)
+            const isCorrect = option.correct ?? correctOptionIds.includes(option.id);
             const correctAnswer = isCorrect ? 'Verdadeiro' : 'Falso';
             const letter = getLetterByIndex(index);
             const contentWithLetter = prependLetterToHtml(

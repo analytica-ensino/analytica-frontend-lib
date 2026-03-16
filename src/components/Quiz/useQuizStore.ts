@@ -110,6 +110,9 @@ export interface QuestionResult {
     answer: string | null;
     selectedOptions: {
       optionId: string;
+      option?: string;
+      isCorrect?: boolean;
+      correctValue?: string | null;
     }[];
     answerStatus: ANSWER_STATUS;
     statement: string;
