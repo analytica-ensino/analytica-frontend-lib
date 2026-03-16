@@ -557,9 +557,7 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
     if (latestStoreAnswer?.answer) {
       try {
         const parsed = JSON.parse(latestStoreAnswer.answer);
-        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-          baseAnswers = parsed;
-        }
+        baseAnswers = normalizeAnswerData(parsed);
       } catch {
         // Invalid JSON, start fresh
       }
@@ -747,7 +745,7 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
   }, [questionOptions]);
 
   // Parse stored matching answers
-  // In result mode, read from matchingAnswers array
+  // In result mode, read from matchingAnswers array, fallback to answer JSON
   // In default mode, read from currentAnswer.answer JSON string
   const parsedAnswers: Record<string, string> = useMemo(() => {
     if (variant === 'result' && currentQuestionResult?.matchingAnswers) {
@@ -758,9 +756,18 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
       }
       return answers;
     }
-    // For default mode, parse from answer JSON string
-    return parseStoredAnswers(variant, null, currentAnswer?.answer);
-  }, [variant, currentQuestionResult?.matchingAnswers, currentAnswer?.answer]);
+    // Fallback to answer JSON string (for older/partially migrated submissions)
+    return parseStoredAnswers(
+      variant,
+      currentQuestionResult?.answer,
+      currentAnswer?.answer
+    );
+  }, [
+    variant,
+    currentQuestionResult?.matchingAnswers,
+    currentQuestionResult?.answer,
+    currentAnswer?.answer,
+  ]);
 
   const [userAnswers, setUserAnswers] = useState<UserAnswer[]>([]);
 
@@ -959,16 +966,25 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
   }, [questionOptions, currentQuestion?.id]);
 
   // Parse current answers
-  // In result mode, read from fillAnswers object
+  // In result mode, read from fillAnswers object, fallback to answer JSON
   // In default mode, read from currentAnswer.answer JSON string
   const parsedAnswers: Record<string, string> = useMemo(() => {
     if (variant === 'result' && currentQuestionResult?.fillAnswers) {
       // fillAnswers is already a Record<placeholderId, selectedOptionId>
       return currentQuestionResult.fillAnswers;
     }
-    // For default mode, parse from answer JSON string
-    return parseStoredAnswers(variant, null, currentAnswer?.answer);
-  }, [variant, currentQuestionResult?.fillAnswers, currentAnswer?.answer]);
+    // Fallback to answer JSON string (for older/partially migrated submissions)
+    return parseStoredAnswers(
+      variant,
+      currentQuestionResult?.answer,
+      currentAnswer?.answer
+    );
+  }, [
+    variant,
+    currentQuestionResult?.fillAnswers,
+    currentQuestionResult?.answer,
+    currentAnswer?.answer,
+  ]);
 
   const [localAnswers, setLocalAnswers] =
     useState<Record<string, string>>(parsedAnswers);
