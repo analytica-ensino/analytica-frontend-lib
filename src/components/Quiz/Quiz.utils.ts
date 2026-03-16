@@ -9,7 +9,7 @@ export const shuffleWithSeed = <T,>(array: T[], seed: string): T[] => {
   // Simple hash function to convert string seed to number
   let hash = 0;
   for (let i = 0; i < seed.length; i++) {
-    const char = seed.charCodeAt(i);
+    const char = seed.codePointAt(i) ?? 0;
     hash = (hash << 5) - hash + char;
     hash = hash & hash; // Convert to 32bit integer
   }
