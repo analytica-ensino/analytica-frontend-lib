@@ -133,6 +133,7 @@ export interface QuestionResult {
       optionId: string;
       selectedValue: string;
     }[];
+    fillAnswers?: Record<string, string>;
     knowledgeMatrix: {
       areaKnowledge: {
         id: string;

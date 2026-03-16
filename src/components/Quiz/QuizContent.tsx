@@ -1026,17 +1026,44 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
       ? currentQuestionResult?.options || currentQuestion?.options || []
       : currentQuestion?.options || [];
 
-  // Parse current answers from the stored JSON string
-  // In result mode, only use persisted results (never fall back to draft answers)
-  const parsedAnswers: Record<string, string> = useMemo(
-    () =>
-      parseStoredAnswers(
-        variant,
-        currentQuestionResult?.answer,
-        currentAnswer?.answer
-      ),
-    [variant, currentQuestionResult?.answer, currentAnswer?.answer]
-  );
+  // Shuffle array using a seed for consistent ordering per question
+  const shuffleWithSeed = <T,>(array: T[], seed: string): T[] => {
+    const shuffled = [...array];
+    // Simple hash function to convert string seed to number
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) {
+      const char = seed.charCodeAt(i);
+      hash = (hash << 5) - hash + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    // Fisher-Yates shuffle with seeded random
+    const seededRandom = (max: number) => {
+      hash = (hash * 1103515245 + 12345) & 0x7fffffff;
+      return hash % max;
+    };
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = seededRandom(i + 1);
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
+  // Shuffled options for dropdown display (consistent per question)
+  const shuffledOptions = useMemo(() => {
+    return shuffleWithSeed(questionOptions, currentQuestion?.id || '');
+  }, [questionOptions, currentQuestion?.id]);
+
+  // Parse current answers
+  // In result mode, read from fillAnswers object
+  // In default mode, read from currentAnswer.answer JSON string
+  const parsedAnswers: Record<string, string> = useMemo(() => {
+    if (variant === 'result' && currentQuestionResult?.fillAnswers) {
+      // fillAnswers is already a Record<placeholderId, selectedOptionId>
+      return currentQuestionResult.fillAnswers;
+    }
+    // For default mode, parse from answer JSON string
+    return parseStoredAnswers(variant, null, currentAnswer?.answer);
+  }, [variant, currentQuestionResult?.fillAnswers, currentAnswer?.answer]);
 
   const [localAnswers, setLocalAnswers] =
     useState<Record<string, string>>(parsedAnswers);
@@ -1100,7 +1127,7 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
             <SelectValue placeholder="Selecione opção" />
           </SelectTrigger>
           <SelectContent>
-            {questionOptions.map((option) => (
+            {shuffledOptions.map((option) => (
               <SelectItem key={option.id} value={option.id}>
                 {option.option}
               </SelectItem>
