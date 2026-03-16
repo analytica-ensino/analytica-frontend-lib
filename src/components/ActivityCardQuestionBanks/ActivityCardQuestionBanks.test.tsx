@@ -744,7 +744,8 @@ describe('ActivityCardQuestionBanks', () => {
         /A fotossíntese ocorre apenas durante o dia/
       );
       // HtmlMathRenderer wraps the text, need to traverse up to find the styled container
-      const falseOptionContainer = falseOptionText.closest('.border-border-200');
+      const falseOptionContainer =
+        falseOptionText.closest('.border-border-200');
       expect(falseOptionContainer).toBeInTheDocument();
       expect(falseOptionContainer).toHaveClass('border-border-200');
 

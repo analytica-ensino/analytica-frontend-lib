@@ -34,7 +34,8 @@ export const renderQuestionTrueOrFalse = ({
 
           // Get the correct answer from options array (if the statement is true or false)
           const statementIsTrue =
-            result?.options?.find((op) => op.id === option.id)?.isCorrect ?? false;
+            result?.options?.find((op) => op.id === option.id)?.isCorrect ??
+            false;
 
           // Student's answer: isCorrect in selectedOptions represents what user marked
           // isCorrect: true = user marked V (Verdadeiro)
@@ -44,7 +45,8 @@ export const renderQuestionTrueOrFalse = ({
 
           // Determine if student's answer is correct
           // Student is correct if their mark matches the statement's truth value
-          const isStudentCorrect = hasAnswered && studentMarkedTrue === statementIsTrue;
+          const isStudentCorrect =
+            hasAnswered && studentMarkedTrue === statementIsTrue;
 
           const variantCorrect = isStudentCorrect ? 'correct' : 'incorrect';
           const studentAnswer = studentMarkedTrue ? 'V' : 'F';
@@ -58,7 +60,9 @@ export const renderQuestionTrueOrFalse = ({
               <div
                 className={cn(
                   'flex flex-row justify-between items-center gap-2 p-2 rounded-md border',
-                  shouldShowStatus && hasAnswered ? getStatusStyles(variantCorrect) : ''
+                  shouldShowStatus && hasAnswered
+                    ? getStatusStyles(variantCorrect)
+                    : ''
                 )}
               >
                 <Text as="span" size="sm" weight="normal" color="text-text-900">

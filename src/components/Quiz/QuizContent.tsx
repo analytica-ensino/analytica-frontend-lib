@@ -577,7 +577,11 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
     }
 
     // Merge: store answers + local state + new selection
-    const mergedAnswers = { ...baseAnswers, ...localAnswers, [optionId]: value };
+    const mergedAnswers = {
+      ...baseAnswers,
+      ...localAnswers,
+      [optionId]: value,
+    };
     setLocalAnswers(mergedAnswers);
 
     // Save to store as JSON string
@@ -641,7 +645,7 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
 
             const studentMarkedTrue =
               variant === 'result'
-                ? studentSelection?.isCorrect ?? false
+                ? (studentSelection?.isCorrect ?? false)
                 : localAnswers[option.id] === 'V';
 
             const studentAnswer =
@@ -656,7 +660,8 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
             const correctAnswer = isStatementTrue ? 'V' : 'F';
 
             // Student is correct if they answered AND their answer matches the statement truth
-            const isStudentCorrect = hasAnswered && studentMarkedTrue === isStatementTrue;
+            const isStudentCorrect =
+              hasAnswered && studentMarkedTrue === isStatementTrue;
 
             const variantCorrect = isStudentCorrect ? 'correct' : 'incorrect';
 
@@ -713,9 +718,7 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
                     </Select>
                   ) : (
                     shouldShowStatus &&
-                    hasAnswered && (
-                      <div>{getStatusBadge(variantCorrect)}</div>
-                    )
+                    hasAnswered && <div>{getStatusBadge(variantCorrect)}</div>
                   )}
                 </div>
 
@@ -833,11 +836,7 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
     }
     // For default mode, parse from answer JSON string
     return parseStoredAnswers(variant, null, currentAnswer?.answer);
-  }, [
-    variant,
-    currentQuestionResult?.matchingAnswers,
-    currentAnswer?.answer,
-  ]);
+  }, [variant, currentQuestionResult?.matchingAnswers, currentAnswer?.answer]);
 
   const [userAnswers, setUserAnswers] = useState<UserAnswer[]>([]);
 
@@ -889,7 +888,11 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
     }
 
     // Persist to shared store as JSON
-    const newAnswers = { ...baseAnswers, ...parsedAnswers, [option.id]: dotValue };
+    const newAnswers = {
+      ...baseAnswers,
+      ...parsedAnswers,
+      [option.id]: dotValue,
+    };
     selectDissertativeAnswer(currentQuestion.id, JSON.stringify(newAnswers));
   };
 
@@ -1089,7 +1092,11 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
       }
     }
 
-    const newAnswers = { ...baseAnswers, ...localAnswers, [placeholderId]: optionId };
+    const newAnswers = {
+      ...baseAnswers,
+      ...localAnswers,
+      [placeholderId]: optionId,
+    };
     setLocalAnswers(newAnswers);
 
     // Save to store as JSON string
@@ -1290,7 +1297,10 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
             size="lg"
             color="text-text-900"
             weight="normal"
-            className={cn('leading-[2.5]', variant !== 'result' && paddingBottom)}
+            className={cn(
+              'leading-[2.5]',
+              variant !== 'result' && paddingBottom
+            )}
           >
             {renderHtmlWithSelects(additionalContent).map((element) => (
               <span key={element.id} className="inline">

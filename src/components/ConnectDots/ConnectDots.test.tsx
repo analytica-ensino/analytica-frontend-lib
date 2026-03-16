@@ -319,11 +319,7 @@ describe('ConnectDots Component', () => {
 
     it('handles undefined answers gracefully', () => {
       render(
-        <ConnectDots
-          options={mockOptions}
-          mode="result"
-          answers={undefined}
-        />
+        <ConnectDots options={mockOptions} mode="result" answers={undefined} />
       );
 
       // Should show "Não respondido" for all items

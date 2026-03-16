@@ -33,7 +33,9 @@ export interface FillInBlanksProps extends HtmlHTMLAttributes<HTMLDivElement> {
 /**
  * Parse content and extract text parts and placeholder IDs
  */
-function parseContent(content: string): Array<{ type: 'text' | 'placeholder'; value: string }> {
+function parseContent(
+  content: string
+): Array<{ type: 'text' | 'placeholder'; value: string }> {
   const parts: Array<{ type: 'text' | 'placeholder'; value: string }> = [];
   const regex = /\{([a-zA-Z0-9-]+)\}/g;
   let lastIndex = 0;
@@ -221,7 +223,10 @@ const FillInBlanks = ({
   };
 
   // Render the appropriate element based on mode
-  const renderPlaceholder = (placeholderId: string, index: number): ReactNode => {
+  const renderPlaceholder = (
+    placeholderId: string,
+    index: number
+  ): ReactNode => {
     switch (mode) {
       case 'interactive':
         return renderSelect(placeholderId, index);

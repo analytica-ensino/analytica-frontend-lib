@@ -36,7 +36,12 @@ interface ActivityCardQuestionPreviewProps {
   questionTypeLabel?: string;
   enunciado?: string;
   question?: {
-    options: { id: string; option: string; isCorrect?: boolean; correct?: boolean }[];
+    options: {
+      id: string;
+      option: string;
+      isCorrect?: boolean;
+      correct?: boolean;
+    }[];
     correctOptionIds?: string[];
   };
   /**
@@ -194,7 +199,9 @@ export const ActivityCardQuestionPreview = ({
           {question.options.map((option, index) => {
             // For VERDADEIRO_FALSO, use option.isCorrect or option.correct directly
             const isCorrect =
-              option.isCorrect ?? option.correct ?? correctOptionIds.includes(option.id);
+              option.isCorrect ??
+              option.correct ??
+              correctOptionIds.includes(option.id);
             const correctAnswer = isCorrect ? 'Verdadeiro' : 'Falso';
 
             return (
