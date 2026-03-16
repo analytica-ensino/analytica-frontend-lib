@@ -1419,7 +1419,14 @@ describe('QuizContent', () => {
     const mockGetCurrentQuestionTF = jest.fn(() => mockTrueOrFalseQuestion);
     const mockGetCurrentAnswerTF = jest.fn(() => null);
     const mockSelectDissertativeAnswerTF = jest.fn();
-    const mockGetQuestionResultByQuestionIdTF = jest.fn(() => null);
+    const mockGetQuestionResultByQuestionIdTF = jest.fn<
+      {
+        options?: { id: string; option: string; isCorrect: boolean }[];
+        selectedOptions?: { optionId: string; isCorrect?: boolean }[];
+        answerStatus?: string;
+      } | null,
+      [string]
+    >(() => null);
     const mockGetUserAnswerByQuestionIdTF = jest.fn<
       { answer: string } | null,
       [string]
@@ -1670,8 +1677,11 @@ describe('QuizContent', () => {
     >(() => null);
     const mockSelectDissertativeAnswerConnectDots = jest.fn();
     const mockGetQuestionResultByQuestionIdConnectDots = jest.fn<
-      { answer: string } | null,
-      []
+      {
+        answer?: string;
+        matchingAnswers?: { optionId: string; selectedValue: string }[];
+      } | null,
+      [string]
     >(() => null);
     const mockGetUserAnswerByQuestionIdConnectDots = jest.fn<
       { answer: string } | null,
