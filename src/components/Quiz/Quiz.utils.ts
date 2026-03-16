@@ -74,14 +74,16 @@ export const getTrueOrFalseOptionState = (
       : localAnswers[optionId] === 'V';
 
   // Compute display values
-  const studentAnswer =
-    variant === 'result'
-      ? hasAnswered
-        ? studentMarkedTrue
-          ? 'V'
-          : 'F'
-        : '-'
-      : localAnswers[optionId] || '-';
+  const getStudentAnswerDisplay = (): string => {
+    if (variant !== 'result') {
+      return localAnswers[optionId] || '-';
+    }
+    if (!hasAnswered) {
+      return '-';
+    }
+    return studentMarkedTrue ? 'V' : 'F';
+  };
+  const studentAnswer = getStudentAnswerDisplay();
 
   const correctAnswer = isStatementTrue ? 'V' : 'F';
   const isStudentCorrect = hasAnswered && studentMarkedTrue === isStatementTrue;
