@@ -1,6 +1,6 @@
 import { HtmlHTMLAttributes, useMemo, useId, ReactNode } from 'react';
 import { cn } from '../../utils/utils';
-import { stripHtmlTags } from '../../utils/stringUtils';
+import { parseContent } from '../../utils/parseContent';
 import { CheckCircle, XCircle } from 'phosphor-react';
 import Badge from '../Badge/Badge';
 import Text from '../Text/Text';
@@ -29,49 +29,6 @@ export interface FillInBlanksProps extends HtmlHTMLAttributes<HTMLDivElement> {
   mode?: 'interactive' | 'readonly' | 'result';
   /** Whether component is disabled (only for interactive mode) */
   disabled?: boolean;
-}
-
-/**
- * Parse content and extract text parts and placeholder IDs
- */
-function parseContent(
-  content: string
-): Array<{ type: 'text' | 'placeholder'; value: string }> {
-  const parts: Array<{ type: 'text' | 'placeholder'; value: string }> = [];
-  const regex = /\{([a-zA-Z0-9-]+)\}/g;
-  let lastIndex = 0;
-  let match;
-
-  // Strip HTML tags for cleaner parsing
-  const cleanContent = stripHtmlTags(content);
-
-  while ((match = regex.exec(cleanContent)) !== null) {
-    // Add text before the placeholder
-    if (match.index > lastIndex) {
-      parts.push({
-        type: 'text',
-        value: cleanContent.slice(lastIndex, match.index),
-      });
-    }
-
-    // Add the placeholder
-    parts.push({
-      type: 'placeholder',
-      value: match[1],
-    });
-
-    lastIndex = match.index + match[0].length;
-  }
-
-  // Add remaining text
-  if (lastIndex < cleanContent.length) {
-    parts.push({
-      type: 'text',
-      value: cleanContent.slice(lastIndex),
-    });
-  }
-
-  return parts;
 }
 
 /**
