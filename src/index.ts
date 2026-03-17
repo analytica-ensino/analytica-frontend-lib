@@ -850,6 +850,13 @@ export type { RecommendedClassDraftsTabProps } from './components/RecommendedLes
 export { ActivitiesHistory } from './components/ActivitiesHistory';
 export type { ActivitiesHistoryProps } from './components/ActivitiesHistory';
 
+// Activity Page Layout Component
+export {
+  ActivityPageLayout,
+  ActivityTab,
+} from './components/ActivityPageLayout';
+export type { ActivityPageLayoutProps } from './components/ActivityPageLayout';
+
 // Activities History Hook Factory
 export {
   createUseActivitiesHistory,
@@ -953,6 +960,7 @@ export {
 
 // Subject Cell Renderer
 export { renderSubjectCell } from './utils/renderSubjectCell';
+export { renderTextCell } from './utils/renderTextCell';
 
 // Filter Helpers (robust version with deduplication)
 export {
