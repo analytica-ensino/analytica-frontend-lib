@@ -10,6 +10,7 @@ import Select, {
   SelectTrigger,
   SelectValue,
 } from '../Select/Select';
+import { QuizVariant } from '../Quiz/Quiz.types';
 
 export interface FillInBlanksOption {
   id: string;
@@ -186,11 +187,11 @@ const FillInBlanks = ({
     index: number
   ): ReactNode => {
     switch (mode) {
-      case 'interactive':
+      case QuizVariant.INTERACTIVE:
         return renderSelect(placeholderId, index);
-      case 'readonly':
+      case QuizVariant.READONLY:
         return renderCorrectAnswer(placeholderId, index);
-      case 'result':
+      case QuizVariant.RESULT:
         return renderResultBadge(placeholderId, index);
       default:
         return renderCorrectAnswer(placeholderId, index);
