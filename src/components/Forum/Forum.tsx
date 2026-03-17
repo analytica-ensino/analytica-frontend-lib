@@ -304,13 +304,7 @@ function PostContentModal({
 
 function TopicListSkeleton() {
   return (
-    <SkeletonList
-      items={3}
-      showAvatar
-      showTitle
-      showDescription
-      lines={2}
-    />
+    <SkeletonList items={3} showAvatar showTitle showDescription lines={2} />
   );
 }
 
@@ -722,9 +716,7 @@ export function Forum({
               </Text>
               <div className="flex items-center gap-1 text-text-600 ml-10">
                 <ChatCircleTextIcon size={16} />
-                <Text size="xs">
-                  {formatReplyCount(topic.replyCount)}
-                </Text>
+                <Text size="xs">{formatReplyCount(topic.replyCount)}</Text>
               </div>
             </button>
 
