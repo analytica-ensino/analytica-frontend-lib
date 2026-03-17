@@ -41,7 +41,7 @@
     "publish:dry": "npm run prepack && npm publish --dry-run && npm run postpack"
   },
   "engines": {
-    "node": "22.x"
+    "node": "24.x"
   },
   "packageManager": "yarn@4.9.0",
   "keywords": [
