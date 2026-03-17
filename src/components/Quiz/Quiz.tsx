@@ -100,12 +100,12 @@ export const getFinishConfirmationText = (type: QUIZ_TYPE) => {
 
 const Quiz = forwardRef<
   HTMLDivElement,
-  { children: ReactNode; className?: string; variant?: QuizVariant }
+  { children: ReactNode; className?: string; variant?: 'result' | 'default' }
 >(({ children, className, variant = QuizVariant.DEFAULT, ...props }, ref) => {
   const { setVariant } = useQuizStore();
 
   useEffect(() => {
-    setVariant(variant);
+    setVariant(variant as QuizVariant);
   }, [variant, setVariant]);
 
   return (
