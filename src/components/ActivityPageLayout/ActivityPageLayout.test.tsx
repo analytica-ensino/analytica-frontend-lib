@@ -22,12 +22,9 @@ jest.mock('../Menu/Menu', () => ({
     children: ReactNode;
     onValueChange?: (v: string) => void;
   }) => (
-    <div
-      data-testid="menu"
-      onClick={() => onValueChange && onValueChange('rascunhos')}
-    >
+    <button data-testid="menu" onClick={() => onValueChange?.('rascunhos')}>
       {children}
-    </div>
+    </button>
   ),
   MenuContent: ({ children }: { children: ReactNode }) => <div>{children}</div>,
   MenuItem: ({ children, value }: { children: ReactNode; value: string }) => (
@@ -154,6 +151,64 @@ describe('ActivityPageLayout', () => {
       expect(ActivityTab.HISTORY).toBe('historico');
       expect(ActivityTab.DRAFTS).toBe('rascunhos');
       expect(ActivityTab.MODELS).toBe('modelos');
+    });
+  });
+
+  describe('initialFilters', () => {
+    it('should render table provider when initialFilters has categories with items', () => {
+      const filters = [
+        {
+          key: 'subject',
+          label: 'Disciplina',
+          categories: [
+            {
+              key: 'subjects',
+              label: 'Disciplinas',
+              itens: [
+                { id: '1', name: 'Matemática' },
+                { id: '2', name: 'Português' },
+              ],
+            },
+          ],
+        },
+      ];
+      render(<ActivityPageLayout {...defaultProps} initialFilters={filters} />);
+      expect(screen.getByTestId('table-provider')).toBeInTheDocument();
+    });
+
+    it('should render table provider when initialFilters has categories without items', () => {
+      const filters = [
+        {
+          key: 'subject',
+          label: 'Disciplina',
+          categories: [
+            {
+              key: 'subjects',
+              label: 'Disciplinas',
+              itens: [],
+            },
+          ],
+        },
+      ];
+      render(<ActivityPageLayout {...defaultProps} initialFilters={filters} />);
+      expect(screen.getByTestId('table-provider')).toBeInTheDocument();
+    });
+
+    it('should render table provider when initialFilters has categories without itens field', () => {
+      const filters = [
+        {
+          key: 'subject',
+          label: 'Disciplina',
+          categories: [
+            {
+              key: 'subjects',
+              label: 'Disciplinas',
+            },
+          ],
+        },
+      ];
+      render(<ActivityPageLayout {...defaultProps} initialFilters={filters} />);
+      expect(screen.getByTestId('table-provider')).toBeInTheDocument();
     });
   });
 });
