@@ -4,6 +4,7 @@ import { RadioGroup, RadioGroupItem } from '../Radio/Radio';
 import { forwardRef, HTMLAttributes, useId, useState } from 'react';
 import { cn } from '../../utils/utils';
 import { HtmlMathRenderer } from '../HtmlMathRenderer';
+import { QuizVariant } from '../Quiz/Quiz.types';
 
 /**
  * Interface para definir uma alternativa
@@ -84,7 +85,7 @@ const AlternativesList = ({
   disabled = false,
   layout = 'default',
   className = '',
-  mode = 'interactive',
+  mode = QuizVariant.INTERACTIVE,
   selectedValue,
 }: AlternativesListProps) => {
   // Gerar um ID único para garantir que cada instância tenha seu próprio grupo

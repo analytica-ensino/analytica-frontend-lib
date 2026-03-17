@@ -108,8 +108,8 @@ describe('ActivityModelDetails', () => {
           },
         ],
         options: [
-          { id: 'opt1', option: 'Option A', correct: true },
-          { id: 'opt2', option: 'Option B', correct: false },
+          { id: 'opt1', option: 'Option A', isCorrect: true },
+          { id: 'opt2', option: 'Option B', isCorrect: false },
         ],
       },
       {
@@ -289,8 +289,16 @@ describe('ActivityModelDetails', () => {
           .textContent!
       );
       expect(firstOptions).toHaveLength(2);
-      expect(firstOptions[0]).toEqual({ id: 'opt1', option: 'Option A' });
-      expect(firstOptions[1]).toEqual({ id: 'opt2', option: 'Option B' });
+      expect(firstOptions[0]).toEqual({
+        id: 'opt1',
+        option: 'Option A',
+        isCorrect: true,
+      });
+      expect(firstOptions[1]).toEqual({
+        id: 'opt2',
+        option: 'Option B',
+        isCorrect: false,
+      });
 
       // Second question options (empty)
       const secondOptions = JSON.parse(

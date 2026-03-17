@@ -4,6 +4,7 @@ import { cn } from '../../utils/utils';
 import { CheckCircle, XCircle, Check } from 'phosphor-react';
 import Badge from '../Badge/Badge';
 import { HtmlMathRenderer } from '../HtmlMathRenderer';
+import { QuizVariant } from '../Quiz/Quiz.types';
 
 interface Choice {
   value: string;
@@ -28,7 +29,7 @@ const MultipleChoiceList = ({
   name,
   selectedValues,
   onHandleSelectedValues,
-  mode = 'interactive',
+  mode = QuizVariant.INTERACTIVE,
 }: MultipleChoiceListProps) => {
   const [actualValue, setActualValue] = useState(selectedValues);
 

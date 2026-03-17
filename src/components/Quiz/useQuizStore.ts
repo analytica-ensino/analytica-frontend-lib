@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
+import { QuizVariant } from './Quiz.types';
 
 export enum QUESTION_DIFFICULTY {
   FACIL = 'FACIL',
@@ -51,16 +52,18 @@ export const hasMeaningfulAnswer = (
     QUESTION_TYPE.RELACIONAR,
     QUESTION_TYPE.PREENCHER_LACUNAS,
     QUESTION_TYPE.IMAGEM,
+    QUESTION_TYPE.VERDADEIRO_FALSO,
   ];
 
   if (freeTextTypes.includes(answer.questionType)) {
     // Check if answer has content (non-empty string)
     if (!answer.answer || answer.answer.trim() === '') return false;
 
-    // For RELACIONAR/PREENCHER_LACUNAS, also check if JSON has actual values
+    // For RELACIONAR/PREENCHER_LACUNAS/VERDADEIRO_FALSO, also check if JSON has actual values
     if (
       answer.questionType === QUESTION_TYPE.RELACIONAR ||
-      answer.questionType === QUESTION_TYPE.PREENCHER_LACUNAS
+      answer.questionType === QUESTION_TYPE.PREENCHER_LACUNAS ||
+      answer.questionType === QUESTION_TYPE.VERDADEIRO_FALSO
     ) {
       try {
         const parsed = JSON.parse(answer.answer);
@@ -108,6 +111,9 @@ export interface QuestionResult {
     answer: string | null;
     selectedOptions: {
       optionId: string;
+      option?: string;
+      isCorrect?: boolean;
+      correctValue?: string | null;
     }[];
     answerStatus: ANSWER_STATUS;
     statement: string;
@@ -122,7 +128,13 @@ export interface QuestionResult {
       id: string;
       option: string;
       isCorrect: boolean;
+      correctValue?: string | null;
     }[];
+    matchingAnswers?: {
+      optionId: string;
+      selectedValue: string;
+    }[];
+    fillAnswers?: Record<string, string>;
     knowledgeMatrix: {
       areaKnowledge: {
         id: string;
@@ -245,7 +257,7 @@ export interface QuizState {
   isStarted: boolean;
   isFinished: boolean;
   userId: string;
-  variant: 'result' | 'default';
+  variant: QuizVariant;
   minuteCallback: (() => void) | null;
   dissertativeCharLimit?: number;
   timeLimit: number | null;
@@ -255,7 +267,7 @@ export interface QuizState {
   setQuestionResult: (questionResult: QuestionResult) => void;
   setUserId: (userId: string) => void;
   setUserAnswers: (userAnswers: UserAnswerItem[]) => void;
-  setVariant: (variant: 'result' | 'default') => void;
+  setVariant: (variant: QuizVariant) => void;
   setDissertativeCharLimit: (limit?: number) => void;
   getDissertativeCharLimit: () => number | undefined;
   // Quiz Navigation
@@ -453,7 +465,7 @@ export const useQuizStore = create<QuizState>()(
         isStarted: false,
         isFinished: false,
         userId: '',
-        variant: 'default',
+        variant: QuizVariant.DEFAULT,
         minuteCallback: null,
         dissertativeCharLimit: undefined,
         timeLimit: null,
@@ -605,12 +617,13 @@ export const useQuizStore = create<QuizState>()(
           }
 
           const question = quiz.questions.find((q) => q.id === questionId);
-          // Allow free-text question types: DISSERTATIVA, RELACIONAR, PREENCHER_LACUNAS, IMAGEM
+          // Allow free-text question types: DISSERTATIVA, RELACIONAR, PREENCHER_LACUNAS, IMAGEM, VERDADEIRO_FALSO
           const allowedTypes = [
             QUESTION_TYPE.DISSERTATIVA,
             QUESTION_TYPE.RELACIONAR,
             QUESTION_TYPE.PREENCHER_LACUNAS,
             QUESTION_TYPE.IMAGEM,
+            QUESTION_TYPE.VERDADEIRO_FALSO,
           ];
           if (!question || !allowedTypes.includes(question.questionType)) {
             // Silent validation - wrong question type
@@ -788,7 +801,7 @@ export const useQuizStore = create<QuizState>()(
             isStarted: false,
             isFinished: false,
             userId: '',
-            variant: 'default',
+            variant: QuizVariant.DEFAULT,
             minuteCallback: null,
             dissertativeCharLimit: undefined,
             timeLimit: null,

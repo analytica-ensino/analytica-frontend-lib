@@ -703,7 +703,7 @@ describe('ActivityCardQuestionBanks', () => {
       expect(falseAnswers.length).toBeGreaterThan(0);
     });
 
-    it('should render badge with "Resposta correta" for all options', () => {
+    it('should render "Resposta correta" text for all options', () => {
       render(
         <ActivityCardQuestionBanks
           {...defaultProps}
@@ -711,12 +711,9 @@ describe('ActivityCardQuestionBanks', () => {
           questionType={QUESTION_TYPE.VERDADEIRO_FALSO}
         />
       );
-      const badges = screen.getAllByTestId('badge');
-      expect(badges.length).toBe(4); // One for each option
-      badges.forEach((badge) => {
-        expect(badge).toHaveAttribute('data-action', 'success');
-        expect(badge).toHaveTextContent('Resposta correta');
-      });
+      // Each option should have "Resposta correta: Verdadeiro" or "Resposta correta: Falso" text
+      const respostaCorretas = screen.getAllByText(/Resposta correta:/);
+      expect(respostaCorretas.length).toBe(4); // One for each option
     });
 
     it('should render options with letter prefixes (a, b, c, d)', () => {
@@ -734,7 +731,7 @@ describe('ActivityCardQuestionBanks', () => {
       expect(screen.getByText(/d\)/)).toBeInTheDocument();
     });
 
-    it('should apply correct background styles for all options', () => {
+    it('should apply correct border styles for all options', () => {
       render(
         <ActivityCardQuestionBanks
           {...defaultProps}
@@ -742,16 +739,23 @@ describe('ActivityCardQuestionBanks', () => {
           questionType={QUESTION_TYPE.VERDADEIRO_FALSO}
         />
       );
-      const optionText = screen.getByText(
+      // Component uses neutral border-border-200 for all options
+      const falseOptionText = screen.getByText(
         /A fotossíntese ocorre apenas durante o dia/
       );
       // HtmlMathRenderer wraps the text, need to traverse up to find the styled container
-      const optionContainer = optionText.closest('.bg-success-background');
-      expect(optionContainer).toBeInTheDocument();
-      expect(optionContainer).toHaveClass(
-        'bg-success-background',
-        'border-success-300'
+      const falseOptionContainer =
+        falseOptionText.closest('.border-border-200');
+      expect(falseOptionContainer).toBeInTheDocument();
+      expect(falseOptionContainer).toHaveClass('border-border-200');
+
+      // tf2 option IS in correctOptionIds, so it shows "Verdadeiro"
+      const trueOptionText = screen.getByText(
+        /As plantas produzem oxigênio durante a fotossíntese/
       );
+      const trueOptionContainer = trueOptionText.closest('.border-border-200');
+      expect(trueOptionContainer).toBeInTheDocument();
+      expect(trueOptionContainer).toHaveClass('border-border-200');
     });
 
     it('should not render true or false when question is not provided', () => {

@@ -161,11 +161,18 @@ export const ActivityListQuestions = ({
    * Convert question options to the format expected by ActivityCardQuestionBanks
    */
   const formatQuestionOptions = (
-    questionOptions: { id: string; option: string }[]
+    questionOptions: {
+      id: string;
+      option: string;
+      isCorrect?: boolean;
+      correctValue?: string | null;
+    }[]
   ) => {
     return questionOptions.map((opt) => ({
       id: opt.id,
       option: opt.option,
+      isCorrect: opt.isCorrect,
+      correctValue: opt.correctValue,
     }));
   };
 
@@ -406,7 +413,12 @@ export const ActivityListQuestions = ({
                 question.options
                   ? {
                       options: formatQuestionOptions(
-                        question.options as { id: string; option: string }[]
+                        question.options as {
+                          id: string;
+                          option: string;
+                          isCorrect?: boolean;
+                          correctValue?: string | null;
+                        }[]
                       ),
                       correctOptionIds: [],
                     }
@@ -418,6 +430,7 @@ export const ActivityListQuestions = ({
               isDark={isDark}
               assunto={subjectInfo.assunto}
               enunciado={question.statement}
+              additionalContent={question.additionalContent}
               onAddToActivity={() => {
                 if (onAddQuestion) {
                   onAddQuestion(question);

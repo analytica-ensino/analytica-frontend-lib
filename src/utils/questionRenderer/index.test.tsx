@@ -56,7 +56,7 @@ const createQuestionResult = (
   questionId: string,
   answerStatus: ANSWER_STATUS,
   answer: string | null = null,
-  selectedOptions: Array<{ optionId: string }> = [],
+  selectedOptions: Array<{ optionId: string; isCorrect?: boolean }> = [],
   options?: Array<{ id: string; option: string; isCorrect: boolean }>,
   teacherFeedback: string | null = null
 ): QuestionResult['answers'][number] => {
@@ -504,7 +504,7 @@ describe('questionRenderer', () => {
         'q1',
         ANSWER_STATUS.RESPOSTA_CORRETA,
         null,
-        [{ optionId: 'opt1' }],
+        [{ optionId: 'opt1', isCorrect: true }], // isCorrect: true means student marked V
         [{ id: 'opt1', option: 'O Brasil é um país', isCorrect: true }]
       );
 
@@ -532,7 +532,8 @@ describe('questionRenderer', () => {
 
       render(renderQuestionTrueOrFalse({ question, result }));
 
-      expect(screen.getByText(/Resposta selecionada: F/)).toBeInTheDocument();
+      // When no option is selected, shows "Não respondida" with correct answer
+      expect(screen.getByText(/Não respondida/)).toBeInTheDocument();
       expect(screen.getByText(/Resposta correta: V/)).toBeInTheDocument();
     });
 
@@ -555,7 +556,9 @@ describe('questionRenderer', () => {
 
       render(renderQuestionTrueOrFalse({ question, result }));
 
-      expect(screen.getByText(/Resposta selecionada: F/)).toBeInTheDocument();
+      // When no option is selected, shows "Não respondida" with correct answer
+      expect(screen.getByText(/Não respondida/)).toBeInTheDocument();
+      expect(screen.getByText(/Resposta correta: F/)).toBeInTheDocument();
     });
 
     it('should not show status when answer is pending', () => {
@@ -571,7 +574,7 @@ describe('questionRenderer', () => {
         'q1',
         ANSWER_STATUS.PENDENTE_AVALIACAO,
         null,
-        [{ optionId: 'opt1' }],
+        [{ optionId: 'opt1', isCorrect: true }], // isCorrect: true means student marked V
         [{ id: 'opt1', option: 'O Brasil é um país', isCorrect: true }]
       );
 

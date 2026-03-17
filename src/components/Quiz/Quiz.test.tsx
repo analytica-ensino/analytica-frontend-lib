@@ -21,6 +21,7 @@ import {
   QuizFooter,
 } from './Quiz';
 import { useQuizStore, QUESTION_TYPE, QUIZ_TYPE } from './useQuizStore';
+import { QuizVariant } from './Quiz.types';
 
 jest.mock('@/assets/img/mock-image-question.png', () => 'mocked-image-2.png');
 
@@ -435,7 +436,7 @@ describe('Quiz', () => {
       questionsResult: [],
       isQuizStarted: false,
       timeElapsed: 0,
-      variant: 'default' as const,
+      variant: QuizVariant.DEFAULT,
       setQuiz: jest.fn(),
       startQuiz: jest.fn(),
       setUserId: jest.fn(),
@@ -501,7 +502,7 @@ describe('Quiz', () => {
 
     it('should call setVariant with result variant when provided', () => {
       render(
-        <Quiz variant="result">
+        <Quiz variant={QuizVariant.RESULT}>
           <div>Test Content</div>
         </Quiz>
       );
@@ -544,7 +545,7 @@ describe('Quiz', () => {
 
     it('should call setVariant when variant prop changes', () => {
       const { rerender } = render(
-        <Quiz variant="default">
+        <Quiz variant={QuizVariant.DEFAULT}>
           <div>Test Content</div>
         </Quiz>
       );
@@ -552,7 +553,7 @@ describe('Quiz', () => {
       expect(mockSetVariant).toHaveBeenCalledWith('default');
 
       rerender(
-        <Quiz variant="result">
+        <Quiz variant={QuizVariant.RESULT}>
           <div>Test Content</div>
         </Quiz>
       );
@@ -1506,7 +1507,7 @@ describe('Quiz', () => {
         selectAnswer: jest.fn(),
         getQuestionResultByQuestionId: jest.fn(),
         getCurrentAnswer: jest.fn(),
-        variant: 'default',
+        variant: QuizVariant.DEFAULT,
       });
     });
 
@@ -2011,7 +2012,7 @@ describe('Quiz', () => {
       skipCurrentQuestionIfUnanswered: jest.fn(),
       getCurrentQuestion: mockGetCurrentQuestion,
       getQuestionStatusFromUserAnswers: mockGetQuestionStatusFromUserAnswers,
-      variant: 'default',
+      variant: QuizVariant.DEFAULT,
       getQuestionResultStatistics: mockGetQuestionResultStatistics,
       getQuestionsGroupedBySubject: mockGetQuestionsGroupedBySubject,
       goToQuestion: mockGoToQuestion,
@@ -2206,7 +2207,7 @@ describe('Quiz', () => {
       beforeEach(() => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
-          variant: 'result',
+          variant: QuizVariant.RESULT,
         });
       });
 
@@ -2229,13 +2230,13 @@ describe('Quiz', () => {
         const mockSetVariant = jest.fn();
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
-          variant: 'result',
+          variant: QuizVariant.RESULT,
           setVariant: mockSetVariant,
         });
 
         // Render the full Quiz component to include the modal
         render(
-          <Quiz variant="result">
+          <Quiz variant={QuizVariant.RESULT}>
             <QuizFooter />
           </Quiz>
         );
@@ -2255,7 +2256,7 @@ describe('Quiz', () => {
         const mockSetVariant = jest.fn();
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
-          variant: 'result',
+          variant: QuizVariant.RESULT,
           setVariant: mockSetVariant,
           quiz: {
             canRetry: true,
@@ -2264,7 +2265,7 @@ describe('Quiz', () => {
 
         // Render the full Quiz component
         render(
-          <Quiz variant="result">
+          <Quiz variant={QuizVariant.RESULT}>
             <QuizFooter />
           </Quiz>
         );
@@ -2284,7 +2285,7 @@ describe('Quiz', () => {
         const mockSetVariant = jest.fn();
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
-          variant: 'result',
+          variant: QuizVariant.RESULT,
           setVariant: mockSetVariant,
           quiz: {
             canRetry: true,
@@ -2293,7 +2294,7 @@ describe('Quiz', () => {
 
         // Render the full Quiz component to include the button logic
         render(
-          <Quiz variant="result">
+          <Quiz variant={QuizVariant.RESULT}>
             <QuizFooter onRepeat={mockOnRepeat} />
           </Quiz>
         );
@@ -2307,7 +2308,7 @@ describe('Quiz', () => {
       it('should show "Ver resolução" button when quiz cannot retry', () => {
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
-          variant: 'result',
+          variant: QuizVariant.RESULT,
           quiz: {
             canRetry: false,
           },
@@ -2361,13 +2362,13 @@ describe('Quiz', () => {
         const mockSetVariant = jest.fn();
         mockUseQuizStore.mockReturnValue({
           ...defaultStoreState,
-          variant: 'result',
+          variant: QuizVariant.RESULT,
           setVariant: mockSetVariant,
         });
 
         // Render the full Quiz component to include the modal
         render(
-          <Quiz variant="result">
+          <Quiz variant={QuizVariant.RESULT}>
             <QuizFooter />
           </Quiz>
         );

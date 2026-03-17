@@ -431,6 +431,7 @@ export { useUrlAuthentication } from './components/Auth/useUrlAuthentication';
 export { useApiConfig } from './components/Auth/useApiConfig';
 
 // Quiz Components
+export { QuizVariant } from './components/Quiz/Quiz.types';
 export {
   QuizTitle,
   Quiz,
@@ -478,6 +479,16 @@ export type {
 
 // Multiple Choice and Icon Components
 export { MultipleChoiceList } from './components/MultipleChoice/MultipleChoice';
+export { FillInBlanks } from './components/FillInBlanks/FillInBlanks';
+export type {
+  FillInBlanksProps,
+  FillInBlanksOption,
+} from './components/FillInBlanks/FillInBlanks';
+export { ConnectDots } from './components/ConnectDots/ConnectDots';
+export type {
+  ConnectDotsProps,
+  ConnectDotsOption,
+} from './components/ConnectDots/ConnectDots';
 export { default as IconRender } from './components/IconRender/IconRender';
 
 // Hooks

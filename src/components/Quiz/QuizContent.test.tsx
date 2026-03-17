@@ -14,6 +14,7 @@ import {
   QuizTrueOrFalse,
 } from './QuizContent';
 import { ANSWER_STATUS, useQuizStore } from './useQuizStore';
+import { QuizVariant } from './Quiz.types';
 
 // Mock MultipleChoice component
 jest.mock('../MultipleChoice/MultipleChoice', () => ({
@@ -747,7 +748,7 @@ describe('QuizContent', () => {
         selectAnswer: mockSelectAnswer,
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
         getCurrentAnswer: mockGetCurrentAnswer,
-        variant: 'result',
+        variant: QuizVariant.RESULT,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       mockGetCurrentQuestion.mockReturnValue(mockQuestion);
@@ -783,7 +784,7 @@ describe('QuizContent', () => {
         selectAnswer: mockSelectAnswer,
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
         getCurrentAnswer: mockGetCurrentAnswer,
-        variant: 'result',
+        variant: QuizVariant.RESULT,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       mockGetCurrentQuestion.mockReturnValue(mockQuestion);
@@ -816,7 +817,7 @@ describe('QuizContent', () => {
         selectAnswer: mockSelectAnswer,
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
         getCurrentAnswer: mockGetCurrentAnswer,
-        variant: 'result',
+        variant: QuizVariant.RESULT,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       mockGetCurrentQuestion.mockReturnValue(mockQuestion);
@@ -968,7 +969,7 @@ describe('QuizContent', () => {
         selectMultipleAnswer: mockSelectMultipleAnswer,
         getAllCurrentAnswer: mockGetAllCurrentAnswer,
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
-        variant: 'result',
+        variant: QuizVariant.RESULT,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       mockGetCurrentQuestion.mockReturnValue(mockQuestion);
@@ -1048,7 +1049,7 @@ describe('QuizContent', () => {
         selectMultipleAnswer: mockSelectMultipleAnswer,
         getAllCurrentAnswer: mockGetAllCurrentAnswer,
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
-        variant: 'result',
+        variant: QuizVariant.RESULT,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       mockGetCurrentQuestion.mockReturnValue(mockQuestion);
@@ -1073,7 +1074,7 @@ describe('QuizContent', () => {
         selectMultipleAnswer: mockSelectMultipleAnswer,
         getAllCurrentAnswer: mockGetAllCurrentAnswer,
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
-        variant: 'result',
+        variant: QuizVariant.RESULT,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       mockGetCurrentQuestion.mockReturnValue(mockQuestion);
@@ -1214,7 +1215,7 @@ describe('QuizContent', () => {
         selectDissertativeAnswer: mockSelectDissertativeAnswer,
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
         getDissertativeCharLimit: mockGetDissertativeCharLimit,
-        variant: 'result',
+        variant: QuizVariant.RESULT,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       mockGetCurrentQuestion.mockReturnValue(mockQuestion);
@@ -1248,7 +1249,7 @@ describe('QuizContent', () => {
         selectDissertativeAnswer: mockSelectDissertativeAnswer,
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
         getDissertativeCharLimit: mockGetDissertativeCharLimit,
-        variant: 'result',
+        variant: QuizVariant.RESULT,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       mockGetCurrentQuestion.mockReturnValue(mockQuestion);
@@ -1279,7 +1280,7 @@ describe('QuizContent', () => {
         selectDissertativeAnswer: mockSelectDissertativeAnswer,
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
         getDissertativeCharLimit: mockGetDissertativeCharLimit,
-        variant: 'result',
+        variant: QuizVariant.RESULT,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       mockGetCurrentQuestion.mockReturnValue(mockQuestion);
@@ -1310,7 +1311,7 @@ describe('QuizContent', () => {
         selectDissertativeAnswer: mockSelectDissertativeAnswer,
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
         getDissertativeCharLimit: mockGetDissertativeCharLimit,
-        variant: 'result',
+        variant: QuizVariant.RESULT,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       mockGetCurrentQuestion.mockReturnValue(mockQuestion);
@@ -1390,7 +1391,7 @@ describe('QuizContent', () => {
         selectDissertativeAnswer: mockSelectDissertativeAnswer,
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
         getDissertativeCharLimit: mockGetDissertativeCharLimit,
-        variant: 'result',
+        variant: QuizVariant.RESULT,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       mockGetCurrentQuestion.mockReturnValue(mockQuestion);
@@ -1406,9 +1407,46 @@ describe('QuizContent', () => {
   });
 
   describe('QuizTrueOrFalse Component', () => {
+    const mockTrueOrFalseQuestion = {
+      id: 'true-false-question-1',
+      options: [
+        { id: 'opt1', option: '25 metros', isCorrect: true },
+        { id: 'opt2', option: '30 metros', isCorrect: false },
+        { id: 'opt3', option: '40 metros', isCorrect: false },
+        { id: 'opt4', option: '50 metros', isCorrect: false },
+      ],
+    };
+
+    const mockGetCurrentQuestionTF = jest.fn(() => mockTrueOrFalseQuestion);
+    const mockGetCurrentAnswerTF = jest.fn(() => null);
+    const mockSelectDissertativeAnswerTF = jest.fn();
+    const mockGetQuestionResultByQuestionIdTF = jest.fn<
+      {
+        options?: { id: string; option: string; isCorrect: boolean }[];
+        selectedOptions?: { optionId: string; isCorrect?: boolean }[];
+        answerStatus?: string;
+      } | null,
+      [string]
+    >(() => null);
+    const mockGetUserAnswerByQuestionIdTF = jest.fn<
+      { answer: string } | null,
+      [string]
+    >(() => null);
+
     beforeEach(() => {
+      jest.clearAllMocks();
+      resetSelectCallbacks();
+      mockGetCurrentQuestionTF.mockReturnValue(mockTrueOrFalseQuestion);
+      mockGetCurrentAnswerTF.mockReturnValue(null);
+      mockGetQuestionResultByQuestionIdTF.mockReturnValue(null);
+      mockGetUserAnswerByQuestionIdTF.mockReturnValue(null);
       mockUseQuizStore.mockReturnValue({
         variant: 'default',
+        getCurrentQuestion: mockGetCurrentQuestionTF,
+        getCurrentAnswer: mockGetCurrentAnswerTF,
+        selectDissertativeAnswer: mockSelectDissertativeAnswerTF,
+        getQuestionResultByQuestionId: mockGetQuestionResultByQuestionIdTF,
+        getUserAnswerByQuestionId: mockGetUserAnswerByQuestionIdTF,
       } as unknown as ReturnType<typeof useQuizStore>);
     });
 
@@ -1417,11 +1455,11 @@ describe('QuizContent', () => {
 
       expect(screen.getByText('Alternativas')).toBeInTheDocument();
 
-      // Should render all mock options
-      expect(screen.getByText('a) 25 metros')).toBeInTheDocument();
-      expect(screen.getByText('b) 30 metros')).toBeInTheDocument();
-      expect(screen.getByText('c) 40 metros')).toBeInTheDocument();
-      expect(screen.getByText('d) 50 metros')).toBeInTheDocument();
+      // Should render all mock options (with letter prefix)
+      expect(screen.getByText(/a\).*25 metros/)).toBeInTheDocument();
+      expect(screen.getByText(/b\).*30 metros/)).toBeInTheDocument();
+      expect(screen.getByText(/c\).*40 metros/)).toBeInTheDocument();
+      expect(screen.getByText(/d\).*50 metros/)).toBeInTheDocument();
     });
 
     it('should render select components in default variant', () => {
@@ -1432,12 +1470,29 @@ describe('QuizContent', () => {
       expect(selectTriggers).toHaveLength(4); // One for each option
 
       // Should have correct placeholder
-      expect(screen.getAllByText('Selecione opcão')).toHaveLength(4);
+      expect(screen.getAllByText('Selecione')).toHaveLength(4);
     });
 
     it('should render status badges in result variant', () => {
+      // Mock result with all options answered as V (Verdadeiro)
+      mockGetQuestionResultByQuestionIdTF.mockReturnValue({
+        options: mockTrueOrFalseQuestion.options,
+        selectedOptions: [
+          { optionId: 'opt1', isCorrect: true }, // User marked V, statement is true -> correct
+          { optionId: 'opt2', isCorrect: true }, // User marked V, statement is false -> incorrect
+          { optionId: 'opt3', isCorrect: true }, // User marked V, statement is false -> incorrect
+          { optionId: 'opt4', isCorrect: true }, // User marked V, statement is false -> incorrect
+        ],
+        answerStatus: 'RESPOSTA_INCORRETA',
+      });
+
       mockUseQuizStore.mockReturnValue({
-        variant: 'result',
+        variant: QuizVariant.RESULT,
+        getCurrentQuestion: mockGetCurrentQuestionTF,
+        getCurrentAnswer: mockGetCurrentAnswerTF,
+        selectDissertativeAnswer: mockSelectDissertativeAnswerTF,
+        getQuestionResultByQuestionId: mockGetQuestionResultByQuestionIdTF,
+        getUserAnswerByQuestionId: mockGetUserAnswerByQuestionIdTF,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizTrueOrFalse />);
@@ -1448,8 +1503,24 @@ describe('QuizContent', () => {
     });
 
     it('should apply correct styling in result variant', () => {
+      mockGetQuestionResultByQuestionIdTF.mockReturnValue({
+        options: mockTrueOrFalseQuestion.options,
+        selectedOptions: [
+          { optionId: 'opt1', isCorrect: true },
+          { optionId: 'opt2', isCorrect: true },
+          { optionId: 'opt3', isCorrect: true },
+          { optionId: 'opt4', isCorrect: true },
+        ],
+        answerStatus: 'RESPOSTA_INCORRETA',
+      });
+
       mockUseQuizStore.mockReturnValue({
-        variant: 'result',
+        variant: QuizVariant.RESULT,
+        getCurrentQuestion: mockGetCurrentQuestionTF,
+        getCurrentAnswer: mockGetCurrentAnswerTF,
+        selectDissertativeAnswer: mockSelectDissertativeAnswerTF,
+        getQuestionResultByQuestionId: mockGetQuestionResultByQuestionIdTF,
+        getUserAnswerByQuestionId: mockGetUserAnswerByQuestionIdTF,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       const { container } = render(<QuizTrueOrFalse />);
@@ -1467,8 +1538,24 @@ describe('QuizContent', () => {
     });
 
     it('should show selected answers and correct answers in result variant', () => {
+      mockGetQuestionResultByQuestionIdTF.mockReturnValue({
+        options: mockTrueOrFalseQuestion.options,
+        selectedOptions: [
+          { optionId: 'opt1', isCorrect: true },
+          { optionId: 'opt2', isCorrect: true },
+          { optionId: 'opt3', isCorrect: true },
+          { optionId: 'opt4', isCorrect: true },
+        ],
+        answerStatus: 'RESPOSTA_INCORRETA',
+      });
+
       mockUseQuizStore.mockReturnValue({
-        variant: 'result',
+        variant: QuizVariant.RESULT,
+        getCurrentQuestion: mockGetCurrentQuestionTF,
+        getCurrentAnswer: mockGetCurrentAnswerTF,
+        selectDissertativeAnswer: mockSelectDissertativeAnswerTF,
+        getQuestionResultByQuestionId: mockGetQuestionResultByQuestionIdTF,
+        getUserAnswerByQuestionId: mockGetUserAnswerByQuestionIdTF,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizTrueOrFalse />);
@@ -1477,12 +1564,28 @@ describe('QuizContent', () => {
       expect(screen.getAllByText('Resposta selecionada: V')).toHaveLength(4);
 
       // Should show correct answer for incorrect options
-      expect(screen.getAllByText('Resposta correta: F')).toHaveLength(3);
+      expect(screen.getAllByText(/Resposta correta: F/)).toHaveLength(3);
     });
 
     it('should not show correct answer text for correct option in result variant', () => {
+      mockGetQuestionResultByQuestionIdTF.mockReturnValue({
+        options: mockTrueOrFalseQuestion.options,
+        selectedOptions: [
+          { optionId: 'opt1', isCorrect: true },
+          { optionId: 'opt2', isCorrect: true },
+          { optionId: 'opt3', isCorrect: true },
+          { optionId: 'opt4', isCorrect: true },
+        ],
+        answerStatus: 'RESPOSTA_INCORRETA',
+      });
+
       mockUseQuizStore.mockReturnValue({
-        variant: 'result',
+        variant: QuizVariant.RESULT,
+        getCurrentQuestion: mockGetCurrentQuestionTF,
+        getCurrentAnswer: mockGetCurrentAnswerTF,
+        selectDissertativeAnswer: mockSelectDissertativeAnswerTF,
+        getQuestionResultByQuestionId: mockGetQuestionResultByQuestionIdTF,
+        getUserAnswerByQuestionId: mockGetUserAnswerByQuestionIdTF,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       const { container } = render(<QuizTrueOrFalse />);
@@ -1495,10 +1598,10 @@ describe('QuizContent', () => {
     it('should have correct letter indexing', () => {
       render(<QuizTrueOrFalse />);
 
-      expect(screen.getByText('a) 25 metros')).toBeInTheDocument();
-      expect(screen.getByText('b) 30 metros')).toBeInTheDocument();
-      expect(screen.getByText('c) 40 metros')).toBeInTheDocument();
-      expect(screen.getByText('d) 50 metros')).toBeInTheDocument();
+      expect(screen.getByText(/a\).*25 metros/)).toBeInTheDocument();
+      expect(screen.getByText(/b\).*30 metros/)).toBeInTheDocument();
+      expect(screen.getByText(/c\).*40 metros/)).toBeInTheDocument();
+      expect(screen.getByText(/d\).*50 metros/)).toBeInTheDocument();
     });
 
     it('should apply paddingBottom prop correctly', () => {
@@ -1526,8 +1629,24 @@ describe('QuizContent', () => {
       expect(screen.getAllByTestId('select-trigger')).toHaveLength(4);
 
       // Switch to result variant
+      mockGetQuestionResultByQuestionIdTF.mockReturnValue({
+        options: mockTrueOrFalseQuestion.options,
+        selectedOptions: [
+          { optionId: 'opt1', isCorrect: true },
+          { optionId: 'opt2', isCorrect: true },
+          { optionId: 'opt3', isCorrect: true },
+          { optionId: 'opt4', isCorrect: true },
+        ],
+        answerStatus: 'RESPOSTA_INCORRETA',
+      });
+
       mockUseQuizStore.mockReturnValue({
-        variant: 'result',
+        variant: QuizVariant.RESULT,
+        getCurrentQuestion: mockGetCurrentQuestionTF,
+        getCurrentAnswer: mockGetCurrentAnswerTF,
+        selectDissertativeAnswer: mockSelectDissertativeAnswerTF,
+        getQuestionResultByQuestionId: mockGetQuestionResultByQuestionIdTF,
+        getUserAnswerByQuestionId: mockGetUserAnswerByQuestionIdTF,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       rerender(<QuizTrueOrFalse />);
@@ -1559,8 +1678,15 @@ describe('QuizContent', () => {
     >(() => null);
     const mockSelectDissertativeAnswerConnectDots = jest.fn();
     const mockGetQuestionResultByQuestionIdConnectDots = jest.fn<
+      {
+        answer?: string;
+        matchingAnswers?: { optionId: string; selectedValue: string }[];
+      } | null,
+      [string]
+    >(() => null);
+    const mockGetUserAnswerByQuestionIdConnectDots = jest.fn<
       { answer: string } | null,
-      []
+      [string]
     >(() => null);
 
     beforeEach(() => {
@@ -1571,6 +1697,7 @@ describe('QuizContent', () => {
       );
       mockGetCurrentAnswerConnectDots.mockReturnValue(null);
       mockGetQuestionResultByQuestionIdConnectDots.mockReturnValue(null);
+      mockGetUserAnswerByQuestionIdConnectDots.mockReturnValue(null);
       mockUseQuizStore.mockReturnValue({
         variant: 'default',
         getCurrentQuestion: mockGetCurrentQuestionConnectDots,
@@ -1578,6 +1705,7 @@ describe('QuizContent', () => {
         selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
         getQuestionResultByQuestionId:
           mockGetQuestionResultByQuestionIdConnectDots,
+        getUserAnswerByQuestionId: mockGetUserAnswerByQuestionIdConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
     });
 
@@ -1600,18 +1728,19 @@ describe('QuizContent', () => {
       const selectTriggers = screen.getAllByTestId('select-trigger');
       expect(selectTriggers).toHaveLength(4); // One for each option
 
-      // Should have correct placeholder
+      // Should have correct placeholder (QuizConnectDots uses "Selecione opção")
       expect(screen.getAllByText('Selecione opção')).toHaveLength(4);
     });
 
     it('should render status badges in result variant', () => {
       mockUseQuizStore.mockReturnValue({
-        variant: 'result',
+        variant: QuizVariant.RESULT,
         getCurrentQuestion: mockGetCurrentQuestionConnectDots,
         getCurrentAnswer: mockGetCurrentAnswerConnectDots,
         selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
         getQuestionResultByQuestionId:
           mockGetQuestionResultByQuestionIdConnectDots,
+        getUserAnswerByQuestionId: mockGetUserAnswerByQuestionIdConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizConnectDots />);
@@ -1623,12 +1752,13 @@ describe('QuizContent', () => {
 
     it('should show selected answers as Nenhuma when no selection in result variant', () => {
       mockUseQuizStore.mockReturnValue({
-        variant: 'result',
+        variant: QuizVariant.RESULT,
         getCurrentQuestion: mockGetCurrentQuestionConnectDots,
         getCurrentAnswer: mockGetCurrentAnswerConnectDots,
         selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
         getQuestionResultByQuestionId:
           mockGetQuestionResultByQuestionIdConnectDots,
+        getUserAnswerByQuestionId: mockGetUserAnswerByQuestionIdConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizConnectDots />);
@@ -1650,16 +1780,17 @@ describe('QuizContent', () => {
     it('should show correct answer only when user answered incorrectly', () => {
       // Mock stored answer with incorrect selection (Cachorro -> Grama instead of Ração)
       mockGetQuestionResultByQuestionIdConnectDots.mockReturnValue({
-        answer: JSON.stringify({ '1': 'Grama' }),
+        matchingAnswers: [{ optionId: '1', selectedValue: 'Grama' }],
       });
 
       mockUseQuizStore.mockReturnValue({
-        variant: 'result',
+        variant: QuizVariant.RESULT,
         getCurrentQuestion: mockGetCurrentQuestionConnectDots,
         getCurrentAnswer: mockGetCurrentAnswerConnectDots,
         selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
         getQuestionResultByQuestionId:
           mockGetQuestionResultByQuestionIdConnectDots,
+        getUserAnswerByQuestionId: mockGetUserAnswerByQuestionIdConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizConnectDots />);
@@ -1675,12 +1806,13 @@ describe('QuizContent', () => {
 
     it('should apply neutral styling in result variant when no selections made', () => {
       mockUseQuizStore.mockReturnValue({
-        variant: 'result',
+        variant: QuizVariant.RESULT,
         getCurrentQuestion: mockGetCurrentQuestionConnectDots,
         getCurrentAnswer: mockGetCurrentAnswerConnectDots,
         selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
         getQuestionResultByQuestionId:
           mockGetQuestionResultByQuestionIdConnectDots,
+        getUserAnswerByQuestionId: mockGetUserAnswerByQuestionIdConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       const { container } = render(<QuizConnectDots />);
@@ -1725,12 +1857,13 @@ describe('QuizContent', () => {
 
       // Switch to result variant
       mockUseQuizStore.mockReturnValue({
-        variant: 'result',
+        variant: QuizVariant.RESULT,
         getCurrentQuestion: mockGetCurrentQuestionConnectDots,
         getCurrentAnswer: mockGetCurrentAnswerConnectDots,
         selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
         getQuestionResultByQuestionId:
           mockGetQuestionResultByQuestionIdConnectDots,
+        getUserAnswerByQuestionId: mockGetUserAnswerByQuestionIdConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       rerender(<QuizConnectDots />);
@@ -1749,7 +1882,7 @@ describe('QuizContent', () => {
     it('should initialize with empty selections in default variant', () => {
       render(<QuizConnectDots />);
 
-      // All selects should have placeholder text
+      // All selects should have placeholder text (QuizConnectDots uses "Selecione opção")
       expect(screen.getAllByText('Selecione opção')).toHaveLength(4);
     });
 
@@ -1767,12 +1900,13 @@ describe('QuizContent', () => {
     it('should show no status badge for null answers in result variant', () => {
       // Test the case where isCorrect is null (no answer given)
       mockUseQuizStore.mockReturnValue({
-        variant: 'result',
+        variant: QuizVariant.RESULT,
         getCurrentQuestion: mockGetCurrentQuestionConnectDots,
         getCurrentAnswer: mockGetCurrentAnswerConnectDots,
         selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
         getQuestionResultByQuestionId:
           mockGetQuestionResultByQuestionIdConnectDots,
+        getUserAnswerByQuestionId: mockGetUserAnswerByQuestionIdConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       // We can't easily mock the internal state, but we can test the render
@@ -1822,16 +1956,20 @@ describe('QuizContent', () => {
     it('should show correct styling when answer matches correctValue in result variant', () => {
       // Mock stored answer with correct selections
       mockGetQuestionResultByQuestionIdConnectDots.mockReturnValue({
-        answer: JSON.stringify({ '1': 'Ração', '2': 'Rato' }),
+        matchingAnswers: [
+          { optionId: '1', selectedValue: 'Ração' },
+          { optionId: '2', selectedValue: 'Rato' },
+        ],
       });
 
       mockUseQuizStore.mockReturnValue({
-        variant: 'result',
+        variant: QuizVariant.RESULT,
         getCurrentQuestion: mockGetCurrentQuestionConnectDots,
         getCurrentAnswer: mockGetCurrentAnswerConnectDots,
         selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
         getQuestionResultByQuestionId:
           mockGetQuestionResultByQuestionIdConnectDots,
+        getUserAnswerByQuestionId: mockGetUserAnswerByQuestionIdConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       const { container } = render(<QuizConnectDots />);
@@ -1851,16 +1989,20 @@ describe('QuizContent', () => {
     it('should show incorrect styling when answer does not match correctValue in result variant', () => {
       // Mock stored answer with incorrect selections (swapped answers)
       mockGetQuestionResultByQuestionIdConnectDots.mockReturnValue({
-        answer: JSON.stringify({ '1': 'Rato', '2': 'Ração' }), // Wrong answers
+        matchingAnswers: [
+          { optionId: '1', selectedValue: 'Rato' },
+          { optionId: '2', selectedValue: 'Ração' },
+        ],
       });
 
       mockUseQuizStore.mockReturnValue({
-        variant: 'result',
+        variant: QuizVariant.RESULT,
         getCurrentQuestion: mockGetCurrentQuestionConnectDots,
         getCurrentAnswer: mockGetCurrentAnswerConnectDots,
         selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
         getQuestionResultByQuestionId:
           mockGetQuestionResultByQuestionIdConnectDots,
+        getUserAnswerByQuestionId: mockGetUserAnswerByQuestionIdConnectDots,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       const { container } = render(<QuizConnectDots />);
@@ -1950,6 +2092,7 @@ describe('QuizContent', () => {
           selectDissertativeAnswer: mockSelectDissertativeAnswerConnectDots,
           getQuestionResultByQuestionId:
             mockGetQuestionResultByQuestionIdConnectDots,
+          getUserAnswerByQuestionId: mockGetUserAnswerByQuestionIdConnectDots,
         } as unknown as ReturnType<typeof useQuizStore>);
 
         render(<QuizConnectDots />);
@@ -1989,6 +2132,10 @@ describe('QuizContent', () => {
     const mockGetQuestionResultByQuestionId = jest.fn();
     const mockGetCurrentAnswer = jest.fn();
     const mockSelectDissertativeAnswer = jest.fn();
+    const mockGetUserAnswerByQuestionId = jest.fn<
+      { answer: string } | null,
+      [string]
+    >(() => null);
 
     const mockQuestion = {
       id: 'fill-question-1',
@@ -2008,12 +2155,14 @@ describe('QuizContent', () => {
       mockGetCurrentQuestion.mockReturnValue(mockQuestion);
       mockGetQuestionResultByQuestionId.mockReturnValue(null);
       mockGetCurrentAnswer.mockReturnValue(null);
+      mockGetUserAnswerByQuestionId.mockReturnValue(null);
 
       mockUseQuizStore.mockReturnValue({
         getCurrentQuestion: mockGetCurrentQuestion,
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
         getCurrentAnswer: mockGetCurrentAnswer,
         selectDissertativeAnswer: mockSelectDissertativeAnswer,
+        getUserAnswerByQuestionId: mockGetUserAnswerByQuestionId,
         variant: 'default',
       } as unknown as ReturnType<typeof useQuizStore>);
     });
@@ -2039,7 +2188,7 @@ describe('QuizContent', () => {
     it('should render placeholders correctly in default variant', () => {
       render(<QuizFill />);
 
-      // Should have select placeholder text
+      // Should have select placeholder text (QuizFill uses "Selecione opção")
       const placeholders = screen.getAllByText('Selecione opção');
       expect(placeholders.length).toBe(4);
     });
@@ -2061,7 +2210,8 @@ describe('QuizContent', () => {
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
         getCurrentAnswer: mockGetCurrentAnswer,
         selectDissertativeAnswer: mockSelectDissertativeAnswer,
-        variant: 'result',
+        getUserAnswerByQuestionId: mockGetUserAnswerByQuestionId,
+        variant: QuizVariant.RESULT,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizFill />);
@@ -2088,7 +2238,8 @@ describe('QuizContent', () => {
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
         getCurrentAnswer: mockGetCurrentAnswer,
         selectDissertativeAnswer: mockSelectDissertativeAnswer,
-        variant: 'result',
+        getUserAnswerByQuestionId: mockGetUserAnswerByQuestionId,
+        variant: QuizVariant.RESULT,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizFill />);
@@ -2117,7 +2268,7 @@ describe('QuizContent', () => {
     it('should initialize with empty state in default variant', () => {
       render(<QuizFill />);
 
-      // All selects should start with placeholder text
+      // All selects should start with placeholder text (QuizFill uses "Selecione opção")
       const placeholders = screen.getAllByText('Selecione opção');
       expect(placeholders.length).toBe(4);
     });
@@ -2145,7 +2296,8 @@ describe('QuizContent', () => {
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
         getCurrentAnswer: mockGetCurrentAnswer,
         selectDissertativeAnswer: mockSelectDissertativeAnswer,
-        variant: 'result',
+        getUserAnswerByQuestionId: mockGetUserAnswerByQuestionId,
+        variant: QuizVariant.RESULT,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       rerender(<QuizFill />);
@@ -2171,7 +2323,8 @@ describe('QuizContent', () => {
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
         getCurrentAnswer: mockGetCurrentAnswer,
         selectDissertativeAnswer: mockSelectDissertativeAnswer,
-        variant: 'result',
+        getUserAnswerByQuestionId: mockGetUserAnswerByQuestionId,
+        variant: QuizVariant.RESULT,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizFill />);
@@ -2218,13 +2371,14 @@ describe('QuizContent', () => {
     });
 
     it('should show correct and incorrect badges in result mode', () => {
+      // Use fillAnswers format (the new format for PREENCHER_LACUNAS)
       const mockQuestionResult = {
-        answer: JSON.stringify({
+        fillAnswers: {
           'opt-ciencia': 'opt-ciencia', // Correct (same as placeholder ID)
           'opt-variacoes': 'opt-objetivo', // Wrong
           'opt-objetivo': 'opt-objetivo', // Correct
           'opt-compreender': 'opt-ciencia', // Wrong
-        }),
+        },
       };
 
       mockGetQuestionResultByQuestionId.mockReturnValue(mockQuestionResult);
@@ -2234,7 +2388,8 @@ describe('QuizContent', () => {
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
         getCurrentAnswer: mockGetCurrentAnswer,
         selectDissertativeAnswer: mockSelectDissertativeAnswer,
-        variant: 'result',
+        getUserAnswerByQuestionId: mockGetUserAnswerByQuestionId,
+        variant: QuizVariant.RESULT,
       } as unknown as ReturnType<typeof useQuizStore>);
 
       render(<QuizFill />);
@@ -2321,7 +2476,7 @@ describe('QuizContent', () => {
 
     it('should show legend in result variant', () => {
       mockUseQuizStore.mockReturnValue({
-        variant: 'result',
+        variant: QuizVariant.RESULT,
         getCurrentQuestion: () => ({
           ...defaultMockQuestion,
           options: [{ id: 'opt-1', option: '{"x": 50, "y": 50}' }],
@@ -2341,7 +2496,7 @@ describe('QuizContent', () => {
 
     it('should show correct circle in result variant', () => {
       mockUseQuizStore.mockReturnValue({
-        variant: 'result',
+        variant: QuizVariant.RESULT,
         getCurrentQuestion: () => ({
           ...defaultMockQuestion,
           options: [{ id: 'opt-1', option: '{"x": 50, "y": 50}' }],
@@ -2365,7 +2520,7 @@ describe('QuizContent', () => {
 
     it('should show user circle in result variant with mock position', () => {
       mockUseQuizStore.mockReturnValue({
-        variant: 'result',
+        variant: QuizVariant.RESULT,
         getCurrentQuestion: () => ({
           ...defaultMockQuestion,
           options: [{ id: 'opt-1', option: '{"x": 50, "y": 50}' }],
@@ -2413,7 +2568,7 @@ describe('QuizContent', () => {
 
     it('should not handle click events in result variant', () => {
       mockUseQuizStore.mockReturnValue({
-        variant: 'result',
+        variant: QuizVariant.RESULT,
         getCurrentQuestion: () => ({
           ...defaultMockQuestion,
           options: [{ id: 'opt-1', option: '{"x": 50, "y": 50}' }],
@@ -2487,7 +2642,7 @@ describe('QuizContent', () => {
 
     it('should not handle keyboard events in result variant', () => {
       mockUseQuizStore.mockReturnValue({
-        variant: 'result',
+        variant: QuizVariant.RESULT,
         getCurrentQuestion: () => ({
           ...defaultMockQuestion,
           options: [{ id: 'opt-1', option: '{"x": 50, "y": 50}' }],
@@ -2559,7 +2714,7 @@ describe('QuizContent', () => {
 
       // Switch to result variant
       mockUseQuizStore.mockReturnValue({
-        variant: 'result',
+        variant: QuizVariant.RESULT,
         getCurrentQuestion: () => ({
           ...defaultMockQuestion,
           options: [{ id: 'opt-1', option: '{"x": 50, "y": 50}' }],
@@ -2578,7 +2733,7 @@ describe('QuizContent', () => {
 
     it('should calculate correct position and radius correctly', () => {
       mockUseQuizStore.mockReturnValue({
-        variant: 'result',
+        variant: QuizVariant.RESULT,
         getCurrentQuestion: () => ({
           ...defaultMockQuestion,
           options: [{ id: 'opt-1', option: '{"x": 48, "y": 45}' }],
@@ -2607,7 +2762,7 @@ describe('QuizContent', () => {
 
     it('should have correct user circle styling based on correctness', () => {
       mockUseQuizStore.mockReturnValue({
-        variant: 'result',
+        variant: QuizVariant.RESULT,
         getCurrentQuestion: () => ({
           ...defaultMockQuestion,
           options: [{ id: 'opt-1', option: '{"x": 48, "y": 45}' }],
@@ -2757,7 +2912,7 @@ describe('QuizContent', () => {
       };
 
       mockUseQuizStore.mockReturnValue({
-        variant: 'result',
+        variant: QuizVariant.RESULT,
         getCurrentQuestion: () => mockQuestion,
         getCurrentAnswer: () => null,
         selectDissertativeAnswer: jest.fn(),
@@ -2855,7 +3010,7 @@ describe('QuizContent', () => {
       };
 
       mockUseQuizStore.mockReturnValue({
-        variant: 'result',
+        variant: QuizVariant.RESULT,
         getCurrentQuestion: () => mockQuestion,
         getCurrentAnswer: () => null,
         selectDissertativeAnswer: jest.fn(),
@@ -2882,7 +3037,7 @@ describe('QuizContent', () => {
       };
 
       mockUseQuizStore.mockReturnValue({
-        variant: 'result',
+        variant: QuizVariant.RESULT,
         getCurrentQuestion: () => mockQuestion,
         getCurrentAnswer: () => null,
         selectDissertativeAnswer: jest.fn(),
@@ -2909,7 +3064,7 @@ describe('QuizContent', () => {
       };
 
       mockUseQuizStore.mockReturnValue({
-        variant: 'result',
+        variant: QuizVariant.RESULT,
         getCurrentQuestion: () => mockQuestion,
         getCurrentAnswer: () => null,
         selectDissertativeAnswer: jest.fn(),
