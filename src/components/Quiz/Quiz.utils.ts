@@ -3,6 +3,7 @@ import {
   type QuestionAnswerResult,
   type TrueOrFalseOptionState,
 } from './Quiz.types';
+import { TrueFalseEnum } from '../../enums/Quiz';
 
 /**
  * Shuffle array using a seed for consistent ordering per question
@@ -77,7 +78,7 @@ export const getTrueOrFalseOptionState = (
   const studentMarkedTrue =
     variant === QuizVariant.RESULT
       ? (studentSelection?.isCorrect ?? false)
-      : localAnswers[optionId] === 'V';
+      : localAnswers[optionId] === TrueFalseEnum.VERDADEIRO;
 
   // Compute display values
   const getStudentAnswerDisplay = (): string => {
@@ -87,11 +88,13 @@ export const getTrueOrFalseOptionState = (
     if (!hasAnswered) {
       return '-';
     }
-    return studentMarkedTrue ? 'V' : 'F';
+    return studentMarkedTrue ? TrueFalseEnum.VERDADEIRO : TrueFalseEnum.FALSO;
   };
   const studentAnswer = getStudentAnswerDisplay();
 
-  const correctAnswer = isStatementTrue ? 'V' : 'F';
+  const correctAnswer = isStatementTrue
+    ? TrueFalseEnum.VERDADEIRO
+    : TrueFalseEnum.FALSO;
   const isStudentCorrect = hasAnswered && studentMarkedTrue === isStatementTrue;
   const variantCorrect = isStudentCorrect ? 'correct' : 'incorrect';
 

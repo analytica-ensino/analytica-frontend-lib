@@ -6,6 +6,7 @@ import { cn } from '../../../utils/utils';
 import type { QuestionRendererProps } from '../types';
 import { getStatusBadge } from '../components';
 import { HtmlMathRenderer } from '../../../components/HtmlMathRenderer';
+import { TrueFalseEnum } from '../../../enums/Quiz';
 
 /**
  * Render true or false question
@@ -53,8 +54,12 @@ export const renderQuestionTrueOrFalse = ({
           // Only show correctness styling when we have the official answer
           const canShowCorrectness = shouldShowStatus && hasGabarito;
           const variantCorrect = isStudentCorrect ? 'correct' : 'incorrect';
-          const studentAnswer = studentMarkedTrue ? 'V' : 'F';
-          const correctAnswer = statementIsTrue ? 'V' : 'F';
+          const studentAnswer = studentMarkedTrue
+            ? TrueFalseEnum.VERDADEIRO
+            : TrueFalseEnum.FALSO;
+          const correctAnswer = statementIsTrue
+            ? TrueFalseEnum.VERDADEIRO
+            : TrueFalseEnum.FALSO;
 
           return (
             <section

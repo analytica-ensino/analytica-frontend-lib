@@ -11,6 +11,7 @@ import {
 } from 'react';
 import { ANSWER_STATUS, useQuizStore } from './useQuizStore';
 import { QuizVariant } from './Quiz.types';
+import { TrueFalseEnum } from '../../enums/Quiz';
 import {
   prependLetterToHtml,
   getTrueOrFalseOptionState,
@@ -657,8 +658,12 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
                       </SelectTrigger>
 
                       <SelectContent>
-                        <SelectItem value="V">Verdadeiro</SelectItem>
-                        <SelectItem value="F">Falso</SelectItem>
+                        <SelectItem value={TrueFalseEnum.VERDADEIRO}>
+                          Verdadeiro
+                        </SelectItem>
+                        <SelectItem value={TrueFalseEnum.FALSO}>
+                          Falso
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   ) : (
