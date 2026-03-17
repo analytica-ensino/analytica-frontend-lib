@@ -10,6 +10,7 @@ import Select, {
   SelectTrigger,
   SelectValue,
 } from '../Select/Select';
+import { QuizVariant } from '../Quiz/Quiz.types';
 
 export interface ConnectDotsOption {
   id: string;
@@ -64,7 +65,7 @@ const ConnectDots = ({
   options,
   answers = {},
   onAnswerChange,
-  mode = 'interactive',
+  mode = QuizVariant.INTERACTIVE,
   disabled = false,
   className,
   ...props
@@ -226,11 +227,11 @@ const ConnectDots = ({
   // Render the appropriate element based on mode
   const renderItem = (option: ConnectDotsOption, index: number): ReactNode => {
     switch (mode) {
-      case 'interactive':
+      case QuizVariant.INTERACTIVE:
         return renderInteractiveItem(option, index);
-      case 'readonly':
+      case QuizVariant.READONLY:
         return renderReadonlyItem(option, index);
-      case 'result':
+      case QuizVariant.RESULT:
         return renderResultItem(option, index);
       default:
         return renderReadonlyItem(option, index);
