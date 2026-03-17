@@ -187,11 +187,7 @@ const ConnectDots = ({
           />
         </div>
 
-        <ArrowRight
-          size={20}
-          className={cn('flex-shrink-0', arrowColor
-          )}
-        />
+        <ArrowRight size={20} className={cn('flex-shrink-0', arrowColor)} />
 
         <div className="flex-shrink-0">
           {hasAnswer ? (
@@ -202,7 +198,7 @@ const ConnectDots = ({
               size="large"
               className="py-1 px-2"
             >
-              <span className="text-text-900">{selectedValue}</span>
+              {selectedValue}
             </Badge>
           ) : (
             <Badge
@@ -212,7 +208,7 @@ const ConnectDots = ({
               size="large"
               className="py-1 px-2"
             >
-              <span className="text-text-900">Não respondido</span>
+              Não respondido
             </Badge>
           )}
         </div>

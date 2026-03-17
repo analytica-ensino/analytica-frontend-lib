@@ -156,7 +156,7 @@ const FillInBlanks = ({
             size="large"
             className="py-1 px-2"
           >
-            <span className="text-text-900">Não respondido</span>
+            Não respondido
           </Badge>
         </span>
       );
