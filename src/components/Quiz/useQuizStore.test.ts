@@ -9,6 +9,7 @@ import {
   QUIZ_TYPE,
   QuizInterface,
 } from './useQuizStore';
+import { QuizVariant } from './Quiz.types';
 
 // Type alias for question answers in result context
 type QuestionAnswer = QuestionResult['answers'][0];
@@ -1869,7 +1870,7 @@ describe('useQuizStore', () => {
       };
 
       act(() => {
-        result.current.setVariant('result');
+        result.current.setVariant(QuizVariant.RESULT);
         result.current.setQuestionsResult(mockQuestionResultForGrouping);
       });
 
@@ -1928,7 +1929,7 @@ describe('useQuizStore', () => {
       };
 
       act(() => {
-        result.current.setVariant('result');
+        result.current.setVariant(QuizVariant.RESULT);
         result.current.setQuestionsResult(mockQuestionResultWithoutMatrix);
       });
 
@@ -1943,7 +1944,7 @@ describe('useQuizStore', () => {
       const { result } = renderQuizStoreHook();
 
       act(() => {
-        result.current.setVariant('result');
+        result.current.setVariant(QuizVariant.RESULT);
         // Don't set questionsResult
       });
 
@@ -1956,7 +1957,7 @@ describe('useQuizStore', () => {
       const { result } = renderQuizStoreHook();
 
       act(() => {
-        result.current.setVariant('result');
+        result.current.setVariant(QuizVariant.RESULT);
         result.current.setQuestionsResult(null as unknown as QuestionResult);
       });
 
@@ -2105,7 +2106,7 @@ describe('useQuizStore', () => {
       };
 
       act(() => {
-        result.current.setVariant('result');
+        result.current.setVariant(QuizVariant.RESULT);
         result.current.setQuestionsResult(mockQuestionResultMixed);
       });
 
@@ -4002,7 +4003,7 @@ describe('useQuizStore', () => {
 
       act(() => {
         result.current.setQuiz(mockSimulado);
-        result.current.setVariant('result');
+        result.current.setVariant(QuizVariant.RESULT);
         result.current.setQuestionsResult(mockQuestionResultForVariant);
         result.current.setCurrentQuestion(questionForResult);
       });
@@ -4018,7 +4019,7 @@ describe('useQuizStore', () => {
 
       act(() => {
         result.current.setQuiz(mockSimulado);
-        result.current.setVariant('result');
+        result.current.setVariant(QuizVariant.RESULT);
         // Don't set questionsResult
         result.current.setCurrentQuestion(mockQuestion1);
       });
@@ -4049,7 +4050,7 @@ describe('useQuizStore', () => {
 
       act(() => {
         result.current.setQuiz(mockSimulado);
-        result.current.setVariant('result');
+        result.current.setVariant(QuizVariant.RESULT);
         result.current.setQuestionsResult(mockQuestionResultEmpty);
         result.current.setCurrentQuestion(questionNotInResult);
       });
@@ -4121,7 +4122,7 @@ describe('useQuizStore', () => {
 
       act(() => {
         result.current.setQuiz(mockSimulado);
-        result.current.setVariant('result');
+        result.current.setVariant(QuizVariant.RESULT);
         result.current.setQuestionsResult(mockQuestionResultForFallback);
         result.current.setCurrentQuestion(questionForFallback);
       });

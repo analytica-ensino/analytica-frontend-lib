@@ -76,10 +76,11 @@ export const ActivityModelDetails = ({
                   question.options?.map((opt) => ({
                     id: opt.id,
                     option: opt.option,
+                    isCorrect: opt.isCorrect,
                   })) ?? [],
                 correctOptionIds:
                   question.options
-                    ?.filter((opt) => opt.correct)
+                    ?.filter((opt) => opt.isCorrect)
                     .map((opt) => opt.id) ?? [],
               }}
               value={question.id}

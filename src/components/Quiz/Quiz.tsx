@@ -17,6 +17,7 @@ import {
   ComponentType,
 } from 'react';
 import { useQuizStore, QUESTION_TYPE, QUIZ_TYPE } from './useQuizStore';
+import { QuizVariant } from './Quiz.types';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import Modal from '../Modal/Modal';
 
@@ -100,11 +101,11 @@ export const getFinishConfirmationText = (type: QUIZ_TYPE) => {
 const Quiz = forwardRef<
   HTMLDivElement,
   { children: ReactNode; className?: string; variant?: 'result' | 'default' }
->(({ children, className, variant = 'default', ...props }, ref) => {
+>(({ children, className, variant = QuizVariant.DEFAULT, ...props }, ref) => {
   const { setVariant } = useQuizStore();
 
   useEffect(() => {
-    setVariant(variant);
+    setVariant(variant as QuizVariant);
   }, [variant, setVariant]);
 
   return (

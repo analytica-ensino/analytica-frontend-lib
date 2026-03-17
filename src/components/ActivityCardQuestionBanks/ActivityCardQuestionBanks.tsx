@@ -3,25 +3,27 @@ import {
   getSubjectColorWithOpacity,
   IconRender,
   Text,
-  Badge,
 } from '../../index';
-import { Plus, CheckCircle, XCircle } from 'phosphor-react';
+import { Plus } from 'phosphor-react';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
+import { prependLetterToHtml } from '../Quiz/Quiz.utils';
 import {
   renderFromMap,
   type QuestionRendererMap,
 } from '../../utils/questionRenderer/index';
 import { AlternativesList, type Alternative } from '../Alternative/Alternative';
 import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
+import { FillInBlanks } from '../FillInBlanks/FillInBlanks';
+import { ConnectDots } from '../ConnectDots/ConnectDots';
 import { useMemo } from 'react';
-import { cn } from '../../utils/utils';
 import { questionTypeLabels } from '../../types/questionTypes';
 import { HtmlMathRenderer } from '../HtmlMathRenderer';
 
 interface QuestionOption {
   id: string;
   option: string;
-  correct?: boolean;
+  isCorrect?: boolean;
+  correctValue?: string | null;
 }
 
 interface QuestionData {
@@ -38,6 +40,7 @@ interface ActivityCardQuestionBanksProps {
   onAddToActivity?: () => void;
   assunto?: string;
   enunciado?: string;
+  additionalContent?: string | null;
 }
 
 export const ActivityCardQuestionBanks = ({
@@ -49,6 +52,7 @@ export const ActivityCardQuestionBanks = ({
   onAddToActivity,
   assunto,
   enunciado,
+  additionalContent,
 }: ActivityCardQuestionBanksProps = {}) => {
   // Transform question options into Alternative format for teacher view
   const alternatives = useMemo(() => {
@@ -58,7 +62,9 @@ export const ActivityCardQuestionBanks = ({
     const correctOptionIds = question.correctOptionIds || [];
 
     return question.options.map((option) => {
-      const isCorrect = correctOptionIds.includes(option.id);
+      // Check isCorrect from option, fallback to correctOptionIds
+      const isCorrect =
+        option.isCorrect ?? correctOptionIds.includes(option.id);
       return {
         value: option.id,
         label: option.option,
@@ -83,7 +89,9 @@ export const ActivityCardQuestionBanks = ({
     const correctOptionIds = question.correctOptionIds || [];
 
     return question.options.map((option) => {
-      const isCorrect = correctOptionIds.includes(option.id);
+      // Check isCorrect from option, fallback to correctOptionIds
+      const isCorrect =
+        option.isCorrect ?? correctOptionIds.includes(option.id);
       return {
         value: option.id,
         label: option.option,
@@ -96,34 +104,6 @@ export const ActivityCardQuestionBanks = ({
   const correctOptionIds = useMemo(() => {
     return question?.correctOptionIds || [];
   }, [question]);
-
-  // Helper function to get status badge
-  const getStatusBadge = (status: 'correct' | 'incorrect') => {
-    switch (status) {
-      case 'correct':
-        return (
-          <Badge variant="solid" action="success" iconLeft={<CheckCircle />}>
-            Resposta correta
-          </Badge>
-        );
-      case 'incorrect':
-        return (
-          <Badge variant="solid" action="error" iconLeft={<XCircle />}>
-            Resposta incorreta
-          </Badge>
-        );
-    }
-  };
-
-  // Helper function to get status styles
-  const getStatusStyles = (status: 'correct' | 'incorrect') => {
-    switch (status) {
-      case 'correct':
-        return 'bg-success-background border-success-300';
-      case 'incorrect':
-        return 'bg-error-background border-error-300';
-    }
-  };
 
   // Helper function to get letter by index
   const getLetterByIndex = (index: number) => String.fromCodePoint(97 + index); // 97 = 'a' in ASCII
@@ -174,32 +154,30 @@ export const ActivityCardQuestionBanks = ({
       <div className="mt-4">
         <div className="flex flex-col gap-3.5">
           {question.options.map((option, index) => {
-            const isCorrect = correctOptionIds.includes(option.id);
+            // For VERDADEIRO_FALSO, use isCorrect from option
+            const isCorrect =
+              option.isCorrect ?? correctOptionIds.includes(option.id);
             const correctAnswer = isCorrect ? 'Verdadeiro' : 'Falso';
-            const variantCorrect = 'correct';
+            const letter = getLetterByIndex(index);
+            const contentWithLetter = prependLetterToHtml(
+              letter,
+              option.option
+            );
 
             return (
               <section key={option.id} className="flex flex-col gap-2">
-                <div
-                  className={cn(
-                    'flex flex-row justify-between items-center gap-2 p-2 rounded-md border',
-                    getStatusStyles(variantCorrect)
-                  )}
-                >
-                  <Text size="sm" className="text-text-900">
-                    {getLetterByIndex(index).concat(') ')}
-                    <HtmlMathRenderer
-                      content={option.option}
-                      className="inline"
-                    />
-                  </Text>
+                <div className="flex flex-row justify-between items-start gap-2 p-2 rounded-md border border-border-200">
+                  <HtmlMathRenderer
+                    content={contentWithLetter}
+                    className="text-text-900 text-sm flex-1"
+                  />
 
-                  <div className="flex flex-row items-center gap-2 flex-shrink-0">
-                    <Text size="sm" className="text-text-700">
-                      Resposta correta: {correctAnswer}
-                    </Text>
-                    {getStatusBadge(variantCorrect)}
-                  </div>
+                  <Text
+                    size="sm"
+                    className="text-text-700 shrink-0 whitespace-nowrap"
+                  >
+                    Resposta correta: {correctAnswer}
+                  </Text>
                 </div>
               </section>
             );
@@ -209,16 +187,93 @@ export const ActivityCardQuestionBanks = ({
     );
   };
 
+  // Transform options for ConnectDots component
+  const connectDotsOptions = useMemo(() => {
+    if (!question?.options || questionType !== QUESTION_TYPE.RELACIONAR)
+      return [];
+    return question.options
+      .filter((opt) => opt.correctValue)
+      .map((opt) => ({
+        id: opt.id,
+        option: opt.option,
+        correctValue: opt.correctValue as string,
+      }));
+  }, [question?.options, questionType]);
+
   const renderConnectDots = () => {
-    return null;
+    if (connectDotsOptions.length === 0) return null;
+
+    return (
+      <ConnectDots
+        options={connectDotsOptions}
+        mode="readonly"
+        className="mt-4"
+      />
+    );
   };
+
+  // Transform options for FillInBlanks component
+  const fillInBlanksOptions = useMemo(() => {
+    if (!question?.options) return [];
+    return question.options.map((opt) => ({
+      id: opt.id,
+      option: opt.option,
+    }));
+  }, [question?.options]);
 
   const renderFill = () => {
-    return null;
+    // For PREENCHER_LACUNAS, additionalContent contains the fill-in text with placeholders
+    if (!additionalContent || fillInBlanksOptions.length === 0) return null;
+
+    return (
+      <FillInBlanks
+        content={additionalContent}
+        options={fillInBlanksOptions}
+        mode="readonly"
+        className="mt-4"
+      />
+    );
   };
 
-  const renderImage = () => {
+  // Parse image coordinates from options for IMAGEM questions
+  const imageCoordinates = useMemo(() => {
+    if (
+      questionType !== QUESTION_TYPE.IMAGEM ||
+      !question?.options?.[0]?.option
+    )
+      return null;
+
+    try {
+      const coords = JSON.parse(question.options[0].option);
+      if (typeof coords.x === 'number' && typeof coords.y === 'number') {
+        return { x: coords.x, y: coords.y };
+      }
+    } catch {
+      // Invalid JSON, return null
+    }
     return null;
+  }, [question?.options, questionType]);
+
+  const renderImage = () => {
+    if (!additionalContent) return null;
+    return (
+      <div className="mt-4 relative inline-block">
+        <img
+          src={additionalContent}
+          alt="Imagem da questão"
+          className="max-w-full h-auto rounded-md border border-border-200"
+        />
+        {imageCoordinates && (
+          <div
+            className="absolute w-5 h-5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-success-500 border-2 border-white shadow-md"
+            style={{
+              left: `${imageCoordinates.x}%`,
+              top: `${imageCoordinates.y}%`,
+            }}
+          />
+        )}
+      </div>
+    );
   };
 
   // Map question types to render functions
