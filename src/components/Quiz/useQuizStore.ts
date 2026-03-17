@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
+import { QuizVariant } from './Quiz.types';
 
 export enum QUESTION_DIFFICULTY {
   FACIL = 'FACIL',
@@ -256,7 +257,7 @@ export interface QuizState {
   isStarted: boolean;
   isFinished: boolean;
   userId: string;
-  variant: 'result' | 'default';
+  variant: QuizVariant;
   minuteCallback: (() => void) | null;
   dissertativeCharLimit?: number;
   timeLimit: number | null;
@@ -266,7 +267,7 @@ export interface QuizState {
   setQuestionResult: (questionResult: QuestionResult) => void;
   setUserId: (userId: string) => void;
   setUserAnswers: (userAnswers: UserAnswerItem[]) => void;
-  setVariant: (variant: 'result' | 'default') => void;
+  setVariant: (variant: QuizVariant) => void;
   setDissertativeCharLimit: (limit?: number) => void;
   getDissertativeCharLimit: () => number | undefined;
   // Quiz Navigation
@@ -464,7 +465,7 @@ export const useQuizStore = create<QuizState>()(
         isStarted: false,
         isFinished: false,
         userId: '',
-        variant: 'default',
+        variant: QuizVariant.DEFAULT,
         minuteCallback: null,
         dissertativeCharLimit: undefined,
         timeLimit: null,
@@ -800,7 +801,7 @@ export const useQuizStore = create<QuizState>()(
             isStarted: false,
             isFinished: false,
             userId: '',
-            variant: 'default',
+            variant: QuizVariant.DEFAULT,
             minuteCallback: null,
             dissertativeCharLimit: undefined,
             timeLimit: null,

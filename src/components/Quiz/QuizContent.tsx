@@ -10,6 +10,7 @@ import {
   useState,
 } from 'react';
 import { ANSWER_STATUS, useQuizStore } from './useQuizStore';
+import { QuizVariant } from './Quiz.types';
 import {
   prependLetterToHtml,
   getTrueOrFalseOptionState,
@@ -96,11 +97,11 @@ const normalizeAnswerData = (parsed: unknown): Record<string, string> => {
  * Normalizes legacy array format to expected Record<string, string> map.
  */
 const parseStoredAnswers = (
-  variant: 'result' | 'default',
+  variant: QuizVariant,
   resultAnswer: string | null | undefined,
   currentAnswer: string | null | undefined
 ): Record<string, string> => {
-  if (variant === 'result') {
+  if (variant === QuizVariant.RESULT) {
     if (!resultAnswer) return {};
     try {
       const parsed = JSON.parse(resultAnswer);
@@ -186,7 +187,7 @@ const QuizAlternative = ({ paddingBottom }: QuizVariantInterface) => {
   const currentAnswer = getCurrentAnswer();
   const alternatives = currentQuestion?.options?.map((option) => {
     let status: Status = Status.NEUTRAL;
-    if (variant === 'result') {
+    if (variant === QuizVariant.RESULT) {
       const isCorrectOption =
         currentQuestionResult?.options?.find((op) => op.id === option.id)
           ?.isCorrect || false;
@@ -236,18 +237,18 @@ const QuizAlternative = ({ paddingBottom }: QuizVariantInterface) => {
       <QuizContainer className={cn('', paddingBottom)}>
         <div className="space-y-4">
           <AlternativesList
-            mode={variant === 'default' ? 'interactive' : 'readonly'}
+            mode={variant === QuizVariant.DEFAULT ? 'interactive' : 'readonly'}
             key={`question-${currentQuestion?.id || '1'}`}
             name={`question-${currentQuestion?.id || '1'}`}
             layout="compact"
             alternatives={alternatives}
             value={
-              variant === 'result'
+              variant === QuizVariant.RESULT
                 ? currentQuestionResult?.selectedOptions[0]?.optionId || ''
                 : currentAnswer?.optionId || ''
             }
             selectedValue={
-              variant === 'result'
+              variant === QuizVariant.RESULT
                 ? currentQuestionResult?.selectedOptions[0]?.optionId || ''
                 : currentAnswer?.optionId || ''
             }
@@ -342,7 +343,7 @@ const QuizMultipleChoice = ({ paddingBottom }: QuizVariantInterface) => {
   const choices = currentQuestion?.options?.map((option) => {
     let status: Status = Status.NEUTRAL;
 
-    if (variant === 'result') {
+    if (variant === QuizVariant.RESULT) {
       const isCorrectOption =
         currentQuestionResult?.options?.find((op) => op.id === option.id)
           ?.isCorrect || false;
@@ -396,7 +397,7 @@ const QuizMultipleChoice = ({ paddingBottom }: QuizVariantInterface) => {
             name={questionKey}
             selectedValues={stableSelectedValues}
             onHandleSelectedValues={handleSelectedValues}
-            mode={variant === 'default' ? 'interactive' : 'readonly'}
+            mode={variant === QuizVariant.DEFAULT ? 'interactive' : 'readonly'}
           />
         </div>
       </QuizContainer>
@@ -464,7 +465,7 @@ const QuizDissertative = ({ paddingBottom }: QuizVariantInterface) => {
 
       <QuizContainer className={cn(variant != 'result' && paddingBottom)}>
         <div className="space-y-4 max-h-[600px] overflow-y-auto">
-          {variant === 'default' ? (
+          {variant === QuizVariant.DEFAULT ? (
             <div className="space-y-4">
               <TextArea
                 ref={textareaRef}
@@ -487,7 +488,7 @@ const QuizDissertative = ({ paddingBottom }: QuizVariantInterface) => {
         </div>
       </QuizContainer>
 
-      {variant === 'result' &&
+      {variant === QuizVariant.RESULT &&
         currentQuestionResult?.answerStatus ==
           ANSWER_STATUS.RESPOSTA_INCORRETA && (
           <>
@@ -522,7 +523,7 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
 
   // Get the options - prefer persisted result options in result mode, fallback to live question
   const options = useMemo(() => {
-    if (variant === 'result' && currentQuestionResult?.options) {
+    if (variant === QuizVariant.RESULT && currentQuestionResult?.options) {
       return currentQuestionResult.options;
     }
     return currentQuestion?.options || [];
@@ -582,7 +583,7 @@ const QuizTrueOrFalse = ({ paddingBottom }: QuizVariantInterface) => {
 
   const getLetterByIndex = (index: number) => String.fromCodePoint(97 + index); // 97 = 'a' in ASCII
 
-  const isDefaultVariant = variant === 'default';
+  const isDefaultVariant = variant === QuizVariant.DEFAULT;
 
   // Check if we should show correct/incorrect status
   const shouldShowStatus =
@@ -748,7 +749,7 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
   // In result mode, read from matchingAnswers array, fallback to answer JSON
   // In default mode, read from currentAnswer.answer JSON string
   const parsedAnswers: Record<string, string> = useMemo(() => {
-    if (variant === 'result' && currentQuestionResult?.matchingAnswers) {
+    if (variant === QuizVariant.RESULT && currentQuestionResult?.matchingAnswers) {
       // Convert matchingAnswers array to Record<optionId, selectedValue>
       const answers: Record<string, string> = {};
       for (const match of currentQuestionResult.matchingAnswers) {
@@ -829,7 +830,7 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
 
   const getLetterByIndex = (index: number) => String.fromCodePoint(97 + index); // 'a', 'b', 'c'...
 
-  const isDefaultVariant = variant === 'default';
+  const isDefaultVariant = variant === QuizVariant.DEFAULT;
   const assignedDots = new Set(
     userAnswers.map((a) => a.dotOption).filter(Boolean)
   );
@@ -947,7 +948,7 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
   // Get the additionalContent from the question (contains text with {optionId} placeholders)
   // In result mode, prefer the persisted snapshot to match parsedAnswers
   const additionalContent =
-    variant === 'result'
+    variant === QuizVariant.RESULT
       ? currentQuestionResult?.additionalContent ||
         currentQuestion?.additionalContent ||
         ''
@@ -956,7 +957,7 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
   // Get the options from the question
   // In result mode, prefer the persisted snapshot to match parsedAnswers
   const questionOptions =
-    variant === 'result'
+    variant === QuizVariant.RESULT
       ? currentQuestionResult?.options || currentQuestion?.options || []
       : currentQuestion?.options || [];
 
@@ -969,7 +970,7 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
   // In result mode, read from fillAnswers object, fallback to answer JSON
   // In default mode, read from currentAnswer.answer JSON string
   const parsedAnswers: Record<string, string> = useMemo(() => {
-    if (variant === 'result' && currentQuestionResult?.fillAnswers) {
+    if (variant === QuizVariant.RESULT && currentQuestionResult?.fillAnswers) {
       // fillAnswers is already a Record<placeholderId, selectedOptionId>
       return currentQuestionResult.fillAnswers;
     }
@@ -1083,7 +1084,7 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
             size="large"
             className="py-1 px-2"
           >
-            <span className="text-text-900">Não respondido</span>
+            Não respondido
           </Badge>
         </span>
       );
@@ -1148,7 +1149,7 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
           element: renderResolutionAnswer(placeholderId),
           id: `${baseId}-resolution-${++elementCounter}`,
         });
-      } else if (variant === 'default') {
+      } else if (variant === QuizVariant.DEFAULT) {
         elements.push({
           element: renderDefaultSelect(placeholderId),
           id: `${baseId}-select-${++elementCounter}`,
@@ -1217,7 +1218,7 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
             weight="normal"
             className={cn(
               'leading-[2.5]',
-              variant !== 'result' && paddingBottom
+              variant !== QuizVariant.RESULT && paddingBottom
             )}
           >
             {renderHtmlWithSelects(additionalContent).map((element) => (
@@ -1229,7 +1230,7 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
         </div>
       </QuizContainer>
 
-      {variant === 'result' && (
+      {variant === QuizVariant.RESULT && (
         <>
           <QuizSubTitle subTitle="Resposta correta" />
 
@@ -1312,7 +1313,7 @@ const QuizImageQuestion = ({ paddingBottom }: QuizVariantInterface) => {
 
   // Parse user's answer from stored JSON or result
   const storedUserAnswer = useMemo(() => {
-    if (variant === 'result' && currentQuestionResult?.answer) {
+    if (variant === QuizVariant.RESULT && currentQuestionResult?.answer) {
       try {
         const coords = JSON.parse(currentQuestionResult.answer);
         if (typeof coords.x === 'number' && typeof coords.y === 'number') {
@@ -1362,7 +1363,7 @@ const QuizImageQuestion = ({ paddingBottom }: QuizVariantInterface) => {
   };
 
   const handleImageClick = (event: MouseEvent<HTMLButtonElement>) => {
-    if (variant === 'result') return;
+    if (variant === QuizVariant.RESULT) return;
 
     const rect = event.currentTarget.getBoundingClientRect();
     const x = event.clientX - rect.left;
@@ -1383,7 +1384,7 @@ const QuizImageQuestion = ({ paddingBottom }: QuizVariantInterface) => {
   };
 
   const handleKeyboardActivate = () => {
-    if (variant === 'result') return;
+    if (variant === QuizVariant.RESULT) return;
     // Choose a deterministic position for keyboard activation; center is a reasonable default
     const centerPosition = { x: 0.5, y: 0.5 };
     setClickPositionRelative(centerPosition);
@@ -1410,11 +1411,11 @@ const QuizImageQuestion = ({ paddingBottom }: QuizVariantInterface) => {
   };
 
   const getUserCircleColorClasses = () => {
-    if (variant === 'default') {
+    if (variant === QuizVariant.DEFAULT) {
       return 'bg-indicator-primary/70 border-[#F8CC2E]';
     }
 
-    if (variant === 'result') {
+    if (variant === QuizVariant.RESULT) {
       return isCorrect()
         ? 'bg-success-600/70 border-white' // Green for correct answer
         : 'bg-indicator-error/70 border-white'; // Red for incorrect answer
@@ -1479,7 +1480,7 @@ const QuizImageQuestion = ({ paddingBottom }: QuizVariantInterface) => {
             />
 
             {/* Correct answer circle - only show in result variant */}
-            {variant === 'result' && (
+            {variant === QuizVariant.RESULT && (
               <div
                 data-testid="quiz-correct-circle"
                 className="absolute rounded-full bg-indicator-primary/70 border-4 border-[#F8CC2E] pointer-events-none"

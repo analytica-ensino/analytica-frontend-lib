@@ -15,6 +15,7 @@ import {
   useQuizStore,
   QUIZ_TYPE,
 } from './useQuizStore';
+import { QuizVariant } from './Quiz.types';
 import { useEffect } from 'react';
 
 const MockImageResult = () => {
@@ -2511,7 +2512,7 @@ export const GeneralForResults: Story = () => {
         </div>
 
         <div className={resultsWrapper}>
-          <Quiz variant="result">
+          <Quiz variant={QuizVariant.RESULT}>
             <QuizHeaderResult />
             <QuizTitle />
             <QuizHeader />
@@ -3170,7 +3171,7 @@ export const ResultsPageAndSeparatedComponents: Story = () => {
         <div className="border rounded-lg p-6">
           <h2 className="text-2xl font-semibold mb-6">Quiz Component</h2>
           <div className={resultsWrapper}>
-            <Quiz variant="result">
+            <Quiz variant={QuizVariant.RESULT}>
               <QuizHeaderResult />
               <QuizTitle />
               <QuizHeader />
@@ -3538,7 +3539,7 @@ export const QuestionarioTodasIncorretas: Story = () => {
       </div>
 
       <div className={resultsWrapper}>
-        <Quiz variant="result">
+        <Quiz variant={QuizVariant.RESULT}>
           <QuizHeaderResult />
           <QuizTitle />
           <QuizHeader />

@@ -1,5 +1,12 @@
 import type { QuestionResult } from './useQuizStore';
 
+export enum QuizVariant {
+  DEFAULT = 'default',
+  INTERACTIVE = 'interactive',
+  READONLY = 'readonly',
+  RESULT = 'result',
+}
+
 /** Type for a single question answer result */
 export type QuestionAnswerResult = QuestionResult['answers'][number];
 

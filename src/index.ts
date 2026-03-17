@@ -431,6 +431,7 @@ export { useUrlAuthentication } from './components/Auth/useUrlAuthentication';
 export { useApiConfig } from './components/Auth/useApiConfig';
 
 // Quiz Components
+export { QuizVariant } from './components/Quiz/Quiz.types';
 export {
   QuizTitle,
   Quiz,
