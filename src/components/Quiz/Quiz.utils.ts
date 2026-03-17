@@ -1,6 +1,7 @@
-import type {
-  QuestionAnswerResult,
-  TrueOrFalseOptionState,
+import {
+  QuizVariant,
+  type QuestionAnswerResult,
+  type TrueOrFalseOptionState,
 } from './Quiz.types';
 
 /**
@@ -55,11 +56,13 @@ export const getTrueOrFalseOptionState = (
     (op) => op.id === optionId
   );
   const isStatementTrue =
-    variant === 'result' ? (gabaritoOption?.isCorrect ?? false) : false;
+    variant === QuizVariant.RESULT
+      ? (gabaritoOption?.isCorrect ?? false)
+      : false;
 
   // Get student's selection from selectedOptions
   const studentSelection =
-    variant === 'result'
+    variant === QuizVariant.RESULT
       ? currentQuestionResult?.selectedOptions?.find(
           (op) => op.optionId === optionId
         )
@@ -67,18 +70,18 @@ export const getTrueOrFalseOptionState = (
 
   // Determine if answered and what was marked
   const hasAnswered =
-    variant === 'result'
+    variant === QuizVariant.RESULT
       ? studentSelection !== undefined
       : !!localAnswers[optionId];
 
   const studentMarkedTrue =
-    variant === 'result'
+    variant === QuizVariant.RESULT
       ? (studentSelection?.isCorrect ?? false)
       : localAnswers[optionId] === 'V';
 
   // Compute display values
   const getStudentAnswerDisplay = (): string => {
-    if (variant !== 'result') {
+    if (variant !== QuizVariant.RESULT) {
       return localAnswers[optionId] || '-';
     }
     if (!hasAnswered) {
