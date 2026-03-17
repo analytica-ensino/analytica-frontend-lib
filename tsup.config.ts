@@ -137,6 +137,10 @@ export default defineConfig({
       'src/hooks/useRecommendedClassDrafts.ts',
     'types/recommendedLessons/index': 'src/types/recommendedLessons.ts',
 
+    // ActivityPageLayout
+    'ActivityPageLayout/index':
+      'src/components/ActivityPageLayout/ActivityPageLayout.tsx',
+
     // ActivitiesHistory
     'ActivitiesHistory/index': 'src/components/ActivitiesHistory/index.ts',
     'hooks/useActivitiesHistory/index': 'src/hooks/useActivitiesHistory.ts',
