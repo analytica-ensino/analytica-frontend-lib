@@ -67,7 +67,7 @@ const FillInBlanks = ({
   options,
   answers = {},
   onAnswerChange,
-  mode = 'interactive',
+  mode = QuizVariant.INTERACTIVE,
   disabled = false,
   className,
   ...props
