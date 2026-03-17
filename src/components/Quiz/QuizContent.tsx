@@ -749,7 +749,10 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
   // In result mode, read from matchingAnswers array, fallback to answer JSON
   // In default mode, read from currentAnswer.answer JSON string
   const parsedAnswers: Record<string, string> = useMemo(() => {
-    if (variant === QuizVariant.RESULT && currentQuestionResult?.matchingAnswers) {
+    if (
+      variant === QuizVariant.RESULT &&
+      currentQuestionResult?.matchingAnswers
+    ) {
       // Convert matchingAnswers array to Record<optionId, selectedValue>
       const answers: Record<string, string> = {};
       for (const match of currentQuestionResult.matchingAnswers) {

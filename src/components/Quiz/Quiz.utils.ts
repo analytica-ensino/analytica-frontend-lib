@@ -1,10 +1,13 @@
-import type { QuestionAnswerResult, TrueOrFalseOptionState } from './Quiz.types';
+import type {
+  QuestionAnswerResult,
+  TrueOrFalseOptionState,
+} from './Quiz.types';
 
 /**
  * Shuffle array using a seed for consistent ordering per question
  * Uses Fisher-Yates shuffle with seeded random for deterministic results
  */
-export const shuffleWithSeed = <T,>(array: T[], seed: string): T[] => {
+export const shuffleWithSeed = <T>(array: T[], seed: string): T[] => {
   const shuffled = [...array];
   // Simple hash function to convert string seed to number
   let hash = 0;
