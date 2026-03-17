@@ -468,6 +468,7 @@ export {
   SUBTYPE_ENUM,
   QUIZ_TYPE,
 } from './components/Quiz/useQuizStore';
+export { TrueFalseEnum } from './enums/Quiz';
 export { SubjectEnum } from './enums/SubjectEnum';
 export type {
   QuestionResult,
