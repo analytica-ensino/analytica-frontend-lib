@@ -921,4 +921,33 @@ describe('useRecommendedLessonsPage', () => {
     expect(result.current.modalProps).toBeDefined();
     expect(result.current.navigate).toBeDefined();
   });
+
+  it('historyProps: should include extraFilterCategories when provided', () => {
+    const extraFilters = [
+      {
+        key: 'creatorType',
+        label: 'Tipo',
+        categories: [
+          {
+            key: 'creatorType',
+            label: 'Tipo de criador',
+            itens: [
+              { id: 'OWN', name: 'Minhas aulas' },
+              { id: 'TEACHERS', name: 'Dos professores' },
+            ],
+          },
+        ],
+      },
+    ];
+
+    const { result } = setupHook({ extraFilterCategories: extraFilters });
+    expect(result.current.historyProps.extraFilterCategories).toEqual(
+      extraFilters
+    );
+  });
+
+  it('historyProps: extraFilterCategories should be undefined when not provided', () => {
+    const { result } = setupHook();
+    expect(result.current.historyProps.extraFilterCategories).toBeUndefined();
+  });
 });
