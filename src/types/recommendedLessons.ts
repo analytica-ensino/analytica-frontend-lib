@@ -136,6 +136,7 @@ export interface RecommendedClassHistoryFilters {
   classId?: string;
   classIds?: string[];
   studentIds?: string[];
+  creatorType?: string;
   sortBy?: 'createdAt' | 'finalDate' | 'title' | 'completionPercentage';
   sortOrder?: 'asc' | 'desc';
 }

@@ -1490,4 +1490,117 @@ describe('RecommendedLessonsHistory', () => {
       expect(RecommendedClassPageTab.MODELS).toBe('models');
     });
   });
+
+  describe('creatorType filter', () => {
+    it('should call fetchRecommendedClass with creatorType filter', async () => {
+      render(<RecommendedLessonsHistory {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(capturedOnParamsChange).toBeDefined();
+      });
+
+      mockFetchRecommendedClassHistory.mockClear();
+
+      capturedOnParamsChange?.({
+        page: 1,
+        limit: 10,
+        creatorType: ['OWN'],
+      });
+
+      await waitFor(() => {
+        expect(mockFetchRecommendedClassHistory).toHaveBeenCalledWith({
+          page: 1,
+          limit: 10,
+          creatorType: 'OWN',
+        });
+      });
+    });
+
+    it('should not include creatorType when array is empty', async () => {
+      render(<RecommendedLessonsHistory {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(capturedOnParamsChange).toBeDefined();
+      });
+
+      mockFetchRecommendedClassHistory.mockClear();
+
+      capturedOnParamsChange?.({
+        page: 1,
+        limit: 10,
+        creatorType: [],
+      });
+
+      await waitFor(() => {
+        expect(mockFetchRecommendedClassHistory).toHaveBeenCalledWith({
+          page: 1,
+          limit: 10,
+        });
+      });
+    });
+  });
+
+  describe('extraFilterCategories', () => {
+    it('should render with extraFilterCategories prop', async () => {
+      const extraFilters = [
+        {
+          key: 'creatorType',
+          label: 'Tipo',
+          categories: [
+            {
+              key: 'creatorType',
+              label: 'Tipo de criador',
+              itens: [
+                { id: 'OWN', name: 'Minhas aulas' },
+                { id: 'TEACHERS', name: 'Dos professores' },
+              ],
+            },
+          ],
+        },
+      ];
+
+      render(
+        <RecommendedLessonsHistory
+          {...defaultProps}
+          extraFilterCategories={extraFilters}
+        />
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('recommended-class-history')
+        ).toBeInTheDocument();
+      });
+    });
+
+    it('should render without extraFilterCategories (undefined)', async () => {
+      render(
+        <RecommendedLessonsHistory
+          {...defaultProps}
+          extraFilterCategories={undefined}
+        />
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('recommended-class-history')
+        ).toBeInTheDocument();
+      });
+    });
+
+    it('should render with empty extraFilterCategories', async () => {
+      render(
+        <RecommendedLessonsHistory
+          {...defaultProps}
+          extraFilterCategories={[]}
+        />
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('recommended-class-history')
+        ).toBeInTheDocument();
+      });
+    });
+  });
 });

@@ -21,6 +21,7 @@ import type {
   SendLessonFormData,
   CategoryConfig,
 } from '../components/SendLessonModal/types';
+import type { FilterConfig } from '../components/Filter';
 import { SubjectEnum } from '../enums/SubjectEnum';
 
 /**
@@ -119,6 +120,8 @@ export interface UseRecommendedLessonsPageConfig {
   noSearchImage: string;
   /** Function to map subject name to SubjectEnum */
   mapSubjectNameToEnum: (subjectName: string) => SubjectEnum | null;
+  /** Extra filter categories to inject (e.g., creatorType for gestors) */
+  extraFilterCategories?: FilterConfig[];
 }
 
 /**
@@ -159,6 +162,7 @@ export interface UseRecommendedLessonsPageReturn {
     title: string;
     createButtonText: string;
     searchPlaceholder: string;
+    extraFilterCategories?: FilterConfig[];
   };
   /** Props for SendLessonModal component */
   modalProps: {
@@ -476,6 +480,7 @@ export const createUseRecommendedLessonsPage = (
     emptyStateImage,
     noSearchImage,
     mapSubjectNameToEnum,
+    extraFilterCategories,
   } = config;
 
   return (): UseRecommendedLessonsPageReturn => {
@@ -789,6 +794,7 @@ export const createUseRecommendedLessonsPage = (
         title: texts.title,
         createButtonText: texts.createButtonText,
         searchPlaceholder: texts.searchPlaceholder,
+        extraFilterCategories,
       },
       modalProps: {
         isOpen: sendModalOpen,
