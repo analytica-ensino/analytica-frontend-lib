@@ -112,6 +112,11 @@ export interface RecommendedLessonsHistoryProps {
    * Use this to navigate to different routes when tabs change.
    */
   onTabChange?: (tab: RecommendedClassPageTab) => void;
+  /**
+   * Extra filter categories to inject (e.g., creatorType for gestors).
+   * Merged with default filters when provided.
+   */
+  extraFilterCategories?: FilterConfig[];
 }
 
 /**
@@ -168,6 +173,11 @@ const buildFiltersFromParams = (
   // Start date filter
   if (params.startDate && typeof params.startDate === 'string') {
     filters.startDate = params.startDate;
+  }
+
+  // Creator type filter (single selection)
+  if (Array.isArray(params.creatorType) && params.creatorType.length > 0) {
+    filters.creatorType = params.creatorType[0];
   }
 
   return filters;
@@ -490,6 +500,7 @@ export const RecommendedLessonsHistory = ({
   onEditDraft,
   defaultTab,
   onTabChange,
+  extraFilterCategories,
 }: RecommendedLessonsHistoryProps) => {
   const [activeTab, setActiveTab] = useState<RecommendedClassPageTab>(
     defaultTab ?? RecommendedClassPageTab.HISTORY
@@ -537,10 +548,16 @@ export const RecommendedLessonsHistory = ({
     fetchRecommendedClass,
   }: UseRecommendedLessonsHistoryReturn = useRecommendedClassHistory();
 
-  // Create filter and column configurations
+  // Create filter and column configurations, merging extra filters if provided
   const initialFilterConfigs = useMemo(
-    () => createRecommendedClassFiltersConfig(userFilterData),
-    [userFilterData]
+    () => [
+      ...createRecommendedClassFiltersConfig(userFilterData),
+      ...(Array.isArray(extraFilterCategories) &&
+      extraFilterCategories.length > 0
+        ? extraFilterCategories
+        : []),
+    ],
+    [userFilterData, extraFilterCategories]
   );
 
   const tableColumns = useMemo(
