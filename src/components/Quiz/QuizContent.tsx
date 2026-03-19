@@ -1133,7 +1133,7 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
   const renderTextWithSelects = (text: string, isResolution?: boolean) => {
     const elements: Array<{ element: string | ReactNode; id: string }> = [];
     let lastIndex = 0;
-    let elementCounter = 0;
+    const nextId = () => elements.length;
 
     // Match {uuid} placeholders (UUID format or any alphanumeric with hyphens)
     const regex = /\{([a-zA-Z0-9-]+)\}/g;
@@ -1147,7 +1147,7 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
       if (startIndex > lastIndex) {
         elements.push({
           element: text.slice(lastIndex, startIndex),
-          id: `${baseId}-text-${++elementCounter}`,
+          id: `${baseId}-text-${nextId()}`,
         });
       }
 
@@ -1155,17 +1155,17 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
       if (isResolution) {
         elements.push({
           element: renderResolutionAnswer(placeholderId),
-          id: `${baseId}-resolution-${++elementCounter}`,
+          id: `${baseId}-resolution-${nextId()}`,
         });
       } else if (variant === QuizVariant.DEFAULT) {
         elements.push({
           element: renderDefaultSelect(placeholderId),
-          id: `${baseId}-select-${++elementCounter}`,
+          id: `${baseId}-select-${nextId()}`,
         });
       } else {
         elements.push({
           element: renderResultBadge(placeholderId),
-          id: `${baseId}-result-${++elementCounter}`,
+          id: `${baseId}-result-${nextId()}`,
         });
       }
 
@@ -1176,7 +1176,7 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
     if (lastIndex < text.length) {
       elements.push({
         element: text.slice(lastIndex),
-        id: `${baseId}-text-${++elementCounter}`,
+        id: `${baseId}-text-${nextId()}`,
       });
     }
 

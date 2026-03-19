@@ -35,7 +35,7 @@ describe('LatexRenderer Component', () => {
       const { container } = render(
         <LatexRenderer content="Test" style={{ color: 'red' }} />
       );
-      expect(container.firstChild).toHaveStyle({ color: 'red' });
+      expect(container.firstChild).toHaveStyle({ color: 'rgb(255, 0, 0)' });
     });
   });
 

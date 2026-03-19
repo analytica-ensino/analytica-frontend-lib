@@ -236,7 +236,7 @@ describe('LoadingModal', () => {
         'custom-loading-modal'
       );
       expect(modalContainer).toHaveAttribute('data-custom', 'test-value');
-      expect(modalContainer).toHaveStyle('background-color: red');
+      expect(modalContainer).toHaveStyle('background-color: rgb(255, 0, 0)');
     });
   });
 

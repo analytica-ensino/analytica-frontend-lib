@@ -16,6 +16,7 @@ import Table, {
   TableCaption,
   useTableSort,
 } from './Table';
+import { mockWindowLocation } from '../../test-utils/mockLocation';
 
 /**
  * Test data for useTableSort hook tests
@@ -1078,15 +1079,20 @@ describe('Table Components', () => {
     });
 
     describe('URL synchronization', () => {
+      let restoreLocation: () => void;
+
       beforeEach(() => {
         // Mock globalThis.location and history
-        delete (globalThis as { location?: Location }).location;
-        (globalThis as { location: Partial<Location> }).location = {
+        ({ restore: restoreLocation } = mockWindowLocation({
           href: 'http://localhost:3000/',
           search: '',
-        };
+        }));
 
         globalThis.history.replaceState = jest.fn();
+      });
+
+      afterEach(() => {
+        restoreLocation();
       });
 
       it('does not read URL params when syncWithUrl is false', () => {
@@ -1162,9 +1168,10 @@ describe('Table Components', () => {
       });
 
       it('preserves other URL params when updating sort params', () => {
-        // Create a proper URL object with query params
-        const testUrl = new URL('http://localhost:3000/?page=2&filter=active');
-        (globalThis as { location: Partial<Location> }).location = testUrl;
+        // Set URL with query params via the mock
+        globalThis.location.href =
+          'http://localhost:3000/?page=2&filter=active';
+        globalThis.location.search = '?page=2&filter=active';
 
         const { result } = setupHookWithSync();
         performSort(result, 'name');

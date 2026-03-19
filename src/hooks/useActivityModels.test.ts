@@ -130,7 +130,6 @@ describe('useActivityModels', () => {
         {
           code: 'invalid_type',
           expected: 'string',
-          received: 'number',
           path: ['data', 'activityDrafts'],
           message: 'Expected string, received number',
         },

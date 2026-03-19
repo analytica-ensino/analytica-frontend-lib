@@ -4,11 +4,8 @@ import { z } from 'zod';
 export const supportSchema = z.object({
   // Tipo de problema selecionado
   problemType: z.enum(['tecnico', 'acesso', 'outros'], {
-    // istanbul ignore next - errorMap é testado em runtime pelo zod real
-    errorMap: /* istanbul ignore next */ () => ({
-      message:
-        'Campo obrigatório! Por favor, preencha este campo para continuar.',
-    }),
+    error: () =>
+      'Campo obrigatório! Por favor, preencha este campo para continuar.',
   }),
 
   // Título do problema

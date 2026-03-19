@@ -241,7 +241,7 @@ const Select = ({
         const focused = document.activeElement as HTMLElement;
         const currentIndex = items.findIndex((item) => item === focused);
 
-        let nextIndex = 0;
+        let nextIndex: number;
         if (event.key === 'ArrowDown') {
           nextIndex =
             currentIndex === -1 ? 0 : (currentIndex + 1) % items.length;

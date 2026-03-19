@@ -1036,7 +1036,7 @@ export const useQuizStore = create<QuizState>()(
         setCurrentQuestion: (question) => {
           const { quiz, variant, questionsResult } = get();
           if (!quiz) return;
-          let questionIndex = 0;
+          let questionIndex: number;
           if (variant == 'result') {
             if (!questionsResult) return;
             const questionResult =

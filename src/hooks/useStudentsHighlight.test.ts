@@ -110,7 +110,6 @@ describe('useStudentsHighlight', () => {
         {
           code: 'invalid_type',
           expected: 'string',
-          received: 'number',
           path: ['data', 'topStudents'],
           message: 'Expected string, received number',
         },

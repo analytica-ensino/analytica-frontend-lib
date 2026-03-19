@@ -7,6 +7,18 @@ jest.mock('react-router-dom', () => ({
   useLocation: jest.fn(),
 }));
 
+const createMockLocation = (
+  overrides: Partial<ReturnType<typeof useLocation>> = {}
+): ReturnType<typeof useLocation> => ({
+  pathname: '/',
+  search: '',
+  hash: '',
+  state: null,
+  key: 'default',
+  unstable_mask: undefined,
+  ...overrides,
+});
+
 describe('useUrlParams', () => {
   const mockUseLocation = useLocation as jest.MockedFunction<
     typeof useLocation
@@ -18,13 +30,15 @@ describe('useUrlParams', () => {
 
   describe('basic param extraction', () => {
     it('should extract single parameter from URL', () => {
-      mockUseLocation.mockReturnValue({
-        pathname: '/desempenho/lista-temas/123',
-        search: '',
-        hash: '',
-        state: null,
-        key: 'default',
-      });
+      mockUseLocation.mockReturnValue(
+        createMockLocation({
+          pathname: '/desempenho/lista-temas/123',
+          search: '',
+          hash: '',
+          state: null,
+          key: 'default',
+        })
+      );
 
       const { result } = renderHook(() =>
         useUrlParams({
@@ -36,13 +50,15 @@ describe('useUrlParams', () => {
     });
 
     it('should extract multiple parameters from URL', () => {
-      mockUseLocation.mockReturnValue({
-        pathname: '/desempenho/lista-temas/123/subtemas/456',
-        search: '',
-        hash: '',
-        state: null,
-        key: 'default',
-      });
+      mockUseLocation.mockReturnValue(
+        createMockLocation({
+          pathname: '/desempenho/lista-temas/123/subtemas/456',
+          search: '',
+          hash: '',
+          state: null,
+          key: 'default',
+        })
+      );
 
       const { result } = renderHook(() =>
         useUrlParams({
@@ -56,13 +72,15 @@ describe('useUrlParams', () => {
     });
 
     it('should extract three parameters from URL', () => {
-      mockUseLocation.mockReturnValue({
-        pathname: '/desempenho/lista-temas/123/subtemas/456/aulas/789',
-        search: '',
-        hash: '',
-        state: null,
-        key: 'default',
-      });
+      mockUseLocation.mockReturnValue(
+        createMockLocation({
+          pathname: '/desempenho/lista-temas/123/subtemas/456/aulas/789',
+          search: '',
+          hash: '',
+          state: null,
+          key: 'default',
+        })
+      );
 
       const { result } = renderHook(() =>
         useUrlParams({
@@ -80,13 +98,15 @@ describe('useUrlParams', () => {
 
   describe('edge cases', () => {
     it('should return undefined for parameters not in URL', () => {
-      mockUseLocation.mockReturnValue({
-        pathname: '/desempenho/lista-temas/123',
-        search: '',
-        hash: '',
-        state: null,
-        key: 'default',
-      });
+      mockUseLocation.mockReturnValue(
+        createMockLocation({
+          pathname: '/desempenho/lista-temas/123',
+          search: '',
+          hash: '',
+          state: null,
+          key: 'default',
+        })
+      );
 
       const { result } = renderHook(() =>
         useUrlParams({
@@ -100,13 +120,15 @@ describe('useUrlParams', () => {
     });
 
     it('should handle root path', () => {
-      mockUseLocation.mockReturnValue({
-        pathname: '/',
-        search: '',
-        hash: '',
-        state: null,
-        key: 'default',
-      });
+      mockUseLocation.mockReturnValue(
+        createMockLocation({
+          pathname: '/',
+          search: '',
+          hash: '',
+          state: null,
+          key: 'default',
+        })
+      );
 
       const { result } = renderHook(() =>
         useUrlParams({
@@ -118,13 +140,15 @@ describe('useUrlParams', () => {
     });
 
     it('should handle empty path segments', () => {
-      mockUseLocation.mockReturnValue({
-        pathname: '///',
-        search: '',
-        hash: '',
-        state: null,
-        key: 'default',
-      });
+      mockUseLocation.mockReturnValue(
+        createMockLocation({
+          pathname: '///',
+          search: '',
+          hash: '',
+          state: null,
+          key: 'default',
+        })
+      );
 
       const { result } = renderHook(() =>
         useUrlParams({
@@ -136,13 +160,15 @@ describe('useUrlParams', () => {
     });
 
     it('should handle path with trailing slash', () => {
-      mockUseLocation.mockReturnValue({
-        pathname: '/desempenho/lista-temas/123/',
-        search: '',
-        hash: '',
-        state: null,
-        key: 'default',
-      });
+      mockUseLocation.mockReturnValue(
+        createMockLocation({
+          pathname: '/desempenho/lista-temas/123/',
+          search: '',
+          hash: '',
+          state: null,
+          key: 'default',
+        })
+      );
 
       const { result } = renderHook(() =>
         useUrlParams({
@@ -154,13 +180,15 @@ describe('useUrlParams', () => {
     });
 
     it('should handle path with query parameters', () => {
-      mockUseLocation.mockReturnValue({
-        pathname: '/desempenho/lista-temas/123',
-        search: '?filter=active&sort=name',
-        hash: '',
-        state: null,
-        key: 'default',
-      });
+      mockUseLocation.mockReturnValue(
+        createMockLocation({
+          pathname: '/desempenho/lista-temas/123',
+          search: '?filter=active&sort=name',
+          hash: '',
+          state: null,
+          key: 'default',
+        })
+      );
 
       const { result } = renderHook(() =>
         useUrlParams({
@@ -172,13 +200,15 @@ describe('useUrlParams', () => {
     });
 
     it('should handle path with hash', () => {
-      mockUseLocation.mockReturnValue({
-        pathname: '/desempenho/lista-temas/123',
-        search: '',
-        hash: '#section',
-        state: null,
-        key: 'default',
-      });
+      mockUseLocation.mockReturnValue(
+        createMockLocation({
+          pathname: '/desempenho/lista-temas/123',
+          search: '',
+          hash: '#section',
+          state: null,
+          key: 'default',
+        })
+      );
 
       const { result } = renderHook(() =>
         useUrlParams({
@@ -192,13 +222,15 @@ describe('useUrlParams', () => {
 
   describe('param index handling', () => {
     it('should handle index 0 correctly', () => {
-      mockUseLocation.mockReturnValue({
-        pathname: '/first/second/third',
-        search: '',
-        hash: '',
-        state: null,
-        key: 'default',
-      });
+      mockUseLocation.mockReturnValue(
+        createMockLocation({
+          pathname: '/first/second/third',
+          search: '',
+          hash: '',
+          state: null,
+          key: 'default',
+        })
+      );
 
       const { result } = renderHook(() =>
         useUrlParams({
@@ -210,13 +242,15 @@ describe('useUrlParams', () => {
     });
 
     it('should handle last index correctly', () => {
-      mockUseLocation.mockReturnValue({
-        pathname: '/first/second/third',
-        search: '',
-        hash: '',
-        state: null,
-        key: 'default',
-      });
+      mockUseLocation.mockReturnValue(
+        createMockLocation({
+          pathname: '/first/second/third',
+          search: '',
+          hash: '',
+          state: null,
+          key: 'default',
+        })
+      );
 
       const { result } = renderHook(() =>
         useUrlParams({
@@ -228,13 +262,15 @@ describe('useUrlParams', () => {
     });
 
     it('should handle out of bounds index', () => {
-      mockUseLocation.mockReturnValue({
-        pathname: '/first/second',
-        search: '',
-        hash: '',
-        state: null,
-        key: 'default',
-      });
+      mockUseLocation.mockReturnValue(
+        createMockLocation({
+          pathname: '/first/second',
+          search: '',
+          hash: '',
+          state: null,
+          key: 'default',
+        })
+      );
 
       const { result } = renderHook(() =>
         useUrlParams({
@@ -248,13 +284,15 @@ describe('useUrlParams', () => {
 
   describe('complex URL patterns', () => {
     it('should handle numeric and alphanumeric segments', () => {
-      mockUseLocation.mockReturnValue({
-        pathname: '/users/abc123/posts/456def/comments/789',
-        search: '',
-        hash: '',
-        state: null,
-        key: 'default',
-      });
+      mockUseLocation.mockReturnValue(
+        createMockLocation({
+          pathname: '/users/abc123/posts/456def/comments/789',
+          search: '',
+          hash: '',
+          state: null,
+          key: 'default',
+        })
+      );
 
       const { result } = renderHook(() =>
         useUrlParams({
@@ -270,13 +308,15 @@ describe('useUrlParams', () => {
     });
 
     it('should handle UUID-like segments', () => {
-      mockUseLocation.mockReturnValue({
-        pathname: '/api/users/550e8400-e29b-41d4-a716-446655440000/profile',
-        search: '',
-        hash: '',
-        state: null,
-        key: 'default',
-      });
+      mockUseLocation.mockReturnValue(
+        createMockLocation({
+          pathname: '/api/users/550e8400-e29b-41d4-a716-446655440000/profile',
+          search: '',
+          hash: '',
+          state: null,
+          key: 'default',
+        })
+      );
 
       const { result } = renderHook(() =>
         useUrlParams({
@@ -292,13 +332,15 @@ describe('useUrlParams', () => {
     });
 
     it('should handle paths with special characters in segments', () => {
-      mockUseLocation.mockReturnValue({
-        pathname: '/products/item-123/reviews/review-456',
-        search: '',
-        hash: '',
-        state: null,
-        key: 'default',
-      });
+      mockUseLocation.mockReturnValue(
+        createMockLocation({
+          pathname: '/products/item-123/reviews/review-456',
+          search: '',
+          hash: '',
+          state: null,
+          key: 'default',
+        })
+      );
 
       const { result } = renderHook(() =>
         useUrlParams({
@@ -314,13 +356,9 @@ describe('useUrlParams', () => {
 
   describe('memoization behavior', () => {
     it('should return same result when pathname does not change', () => {
-      const location = {
+      const location = createMockLocation({
         pathname: '/desempenho/lista-temas/123',
-        search: '',
-        hash: '',
-        state: null,
-        key: 'default',
-      };
+      });
 
       mockUseLocation.mockReturnValue(location);
 
@@ -338,13 +376,15 @@ describe('useUrlParams', () => {
     });
 
     it('should return new result when pathname changes', () => {
-      mockUseLocation.mockReturnValue({
-        pathname: '/desempenho/lista-temas/123',
-        search: '',
-        hash: '',
-        state: null,
-        key: 'default',
-      });
+      mockUseLocation.mockReturnValue(
+        createMockLocation({
+          pathname: '/desempenho/lista-temas/123',
+          search: '',
+          hash: '',
+          state: null,
+          key: 'default',
+        })
+      );
 
       const { result, rerender } = renderHook(() =>
         useUrlParams({
@@ -355,13 +395,15 @@ describe('useUrlParams', () => {
       const firstResult = result.current;
 
       // Change pathname
-      mockUseLocation.mockReturnValue({
-        pathname: '/desempenho/lista-temas/456',
-        search: '',
-        hash: '',
-        state: null,
-        key: 'default',
-      });
+      mockUseLocation.mockReturnValue(
+        createMockLocation({
+          pathname: '/desempenho/lista-temas/456',
+          search: '',
+          hash: '',
+          state: null,
+          key: 'default',
+        })
+      );
 
       rerender();
 
@@ -372,13 +414,15 @@ describe('useUrlParams', () => {
 
   describe('empty configuration', () => {
     it('should handle empty config object', () => {
-      mockUseLocation.mockReturnValue({
-        pathname: '/desempenho/lista-temas/123',
-        search: '',
-        hash: '',
-        state: null,
-        key: 'default',
-      });
+      mockUseLocation.mockReturnValue(
+        createMockLocation({
+          pathname: '/desempenho/lista-temas/123',
+          search: '',
+          hash: '',
+          state: null,
+          key: 'default',
+        })
+      );
 
       const { result } = renderHook(() => useUrlParams({}));
 
@@ -388,13 +432,15 @@ describe('useUrlParams', () => {
 
   describe('real-world scenarios', () => {
     it('should extract params from performance navigation URL', () => {
-      mockUseLocation.mockReturnValue({
-        pathname: '/desempenho/lista-temas/123/subtemas/456/aulas/789',
-        search: '',
-        hash: '',
-        state: null,
-        key: 'default',
-      });
+      mockUseLocation.mockReturnValue(
+        createMockLocation({
+          pathname: '/desempenho/lista-temas/123/subtemas/456/aulas/789',
+          search: '',
+          hash: '',
+          state: null,
+          key: 'default',
+        })
+      );
 
       const { result } = renderHook(() =>
         useUrlParams({
@@ -412,13 +458,15 @@ describe('useUrlParams', () => {
     });
 
     it('should handle partial navigation', () => {
-      mockUseLocation.mockReturnValue({
-        pathname: '/desempenho/lista-temas/123/subtemas',
-        search: '',
-        hash: '',
-        state: null,
-        key: 'default',
-      });
+      mockUseLocation.mockReturnValue(
+        createMockLocation({
+          pathname: '/desempenho/lista-temas/123/subtemas',
+          search: '',
+          hash: '',
+          state: null,
+          key: 'default',
+        })
+      );
 
       const { result } = renderHook(() =>
         useUrlParams({
@@ -432,13 +480,15 @@ describe('useUrlParams', () => {
     });
 
     it('should handle settings navigation', () => {
-      mockUseLocation.mockReturnValue({
-        pathname: '/settings/profile/notifications',
-        search: '',
-        hash: '',
-        state: null,
-        key: 'default',
-      });
+      mockUseLocation.mockReturnValue(
+        createMockLocation({
+          pathname: '/settings/profile/notifications',
+          search: '',
+          hash: '',
+          state: null,
+          key: 'default',
+        })
+      );
 
       const { result } = renderHook(() =>
         useUrlParams({

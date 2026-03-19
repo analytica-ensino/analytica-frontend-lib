@@ -23,10 +23,10 @@ export const ERROR_MESSAGES = {
  */
 export const activityStepSchema = z.object({
   subtype: z.enum(['TAREFA', 'TRABALHO', 'PROVA'], {
-    errorMap: () => ({ message: ERROR_MESSAGES.SUBTYPE_REQUIRED }),
+    error: () => ERROR_MESSAGES.SUBTYPE_REQUIRED,
   }),
   title: z
-    .string({ required_error: ERROR_MESSAGES.TITLE_REQUIRED })
+    .string({ error: () => ERROR_MESSAGES.TITLE_REQUIRED })
     .transform((val) => val.trim())
     .refine((val) => val.length > 0, {
       message: ERROR_MESSAGES.TITLE_REQUIRED,
@@ -45,8 +45,7 @@ export const recipientStepSchema = z.object({
         userInstitutionId: z.string(),
       }),
       {
-        required_error: ERROR_MESSAGES.STUDENTS_REQUIRED,
-        invalid_type_error: ERROR_MESSAGES.STUDENTS_REQUIRED,
+        error: () => ERROR_MESSAGES.STUDENTS_REQUIRED,
       }
     )
     .min(1, ERROR_MESSAGES.STUDENTS_REQUIRED),
@@ -64,16 +63,14 @@ const TIME_REGEX = /^\d{2}:\d{2}$/;
 const deadlineStepBaseSchema = z.object({
   startDate: z
     .string({
-      required_error: ERROR_MESSAGES.START_DATE_REQUIRED,
-      invalid_type_error: ERROR_MESSAGES.START_DATE_REQUIRED,
+      error: () => ERROR_MESSAGES.START_DATE_REQUIRED,
     })
     .min(1, ERROR_MESSAGES.START_DATE_REQUIRED)
     .regex(DATE_REGEX, ERROR_MESSAGES.START_DATE_REQUIRED),
   startTime: z.string().regex(TIME_REGEX).default('00:00'),
   finalDate: z
     .string({
-      required_error: ERROR_MESSAGES.FINAL_DATE_REQUIRED,
-      invalid_type_error: ERROR_MESSAGES.FINAL_DATE_REQUIRED,
+      error: () => ERROR_MESSAGES.FINAL_DATE_REQUIRED,
     })
     .min(1, ERROR_MESSAGES.FINAL_DATE_REQUIRED)
     .regex(DATE_REGEX, ERROR_MESSAGES.FINAL_DATE_REQUIRED),

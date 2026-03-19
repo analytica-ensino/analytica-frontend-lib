@@ -6,7 +6,7 @@ import type { KnowledgeArea } from '../../../types/activityFilters';
 
 // Mock the barrel export that SubjectsFilter imports from
 jest.mock('../../..', () => {
-  const React = jest.requireActual('react');
+  jest.requireActual('react');
 
   return {
     Radio: ({

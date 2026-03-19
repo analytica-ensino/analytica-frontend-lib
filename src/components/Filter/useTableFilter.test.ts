@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { useTableFilter } from './useTableFilter';
 import type { FilterConfig } from './useTableFilter';
+import { mockWindowLocation } from '../../test-utils/mockLocation';
 
 const mockInitialConfigs: FilterConfig[] = [
   {
@@ -48,25 +49,23 @@ const mockInitialConfigs: FilterConfig[] = [
 ];
 
 describe('useTableFilter', () => {
+  let restoreLocation: () => void;
+
   beforeEach(() => {
     // Mock history.replaceState
     globalThis.history.replaceState = jest.fn();
 
     // Reset globalThis.location with proper URL structure
-    delete (globalThis as { location?: unknown }).location;
-    Object.defineProperty(globalThis, 'location', {
-      value: {
-        href: 'http://localhost/',
-        search: '',
-        origin: 'http://localhost',
-        pathname: '/',
-      },
-      writable: true,
-      configurable: true,
-    });
+    ({ restore: restoreLocation } = mockWindowLocation({
+      href: 'http://localhost/',
+      search: '',
+      origin: 'http://localhost',
+      pathname: '/',
+    }));
   });
 
   afterEach(() => {
+    restoreLocation();
     jest.clearAllMocks();
   });
 
@@ -80,16 +79,9 @@ describe('useTableFilter', () => {
     });
 
     it('should initialize with URL state when syncWithUrl is enabled', () => {
-      Object.defineProperty(globalThis, 'location', {
-        value: {
-          href: 'http://localhost/?filter_escola=1,2&filter_materia=1',
-          search: '?filter_escola=1,2&filter_materia=1',
-          origin: 'http://localhost',
-          pathname: '/',
-        },
-        writable: true,
-        configurable: true,
-      });
+      globalThis.location.href =
+        'http://localhost/?filter_escola=1,2&filter_materia=1';
+      globalThis.location.search = '?filter_escola=1,2&filter_materia=1';
 
       const { result } = renderHook(() =>
         useTableFilter(mockInitialConfigs, { syncWithUrl: true })
@@ -105,16 +97,8 @@ describe('useTableFilter', () => {
     });
 
     it('should not read URL when syncWithUrl is false', () => {
-      Object.defineProperty(globalThis, 'location', {
-        value: {
-          href: 'http://localhost/?filter_escola=1,2',
-          search: '?filter_escola=1,2',
-          origin: 'http://localhost',
-          pathname: '/',
-        },
-        writable: true,
-        configurable: true,
-      });
+      globalThis.location.href = 'http://localhost/?filter_escola=1,2';
+      globalThis.location.search = '?filter_escola=1,2';
 
       const { result } = renderHook(() =>
         useTableFilter(mockInitialConfigs, { syncWithUrl: false })
@@ -126,16 +110,8 @@ describe('useTableFilter', () => {
     });
 
     it('should handle invalid URL parameters gracefully', () => {
-      Object.defineProperty(globalThis, 'location', {
-        value: {
-          href: 'http://localhost/?filter_nonexistent=1,2',
-          search: '?filter_nonexistent=1,2',
-          origin: 'http://localhost',
-          pathname: '/',
-        },
-        writable: true,
-        configurable: true,
-      });
+      globalThis.location.href = 'http://localhost/?filter_nonexistent=1,2';
+      globalThis.location.search = '?filter_nonexistent=1,2';
 
       const { result } = renderHook(() =>
         useTableFilter(mockInitialConfigs, { syncWithUrl: true })
@@ -145,16 +121,8 @@ describe('useTableFilter', () => {
     });
 
     it('should handle empty URL parameter values', () => {
-      Object.defineProperty(globalThis, 'location', {
-        value: {
-          href: 'http://localhost/?filter_escola=',
-          search: '?filter_escola=',
-          origin: 'http://localhost',
-          pathname: '/',
-        },
-        writable: true,
-        configurable: true,
-      });
+      globalThis.location.href = 'http://localhost/?filter_escola=';
+      globalThis.location.search = '?filter_escola=';
 
       const { result } = renderHook(() =>
         useTableFilter(mockInitialConfigs, { syncWithUrl: true })
@@ -281,16 +249,9 @@ describe('useTableFilter', () => {
     });
 
     it('should remove URL parameters for cleared categories', () => {
-      Object.defineProperty(globalThis, 'location', {
-        value: {
-          href: 'http://localhost/?filter_escola=1&filter_materia=2',
-          search: '?filter_escola=1&filter_materia=2',
-          origin: 'http://localhost',
-          pathname: '/',
-        },
-        writable: true,
-        configurable: true,
-      });
+      globalThis.location.href =
+        'http://localhost/?filter_escola=1&filter_materia=2';
+      globalThis.location.search = '?filter_escola=1&filter_materia=2';
 
       const { result } = renderHook(() =>
         useTableFilter(mockInitialConfigs, { syncWithUrl: true })
@@ -329,16 +290,9 @@ describe('useTableFilter', () => {
     });
 
     it('should preserve other URL parameters', () => {
-      Object.defineProperty(globalThis, 'location', {
-        value: {
-          href: 'http://localhost/?sortBy=name&sort=ASC&page=2',
-          search: '?sortBy=name&sort=ASC&page=2',
-          origin: 'http://localhost',
-          pathname: '/',
-        },
-        writable: true,
-        configurable: true,
-      });
+      globalThis.location.href =
+        'http://localhost/?sortBy=name&sort=ASC&page=2';
+      globalThis.location.search = '?sortBy=name&sort=ASC&page=2';
 
       const { result } = renderHook(() =>
         useTableFilter(mockInitialConfigs, { syncWithUrl: true })
@@ -415,16 +369,9 @@ describe('useTableFilter', () => {
     });
 
     it('should clear URL parameters when syncWithUrl is enabled', () => {
-      Object.defineProperty(globalThis, 'location', {
-        value: {
-          href: 'http://localhost/?filter_escola=1&filter_materia=2',
-          search: '?filter_escola=1&filter_materia=2',
-          origin: 'http://localhost',
-          pathname: '/',
-        },
-        writable: true,
-        configurable: true,
-      });
+      globalThis.location.href =
+        'http://localhost/?filter_escola=1&filter_materia=2';
+      globalThis.location.search = '?filter_escola=1&filter_materia=2';
 
       const { result } = renderHook(() =>
         useTableFilter(mockInitialConfigs, { syncWithUrl: true })
@@ -443,16 +390,9 @@ describe('useTableFilter', () => {
     });
 
     it('should preserve other URL parameters when clearing', () => {
-      Object.defineProperty(globalThis, 'location', {
-        value: {
-          href: 'http://localhost/?sortBy=name&filter_escola=1&page=2',
-          search: '?sortBy=name&filter_escola=1&page=2',
-          origin: 'http://localhost',
-          pathname: '/',
-        },
-        writable: true,
-        configurable: true,
-      });
+      globalThis.location.href =
+        'http://localhost/?sortBy=name&filter_escola=1&page=2';
+      globalThis.location.search = '?sortBy=name&filter_escola=1&page=2';
 
       const { result } = renderHook(() =>
         useTableFilter(mockInitialConfigs, { syncWithUrl: true })
@@ -594,16 +534,8 @@ describe('useTableFilter', () => {
 
   describe('popstate event', () => {
     it('should update state when browser back/forward is used', () => {
-      Object.defineProperty(globalThis, 'location', {
-        value: {
-          href: 'http://localhost/?filter_escola=1',
-          search: '?filter_escola=1',
-          origin: 'http://localhost',
-          pathname: '/',
-        },
-        writable: true,
-        configurable: true,
-      });
+      globalThis.location.href = 'http://localhost/?filter_escola=1';
+      globalThis.location.search = '?filter_escola=1';
 
       const { result, rerender } = renderHook(() =>
         useTableFilter(mockInitialConfigs, { syncWithUrl: true })
@@ -614,16 +546,8 @@ describe('useTableFilter', () => {
       );
 
       // Simulate browser back button
-      Object.defineProperty(globalThis, 'location', {
-        value: {
-          href: 'http://localhost/',
-          search: '',
-          origin: 'http://localhost',
-          pathname: '/',
-        },
-        writable: true,
-        configurable: true,
-      });
+      globalThis.location.href = 'http://localhost/';
+      globalThis.location.search = '';
 
       act(() => {
         globalThis.dispatchEvent(new Event('popstate'));

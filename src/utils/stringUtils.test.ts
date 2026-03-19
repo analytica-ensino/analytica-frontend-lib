@@ -84,9 +84,8 @@ describe('stringUtils', () => {
       });
 
       it('should handle malformed HTML', () => {
-        // The iterative approach strips all content between < and > including nested <
-        // and doesn't output standalone > characters (they trigger inTag=false but aren't added)
-        expect(stripHtmlTags('<<div>>text<</div>>')).toBe('text');
+        // DOMParser treats stray < and > as text content
+        expect(stripHtmlTags('<<div>>text<</div>>')).toBe('<>text<>');
       });
 
       it('should handle fill-in-the-blank content with placeholders', () => {
@@ -105,9 +104,9 @@ describe('stringUtils', () => {
         );
       });
 
-      it('should handle HTML entities as plain text (not decode them)', () => {
-        // The iterative approach doesn't decode HTML entities
-        expect(stripHtmlTags('<p>&amp; &lt; &gt;</p>')).toBe('&amp; &lt; &gt;');
+      it('should handle HTML entities by decoding them', () => {
+        // DOMParser decodes HTML entities
+        expect(stripHtmlTags('<p>&amp; &lt; &gt;</p>')).toBe('& < >');
       });
     });
   });

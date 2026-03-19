@@ -97,7 +97,6 @@ describe('useQuestionsData', () => {
         {
           code: 'invalid_type',
           expected: 'number',
-          received: 'string',
           path: ['data', 'totalQuestions'],
           message: 'Expected number, received string',
         },

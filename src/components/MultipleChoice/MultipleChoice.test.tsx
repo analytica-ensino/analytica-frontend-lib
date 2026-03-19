@@ -158,7 +158,7 @@ describe('MultipleChoiceList', () => {
       );
 
       checkboxA = screen.getByDisplayValue('a');
-      checkboxB = screen.getByDisplayValue('b');
+      screen.getByDisplayValue('b');
 
       expect(checkboxA).not.toBeChecked();
     });

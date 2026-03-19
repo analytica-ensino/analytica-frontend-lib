@@ -71,7 +71,7 @@ export const renderQuestionImage = ({
     const distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
     const distancePercent = Math.round(distance * 100);
 
-    let direction = '';
+    let direction: string;
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
       direction = deltaX > 0 ? 'à direita' : 'à esquerda';
     } else {

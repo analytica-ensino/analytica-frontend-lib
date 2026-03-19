@@ -83,8 +83,8 @@ const Text = <T extends ElementType = 'p'>({
   className = '',
   ...props
 }: TextProps<T>) => {
-  let sizeClasses = '';
-  let weightClasses = '';
+  let sizeClasses: string;
+  let weightClasses: string;
 
   // Text size classes mapping
   const sizeClassMap = {

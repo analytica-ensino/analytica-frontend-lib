@@ -40,7 +40,6 @@ describe('useRecommendedClassDrafts', () => {
         {
           code: 'invalid_type',
           expected: 'string',
-          received: 'number',
           path: ['data', 'drafts'],
           message: 'Expected string, received number',
         },

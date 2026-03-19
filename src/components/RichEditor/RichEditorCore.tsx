@@ -123,7 +123,7 @@ export function RichEditor({
   useEffect(() => {
     if (editor && content !== undefined && content !== lastContentRef.current) {
       const processedContent = processLatexInHtml(content || '');
-      editor.commands.setContent(processedContent, false);
+      editor.commands.setContent(processedContent, { emitUpdate: false });
       lastContentRef.current = content;
     }
   }, [content, editor]);

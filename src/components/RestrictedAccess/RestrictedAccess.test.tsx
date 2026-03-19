@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import RestrictedAccess from './RestrictedAccess';
 import * as AuthModule from '../Auth/Auth';
+import { mockWindowLocation } from '../../test-utils/mockLocation';
 
 describe('RestrictedAccess', () => {
   it('should render with default content', () => {
@@ -93,25 +94,16 @@ describe('RestrictedAccess', () => {
   });
 
   describe('login redirect behavior', () => {
-    let originalLocation: Location;
     let mockLocation: { href: string };
+    let restore: () => void;
 
     beforeEach(() => {
-      originalLocation = globalThis.location;
       mockLocation = { href: '' };
-      Object.defineProperty(globalThis, 'location', {
-        value: mockLocation,
-        writable: true,
-        configurable: true,
-      });
+      ({ restore } = mockWindowLocation(mockLocation));
     });
 
     afterEach(() => {
-      Object.defineProperty(globalThis, 'location', {
-        value: originalLocation,
-        writable: true,
-        configurable: true,
-      });
+      restore();
     });
 
     it('should redirect to root domain when button is clicked', () => {

@@ -11,6 +11,7 @@ import {
   withAuth,
   getRootDomain,
 } from './Auth';
+import { mockWindowLocation } from '../../test-utils/mockLocation';
 
 // Componentes separados para testar hooks (evita uso condicional)
 const TestAuthComponent = () => {
@@ -321,20 +322,11 @@ describe('Auth Components', () => {
   });
 
   describe('ProtectedRoute', () => {
-    let originalLocation: Location;
-
-    beforeEach(() => {
-      // Save original window.location
-      originalLocation = window.location;
-    });
+    let restoreLocation: (() => void) | undefined;
 
     afterEach(() => {
-      // Restore original window.location
-      Object.defineProperty(window, 'location', {
-        value: originalLocation,
-        writable: true,
-        configurable: true,
-      });
+      restoreLocation?.();
+      restoreLocation = undefined;
     });
     it('should render children when authenticated', async () => {
       const checkAuthFn = jest.fn().mockResolvedValue(true);
@@ -420,11 +412,8 @@ describe('Auth Components', () => {
         href: '',
       };
 
-      Object.defineProperty(window, 'location', {
-        value: mockLocation,
-        writable: true,
-        configurable: true,
-      });
+      const { restore } = mockWindowLocation(mockLocation);
+      restoreLocation = restore;
 
       render(
         <MemoryRouter initialEntries={['/protected']}>
@@ -453,11 +442,8 @@ describe('Auth Components', () => {
         href: '',
       };
 
-      Object.defineProperty(window, 'location', {
-        value: mockLocation,
-        writable: true,
-        configurable: true,
-      });
+      const { restore } = mockWindowLocation(mockLocation);
+      restoreLocation = restore;
 
       render(
         <MemoryRouter initialEntries={['/protected']}>
@@ -488,11 +474,8 @@ describe('Auth Components', () => {
         assign: jest.fn(),
       };
 
-      Object.defineProperty(window, 'location', {
-        value: mockLocation,
-        writable: true,
-        configurable: true,
-      });
+      const { restore } = mockWindowLocation(mockLocation);
+      restoreLocation = restore;
 
       render(
         <MemoryRouter initialEntries={['/protected']}>
@@ -524,11 +507,8 @@ describe('Auth Components', () => {
         assign: jest.fn(),
       };
 
-      Object.defineProperty(window, 'location', {
-        value: mockLocation,
-        writable: true,
-        configurable: true,
-      });
+      const { restore } = mockWindowLocation(mockLocation);
+      restoreLocation = restore;
 
       render(
         <MemoryRouter initialEntries={['/protected']}>
@@ -563,11 +543,8 @@ describe('Auth Components', () => {
         assign: jest.fn(),
       };
 
-      Object.defineProperty(window, 'location', {
-        value: mockLocation,
-        writable: true,
-        configurable: true,
-      });
+      const { restore } = mockWindowLocation(mockLocation);
+      restoreLocation = restore;
 
       render(
         <MemoryRouter initialEntries={['/protected']}>
@@ -596,20 +573,10 @@ describe('Auth Components', () => {
         protocol: 'https:',
         port: '',
         href: '',
-        _internalHref: '',
       };
 
-      const hrefSetter = jest.fn();
-      Object.defineProperty(mockLocation, 'href', {
-        get: () => mockLocation._internalHref,
-        set: hrefSetter,
-      });
-
-      Object.defineProperty(window, 'location', {
-        value: mockLocation,
-        writable: true,
-        configurable: true,
-      });
+      const { restore } = mockWindowLocation(mockLocation);
+      restoreLocation = restore;
 
       render(
         <MemoryRouter initialEntries={['/protected']}>
@@ -622,7 +589,7 @@ describe('Auth Components', () => {
       );
 
       await waitFor(() => {
-        expect(hrefSetter).toHaveBeenCalledWith('https://example.com');
+        expect(mockLocation.href).toBe('https://example.com');
         expect(screen.queryByTestId('test-component')).not.toBeInTheDocument();
       });
     });
@@ -636,20 +603,10 @@ describe('Auth Components', () => {
         protocol: 'https:',
         port: '',
         href: '',
-        _internalHref: '',
       };
 
-      const hrefSetter = jest.fn();
-      Object.defineProperty(mockLocation, 'href', {
-        get: () => mockLocation._internalHref,
-        set: hrefSetter,
-      });
-
-      Object.defineProperty(window, 'location', {
-        value: mockLocation,
-        writable: true,
-        configurable: true,
-      });
+      const { restore } = mockWindowLocation(mockLocation);
+      restoreLocation = restore;
 
       render(
         <MemoryRouter initialEntries={['/protected']}>
@@ -663,7 +620,7 @@ describe('Auth Components', () => {
 
       await waitFor(() => {
         // Should not redirect because example.com is already the root domain
-        expect(hrefSetter).not.toHaveBeenCalled();
+        expect(mockLocation.href).toBe('');
         expect(screen.queryByTestId('test-component')).not.toBeInTheDocument();
       });
     });
@@ -677,20 +634,10 @@ describe('Auth Components', () => {
         protocol: 'https:',
         port: '',
         href: '',
-        _internalHref: '',
       };
 
-      const hrefSetter = jest.fn();
-      Object.defineProperty(mockLocation, 'href', {
-        get: () => mockLocation._internalHref,
-        set: hrefSetter,
-      });
-
-      Object.defineProperty(window, 'location', {
-        value: mockLocation,
-        writable: true,
-        configurable: true,
-      });
+      const { restore } = mockWindowLocation(mockLocation);
+      restoreLocation = restore;
 
       render(
         <MemoryRouter initialEntries={['/protected']}>
@@ -703,7 +650,7 @@ describe('Auth Components', () => {
       );
 
       await waitFor(() => {
-        expect(hrefSetter).toHaveBeenCalledWith('https://example.com');
+        expect(mockLocation.href).toBe('https://example.com');
         expect(screen.queryByTestId('test-component')).not.toBeInTheDocument();
       });
     });
@@ -1097,18 +1044,11 @@ describe('Auth Components', () => {
   });
 
   describe('getRootDomain', () => {
-    let originalLocation: Location;
-
-    beforeEach(() => {
-      originalLocation = window.location;
-    });
+    let restoreLocation: (() => void) | undefined;
 
     afterEach(() => {
-      Object.defineProperty(window, 'location', {
-        value: originalLocation,
-        writable: true,
-        configurable: true,
-      });
+      restoreLocation?.();
+      restoreLocation = undefined;
     });
 
     it('should handle Brazilian .com.br domains correctly', () => {
@@ -1118,11 +1058,8 @@ describe('Auth Components', () => {
         port: '',
       };
 
-      Object.defineProperty(window, 'location', {
-        value: mockLocation,
-        writable: true,
-        configurable: true,
-      });
+      const { restore } = mockWindowLocation(mockLocation);
+      restoreLocation = restore;
 
       const result = getRootDomain();
 
@@ -1136,11 +1073,8 @@ describe('Auth Components', () => {
         port: '',
       };
 
-      Object.defineProperty(window, 'location', {
-        value: mockLocation,
-        writable: true,
-        configurable: true,
-      });
+      const { restore } = mockWindowLocation(mockLocation);
+      restoreLocation = restore;
 
       const result = getRootDomain();
 
@@ -1154,11 +1088,8 @@ describe('Auth Components', () => {
         port: '',
       };
 
-      Object.defineProperty(window, 'location', {
-        value: mockLocation,
-        writable: true,
-        configurable: true,
-      });
+      const { restore } = mockWindowLocation(mockLocation);
+      restoreLocation = restore;
 
       const result = getRootDomain();
 
@@ -1172,11 +1103,8 @@ describe('Auth Components', () => {
         port: '3000',
       };
 
-      Object.defineProperty(window, 'location', {
-        value: mockLocation,
-        writable: true,
-        configurable: true,
-      });
+      const { restore } = mockWindowLocation(mockLocation);
+      restoreLocation = restore;
 
       const result = getRootDomain();
 
@@ -1190,11 +1118,8 @@ describe('Auth Components', () => {
         port: '',
       };
 
-      Object.defineProperty(window, 'location', {
-        value: mockLocation,
-        writable: true,
-        configurable: true,
-      });
+      const { restore } = mockWindowLocation(mockLocation);
+      restoreLocation = restore;
 
       const result = getRootDomain();
 
@@ -1208,11 +1133,8 @@ describe('Auth Components', () => {
         port: '',
       };
 
-      Object.defineProperty(window, 'location', {
-        value: mockLocation,
-        writable: true,
-        configurable: true,
-      });
+      const { restore } = mockWindowLocation(mockLocation);
+      restoreLocation = restore;
 
       const result = getRootDomain();
 
@@ -1226,11 +1148,8 @@ describe('Auth Components', () => {
         port: '8080',
       };
 
-      Object.defineProperty(window, 'location', {
-        value: mockLocation,
-        writable: true,
-        configurable: true,
-      });
+      const { restore } = mockWindowLocation(mockLocation);
+      restoreLocation = restore;
 
       const result = getRootDomain();
 
@@ -1244,11 +1163,8 @@ describe('Auth Components', () => {
         port: '3000',
       };
 
-      Object.defineProperty(window, 'location', {
-        value: mockLocation,
-        writable: true,
-        configurable: true,
-      });
+      const { restore } = mockWindowLocation(mockLocation);
+      restoreLocation = restore;
 
       const result = getRootDomain();
 
@@ -1262,11 +1178,8 @@ describe('Auth Components', () => {
         port: '',
       };
 
-      Object.defineProperty(window, 'location', {
-        value: mockLocation,
-        writable: true,
-        configurable: true,
-      });
+      const { restore } = mockWindowLocation(mockLocation);
+      restoreLocation = restore;
 
       const result = getRootDomain();
 
@@ -1280,11 +1193,8 @@ describe('Auth Components', () => {
         port: '3000',
       };
 
-      Object.defineProperty(window, 'location', {
-        value: mockLocation,
-        writable: true,
-        configurable: true,
-      });
+      const { restore } = mockWindowLocation(mockLocation);
+      restoreLocation = restore;
 
       const result = getRootDomain();
 
@@ -1298,11 +1208,8 @@ describe('Auth Components', () => {
         port: '',
       };
 
-      Object.defineProperty(window, 'location', {
-        value: mockLocation,
-        writable: true,
-        configurable: true,
-      });
+      const { restore } = mockWindowLocation(mockLocation);
+      restoreLocation = restore;
 
       const result = getRootDomain();
 
@@ -1316,11 +1223,8 @@ describe('Auth Components', () => {
         port: '',
       };
 
-      Object.defineProperty(window, 'location', {
-        value: mockLocation,
-        writable: true,
-        configurable: true,
-      });
+      const { restore } = mockWindowLocation(mockLocation);
+      restoreLocation = restore;
 
       const result = getRootDomain();
 
@@ -1335,11 +1239,8 @@ describe('Auth Components', () => {
         port: '',
       };
 
-      Object.defineProperty(window, 'location', {
-        value: mockLocation,
-        writable: true,
-        configurable: true,
-      });
+      const { restore } = mockWindowLocation(mockLocation);
+      restoreLocation = restore;
 
       const result = getRootDomain();
 
@@ -1353,11 +1254,8 @@ describe('Auth Components', () => {
         port: '',
       };
 
-      Object.defineProperty(window, 'location', {
-        value: mockLocation,
-        writable: true,
-        configurable: true,
-      });
+      const { restore } = mockWindowLocation(mockLocation);
+      restoreLocation = restore;
 
       const result = getRootDomain();
 
@@ -1371,11 +1269,8 @@ describe('Auth Components', () => {
         port: '',
       };
 
-      Object.defineProperty(window, 'location', {
-        value: mockLocation,
-        writable: true,
-        configurable: true,
-      });
+      const { restore } = mockWindowLocation(mockLocation);
+      restoreLocation = restore;
 
       const result = getRootDomain();
 

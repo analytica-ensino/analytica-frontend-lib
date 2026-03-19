@@ -166,7 +166,7 @@ const getDayStyles = (
   showActivities: boolean
 ) => {
   let dayStyle = '';
-  let textStyle = '';
+  let textStyle: string;
 
   if (variant === 'selection' && day.isSelected) {
     dayStyle = 'bg-primary-800';

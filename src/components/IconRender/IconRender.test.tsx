@@ -102,7 +102,7 @@ describe('IconRender', () => {
 
       const icon = getByTestId('mock-icon');
       expect(icon).toBeInTheDocument();
-      expect(icon).toHaveStyle({ color: 'currentColor' });
+      expect(icon).toHaveStyle({ color: 'canvastext' });
     });
 
     it('should preserve original ReactElement props when cloning', () => {
@@ -114,7 +114,7 @@ describe('IconRender', () => {
       const icon = getByTestId('mock-icon');
       expect(icon).toBeInTheDocument();
       expect(icon).toHaveAttribute('width', '32'); // Should override original size
-      expect(icon).toHaveStyle({ color: 'currentColor' }); // Should override original color
+      expect(icon).toHaveStyle({ color: 'canvastext' }); // Should override original color
     });
 
     it('should handle ReactElement with existing props', () => {
@@ -129,7 +129,7 @@ describe('IconRender', () => {
       const icon = getByTestId('mock-icon');
       expect(icon).toBeInTheDocument();
       expect(icon).toHaveAttribute('width', '40');
-      expect(icon).toHaveStyle({ color: 'currentColor' });
+      expect(icon).toHaveStyle({ color: 'canvastext' });
     });
 
     it('should handle complex ReactElement structures', () => {

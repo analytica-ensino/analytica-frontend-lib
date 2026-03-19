@@ -147,7 +147,6 @@ describe('useRecommendedLessonDetails', () => {
         {
           code: 'invalid_type',
           expected: 'string',
-          received: 'number',
           path: ['data', 'students'],
           message: 'Expected string, received number',
         },

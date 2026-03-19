@@ -2,6 +2,7 @@ import { renderHook, act } from '@testing-library/react';
 import { createUseNotifications } from './useNotifications';
 import type { NotificationApiClient } from '../types/notifications';
 import { NotificationEntityType } from '../types/notifications';
+import { mockWindowLocation } from '../test-utils/mockLocation';
 
 // Mock formatTimeAgo
 jest.mock('../store/notificationStore', () => {
@@ -27,6 +28,8 @@ describe('useNotifications', () => {
 
   const useNotifications = createUseNotifications(mockApiClient);
 
+  let restoreLocation: () => void;
+
   const mockStoreReturn = {
     notifications: [],
     unreadCount: 0,
@@ -49,10 +52,11 @@ describe('useNotifications', () => {
     mockStoreReturn.getGroupedNotifications.mockReturnValue([]);
 
     // Mock window.location.href
-    Object.defineProperty(window, 'location', {
-      value: { href: '' },
-      writable: true,
-    });
+    ({ restore: restoreLocation } = mockWindowLocation({ href: '' }));
+  });
+
+  afterEach(() => {
+    restoreLocation();
   });
 
   describe('State and Actions', () => {

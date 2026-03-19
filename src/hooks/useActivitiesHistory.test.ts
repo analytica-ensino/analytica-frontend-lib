@@ -178,7 +178,6 @@ describe('useActivitiesHistory', () => {
         {
           code: 'invalid_type',
           expected: 'string',
-          received: 'number',
           path: ['data', 'activities'],
           message: 'Expected string, received number',
         },
