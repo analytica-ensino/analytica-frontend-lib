@@ -4,6 +4,7 @@ import { CheckCircle, XCircle } from 'phosphor-react';
 import { cn } from '../../utils';
 import Text from '../../../components/Text/Text';
 import type { QuestionRendererProps } from '../types';
+import { stripHtmlTags } from '../../stringUtils';
 
 /**
  * Get status badge component
@@ -65,178 +66,160 @@ export const QuestionSubTitle = ({ subTitle }: { subTitle: string }) => {
 /**
  * Internal component for fill in the blanks question
  * Uses useId hook to generate unique IDs
+ *
+ * Data structure:
+ * - additionalContent: HTML text with {placeholderId} placeholders
+ * - fillAnswers: Record<placeholderId, selectedOptionId> (what student chose)
+ * - options: Array<{ id, option }> where id is placeholderId AND correct optionId
+ * - Correctness: selectedOptionId === placeholderId means correct
  */
 export const FillQuestionContent = ({
   question,
   result,
 }: QuestionRendererProps) => {
-  // Extract text from statement - it should contain {{placeholders}}
-  const text = question.statement || '';
   const baseId = useId();
 
-  // Parse student answer - assuming it's stored in result.answer as JSON or structured data
-  // For now, we'll need to extract from the answer field
-  // The answer might be structured or we need to parse placeholders from the statement
-  const studentAnswers: Record<
-    string,
-    { answer: string; isCorrect: boolean; correctAnswer: string }
-  > = {};
+  // Get additionalContent (contains HTML with {placeholderId} placeholders)
+  const additionalContent = result?.additionalContent || question.additionalContent || '';
 
-  // Try to parse answer if it's JSON, otherwise use empty object
-  try {
-    if (result?.answer) {
-      const parsed =
-        typeof result.answer === 'string'
-          ? JSON.parse(result.answer)
-          : result.answer;
-      if (typeof parsed === 'object') {
-        Object.assign(studentAnswers, parsed);
-      }
-    }
-  } catch (error) {
-    console.error('Error parsing answer:', error);
-  }
+  // Strip HTML tags for clean text rendering
+  const cleanText = stripHtmlTags(additionalContent);
 
-  // Extract placeholders from text
-  const regex = /\{\{([\p{L}\p{M}\d_]+)\}\}/gu;
-  const placeholders: string[] = [];
-  let match;
-  while ((match = regex.exec(text)) !== null) {
-    placeholders.push(match[1]);
-  }
+  // Get options array (id is placeholderId, option is the text)
+  const options = (result as { options?: Array<{ id: string; option: string; isCorrect: boolean }> })?.options || question.options || [];
 
-  // Build correct answers from studentAnswers - use the already-parsed correctAnswer field
-  const correctAnswers: Record<string, string> = {};
-  placeholders.forEach((placeholder) => {
-    correctAnswers[placeholder] =
-      studentAnswers[placeholder]?.correctAnswer || `[${placeholder}]`;
+  // Build a map of optionId -> option text for quick lookup
+  const optionTextMap: Record<string, string> = {};
+  options.forEach((opt) => {
+    optionTextMap[opt.id] = opt.option;
   });
 
-  /**
-   * Add text element to elements array
-   */
-  const addTextElement = (
-    elements: Array<{ element: string | ReactNode; id: string }>,
-    textContent: string,
-    elementCounter: { current: number }
-  ) => {
-    if (textContent) {
-      elements.push({
-        element: textContent,
-        id: `${baseId}-text-${++elementCounter.current}`,
-      });
+  // Get fillAnswers: Record<placeholderId, selectedOptionId>
+  const fillAnswers: Record<string, string> = {};
+  try {
+    const resultWithFill = result as { fillAnswers?: Record<string, string> | null };
+    if (resultWithFill?.fillAnswers) {
+      Object.assign(fillAnswers, resultWithFill.fillAnswers);
+    } else if (result?.answer) {
+      const parsed = typeof result.answer === 'string' ? JSON.parse(result.answer) : result.answer;
+      if (typeof parsed === 'object') {
+        Object.assign(fillAnswers, parsed);
+      }
     }
+  } catch {
+    // Ignore parse errors
+  }
+
+  // Helper to get option text by ID
+  const getOptionTextById = (optionId: string): string => {
+    return optionTextMap[optionId] || '';
   };
 
-  /**
-   * Render placeholder for gabarito (correct answer)
-   */
-  const renderGabaritoPlaceholder = (
-    selectId: string,
-    elementCounter: { current: number }
-  ): { element: ReactNode; id: string } => {
-    const correctAnswer = correctAnswers[selectId] || `[${selectId}]`;
-    return {
-      element: (
-        <Text
-          key={`${baseId}-gabarito-${selectId}`}
-          size="md"
-          weight="semibold"
-          color="text-success-600"
-          className="inline-flex mb-2.5 border-b-2 border-success-600"
-        >
-          {correctAnswer}
-        </Text>
-      ),
-      id: `${baseId}-gabarito-${++elementCounter.current}`,
-    };
+  // Check if answer is correct (selectedOptionId === placeholderId)
+  const isAnswerCorrect = (placeholderId: string): boolean => {
+    const selectedOptionId = fillAnswers[placeholderId];
+    return selectedOptionId === placeholderId;
   };
 
-  /**
-   * Render placeholder for student answer
-   */
-  const renderStudentPlaceholder = (
-    selectId: string,
-    elementCounter: { current: number }
-  ): { element: ReactNode; id: string } => {
-    const studentAnswer = studentAnswers[selectId];
-    if (!studentAnswer) {
-      return {
-        element: (
-          <Text
-            key={`${baseId}-no-answer-${selectId}`}
-            size="md"
-            weight="normal"
-            color="text-text-400"
-            className="inline-flex mb-2.5 border-b-2 border-text-300"
-          >
-            [Não respondido]
-          </Text>
-        ),
-        id: `${baseId}-no-answer-${++elementCounter.current}`,
-      };
+  // Render student answer badge
+  const renderStudentBadge = (placeholderId: string) => {
+    const selectedOptionId = fillAnswers[placeholderId];
+    const selectedOptionText = getOptionTextById(selectedOptionId);
+    const isCorrect = isAnswerCorrect(placeholderId);
+
+    if (!selectedOptionId) {
+      return (
+        <span className="inline-block align-middle mx-1 my-1">
+          <Badge variant="solid" action="error" iconRight={<XCircle />} size="large" className="py-1 px-2">
+            Não respondido
+          </Badge>
+        </span>
+      );
     }
 
-    const isCorrect = studentAnswer.isCorrect;
-    const colorClass = isCorrect
-      ? 'text-success-600 border-success-600'
-      : 'text-error-600 border-error-600';
-
-    return {
-      element: (
+    return (
+      <span className="inline-block align-middle mx-1 my-1">
         <Badge
-          key={`${baseId}-answer-${selectId}`}
           variant="solid"
           action={isCorrect ? 'success' : 'error'}
           iconRight={isCorrect ? <CheckCircle /> : <XCircle />}
           size="large"
-          className={`py-3 w-[180px] justify-between mb-2.5 ${colorClass}`}
+          className="py-1 px-2"
         >
-          <span className="text-text-900">{studentAnswer.answer}</span>
+          <span className="text-text-900">{selectedOptionText}</span>
         </Badge>
-      ),
-      id: `${baseId}-answer-${++elementCounter.current}`,
-    };
+      </span>
+    );
   };
 
-  /**
-   * Render text with answers or gabarito
-   */
-  const renderTextWithAnswers = (isGabarito = false) => {
+  // Render correct answer (gabarito)
+  const renderCorrectAnswer = (placeholderId: string) => {
+    // The placeholderId IS the correct option ID
+    const correctOptionText = getOptionTextById(placeholderId);
+    return (
+      <span className="inline mx-1 text-success-600 font-semibold border-b-2 border-success-600">
+        {correctOptionText}
+      </span>
+    );
+  };
+
+  // Parse text and render with elements
+  const renderTextWithElements = (text: string, isGabarito: boolean) => {
     const elements: Array<{ element: string | ReactNode; id: string }> = [];
     let lastIndex = 0;
-    const elementCounter = { current: 0 };
+    const nextId = () => elements.length;
 
-    regex.lastIndex = 0; // Reset regex
+    const regex = /\{([a-zA-Z0-9-]+)\}/g;
+    let match;
+
     while ((match = regex.exec(text)) !== null) {
-      const [fullMatch, selectId] = match;
+      const [fullMatch, placeholderId] = match;
       const startIndex = match.index;
 
       // Add text before placeholder
       if (startIndex > lastIndex) {
-        addTextElement(
-          elements,
-          text.slice(lastIndex, startIndex),
-          elementCounter
-        );
+        elements.push({
+          element: text.slice(lastIndex, startIndex),
+          id: `${baseId}-text-${nextId()}`,
+        });
       }
 
-      // Add placeholder element
-      const placeholderElement = isGabarito
-        ? renderGabaritoPlaceholder(selectId, elementCounter)
-        : renderStudentPlaceholder(selectId, elementCounter);
-      elements.push(placeholderElement);
+      // Add the appropriate element
+      if (isGabarito) {
+        elements.push({
+          element: renderCorrectAnswer(placeholderId),
+          id: `${baseId}-gabarito-${nextId()}`,
+        });
+      } else {
+        elements.push({
+          element: renderStudentBadge(placeholderId),
+          id: `${baseId}-student-${nextId()}`,
+        });
+      }
 
       lastIndex = match.index + fullMatch.length;
     }
 
-    // Add remaining text after last placeholder
+    // Add remaining text
     if (lastIndex < text.length) {
-      addTextElement(elements, text.slice(lastIndex), elementCounter);
+      elements.push({
+        element: text.slice(lastIndex),
+        id: `${baseId}-text-${nextId()}`,
+      });
     }
 
     return elements;
   };
+
+  if (!additionalContent) {
+    return (
+      <div className="pt-2">
+        <Text size="md" color="text-text-600" weight="normal">
+          Nenhum conteúdo disponível para esta questão.
+        </Text>
+      </div>
+    );
+  }
 
   return (
     <div className="pt-2 space-y-4">
@@ -245,18 +228,13 @@ export const FillQuestionContent = ({
           Resposta do aluno:
         </Text>
         <div className="p-3 bg-background-50 rounded-lg border border-border-100">
-          <div className="leading-8">
-            {renderTextWithAnswers(false).map((element) => (
-              <Text
-                key={element.id}
-                size="md"
-                weight="normal"
-                color="text-text-900"
-              >
+          <Text size="md" color="text-text-900" weight="normal" className="leading-[2.5]">
+            {renderTextWithElements(cleanText, false).map((element) => (
+              <span key={element.id} className="inline">
                 {element.element}
-              </Text>
+              </span>
             ))}
-          </div>
+          </Text>
         </div>
       </div>
 
@@ -265,18 +243,13 @@ export const FillQuestionContent = ({
           Gabarito:
         </Text>
         <div className="p-3 bg-background-50 rounded-lg border border-border-100">
-          <div className="leading-8">
-            {renderTextWithAnswers(true).map((element) => (
-              <Text
-                key={element.id}
-                size="md"
-                weight="normal"
-                color="text-text-900"
-              >
+          <Text size="md" color="text-text-900" weight="normal" className="leading-[2.5]">
+            {renderTextWithElements(cleanText, true).map((element) => (
+              <span key={element.id} className="inline">
                 {element.element}
-              </Text>
+              </span>
             ))}
-          </div>
+          </Text>
         </div>
       </div>
     </div>
