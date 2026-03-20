@@ -283,8 +283,18 @@ const QuizMultipleChoice = ({ paddingBottom }: QuizVariantInterface) => {
   const prevQuestionIdRef = useRef<string>('');
 
   // Memoize the answer IDs to prevent unnecessary re-renders
+  // For MULTIPLA_ESCOLHA, we now have a single answer entry with selectedOptionIds array
   const allCurrentAnswerIds = useMemo(() => {
-    return allCurrentAnswers?.map((answer) => answer.optionId) || [];
+    if (allCurrentAnswers && allCurrentAnswers.length > 0) {
+      // Use selectedOptionIds if available (new format)
+      const firstAnswer = allCurrentAnswers[0];
+      if (firstAnswer.selectedOptionIds) {
+        return firstAnswer.selectedOptionIds;
+      }
+      // Fallback to old format (multiple entries with optionId)
+      return allCurrentAnswers.map((answer) => answer.optionId);
+    }
+    return [];
   }, [allCurrentAnswers]);
 
   // Memoize the selected values to prevent infinite loops
@@ -887,8 +897,11 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
                       value={answer.dotOption || undefined}
                       onValueChange={(value) => handleSelectDot(index, value)}
                     >
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Selecione opção" />
+                      <SelectTrigger className="w-[180px] overflow-hidden">
+                        <SelectValue
+                          placeholder="Selecione opção"
+                          className="truncate block max-w-[140px]"
+                        />
                       </SelectTrigger>
 
                       <SelectContent>
@@ -899,8 +912,14 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
                               answer.dotOption === dot.label
                           )
                           .map((dot) => (
-                            <SelectItem key={dot.label} value={dot.label}>
-                              {dot.label}
+                            <SelectItem
+                              key={dot.label}
+                              value={dot.label}
+                              title={dot.label}
+                            >
+                              <span className="truncate block max-w-[200px]">
+                                {dot.label}
+                              </span>
                             </SelectItem>
                           ))}
                       </SelectContent>
@@ -1057,13 +1076,18 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
           value={selectedOptionId || undefined}
           onValueChange={(value) => handleSelectChange(placeholderId, value)}
         >
-          <SelectTrigger className="w-auto min-w-[120px] h-7 px-2 bg-background border-gray-300">
-            <SelectValue placeholder="Selecione opção" />
+          <SelectTrigger className="w-auto min-w-[120px] max-w-[200px] h-7 px-2 bg-background border-gray-300 overflow-hidden">
+            <SelectValue
+              placeholder="Selecione opção"
+              className="truncate block"
+            />
           </SelectTrigger>
           <SelectContent>
             {shuffledOptions.map((option) => (
-              <SelectItem key={option.id} value={option.id}>
-                {option.option}
+              <SelectItem key={option.id} value={option.id} title={option.option}>
+                <span className="truncate block max-w-[200px]">
+                  {option.option}
+                </span>
               </SelectItem>
             ))}
           </SelectContent>

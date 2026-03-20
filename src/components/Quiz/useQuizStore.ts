@@ -28,6 +28,7 @@ export enum QUESTION_TYPE {
 /**
  * Determines if a user answer has meaningful content.
  * For option-based questions: checks if optionId is not null
+ * For multiple choice questions: checks if selectedOptionIds has items
  * For free-text questions (DISSERTATIVA): checks if answer is non-empty string
  * For structured questions (RELACIONAR, PREENCHER_LACUNAS): checks if answer is valid JSON with values
  *
@@ -40,11 +41,20 @@ export const hasMeaningfulAnswer = (
         optionId: string | null;
         answer: string | null;
         questionType: QUESTION_TYPE;
+        selectedOptionIds?: string[] | null;
       }
     | null
     | undefined
 ): boolean => {
   if (!answer) return false;
+
+  // For MULTIPLA_ESCOLHA, check selectedOptionIds array
+  if (answer.questionType === QUESTION_TYPE.MULTIPLA_ESCOLHA) {
+    return (
+      Array.isArray(answer.selectedOptionIds) &&
+      answer.selectedOptionIds.length > 0
+    );
+  }
 
   // For free-text question types, check the answer field
   const freeTextTypes = [
@@ -241,6 +251,7 @@ export interface UserAnswerItem {
   userId: string;
   answer: string | null;
   optionId: string | null;
+  selectedOptionIds?: string[] | null;
   questionType: QUESTION_TYPE;
   answerStatus: ANSWER_STATUS;
 }
@@ -579,24 +590,20 @@ export const useQuizStore = create<QuizState>()(
             (answer) => answer.questionId !== questionId
           );
 
-          // Create new UserAnswerItem objects for each answerId
-          const newUserAnswers: UserAnswerItem[] = answerIds.map(
-            (answerId) => ({
-              questionId,
-              activityId,
-              userId,
-              answer: null, // selectMultipleAnswer is for non-dissertative questions
-              optionId: answerId, // selectMultipleAnswer should only set optionId
-              questionType: question.questionType,
-              answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
-            })
-          );
+          // Create a single UserAnswerItem with selectedOptionIds array
+          // This matches the backend API expected format for MULTIPLA_ESCOLHA
+          const newUserAnswer: UserAnswerItem = {
+            questionId,
+            activityId,
+            userId,
+            answer: null,
+            optionId: null,
+            selectedOptionIds: answerIds,
+            questionType: question.questionType,
+            answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
+          };
 
-          // Combine filtered answers with new answers
-          const updatedUserAnswers = [
-            ...filteredUserAnswers,
-            ...newUserAnswers,
-          ];
+          const updatedUserAnswers = [...filteredUserAnswers, newUserAnswer];
 
           set({
             userAnswers: updatedUserAnswers,
@@ -721,9 +728,13 @@ export const useQuizStore = create<QuizState>()(
           if (!currentQuestion) return;
 
           // Se não há resposta ou a resposta está vazia (null), marca como pulada
+          // Considera selectedOptionIds para MULTIPLA_ESCOLHA
           if (
             !currentAnswer ||
-            (currentAnswer.optionId === null && currentAnswer.answer === null)
+            (currentAnswer.optionId === null &&
+              currentAnswer.answer === null &&
+              (!currentAnswer.selectedOptionIds ||
+                currentAnswer.selectedOptionIds.length === 0))
           ) {
             skipQuestion();
           }
