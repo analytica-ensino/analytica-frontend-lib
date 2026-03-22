@@ -1240,16 +1240,15 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
     <>
       <QuizSubTitle subTitle="Preencha as lacunas" />
 
-      <QuizContainer className="h-auto pb-0">
-        <div className="px-4 h-auto">
+      <QuizContainer
+        className={cn('', variant !== QuizVariant.RESULT && paddingBottom)}
+      >
+        <div className="px-4">
           <Text
             size="lg"
             color="text-text-900"
             weight="normal"
-            className={cn(
-              'leading-[2.5]',
-              variant !== QuizVariant.RESULT && paddingBottom
-            )}
+            className="leading-[2.5]"
           >
             {renderHtmlWithSelects(additionalContent).map((element) => (
               <span key={element.id} className="inline">
@@ -1264,13 +1263,13 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
         <>
           <QuizSubTitle subTitle="Resposta correta" />
 
-          <QuizContainer className="h-auto pb-0">
+          <QuizContainer className={cn('', paddingBottom)}>
             <div className="px-4">
               <Text
                 size="lg"
                 color="text-text-900"
                 weight="normal"
-                className={cn('leading-[2.5]', paddingBottom)}
+                className="leading-[2.5]"
               >
                 {renderHtmlWithSelects(additionalContent, true).map(
                   (element) => (

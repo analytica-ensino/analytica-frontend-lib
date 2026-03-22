@@ -2251,10 +2251,9 @@ describe('QuizContent', () => {
     it('should have correct structure with container', () => {
       render(<QuizFill />);
 
-      // Should have the main container structure
-      const container = document.querySelector('.bg-background');
+      // Should have the main container structure (QuizContainer has rounded-t-xl)
+      const container = document.querySelector('.bg-background.rounded-t-xl');
       expect(container).toBeInTheDocument();
-      expect(container).toHaveClass('h-auto', 'pb-0');
     });
 
     it('should handle text parsing correctly', () => {
@@ -2333,10 +2332,8 @@ describe('QuizContent', () => {
       expect(screen.getByText('Preencha as lacunas')).toBeInTheDocument();
       expect(screen.getByText('Resposta correta')).toBeInTheDocument();
 
-      // Should have two QuizContainer elements
-      const containers = document.querySelectorAll(
-        '.bg-background.h-auto.pb-0'
-      );
+      // Should have two QuizContainer elements (bg-background is the container class)
+      const containers = document.querySelectorAll('.bg-background.rounded-t-xl');
       expect(containers).toHaveLength(2);
     });
 
