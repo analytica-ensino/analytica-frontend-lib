@@ -693,9 +693,9 @@ export const useQuizStore = create<QuizState>()(
               (answer) => answer.questionId === currentQuestion.id
             );
             const existingAnswer =
-              existingAnswerIndex !== -1
-                ? userAnswers[existingAnswerIndex]
-                : null;
+              existingAnswerIndex === -1
+                ? null
+                : userAnswers[existingAnswerIndex];
 
             // If the user already has an answer with meaningful content, preserve it
             if (hasMeaningfulAnswer(existingAnswer)) {
