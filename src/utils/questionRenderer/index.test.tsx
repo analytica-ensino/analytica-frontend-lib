@@ -1395,21 +1395,19 @@ describe('questionRenderer', () => {
         'O Brasil está localizado na {{continente}}.',
         QUESTION_TYPE.PREENCHER_LACUNAS,
         [{ id: 'opt1', option: 'América' }],
-        []
+        [],
+        'O Brasil está localizado na {opt1}.'
       );
       const result = createQuestionResult(
         'a1',
         'q1',
         ANSWER_STATUS.RESPOSTA_CORRETA,
-        JSON.stringify({
-          continente: {
-            answer: 'América',
-            isCorrect: true,
-            correctAnswer: 'América',
-          },
-        }),
+        null,
         [],
-        [{ id: 'opt1', option: 'América', isCorrect: true }]
+        [{ id: 'opt1', option: 'América', isCorrect: true }],
+        null,
+        'O Brasil está localizado na {opt1}.',
+        { opt1: 'opt1' }
       );
 
       const Wrapper = () => <>{renderQuestion({ question, result })}</>;

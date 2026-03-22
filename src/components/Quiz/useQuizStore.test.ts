@@ -392,9 +392,7 @@ describe('useQuizStore', () => {
       const userAnswers = result.current.getUserAnswers();
       expect(userAnswers).toHaveLength(1); // Single entry with selectedOptionIds array
 
-      const q1Answer = userAnswers.find(
-        (answer) => answer.questionId === 'q1'
-      );
+      const q1Answer = userAnswers.find((a) => a.questionId === 'q1');
       expect(q1Answer).toBeDefined();
       expect(q1Answer?.selectedOptionIds).toEqual(['opt1', 'opt3']);
       expect(q1Answer?.optionId).toBeNull();
@@ -415,9 +413,7 @@ describe('useQuizStore', () => {
       const userAnswers = result.current.getUserAnswers();
       expect(userAnswers).toHaveLength(1); // Single entry with selectedOptionIds array (replaced the single answer)
 
-      const q1Answer = userAnswers.find(
-        (answer) => answer.questionId === 'q1'
-      );
+      const q1Answer = userAnswers.find((a) => a.questionId === 'q1');
       expect(q1Answer).toBeDefined();
       expect(q1Answer?.selectedOptionIds).toEqual(['opt2', 'opt4']);
       expect(q1Answer?.optionId).toBeNull(); // Should not have individual optionId
@@ -456,6 +452,7 @@ describe('useQuizStore', () => {
       const q1Answer = userAnswers.find((answer) => answer.questionId === 'q1');
       expect(q1Answer).toBeDefined();
       expect(q1Answer?.selectedOptionIds).toEqual([]); // Empty array for q1
+      expect(q1Answer?.optionId).toBeNull(); // optionId should be cleared
 
       const q2Answer = userAnswers.find((answer) => answer.questionId === 'q2');
       expect(q2Answer?.optionId).toBe('opt2'); // q2 answer should remain unchanged
@@ -525,7 +522,7 @@ describe('useQuizStore', () => {
       expect(skippedQuestion?.optionId).toBe(null);
     });
 
-    it('should handle existingAnswerIndex logic when skipping a previously answered question', () => {
+    it('should preserve existing answer when skipping a previously answered question', () => {
       const { result } = renderQuizStoreHook();
 
       act(() => {
@@ -541,25 +538,65 @@ describe('useQuizStore', () => {
       // Get the initial user answer to verify structure
       let userAnswerItem = result.current.getUserAnswerByQuestionId('q1');
       expect(userAnswerItem?.optionId).toBe('opt1');
-      expect(userAnswerItem?.optionId).toBe('opt1');
 
-      // Now skip the same question (this tests line 269 - existingAnswerIndex logic)
+      // Now skip the same question - should preserve the existing answer
       act(() => {
         result.current.skipQuestion();
       });
 
-      // Verify the question is now skipped
-      expect(result.current.isQuestionSkipped('q1')).toBe(true);
+      // Verify the question is still answered (not skipped) because it has content
+      expect(result.current.isQuestionAnswered('q1')).toBe(true);
+      expect(result.current.isQuestionSkipped('q1')).toBe(false);
 
-      // Verify that the existing answer was updated (not added as new)
+      // Verify the existing answer was preserved
       userAnswerItem = result.current.getUserAnswerByQuestionId('q1');
 
-      // Should have the same question in userAnswers array (updated, not duplicated)
+      // Should have the same question in userAnswers array (not duplicated, not cleared)
       const userAnswers = result.current.getUserAnswers();
-      expect(userAnswers).toHaveLength(1); // Apenas as respondidas/skipped
-      expect(userAnswerItem?.answer).toBe(null); // Answer was set to null
-      expect(userAnswerItem?.optionId).toBe(null); // OptionId was set to null
-      expect(result.current.isQuestionSkipped('q1')).toBe(true); // Question is now skipped
+      expect(userAnswers).toHaveLength(1);
+      expect(userAnswerItem?.optionId).toBe('opt1'); // Answer was preserved
+    });
+
+    it('should preserve MULTIPLA_ESCOLHA answers when skipping', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setQuiz({
+          ...mockSimulado,
+          questions: [
+            {
+              ...mockQuestion1,
+              questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
+              options: [
+                { id: 'opt1', option: 'Option 1', isCorrect: true },
+                { id: 'opt2', option: 'Option 2', isCorrect: false },
+                { id: 'opt3', option: 'Option 3', isCorrect: true },
+              ],
+            },
+          ],
+        });
+        result.current.setUserId('test-user-id');
+        // Answer with multiple selections
+        result.current.selectMultipleAnswer('q1', ['opt1', 'opt3']);
+      });
+
+      // Verify the question is answered
+      expect(result.current.isQuestionAnswered('q1')).toBe(true);
+      let userAnswerItem = result.current.getUserAnswerByQuestionId('q1');
+      expect(userAnswerItem?.selectedOptionIds).toEqual(['opt1', 'opt3']);
+
+      // Now skip the same question - should preserve the existing answer
+      act(() => {
+        result.current.skipQuestion();
+      });
+
+      // Verify the question is still answered (not skipped)
+      expect(result.current.isQuestionAnswered('q1')).toBe(true);
+      expect(result.current.isQuestionSkipped('q1')).toBe(false);
+
+      // Verify the existing answer was preserved
+      userAnswerItem = result.current.getUserAnswerByQuestionId('q1');
+      expect(userAnswerItem?.selectedOptionIds).toEqual(['opt1', 'opt3']);
     });
 
     it('should remove from skipped when answering', () => {
@@ -3037,8 +3074,7 @@ describe('useQuizStore', () => {
       result: ReturnType<typeof renderQuizStoreHook>['result']
     ) => {
       result.current.setUserId('test-user-id');
-      result.current.selectAnswer('q1', 'opt1'); // Answered
-      result.current.skipQuestion(); // Skip current question (q1 again, should update)
+      result.current.skipQuestion(); // Skip q1 (no previous answer)
       result.current.goToNextQuestion(); // Go to q2
       result.current.skipQuestion(); // Skip q2
     };

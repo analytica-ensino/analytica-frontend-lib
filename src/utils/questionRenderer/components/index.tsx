@@ -110,9 +110,10 @@ export const FillQuestionContent = ({
     // Ignore parse errors
   }
 
-  // Helper to get option text by ID
-  const getOptionTextById = (optionId: string): string => {
-    return optionTextMap[optionId] || '';
+  // Helper to get option text by ID - returns null if not found
+  const getOptionTextById = (optionId: string): string | null => {
+    if (!optionId) return null;
+    return optionTextMap[optionId] ?? null;
   };
 
   // Check if answer is correct (selectedOptionId === placeholderId)
@@ -137,6 +138,9 @@ export const FillQuestionContent = ({
       );
     }
 
+    // Handle case where option ID exists but text is not found
+    const displayText = selectedOptionText ?? 'Opção não encontrada';
+
     return (
       <span className="inline-block align-middle mx-1 my-1">
         <Badge
@@ -146,7 +150,7 @@ export const FillQuestionContent = ({
           size="large"
           className="py-1 px-2"
         >
-          <span className="text-text-900">{selectedOptionText}</span>
+          <span className="text-text-900">{displayText}</span>
         </Badge>
       </span>
     );
@@ -156,9 +160,10 @@ export const FillQuestionContent = ({
   const renderCorrectAnswer = (placeholderId: string) => {
     // The placeholderId IS the correct option ID
     const correctOptionText = getOptionTextById(placeholderId);
+    const displayText = correctOptionText ?? '[Resposta não disponível]';
     return (
       <span className="inline mx-1 text-success-600 font-semibold border-b-2 border-success-600">
-        {correctOptionText}
+        {displayText}
       </span>
     );
   };

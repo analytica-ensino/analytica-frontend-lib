@@ -692,7 +692,16 @@ export const useQuizStore = create<QuizState>()(
             const existingAnswerIndex = userAnswers.findIndex(
               (answer) => answer.questionId === currentQuestion.id
             );
+            const existingAnswer =
+              existingAnswerIndex !== -1 ? userAnswers[existingAnswerIndex] : null;
 
+            // If the user already has an answer with meaningful content, preserve it
+            if (hasMeaningfulAnswer(existingAnswer)) {
+              // Keep existing answers - don't overwrite with empty skip
+              return;
+            }
+
+            // Create empty "skipped" entry
             const newUserAnswer: UserAnswerItem = {
               questionId: currentQuestion.id,
               activityId,
@@ -705,11 +714,11 @@ export const useQuizStore = create<QuizState>()(
 
             let updatedUserAnswers;
             if (existingAnswerIndex !== -1) {
-              // Update existing answer
+              // Update existing empty entry to proper "skipped" format
               updatedUserAnswers = [...userAnswers];
               updatedUserAnswers[existingAnswerIndex] = newUserAnswer;
             } else {
-              // Add new answer
+              // Add new skipped entry
               updatedUserAnswers = [...userAnswers, newUserAnswer];
             }
 
