@@ -80,13 +80,21 @@ export const FillQuestionContent = ({
   const baseId = useId();
 
   // Get additionalContent (contains HTML with {placeholderId} placeholders)
-  const additionalContent = result?.additionalContent || question.additionalContent || '';
+  const additionalContent =
+    result?.additionalContent || question.additionalContent || '';
 
   // Strip HTML tags for clean text rendering
   const cleanText = stripHtmlTags(additionalContent);
 
   // Get options array (id is placeholderId, option is the text)
-  const options = (result as { options?: Array<{ id: string; option: string; isCorrect: boolean }> })?.options || question.options || [];
+  const options =
+    (
+      result as {
+        options?: Array<{ id: string; option: string; isCorrect: boolean }>;
+      }
+    )?.options ||
+    question.options ||
+    [];
 
   // Build a map of optionId -> option text for quick lookup
   const optionTextMap: Record<string, string> = {};
@@ -97,11 +105,16 @@ export const FillQuestionContent = ({
   // Get fillAnswers: Record<placeholderId, selectedOptionId>
   const fillAnswers: Record<string, string> = {};
   try {
-    const resultWithFill = result as { fillAnswers?: Record<string, string> | null };
+    const resultWithFill = result as {
+      fillAnswers?: Record<string, string> | null;
+    };
     if (resultWithFill?.fillAnswers) {
       Object.assign(fillAnswers, resultWithFill.fillAnswers);
     } else if (result?.answer) {
-      const parsed = typeof result.answer === 'string' ? JSON.parse(result.answer) : result.answer;
+      const parsed =
+        typeof result.answer === 'string'
+          ? JSON.parse(result.answer)
+          : result.answer;
       if (typeof parsed === 'object') {
         Object.assign(fillAnswers, parsed);
       }
@@ -131,7 +144,13 @@ export const FillQuestionContent = ({
     if (!selectedOptionId) {
       return (
         <span className="inline-block align-middle mx-1 my-1">
-          <Badge variant="solid" action="error" iconRight={<XCircle />} size="large" className="py-1 px-2">
+          <Badge
+            variant="solid"
+            action="error"
+            iconRight={<XCircle />}
+            size="large"
+            className="py-1 px-2"
+          >
             Não respondido
           </Badge>
         </span>
@@ -233,7 +252,12 @@ export const FillQuestionContent = ({
           Resposta do aluno:
         </Text>
         <div className="p-3 bg-background-50 rounded-lg border border-border-100">
-          <Text size="md" color="text-text-900" weight="normal" className="leading-[2.5]">
+          <Text
+            size="md"
+            color="text-text-900"
+            weight="normal"
+            className="leading-[2.5]"
+          >
             {renderTextWithElements(cleanText, false).map((element) => (
               <span key={element.id} className="inline">
                 {element.element}
@@ -248,7 +272,12 @@ export const FillQuestionContent = ({
           Gabarito:
         </Text>
         <div className="p-3 bg-background-50 rounded-lg border border-border-100">
-          <Text size="md" color="text-text-900" weight="normal" className="leading-[2.5]">
+          <Text
+            size="md"
+            color="text-text-900"
+            weight="normal"
+            className="leading-[2.5]"
+          >
             {renderTextWithElements(cleanText, true).map((element) => (
               <span key={element.id} className="inline">
                 {element.element}
