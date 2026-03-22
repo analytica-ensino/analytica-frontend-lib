@@ -568,10 +568,11 @@ describe('useQuizStore', () => {
               ...mockQuestion1,
               questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
               options: [
-                { id: 'opt1', option: 'Option 1', isCorrect: true },
-                { id: 'opt2', option: 'Option 2', isCorrect: false },
-                { id: 'opt3', option: 'Option 3', isCorrect: true },
+                { id: 'opt1', option: 'Option 1' },
+                { id: 'opt2', option: 'Option 2' },
+                { id: 'opt3', option: 'Option 3' },
               ],
+              correctOptionIds: ['opt1', 'opt3'],
             },
           ],
         });
