@@ -304,6 +304,13 @@ const QuizMultipleChoice = ({ paddingBottom }: QuizVariantInterface) => {
 
   // Only update selectedValues if they actually changed or question changed
   const stableSelectedValues = useMemo(() => {
+    // In result mode, always use selectedOptions from the question result
+    if (variant === QuizVariant.RESULT) {
+      return (
+        currentQuestionResult?.selectedOptions?.map((op) => op.optionId) || []
+      );
+    }
+
     const currentQuestionId = currentQuestion?.id || '';
     const hasQuestionChanged = prevQuestionIdRef.current !== currentQuestionId;
 
@@ -322,13 +329,7 @@ const QuizMultipleChoice = ({ paddingBottom }: QuizVariantInterface) => {
       return selectedValues;
     }
 
-    if (variant == 'result') {
-      return (
-        currentQuestionResult?.selectedOptions.map((op) => op.optionId) || []
-      );
-    } else {
-      return prevSelectedValuesRef.current;
-    }
+    return prevSelectedValuesRef.current;
   }, [
     selectedValues,
     currentQuestion?.id,
