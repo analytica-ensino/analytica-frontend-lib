@@ -2333,7 +2333,9 @@ describe('QuizContent', () => {
       expect(screen.getByText('Resposta correta')).toBeInTheDocument();
 
       // Should have two QuizContainer elements (bg-background is the container class)
-      const containers = document.querySelectorAll('.bg-background.rounded-t-xl');
+      const containers = document.querySelectorAll(
+        '.bg-background.rounded-t-xl'
+      );
       expect(containers).toHaveLength(2);
     });
 
