@@ -601,12 +601,13 @@ export const useQuizStore = create<QuizState>()(
 
           // Create a single UserAnswerItem with selectedOptionIds array
           // This matches the backend API expected format for MULTIPLA_ESCOLHA
+          // Also set optionId to first selection for backward compatibility
           const newUserAnswer: UserAnswerItem = {
             questionId,
             activityId,
             userId,
             answer: null,
-            optionId: null,
+            optionId: answerIds.length > 0 ? answerIds[0] : null,
             selectedOptionIds: answerIds,
             questionType: question.questionType,
             answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
