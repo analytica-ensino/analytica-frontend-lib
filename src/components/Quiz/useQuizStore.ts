@@ -48,11 +48,12 @@ export const hasMeaningfulAnswer = (
 ): boolean => {
   if (!answer) return false;
 
-  // For MULTIPLA_ESCOLHA, check selectedOptionIds array
+  // For MULTIPLA_ESCOLHA, check selectedOptionIds array or legacy optionId
   if (answer.questionType === QUESTION_TYPE.MULTIPLA_ESCOLHA) {
     return (
-      Array.isArray(answer.selectedOptionIds) &&
-      answer.selectedOptionIds.length > 0
+      (Array.isArray(answer.selectedOptionIds) &&
+        answer.selectedOptionIds.length > 0) ||
+      Boolean(answer.optionId)
     );
   }
 
@@ -589,6 +590,14 @@ export const useQuizStore = create<QuizState>()(
           const filteredUserAnswers = userAnswers.filter(
             (answer) => answer.questionId !== questionId
           );
+
+          // Don't persist empty MULTIPLA_ESCOLHA answers
+          if (answerIds.length === 0) {
+            set({
+              userAnswers: filteredUserAnswers,
+            });
+            return;
+          }
 
           // Create a single UserAnswerItem with selectedOptionIds array
           // This matches the backend API expected format for MULTIPLA_ESCOLHA

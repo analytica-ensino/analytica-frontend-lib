@@ -898,7 +898,10 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
                       value={answer.dotOption || undefined}
                       onValueChange={(value) => handleSelectDot(index, value)}
                     >
-                      <SelectTrigger className="w-[180px] overflow-hidden truncate">
+                      <SelectTrigger
+                        className="w-[180px] overflow-hidden truncate"
+                        title={answer.dotOption || undefined}
+                      >
                         <SelectValue placeholder="Selecione opção" />
                       </SelectTrigger>
 
@@ -1074,7 +1077,12 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
           value={selectedOptionId || undefined}
           onValueChange={(value) => handleSelectChange(placeholderId, value)}
         >
-          <SelectTrigger className="w-auto min-w-[120px] max-w-[200px] h-7 px-2 bg-background border-gray-300 overflow-hidden truncate">
+          <SelectTrigger
+            className="w-auto min-w-[120px] max-w-[200px] h-7 px-2 bg-background border-gray-300 overflow-hidden truncate"
+            title={
+              shuffledOptions.find((o) => o.id === selectedOptionId)?.option
+            }
+          >
             <SelectValue placeholder="Selecione opção" />
           </SelectTrigger>
           <SelectContent>

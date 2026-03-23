@@ -80,8 +80,12 @@ export const FillQuestionContent = ({
   const baseId = useId();
 
   // Get additionalContent (contains HTML with {placeholderId} placeholders)
+  // Falls back to question.statement for older questions that may not have additionalContent
   const additionalContent =
-    result?.additionalContent || question.additionalContent || '';
+    result?.additionalContent ||
+    question.additionalContent ||
+    question.statement ||
+    '';
 
   // Strip HTML tags for clean text rendering
   const cleanText = stripHtmlTags(additionalContent);

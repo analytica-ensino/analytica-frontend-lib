@@ -598,6 +598,12 @@ describe('useQuizStore', () => {
       // Verify the existing answer was preserved
       userAnswerItem = result.current.getUserAnswerByQuestionId('q1');
       expect(userAnswerItem?.selectedOptionIds).toEqual(['opt1', 'opt3']);
+
+      // Verify no duplicate answer rows were created
+      const q1Answers = result.current
+        .getUserAnswers()
+        .filter((a) => a.questionId === 'q1');
+      expect(q1Answers.length).toBe(1);
     });
 
     it('should remove from skipped when answering', () => {
