@@ -395,7 +395,7 @@ describe('useQuizStore', () => {
       const q1Answer = userAnswers.find((a) => a.questionId === 'q1');
       expect(q1Answer).toBeDefined();
       expect(q1Answer?.selectedOptionIds).toEqual(['opt1', 'opt3']);
-      expect(q1Answer?.optionId).toBeNull();
+      expect(q1Answer?.optionId).toBe('opt1');
     });
 
     it('should replace existing answers when selecting multiple answers for the same question', () => {
@@ -416,7 +416,7 @@ describe('useQuizStore', () => {
       const q1Answer = userAnswers.find((a) => a.questionId === 'q1');
       expect(q1Answer).toBeDefined();
       expect(q1Answer?.selectedOptionIds).toEqual(['opt2', 'opt4']);
-      expect(q1Answer?.optionId).toBeNull(); // Should not have individual optionId
+      expect(q1Answer?.optionId).toBe('opt2');
     });
 
     it('should return early when selectMultipleAnswer is called without userId set', () => {
@@ -442,17 +442,15 @@ describe('useQuizStore', () => {
         // First, select some answers
         result.current.selectAnswer('q1', 'opt1');
         result.current.selectAnswer('q2', 'opt2');
-        // Then, select multiple answers with empty array (creates entry with empty selectedOptionIds)
+        // Then, select multiple answers with empty array (removes the q1 entry)
         result.current.selectMultipleAnswer('q1', []);
       });
 
       const userAnswers = result.current.getUserAnswers();
-      expect(userAnswers).toHaveLength(2); // q1 with empty selectedOptionIds and q2
+      expect(userAnswers).toHaveLength(1); // Only q2 remains, q1 was removed
 
       const q1Answer = userAnswers.find((answer) => answer.questionId === 'q1');
-      expect(q1Answer).toBeDefined();
-      expect(q1Answer?.selectedOptionIds).toEqual([]); // Empty array for q1
-      expect(q1Answer?.optionId).toBeNull(); // optionId should be cleared
+      expect(q1Answer).toBeUndefined(); // q1 entry should be removed when empty array is passed
 
       const q2Answer = userAnswers.find((answer) => answer.questionId === 'q2');
       expect(q2Answer?.optionId).toBe('opt2'); // q2 answer should remain unchanged
@@ -2236,7 +2234,7 @@ describe('useQuizStore', () => {
       expect(allCurrentAnswer).toHaveLength(1);
       expect(allCurrentAnswer?.[0].questionId).toBe('q1');
       expect(allCurrentAnswer?.[0].selectedOptionIds).toEqual(['opt1', 'opt3']);
-      expect(allCurrentAnswer?.[0].optionId).toBeNull();
+      expect(allCurrentAnswer?.[0].optionId).toBe('opt1');
     });
 
     it('should return skipped answer for current question when question is skipped', () => {

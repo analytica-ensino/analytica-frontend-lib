@@ -886,8 +886,14 @@ export const useQuizStore = create<QuizState>()(
 
         getAnsweredQuestions: () => {
           const { userAnswers } = get();
-          return userAnswers.filter((answer) => hasMeaningfulAnswer(answer))
-            .length;
+          // Use Set to dedupe by questionId - handles legacy data that may have
+          // multiple rows per question (e.g., old MULTIPLA_ESCOLHA format)
+          const answeredQuestionIds = new Set(
+            userAnswers
+              .filter((answer) => hasMeaningfulAnswer(answer))
+              .map((answer) => answer.questionId)
+          );
+          return answeredQuestionIds.size;
         },
 
         getUnansweredQuestions: () => {
@@ -913,8 +919,13 @@ export const useQuizStore = create<QuizState>()(
 
         getSkippedQuestions: () => {
           const { userAnswers } = get();
-          return userAnswers.filter((answer) => !hasMeaningfulAnswer(answer))
-            .length;
+          // Use Set to dedupe by questionId for consistency with getAnsweredQuestions
+          const skippedQuestionIds = new Set(
+            userAnswers
+              .filter((answer) => !hasMeaningfulAnswer(answer))
+              .map((answer) => answer.questionId)
+          );
+          return skippedQuestionIds.size;
         },
 
         getProgress: () => {
