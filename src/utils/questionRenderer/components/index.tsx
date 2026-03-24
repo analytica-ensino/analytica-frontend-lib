@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from 'react';
+import { Fragment, useId, type ReactNode } from 'react';
 import Badge from '../../../components/Badge/Badge';
 import { CheckCircle, XCircle } from 'phosphor-react';
 import { cn } from '../../utils';
@@ -257,14 +257,15 @@ export const FillQuestionContent = ({
         </Text>
         <div className="p-3 bg-background-50 rounded-lg border border-border-100">
           <Text
+            as="div"
             size="md"
             color="text-text-900"
             weight="normal"
             className="leading-[2.5] *:inline"
           >
-            {renderTextWithElements(cleanText, false).map(
-              (element) => element.element
-            )}
+            {renderTextWithElements(cleanText, false).map((element) => (
+              <Fragment key={element.id}>{element.element}</Fragment>
+            ))}
           </Text>
         </div>
       </div>
@@ -275,14 +276,15 @@ export const FillQuestionContent = ({
         </Text>
         <div className="p-3 bg-background-50 rounded-lg border border-border-100">
           <Text
+            as="div"
             size="md"
             color="text-text-900"
             weight="normal"
             className="leading-[2.5] *:inline"
           >
-            {renderTextWithElements(cleanText, true).map(
-              (element) => element.element
-            )}
+            {renderTextWithElements(cleanText, true).map((element) => (
+              <Fragment key={element.id}>{element.element}</Fragment>
+            ))}
           </Text>
         </div>
       </div>

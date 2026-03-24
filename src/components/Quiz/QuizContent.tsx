@@ -1,4 +1,5 @@
 import {
+  Fragment,
   forwardRef,
   MouseEvent,
   ReactNode,
@@ -1252,14 +1253,15 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
       >
         <div className="px-4">
           <Text
+            as="div"
             size="lg"
             color="text-text-900"
             weight="normal"
             className="leading-[2.5] *:inline"
           >
-            {renderHtmlWithSelects(additionalContent).map(
-              (element) => element.element
-            )}
+            {renderHtmlWithSelects(additionalContent).map((element) => (
+              <Fragment key={element.id}>{element.element}</Fragment>
+            ))}
           </Text>
         </div>
       </QuizContainer>
@@ -1271,13 +1273,16 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
           <QuizContainer className={cn('', paddingBottom)}>
             <div className="px-4">
               <Text
+                as="div"
                 size="lg"
                 color="text-text-900"
                 weight="normal"
                 className="leading-[2.5] *:inline"
               >
                 {renderHtmlWithSelects(additionalContent, true).map(
-                  (element) => element.element
+                  (element) => (
+                    <Fragment key={element.id}>{element.element}</Fragment>
+                  )
                 )}
               </Text>
             </div>
