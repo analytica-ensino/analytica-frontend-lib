@@ -442,15 +442,15 @@ describe('useQuizStore', () => {
         // First, select some answers
         result.current.selectAnswer('q1', 'opt1');
         result.current.selectAnswer('q2', 'opt2');
-        // Then, select multiple answers with empty array (removes the q1 entry)
+        // Then, clear all selections for q1
         result.current.selectMultipleAnswer('q1', []);
       });
 
       const userAnswers = result.current.getUserAnswers();
-      expect(userAnswers).toHaveLength(1); // Only q2 remains, q1 was removed
+      expect(userAnswers).toHaveLength(1); // only q2 remains
 
       const q1Answer = userAnswers.find((answer) => answer.questionId === 'q1');
-      expect(q1Answer).toBeUndefined(); // q1 entry should be removed when empty array is passed
+      expect(q1Answer).toBeUndefined();
 
       const q2Answer = userAnswers.find((answer) => answer.questionId === 'q2');
       expect(q2Answer?.optionId).toBe('opt2'); // q2 answer should remain unchanged
