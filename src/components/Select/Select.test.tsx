@@ -389,8 +389,12 @@ describe('Select component', () => {
 
     await userEvent.click(screen.getByRole('button'));
 
-    const disabledItem = screen.getByText('Disabled Option').closest('[role="menuitem"]');
-    const enabledItem = screen.getByText('Enabled Option').closest('[role="menuitem"]');
+    const disabledItem = screen
+      .getByText('Disabled Option')
+      .closest('[role="menuitem"]');
+    const enabledItem = screen
+      .getByText('Enabled Option')
+      .closest('[role="menuitem"]');
 
     expect(disabledItem).toHaveAttribute('tabindex', '-1');
     expect(enabledItem).toHaveAttribute('tabindex', '0');
