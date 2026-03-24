@@ -146,7 +146,8 @@ describe('Select component', () => {
     expect(screen.queryByDisplayValue('Option 3')).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole('button'));
     await userEvent.click(screen.getByText('Option 3'));
-    expect(screen.queryByText('Option 3')).toHaveClass('pointer-events-none');
+    const menuItem = screen.getByText('Option 3').closest('[role="menuitem"]');
+    expect(menuItem).toHaveClass('pointer-events-none');
     expect(screen.queryByDisplayValue('Option 3')).not.toBeInTheDocument();
   });
 
@@ -334,7 +335,7 @@ describe('Select component', () => {
     );
 
     await userEvent.click(screen.getByRole('button'));
-    const item = screen.getByText('Option 1');
+    const item = screen.getByText('Option 1').closest('[role="menuitem"]');
     expect(item).toHaveClass('custom-class');
   });
 
@@ -388,8 +389,8 @@ describe('Select component', () => {
 
     await userEvent.click(screen.getByRole('button'));
 
-    const disabledItem = screen.getByText('Disabled Option');
-    const enabledItem = screen.getByText('Enabled Option');
+    const disabledItem = screen.getByText('Disabled Option').closest('[role="menuitem"]');
+    const enabledItem = screen.getByText('Enabled Option').closest('[role="menuitem"]');
 
     expect(disabledItem).toHaveAttribute('tabindex', '-1');
     expect(enabledItem).toHaveAttribute('tabindex', '0');

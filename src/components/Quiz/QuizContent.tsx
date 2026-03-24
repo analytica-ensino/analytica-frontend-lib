@@ -917,10 +917,9 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
                               key={dot.label}
                               value={dot.label}
                               title={dot.label}
+                              truncate
                             >
-                              <span className="truncate block max-w-[200px]">
-                                {dot.label}
-                              </span>
+                              {dot.label}
                             </SelectItem>
                           ))}
                       </SelectContent>
@@ -1091,10 +1090,9 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
                 key={option.id}
                 value={option.id}
                 title={option.option}
+                truncate
               >
-                <span className="truncate block max-w-[200px]">
-                  {option.option}
-                </span>
+                {option.option}
               </SelectItem>
             ))}
           </SelectContent>
@@ -1257,13 +1255,11 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
             size="lg"
             color="text-text-900"
             weight="normal"
-            className="leading-[2.5]"
+            className="leading-[2.5] *:inline"
           >
-            {renderHtmlWithSelects(additionalContent).map((element) => (
-              <span key={element.id} className="inline">
-                {element.element}
-              </span>
-            ))}
+            {renderHtmlWithSelects(additionalContent).map(
+              (element) => element.element
+            )}
           </Text>
         </div>
       </QuizContainer>
@@ -1278,14 +1274,10 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
                 size="lg"
                 color="text-text-900"
                 weight="normal"
-                className="leading-[2.5]"
+                className="leading-[2.5] *:inline"
               >
                 {renderHtmlWithSelects(additionalContent, true).map(
-                  (element) => (
-                    <span key={element.id} className="inline">
-                      {element.element}
-                    </span>
-                  )
+                  (element) => element.element
                 )}
               </Text>
             </div>

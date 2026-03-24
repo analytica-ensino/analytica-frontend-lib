@@ -173,7 +173,7 @@ export const FillQuestionContent = ({
           size="large"
           className="py-1 px-2"
         >
-          <span className="text-text-900">{displayText}</span>
+          {displayText}
         </Badge>
       </span>
     );
@@ -260,13 +260,11 @@ export const FillQuestionContent = ({
             size="md"
             color="text-text-900"
             weight="normal"
-            className="leading-[2.5]"
+            className="leading-[2.5] *:inline"
           >
-            {renderTextWithElements(cleanText, false).map((element) => (
-              <span key={element.id} className="inline">
-                {element.element}
-              </span>
-            ))}
+            {renderTextWithElements(cleanText, false).map(
+              (element) => element.element
+            )}
           </Text>
         </div>
       </div>
@@ -280,13 +278,11 @@ export const FillQuestionContent = ({
             size="md"
             color="text-text-900"
             weight="normal"
-            className="leading-[2.5]"
+            className="leading-[2.5] *:inline"
           >
-            {renderTextWithElements(cleanText, true).map((element) => (
-              <span key={element.id} className="inline">
-                {element.element}
-              </span>
-            ))}
+            {renderTextWithElements(cleanText, true).map(
+              (element) => element.element
+            )}
           </Text>
         </div>
       </div>
