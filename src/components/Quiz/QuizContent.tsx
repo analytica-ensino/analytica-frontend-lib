@@ -287,10 +287,12 @@ const QuizMultipleChoice = ({ paddingBottom }: QuizVariantInterface) => {
   // For MULTIPLA_ESCOLHA, we now have a single answer entry with selectedOptionIds array
   const allCurrentAnswerIds = useMemo(() => {
     if (allCurrentAnswers && allCurrentAnswers.length > 0) {
-      // Use selectedOptionIds if available (new format)
-      const firstAnswer = allCurrentAnswers[0];
-      if (firstAnswer.selectedOptionIds) {
-        return firstAnswer.selectedOptionIds;
+      // Prefer any row already using the new format
+      const answerWithSelectedOptionIds = allCurrentAnswers.find((answer) =>
+        Array.isArray(answer.selectedOptionIds)
+      );
+      if (answerWithSelectedOptionIds) {
+        return answerWithSelectedOptionIds.selectedOptionIds ?? [];
       }
       // Fallback to old format (multiple entries with optionId)
       return allCurrentAnswers.map((answer) => answer.optionId);
