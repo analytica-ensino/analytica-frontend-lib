@@ -661,61 +661,81 @@ const CreateActivity = ({
 
   /**
    * Save draft to backend
+   * @param typeOverride - Override the activity type for this save
    * @returns The draft ID (existing or newly created), or undefined if save failed
    */
-  const saveDraft = useCallback(async (): Promise<string | undefined> => {
-    if (!validateSaveConditions()) {
-      return draftId || undefined;
-    }
-
-    setIsSaving(true);
-
-    try {
-      const payload = createDraftPayload();
-
-      if (draftId) {
-        await updateExistingDraft(payload);
-        return draftId;
+  const saveDraft = useCallback(
+    async (typeOverride?: ActivityType): Promise<string | undefined> => {
+      if (!validateSaveConditions()) {
+        return draftId || undefined;
       }
 
-      const response = await apiClient.post<ActivityDraftResponse>(
-        '/activity-drafts',
-        payload
-      );
-      hasFirstSaveBeenDone.current = true;
+      setIsSaving(true);
 
-      const savedDraft = extractDraftFromResponse(response);
-      updateStateAfterSave(savedDraft, response?.data, true);
-      return savedDraft.id;
-    } catch (error) {
-      console.error('❌ Erro ao salvar rascunho:', error);
+      try {
+        let payload = createDraftPayload();
 
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'Ocorreu um erro ao salvar o rascunho. Tente novamente.';
+        // Override type if provided
+        if (typeOverride) {
+          const subjectId = appliedFilters?.subjectIds?.[0];
+          if (!subjectId) {
+            throw new Error('Subject ID não encontrado');
+          }
+          const title = generateTitle(typeOverride, subjectId, knowledgeAreas);
+          payload = {
+            ...payload,
+            type: typeOverride,
+            title,
+          };
+        }
 
-      addToast({
-        title: 'Erro ao salvar rascunho',
-        description: errorMessage,
-        variant: 'solid',
-        action: 'warning',
-        position: 'top-right',
-      });
-      return undefined;
-    } finally {
-      setIsSaving(false);
-    }
-  }, [
-    validateSaveConditions,
-    createDraftPayload,
-    draftId,
-    updateExistingDraft,
-    apiClient,
-    extractDraftFromResponse,
-    updateStateAfterSave,
-    addToast,
-  ]);
+        if (draftId) {
+          await updateExistingDraft(payload);
+          return draftId;
+        }
+
+        const response = await apiClient.post<ActivityDraftResponse>(
+          '/activity-drafts',
+          payload
+        );
+        hasFirstSaveBeenDone.current = true;
+
+        const savedDraft = extractDraftFromResponse(response);
+        updateStateAfterSave(savedDraft, response?.data, true);
+        return savedDraft.id;
+      } catch (error) {
+        console.error('❌ Erro ao salvar rascunho:', error);
+
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : 'Ocorreu um erro ao salvar o rascunho. Tente novamente.';
+
+        addToast({
+          title: 'Erro ao salvar rascunho',
+          description: errorMessage,
+          variant: 'solid',
+          action: 'warning',
+          position: 'top-right',
+        });
+        return undefined;
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [
+      validateSaveConditions,
+      createDraftPayload,
+      draftId,
+      updateExistingDraft,
+      apiClient,
+      extractDraftFromResponse,
+      updateStateAfterSave,
+      addToast,
+      appliedFilters,
+      knowledgeAreas,
+    ]
+  );
 
   /**
    * Handle save model button click
@@ -731,10 +751,16 @@ const CreateActivity = ({
     // Get the current draft ID or save and get the new one
     let activityDraftId: string | null | undefined = draftId;
 
-    // Ensure draft is saved before adding to lesson
+    // Always save as MODELO before adding to lesson
     if (!activityDraftId && questions.length > 0) {
-      activityDraftId = await saveDraft();
+      activityDraftId = await saveDraft(ActivityType.MODELO);
+    } else if (activityDraftId) {
+      // Save again to ensure it's saved as MODELO
+      activityDraftId = await saveDraft(ActivityType.MODELO);
     }
+
+    // Update local state
+    setActivityType(ActivityType.MODELO);
 
     // Call callback if provided
     if (onAddActivityToLesson && activityDraftId) {
