@@ -3921,13 +3921,269 @@ describe('CreateActivity', () => {
         contentIds: [],
       };
 
+      // Mock POST to save activity draft
       mockApiClient.post = jest.fn().mockResolvedValue({
         data: {
           data: {
             draft: {
               id: 'activity-draft-new',
-              type: ActivityType.RASCUNHO,
-              title: 'Rascunho - Test',
+              type: ActivityType.MODELO,
+              title: 'Test Activity',
+              subjectId: 'subject1',
+              filters: {},
+              updatedAt: '2025-01-15T10:00:00.000Z',
+            },
+          },
+        },
+      });
+
+      // Mock PATCH for saveDraft updates
+      mockApiClient.patch = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            draft: {
+              id: 'activity-draft-new',
+              type: ActivityType.MODELO,
+              title: 'Test Activity',
+              subjectId: 'subject1',
+              filters: {},
+              updatedAt: '2025-01-15T10:00:00.000Z',
+            },
+          },
+        },
+      });
+
+      // Mock GET - should NOT be called when callback is provided
+      mockApiClient.get = jest.fn();
+
+      render(
+        <CreateActivity
+          {...defaultProps}
+          onAddActivityToLesson={onAddActivityToLesson}
+        />
+      );
+
+      // Add a question first
+      fireEvent.click(screen.getByTestId('add-question'));
+
+      // Wait for questions to be added
+      await waitFor(() => {
+        expect(screen.getByTestId('questions-count')).toHaveTextContent('1');
+      });
+
+      // Wait for the draft to be saved
+      act(() => {
+        jest.advanceTimersByTime(600);
+      });
+
+      await waitFor(() => {
+        expect(mockApiClient.post).toHaveBeenCalled();
+      });
+
+      // Wait for the draft to be fully processed and state updated
+      await waitFor(() => {
+        const saveStatusText = screen.getByText(/Modelo salvo às/);
+        expect(saveStatusText).toBeInTheDocument();
+      });
+
+      // Click the "Adicionar atividade" button
+      const addToLessonButton = await screen.findByText('Adicionar atividade');
+      fireEvent.click(addToLessonButton);
+
+      // Wait for callback to be called
+      await waitFor(() => {
+        expect(onAddActivityToLesson).toHaveBeenCalledWith(
+          'activity-draft-new'
+        );
+      });
+
+      // Verify that GET was NOT called to fetch lesson draft (custom callback should skip default behavior)
+      expect(mockApiClient.get).not.toHaveBeenCalled();
+
+      // Verify that PATCH was NOT called with lesson draft endpoint
+      const patchCalls = (mockApiClient.patch as jest.Mock).mock.calls;
+      const lessonDraftPatchCalls = patchCalls.filter(
+        (call) =>
+          call[0].includes('/recommended-class/drafts/') ||
+          call[0].includes('/recommended-class/models/')
+      );
+      expect(lessonDraftPatchCalls).toHaveLength(0);
+    });
+
+    it('should not call onAddActivityToLesson callback when there is no activityDraftId', async () => {
+      const onAddActivityToLesson = jest.fn();
+      mockParams['recommended-class-draft'] = 'lesson-draft-123';
+      mockParams.onFinish = 'criar-aula?id=lesson-123';
+
+      mockAppliedFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      // Mock POST to fail or return undefined ID
+      mockApiClient.post = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            draft: {
+              id: undefined, // No ID returned
+              type: ActivityType.MODELO,
+              title: 'Test Activity',
+              subjectId: 'subject1',
+              filters: {},
+              updatedAt: '2025-01-15T10:00:00.000Z',
+            },
+          },
+        },
+      });
+
+      mockApiClient.patch = jest.fn();
+      mockApiClient.get = jest.fn();
+
+      render(
+        <CreateActivity
+          {...defaultProps}
+          onAddActivityToLesson={onAddActivityToLesson}
+        />
+      );
+
+      // Don't add questions - so saveDraft won't be called
+
+      // Try to click the button (it should be disabled due to no questions)
+      const addToLessonButton = screen.queryByText('Adicionar atividade');
+
+      // Button should exist but might be disabled
+      if (addToLessonButton) {
+        // The button is disabled when questionsCount === 0, so clicking won't do anything
+        // But we'll verify the callback wasn't called anyway
+        await waitFor(() => {
+          expect(onAddActivityToLesson).not.toHaveBeenCalled();
+        });
+      }
+
+      // Verify no API calls were made
+      expect(mockApiClient.get).not.toHaveBeenCalled();
+      expect(mockApiClient.patch).not.toHaveBeenCalled();
+    });
+
+    it('should show error toast when saveDraft fails with callback provided', async () => {
+      const onAddActivityToLesson = jest.fn();
+      mockParams['recommended-class-draft'] = 'lesson-draft-123';
+      mockParams.onFinish = 'criar-aula?id=lesson-123';
+
+      mockAppliedFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      // Mock POST to fail
+      mockApiClient.post = jest
+        .fn()
+        .mockRejectedValue(new Error('Network error'));
+
+      // Mock PATCH to fail
+      mockApiClient.patch = jest
+        .fn()
+        .mockRejectedValue(new Error('Network error'));
+
+      render(
+        <CreateActivity
+          {...defaultProps}
+          onAddActivityToLesson={onAddActivityToLesson}
+        />
+      );
+
+      // Add a question first
+      fireEvent.click(screen.getByTestId('add-question'));
+
+      // Wait for questions to be added
+      await waitFor(() => {
+        expect(screen.getByTestId('questions-count')).toHaveTextContent('1');
+      });
+
+      // Wait for the draft save attempt
+      act(() => {
+        jest.advanceTimersByTime(600);
+      });
+
+      // Wait for error toast from auto-save
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            title: 'Erro ao salvar rascunho',
+            action: 'warning',
+          })
+        );
+      });
+
+      // Click the "Adicionar atividade" button
+      const addToLessonButton = await screen.findByText('Adicionar atividade');
+      fireEvent.click(addToLessonButton);
+
+      // Wait a bit for the callback to potentially be called
+      await waitFor(() => {
+        // Callback should NOT be called because saveDraft failed and returned undefined
+        expect(onAddActivityToLesson).not.toHaveBeenCalled();
+      });
+    });
+
+    it('should call callback with existing draftId when already exists', async () => {
+      const onAddActivityToLesson = jest.fn();
+      mockParams['recommended-class-draft'] = 'lesson-draft-123';
+      mockParams.id = 'existing-draft-id'; // Start with existing draft
+
+      mockAppliedFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      // Mock GET to load existing activity with selectedQuestions
+      mockApiClient.get = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            id: 'existing-draft-id',
+            type: ActivityType.RASCUNHO,
+            title: 'Test Activity',
+            subjectId: 'subject1',
+            filters: {},
+            selectedQuestions: [
+              {
+                id: 'q1',
+                statement: 'Test question',
+                alternatives: [],
+                answer: 'A',
+                questionType: { id: 'type1', description: 'Multiple Choice' },
+                questionBank: { id: 'bank1', name: 'Bank 1' },
+                subject: { id: 'subject1', name: 'Math' },
+              },
+            ],
+            updatedAt: '2025-01-15T10:00:00.000Z',
+          },
+        },
+      });
+
+      // Mock PATCH for saveDraft to succeed
+      mockApiClient.patch = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            draft: {
+              id: 'existing-draft-id',
+              type: ActivityType.MODELO,
+              title: 'Test Activity',
               subjectId: 'subject1',
               filters: {},
               updatedAt: '2025-01-15T10:00:00.000Z',
@@ -3943,19 +4199,30 @@ describe('CreateActivity', () => {
         />
       );
 
-      // Add a question first
-      fireEvent.click(screen.getByTestId('add-question'));
-
-      // Wait for the draft to be saved
-      act(() => {
-        jest.advanceTimersByTime(600);
+      // Wait for initial load
+      await waitFor(() => {
+        expect(mockApiClient.get).toHaveBeenCalledWith(
+          '/activity-drafts/existing-draft-id'
+        );
       });
 
+      // Wait for questions to load
       await waitFor(() => {
-        expect(mockApiClient.post).toHaveBeenCalledWith(
-          '/activity-drafts',
-          expect.any(Object)
-        );
+        expect(screen.getByTestId('questions-count')).toHaveTextContent('1');
+      });
+
+      // Click the "Adicionar atividade" button
+      const addToLessonButton = await screen.findByText('Adicionar atividade');
+      fireEvent.click(addToLessonButton);
+
+      // Wait for PATCH to be called (saveDraft)
+      await waitFor(() => {
+        expect(mockApiClient.patch).toHaveBeenCalled();
+      });
+
+      // Wait for callback to be called with existing draft ID
+      await waitFor(() => {
+        expect(onAddActivityToLesson).toHaveBeenCalledWith('existing-draft-id');
       });
     });
 

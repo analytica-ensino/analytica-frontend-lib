@@ -906,7 +906,6 @@ const CreateActivity = ({
         hasFirstSaveBeenDone.current = true;
         lastSavedQuestionsRef.current = previewQuestions;
       } catch (error) {
-        console.error('❌ Erro ao converter questões:', error);
         const errorMessage =
           error instanceof Error
             ? error.message
