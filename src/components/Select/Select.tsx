@@ -441,6 +441,7 @@ interface SelectItemProps extends HTMLAttributes<HTMLDivElement> {
   value: string;
   disabled?: boolean;
   store?: SelectStoreApi;
+  truncate?: boolean;
 }
 
 const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
@@ -451,6 +452,7 @@ const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
       value,
       disabled = false,
       store: externalStore,
+      truncate = false,
       ...props
     },
     ref
@@ -504,7 +506,11 @@ const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
         <span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
           {selectedValue === value && <Check className="" />}
         </span>
-        {children}
+        {truncate ? (
+          <span className="truncate block max-w-[200px]">{children}</span>
+        ) : (
+          children
+        )}
       </div>
     );
   }

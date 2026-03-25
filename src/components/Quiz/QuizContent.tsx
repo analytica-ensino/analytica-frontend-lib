@@ -1,4 +1,5 @@
 import {
+  Fragment,
   forwardRef,
   MouseEvent,
   ReactNode,
@@ -283,8 +284,20 @@ const QuizMultipleChoice = ({ paddingBottom }: QuizVariantInterface) => {
   const prevQuestionIdRef = useRef<string>('');
 
   // Memoize the answer IDs to prevent unnecessary re-renders
+  // For MULTIPLA_ESCOLHA, we now have a single answer entry with selectedOptionIds array
   const allCurrentAnswerIds = useMemo(() => {
-    return allCurrentAnswers?.map((answer) => answer.optionId) || [];
+    if (allCurrentAnswers && allCurrentAnswers.length > 0) {
+      // Prefer any row already using the new format
+      const answerWithSelectedOptionIds = allCurrentAnswers.find((answer) =>
+        Array.isArray(answer.selectedOptionIds)
+      );
+      if (answerWithSelectedOptionIds) {
+        return answerWithSelectedOptionIds.selectedOptionIds ?? [];
+      }
+      // Fallback to old format (multiple entries with optionId)
+      return allCurrentAnswers.map((answer) => answer.optionId);
+    }
+    return [];
   }, [allCurrentAnswers]);
 
   // Memoize the selected values to prevent infinite loops
@@ -294,6 +307,13 @@ const QuizMultipleChoice = ({ paddingBottom }: QuizVariantInterface) => {
 
   // Only update selectedValues if they actually changed or question changed
   const stableSelectedValues = useMemo(() => {
+    // In result mode, always use selectedOptions from the question result
+    if (variant === QuizVariant.RESULT) {
+      return (
+        currentQuestionResult?.selectedOptions?.map((op) => op.optionId) || []
+      );
+    }
+
     const currentQuestionId = currentQuestion?.id || '';
     const hasQuestionChanged = prevQuestionIdRef.current !== currentQuestionId;
 
@@ -312,13 +332,7 @@ const QuizMultipleChoice = ({ paddingBottom }: QuizVariantInterface) => {
       return selectedValues;
     }
 
-    if (variant == 'result') {
-      return (
-        currentQuestionResult?.selectedOptions.map((op) => op.optionId) || []
-      );
-    } else {
-      return prevSelectedValuesRef.current;
-    }
+    return prevSelectedValuesRef.current;
   }, [
     selectedValues,
     currentQuestion?.id,
@@ -887,7 +901,10 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
                       value={answer.dotOption || undefined}
                       onValueChange={(value) => handleSelectDot(index, value)}
                     >
-                      <SelectTrigger className="w-[180px]">
+                      <SelectTrigger
+                        className="w-[180px] overflow-hidden truncate"
+                        title={answer.dotOption || undefined}
+                      >
                         <SelectValue placeholder="Selecione opção" />
                       </SelectTrigger>
 
@@ -899,7 +916,12 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
                               answer.dotOption === dot.label
                           )
                           .map((dot) => (
-                            <SelectItem key={dot.label} value={dot.label}>
+                            <SelectItem
+                              key={dot.label}
+                              value={dot.label}
+                              title={dot.label}
+                              truncate
+                            >
                               {dot.label}
                             </SelectItem>
                           ))}
@@ -1057,12 +1079,22 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
           value={selectedOptionId || undefined}
           onValueChange={(value) => handleSelectChange(placeholderId, value)}
         >
-          <SelectTrigger className="w-auto min-w-[120px] h-7 px-2 bg-background border-gray-300">
+          <SelectTrigger
+            className="w-auto min-w-[120px] max-w-[200px] h-7 px-2 bg-background border-gray-300 overflow-hidden truncate"
+            title={
+              shuffledOptions.find((o) => o.id === selectedOptionId)?.option
+            }
+          >
             <SelectValue placeholder="Selecione opção" />
           </SelectTrigger>
           <SelectContent>
             {shuffledOptions.map((option) => (
-              <SelectItem key={option.id} value={option.id}>
+              <SelectItem
+                key={option.id}
+                value={option.id}
+                title={option.option}
+                truncate
+              >
                 {option.option}
               </SelectItem>
             ))}
@@ -1218,21 +1250,19 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
     <>
       <QuizSubTitle subTitle="Preencha as lacunas" />
 
-      <QuizContainer className="h-auto pb-0">
-        <div className="px-4 h-auto">
+      <QuizContainer
+        className={cn('', variant !== QuizVariant.RESULT && paddingBottom)}
+      >
+        <div className="px-4">
           <Text
+            as="div"
             size="lg"
             color="text-text-900"
             weight="normal"
-            className={cn(
-              'leading-[2.5]',
-              variant !== QuizVariant.RESULT && paddingBottom
-            )}
+            className="leading-[2.5] *:inline"
           >
             {renderHtmlWithSelects(additionalContent).map((element) => (
-              <span key={element.id} className="inline">
-                {element.element}
-              </span>
+              <Fragment key={element.id}>{element.element}</Fragment>
             ))}
           </Text>
         </div>
@@ -1242,19 +1272,18 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
         <>
           <QuizSubTitle subTitle="Resposta correta" />
 
-          <QuizContainer className="h-auto pb-0">
+          <QuizContainer className={cn('', paddingBottom)}>
             <div className="px-4">
               <Text
+                as="div"
                 size="lg"
                 color="text-text-900"
                 weight="normal"
-                className={cn('leading-[2.5]', paddingBottom)}
+                className="leading-[2.5] *:inline"
               >
                 {renderHtmlWithSelects(additionalContent, true).map(
                   (element) => (
-                    <span key={element.id} className="inline">
-                      {element.element}
-                    </span>
+                    <Fragment key={element.id}>{element.element}</Fragment>
                   )
                 )}
               </Text>

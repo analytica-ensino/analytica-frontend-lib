@@ -28,7 +28,8 @@ const createQuestion = (
   statement: string,
   questionType: QUESTION_TYPE,
   options?: Array<{ id: string; option: string }>,
-  correctOptionIds?: string[]
+  correctOptionIds?: string[],
+  additionalContent?: string | null
 ): Question => {
   return {
     id,
@@ -39,7 +40,7 @@ const createQuestion = (
     examBoard: null,
     examYear: null,
     solutionExplanation: null,
-    additionalContent: null,
+    additionalContent: additionalContent ?? null,
     answer: null,
     answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
     options: options || [],
@@ -58,7 +59,9 @@ const createQuestionResult = (
   answer: string | null = null,
   selectedOptions: Array<{ optionId: string; isCorrect?: boolean }> = [],
   options?: Array<{ id: string; option: string; isCorrect: boolean }>,
-  teacherFeedback: string | null = null
+  teacherFeedback: string | null = null,
+  additionalContent: string | null = null,
+  fillAnswers?: Record<string, string>
 ): QuestionResult['answers'][number] => {
   return {
     id,
@@ -67,7 +70,7 @@ const createQuestionResult = (
     selectedOptions,
     answerStatus,
     statement: '',
-    additionalContent: null,
+    additionalContent,
     questionType: QUESTION_TYPE.ALTERNATIVA,
     difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
     solutionExplanation: null,
@@ -81,7 +84,8 @@ const createQuestionResult = (
     score: null,
     gradedAt: null,
     gradedBy: null,
-  };
+    fillAnswers,
+  } as QuestionResult['answers'][number];
 };
 
 describe('questionRenderer', () => {
@@ -799,29 +803,28 @@ describe('questionRenderer', () => {
 
   describe('renderQuestionFill', () => {
     it('should render fill in the blanks question', () => {
+      // opt1 is the placeholder ID and the correct option ID
+      const additionalContent = 'O Brasil está localizado na {opt1}.';
       const question = createQuestion(
         'q1',
-        'O Brasil está localizado na {{continente}}.',
+        'Complete o texto:',
         QUESTION_TYPE.PREENCHER_LACUNAS,
         [{ id: 'opt1', option: 'América' }],
-        []
+        [],
+        additionalContent
       );
       const result = createQuestionResult(
         'a1',
         'q1',
         ANSWER_STATUS.RESPOSTA_CORRETA,
-        JSON.stringify({
-          continente: {
-            answer: 'América',
-            isCorrect: true,
-            correctAnswer: 'América',
-          },
-        }),
+        null,
         [],
-        [{ id: 'opt1', option: 'América', isCorrect: true }]
+        [{ id: 'opt1', option: 'América', isCorrect: true }],
+        null,
+        additionalContent,
+        { opt1: 'opt1' } // Student selected opt1 for placeholder opt1 (correct)
       );
 
-      // Wrapper component para permitir uso de hooks
       const Wrapper = () => renderQuestionFill({ question, result });
       const { container } = render(<Wrapper />);
 
@@ -831,21 +834,27 @@ describe('questionRenderer', () => {
     });
 
     it('should display [Não respondido] when there is no answer for placeholder', () => {
+      const additionalContent = 'O Brasil está localizado na {opt1}.';
       const question = createQuestion(
         'q1',
-        'O Brasil está localizado na {{continente}}.',
+        'Complete o texto:',
         QUESTION_TYPE.PREENCHER_LACUNAS,
+        [{ id: 'opt1', option: 'América' }],
         [],
-        []
+        additionalContent
       );
       const result = createQuestionResult(
         'a1',
         'q1',
         ANSWER_STATUS.NAO_RESPONDIDO,
-        null
+        null,
+        [],
+        [{ id: 'opt1', option: 'América', isCorrect: true }],
+        null,
+        additionalContent,
+        {} // No answers
       );
 
-      // Wrapper component para permitir uso de hooks
       const Wrapper = () => renderQuestionFill({ question, result });
       render(<Wrapper />);
 
@@ -855,37 +864,31 @@ describe('questionRenderer', () => {
     });
 
     it('should display correct answer in green', () => {
+      const additionalContent = 'O Brasil está na {opt1} e fala {opt2}.';
       const question = createQuestion(
         'q1',
-        'O Brasil está na {{continente}} e fala {{idioma}}.',
+        'Complete o texto:',
         QUESTION_TYPE.PREENCHER_LACUNAS,
         [
           { id: 'opt1', option: 'América' },
           { id: 'opt2', option: 'Português' },
         ],
-        []
+        [],
+        additionalContent
       );
       const result = createQuestionResult(
         'a1',
         'q1',
         ANSWER_STATUS.RESPOSTA_CORRETA,
-        JSON.stringify({
-          continente: {
-            answer: 'América',
-            isCorrect: true,
-            correctAnswer: 'América',
-          },
-          idioma: {
-            answer: 'Português',
-            isCorrect: true,
-            correctAnswer: 'Português',
-          },
-        }),
+        null,
         [],
         [
           { id: 'opt1', option: 'América', isCorrect: true },
           { id: 'opt2', option: 'Português', isCorrect: true },
-        ]
+        ],
+        null,
+        additionalContent,
+        { opt1: 'opt1', opt2: 'opt2' } // Both correct
       );
 
       const Wrapper = () => renderQuestionFill({ question, result });
@@ -896,26 +899,31 @@ describe('questionRenderer', () => {
     });
 
     it('should display incorrect answer in red', () => {
+      const additionalContent = 'O Brasil está na {opt1}.';
       const question = createQuestion(
         'q1',
-        'O Brasil está na {{continente}}.',
+        'Complete o texto:',
         QUESTION_TYPE.PREENCHER_LACUNAS,
-        [{ id: 'opt1', option: 'América' }],
-        []
+        [
+          { id: 'opt1', option: 'América' },
+          { id: 'opt2', option: 'Europa' },
+        ],
+        [],
+        additionalContent
       );
       const result = createQuestionResult(
         'a1',
         'q1',
         ANSWER_STATUS.RESPOSTA_INCORRETA,
-        JSON.stringify({
-          continente: {
-            answer: 'Europa',
-            isCorrect: false,
-            correctAnswer: 'América',
-          },
-        }),
+        null,
         [],
-        [{ id: 'opt1', option: 'América', isCorrect: true }]
+        [
+          { id: 'opt1', option: 'América', isCorrect: true },
+          { id: 'opt2', option: 'Europa', isCorrect: true },
+        ],
+        null,
+        additionalContent,
+        { opt1: 'opt2' } // Student selected opt2 (Europa) for placeholder opt1 (wrong)
       );
 
       const Wrapper = () => renderQuestionFill({ question, result });
@@ -925,18 +933,25 @@ describe('questionRenderer', () => {
     });
 
     it('should use fallback when there is no correct option', () => {
+      const additionalContent = 'O Brasil está na {opt1}.';
       const question = createQuestion(
         'q1',
-        'O Brasil está na {{continente}}.',
+        'Complete o texto:',
         QUESTION_TYPE.PREENCHER_LACUNAS,
+        [{ id: 'opt1', option: 'América' }],
         [],
-        []
+        additionalContent
       );
       const result = createQuestionResult(
         'a1',
         'q1',
         ANSWER_STATUS.NAO_RESPONDIDO,
-        null
+        null,
+        [],
+        [{ id: 'opt1', option: 'América', isCorrect: true }],
+        null,
+        additionalContent,
+        {}
       );
 
       const Wrapper = () => renderQuestionFill({ question, result });
@@ -946,12 +961,14 @@ describe('questionRenderer', () => {
     });
 
     it('should use option at same index when there is no correct option', () => {
+      const additionalContent = 'O Brasil está na {opt1}.';
       const question = createQuestion(
         'q1',
-        'O Brasil está na {{continente}}.',
+        'Complete o texto:',
         QUESTION_TYPE.PREENCHER_LACUNAS,
         [{ id: 'opt1', option: 'América' }],
-        []
+        [],
+        additionalContent
       );
       const result = createQuestionResult(
         'a1',
@@ -959,7 +976,10 @@ describe('questionRenderer', () => {
         ANSWER_STATUS.NAO_RESPONDIDO,
         null,
         [],
-        [{ id: 'opt1', option: 'América', isCorrect: false }]
+        [{ id: 'opt1', option: 'América', isCorrect: false }],
+        null,
+        additionalContent,
+        {}
       );
 
       const Wrapper = () => renderQuestionFill({ question, result });
@@ -969,40 +989,33 @@ describe('questionRenderer', () => {
     });
 
     it('should handle multiple placeholders', () => {
+      const additionalContent = 'O {opt1} está na {opt2} e fala {opt3}.';
       const question = createQuestion(
         'q1',
-        'O {{pais}} está na {{continente}} e fala {{idioma}}.',
+        'Complete o texto:',
         QUESTION_TYPE.PREENCHER_LACUNAS,
         [
           { id: 'opt1', option: 'Brasil' },
           { id: 'opt2', option: 'América' },
           { id: 'opt3', option: 'Português' },
         ],
-        []
+        [],
+        additionalContent
       );
       const result = createQuestionResult(
         'a1',
         'q1',
         ANSWER_STATUS.RESPOSTA_CORRETA,
-        JSON.stringify({
-          pais: { answer: 'Brasil', isCorrect: true, correctAnswer: 'Brasil' },
-          continente: {
-            answer: 'América',
-            isCorrect: true,
-            correctAnswer: 'América',
-          },
-          idioma: {
-            answer: 'Português',
-            isCorrect: true,
-            correctAnswer: 'Português',
-          },
-        }),
+        null,
         [],
         [
           { id: 'opt1', option: 'Brasil', isCorrect: true },
           { id: 'opt2', option: 'América', isCorrect: true },
           { id: 'opt3', option: 'Português', isCorrect: true },
-        ]
+        ],
+        null,
+        additionalContent,
+        { opt1: 'opt1', opt2: 'opt2', opt3: 'opt3' }
       );
 
       const Wrapper = () => renderQuestionFill({ question, result });
@@ -1012,26 +1025,25 @@ describe('questionRenderer', () => {
     });
 
     it('should handle text before and after placeholders', () => {
+      const additionalContent = 'Texto antes {opt1} texto depois.';
       const question = createQuestion(
         'q1',
-        'Texto antes {{placeholder}} texto depois.',
+        'Complete o texto:',
         QUESTION_TYPE.PREENCHER_LACUNAS,
         [{ id: 'opt1', option: 'resposta' }],
-        []
+        [],
+        additionalContent
       );
       const result = createQuestionResult(
         'a1',
         'q1',
         ANSWER_STATUS.RESPOSTA_CORRETA,
-        JSON.stringify({
-          placeholder: {
-            answer: 'resposta',
-            isCorrect: true,
-            correctAnswer: 'resposta',
-          },
-        }),
+        null,
         [],
-        [{ id: 'opt1', option: 'resposta', isCorrect: true }]
+        [{ id: 'opt1', option: 'resposta', isCorrect: true }],
+        null,
+        additionalContent,
+        { opt1: 'opt1' }
       );
 
       const Wrapper = () => renderQuestionFill({ question, result });
@@ -1041,18 +1053,25 @@ describe('questionRenderer', () => {
     });
 
     it('should handle error when parsing JSON', () => {
+      const additionalContent = 'O Brasil está na {opt1}.';
       const question = createQuestion(
         'q1',
-        'O Brasil está na {{continente}}.',
+        'Complete o texto:',
         QUESTION_TYPE.PREENCHER_LACUNAS,
+        [{ id: 'opt1', option: 'América' }],
         [],
-        []
+        additionalContent
       );
       const result = createQuestionResult(
         'a1',
         'q1',
         ANSWER_STATUS.NAO_RESPONDIDO,
-        'invalid json'
+        'invalid json',
+        [],
+        [{ id: 'opt1', option: 'América', isCorrect: true }],
+        null,
+        additionalContent,
+        undefined // fillAnswers not set, will fallback to parsing answer
       );
 
       const Wrapper = () => renderQuestionFill({ question, result });
@@ -1062,18 +1081,25 @@ describe('questionRenderer', () => {
     });
 
     it('should handle answer not being an object', () => {
+      const additionalContent = 'O Brasil está na {opt1}.';
       const question = createQuestion(
         'q1',
-        'O Brasil está na {{continente}}.',
+        'Complete o texto:',
         QUESTION_TYPE.PREENCHER_LACUNAS,
+        [{ id: 'opt1', option: 'América' }],
         [],
-        []
+        additionalContent
       );
       const result = createQuestionResult(
         'a1',
         'q1',
         ANSWER_STATUS.NAO_RESPONDIDO,
-        'string simples'
+        'string simples',
+        [],
+        [{ id: 'opt1', option: 'América', isCorrect: true }],
+        null,
+        additionalContent,
+        undefined // No fillAnswers, will try to parse 'string simples' as JSON and fail gracefully
       );
 
       const Wrapper = () => renderQuestionFill({ question, result });
@@ -1083,27 +1109,25 @@ describe('questionRenderer', () => {
     });
 
     it('should handle answer being an object directly', () => {
+      const additionalContent = 'O Brasil está na {opt1}.';
       const question = createQuestion(
         'q1',
-        'O Brasil está na {{continente}}.',
+        'Complete o texto:',
         QUESTION_TYPE.PREENCHER_LACUNAS,
+        [{ id: 'opt1', option: 'América' }],
         [],
-        []
+        additionalContent
       );
       const result = createQuestionResult(
         'a1',
         'q1',
         ANSWER_STATUS.RESPOSTA_CORRETA,
-        {
-          continente: {
-            answer: 'América',
-            isCorrect: true,
-            correctAnswer: 'América',
-          },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any,
+        null,
         [],
-        [{ id: 'opt1', option: 'América', isCorrect: true }]
+        [{ id: 'opt1', option: 'América', isCorrect: true }],
+        null,
+        additionalContent,
+        { opt1: 'opt1' } // fillAnswers directly
       );
 
       const Wrapper = () => renderQuestionFill({ question, result });
@@ -1371,21 +1395,19 @@ describe('questionRenderer', () => {
         'O Brasil está localizado na {{continente}}.',
         QUESTION_TYPE.PREENCHER_LACUNAS,
         [{ id: 'opt1', option: 'América' }],
-        []
+        [],
+        'O Brasil está localizado na {opt1}.'
       );
       const result = createQuestionResult(
         'a1',
         'q1',
         ANSWER_STATUS.RESPOSTA_CORRETA,
-        JSON.stringify({
-          continente: {
-            answer: 'América',
-            isCorrect: true,
-            correctAnswer: 'América',
-          },
-        }),
+        null,
         [],
-        [{ id: 'opt1', option: 'América', isCorrect: true }]
+        [{ id: 'opt1', option: 'América', isCorrect: true }],
+        null,
+        'O Brasil está localizado na {opt1}.',
+        { opt1: 'opt1' }
       );
 
       const Wrapper = () => <>{renderQuestion({ question, result })}</>;

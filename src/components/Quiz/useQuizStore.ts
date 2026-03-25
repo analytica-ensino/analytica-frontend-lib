@@ -28,6 +28,7 @@ export enum QUESTION_TYPE {
 /**
  * Determines if a user answer has meaningful content.
  * For option-based questions: checks if optionId is not null
+ * For multiple choice questions: checks if selectedOptionIds has items
  * For free-text questions (DISSERTATIVA): checks if answer is non-empty string
  * For structured questions (RELACIONAR, PREENCHER_LACUNAS): checks if answer is valid JSON with values
  *
@@ -40,11 +41,21 @@ export const hasMeaningfulAnswer = (
         optionId: string | null;
         answer: string | null;
         questionType: QUESTION_TYPE;
+        selectedOptionIds?: string[] | null;
       }
     | null
     | undefined
 ): boolean => {
   if (!answer) return false;
+
+  // For MULTIPLA_ESCOLHA, check selectedOptionIds array or legacy optionId
+  if (answer.questionType === QUESTION_TYPE.MULTIPLA_ESCOLHA) {
+    return (
+      (Array.isArray(answer.selectedOptionIds) &&
+        answer.selectedOptionIds.length > 0) ||
+      Boolean(answer.optionId)
+    );
+  }
 
   // For free-text question types, check the answer field
   const freeTextTypes = [
@@ -241,6 +252,7 @@ export interface UserAnswerItem {
   userId: string;
   answer: string | null;
   optionId: string | null;
+  selectedOptionIds?: string[] | null;
   questionType: QUESTION_TYPE;
   answerStatus: ANSWER_STATUS;
 }
@@ -579,24 +591,29 @@ export const useQuizStore = create<QuizState>()(
             (answer) => answer.questionId !== questionId
           );
 
-          // Create new UserAnswerItem objects for each answerId
-          const newUserAnswers: UserAnswerItem[] = answerIds.map(
-            (answerId) => ({
-              questionId,
-              activityId,
-              userId,
-              answer: null, // selectMultipleAnswer is for non-dissertative questions
-              optionId: answerId, // selectMultipleAnswer should only set optionId
-              questionType: question.questionType,
-              answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
-            })
-          );
+          // Don't persist empty MULTIPLA_ESCOLHA answers
+          if (answerIds.length === 0) {
+            set({
+              userAnswers: filteredUserAnswers,
+            });
+            return;
+          }
 
-          // Combine filtered answers with new answers
-          const updatedUserAnswers = [
-            ...filteredUserAnswers,
-            ...newUserAnswers,
-          ];
+          // Create a single UserAnswerItem with selectedOptionIds array
+          // This matches the backend API expected format for MULTIPLA_ESCOLHA
+          // Also set optionId to first selection for backward compatibility
+          const newUserAnswer: UserAnswerItem = {
+            questionId,
+            activityId,
+            userId,
+            answer: null,
+            optionId: answerIds.length > 0 ? answerIds[0] : null,
+            selectedOptionIds: answerIds,
+            questionType: question.questionType,
+            answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
+          };
+
+          const updatedUserAnswers = [...filteredUserAnswers, newUserAnswer];
 
           set({
             userAnswers: updatedUserAnswers,
@@ -685,7 +702,18 @@ export const useQuizStore = create<QuizState>()(
             const existingAnswerIndex = userAnswers.findIndex(
               (answer) => answer.questionId === currentQuestion.id
             );
+            const existingAnswer =
+              existingAnswerIndex === -1
+                ? null
+                : userAnswers[existingAnswerIndex];
 
+            // If the user already has an answer with meaningful content, preserve it
+            if (hasMeaningfulAnswer(existingAnswer)) {
+              // Keep existing answers - don't overwrite with empty skip
+              return;
+            }
+
+            // Create empty "skipped" entry
             const newUserAnswer: UserAnswerItem = {
               questionId: currentQuestion.id,
               activityId,
@@ -698,11 +726,11 @@ export const useQuizStore = create<QuizState>()(
 
             let updatedUserAnswers;
             if (existingAnswerIndex !== -1) {
-              // Update existing answer
+              // Update existing empty entry to proper "skipped" format
               updatedUserAnswers = [...userAnswers];
               updatedUserAnswers[existingAnswerIndex] = newUserAnswer;
             } else {
-              // Add new answer
+              // Add new skipped entry
               updatedUserAnswers = [...userAnswers, newUserAnswer];
             }
 
@@ -721,9 +749,13 @@ export const useQuizStore = create<QuizState>()(
           if (!currentQuestion) return;
 
           // Se não há resposta ou a resposta está vazia (null), marca como pulada
+          // Considera selectedOptionIds para MULTIPLA_ESCOLHA
           if (
             !currentAnswer ||
-            (currentAnswer.optionId === null && currentAnswer.answer === null)
+            (currentAnswer.optionId === null &&
+              currentAnswer.answer === null &&
+              (!currentAnswer.selectedOptionIds ||
+                currentAnswer.selectedOptionIds.length === 0))
           ) {
             skipQuestion();
           }
@@ -854,8 +886,12 @@ export const useQuizStore = create<QuizState>()(
 
         getAnsweredQuestions: () => {
           const { userAnswers } = get();
-          return userAnswers.filter((answer) => hasMeaningfulAnswer(answer))
-            .length;
+          const answeredQuestionIds = new Set(
+            userAnswers
+              .filter((answer) => hasMeaningfulAnswer(answer))
+              .map((answer) => answer.questionId)
+          );
+          return answeredQuestionIds.size;
         },
 
         getUnansweredQuestions: () => {
@@ -881,8 +917,12 @@ export const useQuizStore = create<QuizState>()(
 
         getSkippedQuestions: () => {
           const { userAnswers } = get();
-          return userAnswers.filter((answer) => !hasMeaningfulAnswer(answer))
-            .length;
+          const skippedQuestionIds = new Set(
+            userAnswers
+              .filter((answer) => !hasMeaningfulAnswer(answer))
+              .map((answer) => answer.questionId)
+          );
+          return skippedQuestionIds.size;
         },
 
         getProgress: () => {
