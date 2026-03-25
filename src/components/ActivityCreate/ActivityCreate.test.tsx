@@ -312,6 +312,7 @@ jest.mock('./components/ActivityCreateHeader', () => {
       onSendActivity,
       isRecommendedLessonMode,
       onLessonPreview,
+      onAddActivity,
     }: {
       activity?: unknown;
       activityType: string;
@@ -323,6 +324,7 @@ jest.mock('./components/ActivityCreateHeader', () => {
       onSendActivity?: () => void;
       isRecommendedLessonMode?: boolean;
       onLessonPreview?: () => void;
+      onAddActivity?: () => void;
     }) => {
       // Helper functions to match utils behavior
       const getActivityTypeLabel = (type: string): string => {
@@ -372,23 +374,35 @@ jest.mock('./components/ActivityCreateHeader', () => {
           },
           'Salvar modelo'
         ),
-        React.createElement(
-          'button',
-          {
-            onClick: onSendActivity,
-            disabled: questionsCount === 0,
-          },
-          'Enviar atividade'
-        ),
-        isRecommendedLessonMode &&
-          React.createElement(
-            'button',
-            {
-              'data-testid': 'lesson-preview-button',
-              onClick: onLessonPreview,
-            },
-            'Prévia da aula'
-          ),
+        isRecommendedLessonMode
+          ? React.createElement(
+              React.Fragment,
+              {},
+              React.createElement(
+                'button',
+                {
+                  'data-testid': 'lesson-preview-button',
+                  onClick: onLessonPreview,
+                },
+                'Prévia da aula'
+              ),
+              React.createElement(
+                'button',
+                {
+                  onClick: onAddActivity,
+                  disabled: questionsCount === 0,
+                },
+                'Adicionar atividade'
+              )
+            )
+          : React.createElement(
+              'button',
+              {
+                onClick: onSendActivity,
+                disabled: questionsCount === 0,
+              },
+              'Enviar atividade'
+            ),
         React.createElement(
           'span',
           {},
@@ -4086,6 +4100,12 @@ describe('CreateActivity', () => {
         expect(mockApiClient.post).toHaveBeenCalled();
       });
 
+      // Wait for the draft to be fully processed and state updated
+      await waitFor(() => {
+        const saveStatusText = screen.getByText(/Modelo salvo às/);
+        expect(saveStatusText).toBeInTheDocument();
+      });
+
       // Wait for and click the "Adicionar atividade" button
       const addToLessonButton = await screen.findByText('Adicionar atividade');
       fireEvent.click(addToLessonButton);
@@ -4182,6 +4202,12 @@ describe('CreateActivity', () => {
         expect(mockApiClient.post).toHaveBeenCalled();
       });
 
+      // Wait for the draft to be fully processed and state updated
+      await waitFor(() => {
+        const saveStatusText = screen.getByText(/Modelo salvo às/);
+        expect(saveStatusText).toBeInTheDocument();
+      });
+
       // Wait for and click the "Adicionar atividade" button
       const addToLessonButton = await screen.findByText('Adicionar atividade');
       fireEvent.click(addToLessonButton);
@@ -4255,6 +4281,12 @@ describe('CreateActivity', () => {
 
       await waitFor(() => {
         expect(mockApiClient.post).toHaveBeenCalled();
+      });
+
+      // Wait for the draft to be fully processed and state updated
+      await waitFor(() => {
+        const saveStatusText = screen.getByText(/Modelo salvo às/);
+        expect(saveStatusText).toBeInTheDocument();
       });
 
       // Wait for and click the "Adicionar atividade" button
