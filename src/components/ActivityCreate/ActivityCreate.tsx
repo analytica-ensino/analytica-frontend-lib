@@ -746,6 +746,87 @@ const CreateActivity = ({
   }, []);
 
   /**
+   * Get endpoint for recommended class based on class type
+   */
+  const getRecommendedClassEndpoint = useCallback(
+    (lessonDraftId: string) => {
+      const baseUrl =
+        classTypeParam === 'modelo'
+          ? '/recommended-class/models'
+          : '/recommended-class/drafts';
+      return `${baseUrl}/${lessonDraftId}`;
+    },
+    [classTypeParam]
+  );
+
+  /**
+   * Add activity to lesson draft via API
+   */
+  const addActivityToLessonDraft = useCallback(
+    async (activityDraftId: string, lessonDraftId: string) => {
+      const endpoint = getRecommendedClassEndpoint(lessonDraftId);
+
+      // Get current lesson draft data
+      const response =
+        await apiClient.get<RecommendedClassDraftResponse>(endpoint);
+      const currentLesson = response.data.data;
+
+      // Build activityDraftIds array
+      const existingActivities = currentLesson.activityDrafts || [];
+      const activityDraftIds = [
+        ...existingActivities.map(
+          (a: { activityDraftId: string; sequence: number }) => ({
+            activityDraftId: a.activityDraftId,
+            sequence: a.sequence,
+          })
+        ),
+        {
+          activityDraftId,
+          sequence: existingActivities.length + 1,
+        },
+      ];
+
+      // Build lessonIds array
+      const lessonIds =
+        currentLesson.lessons?.map(
+          (l: { lessonId: string; sequence: number }) => ({
+            lessonId: l.lessonId,
+            sequence: l.sequence,
+          })
+        ) || [];
+
+      // Update lesson draft
+      const updatePayload = {
+        type: currentLesson.type,
+        title: currentLesson.title,
+        subjectId: currentLesson.subjectId,
+        filters: currentLesson.filters,
+        lessonIds,
+        activityDraftIds,
+      };
+
+      await apiClient.patch(endpoint, updatePayload);
+    },
+    [getRecommendedClassEndpoint, apiClient]
+  );
+
+  /**
+   * Navigate after adding activity
+   */
+  const navigateAfterAddActivity = useCallback(() => {
+    clearFilters();
+
+    if (onFinishPath) {
+      const navigatePath = onFinishPath.startsWith('/')
+        ? onFinishPath
+        : `/${onFinishPath}`;
+      navigate(navigatePath);
+    } else if (onBack) {
+      onBack();
+    }
+  }, [clearFilters, onFinishPath, navigate, onBack]);
+
+  /**
    * Handle add activity to lesson - saves draft and navigates back or calls callback
    */
   const handleAddActivityToLesson = useCallback(async () => {
@@ -753,10 +834,7 @@ const CreateActivity = ({
     let activityDraftId: string | null | undefined = draftId;
 
     // Always save as MODELO before adding to lesson
-    if (!activityDraftId && questions.length > 0) {
-      activityDraftId = await saveDraft(ActivityType.MODELO);
-    } else if (activityDraftId) {
-      // Save again to ensure it's saved as MODELO
+    if (questions.length > 0 || activityDraftId) {
       activityDraftId = await saveDraft(ActivityType.MODELO);
     }
 
@@ -772,56 +850,10 @@ const CreateActivity = ({
     // Default behavior: add activity to lesson draft automatically
     if (activityDraftId && recommendedLessonDraftId) {
       try {
-        // Get current lesson draft data
-        const endpoint =
-          classTypeParam === 'modelo'
-            ? `/recommended-class/models/${recommendedLessonDraftId}`
-            : `/recommended-class/drafts/${recommendedLessonDraftId}`;
-
-        const response =
-          await apiClient.get<RecommendedClassDraftResponse>(endpoint);
-        const currentLesson = response.data.data;
-
-        // Build activityDraftIds array
-        const existingActivities = currentLesson.activityDrafts || [];
-        const activityDraftIds = [
-          ...existingActivities.map(
-            (a: { activityDraftId: string; sequence: number }) => ({
-              activityDraftId: a.activityDraftId,
-              sequence: a.sequence,
-            })
-          ),
-          {
-            activityDraftId,
-            sequence: existingActivities.length + 1,
-          },
-        ];
-
-        // Build lessonIds array
-        const lessonIds =
-          currentLesson.lessons?.map(
-            (l: { lessonId: string; sequence: number }) => ({
-              lessonId: l.lessonId,
-              sequence: l.sequence,
-            })
-          ) || [];
-
-        // Update lesson draft
-        const updatePayload = {
-          type: currentLesson.type,
-          title: currentLesson.title,
-          subjectId: currentLesson.subjectId,
-          filters: currentLesson.filters,
-          lessonIds,
-          activityDraftIds,
-        };
-
-        const updateEndpoint =
-          classTypeParam === 'modelo'
-            ? `/recommended-class/models/${recommendedLessonDraftId}`
-            : `/recommended-class/drafts/${recommendedLessonDraftId}`;
-
-        await apiClient.patch(updateEndpoint, updatePayload);
+        await addActivityToLessonDraft(
+          activityDraftId,
+          recommendedLessonDraftId
+        );
 
         addToast({
           title: 'Atividade adicionada à aula com sucesso',
@@ -839,31 +871,16 @@ const CreateActivity = ({
       }
     }
 
-    // Clear filters
-    clearFilters();
-
-    // Navigate to onFinishPath if provided
-    if (onFinishPath) {
-      const navigatePath = onFinishPath.startsWith('/')
-        ? onFinishPath
-        : `/${onFinishPath}`;
-      navigate(navigatePath);
-    } else if (onBack) {
-      onBack();
-    }
+    navigateAfterAddActivity();
   }, [
     draftId,
     questions.length,
     saveDraft,
     onAddActivityToLesson,
     recommendedLessonDraftId,
-    classTypeParam,
-    apiClient,
+    addActivityToLessonDraft,
     addToast,
-    clearFilters,
-    onFinishPath,
-    navigate,
-    onBack,
+    navigateAfterAddActivity,
   ]);
 
   /**
