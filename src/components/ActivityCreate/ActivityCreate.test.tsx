@@ -312,6 +312,7 @@ jest.mock('./components/ActivityCreateHeader', () => {
       onSendActivity,
       isRecommendedLessonMode,
       onLessonPreview,
+      onAddActivity,
     }: {
       activity?: unknown;
       activityType: string;
@@ -323,6 +324,7 @@ jest.mock('./components/ActivityCreateHeader', () => {
       onSendActivity?: () => void;
       isRecommendedLessonMode?: boolean;
       onLessonPreview?: () => void;
+      onAddActivity?: () => void;
     }) => {
       // Helper functions to match utils behavior
       const getActivityTypeLabel = (type: string): string => {
@@ -372,23 +374,35 @@ jest.mock('./components/ActivityCreateHeader', () => {
           },
           'Salvar modelo'
         ),
-        React.createElement(
-          'button',
-          {
-            onClick: onSendActivity,
-            disabled: questionsCount === 0,
-          },
-          'Enviar atividade'
-        ),
-        isRecommendedLessonMode &&
-          React.createElement(
-            'button',
-            {
-              'data-testid': 'lesson-preview-button',
-              onClick: onLessonPreview,
-            },
-            'Prévia da aula'
-          ),
+        isRecommendedLessonMode
+          ? React.createElement(
+              React.Fragment,
+              {},
+              React.createElement(
+                'button',
+                {
+                  'data-testid': 'lesson-preview-button',
+                  onClick: onLessonPreview,
+                },
+                'Prévia da aula'
+              ),
+              React.createElement(
+                'button',
+                {
+                  onClick: onAddActivity,
+                  disabled: questionsCount === 0,
+                },
+                'Adicionar atividade'
+              )
+            )
+          : React.createElement(
+              'button',
+              {
+                onClick: onSendActivity,
+                disabled: questionsCount === 0,
+              },
+              'Enviar atividade'
+            ),
         React.createElement(
           'span',
           {},
@@ -4012,6 +4026,282 @@ describe('CreateActivity', () => {
 
       // Just verify the component renders in recommended lesson mode
       expect(screen.getByTestId('lesson-preview-button')).toBeInTheDocument();
+    });
+
+    it('should automatically add activity to lesson draft when no callback is provided', async () => {
+      mockParams['recommended-class-draft'] = 'lesson-draft-123';
+      mockParams.classType = 'rascunho';
+      mockParams.onFinish = 'criar-aula?id=lesson-123&type=rascunho';
+
+      mockAppliedFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      // Mock GET to fetch current lesson draft
+      mockApiClient.get = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            id: 'lesson-draft-123',
+            type: 'RASCUNHO',
+            title: 'Test Lesson',
+            subjectId: 'subject1',
+            filters: {},
+            activityDrafts: [
+              { activityDraftId: 'existing-activity-1', sequence: 1 },
+            ],
+            lessons: [{ lessonId: 'lesson-1', sequence: 1 }],
+          },
+        },
+      });
+
+      // Mock PATCH to update lesson draft
+      mockApiClient.patch = jest.fn().mockResolvedValue({
+        data: { success: true },
+      });
+
+      // Mock POST to save activity draft
+      mockApiClient.post = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            draft: {
+              id: 'new-activity-draft',
+              type: ActivityType.MODELO,
+              title: 'Test Activity',
+              subjectId: 'subject1',
+              filters: {},
+              updatedAt: '2025-01-15T10:00:00.000Z',
+            },
+          },
+        },
+      });
+
+      render(<CreateActivity {...defaultProps} />);
+
+      // Add a question first
+      fireEvent.click(screen.getByTestId('add-question'));
+
+      // Wait for questions to be added
+      await waitFor(() => {
+        expect(screen.getByTestId('questions-count')).toHaveTextContent('1');
+      });
+
+      // Wait for the draft to be saved
+      act(() => {
+        jest.advanceTimersByTime(600);
+      });
+
+      await waitFor(() => {
+        expect(mockApiClient.post).toHaveBeenCalled();
+      });
+
+      // Wait for the draft to be fully processed and state updated
+      await waitFor(() => {
+        const saveStatusText = screen.getByText(/Modelo salvo às/);
+        expect(saveStatusText).toBeInTheDocument();
+      });
+
+      // Wait for and click the "Adicionar atividade" button
+      const addToLessonButton = await screen.findByText('Adicionar atividade');
+      fireEvent.click(addToLessonButton);
+
+      // Wait for GET request to fetch lesson draft
+      await waitFor(() => {
+        expect(mockApiClient.get).toHaveBeenCalledWith(
+          '/recommended-class/drafts/lesson-draft-123'
+        );
+      });
+
+      // Wait for PATCH request to update lesson draft
+      await waitFor(() => {
+        expect(mockApiClient.patch).toHaveBeenCalledWith(
+          '/recommended-class/drafts/lesson-draft-123',
+          expect.objectContaining({
+            activityDraftIds: [
+              { activityDraftId: 'existing-activity-1', sequence: 1 },
+              { activityDraftId: 'new-activity-draft', sequence: 2 },
+            ],
+            lessonIds: [{ lessonId: 'lesson-1', sequence: 1 }],
+          })
+        );
+      });
+    });
+
+    it('should handle modelo classType when automatically adding activity to lesson', async () => {
+      mockParams['recommended-class-draft'] = 'lesson-model-456';
+      mockParams.classType = 'modelo';
+      mockParams.onFinish = 'criar-aula?id=lesson-456&type=modelo';
+
+      mockAppliedFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      // Mock GET to fetch current lesson model
+      mockApiClient.get = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            id: 'lesson-model-456',
+            type: 'MODELO',
+            title: 'Test Lesson Model',
+            subjectId: 'subject1',
+            filters: {},
+            activityDrafts: [],
+            lessons: [],
+          },
+        },
+      });
+
+      // Mock PATCH to update lesson model
+      mockApiClient.patch = jest.fn().mockResolvedValue({
+        data: { success: true },
+      });
+
+      // Mock POST to save activity draft
+      mockApiClient.post = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            draft: {
+              id: 'new-activity-draft',
+              type: ActivityType.MODELO,
+              title: 'Test Activity',
+              subjectId: 'subject1',
+              filters: {},
+              updatedAt: '2025-01-15T10:00:00.000Z',
+            },
+          },
+        },
+      });
+
+      render(<CreateActivity {...defaultProps} />);
+
+      // Add a question first
+      fireEvent.click(screen.getByTestId('add-question'));
+
+      // Wait for questions to be added
+      await waitFor(() => {
+        expect(screen.getByTestId('questions-count')).toHaveTextContent('1');
+      });
+
+      // Wait for the draft to be saved
+      act(() => {
+        jest.advanceTimersByTime(600);
+      });
+
+      await waitFor(() => {
+        expect(mockApiClient.post).toHaveBeenCalled();
+      });
+
+      // Wait for the draft to be fully processed and state updated
+      await waitFor(() => {
+        const saveStatusText = screen.getByText(/Modelo salvo às/);
+        expect(saveStatusText).toBeInTheDocument();
+      });
+
+      // Wait for and click the "Adicionar atividade" button
+      const addToLessonButton = await screen.findByText('Adicionar atividade');
+      fireEvent.click(addToLessonButton);
+
+      // Wait for GET request to fetch lesson model
+      await waitFor(() => {
+        expect(mockApiClient.get).toHaveBeenCalledWith(
+          '/recommended-class/models/lesson-model-456'
+        );
+      });
+
+      // Wait for PATCH request to update lesson model
+      await waitFor(() => {
+        expect(mockApiClient.patch).toHaveBeenCalledWith(
+          '/recommended-class/models/lesson-model-456',
+          expect.any(Object)
+        );
+      });
+    });
+
+    it('should show error toast when adding activity to lesson fails', async () => {
+      mockParams['recommended-class-draft'] = 'lesson-draft-123';
+      mockParams.classType = 'rascunho';
+      mockParams.onFinish = 'criar-aula?id=lesson-123';
+
+      mockAppliedFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      // Mock GET to fail
+      mockApiClient.get = jest
+        .fn()
+        .mockRejectedValue(new Error('Network error'));
+
+      // Mock POST to save activity draft
+      mockApiClient.post = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            draft: {
+              id: 'new-activity-draft',
+              type: ActivityType.MODELO,
+              title: 'Test Activity',
+              subjectId: 'subject1',
+              filters: {},
+              updatedAt: '2025-01-15T10:00:00.000Z',
+            },
+          },
+        },
+      });
+
+      render(<CreateActivity {...defaultProps} />);
+
+      // Add a question first
+      fireEvent.click(screen.getByTestId('add-question'));
+
+      // Wait for questions to be added
+      await waitFor(() => {
+        expect(screen.getByTestId('questions-count')).toHaveTextContent('1');
+      });
+
+      // Wait for the draft to be saved
+      act(() => {
+        jest.advanceTimersByTime(600);
+      });
+
+      await waitFor(() => {
+        expect(mockApiClient.post).toHaveBeenCalled();
+      });
+
+      // Wait for the draft to be fully processed and state updated
+      await waitFor(() => {
+        const saveStatusText = screen.getByText(/Modelo salvo às/);
+        expect(saveStatusText).toBeInTheDocument();
+      });
+
+      // Wait for and click the "Adicionar atividade" button
+      const addToLessonButton = await screen.findByText('Adicionar atividade');
+      fireEvent.click(addToLessonButton);
+
+      // Wait for error toast
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            title: 'Erro ao adicionar atividade à aula',
+            action: 'warning',
+          })
+        );
+      });
     });
   });
 

@@ -35,6 +35,7 @@ import type {
   ActivityPreFiltersInput,
   ActivityCreatePayload,
   ActivityCreateResponse,
+  RecommendedClassDraftResponse,
 } from './ActivityCreate.types';
 import { ActivityType, ActivityStatus } from './ActivityCreate.types';
 import {
@@ -661,61 +662,81 @@ const CreateActivity = ({
 
   /**
    * Save draft to backend
+   * @param typeOverride - Override the activity type for this save
    * @returns The draft ID (existing or newly created), or undefined if save failed
    */
-  const saveDraft = useCallback(async (): Promise<string | undefined> => {
-    if (!validateSaveConditions()) {
-      return draftId || undefined;
-    }
-
-    setIsSaving(true);
-
-    try {
-      const payload = createDraftPayload();
-
-      if (draftId) {
-        await updateExistingDraft(payload);
-        return draftId;
+  const saveDraft = useCallback(
+    async (typeOverride?: ActivityType): Promise<string | undefined> => {
+      if (!validateSaveConditions()) {
+        return draftId || undefined;
       }
 
-      const response = await apiClient.post<ActivityDraftResponse>(
-        '/activity-drafts',
-        payload
-      );
-      hasFirstSaveBeenDone.current = true;
+      setIsSaving(true);
 
-      const savedDraft = extractDraftFromResponse(response);
-      updateStateAfterSave(savedDraft, response?.data, true);
-      return savedDraft.id;
-    } catch (error) {
-      console.error('❌ Erro ao salvar rascunho:', error);
+      try {
+        let payload = createDraftPayload();
 
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'Ocorreu um erro ao salvar o rascunho. Tente novamente.';
+        // Override type if provided
+        if (typeOverride) {
+          const subjectId = appliedFilters?.subjectIds?.[0];
+          if (!subjectId) {
+            throw new Error('Subject ID não encontrado');
+          }
+          const title = generateTitle(typeOverride, subjectId, knowledgeAreas);
+          payload = {
+            ...payload,
+            type: typeOverride,
+            title,
+          };
+        }
 
-      addToast({
-        title: 'Erro ao salvar rascunho',
-        description: errorMessage,
-        variant: 'solid',
-        action: 'warning',
-        position: 'top-right',
-      });
-      return undefined;
-    } finally {
-      setIsSaving(false);
-    }
-  }, [
-    validateSaveConditions,
-    createDraftPayload,
-    draftId,
-    updateExistingDraft,
-    apiClient,
-    extractDraftFromResponse,
-    updateStateAfterSave,
-    addToast,
-  ]);
+        if (draftId) {
+          await updateExistingDraft(payload);
+          return draftId;
+        }
+
+        const response = await apiClient.post<ActivityDraftResponse>(
+          '/activity-drafts',
+          payload
+        );
+        hasFirstSaveBeenDone.current = true;
+
+        const savedDraft = extractDraftFromResponse(response);
+        updateStateAfterSave(savedDraft, response?.data, true);
+        return savedDraft.id;
+      } catch (error) {
+        console.error('❌ Erro ao salvar rascunho:', error);
+
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : 'Ocorreu um erro ao salvar o rascunho. Tente novamente.';
+
+        addToast({
+          title: 'Erro ao salvar rascunho',
+          description: errorMessage,
+          variant: 'solid',
+          action: 'warning',
+          position: 'top-right',
+        });
+        return undefined;
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [
+      validateSaveConditions,
+      createDraftPayload,
+      draftId,
+      updateExistingDraft,
+      apiClient,
+      extractDraftFromResponse,
+      updateStateAfterSave,
+      addToast,
+      appliedFilters,
+      knowledgeAreas,
+    ]
+  );
 
   /**
    * Handle save model button click
@@ -725,26 +746,76 @@ const CreateActivity = ({
   }, []);
 
   /**
-   * Handle add activity to lesson - saves draft and navigates back or calls callback
+   * Get endpoint for recommended class based on class type
    */
-  const handleAddActivityToLesson = useCallback(async () => {
-    // Get the current draft ID or save and get the new one
-    let activityDraftId: string | null | undefined = draftId;
+  const getRecommendedClassEndpoint = useCallback(
+    (lessonDraftId: string) => {
+      const baseUrl =
+        classTypeParam === 'modelo'
+          ? '/recommended-class/models'
+          : '/recommended-class/drafts';
+      return `${baseUrl}/${lessonDraftId}`;
+    },
+    [classTypeParam]
+  );
 
-    // Ensure draft is saved before adding to lesson
-    if (!activityDraftId && questions.length > 0) {
-      activityDraftId = await saveDraft();
-    }
+  /**
+   * Add activity to lesson draft via API
+   */
+  const addActivityToLessonDraft = useCallback(
+    async (activityDraftId: string, lessonDraftId: string) => {
+      const endpoint = getRecommendedClassEndpoint(lessonDraftId);
 
-    // Call callback if provided
-    if (onAddActivityToLesson && activityDraftId) {
-      onAddActivityToLesson(activityDraftId);
-    }
+      // Get current lesson draft data
+      const response =
+        await apiClient.get<RecommendedClassDraftResponse>(endpoint);
+      const currentLesson = response.data.data;
 
-    // Clear filters
+      // Build activityDraftIds array
+      const existingActivities = currentLesson.activityDrafts || [];
+      const activityDraftIds = [
+        ...existingActivities.map(
+          (a: { activityDraftId: string; sequence: number }) => ({
+            activityDraftId: a.activityDraftId,
+            sequence: a.sequence,
+          })
+        ),
+        {
+          activityDraftId,
+          sequence: existingActivities.length + 1,
+        },
+      ];
+
+      // Build lessonIds array
+      const lessonIds =
+        currentLesson.lessons?.map(
+          (l: { lessonId: string; sequence: number }) => ({
+            lessonId: l.lessonId,
+            sequence: l.sequence,
+          })
+        ) || [];
+
+      // Update lesson draft
+      const updatePayload = {
+        type: currentLesson.type,
+        title: currentLesson.title,
+        subjectId: currentLesson.subjectId,
+        filters: currentLesson.filters,
+        lessonIds,
+        activityDraftIds,
+      };
+
+      await apiClient.patch(endpoint, updatePayload);
+    },
+    [getRecommendedClassEndpoint, apiClient]
+  );
+
+  /**
+   * Navigate after adding activity
+   */
+  const navigateAfterAddActivity = useCallback(() => {
     clearFilters();
 
-    // Navigate to onFinishPath if provided
     if (onFinishPath) {
       const navigatePath = onFinishPath.startsWith('/')
         ? onFinishPath
@@ -753,15 +824,63 @@ const CreateActivity = ({
     } else if (onBack) {
       onBack();
     }
+  }, [clearFilters, onFinishPath, navigate, onBack]);
+
+  /**
+   * Handle add activity to lesson - saves draft and navigates back or calls callback
+   */
+  const handleAddActivityToLesson = useCallback(async () => {
+    // Get the current draft ID or save and get the new one
+    let activityDraftId: string | null | undefined = draftId;
+
+    // Always save as MODELO before adding to lesson
+    if (questions.length > 0 || activityDraftId) {
+      activityDraftId = await saveDraft(ActivityType.MODELO);
+    }
+
+    // Update local state
+    setActivityType(ActivityType.MODELO);
+
+    // If custom callback is provided, use it
+    if (onAddActivityToLesson && activityDraftId) {
+      onAddActivityToLesson(activityDraftId);
+      return;
+    }
+
+    // Default behavior: add activity to lesson draft automatically
+    if (activityDraftId && recommendedLessonDraftId) {
+      try {
+        await addActivityToLessonDraft(
+          activityDraftId,
+          recommendedLessonDraftId
+        );
+
+        addToast({
+          title: 'Atividade adicionada à aula com sucesso',
+          action: 'success',
+          position: 'top-right',
+        });
+      } catch (error) {
+        console.error('Error adding activity to lesson:', error);
+        addToast({
+          title: 'Erro ao adicionar atividade à aula',
+          action: 'warning',
+          position: 'top-right',
+        });
+        return;
+      }
+    }
+
+    navigateAfterAddActivity();
   }, [
     draftId,
     questions.length,
     saveDraft,
     onAddActivityToLesson,
-    clearFilters,
-    onFinishPath,
-    navigate,
-    onBack,
+    recommendedLessonDraftId,
+    addActivityToLessonDraft,
+    addToast,
+    navigateAfterAddActivity,
   ]);
 
   /**

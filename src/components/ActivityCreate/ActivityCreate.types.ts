@@ -125,3 +125,29 @@ export interface ActivityCreateResponse {
     updatedAt: string;
   };
 }
+
+/**
+ * Recommended class draft data from API
+ */
+export interface RecommendedClassDraftData {
+  id: string;
+  type: string;
+  title: string;
+  subjectId: string;
+  filters: BackendFiltersFormat;
+  activityDrafts?: Array<{
+    activityDraftId: string;
+    sequence: number;
+  }>;
+  lessons?: Array<{
+    lessonId: string;
+    sequence: number;
+  }>;
+}
+
+/**
+ * Recommended class draft response from API
+ */
+export interface RecommendedClassDraftResponse {
+  data: RecommendedClassDraftData;
+}
