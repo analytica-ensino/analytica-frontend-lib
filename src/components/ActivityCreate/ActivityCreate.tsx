@@ -35,6 +35,7 @@ import type {
   ActivityPreFiltersInput,
   ActivityCreatePayload,
   ActivityCreateResponse,
+  RecommendedClassDraftResponse,
 } from './ActivityCreate.types';
 import { ActivityType, ActivityStatus } from './ActivityCreate.types';
 import {
@@ -777,7 +778,8 @@ const CreateActivity = ({
             ? `/recommended-class/models/${recommendedLessonDraftId}`
             : `/recommended-class/drafts/${recommendedLessonDraftId}`;
 
-        const response = await apiClient.get(endpoint);
+        const response =
+          await apiClient.get<RecommendedClassDraftResponse>(endpoint);
         const currentLesson = response.data.data;
 
         // Build activityDraftIds array
@@ -830,7 +832,7 @@ const CreateActivity = ({
         console.error('Error adding activity to lesson:', error);
         addToast({
           title: 'Erro ao adicionar atividade à aula',
-          action: 'error',
+          action: 'warning',
           position: 'top-right',
         });
         return;
