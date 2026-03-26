@@ -6550,4 +6550,622 @@ describe('useQuizStore', () => {
       );
     });
   });
+
+  describe('Draft Functionality', () => {
+    // Mock draft API client
+    const mockDraftApiClient = {
+      saveDraft: jest.fn().mockResolvedValue({ success: true }),
+      loadDraft: jest.fn().mockResolvedValue(null),
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    describe('setDraftApiClient', () => {
+      it('should set draft API client', () => {
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setDraftApiClient(mockDraftApiClient);
+        });
+
+        expect(result.current.draftApiClient).toBe(mockDraftApiClient);
+      });
+
+      it('should set draft API client to null', () => {
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setDraftApiClient(mockDraftApiClient);
+        });
+
+        expect(result.current.draftApiClient).toBe(mockDraftApiClient);
+
+        act(() => {
+          result.current.setDraftApiClient(null);
+        });
+
+        expect(result.current.draftApiClient).toBeNull();
+      });
+    });
+
+    describe('hasDraftChanges', () => {
+      it('should return false when no answers exist', () => {
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setQuiz(mockAtividade);
+        });
+
+        expect(result.current.hasDraftChanges()).toBe(false);
+      });
+
+      it('should return true when user has answered a question', () => {
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setQuiz(mockAtividade);
+          result.current.setUserId('test-user');
+          result.current.selectAnswer('q1', 'opt1');
+        });
+
+        expect(result.current.hasDraftChanges()).toBe(true);
+      });
+
+      it('should return false when only empty answers exist', () => {
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setQuiz(mockAtividade);
+          result.current.setUserId('test-user');
+          // No answers selected, just quiz set up
+        });
+
+        expect(result.current.hasDraftChanges()).toBe(false);
+      });
+    });
+
+    describe('prepareDraftPayload', () => {
+      it('should prepare payload with answered questions', () => {
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setQuiz(mockAtividade);
+          result.current.setUserId('test-user');
+          result.current.selectAnswer('q1', 'opt1');
+        });
+
+        const payload = result.current.prepareDraftPayload();
+
+        expect(payload.answers).toHaveLength(1);
+        expect(payload.answers[0]).toEqual({
+          questionId: 'q1',
+          optionId: 'opt1',
+        });
+      });
+
+      it('should prepare payload with multiple answers', () => {
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setQuiz(mockAtividade);
+          result.current.setUserId('test-user');
+          result.current.selectAnswer('q1', 'opt1');
+          result.current.selectAnswer('q2', 'opt2');
+        });
+
+        const payload = result.current.prepareDraftPayload();
+
+        expect(payload.answers).toHaveLength(2);
+      });
+
+      it('should return empty answers array when no answers exist', () => {
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setQuiz(mockAtividade);
+          result.current.setUserId('test-user');
+        });
+
+        const payload = result.current.prepareDraftPayload();
+
+        expect(payload.answers).toHaveLength(0);
+      });
+    });
+
+    describe('saveDraft', () => {
+      it('should not save when no API client is configured', async () => {
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setQuiz(mockAtividade);
+          result.current.setUserId('test-user');
+          result.current.selectAnswer('q1', 'opt1');
+        });
+
+        await act(async () => {
+          await result.current.saveDraft();
+        });
+
+        expect(mockDraftApiClient.saveDraft).not.toHaveBeenCalled();
+      });
+
+      it('should not save when no quiz is set', async () => {
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setDraftApiClient(mockDraftApiClient);
+        });
+
+        await act(async () => {
+          await result.current.saveDraft();
+        });
+
+        expect(mockDraftApiClient.saveDraft).not.toHaveBeenCalled();
+      });
+
+      it('should not save when no changes exist', async () => {
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setQuiz(mockAtividade);
+          result.current.setUserId('test-user');
+          result.current.setDraftApiClient(mockDraftApiClient);
+        });
+
+        await act(async () => {
+          await result.current.saveDraft();
+        });
+
+        expect(mockDraftApiClient.saveDraft).not.toHaveBeenCalled();
+      });
+
+      it('should save draft when changes exist', async () => {
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setQuiz(mockAtividade);
+          result.current.setUserId('test-user');
+          result.current.setDraftApiClient(mockDraftApiClient);
+          result.current.selectAnswer('q1', 'opt1');
+        });
+
+        await act(async () => {
+          await result.current.saveDraft();
+        });
+
+        expect(mockDraftApiClient.saveDraft).toHaveBeenCalledWith(
+          'atividade-1',
+          expect.objectContaining({
+            answers: expect.arrayContaining([
+              expect.objectContaining({
+                questionId: 'q1',
+                optionId: 'opt1',
+              }),
+            ]),
+          })
+        );
+      });
+
+      it('should not save the same payload twice', async () => {
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setQuiz(mockAtividade);
+          result.current.setUserId('test-user');
+          result.current.setDraftApiClient(mockDraftApiClient);
+          result.current.selectAnswer('q1', 'opt1');
+        });
+
+        await act(async () => {
+          await result.current.saveDraft();
+        });
+
+        expect(mockDraftApiClient.saveDraft).toHaveBeenCalledTimes(1);
+
+        // Try to save again without changes
+        await act(async () => {
+          await result.current.saveDraft();
+        });
+
+        // Should still be called only once
+        expect(mockDraftApiClient.saveDraft).toHaveBeenCalledTimes(1);
+      });
+
+      it('should save again after new changes', async () => {
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setQuiz(mockAtividade);
+          result.current.setUserId('test-user');
+          result.current.setDraftApiClient(mockDraftApiClient);
+          result.current.selectAnswer('q1', 'opt1');
+        });
+
+        await act(async () => {
+          await result.current.saveDraft();
+        });
+
+        expect(mockDraftApiClient.saveDraft).toHaveBeenCalledTimes(1);
+
+        // Make new changes
+        act(() => {
+          result.current.selectAnswer('q2', 'opt2');
+        });
+
+        await act(async () => {
+          await result.current.saveDraft();
+        });
+
+        expect(mockDraftApiClient.saveDraft).toHaveBeenCalledTimes(2);
+      });
+
+      it('should handle save errors silently', async () => {
+        const errorClient = {
+          saveDraft: jest.fn().mockRejectedValue(new Error('Network error')),
+          loadDraft: jest.fn(),
+        };
+        const consoleWarnSpy = jest
+          .spyOn(console, 'warn')
+          .mockImplementation(() => {});
+
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setQuiz(mockAtividade);
+          result.current.setUserId('test-user');
+          result.current.setDraftApiClient(errorClient);
+          result.current.selectAnswer('q1', 'opt1');
+        });
+
+        await act(async () => {
+          await result.current.saveDraft();
+        });
+
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+          'Erro ao salvar rascunho:',
+          expect.any(Error)
+        );
+
+        consoleWarnSpy.mockRestore();
+      });
+    });
+
+    describe('applyDraftAnswers', () => {
+      it('should apply draft answers to userAnswers', () => {
+        const { result } = renderQuizStoreHook();
+
+        const draftAnswers = [
+          { questionId: 'q1', optionId: 'opt1', answer: null },
+          { questionId: 'q2', optionId: 'opt2', answer: null },
+        ];
+
+        act(() => {
+          result.current.setQuiz(mockAtividade);
+          result.current.setUserId('test-user');
+          result.current.applyDraftAnswers(draftAnswers);
+        });
+
+        const userAnswers = result.current.userAnswers;
+        expect(userAnswers).toHaveLength(2);
+        expect(userAnswers[0].optionId).toBe('opt1');
+        expect(userAnswers[1].optionId).toBe('opt2');
+      });
+
+      it('should apply dissertative draft answers', () => {
+        const dissertativeQuestion = {
+          ...mockQuestion1,
+          id: 'diss-q1',
+          questionType: QUESTION_TYPE.DISSERTATIVA,
+          options: [],
+        };
+
+        const quizWithDissertative = {
+          ...mockAtividade,
+          questions: [dissertativeQuestion],
+        };
+
+        const { result } = renderQuizStoreHook();
+
+        const draftAnswers = [
+          { questionId: 'diss-q1', optionId: null, answer: 'My draft answer' },
+        ];
+
+        act(() => {
+          result.current.setQuiz(quizWithDissertative as unknown as QuizInterface);
+          result.current.setUserId('test-user');
+          result.current.applyDraftAnswers(draftAnswers);
+        });
+
+        const userAnswer = result.current.getUserAnswerByQuestionId('diss-q1');
+        expect(userAnswer?.answer).toBe('My draft answer');
+      });
+
+      it('should not apply empty draft answers array', () => {
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setQuiz(mockAtividade);
+          result.current.setUserId('test-user');
+          result.current.applyDraftAnswers([]);
+        });
+
+        expect(result.current.userAnswers).toHaveLength(0);
+      });
+    });
+
+    describe('loadAndApplyDraft', () => {
+      it('should not load when no API client is configured', async () => {
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setQuiz(mockAtividade);
+        });
+
+        await act(async () => {
+          await result.current.loadAndApplyDraft();
+        });
+
+        expect(mockDraftApiClient.loadDraft).not.toHaveBeenCalled();
+      });
+
+      it('should not load when no quiz is set', async () => {
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setDraftApiClient(mockDraftApiClient);
+        });
+
+        await act(async () => {
+          await result.current.loadAndApplyDraft();
+        });
+
+        expect(mockDraftApiClient.loadDraft).not.toHaveBeenCalled();
+      });
+
+      it('should load and apply draft answers', async () => {
+        const loadClient = {
+          saveDraft: jest.fn(),
+          loadDraft: jest.fn().mockResolvedValue({
+            hasDraft: true,
+            answers: [{ questionId: 'q1', optionId: 'opt1', answer: null }],
+          }),
+        };
+
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setQuiz(mockAtividade);
+          result.current.setUserId('test-user');
+          result.current.setDraftApiClient(loadClient);
+        });
+
+        await act(async () => {
+          await result.current.loadAndApplyDraft();
+        });
+
+        expect(loadClient.loadDraft).toHaveBeenCalledWith('atividade-1');
+        expect(result.current.userAnswers).toHaveLength(1);
+        expect(result.current.userAnswers[0].optionId).toBe('opt1');
+      });
+
+      it('should navigate to first unanswered question after loading draft', async () => {
+        const loadClient = {
+          saveDraft: jest.fn(),
+          loadDraft: jest.fn().mockResolvedValue({
+            hasDraft: true,
+            answers: [{ questionId: 'q1', optionId: 'opt1', answer: null }],
+          }),
+        };
+
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setQuiz(mockAtividade);
+          result.current.setUserId('test-user');
+          result.current.setDraftApiClient(loadClient);
+        });
+
+        await act(async () => {
+          await result.current.loadAndApplyDraft();
+        });
+
+        // Should navigate to question 2 (index 1) since question 1 is already answered
+        expect(result.current.currentQuestionIndex).toBe(1);
+      });
+
+      it('should stay on first question if all questions have drafts', async () => {
+        const loadClient = {
+          saveDraft: jest.fn(),
+          loadDraft: jest.fn().mockResolvedValue({
+            hasDraft: true,
+            answers: [
+              { questionId: 'q1', optionId: 'opt1', answer: null },
+              { questionId: 'q2', optionId: 'opt2', answer: null },
+            ],
+          }),
+        };
+
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setQuiz(mockAtividade);
+          result.current.setUserId('test-user');
+          result.current.setDraftApiClient(loadClient);
+        });
+
+        await act(async () => {
+          await result.current.loadAndApplyDraft();
+        });
+
+        // All questions answered, stay on first (no unanswered found, findIndex returns -1)
+        expect(result.current.currentQuestionIndex).toBe(0);
+      });
+
+      it('should not apply draft when hasDraft is false', async () => {
+        const loadClient = {
+          saveDraft: jest.fn(),
+          loadDraft: jest.fn().mockResolvedValue({
+            hasDraft: false,
+            answers: [],
+          }),
+        };
+
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setQuiz(mockAtividade);
+          result.current.setUserId('test-user');
+          result.current.setDraftApiClient(loadClient);
+        });
+
+        await act(async () => {
+          await result.current.loadAndApplyDraft();
+        });
+
+        expect(result.current.userAnswers).toHaveLength(0);
+      });
+
+      it('should handle load errors silently', async () => {
+        const errorClient = {
+          saveDraft: jest.fn(),
+          loadDraft: jest.fn().mockRejectedValue(new Error('Network error')),
+        };
+        const consoleWarnSpy = jest
+          .spyOn(console, 'warn')
+          .mockImplementation(() => {});
+
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setQuiz(mockAtividade);
+          result.current.setUserId('test-user');
+          result.current.setDraftApiClient(errorClient);
+        });
+
+        await act(async () => {
+          await result.current.loadAndApplyDraft();
+        });
+
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+          'Erro ao carregar rascunho:',
+          expect.any(Error)
+        );
+
+        consoleWarnSpy.mockRestore();
+      });
+    });
+
+    describe('resetQuiz should not reset draftApiClient', () => {
+      it('should preserve draftApiClient after resetQuiz', () => {
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setDraftApiClient(mockDraftApiClient);
+          result.current.setQuiz(mockAtividade);
+          result.current.setUserId('test-user');
+        });
+
+        expect(result.current.draftApiClient).toBe(mockDraftApiClient);
+
+        act(() => {
+          result.current.resetQuiz();
+        });
+
+        // draftApiClient should still be set after resetQuiz
+        expect(result.current.draftApiClient).toBe(mockDraftApiClient);
+      });
+
+      it('should reset _lastSavedDraftPayload after resetQuiz', () => {
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setDraftApiClient(mockDraftApiClient);
+          result.current.setQuiz(mockAtividade);
+          result.current.setUserId('test-user');
+          result.current.selectAnswer('q1', 'opt1');
+        });
+
+        // Save to set _lastSavedDraftPayload
+        act(() => {
+          result.current.saveDraft();
+        });
+
+        act(() => {
+          result.current.resetQuiz();
+        });
+
+        // _lastSavedDraftPayload should be reset
+        expect(result.current._lastSavedDraftPayload).toBe('');
+      });
+    });
+
+    describe('Navigation triggers saveDraft', () => {
+      it('should call saveDraft when going to next question', async () => {
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setQuiz(mockAtividade);
+          result.current.setUserId('test-user');
+          result.current.setDraftApiClient(mockDraftApiClient);
+          result.current.selectAnswer('q1', 'opt1');
+          result.current.startQuiz();
+        });
+
+        await act(async () => {
+          result.current.goToNextQuestion();
+          // Wait for async saveDraft to complete
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        expect(mockDraftApiClient.saveDraft).toHaveBeenCalled();
+      });
+
+      it('should call saveDraft when going to previous question', async () => {
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setQuiz(mockAtividade);
+          result.current.setUserId('test-user');
+          result.current.setDraftApiClient(mockDraftApiClient);
+          result.current.startQuiz();
+          result.current.goToNextQuestion();
+        });
+
+        // Clear mocks after navigation
+        mockDraftApiClient.saveDraft.mockClear();
+
+        act(() => {
+          result.current.selectAnswer('q2', 'opt2');
+        });
+
+        await act(async () => {
+          result.current.goToPreviousQuestion();
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        expect(mockDraftApiClient.saveDraft).toHaveBeenCalled();
+      });
+
+      it('should call saveDraft when going to specific question', async () => {
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setQuiz(mockAtividade);
+          result.current.setUserId('test-user');
+          result.current.setDraftApiClient(mockDraftApiClient);
+          result.current.selectAnswer('q1', 'opt1');
+          result.current.startQuiz();
+        });
+
+        await act(async () => {
+          result.current.goToQuestion(1);
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        expect(mockDraftApiClient.saveDraft).toHaveBeenCalled();
+      });
+    });
+  });
 });
