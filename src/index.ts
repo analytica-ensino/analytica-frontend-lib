@@ -476,6 +476,9 @@ export type {
   UserAnswerItem,
   QuizState,
   QuizInterface,
+  DraftAnswerItem,
+  SaveDraftPayload,
+  DraftApiClient,
 } from './components/Quiz/useQuizStore';
 
 // Multiple Choice and Icon Components
@@ -497,6 +500,11 @@ export { useMobile, getDeviceType } from './hooks/useMobile';
 export type { DeviceType } from './hooks/useMobile';
 export { useTheme } from './hooks/useTheme';
 export type { ThemeMode } from './hooks/useTheme';
+export { useDraftAutoSave } from './hooks/useDraftAutoSave';
+export type {
+  ApiClient as DraftApiClientAdapter,
+  UseDraftAutoSaveOptions,
+} from './hooks/useDraftAutoSave';
 
 // BreadcrumbMenu Components
 export { BreadcrumbMenu } from './components/BreadcrumbMenu/BreadcrumbMenu';
