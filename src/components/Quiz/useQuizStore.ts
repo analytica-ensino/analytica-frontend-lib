@@ -288,6 +288,21 @@ export interface SaveDraftPayload {
   }>;
 }
 
+/**
+ * API client interface for draft operations
+ * Pass this to the store to enable auto-save functionality
+ */
+export interface DraftApiClient {
+  saveDraft: (
+    activityId: string,
+    payload: SaveDraftPayload
+  ) => Promise<{ success: boolean }>;
+  loadDraft: (activityId: string) => Promise<{
+    hasDraft: boolean;
+    answers: DraftAnswerItem[];
+  } | null>;
+}
+
 export interface QuizState {
   // Data
   quiz: QuizInterface | null;
@@ -391,6 +406,16 @@ export interface QuizState {
   applyDraftAnswers: (draftAnswers: DraftAnswerItem[]) => void;
   prepareDraftPayload: () => SaveDraftPayload;
   hasDraftChanges: () => boolean;
+
+  // Draft API client (for auto-save functionality)
+  draftApiClient: DraftApiClient | null;
+  setDraftApiClient: (client: DraftApiClient | null) => void;
+  saveDraft: () => Promise<void>;
+  loadAndApplyDraft: () => Promise<void>;
+
+  // Internal refs for draft management (not exposed, but tracked in state for reactivity)
+  _lastSavedDraftPayload: string;
+  _isSavingDraft: boolean;
 }
 
 // Constants
@@ -520,6 +545,9 @@ export const useQuizStore = create<QuizState>()(
         onTimeUp: null,
         questionsResult: null,
         currentQuestionResult: null,
+        draftApiClient: null,
+        _lastSavedDraftPayload: '',
+        _isSavingDraft: false,
         // Setters
         setQuiz: (quiz) => set({ quiz }),
         setUserId: (userId) => set({ userId }),
@@ -530,29 +558,131 @@ export const useQuizStore = create<QuizState>()(
         setDissertativeCharLimit: (limit?: number) =>
           set({ dissertativeCharLimit: limit }),
         getDissertativeCharLimit: () => get().dissertativeCharLimit,
+        setDraftApiClient: (client) => set({ draftApiClient: client }),
+
+        // Draft save - called automatically on navigation
+        saveDraft: async () => {
+          const {
+            draftApiClient,
+            quiz,
+            hasDraftChanges,
+            prepareDraftPayload,
+            _lastSavedDraftPayload,
+            _isSavingDraft,
+          } = get();
+
+          // Skip if no API client configured or no quiz
+          if (!draftApiClient || !quiz) return;
+
+          // Skip if already saving
+          if (_isSavingDraft) return;
+
+          // Skip if no changes
+          if (!hasDraftChanges()) return;
+
+          const payload = prepareDraftPayload();
+          const payloadString = JSON.stringify(payload);
+
+          // Skip if payload hasn't changed
+          if (payloadString === _lastSavedDraftPayload) return;
+
+          try {
+            set({ _isSavingDraft: true });
+            await draftApiClient.saveDraft(quiz.id, payload);
+            set({ _lastSavedDraftPayload: payloadString });
+          } catch (error) {
+            // Silent fail - don't interrupt user experience
+            console.warn('Erro ao salvar rascunho:', error);
+          } finally {
+            set({ _isSavingDraft: false });
+          }
+        },
+
+        // Load draft and apply to quiz, navigate to first unanswered question
+        loadAndApplyDraft: async () => {
+          const {
+            draftApiClient,
+            quiz,
+            applyDraftAnswers,
+            prepareDraftPayload,
+          } = get();
+
+          // Skip if no API client configured or no quiz
+          if (!draftApiClient || !quiz) return;
+
+          try {
+            const draftData = await draftApiClient.loadDraft(quiz.id);
+
+            if (draftData?.hasDraft && draftData.answers?.length > 0) {
+              applyDraftAnswers(draftData.answers);
+
+              // Update last saved payload to prevent immediate re-save
+              const payload = prepareDraftPayload();
+              set({ _lastSavedDraftPayload: JSON.stringify(payload) });
+
+              // Navigate to first unanswered question
+              const questions = get().quiz?.questions || [];
+              const updatedAnswers = get().userAnswers;
+
+              const firstUnansweredIndex = questions.findIndex((question) => {
+                const answer = updatedAnswers.find(
+                  (a) => a.questionId === question.id
+                );
+                if (!answer) return true;
+                if (answer.optionId) return false;
+                if (
+                  answer.selectedOptionIds &&
+                  answer.selectedOptionIds.length > 0
+                )
+                  return false;
+                if (answer.answer && answer.answer.trim() !== '') return false;
+                return true;
+              });
+
+              if (firstUnansweredIndex > 0) {
+                // Navigate without triggering save (internal navigation)
+                set({ currentQuestionIndex: firstUnansweredIndex });
+              }
+            }
+          } catch (error) {
+            // Silent fail - user can continue fresh
+            console.warn('Erro ao carregar rascunho:', error);
+          }
+        },
+
         // Navigation
         goToNextQuestion: () => {
-          const { currentQuestionIndex, getTotalQuestions } = get();
+          const { currentQuestionIndex, getTotalQuestions, saveDraft } = get();
           const totalQuestions = getTotalQuestions();
 
           if (currentQuestionIndex < totalQuestions - 1) {
+            // Save draft before navigating
+            saveDraft();
             set({ currentQuestionIndex: currentQuestionIndex + 1 });
           }
         },
 
         goToPreviousQuestion: () => {
-          const { currentQuestionIndex } = get();
+          const { currentQuestionIndex, saveDraft } = get();
 
           if (currentQuestionIndex > 0) {
+            // Save draft before navigating
+            saveDraft();
             set({ currentQuestionIndex: currentQuestionIndex - 1 });
           }
         },
 
         goToQuestion: (index) => {
-          const { getTotalQuestions } = get();
+          const { getTotalQuestions, currentQuestionIndex, saveDraft } = get();
           const totalQuestions = getTotalQuestions();
 
-          if (index >= 0 && index < totalQuestions) {
+          if (
+            index >= 0 &&
+            index < totalQuestions &&
+            index !== currentQuestionIndex
+          ) {
+            // Save draft before navigating
+            saveDraft();
             set({ currentQuestionIndex: index });
           }
         },
@@ -876,6 +1006,9 @@ export const useQuizStore = create<QuizState>()(
             onTimeUp: null,
             questionsResult: null,
             currentQuestionResult: null,
+            // Note: draftApiClient is NOT reset here - it's managed by useDraftAutoSave hook
+            _lastSavedDraftPayload: '',
+            _isSavingDraft: false,
           });
         },
 
