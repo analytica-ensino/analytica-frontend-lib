@@ -42,7 +42,11 @@ describe('useDraftAutoSave', () => {
   afterEach(() => {
     // Restore original visibilityState
     if (originalVisibilityState) {
-      Object.defineProperty(document, 'visibilityState', originalVisibilityState);
+      Object.defineProperty(
+        document,
+        'visibilityState',
+        originalVisibilityState
+      );
     }
   });
 
@@ -158,7 +162,10 @@ describe('useDraftAutoSave', () => {
 
     it('should remove visibility listener on unmount', () => {
       const addEventListenerSpy = jest.spyOn(document, 'addEventListener');
-      const removeEventListenerSpy = jest.spyOn(document, 'removeEventListener');
+      const removeEventListenerSpy = jest.spyOn(
+        document,
+        'removeEventListener'
+      );
 
       const { unmount } = renderHook(() =>
         useDraftAutoSave({

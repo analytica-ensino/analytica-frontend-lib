@@ -6873,7 +6873,9 @@ describe('useQuizStore', () => {
         ];
 
         act(() => {
-          result.current.setQuiz(quizWithDissertative as unknown as QuizInterface);
+          result.current.setQuiz(
+            quizWithDissertative as unknown as QuizInterface
+          );
           result.current.setUserId('test-user');
           result.current.applyDraftAnswers(draftAnswers);
         });
