@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { useDraftAutoSave, ApiClient } from './useDraftAutoSave';
-import { useQuizStore } from '../components/Quiz/useQuizStore';
+import { useQuizStore, DraftApiClient } from '../components/Quiz/useQuizStore';
 
 // Mock the useQuizStore
 jest.mock('../components/Quiz/useQuizStore', () => ({
@@ -193,8 +193,7 @@ describe('useDraftAutoSave', () => {
 
   describe('draft API client methods', () => {
     it('should create saveDraft method that calls apiClient.post', async () => {
-      let capturedClient: { saveDraft: Function; loadDraft: Function } | null =
-        null;
+      let capturedClient: DraftApiClient | null = null;
 
       mockSetDraftApiClient.mockImplementation((client) => {
         capturedClient = client;
@@ -219,8 +218,7 @@ describe('useDraftAutoSave', () => {
     });
 
     it('should create loadDraft method that calls apiClient.get', async () => {
-      let capturedClient: { saveDraft: Function; loadDraft: Function } | null =
-        null;
+      let capturedClient: DraftApiClient | null = null;
 
       mockSetDraftApiClient.mockImplementation((client) => {
         capturedClient = client;
@@ -243,8 +241,7 @@ describe('useDraftAutoSave', () => {
     });
 
     it('should use custom endpoint when provided', async () => {
-      let capturedClient: { saveDraft: Function; loadDraft: Function } | null =
-        null;
+      let capturedClient: DraftApiClient | null = null;
 
       mockSetDraftApiClient.mockImplementation((client) => {
         capturedClient = client;
@@ -269,8 +266,7 @@ describe('useDraftAutoSave', () => {
     });
 
     it('should parse loadDraft response correctly', async () => {
-      let capturedClient: { saveDraft: Function; loadDraft: Function } | null =
-        null;
+      let capturedClient: DraftApiClient | null = null;
 
       mockSetDraftApiClient.mockImplementation((client) => {
         capturedClient = client;
@@ -303,8 +299,7 @@ describe('useDraftAutoSave', () => {
     });
 
     it('should return null when loadDraft response has no data', async () => {
-      let capturedClient: { saveDraft: Function; loadDraft: Function } | null =
-        null;
+      let capturedClient: DraftApiClient | null = null;
 
       mockSetDraftApiClient.mockImplementation((client) => {
         capturedClient = client;
