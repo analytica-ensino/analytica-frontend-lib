@@ -7079,7 +7079,7 @@ describe('useQuizStore', () => {
         expect(result.current.draftApiClient).toBe(mockDraftApiClient);
       });
 
-      it('should reset _lastSavedDraftPayload after resetQuiz', () => {
+      it('should reset _lastSavedDraftPayload after resetQuiz', async () => {
         const { result } = renderQuizStoreHook();
 
         act(() => {
@@ -7090,8 +7090,8 @@ describe('useQuizStore', () => {
         });
 
         // Save to set _lastSavedDraftPayload
-        act(() => {
-          result.current.saveDraft();
+        await act(async () => {
+          await result.current.saveDraft();
         });
 
         act(() => {

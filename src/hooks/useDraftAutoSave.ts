@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react';
 import {
   useQuizStore,
   DraftApiClient,
+  DraftAnswerItem,
   SaveDraftPayload,
 } from '../components/Quiz/useQuizStore';
 
@@ -61,13 +62,13 @@ export function useDraftAutoSave({
       loadDraft: async (activityId: string) => {
         const url = endpoint.replace('{activityId}', activityId);
         const response = await apiClient.get<{
-          data?: { hasDraft: boolean; answers: unknown[] };
+          data?: { hasDraft: boolean; answers: DraftAnswerItem[] };
         }>(url);
         const data = response.data?.data;
         return data
           ? {
               hasDraft: data.hasDraft,
-              answers: (data.answers || []) as never[],
+              answers: data.answers || [],
             }
           : null;
       },
