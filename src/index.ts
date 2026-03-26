@@ -476,6 +476,8 @@ export type {
   UserAnswerItem,
   QuizState,
   QuizInterface,
+  DraftAnswerItem,
+  SaveDraftPayload,
 } from './components/Quiz/useQuizStore';
 
 // Multiple Choice and Icon Components

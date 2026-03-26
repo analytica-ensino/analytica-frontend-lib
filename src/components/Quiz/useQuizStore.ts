@@ -257,6 +257,37 @@ export interface UserAnswerItem {
   answerStatus: ANSWER_STATUS;
 }
 
+/**
+ * Draft answer item from the backend API
+ * Used when loading saved drafts
+ */
+export interface DraftAnswerItem {
+  questionId: string;
+  answer: string | null;
+  optionId: string | null;
+  selectedOptionIds?: string[] | null;
+  fillAnswers?: Record<string, string> | null;
+  matchingAnswers?: Array<{ optionId: string; selectedValue: string }> | null;
+  imageAnswer?: { coordinateX: number; coordinateY: number } | null;
+  sequence?: number;
+  timeSpent?: number;
+}
+
+/**
+ * Payload for saving drafts to the backend
+ */
+export interface SaveDraftPayload {
+  answers: Array<{
+    questionId: string;
+    answer?: string | null;
+    optionId?: string | null;
+    selectedOptionIds?: string[] | null;
+    fillAnswers?: Record<string, string> | null;
+    matchingAnswers?: Array<{ optionId: string; selectedValue: string }> | null;
+    imageAnswer?: { coordinateX: number; coordinateY: number } | null;
+  }>;
+}
+
 export interface QuizState {
   // Data
   quiz: QuizInterface | null;
@@ -355,6 +386,11 @@ export interface QuizState {
   getQuestionResultStatistics: () => QuestionResult['statistics'] | null;
   getQuestionResult: () => QuestionResult | null;
   getCurrentQuestionResult: () => QuestionResult['answers'] | null;
+
+  // Draft management
+  applyDraftAnswers: (draftAnswers: DraftAnswerItem[]) => void;
+  prepareDraftPayload: () => SaveDraftPayload;
+  hasDraftChanges: () => boolean;
 }
 
 // Constants
@@ -1171,6 +1207,90 @@ export const useQuizStore = create<QuizState>()(
         getCurrentQuestionResult: () => {
           const { currentQuestionResult } = get();
           return currentQuestionResult;
+        },
+
+        // Draft management
+        applyDraftAnswers: (draftAnswers) => {
+          const { quiz, userId } = get();
+          if (!quiz || !draftAnswers || draftAnswers.length === 0) return;
+
+          const activityId = quiz.id;
+          const newUserAnswers: UserAnswerItem[] = [];
+
+          for (const draft of draftAnswers) {
+            const question = quiz.questions.find(
+              (q) => q.id === draft.questionId
+            );
+            if (!question) continue;
+
+            // Parse answer if it's a JSON string (for complex answer types)
+            let parsedAnswer = draft.answer;
+            let selectedOptionIds = draft.selectedOptionIds;
+
+            // Try to parse JSON answer for complex types
+            if (draft.answer && !draft.optionId) {
+              try {
+                const parsed = JSON.parse(draft.answer);
+                if (parsed.selectedOptionIds) {
+                  selectedOptionIds = parsed.selectedOptionIds;
+                  parsedAnswer = null;
+                }
+              } catch {
+                // Not JSON, keep as plain text
+              }
+            }
+
+            const userAnswer: UserAnswerItem = {
+              questionId: draft.questionId,
+              activityId,
+              userId,
+              answer: parsedAnswer,
+              optionId: draft.optionId || null,
+              selectedOptionIds: selectedOptionIds || null,
+              questionType: question.questionType,
+              answerStatus: ANSWER_STATUS.PENDENTE_AVALIACAO,
+            };
+
+            newUserAnswers.push(userAnswer);
+          }
+
+          set({ userAnswers: newUserAnswers });
+        },
+
+        prepareDraftPayload: () => {
+          const { userAnswers } = get();
+
+          const answers = userAnswers
+            .filter((answer) => hasMeaningfulAnswer(answer))
+            .map((answer) => {
+              const draftAnswer: SaveDraftPayload['answers'][number] = {
+                questionId: answer.questionId,
+              };
+
+              if (answer.optionId) {
+                draftAnswer.optionId = answer.optionId;
+              }
+
+              if (answer.answer) {
+                draftAnswer.answer = answer.answer;
+              }
+
+              if (
+                answer.selectedOptionIds &&
+                answer.selectedOptionIds.length > 0
+              ) {
+                draftAnswer.selectedOptionIds = answer.selectedOptionIds;
+              }
+
+              return draftAnswer;
+            });
+
+          return { answers };
+        },
+
+        hasDraftChanges: () => {
+          const { userAnswers } = get();
+          return userAnswers.some((answer) => hasMeaningfulAnswer(answer));
         },
       };
     },
