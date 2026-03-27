@@ -414,8 +414,8 @@ export interface QuizState {
   loadAndApplyDraft: () => Promise<void>;
 
   // Internal refs for draft management (not exposed, but tracked in state for reactivity)
-  _lastSavedDraftPayload: string;
-  _isSavingDraft: boolean;
+  lastSavedDraftPayload: string;
+  isSavingDraft: boolean;
 }
 
 // Constants
@@ -546,8 +546,8 @@ export const useQuizStore = create<QuizState>()(
         questionsResult: null,
         currentQuestionResult: null,
         draftApiClient: null,
-        _lastSavedDraftPayload: '',
-        _isSavingDraft: false,
+        lastSavedDraftPayload: '',
+        isSavingDraft: false,
         // Setters
         setQuiz: (quiz) => set({ quiz }),
         setUserId: (userId) => set({ userId }),
@@ -567,15 +567,15 @@ export const useQuizStore = create<QuizState>()(
             quiz,
             hasDraftChanges,
             prepareDraftPayload,
-            _lastSavedDraftPayload,
-            _isSavingDraft,
+            lastSavedDraftPayload,
+            isSavingDraft,
           } = get();
 
           // Skip if no API client configured or no quiz
           if (!draftApiClient || !quiz) return;
 
           // Skip if already saving
-          if (_isSavingDraft) return;
+          if (isSavingDraft) return;
 
           // Skip if no changes
           if (!hasDraftChanges()) return;
@@ -584,17 +584,17 @@ export const useQuizStore = create<QuizState>()(
           const payloadString = JSON.stringify(payload);
 
           // Skip if payload hasn't changed
-          if (payloadString === _lastSavedDraftPayload) return;
+          if (payloadString === lastSavedDraftPayload) return;
 
           try {
-            set({ _isSavingDraft: true });
+            set({ isSavingDraft: true });
             await draftApiClient.saveDraft(quiz.id, payload);
-            set({ _lastSavedDraftPayload: payloadString });
+            set({ lastSavedDraftPayload: payloadString });
           } catch (error) {
             // Silent fail - don't interrupt user experience
             console.warn('Erro ao salvar rascunho:', error);
           } finally {
-            set({ _isSavingDraft: false });
+            set({ isSavingDraft: false });
           }
         },
 
@@ -618,7 +618,7 @@ export const useQuizStore = create<QuizState>()(
 
               // Update last saved payload to prevent immediate re-save
               const payload = prepareDraftPayload();
-              set({ _lastSavedDraftPayload: JSON.stringify(payload) });
+              set({ lastSavedDraftPayload: JSON.stringify(payload) });
 
               // Navigate to first unanswered question
               const questions = get().quiz?.questions || [];
@@ -1007,8 +1007,8 @@ export const useQuizStore = create<QuizState>()(
             questionsResult: null,
             currentQuestionResult: null,
             // Note: draftApiClient is NOT reset here - it's managed by useDraftAutoSave hook
-            _lastSavedDraftPayload: '',
-            _isSavingDraft: false,
+            lastSavedDraftPayload: '',
+            isSavingDraft: false,
           });
         },
 
