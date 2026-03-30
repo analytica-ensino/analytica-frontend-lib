@@ -1081,7 +1081,7 @@ describe('SelectContent portal and fixed positioning', () => {
   });
 
   it('should store trigger rect when opening dropdown', async () => {
-    const store = createSelectStore();
+    createSelectStore();
 
     render(
       <Select>

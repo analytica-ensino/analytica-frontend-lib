@@ -380,9 +380,8 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
       [ref]
     );
 
-    const toggleOpen = () => {
-      const newOpen = !open;
-      if (newOpen && internalRef.current) {
+    const updateTriggerRect = useCallback(() => {
+      if (internalRef.current) {
         const rect = internalRef.current.getBoundingClientRect();
         store.setState({
           triggerRect: {
@@ -392,6 +391,30 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
             height: rect.height,
           },
         });
+      }
+    }, [store]);
+
+    // Update triggerRect on scroll/resize while open
+    useEffect(() => {
+      if (!open) return;
+
+      const handleUpdate = () => {
+        updateTriggerRect();
+      };
+
+      window.addEventListener('scroll', handleUpdate, true);
+      window.addEventListener('resize', handleUpdate);
+
+      return () => {
+        window.removeEventListener('scroll', handleUpdate, true);
+        window.removeEventListener('resize', handleUpdate);
+      };
+    }, [open, updateTriggerRect]);
+
+    const toggleOpen = () => {
+      const newOpen = !open;
+      if (newOpen) {
+        updateTriggerRect();
       }
       store.setState({ open: newOpen });
     };
@@ -476,26 +499,52 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
 
       const styles: CSSProperties = {
         position: 'fixed',
-        width: triggerRect.width,
-        minWidth: triggerRect.width,
         zIndex: 9999,
       };
 
-      // Vertical positioning
-      if (side === 'top') {
-        styles.bottom = window.innerHeight - triggerRect.top + 4;
-      } else {
-        styles.top = triggerRect.top + triggerRect.height + 4;
+      const gap = 4;
+
+      // Handle vertical sides (top/bottom)
+      if (side === 'top' || side === 'bottom') {
+        styles.width = triggerRect.width;
+        styles.minWidth = triggerRect.width;
+
+        if (side === 'top') {
+          styles.bottom = window.innerHeight - triggerRect.top + gap;
+        } else {
+          styles.top = triggerRect.top + triggerRect.height + gap;
+        }
+
+        // Horizontal alignment for top/bottom
+        if (align === 'start') {
+          styles.left = triggerRect.left;
+        } else if (align === 'end') {
+          styles.right =
+            window.innerWidth - triggerRect.left - triggerRect.width;
+        } else {
+          styles.left = triggerRect.left + triggerRect.width / 2;
+          styles.transform = 'translateX(-50%)';
+        }
       }
 
-      // Horizontal positioning
-      if (align === 'start') {
-        styles.left = triggerRect.left;
-      } else if (align === 'end') {
-        styles.right = window.innerWidth - triggerRect.left - triggerRect.width;
-      } else {
-        styles.left = triggerRect.left + triggerRect.width / 2;
-        styles.transform = 'translateX(-50%)';
+      // Handle horizontal sides (left/right)
+      if (side === 'left' || side === 'right') {
+        if (side === 'left') {
+          styles.right = window.innerWidth - triggerRect.left + gap;
+        } else {
+          styles.left = triggerRect.left + triggerRect.width + gap;
+        }
+
+        // Vertical alignment for left/right
+        if (align === 'start') {
+          styles.top = triggerRect.top;
+        } else if (align === 'end') {
+          styles.bottom =
+            window.innerHeight - triggerRect.top - triggerRect.height;
+        } else {
+          styles.top = triggerRect.top + triggerRect.height / 2;
+          styles.transform = 'translateY(-50%)';
+        }
       }
 
       return styles;
