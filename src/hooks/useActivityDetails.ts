@@ -198,8 +198,8 @@ export const useActivityDetails = (
         attachmentUrl = `${baseUrl}/${key}`;
       }
 
-      await apiClient.post(
-        `/activities/${actId}/students/${studentId}/feedback/observation`,
+      await apiClient.patch(
+        `/activities/${actId}/students/${studentId}/feedback`,
         {
           observation,
           attachmentUrl,
