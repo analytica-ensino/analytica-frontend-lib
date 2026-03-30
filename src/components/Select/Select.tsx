@@ -459,6 +459,58 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
 );
 SelectTrigger.displayName = 'SelectTrigger';
 
+function applyVerticalPosition(
+  styles: CSSProperties,
+  triggerRect: TriggerRect,
+  side: 'top' | 'bottom',
+  align: 'start' | 'center' | 'end',
+  gap: number
+): void {
+  styles.top =
+    side === 'top'
+      ? triggerRect.top - gap
+      : triggerRect.top + triggerRect.height + gap;
+  styles.transform = side === 'top' ? 'translateY(-100%)' : undefined;
+
+  if (align === 'start') {
+    styles.left = triggerRect.left;
+  } else if (align === 'center') {
+    styles.left = triggerRect.left + triggerRect.width / 2;
+    styles.transform =
+      side === 'top' ? 'translate(-50%, -100%)' : 'translateX(-50%)';
+  } else {
+    styles.left = triggerRect.left + triggerRect.width;
+    styles.transform =
+      side === 'top' ? 'translate(-100%, -100%)' : 'translateX(-100%)';
+  }
+}
+
+function applyHorizontalPosition(
+  styles: CSSProperties,
+  triggerRect: TriggerRect,
+  side: 'left' | 'right',
+  align: 'start' | 'center' | 'end',
+  gap: number
+): void {
+  styles.left =
+    side === 'left'
+      ? triggerRect.left - gap
+      : triggerRect.left + triggerRect.width + gap;
+  styles.transform = side === 'left' ? 'translateX(-100%)' : undefined;
+
+  if (align === 'start') {
+    styles.top = triggerRect.top;
+  } else if (align === 'center') {
+    styles.top = triggerRect.top + triggerRect.height / 2;
+    styles.transform =
+      side === 'left' ? 'translate(-100%, -50%)' : 'translateY(-50%)';
+  } else {
+    styles.top = triggerRect.top + triggerRect.height;
+    styles.transform =
+      side === 'left' ? 'translate(-100%, -100%)' : 'translateY(-100%)';
+  }
+}
+
 interface SelectContentProps extends HTMLAttributes<HTMLDivElement> {
   className?: string;
   align?: 'start' | 'center' | 'end';
@@ -497,54 +549,18 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
         return {};
       }
 
+      const gap = 4;
       const styles: CSSProperties = {
         position: 'fixed',
         zIndex: 9999,
       };
 
-      const gap = 4;
+      const isVertical = side === 'top' || side === 'bottom';
 
-      // Handle vertical sides (top/bottom)
-      if (side === 'top' || side === 'bottom') {
-        styles.width = triggerRect.width;
-        styles.minWidth = triggerRect.width;
-
-        if (side === 'top') {
-          styles.bottom = window.innerHeight - triggerRect.top + gap;
-        } else {
-          styles.top = triggerRect.top + triggerRect.height + gap;
-        }
-
-        // Horizontal alignment for top/bottom
-        if (align === 'start') {
-          styles.left = triggerRect.left;
-        } else if (align === 'end') {
-          styles.right =
-            window.innerWidth - triggerRect.left - triggerRect.width;
-        } else {
-          styles.left = triggerRect.left + triggerRect.width / 2;
-          styles.transform = 'translateX(-50%)';
-        }
-      }
-
-      // Handle horizontal sides (left/right)
-      if (side === 'left' || side === 'right') {
-        if (side === 'left') {
-          styles.right = window.innerWidth - triggerRect.left + gap;
-        } else {
-          styles.left = triggerRect.left + triggerRect.width + gap;
-        }
-
-        // Vertical alignment for left/right
-        if (align === 'start') {
-          styles.top = triggerRect.top;
-        } else if (align === 'end') {
-          styles.bottom =
-            window.innerHeight - triggerRect.top - triggerRect.height;
-        } else {
-          styles.top = triggerRect.top + triggerRect.height / 2;
-          styles.transform = 'translateY(-50%)';
-        }
+      if (isVertical) {
+        applyVerticalPosition(styles, triggerRect, side, align, gap);
+      } else {
+        applyHorizontalPosition(styles, triggerRect, side, align, gap);
       }
 
       return styles;

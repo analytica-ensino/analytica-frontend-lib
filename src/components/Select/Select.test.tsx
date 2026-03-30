@@ -249,10 +249,10 @@ describe('Select component', () => {
     await userEvent.click(screen.getByRole('button'));
     const menu = screen.getByRole('menu');
 
-    // For side=top, should have bottom style set
-    expect(menu.style.bottom).toBeTruthy();
-    // For align=center, should have transform with translateX(-50%)
-    expect(menu.style.transform).toBe('translateX(-50%)');
+    // For side=top, should have top style and translateY(-100%) transform
+    expect(menu.style.top).toBeTruthy();
+    // For align=center, should have transform with translate(-50%, -100%)
+    expect(menu.style.transform).toBe('translate(-50%, -100%)');
   });
 
   it('should pre-select defaultValue', () => {
@@ -906,9 +906,9 @@ describe('SelectContent portal and fixed positioning', () => {
     await userEvent.click(screen.getByRole('button'));
 
     const menu = screen.getByRole('menu');
-    // The menu should have a width style set (matching trigger width)
-    expect(menu.style.width).toBeTruthy();
-    expect(menu.style.minWidth).toBeTruthy();
+    // The menu should have fixed position and left style set
+    expect(menu.style.position).toBe('fixed');
+    expect(menu.style.left).toBeTruthy();
   });
 
   it('should position dropdown below trigger by default (side=bottom)', async () => {
@@ -946,8 +946,9 @@ describe('SelectContent portal and fixed positioning', () => {
     await userEvent.click(screen.getByRole('button'));
 
     const menu = screen.getByRole('menu');
-    // For side=top, should have bottom style set (not top)
-    expect(menu.style.bottom).toBeTruthy();
+    // For side=top, should have top style with translateY(-100%) transform
+    expect(menu.style.top).toBeTruthy();
+    expect(menu.style.transform).toBe('translateY(-100%)');
   });
 
   it('should align dropdown to start (left) by default', async () => {
@@ -985,8 +986,9 @@ describe('SelectContent portal and fixed positioning', () => {
     await userEvent.click(screen.getByRole('button'));
 
     const menu = screen.getByRole('menu');
-    // For align=end, should have right style set
-    expect(menu.style.right).toBeTruthy();
+    // For align=end, should have left style with translateX(-100%) transform
+    expect(menu.style.left).toBeTruthy();
+    expect(menu.style.transform).toBe('translateX(-100%)');
   });
 
   it('should center dropdown when align=center', async () => {
@@ -1103,7 +1105,7 @@ describe('SelectContent portal and fixed positioning', () => {
     const menu = screen.getByRole('menu');
     // Menu should have position styles set from trigger rect
     expect(menu.style.position).toBe('fixed');
-    expect(menu.style.width).toBeTruthy();
+    expect(menu.style.left).toBeTruthy();
   });
 });
 
