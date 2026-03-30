@@ -307,7 +307,7 @@ describe('useActivityDetails', () => {
 
   describe('submitObservation', () => {
     it('should submit observation without file successfully', async () => {
-      (mockApiClient.post as jest.Mock).mockResolvedValueOnce({});
+      (mockApiClient.patch as jest.Mock).mockResolvedValueOnce({});
 
       const { result } = renderHook(() => useActivityDetails(mockApiClient));
 
@@ -318,14 +318,14 @@ describe('useActivityDetails', () => {
         null
       );
 
-      expect(mockApiClient.post).toHaveBeenCalledWith(
-        '/activities/activity-123/students/student-1/feedback/observation',
+      expect(mockApiClient.patch).toHaveBeenCalledWith(
+        '/activities/activity-123/students/student-1/feedback',
         {
           observation: 'Great work!',
           attachmentUrl: null,
         }
       );
-      expect(mockApiClient.post).toHaveBeenCalledTimes(1);
+      expect(mockApiClient.patch).toHaveBeenCalledTimes(1);
     });
 
     it('should submit observation with file successfully', async () => {
@@ -333,9 +333,10 @@ describe('useActivityDetails', () => {
         type: 'application/pdf',
       });
 
-      (mockApiClient.post as jest.Mock)
-        .mockResolvedValueOnce({ data: mockPresignedUrlResponse })
-        .mockResolvedValueOnce({});
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce({
+        data: mockPresignedUrlResponse,
+      });
+      (mockApiClient.patch as jest.Mock).mockResolvedValueOnce({});
 
       // eslint-disable-next-line no-undef
       global.fetch = jest.fn().mockResolvedValueOnce({
@@ -369,8 +370,8 @@ describe('useActivityDetails', () => {
         }
       );
 
-      expect(mockApiClient.post).toHaveBeenCalledWith(
-        '/activities/activity-123/students/student-1/feedback/observation',
+      expect(mockApiClient.patch).toHaveBeenCalledWith(
+        '/activities/activity-123/students/student-1/feedback',
         {
           observation: 'Great work!',
           attachmentUrl: 'https://s3.amazonaws.com/bucket/file-key-123',
@@ -389,22 +390,14 @@ describe('useActivityDetails', () => {
 
       const { result } = renderHook(() => useActivityDetails(mockApiClient));
 
-      let caughtError: Error | null = null;
-      await act(async () => {
-        try {
-          await result.current.submitObservation(
-            'activity-123',
-            'student-1',
-            'Great work!',
-            mockFile
-          );
-        } catch (error) {
-          caughtError = error as Error;
-        }
-      });
-
-      expect(caughtError).toBeInstanceOf(Error);
-      expect((caughtError as unknown as Error).message).toBe(errorMessage);
+      await expect(
+        result.current.submitObservation(
+          'activity-123',
+          'student-1',
+          'Great work!',
+          mockFile
+        )
+      ).rejects.toThrow(errorMessage);
     });
 
     it('should handle file upload failure', async () => {
@@ -422,22 +415,14 @@ describe('useActivityDetails', () => {
 
       const { result } = renderHook(() => useActivityDetails(mockApiClient));
 
-      let caughtError: Error | null = null;
-      await act(async () => {
-        try {
-          await result.current.submitObservation(
-            'activity-123',
-            'student-1',
-            'Great work!',
-            mockFile
-          );
-        } catch (error) {
-          caughtError = error as Error;
-        }
-      });
-
-      expect(caughtError).toBeInstanceOf(Error);
-      expect((caughtError as unknown as Error).message).toBe(errorMessage);
+      await expect(
+        result.current.submitObservation(
+          'activity-123',
+          'student-1',
+          'Great work!',
+          mockFile
+        )
+      ).rejects.toThrow(errorMessage);
     });
 
     it('should handle file upload response not ok', async () => {
@@ -458,24 +443,14 @@ describe('useActivityDetails', () => {
 
       const { result } = renderHook(() => useActivityDetails(mockApiClient));
 
-      let caughtError: Error | null = null;
-      await act(async () => {
-        try {
-          await result.current.submitObservation(
-            'activity-123',
-            'student-1',
-            'Great work!',
-            mockFile
-          );
-        } catch (error) {
-          caughtError = error as Error;
-        }
-      });
-
-      expect(caughtError).toBeInstanceOf(Error);
-      expect((caughtError as unknown as Error).message).toBe(
-        'Falha ao fazer upload do arquivo'
-      );
+      await expect(
+        result.current.submitObservation(
+          'activity-123',
+          'student-1',
+          'Great work!',
+          mockFile
+        )
+      ).rejects.toThrow('Falha ao fazer upload do arquivo');
     });
 
     it('should normalize URL construction correctly', async () => {
@@ -492,9 +467,10 @@ describe('useActivityDetails', () => {
         },
       };
 
-      (mockApiClient.post as jest.Mock)
-        .mockResolvedValueOnce({ data: presignedResponseWithTrailingSlash })
-        .mockResolvedValueOnce({});
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce({
+        data: presignedResponseWithTrailingSlash,
+      });
+      (mockApiClient.patch as jest.Mock).mockResolvedValueOnce({});
 
       // eslint-disable-next-line no-undef
       global.fetch = jest.fn().mockResolvedValueOnce({
@@ -510,8 +486,8 @@ describe('useActivityDetails', () => {
         mockFile
       );
 
-      expect(mockApiClient.post).toHaveBeenCalledWith(
-        '/activities/activity-123/students/student-1/feedback/observation',
+      expect(mockApiClient.patch).toHaveBeenCalledWith(
+        '/activities/activity-123/students/student-1/feedback',
         {
           observation: 'Great work!',
           attachmentUrl: 'https://s3.amazonaws.com/bucket/file-key-123',
@@ -522,26 +498,18 @@ describe('useActivityDetails', () => {
     it('should handle observation submission failure', async () => {
       const errorMessage = 'Failed to submit observation';
       const mockError = new Error(errorMessage);
-      (mockApiClient.post as jest.Mock).mockRejectedValueOnce(mockError);
+      (mockApiClient.patch as jest.Mock).mockRejectedValueOnce(mockError);
 
       const { result } = renderHook(() => useActivityDetails(mockApiClient));
 
-      let caughtError: Error | null = null;
-      await act(async () => {
-        try {
-          await result.current.submitObservation(
-            'activity-123',
-            'student-1',
-            'Great work!',
-            null
-          );
-        } catch (error) {
-          caughtError = error as Error;
-        }
-      });
-
-      expect(caughtError).toBeInstanceOf(Error);
-      expect((caughtError as unknown as Error).message).toBe(errorMessage);
+      await expect(
+        result.current.submitObservation(
+          'activity-123',
+          'student-1',
+          'Great work!',
+          null
+        )
+      ).rejects.toThrow(errorMessage);
     });
   });
 
@@ -606,21 +574,13 @@ describe('useActivityDetails', () => {
 
       const { result } = renderHook(() => useActivityDetails(mockApiClient));
 
-      let caughtError: Error | null = null;
-      await act(async () => {
-        try {
-          await result.current.submitQuestionCorrection(
-            'activity-123',
-            'student-1',
-            payload
-          );
-        } catch (error) {
-          caughtError = error as Error;
-        }
-      });
-
-      expect(caughtError).toBeInstanceOf(Error);
-      expect((caughtError as unknown as Error).message).toBe(errorMessage);
+      await expect(
+        result.current.submitQuestionCorrection(
+          'activity-123',
+          'student-1',
+          payload
+        )
+      ).rejects.toThrow(errorMessage);
     });
   });
 

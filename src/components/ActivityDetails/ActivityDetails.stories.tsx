@@ -416,7 +416,7 @@ const createMockApiClient = (): BaseApiClient => ({
     }
 
     // Handle observation submission
-    if (url.includes('/feedback/observation')) {
+    if (url.includes('/feedback')) {
       await new Promise((resolve) => setTimeout(resolve, 200));
       console.log('Observation submitted:', body);
       return { data: { message: 'Success' } as T };
