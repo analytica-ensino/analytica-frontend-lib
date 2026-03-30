@@ -3,6 +3,8 @@ import {
   ReactNode,
   useEffect,
   useRef,
+  useState,
+  useLayoutEffect,
   ButtonHTMLAttributes,
   forwardRef,
   HTMLAttributes,
@@ -14,6 +16,7 @@ import {
   cloneElement,
   useId,
 } from 'react';
+import { createPortal } from 'react-dom';
 import { CaretDown, Check, WarningCircle } from 'phosphor-react';
 import { cn } from '../../utils/utils';
 
@@ -56,6 +59,13 @@ const ALIGN_CLASSES = {
   end: 'right-0',
 };
 
+interface TriggerRect {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+}
+
 interface SelectStore {
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -64,6 +74,8 @@ interface SelectStore {
   selectedLabel: ReactNode;
   setSelectedLabel: (label: ReactNode) => void;
   onValueChange?: (value: string) => void;
+  triggerRect: TriggerRect | null;
+  setTriggerRect: (rect: TriggerRect | null) => void;
 }
 
 type SelectStoreApi = StoreApi<SelectStore>;
@@ -79,6 +91,8 @@ export function createSelectStore(
     selectedLabel: '',
     setSelectedLabel: (label) => set({ selectedLabel: label }),
     onValueChange,
+    triggerRect: null,
+    setTriggerRect: (rect) => set({ triggerRect: rect }),
   }));
 }
 
@@ -220,16 +234,21 @@ const Select = ({
 
   useEffect(() => {
     const handleClickOutside = (event: globalThis.MouseEvent) => {
-      if (
-        selectRef.current &&
-        !selectRef.current.contains(event.target as Node)
-      ) {
+      const target = event.target as Node;
+      // Check if click is inside the trigger container
+      const isInsideTrigger = selectRef.current?.contains(target);
+      // Check if click is inside the portaled content (menu in body)
+      const portaledMenu = document.body.querySelector('[role="menu"]');
+      const isInsidePortaledMenu = portaledMenu?.contains(target);
+
+      if (!isInsideTrigger && !isInsidePortaledMenu) {
         setOpen(false);
       }
     };
 
     const handleArrowKeys = (event: globalThis.KeyboardEvent) => {
-      const selectContent = selectRef.current?.querySelector('[role="menu"]');
+      // Find the portaled menu in the body
+      const selectContent = document.body.querySelector('[role="menu"]');
       if (selectContent) {
         event.preventDefault();
         const items = Array.from(
@@ -350,7 +369,24 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
   ) => {
     const store = useSelectStore(externalStore);
     const open = useStore(store, (s) => s.open);
-    const toggleOpen = () => store.setState({ open: !open });
+    const internalRef = useRef<HTMLButtonElement>(null);
+    const buttonRef = (ref as React.RefObject<HTMLButtonElement>) || internalRef;
+
+    const toggleOpen = () => {
+      const newOpen = !open;
+      if (newOpen && buttonRef.current) {
+        const rect = buttonRef.current.getBoundingClientRect();
+        store.setState({
+          triggerRect: {
+            top: rect.top,
+            left: rect.left,
+            width: rect.width,
+            height: rect.height,
+          },
+        });
+      }
+      store.setState({ open: newOpen });
+    };
 
     const variantClasses = VARIANT_CLASSES[variant];
     const heightClasses = HEIGHT_CLASSES[size];
@@ -358,7 +394,7 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
 
     return (
       <button
-        ref={ref}
+        ref={buttonRef}
         id={selectId}
         className={cn(
           'flex w-full items-center justify-between border-border-300',
@@ -412,20 +448,56 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
     ref
   ) => {
     const store = useSelectStore(externalStore);
-
     const open = useStore(store, (s) => s.open);
-    if (!open) return null;
+    const triggerRect = useStore(store, (s) => s.triggerRect);
+    const [mounted, setMounted] = useState(false);
 
-    const getPositionClasses = () =>
-      `w-full min-w-full absolute ${SIDE_CLASSES[side]} ${ALIGN_CLASSES[align]}`;
+    useEffect(() => {
+      setMounted(true);
+    }, []);
 
-    return (
+    if (!open || !mounted) return null;
+
+    // Calculate position based on trigger rect
+    const getPositionStyles = (): React.CSSProperties => {
+      if (!triggerRect) {
+        return {};
+      }
+
+      const styles: React.CSSProperties = {
+        position: 'fixed',
+        width: triggerRect.width,
+        minWidth: triggerRect.width,
+        zIndex: 9999,
+      };
+
+      // Vertical positioning
+      if (side === 'top') {
+        styles.bottom = window.innerHeight - triggerRect.top + 4;
+      } else {
+        styles.top = triggerRect.top + triggerRect.height + 4;
+      }
+
+      // Horizontal positioning
+      if (align === 'start') {
+        styles.left = triggerRect.left;
+      } else if (align === 'end') {
+        styles.right = window.innerWidth - triggerRect.left - triggerRect.width;
+      } else {
+        styles.left = triggerRect.left + triggerRect.width / 2;
+        styles.transform = 'translateX(-50%)';
+      }
+
+      return styles;
+    };
+
+    const content = (
       <div
         role="menu"
         ref={ref}
+        style={getPositionStyles()}
         className={cn(
-          'bg-secondary z-50 min-w-[210px] max-h-[300px] overflow-y-auto overflow-x-hidden rounded-md border p-1 shadow-md border-border-100',
-          getPositionClasses(),
+          'bg-secondary min-w-[210px] max-h-[300px] overflow-y-auto overflow-x-hidden rounded-md border p-1 shadow-md border-border-100',
           className
         )}
         {...props}
@@ -433,6 +505,9 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
         {children}
       </div>
     );
+
+    // Render using portal to escape overflow constraints
+    return createPortal(content, document.body);
   }
 );
 SelectContent.displayName = 'SelectContent';
