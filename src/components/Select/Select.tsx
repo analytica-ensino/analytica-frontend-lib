@@ -4,6 +4,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useCallback,
   ButtonHTMLAttributes,
   forwardRef,
   HTMLAttributes,
@@ -14,7 +15,6 @@ import {
   Children,
   cloneElement,
   useId,
-  RefObject,
   CSSProperties,
 } from 'react';
 import { createPortal } from 'react-dom';
@@ -143,9 +143,13 @@ const injectStore = (
         store,
       };
 
-      // Only pass size and selectId to SelectTrigger
+      // Pass size to SelectTrigger, selectId to both Trigger and Content
       if (typedChild.type === SelectTrigger) {
         newProps.size = size;
+        newProps.selectId = selectId;
+      }
+
+      if (typedChild.type === SelectContent) {
         newProps.selectId = selectId;
       }
 
@@ -226,8 +230,10 @@ const Select = ({
       const target = event.target as Node;
       // Check if click is inside the trigger container
       const isInsideTrigger = selectRef.current?.contains(target);
-      // Check if click is inside the portaled content (menu in body)
-      const portaledMenu = document.body.querySelector('[role="menu"]');
+      // Check if click is inside the portaled content (scoped to this Select instance)
+      const portaledMenu = document.body.querySelector(
+        `[role="menu"][data-select-id="${selectId}"]`
+      );
       const isInsidePortaledMenu = portaledMenu?.contains(target);
 
       if (!isInsideTrigger && !isInsidePortaledMenu) {
@@ -236,8 +242,10 @@ const Select = ({
     };
 
     const handleArrowKeys = (event: globalThis.KeyboardEvent) => {
-      // Find the portaled menu in the body
-      const selectContent = document.body.querySelector('[role="menu"]');
+      // Find the portaled menu in the body (scoped to this Select instance)
+      const selectContent = document.body.querySelector(
+        `[role="menu"][data-select-id="${selectId}"]`
+      );
       if (selectContent) {
         event.preventDefault();
         const items = Array.from(
@@ -271,7 +279,7 @@ const Select = ({
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleArrowKeys);
     };
-  }, [open]);
+  }, [open, selectId, setOpen]);
 
   useEffect(() => {
     if (propValue) {
@@ -359,12 +367,23 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
     const store = useSelectStore(externalStore);
     const open = useStore(store, (s) => s.open);
     const internalRef = useRef<HTMLButtonElement>(null);
-    const buttonRef = (ref as RefObject<HTMLButtonElement>) || internalRef;
+
+    const setRefs = useCallback(
+      (element: HTMLButtonElement | null) => {
+        internalRef.current = element;
+        if (typeof ref === 'function') {
+          ref(element);
+        } else if (ref) {
+          ref.current = element;
+        }
+      },
+      [ref]
+    );
 
     const toggleOpen = () => {
       const newOpen = !open;
-      if (newOpen && buttonRef.current) {
-        const rect = buttonRef.current.getBoundingClientRect();
+      if (newOpen && internalRef.current) {
+        const rect = internalRef.current.getBoundingClientRect();
         store.setState({
           triggerRect: {
             top: rect.top,
@@ -383,7 +402,7 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
 
     return (
       <button
-        ref={buttonRef}
+        ref={setRefs}
         id={selectId}
         className={cn(
           'flex w-full items-center justify-between border-border-300',
@@ -422,6 +441,7 @@ interface SelectContentProps extends HTMLAttributes<HTMLDivElement> {
   align?: 'start' | 'center' | 'end';
   side?: 'top' | 'right' | 'bottom' | 'left';
   store?: SelectStoreApi;
+  selectId?: string;
 }
 
 const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
@@ -432,6 +452,7 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
       align = 'start',
       side = 'bottom',
       store: externalStore,
+      selectId,
       ...props
     },
     ref
@@ -484,6 +505,7 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
       <div
         role="menu"
         ref={ref}
+        data-select-id={selectId}
         style={getPositionStyles()}
         className={cn(
           'bg-secondary min-w-[210px] max-h-[300px] overflow-y-auto overflow-x-hidden rounded-md border p-1 shadow-md border-border-100',
