@@ -4,7 +4,6 @@ import {
   useEffect,
   useRef,
   useState,
-  useLayoutEffect,
   ButtonHTMLAttributes,
   forwardRef,
   HTMLAttributes,
@@ -15,6 +14,8 @@ import {
   Children,
   cloneElement,
   useId,
+  RefObject,
+  CSSProperties,
 } from 'react';
 import { createPortal } from 'react-dom';
 import { CaretDown, Check, WarningCircle } from 'phosphor-react';
@@ -46,18 +47,6 @@ const PADDING_CLASSES = {
   large: 'px-4 py-3',
   'extra-large': 'px-5 py-4',
 } as const;
-
-const SIDE_CLASSES = {
-  top: 'bottom-full -translate-y-1',
-  right: 'top-full translate-y-1',
-  bottom: 'top-full translate-y-1',
-  left: 'top-full translate-y-1',
-};
-const ALIGN_CLASSES = {
-  start: 'left-0',
-  center: 'left-1/2 -translate-x-1/2',
-  end: 'right-0',
-};
 
 interface TriggerRect {
   top: number;
@@ -370,7 +359,7 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
     const store = useSelectStore(externalStore);
     const open = useStore(store, (s) => s.open);
     const internalRef = useRef<HTMLButtonElement>(null);
-    const buttonRef = (ref as React.RefObject<HTMLButtonElement>) || internalRef;
+    const buttonRef = (ref as RefObject<HTMLButtonElement>) || internalRef;
 
     const toggleOpen = () => {
       const newOpen = !open;
@@ -459,12 +448,12 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
     if (!open || !mounted) return null;
 
     // Calculate position based on trigger rect
-    const getPositionStyles = (): React.CSSProperties => {
+    const getPositionStyles = (): CSSProperties => {
       if (!triggerRect) {
         return {};
       }
 
-      const styles: React.CSSProperties = {
+      const styles: CSSProperties = {
         position: 'fixed',
         width: triggerRect.width,
         minWidth: triggerRect.width,
