@@ -1290,7 +1290,12 @@ describe('ActivityDetails', () => {
       fireEvent.click(screen.getByTestId('submit-observation'));
 
       await waitFor(() => {
-        expect(mockSafeFetchStudentFeedback).toHaveBeenCalledTimes(2);
+        expect(screen.getByTestId('modal-observation')).toHaveTextContent(
+          'Ótimo trabalho!'
+        );
+        expect(screen.getByTestId('modal-attachment')).toHaveTextContent(
+          'https://s3.amazonaws.com/file.pdf'
+        );
       });
     });
 
@@ -1344,10 +1349,51 @@ describe('ActivityDetails', () => {
 
       await waitFor(() => {
         expect(mockSubmitObservation).toHaveBeenCalled();
+        expect(mockSafeFetchStudentFeedback).toHaveBeenCalledTimes(2);
       });
 
-      // Modal should still be open (submit succeeded, only feedback fetch failed silently)
-      expect(screen.getByTestId('correct-activity-modal')).toBeInTheDocument();
+      // Aguardar o setCorrectionData processar — observation deve continuar ausente
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('correct-activity-modal')
+        ).toBeInTheDocument();
+      });
+      expect(screen.queryByTestId('modal-observation')).not.toBeInTheDocument();
+    });
+
+    it('should clear observation when safeFetchStudentFeedback returns null teacherFeedback', async () => {
+      mockSafeFetchStudentFeedback
+        .mockResolvedValueOnce({ teacherFeedback: null, attachment: null })
+        .mockResolvedValueOnce({ teacherFeedback: null, attachment: null });
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Corrigir atividade'));
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('correct-activity-modal')
+        ).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('submit-observation'));
+
+      await waitFor(() => {
+        expect(mockSafeFetchStudentFeedback).toHaveBeenCalledTimes(2);
+      });
+
+      // observation fica undefined (null ?? undefined) → span não aparece
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('correct-activity-modal')
+        ).toBeInTheDocument();
+      });
+      expect(screen.queryByTestId('modal-observation')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('modal-attachment')).not.toBeInTheDocument();
     });
 
     it('should call console.error when submitObservation fails', async () => {
