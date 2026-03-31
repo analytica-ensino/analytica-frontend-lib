@@ -243,13 +243,19 @@ jest.mock('../CorrectActivityModal/CorrectActivityModal', () => ({
           Enviar com arquivo
         </button>
         <button
-          onClick={() =>
-            void onQuestionCorrectionSubmit?.(data?.studentId || '', {
-              questionId: 'q1',
-              isCorrect: true,
-              score: 10,
-            })?.catch(() => {})
-          }
+          onClick={() => {
+            void (async () => {
+              try {
+                await onQuestionCorrectionSubmit?.(data?.studentId || '', {
+                  questionId: 'q1',
+                  isCorrect: true,
+                  score: 10,
+                });
+              } catch {
+                // noop - error handled by component
+              }
+            })();
+          }}
           data-testid="submit-question-correction"
         >
           Corrigir questão
