@@ -384,10 +384,7 @@ export const ActivityDetails = ({
         let feedbackResponse: {
           teacherFeedback: string | null;
           attachment: string | null;
-        } = {
-          teacherFeedback: null,
-          attachment: null,
-        };
+        } | null = null;
         try {
           feedbackResponse = await fetchStudentFeedback(activityId, studentId);
         } catch {
@@ -398,8 +395,13 @@ export const ActivityDetails = ({
             ? {
                 ...prev,
                 observation:
-                  feedbackResponse.teacherFeedback ?? prev.observation,
-                attachment: feedbackResponse.attachment ?? prev.attachment,
+                  feedbackResponse === null
+                    ? prev.observation
+                    : feedbackResponse.teacherFeedback ?? undefined,
+                attachment:
+                  feedbackResponse === null
+                    ? prev.attachment
+                    : feedbackResponse.attachment ?? undefined,
               }
             : prev
         );
