@@ -251,6 +251,7 @@ export const ActivityDetails = ({
   const {
     fetchActivityDetails,
     fetchStudentCorrection,
+    fetchStudentFeedback,
     submitObservation,
     submitQuestionCorrection,
   } = useActivityDetails(apiClient);
@@ -325,12 +326,20 @@ export const ActivityDetails = ({
 
       setCorrectionError(null);
       try {
-        const apiResponse = await fetchStudentCorrection(activityId, studentId);
+        const [apiResponse, feedbackResponse] = await Promise.all([
+          fetchStudentCorrection(activityId, studentId),
+          fetchStudentFeedback(activityId, studentId).catch(() => ({
+            teacherFeedback: null,
+            attachment: null,
+          })),
+        ]);
         // Convert API response to StudentActivityCorrectionData format
         const correction = convertApiResponseToCorrectionData(
           apiResponse,
           studentId,
-          student.studentName || 'Aluno'
+          student.studentName || 'Aluno',
+          feedbackResponse.teacherFeedback ?? undefined,
+          feedbackResponse.attachment ?? undefined
         );
         setCorrectionData(correction);
         setIsModalOpen(true);
@@ -343,7 +352,7 @@ export const ActivityDetails = ({
         );
       }
     },
-    [data?.students, activityId, fetchStudentCorrection]
+    [data?.students, activityId, fetchStudentCorrection, fetchStudentFeedback]
   );
 
   /**
@@ -365,11 +374,23 @@ export const ActivityDetails = ({
       try {
         const file = files.length > 0 ? files[0] : null;
         await submitObservation(activityId, studentId, observation, file);
+
+        // Fetch updated feedback from server after successful PATCH
+        const feedbackResponse = await fetchStudentFeedback(activityId, studentId);
+        setCorrectionData((prev) =>
+          prev
+            ? {
+                ...prev,
+                observation: feedbackResponse.teacherFeedback ?? prev.observation,
+                attachment: feedbackResponse.attachment ?? prev.attachment,
+              }
+            : prev
+        );
       } catch (err) {
         console.error('Failed to submit observation:', err);
       }
     },
-    [activityId, submitObservation]
+    [activityId, submitObservation, fetchStudentFeedback]
   );
 
   /**

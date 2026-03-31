@@ -484,6 +484,7 @@ const createPendingPromise = <T,>(): Promise<T> => new Promise<T>(() => {});
 describe('ActivityDetails', () => {
   const mockFetchActivityDetails = jest.fn();
   const mockFetchStudentCorrection = jest.fn();
+  const mockFetchStudentFeedback = jest.fn();
   const mockSubmitObservation = jest.fn();
   const mockSubmitQuestionCorrection = jest.fn();
   const mockOnBack = jest.fn();
@@ -525,6 +526,7 @@ describe('ActivityDetails', () => {
       },
     };
     mockFetchStudentCorrection.mockResolvedValue(apiResponse);
+    mockFetchStudentFeedback.mockResolvedValue({ teacherFeedback: null, attachment: null });
     mockSubmitObservation.mockResolvedValue(undefined);
     mockSubmitQuestionCorrection.mockResolvedValue(undefined);
     mockMapSubjectNameToEnum.mockReturnValue('MATEMATICA');
@@ -533,6 +535,7 @@ describe('ActivityDetails', () => {
     (useActivityDetails as jest.Mock).mockReturnValue({
       fetchActivityDetails: mockFetchActivityDetails,
       fetchStudentCorrection: mockFetchStudentCorrection,
+      fetchStudentFeedback: mockFetchStudentFeedback,
       submitObservation: mockSubmitObservation,
       submitQuestionCorrection: mockSubmitQuestionCorrection,
     });
@@ -659,6 +662,7 @@ describe('ActivityDetails', () => {
       (useActivityDetails as jest.Mock).mockReturnValue({
         fetchActivityDetails: mockFetchActivityDetailsZero,
         fetchStudentCorrection: jest.fn(),
+        fetchStudentFeedback: jest.fn().mockResolvedValue({ teacherFeedback: null, attachment: null }),
         submitObservation: jest.fn(),
         submitQuestionCorrection: jest.fn(),
       });
@@ -693,6 +697,7 @@ describe('ActivityDetails', () => {
       (useActivityDetails as jest.Mock).mockReturnValue({
         fetchActivityDetails: mockFetchActivityDetailsWithCount,
         fetchStudentCorrection: jest.fn(),
+        fetchStudentFeedback: jest.fn().mockResolvedValue({ teacherFeedback: null, attachment: null }),
         submitObservation: jest.fn(),
         submitQuestionCorrection: jest.fn(),
       });
