@@ -327,13 +327,18 @@ export const ActivityDetails = ({
       setCorrectionError(null);
       try {
         const apiResponse = await fetchStudentCorrection(activityId, studentId);
-        let feedbackResponse: { teacherFeedback: string | null; attachment: string | null } = {
+        let feedbackResponse: {
+          teacherFeedback: string | null;
+          attachment: string | null;
+        } = {
           teacherFeedback: null,
           attachment: null,
         };
         try {
           feedbackResponse = await fetchStudentFeedback(activityId, studentId);
-        } catch {}
+        } catch {
+          // noop
+        }
         // Convert API response to StudentActivityCorrectionData format
         const correction = convertApiResponseToCorrectionData(
           apiResponse,
@@ -376,13 +381,18 @@ export const ActivityDetails = ({
         const file = files.length > 0 ? files[0] : null;
         await submitObservation(activityId, studentId, observation, file);
 
-        let feedbackResponse: { teacherFeedback: string | null; attachment: string | null } = {
+        let feedbackResponse: {
+          teacherFeedback: string | null;
+          attachment: string | null;
+        } = {
           teacherFeedback: null,
           attachment: null,
         };
         try {
           feedbackResponse = await fetchStudentFeedback(activityId, studentId);
-        } catch {}
+        } catch {
+          // noop
+        }
         setCorrectionData((prev) =>
           prev
             ? {
