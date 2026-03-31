@@ -555,6 +555,36 @@ describe('useActivityDetails', () => {
       ).rejects.toThrow('Falha ao fazer upload do arquivo');
     });
 
+    it('should normalize URL when url has no trailing slash', async () => {
+      const mockFile = new File(['test content'], 'test.pdf', {
+        type: 'application/pdf',
+      });
+
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce({
+        data: {
+          data: {
+            url: 'https://s3.amazonaws.com/bucket',
+            fields: { key: 'file-key-123', 'Content-Type': 'application/pdf' },
+          },
+        },
+      });
+      (mockApiClient.patch as jest.Mock).mockResolvedValueOnce({});
+
+      // eslint-disable-next-line no-undef
+      global.fetch = jest.fn().mockResolvedValueOnce({ ok: true } as Response);
+
+      const { result } = renderHook(() => useActivityDetails(mockApiClient));
+
+      const returnValue = await result.current.submitObservation(
+        'activity-123',
+        'student-1',
+        'Great work!',
+        mockFile
+      );
+
+      expect(returnValue).toBe('https://s3.amazonaws.com/bucket/file-key-123');
+    });
+
     it('should normalize URL construction correctly', async () => {
       const mockFile = new File(['test content'], 'test.pdf', {
         type: 'application/pdf',
