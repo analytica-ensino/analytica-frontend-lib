@@ -326,18 +326,18 @@ export const ActivityDetails = ({
 
       setCorrectionError(null);
       try {
-        const apiResponse = await fetchStudentCorrection(activityId, studentId);
-        const feedbackResponse = (await safeFetchStudentFeedback(
-          activityId,
-          studentId
-        )) ?? { teacherFeedback: null, attachment: null };
+        const [apiResponse, feedbackResponse] = await Promise.all([
+          fetchStudentCorrection(activityId, studentId),
+          safeFetchStudentFeedback(activityId, studentId),
+        ]);
+
         // Convert API response to StudentActivityCorrectionData format
         const correction = convertApiResponseToCorrectionData(
           apiResponse,
           studentId,
           student.studentName || 'Aluno',
-          feedbackResponse.teacherFeedback ?? undefined,
-          feedbackResponse.attachment ?? undefined
+          feedbackResponse?.teacherFeedback ?? undefined,
+          feedbackResponse?.attachment ?? undefined
         );
         setCorrectionData(correction);
         setIsModalOpen(true);
@@ -376,12 +376,11 @@ export const ActivityDetails = ({
       if (!activityId || !studentId) return;
       try {
         const file = files.length > 0 ? files[0] : null;
-        await submitObservation(activityId, studentId, observation, file);
+        const [_, feedbackResponse] = await Promise.all([
+          submitObservation(activityId, studentId, observation, file),
+          safeFetchStudentFeedback(activityId, studentId),
+        ]);
 
-        const feedbackResponse = await safeFetchStudentFeedback(
-          activityId,
-          studentId
-        );
         setCorrectionData((prev) =>
           prev
             ? {
