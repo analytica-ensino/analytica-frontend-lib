@@ -55,6 +55,8 @@ interface TriggerRect {
   height: number;
 }
 
+type SelectAlign = 'start' | 'center' | 'end';
+
 interface SelectStore {
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -463,7 +465,7 @@ function applyVerticalPosition(
   styles: CSSProperties,
   triggerRect: TriggerRect,
   side: 'top' | 'bottom',
-  align: 'start' | 'center' | 'end',
+  align: SelectAlign,
   gap: number
 ): void {
   styles.top =
@@ -489,7 +491,7 @@ function applyHorizontalPosition(
   styles: CSSProperties,
   triggerRect: TriggerRect,
   side: 'left' | 'right',
-  align: 'start' | 'center' | 'end',
+  align: SelectAlign,
   gap: number
 ): void {
   styles.left =
