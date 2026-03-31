@@ -15,6 +15,11 @@ import type {
 /**
  * Hook return type for activity details
  */
+export interface StudentFeedbackResponse {
+  teacherFeedback: string | null;
+  attachment: string | null;
+}
+
 export interface UseActivityDetailsReturn {
   /**
    * Fetch activity details from API
@@ -37,18 +42,29 @@ export interface UseActivityDetailsReturn {
     studentId: string
   ) => Promise<QuestionsAnswersByStudentResponse>;
   /**
+   * Fetch teacher feedback for a student activity
+   * @param activityId - Activity ID
+   * @param studentId - Student ID
+   * @returns Teacher feedback and attachment
+   */
+  fetchStudentFeedback: (
+    activityId: string,
+    studentId: string
+  ) => Promise<StudentFeedbackResponse>;
+  /**
    * Submit observation for student activity
    * @param actId - Activity ID
    * @param studentId - Student ID
    * @param observation - Observation text
    * @param file - Attached file (optional)
+   * @returns The attachment URL if a file was uploaded, null otherwise
    */
   submitObservation: (
     actId: string,
     studentId: string,
     observation: string,
     file: File | null
-  ) => Promise<void>;
+  ) => Promise<string | null>;
   /**
    * Submit question correction for student activity
    * @param activityId - Activity ID
@@ -148,11 +164,31 @@ export const useActivityDetails = (
   );
 
   /**
+   * Fetch teacher feedback for a student activity
+   * @param activityId - Activity ID
+   * @param studentId - Student ID
+   * @returns Teacher feedback and attachment
+   */
+  const fetchStudentFeedback = useCallback(
+    async (
+      activityId: string,
+      studentId: string
+    ): Promise<StudentFeedbackResponse> => {
+      const response = await apiClient.get<{
+        data: { teacherFeedback: string | null; attachment: string | null };
+      }>(`/activities/${activityId}/students/${studentId}/feedback`);
+      return response.data.data;
+    },
+    [apiClient]
+  );
+
+  /**
    * Submit observation for student activity
    * @param actId - Activity ID
    * @param studentId - Student ID
    * @param observation - Observation text
    * @param file - Attached file (optional)
+   * @returns The attachment URL if a file was uploaded, null otherwise
    */
   const submitObservation = useCallback(
     async (
@@ -160,7 +196,7 @@ export const useActivityDetails = (
       studentId: string,
       observation: string,
       file: File | null
-    ): Promise<void> => {
+    ): Promise<string | null> => {
       let attachmentUrl: string | null = null;
 
       if (file) {
@@ -205,6 +241,8 @@ export const useActivityDetails = (
           attachment: attachmentUrl,
         }
       );
+
+      return attachmentUrl;
     },
     [apiClient]
   );
@@ -232,6 +270,7 @@ export const useActivityDetails = (
   return {
     fetchActivityDetails,
     fetchStudentCorrection,
+    fetchStudentFeedback,
     submitObservation,
     submitQuestionCorrection,
   };
