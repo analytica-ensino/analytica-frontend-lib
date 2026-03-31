@@ -376,12 +376,16 @@ export const ActivityDetails = ({
         await submitObservation(activityId, studentId, observation, file);
 
         // Fetch updated feedback from server after successful PATCH
-        const feedbackResponse = await fetchStudentFeedback(activityId, studentId);
+        const feedbackResponse = await fetchStudentFeedback(
+          activityId,
+          studentId
+        ).catch(() => ({ teacherFeedback: null, attachment: null }));
         setCorrectionData((prev) =>
           prev
             ? {
                 ...prev,
-                observation: feedbackResponse.teacherFeedback ?? prev.observation,
+                observation:
+                  feedbackResponse.teacherFeedback ?? prev.observation,
                 attachment: feedbackResponse.attachment ?? prev.attachment,
               }
             : prev
