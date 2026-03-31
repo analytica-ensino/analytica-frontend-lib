@@ -326,13 +326,16 @@ export const ActivityDetails = ({
 
       setCorrectionError(null);
       try {
-        const [apiResponse, feedbackResponse] = await Promise.all([
-          fetchStudentCorrection(activityId, studentId),
-          fetchStudentFeedback(activityId, studentId).catch(() => ({
-            teacherFeedback: null,
-            attachment: null,
-          })),
-        ]);
+        const apiResponse = await fetchStudentCorrection(activityId, studentId);
+        let feedbackResponse: { teacherFeedback: string | null; attachment: string | null } = {
+          teacherFeedback: null,
+          attachment: null,
+        };
+        try {
+          feedbackResponse = await fetchStudentFeedback(activityId, studentId);
+        } catch {
+          // fallback already set
+        }
         // Convert API response to StudentActivityCorrectionData format
         const correction = convertApiResponseToCorrectionData(
           apiResponse,
@@ -376,10 +379,15 @@ export const ActivityDetails = ({
         await submitObservation(activityId, studentId, observation, file);
 
         // Fetch updated feedback from server after successful PATCH
-        const feedbackResponse = await fetchStudentFeedback(
-          activityId,
-          studentId
-        ).catch(() => ({ teacherFeedback: null, attachment: null }));
+        let feedbackResponse: { teacherFeedback: string | null; attachment: string | null } = {
+          teacherFeedback: null,
+          attachment: null,
+        };
+        try {
+          feedbackResponse = await fetchStudentFeedback(activityId, studentId);
+        } catch {
+          // fallback already set
+        }
         setCorrectionData((prev) =>
           prev
             ? {
