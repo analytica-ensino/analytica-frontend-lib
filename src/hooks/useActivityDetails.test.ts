@@ -305,13 +305,64 @@ describe('useActivityDetails', () => {
     });
   });
 
+  describe('fetchStudentFeedback', () => {
+    it('should fetch student feedback successfully', async () => {
+      (mockApiClient.get as jest.Mock).mockResolvedValueOnce({
+        data: {
+          data: {
+            teacherFeedback: 'Ótimo trabalho!',
+            attachment: 'https://s3.amazonaws.com/bucket/file.pdf',
+          },
+        },
+      });
+
+      const { result } = renderHook(() => useActivityDetails(mockApiClient));
+
+      const feedback = await result.current.fetchStudentFeedback(
+        'activity-123',
+        'student-1'
+      );
+
+      expect(mockApiClient.get).toHaveBeenCalledWith(
+        '/activities/activity-123/students/student-1/feedback'
+      );
+      expect(feedback).toEqual({
+        teacherFeedback: 'Ótimo trabalho!',
+        attachment: 'https://s3.amazonaws.com/bucket/file.pdf',
+      });
+    });
+
+    it('should propagate error when API fails', async () => {
+      const errorMessage = 'Feedback not found';
+      const mockError = new Error(errorMessage);
+      (mockApiClient.get as jest.Mock).mockRejectedValueOnce(mockError);
+
+      const { result } = renderHook(() => useActivityDetails(mockApiClient));
+
+      let caughtError: Error | null = null;
+      await act(async () => {
+        try {
+          await result.current.fetchStudentFeedback(
+            'activity-123',
+            'student-1'
+          );
+        } catch (error) {
+          caughtError = error as Error;
+        }
+      });
+
+      expect(caughtError).toBeInstanceOf(Error);
+      expect((caughtError as unknown as Error).message).toBe(errorMessage);
+    });
+  });
+
   describe('submitObservation', () => {
     it('should submit observation without file successfully', async () => {
       (mockApiClient.patch as jest.Mock).mockResolvedValueOnce({});
 
       const { result } = renderHook(() => useActivityDetails(mockApiClient));
 
-      await result.current.submitObservation(
+      const returnValue = await result.current.submitObservation(
         'activity-123',
         'student-1',
         'Great work!',
@@ -326,6 +377,7 @@ describe('useActivityDetails', () => {
         }
       );
       expect(mockApiClient.patch).toHaveBeenCalledTimes(1);
+      expect(returnValue).toBeNull();
     });
 
     it('should submit observation with file successfully', async () => {
@@ -345,7 +397,7 @@ describe('useActivityDetails', () => {
 
       const { result } = renderHook(() => useActivityDetails(mockApiClient));
 
-      await result.current.submitObservation(
+      const returnValue = await result.current.submitObservation(
         'activity-123',
         'student-1',
         'Great work!',
@@ -377,6 +429,7 @@ describe('useActivityDetails', () => {
           attachment: 'https://s3.amazonaws.com/bucket/file-key-123',
         }
       );
+      expect(returnValue).toBe('https://s3.amazonaws.com/bucket/file-key-123');
     });
 
     it('should handle presigned URL fetch failure', async () => {
@@ -593,6 +646,7 @@ describe('useActivityDetails', () => {
       const firstRender = {
         fetchActivityDetails: result.current.fetchActivityDetails,
         fetchStudentCorrection: result.current.fetchStudentCorrection,
+        fetchStudentFeedback: result.current.fetchStudentFeedback,
         submitObservation: result.current.submitObservation,
         submitQuestionCorrection: result.current.submitQuestionCorrection,
       };
@@ -604,6 +658,9 @@ describe('useActivityDetails', () => {
       );
       expect(result.current.fetchStudentCorrection).toBe(
         firstRender.fetchStudentCorrection
+      );
+      expect(result.current.fetchStudentFeedback).toBe(
+        firstRender.fetchStudentFeedback
       );
       expect(result.current.submitObservation).toBe(
         firstRender.submitObservation
