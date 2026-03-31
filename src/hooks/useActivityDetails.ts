@@ -201,8 +201,8 @@ export const useActivityDetails = (
       await apiClient.patch(
         `/activities/${actId}/students/${studentId}/feedback`,
         {
-          observation,
-          attachmentUrl,
+          teacherFeedback: observation,
+          attachment: attachmentUrl,
         }
       );
     },

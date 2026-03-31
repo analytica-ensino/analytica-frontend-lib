@@ -321,8 +321,8 @@ describe('useActivityDetails', () => {
       expect(mockApiClient.patch).toHaveBeenCalledWith(
         '/activities/activity-123/students/student-1/feedback',
         {
-          observation: 'Great work!',
-          attachmentUrl: null,
+          teacherFeedback: 'Great work!',
+          attachment: null,
         }
       );
       expect(mockApiClient.patch).toHaveBeenCalledTimes(1);
@@ -373,8 +373,8 @@ describe('useActivityDetails', () => {
       expect(mockApiClient.patch).toHaveBeenCalledWith(
         '/activities/activity-123/students/student-1/feedback',
         {
-          observation: 'Great work!',
-          attachmentUrl: 'https://s3.amazonaws.com/bucket/file-key-123',
+          teacherFeedback: 'Great work!',
+          attachment: 'https://s3.amazonaws.com/bucket/file-key-123',
         }
       );
     });
@@ -489,8 +489,8 @@ describe('useActivityDetails', () => {
       expect(mockApiClient.patch).toHaveBeenCalledWith(
         '/activities/activity-123/students/student-1/feedback',
         {
-          observation: 'Great work!',
-          attachmentUrl: 'https://s3.amazonaws.com/bucket/file-key-123',
+          teacherFeedback: 'Great work!',
+          attachment: 'https://s3.amazonaws.com/bucket/file-key-123',
         }
       );
     });
