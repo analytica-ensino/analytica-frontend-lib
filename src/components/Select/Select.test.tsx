@@ -234,7 +234,7 @@ describe('Select component', () => {
     expect(trigger.className).toMatch(/border-b/);
   });
 
-  it('should apply content alignment and side', async () => {
+  it('should apply content alignment and side via inline styles', async () => {
     render(
       <Select>
         <SelectTrigger>
@@ -247,10 +247,12 @@ describe('Select component', () => {
     );
 
     await userEvent.click(screen.getByRole('button'));
-    const content = screen.getByText('Option 1').closest('div')?.parentElement;
+    const menu = screen.getByRole('menu');
 
-    expect(content?.className).toMatch(/bottom-full/);
-    expect(content?.className).toMatch(/-translate-x-1\/2/);
+    // For side=top, should have top style and translateY(-100%) transform
+    expect(menu.style.top).toBeTruthy();
+    // For align=center, should have transform with translate(-50%, -100%)
+    expect(menu.style.transform).toBe('translate(-50%, -100%)');
   });
 
   it('should pre-select defaultValue', () => {
@@ -824,6 +826,286 @@ describe('SelectTrigger invalid + variant classes', () => {
     expect(trigger.className).toMatch(/border-2/);
     expect(trigger.className).toMatch(/border-indicator-error/);
     expect(trigger.className).toMatch(/text-text-600/);
+  });
+});
+
+describe('SelectContent portal and fixed positioning', () => {
+  it('should render SelectContent in a portal to document.body', async () => {
+    const { container } = render(
+      <Select>
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="option1">Option 1</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    await userEvent.click(screen.getByRole('button'));
+
+    // The menu should exist in document.body, not within the Select container
+    const menu = screen.getByRole('menu');
+    expect(menu).toBeInTheDocument();
+
+    // The menu should NOT be a descendant of the Select container
+    expect(container.contains(menu)).toBe(false);
+
+    // The menu should be a direct child of document.body
+    expect(document.body.contains(menu)).toBe(true);
+  });
+
+  it('should use position: fixed for dropdown positioning', async () => {
+    render(
+      <Select>
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="option1">Option 1</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    await userEvent.click(screen.getByRole('button'));
+
+    const menu = screen.getByRole('menu');
+    expect(menu.style.position).toBe('fixed');
+  });
+
+  it('should set correct z-index for dropdown', async () => {
+    render(
+      <Select>
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="option1">Option 1</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    await userEvent.click(screen.getByRole('button'));
+
+    const menu = screen.getByRole('menu');
+    expect(menu.style.zIndex).toBe('9999');
+  });
+
+  it('should position dropdown relative to trigger width', async () => {
+    render(
+      <Select>
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="option1">Option 1</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    await userEvent.click(screen.getByRole('button'));
+
+    const menu = screen.getByRole('menu');
+    // The menu should have fixed position and left style set
+    expect(menu.style.position).toBe('fixed');
+    expect(menu.style.left).toBeTruthy();
+  });
+
+  it('should position dropdown below trigger by default (side=bottom)', async () => {
+    render(
+      <Select>
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent side="bottom">
+          <SelectItem value="option1">Option 1</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    await userEvent.click(screen.getByRole('button'));
+
+    const menu = screen.getByRole('menu');
+    // For side=bottom, should have top style set (not bottom)
+    expect(menu.style.top).toBeTruthy();
+    expect(menu.style.bottom).toBeFalsy();
+  });
+
+  it('should position dropdown above trigger when side=top', async () => {
+    render(
+      <Select>
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent side="top">
+          <SelectItem value="option1">Option 1</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    await userEvent.click(screen.getByRole('button'));
+
+    const menu = screen.getByRole('menu');
+    // For side=top, should have top style with translateY(-100%) transform
+    expect(menu.style.top).toBeTruthy();
+    expect(menu.style.transform).toBe('translateY(-100%)');
+  });
+
+  it('should align dropdown to start (left) by default', async () => {
+    render(
+      <Select>
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent align="start">
+          <SelectItem value="option1">Option 1</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    await userEvent.click(screen.getByRole('button'));
+
+    const menu = screen.getByRole('menu');
+    // For align=start, should have left style set
+    expect(menu.style.left).toBeTruthy();
+    expect(menu.style.right).toBeFalsy();
+  });
+
+  it('should align dropdown to end (right) when align=end', async () => {
+    render(
+      <Select>
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent align="end">
+          <SelectItem value="option1">Option 1</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    await userEvent.click(screen.getByRole('button'));
+
+    const menu = screen.getByRole('menu');
+    // For align=end, should have left style with translateX(-100%) transform
+    expect(menu.style.left).toBeTruthy();
+    expect(menu.style.transform).toBe('translateX(-100%)');
+  });
+
+  it('should center dropdown when align=center', async () => {
+    render(
+      <Select>
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent align="center">
+          <SelectItem value="option1">Option 1</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    await userEvent.click(screen.getByRole('button'));
+
+    const menu = screen.getByRole('menu');
+    // For align=center, should have left and transform set
+    expect(menu.style.left).toBeTruthy();
+    expect(menu.style.transform).toBe('translateX(-50%)');
+  });
+
+  it('should escape overflow:hidden parent containers via portal', async () => {
+    render(
+      <div style={{ overflow: 'hidden', height: '50px' }}>
+        <Select>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="option1">Option 1</SelectItem>
+            <SelectItem value="option2">Option 2</SelectItem>
+            <SelectItem value="option3">Option 3</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    );
+
+    await userEvent.click(screen.getByRole('button'));
+
+    // All menu items should be visible despite overflow:hidden parent
+    expect(screen.getByText('Option 1')).toBeVisible();
+    expect(screen.getByText('Option 2')).toBeVisible();
+    expect(screen.getByText('Option 3')).toBeVisible();
+  });
+
+  it('should close dropdown when clicking inside portaled menu area', async () => {
+    const onValueChange = jest.fn();
+    render(
+      <Select onValueChange={onValueChange}>
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="option1">Option 1</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    await userEvent.click(screen.getByRole('button'));
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+
+    // Click on an item
+    await userEvent.click(screen.getByText('Option 1'));
+
+    // Menu should close
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    expect(onValueChange).toHaveBeenCalledWith('option1');
+  });
+
+  it('should NOT close dropdown when clicking inside portaled menu (non-item area)', async () => {
+    render(
+      <Select>
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="p-4">
+          <SelectItem value="option1">Option 1</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    await userEvent.click(screen.getByRole('button'));
+    const menu = screen.getByRole('menu');
+    expect(menu).toBeInTheDocument();
+
+    // Click on the menu container (not an item)
+    fireEvent.mouseDown(menu);
+
+    // Menu should remain open
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+  });
+
+  it('should store trigger rect when opening dropdown', async () => {
+    createSelectStore();
+
+    render(
+      <Select>
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="option1">Option 1</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    // Initially no trigger rect
+    const trigger = screen.getByRole('button');
+
+    // After clicking, menu should be positioned
+    await userEvent.click(trigger);
+
+    const menu = screen.getByRole('menu');
+    // Menu should have position styles set from trigger rect
+    expect(menu.style.position).toBe('fixed');
+    expect(menu.style.left).toBeTruthy();
   });
 });
 

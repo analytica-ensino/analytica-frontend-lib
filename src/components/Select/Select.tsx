@@ -3,6 +3,8 @@ import {
   ReactNode,
   useEffect,
   useRef,
+  useState,
+  useCallback,
   ButtonHTMLAttributes,
   forwardRef,
   HTMLAttributes,
@@ -13,7 +15,9 @@ import {
   Children,
   cloneElement,
   useId,
+  CSSProperties,
 } from 'react';
+import { createPortal } from 'react-dom';
 import { CaretDown, Check, WarningCircle } from 'phosphor-react';
 import { cn } from '../../utils/utils';
 
@@ -44,17 +48,14 @@ const PADDING_CLASSES = {
   'extra-large': 'px-5 py-4',
 } as const;
 
-const SIDE_CLASSES = {
-  top: 'bottom-full -translate-y-1',
-  right: 'top-full translate-y-1',
-  bottom: 'top-full translate-y-1',
-  left: 'top-full translate-y-1',
-};
-const ALIGN_CLASSES = {
-  start: 'left-0',
-  center: 'left-1/2 -translate-x-1/2',
-  end: 'right-0',
-};
+interface TriggerRect {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+}
+
+type SelectAlign = 'start' | 'center' | 'end';
 
 interface SelectStore {
   open: boolean;
@@ -64,6 +65,8 @@ interface SelectStore {
   selectedLabel: ReactNode;
   setSelectedLabel: (label: ReactNode) => void;
   onValueChange?: (value: string) => void;
+  triggerRect: TriggerRect | null;
+  setTriggerRect: (rect: TriggerRect | null) => void;
 }
 
 type SelectStoreApi = StoreApi<SelectStore>;
@@ -79,6 +82,8 @@ export function createSelectStore(
     selectedLabel: '',
     setSelectedLabel: (label) => set({ selectedLabel: label }),
     onValueChange,
+    triggerRect: null,
+    setTriggerRect: (rect) => set({ triggerRect: rect }),
   }));
 }
 
@@ -140,9 +145,13 @@ const injectStore = (
         store,
       };
 
-      // Only pass size and selectId to SelectTrigger
+      // Pass size to SelectTrigger, selectId to both Trigger and Content
       if (typedChild.type === SelectTrigger) {
         newProps.size = size;
+        newProps.selectId = selectId;
+      }
+
+      if (typedChild.type === SelectContent) {
         newProps.selectId = selectId;
       }
 
@@ -220,16 +229,25 @@ const Select = ({
 
   useEffect(() => {
     const handleClickOutside = (event: globalThis.MouseEvent) => {
-      if (
-        selectRef.current &&
-        !selectRef.current.contains(event.target as Node)
-      ) {
+      const target = event.target as Node;
+      // Check if click is inside the trigger container
+      const isInsideTrigger = selectRef.current?.contains(target);
+      // Check if click is inside the portaled content (scoped to this Select instance)
+      const portaledMenu = document.body.querySelector(
+        `[role="menu"][data-select-id="${selectId}"]`
+      );
+      const isInsidePortaledMenu = portaledMenu?.contains(target);
+
+      if (!isInsideTrigger && !isInsidePortaledMenu) {
         setOpen(false);
       }
     };
 
     const handleArrowKeys = (event: globalThis.KeyboardEvent) => {
-      const selectContent = selectRef.current?.querySelector('[role="menu"]');
+      // Find the portaled menu in the body (scoped to this Select instance)
+      const selectContent = document.body.querySelector(
+        `[role="menu"][data-select-id="${selectId}"]`
+      );
       if (selectContent) {
         event.preventDefault();
         const items = Array.from(
@@ -263,7 +281,7 @@ const Select = ({
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleArrowKeys);
     };
-  }, [open]);
+  }, [open, selectId, setOpen]);
 
   useEffect(() => {
     if (propValue) {
@@ -350,7 +368,58 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
   ) => {
     const store = useSelectStore(externalStore);
     const open = useStore(store, (s) => s.open);
-    const toggleOpen = () => store.setState({ open: !open });
+    const internalRef = useRef<HTMLButtonElement>(null);
+
+    const setRefs = useCallback(
+      (element: HTMLButtonElement | null) => {
+        internalRef.current = element;
+        if (typeof ref === 'function') {
+          ref(element);
+        } else if (ref) {
+          ref.current = element;
+        }
+      },
+      [ref]
+    );
+
+    const updateTriggerRect = useCallback(() => {
+      if (internalRef.current) {
+        const rect = internalRef.current.getBoundingClientRect();
+        store.setState({
+          triggerRect: {
+            top: rect.top,
+            left: rect.left,
+            width: rect.width,
+            height: rect.height,
+          },
+        });
+      }
+    }, [store]);
+
+    // Update triggerRect on scroll/resize while open
+    useEffect(() => {
+      if (!open) return;
+
+      const handleUpdate = () => {
+        updateTriggerRect();
+      };
+
+      window.addEventListener('scroll', handleUpdate, true);
+      window.addEventListener('resize', handleUpdate);
+
+      return () => {
+        window.removeEventListener('scroll', handleUpdate, true);
+        window.removeEventListener('resize', handleUpdate);
+      };
+    }, [open, updateTriggerRect]);
+
+    const toggleOpen = () => {
+      const newOpen = !open;
+      if (newOpen) {
+        updateTriggerRect();
+      }
+      store.setState({ open: newOpen });
+    };
 
     const variantClasses = VARIANT_CLASSES[variant];
     const heightClasses = HEIGHT_CLASSES[size];
@@ -358,7 +427,7 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
 
     return (
       <button
-        ref={ref}
+        ref={setRefs}
         id={selectId}
         className={cn(
           'flex w-full items-center justify-between border-border-300',
@@ -392,11 +461,64 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
 );
 SelectTrigger.displayName = 'SelectTrigger';
 
+function applyVerticalPosition(
+  styles: CSSProperties,
+  triggerRect: TriggerRect,
+  side: 'top' | 'bottom',
+  align: SelectAlign,
+  gap: number
+): void {
+  styles.top =
+    side === 'top'
+      ? triggerRect.top - gap
+      : triggerRect.top + triggerRect.height + gap;
+  styles.transform = side === 'top' ? 'translateY(-100%)' : undefined;
+
+  if (align === 'start') {
+    styles.left = triggerRect.left;
+  } else if (align === 'center') {
+    styles.left = triggerRect.left + triggerRect.width / 2;
+    styles.transform =
+      side === 'top' ? 'translate(-50%, -100%)' : 'translateX(-50%)';
+  } else {
+    styles.left = triggerRect.left + triggerRect.width;
+    styles.transform =
+      side === 'top' ? 'translate(-100%, -100%)' : 'translateX(-100%)';
+  }
+}
+
+function applyHorizontalPosition(
+  styles: CSSProperties,
+  triggerRect: TriggerRect,
+  side: 'left' | 'right',
+  align: SelectAlign,
+  gap: number
+): void {
+  styles.left =
+    side === 'left'
+      ? triggerRect.left - gap
+      : triggerRect.left + triggerRect.width + gap;
+  styles.transform = side === 'left' ? 'translateX(-100%)' : undefined;
+
+  if (align === 'start') {
+    styles.top = triggerRect.top;
+  } else if (align === 'center') {
+    styles.top = triggerRect.top + triggerRect.height / 2;
+    styles.transform =
+      side === 'left' ? 'translate(-100%, -50%)' : 'translateY(-50%)';
+  } else {
+    styles.top = triggerRect.top + triggerRect.height;
+    styles.transform =
+      side === 'left' ? 'translate(-100%, -100%)' : 'translateY(-100%)';
+  }
+}
+
 interface SelectContentProps extends HTMLAttributes<HTMLDivElement> {
   className?: string;
   align?: 'start' | 'center' | 'end';
   side?: 'top' | 'right' | 'bottom' | 'left';
   store?: SelectStoreApi;
+  selectId?: string;
 }
 
 const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
@@ -407,25 +529,53 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
       align = 'start',
       side = 'bottom',
       store: externalStore,
+      selectId,
       ...props
     },
     ref
   ) => {
     const store = useSelectStore(externalStore);
-
     const open = useStore(store, (s) => s.open);
-    if (!open) return null;
+    const triggerRect = useStore(store, (s) => s.triggerRect);
+    const [mounted, setMounted] = useState(false);
 
-    const getPositionClasses = () =>
-      `w-full min-w-full absolute ${SIDE_CLASSES[side]} ${ALIGN_CLASSES[align]}`;
+    useEffect(() => {
+      setMounted(true);
+    }, []);
 
-    return (
+    if (!open || !mounted) return null;
+
+    // Calculate position based on trigger rect
+    const getPositionStyles = (): CSSProperties => {
+      if (!triggerRect) {
+        return {};
+      }
+
+      const gap = 4;
+      const styles: CSSProperties = {
+        position: 'fixed',
+        zIndex: 9999,
+      };
+
+      const isVertical = side === 'top' || side === 'bottom';
+
+      if (isVertical) {
+        applyVerticalPosition(styles, triggerRect, side, align, gap);
+      } else {
+        applyHorizontalPosition(styles, triggerRect, side, align, gap);
+      }
+
+      return styles;
+    };
+
+    const content = (
       <div
         role="menu"
         ref={ref}
+        data-select-id={selectId}
+        style={getPositionStyles()}
         className={cn(
-          'bg-secondary z-50 min-w-[210px] max-h-[300px] overflow-y-auto overflow-x-hidden rounded-md border p-1 shadow-md border-border-100',
-          getPositionClasses(),
+          'bg-secondary min-w-[210px] max-h-[300px] overflow-y-auto overflow-x-hidden rounded-md border p-1 shadow-md border-border-100',
           className
         )}
         {...props}
@@ -433,6 +583,9 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
         {children}
       </div>
     );
+
+    // Render using portal to escape overflow constraints
+    return createPortal(content, document.body);
   }
 );
 SelectContent.displayName = 'SelectContent';
