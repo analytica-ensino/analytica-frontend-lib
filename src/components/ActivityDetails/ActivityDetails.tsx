@@ -251,6 +251,7 @@ export const ActivityDetails = ({
   const {
     fetchActivityDetails,
     fetchStudentCorrection,
+    safeFetchStudentFeedback,
     submitObservation,
     submitQuestionCorrection,
   } = useActivityDetails(apiClient);
@@ -325,12 +326,18 @@ export const ActivityDetails = ({
 
       setCorrectionError(null);
       try {
-        const apiResponse = await fetchStudentCorrection(activityId, studentId);
+        const [apiResponse, feedbackResponse] = await Promise.all([
+          fetchStudentCorrection(activityId, studentId),
+          safeFetchStudentFeedback(activityId, studentId),
+        ]);
+
         // Convert API response to StudentActivityCorrectionData format
         const correction = convertApiResponseToCorrectionData(
           apiResponse,
           studentId,
-          student.studentName || 'Aluno'
+          student.studentName || 'Aluno',
+          feedbackResponse?.teacherFeedback ?? undefined,
+          feedbackResponse?.attachment ?? undefined
         );
         setCorrectionData(correction);
         setIsModalOpen(true);
@@ -343,7 +350,12 @@ export const ActivityDetails = ({
         );
       }
     },
-    [data?.students, activityId, fetchStudentCorrection]
+    [
+      data?.students,
+      activityId,
+      fetchStudentCorrection,
+      safeFetchStudentFeedback,
+    ]
   );
 
   /**
@@ -364,12 +376,31 @@ export const ActivityDetails = ({
       if (!activityId || !studentId) return;
       try {
         const file = files.length > 0 ? files[0] : null;
-        await submitObservation(activityId, studentId, observation, file);
+        const [_, feedbackResponse] = await Promise.all([
+          submitObservation(activityId, studentId, observation, file),
+          safeFetchStudentFeedback(activityId, studentId),
+        ]);
+
+        setCorrectionData((prev) =>
+          prev
+            ? {
+                ...prev,
+                observation:
+                  feedbackResponse === null
+                    ? prev.observation
+                    : (feedbackResponse.teacherFeedback ?? undefined),
+                attachment:
+                  feedbackResponse === null
+                    ? prev.attachment
+                    : (feedbackResponse.attachment ?? undefined),
+              }
+            : prev
+        );
       } catch (err) {
         console.error('Failed to submit observation:', err);
       }
     },
-    [activityId, submitObservation]
+    [activityId, submitObservation, safeFetchStudentFeedback]
   );
 
   /**

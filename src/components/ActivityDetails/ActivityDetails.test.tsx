@@ -80,7 +80,12 @@ jest.mock('../TableProvider/TableProvider', () => ({
       render?: (value: unknown, row: unknown) => ReactNode;
     }[];
     emptyState?: { component: ReactNode };
-    onParamsChange?: (params: { page?: number; limit?: number }) => void;
+    onParamsChange?: (params: {
+      page?: number;
+      limit?: number;
+      sortBy?: string;
+      sortOrder?: string;
+    }) => void;
   }) => {
     if (data.length === 0 && emptyState?.component) {
       return <div data-testid="table-provider">{emptyState.component}</div>;
@@ -160,6 +165,24 @@ jest.mock('../TableProvider/TableProvider', () => ({
               >
                 20 por página
               </button>
+              <button
+                onClick={() => onParamsChange?.({ sortBy: 'studentName' })}
+                data-testid="sort-by-name"
+              >
+                Ordenar por nome
+              </button>
+              <button
+                onClick={() => onParamsChange?.({ sortBy: '' })}
+                data-testid="sort-by-clear"
+              >
+                Limpar ordenação
+              </button>
+              <button
+                onClick={() => onParamsChange?.({ sortOrder: 'asc' })}
+                data-testid="sort-order-asc"
+              >
+                Ordenar crescente
+              </button>
             </div>
           ),
         })}
@@ -176,20 +199,31 @@ jest.mock('../CorrectActivityModal/CorrectActivityModal', () => ({
     onClose,
     data,
     onObservationSubmit,
+    onQuestionCorrectionSubmit,
   }: {
     isOpen: boolean;
     onClose: () => void;
-    data?: { studentId?: string };
+    data?: { studentId?: string; observation?: string; attachment?: string };
     isViewOnly?: boolean;
     onObservationSubmit?: (
       studentId: string,
       observation: string,
       files: File[]
     ) => void;
+    onQuestionCorrectionSubmit?: (
+      studentId: string,
+      payload: { questionId: string; isCorrect: boolean; score: number }
+    ) => void;
   }) =>
     isOpen ? (
       <div data-testid="correct-activity-modal">
         <button onClick={onClose}>Fechar</button>
+        {data?.observation && (
+          <span data-testid="modal-observation">{data.observation}</span>
+        )}
+        {data?.attachment && (
+          <span data-testid="modal-attachment">{data.attachment}</span>
+        )}
         <button
           onClick={() =>
             onObservationSubmit?.(data?.studentId || '', 'Test observation', [])
@@ -197,6 +231,34 @@ jest.mock('../CorrectActivityModal/CorrectActivityModal', () => ({
           data-testid="submit-observation"
         >
           Enviar observação
+        </button>
+        <button
+          onClick={() =>
+            onObservationSubmit?.(data?.studentId || '', 'With file', [
+              new File(['content'], 'test.pdf', { type: 'application/pdf' }),
+            ])
+          }
+          data-testid="submit-observation-with-file"
+        >
+          Enviar com arquivo
+        </button>
+        <button
+          onClick={() => {
+            void (async () => {
+              try {
+                await onQuestionCorrectionSubmit?.(data?.studentId || '', {
+                  questionId: 'q1',
+                  isCorrect: true,
+                  score: 10,
+                });
+              } catch {
+                // noop - error handled by component
+              }
+            })();
+          }}
+          data-testid="submit-question-correction"
+        >
+          Corrigir questão
         </button>
       </div>
     ) : null,
@@ -484,6 +546,8 @@ const createPendingPromise = <T,>(): Promise<T> => new Promise<T>(() => {});
 describe('ActivityDetails', () => {
   const mockFetchActivityDetails = jest.fn();
   const mockFetchStudentCorrection = jest.fn();
+  const mockFetchStudentFeedback = jest.fn();
+  const mockSafeFetchStudentFeedback = jest.fn();
   const mockSubmitObservation = jest.fn();
   const mockSubmitQuestionCorrection = jest.fn();
   const mockOnBack = jest.fn();
@@ -525,6 +589,14 @@ describe('ActivityDetails', () => {
       },
     };
     mockFetchStudentCorrection.mockResolvedValue(apiResponse);
+    mockFetchStudentFeedback.mockResolvedValue({
+      teacherFeedback: null,
+      attachment: null,
+    });
+    mockSafeFetchStudentFeedback.mockResolvedValue({
+      teacherFeedback: null,
+      attachment: null,
+    });
     mockSubmitObservation.mockResolvedValue(undefined);
     mockSubmitQuestionCorrection.mockResolvedValue(undefined);
     mockMapSubjectNameToEnum.mockReturnValue('MATEMATICA');
@@ -533,6 +605,8 @@ describe('ActivityDetails', () => {
     (useActivityDetails as jest.Mock).mockReturnValue({
       fetchActivityDetails: mockFetchActivityDetails,
       fetchStudentCorrection: mockFetchStudentCorrection,
+      fetchStudentFeedback: mockFetchStudentFeedback,
+      safeFetchStudentFeedback: mockSafeFetchStudentFeedback,
       submitObservation: mockSubmitObservation,
       submitQuestionCorrection: mockSubmitQuestionCorrection,
     });
@@ -580,6 +654,18 @@ describe('ActivityDetails', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Servidor indisponível')).toBeInTheDocument();
+      });
+    });
+
+    it('should use fallback message when non-Error is thrown by fetchActivityDetails', async () => {
+      mockFetchActivityDetails.mockRejectedValue('string error');
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(
+          screen.getAllByText('Erro ao carregar detalhes').length
+        ).toBeGreaterThan(0);
       });
     });
   });
@@ -659,6 +745,12 @@ describe('ActivityDetails', () => {
       (useActivityDetails as jest.Mock).mockReturnValue({
         fetchActivityDetails: mockFetchActivityDetailsZero,
         fetchStudentCorrection: jest.fn(),
+        fetchStudentFeedback: jest
+          .fn()
+          .mockResolvedValue({ teacherFeedback: null, attachment: null }),
+        safeFetchStudentFeedback: jest
+          .fn()
+          .mockResolvedValue({ teacherFeedback: null, attachment: null }),
         submitObservation: jest.fn(),
         submitQuestionCorrection: jest.fn(),
       });
@@ -693,6 +785,12 @@ describe('ActivityDetails', () => {
       (useActivityDetails as jest.Mock).mockReturnValue({
         fetchActivityDetails: mockFetchActivityDetailsWithCount,
         fetchStudentCorrection: jest.fn(),
+        fetchStudentFeedback: jest
+          .fn()
+          .mockResolvedValue({ teacherFeedback: null, attachment: null }),
+        safeFetchStudentFeedback: jest
+          .fn()
+          .mockResolvedValue({ teacherFeedback: null, attachment: null }),
         submitObservation: jest.fn(),
         submitQuestionCorrection: jest.fn(),
       });
@@ -1009,6 +1107,71 @@ describe('ActivityDetails', () => {
 
       consoleSpy.mockRestore();
     });
+
+    it('should use fallback error message when non-Error is thrown by fetchStudentCorrection', async () => {
+      mockFetchStudentCorrection.mockRejectedValue('non-error string');
+
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Corrigir atividade'));
+
+      await waitFor(() => {
+        expect(consoleSpy).toHaveBeenCalled();
+      });
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should pass teacherFeedback and attachment to modal when safeFetchStudentFeedback returns data', async () => {
+      mockSafeFetchStudentFeedback.mockResolvedValue({
+        teacherFeedback: 'Ótimo trabalho!',
+        attachment: 'https://s3.amazonaws.com/bucket/file.pdf',
+      });
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Corrigir atividade'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('modal-observation')).toHaveTextContent(
+          'Ótimo trabalho!'
+        );
+        expect(screen.getByTestId('modal-attachment')).toHaveTextContent(
+          'https://s3.amazonaws.com/bucket/file.pdf'
+        );
+      });
+    });
+
+    it('should open modal normally when safeFetchStudentFeedback returns null', async () => {
+      mockSafeFetchStudentFeedback.mockResolvedValue(null);
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Corrigir atividade'));
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('correct-activity-modal')
+        ).toBeInTheDocument();
+      });
+
+      expect(screen.queryByTestId('modal-observation')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('modal-attachment')).not.toBeInTheDocument();
+    });
   });
 
   describe('Table Data', () => {
@@ -1073,6 +1236,191 @@ describe('ActivityDetails', () => {
           null
         );
       });
+    });
+
+    it('should call safeFetchStudentFeedback after successful submitObservation', async () => {
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Corrigir atividade'));
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('correct-activity-modal')
+        ).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('submit-observation'));
+
+      await waitFor(() => {
+        // Called once on modal open, then again after submit
+        expect(mockSafeFetchStudentFeedback).toHaveBeenCalledWith(
+          'activity-123',
+          'student-2'
+        );
+        expect(mockSafeFetchStudentFeedback).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    it('should update modal with returned feedback after successful submit', async () => {
+      mockSafeFetchStudentFeedback
+        .mockResolvedValueOnce({ teacherFeedback: null, attachment: null })
+        .mockResolvedValueOnce({
+          teacherFeedback: 'Ótimo trabalho!',
+          attachment: 'https://s3.amazonaws.com/file.pdf',
+        });
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Corrigir atividade'));
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('correct-activity-modal')
+        ).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('submit-observation'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('modal-observation')).toHaveTextContent(
+          'Ótimo trabalho!'
+        );
+        expect(screen.getByTestId('modal-attachment')).toHaveTextContent(
+          'https://s3.amazonaws.com/file.pdf'
+        );
+      });
+    });
+
+    it('should call submitObservation with file when files are provided', async () => {
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Corrigir atividade'));
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('correct-activity-modal')
+        ).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('submit-observation-with-file'));
+
+      await waitFor(() => {
+        expect(mockSubmitObservation).toHaveBeenCalledWith(
+          'activity-123',
+          'student-2',
+          'With file',
+          expect.any(File)
+        );
+      });
+    });
+
+    it('should keep modal open when safeFetchStudentFeedback returns null after submit', async () => {
+      mockSafeFetchStudentFeedback
+        .mockResolvedValueOnce({ teacherFeedback: null, attachment: null })
+        .mockResolvedValueOnce(null);
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Corrigir atividade'));
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('correct-activity-modal')
+        ).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('submit-observation'));
+
+      await waitFor(() => {
+        expect(mockSubmitObservation).toHaveBeenCalled();
+        expect(mockSafeFetchStudentFeedback).toHaveBeenCalledTimes(2);
+      });
+
+      // Aguardar o setCorrectionData processar — observation deve continuar ausente
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('correct-activity-modal')
+        ).toBeInTheDocument();
+      });
+      expect(screen.queryByTestId('modal-observation')).not.toBeInTheDocument();
+    });
+
+    it('should clear observation when safeFetchStudentFeedback returns null teacherFeedback', async () => {
+      mockSafeFetchStudentFeedback
+        .mockResolvedValueOnce({ teacherFeedback: null, attachment: null })
+        .mockResolvedValueOnce({ teacherFeedback: null, attachment: null });
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Corrigir atividade'));
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('correct-activity-modal')
+        ).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('submit-observation'));
+
+      await waitFor(() => {
+        expect(mockSafeFetchStudentFeedback).toHaveBeenCalledTimes(2);
+      });
+
+      // observation fica undefined (null ?? undefined) → span não aparece
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('correct-activity-modal')
+        ).toBeInTheDocument();
+      });
+      expect(screen.queryByTestId('modal-observation')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('modal-attachment')).not.toBeInTheDocument();
+    });
+
+    it('should call console.error when submitObservation fails', async () => {
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      mockSubmitObservation.mockRejectedValue(new Error('Submit failed'));
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Corrigir atividade'));
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('correct-activity-modal')
+        ).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('submit-observation'));
+
+      await waitFor(() => {
+        expect(consoleSpy).toHaveBeenCalled();
+      });
+
+      consoleSpy.mockRestore();
     });
   });
 
@@ -1637,6 +1985,221 @@ describe('ActivityDetails', () => {
 
       // Verify that handlePrint was called (meaning shouldPrint was true and conditions were met)
       expect(mockHandlePrint).toHaveBeenCalled();
+    });
+
+    it('should set shouldPrint to true when questions are already loaded (non-empty)', async () => {
+      const mockQuestions = [
+        createQuestion('q1', 'Questão 1', QUESTION_TYPE.ALTERNATIVA, [
+          { id: 'opt1', option: 'Opção A' },
+          { id: 'opt2', option: 'Opção B' },
+        ]),
+      ];
+
+      mockApiClient.get = jest.fn().mockResolvedValue({
+        data: { data: { questions: mockQuestions } },
+      });
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Baixar Atividade')).toBeInTheDocument();
+      });
+
+      // First click loads questions
+      fireEvent.click(screen.getByText('Baixar Atividade'));
+
+      await waitFor(
+        () => {
+          expect(mockHandlePrint).toHaveBeenCalled();
+        },
+        { timeout: 2000 }
+      );
+
+      mockHandlePrint.mockClear();
+
+      // Second click: questions already loaded (non-empty) → hits the else-if branch
+      fireEvent.click(screen.getByText('Baixar Atividade'));
+
+      await waitFor(
+        () => {
+          expect(mockHandlePrint).toHaveBeenCalled();
+        },
+        { timeout: 2000 }
+      );
+    });
+
+    it('should return empty array when response has neither questions nor questionIds', async () => {
+      // Mock API to return data with neither questions nor questionIds
+      mockApiClient.get = jest.fn().mockResolvedValueOnce({
+        data: { data: {} },
+      });
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Baixar Atividade')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Baixar Atividade'));
+
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            title: 'Nenhuma questão encontrada',
+          })
+        );
+      });
+    });
+
+    it('should reset shouldPrint when handlePrint is not available', async () => {
+      (useQuestionsPdfPrint as jest.Mock).mockReturnValue({
+        contentRef: { current: null },
+        handlePrint: undefined,
+      });
+
+      const mockQuestions = [
+        createQuestion('q1', 'Questão 1', QUESTION_TYPE.ALTERNATIVA, [
+          { id: 'opt1', option: 'Opção A' },
+        ]),
+      ];
+
+      mockApiClient.get = jest.fn().mockResolvedValueOnce({
+        data: { data: { questions: mockQuestions } },
+      });
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Baixar Atividade')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Baixar Atividade'));
+
+      // Wait for the full async chain: fetch → state update → effect → setShouldPrint(false)
+      await waitFor(
+        () => {
+          // After questions are fetched and shouldPrint effect runs with null contentRef,
+          // the button should be back to normal (not loading)
+          expect(screen.queryByText('Carregando...')).not.toBeInTheDocument();
+          expect(screen.getByText('Baixar Atividade')).toBeInTheDocument();
+        },
+        { timeout: 2000 }
+      );
+
+      // handlePrint should not be called since contentRef.current is null
+      expect(mockHandlePrint).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Sorting', () => {
+    it('should map sortBy studentName to name API param', async () => {
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('sort-by-name')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('sort-by-name'));
+
+      await waitFor(() => {
+        expect(mockFetchActivityDetails).toHaveBeenCalledWith(
+          'activity-123',
+          expect.objectContaining({ sortBy: 'name' })
+        );
+      });
+    });
+
+    it('should set sortBy to undefined when sortBy param is empty string', async () => {
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('sort-by-clear')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('sort-by-clear'));
+
+      await waitFor(() => {
+        expect(mockFetchActivityDetails).toHaveBeenCalledWith(
+          'activity-123',
+          expect.objectContaining({ sortBy: undefined })
+        );
+      });
+    });
+
+    it('should set sortOrder when sortOrder param is provided', async () => {
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('sort-order-asc')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('sort-order-asc'));
+
+      await waitFor(() => {
+        expect(mockFetchActivityDetails).toHaveBeenCalledWith(
+          'activity-123',
+          expect.objectContaining({ sortOrder: 'asc' })
+        );
+      });
+    });
+  });
+
+  describe('Question Correction Submit', () => {
+    it('should call submitQuestionCorrection when correction is submitted', async () => {
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Corrigir atividade'));
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('correct-activity-modal')
+        ).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('submit-question-correction'));
+
+      await waitFor(() => {
+        expect(mockSubmitQuestionCorrection).toHaveBeenCalledWith(
+          'activity-123',
+          'student-2',
+          { questionId: 'q1', isCorrect: true, score: 10 }
+        );
+      });
+    });
+
+    it('should log error when submitQuestionCorrection fails', async () => {
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const mockError = new Error('Correction failed');
+      mockSubmitQuestionCorrection.mockRejectedValueOnce(mockError);
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Corrigir atividade'));
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('correct-activity-modal')
+        ).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('submit-question-correction'));
+
+      await waitFor(() => {
+        expect(consoleSpy).toHaveBeenCalledWith(
+          'Failed to submit question correction:',
+          mockError
+        );
+      });
+
+      consoleSpy.mockRestore();
     });
   });
 });
