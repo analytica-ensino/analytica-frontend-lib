@@ -333,9 +333,7 @@ export const ActivityDetails = ({
         };
         try {
           feedbackResponse = await fetchStudentFeedback(activityId, studentId);
-        } catch {
-          // fallback already set
-        }
+        } catch {}
         // Convert API response to StudentActivityCorrectionData format
         const correction = convertApiResponseToCorrectionData(
           apiResponse,
@@ -378,16 +376,13 @@ export const ActivityDetails = ({
         const file = files.length > 0 ? files[0] : null;
         await submitObservation(activityId, studentId, observation, file);
 
-        // Fetch updated feedback from server after successful PATCH
         let feedbackResponse: { teacherFeedback: string | null; attachment: string | null } = {
           teacherFeedback: null,
           attachment: null,
         };
         try {
           feedbackResponse = await fetchStudentFeedback(activityId, studentId);
-        } catch {
-          // fallback already set
-        }
+        } catch {}
         setCorrectionData((prev) =>
           prev
             ? {
