@@ -52,6 +52,16 @@ export interface UseActivityDetailsReturn {
     studentId: string
   ) => Promise<StudentFeedbackResponse>;
   /**
+   * Fetch teacher feedback for a student activity, returning null on error
+   * @param activityId - Activity ID
+   * @param studentId - Student ID
+   * @returns Teacher feedback and attachment, or null if fetch fails
+   */
+  safeFetchStudentFeedback: (
+    activityId: string,
+    studentId: string
+  ) => Promise<StudentFeedbackResponse | null>;
+  /**
    * Submit observation for student activity
    * @param actId - Activity ID
    * @param studentId - Student ID
@@ -182,6 +192,21 @@ export const useActivityDetails = (
     [apiClient]
   );
 
+  const safeFetchStudentFeedback = useCallback(
+    async (
+      activityId: string,
+      studentId: string
+    ): Promise<StudentFeedbackResponse | null> => {
+      try {
+        return await fetchStudentFeedback(activityId, studentId);
+      } catch (err) {
+        console.warn('Failed to fetch student feedback:', err);
+        return null;
+      }
+    },
+    [fetchStudentFeedback]
+  );
+
   /**
    * Submit observation for student activity
    * @param actId - Activity ID
@@ -271,6 +296,7 @@ export const useActivityDetails = (
     fetchActivityDetails,
     fetchStudentCorrection,
     fetchStudentFeedback,
+    safeFetchStudentFeedback,
     submitObservation,
     submitQuestionCorrection,
   };

@@ -251,7 +251,7 @@ export const ActivityDetails = ({
   const {
     fetchActivityDetails,
     fetchStudentCorrection,
-    fetchStudentFeedback,
+    safeFetchStudentFeedback,
     submitObservation,
     submitQuestionCorrection,
   } = useActivityDetails(apiClient);
@@ -327,18 +327,10 @@ export const ActivityDetails = ({
       setCorrectionError(null);
       try {
         const apiResponse = await fetchStudentCorrection(activityId, studentId);
-        let feedbackResponse: {
-          teacherFeedback: string | null;
-          attachment: string | null;
-        } = {
-          teacherFeedback: null,
-          attachment: null,
-        };
-        try {
-          feedbackResponse = await fetchStudentFeedback(activityId, studentId);
-        } catch {
-          // noop
-        }
+        const feedbackResponse = (await safeFetchStudentFeedback(
+          activityId,
+          studentId
+        )) ?? { teacherFeedback: null, attachment: null };
         // Convert API response to StudentActivityCorrectionData format
         const correction = convertApiResponseToCorrectionData(
           apiResponse,
@@ -358,7 +350,12 @@ export const ActivityDetails = ({
         );
       }
     },
-    [data?.students, activityId, fetchStudentCorrection, fetchStudentFeedback]
+    [
+      data?.students,
+      activityId,
+      fetchStudentCorrection,
+      safeFetchStudentFeedback,
+    ]
   );
 
   /**
@@ -381,15 +378,10 @@ export const ActivityDetails = ({
         const file = files.length > 0 ? files[0] : null;
         await submitObservation(activityId, studentId, observation, file);
 
-        let feedbackResponse: {
-          teacherFeedback: string | null;
-          attachment: string | null;
-        } | null = null;
-        try {
-          feedbackResponse = await fetchStudentFeedback(activityId, studentId);
-        } catch {
-          // noop
-        }
+        const feedbackResponse = await safeFetchStudentFeedback(
+          activityId,
+          studentId
+        );
         setCorrectionData((prev) =>
           prev
             ? {
@@ -397,11 +389,11 @@ export const ActivityDetails = ({
                 observation:
                   feedbackResponse === null
                     ? prev.observation
-                    : feedbackResponse.teacherFeedback ?? undefined,
+                    : (feedbackResponse.teacherFeedback ?? undefined),
                 attachment:
                   feedbackResponse === null
                     ? prev.attachment
-                    : feedbackResponse.attachment ?? undefined,
+                    : (feedbackResponse.attachment ?? undefined),
               }
             : prev
         );
@@ -409,7 +401,7 @@ export const ActivityDetails = ({
         console.error('Failed to submit observation:', err);
       }
     },
-    [activityId, submitObservation, fetchStudentFeedback]
+    [activityId, submitObservation, safeFetchStudentFeedback]
   );
 
   /**

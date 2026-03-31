@@ -491,6 +491,7 @@ describe('ActivityDetails', () => {
   const mockFetchActivityDetails = jest.fn();
   const mockFetchStudentCorrection = jest.fn();
   const mockFetchStudentFeedback = jest.fn();
+  const mockSafeFetchStudentFeedback = jest.fn();
   const mockSubmitObservation = jest.fn();
   const mockSubmitQuestionCorrection = jest.fn();
   const mockOnBack = jest.fn();
@@ -536,6 +537,10 @@ describe('ActivityDetails', () => {
       teacherFeedback: null,
       attachment: null,
     });
+    mockSafeFetchStudentFeedback.mockResolvedValue({
+      teacherFeedback: null,
+      attachment: null,
+    });
     mockSubmitObservation.mockResolvedValue(undefined);
     mockSubmitQuestionCorrection.mockResolvedValue(undefined);
     mockMapSubjectNameToEnum.mockReturnValue('MATEMATICA');
@@ -545,6 +550,7 @@ describe('ActivityDetails', () => {
       fetchActivityDetails: mockFetchActivityDetails,
       fetchStudentCorrection: mockFetchStudentCorrection,
       fetchStudentFeedback: mockFetchStudentFeedback,
+      safeFetchStudentFeedback: mockSafeFetchStudentFeedback,
       submitObservation: mockSubmitObservation,
       submitQuestionCorrection: mockSubmitQuestionCorrection,
     });
@@ -674,6 +680,9 @@ describe('ActivityDetails', () => {
         fetchStudentFeedback: jest
           .fn()
           .mockResolvedValue({ teacherFeedback: null, attachment: null }),
+        safeFetchStudentFeedback: jest
+          .fn()
+          .mockResolvedValue({ teacherFeedback: null, attachment: null }),
         submitObservation: jest.fn(),
         submitQuestionCorrection: jest.fn(),
       });
@@ -709,6 +718,9 @@ describe('ActivityDetails', () => {
         fetchActivityDetails: mockFetchActivityDetailsWithCount,
         fetchStudentCorrection: jest.fn(),
         fetchStudentFeedback: jest
+          .fn()
+          .mockResolvedValue({ teacherFeedback: null, attachment: null }),
+        safeFetchStudentFeedback: jest
           .fn()
           .mockResolvedValue({ teacherFeedback: null, attachment: null }),
         submitObservation: jest.fn(),
@@ -1028,8 +1040,8 @@ describe('ActivityDetails', () => {
       consoleSpy.mockRestore();
     });
 
-    it('should pass teacherFeedback and attachment to modal when fetchStudentFeedback returns data', async () => {
-      mockFetchStudentFeedback.mockResolvedValue({
+    it('should pass teacherFeedback and attachment to modal when safeFetchStudentFeedback returns data', async () => {
+      mockSafeFetchStudentFeedback.mockResolvedValue({
         teacherFeedback: 'Ótimo trabalho!',
         attachment: 'https://s3.amazonaws.com/bucket/file.pdf',
       });
@@ -1052,8 +1064,8 @@ describe('ActivityDetails', () => {
       });
     });
 
-    it('should open modal normally when fetchStudentFeedback fails (inner catch noop)', async () => {
-      mockFetchStudentFeedback.mockRejectedValue(new Error('Feedback not found'));
+    it('should open modal normally when safeFetchStudentFeedback returns null', async () => {
+      mockSafeFetchStudentFeedback.mockResolvedValue(null);
 
       render(<ActivityDetails {...defaultProps} />);
 
@@ -1138,7 +1150,7 @@ describe('ActivityDetails', () => {
       });
     });
 
-    it('should call fetchStudentFeedback after successful submitObservation', async () => {
+    it('should call safeFetchStudentFeedback after successful submitObservation', async () => {
       render(<ActivityDetails {...defaultProps} />);
 
       await waitFor(() => {
@@ -1157,18 +1169,18 @@ describe('ActivityDetails', () => {
 
       await waitFor(() => {
         // Called once on modal open, then again after submit
-        expect(mockFetchStudentFeedback).toHaveBeenCalledWith(
+        expect(mockSafeFetchStudentFeedback).toHaveBeenCalledWith(
           'activity-123',
           'student-2'
         );
-        expect(mockFetchStudentFeedback).toHaveBeenCalledTimes(2);
+        expect(mockSafeFetchStudentFeedback).toHaveBeenCalledTimes(2);
       });
     });
 
-    it('should keep modal open when fetchStudentFeedback fails after submit', async () => {
-      mockFetchStudentFeedback
+    it('should keep modal open when safeFetchStudentFeedback returns null after submit', async () => {
+      mockSafeFetchStudentFeedback
         .mockResolvedValueOnce({ teacherFeedback: null, attachment: null })
-        .mockRejectedValueOnce(new Error('Feedback failed'));
+        .mockResolvedValueOnce(null);
 
       render(<ActivityDetails {...defaultProps} />);
 

@@ -356,6 +356,55 @@ describe('useActivityDetails', () => {
     });
   });
 
+  describe('safeFetchStudentFeedback', () => {
+    it('should return feedback data on success', async () => {
+      (mockApiClient.get as jest.Mock).mockResolvedValueOnce({
+        data: {
+          data: {
+            teacherFeedback: 'Ótimo trabalho!',
+            attachment: 'https://s3.amazonaws.com/bucket/file.pdf',
+          },
+        },
+      });
+
+      const { result } = renderHook(() => useActivityDetails(mockApiClient));
+
+      const feedback = await result.current.safeFetchStudentFeedback(
+        'activity-123',
+        'student-1'
+      );
+
+      expect(feedback).toEqual({
+        teacherFeedback: 'Ótimo trabalho!',
+        attachment: 'https://s3.amazonaws.com/bucket/file.pdf',
+      });
+    });
+
+    it('should return null and log warn when API fails', async () => {
+      const consoleWarnSpy = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {});
+
+      const mockError = new Error('Feedback not found');
+      (mockApiClient.get as jest.Mock).mockRejectedValueOnce(mockError);
+
+      const { result } = renderHook(() => useActivityDetails(mockApiClient));
+
+      const feedback = await result.current.safeFetchStudentFeedback(
+        'activity-123',
+        'student-1'
+      );
+
+      expect(feedback).toBeNull();
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        'Failed to fetch student feedback:',
+        mockError
+      );
+
+      consoleWarnSpy.mockRestore();
+    });
+  });
+
   describe('submitObservation', () => {
     it('should submit observation without file successfully', async () => {
       (mockApiClient.patch as jest.Mock).mockResolvedValueOnce({});
@@ -647,6 +696,7 @@ describe('useActivityDetails', () => {
         fetchActivityDetails: result.current.fetchActivityDetails,
         fetchStudentCorrection: result.current.fetchStudentCorrection,
         fetchStudentFeedback: result.current.fetchStudentFeedback,
+        safeFetchStudentFeedback: result.current.safeFetchStudentFeedback,
         submitObservation: result.current.submitObservation,
         submitQuestionCorrection: result.current.submitQuestionCorrection,
       };
@@ -661,6 +711,9 @@ describe('useActivityDetails', () => {
       );
       expect(result.current.fetchStudentFeedback).toBe(
         firstRender.fetchStudentFeedback
+      );
+      expect(result.current.safeFetchStudentFeedback).toBe(
+        firstRender.safeFetchStudentFeedback
       );
       expect(result.current.submitObservation).toBe(
         firstRender.submitObservation
