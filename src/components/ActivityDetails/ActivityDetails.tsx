@@ -372,14 +372,26 @@ export const ActivityDetails = ({
    * @param files - Attached files (only first file is used)
    */
   const handleObservationSubmit = useCallback(
-    async (studentId: string, observation: string, files: File[]) => {
+    async (
+      studentId: string,
+      observation: string,
+      files: File[],
+      existingAttachment: string | null
+    ) => {
       if (!activityId || !studentId) return;
       try {
         const file = files.length > 0 ? files[0] : null;
-        const [_, feedbackResponse] = await Promise.all([
-          submitObservation(activityId, studentId, observation, file),
-          safeFetchStudentFeedback(activityId, studentId),
-        ]);
+        await submitObservation(
+          activityId,
+          studentId,
+          observation,
+          file,
+          existingAttachment
+        );
+        const feedbackResponse = await safeFetchStudentFeedback(
+          activityId,
+          studentId
+        );
 
         setCorrectionData((prev) =>
           prev

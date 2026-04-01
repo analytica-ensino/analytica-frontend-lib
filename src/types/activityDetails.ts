@@ -162,7 +162,7 @@ export interface ActivityDetailsApiResponse {
  */
 export interface PresignedUrlResponse {
   data: {
-    url: string;
-    fields: Record<string, string>;
+    signedUrl: string;
+    publicUrl: string;
   };
 }

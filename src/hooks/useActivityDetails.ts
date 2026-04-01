@@ -73,7 +73,8 @@ export interface UseActivityDetailsReturn {
     actId: string,
     studentId: string,
     observation: string,
-    file: File | null
+    file: File | null,
+    existingAttachment: string | null
   ) => Promise<string | null>;
   /**
    * Submit question correction for student activity
@@ -185,9 +186,14 @@ export const useActivityDetails = (
       studentId: string
     ): Promise<StudentFeedbackResponse> => {
       const response = await apiClient.get<{
-        data: { teacherFeedback: string | null; attachment: string | null };
+        data: {
+          feedback: {
+            teacherFeedback: string | null;
+            attachment: string | null;
+          };
+        };
       }>(`/activities/${activityId}/students/${studentId}/feedback`);
-      return response.data.data;
+      return response.data.data.feedback;
     },
     [apiClient]
   );
@@ -220,43 +226,34 @@ export const useActivityDetails = (
       actId: string,
       studentId: string,
       observation: string,
-      file: File | null
+      file: File | null,
+      existingAttachment: string | null
     ): Promise<string | null> => {
-      let attachmentUrl: string | null = null;
+      let attachmentUrl: string | null = existingAttachment;
 
       if (file) {
         const presignedRes = await apiClient.post<PresignedUrlResponse>(
           '/user/get-pre-signed-url',
           {
             fileName: file.name,
-            fileType: file.type,
+            mimeType: file.type,
             fileSize: file.size,
           }
         );
 
-        const { url, fields } = presignedRes.data.data;
-        const formData = new FormData();
+        const { signedUrl, publicUrl } = presignedRes.data.data;
 
-        for (const [key, value] of Object.entries(fields)) {
-          formData.append(key, value);
-        }
-        formData.append('file', file);
-
-        await fetch(url, {
-          method: 'POST',
-          body: formData,
+        await fetch(signedUrl, {
+          method: 'PUT',
+          body: file,
+          headers: { 'Content-Type': file.type },
         }).then((response) => {
           if (!response.ok) {
             throw new Error('Falha ao fazer upload do arquivo');
           }
         });
 
-        // Ensure proper URL construction
-        const baseUrl = url.endsWith('/') ? url.slice(0, -1) : url;
-        const key = fields.key.startsWith('/')
-          ? fields.key.slice(1)
-          : fields.key;
-        attachmentUrl = `${baseUrl}/${key}`;
+        attachmentUrl = publicUrl;
       }
 
       await apiClient.patch(

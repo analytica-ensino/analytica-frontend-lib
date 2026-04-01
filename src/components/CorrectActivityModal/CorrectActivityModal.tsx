@@ -53,7 +53,8 @@ export interface CorrectActivityModalProps {
   onObservationSubmit?: (
     studentId: string,
     observation: string,
-    files: File[]
+    files: File[],
+    existingAttachment: string | null
   ) => void;
   /** Callback when question correction is saved (for essay questions) */
   onQuestionCorrectionSubmit?: (
@@ -219,7 +220,8 @@ const CorrectActivityModal = ({
       onObservationSubmit?.(
         data.studentId,
         observation,
-        attachedFiles.map((f) => f.file)
+        attachedFiles.map((f) => f.file),
+        existingAttachment
       );
     }
   };
@@ -567,15 +569,7 @@ const CorrectActivityModal = ({
      * @param url - File URL
      * @returns File name extracted from URL
      */
-    const getFileNameFromUrl = (url: string): string => {
-      try {
-        const urlObj = new URL(url);
-        const urlPath = urlObj.pathname;
-        return urlPath.split('/').pop() || 'Anexo';
-      } catch {
-        return 'Anexo';
-      }
-    };
+    const getFileNameFromUrl = (_url: string): string => 'Anexado';
 
     /**
      * Render attachment input section for expanded state
