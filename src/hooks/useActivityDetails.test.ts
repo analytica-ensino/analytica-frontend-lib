@@ -130,11 +130,8 @@ describe('useActivityDetails', () => {
 
   const mockPresignedUrlResponse: PresignedUrlResponse = {
     data: {
-      url: 'https://s3.amazonaws.com/bucket/',
-      fields: {
-        key: 'file-key-123',
-        'Content-Type': 'application/pdf',
-      },
+      signedUrl: 'https://s3.amazonaws.com/bucket/signed',
+      publicUrl: 'https://s3.amazonaws.com/public/file-key-123',
     },
   };
 
@@ -310,8 +307,10 @@ describe('useActivityDetails', () => {
       (mockApiClient.get as jest.Mock).mockResolvedValueOnce({
         data: {
           data: {
-            teacherFeedback: 'Ótimo trabalho!',
-            attachment: 'https://s3.amazonaws.com/bucket/file.pdf',
+            feedback: {
+              teacherFeedback: 'Ótimo trabalho!',
+              attachment: 'https://s3.amazonaws.com/bucket/file.pdf',
+            },
           },
         },
       });
@@ -361,8 +360,10 @@ describe('useActivityDetails', () => {
       (mockApiClient.get as jest.Mock).mockResolvedValueOnce({
         data: {
           data: {
-            teacherFeedback: 'Ótimo trabalho!',
-            attachment: 'https://s3.amazonaws.com/bucket/file.pdf',
+            feedback: {
+              teacherFeedback: 'Ótimo trabalho!',
+              attachment: 'https://s3.amazonaws.com/bucket/file.pdf',
+            },
           },
         },
       });
@@ -415,6 +416,7 @@ describe('useActivityDetails', () => {
         'activity-123',
         'student-1',
         'Great work!',
+        null,
         null
       );
 
@@ -450,24 +452,26 @@ describe('useActivityDetails', () => {
         'activity-123',
         'student-1',
         'Great work!',
-        mockFile
+        mockFile,
+        null
       );
 
       expect(mockApiClient.post).toHaveBeenCalledWith(
         '/user/get-pre-signed-url',
         {
           fileName: 'test.pdf',
-          fileType: 'application/pdf',
+          mimeType: 'application/pdf',
           fileSize: mockFile.size,
         }
       );
 
       // eslint-disable-next-line no-undef
       expect(global.fetch).toHaveBeenCalledWith(
-        'https://s3.amazonaws.com/bucket/',
+        'https://s3.amazonaws.com/bucket/signed',
         {
-          method: 'POST',
-          body: expect.any(FormData),
+          method: 'PUT',
+          body: mockFile,
+          headers: { 'Content-Type': 'application/pdf' },
         }
       );
 
@@ -475,10 +479,10 @@ describe('useActivityDetails', () => {
         '/activities/activity-123/students/student-1/feedback',
         {
           teacherFeedback: 'Great work!',
-          attachment: 'https://s3.amazonaws.com/bucket/file-key-123',
+          attachment: 'https://s3.amazonaws.com/public/file-key-123',
         }
       );
-      expect(returnValue).toBe('https://s3.amazonaws.com/bucket/file-key-123');
+      expect(returnValue).toBe('https://s3.amazonaws.com/public/file-key-123');
     });
 
     it('should handle presigned URL fetch failure', async () => {
@@ -497,7 +501,8 @@ describe('useActivityDetails', () => {
           'activity-123',
           'student-1',
           'Great work!',
-          mockFile
+          mockFile,
+          null
         )
       ).rejects.toThrow(errorMessage);
     });
@@ -522,7 +527,8 @@ describe('useActivityDetails', () => {
           'activity-123',
           'student-1',
           'Great work!',
-          mockFile
+          mockFile,
+          null
         )
       ).rejects.toThrow(errorMessage);
     });
@@ -550,12 +556,13 @@ describe('useActivityDetails', () => {
           'activity-123',
           'student-1',
           'Great work!',
-          mockFile
+          mockFile,
+          null
         )
       ).rejects.toThrow('Falha ao fazer upload do arquivo');
     });
 
-    it('should normalize URL when url has no trailing slash', async () => {
+    it('should use publicUrl from presigned response as attachment', async () => {
       const mockFile = new File(['test content'], 'test.pdf', {
         type: 'application/pdf',
       });
@@ -563,8 +570,8 @@ describe('useActivityDetails', () => {
       (mockApiClient.post as jest.Mock).mockResolvedValueOnce({
         data: {
           data: {
-            url: 'https://s3.amazonaws.com/bucket',
-            fields: { key: 'file-key-123', 'Content-Type': 'application/pdf' },
+            signedUrl: 'https://s3.amazonaws.com/bucket/signed-url',
+            publicUrl: 'https://cdn.example.com/file-key-123',
           },
         },
       });
@@ -579,28 +586,25 @@ describe('useActivityDetails', () => {
         'activity-123',
         'student-1',
         'Great work!',
-        mockFile
+        mockFile,
+        null
       );
 
-      expect(returnValue).toBe('https://s3.amazonaws.com/bucket/file-key-123');
+      expect(returnValue).toBe('https://cdn.example.com/file-key-123');
     });
 
-    it('should normalize URL construction correctly', async () => {
+    it('should upload file with PUT method to signedUrl', async () => {
       const mockFile = new File(['test content'], 'test.pdf', {
         type: 'application/pdf',
       });
 
-      const presignedResponseWithTrailingSlash = {
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce({
         data: {
-          url: 'https://s3.amazonaws.com/bucket/',
-          fields: {
-            key: '/file-key-123',
+          data: {
+            signedUrl: 'https://s3.amazonaws.com/bucket/signed-put-url',
+            publicUrl: 'https://cdn.example.com/file-key-123',
           },
         },
-      };
-
-      (mockApiClient.post as jest.Mock).mockResolvedValueOnce({
-        data: presignedResponseWithTrailingSlash,
       });
       (mockApiClient.patch as jest.Mock).mockResolvedValueOnce({});
 
@@ -615,14 +619,15 @@ describe('useActivityDetails', () => {
         'activity-123',
         'student-1',
         'Great work!',
-        mockFile
+        mockFile,
+        null
       );
 
       expect(mockApiClient.patch).toHaveBeenCalledWith(
         '/activities/activity-123/students/student-1/feedback',
         {
           teacherFeedback: 'Great work!',
-          attachment: 'https://s3.amazonaws.com/bucket/file-key-123',
+          attachment: 'https://cdn.example.com/file-key-123',
         }
       );
     });
@@ -639,9 +644,89 @@ describe('useActivityDetails', () => {
           'activity-123',
           'student-1',
           'Great work!',
+          null,
           null
         )
       ).rejects.toThrow(errorMessage);
+    });
+
+    it('should preserve existingAttachment when no new file is provided', async () => {
+      (mockApiClient.patch as jest.Mock).mockResolvedValueOnce({});
+
+      const { result } = renderHook(() => useActivityDetails(mockApiClient));
+
+      const returnValue = await result.current.submitObservation(
+        'activity-123',
+        'student-1',
+        'Great work!',
+        null,
+        'https://example.com/old.pdf'
+      );
+
+      expect(mockApiClient.patch).toHaveBeenCalledWith(
+        '/activities/activity-123/students/student-1/feedback',
+        {
+          teacherFeedback: 'Great work!',
+          attachment: 'https://example.com/old.pdf',
+        }
+      );
+      expect(returnValue).toBe('https://example.com/old.pdf');
+    });
+
+    it('should override existingAttachment when new file is uploaded', async () => {
+      const mockFile = new File(['test content'], 'new.pdf', {
+        type: 'application/pdf',
+      });
+
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce({
+        data: mockPresignedUrlResponse,
+      });
+      (mockApiClient.patch as jest.Mock).mockResolvedValueOnce({});
+
+      // eslint-disable-next-line no-undef
+      global.fetch = jest.fn().mockResolvedValueOnce({ ok: true } as Response);
+
+      const { result } = renderHook(() => useActivityDetails(mockApiClient));
+
+      const returnValue = await result.current.submitObservation(
+        'activity-123',
+        'student-1',
+        'Great work!',
+        mockFile,
+        'https://example.com/old.pdf'
+      );
+
+      expect(mockApiClient.patch).toHaveBeenCalledWith(
+        '/activities/activity-123/students/student-1/feedback',
+        {
+          teacherFeedback: 'Great work!',
+          attachment: mockPresignedUrlResponse.data.publicUrl,
+        }
+      );
+      expect(returnValue).toBe(mockPresignedUrlResponse.data.publicUrl);
+    });
+
+    it('should send null attachment when no file and no existingAttachment', async () => {
+      (mockApiClient.patch as jest.Mock).mockResolvedValueOnce({});
+
+      const { result } = renderHook(() => useActivityDetails(mockApiClient));
+
+      const returnValue = await result.current.submitObservation(
+        'activity-123',
+        'student-1',
+        'Great work!',
+        null,
+        null
+      );
+
+      expect(mockApiClient.patch).toHaveBeenCalledWith(
+        '/activities/activity-123/students/student-1/feedback',
+        {
+          teacherFeedback: 'Great work!',
+          attachment: null,
+        }
+      );
+      expect(returnValue).toBeNull();
     });
   });
 

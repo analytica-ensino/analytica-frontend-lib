@@ -208,7 +208,8 @@ jest.mock('../CorrectActivityModal/CorrectActivityModal', () => ({
     onObservationSubmit?: (
       studentId: string,
       observation: string,
-      files: File[]
+      files: File[],
+      existingAttachment: string | null
     ) => void;
     onQuestionCorrectionSubmit?: (
       studentId: string,
@@ -226,7 +227,12 @@ jest.mock('../CorrectActivityModal/CorrectActivityModal', () => ({
         )}
         <button
           onClick={() =>
-            onObservationSubmit?.(data?.studentId || '', 'Test observation', [])
+            onObservationSubmit?.(
+              data?.studentId || '',
+              'Test observation',
+              [],
+              null
+            )
           }
           data-testid="submit-observation"
         >
@@ -236,11 +242,24 @@ jest.mock('../CorrectActivityModal/CorrectActivityModal', () => ({
           onClick={() =>
             onObservationSubmit?.(data?.studentId || '', 'With file', [
               new File(['content'], 'test.pdf', { type: 'application/pdf' }),
-            ])
+            ], null)
           }
           data-testid="submit-observation-with-file"
         >
           Enviar com arquivo
+        </button>
+        <button
+          onClick={() =>
+            onObservationSubmit?.(
+              data?.studentId || '',
+              'Test observation',
+              [],
+              data?.attachment || null
+            )
+          }
+          data-testid="submit-observation-with-existing"
+        >
+          Enviar com anexo existente
         </button>
         <button
           onClick={() => {
@@ -1233,6 +1252,7 @@ describe('ActivityDetails', () => {
           'activity-123',
           'student-2',
           'Test observation',
+          null,
           null
         );
       });
@@ -1321,7 +1341,8 @@ describe('ActivityDetails', () => {
           'activity-123',
           'student-2',
           'With file',
-          expect.any(File)
+          expect.any(File),
+          null
         );
       });
     });
@@ -1421,6 +1442,39 @@ describe('ActivityDetails', () => {
       });
 
       consoleSpy.mockRestore();
+    });
+
+    it('should pass existingAttachment to submitObservation', async () => {
+      mockSafeFetchStudentFeedback.mockResolvedValueOnce({
+        teacherFeedback: 'Obs',
+        attachment: 'https://example.com/existing.pdf',
+      });
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Corrigir atividade'));
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('correct-activity-modal')
+        ).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('submit-observation-with-existing'));
+
+      await waitFor(() => {
+        expect(mockSubmitObservation).toHaveBeenCalledWith(
+          'activity-123',
+          'student-2',
+          'Test observation',
+          null,
+          'https://example.com/existing.pdf'
+        );
+      });
     });
   });
 

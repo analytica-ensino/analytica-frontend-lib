@@ -531,7 +531,8 @@ describe('CorrectActivityModal', () => {
       expect(onObservationSubmit).toHaveBeenCalledWith(
         'student-123',
         'Nova observação',
-        []
+        [],
+        null
       );
     });
 
@@ -1082,7 +1083,8 @@ describe('CorrectActivityModal', () => {
       expect(onObservationSubmit).toHaveBeenCalledWith(
         'student-123',
         'Observação com arquivo',
-        [file]
+        [file],
+        null
       );
     });
 
@@ -1122,7 +1124,7 @@ describe('CorrectActivityModal', () => {
   });
 
   describe('Existing attachment scenarios', () => {
-    it('should return "Anexo" when URL is invalid in existingAttachment', () => {
+    it('should return "Anexado" when URL is invalid in existingAttachment', () => {
       const dataWithInvalidAttachment = {
         ...mockData,
         observation: 'Obs existente',
@@ -1135,7 +1137,7 @@ describe('CorrectActivityModal', () => {
           isViewOnly={false}
         />
       );
-      expect(screen.getByText('Anexo')).toBeInTheDocument();
+      expect(screen.getByText('Anexado')).toBeInTheDocument();
     });
 
     it('should display existingAttachment with link and Trocar button when editing', () => {
@@ -1154,7 +1156,7 @@ describe('CorrectActivityModal', () => {
 
       fireEvent.click(screen.getByText('Editar'));
 
-      expect(screen.getByText('documento.pdf')).toBeInTheDocument();
+      expect(screen.getByText('Anexado')).toBeInTheDocument();
       expect(screen.getByText('Trocar')).toBeInTheDocument();
     });
 
@@ -1207,6 +1209,56 @@ describe('CorrectActivityModal', () => {
 
       const salvarButton = screen.getByText('Salvar');
       expect(salvarButton).not.toBeDisabled();
+    });
+
+    it('should pass existingAttachment to onObservationSubmit when saving with existing attachment', () => {
+      const onObservationSubmit = jest.fn();
+      const dataWithAttachment = {
+        ...mockData,
+        observation: 'Obs antiga',
+        attachment: 'https://example.com/file.pdf',
+      };
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={dataWithAttachment}
+          isViewOnly={false}
+          onObservationSubmit={onObservationSubmit}
+        />
+      );
+
+      fireEvent.click(screen.getByText('Editar'));
+
+      const textarea = screen.getByPlaceholderText(
+        'Escreva uma observação para o estudante'
+      );
+      fireEvent.change(textarea, { target: { value: 'Obs atualizada' } });
+
+      const salvarButton = screen.getByText('Salvar');
+      fireEvent.click(salvarButton);
+
+      expect(onObservationSubmit).toHaveBeenCalledWith(
+        'student-123',
+        'Obs atualizada',
+        [],
+        'https://example.com/file.pdf'
+      );
+    });
+
+    it('should always display "Anexado" for any file URL', () => {
+      const dataWithAttachment = {
+        ...mockData,
+        observation: 'Obs',
+        attachment: 'https://example.com/documento.pdf',
+      };
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={dataWithAttachment}
+          isViewOnly={false}
+        />
+      );
+      expect(screen.getByText('Anexado')).toBeInTheDocument();
     });
   });
 
