@@ -405,11 +405,8 @@ const createMockApiClient = (): BaseApiClient => ({
       await new Promise((resolve) => setTimeout(resolve, 200));
       const response: PresignedUrlResponse = {
         data: {
-          url: 'https://mock-s3-url.com/',
-          fields: {
-            key: 'mock-key',
-            'Content-Type': 'application/pdf',
-          },
+          signedUrl: 'https://mock-s3-url.com/signed',
+          publicUrl: 'https://mock-s3-url.com/public/mock-key',
         },
       };
       return { data: response as T };
