@@ -764,6 +764,49 @@ describe('NotificationCard', () => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
 
+    it('should display notification linkImg in global notification modal', () => {
+      const notificationWithImage: Notification = {
+        id: '1',
+        title: 'Notification with image',
+        message: 'Test message',
+        isRead: false,
+        createdAt: new Date(),
+        type: 'ANNOUNCEMENT',
+        entityType: null,
+        entityId: null,
+        actionLink: null,
+        activity: null,
+        recommendedClass: null,
+        linkImg: 'https://cdn.example.com/notification-image.png',
+      };
+
+      render(
+        <NotificationCard
+          mode="list"
+          groupedNotifications={[
+            {
+              label: 'Test Group',
+              notifications: [notificationWithImage],
+            },
+          ]}
+          onMarkAsReadById={jest.fn()}
+          onDeleteById={jest.fn()}
+          getActionLabel={() => 'Ver mais'}
+        />
+      );
+
+      const verMaisButton = screen.getByText('Ver mais');
+      fireEvent.click(verMaisButton);
+
+      const dialog = screen.getByRole('dialog');
+      const modalImage = dialog.querySelector('img');
+      expect(modalImage).toBeInTheDocument();
+      expect(modalImage).toHaveAttribute(
+        'src',
+        'https://cdn.example.com/notification-image.png'
+      );
+    });
+
     it('should handle modal navigation callbacks for single mode', () => {
       const mockOnNavigate = jest.fn();
 

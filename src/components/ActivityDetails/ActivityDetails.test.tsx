@@ -240,9 +240,12 @@ jest.mock('../CorrectActivityModal/CorrectActivityModal', () => ({
         </button>
         <button
           onClick={() =>
-            onObservationSubmit?.(data?.studentId || '', 'With file', [
-              new File(['content'], 'test.pdf', { type: 'application/pdf' }),
-            ], null)
+            onObservationSubmit?.(
+              data?.studentId || '',
+              'With file',
+              [new File(['content'], 'test.pdf', { type: 'application/pdf' })],
+              null
+            )
           }
           data-testid="submit-observation-with-file"
         >

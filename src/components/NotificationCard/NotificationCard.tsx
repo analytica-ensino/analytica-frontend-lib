@@ -608,7 +608,11 @@ const NotificationList = ({
         title={globalNotificationModal.notification?.title || ''}
         description={globalNotificationModal.notification?.message || ''}
         variant="activity"
-        image={emptyStateImage || mockContentImage}
+        image={
+          globalNotificationModal.notification?.linkImg ||
+          emptyStateImage ||
+          mockContentImage
+        }
         actionLink={
           globalNotificationModal.notification?.actionLink || undefined
         }
@@ -757,7 +761,11 @@ const NotificationCenter = ({
           title={globalNotificationModal.notification?.title || ''}
           variant="activity"
           description={globalNotificationModal.notification?.message}
-          image={emptyStateImage || mockContentImage}
+          image={
+            globalNotificationModal.notification?.linkImg ||
+            emptyStateImage ||
+            mockContentImage
+          }
           actionLink={
             globalNotificationModal.notification?.actionLink || undefined
           }
@@ -842,7 +850,11 @@ const NotificationCenter = ({
         title={globalNotificationModal.notification?.title || ''}
         variant="activity"
         description={globalNotificationModal.notification?.message}
-        image={emptyStateImage || mockContentImage}
+        image={
+          globalNotificationModal.notification?.linkImg ||
+          emptyStateImage ||
+          mockContentImage
+        }
         actionLink={
           globalNotificationModal.notification?.actionLink || undefined
         }

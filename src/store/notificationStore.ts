@@ -118,6 +118,7 @@ const mapBackendNotification = (
     activity: backendNotification.activity,
     recommendedClass: backendNotification.recommendedClass,
     actionLink: backendNotification.actionLink ?? null,
+    linkImg: backendNotification.linkImg ?? null,
   };
 };
 

@@ -64,6 +64,10 @@ export interface Notification {
    */
   actionLink?: string | null;
   /**
+   * Image URL for bulk notifications (optional)
+   */
+  linkImg?: string | null;
+  /**
    * Sender information (optional)
    */
   sender?: {
@@ -103,6 +107,7 @@ export interface BackendNotification {
   entityType: string | null;
   entityId: string | null;
   actionLink?: string | null;
+  linkImg?: string | null;
   read: boolean;
   createdAt: string;
   updatedAt: string;
