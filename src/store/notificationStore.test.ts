@@ -1090,6 +1090,7 @@ describe('Internal Helper Functions', () => {
               id: 'recommendedClass-1',
               title: 'Test RecommendedClass',
             },
+            linkImg: 'https://cdn.example.com/notification-image.png',
           },
         ],
         pagination: { page: 1, limit: 10, total: 1, totalPages: 1 },
@@ -1117,6 +1118,9 @@ describe('Internal Helper Functions', () => {
       expect(notification.createdAt).toEqual(createdAt);
       expect(notification.entityType).toBe(NotificationEntityType.ACTIVITY);
       expect(notification.entityId).toBe('entity-1');
+      expect(notification.linkImg).toBe(
+        'https://cdn.example.com/notification-image.png'
+      );
       expect(notification.sender).toEqual({
         id: 'sender-1',
         user: {
@@ -1134,6 +1138,45 @@ describe('Internal Helper Functions', () => {
         id: 'recommendedClass-1',
         title: 'Test RecommendedClass',
       });
+    });
+
+    it('should map linkImg as null when not provided', async () => {
+      const mockResponse: BackendNotificationsResponse = {
+        notifications: [
+          {
+            id: '1',
+            senderUserInstitutionId: null,
+            receiverUserInstitutionId: 'user-1',
+            title: 'Notification without image',
+            description: 'Description',
+            entityType: null,
+            entityId: null,
+            read: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            sender: null,
+            activity: null,
+            recommendedClass: null,
+          },
+        ],
+        pagination: { page: 1, limit: 10, total: 1, totalPages: 1 },
+      };
+
+      const mockApiClient: NotificationApiClient = {
+        get: jest.fn().mockResolvedValue({ data: mockResponse }),
+        patch: jest.fn(),
+        delete: jest.fn(),
+      };
+
+      const useStore = createNotificationStore(mockApiClient);
+      const { result } = renderHook(() => useStore());
+
+      await act(async () => {
+        await result.current.fetchNotifications();
+      });
+
+      const notification = result.current.notifications[0];
+      expect(notification.linkImg).toBeNull();
     });
 
     it('should map actionLink field correctly', async () => {
