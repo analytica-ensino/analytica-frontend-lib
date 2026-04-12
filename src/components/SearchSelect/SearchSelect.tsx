@@ -191,6 +191,13 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
       return options.filter((opt) => opt.label.toLowerCase().includes(query));
     }, [options, searchQuery, filterLocally]);
 
+    // Clamp highlightedIndex when filteredOptions shrinks
+    useEffect(() => {
+      if (highlightedIndex >= filteredOptions.length) {
+        setHighlightedIndex(Math.max(filteredOptions.length - 1, -1));
+      }
+    }, [filteredOptions.length, highlightedIndex]);
+
     // Get selected option label
     const selectedLabel = useMemo(() => {
       const selected = options.find((opt) => opt.value === value);
@@ -224,6 +231,10 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
         onValueChange?.(optionValue);
         setOpen(false);
         setSearchQuery('');
+        // Return focus to trigger for keyboard/screen-reader users
+        requestAnimationFrame(() => {
+          triggerRef.current?.focus();
+        });
       },
       [onValueChange]
     );
@@ -358,13 +369,11 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
       if (scrollHeight - scrollTop - clientHeight < scrollThreshold) {
         isFetchingMoreRef.current = true;
         const result = onLoadMore();
-        // Reset ref when load completes for consumers that don't provide loadingMore
+        // Reset ref when Promise completes; for void returns, rely on loadingMore useEffect
         if (result && typeof result.then === 'function') {
           result.finally(() => {
             isFetchingMoreRef.current = false;
           });
-        } else {
-          isFetchingMoreRef.current = false;
         }
       }
     }, [pagination?.hasNext, loadingMore, onLoadMore]);

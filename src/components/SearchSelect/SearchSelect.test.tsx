@@ -513,7 +513,7 @@ describe('SearchSelect component', () => {
       expect(onLoadMore).toHaveBeenCalledTimes(2);
     });
 
-    it('should handle onLoadMore returning void', () => {
+    it('should prevent duplicate calls for void-returning onLoadMore until loadingMore changes', () => {
       const onLoadMore = jest.fn().mockReturnValue(undefined);
       const pagination: SearchSelectPagination = {
         page: 1,
@@ -522,7 +522,17 @@ describe('SearchSelect component', () => {
         total: 50,
       };
 
-      setup({ pagination, onLoadMore });
+      const { rerender } = render(
+        <SearchSelect
+          options={[
+            { value: 'option1', label: 'Option 1' },
+            { value: 'option2', label: 'Option 2' },
+          ]}
+          pagination={pagination}
+          onLoadMore={onLoadMore}
+          loadingMore={false}
+        />
+      );
 
       fireEvent.click(screen.getByRole('button'));
       const listbox = screen.getByRole('listbox');
@@ -532,7 +542,35 @@ describe('SearchSelect component', () => {
 
       expect(onLoadMore).toHaveBeenCalledTimes(1);
 
-      // For void return, the ref is reset immediately, so next scroll should call again
+      // For void return, the ref stays true - subsequent scrolls should NOT call onLoadMore
+      fireEvent.scroll(listbox);
+      expect(onLoadMore).toHaveBeenCalledTimes(1);
+
+      // Simulate loadingMore cycle: true then false
+      rerender(
+        <SearchSelect
+          options={[
+            { value: 'option1', label: 'Option 1' },
+            { value: 'option2', label: 'Option 2' },
+          ]}
+          pagination={pagination}
+          onLoadMore={onLoadMore}
+          loadingMore={true}
+        />
+      );
+      rerender(
+        <SearchSelect
+          options={[
+            { value: 'option1', label: 'Option 1' },
+            { value: 'option2', label: 'Option 2' },
+          ]}
+          pagination={pagination}
+          onLoadMore={onLoadMore}
+          loadingMore={false}
+        />
+      );
+
+      // After loadingMore changes to false, scrolling should call onLoadMore again
       fireEvent.scroll(listbox);
       expect(onLoadMore).toHaveBeenCalledTimes(2);
     });
