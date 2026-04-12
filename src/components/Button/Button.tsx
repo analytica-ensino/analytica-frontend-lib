@@ -1,4 +1,4 @@
-import { ButtonHTMLAttributes, ReactNode } from 'react';
+import { ButtonHTMLAttributes, ReactNode, forwardRef } from 'react';
 import { cn } from '../../utils/utils';
 
 /**
@@ -88,22 +88,58 @@ type ButtonProps = {
  * </Button>
  * ```
  */
-const Button = ({
-  children,
-  iconLeft,
-  iconRight,
-  size = 'medium',
-  variant = 'solid',
-  action = 'primary',
-  className = '',
-  disabled,
-  type = 'button',
-  ...props
-}: ButtonProps) => {
-  // Raw variant: no default styling, only className
-  if (variant === 'raw') {
+const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  (
+    {
+      children,
+      iconLeft,
+      iconRight,
+      size = 'medium',
+      variant = 'solid',
+      action = 'primary',
+      className = '',
+      disabled,
+      type = 'button',
+      ...props
+    },
+    ref
+  ) => {
+    // Raw variant: no default styling, only className
+    if (variant === 'raw') {
+      return (
+        <button
+          ref={ref}
+          className={className}
+          disabled={disabled}
+          type={type}
+          {...props}
+        >
+          {iconLeft && (
+            <span className="mr-2 flex items-center">{iconLeft}</span>
+          )}
+          {children}
+          {iconRight && (
+            <span className="ml-2 flex items-center">{iconRight}</span>
+          )}
+        </button>
+      );
+    }
+
+    // Get classes from lookup tables
+    const sizeClasses = SIZE_CLASSES[size];
+    const variantClasses = VARIANT_ACTION_CLASSES[variant][action];
+
+    const baseClasses =
+      'inline-flex items-center justify-center rounded-full cursor-pointer font-medium';
+
     return (
-      <button className={className} disabled={disabled} type={type} {...props}>
+      <button
+        ref={ref}
+        className={cn(baseClasses, variantClasses, sizeClasses, className)}
+        disabled={disabled}
+        type={type}
+        {...props}
+      >
         {iconLeft && <span className="mr-2 flex items-center">{iconLeft}</span>}
         {children}
         {iconRight && (
@@ -112,26 +148,8 @@ const Button = ({
       </button>
     );
   }
+);
 
-  // Get classes from lookup tables
-  const sizeClasses = SIZE_CLASSES[size];
-  const variantClasses = VARIANT_ACTION_CLASSES[variant][action];
-
-  const baseClasses =
-    'inline-flex items-center justify-center rounded-full cursor-pointer font-medium';
-
-  return (
-    <button
-      className={cn(baseClasses, variantClasses, sizeClasses, className)}
-      disabled={disabled}
-      type={type}
-      {...props}
-    >
-      {iconLeft && <span className="mr-2 flex items-center">{iconLeft}</span>}
-      {children}
-      {iconRight && <span className="ml-2 flex items-center">{iconRight}</span>}
-    </button>
-  );
-};
+Button.displayName = 'Button';
 
 export default Button;
