@@ -609,26 +609,32 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
             />
           }
         >
-          <span className={cn('truncate', !selectedLabel && 'text-text-500')}>
+          <div className={cn('truncate', !selectedLabel && 'text-text-500')}>
             {loading ? (
-              <span className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <SpinnerGap size={14} className="animate-spin" />
-                {loadingText}
-              </span>
+                <Text size="sm" className="text-text-500">
+                  {loadingText}
+                </Text>
+              </div>
             ) : (
               selectedLabel || placeholder
             )}
-          </span>
+          </div>
         </Button>
 
         {/* Helper Text / Error */}
         {(helperText || errorMessage) && (
           <div className="mt-1.5">
             {helperText && !errorMessage && (
-              <p className="text-sm text-text-500">{helperText}</p>
+              <Text size="sm" className="text-text-500">
+                {helperText}
+              </Text>
             )}
             {errorMessage && (
-              <p className="text-sm text-indicator-error">{errorMessage}</p>
+              <Text size="sm" className="text-indicator-error">
+                {errorMessage}
+              </Text>
             )}
           </div>
         )}
