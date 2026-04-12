@@ -575,11 +575,12 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
     );
 
     // Determine which ID to use for aria-describedby
-    const describedById = errorMessage
-      ? errorId
-      : helperText
-        ? helperId
-        : undefined;
+    const getDescribedById = () => {
+      if (errorMessage) return errorId;
+      if (helperText) return helperId;
+      return undefined;
+    };
+    const describedById = getDescribedById();
 
     return (
       <div className={cn('w-full', className)}>
