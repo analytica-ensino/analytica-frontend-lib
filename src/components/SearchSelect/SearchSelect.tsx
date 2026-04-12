@@ -14,6 +14,7 @@ import { CaretDown, Check, MagnifyingGlass, SpinnerGap } from 'phosphor-react';
 import { cn } from '../../utils/utils';
 import Input from '../Input/Input';
 import Text from '../Text/Text';
+import Button from '../Button/Button';
 
 // ============================================================================
 // Types
@@ -580,10 +581,10 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
         )}
 
         {/* Trigger Button */}
-        <button
+        <Button
           ref={setRefs}
           id={selectId}
-          type="button"
+          variant="raw"
           onClick={handleToggle}
           disabled={disabled || loading}
           aria-expanded={open}
@@ -599,6 +600,14 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
               ? 'cursor-not-allowed opacity-50 text-text-400'
               : 'cursor-pointer hover:bg-background-50 text-text-700'
           )}
+          iconRight={
+            <CaretDown
+              className={cn(
+                'h-4 w-4 opacity-50 transition-transform shrink-0',
+                open && 'rotate-180'
+              )}
+            />
+          }
         >
           <span className={cn('truncate', !selectedLabel && 'text-text-500')}>
             {loading ? (
@@ -610,13 +619,7 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
               selectedLabel || placeholder
             )}
           </span>
-          <CaretDown
-            className={cn(
-              'h-4 w-4 opacity-50 transition-transform shrink-0 ml-2',
-              open && 'rotate-180'
-            )}
-          />
-        </button>
+        </Button>
 
         {/* Helper Text / Error */}
         {(helperText || errorMessage) && (
