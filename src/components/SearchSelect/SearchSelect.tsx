@@ -165,6 +165,7 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
 
     const generatedId = useId();
     const selectId = id ?? `search-select-${generatedId}`;
+    const listboxId = `${selectId}-listbox`;
 
     // Debounced search for async
     const debouncedSearch = useDebounce(searchQuery, searchDebounce);
@@ -441,10 +442,12 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
           {filteredOptions.map((option, index) => {
             const isSelected = option.value === value;
             const isHighlighted = index === highlightedIndex;
+            const optionId = `${listboxId}-option-${index}`;
 
             return (
               <div
                 key={option.value}
+                id={optionId}
                 data-option
                 role="option"
                 aria-selected={isSelected}
@@ -517,6 +520,14 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
             <input
               ref={searchInputRef}
               type="text"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-controls={listboxId}
+              aria-activedescendant={
+                highlightedIndex >= 0
+                  ? `${listboxId}-option-${highlightedIndex}`
+                  : undefined
+              }
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -529,6 +540,7 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
         {/* Options List */}
         <div
           ref={listRef}
+          id={listboxId}
           role="listbox"
           aria-label={label || 'Options'}
           onScroll={handleScroll}
@@ -565,6 +577,7 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
           disabled={disabled || loading}
           aria-expanded={open}
           aria-haspopup="listbox"
+          aria-controls={open ? listboxId : undefined}
           className={cn(
             'flex w-full items-center justify-between border-border-300 bg-background',
             sizeClasses,
