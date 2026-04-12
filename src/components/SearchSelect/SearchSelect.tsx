@@ -265,28 +265,55 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
       };
     }, [open, updateTriggerRect]);
 
+    // Find next enabled index in a given direction
+    const findNextEnabledIndex = useCallback(
+      (currentIndex: number, direction: 'next' | 'prev'): number => {
+        const len = filteredOptions.length;
+        if (len === 0) return -1;
+
+        // Handle initial state (-1)
+        let startIndex: number;
+        if (currentIndex < 0) {
+          startIndex = direction === 'next' ? -1 : len;
+        } else {
+          startIndex = currentIndex;
+        }
+
+        for (let i = 0; i < len; i++) {
+          if (direction === 'next') {
+            startIndex = (startIndex + 1) % len;
+          } else {
+            startIndex = (startIndex - 1 + len) % len;
+          }
+          if (!filteredOptions[startIndex].disabled) {
+            return startIndex;
+          }
+        }
+        return -1; // All options are disabled
+      },
+      [filteredOptions]
+    );
+
     // Handle keyboard navigation
     const handleKeyDown = useCallback(
       (e: KeyboardEvent<HTMLInputElement>) => {
-        const opts = filteredOptions.filter((o) => !o.disabled);
-
         switch (e.key) {
           case 'ArrowDown':
             e.preventDefault();
-            setHighlightedIndex((prev) =>
-              prev < opts.length - 1 ? prev + 1 : 0
-            );
+            setHighlightedIndex((prev) => findNextEnabledIndex(prev, 'next'));
             break;
           case 'ArrowUp':
             e.preventDefault();
-            setHighlightedIndex((prev) =>
-              prev > 0 ? prev - 1 : opts.length - 1
-            );
+            setHighlightedIndex((prev) => findNextEnabledIndex(prev, 'prev'));
             break;
           case 'Enter':
             e.preventDefault();
-            if (highlightedIndex >= 0 && highlightedIndex < opts.length) {
-              handleSelect(opts[highlightedIndex].value);
+            if (
+              highlightedIndex >= 0 &&
+              highlightedIndex < filteredOptions.length &&
+              !filteredOptions[highlightedIndex].disabled
+            ) {
+              handleSelect(filteredOptions[highlightedIndex].value);
             }
             break;
           case 'Escape':
@@ -297,7 +324,7 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
             break;
         }
       },
-      [filteredOptions, highlightedIndex, handleSelect]
+      [filteredOptions, highlightedIndex, handleSelect, findNextEnabledIndex]
     );
 
     // Infinite scroll detection
