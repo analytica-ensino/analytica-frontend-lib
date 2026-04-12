@@ -466,9 +466,17 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
                 data-option
                 role="option"
                 aria-selected={isSelected}
+                aria-disabled={option.disabled}
                 tabIndex={-1}
                 onClick={() => {
                   if (!option.disabled) {
+                    handleSelect(option.value);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (option.disabled) return;
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
                     handleSelect(option.value);
                   }
                 }}
