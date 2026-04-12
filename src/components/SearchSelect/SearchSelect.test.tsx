@@ -320,6 +320,64 @@ describe('SearchSelect component', () => {
         .closest('[role="option"]');
       expect(disabledOption).toHaveClass('opacity-50', 'cursor-not-allowed');
     });
+
+    it('should select option when pressing Enter directly on it', () => {
+      const onValueChange = jest.fn();
+      setup({ onValueChange });
+
+      fireEvent.click(screen.getByRole('button'));
+      const option = screen.getByText('Option 2').closest('[role="option"]');
+      fireEvent.keyDown(option!, { key: 'Enter' });
+
+      expect(onValueChange).toHaveBeenCalledWith('option2');
+    });
+
+    it('should select option when pressing Space directly on it', () => {
+      const onValueChange = jest.fn();
+      setup({ onValueChange });
+
+      fireEvent.click(screen.getByRole('button'));
+      const option = screen.getByText('Option 2').closest('[role="option"]');
+      fireEvent.keyDown(option!, { key: ' ' });
+
+      expect(onValueChange).toHaveBeenCalledWith('option2');
+    });
+
+    it('should not select disabled option when pressing Enter directly on it', () => {
+      const onValueChange = jest.fn();
+      const optionsWithDisabled: SearchSelectOption[] = [
+        { value: 'option1', label: 'Option 1' },
+        { value: 'option2', label: 'Option 2', disabled: true },
+      ];
+
+      setup({ options: optionsWithDisabled, onValueChange });
+
+      fireEvent.click(screen.getByRole('button'));
+      const disabledOption = screen
+        .getByText('Option 2')
+        .closest('[role="option"]');
+      fireEvent.keyDown(disabledOption!, { key: 'Enter' });
+
+      expect(onValueChange).not.toHaveBeenCalled();
+    });
+
+    it('should not select disabled option when pressing Space directly on it', () => {
+      const onValueChange = jest.fn();
+      const optionsWithDisabled: SearchSelectOption[] = [
+        { value: 'option1', label: 'Option 1' },
+        { value: 'option2', label: 'Option 2', disabled: true },
+      ];
+
+      setup({ options: optionsWithDisabled, onValueChange });
+
+      fireEvent.click(screen.getByRole('button'));
+      const disabledOption = screen
+        .getByText('Option 2')
+        .closest('[role="option"]');
+      fireEvent.keyDown(disabledOption!, { key: ' ' });
+
+      expect(onValueChange).not.toHaveBeenCalled();
+    });
   });
 
   describe('Pagination', () => {

@@ -574,6 +574,13 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
       </div>
     );
 
+    // Determine which ID to use for aria-describedby
+    const describedById = errorMessage
+      ? errorId
+      : helperText
+        ? helperId
+        : undefined;
+
     return (
       <div className={cn('w-full', className)}>
         {/* Label */}
@@ -602,9 +609,7 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
           aria-haspopup="listbox"
           aria-controls={open ? listboxId : undefined}
           aria-invalid={!!errorMessage}
-          aria-describedby={
-            errorMessage ? errorId : helperText ? helperId : undefined
-          }
+          aria-describedby={describedById}
           className={cn(
             'flex w-full items-center justify-between border-border-300 bg-background',
             sizeClasses,
