@@ -492,12 +492,15 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
             </div>
           )}
 
-          {/* Pagination info */}
-          {pagination && !loadingMore && pagination.total > 0 && (
-            <div className="px-3 py-2 text-xs text-text-400 border-t border-border-100 text-center">
-              {filteredOptions.length} de {pagination.total} itens
-            </div>
-          )}
+          {/* Pagination info - only show when not filtering locally */}
+          {pagination &&
+            !loadingMore &&
+            pagination.total > 0 &&
+            !(filterLocally && searchQuery) && (
+              <div className="px-3 py-2 text-xs text-text-400 border-t border-border-100 text-center">
+                {options.length} de {pagination.total} itens
+              </div>
+            )}
         </>
       );
     };
