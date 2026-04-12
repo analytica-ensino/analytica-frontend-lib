@@ -25,8 +25,10 @@ export interface SearchSelectOption {
 
 export interface SearchSelectPagination {
   page: number;
+  limit?: number;
   totalPages: number;
   hasNext: boolean;
+  hasPrev?: boolean;
   total: number;
 }
 
