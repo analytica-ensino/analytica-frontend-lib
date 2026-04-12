@@ -401,6 +401,141 @@ describe('SearchSelect component', () => {
       fireEvent.click(screen.getByRole('button'));
       expect(screen.getByText('Carregando mais...')).toBeInTheDocument();
     });
+
+    const simulateScrollNearBottom = (element: HTMLElement) => {
+      Object.defineProperty(element, 'scrollHeight', {
+        value: 500,
+        configurable: true,
+      });
+      Object.defineProperty(element, 'scrollTop', {
+        value: 420,
+        configurable: true,
+      });
+      Object.defineProperty(element, 'clientHeight', {
+        value: 50,
+        configurable: true,
+      });
+    };
+
+    it('should call onLoadMore when scrolling near bottom', () => {
+      const onLoadMore = jest.fn();
+      const pagination: SearchSelectPagination = {
+        page: 1,
+        totalPages: 5,
+        hasNext: true,
+        total: 50,
+      };
+
+      setup({ pagination, onLoadMore });
+
+      fireEvent.click(screen.getByRole('button'));
+      const listbox = screen.getByRole('listbox');
+
+      simulateScrollNearBottom(listbox);
+      fireEvent.scroll(listbox);
+
+      expect(onLoadMore).toHaveBeenCalled();
+    });
+
+    it('should not call onLoadMore when hasNext is false', () => {
+      const onLoadMore = jest.fn();
+      const pagination: SearchSelectPagination = {
+        page: 5,
+        totalPages: 5,
+        hasNext: false,
+        total: 50,
+      };
+
+      setup({ pagination, onLoadMore });
+
+      fireEvent.click(screen.getByRole('button'));
+      const listbox = screen.getByRole('listbox');
+
+      simulateScrollNearBottom(listbox);
+      fireEvent.scroll(listbox);
+
+      expect(onLoadMore).not.toHaveBeenCalled();
+    });
+
+    it('should not call onLoadMore when loadingMore is true', () => {
+      const onLoadMore = jest.fn();
+      const pagination: SearchSelectPagination = {
+        page: 1,
+        totalPages: 5,
+        hasNext: true,
+        total: 50,
+      };
+
+      setup({ pagination, onLoadMore, loadingMore: true });
+
+      fireEvent.click(screen.getByRole('button'));
+      const listbox = screen.getByRole('listbox');
+
+      simulateScrollNearBottom(listbox);
+      fireEvent.scroll(listbox);
+
+      expect(onLoadMore).not.toHaveBeenCalled();
+    });
+
+    it('should handle onLoadMore returning a Promise', async () => {
+      let resolvePromise: () => void;
+      const loadMorePromise = new Promise<void>((resolve) => {
+        resolvePromise = resolve;
+      });
+      const onLoadMore = jest.fn().mockReturnValue(loadMorePromise);
+      const pagination: SearchSelectPagination = {
+        page: 1,
+        totalPages: 5,
+        hasNext: true,
+        total: 50,
+      };
+
+      setup({ pagination, onLoadMore });
+
+      fireEvent.click(screen.getByRole('button'));
+      const listbox = screen.getByRole('listbox');
+
+      simulateScrollNearBottom(listbox);
+      fireEvent.scroll(listbox);
+
+      expect(onLoadMore).toHaveBeenCalledTimes(1);
+
+      // Scroll again while Promise is pending - should not call onLoadMore again
+      fireEvent.scroll(listbox);
+      expect(onLoadMore).toHaveBeenCalledTimes(1);
+
+      // Resolve the promise
+      resolvePromise!();
+      await loadMorePromise;
+
+      // After promise resolves, scrolling should call onLoadMore again
+      fireEvent.scroll(listbox);
+      expect(onLoadMore).toHaveBeenCalledTimes(2);
+    });
+
+    it('should handle onLoadMore returning void', () => {
+      const onLoadMore = jest.fn().mockReturnValue(undefined);
+      const pagination: SearchSelectPagination = {
+        page: 1,
+        totalPages: 5,
+        hasNext: true,
+        total: 50,
+      };
+
+      setup({ pagination, onLoadMore });
+
+      fireEvent.click(screen.getByRole('button'));
+      const listbox = screen.getByRole('listbox');
+
+      simulateScrollNearBottom(listbox);
+      fireEvent.scroll(listbox);
+
+      expect(onLoadMore).toHaveBeenCalledTimes(1);
+
+      // For void return, the ref is reset immediately, so next scroll should call again
+      fireEvent.scroll(listbox);
+      expect(onLoadMore).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('Controlled mode', () => {
