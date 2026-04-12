@@ -72,8 +72,8 @@ export interface SearchSelectProps {
   searchDebounce?: number;
   /** Pagination info for infinite scroll */
   pagination?: SearchSelectPagination;
-  /** Callback to load more items */
-  onLoadMore?: () => void;
+  /** Callback to load more items (can return Promise for auto-reset of loading state) */
+  onLoadMore?: () => void | Promise<void>;
   /** Whether loading more items */
   loadingMore?: boolean;
   /** Custom ID */
@@ -355,7 +355,15 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
 
       if (scrollHeight - scrollTop - clientHeight < scrollThreshold) {
         isFetchingMoreRef.current = true;
-        onLoadMore();
+        const result = onLoadMore();
+        // Reset ref when load completes for consumers that don't provide loadingMore
+        if (result && typeof result.then === 'function') {
+          result.finally(() => {
+            isFetchingMoreRef.current = false;
+          });
+        } else {
+          isFetchingMoreRef.current = false;
+        }
       }
     }, [pagination?.hasNext, loadingMore, onLoadMore]);
 
