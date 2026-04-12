@@ -492,6 +492,8 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
         {/* Options List */}
         <div
           ref={listRef}
+          role="listbox"
+          aria-label={label || 'Options'}
           onScroll={handleScroll}
           className="flex-1 overflow-y-auto"
         >
