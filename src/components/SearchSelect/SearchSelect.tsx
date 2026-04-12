@@ -380,6 +380,88 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
       return styles;
     }, [triggerRect]);
 
+    // Render options content based on state
+    const renderOptionsContent = () => {
+      if (loading) {
+        return (
+          <div className="flex items-center justify-center gap-2 p-4 text-text-500">
+            <SpinnerGap size={18} className="animate-spin" />
+            <span className="text-sm">{loadingText}</span>
+          </div>
+        );
+      }
+
+      if (filteredOptions.length === 0) {
+        return (
+          <div className="p-4 text-center text-sm text-text-500">
+            {emptyText}
+          </div>
+        );
+      }
+
+      return (
+        <>
+          {filteredOptions.map((option, index) => {
+            const isSelected = option.value === value;
+            const isHighlighted = index === highlightedIndex;
+
+            return (
+              <div
+                key={option.value}
+                data-option
+                role="option"
+                aria-selected={isSelected}
+                tabIndex={option.disabled ? -1 : 0}
+                onClick={() => {
+                  if (!option.disabled) {
+                    handleSelect(option.value);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (option.disabled) return;
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleSelect(option.value);
+                  }
+                }}
+                className={cn(
+                  'relative flex items-center gap-2 px-3 py-2.5 cursor-pointer transition-colors text-sm',
+                  isSelected && 'bg-primary-50',
+                  isHighlighted && !isSelected && 'bg-background-50',
+                  option.disabled &&
+                    'opacity-50 cursor-not-allowed pointer-events-none',
+                  !option.disabled &&
+                    !isSelected &&
+                    !isHighlighted &&
+                    'hover:bg-background-50'
+                )}
+              >
+                <span className="flex-1 text-text-700">{option.label}</span>
+                {isSelected && (
+                  <Check size={16} className="text-primary-700" weight="bold" />
+                )}
+              </div>
+            );
+          })}
+
+          {/* Loading more indicator */}
+          {loadingMore && (
+            <div className="flex items-center justify-center gap-2 p-3 text-text-500 border-t border-border-100">
+              <SpinnerGap size={16} className="animate-spin" />
+              <span className="text-xs">Carregando mais...</span>
+            </div>
+          )}
+
+          {/* Pagination info */}
+          {pagination && !loadingMore && pagination.total > 0 && (
+            <div className="px-3 py-2 text-xs text-text-400 border-t border-border-100 text-center">
+              {filteredOptions.length} de {pagination.total} itens
+            </div>
+          )}
+        </>
+      );
+    };
+
     // Dropdown content
     const dropdownContent = open && triggerRect && (
       <div
@@ -413,80 +495,7 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
           onScroll={handleScroll}
           className="flex-1 overflow-y-auto"
         >
-          {loading ? (
-            <div className="flex items-center justify-center gap-2 p-4 text-text-500">
-              <SpinnerGap size={18} className="animate-spin" />
-              <span className="text-sm">{loadingText}</span>
-            </div>
-          ) : filteredOptions.length === 0 ? (
-            <div className="p-4 text-center text-sm text-text-500">
-              {emptyText}
-            </div>
-          ) : (
-            <>
-              {filteredOptions.map((option, index) => {
-                const isSelected = option.value === value;
-                const isHighlighted = index === highlightedIndex;
-
-                return (
-                  <div
-                    key={option.value}
-                    data-option
-                    role="option"
-                    aria-selected={isSelected}
-                    tabIndex={option.disabled ? -1 : 0}
-                    onClick={() => {
-                      if (!option.disabled) {
-                        handleSelect(option.value);
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (option.disabled) return;
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        handleSelect(option.value);
-                      }
-                    }}
-                    className={cn(
-                      'relative flex items-center gap-2 px-3 py-2.5 cursor-pointer transition-colors text-sm',
-                      isSelected && 'bg-primary-50',
-                      isHighlighted && !isSelected && 'bg-background-50',
-                      option.disabled &&
-                        'opacity-50 cursor-not-allowed pointer-events-none',
-                      !option.disabled &&
-                        !isSelected &&
-                        !isHighlighted &&
-                        'hover:bg-background-50'
-                    )}
-                  >
-                    <span className="flex-1 text-text-700">{option.label}</span>
-                    {isSelected && (
-                      <Check
-                        size={16}
-                        className="text-primary-700"
-                        weight="bold"
-                      />
-                    )}
-                  </div>
-                );
-              })}
-
-              {/* Loading more indicator */}
-              {loadingMore && (
-                <div className="flex items-center justify-center gap-2 p-3 text-text-500 border-t border-border-100">
-                  <SpinnerGap size={16} className="animate-spin" />
-                  <span className="text-xs">Carregando mais...</span>
-                </div>
-              )}
-
-              {/* Pagination info */}
-              {pagination && !loadingMore && pagination.total > 0 && (
-                <div className="px-3 py-2 text-xs text-text-400 border-t border-border-100 text-center">
-                  {filteredOptions.length} de {pagination.total} itens
-                </div>
-              )}
-            </>
-          )}
+          {renderOptionsContent()}
         </div>
       </div>
     );
