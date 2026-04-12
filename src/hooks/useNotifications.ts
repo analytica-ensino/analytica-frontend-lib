@@ -36,7 +36,7 @@ export const createUseNotifications = (apiClient: NotificationApiClient) => {
 
     /**
      * Handle navigation based on notification entity type and ID
-     * Uses window.location.href for cross-framework compatibility
+     * Uses globalThis.location.href for cross-framework compatibility
      *
      * @param entityType - Type of entity (ACTIVITY, RECOMMENDEDCLASS)
      * @param entityId - ID of the entity
@@ -48,14 +48,16 @@ export const createUseNotifications = (apiClient: NotificationApiClient) => {
         entityId?: string,
         onAfterNavigate?: () => void
       ) => {
-        if (entityType && entityId) {
+        if (entityType) {
           switch (entityType.toUpperCase()) {
             case NotificationEntityType.ACTIVITY:
-              window.location.href = `/atividades/${entityId}`;
+              if (entityId) {
+                globalThis.location.href = `/conteudo/atividades/${entityId}`;
+              }
               break;
             case NotificationEntityType.RECOMMENDEDCLASS:
-            case 'RECOMMENDEDCLASS':
-              window.location.href = `/painel/trilhas/${entityId}`;
+              // Navigate to list since front-web detail page requires navigation state
+              globalThis.location.href = `/plano/consultar`;
               break;
             default:
               break;
@@ -81,7 +83,6 @@ export const createUseNotifications = (apiClient: NotificationApiClient) => {
           case NotificationEntityType.ACTIVITY:
             return 'Ver atividade';
           case NotificationEntityType.RECOMMENDEDCLASS:
-          case 'RECOMMENDEDCLASS':
             return 'Ver meta';
           default:
             return undefined;

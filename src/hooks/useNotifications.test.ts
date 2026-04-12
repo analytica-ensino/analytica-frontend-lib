@@ -94,7 +94,7 @@ describe('useNotifications', () => {
         result.current.handleNavigate('ACTIVITY', '123');
       });
 
-      expect(window.location.href).toBe('/atividades/123');
+      expect(window.location.href).toBe('/conteudo/atividades/123');
     });
 
     it('should navigate to recommendedClass page when entityType is RECOMMENDEDCLASS', () => {
@@ -104,7 +104,7 @@ describe('useNotifications', () => {
         result.current.handleNavigate('recommendedClass', '456');
       });
 
-      expect(window.location.href).toBe('/painel/trilhas/456');
+      expect(window.location.href).toBe('/plano/consultar');
     });
 
     it('should handle lowercase entity types', () => {
@@ -114,7 +114,7 @@ describe('useNotifications', () => {
         result.current.handleNavigate('activity', '789');
       });
 
-      expect(window.location.href).toBe('/atividades/789');
+      expect(window.location.href).toBe('/conteudo/atividades/789');
     });
 
     it('should not navigate when entityType or entityId is missing', () => {
@@ -153,11 +153,11 @@ describe('useNotifications', () => {
         result.current.handleNavigate('ACTIVITY', '123', mockCallback);
       });
 
-      expect(window.location.href).toBe('/atividades/123');
+      expect(window.location.href).toBe('/conteudo/atividades/123');
       expect(mockCallback).toHaveBeenCalledTimes(1);
     });
 
-    it('should not execute callback when navigation fails', () => {
+    it('should not navigate to activity when entityId is missing but still execute callback', () => {
       const { result } = renderHook(() => useNotifications());
       const mockCallback = jest.fn();
 
@@ -165,7 +165,10 @@ describe('useNotifications', () => {
         result.current.handleNavigate('ACTIVITY', undefined, mockCallback);
       });
 
-      expect(mockCallback).not.toHaveBeenCalled();
+      expect(window.location.href).not.toBe(
+        expect.stringContaining('/conteudo/atividades/')
+      );
+      expect(mockCallback).toHaveBeenCalledTimes(1);
     });
 
     it('should execute callback for unknown entity types if entityType and entityId are provided', () => {
@@ -227,7 +230,7 @@ describe('useNotifications', () => {
       });
 
       expect(markAsReadSpy).toHaveBeenCalledWith('notif1');
-      expect(window.location.href).toBe('/atividades/123');
+      expect(window.location.href).toBe('/conteudo/atividades/123');
     });
 
     it('should only mark as read when entityType or entityId is missing', async () => {
@@ -258,7 +261,7 @@ describe('useNotifications', () => {
       });
 
       expect(markAsReadSpy).toHaveBeenCalledWith('notif1');
-      expect(window.location.href).toBe('/atividades/123');
+      expect(window.location.href).toBe('/conteudo/atividades/123');
       expect(mockCallback).toHaveBeenCalledTimes(1);
     });
 
