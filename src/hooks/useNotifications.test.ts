@@ -157,7 +157,7 @@ describe('useNotifications', () => {
       expect(mockCallback).toHaveBeenCalledTimes(1);
     });
 
-    it('should not execute callback when navigation fails', () => {
+    it('should not navigate to activity when entityId is missing but still execute callback', () => {
       const { result } = renderHook(() => useNotifications());
       const mockCallback = jest.fn();
 
@@ -165,7 +165,10 @@ describe('useNotifications', () => {
         result.current.handleNavigate('ACTIVITY', undefined, mockCallback);
       });
 
-      expect(mockCallback).not.toHaveBeenCalled();
+      expect(window.location.href).not.toBe(
+        expect.stringContaining('/conteudo/atividades/')
+      );
+      expect(mockCallback).toHaveBeenCalledTimes(1);
     });
 
     it('should execute callback for unknown entity types if entityType and entityId are provided', () => {

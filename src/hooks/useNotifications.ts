@@ -48,10 +48,12 @@ export const createUseNotifications = (apiClient: NotificationApiClient) => {
         entityId?: string,
         onAfterNavigate?: () => void
       ) => {
-        if (entityType && entityId) {
+        if (entityType) {
           switch (entityType.toUpperCase()) {
             case NotificationEntityType.ACTIVITY:
-              window.location.href = `/conteudo/atividades/${entityId}`;
+              if (entityId) {
+                window.location.href = `/conteudo/atividades/${entityId}`;
+              }
               break;
             case NotificationEntityType.RECOMMENDEDCLASS:
               // Navigate to list since front-web detail page requires navigation state
