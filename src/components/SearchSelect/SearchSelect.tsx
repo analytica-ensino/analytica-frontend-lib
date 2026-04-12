@@ -169,6 +169,8 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
     const generatedId = useId();
     const selectId = id ?? `search-select-${generatedId}`;
     const listboxId = `${selectId}-listbox`;
+    const helperId = `${selectId}-helper`;
+    const errorId = `${selectId}-error`;
 
     // Debounced search for async
     const debouncedSearch = useDebounce(searchQuery, searchDebounce);
@@ -591,6 +593,10 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
           aria-expanded={open}
           aria-haspopup="listbox"
           aria-controls={open ? listboxId : undefined}
+          aria-invalid={!!errorMessage}
+          aria-describedby={
+            errorMessage ? errorId : helperText ? helperId : undefined
+          }
           className={cn(
             'flex w-full items-center justify-between border-border-300 bg-background',
             sizeClasses,
@@ -628,12 +634,12 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
         {(helperText || errorMessage) && (
           <div className="mt-1.5">
             {helperText && !errorMessage && (
-              <Text size="sm" className="text-text-500">
+              <Text id={helperId} size="sm" className="text-text-500">
                 {helperText}
               </Text>
             )}
             {errorMessage && (
-              <Text size="sm" className="text-indicator-error">
+              <Text id={errorId} size="sm" className="text-indicator-error">
                 {errorMessage}
               </Text>
             )}
