@@ -94,7 +94,7 @@ describe('useNotifications', () => {
         result.current.handleNavigate('ACTIVITY', '123');
       });
 
-      expect(window.location.href).toBe('/atividades/123');
+      expect(window.location.href).toBe('/conteudo/atividades/123');
     });
 
     it('should navigate to recommendedClass page when entityType is RECOMMENDEDCLASS', () => {
@@ -104,7 +104,7 @@ describe('useNotifications', () => {
         result.current.handleNavigate('recommendedClass', '456');
       });
 
-      expect(window.location.href).toBe('/painel/trilhas/456');
+      expect(window.location.href).toBe('/plano/consultar');
     });
 
     it('should handle lowercase entity types', () => {
@@ -114,7 +114,7 @@ describe('useNotifications', () => {
         result.current.handleNavigate('activity', '789');
       });
 
-      expect(window.location.href).toBe('/atividades/789');
+      expect(window.location.href).toBe('/conteudo/atividades/789');
     });
 
     it('should not navigate when entityType or entityId is missing', () => {
@@ -153,7 +153,7 @@ describe('useNotifications', () => {
         result.current.handleNavigate('ACTIVITY', '123', mockCallback);
       });
 
-      expect(window.location.href).toBe('/atividades/123');
+      expect(window.location.href).toBe('/conteudo/atividades/123');
       expect(mockCallback).toHaveBeenCalledTimes(1);
     });
 
@@ -227,7 +227,7 @@ describe('useNotifications', () => {
       });
 
       expect(markAsReadSpy).toHaveBeenCalledWith('notif1');
-      expect(window.location.href).toBe('/atividades/123');
+      expect(window.location.href).toBe('/conteudo/atividades/123');
     });
 
     it('should only mark as read when entityType or entityId is missing', async () => {
@@ -258,7 +258,7 @@ describe('useNotifications', () => {
       });
 
       expect(markAsReadSpy).toHaveBeenCalledWith('notif1');
-      expect(window.location.href).toBe('/atividades/123');
+      expect(window.location.href).toBe('/conteudo/atividades/123');
       expect(mockCallback).toHaveBeenCalledTimes(1);
     });
 

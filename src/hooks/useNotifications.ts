@@ -51,11 +51,11 @@ export const createUseNotifications = (apiClient: NotificationApiClient) => {
         if (entityType && entityId) {
           switch (entityType.toUpperCase()) {
             case NotificationEntityType.ACTIVITY:
-              window.location.href = `/atividades/${entityId}`;
+              window.location.href = `/conteudo/atividades/${entityId}`;
               break;
             case NotificationEntityType.RECOMMENDEDCLASS:
-            case 'RECOMMENDEDCLASS':
-              window.location.href = `/painel/trilhas/${entityId}`;
+              // Navigate to list since front-web detail page requires navigation state
+              window.location.href = `/plano/consultar`;
               break;
             default:
               break;
@@ -81,7 +81,6 @@ export const createUseNotifications = (apiClient: NotificationApiClient) => {
           case NotificationEntityType.ACTIVITY:
             return 'Ver atividade';
           case NotificationEntityType.RECOMMENDEDCLASS:
-          case 'RECOMMENDEDCLASS':
             return 'Ver meta';
           default:
             return undefined;
