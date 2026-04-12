@@ -161,6 +161,7 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
     const contentRef = useRef<HTMLDivElement>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
     const listRef = useRef<HTMLDivElement>(null);
+    const isFetchingMoreRef = useRef(false);
 
     const generatedId = useId();
     const selectId = id ?? `search-select-${generatedId}`;
@@ -327,12 +328,20 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
       [filteredOptions, highlightedIndex, handleSelect, findNextEnabledIndex]
     );
 
+    // Reset fetching ref when loadingMore changes to false
+    useEffect(() => {
+      if (!loadingMore) {
+        isFetchingMoreRef.current = false;
+      }
+    }, [loadingMore]);
+
     // Infinite scroll detection
     const handleScroll = useCallback(() => {
       if (
         !listRef.current ||
         !pagination?.hasNext ||
         loadingMore ||
+        isFetchingMoreRef.current ||
         !onLoadMore
       )
         return;
@@ -341,6 +350,7 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
       const scrollThreshold = 50;
 
       if (scrollHeight - scrollTop - clientHeight < scrollThreshold) {
+        isFetchingMoreRef.current = true;
         onLoadMore();
       }
     }, [pagination?.hasNext, loadingMore, onLoadMore]);
