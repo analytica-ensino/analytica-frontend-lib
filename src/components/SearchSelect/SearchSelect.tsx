@@ -455,9 +455,9 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
 
       if (filteredOptions.length === 0) {
         return (
-          <div className="p-4 text-center text-sm text-text-500">
+          <Text size="sm" className="p-4 text-center text-text-500">
             {emptyText}
-          </div>
+          </Text>
         );
       }
 
