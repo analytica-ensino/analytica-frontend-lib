@@ -88,7 +88,7 @@ const SIZE_CLASSES = {
 } as const;
 
 const PADDING_CLASSES = {
-  small: 'px-2 py-1',
+  small: 'px-3 py-1',
   medium: 'px-3 py-2',
   large: 'px-4 py-3',
 } as const;
@@ -400,7 +400,7 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={searchPlaceholder}
-              className="w-full pl-3 pr-9 py-2 text-sm border border-border-200 rounded-md bg-background focus:outline-none focus:border-primary-500 text-text-900 placeholder:text-text-500"
+              className="w-full pl-4 pr-9 py-2 text-sm border border-border-200 rounded-md bg-background focus:outline-none focus:border-primary-500 text-text-900 placeholder:text-text-500"
             />
           </div>
         </div>
