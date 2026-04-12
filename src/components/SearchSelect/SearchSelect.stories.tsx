@@ -1,7 +1,10 @@
 import type { Story } from '@ladle/react';
 import { useState, useCallback, useEffect } from 'react';
 import { SearchSelect } from './SearchSelect';
-import type { SearchSelectOption, SearchSelectPagination } from './SearchSelect';
+import type {
+  SearchSelectOption,
+  SearchSelectPagination,
+} from './SearchSelect';
 
 const sizes = ['small', 'medium', 'large'] as const;
 const variants = ['outlined', 'underlined', 'rounded'] as const;
@@ -94,7 +97,10 @@ export const AllSearchSelects: Story = () => {
             <div className="font-medium text-text-900 mb-2">{size}</div>
             <div className="flex flex-row gap-4 flex-wrap">
               {variants.map((variant) => (
-                <div key={variant} className="flex flex-col gap-2 min-w-[200px]">
+                <div
+                  key={variant}
+                  className="flex flex-col gap-2 min-w-[200px]"
+                >
                   <span className="text-sm text-text-600">{variant}</span>
                   <SearchSelect
                     size={size}
@@ -150,7 +156,9 @@ export const AllSearchSelects: Story = () => {
         </div>
 
         <div>
-          <h4 className="font-medium text-lg text-text-900 mb-4">Desabilitado</h4>
+          <h4 className="font-medium text-lg text-text-900 mb-4">
+            Desabilitado
+          </h4>
           <SearchSelect
             label="Desabilitado"
             options={fruitOptions}
@@ -473,9 +481,7 @@ export const WithDisabledOptions: Story = () => {
 
   return (
     <div className="flex flex-col gap-6 max-w-md">
-      <h3 className="font-bold text-2xl text-text-900">
-        Opções Desabilitadas
-      </h3>
+      <h3 className="font-bold text-2xl text-text-900">Opções Desabilitadas</h3>
       <p className="text-text-700">
         Algumas opções podem estar desabilitadas usando{' '}
         <code>disabled: true</code>.

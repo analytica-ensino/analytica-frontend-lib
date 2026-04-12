@@ -1,7 +1,11 @@
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { SearchSelect } from './SearchSelect';
-import type { SearchSelectOption, SearchSelectPagination } from './SearchSelect';
+import type {
+  SearchSelectOption,
+  SearchSelectPagination,
+} from './SearchSelect';
+import { ComponentProps } from 'react';
 
 /**
  * Mock for useId hook to ensure consistent IDs in tests
@@ -21,7 +25,7 @@ describe('SearchSelect component', () => {
     { value: 'option3', label: 'Option 3' },
   ];
 
-  const setup = (props?: Partial<React.ComponentProps<typeof SearchSelect>>) => {
+  const setup = (props?: Partial<ComponentProps<typeof SearchSelect>>) => {
     return render(
       <SearchSelect
         options={mockOptions}
@@ -135,7 +139,9 @@ describe('SearchSelect component', () => {
       expect(screen.getByText('Option 1')).toBeInTheDocument();
 
       fireEvent.mouseDown(document.body);
-      expect(screen.queryByPlaceholderText('Buscar...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByPlaceholderText('Buscar...')
+      ).not.toBeInTheDocument();
     });
 
     it('should close dropdown after selecting an option', () => {
@@ -146,7 +152,9 @@ describe('SearchSelect component', () => {
       fireEvent.click(screen.getByText('Option 2'));
 
       expect(onValueChange).toHaveBeenCalledWith('option2');
-      expect(screen.queryByPlaceholderText('Buscar...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByPlaceholderText('Buscar...')
+      ).not.toBeInTheDocument();
     });
 
     it('should rotate caret icon when open', () => {
@@ -187,7 +195,9 @@ describe('SearchSelect component', () => {
     it('should use custom search placeholder', () => {
       setup({ searchPlaceholder: 'Search items...' });
       fireEvent.click(screen.getByRole('button'));
-      expect(screen.getByPlaceholderText('Search items...')).toBeInTheDocument();
+      expect(
+        screen.getByPlaceholderText('Search items...')
+      ).toBeInTheDocument();
     });
   });
 
@@ -235,7 +245,9 @@ describe('SearchSelect component', () => {
       const searchInput = screen.getByPlaceholderText('Buscar...');
       fireEvent.keyDown(searchInput, { key: 'Escape' });
 
-      expect(screen.queryByPlaceholderText('Buscar...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByPlaceholderText('Buscar...')
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -243,7 +255,9 @@ describe('SearchSelect component', () => {
     it('should not open when disabled', () => {
       setup({ disabled: true });
       fireEvent.click(screen.getByRole('button'));
-      expect(screen.queryByPlaceholderText('Buscar...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByPlaceholderText('Buscar...')
+      ).not.toBeInTheDocument();
     });
 
     it('should have disabled styling', () => {
@@ -258,7 +272,9 @@ describe('SearchSelect component', () => {
     it('should not open when loading', () => {
       setup({ loading: true });
       fireEvent.click(screen.getByRole('button'));
-      expect(screen.queryByPlaceholderText('Buscar...')).not.toBeInTheDocument();
+      expect(
+        screen.queryByPlaceholderText('Buscar...')
+      ).not.toBeInTheDocument();
     });
 
     it('should show loading text in trigger', () => {
@@ -299,7 +315,9 @@ describe('SearchSelect component', () => {
       setup({ options: optionsWithDisabled });
 
       fireEvent.click(screen.getByRole('button'));
-      const disabledOption = screen.getByText('Option 2').closest('[role="option"]');
+      const disabledOption = screen
+        .getByText('Option 2')
+        .closest('[role="option"]');
       expect(disabledOption).toHaveClass('opacity-50', 'cursor-not-allowed');
     });
   });
@@ -347,12 +365,7 @@ describe('SearchSelect component', () => {
       const { rerender } = setup({ value: 'option1' });
       expect(screen.getByText('Option 1')).toBeInTheDocument();
 
-      rerender(
-        <SearchSelect
-          options={mockOptions}
-          value="option3"
-        />
-      );
+      rerender(<SearchSelect options={mockOptions} value="option3" />);
       expect(screen.getByText('Option 3')).toBeInTheDocument();
     });
   });
@@ -373,7 +386,9 @@ describe('SearchSelect component', () => {
       setup();
       fireEvent.click(screen.getByRole('button'));
 
-      const dropdown = document.querySelector('[data-search-select-id]') as HTMLElement;
+      const dropdown = document.querySelector(
+        '[data-search-select-id]'
+      ) as HTMLElement;
       expect(dropdown.style.position).toBe('fixed');
     });
 
@@ -381,7 +396,9 @@ describe('SearchSelect component', () => {
       setup();
       fireEvent.click(screen.getByRole('button'));
 
-      const dropdown = document.querySelector('[data-search-select-id]') as HTMLElement;
+      const dropdown = document.querySelector(
+        '[data-search-select-id]'
+      ) as HTMLElement;
       expect(dropdown.style.zIndex).toBe('9999');
     });
   });
@@ -490,12 +507,7 @@ describe('SearchSelect component', () => {
 
     it('should work with forwardRef', () => {
       const ref = jest.fn();
-      render(
-        <SearchSelect
-          ref={ref}
-          options={mockOptions}
-        />
-      );
+      render(<SearchSelect ref={ref} options={mockOptions} />);
       expect(ref).toHaveBeenCalled();
     });
   });
