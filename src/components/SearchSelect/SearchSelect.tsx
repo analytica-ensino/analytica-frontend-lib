@@ -12,6 +12,8 @@ import {
 import { createPortal } from 'react-dom';
 import { CaretDown, Check, MagnifyingGlass, SpinnerGap } from 'phosphor-react';
 import { cn } from '../../utils/utils';
+import Input from '../Input/Input';
+import Text from '../Text/Text';
 
 // ============================================================================
 // Types
@@ -424,7 +426,9 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
         return (
           <div className="flex items-center justify-center gap-2 p-4 text-text-500">
             <SpinnerGap size={18} className="animate-spin" />
-            <span className="text-sm">{loadingText}</span>
+            <Text size="sm" className="text-text-500">
+              {loadingText}
+            </Text>
           </div>
         );
       }
@@ -476,7 +480,9 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
                     'hover:bg-background-50'
                 )}
               >
-                <span className="flex-1 text-text-700">{option.label}</span>
+                <Text size="sm" className="flex-1 text-text-700">
+                  {option.label}
+                </Text>
                 {isSelected && (
                   <Check size={16} className="text-primary-700" weight="bold" />
                 )}
@@ -488,7 +494,9 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
           {loadingMore && (
             <div className="flex items-center justify-center gap-2 p-3 text-text-500 border-t border-border-100">
               <SpinnerGap size={16} className="animate-spin" />
-              <span className="text-xs">Carregando mais...</span>
+              <Text size="xs" className="text-text-500">
+                Carregando mais...
+              </Text>
             </div>
           )}
 
@@ -497,9 +505,12 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
             !loadingMore &&
             pagination.total > 0 &&
             !(filterLocally && searchQuery) && (
-              <div className="px-3 py-2 text-xs text-text-400 border-t border-border-100 text-center">
+              <Text
+                size="xs"
+                className="px-3 py-2 text-text-400 border-t border-border-100 text-center"
+              >
                 {options.length} de {pagination.total} itens
-              </div>
+              </Text>
             )}
         </>
       );
@@ -515,29 +526,26 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
       >
         {/* Search Input */}
         <div className="p-2 border-b border-border-100">
-          <div className="relative">
-            <MagnifyingGlass
-              size={16}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-500"
-            />
-            <input
-              ref={searchInputRef}
-              type="text"
-              role="combobox"
-              aria-autocomplete="list"
-              aria-controls={listboxId}
-              aria-activedescendant={
-                highlightedIndex >= 0
-                  ? `${listboxId}-option-${highlightedIndex}`
-                  : undefined
-              }
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={searchPlaceholder}
-              className="w-full pl-4 pr-9 py-2 text-sm border border-border-200 rounded-md bg-background focus:outline-none focus:border-primary-500 text-text-900 placeholder:text-text-500"
-            />
-          </div>
+          <Input
+            ref={searchInputRef}
+            type="text"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-controls={listboxId}
+            aria-activedescendant={
+              highlightedIndex >= 0
+                ? `${listboxId}-option-${highlightedIndex}`
+                : undefined
+            }
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={searchPlaceholder}
+            size="small"
+            variant="outlined"
+            iconRight={<MagnifyingGlass size={16} />}
+            containerClassName="w-full"
+          />
         </div>
 
         {/* Options List */}
