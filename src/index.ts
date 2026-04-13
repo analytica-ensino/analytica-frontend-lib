@@ -327,6 +327,14 @@ export {
   SelectItem,
 } from './components/Select/Select';
 
+// SearchSelect Component (Select with search functionality)
+export { default as SearchSelect } from './components/SearchSelect/SearchSelect';
+export type {
+  SearchSelectProps,
+  SearchSelectOption,
+  SearchSelectPagination,
+} from './components/SearchSelect/SearchSelect';
+
 // Menu Components
 export {
   default as Menu,

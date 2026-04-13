@@ -160,25 +160,6 @@ function buildStudentHoursSlices(
   ];
 }
 
-function buildProfessionalHoursSlices(
-  hoursByItem: AccessReportProfessionalData['hoursByItem']
-): PieSlice[] {
-  return [
-    {
-      label: 'Atividades',
-      value: hoursByItem.activities.percentage,
-      colorClass: 'bg-success-700',
-      color: 'var(--Success-success700, #206F3E)',
-    },
-    {
-      label: 'Aulas recomendadas',
-      value: hoursByItem.recommendedLessons.percentage,
-      colorClass: 'bg-indicator-positive',
-      color: 'var(--Indicator-Indicator-Positive, #F8CC2E)',
-    },
-  ];
-}
-
 // ─── Modal content ────────────────────────────────────────────
 
 const ReportContentLayout = ({
@@ -246,32 +227,43 @@ const ProfessionalModalContent = ({
 }: {
   data: AccessReportProfessionalData;
 }) => (
-  <ReportContentLayout
-    user={data.user}
-    platformSlices={buildPlatformSlices(data.accessByPlatform)}
-    hoursSlices={buildProfessionalHoursSlices(data.hoursByItem)}
-    metricBoxes={
-      <>
-        <MetricBox label="Tempo total" value={data.accessData.totalTime} />
-        <MetricBox label="Atividades" value={data.accessData.activitiesTime} />
-        <MetricBox
-          label="Aulas recomendadas"
-          value={data.accessData.recommendedLessonsTime}
-        />
-        <MetricBox
-          label="Quantidade de acessos"
-          value={data.accessData.accessCount}
-        />
-        <MetricBox
-          label="Último acesso"
-          value={data.accessData.lastAccess ?? '—'}
-        />
-      </>
-    }
-  />
+  <div className="flex flex-col gap-6">
+    <UserHeader
+      name={data.user.name}
+      school={data.user.school}
+      className={data.user.class ?? ''}
+      year={data.user.year}
+    />
+
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <MetricBox
+        label="Tempo na plataforma"
+        value={data.accessData.totalTime}
+      />
+      <MetricBox
+        label="Quantidade de acessos"
+        value={data.accessData.accessCount}
+      />
+      <MetricBox
+        label="Último acesso"
+        value={data.accessData.lastAccess ?? '—'}
+      />
+    </div>
+
+    <div className="flex flex-col gap-3">
+      <SectionTitle>Plataforma de acesso</SectionTitle>
+      <LegendPieCard slices={buildPlatformSlices(data.accessByPlatform)} />
+    </div>
+  </div>
 );
 
-const LoadingSkeleton = ({ metricCount }: { metricCount: number }) => (
+const LoadingSkeleton = ({
+  metricCount,
+  showSecondaryChart = true,
+}: {
+  metricCount: number;
+  showSecondaryChart?: boolean;
+}) => (
   <div className="flex flex-col gap-4 animate-pulse">
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
       {Array.from({ length: metricCount }, (_, i) => (
@@ -283,8 +275,12 @@ const LoadingSkeleton = ({ metricCount }: { metricCount: number }) => (
     </div>
     <div className="h-5 bg-background-200 rounded w-40 mt-2" />
     <div className="h-32 bg-background-200 rounded-xl" />
-    <div className="h-5 bg-background-200 rounded w-32" />
-    <div className="h-32 bg-background-200 rounded-xl" />
+    {showSecondaryChart && (
+      <>
+        <div className="h-5 bg-background-200 rounded w-32" />
+        <div className="h-32 bg-background-200 rounded-xl" />
+      </>
+    )}
   </div>
 );
 
@@ -298,8 +294,8 @@ const LoadingSkeleton = ({ metricCount }: { metricCount: number }) => (
  * Two variants driven by the profile type:
  * - `STUDENT` — 6 metric boxes (totalTime, contentTime, recommendedLessonsTime,
  *   simulationsTime, accessCount, lastAccess) + platform pie chart + hours-by-item pie chart
- * - `PROFESSIONAL` — 5 metric boxes (totalTime, activitiesTime, recommendedLessonsTime,
- *   accessCount, lastAccess) + platform pie chart + hours-by-item pie chart
+ * - `PROFESSIONAL` — 3 metric boxes (totalTime, accessCount, lastAccess) +
+ *   platform pie chart only (no hours-by-item breakdown for professionals)
  *
  * @example
  * ```tsx
@@ -321,11 +317,18 @@ export const AccessReportModal = ({
 }: AccessReportModalProps) => {
   let content: ReactNode;
 
-  const metricCount =
-    variantProps.variant === REPORT_MODAL_VARIANT.STUDENT ? 6 : 5;
+  const isStudent = variantProps.variant === REPORT_MODAL_VARIANT.STUDENT;
+  // Student: 6 metrics + 2 charts; Professional: 3 metrics + 1 chart
+  const metricCount = isStudent ? 6 : 3;
+  const showSecondaryChart = isStudent;
 
   if (loading) {
-    content = <LoadingSkeleton metricCount={metricCount} />;
+    content = (
+      <LoadingSkeleton
+        metricCount={metricCount}
+        showSecondaryChart={showSecondaryChart}
+      />
+    );
   } else if (error) {
     content = <ErrorContent message={error} />;
   } else if (variantProps.data === null) {
