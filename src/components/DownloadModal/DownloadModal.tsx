@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   FilePdfIcon,
   FileXlsIcon,
@@ -48,13 +48,24 @@ const DownloadModal = ({
     onClose();
   }, [onClose]);
 
+  // Auto-close the modal when an async download transitions from loading
+  // to idle without an error. Consumers only need to toggle `isDownloading`
+  // in their download hook — no extra parent-side logic required.
+  const wasDownloadingRef = useRef(false);
+  useEffect(() => {
+    if (wasDownloadingRef.current && !isDownloading && !error) {
+      handleClose();
+    }
+    wasDownloadingRef.current = isDownloading;
+  }, [isDownloading, error, handleClose]);
+
   const handleDownload = useCallback(() => {
     if (selectedFormat === DOWNLOAD_FORMAT.PDF) {
       onDownloadPdf();
       handleClose();
     } else if (selectedFormat === DOWNLOAD_FORMAT.EXCEL) {
-      // Excel generation is async — the modal stays open to show skeleton
-      // loading state. The parent closes it via onClose after completion.
+      // Excel generation is async. The useEffect above auto-closes the modal
+      // once `isDownloading` transitions back to false and there is no error.
       onDownloadExcel();
     }
   }, [selectedFormat, onDownloadPdf, onDownloadExcel, handleClose]);
