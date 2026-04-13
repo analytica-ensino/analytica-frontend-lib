@@ -4,6 +4,7 @@ import {
   fireEvent,
   waitFor,
   renderHook,
+  within,
 } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import DropdownMenu, {
@@ -908,9 +909,8 @@ describe('ProfileMenu component', () => {
       );
 
       const info = screen.getByTestId('profile-info');
-      const separator = info.querySelector('p.text-xs.align-middle');
+      const separator = within(info).getByText('●');
       expect(separator).toBeInTheDocument();
-      expect(separator).toHaveTextContent('●');
     });
 
     it('renders ProfileMenuInfo with correct data-component attribute', () => {
