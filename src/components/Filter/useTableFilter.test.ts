@@ -451,6 +451,113 @@ describe('useTableFilter', () => {
     });
   });
 
+  describe('activeFiltersCount', () => {
+    it('should not count auto-selected categories with only one available item', () => {
+      const singleItemConfigs: FilterConfig[] = [
+        {
+          key: 'academic',
+          label: 'Dados Acadêmicos',
+          categories: [
+            {
+              key: 'escola',
+              label: 'Escola',
+              selectedIds: ['1'],
+              itens: [{ id: '1', name: 'Escola Única' }],
+            },
+          ],
+        },
+        {
+          key: 'content',
+          label: 'Conteúdo',
+          categories: [
+            {
+              key: 'materia',
+              label: 'Matéria',
+              selectedIds: ['1'],
+              itens: [{ id: '1', name: 'Matemática' }],
+            },
+          ],
+        },
+      ];
+
+      const { result } = renderHook(() => useTableFilter(singleItemConfigs));
+
+      // Both categories have only 1 item and it's selected (auto-selection)
+      expect(result.current.activeFiltersCount).toBe(0);
+      // But activeFilters should still include them for API params
+      expect(result.current.activeFilters).toEqual({
+        escola: ['1'],
+        materia: ['1'],
+      });
+    });
+
+    it('should count categories where the user made a manual selection', () => {
+      const { result } = renderHook(() => useTableFilter(mockInitialConfigs));
+
+      const updatedConfigs = [
+        {
+          ...mockInitialConfigs[0],
+          categories: [
+            { ...mockInitialConfigs[0].categories[0], selectedIds: ['1'] },
+            mockInitialConfigs[0].categories[1],
+          ],
+        },
+        mockInitialConfigs[1],
+      ];
+
+      act(() => {
+        result.current.updateFilters(updatedConfigs);
+      });
+
+      // Escola has 2 items and user selected 1 — counts as manual selection
+      expect(result.current.activeFiltersCount).toBe(1);
+    });
+
+    it('should not count a dependent category auto-selected after filtering leaves one item', () => {
+      const configs: FilterConfig[] = [
+        {
+          key: 'academic',
+          label: 'Dados Acadêmicos',
+          categories: [
+            {
+              key: 'escola',
+              label: 'Escola',
+              selectedIds: ['2'],
+              itens: [
+                { id: '1', name: 'Escola 1' },
+                { id: '2', name: 'Escola 2' },
+              ],
+            },
+            {
+              key: 'serie',
+              label: 'Série',
+              selectedIds: ['3'],
+              dependsOn: ['escola'],
+              filteredBy: [{ key: 'escola', internalField: 'escolaId' }],
+              itens: [
+                { id: '1', name: 'Série 1', escolaId: '1' },
+                { id: '2', name: 'Série 2', escolaId: '1' },
+                { id: '3', name: 'Série 3', escolaId: '2' },
+              ],
+            },
+          ],
+        },
+      ];
+
+      const { result } = renderHook(() => useTableFilter(configs));
+
+      // Escola has 2 items, user selected 1 → counts (manual)
+      // Serie: after filtering by escola=2, only Série 3 remains → auto-selected → should NOT count
+      expect(result.current.activeFiltersCount).toBe(1);
+    });
+
+    it('should return 0 when no filters are active', () => {
+      const { result } = renderHook(() => useTableFilter(mockInitialConfigs));
+
+      expect(result.current.activeFiltersCount).toBe(0);
+    });
+  });
+
   describe('initialConfigs sync', () => {
     it('should preserve valid selections when initialConfigs items change', () => {
       const { result, rerender } = renderHook(

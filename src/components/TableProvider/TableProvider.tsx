@@ -281,6 +281,7 @@ export function TableProvider<T extends Record<string, unknown>>({
       filterConfigs: [],
       activeFilters: {},
       hasActiveFilters: false,
+      activeFiltersCount: 0,
       updateFilters: () => {},
       applyFilters: () => {},
       clearFilters: () => {},
@@ -293,7 +294,7 @@ export function TableProvider<T extends Record<string, unknown>>({
   const {
     filterConfigs,
     activeFilters,
-    hasActiveFilters,
+    activeFiltersCount,
     updateFilters,
     applyFilters,
     clearFilters,
@@ -438,9 +439,9 @@ export function TableProvider<T extends Record<string, unknown>>({
         >
           <Funnel size={20} />
           Filtros
-          {hasActiveFilters && (
+          {activeFiltersCount > 0 && (
             <span className="ml-2 rounded-full bg-primary-500 px-2 py-0.5 text-xs text-white">
-              {Object.keys(activeFilters).length}
+              {activeFiltersCount}
             </span>
           )}
         </Button>
