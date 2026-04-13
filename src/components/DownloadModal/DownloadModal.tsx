@@ -53,11 +53,15 @@ const DownloadModal = ({
   // in their download hook — no extra parent-side logic required.
   const wasDownloadingRef = useRef(false);
   useEffect(() => {
+    if (!isOpen) {
+      wasDownloadingRef.current = isDownloading;
+      return;
+    }
     if (wasDownloadingRef.current && !isDownloading && !error) {
       handleClose();
     }
     wasDownloadingRef.current = isDownloading;
-  }, [isDownloading, error, handleClose]);
+  }, [isOpen, isDownloading, error, handleClose]);
 
   const handleDownload = useCallback(() => {
     if (selectedFormat === DOWNLOAD_FORMAT.PDF) {

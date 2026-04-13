@@ -88,11 +88,17 @@ function PrintableUsersTable<T extends Record<string, unknown>>({
   anchorColumnKey,
 }: PrintableUsersTableProps<T>) {
   const { firstHeaders, secondHeaders } = useMemo(() => {
+    const normalizedSplitAfter = Math.min(
+      Math.max(splitAfter, 0),
+      Math.max(columns.length - 1, 0)
+    );
     const anchor = columns.find((col) => col.key === anchorColumnKey);
-    const first = columns.slice(0, splitAfter + 1);
-    const rest = columns.slice(splitAfter + 1);
+    const first = columns.slice(0, normalizedSplitAfter + 1);
+    const rest = columns.slice(normalizedSplitAfter + 1);
     const second =
-      anchor && !rest.some((col) => col.key === anchorColumnKey)
+      anchor &&
+      rest.length > 0 &&
+      !rest.some((col) => col.key === anchorColumnKey)
         ? [anchor, ...rest]
         : rest;
     return { firstHeaders: first, secondHeaders: second };
