@@ -81,6 +81,32 @@ describe('TablePagination', () => {
 
       expect(screen.getByText(/alunos/)).toBeInTheDocument();
     });
+
+    it('should display 0 - 0 when totalItems is 0', () => {
+      render(
+        <TablePagination
+          {...defaultProps}
+          totalItems={0}
+          totalPages={0}
+          currentPage={1}
+        />
+      );
+
+      expect(screen.getByText(/0 - 0 de 0 itens/)).toBeInTheDocument();
+    });
+
+    it('should display correct range for partial last page', () => {
+      render(
+        <TablePagination
+          {...defaultProps}
+          totalItems={95}
+          totalPages={10}
+          currentPage={10}
+        />
+      );
+
+      expect(screen.getByText(/91 - 95 de 95 itens/)).toBeInTheDocument();
+    });
   });
 
   describe('Page info text', () => {

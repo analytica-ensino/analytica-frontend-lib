@@ -973,6 +973,81 @@ describe('ProfileMenu component', () => {
       const emptySpan = info.querySelector('span.w-16.h-16');
       expect(emptySpan).toBeInTheDocument();
     });
+
+    it('renders nothing when all props are empty strings', () => {
+      const { container } = render(
+        <DropdownMenu open>
+          <ProfileMenuTrigger />
+          <DropdownMenuContent>
+            <ProfileMenuInfo
+              data-testid="profile-info"
+              schoolName=""
+              classYearName=""
+              schoolYearName=""
+            />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      expect(container.querySelector('[data-component="ProfileMenuInfo"]')).not.toBeInTheDocument();
+    });
+
+    it('hides separator bullet when only classYearName is provided', () => {
+      render(
+        <DropdownMenu open>
+          <ProfileMenuTrigger />
+          <DropdownMenuContent>
+            <ProfileMenuInfo
+              data-testid="profile-info"
+              schoolName=""
+              classYearName="1º Ano A"
+              schoolYearName=""
+            />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      expect(screen.getByText('1º Ano A')).toBeInTheDocument();
+      expect(screen.queryByText('●')).not.toBeInTheDocument();
+    });
+
+    it('hides separator bullet when only schoolYearName is provided', () => {
+      render(
+        <DropdownMenu open>
+          <ProfileMenuTrigger />
+          <DropdownMenuContent>
+            <ProfileMenuInfo
+              data-testid="profile-info"
+              schoolName=""
+              classYearName=""
+              schoolYearName="2024"
+            />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      expect(screen.getByText('2024')).toBeInTheDocument();
+      expect(screen.queryByText('●')).not.toBeInTheDocument();
+    });
+
+    it('renders only schoolName when classYearName and schoolYearName are empty', () => {
+      render(
+        <DropdownMenu open>
+          <ProfileMenuTrigger />
+          <DropdownMenuContent>
+            <ProfileMenuInfo
+              data-testid="profile-info"
+              schoolName="Escola Municipal"
+              classYearName=""
+              schoolYearName=""
+            />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      expect(screen.getByText('Escola Municipal')).toBeInTheDocument();
+      expect(screen.queryByText('●')).not.toBeInTheDocument();
+    });
   });
 
   describe('ProfileMenuSection behavior', () => {
