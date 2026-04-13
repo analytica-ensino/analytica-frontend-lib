@@ -214,11 +214,11 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       };
 
       if (showDropdown) {
-        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('click', handleClickOutside);
       }
 
       return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
+        document.removeEventListener('click', handleClickOutside);
       };
     }, [showDropdown, dropdownStore, onDropdownChange]);
 
