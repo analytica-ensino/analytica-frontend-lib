@@ -28,6 +28,10 @@ interface MockImageUploadProps {
   selectedFile?: File | null;
   onFileSelect?: (file: File) => void;
   onRemoveFile?: () => void;
+  onTypeError?: (file: File) => void;
+  onSizeError?: (file: File, maxSize: number) => void;
+  accept?: string;
+  maxSize?: number;
 }
 
 // Mock components
@@ -76,8 +80,16 @@ jest.mock('../../../ImageUpload/ImageUpload', () => ({
     selectedFile,
     onFileSelect,
     onRemoveFile,
+    onTypeError,
+    onSizeError,
+    accept,
+    maxSize,
   }: MockImageUploadProps) => (
-    <div data-testid="image-upload">
+    <div
+      data-testid="image-upload"
+      data-accept={accept}
+      data-max-size={maxSize}
+    >
       <button
         onClick={() => {
           const mockFile = new File(['content'], 'test.png', {
@@ -88,6 +100,28 @@ jest.mock('../../../ImageUpload/ImageUpload', () => ({
         data-testid="select-file-button"
       >
         Select File
+      </button>
+      <button
+        onClick={() => {
+          const invalidFile = new File(['content'], 'test.jfif', {
+            type: 'image/jpeg',
+          });
+          onTypeError?.(invalidFile);
+        }}
+        data-testid="trigger-type-error-button"
+      >
+        Trigger Type Error
+      </button>
+      <button
+        onClick={() => {
+          const oversizedFile = new File(['content'], 'big.png', {
+            type: 'image/png',
+          });
+          onSizeError?.(oversizedFile, maxSize ?? 0);
+        }}
+        data-testid="trigger-size-error-button"
+      >
+        Trigger Size Error
       </button>
       {selectedFile && (
         <div>
@@ -265,6 +299,86 @@ describe('MessageStep', () => {
       expect(screen.getByTestId('selected-file-name')).toHaveTextContent(
         'test.png'
       );
+    });
+
+    it('should restrict accepted image types to supported formats', () => {
+      render(<MessageStep />);
+
+      const upload = screen.getByTestId('image-upload');
+      expect(upload).toHaveAttribute(
+        'data-accept',
+        'image/jpeg,image/png,image/gif,image/webp,image/svg+xml,.jpg,.jpeg,.png,.gif,.webp,.svg'
+      );
+    });
+
+    it('should configure max image size to 5MB', () => {
+      render(<MessageStep />);
+
+      const upload = screen.getByTestId('image-upload');
+      expect(upload).toHaveAttribute('data-max-size', String(5 * 1024 * 1024));
+    });
+
+    it('should display error message when unsupported file type is selected', () => {
+      render(<MessageStep />);
+
+      fireEvent.click(screen.getByTestId('trigger-type-error-button'));
+
+      expect(
+        screen.getByText(
+          'Formato de imagem não suportado. Use jpg, jpeg, png, gif, webp ou svg.'
+        )
+      ).toBeInTheDocument();
+    });
+
+    it('should display error message when file is too large', () => {
+      render(<MessageStep />);
+
+      fireEvent.click(screen.getByTestId('trigger-size-error-button'));
+
+      expect(
+        screen.getByText(
+          'Imagem muito grande. O tamanho máximo permitido é 5MB.'
+        )
+      ).toBeInTheDocument();
+    });
+
+    it('should clear error message when a valid file is selected after error', () => {
+      render(<MessageStep />);
+
+      fireEvent.click(screen.getByTestId('trigger-type-error-button'));
+      expect(
+        screen.getByText(
+          'Formato de imagem não suportado. Use jpg, jpeg, png, gif, webp ou svg.'
+        )
+      ).toBeInTheDocument();
+
+      fireEvent.click(screen.getByTestId('select-file-button'));
+
+      expect(
+        screen.queryByText(
+          'Formato de imagem não suportado. Use jpg, jpeg, png, gif, webp ou svg.'
+        )
+      ).not.toBeInTheDocument();
+    });
+
+    it('should clear error message when file is removed', () => {
+      render(<MessageStep />);
+
+      fireEvent.click(screen.getByTestId('select-file-button'));
+      fireEvent.click(screen.getByTestId('trigger-type-error-button'));
+      expect(
+        screen.getByText(
+          'Formato de imagem não suportado. Use jpg, jpeg, png, gif, webp ou svg.'
+        )
+      ).toBeInTheDocument();
+
+      fireEvent.click(screen.getByTestId('remove-file-button'));
+
+      expect(
+        screen.queryByText(
+          'Formato de imagem não suportado. Use jpg, jpeg, png, gif, webp ou svg.'
+        )
+      ).not.toBeInTheDocument();
     });
   });
 
