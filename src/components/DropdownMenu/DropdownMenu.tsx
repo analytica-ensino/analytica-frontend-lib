@@ -644,6 +644,10 @@ const ProfileMenuInfo = forwardRef<
     },
     ref
   ) => {
+    if (!schoolName && !classYearName && !schoolYearName) {
+      return null;
+    }
+
     return (
       <div
         ref={ref}
@@ -653,19 +657,29 @@ const ProfileMenuInfo = forwardRef<
       >
         <span className="w-16 h-16" />
         <div className="flex flex-col ">
-          <Text size="md" color="text-text-600">
-            {schoolName}
-          </Text>
+          {schoolName && (
+            <Text size="md" color="text-text-600">
+              {schoolName}
+            </Text>
+          )}
 
-          <span className="flex flex-row items-center gap-2">
-            <Text size="md" color="text-text-600">
-              {classYearName}
-            </Text>
-            <p className="text-text-600 text-xs align-middle">●</p>
-            <Text size="md" color="text-text-600">
-              {schoolYearName}
-            </Text>
-          </span>
+          {(classYearName || schoolYearName) && (
+            <span className="flex flex-row items-center gap-2">
+              {classYearName && (
+                <Text size="md" color="text-text-600">
+                  {classYearName}
+                </Text>
+              )}
+              {classYearName && schoolYearName && (
+                <Text size="md" color="text-text-600">●</Text>
+              )}
+              {schoolYearName && (
+                <Text size="md" color="text-text-600">
+                  {schoolYearName}
+                </Text>
+              )}
+            </span>
+          )}
         </div>
       </div>
     );
