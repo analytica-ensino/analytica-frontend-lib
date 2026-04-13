@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import type { CategoryConfig } from '../CheckBoxGroup/CheckBoxGroup';
+import { calculateFormattedItemsForAutoSelection } from '../CheckBoxGroup/CheckBoxGroup.helpers';
 
 export type FilterConfig = {
   key: string;
@@ -52,6 +53,7 @@ export type UseTableFilterReturn = {
   filterConfigs: FilterConfig[];
   activeFilters: Record<string, string[]>;
   hasActiveFilters: boolean;
+  activeFiltersCount: number;
   updateFilters: (configs: FilterConfig[]) => void;
   applyFilters: () => void;
   clearFilters: () => void;
@@ -126,6 +128,33 @@ export const useTableFilter = (
   }, [filterConfigs]);
 
   const hasActiveFilters = Object.keys(activeFilters).length > 0;
+
+  // Count only filters that were manually selected by the user,
+  // excluding categories that were auto-selected because they have only 1 available item
+  const activeFiltersCount = useMemo(() => {
+    const allCategories = filterConfigs.flatMap((config) => config.categories);
+
+    let count = 0;
+    for (const category of allCategories) {
+      if (!category.selectedIds || category.selectedIds.length === 0) continue;
+
+      const availableItems = calculateFormattedItemsForAutoSelection(
+        category,
+        allCategories
+      );
+
+      const isAutoSelected =
+        availableItems.length === 1 &&
+        category.selectedIds.length === 1 &&
+        category.selectedIds[0] === availableItems[0]?.id;
+
+      if (!isAutoSelected) {
+        count++;
+      }
+    }
+
+    return count;
+  }, [filterConfigs]);
 
   /**
    * Update filter configs (temporary state, not applied to URL yet)
@@ -217,6 +246,7 @@ export const useTableFilter = (
     filterConfigs,
     activeFilters,
     hasActiveFilters,
+    activeFiltersCount,
     updateFilters,
     applyFilters,
     clearFilters,
