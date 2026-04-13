@@ -19,7 +19,7 @@ describe('TablePagination', () => {
     it('should render with required props', () => {
       render(<TablePagination {...defaultProps} />);
 
-      expect(screen.getByText(/41 de 100 itens/)).toBeInTheDocument();
+      expect(screen.getByText(/41 - 50 de 100 itens/)).toBeInTheDocument();
       expect(screen.getByText(/Página 5 de 10/)).toBeInTheDocument();
       expect(screen.getByLabelText('Página anterior')).toBeInTheDocument();
       expect(screen.getByLabelText('Próxima página')).toBeInTheDocument();
@@ -37,7 +37,7 @@ describe('TablePagination', () => {
         />
       );
 
-      expect(screen.getByText(/41 de 100 escolas/)).toBeInTheDocument();
+      expect(screen.getByText(/41 - 50 de 100 escolas/)).toBeInTheDocument();
       expect(screen.getByLabelText('Items por página')).toBeInTheDocument();
     });
 
@@ -55,19 +55,19 @@ describe('TablePagination', () => {
     it('should display correct start item for first page', () => {
       render(<TablePagination {...defaultProps} currentPage={1} />);
 
-      expect(screen.getByText(/1 de 100 itens/)).toBeInTheDocument();
+      expect(screen.getByText(/1 - 10 de 100 itens/)).toBeInTheDocument();
     });
 
     it('should display correct start item for middle page', () => {
       render(<TablePagination {...defaultProps} currentPage={5} />);
 
-      expect(screen.getByText(/41 de 100 itens/)).toBeInTheDocument();
+      expect(screen.getByText(/41 - 50 de 100 itens/)).toBeInTheDocument();
     });
 
     it('should display correct start item for last page', () => {
       render(<TablePagination {...defaultProps} currentPage={10} />);
 
-      expect(screen.getByText(/91 de 100 itens/)).toBeInTheDocument();
+      expect(screen.getByText(/91 - 100 de 100 itens/)).toBeInTheDocument();
     });
 
     it('should use default itemLabel when not provided', () => {
@@ -319,7 +319,7 @@ describe('TablePagination', () => {
         />
       );
 
-      expect(screen.getByText(/991 de 10000 itens/)).toBeInTheDocument();
+      expect(screen.getByText(/991 - 1000 de 10000 itens/)).toBeInTheDocument();
       expect(screen.getByText('Página 100 de 1000')).toBeInTheDocument();
     });
 

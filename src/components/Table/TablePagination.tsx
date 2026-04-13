@@ -71,6 +71,7 @@ const TablePagination = ({
   ...props
 }: TablePaginationProps) => {
   const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
   const handlePrevious = () => {
     if (currentPage > 1) {
@@ -104,7 +105,7 @@ const TablePagination = ({
     >
       {/* Items count - isolado à esquerda no desktop */}
       <span className="font-normal text-xs leading-[14px] text-text-800">
-        {startItem} de {totalItems} {itemLabel}
+        {startItem} - {endItem} de {totalItems} {itemLabel}
       </span>
 
       {/* Grupo direita: selector + page info + botões */}
