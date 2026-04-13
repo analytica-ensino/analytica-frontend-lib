@@ -307,7 +307,7 @@ describe('MessageStep', () => {
       const upload = screen.getByTestId('image-upload');
       expect(upload).toHaveAttribute(
         'data-accept',
-        '.jpg,.jpeg,.png,.gif,.webp,.svg'
+        'image/jpeg,image/png,image/gif,image/webp,image/svg+xml,.jpg,.jpeg,.png,.gif,.webp,.svg'
       );
     });
 
@@ -315,10 +315,7 @@ describe('MessageStep', () => {
       render(<MessageStep />);
 
       const upload = screen.getByTestId('image-upload');
-      expect(upload).toHaveAttribute(
-        'data-max-size',
-        String(5 * 1024 * 1024)
-      );
+      expect(upload).toHaveAttribute('data-max-size', String(5 * 1024 * 1024));
     });
 
     it('should display error message when unsupported file type is selected', () => {
