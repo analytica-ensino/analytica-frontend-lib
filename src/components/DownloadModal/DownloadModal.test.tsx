@@ -323,4 +323,116 @@ describe('DownloadModal', () => {
     expect(mockOnDownloadPdf).not.toHaveBeenCalled();
     expect(mockOnDownloadExcel).not.toHaveBeenCalled();
   });
+
+  /**
+   * Verifies the auto-close effect: when isDownloading transitions from true
+   * to false and no error is present, the modal calls onClose automatically.
+   */
+  it('should auto-close when isDownloading transitions from true to false without error', () => {
+    const { rerender } = render(
+      <DownloadModal
+        isOpen={true}
+        onClose={mockOnClose}
+        isDownloading={true}
+        error={null}
+        onDownloadPdf={mockOnDownloadPdf}
+        onDownloadExcel={mockOnDownloadExcel}
+      />
+    );
+
+    expect(mockOnClose).not.toHaveBeenCalled();
+
+    rerender(
+      <DownloadModal
+        isOpen={true}
+        onClose={mockOnClose}
+        isDownloading={false}
+        error={null}
+        onDownloadPdf={mockOnDownloadPdf}
+        onDownloadExcel={mockOnDownloadExcel}
+      />
+    );
+
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
+  });
+
+  /**
+   * Verifies the auto-close does NOT fire when the async download ends with
+   * an error — the modal stays open so the user can read the error message.
+   */
+  it('should not auto-close when isDownloading ends with an error', () => {
+    const { rerender } = render(
+      <DownloadModal
+        isOpen={true}
+        onClose={mockOnClose}
+        isDownloading={true}
+        error={null}
+        onDownloadPdf={mockOnDownloadPdf}
+        onDownloadExcel={mockOnDownloadExcel}
+      />
+    );
+
+    rerender(
+      <DownloadModal
+        isOpen={true}
+        onClose={mockOnClose}
+        isDownloading={false}
+        error="Falha ao gerar relatório"
+        onDownloadPdf={mockOnDownloadPdf}
+        onDownloadExcel={mockOnDownloadExcel}
+      />
+    );
+
+    expect(mockOnClose).not.toHaveBeenCalled();
+  });
+
+  /**
+   * Verifies that a static render with isDownloading=false does not trigger
+   * auto-close. The transition true→false must happen while mounted.
+   */
+  it('should not auto-close on initial render with isDownloading=false', () => {
+    render(
+      <DownloadModal
+        isOpen={true}
+        onClose={mockOnClose}
+        isDownloading={false}
+        error={null}
+        onDownloadPdf={mockOnDownloadPdf}
+        onDownloadExcel={mockOnDownloadExcel}
+      />
+    );
+
+    expect(mockOnClose).not.toHaveBeenCalled();
+  });
+
+  /**
+   * Verifies the isOpen guard on the auto-close effect: if the modal is
+   * already closed (isOpen=false), a trailing isDownloading=true→false
+   * transition must NOT trigger a redundant onClose call.
+   */
+  it('should not call onClose when auto-close effect fires while isOpen=false', () => {
+    const { rerender } = render(
+      <DownloadModal
+        isOpen={false}
+        onClose={mockOnClose}
+        isDownloading={true}
+        error={null}
+        onDownloadPdf={mockOnDownloadPdf}
+        onDownloadExcel={mockOnDownloadExcel}
+      />
+    );
+
+    rerender(
+      <DownloadModal
+        isOpen={false}
+        onClose={mockOnClose}
+        isDownloading={false}
+        error={null}
+        onDownloadPdf={mockOnDownloadPdf}
+        onDownloadExcel={mockOnDownloadExcel}
+      />
+    );
+
+    expect(mockOnClose).not.toHaveBeenCalled();
+  });
 });
