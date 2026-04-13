@@ -160,25 +160,6 @@ function buildStudentHoursSlices(
   ];
 }
 
-function buildProfessionalHoursSlices(
-  hoursByItem: AccessReportProfessionalData['hoursByItem']
-): PieSlice[] {
-  return [
-    {
-      label: 'Atividades',
-      value: hoursByItem.activities.percentage,
-      colorClass: 'bg-success-700',
-      color: 'var(--Success-success700, #206F3E)',
-    },
-    {
-      label: 'Aulas recomendadas',
-      value: hoursByItem.recommendedLessons.percentage,
-      colorClass: 'bg-indicator-positive',
-      color: 'var(--Indicator-Indicator-Positive, #F8CC2E)',
-    },
-  ];
-}
-
 // ─── Modal content ────────────────────────────────────────────
 
 const ReportContentLayout = ({
@@ -246,29 +227,34 @@ const ProfessionalModalContent = ({
 }: {
   data: AccessReportProfessionalData;
 }) => (
-  <ReportContentLayout
-    user={data.user}
-    platformSlices={buildPlatformSlices(data.accessByPlatform)}
-    hoursSlices={buildProfessionalHoursSlices(data.hoursByItem)}
-    metricBoxes={
-      <>
-        <MetricBox label="Tempo total" value={data.accessData.totalTime} />
-        <MetricBox label="Atividades" value={data.accessData.activitiesTime} />
-        <MetricBox
-          label="Aulas recomendadas"
-          value={data.accessData.recommendedLessonsTime}
-        />
-        <MetricBox
-          label="Quantidade de acessos"
-          value={data.accessData.accessCount}
-        />
-        <MetricBox
-          label="Último acesso"
-          value={data.accessData.lastAccess ?? '—'}
-        />
-      </>
-    }
-  />
+  <div className="flex flex-col gap-6">
+    <UserHeader
+      name={data.user.name}
+      school={data.user.school}
+      className={data.user.class ?? ''}
+      year={data.user.year}
+    />
+
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <MetricBox
+        label="Tempo na plataforma"
+        value={data.accessData.totalTime}
+      />
+      <MetricBox
+        label="Quantidade de acessos"
+        value={data.accessData.accessCount}
+      />
+      <MetricBox
+        label="Último acesso"
+        value={data.accessData.lastAccess ?? '—'}
+      />
+    </div>
+
+    <div className="flex flex-col gap-3">
+      <SectionTitle>Plataforma de acesso</SectionTitle>
+      <LegendPieCard slices={buildPlatformSlices(data.accessByPlatform)} />
+    </div>
+  </div>
 );
 
 const LoadingSkeleton = ({ metricCount }: { metricCount: number }) => (
