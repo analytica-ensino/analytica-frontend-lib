@@ -261,6 +261,32 @@ describe('AccessReportModal', () => {
       expect(screen.getByText('Plataforma de acesso')).toBeInTheDocument();
       // "Horas por item" section is not shown for professional variant
     });
+
+    it('should NOT render "Horas por item" section for professional variant', () => {
+      render(
+        <AccessReportModal
+          isOpen={true}
+          onClose={() => {}}
+          variant={AccessReportModalVariant.PROFESSIONAL}
+          data={mockProfessionalData}
+        />
+      );
+      expect(screen.queryByText('Horas por item')).not.toBeInTheDocument();
+    });
+
+    it('should render only 1 pie chart for professional variant', () => {
+      const { container } = render(
+        <AccessReportModal
+          isOpen={true}
+          onClose={() => {}}
+          variant={AccessReportModalVariant.PROFESSIONAL}
+          data={mockProfessionalData}
+        />
+      );
+      // Only the platform pie chart should be rendered
+      const pieCharts = container.querySelectorAll('svg[aria-hidden="true"]');
+      expect(pieCharts.length).toBe(1);
+    });
   });
 
   describe('Loading state', () => {
@@ -288,6 +314,70 @@ describe('AccessReportModal', () => {
         />
       );
       expect(screen.queryByText('42h15min')).not.toBeInTheDocument();
+    });
+
+    it('should render 6 metric box skeletons for student variant', () => {
+      const { container } = render(
+        <AccessReportModal
+          isOpen={true}
+          onClose={() => {}}
+          variant={AccessReportModalVariant.STUDENT}
+          data={null}
+          loading={true}
+        />
+      );
+      const skeletonBoxes = container.querySelectorAll(
+        '.animate-pulse .h-16.bg-background-200.rounded-xl'
+      );
+      expect(skeletonBoxes.length).toBe(6);
+    });
+
+    it('should render 3 metric box skeletons for professional variant', () => {
+      const { container } = render(
+        <AccessReportModal
+          isOpen={true}
+          onClose={() => {}}
+          variant={AccessReportModalVariant.PROFESSIONAL}
+          data={null}
+          loading={true}
+        />
+      );
+      const skeletonBoxes = container.querySelectorAll(
+        '.animate-pulse .h-16.bg-background-200.rounded-xl'
+      );
+      expect(skeletonBoxes.length).toBe(3);
+    });
+
+    it('should render 2 chart skeletons for student variant (platform + hours)', () => {
+      const { container } = render(
+        <AccessReportModal
+          isOpen={true}
+          onClose={() => {}}
+          variant={AccessReportModalVariant.STUDENT}
+          data={null}
+          loading={true}
+        />
+      );
+      const chartSkeletons = container.querySelectorAll(
+        '.animate-pulse .h-32.bg-background-200.rounded-xl'
+      );
+      expect(chartSkeletons.length).toBe(2);
+    });
+
+    it('should render 1 chart skeleton for professional variant (platform only)', () => {
+      const { container } = render(
+        <AccessReportModal
+          isOpen={true}
+          onClose={() => {}}
+          variant={AccessReportModalVariant.PROFESSIONAL}
+          data={null}
+          loading={true}
+        />
+      );
+      const chartSkeletons = container.querySelectorAll(
+        '.animate-pulse .h-32.bg-background-200.rounded-xl'
+      );
+      expect(chartSkeletons.length).toBe(1);
     });
   });
 
