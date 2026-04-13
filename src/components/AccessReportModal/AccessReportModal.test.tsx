@@ -206,7 +206,7 @@ describe('AccessReportModal', () => {
   });
 
   describe('Professional variant', () => {
-    it('should render all 5 metric labels', () => {
+    it('should render 3 metric labels (simplified for professionals)', () => {
       render(
         <AccessReportModal
           isOpen={true}
@@ -215,11 +215,8 @@ describe('AccessReportModal', () => {
           data={mockProfessionalData}
         />
       );
-      expect(screen.getByText('Tempo total')).toBeInTheDocument();
-      expect(screen.getAllByText('Atividades').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('Aulas recomendadas').length).toBeGreaterThan(
-        0
-      );
+      // Professional variant shows simplified metrics without activity breakdown
+      expect(screen.getByText('Tempo na plataforma')).toBeInTheDocument();
       expect(screen.getByText('Quantidade de acessos')).toBeInTheDocument();
       expect(screen.getByText('Último acesso')).toBeInTheDocument();
     });
@@ -234,7 +231,6 @@ describe('AccessReportModal', () => {
         />
       );
       expect(screen.getByText('18h30min')).toBeInTheDocument();
-      expect(screen.getByText('12h00min')).toBeInTheDocument();
       expect(screen.getByText('45')).toBeInTheDocument();
       expect(screen.getByText('26/02/2026')).toBeInTheDocument();
     });
@@ -253,7 +249,7 @@ describe('AccessReportModal', () => {
       expect(screen.getByText(/Turma B/)).toBeInTheDocument();
     });
 
-    it('should render platform and hours section titles', () => {
+    it('should render platform section title (no hours breakdown for professionals)', () => {
       render(
         <AccessReportModal
           isOpen={true}
@@ -263,7 +259,7 @@ describe('AccessReportModal', () => {
         />
       );
       expect(screen.getByText('Plataforma de acesso')).toBeInTheDocument();
-      expect(screen.getByText('Horas por item')).toBeInTheDocument();
+      // "Horas por item" section is not shown for professional variant
     });
   });
 
