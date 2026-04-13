@@ -165,6 +165,10 @@ export default defineConfig({
     // DownloadModal
     'DownloadModal/index': 'src/components/DownloadModal/DownloadModal.tsx',
 
+    // PrintableUsersTable
+    'PrintableUsersTable/index':
+      'src/components/PrintableUsersTable/PrintableUsersTable.tsx',
+
     // ChoroplethMap
     'ChoroplethMap/index': 'src/components/ChoroplethMap/ChoroplethMap.tsx',
 

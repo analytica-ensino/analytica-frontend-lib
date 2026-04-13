@@ -1247,6 +1247,10 @@ export type {
   DownloadFormat,
 } from './components/DownloadModal/DownloadModal';
 
+// PrintableUsersTable Component
+export { default as PrintableUsersTable } from './components/PrintableUsersTable/PrintableUsersTable';
+export type { PrintableUsersTableProps } from './components/PrintableUsersTable/PrintableUsersTable';
+
 // Report Export Utils
 export { downloadExcel } from './utils/exportExcel';
 export { printAsPdf } from './utils/exportPdf';
