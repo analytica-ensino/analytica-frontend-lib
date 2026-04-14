@@ -307,7 +307,7 @@ describe('MessageStep', () => {
       const upload = screen.getByTestId('image-upload');
       expect(upload).toHaveAttribute(
         'data-accept',
-        'image/jpeg,image/png,image/gif,image/webp,image/svg+xml,.jpg,.jpeg,.png,.gif,.webp,.svg'
+        '.jpg,.jpeg,.png,.gif,.webp,.svg'
       );
     });
 
