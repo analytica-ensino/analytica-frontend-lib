@@ -12,8 +12,7 @@ interface MessageStepProps {
   allowImageAttachment?: boolean;
 }
 
-const ACCEPTED_IMAGE_EXTENSIONS =
-  'image/jpeg,image/png,image/gif,image/webp,image/svg+xml,.jpg,.jpeg,.png,.gif,.webp,.svg';
+const ACCEPTED_IMAGE_EXTENSIONS = '.jpg,.jpeg,.png,.gif,.webp,.svg';
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 const MAX_IMAGE_SIZE_LABEL = '5MB';
 
