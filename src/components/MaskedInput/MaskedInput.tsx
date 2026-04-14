@@ -45,7 +45,7 @@ export type MaskedInputProps = {
 const MaskedInput = forwardRef<HTMLInputElement, MaskedInputProps>(
   ({ mask, value, onChange, ...rest }, ref) => {
     const maskedValue =
-      value !== undefined ? applyInputMask(value, mask) : value;
+      value === undefined ? undefined : applyInputMask(value, mask);
 
     const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
       event.target.value = applyInputMask(event.target.value, mask);
