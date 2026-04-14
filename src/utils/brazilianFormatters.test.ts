@@ -25,6 +25,10 @@ describe('brazilianFormatters', () => {
     it('returns the original value when length is invalid', () => {
       expect(formatCnpj('12345')).toBe('12345');
     });
+
+    it('returns the original value for overlong input (does not truncate)', () => {
+      expect(formatCnpj('123456780001990000')).toBe('123456780001990000');
+    });
   });
 
   describe('formatCpf', () => {
@@ -34,6 +38,10 @@ describe('brazilianFormatters', () => {
 
     it('returns the original value when length is invalid', () => {
       expect(formatCpf('123')).toBe('123');
+    });
+
+    it('returns the original value for overlong input (does not truncate)', () => {
+      expect(formatCpf('12345678909999')).toBe('12345678909999');
     });
   });
 
@@ -49,6 +57,10 @@ describe('brazilianFormatters', () => {
     it('returns the original value when length is invalid', () => {
       expect(formatPhone('123')).toBe('123');
     });
+
+    it('returns the original value for overlong input (does not truncate)', () => {
+      expect(formatPhone('119876543219999')).toBe('119876543219999');
+    });
   });
 
   describe('formatCep', () => {
@@ -58,6 +70,10 @@ describe('brazilianFormatters', () => {
 
     it('returns the original value when length is invalid', () => {
       expect(formatCep('1234')).toBe('1234');
+    });
+
+    it('returns the original value for overlong input (does not truncate)', () => {
+      expect(formatCep('013101009999')).toBe('013101009999');
     });
   });
 
@@ -101,6 +117,12 @@ describe('brazilianFormatters', () => {
 
     it('caps at 11 digits', () => {
       expect(maskPhoneInput('1198765432199')).toBe('(11) 98765-4321');
+    });
+
+    it('returns empty string for empty input (clears field without residual "(")', () => {
+      expect(maskPhoneInput('')).toBe('');
+      expect(maskPhoneInput('(')).toBe('');
+      expect(maskPhoneInput('abc')).toBe('');
     });
   });
 

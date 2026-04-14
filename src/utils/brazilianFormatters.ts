@@ -23,10 +23,18 @@ const MASK_MAX_DIGITS: Record<MASK_TYPE, number> = {
 };
 
 /**
- * Extrai apenas os digitos do valor, limitando ao maximo permitido pela mascara.
+ * Extrai todos os digitos do valor sem truncar.
+ * Use nos formatters, que validam comprimento exato antes de aplicar o padrao.
+ */
+const extractDigits = (value: string): string => value.replaceAll(/\D/g, '');
+
+/**
+ * Extrai os digitos limitando ao maximo permitido pela mascara.
+ * Use nas mascaras progressivas de input (o usuario nao deve conseguir
+ * digitar alem do cap).
  */
 const onlyDigits = (value: string, type: MASK_TYPE): string =>
-  value.replaceAll(/\D/g, '').slice(0, MASK_MAX_DIGITS[type]);
+  extractDigits(value).slice(0, MASK_MAX_DIGITS[type]);
 
 // =====================================================================
 // Formatadores: aplicam a mascara completa quando o valor tem todos os
@@ -38,7 +46,7 @@ const onlyDigits = (value: string, type: MASK_TYPE): string =>
  * Caso a entrada nao tenha 14 digitos, retorna o valor original.
  */
 export function formatCnpj(value: string): string {
-  const digits = onlyDigits(value, MASK_TYPE.CNPJ);
+  const digits = extractDigits(value);
   if (digits.length !== MASK_MAX_DIGITS[MASK_TYPE.CNPJ]) return value;
   return digits.replace(
     /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
@@ -51,7 +59,7 @@ export function formatCnpj(value: string): string {
  * Caso a entrada nao tenha 11 digitos, retorna o valor original.
  */
 export function formatCpf(value: string): string {
-  const digits = onlyDigits(value, MASK_TYPE.CPF);
+  const digits = extractDigits(value);
   if (digits.length !== MASK_MAX_DIGITS[MASK_TYPE.CPF]) return value;
   return digits.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4');
 }
@@ -63,7 +71,7 @@ export function formatCpf(value: string): string {
  * Caso a entrada nao tenha 10 ou 11 digitos, retorna o valor original.
  */
 export function formatPhone(value: string): string {
-  const digits = value.replaceAll(/\D/g, '');
+  const digits = extractDigits(value);
   if (digits.length === 11) {
     return digits.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
   }
@@ -78,7 +86,7 @@ export function formatPhone(value: string): string {
  * Caso a entrada nao tenha 8 digitos, retorna o valor original.
  */
 export function formatCep(value: string): string {
-  const digits = onlyDigits(value, MASK_TYPE.CEP);
+  const digits = extractDigits(value);
   if (digits.length !== MASK_MAX_DIGITS[MASK_TYPE.CEP]) return value;
   return digits.replace(/^(\d{5})(\d{3})$/, '$1-$2');
 }
@@ -116,7 +124,8 @@ export function maskCpfInput(value: string): string {
  */
 export function maskPhoneInput(value: string): string {
   const digits = onlyDigits(value, MASK_TYPE.PHONE);
-  if (digits.length <= 2) return digits.replace(/^(\d{0,2})/, '($1');
+  if (digits.length === 0) return '';
+  if (digits.length <= 2) return `(${digits}`;
   if (digits.length <= 6) return digits.replace(/^(\d{2})(\d{0,4})/, '($1) $2');
   if (digits.length <= 10)
     return digits.replace(/^(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');

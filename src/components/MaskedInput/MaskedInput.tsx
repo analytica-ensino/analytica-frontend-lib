@@ -7,13 +7,19 @@ type InputProps = ComponentProps<typeof Input>;
 /**
  * Props do MaskedInput.
  *
- * Extende todas as props do `Input` adicionando o `mask` que identifica o
- * tipo de mascara a aplicar (CNPJ, CPF, Telefone ou CEP).
+ * Extende as props do `Input` adicionando o `mask` que identifica o tipo de
+ * mascara a aplicar (CNPJ, CPF, Telefone ou CEP).
+ *
+ * O tipo de `value` e estreitado para `string | undefined` porque as mascaras
+ * sao operacoes de string — aceitar `number` ou `readonly string[]` (do
+ * `InputHTMLAttributes`) levaria a comportamento inconsistente.
  */
 export type MaskedInputProps = {
   /** Tipo da mascara a ser aplicada */
   mask: MASK_TYPE;
-} & InputProps;
+  /** Valor mascarado (string). Pode ser passado cru ou ja mascarado (idempotente). */
+  value?: string;
+} & Omit<InputProps, 'value'>;
 
 /**
  * MaskedInput - wrapper do Input com mascara progressiva aplicada
@@ -39,7 +45,7 @@ export type MaskedInputProps = {
 const MaskedInput = forwardRef<HTMLInputElement, MaskedInputProps>(
   ({ mask, value, onChange, ...rest }, ref) => {
     const maskedValue =
-      typeof value === 'string' ? applyInputMask(value, mask) : value;
+      value !== undefined ? applyInputMask(value, mask) : value;
 
     const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
       event.target.value = applyInputMask(event.target.value, mask);
