@@ -92,13 +92,13 @@ const HierarchicalCheckboxGroup = ({
     }
   };
 
-  const toggleGroup = (groupItemIds: string[], allChecked: boolean) => {
-    if (allChecked) {
-      onChange(selectedIds.filter((id) => !groupItemIds.includes(id)));
-    } else {
-      const merged = new Set([...selectedIds, ...groupItemIds]);
-      onChange(Array.from(merged));
-    }
+  const selectAllInGroup = (groupItemIds: string[]) => {
+    const merged = new Set([...selectedIds, ...groupItemIds]);
+    onChange(Array.from(merged));
+  };
+
+  const deselectAllInGroup = (groupItemIds: string[]) => {
+    onChange(selectedIds.filter((id) => !groupItemIds.includes(id)));
   };
 
   const itemsContainerClasses =
@@ -124,7 +124,11 @@ const HierarchicalCheckboxGroup = ({
               <CheckBox
                 checked={allChecked}
                 indeterminate={someChecked}
-                onChange={() => toggleGroup(groupItemIds, allChecked)}
+                onChange={() =>
+                  allChecked
+                    ? deselectAllInGroup(groupItemIds)
+                    : selectAllInGroup(groupItemIds)
+                }
                 label={
                   <span
                     className={cn(

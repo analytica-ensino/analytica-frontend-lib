@@ -26,7 +26,7 @@ const MASK_MAX_DIGITS: Record<MASK_TYPE, number> = {
  * Extrai apenas os digitos do valor, limitando ao maximo permitido pela mascara.
  */
 const onlyDigits = (value: string, type: MASK_TYPE): string =>
-  value.replace(/\D/g, '').slice(0, MASK_MAX_DIGITS[type]);
+  value.replaceAll(/\D/g, '').slice(0, MASK_MAX_DIGITS[type]);
 
 // =====================================================================
 // Formatadores: aplicam a mascara completa quando o valor tem todos os
@@ -63,7 +63,7 @@ export function formatCpf(value: string): string {
  * Caso a entrada nao tenha 10 ou 11 digitos, retorna o valor original.
  */
 export function formatPhone(value: string): string {
-  const digits = value.replace(/\D/g, '');
+  const digits = value.replaceAll(/\D/g, '');
   if (digits.length === 11) {
     return digits.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
   }
