@@ -116,4 +116,58 @@ describe('PageContainer', () => {
     render(<PageContainer {...props} />);
     expect(screen.getByText('Content')).toBeInTheDocument();
   });
+
+  it('preserves default inner max-width when innerClassName is not provided', () => {
+    render(
+      <PageContainer>
+        <span>Content</span>
+      </PageContainer>
+    );
+    const innerDiv = screen.getByText('Content').parentElement;
+    expect(innerDiv).toHaveClass('max-w-[1000px]');
+  });
+
+  it('overrides default max-width via innerClassName (twMerge dedup)', () => {
+    render(
+      <PageContainer innerClassName="max-w-[1150px]">
+        <span>Content</span>
+      </PageContainer>
+    );
+    const innerDiv = screen.getByText('Content').parentElement;
+    expect(innerDiv).toHaveClass('max-w-[1150px]');
+    expect(innerDiv).not.toHaveClass('max-w-[1000px]');
+  });
+
+  it('preserves other default inner classes when innerClassName is provided', () => {
+    render(
+      <PageContainer innerClassName="max-w-[1150px]">
+        <span>Content</span>
+      </PageContainer>
+    );
+    const innerDiv = screen.getByText('Content').parentElement;
+    expect(innerDiv).toHaveClass('flex');
+    expect(innerDiv).toHaveClass('flex-col');
+    expect(innerDiv).toHaveClass('w-full');
+    expect(innerDiv).toHaveClass('lg:px-0');
+    expect(innerDiv).toHaveClass('px-4');
+  });
+
+  it('appends extra utility classes via innerClassName without removing defaults', () => {
+    render(
+      <PageContainer innerClassName="bg-yellow-100">
+        <span>Content</span>
+      </PageContainer>
+    );
+    const innerDiv = screen.getByText('Content').parentElement;
+    expect(innerDiv).toHaveClass('bg-yellow-100');
+    expect(innerDiv).toHaveClass('max-w-[1000px]');
+  });
+
+  it('exports innerClassName in PageContainerProps interface', () => {
+    const props: PageContainerProps = {
+      children: <span>Test</span>,
+      innerClassName: 'max-w-[1150px]',
+    };
+    expect(props.innerClassName).toBe('max-w-[1150px]');
+  });
 });

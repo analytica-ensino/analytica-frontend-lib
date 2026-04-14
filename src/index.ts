@@ -576,6 +576,30 @@ export {
 } from './utils/utils';
 export { convertActivityFiltersToQuestionsFilter } from './utils/questionFiltersConverter';
 export {
+  MASK_TYPE,
+  applyInputMask,
+  formatCep,
+  formatCnpj,
+  formatCpf,
+  formatDocument,
+  formatPhone,
+  maskCepInput,
+  maskCnpjInput,
+  maskCpfInput,
+  maskPhoneInput,
+} from './utils/brazilianFormatters';
+export { BR_STATES_FULL, UF_LIST } from './utils/brazilianStates';
+export type { UF } from './utils/brazilianStates';
+export { default as MaskedInput } from './components/MaskedInput/MaskedInput';
+export type { MaskedInputProps } from './components/MaskedInput/MaskedInput';
+export { default as HierarchicalCheckboxGroup } from './components/HierarchicalCheckboxGroup/HierarchicalCheckboxGroup';
+export type {
+  HierarchicalCheckboxGroupItem,
+  HierarchicalCheckboxGroupProps,
+  HierarchicalCheckboxItem,
+  HierarchicalCheckboxItemsLayout,
+} from './components/HierarchicalCheckboxGroup/HierarchicalCheckboxGroup';
+export {
   mapQuestionTypeToEnum,
   mapQuestionTypeToEnumRequired,
 } from './utils/questionTypeUtils';
