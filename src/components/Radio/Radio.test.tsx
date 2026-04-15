@@ -941,6 +941,40 @@ describe('RadioGroup Component', () => {
 
       expect(screen.getByDisplayValue('test')).toBeInTheDocument();
     });
+
+    it('renders the label when provided via prop', () => {
+      render(
+        <RadioGroup defaultValue="morning">
+          <RadioGroupItem value="morning" label="Manhã" />
+          <RadioGroupItem value="afternoon" label="Tarde" />
+        </RadioGroup>
+      );
+
+      expect(screen.getByText('Manhã')).toBeInTheDocument();
+      expect(screen.getByText('Tarde')).toBeInTheDocument();
+    });
+
+    it('associates the rendered label with its hidden input via htmlFor', () => {
+      render(
+        <RadioGroup defaultValue="morning">
+          <RadioGroupItem value="morning" label="Manhã" id="shift-morning" />
+        </RadioGroup>
+      );
+
+      const label = screen.getByText('Manhã');
+      expect(label.tagName).toBe('LABEL');
+      expect(label).toHaveAttribute('for', 'shift-morning');
+    });
+
+    it('forwards labelClassName to the rendered label', () => {
+      render(
+        <RadioGroup defaultValue="a">
+          <RadioGroupItem value="a" label="Opção A" labelClassName="my-label" />
+        </RadioGroup>
+      );
+
+      expect(screen.getByText('Opção A')).toHaveClass('my-label');
+    });
   });
 
   describe('Uncontrolled behavior (defaultValue)', () => {

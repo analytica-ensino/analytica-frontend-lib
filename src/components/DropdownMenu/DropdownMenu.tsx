@@ -671,7 +671,9 @@ const ProfileMenuInfo = forwardRef<
                 </Text>
               )}
               {classYearName && schoolYearName && (
-                <Text size="md" color="text-text-600">●</Text>
+                <Text size="md" color="text-text-600">
+                  ●
+                </Text>
               )}
               {schoolYearName && (
                 <Text size="md" color="text-text-600">

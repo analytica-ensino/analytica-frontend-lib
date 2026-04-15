@@ -587,6 +587,10 @@ RadioGroup.displayName = 'RadioGroup';
 export type RadioGroupItemProps = {
   /** Value for this radio item */
   value: string;
+  /** Optional label rendered next to the radio (parity with CheckBox/Radio APIs) */
+  label?: ReactNode;
+  /** CSS classes applied to the label */
+  labelClassName?: string;
   /** Store reference (automatically injected by RadioGroup) */
   store?: RadioGroupStoreApi;
   /** Disabled state for this specific item */
@@ -605,15 +609,23 @@ export type RadioGroupItemProps = {
 /**
  * RadioGroupItem component for use within RadioGroup
  *
- * A radio button without label that works within RadioGroup context.
- * Provides just the radio input for maximum flexibility in composition.
+ * A radio button that works within RadioGroup context.
+ * Accepts a `label` prop for the common case (parity with CheckBox/Radio).
+ * When `label` is omitted, renders just the input for custom composition.
  *
  * @example
  * ```tsx
+ * // With label (recommended)
+ * <RadioGroup defaultValue="option1">
+ *   <RadioGroupItem value="option1" label="Option 1" />
+ *   <RadioGroupItem value="option2" label="Option 2" />
+ * </RadioGroup>
+ *
+ * // Without label - manual composition
  * <RadioGroup defaultValue="option1">
  *   <div className="flex items-center gap-3">
  *     <RadioGroupItem value="option1" id="r1" />
- *     <label htmlFor="r1">Option 1</label>
+ *     <label htmlFor="r1">Custom layout</label>
  *   </div>
  * </RadioGroup>
  * ```
@@ -622,6 +634,8 @@ const RadioGroupItem = forwardRef<HTMLInputElement, RadioGroupItemProps>(
   (
     {
       value,
+      label,
+      labelClassName,
       store: externalStore,
       disabled: itemDisabled,
       size = 'medium',
@@ -662,6 +676,8 @@ const RadioGroupItem = forwardRef<HTMLInputElement, RadioGroupItemProps>(
         size={size}
         state={currentState}
         className={className}
+        label={label}
+        labelClassName={labelClassName}
         onChange={(e) => {
           if (e.target.checked && !isDisabled) {
             setValue(value);

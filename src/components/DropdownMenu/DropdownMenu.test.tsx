@@ -989,7 +989,9 @@ describe('ProfileMenu component', () => {
         </DropdownMenu>
       );
 
-      expect(container.querySelector('[data-component="ProfileMenuInfo"]')).not.toBeInTheDocument();
+      expect(
+        container.querySelector('[data-component="ProfileMenuInfo"]')
+      ).not.toBeInTheDocument();
     });
 
     it('hides separator bullet when only classYearName is provided', () => {
