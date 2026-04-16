@@ -9,6 +9,22 @@ export type { CategoryConfig, Item } from '../CheckBoxGroup/CheckBoxGroup';
 export type ActivitySubtype = 'TAREFA' | 'TRABALHO' | 'PROVA';
 
 /**
+ * Activity mode for presencial exams
+ */
+export type ActivityMode = 'ONLINE' | 'PRESENCIAL';
+
+/**
+ * Activity mode options for UI selection
+ */
+export const ACTIVITY_MODE_OPTIONS: ReadonlyArray<{
+  value: ActivityMode;
+  label: string;
+}> = [
+  { value: 'ONLINE', label: 'Online' },
+  { value: 'PRESENCIAL', label: 'Presencial' },
+] as const;
+
+/**
  * Activity type options for UI selection
  */
 export const ACTIVITY_TYPE_OPTIONS: ReadonlyArray<{
@@ -26,6 +42,8 @@ export const ACTIVITY_TYPE_OPTIONS: ReadonlyArray<{
 export interface SendActivityFormData {
   /** Activity subtype (Step 1) */
   subtype: ActivitySubtype;
+  /** Activity mode for presencial exams (Step 1, required when subtype is PROVA and enableProvaMode is true) */
+  mode?: ActivityMode;
   /** Activity title (Step 1) */
   title: string;
   /** Notification message (Step 1) */
@@ -79,6 +97,8 @@ export interface SendActivityModalProps {
   onError?: (error: unknown) => void;
   /** Initial data to pre-fill the form */
   initialData?: SendActivityModalInitialData;
+  /** Enable "Modo de prova" field (Online/Presencial), required when subtype is PROVA */
+  enableProvaMode?: boolean;
 }
 
 /**
@@ -86,6 +106,7 @@ export interface SendActivityModalProps {
  */
 export interface StepErrors {
   subtype?: string;
+  mode?: string;
   title?: string;
   students?: string;
   startDate?: string;

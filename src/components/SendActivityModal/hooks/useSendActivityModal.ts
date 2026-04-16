@@ -37,6 +37,11 @@ export interface SendActivityModalStore {
   /** Update categories (called by CheckboxGroup) */
   setCategories: (categories: CategoryConfig[]) => void;
 
+  /** Enable "Modo de prova" validation (set from prop) */
+  enableProvaMode: boolean;
+  /** Set enableProvaMode flag */
+  setEnableProvaMode: (enabled: boolean) => void;
+
   /** Reset store to initial state */
   reset: () => void;
 }
@@ -51,6 +56,7 @@ const initialState = {
   completedSteps: [] as number[],
   errors: {} as StepErrors,
   categories: [] as CategoryConfig[],
+  enableProvaMode: false,
 };
 
 /**
@@ -101,6 +107,10 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
       set({ errors });
     },
 
+    setEnableProvaMode: (enabled) => {
+      set({ enableProvaMode: enabled });
+    },
+
     validateCurrentStep: () => {
       const state = get();
       // For step 2, extract students from categories to ensure auto-selection is considered
@@ -111,7 +121,8 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
         formDataToValidate = { ...state.formData, students };
         updatedFormData = formDataToValidate;
       }
-      const errors = validateStep(state.currentStep, formDataToValidate);
+      const options = { enableProvaMode: state.enableProvaMode };
+      const errors = validateStep(state.currentStep, formDataToValidate, options);
       set({ formData: updatedFormData, errors });
       return Object.keys(errors).length === 0;
     },
@@ -124,7 +135,8 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
         const students = extractStudentsFromCategories(state.categories);
         formDataForStep2 = { ...state.formData, students };
       }
-      const errors1 = validateStep(1, state.formData);
+      const options = { enableProvaMode: state.enableProvaMode };
+      const errors1 = validateStep(1, state.formData, options);
       const errors2 = validateStep(2, formDataForStep2);
       const errors3 = validateStep(3, state.formData);
       const allErrors = { ...errors1, ...errors2, ...errors3 };

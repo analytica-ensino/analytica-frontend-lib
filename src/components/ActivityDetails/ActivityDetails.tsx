@@ -65,78 +65,108 @@ export interface ActivityDetailsProps {
   emptyStateImage?: string;
   /** Function to map subject name to SubjectEnum */
   mapSubjectNameToEnum?: (subjectName: string) => SubjectEnum | null;
+  /**
+   * Callback for downloading the gabarito (answer sheet) for a student.
+   * When provided, activates presencial-test mode:
+   * - Hides the "Duração" column
+   * - Renames "Respondido em" → "Gabarito recebido em"
+   * - Adds a "Gabarito" column (before "Resultado") with a "Baixar gabarito" button
+   */
+  onDownloadGabarito?: (studentId: string) => void;
 }
 
 /**
  * Create table columns configuration
  * @param onCorrectActivity - Callback for correction action
+ * @param isPresencial - Whether the activity is in presencial mode (drives column visibility)
+ * @param onDownloadGabarito - Optional callback for gabarito download button in presencial mode
  * @returns Column configuration array
  */
 const createTableColumns = (
-  onCorrectActivity: (studentId: string) => void
-): ColumnConfig<ActivityStudentTableItem>[] => [
-  {
-    key: 'studentName',
-    label: 'Aluno',
-    sortable: true,
-    render: (value: unknown) => {
-      const name = typeof value === 'string' ? value : '';
-      return (
-        <div className="flex items-center gap-3">
-          <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-            <Text className="text-xs font-semibold text-primary-700">
-              {name.charAt(0).toUpperCase()}
-            </Text>
+  onCorrectActivity: (studentId: string) => void,
+  isPresencial: boolean,
+  onDownloadGabarito?: (studentId: string) => void
+): ColumnConfig<ActivityStudentTableItem>[] => {
+  const columns: ColumnConfig<ActivityStudentTableItem>[] = [
+    {
+      key: 'studentName',
+      label: 'Aluno',
+      sortable: true,
+      render: (value: unknown) => {
+        const name = typeof value === 'string' ? value : '';
+        return (
+          <div className="flex items-center gap-3">
+            <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+              <Text className="text-xs font-semibold text-primary-700">
+                {name.charAt(0).toUpperCase()}
+              </Text>
+            </div>
+            <Text className="text-sm font-normal text-text-950">{name}</Text>
           </div>
-          <Text className="text-sm font-normal text-text-950">{name}</Text>
-        </div>
-      );
+        );
+      },
     },
-  },
-  {
-    key: 'status',
-    label: 'Status',
-    sortable: false,
-    render: (value: unknown) => {
-      const config = getStatusBadgeConfig(value as StudentActivityStatus);
-      return (
-        <Badge
-          className={`${config.bgColor} ${config.textColor} text-xs px-2 py-1`}
-        >
-          {config.label}
-        </Badge>
-      );
+    {
+      key: 'status',
+      label: 'Status',
+      sortable: false,
+      render: (value: unknown) => {
+        let status = value as StudentActivityStatus;
+        if (isPresencial) {
+          // AGUARDANDO_RESPOSTA → still waiting for the answer sheet
+          if (status === STUDENT_ACTIVITY_STATUS.AGUARDANDO_RESPOSTA) {
+            status = STUDENT_ACTIVITY_STATUS.AGUARDANDO_GABARITO;
+          }
+          // AGUARDANDO_CORRECAO → gabarito was received and auto-graded
+          if (status === STUDENT_ACTIVITY_STATUS.AGUARDANDO_CORRECAO) {
+            status = STUDENT_ACTIVITY_STATUS.GABARITO_RECEBIDO;
+          }
+        }
+        const config = getStatusBadgeConfig(status);
+        return (
+          <Badge
+            className={`${config.bgColor} ${config.textColor} text-xs px-2 py-1`}
+          >
+            {config.label}
+          </Badge>
+        );
+      },
     },
-  },
-  {
-    key: 'answeredAt',
-    label: 'Respondido em',
-    sortable: true,
-    render: (value: unknown) => {
-      if (!value || typeof value !== 'string') {
-        return <Text className="text-sm text-text-400">-</Text>;
-      }
-      return (
-        <Text className="text-sm text-text-700">
-          {formatDateToBrazilian(value)}
-        </Text>
-      );
+    {
+      key: 'answeredAt',
+      label: isPresencial ? 'Gabarito recebido em' : 'Respondido em',
+      sortable: true,
+      render: (value: unknown) => {
+        if (!value || typeof value !== 'string') {
+          return <Text className="text-sm text-text-400">-</Text>;
+        }
+        return (
+          <Text className="text-sm text-text-700">
+            {formatDateToBrazilian(value)}
+          </Text>
+        );
+      },
     },
-  },
-  {
-    key: 'timeSpent',
-    label: 'Duração',
-    sortable: false,
-    render: (value: unknown) =>
-      Number(value) > 0 ? (
-        <Text className="text-sm text-text-700">
-          {formatTimeSpent(Number(value))}
-        </Text>
-      ) : (
-        <Text className="text-sm text-text-400">-</Text>
-      ),
-  },
-  {
+  ];
+
+  // "Duração" column is hidden in presencial mode
+  if (!isPresencial) {
+    columns.push({
+      key: 'timeSpent',
+      label: 'Duração',
+      sortable: false,
+      render: (value: unknown) =>
+        Number(value) > 0 ? (
+          <Text className="text-sm text-text-700">
+            {formatTimeSpent(Number(value))}
+          </Text>
+        ) : (
+          <Text className="text-sm text-text-400">-</Text>
+        ),
+    });
+  }
+
+  columns.push({
     key: 'score',
     label: 'Nota',
     sortable: true,
@@ -148,12 +178,54 @@ const createTableColumns = (
           {Number(value).toFixed(1)}
         </Text>
       ),
-  },
-  {
+  });
+
+  // "Gabarito" column is only shown in presencial mode
+  if (isPresencial && onDownloadGabarito) {
+    columns.push({
+      key: 'gabarito',
+      label: 'Gabarito',
+      sortable: false,
+      render: (_value: unknown, row: ActivityStudentTableItem) => (
+        <Button
+          variant="outline"
+          size="small"
+          onClick={() => onDownloadGabarito(row.studentId)}
+          className="text-xs"
+        >
+          Baixar gabarito
+        </Button>
+      ),
+    });
+  }
+
+  columns.push({
     key: 'actions',
     label: 'Resultado',
     sortable: false,
     render: (_value: unknown, row: ActivityStudentTableItem) => {
+      // Presencial mode: show "Ver respostas" — disabled until gabarito is received
+      if (isPresencial) {
+        const hasResponse =
+          row.status === STUDENT_ACTIVITY_STATUS.GABARITO_RECEBIDO ||
+          row.status === STUDENT_ACTIVITY_STATUS.AGUARDANDO_CORRECAO ||
+          row.status === STUDENT_ACTIVITY_STATUS.CONCLUIDO;
+        return (
+          <Button
+            variant="link"
+            size="small"
+            onClick={
+              hasResponse ? () => onCorrectActivity(row.studentId) : undefined
+            }
+            disabled={!hasResponse}
+            className="text-xs"
+          >
+            Ver respostas
+          </Button>
+        );
+      }
+
+      // Normal mode
       if (row.status === STUDENT_ACTIVITY_STATUS.AGUARDANDO_CORRECAO) {
         return (
           <Button
@@ -185,8 +257,10 @@ const createTableColumns = (
 
       return null;
     },
-  },
-];
+  });
+
+  return columns;
+};
 
 /**
  * Normalize questions with positions
@@ -207,6 +281,7 @@ export const ActivityDetails = ({
   onBack,
   emptyStateImage,
   mapSubjectNameToEnum,
+  onDownloadGabarito,
 }: ActivityDetailsProps) => {
   const { isMobile } = useMobile();
 
@@ -452,11 +527,16 @@ export const ActivityDetails = ({
 
   /**
    * Table columns configuration
+   * isPresencial is derived from activity.mode so columns update after data loads
    */
-  const columns = useMemo(
-    () => createTableColumns(handleCorrectActivity),
-    [handleCorrectActivity]
-  );
+  const columns = useMemo(() => {
+    const isPresencial = data?.activity?.mode === 'PRESENCIAL';
+    return createTableColumns(
+      handleCorrectActivity,
+      isPresencial,
+      onDownloadGabarito
+    );
+  }, [handleCorrectActivity, onDownloadGabarito, data?.activity?.mode]);
 
   /**
    * Handle table parameters change

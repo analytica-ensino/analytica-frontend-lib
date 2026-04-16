@@ -7,6 +7,8 @@ import { SendActivityFormData, StepErrors } from './types';
 export const ERROR_MESSAGES = {
   SUBTYPE_REQUIRED:
     'Campo obrigatório! Por favor, selecione uma opção para continuar.',
+  MODE_REQUIRED:
+    'Campo obrigatório! Por favor, selecione o modo de prova para continuar.',
   TITLE_REQUIRED:
     'Campo obrigatório! Por favor, preencha este campo para continuar.',
   STUDENTS_REQUIRED:
@@ -100,10 +102,13 @@ export type DeadlineStepData = z.infer<typeof deadlineStepSchema>;
 /**
  * Validates the activity step (Step 1) using Zod
  * @param data - Partial form data
+ * @param options - Validation options
+ * @param options.enableProvaMode - When true, validates the mode field when subtype is PROVA
  * @returns StepErrors object with any validation errors
  */
 export function validateActivityStep(
-  data: Partial<SendActivityFormData>
+  data: Partial<SendActivityFormData>,
+  options?: { enableProvaMode?: boolean }
 ): StepErrors {
   const errors: StepErrors = {};
 
@@ -120,6 +125,10 @@ export function validateActivityStep(
         errors[field] = issue.message;
       }
     });
+  }
+
+  if (options?.enableProvaMode && data.subtype === 'PROVA' && !data.mode) {
+    errors.mode = ERROR_MESSAGES.MODE_REQUIRED;
   }
 
   return errors;
@@ -196,15 +205,17 @@ export function validateDeadlineStep(
  * Validates a specific step
  * @param step - Step number (1, 2, or 3)
  * @param data - Partial form data
+ * @param options - Validation options passed to step validators
  * @returns StepErrors object with any validation errors
  */
 export function validateStep(
   step: number,
-  data: Partial<SendActivityFormData>
+  data: Partial<SendActivityFormData>,
+  options?: { enableProvaMode?: boolean }
 ): StepErrors {
   switch (step) {
     case 1:
-      return validateActivityStep(data);
+      return validateActivityStep(data, options);
     case 2:
       return validateRecipientStep(data);
     case 3:
@@ -218,21 +229,31 @@ export function validateStep(
  * Checks if a specific step is valid
  * @param step - Step number (1, 2, or 3)
  * @param data - Partial form data
+ * @param options - Validation options
  * @returns true if the step is valid
  */
 export function isStepValid(
   step: number,
-  data: Partial<SendActivityFormData>
+  data: Partial<SendActivityFormData>,
+  options?: { enableProvaMode?: boolean }
 ): boolean {
-  const errors = validateStep(step, data);
+  const errors = validateStep(step, data, options);
   return Object.keys(errors).length === 0;
 }
 
 /**
  * Checks if all steps are valid (form can be submitted)
  * @param data - Partial form data
+ * @param options - Validation options
  * @returns true if all steps are valid
  */
-export function isFormValid(data: Partial<SendActivityFormData>): boolean {
-  return isStepValid(1, data) && isStepValid(2, data) && isStepValid(3, data);
+export function isFormValid(
+  data: Partial<SendActivityFormData>,
+  options?: { enableProvaMode?: boolean }
+): boolean {
+  return (
+    isStepValid(1, data, options) &&
+    isStepValid(2, data) &&
+    isStepValid(3, data)
+  );
 }

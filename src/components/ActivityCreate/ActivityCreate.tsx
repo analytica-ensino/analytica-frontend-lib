@@ -64,6 +64,7 @@ const CreateActivity = ({
   onCreateActivity,
   onSaveModel,
   onAddActivityToLesson,
+  enableProvaMode = false,
 }: {
   apiClient: BaseApiClient;
   institutionId: string;
@@ -75,6 +76,7 @@ const CreateActivity = ({
   ) => void;
   onSaveModel?: (response: ActivityDraftResponse) => void;
   onAddActivityToLesson?: (activityDraftId: string) => void;
+  enableProvaMode?: boolean;
 }) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -1160,6 +1162,7 @@ const CreateActivity = ({
           startDate: startDateTime,
           finalDate: finalDateTime,
           canRetry: formData.canRetry,
+          mode: formData.mode,
         };
 
         // First POST: Create activity and capture response
@@ -1414,6 +1417,7 @@ const CreateActivity = ({
         categories={categories}
         onCategoriesChange={handleCategoriesChange}
         isLoading={isSendingActivity}
+        enableProvaMode={enableProvaMode}
         onError={(error) => {
           console.error('Erro ao enviar atividade:', error);
           const errorMessage =
