@@ -16,6 +16,9 @@ import {
   CardTopic,
   CardTest,
   CardSimulationHistory,
+  CardEssayHistory,
+  EssayStatus,
+  type EssayHistoryData,
 } from './Card';
 import Badge from '../Badge/Badge';
 
@@ -1353,6 +1356,142 @@ export const CardSimulationHistoryInteractive: Story = () => {
           <li>• Suporte completo a acessibilidade</li>
           <li>• Ícones de navegação com CaretRight</li>
         </ul>
+      </div>
+    </div>
+  );
+};
+
+export const CardEssayHistoryInteractive: Story = () => {
+  const mockData: EssayHistoryData[] = [
+    {
+      date: '12 Fev',
+      essays: [
+        {
+          id: 'e1',
+          title: null,
+          fallbackTitle: 'Os desafios do combate à desinformação na sociedade',
+          status: EssayStatus.CORRECTED,
+          totalScore: 800,
+        },
+        {
+          id: 'e2',
+          title: 'Educação inclusiva no Brasil',
+          status: EssayStatus.ERROR,
+          totalScore: null,
+        },
+        {
+          id: 'e3',
+          title: 'Impacto das redes sociais',
+          status: EssayStatus.CORRECTING,
+          totalScore: null,
+        },
+        {
+          id: 'e4',
+          title: 'Saúde mental nas escolas',
+          status: EssayStatus.SUBMITTED,
+          totalScore: null,
+        },
+      ],
+    },
+    {
+      date: '10 Fev',
+      essays: [
+        {
+          id: 'e5',
+          title: 'Preservação ambiental',
+          status: EssayStatus.CORRECTED,
+          totalScore: 920,
+        },
+        {
+          id: 'e6',
+          title: null,
+          fallbackTitle: 'Tema livre',
+          status: EssayStatus.DRAFT,
+          totalScore: null,
+        },
+      ],
+    },
+    {
+      date: '20 Jan',
+      essays: [
+        {
+          id: 'e7',
+          title: 'Tecnologia na educação',
+          status: EssayStatus.CORRECTED,
+          totalScore: 760,
+        },
+        {
+          id: 'e8',
+          title: 'Cultura e identidade',
+          status: EssayStatus.CORRECTED,
+          totalScore: 840,
+        },
+      ],
+    },
+  ];
+
+  return (
+    <div className="space-y-8">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold text-text-900 mb-4">
+          CardEssayHistory — Histórico de Redações
+        </h2>
+        <p className="text-text-600 text-lg">
+          Lista agrupada por data com estados visuais por status da redação
+        </p>
+      </div>
+
+      <div className="flex justify-center">
+        <CardEssayHistory
+          data={mockData}
+          onEssayClick={(essay) => console.log('Clicado:', essay)}
+          className="mx-auto"
+        />
+      </div>
+
+      <div className="max-w-2xl mx-auto bg-background-50 p-6 rounded-lg">
+        <h3 className="text-xl font-semibold text-text-900 mb-4">
+          Estados visuais
+        </h3>
+        <ul className="text-text-700 text-sm space-y-1">
+          <li>
+            • <strong>CORRECTED + totalScore</strong> → lilás "X de{' '}
+            {`{maxScore}`}" (clicável)
+          </li>
+          <li>
+            • <strong>ERROR</strong> → peach "Erro na correção" (clicável pra
+            retry)
+          </li>
+          <li>
+            • <strong>CORRECTING/SUBMITTED</strong> → cinza "Gerando
+            resultado..." (não clicável)
+          </li>
+          <li>
+            • <strong>DRAFT</strong> → cinza "Rascunho" (não clicável)
+          </li>
+        </ul>
+      </div>
+
+      <div className="max-w-2xl mx-auto">
+        <h3 className="text-xl font-semibold text-text-900 mb-4">
+          maxScore customizado (500)
+        </h3>
+        <CardEssayHistory
+          data={[
+            {
+              date: '12 Fev',
+              essays: [
+                {
+                  id: 'custom',
+                  title: 'Redação com escala customizada',
+                  status: EssayStatus.CORRECTED,
+                  totalScore: 400,
+                },
+              ],
+            },
+          ]}
+          maxScore={500}
+        />
       </div>
     </div>
   );

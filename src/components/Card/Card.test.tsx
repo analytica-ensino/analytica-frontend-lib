@@ -16,6 +16,9 @@ import {
   CardAudio,
   CardTest,
   CardSimulationHistory,
+  CardEssayHistory,
+  EssayStatus,
+  type EssayHistoryData,
 } from './Card';
 import { ChartBar, Gear, Star } from 'phosphor-react';
 
@@ -3378,5 +3381,237 @@ describe('CardSimulationHistory', () => {
       '[class*="hover:shadow-soft-shadow-2"]'
     );
     expect(simulationCards.length).toBeGreaterThan(0);
+  });
+});
+
+describe('CardEssayHistory', () => {
+  const buildData = (): EssayHistoryData[] => [
+    {
+      date: '12 Fev',
+      essays: [
+        {
+          id: 'e1',
+          title: null,
+          fallbackTitle: 'Tema do dia',
+          status: EssayStatus.CORRECTED,
+          totalScore: 800,
+        },
+        {
+          id: 'e2',
+          title: 'Sem nota',
+          status: EssayStatus.ERROR,
+          totalScore: null,
+        },
+        {
+          id: 'e3',
+          title: 'Em andamento',
+          status: EssayStatus.CORRECTING,
+          totalScore: null,
+        },
+        {
+          id: 'e4',
+          title: 'Aguardando',
+          status: EssayStatus.SUBMITTED,
+          totalScore: null,
+        },
+      ],
+    },
+    {
+      date: '10 Fev',
+      essays: [
+        {
+          id: 'e5',
+          title: 'Rascunho salvo',
+          status: EssayStatus.DRAFT,
+          totalScore: null,
+        },
+      ],
+    },
+  ];
+
+  it('renders with default props and data-testid', () => {
+    render(<CardEssayHistory data={buildData()} data-testid="essay-history" />);
+    expect(screen.getByTestId('essay-history')).toBeInTheDocument();
+  });
+
+  it('renders all date groups and essay items', () => {
+    render(<CardEssayHistory data={buildData()} />);
+    expect(screen.getByText('12 Fev')).toBeInTheDocument();
+    expect(screen.getByText('10 Fev')).toBeInTheDocument();
+    expect(screen.getByText('Tema do dia')).toBeInTheDocument();
+    expect(screen.getByText('Sem nota')).toBeInTheDocument();
+    expect(screen.getByText('Rascunho salvo')).toBeInTheDocument();
+  });
+
+  it('uses fallbackTitle when title is null', () => {
+    render(<CardEssayHistory data={buildData()} />);
+    expect(screen.getByText('Tema do dia')).toBeInTheDocument();
+  });
+
+  it('shows score label for CORRECTED status with totalScore', () => {
+    render(<CardEssayHistory data={buildData()} />);
+    expect(screen.getByText('800 de 1000')).toBeInTheDocument();
+  });
+
+  it('respects custom maxScore', () => {
+    render(<CardEssayHistory data={buildData()} maxScore={500} />);
+    expect(screen.getByText('800 de 500')).toBeInTheDocument();
+  });
+
+  it('shows "Erro na correção" for ERROR status', () => {
+    render(<CardEssayHistory data={buildData()} />);
+    expect(screen.getByText('Erro na correção')).toBeInTheDocument();
+  });
+
+  it('shows "Gerando resultado..." for CORRECTING and SUBMITTED', () => {
+    render(<CardEssayHistory data={buildData()} />);
+    expect(screen.getAllByText('Gerando resultado...')).toHaveLength(2);
+  });
+
+  it('shows "Rascunho" for DRAFT status', () => {
+    render(<CardEssayHistory data={buildData()} />);
+    expect(screen.getByText('Rascunho')).toBeInTheDocument();
+  });
+
+  it('calls onEssayClick when clicking a clickable essay (CORRECTED)', () => {
+    const onEssayClick = jest.fn();
+    render(<CardEssayHistory data={buildData()} onEssayClick={onEssayClick} />);
+
+    fireEvent.click(screen.getByText('Tema do dia'));
+    expect(onEssayClick).toHaveBeenCalledTimes(1);
+    expect(onEssayClick).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'e1', status: EssayStatus.CORRECTED })
+    );
+  });
+
+  it('calls onEssayClick for ERROR items', () => {
+    const onEssayClick = jest.fn();
+    render(<CardEssayHistory data={buildData()} onEssayClick={onEssayClick} />);
+
+    fireEvent.click(screen.getByText('Sem nota'));
+    expect(onEssayClick).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'e2', status: EssayStatus.ERROR })
+    );
+  });
+
+  it('does not fire onEssayClick on CORRECTING/SUBMITTED/DRAFT items (disabled buttons)', () => {
+    const onEssayClick = jest.fn();
+    render(<CardEssayHistory data={buildData()} onEssayClick={onEssayClick} />);
+
+    fireEvent.click(screen.getByText('Em andamento'));
+    fireEvent.click(screen.getByText('Aguardando'));
+    fireEvent.click(screen.getByText('Rascunho salvo'));
+
+    expect(onEssayClick).not.toHaveBeenCalled();
+  });
+
+  it('forwards ref correctly', () => {
+    const ref = React.createRef<HTMLDivElement>();
+    render(<CardEssayHistory data={buildData()} ref={ref} />);
+    expect(ref.current).toBeInstanceOf(HTMLDivElement);
+  });
+
+  it('merges className with defaults', () => {
+    render(
+      <CardEssayHistory
+        data={buildData()}
+        className="custom-class"
+        data-testid="essay-history"
+      />
+    );
+    const component = screen.getByTestId('essay-history');
+    expect(component).toHaveClass('custom-class');
+  });
+
+  it('renders "Sem título" fallback when both title and fallbackTitle are missing', () => {
+    const data: EssayHistoryData[] = [
+      {
+        date: '12 Fev',
+        essays: [
+          {
+            id: 'no-title',
+            title: null,
+            status: EssayStatus.CORRECTED,
+            totalScore: 600,
+          },
+        ],
+      },
+    ];
+    render(<CardEssayHistory data={data} />);
+    expect(screen.getByText('Sem título')).toBeInTheDocument();
+  });
+
+  it('sets aria-label combining title and status text on each button', () => {
+    const data: EssayHistoryData[] = [
+      {
+        date: '12 Fev',
+        essays: [
+          {
+            id: 'x',
+            title: 'Minha redação',
+            status: EssayStatus.CORRECTED,
+            totalScore: 800,
+          },
+          {
+            id: 'y',
+            title: 'Em processo',
+            status: EssayStatus.CORRECTING,
+            totalScore: null,
+          },
+        ],
+      },
+    ];
+    render(<CardEssayHistory data={data} />);
+    expect(
+      screen.getByRole('button', { name: 'Minha redação — 800 de 1000' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: 'Em processo — Gerando resultado...',
+      })
+    ).toBeInTheDocument();
+  });
+
+  it('renders two sections with the same date without duplicate keys warning', () => {
+    const consoleSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+
+    const data: EssayHistoryData[] = [
+      {
+        date: '12 Fev',
+        essays: [
+          {
+            id: 'a1',
+            title: 'A',
+            status: EssayStatus.CORRECTED,
+            totalScore: 800,
+          },
+        ],
+      },
+      {
+        date: '12 Fev',
+        essays: [
+          {
+            id: 'a2',
+            title: 'B',
+            status: EssayStatus.CORRECTED,
+            totalScore: 900,
+          },
+        ],
+      },
+    ];
+
+    render(<CardEssayHistory data={data} />);
+
+    const duplicateKeyWarning = consoleSpy.mock.calls.some((args) =>
+      String(args[0]).includes('Encountered two children with the same key')
+    );
+    expect(duplicateKeyWarning).toBe(false);
+
+    expect(screen.getByText('A')).toBeInTheDocument();
+    expect(screen.getByText('B')).toBeInTheDocument();
+
+    consoleSpy.mockRestore();
   });
 });
