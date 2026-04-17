@@ -45,11 +45,17 @@ export default function Chatbot({
   fabClassName,
   panelClassName,
 }: Readonly<ChatbotProps>) {
-  // Bind the hook factory to the provided client exactly once. The hook
-  // itself reads the latest apiClient via an internal ref, so rebinding on
-  // re-render would wipe its state — hence we cache with useRef.
+  // Keep the latest apiClient in a ref — any `apiClient` prop swap (e.g.,
+  // after re-auth with a new token-bound client) is seen by the hook on
+  // its next call without tearing down internal state.
+  const apiClientRef = useRef(apiClient);
+  apiClientRef.current = apiClient;
+
+  // Bind the factory exactly once, passing a getter so the hook resolves
+  // `apiClientRef.current` fresh on every call instead of snapshotting
+  // whatever client we saw on first mount.
   const boundHookRef = useRef<ReturnType<typeof createUseChatbot> | null>(null);
-  boundHookRef.current ??= createUseChatbot(apiClient);
+  boundHookRef.current ??= createUseChatbot(() => apiClientRef.current);
   const useBoundChatbot = boundHookRef.current;
   const {
     isOpen,

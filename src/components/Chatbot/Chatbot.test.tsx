@@ -109,4 +109,33 @@ describe('Chatbot', () => {
       )
     );
   });
+
+  it('uses the latest apiClient prop when the parent swaps it (no stale binding)', async () => {
+    // First client; second replaces it during re-render.
+    const firstClient = buildClient();
+    const secondClient = buildClient();
+    const { rerender } = render(
+      <Chatbot apiClient={firstClient} user={{ id: 'u', name: 'Ana' }} />
+    );
+
+    rerender(
+      <Chatbot apiClient={secondClient} user={{ id: 'u', name: 'Ana' }} />
+    );
+
+    await userEvent.click(
+      screen.getByRole('button', { name: /abrir assistente/i })
+    );
+    await userEvent.type(
+      screen.getByRole('textbox', { name: /mensagem para o assistente/i }),
+      'oi{Enter}'
+    );
+
+    // The second (latest) client should receive the call, not the stale
+    // first one. This validates that `Chatbot` forwards the latest prop
+    // to `createUseChatbot` via a getter rather than capturing on mount.
+    await waitFor(() =>
+      expect(secondClient.sendMessage).toHaveBeenCalledTimes(1)
+    );
+    expect(firstClient.sendMessage).not.toHaveBeenCalled();
+  });
 });
