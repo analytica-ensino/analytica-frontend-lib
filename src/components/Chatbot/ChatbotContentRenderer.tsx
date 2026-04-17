@@ -17,18 +17,51 @@ export interface ChatbotContentRendererProps {
  * `$$...$$` display block, an explicit LaTeX block
  * (`\begin{...}...\end{...}`), or an inline `$...$` whose inner content
  * contains an unmistakably mathematical character (backslash / caret /
- * underscore / curly brace / tex command). This avoids false positives on
- * prose that contains currency like "R$ 20" or "por $20 e o livro $ 5".
+ * underscore / curly brace). This avoids false positives on prose that
+ * contains currency like "R$ 20" or "por $20 e o livro $ 5".
+ *
+ * Instead of `matchAll` with a lazy regex (which would greedily consume
+ * adjacent `$`s left-to-right and could miss a valid formula following a
+ * currency span on the same line, e.g. "Preço R$ 20 e a fórmula $x^2+1$"),
+ * we collect every `$` index and probe all pairs — detection is O(N²) in
+ * the worst case but N here is the count of `$` on a single line, so in
+ * practice it remains linear on realistic input.
  */
+const MATH_CHAR_PATTERN = /[\\^_{}]/;
+
+/**
+ * Collect every unescaped `$` index in the content.
+ */
+function collectDollarIndices(content: string): number[] {
+  const result: number[] = [];
+  for (let i = 0; i < content.length; i++) {
+    if (content[i] === '$' && content[i - 1] !== '\\') {
+      result.push(i);
+    }
+  }
+  return result;
+}
+
+/**
+ * Return true if any `$...$` pair spanning a single line contains a
+ * math-only character.
+ */
+function hasInlineMathSpan(content: string, indices: number[]): boolean {
+  for (let i = 0; i < indices.length; i++) {
+    for (let j = i + 1; j < indices.length; j++) {
+      const inner = content.slice(indices[i] + 1, indices[j]);
+      if (inner.includes('\n')) break;
+      if (MATH_CHAR_PATTERN.test(inner)) return true;
+    }
+  }
+  return false;
+}
+
 function looksLikeMath(content: string): boolean {
   if (!containsMath(content)) return false;
   if (/\$\$[\s\S]+?\$\$/.test(content)) return true;
   if (/\\begin\{[^}]+\}[\s\S]+?\\end\{[^}]+\}/.test(content)) return true;
-  const inlineMatches = content.matchAll(/\$([^$\n]+?)\$/g);
-  for (const match of inlineMatches) {
-    if (/[\\^_{}]/.test(match[1])) return true;
-  }
-  return false;
+  return hasInlineMathSpan(content, collectDollarIndices(content));
 }
 
 /**

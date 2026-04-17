@@ -48,6 +48,11 @@ describe('ChatbotConversationList', () => {
   });
 
   it('shows skeletons while loading', () => {
+    // The component renders exactly 3 SkeletonText placeholders during
+    // the loading state (see renderBody in ChatbotConversationList.tsx).
+    // Asserting the exact count catches regressions where skeletons are
+    // dropped or accidentally multiplied.
+    const EXPECTED_SKELETON_COUNT = 3;
     const { container } = render(
       <ChatbotConversationList
         conversations={[]}
@@ -58,8 +63,8 @@ describe('ChatbotConversationList', () => {
         onStartNew={jest.fn()}
       />
     );
-    expect(container.querySelectorAll('.animate-pulse').length).toBeGreaterThan(
-      0
+    expect(container.querySelectorAll('.animate-pulse').length).toBe(
+      EXPECTED_SKELETON_COUNT
     );
   });
 

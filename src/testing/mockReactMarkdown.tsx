@@ -9,6 +9,23 @@ import type { ReactNode } from 'react';
 
 type ReactMarkdownProps = { children?: string };
 
+/**
+ * Parse a single line and return the bullet content when it's a markdown
+ * list item (` - foo`, `  * foo`), otherwise `null`. Linear in line length
+ * and intentionally regex-free to avoid ReDoS concerns flagged by static
+ * analyzers on patterns with chained quantifiers + greedy captures.
+ */
+function extractBulletContent(line: string): string | null {
+  let i = 0;
+  while (i < line.length && (line[i] === ' ' || line[i] === '\t')) i++;
+  if (line[i] !== '-' && line[i] !== '*') return null;
+  i++;
+  if (line[i] !== ' ' && line[i] !== '\t') return null;
+  while (i < line.length && (line[i] === ' ' || line[i] === '\t')) i++;
+  if (i >= line.length) return null;
+  return line.slice(i);
+}
+
 function renderInline(text: string): ReactNode[] {
   const nodes: ReactNode[] = [];
   let cursor = 0;
@@ -59,13 +76,13 @@ export default function ReactMarkdownMock({
 
   for (const rawLine of lines) {
     const line = rawLine.trimEnd();
-    const bullet = /^\s*[-*]\s+(.*)$/.exec(line);
-    if (bullet) {
-      currentList.push(bullet[1]);
-    } else {
+    const bulletContent = extractBulletContent(line);
+    if (bulletContent === null) {
       flushList();
       if (line.trim() === '') continue;
       blocks.push(<p key={`p-${blockIdx++}`}>{renderInline(line)}</p>);
+    } else {
+      currentList.push(bulletContent);
     }
   }
   flushList();

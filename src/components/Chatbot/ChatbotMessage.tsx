@@ -10,6 +10,8 @@ import type { ChatbotMessage as ChatbotMessageType } from '../../types/chatbot';
 export interface ChatbotMessageProps {
   message: ChatbotMessageType;
   className?: string;
+  /** Optional classes forwarded to the assistant markdown renderer. */
+  contentClassName?: string;
 }
 
 /**
@@ -32,6 +34,7 @@ function formatTimestamp(value: Date | string): string {
 export default function ChatbotMessage({
   message,
   className,
+  contentClassName,
 }: Readonly<ChatbotMessageProps>) {
   const isUser = message.role === 'user';
   return (
@@ -60,7 +63,10 @@ export default function ChatbotMessage({
             {message.content}
           </Text>
         ) : (
-          <ChatbotContentRenderer content={message.content} />
+          <ChatbotContentRenderer
+            content={message.content}
+            className={contentClassName}
+          />
         )}
         <Text
           size="2xs"

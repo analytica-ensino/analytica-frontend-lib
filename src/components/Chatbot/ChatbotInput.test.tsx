@@ -62,10 +62,19 @@ describe('ChatbotInput', () => {
     const textarea = screen.getByRole('textbox', {
       name: /mensagem para o assistente/i,
     });
+    const sendButton = screen.getByRole('button', {
+      name: /enviar mensagem/i,
+    });
     expect(textarea).toBeDisabled();
-    expect(
-      screen.getByRole('button', { name: /enviar mensagem/i })
-    ).toBeDisabled();
+    expect(sendButton).toBeDisabled();
+
+    // Attempts to submit must be ignored even if the UI manages to fire
+    // Enter or Click while disabled — belt-and-suspenders check.
+    await userEvent.click(sendButton);
+    // userEvent.type on a disabled textarea is a no-op, but we still fire
+    // the Enter key against it to exercise the handler's disabled guard.
+    await userEvent.type(textarea, '{Enter}', { skipClick: true });
+    expect(onSend).not.toHaveBeenCalled();
   });
 
   it('renders the provided placeholder', () => {

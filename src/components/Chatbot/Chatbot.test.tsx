@@ -79,8 +79,11 @@ describe('Chatbot', () => {
     await userEvent.type(textarea, 'como resolver?{Enter}');
 
     await waitFor(() => expect(client.sendMessage).toHaveBeenCalledTimes(1));
-    expect(screen.getByText('hello')).toBeInTheDocument();
-    expect(screen.getByText('world')).toBeInTheDocument();
+    // Wrap bubble assertions in waitFor — the message pipeline resolves
+    // across multiple microtasks and state updates in useChatbot, so
+    // reading the DOM immediately could race with React batching.
+    await waitFor(() => expect(screen.getByText('hello')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('world')).toBeInTheDocument());
   });
 
   it('forwards currentContext to sendMessage', async () => {

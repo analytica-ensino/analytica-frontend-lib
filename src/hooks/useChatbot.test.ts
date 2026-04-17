@@ -143,12 +143,20 @@ describe('useChatbot', () => {
     );
   });
 
-  it('startNewConversation clears active conversation and messages', () => {
+  it('startNewConversation clears active conversation and messages', async () => {
+    // Seed real messages via sendMessage so the "clears messages"
+    // assertion is meaningful — without this, the initial empty list
+    // would pass the final expectation trivially.
     const client = buildClient();
     const { result } = renderHook(() => createUseChatbot(client)());
 
+    await act(async () => {
+      await result.current.sendMessage('oi');
+    });
+    expect(result.current.messages.length).toBeGreaterThan(0);
+    expect(result.current.activeConversationId).toBe('c-1');
+
     act(() => {
-      result.current.selectConversation('c-2');
       result.current.startNewConversation();
     });
 
