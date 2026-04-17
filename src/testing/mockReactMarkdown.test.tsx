@@ -89,15 +89,22 @@ describe('mockReactMarkdown (jest stub for react-markdown)', () => {
   });
 
   it('treats bullet-like lines without trailing content as plain text', () => {
-    // "-" alone, or "- " with no content, is not a valid bullet.
+    // "-" alone is not a valid bullet; it must render as a paragraph.
     const { container } = render(<ReactMarkdownMock>{'-'}</ReactMarkdownMock>);
     expect(container.querySelector('ul')).toBeNull();
-    expect(container.querySelector('p')).not.toBeNull();
+    const paragraph = container.querySelector('p');
+    expect(paragraph).not.toBeNull();
+    expect(paragraph?.textContent).toBe('-');
   });
 
   it('treats "- " with no body as plain text (no bullet)', () => {
     const { container } = render(<ReactMarkdownMock>{'- '}</ReactMarkdownMock>);
     expect(container.querySelector('ul')).toBeNull();
+    // After `trimEnd()` in the component, the rendered paragraph text
+    // ends up as "-" (the trailing space is stripped before parsing).
+    const paragraph = container.querySelector('p');
+    expect(paragraph).not.toBeNull();
+    expect(paragraph?.textContent).toBe('-');
   });
 
   it('flushes the list when a blank line breaks the sequence', () => {

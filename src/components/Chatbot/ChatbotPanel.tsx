@@ -77,9 +77,12 @@ export default function ChatbotPanel({
         // resets that so the `fixed` positioning below pins the panel
         // to the bottom-right as intended.
         'fixed bottom-20 right-6 z-40 m-0',
-        'flex h-[600px] w-[380px] flex-col overflow-hidden rounded-xl p-0',
+        // Responsive sizing: fills small viewports without overflowing,
+        // yet caps at the intended desktop footprint on larger screens.
+        'flex w-[calc(100vw-3rem)] max-w-[380px] flex-col overflow-hidden rounded-xl p-0',
+        'h-[min(600px,calc(100vh-6rem))]',
         'border border-background-200 bg-white shadow-2xl',
-        'sm:w-[420px]',
+        'sm:max-w-[420px]',
         className
       )}
     >
@@ -114,11 +117,15 @@ export default function ChatbotPanel({
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        {showHistory && <div className="w-44 flex-shrink-0">{historySlot}</div>}
+        {showHistory && <div className="w-44 shrink-0">{historySlot}</div>}
         <div className="flex flex-1 flex-col">
           {messagesSlot}
           {errorMessage && (
-            <div className="border-t border-error-200 bg-error-50 px-3 py-2">
+            <div
+              role="alert"
+              aria-live="assertive"
+              className="border-t border-error-200 bg-error-50 px-3 py-2"
+            >
               <Text size="xs" className="text-error-700">
                 {errorMessage}
               </Text>

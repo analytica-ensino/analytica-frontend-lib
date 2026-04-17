@@ -147,6 +147,21 @@ export function createUseChatbot(resolver: ChatbotApiClientResolver) {
     // overwriting newer ones when the user switches conversations quickly.
     const conversationsSeqRef = useRef(0);
     const messagesSeqRef = useRef(0);
+    // Synchronous lock around `sendMessage` — the `isSending` state alone
+    // cannot block a second call fired in the same tick (React batches
+    // state updates), so we mirror it with a ref that flips immediately.
+    const isSendingRef = useRef(false);
+
+    /**
+     * Bump the messages sequence and clear the loading flag so any
+     * in-flight `loadMessages()` resolving afterward fails the sequence
+     * check and does not repopulate state tied to a conversation the
+     * user has already left.
+     */
+    const invalidateMessagesLoad = () => {
+      messagesSeqRef.current += 1;
+      setIsLoadingMessages(false);
+    };
 
     const loadConversations = useCallback(async () => {
       const seq = ++conversationsSeqRef.current;
@@ -216,6 +231,7 @@ export function createUseChatbot(resolver: ChatbotApiClientResolver) {
         if (id) {
           void loadMessages(id);
         } else {
+          invalidateMessagesLoad();
           setMessages([]);
         }
       },
@@ -223,6 +239,7 @@ export function createUseChatbot(resolver: ChatbotApiClientResolver) {
     );
 
     const startNewConversation = useCallback(() => {
+      invalidateMessagesLoad();
       setActiveConversationId(null);
       setMessages([]);
     }, []);
@@ -230,7 +247,11 @@ export function createUseChatbot(resolver: ChatbotApiClientResolver) {
     const sendMessage = useCallback(
       async (text: string, currentContext?: ChatbotCurrentContext) => {
         const trimmed = text.trim();
-        if (!trimmed || isSending) return;
+        // Ref-based guard: `isSending` state alone can't block a second
+        // call fired in the same tick (React batches updates), so we
+        // mirror the flag in a ref that flips synchronously.
+        if (!trimmed || isSendingRef.current) return;
+        isSendingRef.current = true;
 
         const placeholderId = generatePlaceholderId();
         const placeholder: ChatbotMessage = {
@@ -267,10 +288,11 @@ export function createUseChatbot(resolver: ChatbotApiClientResolver) {
             err instanceof Error ? err.message : 'Falha ao enviar mensagem'
           );
         } finally {
+          isSendingRef.current = false;
           if (mountedRef.current) setIsSending(false);
         }
       },
-      [activeConversationId, isSending, loadConversations]
+      [activeConversationId, loadConversations]
     );
 
     const deleteConversation = useCallback(
@@ -281,6 +303,7 @@ export function createUseChatbot(resolver: ChatbotApiClientResolver) {
           if (!mountedRef.current) return;
           setConversations((prev) => removeById(prev, id));
           if (activeConversationId === id) {
+            invalidateMessagesLoad();
             setActiveConversationId(null);
             setMessages([]);
           }
