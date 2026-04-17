@@ -28,11 +28,20 @@ describe('ChatbotContentRenderer', () => {
   });
 
   it('escapes raw HTML by default', () => {
-    render(
+    const { container } = render(
       <ChatbotContentRenderer content={'<script>alert(1)</script> normal'} />
     );
-    // react-markdown escapes, so <script> should appear as plain text
+    // react-markdown escapes, so <script> appears as plain text in the DOM
     expect(screen.getByText(/alert\(1\)/)).toBeInTheDocument();
-    expect(document.querySelector('script[data-test]')).toBeNull();
+    // No actual <script> element should be rendered inside the component
+    expect(container.querySelector('script')).toBeNull();
+  });
+
+  it('does not misdetect currency as math', () => {
+    const { container } = render(
+      <ChatbotContentRenderer content="Comprei por $20 e o livro $ 5." />
+    );
+    // Currency is plain markdown, not math — no KaTeX block should render.
+    expect(container.querySelector('.katex')).toBeNull();
   });
 });

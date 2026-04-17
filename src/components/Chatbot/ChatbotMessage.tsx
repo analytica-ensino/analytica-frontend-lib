@@ -32,7 +32,7 @@ function formatTimestamp(value: Date | string): string {
 export default function ChatbotMessage({
   message,
   className,
-}: ChatbotMessageProps) {
+}: Readonly<ChatbotMessageProps>) {
   const isUser = message.role === 'user';
   return (
     <div

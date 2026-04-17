@@ -25,7 +25,7 @@ export default function ChatbotInput({
   disabled = false,
   placeholder = 'Pergunte ao assistente...',
   className,
-}: ChatbotInputProps) {
+}: Readonly<ChatbotInputProps>) {
   const [value, setValue] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -47,6 +47,10 @@ export default function ChatbotInput({
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLTextAreaElement>) => {
+      // Ignore Enter while an IME composition is in progress (e.g. typing
+      // Japanese/Chinese), otherwise confirming the composition would
+      // submit the message prematurely.
+      if (e.nativeEvent.isComposing) return;
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         submit();

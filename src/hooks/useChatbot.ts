@@ -2,12 +2,65 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type {
   ChatbotApiClient,
   ChatbotConversation,
-  ChatbotCurrentContext,
   ChatbotMessage,
+  ChatbotCurrentContext,
+  SendChatbotMessageResult,
 } from '../types/chatbot';
 
 const DEFAULT_CONVERSATIONS_PAGE_SIZE = 20;
 const DEFAULT_MESSAGES_PAGE_SIZE = 50;
+
+/**
+ * Monotonic counter used as a fallback when `crypto.randomUUID` is not
+ * available (older browsers / some jsdom builds).
+ */
+let placeholderCounter = 0;
+
+/**
+ * Generate a collision-safe id for optimistic user bubbles. Prefers
+ * `crypto.randomUUID()` when available (browsers + modern Node), and
+ * falls back to a timestamp + monotonic counter otherwise.
+ */
+function generatePlaceholderId(): string {
+  const globalCrypto = (globalThis as { crypto?: Crypto }).crypto;
+  if (globalCrypto && typeof globalCrypto.randomUUID === 'function') {
+    return `pending-${globalCrypto.randomUUID()}`;
+  }
+  placeholderCounter += 1;
+  return `pending-${Date.now()}-${placeholderCounter}`;
+}
+
+/**
+ * Replace the optimistic placeholder with the server-confirmed pair.
+ */
+function replacePlaceholder(
+  prev: ChatbotMessage[],
+  placeholderId: string,
+  result: SendChatbotMessageResult
+): ChatbotMessage[] {
+  return [
+    ...prev.filter((m) => m.id !== placeholderId),
+    result.userMessage,
+    result.assistantMessage,
+  ];
+}
+
+/**
+ * Remove an optimistic placeholder (used on error rollback).
+ */
+function removePlaceholder(
+  prev: ChatbotMessage[],
+  placeholderId: string
+): ChatbotMessage[] {
+  return prev.filter((m) => m.id !== placeholderId);
+}
+
+/**
+ * Filter out an item by id. Generic helper used for conversations.
+ */
+function removeById<T extends { id: string }>(items: T[], id: string): T[] {
+  return items.filter((item) => item.id !== id);
+}
 
 /**
  * Data and actions exposed by `useChatbot`
@@ -57,20 +110,27 @@ export function createUseChatbot(apiClient: ChatbotApiClient) {
     >(null);
     const [messages, setMessages] = useState<ChatbotMessage[]>([]);
 
-    // Guard against state updates after unmount
-    const mountedRef = useRef(true);
-    useEffect(
-      () => () => {
+    // Keep the latest apiClient in a ref so the memoized callbacks stay
+    // stable even if the parent swaps client references between renders.
+    const apiClientRef = useRef(apiClient);
+    apiClientRef.current = apiClient;
+
+    // Guard against state updates after unmount. The ref is re-armed on
+    // mount so the hook works correctly under React 18/19 Strict Mode
+    // (which mounts, unmounts and remounts during development).
+    const mountedRef = useRef(false);
+    useEffect(() => {
+      mountedRef.current = true;
+      return () => {
         mountedRef.current = false;
-      },
-      []
-    );
+      };
+    }, []);
 
     const loadConversations = useCallback(async () => {
       setIsLoadingHistory(true);
       setErrorMessage(null);
       try {
-        const result = await apiClient.listConversations({
+        const result = await apiClientRef.current.listConversations({
           page: 1,
           limit: DEFAULT_CONVERSATIONS_PAGE_SIZE,
         });
@@ -90,7 +150,7 @@ export function createUseChatbot(apiClient: ChatbotApiClient) {
       setIsLoadingMessages(true);
       setErrorMessage(null);
       try {
-        const result = await apiClient.getMessages(conversationId, {
+        const result = await apiClientRef.current.getMessages(conversationId, {
           page: 1,
           limit: DEFAULT_MESSAGES_PAGE_SIZE,
         });
@@ -144,7 +204,7 @@ export function createUseChatbot(apiClient: ChatbotApiClient) {
         const trimmed = text.trim();
         if (!trimmed || isSending) return;
 
-        const placeholderId = `pending-${Date.now()}`;
+        const placeholderId = generatePlaceholderId();
         const placeholder: ChatbotMessage = {
           id: placeholderId,
           conversationId: activeConversationId ?? '',
@@ -158,25 +218,23 @@ export function createUseChatbot(apiClient: ChatbotApiClient) {
         setErrorMessage(null);
 
         try {
-          const result = await apiClient.sendMessage({
+          const result = await apiClientRef.current.sendMessage({
             message: trimmed,
             conversationId: activeConversationId ?? undefined,
             currentContext,
           });
           if (!mountedRef.current) return;
 
-          setMessages((prev) => [
-            ...prev.filter((m) => m.id !== placeholderId),
-            result.userMessage,
-            result.assistantMessage,
-          ]);
+          setMessages((prev) =>
+            replacePlaceholder(prev, placeholderId, result)
+          );
           setActiveConversationId(result.conversationId);
 
           // Refresh conversations list so title / lastMessageAt update
           void loadConversations();
         } catch (err) {
           if (!mountedRef.current) return;
-          setMessages((prev) => prev.filter((m) => m.id !== placeholderId));
+          setMessages((prev) => removePlaceholder(prev, placeholderId));
           setErrorMessage(
             err instanceof Error ? err.message : 'Falha ao enviar mensagem'
           );
@@ -191,9 +249,9 @@ export function createUseChatbot(apiClient: ChatbotApiClient) {
       async (id: string) => {
         setErrorMessage(null);
         try {
-          await apiClient.deleteConversation(id);
+          await apiClientRef.current.deleteConversation(id);
           if (!mountedRef.current) return;
-          setConversations((prev) => prev.filter((c) => c.id !== id));
+          setConversations((prev) => removeById(prev, id));
           if (activeConversationId === id) {
             setActiveConversationId(null);
             setMessages([]);

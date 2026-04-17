@@ -25,12 +25,20 @@ export default function ChatbotMessageList({
   isLoading = false,
   emptyHint = 'Comece a conversa enviando uma pergunta.',
   className,
-}: ChatbotMessageListProps) {
+}: Readonly<ChatbotMessageListProps>) {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const didMountRef = useRef(false);
 
   useEffect(() => {
+    // Skip the scroll on initial render — otherwise scrollIntoView could
+    // yank the page viewport before the panel is visible. Only auto-scroll
+    // on subsequent updates (new message, typing indicator changes).
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
     if (bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+      bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }
   }, [messages.length, isSending]);
 

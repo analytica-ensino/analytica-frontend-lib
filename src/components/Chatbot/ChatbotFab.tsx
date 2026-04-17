@@ -24,12 +24,26 @@ export default function ChatbotFab({
   isOpen = false,
   unreadCount = 0,
   className,
-}: ChatbotFabProps) {
+}: Readonly<ChatbotFabProps>) {
+  const noun = unreadCount === 1 ? 'mensagem não lida' : 'mensagens não lidas';
+  let badgeLabel: string;
+  if (unreadCount > 9) {
+    badgeLabel = 'Mais de 9 mensagens não lidas';
+  } else {
+    badgeLabel = `${unreadCount} ${noun}`;
+  }
+
+  const baseAriaLabel = isOpen
+    ? 'Fechar assistente'
+    : 'Abrir assistente de estudos';
+  const ariaLabel =
+    unreadCount > 0 ? `${baseAriaLabel} (${badgeLabel})` : baseAriaLabel;
+
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label={isOpen ? 'Fechar assistente' : 'Abrir assistente de estudos'}
+      aria-label={ariaLabel}
       aria-expanded={isOpen}
       className={cn(
         'fixed bottom-6 right-6 z-40',
@@ -44,6 +58,8 @@ export default function ChatbotFab({
       {unreadCount > 0 && (
         <span
           data-testid="chatbot-fab-badge"
+          aria-live="polite"
+          aria-label={badgeLabel}
           className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-error-500 px-1 text-xs font-bold text-white"
         >
           {unreadCount > 9 ? '9+' : unreadCount}

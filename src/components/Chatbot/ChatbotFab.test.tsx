@@ -41,6 +41,29 @@ describe('ChatbotFab', () => {
     expect(screen.getByTestId('chatbot-fab-badge')).toHaveTextContent('9+');
   });
 
+  it('announces the unread count to assistive tech via aria-live', () => {
+    render(<ChatbotFab onClick={() => undefined} unreadCount={3} />);
+    const badge = screen.getByTestId('chatbot-fab-badge');
+    expect(badge).toHaveAttribute('aria-live', 'polite');
+    expect(badge).toHaveAttribute('aria-label', '3 mensagens não lidas');
+  });
+
+  it('uses singular noun when unreadCount is 1', () => {
+    render(<ChatbotFab onClick={() => undefined} unreadCount={1} />);
+    expect(screen.getByTestId('chatbot-fab-badge')).toHaveAttribute(
+      'aria-label',
+      '1 mensagem não lida'
+    );
+  });
+
+  it('includes the unread count in the button aria-label when present', () => {
+    render(<ChatbotFab onClick={() => undefined} unreadCount={2} />);
+    const btn = screen.getByRole('button', {
+      name: /abrir assistente.*2 mensagens não lidas/i,
+    });
+    expect(btn).toBeInTheDocument();
+  });
+
   it('forwards className', () => {
     render(<ChatbotFab onClick={() => undefined} className="custom-class" />);
     expect(screen.getByRole('button')).toHaveClass('custom-class');

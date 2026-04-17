@@ -204,6 +204,8 @@ export default defineConfig({
     '@react-google-maps/api',
     '@turf/union',
     '@turf/helpers',
+    'react-markdown',
+    'remark-gfm',
     // Tiptap dependencies (required for RichEditor)
     '@tiptap/react',
     '@tiptap/core',

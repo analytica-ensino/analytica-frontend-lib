@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useRef } from 'react';
 import ChatbotFab from './ChatbotFab';
 import ChatbotPanel from './ChatbotPanel';
 import ChatbotMessageList from './ChatbotMessageList';
@@ -44,13 +44,13 @@ export default function Chatbot({
   currentContext,
   fabClassName,
   panelClassName,
-}: ChatbotProps) {
-  // Bind the hook factory to the provided client. `useMemo` keeps the
-  // hook identity stable while the client reference is stable.
-  const useBoundChatbot = useMemo(
-    () => createUseChatbot(apiClient),
-    [apiClient]
-  );
+}: Readonly<ChatbotProps>) {
+  // Bind the hook factory to the provided client exactly once. The hook
+  // itself reads the latest apiClient via an internal ref, so rebinding on
+  // re-render would wipe its state — hence we cache with useRef.
+  const boundHookRef = useRef<ReturnType<typeof createUseChatbot> | null>(null);
+  boundHookRef.current ??= createUseChatbot(apiClient);
+  const useBoundChatbot = boundHookRef.current;
   const {
     isOpen,
     isSending,
@@ -68,9 +68,14 @@ export default function Chatbot({
     deleteConversation,
   } = useBoundChatbot();
 
-  const emptyHint = user.name
-    ? `Olá, ${user.name.split(' ')[0]}! Como posso ajudar nos seus estudos?`
+  const firstName = user.name?.trim().split(/\s+/)[0];
+  const emptyHint = firstName
+    ? `Olá, ${firstName}! Como posso ajudar nos seus estudos?`
     : 'Comece a conversa enviando uma pergunta.';
+
+  const handleSend = (text: string): void => {
+    sendMessage(text, currentContext).catch(() => undefined);
+  };
 
   return (
     <>
@@ -103,12 +108,7 @@ export default function Chatbot({
             emptyHint={emptyHint}
           />
         }
-        inputSlot={
-          <ChatbotInput
-            onSend={(text) => void sendMessage(text, currentContext)}
-            disabled={isSending}
-          />
-        }
+        inputSlot={<ChatbotInput onSend={handleSend} disabled={isSending} />}
       />
     </>
   );

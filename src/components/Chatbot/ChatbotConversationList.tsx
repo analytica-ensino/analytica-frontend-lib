@@ -21,7 +21,9 @@ export interface ChatbotConversationListProps {
 }
 
 /**
- * Format the conversation timestamp in pt-BR (date + time).
+ * Format the conversation timestamp in pt-BR using the short day/month
+ * form (e.g. "17/04"), which is enough to disambiguate conversations in
+ * the sidebar without overflowing the row.
  */
 function formatDate(value: Date | string): string {
   const d = value instanceof Date ? value : new Date(value);
@@ -34,7 +36,9 @@ function formatDate(value: Date | string): string {
 
 /**
  * Sidebar-like drawer listing the student's past conversations. Clicking
- * a row activates it; the trash icon deletes it after confirmation.
+ * a row activates it; the trash icon calls `onDelete` — the actual
+ * confirmation flow (modal, toast-undo, etc.) is delegated to the
+ * consumer so behaviour can be customized per host app.
  */
 export default function ChatbotConversationList({
   conversations,
@@ -44,7 +48,7 @@ export default function ChatbotConversationList({
   onDelete,
   onStartNew,
   className,
-}: ChatbotConversationListProps) {
+}: Readonly<ChatbotConversationListProps>) {
   return (
     <div
       className={cn(
@@ -65,61 +69,71 @@ export default function ChatbotConversationList({
         </Button>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-2 pb-2">
-        {isLoading ? (
-          <div className="space-y-2 px-2">
-            <SkeletonText />
-            <SkeletonText />
-            <SkeletonText />
-          </div>
-        ) : conversations.length === 0 ? (
-          <div className="mt-4">
-            <EmptyState
-              title="Sem conversas ainda"
-              description="Comece sua primeira conversa com o assistente."
-            />
-          </div>
-        ) : (
-          <ul className="space-y-1">
-            {conversations.map((c) => {
-              const isActive = c.id === activeConversationId;
-              return (
-                <li key={c.id}>
-                  <div
-                    className={cn(
-                      'group flex items-start gap-2 rounded-md px-2 py-2 transition-colors',
-                      isActive ? 'bg-primary-50' : 'hover:bg-background-100'
-                    )}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => onSelect(c.id)}
-                      className="flex-1 text-left"
-                    >
-                      <Text
-                        size="sm"
-                        weight="semibold"
-                        className="truncate text-text-900"
-                      >
-                        {c.title || 'Conversa sem título'}
-                      </Text>
-                      <Text size="2xs" className="text-text-400">
-                        {formatDate(c.lastMessageAt)}
-                      </Text>
-                    </button>
-                    <IconButton
-                      size="sm"
-                      aria-label={`Excluir conversa ${c.title || ''}`.trim()}
-                      onClick={() => onDelete(c.id)}
-                      icon={<TrashIcon size={14} />}
-                    />
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
+      <div className="flex-1 overflow-y-auto px-2 pb-2">{renderBody()}</div>
     </div>
   );
+
+  function renderBody() {
+    if (isLoading) {
+      return (
+        <div className="space-y-2 px-2">
+          <SkeletonText />
+          <SkeletonText />
+          <SkeletonText />
+        </div>
+      );
+    }
+
+    if (conversations.length === 0) {
+      return (
+        <div className="mt-4">
+          <EmptyState
+            title="Sem conversas ainda"
+            description="Comece sua primeira conversa com o assistente."
+          />
+        </div>
+      );
+    }
+
+    return (
+      <ul className="space-y-1">
+        {conversations.map((c) => {
+          const isActive = c.id === activeConversationId;
+          return (
+            <li key={c.id}>
+              <div
+                className={cn(
+                  'group flex items-start gap-2 rounded-md px-2 py-2 transition-colors',
+                  isActive ? 'bg-primary-50' : 'hover:bg-background-100'
+                )}
+              >
+                <button
+                  type="button"
+                  onClick={() => onSelect(c.id)}
+                  className="flex-1 text-left"
+                >
+                  <Text
+                    size="sm"
+                    weight="semibold"
+                    className="truncate text-text-900"
+                  >
+                    {c.title || 'Conversa sem título'}
+                  </Text>
+                  <Text size="2xs" className="text-text-400">
+                    {formatDate(c.lastMessageAt)}
+                  </Text>
+                </button>
+                <IconButton
+                  size="sm"
+                  aria-label={`Excluir conversa ${c.title || ''}`.trim()}
+                  onClick={() => onDelete(c.id)}
+                  icon={<TrashIcon size={14} />}
+                />
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    );
+  }
 }

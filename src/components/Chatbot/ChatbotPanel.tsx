@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { XIcon, ListIcon, PlusIcon, RobotIcon } from '@phosphor-icons/react';
 import Text from '../Text/Text';
 import IconButton from '../IconButton/IconButton';
@@ -36,18 +36,48 @@ export default function ChatbotPanel({
   inputSlot,
   errorMessage,
   className,
-}: ChatbotPanelProps) {
+}: Readonly<ChatbotPanelProps>) {
   const [showHistory, setShowHistory] = useState(false);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previouslyFocusedRef = useRef<Element | null>(null);
+
+  // Escape-key dismissal + focus management: when the panel opens we
+  // remember the previously focused element, move focus to the close
+  // button, and listen for Escape to close. On close, focus is restored.
+  useEffect(() => {
+    if (!isOpen) return;
+    previouslyFocusedRef.current = document.activeElement;
+    closeButtonRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.stopPropagation();
+        onClose();
+      }
+    };
+    globalThis.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      globalThis.removeEventListener('keydown', handleKeyDown);
+      const previous = previouslyFocusedRef.current as HTMLElement | null;
+      if (previous && typeof previous.focus === 'function') {
+        previous.focus();
+      }
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
   return (
-    <div
-      role="dialog"
+    <dialog
+      open
       aria-label="Assistente de estudos"
       className={cn(
         'fixed bottom-20 right-6 z-40',
-        'flex h-[600px] w-[380px] flex-col overflow-hidden rounded-xl',
+        // `<dialog open>` defaults to `display: block` + top-aligned;
+        // the flex + fixed positioning below overrides those defaults.
+        'static m-0 inset-auto',
+        'flex h-[600px] w-[380px] flex-col overflow-hidden rounded-xl p-0',
         'border border-background-200 bg-white shadow-2xl',
         'sm:w-[420px]',
         className
@@ -74,6 +104,7 @@ export default function ChatbotPanel({
             icon={<PlusIcon size={16} />}
           />
           <IconButton
+            ref={closeButtonRef}
             size="sm"
             aria-label="Fechar assistente"
             onClick={onClose}
@@ -96,6 +127,6 @@ export default function ChatbotPanel({
           {inputSlot}
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }

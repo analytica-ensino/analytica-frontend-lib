@@ -3,9 +3,28 @@ import '@testing-library/jest-dom';
 import ChatbotMessageList from './ChatbotMessageList';
 import type { ChatbotMessage as ChatbotMessageType } from '../../types/chatbot';
 
-// jsdom doesn't implement scrollIntoView; stub it so useEffect doesn't throw
+// jsdom doesn't implement scrollIntoView; stub the prototype so useEffect
+// doesn't throw, but restore the original descriptor at the end of the
+// suite so we don't leak across other test files that share this worker.
+const originalScrollIntoView = Object.getOwnPropertyDescriptor(
+  Element.prototype,
+  'scrollIntoView'
+);
 beforeAll(() => {
   Element.prototype.scrollIntoView = jest.fn();
+});
+
+afterAll(() => {
+  if (originalScrollIntoView) {
+    Object.defineProperty(
+      Element.prototype,
+      'scrollIntoView',
+      originalScrollIntoView
+    );
+  } else {
+    delete (Element.prototype as unknown as Record<string, unknown>)
+      .scrollIntoView;
+  }
 });
 
 function buildMessage(
