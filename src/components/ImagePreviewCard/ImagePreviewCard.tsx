@@ -63,9 +63,9 @@ const ImagePreviewCard = ({
           className="w-full max-h-80 object-contain rounded-lg"
         />
 
-        <div className="flex flex-row items-center gap-2 border border-border-200 rounded-full px-3 py-1.5 bg-secondary-50 max-w-full">
+        <div className="flex flex-row items-center gap-2 border border-border-200 rounded-full px-3 py-1.5 bg-secondary-50 max-w-full min-w-0">
           <Paperclip size={16} className="shrink-0 text-text-700" />
-          <Text size="sm" className="text-text-800 truncate">
+          <Text size="sm" className="text-text-800 truncate min-w-0">
             {fileName}
           </Text>
           {onRemove && (

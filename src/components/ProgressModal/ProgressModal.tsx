@@ -1,14 +1,16 @@
 import { ReactNode } from 'react';
 import Modal from '../Modal/Modal';
 import ProgressBar from '../ProgressBar/ProgressBar';
-import Text from '../Text/Text';
 
 export interface ProgressModalProps {
   /** Controla se o modal está aberto */
   isOpen: boolean;
   /** Callback ao fechar */
   onClose: () => void;
-  /** Texto principal exibido abaixo da imagem (ex: "Transcrevendo...") */
+  /**
+   * Mensagem principal (vira o título do Modal / `<h2>` pra acessibilidade).
+   * Quando ReactNode, use phrasing content (`<span>`, `<button>`, ícones).
+   */
   message: ReactNode;
   /** URL ou import de imagem ilustrativa (opcional) */
   image?: string;
@@ -24,11 +26,14 @@ export interface ProgressModalProps {
 }
 
 /**
- * Modal de progresso com imagem ilustrativa + texto + ProgressBar.
+ * Modal de progresso com imagem ilustrativa + título + ProgressBar.
  *
  * Pensado para operações assíncronas longas (upload, OCR, correção por IA, etc).
  * Quando `progress` é omitido, a barra é renderizada em modo indeterminado
  * (`animate-pulse` sem percentual visível).
+ *
+ * A `message` é usada como título do Modal (`<h2>`) pra garantir
+ * acessibilidade — screen readers anunciam o dialog com esse texto.
  *
  * @example
  * ```tsx
@@ -55,7 +60,7 @@ const ProgressModal = ({
     imageAlt ?? (typeof message === 'string' ? message : 'Carregando');
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="" size={size}>
+    <Modal isOpen={isOpen} onClose={onClose} title={message} size={size}>
       <div className="flex flex-col items-center gap-6 py-2">
         {image && (
           <img
@@ -64,10 +69,6 @@ const ProgressModal = ({
             className="w-60 h-60 object-contain"
           />
         )}
-
-        <Text size="md" className="text-text-950 text-center">
-          {message}
-        </Text>
 
         <div className={isIndeterminate ? 'w-full animate-pulse' : 'w-full'}>
           <ProgressBar

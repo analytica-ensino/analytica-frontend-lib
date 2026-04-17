@@ -126,4 +126,27 @@ describe('ProgressModal', () => {
     const { container } = render(<ProgressModal {...defaultProps} />);
     expect(container.querySelector('.max-w-\\[420px\\]')).toBeInTheDocument();
   });
+
+  describe('Accessibility', () => {
+    it('message is rendered as the modal h2 title (accessible name)', () => {
+      const { container } = render(
+        <ProgressModal {...defaultProps} message="Transcrevendo..." />
+      );
+      const h2 = container.querySelector('h2');
+      expect(h2).toBeInTheDocument();
+      expect(h2).toHaveTextContent('Transcrevendo...');
+    });
+
+    it('dialog aria-labelledby points to the h2 with message', () => {
+      const { container } = render(
+        <ProgressModal {...defaultProps} message="Analisando..." />
+      );
+      const dialog = container.querySelector('dialog');
+      const h2 = container.querySelector('h2');
+      const h2Id = h2?.getAttribute('id');
+      expect(h2Id).toBeTruthy();
+      expect(dialog).toHaveAttribute('aria-labelledby', h2Id as string);
+      expect(h2).toHaveTextContent('Analisando...');
+    });
+  });
 });

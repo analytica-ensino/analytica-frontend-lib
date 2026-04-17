@@ -1689,9 +1689,7 @@ const CardEssayHistory = forwardRef<HTMLDivElement, CardEssayHistoryProps>(
                       key={essay.id}
                       type="button"
                       disabled={!isClickable}
-                      onClick={() =>
-                        isClickable && onEssayClick && onEssayClick(essay)
-                      }
+                      onClick={() => isClickable && onEssayClick?.(essay)}
                       className={cn(
                         visual.background,
                         'rounded-xl p-4 flex flex-row items-center justify-between gap-2 w-full transition-colors',
