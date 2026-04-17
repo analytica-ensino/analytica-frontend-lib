@@ -193,4 +193,183 @@ describe('useChatbot', () => {
 
     expect(result.current.isOpen).toBe(false);
   });
+
+  it('generatePlaceholderId falls back to timestamp+counter when crypto.randomUUID is unavailable', async () => {
+    const originalCrypto = (globalThis as { crypto?: Crypto }).crypto;
+    Object.defineProperty(globalThis, 'crypto', {
+      value: undefined,
+      configurable: true,
+      writable: true,
+    });
+    try {
+      const client = buildClient();
+      const { result } = renderHook(() => createUseChatbot(client)());
+
+      await act(async () => {
+        await result.current.sendMessage('hi');
+      });
+
+      // sendMessage used the fallback branch (29-30). No assertion on id
+      // shape is required — the observable contract is that sendMessage
+      // still resolves successfully and persists both messages.
+      expect(result.current.messages.map((m) => m.role)).toEqual([
+        'user',
+        'assistant',
+      ]);
+    } finally {
+      Object.defineProperty(globalThis, 'crypto', {
+        value: originalCrypto,
+        configurable: true,
+        writable: true,
+      });
+    }
+  });
+
+  it('loadConversations suppresses error when superseded by a newer call (race guard)', async () => {
+    let rejectFirst: (e: unknown) => void = () => undefined;
+    const client = buildClient({
+      listConversations: jest
+        .fn()
+        // First call rejects, but only after a later call resolves.
+        .mockImplementationOnce(
+          () => new Promise((_, reject) => (rejectFirst = reject))
+        )
+        .mockResolvedValueOnce({ conversations: [], total: 0 }),
+    });
+    const { result } = renderHook(() => createUseChatbot(client)());
+
+    // Fire two loads in quick succession — the second wins.
+    act(() => {
+      result.current.openPanel();
+    });
+    act(() => {
+      void result.current.reloadConversations();
+    });
+
+    await waitFor(() =>
+      expect(client.listConversations).toHaveBeenCalledTimes(2)
+    );
+
+    // Reject the stale first request — the guard should swallow the error.
+    await act(async () => {
+      rejectFirst(new Error('stale'));
+    });
+
+    // No error leaks from the superseded call.
+    expect(result.current.errorMessage).toBeNull();
+  });
+
+  it('loadMessages suppresses error when superseded by a newer call', async () => {
+    let rejectFirst: (e: unknown) => void = () => undefined;
+    const client = buildClient({
+      getMessages: jest
+        .fn()
+        .mockImplementationOnce(
+          () => new Promise((_, reject) => (rejectFirst = reject))
+        )
+        .mockResolvedValueOnce({ messages: [], total: 0 }),
+    });
+    const { result } = renderHook(() => createUseChatbot(client)());
+
+    act(() => {
+      result.current.selectConversation('c-1');
+    });
+    act(() => {
+      result.current.selectConversation('c-2');
+    });
+    await waitFor(() => expect(client.getMessages).toHaveBeenCalledTimes(2));
+
+    await act(async () => {
+      rejectFirst(new Error('stale'));
+    });
+
+    expect(result.current.errorMessage).toBeNull();
+  });
+
+  it('selectConversation(null) clears messages without calling getMessages', () => {
+    const client = buildClient();
+    const { result } = renderHook(() => createUseChatbot(client)());
+
+    act(() => {
+      result.current.selectConversation(null);
+    });
+
+    expect(result.current.activeConversationId).toBeNull();
+    expect(result.current.messages).toEqual([]);
+    expect(client.getMessages).not.toHaveBeenCalled();
+  });
+
+  it('deleteConversation reports an error message when the API call fails', async () => {
+    const client = buildClient({
+      deleteConversation: jest.fn().mockRejectedValue(new Error('db down')),
+    });
+    const { result } = renderHook(() => createUseChatbot(client)());
+
+    await act(async () => {
+      await result.current.deleteConversation('c-1');
+    });
+
+    expect(result.current.errorMessage).toMatch(/db down/);
+  });
+
+  it('deleteConversation uses a generic fallback for non-Error throwables', async () => {
+    const client = buildClient({
+      deleteConversation: jest.fn().mockRejectedValue('oops'),
+    });
+    const { result } = renderHook(() => createUseChatbot(client)());
+
+    await act(async () => {
+      await result.current.deleteConversation('c-1');
+    });
+
+    expect(result.current.errorMessage).toMatch(/Falha ao excluir conversa/);
+  });
+
+  it('loadConversations uses a generic fallback for non-Error throwables', async () => {
+    const client = buildClient({
+      listConversations: jest.fn().mockRejectedValue('oops'),
+    });
+    const { result } = renderHook(() => createUseChatbot(client)());
+
+    await act(async () => {
+      result.current.openPanel();
+    });
+    await waitFor(() =>
+      expect(result.current.errorMessage).toMatch(/Falha ao carregar conversas/)
+    );
+  });
+
+  it('loadMessages uses a generic fallback for non-Error throwables', async () => {
+    const client = buildClient({
+      getMessages: jest.fn().mockRejectedValue('oops'),
+    });
+    const { result } = renderHook(() => createUseChatbot(client)());
+
+    await act(async () => {
+      result.current.selectConversation('c-1');
+    });
+    await waitFor(() =>
+      expect(result.current.errorMessage).toMatch(/Falha ao carregar mensagens/)
+    );
+  });
+
+  it('deleteConversation clears active conversation state when deleting the active one', async () => {
+    const client = buildClient();
+    const { result } = renderHook(() => createUseChatbot(client)());
+
+    // Activate a conversation first.
+    await act(async () => {
+      await result.current.sendMessage('hi');
+    });
+    expect(result.current.activeConversationId).toBe('c-1');
+    expect(result.current.messages.length).toBeGreaterThan(0);
+
+    await act(async () => {
+      await result.current.deleteConversation('c-1');
+    });
+
+    // Both references to the deleted conversation are cleared.
+    expect(result.current.activeConversationId).toBeNull();
+    expect(result.current.messages).toEqual([]);
+  });
 });

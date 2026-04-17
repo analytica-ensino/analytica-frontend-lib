@@ -63,4 +63,25 @@ describe('ChatbotPanel', () => {
     render(<ChatbotPanel {...baseProps()} errorMessage="deu ruim" />);
     expect(screen.getByText('deu ruim')).toBeInTheDocument();
   });
+
+  it('invokes onClose when Escape is pressed while the panel is open', () => {
+    const props = baseProps();
+    render(<ChatbotPanel {...props} />);
+
+    // Dispatch Escape at the document level — the listener is attached on
+    // globalThis inside the panel's mount effect.
+    const event = new KeyboardEvent('keydown', { key: 'Escape' });
+    globalThis.dispatchEvent(event);
+
+    expect(props.onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores non-Escape key presses', () => {
+    const props = baseProps();
+    render(<ChatbotPanel {...props} />);
+
+    globalThis.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+
+    expect(props.onClose).not.toHaveBeenCalled();
+  });
 });
