@@ -17,6 +17,7 @@ import {
   CardTest,
   CardSimulationHistory,
   CardEssayHistory,
+  EssayStatus,
   type EssayHistoryData,
 } from './Card';
 import { ChartBar, Gear, Star } from 'phosphor-react';
@@ -3392,25 +3393,25 @@ describe('CardEssayHistory', () => {
           id: 'e1',
           title: null,
           fallbackTitle: 'Tema do dia',
-          status: 'CORRECTED',
+          status: EssayStatus.CORRECTED,
           totalScore: 800,
         },
         {
           id: 'e2',
           title: 'Sem nota',
-          status: 'ERROR',
+          status: EssayStatus.ERROR,
           totalScore: null,
         },
         {
           id: 'e3',
           title: 'Em andamento',
-          status: 'CORRECTING',
+          status: EssayStatus.CORRECTING,
           totalScore: null,
         },
         {
           id: 'e4',
           title: 'Aguardando',
-          status: 'SUBMITTED',
+          status: EssayStatus.SUBMITTED,
           totalScore: null,
         },
       ],
@@ -3421,7 +3422,7 @@ describe('CardEssayHistory', () => {
         {
           id: 'e5',
           title: 'Rascunho salvo',
-          status: 'DRAFT',
+          status: EssayStatus.DRAFT,
           totalScore: null,
         },
       ],
@@ -3479,7 +3480,7 @@ describe('CardEssayHistory', () => {
     fireEvent.click(screen.getByText('Tema do dia'));
     expect(onEssayClick).toHaveBeenCalledTimes(1);
     expect(onEssayClick).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 'e1', status: 'CORRECTED' })
+      expect.objectContaining({ id: 'e1', status: EssayStatus.CORRECTED })
     );
   });
 
@@ -3489,7 +3490,7 @@ describe('CardEssayHistory', () => {
 
     fireEvent.click(screen.getByText('Sem nota'));
     expect(onEssayClick).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 'e2', status: 'ERROR' })
+      expect.objectContaining({ id: 'e2', status: EssayStatus.ERROR })
     );
   });
 

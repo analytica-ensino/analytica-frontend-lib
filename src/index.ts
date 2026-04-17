@@ -366,9 +366,9 @@ export {
   CardSimulationHistory,
   CardAudio,
   CardEssayHistory,
+  EssayStatus,
 } from './components/Card/Card';
 export type {
-  EssayHistoryStatus,
   EssayHistoryItem,
   EssayHistoryData,
 } from './components/Card/Card';

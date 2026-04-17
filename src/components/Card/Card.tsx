@@ -1579,12 +1579,13 @@ const CardSimulationHistory = forwardRef<
 // CardEssayHistory — histórico de redações agrupado por data
 // ======================================================================
 
-export type EssayHistoryStatus =
-  | 'DRAFT'
-  | 'SUBMITTED'
-  | 'CORRECTING'
-  | 'CORRECTED'
-  | 'ERROR';
+export enum EssayStatus {
+  DRAFT = 'DRAFT',
+  SUBMITTED = 'SUBMITTED',
+  CORRECTING = 'CORRECTING',
+  CORRECTED = 'CORRECTED',
+  ERROR = 'ERROR',
+}
 
 export interface EssayHistoryItem {
   id: string;
@@ -1592,7 +1593,7 @@ export interface EssayHistoryItem {
   title: string | null;
   /** Título fallback (ex: título do tema) quando `title` está vazio */
   fallbackTitle?: string;
-  status: EssayHistoryStatus;
+  status: EssayStatus;
   /** Nota total (0..maxScore). null quando ainda não pontuou */
   totalScore: number | null;
 }
@@ -1621,28 +1622,31 @@ const resolveEssayVisualState = (
   essay: EssayHistoryItem,
   maxScore: number
 ): EssayVisualState => {
-  if (essay.status === 'CORRECTED' && essay.totalScore != null) {
+  if (essay.status === EssayStatus.CORRECTED && essay.totalScore != null) {
     return {
       background: 'bg-[#8A24A34D] hover:bg-[#8A24A366]',
       text: `${essay.totalScore} de ${maxScore}`,
       clickable: true,
     };
   }
-  if (essay.status === 'ERROR') {
+  if (essay.status === EssayStatus.ERROR) {
     return {
       background: 'bg-tertiary-100 hover:bg-tertiary-200',
       text: 'Erro na correção',
       clickable: true,
     };
   }
-  if (essay.status === 'CORRECTING' || essay.status === 'SUBMITTED') {
+  if (
+    essay.status === EssayStatus.CORRECTING ||
+    essay.status === EssayStatus.SUBMITTED
+  ) {
     return {
       background: 'bg-secondary-200',
       text: 'Gerando resultado...',
       clickable: false,
     };
   }
-  if (essay.status === 'DRAFT') {
+  if (essay.status === EssayStatus.DRAFT) {
     return {
       background: 'bg-secondary-200',
       text: 'Rascunho',
