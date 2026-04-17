@@ -1071,6 +1071,46 @@ export {
 } from './utils/chatUtils';
 export type { ChatUserInfo } from './utils/chatUtils';
 
+// Chatbot Hook
+export { createUseChatbot } from './hooks/useChatbot';
+export type { UseChatbotReturn } from './hooks/useChatbot';
+
+// Chatbot Types
+export type {
+  ChatbotRole,
+  ChatbotMessage as ChatbotMessageData,
+  ChatbotConversation,
+  ChatbotCurrentContext,
+  SendChatbotMessagePayload,
+  SendChatbotMessageResult,
+  ChatbotUser,
+  ChatbotApiClient,
+} from './types/chatbot';
+
+// Chatbot Components
+export {
+  Chatbot,
+  ChatbotFab,
+  ChatbotPanel,
+  ChatbotMessageList,
+  ChatbotMessage,
+  ChatbotInput,
+  ChatbotTypingIndicator,
+  ChatbotConversationList,
+  ChatbotContentRenderer,
+} from './components/Chatbot';
+export type {
+  ChatbotProps,
+  ChatbotFabProps,
+  ChatbotPanelProps,
+  ChatbotMessageListProps,
+  ChatbotMessageProps,
+  ChatbotInputProps,
+  ChatbotTypingIndicatorProps,
+  ChatbotConversationListProps,
+  ChatbotContentRendererProps,
+} from './components/Chatbot';
+
 // Forum Component
 export { Forum } from './components/Forum/Forum';
 export type { ForumProps } from './components/Forum/Forum';

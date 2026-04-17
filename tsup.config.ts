@@ -180,6 +180,11 @@ export default defineConfig({
     'utils/exportExcel/index': 'src/utils/exportExcel.ts',
     'utils/exportPdf/index': 'src/utils/exportPdf.ts',
 
+    // Chatbot (student AI assistant)
+    'Chatbot/index': 'src/components/Chatbot/Chatbot.tsx',
+    'hooks/useChatbot/index': 'src/hooks/useChatbot.ts',
+    'types/chatbot/index': 'src/types/chatbot.ts',
+
     // Styles
     styles: 'src/styles.css',
   },
