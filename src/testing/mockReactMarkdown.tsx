@@ -37,18 +37,19 @@ function renderInline(text: string): ReactNode[] {
 
 export default function ReactMarkdownMock({
   children = '',
-}: ReactMarkdownProps) {
+}: Readonly<ReactMarkdownProps>) {
   const lines = children.split('\n');
   const blocks: ReactNode[] = [];
   let currentList: string[] = [];
   let blockIdx = 0;
+  let listItemIdx = 0;
 
   const flushList = () => {
     if (currentList.length > 0) {
       blocks.push(
         <ul key={`ul-${blockIdx++}`}>
-          {currentList.map((item, i) => (
-            <li key={i}>{renderInline(item)}</li>
+          {currentList.map((item) => (
+            <li key={`li-${listItemIdx++}`}>{renderInline(item)}</li>
           ))}
         </ul>
       );
