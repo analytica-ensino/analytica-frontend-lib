@@ -1575,6 +1575,163 @@ const CardSimulationHistory = forwardRef<
   );
 });
 
+// ======================================================================
+// CardEssayHistory — histórico de redações agrupado por data
+// ======================================================================
+
+export type EssayHistoryStatus =
+  | 'DRAFT'
+  | 'SUBMITTED'
+  | 'CORRECTING'
+  | 'CORRECTED'
+  | 'ERROR';
+
+export interface EssayHistoryItem {
+  id: string;
+  /** Título exibido. Se null/undefined, o componente cai no `fallbackTitle` */
+  title: string | null;
+  /** Título fallback (ex: título do tema) quando `title` está vazio */
+  fallbackTitle?: string;
+  status: EssayHistoryStatus;
+  /** Nota total (0..maxScore). null quando ainda não pontuou */
+  totalScore: number | null;
+}
+
+export interface EssayHistoryData {
+  /** Label da data do grupo (ex: "12 Fev") */
+  date: string;
+  essays: EssayHistoryItem[];
+}
+
+interface CardEssayHistoryProps extends HTMLAttributes<HTMLDivElement> {
+  data: EssayHistoryData[];
+  /** Nota máxima pra compor o label "X de {maxScore}". Default: 1000 */
+  maxScore?: number;
+  /** Callback ao clicar num item clicável (CORRECTED com score, ou ERROR) */
+  onEssayClick?: (essay: EssayHistoryItem) => void;
+}
+
+type EssayVisualState = {
+  background: string;
+  text: string;
+  clickable: boolean;
+};
+
+const resolveEssayVisualState = (
+  essay: EssayHistoryItem,
+  maxScore: number
+): EssayVisualState => {
+  if (essay.status === 'CORRECTED' && essay.totalScore != null) {
+    return {
+      background: 'bg-[#8A24A34D] hover:bg-[#8A24A366]',
+      text: `${essay.totalScore} de ${maxScore}`,
+      clickable: true,
+    };
+  }
+  if (essay.status === 'ERROR') {
+    return {
+      background: 'bg-tertiary-100 hover:bg-tertiary-200',
+      text: 'Erro na correção',
+      clickable: true,
+    };
+  }
+  if (essay.status === 'CORRECTING' || essay.status === 'SUBMITTED') {
+    return {
+      background: 'bg-secondary-200',
+      text: 'Gerando resultado...',
+      clickable: false,
+    };
+  }
+  if (essay.status === 'DRAFT') {
+    return {
+      background: 'bg-secondary-200',
+      text: 'Rascunho',
+      clickable: false,
+    };
+  }
+  return {
+    background: 'bg-secondary-200',
+    text: 'Sem nota ainda',
+    clickable: false,
+  };
+};
+
+const CardEssayHistory = forwardRef<HTMLDivElement, CardEssayHistoryProps>(
+  ({ data, maxScore = 1000, onEssayClick, className, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={cn('w-full max-w-248 bg-background rounded-3xl', className)}
+        {...props}
+      >
+        <div className="flex flex-col">
+          {data.map((section) => (
+            <div
+              key={section.date}
+              className="flex flex-row items-start px-4 py-6 gap-2 w-full"
+            >
+              <Text
+                size="xs"
+                weight="bold"
+                className="text-text-800 w-11 shrink-0 pt-3"
+              >
+                {section.date}
+              </Text>
+
+              <div className="flex flex-col gap-2 flex-1 min-w-0">
+                {section.essays.map((essay) => {
+                  const visual = resolveEssayVisualState(essay, maxScore);
+                  const isClickable = visual.clickable && !!onEssayClick;
+                  const label = essay.title ?? essay.fallbackTitle ?? '';
+
+                  return (
+                    <button
+                      key={essay.id}
+                      type="button"
+                      disabled={!isClickable}
+                      onClick={() =>
+                        isClickable && onEssayClick && onEssayClick(essay)
+                      }
+                      className={cn(
+                        visual.background,
+                        'rounded-xl p-4 flex flex-row items-center justify-between gap-2 w-full transition-colors',
+                        isClickable ? 'cursor-pointer' : 'cursor-default'
+                      )}
+                    >
+                      <Text
+                        size="md"
+                        weight="bold"
+                        className="text-text-950 truncate text-left"
+                      >
+                        {label}
+                      </Text>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Text
+                          size="sm"
+                          className="text-text-800 whitespace-nowrap"
+                        >
+                          {visual.text}
+                        </Text>
+                        {isClickable && (
+                          <CaretRight
+                            size={20}
+                            className="text-text-800 shrink-0"
+                          />
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+);
+
 export {
   CardBase,
   CardActivitiesResults,
@@ -1591,4 +1748,5 @@ export {
   CardSimulado,
   CardTest,
   CardSimulationHistory,
+  CardEssayHistory,
 };

@@ -25,6 +25,10 @@ export default defineConfig({
     'ProgressBar/index': 'src/components/ProgressBar/ProgressBar.tsx',
     'LoadingModal/index': 'src/components/LoadingModal/loadingModal.tsx',
     'ProgressCircle/index': 'src/components/ProgressCircle/ProgressCircle.tsx',
+    'ProgressModal/index': 'src/components/ProgressModal/ProgressModal.tsx',
+    'ScoreCircle/index': 'src/components/ScoreCircle/ScoreCircle.tsx',
+    'ImagePreviewCard/index':
+      'src/components/ImagePreviewCard/ImagePreviewCard.tsx',
     'Radio/index': 'src/components/Radio/Radio.tsx',
     'SelectionButton/index':
       'src/components/SelectionButton/SelectionButton.tsx',

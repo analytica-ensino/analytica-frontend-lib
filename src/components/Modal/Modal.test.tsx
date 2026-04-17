@@ -457,4 +457,46 @@ describe('Modal', () => {
       windowOpenSpy.mockRestore();
     });
   });
+
+  describe('title como ReactNode', () => {
+    it('renderiza title string dentro de um <h2>', () => {
+      const { container } = render(
+        <Modal {...defaultProps} title="Título simples" />
+      );
+      const h2 = container.querySelector('h2');
+      expect(h2).toBeInTheDocument();
+      expect(h2).toHaveTextContent('Título simples');
+    });
+
+    it('renderiza title ReactNode dentro de um div com role="heading"', () => {
+      const { container } = render(
+        <Modal
+          {...defaultProps}
+          title={
+            <div>
+              <button type="button">Voltar</button>
+              <span>Título composto</span>
+            </div>
+          }
+        />
+      );
+      expect(container.querySelector('h2')).not.toBeInTheDocument();
+      const heading = container.querySelector('[role="heading"]');
+      expect(heading).toBeInTheDocument();
+      expect(heading).toHaveAttribute('aria-level', '2');
+      expect(screen.getByText('Título composto')).toBeInTheDocument();
+      expect(screen.getByText('Voltar')).toBeInTheDocument();
+    });
+
+    it('mantém aria-labelledby apontando pro id certo quando title é ReactNode', () => {
+      const { container } = render(
+        <Modal {...defaultProps} title={<span>Custom</span>} />
+      );
+      const dialog = container.querySelector('dialog');
+      const heading = container.querySelector('[role="heading"]');
+      const headingId = heading?.getAttribute('id');
+      expect(headingId).toBeTruthy();
+      expect(dialog).toHaveAttribute('aria-labelledby', headingId as string);
+    });
+  });
 });

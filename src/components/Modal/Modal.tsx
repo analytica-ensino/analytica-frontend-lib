@@ -28,8 +28,8 @@ type ModalProps = {
   isOpen: boolean;
   /** Function to close the modal */
   onClose: () => void;
-  /** Modal title */
-  title: string;
+  /** Modal title (string or ReactNode — ReactNode permite elementos como botão de voltar inline) */
+  title: ReactNode;
   /** Modal description/content */
   children?: ReactNode;
   /** Size of the modal */
@@ -234,12 +234,23 @@ const Modal = ({
             )}
 
             {/* Título */}
-            <h2
-              id={titleId}
-              className="text-lg font-semibold text-text-950 text-center"
-            >
-              {title}
-            </h2>
+            {typeof title === 'string' ? (
+              <h2
+                id={titleId}
+                className="text-lg font-semibold text-text-950 text-center"
+              >
+                {title}
+              </h2>
+            ) : (
+              <div
+                id={titleId}
+                role="heading"
+                aria-level={2}
+                className="text-lg font-semibold text-text-950 text-center"
+              >
+                {title}
+              </div>
+            )}
 
             {/* Descrição */}
             {description && (
@@ -309,9 +320,20 @@ const Modal = ({
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-6">
-          <h2 id={titleId} className="text-lg font-semibold text-text-950">
-            {title}
-          </h2>
+          {typeof title === 'string' ? (
+            <h2 id={titleId} className="text-lg font-semibold text-text-950">
+              {title}
+            </h2>
+          ) : (
+            <div
+              id={titleId}
+              role="heading"
+              aria-level={2}
+              className="text-lg font-semibold text-text-950"
+            >
+              {title}
+            </div>
+          )}
           {!hideCloseButton && (
             <button
               onClick={onClose}
