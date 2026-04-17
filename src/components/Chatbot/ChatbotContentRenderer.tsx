@@ -59,6 +59,13 @@ export default function ChatbotContentRenderer({
         className
       )}
     >
+      {/*
+        SECURITY: do NOT add `rehype-raw` or any raw-HTML plugin to
+        `rehypePlugins` here. Chatbot content is untrusted (LLM output) and
+        must be escaped by react-markdown's default sanitization. Enabling
+        raw HTML would reintroduce an XSS vector — any change requires an
+        explicit security review and a dedicated sanitization pipeline.
+      */}
       <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
     </div>
   );

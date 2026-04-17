@@ -88,14 +88,30 @@ export interface UseChatbotReturn {
 }
 
 /**
+ * Resolver for the current `ChatbotApiClient`. Accepts either a concrete
+ * client (captured once) or a getter invoked on every call so consumers
+ * can swap clients over time without recreating the hook.
+ */
+export type ChatbotApiClientResolver =
+  | ChatbotApiClient
+  | (() => ChatbotApiClient);
+
+/**
  * Factory that wires the hook to a concrete API client. Returned hook
  * owns the chatbot UI state (open/close, messages, conversations).
  *
  * Implemented as a factory so consumer apps can bind a typed client once
  * (usually near composition root) and keep the hook implementation free
- * of app-specific transport concerns.
+ * of app-specific transport concerns. The factory also accepts a **getter**
+ * — pass `() => apiClientRef.current` to let the hook always see the
+ * latest client even if the parent swaps references between renders.
  */
-export function createUseChatbot(apiClient: ChatbotApiClient) {
+export function createUseChatbot(resolver: ChatbotApiClientResolver) {
+  const resolveClient: () => ChatbotApiClient =
+    typeof resolver === 'function'
+      ? (resolver as () => ChatbotApiClient)
+      : () => resolver;
+
   return function useChatbot(): UseChatbotReturn {
     const [isOpen, setIsOpen] = useState(false);
     const [isSending, setIsSending] = useState(false);
@@ -110,10 +126,10 @@ export function createUseChatbot(apiClient: ChatbotApiClient) {
     >(null);
     const [messages, setMessages] = useState<ChatbotMessage[]>([]);
 
-    // Keep the latest apiClient in a ref so the memoized callbacks stay
-    // stable even if the parent swaps client references between renders.
-    const apiClientRef = useRef(apiClient);
-    apiClientRef.current = apiClient;
+    // Resolve the latest apiClient on every call so the hook respects
+    // callers that pass a getter (e.g., bound to a React ref).
+    const apiClientRef = useRef<ChatbotApiClient>(resolveClient());
+    apiClientRef.current = resolveClient();
 
     // Guard against state updates after unmount. The ref is re-armed on
     // mount so the hook works correctly under React 18/19 Strict Mode
@@ -126,7 +142,14 @@ export function createUseChatbot(apiClient: ChatbotApiClient) {
       };
     }, []);
 
+    // Monotonic sequence ids per load-op. Each call captures its token and
+    // only commits state when still current — avoids stale responses from
+    // overwriting newer ones when the user switches conversations quickly.
+    const conversationsSeqRef = useRef(0);
+    const messagesSeqRef = useRef(0);
+
     const loadConversations = useCallback(async () => {
+      const seq = ++conversationsSeqRef.current;
       setIsLoadingHistory(true);
       setErrorMessage(null);
       try {
@@ -134,19 +157,22 @@ export function createUseChatbot(apiClient: ChatbotApiClient) {
           page: 1,
           limit: DEFAULT_CONVERSATIONS_PAGE_SIZE,
         });
-        if (!mountedRef.current) return;
+        if (!mountedRef.current || seq !== conversationsSeqRef.current) return;
         setConversations(result.conversations);
       } catch (err) {
-        if (!mountedRef.current) return;
+        if (!mountedRef.current || seq !== conversationsSeqRef.current) return;
         setErrorMessage(
           err instanceof Error ? err.message : 'Falha ao carregar conversas'
         );
       } finally {
-        if (mountedRef.current) setIsLoadingHistory(false);
+        if (mountedRef.current && seq === conversationsSeqRef.current) {
+          setIsLoadingHistory(false);
+        }
       }
     }, []);
 
     const loadMessages = useCallback(async (conversationId: string) => {
+      const seq = ++messagesSeqRef.current;
       setIsLoadingMessages(true);
       setErrorMessage(null);
       try {
@@ -154,15 +180,17 @@ export function createUseChatbot(apiClient: ChatbotApiClient) {
           page: 1,
           limit: DEFAULT_MESSAGES_PAGE_SIZE,
         });
-        if (!mountedRef.current) return;
+        if (!mountedRef.current || seq !== messagesSeqRef.current) return;
         setMessages(result.messages);
       } catch (err) {
-        if (!mountedRef.current) return;
+        if (!mountedRef.current || seq !== messagesSeqRef.current) return;
         setErrorMessage(
           err instanceof Error ? err.message : 'Falha ao carregar mensagens'
         );
       } finally {
-        if (mountedRef.current) setIsLoadingMessages(false);
+        if (mountedRef.current && seq === messagesSeqRef.current) {
+          setIsLoadingMessages(false);
+        }
       }
     }, []);
 

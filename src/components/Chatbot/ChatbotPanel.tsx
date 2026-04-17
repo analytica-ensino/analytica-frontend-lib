@@ -73,10 +73,10 @@ export default function ChatbotPanel({
       open
       aria-label="Assistente de estudos"
       className={cn(
-        'fixed bottom-20 right-6 z-40',
-        // `<dialog open>` defaults to `display: block` + top-aligned;
-        // the flex + fixed positioning below overrides those defaults.
-        'static m-0 inset-auto',
+        // `<dialog open>` comes with `margin: auto` by default; `m-0`
+        // resets that so the `fixed` positioning below pins the panel
+        // to the bottom-right as intended.
+        'fixed bottom-20 right-6 z-40 m-0',
         'flex h-[600px] w-[380px] flex-col overflow-hidden rounded-xl p-0',
         'border border-background-200 bg-white shadow-2xl',
         'sm:w-[420px]',
