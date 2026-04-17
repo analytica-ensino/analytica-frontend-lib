@@ -1624,14 +1624,14 @@ const resolveEssayVisualState = (
 ): EssayVisualState => {
   if (essay.status === EssayStatus.CORRECTED && essay.totalScore != null) {
     return {
-      background: 'bg-[#8A24A34D] hover:bg-[#8A24A366]',
+      background: 'bg-subject-12',
       text: `${essay.totalScore} de ${maxScore}`,
       clickable: true,
     };
   }
   if (essay.status === EssayStatus.ERROR) {
     return {
-      background: 'bg-tertiary-100 hover:bg-tertiary-200',
+      background: 'bg-tertiary-100',
       text: 'Erro na correção',
       clickable: true,
     };
@@ -1669,9 +1669,9 @@ const CardEssayHistory = forwardRef<HTMLDivElement, CardEssayHistoryProps>(
         {...props}
       >
         <div className="flex flex-col">
-          {data.map((section) => (
+          {data.map((section, sectionIndex) => (
             <div
-              key={section.date}
+              key={`${section.date}-${sectionIndex}`}
               className="flex flex-row items-start px-4 py-6 gap-2 w-full"
             >
               <Text
@@ -1686,7 +1686,8 @@ const CardEssayHistory = forwardRef<HTMLDivElement, CardEssayHistoryProps>(
                 {section.essays.map((essay) => {
                   const visual = resolveEssayVisualState(essay, maxScore);
                   const isClickable = visual.clickable && !!onEssayClick;
-                  const label = essay.title ?? essay.fallbackTitle ?? '';
+                  const label =
+                    essay.title ?? essay.fallbackTitle ?? 'Sem título';
 
                   return (
                     <button
@@ -1694,10 +1695,13 @@ const CardEssayHistory = forwardRef<HTMLDivElement, CardEssayHistoryProps>(
                       type="button"
                       disabled={!isClickable}
                       onClick={() => isClickable && onEssayClick?.(essay)}
+                      aria-label={`${label} — ${visual.text}`}
                       className={cn(
                         visual.background,
-                        'rounded-xl p-4 flex flex-row items-center justify-between gap-2 w-full transition-colors',
-                        isClickable ? 'cursor-pointer' : 'cursor-default'
+                        'rounded-xl p-4 flex flex-row items-center justify-between gap-2 w-full transition-shadow duration-200',
+                        isClickable
+                          ? 'cursor-pointer hover:shadow-soft-shadow-2'
+                          : 'cursor-default'
                       )}
                     >
                       <Text

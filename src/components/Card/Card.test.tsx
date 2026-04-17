@@ -3522,4 +3522,96 @@ describe('CardEssayHistory', () => {
     const component = screen.getByTestId('essay-history');
     expect(component).toHaveClass('custom-class');
   });
+
+  it('renders "Sem título" fallback when both title and fallbackTitle are missing', () => {
+    const data: EssayHistoryData[] = [
+      {
+        date: '12 Fev',
+        essays: [
+          {
+            id: 'no-title',
+            title: null,
+            status: EssayStatus.CORRECTED,
+            totalScore: 600,
+          },
+        ],
+      },
+    ];
+    render(<CardEssayHistory data={data} />);
+    expect(screen.getByText('Sem título')).toBeInTheDocument();
+  });
+
+  it('sets aria-label combining title and status text on each button', () => {
+    const data: EssayHistoryData[] = [
+      {
+        date: '12 Fev',
+        essays: [
+          {
+            id: 'x',
+            title: 'Minha redação',
+            status: EssayStatus.CORRECTED,
+            totalScore: 800,
+          },
+          {
+            id: 'y',
+            title: 'Em processo',
+            status: EssayStatus.CORRECTING,
+            totalScore: null,
+          },
+        ],
+      },
+    ];
+    render(<CardEssayHistory data={data} />);
+    expect(
+      screen.getByRole('button', { name: 'Minha redação — 800 de 1000' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: 'Em processo — Gerando resultado...',
+      })
+    ).toBeInTheDocument();
+  });
+
+  it('renders two sections with the same date without duplicate keys warning', () => {
+    const consoleSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+
+    const data: EssayHistoryData[] = [
+      {
+        date: '12 Fev',
+        essays: [
+          {
+            id: 'a1',
+            title: 'A',
+            status: EssayStatus.CORRECTED,
+            totalScore: 800,
+          },
+        ],
+      },
+      {
+        date: '12 Fev',
+        essays: [
+          {
+            id: 'a2',
+            title: 'B',
+            status: EssayStatus.CORRECTED,
+            totalScore: 900,
+          },
+        ],
+      },
+    ];
+
+    render(<CardEssayHistory data={data} />);
+
+    const duplicateKeyWarning = consoleSpy.mock.calls.some((args) =>
+      String(args[0]).includes('Encountered two children with the same key')
+    );
+    expect(duplicateKeyWarning).toBe(false);
+
+    expect(screen.getByText('A')).toBeInTheDocument();
+    expect(screen.getByText('B')).toBeInTheDocument();
+
+    consoleSpy.mockRestore();
+  });
 });
