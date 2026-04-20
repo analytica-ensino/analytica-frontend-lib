@@ -161,6 +161,9 @@ export const useThemeStore = create<ThemeStore>()(
           delete htmlElement.dataset.originalTheme;
           delete htmlElement.dataset.theme;
 
+          // Restore original theme from page metadata
+          saveOriginalTheme();
+
           // Re-apply current theme mode to use defaults
           const { themeMode, applyTheme } = get();
           applyTheme(themeMode);

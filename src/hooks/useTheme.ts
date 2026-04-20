@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useThemeStore, ThemeMode } from '../store/themeStore';
 
 export type { ThemeMode };
@@ -20,29 +20,43 @@ export const useTheme = () => {
   } = useThemeStore();
 
   // Read branding data from meta tags
-  const branding = {
-    theme:
-      document.querySelector('meta[name="theme"]')?.getAttribute('content') ??
-      null,
-    favicon:
-      document.querySelector('meta[name="favicon"]')?.getAttribute('content') ??
-      null,
-    icon:
-      document.querySelector('meta[name="icon"]')?.getAttribute('content') ??
-      null,
-    mainLogo:
-      document
-        .querySelector('meta[name="main-logo"]')
-        ?.getAttribute('content') ?? null,
-    internalLogo:
-      document
-        .querySelector('meta[name="internal-logo"]')
-        ?.getAttribute('content') ?? null,
-    loginImage:
-      document
-        .querySelector('meta[name="login-image"]')
-        ?.getAttribute('content') ?? null,
-  };
+  const branding = useMemo(() => {
+    if (typeof document === 'undefined') {
+      return {
+        theme: null,
+        favicon: null,
+        icon: null,
+        mainLogo: null,
+        internalLogo: null,
+        loginImage: null,
+      };
+    }
+
+    return {
+      theme:
+        document.querySelector('meta[name="theme"]')?.getAttribute('content') ??
+        null,
+      favicon:
+        document
+          .querySelector('meta[name="favicon"]')
+          ?.getAttribute('content') ?? null,
+      icon:
+        document.querySelector('meta[name="icon"]')?.getAttribute('content') ??
+        null,
+      mainLogo:
+        document
+          .querySelector('meta[name="main-logo"]')
+          ?.getAttribute('content') ?? null,
+      internalLogo:
+        document
+          .querySelector('meta[name="internal-logo"]')
+          ?.getAttribute('content') ?? null,
+      loginImage:
+        document
+          .querySelector('meta[name="login-image"]')
+          ?.getAttribute('content') ?? null,
+    };
+  }, []);
 
   useEffect(() => {
     // Initialize theme on first render
