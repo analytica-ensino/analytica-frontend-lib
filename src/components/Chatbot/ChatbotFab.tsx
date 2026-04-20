@@ -1,4 +1,6 @@
 import { ChatCircleDotsIcon } from '@phosphor-icons/react';
+import Button from '../Button/Button';
+import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
 
 /**
@@ -40,8 +42,8 @@ export default function ChatbotFab({
     unreadCount > 0 ? `${baseAriaLabel} (${badgeLabel})` : baseAriaLabel;
 
   return (
-    <button
-      type="button"
+    <Button
+      variant="raw"
       onClick={onClick}
       aria-label={ariaLabel}
       aria-expanded={isOpen}
@@ -56,15 +58,19 @@ export default function ChatbotFab({
     >
       <ChatCircleDotsIcon size={26} weight="fill" />
       {unreadCount > 0 && (
-        <span
+        <Text
+          as="span"
+          size="xs"
+          weight="bold"
+          color="text-white"
           data-testid="chatbot-fab-badge"
           aria-live="polite"
           aria-label={badgeLabel}
-          className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-error-500 px-1 text-xs font-bold text-white"
+          className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-error-500 px-1"
         >
           {unreadCount > 9 ? '9+' : unreadCount}
-        </span>
+        </Text>
       )}
-    </button>
+    </Button>
   );
 }

@@ -1,3 +1,4 @@
+import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
 
 /**
@@ -23,9 +24,18 @@ export default function ChatbotTypingIndicator({
         className
       )}
     >
-      <span className="h-2 w-2 animate-bounce rounded-full bg-text-400 [animation-delay:-0.3s]" />
-      <span className="h-2 w-2 animate-bounce rounded-full bg-text-400 [animation-delay:-0.15s]" />
-      <span className="h-2 w-2 animate-bounce rounded-full bg-text-400" />
+      <Text
+        as="span"
+        className="h-2 w-2 animate-bounce rounded-full bg-text-400 [animation-delay:-0.3s]"
+      />
+      <Text
+        as="span"
+        className="h-2 w-2 animate-bounce rounded-full bg-text-400 [animation-delay:-0.15s]"
+      />
+      <Text
+        as="span"
+        className="h-2 w-2 animate-bounce rounded-full bg-text-400"
+      />
     </output>
   );
 }

@@ -107,8 +107,8 @@ export default function ChatbotConversationList({
                   isActive ? 'bg-primary-50' : 'hover:bg-background-100'
                 )}
               >
-                <button
-                  type="button"
+                <Button
+                  variant="raw"
                   onClick={() => onSelect(c.id)}
                   className="flex-1 text-left"
                 >
@@ -122,7 +122,7 @@ export default function ChatbotConversationList({
                   <Text size="2xs" className="text-text-400">
                     {formatDate(c.lastMessageAt)}
                   </Text>
-                </button>
+                </Button>
                 <IconButton
                   size="sm"
                   aria-label={`Excluir conversa ${c.title || ''}`.trim()}
