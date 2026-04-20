@@ -1091,6 +1091,7 @@ export { createUseChatbot } from './hooks/useChatbot';
 export type { UseChatbotReturn } from './hooks/useChatbot';
 
 // Chatbot Types
+export { CHATBOT_MESSAGE_ROLES } from './types/chatbot';
 export type {
   ChatbotRole,
   ChatbotMessage as ChatbotMessageData,

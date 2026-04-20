@@ -2,7 +2,10 @@ import { RobotIcon, UserIcon } from '@phosphor-icons/react';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
 import ChatbotContentRenderer from './ChatbotContentRenderer';
-import type { ChatbotMessage as ChatbotMessageType } from '../../types/chatbot';
+import {
+  CHATBOT_MESSAGE_ROLES,
+  type ChatbotMessage as ChatbotMessageType,
+} from '../../types/chatbot';
 
 /**
  * Props for a single message bubble
@@ -36,7 +39,7 @@ export default function ChatbotMessage({
   className,
   contentClassName,
 }: Readonly<ChatbotMessageProps>) {
-  const isUser = message.role === 'user';
+  const isUser = message.role === CHATBOT_MESSAGE_ROLES.USER;
   return (
     <div
       className={cn(

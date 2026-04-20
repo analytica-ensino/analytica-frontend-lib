@@ -3,9 +3,16 @@
  */
 
 /**
- * Message author — mirrors the backend `chatbot_messages.role` column
+ * Message author — mirrors the backend `chatbot_messages.role` column.
+ * Use the constants instead of raw strings when comparing roles.
  */
-export type ChatbotRole = 'user' | 'assistant';
+export const CHATBOT_MESSAGE_ROLES = {
+  USER: 'user',
+  ASSISTANT: 'assistant',
+} as const;
+
+export type ChatbotRole =
+  (typeof CHATBOT_MESSAGE_ROLES)[keyof typeof CHATBOT_MESSAGE_ROLES];
 
 /**
  * Single message inside a conversation

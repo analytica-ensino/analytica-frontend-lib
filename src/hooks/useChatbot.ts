@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { CHATBOT_MESSAGE_ROLES } from '../types/chatbot';
 import type {
   ChatbotApiClient,
   ChatbotConversation,
@@ -257,7 +258,7 @@ export function createUseChatbot(resolver: ChatbotApiClientResolver) {
         const placeholder: ChatbotMessage = {
           id: placeholderId,
           conversationId: activeConversationId ?? '',
-          role: 'user',
+          role: CHATBOT_MESSAGE_ROLES.USER,
           content: trimmed,
           createdAt: new Date(),
         };
