@@ -4,6 +4,7 @@ import { useAuthStore } from '../store/authStore';
 import { useApiConfig, useUrlAuthentication, useTheme, useAuth } from '..';
 import { useBranding } from './useBranding';
 import type { BrandingData } from '../store/brandingStore';
+import { normalizeBrandingField } from '../utils/brandingUtils';
 
 /**
  * Interface para as configurações do hook useAppContent
@@ -146,17 +147,25 @@ export function useAppContent(config: UseAppContentConfig) {
   useEffect(() => {
     if (sessionInfo) {
       const brandingData: BrandingData = {
-        theme: sessionInfo.institutionTheme as string | null,
-        favicon: sessionInfo.institutionFavicon as string | null,
-        icon: sessionInfo.institutionIcon as string | null,
-        mainLogo: sessionInfo.institutionMainLogo as string | null,
-        internalLogo: sessionInfo.institutionInternalLogo as string | null,
-        loginImage: sessionInfo.institutionLoginImage as string | null,
+        theme: normalizeBrandingField(sessionInfo.institutionTheme),
+        favicon: normalizeBrandingField(sessionInfo.institutionFavicon),
+        icon: normalizeBrandingField(sessionInfo.institutionIcon),
+        mainLogo: normalizeBrandingField(sessionInfo.institutionMainLogo),
+        internalLogo: normalizeBrandingField(sessionInfo.institutionInternalLogo),
+        loginImage: normalizeBrandingField(sessionInfo.institutionLoginImage),
       };
 
       initializeBranding(brandingData);
     }
-  }, [sessionInfo, initializeBranding]);
+  }, [
+    sessionInfo?.institutionTheme,
+    sessionInfo?.institutionFavicon,
+    sessionInfo?.institutionIcon,
+    sessionInfo?.institutionMainLogo,
+    sessionInfo?.institutionInternalLogo,
+    sessionInfo?.institutionLoginImage,
+    initializeBranding,
+  ]);
 
   return {
     handleNotFoundNavigation,
