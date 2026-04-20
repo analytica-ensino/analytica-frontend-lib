@@ -1,6 +1,10 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { createUseChatbot } from './useChatbot';
-import type { ChatbotApiClient, ChatbotMessage } from '../types/chatbot';
+import type {
+  ChatbotApiClient,
+  ChatbotMessage,
+  SendChatbotMessageResult,
+} from '../types/chatbot';
 
 function buildClient(
   overrides: Partial<ChatbotApiClient> = {}
@@ -109,7 +113,68 @@ describe('useChatbot', () => {
     });
 
     expect(result.current.messages).toHaveLength(0);
-    expect(result.current.errorMessage).toMatch(/boom/);
+    // Raw transport errors are intentionally hidden from users — the hook
+    // always surfaces a Portuguese fallback regardless of the thrown value.
+    expect(result.current.errorMessage).toBe('Falha ao enviar mensagem');
+  });
+
+  it('sendMessage discards the response if the user switched conversations mid-flight', async () => {
+    let resolveSend: ((value: SendChatbotMessageResult) => void) | undefined;
+    const client = buildClient({
+      sendMessage: jest.fn(
+        () =>
+          new Promise((resolve) => {
+            resolveSend = resolve;
+          })
+      ),
+      // Second conversation is already loaded — getMessages returns nothing
+      // so the active `messages` list stays empty after the switch.
+      getMessages: jest.fn(async () => ({ messages: [], total: 0 })),
+    });
+    const { result } = renderHook(() => createUseChatbot(client)());
+
+    // 1) Fire the send (no await yet — response is pending)
+    act(() => {
+      void result.current.sendMessage('oi');
+    });
+
+    // 2) While the send is pending, user switches to another conversation
+    await act(async () => {
+      result.current.selectConversation('c-other');
+    });
+    await waitFor(() => expect(client.getMessages).toHaveBeenCalled());
+
+    // 3) NOW the send response arrives
+    await act(async () => {
+      resolveSend?.({
+        conversationId: 'c-1',
+        userMessage: {
+          id: 'u-1',
+          conversationId: 'c-1',
+          role: 'user',
+          content: 'oi',
+          createdAt: new Date(),
+        } as ChatbotMessage,
+        assistantMessage: {
+          id: 'a-1',
+          conversationId: 'c-1',
+          role: 'assistant',
+          content: 'reply',
+          createdAt: new Date(),
+        } as ChatbotMessage,
+      });
+    });
+
+    // User should remain on the conversation they switched to — NOT yanked
+    // back to c-1 by the late-arriving response.
+    expect(result.current.activeConversationId).toBe('c-other');
+    // And the messages of the new conversation must not have the response
+    // appended (userMessage / assistantMessage from c-1 must be absent).
+    expect(
+      result.current.messages.some((m) => m.id === 'u-1' || m.id === 'a-1')
+    ).toBe(false);
+    // Conversations list is refreshed so the new conversation shows up.
+    await waitFor(() => expect(client.listConversations).toHaveBeenCalled());
   });
 
   it('selectConversation loads messages', async () => {
@@ -309,7 +374,8 @@ describe('useChatbot', () => {
       await result.current.deleteConversation('c-1');
     });
 
-    expect(result.current.errorMessage).toMatch(/db down/);
+    // Raw transport errors are intentionally hidden — always surfaces pt-BR fallback.
+    expect(result.current.errorMessage).toBe('Falha ao excluir conversa');
   });
 
   it('deleteConversation uses a generic fallback for non-Error throwables', async () => {

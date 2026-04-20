@@ -49,8 +49,12 @@ export default function ChatbotMessage({
       )}
     >
       {!isUser && (
-        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-600">
-          <RobotIcon size={18} weight="fill" />
+        <div
+          role="img"
+          aria-label="Mensagem do assistente"
+          className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-600"
+        >
+          <RobotIcon size={18} weight="fill" aria-hidden="true" />
         </div>
       )}
       <div
@@ -82,8 +86,12 @@ export default function ChatbotMessage({
         </Text>
       </div>
       {isUser && (
-        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary-500 text-white">
-          <UserIcon size={18} weight="fill" />
+        <div
+          role="img"
+          aria-label="Sua mensagem"
+          className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary-500 text-white"
+        >
+          <UserIcon size={18} weight="fill" aria-hidden="true" />
         </div>
       )}
     </div>

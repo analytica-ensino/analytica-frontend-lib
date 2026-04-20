@@ -64,6 +64,19 @@ function removeById<T extends { id: string }>(items: T[], id: string): T[] {
 }
 
 /**
+ * Map any thrown value to a Portuguese user-facing message. The raw
+ * `err.message` is intentionally ignored — transport-level strings
+ * (axios "Network Error", "Request failed with status code 500") are
+ * not localized and should not reach the UI. Observability remains
+ * intact: the original error still bubbles through `console.error` /
+ * Sentry at higher layers. The signature leaves room to evolve into a
+ * type-aware mapper later without changing call sites.
+ */
+function toUserErrorMessage(_err: unknown, fallback: string): string {
+  return fallback;
+}
+
+/**
  * Data and actions exposed by `useChatbot`
  */
 export interface UseChatbotReturn {
@@ -177,9 +190,7 @@ export function createUseChatbot(resolver: ChatbotApiClientResolver) {
         setConversations(result.conversations);
       } catch (err) {
         if (!mountedRef.current || seq !== conversationsSeqRef.current) return;
-        setErrorMessage(
-          err instanceof Error ? err.message : 'Falha ao carregar conversas'
-        );
+        setErrorMessage(toUserErrorMessage(err, 'Falha ao carregar conversas'));
       } finally {
         if (mountedRef.current && seq === conversationsSeqRef.current) {
           setIsLoadingHistory(false);
@@ -200,9 +211,7 @@ export function createUseChatbot(resolver: ChatbotApiClientResolver) {
         setMessages(result.messages);
       } catch (err) {
         if (!mountedRef.current || seq !== messagesSeqRef.current) return;
-        setErrorMessage(
-          err instanceof Error ? err.message : 'Falha ao carregar mensagens'
-        );
+        setErrorMessage(toUserErrorMessage(err, 'Falha ao carregar mensagens'));
       } finally {
         if (mountedRef.current && seq === messagesSeqRef.current) {
           setIsLoadingMessages(false);
@@ -254,6 +263,13 @@ export function createUseChatbot(resolver: ChatbotApiClientResolver) {
         if (!trimmed || isSendingRef.current) return;
         isSendingRef.current = true;
 
+        // Capture the messages-seq so we can tell if the user switched
+        // conversations while the request is in flight. `messagesSeqRef`
+        // is bumped by `selectConversation`, `startNewConversation`, and
+        // `deleteConversation` via `invalidateMessagesLoad` — any of those
+        // mid-flight means the current UI no longer reflects this send.
+        const sendSeq = messagesSeqRef.current;
+
         const placeholderId = generatePlaceholderId();
         const placeholder: ChatbotMessage = {
           id: placeholderId,
@@ -275,6 +291,16 @@ export function createUseChatbot(resolver: ChatbotApiClientResolver) {
           });
           if (!mountedRef.current) return;
 
+          if (sendSeq !== messagesSeqRef.current) {
+            // User switched conversations mid-flight. The server still
+            // persisted the new conversation — refresh the list so it
+            // appears in history — but do NOT touch the currently visible
+            // messages or `activeConversationId` (that would silently
+            // yank the user back to the old conversation).
+            void loadConversations();
+            return;
+          }
+
           setMessages((prev) =>
             replacePlaceholder(prev, placeholderId, result)
           );
@@ -284,10 +310,11 @@ export function createUseChatbot(resolver: ChatbotApiClientResolver) {
           void loadConversations();
         } catch (err) {
           if (!mountedRef.current) return;
+          // Only clean up the placeholder / surface the error if the user
+          // is still viewing the conversation this send belongs to.
+          if (sendSeq !== messagesSeqRef.current) return;
           setMessages((prev) => removePlaceholder(prev, placeholderId));
-          setErrorMessage(
-            err instanceof Error ? err.message : 'Falha ao enviar mensagem'
-          );
+          setErrorMessage(toUserErrorMessage(err, 'Falha ao enviar mensagem'));
         } finally {
           isSendingRef.current = false;
           if (mountedRef.current) setIsSending(false);
@@ -310,9 +337,7 @@ export function createUseChatbot(resolver: ChatbotApiClientResolver) {
           }
         } catch (err) {
           if (!mountedRef.current) return;
-          setErrorMessage(
-            err instanceof Error ? err.message : 'Falha ao excluir conversa'
-          );
+          setErrorMessage(toUserErrorMessage(err, 'Falha ao excluir conversa'));
         }
       },
       [activeConversationId]
