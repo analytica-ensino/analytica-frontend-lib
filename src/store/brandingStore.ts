@@ -57,7 +57,7 @@ export const useBrandingStore = create<BrandingState>()(
       },
     }),
     {
-      name: KEYS.BRANDING_STORAGE,
+      name: KEYS.BRANDING_STORAGE || '@branding-storage:analytica:v2',
       storage: createJSONStorage(() => localStorage),
     }
   )

@@ -31,6 +31,15 @@ jest.mock('..', () => ({
   useAuth: () => mockUseAuth(),
 }));
 
+// Mock do useBranding
+const mockInitializeBranding = jest.fn();
+jest.mock('./useBranding', () => ({
+  useBranding: () => ({
+    initializeBranding: mockInitializeBranding,
+    branding: null,
+  }),
+}));
+
 describe('useAppContent', () => {
   const mockApi = {
     get: jest.fn(),
@@ -560,5 +569,138 @@ describe('useAppContent', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
 
     consoleSpy.mockRestore();
+  });
+
+  describe('branding initialization', () => {
+    it('should initialize branding when sessionInfo is available', () => {
+      const sessionInfoWithBranding = {
+        ...mockSessionInfo,
+        institutionTheme: 'enem-paraiba-light' as string | null,
+        institutionFavicon: 'https://example.com/favicon.ico' as string | null,
+        institutionIcon: 'https://example.com/icon.png' as string | null,
+        institutionMainLogo:
+          'https://example.com/main-logo.png' as string | null,
+        institutionInternalLogo:
+          'https://example.com/internal-logo.png' as string | null,
+        institutionLoginImage:
+          'https://example.com/login.jpg' as string | null,
+      };
+
+      mockUseAuth.mockReturnValue({
+        sessionInfo: sessionInfoWithBranding,
+        isAuthenticated: true,
+      });
+
+      renderHook(() => useAppContent(defaultConfig));
+
+      expect(mockInitializeBranding).toHaveBeenCalledWith({
+        theme: 'enem-paraiba-light',
+        favicon: 'https://example.com/favicon.ico',
+        icon: 'https://example.com/icon.png',
+        mainLogo: 'https://example.com/main-logo.png',
+        internalLogo: 'https://example.com/internal-logo.png',
+        loginImage: 'https://example.com/login.jpg',
+      });
+    });
+
+    it('should initialize branding with null values', () => {
+      const sessionInfoWithBranding = {
+        ...mockSessionInfo,
+        institutionTheme: null as string | null,
+        institutionFavicon: null as string | null,
+        institutionIcon: null as string | null,
+        institutionMainLogo: null as string | null,
+        institutionInternalLogo: null as string | null,
+        institutionLoginImage: null as string | null,
+      };
+
+      mockUseAuth.mockReturnValue({
+        sessionInfo: sessionInfoWithBranding,
+        isAuthenticated: true,
+      });
+
+      renderHook(() => useAppContent(defaultConfig));
+
+      expect(mockInitializeBranding).toHaveBeenCalledWith({
+        theme: null,
+        favicon: null,
+        icon: null,
+        mainLogo: null,
+        internalLogo: null,
+        loginImage: null,
+      });
+    });
+
+    it('should not initialize branding when sessionInfo is null', () => {
+      mockUseAuth.mockReturnValue({
+        sessionInfo: null,
+        isAuthenticated: false,
+      });
+
+      renderHook(() => useAppContent(defaultConfig));
+
+      expect(mockInitializeBranding).not.toHaveBeenCalled();
+    });
+
+    it('should reinitialize branding when sessionInfo changes', () => {
+      const { rerender } = renderHook(() => useAppContent(defaultConfig));
+
+      expect(mockInitializeBranding).not.toHaveBeenCalled();
+
+      const sessionInfoWithBranding = {
+        ...mockSessionInfo,
+        institutionTheme: 'enem-paraiba-light' as string | null,
+        institutionFavicon: 'https://example.com/favicon.ico' as string | null,
+        institutionIcon: null as string | null,
+        institutionMainLogo: null as string | null,
+        institutionInternalLogo: null as string | null,
+        institutionLoginImage: null as string | null,
+      };
+
+      mockUseAuth.mockReturnValue({
+        sessionInfo: sessionInfoWithBranding,
+        isAuthenticated: true,
+      });
+
+      rerender();
+
+      expect(mockInitializeBranding).toHaveBeenCalledWith({
+        theme: 'enem-paraiba-light',
+        favicon: 'https://example.com/favicon.ico',
+        icon: null,
+        mainLogo: null,
+        internalLogo: null,
+        loginImage: null,
+      });
+    });
+
+    it('should handle partial branding data', () => {
+      const sessionInfoWithPartialBranding = {
+        ...mockSessionInfo,
+        institutionTheme: 'enem-paraiba-light' as string | null,
+        institutionFavicon: null as string | null,
+        institutionIcon: null as string | null,
+        institutionMainLogo:
+          'https://example.com/main-logo.png' as string | null,
+        institutionInternalLogo: null as string | null,
+        institutionLoginImage: null as string | null,
+      };
+
+      mockUseAuth.mockReturnValue({
+        sessionInfo: sessionInfoWithPartialBranding,
+        isAuthenticated: true,
+      });
+
+      renderHook(() => useAppContent(defaultConfig));
+
+      expect(mockInitializeBranding).toHaveBeenCalledWith({
+        theme: 'enem-paraiba-light',
+        favicon: null,
+        icon: null,
+        mainLogo: 'https://example.com/main-logo.png',
+        internalLogo: null,
+        loginImage: null,
+      });
+    });
   });
 });
