@@ -23,4 +23,9 @@ export enum KEYS {
    * Key for the Zustand persist storage for lessons.
    */
   LESSONS_STORAGE = '@lessons-storage:analytica:v2',
+
+  /**
+   * Key for the Zustand persist storage for branding.
+   */
+  BRANDING_STORAGE = '@branding-storage:analytica:v2',
 }

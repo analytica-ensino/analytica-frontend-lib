@@ -34,6 +34,10 @@ export interface ThemeActions {
    */
   setTheme: (mode: ThemeMode) => void;
   /**
+   * Set the white-label theme from institution branding
+   */
+  setWhiteLabelTheme: (theme: string | null) => void;
+  /**
    * Initialize theme on app start
    */
   initializeTheme: () => void;
@@ -124,6 +128,23 @@ export const useThemeStore = create<ThemeStore>()(
           const { applyTheme } = get();
           set({ themeMode: mode });
           applyTheme(mode);
+        },
+
+        setWhiteLabelTheme: (theme: string | null) => {
+          const htmlElement = document.documentElement;
+
+          if (theme) {
+            // Set the white-label theme as the original theme
+            htmlElement.setAttribute('data-original-theme', theme);
+
+            // Apply theme based on current mode
+            const { themeMode, applyTheme } = get();
+            if (themeMode === 'light' || themeMode === 'system') {
+              htmlElement.setAttribute('data-theme', theme);
+            }
+
+            applyTheme(themeMode);
+          }
         },
 
         initializeTheme: () => {

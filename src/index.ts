@@ -255,6 +255,13 @@ export type { BaseApiClient } from './types/api';
 export { useThemeStore } from './store/themeStore';
 export type { ThemeStore, ThemeState, ThemeActions } from './store/themeStore';
 
+// Branding Store
+export { useBrandingStore } from './store/brandingStore';
+export type {
+  BrandingData,
+  BrandingState,
+} from './store/brandingStore';
+
 // DropdownMenu Components
 export {
   default as DropdownMenu,
@@ -523,6 +530,8 @@ export { useMobile, getDeviceType } from './hooks/useMobile';
 export type { DeviceType } from './hooks/useMobile';
 export { useTheme } from './hooks/useTheme';
 export type { ThemeMode } from './hooks/useTheme';
+export { useBranding } from './hooks/useBranding';
+export { useInstitutionBranding } from './hooks/useInstitutionBranding';
 export { useDraftAutoSave } from './hooks/useDraftAutoSave';
 export type {
   ApiClient as DraftApiClientAdapter,
@@ -553,7 +562,13 @@ export { useQuestionFiltersStore } from './store/questionFiltersStore';
 export type { QuestionFiltersState } from './store/questionFiltersStore';
 export { useLessonFiltersStore } from './store/lessonFiltersStore';
 export type { LessonFiltersState } from './store/lessonFiltersStore';
-export type { AuthState } from './store/authStore';
+export type {
+  AuthState,
+  SessionInfo,
+  AuthTokens,
+  User,
+  UserProfile,
+} from './store/authStore';
 export { ActivityCardQuestionBanks } from './components/ActivityCardQuestionBanks/ActivityCardQuestionBanks';
 export { ActivityCardQuestionPreview } from './components/ActivityCardQuestionPreview/ActivityCardQuestionPreview';
 export { ActivityListQuestions } from './components/ActivityListQuestions/ActivityListQuestions';
