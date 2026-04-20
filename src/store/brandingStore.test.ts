@@ -25,6 +25,7 @@ describe('brandingStore', () => {
       const { setBranding } = useBrandingStore.getState();
 
       const brandingData: BrandingData = {
+        institutionId: 'institution-123',
         theme: 'enem-paraiba-light',
         favicon: 'https://example.com/favicon.ico',
         icon: 'https://example.com/icon.png',
@@ -43,6 +44,7 @@ describe('brandingStore', () => {
       const { setBranding } = useBrandingStore.getState();
 
       const initialBranding: BrandingData = {
+        institutionId: 'institution-123',
         theme: 'enem-parana-light',
         favicon: null,
         icon: null,
@@ -54,6 +56,7 @@ describe('brandingStore', () => {
       setBranding(initialBranding);
 
       const updatedBranding: BrandingData = {
+        institutionId: 'institution-123',
         theme: 'enem-paraiba-light',
         favicon: 'https://example.com/favicon.ico',
         icon: 'https://example.com/icon.png',
@@ -73,6 +76,7 @@ describe('brandingStore', () => {
       const { setBranding } = useBrandingStore.getState();
 
       const brandingData: BrandingData = {
+        institutionId: 'institution-123',
         theme: 'enem-paraiba-light',
         favicon: null,
         icon: null,
@@ -95,6 +99,7 @@ describe('brandingStore', () => {
       const { setBranding, getBranding } = useBrandingStore.getState();
 
       const brandingData: BrandingData = {
+        institutionId: 'institution-123',
         theme: 'enem-paraiba-light',
         favicon: 'https://example.com/favicon.ico',
         icon: 'https://example.com/icon.png',
@@ -122,6 +127,7 @@ describe('brandingStore', () => {
       const { setBranding, clearBranding } = useBrandingStore.getState();
 
       const brandingData: BrandingData = {
+        institutionId: 'institution-123',
         theme: 'enem-paraiba-light',
         favicon: 'https://example.com/favicon.ico',
         icon: 'https://example.com/icon.png',
@@ -154,6 +160,7 @@ describe('brandingStore', () => {
       const { setBranding } = useBrandingStore.getState();
 
       const brandingData: BrandingData = {
+        institutionId: 'institution-123',
         theme: 'enem-paraiba-light',
         favicon: 'https://example.com/favicon.ico',
         icon: 'https://example.com/icon.png',
@@ -174,6 +181,7 @@ describe('brandingStore', () => {
 
     it('should restore branding data from localStorage', () => {
       const brandingData: BrandingData = {
+        institutionId: 'institution-123',
         theme: 'enem-paraiba-light',
         favicon: 'https://example.com/favicon.ico',
         icon: 'https://example.com/icon.png',
@@ -204,6 +212,7 @@ describe('brandingStore', () => {
       const { setBranding } = useBrandingStore.getState();
 
       const branding1: BrandingData = {
+        institutionId: 'institution-123',
         theme: 'enem-parana-light',
         favicon: null,
         icon: null,
@@ -213,6 +222,7 @@ describe('brandingStore', () => {
       };
 
       const branding2: BrandingData = {
+        institutionId: 'institution-123',
         theme: 'enem-paraiba-light',
         favicon: 'https://example.com/favicon.ico',
         icon: null,
@@ -222,6 +232,7 @@ describe('brandingStore', () => {
       };
 
       const branding3: BrandingData = {
+        institutionId: 'institution-123',
         theme: 'dark',
         favicon: 'https://example.com/favicon.ico',
         icon: 'https://example.com/icon.png',
@@ -242,6 +253,7 @@ describe('brandingStore', () => {
       const { setBranding } = useBrandingStore.getState();
 
       const brandingData: BrandingData = {
+        institutionId: 'institution-123',
         theme: '',
         favicon: '',
         icon: '',

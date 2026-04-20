@@ -6,6 +6,7 @@ import { KEYS } from '@/utils/keys';
  * Interface representing institution branding data.
  */
 export interface BrandingData {
+  institutionId: string;
   theme: string | null;
   favicon: string | null;
   icon: string | null;

@@ -82,8 +82,10 @@ describe('useInstitutionBranding', () => {
   });
 
   describe('cached branding', () => {
-    it('should use cached branding when available', async () => {
+    it('should use cached branding when available for same institution', async () => {
+      const institutionId = 'institution-123';
       const cachedBranding: BrandingData = {
+        institutionId,
         theme: 'enem-paraiba-light',
         favicon: 'https://example.com/favicon.ico',
         icon: 'https://example.com/icon.png',
@@ -95,7 +97,7 @@ describe('useInstitutionBranding', () => {
       mockGetBranding.mockReturnValue(cachedBranding);
 
       const api = { get: mockApiGet };
-      renderHook(() => useInstitutionBranding(api, 'test-institution-id'));
+      renderHook(() => useInstitutionBranding(api, institutionId));
 
       await waitFor(() => {
         expect(mockInitializeBranding).toHaveBeenCalledWith(cachedBranding);
@@ -103,8 +105,50 @@ describe('useInstitutionBranding', () => {
       });
     });
 
-    it('should not reinitialize cached branding on rerender', async () => {
+    it('should not use cached branding when institutionId differs', async () => {
       const cachedBranding: BrandingData = {
+        institutionId: 'institution-123',
+        theme: 'enem-paraiba-light',
+        favicon: 'https://example.com/favicon.ico',
+        icon: 'https://example.com/icon.png',
+        mainLogo: 'https://example.com/main-logo.png',
+        internalLogo: 'https://example.com/internal-logo.png',
+        loginImage: 'https://example.com/login.jpg',
+      };
+
+      mockGetBranding.mockReturnValue(cachedBranding);
+
+      const brandingResponse = {
+        data: {
+          data: {
+            theme: 'enem-parana-light',
+            favicon: 'https://different.com/favicon.ico',
+            icon: 'https://different.com/icon.png',
+            mainLogo: 'https://different.com/logo.png',
+            internalLogo: 'https://different.com/internal.png',
+            loginImage: 'https://different.com/login.jpg',
+          },
+        },
+      };
+      mockApiGet.mockResolvedValue(brandingResponse);
+
+      const api = { get: mockApiGet };
+      const differentInstitutionId = 'institution-456';
+      renderHook(() => useInstitutionBranding(api, differentInstitutionId));
+
+      // Should fetch new branding instead of using cache
+      await waitFor(() => {
+        expect(mockApiGet).toHaveBeenCalledWith(
+          `/auth/institution/${differentInstitutionId}/branding`,
+          {}
+        );
+      });
+    });
+
+    it('should not reinitialize cached branding on rerender', async () => {
+      const institutionId = 'institution-123';
+      const cachedBranding: BrandingData = {
+        institutionId,
         theme: 'enem-paraiba-light',
         favicon: null,
         icon: null,
@@ -117,7 +161,7 @@ describe('useInstitutionBranding', () => {
 
       const api = { get: mockApiGet };
       const { rerender } = renderHook(() =>
-        useInstitutionBranding(api, 'test-institution-id')
+        useInstitutionBranding(api, institutionId)
       );
 
       await waitFor(() => {
@@ -137,7 +181,8 @@ describe('useInstitutionBranding', () => {
     it('should fetch branding from API when not cached', async () => {
       mockGetBranding.mockReturnValue(null);
 
-      const brandingResponse: BrandingData = {
+      const institutionId = 'test-institution-id';
+      const brandingResponse = {
         theme: 'enem-paraiba-light',
         favicon: 'https://example.com/favicon.ico',
         icon: 'https://example.com/icon.png',
@@ -155,7 +200,7 @@ describe('useInstitutionBranding', () => {
 
       const api = { get: mockApiGet };
       const { result } = renderHook(() =>
-        useInstitutionBranding(api, 'test-institution-id')
+        useInstitutionBranding(api, institutionId)
       );
 
       expect(result.current.isLoading).toBe(true);
@@ -169,14 +214,18 @@ describe('useInstitutionBranding', () => {
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
-        expect(mockInitializeBranding).toHaveBeenCalledWith(brandingResponse);
+        expect(mockInitializeBranding).toHaveBeenCalledWith({
+          institutionId,
+          ...brandingResponse,
+        });
       });
     });
 
     it('should handle Axios response structure correctly', async () => {
       mockGetBranding.mockReturnValue(null);
 
-      const brandingData: BrandingData = {
+      const institutionId = 'test-institution-id';
+      const brandingData = {
         theme: 'enem-paraiba-light',
         favicon: null,
         icon: null,
@@ -197,10 +246,13 @@ describe('useInstitutionBranding', () => {
       });
 
       const api = { get: mockApiGet };
-      renderHook(() => useInstitutionBranding(api, 'test-institution-id'));
+      renderHook(() => useInstitutionBranding(api, institutionId));
 
       await waitFor(() => {
-        expect(mockInitializeBranding).toHaveBeenCalledWith(brandingData);
+        expect(mockInitializeBranding).toHaveBeenCalledWith({
+          institutionId,
+          ...brandingData,
+        });
       });
     });
 
@@ -227,6 +279,7 @@ describe('useInstitutionBranding', () => {
       mockGetBranding.mockReturnValue(null);
 
       const brandingResponse: BrandingData = {
+        institutionId: 'institution-123',
         theme: 'enem-paraiba-light',
         favicon: null,
         icon: null,
@@ -313,6 +366,7 @@ describe('useInstitutionBranding', () => {
 
       // Mock successful response for retry
       const brandingResponse: BrandingData = {
+        institutionId: 'institution-123',
         theme: 'enem-paraiba-light',
         favicon: null,
         icon: null,
@@ -369,6 +423,7 @@ describe('useInstitutionBranding', () => {
       mockGetBranding.mockReturnValue(null);
 
       const brandingData: BrandingData = {
+        institutionId: 'institution-123',
         theme: 'enem-paraiba-light',
         favicon: null,
         icon: null,

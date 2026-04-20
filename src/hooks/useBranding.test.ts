@@ -69,6 +69,7 @@ describe('useBranding', () => {
       const { result } = renderHook(() => useBranding());
 
       const brandingData: BrandingData = {
+        institutionId: 'institution-123',
         theme: 'enem-paraiba-light',
         favicon: 'https://example.com/favicon.ico',
         icon: 'https://example.com/icon.png',
@@ -89,6 +90,7 @@ describe('useBranding', () => {
       const { result } = renderHook(() => useBranding());
 
       const brandingData: BrandingData = {
+        institutionId: 'institution-123',
         theme: null,
         favicon: 'https://example.com/favicon.ico',
         icon: 'https://example.com/icon.png',
@@ -109,6 +111,7 @@ describe('useBranding', () => {
       const { result } = renderHook(() => useBranding());
 
       const brandingData: BrandingData = {
+        institutionId: 'institution-123',
         theme: null,
         favicon: null,
         icon: null,
@@ -129,6 +132,7 @@ describe('useBranding', () => {
   describe('branding state', () => {
     it('should return individual branding properties when branding is set', () => {
       const brandingData: BrandingData = {
+        institutionId: 'institution-123',
         theme: 'enem-paraiba-light',
         favicon: 'https://example.com/favicon.ico',
         icon: 'https://example.com/icon.png',
@@ -158,6 +162,7 @@ describe('useBranding', () => {
 
     it('should return null values when branding has null properties', () => {
       const brandingData: BrandingData = {
+        institutionId: 'institution-123',
         theme: 'enem-paraiba-light',
         favicon: null,
         icon: null,
@@ -201,6 +206,7 @@ describe('useBranding', () => {
 
       // First set a favicon
       const brandingData: BrandingData = {
+        institutionId: 'institution-123',
         theme: null,
         favicon: 'https://example.com/favicon.ico',
         icon: null,
@@ -234,6 +240,7 @@ describe('useBranding', () => {
   describe('getBranding', () => {
     it('should call store getBranding', () => {
       const brandingData: BrandingData = {
+        institutionId: 'institution-123',
         theme: 'enem-paraiba-light',
         favicon: 'https://example.com/favicon.ico',
         icon: null,
@@ -295,6 +302,7 @@ describe('useBranding', () => {
       const { result } = renderHook(() => useBranding());
 
       const brandingData: BrandingData = {
+        institutionId: 'institution-123',
         theme: null,
         favicon: 'https://example.com/favicon.ico',
         icon: null,
@@ -321,6 +329,7 @@ describe('useBranding', () => {
 
       // First branding
       const firstBranding: BrandingData = {
+        institutionId: 'institution-123',
         theme: null,
         favicon: 'https://example.com/favicon1.ico',
         icon: null,
@@ -340,6 +349,7 @@ describe('useBranding', () => {
 
       // Second branding
       const secondBranding: BrandingData = {
+        institutionId: 'institution-123',
         theme: null,
         favicon: 'https://example.com/favicon2.ico',
         icon: null,
@@ -364,6 +374,7 @@ describe('useBranding', () => {
       const { result } = renderHook(() => useBranding());
 
       const brandingData: BrandingData = {
+        institutionId: 'institution-123',
         theme: null,
         favicon: null,
         icon: null,
@@ -390,6 +401,7 @@ describe('useBranding', () => {
       const { result } = renderHook(() => useBranding());
 
       const brandingData: BrandingData = {
+        institutionId: 'institution-123',
         theme: null,
         favicon: 'https://example.com/branded-favicon.ico',
         icon: null,

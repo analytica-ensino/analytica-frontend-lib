@@ -145,19 +145,23 @@ export function useAppContent(config: UseAppContentConfig) {
 
   // Apply branding when sessionInfo is available
   useEffect(() => {
-    if (sessionInfo) {
+    if (sessionInfo?.institutionId) {
       const brandingData: BrandingData = {
+        institutionId: sessionInfo.institutionId,
         theme: normalizeBrandingField(sessionInfo.institutionTheme),
         favicon: normalizeBrandingField(sessionInfo.institutionFavicon),
         icon: normalizeBrandingField(sessionInfo.institutionIcon),
         mainLogo: normalizeBrandingField(sessionInfo.institutionMainLogo),
-        internalLogo: normalizeBrandingField(sessionInfo.institutionInternalLogo),
+        internalLogo: normalizeBrandingField(
+          sessionInfo.institutionInternalLogo
+        ),
         loginImage: normalizeBrandingField(sessionInfo.institutionLoginImage),
       };
 
       initializeBranding(brandingData);
     }
   }, [
+    sessionInfo?.institutionId,
     sessionInfo?.institutionTheme,
     sessionInfo?.institutionFavicon,
     sessionInfo?.institutionIcon,

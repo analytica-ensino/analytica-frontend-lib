@@ -21,11 +21,11 @@ export const useInstitutionBranding = (
       return;
     }
 
-    // Check if branding already exists in localStorage
+    // Check if branding already exists in localStorage for this institution
     const cachedBranding = getBranding();
 
-    if (cachedBranding) {
-      // Apply cached branding without fetching
+    if (cachedBranding && cachedBranding.institutionId === institutionId) {
+      // Apply cached branding without fetching (only if it's for the same institution)
       if (!fetchedRef.current) {
         initializeBranding(cachedBranding);
         fetchedRef.current = true;
@@ -55,6 +55,7 @@ export const useInstitutionBranding = (
 
         if (brandingPayload) {
           const brandingData: BrandingData = {
+            institutionId,
             theme: brandingPayload.theme || null,
             favicon: brandingPayload.favicon || null,
             icon: brandingPayload.icon || null,
