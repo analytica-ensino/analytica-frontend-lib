@@ -33,7 +33,7 @@ describe('keys', () => {
 
     it('should have correct number of keys', () => {
       const keys = Object.keys(KEYS);
-      expect(keys).toHaveLength(4);
+      expect(keys).toHaveLength(3);
     });
 
     it('should have string values', () => {

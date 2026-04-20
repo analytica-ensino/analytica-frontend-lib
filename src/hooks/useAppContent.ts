@@ -2,9 +2,6 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useApiConfig, useUrlAuthentication, useTheme, useAuth } from '..';
-import { useBranding } from './useBranding';
-import { normalizeBrandingField } from '../utils/brandingUtils';
-import type { BrandingData } from '../types/branding';
 
 /**
  * Interface para as configurações do hook useAppContent
@@ -130,7 +127,6 @@ export function useAppContent(config: UseAppContentConfig) {
   useUrlAuthentication(urlAuthConfig);
 
   const { sessionInfo } = useAuth();
-  const { initializeBranding } = useBranding();
 
   // Memoize the institutionId to use to prevent unnecessary re-executions
   const institutionIdToUse = useMemo(() => {
@@ -142,34 +138,6 @@ export function useAppContent(config: UseAppContentConfig) {
       initialize(institutionIdToUse);
     }
   }, [institutionIdToUse, initialize, initialized]);
-
-  // Apply branding when sessionInfo is available
-  useEffect(() => {
-    if (sessionInfo?.institutionId) {
-      const brandingData: BrandingData = {
-        institutionId: sessionInfo.institutionId,
-        theme: normalizeBrandingField(sessionInfo.institutionTheme),
-        favicon: normalizeBrandingField(sessionInfo.institutionFavicon),
-        icon: normalizeBrandingField(sessionInfo.institutionIcon),
-        mainLogo: normalizeBrandingField(sessionInfo.institutionMainLogo),
-        internalLogo: normalizeBrandingField(
-          sessionInfo.institutionInternalLogo
-        ),
-        loginImage: normalizeBrandingField(sessionInfo.institutionLoginImage),
-      };
-
-      initializeBranding(brandingData);
-    }
-  }, [
-    sessionInfo?.institutionId,
-    sessionInfo?.institutionTheme,
-    sessionInfo?.institutionFavicon,
-    sessionInfo?.institutionIcon,
-    sessionInfo?.institutionMainLogo,
-    sessionInfo?.institutionInternalLogo,
-    sessionInfo?.institutionLoginImage,
-    initializeBranding,
-  ]);
 
   return {
     handleNotFoundNavigation,

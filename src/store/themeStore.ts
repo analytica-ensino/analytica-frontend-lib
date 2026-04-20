@@ -84,11 +84,14 @@ const applyThemeToDOM = (mode: ThemeMode): boolean => {
 };
 
 /**
- * Save original theme from white label
+ * Save original theme from white label (reads from HTML meta tag or data-theme attribute)
  */
 const saveOriginalTheme = () => {
   const htmlElement = document.documentElement;
-  const currentTheme = htmlElement.dataset.theme;
+  const currentTheme =
+    htmlElement.dataset.theme ||
+    document.querySelector('meta[name="theme"]')?.getAttribute('content');
+
   if (currentTheme && !htmlElement.dataset.originalTheme) {
     htmlElement.dataset.originalTheme = currentTheme;
   }

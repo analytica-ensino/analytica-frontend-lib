@@ -255,11 +255,6 @@ export type { BaseApiClient } from './types/api';
 export { useThemeStore } from './store/themeStore';
 export type { ThemeStore, ThemeState, ThemeActions } from './store/themeStore';
 
-// Branding Store
-export { useBrandingStore } from './store/brandingStore';
-export type { BrandingState } from './store/brandingStore';
-export type { BrandingData } from './types/branding';
-
 // Storage Keys
 export { KEYS, FEATURE_FLAGS_KEYS } from './utils/keys';
 
@@ -531,8 +526,6 @@ export { useMobile, getDeviceType } from './hooks/useMobile';
 export type { DeviceType } from './hooks/useMobile';
 export { useTheme } from './hooks/useTheme';
 export type { ThemeMode } from './hooks/useTheme';
-export { useBranding } from './hooks/useBranding';
-export { useInstitutionBranding } from './hooks/useInstitutionBranding';
 export { useDraftAutoSave } from './hooks/useDraftAutoSave';
 export type {
   ApiClient as DraftApiClientAdapter,
