@@ -24,7 +24,7 @@ export const useInstitutionBranding = (
     // Check if branding already exists in localStorage for this institution
     const cachedBranding = getBranding();
 
-    if (cachedBranding && cachedBranding.institutionId === institutionId) {
+    if (cachedBranding?.institutionId === institutionId) {
       // Apply cached branding without fetching (only if it's for the same institution)
       if (!fetchedRef.current) {
         initializeBranding(cachedBranding);
