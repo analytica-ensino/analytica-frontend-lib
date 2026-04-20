@@ -45,23 +45,35 @@ export const useInstitutionBranding = (
 
       try {
         const response = await api.get(
-          `/auth/institution/${institutionId}/branding`,
+          `/institution/filter?filter=${institutionId}`,
           {}
         );
 
         // Handle Axios response structure (response.data.data)
-        const axiosResponse = response as { data?: { data?: BrandingData } };
-        const brandingPayload = axiosResponse.data?.data;
+        const axiosResponse = response as {
+          data?: {
+            data?: {
+              id: string;
+              theme?: string | null;
+              favicon?: string | null;
+              icon?: string | null;
+              mainLogo?: string | null;
+              internalLogo?: string | null;
+              loginImage?: string | null;
+            };
+          };
+        };
+        const institution = axiosResponse.data?.data;
 
-        if (brandingPayload) {
+        if (institution) {
           const brandingData: BrandingData = {
             institutionId,
-            theme: brandingPayload.theme || null,
-            favicon: brandingPayload.favicon || null,
-            icon: brandingPayload.icon || null,
-            mainLogo: brandingPayload.mainLogo || null,
-            internalLogo: brandingPayload.internalLogo || null,
-            loginImage: brandingPayload.loginImage || null,
+            theme: institution.theme || null,
+            favicon: institution.favicon || null,
+            icon: institution.icon || null,
+            mainLogo: institution.mainLogo || null,
+            internalLogo: institution.internalLogo || null,
+            loginImage: institution.loginImage || null,
           };
 
           initializeBranding(brandingData);

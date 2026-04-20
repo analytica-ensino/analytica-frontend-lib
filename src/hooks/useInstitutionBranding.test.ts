@@ -139,7 +139,7 @@ describe('useInstitutionBranding', () => {
       // Should fetch new branding instead of using cache
       await waitFor(() => {
         expect(mockApiGet).toHaveBeenCalledWith(
-          `/auth/institution/${differentInstitutionId}/branding`,
+          `/institution/filter?filter=${differentInstitutionId}`,
           {}
         );
       });
@@ -207,7 +207,7 @@ describe('useInstitutionBranding', () => {
 
       await waitFor(() => {
         expect(mockApiGet).toHaveBeenCalledWith(
-          '/auth/institution/test-institution-id/branding',
+          '/institution/filter?filter=test-institution-id',
           {}
         );
       });
@@ -387,7 +387,7 @@ describe('useInstitutionBranding', () => {
 
       await waitFor(() => {
         expect(mockApiGet).toHaveBeenCalledWith(
-          '/auth/institution/test-institution-id-2/branding',
+          '/institution/filter?filter=test-institution-id-2',
           {}
         );
       });
@@ -450,7 +450,7 @@ describe('useInstitutionBranding', () => {
 
       await waitFor(() => {
         expect(mockApiGet).toHaveBeenCalledWith(
-          '/auth/institution/institution-1/branding',
+          '/institution/filter?filter=institution-1',
           {}
         );
       });
