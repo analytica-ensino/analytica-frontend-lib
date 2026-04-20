@@ -50,6 +50,8 @@ export interface SessionInfo {
   classId: string;
   subjects: string[];
   schools: string[];
+  userName?: string;
+  urlProfilePicture?: string;
   [key: string]: unknown;
 }
 

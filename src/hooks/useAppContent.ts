@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useApiConfig, useUrlAuthentication, useTheme, useAuth } from '..';
 import { useBranding } from './useBranding';
+import type { BrandingData } from '../store/brandingStore';
 
 /**
  * Interface para as configurações do hook useAppContent
@@ -144,13 +145,13 @@ export function useAppContent(config: UseAppContentConfig) {
   // Apply branding when sessionInfo is available
   useEffect(() => {
     if (sessionInfo) {
-      const brandingData = {
-        theme: sessionInfo.institutionTheme || null,
-        favicon: sessionInfo.institutionFavicon || null,
-        icon: sessionInfo.institutionIcon || null,
-        mainLogo: sessionInfo.institutionMainLogo || null,
-        internalLogo: sessionInfo.institutionInternalLogo || null,
-        loginImage: sessionInfo.institutionLoginImage || null,
+      const brandingData: BrandingData = {
+        theme: sessionInfo.institutionTheme as string | null,
+        favicon: sessionInfo.institutionFavicon as string | null,
+        icon: sessionInfo.institutionIcon as string | null,
+        mainLogo: sessionInfo.institutionMainLogo as string | null,
+        internalLogo: sessionInfo.institutionInternalLogo as string | null,
+        loginImage: sessionInfo.institutionLoginImage as string | null,
       };
 
       initializeBranding(brandingData);
