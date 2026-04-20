@@ -2,7 +2,7 @@
  * Helper function to normalize branding field values to string | null
  * Handles undefined values from SessionInfo by coercing to null
  *
- * @param value - The value to normalize (can be string, null, undefined, or unknown)
+ * @param value - The value to normalize (can be any type)
  * @returns string if the value is a string, null otherwise
  *
  * @example
@@ -13,9 +13,7 @@
  * normalizeBrandingField({}) // null
  * ```
  */
-export const normalizeBrandingField = (
-  value: string | null | undefined | unknown
-): string | null => {
+export const normalizeBrandingField = (value: unknown): string | null => {
   if (typeof value === 'string') return value;
   return null;
 };
