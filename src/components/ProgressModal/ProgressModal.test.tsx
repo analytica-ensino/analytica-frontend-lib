@@ -16,7 +16,8 @@ describe('ProgressModal', () => {
 
   it('renders the modal when isOpen is true', () => {
     render(<ProgressModal {...defaultProps} />);
-    expect(screen.getByText('Carregando...')).toBeInTheDocument();
+    // aparece duas vezes: (1) sr-only no h2, (2) visível abaixo da imagem
+    expect(screen.getAllByText('Carregando...').length).toBeGreaterThan(0);
   });
 
   it('does not render when isOpen is false', () => {
@@ -61,12 +62,25 @@ describe('ProgressModal', () => {
     expect(screen.getByAltText('Carregando')).toBeInTheDocument();
   });
 
+  it('uses accessibleName as image alt when message is ReactNode', () => {
+    render(
+      <ProgressModal
+        {...defaultProps}
+        message={<span>Custom</span>}
+        accessibleName="Analisando redação"
+        image="https://example.com/loading.png"
+      />
+    );
+
+    expect(screen.getByAltText('Analisando redação')).toBeInTheDocument();
+  });
+
   it('does not render image when image prop is omitted', () => {
     render(<ProgressModal {...defaultProps} />);
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
   });
 
-  it('renders ReactNode message', () => {
+  it('renders ReactNode message visibly below the image', () => {
     render(
       <ProgressModal
         {...defaultProps}
@@ -75,6 +89,23 @@ describe('ProgressModal', () => {
     );
 
     expect(screen.getByTestId('rich-message')).toBeInTheDocument();
+  });
+
+  it('renders the visible message below the image (not only in header)', () => {
+    const { container } = render(
+      <ProgressModal
+        {...defaultProps}
+        image="https://example.com/img.png"
+        message="Transcrevendo..."
+      />
+    );
+
+    // A mensagem visível fica FORA do h2 (h2 só tem o sr-only)
+    const h2 = container.querySelector('h2');
+    const visibleMessages = screen
+      .getAllByText('Transcrevendo...')
+      .filter((el) => !h2?.contains(el));
+    expect(visibleMessages.length).toBeGreaterThan(0);
   });
 
   it('shows determinate progress with percentage when progress is provided', () => {
@@ -128,16 +159,18 @@ describe('ProgressModal', () => {
   });
 
   describe('Accessibility', () => {
-    it('message is rendered as the modal h2 title (accessible name)', () => {
+    it('renders message as sr-only accessible name in the h2 title', () => {
       const { container } = render(
         <ProgressModal {...defaultProps} message="Transcrevendo..." />
       );
       const h2 = container.querySelector('h2');
       expect(h2).toBeInTheDocument();
       expect(h2).toHaveTextContent('Transcrevendo...');
+      const srOnly = h2?.querySelector('.sr-only');
+      expect(srOnly).toHaveTextContent('Transcrevendo...');
     });
 
-    it('dialog aria-labelledby points to the h2 with message', () => {
+    it('dialog aria-labelledby points to the h2', () => {
       const { container } = render(
         <ProgressModal {...defaultProps} message="Analisando..." />
       );
@@ -146,7 +179,26 @@ describe('ProgressModal', () => {
       const h2Id = h2?.getAttribute('id');
       expect(h2Id).toBeTruthy();
       expect(dialog).toHaveAttribute('aria-labelledby', h2Id as string);
-      expect(h2).toHaveTextContent('Analisando...');
+    });
+
+    it('uses accessibleName in h2 when message is ReactNode', () => {
+      const { container } = render(
+        <ProgressModal
+          {...defaultProps}
+          message={<span>Rich</span>}
+          accessibleName="Gerando resultado"
+        />
+      );
+      const h2 = container.querySelector('h2');
+      expect(h2).toHaveTextContent('Gerando resultado');
+    });
+
+    it('falls back to "Carregando" when message is ReactNode without accessibleName', () => {
+      const { container } = render(
+        <ProgressModal {...defaultProps} message={<span>Rich</span>} />
+      );
+      const h2 = container.querySelector('h2');
+      expect(h2).toHaveTextContent('Carregando');
     });
   });
 });
