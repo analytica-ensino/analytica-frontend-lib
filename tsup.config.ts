@@ -184,6 +184,11 @@ export default defineConfig({
     'utils/exportExcel/index': 'src/utils/exportExcel.ts',
     'utils/exportPdf/index': 'src/utils/exportPdf.ts',
 
+    // Chatbot (student AI assistant)
+    'Chatbot/index': 'src/components/Chatbot/Chatbot.tsx',
+    'hooks/useChatbot/index': 'src/hooks/useChatbot.ts',
+    'types/chatbot/index': 'src/types/chatbot.ts',
+
     // Styles
     styles: 'src/styles.css',
   },
@@ -203,6 +208,8 @@ export default defineConfig({
     '@react-google-maps/api',
     '@turf/union',
     '@turf/helpers',
+    'react-markdown',
+    'remark-gfm',
     // Tiptap dependencies (required for RichEditor)
     '@tiptap/react',
     '@tiptap/core',
