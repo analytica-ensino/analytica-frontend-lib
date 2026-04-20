@@ -1,7 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { useInstitutionBranding } from './useInstitutionBranding';
 import { useBranding } from './useBranding';
-import type { BrandingData } from '../store/brandingStore';
+import type { BrandingData } from '../types/branding';
 
 // Mock useBranding hook
 jest.mock('./useBranding');

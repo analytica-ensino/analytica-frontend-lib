@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useBranding } from './useBranding';
-import type { BrandingData } from '../store/brandingStore';
+import type { BrandingData } from '../types/branding';
 
 /**
  * Hook to fetch and apply institution branding before login

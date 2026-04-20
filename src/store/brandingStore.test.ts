@@ -1,5 +1,5 @@
 import { useBrandingStore } from './brandingStore';
-import type { BrandingData } from './brandingStore';
+import type { BrandingData } from '../types/branding';
 
 describe('brandingStore', () => {
   beforeEach(() => {

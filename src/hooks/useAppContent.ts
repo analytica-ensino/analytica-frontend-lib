@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useApiConfig, useUrlAuthentication, useTheme, useAuth } from '..';
 import { useBranding } from './useBranding';
-import type { BrandingData } from '../store/brandingStore';
 import { normalizeBrandingField } from '../utils/brandingUtils';
+import type { BrandingData } from '../types/branding';
 
 /**
  * Interface para as configurações do hook useAppContent

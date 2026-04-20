@@ -1,6 +1,7 @@
 import { useEffect, useCallback } from 'react';
-import { useBrandingStore, BrandingData } from '../store/brandingStore';
+import { useBrandingStore } from '../store/brandingStore';
 import { useThemeStore } from '../store/themeStore';
+import type { BrandingData } from '../types/branding';
 
 /**
  * Upsert a branding icon link element with a specific ID

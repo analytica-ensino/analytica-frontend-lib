@@ -1,19 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { KEYS } from '@/utils/keys';
-
-/**
- * Interface representing institution branding data.
- */
-export interface BrandingData {
-  institutionId: string;
-  theme: string | null;
-  favicon: string | null;
-  icon: string | null;
-  mainLogo: string | null;
-  internalLogo: string | null;
-  loginImage: string | null;
-}
+import type { BrandingData } from '../types/branding';
 
 /**
  * Interface defining the branding state and actions.

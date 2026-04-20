@@ -2,7 +2,7 @@ import { renderHook, act } from '@testing-library/react';
 import { useBranding } from './useBranding';
 import { useBrandingStore } from '../store/brandingStore';
 import { useThemeStore } from '../store/themeStore';
-import type { BrandingData } from '../store/brandingStore';
+import type { BrandingData } from '../types/branding';
 
 // Mock the stores
 jest.mock('../store/brandingStore');
