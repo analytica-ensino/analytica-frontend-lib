@@ -1,12 +1,13 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useThemeStore, ThemeMode } from '../store/themeStore';
 
 export type { ThemeMode };
 
 /**
- * Hook para gerenciar temas com suporte a alternância manual e detecção automática do sistema
+ * Hook para gerenciar temas e branding institucional
  * Este hook permite alternar entre temas light, dark e automático baseado nas preferências do sistema
- * Utiliza Zustand para persistir o estado entre múltiplos arquivos e sessões
+ * e fornece acesso aos dados de branding lidos diretamente das meta tags HTML
+ * Utiliza Zustand para persistir o estado de tema entre múltiplos arquivos e sessões
  */
 export const useTheme = () => {
   const {
@@ -17,6 +18,45 @@ export const useTheme = () => {
     initializeTheme,
     handleSystemThemeChange,
   } = useThemeStore();
+
+  // Read branding data from meta tags
+  const branding = useMemo(() => {
+    if (typeof document === 'undefined') {
+      return {
+        theme: null,
+        favicon: null,
+        icon: null,
+        mainLogo: null,
+        internalLogo: null,
+        loginImage: null,
+      };
+    }
+
+    return {
+      theme:
+        document.querySelector('meta[name="theme"]')?.getAttribute('content') ??
+        null,
+      favicon:
+        document.querySelector('link[rel="icon"]')?.getAttribute('href') ??
+        null,
+      icon:
+        document
+          .querySelector('link[rel="apple-touch-icon"]')
+          ?.getAttribute('href') ?? null,
+      mainLogo:
+        document
+          .querySelector('meta[name="main-logo"]')
+          ?.getAttribute('content') ?? null,
+      internalLogo:
+        document
+          .querySelector('meta[name="internal-logo"]')
+          ?.getAttribute('content') ?? null,
+      loginImage:
+        document
+          .querySelector('meta[name="login-image"]')
+          ?.getAttribute('content') ?? null,
+    };
+  }, []);
 
   useEffect(() => {
     // Initialize theme on first render
@@ -37,5 +77,6 @@ export const useTheme = () => {
     isDark,
     toggleTheme,
     setTheme,
+    branding,
   };
 };

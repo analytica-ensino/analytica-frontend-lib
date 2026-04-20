@@ -255,6 +255,9 @@ export type { BaseApiClient } from './types/api';
 export { useThemeStore } from './store/themeStore';
 export type { ThemeStore, ThemeState, ThemeActions } from './store/themeStore';
 
+// Storage Keys
+export { KEYS, FEATURE_FLAGS_KEYS } from './utils/keys';
+
 // DropdownMenu Components
 export {
   default as DropdownMenu,
@@ -553,7 +556,13 @@ export { useQuestionFiltersStore } from './store/questionFiltersStore';
 export type { QuestionFiltersState } from './store/questionFiltersStore';
 export { useLessonFiltersStore } from './store/lessonFiltersStore';
 export type { LessonFiltersState } from './store/lessonFiltersStore';
-export type { AuthState } from './store/authStore';
+export type {
+  AuthState,
+  SessionInfo,
+  AuthTokens,
+  User,
+  UserProfile,
+} from './store/authStore';
 export { ActivityCardQuestionBanks } from './components/ActivityCardQuestionBanks/ActivityCardQuestionBanks';
 export { ActivityCardQuestionPreview } from './components/ActivityCardQuestionPreview/ActivityCardQuestionPreview';
 export { ActivityListQuestions } from './components/ActivityListQuestions/ActivityListQuestions';

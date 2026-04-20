@@ -3,10 +3,40 @@ import { useThemeStore } from './themeStore';
 // Mock do window.matchMedia
 const mockMatchMedia = jest.fn();
 
-// Mock do document.documentElement
+// Mock do document.querySelector
+const mockQuerySelector = jest.fn();
+
+// Mock do document.documentElement with dataset
+const mockDataset: Record<string, string | undefined> = {};
+const mockSetAttribute = jest.fn();
+const mockGetAttribute = jest.fn();
+const mockRemoveAttribute = jest.fn();
+
 const mockDocumentElement = {
-  getAttribute: jest.fn(),
-  setAttribute: jest.fn(),
+  getAttribute: mockGetAttribute,
+  setAttribute: mockSetAttribute,
+  removeAttribute: mockRemoveAttribute,
+  dataset: new Proxy(mockDataset, {
+    get: (target, prop: string) => {
+      // Convert camelCase to kebab-case for getAttribute mock
+      prop.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
+      return target[prop];
+    },
+    set: (target, prop: string, value: string) => {
+      target[prop] = value;
+      // Sync with setAttribute mock for test compatibility
+      const kebabProp = prop.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
+      mockSetAttribute(`data-${kebabProp}`, value);
+      return true;
+    },
+    deleteProperty: (target, prop: string) => {
+      delete target[prop];
+      // Sync with removeAttribute mock for test compatibility
+      const kebabProp = prop.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
+      mockRemoveAttribute(`data-${kebabProp}`);
+      return true;
+    },
+  }),
 };
 
 // Mock do MediaQueryList
@@ -30,10 +60,37 @@ describe('themeStore', () => {
       value: mockDocumentElement,
     });
 
+    // Setup document.querySelector mock
+    Object.defineProperty(document, 'querySelector', {
+      writable: true,
+      value: mockQuerySelector,
+    });
+
     // Reset all mocks
     jest.clearAllMocks();
     mockMatchMedia.mockReturnValue(mockMediaQueryList);
-    mockDocumentElement.getAttribute.mockReturnValue('enem-parana-light');
+
+    // Clear mockDataset
+    Object.keys(mockDataset).forEach((key) => delete mockDataset[key]);
+    mockDataset.theme = 'enem-parana-light';
+    mockDataset.originalTheme = 'enem-parana-light';
+
+    // Setup getAttribute to return values from mockDataset
+    mockGetAttribute.mockImplementation((attr: string) => {
+      if (attr === 'data-theme') return mockDataset.theme;
+      if (attr === 'data-original-theme') return mockDataset.originalTheme;
+      return undefined;
+    });
+
+    // Setup querySelector to return meta tag content
+    mockQuerySelector.mockImplementation((selector: string) => {
+      if (selector === 'meta[name="theme"]') {
+        return {
+          getAttribute: () => 'enem-parana-light',
+        };
+      }
+      return null;
+    });
 
     // Clear Zustand store
     useThemeStore.setState({ themeMode: 'system', isDark: false });
@@ -177,10 +234,9 @@ describe('themeStore', () => {
 
   describe('initializeTheme', () => {
     it('should save original theme and apply current theme', () => {
-      mockDocumentElement.getAttribute
-        .mockReturnValueOnce('enem-parana-light') // currentTheme
-        .mockReturnValueOnce(null) // data-original-theme não existe
-        .mockReturnValueOnce('enem-parana-light'); // originalTheme para applyTheme
+      // Setup mockDataset with theme but no originalTheme
+      mockDataset.theme = 'enem-parana-light';
+      delete mockDataset.originalTheme;
 
       mockMediaQueryList.matches = false;
 
@@ -251,6 +307,153 @@ describe('themeStore', () => {
       // Should not call setAttribute since we're not in system mode
       expect(mockDocumentElement.setAttribute).not.toHaveBeenCalled();
       expect(useThemeStore.getState().themeMode).toBe('light');
+    });
+  });
+
+  describe('setWhiteLabelTheme', () => {
+    it('should set white-label theme and apply it in light mode', () => {
+      useThemeStore.setState({ themeMode: 'light' });
+      const { setWhiteLabelTheme } = useThemeStore.getState();
+
+      setWhiteLabelTheme('custom-theme-light');
+
+      expect(mockDataset.originalTheme).toBe('custom-theme-light');
+      expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
+        'data-theme',
+        'custom-theme-light'
+      );
+    });
+
+    it('should set white-label theme and apply it in system mode', () => {
+      useThemeStore.setState({ themeMode: 'system' });
+      mockMediaQueryList.matches = false;
+      const { setWhiteLabelTheme } = useThemeStore.getState();
+
+      setWhiteLabelTheme('custom-theme-light');
+
+      expect(mockDataset.originalTheme).toBe('custom-theme-light');
+      expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
+        'data-theme',
+        'custom-theme-light'
+      );
+    });
+
+    it('should set white-label theme but not apply it in dark mode', () => {
+      useThemeStore.setState({ themeMode: 'dark' });
+      const { setWhiteLabelTheme } = useThemeStore.getState();
+
+      mockDocumentElement.setAttribute.mockClear();
+
+      setWhiteLabelTheme('custom-theme-light');
+
+      expect(mockDataset.originalTheme).toBe('custom-theme-light');
+      expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
+        'data-theme',
+        'dark'
+      );
+    });
+
+    it('should do nothing when theme is null', () => {
+      const { setWhiteLabelTheme } = useThemeStore.getState();
+
+      mockDocumentElement.setAttribute.mockClear();
+
+      setWhiteLabelTheme(null);
+
+      expect(mockDocumentElement.setAttribute).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('clearWhiteLabelTheme', () => {
+    it('should remove white-label theme and restore from meta tag', () => {
+      useThemeStore.setState({ themeMode: 'light' });
+      mockDataset.originalTheme = 'custom-theme';
+      mockDataset.theme = 'custom-theme';
+
+      const { clearWhiteLabelTheme } = useThemeStore.getState();
+
+      clearWhiteLabelTheme();
+
+      expect(mockDocumentElement.removeAttribute).toHaveBeenCalledWith(
+        'data-original-theme'
+      );
+      expect(mockDocumentElement.removeAttribute).toHaveBeenCalledWith(
+        'data-theme'
+      );
+      expect(mockDataset.originalTheme).toBe('enem-parana-light');
+      expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
+        'data-theme',
+        'enem-parana-light'
+      );
+    });
+
+    it('should clear white-label theme in dark mode', () => {
+      useThemeStore.setState({ themeMode: 'dark' });
+      mockDataset.originalTheme = 'custom-theme';
+      mockDataset.theme = 'custom-theme';
+
+      const { clearWhiteLabelTheme } = useThemeStore.getState();
+
+      clearWhiteLabelTheme();
+
+      expect(mockDocumentElement.removeAttribute).toHaveBeenCalledWith(
+        'data-original-theme'
+      );
+      expect(mockDocumentElement.removeAttribute).toHaveBeenCalledWith(
+        'data-theme'
+      );
+      expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
+        'data-theme',
+        'dark'
+      );
+    });
+
+    it('should clear white-label theme in system mode with light preference', () => {
+      useThemeStore.setState({ themeMode: 'system' });
+      mockMediaQueryList.matches = false;
+      mockDataset.originalTheme = 'custom-theme';
+      mockDataset.theme = 'custom-theme';
+
+      const { clearWhiteLabelTheme } = useThemeStore.getState();
+
+      clearWhiteLabelTheme();
+
+      expect(mockDocumentElement.removeAttribute).toHaveBeenCalledWith(
+        'data-original-theme'
+      );
+      expect(mockDocumentElement.removeAttribute).toHaveBeenCalledWith(
+        'data-theme'
+      );
+      expect(mockDataset.originalTheme).toBe('enem-parana-light');
+      expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
+        'data-theme',
+        'enem-parana-light'
+      );
+    });
+
+    it('should restore theme from meta tag when no dataset.theme exists', () => {
+      useThemeStore.setState({ themeMode: 'light' });
+      delete mockDataset.theme;
+      delete mockDataset.originalTheme;
+
+      mockQuerySelector.mockImplementation((selector: string) => {
+        if (selector === 'meta[name="theme"]') {
+          return {
+            getAttribute: () => 'meta-theme-light',
+          };
+        }
+        return null;
+      });
+
+      const { clearWhiteLabelTheme } = useThemeStore.getState();
+
+      clearWhiteLabelTheme();
+
+      expect(mockDataset.originalTheme).toBe('meta-theme-light');
+      expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
+        'data-theme',
+        'meta-theme-light'
+      );
     });
   });
 

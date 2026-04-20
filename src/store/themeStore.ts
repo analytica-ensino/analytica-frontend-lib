@@ -34,6 +34,14 @@ export interface ThemeActions {
    */
   setTheme: (mode: ThemeMode) => void;
   /**
+   * Set the white-label theme from institution branding
+   */
+  setWhiteLabelTheme: (theme: string | null) => void;
+  /**
+   * Clear the white-label theme and revert to default
+   */
+  clearWhiteLabelTheme: () => void;
+  /**
    * Initialize theme on app start
    */
   initializeTheme: () => void;
@@ -50,14 +58,14 @@ export type ThemeStore = ThemeState & ThemeActions;
  */
 const applyThemeToDOM = (mode: ThemeMode): boolean => {
   const htmlElement = document.documentElement;
-  const originalTheme = htmlElement.getAttribute('data-original-theme');
+  const originalTheme = htmlElement.dataset.originalTheme;
 
   if (mode === 'dark') {
-    htmlElement.setAttribute('data-theme', 'dark');
+    htmlElement.dataset.theme = 'dark';
     return true;
   } else if (mode === 'light') {
     if (originalTheme) {
-      htmlElement.setAttribute('data-theme', originalTheme);
+      htmlElement.dataset.theme = originalTheme;
     }
     return false;
   } else if (mode === 'system') {
@@ -65,10 +73,10 @@ const applyThemeToDOM = (mode: ThemeMode): boolean => {
       '(prefers-color-scheme: dark)'
     ).matches;
     if (isSystemDark) {
-      htmlElement.setAttribute('data-theme', 'dark');
+      htmlElement.dataset.theme = 'dark';
       return true;
     } else if (originalTheme) {
-      htmlElement.setAttribute('data-theme', originalTheme);
+      htmlElement.dataset.theme = originalTheme;
       return false;
     }
   }
@@ -76,13 +84,16 @@ const applyThemeToDOM = (mode: ThemeMode): boolean => {
 };
 
 /**
- * Save original theme from white label
+ * Save original theme from white label (reads from HTML meta tag or data-theme attribute)
  */
 const saveOriginalTheme = () => {
   const htmlElement = document.documentElement;
-  const currentTheme = htmlElement.getAttribute('data-theme');
-  if (currentTheme && !htmlElement.getAttribute('data-original-theme')) {
-    htmlElement.setAttribute('data-original-theme', currentTheme);
+  const currentTheme =
+    htmlElement.dataset.theme ||
+    document.querySelector('meta[name="theme"]')?.getAttribute('content');
+
+  if (currentTheme && !htmlElement.dataset.originalTheme) {
+    htmlElement.dataset.originalTheme = currentTheme;
   }
 };
 
@@ -124,6 +135,38 @@ export const useThemeStore = create<ThemeStore>()(
           const { applyTheme } = get();
           set({ themeMode: mode });
           applyTheme(mode);
+        },
+
+        setWhiteLabelTheme: (theme: string | null) => {
+          const htmlElement = document.documentElement;
+
+          if (theme) {
+            // Set the white-label theme as the original theme
+            htmlElement.dataset.originalTheme = theme;
+
+            // Apply theme based on current mode
+            const { themeMode, applyTheme } = get();
+            if (themeMode === 'light' || themeMode === 'system') {
+              htmlElement.dataset.theme = theme;
+            }
+
+            applyTheme(themeMode);
+          }
+        },
+
+        clearWhiteLabelTheme: () => {
+          const htmlElement = document.documentElement;
+
+          // Remove white-label theme attributes
+          delete htmlElement.dataset.originalTheme;
+          delete htmlElement.dataset.theme;
+
+          // Restore original theme from page metadata
+          saveOriginalTheme();
+
+          // Re-apply current theme mode to use defaults
+          const { themeMode, applyTheme } = get();
+          applyTheme(themeMode);
         },
 
         initializeTheme: () => {
