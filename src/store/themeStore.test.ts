@@ -16,7 +16,7 @@ const mockDocumentElement = {
   dataset: new Proxy(mockDataset, {
     get: (target, prop: string) => {
       // Convert camelCase to kebab-case for getAttribute mock
-      const kebabProp = prop.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
+      prop.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
       return target[prop];
     },
     set: (target, prop: string, value: string) => {
