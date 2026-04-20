@@ -44,7 +44,10 @@ export const useInstitutionBranding = (
       fetchedRef.current = true;
 
       try {
-        const response = await api.get(`/auth/institution/${institutionId}/branding`, {});
+        const response = await api.get(
+          `/auth/institution/${institutionId}/branding`,
+          {}
+        );
 
         // Handle Axios response structure (response.data.data)
         const axiosResponse = response as { data?: { data?: BrandingData } };
@@ -73,7 +76,6 @@ export const useInstitutionBranding = (
     };
 
     fetchBranding();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [institutionId, api]);
 
   return {

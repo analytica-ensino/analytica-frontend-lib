@@ -53,18 +53,21 @@ export const useBranding = () => {
    * Initialize branding from sessionInfo
    * This should be called when sessionInfo is available
    */
-  const initializeBranding = useCallback((brandingData: BrandingData) => {
-    setBranding(brandingData);
+  const initializeBranding = useCallback(
+    (brandingData: BrandingData) => {
+      setBranding(brandingData);
 
-    // Apply theme
-    if (brandingData.theme) {
-      setWhiteLabelTheme(brandingData.theme);
-    }
+      // Apply theme
+      if (brandingData.theme) {
+        setWhiteLabelTheme(brandingData.theme);
+      }
 
-    // Apply favicon and icons
-    applyFavicon(brandingData.favicon);
-    applyAppleTouchIcon(brandingData.icon);
-  }, [setBranding, setWhiteLabelTheme]);
+      // Apply favicon and icons
+      applyFavicon(brandingData.favicon);
+      applyAppleTouchIcon(brandingData.icon);
+    },
+    [setBranding, setWhiteLabelTheme]
+  );
 
   /**
    * Apply stored branding on mount (when loaded from localStorage)

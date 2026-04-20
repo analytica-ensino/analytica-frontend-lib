@@ -257,10 +257,7 @@ export type { ThemeStore, ThemeState, ThemeActions } from './store/themeStore';
 
 // Branding Store
 export { useBrandingStore } from './store/brandingStore';
-export type {
-  BrandingData,
-  BrandingState,
-} from './store/brandingStore';
+export type { BrandingData, BrandingState } from './store/brandingStore';
 
 // Storage Keys
 export { KEYS, FEATURE_FLAGS_KEYS } from './utils/keys';
