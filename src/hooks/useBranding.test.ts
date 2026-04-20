@@ -13,6 +13,7 @@ describe('useBranding', () => {
   let mockGetBranding: jest.Mock;
   let mockClearBranding: jest.Mock;
   let mockSetWhiteLabelTheme: jest.Mock;
+  let mockClearWhiteLabelTheme: jest.Mock;
 
   beforeEach(() => {
     // Reset mocks
@@ -20,6 +21,7 @@ describe('useBranding', () => {
     mockGetBranding = jest.fn();
     mockClearBranding = jest.fn();
     mockSetWhiteLabelTheme = jest.fn();
+    mockClearWhiteLabelTheme = jest.fn();
 
     // Mock store methods - return null branding by default to prevent useEffect from running
     (useBrandingStore as unknown as jest.Mock).mockReturnValue({
@@ -31,7 +33,11 @@ describe('useBranding', () => {
 
     (useThemeStore as unknown as jest.Mock).mockReturnValue({
       setWhiteLabelTheme: mockSetWhiteLabelTheme,
+      clearWhiteLabelTheme: mockClearWhiteLabelTheme,
     });
+
+    // Clear document head before each test
+    document.head.innerHTML = '';
 
     jest.clearAllMocks();
   });
@@ -179,7 +185,7 @@ describe('useBranding', () => {
   });
 
   describe('clearBranding', () => {
-    it('should call store clearBranding', () => {
+    it('should call store clearBranding and clearWhiteLabelTheme', () => {
       const { result } = renderHook(() => useBranding());
 
       act(() => {
@@ -187,6 +193,41 @@ describe('useBranding', () => {
       });
 
       expect(mockClearBranding).toHaveBeenCalled();
+      expect(mockClearWhiteLabelTheme).toHaveBeenCalled();
+    });
+
+    it('should remove managed favicon when clearing branding', () => {
+      const { result } = renderHook(() => useBranding());
+
+      // First set a favicon
+      const brandingData: BrandingData = {
+        theme: null,
+        favicon: 'https://example.com/favicon.ico',
+        icon: null,
+        mainLogo: null,
+        internalLogo: null,
+        loginImage: null,
+      };
+
+      act(() => {
+        result.current.initializeBranding(brandingData);
+      });
+
+      // Verify favicon was added
+      const favicon = document.getElementById('branding-favicon');
+      expect(favicon).toBeTruthy();
+      expect(favicon?.getAttribute('href')).toBe(
+        'https://example.com/favicon.ico'
+      );
+
+      // Clear branding
+      act(() => {
+        result.current.clearBranding();
+      });
+
+      // Verify favicon was removed
+      const clearedFavicon = document.getElementById('branding-favicon');
+      expect(clearedFavicon).toBeNull();
     });
   });
 
@@ -236,6 +277,143 @@ describe('useBranding', () => {
       const secondInit = result.current.initializeBranding;
 
       expect(firstInit).toBe(secondInit);
+    });
+
+    it('should memoize clearBranding function', () => {
+      const { result, rerender } = renderHook(() => useBranding());
+
+      const firstClear = result.current.clearBranding;
+      rerender();
+      const secondClear = result.current.clearBranding;
+
+      expect(firstClear).toBe(secondClear);
+    });
+  });
+
+  describe('managed favicon', () => {
+    it('should create a managed favicon with correct ID', () => {
+      const { result } = renderHook(() => useBranding());
+
+      const brandingData: BrandingData = {
+        theme: null,
+        favicon: 'https://example.com/favicon.ico',
+        icon: null,
+        mainLogo: null,
+        internalLogo: null,
+        loginImage: null,
+      };
+
+      act(() => {
+        result.current.initializeBranding(brandingData);
+      });
+
+      const favicon = document.getElementById('branding-favicon');
+      expect(favicon).toBeTruthy();
+      expect(favicon?.tagName).toBe('LINK');
+      expect(favicon?.getAttribute('rel')).toBe('icon');
+      expect(favicon?.getAttribute('href')).toBe(
+        'https://example.com/favicon.ico'
+      );
+    });
+
+    it('should update existing managed favicon when branding changes', () => {
+      const { result } = renderHook(() => useBranding());
+
+      // First branding
+      const firstBranding: BrandingData = {
+        theme: null,
+        favicon: 'https://example.com/favicon1.ico',
+        icon: null,
+        mainLogo: null,
+        internalLogo: null,
+        loginImage: null,
+      };
+
+      act(() => {
+        result.current.initializeBranding(firstBranding);
+      });
+
+      const favicon1 = document.getElementById('branding-favicon');
+      expect(favicon1?.getAttribute('href')).toBe(
+        'https://example.com/favicon1.ico'
+      );
+
+      // Second branding
+      const secondBranding: BrandingData = {
+        theme: null,
+        favicon: 'https://example.com/favicon2.ico',
+        icon: null,
+        mainLogo: null,
+        internalLogo: null,
+        loginImage: null,
+      };
+
+      act(() => {
+        result.current.initializeBranding(secondBranding);
+      });
+
+      const favicon2 = document.getElementById('branding-favicon');
+      expect(favicon2?.getAttribute('href')).toBe(
+        'https://example.com/favicon2.ico'
+      );
+      // Should be the same element, just updated
+      expect(favicon2).toBe(favicon1);
+    });
+
+    it('should not create favicon when favicon is null', () => {
+      const { result } = renderHook(() => useBranding());
+
+      const brandingData: BrandingData = {
+        theme: null,
+        favicon: null,
+        icon: null,
+        mainLogo: null,
+        internalLogo: null,
+        loginImage: null,
+      };
+
+      act(() => {
+        result.current.initializeBranding(brandingData);
+      });
+
+      const favicon = document.getElementById('branding-favicon');
+      expect(favicon).toBeNull();
+    });
+
+    it('should not remove default app favicons when applying branding', () => {
+      // Add a default app favicon (without branding- prefix)
+      const defaultFavicon = document.createElement('link');
+      defaultFavicon.rel = 'icon';
+      defaultFavicon.href = '/default-favicon.ico';
+      document.head.appendChild(defaultFavicon);
+
+      const { result } = renderHook(() => useBranding());
+
+      const brandingData: BrandingData = {
+        theme: null,
+        favicon: 'https://example.com/branded-favicon.ico',
+        icon: null,
+        mainLogo: null,
+        internalLogo: null,
+        loginImage: null,
+      };
+
+      act(() => {
+        result.current.initializeBranding(brandingData);
+      });
+
+      // Default favicon should still exist
+      const defaultStillExists = document.querySelector(
+        'link[rel="icon"][href="/default-favicon.ico"]'
+      );
+      expect(defaultStillExists).toBeTruthy();
+
+      // Branded favicon should also exist
+      const brandedFavicon = document.getElementById('branding-favicon');
+      expect(brandedFavicon).toBeTruthy();
+      expect(brandedFavicon?.getAttribute('href')).toBe(
+        'https://example.com/branded-favicon.ico'
+      );
     });
   });
 });

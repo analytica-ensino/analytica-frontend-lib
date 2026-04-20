@@ -38,6 +38,10 @@ export interface ThemeActions {
    */
   setWhiteLabelTheme: (theme: string | null) => void;
   /**
+   * Clear the white-label theme and revert to default
+   */
+  clearWhiteLabelTheme: () => void;
+  /**
    * Initialize theme on app start
    */
   initializeTheme: () => void;
@@ -145,6 +149,18 @@ export const useThemeStore = create<ThemeStore>()(
 
             applyTheme(themeMode);
           }
+        },
+
+        clearWhiteLabelTheme: () => {
+          const htmlElement = document.documentElement;
+
+          // Remove white-label theme attributes
+          htmlElement.removeAttribute('data-original-theme');
+          htmlElement.removeAttribute('data-theme');
+
+          // Re-apply current theme mode to use defaults
+          const { themeMode, applyTheme } = get();
+          applyTheme(themeMode);
         },
 
         initializeTheme: () => {

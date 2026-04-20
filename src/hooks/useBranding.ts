@@ -3,41 +3,41 @@ import { useBrandingStore, BrandingData } from '../store/brandingStore';
 import { useThemeStore } from '../store/themeStore';
 
 /**
- * Apply favicon to the document dynamically
+ * Upsert a branding icon link element with a specific ID
+ * This manages only the branded icon, leaving default app icons intact
  */
-const applyFavicon = (faviconUrl: string | null) => {
-  if (!faviconUrl) return;
+const upsertBrandingIcon = (
+  id: string,
+  rel: 'icon' | 'apple-touch-icon',
+  href: string | null
+) => {
+  const existingLink = document.getElementById(id);
 
-  // Remove existing favicon
-  const existingFavicon = document.querySelector('link[rel="icon"]');
-  if (existingFavicon) {
-    existingFavicon.remove();
+  if (!href) {
+    existingLink?.remove();
+    return;
   }
 
-  // Create and append new favicon
-  const link = document.createElement('link');
-  link.rel = 'icon';
-  link.href = faviconUrl;
-  document.head.appendChild(link);
+  const link =
+    existingLink instanceof HTMLLinkElement
+      ? existingLink
+      : document.createElement('link');
+
+  link.id = id;
+  link.rel = rel;
+  link.href = href;
+
+  if (!existingLink) {
+    document.head.appendChild(link);
+  }
 };
 
 /**
- * Apply apple touch icon to the document dynamically
+ * Apply favicon to the document dynamically
+ * Uses a managed link element to avoid removing app defaults
  */
-const applyAppleTouchIcon = (iconUrl: string | null) => {
-  if (!iconUrl) return;
-
-  // Remove existing apple touch icon
-  const existingIcon = document.querySelector('link[rel="apple-touch-icon"]');
-  if (existingIcon) {
-    existingIcon.remove();
-  }
-
-  // Create and append new apple touch icon
-  const link = document.createElement('link');
-  link.rel = 'apple-touch-icon';
-  link.href = iconUrl;
-  document.head.appendChild(link);
+const applyFavicon = (faviconUrl: string | null) => {
+  upsertBrandingIcon('branding-favicon', 'icon', faviconUrl);
 };
 
 /**
@@ -47,7 +47,7 @@ const applyAppleTouchIcon = (iconUrl: string | null) => {
 export const useBranding = () => {
   const { branding, setBranding, getBranding, clearBranding } =
     useBrandingStore();
-  const { setWhiteLabelTheme } = useThemeStore();
+  const { setWhiteLabelTheme, clearWhiteLabelTheme } = useThemeStore();
 
   /**
    * Initialize branding from sessionInfo
@@ -62,9 +62,8 @@ export const useBranding = () => {
         setWhiteLabelTheme(brandingData.theme);
       }
 
-      // Apply favicon and icons
+      // Apply favicon
       applyFavicon(brandingData.favicon);
-      applyAppleTouchIcon(brandingData.icon);
     },
     [setBranding, setWhiteLabelTheme]
   );
@@ -78,16 +77,29 @@ export const useBranding = () => {
       if (branding.theme) {
         setWhiteLabelTheme(branding.theme);
       }
-      // Apply favicon and icons
+      // Apply favicon
       applyFavicon(branding.favicon);
-      applyAppleTouchIcon(branding.icon);
     }
   }, [branding, setWhiteLabelTheme]);
+
+  /**
+   * Clear all branding including theme and managed favicon
+   */
+  const handleClearBranding = useCallback(() => {
+    // Clear branding data from store
+    clearBranding();
+
+    // Remove managed favicon
+    applyFavicon(null);
+
+    // Clear white-label theme
+    clearWhiteLabelTheme();
+  }, [clearBranding, clearWhiteLabelTheme]);
 
   return {
     branding,
     initializeBranding,
-    clearBranding,
+    clearBranding: handleClearBranding,
     getBranding,
     theme: branding?.theme || null,
     favicon: branding?.favicon || null,
