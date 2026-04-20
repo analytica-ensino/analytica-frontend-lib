@@ -457,4 +457,44 @@ describe('Modal', () => {
       windowOpenSpy.mockRestore();
     });
   });
+
+  describe('title como ReactNode', () => {
+    it('renderiza title string dentro de um <h2>', () => {
+      const { container } = render(
+        <Modal {...defaultProps} title="Título simples" />
+      );
+      const h2 = container.querySelector('h2');
+      expect(h2).toBeInTheDocument();
+      expect(h2).toHaveTextContent('Título simples');
+    });
+
+    it('renderiza title ReactNode (phrasing content) dentro do mesmo <h2>', () => {
+      const { container } = render(
+        <Modal
+          {...defaultProps}
+          title={
+            <span>
+              <button type="button">Voltar</button>
+              <span>Título composto</span>
+            </span>
+          }
+        />
+      );
+      const h2 = container.querySelector('h2');
+      expect(h2).toBeInTheDocument();
+      expect(screen.getByText('Título composto')).toBeInTheDocument();
+      expect(screen.getByText('Voltar')).toBeInTheDocument();
+    });
+
+    it('mantém aria-labelledby apontando pro h2 quando title é ReactNode', () => {
+      const { container } = render(
+        <Modal {...defaultProps} title={<span>Custom</span>} />
+      );
+      const dialog = container.querySelector('dialog');
+      const h2 = container.querySelector('h2');
+      const h2Id = h2?.getAttribute('id');
+      expect(h2Id).toBeTruthy();
+      expect(dialog).toHaveAttribute('aria-labelledby', h2Id as string);
+    });
+  });
 });

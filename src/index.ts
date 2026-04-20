@@ -113,6 +113,15 @@ export type {
 
 export { AlertDialog } from './components/AlertDialog/AlertDialog';
 export { default as LoadingModal } from './components/LoadingModal/loadingModal';
+export { default as ProgressModal } from './components/ProgressModal/ProgressModal';
+export type { ProgressModalProps } from './components/ProgressModal/ProgressModal';
+export { default as ScoreCircle } from './components/ScoreCircle/ScoreCircle';
+export type {
+  ScoreCircleProps,
+  ScoreCircleVariant,
+} from './components/ScoreCircle/ScoreCircle';
+export { default as ImagePreviewCard } from './components/ImagePreviewCard/ImagePreviewCard';
+export type { ImagePreviewCardProps } from './components/ImagePreviewCard/ImagePreviewCard';
 export { default as NotificationCard } from './components/NotificationCard/NotificationCard';
 export { ThemeToggle } from './components/ThemeToggle/ThemeToggle';
 
@@ -356,6 +365,12 @@ export {
   CardTest,
   CardSimulationHistory,
   CardAudio,
+  CardEssayHistory,
+  EssayStatus,
+} from './components/Card/Card';
+export type {
+  EssayHistoryItem,
+  EssayHistoryData,
 } from './components/Card/Card';
 export { StatisticsCard } from './components/StatisticsCard/StatisticsCard';
 export {

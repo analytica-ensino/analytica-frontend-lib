@@ -28,8 +28,13 @@ type ModalProps = {
   isOpen: boolean;
   /** Function to close the modal */
   onClose: () => void;
-  /** Modal title */
-  title: string;
+  /**
+   * Modal title. Aceita string OU ReactNode pra permitir elementos inline
+   * (ex: botão de voltar + label). Como é renderizado dentro de <h2>,
+   * quando ReactNode use APENAS phrasing content (`<span>`, `<button>`,
+   * ícones) — nunca `<div>` ou `<p>`.
+   */
+  title: ReactNode;
   /** Modal description/content */
   children?: ReactNode;
   /** Size of the modal */
