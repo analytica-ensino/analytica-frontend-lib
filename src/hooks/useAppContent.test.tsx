@@ -578,12 +578,13 @@ describe('useAppContent', () => {
         institutionTheme: 'enem-paraiba-light' as string | null,
         institutionFavicon: 'https://example.com/favicon.ico' as string | null,
         institutionIcon: 'https://example.com/icon.png' as string | null,
-        institutionMainLogo:
-          'https://example.com/main-logo.png' as string | null,
-        institutionInternalLogo:
-          'https://example.com/internal-logo.png' as string | null,
-        institutionLoginImage:
-          'https://example.com/login.jpg' as string | null,
+        institutionMainLogo: 'https://example.com/main-logo.png' as
+          | string
+          | null,
+        institutionInternalLogo: 'https://example.com/internal-logo.png' as
+          | string
+          | null,
+        institutionLoginImage: 'https://example.com/login.jpg' as string | null,
       };
 
       mockUseAuth.mockReturnValue({
@@ -680,8 +681,9 @@ describe('useAppContent', () => {
         institutionTheme: 'enem-paraiba-light' as string | null,
         institutionFavicon: null as string | null,
         institutionIcon: null as string | null,
-        institutionMainLogo:
-          'https://example.com/main-logo.png' as string | null,
+        institutionMainLogo: 'https://example.com/main-logo.png' as
+          | string
+          | null,
         institutionInternalLogo: null as string | null,
         institutionLoginImage: null as string | null,
       };

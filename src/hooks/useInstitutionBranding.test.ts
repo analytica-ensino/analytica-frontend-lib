@@ -69,7 +69,12 @@ describe('useInstitutionBranding', () => {
 
     it('should not fetch when api is null', () => {
       renderHook(() =>
-        useInstitutionBranding(null as any, 'test-institution-id')
+        useInstitutionBranding(
+          null as unknown as {
+            get: (endpoint: string, config?: unknown) => Promise<unknown>;
+          },
+          'test-institution-id'
+        )
       );
 
       expect(mockApiGet).not.toHaveBeenCalled();
@@ -379,14 +384,14 @@ describe('useInstitutionBranding', () => {
       const api = { get: mockApiGet };
       const { rerender } = renderHook(
         ({ instId }) => useInstitutionBranding(api, instId),
-        { initialProps: { instId: null } }
+        { initialProps: { instId: null as string | null } }
       );
 
       // Should not fetch when institutionId is null
       expect(mockApiGet).not.toHaveBeenCalled();
 
       // Change to valid institutionId
-      rerender({ instId: 'institution-1' });
+      rerender({ instId: 'institution-1' as string | null });
 
       await waitFor(() => {
         expect(mockApiGet).toHaveBeenCalledWith(
