@@ -37,12 +37,12 @@ export const useTheme = () => {
         document.querySelector('meta[name="theme"]')?.getAttribute('content') ??
         null,
       favicon:
-        document
-          .querySelector('meta[name="favicon"]')
-          ?.getAttribute('content') ?? null,
-      icon:
-        document.querySelector('meta[name="icon"]')?.getAttribute('content') ??
+        document.querySelector('link[rel="icon"]')?.getAttribute('href') ??
         null,
+      icon:
+        document
+          .querySelector('link[rel="apple-touch-icon"]')
+          ?.getAttribute('href') ?? null,
       mainLogo:
         document
           .querySelector('meta[name="main-logo"]')
