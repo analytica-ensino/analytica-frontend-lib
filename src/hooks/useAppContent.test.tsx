@@ -595,6 +595,7 @@ describe('useAppContent', () => {
       renderHook(() => useAppContent(defaultConfig));
 
       expect(mockInitializeBranding).toHaveBeenCalledWith({
+        institutionId: 'test-institution',
         theme: 'enem-paraiba-light',
         favicon: 'https://example.com/favicon.ico',
         icon: 'https://example.com/icon.png',
@@ -623,6 +624,7 @@ describe('useAppContent', () => {
       renderHook(() => useAppContent(defaultConfig));
 
       expect(mockInitializeBranding).toHaveBeenCalledWith({
+        institutionId: 'test-institution',
         theme: null,
         favicon: null,
         icon: null,
@@ -666,6 +668,7 @@ describe('useAppContent', () => {
       rerender();
 
       expect(mockInitializeBranding).toHaveBeenCalledWith({
+        institutionId: 'test-institution',
         theme: 'enem-paraiba-light',
         favicon: 'https://example.com/favicon.ico',
         icon: null,
@@ -696,6 +699,7 @@ describe('useAppContent', () => {
       renderHook(() => useAppContent(defaultConfig));
 
       expect(mockInitializeBranding).toHaveBeenCalledWith({
+        institutionId: 'test-institution',
         theme: 'enem-paraiba-light',
         favicon: null,
         icon: null,

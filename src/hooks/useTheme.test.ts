@@ -5,10 +5,35 @@ import { useThemeStore } from '@/store/themeStore';
 // Mock do window.matchMedia
 const mockMatchMedia = jest.fn();
 
-// Mock do document.documentElement
+// Mock do document.documentElement with dataset
+const mockDataset: Record<string, string | undefined> = {};
+const mockSetAttribute = jest.fn();
+const mockGetAttribute = jest.fn();
+const mockRemoveAttribute = jest.fn();
+
 const mockDocumentElement = {
-  getAttribute: jest.fn(),
-  setAttribute: jest.fn(),
+  getAttribute: mockGetAttribute,
+  setAttribute: mockSetAttribute,
+  removeAttribute: mockRemoveAttribute,
+  dataset: new Proxy(mockDataset, {
+    get: (target, prop: string) => {
+      return target[prop];
+    },
+    set: (target, prop: string, value: string) => {
+      target[prop] = value;
+      // Sync with setAttribute mock for test compatibility
+      const kebabProp = prop.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
+      mockSetAttribute(`data-${kebabProp}`, value);
+      return true;
+    },
+    deleteProperty: (target, prop: string) => {
+      delete target[prop];
+      // Sync with removeAttribute mock for test compatibility
+      const kebabProp = prop.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
+      mockRemoveAttribute(`data-${kebabProp}`);
+      return true;
+    },
+  }),
 };
 
 // Mock do MediaQueryList
@@ -35,7 +60,18 @@ describe('useTheme', () => {
     // Reset all mocks
     jest.clearAllMocks();
     mockMatchMedia.mockReturnValue(mockMediaQueryList);
-    mockDocumentElement.getAttribute.mockReturnValue('enem-parana-light');
+
+    // Clear mockDataset
+    Object.keys(mockDataset).forEach((key) => delete mockDataset[key]);
+    mockDataset.theme = 'enem-parana-light';
+    mockDataset.originalTheme = 'enem-parana-light';
+
+    // Setup getAttribute to return values from mockDataset
+    mockGetAttribute.mockImplementation((attr: string) => {
+      if (attr === 'data-theme') return mockDataset.theme;
+      if (attr === 'data-original-theme') return mockDataset.originalTheme;
+      return undefined;
+    });
 
     // Reset Zustand store to initial state
     useThemeStore.setState({ themeMode: 'system', isDark: false });
@@ -47,20 +83,18 @@ describe('useTheme', () => {
 
   describe('initialization', () => {
     it('should initialize theme on mount', () => {
-      mockDocumentElement.getAttribute
-        .mockReturnValueOnce('enem-parana-light') // currentTheme
-        .mockReturnValueOnce(null) // data-original-theme não existe
-        .mockReturnValueOnce('enem-parana-light'); // originalTheme para applyTheme
+      mockDataset.theme = 'enem-parana-light';
+      delete mockDataset.originalTheme;
 
       mockMediaQueryList.matches = false;
 
       renderHook(() => useTheme());
 
-      expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
+      expect(mockSetAttribute).toHaveBeenCalledWith(
         'data-original-theme',
         'enem-parana-light'
       );
-      expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
+      expect(mockSetAttribute).toHaveBeenCalledWith(
         'data-theme',
         'enem-parana-light'
       );
@@ -107,7 +141,8 @@ describe('useTheme', () => {
 
   describe('theme functionality', () => {
     it('should toggle theme through hook', () => {
-      mockDocumentElement.getAttribute.mockReturnValue('enem-parana-light');
+      mockDataset.theme = 'enem-parana-light';
+      mockDataset.originalTheme = 'enem-parana-light';
 
       const { result } = renderHook(() => useTheme());
 
@@ -129,7 +164,8 @@ describe('useTheme', () => {
     });
 
     it('should set specific theme mode through hook', () => {
-      mockDocumentElement.getAttribute.mockReturnValue('enem-parana-light');
+      mockDataset.theme = 'enem-parana-light';
+      mockDataset.originalTheme = 'enem-parana-light';
 
       const { result } = renderHook(() => useTheme());
 
@@ -157,7 +193,7 @@ describe('useTheme', () => {
       expect(result.current.themeMode).toBe('system');
 
       // Clear mocks before testing the change handler
-      mockDocumentElement.setAttribute.mockClear();
+      mockSetAttribute.mockClear();
 
       // Simulate system theme change
       const changeHandler =
@@ -167,13 +203,14 @@ describe('useTheme', () => {
       });
 
       // Should call setAttribute when system theme changes
-      expect(mockDocumentElement.setAttribute).toHaveBeenCalled();
+      expect(mockSetAttribute).toHaveBeenCalled();
     });
   });
 
   describe('edge cases', () => {
     it('should handle multiple rapid theme changes', () => {
-      mockDocumentElement.getAttribute.mockReturnValue('enem-parana-light');
+      mockDataset.theme = 'enem-parana-light';
+      mockDataset.originalTheme = 'enem-parana-light';
 
       const { result } = renderHook(() => useTheme());
 
@@ -187,7 +224,7 @@ describe('useTheme', () => {
       // Should end up in system mode
       expect(result.current.themeMode).toBe('system');
       // Should have applied themes for each change
-      expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
+      expect(mockSetAttribute).toHaveBeenCalledWith(
         'data-theme',
         expect.any(String)
       );
