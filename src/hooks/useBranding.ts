@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useBrandingStore, BrandingData } from '../store/brandingStore';
 import { useThemeStore } from '../store/themeStore';
 
@@ -53,7 +53,7 @@ export const useBranding = () => {
    * Initialize branding from sessionInfo
    * This should be called when sessionInfo is available
    */
-  const initializeBranding = (brandingData: BrandingData) => {
+  const initializeBranding = useCallback((brandingData: BrandingData) => {
     setBranding(brandingData);
 
     // Apply theme
@@ -64,17 +64,22 @@ export const useBranding = () => {
     // Apply favicon and icons
     applyFavicon(brandingData.favicon);
     applyAppleTouchIcon(brandingData.icon);
-  };
+  }, [setBranding, setWhiteLabelTheme]);
 
   /**
-   * Apply stored branding on mount
+   * Apply stored branding on mount (when loaded from localStorage)
    */
   useEffect(() => {
     if (branding) {
+      // Apply theme
+      if (branding.theme) {
+        setWhiteLabelTheme(branding.theme);
+      }
+      // Apply favicon and icons
       applyFavicon(branding.favicon);
       applyAppleTouchIcon(branding.icon);
     }
-  }, [branding]);
+  }, [branding, setWhiteLabelTheme]);
 
   return {
     branding,

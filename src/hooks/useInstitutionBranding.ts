@@ -6,15 +6,35 @@ import type { BrandingData } from '../store/brandingStore';
  * Hook to fetch and apply institution branding before login
  * Uses the institutionId from meta tag to fetch branding data
  */
-export const useInstitutionBranding = (apiUrl: string, institutionId: string | null) => {
-  const { initializeBranding, branding } = useBranding();
+export const useInstitutionBranding = (
+  api: { get: (endpoint: string, config?: unknown) => Promise<unknown> },
+  institutionId: string | null
+) => {
+  const { initializeBranding, branding, getBranding } = useBranding();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const fetchedRef = useRef(false);
 
   useEffect(() => {
-    // Skip if already fetched, no institutionId, or branding already loaded
-    if (fetchedRef.current || !institutionId || branding) {
+    // Skip if no institutionId or no api
+    if (!institutionId || !api) {
+      return;
+    }
+
+    // Check if branding already exists in localStorage
+    const cachedBranding = getBranding();
+
+    if (cachedBranding) {
+      // Apply cached branding without fetching
+      if (!fetchedRef.current) {
+        initializeBranding(cachedBranding);
+        fetchedRef.current = true;
+      }
+      return;
+    }
+
+    // Skip if already fetched
+    if (fetchedRef.current) {
       return;
     }
 
@@ -24,24 +44,20 @@ export const useInstitutionBranding = (apiUrl: string, institutionId: string | n
       fetchedRef.current = true;
 
       try {
-        const response = await fetch(
-          `${apiUrl}/auth/institution/${institutionId}/branding`
-        );
+        const response = await api.get(`/auth/institution/${institutionId}/branding`, {});
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch branding: ${response.statusText}`);
-        }
+        // Handle Axios response structure (response.data.data)
+        const axiosResponse = response as { data?: { data?: BrandingData } };
+        const brandingPayload = axiosResponse.data?.data;
 
-        const result = await response.json();
-
-        if (result.success && result.data) {
+        if (brandingPayload) {
           const brandingData: BrandingData = {
-            theme: result.data.theme || null,
-            favicon: result.data.favicon || null,
-            icon: result.data.icon || null,
-            mainLogo: result.data.mainLogo || null,
-            internalLogo: result.data.internalLogo || null,
-            loginImage: result.data.loginImage || null,
+            theme: brandingPayload.theme || null,
+            favicon: brandingPayload.favicon || null,
+            icon: brandingPayload.icon || null,
+            mainLogo: brandingPayload.mainLogo || null,
+            internalLogo: brandingPayload.internalLogo || null,
+            loginImage: brandingPayload.loginImage || null,
           };
 
           initializeBranding(brandingData);
@@ -57,7 +73,8 @@ export const useInstitutionBranding = (apiUrl: string, institutionId: string | n
     };
 
     fetchBranding();
-  }, [institutionId, apiUrl, branding, initializeBranding]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [institutionId, api]);
 
   return {
     isLoading,
