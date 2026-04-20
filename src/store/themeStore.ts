@@ -58,14 +58,14 @@ export type ThemeStore = ThemeState & ThemeActions;
  */
 const applyThemeToDOM = (mode: ThemeMode): boolean => {
   const htmlElement = document.documentElement;
-  const originalTheme = htmlElement.getAttribute('data-original-theme');
+  const originalTheme = htmlElement.dataset.originalTheme;
 
   if (mode === 'dark') {
-    htmlElement.setAttribute('data-theme', 'dark');
+    htmlElement.dataset.theme = 'dark';
     return true;
   } else if (mode === 'light') {
     if (originalTheme) {
-      htmlElement.setAttribute('data-theme', originalTheme);
+      htmlElement.dataset.theme = originalTheme;
     }
     return false;
   } else if (mode === 'system') {
@@ -73,10 +73,10 @@ const applyThemeToDOM = (mode: ThemeMode): boolean => {
       '(prefers-color-scheme: dark)'
     ).matches;
     if (isSystemDark) {
-      htmlElement.setAttribute('data-theme', 'dark');
+      htmlElement.dataset.theme = 'dark';
       return true;
     } else if (originalTheme) {
-      htmlElement.setAttribute('data-theme', originalTheme);
+      htmlElement.dataset.theme = originalTheme;
       return false;
     }
   }
@@ -88,9 +88,9 @@ const applyThemeToDOM = (mode: ThemeMode): boolean => {
  */
 const saveOriginalTheme = () => {
   const htmlElement = document.documentElement;
-  const currentTheme = htmlElement.getAttribute('data-theme');
-  if (currentTheme && !htmlElement.getAttribute('data-original-theme')) {
-    htmlElement.setAttribute('data-original-theme', currentTheme);
+  const currentTheme = htmlElement.dataset.theme;
+  if (currentTheme && !htmlElement.dataset.originalTheme) {
+    htmlElement.dataset.originalTheme = currentTheme;
   }
 };
 
@@ -139,12 +139,12 @@ export const useThemeStore = create<ThemeStore>()(
 
           if (theme) {
             // Set the white-label theme as the original theme
-            htmlElement.setAttribute('data-original-theme', theme);
+            htmlElement.dataset.originalTheme = theme;
 
             // Apply theme based on current mode
             const { themeMode, applyTheme } = get();
             if (themeMode === 'light' || themeMode === 'system') {
-              htmlElement.setAttribute('data-theme', theme);
+              htmlElement.dataset.theme = theme;
             }
 
             applyTheme(themeMode);
@@ -155,8 +155,8 @@ export const useThemeStore = create<ThemeStore>()(
           const htmlElement = document.documentElement;
 
           // Remove white-label theme attributes
-          htmlElement.removeAttribute('data-original-theme');
-          htmlElement.removeAttribute('data-theme');
+          delete htmlElement.dataset.originalTheme;
+          delete htmlElement.dataset.theme;
 
           // Re-apply current theme mode to use defaults
           const { themeMode, applyTheme } = get();

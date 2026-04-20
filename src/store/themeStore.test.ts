@@ -3,10 +3,37 @@ import { useThemeStore } from './themeStore';
 // Mock do window.matchMedia
 const mockMatchMedia = jest.fn();
 
-// Mock do document.documentElement
+// Mock do document.documentElement with dataset
+const mockDataset: Record<string, string | undefined> = {};
+const mockSetAttribute = jest.fn();
+const mockGetAttribute = jest.fn();
+const mockRemoveAttribute = jest.fn();
+
 const mockDocumentElement = {
-  getAttribute: jest.fn(),
-  setAttribute: jest.fn(),
+  getAttribute: mockGetAttribute,
+  setAttribute: mockSetAttribute,
+  removeAttribute: mockRemoveAttribute,
+  dataset: new Proxy(mockDataset, {
+    get: (target, prop: string) => {
+      // Convert camelCase to kebab-case for getAttribute mock
+      const kebabProp = prop.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
+      return target[prop];
+    },
+    set: (target, prop: string, value: string) => {
+      target[prop] = value;
+      // Sync with setAttribute mock for test compatibility
+      const kebabProp = prop.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
+      mockSetAttribute(`data-${kebabProp}`, value);
+      return true;
+    },
+    deleteProperty: (target, prop: string) => {
+      delete target[prop];
+      // Sync with removeAttribute mock for test compatibility
+      const kebabProp = prop.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
+      mockRemoveAttribute(`data-${kebabProp}`);
+      return true;
+    },
+  }),
 };
 
 // Mock do MediaQueryList
@@ -33,7 +60,18 @@ describe('themeStore', () => {
     // Reset all mocks
     jest.clearAllMocks();
     mockMatchMedia.mockReturnValue(mockMediaQueryList);
-    mockDocumentElement.getAttribute.mockReturnValue('enem-parana-light');
+
+    // Clear mockDataset
+    Object.keys(mockDataset).forEach((key) => delete mockDataset[key]);
+    mockDataset.theme = 'enem-parana-light';
+    mockDataset.originalTheme = 'enem-parana-light';
+
+    // Setup getAttribute to return values from mockDataset
+    mockGetAttribute.mockImplementation((attr: string) => {
+      if (attr === 'data-theme') return mockDataset.theme;
+      if (attr === 'data-original-theme') return mockDataset.originalTheme;
+      return undefined;
+    });
 
     // Clear Zustand store
     useThemeStore.setState({ themeMode: 'system', isDark: false });
@@ -177,10 +215,9 @@ describe('themeStore', () => {
 
   describe('initializeTheme', () => {
     it('should save original theme and apply current theme', () => {
-      mockDocumentElement.getAttribute
-        .mockReturnValueOnce('enem-parana-light') // currentTheme
-        .mockReturnValueOnce(null) // data-original-theme não existe
-        .mockReturnValueOnce('enem-parana-light'); // originalTheme para applyTheme
+      // Setup mockDataset with theme but no originalTheme
+      mockDataset.theme = 'enem-parana-light';
+      delete mockDataset.originalTheme;
 
       mockMediaQueryList.matches = false;
 
