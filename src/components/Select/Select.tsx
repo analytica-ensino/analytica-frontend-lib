@@ -362,6 +362,7 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
       disabled,
       size = 'medium',
       selectId,
+      type = 'button',
       ...props
     },
     ref
@@ -429,6 +430,7 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
       <button
         ref={setRefs}
         id={selectId}
+        type={type}
         className={cn(
           'flex w-full items-center justify-between border-border-300',
           heightClasses,
