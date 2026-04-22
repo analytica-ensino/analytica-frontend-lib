@@ -261,7 +261,10 @@ export const handleLessonDetailsFetchError = (error: unknown): string => {
 export const createUseRecommendedLessonDetails = (
   apiClient: LessonDetailsApiClient
 ) => {
-  return (lessonId: string | undefined): UseRecommendedLessonDetailsReturn => {
+  return (
+    lessonId: string | undefined,
+    userId?: string
+  ): UseRecommendedLessonDetailsReturn => {
     const [state, setState] = useState<UseRecommendedLessonDetailsState>({
       data: null,
       loading: true,
@@ -339,7 +342,7 @@ export const createUseRecommendedLessonDetails = (
           error: errorMessage,
         });
       }
-    }, [lessonId]);
+    }, [lessonId, userId]);
 
     // Fetch on mount and when lessonId changes
     useEffect(() => {

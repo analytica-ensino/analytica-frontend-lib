@@ -58,6 +58,8 @@ interface VideoPlayerProps {
   autoSave?: boolean;
   /** localStorage key for saving progress */
   storageKey?: string;
+  /** User ID used to scope localStorage keys — prevents progress leaking between users */
+  userId?: string;
   /** Download content URLs for lesson materials */
   downloadContent?: DownloadContent;
   /** Show download button in header */
@@ -327,6 +329,7 @@ const VideoPlayer = ({
   className,
   autoSave = true,
   storageKey = 'video-progress',
+  userId,
   downloadContent,
   showDownloadButton = false,
   onDownloadStart,
@@ -620,8 +623,9 @@ const VideoPlayer = ({
         : undefined;
     }
 
+    const scopedKey = userId ? `${storageKey}-${userId}` : storageKey;
     const saved = Number(
-      localStorage.getItem(`${storageKey}-${src}`) || Number.NaN
+      localStorage.getItem(`${scopedKey}-${src}`) || Number.NaN
     );
     const hasValidInitial = Number.isFinite(initialTime) && initialTime >= 0;
     const hasValidSaved = Number.isFinite(saved) && saved >= 0;
@@ -629,7 +633,7 @@ const VideoPlayer = ({
     if (hasValidInitial) return initialTime;
     if (hasValidSaved) return saved;
     return undefined;
-  }, [autoSave, storageKey, src, initialTime]);
+  }, [autoSave, storageKey, userId, src, initialTime]);
 
   /**
    * Load saved progress from localStorage
@@ -651,11 +655,12 @@ const VideoPlayer = ({
 
       const now = Date.now();
       if (now - lastSaveTimeRef.current > 5000) {
-        localStorage.setItem(`${storageKey}-${src}`, time.toString());
+        const scopedKey = userId ? `${storageKey}-${userId}` : storageKey;
+        localStorage.setItem(`${scopedKey}-${src}`, time.toString());
         lastSaveTimeRef.current = now;
       }
     },
-    [autoSave, storageKey, src]
+    [autoSave, storageKey, userId, src]
   );
 
   /**

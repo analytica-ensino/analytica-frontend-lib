@@ -91,6 +91,7 @@ const BoardImagesSection = ({
 
 interface VideoSectionProps {
   lesson: Lesson;
+  userId?: string;
   getVideoData: (lesson: Lesson | null) => {
     src: string;
     poster?: string;
@@ -113,6 +114,7 @@ interface VideoSectionProps {
  */
 const VideoSection = ({
   lesson,
+  userId,
   getVideoData,
   getInitialTimestampValue,
   handleVideoTimeUpdate,
@@ -145,6 +147,7 @@ const VideoSection = ({
         className="w-full h-full object-cover rounded-b-xl"
         autoSave={true}
         storageKey={`lesson-${lesson.id}`}
+        userId={userId}
       />
       <div className="flex flex-col gap-4">
         <Alert
@@ -172,6 +175,7 @@ export interface LessonWatchModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedLesson: Lesson | null;
+  userId?: string;
   getVideoData: (lesson: Lesson | null) => {
     src: string;
     poster?: string;
@@ -204,6 +208,7 @@ export const LessonWatchModal = ({
   isOpen,
   onClose,
   selectedLesson,
+  userId,
   getVideoData,
   getInitialTimestampValue,
   handleVideoTimeUpdate,
@@ -236,6 +241,7 @@ export const LessonWatchModal = ({
         {selectedLesson ? (
           <VideoSection
             lesson={selectedLesson}
+            userId={userId}
             getVideoData={getVideoData}
             getInitialTimestampValue={getInitialTimestampValue}
             handleVideoTimeUpdate={handleVideoTimeUpdate}

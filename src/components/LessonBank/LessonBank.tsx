@@ -14,6 +14,7 @@ interface LessonBankProps {
   className?: string;
   isFromTrailRoute?: boolean;
   lessonId?: string;
+  userId?: string;
   getInitialTimestamp?: (lessonId: string) => number;
   onVideoTimeUpdate?: (lessonId: string, time: number) => void;
   onVideoComplete?: (lessonId: string) => void;
@@ -32,6 +33,7 @@ export const LessonBank = ({
   className,
   isFromTrailRoute = false,
   lessonId,
+  userId,
   getInitialTimestamp,
   onVideoTimeUpdate,
   onVideoComplete,
@@ -210,6 +212,7 @@ export const LessonBank = ({
         isOpen={isWatchModalOpen}
         onClose={handleCloseModal}
         selectedLesson={selectedLesson}
+        userId={userId}
         getVideoData={getVideoData}
         getInitialTimestampValue={getInitialTimestampValue}
         handleVideoTimeUpdate={handleVideoTimeUpdate}
