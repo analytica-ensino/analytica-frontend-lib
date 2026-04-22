@@ -11,11 +11,50 @@ import {
 import type { Lesson } from '../../../types/lessons';
 import type { WhiteboardImage } from '../../Whiteboard/Whiteboard';
 
-interface PodcastSectionProps {
-  lesson: Lesson;
+export interface LessonWatchModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  selectedLesson: Lesson | null;
+  userId?: string;
+  getVideoData: (lesson: Lesson | null) => {
+    src: string;
+    poster?: string;
+    subtitles?: string;
+  };
+  getInitialTimestampValue: (lessonId: string) => number;
+  handleVideoTimeUpdate: (time: number) => void;
+  handleVideoCompleteCallback: () => void;
   getPodcastData: (lesson: Lesson | null) => { src: string; title: string };
   onPodcastEnded: () => void;
+  getBoardImages: (lesson: Lesson | null) => WhiteboardImage[];
+  getBoardImageRef: (
+    index: number,
+    total: number
+  ) => RefObject<HTMLDivElement | null> | null;
+  /**
+   * Custom footer content. If not provided, defaults to a Cancel button.
+   */
+  footer?: React.ReactNode;
+  /**
+   * Modal title. Defaults to selectedLesson?.title || 'Assistir Aula'
+   */
+  title?: string;
 }
+
+type PodcastSectionProps = Pick<
+  LessonWatchModalProps,
+  'getPodcastData' | 'onPodcastEnded'
+> & { lesson: Lesson };
+
+type BoardImagesSectionProps = Pick<
+  LessonWatchModalProps,
+  'getBoardImages' | 'getBoardImageRef'
+> & { lesson: Lesson };
+
+type VideoSectionProps = Omit<
+  LessonWatchModalProps,
+  'isOpen' | 'onClose' | 'selectedLesson' | 'footer' | 'title'
+> & { lesson: Lesson };
 
 /**
  * Renders podcast section if available
@@ -42,15 +81,6 @@ const PodcastSection = ({
     </div>
   );
 };
-
-interface BoardImagesSectionProps {
-  lesson: Lesson;
-  getBoardImages: (lesson: Lesson | null) => WhiteboardImage[];
-  getBoardImageRef: (
-    index: number,
-    total: number
-  ) => RefObject<HTMLDivElement | null> | null;
-}
 
 /**
  * Renders board images section if available
@@ -88,26 +118,6 @@ const BoardImagesSection = ({
     </div>
   );
 };
-
-interface VideoSectionProps {
-  lesson: Lesson;
-  userId?: string;
-  getVideoData: (lesson: Lesson | null) => {
-    src: string;
-    poster?: string;
-    subtitles?: string;
-  };
-  getInitialTimestampValue: (lessonId: string) => number;
-  handleVideoTimeUpdate: (time: number) => void;
-  handleVideoCompleteCallback: () => void;
-  getPodcastData: (lesson: Lesson | null) => { src: string; title: string };
-  onPodcastEnded: () => void;
-  getBoardImages: (lesson: Lesson | null) => WhiteboardImage[];
-  getBoardImageRef: (
-    index: number,
-    total: number
-  ) => RefObject<HTMLDivElement | null> | null;
-}
 
 /**
  * Renders video section with player, podcast, and board images
@@ -170,36 +180,6 @@ const VideoSection = ({
     </>
   );
 };
-
-export interface LessonWatchModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  selectedLesson: Lesson | null;
-  userId?: string;
-  getVideoData: (lesson: Lesson | null) => {
-    src: string;
-    poster?: string;
-    subtitles?: string;
-  };
-  getInitialTimestampValue: (lessonId: string) => number;
-  handleVideoTimeUpdate: (time: number) => void;
-  handleVideoCompleteCallback: () => void;
-  getPodcastData: (lesson: Lesson | null) => { src: string; title: string };
-  onPodcastEnded: () => void;
-  getBoardImages: (lesson: Lesson | null) => WhiteboardImage[];
-  getBoardImageRef: (
-    index: number,
-    total: number
-  ) => RefObject<HTMLDivElement | null> | null;
-  /**
-   * Custom footer content. If not provided, defaults to a Cancel button.
-   */
-  footer?: React.ReactNode;
-  /**
-   * Modal title. Defaults to selectedLesson?.title || 'Assistir Aula'
-   */
-  title?: string;
-}
 
 /**
  * Modal component for watching lessons with video, podcast, and board images
