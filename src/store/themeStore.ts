@@ -54,6 +54,26 @@ export interface ThemeActions {
 export type ThemeStore = ThemeState & ThemeActions;
 
 /**
+ * Mapa de tema light institucional → tema dark correspondente.
+ * Adicionar entradas aqui ao introduzir novas instituições.
+ */
+const DARK_THEME_MAP: Record<string, string> = {
+  'base-light': 'base-dark',
+  'enem-parana-light': 'enem-parana-dark',
+  'enem-paraiba-light': 'enem-paraiba-dark',
+};
+
+/**
+ * Resolve o seletor CSS dark concreto com base no tema institucional (light)
+ * salvo em `data-original-theme`. Fallback: 'base-dark', que também responde
+ * ao seletor legado [data-theme='dark'] preservando compat com apps antigos.
+ */
+const resolveDarkTheme = (originalTheme: string | undefined): string => {
+  if (!originalTheme) return 'base-dark';
+  return DARK_THEME_MAP[originalTheme] ?? 'base-dark';
+};
+
+/**
  * Apply theme to DOM based on mode
  */
 const applyThemeToDOM = (mode: ThemeMode): boolean => {
@@ -61,7 +81,7 @@ const applyThemeToDOM = (mode: ThemeMode): boolean => {
   const originalTheme = htmlElement.dataset.originalTheme;
 
   if (mode === 'dark') {
-    htmlElement.dataset.theme = 'dark';
+    htmlElement.dataset.theme = resolveDarkTheme(originalTheme);
     return true;
   } else if (mode === 'light') {
     if (originalTheme) {
@@ -73,7 +93,7 @@ const applyThemeToDOM = (mode: ThemeMode): boolean => {
       '(prefers-color-scheme: dark)'
     ).matches;
     if (isSystemDark) {
-      htmlElement.dataset.theme = 'dark';
+      htmlElement.dataset.theme = resolveDarkTheme(originalTheme);
       return true;
     } else if (originalTheme) {
       htmlElement.dataset.theme = originalTheme;

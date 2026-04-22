@@ -108,7 +108,7 @@ describe('themeStore', () => {
 
       expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
         'data-theme',
-        'dark'
+        'enem-parana-dark'
       );
       expect(useThemeStore.getState().isDark).toBe(true);
     });
@@ -137,7 +137,7 @@ describe('themeStore', () => {
 
       expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
         'data-theme',
-        'dark'
+        'enem-parana-dark'
       );
       expect(useThemeStore.getState().isDark).toBe(true);
     });
@@ -169,7 +169,7 @@ describe('themeStore', () => {
       expect(useThemeStore.getState().themeMode).toBe('dark');
       expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
         'data-theme',
-        'dark'
+        'enem-parana-dark'
       );
     });
 
@@ -198,7 +198,7 @@ describe('themeStore', () => {
       expect(useThemeStore.getState().themeMode).toBe('dark');
       expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
         'data-theme',
-        'dark'
+        'enem-parana-dark'
       );
     });
   });
@@ -212,7 +212,7 @@ describe('themeStore', () => {
       expect(useThemeStore.getState().themeMode).toBe('dark');
       expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
         'data-theme',
-        'dark'
+        'enem-parana-dark'
       );
     });
 
@@ -288,7 +288,7 @@ describe('themeStore', () => {
 
       expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
         'data-theme',
-        'dark'
+        'enem-parana-dark'
       );
       expect(useThemeStore.getState().isDark).toBe(true);
     });
@@ -347,9 +347,10 @@ describe('themeStore', () => {
       setWhiteLabelTheme('custom-theme-light');
 
       expect(mockDataset.originalTheme).toBe('custom-theme-light');
+      // 'custom-theme-light' não está no DARK_THEME_MAP → fallback 'base-dark'
       expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
         'data-theme',
-        'dark'
+        'base-dark'
       );
     });
 
@@ -402,9 +403,11 @@ describe('themeStore', () => {
       expect(mockDocumentElement.removeAttribute).toHaveBeenCalledWith(
         'data-theme'
       );
+      // Após clear, saveOriginalTheme restaura 'enem-parana-light' do meta tag,
+      // e applyTheme('dark') resolve para 'enem-parana-dark'.
       expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
         'data-theme',
-        'dark'
+        'enem-parana-dark'
       );
     });
 
@@ -453,6 +456,109 @@ describe('themeStore', () => {
       expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
         'data-theme',
         'meta-theme-light'
+      );
+    });
+  });
+
+  describe('DARK_THEME_MAP resolution', () => {
+    it('should resolve enem-paraiba-light → enem-paraiba-dark on setTheme(dark)', () => {
+      mockDataset.originalTheme = 'enem-paraiba-light';
+
+      const { setTheme } = useThemeStore.getState();
+
+      setTheme('dark');
+
+      expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
+        'data-theme',
+        'enem-paraiba-dark'
+      );
+      expect(useThemeStore.getState().isDark).toBe(true);
+    });
+
+    it('should resolve base-light → base-dark on setTheme(dark)', () => {
+      mockDataset.originalTheme = 'base-light';
+
+      const { setTheme } = useThemeStore.getState();
+
+      setTheme('dark');
+
+      expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
+        'data-theme',
+        'base-dark'
+      );
+    });
+
+    it('should fall back to base-dark when originalTheme is missing', () => {
+      delete mockDataset.originalTheme;
+
+      const { setTheme } = useThemeStore.getState();
+
+      setTheme('dark');
+
+      expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
+        'data-theme',
+        'base-dark'
+      );
+    });
+
+    it('should fall back to base-dark when originalTheme is unknown', () => {
+      mockDataset.originalTheme = 'foo-light';
+
+      const { setTheme } = useThemeStore.getState();
+
+      setTheme('dark');
+
+      expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
+        'data-theme',
+        'base-dark'
+      );
+    });
+
+    it('should complete the paraiba light → dark → light cycle', () => {
+      mockDataset.originalTheme = 'enem-paraiba-light';
+
+      const { setTheme } = useThemeStore.getState();
+
+      setTheme('light');
+      expect(mockDocumentElement.setAttribute).toHaveBeenLastCalledWith(
+        'data-theme',
+        'enem-paraiba-light'
+      );
+
+      setTheme('dark');
+      expect(mockDocumentElement.setAttribute).toHaveBeenLastCalledWith(
+        'data-theme',
+        'enem-paraiba-dark'
+      );
+
+      setTheme('light');
+      expect(mockDocumentElement.setAttribute).toHaveBeenLastCalledWith(
+        'data-theme',
+        'enem-paraiba-light'
+      );
+    });
+
+    it('should complete the base light → dark → light cycle', () => {
+      mockDataset.originalTheme = 'base-light';
+
+      const { setTheme } = useThemeStore.getState();
+
+      setTheme('light');
+      expect(mockDocumentElement.setAttribute).toHaveBeenLastCalledWith(
+        'data-theme',
+        'base-light'
+      );
+
+      setTheme('dark');
+      expect(mockDocumentElement.setAttribute).toHaveBeenLastCalledWith(
+        'data-theme',
+        'base-dark'
+      );
+
+      setTheme('light');
+      expect(mockDocumentElement.setAttribute).toHaveBeenLastCalledWith(
+        'data-theme',
+        'base-light'
       );
     });
   });
