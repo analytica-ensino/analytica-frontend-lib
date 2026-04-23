@@ -59,6 +59,25 @@ describe('ChatbotPanel', () => {
     expect(props.onStartNew).toHaveBeenCalledTimes(1);
   });
 
+  it('collapses the body when minimized and restores it when expanded', async () => {
+    render(<ChatbotPanel {...baseProps()} />);
+
+    expect(screen.getByTestId('slot-messages')).toBeInTheDocument();
+    expect(screen.getByTestId('slot-input')).toBeInTheDocument();
+
+    await userEvent.click(
+      screen.getByRole('button', { name: /minimizar assistente/i })
+    );
+    expect(screen.queryByTestId('slot-messages')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('slot-input')).not.toBeInTheDocument();
+
+    await userEvent.click(
+      screen.getByRole('button', { name: /expandir assistente/i })
+    );
+    expect(screen.getByTestId('slot-messages')).toBeInTheDocument();
+    expect(screen.getByTestId('slot-input')).toBeInTheDocument();
+  });
+
   it('renders an error banner when errorMessage is set', () => {
     render(<ChatbotPanel {...baseProps()} errorMessage="deu ruim" />);
     expect(screen.getByText('deu ruim')).toBeInTheDocument();

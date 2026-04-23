@@ -62,23 +62,36 @@ export default function ChatbotInput({
         className
       )}
     >
-      <TextArea
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder={placeholder}
-        disabled={disabled}
-        autoResize
-        minHeight={MIN_HEIGHT}
-        aria-label="Mensagem para o assistente"
-        className="flex-1"
-        style={{ maxHeight: MAX_HEIGHT, overflowY: 'auto' }}
-      />
+      {/* `TextArea` wraps its <textarea> in a flex column, so `flex-1`
+          needs to live on this outer wrapper — passing it via
+          `className` would only affect the inner element. */}
+      <div className="flex-1 min-w-0">
+        <TextArea
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          disabled={disabled}
+          autoResize
+          minHeight={MIN_HEIGHT}
+          aria-label="Mensagem para o assistente"
+          className="w-full"
+          style={{ maxHeight: MAX_HEIGHT, overflowY: 'auto' }}
+        />
+      </div>
       <IconButton
-        icon={<PaperPlaneTiltIcon size={18} weight="fill" />}
+        icon={<PaperPlaneTiltIcon size={20} weight="fill" />}
         aria-label="Enviar mensagem"
         onClick={submit}
         disabled={isSendDisabled}
+        // Disabled state keeps the default transparent background
+        // (text-text-950 icon visible) so the control never blends
+        // into the white input bar. Enabled state flips to the
+        // primary brand color to cue the send action.
+        className={cn(
+          'flex-shrink-0 self-end !rounded-full',
+          !isSendDisabled && '!bg-primary-500 !text-white hover:!bg-primary-600'
+        )}
       />
     </div>
   );
