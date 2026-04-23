@@ -5,7 +5,7 @@ import type {
   SendActivityFormData,
 } from '../..';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
-import type { BackendFiltersFormat } from './ActivityCreate.types';
+import type { BackendFiltersFormat, ActivityCreatePayload } from './ActivityCreate.types';
 import { ActivityType, ActivityStatus } from './ActivityCreate.types';
 
 /**
@@ -275,7 +275,7 @@ export function buildSendActivityPayload(
   questionIds: string[],
   startDateTime: string,
   finalDateTime: string,
-) {
+): ActivityCreatePayload {
   return {
     createdBySys: false,
     title: formData.title,

@@ -224,7 +224,7 @@ const SendActivityModal = ({
         console.error('Falha ao enviar atividade:', error);
       }
     }
-  }, [store, onSubmit, onError]);
+  }, [store, onSubmit, onError, enableExamMode]);
 
   /**
    * Handle cancel button click

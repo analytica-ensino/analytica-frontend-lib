@@ -113,16 +113,7 @@ const createTableColumns = (
       label: 'Status',
       sortable: false,
       render: (value: unknown) => {
-        let status = value as StudentActivityStatus;
-        if (isPresencial) {
-          // AGUARDANDO_RESPOSTA → still waiting for the answer sheet
-          if (status === STUDENT_ACTIVITY_STATUS.AGUARDANDO_RESPOSTA) {
-            status = STUDENT_ACTIVITY_STATUS.AWAITING_ANSWER_SHEET;
-          } else if (status === STUDENT_ACTIVITY_STATUS.AGUARDANDO_CORRECAO) {
-            // AGUARDANDO_CORRECAO → answer sheet was received and auto-graded
-            status = STUDENT_ACTIVITY_STATUS.ANSWER_SHEET_RECEIVED;
-          }
-        }
+        const status = value as StudentActivityStatus;
         const config = getStatusBadgeConfig(status);
         return (
           <Badge
@@ -510,35 +501,44 @@ export const ActivityDetails = ({
     [activityId, submitQuestionCorrection]
   );
 
+  const isPresencial = data?.activity?.mode === ActivityMode.PRESENCIAL;
+
   /**
-   * Convert student data to table format
+   * Convert student data to table format.
+   * Presencial status remapping happens here so all consumers (modal logic,
+   * view-only check, column render) see a consistent value.
    */
   const tableData: ActivityStudentTableItem[] = useMemo(() => {
     if (!data?.students) return [];
 
-    return data.students.map((student) => ({
-      id: student.studentId,
-      studentId: student.studentId,
-      studentName: student.studentName,
-      status: student.status,
-      answeredAt: student.answeredAt,
-      timeSpent: student.timeSpent,
-      score: student.score,
-    }));
-  }, [data?.students]);
+    return data.students.map((student) => {
+      let status = student.status;
+      if (isPresencial) {
+        if (status === STUDENT_ACTIVITY_STATUS.AGUARDANDO_RESPOSTA) {
+          status = STUDENT_ACTIVITY_STATUS.AWAITING_ANSWER_SHEET;
+        } else if (status === STUDENT_ACTIVITY_STATUS.AGUARDANDO_CORRECAO) {
+          status = STUDENT_ACTIVITY_STATUS.ANSWER_SHEET_RECEIVED;
+        }
+      }
+      return {
+        id: student.studentId,
+        studentId: student.studentId,
+        studentName: student.studentName,
+        status,
+        answeredAt: student.answeredAt,
+        timeSpent: student.timeSpent,
+        score: student.score,
+      };
+    });
+  }, [data?.students, isPresencial]);
 
   /**
    * Table columns configuration
-   * isPresencial is derived from activity.mode so columns update after data loads
    */
-  const columns = useMemo(() => {
-    const isPresencial = data?.activity?.mode === ActivityMode.PRESENCIAL;
-    return createTableColumns(
-      handleCorrectActivity,
-      isPresencial,
-      onDownloadAnswerSheet
-    );
-  }, [handleCorrectActivity, onDownloadAnswerSheet, data?.activity?.mode]);
+  const columns = useMemo(
+    () => createTableColumns(handleCorrectActivity, isPresencial, onDownloadAnswerSheet),
+    [handleCorrectActivity, isPresencial, onDownloadAnswerSheet]
+  );
 
   /**
    * Handle table parameters change
