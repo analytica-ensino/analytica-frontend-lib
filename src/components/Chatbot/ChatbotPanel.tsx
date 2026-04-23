@@ -51,6 +51,7 @@ export default function ChatbotPanel({
   const [isMinimized, setIsMinimized] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const previouslyFocusedRef = useRef<Element | null>(null);
+  const previousErrorRef = useRef<string | null | undefined>(errorMessage);
 
   // Reset the minimized state every time the panel is reopened so the
   // user always lands on the full conversation view.
@@ -59,6 +60,18 @@ export default function ChatbotPanel({
       setIsMinimized(false);
     }
   }, [isOpen]);
+
+  // Auto-expand on new errors so the role="alert" banner is mounted and
+  // announced by screen readers. Without this, a failed send while
+  // minimized would be silent — the body (including the alert node) is
+  // unmounted in the minimized state.
+  useEffect(() => {
+    const previous = previousErrorRef.current;
+    if (!previous && errorMessage) {
+      setIsMinimized(false);
+    }
+    previousErrorRef.current = errorMessage;
+  }, [errorMessage]);
 
   // Escape-key dismissal + focus management: when the panel opens we
   // remember the previously focused element, move focus to the close

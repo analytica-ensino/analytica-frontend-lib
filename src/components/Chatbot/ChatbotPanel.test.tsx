@@ -78,6 +78,23 @@ describe('ChatbotPanel', () => {
     expect(screen.getByTestId('slot-input')).toBeInTheDocument();
   });
 
+  it('auto-expands the minimized panel when a new error arrives', async () => {
+    const { rerender } = render(<ChatbotPanel {...baseProps()} />);
+
+    await userEvent.click(
+      screen.getByRole('button', { name: /minimizar assistente/i })
+    );
+    // Sanity check: body is unmounted while minimized.
+    expect(screen.queryByTestId('slot-messages')).not.toBeInTheDocument();
+
+    // Error arrives while minimized — panel should re-expand so the
+    // role="alert" banner is mounted and announced.
+    rerender(<ChatbotPanel {...baseProps()} errorMessage="falhou" />);
+
+    expect(screen.getByTestId('slot-messages')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent('falhou');
+  });
+
   it('renders an error banner when errorMessage is set', () => {
     render(<ChatbotPanel {...baseProps()} errorMessage="deu ruim" />);
     expect(screen.getByText('deu ruim')).toBeInTheDocument();
