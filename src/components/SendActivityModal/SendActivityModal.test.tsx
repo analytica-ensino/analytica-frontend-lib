@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import SendActivityModal from './SendActivityModal';
-import { CategoryConfig, Item } from './types';
+import { ActivitySubtype, CategoryConfig, Item } from './types';
 import { useSendActivityModalStore } from './hooks/useSendActivityModal';
 
 /**
@@ -1040,7 +1040,7 @@ describe('SendActivityModal', () => {
           {...defaultProps}
           initialData={{
             title: 'Prova de Matemática',
-            subtype: 'PROVA',
+            subtype: ActivitySubtype.PROVA,
             notification: 'Nova prova disponível',
           }}
         />
@@ -1080,7 +1080,7 @@ describe('SendActivityModal', () => {
           {...defaultProps}
           initialData={{
             title: 'Primeira Prova',
-            subtype: 'PROVA',
+            subtype: ActivitySubtype.PROVA,
           }}
         />
       );
@@ -1100,7 +1100,7 @@ describe('SendActivityModal', () => {
           isOpen={true}
           initialData={{
             title: 'Segunda Tarefa',
-            subtype: 'TAREFA',
+            subtype: ActivitySubtype.TAREFA,
           }}
         />
       );
@@ -1116,7 +1116,7 @@ describe('SendActivityModal', () => {
     it('should pre-fill when reopening modal with same initialData', () => {
       const initialData = {
         title: 'Mesma Prova',
-        subtype: 'PROVA' as const,
+        subtype: ActivitySubtype.PROVA,
       };
 
       const { rerender } = render(
@@ -1138,7 +1138,7 @@ describe('SendActivityModal', () => {
           isOpen={true}
           initialData={{
             title: 'Mesma Prova',
-            subtype: 'PROVA',
+            subtype: ActivitySubtype.PROVA,
           }}
         />
       );

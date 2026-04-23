@@ -870,11 +870,11 @@ export const LoadingState: Story = () => {
       await new Promise((resolve) => setTimeout(resolve, 999999));
       return mockApiClient.get(url);
     },
-    post: async (url: string, body?: Record<string, unknown>) => {
+    post: async (url: string, body?: object) => {
       await new Promise((resolve) => setTimeout(resolve, 999999));
       return mockApiClient.post(url, body);
     },
-    patch: async (url: string, body?: Record<string, unknown>) => {
+    patch: async (url: string, body?: object) => {
       await new Promise((resolve) => setTimeout(resolve, 999999));
       return mockApiClient.patch(url, body);
     },

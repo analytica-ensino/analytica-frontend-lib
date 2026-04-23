@@ -7,7 +7,7 @@ import {
   isFormValid,
   ERROR_MESSAGES,
 } from './validation';
-import { SendActivityFormData } from './types';
+import { ActivitySubtype, SendActivityFormData } from './types';
 
 describe('validation', () => {
   describe('validateActivityStep', () => {
@@ -19,7 +19,7 @@ describe('validation', () => {
     });
 
     it('should return error when title is missing', () => {
-      const data: Partial<SendActivityFormData> = { subtype: 'TAREFA' };
+      const data: Partial<SendActivityFormData> = { subtype: ActivitySubtype.TAREFA };
       const errors = validateActivityStep(data);
 
       expect(errors.title).toBe(ERROR_MESSAGES.TITLE_REQUIRED);
@@ -27,7 +27,7 @@ describe('validation', () => {
 
     it('should return error when title is empty string', () => {
       const data: Partial<SendActivityFormData> = {
-        subtype: 'TAREFA',
+        subtype: ActivitySubtype.TAREFA,
         title: '',
       };
       const errors = validateActivityStep(data);
@@ -37,7 +37,7 @@ describe('validation', () => {
 
     it('should return error when title is only whitespace', () => {
       const data: Partial<SendActivityFormData> = {
-        subtype: 'TAREFA',
+        subtype: ActivitySubtype.TAREFA,
         title: '   ',
       };
       const errors = validateActivityStep(data);
@@ -47,7 +47,7 @@ describe('validation', () => {
 
     it('should return no errors when subtype and title are valid', () => {
       const data: Partial<SendActivityFormData> = {
-        subtype: 'TAREFA',
+        subtype: ActivitySubtype.TAREFA,
         title: 'Test Activity',
       };
       const errors = validateActivityStep(data);
@@ -192,7 +192,7 @@ describe('validation', () => {
 
     it('should return true for valid step 1', () => {
       const data: Partial<SendActivityFormData> = {
-        subtype: 'TRABALHO',
+        subtype: ActivitySubtype.TRABALHO,
         title: 'Test',
       };
       expect(isStepValid(1, data)).toBe(true);
@@ -245,7 +245,7 @@ describe('validation', () => {
 
     it('should return false when step 2 is invalid', () => {
       const data: Partial<SendActivityFormData> = {
-        subtype: 'PROVA',
+        subtype: ActivitySubtype.PROVA,
         title: 'Test',
         students: [],
         startDate: '2025-01-01',
@@ -258,7 +258,7 @@ describe('validation', () => {
 
     it('should return false when step 3 is invalid', () => {
       const data: Partial<SendActivityFormData> = {
-        subtype: 'PROVA',
+        subtype: ActivitySubtype.PROVA,
         title: 'Test',
         students: [{ studentId: '1', userInstitutionId: '1' }],
       };
@@ -267,7 +267,7 @@ describe('validation', () => {
 
     it('should return true when all steps are valid', () => {
       const data: Partial<SendActivityFormData> = {
-        subtype: 'PROVA',
+        subtype: ActivitySubtype.PROVA,
         title: 'Test Activity',
         students: [{ studentId: '1', userInstitutionId: '1' }],
         startDate: '2025-01-01',
