@@ -36,7 +36,7 @@ import type {
   ActivityCreateResponse,
   RecommendedClassDraftResponse,
 } from './ActivityCreate.types';
-import { ActivityType, ActivityStatus } from './ActivityCreate.types';
+import { ActivityType } from './ActivityCreate.types';
 import type { CreateActivityPayload } from '../../types/sendActivity';
 import {
   convertFiltersToBackendFormat,
