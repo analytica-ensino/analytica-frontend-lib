@@ -64,10 +64,12 @@ export default function ChatbotPanel({
   // Auto-expand on new errors so the role="alert" banner is mounted and
   // announced by screen readers. Without this, a failed send while
   // minimized would be silent — the body (including the alert node) is
-  // unmounted in the minimized state.
+  // unmounted in the minimized state. Compare against the previous value
+  // (not just truthy/falsy) so a distinct truthy error arriving after the
+  // user minimized also re-expands and re-announces.
   useEffect(() => {
     const previous = previousErrorRef.current;
-    if (!previous && errorMessage) {
+    if (errorMessage && errorMessage !== previous) {
       setIsMinimized(false);
     }
     previousErrorRef.current = errorMessage;

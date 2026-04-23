@@ -95,6 +95,25 @@ describe('ChatbotPanel', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('falhou');
   });
 
+  it('re-expands on a distinct error message after the user minimized again', async () => {
+    const { rerender } = render(
+      <ChatbotPanel {...baseProps()} errorMessage="primeiro erro" />
+    );
+
+    // User minimizes despite the error being present.
+    await userEvent.click(
+      screen.getByRole('button', { name: /minimizar assistente/i })
+    );
+    expect(screen.queryByTestId('slot-messages')).not.toBeInTheDocument();
+
+    // A different error arrives (truthy → truthy transition with a new
+    // string). Panel must re-expand so the new alert is announced.
+    rerender(<ChatbotPanel {...baseProps()} errorMessage="segundo erro" />);
+
+    expect(screen.getByTestId('slot-messages')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent('segundo erro');
+  });
+
   it('renders an error banner when errorMessage is set', () => {
     render(<ChatbotPanel {...baseProps()} errorMessage="deu ruim" />);
     expect(screen.getByText('deu ruim')).toBeInTheDocument();
