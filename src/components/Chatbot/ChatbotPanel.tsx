@@ -125,7 +125,7 @@ export default function ChatbotPanel({
         showHistory
           ? 'max-w-[620px] sm:max-w-[640px]'
           : 'max-w-[400px] sm:max-w-[420px]',
-        'border border-background-200 bg-white shadow-2xl',
+        'border border-background-200 bg-background shadow-2xl',
         className
       )}
     >

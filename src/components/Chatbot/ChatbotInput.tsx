@@ -57,7 +57,7 @@ export default function ChatbotInput({
   return (
     <div
       className={cn(
-        'flex items-center gap-2 border-t border-background-200 bg-white p-3',
+        'flex items-center gap-2 border-t border-background-200 bg-background p-3',
         className
       )}
     >
