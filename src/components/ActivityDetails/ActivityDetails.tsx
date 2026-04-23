@@ -536,7 +536,12 @@ export const ActivityDetails = ({
    * Table columns configuration
    */
   const columns = useMemo(
-    () => createTableColumns(handleCorrectActivity, isPresencial, onDownloadAnswerSheet),
+    () =>
+      createTableColumns(
+        handleCorrectActivity,
+        isPresencial,
+        onDownloadAnswerSheet
+      ),
     [handleCorrectActivity, isPresencial, onDownloadAnswerSheet]
   );
 

@@ -161,7 +161,9 @@ const SendActivityModal = ({
   const handleActivityTypeSelect = useCallback(
     (subtype: ActivitySubtype) => {
       const update: Partial<SendActivityFormData> =
-        subtype !== ActivitySubtype.PROVA ? { subtype, mode: undefined } : { subtype };
+        subtype !== ActivitySubtype.PROVA
+          ? { subtype, mode: undefined }
+          : { subtype };
       store.setFormData(update);
     },
     [store]
