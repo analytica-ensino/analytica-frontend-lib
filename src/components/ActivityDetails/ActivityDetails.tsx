@@ -66,26 +66,26 @@ export interface ActivityDetailsProps {
   /** Function to map subject name to SubjectEnum */
   mapSubjectNameToEnum?: (subjectName: string) => SubjectEnum | null;
   /**
-   * Callback for downloading the gabarito (answer sheet) for a student.
+   * Callback for downloading the answer sheet for a student.
    * When provided, activates presencial-test mode:
    * - Hides the "Duração" column
    * - Renames "Respondido em" → "Gabarito recebido em"
    * - Adds a "Gabarito" column (before "Resultado") with a "Baixar gabarito" button
    */
-  onDownloadGabarito?: (studentId: string) => void;
+  onDownloadAnswerSheet?: (studentId: string) => void;
 }
 
 /**
  * Create table columns configuration
  * @param onCorrectActivity - Callback for correction action
  * @param isPresencial - Whether the activity is in presencial mode (drives column visibility)
- * @param onDownloadGabarito - Optional callback for gabarito download button in presencial mode
+ * @param onDownloadAnswerSheet - Optional callback for answer sheet download button in presencial mode
  * @returns Column configuration array
  */
 const createTableColumns = (
   onCorrectActivity: (studentId: string) => void,
   isPresencial: boolean,
-  onDownloadGabarito?: (studentId: string) => void
+  onDownloadAnswerSheet?: (studentId: string) => void
 ): ColumnConfig<ActivityStudentTableItem>[] => {
   const columns: ColumnConfig<ActivityStudentTableItem>[] = [
     {
@@ -115,11 +115,11 @@ const createTableColumns = (
         if (isPresencial) {
           // AGUARDANDO_RESPOSTA → still waiting for the answer sheet
           if (status === STUDENT_ACTIVITY_STATUS.AGUARDANDO_RESPOSTA) {
-            status = STUDENT_ACTIVITY_STATUS.AGUARDANDO_GABARITO;
+            status = STUDENT_ACTIVITY_STATUS.AWAITING_ANSWER_SHEET;
           }
-          // AGUARDANDO_CORRECAO → gabarito was received and auto-graded
+          // AGUARDANDO_CORRECAO → answer sheet was received and auto-graded
           if (status === STUDENT_ACTIVITY_STATUS.AGUARDANDO_CORRECAO) {
-            status = STUDENT_ACTIVITY_STATUS.GABARITO_RECEBIDO;
+            status = STUDENT_ACTIVITY_STATUS.ANSWER_SHEET_RECEIVED;
           }
         }
         const config = getStatusBadgeConfig(status);
@@ -181,16 +181,16 @@ const createTableColumns = (
   });
 
   // "Gabarito" column is only shown in presencial mode
-  if (isPresencial && onDownloadGabarito) {
+  if (isPresencial && onDownloadAnswerSheet) {
     columns.push({
-      key: 'gabarito',
+      key: 'answerSheet',
       label: 'Gabarito',
       sortable: false,
       render: (_value: unknown, row: ActivityStudentTableItem) => (
         <Button
           variant="outline"
           size="small"
-          onClick={() => onDownloadGabarito(row.studentId)}
+          onClick={() => onDownloadAnswerSheet(row.studentId)}
           className="text-xs"
         >
           Baixar gabarito
@@ -204,10 +204,10 @@ const createTableColumns = (
     label: 'Resultado',
     sortable: false,
     render: (_value: unknown, row: ActivityStudentTableItem) => {
-      // Presencial mode: show "Ver respostas" — disabled until gabarito is received
+      // Presencial mode: show "Ver respostas" — disabled until answer sheet is received
       if (isPresencial) {
         const hasResponse =
-          row.status === STUDENT_ACTIVITY_STATUS.GABARITO_RECEBIDO ||
+          row.status === STUDENT_ACTIVITY_STATUS.ANSWER_SHEET_RECEIVED ||
           row.status === STUDENT_ACTIVITY_STATUS.AGUARDANDO_CORRECAO ||
           row.status === STUDENT_ACTIVITY_STATUS.CONCLUIDO;
         return (
@@ -281,7 +281,7 @@ export const ActivityDetails = ({
   onBack,
   emptyStateImage,
   mapSubjectNameToEnum,
-  onDownloadGabarito,
+  onDownloadAnswerSheet,
 }: ActivityDetailsProps) => {
   const { isMobile } = useMobile();
 
@@ -534,9 +534,9 @@ export const ActivityDetails = ({
     return createTableColumns(
       handleCorrectActivity,
       isPresencial,
-      onDownloadGabarito
+      onDownloadAnswerSheet
     );
-  }, [handleCorrectActivity, onDownloadGabarito, data?.activity?.mode]);
+  }, [handleCorrectActivity, onDownloadAnswerSheet, data?.activity?.mode]);
 
   /**
    * Handle table parameters change

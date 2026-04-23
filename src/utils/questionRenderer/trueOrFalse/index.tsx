@@ -34,11 +34,11 @@ export const renderQuestionTrueOrFalse = ({
           );
 
           // Get the correct answer from options array (if the statement is true or false)
-          const gabaritoOption = result?.options?.find(
+          const correctAnswerOption = result?.options?.find(
             (op) => op.id === option.id
           );
-          const hasGabarito = gabaritoOption?.isCorrect !== undefined;
-          const statementIsTrue = gabaritoOption?.isCorrect ?? false;
+          const hasCorrectAnswer = correctAnswerOption?.isCorrect !== undefined;
+          const statementIsTrue = correctAnswerOption?.isCorrect ?? false;
 
           // Student's answer: isCorrect in selectedOptions represents what user marked
           // isCorrect: true = user marked V (Verdadeiro)
@@ -46,13 +46,13 @@ export const renderQuestionTrueOrFalse = ({
           const hasAnswered = studentSelection !== undefined;
           const studentMarkedTrue = studentSelection?.isCorrect ?? false;
 
-          // Determine if student's answer is correct (only valid when we have gabarito)
+          // Determine if student's answer is correct (only valid when we have the correct answer)
           // Student is correct if their mark matches the statement's truth value
           const isStudentCorrect =
-            hasGabarito && hasAnswered && studentMarkedTrue === statementIsTrue;
+            hasCorrectAnswer && hasAnswered && studentMarkedTrue === statementIsTrue;
 
           // Only show correctness styling when we have the official answer
-          const canShowCorrectness = shouldShowStatus && hasGabarito;
+          const canShowCorrectness = shouldShowStatus && hasCorrectAnswer;
           const variantCorrect = isStudentCorrect ? 'correct' : 'incorrect';
           const studentAnswer = studentMarkedTrue
             ? TrueFalseEnum.VERDADEIRO
