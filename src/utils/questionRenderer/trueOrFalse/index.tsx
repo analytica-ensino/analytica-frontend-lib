@@ -49,7 +49,9 @@ export const renderQuestionTrueOrFalse = ({
           // Determine if student's answer is correct (only valid when we have the correct answer)
           // Student is correct if their mark matches the statement's truth value
           const isStudentCorrect =
-            hasCorrectAnswer && hasAnswered && studentMarkedTrue === statementIsTrue;
+            hasCorrectAnswer &&
+            hasAnswered &&
+            studentMarkedTrue === statementIsTrue;
 
           // Only show correctness styling when we have the official answer
           const canShowCorrectness = shouldShowStatus && hasCorrectAnswer;

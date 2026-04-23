@@ -5,8 +5,9 @@ import type {
   SendActivityFormData,
 } from '../..';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
-import type { BackendFiltersFormat, ActivityCreatePayload } from './ActivityCreate.types';
-import { ActivityType, ActivityStatus } from './ActivityCreate.types';
+import type { BackendFiltersFormat } from './ActivityCreate.types';
+import { ActivityType } from './ActivityCreate.types';
+import type { CreateActivityPayload } from '../../types/sendActivity';
 
 /**
  * Set of valid QUESTION_TYPE enum values for runtime validation
@@ -275,16 +276,13 @@ export function buildSendActivityPayload(
   questionIds: string[],
   startDateTime: string,
   finalDateTime: string,
-): ActivityCreatePayload {
+): CreateActivityPayload {
   return {
-    createdBySys: false,
     title: formData.title,
     subjectId,
     questionIds,
     subtype: formData.subtype,
-    difficulty: '',
     notification: formData.notification || '',
-    status: ActivityStatus.A_VENCER,
     startDate: startDateTime,
     finalDate: finalDateTime,
     canRetry: formData.canRetry,

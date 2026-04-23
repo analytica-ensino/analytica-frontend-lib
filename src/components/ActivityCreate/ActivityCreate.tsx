@@ -33,11 +33,11 @@ import type {
   ActivityData,
   BackendFiltersFormat,
   ActivityPreFiltersInput,
-  ActivityCreatePayload,
   ActivityCreateResponse,
   RecommendedClassDraftResponse,
 } from './ActivityCreate.types';
 import { ActivityType, ActivityStatus } from './ActivityCreate.types';
+import type { CreateActivityPayload } from '../../types/sendActivity';
 import {
   convertFiltersToBackendFormat,
   convertBackendFiltersToActivityFiltersData,
@@ -73,7 +73,7 @@ const CreateActivity = ({
   onBack?: () => void;
   onCreateActivity?: (
     activityId: string,
-    activityData: ActivityCreatePayload
+    activityData: CreateActivityPayload
   ) => void;
   onSaveModel?: (response: ActivityDraftResponse) => void;
   onAddActivityToLesson?: (activityDraftId: string) => void;
