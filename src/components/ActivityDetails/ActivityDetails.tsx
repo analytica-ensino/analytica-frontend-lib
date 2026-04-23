@@ -39,6 +39,7 @@ import {
   formatQuestionNumbers,
   formatDateToBrazilian,
 } from '../../utils/activityDetailsUtils';
+import { ActivityMode } from '../SendActivityModal/types';
 import type { BaseApiClient } from '../../types/api';
 import { useActivityDetails } from '../../hooks/useActivityDetails';
 import {
@@ -67,10 +68,11 @@ export interface ActivityDetailsProps {
   mapSubjectNameToEnum?: (subjectName: string) => SubjectEnum | null;
   /**
    * Callback for downloading the answer sheet for a student.
-   * When provided, activates presencial-test mode:
+   * Presencial mode is determined by `activity.mode === ActivityMode.PRESENCIAL`, not by
+   * the presence of this callback. When the activity is presencial:
    * - Hides the "Duração" column
    * - Renames "Respondido em" → "Gabarito recebido em"
-   * - Adds a "Gabarito" column (before "Resultado") with a "Baixar gabarito" button
+   * - Shows a "Gabarito" column (before "Resultado"); button is disabled when callback is absent
    */
   onDownloadAnswerSheet?: (studentId: string) => void;
 }
@@ -116,9 +118,8 @@ const createTableColumns = (
           // AGUARDANDO_RESPOSTA → still waiting for the answer sheet
           if (status === STUDENT_ACTIVITY_STATUS.AGUARDANDO_RESPOSTA) {
             status = STUDENT_ACTIVITY_STATUS.AWAITING_ANSWER_SHEET;
-          }
-          // AGUARDANDO_CORRECAO → answer sheet was received and auto-graded
-          if (status === STUDENT_ACTIVITY_STATUS.AGUARDANDO_CORRECAO) {
+          } else if (status === STUDENT_ACTIVITY_STATUS.AGUARDANDO_CORRECAO) {
+            // AGUARDANDO_CORRECAO → answer sheet was received and auto-graded
             status = STUDENT_ACTIVITY_STATUS.ANSWER_SHEET_RECEIVED;
           }
         }
@@ -180,8 +181,8 @@ const createTableColumns = (
       ),
   });
 
-  // "Gabarito" column is only shown in presencial mode
-  if (isPresencial && onDownloadAnswerSheet) {
+  // "Gabarito" column is always shown in presencial mode; button disabled when callback is absent
+  if (isPresencial) {
     columns.push({
       key: 'answerSheet',
       label: 'Gabarito',
@@ -190,7 +191,8 @@ const createTableColumns = (
         <Button
           variant="outline"
           size="small"
-          onClick={() => onDownloadAnswerSheet(row.studentId)}
+          onClick={() => onDownloadAnswerSheet?.(row.studentId)}
+          disabled={!onDownloadAnswerSheet}
           className="text-xs"
         >
           Baixar gabarito
@@ -530,7 +532,7 @@ export const ActivityDetails = ({
    * isPresencial is derived from activity.mode so columns update after data loads
    */
   const columns = useMemo(() => {
-    const isPresencial = data?.activity?.mode === 'PRESENCIAL';
+    const isPresencial = data?.activity?.mode === ActivityMode.PRESENCIAL;
     return createTableColumns(
       handleCorrectActivity,
       isPresencial,

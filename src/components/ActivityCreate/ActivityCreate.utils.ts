@@ -2,10 +2,11 @@ import type {
   ActivityFiltersData,
   PreviewQuestion,
   QuestionActivity as Question,
+  SendActivityFormData,
 } from '../..';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import type { BackendFiltersFormat } from './ActivityCreate.types';
-import { ActivityType } from './ActivityCreate.types';
+import { ActivityType, ActivityStatus } from './ActivityCreate.types';
 
 /**
  * Set of valid QUESTION_TYPE enum values for runtime validation
@@ -265,5 +266,28 @@ export function convertQuestionToPreview(question: Question): PreviewQuestion {
         }
       : undefined,
     ...subjectInfo,
+  };
+}
+
+export function buildSendActivityPayload(
+  formData: SendActivityFormData,
+  subjectId: string,
+  questionIds: string[],
+  startDateTime: string,
+  finalDateTime: string,
+) {
+  return {
+    createdBySys: false,
+    title: formData.title,
+    subjectId,
+    questionIds,
+    subtype: formData.subtype,
+    difficulty: '',
+    notification: formData.notification || '',
+    status: ActivityStatus.A_VENCER,
+    startDate: startDateTime,
+    finalDate: finalDateTime,
+    canRetry: formData.canRetry,
+    mode: formData.mode,
   };
 }

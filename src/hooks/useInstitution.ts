@@ -20,7 +20,7 @@ export interface InstitutionData {
   state: string | null;
 }
 
-interface UseInstitutionConfig {
+export interface UseInstitutionConfig {
   apiClient: BaseApiClient;
   institutionId: string | null;
 }
@@ -34,24 +34,31 @@ export function useInstitution(config: UseInstitutionConfig) {
     if (!config.institutionId) return;
 
     let cancelled = false;
-    setLoading(true);
 
-    config.apiClient
-      .get<{ data: InstitutionData }>(`/institution/filter?filter=${config.institutionId}`)
-      .then(({ data: response }) => {
+    const fetchInstitution = async () => {
+      setLoading(true);
+      setInstitution(null);
+      setError(null);
+      try {
+        const { data: response } = await config.apiClient.get<{
+          data: InstitutionData;
+        }>('/institution/filter', {
+          params: { filter: config.institutionId },
+        });
         if (!cancelled) setInstitution(response.data);
-      })
-      .catch((err: Error) => {
-        if (!cancelled) setError(err);
-      })
-      .finally(() => {
+      } catch (err) {
+        if (!cancelled) setError(err as Error);
+      } finally {
         if (!cancelled) setLoading(false);
-      });
+      }
+    };
+
+    fetchInstitution();
 
     return () => {
       cancelled = true;
     };
-  }, [config.institutionId]);
+  }, [config.institutionId, config.apiClient]);
 
   return { institution, loading, error };
 }

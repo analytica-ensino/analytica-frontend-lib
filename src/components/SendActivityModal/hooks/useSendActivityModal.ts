@@ -19,7 +19,7 @@ export interface SendActivityModalStore {
   /** Go to a specific step */
   goToStep: (step: number) => void;
   /** Go to next step (validates current step first) */
-  nextStep: () => boolean;
+  nextStep: (enableExamMode: boolean) => boolean;
   /** Go to previous step */
   previousStep: () => void;
 
@@ -28,19 +28,14 @@ export interface SendActivityModalStore {
   /** Set errors */
   setErrors: (errors: StepErrors) => void;
   /** Validate current step */
-  validateCurrentStep: () => boolean;
+  validateCurrentStep: (enableExamMode: boolean) => boolean;
   /** Validate all steps */
-  validateAllSteps: () => boolean;
+  validateAllSteps: (enableExamMode: boolean) => boolean;
 
   /** Categories state managed by CheckboxGroup */
   categories: CategoryConfig[];
   /** Update categories (called by CheckboxGroup) */
   setCategories: (categories: CategoryConfig[]) => void;
-
-  /** Enable "Modo de prova" validation (set from prop) */
-  enableProvaMode: boolean;
-  /** Set enableProvaMode flag */
-  setEnableProvaMode: (enabled: boolean) => void;
 
   /** Reset store to initial state */
   reset: () => void;
@@ -56,7 +51,6 @@ const initialState = {
   completedSteps: [] as number[],
   errors: {} as StepErrors,
   categories: [] as CategoryConfig[],
-  enableProvaMode: false,
 };
 
 /**
@@ -78,9 +72,9 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
       }
     },
 
-    nextStep: () => {
+    nextStep: (enableExamMode: boolean) => {
       const state = get();
-      const isValid = state.validateCurrentStep();
+      const isValid = state.validateCurrentStep(enableExamMode);
 
       if (isValid && state.currentStep < 3) {
         set((prev) => ({
@@ -107,11 +101,7 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
       set({ errors });
     },
 
-    setEnableProvaMode: (enabled) => {
-      set({ enableProvaMode: enabled });
-    },
-
-    validateCurrentStep: () => {
+    validateCurrentStep: (enableExamMode: boolean) => {
       const state = get();
       // For step 2, extract students from categories to ensure auto-selection is considered
       let formDataToValidate = state.formData;
@@ -121,13 +111,17 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
         formDataToValidate = { ...state.formData, students };
         updatedFormData = formDataToValidate;
       }
-      const options = { enableProvaMode: state.enableProvaMode };
-      const errors = validateStep(state.currentStep, formDataToValidate, options);
+      const options = { enableExamMode };
+      const errors = validateStep(
+        state.currentStep,
+        formDataToValidate,
+        options
+      );
       set({ formData: updatedFormData, errors });
       return Object.keys(errors).length === 0;
     },
 
-    validateAllSteps: () => {
+    validateAllSteps: (enableExamMode: boolean) => {
       const state = get();
       // Extract students from categories for step 2 validation
       let formDataForStep2 = state.formData;
@@ -135,7 +129,7 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
         const students = extractStudentsFromCategories(state.categories);
         formDataForStep2 = { ...state.formData, students };
       }
-      const options = { enableProvaMode: state.enableProvaMode };
+      const options = { enableExamMode };
       const errors1 = validateStep(1, state.formData, options);
       const errors2 = validateStep(2, formDataForStep2);
       const errors3 = validateStep(3, state.formData);

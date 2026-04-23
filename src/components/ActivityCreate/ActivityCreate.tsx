@@ -45,6 +45,7 @@ import {
   convertQuestionToPreview,
   getTypeFromUrl,
   getTypeFromUrlString,
+  buildSendActivityPayload,
 } from './ActivityCreate.utils';
 import { ActivityCreateSkeleton } from './components/ActivityCreateSkeleton';
 import { ActivityCreateHeader } from './components/ActivityCreateHeader';
@@ -64,7 +65,7 @@ const CreateActivity = ({
   onCreateActivity,
   onSaveModel,
   onAddActivityToLesson,
-  enableProvaMode = false,
+  enableExamMode = false,
 }: {
   apiClient: BaseApiClient;
   institutionId: string;
@@ -76,7 +77,7 @@ const CreateActivity = ({
   ) => void;
   onSaveModel?: (response: ActivityDraftResponse) => void;
   onAddActivityToLesson?: (activityDraftId: string) => void;
-  enableProvaMode?: boolean;
+  enableExamMode?: boolean;
 }) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -1150,20 +1151,13 @@ const CreateActivity = ({
           `${formData.finalDate}T${formData.finalTime}`
         ).toISOString();
 
-        const activityPayload = {
-          createdBySys: false,
-          title: formData.title,
-          subjectId: subjectId,
-          questionIds: questions.map((q) => q.id),
-          subtype: formData.subtype,
-          difficulty: '',
-          notification: formData.notification || '',
-          status: ActivityStatus.A_VENCER,
-          startDate: startDateTime,
-          finalDate: finalDateTime,
-          canRetry: formData.canRetry,
-          mode: formData.mode,
-        };
+        const activityPayload = buildSendActivityPayload(
+          formData,
+          subjectId,
+          questions.map((q) => q.id),
+          startDateTime,
+          finalDateTime
+        );
 
         // First POST: Create activity and capture response
         const createActivityResponse =
@@ -1417,7 +1411,7 @@ const CreateActivity = ({
         categories={categories}
         onCategoriesChange={handleCategoriesChange}
         isLoading={isSendingActivity}
-        enableProvaMode={enableProvaMode}
+        enableExamMode={enableExamMode}
         onError={(error) => {
           console.error('Erro ao enviar atividade:', error);
           const errorMessage =

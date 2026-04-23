@@ -60,7 +60,7 @@ const SendActivityModal = ({
   isLoading = false,
   onError,
   initialData,
-  enableProvaMode = false,
+  enableExamMode = false,
 }: SendActivityModalProps) => {
   const store = useSendActivityModalStore();
   const reset = useSendActivityModalStore((state) => state.reset);
@@ -69,9 +69,6 @@ const SendActivityModal = ({
   );
   const storeCategories = useSendActivityModalStore(
     (state) => state.categories
-  );
-  const setEnableProvaMode = useSendActivityModalStore(
-    (state) => state.setEnableProvaMode
   );
 
   /**
@@ -119,7 +116,7 @@ const SendActivityModal = ({
     if (isOpen && initialData && prevInitialDataRef.current !== initialData) {
       store.setFormData({
         title: initialData.title ?? '',
-        subtype: initialData.subtype ?? 'TAREFA',
+        subtype: initialData.subtype ?? ActivitySubtype.TAREFA,
         notification: initialData.notification ?? '',
       });
       prevInitialDataRef.current = initialData;
@@ -135,14 +132,6 @@ const SendActivityModal = ({
       prevInitialDataRef.current = undefined;
     }
   }, [isOpen, reset]);
-
-  /**
-   * Sync enableProvaMode prop to store so validation can use it.
-   * Uses a stable selector to avoid re-render loops.
-   */
-  useEffect(() => {
-    setEnableProvaMode(enableProvaMode);
-  }, [enableProvaMode, setEnableProvaMode]);
 
   /**
    * Date/time change handlers from shared hook
@@ -172,7 +161,7 @@ const SendActivityModal = ({
   const handleActivityTypeSelect = useCallback(
     (subtype: ActivitySubtype) => {
       const update: Partial<SendActivityFormData> =
-        subtype !== 'PROVA' ? { subtype, mode: undefined } : { subtype };
+        subtype !== ActivitySubtype.PROVA ? { subtype, mode: undefined } : { subtype };
       store.setFormData(update);
     },
     [store]
@@ -222,7 +211,7 @@ const SendActivityModal = ({
    * Handle form submission
    */
   const handleSubmit = useCallback(async () => {
-    const isValid = store.validateAllSteps();
+    const isValid = store.validateAllSteps(enableExamMode);
     if (!isValid) return;
 
     try {
@@ -268,10 +257,15 @@ const SendActivityModal = ({
         <SendModalError error={store.errors.subtype} />
       </div>
 
-      {/* Prova Mode Selection — only visible when enableProvaMode and subtype is PROVA */}
-      {enableProvaMode && store.formData.subtype === 'PROVA' && (
+      {/* Prova Mode Selection — only visible when enableExamMode and subtype is PROVA */}
+      {enableExamMode && store.formData.subtype === ActivitySubtype.PROVA && (
         <div>
-          <Text size="sm" weight="medium" color="text-text-700" className="mb-3">
+          <Text
+            size="sm"
+            weight="medium"
+            color="text-text-700"
+            className="mb-3"
+          >
             Modo de prova*
           </Text>
           <div className="flex flex-wrap gap-2">
@@ -405,7 +399,7 @@ const SendActivityModal = ({
       isLoading={isLoading}
       onCancel={handleCancel}
       onPreviousStep={store.previousStep}
-      onNextStep={() => store.nextStep()}
+      onNextStep={() => store.nextStep(enableExamMode)}
       onSubmit={handleSubmit}
       entityName={ENTITY_NAME}
     />

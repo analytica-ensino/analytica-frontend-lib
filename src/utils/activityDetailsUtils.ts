@@ -50,7 +50,13 @@ export const getStatusBadgeConfig = (
     },
   };
 
-  return configs[status] ?? { label: status, bgColor: 'bg-gray-50', textColor: 'text-gray-700' };
+  return (
+    configs[status] ?? {
+      label: status,
+      bgColor: 'bg-gray-50',
+      textColor: 'text-gray-700',
+    }
+  );
 };
 
 /**

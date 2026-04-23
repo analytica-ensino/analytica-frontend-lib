@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { SendActivityFormData, StepErrors } from './types';
+import { ActivitySubtype, SendActivityFormData, StepErrors } from './types';
 
 /**
  * Error messages for validation
@@ -24,9 +24,10 @@ export const ERROR_MESSAGES = {
  * Zod schema for activity step (Step 1)
  */
 export const activityStepSchema = z.object({
-  subtype: z.enum(['TAREFA', 'TRABALHO', 'PROVA'], {
-    error: () => ERROR_MESSAGES.SUBTYPE_REQUIRED,
-  }),
+  subtype: z.enum(
+    [ActivitySubtype.TAREFA, ActivitySubtype.TRABALHO, ActivitySubtype.PROVA],
+    { error: () => ERROR_MESSAGES.SUBTYPE_REQUIRED }
+  ),
   title: z
     .string({ error: () => ERROR_MESSAGES.TITLE_REQUIRED })
     .transform((val) => val.trim())
@@ -103,12 +104,12 @@ export type DeadlineStepData = z.infer<typeof deadlineStepSchema>;
  * Validates the activity step (Step 1) using Zod
  * @param data - Partial form data
  * @param options - Validation options
- * @param options.enableProvaMode - When true, validates the mode field when subtype is PROVA
+ * @param options.enableExamMode - When true, validates the mode field when subtype is PROVA
  * @returns StepErrors object with any validation errors
  */
 export function validateActivityStep(
   data: Partial<SendActivityFormData>,
-  options?: { enableProvaMode?: boolean }
+  options?: { enableExamMode?: boolean }
 ): StepErrors {
   const errors: StepErrors = {};
 
@@ -127,7 +128,7 @@ export function validateActivityStep(
     });
   }
 
-  if (options?.enableProvaMode && data.subtype === 'PROVA' && !data.mode) {
+  if (options?.enableExamMode && data.subtype === ActivitySubtype.PROVA && !data.mode) {
     errors.mode = ERROR_MESSAGES.MODE_REQUIRED;
   }
 
@@ -211,7 +212,7 @@ export function validateDeadlineStep(
 export function validateStep(
   step: number,
   data: Partial<SendActivityFormData>,
-  options?: { enableProvaMode?: boolean }
+  options?: { enableExamMode?: boolean }
 ): StepErrors {
   switch (step) {
     case 1:
@@ -235,7 +236,7 @@ export function validateStep(
 export function isStepValid(
   step: number,
   data: Partial<SendActivityFormData>,
-  options?: { enableProvaMode?: boolean }
+  options?: { enableExamMode?: boolean }
 ): boolean {
   const errors = validateStep(step, data, options);
   return Object.keys(errors).length === 0;
@@ -249,7 +250,7 @@ export function isStepValid(
  */
 export function isFormValid(
   data: Partial<SendActivityFormData>,
-  options?: { enableProvaMode?: boolean }
+  options?: { enableExamMode?: boolean }
 ): boolean {
   return (
     isStepValid(1, data, options) &&
