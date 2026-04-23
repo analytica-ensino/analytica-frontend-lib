@@ -106,9 +106,13 @@ export default function ChatbotPanel({
         'fixed bottom-6 right-6 z-40 m-0',
         // Responsive sizing: fills small viewports without overflowing,
         // yet caps at the intended desktop footprint on larger screens.
-        'flex w-[calc(100vw-3rem)] max-w-[400px] flex-col overflow-hidden rounded-2xl p-0',
+        // The panel widens when the history sidebar is visible so the
+        // main chat column keeps enough horizontal room for messages.
+        'flex w-[calc(100vw-3rem)] flex-col overflow-hidden rounded-2xl p-0',
+        showHistory
+          ? 'max-w-[620px] sm:max-w-[640px]'
+          : 'max-w-[400px] sm:max-w-[420px]',
         'border border-background-200 bg-white shadow-2xl',
-        'sm:max-w-[420px]',
         className
       )}
     >

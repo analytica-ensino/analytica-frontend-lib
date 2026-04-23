@@ -1,6 +1,5 @@
 import { useCallback, useState, type KeyboardEvent } from 'react';
 import { PaperPlaneTiltIcon } from '@phosphor-icons/react';
-import IconButton from '../IconButton/IconButton';
 import TextArea from '../TextArea/TextArea';
 import { cn } from '../../utils/utils';
 
@@ -58,7 +57,7 @@ export default function ChatbotInput({
   return (
     <div
       className={cn(
-        'flex items-end gap-2 border-t border-background-200 bg-white p-3',
+        'flex items-center gap-2 border-t border-background-200 bg-white p-3',
         className
       )}
     >
@@ -79,20 +78,25 @@ export default function ChatbotInput({
           style={{ maxHeight: MAX_HEIGHT, overflowY: 'auto' }}
         />
       </div>
-      <IconButton
-        icon={<PaperPlaneTiltIcon size={20} weight="fill" />}
-        aria-label="Enviar mensagem"
+      {/* Plain <button> (instead of IconButton) avoids the need for
+          `!important` overrides that Tailwind v4 may not pick up when
+          the lib is imported in dev mode from /src. All classes here
+          are standard utilities already in the host app's CSS. */}
+      <button
+        type="button"
         onClick={submit}
         disabled={isSendDisabled}
-        // Disabled state keeps the default transparent background
-        // (text-text-950 icon visible) so the control never blends
-        // into the white input bar. Enabled state flips to the
-        // primary brand color to cue the send action.
+        aria-label="Enviar mensagem"
         className={cn(
-          'flex-shrink-0 self-end !rounded-full',
-          !isSendDisabled && '!bg-primary-500 !text-white hover:!bg-primary-600'
+          'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full',
+          'bg-primary-500 text-white transition-colors',
+          'hover:bg-primary-600',
+          'disabled:bg-background-200 disabled:text-text-500 disabled:cursor-not-allowed',
+          'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-300'
         )}
-      />
+      >
+        <PaperPlaneTiltIcon size={20} weight="fill" />
+      </button>
     </div>
   );
 }
