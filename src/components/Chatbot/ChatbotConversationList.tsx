@@ -52,7 +52,7 @@ export default function ChatbotConversationList({
   return (
     <div
       className={cn(
-        'flex h-full flex-col border-r border-background-200 bg-white',
+        'flex h-full flex-col border-r border-background-200 bg-background',
         className
       )}
     >
