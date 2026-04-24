@@ -374,6 +374,7 @@ export {
 export type {
   EssayHistoryItem,
   EssayHistoryData,
+  EssayReviewStatus,
 } from './components/Card/Card';
 export { StatisticsCard } from './components/StatisticsCard/StatisticsCard';
 export {

@@ -1587,6 +1587,8 @@ export enum EssayStatus {
   ERROR = 'ERROR',
 }
 
+export type EssayReviewStatus = 'PENDING' | 'APPROVED' | 'MODIFIED';
+
 export interface EssayHistoryItem {
   id: string;
   /** Título exibido. Se null/undefined, o componente cai no `fallbackTitle` */
@@ -1596,6 +1598,8 @@ export interface EssayHistoryItem {
   status: EssayStatus;
   /** Nota total (0..maxScore). null quando ainda não pontuou */
   totalScore: number | null;
+  /** Status da revisão do professor */
+  reviewStatus?: EssayReviewStatus | null;
 }
 
 export interface EssayHistoryData {
@@ -1622,7 +1626,8 @@ const resolveEssayVisualState = (
   essay: EssayHistoryItem,
   maxScore: number
 ): EssayVisualState => {
-  if (essay.status === EssayStatus.CORRECTED && essay.totalScore != null) {
+  // If essay has a score, show it (regardless of status - covers professor review cases)
+  if (essay.totalScore != null) {
     return {
       background: 'bg-subject-12',
       text: `${essay.totalScore} de ${maxScore}`,
@@ -1713,6 +1718,17 @@ const CardEssayHistory = forwardRef<HTMLDivElement, CardEssayHistoryProps>(
                       </Text>
 
                       <div className="flex items-center gap-2 shrink-0">
+                        {essay.reviewStatus === 'APPROVED' ||
+                        essay.reviewStatus === 'MODIFIED' ? (
+                          <Badge variant="solid" action="success" size="small">
+                            Revisado
+                          </Badge>
+                        ) : essay.status === EssayStatus.CORRECTED &&
+                          essay.reviewStatus === 'PENDING' ? (
+                          <Badge variant="solid" action="info" size="small">
+                            Corrigido por IA
+                          </Badge>
+                        ) : null}
                         <Text
                           size="sm"
                           className="text-text-800 whitespace-nowrap"
