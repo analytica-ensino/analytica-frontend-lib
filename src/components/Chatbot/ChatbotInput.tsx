@@ -1,5 +1,6 @@
 import { useCallback, useState, type KeyboardEvent } from 'react';
 import { PaperPlaneTiltIcon } from '@phosphor-icons/react';
+import Button from '../Button/Button';
 import TextArea from '../TextArea/TextArea';
 import { cn } from '../../utils/utils';
 
@@ -78,11 +79,12 @@ export default function ChatbotInput({
           style={{ maxHeight: MAX_HEIGHT, overflowY: 'auto' }}
         />
       </div>
-      {/* Plain <button> (instead of IconButton) avoids the need for
-          `!important` overrides that Tailwind v4 may not pick up when
-          the lib is imported in dev mode from /src. All classes here
-          are standard utilities already in the host app's CSS. */}
-      <button
+      {/* Use the library's `<Button>` with `variant="raw"` (same pattern
+          as `ChatbotFab`) so the send action goes through the shared
+          component. `raw` keeps custom sizing/shape without inheriting
+          the default solid/outline/link classes. */}
+      <Button
+        variant="raw"
         type="button"
         onClick={submit}
         disabled={isSendDisabled}
@@ -96,7 +98,7 @@ export default function ChatbotInput({
         )}
       >
         <PaperPlaneTiltIcon size={20} weight="fill" />
-      </button>
+      </Button>
     </div>
   );
 }
