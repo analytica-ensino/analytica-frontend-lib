@@ -56,6 +56,8 @@ interface LessonPreviewProps {
    * Get initial timestamp for a lesson
    */
   getInitialTimestamp?: (lessonId: string) => number;
+  /** User ID used to scope video-progress localStorage keys per user */
+  userId?: string;
   /**
    * Callback when create new activity is clicked
    */
@@ -94,6 +96,7 @@ export const LessonPreview = ({
   onVideoComplete,
   onPodcastEnded,
   getInitialTimestamp,
+  userId,
   onCreateNewActivity,
   apiClient,
   onActivitySelected,
@@ -521,6 +524,7 @@ export const LessonPreview = ({
         isOpen={isWatchModalOpen}
         onClose={handleCloseModal}
         selectedLesson={selectedLesson}
+        userId={userId}
         getVideoData={getVideoData}
         getInitialTimestampValue={getInitialTimestampValue}
         handleVideoTimeUpdate={handleVideoTimeUpdate}

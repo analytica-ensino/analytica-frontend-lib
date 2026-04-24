@@ -71,7 +71,8 @@ const TablePagination = ({
   ...props
 }: TablePaginationProps) => {
   const startItem = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
-  const endItem = totalItems === 0 ? 0 : Math.min(currentPage * itemsPerPage, totalItems);
+  const endItem =
+    totalItems === 0 ? 0 : Math.min(currentPage * itemsPerPage, totalItems);
 
   const handlePrevious = () => {
     if (currentPage > 1) {

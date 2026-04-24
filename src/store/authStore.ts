@@ -39,11 +39,19 @@ export interface SessionInfo {
   userId: string;
   profileId: string;
   institutionId: string;
+  institutionTheme?: string | null;
+  institutionFavicon?: string | null;
+  institutionIcon?: string | null;
+  institutionMainLogo?: string | null;
+  institutionInternalLogo?: string | null;
+  institutionLoginImage?: string | null;
   schoolId: string;
   schoolYearId: string;
   classId: string;
   subjects: string[];
   schools: string[];
+  userName?: string;
+  urlProfilePicture?: string;
   [key: string]: unknown;
 }
 

@@ -21,6 +21,10 @@ const config = {
     'katex/dist/katex.min.css': 'identity-obj-proxy',
     [String.raw`\.(css|less|scss|sass)$`]: 'identity-obj-proxy',
     [String.raw`\.(png|jpg|jpeg|gif|svg|webp)$`]: '<rootDir>/jest.fileMock.js',
+    // Stub ESM-only markdown packages with local doubles (ts-jest can't
+    // transform node_modules ESM without heavy config).
+    '^react-markdown$': '<rootDir>/src/testing/mockReactMarkdown.tsx',
+    '^remark-gfm$': '<rootDir>/src/testing/mockRemarkGfm.ts',
   },
   // Coverage configuration
   collectCoverage: true,
@@ -30,6 +34,7 @@ const config = {
     '!src/**/*.test.{ts,tsx}',
     '!src/**/*.stories.{ts,tsx}',
     '!src/index.ts',
+    '!src/testing/**',
   ],
   testPathIgnorePatterns: [
     '<rootDir>/node_modules/',

@@ -25,6 +25,10 @@ export default defineConfig({
     'ProgressBar/index': 'src/components/ProgressBar/ProgressBar.tsx',
     'LoadingModal/index': 'src/components/LoadingModal/loadingModal.tsx',
     'ProgressCircle/index': 'src/components/ProgressCircle/ProgressCircle.tsx',
+    'ProgressModal/index': 'src/components/ProgressModal/ProgressModal.tsx',
+    'ScoreCircle/index': 'src/components/ScoreCircle/ScoreCircle.tsx',
+    'ImagePreviewCard/index':
+      'src/components/ImagePreviewCard/ImagePreviewCard.tsx',
     'Radio/index': 'src/components/Radio/Radio.tsx',
     'SelectionButton/index':
       'src/components/SelectionButton/SelectionButton.tsx',
@@ -180,6 +184,11 @@ export default defineConfig({
     'utils/exportExcel/index': 'src/utils/exportExcel.ts',
     'utils/exportPdf/index': 'src/utils/exportPdf.ts',
 
+    // Chatbot (student AI assistant)
+    'Chatbot/index': 'src/components/Chatbot/Chatbot.tsx',
+    'hooks/useChatbot/index': 'src/hooks/useChatbot.ts',
+    'types/chatbot/index': 'src/types/chatbot.ts',
+
     // Styles
     styles: 'src/styles.css',
   },
@@ -199,6 +208,8 @@ export default defineConfig({
     '@react-google-maps/api',
     '@turf/union',
     '@turf/helpers',
+    'react-markdown',
+    'remark-gfm',
     // Tiptap dependencies (required for RichEditor)
     '@tiptap/react',
     '@tiptap/core',

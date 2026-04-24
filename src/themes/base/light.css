@@ -1,0 +1,16 @@
+@layer base {
+  /*
+   * Tema base neutro (light) — herda os tokens default definidos em
+   * ../tokens.css (@theme). Este seletor existe para permitir que apps sem
+   * instituição específica declarem explicitamente o tema neutro via
+   * <html data-theme="base-light"> ou via setWhiteLabelTheme('base-light').
+   */
+  [data-theme='base-light'] {
+    /*
+     * Herda todos os tokens do @theme. A declaração color-scheme sinaliza ao
+     * browser que o tema é claro (ajusta scrollbars nativos, autofill, etc.) e
+     * garante que o seletor sobreviva à minificação.
+     */
+    color-scheme: light;
+  }
+}

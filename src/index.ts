@@ -113,6 +113,15 @@ export type {
 
 export { AlertDialog } from './components/AlertDialog/AlertDialog';
 export { default as LoadingModal } from './components/LoadingModal/loadingModal';
+export { default as ProgressModal } from './components/ProgressModal/ProgressModal';
+export type { ProgressModalProps } from './components/ProgressModal/ProgressModal';
+export { default as ScoreCircle } from './components/ScoreCircle/ScoreCircle';
+export type {
+  ScoreCircleProps,
+  ScoreCircleVariant,
+} from './components/ScoreCircle/ScoreCircle';
+export { default as ImagePreviewCard } from './components/ImagePreviewCard/ImagePreviewCard';
+export type { ImagePreviewCardProps } from './components/ImagePreviewCard/ImagePreviewCard';
 export { default as NotificationCard } from './components/NotificationCard/NotificationCard';
 export { ThemeToggle } from './components/ThemeToggle/ThemeToggle';
 
@@ -246,6 +255,9 @@ export type { BaseApiClient } from './types/api';
 export { useThemeStore } from './store/themeStore';
 export type { ThemeStore, ThemeState, ThemeActions } from './store/themeStore';
 
+// Storage Keys
+export { KEYS, FEATURE_FLAGS_KEYS } from './utils/keys';
+
 // DropdownMenu Components
 export {
   default as DropdownMenu,
@@ -356,6 +368,13 @@ export {
   CardTest,
   CardSimulationHistory,
   CardAudio,
+  CardEssayHistory,
+  EssayStatus,
+  EssayReviewStatus,
+} from './components/Card/Card';
+export type {
+  EssayHistoryItem,
+  EssayHistoryData,
 } from './components/Card/Card';
 export { StatisticsCard } from './components/StatisticsCard/StatisticsCard';
 export {
@@ -539,7 +558,13 @@ export { useQuestionFiltersStore } from './store/questionFiltersStore';
 export type { QuestionFiltersState } from './store/questionFiltersStore';
 export { useLessonFiltersStore } from './store/lessonFiltersStore';
 export type { LessonFiltersState } from './store/lessonFiltersStore';
-export type { AuthState } from './store/authStore';
+export type {
+  AuthState,
+  SessionInfo,
+  AuthTokens,
+  User,
+  UserProfile,
+} from './store/authStore';
 export { ActivityCardQuestionBanks } from './components/ActivityCardQuestionBanks/ActivityCardQuestionBanks';
 export { ActivityCardQuestionPreview } from './components/ActivityCardQuestionPreview/ActivityCardQuestionPreview';
 export { ActivityListQuestions } from './components/ActivityListQuestions/ActivityListQuestions';
@@ -576,6 +601,30 @@ export {
   toggleSingleValue,
 } from './utils/utils';
 export { convertActivityFiltersToQuestionsFilter } from './utils/questionFiltersConverter';
+export {
+  MASK_TYPE,
+  applyInputMask,
+  formatCep,
+  formatCnpj,
+  formatCpf,
+  formatDocument,
+  formatPhone,
+  maskCepInput,
+  maskCnpjInput,
+  maskCpfInput,
+  maskPhoneInput,
+} from './utils/brazilianFormatters';
+export { BR_STATES_FULL, UF_LIST } from './utils/brazilianStates';
+export type { UF } from './utils/brazilianStates';
+export { default as MaskedInput } from './components/MaskedInput/MaskedInput';
+export type { MaskedInputProps } from './components/MaskedInput/MaskedInput';
+export { default as HierarchicalCheckboxGroup } from './components/HierarchicalCheckboxGroup/HierarchicalCheckboxGroup';
+export type {
+  HierarchicalCheckboxGroupItem,
+  HierarchicalCheckboxGroupProps,
+  HierarchicalCheckboxItem,
+  HierarchicalCheckboxItemsLayout,
+} from './components/HierarchicalCheckboxGroup/HierarchicalCheckboxGroup';
 export {
   mapQuestionTypeToEnum,
   mapQuestionTypeToEnumRequired,
@@ -1047,6 +1096,47 @@ export {
   isChatUserInfoValid,
 } from './utils/chatUtils';
 export type { ChatUserInfo } from './utils/chatUtils';
+
+// Chatbot Hook
+export { createUseChatbot } from './hooks/useChatbot';
+export type { UseChatbotReturn } from './hooks/useChatbot';
+
+// Chatbot Types
+export { CHATBOT_MESSAGE_ROLES } from './types/chatbot';
+export type {
+  ChatbotRole,
+  ChatbotMessage as ChatbotMessageData,
+  ChatbotConversation,
+  ChatbotCurrentContext,
+  SendChatbotMessagePayload,
+  SendChatbotMessageResult,
+  ChatbotUser,
+  ChatbotApiClient,
+} from './types/chatbot';
+
+// Chatbot Components
+export {
+  Chatbot,
+  ChatbotFab,
+  ChatbotPanel,
+  ChatbotMessageList,
+  ChatbotMessage,
+  ChatbotInput,
+  ChatbotTypingIndicator,
+  ChatbotConversationList,
+  ChatbotContentRenderer,
+} from './components/Chatbot';
+export type {
+  ChatbotProps,
+  ChatbotFabProps,
+  ChatbotPanelProps,
+  ChatbotMessageListProps,
+  ChatbotMessageProps,
+  ChatbotInputProps,
+  ChatbotTypingIndicatorProps,
+  ChatbotConversationListProps,
+  ChatbotContentRendererProps,
+} from './components/Chatbot';
 
 // Forum Component
 export { Forum } from './components/Forum/Forum';
