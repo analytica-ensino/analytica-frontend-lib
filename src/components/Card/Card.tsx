@@ -1669,6 +1669,29 @@ const resolveEssayVisualState = (
   };
 };
 
+type ReviewBadgeConfig = {
+  label: string;
+  action: 'success' | 'info';
+} | null;
+
+const resolveReviewBadge = (essay: EssayHistoryItem): ReviewBadgeConfig => {
+  if (
+    essay.reviewStatus === EssayReviewStatus.APPROVED ||
+    essay.reviewStatus === EssayReviewStatus.MODIFIED
+  ) {
+    return { label: 'Revisado', action: 'success' };
+  }
+
+  if (
+    essay.status === EssayStatus.CORRECTED &&
+    essay.reviewStatus === EssayReviewStatus.PENDING
+  ) {
+    return { label: 'Corrigido por IA', action: 'info' };
+  }
+
+  return null;
+};
+
 const CardEssayHistory = forwardRef<HTMLDivElement, CardEssayHistoryProps>(
   ({ data, maxScore = 1000, onEssayClick, className, ...props }, ref) => {
     return (
@@ -1697,6 +1720,7 @@ const CardEssayHistory = forwardRef<HTMLDivElement, CardEssayHistoryProps>(
                   const isClickable = visual.clickable && !!onEssayClick;
                   const label =
                     essay.title ?? essay.fallbackTitle ?? 'Sem título';
+                  const reviewBadge = resolveReviewBadge(essay);
 
                   return (
                     <button
@@ -1722,17 +1746,15 @@ const CardEssayHistory = forwardRef<HTMLDivElement, CardEssayHistoryProps>(
                       </Text>
 
                       <div className="flex items-center gap-2 shrink-0">
-                        {essay.reviewStatus === EssayReviewStatus.APPROVED ||
-                        essay.reviewStatus === EssayReviewStatus.MODIFIED ? (
-                          <Badge variant="solid" action="success" size="small">
-                            Revisado
+                        {reviewBadge && (
+                          <Badge
+                            variant="solid"
+                            action={reviewBadge.action}
+                            size="small"
+                          >
+                            {reviewBadge.label}
                           </Badge>
-                        ) : essay.status === EssayStatus.CORRECTED &&
-                          essay.reviewStatus === EssayReviewStatus.PENDING ? (
-                          <Badge variant="solid" action="info" size="small">
-                            Corrigido por IA
-                          </Badge>
-                        ) : null}
+                        )}
                         <Text
                           size="sm"
                           className="text-text-800 whitespace-nowrap"
