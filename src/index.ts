@@ -370,6 +370,7 @@ export {
   CardAudio,
   CardEssayHistory,
   EssayStatus,
+  EssayReviewStatus,
 } from './components/Card/Card';
 export type {
   EssayHistoryItem,
