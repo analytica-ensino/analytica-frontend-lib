@@ -3614,4 +3614,141 @@ describe('CardEssayHistory', () => {
 
     consoleSpy.mockRestore();
   });
+
+  describe('reviewStatus badges', () => {
+    it('shows "Revisado" badge when reviewStatus is APPROVED', () => {
+      const data: EssayHistoryData[] = [
+        {
+          date: '12 Fev',
+          essays: [
+            {
+              id: 'approved',
+              title: 'Redação Aprovada',
+              status: EssayStatus.CORRECTED,
+              totalScore: 800,
+              reviewStatus: 'APPROVED',
+            },
+          ],
+        },
+      ];
+      render(<CardEssayHistory data={data} />);
+      expect(screen.getByText('Revisado')).toBeInTheDocument();
+    });
+
+    it('shows "Revisado" badge when reviewStatus is MODIFIED', () => {
+      const data: EssayHistoryData[] = [
+        {
+          date: '12 Fev',
+          essays: [
+            {
+              id: 'modified',
+              title: 'Redação Modificada',
+              status: EssayStatus.CORRECTED,
+              totalScore: 750,
+              reviewStatus: 'MODIFIED',
+            },
+          ],
+        },
+      ];
+      render(<CardEssayHistory data={data} />);
+      expect(screen.getByText('Revisado')).toBeInTheDocument();
+    });
+
+    it('shows "Corrigido por IA" badge when status is CORRECTED and reviewStatus is PENDING', () => {
+      const data: EssayHistoryData[] = [
+        {
+          date: '12 Fev',
+          essays: [
+            {
+              id: 'ai-corrected',
+              title: 'Redação IA',
+              status: EssayStatus.CORRECTED,
+              totalScore: 900,
+              reviewStatus: 'PENDING',
+            },
+          ],
+        },
+      ];
+      render(<CardEssayHistory data={data} />);
+      expect(screen.getByText('Corrigido por IA')).toBeInTheDocument();
+    });
+
+    it('does not show badge when reviewStatus is null', () => {
+      const data: EssayHistoryData[] = [
+        {
+          date: '12 Fev',
+          essays: [
+            {
+              id: 'no-review',
+              title: 'Sem Revisão',
+              status: EssayStatus.CORRECTED,
+              totalScore: 850,
+              reviewStatus: null,
+            },
+          ],
+        },
+      ];
+      render(<CardEssayHistory data={data} />);
+      expect(screen.queryByText('Revisado')).not.toBeInTheDocument();
+      expect(screen.queryByText('Corrigido por IA')).not.toBeInTheDocument();
+    });
+
+    it('does not show badge when reviewStatus is undefined', () => {
+      const data: EssayHistoryData[] = [
+        {
+          date: '12 Fev',
+          essays: [
+            {
+              id: 'undefined-review',
+              title: 'Undefined Review',
+              status: EssayStatus.CORRECTED,
+              totalScore: 800,
+            },
+          ],
+        },
+      ];
+      render(<CardEssayHistory data={data} />);
+      expect(screen.queryByText('Revisado')).not.toBeInTheDocument();
+      expect(screen.queryByText('Corrigido por IA')).not.toBeInTheDocument();
+    });
+
+    it('shows score and "Revisado" badge for SUBMITTED status when professor reviewed', () => {
+      const data: EssayHistoryData[] = [
+        {
+          date: '12 Fev',
+          essays: [
+            {
+              id: 'submitted-reviewed',
+              title: 'Revisada pelo Professor',
+              status: EssayStatus.SUBMITTED,
+              totalScore: 720,
+              reviewStatus: 'APPROVED',
+            },
+          ],
+        },
+      ];
+      render(<CardEssayHistory data={data} />);
+      expect(screen.getByText('720 de 1000')).toBeInTheDocument();
+      expect(screen.getByText('Revisado')).toBeInTheDocument();
+    });
+
+    it('does not show "Corrigido por IA" badge for non-CORRECTED status with PENDING reviewStatus', () => {
+      const data: EssayHistoryData[] = [
+        {
+          date: '12 Fev',
+          essays: [
+            {
+              id: 'submitted-pending',
+              title: 'Ainda em Processo',
+              status: EssayStatus.SUBMITTED,
+              totalScore: null,
+              reviewStatus: 'PENDING',
+            },
+          ],
+        },
+      ];
+      render(<CardEssayHistory data={data} />);
+      expect(screen.queryByText('Corrigido por IA')).not.toBeInTheDocument();
+    });
+  });
 });
