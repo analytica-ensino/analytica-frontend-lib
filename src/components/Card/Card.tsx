@@ -1587,7 +1587,11 @@ export enum EssayStatus {
   ERROR = 'ERROR',
 }
 
-export type EssayReviewStatus = 'PENDING' | 'APPROVED' | 'MODIFIED';
+export enum EssayReviewStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  MODIFIED = 'MODIFIED',
+}
 
 export interface EssayHistoryItem {
   id: string;
@@ -1718,13 +1722,13 @@ const CardEssayHistory = forwardRef<HTMLDivElement, CardEssayHistoryProps>(
                       </Text>
 
                       <div className="flex items-center gap-2 shrink-0">
-                        {essay.reviewStatus === 'APPROVED' ||
-                        essay.reviewStatus === 'MODIFIED' ? (
+                        {essay.reviewStatus === EssayReviewStatus.APPROVED ||
+                        essay.reviewStatus === EssayReviewStatus.MODIFIED ? (
                           <Badge variant="solid" action="success" size="small">
                             Revisado
                           </Badge>
                         ) : essay.status === EssayStatus.CORRECTED &&
-                          essay.reviewStatus === 'PENDING' ? (
+                          essay.reviewStatus === EssayReviewStatus.PENDING ? (
                           <Badge variant="solid" action="info" size="small">
                             Corrigido por IA
                           </Badge>
