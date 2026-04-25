@@ -94,7 +94,8 @@ describe('TeacherFeedbackSection', () => {
     });
 
     it('should render multiline feedback correctly', () => {
-      const multilineFeedback = 'Parabéns!\n\nVocê demonstrou ótimo entendimento.';
+      const multilineFeedback =
+        'Parabéns!\n\nVocê demonstrou ótimo entendimento.';
       mockGetActivityFeedback.mockReturnValue({
         teacherFeedback: multilineFeedback,
         attachment: null,
@@ -143,7 +144,9 @@ describe('TeacherFeedbackSection', () => {
 
       render(<TeacherFeedbackSection className="custom-class" />);
 
-      const section = screen.getByText('Observação do Professor').closest('div');
+      const section = screen
+        .getByText('Observação do Professor')
+        .closest('div');
       expect(section).toHaveClass('custom-class');
     });
 
@@ -155,7 +158,9 @@ describe('TeacherFeedbackSection', () => {
 
       render(<TeacherFeedbackSection />);
 
-      const section = screen.getByText('Observação do Professor').closest('div');
+      const section = screen
+        .getByText('Observação do Professor')
+        .closest('div');
       expect(section).toHaveClass('bg-background');
       expect(section).toHaveClass('border');
       expect(section).toHaveClass('border-border-100');

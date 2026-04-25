@@ -422,10 +422,12 @@ export interface QuizState {
     teacherFeedback: string | null;
     attachment: string | null;
   } | null;
-  setActivityFeedback: (feedback: {
-    teacherFeedback: string | null;
-    attachment: string | null;
-  } | null) => void;
+  setActivityFeedback: (
+    feedback: {
+      teacherFeedback: string | null;
+      attachment: string | null;
+    } | null
+  ) => void;
   getActivityFeedback: () => {
     teacherFeedback: string | null;
     attachment: string | null;
