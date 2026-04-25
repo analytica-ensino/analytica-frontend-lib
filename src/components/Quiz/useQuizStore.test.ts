@@ -7170,4 +7170,136 @@ describe('useQuizStore', () => {
       });
     });
   });
+
+  describe('Activity Feedback', () => {
+    it('should have null as initial activityFeedback state', () => {
+      const { result } = renderQuizStoreHook();
+
+      expect(result.current.getActivityFeedback()).toBeNull();
+    });
+
+    it('should set activity feedback with teacherFeedback and attachment', () => {
+      const { result } = renderQuizStoreHook();
+
+      const feedback = {
+        teacherFeedback: 'Excelente trabalho!',
+        attachment: 'https://example.com/file.pdf',
+      };
+
+      act(() => {
+        result.current.setActivityFeedback(feedback);
+      });
+
+      const storedFeedback = result.current.getActivityFeedback();
+      expect(storedFeedback).toEqual(feedback);
+      expect(storedFeedback?.teacherFeedback).toBe('Excelente trabalho!');
+      expect(storedFeedback?.attachment).toBe('https://example.com/file.pdf');
+    });
+
+    it('should set activity feedback with only teacherFeedback', () => {
+      const { result } = renderQuizStoreHook();
+
+      const feedback = {
+        teacherFeedback: 'Revise o conteúdo.',
+        attachment: null,
+      };
+
+      act(() => {
+        result.current.setActivityFeedback(feedback);
+      });
+
+      const storedFeedback = result.current.getActivityFeedback();
+      expect(storedFeedback?.teacherFeedback).toBe('Revise o conteúdo.');
+      expect(storedFeedback?.attachment).toBeNull();
+    });
+
+    it('should set activity feedback with only attachment', () => {
+      const { result } = renderQuizStoreHook();
+
+      const feedback = {
+        teacherFeedback: null,
+        attachment: 'https://example.com/document.pdf',
+      };
+
+      act(() => {
+        result.current.setActivityFeedback(feedback);
+      });
+
+      const storedFeedback = result.current.getActivityFeedback();
+      expect(storedFeedback?.teacherFeedback).toBeNull();
+      expect(storedFeedback?.attachment).toBe(
+        'https://example.com/document.pdf'
+      );
+    });
+
+    it('should clear activity feedback when set to null', () => {
+      const { result } = renderQuizStoreHook();
+
+      // Set initial feedback
+      act(() => {
+        result.current.setActivityFeedback({
+          teacherFeedback: 'Feedback',
+          attachment: 'https://example.com/file.pdf',
+        });
+      });
+
+      expect(result.current.getActivityFeedback()).not.toBeNull();
+
+      // Clear feedback
+      act(() => {
+        result.current.setActivityFeedback(null);
+      });
+
+      expect(result.current.getActivityFeedback()).toBeNull();
+    });
+
+    it('should clear activityFeedback on resetQuiz', () => {
+      const { result } = renderQuizStoreHook();
+
+      // Set feedback
+      act(() => {
+        result.current.setActivityFeedback({
+          teacherFeedback: 'Test feedback',
+          attachment: null,
+        });
+      });
+
+      expect(result.current.getActivityFeedback()).not.toBeNull();
+
+      // Reset quiz
+      act(() => {
+        result.current.resetQuiz();
+      });
+
+      expect(result.current.getActivityFeedback()).toBeNull();
+    });
+
+    it('should update activity feedback when called multiple times', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setActivityFeedback({
+          teacherFeedback: 'First feedback',
+          attachment: null,
+        });
+      });
+
+      expect(result.current.getActivityFeedback()?.teacherFeedback).toBe(
+        'First feedback'
+      );
+
+      act(() => {
+        result.current.setActivityFeedback({
+          teacherFeedback: 'Updated feedback',
+          attachment: 'https://example.com/new-file.pdf',
+        });
+      });
+
+      const storedFeedback = result.current.getActivityFeedback();
+      expect(storedFeedback?.teacherFeedback).toBe('Updated feedback');
+      expect(storedFeedback?.attachment).toBe(
+        'https://example.com/new-file.pdf'
+      );
+    });
+  });
 });
