@@ -503,19 +503,17 @@ const QuizDissertative = ({ paddingBottom }: QuizVariantInterface) => {
         </div>
       </QuizContainer>
 
-      {variant === QuizVariant.RESULT &&
-        currentQuestionResult?.answerStatus ==
-          ANSWER_STATUS.RESPOSTA_INCORRETA && (
-          <>
-            <QuizSubTitle subTitle="Observação do professor" />
+      {variant === QuizVariant.RESULT && currentQuestionResult?.teacherFeedback && (
+        <>
+          <QuizSubTitle subTitle="Observação do professor" />
 
-            <QuizContainer className={cn('', paddingBottom)}>
-              <p className="text-text-600 text-md whitespace-pre-wrap">
-                {currentQuestionResult?.teacherFeedback}
-              </p>
-            </QuizContainer>
-          </>
-        )}
+          <QuizContainer className={cn('', paddingBottom)}>
+            <p className="text-text-600 text-md whitespace-pre-wrap">
+              {currentQuestionResult?.teacherFeedback}
+            </p>
+          </QuizContainer>
+        </>
+      )}
     </>
   );
 };
