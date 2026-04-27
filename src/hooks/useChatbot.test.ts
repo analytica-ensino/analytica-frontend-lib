@@ -523,6 +523,233 @@ describe('useChatbot', () => {
     }
   });
 
+  it('drains pending paced words before swapping the streaming bubble for the persisted reply', async () => {
+    // Resolve the API call WHILE the pacer still has buffered text. The
+    // drain code path in `createWordPacer.drain()` (returns a Promise
+    // tied to the pacer ticks) only runs when buffer/timer are
+    // non-empty — without this scenario, the early `Promise.resolve()`
+    // shortcut runs and we never cover the real drain path.
+    jest.useFakeTimers();
+    try {
+      let capturedHandlers: {
+        onStart?: (event: {
+          conversationId: string;
+          userMessage: ChatbotMessage;
+        }) => void;
+        onToken?: (chunk: string) => void;
+      } = {};
+      let resolveSend: ((value: SendChatbotMessageResult) => void) | undefined;
+
+      const client = buildClient({
+        sendMessage: jest.fn((_payload, handlers) => {
+          capturedHandlers = handlers ?? {};
+          return new Promise<SendChatbotMessageResult>((resolve) => {
+            resolveSend = resolve;
+          });
+        }),
+      });
+      const { result } = renderHook(() => createUseChatbot(client)());
+
+      act(() => {
+        void result.current.sendMessage('hi');
+      });
+
+      // Onboard the streaming bubble + enqueue a multi-word chunk. We
+      // do NOT advance the timers, so the buffer stays non-empty and the
+      // drain path in `pacer.drain()` is the one that actually runs.
+      act(() => {
+        capturedHandlers.onStart?.({
+          conversationId: 'c-1',
+          userMessage: {
+            id: 'u-1',
+            conversationId: 'c-1',
+            role: 'user',
+            content: 'hi',
+            createdAt: new Date(),
+          } as ChatbotMessage,
+        });
+        capturedHandlers.onToken?.('one two three four');
+      });
+
+      // Resolve the request — `sendMessage` now awaits `pacer.drain()`
+      // with a buffered queue, so the pacer must drip remaining words at
+      // the accelerated cadence (`PACER_MIN_MS`) before the final swap.
+      await act(async () => {
+        resolveSend?.({
+          conversationId: 'c-1',
+          userMessage: {
+            id: 'u-1',
+            conversationId: 'c-1',
+            role: 'user',
+            content: 'hi',
+            createdAt: new Date(),
+          } as ChatbotMessage,
+          assistantMessage: {
+            id: 'a-1',
+            conversationId: 'c-1',
+            role: 'assistant',
+            content: 'one two three four',
+            createdAt: new Date(),
+          } as ChatbotMessage,
+        });
+        // Drain runs at the accelerated cadence (PACER_MIN_MS=8ms). Push
+        // timers + microtasks far enough to flush 4 words plus the final
+        // `await pacer.drain()` resolution.
+        await jest.advanceTimersByTimeAsync(200);
+      });
+
+      const finalAssistant = result.current.messages.find(
+        (m) => m.role === 'assistant'
+      );
+      expect(finalAssistant?.id).toBe('a-1');
+      expect(finalAssistant?.content).toBe('one two three four');
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('discards onStart/onToken events that arrive after the user switched conversations', async () => {
+    // Mid-flight conversation switch: `messagesSeqRef` bumps via
+    // `selectConversation`, so the early-return guards inside `onStart`
+    // and `onToken` (sendSeq mismatch) fire and silently drop events
+    // tied to the abandoned send. This covers the guard branches that
+    // never trigger when the user stays put.
+    let capturedHandlers: {
+      onStart?: (event: {
+        conversationId: string;
+        userMessage: ChatbotMessage;
+      }) => void;
+      onToken?: (chunk: string) => void;
+    } = {};
+    let resolveSend: ((value: SendChatbotMessageResult) => void) | undefined;
+
+    const client = buildClient({
+      sendMessage: jest.fn((_payload, handlers) => {
+        capturedHandlers = handlers ?? {};
+        return new Promise<SendChatbotMessageResult>((resolve) => {
+          resolveSend = resolve;
+        });
+      }),
+      getMessages: jest.fn(async () => ({ messages: [], total: 0 })),
+    });
+    const { result } = renderHook(() => createUseChatbot(client)());
+
+    act(() => {
+      void result.current.sendMessage('oi');
+    });
+
+    // User switches conversations BEFORE the server responds.
+    await act(async () => {
+      result.current.selectConversation('c-other');
+    });
+
+    // The (now stale) send still emits `onStart` and `onToken` — both
+    // must hit the guard and not pollute the active conversation.
+    act(() => {
+      capturedHandlers.onStart?.({
+        conversationId: 'c-1',
+        userMessage: {
+          id: 'u-1',
+          conversationId: 'c-1',
+          role: 'user',
+          content: 'oi',
+          createdAt: new Date(),
+        } as ChatbotMessage,
+      });
+      capturedHandlers.onToken?.('ignored');
+    });
+
+    // Active conversation is still the new one and no streaming bubble
+    // leaked into the visible message list.
+    expect(result.current.activeConversationId).toBe('c-other');
+    expect(result.current.messages.some((m) => m.id === 'u-1')).toBe(false);
+    expect(result.current.messages.some((m) => m.content === 'ignored')).toBe(
+      false
+    );
+
+    // Drain the dangling promise so the test doesn't leak the pending send.
+    await act(async () => {
+      resolveSend?.({
+        conversationId: 'c-1',
+        userMessage: {
+          id: 'u-1',
+          conversationId: 'c-1',
+          role: 'user',
+          content: 'oi',
+          createdAt: new Date(),
+        } as ChatbotMessage,
+        assistantMessage: {
+          id: 'a-1',
+          conversationId: 'c-1',
+          role: 'assistant',
+          content: 'tarde',
+          createdAt: new Date(),
+        } as ChatbotMessage,
+      });
+    });
+  });
+
+  it('cancels a pending pacer tick and clears the buffer on send error', async () => {
+    // The error path runs `pacer.cancel()`, which exercises the
+    // `clearTimeout` branch when there's still a pending tick. Enqueue
+    // a chunk via `onToken` (schedules a timer), then have the API
+    // reject before any tick fires — `cancel` clears the timer and
+    // empties the buffer. Without this scenario, the cancel branch
+    // (lines 252-253) is never covered.
+    jest.useFakeTimers();
+    try {
+      let capturedHandlers: {
+        onStart?: (event: {
+          conversationId: string;
+          userMessage: ChatbotMessage;
+        }) => void;
+        onToken?: (chunk: string) => void;
+      } = {};
+      let rejectSend: ((reason: unknown) => void) | undefined;
+
+      const client = buildClient({
+        sendMessage: jest.fn((_payload, handlers) => {
+          capturedHandlers = handlers ?? {};
+          return new Promise<SendChatbotMessageResult>((_resolve, reject) => {
+            rejectSend = reject;
+          });
+        }),
+      });
+      const { result } = renderHook(() => createUseChatbot(client)());
+
+      act(() => {
+        void result.current.sendMessage('oi');
+      });
+      act(() => {
+        capturedHandlers.onStart?.({
+          conversationId: 'c-1',
+          userMessage: {
+            id: 'u-1',
+            conversationId: 'c-1',
+            role: 'user',
+            content: 'oi',
+            createdAt: new Date(),
+          } as ChatbotMessage,
+        });
+        // Schedule a tick via `enqueue`, but DON'T advance timers.
+        capturedHandlers.onToken?.('hello world');
+      });
+
+      // Reject the send — `sendMessage` catch block calls `pacer.cancel()`,
+      // which must `clearTimeout` the pending tick and reset the buffer.
+      await act(async () => {
+        rejectSend?.(new Error('boom'));
+      });
+
+      // Optimistic placeholder + streaming bubble were both rolled back.
+      expect(result.current.messages).toEqual([]);
+      // User-facing fallback message is set.
+      expect(result.current.errorMessage).toBe('Falha ao enviar mensagem');
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('deleteConversation clears active conversation state when deleting the active one', async () => {
     const client = buildClient();
     const { result } = renderHook(() => createUseChatbot(client)());
