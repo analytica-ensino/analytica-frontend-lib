@@ -90,6 +90,22 @@ function appendStreamingChunk(
 }
 
 /**
+ * Build a `setMessages` reducer that appends one paced word to the
+ * streaming assistant bubble. Hoisted out of `sendMessage` so the
+ * pacer's `appendWord` callback doesn't need to nest a second arrow
+ * inside `setMessages` — keeps the call-site under Sonar's 4-level
+ * function-nesting cap (S2004).
+ */
+function buildAppendWordReducer(
+  streamingId: string,
+  conversationId: string,
+  piece: string
+): (prev: ChatbotMessage[]) => ChatbotMessage[] {
+  return (prev) =>
+    appendStreamingChunk(prev, streamingId, conversationId, piece);
+}
+
+/**
  * Word-pacing constants for the streaming bubble. Gemini emits 5–20
  * words per chunk; rendering them raw makes the bubble grow in visible
  * jumps. The pacer drips one word per tick so the UX matches what users
@@ -125,17 +141,114 @@ function nextDelayMs(bufferLen: number): number {
 }
 
 /**
- * Mutable state for the streaming-bubble word pacer. Lives in a ref at
- * hook scope so unmount and per-send reset can both touch the same
- * instance. Defined as a named type because TypeScript narrows mutable
- * properties aggressively across closures (Promise executor + try/catch),
- * and a named alias keeps the optional-resolve type stable.
+ * Mutable state for the streaming-bubble word pacer. Lives inside the
+ * factory closure (`createWordPacer`) — only the public controller is
+ * exposed to callers.
  */
 interface PacerState {
   buffer: string;
   timer: ReturnType<typeof setTimeout> | null;
   draining: boolean;
   drainResolve: (() => void) | null;
+}
+
+/**
+ * Public controller returned by `createWordPacer`. The hook drives a
+ * streaming bubble entirely through these three methods — the buffer,
+ * timer, and drain promise stay encapsulated inside the factory.
+ */
+interface WordPacer {
+  /** Append a server-delivered chunk; schedules the next tick. */
+  enqueue: (chunk: string) => void;
+  /**
+   * Resolve when the buffer is empty. After being called, ticks
+   * accelerate to the floor cadence so the catch-up doesn't add
+   * perceptible latency once the server is done. No-op when the
+   * buffer is already empty and no tick is pending.
+   */
+  drain: () => Promise<void>;
+  /** Stop ticking, drop any buffered words, resolve a pending drain. */
+  cancel: () => void;
+}
+
+/**
+ * Build a word-pacer controller. Each send-message call creates its
+ * own controller; the caller stores `controller.cancel` somewhere it
+ * can call on unmount or mid-flight conversation switch. Extracted
+ * outside the hook to keep `sendMessage` within Sonar's cognitive
+ * complexity and nesting-depth budgets — the inline version had
+ * mutually-recursive `tickPacer`/`scheduleTick` closures nested 5+
+ * levels deep inside the `useCallback`.
+ */
+function createWordPacer({
+  appendWord,
+  isCurrent,
+}: {
+  appendWord: (piece: string) => void;
+  isCurrent: () => boolean;
+}): WordPacer {
+  const state: PacerState = {
+    buffer: '',
+    timer: null,
+    draining: false,
+    drainResolve: null,
+  };
+
+  const finishDrain = (): void => {
+    const resolve = state.drainResolve;
+    if (!resolve) return;
+    state.drainResolve = null;
+    state.draining = false;
+    resolve();
+  };
+
+  const tick = (): void => {
+    state.timer = null;
+    if (!isCurrent()) return;
+    const taken = takeOneWord(state.buffer);
+    if (!taken) {
+      finishDrain();
+      return;
+    }
+    state.buffer = taken.rest;
+    appendWord(taken.piece);
+    if (state.buffer.length > 0 || state.draining) {
+      schedule();
+    } else {
+      finishDrain();
+    }
+  };
+
+  const schedule = (): void => {
+    if (state.timer) return;
+    const dt = state.draining ? PACER_MIN_MS : nextDelayMs(state.buffer.length);
+    state.timer = setTimeout(tick, dt);
+  };
+
+  return {
+    enqueue(chunk) {
+      state.buffer += chunk;
+      schedule();
+    },
+    drain() {
+      if (state.buffer.length === 0 && !state.timer) {
+        return Promise.resolve();
+      }
+      state.draining = true;
+      return new Promise<void>((resolve) => {
+        state.drainResolve = resolve;
+        schedule();
+      });
+    },
+    cancel() {
+      if (state.timer) {
+        clearTimeout(state.timer);
+        state.timer = null;
+      }
+      state.buffer = '';
+      finishDrain();
+    },
+  };
 }
 
 /**
@@ -248,29 +361,15 @@ export function createUseChatbot(resolver: ChatbotApiClientResolver) {
     // state updates), so we mirror it with a ref that flips immediately.
     const isSendingRef = useRef(false);
 
-    // Word-pacer state. Only one send-at-a-time (guarded by `isSendingRef`),
-    // so a single instance is enough. Lives at hook scope so unmount can
-    // cancel any pending tick.
-    const pacerRef = useRef<PacerState>({
-      buffer: '',
-      timer: null,
-      draining: false,
-      drainResolve: null,
-    });
-
+    // Per-send word-pacer controller. Only one send-at-a-time (guarded
+    // by `isSendingRef`), so a single ref slot is enough. Stored at hook
+    // scope so unmount can cancel any tick that's still pending after
+    // the component goes away.
+    const pacerRef = useRef<WordPacer | null>(null);
     useEffect(() => {
       return () => {
-        const pacer = pacerRef.current;
-        if (pacer.timer) {
-          clearTimeout(pacer.timer);
-          pacer.timer = null;
-        }
-        pacer.buffer = '';
-        pacer.draining = false;
-        if (pacer.drainResolve) {
-          pacer.drainResolve();
-          pacer.drainResolve = null;
-        }
+        pacerRef.current?.cancel();
+        pacerRef.current = null;
       };
     }, []);
 
@@ -402,56 +501,19 @@ export function createUseChatbot(resolver: ChatbotApiClientResolver) {
         // (state setter is async); track it in a local mutable instead.
         let streamConvId = activeConversationId ?? '';
 
-        const pacer = pacerRef.current;
-        // Reset any leftover state from a prior send.
-        pacer.buffer = '';
-        pacer.draining = false;
-        if (pacer.timer) {
-          clearTimeout(pacer.timer);
-          pacer.timer = null;
-        }
-        if (pacer.drainResolve) {
-          pacer.drainResolve();
-          pacer.drainResolve = null;
-        }
-
-        const tickPacer = (): void => {
-          pacer.timer = null;
-          if (!mountedRef.current || sendSeq !== messagesSeqRef.current) {
-            return;
-          }
-          const taken = takeOneWord(pacer.buffer);
-          if (!taken) {
-            // Buffer empty. If we're draining (server done), signal done.
-            if (pacer.draining && pacer.drainResolve) {
-              pacer.drainResolve();
-              pacer.drainResolve = null;
-              pacer.draining = false;
-            }
-            return;
-          }
-          pacer.buffer = taken.rest;
-          setMessages((prev: ChatbotMessage[]) =>
-            appendStreamingChunk(prev, streamingId, streamConvId, taken.piece)
-          );
-          if (pacer.buffer.length > 0 || pacer.draining) {
-            scheduleTick();
-          } else if (pacer.drainResolve) {
-            pacer.drainResolve();
-            pacer.drainResolve = null;
-          }
-        };
-
-        const scheduleTick = (): void => {
-          if (pacer.timer) return;
-          // While draining we accelerate to the floor — server has already
-          // delivered the full text, so finishing the visual catch-up
-          // shouldn't add perceptible latency.
-          const dt = pacer.draining
-            ? PACER_MIN_MS
-            : nextDelayMs(pacer.buffer.length);
-          pacer.timer = setTimeout(tickPacer, dt);
-        };
+        // Cancel any pacer left over from a previous send (defensive —
+        // the `isSendingRef` guard should prevent overlap, but unmount
+        // races and Strict-Mode double-mount can leak one).
+        pacerRef.current?.cancel();
+        const pacer = createWordPacer({
+          appendWord: (piece) =>
+            setMessages(
+              buildAppendWordReducer(streamingId, streamConvId, piece)
+            ),
+          isCurrent: () =>
+            mountedRef.current && sendSeq === messagesSeqRef.current,
+        });
+        pacerRef.current = pacer;
 
         try {
           const result = await apiClientRef.current.sendMessage(
@@ -462,27 +524,29 @@ export function createUseChatbot(resolver: ChatbotApiClientResolver) {
             },
             {
               // Server confirmed the user message + (possibly new)
-              // conversation id before any token arrives. Promote the
-              // optimistic user bubble to the persisted one and start
-              // tracking the streaming assistant id under the right
-              // conversation id. Sequence guard prevents stale events
-              // from polluting a conversation the user already left.
-              onStart: ({
-                conversationId,
-                userMessage,
-              }: {
-                conversationId: string;
-                userMessage: ChatbotMessage;
-              }) => {
+              // conversation id before any token arrives. We do NOT swap
+              // the optimistic placeholder for the persisted user message
+              // here — the final `replacePlaceholder` call (after the
+              // promise resolves) does it in one shot. Promoting now
+              // would change the bubble id away from `placeholderId`,
+              // and `replacePlaceholder` would then fail to filter it
+              // out and re-append `result.userMessage` (visible bug:
+              // the same user bubble appears twice).
+              //
+              // What we DO need from `onStart`:
+              //   - track the new conversation id for the streaming
+              //     bubble (`streamConvId`) so it lives under the right
+              //     thread even before the final swap.
+              //   - update `activeConversationId` so the consumer UI
+              //     (e.g., conversation list highlight) reflects the
+              //     server-assigned id immediately.
+              //
+              // The `userMessage` payload is intentionally unused here.
+              onStart: ({ conversationId }: { conversationId: string }) => {
                 if (!mountedRef.current || sendSeq !== messagesSeqRef.current) {
                   return;
                 }
                 streamConvId = conversationId;
-                setMessages((prev: ChatbotMessage[]) =>
-                  prev.map((m: ChatbotMessage) =>
-                    m.id === placeholderId ? userMessage : m
-                  )
-                );
                 setActiveConversationId(conversationId);
               },
               // Enqueue each chunk into the word-pacer instead of dumping
@@ -498,8 +562,7 @@ export function createUseChatbot(resolver: ChatbotApiClientResolver) {
                 // arrives — the streaming bubble itself takes over as
                 // the visual cue from here on.
                 setIsSending(false);
-                pacer.buffer += chunk;
-                scheduleTick();
+                pacer.enqueue(chunk);
               },
             }
           );
@@ -511,11 +574,7 @@ export function createUseChatbot(resolver: ChatbotApiClientResolver) {
             // appears in history — but do NOT touch the currently visible
             // messages or `activeConversationId` (that would silently
             // yank the user back to the old conversation).
-            if (pacer.timer) {
-              clearTimeout(pacer.timer);
-              pacer.timer = null;
-            }
-            pacer.buffer = '';
+            pacer.cancel();
             void loadConversations();
             return;
           }
@@ -523,13 +582,7 @@ export function createUseChatbot(resolver: ChatbotApiClientResolver) {
           // Drain any words still buffered before swapping the streaming
           // bubble for the canonical persisted message — otherwise the
           // user sees a sudden jump from word-paced render to full text.
-          if (pacer.buffer.length > 0 || pacer.timer) {
-            pacer.draining = true;
-            await new Promise<void>((resolve) => {
-              pacer.drainResolve = resolve;
-              scheduleTick();
-            });
-          }
+          await pacer.drain();
 
           // Final swap: replace any remaining placeholder + streaming
           // bubble with the canonical persisted pair.
@@ -544,20 +597,7 @@ export function createUseChatbot(resolver: ChatbotApiClientResolver) {
           if (!mountedRef.current) return;
           // Stop the pacer immediately on error — partial text is
           // discarded together with the placeholder.
-          if (pacer.timer) {
-            clearTimeout(pacer.timer);
-            pacer.timer = null;
-          }
-          pacer.buffer = '';
-          pacer.draining = false;
-          // Local cast: TS narrows `pacer.drainResolve` to `null` based on
-          // earlier `= null` assignments in this function, even though the
-          // Promise executor sets it to a real resolver. Casting to the
-          // declared union restores the truthy check.
-          const errorDrainResolve =
-            pacer.drainResolve as PacerState['drainResolve'];
-          pacer.drainResolve = null;
-          if (errorDrainResolve) errorDrainResolve();
+          pacer.cancel();
           // Only clean up the placeholder / surface the error if the user
           // is still viewing the conversation this send belongs to.
           if (sendSeq !== messagesSeqRef.current) return;
