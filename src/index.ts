@@ -484,6 +484,8 @@ export {
   QuizResultPerformance,
   QuizListResultByMateria,
 } from './components/Quiz/QuizResult';
+export { TeacherFeedbackSection } from './components/Quiz/TeacherFeedbackSection';
+export type { TeacherFeedbackSectionProps } from './components/Quiz/TeacherFeedbackSection';
 export { useQuizStore } from './components/Quiz/useQuizStore';
 
 // Quiz Types and Enums

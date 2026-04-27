@@ -416,6 +416,22 @@ export interface QuizState {
   // Internal refs for draft management (not exposed, but tracked in state for reactivity)
   lastSavedDraftPayload: string;
   isSavingDraft: boolean;
+
+  // Activity-level teacher feedback (general observation)
+  activityFeedback: {
+    teacherFeedback: string | null;
+    attachment: string | null;
+  } | null;
+  setActivityFeedback: (
+    feedback: {
+      teacherFeedback: string | null;
+      attachment: string | null;
+    } | null
+  ) => void;
+  getActivityFeedback: () => {
+    teacherFeedback: string | null;
+    attachment: string | null;
+  } | null;
 }
 
 // Constants
@@ -548,6 +564,7 @@ export const useQuizStore = create<QuizState>()(
         draftApiClient: null,
         lastSavedDraftPayload: '',
         isSavingDraft: false,
+        activityFeedback: null,
         // Setters
         setQuiz: (quiz) => set({ quiz }),
         setUserId: (userId) => set({ userId }),
@@ -1009,6 +1026,7 @@ export const useQuizStore = create<QuizState>()(
             // Note: draftApiClient is NOT reset here - it's managed by useDraftAutoSave hook
             lastSavedDraftPayload: '',
             isSavingDraft: false,
+            activityFeedback: null,
           });
         },
 
@@ -1425,6 +1443,10 @@ export const useQuizStore = create<QuizState>()(
           const { userAnswers } = get();
           return userAnswers.some((answer) => hasMeaningfulAnswer(answer));
         },
+
+        // Activity Feedback
+        setActivityFeedback: (feedback) => set({ activityFeedback: feedback }),
+        getActivityFeedback: () => get().activityFeedback,
       };
     },
     {
