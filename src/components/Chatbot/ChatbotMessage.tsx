@@ -75,7 +75,7 @@ export default function ChatbotMessage({
             className={contentClassName}
           />
         )}
-        <Text size="2xs" className="mt-1 block text-right text-text-400">
+        <Text size="2xs" className="mt-1 block text-right text-text-700">
           {formatTimestamp(message.createdAt)}
         </Text>
       </div>
