@@ -84,8 +84,15 @@ function appendStreamingChunk(
       },
     ];
   }
+  // Refresh `conversationId` on every chunk too: there's no ordering
+  // guarantee between `onStart` and `onToken` in the SSE contract, so a
+  // chunk created before the server-confirmed conversation id arrives
+  // would otherwise keep an empty or stale id forever (visible if the
+  // send fails before the final `replacePlaceholder` swap runs).
   return prev.map((m) =>
-    m.id === streamingId ? { ...m, content: m.content + chunk } : m
+    m.id === streamingId
+      ? { ...m, content: m.content + chunk, conversationId }
+      : m
   );
 }
 

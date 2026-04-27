@@ -91,4 +91,39 @@ describe('ChatbotConversationList', () => {
     );
     expect(props.onStartNew).toHaveBeenCalledTimes(1);
   });
+
+  it('renders an empty date string when the timestamp is invalid', () => {
+    // Defensive `Number.isNaN(d.getTime())` branch in `formatDate`. We
+    // pass an unparseable string so the helper returns '' and the row
+    // shows no date — the title is still there, and no `NaN/NaN` leaks.
+    renderList({
+      conversations: [
+        {
+          id: 'c-bad',
+          title: 'Conversa com data ruim',
+          lastMessageAt: 'not-a-date' as unknown as Date,
+          createdAt: new Date('2026-04-16T10:00:00Z'),
+        },
+      ],
+    });
+    expect(screen.getByText('Conversa com data ruim')).toBeInTheDocument();
+    expect(screen.queryByText(/NaN/)).not.toBeInTheDocument();
+  });
+
+  it('highlights the active conversation row', () => {
+    // `isActive` swaps the row classes from hover-only to a persistent
+    // `bg-primary-50` background. The class is the only observable
+    // difference, so we check the row container.
+    const { container } = render(
+      <ChatbotConversationList
+        conversations={CONVERSATIONS}
+        activeConversationId="c-1"
+        onSelect={jest.fn()}
+        onDelete={jest.fn()}
+        onStartNew={jest.fn()}
+      />
+    );
+    const activeRow = container.querySelector('.bg-primary-50');
+    expect(activeRow).not.toBeNull();
+  });
 });
