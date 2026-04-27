@@ -32,9 +32,9 @@ export const TeacherFeedbackSection = forwardRef<
       </Text>
 
       {feedback.teacherFeedback && (
-        <p className="text-sm text-text-700 whitespace-pre-wrap mb-3">
+        <Text size="sm" className="text-text-700 whitespace-pre-wrap mb-3">
           {feedback.teacherFeedback}
-        </p>
+        </Text>
       )}
 
       {feedback.attachment && (
@@ -45,7 +45,9 @@ export const TeacherFeedbackSection = forwardRef<
           className="inline-flex items-center gap-2 px-3 py-2 bg-secondary-100 rounded-full text-text-800 hover:bg-secondary-200 transition-colors"
         >
           <Paperclip size={16} />
-          <span className="text-sm font-medium">Ver anexo</span>
+          <Text size="sm" weight="medium" color="text-text-800">
+            Ver anexo
+          </Text>
         </a>
       )}
     </div>
