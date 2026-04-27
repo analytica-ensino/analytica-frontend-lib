@@ -104,8 +104,12 @@ describe('Chatbot', () => {
       'oi{Enter}'
     );
     await waitFor(() =>
+      // The hook now passes a second arg — `ChatbotStreamHandlers` for SSE
+      // (`onStart` / `onToken`). `toHaveBeenCalledWith` matches the full
+      // argument list, so we have to acknowledge the handlers slot.
       expect(client.sendMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ currentContext: ctx })
+        expect.objectContaining({ currentContext: ctx }),
+        expect.any(Object)
       )
     );
   });
