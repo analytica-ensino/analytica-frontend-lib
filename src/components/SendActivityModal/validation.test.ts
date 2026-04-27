@@ -7,7 +7,7 @@ import {
   isFormValid,
   ERROR_MESSAGES,
 } from './validation';
-import { ActivitySubtype, SendActivityFormData } from './types';
+import { ActivityMode, ActivitySubtype, SendActivityFormData } from './types';
 
 describe('validation', () => {
   describe('validateActivityStep', () => {
@@ -61,6 +61,47 @@ describe('validation', () => {
 
       expect(errors.subtype).toBe(ERROR_MESSAGES.SUBTYPE_REQUIRED);
       expect(errors.title).toBe(ERROR_MESSAGES.TITLE_REQUIRED);
+    });
+
+    it('should return mode error when enableExamMode is true, subtype is PROVA, and mode is missing', () => {
+      const data: Partial<SendActivityFormData> = {
+        subtype: ActivitySubtype.PROVA,
+        title: 'Test',
+      };
+      const errors = validateActivityStep(data, { enableExamMode: true });
+
+      expect(errors.mode).toBe(ERROR_MESSAGES.MODE_REQUIRED);
+    });
+
+    it('should not return mode error when enableExamMode is true, subtype is PROVA, and mode is provided', () => {
+      const data: Partial<SendActivityFormData> = {
+        subtype: ActivitySubtype.PROVA,
+        title: 'Test',
+        mode: ActivityMode.ONLINE,
+      };
+      const errors = validateActivityStep(data, { enableExamMode: true });
+
+      expect(errors.mode).toBeUndefined();
+    });
+
+    it('should not return mode error when enableExamMode is true but subtype is not PROVA', () => {
+      const data: Partial<SendActivityFormData> = {
+        subtype: ActivitySubtype.TAREFA,
+        title: 'Test',
+      };
+      const errors = validateActivityStep(data, { enableExamMode: true });
+
+      expect(errors.mode).toBeUndefined();
+    });
+
+    it('should not return mode error when enableExamMode is false and subtype is PROVA', () => {
+      const data: Partial<SendActivityFormData> = {
+        subtype: ActivitySubtype.PROVA,
+        title: 'Test',
+      };
+      const errors = validateActivityStep(data, { enableExamMode: false });
+
+      expect(errors.mode).toBeUndefined();
     });
   });
 
@@ -277,6 +318,33 @@ describe('validation', () => {
         canRetry: true,
       };
       expect(isFormValid(data)).toBe(true);
+    });
+
+    it('should return false when enableExamMode is true and mode is missing for PROVA', () => {
+      const data: Partial<SendActivityFormData> = {
+        subtype: ActivitySubtype.PROVA,
+        title: 'Test',
+        students: [{ studentId: '1', userInstitutionId: '1' }],
+        startDate: '2025-01-01',
+        startTime: '00:00',
+        finalDate: '2025-01-15',
+        finalTime: '23:59',
+      };
+      expect(isFormValid(data, { enableExamMode: true })).toBe(false);
+    });
+
+    it('should return true when enableExamMode is true and mode is provided for PROVA', () => {
+      const data: Partial<SendActivityFormData> = {
+        subtype: ActivitySubtype.PROVA,
+        title: 'Test',
+        mode: ActivityMode.PRESENCIAL,
+        students: [{ studentId: '1', userInstitutionId: '1' }],
+        startDate: '2025-01-01',
+        startTime: '00:00',
+        finalDate: '2025-01-15',
+        finalTime: '23:59',
+      };
+      expect(isFormValid(data, { enableExamMode: true })).toBe(true);
     });
   });
 });

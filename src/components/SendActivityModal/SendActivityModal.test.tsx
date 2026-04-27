@@ -1224,4 +1224,80 @@ describe('SendActivityModal', () => {
       expect(studentsCategory?.selectedIds).toEqual([]);
     });
   });
+
+  describe('enableExamMode', () => {
+    it('should show "Modo de prova" selector when enableExamMode=true and subtype is PROVA', () => {
+      render(<SendActivityModal {...defaultProps} enableExamMode />);
+
+      fireEvent.click(screen.getByText('Prova'));
+
+      expect(screen.getByText('Modo de prova*')).toBeInTheDocument();
+      expect(screen.getByText('Online')).toBeInTheDocument();
+      expect(screen.getByText('Presencial')).toBeInTheDocument();
+    });
+
+    it('should NOT show "Modo de prova" selector when enableExamMode=true but subtype is not PROVA', () => {
+      render(<SendActivityModal {...defaultProps} enableExamMode />);
+
+      fireEvent.click(screen.getByText('Tarefa'));
+
+      expect(screen.queryByText('Modo de prova*')).not.toBeInTheDocument();
+    });
+
+    it('should NOT show "Modo de prova" selector when enableExamMode is false even with PROVA selected', () => {
+      render(<SendActivityModal {...defaultProps} enableExamMode={false} />);
+
+      fireEvent.click(screen.getByText('Prova'));
+
+      expect(screen.queryByText('Modo de prova*')).not.toBeInTheDocument();
+    });
+
+    it('should show MODE_REQUIRED error when advancing without selecting mode with enableExamMode=true and PROVA', () => {
+      render(<SendActivityModal {...defaultProps} enableExamMode />);
+
+      fireEvent.click(screen.getByText('Prova'));
+      fireEvent.change(
+        screen.getByPlaceholderText('Digite o título da atividade'),
+        { target: { value: 'Prova Final' } }
+      );
+
+      fireEvent.click(screen.getByText('Próximo'));
+
+      expect(
+        screen.getByText(
+          'Campo obrigatório! Por favor, selecione o modo de prova para continuar.'
+        )
+      ).toBeInTheDocument();
+    });
+
+    it('should advance to step 2 after selecting mode when enableExamMode=true and PROVA', () => {
+      render(<SendActivityModal {...defaultProps} enableExamMode />);
+
+      fireEvent.click(screen.getByText('Prova'));
+      fireEvent.change(
+        screen.getByPlaceholderText('Digite o título da atividade'),
+        { target: { value: 'Prova Final' } }
+      );
+      fireEvent.click(screen.getByText('Online'));
+
+      fireEvent.click(screen.getByText('Próximo'));
+
+      expect(
+        screen.queryByText(
+          'Campo obrigatório! Por favor, selecione o modo de prova para continuar.'
+        )
+      ).not.toBeInTheDocument();
+      expect(screen.getByTestId('checkbox-group-mock')).toBeInTheDocument();
+    });
+
+    it('should hide "Modo de prova" selector when subtype changes away from PROVA', () => {
+      render(<SendActivityModal {...defaultProps} enableExamMode />);
+
+      fireEvent.click(screen.getByText('Prova'));
+      expect(screen.getByText('Modo de prova*')).toBeInTheDocument();
+
+      fireEvent.click(screen.getByText('Tarefa'));
+      expect(screen.queryByText('Modo de prova*')).not.toBeInTheDocument();
+    });
+  });
 });
