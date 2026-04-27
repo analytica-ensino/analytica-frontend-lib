@@ -19,7 +19,9 @@ describe('validation', () => {
     });
 
     it('should return error when title is missing', () => {
-      const data: Partial<SendActivityFormData> = { subtype: ActivitySubtype.TAREFA };
+      const data: Partial<SendActivityFormData> = {
+        subtype: ActivitySubtype.TAREFA,
+      };
       const errors = validateActivityStep(data);
 
       expect(errors.title).toBe(ERROR_MESSAGES.TITLE_REQUIRED);
