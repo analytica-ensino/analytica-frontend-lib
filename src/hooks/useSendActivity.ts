@@ -224,6 +224,7 @@ export function useSendActivity(
           subjectId: selectedModel.subjectId,
           questionIds,
           subtype: data.subtype,
+          mode: data.mode,
           notification: data.notification,
           startDate: toISODateTime(data.startDate, data.startTime),
           finalDate: toISODateTime(data.finalDate, data.finalTime),

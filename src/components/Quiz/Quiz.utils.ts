@@ -53,12 +53,12 @@ export const getTrueOrFalseOptionState = (
   localAnswers: Record<string, string>
 ): TrueOrFalseOptionState => {
   // Get whether the statement is TRUE or FALSE from persisted result
-  const gabaritoOption = currentQuestionResult?.options?.find(
+  const correctAnswerOption = currentQuestionResult?.options?.find(
     (op) => op.id === optionId
   );
   const isStatementTrue =
     variant === QuizVariant.RESULT
-      ? (gabaritoOption?.isCorrect ?? false)
+      ? (correctAnswerOption?.isCorrect ?? false)
       : false;
 
   // Get student's selection from selectedOptions

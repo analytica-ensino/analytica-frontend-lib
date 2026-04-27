@@ -3,7 +3,7 @@ import {
   useSendActivityModalStore,
   useSendActivityModal,
 } from './useSendActivityModal';
-import { CategoryConfig } from '../types';
+import { ActivitySubtype, CategoryConfig } from '../types';
 
 /**
  * Mock categories for testing
@@ -93,7 +93,7 @@ describe('useSendActivityModalStore', () => {
 
       act(() => {
         store.setFormData({ title: 'Test Activity' });
-        store.setFormData({ subtype: 'TAREFA' });
+        store.setFormData({ subtype: ActivitySubtype.TAREFA });
       });
 
       const newState = useSendActivityModalStore.getState();
@@ -176,7 +176,7 @@ describe('useSendActivityModalStore', () => {
 
       let isValid = false;
       act(() => {
-        isValid = store.validateCurrentStep();
+        isValid = store.validateCurrentStep(false);
       });
 
       expect(isValid).toBe(false);
@@ -187,12 +187,12 @@ describe('useSendActivityModalStore', () => {
       const store = useSendActivityModalStore.getState();
 
       act(() => {
-        store.setFormData({ subtype: 'TAREFA' });
+        store.setFormData({ subtype: ActivitySubtype.TAREFA });
       });
 
       let isValid = false;
       act(() => {
-        isValid = store.validateCurrentStep();
+        isValid = store.validateCurrentStep(false);
       });
 
       expect(isValid).toBe(false);
@@ -203,12 +203,12 @@ describe('useSendActivityModalStore', () => {
       const store = useSendActivityModalStore.getState();
 
       act(() => {
-        store.setFormData({ subtype: 'TAREFA', title: 'Test Activity' });
+        store.setFormData({ subtype: ActivitySubtype.TAREFA, title: 'Test Activity' });
       });
 
       let isValid = false;
       act(() => {
-        isValid = store.validateCurrentStep();
+        isValid = store.validateCurrentStep(false);
       });
 
       expect(isValid).toBe(true);
@@ -220,7 +220,7 @@ describe('useSendActivityModalStore', () => {
 
       let isValid = false;
       act(() => {
-        isValid = store.validateAllSteps();
+        isValid = store.validateAllSteps(false);
       });
 
       expect(isValid).toBe(false);
@@ -233,12 +233,12 @@ describe('useSendActivityModalStore', () => {
       const store = useSendActivityModalStore.getState();
 
       act(() => {
-        store.setFormData({ subtype: 'TAREFA', title: 'Test Activity' });
+        store.setFormData({ subtype: ActivitySubtype.TAREFA, title: 'Test Activity' });
       });
 
       let result = false;
       act(() => {
-        result = store.nextStep();
+        result = store.nextStep(false);
       });
 
       expect(result).toBe(true);
@@ -251,7 +251,7 @@ describe('useSendActivityModalStore', () => {
 
       let result = false;
       act(() => {
-        result = store.nextStep();
+        result = store.nextStep(false);
       });
 
       expect(result).toBe(false);
@@ -264,7 +264,7 @@ describe('useSendActivityModalStore', () => {
       act(() => {
         store.goToStep(3);
         store.setFormData({
-          subtype: 'TAREFA',
+          subtype: ActivitySubtype.TAREFA,
           title: 'Test',
           students: [{ studentId: 'ui1', userInstitutionId: 'ui1' }],
           startDate: '2025-01-20',
@@ -273,7 +273,7 @@ describe('useSendActivityModalStore', () => {
       });
 
       act(() => {
-        store.nextStep();
+        store.nextStep(false);
       });
 
       // Should stay on step 3
@@ -284,13 +284,13 @@ describe('useSendActivityModalStore', () => {
       const store = useSendActivityModalStore.getState();
 
       act(() => {
-        store.setFormData({ subtype: 'TAREFA', title: 'Test Activity' });
+        store.setFormData({ subtype: ActivitySubtype.TAREFA, title: 'Test Activity' });
       });
 
       act(() => {
-        store.nextStep();
+        store.nextStep(false);
         store.previousStep();
-        store.nextStep();
+        store.nextStep(false);
       });
 
       const state = useSendActivityModalStore.getState();
@@ -385,7 +385,7 @@ describe('useSendActivityModalStore', () => {
       const store = useSendActivityModalStore.getState();
 
       act(() => {
-        store.setFormData({ title: 'Test', subtype: 'TAREFA' });
+        store.setFormData({ title: 'Test', subtype: ActivitySubtype.TAREFA });
         store.goToStep(2);
         store.setCategories(mockCategories);
         store.reset();

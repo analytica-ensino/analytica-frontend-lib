@@ -1,4 +1,5 @@
 import type { QuestionActivity as Question } from '../..';
+import type { ActivityMode } from '../SendActivityModal/types';
 
 // Re-export category types from shared utils for backward compatibility
 export type {
@@ -100,6 +101,7 @@ export interface ActivityCreatePayload {
   startDate: string;
   finalDate: string;
   canRetry: boolean;
+  mode?: ActivityMode;
 }
 
 /**

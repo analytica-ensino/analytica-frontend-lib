@@ -33,11 +33,11 @@ import type {
   ActivityData,
   BackendFiltersFormat,
   ActivityPreFiltersInput,
-  ActivityCreatePayload,
   ActivityCreateResponse,
   RecommendedClassDraftResponse,
 } from './ActivityCreate.types';
-import { ActivityType, ActivityStatus } from './ActivityCreate.types';
+import { ActivityType } from './ActivityCreate.types';
+import type { CreateActivityPayload } from '../../types/sendActivity';
 import {
   convertFiltersToBackendFormat,
   convertBackendFiltersToActivityFiltersData,
@@ -45,6 +45,7 @@ import {
   convertQuestionToPreview,
   getTypeFromUrl,
   getTypeFromUrlString,
+  buildSendActivityPayload,
 } from './ActivityCreate.utils';
 import { ActivityCreateSkeleton } from './components/ActivityCreateSkeleton';
 import { ActivityCreateHeader } from './components/ActivityCreateHeader';
@@ -64,6 +65,7 @@ const CreateActivity = ({
   onCreateActivity,
   onSaveModel,
   onAddActivityToLesson,
+  enableExamMode = false,
 }: {
   apiClient: BaseApiClient;
   institutionId: string;
@@ -71,10 +73,11 @@ const CreateActivity = ({
   onBack?: () => void;
   onCreateActivity?: (
     activityId: string,
-    activityData: ActivityCreatePayload
+    activityData: CreateActivityPayload
   ) => void;
   onSaveModel?: (response: ActivityDraftResponse) => void;
   onAddActivityToLesson?: (activityDraftId: string) => void;
+  enableExamMode?: boolean;
 }) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -1148,19 +1151,13 @@ const CreateActivity = ({
           `${formData.finalDate}T${formData.finalTime}`
         ).toISOString();
 
-        const activityPayload = {
-          createdBySys: false,
-          title: formData.title,
-          subjectId: subjectId,
-          questionIds: questions.map((q) => q.id),
-          subtype: formData.subtype,
-          difficulty: '',
-          notification: formData.notification || '',
-          status: ActivityStatus.A_VENCER,
-          startDate: startDateTime,
-          finalDate: finalDateTime,
-          canRetry: formData.canRetry,
-        };
+        const activityPayload = buildSendActivityPayload(
+          formData,
+          subjectId,
+          questions.map((q) => q.id),
+          startDateTime,
+          finalDateTime
+        );
 
         // First POST: Create activity and capture response
         const createActivityResponse =
@@ -1414,6 +1411,7 @@ const CreateActivity = ({
         categories={categories}
         onCategoriesChange={handleCategoriesChange}
         isLoading={isSendingActivity}
+        enableExamMode={enableExamMode}
         onError={(error) => {
           console.error('Erro ao enviar atividade:', error);
           const errorMessage =

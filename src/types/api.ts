@@ -8,13 +8,7 @@ export interface BaseApiClient {
     url: string,
     config?: { params?: Record<string, unknown> }
   ) => Promise<{ data: T }>;
-  post: <T>(
-    url: string,
-    data?: Record<string, unknown>
-  ) => Promise<{ data: T }>;
-  patch: <T>(
-    url: string,
-    data?: Record<string, unknown>
-  ) => Promise<{ data: T }>;
+  post: <T>(url: string, data?: object) => Promise<{ data: T }>;
+  patch: <T>(url: string, data?: object) => Promise<{ data: T }>;
   delete: <T>(url: string) => Promise<{ data: T }>;
 }

@@ -6,6 +6,7 @@ import type {
   SendActivityCategoriesData,
   ActivityModelItem,
 } from '../types/sendActivity';
+import { ActivitySubtype } from '../components/SendActivityModal/types';
 import type { SendActivityFormData } from '../components/SendActivityModal/types';
 
 /**
@@ -65,7 +66,7 @@ const mockModel: ActivityModelItem = {
  */
 const mockFormData: SendActivityFormData = {
   title: 'New Activity',
-  subtype: 'TAREFA',
+  subtype: ActivitySubtype.TAREFA,
   notification: 'true',
   startDate: '2025-01-15',
   startTime: '08:00',
@@ -345,7 +346,7 @@ describe('useSendActivity', () => {
         title: 'New Activity',
         subjectId: 'subject-1',
         questionIds: ['q1', 'q2', 'q3'],
-        subtype: 'TAREFA',
+        subtype: ActivitySubtype.TAREFA,
         notification: 'true',
         startDate: expectedISODateTime('2025-01-15', '08:00'),
         finalDate: expectedISODateTime('2025-01-20', '23:59'),

@@ -399,7 +399,7 @@ const createMockApiClient = (): BaseApiClient => ({
 
     throw new Error(`Unknown endpoint: ${url}`);
   },
-  post: async <T,>(url: string, body?: Record<string, unknown>) => {
+  post: async <T,>(url: string, body?: object) => {
     // Handle presigned URL endpoint
     if (url === '/user/get-pre-signed-url') {
       await new Promise((resolve) => setTimeout(resolve, 200));

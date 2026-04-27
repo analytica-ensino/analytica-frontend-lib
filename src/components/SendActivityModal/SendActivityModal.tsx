@@ -11,8 +11,10 @@ import {
   SendActivityModalProps,
   SendActivityModalInitialData,
   ActivitySubtype,
+  ActivityMode,
   SendActivityFormData,
   ACTIVITY_TYPE_OPTIONS,
+  ACTIVITY_MODE_OPTIONS,
   CategoryConfig,
 } from './types';
 import {
@@ -58,6 +60,7 @@ const SendActivityModal = ({
   isLoading = false,
   onError,
   initialData,
+  enableExamMode = false,
 }: SendActivityModalProps) => {
   const store = useSendActivityModalStore();
   const reset = useSendActivityModalStore((state) => state.reset);
@@ -113,7 +116,7 @@ const SendActivityModal = ({
     if (isOpen && initialData && prevInitialDataRef.current !== initialData) {
       store.setFormData({
         title: initialData.title ?? '',
-        subtype: initialData.subtype ?? 'TAREFA',
+        subtype: initialData.subtype ?? ActivitySubtype.TAREFA,
         notification: initialData.notification ?? '',
       });
       prevInitialDataRef.current = initialData;
@@ -153,10 +156,25 @@ const SendActivityModal = ({
 
   /**
    * Handle activity type selection
+   * Clears mode when switching away from PROVA
    */
   const handleActivityTypeSelect = useCallback(
     (subtype: ActivitySubtype) => {
-      store.setFormData({ subtype });
+      const update: Partial<SendActivityFormData> =
+        subtype !== ActivitySubtype.PROVA
+          ? { subtype, mode: undefined }
+          : { subtype };
+      store.setFormData(update);
+    },
+    [store]
+  );
+
+  /**
+   * Handle prova mode selection (Online / Presencial)
+   */
+  const handleModeSelect = useCallback(
+    (mode: ActivityMode) => {
+      store.setFormData({ mode });
     },
     [store]
   );
@@ -195,7 +213,7 @@ const SendActivityModal = ({
    * Handle form submission
    */
   const handleSubmit = useCallback(async () => {
-    const isValid = store.validateAllSteps();
+    const isValid = store.validateAllSteps(enableExamMode);
     if (!isValid) return;
 
     try {
@@ -208,7 +226,7 @@ const SendActivityModal = ({
         console.error('Falha ao enviar atividade:', error);
       }
     }
-  }, [store, onSubmit, onError]);
+  }, [store, onSubmit, onError, enableExamMode]);
 
   /**
    * Handle cancel button click
@@ -240,6 +258,32 @@ const SendActivityModal = ({
         </div>
         <SendModalError error={store.errors.subtype} />
       </div>
+
+      {/* Prova Mode Selection — only visible when enableExamMode and subtype is PROVA */}
+      {enableExamMode && store.formData.subtype === ActivitySubtype.PROVA && (
+        <div>
+          <Text
+            size="sm"
+            weight="medium"
+            color="text-text-700"
+            className="mb-3"
+          >
+            Modo de prova*
+          </Text>
+          <div className="flex flex-wrap gap-2">
+            {ACTIVITY_MODE_OPTIONS.map((modeOption) => (
+              <Chips
+                key={modeOption.value}
+                selected={store.formData.mode === modeOption.value}
+                onClick={() => handleModeSelect(modeOption.value)}
+              >
+                {modeOption.label}
+              </Chips>
+            ))}
+          </div>
+          <SendModalError error={store.errors.mode} />
+        </div>
+      )}
 
       {/* Title Input */}
       <Input
@@ -357,7 +401,7 @@ const SendActivityModal = ({
       isLoading={isLoading}
       onCancel={handleCancel}
       onPreviousStep={store.previousStep}
-      onNextStep={() => store.nextStep()}
+      onNextStep={() => store.nextStep(enableExamMode)}
       onSubmit={handleSubmit}
       entityName={ENTITY_NAME}
     />
