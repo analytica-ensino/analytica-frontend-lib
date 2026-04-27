@@ -1109,6 +1109,7 @@ export type {
   ChatbotCurrentContext,
   SendChatbotMessagePayload,
   SendChatbotMessageResult,
+  ChatbotStreamHandlers,
   ChatbotUser,
   ChatbotApiClient,
 } from './types/chatbot';

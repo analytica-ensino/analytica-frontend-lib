@@ -419,6 +419,110 @@ describe('useChatbot', () => {
     );
   });
 
+  it('streams chunks word-by-word into the assistant bubble before swapping for the persisted message', async () => {
+    jest.useFakeTimers();
+    try {
+      // Capture the handlers passed by the hook so we can drive `onToken`
+      // ourselves and observe word-by-word growth.
+      let capturedHandlers: {
+        onStart?: (event: {
+          conversationId: string;
+          userMessage: ChatbotMessage;
+        }) => void;
+        onToken?: (chunk: string) => void;
+      } = {};
+      let resolveSend: ((value: SendChatbotMessageResult) => void) | undefined;
+
+      const client = buildClient({
+        sendMessage: jest.fn((_payload, handlers) => {
+          capturedHandlers = handlers ?? {};
+          return new Promise<SendChatbotMessageResult>((resolve) => {
+            resolveSend = resolve;
+          });
+        }),
+      });
+      const { result } = renderHook(() => createUseChatbot(client)());
+
+      // Fire the send (don't await — pacer needs intermediate ticks).
+      act(() => {
+        void result.current.sendMessage('hi');
+      });
+
+      // Server confirms the user message and conversation id.
+      act(() => {
+        capturedHandlers.onStart?.({
+          conversationId: 'c-1',
+          userMessage: {
+            id: 'u-1',
+            conversationId: 'c-1',
+            role: 'user',
+            content: 'hi',
+            createdAt: new Date(),
+          } as ChatbotMessage,
+        });
+      });
+
+      // Backend pushes a small chunk (no acceleration) so we can observe
+      // a single word per tick at the base cadence.
+      act(() => {
+        capturedHandlers.onToken?.('alpha beta gamma');
+      });
+
+      // After the first tick only the first word should be visible.
+      // With a 16-char buffer at the base ~30ms cadence the first
+      // delay is well under 35ms — advance just enough to fire one tick.
+      act(() => {
+        jest.advanceTimersByTime(35);
+      });
+      const firstAssistant = result.current.messages.find(
+        (m) => m.role === 'assistant'
+      );
+      expect(firstAssistant?.content).toBe('alpha ');
+      // Bubble id is the streaming placeholder, not the persisted id yet.
+      expect(firstAssistant?.id.startsWith('streaming-')).toBe(true);
+
+      // Drain the rest of the buffer.
+      act(() => {
+        jest.advanceTimersByTime(500);
+      });
+      expect(
+        result.current.messages.find((m) => m.role === 'assistant')?.content
+      ).toBe('alpha beta gamma');
+
+      // Resolve the request — pacer should drain (already empty) and
+      // swap the streaming bubble for the canonical persisted reply.
+      await act(async () => {
+        resolveSend?.({
+          conversationId: 'c-1',
+          userMessage: {
+            id: 'u-1',
+            conversationId: 'c-1',
+            role: 'user',
+            content: 'hi',
+            createdAt: new Date(),
+          } as ChatbotMessage,
+          assistantMessage: {
+            id: 'a-1',
+            conversationId: 'c-1',
+            role: 'assistant',
+            content: 'hello there friend',
+            createdAt: new Date(),
+          } as ChatbotMessage,
+        });
+        // Flush microtasks + any final drain ticks.
+        await jest.runOnlyPendingTimersAsync();
+      });
+
+      const finalAssistant = result.current.messages.find(
+        (m) => m.role === 'assistant'
+      );
+      expect(finalAssistant?.id).toBe('a-1');
+      expect(finalAssistant?.content).toBe('hello there friend');
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('deleteConversation clears active conversation state when deleting the active one', async () => {
     const client = buildClient();
     const { result } = renderHook(() => createUseChatbot(client)());

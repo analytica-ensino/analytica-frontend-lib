@@ -74,15 +74,45 @@ export interface ChatbotUser {
 }
 
 /**
+ * Streaming callbacks the chatbot hook hands to the transport adapter.
+ * Adapters that support SSE / chunked transport should call them as
+ * data arrives so the UI can render the assistant reply progressively;
+ * adapters that don't support streaming may simply leave them as
+ * no-ops and resolve the promise once the full reply lands.
+ */
+export interface ChatbotStreamHandlers {
+  /**
+   * Fired once with the persisted user message + conversation id, as
+   * soon as the server confirms it. Lets the UI swap its optimistic
+   * placeholder before the assistant text starts arriving.
+   */
+  onStart?: (event: {
+    conversationId: string;
+    userMessage: ChatbotMessage;
+  }) => void;
+  /**
+   * Fired for every new chunk of assistant text. The argument is the
+   * delta — concatenate to whatever has been received so far to obtain
+   * the running response.
+   */
+  onToken?: (chunk: string) => void;
+}
+
+/**
  * Transport-agnostic API client. Implemented by the frontend-aluno-web
  * adapter using axios; can be swapped for fetch/mock in tests and stories.
  */
 export interface ChatbotApiClient {
   /**
-   * Send a message and receive the assistant reply.
+   * Send a message and receive the assistant reply. The `handlers`
+   * argument is optional — adapters should fire `onStart` / `onToken`
+   * progressively when the underlying transport supports streaming.
+   * The returned promise still resolves once with the final, persisted
+   * message pair so existing non-streaming consumers keep working.
    */
   sendMessage(
-    payload: SendChatbotMessagePayload
+    payload: SendChatbotMessagePayload,
+    handlers?: ChatbotStreamHandlers
   ): Promise<SendChatbotMessageResult>;
   /**
    * List the current user's conversations.

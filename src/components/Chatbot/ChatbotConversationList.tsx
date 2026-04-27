@@ -107,6 +107,13 @@ export default function ChatbotConversationList({
                   isActive ? 'bg-primary-50' : 'hover:bg-background-100'
                 )}
               >
+                <IconButton
+                  size="sm"
+                  aria-label={`Excluir conversa ${c.title || ''}`.trim()}
+                  onClick={() => onDelete(c.id)}
+                  icon={<TrashIcon size={14} />}
+                  className="hover:!bg-error-100 hover:!text-error-700"
+                />
                 <Button
                   variant="raw"
                   onClick={() => onSelect(c.id)}
@@ -123,12 +130,6 @@ export default function ChatbotConversationList({
                     {formatDate(c.lastMessageAt)}
                   </Text>
                 </Button>
-                <IconButton
-                  size="sm"
-                  aria-label={`Excluir conversa ${c.title || ''}`.trim()}
-                  onClick={() => onDelete(c.id)}
-                  icon={<TrashIcon size={14} />}
-                />
               </div>
             </li>
           );
