@@ -382,6 +382,17 @@ export {
   MenuContent,
 } from './components/Menu/Menu';
 
+// PeriodSelector Component
+export {
+  PeriodSelector,
+  PERIOD_OPTIONS,
+} from './components/PeriodSelector';
+export type {
+  PeriodTab,
+  PeriodValue,
+  PeriodSelectorProps,
+} from './components/PeriodSelector';
+
 // Card Components
 export {
   CardActivitiesResults,
