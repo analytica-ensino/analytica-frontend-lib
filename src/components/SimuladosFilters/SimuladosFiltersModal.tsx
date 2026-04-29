@@ -24,7 +24,7 @@ const DEFAULT_LABELS: Required<SimuladosFiltersLabels> = {
   loadingFilters: 'Carregando filtros...',
   loadingStudents: 'Carregando estudantes...',
   noStudentsForFilters: 'Nenhum estudante encontrado para os filtros selecionados',
-  selectFiltersToSeeStudents: 'Selecione uma escola, série ou turma para ver os estudantes',
+  selectFiltersToSeeStudents: 'Selecione uma turma para ver os estudantes',
   allStudents: 'Todos os estudantes',
   searchPlaceholder: 'Buscar',
 };
@@ -167,18 +167,16 @@ export function SimuladosFiltersModal({
     [categories]
   );
 
-  // Check if there are filters selected to load students
-  const hasAcademicFilters = useMemo(
-    () =>
-      currentFilters.schoolIds.length > 0 ||
-      currentFilters.schoolYearIds.length > 0 ||
-      currentFilters.classIds.length > 0,
+  // Check if there's at least one class selected to load students
+  // Requires class selection to avoid backend inconsistency with empty classIds
+  const hasClassSelected = useMemo(
+    () => currentFilters.classIds.length > 0,
     [currentFilters]
   );
 
   // Fetch students when school/grade/class filters change
   useEffect(() => {
-    if (hasAcademicFilters) {
+    if (hasClassSelected) {
       fetchStudents(currentFilters);
       // Clear student selection when filters change
       setSelectedStudentIds([]);
@@ -263,7 +261,7 @@ export function SimuladosFiltersModal({
           selectedIds={selectedStudentIds}
           searchQuery={studentSearchQuery}
           isLoading={studentsLoading}
-          hasFilters={hasAcademicFilters}
+          hasFilters={hasClassSelected}
           onSearchChange={setStudentSearchQuery}
           onSelectionChange={setSelectedStudentIds}
           labels={{
