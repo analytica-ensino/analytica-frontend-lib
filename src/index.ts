@@ -300,6 +300,33 @@ export type {
   UseTableFilterReturn,
 } from './components/Filter';
 
+// SimuladosFilters Components
+export {
+  SimuladosFiltersModal,
+  StudentsFilterSection,
+  useUserAccessData as useSimuladosUserAccessData,
+  useStudentsFilter as useSimuladosStudentsFilter,
+} from './components/SimuladosFilters';
+export type {
+  SimuladosFilters,
+  SimuladosFiltersModalProps,
+  SimuladosFiltersLabels,
+  ApiClient as SimuladosApiClient,
+  SchoolItem as SimuladosSchoolItem,
+  SchoolYearItem as SimuladosSchoolYearItem,
+  ClassItem as SimuladosClassItem,
+  StudentFilterItem,
+  StudentGroup,
+  UserAccessDataApiResponse as SimuladosUserAccessDataApiResponse,
+  StudentsFilterApiResponse as SimuladosStudentsFilterApiResponse,
+  StudentsFilterParams,
+  UseUserAccessDataState,
+  UseUserAccessDataReturn,
+  UseStudentsFilterState,
+  UseStudentsFilterReturn,
+  StudentsFilterSectionProps,
+} from './components/SimuladosFilters';
+
 // ActivityFilters Component
 export {
   ActivityFilters,
