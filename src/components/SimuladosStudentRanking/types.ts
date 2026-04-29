@@ -1,5 +1,5 @@
 // Reuse ScoreType from GeneralOverviewSection
-export type { ScoreType } from '../GeneralOverviewSection/types';
+import type { ScoreType } from '../GeneralOverviewSection/types';
 
 /**
  * Ranking variant type
@@ -28,7 +28,7 @@ export interface SimuladosStudentRankingProps {
   /** Students needing attention (lower performers) */
   readonly attentionStudents: SimuladosStudentRankingItem[];
   /** Score display type: percentage (0-100%) or tri (0-1000) */
-  readonly scoreType?: 'percentage' | 'tri';
+  readonly scoreType?: ScoreType;
 }
 
 /**
@@ -44,5 +44,5 @@ export interface SimuladosRankingCardProps {
   /** Icon to display */
   readonly icon: React.ReactNode;
   /** Score display type */
-  readonly scoreType?: 'percentage' | 'tri';
+  readonly scoreType?: ScoreType;
 }

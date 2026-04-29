@@ -8,7 +8,8 @@ import Select, {
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
 import { GridFour } from 'phosphor-react';
-import type { AreaKnowledgeSelectorProps, AreaKnowledgeItem } from './types';
+import type { AreaKnowledgeSelectorProps } from './types';
+import type { AreaKnowledgePerformance } from '../GeneralOverviewSection/types';
 import { ESSAY_AREA_ID } from './types';
 
 /**
@@ -86,7 +87,7 @@ export function AreaKnowledgeSelector({
       color: '#6B7280',
     };
 
-    const areaItems: SelectItemData[] = areas.map((area: AreaKnowledgeItem) => ({
+    const areaItems: SelectItemData[] = areas.map((area: AreaKnowledgePerformance) => ({
       id: area.id,
       name: area.name,
       color: getAreaColor(area.name),

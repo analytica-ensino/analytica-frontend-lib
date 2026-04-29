@@ -1,22 +1,17 @@
+// Reuse types from GeneralOverviewSection
+import type { AreaKnowledgePerformance } from '../GeneralOverviewSection/types';
+
 /**
  * Special ID for essay (Redação) area
  */
 export const ESSAY_AREA_ID = 'essay';
 
 /**
- * Area performance data (subset of GeneralOverviewSection types)
- */
-export interface AreaKnowledgeItem {
-  id: string;
-  name: string;
-}
-
-/**
  * Props for AreaKnowledgeSelector component
  */
 export interface AreaKnowledgeSelectorProps {
-  /** List of areas from general overview */
-  readonly areas: AreaKnowledgeItem[];
+  /** List of areas from general overview (only id and name are used) */
+  readonly areas: AreaKnowledgePerformance[];
   /** Currently selected area ID (null means "Todos") */
   readonly selectedAreaId: string | null;
   /** Callback when area changes */

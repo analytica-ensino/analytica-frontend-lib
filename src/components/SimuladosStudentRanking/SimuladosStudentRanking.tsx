@@ -2,6 +2,7 @@ import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
 import { Medal, Warning } from 'phosphor-react';
 import type {
+  ScoreType,
   RankingVariant,
   SimuladosStudentRankingItem,
   SimuladosStudentRankingProps,
@@ -11,7 +12,7 @@ import type {
 /**
  * Format score based on score type
  */
-function formatScore(value: number, scoreType: 'percentage' | 'tri'): string {
+function formatScore(value: number, scoreType: ScoreType): string {
   if (scoreType === 'tri') {
     return Math.round(value).toString();
   }
@@ -60,7 +61,7 @@ function StudentCard({
 }: {
   student: SimuladosStudentRankingItem;
   variant: RankingVariant;
-  scoreType?: 'percentage' | 'tri';
+  scoreType?: ScoreType;
 }) {
   const backgroundClass =
     POSITION_BACKGROUNDS[variant][student.position] || 'bg-background-50';

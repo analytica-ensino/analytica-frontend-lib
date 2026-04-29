@@ -352,10 +352,7 @@ export {
   AreaKnowledgeSelector,
   ESSAY_AREA_ID,
 } from './components/AreaKnowledgeSelector';
-export type {
-  AreaKnowledgeItem,
-  AreaKnowledgeSelectorProps,
-} from './components/AreaKnowledgeSelector';
+export type { AreaKnowledgeSelectorProps } from './components/AreaKnowledgeSelector';
 
 // SimuladosSubjectMenu Component
 export {
