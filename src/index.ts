@@ -380,6 +380,43 @@ export type {
   SimuladosRankingCardProps,
 } from './components/SimuladosStudentRanking';
 
+// PerformanceDistributionChart Component
+export { PerformanceDistributionChart } from './components/PerformanceDistributionChart';
+export type {
+  SimulatedPerformanceCounters,
+  SliceData,
+  PerformanceDistributionChartProps,
+} from './components/PerformanceDistributionChart';
+
+// SimuladosStudentDetailsModal Component
+export {
+  SimuladosStudentDetailsModal,
+  useSimuladosStudentDetails,
+  isStudentSubjectsData,
+  isStudentContentsData,
+  simulationTypeToActivityFilters,
+  SIMULATED_PERFORMANCE_TAG_CONFIG,
+} from './components/SimuladosStudentDetailsModal';
+export type {
+  SimulatedPerformanceTag,
+  SimulatedPerformanceTagConfig,
+  SimulationType,
+  StudentDetailsInfo,
+  SubjectPerformanceItem,
+  StudentContentPerformanceItem,
+  StudentSubjectsData,
+  StudentContentsData,
+  StudentDetailsData,
+  ActivityFilters as SimuladosActivityFilters,
+  StudentDetailsParams,
+  StudentDetailsApiResponse,
+  StudentDetailsApiClient,
+  UseSimuladosStudentDetailsState,
+  UseSimuladosStudentDetailsReturn,
+  SimuladosStudentDetailsModalProps,
+  SimuladosStudentDetailsLabels,
+} from './components/SimuladosStudentDetailsModal';
+
 // ActivityFilters Component
 export {
   ActivityFilters,
