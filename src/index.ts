@@ -371,6 +371,18 @@ export type {
   SimuladosSubjectMenuProps,
 } from './components/SimuladosSubjectMenu';
 
+// SimuladosStudentRanking Component
+export {
+  SimuladosStudentRanking,
+  SimuladosRankingCard,
+} from './components/SimuladosStudentRanking';
+export type {
+  RankingVariant,
+  SimuladosStudentRankingItem,
+  SimuladosStudentRankingProps,
+  SimuladosRankingCardProps,
+} from './components/SimuladosStudentRanking';
+
 // ActivityFilters Component
 export {
   ActivityFilters,
