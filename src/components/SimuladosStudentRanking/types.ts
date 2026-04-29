@@ -1,5 +1,6 @@
 // Reuse ScoreType from GeneralOverviewSection
 import type { ScoreType } from '../GeneralOverviewSection/types';
+export type { ScoreType };
 
 /**
  * Ranking variant type

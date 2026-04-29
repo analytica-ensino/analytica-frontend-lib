@@ -417,6 +417,68 @@ export type {
   SimuladosStudentDetailsLabels,
 } from './components/SimuladosStudentDetailsModal';
 
+// SimuladosContentsPerformance Hook
+export { useSimulatedContents } from './components/SimuladosContentsPerformance';
+export type {
+  SimulatedContentItem,
+  ContentsPerformanceData,
+  SimulatedContentsParams,
+  ContentsPerformanceApiResponse,
+  SimulatedContentsApiClient,
+  UseSimulatedContentsState,
+  UseSimulatedContentsReturn,
+} from './components/SimuladosContentsPerformance';
+
+// SimuladosContentDetailsModal Component
+export {
+  SimuladosContentDetailsModal,
+  useSimulatedContentDetails,
+} from './components/SimuladosContentDetailsModal';
+export type {
+  ContentDetailsInfo,
+  ContentPerformanceCounters,
+  ContentStudentItem,
+  ContentStudentsPaginated,
+  ContentDetailsData,
+  ContentDetailsParams,
+  ContentDetailsApiResponse,
+  ContentDetailsApiClient,
+  UseSimulatedContentDetailsState,
+  UseSimulatedContentDetailsReturn,
+  SimuladosContentDetailsModalProps,
+  SimuladosContentDetailsLabels,
+} from './components/SimuladosContentDetailsModal';
+
+// EssayCompetencies Components
+export {
+  EssayCompetenciesTable,
+  EssayCompetenceDetailsModal,
+  useEssayCompetenciesOverview,
+  useEssayCompetenceDetails,
+} from './components/EssayCompetencies';
+export type {
+  EssayCompetencyOverviewItem,
+  EssayCompetenciesOverviewData,
+  EssayCompetenciesOverviewParams,
+  EssayCompetenciesOverviewApiResponse,
+  EssayCompetenceInfo,
+  EssayCompetenceCounters,
+  EssayCompetenceStudentItem,
+  EssayCompetenceStudentsPaginated,
+  EssayCompetenceDetailsData,
+  EssayCompetenceDetailsParams,
+  EssayCompetenceDetailsApiResponse,
+  EssayCompetenciesApiClient,
+  UseEssayCompetenciesOverviewState,
+  UseEssayCompetenciesOverviewReturn,
+  UseEssayCompetenceDetailsState,
+  UseEssayCompetenceDetailsReturn,
+  EssayCompetenciesTableProps,
+  EssayCompetenciesTableLabels,
+  EssayCompetenceDetailsModalProps,
+  EssayCompetenceDetailsLabels,
+} from './components/EssayCompetencies';
+
 // ActivityFilters Component
 export {
   ActivityFilters,

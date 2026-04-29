@@ -2,7 +2,6 @@ import { useState, useCallback } from 'react';
 import type {
   SimulatedSubjectsApiClient,
   SimulatedSubjectsApiResponse,
-  SimulatedSubjectItem,
   UseSimulatedSubjectsState,
   UseSimulatedSubjectsReturn,
 } from './types';

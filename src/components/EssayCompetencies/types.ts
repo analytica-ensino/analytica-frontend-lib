@@ -1,0 +1,229 @@
+import type {
+  SimulatedPerformanceTag,
+  SimulatedPerformanceTagConfig,
+} from '../SimuladosStudentDetailsModal/types';
+
+// Re-export for convenience
+export type { SimulatedPerformanceTag, SimulatedPerformanceTagConfig };
+export { SIMULATED_PERFORMANCE_TAG_CONFIG } from '../SimuladosStudentDetailsModal/types';
+
+/**
+ * Single competency item in overview
+ */
+export interface EssayCompetencyOverviewItem {
+  competencyNumber: number;
+  name: string;
+  essaysCount: number;
+  studentsCount: number;
+  averageScore: number;
+  averagePercentage: number;
+}
+
+/**
+ * Essay competencies overview data
+ */
+export interface EssayCompetenciesOverviewData {
+  competencies: EssayCompetencyOverviewItem[];
+  totalEssays: number;
+  totalStudents: number;
+}
+
+/**
+ * Parameters for fetching essay competencies overview
+ */
+export interface EssayCompetenciesOverviewParams {
+  period: string;
+  schoolIds?: string[];
+  schoolYearIds?: string[];
+  classIds?: string[];
+  studentsIds?: string[];
+}
+
+/**
+ * API response for competencies overview
+ */
+export interface EssayCompetenciesOverviewApiResponse {
+  message: string;
+  data: EssayCompetenciesOverviewData;
+}
+
+/**
+ * Competence info
+ */
+export interface EssayCompetenceInfo {
+  number: number;
+  name: string;
+}
+
+/**
+ * Performance counters for essay competence
+ */
+export interface EssayCompetenceCounters {
+  highlight: number;
+  aboveAverage: number;
+  belowAverage: number;
+  attentionPoint: number;
+}
+
+/**
+ * Student item in essay competence details
+ */
+export interface EssayCompetenceStudentItem {
+  studentId: string;
+  userInstitutionId: string;
+  name: string;
+  school: string;
+  schoolYear: string;
+  class: string;
+  averageScore: number;
+  averagePercentage: number;
+  performance: SimulatedPerformanceTag;
+  essaysCount: number;
+}
+
+/**
+ * Paginated students for essay competence details
+ */
+export interface EssayCompetenceStudentsPaginated {
+  data: EssayCompetenceStudentItem[];
+  page: number;
+  limit: number;
+  total: number;
+}
+
+/**
+ * Essay competence details data
+ */
+export interface EssayCompetenceDetailsData {
+  competence: EssayCompetenceInfo;
+  classAverage: number;
+  classAveragePercentage: number;
+  totalEssays: number;
+  totalStudents: number;
+  counters: EssayCompetenceCounters;
+  students: EssayCompetenceStudentsPaginated;
+}
+
+/**
+ * Parameters for fetching essay competence details
+ */
+export interface EssayCompetenceDetailsParams {
+  competenceNumber: number;
+  period: string;
+  schoolIds?: string[];
+  schoolYearIds?: string[];
+  classIds?: string[];
+  page?: number;
+  limit?: number;
+  orderBy?: string;
+  order?: 'asc' | 'desc';
+}
+
+/**
+ * API response for competence details
+ */
+export interface EssayCompetenceDetailsApiResponse {
+  message: string;
+  data: EssayCompetenceDetailsData;
+}
+
+/**
+ * API client interface
+ */
+export interface EssayCompetenciesApiClient {
+  post: <T>(url: string, data?: unknown) => Promise<{ data: T }>;
+}
+
+/**
+ * Hook state for overview
+ */
+export interface UseEssayCompetenciesOverviewState {
+  data: EssayCompetenciesOverviewData | null;
+  loading: boolean;
+  error: string | null;
+}
+
+/**
+ * Hook return for overview
+ */
+export interface UseEssayCompetenciesOverviewReturn
+  extends UseEssayCompetenciesOverviewState {
+  fetchOverview: (params: EssayCompetenciesOverviewParams) => Promise<void>;
+  reset: () => void;
+}
+
+/**
+ * Hook state for details
+ */
+export interface UseEssayCompetenceDetailsState {
+  data: EssayCompetenceDetailsData | null;
+  loading: boolean;
+  error: string | null;
+}
+
+/**
+ * Hook return for details
+ */
+export interface UseEssayCompetenceDetailsReturn
+  extends UseEssayCompetenceDetailsState {
+  fetchDetails: (params: EssayCompetenceDetailsParams) => Promise<void>;
+  reset: () => void;
+}
+
+/**
+ * EssayCompetenciesTable props
+ */
+export interface EssayCompetenciesTableProps {
+  readonly api: EssayCompetenciesApiClient;
+  readonly period: string;
+  readonly schoolIds?: string[];
+  readonly schoolYearIds?: string[];
+  readonly classIds?: string[];
+  readonly labels?: EssayCompetenciesTableLabels;
+}
+
+/**
+ * Customizable labels for table
+ */
+export interface EssayCompetenciesTableLabels {
+  title?: string;
+  competence?: string;
+  essays?: string;
+  students?: string;
+  proficiency?: string;
+  search?: string;
+}
+
+/**
+ * EssayCompetenceDetailsModal props
+ */
+export interface EssayCompetenceDetailsModalProps {
+  readonly api: EssayCompetenciesApiClient;
+  readonly isOpen: boolean;
+  readonly onClose: () => void;
+  readonly competenceNumber: number | null;
+  readonly competenceName?: string;
+  readonly period: string;
+  readonly schoolIds?: string[];
+  readonly schoolYearIds?: string[];
+  readonly classIds?: string[];
+  readonly labels?: EssayCompetenceDetailsLabels;
+}
+
+/**
+ * Customizable labels for modal
+ */
+export interface EssayCompetenceDetailsLabels {
+  loading?: string;
+  noData?: string;
+  noStudents?: string;
+  classAverage?: string;
+  highlight?: string;
+  aboveAverage?: string;
+  belowAverage?: string;
+  attention?: string;
+  previous?: string;
+  next?: string;
+  page?: string;
+  of?: string;
+}
