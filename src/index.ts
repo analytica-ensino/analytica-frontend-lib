@@ -327,6 +327,26 @@ export type {
   StudentsFilterSectionProps,
 } from './components/SimuladosFilters';
 
+// GeneralOverviewSection Component
+export {
+  GeneralOverviewSection,
+  useGeneralOverview,
+} from './components/GeneralOverviewSection';
+export type {
+  ScoreType,
+  AreaKnowledgePerformance,
+  EssayPerformance,
+  GeneralOverviewData,
+  SubjectItem as GeneralOverviewSubjectItem,
+  GeneralOverviewApiClient,
+  GeneralOverviewParams,
+  GeneralOverviewApiResponse,
+  UseGeneralOverviewState,
+  UseGeneralOverviewReturn,
+  GeneralOverviewSectionProps,
+  GeneralOverviewLabels,
+} from './components/GeneralOverviewSection';
+
 // ActivityFilters Component
 export {
   ActivityFilters,

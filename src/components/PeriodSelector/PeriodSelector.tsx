@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Menu, MenuContent, MenuItem } from '../Menu/Menu';
-import type { PeriodSelectorProps } from './types';
+import type { PeriodSelectorProps, PeriodTab } from './types';
 import { PERIOD_OPTIONS } from './types';
 
 /**
@@ -44,16 +44,16 @@ export function PeriodSelector({
   value,
   onChange,
   defaultValue = '1_MONTH',
-  options = PERIOD_OPTIONS as unknown as typeof options,
+  options = PERIOD_OPTIONS as readonly PeriodTab[],
   excludeValues = [],
   className,
 }: PeriodSelectorProps) {
   // Filter out excluded values
-  const filteredOptions = useMemo(() => {
+  const filteredOptions = useMemo((): readonly PeriodTab[] => {
     if (excludeValues.length === 0) {
       return options;
     }
-    return options?.filter((opt) => !excludeValues.includes(opt.value)) ?? [];
+    return options.filter((opt: PeriodTab) => !excludeValues.includes(opt.value));
   }, [options, excludeValues]);
 
   return (
@@ -65,7 +65,7 @@ export function PeriodSelector({
       onValueChange={onChange}
     >
       <MenuContent className="!px-0">
-        {filteredOptions?.map((tab) => (
+        {filteredOptions.map((tab: PeriodTab) => (
           <MenuItem
             key={tab.value}
             variant="menu2"

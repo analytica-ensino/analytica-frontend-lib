@@ -33,7 +33,7 @@ export interface PeriodSelectorProps {
   /** Default value (used for uncontrolled mode) */
   defaultValue?: string;
   /** Custom period options (defaults to PERIOD_OPTIONS) */
-  options?: PeriodTab[];
+  options?: readonly PeriodTab[];
   /** Period values to exclude from the list */
   excludeValues?: string[];
   /** Additional className for the container */
