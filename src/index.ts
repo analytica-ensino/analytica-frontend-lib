@@ -347,6 +347,30 @@ export type {
   GeneralOverviewLabels,
 } from './components/GeneralOverviewSection';
 
+// AreaKnowledgeSelector Component
+export {
+  AreaKnowledgeSelector,
+  ESSAY_AREA_ID,
+} from './components/AreaKnowledgeSelector';
+export type {
+  AreaKnowledgeItem,
+  AreaKnowledgeSelectorProps,
+} from './components/AreaKnowledgeSelector';
+
+// SimuladosSubjectMenu Component
+export {
+  SimuladosSubjectMenu,
+  useSimulatedSubjects,
+} from './components/SimuladosSubjectMenu';
+export type {
+  SimulatedSubjectItem,
+  SimulatedSubjectsApiClient,
+  SimulatedSubjectsApiResponse,
+  UseSimulatedSubjectsState,
+  UseSimulatedSubjectsReturn,
+  SimuladosSubjectMenuProps,
+} from './components/SimuladosSubjectMenu';
+
 // ActivityFilters Component
 export {
   ActivityFilters,
