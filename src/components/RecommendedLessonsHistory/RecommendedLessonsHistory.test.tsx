@@ -769,7 +769,9 @@ describe('RecommendedLessonsHistory', () => {
           total: 1,
         },
       };
-      mockFetchRecommendedClassHistory.mockResolvedValue(responseWithNullCreator);
+      mockFetchRecommendedClassHistory.mockResolvedValue(
+        responseWithNullCreator
+      );
 
       render(<RecommendedLessonsHistory {...defaultProps} />);
 
