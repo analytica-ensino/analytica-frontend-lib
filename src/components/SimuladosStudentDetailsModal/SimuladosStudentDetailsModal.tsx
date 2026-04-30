@@ -28,16 +28,6 @@ const PERFORMANCE_TAG_TO_BADGE_ACTION: Record<
   [SimulatedPerformanceTag.ATTENTION_POINT]: 'error',
 };
 
-const DEFAULT_LABELS = {
-  loading: 'Carregando...',
-  noData: 'Nenhum dado encontrado',
-  noSubjects: 'Nenhuma matéria encontrada',
-  noContents: 'Nenhuma habilidade encontrada',
-  backButton: 'Voltar para lista de matérias',
-  questions: 'questões',
-  of: 'de',
-};
-
 /**
  * Modal for displaying student performance details in simulated exams
  * Supports cascading navigation: Subjects (level 1) -> Contents (level 2)
@@ -50,9 +40,7 @@ export function SimuladosStudentDetailsModal({
   userInstitutionId,
   studentName,
   period,
-  labels: customLabels,
 }: SimuladosStudentDetailsModalProps) {
-  const labels = { ...DEFAULT_LABELS, ...customLabels };
   const { data, loading, error, fetchDetails, reset } =
     useSimuladosStudentDetails(api);
   const [selectedSubject, setSelectedSubject] = useState<{
@@ -115,7 +103,7 @@ export function SimuladosStudentDetailsModal({
       <button
         onClick={handleBack}
         className="p-1 hover:bg-background-100 rounded-md transition-colors"
-        aria-label={labels.backButton}
+        aria-label="Voltar para lista de matérias"
       >
         <ArrowLeft size={20} className="text-text-600" />
       </button>
@@ -131,7 +119,7 @@ export function SimuladosStudentDetailsModal({
       <Modal isOpen={isOpen} onClose={onClose} title={modalTitle} size="lg">
         <div className="flex items-center justify-center py-8">
           <Text size="sm" className="text-text-500">
-            {labels.loading}
+            Carregando...
           </Text>
         </div>
       </Modal>
@@ -157,7 +145,7 @@ export function SimuladosStudentDetailsModal({
       <Modal isOpen={isOpen} onClose={onClose} title={modalTitle} size="lg">
         <div className="flex items-center justify-center py-8">
           <Text size="sm" className="text-text-500">
-            {labels.noData}
+            Nenhum dado encontrado
           </Text>
         </div>
       </Modal>
@@ -203,12 +191,12 @@ export function SimuladosStudentDetailsModal({
                   key={subject.id}
                   subject={subject}
                   onClick={() => handleSubjectClick(subject)}
-                  questionsLabel={labels.questions}
+                  questionsLabel="questões"
                 />
               ))
             ) : (
               <Text size="sm" className="text-text-500 text-center py-4">
-                {labels.noSubjects}
+                Nenhuma matéria encontrada
               </Text>
             )
           ) : // Level 2: Contents list
@@ -217,13 +205,13 @@ export function SimuladosStudentDetailsModal({
               <ContentItem
                 key={content.contentId}
                 content={content}
-                questionsLabel={labels.questions}
-                ofLabel={labels.of}
+                questionsLabel="questões"
+                ofLabel="de"
               />
             ))
           ) : (
             <Text size="sm" className="text-text-500 text-center py-4">
-              {labels.noContents}
+              Nenhuma habilidade encontrada
             </Text>
           )}
         </div>

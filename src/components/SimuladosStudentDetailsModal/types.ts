@@ -226,18 +226,4 @@ export interface SimuladosStudentDetailsModalProps {
   readonly userInstitutionId: string | null;
   readonly studentName?: string;
   readonly period: string;
-  readonly labels?: SimuladosStudentDetailsLabels;
-}
-
-/**
- * Customizable labels
- */
-export interface SimuladosStudentDetailsLabels {
-  loading?: string;
-  noData?: string;
-  noSubjects?: string;
-  noContents?: string;
-  backButton?: string;
-  questions?: string;
-  of?: string;
 }

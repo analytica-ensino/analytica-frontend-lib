@@ -1,0 +1,200 @@
+import type { Story } from '@ladle/react';
+import { useState } from 'react';
+import Button from '../Button/Button';
+import { SimuladosStudentDetailsModal } from './SimuladosStudentDetailsModal';
+import type {
+  StudentDetailsApiClient,
+  StudentDetailsApiResponse,
+  StudentContentsData,
+  StudentSubjectsData,
+} from './types';
+import { SimulatedPerformanceTag } from './types';
+
+function createSubjectsData(): StudentSubjectsData {
+  return {
+    student: {
+      studentId: 'student-1',
+      institutionId: 'inst-1',
+      name: 'Maria Silva',
+      school: 'Escola Centro',
+      schoolYear: '3 ano',
+      class: 'A',
+      average: 72,
+      performance: SimulatedPerformanceTag.ABOVE_AVERAGE,
+    },
+    subjects: [
+      {
+        id: 'subject-1',
+        name: 'Matematica',
+        color: '#22C55E',
+        icon: null,
+        questionsCount: 12,
+        performance: {
+          correct: 9,
+          incorrect: 3,
+          correctPercentage: 75,
+        },
+      },
+      {
+        id: 'subject-2',
+        name: 'Linguagens',
+        color: '#3B82F6',
+        icon: null,
+        questionsCount: 10,
+        performance: {
+          correct: 6,
+          incorrect: 4,
+          correctPercentage: 60,
+        },
+      },
+    ],
+    page: 1,
+    limit: 20,
+    total: 2,
+  };
+}
+
+function createContentsData(): StudentContentsData {
+  return {
+    student: {
+      studentId: 'student-1',
+      institutionId: 'inst-1',
+      name: 'Maria Silva',
+      school: 'Escola Centro',
+      schoolYear: '3 ano',
+      class: 'A',
+      average: 72,
+      performance: SimulatedPerformanceTag.ABOVE_AVERAGE,
+    },
+    subject: {
+      id: 'subject-1',
+      name: 'Matematica',
+    },
+    contents: [
+      {
+        contentId: 'content-1',
+        contentName: 'Geometria Plana',
+        bnccCode: 'EM13MAT301',
+        questionsCount: 4,
+        performance: {
+          correct: 3,
+          incorrect: 1,
+          correctPercentage: 75,
+        },
+      },
+      {
+        contentId: 'content-2',
+        contentName: 'Funcoes',
+        bnccCode: 'EM13MAT401',
+        questionsCount: 8,
+        performance: {
+          correct: 6,
+          incorrect: 2,
+          correctPercentage: 75,
+        },
+      },
+    ],
+    page: 1,
+    limit: 20,
+    total: 2,
+  };
+}
+
+function createApi(config?: {
+  delay?: number;
+  shouldFail?: boolean;
+  emptySubjects?: boolean;
+  emptyContents?: boolean;
+}): StudentDetailsApiClient {
+  const delay = config?.delay ?? 500;
+
+  return {
+    post: async function <T>(
+      _url: string,
+      body?: { subjectId?: string | null }
+    ): Promise<{ data: T }> {
+      await new Promise((resolve) => setTimeout(resolve, delay));
+
+      if (config?.shouldFail) {
+        throw new Error('Erro ao carregar detalhes do estudante');
+      }
+
+      let data: StudentDetailsApiResponse['data'];
+      if (body?.subjectId) {
+        data = config?.emptyContents
+          ? { ...createContentsData(), contents: [] }
+          : createContentsData();
+      } else {
+        data = config?.emptySubjects
+          ? { ...createSubjectsData(), subjects: [] }
+          : createSubjectsData();
+      }
+
+      const response: StudentDetailsApiResponse = {
+        message: 'ok',
+        data,
+      };
+
+      return { data: response as T };
+    },
+  };
+}
+
+function BaseStory({
+  buttonLabel,
+  api,
+  simulationType = 'enem-1',
+}: {
+  buttonLabel: string;
+  api: StudentDetailsApiClient;
+  simulationType?: 'enem-1' | 'enem-2' | 'essays';
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <>
+      <Button onClick={() => setIsOpen(true)}>{buttonLabel}</Button>
+      <SimuladosStudentDetailsModal
+        api={api}
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        simulationType={simulationType}
+        userInstitutionId="user-inst-1"
+        studentName="Maria Silva"
+        period="1_MONTH"
+      />
+    </>
+  );
+}
+
+export const Default: Story = () => (
+  <BaseStory buttonLabel="Abrir detalhes do estudante" api={createApi()} />
+);
+
+export const LoadingState: Story = () => (
+  <BaseStory
+    buttonLabel="Abrir com carregamento lento"
+    api={createApi({ delay: 3000 })}
+  />
+);
+
+export const ErrorState: Story = () => (
+  <BaseStory
+    buttonLabel="Abrir com erro"
+    api={createApi({ shouldFail: true })}
+  />
+);
+
+export const EmptySubjects: Story = () => (
+  <BaseStory
+    buttonLabel="Abrir sem materias"
+    api={createApi({ emptySubjects: true })}
+  />
+);
+
+export const EmptyContents: Story = () => (
+  <BaseStory
+    buttonLabel="Abrir sem habilidades"
+    api={createApi({ emptyContents: true })}
+  />
+);

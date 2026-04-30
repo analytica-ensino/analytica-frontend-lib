@@ -23,5 +23,4 @@ export type {
   UseSimuladosStudentDetailsState,
   UseSimuladosStudentDetailsReturn,
   SimuladosStudentDetailsModalProps,
-  SimuladosStudentDetailsLabels,
 } from './types';

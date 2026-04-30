@@ -413,7 +413,6 @@ export type {
   UseSimuladosStudentDetailsState,
   UseSimuladosStudentDetailsReturn,
   SimuladosStudentDetailsModalProps,
-  SimuladosStudentDetailsLabels,
 } from './components/SimuladosStudentDetailsModal';
 
 // SimuladosContentsPerformance Hook
