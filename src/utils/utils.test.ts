@@ -5,6 +5,9 @@ import {
   formatPercentageRounded,
   formatScore,
   hexToRgba,
+  bgClassToCssVar,
+  polarToCartesian,
+  describeArc,
 } from './utils';
 
 describe('utils', () => {
@@ -261,6 +264,78 @@ describe('utils', () => {
 
     it('should handle full opacity', () => {
       expect(hexToRgba('#FFFFFF', 1)).toBe('rgba(255, 255, 255, 1)');
+    });
+  });
+
+  describe('bgClassToCssVar', () => {
+    it('should convert bg class to CSS variable', () => {
+      expect(bgClassToCssVar('bg-error-600')).toBe('var(--color-error-600)');
+    });
+
+    it('should handle different color classes', () => {
+      expect(bgClassToCssVar('bg-success-400')).toBe('var(--color-success-400)');
+      expect(bgClassToCssVar('bg-warning-500')).toBe('var(--color-warning-500)');
+    });
+
+    it('should handle nested color names', () => {
+      expect(bgClassToCssVar('bg-text-950')).toBe('var(--color-text-950)');
+    });
+  });
+
+  describe('polarToCartesian', () => {
+    it('should convert 0 degrees to top position', () => {
+      const result = polarToCartesian(100, 100, 50, 0);
+      expect(result.x).toBe(100);
+      expect(result.y).toBeCloseTo(50, 5);
+    });
+
+    it('should convert 90 degrees to right position', () => {
+      const result = polarToCartesian(100, 100, 50, 90);
+      expect(result.x).toBeCloseTo(150, 5);
+      expect(result.y).toBeCloseTo(100, 5);
+    });
+
+    it('should convert 180 degrees to bottom position', () => {
+      const result = polarToCartesian(100, 100, 50, 180);
+      expect(result.x).toBeCloseTo(100, 5);
+      expect(result.y).toBeCloseTo(150, 5);
+    });
+
+    it('should convert 270 degrees to left position', () => {
+      const result = polarToCartesian(100, 100, 50, 270);
+      expect(result.x).toBeCloseTo(50, 5);
+      expect(result.y).toBeCloseTo(100, 5);
+    });
+
+    it('should handle different center coordinates', () => {
+      const result = polarToCartesian(50, 50, 25, 0);
+      expect(result.x).toBe(50);
+      expect(result.y).toBeCloseTo(25, 5);
+    });
+  });
+
+  describe('describeArc', () => {
+    it('should generate SVG path string', () => {
+      const path = describeArc(100, 100, 50, 0, 90);
+      expect(path).toContain('M 100 100');
+      expect(path).toContain('A 50 50');
+      expect(path).toContain('Z');
+    });
+
+    it('should use large arc flag for angles > 180', () => {
+      const smallArc = describeArc(100, 100, 50, 0, 90);
+      const largeArc = describeArc(100, 100, 50, 0, 270);
+
+      // Small arc should have 0 for large-arc-flag
+      expect(smallArc).toContain('A 50 50 0 0 0');
+      // Large arc should have 1 for large-arc-flag
+      expect(largeArc).toContain('A 50 50 0 1 0');
+    });
+
+    it('should handle full circle', () => {
+      const path = describeArc(100, 100, 50, 0, 360);
+      expect(path).toBeDefined();
+      expect(path.length).toBeGreaterThan(0);
     });
   });
 

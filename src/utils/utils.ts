@@ -67,6 +67,56 @@ export function hexToRgba(hex: string, opacity: number): string {
 }
 
 /**
+ * Maps Tailwind bg-* class to CSS variable
+ * @param bgClass - Tailwind background class (e.g., "bg-error-600")
+ * @returns CSS variable string (e.g., "var(--color-error-600)")
+ */
+export function bgClassToCssVar(bgClass: string): string {
+  return `var(--color-${bgClass.replace('bg-', '')})`;
+}
+
+/**
+ * Converts polar coordinates to Cartesian for SVG arc path calculations.
+ * Angles are in degrees, with 0° at the top (12 o'clock position).
+ * @param cx - Center X coordinate
+ * @param cy - Center Y coordinate
+ * @param r - Radius
+ * @param angleDeg - Angle in degrees
+ * @returns Cartesian coordinates { x, y }
+ */
+export function polarToCartesian(
+  cx: number,
+  cy: number,
+  r: number,
+  angleDeg: number
+): { x: number; y: number } {
+  const rad = ((angleDeg - 90) * Math.PI) / 180;
+  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+}
+
+/**
+ * Generates an SVG filled arc (pie slice) path string.
+ * @param cx - Center X coordinate
+ * @param cy - Center Y coordinate
+ * @param r - Radius
+ * @param startAngle - Start angle in degrees
+ * @param endAngle - End angle in degrees
+ * @returns SVG path string for the arc
+ */
+export function describeArc(
+  cx: number,
+  cy: number,
+  r: number,
+  startAngle: number,
+  endAngle: number
+): string {
+  const s = polarToCartesian(cx, cy, r, endAngle);
+  const e = polarToCartesian(cx, cy, r, startAngle);
+  const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+  return `M ${cx} ${cy} L ${s.x} ${s.y} A ${r} ${r} 0 ${largeArc} 0 ${e.x} ${e.y} Z`;
+}
+
+/**
  * Retorna a cor hexadecimal com opacidade 0.3 (4d) se não estiver em dark mode.
  * Se estiver em dark mode, retorna a cor original.
  *
