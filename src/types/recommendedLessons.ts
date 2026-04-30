@@ -98,6 +98,7 @@ export interface RecommendedClassTableItem extends Record<string, unknown> {
   id: string;
   startDate: string | null;
   deadline: string | null;
+  creator: string;
   title: string;
   school: string;
   year: string;
