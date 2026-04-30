@@ -30,7 +30,9 @@ jest.mock('../Modal/Modal', () => ({
 
 jest.mock('../Text/Text', () => ({
   __esModule: true,
-  default: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
+  default: ({ children }: { children: React.ReactNode }) => (
+    <span>{children}</span>
+  ),
 }));
 
 jest.mock('../ProgressBar/ProgressBar', () => ({
@@ -134,7 +136,9 @@ function createContentsData(): StudentContentsData {
   };
 }
 
-function renderModal(overrides: Partial<SimulatedStudentDetailsModalProps> = {}) {
+function renderModal(
+  overrides: Partial<SimulatedStudentDetailsModalProps> = {}
+) {
   const defaultProps: SimulatedStudentDetailsModalProps = {
     api: { post: jest.fn() },
     isOpen: true,
@@ -145,7 +149,9 @@ function renderModal(overrides: Partial<SimulatedStudentDetailsModalProps> = {})
     period: '1_MONTH',
   };
 
-  return render(<SimulatedStudentDetailsModal {...defaultProps} {...overrides} />);
+  return render(
+    <SimulatedStudentDetailsModal {...defaultProps} {...overrides} />
+  );
 }
 
 describe('SimulatedStudentDetailsModal', () => {

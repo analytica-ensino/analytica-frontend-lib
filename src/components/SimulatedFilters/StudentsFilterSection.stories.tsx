@@ -78,15 +78,27 @@ function InteractiveSection({
 }
 
 export const Default: Story = () => (
-  <InteractiveSection groupedStudents={baseGroups} hasFilters={true} isLoading={false} />
+  <InteractiveSection
+    groupedStudents={baseGroups}
+    hasFilters={true}
+    isLoading={false}
+  />
 );
 
 export const NoFiltersSelected: Story = () => (
-  <InteractiveSection groupedStudents={baseGroups} hasFilters={false} isLoading={false} />
+  <InteractiveSection
+    groupedStudents={baseGroups}
+    hasFilters={false}
+    isLoading={false}
+  />
 );
 
 export const EmptyStudents: Story = () => (
-  <InteractiveSection groupedStudents={[]} hasFilters={true} isLoading={false} />
+  <InteractiveSection
+    groupedStudents={[]}
+    hasFilters={true}
+    isLoading={false}
+  />
 );
 
 export const LoadingState: Story = () => (

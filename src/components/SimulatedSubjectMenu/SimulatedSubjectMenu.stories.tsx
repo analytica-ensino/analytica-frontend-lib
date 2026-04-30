@@ -43,7 +43,9 @@ function StoryContainer({
   areaKnowledgeId: string | null;
   loading?: boolean;
 }) {
-  const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(
+    null
+  );
 
   return (
     <div className="max-w-xl flex flex-col gap-3">

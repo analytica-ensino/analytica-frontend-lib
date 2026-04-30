@@ -276,5 +276,4 @@ describe('SimulatedFiltersModal', () => {
     });
     expect(mockClearStudents).toHaveBeenCalled();
   });
-
 });

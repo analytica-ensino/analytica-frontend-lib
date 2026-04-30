@@ -60,7 +60,9 @@ describe('StudentsFilterSection', () => {
 
     expect(screen.getByText('ESTUDANTES')).toBeInTheDocument();
     expect(
-      screen.getByText('Selecione uma escola, série ou turma para ver os estudantes')
+      screen.getByText(
+        'Selecione uma escola, série ou turma para ver os estudantes'
+      )
     ).toBeInTheDocument();
     expect(screen.queryByPlaceholderText('Buscar')).not.toBeInTheDocument();
   });
@@ -69,7 +71,9 @@ describe('StudentsFilterSection', () => {
     renderSection({ groupedStudents: [] });
 
     expect(
-      screen.getByText('Nenhum estudante encontrado para os filtros selecionados')
+      screen.getByText(
+        'Nenhum estudante encontrado para os filtros selecionados'
+      )
     ).toBeInTheDocument();
   });
 

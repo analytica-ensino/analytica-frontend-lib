@@ -5,7 +5,9 @@ import type { SimulatedSubjectItem, SimulatedSubjectsApiClient } from './types';
 
 jest.mock('../Text/Text', () => ({
   __esModule: true,
-  default: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
+  default: ({ children }: { children: React.ReactNode }) => (
+    <span>{children}</span>
+  ),
 }));
 
 jest.mock('../IconRender/IconRender', () => ({
@@ -33,7 +35,8 @@ jest.mock('../Menu/Menu', () => ({
       {React.Children.map(children, (child) => {
         if (!React.isValidElement(child)) return child;
         const childValue = (child.props as { value: string }).value;
-        const childLabel = (child.props as { children: React.ReactNode }).children;
+        const childLabel = (child.props as { children: React.ReactNode })
+          .children;
         return (
           <button type="button" onClick={() => onValueChange?.(childValue)}>
             {childLabel}
@@ -42,11 +45,9 @@ jest.mock('../Menu/Menu', () => ({
       })}
     </div>
   ),
-  MenuItem: ({
-    children,
-  }: {
-    children: React.ReactNode;
-  }) => <span>{children}</span>,
+  MenuItem: ({ children }: { children: React.ReactNode }) => (
+    <span>{children}</span>
+  ),
 }));
 
 const mockFetchSubjects = jest.fn();
@@ -144,7 +145,10 @@ describe('SimulatedSubjectMenu', () => {
       />
     );
 
-    expect(screen.getByTestId('menu-overflow')).toHaveAttribute('data-value', 'all');
+    expect(screen.getByTestId('menu-overflow')).toHaveAttribute(
+      'data-value',
+      'all'
+    );
   });
 
   it('calls onSubjectChange when a subject is selected', () => {
