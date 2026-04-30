@@ -31,8 +31,11 @@ export const useBrandingLogo = ({
   fallback,
 }: UseBrandingLogoOptions = {}): string => {
   const { branding } = useTheme();
-  const logo = variant === 'main' ? branding.mainLogo : branding.internalLogo;
+  const logo = (
+    variant === 'main' ? branding.mainLogo : branding.internalLogo
+  )?.trim();
+  const consumerFallback = fallback?.trim();
   const defaultFallback =
     variant === 'main' ? logoAnalyticaLight : logoAnalytica;
-  return logo ?? fallback ?? defaultFallback;
+  return logo || consumerFallback || defaultFallback;
 };

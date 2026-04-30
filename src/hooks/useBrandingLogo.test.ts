@@ -70,4 +70,32 @@ describe('useBrandingLogo', () => {
     expect(typeof result.current).toBe('string');
     expect(result.current.length).toBeGreaterThan(0);
   });
+
+  it('treats whitespace-only branding as missing and falls back to consumer fallback', () => {
+    mockBranding.internalLogo = '   ';
+
+    const { result } = renderHook(() =>
+      useBrandingLogo({ fallback: '/local.png' })
+    );
+
+    expect(result.current).toBe('/local.png');
+  });
+
+  it('treats empty-string branding as missing and falls back to consumer fallback', () => {
+    mockBranding.mainLogo = '';
+
+    const { result } = renderHook(() =>
+      useBrandingLogo({ variant: 'main', fallback: '/local.png' })
+    );
+
+    expect(result.current).toBe('/local.png');
+  });
+
+  it('treats whitespace-only consumer fallback as missing and uses the bundled default', () => {
+    const { result } = renderHook(() => useBrandingLogo({ fallback: '   ' }));
+
+    expect(typeof result.current).toBe('string');
+    expect(result.current.length).toBeGreaterThan(0);
+    expect(result.current.trim()).toBe(result.current);
+  });
 });
