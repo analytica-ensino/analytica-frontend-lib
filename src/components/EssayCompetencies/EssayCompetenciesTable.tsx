@@ -13,13 +13,19 @@ import type {
  * Proficiency cell component with progress bar
  */
 function ProficiencyCell({ percentage }: { readonly percentage: number }) {
-  let progressColorClass = 'bg-error-500';
+  const getProgressColorClass = (): string => {
+    if (percentage >= 70) {
+      return 'bg-success-500';
+    }
 
-  if (percentage >= 70) {
-    progressColorClass = 'bg-success-500';
-  } else if (percentage >= 50) {
-    progressColorClass = 'bg-warning-500';
-  }
+    if (percentage >= 50) {
+      return 'bg-warning-500';
+    }
+
+    return 'bg-error-500';
+  };
+
+  const progressColorClass = getProgressColorClass();
 
   return (
     <div className="flex items-center justify-center gap-2">

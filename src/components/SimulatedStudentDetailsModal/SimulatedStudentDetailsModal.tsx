@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, type ReactNode } from 'react';
 import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
 import ProgressBar from '../ProgressBar/ProgressBar';
@@ -142,6 +142,45 @@ export function SimulatedStudentDetailsModal({
   }
 
   const isSubjectsLevel = isStudentSubjectsData(data);
+  const renderDetailsContent = (): ReactNode => {
+    if (isSubjectsLevel) {
+      if (data.subjects.length > 0) {
+        return data.subjects.map((subject) => (
+          <SubjectItem
+            key={subject.id}
+            subject={subject}
+            onClick={() => handleSubjectClick(subject)}
+            questionsLabel="questões"
+          />
+        ));
+      }
+
+      return (
+        <Text size="sm" className="text-text-500 text-center py-4">
+          Nenhuma matéria encontrada
+        </Text>
+      );
+    }
+
+    if (data.contents.length > 0) {
+      return data.contents.map((content) => (
+        <ContentItem
+          key={content.contentId}
+          content={content}
+          questionsLabel="questões"
+          ofLabel="de"
+        />
+      ));
+    }
+
+    return (
+      <Text size="sm" className="text-text-500 text-center py-4">
+        Nenhuma habilidade encontrada
+      </Text>
+    );
+  };
+
+  const detailsContent = renderDetailsContent();
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={modalTitle} size="lg">
@@ -172,37 +211,7 @@ export function SimulatedStudentDetailsModal({
 
         {/* List of subjects or contents */}
         <div className="flex flex-col gap-2 max-h-[400px] overflow-y-auto">
-          {isSubjectsLevel ? (
-            // Level 1: Subjects list
-            data.subjects.length > 0 ? (
-              data.subjects.map((subject) => (
-                <SubjectItem
-                  key={subject.id}
-                  subject={subject}
-                  onClick={() => handleSubjectClick(subject)}
-                  questionsLabel="questões"
-                />
-              ))
-            ) : (
-              <Text size="sm" className="text-text-500 text-center py-4">
-                Nenhuma matéria encontrada
-              </Text>
-            )
-          ) : // Level 2: Contents list
-          data.contents.length > 0 ? (
-            data.contents.map((content) => (
-              <ContentItem
-                key={content.contentId}
-                content={content}
-                questionsLabel="questões"
-                ofLabel="de"
-              />
-            ))
-          ) : (
-            <Text size="sm" className="text-text-500 text-center py-4">
-              Nenhuma habilidade encontrada
-            </Text>
-          )}
+          {detailsContent}
         </div>
       </div>
     </Modal>

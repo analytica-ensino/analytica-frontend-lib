@@ -44,12 +44,19 @@ function ContentPerformanceCell({
 }: {
   readonly percentage: number;
 }) {
-  const colorClass =
-    percentage >= 70
-      ? 'bg-success-500'
-      : percentage >= 50
-        ? 'bg-warning-500'
-        : 'bg-error-500';
+  const getColorClass = (): string => {
+    if (percentage >= 70) {
+      return 'bg-success-500';
+    }
+
+    if (percentage >= 50) {
+      return 'bg-warning-500';
+    }
+
+    return 'bg-error-500';
+  };
+
+  const colorClass = getColorClass();
 
   return (
     <div className="flex items-center justify-center gap-2">

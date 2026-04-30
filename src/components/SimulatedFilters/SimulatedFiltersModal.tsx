@@ -110,15 +110,22 @@ export function SimulatedFiltersModal({
       hasInitialized.current = true;
 
       // Auto-select school if there's only one
-      const hasInitialSchools =
-        initialFilters?.schoolIds && initialFilters.schoolIds.length > 0;
-      let autoSelectedSchoolIds: string[] = [];
+      const getAutoSelectedSchoolIds = (): string[] => {
+        const hasInitialSchools =
+          initialFilters?.schoolIds && initialFilters.schoolIds.length > 0;
 
-      if (hasInitialSchools) {
-        autoSelectedSchoolIds = initialFilters?.schoolIds || [];
-      } else if (schools.length === 1) {
-        autoSelectedSchoolIds = [schools[0].id];
-      }
+        if (hasInitialSchools) {
+          return initialFilters?.schoolIds || [];
+        }
+
+        if (schools.length === 1) {
+          return [schools[0].id];
+        }
+
+        return [];
+      };
+
+      const autoSelectedSchoolIds = getAutoSelectedSchoolIds();
 
       setCategories([
         {
