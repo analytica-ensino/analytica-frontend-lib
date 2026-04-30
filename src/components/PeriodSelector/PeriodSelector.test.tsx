@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { PeriodSelector } from './PeriodSelector';
-import { PERIOD_OPTIONS } from './types';
+import { Period, PERIOD_OPTIONS } from './types';
 
 jest.mock('../Menu/Menu', () => ({
   Menu: ({
@@ -92,7 +92,7 @@ jest.mock('../Menu/Menu', () => ({
 
 describe('PeriodSelector', () => {
   it('renders all default period options', () => {
-    render(<PeriodSelector value="1_MONTH" onChange={jest.fn()} />);
+    render(<PeriodSelector value={Period.ONE_MONTH} onChange={jest.fn()} />);
 
     PERIOD_OPTIONS.forEach((option) => {
       expect(screen.getByText(option.label)).toBeInTheDocument();
@@ -100,7 +100,7 @@ describe('PeriodSelector', () => {
   });
 
   it('passes default props to Menu', () => {
-    render(<PeriodSelector value="1_MONTH" onChange={jest.fn()} />);
+    render(<PeriodSelector value={Period.ONE_MONTH} onChange={jest.fn()} />);
 
     const menu = screen.getByTestId('menu');
     expect(menu).toHaveAttribute('data-default-value', '1_MONTH');
@@ -111,7 +111,7 @@ describe('PeriodSelector', () => {
   it('applies className to Menu container', () => {
     render(
       <PeriodSelector
-        value="1_MONTH"
+        value={Period.ONE_MONTH}
         onChange={jest.fn()}
         className="custom-selector"
       />
@@ -145,7 +145,7 @@ describe('PeriodSelector', () => {
   it('filters excluded values from options', () => {
     render(
       <PeriodSelector
-        value="1_MONTH"
+        value={Period.ONE_MONTH}
         onChange={jest.fn()}
         excludeValues={['3_MONTHS', '1_YEAR']}
       />
@@ -158,7 +158,7 @@ describe('PeriodSelector', () => {
 
   it('calls onChange when a period option is clicked', () => {
     const onChange = jest.fn();
-    render(<PeriodSelector value="1_MONTH" onChange={onChange} />);
+    render(<PeriodSelector value={Period.ONE_MONTH} onChange={onChange} />);
 
     fireEvent.click(screen.getByTestId('menu-item-7_DAYS'));
 
@@ -169,8 +169,8 @@ describe('PeriodSelector', () => {
   it('uses custom defaultValue when provided', () => {
     render(
       <PeriodSelector
-        value="3_MONTHS"
-        defaultValue="7_DAYS"
+        value={Period.THREE_MONTHS}
+        defaultValue={Period.SEVEN_DAYS}
         onChange={jest.fn()}
       />
     );

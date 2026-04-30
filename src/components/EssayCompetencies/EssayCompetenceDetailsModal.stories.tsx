@@ -9,6 +9,8 @@ import {
   type EssayCompetenceDetailsData,
 } from './types';
 import type { BaseApiClient } from '../../types/api';
+import { Period } from '../PeriodSelector';
+import Text from '../Text/Text';
 
 // ============================================================================
 // MOCK DATA CONSTANTS
@@ -348,7 +350,7 @@ export const Default: Story = () => {
         onClose={() => setIsOpen(false)}
         competenceNumber={1}
         competenceName="Competência 1 - Domínio da escrita"
-        period="1_MONTH"
+        period={Period.ONE_MONTH}
       />
     </>
   );
@@ -398,7 +400,7 @@ export const AllCompetencies: Story = () => {
             ? competencies.find((c) => c.number === openModal)?.name
             : undefined
         }
-        period="1_MONTH"
+        period={Period.ONE_MONTH}
       />
     </div>
   );
@@ -422,7 +424,7 @@ export const WithPagination: Story = () => {
         onClose={() => setIsOpen(false)}
         competenceNumber={3}
         competenceName="Competência 3 - Seleção de informações"
-        period="1_MONTH"
+        period={Period.ONE_MONTH}
       />
     </>
   );
@@ -446,7 +448,7 @@ export const LoadingState: Story = () => {
         onClose={() => setIsOpen(false)}
         competenceNumber={2}
         competenceName="Competência 2 - Compreensão da proposta"
-        period="1_MONTH"
+        period={Period.ONE_MONTH}
       />
     </>
   );
@@ -468,7 +470,7 @@ export const ErrorState: Story = () => {
         onClose={() => setIsOpen(false)}
         competenceNumber={1}
         competenceName="Competência 1"
-        period="1_MONTH"
+        period={Period.ONE_MONTH}
       />
     </>
   );
@@ -492,7 +494,7 @@ export const EmptyState: Story = () => {
         onClose={() => setIsOpen(false)}
         competenceNumber={4}
         competenceName="Competência 4 - Mecanismos linguísticos"
-        period="1_MONTH"
+        period={Period.ONE_MONTH}
       />
     </>
   );
@@ -511,9 +513,9 @@ export const WithFilters: Story = () => {
         <Button onClick={() => setIsOpen(true)}>
           Abrir Modal (Com Filtros)
         </Button>
-        <p className="text-sm text-text-500">
+        <Text size="sm" color="text-text-500">
           Filtrado por: Escola ABC, Turma 3A
-        </p>
+        </Text>
       </div>
       <EssayCompetenceDetailsModal
         api={api}
@@ -521,7 +523,7 @@ export const WithFilters: Story = () => {
         onClose={() => setIsOpen(false)}
         competenceNumber={1}
         competenceName="Competência 1 - Domínio da escrita"
-        period="3_MONTHS"
+        period={Period.THREE_MONTHS}
         schoolIds={['school-1']}
         classIds={['class-1']}
       />
@@ -547,7 +549,7 @@ export const FewStudents: Story = () => {
         onClose={() => setIsOpen(false)}
         competenceNumber={2}
         competenceName="Competência 2 - Compreensão da proposta"
-        period="1_MONTH"
+        period={Period.ONE_MONTH}
       />
     </>
   );
@@ -568,7 +570,7 @@ export const SingleStudent: Story = () => {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         competenceNumber={1}
-        period="1_MONTH"
+        period={Period.ONE_MONTH}
       />
     </>
   );

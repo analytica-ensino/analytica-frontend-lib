@@ -9,6 +9,8 @@ import {
   type EssayCompetencyPerformance,
 } from './types';
 import type { BaseApiClient } from '../../types/api';
+import { Period } from '../PeriodSelector';
+import Text from '../Text/Text';
 
 // ============================================================================
 // MOCK DATA GENERATORS
@@ -199,7 +201,7 @@ export const Default: Story = () => {
         onClose={() => setIsOpen(false)}
         userInstitutionId="user-inst-1"
         studentName="Maria Silva"
-        period="1_MONTH"
+        period={Period.ONE_MONTH}
       />
     </>
   );
@@ -226,7 +228,7 @@ export const HighlightStudent: Story = () => {
         onClose={() => setIsOpen(false)}
         userInstitutionId="user-inst-2"
         studentName="João Pedro Almeida"
-        period="1_MONTH"
+        period={Period.ONE_MONTH}
       />
     </>
   );
@@ -253,7 +255,7 @@ export const BelowAverageStudent: Story = () => {
         onClose={() => setIsOpen(false)}
         userInstitutionId="user-inst-3"
         studentName="Ana Carolina Santos"
-        period="1_MONTH"
+        period={Period.ONE_MONTH}
       />
     </>
   );
@@ -280,7 +282,7 @@ export const AttentionPointStudent: Story = () => {
         onClose={() => setIsOpen(false)}
         userInstitutionId="user-inst-4"
         studentName="Pedro Henrique Lima"
-        period="1_MONTH"
+        period={Period.ONE_MONTH}
       />
     </>
   );
@@ -304,7 +306,7 @@ export const LoadingState: Story = () => {
         onClose={() => setIsOpen(false)}
         userInstitutionId="user-inst-5"
         studentName="Fernanda Costa"
-        period="1_MONTH"
+        period={Period.ONE_MONTH}
       />
     </>
   );
@@ -326,7 +328,7 @@ export const ErrorState: Story = () => {
         onClose={() => setIsOpen(false)}
         userInstitutionId="user-inst-6"
         studentName="Lucas Oliveira"
-        period="1_MONTH"
+        period={Period.ONE_MONTH}
       />
     </>
   );
@@ -350,7 +352,7 @@ export const EmptyCompetencies: Story = () => {
         onClose={() => setIsOpen(false)}
         userInstitutionId="user-inst-7"
         studentName="Beatriz Ferreira"
-        period="1_MONTH"
+        period={Period.ONE_MONTH}
       />
     </>
   );
@@ -369,9 +371,9 @@ export const WithFilters: Story = () => {
         <Button onClick={() => setIsOpen(true)}>
           Abrir Modal (Com Filtros)
         </Button>
-        <p className="text-sm text-text-500">
+        <Text size="sm" color="text-text-500">
           Filtrado por: Escola ABC, Turma 3A, Período 3 meses
-        </p>
+        </Text>
       </div>
       <EssayStudentDetailsModal
         api={api}
@@ -379,7 +381,7 @@ export const WithFilters: Story = () => {
         onClose={() => setIsOpen(false)}
         userInstitutionId="user-inst-8"
         studentName="Rafael Martins"
-        period="3_MONTHS"
+        period={Period.THREE_MONTHS}
         schoolIds={['school-1']}
         classIds={['class-1']}
       />
@@ -405,7 +407,7 @@ export const CustomLabels: Story = () => {
         onClose={() => setIsOpen(false)}
         userInstitutionId="user-inst-9"
         studentName="Camila Rodrigues"
-        period="1_MONTH"
+        period={Period.ONE_MONTH}
         labels={{
           competencies: 'Habilidades de Redação ENEM',
           essays: 'textos escritos',
@@ -453,9 +455,9 @@ export const AllPerformanceLevels: Story = () => {
       <h2 className="font-bold text-xl text-text-900">
         Todos os Níveis de Desempenho
       </h2>
-      <p className="text-text-500">
+      <Text size="sm" color="text-text-500">
         Clique em um estudante para ver os detalhes
-      </p>
+      </Text>
       <div className="flex flex-wrap gap-3">
         {students.map((student) => (
           <Button
@@ -475,7 +477,7 @@ export const AllPerformanceLevels: Story = () => {
           onClose={() => setOpenModal(null)}
           userInstitutionId={student.id}
           studentName={student.name}
-          period="1_MONTH"
+          period={Period.ONE_MONTH}
         />
       ))}
     </div>

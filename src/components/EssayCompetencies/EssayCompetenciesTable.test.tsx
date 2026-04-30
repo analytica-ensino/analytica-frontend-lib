@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import type { EssayCompetenciesOverviewData } from './types';
 import type { BaseApiClient } from '../../types/api';
+import { Period } from '../PeriodSelector';
 
 // Mock TableProvider to avoid complex dependencies
 jest.mock('../TableProvider', () => ({
@@ -307,12 +308,12 @@ describe('EssayCompetenciesTable', () => {
       mockHookState = { data: createMockData(), loading: false, error: null };
 
       const { rerender } = render(
-        <EssayCompetenciesTable {...defaultProps} period="1_MONTH" />
+        <EssayCompetenciesTable {...defaultProps} period={Period.ONE_MONTH} />
       );
 
       expect(mockFetchOverview).toHaveBeenCalledTimes(1);
 
-      rerender(<EssayCompetenciesTable {...defaultProps} period="3_MONTHS" />);
+      rerender(<EssayCompetenciesTable {...defaultProps} period={Period.THREE_MONTHS} />);
 
       expect(mockFetchOverview).toHaveBeenCalledTimes(2);
       expect(mockFetchOverview).toHaveBeenLastCalledWith(

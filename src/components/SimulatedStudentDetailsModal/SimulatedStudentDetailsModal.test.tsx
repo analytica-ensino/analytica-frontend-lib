@@ -8,6 +8,7 @@ import type {
   StudentSubjectsData,
 } from './types';
 import { SimulatedPerformanceTag } from './types';
+import { Period } from '../PeriodSelector';
 
 jest.mock('../Modal/Modal', () => ({
   __esModule: true,
@@ -244,7 +245,7 @@ describe('SimulatedStudentDetailsModal', () => {
         simulationType="enem-1"
         userInstitutionId="user-inst-1"
         studentName="Maria Silva"
-        period="1_MONTH"
+        period={Period.ONE_MONTH}
       />
     );
 

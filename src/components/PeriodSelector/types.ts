@@ -1,4 +1,15 @@
 /**
+ * Period enum for time-based filtering
+ */
+export enum Period {
+  SEVEN_DAYS = '7_DAYS',
+  ONE_MONTH = '1_MONTH',
+  THREE_MONTHS = '3_MONTHS',
+  SIX_MONTHS = '6_MONTHS',
+  ONE_YEAR = '1_YEAR',
+}
+
+/**
  * Period tab configuration
  */
 export interface PeriodTab {
@@ -10,11 +21,11 @@ export interface PeriodTab {
  * Default period tabs matching the design system
  */
 export const PERIOD_OPTIONS = [
-  { value: '7_DAYS', label: '7 dias' },
-  { value: '1_MONTH', label: '1 mês' },
-  { value: '3_MONTHS', label: '3 meses' },
-  { value: '6_MONTHS', label: '6 meses' },
-  { value: '1_YEAR', label: '1 ano' },
+  { value: Period.SEVEN_DAYS, label: '7 dias' },
+  { value: Period.ONE_MONTH, label: '1 mês' },
+  { value: Period.THREE_MONTHS, label: '3 meses' },
+  { value: Period.SIX_MONTHS, label: '6 meses' },
+  { value: Period.ONE_YEAR, label: '1 ano' },
 ] as const;
 
 /**

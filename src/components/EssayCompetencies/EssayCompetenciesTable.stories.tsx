@@ -9,6 +9,7 @@ import type {
 } from './types';
 import { SimulatedPerformanceTag } from './types';
 import type { BaseApiClient } from '../../types/api';
+import { Period } from '../PeriodSelector';
 
 // ============================================================================
 // MOCK DATA GENERATORS
@@ -478,7 +479,7 @@ export const Default: Story = () => {
 
   return (
     <div className="p-4">
-      <EssayCompetenciesTable api={api} period="1_MONTH" />
+      <EssayCompetenciesTable api={api} period={Period.ONE_MONTH} />
     </div>
   );
 };
@@ -491,7 +492,7 @@ export const LoadingState: Story = () => {
 
   return (
     <div className="p-4">
-      <EssayCompetenciesTable api={api} period="1_MONTH" />
+      <EssayCompetenciesTable api={api} period={Period.ONE_MONTH} />
     </div>
   );
 };
@@ -504,7 +505,7 @@ export const EmptyState: Story = () => {
 
   return (
     <div className="p-4">
-      <EssayCompetenciesTable api={api} period="1_MONTH" />
+      <EssayCompetenciesTable api={api} period={Period.ONE_MONTH} />
     </div>
   );
 };
@@ -520,7 +521,7 @@ export const HighPerformance: Story = () => {
       <h2 className="text-lg font-bold mb-4 text-text-900">
         Turma com Alto Desempenho
       </h2>
-      <EssayCompetenciesTable api={api} period="1_MONTH" />
+      <EssayCompetenciesTable api={api} period={Period.ONE_MONTH} />
     </div>
   );
 };
@@ -536,7 +537,7 @@ export const LowPerformance: Story = () => {
       <h2 className="text-lg font-bold mb-4 text-text-900">
         Turma com Baixo Desempenho
       </h2>
-      <EssayCompetenciesTable api={api} period="1_MONTH" />
+      <EssayCompetenciesTable api={api} period={Period.ONE_MONTH} />
     </div>
   );
 };
@@ -556,7 +557,7 @@ export const WithFilters: Story = () => {
       </div>
       <EssayCompetenciesTable
         api={api}
-        period="3_MONTHS"
+        period={Period.THREE_MONTHS}
         schoolIds={['school-1']}
         classIds={['class-1']}
       />
@@ -572,7 +573,7 @@ export const ErrorState: Story = () => {
 
   return (
     <div className="p-4">
-      <EssayCompetenciesTable api={api} period="1_MONTH" />
+      <EssayCompetenciesTable api={api} period={Period.ONE_MONTH} />
     </div>
   );
 };
@@ -590,7 +591,7 @@ export const InteractiveWithModal: Story = () => {
           Clique em uma linha da tabela para ver os detalhes da competência
         </p>
       </div>
-      <EssayCompetenciesTable api={api} period="1_MONTH" />
+      <EssayCompetenciesTable api={api} period={Period.ONE_MONTH} />
     </div>
   );
 };

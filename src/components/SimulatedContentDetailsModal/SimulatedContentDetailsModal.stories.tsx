@@ -4,6 +4,7 @@ import Button from '../Button/Button';
 import { SimulatedContentDetailsModal } from './SimulatedContentDetailsModal';
 import type { ContentDetailsApiResponse, ContentDetailsData } from './types';
 import type { BaseApiClient } from '../../types/api';
+import { Period } from '../PeriodSelector';
 
 function createMockData(
   contentName: string = 'Leitura e interpretação'
@@ -141,7 +142,7 @@ function BaseModalStory({
         activityFilters={{ types: ['SIMULADO'] }}
         contentId="content-1"
         contentName="Habilidade fallback"
-        period="1_MONTH"
+        period={Period.ONE_MONTH}
         filters={{ schoolIds: ['school-1'], classIds: ['class-1'] }}
       />
     </>

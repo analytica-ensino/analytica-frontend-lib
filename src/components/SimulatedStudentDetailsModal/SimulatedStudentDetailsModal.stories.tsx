@@ -9,6 +9,7 @@ import type {
 } from './types';
 import { SimulatedPerformanceTag } from './types';
 import type { BaseApiClient } from '../../types/api';
+import { Period } from '../PeriodSelector';
 
 function createSubjectsData(): StudentSubjectsData {
   return {
@@ -172,7 +173,7 @@ function BaseStory({
         simulationType={simulationType}
         userInstitutionId="user-inst-1"
         studentName="Maria Silva"
-        period="1_MONTH"
+        period={Period.ONE_MONTH}
       />
     </>
   );

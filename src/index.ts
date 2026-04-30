@@ -552,7 +552,7 @@ export {
 } from './components/Menu/Menu';
 
 // PeriodSelector Component
-export { PeriodSelector, PERIOD_OPTIONS } from './components/PeriodSelector';
+export { PeriodSelector, Period, PERIOD_OPTIONS } from './components/PeriodSelector';
 export type {
   PeriodTab,
   PeriodValue,
