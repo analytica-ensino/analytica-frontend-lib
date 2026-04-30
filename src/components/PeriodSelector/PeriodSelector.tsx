@@ -47,7 +47,7 @@ export function PeriodSelector({
   options = PERIOD_OPTIONS as readonly PeriodTab[],
   excludeValues = [],
   className,
-}: PeriodSelectorProps) {
+}: Readonly<PeriodSelectorProps>) {
   // Filter out excluded values
   const filteredOptions = useMemo((): readonly PeriodTab[] => {
     if (excludeValues.length === 0) {

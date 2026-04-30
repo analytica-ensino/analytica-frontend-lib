@@ -36,7 +36,13 @@ function buildEndpoint(
   }
 
   const queryString = params.toString();
-  return `/performance/simulated/activities/contents-performance${queryString ? `?${queryString}` : ''}`;
+  const endpoint = '/performance/simulated/activities/contents-performance';
+
+  if (!queryString) {
+    return endpoint;
+  }
+
+  return `${endpoint}?${queryString}`;
 }
 
 /**

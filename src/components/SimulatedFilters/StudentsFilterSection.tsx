@@ -1,9 +1,9 @@
 import { useMemo, useCallback } from 'react';
 import Text from '../Text/Text';
 import CheckBox from '../CheckBox/CheckBox';
-import { Users, MagnifyingGlass } from '@phosphor-icons/react';
 import type { StudentGroup, StudentsFilterSectionProps } from './types';
 import Input from '../Input/Input';
+import { Users, MagnifyingGlass } from 'phosphor-react';
 
 /**
  * Students filter section with search and grouping by school/year/class
@@ -29,7 +29,7 @@ export function StudentsFilterSection({
   hasFilters,
   onSearchChange,
   onSelectionChange,
-}: StudentsFilterSectionProps) {
+}: Readonly<StudentsFilterSectionProps>) {
   // Filter students by name based on search
   const filteredGroups = useMemo(() => {
     if (!searchQuery.trim()) {

@@ -87,7 +87,7 @@ export function SimulatedPerformanceView({
   studentsTableColumns,
   contentsTableColumns,
   noSearchImage,
-}: SimulatedPerformanceViewProps) {
+}: Readonly<SimulatedPerformanceViewProps>) {
   return (
     <>
       {/* Period tabs */}

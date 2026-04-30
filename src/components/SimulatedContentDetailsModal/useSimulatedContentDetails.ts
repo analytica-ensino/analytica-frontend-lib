@@ -19,7 +19,13 @@ function buildEndpoint(activityFilters: ActivityFilters): string {
   activityFilters.statuses?.forEach((s) => params.append('statuses', s));
 
   const queryString = params.toString();
-  return `/performance/simulated/activities/content-details${queryString ? `?${queryString}` : ''}`;
+  const endpoint = '/performance/simulated/activities/content-details';
+
+  if (!queryString) {
+    return endpoint;
+  }
+
+  return `${endpoint}?${queryString}`;
 }
 
 /**

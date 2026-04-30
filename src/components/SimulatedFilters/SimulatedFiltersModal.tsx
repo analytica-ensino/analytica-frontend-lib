@@ -6,7 +6,7 @@ import {
   CheckboxGroup,
   type CategoryConfig,
 } from '../CheckBoxGroup/CheckBoxGroup';
-import { GraduationCap } from '@phosphor-icons/react';
+import { GraduationCapIcon } from '@phosphor-icons/react';
 import { useUserAccessData, useStudentsFilter } from './hooks';
 import { StudentsFilterSection } from './StudentsFilterSection';
 import type { SimulatedFiltersModalProps, SimulatedFilters } from './types';
@@ -70,7 +70,7 @@ export function SimulatedFiltersModal({
   onApply,
   initialFilters,
   api,
-}: SimulatedFiltersModalProps) {
+}: Readonly<SimulatedFiltersModalProps>) {
   const { schools, schoolYears, classes, isLoading } = useUserAccessData(api);
 
   const {
@@ -112,11 +112,13 @@ export function SimulatedFiltersModal({
       // Auto-select school if there's only one
       const hasInitialSchools =
         initialFilters?.schoolIds && initialFilters.schoolIds.length > 0;
-      const autoSelectedSchoolIds = hasInitialSchools
-        ? initialFilters.schoolIds
-        : schools.length === 1
-          ? [schools[0].id]
-          : [];
+      let autoSelectedSchoolIds: string[] = [];
+
+      if (hasInitialSchools) {
+        autoSelectedSchoolIds = initialFilters?.schoolIds || [];
+      } else if (schools.length === 1) {
+        autoSelectedSchoolIds = [schools[0].id];
+      }
 
       setCategories([
         {
@@ -222,7 +224,7 @@ export function SimulatedFiltersModal({
       <div className="flex flex-col gap-6">
         {/* Section Header - Academic Data */}
         <div className="flex items-center gap-2 text-text-400 text-sm font-medium uppercase">
-          <GraduationCap size={16} className="text-text-400" />
+          <GraduationCapIcon size={16} className="text-text-400" />
           <Text size="sm" weight="semibold" className="text-text-400 uppercase">
             DADOS ACADÊMICOS
           </Text>
