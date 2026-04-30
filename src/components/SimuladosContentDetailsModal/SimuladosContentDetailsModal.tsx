@@ -12,18 +12,6 @@ import type {
   ContentStudentItem,
 } from './types';
 
-const DEFAULT_LABELS = {
-  title: 'Desempenho competência',
-  loading: 'Carregando...',
-  noData: 'Nenhum dado encontrado',
-  noStudents: 'Nenhum estudante encontrado',
-  questions: 'questões',
-  students: 'alunos',
-  aboveAverage: 'Acima da média',
-  atAverage: 'Na média',
-  belowAverage: 'Abaixo da média',
-};
-
 /**
  * Table columns configuration
  */
@@ -106,9 +94,7 @@ export function SimuladosContentDetailsModal({
   contentName,
   period,
   filters,
-  labels: customLabels,
 }: SimuladosContentDetailsModalProps) {
-  const labels = { ...DEFAULT_LABELS, ...customLabels };
   const { data, loading, error, fetchDetails, reset } =
     useSimulatedContentDetails(api);
 
@@ -163,7 +149,7 @@ export function SimuladosContentDetailsModal({
       >
         <ArrowLeft size={20} className="text-text-600" />
       </button>
-      <span>{labels.title}</span>
+      <span>Desempenho competência</span>
     </span>
   );
 
@@ -216,7 +202,7 @@ export function SimuladosContentDetailsModal({
       <Modal isOpen={isOpen} onClose={onClose} title={modalTitle} size="xl">
         <div className="flex items-center justify-center py-8">
           <Text size="sm" className="text-text-500">
-            {labels.noData}
+            Nenhum dado encontrado
           </Text>
         </div>
       </Modal>
@@ -239,8 +225,7 @@ export function SimuladosContentDetailsModal({
             )}
             <Text size="sm" className="text-text-500">
               {data.content.subject.name} • {data.content.questionsCount}{' '}
-              {labels.questions} • {data.content.studentsCount}{' '}
-              {labels.students}
+              questões • {data.content.studentsCount} alunos
             </Text>
           </div>
         </div>
@@ -248,17 +233,17 @@ export function SimuladosContentDetailsModal({
         {/* Performance counters */}
         <div className="grid grid-cols-3 gap-3">
           <CounterCard
-            label={labels.aboveAverage}
+            label="Acima da média"
             count={data.counters.aboveAverage}
             variant="success"
           />
           <CounterCard
-            label={labels.atAverage}
+            label="Na média"
             count={data.counters.atAverage}
             variant="info"
           />
           <CounterCard
-            label={labels.belowAverage}
+            label="Abaixo da média"
             count={data.counters.belowAverage}
             variant="error"
           />

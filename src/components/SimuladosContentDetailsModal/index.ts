@@ -12,6 +12,5 @@ export type {
   UseSimulatedContentDetailsState,
   UseSimulatedContentDetailsReturn,
   SimuladosContentDetailsModalProps,
-  SimuladosContentDetailsLabels,
   ActivityFilters,
 } from './types';

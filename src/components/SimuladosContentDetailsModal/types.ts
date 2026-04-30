@@ -123,22 +123,6 @@ export interface SimuladosContentDetailsModalProps {
     schoolYearIds?: string[];
     classIds?: string[];
   };
-  readonly labels?: SimuladosContentDetailsLabels;
-}
-
-/**
- * Customizable labels
- */
-export interface SimuladosContentDetailsLabels {
-  title?: string;
-  loading?: string;
-  noData?: string;
-  noStudents?: string;
-  questions?: string;
-  students?: string;
-  aboveAverage?: string;
-  atAverage?: string;
-  belowAverage?: string;
 }
 
 // Re-export ActivityFilters for convenience
