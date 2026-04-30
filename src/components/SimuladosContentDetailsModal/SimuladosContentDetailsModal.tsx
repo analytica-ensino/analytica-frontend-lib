@@ -1,8 +1,9 @@
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback } from 'react';
 import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
 import ProgressBar from '../ProgressBar/ProgressBar';
-import { TablePagination } from '../Table/Table';
+import { SkeletonRounded } from '../Skeleton/Skeleton';
+import { TableProvider, type TableParams } from '../TableProvider';
 import { ArrowLeft } from 'phosphor-react';
 import { useSimulatedContentDetails } from './useSimulatedContentDetails';
 import type {
@@ -30,8 +31,77 @@ function formatPercentageRounded(value: number): string {
 }
 
 /**
+ * Table columns configuration
+ */
+const TABLE_COLUMNS = [
+  {
+    key: 'name',
+    label: 'Nome',
+    className: 'py-3 px-4 text-start',
+  },
+  {
+    key: 'school',
+    label: 'Escola',
+    className: 'py-3 px-4 text-start',
+  },
+  {
+    key: 'schoolYear',
+    label: 'Ano',
+    className: 'py-3 px-4 text-center',
+    align: 'center' as const,
+    width: '80px',
+  },
+  {
+    key: 'class',
+    label: 'Turma',
+    className: 'py-3 px-4 text-center',
+    align: 'center' as const,
+    width: '80px',
+  },
+  {
+    key: 'average',
+    label: 'Média',
+    className: 'py-3 px-4 text-center',
+    align: 'center' as const,
+    width: '100px',
+    render: (_value: unknown, row: Record<string, unknown>) => {
+      const student = row as unknown as ContentStudentItem;
+      return (
+        <span className="text-sm font-semibold text-text-950">
+          {Math.round(student.average)}
+        </span>
+      );
+    },
+  },
+  {
+    key: 'performance',
+    label: 'Desempenho',
+    className: 'py-3 px-4 text-center',
+    align: 'center' as const,
+    width: '160px',
+    render: (_value: unknown, row: Record<string, unknown>) => {
+      const student = row as unknown as ContentStudentItem;
+      return (
+        <div className="flex items-center justify-center gap-2">
+          <div className="w-20 shrink-0">
+            <ProgressBar
+              value={student.performance}
+              variant="green"
+              size="small"
+            />
+          </div>
+          <span className="text-sm font-semibold text-text-600 w-10">
+            {formatPercentageRounded(student.performance)}
+          </span>
+        </div>
+      );
+    },
+  },
+];
+
+/**
  * Modal for displaying content (habilidade) performance details in simulated exams
- * Shows list of students with their individual performance for the selected content
+ * Shows table of students with their individual performance for the selected content
  */
 export function SimuladosContentDetailsModal({
   api,
@@ -47,8 +117,6 @@ export function SimuladosContentDetailsModal({
   const labels = { ...DEFAULT_LABELS, ...customLabels };
   const { data, loading, error, fetchDetails, reset } =
     useSimulatedContentDetails(api);
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10;
 
   // Fetch content details when modal opens
   useEffect(() => {
@@ -60,8 +128,8 @@ export function SimuladosContentDetailsModal({
         schoolIds: filters?.schoolIds,
         schoolYearIds: filters?.schoolYearIds,
         classIds: filters?.classIds,
-        page: currentPage,
-        limit: pageSize,
+        page: 1,
+        limit: 10,
       });
     }
   }, [
@@ -70,7 +138,6 @@ export function SimuladosContentDetailsModal({
     activityFilters,
     period,
     filters,
-    currentPage,
     fetchDetails,
   ]);
 
@@ -78,14 +145,26 @@ export function SimuladosContentDetailsModal({
   useEffect(() => {
     if (!isOpen) {
       reset();
-      setCurrentPage(1);
     }
   }, [isOpen, reset]);
 
-  // Handle page change
-  const handlePageChange = useCallback((page: number) => {
-    setCurrentPage(page);
-  }, []);
+  // Handle table params change (pagination)
+  const handleParamsChange = useCallback(
+    (params: TableParams) => {
+      if (!contentId) return;
+      fetchDetails({
+        activityFilters,
+        contentId,
+        period,
+        schoolIds: filters?.schoolIds,
+        schoolYearIds: filters?.schoolYearIds,
+        classIds: filters?.classIds,
+        page: params.page,
+        limit: params.limit,
+      });
+    },
+    [contentId, activityFilters, period, filters, fetchDetails]
+  );
 
   // Build modal title
   const modalTitle = (
@@ -102,13 +181,30 @@ export function SimuladosContentDetailsModal({
   );
 
   // Render loading state
-  if (loading) {
+  if (loading && !data) {
     return (
-      <Modal isOpen={isOpen} onClose={onClose} title={modalTitle} size="lg">
-        <div className="flex items-center justify-center py-8">
-          <Text size="sm" className="text-text-500">
-            {labels.loading}
-          </Text>
+      <Modal isOpen={isOpen} onClose={onClose} title={modalTitle} size="xl">
+        <div className="flex flex-col gap-4">
+          {/* Header skeleton */}
+          <div className="p-4 bg-background-50 rounded-xl">
+            <SkeletonRounded className="h-5 w-48 mb-2" />
+            <SkeletonRounded className="h-4 w-64" />
+          </div>
+
+          {/* Counters skeleton */}
+          <div className="grid grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <SkeletonRounded key={i} className="h-20 rounded-xl" />
+            ))}
+          </div>
+
+          {/* Table skeleton */}
+          <div className="flex flex-col gap-2">
+            <SkeletonRounded className="h-10 rounded-lg" />
+            {[1, 2, 3, 4, 5].map((i) => (
+              <SkeletonRounded key={i} className="h-12 rounded-lg" />
+            ))}
+          </div>
         </div>
       </Modal>
     );
@@ -117,7 +213,7 @@ export function SimuladosContentDetailsModal({
   // Render error state
   if (error) {
     return (
-      <Modal isOpen={isOpen} onClose={onClose} title={modalTitle} size="lg">
+      <Modal isOpen={isOpen} onClose={onClose} title={modalTitle} size="xl">
         <div className="flex items-center justify-center py-8">
           <Text size="sm" className="text-error-500">
             {error}
@@ -130,7 +226,7 @@ export function SimuladosContentDetailsModal({
   // Render empty state
   if (!data) {
     return (
-      <Modal isOpen={isOpen} onClose={onClose} title={modalTitle} size="lg">
+      <Modal isOpen={isOpen} onClose={onClose} title={modalTitle} size="xl">
         <div className="flex items-center justify-center py-8">
           <Text size="sm" className="text-text-500">
             {labels.noData}
@@ -140,11 +236,9 @@ export function SimuladosContentDetailsModal({
     );
   }
 
-  const totalPages = Math.ceil(data.students.total / pageSize);
-
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={modalTitle} size="lg">
-      <div className="flex flex-col gap-4">
+    <Modal isOpen={isOpen} onClose={onClose} title={modalTitle} size="xl">
+      <div className="flex flex-col gap-6">
         {/* Content header */}
         <div className="flex flex-col gap-1 p-4 bg-background-50 rounded-xl">
           <Text size="md" weight="semibold" className="text-text-950">
@@ -165,162 +259,80 @@ export function SimuladosContentDetailsModal({
         </div>
 
         {/* Performance counters */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-3">
           <CounterCard
             label={labels.aboveAverage}
-            value={data.counters.aboveAverage}
-            colorClass="bg-success-100 text-success-700"
+            count={data.counters.aboveAverage}
+            variant="success"
           />
           <CounterCard
             label={labels.atAverage}
-            value={data.counters.atAverage}
-            colorClass="bg-primary-100 text-primary-700"
+            count={data.counters.atAverage}
+            variant="info"
           />
           <CounterCard
             label={labels.belowAverage}
-            value={data.counters.belowAverage}
-            colorClass="bg-error-100 text-error-700"
+            count={data.counters.belowAverage}
+            variant="error"
           />
         </div>
 
         {/* Students table */}
-        <div className="flex flex-col gap-2">
-          {/* Table header */}
-          <div className="grid grid-cols-12 gap-2 px-4 py-2 bg-background-100 rounded-lg">
-            <div className="col-span-3">
-              <Text size="xs" weight="semibold" className="text-text-600">
-                Nome
-              </Text>
-            </div>
-            <div className="col-span-2">
-              <Text size="xs" weight="semibold" className="text-text-600">
-                Escola
-              </Text>
-            </div>
-            <div className="col-span-1">
-              <Text size="xs" weight="semibold" className="text-text-600">
-                Ano
-              </Text>
-            </div>
-            <div className="col-span-1">
-              <Text size="xs" weight="semibold" className="text-text-600">
-                Turma
-              </Text>
-            </div>
-            <div className="col-span-2 text-center">
-              <Text size="xs" weight="semibold" className="text-text-600">
-                Média
-              </Text>
-            </div>
-            <div className="col-span-3 text-center">
-              <Text size="xs" weight="semibold" className="text-text-600">
-                Desempenho
-              </Text>
-            </div>
-          </div>
-
-          {/* Table body */}
-          <div className="flex flex-col gap-1 max-h-[300px] overflow-y-auto">
-            {data.students.data.length > 0 ? (
-              data.students.data.map((student) => (
-                <StudentRow key={student.userInstitutionId} student={student} />
-              ))
-            ) : (
-              <div className="flex items-center justify-center py-8">
-                <Text size="sm" className="text-text-500">
-                  {labels.noStudents}
-                </Text>
-              </div>
-            )}
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex justify-center pt-4">
-              <TablePagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalItems={data.students.total}
-                itemsPerPage={pageSize}
-                onPageChange={handlePageChange}
-              />
-            </div>
-          )}
-        </div>
+        <TableProvider
+          data={data.students.data as unknown as Record<string, unknown>[]}
+          headers={TABLE_COLUMNS}
+          variant="borderless"
+          loading={loading}
+          enablePagination
+          rowKey="userInstitutionId"
+          paginationConfig={{
+            itemLabel: 'estudantes',
+            itemsPerPageOptions: [10, 20, 50],
+            defaultItemsPerPage: 10,
+            totalItems: data.students.total,
+            totalPages: Math.ceil(data.students.total / data.students.limit),
+          }}
+          onParamsChange={handleParamsChange}
+        />
       </div>
     </Modal>
   );
 }
 
 /**
- * Counter card component for performance counters
+ * Counter card component
  */
 function CounterCard({
   label,
-  value,
-  colorClass,
+  count,
+  variant,
 }: {
-  label: string;
-  value: number;
-  colorClass: string;
+  readonly label: string;
+  readonly count: number;
+  readonly variant: 'success' | 'info' | 'error';
 }) {
+  const bgColors = {
+    success: 'bg-success-50',
+    info: 'bg-primary-50',
+    error: 'bg-error-50',
+  };
+
+  const textColors = {
+    success: 'text-success-700',
+    info: 'text-primary-700',
+    error: 'text-error-700',
+  };
+
   return (
     <div
-      className={`flex flex-col items-center gap-1 p-4 rounded-xl ${colorClass}`}
+      className={`flex-1 flex flex-col items-center justify-center p-4 rounded-xl ${bgColors[variant]}`}
     >
-      <Text size="2xl" weight="bold">
-        {value}
+      <Text size="2xl" weight="bold" className={textColors[variant]}>
+        {count}
       </Text>
-      <Text size="xs" weight="medium">
+      <Text size="sm" className="text-text-600 text-center">
         {label}
       </Text>
-    </div>
-  );
-}
-
-/**
- * Student row component for the table
- */
-function StudentRow({ student }: { student: ContentStudentItem }) {
-  return (
-    <div className="grid grid-cols-12 gap-2 px-4 py-3 bg-background border border-border-50 rounded-lg hover:bg-background-50 transition-colors">
-      <div className="col-span-3 flex items-center">
-        <Text size="sm" weight="medium" className="text-text-950 truncate">
-          {student.name}
-        </Text>
-      </div>
-      <div className="col-span-2 flex items-center">
-        <Text size="sm" className="text-text-600 truncate">
-          {student.school}
-        </Text>
-      </div>
-      <div className="col-span-1 flex items-center">
-        <Text size="sm" className="text-text-600">
-          {student.schoolYear}
-        </Text>
-      </div>
-      <div className="col-span-1 flex items-center">
-        <Text size="sm" className="text-text-600">
-          {student.class}
-        </Text>
-      </div>
-      <div className="col-span-2 flex items-center justify-center">
-        <Text size="sm" weight="semibold" className="text-text-950">
-          {Math.round(student.average)}
-        </Text>
-      </div>
-      <div className="col-span-3 flex items-center justify-center gap-2">
-        <div className="w-20 shrink-0">
-          <ProgressBar
-            value={student.performance}
-            variant="green"
-            size="small"
-          />
-        </div>
-        <Text size="sm" weight="semibold" className="text-text-600 w-10">
-          {formatPercentageRounded(student.performance)}
-        </Text>
-      </div>
     </div>
   );
 }
