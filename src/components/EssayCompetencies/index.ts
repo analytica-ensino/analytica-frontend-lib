@@ -25,6 +25,5 @@ export type {
   UseEssayCompetenceDetailsState,
   UseEssayCompetenceDetailsReturn,
   EssayCompetenciesTableProps,
-  EssayCompetenciesTableLabels,
   EssayCompetenceDetailsModalProps,
 } from './types';

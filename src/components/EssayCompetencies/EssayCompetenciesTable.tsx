@@ -9,15 +9,6 @@ import type {
   EssayCompetencyOverviewItem,
 } from './types';
 
-const DEFAULT_LABELS = {
-  title: 'Proficiência por competência',
-  competence: 'Competência',
-  essays: 'Redações',
-  students: 'Estudantes',
-  proficiency: 'Proficiência',
-  search: 'Buscar',
-};
-
 /**
  * Proficiency cell component with progress bar
  */
@@ -45,6 +36,50 @@ function ProficiencyCell({ percentage }: { readonly percentage: number }) {
 }
 
 /**
+ * Table columns configuration
+ */
+const TABLE_COLUMNS = [
+  {
+    key: 'name',
+    label: 'Competência',
+    sortable: true,
+    className: 'py-3 px-4 text-start',
+    render: (_value: unknown, row: Record<string, unknown>, _index: number) => {
+      const item = row as unknown as EssayCompetencyOverviewItem;
+      return `C${item.competencyNumber} - ${item.name}`;
+    },
+  },
+  {
+    key: 'essaysCount',
+    label: 'Redações',
+    sortable: true,
+    className: 'py-3 px-4 text-center',
+    align: 'center' as const,
+    width: '100px',
+  },
+  {
+    key: 'studentsCount',
+    label: 'Estudantes',
+    sortable: true,
+    className: 'py-3 px-4 text-center',
+    align: 'center' as const,
+    width: '100px',
+  },
+  {
+    key: 'averagePercentage',
+    label: 'Proficiência',
+    sortable: true,
+    className: 'py-3 px-4 text-center',
+    align: 'center' as const,
+    width: '160px',
+    render: (_value: unknown, row: Record<string, unknown>, _index: number) => {
+      const item = row as unknown as EssayCompetencyOverviewItem;
+      return <ProficiencyCell percentage={item.averagePercentage} />;
+    },
+  },
+];
+
+/**
  * Table showing the 5 ENEM essay competencies with stats
  * Clicking on a competency opens the EssayCompetenceDetailsModal
  */
@@ -54,68 +89,13 @@ export function EssayCompetenciesTable({
   schoolIds,
   schoolYearIds,
   classIds,
-  labels: customLabels,
 }: EssayCompetenciesTableProps) {
-  const labels = { ...DEFAULT_LABELS, ...customLabels };
   const { data, loading, fetchOverview } = useEssayCompetenciesOverview(api);
   const [selectedCompetence, setSelectedCompetence] = useState<{
     number: number;
     name: string;
   } | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // Build table columns
-  const competenciesTableColumns = useMemo(
-    () => [
-      {
-        key: 'name',
-        label: labels.competence,
-        sortable: true,
-        className: 'py-3 px-4 text-start',
-        render: (
-          _value: unknown,
-          row: Record<string, unknown>,
-          _index: number
-        ) => {
-          const item = row as unknown as EssayCompetencyOverviewItem;
-          return `C${item.competencyNumber} - ${item.name}`;
-        },
-      },
-      {
-        key: 'essaysCount',
-        label: labels.essays,
-        sortable: true,
-        className: 'py-3 px-4 text-center',
-        align: 'center' as const,
-        width: '100px',
-      },
-      {
-        key: 'studentsCount',
-        label: labels.students,
-        sortable: true,
-        className: 'py-3 px-4 text-center',
-        align: 'center' as const,
-        width: '100px',
-      },
-      {
-        key: 'averagePercentage',
-        label: labels.proficiency,
-        sortable: true,
-        className: 'py-3 px-4 text-center',
-        align: 'center' as const,
-        width: '160px',
-        render: (
-          _value: unknown,
-          row: Record<string, unknown>,
-          _index: number
-        ) => {
-          const item = row as unknown as EssayCompetencyOverviewItem;
-          return <ProficiencyCell percentage={item.averagePercentage} />;
-        },
-      },
-    ],
-    [labels]
-  );
 
   // Fetch data when filters change
   useEffect(() => {
@@ -150,7 +130,7 @@ export function EssayCompetenciesTable({
     <>
       <TableProvider
         data={competencies as unknown as Record<string, unknown>[]}
-        headers={competenciesTableColumns}
+        headers={TABLE_COLUMNS}
         variant="borderless"
         loading={loading}
         enableSearch
@@ -165,10 +145,10 @@ export function EssayCompetenciesTable({
           defaultItemsPerPage: 5,
           totalItems: competencies.length,
         }}
-        searchPlaceholder={labels.search}
+        searchPlaceholder="Buscar"
         headerContent={
           <Text as="h3" size="lg" weight="bold" className="text-text-950">
-            {labels.title}
+            Proficiência por competência
           </Text>
         }
       />

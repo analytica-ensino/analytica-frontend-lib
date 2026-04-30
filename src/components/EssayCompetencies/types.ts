@@ -178,19 +178,6 @@ export interface EssayCompetenciesTableProps {
   readonly schoolIds?: string[];
   readonly schoolYearIds?: string[];
   readonly classIds?: string[];
-  readonly labels?: EssayCompetenciesTableLabels;
-}
-
-/**
- * Customizable labels for table
- */
-export interface EssayCompetenciesTableLabels {
-  title?: string;
-  competence?: string;
-  essays?: string;
-  students?: string;
-  proficiency?: string;
-  search?: string;
 }
 
 /**
