@@ -1,4 +1,7 @@
-import { STUDENT_ACTIVITY_STATUS, type StudentActivityStatus } from '../types/activityDetails';
+import {
+  STUDENT_ACTIVITY_STATUS,
+  type StudentActivityStatus,
+} from '../types/activityDetails';
 import {
   getStatusBadgeConfig,
   formatTimeSpent,
@@ -77,7 +80,9 @@ describe('activityDetailsUtils', () => {
     });
 
     it('should return fallback config for unknown status', () => {
-      const config = getStatusBadgeConfig('UNKNOWN_STATUS' as StudentActivityStatus);
+      const config = getStatusBadgeConfig(
+        'UNKNOWN_STATUS' as StudentActivityStatus
+      );
 
       expect(config).toEqual({
         label: 'UNKNOWN_STATUS',

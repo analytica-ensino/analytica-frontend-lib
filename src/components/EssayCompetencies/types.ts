@@ -146,8 +146,7 @@ export interface UseEssayCompetenciesOverviewState {
 /**
  * Hook return for overview
  */
-export interface UseEssayCompetenciesOverviewReturn
-  extends UseEssayCompetenciesOverviewState {
+export interface UseEssayCompetenciesOverviewReturn extends UseEssayCompetenciesOverviewState {
   fetchOverview: (params: EssayCompetenciesOverviewParams) => Promise<void>;
   reset: () => void;
 }
@@ -164,8 +163,7 @@ export interface UseEssayCompetenceDetailsState {
 /**
  * Hook return for details
  */
-export interface UseEssayCompetenceDetailsReturn
-  extends UseEssayCompetenceDetailsState {
+export interface UseEssayCompetenceDetailsReturn extends UseEssayCompetenceDetailsState {
   fetchDetails: (params: EssayCompetenceDetailsParams) => Promise<void>;
   reset: () => void;
 }

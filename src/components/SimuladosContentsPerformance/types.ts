@@ -79,6 +79,9 @@ export interface UseSimulatedContentsState {
  * Hook return type
  */
 export interface UseSimulatedContentsReturn extends UseSimulatedContentsState {
-  fetchContents: (params: SimulatedContentsParams, refresh?: boolean) => Promise<void>;
+  fetchContents: (
+    params: SimulatedContentsParams,
+    refresh?: boolean
+  ) => Promise<void>;
   reset: () => void;
 }

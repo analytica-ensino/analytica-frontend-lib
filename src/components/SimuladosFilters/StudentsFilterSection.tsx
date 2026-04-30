@@ -9,8 +9,10 @@ import type { StudentGroup, StudentsFilterSectionProps } from './types';
 const DEFAULT_LABELS = {
   studentsSection: 'ESTUDANTES',
   loadingStudents: 'Carregando estudantes...',
-  noStudentsForFilters: 'Nenhum estudante encontrado para os filtros selecionados',
-  selectFiltersToSeeStudents: 'Selecione uma escola, série ou turma para ver os estudantes',
+  noStudentsForFilters:
+    'Nenhum estudante encontrado para os filtros selecionados',
+  selectFiltersToSeeStudents:
+    'Selecione uma escola, série ou turma para ver os estudantes',
   allStudents: 'Todos os estudantes',
   searchPlaceholder: 'Buscar',
 };
@@ -201,7 +203,9 @@ export function StudentsFilterSection({
       </div>
 
       {/* Select all checkbox */}
-      <label className={`flex items-center gap-3 cursor-pointer hover:bg-background-50 p-2 rounded-lg -mx-2 ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}>
+      <label
+        className={`flex items-center gap-3 cursor-pointer hover:bg-background-50 p-2 rounded-lg -mx-2 ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}
+      >
         <input
           type="checkbox"
           checked={allSelected}
@@ -215,7 +219,9 @@ export function StudentsFilterSection({
       </label>
 
       {/* Students list grouped */}
-      <div className={`flex flex-col gap-2 max-h-64 overflow-y-auto min-h-[100px] ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}>
+      <div
+        className={`flex flex-col gap-2 max-h-64 overflow-y-auto min-h-[100px] ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}
+      >
         {filteredGroups.map((group) => (
           <div key={group.key} className="flex flex-col">
             {/* Group header */}

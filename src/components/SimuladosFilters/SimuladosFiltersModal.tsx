@@ -2,7 +2,10 @@ import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import Modal from '../Modal/Modal';
 import Button from '../Button/Button';
 import Text from '../Text/Text';
-import { CheckboxGroup, type CategoryConfig } from '../CheckBoxGroup/CheckBoxGroup';
+import {
+  CheckboxGroup,
+  type CategoryConfig,
+} from '../CheckBoxGroup/CheckBoxGroup';
 import { GraduationCap } from '@phosphor-icons/react';
 import { useUserAccessData, useStudentsFilter } from './hooks';
 import { StudentsFilterSection } from './StudentsFilterSection';
@@ -23,7 +26,8 @@ const DEFAULT_LABELS: Required<SimuladosFiltersLabels> = {
   studentsSection: 'ESTUDANTES',
   loadingFilters: 'Carregando filtros...',
   loadingStudents: 'Carregando estudantes...',
-  noStudentsForFilters: 'Nenhum estudante encontrado para os filtros selecionados',
+  noStudentsForFilters:
+    'Nenhum estudante encontrado para os filtros selecionados',
   selectFiltersToSeeStudents: 'Selecione uma turma para ver os estudantes',
   allStudents: 'Todos os estudantes',
   searchPlaceholder: 'Buscar',

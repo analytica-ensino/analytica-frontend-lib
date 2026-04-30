@@ -102,8 +102,7 @@ export interface UseSimulatedContentDetailsState {
 /**
  * Hook return type
  */
-export interface UseSimulatedContentDetailsReturn
-  extends UseSimulatedContentDetailsState {
+export interface UseSimulatedContentDetailsReturn extends UseSimulatedContentDetailsState {
   fetchDetails: (params: ContentDetailsParams) => Promise<void>;
   reset: () => void;
 }

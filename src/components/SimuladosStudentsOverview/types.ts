@@ -106,6 +106,9 @@ export interface UseSimulatedOverviewState {
  * Hook return type
  */
 export interface UseSimulatedOverviewReturn extends UseSimulatedOverviewState {
-  fetchOverview: (params: SimulatedOverviewParams, refresh?: boolean) => Promise<void>;
+  fetchOverview: (
+    params: SimulatedOverviewParams,
+    refresh?: boolean
+  ) => Promise<void>;
   reset: () => void;
 }

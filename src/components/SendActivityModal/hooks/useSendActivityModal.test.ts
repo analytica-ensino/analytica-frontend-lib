@@ -203,7 +203,10 @@ describe('useSendActivityModalStore', () => {
       const store = useSendActivityModalStore.getState();
 
       act(() => {
-        store.setFormData({ subtype: ActivitySubtype.TAREFA, title: 'Test Activity' });
+        store.setFormData({
+          subtype: ActivitySubtype.TAREFA,
+          title: 'Test Activity',
+        });
       });
 
       let isValid = false;
@@ -233,7 +236,10 @@ describe('useSendActivityModalStore', () => {
       const store = useSendActivityModalStore.getState();
 
       act(() => {
-        store.setFormData({ subtype: ActivitySubtype.TAREFA, title: 'Test Activity' });
+        store.setFormData({
+          subtype: ActivitySubtype.TAREFA,
+          title: 'Test Activity',
+        });
       });
 
       let result = false;
@@ -284,7 +290,10 @@ describe('useSendActivityModalStore', () => {
       const store = useSendActivityModalStore.getState();
 
       act(() => {
-        store.setFormData({ subtype: ActivitySubtype.TAREFA, title: 'Test Activity' });
+        store.setFormData({
+          subtype: ActivitySubtype.TAREFA,
+          title: 'Test Activity',
+        });
       });
 
       act(() => {

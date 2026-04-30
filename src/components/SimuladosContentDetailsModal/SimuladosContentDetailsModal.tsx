@@ -158,7 +158,8 @@ export function SimuladosContentDetailsModal({
             )}
             <Text size="sm" className="text-text-500">
               {data.content.subject.name} • {data.content.questionsCount}{' '}
-              {labels.questions} • {data.content.studentsCount} {labels.students}
+              {labels.questions} • {data.content.studentsCount}{' '}
+              {labels.students}
             </Text>
           </div>
         </div>

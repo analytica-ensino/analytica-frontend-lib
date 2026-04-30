@@ -111,7 +111,10 @@ export interface UseGeneralOverviewState {
  * Hook return type
  */
 export interface UseGeneralOverviewReturn extends UseGeneralOverviewState {
-  fetchOverview: (params: GeneralOverviewParams, refresh?: boolean) => Promise<void>;
+  fetchOverview: (
+    params: GeneralOverviewParams,
+    refresh?: boolean
+  ) => Promise<void>;
   reset: () => void;
 }
 

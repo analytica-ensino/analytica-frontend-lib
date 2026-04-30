@@ -2361,7 +2361,9 @@ describe('ActivityDetails', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getAllByText('Baixar gabarito').length).toBeGreaterThan(0);
+        expect(screen.getAllByText('Baixar gabarito').length).toBeGreaterThan(
+          0
+        );
       });
 
       fireEvent.click(screen.getAllByText('Baixar gabarito')[0]);
@@ -2373,7 +2375,9 @@ describe('ActivityDetails', () => {
       render(<ActivityDetails {...defaultProps} />);
 
       await waitFor(() => {
-        expect(screen.getAllByText('Baixar gabarito').length).toBeGreaterThan(0);
+        expect(screen.getAllByText('Baixar gabarito').length).toBeGreaterThan(
+          0
+        );
       });
 
       const baixarButtons = screen.getAllByText('Baixar gabarito');

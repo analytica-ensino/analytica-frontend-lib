@@ -197,8 +197,7 @@ export interface UseSimuladosStudentDetailsState {
 /**
  * Hook return type
  */
-export interface UseSimuladosStudentDetailsReturn
-  extends UseSimuladosStudentDetailsState {
+export interface UseSimuladosStudentDetailsReturn extends UseSimuladosStudentDetailsState {
   fetchDetails: (params: StudentDetailsParams) => Promise<void>;
   reset: () => void;
 }

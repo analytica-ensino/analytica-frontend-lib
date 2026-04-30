@@ -99,7 +99,10 @@ export function SimuladosSubjectMenu({
                   backgroundColor:
                     subject.id === 'all'
                       ? 'rgba(107, 114, 128, 0.2)'
-                      : getSubjectColorWithOpacity(subject?.color ?? undefined, isDark),
+                      : getSubjectColorWithOpacity(
+                          subject?.color ?? undefined,
+                          isDark
+                        ),
                 }}
               >
                 {subject.id === 'all' ? (

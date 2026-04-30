@@ -48,7 +48,9 @@ const mockAreas: AreaKnowledgePerformance[] = [
 export const AllAreaKnowledgeSelectorShowcase: Story = () => {
   const [selectedArea1, setSelectedArea1] = useState<string | null>(null);
   const [selectedArea2, setSelectedArea2] = useState<string | null>('humanas');
-  const [selectedArea3, setSelectedArea3] = useState<string | null>(ESSAY_AREA_ID);
+  const [selectedArea3, setSelectedArea3] = useState<string | null>(
+    ESSAY_AREA_ID
+  );
 
   return (
     <div className="space-y-12">
@@ -154,7 +156,8 @@ export const AllAreaKnowledgeSelectorShowcase: Story = () => {
                 Label Personalizada
               </h3>
               <p className="text-text-600 text-sm">
-                Usando prop <code className="bg-gray-100 px-1 rounded">label</code>
+                Usando prop{' '}
+                <code className="bg-gray-100 px-1 rounded">label</code>
               </p>
               <AreaKnowledgeSelector
                 areas={mockAreas}
@@ -171,7 +174,9 @@ export const AllAreaKnowledgeSelectorShowcase: Story = () => {
               </h3>
               <p className="text-text-600 text-sm">
                 Usando{' '}
-                <code className="bg-gray-100 px-1 rounded">includeEssay=false</code>
+                <code className="bg-gray-100 px-1 rounded">
+                  includeEssay=false
+                </code>
               </p>
               <AreaKnowledgeSelector
                 areas={mockAreas}
@@ -426,7 +431,9 @@ export const LoadingState: Story = () => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-text-900">Estado de Carregamento</h2>
+      <h2 className="text-2xl font-bold text-text-900">
+        Estado de Carregamento
+      </h2>
 
       <div className="max-w-md">
         <AreaKnowledgeSelector
@@ -477,7 +484,9 @@ export const WithoutEssayOption: Story = () => {
 export const CustomLabels: Story = () => {
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-text-900">Labels Personalizadas</h2>
+      <h2 className="text-2xl font-bold text-text-900">
+        Labels Personalizadas
+      </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl">
         <AreaKnowledgeSelector

@@ -53,7 +53,9 @@ export function PeriodSelector({
     if (excludeValues.length === 0) {
       return options;
     }
-    return options.filter((opt: PeriodTab) => !excludeValues.includes(opt.value));
+    return options.filter(
+      (opt: PeriodTab) => !excludeValues.includes(opt.value)
+    );
   }, [options, excludeValues]);
 
   return (

@@ -259,7 +259,11 @@ describe('AreaKnowledgeSelector', () => {
     it('still shows "Redação" option with empty areas when includeEssay=true', async () => {
       const user = userEvent.setup();
       render(
-        <AreaKnowledgeSelector {...defaultProps} areas={[]} includeEssay={true} />
+        <AreaKnowledgeSelector
+          {...defaultProps}
+          areas={[]}
+          includeEssay={true}
+        />
       );
 
       const trigger = screen.getByRole('button');
@@ -361,9 +365,7 @@ describe('AreaKnowledgeSelector', () => {
       ];
 
       const user = userEvent.setup();
-      render(
-        <AreaKnowledgeSelector {...defaultProps} areas={specialAreas} />
-      );
+      render(<AreaKnowledgeSelector {...defaultProps} areas={specialAreas} />);
 
       const trigger = screen.getByRole('button');
       await user.click(trigger);

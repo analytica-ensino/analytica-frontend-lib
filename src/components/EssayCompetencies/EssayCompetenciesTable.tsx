@@ -72,7 +72,11 @@ export function EssayCompetenciesTable({
         label: labels.competence,
         sortable: true,
         className: 'py-3 px-4 text-start',
-        render: (_value: unknown, row: Record<string, unknown>, _index: number) => {
+        render: (
+          _value: unknown,
+          row: Record<string, unknown>,
+          _index: number
+        ) => {
           const item = row as unknown as EssayCompetencyOverviewItem;
           return `C${item.competencyNumber} - ${item.name}`;
         },
@@ -100,7 +104,11 @@ export function EssayCompetenciesTable({
         className: 'py-3 px-4 text-center',
         align: 'center' as const,
         width: '160px',
-        render: (_value: unknown, row: Record<string, unknown>, _index: number) => {
+        render: (
+          _value: unknown,
+          row: Record<string, unknown>,
+          _index: number
+        ) => {
           const item = row as unknown as EssayCompetencyOverviewItem;
           return <ProficiencyCell percentage={item.averagePercentage} />;
         },
