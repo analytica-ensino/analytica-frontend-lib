@@ -7,7 +7,7 @@ import type {
   StudentContentsData,
   StudentSubjectsData,
 } from './types';
-import { SimulatedPerformanceTag } from './types';
+import { ReportSimulationType, SimulatedPerformanceTag } from './types';
 import type { BaseApiClient } from '../../types/api';
 import { Period } from '../PeriodSelector';
 
@@ -155,11 +155,11 @@ function createApi(config?: {
 function BaseStory({
   buttonLabel,
   api,
-  simulationType = 'enem-1',
+  simulationType = ReportSimulationType.ENEM_1,
 }: {
   buttonLabel: string;
   api: BaseApiClient;
-  simulationType?: 'enem-1' | 'enem-2' | 'essays';
+  simulationType?: ReportSimulationType;
 }) {
   const [isOpen, setIsOpen] = useState(false);
 

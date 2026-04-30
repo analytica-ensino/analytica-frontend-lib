@@ -1,5 +1,9 @@
 import { useState, useCallback, useRef } from 'react';
-import { simulationTypeToActivityFilters } from '../SimulatedStudentDetailsModal/types';
+import {
+  ReportSimulationType,
+  simulationTypeToActivityFilters,
+  type SimulationType,
+} from '../SimulatedStudentDetailsModal/types';
 import type { BaseApiClient } from '../../types/api';
 import type {
   SimulatedContentsParams,
@@ -12,11 +16,11 @@ import type {
  * Build the API endpoint with activity filters and scoreType as query params
  */
 function buildEndpoint(
-  simulationType: 'enem-1' | 'enem-2' | 'essays',
+  simulationType: SimulationType,
   scoreType?: 'percentage' | 'tri'
 ): string | null {
   // Essays don't have contents/skills
-  if (simulationType === 'essays') {
+  if (simulationType === ReportSimulationType.ESSAYS) {
     return null;
   }
 

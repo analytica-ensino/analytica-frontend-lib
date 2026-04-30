@@ -67,9 +67,18 @@ export const PERFORMANCE_TAG_TO_BADGE_ACTION: Record<
 };
 
 /**
- * Simulation type
+ * Simulation type used in reports
  */
-export type SimulationType = 'enem-1' | 'enem-2' | 'essays';
+export enum ReportSimulationType {
+  ENEM_1 = 'enem-1',
+  ENEM_2 = 'enem-2',
+  ESSAYS = 'essays',
+}
+
+/**
+ * Backward-compatible simulation type alias
+ */
+export type SimulationType = `${ReportSimulationType}`;
 
 /**
  * Student info for details modal
@@ -181,12 +190,12 @@ export function simulationTypeToActivityFilters(
   simulationType: SimulationType
 ): ActivityFilters {
   switch (simulationType) {
-    case 'enem-1':
+    case ReportSimulationType.ENEM_1:
       return {
         types: ['SIMULADO'],
         subtypes: ['ENEM_PROVA_1'],
       };
-    case 'enem-2':
+    case ReportSimulationType.ENEM_2:
       return {
         types: ['SIMULADO'],
         subtypes: ['ENEM_PROVA_2'],

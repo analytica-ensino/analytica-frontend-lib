@@ -6,6 +6,7 @@ export {
   simulationTypeToActivityFilters,
   SIMULATED_PERFORMANCE_TAG_CONFIG,
   SimulatedPerformanceTag,
+  ReportSimulationType,
   PerformanceBadgeAction,
   PERFORMANCE_TAG_TO_BADGE_ACTION,
 } from './types';

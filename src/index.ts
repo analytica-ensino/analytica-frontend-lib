@@ -392,6 +392,7 @@ export {
   isStudentContentsData,
   simulationTypeToActivityFilters,
   SIMULATED_PERFORMANCE_TAG_CONFIG,
+  ReportSimulationType,
 } from './components/SimulatedStudentDetailsModal';
 export type {
   SimulatedPerformanceTag,

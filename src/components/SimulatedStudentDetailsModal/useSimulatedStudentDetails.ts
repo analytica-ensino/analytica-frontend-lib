@@ -1,7 +1,9 @@
 import { useState, useCallback } from 'react';
 import type { BaseApiClient } from '../../types/api';
 import {
+  ReportSimulationType,
   simulationTypeToActivityFilters,
+  type SimulationType,
   type StudentDetailsData,
   type StudentDetailsParams,
   type StudentDetailsApiResponse,
@@ -12,8 +14,8 @@ import { paramsToBody } from './utils';
 /**
  * Build the API endpoint with activity filters as query params
  */
-function buildEndpoint(simulationType: 'enem-1' | 'enem-2' | 'essays'): string {
-  if (simulationType === 'essays') {
+function buildEndpoint(simulationType: SimulationType): string {
+  if (simulationType === ReportSimulationType.ESSAYS) {
     return '/performance/simulated/essays/student-details';
   }
 
