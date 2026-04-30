@@ -2,9 +2,7 @@ import type { ColumnConfig } from '../TableProvider';
 import type { StudentsHighlightPeriod } from '../../hooks/useStudentsHighlight';
 import type { SimulatedFilters } from '../SimulatedFilters/types';
 import type { ScoreType } from '../../types/common';
-import type {
-  GeneralOverviewData,
-} from '../GeneralOverviewSection/types';
+import type { GeneralOverviewData } from '../GeneralOverviewSection/types';
 import type {
   SimulatedOverviewData,
   SimulatedStudentItem,
