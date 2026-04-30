@@ -95,6 +95,7 @@ export function useSimulatedContents(
             schoolIds: params.schoolIds,
             schoolYearIds: params.schoolYearIds,
             classIds: params.classIds,
+            studentsIds: params.studentsIds,
             page: params.page ?? 1,
             limit: params.limit ?? 10,
             orderBy: params.orderBy ?? 'correctPercentage',

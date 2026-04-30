@@ -44,6 +44,7 @@ export interface SimulatedContentsParams {
   schoolIds?: string[];
   schoolYearIds?: string[];
   classIds?: string[];
+  studentsIds?: string[];
   page?: number;
   limit?: number;
   orderBy?: string;

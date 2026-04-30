@@ -1,5 +1,6 @@
 import { useMemo, useCallback } from 'react';
 import Text from '../Text/Text';
+import CheckBox from '../CheckBox/CheckBox';
 import { Users, MagnifyingGlass } from '@phosphor-icons/react';
 import type { StudentGroup, StudentsFilterSectionProps } from './types';
 import Input from '../Input/Input';
@@ -175,35 +176,27 @@ export function StudentsFilterSection({
       </div>
 
       {/* Search input */}
-      <div className="relative">
-        <MagnifyingGlass
-          size={18}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-text-400"
-        />
-        <Input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Buscar"
-          disabled={isLoading}
-        />
-      </div>
+      <Input
+        type="text"
+        value={searchQuery}
+        onChange={(e) => onSearchChange(e.target.value)}
+        placeholder="Buscar"
+        disabled={isLoading}
+        iconLeft={<MagnifyingGlass size={18} />}
+      />
 
       {/* Select all checkbox */}
-      <label
-        className={`flex items-center gap-3 cursor-pointer hover:bg-background-50 p-2 rounded-lg -mx-2 ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}
+      <div
+        className={`hover:bg-background-50 p-2 rounded-lg -mx-2 ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}
       >
-        <input
-          type="checkbox"
+        <CheckBox
           checked={allSelected}
           onChange={handleSelectAll}
           disabled={isLoading}
-          className="w-5 h-5 rounded border-border-300 text-primary-600 focus:ring-primary-500"
+          label="Todos os estudantes"
+          size="medium"
         />
-        <span className="text-sm font-medium text-text-700">
-          Todos os estudantes
-        </span>
-      </label>
+      </div>
 
       {/* Students list grouped */}
       <div
@@ -212,43 +205,41 @@ export function StudentsFilterSection({
         {filteredGroups.map((group) => (
           <div key={group.key} className="flex flex-col">
             {/* Group header */}
-            <label className="flex items-center gap-2 cursor-pointer hover:bg-background-50 p-2 rounded-lg">
-              <input
-                type="checkbox"
+            <div className="hover:bg-background-50 p-2 rounded-lg">
+              <CheckBox
                 checked={isGroupSelected(group)}
-                ref={(el) => {
-                  if (el) {
-                    el.indeterminate = isGroupPartiallySelected(group);
-                  }
-                }}
+                indeterminate={isGroupPartiallySelected(group)}
                 onChange={() => handleGroupToggle(group)}
                 disabled={isLoading}
-                className="w-5 h-5 rounded border-border-300 text-primary-600 focus:ring-primary-500"
+                size="medium"
+                label={
+                  <span className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-text-600">
+                      {group.label}
+                    </span>
+                    <span className="text-xs text-text-400">
+                      ({group.students.length})
+                    </span>
+                  </span>
+                }
               />
-              <span className="text-sm font-medium text-text-600">
-                {group.label}
-              </span>
-              <span className="text-xs text-text-400">
-                ({group.students.length})
-              </span>
-            </label>
+            </div>
 
             {/* Students in group */}
             <div className="ml-6 flex flex-col">
               {group.students.map((student) => (
-                <label
+                <div
                   key={student.id}
-                  className="flex items-center gap-3 cursor-pointer hover:bg-background-50 p-2 rounded-lg"
+                  className="hover:bg-background-50 p-2 rounded-lg"
                 >
-                  <input
-                    type="checkbox"
+                  <CheckBox
                     checked={selectedIds.includes(student.id)}
                     onChange={() => handleStudentToggle(student.id)}
                     disabled={isLoading}
-                    className="w-5 h-5 rounded border-border-300 text-primary-600 focus:ring-primary-500"
+                    size="medium"
+                    label={student.name}
                   />
-                  <span className="text-sm text-text-700">{student.name}</span>
-                </label>
+                </div>
               ))}
             </div>
           </div>

@@ -20,6 +20,7 @@ interface SimulatedOverviewBody {
   schoolIds?: string[];
   schoolYearIds?: string[];
   classIds?: string[];
+  studentsIds?: string[];
   page?: number;
   limit?: number;
   orderBy?: string;
@@ -111,6 +112,7 @@ export function useSimulatedOverview(
       schoolIds: params.schoolIds,
       schoolYearIds: params.schoolYearIds,
       classIds: params.classIds,
+      studentsIds: params.studentsIds,
       page: params.page ?? 1,
       limit: params.limit ?? 10,
       orderBy: params.orderBy ?? 'name',
