@@ -479,6 +479,37 @@ export type {
   EssayCompetenceDetailsLabels,
 } from './components/EssayCompetencies';
 
+// SimuladosStudentsOverview Hook
+export { useSimulatedOverview } from './components/SimuladosStudentsOverview';
+export type {
+  SimulatedStudentItem,
+  SimulatedStudentsPaginated,
+  SimulatedOverviewData,
+  SimulatedOverviewParams,
+  SimulatedOverviewApiResponse,
+  SimulatedOverviewApiClient,
+  UseSimulatedOverviewState,
+  UseSimulatedOverviewReturn,
+} from './components/SimuladosStudentsOverview';
+
+// EssayStudentDetailsModal Component
+export {
+  EssayStudentDetailsModal,
+  useEssayStudentDetails,
+} from './components/EssayStudentDetailsModal';
+export type {
+  EssayCompetencyPerformance,
+  EssayStudentInfo,
+  EssayStudentDetailsData,
+  EssayStudentDetailsParams,
+  EssayStudentDetailsApiResponse,
+  EssayStudentDetailsApiClient,
+  UseEssayStudentDetailsState,
+  UseEssayStudentDetailsReturn,
+  EssayStudentDetailsLabels,
+  EssayStudentDetailsModalProps,
+} from './components/EssayStudentDetailsModal';
+
 // ActivityFilters Component
 export {
   ActivityFilters,
