@@ -1,12 +1,12 @@
 import { renderHook, act } from '@testing-library/react';
 import { useEssayCompetenciesOverview } from './useEssayCompetenciesOverview';
 import type {
-  EssayCompetenciesApiClient,
   EssayCompetenciesOverviewApiResponse,
   EssayCompetenciesOverviewData,
   EssayCompetenciesOverviewParams,
   EssayCompetencyOverviewItem,
 } from './types';
+import type { BaseApiClient } from '../../types/api';
 
 /**
  * Create mock competency items (5 ENEM competencies)
@@ -44,14 +44,17 @@ function createMockData(): EssayCompetenciesOverviewData {
 /**
  * Create mock API client
  */
-function createMockApi(): jest.Mocked<EssayCompetenciesApiClient> {
+function createMockApi(): jest.Mocked<BaseApiClient> {
   return {
+    get: jest.fn(),
     post: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
   };
 }
 
 describe('useEssayCompetenciesOverview', () => {
-  let mockApi: jest.Mocked<EssayCompetenciesApiClient>;
+  let mockApi: jest.Mocked<BaseApiClient>;
 
   beforeEach(() => {
     mockApi = createMockApi();

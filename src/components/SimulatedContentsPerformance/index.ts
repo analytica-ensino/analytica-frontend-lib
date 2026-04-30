@@ -4,7 +4,6 @@ export type {
   ContentsPerformanceData,
   SimulatedContentsParams,
   ContentsPerformanceApiResponse,
-  SimulatedContentsApiClient,
   UseSimulatedContentsState,
   UseSimulatedContentsReturn,
 } from './types';

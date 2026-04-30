@@ -4,11 +4,11 @@ import { EssayStudentDetailsModal } from './EssayStudentDetailsModal';
 import Button from '../Button/Button';
 import {
   SimulatedPerformanceTag,
-  type EssayStudentDetailsApiClient,
   type EssayStudentDetailsApiResponse,
   type EssayStudentDetailsData,
   type EssayCompetencyPerformance,
 } from './types';
+import type { BaseApiClient } from '../../types/api';
 
 // ============================================================================
 // MOCK DATA GENERATORS
@@ -91,8 +91,11 @@ function createSuccessApi(
   studentName: string = 'Maria Silva',
   performance: SimulatedPerformanceTag = SimulatedPerformanceTag.ABOVE_AVERAGE,
   delay: number = 500
-): EssayStudentDetailsApiClient {
+): BaseApiClient {
   return {
+    get: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
     post: async function <T>(): Promise<{ data: T }> {
       await new Promise((resolve) => setTimeout(resolve, delay));
 
@@ -103,17 +106,32 @@ function createSuccessApi(
 
       return { data: response as T };
     },
+    patch: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
+    delete: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
   };
 }
 
 /**
  * Create a mock API that returns an error
  */
-function createErrorApi(delay: number = 500): EssayStudentDetailsApiClient {
+function createErrorApi(delay: number = 500): BaseApiClient {
   return {
+    get: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
     post: async function <T>(): Promise<{ data: T }> {
       await new Promise((resolve) => setTimeout(resolve, delay));
       throw new Error('Erro ao carregar detalhes do estudante');
+    },
+    patch: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
+    delete: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
     },
   };
 }
@@ -123,7 +141,7 @@ function createErrorApi(delay: number = 500): EssayStudentDetailsApiClient {
  */
 function createSlowApi(
   studentName: string = 'Maria Silva'
-): EssayStudentDetailsApiClient {
+): BaseApiClient {
   return createSuccessApi(
     studentName,
     SimulatedPerformanceTag.ABOVE_AVERAGE,
@@ -136,8 +154,11 @@ function createSlowApi(
  */
 function createEmptyCompetenciesApi(
   delay: number = 500
-): EssayStudentDetailsApiClient {
+): BaseApiClient {
   return {
+    get: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
     post: async function <T>(): Promise<{ data: T }> {
       await new Promise((resolve) => setTimeout(resolve, delay));
 
@@ -150,6 +171,12 @@ function createEmptyCompetenciesApi(
       };
 
       return { data: response as T };
+    },
+    patch: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
+    delete: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
     },
   };
 }

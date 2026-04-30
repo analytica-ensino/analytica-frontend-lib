@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react';
+import type { BaseApiClient } from '../../types/api';
 import type {
   SimulatedOverviewData,
   SimulatedOverviewParams,
   SimulatedOverviewApiResponse,
-  SimulatedOverviewApiClient,
   UseSimulatedOverviewState,
   UseSimulatedOverviewReturn,
   SimulationType,
@@ -89,7 +89,7 @@ const initialState: UseSimulatedOverviewState = {
  * ```
  */
 export function useSimulatedOverview(
-  api: SimulatedOverviewApiClient
+  api: BaseApiClient
 ): UseSimulatedOverviewReturn {
   const [data, setData] = useState<SimulatedOverviewData | null>(
     initialState.data

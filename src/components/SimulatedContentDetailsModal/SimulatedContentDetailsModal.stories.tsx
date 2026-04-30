@@ -3,10 +3,10 @@ import { useState } from 'react';
 import Button from '../Button/Button';
 import { SimulatedContentDetailsModal } from './SimulatedContentDetailsModal';
 import type {
-  ContentDetailsApiClient,
   ContentDetailsApiResponse,
   ContentDetailsData,
 } from './types';
+import type { BaseApiClient } from '../../types/api';
 
 function createMockData(
   contentName: string = 'Leitura e interpretação'
@@ -60,8 +60,11 @@ function createMockData(
 function createSuccessApi(
   delay: number = 500,
   contentName?: string
-): ContentDetailsApiClient {
+): BaseApiClient {
   return {
+    get: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
     post: async function <T>(): Promise<{ data: T }> {
       await new Promise((resolve) => setTimeout(resolve, delay));
       const response: ContentDetailsApiResponse = {
@@ -70,20 +73,38 @@ function createSuccessApi(
       };
       return { data: response as T };
     },
-  };
-}
-
-function createErrorApi(delay: number = 500): ContentDetailsApiClient {
-  return {
-    post: async function <T>(): Promise<{ data: T }> {
-      await new Promise((resolve) => setTimeout(resolve, delay));
-      throw new Error('Erro ao carregar detalhes do conteúdo');
+    patch: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
+    delete: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
     },
   };
 }
 
-function createEmptyApi(delay: number = 500): ContentDetailsApiClient {
+function createErrorApi(delay: number = 500): BaseApiClient {
   return {
+    get: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
+    post: async function <T>(): Promise<{ data: T }> {
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      throw new Error('Erro ao carregar detalhes do conteúdo');
+    },
+    patch: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
+    delete: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
+  };
+}
+
+function createEmptyApi(delay: number = 500): BaseApiClient {
+  return {
+    get: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
     post: async function <T>(): Promise<{ data: T }> {
       await new Promise((resolve) => setTimeout(resolve, delay));
       const response: ContentDetailsApiResponse = {
@@ -95,6 +116,12 @@ function createEmptyApi(delay: number = 500): ContentDetailsApiClient {
       };
       return { data: response as T };
     },
+    patch: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
+    delete: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
   };
 }
 
@@ -103,7 +130,7 @@ function BaseModalStory({
   api,
 }: {
   buttonLabel: string;
-  api: ContentDetailsApiClient;
+  api: BaseApiClient;
 }) {
   const [isOpen, setIsOpen] = useState(false);
 

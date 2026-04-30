@@ -1,7 +1,8 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { SimulatedContentDetailsModal } from './SimulatedContentDetailsModal';
-import type { ContentDetailsApiClient, ContentDetailsData } from './types';
+import type { ContentDetailsData } from './types';
+import type { BaseApiClient } from '../../types/api';
 
 jest.mock('../Modal/Modal', () => ({
   __esModule: true,
@@ -86,9 +87,12 @@ jest.mock('./useSimulatedContentDetails', () => ({
   }),
 }));
 
-function createMockApi(): ContentDetailsApiClient {
+function createMockApi(): BaseApiClient {
   return {
+    get: jest.fn(),
     post: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
   };
 }
 

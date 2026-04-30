@@ -13,7 +13,6 @@ export type {
   // Main types
   SimulatedFilters,
   SimulatedFiltersModalProps,
-  ApiClient,
 
   // Data item types
   SchoolItem,

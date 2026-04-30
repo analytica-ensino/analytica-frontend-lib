@@ -1,3 +1,5 @@
+import type { BaseApiClient } from '../../types/api';
+
 /**
  * Subject item from simulated subjects API
  */
@@ -14,13 +16,6 @@ export interface SimulatedSubjectItem {
 export interface SimulatedSubjectsApiResponse {
   message: string;
   data: SimulatedSubjectItem[];
-}
-
-/**
- * API client interface for subjects
- */
-export interface SimulatedSubjectsApiClient {
-  get: <T>(url: string) => Promise<{ data: T }>;
 }
 
 /**
@@ -45,7 +40,7 @@ export interface UseSimulatedSubjectsReturn extends UseSimulatedSubjectsState {
  */
 export interface SimulatedSubjectMenuProps {
   /** API client instance */
-  readonly api: SimulatedSubjectsApiClient;
+  readonly api: BaseApiClient;
   /** Area knowledge ID to filter subjects (null for all) */
   readonly areaKnowledgeId: string | null;
   /** Currently selected subject ID (null means "Todos") */

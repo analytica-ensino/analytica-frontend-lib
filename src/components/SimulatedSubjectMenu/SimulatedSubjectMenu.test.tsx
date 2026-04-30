@@ -1,7 +1,8 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { SimulatedSubjectMenu } from './SimulatedSubjectMenu';
-import type { SimulatedSubjectItem, SimulatedSubjectsApiClient } from './types';
+import type { SimulatedSubjectItem } from './types';
+import type { BaseApiClient } from '../../types/api';
 
 jest.mock('../Text/Text', () => ({
   __esModule: true,
@@ -65,9 +66,12 @@ jest.mock('./useSimulatedSubjects', () => ({
   }),
 }));
 
-function createMockApi(): SimulatedSubjectsApiClient {
+function createMockApi(): BaseApiClient {
   return {
     get: jest.fn(),
+    post: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
   };
 }
 

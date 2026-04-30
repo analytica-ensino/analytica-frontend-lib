@@ -25,6 +25,7 @@ export interface SimulatedStudentItem {
   class: string;
   average: number;
   performance: SimulatedPerformanceTag;
+  [key: string]: unknown;
 }
 
 /**
@@ -84,13 +85,6 @@ export interface SimulatedOverviewParams {
 export interface SimulatedOverviewApiResponse {
   message: string;
   data: SimulatedOverviewData;
-}
-
-/**
- * API client interface for dependency injection
- */
-export interface SimulatedOverviewApiClient {
-  post: <T>(url: string, data?: unknown) => Promise<{ data: T }>;
 }
 
 /**

@@ -19,7 +19,6 @@ export type {
   EssayCompetenceDetailsData,
   EssayCompetenceDetailsParams,
   EssayCompetenceDetailsApiResponse,
-  EssayCompetenciesApiClient,
   UseEssayCompetenciesOverviewState,
   UseEssayCompetenciesOverviewReturn,
   UseEssayCompetenceDetailsState,

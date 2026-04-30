@@ -1,6 +1,7 @@
 /**
  * Types for Simulated Filters Modal
  */
+import type { BaseApiClient } from '../../types/api';
 
 // ============================================================================
 // FILTER TYPES
@@ -29,7 +30,7 @@ export interface SimulatedFiltersModalProps {
   /** Initial filter values */
   initialFilters?: Partial<SimulatedFilters>;
   /** API client instance (axios-like) */
-  api: ApiClient;
+  api: BaseApiClient;
 }
 
 // ============================================================================
@@ -93,14 +94,6 @@ export interface StudentGroup {
 // ============================================================================
 // API TYPES
 // ============================================================================
-
-/**
- * Generic API client interface (axios-like)
- */
-export interface ApiClient {
-  get: <T>(url: string) => Promise<{ data: T }>;
-  post: <T>(url: string, data?: unknown) => Promise<{ data: T }>;
-}
 
 /**
  * Raw response from /auth/me endpoint

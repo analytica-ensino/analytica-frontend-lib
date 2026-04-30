@@ -1,3 +1,4 @@
+import type { BaseApiClient } from '../../types/api';
 import {
   SimulatedPerformanceTag,
   SIMULATED_PERFORMANCE_TAG_CONFIG,
@@ -129,13 +130,6 @@ export interface EssayCompetenceDetailsApiResponse {
 }
 
 /**
- * API client interface
- */
-export interface EssayCompetenciesApiClient {
-  post: <T>(url: string, data?: unknown) => Promise<{ data: T }>;
-}
-
-/**
  * Hook state for overview
  */
 export interface UseEssayCompetenciesOverviewState {
@@ -173,7 +167,7 @@ export interface UseEssayCompetenceDetailsReturn extends UseEssayCompetenceDetai
  * EssayCompetenciesTable props
  */
 export interface EssayCompetenciesTableProps {
-  readonly api: EssayCompetenciesApiClient;
+  readonly api: BaseApiClient;
   readonly period: string;
   readonly schoolIds?: string[];
   readonly schoolYearIds?: string[];
@@ -184,7 +178,7 @@ export interface EssayCompetenciesTableProps {
  * EssayCompetenceDetailsModal props
  */
 export interface EssayCompetenceDetailsModalProps {
-  readonly api: EssayCompetenciesApiClient;
+  readonly api: BaseApiClient;
   readonly isOpen: boolean;
   readonly onClose: () => void;
   readonly competenceNumber: number | null;

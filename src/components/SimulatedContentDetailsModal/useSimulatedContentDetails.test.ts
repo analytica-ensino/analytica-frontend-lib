@@ -1,11 +1,11 @@
 import { renderHook, act } from '@testing-library/react';
 import { useSimulatedContentDetails } from './useSimulatedContentDetails';
 import type {
-  ContentDetailsApiClient,
   ContentDetailsApiResponse,
   ContentDetailsData,
   ContentDetailsParams,
 } from './types';
+import type { BaseApiClient } from '../../types/api';
 
 function createMockData(): ContentDetailsData {
   return {
@@ -46,14 +46,17 @@ function createMockData(): ContentDetailsData {
   };
 }
 
-function createMockApi(): jest.Mocked<ContentDetailsApiClient> {
+function createMockApi(): jest.Mocked<BaseApiClient> {
   return {
+    get: jest.fn(),
     post: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
   };
 }
 
 describe('useSimulatedContentDetails', () => {
-  let mockApi: jest.Mocked<ContentDetailsApiClient>;
+  let mockApi: jest.Mocked<BaseApiClient>;
 
   beforeEach(() => {
     mockApi = createMockApi();

@@ -3,9 +3,9 @@ import { useState } from 'react';
 import { SimulatedSubjectMenu } from './SimulatedSubjectMenu';
 import type {
   SimulatedSubjectItem,
-  SimulatedSubjectsApiClient,
   SimulatedSubjectsApiResponse,
 } from './types';
+import type { BaseApiClient } from '../../types/api';
 
 const allSubjects: SimulatedSubjectItem[] = [
   { id: 'math', name: 'Matematica', color: '#22C55E', icon: 'calculator' },
@@ -13,7 +13,7 @@ const allSubjects: SimulatedSubjectItem[] = [
   { id: 'human', name: 'Humanas', color: '#F59E0B', icon: 'users' },
 ];
 
-function createApi(delay = 500): SimulatedSubjectsApiClient {
+function createApi(delay = 500): BaseApiClient {
   return {
     get: async function <T>(url: string): Promise<{ data: T }> {
       await new Promise((resolve) => setTimeout(resolve, delay));
@@ -32,6 +32,15 @@ function createApi(delay = 500): SimulatedSubjectsApiClient {
       };
 
       return { data: response as T };
+    },
+    post: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
+    patch: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
+    delete: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
     },
   };
 }

@@ -1,19 +1,20 @@
 import type { Story } from '@ladle/react';
 import Button from '../Button/Button';
 import { useSimulatedOverview } from './useSimulatedOverview';
-import type {
-  SimulatedOverviewApiClient,
-  SimulatedOverviewApiResponse,
-} from './types';
+import type { SimulatedOverviewApiResponse } from './types';
 import { SimulatedPerformanceTag } from './types';
+import type { BaseApiClient } from '../../types/api';
 
 function createApi(config?: {
   delay?: number;
   shouldFail?: boolean;
-}): SimulatedOverviewApiClient {
+}): BaseApiClient {
   const delay = config?.delay ?? 600;
 
   return {
+    get: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
     post: async function <T>(): Promise<{ data: T }> {
       await new Promise((resolve) => setTimeout(resolve, delay));
 
@@ -69,10 +70,16 @@ function createApi(config?: {
 
       return { data: response as T };
     },
+    patch: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
+    delete: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
   };
 }
 
-function HookPlayground({ api }: { api: SimulatedOverviewApiClient }) {
+function HookPlayground({ api }: { api: BaseApiClient }) {
   const { data, loading, isRefreshing, error, fetchOverview, reset } =
     useSimulatedOverview(api);
 

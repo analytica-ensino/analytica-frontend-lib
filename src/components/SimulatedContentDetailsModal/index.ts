@@ -8,7 +8,6 @@ export type {
   ContentDetailsData,
   ContentDetailsParams,
   ContentDetailsApiResponse,
-  ContentDetailsApiClient,
   UseSimulatedContentDetailsState,
   UseSimulatedContentDetailsReturn,
   SimulatedContentDetailsModalProps,

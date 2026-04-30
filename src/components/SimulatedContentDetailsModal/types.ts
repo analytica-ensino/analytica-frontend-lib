@@ -1,4 +1,5 @@
 import type { ActivityFilters } from '../SimulatedStudentDetailsModal/types';
+import type { BaseApiClient } from '../../types/api';
 
 /**
  * Content info for details modal
@@ -84,13 +85,6 @@ export interface ContentDetailsApiResponse {
 }
 
 /**
- * API client interface
- */
-export interface ContentDetailsApiClient {
-  post: <T>(url: string, data?: unknown) => Promise<{ data: T }>;
-}
-
-/**
  * Hook state
  */
 export interface UseSimulatedContentDetailsState {
@@ -111,7 +105,7 @@ export interface UseSimulatedContentDetailsReturn extends UseSimulatedContentDet
  * Modal props
  */
 export interface SimulatedContentDetailsModalProps {
-  readonly api: ContentDetailsApiClient;
+  readonly api: BaseApiClient;
   readonly isOpen: boolean;
   readonly onClose: () => void;
   readonly activityFilters: ActivityFilters;

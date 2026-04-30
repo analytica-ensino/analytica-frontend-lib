@@ -3,12 +3,12 @@ import { useState } from 'react';
 import Button from '../Button/Button';
 import { SimulatedStudentDetailsModal } from './SimulatedStudentDetailsModal';
 import type {
-  StudentDetailsApiClient,
   StudentDetailsApiResponse,
   StudentContentsData,
   StudentSubjectsData,
 } from './types';
 import { SimulatedPerformanceTag } from './types';
+import type { BaseApiClient } from '../../types/api';
 
 function createSubjectsData(): StudentSubjectsData {
   return {
@@ -105,10 +105,13 @@ function createApi(config?: {
   shouldFail?: boolean;
   emptySubjects?: boolean;
   emptyContents?: boolean;
-}): StudentDetailsApiClient {
+}): BaseApiClient {
   const delay = config?.delay ?? 500;
 
   return {
+    get: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
     post: async function <T>(
       _url: string,
       body?: unknown
@@ -139,6 +142,12 @@ function createApi(config?: {
 
       return { data: response as T };
     },
+    patch: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
+    delete: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
   };
 }
 
@@ -148,7 +157,7 @@ function BaseStory({
   simulationType = 'enem-1',
 }: {
   buttonLabel: string;
-  api: StudentDetailsApiClient;
+  api: BaseApiClient;
   simulationType?: 'enem-1' | 'enem-2' | 'essays';
 }) {
   const [isOpen, setIsOpen] = useState(false);

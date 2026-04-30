@@ -19,7 +19,6 @@ export type {
   ActivityFilters,
   StudentDetailsParams,
   StudentDetailsApiResponse,
-  StudentDetailsApiClient,
   UseSimulatedStudentDetailsState,
   UseSimulatedStudentDetailsReturn,
   SimulatedStudentDetailsModalProps,

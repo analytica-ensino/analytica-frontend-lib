@@ -8,7 +8,6 @@ export { useSimulatedSubjects } from './useSimulatedSubjects';
 // Types
 export type {
   SimulatedSubjectItem,
-  SimulatedSubjectsApiClient,
   SimulatedSubjectsApiResponse,
   UseSimulatedSubjectsState,
   UseSimulatedSubjectsReturn,

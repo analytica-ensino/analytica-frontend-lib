@@ -1,15 +1,18 @@
 import { act, renderHook } from '@testing-library/react';
 import { useSimulatedOverview } from './useSimulatedOverview';
 import type {
-  SimulatedOverviewApiClient,
   SimulatedOverviewApiResponse,
   SimulatedOverviewData,
 } from './types';
 import { SimulatedPerformanceTag } from './types';
+import type { BaseApiClient } from '../../types/api';
 
-function createMockApi(): jest.Mocked<SimulatedOverviewApiClient> {
+function createMockApi(): jest.Mocked<BaseApiClient> {
   return {
+    get: jest.fn(),
     post: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
   };
 }
 

@@ -1,10 +1,10 @@
 import { useState, useCallback, useRef } from 'react';
 import { simulationTypeToActivityFilters } from '../SimulatedStudentDetailsModal/types';
+import type { BaseApiClient } from '../../types/api';
 import type {
   SimulatedContentsParams,
   ContentsPerformanceData,
   ContentsPerformanceApiResponse,
-  SimulatedContentsApiClient,
   UseSimulatedContentsReturn,
 } from './types';
 
@@ -54,7 +54,7 @@ function buildEndpoint(
  * ```
  */
 export function useSimulatedContents(
-  api: SimulatedContentsApiClient
+  api: BaseApiClient
 ): UseSimulatedContentsReturn {
   const [data, setData] = useState<ContentsPerformanceData | null>(null);
   const [loading, setLoading] = useState(false);

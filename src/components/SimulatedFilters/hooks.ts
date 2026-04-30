@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
+import type { BaseApiClient } from '../../types/api';
 import type {
   UseUserAccessDataReturn,
   UseUserAccessDataState,
@@ -7,7 +8,6 @@ import type {
   StudentsFilterParams,
   StudentFilterItem,
   StudentGroup,
-  ApiClient,
   UserAccessDataApiResponse,
   StudentsFilterApiResponse,
 } from './types';
@@ -58,7 +58,7 @@ function groupStudents(students: StudentFilterItem[]): StudentGroup[] {
  * const { schools, schoolYears, classes, isLoading, error } = useUserAccessData(api);
  * ```
  */
-export function useUserAccessData(api: ApiClient): UseUserAccessDataReturn {
+export function useUserAccessData(api: BaseApiClient): UseUserAccessDataReturn {
   const [state, setState] = useState<UseUserAccessDataState>({
     isLoading: false,
     error: null,
@@ -141,7 +141,7 @@ export function useUserAccessData(api: ApiClient): UseUserAccessDataReturn {
  * }, [schoolIds, schoolYearIds, classIds]);
  * ```
  */
-export function useStudentsFilter(api: ApiClient): UseStudentsFilterReturn {
+export function useStudentsFilter(api: BaseApiClient): UseStudentsFilterReturn {
   const [state, setState] = useState<UseStudentsFilterState>({
     isLoading: false,
     error: null,

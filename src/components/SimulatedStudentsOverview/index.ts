@@ -6,7 +6,6 @@ export type {
   SimulatedOverviewData,
   SimulatedOverviewParams,
   SimulatedOverviewApiResponse,
-  SimulatedOverviewApiClient,
   UseSimulatedOverviewState,
   UseSimulatedOverviewReturn,
 } from './types';

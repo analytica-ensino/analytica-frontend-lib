@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
+import type { BaseApiClient } from '../../types/api';
 import type {
-  SimulatedSubjectsApiClient,
   SimulatedSubjectsApiResponse,
   UseSimulatedSubjectsState,
   UseSimulatedSubjectsReturn,
@@ -47,7 +47,7 @@ function buildEndpoint(areaKnowledgeId?: string | null): string {
  * ```
  */
 export function useSimulatedSubjects(
-  api: SimulatedSubjectsApiClient
+  api: BaseApiClient
 ): UseSimulatedSubjectsReturn {
   const [state, setState] = useState<UseSimulatedSubjectsState>(initialState);
 

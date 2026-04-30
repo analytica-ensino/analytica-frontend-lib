@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react';
+import type { BaseApiClient } from '../../types/api';
 import {
   simulationTypeToActivityFilters,
   type StudentDetailsData,
   type StudentDetailsParams,
-  type StudentDetailsApiClient,
   type StudentDetailsApiResponse,
   type UseSimulatedStudentDetailsReturn,
 } from './types';
@@ -55,7 +55,7 @@ function buildEndpoint(simulationType: 'enem-1' | 'enem-2' | 'essays'): string {
  * ```
  */
 export function useSimulatedStudentDetails(
-  api: StudentDetailsApiClient
+  api: BaseApiClient
 ): UseSimulatedStudentDetailsReturn {
   const [data, setData] = useState<StudentDetailsData | null>(null);
   const [loading, setLoading] = useState(false);

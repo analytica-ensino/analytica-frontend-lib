@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react';
+import type { BaseApiClient } from '../../types/api';
 import type {
   ContentDetailsData,
   ContentDetailsParams,
   ContentDetailsApiResponse,
-  ContentDetailsApiClient,
   UseSimulatedContentDetailsReturn,
   ActivityFilters,
 } from './types';
@@ -40,7 +40,7 @@ function buildEndpoint(activityFilters: ActivityFilters): string {
  * ```
  */
 export function useSimulatedContentDetails(
-  api: ContentDetailsApiClient
+  api: BaseApiClient
 ): UseSimulatedContentDetailsReturn {
   const [data, setData] = useState<ContentDetailsData | null>(null);
   const [loading, setLoading] = useState(false);

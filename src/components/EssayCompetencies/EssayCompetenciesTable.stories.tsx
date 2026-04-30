@@ -1,7 +1,6 @@
 import type { Story } from '@ladle/react';
 import { EssayCompetenciesTable } from './EssayCompetenciesTable';
 import type {
-  EssayCompetenciesApiClient,
   EssayCompetenciesOverviewApiResponse,
   EssayCompetenciesOverviewData,
   EssayCompetenceDetailsApiResponse,
@@ -9,6 +8,7 @@ import type {
   EssayCompetenceStudentItem,
 } from './types';
 import { SimulatedPerformanceTag } from './types';
+import type { BaseApiClient } from '../../types/api';
 
 // ============================================================================
 // MOCK DATA GENERATORS
@@ -156,10 +156,13 @@ function generateMockDetailsData(
 /**
  * Create a mock API that returns data successfully
  */
-function createSuccessApi(delay: number = 500): EssayCompetenciesApiClient {
+function createSuccessApi(delay: number = 500): BaseApiClient {
   const overviewData = generateMockOverviewData();
 
   return {
+    get: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
     post: async function <T>(
       url: string,
       data?: unknown
@@ -196,17 +199,32 @@ function createSuccessApi(delay: number = 500): EssayCompetenciesApiClient {
 
       throw new Error('Unknown endpoint');
     },
+    patch: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
+    delete: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
   };
 }
 
 /**
  * Create a mock API that returns an error
  */
-function createErrorApi(delay: number = 500): EssayCompetenciesApiClient {
+function createErrorApi(delay: number = 500): BaseApiClient {
   return {
+    get: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
     post: async function <T>(): Promise<{ data: T }> {
       await new Promise((resolve) => setTimeout(resolve, delay));
       throw new Error('Erro ao carregar dados das competências');
+    },
+    patch: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
+    delete: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
     },
   };
 }
@@ -214,15 +232,18 @@ function createErrorApi(delay: number = 500): EssayCompetenciesApiClient {
 /**
  * Create a mock API with slow loading
  */
-function createSlowApi(): EssayCompetenciesApiClient {
+function createSlowApi(): BaseApiClient {
   return createSuccessApi(3000);
 }
 
 /**
  * Create a mock API that returns empty data
  */
-function createEmptyApi(delay: number = 500): EssayCompetenciesApiClient {
+function createEmptyApi(delay: number = 500): BaseApiClient {
   return {
+    get: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
     post: async function <T>(url: string): Promise<{ data: T }> {
       await new Promise((resolve) => setTimeout(resolve, delay));
 
@@ -240,6 +261,12 @@ function createEmptyApi(delay: number = 500): EssayCompetenciesApiClient {
 
       throw new Error('Unknown endpoint');
     },
+    patch: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
+    delete: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
   };
 }
 
@@ -248,7 +275,7 @@ function createEmptyApi(delay: number = 500): EssayCompetenciesApiClient {
  */
 function createHighPerformanceApi(
   delay: number = 500
-): EssayCompetenciesApiClient {
+): BaseApiClient {
   const overviewData: EssayCompetenciesOverviewData = {
     competencies: [
       {
@@ -297,6 +324,9 @@ function createHighPerformanceApi(
   };
 
   return {
+    get: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
     post: async function <T>(
       url: string,
       data?: unknown
@@ -331,6 +361,12 @@ function createHighPerformanceApi(
 
       throw new Error('Unknown endpoint');
     },
+    patch: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
+    delete: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
   };
 }
 
@@ -339,7 +375,7 @@ function createHighPerformanceApi(
  */
 function createLowPerformanceApi(
   delay: number = 500
-): EssayCompetenciesApiClient {
+): BaseApiClient {
   const overviewData: EssayCompetenciesOverviewData = {
     competencies: [
       {
@@ -388,6 +424,9 @@ function createLowPerformanceApi(
   };
 
   return {
+    get: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
     post: async function <T>(
       url: string,
       data?: unknown
@@ -421,6 +460,12 @@ function createLowPerformanceApi(
       }
 
       throw new Error('Unknown endpoint');
+    },
+    patch: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
+    delete: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
     },
   };
 }

@@ -4,10 +4,10 @@ import '@testing-library/jest-dom';
 import { EssayStudentDetailsModal } from './EssayStudentDetailsModal';
 import {
   SimulatedPerformanceTag,
-  type EssayStudentDetailsApiClient,
   type EssayStudentDetailsData,
   type EssayCompetencyPerformance,
 } from './types';
+import type { BaseApiClient } from '../../types/api';
 
 // Mock useEssayStudentDetails hook
 const mockFetchDetails = jest.fn();
@@ -72,9 +72,12 @@ function createMockData(
 /**
  * Create mock API client
  */
-function createMockApi(): EssayStudentDetailsApiClient {
+function createMockApi(): BaseApiClient {
   return {
+    get: jest.fn(),
     post: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
   };
 }
 

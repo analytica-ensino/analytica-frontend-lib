@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react';
+import type { BaseApiClient } from '../../types/api';
 import type {
   EssayStudentDetailsData,
   EssayStudentDetailsParams,
   EssayStudentDetailsApiResponse,
-  EssayStudentDetailsApiClient,
   UseEssayStudentDetailsState,
   UseEssayStudentDetailsReturn,
 } from './types';
@@ -34,7 +34,7 @@ const initialState: UseEssayStudentDetailsState = {
  * ```
  */
 export function useEssayStudentDetails(
-  api: EssayStudentDetailsApiClient
+  api: BaseApiClient
 ): UseEssayStudentDetailsReturn {
   const [data, setData] = useState<EssayStudentDetailsData | null>(
     initialState.data

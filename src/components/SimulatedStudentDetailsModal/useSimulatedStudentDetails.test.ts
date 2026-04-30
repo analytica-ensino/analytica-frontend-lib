@@ -1,16 +1,19 @@
 import { act, renderHook } from '@testing-library/react';
 import { useSimulatedStudentDetails } from './useSimulatedStudentDetails';
 import type {
-  StudentDetailsApiClient,
   StudentDetailsApiResponse,
   StudentSubjectsData,
   StudentContentsData,
 } from './types';
 import { SimulatedPerformanceTag } from './types';
+import type { BaseApiClient } from '../../types/api';
 
-function createMockApi(): jest.Mocked<StudentDetailsApiClient> {
+function createMockApi(): jest.Mocked<BaseApiClient> {
   return {
+    get: jest.fn(),
     post: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
   };
 }
 

@@ -2,10 +2,8 @@ import type React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import type {
-  EssayCompetenciesApiClient,
-  EssayCompetenciesOverviewData,
-} from './types';
+import type { EssayCompetenciesOverviewData } from './types';
+import type { BaseApiClient } from '../../types/api';
 
 // Mock TableProvider to avoid complex dependencies
 jest.mock('../TableProvider', () => ({
@@ -165,9 +163,12 @@ function createMockData(): EssayCompetenciesOverviewData {
 /**
  * Create mock API client
  */
-function createMockApi(): EssayCompetenciesApiClient {
+function createMockApi(): BaseApiClient {
   return {
+    get: jest.fn(),
     post: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
   };
 }
 

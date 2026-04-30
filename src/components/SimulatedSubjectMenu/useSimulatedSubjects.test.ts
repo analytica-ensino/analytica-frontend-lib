@@ -2,13 +2,16 @@ import { act, renderHook } from '@testing-library/react';
 import { useSimulatedSubjects } from './useSimulatedSubjects';
 import type {
   SimulatedSubjectItem,
-  SimulatedSubjectsApiClient,
   SimulatedSubjectsApiResponse,
 } from './types';
+import type { BaseApiClient } from '../../types/api';
 
-function createMockApi(): jest.Mocked<SimulatedSubjectsApiClient> {
+function createMockApi(): jest.Mocked<BaseApiClient> {
   return {
     get: jest.fn(),
+    post: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
   };
 }
 

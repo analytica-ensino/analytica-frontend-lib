@@ -55,13 +55,6 @@ export interface SubjectItem {
 }
 
 /**
- * API client interface (axios-like)
- */
-export interface GeneralOverviewApiClient {
-  post: <T>(url: string, data?: unknown) => Promise<{ data: T }>;
-}
-
-/**
  * Request parameters for general overview
  */
 export interface GeneralOverviewParams {

@@ -4,10 +4,10 @@ import '@testing-library/jest-dom';
 import { EssayCompetenceDetailsModal } from './EssayCompetenceDetailsModal';
 import {
   SimulatedPerformanceTag,
-  type EssayCompetenciesApiClient,
   type EssayCompetenceDetailsData,
   type EssayCompetenceStudentItem,
 } from './types';
+import type { BaseApiClient } from '../../types/api';
 
 // Mock TableProvider to avoid complex dependencies
 jest.mock('../TableProvider', () => ({
@@ -142,9 +142,12 @@ function createMockData(
 /**
  * Create mock API client
  */
-function createMockApi(): EssayCompetenciesApiClient {
+function createMockApi(): BaseApiClient {
   return {
+    get: jest.fn(),
     post: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
   };
 }
 

@@ -4,11 +4,11 @@ import { EssayCompetenceDetailsModal } from './EssayCompetenceDetailsModal';
 import Button from '../Button/Button';
 import {
   SimulatedPerformanceTag,
-  type EssayCompetenciesApiClient,
   type EssayCompetenceStudentItem,
   type EssayCompetenceDetailsApiResponse,
   type EssayCompetenceDetailsData,
 } from './types';
+import type { BaseApiClient } from '../../types/api';
 
 // ============================================================================
 // MOCK DATA GENERATORS
@@ -154,8 +154,11 @@ function generateMockData(
 function createSuccessApi(
   totalStudents: number = 25,
   delay: number = 500
-): EssayCompetenciesApiClient {
+): BaseApiClient {
   return {
+    get: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
     post: async function <T>(
       url: string,
       data?: unknown
@@ -180,17 +183,32 @@ function createSuccessApi(
 
       return { data: response as T };
     },
+    patch: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
+    delete: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
   };
 }
 
 /**
  * Create a mock API that returns an error
  */
-function createErrorApi(delay: number = 500): EssayCompetenciesApiClient {
+function createErrorApi(delay: number = 500): BaseApiClient {
   return {
+    get: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
     post: async function <T>(): Promise<{ data: T }> {
       await new Promise((resolve) => setTimeout(resolve, delay));
       throw new Error('Erro ao carregar dados da competência');
+    },
+    patch: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
+    delete: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
     },
   };
 }
@@ -198,8 +216,11 @@ function createErrorApi(delay: number = 500): EssayCompetenciesApiClient {
 /**
  * Create a mock API that returns empty data
  */
-function createEmptyApi(delay: number = 500): EssayCompetenciesApiClient {
+function createEmptyApi(delay: number = 500): BaseApiClient {
   return {
+    get: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
     post: async function <T>(
       url: string,
       data?: unknown
@@ -236,13 +257,19 @@ function createEmptyApi(delay: number = 500): EssayCompetenciesApiClient {
 
       return { data: response as T };
     },
+    patch: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
+    delete: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
   };
 }
 
 /**
  * Create a mock API with slow loading
  */
-function createSlowApi(totalStudents: number = 25): EssayCompetenciesApiClient {
+function createSlowApi(totalStudents: number = 25): BaseApiClient {
   return createSuccessApi(totalStudents, 3000);
 }
 

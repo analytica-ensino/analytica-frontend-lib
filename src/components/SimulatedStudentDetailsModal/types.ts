@@ -1,3 +1,5 @@
+import type { BaseApiClient } from '../../types/api';
+
 /**
  * Performance tag for simulated exams
  */
@@ -192,13 +194,6 @@ export interface StudentDetailsApiResponse {
 }
 
 /**
- * API client interface
- */
-export interface StudentDetailsApiClient {
-  post: <T>(url: string, data?: unknown) => Promise<{ data: T }>;
-}
-
-/**
  * Hook state
  */
 export interface UseSimulatedStudentDetailsState {
@@ -219,7 +214,7 @@ export interface UseSimulatedStudentDetailsReturn extends UseSimulatedStudentDet
  * Modal props
  */
 export interface SimulatedStudentDetailsModalProps {
-  readonly api: StudentDetailsApiClient;
+  readonly api: BaseApiClient;
   readonly isOpen: boolean;
   readonly onClose: () => void;
   readonly simulationType: SimulationType;

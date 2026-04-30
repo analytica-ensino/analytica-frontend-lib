@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
+import type { BaseApiClient } from '../../types/api';
 import type {
-  GeneralOverviewApiClient,
   GeneralOverviewParams,
   GeneralOverviewApiResponse,
   UseGeneralOverviewState,
@@ -42,7 +42,7 @@ const initialState: UseGeneralOverviewState = {
  * ```
  */
 export function useGeneralOverview(
-  api: GeneralOverviewApiClient
+  api: BaseApiClient
 ): UseGeneralOverviewReturn {
   const [state, setState] = useState<UseGeneralOverviewState>(initialState);
 

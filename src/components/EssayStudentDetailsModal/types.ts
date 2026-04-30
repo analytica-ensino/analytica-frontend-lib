@@ -1,3 +1,4 @@
+import type { BaseApiClient } from '../../types/api';
 // Reuse SimulatedPerformanceTag from SimulatedStudentDetailsModal
 import {
   SimulatedPerformanceTag,
@@ -60,13 +61,6 @@ export interface EssayStudentDetailsApiResponse {
 }
 
 /**
- * API client interface for dependency injection
- */
-export interface EssayStudentDetailsApiClient {
-  post: <T>(url: string, data?: unknown) => Promise<{ data: T }>;
-}
-
-/**
  * Hook state
  */
 export interface UseEssayStudentDetailsState {
@@ -99,7 +93,7 @@ export interface EssayStudentDetailsLabels {
  */
 export interface EssayStudentDetailsModalProps {
   /** API client for making requests */
-  readonly api: EssayStudentDetailsApiClient;
+  readonly api: BaseApiClient;
   /** Whether modal is open */
   readonly isOpen: boolean;
   /** Close callback */

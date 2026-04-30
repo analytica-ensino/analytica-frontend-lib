@@ -20,6 +20,7 @@ export interface SimulatedContentItem {
     incorrect: number;
     correctPercentage: number;
   };
+  [key: string]: unknown;
 }
 
 /**
@@ -56,13 +57,6 @@ export interface SimulatedContentsParams {
 export interface ContentsPerformanceApiResponse {
   message: string;
   data: ContentsPerformanceData;
-}
-
-/**
- * API client interface
- */
-export interface SimulatedContentsApiClient {
-  post: <T>(url: string, data?: unknown) => Promise<{ data: T }>;
 }
 
 /**

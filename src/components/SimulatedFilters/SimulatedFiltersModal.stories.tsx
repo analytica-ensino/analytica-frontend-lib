@@ -3,11 +3,11 @@ import { useState } from 'react';
 import Button from '../Button/Button';
 import { SimulatedFiltersModal } from './SimulatedFiltersModal';
 import type {
-  ApiClient,
   SimulatedFilters,
   StudentsFilterApiResponse,
   UserAccessDataApiResponse,
 } from './types';
+import type { BaseApiClient } from '../../types/api';
 
 function createAccessResponse(): UserAccessDataApiResponse {
   return {
@@ -74,7 +74,7 @@ function createMockApi(config?: {
   delay?: number;
   failOnGet?: boolean;
   emptyStudents?: boolean;
-}): ApiClient {
+}): BaseApiClient {
   const delay = config?.delay ?? 400;
 
   return {
@@ -96,6 +96,12 @@ function createMockApi(config?: {
 
       return { data: createStudentsResponse() as T };
     },
+    patch: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
+    delete: async function <T>(): Promise<{ data: T }> {
+      throw new Error('Not implemented');
+    },
   };
 }
 
@@ -105,7 +111,7 @@ function BaseStory({
   initialFilters,
 }: {
   label: string;
-  api: ApiClient;
+  api: BaseApiClient;
   initialFilters?: Partial<SimulatedFilters>;
 }) {
   const [isOpen, setIsOpen] = useState(false);

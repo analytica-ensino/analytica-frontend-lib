@@ -6,7 +6,6 @@ export type {
   EssayStudentDetailsData,
   EssayStudentDetailsParams,
   EssayStudentDetailsApiResponse,
-  EssayStudentDetailsApiClient,
   UseEssayStudentDetailsState,
   UseEssayStudentDetailsReturn,
   EssayStudentDetailsLabels,

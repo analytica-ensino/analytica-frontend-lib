@@ -1,13 +1,13 @@
 import { renderHook, act } from '@testing-library/react';
 import { useGeneralOverview } from './useGeneralOverview';
 import type {
-  GeneralOverviewApiClient,
   GeneralOverviewApiResponse,
   GeneralOverviewData,
   GeneralOverviewParams,
   AreaKnowledgePerformance,
   EssayPerformance,
 } from './types';
+import type { BaseApiClient } from '../../types/api';
 
 /**
  * Create mock areas (4 knowledge areas)
@@ -85,14 +85,17 @@ function createMockData(): GeneralOverviewData {
 /**
  * Create mock API client
  */
-function createMockApi(): jest.Mocked<GeneralOverviewApiClient> {
+function createMockApi(): jest.Mocked<BaseApiClient> {
   return {
+    get: jest.fn(),
     post: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
   };
 }
 
 describe('useGeneralOverview', () => {
-  let mockApi: jest.Mocked<GeneralOverviewApiClient>;
+  let mockApi: jest.Mocked<BaseApiClient>;
   const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
   beforeEach(() => {

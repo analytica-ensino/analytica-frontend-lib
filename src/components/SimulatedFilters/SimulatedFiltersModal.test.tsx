@@ -1,7 +1,8 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { SimulatedFiltersModal } from './SimulatedFiltersModal';
-import type { ApiClient, SimulatedFilters } from './types';
+import type { SimulatedFilters } from './types';
+import type { BaseApiClient } from '../../types/api';
 
 jest.mock('../Modal/Modal', () => ({
   __esModule: true,
@@ -129,10 +130,12 @@ jest.mock('./hooks', () => ({
   }),
 }));
 
-function createMockApi(): ApiClient {
+function createMockApi(): BaseApiClient {
   return {
     get: jest.fn(),
     post: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
   };
 }
 

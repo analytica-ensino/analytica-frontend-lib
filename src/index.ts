@@ -310,7 +310,6 @@ export {
 export type {
   SimulatedFilters,
   SimulatedFiltersModalProps,
-  ApiClient as SimulatedApiClient,
   SchoolItem as SimulatedSchoolItem,
   SchoolYearItem as SimulatedSchoolYearItem,
   ClassItem as SimulatedClassItem,
@@ -337,7 +336,6 @@ export type {
   EssayPerformance,
   GeneralOverviewData,
   SubjectItem as GeneralOverviewSubjectItem,
-  GeneralOverviewApiClient,
   GeneralOverviewParams,
   GeneralOverviewApiResponse,
   UseGeneralOverviewState,
@@ -360,7 +358,6 @@ export {
 } from './components/SimulatedSubjectMenu';
 export type {
   SimulatedSubjectItem,
-  SimulatedSubjectsApiClient,
   SimulatedSubjectsApiResponse,
   UseSimulatedSubjectsState,
   UseSimulatedSubjectsReturn,
@@ -409,7 +406,6 @@ export type {
   ActivityFilters as SimulatedActivityFilters,
   StudentDetailsParams,
   StudentDetailsApiResponse,
-  StudentDetailsApiClient,
   UseSimulatedStudentDetailsState,
   UseSimulatedStudentDetailsReturn,
   SimulatedStudentDetailsModalProps,
@@ -422,7 +418,6 @@ export type {
   ContentsPerformanceData,
   SimulatedContentsParams,
   ContentsPerformanceApiResponse,
-  SimulatedContentsApiClient,
   UseSimulatedContentsState,
   UseSimulatedContentsReturn,
 } from './components/SimulatedContentsPerformance';
@@ -440,7 +435,6 @@ export type {
   ContentDetailsData,
   ContentDetailsParams,
   ContentDetailsApiResponse,
-  ContentDetailsApiClient,
   UseSimulatedContentDetailsState,
   UseSimulatedContentDetailsReturn,
   SimulatedContentDetailsModalProps,
@@ -465,7 +459,6 @@ export type {
   EssayCompetenceDetailsData,
   EssayCompetenceDetailsParams,
   EssayCompetenceDetailsApiResponse,
-  EssayCompetenciesApiClient,
   UseEssayCompetenciesOverviewState,
   UseEssayCompetenciesOverviewReturn,
   UseEssayCompetenceDetailsState,
@@ -482,7 +475,6 @@ export type {
   SimulatedOverviewData,
   SimulatedOverviewParams,
   SimulatedOverviewApiResponse,
-  SimulatedOverviewApiClient,
   UseSimulatedOverviewState,
   UseSimulatedOverviewReturn,
 } from './components/SimulatedStudentsOverview';
@@ -498,7 +490,6 @@ export type {
   EssayStudentDetailsData,
   EssayStudentDetailsParams,
   EssayStudentDetailsApiResponse,
-  EssayStudentDetailsApiClient,
   UseEssayStudentDetailsState,
   UseEssayStudentDetailsReturn,
   EssayStudentDetailsLabels,
