@@ -122,7 +122,10 @@ function generateMockDetailsData(
     'Elaborar proposta de intervenção para o problema abordado, respeitando os direitos humanos',
   ];
 
-  const studentsInPage = Math.min(limit, totalStudents - (page - 1) * limit);
+  const studentsInPage = Math.max(
+    0,
+    Math.min(limit, totalStudents - (page - 1) * limit)
+  );
 
   return {
     competence: {

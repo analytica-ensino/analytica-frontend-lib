@@ -21,7 +21,7 @@ const initialState: UseSimulatedSubjectsState = {
  */
 function buildEndpoint(areaKnowledgeId?: string | null): string {
   if (areaKnowledgeId) {
-    return `/performance/simulated/subjects?areaKnowledgeId=${areaKnowledgeId}`;
+    return `/performance/simulated/subjects?areaKnowledgeId=${encodeURIComponent(areaKnowledgeId)}`;
   }
   return '/performance/simulated/subjects';
 }

@@ -182,7 +182,7 @@ export function GeneralOverviewSection({
         </Text>
         <Text size="sm" className="text-text-500">
           Dados que mostram a proficiência de todos os simulados digitais já
-          realizados em toda as áreas do conhecimento
+          realizados em todas as áreas do conhecimento
         </Text>
       </div>
 

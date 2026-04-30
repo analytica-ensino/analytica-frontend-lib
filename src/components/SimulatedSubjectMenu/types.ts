@@ -45,8 +45,8 @@ export interface SimulatedSubjectMenuProps {
   readonly areaKnowledgeId: string | null;
   /** Currently selected subject ID (null means "Todos") */
   readonly selectedSubjectId: string | null;
-  /** Callback when subject changes */
-  readonly onSubjectChange: (subjectId: string) => void;
+  /** Callback when subject changes (null means "Todos") */
+  readonly onSubjectChange: (subjectId: string | null) => void;
   /** External loading state */
   readonly loading?: boolean;
   /** Label text (default: "Disciplina") */

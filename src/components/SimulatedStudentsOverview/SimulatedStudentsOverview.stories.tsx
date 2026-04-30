@@ -4,6 +4,7 @@ import { useSimulatedOverview } from './useSimulatedOverview';
 import type { SimulatedOverviewApiResponse } from './types';
 import { SimulatedPerformanceTag } from './types';
 import type { BaseApiClient } from '../../types/api';
+import Text from '../Text/Text';
 
 function createApi(config?: {
   delay?: number;
@@ -117,16 +118,23 @@ function HookPlayground({ api }: { api: BaseApiClient }) {
         </Button>
       </div>
 
-      <div className="text-sm text-text-700">
+      <Text size="sm" className="text-text-700">
         loading: {String(loading)} | refreshing: {String(isRefreshing)}
-      </div>
+      </Text>
 
-      {error && <div className="text-sm text-error-500">{error}</div>}
+      {error && (
+        <Text size="sm" className="text-error-500">
+          {error}
+        </Text>
+      )}
 
       {data && (
-        <pre className="text-xs p-3 rounded-md bg-background-100 border border-border-200">
+        <Text
+          size="xs"
+          className="p-3 rounded-md bg-background-100 border border-border-200"
+        >
           {JSON.stringify(data, null, 2)}
-        </pre>
+        </Text>
       )}
     </div>
   );

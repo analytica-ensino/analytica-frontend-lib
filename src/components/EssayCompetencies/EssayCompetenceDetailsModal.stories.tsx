@@ -162,7 +162,10 @@ function generateMockData(
     'Elaborar proposta de intervenção para o problema abordado, respeitando os direitos humanos',
   ];
 
-  const studentsInPage = Math.min(limit, totalStudents - (page - 1) * limit);
+  const studentsInPage = Math.max(
+    0,
+    Math.min(limit, totalStudents - (page - 1) * limit)
+  );
 
   return {
     competence: {
@@ -373,12 +376,12 @@ export const AllCompetencies: Story = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="font-bold text-xl text-text-900">
+      <Text size="lg" weight="bold" className="text-text-950">
         Detalhes das Competências de Redação
-      </h2>
-      <p className="text-text-500">
+      </Text>
+      <Text size="sm" className="text-text-500">
         Clique em uma competência para ver os detalhes
-      </p>
+      </Text>
       <div className="flex flex-wrap gap-3">
         {competencies.map((comp) => (
           <Button

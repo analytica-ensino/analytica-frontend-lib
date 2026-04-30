@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import type { BaseApiClient } from '../../types/api';
 import type {
   EssayCompetenciesOverviewData,
@@ -28,9 +28,12 @@ export function useEssayCompetenciesOverview(
   const [data, setData] = useState<EssayCompetenciesOverviewData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const requestIdRef = useRef(0);
 
   const fetchOverview = useCallback(
     async (params: EssayCompetenciesOverviewParams) => {
+      const currentRequestId = ++requestIdRef.current;
+
       try {
         setLoading(true);
         setError(null);
@@ -45,21 +48,32 @@ export function useEssayCompetenciesOverview(
           }
         );
 
+        // Ignore stale responses
+        if (currentRequestId !== requestIdRef.current) return;
+
         setData(response.data.data);
       } catch (err) {
+        // Ignore errors from stale requests
+        if (currentRequestId !== requestIdRef.current) return;
+
         const errorMessage =
           err instanceof Error
             ? err.message
             : 'Não foi possível carregar o resumo das competências';
         setError(errorMessage);
       } finally {
-        setLoading(false);
+        // Only update loading for current request
+        if (currentRequestId === requestIdRef.current) {
+          setLoading(false);
+        }
       }
     },
     [api]
   );
 
   const reset = useCallback(() => {
+    // Invalidate any in-flight requests
+    requestIdRef.current++;
     setData(null);
     setLoading(false);
     setError(null);

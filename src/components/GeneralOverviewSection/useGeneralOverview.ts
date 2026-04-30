@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import type { BaseApiClient } from '../../types/api';
 import type {
   GeneralOverviewParams,
@@ -45,6 +45,7 @@ export function useGeneralOverview(
   api: BaseApiClient
 ): UseGeneralOverviewReturn {
   const [state, setState] = useState<UseGeneralOverviewState>(initialState);
+  const requestIdRef = useRef(0);
 
   /**
    * Fetch general overview data
@@ -53,6 +54,8 @@ export function useGeneralOverview(
    */
   const fetchOverview = useCallback(
     async (params: GeneralOverviewParams, refresh = false) => {
+      const currentRequestId = ++requestIdRef.current;
+
       // Set loading or refreshing state
       setState((prev) => ({
         ...prev,
@@ -78,6 +81,9 @@ export function useGeneralOverview(
 
         const response = await api.post<GeneralOverviewApiResponse>(url, body);
 
+        // Ignore stale responses
+        if (currentRequestId !== requestIdRef.current) return;
+
         setState({
           data: response.data.data,
           loading: false,
@@ -85,6 +91,9 @@ export function useGeneralOverview(
           error: null,
         });
       } catch (err) {
+        // Ignore errors from stale requests
+        if (currentRequestId !== requestIdRef.current) return;
+
         const errorMessage =
           err instanceof Error
             ? err.message
@@ -107,6 +116,8 @@ export function useGeneralOverview(
    * Reset state to initial values
    */
   const reset = useCallback(() => {
+    // Invalidate any in-flight requests
+    requestIdRef.current++;
     setState(initialState);
   }, []);
 

@@ -104,9 +104,9 @@ describe('GeneralOverviewSection', () => {
         <GeneralOverviewSection data={null} loading={true} />
       );
 
-      // Should have skeleton elements
+      // Should have exactly 5 skeleton elements
       const skeletons = container.querySelectorAll('.bg-background-50');
-      expect(skeletons.length).toBeGreaterThan(0);
+      expect(skeletons.length).toBe(5);
     });
   });
 

@@ -24,6 +24,7 @@ function buildEndpoint(
   const params = new URLSearchParams();
 
   activityFilters.types?.forEach((t) => params.append('types', t));
+  activityFilters.subtypes?.forEach((s) => params.append('subtypes', s));
   activityFilters.statuses?.forEach((s) => params.append('statuses', s));
 
   if (scoreType && scoreType !== 'percentage') {
@@ -69,6 +70,7 @@ export function useSimulatedContents(
       // Essays don't have contents
       if (!endpoint) {
         setData(null);
+        setError(null);
         return;
       }
 

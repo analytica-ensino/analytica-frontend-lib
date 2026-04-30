@@ -92,10 +92,18 @@ export function SimulatedFiltersModal({
   // Track if already initialized to avoid re-initialization
   const hasInitialized = useRef(false);
 
-  // Initialize categories when data loads
+  // Reset initialization flag when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      hasInitialized.current = false;
+    }
+  }, [isOpen]);
+
+  // Initialize categories when data loads and modal opens
   // If there's only 1 school, auto-select it
   useEffect(() => {
     if (
+      isOpen &&
       !hasInitialized.current &&
       (schools.length > 0 || schoolYears.length > 0 || classes.length > 0)
     ) {
@@ -137,8 +145,12 @@ export function SimulatedFiltersModal({
           selectedIds: initialFilters?.classIds || [],
         },
       ]);
+
+      // Reset selected students to initial filters
+      setSelectedStudentIds(initialFilters?.studentsIds || []);
+      setStudentSearchQuery('');
     }
-  }, [schools, schoolYears, classes, initialFilters]);
+  }, [isOpen, schools, schoolYears, classes, initialFilters]);
 
   // Extract current filters from categories
   const currentFilters = useMemo(
