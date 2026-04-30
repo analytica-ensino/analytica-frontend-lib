@@ -177,9 +177,7 @@ describe('EssayCompetenceDetailsModal', () => {
       render(<EssayCompetenceDetailsModal {...defaultProps} />);
 
       // Should show modal with title in C{number} - {name} format
-      expect(
-        screen.getByText('C1 - Domínio da escrita')
-      ).toBeInTheDocument();
+      expect(screen.getByText('C1 - Domínio da escrita')).toBeInTheDocument();
     });
 
     it('shows modal title during loading', () => {
@@ -187,9 +185,7 @@ describe('EssayCompetenceDetailsModal', () => {
 
       render(<EssayCompetenceDetailsModal {...defaultProps} />);
 
-      expect(
-        screen.getByText('C1 - Domínio da escrita')
-      ).toBeInTheDocument();
+      expect(screen.getByText('C1 - Domínio da escrita')).toBeInTheDocument();
     });
 
     it('uses competence number as fallback title when name not provided', () => {
@@ -252,7 +248,9 @@ describe('EssayCompetenceDetailsModal', () => {
 
       render(<EssayCompetenceDetailsModal {...defaultProps} />);
 
-      expect(screen.getByText(/Redação • 1 redação • 1 aluno/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Redação • 1 redação • 1 aluno/)
+      ).toBeInTheDocument();
     });
 
     it('renders 3 performance counters', () => {

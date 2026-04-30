@@ -132,14 +132,7 @@ export function SimuladosContentDetailsModal({
         limit: 10,
       });
     }
-  }, [
-    isOpen,
-    contentId,
-    activityFilters,
-    period,
-    filters,
-    fetchDetails,
-  ]);
+  }, [isOpen, contentId, activityFilters, period, filters, fetchDetails]);
 
   // Reset state when modal closes
   useEffect(() => {

@@ -121,7 +121,7 @@ describe('StudentRanking', () => {
         );
 
         const wrapper = container.firstChild as HTMLElement;
-        expect(wrapper).toHaveClass('flex');
+        expect(wrapper).toHaveClass('grid');
         expect(wrapper).toHaveClass('gap-4');
       });
 

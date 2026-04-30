@@ -214,7 +214,8 @@ export function EssayCompetenceDetailsModal({
   }
 
   // Calculate combined counter values
-  const aboveAverageCount = data.counters.highlight + data.counters.aboveAverage;
+  const aboveAverageCount =
+    data.counters.highlight + data.counters.aboveAverage;
   const belowAverageCount = data.counters.belowAverage;
   const attentionCount = data.counters.attentionPoint;
 
@@ -225,8 +226,7 @@ export function EssayCompetenceDetailsModal({
         <Text size="sm" className="text-text-500">
           Redação • {data.totalEssays}{' '}
           {data.totalEssays === 1 ? 'redação' : 'redações'} •{' '}
-          {data.totalStudents}{' '}
-          {data.totalStudents === 1 ? 'aluno' : 'alunos'}
+          {data.totalStudents} {data.totalStudents === 1 ? 'aluno' : 'alunos'}
         </Text>
 
         {/* Performance counters - 3 cards */}
