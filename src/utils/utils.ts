@@ -33,6 +33,40 @@ export function formatPercentageRounded(value: number): string {
 }
 
 /**
+ * Score display type
+ */
+export type ScoreType = 'percentage' | 'tri';
+
+/**
+ * Format score based on score type
+ * @param value - Score value
+ * @param scoreType - 'percentage' or 'tri'
+ * @returns Formatted score string
+ */
+export function formatScore(value: number, scoreType: ScoreType): string {
+  if (scoreType === 'tri') {
+    return Math.round(value).toString();
+  }
+  // Percentage format with 1 decimal place
+  return `${value.toFixed(1).replace('.', ',')}%`;
+}
+
+/**
+ * Convert hex color to rgba with opacity for background
+ * @param hex - Hex color (e.g., "#4B0082")
+ * @param opacity - Opacity value (0-1)
+ * @returns rgba string
+ */
+export function hexToRgba(hex: string, opacity: number): string {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return `rgba(107, 114, 128, ${opacity})`; // fallback gray
+  const r = parseInt(result[1], 16);
+  const g = parseInt(result[2], 16);
+  const b = parseInt(result[3], 16);
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+}
+
+/**
  * Retorna a cor hexadecimal com opacidade 0.3 (4d) se não estiver em dark mode.
  * Se estiver em dark mode, retorna a cor original.
  *

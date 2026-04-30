@@ -2,16 +2,13 @@ import Text from '../Text/Text';
 import ProgressBar from '../ProgressBar/ProgressBar';
 import { SkeletonRounded } from '../Skeleton/Skeleton';
 import IconRender from '../IconRender/IconRender';
+import { formatScore, hexToRgba } from '../../utils/utils';
 import type {
   GeneralOverviewSectionProps,
   AreaKnowledgePerformance,
   EssayPerformance,
   ScoreType,
 } from './types';
-
-// ============================================================================
-// CONSTANTS
-// ============================================================================
 
 /** Default color when API doesn't provide one */
 const DEFAULT_COLOR = '#6B7280';
@@ -21,43 +18,6 @@ const DEFAULT_ICON = 'shapes';
 
 /** Essay color (rose) */
 const ESSAY_COLOR = '#F43F5E';
-
-// ============================================================================
-// UTILITIES
-// ============================================================================
-
-/**
- * Format score based on score type
- * @param value - Score value
- * @param scoreType - 'percentage' or 'tri'
- * @returns Formatted score string
- */
-function formatScore(value: number, scoreType: ScoreType): string {
-  if (scoreType === 'tri') {
-    return Math.round(value).toString();
-  }
-  // Percentage format with 1 decimal place
-  return `${value.toFixed(1).replace('.', ',')}%`;
-}
-
-/**
- * Convert hex color to rgba with opacity for background
- * @param hex - Hex color (e.g., "#4B0082")
- * @param opacity - Opacity value (0-1)
- * @returns rgba string
- */
-function hexToRgba(hex: string, opacity: number): string {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!result) return `rgba(107, 114, 128, ${opacity})`; // fallback gray
-  const r = parseInt(result[1], 16);
-  const g = parseInt(result[2], 16);
-  const b = parseInt(result[3], 16);
-  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-}
-
-// ============================================================================
-// SUB-COMPONENTS
-// ============================================================================
 
 /**
  * Area knowledge card component
@@ -155,10 +115,6 @@ function AreaCardSkeleton() {
     </div>
   );
 }
-
-// ============================================================================
-// MAIN COMPONENT
-// ============================================================================
 
 /**
  * GeneralOverviewSection - General overview section for simulated exams

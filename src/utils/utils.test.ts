@@ -3,6 +3,8 @@ import {
   getSubjectColorWithOpacity,
   syncDropdownState,
   formatPercentageRounded,
+  formatScore,
+  hexToRgba,
 } from './utils';
 
 describe('utils', () => {
@@ -177,6 +179,88 @@ describe('utils', () => {
     it('should handle very small decimals', () => {
       expect(formatPercentageRounded(0.1)).toBe('0%');
       expect(formatPercentageRounded(0.5)).toBe('1%');
+    });
+  });
+
+  describe('formatScore', () => {
+    describe('percentage mode', () => {
+      it('should format with 1 decimal place and comma separator', () => {
+        expect(formatScore(72.5, 'percentage')).toBe('72,5%');
+      });
+
+      it('should format integer as decimal', () => {
+        expect(formatScore(72, 'percentage')).toBe('72,0%');
+      });
+
+      it('should handle zero', () => {
+        expect(formatScore(0, 'percentage')).toBe('0,0%');
+      });
+
+      it('should handle 100', () => {
+        expect(formatScore(100, 'percentage')).toBe('100,0%');
+      });
+
+      it('should round to 1 decimal place', () => {
+        expect(formatScore(72.456, 'percentage')).toBe('72,5%');
+        expect(formatScore(72.444, 'percentage')).toBe('72,4%');
+      });
+    });
+
+    describe('tri mode', () => {
+      it('should format as rounded integer without symbol', () => {
+        expect(formatScore(685, 'tri')).toBe('685');
+      });
+
+      it('should round decimal values', () => {
+        expect(formatScore(685.4, 'tri')).toBe('685');
+        expect(formatScore(685.5, 'tri')).toBe('686');
+      });
+
+      it('should handle zero', () => {
+        expect(formatScore(0, 'tri')).toBe('0');
+      });
+
+      it('should handle large values', () => {
+        expect(formatScore(1000, 'tri')).toBe('1000');
+      });
+    });
+  });
+
+  describe('hexToRgba', () => {
+    it('should convert hex color to rgba', () => {
+      expect(hexToRgba('#FF0000', 0.5)).toBe('rgba(255, 0, 0, 0.5)');
+    });
+
+    it('should handle hex without hash', () => {
+      expect(hexToRgba('00FF00', 0.3)).toBe('rgba(0, 255, 0, 0.3)');
+    });
+
+    it('should handle lowercase hex', () => {
+      expect(hexToRgba('#0000ff', 1)).toBe('rgba(0, 0, 255, 1)');
+    });
+
+    it('should handle mixed case hex', () => {
+      expect(hexToRgba('#AbCdEf', 0.1)).toBe('rgba(171, 205, 239, 0.1)');
+    });
+
+    it('should return fallback gray for invalid hex', () => {
+      expect(hexToRgba('invalid', 0.5)).toBe('rgba(107, 114, 128, 0.5)');
+    });
+
+    it('should return fallback gray for empty string', () => {
+      expect(hexToRgba('', 0.5)).toBe('rgba(107, 114, 128, 0.5)');
+    });
+
+    it('should return fallback gray for short hex (3 digits)', () => {
+      expect(hexToRgba('#FFF', 0.5)).toBe('rgba(107, 114, 128, 0.5)');
+    });
+
+    it('should handle zero opacity', () => {
+      expect(hexToRgba('#000000', 0)).toBe('rgba(0, 0, 0, 0)');
+    });
+
+    it('should handle full opacity', () => {
+      expect(hexToRgba('#FFFFFF', 1)).toBe('rgba(255, 255, 255, 1)');
     });
   });
 
