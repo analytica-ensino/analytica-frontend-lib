@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { ScoreType } from '../types/common';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -32,23 +33,8 @@ export function formatPercentageRounded(value: number): string {
   return `${Math.round(value)}%`;
 }
 
-// Import and re-export ScoreType enum from common types
-import { ScoreType } from '../types/common';
 export { ScoreType };
-
-/**
- * Format score based on score type
- * @param value - Score value
- * @param scoreType - 'percentage' or 'tri'
- * @returns Formatted score string
- */
-export function formatScore(value: number, scoreType: ScoreType): string {
-  if (scoreType === 'tri') {
-    return Math.round(value).toString();
-  }
-  // Percentage format with 1 decimal place
-  return `${value.toFixed(1).replace('.', ',')}%`;
-}
+export { formatScore } from './formatScore';
 
 /**
  * Convert hex color to rgba with opacity for background
