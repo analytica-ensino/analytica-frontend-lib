@@ -13,6 +13,41 @@ import { Period } from '../PeriodSelector';
 import Text from '../Text/Text';
 
 // ============================================================================
+// MOCK DATA CONSTANTS
+// ============================================================================
+
+/** Essay score configuration (ENEM scale: 0-200 per competency) */
+const ESSAY_SCORE = {
+  MAX: 200,
+  DEFAULT_BASE: 120,
+  INCREMENT_PER_COMPETENCY: 10,
+  RANDOM_VARIATION: 20,
+} as const;
+
+/** Total max score (5 competencies * 200 each) */
+const TOTAL_MAX_SCORE = 1000;
+
+/** Base scores for each performance level */
+const PERFORMANCE_BASE_SCORES: Record<SimulatedPerformanceTag, number> = {
+  [SimulatedPerformanceTag.HIGHLIGHT]: 160,
+  [SimulatedPerformanceTag.ABOVE_AVERAGE]: 130,
+  [SimulatedPerformanceTag.BELOW_AVERAGE]: 90,
+  [SimulatedPerformanceTag.ATTENTION_POINT]: 60,
+};
+
+/** Essays count range for random generation */
+const ESSAYS_COUNT = {
+  MIN: 1,
+  MAX: 5,
+} as const;
+
+/** API delay configuration (ms) */
+const API_DELAY = {
+  DEFAULT: 500,
+  SLOW: 3000,
+} as const;
+
+// ============================================================================
 // MOCK DATA GENERATORS
 // ============================================================================
 
@@ -20,7 +55,7 @@ import Text from '../Text/Text';
  * Generate mock competencies (5 ENEM competencies)
  */
 function generateMockCompetencies(
-  baseScore: number = 120
+  baseScore: number = ESSAY_SCORE.DEFAULT_BASE
 ): EssayCompetencyPerformance[] {
   const names = [
     'Domínio da modalidade escrita formal da língua portuguesa',
@@ -31,13 +66,19 @@ function generateMockCompetencies(
   ];
 
   return names.map((name, i) => {
-    const score = Math.min(200, baseScore + i * 10 + Math.random() * 20);
+    const score = Math.min(
+      ESSAY_SCORE.MAX,
+      baseScore +
+        i * ESSAY_SCORE.INCREMENT_PER_COMPETENCY +
+        Math.random() * ESSAY_SCORE.RANDOM_VARIATION
+    );
     return {
       number: i + 1,
       name,
       averageScore: score,
-      averagePercentage: (score / 200) * 100,
-      essaysCount: Math.floor(Math.random() * 5) + 1,
+      averagePercentage: (score / ESSAY_SCORE.MAX) * 100,
+      essaysCount:
+        Math.floor(Math.random() * ESSAYS_COUNT.MAX) + ESSAYS_COUNT.MIN,
     };
   });
 }
@@ -48,23 +89,17 @@ function generateMockCompetencies(
 function generateMockData(
   studentName: string = 'Maria Silva',
   performance: SimulatedPerformanceTag = SimulatedPerformanceTag.ABOVE_AVERAGE,
-  essaysCount: number = 5
+  essaysCount: number = ESSAYS_COUNT.MAX
 ): EssayStudentDetailsData {
   const competencies = generateMockCompetencies(
-    performance === SimulatedPerformanceTag.HIGHLIGHT
-      ? 160
-      : performance === SimulatedPerformanceTag.ABOVE_AVERAGE
-        ? 130
-        : performance === SimulatedPerformanceTag.BELOW_AVERAGE
-          ? 90
-          : 60
+    PERFORMANCE_BASE_SCORES[performance]
   );
 
   const overallAverage = competencies.reduce(
     (sum, c) => sum + c.averageScore,
     0
   );
-  const overallPercentage = (overallAverage / 1000) * 100;
+  const overallPercentage = (overallAverage / TOTAL_MAX_SCORE) * 100;
 
   return {
     student: {
@@ -92,7 +127,7 @@ function generateMockData(
 function createSuccessApi(
   studentName: string = 'Maria Silva',
   performance: SimulatedPerformanceTag = SimulatedPerformanceTag.ABOVE_AVERAGE,
-  delay: number = 500
+  delay: number = API_DELAY.DEFAULT
 ): BaseApiClient {
   return {
     get: async function <T>(): Promise<{ data: T }> {
@@ -120,7 +155,7 @@ function createSuccessApi(
 /**
  * Create a mock API that returns an error
  */
-function createErrorApi(delay: number = 500): BaseApiClient {
+function createErrorApi(delay: number = API_DELAY.DEFAULT): BaseApiClient {
   return {
     get: async function <T>(): Promise<{ data: T }> {
       throw new Error('Not implemented');
@@ -145,14 +180,16 @@ function createSlowApi(studentName: string = 'Maria Silva'): BaseApiClient {
   return createSuccessApi(
     studentName,
     SimulatedPerformanceTag.ABOVE_AVERAGE,
-    3000
+    API_DELAY.SLOW
   );
 }
 
 /**
  * Create a mock API that returns empty competencies
  */
-function createEmptyCompetenciesApi(delay: number = 500): BaseApiClient {
+function createEmptyCompetenciesApi(
+  delay: number = API_DELAY.DEFAULT
+): BaseApiClient {
   return {
     get: async function <T>(): Promise<{ data: T }> {
       throw new Error('Not implemented');
