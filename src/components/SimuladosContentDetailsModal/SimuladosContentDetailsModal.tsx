@@ -6,6 +6,7 @@ import { SkeletonRounded } from '../Skeleton/Skeleton';
 import { TableProvider, type TableParams } from '../TableProvider';
 import { ArrowLeft } from 'phosphor-react';
 import { useSimulatedContentDetails } from './useSimulatedContentDetails';
+import { formatPercentageRounded } from '../../utils/utils';
 import type {
   SimuladosContentDetailsModalProps,
   ContentStudentItem,
@@ -22,13 +23,6 @@ const DEFAULT_LABELS = {
   atAverage: 'Na média',
   belowAverage: 'Abaixo da média',
 };
-
-/**
- * Format percentage rounded
- */
-function formatPercentageRounded(value: number): string {
-  return `${Math.round(value)}%`;
-}
 
 /**
  * Table columns configuration

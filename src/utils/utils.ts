@@ -24,6 +24,15 @@ export {
 } from './activityDetailsUtils';
 
 /**
+ * Format a number as a rounded percentage string
+ * @param value - Number to format (0-100)
+ * @returns Formatted string with % suffix (e.g., "72%")
+ */
+export function formatPercentageRounded(value: number): string {
+  return `${Math.round(value)}%`;
+}
+
+/**
  * Retorna a cor hexadecimal com opacidade 0.3 (4d) se não estiver em dark mode.
  * Se estiver em dark mode, retorna a cor original.
  *

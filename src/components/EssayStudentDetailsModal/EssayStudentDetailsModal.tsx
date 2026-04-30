@@ -5,40 +5,13 @@ import ProgressBar from '../ProgressBar/ProgressBar';
 import Badge from '../Badge/Badge';
 import { SkeletonRounded } from '../Skeleton/Skeleton';
 import { useEssayStudentDetails } from './useEssayStudentDetails';
+import { formatPercentageRounded } from '../../utils/utils';
 import {
   SIMULATED_PERFORMANCE_TAG_CONFIG,
   SimulatedPerformanceTag,
   type EssayStudentDetailsModalProps,
   type EssayCompetencyPerformance,
 } from './types';
-
-/**
- * Map performance tag to Badge action type
- */
-const PERFORMANCE_TAG_TO_BADGE_ACTION: Record<
-  SimulatedPerformanceTag,
-  'success' | 'info' | 'warning' | 'error'
-> = {
-  [SimulatedPerformanceTag.HIGHLIGHT]: 'success',
-  [SimulatedPerformanceTag.ABOVE_AVERAGE]: 'info',
-  [SimulatedPerformanceTag.BELOW_AVERAGE]: 'warning',
-  [SimulatedPerformanceTag.ATTENTION_POINT]: 'error',
-};
-
-const DEFAULT_LABELS = {
-  loading: 'Carregando...',
-  noData: 'Nenhum dado encontrado',
-  competencies: 'Competências',
-  noCompetencies: 'Nenhuma competência encontrada',
-  essays: 'redações',
-};
-
-/**
- * Format percentage rounded
- */
-function formatPercentageRounded(value: number): string {
-  return `${Math.round(value)}%`;
-}
 
 /**
  * Modal for displaying essay student performance details
@@ -56,6 +29,14 @@ export function EssayStudentDetailsModal({
   classIds,
   labels: customLabels,
 }: EssayStudentDetailsModalProps) {
+  const DEFAULT_LABELS = {
+    loading: 'Carregando...',
+    noData: 'Nenhum dado encontrado',
+    competencies: 'Competências',
+    noCompetencies: 'Nenhuma competência encontrada',
+    essays: 'redações',
+  };
+
   const labels = { ...DEFAULT_LABELS, ...customLabels };
   const { data, loading, error, fetchDetails, reset } =
     useEssayStudentDetails(api);
@@ -89,6 +70,19 @@ export function EssayStudentDetailsModal({
   }, [isOpen, reset]);
 
   const modalTitle = `Desempenho de ${studentName || 'Estudante'}`;
+
+  /**
+   * Map performance tag to Badge action type
+   */
+  const PERFORMANCE_TAG_TO_BADGE_ACTION: Record<
+    SimulatedPerformanceTag,
+    'success' | 'info' | 'warning' | 'error'
+  > = {
+    [SimulatedPerformanceTag.HIGHLIGHT]: 'success',
+    [SimulatedPerformanceTag.ABOVE_AVERAGE]: 'info',
+    [SimulatedPerformanceTag.BELOW_AVERAGE]: 'warning',
+    [SimulatedPerformanceTag.ATTENTION_POINT]: 'error',
+  };
 
   // Render loading state
   if (loading) {

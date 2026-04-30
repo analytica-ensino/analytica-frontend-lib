@@ -1,4 +1,9 @@
-import { cn, getSubjectColorWithOpacity, syncDropdownState } from './utils';
+import {
+  cn,
+  getSubjectColorWithOpacity,
+  syncDropdownState,
+  formatPercentageRounded,
+} from './utils';
 
 describe('utils', () => {
   describe('cn', () => {
@@ -140,6 +145,38 @@ describe('utils', () => {
         // Cor que já vem com opacidade da API em dark mode (deve remover)
         expect(getSubjectColorWithOpacity('#0066b84d', true)).toBe('#0066b8');
       });
+    });
+  });
+
+  describe('formatPercentageRounded', () => {
+    it('should format integer percentage', () => {
+      expect(formatPercentageRounded(72)).toBe('72%');
+    });
+
+    it('should round decimal percentage down', () => {
+      expect(formatPercentageRounded(72.4)).toBe('72%');
+    });
+
+    it('should round decimal percentage up', () => {
+      expect(formatPercentageRounded(72.5)).toBe('73%');
+      expect(formatPercentageRounded(72.9)).toBe('73%');
+    });
+
+    it('should handle zero', () => {
+      expect(formatPercentageRounded(0)).toBe('0%');
+    });
+
+    it('should handle 100', () => {
+      expect(formatPercentageRounded(100)).toBe('100%');
+    });
+
+    it('should handle negative numbers', () => {
+      expect(formatPercentageRounded(-5)).toBe('-5%');
+    });
+
+    it('should handle very small decimals', () => {
+      expect(formatPercentageRounded(0.1)).toBe('0%');
+      expect(formatPercentageRounded(0.5)).toBe('1%');
     });
   });
 

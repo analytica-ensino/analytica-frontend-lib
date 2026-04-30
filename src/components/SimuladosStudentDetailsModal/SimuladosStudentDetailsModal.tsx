@@ -5,6 +5,7 @@ import ProgressBar from '../ProgressBar/ProgressBar';
 import Badge from '../Badge/Badge';
 import { ArrowLeft, CaretRight } from 'phosphor-react';
 import { useSimuladosStudentDetails } from './useSimuladosStudentDetails';
+import { formatPercentageRounded } from '../../utils/utils';
 import {
   isStudentSubjectsData,
   SIMULATED_PERFORMANCE_TAG_CONFIG,
@@ -26,13 +27,6 @@ const PERFORMANCE_TAG_TO_BADGE_ACTION: Record<
   [SimulatedPerformanceTag.BELOW_AVERAGE]: 'warning',
   [SimulatedPerformanceTag.ATTENTION_POINT]: 'error',
 };
-
-/**
- * Format percentage with 1 decimal and round
- */
-function formatPercentageRounded(value: number): string {
-  return `${Math.round(value)}%`;
-}
 
 const DEFAULT_LABELS = {
   loading: 'Carregando...',
