@@ -6,9 +6,9 @@ import type {
   SimulatedOverviewApiResponse,
   UseSimulatedOverviewState,
   UseSimulatedOverviewReturn,
-  SimulationType,
 } from './types';
-import { simulationTypeToActivityFilters } from './types';
+import { simulationTypeToActivityFilters } from '../SimulatedStudentDetailsModal/types';
+import { SimulationType } from '../SimulatedStudentDetailsModal/types';
 
 /**
  * Body type for POST endpoints

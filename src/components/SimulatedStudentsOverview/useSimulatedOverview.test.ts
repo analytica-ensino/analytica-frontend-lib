@@ -5,7 +5,7 @@ import type {
   SimulatedOverviewData,
 } from './types';
 import { ScoreType } from '../../types/common';
-import { SimulatedPerformanceTag } from './types';
+import { SimulatedPerformanceTag } from '../SimulatedStudentDetailsModal/types';
 import type { BaseApiClient } from '../../types/api';
 
 function createMockApi(): jest.Mocked<BaseApiClient> {

@@ -1,12 +1,7 @@
-// Reuse types from SimulatedStudentDetailsModal
-import {
+import type {
   SimulatedPerformanceTag,
-  simulationTypeToActivityFilters,
-  type SimulationType,
-  type ActivityFilters,
+  SimulationType,
 } from '../SimulatedStudentDetailsModal/types';
-export { SimulatedPerformanceTag, simulationTypeToActivityFilters };
-export type { SimulationType, ActivityFilters };
 
 import { ScoreType } from '../../types/common';
 

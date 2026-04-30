@@ -3,9 +3,9 @@ import Button from '../Button/Button';
 import { useSimulatedOverview } from './useSimulatedOverview';
 import type { SimulatedOverviewApiResponse } from './types';
 import { ScoreType } from '../../types/common';
-import { SimulatedPerformanceTag } from './types';
 import type { BaseApiClient } from '../../types/api';
 import Text from '../Text/Text';
+import { SimulatedPerformanceTag } from '../SimulatedStudentDetailsModal/types';
 
 function createApi(config?: {
   delay?: number;
