@@ -2,7 +2,7 @@ import {
   SimulatedPerformanceTag,
   SIMULATED_PERFORMANCE_TAG_CONFIG,
   type SimulatedPerformanceTagConfig,
-} from '../SimuladosStudentDetailsModal/types';
+} from '../SimulatedStudentDetailsModal/types';
 
 // Re-export for convenience
 export { SimulatedPerformanceTag, SIMULATED_PERFORMANCE_TAG_CONFIG };

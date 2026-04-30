@@ -1,8 +1,8 @@
-// Reuse SimulatedPerformanceTag from SimuladosStudentDetailsModal
+// Reuse SimulatedPerformanceTag from SimulatedStudentDetailsModal
 import {
   SimulatedPerformanceTag,
   SIMULATED_PERFORMANCE_TAG_CONFIG,
-} from '../SimuladosStudentDetailsModal/types';
+} from '../SimulatedStudentDetailsModal/types';
 export { SimulatedPerformanceTag, SIMULATED_PERFORMANCE_TAG_CONFIG };
 
 /**

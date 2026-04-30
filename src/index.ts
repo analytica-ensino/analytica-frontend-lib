@@ -300,31 +300,31 @@ export type {
   UseTableFilterReturn,
 } from './components/Filter';
 
-// SimuladosFilters Components
+// SimulatedFilters Components
 export {
-  SimuladosFiltersModal,
+  SimulatedFiltersModal,
   StudentsFilterSection,
-  useUserAccessData as useSimuladosUserAccessData,
-  useStudentsFilter as useSimuladosStudentsFilter,
-} from './components/SimuladosFilters';
+  useUserAccessData as useSimulatedUserAccessData,
+  useStudentsFilter as useSimulatedStudentsFilter,
+} from './components/SimulatedFilters';
 export type {
-  SimuladosFilters,
-  SimuladosFiltersModalProps,
-  ApiClient as SimuladosApiClient,
-  SchoolItem as SimuladosSchoolItem,
-  SchoolYearItem as SimuladosSchoolYearItem,
-  ClassItem as SimuladosClassItem,
+  SimulatedFilters,
+  SimulatedFiltersModalProps,
+  ApiClient as SimulatedApiClient,
+  SchoolItem as SimulatedSchoolItem,
+  SchoolYearItem as SimulatedSchoolYearItem,
+  ClassItem as SimulatedClassItem,
   StudentFilterItem,
   StudentGroup,
-  UserAccessDataApiResponse as SimuladosUserAccessDataApiResponse,
-  StudentsFilterApiResponse as SimuladosStudentsFilterApiResponse,
+  UserAccessDataApiResponse as SimulatedUserAccessDataApiResponse,
+  StudentsFilterApiResponse as SimulatedStudentsFilterApiResponse,
   StudentsFilterParams,
   UseUserAccessDataState,
   UseUserAccessDataReturn,
   UseStudentsFilterState,
   UseStudentsFilterReturn,
   StudentsFilterSectionProps,
-} from './components/SimuladosFilters';
+} from './components/SimulatedFilters';
 
 // GeneralOverviewSection Component
 export {
@@ -353,31 +353,31 @@ export {
 } from './components/AreaKnowledgeSelector';
 export type { AreaKnowledgeSelectorProps } from './components/AreaKnowledgeSelector';
 
-// SimuladosSubjectMenu Component
+// SimulatedSubjectMenu Component
 export {
-  SimuladosSubjectMenu,
+  SimulatedSubjectMenu,
   useSimulatedSubjects,
-} from './components/SimuladosSubjectMenu';
+} from './components/SimulatedSubjectMenu';
 export type {
   SimulatedSubjectItem,
   SimulatedSubjectsApiClient,
   SimulatedSubjectsApiResponse,
   UseSimulatedSubjectsState,
   UseSimulatedSubjectsReturn,
-  SimuladosSubjectMenuProps,
-} from './components/SimuladosSubjectMenu';
+  SimulatedSubjectMenuProps,
+} from './components/SimulatedSubjectMenu';
 
-// SimuladosStudentRanking Component
+// SimulatedStudentRanking Component
 export {
-  SimuladosStudentRanking,
-  SimuladosRankingCard,
-} from './components/SimuladosStudentRanking';
+  SimulatedStudentRanking,
+  SimulatedRankingCard,
+} from './components/SimulatedStudentRanking';
 export type {
   RankingVariant,
-  SimuladosStudentRankingItem,
-  SimuladosStudentRankingProps,
-  SimuladosRankingCardProps,
-} from './components/SimuladosStudentRanking';
+  SimulatedStudentRankingItem,
+  SimulatedStudentRankingProps,
+  SimulatedRankingCardProps,
+} from './components/SimulatedStudentRanking';
 
 // PerformanceDistributionChart Component
 export { PerformanceDistributionChart } from './components/PerformanceDistributionChart';
@@ -387,15 +387,15 @@ export type {
   PerformanceDistributionChartProps,
 } from './components/PerformanceDistributionChart';
 
-// SimuladosStudentDetailsModal Component
+// SimulatedStudentDetailsModal Component
 export {
-  SimuladosStudentDetailsModal,
-  useSimuladosStudentDetails,
+  SimulatedStudentDetailsModal,
+  useSimulatedStudentDetails,
   isStudentSubjectsData,
   isStudentContentsData,
   simulationTypeToActivityFilters,
   SIMULATED_PERFORMANCE_TAG_CONFIG,
-} from './components/SimuladosStudentDetailsModal';
+} from './components/SimulatedStudentDetailsModal';
 export type {
   SimulatedPerformanceTag,
   SimulatedPerformanceTagConfig,
@@ -406,17 +406,17 @@ export type {
   StudentSubjectsData,
   StudentContentsData,
   StudentDetailsData,
-  ActivityFilters as SimuladosActivityFilters,
+  ActivityFilters as SimulatedActivityFilters,
   StudentDetailsParams,
   StudentDetailsApiResponse,
   StudentDetailsApiClient,
-  UseSimuladosStudentDetailsState,
-  UseSimuladosStudentDetailsReturn,
-  SimuladosStudentDetailsModalProps,
-} from './components/SimuladosStudentDetailsModal';
+  UseSimulatedStudentDetailsState,
+  UseSimulatedStudentDetailsReturn,
+  SimulatedStudentDetailsModalProps,
+} from './components/SimulatedStudentDetailsModal';
 
-// SimuladosContentsPerformance Hook
-export { useSimulatedContents } from './components/SimuladosContentsPerformance';
+// SimulatedContentsPerformance Hook
+export { useSimulatedContents } from './components/SimulatedContentsPerformance';
 export type {
   SimulatedContentItem,
   ContentsPerformanceData,
@@ -425,13 +425,13 @@ export type {
   SimulatedContentsApiClient,
   UseSimulatedContentsState,
   UseSimulatedContentsReturn,
-} from './components/SimuladosContentsPerformance';
+} from './components/SimulatedContentsPerformance';
 
-// SimuladosContentDetailsModal Component
+// SimulatedContentDetailsModal Component
 export {
-  SimuladosContentDetailsModal,
+  SimulatedContentDetailsModal,
   useSimulatedContentDetails,
-} from './components/SimuladosContentDetailsModal';
+} from './components/SimulatedContentDetailsModal';
 export type {
   ContentDetailsInfo,
   ContentPerformanceCounters,
@@ -443,8 +443,8 @@ export type {
   ContentDetailsApiClient,
   UseSimulatedContentDetailsState,
   UseSimulatedContentDetailsReturn,
-  SimuladosContentDetailsModalProps,
-} from './components/SimuladosContentDetailsModal';
+  SimulatedContentDetailsModalProps,
+} from './components/SimulatedContentDetailsModal';
 
 // EssayCompetencies Components
 export {
@@ -474,8 +474,8 @@ export type {
   EssayCompetenceDetailsModalProps,
 } from './components/EssayCompetencies';
 
-// SimuladosStudentsOverview Hook
-export { useSimulatedOverview } from './components/SimuladosStudentsOverview';
+// SimulatedStudentsOverview Hook
+export { useSimulatedOverview } from './components/SimulatedStudentsOverview';
 export type {
   SimulatedStudentItem,
   SimulatedStudentsPaginated,
@@ -485,7 +485,7 @@ export type {
   SimulatedOverviewApiClient,
   UseSimulatedOverviewState,
   UseSimulatedOverviewReturn,
-} from './components/SimuladosStudentsOverview';
+} from './components/SimulatedStudentsOverview';
 
 // EssayStudentDetailsModal Component
 export {
