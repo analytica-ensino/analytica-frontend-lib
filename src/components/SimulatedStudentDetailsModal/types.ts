@@ -13,9 +13,19 @@ export enum SimulatedPerformanceTag {
 /**
  * Tag config for display
  */
+export enum SimulatedPerformanceTagVariant {
+  SUCCESS = 'success',
+  WARNING = 'warning',
+  ERROR = 'error',
+  INFO = 'info',
+}
+
+/**
+ * Tag config for display
+ */
 export interface SimulatedPerformanceTagConfig {
   label: string;
-  variant: 'success' | 'warning' | 'error' | 'info';
+  variant: SimulatedPerformanceTagVariant;
 }
 
 /**
@@ -27,19 +37,19 @@ export const SIMULATED_PERFORMANCE_TAG_CONFIG: Record<
 > = {
   [SimulatedPerformanceTag.HIGHLIGHT]: {
     label: 'Destaque da turma',
-    variant: 'success',
+    variant: SimulatedPerformanceTagVariant.SUCCESS,
   },
   [SimulatedPerformanceTag.ABOVE_AVERAGE]: {
     label: 'Acima da média',
-    variant: 'info',
+    variant: SimulatedPerformanceTagVariant.INFO,
   },
   [SimulatedPerformanceTag.BELOW_AVERAGE]: {
     label: 'Abaixo da média',
-    variant: 'warning',
+    variant: SimulatedPerformanceTagVariant.WARNING,
   },
   [SimulatedPerformanceTag.ATTENTION_POINT]: {
     label: 'Ponto de atenção',
-    variant: 'error',
+    variant: SimulatedPerformanceTagVariant.ERROR,
   },
 };
 
