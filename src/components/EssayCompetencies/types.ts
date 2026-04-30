@@ -206,23 +206,4 @@ export interface EssayCompetenceDetailsModalProps {
   readonly schoolIds?: string[];
   readonly schoolYearIds?: string[];
   readonly classIds?: string[];
-  readonly labels?: EssayCompetenceDetailsLabels;
-}
-
-/**
- * Customizable labels for modal
- */
-export interface EssayCompetenceDetailsLabels {
-  loading?: string;
-  noData?: string;
-  noStudents?: string;
-  classAverage?: string;
-  highlight?: string;
-  aboveAverage?: string;
-  belowAverage?: string;
-  attention?: string;
-  previous?: string;
-  next?: string;
-  page?: string;
-  of?: string;
 }

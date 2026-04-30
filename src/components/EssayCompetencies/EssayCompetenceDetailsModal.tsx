@@ -25,21 +25,6 @@ const PERFORMANCE_TAG_TO_BADGE_ACTION: Record<
   [SimulatedPerformanceTag.ATTENTION_POINT]: 'error',
 };
 
-const DEFAULT_LABELS = {
-  loading: 'Carregando...',
-  noData: 'Nenhum dado encontrado',
-  noStudents: 'Nenhum estudante encontrado',
-  classAverage: 'Média da turma',
-  highlight: 'Destaque',
-  aboveAverage: 'Acima da média',
-  belowAverage: 'Abaixo da média',
-  attention: 'Atenção',
-  previous: 'Anterior',
-  next: 'Próxima',
-  page: 'Página',
-  of: 'de',
-};
-
 /**
  * Format percentage rounded
  */
@@ -61,9 +46,7 @@ export function EssayCompetenceDetailsModal({
   schoolIds,
   schoolYearIds,
   classIds,
-  labels: customLabels,
 }: EssayCompetenceDetailsModalProps) {
-  const labels = { ...DEFAULT_LABELS, ...customLabels };
   const { data, loading, error, fetchDetails, reset } =
     useEssayCompetenceDetails(api);
 
@@ -170,7 +153,7 @@ export function EssayCompetenceDetailsModal({
       <Modal isOpen={isOpen} onClose={onClose} title={modalTitle} size="lg">
         <div className="flex items-center justify-center py-8">
           <Text size="sm" className="text-text-500">
-            {labels.noData}
+            Nenhum dado encontrado
           </Text>
         </div>
       </Modal>
@@ -205,7 +188,7 @@ export function EssayCompetenceDetailsModal({
               </Text>
             </div>
             <Text size="sm" className="text-text-500">
-              {labels.classAverage}:{' '}
+              Média da turma:{' '}
               {formatPercentageRounded(data.classAveragePercentage)}
             </Text>
           </div>
@@ -214,22 +197,22 @@ export function EssayCompetenceDetailsModal({
         {/* Performance counters */}
         <div className="flex gap-3">
           <CounterCard
-            label={labels.highlight}
+            label="Destaque"
             count={data.counters.highlight}
             variant="success"
           />
           <CounterCard
-            label={labels.aboveAverage}
+            label="Acima da média"
             count={data.counters.aboveAverage}
             variant="info"
           />
           <CounterCard
-            label={labels.belowAverage}
+            label="Abaixo da média"
             count={data.counters.belowAverage}
             variant="warning"
           />
           <CounterCard
-            label={labels.attention}
+            label="Atenção"
             count={data.counters.attentionPoint}
             variant="error"
           />
@@ -243,7 +226,7 @@ export function EssayCompetenceDetailsModal({
             ))
           ) : (
             <Text size="sm" className="text-text-500 text-center py-4">
-              {labels.noStudents}
+              Nenhum estudante encontrado
             </Text>
           )}
         </div>
@@ -256,17 +239,17 @@ export function EssayCompetenceDetailsModal({
               disabled={data.students.page <= 1}
               className="px-3 py-1 text-sm text-text-600 hover:text-text-950 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {labels.previous}
+              Anterior
             </button>
             <Text size="sm" className="text-text-500">
-              {labels.page} {data.students.page} {labels.of} {totalPages}
+              Página {data.students.page} de {totalPages}
             </Text>
             <button
               onClick={() => handlePageChange(data.students.page + 1)}
               disabled={data.students.page >= totalPages}
               className="px-3 py-1 text-sm text-text-600 hover:text-text-950 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {labels.next}
+              Próxima
             </button>
           </div>
         )}

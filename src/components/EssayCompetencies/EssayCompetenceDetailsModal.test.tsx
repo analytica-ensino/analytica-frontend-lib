@@ -2,10 +2,10 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { EssayCompetenceDetailsModal } from './EssayCompetenceDetailsModal';
-import type {
-  EssayCompetenciesApiClient,
-  EssayCompetenceDetailsData,
-  EssayCompetenceStudentItem,
+import {
+  type EssayCompetenciesApiClient,
+  type EssayCompetenceDetailsData,
+  type EssayCompetenceStudentItem,
 } from './types';
 
 // Mock useEssayCompetenceDetails hook
@@ -171,19 +171,6 @@ describe('EssayCompetenceDetailsModal', () => {
 
       expect(screen.getByText('Nenhum dado encontrado')).toBeInTheDocument();
     });
-
-    it('uses custom noData label when provided', () => {
-      mockHookState = { data: null, loading: false, error: null };
-
-      render(
-        <EssayCompetenceDetailsModal
-          {...defaultProps}
-          labels={{ noData: 'Dados indisponíveis' }}
-        />
-      );
-
-      expect(screen.getByText('Dados indisponíveis')).toBeInTheDocument();
-    });
   });
 
   describe('Data rendering', () => {
@@ -287,42 +274,6 @@ describe('EssayCompetenceDetailsModal', () => {
     });
   });
 
-  describe('Custom labels', () => {
-    it('applies custom counter labels', () => {
-      mockHookState = { data: createMockData(), loading: false, error: null };
-
-      render(
-        <EssayCompetenceDetailsModal
-          {...defaultProps}
-          labels={{
-            highlight: 'Excelente',
-            aboveAverage: 'Bom',
-            belowAverage: 'Regular',
-            attention: 'Precisa melhorar',
-          }}
-        />
-      );
-
-      expect(screen.getByText('Excelente')).toBeInTheDocument();
-      expect(screen.getByText('Bom')).toBeInTheDocument();
-      expect(screen.getByText('Regular')).toBeInTheDocument();
-      expect(screen.getByText('Precisa melhorar')).toBeInTheDocument();
-    });
-
-    it('applies custom class average label', () => {
-      mockHookState = { data: createMockData(), loading: false, error: null };
-
-      render(
-        <EssayCompetenceDetailsModal
-          {...defaultProps}
-          labels={{ classAverage: 'Média geral' }}
-        />
-      );
-
-      expect(screen.getByText(/Média geral:/)).toBeInTheDocument();
-    });
-  });
-
   describe('Pagination', () => {
     it('does not show pagination when total pages is 1', () => {
       const data = createMockData(5, 1, 5);
@@ -399,27 +350,6 @@ describe('EssayCompetenceDetailsModal', () => {
           page: 1,
         })
       );
-    });
-
-    it('applies custom pagination labels', () => {
-      const data = createMockData(20, 2, 45);
-      mockHookState = { data, loading: false, error: null };
-
-      render(
-        <EssayCompetenceDetailsModal
-          {...defaultProps}
-          labels={{
-            previous: 'Voltar',
-            next: 'Avançar',
-            page: 'Pág',
-            of: '/',
-          }}
-        />
-      );
-
-      expect(screen.getByText('Voltar')).toBeInTheDocument();
-      expect(screen.getByText('Avançar')).toBeInTheDocument();
-      expect(screen.getByText('Pág 2 / 3')).toBeInTheDocument();
     });
   });
 

@@ -419,41 +419,6 @@ export const EmptyState: Story = () => {
 };
 
 /**
- * With custom labels
- */
-export const CustomLabels: Story = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const api = createSuccessApi();
-
-  return (
-    <>
-      <Button onClick={() => setIsOpen(true)}>
-        Abrir Modal (Labels Customizados)
-      </Button>
-      <EssayCompetenceDetailsModal
-        api={api}
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-        competenceNumber={5}
-        competenceName="Competência 5 - Proposta de intervenção"
-        period="1_MONTH"
-        labels={{
-          classAverage: 'Média geral da classe',
-          highlight: 'Excelente',
-          aboveAverage: 'Bom desempenho',
-          belowAverage: 'Precisa melhorar',
-          attention: 'Atenção necessária',
-          previous: 'Voltar',
-          next: 'Avançar',
-          page: 'Pág.',
-          of: '/',
-        }}
-      />
-    </>
-  );
-};
-
-/**
  * With filters
  */
 export const WithFilters: Story = () => {
