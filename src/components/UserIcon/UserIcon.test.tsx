@@ -27,21 +27,21 @@ describe('UserIcon', () => {
     expect(svg).toHaveClass('custom-class');
   });
 
-  it('renders the rect with the theme background fill class', () => {
+  it('renders the rect with the theme background fill via CSS variable', () => {
     const { container } = render(<UserIcon />);
 
     const rect = container.querySelector('svg rect');
     expect(rect).toBeInTheDocument();
-    expect(rect).toHaveClass('fill-primary-100');
+    expect(rect).toHaveStyle({ fill: 'var(--color-primary-100)' });
     expect(rect).toHaveAttribute('rx', '12');
   });
 
-  it('renders the path with the theme foreground fill class', () => {
+  it('renders the path with the theme foreground fill via CSS variable', () => {
     const { container } = render(<UserIcon />);
 
     const path = container.querySelector('svg path');
     expect(path).toBeInTheDocument();
-    expect(path).toHaveClass('fill-primary-800');
+    expect(path).toHaveStyle({ fill: 'var(--color-primary-800)' });
   });
 
   it('marks the SVG as decorative for assistive tech', () => {
