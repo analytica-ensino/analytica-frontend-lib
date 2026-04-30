@@ -4,7 +4,7 @@ import type {
   SimulatedOverviewApiResponse,
   SimulatedOverviewData,
 } from './types';
-import { SimulatedPerformanceTag } from './types';
+import { SimulatedPerformanceTag, ScoreType } from './types';
 import type { BaseApiClient } from '../../types/api';
 
 function createMockApi(): jest.Mocked<BaseApiClient> {
@@ -120,7 +120,7 @@ describe('useSimulatedOverview', () => {
       await result.current.fetchOverview({
         simulationType: 'enem-2',
         period: '3_MONTHS',
-        scoreType: 'tri',
+        scoreType: ScoreType.TRI,
         page: 2,
         limit: 20,
       });
@@ -147,7 +147,7 @@ describe('useSimulatedOverview', () => {
       await result.current.fetchOverview({
         simulationType: 'essays',
         period: '6_MONTHS',
-        scoreType: 'percentage',
+        scoreType: ScoreType.PERCENTAGE,
       });
     });
 

@@ -3,7 +3,7 @@ import '@testing-library/jest-dom';
 import { SimulatedPerformanceView } from './SimulatedPerformanceView';
 import { SimulatedViewTab } from './types';
 import type { SimulatedPerformanceViewProps } from './types';
-import type { BaseApiClient } from '../../index';
+import { ScoreType, type BaseApiClient } from '../../index';
 import { ReactNode } from 'react';
 
 // Mock all child components
@@ -242,7 +242,7 @@ const createDefaultProps = (
 ): SimulatedPerformanceViewProps => ({
   api: createMockApi(),
   period: '1_MONTH',
-  scoreType: 'percentage',
+  scoreType: ScoreType.PERCENTAGE,
   selectedAreaKnowledgeId: null,
   selectedSubjectId: null,
   simulatedViewTab: SimulatedViewTab.STUDENTS,

@@ -2,12 +2,12 @@ import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
 import { Medal, Warning } from 'phosphor-react';
 import { formatScore } from './utils';
-import type {
+import {
   ScoreType,
-  RankingVariant,
-  SimulatedStudentRankingItem,
-  SimulatedStudentRankingProps,
-  SimulatedRankingCardProps,
+  type RankingVariant,
+  type SimulatedStudentRankingItem,
+  type SimulatedStudentRankingProps,
+  type SimulatedRankingCardProps,
 } from './types';
 
 /**
@@ -48,7 +48,7 @@ const SCORE_BADGE_CLASSES: Record<RankingVariant, string> = {
 function StudentCard({
   student,
   variant,
-  scoreType = 'percentage',
+  scoreType = ScoreType.PERCENTAGE,
 }: {
   student: SimulatedStudentRankingItem;
   variant: RankingVariant;
@@ -108,7 +108,7 @@ export function SimulatedRankingCard({
   variant,
   students,
   icon,
-  scoreType = 'percentage',
+  scoreType = ScoreType.PERCENTAGE,
 }: SimulatedRankingCardProps) {
   return (
     <div className="flex flex-col gap-4 p-5 bg-background border border-border-50 rounded-xl flex-1">
@@ -166,7 +166,7 @@ export function SimulatedStudentRanking({
   attentionTitle = 'Estudantes com maior dificuldade',
   highlightStudents,
   attentionStudents,
-  scoreType = 'percentage',
+  scoreType = ScoreType.PERCENTAGE,
 }: SimulatedStudentRankingProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

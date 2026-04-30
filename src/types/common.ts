@@ -85,3 +85,13 @@ export enum REPORT_MODAL_VARIANT {
   STUDENT = 'student',
   PROFESSIONAL = 'professional',
 }
+
+/**
+ * Score display type for simulated exams
+ * - PERCENTAGE: 0-100 scale with % symbol
+ * - TRI: 0-1000 scale (TRI - Teoria de Resposta ao Item)
+ */
+export enum ScoreType {
+  PERCENTAGE = 'percentage',
+  TRI = 'tri',
+}

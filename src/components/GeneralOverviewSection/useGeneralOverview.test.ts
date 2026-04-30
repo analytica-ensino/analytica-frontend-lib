@@ -1,11 +1,12 @@
 import { renderHook, act } from '@testing-library/react';
 import { useGeneralOverview } from './useGeneralOverview';
-import type {
-  GeneralOverviewApiResponse,
-  GeneralOverviewData,
-  GeneralOverviewParams,
-  AreaKnowledgePerformance,
-  EssayPerformance,
+import {
+  ScoreType,
+  type GeneralOverviewApiResponse,
+  type GeneralOverviewData,
+  type GeneralOverviewParams,
+  type AreaKnowledgePerformance,
+  type EssayPerformance,
 } from './types';
 import type { BaseApiClient } from '../../types/api';
 
@@ -188,7 +189,7 @@ describe('useGeneralOverview', () => {
       await act(async () => {
         await result.current.fetchOverview({
           period: '1_MONTH',
-          scoreType: 'percentage',
+          scoreType: ScoreType.PERCENTAGE,
         });
       });
 
@@ -211,7 +212,7 @@ describe('useGeneralOverview', () => {
       await act(async () => {
         await result.current.fetchOverview({
           period: '1_MONTH',
-          scoreType: 'tri',
+          scoreType: ScoreType.TRI,
         });
       });
 

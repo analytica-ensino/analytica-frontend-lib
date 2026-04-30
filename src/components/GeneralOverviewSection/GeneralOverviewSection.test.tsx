@@ -2,10 +2,11 @@ import type React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { GeneralOverviewSection } from './GeneralOverviewSection';
-import type {
-  GeneralOverviewData,
-  AreaKnowledgePerformance,
-  EssayPerformance,
+import {
+  ScoreType,
+  type GeneralOverviewData,
+  type AreaKnowledgePerformance,
+  type EssayPerformance,
 } from './types';
 
 // Mock IconRender component
@@ -209,7 +210,7 @@ describe('GeneralOverviewSection', () => {
   describe('Data rendering - TRI mode', () => {
     it('renders overall score as TRI', () => {
       render(
-        <GeneralOverviewSection data={createMockData()} scoreType="tri" />
+        <GeneralOverviewSection data={createMockData()} scoreType={ScoreType.TRI} />
       );
 
       // 69.2 should be rounded to 69 (appears twice: overall and Linguagens 68.5 rounded)
@@ -219,7 +220,7 @@ describe('GeneralOverviewSection', () => {
 
     it('renders area scores as TRI', () => {
       render(
-        <GeneralOverviewSection data={createMockData()} scoreType="tri" />
+        <GeneralOverviewSection data={createMockData()} scoreType={ScoreType.TRI} />
       );
 
       // Area percentages as TRI (rounded integers)
@@ -232,7 +233,7 @@ describe('GeneralOverviewSection', () => {
 
     it('essay always shows percentage even in TRI mode', () => {
       render(
-        <GeneralOverviewSection data={createMockData(true)} scoreType="tri" />
+        <GeneralOverviewSection data={createMockData(true)} scoreType={ScoreType.TRI} />
       );
 
       // Essay should still show percentage

@@ -5,6 +5,7 @@ import {
   SimulatedStudentRanking,
 } from './SimulatedStudentRanking';
 import { formatScore } from './utils';
+import { ScoreType } from './types';
 
 describe('SimulatedStudentRanking', () => {
   const highlightStudents = [
@@ -50,7 +51,7 @@ describe('SimulatedStudentRanking', () => {
       <SimulatedStudentRanking
         highlightStudents={highlightStudents}
         attentionStudents={attentionStudents}
-        scoreType="percentage"
+        scoreType={ScoreType.PERCENTAGE}
       />
     );
 
@@ -63,7 +64,7 @@ describe('SimulatedStudentRanking', () => {
       <SimulatedStudentRanking
         highlightStudents={highlightStudents}
         attentionStudents={attentionStudents}
-        scoreType="tri"
+        scoreType={ScoreType.TRI}
       />
     );
 
@@ -87,10 +88,10 @@ describe('SimulatedStudentRanking', () => {
 
 describe('formatScore', () => {
   it('returns rounded value for tri', () => {
-    expect(formatScore(711.6, 'tri')).toBe('712');
+    expect(formatScore(711.6, ScoreType.TRI)).toBe('712');
   });
 
   it('returns localized percentage for percentage type', () => {
-    expect(formatScore(71.56, 'percentage')).toBe('71,6%');
+    expect(formatScore(71.56, ScoreType.PERCENTAGE)).toBe('71,6%');
   });
 });

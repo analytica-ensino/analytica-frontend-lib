@@ -1,9 +1,6 @@
-/**
- * Score display type
- * - percentage: 0-100 scale with % symbol
- * - tri: 0-1000 scale (TRI - Teoria de Resposta ao Item)
- */
-export type ScoreType = 'percentage' | 'tri';
+// Import ScoreType enum from common types and re-export for backward compatibility
+import { ScoreType } from '../../types/common';
+export { ScoreType };
 
 /**
  * Performance data for a knowledge area

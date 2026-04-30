@@ -3,6 +3,7 @@ import {
   SimulatedRankingCard,
   SimulatedStudentRanking,
 } from './SimulatedStudentRanking';
+import { ScoreType } from './types';
 
 const highlightStudents = [
   { position: 1, name: 'Maria Eduarda', average: 94.2 },
@@ -35,7 +36,7 @@ export const TriScore: Story = () => (
       { position: 2, name: 'Ana Clara', average: 441.1 },
       { position: 3, name: 'Joao Pedro', average: 420.9 },
     ]}
-    scoreType="tri"
+    scoreType={ScoreType.TRI}
   />
 );
 

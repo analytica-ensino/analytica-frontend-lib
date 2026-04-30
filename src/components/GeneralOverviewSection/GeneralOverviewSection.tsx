@@ -3,11 +3,11 @@ import ProgressBar from '../ProgressBar/ProgressBar';
 import { SkeletonRounded } from '../Skeleton/Skeleton';
 import IconRender from '../IconRender/IconRender';
 import { formatScore, hexToRgba } from '../../utils/utils';
-import type {
-  GeneralOverviewSectionProps,
-  AreaKnowledgePerformance,
-  EssayPerformance,
+import {
   ScoreType,
+  type GeneralOverviewSectionProps,
+  type AreaKnowledgePerformance,
+  type EssayPerformance,
 } from './types';
 
 /**
@@ -16,7 +16,7 @@ import type {
  */
 function AreaCard({
   area,
-  scoreType = 'percentage',
+  scoreType = ScoreType.PERCENTAGE,
 }: {
   readonly area: AreaKnowledgePerformance;
   readonly scoreType?: ScoreType;
@@ -85,7 +85,7 @@ function EssayCard({ essay }: { readonly essay: EssayPerformance }) {
 
       {/* Percentage large - Essays always use percentage */}
       <Text size="lg" weight="bold" className="text-text-950">
-        {formatScore(essay.percentage, 'percentage')}
+        {formatScore(essay.percentage, ScoreType.PERCENTAGE)}
       </Text>
     </div>
   );
@@ -128,7 +128,7 @@ export function GeneralOverviewSection({
   data,
   loading = false,
   error = null,
-  scoreType = 'percentage',
+  scoreType = ScoreType.PERCENTAGE,
 }: GeneralOverviewSectionProps) {
   if (error) {
     return (
@@ -191,7 +191,7 @@ export function GeneralOverviewSection({
         <div className="flex-1">
           <ProgressBar
             value={
-              scoreType === 'tri'
+              scoreType === ScoreType.TRI
                 ? data.overallPercentage / 10
                 : data.overallPercentage
             }

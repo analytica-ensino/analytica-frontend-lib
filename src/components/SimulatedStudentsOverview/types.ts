@@ -9,8 +9,8 @@ export { SimulatedPerformanceTag, simulationTypeToActivityFilters };
 export type { SimulationType, ActivityFilters };
 
 // Reuse ScoreType from GeneralOverviewSection
-import type { ScoreType } from '../GeneralOverviewSection/types';
-export type { ScoreType };
+import { ScoreType } from '../GeneralOverviewSection/types';
+export { ScoreType };
 
 /**
  * Individual student item in simulated exams overview

@@ -1,9 +1,10 @@
 import type { Story } from '@ladle/react';
 import { GeneralOverviewSection } from './GeneralOverviewSection';
-import type {
-  GeneralOverviewData,
-  AreaKnowledgePerformance,
-  EssayPerformance,
+import {
+  ScoreType,
+  type GeneralOverviewData,
+  type AreaKnowledgePerformance,
+  type EssayPerformance,
 } from './types';
 import Text from '../Text/Text';
 
@@ -107,7 +108,7 @@ export const Default: Story = () => (
  */
 export const TriScoreMode: Story = () => (
   <div className="max-w-4xl">
-    <GeneralOverviewSection data={generateMockData()} scoreType="tri" />
+    <GeneralOverviewSection data={generateMockData()} scoreType={ScoreType.TRI} />
   </div>
 );
 
@@ -367,14 +368,14 @@ export const ScoreTypesComparison: Story = () => (
       </Text>
       <GeneralOverviewSection
         data={generateMockData()}
-        scoreType="percentage"
+        scoreType={ScoreType.PERCENTAGE}
       />
     </div>
     <div>
       <Text size="lg" weight="bold" className="mb-2 text-text-950">
         Modo TRI
       </Text>
-      <GeneralOverviewSection data={generateMockData()} scoreType="tri" />
+      <GeneralOverviewSection data={generateMockData()} scoreType={ScoreType.TRI} />
     </div>
   </div>
 );

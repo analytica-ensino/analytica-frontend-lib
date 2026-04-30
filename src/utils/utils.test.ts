@@ -8,6 +8,7 @@ import {
   bgClassToCssVar,
   polarToCartesian,
   describeArc,
+  ScoreType,
 } from './utils';
 
 describe('utils', () => {
@@ -188,43 +189,43 @@ describe('utils', () => {
   describe('formatScore', () => {
     describe('percentage mode', () => {
       it('should format with 1 decimal place and comma separator', () => {
-        expect(formatScore(72.5, 'percentage')).toBe('72,5%');
+        expect(formatScore(72.5, ScoreType.PERCENTAGE)).toBe('72,5%');
       });
 
       it('should format integer as decimal', () => {
-        expect(formatScore(72, 'percentage')).toBe('72,0%');
+        expect(formatScore(72, ScoreType.PERCENTAGE)).toBe('72,0%');
       });
 
       it('should handle zero', () => {
-        expect(formatScore(0, 'percentage')).toBe('0,0%');
+        expect(formatScore(0, ScoreType.PERCENTAGE)).toBe('0,0%');
       });
 
       it('should handle 100', () => {
-        expect(formatScore(100, 'percentage')).toBe('100,0%');
+        expect(formatScore(100, ScoreType.PERCENTAGE)).toBe('100,0%');
       });
 
       it('should round to 1 decimal place', () => {
-        expect(formatScore(72.456, 'percentage')).toBe('72,5%');
-        expect(formatScore(72.444, 'percentage')).toBe('72,4%');
+        expect(formatScore(72.456, ScoreType.PERCENTAGE)).toBe('72,5%');
+        expect(formatScore(72.444, ScoreType.PERCENTAGE)).toBe('72,4%');
       });
     });
 
     describe('tri mode', () => {
       it('should format as rounded integer without symbol', () => {
-        expect(formatScore(685, 'tri')).toBe('685');
+        expect(formatScore(685, ScoreType.TRI)).toBe('685');
       });
 
       it('should round decimal values', () => {
-        expect(formatScore(685.4, 'tri')).toBe('685');
-        expect(formatScore(685.5, 'tri')).toBe('686');
+        expect(formatScore(685.4, ScoreType.TRI)).toBe('685');
+        expect(formatScore(685.5, ScoreType.TRI)).toBe('686');
       });
 
       it('should handle zero', () => {
-        expect(formatScore(0, 'tri')).toBe('0');
+        expect(formatScore(0, ScoreType.TRI)).toBe('0');
       });
 
       it('should handle large values', () => {
-        expect(formatScore(1000, 'tri')).toBe('1000');
+        expect(formatScore(1000, ScoreType.TRI)).toBe('1000');
       });
     });
   });

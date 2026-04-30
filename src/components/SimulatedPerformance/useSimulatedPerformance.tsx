@@ -9,11 +9,11 @@ import { SIMULATED_PERFORMANCE_TAG_CONFIG } from '../SimulatedStudentDetailsModa
 import { formatScore } from '../../utils/utils';
 import type { ColumnConfig } from '../TableProvider';
 import type { StudentsHighlightPeriod } from '../../hooks/useStudentsHighlight';
-import type {
-  SimulatedFilters,
-  SimulatedStudentItem,
-  SimulatedContentItem,
+import {
   ScoreType,
+  type SimulatedFilters,
+  type SimulatedStudentItem,
+  type SimulatedContentItem,
 } from '../../index';
 import {
   SimulatedViewTab,
@@ -201,8 +201,8 @@ export function useSimulatedPerformance({
 
   const scoreType = useMemo((): ScoreType => {
     const scoreTypeParam = searchParams.get('scoreType');
-    if (scoreTypeParam === 'tri') return 'tri';
-    return 'percentage';
+    if (scoreTypeParam === 'tri') return ScoreType.TRI;
+    return ScoreType.PERCENTAGE;
   }, [searchParams]);
 
   // === Estados de Seleção ===
@@ -527,8 +527,8 @@ export function useSimulatedPerformance({
   );
 
   const handleSubjectChange = useCallback(
-    (subjectId: string) => {
-      const effectiveSubjectId = subjectId === 'all' ? null : subjectId;
+    (subjectId: string | null) => {
+      const effectiveSubjectId = subjectId === 'all' || subjectId === null ? null : subjectId;
       if (effectiveSubjectId === selectedSubjectIdRef.current) {
         return;
       }

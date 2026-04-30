@@ -32,10 +32,9 @@ export function formatPercentageRounded(value: number): string {
   return `${Math.round(value)}%`;
 }
 
-/**
- * Score display type
- */
-export type ScoreType = 'percentage' | 'tri';
+// Import and re-export ScoreType enum from common types
+import { ScoreType } from '../types/common';
+export { ScoreType };
 
 /**
  * Format score based on score type

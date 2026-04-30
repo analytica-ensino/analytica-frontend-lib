@@ -5,6 +5,7 @@ import type {
   ContentsPerformanceData,
   SimulatedContentsParams,
 } from './types';
+import { ScoreType } from '../../types/common';
 import type { BaseApiClient } from '../../types/api';
 
 function createMockData(): ContentsPerformanceData {
@@ -108,7 +109,7 @@ describe('useSimulatedContents', () => {
       await result.current.fetchContents({
         simulationType: 'enem-2',
         period: '3_MONTHS',
-        scoreType: 'tri',
+        scoreType: ScoreType.TRI,
       });
     });
 

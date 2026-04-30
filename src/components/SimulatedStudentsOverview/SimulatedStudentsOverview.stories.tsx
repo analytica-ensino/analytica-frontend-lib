@@ -2,7 +2,7 @@ import type { Story } from '@ladle/react';
 import Button from '../Button/Button';
 import { useSimulatedOverview } from './useSimulatedOverview';
 import type { SimulatedOverviewApiResponse } from './types';
-import { SimulatedPerformanceTag } from './types';
+import { SimulatedPerformanceTag, ScoreType } from './types';
 import type { BaseApiClient } from '../../types/api';
 import Text from '../Text/Text';
 
@@ -92,7 +92,7 @@ function HookPlayground({ api }: { api: BaseApiClient }) {
             fetchOverview({
               simulationType: 'enem-1',
               period: '1_MONTH',
-              scoreType: 'percentage',
+              scoreType: ScoreType.PERCENTAGE,
             })
           }
         >
@@ -105,7 +105,7 @@ function HookPlayground({ api }: { api: BaseApiClient }) {
               {
                 simulationType: 'enem-2',
                 period: '3_MONTHS',
-                scoreType: 'tri',
+                scoreType: ScoreType.TRI,
               },
               true
             )

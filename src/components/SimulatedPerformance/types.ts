@@ -61,7 +61,7 @@ export interface UseSimulatedPerformanceReturn {
   handlePeriodChange: (period: string) => void;
   handleScoreTypeChange: (scoreType: string) => void;
   handleAreaKnowledgeChange: (areaId: string | null) => void;
-  handleSubjectChange: (subjectId: string) => void;
+  handleSubjectChange: (subjectId: string | null) => void;
   handleViewTabChange: (tab: string) => void;
   handleFiltersApply: (filters: SimulatedFilters) => void;
   handleContentsParamsChange: (params: Record<string, unknown>) => void;

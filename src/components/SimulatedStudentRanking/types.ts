@@ -1,7 +1,7 @@
 import type React from 'react';
 // Reuse ScoreType from GeneralOverviewSection
-import type { ScoreType } from '../GeneralOverviewSection/types';
-export type { ScoreType };
+import { ScoreType } from '../GeneralOverviewSection/types';
+export { ScoreType };
 
 /**
  * Ranking variant type
