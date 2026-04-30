@@ -805,6 +805,8 @@ export {
   getSelectedIdsFromCategories,
   toggleArrayItem,
   toggleSingleValue,
+  formatScore,
+  formatPercentageRounded,
 } from './utils/utils';
 export { convertActivityFiltersToQuestionsFilter } from './utils/questionFiltersConverter';
 export {
@@ -1554,3 +1556,16 @@ export { printAsPdf } from './utils/exportPdf';
 
 // Report Export Types
 export type { ExcelCell, SheetConfig } from './utils/exportExcel';
+
+// SimulatedPerformance Component
+export {
+  useSimulatedPerformance,
+  SimulatedPerformanceView,
+  SCORE_TYPE_OPTIONS,
+  SimulatedViewTab,
+} from './components/SimulatedPerformance';
+export type {
+  UseSimulatedPerformanceOptions,
+  UseSimulatedPerformanceReturn,
+  SimulatedPerformanceViewProps,
+} from './components/SimulatedPerformance';

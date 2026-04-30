@@ -139,9 +139,7 @@ function createErrorApi(delay: number = 500): BaseApiClient {
 /**
  * Create a mock API with slow loading
  */
-function createSlowApi(
-  studentName: string = 'Maria Silva'
-): BaseApiClient {
+function createSlowApi(studentName: string = 'Maria Silva'): BaseApiClient {
   return createSuccessApi(
     studentName,
     SimulatedPerformanceTag.ABOVE_AVERAGE,
@@ -152,9 +150,7 @@ function createSlowApi(
 /**
  * Create a mock API that returns empty competencies
  */
-function createEmptyCompetenciesApi(
-  delay: number = 500
-): BaseApiClient {
+function createEmptyCompetenciesApi(delay: number = 500): BaseApiClient {
   return {
     get: async function <T>(): Promise<{ data: T }> {
       throw new Error('Not implemented');

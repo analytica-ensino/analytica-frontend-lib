@@ -140,7 +140,12 @@ function renderModal(
   overrides: Partial<SimulatedStudentDetailsModalProps> = {}
 ) {
   const defaultProps: SimulatedStudentDetailsModalProps = {
-    api: { get: jest.fn(), post: jest.fn(), patch: jest.fn(), delete: jest.fn() },
+    api: {
+      get: jest.fn(),
+      post: jest.fn(),
+      patch: jest.fn(),
+      delete: jest.fn(),
+    },
     isOpen: true,
     onClose: jest.fn(),
     simulationType: 'enem-1',
@@ -228,7 +233,12 @@ describe('SimulatedStudentDetailsModal', () => {
 
     rerender(
       <SimulatedStudentDetailsModal
-        api={{ get: jest.fn(), post: jest.fn(), patch: jest.fn(), delete: jest.fn() }}
+        api={{
+          get: jest.fn(),
+          post: jest.fn(),
+          patch: jest.fn(),
+          delete: jest.fn(),
+        }}
         isOpen={false}
         onClose={jest.fn()}
         simulationType="enem-1"

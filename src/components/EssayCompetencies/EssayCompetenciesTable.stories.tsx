@@ -273,9 +273,7 @@ function createEmptyApi(delay: number = 500): BaseApiClient {
 /**
  * Create a mock API with high performance data
  */
-function createHighPerformanceApi(
-  delay: number = 500
-): BaseApiClient {
+function createHighPerformanceApi(delay: number = 500): BaseApiClient {
   const overviewData: EssayCompetenciesOverviewData = {
     competencies: [
       {
@@ -373,9 +371,7 @@ function createHighPerformanceApi(
 /**
  * Create a mock API with low performance data
  */
-function createLowPerformanceApi(
-  delay: number = 500
-): BaseApiClient {
+function createLowPerformanceApi(delay: number = 500): BaseApiClient {
   const overviewData: EssayCompetenciesOverviewData = {
     competencies: [
       {

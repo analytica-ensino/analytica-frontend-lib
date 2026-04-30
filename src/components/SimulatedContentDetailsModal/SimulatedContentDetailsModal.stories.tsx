@@ -2,10 +2,7 @@ import type { Story } from '@ladle/react';
 import { useState } from 'react';
 import Button from '../Button/Button';
 import { SimulatedContentDetailsModal } from './SimulatedContentDetailsModal';
-import type {
-  ContentDetailsApiResponse,
-  ContentDetailsData,
-} from './types';
+import type { ContentDetailsApiResponse, ContentDetailsData } from './types';
 import type { BaseApiClient } from '../../types/api';
 
 function createMockData(
