@@ -12,16 +12,10 @@ import type { AreaKnowledgeSelectorProps } from './types';
 import type { AreaKnowledgePerformance } from '../GeneralOverviewSection/types';
 import { ESSAY_AREA_ID } from './types';
 
-/** Default color for items without a color from backend */
-const DEFAULT_COLOR = '#6B7280'; // gray-500
-
-/** Color for essay (Redação) option */
-const ESSAY_COLOR = '#F43F5E'; // rose-500
-
 interface SelectItemData {
   id: string;
   name: string;
-  color: string;
+  color?: string;
 }
 
 /**
@@ -54,15 +48,13 @@ export function AreaKnowledgeSelector({
     const allOption: SelectItemData = {
       id: 'all',
       name: 'Todos',
-      color: DEFAULT_COLOR,
     };
 
-    // Use color from API, fallback to default if not provided
     const areaItems: SelectItemData[] = areas.map(
       (area: AreaKnowledgePerformance) => ({
         id: area.id,
         name: area.name,
-        color: area.color || DEFAULT_COLOR,
+        color: area.color,
       })
     );
 
@@ -72,7 +64,6 @@ export function AreaKnowledgeSelector({
       const essayOption: SelectItemData = {
         id: ESSAY_AREA_ID,
         name: 'Redação',
-        color: ESSAY_COLOR,
       };
       items.push(essayOption);
     }
@@ -112,27 +103,25 @@ export function AreaKnowledgeSelector({
             {selectItems.map((item: SelectItemData) => (
               <SelectItem key={item.id} value={item.id} disabled={loading}>
                 <div className="flex items-center gap-2">
-                  <span
-                    className={cn(
-                      'w-[21px] h-[21px] flex items-center justify-center rounded-sm'
-                    )}
-                    style={{
-                      backgroundColor: `${item.color}20`,
-                    }}
-                  >
-                    {item.id === 'all' ? (
+                  {item.id === 'all' ? (
+                    <span className="w-[21px] h-[21px] flex items-center justify-center">
                       <GridFour
                         size={17}
                         weight="bold"
                         className="text-gray-600"
                       />
-                    ) : (
+                    </span>
+                  ) : item.color ? (
+                    <span
+                      className="w-[21px] h-[21px] flex items-center justify-center rounded-sm"
+                      style={{ backgroundColor: `${item.color}20` }}
+                    >
                       <span
                         className="w-2 h-2 rounded-full"
                         style={{ backgroundColor: item.color }}
                       />
-                    )}
-                  </span>
+                    </span>
+                  ) : null}
                   <span className="whitespace-nowrap">{item.name}</span>
                 </div>
               </SelectItem>
