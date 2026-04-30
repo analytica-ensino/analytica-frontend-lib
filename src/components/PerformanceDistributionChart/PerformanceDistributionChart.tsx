@@ -12,6 +12,29 @@ import type {
   PerformanceDistributionChartProps,
 } from './types';
 
+// ============================================================================
+// PIE CHART CONFIGURATION
+// ============================================================================
+
+/** SVG viewBox size in pixels */
+const CHART_SIZE = 180;
+
+/** Pie chart radius as a proportion of chart size (0.44 = 44%) */
+const RADIUS_RATIO = 0.44;
+
+/** Minimum percentage threshold to display label inside slice */
+const MIN_PERCENTAGE_FOR_LABEL = 8;
+
+/** Radius multiplier for positioning labels inside slices (0.65 = 65% from center) */
+const LABEL_RADIUS_RATIO = 0.65;
+
+/** Threshold to consider a slice as "whole" pie (avoids arc rendering issues) */
+const WHOLE_PIE_THRESHOLD = 99.99;
+
+// ============================================================================
+// HELPERS
+// ============================================================================
+
 /**
  * Build slices from counters
  */
@@ -91,9 +114,11 @@ export function PerformanceDistributionChart({
     return <SkeletonCard className="min-h-[280px]" />;
   }
 
-  const size = 180;
-  const r = size * 0.44;
-  const c = size / 2;
+  /** Pie chart radius calculated from chart size */
+  const radius = CHART_SIZE * RADIUS_RATIO;
+
+  /** Center point of the SVG (x and y coordinates) */
+  const center = CHART_SIZE / 2;
 
   return (
     <div className="bg-background border border-border-50 rounded-xl p-5">
@@ -141,15 +166,20 @@ export function PerformanceDistributionChart({
         <div className="shrink-0">
           {total === 0 ? (
             <svg
-              width={size}
-              height={size}
-              viewBox={`0 0 ${size} ${size}`}
+              width={CHART_SIZE}
+              height={CHART_SIZE}
+              viewBox={`0 0 ${CHART_SIZE} ${CHART_SIZE}`}
               aria-hidden="true"
             >
-              <circle cx={c} cy={c} r={r} className="fill-background-200" />
+              <circle
+                cx={center}
+                cy={center}
+                r={radius}
+                className="fill-background-200"
+              />
               <text
-                x={c}
-                y={c}
+                x={center}
+                y={center}
                 textAnchor="middle"
                 dominantBaseline="central"
                 fill="var(--color-text-400)"
@@ -164,25 +194,31 @@ export function PerformanceDistributionChart({
             </svg>
           ) : (
             <svg
-              width={size}
-              height={size}
-              viewBox={`0 0 ${size} ${size}`}
+              width={CHART_SIZE}
+              height={CHART_SIZE}
+              viewBox={`0 0 ${CHART_SIZE} ${CHART_SIZE}`}
               aria-hidden="true"
               onMouseLeave={() => setHoveredSlice(null)}
             >
               {computedSlices.map((slice) => {
                 const isHovered = hoveredSlice === slice.key;
-                const isWhole = slice.percentage >= 99.99;
-                const path = isWhole
+                const isWholePie = slice.percentage >= WHOLE_PIE_THRESHOLD;
+                const arcPath = isWholePie
                   ? undefined
-                  : describeArc(c, c, r, slice.startAngle, slice.endAngle);
-                const labelPos = polarToCartesian(
-                  c,
-                  c,
-                  r * 0.65,
+                  : describeArc(
+                      center,
+                      center,
+                      radius,
+                      slice.startAngle,
+                      slice.endAngle
+                    );
+                const labelPosition = polarToCartesian(
+                  center,
+                  center,
+                  radius * LABEL_RADIUS_RATIO,
                   slice.midAngle
                 );
-                const fill = bgClassToCssVar(slice.colorClass);
+                const fillColor = bgClassToCssVar(slice.colorClass);
 
                 return (
                   <g
@@ -190,34 +226,38 @@ export function PerformanceDistributionChart({
                     onMouseEnter={() => setHoveredSlice(slice.key)}
                     className="cursor-pointer"
                   >
-                    {isWhole ? (
-                      <circle cx={c} cy={c} r={r} fill={fill} />
+                    {isWholePie ? (
+                      <circle
+                        cx={center}
+                        cy={center}
+                        r={radius}
+                        fill={fillColor}
+                      />
                     ) : (
-                      <path d={path} fill={fill} />
+                      <path d={arcPath} fill={fillColor} />
                     )}
                     {isHovered &&
-                      (isWhole ? (
+                      (isWholePie ? (
                         <circle
-                          cx={c}
-                          cy={c}
-                          r={r}
+                          cx={center}
+                          cy={center}
+                          r={radius}
                           fill="white"
                           opacity={0.3}
                           style={{ pointerEvents: 'none' }}
                         />
                       ) : (
                         <path
-                          d={path}
+                          d={arcPath}
                           fill="white"
                           opacity={0.3}
                           style={{ pointerEvents: 'none' }}
                         />
                       ))}
-                    {/* Show percentage label for slices >= 8% */}
-                    {slice.percentage >= 8 && (
+                    {slice.percentage >= MIN_PERCENTAGE_FOR_LABEL && (
                       <text
-                        x={labelPos.x}
-                        y={labelPos.y}
+                        x={labelPosition.x}
+                        y={labelPosition.y}
                         textAnchor="middle"
                         dominantBaseline="central"
                         fill="white"
