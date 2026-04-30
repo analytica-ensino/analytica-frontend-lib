@@ -154,6 +154,8 @@ export const YAxis = ({
  * When `color` is set it takes precedence over `colorClass`.
  */
 export interface PieSlice {
+  /** Unique key for the slice (uses label if not provided) */
+  key?: string;
   label: string;
   value: number;
   colorClass: string;
@@ -161,22 +163,80 @@ export interface PieSlice {
   color?: string;
 }
 
+/** Default radius ratio (44% of size) */
+const PIE_RADIUS_RATIO = 0.44;
+
+/** Default label radius ratio (62% from center) */
+const PIE_LABEL_RADIUS_RATIO = 0.62;
+
+/** Default minimum percentage to show label */
+const PIE_MIN_PERCENTAGE_FOR_LABEL = 5;
+
+/** Threshold to consider a slice as whole pie */
+const PIE_WHOLE_THRESHOLD = 99.99;
+
+/**
+ * Props for SimplePieChart component
+ */
+export interface SimplePieChartProps {
+  /** Array of slices to render */
+  slices: PieSlice[];
+  /** Chart size in pixels (default: 130) */
+  size?: number;
+  /** Text to show when all values are zero */
+  emptyText?: string;
+  /** Minimum percentage to display label inside slice (default: 5) */
+  minPercentageForLabel?: number;
+  /** Label position as ratio of radius (default: 0.62) */
+  labelRadiusRatio?: number;
+  /** Label text color (default: var(--color-text-950)) */
+  labelColor?: string;
+  /** Label font weight (default: 500) */
+  labelFontWeight?: number;
+  /** Label text shadow (default: none) */
+  labelTextShadow?: string;
+  /** Hover overlay opacity (default: 0.4) */
+  hoverOpacity?: number;
+  /** External hover state (controlled mode) */
+  hoveredSlice?: string | null;
+  /** Callback when slice is hovered */
+  onSliceHover?: (key: string | null) => void;
+}
+
 /**
  * Interactive SVG pie chart built from PieSlice data.
- * Shows percentage labels for slices >= 5%. Renders a grey circle when all values are zero.
+ * Shows percentage labels for slices above minimum threshold.
+ * Renders a grey circle when all values are zero.
  */
 export const SimplePieChart = ({
   slices,
   size = 130,
-}: {
-  slices: PieSlice[];
-  size?: number;
-}) => {
-  const [hovered, setHovered] = useState<string | null>(null);
+  emptyText,
+  minPercentageForLabel = PIE_MIN_PERCENTAGE_FOR_LABEL,
+  labelRadiusRatio = PIE_LABEL_RADIUS_RATIO,
+  labelColor = 'var(--color-text-950)',
+  labelFontWeight = 500,
+  labelTextShadow,
+  hoverOpacity = 0.4,
+  hoveredSlice: externalHovered,
+  onSliceHover,
+}: SimplePieChartProps) => {
+  const [internalHovered, setInternalHovered] = useState<string | null>(null);
+
+  // Use external hover state if provided (controlled mode)
+  const isControlled = externalHovered !== undefined;
+  const hovered = isControlled ? externalHovered : internalHovered;
+
+  const handleSliceHover = (label: string | null) => {
+    if (!isControlled) {
+      setInternalHovered(label);
+    }
+    onSliceHover?.(label);
+  };
 
   const total = slices.reduce((sum, s) => sum + s.value, 0);
-  const r = size * 0.44;
-  const c = size / 2;
+  const radius = size * PIE_RADIUS_RATIO;
+  const center = size / 2;
 
   if (total === 0) {
     return (
@@ -186,7 +246,23 @@ export const SimplePieChart = ({
         viewBox={`0 0 ${size} ${size}`}
         aria-hidden="true"
       >
-        <circle cx={c} cy={c} r={r} className="fill-background-200" />
+        <circle cx={center} cy={center} r={radius} className="fill-background-200" />
+        {emptyText && (
+          <text
+            x={center}
+            y={center}
+            textAnchor="middle"
+            dominantBaseline="central"
+            fill="var(--color-text-400)"
+            style={{
+              fontSize: 12,
+              fontWeight: 500,
+              fontFamily: 'Roboto, sans-serif',
+            }}
+          >
+            {emptyText}
+          </text>
+        )}
       </svg>
     );
   }
@@ -209,60 +285,67 @@ export const SimplePieChart = ({
       height={size}
       viewBox={`0 0 ${size} ${size}`}
       aria-hidden="true"
-      onMouseLeave={() => setHovered(null)}
+      onMouseLeave={() => handleSliceHover(null)}
     >
       {computed.map((slice) => {
-        const isHovered = hovered === slice.label;
-        const isWhole = slice.pct >= 99.99;
-        const path = isWhole
+        const sliceKey = slice.key ?? slice.label;
+        const isHovered = hovered === sliceKey;
+        const isWhole = slice.pct >= PIE_WHOLE_THRESHOLD;
+        const arcPath = isWhole
           ? undefined
-          : describeArc(c, c, r, slice.startAngle, slice.endAngle);
-        const labelPos = polarToCartesian(c, c, r * 0.62, slice.midAngle);
+          : describeArc(center, center, radius, slice.startAngle, slice.endAngle);
+        const labelPos = polarToCartesian(
+          center,
+          center,
+          radius * labelRadiusRatio,
+          slice.midAngle
+        );
         const fill = slice.color ?? bgClassToCssVar(slice.colorClass);
 
         return (
           <g
-            key={slice.label}
-            onMouseEnter={() => setHovered(slice.label)}
+            key={sliceKey}
+            onMouseEnter={() => handleSliceHover(sliceKey)}
             className="cursor-pointer"
           >
             {isWhole ? (
-              <circle cx={c} cy={c} r={r} fill={fill} />
+              <circle cx={center} cy={center} r={radius} fill={fill} />
             ) : (
-              <path d={path} fill={fill} />
+              <path d={arcPath} fill={fill} />
             )}
             {isHovered &&
               (isWhole ? (
                 <circle
-                  cx={c}
-                  cy={c}
-                  r={r}
+                  cx={center}
+                  cy={center}
+                  r={radius}
                   fill="white"
-                  opacity={0.4}
+                  opacity={hoverOpacity}
                   style={{ pointerEvents: 'none' }}
                 />
               ) : (
                 <path
-                  d={path}
+                  d={arcPath}
                   fill="white"
-                  opacity={0.4}
+                  opacity={hoverOpacity}
                   style={{ pointerEvents: 'none' }}
                 />
               ))}
-            {slice.pct >= 5 && (
+            {slice.pct >= minPercentageForLabel && (
               <text
                 x={labelPos.x}
                 y={labelPos.y}
                 textAnchor="middle"
                 dominantBaseline="central"
-                fill="var(--color-text-950)"
+                fill={labelColor}
                 style={{
                   fontSize: 14,
-                  fontWeight: 500,
+                  fontWeight: labelFontWeight,
                   fontFamily: 'Roboto, sans-serif',
                   lineHeight: 1,
                   letterSpacing: 0,
                   pointerEvents: 'none',
+                  textShadow: labelTextShadow,
                 }}
               >
                 {`${Math.round(slice.pct)}%`}
