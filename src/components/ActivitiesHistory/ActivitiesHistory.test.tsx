@@ -92,6 +92,7 @@ describe('ActivitiesHistory', () => {
           year: '2024',
           className: 'Turma A',
           subjectName: 'Matemática',
+          creator: { id: 'creator-1', name: 'Prof. Maria' },
         },
       ],
       pagination: {

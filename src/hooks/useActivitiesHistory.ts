@@ -31,6 +31,7 @@ const activityHistoryResponseSchema = z.object({
   year: z.string().optional(),
   className: z.string().optional(),
   subjectName: z.string().optional(),
+  creator: z.object({ id: z.string(), name: z.string() }).nullable().optional(),
 });
 
 export const activitiesHistoryApiResponseSchema = z.object({
@@ -101,6 +102,7 @@ export const transformActivityToTableItem = (
     deadline: activity.finalDate
       ? dayjs(activity.finalDate).format('DD/MM')
       : '-',
+    creator: activity.creator?.name ?? '-',
     title: activity.title,
     school: activity.schoolName || '-',
     year: activity.year || '-',

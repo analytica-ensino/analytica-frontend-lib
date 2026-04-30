@@ -54,6 +54,7 @@ describe('useActivitiesHistory', () => {
       year: '2024',
       className: 'Turma A',
       subjectName: 'Matemática',
+      creator: { id: 'creator-1', name: 'Prof. Maria' },
     };
 
     it('should transform activity correctly with all fields', () => {
@@ -63,6 +64,7 @@ describe('useActivitiesHistory', () => {
       expect(result.title).toBe('Test Activity');
       expect(result.startDate).toBe('01/06');
       expect(result.deadline).toBe('31/12');
+      expect(result.creator).toBe('Prof. Maria');
       expect(result.school).toBe('Escola Exemplo');
       expect(result.year).toBe('2024');
       expect(result.subject).toBe('Matemática');
@@ -159,6 +161,36 @@ describe('useActivitiesHistory', () => {
 
       const result = transformActivityToTableItem(activity);
       expect(result.status).toBe(ActivityDisplayStatus.CONCLUIDA);
+    });
+
+    it('should map creator name when creator is present', () => {
+      const activity: ActivityHistoryResponse = {
+        ...baseActivity,
+        creator: { id: 'creator-1', name: 'Prof. João' },
+      };
+
+      const result = transformActivityToTableItem(activity);
+      expect(result.creator).toBe('Prof. João');
+    });
+
+    it('should use "-" when creator is null', () => {
+      const activity: ActivityHistoryResponse = {
+        ...baseActivity,
+        creator: null,
+      };
+
+      const result = transformActivityToTableItem(activity);
+      expect(result.creator).toBe('-');
+    });
+
+    it('should use "-" when creator is undefined', () => {
+      const activity: ActivityHistoryResponse = {
+        ...baseActivity,
+        creator: undefined,
+      };
+
+      const result = transformActivityToTableItem(activity);
+      expect(result.creator).toBe('-');
     });
   });
 
@@ -459,6 +491,7 @@ describe('useActivitiesHistory', () => {
             year: '2024',
             className: 'Turma A',
             subjectName: 'Matemática',
+            creator: { id: 'creator-1', name: 'Prof. Maria' },
           },
         ],
         pagination: {
