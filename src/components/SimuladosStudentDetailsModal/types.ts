@@ -1,11 +1,12 @@
 /**
  * Performance tag for simulated exams
  */
-export type SimulatedPerformanceTag =
-  | 'HIGHLIGHT'
-  | 'ABOVE_AVERAGE'
-  | 'BELOW_AVERAGE'
-  | 'ATTENTION_POINT';
+export enum SimulatedPerformanceTag {
+  HIGHLIGHT = 'HIGHLIGHT',
+  ABOVE_AVERAGE = 'ABOVE_AVERAGE',
+  BELOW_AVERAGE = 'BELOW_AVERAGE',
+  ATTENTION_POINT = 'ATTENTION_POINT',
+}
 
 /**
  * Tag config for display
@@ -22,10 +23,22 @@ export const SIMULATED_PERFORMANCE_TAG_CONFIG: Record<
   SimulatedPerformanceTag,
   SimulatedPerformanceTagConfig
 > = {
-  HIGHLIGHT: { label: 'Destaque da turma', variant: 'success' },
-  ABOVE_AVERAGE: { label: 'Acima da média', variant: 'info' },
-  BELOW_AVERAGE: { label: 'Abaixo da média', variant: 'warning' },
-  ATTENTION_POINT: { label: 'Ponto de atenção', variant: 'error' },
+  [SimulatedPerformanceTag.HIGHLIGHT]: {
+    label: 'Destaque da turma',
+    variant: 'success',
+  },
+  [SimulatedPerformanceTag.ABOVE_AVERAGE]: {
+    label: 'Acima da média',
+    variant: 'info',
+  },
+  [SimulatedPerformanceTag.BELOW_AVERAGE]: {
+    label: 'Abaixo da média',
+    variant: 'warning',
+  },
+  [SimulatedPerformanceTag.ATTENTION_POINT]: {
+    label: 'Ponto de atenção',
+    variant: 'error',
+  },
 };
 
 /**

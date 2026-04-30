@@ -2,10 +2,12 @@ import type { Story } from '@ladle/react';
 import { useState } from 'react';
 import { EssayCompetenceDetailsModal } from './EssayCompetenceDetailsModal';
 import Button from '../Button/Button';
-import type {
-  EssayCompetenciesApiClient,
-  EssayCompetenceStudentItem,
-  EssayCompetenceDetailsApiResponse,
+import {
+  SimulatedPerformanceTag,
+  type EssayCompetenciesApiClient,
+  type EssayCompetenceStudentItem,
+  type EssayCompetenceDetailsApiResponse,
+  type EssayCompetenceDetailsData,
 } from './types';
 
 // ============================================================================
@@ -19,13 +21,6 @@ function generateMockStudents(
   count: number,
   page: number = 1
 ): EssayCompetenceStudentItem[] {
-  const performances = [
-    'HIGHLIGHT',
-    'ABOVE_AVERAGE',
-    'BELOW_AVERAGE',
-    'ATTENTION_POINT',
-  ] as const;
-
   const schools = [
     'Colégio Santa Maria',
     'Escola Municipal João Paulo II',
@@ -80,12 +75,14 @@ function generateMockStudents(
     const globalIndex = (page - 1) * 20 + i;
     const score = 40 + Math.random() * 160;
     const percentage = (score / 200) * 100;
-    let performance: (typeof performances)[number];
+    let performance: SimulatedPerformanceTag;
 
-    if (percentage >= 80) performance = 'HIGHLIGHT';
-    else if (percentage >= 60) performance = 'ABOVE_AVERAGE';
-    else if (percentage >= 40) performance = 'BELOW_AVERAGE';
-    else performance = 'ATTENTION_POINT';
+    if (percentage >= 80) performance = SimulatedPerformanceTag.HIGHLIGHT;
+    else if (percentage >= 60)
+      performance = SimulatedPerformanceTag.ABOVE_AVERAGE;
+    else if (percentage >= 40)
+      performance = SimulatedPerformanceTag.BELOW_AVERAGE;
+    else performance = SimulatedPerformanceTag.ATTENTION_POINT;
 
     return {
       studentId: `student-${globalIndex + 1}`,

@@ -8,10 +8,10 @@ import { useSimuladosStudentDetails } from './useSimuladosStudentDetails';
 import {
   isStudentSubjectsData,
   SIMULATED_PERFORMANCE_TAG_CONFIG,
+  SimulatedPerformanceTag,
   type SimuladosStudentDetailsModalProps,
   type SubjectPerformanceItem,
   type StudentContentPerformanceItem,
-  type SimulatedPerformanceTag,
 } from './types';
 
 /**
@@ -21,10 +21,10 @@ const PERFORMANCE_TAG_TO_BADGE_ACTION: Record<
   SimulatedPerformanceTag,
   'success' | 'info' | 'warning' | 'error'
 > = {
-  HIGHLIGHT: 'success',
-  ABOVE_AVERAGE: 'info',
-  BELOW_AVERAGE: 'warning',
-  ATTENTION_POINT: 'error',
+  [SimulatedPerformanceTag.HIGHLIGHT]: 'success',
+  [SimulatedPerformanceTag.ABOVE_AVERAGE]: 'info',
+  [SimulatedPerformanceTag.BELOW_AVERAGE]: 'warning',
+  [SimulatedPerformanceTag.ATTENTION_POINT]: 'error',
 };
 
 /**

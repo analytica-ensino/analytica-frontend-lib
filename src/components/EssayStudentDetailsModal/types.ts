@@ -1,7 +1,9 @@
 // Reuse SimulatedPerformanceTag from SimuladosStudentDetailsModal
-import type { SimulatedPerformanceTag } from '../SimuladosStudentDetailsModal/types';
-export type { SimulatedPerformanceTag };
-export { SIMULATED_PERFORMANCE_TAG_CONFIG } from '../SimuladosStudentDetailsModal/types';
+import {
+  SimulatedPerformanceTag,
+  SIMULATED_PERFORMANCE_TAG_CONFIG,
+} from '../SimuladosStudentDetailsModal/types';
+export { SimulatedPerformanceTag, SIMULATED_PERFORMANCE_TAG_CONFIG };
 
 /**
  * Essay competency performance item

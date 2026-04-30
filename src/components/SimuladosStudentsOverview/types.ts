@@ -1,11 +1,12 @@
 // Reuse types from SimuladosStudentDetailsModal
-import type {
-  SimulationType,
+import {
   SimulatedPerformanceTag,
-  ActivityFilters,
+  simulationTypeToActivityFilters,
+  type SimulationType,
+  type ActivityFilters,
 } from '../SimuladosStudentDetailsModal/types';
-export type { SimulationType, SimulatedPerformanceTag, ActivityFilters };
-export { simulationTypeToActivityFilters } from '../SimuladosStudentDetailsModal/types';
+export { SimulatedPerformanceTag, simulationTypeToActivityFilters };
+export type { SimulationType, ActivityFilters };
 
 // Reuse ScoreType from GeneralOverviewSection
 import type { ScoreType } from '../GeneralOverviewSection/types';

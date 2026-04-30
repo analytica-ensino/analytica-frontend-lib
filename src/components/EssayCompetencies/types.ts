@@ -1,11 +1,12 @@
-import type {
+import {
   SimulatedPerformanceTag,
-  SimulatedPerformanceTagConfig,
+  SIMULATED_PERFORMANCE_TAG_CONFIG,
+  type SimulatedPerformanceTagConfig,
 } from '../SimuladosStudentDetailsModal/types';
 
 // Re-export for convenience
-export type { SimulatedPerformanceTag, SimulatedPerformanceTagConfig };
-export { SIMULATED_PERFORMANCE_TAG_CONFIG } from '../SimuladosStudentDetailsModal/types';
+export { SimulatedPerformanceTag, SIMULATED_PERFORMANCE_TAG_CONFIG };
+export type { SimulatedPerformanceTagConfig };
 
 /**
  * Single competency item in overview

@@ -1,3 +1,4 @@
+import type React from 'react';
 // Reuse ScoreType from GeneralOverviewSection
 import type { ScoreType } from '../GeneralOverviewSection/types';
 export type { ScoreType };
