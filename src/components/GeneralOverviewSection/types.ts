@@ -1,17 +1,9 @@
-// ============================================================================
-// SCORE TYPES
-// ============================================================================
-
 /**
  * Score display type
  * - percentage: 0-100 scale with % symbol
  * - tri: 0-1000 scale (TRI - Teoria de Resposta ao Item)
  */
 export type ScoreType = 'percentage' | 'tri';
-
-// ============================================================================
-// DATA TYPES
-// ============================================================================
 
 /**
  * Performance data for a knowledge area
@@ -62,10 +54,6 @@ export interface SubjectItem {
   areaKnowledgeId: string;
 }
 
-// ============================================================================
-// API TYPES
-// ============================================================================
-
 /**
  * API client interface (axios-like)
  */
@@ -93,10 +81,6 @@ export interface GeneralOverviewApiResponse {
   data: GeneralOverviewData;
 }
 
-// ============================================================================
-// HOOK TYPES
-// ============================================================================
-
 /**
  * Hook internal state
  */
@@ -117,10 +101,6 @@ export interface UseGeneralOverviewReturn extends UseGeneralOverviewState {
   ) => Promise<void>;
   reset: () => void;
 }
-
-// ============================================================================
-// COMPONENT TYPES
-// ============================================================================
 
 /**
  * Props for GeneralOverviewSection component
