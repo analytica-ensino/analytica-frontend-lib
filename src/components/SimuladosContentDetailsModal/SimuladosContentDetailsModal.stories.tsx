@@ -8,7 +8,9 @@ import type {
   ContentDetailsData,
 } from './types';
 
-function createMockData(contentName: string = 'Leitura e interpretação'): ContentDetailsData {
+function createMockData(
+  contentName: string = 'Leitura e interpretação'
+): ContentDetailsData {
   return {
     content: {
       id: 'content-1',

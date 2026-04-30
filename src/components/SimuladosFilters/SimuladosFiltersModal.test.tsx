@@ -42,7 +42,9 @@ jest.mock('../Button/Button', () => ({
 
 jest.mock('../Text/Text', () => ({
   __esModule: true,
-  default: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
+  default: ({ children }: { children: React.ReactNode }) => (
+    <span>{children}</span>
+  ),
 }));
 
 jest.mock('../CheckBoxGroup/CheckBoxGroup', () => ({
@@ -51,7 +53,9 @@ jest.mock('../CheckBoxGroup/CheckBoxGroup', () => ({
     onCategoriesChange,
   }: {
     categories: Array<{ key: string; selectedIds?: string[] }>;
-    onCategoriesChange: (categories: Array<{ key: string; selectedIds?: string[] }>) => void;
+    onCategoriesChange: (
+      categories: Array<{ key: string; selectedIds?: string[] }>
+    ) => void;
   }) => (
     <div data-testid="checkbox-group">
       <span data-testid="categories-selected">
@@ -82,7 +86,10 @@ jest.mock('./StudentsFilterSection', () => ({
     onSelectionChange: (ids: string[]) => void;
   }) => (
     <div data-testid="students-filter-section">
-      <button type="button" onClick={() => onSelectionChange(['student-1', 'student-2'])}>
+      <button
+        type="button"
+        onClick={() => onSelectionChange(['student-1', 'student-2'])}
+      >
         select-students
       </button>
     </div>
@@ -94,7 +101,12 @@ const mockClearStudents = jest.fn();
 let mockUserAccessState: {
   schools: Array<{ id: string; name: string }>;
   schoolYears: Array<{ id: string; name: string; schoolId: string }>;
-  classes: Array<{ id: string; name: string; schoolId: string; schoolYearId: string }>;
+  classes: Array<{
+    id: string;
+    name: string;
+    schoolId: string;
+    schoolYearId: string;
+  }>;
   isLoading: boolean;
 };
 let mockStudentsState: {
@@ -134,7 +146,14 @@ describe('SimuladosFiltersModal', () => {
     mockUserAccessState = {
       schools: [{ id: 'school-1', name: 'Escola 1' }],
       schoolYears: [{ id: 'year-1', name: '3 ano', schoolId: 'school-1' }],
-      classes: [{ id: 'class-1', name: 'A', schoolId: 'school-1', schoolYearId: 'year-1' }],
+      classes: [
+        {
+          id: 'class-1',
+          name: 'A',
+          schoolId: 'school-1',
+          schoolYearId: 'year-1',
+        },
+      ],
       isLoading: false,
     };
     mockStudentsState = {
@@ -145,7 +164,12 @@ describe('SimuladosFiltersModal', () => {
 
   it('renders default title and footer actions', () => {
     render(
-      <SimuladosFiltersModal isOpen onClose={onClose} onApply={onApply} api={api} />
+      <SimuladosFiltersModal
+        isOpen
+        onClose={onClose}
+        onApply={onApply}
+        api={api}
+      />
     );
 
     expect(screen.getByTestId('modal-title')).toHaveTextContent('Filtros');
@@ -157,7 +181,12 @@ describe('SimuladosFiltersModal', () => {
     mockUserAccessState.isLoading = true;
 
     render(
-      <SimuladosFiltersModal isOpen onClose={onClose} onApply={onApply} api={api} />
+      <SimuladosFiltersModal
+        isOpen
+        onClose={onClose}
+        onApply={onApply}
+        api={api}
+      />
     );
 
     expect(screen.getByText('Carregando filtros...')).toBeInTheDocument();
@@ -184,7 +213,12 @@ describe('SimuladosFiltersModal', () => {
 
   it('clears students when no class is selected', () => {
     render(
-      <SimuladosFiltersModal isOpen onClose={onClose} onApply={onApply} api={api} />
+      <SimuladosFiltersModal
+        isOpen
+        onClose={onClose}
+        onApply={onApply}
+        api={api}
+      />
     );
 
     expect(mockClearStudents).toHaveBeenCalled();
@@ -192,7 +226,12 @@ describe('SimuladosFiltersModal', () => {
 
   it('applies selected category/student filters and closes modal', () => {
     render(
-      <SimuladosFiltersModal isOpen onClose={onClose} onApply={onApply} api={api} />
+      <SimuladosFiltersModal
+        isOpen
+        onClose={onClose}
+        onApply={onApply}
+        api={api}
+      />
     );
 
     fireEvent.click(screen.getByText('update-categories'));

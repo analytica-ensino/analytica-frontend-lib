@@ -273,8 +273,12 @@ describe('utils', () => {
     });
 
     it('should handle different color classes', () => {
-      expect(bgClassToCssVar('bg-success-400')).toBe('var(--color-success-400)');
-      expect(bgClassToCssVar('bg-warning-500')).toBe('var(--color-warning-500)');
+      expect(bgClassToCssVar('bg-success-400')).toBe(
+        'var(--color-success-400)'
+      );
+      expect(bgClassToCssVar('bg-warning-500')).toBe(
+        'var(--color-warning-500)'
+      );
     });
 
     it('should handle nested color names', () => {

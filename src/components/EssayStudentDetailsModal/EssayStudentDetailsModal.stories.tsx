@@ -58,8 +58,10 @@ function generateMockData(
           : 60
   );
 
-  const overallAverage =
-    competencies.reduce((sum, c) => sum + c.averageScore, 0);
+  const overallAverage = competencies.reduce(
+    (sum, c) => sum + c.averageScore,
+    0
+  );
   const overallPercentage = (overallAverage / 1000) * 100;
 
   return {
@@ -122,7 +124,11 @@ function createErrorApi(delay: number = 500): EssayStudentDetailsApiClient {
 function createSlowApi(
   studentName: string = 'Maria Silva'
 ): EssayStudentDetailsApiClient {
-  return createSuccessApi(studentName, SimulatedPerformanceTag.ABOVE_AVERAGE, 3000);
+  return createSuccessApi(
+    studentName,
+    SimulatedPerformanceTag.ABOVE_AVERAGE,
+    3000
+  );
 }
 
 /**

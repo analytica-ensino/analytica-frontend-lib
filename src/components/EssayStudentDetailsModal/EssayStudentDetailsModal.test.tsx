@@ -107,9 +107,7 @@ describe('EssayStudentDetailsModal', () => {
       render(<EssayStudentDetailsModal {...defaultProps} />);
 
       // Should show modal with title
-      expect(
-        screen.getByText('Desempenho de Maria Silva')
-      ).toBeInTheDocument();
+      expect(screen.getByText('Desempenho de Maria Silva')).toBeInTheDocument();
     });
 
     it('shows 5 competency skeleton items when loading', () => {
@@ -166,9 +164,7 @@ describe('EssayStudentDetailsModal', () => {
 
       render(<EssayStudentDetailsModal {...defaultProps} />);
 
-      expect(
-        screen.getByText('Colégio Santa Maria - 3A')
-      ).toBeInTheDocument();
+      expect(screen.getByText('Colégio Santa Maria - 3A')).toBeInTheDocument();
     });
 
     it('renders essays count', () => {
@@ -339,9 +335,7 @@ describe('EssayStudentDetailsModal', () => {
       );
 
       // Close the modal
-      rerender(
-        <EssayStudentDetailsModal {...defaultProps} isOpen={false} />
-      );
+      rerender(<EssayStudentDetailsModal {...defaultProps} isOpen={false} />);
 
       expect(mockReset).toHaveBeenCalled();
     });
@@ -415,10 +409,7 @@ describe('EssayStudentDetailsModal', () => {
       mockHookState = { data: null, loading: true, error: null };
 
       render(
-        <EssayStudentDetailsModal
-          {...defaultProps}
-          studentName={undefined}
-        />
+        <EssayStudentDetailsModal {...defaultProps} studentName={undefined} />
       );
 
       expect(screen.getByText('Desempenho de Estudante')).toBeInTheDocument();

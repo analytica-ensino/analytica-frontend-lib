@@ -60,7 +60,9 @@ describe('useEssayCompetenciesOverview', () => {
 
   describe('initial state', () => {
     it('should start with null data, loading false, and no error', () => {
-      const { result } = renderHook(() => useEssayCompetenciesOverview(mockApi));
+      const { result } = renderHook(() =>
+        useEssayCompetenciesOverview(mockApi)
+      );
 
       expect(result.current.data).toBeNull();
       expect(result.current.loading).toBe(false);
@@ -68,7 +70,9 @@ describe('useEssayCompetenciesOverview', () => {
     });
 
     it('should provide fetchOverview and reset functions', () => {
-      const { result } = renderHook(() => useEssayCompetenciesOverview(mockApi));
+      const { result } = renderHook(() =>
+        useEssayCompetenciesOverview(mockApi)
+      );
 
       expect(typeof result.current.fetchOverview).toBe('function');
       expect(typeof result.current.reset).toBe('function');
@@ -79,7 +83,9 @@ describe('useEssayCompetenciesOverview', () => {
     it('should set loading to true when fetching', async () => {
       mockApi.post.mockReturnValue(new Promise(() => {})); // Never resolves
 
-      const { result } = renderHook(() => useEssayCompetenciesOverview(mockApi));
+      const { result } = renderHook(() =>
+        useEssayCompetenciesOverview(mockApi)
+      );
 
       act(() => {
         result.current.fetchOverview({
@@ -99,7 +105,9 @@ describe('useEssayCompetenciesOverview', () => {
 
       mockApi.post.mockResolvedValueOnce({ data: response });
 
-      const { result } = renderHook(() => useEssayCompetenciesOverview(mockApi));
+      const { result } = renderHook(() =>
+        useEssayCompetenciesOverview(mockApi)
+      );
 
       await act(async () => {
         await result.current.fetchOverview({
@@ -120,7 +128,9 @@ describe('useEssayCompetenciesOverview', () => {
 
       mockApi.post.mockResolvedValueOnce({ data: response });
 
-      const { result } = renderHook(() => useEssayCompetenciesOverview(mockApi));
+      const { result } = renderHook(() =>
+        useEssayCompetenciesOverview(mockApi)
+      );
 
       await act(async () => {
         await result.current.fetchOverview({
@@ -142,7 +152,9 @@ describe('useEssayCompetenciesOverview', () => {
 
       mockApi.post.mockResolvedValueOnce({ data: response });
 
-      const { result } = renderHook(() => useEssayCompetenciesOverview(mockApi));
+      const { result } = renderHook(() =>
+        useEssayCompetenciesOverview(mockApi)
+      );
 
       const params: EssayCompetenciesOverviewParams = {
         period: '3_MONTHS',
@@ -174,7 +186,9 @@ describe('useEssayCompetenciesOverview', () => {
 
       mockApi.post.mockResolvedValueOnce({ data: response });
 
-      const { result } = renderHook(() => useEssayCompetenciesOverview(mockApi));
+      const { result } = renderHook(() =>
+        useEssayCompetenciesOverview(mockApi)
+      );
 
       await act(async () => {
         await result.current.fetchOverview({
@@ -196,7 +210,9 @@ describe('useEssayCompetenciesOverview', () => {
     it('should handle API error with Error instance', async () => {
       mockApi.post.mockRejectedValueOnce(new Error('Network error'));
 
-      const { result } = renderHook(() => useEssayCompetenciesOverview(mockApi));
+      const { result } = renderHook(() =>
+        useEssayCompetenciesOverview(mockApi)
+      );
 
       await act(async () => {
         await result.current.fetchOverview({
@@ -212,7 +228,9 @@ describe('useEssayCompetenciesOverview', () => {
     it('should handle API error with non-Error throw', async () => {
       mockApi.post.mockRejectedValueOnce('Something went wrong');
 
-      const { result } = renderHook(() => useEssayCompetenciesOverview(mockApi));
+      const { result } = renderHook(() =>
+        useEssayCompetenciesOverview(mockApi)
+      );
 
       await act(async () => {
         await result.current.fetchOverview({
@@ -231,7 +249,9 @@ describe('useEssayCompetenciesOverview', () => {
       // First call fails
       mockApi.post.mockRejectedValueOnce(new Error('First error'));
 
-      const { result } = renderHook(() => useEssayCompetenciesOverview(mockApi));
+      const { result } = renderHook(() =>
+        useEssayCompetenciesOverview(mockApi)
+      );
 
       await act(async () => {
         await result.current.fetchOverview({
@@ -268,7 +288,9 @@ describe('useEssayCompetenciesOverview', () => {
 
       mockApi.post.mockResolvedValueOnce({ data: response });
 
-      const { result } = renderHook(() => useEssayCompetenciesOverview(mockApi));
+      const { result } = renderHook(() =>
+        useEssayCompetenciesOverview(mockApi)
+      );
 
       // Fetch data first
       await act(async () => {
@@ -292,7 +314,9 @@ describe('useEssayCompetenciesOverview', () => {
     it('should clear error state', async () => {
       mockApi.post.mockRejectedValueOnce(new Error('Some error'));
 
-      const { result } = renderHook(() => useEssayCompetenciesOverview(mockApi));
+      const { result } = renderHook(() =>
+        useEssayCompetenciesOverview(mockApi)
+      );
 
       await act(async () => {
         await result.current.fetchOverview({
@@ -317,7 +341,9 @@ describe('useEssayCompetenciesOverview', () => {
         data: { message: 'Success', data: mockData },
       });
 
-      const { result } = renderHook(() => useEssayCompetenciesOverview(mockApi));
+      const { result } = renderHook(() =>
+        useEssayCompetenciesOverview(mockApi)
+      );
 
       await act(async () => {
         await result.current.fetchOverview({
@@ -336,7 +362,9 @@ describe('useEssayCompetenciesOverview', () => {
         data: { message: 'Success', data: mockData },
       });
 
-      const { result } = renderHook(() => useEssayCompetenciesOverview(mockApi));
+      const { result } = renderHook(() =>
+        useEssayCompetenciesOverview(mockApi)
+      );
 
       await act(async () => {
         await result.current.fetchOverview({
@@ -360,7 +388,9 @@ describe('useEssayCompetenciesOverview', () => {
         data: { message: 'Success', data: mockData },
       });
 
-      const { result } = renderHook(() => useEssayCompetenciesOverview(mockApi));
+      const { result } = renderHook(() =>
+        useEssayCompetenciesOverview(mockApi)
+      );
 
       await act(async () => {
         await result.current.fetchOverview({
@@ -380,7 +410,9 @@ describe('useEssayCompetenciesOverview', () => {
         data: { message: 'Success', data: mockData },
       });
 
-      const { result } = renderHook(() => useEssayCompetenciesOverview(mockApi));
+      const { result } = renderHook(() =>
+        useEssayCompetenciesOverview(mockApi)
+      );
 
       // Fetch with 1 month
       await act(async () => {
@@ -411,7 +443,9 @@ describe('useEssayCompetenciesOverview', () => {
         data: { message: 'Success', data: mockData },
       });
 
-      const { result } = renderHook(() => useEssayCompetenciesOverview(mockApi));
+      const { result } = renderHook(() =>
+        useEssayCompetenciesOverview(mockApi)
+      );
 
       await act(async () => {
         await result.current.fetchOverview({
@@ -434,7 +468,9 @@ describe('useEssayCompetenciesOverview', () => {
         data: { message: 'Success', data: mockData },
       });
 
-      const { result } = renderHook(() => useEssayCompetenciesOverview(mockApi));
+      const { result } = renderHook(() =>
+        useEssayCompetenciesOverview(mockApi)
+      );
 
       await act(async () => {
         await result.current.fetchOverview({

@@ -121,10 +121,7 @@ export const TwoCategories: Story = () => (
  */
 export const Empty: Story = () => (
   <div className="max-w-xl">
-    <PerformanceDistributionChart
-      counters={emptyCounters}
-      title="Sem Dados"
-    />
+    <PerformanceDistributionChart counters={emptyCounters} title="Sem Dados" />
   </div>
 );
 

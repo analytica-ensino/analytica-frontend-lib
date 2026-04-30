@@ -54,17 +54,13 @@ describe('PerformanceDistributionChart', () => {
 
   describe('Empty state', () => {
     it('renders "Sem dados" when all counters are zero', () => {
-      render(
-        <PerformanceDistributionChart counters={createEmptyCounters()} />
-      );
+      render(<PerformanceDistributionChart counters={createEmptyCounters()} />);
 
       expect(screen.getByText('Sem dados')).toBeInTheDocument();
     });
 
     it('does not render legend items when all counters are zero', () => {
-      render(
-        <PerformanceDistributionChart counters={createEmptyCounters()} />
-      );
+      render(<PerformanceDistributionChart counters={createEmptyCounters()} />);
 
       // When total is 0, buildSlices returns empty array, so no legend items
       expect(screen.queryByText('Ponto de atenção')).not.toBeInTheDocument();
@@ -76,9 +72,7 @@ describe('PerformanceDistributionChart', () => {
 
   describe('Data rendering', () => {
     it('renders title', () => {
-      render(
-        <PerformanceDistributionChart counters={createMockCounters()} />
-      );
+      render(<PerformanceDistributionChart counters={createMockCounters()} />);
 
       expect(
         screen.getByText('Proficiência por quantidade de estudante')
@@ -93,13 +87,13 @@ describe('PerformanceDistributionChart', () => {
         />
       );
 
-      expect(screen.getByText('Distribuição de Desempenho')).toBeInTheDocument();
+      expect(
+        screen.getByText('Distribuição de Desempenho')
+      ).toBeInTheDocument();
     });
 
     it('renders all legend items', () => {
-      render(
-        <PerformanceDistributionChart counters={createMockCounters()} />
-      );
+      render(<PerformanceDistributionChart counters={createMockCounters()} />);
 
       expect(screen.getByText('Ponto de atenção')).toBeInTheDocument();
       expect(screen.getByText('Abaixo da média')).toBeInTheDocument();
@@ -108,9 +102,7 @@ describe('PerformanceDistributionChart', () => {
     });
 
     it('renders correct student counts', () => {
-      render(
-        <PerformanceDistributionChart counters={createMockCounters()} />
-      );
+      render(<PerformanceDistributionChart counters={createMockCounters()} />);
 
       // Total is 55 students
       expect(screen.getByText(/5 alunos \(9\.1%\)/)).toBeInTheDocument(); // attentionPoint
@@ -133,9 +125,7 @@ describe('PerformanceDistributionChart', () => {
     });
 
     it('renders total count', () => {
-      render(
-        <PerformanceDistributionChart counters={createMockCounters()} />
-      );
+      render(<PerformanceDistributionChart counters={createMockCounters()} />);
 
       expect(screen.getByText('Total: 55 alunos')).toBeInTheDocument();
     });
@@ -190,7 +180,9 @@ describe('PerformanceDistributionChart', () => {
         <PerformanceDistributionChart counters={createMockCounters()} />
       );
 
-      const legendItems = container.querySelectorAll('.flex.items-center.gap-3');
+      const legendItems = container.querySelectorAll(
+        '.flex.items-center.gap-3'
+      );
       expect(legendItems.length).toBeGreaterThan(0);
 
       // Hover over first legend item

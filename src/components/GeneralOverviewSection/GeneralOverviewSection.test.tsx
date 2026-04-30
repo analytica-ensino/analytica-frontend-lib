@@ -111,10 +111,7 @@ describe('GeneralOverviewSection', () => {
   describe('Error state', () => {
     it('renders error message', () => {
       render(
-        <GeneralOverviewSection
-          data={null}
-          error="Erro ao carregar dados"
-        />
+        <GeneralOverviewSection data={null} error="Erro ao carregar dados" />
       );
 
       expect(screen.getByText('Erro ao carregar dados')).toBeInTheDocument();
@@ -122,10 +119,7 @@ describe('GeneralOverviewSection', () => {
 
     it('renders error with error styling', () => {
       const { container } = render(
-        <GeneralOverviewSection
-          data={null}
-          error="Erro ao carregar dados"
-        />
+        <GeneralOverviewSection data={null} error="Erro ao carregar dados" />
       );
 
       const errorContainer = container.querySelector('.bg-error-50');
@@ -135,9 +129,7 @@ describe('GeneralOverviewSection', () => {
 
   describe('Empty state', () => {
     it('renders nothing when no data and not loading', () => {
-      const { container } = render(
-        <GeneralOverviewSection data={null} />
-      );
+      const { container } = render(<GeneralOverviewSection data={null} />);
 
       // Component returns null, so container should have no content
       expect(container.firstChild).toBeNull();

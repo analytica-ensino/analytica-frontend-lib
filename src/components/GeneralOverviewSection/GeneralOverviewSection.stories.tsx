@@ -358,7 +358,10 @@ export const ScoreTypesComparison: Story = () => (
       <h3 className="text-lg font-bold text-text-900 mb-2">
         Modo Porcentagem (padrão)
       </h3>
-      <GeneralOverviewSection data={generateMockData()} scoreType="percentage" />
+      <GeneralOverviewSection
+        data={generateMockData()}
+        scoreType="percentage"
+      />
     </div>
     <div>
       <h3 className="text-lg font-bold text-text-900 mb-2">Modo TRI</h3>

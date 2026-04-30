@@ -1,4 +1,4 @@
-import { renderHook, waitFor, act } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { useEssayCompetenceDetails } from './useEssayCompetenceDetails';
 import {
   SimulatedPerformanceTag,
