@@ -44,6 +44,29 @@ export const SIMULATED_PERFORMANCE_TAG_CONFIG: Record<
 };
 
 /**
+ * Badge action enum for performance status indicators
+ */
+export enum PerformanceBadgeAction {
+  SUCCESS = 'success',
+  INFO = 'info',
+  WARNING = 'warning',
+  ERROR = 'error',
+}
+
+/**
+ * Map performance tag to Badge action type
+ */
+export const PERFORMANCE_TAG_TO_BADGE_ACTION: Record<
+  SimulatedPerformanceTag,
+  PerformanceBadgeAction
+> = {
+  [SimulatedPerformanceTag.HIGHLIGHT]: PerformanceBadgeAction.SUCCESS,
+  [SimulatedPerformanceTag.ABOVE_AVERAGE]: PerformanceBadgeAction.INFO,
+  [SimulatedPerformanceTag.BELOW_AVERAGE]: PerformanceBadgeAction.WARNING,
+  [SimulatedPerformanceTag.ATTENTION_POINT]: PerformanceBadgeAction.ERROR,
+};
+
+/**
  * Simulation type
  */
 export type SimulationType = 'enem-1' | 'enem-2' | 'essays';

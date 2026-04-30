@@ -2,10 +2,10 @@ import type React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { EssayCompetenceDetailsModal } from './EssayCompetenceDetailsModal';
-import {
-  SimulatedPerformanceTag,
-  type EssayCompetenceDetailsData,
-  type EssayCompetenceStudentItem,
+import { SimulatedPerformanceTag } from '../SimulatedStudentDetailsModal/types';
+import type {
+  EssayCompetenceDetailsData,
+  EssayCompetenceStudentItem,
 } from './types';
 import type { BaseApiClient } from '../../types/api';
 

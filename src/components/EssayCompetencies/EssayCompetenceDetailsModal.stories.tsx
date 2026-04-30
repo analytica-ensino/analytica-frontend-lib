@@ -2,11 +2,11 @@ import type { Story } from '@ladle/react';
 import { useState } from 'react';
 import { EssayCompetenceDetailsModal } from './EssayCompetenceDetailsModal';
 import Button from '../Button/Button';
-import {
-  SimulatedPerformanceTag,
-  type EssayCompetenceStudentItem,
-  type EssayCompetenceDetailsApiResponse,
-  type EssayCompetenceDetailsData,
+import { SimulatedPerformanceTag } from '../SimulatedStudentDetailsModal/types';
+import type {
+  EssayCompetenceStudentItem,
+  EssayCompetenceDetailsApiResponse,
+  EssayCompetenceDetailsData,
 } from './types';
 import type { BaseApiClient } from '../../types/api';
 import { Period } from '../PeriodSelector';

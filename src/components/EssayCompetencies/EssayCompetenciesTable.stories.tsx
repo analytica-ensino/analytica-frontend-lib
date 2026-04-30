@@ -7,7 +7,7 @@ import type {
   EssayCompetenceDetailsData,
   EssayCompetenceStudentItem,
 } from './types';
-import { SimulatedPerformanceTag } from './types';
+import { SimulatedPerformanceTag } from '../SimulatedStudentDetailsModal/types';
 import type { BaseApiClient } from '../../types/api';
 import { Period } from '../PeriodSelector';
 

@@ -1,13 +1,5 @@
 import type { BaseApiClient } from '../../types/api';
-import {
-  SimulatedPerformanceTag,
-  SIMULATED_PERFORMANCE_TAG_CONFIG,
-  type SimulatedPerformanceTagConfig,
-} from '../SimulatedStudentDetailsModal/types';
-
-// Re-export for convenience
-export { SimulatedPerformanceTag, SIMULATED_PERFORMANCE_TAG_CONFIG };
-export type { SimulatedPerformanceTagConfig };
+import type { SimulatedPerformanceTag } from '../SimulatedStudentDetailsModal/types';
 
 /**
  * Single competency item in overview

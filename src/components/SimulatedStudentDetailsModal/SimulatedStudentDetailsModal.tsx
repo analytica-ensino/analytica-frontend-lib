@@ -9,24 +9,11 @@ import { formatPercentageRounded } from '../../utils/utils';
 import {
   isStudentSubjectsData,
   SIMULATED_PERFORMANCE_TAG_CONFIG,
-  SimulatedPerformanceTag,
+  PERFORMANCE_TAG_TO_BADGE_ACTION,
   type SimulatedStudentDetailsModalProps,
   type SubjectPerformanceItem,
   type StudentContentPerformanceItem,
 } from './types';
-
-/**
- * Map performance tag to Badge action type
- */
-const PERFORMANCE_TAG_TO_BADGE_ACTION: Record<
-  SimulatedPerformanceTag,
-  'success' | 'info' | 'warning' | 'error'
-> = {
-  [SimulatedPerformanceTag.HIGHLIGHT]: 'success',
-  [SimulatedPerformanceTag.ABOVE_AVERAGE]: 'info',
-  [SimulatedPerformanceTag.BELOW_AVERAGE]: 'warning',
-  [SimulatedPerformanceTag.ATTENTION_POINT]: 'error',
-};
 
 /**
  * Modal for displaying student performance details in simulated exams

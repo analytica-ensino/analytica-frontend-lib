@@ -5,9 +5,11 @@ export {
   isStudentContentsData,
   simulationTypeToActivityFilters,
   SIMULATED_PERFORMANCE_TAG_CONFIG,
+  SimulatedPerformanceTag,
+  PerformanceBadgeAction,
+  PERFORMANCE_TAG_TO_BADGE_ACTION,
 } from './types';
 export type {
-  SimulatedPerformanceTag,
   SimulatedPerformanceTagConfig,
   SimulationType,
   StudentDetailsInfo,

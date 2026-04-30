@@ -15,9 +15,9 @@ import type {
 function ProficiencyCell({ percentage }: { readonly percentage: number }) {
   return (
     <div className="flex items-center justify-center gap-2">
-      <span className="text-sm text-text-950 min-w-[40px] text-right">
+      <Text size="sm" className="min-w-[40px] text-right text-text-950">
         {Math.round(percentage)}%
-      </span>
+      </Text>
       <div className="w-16 h-2 bg-background-100 rounded-full overflow-hidden">
         <div
           className={cn(

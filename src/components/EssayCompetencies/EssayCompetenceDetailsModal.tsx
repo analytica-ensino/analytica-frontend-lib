@@ -7,23 +7,12 @@ import { TableProvider, type TableParams } from '../TableProvider';
 import { useEssayCompetenceDetails } from './useEssayCompetenceDetails';
 import {
   SIMULATED_PERFORMANCE_TAG_CONFIG,
-  SimulatedPerformanceTag,
-  type EssayCompetenceDetailsModalProps,
-  type EssayCompetenceStudentItem,
+  PERFORMANCE_TAG_TO_BADGE_ACTION,
+} from '../SimulatedStudentDetailsModal/types';
+import type {
+  EssayCompetenceDetailsModalProps,
+  EssayCompetenceStudentItem,
 } from './types';
-
-/**
- * Map performance tag to Badge action type
- */
-const PERFORMANCE_TAG_TO_BADGE_ACTION: Record<
-  SimulatedPerformanceTag,
-  'success' | 'info' | 'warning' | 'error'
-> = {
-  [SimulatedPerformanceTag.HIGHLIGHT]: 'success',
-  [SimulatedPerformanceTag.ABOVE_AVERAGE]: 'info',
-  [SimulatedPerformanceTag.BELOW_AVERAGE]: 'warning',
-  [SimulatedPerformanceTag.ATTENTION_POINT]: 'error',
-};
 
 /**
  * Table columns configuration
@@ -62,9 +51,9 @@ const TABLE_COLUMNS = [
     render: (_value: unknown, row: Record<string, unknown>) => {
       const student = row as unknown as EssayCompetenceStudentItem;
       return (
-        <span className="text-sm text-text-950">
+        <Text size="sm" color="text-text-950">
           {Math.round(student.averageScore)}/200
-        </span>
+        </Text>
       );
     },
   },
