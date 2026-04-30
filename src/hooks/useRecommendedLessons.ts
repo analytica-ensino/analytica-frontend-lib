@@ -141,6 +141,7 @@ export const transformRecommendedClassToTableItem = (
     title: item.recommendedClass.title,
     school: schoolName,
     year: '-', // API doesn't provide year directly
+    creator: item.creator?.name || '-',
     subject: item.subject?.name || '-',
     class: classDisplay,
     status: determineRecommendedClassStatus(
