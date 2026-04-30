@@ -60,24 +60,6 @@ function buildEndpoint(
 }
 
 /**
- * Convert params to POST body format
- */
-function paramsToBody(params: SimulatedOverviewParams): SimulatedOverviewBody {
-  return {
-    period: params.period,
-    subjectId: params.subjectId,
-    areaKnowledgeId: params.areaKnowledgeId,
-    schoolIds: params.schoolIds,
-    schoolYearIds: params.schoolYearIds,
-    classIds: params.classIds,
-    page: params.page ?? 1,
-    limit: params.limit ?? 10,
-    orderBy: params.orderBy ?? 'name',
-    order: params.order ?? 'asc',
-  };
-}
-
-/**
  * Initial state for the hook
  */
 const initialState: UseSimulatedOverviewState = {
@@ -115,6 +97,26 @@ export function useSimulatedOverview(
   const [loading, setLoading] = useState(initialState.loading);
   const [isRefreshing, setIsRefreshing] = useState(initialState.isRefreshing);
   const [error, setError] = useState<string | null>(initialState.error);
+
+  /**
+   * Convert params to POST body format
+   */
+  const paramsToBody = (
+    params: SimulatedOverviewParams
+  ): SimulatedOverviewBody => {
+    return {
+      period: params.period,
+      subjectId: params.subjectId,
+      areaKnowledgeId: params.areaKnowledgeId,
+      schoolIds: params.schoolIds,
+      schoolYearIds: params.schoolYearIds,
+      classIds: params.classIds,
+      page: params.page ?? 1,
+      limit: params.limit ?? 10,
+      orderBy: params.orderBy ?? 'name',
+      order: params.order ?? 'asc',
+    };
+  };
 
   const fetchOverview = useCallback(
     async (params: SimulatedOverviewParams, refresh = false) => {
