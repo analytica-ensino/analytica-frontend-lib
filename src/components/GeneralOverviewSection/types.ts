@@ -20,6 +20,10 @@ export interface AreaKnowledgePerformance {
   id: string;
   name: string;
   urlCover: string | null;
+  /** Icon identifier from backend */
+  icon?: string;
+  /** Hex color from backend (e.g., "#4B0082") */
+  color?: string;
   percentage: number;
   questionsTotal: number;
   questionsCorrect: number;

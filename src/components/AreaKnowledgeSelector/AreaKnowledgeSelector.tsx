@@ -12,41 +12,11 @@ import type { AreaKnowledgeSelectorProps } from './types';
 import type { AreaKnowledgePerformance } from '../GeneralOverviewSection/types';
 import { ESSAY_AREA_ID } from './types';
 
-/**
- * Area colors based on area name patterns
- */
-const AREA_COLORS: Record<string, string> = {
-  linguagens: '#3B82F6', // blue-500
-  humanas: '#F59E0B', // amber-500
-  natureza: '#22C55E', // green-500
-  matemática: '#8B5CF6', // purple-500
-  redação: '#F43F5E', // rose-500
-};
+/** Default color for items without a color from backend */
+const DEFAULT_COLOR = '#6B7280'; // gray-500
 
-/**
- * Get color for an area based on its name
- */
-function getAreaColor(areaName: string): string {
-  const nameLower = areaName.toLowerCase();
-
-  if (nameLower.includes('linguagens') || nameLower.includes('códigos')) {
-    return AREA_COLORS.linguagens;
-  }
-  if (nameLower.includes('humanas') || nameLower.includes('sociais')) {
-    return AREA_COLORS.humanas;
-  }
-  if (nameLower.includes('natureza') || nameLower.includes('ciências da nat')) {
-    return AREA_COLORS.natureza;
-  }
-  if (nameLower.includes('matemática')) {
-    return AREA_COLORS.matemática;
-  }
-  if (nameLower.includes('redação')) {
-    return AREA_COLORS.redação;
-  }
-
-  return '#6B7280'; // gray-500
-}
+/** Color for essay (Redação) option */
+const ESSAY_COLOR = '#F43F5E'; // rose-500
 
 interface SelectItemData {
   id: string;
@@ -84,14 +54,17 @@ export function AreaKnowledgeSelector({
     const allOption: SelectItemData = {
       id: 'all',
       name: 'Todos',
-      color: '#6B7280',
+      color: DEFAULT_COLOR,
     };
 
-    const areaItems: SelectItemData[] = areas.map((area: AreaKnowledgePerformance) => ({
-      id: area.id,
-      name: area.name,
-      color: getAreaColor(area.name),
-    }));
+    // Use color from API, fallback to default if not provided
+    const areaItems: SelectItemData[] = areas.map(
+      (area: AreaKnowledgePerformance) => ({
+        id: area.id,
+        name: area.name,
+        color: area.color || DEFAULT_COLOR,
+      })
+    );
 
     const items = [allOption, ...areaItems];
 
@@ -99,7 +72,7 @@ export function AreaKnowledgeSelector({
       const essayOption: SelectItemData = {
         id: ESSAY_AREA_ID,
         name: 'Redação',
-        color: AREA_COLORS.redação,
+        color: ESSAY_COLOR,
       };
       items.push(essayOption);
     }
@@ -128,14 +101,16 @@ export function AreaKnowledgeSelector({
           defaultValue="all"
           value={effectiveValue}
           onValueChange={handleValueChange}
-          disabled={loading}
         >
-          <SelectTrigger className={cn('w-full', loading && 'opacity-50')}>
+          <SelectTrigger
+            className={cn('w-full', loading && 'opacity-50')}
+            disabled={loading}
+          >
             <SelectValue placeholder="Selecione uma área" />
           </SelectTrigger>
           <SelectContent>
             {selectItems.map((item: SelectItemData) => (
-              <SelectItem key={item.id} value={item.id}>
+              <SelectItem key={item.id} value={item.id} disabled={loading}>
                 <div className="flex items-center gap-2">
                   <span
                     className={cn(
