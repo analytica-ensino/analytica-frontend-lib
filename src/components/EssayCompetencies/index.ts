@@ -2,9 +2,11 @@ export { EssayCompetenciesTable } from './EssayCompetenciesTable';
 export { EssayCompetenceDetailsModal } from './EssayCompetenceDetailsModal';
 export { useEssayCompetenciesOverview } from './useEssayCompetenciesOverview';
 export { useEssayCompetenceDetails } from './useEssayCompetenceDetails';
-export { SIMULATED_PERFORMANCE_TAG_CONFIG } from './types';
-export type {
+export {
   SimulatedPerformanceTag,
+  SIMULATED_PERFORMANCE_TAG_CONFIG,
+} from './types';
+export type {
   SimulatedPerformanceTagConfig,
   EssayCompetencyOverviewItem,
   EssayCompetenciesOverviewData,
@@ -25,5 +27,4 @@ export type {
   EssayCompetenciesTableProps,
   EssayCompetenciesTableLabels,
   EssayCompetenceDetailsModalProps,
-  EssayCompetenceDetailsLabels,
 } from './types';

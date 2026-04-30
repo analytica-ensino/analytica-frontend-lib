@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { EssayCompetenceDetailsModal } from './EssayCompetenceDetailsModal';
 import {
+  SimulatedPerformanceTag,
   type EssayCompetenciesApiClient,
   type EssayCompetenceDetailsData,
   type EssayCompetenceStudentItem,
@@ -30,11 +31,11 @@ jest.mock('./useEssayCompetenceDetails', () => ({
  */
 function createMockStudents(count: number): EssayCompetenceStudentItem[] {
   const performances = [
-    'HIGHLIGHT',
-    'ABOVE_AVERAGE',
-    'BELOW_AVERAGE',
-    'ATTENTION_POINT',
-  ] as const;
+    SimulatedPerformanceTag.HIGHLIGHT,
+    SimulatedPerformanceTag.ABOVE_AVERAGE,
+    SimulatedPerformanceTag.BELOW_AVERAGE,
+    SimulatedPerformanceTag.ATTENTION_POINT,
+  ];
 
   return Array.from({ length: count }, (_, i) => ({
     studentId: `student-${i + 1}`,
@@ -459,10 +460,11 @@ describe('EssayCompetenceDetailsModal', () => {
 
     it('renders performance badges', () => {
       const data = createMockData(4);
-      data.students.data[0].performance = 'HIGHLIGHT';
-      data.students.data[1].performance = 'ABOVE_AVERAGE';
-      data.students.data[2].performance = 'BELOW_AVERAGE';
-      data.students.data[3].performance = 'ATTENTION_POINT';
+      data.students.data[0].performance = SimulatedPerformanceTag.HIGHLIGHT;
+      data.students.data[1].performance = SimulatedPerformanceTag.ABOVE_AVERAGE;
+      data.students.data[2].performance = SimulatedPerformanceTag.BELOW_AVERAGE;
+      data.students.data[3].performance =
+        SimulatedPerformanceTag.ATTENTION_POINT;
       mockHookState = { data, loading: false, error: null };
 
       render(<EssayCompetenceDetailsModal {...defaultProps} />);

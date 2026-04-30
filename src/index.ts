@@ -476,7 +476,6 @@ export type {
   EssayCompetenciesTableProps,
   EssayCompetenciesTableLabels,
   EssayCompetenceDetailsModalProps,
-  EssayCompetenceDetailsLabels,
 } from './components/EssayCompetencies';
 
 // SimuladosStudentsOverview Hook
