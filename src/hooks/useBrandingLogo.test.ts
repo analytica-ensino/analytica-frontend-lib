@@ -38,7 +38,7 @@ describe('useBrandingLogo', () => {
     expect(result.current).toBe('https://cdn.example.com/main.png');
   });
 
-  it('returns the fallback when the requested branding logo is missing', () => {
+  it('returns the consumer-provided fallback when branding is missing', () => {
     const { result } = renderHook(() =>
       useBrandingLogo({ fallback: '/local.png' })
     );
@@ -46,7 +46,7 @@ describe('useBrandingLogo', () => {
     expect(result.current).toBe('/local.png');
   });
 
-  it('returns the main fallback when variant "main" has no branding logo', () => {
+  it('returns the consumer fallback for variant "main" when branding is missing', () => {
     mockBranding.internalLogo = 'https://cdn.example.com/internal.png';
 
     const { result } = renderHook(() =>
@@ -56,9 +56,46 @@ describe('useBrandingLogo', () => {
     expect(result.current).toBe('/local.png');
   });
 
-  it('returns undefined when neither branding nor fallback is provided', () => {
+  it('returns the bundled Analytica logo when neither branding nor fallback is provided', () => {
     const { result } = renderHook(() => useBrandingLogo());
 
-    expect(result.current).toBeUndefined();
+    // The Jest fileMock returns a stub string for any imported PNG asset.
+    expect(typeof result.current).toBe('string');
+    expect(result.current.length).toBeGreaterThan(0);
+  });
+
+  it('returns a string fallback for variant "main" too when no branding/fallback is provided', () => {
+    const { result } = renderHook(() => useBrandingLogo({ variant: 'main' }));
+
+    expect(typeof result.current).toBe('string');
+    expect(result.current.length).toBeGreaterThan(0);
+  });
+
+  it('treats whitespace-only branding as missing and falls back to consumer fallback', () => {
+    mockBranding.internalLogo = '   ';
+
+    const { result } = renderHook(() =>
+      useBrandingLogo({ fallback: '/local.png' })
+    );
+
+    expect(result.current).toBe('/local.png');
+  });
+
+  it('treats empty-string branding as missing and falls back to consumer fallback', () => {
+    mockBranding.mainLogo = '';
+
+    const { result } = renderHook(() =>
+      useBrandingLogo({ variant: 'main', fallback: '/local.png' })
+    );
+
+    expect(result.current).toBe('/local.png');
+  });
+
+  it('treats whitespace-only consumer fallback as missing and uses the bundled default', () => {
+    const { result } = renderHook(() => useBrandingLogo({ fallback: '   ' }));
+
+    expect(typeof result.current).toBe('string');
+    expect(result.current.length).toBeGreaterThan(0);
+    expect(result.current.trim()).toBe(result.current);
   });
 });
