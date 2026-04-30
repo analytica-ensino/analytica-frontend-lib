@@ -4,6 +4,7 @@ import { SimulatedPerformanceView } from './SimulatedPerformanceView';
 import { SimulatedViewTab } from './types';
 import type { SimulatedPerformanceViewProps } from './types';
 import type { BaseApiClient } from '../../index';
+import { ReactNode } from 'react';
 
 // Mock all child components
 jest.mock('../Text/Text', () => ({
@@ -12,7 +13,7 @@ jest.mock('../Text/Text', () => ({
     children,
     className,
   }: {
-    children: React.ReactNode;
+    children: ReactNode;
     className?: string;
   }) => <span className={className}>{children}</span>,
 }));
@@ -23,7 +24,7 @@ jest.mock('../TableProvider', () => ({
     loading,
     data,
   }: {
-    headerContent: React.ReactNode;
+    headerContent: ReactNode;
     loading: boolean;
     data: unknown[];
   }) => (
@@ -42,7 +43,7 @@ jest.mock('../Menu/Menu', () => ({
     onValueChange,
     value,
   }: {
-    children: React.ReactNode;
+    children: ReactNode;
     onValueChange: (v: string) => void;
     value: string;
   }) => (
@@ -59,16 +60,10 @@ jest.mock('../Menu/Menu', () => ({
       </button>
     </div>
   ),
-  MenuContent: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
+  MenuContent: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  MenuItem: ({ children, value }: { children: ReactNode; value: string }) => (
+    <div data-value={value}>{children}</div>
   ),
-  MenuItem: ({
-    children,
-    value,
-  }: {
-    children: React.ReactNode;
-    value: string;
-  }) => <div data-value={value}>{children}</div>,
 }));
 
 jest.mock('../Skeleton/Skeleton', () => ({

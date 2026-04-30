@@ -11,6 +11,7 @@ import type {
   SimulatedContentDetailsModalProps,
   ContentStudentItem,
 } from './types';
+import Button from '../Button/Button';
 
 /**
  * Table columns configuration
@@ -49,9 +50,9 @@ const TABLE_COLUMNS = [
     render: (_value: unknown, row: Record<string, unknown>) => {
       const student = row as unknown as ContentStudentItem;
       return (
-        <span className="text-sm font-semibold text-text-950">
+        <Text size="sm" weight="semibold" className="text-text-950">
           {Math.round(student.average)}
-        </span>
+        </Text>
       );
     },
   },
@@ -72,9 +73,9 @@ const TABLE_COLUMNS = [
               size="small"
             />
           </div>
-          <span className="text-sm font-semibold text-text-600 w-10">
+          <Text size="sm" weight="semibold" className="w-10 text-text-600">
             {formatPercentageRounded(student.performance)}
-          </span>
+          </Text>
         </div>
       );
     },
@@ -141,16 +142,17 @@ export function SimulatedContentDetailsModal({
 
   // Build modal title
   const modalTitle = (
-    <span className="flex items-center gap-2">
-      <button
+    <div className="flex items-center gap-2">
+      <Button
         onClick={onClose}
+        variant="raw"
         className="p-1 hover:bg-background-100 rounded-md transition-colors"
         aria-label="Fechar modal"
       >
         <ArrowLeft size={20} className="text-text-600" />
-      </button>
-      <span>Desempenho competência</span>
-    </span>
+      </Button>
+      <Text>Desempenho competência</Text>
+    </div>
   );
 
   // Render loading state

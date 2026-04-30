@@ -2,6 +2,7 @@ import { useMemo, useCallback } from 'react';
 import Text from '../Text/Text';
 import { Users, MagnifyingGlass } from '@phosphor-icons/react';
 import type { StudentGroup, StudentsFilterSectionProps } from './types';
+import Input from '../Input/Input';
 
 /**
  * Students filter section with search and grouping by school/year/class
@@ -158,14 +159,18 @@ export function StudentsFilterSection({
       {/* Header */}
       <div className="flex items-center gap-2 text-text-400 text-sm font-medium uppercase">
         <Users size={16} className="text-text-400" />
-        <span>ESTUDANTES</span>
+        <Text size="sm" weight="semibold" className="text-text-400 uppercase">
+          ESTUDANTES
+        </Text>
         {totalStudents > 0 && !isLoading && (
-          <span className="text-text-500 lowercase">({totalStudents})</span>
+          <Text size="sm" className="text-text-500 lowercase">
+            ({totalStudents})
+          </Text>
         )}
         {isLoading && (
-          <span className="text-text-500 lowercase">
+          <Text size="sm" className="text-text-500 lowercase">
             Carregando estudantes...
-          </span>
+          </Text>
         )}
       </div>
 
@@ -175,13 +180,12 @@ export function StudentsFilterSection({
           size={18}
           className="absolute left-3 top-1/2 -translate-y-1/2 text-text-400"
         />
-        <input
+        <Input
           type="text"
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Buscar"
           disabled={isLoading}
-          className="w-full pl-10 pr-4 py-2 border border-border-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-background text-text-950 disabled:opacity-50"
         />
       </div>
 

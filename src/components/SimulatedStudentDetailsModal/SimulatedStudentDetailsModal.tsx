@@ -14,6 +14,7 @@ import {
   type SubjectPerformanceItem,
   type StudentContentPerformanceItem,
 } from './types';
+import Button from '../Button/Button';
 
 /**
  * Modal for displaying student performance details in simulated exams
@@ -86,16 +87,17 @@ export function SimulatedStudentDetailsModal({
 
   // Build modal title with back button when in level 2
   const modalTitle = selectedSubject ? (
-    <span className="flex items-center gap-2">
-      <button
+    <div className="flex items-center gap-2">
+      <Button
         onClick={handleBack}
+        variant="raw"
         className="p-1 hover:bg-background-100 rounded-md transition-colors"
         aria-label="Voltar para lista de matérias"
       >
         <ArrowLeft size={20} className="text-text-600" />
-      </button>
-      <span>{selectedSubject.name}</span>
-    </span>
+      </Button>
+      <Text>{selectedSubject.name}</Text>
+    </div>
   ) : (
     `Desempenho de ${studentName || 'Estudante'}`
   );

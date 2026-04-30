@@ -211,7 +211,9 @@ export function SimulatedFiltersModal({
         {/* Section Header - Academic Data */}
         <div className="flex items-center gap-2 text-text-400 text-sm font-medium uppercase">
           <GraduationCap size={16} className="text-text-400" />
-          <span>DADOS ACADÊMICOS</span>
+          <Text size="sm" weight="semibold" className="text-text-400 uppercase">
+            DADOS ACADÊMICOS
+          </Text>
         </div>
 
         {/* Loading state */}

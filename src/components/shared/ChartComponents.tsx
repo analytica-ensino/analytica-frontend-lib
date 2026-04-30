@@ -246,7 +246,12 @@ export const SimplePieChart = ({
         viewBox={`0 0 ${size} ${size}`}
         aria-hidden="true"
       >
-        <circle cx={center} cy={center} r={radius} className="fill-background-200" />
+        <circle
+          cx={center}
+          cy={center}
+          r={radius}
+          className="fill-background-200"
+        />
         {emptyText && (
           <text
             x={center}
@@ -293,7 +298,13 @@ export const SimplePieChart = ({
         const isWhole = slice.pct >= PIE_WHOLE_THRESHOLD;
         const arcPath = isWhole
           ? undefined
-          : describeArc(center, center, radius, slice.startAngle, slice.endAngle);
+          : describeArc(
+              center,
+              center,
+              radius,
+              slice.startAngle,
+              slice.endAngle
+            );
         const labelPos = polarToCartesian(
           center,
           center,
