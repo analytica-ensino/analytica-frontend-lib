@@ -2,7 +2,7 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { useSimulatedPerformance } from './useSimulatedPerformance';
 import { SimulatedViewTab } from './types';
 import { SimulatedPerformanceTag } from '../SimulatedStudentDetailsModal/types';
-import type { BaseApiClient } from '../../index';
+import type { BaseApiClient } from '../../types/api';
 
 // Mock react-router-dom
 const mockSearchParams = new URLSearchParams();

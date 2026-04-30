@@ -13,11 +13,9 @@ import { SimulatedContentDetailsModal } from '../SimulatedContentDetailsModal';
 import { EssayCompetenciesTable } from '../EssayCompetencies';
 import { EssayStudentDetailsModal } from '../EssayStudentDetailsModal';
 import { SimulatedFiltersModal } from '../SimulatedFilters';
-import type {
-  SimulatedStudentItem,
-  SimulatedContentItem,
-  BaseApiClient,
-} from '../../index';
+import type { SimulatedStudentItem } from '../SimulatedStudentsOverview/types';
+import type { SimulatedContentItem } from '../SimulatedContentsPerformance/types';
+import type { BaseApiClient } from '../../types/api';
 import { SimulatedViewTab, type UseSimulatedPerformanceReturn } from './types';
 import { ReactNode } from 'react';
 

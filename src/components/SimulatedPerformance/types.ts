@@ -1,15 +1,19 @@
+import type { ColumnConfig } from '../TableProvider';
+import type { StudentsHighlightPeriod } from '../../hooks/useStudentsHighlight';
+import type { SimulatedFilters } from '../SimulatedFilters/types';
 import type {
-  ColumnConfig,
-  StudentsHighlightPeriod,
-  SimulatedFilters,
   GeneralOverviewData,
-  SimulatedOverviewData,
-  ContentsPerformanceData,
-  SimulatedStudentItem,
-  SimulatedContentItem,
   ScoreType,
-  BaseApiClient,
-} from '../../index';
+} from '../GeneralOverviewSection/types';
+import type {
+  SimulatedOverviewData,
+  SimulatedStudentItem,
+} from '../SimulatedStudentsOverview/types';
+import type {
+  ContentsPerformanceData,
+  SimulatedContentItem,
+} from '../SimulatedContentsPerformance/types';
+import type { BaseApiClient } from '../../types/api';
 
 /**
  * View tabs for simulated exams (students vs skills)

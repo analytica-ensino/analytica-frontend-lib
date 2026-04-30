@@ -3,7 +3,8 @@ import '@testing-library/jest-dom';
 import { SimulatedPerformanceView } from './SimulatedPerformanceView';
 import { SimulatedViewTab } from './types';
 import type { SimulatedPerformanceViewProps } from './types';
-import { ScoreType, type BaseApiClient } from '../../index';
+import { ScoreType } from '../GeneralOverviewSection/types';
+import type { BaseApiClient } from '../../types/api';
 import { ReactNode } from 'react';
 
 // Mock all child components
