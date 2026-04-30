@@ -2,8 +2,8 @@ import type React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { GeneralOverviewSection } from './GeneralOverviewSection';
+import { ScoreType } from '../../types/common';
 import {
-  ScoreType,
   type GeneralOverviewData,
   type AreaKnowledgePerformance,
   type EssayPerformance,

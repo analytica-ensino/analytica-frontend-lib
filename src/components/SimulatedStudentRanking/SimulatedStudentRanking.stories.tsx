@@ -3,7 +3,7 @@ import {
   SimulatedRankingCard,
   SimulatedStudentRanking,
 } from './SimulatedStudentRanking';
-import { ScoreType } from './types';
+import { ScoreType } from '../../types/common';
 
 const highlightStudents = [
   { position: 1, name: 'Maria Eduarda', average: 94.2 },

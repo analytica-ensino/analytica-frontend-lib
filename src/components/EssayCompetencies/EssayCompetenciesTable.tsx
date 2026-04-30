@@ -13,6 +13,14 @@ import type {
  * Proficiency cell component with progress bar
  */
 function ProficiencyCell({ percentage }: { readonly percentage: number }) {
+  let progressColorClass = 'bg-error-500';
+
+  if (percentage >= 70) {
+    progressColorClass = 'bg-success-500';
+  } else if (percentage >= 50) {
+    progressColorClass = 'bg-warning-500';
+  }
+
   return (
     <div className="flex items-center justify-center gap-2">
       <Text size="sm" className="min-w-[40px] text-right text-text-950">
@@ -20,14 +28,7 @@ function ProficiencyCell({ percentage }: { readonly percentage: number }) {
       </Text>
       <div className="w-16 h-2 bg-background-100 rounded-full overflow-hidden">
         <div
-          className={cn(
-            'h-full rounded-full',
-            percentage >= 70
-              ? 'bg-success-500'
-              : percentage >= 50
-                ? 'bg-warning-500'
-                : 'bg-error-500'
-          )}
+          className={cn('h-full rounded-full', progressColorClass)}
           style={{ width: `${percentage}%` }}
         />
       </div>

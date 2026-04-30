@@ -144,8 +144,10 @@ export function EssayCompetenceDetailsModal({
     [competenceNumber, period, schoolIds, schoolYearIds, classIds, fetchDetails]
   );
 
+  const fallbackCompetenceName = `Competência ${competenceNumber}`;
+  const resolvedCompetenceName = competenceName || fallbackCompetenceName;
   const modalTitle = competenceNumber
-    ? `C${competenceNumber} - ${competenceName || `Competência ${competenceNumber}`}`
+    ? `C${competenceNumber} - ${resolvedCompetenceName}`
     : 'Detalhes da Competência';
 
   // Render loading state

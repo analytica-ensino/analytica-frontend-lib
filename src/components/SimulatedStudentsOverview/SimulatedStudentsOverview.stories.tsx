@@ -2,7 +2,8 @@ import type { Story } from '@ladle/react';
 import Button from '../Button/Button';
 import { useSimulatedOverview } from './useSimulatedOverview';
 import type { SimulatedOverviewApiResponse } from './types';
-import { SimulatedPerformanceTag, ScoreType } from './types';
+import { ScoreType } from '../../types/common';
+import { SimulatedPerformanceTag } from './types';
 import type { BaseApiClient } from '../../types/api';
 import Text from '../Text/Text';
 

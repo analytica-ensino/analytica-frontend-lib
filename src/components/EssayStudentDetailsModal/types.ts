@@ -1,10 +1,6 @@
 import type { BaseApiClient } from '../../types/api';
 // Reuse SimulatedPerformanceTag from SimulatedStudentDetailsModal
-import {
-  SimulatedPerformanceTag,
-  SIMULATED_PERFORMANCE_TAG_CONFIG,
-} from '../SimulatedStudentDetailsModal/types';
-export { SimulatedPerformanceTag, SIMULATED_PERFORMANCE_TAG_CONFIG };
+import { SimulatedPerformanceTag } from '../SimulatedStudentDetailsModal/types';
 
 /**
  * Essay competency performance item

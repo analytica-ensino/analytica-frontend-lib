@@ -6,7 +6,7 @@ import type {
   EssayStudentDetailsParams,
   EssayCompetencyPerformance,
 } from './types';
-import { SimulatedPerformanceTag } from './types';
+import { SimulatedPerformanceTag } from '../SimulatedStudentDetailsModal/types';
 import type { BaseApiClient } from '../../types/api';
 
 /**

@@ -9,7 +9,7 @@ import { SIMULATED_PERFORMANCE_TAG_CONFIG } from '../SimulatedStudentDetailsModa
 import { formatScore } from '../../utils/utils';
 import type { ColumnConfig } from '../TableProvider';
 import type { StudentsHighlightPeriod } from '../../hooks/useStudentsHighlight';
-import { ScoreType } from '../GeneralOverviewSection/types';
+import { ScoreType } from '../../types/common';
 import type { SimulatedFilters } from '../SimulatedFilters/types';
 import type { SimulatedStudentItem } from '../SimulatedStudentsOverview/types';
 import type { SimulatedContentItem } from '../SimulatedContentsPerformance/types';

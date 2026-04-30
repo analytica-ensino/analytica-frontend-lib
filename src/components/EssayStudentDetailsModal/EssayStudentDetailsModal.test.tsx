@@ -2,8 +2,8 @@ import type React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { EssayStudentDetailsModal } from './EssayStudentDetailsModal';
+import { SimulatedPerformanceTag } from '../SimulatedStudentDetailsModal/types';
 import {
-  SimulatedPerformanceTag,
   type EssayStudentDetailsData,
   type EssayCompetencyPerformance,
 } from './types';

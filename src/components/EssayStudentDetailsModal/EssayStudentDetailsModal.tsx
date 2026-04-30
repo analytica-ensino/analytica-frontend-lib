@@ -6,8 +6,8 @@ import Badge from '../Badge/Badge';
 import { SkeletonRounded } from '../Skeleton/Skeleton';
 import { useEssayStudentDetails } from './useEssayStudentDetails';
 import { formatPercentageRounded } from '../../utils/utils';
+import { SIMULATED_PERFORMANCE_TAG_CONFIG } from '../SimulatedStudentDetailsModal/types';
 import {
-  SIMULATED_PERFORMANCE_TAG_CONFIG,
   type EssayStudentDetailsModalProps,
   type EssayCompetencyPerformance,
 } from './types';

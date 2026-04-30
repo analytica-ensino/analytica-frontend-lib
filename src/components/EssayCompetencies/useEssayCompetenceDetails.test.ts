@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { useEssayCompetenceDetails } from './useEssayCompetenceDetails';
+import { SimulatedPerformanceTag } from '../SimulatedStudentDetailsModal/types';
 import {
-  SimulatedPerformanceTag,
   type EssayCompetenceDetailsApiResponse,
   type EssayCompetenceDetailsData,
   type EssayCompetenceDetailsParams,

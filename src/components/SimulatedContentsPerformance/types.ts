@@ -1,4 +1,4 @@
-import type { ScoreType } from '../GeneralOverviewSection/types';
+import type { ScoreType } from '../../types/common';
 import type { SimulationType } from '../SimulatedStudentDetailsModal/types';
 
 /**

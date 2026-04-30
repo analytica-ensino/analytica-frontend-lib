@@ -1,6 +1,5 @@
-// Import ScoreType enum from common types and re-export for backward compatibility
+// Import ScoreType enum from common types
 import { ScoreType } from '../../types/common';
-export { ScoreType };
 
 /**
  * Performance data for a knowledge area

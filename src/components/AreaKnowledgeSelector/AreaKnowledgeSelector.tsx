@@ -100,32 +100,42 @@ export function AreaKnowledgeSelector({
             <SelectValue placeholder="Selecione uma área" />
           </SelectTrigger>
           <SelectContent>
-            {selectItems.map((item: SelectItemData) => (
-              <SelectItem key={item.id} value={item.id} disabled={loading}>
-                <div className="flex items-center gap-2">
-                  {item.id === 'all' ? (
-                    <span className="w-[21px] h-[21px] flex items-center justify-center">
-                      <GridFour
-                        size={17}
-                        weight="bold"
-                        className="text-gray-600"
-                      />
-                    </span>
-                  ) : item.color ? (
+            {selectItems.map((item: SelectItemData) => {
+              let itemIcon = null;
+
+              if (item.id === 'all') {
+                itemIcon = (
+                  <span className="w-[21px] h-[21px] flex items-center justify-center">
+                    <GridFour
+                      size={17}
+                      weight="bold"
+                      className="text-gray-600"
+                    />
+                  </span>
+                );
+              } else if (item.color) {
+                itemIcon = (
+                  <span
+                    className="w-[21px] h-[21px] flex items-center justify-center rounded-sm"
+                    style={{ backgroundColor: `${item.color}20` }}
+                  >
                     <span
-                      className="w-[21px] h-[21px] flex items-center justify-center rounded-sm"
-                      style={{ backgroundColor: `${item.color}20` }}
-                    >
-                      <span
-                        className="w-2 h-2 rounded-full"
-                        style={{ backgroundColor: item.color }}
-                      />
-                    </span>
-                  ) : null}
-                  <span className="whitespace-nowrap">{item.name}</span>
-                </div>
-              </SelectItem>
-            ))}
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: item.color }}
+                    />
+                  </span>
+                );
+              }
+
+              return (
+                <SelectItem key={item.id} value={item.id} disabled={loading}>
+                  <div className="flex items-center gap-2">
+                    {itemIcon}
+                    <span className="whitespace-nowrap">{item.name}</span>
+                  </div>
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
       </div>

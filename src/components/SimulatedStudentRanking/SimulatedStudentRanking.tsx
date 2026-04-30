@@ -1,9 +1,9 @@
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
 import { Medal, Warning } from 'phosphor-react';
+import { ScoreType } from '../../types/common';
 import { formatScore } from './utils';
 import {
-  ScoreType,
   type RankingVariant,
   type SimulatedStudentRankingItem,
   type SimulatedStudentRankingProps,

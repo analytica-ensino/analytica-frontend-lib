@@ -1,6 +1,5 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { ScoreType } from '../types/common';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -33,7 +32,6 @@ export function formatPercentageRounded(value: number): string {
   return `${Math.round(value)}%`;
 }
 
-export { ScoreType };
 export { formatScore } from './formatScore';
 
 /**

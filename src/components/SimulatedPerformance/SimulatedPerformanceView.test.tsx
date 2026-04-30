@@ -3,7 +3,7 @@ import '@testing-library/jest-dom';
 import { SimulatedPerformanceView } from './SimulatedPerformanceView';
 import { SimulatedViewTab } from './types';
 import type { SimulatedPerformanceViewProps } from './types';
-import { ScoreType } from '../GeneralOverviewSection/types';
+import { ScoreType } from '../../types/common';
 import type { BaseApiClient } from '../../types/api';
 import { ReactNode } from 'react';
 

@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { useGeneralOverview } from './useGeneralOverview';
+import { ScoreType } from '../../types/common';
 import {
-  ScoreType,
   type GeneralOverviewApiResponse,
   type GeneralOverviewData,
   type GeneralOverviewParams,

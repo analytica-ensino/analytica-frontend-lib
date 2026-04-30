@@ -329,7 +329,6 @@ export type {
 export {
   GeneralOverviewSection,
   useGeneralOverview,
-  ScoreType,
 } from './components/GeneralOverviewSection';
 export type {
   AreaKnowledgePerformance,

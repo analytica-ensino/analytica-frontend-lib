@@ -1,7 +1,7 @@
 import type { Story } from '@ladle/react';
 import { GeneralOverviewSection } from './GeneralOverviewSection';
+import { ScoreType } from '../../types/common';
 import {
-  ScoreType,
   type GeneralOverviewData,
   type AreaKnowledgePerformance,
   type EssayPerformance,

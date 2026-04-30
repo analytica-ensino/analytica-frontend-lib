@@ -3,8 +3,8 @@ import ProgressBar from '../ProgressBar/ProgressBar';
 import { SkeletonRounded } from '../Skeleton/Skeleton';
 import IconRender from '../IconRender/IconRender';
 import { formatScore, hexToRgba } from '../../utils/utils';
+import { ScoreType } from '../../types/common';
 import {
-  ScoreType,
   type GeneralOverviewSectionProps,
   type AreaKnowledgePerformance,
   type EssayPerformance,
@@ -129,7 +129,7 @@ export function GeneralOverviewSection({
   loading = false,
   error = null,
   scoreType = ScoreType.PERCENTAGE,
-}: GeneralOverviewSectionProps) {
+}: Readonly<GeneralOverviewSectionProps>) {
   if (error) {
     return (
       <div className="p-4 bg-error-50 border border-error-200 rounded-xl">

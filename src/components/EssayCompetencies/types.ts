@@ -1,8 +1,6 @@
 import type { BaseApiClient } from '../../types/api';
 import { SimulatedPerformanceTag } from '../SimulatedStudentDetailsModal/types';
 
-export { SimulatedPerformanceTag };
-
 /**
  * Single competency item in overview
  */

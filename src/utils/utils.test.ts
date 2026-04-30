@@ -8,8 +8,8 @@ import {
   bgClassToCssVar,
   polarToCartesian,
   describeArc,
-  ScoreType,
 } from './utils';
+import { ScoreType } from '../types/common';
 
 describe('utils', () => {
   describe('cn', () => {

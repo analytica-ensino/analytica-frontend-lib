@@ -5,7 +5,7 @@ import {
   SimulatedStudentRanking,
 } from './SimulatedStudentRanking';
 import { formatScore } from './utils';
-import { ScoreType } from './types';
+import { ScoreType } from '../../types/common';
 
 describe('SimulatedStudentRanking', () => {
   const highlightStudents = [

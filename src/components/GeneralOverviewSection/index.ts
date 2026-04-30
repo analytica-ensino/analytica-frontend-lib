@@ -5,8 +5,6 @@ export { default } from './GeneralOverviewSection';
 // Hook
 export { useGeneralOverview } from './useGeneralOverview';
 
-// Types - ScoreType is an enum so export as value
-export { ScoreType } from './types';
 export type {
   AreaKnowledgePerformance,
   EssayPerformance,
