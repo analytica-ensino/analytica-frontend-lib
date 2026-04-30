@@ -1,9 +1,9 @@
 import { useEffect, useCallback } from 'react';
 import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
-import ProgressBar from '../ProgressBar/ProgressBar';
 import Badge from '../Badge/Badge';
 import { SkeletonRounded } from '../Skeleton/Skeleton';
+import { TableProvider, type TableParams } from '../TableProvider';
 import { useEssayCompetenceDetails } from './useEssayCompetenceDetails';
 import {
   SIMULATED_PERFORMANCE_TAG_CONFIG,
@@ -26,15 +26,72 @@ const PERFORMANCE_TAG_TO_BADGE_ACTION: Record<
 };
 
 /**
- * Format percentage rounded
+ * Table columns configuration
  */
-function formatPercentageRounded(value: number): string {
-  return `${Math.round(value)}%`;
-}
+const TABLE_COLUMNS = [
+  {
+    key: 'name',
+    label: 'Nome',
+    className: 'py-3 px-4 text-start',
+  },
+  {
+    key: 'school',
+    label: 'Escola',
+    className: 'py-3 px-4 text-start',
+  },
+  {
+    key: 'schoolYear',
+    label: 'Ano',
+    className: 'py-3 px-4 text-center',
+    align: 'center' as const,
+    width: '80px',
+  },
+  {
+    key: 'class',
+    label: 'Turma',
+    className: 'py-3 px-4 text-center',
+    align: 'center' as const,
+    width: '80px',
+  },
+  {
+    key: 'averageScore',
+    label: 'Média',
+    className: 'py-3 px-4 text-center',
+    align: 'center' as const,
+    width: '100px',
+    render: (_value: unknown, row: Record<string, unknown>) => {
+      const student = row as unknown as EssayCompetenceStudentItem;
+      return (
+        <span className="text-sm text-text-950">
+          {Math.round(student.averageScore)}/200
+        </span>
+      );
+    },
+  },
+  {
+    key: 'performance',
+    label: 'Proficiência',
+    className: 'py-3 px-4 text-center',
+    align: 'center' as const,
+    width: '140px',
+    render: (_value: unknown, row: Record<string, unknown>) => {
+      const student = row as unknown as EssayCompetenceStudentItem;
+      return (
+        <Badge
+          variant="solid"
+          action={PERFORMANCE_TAG_TO_BADGE_ACTION[student.performance]}
+          size="small"
+        >
+          {SIMULATED_PERFORMANCE_TAG_CONFIG[student.performance].label}
+        </Badge>
+      );
+    },
+  },
+];
 
 /**
  * Modal for displaying essay competence performance details
- * Shows list of students with their scores for a specific competency
+ * Shows table of students with their scores for a specific competency
  */
 export function EssayCompetenceDetailsModal({
   api,
@@ -60,7 +117,7 @@ export function EssayCompetenceDetailsModal({
         schoolYearIds,
         classIds,
         page: 1,
-        limit: 20,
+        limit: 10,
       });
     }
   }, [
@@ -80,9 +137,9 @@ export function EssayCompetenceDetailsModal({
     }
   }, [isOpen, reset]);
 
-  // Handle pagination
-  const handlePageChange = useCallback(
-    (page: number) => {
+  // Handle table params change (pagination)
+  const handleParamsChange = useCallback(
+    (params: TableParams) => {
       if (!competenceNumber) return;
       fetchDetails({
         competenceNumber,
@@ -90,43 +147,39 @@ export function EssayCompetenceDetailsModal({
         schoolIds,
         schoolYearIds,
         classIds,
-        page,
-        limit: 20,
+        page: params.page,
+        limit: params.limit,
       });
     },
     [competenceNumber, period, schoolIds, schoolYearIds, classIds, fetchDetails]
   );
 
-  const modalTitle = competenceName || `Competência ${competenceNumber}`;
+  const modalTitle = competenceNumber
+    ? `C${competenceNumber} - ${competenceName || `Competência ${competenceNumber}`}`
+    : 'Detalhes da Competência';
 
   // Render loading state
-  if (loading) {
+  if (loading && !data) {
     return (
-      <Modal isOpen={isOpen} onClose={onClose} title={modalTitle} size="lg">
+      <Modal isOpen={isOpen} onClose={onClose} title={modalTitle} size="xl">
         <div className="flex flex-col gap-4">
           {/* Header skeleton */}
-          <div className="flex items-center justify-between p-4 bg-background-50 rounded-xl">
-            <div className="flex flex-col gap-2">
-              <SkeletonRounded className="h-5 w-40" />
-              <SkeletonRounded className="h-4 w-32" />
-            </div>
-            <div className="flex flex-col items-end gap-2">
-              <SkeletonRounded className="h-6 w-16" />
-              <SkeletonRounded className="h-5 w-24" />
-            </div>
+          <div className="flex items-center gap-2">
+            <SkeletonRounded className="h-4 w-32" />
           </div>
 
           {/* Counters skeleton */}
           <div className="flex gap-3">
-            {[1, 2, 3, 4].map((i) => (
-              <SkeletonRounded key={i} className="flex-1 h-16 rounded-xl" />
+            {[1, 2, 3].map((i) => (
+              <SkeletonRounded key={i} className="flex-1 h-20 rounded-xl" />
             ))}
           </div>
 
-          {/* Students skeleton */}
+          {/* Table skeleton */}
           <div className="flex flex-col gap-2">
+            <SkeletonRounded className="h-10 rounded-lg" />
             {[1, 2, 3, 4, 5].map((i) => (
-              <SkeletonRounded key={i} className="h-16 rounded-xl" />
+              <SkeletonRounded key={i} className="h-12 rounded-lg" />
             ))}
           </div>
         </div>
@@ -137,7 +190,7 @@ export function EssayCompetenceDetailsModal({
   // Render error state
   if (error) {
     return (
-      <Modal isOpen={isOpen} onClose={onClose} title={modalTitle} size="lg">
+      <Modal isOpen={isOpen} onClose={onClose} title={modalTitle} size="xl">
         <div className="flex items-center justify-center py-8">
           <Text size="sm" className="text-error-500">
             {error}
@@ -150,7 +203,7 @@ export function EssayCompetenceDetailsModal({
   // Render empty state
   if (!data) {
     return (
-      <Modal isOpen={isOpen} onClose={onClose} title={modalTitle} size="lg">
+      <Modal isOpen={isOpen} onClose={onClose} title={modalTitle} size="xl">
         <div className="flex items-center justify-center py-8">
           <Text size="sm" className="text-text-500">
             Nenhum dado encontrado
@@ -160,99 +213,58 @@ export function EssayCompetenceDetailsModal({
     );
   }
 
-  const totalPages = Math.ceil(data.students.total / data.students.limit);
+  // Calculate combined counter values
+  const aboveAverageCount = data.counters.highlight + data.counters.aboveAverage;
+  const belowAverageCount = data.counters.belowAverage;
+  const attentionCount = data.counters.attentionPoint;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={modalTitle} size="lg">
-      <div className="flex flex-col gap-4">
-        {/* Header card */}
-        <div className="flex items-center justify-between p-4 bg-background-50 rounded-xl">
-          <div className="flex flex-col gap-1">
-            <Text size="md" weight="semibold" className="text-text-950">
-              {data.competence.name}
-            </Text>
-            <Text size="sm" className="text-text-500">
-              {data.totalStudents}{' '}
-              {data.totalStudents === 1 ? 'estudante' : 'estudantes'} -{' '}
-              {data.totalEssays}{' '}
-              {data.totalEssays === 1 ? 'redação' : 'redações'}
-            </Text>
-          </div>
-          <div className="flex flex-col items-end gap-1">
-            <div className="flex items-baseline gap-1">
-              <Text size="lg" weight="bold" className="text-text-950">
-                {Math.round(data.classAverage)}
-              </Text>
-              <Text size="xs" className="text-text-400">
-                / 200
-              </Text>
-            </div>
-            <Text size="sm" className="text-text-500">
-              Média da turma:{' '}
-              {formatPercentageRounded(data.classAveragePercentage)}
-            </Text>
-          </div>
-        </div>
+    <Modal isOpen={isOpen} onClose={onClose} title={modalTitle} size="xl">
+      <div className="flex flex-col gap-6">
+        {/* Subtitle */}
+        <Text size="sm" className="text-text-500">
+          Redação • {data.totalEssays}{' '}
+          {data.totalEssays === 1 ? 'redação' : 'redações'} •{' '}
+          {data.totalStudents}{' '}
+          {data.totalStudents === 1 ? 'aluno' : 'alunos'}
+        </Text>
 
-        {/* Performance counters */}
+        {/* Performance counters - 3 cards */}
         <div className="flex gap-3">
           <CounterCard
-            label="Destaque"
-            count={data.counters.highlight}
+            label="Acima da média"
+            count={aboveAverageCount}
             variant="success"
           />
           <CounterCard
-            label="Acima da média"
-            count={data.counters.aboveAverage}
-            variant="info"
-          />
-          <CounterCard
             label="Abaixo da média"
-            count={data.counters.belowAverage}
+            count={belowAverageCount}
             variant="warning"
           />
           <CounterCard
-            label="Atenção"
-            count={data.counters.attentionPoint}
+            label="Ponto de atenção"
+            count={attentionCount}
             variant="error"
           />
         </div>
 
-        {/* Students list */}
-        <div className="flex flex-col gap-2 max-h-[350px] overflow-y-auto">
-          {data.students.data.length > 0 ? (
-            data.students.data.map((student) => (
-              <StudentItem key={student.userInstitutionId} student={student} />
-            ))
-          ) : (
-            <Text size="sm" className="text-text-500 text-center py-4">
-              Nenhum estudante encontrado
-            </Text>
-          )}
-        </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 pt-2">
-            <button
-              onClick={() => handlePageChange(data.students.page - 1)}
-              disabled={data.students.page <= 1}
-              className="px-3 py-1 text-sm text-text-600 hover:text-text-950 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Anterior
-            </button>
-            <Text size="sm" className="text-text-500">
-              Página {data.students.page} de {totalPages}
-            </Text>
-            <button
-              onClick={() => handlePageChange(data.students.page + 1)}
-              disabled={data.students.page >= totalPages}
-              className="px-3 py-1 text-sm text-text-600 hover:text-text-950 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Próxima
-            </button>
-          </div>
-        )}
+        {/* Students table */}
+        <TableProvider
+          data={data.students.data as unknown as Record<string, unknown>[]}
+          headers={TABLE_COLUMNS}
+          variant="borderless"
+          loading={loading}
+          enablePagination
+          rowKey="userInstitutionId"
+          paginationConfig={{
+            itemLabel: 'estudantes',
+            itemsPerPageOptions: [10, 20, 50],
+            defaultItemsPerPage: 10,
+            totalItems: data.students.total,
+            totalPages: Math.ceil(data.students.total / data.students.limit),
+          }}
+          onParamsChange={handleParamsChange}
+        />
       </div>
     </Modal>
   );
@@ -268,84 +280,30 @@ function CounterCard({
 }: {
   readonly label: string;
   readonly count: number;
-  readonly variant: 'success' | 'info' | 'warning' | 'error';
+  readonly variant: 'success' | 'warning' | 'error';
 }) {
   const bgColors = {
     success: 'bg-success-50',
-    info: 'bg-info-50',
     warning: 'bg-warning-50',
     error: 'bg-error-50',
   };
 
   const textColors = {
     success: 'text-success-700',
-    info: 'text-info-700',
     warning: 'text-warning-700',
     error: 'text-error-700',
   };
 
   return (
     <div
-      className={`flex-1 flex flex-col items-center justify-center p-3 rounded-xl ${bgColors[variant]}`}
+      className={`flex-1 flex flex-col items-center justify-center p-4 rounded-xl ${bgColors[variant]}`}
     >
-      <Text size="lg" weight="bold" className={textColors[variant]}>
+      <Text size="2xl" weight="bold" className={textColors[variant]}>
         {count}
       </Text>
-      <Text size="xs" className="text-text-500 text-center">
+      <Text size="sm" className="text-text-600 text-center">
         {label}
       </Text>
-    </div>
-  );
-}
-
-/**
- * Student item component
- */
-function StudentItem({
-  student,
-}: {
-  readonly student: EssayCompetenceStudentItem;
-}) {
-  return (
-    <div className="flex items-center gap-4 p-4 bg-background border border-border-50 rounded-xl">
-      {/* Student info */}
-      <div className="flex-1 min-w-0">
-        <Text size="sm" weight="semibold" className="text-text-950 truncate">
-          {student.name}
-        </Text>
-        <Text size="xs" className="text-text-500 truncate">
-          {student.school} - {student.class}
-        </Text>
-      </div>
-
-      {/* Progress bar */}
-      <div className="w-24 shrink-0">
-        <ProgressBar
-          value={student.averagePercentage}
-          variant="green"
-          size="small"
-          showPercentage
-        />
-      </div>
-
-      {/* Score */}
-      <div className="flex items-baseline gap-1 shrink-0 min-w-[50px] justify-end">
-        <Text size="sm" weight="semibold" className="text-success-600">
-          {Math.round(student.averageScore)}
-        </Text>
-        <Text size="xs" className="text-text-500">
-          / 200
-        </Text>
-      </div>
-
-      {/* Performance badge */}
-      <Badge
-        variant="solid"
-        action={PERFORMANCE_TAG_TO_BADGE_ACTION[student.performance]}
-        size="small"
-      >
-        {SIMULATED_PERFORMANCE_TAG_CONFIG[student.performance].label}
-      </Badge>
     </div>
   );
 }

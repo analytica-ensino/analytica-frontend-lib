@@ -105,7 +105,7 @@ function generateMockStudents(
 function generateMockData(
   competenceNumber: number,
   page: number = 1,
-  limit: number = 20,
+  limit: number = 10,
   totalStudents: number = 25
 ): EssayCompetenceDetailsData {
   const competenceNames = [
@@ -173,7 +173,7 @@ function createSuccessApi(
         data: generateMockData(
           params.competenceNumber,
           params.page || 1,
-          params.limit || 20,
+          params.limit || 10,
           totalStudents
         ),
       };
@@ -228,7 +228,7 @@ function createEmptyApi(delay: number = 500): EssayCompetenciesApiClient {
           students: {
             data: [],
             page: 1,
-            limit: 20,
+            limit: 10,
             total: 0,
           },
         },

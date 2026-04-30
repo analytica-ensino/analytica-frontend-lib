@@ -1,5 +1,5 @@
+import type React from 'react';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { EssayCompetenceDetailsModal } from './EssayCompetenceDetailsModal';
 import {
@@ -8,6 +8,62 @@ import {
   type EssayCompetenceDetailsData,
   type EssayCompetenceStudentItem,
 } from './types';
+
+// Mock TableProvider to avoid complex dependencies
+jest.mock('../TableProvider', () => ({
+  TableProvider: ({
+    data,
+    headers,
+    loading,
+  }: {
+    data: Record<string, unknown>[];
+    headers: {
+      key: string;
+      label: string;
+      render?: (
+        value: unknown,
+        row: Record<string, unknown>,
+        index: number
+      ) => React.ReactNode;
+    }[];
+    loading?: boolean;
+  }) => (
+    <div data-testid="table-provider">
+      <table>
+        <thead>
+          <tr>
+            {headers.map((h) => (
+              <th key={h.key}>{h.label}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {loading ? (
+            <tr>
+              <td colSpan={headers.length}>Loading...</td>
+            </tr>
+          ) : data.length === 0 ? (
+            <tr>
+              <td colSpan={headers.length}>Nenhum estudante encontrado</td>
+            </tr>
+          ) : (
+            data.map((row, rowIndex) => (
+              <tr key={rowIndex}>
+                {headers.map((h) => (
+                  <td key={h.key}>
+                    {h.render
+                      ? h.render(row[h.key], row, rowIndex)
+                      : String(row[h.key] ?? '')}
+                  </td>
+                ))}
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  ),
+}));
 
 // Mock useEssayCompetenceDetails hook
 const mockFetchDetails = jest.fn();
@@ -77,7 +133,7 @@ function createMockData(
     students: {
       data: createMockStudents(studentCount),
       page,
-      limit: 20,
+      limit: 10,
       total,
     },
   };
@@ -101,7 +157,7 @@ describe('EssayCompetenceDetailsModal', () => {
     isOpen: true,
     onClose: mockOnClose,
     competenceNumber: 1,
-    competenceName: 'Competência 1 - Domínio da escrita',
+    competenceName: 'Domínio da escrita',
     period: '1_MONTH',
   };
 
@@ -120,9 +176,9 @@ describe('EssayCompetenceDetailsModal', () => {
 
       render(<EssayCompetenceDetailsModal {...defaultProps} />);
 
-      // Should show modal with title
+      // Should show modal with title in C{number} - {name} format
       expect(
-        screen.getByText('Competência 1 - Domínio da escrita')
+        screen.getByText('C1 - Domínio da escrita')
       ).toBeInTheDocument();
     });
 
@@ -132,7 +188,7 @@ describe('EssayCompetenceDetailsModal', () => {
       render(<EssayCompetenceDetailsModal {...defaultProps} />);
 
       expect(
-        screen.getByText('Competência 1 - Domínio da escrita')
+        screen.getByText('C1 - Domínio da escrita')
       ).toBeInTheDocument();
     });
 
@@ -146,7 +202,7 @@ describe('EssayCompetenceDetailsModal', () => {
         />
       );
 
-      expect(screen.getByText('Competência 1')).toBeInTheDocument();
+      expect(screen.getByText('C1 - Competência 1')).toBeInTheDocument();
     });
   });
 
@@ -175,19 +231,7 @@ describe('EssayCompetenceDetailsModal', () => {
   });
 
   describe('Data rendering', () => {
-    it('renders competence name from data', () => {
-      mockHookState = { data: createMockData(), loading: false, error: null };
-
-      render(<EssayCompetenceDetailsModal {...defaultProps} />);
-
-      expect(
-        screen.getByText(
-          'Domínio da modalidade escrita formal da língua portuguesa'
-        )
-      ).toBeInTheDocument();
-    });
-
-    it('renders student count and essay count', () => {
+    it('renders subtitle with essay and student count', () => {
       const data = createMockData();
       data.totalStudents = 25;
       data.totalEssays = 30;
@@ -196,7 +240,7 @@ describe('EssayCompetenceDetailsModal', () => {
       render(<EssayCompetenceDetailsModal {...defaultProps} />);
 
       expect(
-        screen.getByText('25 estudantes - 30 redações')
+        screen.getByText(/Redação • 30 redações • 25 alunos/)
       ).toBeInTheDocument();
     });
 
@@ -208,52 +252,43 @@ describe('EssayCompetenceDetailsModal', () => {
 
       render(<EssayCompetenceDetailsModal {...defaultProps} />);
 
-      expect(screen.getByText('1 estudante - 1 redação')).toBeInTheDocument();
+      expect(screen.getByText(/Redação • 1 redação • 1 aluno/)).toBeInTheDocument();
     });
 
-    it('renders class average', () => {
-      const data = createMockData();
-      data.classAverage = 146;
-      mockHookState = { data, loading: false, error: null };
-
-      render(<EssayCompetenceDetailsModal {...defaultProps} />);
-
-      expect(screen.getByText('146')).toBeInTheDocument();
-      // Multiple "/ 200" elements exist (header + student items)
-      expect(screen.getAllByText('/ 200').length).toBeGreaterThan(0);
-    });
-
-    it('renders class average percentage', () => {
-      const data = createMockData();
-      data.classAveragePercentage = 72.75;
-      mockHookState = { data, loading: false, error: null };
-
-      render(<EssayCompetenceDetailsModal {...defaultProps} />);
-
-      expect(screen.getByText(/Média da turma:/)).toBeInTheDocument();
-      // Percentage appears in multiple places (header + progress bars)
-      expect(screen.getAllByText(/73%/).length).toBeGreaterThan(0);
-    });
-
-    it('renders performance counters', () => {
+    it('renders 3 performance counters', () => {
       mockHookState = { data: createMockData(), loading: false, error: null };
 
       render(<EssayCompetenceDetailsModal {...defaultProps} />);
 
-      // Counter labels - use getAllByText since badges may have similar text
-      expect(screen.getByText('Destaque')).toBeInTheDocument();
+      // 3 Counter labels - use getAllByText since badges may have similar text
       expect(screen.getAllByText('Acima da média').length).toBeGreaterThan(0);
       expect(screen.getAllByText('Abaixo da média').length).toBeGreaterThan(0);
-      expect(screen.getByText('Atenção')).toBeInTheDocument();
+      expect(screen.getAllByText('Ponto de atenção').length).toBeGreaterThan(0);
 
-      // Counter values - use getAllByText since numbers may appear multiple times
-      expect(screen.getAllByText('5').length).toBeGreaterThan(0); // highlight
-      expect(screen.getAllByText('10').length).toBeGreaterThan(0); // aboveAverage
-      expect(screen.getAllByText('7').length).toBeGreaterThan(0); // belowAverage
-      expect(screen.getAllByText('3').length).toBeGreaterThan(0); // attentionPoint
+      // Counter values (highlight + aboveAverage = 15 for "Acima da média")
+      expect(screen.getByText('15')).toBeInTheDocument(); // combined highlight + aboveAverage
+      expect(screen.getByText('7')).toBeInTheDocument(); // belowAverage
+      expect(screen.getByText('3')).toBeInTheDocument(); // attentionPoint
     });
 
-    it('renders student list', () => {
+    it('renders table with students', () => {
+      mockHookState = { data: createMockData(3), loading: false, error: null };
+
+      render(<EssayCompetenceDetailsModal {...defaultProps} />);
+
+      // Table should be rendered
+      expect(screen.getByTestId('table-provider')).toBeInTheDocument();
+
+      // Table headers
+      expect(screen.getByText('Nome')).toBeInTheDocument();
+      expect(screen.getByText('Escola')).toBeInTheDocument();
+      expect(screen.getByText('Ano')).toBeInTheDocument();
+      expect(screen.getByText('Turma')).toBeInTheDocument();
+      expect(screen.getByText('Média')).toBeInTheDocument();
+      expect(screen.getByText('Proficiência')).toBeInTheDocument();
+    });
+
+    it('renders student names in table', () => {
       mockHookState = { data: createMockData(3), loading: false, error: null };
 
       render(<EssayCompetenceDetailsModal {...defaultProps} />);
@@ -275,85 +310,6 @@ describe('EssayCompetenceDetailsModal', () => {
     });
   });
 
-  describe('Pagination', () => {
-    it('does not show pagination when total pages is 1', () => {
-      const data = createMockData(5, 1, 5);
-      mockHookState = { data, loading: false, error: null };
-
-      render(<EssayCompetenceDetailsModal {...defaultProps} />);
-
-      expect(screen.queryByText('Anterior')).not.toBeInTheDocument();
-      expect(screen.queryByText('Próxima')).not.toBeInTheDocument();
-    });
-
-    it('shows pagination when total pages is greater than 1', () => {
-      const data = createMockData(20, 1, 45);
-      mockHookState = { data, loading: false, error: null };
-
-      render(<EssayCompetenceDetailsModal {...defaultProps} />);
-
-      expect(screen.getByText('Anterior')).toBeInTheDocument();
-      expect(screen.getByText('Próxima')).toBeInTheDocument();
-      expect(screen.getByText('Página 1 de 3')).toBeInTheDocument();
-    });
-
-    it('disables previous button on first page', () => {
-      const data = createMockData(20, 1, 45);
-      mockHookState = { data, loading: false, error: null };
-
-      render(<EssayCompetenceDetailsModal {...defaultProps} />);
-
-      const previousButton = screen.getByText('Anterior');
-      expect(previousButton).toBeDisabled();
-    });
-
-    it('disables next button on last page', () => {
-      const data = createMockData(5, 3, 45);
-      mockHookState = { data, loading: false, error: null };
-
-      render(<EssayCompetenceDetailsModal {...defaultProps} />);
-
-      const nextButton = screen.getByText('Próxima');
-      expect(nextButton).toBeDisabled();
-    });
-
-    it('calls fetchDetails when clicking next', async () => {
-      const user = userEvent.setup();
-      const data = createMockData(20, 1, 45);
-      mockHookState = { data, loading: false, error: null };
-
-      render(<EssayCompetenceDetailsModal {...defaultProps} />);
-
-      const nextButton = screen.getByText('Próxima');
-      await user.click(nextButton);
-
-      expect(mockFetchDetails).toHaveBeenCalledWith(
-        expect.objectContaining({
-          competenceNumber: 1,
-          page: 2,
-        })
-      );
-    });
-
-    it('calls fetchDetails when clicking previous', async () => {
-      const user = userEvent.setup();
-      const data = createMockData(20, 2, 45);
-      mockHookState = { data, loading: false, error: null };
-
-      render(<EssayCompetenceDetailsModal {...defaultProps} />);
-
-      const previousButton = screen.getByText('Anterior');
-      await user.click(previousButton);
-
-      expect(mockFetchDetails).toHaveBeenCalledWith(
-        expect.objectContaining({
-          competenceNumber: 1,
-          page: 1,
-        })
-      );
-    });
-  });
-
   describe('Modal open/close behavior', () => {
     it('fetches details when modal opens', () => {
       mockHookState = { data: null, loading: true, error: null };
@@ -367,7 +323,7 @@ describe('EssayCompetenceDetailsModal', () => {
         schoolYearIds: undefined,
         classIds: undefined,
         page: 1,
-        limit: 20,
+        limit: 10,
       });
     });
 
@@ -421,59 +377,8 @@ describe('EssayCompetenceDetailsModal', () => {
         schoolYearIds: ['year-1'],
         classIds: ['class-1', 'class-2', 'class-3'],
         page: 1,
-        limit: 20,
+        limit: 10,
       });
-    });
-  });
-
-  describe('Student item rendering', () => {
-    it('renders student name', () => {
-      const data = createMockData(1);
-      data.students.data[0].name = 'Maria Silva';
-      mockHookState = { data, loading: false, error: null };
-
-      render(<EssayCompetenceDetailsModal {...defaultProps} />);
-
-      expect(screen.getByText('Maria Silva')).toBeInTheDocument();
-    });
-
-    it('renders student school and class', () => {
-      const data = createMockData(1);
-      data.students.data[0].school = 'Colégio ABC';
-      data.students.data[0].class = 'Turma 3A';
-      mockHookState = { data, loading: false, error: null };
-
-      render(<EssayCompetenceDetailsModal {...defaultProps} />);
-
-      expect(screen.getByText('Colégio ABC - Turma 3A')).toBeInTheDocument();
-    });
-
-    it('renders student score', () => {
-      const data = createMockData(1);
-      data.students.data[0].averageScore = 175.8;
-      mockHookState = { data, loading: false, error: null };
-
-      render(<EssayCompetenceDetailsModal {...defaultProps} />);
-
-      expect(screen.getByText('176')).toBeInTheDocument(); // Rounded
-    });
-
-    it('renders performance badges', () => {
-      const data = createMockData(4);
-      data.students.data[0].performance = SimulatedPerformanceTag.HIGHLIGHT;
-      data.students.data[1].performance = SimulatedPerformanceTag.ABOVE_AVERAGE;
-      data.students.data[2].performance = SimulatedPerformanceTag.BELOW_AVERAGE;
-      data.students.data[3].performance =
-        SimulatedPerformanceTag.ATTENTION_POINT;
-      mockHookState = { data, loading: false, error: null };
-
-      render(<EssayCompetenceDetailsModal {...defaultProps} />);
-
-      // Performance badges - use getAllByText since counter labels may have similar text
-      expect(screen.getByText('Destaque da turma')).toBeInTheDocument();
-      expect(screen.getAllByText('Acima da média').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('Abaixo da média').length).toBeGreaterThan(0);
-      expect(screen.getByText('Ponto de atenção')).toBeInTheDocument();
     });
   });
 
@@ -502,7 +407,7 @@ describe('EssayCompetenceDetailsModal', () => {
         />
       );
 
-      expect(screen.getByText(longName)).toBeInTheDocument();
+      expect(screen.getByText(`C1 - ${longName}`)).toBeInTheDocument();
     });
 
     it('handles zero counters', () => {
@@ -517,8 +422,9 @@ describe('EssayCompetenceDetailsModal', () => {
 
       render(<EssayCompetenceDetailsModal {...defaultProps} />);
 
+      // All 3 counter cards should show 0
       const zeros = screen.getAllByText('0');
-      expect(zeros.length).toBe(4);
+      expect(zeros.length).toBe(3);
     });
 
     it('handles large numbers', () => {
@@ -530,7 +436,7 @@ describe('EssayCompetenceDetailsModal', () => {
       render(<EssayCompetenceDetailsModal {...defaultProps} />);
 
       expect(
-        screen.getByText('10000 estudantes - 50000 redações')
+        screen.getByText(/Redação • 50000 redações • 10000 alunos/)
       ).toBeInTheDocument();
     });
   });
