@@ -9,29 +9,7 @@ import {
 import { GraduationCap } from '@phosphor-icons/react';
 import { useUserAccessData, useStudentsFilter } from './hooks';
 import { StudentsFilterSection } from './StudentsFilterSection';
-import type {
-  SimuladosFiltersModalProps,
-  SimuladosFilters,
-  SimuladosFiltersLabels,
-} from './types';
-
-/**
- * Default labels for the modal
- */
-const DEFAULT_LABELS: Required<SimuladosFiltersLabels> = {
-  title: 'Filtros',
-  clearButton: 'Limpar filtros',
-  applyButton: 'Aplicar',
-  academicDataSection: 'DADOS ACADÊMICOS',
-  studentsSection: 'ESTUDANTES',
-  loadingFilters: 'Carregando filtros...',
-  loadingStudents: 'Carregando estudantes...',
-  noStudentsForFilters:
-    'Nenhum estudante encontrado para os filtros selecionados',
-  selectFiltersToSeeStudents: 'Selecione uma turma para ver os estudantes',
-  allStudents: 'Todos os estudantes',
-  searchPlaceholder: 'Buscar',
-};
+import type { SimuladosFiltersModalProps, SimuladosFilters } from './types';
 
 /**
  * Extracts selected IDs from categories
@@ -92,10 +70,7 @@ export function SimuladosFiltersModal({
   onApply,
   initialFilters,
   api,
-  labels: customLabels,
 }: SimuladosFiltersModalProps) {
-  const labels = { ...DEFAULT_LABELS, ...customLabels };
-
   const { schools, schoolYears, classes, isLoading } = useUserAccessData(api);
 
   const {
@@ -221,14 +196,14 @@ export function SimuladosFiltersModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={labels.title}
+      title="Filtros"
       size="md"
       footer={
         <div className="flex gap-3 justify-end w-full">
           <Button variant="outline" onClick={handleClear}>
-            {labels.clearButton}
+            Limpar filtros
           </Button>
-          <Button onClick={handleApply}>{labels.applyButton}</Button>
+          <Button onClick={handleApply}>Aplicar</Button>
         </div>
       }
     >
@@ -236,14 +211,14 @@ export function SimuladosFiltersModal({
         {/* Section Header - Academic Data */}
         <div className="flex items-center gap-2 text-text-400 text-sm font-medium uppercase">
           <GraduationCap size={16} className="text-text-400" />
-          <span>{labels.academicDataSection}</span>
+          <span>DADOS ACADÊMICOS</span>
         </div>
 
         {/* Loading state */}
         {isLoading && (
           <div className="flex items-center justify-center py-8">
             <Text size="sm" className="text-text-500">
-              {labels.loadingFilters}
+              Carregando filtros...
             </Text>
           </div>
         )}
@@ -268,14 +243,6 @@ export function SimuladosFiltersModal({
           hasFilters={hasClassSelected}
           onSearchChange={setStudentSearchQuery}
           onSelectionChange={setSelectedStudentIds}
-          labels={{
-            studentsSection: labels.studentsSection,
-            loadingStudents: labels.loadingStudents,
-            noStudentsForFilters: labels.noStudentsForFilters,
-            selectFiltersToSeeStudents: labels.selectFiltersToSeeStudents,
-            allStudents: labels.allStudents,
-            searchPlaceholder: labels.searchPlaceholder,
-          }}
         />
       </div>
     </Modal>

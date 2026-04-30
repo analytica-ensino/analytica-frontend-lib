@@ -30,25 +30,6 @@ export interface SimuladosFiltersModalProps {
   initialFilters?: Partial<SimuladosFilters>;
   /** API client instance (axios-like) */
   api: ApiClient;
-  /** Custom labels (optional) */
-  labels?: SimuladosFiltersLabels;
-}
-
-/**
- * Custom labels for the modal
- */
-export interface SimuladosFiltersLabels {
-  title?: string;
-  clearButton?: string;
-  applyButton?: string;
-  academicDataSection?: string;
-  studentsSection?: string;
-  loadingFilters?: string;
-  loadingStudents?: string;
-  noStudentsForFilters?: string;
-  selectFiltersToSeeStudents?: string;
-  allStudents?: string;
-  searchPlaceholder?: string;
 }
 
 // ============================================================================
@@ -225,13 +206,4 @@ export interface StudentsFilterSectionProps {
   hasFilters: boolean;
   onSearchChange: (query: string) => void;
   onSelectionChange: (ids: string[]) => void;
-  labels?: Pick<
-    SimuladosFiltersLabels,
-    | 'studentsSection'
-    | 'loadingStudents'
-    | 'noStudentsForFilters'
-    | 'selectFiltersToSeeStudents'
-    | 'allStudents'
-    | 'searchPlaceholder'
-  >;
 }

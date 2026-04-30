@@ -13,7 +13,6 @@ export type {
   // Main types
   SimuladosFilters,
   SimuladosFiltersModalProps,
-  SimuladosFiltersLabels,
   ApiClient,
 
   // Data item types

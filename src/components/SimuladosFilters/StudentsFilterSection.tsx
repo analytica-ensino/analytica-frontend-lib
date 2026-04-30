@@ -4,20 +4,6 @@ import { Users, MagnifyingGlass } from '@phosphor-icons/react';
 import type { StudentGroup, StudentsFilterSectionProps } from './types';
 
 /**
- * Default labels for the component
- */
-const DEFAULT_LABELS = {
-  studentsSection: 'ESTUDANTES',
-  loadingStudents: 'Carregando estudantes...',
-  noStudentsForFilters:
-    'Nenhum estudante encontrado para os filtros selecionados',
-  selectFiltersToSeeStudents:
-    'Selecione uma escola, série ou turma para ver os estudantes',
-  allStudents: 'Todos os estudantes',
-  searchPlaceholder: 'Buscar',
-};
-
-/**
  * Students filter section with search and grouping by school/year/class
  *
  * @example
@@ -41,10 +27,7 @@ export function StudentsFilterSection({
   hasFilters,
   onSearchChange,
   onSelectionChange,
-  labels: customLabels,
 }: StudentsFilterSectionProps) {
-  const labels = { ...DEFAULT_LABELS, ...customLabels };
-
   // Filter students by name based on search
   const filteredGroups = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -142,11 +125,11 @@ export function StudentsFilterSection({
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-2 text-text-400 text-sm font-medium uppercase">
           <Users size={16} className="text-text-400" />
-          <span>{labels.studentsSection}</span>
+          <span>ESTUDANTES</span>
         </div>
         <div className="flex items-center justify-center py-6 px-4 bg-background-100 rounded-lg">
           <Text size="sm" className="text-text-500 text-center">
-            {labels.selectFiltersToSeeStudents}
+            Selecione uma escola, série ou turma para ver os estudantes
           </Text>
         </div>
       </div>
@@ -159,11 +142,11 @@ export function StudentsFilterSection({
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-2 text-text-400 text-sm font-medium uppercase">
           <Users size={16} className="text-text-400" />
-          <span>{labels.studentsSection}</span>
+          <span>ESTUDANTES</span>
         </div>
         <div className="flex items-center justify-center py-6 px-4 bg-background-100 rounded-lg">
           <Text size="sm" className="text-text-500 text-center">
-            {labels.noStudentsForFilters}
+            Nenhum estudante encontrado para os filtros selecionados
           </Text>
         </div>
       </div>
@@ -175,13 +158,13 @@ export function StudentsFilterSection({
       {/* Header */}
       <div className="flex items-center gap-2 text-text-400 text-sm font-medium uppercase">
         <Users size={16} className="text-text-400" />
-        <span>{labels.studentsSection}</span>
+        <span>ESTUDANTES</span>
         {totalStudents > 0 && !isLoading && (
           <span className="text-text-500 lowercase">({totalStudents})</span>
         )}
         {isLoading && (
           <span className="text-text-500 lowercase">
-            {labels.loadingStudents}
+            Carregando estudantes...
           </span>
         )}
       </div>
@@ -196,7 +179,7 @@ export function StudentsFilterSection({
           type="text"
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder={labels.searchPlaceholder}
+          placeholder="Buscar"
           disabled={isLoading}
           className="w-full pl-10 pr-4 py-2 border border-border-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-background text-text-950 disabled:opacity-50"
         />
@@ -214,7 +197,7 @@ export function StudentsFilterSection({
           className="w-5 h-5 rounded border-border-300 text-primary-600 focus:ring-primary-500"
         />
         <span className="text-sm font-medium text-text-700">
-          {labels.allStudents}
+          Todos os estudantes
         </span>
       </label>
 
@@ -280,7 +263,7 @@ export function StudentsFilterSection({
         {filteredGroups.length === 0 && !searchQuery && isLoading && (
           <div className="flex items-center justify-center py-4">
             <Text size="sm" className="text-text-500">
-              {labels.loadingStudents}
+              Carregando estudantes...
             </Text>
           </div>
         )}

@@ -103,16 +103,10 @@ function BaseStory({
   label,
   api,
   initialFilters,
-  customLabels,
 }: {
   label: string;
   api: ApiClient;
   initialFilters?: Partial<SimuladosFilters>;
-  customLabels?: {
-    title?: string;
-    clearButton?: string;
-    applyButton?: string;
-  };
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState<SimuladosFilters | null>(
@@ -132,7 +126,6 @@ function BaseStory({
         }}
         initialFilters={initialFilters}
         api={api}
-        labels={customLabels}
       />
 
       {appliedFilters && (
@@ -171,17 +164,5 @@ export const ErrorState: Story = () => (
   <BaseStory
     label="Abrir com erro de filtros"
     api={createMockApi({ failOnGet: true })}
-  />
-);
-
-export const CustomLabels: Story = () => (
-  <BaseStory
-    label="Abrir com labels customizados"
-    api={createMockApi()}
-    customLabels={{
-      title: 'Filtrar resultados',
-      clearButton: 'Limpar',
-      applyButton: 'Confirmar',
-    }}
   />
 );

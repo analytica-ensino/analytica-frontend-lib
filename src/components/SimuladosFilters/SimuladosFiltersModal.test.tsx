@@ -277,23 +277,4 @@ describe('SimuladosFiltersModal', () => {
     expect(mockClearStudents).toHaveBeenCalled();
   });
 
-  it('uses custom labels when provided', () => {
-    render(
-      <SimuladosFiltersModal
-        isOpen
-        onClose={onClose}
-        onApply={onApply}
-        api={api}
-        labels={{
-          title: 'Meus filtros',
-          clearButton: 'Resetar',
-          applyButton: 'Confirmar',
-        }}
-      />
-    );
-
-    expect(screen.getByTestId('modal-title')).toHaveTextContent('Meus filtros');
-    expect(screen.getByText('Resetar')).toBeInTheDocument();
-    expect(screen.getByText('Confirmar')).toBeInTheDocument();
-  });
 });

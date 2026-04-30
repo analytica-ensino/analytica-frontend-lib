@@ -310,7 +310,6 @@ export {
 export type {
   SimuladosFilters,
   SimuladosFiltersModalProps,
-  SimuladosFiltersLabels,
   ApiClient as SimuladosApiClient,
   SchoolItem as SimuladosSchoolItem,
   SchoolYearItem as SimuladosSchoolYearItem,
@@ -446,7 +445,6 @@ export type {
   UseSimulatedContentDetailsState,
   UseSimulatedContentDetailsReturn,
   SimuladosContentDetailsModalProps,
-  SimuladosContentDetailsLabels,
 } from './components/SimuladosContentDetailsModal';
 
 // EssayCompetencies Components
