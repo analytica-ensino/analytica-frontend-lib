@@ -15,14 +15,15 @@ export interface BrandingLogoProps extends Omit<
   variant?: BrandingLogoVariant;
   /**
    * URL used when no branding logo is configured for the current institution.
+   * When omitted, the Analytica Ensino logo bundled with the lib is used.
    */
   fallback?: string;
 }
 
 /**
  * Renders the institution logo (`<img>`) for the active white-label, reading
- * the URL from branding meta tags and falling back to a consumer-provided URL.
- * Returns `null` when neither a branding logo nor a fallback is available.
+ * the URL from branding meta tags and falling back to a consumer-provided URL,
+ * or ultimately the Analytica Ensino logo bundled with the lib.
  */
 export const BrandingLogo = ({
   variant = 'internal',
@@ -31,10 +32,6 @@ export const BrandingLogo = ({
   ...rest
 }: BrandingLogoProps) => {
   const src = useBrandingLogo({ variant, fallback });
-
-  if (!src) {
-    return null;
-  }
 
   return <img src={src} alt={alt} {...rest} />;
 };

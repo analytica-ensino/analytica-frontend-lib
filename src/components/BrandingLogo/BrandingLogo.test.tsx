@@ -41,16 +41,18 @@ describe('BrandingLogo', () => {
     );
   });
 
-  it('renders the fallback when no branding logo is configured', () => {
+  it('renders the consumer-provided fallback when no branding logo is configured', () => {
     render(<BrandingLogo fallback="/local.png" />);
 
     expect(screen.getByRole('img')).toHaveAttribute('src', '/local.png');
   });
 
-  it('returns null when neither branding nor fallback is available', () => {
-    const { container } = render(<BrandingLogo />);
+  it('renders the bundled Analytica logo when neither branding nor fallback is available', () => {
+    render(<BrandingLogo />);
 
-    expect(container).toBeEmptyDOMElement();
+    const img = screen.getByRole('img');
+    expect(img).toBeInTheDocument();
+    expect(img.getAttribute('src')).toBeTruthy();
   });
 
   it('forwards alt and other img props', () => {
