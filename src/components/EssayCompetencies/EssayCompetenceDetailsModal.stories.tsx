@@ -11,6 +11,49 @@ import {
 import type { BaseApiClient } from '../../types/api';
 
 // ============================================================================
+// MOCK DATA CONSTANTS
+// ============================================================================
+
+/** Page size for pagination */
+const PAGE_SIZE = 20;
+
+/** Essay score configuration */
+const ESSAY_SCORE = {
+  MIN: 40,
+  MAX: 200,
+  RANGE: 160, // MAX - MIN
+} as const;
+
+/** Performance thresholds (percentage) */
+const PERFORMANCE_THRESHOLDS = {
+  HIGHLIGHT: 80,
+  ABOVE_AVERAGE: 60,
+  BELOW_AVERAGE: 40,
+} as const;
+
+/** Mock class average ranges */
+const CLASS_AVERAGE = {
+  SCORE_BASE: 120,
+  SCORE_RANGE: 60,
+  PERCENTAGE_BASE: 60,
+  PERCENTAGE_RANGE: 30,
+} as const;
+
+/** Distribution percentages for performance counters */
+const COUNTER_DISTRIBUTION = {
+  HIGHLIGHT: 0.15,
+  ABOVE_AVERAGE: 0.35,
+  BELOW_AVERAGE: 0.3,
+  ATTENTION_POINT: 0.2,
+} as const;
+
+/** Essays per student multiplier */
+const ESSAYS_PER_STUDENT = 2;
+
+/** Max essays count per student for random generation */
+const MAX_ESSAYS_COUNT = 5;
+
+// ============================================================================
 // MOCK DATA GENERATORS
 // ============================================================================
 
@@ -72,15 +115,16 @@ function generateMockStudents(
   ];
 
   return Array.from({ length: count }, (_, i) => {
-    const globalIndex = (page - 1) * 20 + i;
-    const score = 40 + Math.random() * 160;
-    const percentage = (score / 200) * 100;
+    const globalIndex = (page - 1) * PAGE_SIZE + i;
+    const score = ESSAY_SCORE.MIN + Math.random() * ESSAY_SCORE.RANGE;
+    const percentage = (score / ESSAY_SCORE.MAX) * 100;
     let performance: SimulatedPerformanceTag;
 
-    if (percentage >= 80) performance = SimulatedPerformanceTag.HIGHLIGHT;
-    else if (percentage >= 60)
+    if (percentage >= PERFORMANCE_THRESHOLDS.HIGHLIGHT)
+      performance = SimulatedPerformanceTag.HIGHLIGHT;
+    else if (percentage >= PERFORMANCE_THRESHOLDS.ABOVE_AVERAGE)
       performance = SimulatedPerformanceTag.ABOVE_AVERAGE;
-    else if (percentage >= 40)
+    else if (percentage >= PERFORMANCE_THRESHOLDS.BELOW_AVERAGE)
       performance = SimulatedPerformanceTag.BELOW_AVERAGE;
     else performance = SimulatedPerformanceTag.ATTENTION_POINT;
 
@@ -94,7 +138,7 @@ function generateMockStudents(
       averageScore: score,
       averagePercentage: percentage,
       performance,
-      essaysCount: Math.floor(Math.random() * 5) + 1,
+      essaysCount: Math.floor(Math.random() * MAX_ESSAYS_COUNT) + 1,
     };
   });
 }
@@ -125,15 +169,24 @@ function generateMockData(
         competenceNames[competenceNumber - 1] ||
         `Competência ${competenceNumber}`,
     },
-    classAverage: 120 + Math.random() * 60,
-    classAveragePercentage: 60 + Math.random() * 30,
-    totalEssays: totalStudents * 2,
+    classAverage:
+      CLASS_AVERAGE.SCORE_BASE + Math.random() * CLASS_AVERAGE.SCORE_RANGE,
+    classAveragePercentage:
+      CLASS_AVERAGE.PERCENTAGE_BASE +
+      Math.random() * CLASS_AVERAGE.PERCENTAGE_RANGE,
+    totalEssays: totalStudents * ESSAYS_PER_STUDENT,
     totalStudents,
     counters: {
-      highlight: Math.floor(totalStudents * 0.15),
-      aboveAverage: Math.floor(totalStudents * 0.35),
-      belowAverage: Math.floor(totalStudents * 0.3),
-      attentionPoint: Math.floor(totalStudents * 0.2),
+      highlight: Math.floor(totalStudents * COUNTER_DISTRIBUTION.HIGHLIGHT),
+      aboveAverage: Math.floor(
+        totalStudents * COUNTER_DISTRIBUTION.ABOVE_AVERAGE
+      ),
+      belowAverage: Math.floor(
+        totalStudents * COUNTER_DISTRIBUTION.BELOW_AVERAGE
+      ),
+      attentionPoint: Math.floor(
+        totalStudents * COUNTER_DISTRIBUTION.ATTENTION_POINT
+      ),
     },
     students: {
       data: generateMockStudents(studentsInPage, page),
