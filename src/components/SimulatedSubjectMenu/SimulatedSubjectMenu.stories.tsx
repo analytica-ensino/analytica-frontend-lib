@@ -6,6 +6,7 @@ import type {
   SimulatedSubjectsApiResponse,
 } from './types';
 import type { BaseApiClient } from '../../types/api';
+import Text from '../Text/Text';
 
 const allSubjects: SimulatedSubjectItem[] = [
   { id: 'math', name: 'Matematica', color: '#22C55E', icon: 'calculator' },
@@ -65,9 +66,9 @@ function StoryContainer({
         onSubjectChange={setSelectedSubjectId}
         loading={loading}
       />
-      <div className="text-sm text-text-700">
+      <Text size="sm" className="text-text-700">
         Disciplina selecionada: {selectedSubjectId ?? 'all'}
-      </div>
+      </Text>
     </div>
   );
 }

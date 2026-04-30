@@ -49,11 +49,12 @@ export function SimulatedSubjectMenu({
   const loading = externalLoading || subjectsLoading;
 
   // Add "Todos" option at the beginning
+  // Note: color field is not used for "all" option (handled separately in render)
   const allOption: SimulatedSubjectItem = useMemo(
     () => ({
       id: 'all',
       name: 'Todos',
-      color: '#6B7280',
+      color: '', // Not used - "all" option has special styling
       icon: 'shapes',
     }),
     []
@@ -93,17 +94,19 @@ export function SimulatedSubjectMenu({
             >
               <span
                 className={cn(
-                  'w-[21px] h-[21px] flex items-center justify-center [&>svg]:w-[17px] [&>svg]:h-[17px] rounded-sm text-text-950'
+                  'w-[21px] h-[21px] flex items-center justify-center [&>svg]:w-[17px] [&>svg]:h-[17px] rounded-sm text-text-950',
+                  subject.id === 'all' && 'bg-border-200'
                 )}
-                style={{
-                  backgroundColor:
-                    subject.id === 'all'
-                      ? 'rgba(107, 114, 128, 0.2)'
-                      : getSubjectColorWithOpacity(
+                style={
+                  subject.id !== 'all'
+                    ? {
+                        backgroundColor: getSubjectColorWithOpacity(
                           subject?.color ?? undefined,
                           isDark
                         ),
-                }}
+                      }
+                    : undefined
+                }
               >
                 {subject.id === 'all' ? (
                   <GridFour size={17} weight="bold" />

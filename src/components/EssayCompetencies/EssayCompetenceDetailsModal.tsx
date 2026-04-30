@@ -9,6 +9,7 @@ import {
   SIMULATED_PERFORMANCE_TAG_CONFIG,
   PERFORMANCE_TAG_TO_BADGE_ACTION,
 } from '../SimulatedStudentDetailsModal/types';
+import { BadgeActionType } from '../../types/common';
 import type {
   EssayCompetenceDetailsModalProps,
   EssayCompetenceStudentItem,
@@ -223,17 +224,17 @@ export function EssayCompetenceDetailsModal({
           <CounterCard
             label="Acima da média"
             count={aboveAverageCount}
-            variant="success"
+            variant={BadgeActionType.SUCCESS}
           />
           <CounterCard
             label="Abaixo da média"
             count={belowAverageCount}
-            variant="warning"
+            variant={BadgeActionType.WARNING}
           />
           <CounterCard
             label="Ponto de atenção"
             count={attentionCount}
-            variant="error"
+            variant={BadgeActionType.ERROR}
           />
         </div>
 
@@ -269,18 +270,18 @@ function CounterCard({
 }: {
   readonly label: string;
   readonly count: number;
-  readonly variant: 'success' | 'warning' | 'error';
+  readonly variant: BadgeActionType;
 }) {
-  const bgColors = {
-    success: 'bg-success-50',
-    warning: 'bg-warning-50',
-    error: 'bg-error-50',
+  const bgColors: Record<BadgeActionType, string> = {
+    [BadgeActionType.SUCCESS]: 'bg-success-50',
+    [BadgeActionType.WARNING]: 'bg-warning-50',
+    [BadgeActionType.ERROR]: 'bg-error-50',
   };
 
-  const textColors = {
-    success: 'text-success-700',
-    warning: 'text-warning-700',
-    error: 'text-error-700',
+  const textColors: Record<BadgeActionType, string> = {
+    [BadgeActionType.SUCCESS]: 'text-success-700',
+    [BadgeActionType.WARNING]: 'text-warning-700',
+    [BadgeActionType.ERROR]: 'text-error-700',
   };
 
   return (
