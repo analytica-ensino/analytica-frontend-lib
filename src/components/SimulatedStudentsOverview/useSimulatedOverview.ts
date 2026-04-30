@@ -7,8 +7,10 @@ import type {
   UseSimulatedOverviewState,
   UseSimulatedOverviewReturn,
 } from './types';
-import { simulationTypeToActivityFilters } from '../SimulatedStudentDetailsModal/types';
-import { SimulationType } from '../SimulatedStudentDetailsModal/types';
+import {
+  simulationTypeToActivityFilters,
+  SimulationType,
+} from '../SimulatedStudentDetailsModal/types';
 
 /**
  * Body type for POST endpoints
