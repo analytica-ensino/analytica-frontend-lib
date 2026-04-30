@@ -5,6 +5,7 @@ import type {
   AreaKnowledgePerformance,
   EssayPerformance,
 } from './types';
+import Text from '../Text/Text';
 
 // ============================================================================
 // MOCK DATA GENERATORS
@@ -274,9 +275,9 @@ export const ErrorState: Story = () => (
 export const NoData: Story = () => (
   <div className="max-w-4xl">
     <GeneralOverviewSection data={null} />
-    <p className="mt-4 text-text-500 text-sm">
+    <Text size="sm" className="mt-4 text-text-500">
       Componente retorna null quando não há dados e não está carregando.
-    </p>
+    </Text>
   </div>
 );
 
@@ -355,16 +356,18 @@ export const CustomColors: Story = () => {
 export const ScoreTypesComparison: Story = () => (
   <div className="max-w-4xl space-y-8">
     <div>
-      <h3 className="text-lg font-bold text-text-900 mb-2">
+      <Text size="lg" weight="bold" className="mb-2 text-text-950">
         Modo Porcentagem (padrão)
-      </h3>
+      </Text>
       <GeneralOverviewSection
         data={generateMockData()}
         scoreType="percentage"
       />
     </div>
     <div>
-      <h3 className="text-lg font-bold text-text-900 mb-2">Modo TRI</h3>
+      <Text size="lg" weight="bold" className="mb-2 text-text-950">
+        Modo TRI
+      </Text>
       <GeneralOverviewSection data={generateMockData()} scoreType="tri" />
     </div>
   </div>
