@@ -13,9 +13,9 @@ export interface AreaKnowledgePerformance {
   name: string;
   urlCover: string | null;
   /** Icon identifier from backend */
-  icon?: string;
+  icon: string;
   /** Hex color from backend (e.g., "#4B0082") */
-  color?: string;
+  color: string;
   percentage: number;
   questionsTotal: number;
   questionsCorrect: number;
@@ -26,6 +26,10 @@ export interface AreaKnowledgePerformance {
  */
 export interface EssayPerformance {
   name: string;
+  /** Hex color from backend (e.g., "#F43F5E") */
+  color: string;
+  /** Icon identifier from backend */
+  icon: string;
   percentage: number;
   totalEssays: number;
   totalStudents: number;

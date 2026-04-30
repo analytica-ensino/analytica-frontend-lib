@@ -10,18 +10,9 @@ import type {
   ScoreType,
 } from './types';
 
-/** Default color when API doesn't provide one */
-const DEFAULT_COLOR = '#6B7280';
-
-/** Default icon when API doesn't provide one */
-const DEFAULT_ICON = 'shapes';
-
-/** Essay color (rose) */
-const ESSAY_COLOR = '#F43F5E';
-
 /**
  * Area knowledge card component
- * Uses color and icon from API data, with fallbacks
+ * Uses color and icon from API data
  */
 function AreaCard({
   area,
@@ -30,10 +21,7 @@ function AreaCard({
   readonly area: AreaKnowledgePerformance;
   readonly scoreType?: ScoreType;
 }) {
-  // Use color and icon from API, fallback to defaults
-  const iconColor = area.color || DEFAULT_COLOR;
-  const iconName = area.icon || DEFAULT_ICON;
-  const bgColor = hexToRgba(iconColor, 0.1);
+  const bgColor = hexToRgba(area.color, 0.1);
 
   return (
     <div
@@ -43,9 +31,9 @@ function AreaCard({
       {/* Icon with rounded background */}
       <div
         className="w-8 h-8 flex items-center justify-center rounded-full mb-2"
-        style={{ backgroundColor: iconColor }}
+        style={{ backgroundColor: area.color }}
       >
-        <IconRender iconName={iconName} size={18} color="white" />
+        <IconRender iconName={area.icon} size={18} color="white" />
       </div>
 
       {/* Full name (uppercase, smaller) */}
@@ -67,11 +55,11 @@ function AreaCard({
 
 /**
  * Essay card component
- * Displays essay performance using the fixed rose color scheme
+ * Displays essay performance using color and icon from API
  * Note: Essays always use percentage, TRI doesn't apply to essays
  */
 function EssayCard({ essay }: { readonly essay: EssayPerformance }) {
-  const bgColor = hexToRgba(ESSAY_COLOR, 0.1);
+  const bgColor = hexToRgba(essay.color, 0.1);
 
   return (
     <div
@@ -81,9 +69,9 @@ function EssayCard({ essay }: { readonly essay: EssayPerformance }) {
       {/* Icon with rounded background */}
       <div
         className="w-8 h-8 flex items-center justify-center rounded-full mb-2"
-        style={{ backgroundColor: ESSAY_COLOR }}
+        style={{ backgroundColor: essay.color }}
       >
-        <IconRender iconName="article" size={18} color="white" />
+        <IconRender iconName={essay.icon} size={18} color="white" />
       </div>
 
       {/* Name (uppercase, smaller) */}

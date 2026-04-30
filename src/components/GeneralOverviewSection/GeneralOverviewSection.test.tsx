@@ -70,6 +70,8 @@ function createMockAreas(): AreaKnowledgePerformance[] {
 function createMockEssay(): EssayPerformance {
   return {
     name: 'Redação',
+    color: '#F43F5E',
+    icon: 'article',
     percentage: 75.5,
     totalEssays: 50,
     totalStudents: 30,
@@ -235,28 +237,6 @@ describe('GeneralOverviewSection', () => {
 
       // Essay should still show percentage
       expect(screen.getByText('75,5%')).toBeInTheDocument();
-    });
-  });
-
-  describe('Fallback values', () => {
-    it('uses default icon when area has no icon', () => {
-      const data = createMockData(false);
-      data.areas[0].icon = undefined;
-
-      render(<GeneralOverviewSection data={data} />);
-
-      // Should use 'shapes' as default icon
-      expect(screen.getByTestId('icon-shapes')).toBeInTheDocument();
-    });
-
-    it('uses default color when area has no color', () => {
-      const data = createMockData(false);
-      data.areas[0].color = undefined;
-
-      const { container } = render(<GeneralOverviewSection data={data} />);
-
-      // Should render without error
-      expect(container).toBeInTheDocument();
     });
   });
 

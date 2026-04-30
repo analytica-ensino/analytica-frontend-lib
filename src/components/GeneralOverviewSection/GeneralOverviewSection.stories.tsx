@@ -65,6 +65,8 @@ function generateMockAreas(): AreaKnowledgePerformance[] {
 function generateMockEssay(): EssayPerformance {
   return {
     name: 'Redação',
+    color: '#F43F5E',
+    icon: 'article',
     percentage: 75.5,
     totalEssays: 120,
     totalStudents: 85,
@@ -170,6 +172,8 @@ export const HighPerformance: Story = () => {
     ],
     essay: {
       name: 'Redação',
+      color: '#F43F5E',
+      icon: 'article',
       percentage: 90.0,
       totalEssays: 50,
       totalStudents: 30,
@@ -235,6 +239,8 @@ export const LowPerformance: Story = () => {
     ],
     essay: {
       name: 'Redação',
+      color: '#F43F5E',
+      icon: 'article',
       percentage: 35.0,
       totalEssays: 30,
       totalStudents: 20,
