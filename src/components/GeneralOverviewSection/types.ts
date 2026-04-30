@@ -129,8 +129,6 @@ export interface GeneralOverviewSectionProps {
   loading?: boolean;
   /** Error message */
   error?: string | null;
-  /** Subjects list for icon/color mapping */
-  subjects?: SubjectItem[];
   /** Score display type (percentage or TRI) */
   scoreType?: ScoreType;
 }

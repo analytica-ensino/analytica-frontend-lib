@@ -2,14 +2,25 @@ import Text from '../Text/Text';
 import ProgressBar from '../ProgressBar/ProgressBar';
 import { SkeletonRounded } from '../Skeleton/Skeleton';
 import IconRender from '../IconRender/IconRender';
-import { cn } from '../../utils/utils';
 import type {
   GeneralOverviewSectionProps,
   AreaKnowledgePerformance,
   EssayPerformance,
-  SubjectItem,
   ScoreType,
 } from './types';
+
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
+/** Default color when API doesn't provide one */
+const DEFAULT_COLOR = '#6B7280';
+
+/** Default icon when API doesn't provide one */
+const DEFAULT_ICON = 'shapes';
+
+/** Essay color (rose) */
+const ESSAY_COLOR = '#F43F5E';
 
 // ============================================================================
 // UTILITIES
@@ -30,72 +41,18 @@ function formatScore(value: number, scoreType: ScoreType): string {
 }
 
 /**
- * Area knowledge card colors based on area name patterns
+ * Convert hex color to rgba with opacity for background
+ * @param hex - Hex color (e.g., "#4B0082")
+ * @param opacity - Opacity value (0-1)
+ * @returns rgba string
  */
-const AREA_COLORS: Record<string, { bg: string; fallbackColor: string }> = {
-  linguagens: {
-    bg: 'bg-blue-50',
-    fallbackColor: '#3B82F6',
-  },
-  humanas: {
-    bg: 'bg-amber-50',
-    fallbackColor: '#F59E0B',
-  },
-  natureza: {
-    bg: 'bg-green-50',
-    fallbackColor: '#22C55E',
-  },
-  matemática: {
-    bg: 'bg-purple-50',
-    fallbackColor: '#8B5CF6',
-  },
-  redação: {
-    bg: 'bg-rose-50',
-    fallbackColor: '#F43F5E',
-  },
-};
-
-/**
- * Get color scheme for an area based on its name
- */
-function getAreaColors(areaName: string): {
-  bg: string;
-  fallbackColor: string;
-} {
-  const nameLower = areaName.toLowerCase();
-
-  if (nameLower.includes('linguagens') || nameLower.includes('códigos')) {
-    return AREA_COLORS.linguagens;
-  }
-  if (nameLower.includes('humanas') || nameLower.includes('sociais')) {
-    return AREA_COLORS.humanas;
-  }
-  if (nameLower.includes('natureza') || nameLower.includes('ciências da nat')) {
-    return AREA_COLORS.natureza;
-  }
-  if (nameLower.includes('matemática')) {
-    return AREA_COLORS.matemática;
-  }
-  if (nameLower.includes('redação')) {
-    return AREA_COLORS.redação;
-  }
-
-  // Default fallback
-  return { bg: 'bg-gray-50', fallbackColor: '#6B7280' };
-}
-
-/**
- * Get icon and color from the first subject linked to the area
- */
-function getAreaIconAndColor(
-  areaId: string,
-  subjects: SubjectItem[]
-): { icon: string; color: string } | null {
-  const firstSubject = subjects.find((s) => s.areaKnowledgeId === areaId);
-  if (firstSubject) {
-    return { icon: firstSubject.icon, color: firstSubject.color };
-  }
-  return null;
+function hexToRgba(hex: string, opacity: number): string {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return `rgba(107, 114, 128, ${opacity})`; // fallback gray
+  const r = parseInt(result[1], 16);
+  const g = parseInt(result[2], 16);
+  const b = parseInt(result[3], 16);
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 }
 
 // ============================================================================
@@ -104,29 +61,24 @@ function getAreaIconAndColor(
 
 /**
  * Area knowledge card component
+ * Uses color and icon from API data, with fallbacks
  */
 function AreaCard({
   area,
-  subjects,
   scoreType = 'percentage',
 }: {
   readonly area: AreaKnowledgePerformance;
-  readonly subjects: SubjectItem[];
   readonly scoreType?: ScoreType;
 }) {
-  const colors = getAreaColors(area.name);
-  const subjectStyle = getAreaIconAndColor(area.id, subjects);
-
-  // Use subject icon/color if available, otherwise use fallback
-  const iconName = subjectStyle?.icon || 'shapes';
-  const iconColor = subjectStyle?.color || colors.fallbackColor;
+  // Use color and icon from API, fallback to defaults
+  const iconColor = area.color || DEFAULT_COLOR;
+  const iconName = area.icon || DEFAULT_ICON;
+  const bgColor = hexToRgba(iconColor, 0.1);
 
   return (
     <div
-      className={cn(
-        'flex-1 min-w-0 flex flex-col items-center justify-center p-4 rounded-xl',
-        colors.bg
-      )}
+      className="flex-1 min-w-0 flex flex-col items-center justify-center p-4 rounded-xl"
+      style={{ backgroundColor: bgColor }}
     >
       {/* Icon with rounded background */}
       <div
@@ -159,19 +111,17 @@ function AreaCard({
  * Note: Essays always use percentage, TRI doesn't apply to essays
  */
 function EssayCard({ essay }: { readonly essay: EssayPerformance }) {
-  const colors = AREA_COLORS.redação;
+  const bgColor = hexToRgba(ESSAY_COLOR, 0.1);
 
   return (
     <div
-      className={cn(
-        'flex-1 min-w-0 flex flex-col items-center justify-center p-4 rounded-xl',
-        colors.bg
-      )}
+      className="flex-1 min-w-0 flex flex-col items-center justify-center p-4 rounded-xl"
+      style={{ backgroundColor: bgColor }}
     >
       {/* Icon with rounded background */}
       <div
         className="w-8 h-8 flex items-center justify-center rounded-full mb-2"
-        style={{ backgroundColor: colors.fallbackColor }}
+        style={{ backgroundColor: ESSAY_COLOR }}
       >
         <IconRender iconName="article" size={18} color="white" />
       </div>
@@ -214,6 +164,7 @@ function AreaCardSkeleton() {
  * GeneralOverviewSection - General overview section for simulated exams
  *
  * Displays overall proficiency percentage and performance by area of knowledge.
+ * Uses color and icon directly from API data for each area.
  * This section is independent of areaKnowledgeId and subjectId filters -
  * it always shows consolidated data across all simulated exams.
  *
@@ -225,7 +176,6 @@ function AreaCardSkeleton() {
  *   data={data}
  *   loading={loading}
  *   error={error}
- *   subjects={subjects}
  *   scoreType="tri"
  * />
  * ```
@@ -234,7 +184,6 @@ export function GeneralOverviewSection({
   data,
   loading = false,
   error = null,
-  subjects = [],
   scoreType = 'percentage',
 }: GeneralOverviewSectionProps) {
   if (error) {
@@ -319,12 +268,7 @@ export function GeneralOverviewSection({
       {(data.areas.length > 0 || data.essay) && (
         <div className="flex gap-3">
           {data.areas.map((area) => (
-            <AreaCard
-              key={area.id}
-              area={area}
-              subjects={subjects}
-              scoreType={scoreType}
-            />
+            <AreaCard key={area.id} area={area} scoreType={scoreType} />
           ))}
           {data.essay && <EssayCard essay={data.essay} />}
         </div>
