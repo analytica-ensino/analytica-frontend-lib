@@ -313,7 +313,12 @@ describe('EssayCompetenciesTable', () => {
 
       expect(mockFetchOverview).toHaveBeenCalledTimes(1);
 
-      rerender(<EssayCompetenciesTable {...defaultProps} period={Period.THREE_MONTHS} />);
+      rerender(
+        <EssayCompetenciesTable
+          {...defaultProps}
+          period={Period.THREE_MONTHS}
+        />
+      );
 
       expect(mockFetchOverview).toHaveBeenCalledTimes(2);
       expect(mockFetchOverview).toHaveBeenLastCalledWith(

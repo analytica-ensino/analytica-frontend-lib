@@ -8,10 +8,10 @@ import { useEssayStudentDetails } from './useEssayStudentDetails';
 import { formatPercentageRounded } from '../../utils/utils';
 import {
   SIMULATED_PERFORMANCE_TAG_CONFIG,
-  SimulatedPerformanceTag,
   type EssayStudentDetailsModalProps,
   type EssayCompetencyPerformance,
 } from './types';
+import { PERFORMANCE_TAG_TO_BADGE_ACTION } from '../SimulatedStudentDetailsModal';
 
 /**
  * Modal for displaying essay student performance details
@@ -70,19 +70,6 @@ export function EssayStudentDetailsModal({
   }, [isOpen, reset]);
 
   const modalTitle = `Desempenho de ${studentName || 'Estudante'}`;
-
-  /**
-   * Map performance tag to Badge action type
-   */
-  const PERFORMANCE_TAG_TO_BADGE_ACTION: Record<
-    SimulatedPerformanceTag,
-    'success' | 'info' | 'warning' | 'error'
-  > = {
-    [SimulatedPerformanceTag.HIGHLIGHT]: 'success',
-    [SimulatedPerformanceTag.ABOVE_AVERAGE]: 'info',
-    [SimulatedPerformanceTag.BELOW_AVERAGE]: 'warning',
-    [SimulatedPerformanceTag.ATTENTION_POINT]: 'error',
-  };
 
   // Render loading state
   if (loading) {

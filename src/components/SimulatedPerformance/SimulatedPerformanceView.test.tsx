@@ -54,10 +54,7 @@ jest.mock('../Menu/Menu', () => ({
       >
         Students
       </button>
-      <button
-        data-testid="menu-skills"
-        onClick={() => onValueChange('skills')}
-      >
+      <button data-testid="menu-skills" onClick={() => onValueChange('skills')}>
         Skills
       </button>
     </div>
