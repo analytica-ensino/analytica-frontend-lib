@@ -27,7 +27,13 @@ function buildEndpoint(simulationType: SimulationType): string {
   activityFilters.statuses?.forEach((s) => params.append('statuses', s));
 
   const queryString = params.toString();
-  return `/performance/simulated/activities/student-details${queryString ? `?${queryString}` : ''}`;
+  const endpoint = '/performance/simulated/activities/student-details';
+
+  if (!queryString) {
+    return endpoint;
+  }
+
+  return `${endpoint}?${queryString}`;
 }
 
 /**

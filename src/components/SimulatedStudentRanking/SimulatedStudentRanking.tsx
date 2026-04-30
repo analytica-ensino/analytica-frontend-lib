@@ -49,11 +49,11 @@ function StudentCard({
   student,
   variant,
   scoreType = ScoreType.PERCENTAGE,
-}: {
+}: Readonly<{
   student: SimulatedStudentRankingItem;
   variant: RankingVariant;
   scoreType?: ScoreType;
-}) {
+}>) {
   const backgroundClass =
     POSITION_BACKGROUNDS[variant][student.position] || 'bg-background-50';
 

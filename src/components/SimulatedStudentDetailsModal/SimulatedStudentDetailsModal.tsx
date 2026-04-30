@@ -225,11 +225,11 @@ function SubjectItem({
   subject,
   onClick,
   questionsLabel,
-}: {
+}: Readonly<{
   subject: SubjectPerformanceItem;
   onClick: () => void;
   questionsLabel: string;
-}) {
+}>) {
   return (
     <button
       onClick={onClick}
@@ -276,11 +276,11 @@ function ContentItem({
   content,
   questionsLabel,
   ofLabel,
-}: {
+}: Readonly<{
   content: StudentContentPerformanceItem;
   questionsLabel: string;
   ofLabel: string;
-}) {
+}>) {
   return (
     <div className="flex items-center gap-4 p-4 bg-background border border-border-50 rounded-xl">
       {/* Content info */}

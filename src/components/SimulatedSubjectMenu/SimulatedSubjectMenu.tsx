@@ -98,14 +98,14 @@ export function SimulatedSubjectMenu({
                   subject.id === 'all' && 'bg-border-200'
                 )}
                 style={
-                  subject.id !== 'all'
-                    ? {
+                  subject.id === 'all'
+                    ? undefined
+                    : {
                         backgroundColor: getSubjectColorWithOpacity(
                           subject?.color ?? undefined,
                           isDark
                         ),
                       }
-                    : undefined
                 }
               >
                 {subject.id === 'all' ? (

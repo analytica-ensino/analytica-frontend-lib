@@ -41,7 +41,13 @@ function buildEndpoint(
       params.append('scoreType', scoreType);
     }
     const queryString = params.toString();
-    return `/performance/simulated/essays/students-overview${queryString ? `?${queryString}` : ''}`;
+    const endpoint = '/performance/simulated/essays/students-overview';
+
+    if (!queryString) {
+      return endpoint;
+    }
+
+    return `${endpoint}?${queryString}`;
   }
 
   const activityFilters = simulationTypeToActivityFilters(simulationType);
@@ -57,7 +63,13 @@ function buildEndpoint(
   }
 
   const queryString = params.toString();
-  return `/performance/simulated/activities/students-overview${queryString ? `?${queryString}` : ''}`;
+  const endpoint = '/performance/simulated/activities/students-overview';
+
+  if (!queryString) {
+    return endpoint;
+  }
+
+  return `${endpoint}?${queryString}`;
 }
 
 /**
