@@ -1,6 +1,7 @@
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
 import { Medal, Warning } from 'phosphor-react';
+import { formatScore } from './utils';
 import type {
   ScoreType,
   RankingVariant,
@@ -8,16 +9,6 @@ import type {
   SimuladosStudentRankingProps,
   SimuladosRankingCardProps,
 } from './types';
-
-/**
- * Format score based on score type
- */
-function formatScore(value: number, scoreType: ScoreType): string {
-  if (scoreType === 'tri') {
-    return Math.round(value).toString();
-  }
-  return `${value.toFixed(1).replace('.', ',')}%`;
-}
 
 /**
  * Position background colors by variant

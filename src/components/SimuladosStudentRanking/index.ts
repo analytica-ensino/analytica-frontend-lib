@@ -4,6 +4,7 @@ export {
   SimuladosRankingCard,
 } from './SimuladosStudentRanking';
 export { default } from './SimuladosStudentRanking';
+export { formatScore } from './utils';
 
 // Types
 export type {
