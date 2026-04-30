@@ -85,11 +85,13 @@ export default function Chatbot({
 
   return (
     <>
-      <ChatbotFab
-        onClick={togglePanel}
-        isOpen={isOpen}
-        className={fabClassName}
-      />
+      {!isOpen && (
+        <ChatbotFab
+          onClick={togglePanel}
+          isOpen={isOpen}
+          className={fabClassName}
+        />
+      )}
       <ChatbotPanel
         isOpen={isOpen}
         onClose={closePanel}

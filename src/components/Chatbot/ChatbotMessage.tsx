@@ -61,7 +61,7 @@ export default function ChatbotMessage({
         className={cn(
           'max-w-[80%] px-4 py-2',
           isUser
-            ? 'rounded-2xl rounded-br-md bg-primary-500 text-white'
+            ? 'rounded-2xl rounded-br-md bg-background-200 text-text-900'
             : 'rounded-2xl rounded-bl-md bg-background-100 text-text-900'
         )}
       >
@@ -75,13 +75,7 @@ export default function ChatbotMessage({
             className={contentClassName}
           />
         )}
-        <Text
-          size="2xs"
-          className={cn(
-            'mt-1 block text-right',
-            isUser ? 'text-white/70' : 'text-text-400'
-          )}
-        >
+        <Text size="2xs" className="mt-1 block text-right text-text-700">
           {formatTimestamp(message.createdAt)}
         </Text>
       </div>

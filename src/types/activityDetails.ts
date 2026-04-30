@@ -13,6 +13,10 @@ export const STUDENT_ACTIVITY_STATUS = {
   AGUARDANDO_CORRECAO: 'AGUARDANDO_CORRECAO',
   AGUARDANDO_RESPOSTA: 'AGUARDANDO_RESPOSTA',
   NAO_ENTREGUE: 'NAO_ENTREGUE',
+  /** Physical test (presencial): student hasn't submitted the answer sheet yet */
+  AWAITING_ANSWER_SHEET: 'AGUARDANDO_GABARITO',
+  /** Physical test (presencial): answer sheet has been received and processed */
+  ANSWER_SHEET_RECEIVED: 'GABARITO_RECEBIDO',
 } as const;
 
 export type StudentActivityStatus =
@@ -26,6 +30,8 @@ export const studentActivityStatusSchema = z.enum([
   STUDENT_ACTIVITY_STATUS.AGUARDANDO_CORRECAO,
   STUDENT_ACTIVITY_STATUS.AGUARDANDO_RESPOSTA,
   STUDENT_ACTIVITY_STATUS.NAO_ENTREGUE,
+  STUDENT_ACTIVITY_STATUS.AWAITING_ANSWER_SHEET,
+  STUDENT_ACTIVITY_STATUS.ANSWER_SHEET_RECEIVED,
 ]);
 
 /**
@@ -76,6 +82,7 @@ export interface ActivityMetadata {
   id: string;
   title: string;
   type?: string;
+  mode?: string | null;
   startDate: string | null;
   finalDate: string | null;
   schoolName: string;

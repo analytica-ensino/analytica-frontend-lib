@@ -154,7 +154,7 @@ export function RichEditor({
   if (!editor) return null;
 
   return (
-    <div className="border border-border-200 rounded-xl overflow-hidden bg-white">
+    <div className="border border-border-200 rounded-xl overflow-hidden bg-background-0">
       {/* Toolbar */}
       <div className="flex items-center gap-0.5 border-b border-border-200 bg-background-50 px-2 py-1.5 flex-wrap">
         {/* Headings */}

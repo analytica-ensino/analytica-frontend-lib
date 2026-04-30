@@ -179,7 +179,7 @@ export const FillQuestionContent = ({
     );
   };
 
-  // Render correct answer (gabarito)
+  // Render correct answer
   const renderCorrectAnswer = (placeholderId: string) => {
     // The placeholderId IS the correct option ID
     const correctOptionText = getOptionTextById(placeholderId);
@@ -192,7 +192,7 @@ export const FillQuestionContent = ({
   };
 
   // Parse text and render with elements
-  const renderTextWithElements = (text: string, isGabarito: boolean) => {
+  const renderTextWithElements = (text: string, isCorrectAnswer: boolean) => {
     const elements: Array<{ element: string | ReactNode; id: string }> = [];
     let lastIndex = 0;
     const nextId = () => elements.length;
@@ -213,10 +213,10 @@ export const FillQuestionContent = ({
       }
 
       // Add the appropriate element
-      if (isGabarito) {
+      if (isCorrectAnswer) {
         elements.push({
           element: renderCorrectAnswer(placeholderId),
-          id: `${baseId}-gabarito-${nextId()}`,
+          id: `${baseId}-answer-sheet-${nextId()}`,
         });
       } else {
         elements.push({

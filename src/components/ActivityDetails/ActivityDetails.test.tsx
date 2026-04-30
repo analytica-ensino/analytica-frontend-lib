@@ -2,6 +2,7 @@ import type { HTMLAttributes, ReactNode, Ref } from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { STUDENT_ACTIVITY_STATUS } from '../../types/activityDetails';
+import { ActivityMode } from '../SendActivityModal/types';
 import {
   getStatusBadgeConfig,
   formatTimeSpent,
@@ -98,12 +99,22 @@ jest.mock('../TableProvider/TableProvider', () => ({
     const answeredAtColumn = headers?.find((h) => h.key === 'answeredAt');
     const timeSpentColumn = headers?.find((h) => h.key === 'timeSpent');
     const scoreColumn = headers?.find((h) => h.key === 'score');
+    const answerSheetColumn = headers?.find((h) => h.key === 'answerSheet');
 
     return (
       <div data-testid="table-provider">
         {children({
           table: (
             <table data-testid="table">
+              <thead>
+                <tr>
+                  {headers?.map((h) => (
+                    <th key={h.key} data-testid={`col-header-${h.key}`}>
+                      {h.label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
               <tbody>
                 {(
                   data as {
@@ -139,6 +150,11 @@ jest.mock('../TableProvider/TableProvider', () => ({
                     <td>
                       {scoreColumn?.render
                         ? scoreColumn.render(item.score, item)
+                        : null}
+                    </td>
+                    <td>
+                      {answerSheetColumn?.render
+                        ? answerSheetColumn.render(null, item)
                         : null}
                     </td>
                     <td>
@@ -2257,6 +2273,113 @@ describe('ActivityDetails', () => {
       });
 
       consoleSpy.mockRestore();
+    });
+  });
+
+  describe('Presencial Mode', () => {
+    const mockActivityDataPresencial: ActivityDetailsData = {
+      activity: {
+        id: 'activity-presencial',
+        title: 'Prova Presencial',
+        startDate: '2024-03-01',
+        finalDate: '2024-03-10',
+        schoolName: 'Escola Teste',
+        year: '2024',
+        subjectName: 'Matemática',
+        className: '9º Ano B',
+        mode: ActivityMode.PRESENCIAL,
+      },
+      students: [
+        {
+          studentId: 'student-p1',
+          studentName: 'Carlos Lima',
+          answeredAt: '2024-03-05T09:00:00Z',
+          timeSpent: 0,
+          score: null,
+          status: STUDENT_ACTIVITY_STATUS.ANSWER_SHEET_RECEIVED,
+        },
+        {
+          studentId: 'student-p2',
+          studentName: 'Fernanda Rocha',
+          answeredAt: null,
+          timeSpent: 0,
+          score: null,
+          status: STUDENT_ACTIVITY_STATUS.AWAITING_ANSWER_SHEET,
+        },
+      ],
+      pagination: { total: 2, page: 1, limit: 10, totalPages: 1 },
+      generalStats: { averageScore: 0, completionPercentage: 50 },
+      questionStats: { mostCorrect: [], mostIncorrect: [], notAnswered: [] },
+    };
+
+    beforeEach(() => {
+      mockFetchActivityDetails.mockResolvedValue(mockActivityDataPresencial);
+    });
+
+    it('should show "Gabarito recebido em" column instead of "Respondido em"', async () => {
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Gabarito recebido em')).toBeInTheDocument();
+      });
+
+      expect(screen.queryByText('Respondido em')).not.toBeInTheDocument();
+    });
+
+    it('should not show "Duração" column in presencial mode', async () => {
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Gabarito recebido em')).toBeInTheDocument();
+      });
+
+      expect(screen.queryByText('Duração')).not.toBeInTheDocument();
+    });
+
+    it('should show "Baixar gabarito" button in presencial mode', async () => {
+      const mockOnDownloadAnswerSheet = jest.fn();
+      render(
+        <ActivityDetails
+          {...defaultProps}
+          onDownloadAnswerSheet={mockOnDownloadAnswerSheet}
+        />
+      );
+
+      await waitFor(() => {
+        const baixarButtons = screen.getAllByText('Baixar gabarito');
+        expect(baixarButtons.length).toBeGreaterThan(0);
+      });
+    });
+
+    it('should call onDownloadAnswerSheet with studentId when "Baixar gabarito" is clicked', async () => {
+      const mockOnDownloadAnswerSheet = jest.fn();
+      render(
+        <ActivityDetails
+          {...defaultProps}
+          onDownloadAnswerSheet={mockOnDownloadAnswerSheet}
+        />
+      );
+
+      await waitFor(() => {
+        expect(screen.getAllByText('Baixar gabarito').length).toBeGreaterThan(0);
+      });
+
+      fireEvent.click(screen.getAllByText('Baixar gabarito')[0]);
+
+      expect(mockOnDownloadAnswerSheet).toHaveBeenCalledWith('student-p1');
+    });
+
+    it('should render disabled "Baixar gabarito" button when onDownloadAnswerSheet is not provided', async () => {
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getAllByText('Baixar gabarito').length).toBeGreaterThan(0);
+      });
+
+      const baixarButtons = screen.getAllByText('Baixar gabarito');
+      baixarButtons.forEach((btn) => {
+        expect(btn.closest('button')).toBeDisabled();
+      });
     });
   });
 });

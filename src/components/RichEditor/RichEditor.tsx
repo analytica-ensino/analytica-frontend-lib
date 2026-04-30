@@ -131,7 +131,7 @@ function MissingDependenciesError({ error }: { readonly error: Error }) {
 
 function LoadingFallback() {
   return (
-    <div className="border border-border-200 rounded-xl overflow-hidden bg-white animate-pulse">
+    <div className="border border-border-200 rounded-xl overflow-hidden bg-background-0 animate-pulse">
       <div className="h-10 bg-background-100 border-b border-border-200" />
       <div className="h-32 bg-background-50" />
       <div className="h-8 bg-background-100 border-t border-border-200" />

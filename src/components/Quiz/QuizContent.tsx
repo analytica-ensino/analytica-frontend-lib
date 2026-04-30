@@ -504,8 +504,7 @@ const QuizDissertative = ({ paddingBottom }: QuizVariantInterface) => {
       </QuizContainer>
 
       {variant === QuizVariant.RESULT &&
-        currentQuestionResult?.answerStatus ==
-          ANSWER_STATUS.RESPOSTA_INCORRETA && (
+        currentQuestionResult?.teacherFeedback && (
           <>
             <QuizSubTitle subTitle="Observação do professor" />
 

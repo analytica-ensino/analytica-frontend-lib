@@ -1587,6 +1587,12 @@ export enum EssayStatus {
   ERROR = 'ERROR',
 }
 
+export enum EssayReviewStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  MODIFIED = 'MODIFIED',
+}
+
 export interface EssayHistoryItem {
   id: string;
   /** Título exibido. Se null/undefined, o componente cai no `fallbackTitle` */
@@ -1596,6 +1602,8 @@ export interface EssayHistoryItem {
   status: EssayStatus;
   /** Nota total (0..maxScore). null quando ainda não pontuou */
   totalScore: number | null;
+  /** Status da revisão do professor */
+  reviewStatus?: EssayReviewStatus | null;
 }
 
 export interface EssayHistoryData {
@@ -1622,7 +1630,8 @@ const resolveEssayVisualState = (
   essay: EssayHistoryItem,
   maxScore: number
 ): EssayVisualState => {
-  if (essay.status === EssayStatus.CORRECTED && essay.totalScore != null) {
+  // If essay has a score, show it (regardless of status - covers professor review cases)
+  if (essay.totalScore != null) {
     return {
       background: 'bg-subject-12',
       text: `${essay.totalScore} de ${maxScore}`,
@@ -1660,6 +1669,29 @@ const resolveEssayVisualState = (
   };
 };
 
+type ReviewBadgeConfig = {
+  label: string;
+  action: 'success' | 'info';
+} | null;
+
+const resolveReviewBadge = (essay: EssayHistoryItem): ReviewBadgeConfig => {
+  if (
+    essay.reviewStatus === EssayReviewStatus.APPROVED ||
+    essay.reviewStatus === EssayReviewStatus.MODIFIED
+  ) {
+    return { label: 'Revisado', action: 'success' };
+  }
+
+  if (
+    essay.status === EssayStatus.CORRECTED &&
+    essay.reviewStatus === EssayReviewStatus.PENDING
+  ) {
+    return { label: 'Corrigido por IA', action: 'info' };
+  }
+
+  return null;
+};
+
 const CardEssayHistory = forwardRef<HTMLDivElement, CardEssayHistoryProps>(
   ({ data, maxScore = 1000, onEssayClick, className, ...props }, ref) => {
     return (
@@ -1688,6 +1720,7 @@ const CardEssayHistory = forwardRef<HTMLDivElement, CardEssayHistoryProps>(
                   const isClickable = visual.clickable && !!onEssayClick;
                   const label =
                     essay.title ?? essay.fallbackTitle ?? 'Sem título';
+                  const reviewBadge = resolveReviewBadge(essay);
 
                   return (
                     <button
@@ -1713,6 +1746,15 @@ const CardEssayHistory = forwardRef<HTMLDivElement, CardEssayHistoryProps>(
                       </Text>
 
                       <div className="flex items-center gap-2 shrink-0">
+                        {reviewBadge && (
+                          <Badge
+                            variant="solid"
+                            action={reviewBadge.action}
+                            size="small"
+                          >
+                            {reviewBadge.label}
+                          </Badge>
+                        )}
                         <Text
                           size="sm"
                           className="text-text-800 whitespace-nowrap"

@@ -1,4 +1,4 @@
-import { STUDENT_ACTIVITY_STATUS } from '../types/activityDetails';
+import { STUDENT_ACTIVITY_STATUS, type StudentActivityStatus } from '../types/activityDetails';
 import {
   getStatusBadgeConfig,
   formatTimeSpent,
@@ -49,6 +49,40 @@ describe('activityDetailsUtils', () => {
         label: 'Não Entregue',
         bgColor: 'bg-red-50',
         textColor: 'text-red-800',
+      });
+    });
+
+    it('should return correct config for AWAITING_ANSWER_SHEET status', () => {
+      const config = getStatusBadgeConfig(
+        STUDENT_ACTIVITY_STATUS.AWAITING_ANSWER_SHEET
+      );
+
+      expect(config).toEqual({
+        label: 'Aguardando Gabarito',
+        bgColor: 'bg-sky-50',
+        textColor: 'text-sky-700',
+      });
+    });
+
+    it('should return correct config for ANSWER_SHEET_RECEIVED status', () => {
+      const config = getStatusBadgeConfig(
+        STUDENT_ACTIVITY_STATUS.ANSWER_SHEET_RECEIVED
+      );
+
+      expect(config).toEqual({
+        label: 'Gabarito Recebido',
+        bgColor: 'bg-emerald-50',
+        textColor: 'text-emerald-800',
+      });
+    });
+
+    it('should return fallback config for unknown status', () => {
+      const config = getStatusBadgeConfig('UNKNOWN_STATUS' as StudentActivityStatus);
+
+      expect(config).toEqual({
+        label: 'UNKNOWN_STATUS',
+        bgColor: 'bg-gray-50',
+        textColor: 'text-gray-700',
       });
     });
   });

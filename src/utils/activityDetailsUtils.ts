@@ -38,9 +38,25 @@ export const getStatusBadgeConfig = (
       bgColor: 'bg-red-50',
       textColor: 'text-red-800',
     },
+    [STUDENT_ACTIVITY_STATUS.AWAITING_ANSWER_SHEET]: {
+      label: 'Aguardando Gabarito',
+      bgColor: 'bg-sky-50',
+      textColor: 'text-sky-700',
+    },
+    [STUDENT_ACTIVITY_STATUS.ANSWER_SHEET_RECEIVED]: {
+      label: 'Gabarito Recebido',
+      bgColor: 'bg-emerald-50',
+      textColor: 'text-emerald-800',
+    },
   };
 
-  return configs[status];
+  return (
+    configs[status] ?? {
+      label: status,
+      bgColor: 'bg-gray-50',
+      textColor: 'text-gray-700',
+    }
+  );
 };
 
 /**

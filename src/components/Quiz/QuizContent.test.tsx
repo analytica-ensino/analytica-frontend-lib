@@ -1231,14 +1231,14 @@ describe('QuizContent', () => {
       expect(screen.queryByTestId('quiz-textarea')).not.toBeInTheDocument();
     });
 
-    it('should show teacher observation when answer is incorrect in result mode', () => {
+    it('should show teacher observation when teacherFeedback exists in result mode', () => {
       const mockQuestion = {
         id: 'question-1',
         statement: 'Test question',
       };
 
       const mockQuestionResult = {
-        answer: 'Wrong answer',
+        answer: 'Student answer',
         answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
         teacherFeedback: 'Lorem ipsum dolor sit amet',
       };
@@ -1263,7 +1263,7 @@ describe('QuizContent', () => {
       ).toBeInTheDocument();
     });
 
-    it('should not show teacher observation when answer is correct in result mode', () => {
+    it('should show teacher observation for correct answers when teacherFeedback exists', () => {
       const mockQuestion = {
         id: 'question-1',
         statement: 'Test question',
@@ -1272,6 +1272,38 @@ describe('QuizContent', () => {
       const mockQuestionResult = {
         answer: 'Correct answer',
         answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+        teacherFeedback: 'Parabéns pelo excelente trabalho!',
+      };
+
+      mockUseQuizStore.mockReturnValue({
+        getCurrentQuestion: mockGetCurrentQuestion,
+        getCurrentAnswer: mockGetCurrentAnswer,
+        selectDissertativeAnswer: mockSelectDissertativeAnswer,
+        getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
+        getDissertativeCharLimit: mockGetDissertativeCharLimit,
+        variant: QuizVariant.RESULT,
+      } as unknown as ReturnType<typeof useQuizStore>);
+
+      mockGetCurrentQuestion.mockReturnValue(mockQuestion);
+      mockGetQuestionResultByQuestionId.mockReturnValue(mockQuestionResult);
+
+      render(<QuizDissertative />);
+
+      expect(screen.getByText('Observação do professor')).toBeInTheDocument();
+      expect(
+        screen.getByText(/Parabéns pelo excelente trabalho!/)
+      ).toBeInTheDocument();
+    });
+
+    it('should not show teacher observation when teacherFeedback is undefined', () => {
+      const mockQuestion = {
+        id: 'question-1',
+        statement: 'Test question',
+      };
+
+      const mockQuestionResult = {
+        answer: 'Student answer',
+        answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
       };
 
       mockUseQuizStore.mockReturnValue({

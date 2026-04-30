@@ -1,6 +1,6 @@
 import { useCallback, useState, type KeyboardEvent } from 'react';
 import { PaperPlaneTiltIcon } from '@phosphor-icons/react';
-import IconButton from '../IconButton/IconButton';
+import Button from '../Button/Button';
 import TextArea from '../TextArea/TextArea';
 import { cn } from '../../utils/utils';
 
@@ -58,28 +58,47 @@ export default function ChatbotInput({
   return (
     <div
       className={cn(
-        'flex items-end gap-2 border-t border-background-200 bg-white p-3',
+        'flex items-center gap-2 border-t border-background-200 bg-background p-3',
         className
       )}
     >
-      <TextArea
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder={placeholder}
-        disabled={disabled}
-        autoResize
-        minHeight={MIN_HEIGHT}
-        aria-label="Mensagem para o assistente"
-        className="flex-1"
-        style={{ maxHeight: MAX_HEIGHT, overflowY: 'auto' }}
-      />
-      <IconButton
-        icon={<PaperPlaneTiltIcon size={18} weight="fill" />}
-        aria-label="Enviar mensagem"
+      {/* `TextArea` wraps its <textarea> in a flex column, so `flex-1`
+          needs to live on this outer wrapper — passing it via
+          `className` would only affect the inner element. */}
+      <div className="flex-1 min-w-0">
+        <TextArea
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          disabled={disabled}
+          autoResize
+          minHeight={MIN_HEIGHT}
+          aria-label="Mensagem para o assistente"
+          className="w-full"
+          style={{ maxHeight: MAX_HEIGHT, overflowY: 'auto' }}
+        />
+      </div>
+      {/* Use the library's `<Button>` with `variant="raw"` (same pattern
+          as `ChatbotFab`) so the send action goes through the shared
+          component. `raw` keeps custom sizing/shape without inheriting
+          the default solid/outline/link classes. */}
+      <Button
+        variant="raw"
+        type="button"
         onClick={submit}
         disabled={isSendDisabled}
-      />
+        aria-label="Enviar mensagem"
+        className={cn(
+          'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full',
+          'bg-primary-500 text-white transition-colors',
+          'hover:bg-primary-600',
+          'disabled:bg-background-200 disabled:text-text-500 disabled:cursor-not-allowed',
+          'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-300'
+        )}
+      >
+        <PaperPlaneTiltIcon size={20} weight="fill" />
+      </Button>
     </div>
   );
 }

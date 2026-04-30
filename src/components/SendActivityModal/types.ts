@@ -6,7 +6,30 @@ export type { CategoryConfig, Item } from '../CheckBoxGroup/CheckBoxGroup';
 /**
  * Activity subtype matching backend SIMULATION_SUBTYPE
  */
-export type ActivitySubtype = 'TAREFA' | 'TRABALHO' | 'PROVA';
+export enum ActivitySubtype {
+  TAREFA = 'TAREFA',
+  TRABALHO = 'TRABALHO',
+  PROVA = 'PROVA',
+}
+
+/**
+ * Activity mode for presencial exams
+ */
+export enum ActivityMode {
+  ONLINE = 'ONLINE',
+  PRESENCIAL = 'PRESENCIAL',
+}
+
+/**
+ * Activity mode options for UI selection
+ */
+export const ACTIVITY_MODE_OPTIONS: ReadonlyArray<{
+  value: ActivityMode;
+  label: string;
+}> = [
+  { value: ActivityMode.ONLINE, label: 'Online' },
+  { value: ActivityMode.PRESENCIAL, label: 'Presencial' },
+] as const;
 
 /**
  * Activity type options for UI selection
@@ -15,9 +38,9 @@ export const ACTIVITY_TYPE_OPTIONS: ReadonlyArray<{
   value: ActivitySubtype;
   label: string;
 }> = [
-  { value: 'TAREFA', label: 'Tarefa' },
-  { value: 'TRABALHO', label: 'Trabalho' },
-  { value: 'PROVA', label: 'Prova' },
+  { value: ActivitySubtype.TAREFA, label: 'Tarefa' },
+  { value: ActivitySubtype.TRABALHO, label: 'Trabalho' },
+  { value: ActivitySubtype.PROVA, label: 'Prova' },
 ] as const;
 
 /**
@@ -26,6 +49,8 @@ export const ACTIVITY_TYPE_OPTIONS: ReadonlyArray<{
 export interface SendActivityFormData {
   /** Activity subtype (Step 1) */
   subtype: ActivitySubtype;
+  /** Activity mode for presencial exams (Step 1, required when subtype is PROVA and enableExamMode is true) */
+  mode?: ActivityMode;
   /** Activity title (Step 1) */
   title: string;
   /** Notification message (Step 1) */
@@ -79,6 +104,8 @@ export interface SendActivityModalProps {
   onError?: (error: unknown) => void;
   /** Initial data to pre-fill the form */
   initialData?: SendActivityModalInitialData;
+  /** Enable "Modo de prova" field (Online/Presencial), required when subtype is PROVA */
+  enableExamMode?: boolean;
 }
 
 /**
@@ -86,6 +113,7 @@ export interface SendActivityModalProps {
  */
 export interface StepErrors {
   subtype?: string;
+  mode?: string;
   title?: string;
   students?: string;
   startDate?: string;

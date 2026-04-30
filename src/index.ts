@@ -370,6 +370,7 @@ export {
   CardAudio,
   CardEssayHistory,
   EssayStatus,
+  EssayReviewStatus,
 } from './components/Card/Card';
 export type {
   EssayHistoryItem,
@@ -483,6 +484,8 @@ export {
   QuizResultPerformance,
   QuizListResultByMateria,
 } from './components/Quiz/QuizResult';
+export { TeacherFeedbackSection } from './components/Quiz/TeacherFeedbackSection';
+export type { TeacherFeedbackSectionProps } from './components/Quiz/TeacherFeedbackSection';
 export { useQuizStore } from './components/Quiz/useQuizStore';
 
 // Quiz Types and Enums
@@ -549,7 +552,8 @@ export type { BreadcrumbItem } from './components/BreadcrumbMenu/breadcrumbStore
 // Auth Hooks
 export { useAppInitialization } from './hooks/useAppInitialization';
 export { useAppContent } from './hooks/useAppContent';
-export { useInstitutionId } from './hooks/useInstitution';
+export { useInstitutionId, useInstitution } from './hooks/useInstitution';
+export type { InstitutionData } from './hooks/useInstitution';
 export { useAuthStore } from './store/authStore';
 export { useAppStore } from './store/appStore';
 export { useQuestionFiltersStore } from './store/questionFiltersStore';
