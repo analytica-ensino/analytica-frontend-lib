@@ -2,8 +2,8 @@ import type { Story } from '@ladle/react';
 import { useState } from 'react';
 import { EssayStudentDetailsModal } from './EssayStudentDetailsModal';
 import Button from '../Button/Button';
+import { SimulatedPerformanceTag } from '../SimulatedStudentDetailsModal/types';
 import {
-  SimulatedPerformanceTag,
   type EssayStudentDetailsApiResponse,
   type EssayStudentDetailsData,
   type EssayCompetencyPerformance,
