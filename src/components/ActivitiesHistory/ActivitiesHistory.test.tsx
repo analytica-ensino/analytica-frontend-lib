@@ -168,6 +168,14 @@ describe('ActivitiesHistory', () => {
         ).toBeInTheDocument();
       });
     });
+
+    it('should render creator name in history tab', async () => {
+      render(<ActivitiesHistory {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Prof. Maria')).toBeInTheDocument();
+      });
+    });
   });
 
   describe('Tab navigation', () => {

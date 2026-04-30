@@ -192,6 +192,26 @@ describe('useActivitiesHistory', () => {
       const result = transformActivityToTableItem(activity);
       expect(result.creator).toBe('-');
     });
+
+    it('should use "-" when creator name is empty string', () => {
+      const activity: ActivityHistoryResponse = {
+        ...baseActivity,
+        creator: { id: 'creator-1', name: '' },
+      };
+
+      const result = transformActivityToTableItem(activity);
+      expect(result.creator).toBe('-');
+    });
+
+    it('should use "-" when creator name is whitespace only', () => {
+      const activity: ActivityHistoryResponse = {
+        ...baseActivity,
+        creator: { id: 'creator-1', name: '   ' },
+      };
+
+      const result = transformActivityToTableItem(activity);
+      expect(result.creator).toBe('-');
+    });
   });
 
   describe('handleActivityFetchError', () => {
