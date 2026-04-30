@@ -108,7 +108,10 @@ export const Default: Story = () => (
  */
 export const TriScoreMode: Story = () => (
   <div className="max-w-4xl">
-    <GeneralOverviewSection data={generateMockData()} scoreType={ScoreType.TRI} />
+    <GeneralOverviewSection
+      data={generateMockData()}
+      scoreType={ScoreType.TRI}
+    />
   </div>
 );
 
@@ -375,7 +378,10 @@ export const ScoreTypesComparison: Story = () => (
       <Text size="lg" weight="bold" className="mb-2 text-text-950">
         Modo TRI
       </Text>
-      <GeneralOverviewSection data={generateMockData()} scoreType={ScoreType.TRI} />
+      <GeneralOverviewSection
+        data={generateMockData()}
+        scoreType={ScoreType.TRI}
+      />
     </div>
   </div>
 );

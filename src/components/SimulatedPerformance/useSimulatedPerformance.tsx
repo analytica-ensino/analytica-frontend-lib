@@ -528,7 +528,8 @@ export function useSimulatedPerformance({
 
   const handleSubjectChange = useCallback(
     (subjectId: string | null) => {
-      const effectiveSubjectId = subjectId === 'all' || subjectId === null ? null : subjectId;
+      const effectiveSubjectId =
+        subjectId === 'all' || subjectId === null ? null : subjectId;
       if (effectiveSubjectId === selectedSubjectIdRef.current) {
         return;
       }
