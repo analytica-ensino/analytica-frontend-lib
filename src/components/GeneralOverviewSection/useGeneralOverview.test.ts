@@ -63,6 +63,8 @@ function createMockAreas(): AreaKnowledgePerformance[] {
 function createMockEssay(): EssayPerformance {
   return {
     name: 'Redação',
+    color: '#F43F5E',
+    icon: 'article',
     percentage: 75.5,
     totalEssays: 50,
     totalStudents: 30,

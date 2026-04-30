@@ -36,7 +36,9 @@ export interface ContentStudentItem {
   school: string;
   schoolYear: string;
   class: string;
+  /** Average score in simulated exams (0-1000 scale) */
   average: number;
+  /** Performance percentage for this content (0-100) */
   performance: number;
 }
 

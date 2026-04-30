@@ -1,6 +1,7 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useSimulatedPerformance } from './useSimulatedPerformance';
 import { SimulatedViewTab } from './types';
+import { SimulatedPerformanceTag } from '../SimulatedStudentDetailsModal/types';
 import type { BaseApiClient } from '../../index';
 
 // Mock react-router-dom
@@ -314,13 +315,14 @@ describe('useSimulatedPerformance', () => {
       await act(async () => {
         result.current.handleStudentRowClick({
           studentId: 'student-1',
+          institutionId: 'inst-1',
           userInstitutionId: 'user-inst-1',
           name: 'João Silva',
           school: 'Escola A',
           schoolYear: '3º Ano',
           class: 'Turma A',
           average: 75,
-          performance: 'ABOVE_AVERAGE',
+          performance: SimulatedPerformanceTag.ABOVE_AVERAGE,
         });
       });
 
@@ -348,6 +350,7 @@ describe('useSimulatedPerformance', () => {
         result.current.handleContentRowClick({
           contentId: 'content-1',
           contentName: 'Geometria',
+          bnccCode: 'EM13MAT01',
           subject: { id: 'subj-1', name: 'Matemática' },
           simulatedExamsCount: 5,
           questionsCount: 20,

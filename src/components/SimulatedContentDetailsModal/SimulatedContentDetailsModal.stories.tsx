@@ -33,7 +33,7 @@ function createMockData(
           school: 'Colégio Central',
           schoolYear: '3',
           class: 'A',
-          average: 72,
+          average: 720,
           performance: 72,
         },
         {
@@ -44,7 +44,7 @@ function createMockData(
           school: 'Colégio Central',
           schoolYear: '3',
           class: 'A',
-          average: 58,
+          average: 580,
           performance: 58,
         },
       ],
