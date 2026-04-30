@@ -7,17 +7,7 @@ import {
   type StudentDetailsApiResponse,
   type UseSimuladosStudentDetailsReturn,
 } from './types';
-
-/**
- * Body type for POST request
- */
-interface StudentDetailsBody {
-  userInstitutionId: string;
-  period?: string;
-  subjectId?: string | null;
-  page?: number;
-  limit?: number;
-}
+import { paramsToBody } from './utils';
 
 /**
  * Build the API endpoint with activity filters as query params
@@ -36,19 +26,6 @@ function buildEndpoint(simulationType: 'enem-1' | 'enem-2' | 'essays'): string {
 
   const queryString = params.toString();
   return `/performance/simulated/activities/student-details${queryString ? `?${queryString}` : ''}`;
-}
-
-/**
- * Convert params to POST body format
- */
-function paramsToBody(params: StudentDetailsParams): StudentDetailsBody {
-  return {
-    userInstitutionId: params.userInstitutionId,
-    period: params.period,
-    subjectId: params.subjectId ?? undefined,
-    page: params.page ?? 1,
-    limit: params.limit ?? 20,
-  };
 }
 
 /**
