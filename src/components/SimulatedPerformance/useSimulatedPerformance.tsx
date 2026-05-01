@@ -643,9 +643,7 @@ export function useSimulatedPerformance({
           ? currentSubjectId
           : undefined;
       const effectiveAreaKnowledgeId =
-        !isEssay &&
-        currentAreaKnowledgeId &&
-        currentAreaKnowledgeId !== 'all'
+        !isEssay && currentAreaKnowledgeId && currentAreaKnowledgeId !== 'all'
           ? currentAreaKnowledgeId
           : undefined;
 
