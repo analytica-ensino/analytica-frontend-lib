@@ -13,12 +13,15 @@ import type {
  * Proficiency cell component with progress bar
  */
 function ProficiencyCell({ percentage }: { readonly percentage: number }) {
+  // Clamp percentage to valid range
+  const clampedPercentage = Math.max(0, Math.min(100, percentage));
+
   const getProgressColorClass = (): string => {
-    if (percentage >= 70) {
+    if (clampedPercentage >= 70) {
       return 'bg-success-500';
     }
 
-    if (percentage >= 50) {
+    if (clampedPercentage >= 50) {
       return 'bg-warning-500';
     }
 
@@ -30,12 +33,12 @@ function ProficiencyCell({ percentage }: { readonly percentage: number }) {
   return (
     <div className="flex items-center justify-center gap-2">
       <Text size="sm" className="min-w-[40px] text-right text-text-950">
-        {Math.round(percentage)}%
+        {Math.round(clampedPercentage)}%
       </Text>
       <div className="w-16 h-2 bg-background-100 rounded-full overflow-hidden">
         <div
           className={cn('h-full rounded-full', progressColorClass)}
-          style={{ width: `${percentage}%` }}
+          style={{ width: `${clampedPercentage}%` }}
         />
       </div>
     </div>
@@ -97,7 +100,7 @@ export function EssayCompetenciesTable({
   schoolYearIds,
   classIds,
 }: EssayCompetenciesTableProps) {
-  const { data, loading, fetchOverview } = useEssayCompetenciesOverview(api);
+  const { data, loading, error, fetchOverview } = useEssayCompetenciesOverview(api);
   const [selectedCompetence, setSelectedCompetence] = useState<{
     number: number;
     name: string;
@@ -132,6 +135,22 @@ export function EssayCompetenciesTable({
   }, []);
 
   const competencies = useMemo(() => data?.competencies ?? [], [data]);
+
+  // Render error state
+  if (error) {
+    return (
+      <div className="bg-background border border-border-50 rounded-xl p-5">
+        <Text as="h3" size="lg" weight="bold" className="text-text-950 mb-4">
+          Proficiência por competência
+        </Text>
+        <div className="flex items-center justify-center py-8 bg-error-50 rounded-lg">
+          <Text size="sm" className="text-error-500">
+            {error}
+          </Text>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

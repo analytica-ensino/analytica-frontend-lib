@@ -28,7 +28,7 @@ function buildEndpoint(
   const params = new URLSearchParams();
 
   activityFilters.types?.forEach((t) => params.append('types', t));
-  activityFilters.subtypes?.forEach((s) => params.append('subtypes', s));
+  // Note: subtypes are not sent - filtering is done via subjectId/areaKnowledgeId in the body
   activityFilters.statuses?.forEach((s) => params.append('statuses', s));
 
   if (scoreType && scoreType !== 'percentage') {

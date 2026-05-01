@@ -114,7 +114,7 @@ describe('useSimulatedContents', () => {
     });
 
     expect(mockApi.post).toHaveBeenCalledWith(
-      '/performance/simulated/activities/contents-performance?types=SIMULADO&subtypes=ENEM_PROVA_2&scoreType=tri',
+      '/performance/simulated/activities/contents-performance?types=SIMULADO&scoreType=tri',
       expect.any(Object)
     );
   });
@@ -143,7 +143,7 @@ describe('useSimulatedContents', () => {
     });
 
     expect(mockApi.post).toHaveBeenCalledWith(
-      '/performance/simulated/activities/contents-performance?types=SIMULADO&subtypes=ENEM_PROVA_1',
+      '/performance/simulated/activities/contents-performance?types=SIMULADO',
       {
         period: '6_MONTHS',
         subjectId: 'subject-1',

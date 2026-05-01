@@ -121,7 +121,7 @@ export function SimulatedRankingCard({
       <div className="flex flex-col gap-2">
         {students.map((student) => (
           <StudentCard
-            key={`${variant}-${student.position}`}
+            key={student.userInstitutionId ?? `${variant}-${student.position}`}
             student={student}
             variant={variant}
             scoreType={scoreType}

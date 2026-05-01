@@ -391,6 +391,8 @@ export {
   isStudentContentsData,
   simulationTypeToActivityFilters,
   SIMULATED_PERFORMANCE_TAG_CONFIG,
+  PERFORMANCE_TAG_TO_BADGE_ACTION,
+  PerformanceBadgeAction,
   ReportSimulationType,
 } from './components/SimulatedStudentDetailsModal';
 export type {

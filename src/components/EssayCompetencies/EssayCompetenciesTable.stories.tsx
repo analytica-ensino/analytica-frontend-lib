@@ -174,7 +174,7 @@ function createSuccessApi(delay: number = 500): BaseApiClient {
       await new Promise((resolve) => setTimeout(resolve, delay));
 
       // Handle overview endpoint
-      if (url.includes('competencies/overview')) {
+      if (url.includes('competencies-overview')) {
         const response: EssayCompetenciesOverviewApiResponse = {
           message: 'Success',
           data: overviewData,
@@ -183,7 +183,7 @@ function createSuccessApi(delay: number = 500): BaseApiClient {
       }
 
       // Handle details endpoint
-      if (url.includes('competencies/details')) {
+      if (url.includes('competence-details')) {
         const params = data as {
           competenceNumber: number;
           page?: number;

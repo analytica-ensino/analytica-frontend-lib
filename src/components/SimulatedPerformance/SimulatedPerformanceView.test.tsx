@@ -479,7 +479,9 @@ describe('SimulatedPerformanceView', () => {
         />
       );
 
-      expect(screen.getByText('Erro ao carregar dados')).toBeInTheDocument();
+      // Multiple error states are displayed (ranking section and table section)
+      const errorMessages = screen.getAllByText('Erro ao carregar dados');
+      expect(errorMessages.length).toBeGreaterThan(0);
     });
   });
 

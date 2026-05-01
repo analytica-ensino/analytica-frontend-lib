@@ -93,9 +93,19 @@ export function describeArc(
   startAngle: number,
   endAngle: number
 ): string {
+  const span = endAngle - startAngle;
+
+  // For full circle (or near-full), use two arcs to avoid SVG arc degeneracy
+  if (span >= 359.99) {
+    const midAngle = startAngle + 180;
+    const s = polarToCartesian(cx, cy, r, startAngle);
+    const m = polarToCartesian(cx, cy, r, midAngle);
+    return `M ${cx} ${cy} L ${s.x} ${s.y} A ${r} ${r} 0 1 1 ${m.x} ${m.y} A ${r} ${r} 0 1 1 ${s.x} ${s.y} Z`;
+  }
+
   const s = polarToCartesian(cx, cy, r, endAngle);
   const e = polarToCartesian(cx, cy, r, startAngle);
-  const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+  const largeArc = span > 180 ? 1 : 0;
   return `M ${cx} ${cy} L ${s.x} ${s.y} A ${r} ${r} 0 ${largeArc} 0 ${e.x} ${e.y} Z`;
 }
 

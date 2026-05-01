@@ -139,6 +139,7 @@ export function SimulatedPerformanceView({
               position: index + 1,
               name: s.name,
               average: s.average,
+              userInstitutionId: s.userInstitutionId,
             })) || []
           }
           attentionStudents={
@@ -146,6 +147,7 @@ export function SimulatedPerformanceView({
               position: index + 1,
               name: s.name,
               average: s.average,
+              userInstitutionId: s.userInstitutionId,
             })) || []
           }
           highlightTitle="Estudantes em destaque"
@@ -183,83 +185,109 @@ export function SimulatedPerformanceView({
           />
 
           {/* Students Table */}
-          <div
-            className={`bg-background border border-border-50 rounded-xl p-5 transition-opacity duration-200 ${
-              studentsOverview.isRefreshing
-                ? 'opacity-60 pointer-events-none'
-                : ''
-            }`}
-          >
-            <TableProvider<SimulatedStudentItem>
-              data={studentsOverview.data?.students?.data || []}
-              headers={studentsTableColumns}
-              variant="borderless"
-              loading={studentsOverview.loading}
-              enableSearch
-              enableTableSort
-              enablePagination
-              enableRowClick
-              onRowClick={handleStudentRowClick}
-              rowKey="studentId"
-              paginationConfig={{
-                itemLabel: 'estudantes',
-                itemsPerPageOptions: [10, 20, 50, 100],
-                defaultItemsPerPage:
-                  studentsOverview.data?.students?.limit || 10,
-                totalItems: studentsOverview.data?.students?.total || 0,
-              }}
-              searchPlaceholder="Buscar estudante"
-              noSearchResultState={
-                noSearchImage ? { image: noSearchImage } : undefined
-              }
-              headerContent={
-                <Text as="h3" size="lg" weight="bold" className="text-text-950">
-                  Desempenho por estudante
+          {studentsOverview.error ? (
+            <div className="bg-background border border-border-50 rounded-xl p-5">
+              <Text as="h3" size="lg" weight="bold" className="text-text-950 mb-4">
+                Desempenho por estudante
+              </Text>
+              <div className="flex items-center justify-center py-8 bg-error-50 rounded-lg">
+                <Text size="sm" className="text-error-500">
+                  {studentsOverview.error}
                 </Text>
-              }
-            />
-          </div>
+              </div>
+            </div>
+          ) : (
+            <div
+              className={`bg-background border border-border-50 rounded-xl p-5 transition-opacity duration-200 ${
+                studentsOverview.isRefreshing
+                  ? 'opacity-60 pointer-events-none'
+                  : ''
+              }`}
+            >
+              <TableProvider<SimulatedStudentItem>
+                data={studentsOverview.data?.students?.data || []}
+                headers={studentsTableColumns}
+                variant="borderless"
+                loading={studentsOverview.loading}
+                enableSearch
+                enableTableSort
+                enablePagination
+                enableRowClick
+                onRowClick={handleStudentRowClick}
+                rowKey="studentId"
+                paginationConfig={{
+                  itemLabel: 'estudantes',
+                  itemsPerPageOptions: [10, 20, 50, 100],
+                  defaultItemsPerPage:
+                    studentsOverview.data?.students?.limit || 10,
+                  totalItems: studentsOverview.data?.students?.total || 0,
+                }}
+                searchPlaceholder="Buscar estudante"
+                noSearchResultState={
+                  noSearchImage ? { image: noSearchImage } : undefined
+                }
+                headerContent={
+                  <Text as="h3" size="lg" weight="bold" className="text-text-950">
+                    Desempenho por estudante
+                  </Text>
+                }
+              />
+            </div>
+          )}
         </>
       )}
 
       {/* Skills/Contents view content */}
       {simulatedViewTab === SimulatedViewTab.SKILLS && !isEssaySelected && (
-        <div
-          className={`bg-background border border-border-50 rounded-xl p-5 transition-opacity duration-200 ${
-            contentsPerformance.isRefreshing
-              ? 'opacity-60 pointer-events-none'
-              : ''
-          }`}
-        >
-          <TableProvider<SimulatedContentItem>
-            data={contentsPerformance.data?.data || []}
-            headers={contentsTableColumns}
-            variant="borderless"
-            loading={contentsPerformance.loading}
-            enableSearch
-            enableTableSort
-            enablePagination
-            enableRowClick
-            onRowClick={handleContentRowClick}
-            onParamsChange={handleContentsParamsChange}
-            rowKey="contentId"
-            paginationConfig={{
-              itemLabel: 'habilidades',
-              itemsPerPageOptions: [10, 20, 50, 100],
-              defaultItemsPerPage: contentsPerformance.data?.limit || 10,
-              totalItems: contentsPerformance.data?.total || 0,
-            }}
-            searchPlaceholder="Buscar habilidade"
-            noSearchResultState={
-              noSearchImage ? { image: noSearchImage } : undefined
-            }
-            headerContent={
-              <Text as="h3" size="lg" weight="bold" className="text-text-950">
-                Desempenho por habilidade
+        contentsPerformance.error ? (
+          <div className="bg-background border border-border-50 rounded-xl p-5">
+            <Text as="h3" size="lg" weight="bold" className="text-text-950 mb-4">
+              Desempenho por habilidade
+            </Text>
+            <div className="flex items-center justify-center py-8 bg-error-50 rounded-lg">
+              <Text size="sm" className="text-error-500">
+                {contentsPerformance.error}
               </Text>
-            }
-          />
-        </div>
+            </div>
+          </div>
+        ) : (
+          <div
+            className={`bg-background border border-border-50 rounded-xl p-5 transition-opacity duration-200 ${
+              contentsPerformance.isRefreshing
+                ? 'opacity-60 pointer-events-none'
+                : ''
+            }`}
+          >
+            <TableProvider<SimulatedContentItem>
+              data={contentsPerformance.data?.data || []}
+              headers={contentsTableColumns}
+              variant="borderless"
+              loading={contentsPerformance.loading}
+              enableSearch
+              enableTableSort
+              enablePagination
+              enableRowClick
+              onRowClick={handleContentRowClick}
+              onParamsChange={handleContentsParamsChange}
+              rowKey="contentId"
+              paginationConfig={{
+                itemLabel: 'habilidades',
+                itemsPerPageOptions: [10, 20, 50, 100],
+                defaultItemsPerPage: contentsPerformance.data?.limit || 10,
+                totalItems: contentsPerformance.data?.total || 0,
+              }}
+              searchPlaceholder="Buscar habilidade"
+              noSearchResultState={
+                noSearchImage ? { image: noSearchImage } : undefined
+              }
+              headerContent={
+                <Text as="h3" size="lg" weight="bold" className="text-text-950">
+                  Desempenho por habilidade
+                </Text>
+              }
+            />
+          </div>
+        )
       )}
 
       {/* Essay Competencies Table */}

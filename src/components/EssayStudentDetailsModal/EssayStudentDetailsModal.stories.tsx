@@ -52,6 +52,15 @@ const API_DELAY = {
 // ============================================================================
 
 /**
+ * Simple seeded pseudo-random number generator for deterministic mock data.
+ * Returns a value between 0 and 1.
+ */
+function seededRandom(seed: number): number {
+  const x = Math.sin(seed * 9999) * 10000;
+  return x - Math.floor(x);
+}
+
+/**
  * Generate mock competencies (5 ENEM competencies)
  */
 function generateMockCompetencies(
@@ -70,7 +79,7 @@ function generateMockCompetencies(
       ESSAY_SCORE.MAX,
       baseScore +
         i * ESSAY_SCORE.INCREMENT_PER_COMPETENCY +
-        Math.random() * ESSAY_SCORE.RANDOM_VARIATION
+        seededRandom(i + 1) * ESSAY_SCORE.RANDOM_VARIATION
     );
     return {
       number: i + 1,
@@ -78,7 +87,7 @@ function generateMockCompetencies(
       averageScore: score,
       averagePercentage: (score / ESSAY_SCORE.MAX) * 100,
       essaysCount:
-        Math.floor(Math.random() * ESSAYS_COUNT.MAX) + ESSAYS_COUNT.MIN,
+        Math.floor(seededRandom(i + 100) * ESSAYS_COUNT.MAX) + ESSAYS_COUNT.MIN,
     };
   });
 }

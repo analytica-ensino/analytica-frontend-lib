@@ -244,7 +244,9 @@ export const SimplePieChart = ({
         width={size}
         height={size}
         viewBox={`0 0 ${size} ${size}`}
-        aria-hidden="true"
+        aria-hidden={!emptyText}
+        role={emptyText ? 'img' : undefined}
+        aria-label={emptyText || undefined}
       >
         <circle
           cx={center}

@@ -91,11 +91,14 @@ export function SimulatedFiltersModal({
 
   // Track if already initialized to avoid re-initialization
   const hasInitialized = useRef(false);
+  // Track first filter run to preserve initial student selection
+  const isFirstFilterRun = useRef(true);
 
   // Reset initialization flag when modal closes
   useEffect(() => {
     if (!isOpen) {
       hasInitialized.current = false;
+      isFirstFilterRun.current = true;
     }
   }, [isOpen]);
 
@@ -178,12 +181,17 @@ export function SimulatedFiltersModal({
   useEffect(() => {
     if (hasClassSelected) {
       fetchStudents(currentFilters);
-      // Clear student selection when filters change
-      setSelectedStudentIds([]);
+      // Clear student selection only on subsequent filter changes, not on initial load
+      if (!isFirstFilterRun.current) {
+        setSelectedStudentIds([]);
+      }
     } else {
       clearStudents();
-      setSelectedStudentIds([]);
+      if (!isFirstFilterRun.current) {
+        setSelectedStudentIds([]);
+      }
     }
+    isFirstFilterRun.current = false;
   }, [
     currentFilters.schoolIds.join(','),
     currentFilters.schoolYearIds.join(','),

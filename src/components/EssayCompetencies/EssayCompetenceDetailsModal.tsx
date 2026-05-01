@@ -8,6 +8,7 @@ import { useEssayCompetenceDetails } from './useEssayCompetenceDetails';
 import {
   SIMULATED_PERFORMANCE_TAG_CONFIG,
   PERFORMANCE_TAG_TO_BADGE_ACTION,
+  PerformanceBadgeAction,
 } from '../SimulatedStudentDetailsModal/types';
 import { BadgeActionType } from '../../types/common';
 import type {
@@ -66,13 +67,14 @@ const TABLE_COLUMNS = [
     width: '140px',
     render: (_value: unknown, row: Record<string, unknown>) => {
       const student = row as unknown as EssayCompetenceStudentItem;
+      const badgeAction =
+        PERFORMANCE_TAG_TO_BADGE_ACTION[student.performance] ??
+        PerformanceBadgeAction.INFO;
+      const tagConfig = SIMULATED_PERFORMANCE_TAG_CONFIG[student.performance];
+      const label = tagConfig?.label ?? 'Desconhecido';
       return (
-        <Badge
-          variant="solid"
-          action={PERFORMANCE_TAG_TO_BADGE_ACTION[student.performance]}
-          size="small"
-        >
-          {SIMULATED_PERFORMANCE_TAG_CONFIG[student.performance].label}
+        <Badge variant="solid" action={badgeAction} size="small">
+          {label}
         </Badge>
       );
     },
@@ -253,7 +255,10 @@ export function EssayCompetenceDetailsModal({
             itemsPerPageOptions: [10, 20, 50],
             defaultItemsPerPage: 10,
             totalItems: data.students.total,
-            totalPages: Math.ceil(data.students.total / data.students.limit),
+            totalPages:
+              data.students.limit > 0
+                ? Math.ceil(data.students.total / data.students.limit)
+                : 1,
           }}
           onParamsChange={handleParamsChange}
         />

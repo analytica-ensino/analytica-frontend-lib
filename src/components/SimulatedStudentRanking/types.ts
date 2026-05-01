@@ -13,6 +13,7 @@ export interface SimulatedStudentRankingItem {
   position: number;
   name: string;
   average: number;
+  userInstitutionId?: string;
 }
 
 /**

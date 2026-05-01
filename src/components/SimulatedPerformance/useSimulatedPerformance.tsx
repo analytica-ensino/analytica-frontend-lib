@@ -311,6 +311,7 @@ export function useSimulatedPerformance({
     if (filters.schoolIds.length > 0) count++;
     if (filters.schoolYearIds.length > 0) count++;
     if (filters.classIds.length > 0) count++;
+    if (filters.studentsIds.length > 0) count++;
     return count;
   }, [filters]);
 
@@ -643,6 +644,7 @@ export function useSimulatedPerformance({
         schoolIds: filtersRef.current.schoolIds,
         schoolYearIds: filtersRef.current.schoolYearIds,
         classIds: filtersRef.current.classIds,
+        studentsIds: filtersRef.current.studentsIds,
         page: newPage ?? 1,
         limit: newLimit ?? 10,
         orderBy,
@@ -671,6 +673,7 @@ export function useSimulatedPerformance({
 
   // === Carregamento inicial ===
   const initialLoadRef = useRef(false);
+  const hasInitialLoadCompleted = useRef(false);
 
   useEffect(() => {
     if (initialLoadRef.current) return;
@@ -678,11 +681,16 @@ export function useSimulatedPerformance({
 
     loadStudentsData(null, null);
     loadGeneralOverviewData();
+
+    // Set after microtask to prevent scoreType effect from firing on mount
+    Promise.resolve().then(() => {
+      hasInitialLoadCompleted.current = true;
+    });
   }, [loadStudentsData, loadGeneralOverviewData]);
 
   // === Recarregar quando scoreType muda ===
   useEffect(() => {
-    if (!initialLoadRef.current) return;
+    if (!hasInitialLoadCompleted.current) return;
 
     if (simulatedViewTabRef.current === SimulatedViewTab.STUDENTS) {
       loadStudentsData(

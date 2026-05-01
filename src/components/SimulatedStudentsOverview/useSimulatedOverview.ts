@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import type { BaseApiClient } from '../../types/api';
 import type {
   SimulatedOverviewData,
@@ -113,6 +113,9 @@ export function useSimulatedOverview(
   const [isRefreshing, setIsRefreshing] = useState(initialState.isRefreshing);
   const [error, setError] = useState<string | null>(initialState.error);
 
+  // Track request ID to ignore stale responses
+  const requestIdRef = useRef(0);
+
   /**
    * Convert params to POST body format
    */
@@ -136,6 +139,8 @@ export function useSimulatedOverview(
 
   const fetchOverview = useCallback(
     async (params: SimulatedOverviewParams, refresh = false) => {
+      const currentRequestId = ++requestIdRef.current;
+
       try {
         if (refresh) {
           setIsRefreshing(true);
@@ -152,22 +157,33 @@ export function useSimulatedOverview(
           body
         );
 
+        // Ignore stale responses
+        if (currentRequestId !== requestIdRef.current) return;
+
         setData(response.data.data);
       } catch (err) {
+        // Ignore errors from stale requests
+        if (currentRequestId !== requestIdRef.current) return;
+
         const errorMessage =
           err instanceof Error
             ? err.message
             : 'Não foi possível carregar os dados de simulados';
         setError(errorMessage);
       } finally {
-        setLoading(false);
-        setIsRefreshing(false);
+        // Only update loading state for current request
+        if (currentRequestId === requestIdRef.current) {
+          setLoading(false);
+          setIsRefreshing(false);
+        }
       }
     },
     [api]
   );
 
   const reset = useCallback(() => {
+    // Invalidate any in-flight requests
+    requestIdRef.current++;
     setData(initialState.data);
     setLoading(initialState.loading);
     setIsRefreshing(initialState.isRefreshing);

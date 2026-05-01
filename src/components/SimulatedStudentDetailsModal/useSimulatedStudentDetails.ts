@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import type { BaseApiClient } from '../../types/api';
 import {
   ReportSimulationType,
@@ -69,8 +69,13 @@ export function useSimulatedStudentDetails(
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Track request ID to ignore stale responses
+  const requestIdRef = useRef(0);
+
   const fetchDetails = useCallback(
     async (params: StudentDetailsParams) => {
+      const currentRequestId = ++requestIdRef.current;
+
       try {
         setLoading(true);
         setError(null);
@@ -83,21 +88,32 @@ export function useSimulatedStudentDetails(
           body
         );
 
+        // Ignore stale responses
+        if (currentRequestId !== requestIdRef.current) return;
+
         setData(response.data.data);
       } catch (err) {
+        // Ignore errors from stale requests
+        if (currentRequestId !== requestIdRef.current) return;
+
         const errorMessage =
           err instanceof Error
             ? err.message
             : 'Não foi possível carregar os detalhes do estudante';
         setError(errorMessage);
       } finally {
-        setLoading(false);
+        // Only update loading state for current request
+        if (currentRequestId === requestIdRef.current) {
+          setLoading(false);
+        }
       }
     },
     [api]
   );
 
   const reset = useCallback(() => {
+    // Invalidate any in-flight requests
+    requestIdRef.current++;
     setData(null);
     setLoading(false);
     setError(null);
