@@ -187,7 +187,12 @@ export function SimulatedPerformanceView({
           {/* Students Table */}
           {studentsOverview.error ? (
             <div className="bg-background border border-border-50 rounded-xl p-5">
-              <Text as="h3" size="lg" weight="bold" className="text-text-950 mb-4">
+              <Text
+                as="h3"
+                size="lg"
+                weight="bold"
+                className="text-text-950 mb-4"
+              >
                 Desempenho por estudante
               </Text>
               <div className="flex items-center justify-center py-8 bg-error-50 rounded-lg">
@@ -227,7 +232,12 @@ export function SimulatedPerformanceView({
                   noSearchImage ? { image: noSearchImage } : undefined
                 }
                 headerContent={
-                  <Text as="h3" size="lg" weight="bold" className="text-text-950">
+                  <Text
+                    as="h3"
+                    size="lg"
+                    weight="bold"
+                    className="text-text-950"
+                  >
                     Desempenho por estudante
                   </Text>
                 }
@@ -238,10 +248,16 @@ export function SimulatedPerformanceView({
       )}
 
       {/* Skills/Contents view content */}
-      {simulatedViewTab === SimulatedViewTab.SKILLS && !isEssaySelected && (
-        contentsPerformance.error ? (
+      {simulatedViewTab === SimulatedViewTab.SKILLS &&
+        !isEssaySelected &&
+        (contentsPerformance.error ? (
           <div className="bg-background border border-border-50 rounded-xl p-5">
-            <Text as="h3" size="lg" weight="bold" className="text-text-950 mb-4">
+            <Text
+              as="h3"
+              size="lg"
+              weight="bold"
+              className="text-text-950 mb-4"
+            >
               Desempenho por habilidade
             </Text>
             <div className="flex items-center justify-center py-8 bg-error-50 rounded-lg">
@@ -287,8 +303,7 @@ export function SimulatedPerformanceView({
               }
             />
           </div>
-        )
-      )}
+        ))}
 
       {/* Essay Competencies Table */}
       {simulatedViewTab === SimulatedViewTab.SKILLS && isEssaySelected && (

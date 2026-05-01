@@ -100,7 +100,8 @@ export function EssayCompetenciesTable({
   schoolYearIds,
   classIds,
 }: EssayCompetenciesTableProps) {
-  const { data, loading, error, fetchOverview } = useEssayCompetenciesOverview(api);
+  const { data, loading, error, fetchOverview } =
+    useEssayCompetenciesOverview(api);
   const [selectedCompetence, setSelectedCompetence] = useState<{
     number: number;
     name: string;
