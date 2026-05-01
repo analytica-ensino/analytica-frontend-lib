@@ -278,6 +278,7 @@ const createDefaultProps = (
   handleSubjectChange: jest.fn(),
   handleViewTabChange: jest.fn(),
   handleFiltersApply: jest.fn(),
+  handleStudentsParamsChange: jest.fn(),
   handleContentsParamsChange: jest.fn(),
   handleStudentRowClick: jest.fn(),
   handleContentRowClick: jest.fn(),
