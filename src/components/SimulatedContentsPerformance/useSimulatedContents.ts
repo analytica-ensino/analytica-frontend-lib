@@ -73,6 +73,82 @@ export function useSimulatedContents(
   const [error, setError] = useState<string | null>(null);
   const isFirstLoad = useRef(true);
   const latestRequestId = useRef(0);
+  const isCurrentRequest = (requestId: number) =>
+    requestId === latestRequestId.current;
+
+  const buildRequestBody = (params: SimulatedContentsParams) => ({
+    period: params.period,
+    subjectId:
+      params.subjectId && params.subjectId !== 'all'
+        ? params.subjectId
+        : undefined,
+    areaKnowledgeId:
+      params.areaKnowledgeId && params.areaKnowledgeId !== 'all'
+        ? params.areaKnowledgeId
+        : undefined,
+    schoolIds: params.schoolIds,
+    schoolYearIds: params.schoolYearIds,
+    classIds: params.classIds,
+    studentsIds: params.studentsIds,
+    page: params.page ?? 1,
+    limit: params.limit ?? 10,
+    orderBy: params.orderBy ?? 'correctPercentage',
+    order: params.order ?? 'asc',
+  });
+
+  const handleNoEndpoint = (requestId: number) => {
+    if (!isCurrentRequest(requestId)) {
+      return;
+    }
+    setData(null);
+    setError(null);
+    setLoading(false);
+    setIsRefreshing(false);
+    isFirstLoad.current = true;
+  };
+
+  const startRequestState = (requestId: number, refresh: boolean) => {
+    if (!isCurrentRequest(requestId)) {
+      return;
+    }
+    if (isFirstLoad.current && !refresh) {
+      setLoading(true);
+    } else {
+      setIsRefreshing(true);
+    }
+    setError(null);
+  };
+
+  const handleSuccess = (
+    requestId: number,
+    response: { data: ContentsPerformanceApiResponse }
+  ) => {
+    if (!isCurrentRequest(requestId)) {
+      return;
+    }
+    setData(response.data.data);
+    isFirstLoad.current = false;
+  };
+
+  const handleError = (requestId: number, err: unknown) => {
+    if (!isCurrentRequest(requestId)) {
+      return;
+    }
+    const errorMessage =
+      err instanceof Error
+        ? err.message
+        : 'Erro ao carregar dados de habilidades';
+    setError(errorMessage);
+    setData(null);
+  };
+
+  const finishRequestState = (requestId: number) => {
+    if (!isCurrentRequest(requestId)) {
+      return;
+    }
+    setLoading(false);
+    setIsRefreshing(false);
+  };
 
   const fetchContents = useCallback(
     async (params: SimulatedContentsParams, refresh = false) => {
@@ -81,69 +157,22 @@ export function useSimulatedContents(
 
       // Essays don't have contents
       if (!endpoint) {
-        if (localRequestId === latestRequestId.current) {
-          setData(null);
-          setError(null);
-          setLoading(false);
-          setIsRefreshing(false);
-          isFirstLoad.current = true;
-        }
+        handleNoEndpoint(localRequestId);
         return;
       }
 
-      if (localRequestId === latestRequestId.current) {
-        if (isFirstLoad.current && !refresh) {
-          setLoading(true);
-        } else {
-          setIsRefreshing(true);
-        }
-        setError(null);
-      }
+      startRequestState(localRequestId, refresh);
 
       try {
         const response = await api.post<ContentsPerformanceApiResponse>(
           endpoint,
-          {
-            period: params.period,
-            subjectId:
-              params.subjectId && params.subjectId !== 'all'
-                ? params.subjectId
-                : undefined,
-            areaKnowledgeId:
-              params.areaKnowledgeId && params.areaKnowledgeId !== 'all'
-                ? params.areaKnowledgeId
-                : undefined,
-            schoolIds: params.schoolIds,
-            schoolYearIds: params.schoolYearIds,
-            classIds: params.classIds,
-            studentsIds: params.studentsIds,
-            page: params.page ?? 1,
-            limit: params.limit ?? 10,
-            orderBy: params.orderBy ?? 'correctPercentage',
-            order: params.order ?? 'asc',
-          }
+          buildRequestBody(params)
         );
-
-        if (localRequestId === latestRequestId.current) {
-          setData(response.data.data);
-          isFirstLoad.current = false;
-        }
+        handleSuccess(localRequestId, response);
       } catch (err) {
-        if (localRequestId !== latestRequestId.current) {
-          return;
-        }
-
-        const errorMessage =
-          err instanceof Error
-            ? err.message
-            : 'Erro ao carregar dados de habilidades';
-        setError(errorMessage);
-        setData(null);
+        handleError(localRequestId, err);
       } finally {
-        if (localRequestId === latestRequestId.current) {
-          setLoading(false);
-          setIsRefreshing(false);
-        }
+        finishRequestState(localRequestId);
       }
     },
     [api]
