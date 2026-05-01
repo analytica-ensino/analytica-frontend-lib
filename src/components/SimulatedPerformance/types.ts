@@ -66,6 +66,7 @@ export interface UseSimulatedPerformanceReturn {
   handleSubjectChange: (subjectId: string | null) => void;
   handleViewTabChange: (tab: string) => void;
   handleFiltersApply: (filters: SimulatedFilters) => void;
+  handleStudentsParamsChange: (params: Record<string, unknown>) => void;
   handleContentsParamsChange: (params: Record<string, unknown>) => void;
   handleStudentRowClick: (row: SimulatedStudentItem) => void;
   handleContentRowClick: (row: SimulatedContentItem) => void;

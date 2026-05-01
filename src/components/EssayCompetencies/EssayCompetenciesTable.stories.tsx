@@ -251,7 +251,7 @@ function createEmptyApi(delay: number = 500): BaseApiClient {
     post: async function <T>(url: string): Promise<{ data: T }> {
       await new Promise((resolve) => setTimeout(resolve, delay));
 
-      if (url.includes('competencies/overview')) {
+      if (url.includes('competencies-overview')) {
         const response: EssayCompetenciesOverviewApiResponse = {
           message: 'Success',
           data: {
@@ -335,7 +335,7 @@ function createHighPerformanceApi(delay: number = 500): BaseApiClient {
     ): Promise<{ data: T }> {
       await new Promise((resolve) => setTimeout(resolve, delay));
 
-      if (url.includes('competencies/overview')) {
+      if (url.includes('competencies-overview')) {
         const response: EssayCompetenciesOverviewApiResponse = {
           message: 'Success',
           data: overviewData,
@@ -343,7 +343,7 @@ function createHighPerformanceApi(delay: number = 500): BaseApiClient {
         return { data: response as T };
       }
 
-      if (url.includes('competencies/details')) {
+      if (url.includes('competence-details')) {
         const params = data as {
           competenceNumber: number;
           page?: number;
@@ -433,7 +433,7 @@ function createLowPerformanceApi(delay: number = 500): BaseApiClient {
     ): Promise<{ data: T }> {
       await new Promise((resolve) => setTimeout(resolve, delay));
 
-      if (url.includes('competencies/overview')) {
+      if (url.includes('competencies-overview')) {
         const response: EssayCompetenciesOverviewApiResponse = {
           message: 'Success',
           data: overviewData,
@@ -441,7 +441,7 @@ function createLowPerformanceApi(delay: number = 500): BaseApiClient {
         return { data: response as T };
       }
 
-      if (url.includes('competencies/details')) {
+      if (url.includes('competence-details')) {
         const params = data as {
           competenceNumber: number;
           page?: number;

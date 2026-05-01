@@ -78,6 +78,7 @@ export function SimulatedPerformanceView({
   handleSubjectChange,
   handleViewTabChange,
   handleFiltersApply,
+  handleStudentsParamsChange,
   handleContentsParamsChange,
   handleStudentRowClick,
   handleContentRowClick,
@@ -178,11 +179,13 @@ export function SimulatedPerformanceView({
       {simulatedViewTab === SimulatedViewTab.STUDENTS && (
         <>
           {/* Performance Distribution Chart */}
-          <PerformanceDistributionChart
-            counters={studentsOverview.data?.counters}
-            totalStudents={studentsOverview.data?.totalStudents}
-            loading={studentsOverview.loading}
-          />
+          {!studentsOverview.error && (
+            <PerformanceDistributionChart
+              counters={studentsOverview.data?.counters}
+              totalStudents={studentsOverview.data?.totalStudents}
+              loading={studentsOverview.loading}
+            />
+          )}
 
           {/* Students Table */}
           {studentsOverview.error ? (
@@ -219,6 +222,7 @@ export function SimulatedPerformanceView({
                 enablePagination
                 enableRowClick
                 onRowClick={handleStudentRowClick}
+                onParamsChange={handleStudentsParamsChange}
                 rowKey="studentId"
                 paginationConfig={{
                   itemLabel: 'estudantes',

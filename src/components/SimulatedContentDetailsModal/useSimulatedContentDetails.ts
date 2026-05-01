@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import type { BaseApiClient } from '../../types/api';
 import type {
   ContentDetailsData,
@@ -51,12 +51,17 @@ export function useSimulatedContentDetails(
   const [data, setData] = useState<ContentDetailsData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const requestVersionRef = useRef(0);
 
   const fetchDetails = useCallback(
     async (params: ContentDetailsParams) => {
+      const currentRequestVersion = ++requestVersionRef.current;
+
       try {
-        setLoading(true);
-        setError(null);
+        if (currentRequestVersion === requestVersionRef.current) {
+          setLoading(true);
+          setError(null);
+        }
 
         const endpoint = buildEndpoint(params.activityFilters);
 
@@ -73,21 +78,30 @@ export function useSimulatedContentDetails(
           order: params.order,
         });
 
-        setData(response.data.data);
+        if (currentRequestVersion === requestVersionRef.current) {
+          setData(response.data.data);
+        }
       } catch (err) {
+        if (currentRequestVersion !== requestVersionRef.current) {
+          return;
+        }
+
         const errorMessage =
           err instanceof Error
             ? err.message
             : 'Não foi possível carregar os detalhes da habilidade';
         setError(errorMessage);
       } finally {
-        setLoading(false);
+        if (currentRequestVersion === requestVersionRef.current) {
+          setLoading(false);
+        }
       }
     },
     [api]
   );
 
   const reset = useCallback(() => {
+    requestVersionRef.current++;
     setData(null);
     setLoading(false);
     setError(null);

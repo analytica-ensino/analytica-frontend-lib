@@ -173,7 +173,7 @@ const PIE_LABEL_RADIUS_RATIO = 0.62;
 const PIE_MIN_PERCENTAGE_FOR_LABEL = 5;
 
 /** Threshold to consider a slice as whole pie */
-const PIE_WHOLE_THRESHOLD = 99.99;
+const PIE_WHOLE_THRESHOLD = 99.9999;
 
 /**
  * Props for SimplePieChart component
@@ -406,7 +406,7 @@ export const LegendPieCard = ({ slices }: { slices: PieSlice[] }) => (
     <div className="flex flex-col gap-2">
       {slices.map((s) => (
         <LegendRow
-          key={s.label}
+          key={s.key ?? s.label}
           colorClass={s.colorClass}
           color={s.color}
           label={s.label}

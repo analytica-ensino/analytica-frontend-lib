@@ -72,24 +72,33 @@ export function useSimulatedContents(
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isFirstLoad = useRef(true);
+  const latestRequestId = useRef(0);
 
   const fetchContents = useCallback(
     async (params: SimulatedContentsParams, refresh = false) => {
+      const localRequestId = ++latestRequestId.current;
       const endpoint = buildEndpoint(params.simulationType, params.scoreType);
 
       // Essays don't have contents
       if (!endpoint) {
-        setData(null);
-        setError(null);
+        if (localRequestId === latestRequestId.current) {
+          setData(null);
+          setError(null);
+          setLoading(false);
+          setIsRefreshing(false);
+          isFirstLoad.current = true;
+        }
         return;
       }
 
-      if (isFirstLoad.current && !refresh) {
-        setLoading(true);
-      } else {
-        setIsRefreshing(true);
+      if (localRequestId === latestRequestId.current) {
+        if (isFirstLoad.current && !refresh) {
+          setLoading(true);
+        } else {
+          setIsRefreshing(true);
+        }
+        setError(null);
       }
-      setError(null);
 
       try {
         const response = await api.post<ContentsPerformanceApiResponse>(
@@ -115,9 +124,15 @@ export function useSimulatedContents(
           }
         );
 
-        setData(response.data.data);
-        isFirstLoad.current = false;
+        if (localRequestId === latestRequestId.current) {
+          setData(response.data.data);
+          isFirstLoad.current = false;
+        }
       } catch (err) {
+        if (localRequestId !== latestRequestId.current) {
+          return;
+        }
+
         const errorMessage =
           err instanceof Error
             ? err.message
@@ -125,8 +140,10 @@ export function useSimulatedContents(
         setError(errorMessage);
         setData(null);
       } finally {
-        setLoading(false);
-        setIsRefreshing(false);
+        if (localRequestId === latestRequestId.current) {
+          setLoading(false);
+          setIsRefreshing(false);
+        }
       }
     },
     [api]

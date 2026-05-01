@@ -107,7 +107,7 @@ describe('useSimulatedStudentDetails', () => {
     });
 
     expect(api.post).toHaveBeenCalledWith(
-      '/performance/simulated/activities/student-details?types=SIMULADO&subtypes=ENEM_PROVA_1',
+      '/performance/simulated/activities/student-details?types=SIMULADO',
       {
         userInstitutionId: 'user-inst-1',
         period: '1_MONTH',
@@ -142,7 +142,7 @@ describe('useSimulatedStudentDetails', () => {
     });
 
     expect(api.post).toHaveBeenCalledWith(
-      '/performance/simulated/activities/student-details?types=SIMULADO&subtypes=ENEM_PROVA_2',
+      '/performance/simulated/activities/student-details?types=SIMULADO',
       {
         userInstitutionId: 'user-inst-1',
         period: '3_MONTHS',

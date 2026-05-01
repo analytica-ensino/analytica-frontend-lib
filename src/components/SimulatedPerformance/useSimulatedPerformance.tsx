@@ -486,6 +486,14 @@ export function useSimulatedPerformance({
           newPeriod,
           effectiveScoreType
         );
+        loadStudentsData(
+          selectedAreaKnowledgeIdRef.current,
+          selectedSubjectIdRef.current,
+          1,
+          false,
+          newPeriod,
+          effectiveScoreType
+        );
       }
       loadGeneralOverviewData(newPeriod, effectiveScoreType);
     },
@@ -549,6 +557,10 @@ export function useSimulatedPerformance({
         );
       } else {
         loadSkillsData(selectedAreaKnowledgeIdRef.current, effectiveSubjectId);
+        loadStudentsData(
+          selectedAreaKnowledgeIdRef.current,
+          effectiveSubjectId
+        );
       }
     },
     [loadStudentsData, loadSkillsData]
@@ -595,10 +607,68 @@ export function useSimulatedPerformance({
           selectedAreaKnowledgeIdRef.current,
           selectedSubjectIdRef.current
         );
+        loadStudentsData(
+          selectedAreaKnowledgeIdRef.current,
+          selectedSubjectIdRef.current
+        );
       }
       loadGeneralOverviewData();
     },
     [loadStudentsData, loadSkillsData, loadGeneralOverviewData]
+  );
+
+  const handleStudentsParamsChange = useCallback(
+    (params: Record<string, unknown>) => {
+      const newPage = params.page as number;
+      const sortBy = params.sortBy as string;
+      const sortOrder = params.sortOrder as string;
+
+      const sortByMap: Record<string, string> = {
+        name: 'name',
+        school: 'school',
+        schoolYear: 'schoolYear',
+        class: 'class',
+        average: 'average',
+        performance: 'performance',
+      };
+
+      const orderBy = sortBy ? (sortByMap[sortBy] ?? 'name') : 'name';
+      const order = sortOrder === 'desc' ? 'desc' : 'asc';
+      const currentAreaKnowledgeId = selectedAreaKnowledgeIdRef.current;
+      const currentSubjectId = selectedSubjectIdRef.current;
+      const isEssay = currentAreaKnowledgeId === ESSAY_AREA_ID;
+
+      const effectiveSubjectId =
+        !isEssay && currentSubjectId && currentSubjectId !== 'all'
+          ? currentSubjectId
+          : undefined;
+      const effectiveAreaKnowledgeId =
+        !isEssay &&
+        currentAreaKnowledgeId &&
+        currentAreaKnowledgeId !== 'all'
+          ? currentAreaKnowledgeId
+          : undefined;
+
+      fetchSimulatedOverview(
+        {
+          simulationType: isEssay ? 'essays' : 'enem-1',
+          period: periodRef.current,
+          subjectId: effectiveSubjectId,
+          areaKnowledgeId: effectiveAreaKnowledgeId,
+          schoolIds: filtersRef.current.schoolIds,
+          schoolYearIds: filtersRef.current.schoolYearIds,
+          classIds: filtersRef.current.classIds,
+          studentsIds: filtersRef.current.studentsIds,
+          page: newPage ?? 1,
+          limit: 10,
+          orderBy,
+          order,
+          scoreType: scoreTypeRef.current,
+        },
+        true
+      );
+    },
+    [fetchSimulatedOverview]
   );
 
   const handleContentsParamsChange = useCallback(
@@ -702,6 +772,10 @@ export function useSimulatedPerformance({
         selectedAreaKnowledgeIdRef.current,
         selectedSubjectIdRef.current
       );
+      loadStudentsData(
+        selectedAreaKnowledgeIdRef.current,
+        selectedSubjectIdRef.current
+      );
     }
     loadGeneralOverviewData();
   }, [scoreType, loadStudentsData, loadSkillsData, loadGeneralOverviewData]);
@@ -747,6 +821,7 @@ export function useSimulatedPerformance({
     handleSubjectChange,
     handleViewTabChange,
     handleFiltersApply,
+    handleStudentsParamsChange,
     handleContentsParamsChange,
     handleStudentRowClick,
     handleContentRowClick,
