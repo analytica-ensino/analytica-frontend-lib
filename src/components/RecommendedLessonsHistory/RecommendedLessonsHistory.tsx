@@ -310,6 +310,20 @@ const createTableColumns = (
     sortable: true,
   },
   {
+    key: 'creator',
+    label: 'Autor',
+    sortable: false,
+    className: 'max-w-[150px] truncate',
+    render: (value: unknown) => {
+      const name = typeof value === 'string' ? value : '';
+      return (
+        <Text size="sm" title={name}>
+          {name}
+        </Text>
+      );
+    },
+  },
+  {
     key: 'title',
     label: 'Título',
     sortable: true,

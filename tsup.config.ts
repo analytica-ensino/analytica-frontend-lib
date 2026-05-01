@@ -74,6 +74,9 @@ export default defineConfig({
     // Hooks
     'hooks/useMobile/index': 'src/hooks/useMobile.ts',
     'hooks/useTheme/index': 'src/hooks/useTheme.ts',
+    'hooks/useBrandingLogo/index': 'src/hooks/useBrandingLogo.ts',
+    'BrandingLogo/index': 'src/components/BrandingLogo/BrandingLogo.tsx',
+    'UserIcon/index': 'src/components/UserIcon/UserIcon.tsx',
     'BreadcrumbMenu/index': 'src/components/BreadcrumbMenu/BreadcrumbMenu.tsx',
     'BreadcrumbMenu/useBreadcrumbBuilder/index':
       'src/components/BreadcrumbMenu/useBreadcrumbBuilder.ts',

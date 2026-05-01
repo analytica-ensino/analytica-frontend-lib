@@ -55,6 +55,7 @@ export interface ActivityHistoryResponse {
   year?: string;
   className?: string;
   subjectName?: string;
+  creator?: { id: string; name: string } | null;
 }
 
 /**
@@ -64,6 +65,7 @@ export interface ActivityTableItem extends Record<string, unknown> {
   id: string;
   startDate: string | null;
   deadline: string | null;
+  creator: string;
   title: string;
   school: string;
   year: string;

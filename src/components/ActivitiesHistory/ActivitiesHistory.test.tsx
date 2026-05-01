@@ -92,6 +92,7 @@ describe('ActivitiesHistory', () => {
           year: '2024',
           className: 'Turma A',
           subjectName: 'Matemática',
+          creator: { id: 'creator-1', name: 'Prof. Maria' },
         },
       ],
       pagination: {
@@ -165,6 +166,14 @@ describe('ActivitiesHistory', () => {
         expect(
           screen.getByRole('button', { name: /criar atividade/i })
         ).toBeInTheDocument();
+      });
+    });
+
+    it('should render creator name in history tab', async () => {
+      render(<ActivitiesHistory {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Prof. Maria')).toBeInTheDocument();
       });
     });
   });

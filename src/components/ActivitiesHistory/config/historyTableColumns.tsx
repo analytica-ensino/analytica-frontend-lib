@@ -29,6 +29,13 @@ export const createHistoryTableColumns = (
     sortable: true,
   },
   {
+    key: 'creator',
+    label: 'Autor',
+    sortable: false,
+    className: 'max-w-[150px] truncate',
+    render: renderTruncatedText,
+  },
+  {
     key: 'title',
     label: 'Título',
     sortable: true,
