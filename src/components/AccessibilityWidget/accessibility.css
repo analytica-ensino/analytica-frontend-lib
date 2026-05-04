@@ -202,18 +202,10 @@ html.a11y-contrast-inverted .a11y-widget-shield {
   filter: invert(1) hue-rotate(180deg) !important;
 }
 
-html.a11y-saturation-grayscale .a11y-widget-shield {
-  filter: grayscale(0) !important;
-}
-
-html.a11y-saturation-low .a11y-widget-shield {
-  filter: saturate(1) !important;
-}
-
-/* Combinações: contraste invertido + saturação */
-html.a11y-contrast-inverted.a11y-saturation-grayscale .a11y-widget-shield {
-  filter: invert(1) hue-rotate(180deg) grayscale(0) !important;
-}
-html.a11y-contrast-inverted.a11y-saturation-low .a11y-widget-shield {
-  filter: invert(1) hue-rotate(180deg) saturate(1) !important;
-}
+/*
+ * Não há shield para saturação/escala de cinza: filtros descendentes não
+ * conseguem desfazer filtros do ancestral em CSS (`grayscale(0)` / `saturate(1)`
+ * no widget seriam aplicados ANTES do filtro do `<html>`, que ainda dessatura
+ * tudo no compositing). O widget deliberadamente acompanha esses modos —
+ * mesmo comportamento do widget oficial do HandTalk.
+ */

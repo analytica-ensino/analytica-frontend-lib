@@ -21,8 +21,6 @@ import {
   ColorBlindMode,
   type ContrastMode,
   type SaturationMode,
-  type SpacingLevel,
-  type FontSizeLevel,
   type ReadingAid,
 } from '../../store/accessibilityStore';
 import type { AccessibilityFabPosition } from './AccessibilityFab';
@@ -143,10 +141,14 @@ const ToggleRow = ({
   testId,
 }: Readonly<ToggleRowProps>) => (
   <div
+    role="switch"
+    tabIndex={0}
+    aria-checked={checked}
+    aria-label={label}
     className={cn(
       '-mx-2 flex items-center justify-between gap-3 rounded-md px-2 py-1.5',
       'cursor-pointer transition-colors duration-150 hover:bg-background-100',
-      'focus-within:bg-background-100'
+      'focus:outline-none focus-visible:ring-2 focus-visible:ring-info-500'
     )}
     onClick={onChange}
     onKeyDown={(e) => {
@@ -171,6 +173,8 @@ const ToggleRow = ({
       onChange={() => undefined}
       checkedColor="bg-info-600"
       data-testid={testId}
+      tabIndex={-1}
+      aria-hidden
     />
   </div>
 );
@@ -293,7 +297,7 @@ export default function AccessibilityPanel({
           aria-label="Fechar opções de acessibilidade"
           onClick={onClose}
           icon={<XIcon size={18} />}
-          className="!text-white hover:!bg-white/15 hover:!text-white focus-visible:!ring-white/60"
+          className="text-white! hover:bg-white/15! hover:text-white! focus-visible:ring-white/60!"
         />
       </header>
 
@@ -327,7 +331,7 @@ export default function AccessibilityPanel({
             ariaLabel="Tamanho da fonte"
             value={fontSize}
             options={levelOptions}
-            onChange={(v) => setFontSize(v as FontSizeLevel)}
+            onChange={setFontSize}
           />
         </Section>
 
@@ -339,7 +343,7 @@ export default function AccessibilityPanel({
             ariaLabel="Espaçamento entre letras"
             value={letterSpacing}
             options={levelOptions}
-            onChange={(v) => setLetterSpacing(v as SpacingLevel)}
+            onChange={setLetterSpacing}
           />
         </Section>
 
@@ -351,7 +355,7 @@ export default function AccessibilityPanel({
             ariaLabel="Espaçamento entre linhas"
             value={lineSpacing}
             options={levelOptions}
-            onChange={(v) => setLineSpacing(v as SpacingLevel)}
+            onChange={setLineSpacing}
           />
         </Section>
 
