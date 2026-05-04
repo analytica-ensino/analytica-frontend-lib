@@ -759,12 +759,14 @@ const CreateActivity = ({
   }, []);
 
   /**
-   * Persist the draft as MODELO using the title provided by the user
+   * Persist the draft as MODELO using the title provided by the user.
+   * activityType is updated by the save helpers (updateExistingDraft /
+   * updateStateAfterSave) only after the backend confirms the save, keeping
+   * UI state consistent with persisted state on failure.
    */
   const handleConfirmSaveModel = useCallback(
     async (title: string) => {
       setIsSaveModelModalOpen(false);
-      setActivityType(ActivityType.MODELO);
       await saveDraft(ActivityType.MODELO, title);
     },
     [saveDraft]
