@@ -275,7 +275,7 @@ export function buildSendActivityPayload(
   subjectId: string,
   questionIds: string[],
   startDateTime: string,
-  finalDateTime: string,
+  finalDateTime: string
 ): CreateActivityPayload {
   return {
     title: formData.title,

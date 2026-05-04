@@ -128,7 +128,11 @@ export function validateActivityStep(
     });
   }
 
-  if (options?.enableExamMode && data.subtype === ActivitySubtype.PROVA && !data.mode) {
+  if (
+    options?.enableExamMode &&
+    data.subtype === ActivitySubtype.PROVA &&
+    !data.mode
+  ) {
     errors.mode = ERROR_MESSAGES.MODE_REQUIRED;
   }
 

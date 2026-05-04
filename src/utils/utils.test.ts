@@ -1,4 +1,15 @@
-import { cn, getSubjectColorWithOpacity, syncDropdownState } from './utils';
+import {
+  cn,
+  getSubjectColorWithOpacity,
+  syncDropdownState,
+  formatPercentageRounded,
+  formatScore,
+  hexToRgba,
+  bgClassToCssVar,
+  polarToCartesian,
+  describeArc,
+} from './utils';
+import { ScoreType } from '../types/common';
 
 describe('utils', () => {
   describe('cn', () => {
@@ -140,6 +151,196 @@ describe('utils', () => {
         // Cor que já vem com opacidade da API em dark mode (deve remover)
         expect(getSubjectColorWithOpacity('#0066b84d', true)).toBe('#0066b8');
       });
+    });
+  });
+
+  describe('formatPercentageRounded', () => {
+    it('should format integer percentage', () => {
+      expect(formatPercentageRounded(72)).toBe('72%');
+    });
+
+    it('should round decimal percentage down', () => {
+      expect(formatPercentageRounded(72.4)).toBe('72%');
+    });
+
+    it('should round decimal percentage up', () => {
+      expect(formatPercentageRounded(72.5)).toBe('73%');
+      expect(formatPercentageRounded(72.9)).toBe('73%');
+    });
+
+    it('should handle zero', () => {
+      expect(formatPercentageRounded(0)).toBe('0%');
+    });
+
+    it('should handle 100', () => {
+      expect(formatPercentageRounded(100)).toBe('100%');
+    });
+
+    it('should handle negative numbers', () => {
+      expect(formatPercentageRounded(-5)).toBe('-5%');
+    });
+
+    it('should handle very small decimals', () => {
+      expect(formatPercentageRounded(0.1)).toBe('0%');
+      expect(formatPercentageRounded(0.5)).toBe('1%');
+    });
+  });
+
+  describe('formatScore', () => {
+    describe('percentage mode', () => {
+      it('should format with 1 decimal place and comma separator', () => {
+        expect(formatScore(72.5, ScoreType.PERCENTAGE)).toBe('72,5%');
+      });
+
+      it('should format integer as decimal', () => {
+        expect(formatScore(72, ScoreType.PERCENTAGE)).toBe('72,0%');
+      });
+
+      it('should handle zero', () => {
+        expect(formatScore(0, ScoreType.PERCENTAGE)).toBe('0,0%');
+      });
+
+      it('should handle 100', () => {
+        expect(formatScore(100, ScoreType.PERCENTAGE)).toBe('100,0%');
+      });
+
+      it('should round to 1 decimal place', () => {
+        expect(formatScore(72.456, ScoreType.PERCENTAGE)).toBe('72,5%');
+        expect(formatScore(72.444, ScoreType.PERCENTAGE)).toBe('72,4%');
+      });
+    });
+
+    describe('tri mode', () => {
+      it('should format as rounded integer without symbol', () => {
+        expect(formatScore(685, ScoreType.TRI)).toBe('685');
+      });
+
+      it('should round decimal values', () => {
+        expect(formatScore(685.4, ScoreType.TRI)).toBe('685');
+        expect(formatScore(685.5, ScoreType.TRI)).toBe('686');
+      });
+
+      it('should handle zero', () => {
+        expect(formatScore(0, ScoreType.TRI)).toBe('0');
+      });
+
+      it('should handle large values', () => {
+        expect(formatScore(1000, ScoreType.TRI)).toBe('1000');
+      });
+    });
+  });
+
+  describe('hexToRgba', () => {
+    it('should convert hex color to rgba', () => {
+      expect(hexToRgba('#FF0000', 0.5)).toBe('rgba(255, 0, 0, 0.5)');
+    });
+
+    it('should handle hex without hash', () => {
+      expect(hexToRgba('00FF00', 0.3)).toBe('rgba(0, 255, 0, 0.3)');
+    });
+
+    it('should handle lowercase hex', () => {
+      expect(hexToRgba('#0000ff', 1)).toBe('rgba(0, 0, 255, 1)');
+    });
+
+    it('should handle mixed case hex', () => {
+      expect(hexToRgba('#AbCdEf', 0.1)).toBe('rgba(171, 205, 239, 0.1)');
+    });
+
+    it('should return fallback gray for invalid hex', () => {
+      expect(hexToRgba('invalid', 0.5)).toBe('rgba(107, 114, 128, 0.5)');
+    });
+
+    it('should return fallback gray for empty string', () => {
+      expect(hexToRgba('', 0.5)).toBe('rgba(107, 114, 128, 0.5)');
+    });
+
+    it('should return fallback gray for short hex (3 digits)', () => {
+      expect(hexToRgba('#FFF', 0.5)).toBe('rgba(107, 114, 128, 0.5)');
+    });
+
+    it('should handle zero opacity', () => {
+      expect(hexToRgba('#000000', 0)).toBe('rgba(0, 0, 0, 0)');
+    });
+
+    it('should handle full opacity', () => {
+      expect(hexToRgba('#FFFFFF', 1)).toBe('rgba(255, 255, 255, 1)');
+    });
+  });
+
+  describe('bgClassToCssVar', () => {
+    it('should convert bg class to CSS variable', () => {
+      expect(bgClassToCssVar('bg-error-600')).toBe('var(--color-error-600)');
+    });
+
+    it('should handle different color classes', () => {
+      expect(bgClassToCssVar('bg-success-400')).toBe(
+        'var(--color-success-400)'
+      );
+      expect(bgClassToCssVar('bg-warning-500')).toBe(
+        'var(--color-warning-500)'
+      );
+    });
+
+    it('should handle nested color names', () => {
+      expect(bgClassToCssVar('bg-text-950')).toBe('var(--color-text-950)');
+    });
+  });
+
+  describe('polarToCartesian', () => {
+    it('should convert 0 degrees to top position', () => {
+      const result = polarToCartesian(100, 100, 50, 0);
+      expect(result.x).toBe(100);
+      expect(result.y).toBeCloseTo(50, 5);
+    });
+
+    it('should convert 90 degrees to right position', () => {
+      const result = polarToCartesian(100, 100, 50, 90);
+      expect(result.x).toBeCloseTo(150, 5);
+      expect(result.y).toBeCloseTo(100, 5);
+    });
+
+    it('should convert 180 degrees to bottom position', () => {
+      const result = polarToCartesian(100, 100, 50, 180);
+      expect(result.x).toBeCloseTo(100, 5);
+      expect(result.y).toBeCloseTo(150, 5);
+    });
+
+    it('should convert 270 degrees to left position', () => {
+      const result = polarToCartesian(100, 100, 50, 270);
+      expect(result.x).toBeCloseTo(50, 5);
+      expect(result.y).toBeCloseTo(100, 5);
+    });
+
+    it('should handle different center coordinates', () => {
+      const result = polarToCartesian(50, 50, 25, 0);
+      expect(result.x).toBe(50);
+      expect(result.y).toBeCloseTo(25, 5);
+    });
+  });
+
+  describe('describeArc', () => {
+    it('should generate SVG path string', () => {
+      const path = describeArc(100, 100, 50, 0, 90);
+      expect(path).toContain('M 100 100');
+      expect(path).toContain('A 50 50');
+      expect(path).toContain('Z');
+    });
+
+    it('should use large arc flag for angles > 180', () => {
+      const smallArc = describeArc(100, 100, 50, 0, 90);
+      const largeArc = describeArc(100, 100, 50, 0, 270);
+
+      // Small arc should have 0 for large-arc-flag
+      expect(smallArc).toContain('A 50 50 0 0 0');
+      // Large arc should have 1 for large-arc-flag
+      expect(largeArc).toContain('A 50 50 0 1 0');
+    });
+
+    it('should handle full circle', () => {
+      const path = describeArc(100, 100, 50, 0, 360);
+      expect(path).toBeDefined();
+      expect(path.length).toBeGreaterThan(0);
     });
   });
 

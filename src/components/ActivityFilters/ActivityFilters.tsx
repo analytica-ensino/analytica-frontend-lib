@@ -8,8 +8,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
-  QUESTION_TYPE,
 } from '../..';
+import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import type { BaseApiClient } from '../../types/api';
 import { createUseActivityFiltersData } from '../../hooks/useActivityFiltersData';
 import { useQuestionFiltersStore } from '../../store/questionFiltersStore';

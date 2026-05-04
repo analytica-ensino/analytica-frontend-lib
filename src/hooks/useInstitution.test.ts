@@ -7,7 +7,9 @@ const mockGet = jest.fn();
 // Stable reference — must NOT be recreated inside renderHook callbacks,
 // otherwise the apiClient reference changes on every render and the useEffect
 // runs infinitely (config.apiClient is in the dependency array).
-const mockApiClient: BaseApiClient = { get: mockGet } as unknown as BaseApiClient;
+const mockApiClient: BaseApiClient = {
+  get: mockGet,
+} as unknown as BaseApiClient;
 
 describe('useInstitution', () => {
   beforeEach(() => {
@@ -146,7 +148,11 @@ describe('useInstitution', () => {
   it('should reset institution to null when institutionId changes mid-fetch', async () => {
     mockGet
       .mockResolvedValueOnce({ data: { data: { id: '1', name: 'Escola 1' } } })
-      .mockReturnValueOnce(new Promise(() => { /* never resolves */ }));
+      .mockReturnValueOnce(
+        new Promise(() => {
+          /* never resolves */
+        })
+      );
 
     const { result, rerender } = renderHook(
       ({ institutionId }: { institutionId: string }) =>

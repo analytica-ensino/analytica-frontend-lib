@@ -139,7 +139,7 @@ export function RankingLayout({
 }: Readonly<RankingLayoutProps>) {
   return (
     <div
-      className={cn('flex flex-col md:flex-row w-full gap-4', className)}
+      className={cn('grid grid-cols-1 sm:grid-cols-2 w-full gap-4', className)}
       {...props}
     >
       {children}

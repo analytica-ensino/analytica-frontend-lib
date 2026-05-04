@@ -1,4 +1,8 @@
-import { shuffleWithSeed, prependLetterToHtml, getTrueOrFalseOptionState } from './Quiz.utils';
+import {
+  shuffleWithSeed,
+  prependLetterToHtml,
+  getTrueOrFalseOptionState,
+} from './Quiz.utils';
 import { QuizVariant } from './Quiz.types';
 import { TrueFalseEnum } from '../../enums/Quiz';
 import type { QuestionAnswerResult } from './Quiz.types';
@@ -65,11 +69,15 @@ describe('prependLetterToHtml', () => {
   });
 
   it('should prepend letter inside <p> tag', () => {
-    expect(prependLetterToHtml('b', '<p>Conteúdo</p>')).toBe('<p>b) Conteúdo</p>');
+    expect(prependLetterToHtml('b', '<p>Conteúdo</p>')).toBe(
+      '<p>b) Conteúdo</p>'
+    );
   });
 
   it('should prepend letter inside <p> tag with leading whitespace', () => {
-    expect(prependLetterToHtml('c', '  <p>Texto</p>')).toBe('  <p>c) Texto</p>');
+    expect(prependLetterToHtml('c', '  <p>Texto</p>')).toBe(
+      '  <p>c) Texto</p>'
+    );
   });
 
   it('should handle multi-character letter prefix', () => {
@@ -92,28 +100,29 @@ describe('getTrueOrFalseOptionState', () => {
   const makeResult = (
     options: { id: string; option: string; isCorrect: boolean }[],
     selectedOptions: { optionId: string; isCorrect?: boolean }[]
-  ): QuestionAnswerResult => ({
-    id: 'r1',
-    questionId: 'q1',
-    answer: null,
-    selectedOptions,
-    answerStatus: 'RESPOSTA_CORRETA' as QuestionAnswerResult['answerStatus'],
-    statement: '',
-    additionalContent: null,
-    questionType: 'VERDADEIRO_FALSO' as QuestionAnswerResult['questionType'],
-    difficultyLevel: 'MEDIO' as QuestionAnswerResult['difficultyLevel'],
-    solutionExplanation: null,
-    correctOption: '',
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z',
-    options,
-    knowledgeMatrix: [],
-    teacherFeedback: null,
-    attachment: null,
-    score: null,
-    gradedAt: null,
-    gradedBy: null,
-  } as QuestionAnswerResult);
+  ): QuestionAnswerResult =>
+    ({
+      id: 'r1',
+      questionId: 'q1',
+      answer: null,
+      selectedOptions,
+      answerStatus: 'RESPOSTA_CORRETA' as QuestionAnswerResult['answerStatus'],
+      statement: '',
+      additionalContent: null,
+      questionType: 'VERDADEIRO_FALSO' as QuestionAnswerResult['questionType'],
+      difficultyLevel: 'MEDIO' as QuestionAnswerResult['difficultyLevel'],
+      solutionExplanation: null,
+      correctOption: '',
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-01-01T00:00:00Z',
+      options,
+      knowledgeMatrix: [],
+      teacherFeedback: null,
+      attachment: null,
+      score: null,
+      gradedAt: null,
+      gradedBy: null,
+    }) as QuestionAnswerResult;
 
   describe('QuizVariant.RESULT', () => {
     it('should be correct when student marked V and statement is true', () => {
@@ -122,7 +131,12 @@ describe('getTrueOrFalseOptionState', () => {
         [{ optionId: 'opt1', isCorrect: true }]
       );
 
-      const state = getTrueOrFalseOptionState('opt1', QuizVariant.RESULT, result, {});
+      const state = getTrueOrFalseOptionState(
+        'opt1',
+        QuizVariant.RESULT,
+        result,
+        {}
+      );
 
       expect(state.isStatementTrue).toBe(true);
       expect(state.hasAnswered).toBe(true);
@@ -139,7 +153,12 @@ describe('getTrueOrFalseOptionState', () => {
         [{ optionId: 'opt1', isCorrect: false }]
       );
 
-      const state = getTrueOrFalseOptionState('opt1', QuizVariant.RESULT, result, {});
+      const state = getTrueOrFalseOptionState(
+        'opt1',
+        QuizVariant.RESULT,
+        result,
+        {}
+      );
 
       expect(state.isStatementTrue).toBe(false);
       expect(state.studentMarkedTrue).toBe(false);
@@ -155,7 +174,12 @@ describe('getTrueOrFalseOptionState', () => {
         [{ optionId: 'opt1', isCorrect: true }]
       );
 
-      const state = getTrueOrFalseOptionState('opt1', QuizVariant.RESULT, result, {});
+      const state = getTrueOrFalseOptionState(
+        'opt1',
+        QuizVariant.RESULT,
+        result,
+        {}
+      );
 
       expect(state.isStudentCorrect).toBe(false);
       expect(state.variantCorrect).toBe('incorrect');
@@ -167,7 +191,12 @@ describe('getTrueOrFalseOptionState', () => {
         [] // no selection
       );
 
-      const state = getTrueOrFalseOptionState('opt1', QuizVariant.RESULT, result, {});
+      const state = getTrueOrFalseOptionState(
+        'opt1',
+        QuizVariant.RESULT,
+        result,
+        {}
+      );
 
       expect(state.hasAnswered).toBe(false);
       expect(state.studentAnswer).toBe('-');
@@ -175,7 +204,12 @@ describe('getTrueOrFalseOptionState', () => {
     });
 
     it('should return all false defaults when currentQuestionResult is null', () => {
-      const state = getTrueOrFalseOptionState('opt1', QuizVariant.RESULT, null, {});
+      const state = getTrueOrFalseOptionState(
+        'opt1',
+        QuizVariant.RESULT,
+        null,
+        {}
+      );
 
       expect(state.isStatementTrue).toBe(false);
       expect(state.hasAnswered).toBe(false);
@@ -185,7 +219,12 @@ describe('getTrueOrFalseOptionState', () => {
     });
 
     it('should return all false defaults when currentQuestionResult is undefined', () => {
-      const state = getTrueOrFalseOptionState('opt1', QuizVariant.RESULT, undefined, {});
+      const state = getTrueOrFalseOptionState(
+        'opt1',
+        QuizVariant.RESULT,
+        undefined,
+        {}
+      );
 
       expect(state.isStatementTrue).toBe(false);
       expect(state.hasAnswered).toBe(false);

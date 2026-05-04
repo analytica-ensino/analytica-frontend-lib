@@ -300,6 +300,204 @@ export type {
   UseTableFilterReturn,
 } from './components/Filter';
 
+// SimulatedFilters Components
+export {
+  SimulatedFiltersModal,
+  StudentsFilterSection,
+  useUserAccessData as useSimulatedUserAccessData,
+  useStudentsFilter as useSimulatedStudentsFilter,
+} from './components/SimulatedFilters';
+export type {
+  SimulatedFilters,
+  SimulatedFiltersModalProps,
+  SchoolItem as SimulatedSchoolItem,
+  SchoolYearItem as SimulatedSchoolYearItem,
+  ClassItem as SimulatedClassItem,
+  StudentFilterItem,
+  StudentGroup,
+  UserAccessDataApiResponse as SimulatedUserAccessDataApiResponse,
+  StudentsFilterApiResponse as SimulatedStudentsFilterApiResponse,
+  StudentsFilterParams,
+  UseUserAccessDataState,
+  UseUserAccessDataReturn,
+  UseStudentsFilterState,
+  UseStudentsFilterReturn,
+  StudentsFilterSectionProps,
+} from './components/SimulatedFilters';
+
+// GeneralOverviewSection Component
+export {
+  GeneralOverviewSection,
+  useGeneralOverview,
+} from './components/GeneralOverviewSection';
+export type {
+  AreaKnowledgePerformance,
+  EssayPerformance,
+  GeneralOverviewData,
+  SubjectItem as GeneralOverviewSubjectItem,
+  GeneralOverviewParams,
+  GeneralOverviewApiResponse,
+  UseGeneralOverviewState,
+  UseGeneralOverviewReturn,
+  GeneralOverviewSectionProps,
+  GeneralOverviewLabels,
+} from './components/GeneralOverviewSection';
+
+// AreaKnowledgeSelector Component
+export {
+  AreaKnowledgeSelector,
+  ESSAY_AREA_ID,
+} from './components/AreaKnowledgeSelector';
+export type { AreaKnowledgeSelectorProps } from './components/AreaKnowledgeSelector';
+
+// SimulatedSubjectMenu Component
+export {
+  SimulatedSubjectMenu,
+  useSimulatedSubjects,
+} from './components/SimulatedSubjectMenu';
+export type {
+  SimulatedSubjectItem,
+  SimulatedSubjectsApiResponse,
+  UseSimulatedSubjectsState,
+  UseSimulatedSubjectsReturn,
+  SimulatedSubjectMenuProps,
+} from './components/SimulatedSubjectMenu';
+
+// SimulatedStudentRanking Component
+export {
+  SimulatedStudentRanking,
+  SimulatedRankingCard,
+} from './components/SimulatedStudentRanking';
+export type {
+  RankingVariant,
+  SimulatedStudentRankingItem,
+  SimulatedStudentRankingProps,
+  SimulatedRankingCardProps,
+} from './components/SimulatedStudentRanking';
+
+// PerformanceDistributionChart Component
+export { PerformanceDistributionChart } from './components/PerformanceDistributionChart';
+export type {
+  SimulatedPerformanceCounters,
+  SliceData,
+  PerformanceDistributionChartProps,
+} from './components/PerformanceDistributionChart';
+
+// SimulatedStudentDetailsModal Component
+export {
+  SimulatedStudentDetailsModal,
+  useSimulatedStudentDetails,
+  isStudentSubjectsData,
+  isStudentContentsData,
+  simulationTypeToActivityFilters,
+  SIMULATED_PERFORMANCE_TAG_CONFIG,
+  PERFORMANCE_TAG_TO_BADGE_ACTION,
+  PerformanceBadgeAction,
+  ReportSimulationType,
+} from './components/SimulatedStudentDetailsModal';
+export type {
+  SimulatedPerformanceTag,
+  SimulatedPerformanceTagConfig,
+  SimulationType,
+  StudentDetailsInfo,
+  SubjectPerformanceItem,
+  StudentContentPerformanceItem,
+  StudentSubjectsData,
+  StudentContentsData,
+  StudentDetailsData,
+  ActivityFilters as SimulatedActivityFilters,
+  StudentDetailsParams,
+  StudentDetailsApiResponse,
+  UseSimulatedStudentDetailsState,
+  UseSimulatedStudentDetailsReturn,
+  SimulatedStudentDetailsModalProps,
+} from './components/SimulatedStudentDetailsModal';
+
+// SimulatedContentsPerformance Hook
+export { useSimulatedContents } from './components/SimulatedContentsPerformance';
+export type {
+  SimulatedContentItem,
+  ContentsPerformanceData,
+  SimulatedContentsParams,
+  ContentsPerformanceApiResponse,
+  UseSimulatedContentsState,
+  UseSimulatedContentsReturn,
+} from './components/SimulatedContentsPerformance';
+
+// SimulatedContentDetailsModal Component
+export {
+  SimulatedContentDetailsModal,
+  useSimulatedContentDetails,
+} from './components/SimulatedContentDetailsModal';
+export type {
+  ContentDetailsInfo,
+  ContentPerformanceCounters,
+  ContentStudentItem,
+  ContentStudentsPaginated,
+  ContentDetailsData,
+  ContentDetailsParams,
+  ContentDetailsApiResponse,
+  UseSimulatedContentDetailsState,
+  UseSimulatedContentDetailsReturn,
+  SimulatedContentDetailsModalProps,
+} from './components/SimulatedContentDetailsModal';
+
+// EssayCompetencies Components
+export {
+  EssayCompetenciesTable,
+  EssayCompetenceDetailsModal,
+  useEssayCompetenciesOverview,
+  useEssayCompetenceDetails,
+} from './components/EssayCompetencies';
+export type {
+  EssayCompetencyOverviewItem,
+  EssayCompetenciesOverviewData,
+  EssayCompetenciesOverviewParams,
+  EssayCompetenciesOverviewApiResponse,
+  EssayCompetenceInfo,
+  EssayCompetenceCounters,
+  EssayCompetenceStudentItem,
+  EssayCompetenceStudentsPaginated,
+  EssayCompetenceDetailsData,
+  EssayCompetenceDetailsParams,
+  EssayCompetenceDetailsApiResponse,
+  UseEssayCompetenciesOverviewState,
+  UseEssayCompetenciesOverviewReturn,
+  UseEssayCompetenceDetailsState,
+  UseEssayCompetenceDetailsReturn,
+  EssayCompetenciesTableProps,
+  EssayCompetenceDetailsModalProps,
+} from './components/EssayCompetencies';
+
+// SimulatedStudentsOverview Hook
+export { useSimulatedOverview } from './components/SimulatedStudentsOverview';
+export type {
+  SimulatedStudentItem,
+  SimulatedStudentsPaginated,
+  SimulatedOverviewData,
+  SimulatedOverviewParams,
+  SimulatedOverviewApiResponse,
+  UseSimulatedOverviewState,
+  UseSimulatedOverviewReturn,
+} from './components/SimulatedStudentsOverview';
+
+// EssayStudentDetailsModal Component
+export {
+  EssayStudentDetailsModal,
+  useEssayStudentDetails,
+} from './components/EssayStudentDetailsModal';
+export type {
+  EssayCompetencyPerformance,
+  EssayStudentInfo,
+  EssayStudentDetailsData,
+  EssayStudentDetailsParams,
+  EssayStudentDetailsApiResponse,
+  UseEssayStudentDetailsState,
+  UseEssayStudentDetailsReturn,
+  EssayStudentDetailsLabels,
+  EssayStudentDetailsModalProps,
+} from './components/EssayStudentDetailsModal';
+
 // ActivityFilters Component
 export {
   ActivityFilters,
@@ -354,6 +552,18 @@ export {
   MenuOverflow,
   MenuContent,
 } from './components/Menu/Menu';
+
+// PeriodSelector Component
+export {
+  PeriodSelector,
+  Period,
+  PERIOD_OPTIONS,
+} from './components/PeriodSelector';
+export type {
+  PeriodTab,
+  PeriodValue,
+  PeriodSelectorProps,
+} from './components/PeriodSelector';
 
 // Card Components
 export {
@@ -610,6 +820,8 @@ export {
   getSelectedIdsFromCategories,
   toggleArrayItem,
   toggleSingleValue,
+  formatScore,
+  formatPercentageRounded,
 } from './utils/utils';
 export { convertActivityFiltersToQuestionsFilter } from './utils/questionFiltersConverter';
 export {
@@ -1359,3 +1571,16 @@ export { printAsPdf } from './utils/exportPdf';
 
 // Report Export Types
 export type { ExcelCell, SheetConfig } from './utils/exportExcel';
+
+// SimulatedPerformance Component
+export {
+  useSimulatedPerformance,
+  SimulatedPerformanceView,
+  SCORE_TYPE_OPTIONS,
+  SimulatedViewTab,
+} from './components/SimulatedPerformance';
+export type {
+  UseSimulatedPerformanceOptions,
+  UseSimulatedPerformanceReturn,
+  SimulatedPerformanceViewProps,
+} from './components/SimulatedPerformance';
