@@ -1361,6 +1361,36 @@ export type {
   ChatbotContentRendererProps,
 } from './components/Chatbot';
 
+// Accessibility Widget
+export {
+  AccessibilityWidget,
+  AccessibilityFab,
+  AccessibilityPanel,
+} from './components/AccessibilityWidget';
+export type {
+  AccessibilityWidgetProps,
+  AccessibilityFabProps,
+  AccessibilityFabPosition,
+  AccessibilityPanelProps,
+} from './components/AccessibilityWidget';
+
+// Accessibility Store + Hook
+export {
+  useAccessibilityStore,
+  DEFAULT_ACCESSIBILITY_PREFERENCES,
+} from './store/accessibilityStore';
+export type {
+  AccessibilityStore,
+  AccessibilityState,
+  AccessibilityActions,
+  AccessibilityPreferences,
+  ContrastMode,
+  SaturationMode,
+  FontSizeLevel,
+  SpacingLevel,
+} from './store/accessibilityStore';
+export { useA11yPreferences } from './hooks/useA11yPreferences';
+
 // Forum Component
 export { Forum } from './components/Forum/Forum';
 export type { ForumProps } from './components/Forum/Forum';

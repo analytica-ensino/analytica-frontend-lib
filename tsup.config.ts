@@ -192,6 +192,11 @@ export default defineConfig({
     'hooks/useChatbot/index': 'src/hooks/useChatbot.ts',
     'types/chatbot/index': 'src/types/chatbot.ts',
 
+    // Accessibility Widget
+    'AccessibilityWidget/index':
+      'src/components/AccessibilityWidget/AccessibilityWidget.tsx',
+    'hooks/useA11yPreferences/index': 'src/hooks/useA11yPreferences.ts',
+
     // Styles
     styles: 'src/styles.css',
   },
