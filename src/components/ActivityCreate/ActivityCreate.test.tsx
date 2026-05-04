@@ -148,7 +148,6 @@ jest.mock('../ActivityFilters/ActivityFilters', () => ({
     onClearFilters?: () => void;
     apiClient: BaseApiClient;
     institutionId: string;
-    initialFilters?: ActivityFiltersData | null;
     triggerLabel?: string;
   }) => (
     <div data-testid="activity-filters-popover">
@@ -229,13 +228,14 @@ jest.mock('../Menu/Menu', () => {
       variant?: string;
       onClick?: () => void;
     }) => (
-      <li
+      <button
+        type="button"
         data-testid={`menu-item-${value}`}
         data-variant={variant}
         onClick={onClick}
       >
         {children}
-      </li>
+      </button>
     ),
   };
 });
@@ -344,11 +344,10 @@ jest.mock('./components/ActivityCreateHeader', () => {
 
       const activityTypeLabel = getActivityTypeLabel(activityType);
       const formattedTime = lastSavedAt ? formatTime(lastSavedAt) : '';
+      const idleStatusText = isSaving ? 'Salvando...' : 'Nenhum rascunho salvo';
       const saveStatusText = lastSavedAt
         ? `${activityTypeLabel} salvo às ${formattedTime}`
-        : isSaving
-          ? 'Salvando...'
-          : 'Nenhum rascunho salvo';
+        : idleStatusText;
 
       return React.createElement(
         'div',
@@ -585,6 +584,36 @@ jest.mock('../SendActivityModal/SendActivityModal', () => ({
     ) : null,
 }));
 
+jest.mock('../SaveActivityModelModal/SaveActivityModelModal', () => ({
+  SaveActivityModelModal: ({
+    isOpen,
+    onClose,
+    onConfirm,
+    isLoading,
+  }: {
+    isOpen: boolean;
+    onClose: () => void;
+    onConfirm: (title: string) => void;
+    isLoading?: boolean;
+  }) =>
+    isOpen ? (
+      <div data-testid="save-model-modal">
+        <button data-testid="save-model-modal-close" onClick={onClose}>
+          Cancel
+        </button>
+        <button
+          data-testid="save-model-modal-confirm"
+          onClick={() => onConfirm('Modelo Customizado')}
+        >
+          Confirm
+        </button>
+        <div data-testid="save-model-modal-loading">
+          {isLoading ? 'Loading' : 'Not Loading'}
+        </div>
+      </div>
+    ) : null,
+}));
+
 // Mock UI components - this needs to be after the hook mocks
 
 // Mock utility function
@@ -782,9 +811,9 @@ jest.mock('../..', () => {
 
 describe('CreateActivity', () => {
   // Mock window.innerWidth for responsive tests
-  const originalInnerWidth = window.innerWidth;
+  const originalInnerWidth = globalThis.innerWidth;
   beforeAll(() => {
-    Object.defineProperty(window, 'innerWidth', {
+    Object.defineProperty(globalThis, 'innerWidth', {
       writable: true,
       configurable: true,
       value: 1400, // Default to desktop size
@@ -792,7 +821,7 @@ describe('CreateActivity', () => {
   });
 
   afterAll(() => {
-    Object.defineProperty(window, 'innerWidth', {
+    Object.defineProperty(globalThis, 'innerWidth', {
       writable: true,
       configurable: true,
       value: originalInnerWidth,
@@ -1582,14 +1611,14 @@ describe('CreateActivity', () => {
       });
     });
 
-    it('should save immediately when activityType changes to MODELO', async () => {
+    it('should open the save model modal and save with the user provided title', async () => {
       const mockResponse = {
         data: {
           data: {
             draft: {
               id: 'draft1',
               type: ActivityType.MODELO,
-              title: 'Modelo - Matemática',
+              title: 'Modelo Customizado',
               creatorUserInstitutionId: 'user1',
               subjectId: 'subject1',
               filters: {},
@@ -1619,8 +1648,15 @@ describe('CreateActivity', () => {
 
       jest.clearAllMocks();
 
-      // Click save model button
+      // Click save model button — opens the modal but does not save yet
       fireEvent.click(screen.getByText('Salvar modelo'));
+
+      expect(screen.getByTestId('save-model-modal')).toBeInTheDocument();
+      expect(mockApiClient.patch).not.toHaveBeenCalled();
+      expect(mockApiClient.post).not.toHaveBeenCalled();
+
+      // Confirm the modal — sends the user-provided title to the backend
+      fireEvent.click(screen.getByTestId('save-model-modal-confirm'));
 
       act(() => {
         jest.advanceTimersByTime(100);
@@ -1633,11 +1669,58 @@ describe('CreateActivity', () => {
           expect.stringContaining('/activity-drafts/'),
           expect.objectContaining({
             type: ActivityType.MODELO,
+            title: 'Modelo Customizado',
           })
         );
         // POST should not be called after first save
         expect(mockApiClient.post).not.toHaveBeenCalled();
       });
+    });
+
+    it('should close the save model modal without saving when canceled', async () => {
+      const mockResponse = {
+        data: {
+          data: {
+            draft: {
+              id: 'draft1',
+              type: ActivityType.RASCUNHO,
+              title: 'Rascunho - Matemática',
+              creatorUserInstitutionId: 'user1',
+              subjectId: 'subject1',
+              filters: {},
+              createdAt: '2025-01-01',
+              updatedAt: '2025-01-01',
+            },
+            questionsLinked: 1,
+          },
+        },
+      };
+
+      mockApiClient.post = jest.fn().mockResolvedValue(mockResponse);
+      mockApiClient.patch = jest.fn().mockResolvedValue(mockResponse);
+
+      render(<CreateActivity {...defaultProps} />);
+
+      fireEvent.click(screen.getByTestId('add-question'));
+
+      act(() => {
+        jest.advanceTimersByTime(600);
+      });
+
+      await waitFor(() => {
+        expect(mockApiClient.post).toHaveBeenCalled();
+      });
+
+      jest.clearAllMocks();
+
+      fireEvent.click(screen.getByText('Salvar modelo'));
+      expect(screen.getByTestId('save-model-modal')).toBeInTheDocument();
+
+      fireEvent.click(screen.getByTestId('save-model-modal-close'));
+
+      expect(screen.queryByTestId('save-model-modal')).not.toBeInTheDocument();
+      expect(mockApiClient.patch).not.toHaveBeenCalled();
+      expect(mockApiClient.post).not.toHaveBeenCalled();
     });
 
     it('should show saving message when isSaving is true', () => {
@@ -2747,8 +2830,9 @@ describe('CreateActivity', () => {
 
       jest.clearAllMocks();
 
-      // Click save model button - this will trigger PATCH with MODELO type
+      // Click save model button — opens the modal then confirms with custom title
       fireEvent.click(screen.getByText('Salvar modelo'));
+      fireEvent.click(screen.getByTestId('save-model-modal-confirm'));
 
       act(() => {
         jest.advanceTimersByTime(100);
@@ -2859,8 +2943,9 @@ describe('CreateActivity', () => {
 
       jest.clearAllMocks();
 
-      // Click save model button - this will trigger PATCH with MODELO type
+      // Click save model button — opens the modal then confirms with custom title
       fireEvent.click(screen.getByText('Salvar modelo'));
+      fireEvent.click(screen.getByTestId('save-model-modal-confirm'));
 
       act(() => {
         jest.advanceTimersByTime(100);
@@ -2920,6 +3005,7 @@ describe('CreateActivity', () => {
       });
 
       fireEvent.click(screen.getByText('Salvar modelo'));
+      fireEvent.click(screen.getByTestId('save-model-modal-confirm'));
 
       await waitFor(() => {
         expect(mockApiClient.post).toHaveBeenCalled();
