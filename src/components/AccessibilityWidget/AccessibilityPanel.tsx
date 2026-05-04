@@ -7,6 +7,9 @@ import {
   CursorIcon,
   CircleHalfIcon,
   DropIcon,
+  BookOpenTextIcon,
+  KeyboardIcon,
+  PaletteIcon,
 } from '@phosphor-icons/react';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
@@ -15,11 +18,14 @@ import ToggleSwitch from '../ToggleSwitch/ToggleSwitch';
 import { cn } from '../../utils/utils';
 import {
   useAccessibilityStore,
+  ColorBlindMode,
   type ContrastMode,
   type SaturationMode,
   type SpacingLevel,
   type FontSizeLevel,
+  type ReadingAid,
 } from '../../store/accessibilityStore';
+import type { AccessibilityFabPosition } from './AccessibilityFab';
 
 const CONTRAST_OPTIONS: { value: ContrastMode; label: string }[] = [
   { value: 'normal', label: 'Normal' },
@@ -33,6 +39,19 @@ const SATURATION_OPTIONS: { value: SaturationMode; label: string }[] = [
   { value: 'grayscale', label: 'Tons de cinza' },
 ];
 
+const READING_AID_OPTIONS: { value: ReadingAid; label: string }[] = [
+  { value: 'none', label: 'Nenhum' },
+  { value: 'ruler', label: 'Régua' },
+  { value: 'mask', label: 'Máscara' },
+];
+
+const COLOR_BLIND_OPTIONS: { value: ColorBlindMode; label: string }[] = [
+  { value: ColorBlindMode.None, label: 'Nenhum' },
+  { value: ColorBlindMode.Protanopia, label: 'Protanopia' },
+  { value: ColorBlindMode.Deuteranopia, label: 'Deuteranopia' },
+  { value: ColorBlindMode.Tritanopia, label: 'Tritanopia' },
+];
+
 const LEVEL_LABELS = ['Padrão', 'Pequeno', 'Médio', 'Grande'] as const;
 
 /**
@@ -40,7 +59,7 @@ const LEVEL_LABELS = ['Padrão', 'Pequeno', 'Médio', 'Grande'] as const;
  * resetar o lado oposto para `auto`, o painel acaba grudando no lado
  * errado mesmo com `right-6` ou `left-6` aplicado.
  */
-const PANEL_EDGE_CLASSES: Record<'right' | 'left', string> = {
+const PANEL_EDGE_CLASSES: Record<AccessibilityFabPosition, string> = {
   right: 'right-6 left-auto',
   left: 'left-6 right-auto',
 };
@@ -93,11 +112,12 @@ const Segmented = <T extends string | number>({
           aria-checked={isActive}
           onClick={() => onChange(opt.value)}
           className={cn(
-            'flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+            'flex-1 cursor-pointer rounded-md px-3 py-1.5 text-sm font-medium',
+            'transition-all duration-150',
             'focus:outline-none focus-visible:ring-2 focus-visible:ring-info-500',
             isActive
-              ? 'bg-white text-text-900 shadow-sm'
-              : 'text-text-700 hover:text-text-900'
+              ? 'bg-white text-text-900 shadow-sm hover:bg-background-50'
+              : 'text-text-700 hover:bg-white/70 hover:text-text-900 hover:shadow-sm'
           )}
         >
           {opt.label}
@@ -122,7 +142,20 @@ const ToggleRow = ({
   onChange,
   testId,
 }: Readonly<ToggleRowProps>) => (
-  <div className="flex items-center justify-between gap-3">
+  <div
+    className={cn(
+      '-mx-2 flex items-center justify-between gap-3 rounded-md px-2 py-1.5',
+      'cursor-pointer transition-colors duration-150 hover:bg-background-100',
+      'focus-within:bg-background-100'
+    )}
+    onClick={onChange}
+    onKeyDown={(e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        onChange();
+      }
+    }}
+  >
     <div className="flex flex-col">
       <Text size="sm" className="text-text-900">
         {label}
@@ -135,7 +168,7 @@ const ToggleRow = ({
     </div>
     <ToggleSwitch
       checked={checked}
-      onChange={onChange}
+      onChange={() => undefined}
       checkedColor="bg-info-600"
       data-testid={testId}
     />
@@ -146,7 +179,7 @@ export interface AccessibilityPanelProps {
   isOpen: boolean;
   onClose: () => void;
   /** Lado da viewport onde o painel aparece (default: 'right') */
-  position?: 'right' | 'left';
+  position?: AccessibilityFabPosition;
   className?: string;
 }
 
@@ -175,6 +208,10 @@ export default function AccessibilityPanel({
     highlightLinks,
     pauseAnimations,
     bigCursor,
+    dyslexiaFont,
+    readingAid,
+    keyboardShortcut,
+    colorBlindMode,
     setContrastMode,
     setSaturationMode,
     setFontSize,
@@ -183,6 +220,10 @@ export default function AccessibilityPanel({
     setHighlightLinks,
     setPauseAnimations,
     setBigCursor,
+    setDyslexiaFont,
+    setReadingAid,
+    setKeyboardShortcut,
+    setColorBlindMode,
     resetPreferences,
   } = useAccessibilityStore();
 
@@ -315,6 +356,30 @@ export default function AccessibilityPanel({
         </Section>
 
         <Section
+          title="Auxiliar de leitura"
+          icon={<BookOpenTextIcon size={18} weight="fill" />}
+        >
+          <Segmented
+            ariaLabel="Auxiliar de leitura"
+            value={readingAid}
+            options={READING_AID_OPTIONS}
+            onChange={setReadingAid}
+          />
+        </Section>
+
+        <Section
+          title="Daltonismo"
+          icon={<PaletteIcon size={18} weight="fill" />}
+        >
+          <Segmented
+            ariaLabel="Modo de daltonismo"
+            value={colorBlindMode}
+            options={COLOR_BLIND_OPTIONS}
+            onChange={setColorBlindMode}
+          />
+        </Section>
+
+        <Section
           title="Outras opções"
           icon={<CursorIcon size={18} weight="fill" />}
         >
@@ -340,7 +405,27 @@ export default function AccessibilityPanel({
               onChange={() => setBigCursor(!bigCursor)}
               testId="a11y-toggle-big-cursor"
             />
+            <ToggleRow
+              label="Fonte para dislexia"
+              description="OpenDyslexic com fallback para Comic Sans MS"
+              checked={dyslexiaFont}
+              onChange={() => setDyslexiaFont(!dyslexiaFont)}
+              testId="a11y-toggle-dyslexia-font"
+            />
           </div>
+        </Section>
+
+        <Section
+          title="Atalho de teclado"
+          icon={<KeyboardIcon size={18} weight="fill" />}
+        >
+          <ToggleRow
+            label="Alt + A para abrir o painel"
+            description="Atalho global, ignorado durante digitação em campos"
+            checked={keyboardShortcut}
+            onChange={() => setKeyboardShortcut(!keyboardShortcut)}
+            testId="a11y-toggle-keyboard-shortcut"
+          />
         </Section>
       </div>
 

@@ -2,8 +2,11 @@ import AccessibilityFab, {
   type AccessibilityFabPosition,
 } from './AccessibilityFab';
 import AccessibilityPanel from './AccessibilityPanel';
+import ReadingAid from './ReadingAid';
+import ColorBlindFilters from './ColorBlindFilters';
 import { useAccessibilityStore } from '../../store/accessibilityStore';
 import { useA11yPreferences } from '../../hooks/useA11yPreferences';
+import { useA11yKeyboardShortcut } from '../../hooks/useA11yKeyboardShortcut';
 import './accessibility.css';
 
 export interface AccessibilityWidgetProps {
@@ -36,6 +39,7 @@ export default function AccessibilityWidget({
   panelClassName,
 }: Readonly<AccessibilityWidgetProps>) {
   useA11yPreferences();
+  useA11yKeyboardShortcut();
 
   const isPanelOpen = useAccessibilityStore((s) => s.isPanelOpen);
   const togglePanel = useAccessibilityStore((s) => s.togglePanel);
@@ -57,6 +61,8 @@ export default function AccessibilityWidget({
         position={position}
         className={panelClassName}
       />
+      <ReadingAid />
+      <ColorBlindFilters />
     </>
   );
 }

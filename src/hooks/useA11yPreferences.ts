@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import {
   useAccessibilityStore,
+  getColorBlindClass,
   type AccessibilityPreferences,
   type ContrastMode,
   type SaturationMode,
@@ -54,6 +55,10 @@ const ALL_A11Y_CLASSES: readonly string[] = [
   'a11y-highlight-links',
   'a11y-no-animations',
   'a11y-big-cursor',
+  'a11y-dyslexia-font',
+  'a11y-cb-protanopia',
+  'a11y-cb-deuteranopia',
+  'a11y-cb-tritanopia',
 ];
 
 const buildLevelClass = (
@@ -76,6 +81,8 @@ const buildClassMap = (prefs: AccessibilityPreferences): ClassMap => ({
   highlightLinks: prefs.highlightLinks ? 'a11y-highlight-links' : undefined,
   pauseAnimations: prefs.pauseAnimations ? 'a11y-no-animations' : undefined,
   bigCursor: prefs.bigCursor ? 'a11y-big-cursor' : undefined,
+  dyslexiaFont: prefs.dyslexiaFont ? 'a11y-dyslexia-font' : undefined,
+  colorBlindMode: getColorBlindClass(prefs.colorBlindMode) ?? undefined,
 });
 
 /**
@@ -114,6 +121,10 @@ export const useA11yPreferences = () => {
   const highlightLinks = useAccessibilityStore((s) => s.highlightLinks);
   const pauseAnimations = useAccessibilityStore((s) => s.pauseAnimations);
   const bigCursor = useAccessibilityStore((s) => s.bigCursor);
+  const dyslexiaFont = useAccessibilityStore((s) => s.dyslexiaFont);
+  const readingAid = useAccessibilityStore((s) => s.readingAid);
+  const keyboardShortcut = useAccessibilityStore((s) => s.keyboardShortcut);
+  const colorBlindMode = useAccessibilityStore((s) => s.colorBlindMode);
 
   useEffect(() => {
     syncDom({
@@ -125,6 +136,10 @@ export const useA11yPreferences = () => {
       highlightLinks,
       pauseAnimations,
       bigCursor,
+      dyslexiaFont,
+      readingAid,
+      keyboardShortcut,
+      colorBlindMode,
     });
   }, [
     contrastMode,
@@ -135,6 +150,8 @@ export const useA11yPreferences = () => {
     highlightLinks,
     pauseAnimations,
     bigCursor,
+    dyslexiaFont,
+    colorBlindMode,
   ]);
 };
 

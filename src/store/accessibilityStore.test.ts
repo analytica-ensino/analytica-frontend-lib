@@ -1,6 +1,9 @@
 import {
   useAccessibilityStore,
   DEFAULT_ACCESSIBILITY_PREFERENCES,
+  ColorBlindMode,
+  getColorBlindClass,
+  getColorBlindFilterId,
 } from './accessibilityStore';
 
 describe('accessibilityStore', () => {
@@ -21,7 +24,57 @@ describe('accessibilityStore', () => {
     expect(state.highlightLinks).toBe(false);
     expect(state.pauseAnimations).toBe(false);
     expect(state.bigCursor).toBe(false);
+    expect(state.dyslexiaFont).toBe(false);
+    expect(state.readingAid).toBe('none');
+    expect(state.keyboardShortcut).toBe(true);
+    expect(state.colorBlindMode).toBe(ColorBlindMode.None);
     expect(state.isPanelOpen).toBe(false);
+  });
+
+  it('updates Phase 2 preferences', () => {
+    const {
+      setDyslexiaFont,
+      setReadingAid,
+      setKeyboardShortcut,
+      setColorBlindMode,
+    } = useAccessibilityStore.getState();
+    setDyslexiaFont(true);
+    setReadingAid('ruler');
+    setKeyboardShortcut(false);
+    setColorBlindMode(ColorBlindMode.Deuteranopia);
+
+    const state = useAccessibilityStore.getState();
+    expect(state.dyslexiaFont).toBe(true);
+    expect(state.readingAid).toBe('ruler');
+    expect(state.keyboardShortcut).toBe(false);
+    expect(state.colorBlindMode).toBe(ColorBlindMode.Deuteranopia);
+  });
+
+  describe('color blind helpers', () => {
+    it('getColorBlindClass returns null for None and prefixed class otherwise', () => {
+      expect(getColorBlindClass(ColorBlindMode.None)).toBeNull();
+      expect(getColorBlindClass(ColorBlindMode.Protanopia)).toBe(
+        'a11y-cb-protanopia'
+      );
+      expect(getColorBlindClass(ColorBlindMode.Deuteranopia)).toBe(
+        'a11y-cb-deuteranopia'
+      );
+      expect(getColorBlindClass(ColorBlindMode.Tritanopia)).toBe(
+        'a11y-cb-tritanopia'
+      );
+    });
+
+    it('getColorBlindFilterId mirrors the class name (kept in sync)', () => {
+      expect(getColorBlindFilterId(ColorBlindMode.Protanopia)).toBe(
+        'a11y-cb-protanopia'
+      );
+      expect(getColorBlindFilterId(ColorBlindMode.Deuteranopia)).toBe(
+        'a11y-cb-deuteranopia'
+      );
+      expect(getColorBlindFilterId(ColorBlindMode.Tritanopia)).toBe(
+        'a11y-cb-tritanopia'
+      );
+    });
   });
 
   it('updates contrast mode', () => {

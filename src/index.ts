@@ -1366,6 +1366,8 @@ export {
   AccessibilityWidget,
   AccessibilityFab,
   AccessibilityPanel,
+  ReadingAid,
+  ColorBlindFilters,
 } from './components/AccessibilityWidget';
 export type {
   AccessibilityWidgetProps,
@@ -1378,6 +1380,9 @@ export type {
 export {
   useAccessibilityStore,
   DEFAULT_ACCESSIBILITY_PREFERENCES,
+  ColorBlindMode,
+  getColorBlindClass,
+  getColorBlindFilterId,
 } from './store/accessibilityStore';
 export type {
   AccessibilityStore,
@@ -1388,8 +1393,10 @@ export type {
   SaturationMode,
   FontSizeLevel,
   SpacingLevel,
+  ReadingAid as ReadingAidMode,
 } from './store/accessibilityStore';
 export { useA11yPreferences } from './hooks/useA11yPreferences';
+export { useA11yKeyboardShortcut } from './hooks/useA11yKeyboardShortcut';
 
 // Forum Component
 export { Forum } from './components/Forum/Forum';

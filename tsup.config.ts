@@ -196,6 +196,8 @@ export default defineConfig({
     'AccessibilityWidget/index':
       'src/components/AccessibilityWidget/AccessibilityWidget.tsx',
     'hooks/useA11yPreferences/index': 'src/hooks/useA11yPreferences.ts',
+    'hooks/useA11yKeyboardShortcut/index':
+      'src/hooks/useA11yKeyboardShortcut.ts',
 
     // Styles
     styles: 'src/styles.css',

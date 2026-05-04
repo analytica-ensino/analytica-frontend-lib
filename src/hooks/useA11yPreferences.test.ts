@@ -2,6 +2,7 @@ import { renderHook, act } from '@testing-library/react';
 import {
   useAccessibilityStore,
   DEFAULT_ACCESSIBILITY_PREFERENCES,
+  ColorBlindMode,
 } from '../store/accessibilityStore';
 import { useA11yPreferences, __testing } from './useA11yPreferences';
 
@@ -34,6 +35,45 @@ describe('useA11yPreferences', () => {
     expect(
       document.documentElement.classList.contains('a11y-contrast-high')
     ).toBe(true);
+  });
+
+  it.each([
+    [ColorBlindMode.Protanopia, 'a11y-cb-protanopia'],
+    [ColorBlindMode.Deuteranopia, 'a11y-cb-deuteranopia'],
+    [ColorBlindMode.Tritanopia, 'a11y-cb-tritanopia'],
+  ] as const)(
+    'applies the correct colorblind class for %s',
+    (mode, expectedClass) => {
+      renderHook(() => useA11yPreferences());
+
+      act(() => {
+        useAccessibilityStore.getState().setColorBlindMode(mode);
+      });
+
+      expect(document.documentElement.classList.contains(expectedClass)).toBe(
+        true
+      );
+    }
+  );
+
+  it('removes colorblind class when mode returns to none', () => {
+    renderHook(() => useA11yPreferences());
+
+    act(() => {
+      useAccessibilityStore
+        .getState()
+        .setColorBlindMode(ColorBlindMode.Protanopia);
+    });
+    expect(
+      document.documentElement.classList.contains('a11y-cb-protanopia')
+    ).toBe(true);
+
+    act(() => {
+      useAccessibilityStore.getState().setColorBlindMode(ColorBlindMode.None);
+    });
+    expect(
+      document.documentElement.classList.contains('a11y-cb-protanopia')
+    ).toBe(false);
   });
 
   it('replaces previous contrast class when mode changes', () => {
@@ -96,6 +136,7 @@ describe('useA11yPreferences', () => {
       s.setHighlightLinks(true);
       s.setPauseAnimations(true);
       s.setBigCursor(true);
+      s.setDyslexiaFont(true);
     });
 
     expect(
@@ -107,12 +148,19 @@ describe('useA11yPreferences', () => {
     expect(document.documentElement.classList.contains('a11y-big-cursor')).toBe(
       true
     );
+    expect(
+      document.documentElement.classList.contains('a11y-dyslexia-font')
+    ).toBe(true);
 
     act(() => {
       useAccessibilityStore.getState().setHighlightLinks(false);
+      useAccessibilityStore.getState().setDyslexiaFont(false);
     });
     expect(
       document.documentElement.classList.contains('a11y-highlight-links')
+    ).toBe(false);
+    expect(
+      document.documentElement.classList.contains('a11y-dyslexia-font')
     ).toBe(false);
   });
 

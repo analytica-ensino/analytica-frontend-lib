@@ -9,3 +9,6 @@ export type {
 
 export { default as AccessibilityPanel } from './AccessibilityPanel';
 export type { AccessibilityPanelProps } from './AccessibilityPanel';
+
+export { default as ReadingAid } from './ReadingAid';
+export { default as ColorBlindFilters } from './ColorBlindFilters';

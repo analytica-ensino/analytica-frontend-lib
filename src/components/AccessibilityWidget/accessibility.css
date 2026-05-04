@@ -29,6 +29,28 @@ html.a11y-contrast-inverted [data-a11y-preserve-color] {
   filter: invert(1) hue-rotate(180deg);
 }
 
+/* ---------- Daltonismo ----------
+ *
+ * Aplica filtros SVG (definidos pelo componente ColorBlindFilters)
+ * para remapear cores e ajudar usuários com cada tipo de
+ * discromatopsia. Quando combinado com contraste invertido ou
+ * saturação, o estilo mais específico (na seção "Saturação" abaixo)
+ * sobrescreve este — comportamento esperado, daltonismo é mutuamente
+ * exclusivo na prática.
+ */
+
+html.a11y-cb-protanopia {
+  filter: url('#a11y-cb-protanopia');
+}
+
+html.a11y-cb-deuteranopia {
+  filter: url('#a11y-cb-deuteranopia');
+}
+
+html.a11y-cb-tritanopia {
+  filter: url('#a11y-cb-tritanopia');
+}
+
 /* ---------- Saturação ---------- */
 
 html.a11y-saturation-grayscale {
@@ -129,6 +151,22 @@ html.a11y-no-animations *::after {
   animation-iteration-count: 1 !important;
   transition-duration: 0.001ms !important;
   scroll-behavior: auto !important;
+}
+
+/* ---------- Fonte para dislexia ----------
+ *
+ * Aplica uma stack de fontes com OpenDyslexic primeiro (caso o app
+ * consumidor a tenha carregado), com Comic Sans MS como fallback —
+ * disponível em quase todos os SOs e recomendada por orgãos como a
+ * British Dyslexia Association como fonte de leitura acessível.
+ */
+
+html.a11y-dyslexia-font,
+html.a11y-dyslexia-font body,
+html.a11y-dyslexia-font body * {
+  font-family:
+    'OpenDyslexic', 'Comic Sans MS', 'Atkinson Hyperlegible', Verdana,
+    sans-serif !important;
 }
 
 /* ---------- Cursor aumentado ----------
