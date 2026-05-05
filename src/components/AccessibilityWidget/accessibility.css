@@ -1,0 +1,211 @@
+/*
+ * Estilos do widget de acessibilidade. As classes são aplicadas no
+ * `<html>` (documentElement) pelo hook `useA11yPreferences` e usam
+ * `!important` quando precisam vencer estilos do app consumidor —
+ * acessibilidade é uma camada que sempre deve prevalecer.
+ *
+ * O próprio widget (botão flutuante e painel) NUNCA é afetado por
+ * essas classes. Tudo que ele renderiza fica dentro de
+ * `.a11y-widget-root`, que neutraliza filtros e overrides.
+ */
+
+/* ---------- Contraste ---------- */
+
+html.a11y-contrast-high {
+  filter: contrast(1.6) brightness(1.05);
+}
+
+html.a11y-contrast-inverted {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* Imagens, vídeos e iframes ficam estranhos quando invertidos —
+ * desfaz para esses elementos. */
+html.a11y-contrast-inverted img,
+html.a11y-contrast-inverted video,
+html.a11y-contrast-inverted iframe,
+html.a11y-contrast-inverted svg image,
+html.a11y-contrast-inverted [data-a11y-preserve-color] {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* ---------- Daltonismo ----------
+ *
+ * Aplica filtros SVG (definidos pelo componente ColorBlindFilters)
+ * para remapear cores e ajudar usuários com cada tipo de
+ * discromatopsia. Quando combinado com contraste invertido ou
+ * saturação, o estilo mais específico (na seção "Saturação" abaixo)
+ * sobrescreve este — comportamento esperado, daltonismo é mutuamente
+ * exclusivo na prática.
+ */
+
+html.a11y-cb-protanopia {
+  filter: url('#a11y-cb-protanopia');
+}
+
+html.a11y-cb-deuteranopia {
+  filter: url('#a11y-cb-deuteranopia');
+}
+
+html.a11y-cb-tritanopia {
+  filter: url('#a11y-cb-tritanopia');
+}
+
+/* ---------- Saturação ---------- */
+
+html.a11y-saturation-grayscale {
+  filter: grayscale(1);
+}
+
+html.a11y-saturation-low {
+  filter: saturate(0.5);
+}
+
+/* Quando o usuário combina contraste e saturação, aplicamos os dois
+ * filtros — o `filter` aceita múltiplas funções. */
+html.a11y-contrast-high.a11y-saturation-grayscale {
+  filter: contrast(1.6) brightness(1.05) grayscale(1);
+}
+html.a11y-contrast-high.a11y-saturation-low {
+  filter: contrast(1.6) brightness(1.05) saturate(0.5);
+}
+html.a11y-contrast-inverted.a11y-saturation-grayscale {
+  filter: invert(1) hue-rotate(180deg) grayscale(1);
+}
+html.a11y-contrast-inverted.a11y-saturation-low {
+  filter: invert(1) hue-rotate(180deg) saturate(0.5);
+}
+
+/* ---------- Tamanho de fonte ----------
+ *
+ * Em vez de mexer no font-size de cada elemento (frágil), aumentamos
+ * o `font-size` raiz. Componentes que usam `rem` escalam junto. Para
+ * elementos que ainda usam `px`, aplicamos um `zoom` leve como reforço
+ * — webkit/blink suportam, e em Firefox o efeito é parcial mas
+ * aceitável (o usuário ainda enxerga o texto maior pelo rem).
+ */
+
+html.a11y-font-1 {
+  font-size: 112.5% !important; /* 18px se base = 16px */
+}
+html.a11y-font-2 {
+  font-size: 125% !important; /* 20px */
+}
+html.a11y-font-3 {
+  font-size: 137.5% !important; /* 22px */
+}
+
+/* ---------- Espaçamento de letras ---------- */
+
+html.a11y-letter-spacing-1 body {
+  letter-spacing: 0.05em !important;
+}
+html.a11y-letter-spacing-2 body {
+  letter-spacing: 0.1em !important;
+}
+html.a11y-letter-spacing-3 body {
+  letter-spacing: 0.15em !important;
+}
+
+/* ---------- Espaçamento entre linhas ---------- */
+
+html.a11y-line-spacing-1 body,
+html.a11y-line-spacing-1 body * {
+  line-height: 1.6 !important;
+}
+html.a11y-line-spacing-2 body,
+html.a11y-line-spacing-2 body * {
+  line-height: 1.8 !important;
+}
+html.a11y-line-spacing-3 body,
+html.a11y-line-spacing-3 body * {
+  line-height: 2.1 !important;
+}
+
+/* ---------- Destaque de links e botões ----------
+ *
+ * Adiciona contorno e sublinhado em todos os elementos interativos
+ * para facilitar identificação. Usa amarelo de alta visibilidade.
+ */
+
+html.a11y-highlight-links a,
+html.a11y-highlight-links button,
+html.a11y-highlight-links [role='button'],
+html.a11y-highlight-links [role='link'] {
+  outline: 2px solid #ffeb3b !important;
+  outline-offset: 2px !important;
+}
+
+html.a11y-highlight-links a {
+  text-decoration: underline !important;
+  text-decoration-thickness: 2px !important;
+  text-underline-offset: 2px !important;
+}
+
+/* ---------- Pausar animações ---------- */
+
+html.a11y-no-animations *,
+html.a11y-no-animations *::before,
+html.a11y-no-animations *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* ---------- Fonte para dislexia ----------
+ *
+ * Aplica uma stack de fontes com OpenDyslexic primeiro (caso o app
+ * consumidor a tenha carregado), com Comic Sans MS como fallback —
+ * disponível em quase todos os SOs e recomendada por orgãos como a
+ * British Dyslexia Association como fonte de leitura acessível.
+ */
+
+html.a11y-dyslexia-font,
+html.a11y-dyslexia-font body,
+html.a11y-dyslexia-font body * {
+  font-family:
+    'OpenDyslexic', 'Comic Sans MS', 'Atkinson Hyperlegible', Verdana,
+    sans-serif !important;
+}
+
+/* ---------- Cursor aumentado ----------
+ *
+ * Cursor SVG inline (32x32) com seta + contorno preto para alto contraste.
+ * Inline data URI para evitar dependência de asset externo.
+ */
+
+html.a11y-big-cursor,
+html.a11y-big-cursor * {
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><path d='M2 2 L2 26 L9 19 L13 28 L17 26 L13 17 L22 17 Z' fill='white' stroke='black' stroke-width='2' stroke-linejoin='round'/></svg>") 2 2, auto !important;
+}
+
+html.a11y-big-cursor a,
+html.a11y-big-cursor button,
+html.a11y-big-cursor [role='button'],
+html.a11y-big-cursor input,
+html.a11y-big-cursor select,
+html.a11y-big-cursor textarea {
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><path d='M12 2 L12 18 L8 14 L8 22 L16 30 L24 22 L24 14 L20 18 L20 2 Z' fill='white' stroke='black' stroke-width='2' stroke-linejoin='round'/></svg>") 16 4, pointer !important;
+}
+
+/* ---------- Proteção do próprio widget ----------
+ *
+ * Reverte os filtros aplicados no `<html>` para que o widget permaneça
+ * legível mesmo com inversão/escala de cinza ativos. Aplicado direto
+ * nos elementos do widget (FAB e painel) — NUNCA num wrapper, porque
+ * `filter` em ancestral muda o containing block dos descendentes
+ * `position: fixed` e desloca o painel da viewport.
+ */
+
+html.a11y-contrast-inverted .a11y-widget-shield {
+  filter: invert(1) hue-rotate(180deg) !important;
+}
+
+/*
+ * Não há shield para saturação/escala de cinza: filtros descendentes não
+ * conseguem desfazer filtros do ancestral em CSS (`grayscale(0)` / `saturate(1)`
+ * no widget seriam aplicados ANTES do filtro do `<html>`, que ainda dessatura
+ * tudo no compositing). O widget deliberadamente acompanha esses modos —
+ * mesmo comportamento do widget oficial do HandTalk.
+ */
