@@ -4,6 +4,7 @@ import type {
   QuestionActivity as Question,
   SendActivityFormData,
 } from '../..';
+import { ActivityMode } from '../SendActivityModal/types';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import type { BackendFiltersFormat } from './ActivityCreate.types';
 import { ActivityType } from './ActivityCreate.types';
@@ -286,6 +287,9 @@ export function buildSendActivityPayload(
     startDate: startDateTime,
     finalDate: finalDateTime,
     canRetry: formData.canRetry,
-    mode: formData.mode,
+    isDigital:
+      formData.mode !== undefined
+        ? formData.mode === ActivityMode.ONLINE
+        : undefined,
   };
 }
