@@ -66,15 +66,18 @@ jest.mock('./NationalAveragesContent', () => ({
     data,
     items,
     title,
+    labels,
   }: {
     data: unknown[];
     items: unknown[];
     title?: string;
+    labels?: unknown;
   }) => (
     <div data-testid="national-averages-content">
       <span data-testid="na-data-length">{(data as unknown[]).length}</span>
       <span data-testid="na-items-length">{(items as unknown[]).length}</span>
       {title && <span data-testid="na-title">{title}</span>}
+      {labels && <span data-testid="na-has-labels" />}
     </div>
   ),
 }));
@@ -294,6 +297,18 @@ describe('ComparatorTabContent', () => {
       expect(screen.getByTestId('na-title')).toHaveTextContent(
         'Custom NA Title'
       );
+    });
+
+    it('should forward labels prop to NationalAveragesContent', () => {
+      render(
+        <ComparatorTabContent
+          {...defaultProps}
+          activeTab="national-averages"
+          labels={{ nationalAveragesTitle: 'Test' }}
+        />
+      );
+
+      expect(screen.getByTestId('na-has-labels')).toBeInTheDocument();
     });
   });
 

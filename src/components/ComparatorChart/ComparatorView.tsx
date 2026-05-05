@@ -59,7 +59,10 @@ export function ComparatorView({
   isUserLoading = false,
   onFetchUserData,
 }: ComparatorViewProps) {
-  const labels = { ...DEFAULT_COMPARATOR_LABELS, ...customLabels };
+  const labels = useMemo(
+    () => ({ ...DEFAULT_COMPARATOR_LABELS, ...customLabels }),
+    [customLabels]
+  );
 
   // Store state
   const {

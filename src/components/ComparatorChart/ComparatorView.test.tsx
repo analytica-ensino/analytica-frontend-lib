@@ -288,7 +288,7 @@ describe('ComparatorView', () => {
         { id: 'school-1', name: 'Escola A', color: '#1E40AF' },
       ];
 
-      const { container } = render(
+      render(
         <ComparatorView
           {...defaultProps}
           useComparatorStore={createMockStore({
@@ -304,8 +304,9 @@ describe('ComparatorView', () => {
         screen.queryByText(/Selecione escolas ou turmas/i)
       ).not.toBeInTheDocument();
       // Check for skeleton elements
-      const skeletons = container.querySelectorAll('[class*="animate"]');
-      expect(skeletons.length).toBeGreaterThan(0);
+      expect(
+        screen.getByTestId('comparator-loading-skeleton')
+      ).toBeInTheDocument();
     });
   });
 
@@ -473,7 +474,9 @@ describe('ComparatorView', () => {
       await user.click(selectionButton);
 
       const footer = screen.getByTestId('modal-footer');
-      const confirmButton = within(footer).getByText(/Confirmar/i);
+      const confirmButton = within(footer).getByRole('button', {
+        name: /Confirmar/i,
+      });
       expect(confirmButton).toBeDisabled();
     });
 
@@ -500,7 +503,9 @@ describe('ComparatorView', () => {
       await user.click(selectionButton);
 
       const footer = screen.getByTestId('modal-footer');
-      const confirmButton = within(footer).getByText(/Confirmar.*1\/5/i);
+      const confirmButton = within(footer).getByRole('button', {
+        name: /Confirmar.*1\/5/i,
+      });
       expect(confirmButton).not.toBeDisabled();
     });
   });
@@ -608,7 +613,9 @@ describe('ComparatorView', () => {
       await user.click(selectionButton);
 
       const footer = screen.getByTestId('modal-footer');
-      const confirmButton = within(footer).getByText(/Confirmar/i);
+      const confirmButton = within(footer).getByRole('button', {
+        name: /Confirmar/i,
+      });
       await user.click(confirmButton);
 
       expect(fetchData).toHaveBeenCalledWith(

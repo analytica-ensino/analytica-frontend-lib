@@ -11,15 +11,18 @@ jest.mock('./NationalAverageCard', () => ({
   NationalAverageCard: ({
     data,
     color,
+    labels,
   }: {
     data: NationalAverageData;
     color?: string;
+    labels?: unknown;
   }) => (
     <div data-testid={`national-average-card-${data.itemId}`}>
       <span data-testid={`card-name-${data.itemId}`}>{data.itemName}</span>
       <span data-testid={`card-color-${data.itemId}`}>
         {color || 'no-color'}
       </span>
+      {labels && <span data-testid={`card-has-labels-${data.itemId}`} />}
     </div>
   ),
 }));
@@ -238,6 +241,9 @@ describe('NationalAveragesContent', () => {
       render(<NationalAveragesContent {...defaultProps} items={[]} />);
 
       expect(screen.getByTestId('card-color-school-1')).toHaveTextContent(
+        'no-color'
+      );
+      expect(screen.getByTestId('card-color-school-2')).toHaveTextContent(
         'no-color'
       );
     });

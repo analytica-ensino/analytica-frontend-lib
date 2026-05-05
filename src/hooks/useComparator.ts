@@ -180,7 +180,7 @@ export function createUseComparator(config: UseComparatorConfig) {
             return newData;
           });
         } catch (err) {
-          console.error('Error fetching comparator data:', err);
+          console.error('Erro ao buscar dados do comparador:', err);
           setError('Erro ao carregar dados de comparação');
         } finally {
           setLoading(false);
