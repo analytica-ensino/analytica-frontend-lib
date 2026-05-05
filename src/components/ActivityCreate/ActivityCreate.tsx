@@ -173,6 +173,7 @@ const CreateActivity = ({
   const [isSaving, setIsSaving] = useState(false);
   const [isSendModalOpen, setIsSendModalOpen] = useState(false);
   const [isSaveModelModalOpen, setIsSaveModelModalOpen] = useState(false);
+  const [isSavingModel, setIsSavingModel] = useState(false);
   const [categories, setCategories] = useState<CategoryConfig[]>([]);
   const [isSendingActivity, setIsSendingActivity] = useState(false);
 
@@ -766,8 +767,13 @@ const CreateActivity = ({
    */
   const handleConfirmSaveModel = useCallback(
     async (title: string) => {
-      setIsSaveModelModalOpen(false);
-      await saveDraft(ActivityType.MODELO, title);
+      setIsSavingModel(true);
+      try {
+        setIsSaveModelModalOpen(false);
+        await saveDraft(ActivityType.MODELO, title);
+      } finally {
+        setIsSavingModel(false);
+      }
     },
     [saveDraft]
   );
@@ -1420,7 +1426,7 @@ const CreateActivity = ({
         isOpen={isSaveModelModalOpen}
         onClose={() => setIsSaveModelModalOpen(false)}
         onConfirm={handleConfirmSaveModel}
-        isLoading={isSaving}
+        isLoading={isSavingModel}
       />
 
       {/* Send Activity Modal */}
