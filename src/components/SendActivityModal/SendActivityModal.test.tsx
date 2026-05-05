@@ -252,6 +252,7 @@ describe('SendActivityModal', () => {
   afterEach(() => {
     jest.useRealTimers();
     jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('rendering', () => {
@@ -1004,8 +1005,6 @@ describe('SendActivityModal', () => {
           submitError
         );
       });
-
-      consoleSpy.mockRestore();
     });
 
     it('should not call onError when submission succeeds', async () => {

@@ -288,8 +288,8 @@ export function buildSendActivityPayload(
     finalDate: finalDateTime,
     canRetry: formData.canRetry,
     isDigital:
-      formData.mode !== undefined
-        ? formData.mode === ActivityMode.ONLINE
-        : undefined,
+      formData.mode === undefined
+        ? undefined
+        : formData.mode === ActivityMode.ONLINE,
   };
 }

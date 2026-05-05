@@ -226,9 +226,9 @@ export function useSendActivity(
           questionIds,
           subtype: data.subtype,
           isDigital:
-            data.mode !== undefined
-              ? data.mode === ActivityMode.ONLINE
-              : undefined,
+            data.mode === undefined
+              ? undefined
+              : data.mode === ActivityMode.ONLINE,
           notification: data.notification,
           startDate: toISODateTime(data.startDate, data.startTime),
           finalDate: toISODateTime(data.finalDate, data.finalTime),
