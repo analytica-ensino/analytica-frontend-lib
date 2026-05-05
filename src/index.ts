@@ -980,6 +980,10 @@ export {
 export { ChooseActivityModelModal } from './components/ChooseActivityModelModal';
 export type { ChooseActivityModelModalProps } from './components/ChooseActivityModelModal';
 
+// SaveActivityModelModal Component
+export { SaveActivityModelModal } from './components/SaveActivityModelModal';
+export type { SaveActivityModelModalProps } from './components/SaveActivityModelModal';
+
 // SendLessonModal Component
 export { SendLessonModal } from './components/SendLessonModal';
 export { useSendLessonModal } from './components/SendLessonModal';
