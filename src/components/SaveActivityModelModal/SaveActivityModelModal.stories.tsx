@@ -2,6 +2,7 @@ import type { Story } from '@ladle/react';
 import { useState } from 'react';
 import { SaveActivityModelModal } from './SaveActivityModelModal';
 import Button from '../Button/Button';
+import Text from '../Text/Text';
 
 /**
  * Basic SaveActivityModelModal usage. The user opens the modal, types a title
@@ -17,10 +18,12 @@ export const Basic: Story = () => {
 
       {savedTitle && (
         <div className="p-4 bg-background-50 rounded-lg">
-          <p className="text-sm font-medium text-text-900">
+          <Text size="sm" weight="medium" color="text-text-900">
             Último título salvo:
-          </p>
-          <p className="text-sm text-text-700">{savedTitle}</p>
+          </Text>
+          <Text size="sm" color="text-text-700">
+            {savedTitle}
+          </Text>
         </div>
       )}
 
