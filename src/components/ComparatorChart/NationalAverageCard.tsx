@@ -1,4 +1,5 @@
 import Text from '../Text/Text';
+import Badge from '../Badge/Badge';
 import type {
   NationalAverageData,
   ComparatorLabels,
@@ -81,17 +82,14 @@ export function NationalAverageCard({
       </div>
 
       {/* Status */}
-      <div
-        className={`p-3 rounded-lg ${
-          data.status === 'above'
-            ? 'bg-success-100 text-success-700'
-            : 'bg-warning-100 text-warning-700'
-        }`}
+      <Badge
+        variant="solid"
+        action={data.status === 'above' ? 'success' : 'warning'}
+        size="medium"
+        className="w-full justify-center py-3"
       >
-        <Text size="sm">
-          {data.status === 'above' ? labels.aboveAverage : labels.belowAverage}
-        </Text>
-      </div>
+        {data.status === 'above' ? labels.aboveAverage : labels.belowAverage}
+      </Badge>
     </div>
   );
 }

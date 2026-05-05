@@ -151,8 +151,8 @@ describe('NationalAverageCard', () => {
     it('should apply success styling when status is above', () => {
       const { container } = render(<NationalAverageCard {...defaultProps} />);
 
-      const statusContainer = container.querySelector('.bg-success-100');
-      expect(statusContainer).toBeInTheDocument();
+      const statusBadge = container.querySelector('.bg-success');
+      expect(statusBadge).toBeInTheDocument();
     });
 
     it('should apply warning styling when status is below', () => {
@@ -163,8 +163,8 @@ describe('NationalAverageCard', () => {
 
       const { container } = render(<NationalAverageCard data={dataBelow} />);
 
-      const statusContainer = container.querySelector('.bg-warning-100');
-      expect(statusContainer).toBeInTheDocument();
+      const statusBadge = container.querySelector('.bg-warning');
+      expect(statusBadge).toBeInTheDocument();
     });
   });
 
