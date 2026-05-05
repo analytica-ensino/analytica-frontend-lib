@@ -12,8 +12,6 @@ import { ComparatorTabContent } from './ComparatorTabContent';
 import type {
   ComparisonType,
   ComparatorTabType,
-  ComparatorData,
-  ComparisonItem,
   ComparatorStoreState,
   UseComparatorReturn,
   ComparatorLabels,
@@ -108,7 +106,6 @@ export function ComparatorView({
         itemNames
       );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Options based on comparison type

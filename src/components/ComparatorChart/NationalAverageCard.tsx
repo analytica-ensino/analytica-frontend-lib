@@ -1,5 +1,8 @@
 import Text from '../Text/Text';
-import type { NationalAverageData, ComparatorLabels } from '../../types/comparator';
+import type {
+  NationalAverageData,
+  ComparatorLabels,
+} from '../../types/comparator';
 import { DEFAULT_COMPARATOR_LABELS } from '../../types/comparator';
 
 export interface NationalAverageCardProps {

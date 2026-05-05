@@ -1,10 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import type {
-  ComparisonType,
-  ComparisonItem,
-  ComparatorStoreState,
-} from '../types/comparator';
+import type { ComparisonItem, ComparatorStoreState } from '../types/comparator';
 import { COMPARATOR_CHART_COLORS } from '../types/comparator';
 
 export interface CreateComparatorStoreConfig {
@@ -12,7 +8,9 @@ export interface CreateComparatorStoreConfig {
   chartColors?: string[];
 }
 
-export function createComparatorStore(config: CreateComparatorStoreConfig = {}) {
+export function createComparatorStore(
+  config: CreateComparatorStoreConfig = {}
+) {
   const {
     storageKey = 'comparator-storage',
     chartColors = COMPARATOR_CHART_COLORS,

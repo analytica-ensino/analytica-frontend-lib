@@ -1,5 +1,7 @@
+import { ReactNode } from 'react';
+
 export interface ChartAreaProps {
-  readonly children: React.ReactNode;
+  readonly children: ReactNode;
 }
 
 export function ChartArea({ children }: ChartAreaProps) {
