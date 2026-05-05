@@ -103,9 +103,9 @@ const Segmented = <T extends string | number>({
     {options.map((opt) => {
       const isActive = opt.value === value;
       return (
-        <button
+        <Button
           key={String(opt.value)}
-          type="button"
+          variant="raw"
           role="radio"
           aria-checked={isActive}
           onClick={() => onChange(opt.value)}
@@ -119,7 +119,7 @@ const Segmented = <T extends string | number>({
           )}
         >
           {opt.label}
-        </button>
+        </Button>
       );
     })}
   </div>
@@ -449,7 +449,9 @@ export default function AccessibilityPanel({
             weight="bold"
             aria-hidden="true"
           />
-          <span className="ml-1">Redefinir</span>
+          <Text as="span" size="sm" className="ml-1">
+            Redefinir
+          </Text>
         </Button>
       </footer>
     </dialog>
