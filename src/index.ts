@@ -980,6 +980,10 @@ export {
 export { ChooseActivityModelModal } from './components/ChooseActivityModelModal';
 export type { ChooseActivityModelModalProps } from './components/ChooseActivityModelModal';
 
+// SaveActivityModelModal Component
+export { SaveActivityModelModal } from './components/SaveActivityModelModal';
+export type { SaveActivityModelModalProps } from './components/SaveActivityModelModal';
+
 // SendLessonModal Component
 export { SendLessonModal } from './components/SendLessonModal';
 export { useSendLessonModal } from './components/SendLessonModal';
@@ -1360,6 +1364,43 @@ export type {
   ChatbotConversationListProps,
   ChatbotContentRendererProps,
 } from './components/Chatbot';
+
+// Accessibility Widget
+export {
+  AccessibilityWidget,
+  AccessibilityFab,
+  AccessibilityPanel,
+  ReadingAid,
+  ColorBlindFilters,
+} from './components/AccessibilityWidget';
+export type {
+  AccessibilityWidgetProps,
+  AccessibilityFabProps,
+  AccessibilityFabPosition,
+  AccessibilityPanelProps,
+} from './components/AccessibilityWidget';
+
+// Accessibility Store + Hook
+export {
+  useAccessibilityStore,
+  DEFAULT_ACCESSIBILITY_PREFERENCES,
+  ColorBlindMode,
+  getColorBlindClass,
+  getColorBlindFilterId,
+} from './store/accessibilityStore';
+export type {
+  AccessibilityStore,
+  AccessibilityState,
+  AccessibilityActions,
+  AccessibilityPreferences,
+  ContrastMode,
+  SaturationMode,
+  FontSizeLevel,
+  SpacingLevel,
+  ReadingAid as ReadingAidMode,
+} from './store/accessibilityStore';
+export { useA11yPreferences } from './hooks/useA11yPreferences';
+export { useA11yKeyboardShortcut } from './hooks/useA11yKeyboardShortcut';
 
 // Forum Component
 export { Forum } from './components/Forum/Forum';

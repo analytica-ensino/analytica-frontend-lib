@@ -10,6 +10,7 @@ import {
   useQuestionFiltersStore,
   createUseActivityFiltersData,
   SendActivityModal,
+  SaveActivityModelModal,
   CategoryConfig,
   useToastStore,
   Modal,
@@ -171,6 +172,8 @@ const CreateActivity = ({
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isSendModalOpen, setIsSendModalOpen] = useState(false);
+  const [isSaveModelModalOpen, setIsSaveModelModalOpen] = useState(false);
+  const [isSavingModel, setIsSavingModel] = useState(false);
   const [categories, setCategories] = useState<CategoryConfig[]>([]);
   const [isSendingActivity, setIsSendingActivity] = useState(false);
 
@@ -666,10 +669,14 @@ const CreateActivity = ({
   /**
    * Save draft to backend
    * @param typeOverride - Override the activity type for this save
+   * @param customTitle - Optional user-provided title; falls back to auto-generated when empty
    * @returns The draft ID (existing or newly created), or undefined if save failed
    */
   const saveDraft = useCallback(
-    async (typeOverride?: ActivityType): Promise<string | undefined> => {
+    async (
+      typeOverride?: ActivityType,
+      customTitle?: string
+    ): Promise<string | undefined> => {
       if (!validateSaveConditions()) {
         return draftId || undefined;
       }
@@ -685,7 +692,11 @@ const CreateActivity = ({
           if (!subjectId) {
             throw new Error('Subject ID não encontrado');
           }
-          const title = generateTitle(typeOverride, subjectId, knowledgeAreas);
+          const trimmedCustomTitle = customTitle?.trim();
+          const title =
+            trimmedCustomTitle && trimmedCustomTitle.length > 0
+              ? trimmedCustomTitle
+              : generateTitle(typeOverride, subjectId, knowledgeAreas);
           payload = {
             ...payload,
             type: typeOverride,
@@ -742,11 +753,30 @@ const CreateActivity = ({
   );
 
   /**
-   * Handle save model button click
+   * Open the "save as model" modal so the user can provide a custom title
    */
-  const handleSaveModel = useCallback(async () => {
-    setActivityType(ActivityType.MODELO);
+  const handleSaveModel = useCallback(() => {
+    setIsSaveModelModalOpen(true);
   }, []);
+
+  /**
+   * Persist the draft as MODELO using the title provided by the user.
+   * activityType is updated by the save helpers (updateExistingDraft /
+   * updateStateAfterSave) only after the backend confirms the save, keeping
+   * UI state consistent with persisted state on failure.
+   */
+  const handleConfirmSaveModel = useCallback(
+    async (title: string) => {
+      setIsSavingModel(true);
+      try {
+        setIsSaveModelModalOpen(false);
+        await saveDraft(ActivityType.MODELO, title);
+      } finally {
+        setIsSavingModel(false);
+      }
+    },
+    [saveDraft]
+  );
 
   /**
    * Get endpoint for recommended class based on class type
@@ -994,18 +1024,6 @@ const CreateActivity = ({
       }
     };
   }, [questions, appliedFilters, activityType, loadingInitialQuestions]);
-
-  /**
-   * Save immediately when activityType changes to MODELO
-   */
-  useEffect(() => {
-    if (activityType === ActivityType.MODELO && hasFirstSaveBeenDone.current) {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-      saveDraftRef.current();
-    }
-  }, [activityType]);
 
   /**
    * Handle adding a question to the activity
@@ -1402,6 +1420,14 @@ const CreateActivity = ({
           </div>
         </div>
       )}
+
+      {/* Save Activity Model Modal */}
+      <SaveActivityModelModal
+        isOpen={isSaveModelModalOpen}
+        onClose={() => setIsSaveModelModalOpen(false)}
+        onConfirm={handleConfirmSaveModel}
+        isLoading={isSavingModel}
+      />
 
       {/* Send Activity Modal */}
       <SendActivityModal
