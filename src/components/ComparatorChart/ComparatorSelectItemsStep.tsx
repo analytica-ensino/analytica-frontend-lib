@@ -1,3 +1,4 @@
+import { X } from 'phosphor-react';
 import Text from '../Text/Text';
 import Badge from '../Badge/Badge';
 import SearchSelect from '../SearchSelect/SearchSelect';
@@ -8,24 +9,6 @@ import type {
   ComparatorLabels,
 } from '../../types/comparator';
 import { DEFAULT_COMPARATOR_LABELS } from '../../types/comparator';
-
-function CloseIcon() {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <line x1="18" y1="6" x2="6" y2="18" />
-      <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
-  );
-}
 
 export interface ComparatorSelectItemsStepProps {
   readonly options: SearchSelectOption[];
@@ -90,7 +73,7 @@ export function ComparatorSelectItemsStep({
                 className="ml-1 p-0.5 rounded-full hover:bg-secondary-200 transition-colors"
                 aria-label={`Remover ${item.name}`}
               >
-                <CloseIcon />
+                <X size={14} />
               </button>
             </Badge>
           ))}
