@@ -130,11 +130,22 @@ describe('ComparatorView', () => {
       expect(within(header).getByText('Comparador')).toBeInTheDocument();
     });
 
-    it('should render back button', () => {
-      render(<ComparatorView {...defaultProps} />);
+    it('should render back button when onBack is provided', () => {
+      render(<ComparatorView {...defaultProps} onBack={jest.fn()} />);
 
       const backButton = screen.getByRole('button', { name: /Comparador/i });
       expect(backButton).toBeInTheDocument();
+    });
+
+    it('should render title without button when onBack is not provided', () => {
+      render(<ComparatorView {...defaultProps} />);
+
+      const header = screen.getByRole('banner');
+      expect(within(header).getByText('Comparador')).toBeInTheDocument();
+      // Should not be a button
+      expect(
+        within(header).queryByRole('button', { name: /Comparador/i })
+      ).not.toBeInTheDocument();
     });
 
     it('should call onBack when back button is clicked', async () => {

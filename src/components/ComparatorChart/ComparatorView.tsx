@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { CaretLeft } from 'phosphor-react';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
@@ -81,6 +81,7 @@ export function ComparatorView({
   const [modalStep, setModalStep] = useState<1 | 2>(1);
   const [internalActiveTab, setInternalActiveTab] =
     useState<ComparatorTabType>('knowledge-areas');
+  const hasInitializedRef = useRef(false);
 
   // Use external tab if provided, otherwise internal
   const activeTab = externalActiveTab ?? internalActiveTab;
@@ -97,7 +98,9 @@ export function ComparatorView({
 
   // Load comparison data on mount if there are persisted selections
   useEffect(() => {
+    if (hasInitializedRef.current) return;
     if (selectedItems.length > 0 && comparisonType) {
+      hasInitializedRef.current = true;
       const itemNames = new Map(selectedItems.map((i) => [i.id, i.name]));
       fetchData(
         selectedItems.map((i) => i.id),
@@ -106,7 +109,7 @@ export function ComparatorView({
         itemNames
       );
     }
-  }, []);
+  }, [selectedItems, comparisonType, activeTab, fetchData]);
 
   // Options based on comparison type
   const options = useMemo((): SearchSelectOption[] => {
@@ -245,15 +248,24 @@ export function ComparatorView({
     <div className="h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 border-b border-border-100 bg-secondary-50">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-2 text-text-950 hover:text-text-700 transition-colors"
-        >
-          <CaretLeft size={20} weight="bold" />
-          <Text size="lg" weight="semibold">
-            {labels.title}
-          </Text>
-        </button>
+        {onBack ? (
+          <Button
+            variant="raw"
+            onClick={onBack}
+            className="flex items-center gap-2 text-text-950 hover:text-text-700 transition-colors"
+          >
+            <CaretLeft size={20} weight="bold" />
+            <Text size="lg" weight="semibold">
+              {labels.title}
+            </Text>
+          </Button>
+        ) : (
+          <div className="flex items-center gap-2 text-text-950">
+            <Text size="lg" weight="semibold">
+              {labels.title}
+            </Text>
+          </div>
+        )}
         <Button
           variant="solid"
           action="primary"
@@ -268,7 +280,8 @@ export function ComparatorView({
       {/* Tabs */}
       <div className="flex gap-2 px-6 py-4 border-b border-border-100 bg-secondary-50">
         {tabs.map((tab) => (
-          <button
+          <Button
+            variant="raw"
             key={tab.value}
             onClick={() => handleTabChange(tab.value)}
             className={`px-4 py-2 text-sm font-medium transition-colors ${
@@ -278,7 +291,7 @@ export function ComparatorView({
             }`}
           >
             {tab.label}
-          </button>
+          </Button>
         ))}
       </div>
 

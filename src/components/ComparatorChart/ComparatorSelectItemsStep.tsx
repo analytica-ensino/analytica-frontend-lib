@@ -1,5 +1,6 @@
 import { X } from 'phosphor-react';
 import Text from '../Text/Text';
+import Button from '../Button/Button';
 import Badge from '../Badge/Badge';
 import SearchSelect from '../SearchSelect/SearchSelect';
 import type { SearchSelectOption } from '../SearchSelect/SearchSelect';
@@ -35,11 +36,13 @@ export function ComparatorSelectItemsStep({
     comparisonType === 'school'
       ? labels.schools.toLowerCase()
       : labels.schoolYears.toLowerCase();
+  const singularItemTypeName =
+    comparisonType === 'school' ? labels.school : labels.schoolYear;
 
   return (
     <div className="flex flex-col gap-4">
       <Text size="sm" className="text-text-600">
-        Selecione uma {itemTypeName.slice(0, -1)} para comparar.
+        {labels.selectItemInstruction.replace('{item}', singularItemTypeName)}
       </Text>
 
       <SearchSelect
@@ -68,13 +71,14 @@ export function ComparatorSelectItemsStep({
                 style={{ backgroundColor: item.color }}
               />
               <span className="truncate max-w-[200px]">{item.name}</span>
-              <button
+              <Button
+                variant="raw"
                 onClick={() => onRemoveItem(item.id)}
                 className="ml-1 p-0.5 rounded-full hover:bg-secondary-200 transition-colors"
                 aria-label={`Remover ${item.name}`}
               >
                 <X size={14} />
-              </button>
+              </Button>
             </Badge>
           ))}
         </div>

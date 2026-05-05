@@ -25,6 +25,7 @@ export function BarChartRow({ label, values, items }: BarChartRowProps) {
         {items.map((item) => {
           const value = values.find((v) => v.itemId === item.id);
           const percentage = value?.percentage ?? 0;
+          const clampedPercentage = Math.max(0, Math.min(percentage, 100));
           const isHovered = hoveredItem === item.id;
 
           return (
@@ -40,9 +41,9 @@ export function BarChartRow({ label, values, items }: BarChartRowProps) {
                     isHovered ? 'opacity-90' : ''
                   }`}
                   style={{
-                    width: `${Math.min(percentage, 100)}%`,
+                    width: `${clampedPercentage}%`,
                     backgroundColor: item.color,
-                    minWidth: percentage > 0 ? '8px' : '0px',
+                    minWidth: clampedPercentage > 0 ? '8px' : '0px',
                   }}
                 />
               </div>

@@ -31,11 +31,11 @@ export function ComparatorEmptyState({
 
   const descriptionText =
     canCompareSchools && canCompareSchoolYears
-      ? `Selecione ${labels.schools.toLowerCase()} ou ${labels.schoolYears.toLowerCase()} para visualizar a comparação`
+      ? labels.emptyStateDescriptionBoth
       : canCompareSchools
-        ? `Selecione ${labels.schools.toLowerCase()} para visualizar a comparação`
+        ? labels.emptyStateDescriptionSchools
         : canCompareSchoolYears
-          ? `Selecione ${labels.schoolYears.toLowerCase()} para visualizar a comparação`
+          ? labels.emptyStateDescriptionSchoolYears
           : labels.noAccessMessage;
 
   return (

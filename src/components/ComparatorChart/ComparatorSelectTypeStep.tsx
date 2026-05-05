@@ -1,4 +1,5 @@
 import Text from '../Text/Text';
+import Button from '../Button/Button';
 import type { ComparisonType, ComparatorLabels } from '../../types/comparator';
 import { DEFAULT_COMPARATOR_LABELS } from '../../types/comparator';
 
@@ -34,7 +35,8 @@ export function ComparatorSelectTypeStep({
       </Text>
       <div className="flex gap-4">
         {canCompareSchools && (
-          <button
+          <Button
+            variant="raw"
             onClick={() => onSelectType('school')}
             className="flex-1 p-4 border border-border-200 rounded-xl hover:border-primary-500 hover:bg-primary-50 transition-colors text-left"
           >
@@ -44,10 +46,11 @@ export function ComparatorSelectTypeStep({
             <Text size="sm" className="text-text-500">
               {labels.compareSchoolsDescription}
             </Text>
-          </button>
+          </Button>
         )}
         {canCompareSchoolYears && (
-          <button
+          <Button
+            variant="raw"
             onClick={() => onSelectType('schoolYear')}
             className="flex-1 p-4 border border-border-200 rounded-xl hover:border-primary-500 hover:bg-primary-50 transition-colors text-left"
           >
@@ -57,7 +60,7 @@ export function ComparatorSelectTypeStep({
             <Text size="sm" className="text-text-500">
               {labels.compareSchoolYearsDescription}
             </Text>
-          </button>
+          </Button>
         )}
       </div>
     </div>

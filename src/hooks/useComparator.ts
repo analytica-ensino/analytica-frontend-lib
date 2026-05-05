@@ -151,32 +151,34 @@ export function createUseComparator(config: UseComparatorConfig) {
           const response = await apiClient.post(endpoint, body);
           const apiData = response.data.data;
 
-          const newData: ComparatorData = { ...data };
+          setData((prev) => {
+            const newData: ComparatorData = { ...prev };
 
-          switch (tab) {
-            case 'knowledge-areas':
-              newData.knowledgeAreas = transformKnowledgeAreas(
-                apiData as KnowledgeAreasApiItem[]
-              );
-              break;
-            case 'curricular-components':
-              newData.curricularComponents = transformCurricularComponents(
-                apiData as CurricularComponentsApiItem[]
-              );
-              break;
-            case 'competencies':
-              newData.competencies = transformCompetencies(
-                apiData as CompetenciesApiItem[]
-              );
-              break;
-            case 'national-averages':
-              newData.nationalAverages = transformNationalAverages(
-                apiData as NationalAveragesApiItem[]
-              );
-              break;
-          }
+            switch (tab) {
+              case 'knowledge-areas':
+                newData.knowledgeAreas = transformKnowledgeAreas(
+                  apiData as KnowledgeAreasApiItem[]
+                );
+                break;
+              case 'curricular-components':
+                newData.curricularComponents = transformCurricularComponents(
+                  apiData as CurricularComponentsApiItem[]
+                );
+                break;
+              case 'competencies':
+                newData.competencies = transformCompetencies(
+                  apiData as CompetenciesApiItem[]
+                );
+                break;
+              case 'national-averages':
+                newData.nationalAverages = transformNationalAverages(
+                  apiData as NationalAveragesApiItem[]
+                );
+                break;
+            }
 
-          setData(newData);
+            return newData;
+          });
         } catch (err) {
           console.error('Error fetching comparator data:', err);
           setError('Erro ao carregar dados de comparação');
@@ -184,7 +186,7 @@ export function createUseComparator(config: UseComparatorConfig) {
           setLoading(false);
         }
       },
-      [data]
+      []
     );
 
     return { data, loading, error, fetchData };

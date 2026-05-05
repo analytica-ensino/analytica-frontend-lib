@@ -145,10 +145,16 @@ export interface ComparatorLabels {
   selectSchoolYears: string;
   schools: string;
   schoolYears: string;
+  school: string;
+  schoolYear: string;
   compareSchoolsDescription: string;
   compareSchoolYearsDescription: string;
   selectComparisonType: string;
   noAccessMessage: string;
+  emptyStateDescriptionBoth: string;
+  emptyStateDescriptionSchools: string;
+  emptyStateDescriptionSchoolYears: string;
+  selectItemInstruction: string;
   search: string;
   maxLimitWarning: string;
   confirm: string;
@@ -173,11 +179,20 @@ export const DEFAULT_COMPARATOR_LABELS: ComparatorLabels = {
   selectSchoolYears: 'Selecionar turmas',
   schools: 'Escolas',
   schoolYears: 'Turmas',
+  school: 'escola',
+  schoolYear: 'turma',
   compareSchoolsDescription: 'Compare o desempenho entre escolas',
   compareSchoolYearsDescription: 'Compare o desempenho entre turmas',
   selectComparisonType: 'Selecione o tipo de comparação.',
   noAccessMessage:
     'Você precisa ter acesso a mais de uma escola ou turma para usar o comparador.',
+  emptyStateDescriptionBoth:
+    'Selecione escolas ou turmas para visualizar a comparação',
+  emptyStateDescriptionSchools:
+    'Selecione escolas para visualizar a comparação',
+  emptyStateDescriptionSchoolYears:
+    'Selecione turmas para visualizar a comparação',
+  selectItemInstruction: 'Selecione uma {item} para comparar.',
   search: 'Buscar',
   maxLimitWarning: 'Limite máximo de 5 itens atingido',
   confirm: 'Confirmar',
