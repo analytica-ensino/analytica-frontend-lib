@@ -18,6 +18,8 @@ export const useA11yKeyboardShortcut = () => {
 
     const handler = (event: KeyboardEvent) => {
       if (!event.altKey || event.key.toLowerCase() !== 'a') return;
+      // Ignora auto-repeat: segurar Alt+A não deve oscilar o painel
+      if (event.repeat) return;
 
       // Não ativa se o usuário estiver digitando em algum campo
       const target = event.target as HTMLElement | null;

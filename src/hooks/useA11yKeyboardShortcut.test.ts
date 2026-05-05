@@ -5,10 +5,14 @@ import {
   DEFAULT_ACCESSIBILITY_PREFERENCES,
 } from '../store/accessibilityStore';
 
-const fireAltA = (target: EventTarget = window) => {
+const fireAltA = (
+  target: EventTarget = window,
+  options: { repeat?: boolean } = {}
+) => {
   const event = new KeyboardEvent('keydown', {
     key: 'a',
     altKey: true,
+    repeat: options.repeat ?? false,
     bubbles: true,
     cancelable: true,
   });
@@ -36,6 +40,19 @@ describe('useA11yKeyboardShortcut', () => {
 
     fireAltA();
     expect(useAccessibilityStore.getState().isPanelOpen).toBe(false);
+  });
+
+  it('ignores auto-repeat keydown events while Alt+A is held', () => {
+    renderHook(() => useA11yKeyboardShortcut());
+
+    fireAltA(); // primeira pressão — abre
+    expect(useAccessibilityStore.getState().isPanelOpen).toBe(true);
+
+    // Auto-repeat: 5 eventos em sequência não devem oscilar o painel
+    for (let i = 0; i < 5; i++) {
+      fireAltA(window, { repeat: true });
+    }
+    expect(useAccessibilityStore.getState().isPanelOpen).toBe(true);
   });
 
   it('does nothing when keyboardShortcut is disabled', () => {
