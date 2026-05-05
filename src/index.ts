@@ -1556,6 +1556,7 @@ export type {
 // DownloadModal Components
 export { default as DownloadModal } from './components/DownloadModal/DownloadModal';
 export { DOWNLOAD_FORMAT } from './enums/DownloadFormat';
+export { FILTER_CATEGORY, FILTER_GROUP } from './enums/FilterEnums';
 export type {
   DownloadModalProps,
   DownloadFormat,
