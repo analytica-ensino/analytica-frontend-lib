@@ -2,11 +2,12 @@ import { KnowledgeAreasContent } from './KnowledgeAreasContent';
 import { CurricularComponentsContent } from './CurricularComponentsContent';
 import { CompetenciesContent } from './CompetenciesContent';
 import { NationalAveragesContent } from './NationalAveragesContent';
-import type {
-  ComparatorTabType,
-  ComparatorData,
-  ComparisonItem,
-  ComparatorLabels,
+import {
+  ComparatorTabValue,
+  type ComparatorTabType,
+  type ComparatorData,
+  type ComparisonItem,
+  type ComparatorLabels,
 } from '../../types/comparator';
 
 export interface ComparatorTabContentProps {
@@ -23,7 +24,7 @@ export function ComparatorTabContent({
   labels,
 }: ComparatorTabContentProps) {
   switch (activeTab) {
-    case 'knowledge-areas':
+    case ComparatorTabValue.KNOWLEDGE_AREAS:
       return (
         <KnowledgeAreasContent
           data={data.knowledgeAreas}
@@ -31,7 +32,7 @@ export function ComparatorTabContent({
           title={labels?.knowledgeAreasTitle}
         />
       );
-    case 'curricular-components':
+    case ComparatorTabValue.CURRICULAR_COMPONENTS:
       return (
         <CurricularComponentsContent
           data={data.curricularComponents}
@@ -39,7 +40,7 @@ export function ComparatorTabContent({
           title={labels?.curricularComponentsTitle}
         />
       );
-    case 'competencies':
+    case ComparatorTabValue.COMPETENCIES:
       return (
         <CompetenciesContent
           data={data.competencies}
@@ -47,7 +48,7 @@ export function ComparatorTabContent({
           title={labels?.competenciesTitle}
         />
       );
-    case 'national-averages':
+    case ComparatorTabValue.NATIONAL_AVERAGES:
       return (
         <NationalAveragesContent
           data={data.nationalAverages}

@@ -614,8 +614,7 @@ describe('ComparatorView', () => {
       expect(fetchData).toHaveBeenCalledWith(
         ['school-1'],
         'school',
-        'knowledge-areas',
-        expect.any(Map)
+        'knowledge-areas'
       );
     });
 
@@ -643,8 +642,7 @@ describe('ComparatorView', () => {
       expect(fetchData).toHaveBeenCalledWith(
         ['school-1'],
         'school',
-        'competencies',
-        expect.any(Map)
+        'competencies'
       );
     });
   });

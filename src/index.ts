@@ -1628,6 +1628,7 @@ export type {
 
 // Comparator Types
 export {
+  ComparatorTabValue,
   DEFAULT_COMPARATOR_LABELS,
   DEFAULT_COMPARATOR_TABS,
   COMPARATOR_CHART_COLORS,

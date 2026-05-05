@@ -50,14 +50,16 @@ export function BarChartRow({ label, values, items }: BarChartRowProps) {
               {/* Tooltip */}
               {isHovered && (
                 <div
-                  className="absolute z-10 px-2 py-1 text-xs font-medium text-white bg-text-900 rounded shadow-lg whitespace-nowrap"
+                  className="absolute z-10 px-2 py-1 bg-text-900 rounded shadow-lg whitespace-nowrap"
                   style={{
                     left: `${Math.min(Math.max(percentage, 5), 95)}%`,
                     top: '-28px',
                     transform: 'translateX(-50%)',
                   }}
                 >
-                  {item.name}: {percentage.toFixed(1)}%
+                  <Text size="xs" weight="medium" className="text-white">
+                    {item.name}: {percentage.toFixed(1)}%
+                  </Text>
                   <div
                     className="absolute w-2 h-2 bg-text-900 rotate-45"
                     style={{

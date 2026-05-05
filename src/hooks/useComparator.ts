@@ -1,18 +1,19 @@
 import { useState, useCallback } from 'react';
-import type {
-  ComparisonType,
-  ComparatorTabType,
-  ComparatorData,
-  KnowledgeAreaData,
-  CurricularComponentData,
-  CompetencyData,
-  NationalAverageData,
-  ComparatorApiClient,
-  KnowledgeAreasApiItem,
-  CurricularComponentsApiItem,
-  CompetenciesApiItem,
-  NationalAveragesApiItem,
-  UseComparatorReturn,
+import {
+  ComparatorTabValue,
+  type ComparisonType,
+  type ComparatorTabType,
+  type ComparatorData,
+  type KnowledgeAreaData,
+  type CurricularComponentData,
+  type CompetencyData,
+  type NationalAverageData,
+  type ComparatorApiClient,
+  type KnowledgeAreasApiItem,
+  type CurricularComponentsApiItem,
+  type CompetenciesApiItem,
+  type NationalAveragesApiItem,
+  type UseComparatorReturn,
 } from '../types/comparator';
 
 // Transform backend response to frontend format
@@ -59,7 +60,11 @@ function transformCompetencies(
 ): CompetencyData[] {
   if (apiData.length === 0) return [];
 
-  return [1, 2, 3, 4, 5].map((num) => ({
+  const competencyNumbers = apiData[0].competencies
+    .map((c) => c.competencyNumber)
+    .sort((a, b) => a - b);
+
+  return competencyNumbers.map((num) => ({
     competency: `Competência ${num}`,
     values: apiData.map((item) => {
       const comp = item.competencies.find((c) => c.competencyNumber === num);
@@ -132,12 +137,7 @@ export function createUseComparator(config: UseComparatorConfig) {
     const [error, setError] = useState<string | null>(null);
 
     const fetchData = useCallback(
-      async (
-        ids: string[],
-        type: ComparisonType,
-        tab: ComparatorTabType,
-        _itemNames?: Map<string, string>
-      ) => {
+      async (ids: string[], type: ComparisonType, tab: ComparatorTabType) => {
         setLoading(true);
         setError(null);
 
@@ -155,22 +155,22 @@ export function createUseComparator(config: UseComparatorConfig) {
             const newData: ComparatorData = { ...prev };
 
             switch (tab) {
-              case 'knowledge-areas':
+              case ComparatorTabValue.KNOWLEDGE_AREAS:
                 newData.knowledgeAreas = transformKnowledgeAreas(
                   apiData as KnowledgeAreasApiItem[]
                 );
                 break;
-              case 'curricular-components':
+              case ComparatorTabValue.CURRICULAR_COMPONENTS:
                 newData.curricularComponents = transformCurricularComponents(
                   apiData as CurricularComponentsApiItem[]
                 );
                 break;
-              case 'competencies':
+              case ComparatorTabValue.COMPETENCIES:
                 newData.competencies = transformCompetencies(
                   apiData as CompetenciesApiItem[]
                 );
                 break;
-              case 'national-averages':
+              case ComparatorTabValue.NATIONAL_AVERAGES:
                 newData.nationalAverages = transformNationalAverages(
                   apiData as NationalAveragesApiItem[]
                 );

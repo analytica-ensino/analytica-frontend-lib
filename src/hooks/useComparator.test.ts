@@ -352,6 +352,30 @@ describe('useComparator hook', () => {
               essaysCount: 50,
               studentsCount: 45,
             },
+            {
+              competencyNumber: 3,
+              name: 'Competência 3',
+              averageScore: 120,
+              averagePercentage: 60,
+              essaysCount: 50,
+              studentsCount: 45,
+            },
+            {
+              competencyNumber: 4,
+              name: 'Competência 4',
+              averageScore: 100,
+              averagePercentage: 50,
+              essaysCount: 50,
+              studentsCount: 45,
+            },
+            {
+              competencyNumber: 5,
+              name: 'Competência 5',
+              averageScore: 180,
+              averagePercentage: 90,
+              essaysCount: 50,
+              studentsCount: 45,
+            },
           ],
           totalEssays: 50,
           totalStudents: 45,
@@ -375,8 +399,10 @@ describe('useComparator hook', () => {
         competency: 'Competência 2',
         values: [{ itemId: 'school-1', percentage: 70 }],
       });
-      // Competencies 3-5 should have 0 percentage since they weren't in the response
-      expect(result.current.data.competencies[2].values[0].percentage).toBe(0);
+      expect(result.current.data.competencies[4]).toEqual({
+        competency: 'Competência 5',
+        values: [{ itemId: 'school-1', percentage: 90 }],
+      });
     });
   });
 

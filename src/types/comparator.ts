@@ -1,10 +1,13 @@
 export type ComparisonType = 'school' | 'schoolYear';
 
-export type ComparatorTabType =
-  | 'knowledge-areas'
-  | 'curricular-components'
-  | 'competencies'
-  | 'national-averages';
+export enum ComparatorTabValue {
+  KNOWLEDGE_AREAS = 'knowledge-areas',
+  CURRICULAR_COMPONENTS = 'curricular-components',
+  COMPETENCIES = 'competencies',
+  NATIONAL_AVERAGES = 'national-averages',
+}
+
+export type ComparatorTabType = `${ComparatorTabValue}`;
 
 export interface ComparisonItem {
   id: string;
@@ -132,8 +135,7 @@ export interface UseComparatorReturn {
   fetchData: (
     ids: string[],
     type: ComparisonType,
-    tab: ComparatorTabType,
-    itemNames?: Map<string, string>
+    tab: ComparatorTabType
   ) => Promise<void>;
 }
 
@@ -218,10 +220,16 @@ export interface ComparatorTab {
 }
 
 export const DEFAULT_COMPARATOR_TABS: ComparatorTab[] = [
-  { value: 'knowledge-areas', label: 'Áreas do conhecimento' },
-  { value: 'curricular-components', label: 'Componentes curriculares' },
-  { value: 'competencies', label: 'Competências' },
-  { value: 'national-averages', label: 'Médias Nacionais ENEM' },
+  { value: ComparatorTabValue.KNOWLEDGE_AREAS, label: 'Áreas do conhecimento' },
+  {
+    value: ComparatorTabValue.CURRICULAR_COMPONENTS,
+    label: 'Componentes curriculares',
+  },
+  { value: ComparatorTabValue.COMPETENCIES, label: 'Competências' },
+  {
+    value: ComparatorTabValue.NATIONAL_AVERAGES,
+    label: 'Médias Nacionais ENEM',
+  },
 ];
 
 // Chart colors

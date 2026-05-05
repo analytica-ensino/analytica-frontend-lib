@@ -9,17 +9,16 @@ import { ComparatorLoadingState } from './ComparatorLoadingState';
 import { ComparatorSelectTypeStep } from './ComparatorSelectTypeStep';
 import { ComparatorSelectItemsStep } from './ComparatorSelectItemsStep';
 import { ComparatorTabContent } from './ComparatorTabContent';
-import type {
-  ComparisonType,
-  ComparatorTabType,
-  ComparatorStoreState,
-  UseComparatorReturn,
-  ComparatorLabels,
-  ComparatorTab,
-} from '../../types/comparator';
 import {
+  ComparatorTabValue,
   DEFAULT_COMPARATOR_LABELS,
   DEFAULT_COMPARATOR_TABS,
+  type ComparisonType,
+  type ComparatorTabType,
+  type ComparatorStoreState,
+  type UseComparatorReturn,
+  type ComparatorLabels,
+  type ComparatorTab,
 } from '../../types/comparator';
 
 export interface ComparatorViewProps {
@@ -78,8 +77,9 @@ export function ComparatorView({
   // Local UI state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalStep, setModalStep] = useState<1 | 2>(1);
-  const [internalActiveTab, setInternalActiveTab] =
-    useState<ComparatorTabType>('knowledge-areas');
+  const [internalActiveTab, setInternalActiveTab] = useState<ComparatorTabType>(
+    ComparatorTabValue.KNOWLEDGE_AREAS
+  );
   const hasInitializedRef = useRef(false);
 
   // Use external tab if provided, otherwise internal
@@ -100,12 +100,10 @@ export function ComparatorView({
     if (hasInitializedRef.current) return;
     if (selectedItems.length > 0 && comparisonType) {
       hasInitializedRef.current = true;
-      const itemNames = new Map(selectedItems.map((i) => [i.id, i.name]));
       fetchData(
         selectedItems.map((i) => i.id),
         comparisonType,
-        activeTab,
-        itemNames
+        activeTab
       );
     }
   }, [selectedItems, comparisonType, activeTab, fetchData]);
@@ -134,12 +132,10 @@ export function ComparatorView({
       }
 
       if (selectedItems.length > 0 && comparisonType) {
-        const itemNames = new Map(selectedItems.map((i) => [i.id, i.name]));
         fetchData(
           selectedItems.map((i) => i.id),
           comparisonType,
-          tab,
-          itemNames
+          tab
         );
       }
     },
@@ -205,12 +201,10 @@ export function ComparatorView({
   const handleConfirmSelection = useCallback(() => {
     setIsModalOpen(false);
     if (selectedItems.length > 0 && comparisonType) {
-      const itemNames = new Map(selectedItems.map((i) => [i.id, i.name]));
       fetchData(
         selectedItems.map((i) => i.id),
         comparisonType,
-        activeTab,
-        itemNames
+        activeTab
       );
     }
   }, [selectedItems, comparisonType, activeTab, fetchData]);
