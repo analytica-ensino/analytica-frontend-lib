@@ -20,7 +20,7 @@ import type {
  *   exibir um aviso quando `getVoices()` não retornar voz nesse idioma.
  */
 export class WebSpeechProvider implements TTSProvider {
-  private synth: SpeechSynthesis | null;
+  private readonly synth: SpeechSynthesis | null;
   private currentUtterance: SpeechSynthesisUtterance | null = null;
 
   constructor(synth: SpeechSynthesis | null = getSynth()) {

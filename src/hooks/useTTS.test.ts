@@ -101,6 +101,24 @@ describe('useTTS', () => {
     expect(useAccessibilityStore.getState().ttsStatus).toBe('idle');
   });
 
+  it('does not call provider.stop on unmount when this instance never spoke', () => {
+    const provider = buildProvider();
+    const { unmount } = renderHook(() => useTTS(provider));
+    unmount();
+    expect(provider.stop).not.toHaveBeenCalled();
+  });
+
+  it('stops on unmount only when this instance was the active speaker', () => {
+    const provider = buildProvider();
+    const { result, unmount } = renderHook(() => useTTS(provider));
+
+    act(() => {
+      result.current.speak('olá');
+    });
+    unmount();
+    expect(provider.stop).toHaveBeenCalled();
+  });
+
   it('pause/resume/stop update store status and call provider', async () => {
     const provider = buildProvider();
     const { result } = renderHook(() => useTTS(provider));

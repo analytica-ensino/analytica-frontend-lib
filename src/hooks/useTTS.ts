@@ -54,6 +54,19 @@ export const useTTS = (providerOverride?: TTSProvider | null): UseTTSReturn => {
   rateRef.current = ttsRate;
   voiceIdRef.current = ttsVoiceId;
 
+  /**
+   * Marca se ESTA instância de `useTTS` foi quem iniciou a fala atual.
+   *
+   * Necessário porque vários componentes podem chamar `useTTS()`
+   * independentemente (TTSController, TTSSection) e cada um cria seu
+   * próprio `WebSpeechProvider`, mas todos compartilham o mesmo
+   * `window.speechSynthesis` global. O `cancel()` é global — então,
+   * sem essa guarda, o cleanup de uma instância (ex.: TTSSection
+   * desmontando ao fechar o painel) cancelaria fala iniciada por outra
+   * (ex.: click-to-read em andamento no TTSController).
+   */
+  const isActiveSpeakerRef = useRef(false);
+
   useEffect(() => {
     let mounted = true;
     if (provider.isSupported()) {
@@ -66,8 +79,14 @@ export const useTTS = (providerOverride?: TTSProvider | null): UseTTSReturn => {
     }
     return () => {
       mounted = false;
-      provider.stop();
-      setTTSStatus('idle');
+      // Só interrompe a síntese se foi essa instância que a iniciou.
+      // Caso contrário, deixa o synth global em paz — outras instâncias
+      // podem estar usando.
+      if (isActiveSpeakerRef.current) {
+        provider.stop();
+        setTTSStatus('idle');
+        isActiveSpeakerRef.current = false;
+      }
     };
   }, [provider, setTTSStatus]);
 
@@ -85,6 +104,7 @@ export const useTTS = (providerOverride?: TTSProvider | null): UseTTSReturn => {
    */
   const speak = useCallback(
     (text: string) => {
+      isActiveSpeakerRef.current = true;
       provider.speak(
         text,
         {
@@ -96,10 +116,16 @@ export const useTTS = (providerOverride?: TTSProvider | null): UseTTSReturn => {
         },
         {
           onStart: () => setTTSStatus('speaking'),
-          onEnd: () => setTTSStatus('idle'),
+          onEnd: () => {
+            isActiveSpeakerRef.current = false;
+            setTTSStatus('idle');
+          },
           onPause: () => setTTSStatus('paused'),
           onResume: () => setTTSStatus('speaking'),
-          onError: () => setTTSStatus('idle'),
+          onError: () => {
+            isActiveSpeakerRef.current = false;
+            setTTSStatus('idle');
+          },
         }
       );
     },
@@ -117,6 +143,7 @@ export const useTTS = (providerOverride?: TTSProvider | null): UseTTSReturn => {
   }, [provider, setTTSStatus]);
 
   const stop = useCallback(() => {
+    isActiveSpeakerRef.current = false;
     provider.stop();
     setTTSStatus('idle');
   }, [provider, setTTSStatus]);

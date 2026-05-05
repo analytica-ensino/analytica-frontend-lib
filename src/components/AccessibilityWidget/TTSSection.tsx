@@ -86,7 +86,7 @@ export default function TTSSection({ Segmented }: Readonly<TTSSectionProps>) {
         ariaLabel="Modo do leitor de texto"
         value={ttsMode === 'read-selection' ? 'off' : ttsMode}
         options={TTS_SEGMENTED}
-        onChange={(v) => setTTSMode(v as 'off' | 'click-to-read')}
+        onChange={setTTSMode}
       />
 
       {!hasPortugueseVoice && (

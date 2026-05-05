@@ -136,6 +136,27 @@ describe('TTSController', () => {
     p.remove();
   });
 
+  it('stops in-progress speech when ttsMode leaves click-to-read', () => {
+    useAccessibilityStore.setState({ ttsMode: 'click-to-read' });
+    render(<TTSController />);
+
+    const p = document.createElement('p');
+    p.innerText = 'texto';
+    document.body.appendChild(p);
+
+    act(() => {
+      p.click();
+    });
+    expect(speakMock).toHaveBeenCalled();
+
+    // Usuário desliga o modo — fala em andamento deve ser interrompida
+    act(() => {
+      useAccessibilityStore.getState().setTTSMode('off');
+    });
+    expect(stopMock).toHaveBeenCalled();
+    p.remove();
+  });
+
   it('does not attach the click handler when synthesis is unsupported', () => {
     isSupportedReturn = false;
     useAccessibilityStore.setState({ ttsMode: 'click-to-read' });

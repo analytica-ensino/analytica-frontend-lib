@@ -52,8 +52,12 @@ export default function TTSController() {
       document
         .querySelectorAll(`.${HIGHLIGHT_CLASS}`)
         .forEach((el) => el.classList.remove(HIGHLIGHT_CLASS));
+      // Interrompe qualquer fala em curso ao sair do modo. Sem isso,
+      // desligar o "Clique para ler" deixaria a leitura terminando
+      // sozinha, contrariando a expectativa do usuário.
+      stop();
     };
-  }, [isSupported, ttsMode, speak]);
+  }, [isSupported, ttsMode, speak, stop]);
 
   // Quando a fala termina (ttsStatus volta a 'idle'), limpa highlight
   useEffect(() => {
