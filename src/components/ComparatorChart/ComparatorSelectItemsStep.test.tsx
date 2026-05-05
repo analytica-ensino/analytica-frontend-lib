@@ -132,8 +132,12 @@ describe('ComparatorSelectItemsStep', () => {
       expect(escolaBElements.length).toBeGreaterThanOrEqual(1);
 
       // Also verify the remove buttons exist (which confirms badges are rendered)
-      expect(screen.getByRole('button', { name: /Remover Escola A/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /Remover Escola B/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /Remover Escola A/i })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /Remover Escola B/i })
+      ).toBeInTheDocument();
     });
 
     it('should render color indicators for selected items', () => {
@@ -377,7 +381,9 @@ describe('ComparatorSelectItemsStep', () => {
         />
       );
 
-      const truncatedName = container.querySelector('.truncate.max-w-\\[200px\\]');
+      const truncatedName = container.querySelector(
+        '.truncate.max-w-\\[200px\\]'
+      );
       expect(truncatedName).toBeInTheDocument();
     });
   });

@@ -46,7 +46,9 @@ describe('ComparatorSelectTypeStep', () => {
       render(<ComparatorSelectTypeStep {...defaultProps} />);
 
       expect(
-        screen.getByText(DEFAULT_COMPARATOR_LABELS.compareSchoolYearsDescription)
+        screen.getByText(
+          DEFAULT_COMPARATOR_LABELS.compareSchoolYearsDescription
+        )
       ).toBeInTheDocument();
     });
   });
@@ -114,9 +116,9 @@ describe('ComparatorSelectTypeStep', () => {
         />
       );
 
-      const schoolsButton = screen.getByText(
-        DEFAULT_COMPARATOR_LABELS.schools
-      ).closest('button');
+      const schoolsButton = screen
+        .getByText(DEFAULT_COMPARATOR_LABELS.schools)
+        .closest('button');
       await user.click(schoolsButton!);
 
       expect(handleSelectType).toHaveBeenCalledTimes(1);
@@ -134,9 +136,9 @@ describe('ComparatorSelectTypeStep', () => {
         />
       );
 
-      const schoolYearsButton = screen.getByText(
-        DEFAULT_COMPARATOR_LABELS.schoolYears
-      ).closest('button');
+      const schoolYearsButton = screen
+        .getByText(DEFAULT_COMPARATOR_LABELS.schoolYears)
+        .closest('button');
       await user.click(schoolYearsButton!);
 
       expect(handleSelectType).toHaveBeenCalledTimes(1);
@@ -240,9 +242,7 @@ describe('ComparatorSelectTypeStep', () => {
 
   describe('Edge Cases', () => {
     it('should handle undefined labels gracefully', () => {
-      render(
-        <ComparatorSelectTypeStep {...defaultProps} labels={undefined} />
-      );
+      render(<ComparatorSelectTypeStep {...defaultProps} labels={undefined} />);
 
       expect(
         screen.getByText(DEFAULT_COMPARATOR_LABELS.schools)

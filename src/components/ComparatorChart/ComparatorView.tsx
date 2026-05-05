@@ -33,7 +33,6 @@ export interface ComparatorViewProps {
 
   // Navigation
   readonly onBack?: () => void;
-  readonly backPath?: string;
 
   // Tab management
   readonly activeTab?: ComparatorTabType;
@@ -244,6 +243,33 @@ export function ComparatorView({
     labels,
   ]);
 
+  const renderMainContent = () => {
+    if (selectedItems.length === 0) {
+      return (
+        <ComparatorEmptyState
+          onSelectClick={handleOpenModal}
+          canCompareSchools={canCompareSchools}
+          canCompareSchoolYears={canCompareSchoolYears}
+          isLoading={isUserLoading}
+          labels={labels}
+        />
+      );
+    }
+
+    if (loading) {
+      return <ComparatorLoadingState />;
+    }
+
+    return (
+      <ComparatorTabContent
+        activeTab={activeTab}
+        data={data}
+        selectedItems={selectedItems}
+        labels={labels}
+      />
+    );
+  };
+
   return (
     <div className="h-screen bg-background flex flex-col">
       {/* Header */}
@@ -296,26 +322,7 @@ export function ComparatorView({
       </div>
 
       {/* Content */}
-      <main className="flex-1 overflow-auto p-6">
-        {selectedItems.length === 0 ? (
-          <ComparatorEmptyState
-            onSelectClick={handleOpenModal}
-            canCompareSchools={canCompareSchools}
-            canCompareSchoolYears={canCompareSchoolYears}
-            isLoading={isUserLoading}
-            labels={labels}
-          />
-        ) : loading ? (
-          <ComparatorLoadingState />
-        ) : (
-          <ComparatorTabContent
-            activeTab={activeTab}
-            data={data}
-            selectedItems={selectedItems}
-            labels={labels}
-          />
-        )}
-      </main>
+      <main className="flex-1 overflow-auto p-6">{renderMainContent()}</main>
 
       {/* Selection Modal */}
       <Modal

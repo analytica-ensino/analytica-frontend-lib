@@ -58,7 +58,13 @@ describe('comparatorStore', () => {
     });
 
     it('should create a store with custom chart colors', () => {
-      const customColors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF'];
+      const customColors = [
+        '#FF0000',
+        '#00FF00',
+        '#0000FF',
+        '#FFFF00',
+        '#FF00FF',
+      ];
       const useStore = createComparatorStore({ chartColors: customColors });
       const { result } = renderHook(() => useStore());
 
@@ -201,9 +207,15 @@ describe('comparatorStore', () => {
         result.current.addItem({ id: '3', name: 'Item 3', color: '' });
       });
 
-      expect(result.current.selectedItems[0].color).toBe(COMPARATOR_CHART_COLORS[0]);
-      expect(result.current.selectedItems[1].color).toBe(COMPARATOR_CHART_COLORS[1]);
-      expect(result.current.selectedItems[2].color).toBe(COMPARATOR_CHART_COLORS[2]);
+      expect(result.current.selectedItems[0].color).toBe(
+        COMPARATOR_CHART_COLORS[0]
+      );
+      expect(result.current.selectedItems[1].color).toBe(
+        COMPARATOR_CHART_COLORS[1]
+      );
+      expect(result.current.selectedItems[2].color).toBe(
+        COMPARATOR_CHART_COLORS[2]
+      );
     });
 
     it('should not add more than 5 items', () => {
@@ -225,7 +237,9 @@ describe('comparatorStore', () => {
       });
 
       expect(result.current.selectedItems).toHaveLength(5);
-      expect(result.current.selectedItems.some((i) => i.id === '6')).toBe(false);
+      expect(result.current.selectedItems.some((i) => i.id === '6')).toBe(
+        false
+      );
     });
 
     it('should not add duplicate items', () => {
@@ -237,7 +251,11 @@ describe('comparatorStore', () => {
       });
 
       act(() => {
-        result.current.addItem({ id: '1', name: 'Item 1 Duplicate', color: '' });
+        result.current.addItem({
+          id: '1',
+          name: 'Item 1 Duplicate',
+          color: '',
+        });
       });
 
       expect(result.current.selectedItems).toHaveLength(1);
@@ -261,7 +279,9 @@ describe('comparatorStore', () => {
       expect(result.current.selectedItems[0].id).toBe('1');
       expect(result.current.selectedItems[0].name).toBe('Item 1');
       // Color should be overwritten by chart color
-      expect(result.current.selectedItems[0].color).toBe(COMPARATOR_CHART_COLORS[0]);
+      expect(result.current.selectedItems[0].color).toBe(
+        COMPARATOR_CHART_COLORS[0]
+      );
     });
   });
 
@@ -294,7 +314,9 @@ describe('comparatorStore', () => {
       });
 
       // Before removal: Item 1 = color[0], Item 2 = color[1], Item 3 = color[2]
-      expect(result.current.selectedItems[1].color).toBe(COMPARATOR_CHART_COLORS[1]);
+      expect(result.current.selectedItems[1].color).toBe(
+        COMPARATOR_CHART_COLORS[1]
+      );
 
       act(() => {
         result.current.removeItem('1');
@@ -302,9 +324,13 @@ describe('comparatorStore', () => {
 
       // After removal: Item 2 = color[0], Item 3 = color[1]
       expect(result.current.selectedItems[0].id).toBe('2');
-      expect(result.current.selectedItems[0].color).toBe(COMPARATOR_CHART_COLORS[0]);
+      expect(result.current.selectedItems[0].color).toBe(
+        COMPARATOR_CHART_COLORS[0]
+      );
       expect(result.current.selectedItems[1].id).toBe('3');
-      expect(result.current.selectedItems[1].color).toBe(COMPARATOR_CHART_COLORS[1]);
+      expect(result.current.selectedItems[1].color).toBe(
+        COMPARATOR_CHART_COLORS[1]
+      );
     });
 
     it('should handle removing non-existent item', () => {

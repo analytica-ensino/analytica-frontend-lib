@@ -22,21 +22,31 @@ export function ComparatorEmptyState({
   const labels = { ...DEFAULT_COMPARATOR_LABELS, ...customLabels };
   const hasAnyOption = canCompareSchools || canCompareSchoolYears;
 
-  const buttonText =
-    canCompareSchools && canCompareSchoolYears
-      ? labels.selectComparison
-      : canCompareSchools
-        ? labels.selectSchools
-        : labels.selectSchoolYears;
+  const getButtonText = (): string => {
+    if (canCompareSchools && canCompareSchoolYears) {
+      return labels.selectComparison;
+    }
+    if (canCompareSchools) {
+      return labels.selectSchools;
+    }
+    return labels.selectSchoolYears;
+  };
 
-  const descriptionText =
-    canCompareSchools && canCompareSchoolYears
-      ? labels.emptyStateDescriptionBoth
-      : canCompareSchools
-        ? labels.emptyStateDescriptionSchools
-        : canCompareSchoolYears
-          ? labels.emptyStateDescriptionSchoolYears
-          : labels.noAccessMessage;
+  const getDescriptionText = (): string => {
+    if (canCompareSchools && canCompareSchoolYears) {
+      return labels.emptyStateDescriptionBoth;
+    }
+    if (canCompareSchools) {
+      return labels.emptyStateDescriptionSchools;
+    }
+    if (canCompareSchoolYears) {
+      return labels.emptyStateDescriptionSchoolYears;
+    }
+    return labels.noAccessMessage;
+  };
+
+  const buttonText = getButtonText();
+  const descriptionText = getDescriptionText();
 
   return (
     <div className="flex flex-col items-center justify-center h-full gap-6">

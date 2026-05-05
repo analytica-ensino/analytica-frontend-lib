@@ -1,7 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import { NationalAveragesContent } from './NationalAveragesContent';
 import { DEFAULT_COMPARATOR_LABELS } from '../../types/comparator';
-import type { NationalAverageData, ComparisonItem } from '../../types/comparator';
+import type {
+  NationalAverageData,
+  ComparisonItem,
+} from '../../types/comparator';
 
 // Mock NationalAverageCard component
 jest.mock('./NationalAverageCard', () => ({
@@ -14,7 +17,9 @@ jest.mock('./NationalAverageCard', () => ({
   }) => (
     <div data-testid={`national-average-card-${data.itemId}`}>
       <span data-testid={`card-name-${data.itemId}`}>{data.itemName}</span>
-      <span data-testid={`card-color-${data.itemId}`}>{color || 'no-color'}</span>
+      <span data-testid={`card-color-${data.itemId}`}>
+        {color || 'no-color'}
+      </span>
     </div>
   ),
 }));

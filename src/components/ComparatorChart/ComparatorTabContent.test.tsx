@@ -151,9 +151,7 @@ describe('ComparatorTabContent', () => {
         <ComparatorTabContent {...defaultProps} activeTab="knowledge-areas" />
       );
 
-      expect(
-        screen.getByTestId('knowledge-areas-content')
-      ).toBeInTheDocument();
+      expect(screen.getByTestId('knowledge-areas-content')).toBeInTheDocument();
       expect(
         screen.queryByTestId('curricular-components-content')
       ).not.toBeInTheDocument();
