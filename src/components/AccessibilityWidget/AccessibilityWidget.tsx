@@ -4,6 +4,7 @@ import AccessibilityFab, {
 import AccessibilityPanel from './AccessibilityPanel';
 import ReadingAid from './ReadingAid';
 import ColorBlindFilters from './ColorBlindFilters';
+import TTSController from './TTSController';
 import { useAccessibilityStore } from '../../store/accessibilityStore';
 import { useA11yPreferences } from '../../hooks/useA11yPreferences';
 import { useA11yKeyboardShortcut } from '../../hooks/useA11yKeyboardShortcut';
@@ -63,6 +64,7 @@ export default function AccessibilityWidget({
       />
       <ReadingAid />
       <ColorBlindFilters />
+      <TTSController />
     </>
   );
 }

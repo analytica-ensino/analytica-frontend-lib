@@ -28,7 +28,27 @@ describe('accessibilityStore', () => {
     expect(state.readingAid).toBe('none');
     expect(state.keyboardShortcut).toBe(true);
     expect(state.colorBlindMode).toBe(ColorBlindMode.None);
+    expect(state.ttsMode).toBe('off');
+    expect(state.ttsRate).toBe(1);
+    expect(state.ttsVoiceId).toBeNull();
+    expect(state.ttsStatus).toBe('idle');
     expect(state.isPanelOpen).toBe(false);
+  });
+
+  it('updates Phase 3 (TTS) preferences', () => {
+    const { setTTSMode, setTTSRate, setTTSVoiceId, setTTSStatus } =
+      useAccessibilityStore.getState();
+
+    setTTSMode('click-to-read');
+    setTTSRate(1.5);
+    setTTSVoiceId('voice-pt-br');
+    setTTSStatus('speaking');
+
+    const state = useAccessibilityStore.getState();
+    expect(state.ttsMode).toBe('click-to-read');
+    expect(state.ttsRate).toBe(1.5);
+    expect(state.ttsVoiceId).toBe('voice-pt-br');
+    expect(state.ttsStatus).toBe('speaking');
   });
 
   it('updates Phase 2 preferences', () => {

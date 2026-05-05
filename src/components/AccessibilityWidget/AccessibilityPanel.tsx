@@ -10,11 +10,13 @@ import {
   BookOpenTextIcon,
   KeyboardIcon,
   PaletteIcon,
+  SpeakerHighIcon,
 } from '@phosphor-icons/react';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
 import IconButton from '../IconButton/IconButton';
 import ToggleSwitch from '../ToggleSwitch/ToggleSwitch';
+import TTSSection from './TTSSection';
 import { cn } from '../../utils/utils';
 import {
   useAccessibilityStore,
@@ -384,6 +386,13 @@ export default function AccessibilityPanel({
         </Section>
 
         <Section
+          title="Leitor de texto"
+          icon={<SpeakerHighIcon size={18} weight="fill" />}
+        >
+          <TTSSection Segmented={Segmented} />
+        </Section>
+
+        <Section
           title="Outras opções"
           icon={<CursorIcon size={18} weight="fill" />}
         >
@@ -441,17 +450,17 @@ export default function AccessibilityPanel({
           variant="outline"
           action="secondary"
           size="small"
+          iconLeft={
+            <ArrowCounterClockwiseIcon
+              size={14}
+              weight="bold"
+              aria-hidden="true"
+            />
+          }
           onClick={resetPreferences}
           data-testid="a11y-reset"
         >
-          <ArrowCounterClockwiseIcon
-            size={14}
-            weight="bold"
-            aria-hidden="true"
-          />
-          <Text as="span" size="sm" className="ml-1">
-            Redefinir
-          </Text>
+          Redefinir
         </Button>
       </footer>
     </dialog>
