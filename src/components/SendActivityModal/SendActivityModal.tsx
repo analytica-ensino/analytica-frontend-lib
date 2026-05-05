@@ -175,9 +175,7 @@ const SendActivityModal = ({
   const handleModeSelect = useCallback(
     (mode: ActivityMode) => {
       const update: Partial<SendActivityFormData> =
-        mode === ActivityMode.PRESENCIAL
-          ? { mode, canRetry: false }
-          : { mode };
+        mode === ActivityMode.PRESENCIAL ? { mode, canRetry: false } : { mode };
       store.setFormData(update);
     },
     [store]
