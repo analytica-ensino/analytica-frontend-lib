@@ -22,7 +22,7 @@ jest.mock('./NationalAverageCard', () => ({
       <span data-testid={`card-color-${data.itemId}`}>
         {color || 'no-color'}
       </span>
-      {labels && <span data-testid={`card-has-labels-${data.itemId}`} />}
+      {!!labels && <span data-testid={`card-has-labels-${data.itemId}`} />}
     </div>
   ),
 }));

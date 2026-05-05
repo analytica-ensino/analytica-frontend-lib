@@ -77,7 +77,7 @@ jest.mock('./NationalAveragesContent', () => ({
       <span data-testid="na-data-length">{(data as unknown[]).length}</span>
       <span data-testid="na-items-length">{(items as unknown[]).length}</span>
       {title && <span data-testid="na-title">{title}</span>}
-      {labels && <span data-testid="na-has-labels" />}
+      {!!labels && <span data-testid="na-has-labels" />}
     </div>
   ),
 }));
