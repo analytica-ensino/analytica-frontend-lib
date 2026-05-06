@@ -82,7 +82,8 @@ export interface ActivityMetadata {
   id: string;
   title: string;
   type?: string;
-  mode?: string | null;
+  subtype?: string;
+  isDigital?: boolean | null;
   startDate: string | null;
   finalDate: string | null;
   schoolName: string;

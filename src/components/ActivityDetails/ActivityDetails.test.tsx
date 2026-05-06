@@ -2,7 +2,6 @@ import type { HTMLAttributes, ReactNode, Ref } from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { STUDENT_ACTIVITY_STATUS } from '../../types/activityDetails';
-import { ActivityMode } from '../SendActivityModal/types';
 import {
   getStatusBadgeConfig,
   formatTimeSpent,
@@ -2287,7 +2286,8 @@ describe('ActivityDetails', () => {
         year: '2024',
         subjectName: 'Matemática',
         className: '9º Ano B',
-        mode: ActivityMode.PRESENCIAL,
+        subtype: 'PROVA',
+        isDigital: false,
       },
       students: [
         {

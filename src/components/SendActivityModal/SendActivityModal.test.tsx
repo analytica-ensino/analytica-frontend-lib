@@ -1,6 +1,6 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import SendActivityModal from './SendActivityModal';
-import { ActivitySubtype, CategoryConfig, Item } from './types';
+import { ActivitySubtype, ActivityMode, CategoryConfig, Item } from './types';
 import { useSendActivityModalStore } from './hooks/useSendActivityModal';
 
 /**
@@ -189,6 +189,47 @@ const mockCategoriesMultiple: CategoryConfig[] = [
   },
 ];
 
+const categoriesWithAllSelected: CategoryConfig[] = [
+  {
+    key: 'escola',
+    label: 'Escola',
+    itens: [{ id: 'school-1', name: 'Escola Teste' }],
+    selectedIds: ['school-1'],
+  },
+  {
+    key: 'serie',
+    label: 'Série',
+    dependsOn: ['escola'],
+    filteredBy: [{ key: 'escola', internalField: 'schoolId' }],
+    itens: [{ id: 'year-1', name: '2025', schoolId: 'school-1' }],
+    selectedIds: ['year-1'],
+  },
+  {
+    key: 'turma',
+    label: 'Turma',
+    dependsOn: ['serie'],
+    filteredBy: [{ key: 'serie', internalField: 'yearId' }],
+    itens: [{ id: 'class-1', name: 'Turma A', yearId: 'year-1' }],
+    selectedIds: ['class-1'],
+  },
+  {
+    key: 'students',
+    label: 'Alunos',
+    dependsOn: ['turma'],
+    filteredBy: [{ key: 'turma', internalField: 'classId' }],
+    itens: [
+      {
+        id: 'student-1',
+        name: 'Aluno 1',
+        classId: 'class-1',
+        studentId: 'student-1',
+        userInstitutionId: 'ui-1',
+      },
+    ],
+    selectedIds: ['student-1'],
+  },
+];
+
 describe('SendActivityModal', () => {
   const defaultProps = {
     isOpen: true,
@@ -211,6 +252,7 @@ describe('SendActivityModal', () => {
   afterEach(() => {
     jest.useRealTimers();
     jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('rendering', () => {
@@ -891,6 +933,80 @@ describe('SendActivityModal', () => {
       });
     });
 
+    it('should not call onSubmit when step 3 validation fails due to missing dates', async () => {
+      const onSubmit = jest.fn().mockResolvedValue(undefined);
+
+      render(
+        <SendActivityModal
+          {...defaultProps}
+          onSubmit={onSubmit}
+          categories={categoriesWithAllSelected}
+        />
+      );
+
+      // Navigate to step 3
+      fireEvent.click(screen.getByText('Tarefa'));
+      fireEvent.change(
+        screen.getByPlaceholderText('Digite o título da atividade'),
+        { target: { value: 'Test' } }
+      );
+      fireEvent.click(screen.getByText('Próximo'));
+      fireEvent.click(screen.getByText('Próximo'));
+
+      // Submit WITHOUT filling dates → isValid=false → early return (line 219)
+      fireEvent.click(
+        screen.getByRole('button', { name: /Enviar atividade/i })
+      );
+
+      await waitFor(() => {
+        expect(onSubmit).not.toHaveBeenCalled();
+      });
+    });
+
+    it('should log to console.error when submission fails and onError is not provided', async () => {
+      const consoleSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      const submitError = new Error('Submission failed');
+      const onSubmit = jest.fn().mockRejectedValue(submitError);
+
+      render(
+        <SendActivityModal
+          {...defaultProps}
+          onSubmit={onSubmit}
+          categories={categoriesWithAllSelected}
+        />
+      );
+
+      // Navigate to step 3
+      fireEvent.click(screen.getByText('Tarefa'));
+      fireEvent.change(
+        screen.getByPlaceholderText('Digite o título da atividade'),
+        { target: { value: 'Test' } }
+      );
+      fireEvent.click(screen.getByText('Próximo'));
+      fireEvent.click(screen.getByText('Próximo'));
+
+      // Fill dates and submit
+      fireEvent.change(screen.getByTestId('start-datetime-input'), {
+        target: { value: '2025-01-20T00:00' },
+      });
+      fireEvent.change(screen.getByTestId('final-datetime-input'), {
+        target: { value: '2025-01-25T23:59' },
+      });
+      fireEvent.click(
+        screen.getByRole('button', { name: /Enviar atividade/i })
+      );
+
+      // Without onError prop: else branch calls console.error (lines 225, 228)
+      await waitFor(() => {
+        expect(consoleSpy).toHaveBeenCalledWith(
+          'Falha ao enviar atividade:',
+          submitError
+        );
+      });
+    });
+
     it('should not call onError when submission succeeds', async () => {
       const onSubmit = jest.fn().mockResolvedValue(undefined);
       const onError = jest.fn();
@@ -1074,6 +1190,25 @@ describe('SendActivityModal', () => {
       expect(tarefaChip.closest('button')).toHaveClass('bg-info-background');
     });
 
+    it('should use empty string defaults when title and notification are not provided', () => {
+      render(
+        <SendActivityModal
+          {...defaultProps}
+          initialData={{ subtype: ActivitySubtype.TAREFA }}
+        />
+      );
+
+      // title ?? '' and notification ?? '' both take the falsy branch (line 118)
+      expect(
+        screen.getByPlaceholderText('Digite o título da atividade')
+      ).toHaveValue('');
+      expect(
+        screen.getByPlaceholderText(
+          'Digite uma mensagem para a notificação (opcional)'
+        )
+      ).toHaveValue('');
+    });
+
     it('should pre-fill again when modal reopens with different initialData', () => {
       const { rerender } = render(
         <SendActivityModal
@@ -1147,6 +1282,57 @@ describe('SendActivityModal', () => {
       expect(
         screen.getByPlaceholderText('Digite o título da atividade')
       ).toHaveValue('Mesma Prova');
+    });
+  });
+
+  describe('step rendering edge cases', () => {
+    it('should render nothing for an invalid step number (default switch case)', () => {
+      render(<SendActivityModal {...defaultProps} />);
+
+      // Force an invalid step directly in the store (covers line 398 default: return null)
+      act(() => {
+        useSendActivityModalStore.setState({ currentStep: 99 });
+      });
+
+      expect(screen.queryByText('Tipo de atividade*')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Para quem você vai enviar a atividade?')
+      ).not.toBeInTheDocument();
+      expect(screen.queryByText('Iniciar em*')).not.toBeInTheDocument();
+    });
+
+    it('should render step 3 with undefined startTime and finalTime covering the falsy || branch', () => {
+      render(
+        <SendActivityModal
+          {...defaultProps}
+          categories={categoriesWithAllSelected}
+        />
+      );
+
+      // The initialState sets startTime='00:00' and finalTime='23:59' (always truthy).
+      // Clear them to cover the falsy branch of `startTime || ''` and `finalTime || ''` (lines 382, 384)
+      act(() => {
+        useSendActivityModalStore.setState((state) => ({
+          formData: {
+            ...state.formData,
+            startTime: undefined,
+            finalTime: undefined,
+          },
+        }));
+      });
+
+      // Navigate to step 3
+      fireEvent.click(screen.getByText('Tarefa'));
+      fireEvent.change(
+        screen.getByPlaceholderText('Digite o título da atividade'),
+        { target: { value: 'Test' } }
+      );
+      fireEvent.click(screen.getByText('Próximo'));
+      fireEvent.click(screen.getByText('Próximo'));
+
+      // Step 3 renders with startTime=undefined and finalTime=undefined → `|| ''` takes the falsy branch
+      expect(screen.getByTestId('start-datetime-input')).toBeInTheDocument();
+      expect(screen.getByTestId('final-datetime-input')).toBeInTheDocument();
     });
   });
 
@@ -1226,6 +1412,38 @@ describe('SendActivityModal', () => {
   });
 
   describe('enableExamMode', () => {
+    it('should set canRetry to false and not show retry option on step 3 when PRESENCIAL mode is selected', async () => {
+      render(
+        <SendActivityModal
+          {...defaultProps}
+          enableExamMode
+          categories={categoriesWithAllSelected}
+        />
+      );
+
+      // Step 1: select PROVA, fill title, select PRESENCIAL mode
+      fireEvent.click(screen.getByText('Prova'));
+      fireEvent.change(
+        screen.getByPlaceholderText('Digite o título da atividade'),
+        { target: { value: 'Prova Presencial' } }
+      );
+      fireEvent.click(screen.getByText('Presencial'));
+
+      // Verify store sets canRetry=false when PRESENCIAL selected (line 178)
+      expect(useSendActivityModalStore.getState().formData.mode).toBe(
+        ActivityMode.PRESENCIAL
+      );
+      expect(useSendActivityModalStore.getState().formData.canRetry).toBe(false);
+
+      fireEvent.click(screen.getByText('Próximo'));
+
+      // Step 2: advance to step 3
+      fireEvent.click(screen.getByText('Próximo'));
+
+      // Step 3: retry option should NOT be rendered (lines 315-316)
+      expect(screen.queryByText('Permitir refazer?')).not.toBeInTheDocument();
+    });
+
     it('should show "Modo de prova" selector when enableExamMode=true and subtype is PROVA', () => {
       render(<SendActivityModal {...defaultProps} enableExamMode />);
 
