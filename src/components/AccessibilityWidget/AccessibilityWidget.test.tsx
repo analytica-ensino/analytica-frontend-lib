@@ -60,4 +60,49 @@ describe('AccessibilityWidget', () => {
     const fab = screen.getByTestId('accessibility-fab');
     expect(fab.className).toMatch(/left-0/);
   });
+
+  describe('Libras integration', () => {
+    afterEach(() => {
+      // O VLibrasLoader injeta DOM no <body>; limpa entre os testes
+      document.getElementById('a11y-vlibras-wrapper')?.remove();
+      document.getElementById('a11y-vlibras-script')?.remove();
+    });
+
+    it('renders the LibrasFab by default', () => {
+      render(<AccessibilityWidget />);
+      expect(screen.getByTestId('libras-fab')).toBeInTheDocument();
+    });
+
+    it('hides the LibrasFab when showLibras is false', () => {
+      render(<AccessibilityWidget showLibras={false} />);
+      expect(screen.queryByTestId('libras-fab')).not.toBeInTheDocument();
+    });
+
+    it('first click on LibrasFab activates VLibras (sets librasEnabled)', async () => {
+      render(<AccessibilityWidget />);
+      expect(useAccessibilityStore.getState().librasEnabled).toBe(false);
+
+      await userEvent.click(screen.getByTestId('libras-fab'));
+      expect(useAccessibilityStore.getState().librasEnabled).toBe(true);
+    });
+
+    it('subsequent click delegates to the VLibras native access button', async () => {
+      // Pré-condição: librasEnabled true e access-button presente no DOM
+      useAccessibilityStore.setState({ librasEnabled: true });
+      const accessBtn = document.createElement('div');
+      accessBtn.setAttribute('vw-access-button', '');
+      const accessClick = jest.fn();
+      accessBtn.addEventListener('click', accessClick);
+      document.body.appendChild(accessBtn);
+
+      render(<AccessibilityWidget />);
+      await userEvent.click(screen.getByTestId('libras-fab'));
+
+      expect(accessClick).toHaveBeenCalled();
+      // librasEnabled NÃO muda — só toggla via click no botão nativo
+      expect(useAccessibilityStore.getState().librasEnabled).toBe(true);
+
+      accessBtn.remove();
+    });
+  });
 });

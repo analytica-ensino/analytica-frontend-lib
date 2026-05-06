@@ -32,7 +32,50 @@ describe('accessibilityStore', () => {
     expect(state.ttsRate).toBe(1);
     expect(state.ttsVoiceId).toBeNull();
     expect(state.ttsStatus).toBe('idle');
+    expect(state.librasEnabled).toBe(false);
     expect(state.isPanelOpen).toBe(false);
+  });
+
+  it('updates librasEnabled', () => {
+    useAccessibilityStore.getState().setLibrasEnabled(true);
+    expect(useAccessibilityStore.getState().librasEnabled).toBe(true);
+    useAccessibilityStore.getState().setLibrasEnabled(false);
+    expect(useAccessibilityStore.getState().librasEnabled).toBe(false);
+  });
+
+  describe('persist migration', () => {
+    // Para acessar `migrate`, o config é exposto pelo zustand persist API
+    const getMigrate = () => {
+      const opts = useAccessibilityStore.persist.getOptions();
+      return opts.migrate as (
+        state: unknown,
+        version: number
+      ) => Record<string, unknown>;
+    };
+
+    it('removes librasEnabled from persisted state on migration', () => {
+      const migrate = getMigrate();
+      const old = {
+        contrastMode: 'high',
+        librasEnabled: true,
+        ttsRate: 1.5,
+      };
+      const result = migrate(old, 0);
+      expect(result).not.toHaveProperty('librasEnabled');
+      expect(result).toMatchObject({ contrastMode: 'high', ttsRate: 1.5 });
+    });
+
+    it('returns the state untouched if librasEnabled is absent', () => {
+      const migrate = getMigrate();
+      const old = { contrastMode: 'normal' };
+      expect(migrate(old, 0)).toEqual({ contrastMode: 'normal' });
+    });
+
+    it('handles non-object inputs without throwing', () => {
+      const migrate = getMigrate();
+      expect(migrate(null, 0)).toBeNull();
+      expect(migrate(undefined, 0)).toBeUndefined();
+    });
   });
 
   it('updates Phase 3 (TTS) preferences', () => {

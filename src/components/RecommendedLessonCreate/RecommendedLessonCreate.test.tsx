@@ -73,6 +73,33 @@ jest.mock('../..', () => ({
   CategoryConfig: {},
   useToastStore: (selector: (state: { addToast: jest.Mock }) => unknown) =>
     selector({ addToast: mockAddToast }),
+  SaveActivityModelModal: ({
+    isOpen,
+    onClose,
+    onConfirm,
+    isLoading,
+  }: {
+    isOpen: boolean;
+    onClose: () => void;
+    onConfirm: (title: string) => void;
+    isLoading?: boolean;
+  }) =>
+    isOpen ? (
+      <div data-testid="save-model-modal">
+        <button data-testid="save-model-modal-close" onClick={onClose}>
+          Cancel
+        </button>
+        <button
+          data-testid="save-model-modal-confirm"
+          onClick={() => onConfirm('Modelo Customizado')}
+        >
+          Confirm
+        </button>
+        <div data-testid="save-model-modal-loading">
+          {isLoading ? 'Loading' : 'Not Loading'}
+        </div>
+      </div>
+    ) : null,
   SendLessonModal: ({
     isOpen,
     onClose,
@@ -449,7 +476,7 @@ describe('RecommendedLessonCreate', () => {
   const renderWithDesktopLayout = async (
     ui: React.ReactElement
   ): Promise<ReturnType<typeof render>> => {
-    Object.defineProperty(window, 'innerWidth', {
+    Object.defineProperty(globalThis, 'innerWidth', {
       writable: true,
       configurable: true,
       value: 1400,
@@ -458,7 +485,7 @@ describe('RecommendedLessonCreate', () => {
     let result: ReturnType<typeof render>;
     await act(async () => {
       result = render(ui);
-      window.dispatchEvent(new Event('resize'));
+      globalThis.dispatchEvent(new Event('resize'));
     });
 
     return result!;
@@ -473,7 +500,7 @@ describe('RecommendedLessonCreate', () => {
     mockSearchParams.delete('id');
 
     // Set desktop width by default
-    Object.defineProperty(window, 'innerWidth', {
+    Object.defineProperty(globalThis, 'innerWidth', {
       writable: true,
       configurable: true,
       value: 1400,
@@ -754,7 +781,7 @@ describe('RecommendedLessonCreate', () => {
   });
 
   describe('save model', () => {
-    it('should change draft type to MODELO when save model is clicked', async () => {
+    it('should open the save model modal when save model is clicked', async () => {
       await renderWithDesktopLayout(
         <RecommendedLessonCreate {...defaultProps} />
       );
@@ -764,9 +791,61 @@ describe('RecommendedLessonCreate', () => {
         fireEvent.click(saveModelBtn);
       });
 
-      // The draft type change is internal state
-      // We can verify it was triggered by checking no errors occurred
-      expect(saveModelBtn).toBeInTheDocument();
+      // Clicking only opens the modal — no API call until the user confirms
+      expect(screen.getByTestId('save-model-modal')).toBeInTheDocument();
+    });
+
+    it('should close the save model modal without saving when canceled', async () => {
+      await renderWithDesktopLayout(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('save-model-btn'));
+      });
+      expect(screen.getByTestId('save-model-modal')).toBeInTheDocument();
+
+      jest.clearAllMocks();
+
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('save-model-modal-close'));
+      });
+
+      expect(screen.queryByTestId('save-model-modal')).not.toBeInTheDocument();
+      expect(mockApiClient.post).not.toHaveBeenCalled();
+      expect(mockApiClient.patch).not.toHaveBeenCalled();
+    });
+
+    it('should not emit success toast when save is skipped by validateSaveConditions', async () => {
+      // No lessons added → validateSaveConditions returns false → save skipped.
+      // Even though confirm fires, no PATCH/POST happens and the success toast
+      // must not be emitted.
+      await renderWithDesktopLayout(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('save-model-btn'));
+      });
+      expect(screen.getByTestId('save-model-modal')).toBeInTheDocument();
+
+      jest.clearAllMocks();
+
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('save-model-modal-confirm'));
+      });
+
+      // No network call happened
+      expect(mockApiClient.post).not.toHaveBeenCalled();
+      expect(mockApiClient.patch).not.toHaveBeenCalled();
+
+      // No success toast fired
+      const successToastCalls = mockAddToast.mock.calls.filter(
+        ([payload]) =>
+          (payload as { action?: string })?.action === 'success' &&
+          (payload as { title?: string })?.title === 'Modelo salvo com sucesso'
+      );
+      expect(successToastCalls).toHaveLength(0);
     });
   });
 
@@ -1020,7 +1099,7 @@ describe('RecommendedLessonCreate', () => {
     });
 
     it('should render small screen layout when width <= 1200', async () => {
-      Object.defineProperty(window, 'innerWidth', {
+      Object.defineProperty(globalThis, 'innerWidth', {
         writable: true,
         configurable: true,
         value: 1000,
@@ -1028,7 +1107,7 @@ describe('RecommendedLessonCreate', () => {
 
       await act(async () => {
         render(<RecommendedLessonCreate {...defaultProps} />);
-        window.dispatchEvent(new Event('resize'));
+        globalThis.dispatchEvent(new Event('resize'));
       });
 
       // Small screen layout should show menu
@@ -1279,34 +1358,30 @@ describe('RecommendedLessonCreate', () => {
     it('should save as MODELO type when save model is clicked', async () => {
       mockAppliedFilters = { subjectIds: ['subject-1'] };
 
-      // First POST creates draft
+      // First POST creates draft (shape consumed by extractDraftFromResponse)
       (mockApiClient.post as jest.Mock).mockResolvedValueOnce({
         data: {
           data: {
-            draft: {
-              id: 'draft-1',
-              type: RecommendedClassDraftType.RASCUNHO,
-              title: 'Test Draft',
-              subjectId: 'subject-1',
-              filters: {},
-              updatedAt: '2024-01-15T10:00:00Z',
-            },
+            id: 'draft-1',
+            type: RecommendedClassDraftType.RASCUNHO,
+            title: 'Test Draft',
+            subjectId: 'subject-1',
+            filters: {},
+            updatedAt: '2024-01-15T10:00:00Z',
           },
         },
       });
 
-      // Second POST/PATCH saves as MODELO
+      // PATCH saves as MODELO with the user-provided custom title
       (mockApiClient.patch as jest.Mock).mockResolvedValue({
         data: {
           data: {
-            draft: {
-              id: 'draft-1',
-              type: RecommendedClassDraftType.MODELO,
-              title: 'Modelo - Math',
-              subjectId: 'subject-1',
-              filters: {},
-              updatedAt: '2024-01-15T10:05:00Z',
-            },
+            id: 'draft-1',
+            type: RecommendedClassDraftType.MODELO,
+            title: 'Modelo Customizado',
+            subjectId: 'subject-1',
+            filters: {},
+            updatedAt: '2024-01-15T10:05:00Z',
           },
         },
       });
@@ -1321,24 +1396,50 @@ describe('RecommendedLessonCreate', () => {
         fireEvent.click(addLessonBtn);
       });
 
-      // Wait for first save
+      // Wait for first save (POST creates the RASCUNHO draft) — needs to
+      // fully settle so draftId state is populated before triggering MODELO save
       await act(async () => {
         jest.advanceTimersByTime(600);
       });
+      await waitFor(() => {
+        expect(mockApiClient.post).toHaveBeenCalled();
+      });
+      await waitFor(() => {
+        expect(screen.getByTestId('is-saving')).toHaveTextContent('idle');
+      });
 
-      // Click save model
+      // Click save model — opens the modal
       const saveModelBtn = screen.getByTestId('save-model-btn');
       await act(async () => {
         fireEvent.click(saveModelBtn);
       });
 
-      // Should trigger save with MODELO type
+      // Confirm the modal — sends the user-provided title to the backend
       await act(async () => {
-        jest.advanceTimersByTime(100);
+        fireEvent.click(screen.getByTestId('save-model-modal-confirm'));
       });
 
-      // Verify the save was attempted
-      expect(saveModelBtn).toBeInTheDocument();
+      // Backend received the user-provided custom title and MODELO type
+      await waitFor(() => {
+        expect(mockApiClient.patch).toHaveBeenCalledWith(
+          expect.stringContaining('/recommended-class/drafts/'),
+          expect.objectContaining({
+            type: RecommendedClassDraftType.MODELO,
+            title: 'Modelo Customizado',
+          })
+        );
+      });
+
+      // Success toast confirms the save to the user
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith({
+          title: 'Modelo salvo com sucesso',
+          description: 'O modelo da aula está disponível para reutilização.',
+          variant: 'solid',
+          action: 'success',
+          position: 'top-right',
+        });
+      });
     });
 
     it('should call onSaveModel callback when saving as MODELO', async () => {
@@ -1404,10 +1505,15 @@ describe('RecommendedLessonCreate', () => {
         expect(screen.getByTestId('save-model-btn')).toBeInTheDocument();
       });
 
-      // Click save model
+      // Click save model — opens the modal
       const saveModelBtn = screen.getByTestId('save-model-btn');
       await act(async () => {
         fireEvent.click(saveModelBtn);
+      });
+
+      // Confirm the modal
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('save-model-modal-confirm'));
       });
 
       // Wait for save
@@ -1817,7 +1923,7 @@ describe('RecommendedLessonCreate', () => {
     const renderWithSmallScreen = async (
       ui: React.ReactElement
     ): Promise<ReturnType<typeof render>> => {
-      Object.defineProperty(window, 'innerWidth', {
+      Object.defineProperty(globalThis, 'innerWidth', {
         writable: true,
         configurable: true,
         value: 1000,
@@ -1826,7 +1932,7 @@ describe('RecommendedLessonCreate', () => {
       let result: ReturnType<typeof render>;
       await act(async () => {
         result = render(ui);
-        window.dispatchEvent(new Event('resize'));
+        globalThis.dispatchEvent(new Event('resize'));
       });
 
       return result!;
@@ -2202,12 +2308,7 @@ describe('RecommendedLessonCreate', () => {
         LessonPreview: ({
           onEditActivity,
         }: {
-          lessons: unknown[];
-          onRemoveAll: () => void;
-          onRemoveLesson: (id: string) => void;
-          onReorder: (lessons: unknown[]) => void;
           onEditActivity?: (activity: { id?: string; type?: string }) => void;
-          onCreateNewActivity?: () => void;
         }) => (
           <div data-testid="lesson-preview">
             <span data-testid="lessons-count">0</span>

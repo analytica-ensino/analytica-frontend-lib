@@ -22,8 +22,9 @@ export interface SaveActivityModelModalProps {
 }
 
 /**
- * Modal that prompts the user for the activity model title before saving it
- * as a reusable template (ActivityType.MODELO).
+ * Modal that prompts the user for a model title before saving as a reusable
+ * template. Generic — used both by ActivityCreate (ActivityType.MODELO) and
+ * RecommendedLessonCreate (RecommendedClassDraftType.MODELO) flows.
  *
  * Validates the title locally with the same constraints as the backend schema
  * (1–255 characters after trimming).
