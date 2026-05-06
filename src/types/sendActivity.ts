@@ -45,7 +45,7 @@ export interface CreateActivityPayload {
   subjectId: string | null;
   questionIds: string[];
   subtype: string;
-  mode?: string;
+  isDigital?: boolean;
   notification?: string;
   startDate: string;
   finalDate: string;

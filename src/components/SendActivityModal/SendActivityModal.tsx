@@ -174,7 +174,9 @@ const SendActivityModal = ({
    */
   const handleModeSelect = useCallback(
     (mode: ActivityMode) => {
-      store.setFormData({ mode });
+      const update: Partial<SendActivityFormData> =
+        mode === ActivityMode.PRESENCIAL ? { mode, canRetry: false } : { mode };
+      store.setFormData(update);
     },
     [store]
   );
@@ -309,43 +311,49 @@ const SendActivityModal = ({
   /**
    * Render retry option for deadline step
    */
-  const renderRetryOption = () => (
-    <div>
-      <Text size="sm" weight="medium" color="text-text-700" className="mb-3">
-        Permitir refazer?
-      </Text>
-      <RadioGroup
-        value={store.formData.canRetry ? 'yes' : 'no'}
-        onValueChange={handleRetryChange}
-        className="flex flex-row gap-6"
-      >
-        <div className="flex items-center gap-2">
-          <RadioGroupItem value="yes" id="radio-item-yes" />
-          <Text
-            as="label"
-            size="sm"
-            color="text-text-700"
-            className="cursor-pointer"
-            htmlFor="radio-item-yes"
-          >
-            Sim
-          </Text>
-        </div>
-        <div className="flex items-center gap-2">
-          <RadioGroupItem value="no" id="radio-item-no" />
-          <Text
-            as="label"
-            size="sm"
-            color="text-text-700"
-            className="cursor-pointer"
-            htmlFor="radio-item-no"
-          >
-            Não
-          </Text>
-        </div>
-      </RadioGroup>
-    </div>
-  );
+  const renderRetryOption = () => {
+    if (enableExamMode && store.formData.mode === ActivityMode.PRESENCIAL) {
+      return null;
+    }
+
+    return (
+      <div>
+        <Text size="sm" weight="medium" color="text-text-700" className="mb-3">
+          Permitir refazer?
+        </Text>
+        <RadioGroup
+          value={store.formData.canRetry ? 'yes' : 'no'}
+          onValueChange={handleRetryChange}
+          className="flex flex-row gap-6"
+        >
+          <div className="flex items-center gap-2">
+            <RadioGroupItem value="yes" id="radio-item-yes" />
+            <Text
+              as="label"
+              size="sm"
+              color="text-text-700"
+              className="cursor-pointer"
+              htmlFor="radio-item-yes"
+            >
+              Sim
+            </Text>
+          </div>
+          <div className="flex items-center gap-2">
+            <RadioGroupItem value="no" id="radio-item-no" />
+            <Text
+              as="label"
+              size="sm"
+              color="text-text-700"
+              className="cursor-pointer"
+              htmlFor="radio-item-no"
+            >
+              Não
+            </Text>
+          </div>
+        </RadioGroup>
+      </div>
+    );
+  };
 
   /**
    * Render current step content

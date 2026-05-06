@@ -8,9 +8,10 @@
 import { useState, useCallback, useMemo, useRef } from 'react';
 import dayjs from 'dayjs';
 import type { CategoryConfig } from '../components/CheckBoxGroup/CheckBoxGroup';
-import type {
-  SendActivityFormData,
-  SendActivityModalInitialData,
+import {
+  ActivityMode,
+  type SendActivityFormData,
+  type SendActivityModalInitialData,
 } from '../components/SendActivityModal/types';
 import type {
   UseSendActivityConfig,
@@ -224,7 +225,10 @@ export function useSendActivity(
           subjectId: selectedModel.subjectId,
           questionIds,
           subtype: data.subtype,
-          mode: data.mode,
+          isDigital:
+            data.mode === undefined
+              ? undefined
+              : data.mode === ActivityMode.ONLINE,
           notification: data.notification,
           startDate: toISODateTime(data.startDate, data.startTime),
           finalDate: toISODateTime(data.finalDate, data.finalTime),

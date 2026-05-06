@@ -1607,6 +1607,7 @@ export type {
 // DownloadModal Components
 export { default as DownloadModal } from './components/DownloadModal/DownloadModal';
 export { DOWNLOAD_FORMAT } from './enums/DownloadFormat';
+export { FILTER_CATEGORY, FILTER_GROUP } from './enums/FilterEnums';
 export type {
   DownloadModalProps,
   DownloadFormat,
@@ -1635,3 +1636,80 @@ export type {
   UseSimulatedPerformanceReturn,
   SimulatedPerformanceViewProps,
 } from './components/SimulatedPerformance';
+
+// ComparatorChart Components
+export {
+  // Base chart components
+  Legend as ComparatorLegend,
+  PercentageScale,
+  ChartArea,
+  BarChartRow,
+  // Content components
+  KnowledgeAreasContent,
+  CurricularComponentsContent,
+  CompetenciesContent,
+  NationalAverageCard,
+  NationalAveragesContent,
+  // UI components
+  ComparatorEmptyState,
+  ComparatorLoadingState,
+  ComparatorSelectTypeStep,
+  ComparatorSelectItemsStep,
+  ComparatorTabContent,
+  // Main view
+  ComparatorView,
+} from './components/ComparatorChart';
+export type {
+  LegendProps as ComparatorLegendProps,
+  LegendItem as ComparatorLegendItem,
+  ChartAreaProps,
+  BarChartRowProps,
+  BarChartValue,
+  KnowledgeAreasContentProps,
+  CurricularComponentsContentProps,
+  CompetenciesContentProps,
+  NationalAverageCardProps,
+  NationalAveragesContentProps,
+  ComparatorEmptyStateProps,
+  ComparatorSelectTypeStepProps,
+  ComparatorSelectItemsStepProps,
+  ComparatorTabContentProps,
+  ComparatorViewProps,
+} from './components/ComparatorChart';
+
+// Comparator Types
+export {
+  ComparatorTabValue,
+  DEFAULT_COMPARATOR_LABELS,
+  DEFAULT_COMPARATOR_TABS,
+  COMPARATOR_CHART_COLORS,
+} from './types/comparator';
+export type {
+  ComparisonType,
+  ComparatorTabType,
+  ComparisonItem,
+  KnowledgeAreaData,
+  CurricularComponentData,
+  CompetencyData,
+  NationalAverageData,
+  ComparatorData,
+  ComparatorApiClient,
+  ComparatorStoreState,
+  UseComparatorReturn,
+  ComparatorLabels,
+  ComparatorTab,
+} from './types/comparator';
+
+// Comparator Hook
+export {
+  createUseComparator,
+  createComparatorHook,
+} from './hooks/useComparator';
+export type { UseComparatorConfig } from './hooks/useComparator';
+
+// Comparator Store
+export {
+  createComparatorStore,
+  useComparatorStore,
+} from './store/comparatorStore';
+export type { CreateComparatorStoreConfig } from './store/comparatorStore';
