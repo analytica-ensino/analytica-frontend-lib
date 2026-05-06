@@ -15,6 +15,7 @@ import {
   type NationalAveragesApiItem,
   type UseComparatorReturn,
 } from '../types/comparator';
+import { Period } from '@/components/PeriodSelector';
 
 // Transform backend response to frontend format
 function transformKnowledgeAreas(
@@ -107,24 +108,21 @@ function transformNationalAverages(
   });
 }
 
-// API endpoints mapping
-const TAB_ENDPOINTS: Record<ComparatorTabType, string> = {
-  'knowledge-areas': '/comparator/knowledge-areas',
-  'curricular-components': '/comparator/curricular-components',
-  competencies: '/comparator/competencies',
-  'national-averages': '/comparator/national-averages',
-};
+// Unified comparator endpoint
+const COMPARATOR_ENDPOINT = '/comparator';
 
 export interface UseComparatorConfig {
   apiClient: ComparatorApiClient;
-  endpoints?: Partial<Record<ComparatorTabType, string>>;
+  endpoint?: string;
   defaultPeriod?: string;
 }
 
 export function createUseComparator(config: UseComparatorConfig) {
-  const { apiClient, endpoints = {}, defaultPeriod = '1_MONTH' } = config;
-
-  const resolvedEndpoints = { ...TAB_ENDPOINTS, ...endpoints };
+  const {
+    apiClient,
+    endpoint = COMPARATOR_ENDPOINT,
+    defaultPeriod = Period.ONE_MONTH,
+  } = config;
 
   return function useComparator(): UseComparatorReturn {
     const [data, setData] = useState<ComparatorData>({
@@ -142,11 +140,10 @@ export function createUseComparator(config: UseComparatorConfig) {
         setError(null);
 
         try {
-          const endpoint = resolvedEndpoints[tab];
           const body =
             type === 'school'
-              ? { schoolIds: ids, period: defaultPeriod }
-              : { schoolYearIds: ids, period: defaultPeriod };
+              ? { type: tab, schoolIds: ids, period: defaultPeriod }
+              : { type: tab, schoolYearIds: ids, period: defaultPeriod };
 
           const response = await apiClient.post(endpoint, body);
           const apiData = response.data.data;

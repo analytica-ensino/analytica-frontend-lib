@@ -95,10 +95,11 @@ describe('useComparator hook', () => {
         );
       });
 
-      expect(mockApiClient.post).toHaveBeenCalledWith(
-        '/comparator/knowledge-areas',
-        { schoolIds: ['school-1', 'school-2'], period: '1_MONTH' }
-      );
+      expect(mockApiClient.post).toHaveBeenCalledWith('/comparator', {
+        type: 'knowledge-areas',
+        schoolIds: ['school-1', 'school-2'],
+        period: '1_MONTH',
+      });
     });
 
     it('should call API with schoolYearIds when type is schoolYear', async () => {
@@ -114,10 +115,11 @@ describe('useComparator hook', () => {
         );
       });
 
-      expect(mockApiClient.post).toHaveBeenCalledWith(
-        '/comparator/curricular-components',
-        { schoolYearIds: ['year-1', 'year-2'], period: '1_MONTH' }
-      );
+      expect(mockApiClient.post).toHaveBeenCalledWith('/comparator', {
+        type: 'curricular-components',
+        schoolYearIds: ['year-1', 'year-2'],
+        period: '1_MONTH',
+      });
     });
 
     it('should use custom period when provided', async () => {
@@ -132,17 +134,18 @@ describe('useComparator hook', () => {
         await result.current.fetchData(['id1'], 'school', 'knowledge-areas');
       });
 
-      expect(mockApiClient.post).toHaveBeenCalledWith(
-        '/comparator/knowledge-areas',
-        { schoolIds: ['id1'], period: '3_MONTHS' }
-      );
+      expect(mockApiClient.post).toHaveBeenCalledWith('/comparator', {
+        type: 'knowledge-areas',
+        schoolIds: ['id1'],
+        period: '3_MONTHS',
+      });
     });
 
-    it('should use custom endpoints when provided', async () => {
+    it('should use custom endpoint when provided', async () => {
       mockApiClient.mockResolvedValue({ data: [] });
       const useComparator = createUseComparator({
         apiClient: mockApiClient,
-        endpoints: { 'knowledge-areas': '/custom/knowledge-areas' },
+        endpoint: '/custom/comparator',
       });
       const { result } = renderHook(() => useComparator());
 
@@ -151,7 +154,7 @@ describe('useComparator hook', () => {
       });
 
       expect(mockApiClient.post).toHaveBeenCalledWith(
-        '/custom/knowledge-areas',
+        '/custom/comparator',
         expect.any(Object)
       );
     });
@@ -480,15 +483,15 @@ describe('useComparator hook', () => {
     });
   });
 
-  describe('endpoint mapping', () => {
+  describe('unified endpoint with type parameter', () => {
     it.each([
-      ['knowledge-areas', '/comparator/knowledge-areas'],
-      ['curricular-components', '/comparator/curricular-components'],
-      ['competencies', '/comparator/competencies'],
-      ['national-averages', '/comparator/national-averages'],
+      'knowledge-areas',
+      'curricular-components',
+      'competencies',
+      'national-averages',
     ] as const)(
-      'should call correct endpoint for tab %s',
-      async (tab, expectedEndpoint) => {
+      'should call unified endpoint with type=%s in body',
+      async (tab) => {
         mockApiClient.mockResolvedValue({ data: [] });
         const useComparator = createUseComparator({ apiClient: mockApiClient });
         const { result } = renderHook(() => useComparator());
@@ -497,10 +500,11 @@ describe('useComparator hook', () => {
           await result.current.fetchData(['id1'], 'school', tab);
         });
 
-        expect(mockApiClient.post).toHaveBeenCalledWith(
-          expectedEndpoint,
-          expect.any(Object)
-        );
+        expect(mockApiClient.post).toHaveBeenCalledWith('/comparator', {
+          type: tab,
+          schoolIds: ['id1'],
+          period: '1_MONTH',
+        });
       }
     );
   });
