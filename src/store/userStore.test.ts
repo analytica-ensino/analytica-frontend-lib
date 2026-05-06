@@ -99,7 +99,9 @@ describe('createUserStore', () => {
       createUserStore({ apiClient: mockApiClient });
 
       // Check that localStorage was accessed with default key
-      expect(mockLocalStorage.getItem).toHaveBeenCalledWith('user-data-storage');
+      expect(mockLocalStorage.getItem).toHaveBeenCalledWith(
+        'user-data-storage'
+      );
     });
 
     it('should use custom storage key', () => {
@@ -108,7 +110,9 @@ describe('createUserStore', () => {
         storageKey: 'custom-storage-key',
       });
 
-      expect(mockLocalStorage.getItem).toHaveBeenCalledWith('custom-storage-key');
+      expect(mockLocalStorage.getItem).toHaveBeenCalledWith(
+        'custom-storage-key'
+      );
     });
   });
 
@@ -300,7 +304,10 @@ describe('createUserStore', () => {
 
       await useUserStore.getState().updateUserData(mockUpdateData);
 
-      expect(mockApiClient.patch).toHaveBeenCalledWith('/user/me', mockUpdateData);
+      expect(mockApiClient.patch).toHaveBeenCalledWith(
+        '/user/me',
+        mockUpdateData
+      );
       expect(mockApiClient.get).toHaveBeenCalledWith('/auth/me');
       expect(useUserStore.getState().data).toEqual(updatedUserData);
       expect(useUserStore.getState().isLoading).toBe(false);
@@ -317,7 +324,9 @@ describe('createUserStore', () => {
 
       const useUserStore = createUserStore({ apiClient: mockApiClient });
 
-      const updatePromise = useUserStore.getState().updateUserData(mockUpdateData);
+      const updatePromise = useUserStore
+        .getState()
+        .updateUserData(mockUpdateData);
 
       expect(useUserStore.getState().isLoading).toBe(true);
       expect(useUserStore.getState().error).toBeNull();
@@ -356,7 +365,10 @@ describe('createUserStore', () => {
         useUserStore.getState().updateUserData(mockUpdateData)
       ).rejects.toThrow('Fetch after update failed');
 
-      expect(mockApiClient.patch).toHaveBeenCalledWith('/user/me', mockUpdateData);
+      expect(mockApiClient.patch).toHaveBeenCalledWith(
+        '/user/me',
+        mockUpdateData
+      );
       expect(mockApiClient.get).toHaveBeenCalledWith('/auth/me');
       expect(useUserStore.getState().error).toBe('Fetch after update failed');
     });
@@ -519,7 +531,10 @@ describe('createUserStore', () => {
       // 2. Update
       await useUserStore.getState().updateUserData(mockUpdateData);
       expect(useUserStore.getState().data).toEqual(updatedUserData);
-      expect(mockApiClient.patch).toHaveBeenCalledWith('/user/me', mockUpdateData);
+      expect(mockApiClient.patch).toHaveBeenCalledWith(
+        '/user/me',
+        mockUpdateData
+      );
 
       // 3. Clear
       useUserStore.getState().clearUserData();

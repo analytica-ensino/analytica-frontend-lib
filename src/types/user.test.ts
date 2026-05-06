@@ -173,7 +173,12 @@ describe('User Types', () => {
   describe('UserInstitution', () => {
     it('should accept valid user institution object', () => {
       const userInstitution: UserInstitution = {
-        profile: { id: '1', name: 'Student', description: 'Student', position: 1 },
+        profile: {
+          id: '1',
+          name: 'Student',
+          description: 'Student',
+          position: 1,
+        },
         institution: { id: '1', name: 'School', type: 'school' },
         school: { id: '1', name: 'School' },
         schoolYear: { id: '1', name: '2023' },
@@ -268,7 +273,9 @@ describe('User Types', () => {
         zipCode: '87654321',
       };
 
-      expect(request.urlProfilePicture).toBe('https://example.com/new-photo.jpg');
+      expect(request.urlProfilePicture).toBe(
+        'https://example.com/new-photo.jpg'
+      );
       expect(request.city).toBe('New City');
     });
   });
