@@ -15,6 +15,7 @@ import {
   type NationalAveragesApiItem,
   type UseComparatorReturn,
 } from '../types/comparator';
+import { Period } from '@/components/PeriodSelector';
 
 // Transform backend response to frontend format
 function transformKnowledgeAreas(
@@ -120,7 +121,7 @@ export function createUseComparator(config: UseComparatorConfig) {
   const {
     apiClient,
     endpoint = COMPARATOR_ENDPOINT,
-    defaultPeriod = '1_MONTH',
+    defaultPeriod = Period.ONE_MONTH,
   } = config;
 
   return function useComparator(): UseComparatorReturn {
