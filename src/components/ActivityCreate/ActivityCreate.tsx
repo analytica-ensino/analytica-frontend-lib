@@ -770,12 +770,22 @@ const CreateActivity = ({
       setIsSavingModel(true);
       try {
         setIsSaveModelModalOpen(false);
-        await saveDraft(ActivityType.MODELO, title);
+        const savedId = await saveDraft(ActivityType.MODELO, title);
+        if (savedId) {
+          addToast({
+            title: 'Modelo salvo com sucesso',
+            description:
+              'O modelo da atividade está disponível para reutilização.',
+            variant: 'solid',
+            action: 'success',
+            position: 'top-right',
+          });
+        }
       } finally {
         setIsSavingModel(false);
       }
     },
-    [saveDraft]
+    [saveDraft, addToast]
   );
 
   /**

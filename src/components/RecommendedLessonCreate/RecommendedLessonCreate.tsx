@@ -7,6 +7,7 @@ import {
   CategoryConfig,
   useToastStore,
   SendLessonModal,
+  SaveActivityModelModal,
 } from '../..';
 import type { ActivityModelTableItem } from '../../types/activitiesHistory';
 import { ActivityType } from '../ActivityCreate/ActivityCreate.types';
@@ -141,6 +142,8 @@ const RecommendedLessonCreate = ({
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isSendModalOpen, setIsSendModalOpen] = useState(false);
+  const [isSaveModelModalOpen, setIsSaveModelModalOpen] = useState(false);
+  const [isSavingModel, setIsSavingModel] = useState(false);
   const [categories, setCategories] = useState<CategoryConfig[]>([]);
   const [isSendingLesson, setIsSendingLesson] = useState(false);
   const hasFirstSaveBeenDone = useRef(false);
@@ -759,65 +762,128 @@ const RecommendedLessonCreate = ({
 
   /**
    * Save draft to backend
+   * @param typeOverride - Override the draft type for this save
+   * @param customTitle - Optional user-provided title; falls back to auto-generated when empty
+   * @returns The draft ID (existing or newly created), or undefined if save failed
    */
-  const saveDraft = useCallback(async () => {
-    if (!validateSaveConditions()) {
-      return;
-    }
-
-    setIsSaving(true);
-
-    try {
-      const payload = createDraftPayload();
-
-      if (draftId) {
-        await updateExistingDraft(payload);
-        return;
+  const saveDraft = useCallback(
+    async (
+      typeOverride?: RecommendedClassDraftType,
+      customTitle?: string
+    ): Promise<string | undefined> => {
+      if (!validateSaveConditions()) {
+        return draftId || undefined;
       }
 
-      const response = await apiClient.post<RecommendedLessonDraftResponse>(
-        '/recommended-class/drafts',
-        payload
-      );
-      hasFirstSaveBeenDone.current = true;
+      setIsSaving(true);
 
-      const savedDraft = extractDraftFromResponse(response);
-      updateStateAfterSave(savedDraft, response?.data, true);
-    } catch (error) {
-      console.error('Error saving draft:', error);
+      try {
+        let payload = createDraftPayload();
 
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'Ocorreu um erro ao salvar o rascunho. Tente novamente.';
+        // Override type if provided
+        if (typeOverride) {
+          const subjectId = appliedFilters?.subjectIds?.[0];
+          if (!subjectId) {
+            throw new Error('Subject ID não encontrado');
+          }
+          const trimmedCustomTitle = customTitle?.trim();
+          const title =
+            trimmedCustomTitle && trimmedCustomTitle.length > 0
+              ? trimmedCustomTitle
+              : generateTitle(typeOverride, subjectId, knowledgeAreas, lessons);
+          payload = {
+            ...payload,
+            type: typeOverride,
+            title,
+          };
+        }
 
-      addToast({
-        title: 'Erro ao salvar rascunho',
-        description: errorMessage,
-        variant: 'solid',
-        action: 'warning',
-        position: 'top-right',
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  }, [
-    validateSaveConditions,
-    createDraftPayload,
-    draftId,
-    updateExistingDraft,
-    apiClient,
-    extractDraftFromResponse,
-    updateStateAfterSave,
-    addToast,
-  ]);
+        if (draftId) {
+          await updateExistingDraft(payload);
+          return draftId;
+        }
+
+        const response = await apiClient.post<RecommendedLessonDraftResponse>(
+          '/recommended-class/drafts',
+          payload
+        );
+        hasFirstSaveBeenDone.current = true;
+
+        const savedDraft = extractDraftFromResponse(response);
+        updateStateAfterSave(savedDraft, response?.data, true);
+        return savedDraft.id;
+      } catch (error) {
+        console.error('Error saving draft:', error);
+
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : 'Ocorreu um erro ao salvar o rascunho. Tente novamente.';
+
+        addToast({
+          title: 'Erro ao salvar rascunho',
+          description: errorMessage,
+          variant: 'solid',
+          action: 'warning',
+          position: 'top-right',
+        });
+        return undefined;
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [
+      validateSaveConditions,
+      createDraftPayload,
+      draftId,
+      updateExistingDraft,
+      apiClient,
+      extractDraftFromResponse,
+      updateStateAfterSave,
+      addToast,
+      appliedFilters,
+      knowledgeAreas,
+      lessons,
+    ]
+  );
 
   /**
-   * Handle save model button click
+   * Open the "save as model" modal so the user can provide a custom title
    */
-  const handleSaveModel = useCallback(async () => {
-    setDraftType(RecommendedClassDraftType.MODELO);
+  const handleSaveModel = useCallback(() => {
+    setIsSaveModelModalOpen(true);
   }, []);
+
+  /**
+   * Persist the draft as MODELO using the title provided by the user.
+   * draftType is updated by the save helpers (updateExistingDraft /
+   * updateStateAfterSave) only after the backend confirms the save, keeping
+   * UI state consistent with persisted state on failure.
+   */
+  const handleConfirmSaveModel = useCallback(
+    async (title: string) => {
+      setIsSavingModel(true);
+      try {
+        setIsSaveModelModalOpen(false);
+        const savedId = await saveDraft(
+          RecommendedClassDraftType.MODELO,
+          title
+        );
+        if (savedId) {
+          addToast({
+            title: 'Modelo salvo com sucesso',
+            description: 'O modelo da aula está disponível para reutilização.',
+            variant: 'solid',
+            action: 'success',
+            position: 'top-right',
+          });
+        }
+      } finally {
+        setIsSavingModel(false);
+      }
+    },
+    [saveDraft, addToast]
+  );
 
   /**
    * Load initial lessons
@@ -922,21 +988,6 @@ const RecommendedLessonCreate = ({
       }
     };
   }, [lessons, appliedFilters, draftType, loadingInitialLessons]);
-
-  /**
-   * Save immediately when draftType changes to MODELO
-   */
-  useEffect(() => {
-    if (
-      draftType === RecommendedClassDraftType.MODELO &&
-      hasFirstSaveBeenDone.current
-    ) {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-      saveDraftRef.current();
-    }
-  }, [draftType]);
 
   /**
    * Handle adding a lesson to the recommended lesson
@@ -1343,6 +1394,14 @@ const RecommendedLessonCreate = ({
           </div>
         </div>
       )}
+
+      {/* Save Lesson Model Modal */}
+      <SaveActivityModelModal
+        isOpen={isSaveModelModalOpen}
+        onClose={() => setIsSaveModelModalOpen(false)}
+        onConfirm={handleConfirmSaveModel}
+        isLoading={isSavingModel}
+      />
 
       {/* Send Lesson Modal */}
       <SendLessonModal

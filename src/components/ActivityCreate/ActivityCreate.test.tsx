@@ -1675,6 +1675,18 @@ describe('CreateActivity', () => {
         // POST should not be called after first save
         expect(mockApiClient.post).not.toHaveBeenCalled();
       });
+
+      // Success toast confirms the save to the user
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith({
+          title: 'Modelo salvo com sucesso',
+          description:
+            'O modelo da atividade está disponível para reutilização.',
+          variant: 'solid',
+          action: 'success',
+          position: 'top-right',
+        });
+      });
     });
 
     it('should close the save model modal without saving when canceled', async () => {
