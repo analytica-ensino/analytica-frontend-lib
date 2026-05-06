@@ -1717,3 +1717,29 @@ export {
   useComparatorStore,
 } from './store/comparatorStore';
 export type { CreateComparatorStoreConfig } from './store/comparatorStore';
+
+// User Store
+export { createUserStore } from './store/userStore';
+export type {
+  CreateUserStoreConfig,
+  UserStoreApiClient,
+  UserStoreState,
+} from './store/userStore';
+
+// User Types
+export type {
+  User as UserData,
+  UserInfos,
+  Profile,
+  Institution,
+  School as UserSchool,
+  SchoolYear as UserSchoolYear,
+  Class as UserClass,
+  UserInstitution,
+  Subject as UserSubject,
+  SubTeacherTopicClass,
+  MyDataResponse,
+  UpdateMyDataRequest,
+  UserTelemetryData,
+  StudentDetailsResponse,
+} from './types/user';

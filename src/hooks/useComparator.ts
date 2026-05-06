@@ -15,7 +15,7 @@ import {
   type NationalAveragesApiItem,
   type UseComparatorReturn,
 } from '../types/comparator';
-import { Period } from '@/components/PeriodSelector';
+import { Period } from '../components/PeriodSelector';
 
 // Transform backend response to frontend format
 function transformKnowledgeAreas(
