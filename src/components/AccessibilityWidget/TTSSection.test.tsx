@@ -93,10 +93,13 @@ describe('TTSSection', () => {
     ).toBeInTheDocument();
   });
 
-  it('lists the available voices in the picker', () => {
+  it('lists the available voices in the picker once opened', async () => {
     renderSection();
-    const select = screen.getByTestId('a11y-tts-voice-select');
-    expect(select).toBeInTheDocument();
+    const trigger = screen.getByTestId('a11y-tts-voice-select');
+    expect(trigger).toBeInTheDocument();
+
+    // Select da lib só monta os items quando aberto
+    await userEvent.click(trigger);
     expect(screen.getByText(/Voz pt-BR/)).toBeInTheDocument();
     expect(screen.getByText(/Voice en-US/)).toBeInTheDocument();
   });

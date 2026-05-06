@@ -7,7 +7,12 @@ import {
 } from '@phosphor-icons/react';
 import Button from '../Button/Button';
 import Text from '../Text/Text';
-import { cn } from '../../utils/utils';
+import Select, {
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from '../Select/Select';
 import { useAccessibilityStore } from '../../store/accessibilityStore';
 import { useTTS } from '../../hooks/useTTS';
 
@@ -96,29 +101,27 @@ export default function TTSSection({ Segmented }: Readonly<TTSSectionProps>) {
         </Text>
       )}
 
-      <div className="flex flex-col gap-1">
-        <Text size="2xs" className="text-text-700">
-          Voz
-        </Text>
-        <select
-          value={ttsVoiceId ?? ''}
-          onChange={(e) => setTTSVoiceId(e.target.value || null)}
+      <Select
+        label="Voz"
+        size="small"
+        value={ttsVoiceId ?? ''}
+        onValueChange={(value) => setTTSVoiceId(value || null)}
+      >
+        <SelectTrigger
           aria-label="Voz da síntese de fala"
           data-testid="a11y-tts-voice-select"
-          className={cn(
-            'w-full rounded-md border border-background-300 bg-background',
-            'px-2 py-1.5 text-sm text-text-900',
-            'focus:outline-none focus:ring-2 focus:ring-info-500'
-          )}
         >
-          <option value="">Padrão do navegador</option>
+          <SelectValue placeholder="Padrão do navegador" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="">Padrão do navegador</SelectItem>
           {sortedVoices.map((v) => (
-            <option key={v.id} value={v.id}>
+            <SelectItem key={v.id} value={v.id}>
               {v.name} — {v.lang}
-            </option>
+            </SelectItem>
           ))}
-        </select>
-      </div>
+        </SelectContent>
+      </Select>
 
       <div className="flex flex-col gap-1">
         <Text size="2xs" className="text-text-700">
