@@ -2,6 +2,7 @@ import Modal from '../Modal/Modal';
 import { CheckboxGroup } from '../CheckBoxGroup/CheckBoxGroup';
 import Button from '../Button/Button';
 import type { FilterConfig } from './useTableFilter';
+import { FILTER_GROUP } from '../../enums/FilterEnums';
 
 export type FilterModalProps = {
   /**
@@ -138,7 +139,7 @@ export const FilterModal = ({
           <div key={config.key} className="flex flex-col gap-4">
             {/* Section Header */}
             <div className="flex items-center gap-2 text-text-400 text-sm font-medium uppercase">
-              {config.key === 'academic' && (
+              {config.key === FILTER_GROUP.ACADEMIC && (
                 <svg
                   width="16"
                   height="16"
@@ -170,7 +171,7 @@ export const FilterModal = ({
                   />
                 </svg>
               )}
-              {config.key === 'content' && (
+              {config.key === FILTER_GROUP.CONTENT && (
                 <svg
                   width="16"
                   height="16"

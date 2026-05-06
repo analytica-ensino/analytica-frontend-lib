@@ -49,6 +49,12 @@ export const IconRender = ({
   size = 24,
   weight = 'regular',
 }: IconRenderProps): JSX.Element => {
+  // Guard against undefined/null iconName
+  if (!iconName) {
+    const FallbackIcon = PhosphorIcons.Question as PhosphorIconComponent;
+    return <FallbackIcon size={size} color={color} weight={weight} />;
+  }
+
   if (typeof iconName === 'string') {
     switch (iconName) {
       case 'Chat_PT':

@@ -112,7 +112,7 @@ export function SimulatedSubjectMenu({
                   <GridFour size={17} weight="bold" />
                 ) : (
                   <IconRender
-                    iconName={subject.icon || 'shapes'}
+                    iconName={subject.icon ?? 'Shapes'}
                     size={17}
                     color="currentColor"
                   />
