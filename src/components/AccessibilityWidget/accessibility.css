@@ -169,6 +169,20 @@ html.a11y-dyslexia-font body * {
     sans-serif !important;
 }
 
+/* ---------- Integração com VLibras ----------
+ *
+ * Esconde o botão de acesso nativo do widget VLibras (gov.br) — quem
+ * controla o toggle do painel é o nosso `LibrasFab`, que delega o
+ * click. Sem isso, dois ícones flutuantes ficam empilhados na lateral
+ * direita causando confusão visual. O botão segue no DOM (precisamos
+ * disparar click programático nele para abrir/fechar), apenas
+ * invisível para o usuário.
+ */
+
+#a11y-vlibras-wrapper [vw-access-button] {
+  display: none !important;
+}
+
 /* ---------- Destaque do elemento sendo lido (TTS) ----------
  *
  * Aplicado pelo TTSController enquanto o texto do elemento está sendo

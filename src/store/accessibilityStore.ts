@@ -97,6 +97,8 @@ export interface AccessibilityPreferences {
   ttsRate: number;
   /** Voz selecionada pelo usuário (id retornado pelo provider) ou null para padrão */
   ttsVoiceId: string | null;
+  /** Habilita o widget VLibras (gov.br) — carregado lazy ao ativar */
+  librasEnabled: boolean;
 }
 
 export interface AccessibilityState extends AccessibilityPreferences {
@@ -123,6 +125,7 @@ export interface AccessibilityActions {
   setTTSRate: (rate: number) => void;
   setTTSVoiceId: (id: string | null) => void;
   setTTSStatus: (status: TTSStatus) => void;
+  setLibrasEnabled: (value: boolean) => void;
   /** Restaura todas as preferências para o estado padrão */
   resetPreferences: () => void;
   openPanel: () => void;
@@ -148,6 +151,7 @@ export const DEFAULT_ACCESSIBILITY_PREFERENCES: AccessibilityPreferences = {
   ttsMode: 'off',
   ttsRate: 1,
   ttsVoiceId: null,
+  librasEnabled: false,
 };
 
 /**
@@ -179,6 +183,7 @@ export const useAccessibilityStore = create<AccessibilityStore>()(
         setTTSRate: (ttsRate) => set({ ttsRate }),
         setTTSVoiceId: (ttsVoiceId) => set({ ttsVoiceId }),
         setTTSStatus: (ttsStatus) => set({ ttsStatus }),
+        setLibrasEnabled: (librasEnabled) => set({ librasEnabled }),
 
         resetPreferences: () => set({ ...DEFAULT_ACCESSIBILITY_PREFERENCES }),
 
@@ -189,6 +194,21 @@ export const useAccessibilityStore = create<AccessibilityStore>()(
       }),
       {
         name: 'accessibility-store',
+        // version 1: removeu `librasEnabled` da persistência (era custoso
+        // recarregar VLibras a cada refresh). A migração limpa esse valor
+        // de localStorages antigos para evitar auto-load surpresa.
+        version: 1,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- migrate works with arbitrary persisted shapes from older versions
+        migrate: (persistedState: any) => {
+          if (
+            persistedState &&
+            typeof persistedState === 'object' &&
+            'librasEnabled' in persistedState
+          ) {
+            delete persistedState.librasEnabled;
+          }
+          return persistedState;
+        },
         partialize: (state) => ({
           contrastMode: state.contrastMode,
           saturationMode: state.saturationMode,
@@ -204,8 +224,12 @@ export const useAccessibilityStore = create<AccessibilityStore>()(
           colorBlindMode: state.colorBlindMode,
           ttsRate: state.ttsRate,
           ttsVoiceId: state.ttsVoiceId,
-          // ttsMode NÃO é persistido: o leitor sempre começa desligado
-          // ao recarregar a página para evitar comportamento confuso
+          // ttsMode e librasEnabled NÃO são persistidos:
+          // - ttsMode: o leitor sempre começa desligado ao recarregar
+          //   a página para evitar comportamento confuso
+          // - librasEnabled: o VLibras é pesado (~MBs de assets); auto-
+          //   carregar a cada refresh seria custoso e surpreendente. O
+          //   usuário ativa explicitamente quando precisa.
         }),
       }
     ),
