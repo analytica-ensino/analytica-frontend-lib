@@ -169,6 +169,20 @@ html.a11y-dyslexia-font body * {
     sans-serif !important;
 }
 
+/* ---------- Destaque do elemento sendo lido (TTS) ----------
+ *
+ * Aplicado pelo TTSController enquanto o texto do elemento está sendo
+ * falado pelo leitor. Outline em amarelo para alta visibilidade,
+ * combinando com o destaque de links já usado pelo widget.
+ */
+
+.a11y-tts-target {
+  outline: 3px solid #facc15 !important;
+  outline-offset: 2px !important;
+  background-color: rgba(255, 235, 59, 0.18) !important;
+  transition: outline-color 100ms ease;
+}
+
 /* ---------- Cursor aumentado ----------
  *
  * Cursor SVG inline (32x32) com seta + contorno preto para alto contraste.

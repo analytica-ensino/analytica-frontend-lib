@@ -1372,12 +1372,18 @@ export {
   AccessibilityPanel,
   ReadingAid,
   ColorBlindFilters,
+  TTSController,
+  WebSpeechProvider,
 } from './components/AccessibilityWidget';
 export type {
   AccessibilityWidgetProps,
   AccessibilityFabProps,
   AccessibilityFabPosition,
   AccessibilityPanelProps,
+  TTSProvider,
+  TTSVoice,
+  TTSSpeakOptions,
+  TTSProviderEvents,
 } from './components/AccessibilityWidget';
 
 // Accessibility Store + Hook
@@ -1398,9 +1404,13 @@ export type {
   FontSizeLevel,
   SpacingLevel,
   ReadingAid as ReadingAidMode,
+  TTSMode,
+  TTSStatus,
 } from './store/accessibilityStore';
 export { useA11yPreferences } from './hooks/useA11yPreferences';
 export { useA11yKeyboardShortcut } from './hooks/useA11yKeyboardShortcut';
+export { useTTS } from './hooks/useTTS';
+export type { UseTTSReturn } from './hooks/useTTS';
 
 // Forum Component
 export { Forum } from './components/Forum/Forum';

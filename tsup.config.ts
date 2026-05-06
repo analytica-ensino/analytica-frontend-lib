@@ -198,6 +198,7 @@ export default defineConfig({
     'hooks/useA11yPreferences/index': 'src/hooks/useA11yPreferences.ts',
     'hooks/useA11yKeyboardShortcut/index':
       'src/hooks/useA11yKeyboardShortcut.ts',
+    'hooks/useTTS/index': 'src/hooks/useTTS.ts',
 
     // Styles
     styles: 'src/styles.css',

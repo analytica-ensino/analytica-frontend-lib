@@ -125,6 +125,9 @@ export const useA11yPreferences = () => {
   const readingAid = useAccessibilityStore((s) => s.readingAid);
   const keyboardShortcut = useAccessibilityStore((s) => s.keyboardShortcut);
   const colorBlindMode = useAccessibilityStore((s) => s.colorBlindMode);
+  const ttsMode = useAccessibilityStore((s) => s.ttsMode);
+  const ttsRate = useAccessibilityStore((s) => s.ttsRate);
+  const ttsVoiceId = useAccessibilityStore((s) => s.ttsVoiceId);
 
   useEffect(() => {
     syncDom({
@@ -140,6 +143,9 @@ export const useA11yPreferences = () => {
       readingAid,
       keyboardShortcut,
       colorBlindMode,
+      ttsMode,
+      ttsRate,
+      ttsVoiceId,
     });
   }, [
     contrastMode,

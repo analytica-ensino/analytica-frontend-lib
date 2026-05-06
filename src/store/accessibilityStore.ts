@@ -20,6 +20,17 @@ export type SaturationMode = 'normal' | 'grayscale' | 'low';
 export type ReadingAid = 'none' | 'ruler' | 'mask';
 
 /**
+ * Modo do leitor de texto (TTS):
+ * - `off`: leitor desligado
+ * - `click-to-read`: usuário clica em um elemento e o widget lê o texto dele
+ * - `read-selection`: usuário pressiona "Ler seleção" para falar o texto selecionado
+ */
+export type TTSMode = 'off' | 'click-to-read' | 'read-selection';
+
+/** Status runtime da síntese de voz — não persistido. */
+export type TTSStatus = 'idle' | 'speaking' | 'paused';
+
+/**
  * Modos de daltonismo. Aplicam matrizes `<feColorMatrix>` (SVG) que
  * remapeiam cores para ajudar usuários com cada tipo de discromatopsia.
  *
@@ -80,11 +91,19 @@ export interface AccessibilityPreferences {
   keyboardShortcut: boolean;
   /** Modo de daltonismo aplicado (filtro SVG na página inteira) */
   colorBlindMode: ColorBlindMode;
+  /** Modo do leitor de texto (TTS) */
+  ttsMode: TTSMode;
+  /** Velocidade da fala (0.5 a 2.0) */
+  ttsRate: number;
+  /** Voz selecionada pelo usuário (id retornado pelo provider) ou null para padrão */
+  ttsVoiceId: string | null;
 }
 
 export interface AccessibilityState extends AccessibilityPreferences {
   /** Indica se o painel de acessibilidade está aberto */
   isPanelOpen: boolean;
+  /** Status runtime da síntese de voz — não persistido */
+  ttsStatus: TTSStatus;
 }
 
 export interface AccessibilityActions {
@@ -100,6 +119,10 @@ export interface AccessibilityActions {
   setReadingAid: (mode: ReadingAid) => void;
   setKeyboardShortcut: (value: boolean) => void;
   setColorBlindMode: (mode: ColorBlindMode) => void;
+  setTTSMode: (mode: TTSMode) => void;
+  setTTSRate: (rate: number) => void;
+  setTTSVoiceId: (id: string | null) => void;
+  setTTSStatus: (status: TTSStatus) => void;
   /** Restaura todas as preferências para o estado padrão */
   resetPreferences: () => void;
   openPanel: () => void;
@@ -122,6 +145,9 @@ export const DEFAULT_ACCESSIBILITY_PREFERENCES: AccessibilityPreferences = {
   readingAid: 'none',
   keyboardShortcut: true,
   colorBlindMode: ColorBlindMode.None,
+  ttsMode: 'off',
+  ttsRate: 1,
+  ttsVoiceId: null,
 };
 
 /**
@@ -135,6 +161,7 @@ export const useAccessibilityStore = create<AccessibilityStore>()(
       (set) => ({
         ...DEFAULT_ACCESSIBILITY_PREFERENCES,
         isPanelOpen: false,
+        ttsStatus: 'idle',
 
         setContrastMode: (contrastMode) => set({ contrastMode }),
         setSaturationMode: (saturationMode) => set({ saturationMode }),
@@ -148,6 +175,10 @@ export const useAccessibilityStore = create<AccessibilityStore>()(
         setReadingAid: (readingAid) => set({ readingAid }),
         setKeyboardShortcut: (keyboardShortcut) => set({ keyboardShortcut }),
         setColorBlindMode: (colorBlindMode) => set({ colorBlindMode }),
+        setTTSMode: (ttsMode) => set({ ttsMode }),
+        setTTSRate: (ttsRate) => set({ ttsRate }),
+        setTTSVoiceId: (ttsVoiceId) => set({ ttsVoiceId }),
+        setTTSStatus: (ttsStatus) => set({ ttsStatus }),
 
         resetPreferences: () => set({ ...DEFAULT_ACCESSIBILITY_PREFERENCES }),
 
@@ -171,6 +202,10 @@ export const useAccessibilityStore = create<AccessibilityStore>()(
           readingAid: state.readingAid,
           keyboardShortcut: state.keyboardShortcut,
           colorBlindMode: state.colorBlindMode,
+          ttsRate: state.ttsRate,
+          ttsVoiceId: state.ttsVoiceId,
+          // ttsMode NÃO é persistido: o leitor sempre começa desligado
+          // ao recarregar a página para evitar comportamento confuso
         }),
       }
     ),
