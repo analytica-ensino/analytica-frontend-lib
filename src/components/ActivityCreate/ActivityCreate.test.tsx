@@ -1735,6 +1735,38 @@ describe('CreateActivity', () => {
       expect(mockApiClient.post).not.toHaveBeenCalled();
     });
 
+    it('should not emit success toast when save is skipped by validateSaveConditions', async () => {
+      // No questions added → validateSaveConditions returns false → save skipped.
+      // Even though confirm fires, no PATCH/POST happens and the success toast
+      // must not be emitted.
+      mockApiClient.post = jest.fn();
+      mockApiClient.patch = jest.fn();
+
+      render(<CreateActivity {...defaultProps} />);
+
+      fireEvent.click(screen.getByText('Salvar modelo'));
+      expect(screen.getByTestId('save-model-modal')).toBeInTheDocument();
+
+      fireEvent.click(screen.getByTestId('save-model-modal-confirm'));
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      // No network call happened
+      expect(mockApiClient.post).not.toHaveBeenCalled();
+      expect(mockApiClient.patch).not.toHaveBeenCalled();
+
+      // No success toast fired (the modal-action toast we'd see is success;
+      // any other prior toasts are unrelated to this confirm flow)
+      const successToastCalls = mockAddToast.mock.calls.filter(
+        ([payload]) =>
+          (payload as { action?: string })?.action === 'success' &&
+          (payload as { title?: string })?.title === 'Modelo salvo com sucesso'
+      );
+      expect(successToastCalls).toHaveLength(0);
+    });
+
     it('should show saving message when isSaving is true', () => {
       render(<CreateActivity {...defaultProps} />);
 

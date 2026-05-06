@@ -815,6 +815,38 @@ describe('RecommendedLessonCreate', () => {
       expect(mockApiClient.post).not.toHaveBeenCalled();
       expect(mockApiClient.patch).not.toHaveBeenCalled();
     });
+
+    it('should not emit success toast when save is skipped by validateSaveConditions', async () => {
+      // No lessons added → validateSaveConditions returns false → save skipped.
+      // Even though confirm fires, no PATCH/POST happens and the success toast
+      // must not be emitted.
+      await renderWithDesktopLayout(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('save-model-btn'));
+      });
+      expect(screen.getByTestId('save-model-modal')).toBeInTheDocument();
+
+      jest.clearAllMocks();
+
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('save-model-modal-confirm'));
+      });
+
+      // No network call happened
+      expect(mockApiClient.post).not.toHaveBeenCalled();
+      expect(mockApiClient.patch).not.toHaveBeenCalled();
+
+      // No success toast fired
+      const successToastCalls = mockAddToast.mock.calls.filter(
+        ([payload]) =>
+          (payload as { action?: string })?.action === 'success' &&
+          (payload as { title?: string })?.title === 'Modelo salvo com sucesso'
+      );
+      expect(successToastCalls).toHaveLength(0);
+    });
   });
 
   describe('send lesson modal', () => {

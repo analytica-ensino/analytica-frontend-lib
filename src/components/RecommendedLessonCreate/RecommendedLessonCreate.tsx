@@ -764,7 +764,11 @@ const RecommendedLessonCreate = ({
    * Save draft to backend
    * @param typeOverride - Override the draft type for this save
    * @param customTitle - Optional user-provided title; falls back to auto-generated when empty
-   * @returns The draft ID (existing or newly created), or undefined if save failed
+   * @returns The persisted draft ID (existing or newly created) on success.
+   *   Returns undefined when no persistence happened — either because the save
+   *   failed or because validateSaveConditions skipped it. Callers triggering
+   *   an explicit override (e.g. "save as MODELO") rely on this to gate
+   *   success feedback so they don't show a toast for a save that never ran.
    */
   const saveDraft = useCallback(
     async (
@@ -772,7 +776,8 @@ const RecommendedLessonCreate = ({
       customTitle?: string
     ): Promise<string | undefined> => {
       if (!validateSaveConditions()) {
-        return draftId || undefined;
+        // For explicit override flows, skipped saves must not signal success.
+        return typeOverride ? undefined : draftId || undefined;
       }
 
       setIsSaving(true);
