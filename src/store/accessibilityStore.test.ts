@@ -32,7 +32,15 @@ describe('accessibilityStore', () => {
     expect(state.ttsRate).toBe(1);
     expect(state.ttsVoiceId).toBeNull();
     expect(state.ttsStatus).toBe('idle');
+    expect(state.librasEnabled).toBe(false);
     expect(state.isPanelOpen).toBe(false);
+  });
+
+  it('updates librasEnabled', () => {
+    useAccessibilityStore.getState().setLibrasEnabled(true);
+    expect(useAccessibilityStore.getState().librasEnabled).toBe(true);
+    useAccessibilityStore.getState().setLibrasEnabled(false);
+    expect(useAccessibilityStore.getState().librasEnabled).toBe(false);
   });
 
   it('updates Phase 3 (TTS) preferences', () => {

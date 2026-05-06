@@ -5,7 +5,13 @@ export { default as AccessibilityFab } from './AccessibilityFab';
 export type {
   AccessibilityFabProps,
   AccessibilityFabPosition,
+  AccessibilityFabVerticalAlign,
 } from './AccessibilityFab';
+
+export { default as LibrasFab } from './LibrasFab';
+export type { LibrasFabProps } from './LibrasFab';
+
+export { default as VLibrasLoader } from './VLibrasLoader';
 
 export { default as AccessibilityPanel } from './AccessibilityPanel';
 export type { AccessibilityPanelProps } from './AccessibilityPanel';

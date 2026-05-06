@@ -1,4 +1,4 @@
-import { PersonArmsSpreadIcon } from '@phosphor-icons/react';
+import { HandWavingIcon } from '@phosphor-icons/react';
 import Button from '../Button/Button';
 import { Tooltip } from '../Tooltip/Tooltip';
 import { cn } from '../../utils/utils';
@@ -10,39 +10,39 @@ import {
   type FabVerticalAlign,
 } from './fabPositioning';
 
-/** Re-exports mantidos para compatibilidade com a API pública do widget. */
-export type AccessibilityFabPosition = FabPosition;
-export type AccessibilityFabVerticalAlign = FabVerticalAlign;
+type AccessibilityFabPosition = FabPosition;
+type AccessibilityFabVerticalAlign = FabVerticalAlign;
 
-export interface AccessibilityFabProps {
-  /** Click handler — alterna o painel */
+export interface LibrasFabProps {
+  /** Click handler — alterna o painel do VLibras (abrir/fechar) */
   onClick: () => void;
-  /** Indica se o painel está aberto (controla aria-expanded) */
-  isOpen?: boolean;
   /** Lado da viewport onde o botão fica colado */
   position?: AccessibilityFabPosition;
-  /** Alinhamento vertical (default: `center`) */
+  /** Alinhamento vertical (default: `below-center`) */
   verticalAlign?: AccessibilityFabVerticalAlign;
   /** Classes extras */
   className?: string;
 }
 
 /**
- * Botão flutuante (FAB) que abre o painel de acessibilidade.
- * Inspirado no padrão HandTalk: quadrado azul escuro colado na
- * lateral da viewport (direita por padrão), com o ícone universal
- * de acessibilidade. Verticalmente centralizado.
+ * Segundo botão flutuante (FAB), posicionado abaixo do `AccessibilityFab`.
+ * Aciona o widget oficial do VLibras (gov.br) que faz tradução automática
+ * de português para Libras via avatar 3D.
+ *
+ * O botão tem visual constante — não mantemos um indicador de estado
+ * "ativo" porque o painel do VLibras já reflete visualmente se está
+ * aberto ou fechado. Cada clique alterna o painel.
+ *
+ * Mesma identidade visual do FAB principal (azul escuro, quadrado com
+ * canto interno arredondado, colado na lateral).
  */
-export default function AccessibilityFab({
+export default function LibrasFab({
   onClick,
-  isOpen = false,
   position = 'right',
-  verticalAlign = 'center',
+  verticalAlign = 'below-center',
   className,
-}: Readonly<AccessibilityFabProps>) {
-  const label = isOpen
-    ? 'Fechar opções de acessibilidade'
-    : 'Opções de acessibilidade';
+}: Readonly<LibrasFabProps>) {
+  const label = 'Tradução em Libras';
 
   return (
     <Tooltip
@@ -58,8 +58,7 @@ export default function AccessibilityFab({
         variant="raw"
         onClick={onClick}
         aria-label={label}
-        aria-expanded={isOpen}
-        data-testid="accessibility-fab"
+        data-testid="libras-fab"
         className={cn(
           'a11y-widget-shield',
           FAB_POSITION_CLASSES[position],
@@ -70,7 +69,7 @@ export default function AccessibilityFab({
           className
         )}
       >
-        <PersonArmsSpreadIcon size={25} weight="fill" aria-hidden="true" />
+        <HandWavingIcon size={25} weight="fill" aria-hidden="true" />
       </Button>
     </Tooltip>
   );

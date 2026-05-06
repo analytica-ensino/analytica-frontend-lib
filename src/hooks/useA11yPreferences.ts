@@ -128,6 +128,7 @@ export const useA11yPreferences = () => {
   const ttsMode = useAccessibilityStore((s) => s.ttsMode);
   const ttsRate = useAccessibilityStore((s) => s.ttsRate);
   const ttsVoiceId = useAccessibilityStore((s) => s.ttsVoiceId);
+  const librasEnabled = useAccessibilityStore((s) => s.librasEnabled);
 
   useEffect(() => {
     syncDom({
@@ -146,6 +147,7 @@ export const useA11yPreferences = () => {
       ttsMode,
       ttsRate,
       ttsVoiceId,
+      librasEnabled,
     });
   }, [
     contrastMode,
