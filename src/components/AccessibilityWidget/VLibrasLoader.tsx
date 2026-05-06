@@ -54,11 +54,10 @@ export default function VLibrasLoader() {
         // instalou e chamamos manualmente para popular o DOM (avatar,
         // botão de acesso, painel) imediatamente.
         const previousOnload = globalThis.onload;
-        // O `void` é intencional: a instanciação importa pelos efeitos
-        // colaterais (o construtor registra `window.onload` com a lógica
-        // de inicialização do widget), não pelo retorno. Sem essa marcação,
-        // SonarQube classifica como "useless object instantiation" (bug).
-        void new VLibras.Widget(APP_URL);
+        // A instanciação importa pelos efeitos colaterais: o construtor
+        // do VLibras registra `window.onload` com a lógica de inicialização
+        // do widget. O retorno não é usado e é descartado de propósito.
+        new VLibras.Widget(APP_URL); // NOSONAR — instantiation by side effect
         const installed = globalThis.onload;
         if (typeof installed === 'function' && installed !== previousOnload) {
           // `onload` espera tipo Window — usamos `as` porque o construtor
