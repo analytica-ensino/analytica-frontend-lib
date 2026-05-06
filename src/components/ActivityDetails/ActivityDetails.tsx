@@ -33,13 +33,13 @@ import {
   type ActivityStudentTableItem,
   type StudentActivityStatus,
 } from '../../types/activityDetails';
+import { ActivitySubtype } from '../SendActivityModal/types';
 import {
   getStatusBadgeConfig,
   formatTimeSpent,
   formatQuestionNumbers,
   formatDateToBrazilian,
 } from '../../utils/activityDetailsUtils';
-import { ActivityMode } from '../SendActivityModal/types';
 import type { BaseApiClient } from '../../types/api';
 import { useActivityDetails } from '../../hooks/useActivityDetails';
 import {
@@ -68,8 +68,8 @@ export interface ActivityDetailsProps {
   mapSubjectNameToEnum?: (subjectName: string) => SubjectEnum | null;
   /**
    * Callback for downloading the answer sheet for a student.
-   * Presencial mode is determined by `activity.mode === ActivityMode.PRESENCIAL`, not by
-   * the presence of this callback. When the activity is presencial:
+   * Presencial mode is determined by `activity.isDigital === false && activity.subtype === ActivitySubtype.PROVA`,
+   * not by the presence of this callback. When the activity is presencial:
    * - Hides the "Duração" column
    * - Renames "Respondido em" → "Gabarito recebido em"
    * - Shows a "Gabarito" column (before "Resultado"); button is disabled when callback is absent
@@ -501,7 +501,9 @@ export const ActivityDetails = ({
     [activityId, submitQuestionCorrection]
   );
 
-  const isPresencial = data?.activity?.mode === ActivityMode.PRESENCIAL;
+  const isPresencial =
+    data?.activity?.isDigital === false &&
+    data?.activity?.subtype === ActivitySubtype.PROVA;
 
   /**
    * Convert student data to table format.
