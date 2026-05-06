@@ -77,6 +77,44 @@ describe('TTSController', () => {
     p.remove();
   });
 
+  it('walks up to ancestor with aria-label when target has no text (icon button)', () => {
+    useAccessibilityStore.setState({ ttsMode: 'click-to-read' });
+    render(<TTSController />);
+
+    // <button aria-label="Salvar"><svg></svg></button> — clica no SVG
+    const btn = document.createElement('button');
+    btn.setAttribute('aria-label', 'Salvar');
+    const svg = document.createElement('span'); // jsdom não renderiza SVG bem; span vazio é equivalente
+    btn.appendChild(svg);
+    document.body.appendChild(btn);
+
+    act(() => {
+      svg.click();
+    });
+
+    expect(speakMock).toHaveBeenCalledWith('Salvar');
+    // Highlight deve marcar o botão (ancestral legível), não o SVG
+    expect(btn.classList.contains('a11y-tts-target')).toBe(true);
+    expect(svg.classList.contains('a11y-tts-target')).toBe(false);
+    btn.remove();
+  });
+
+  it('does not climb past body even if no readable ancestor is found', () => {
+    useAccessibilityStore.setState({ ttsMode: 'click-to-read' });
+    render(<TTSController />);
+
+    // Elemento sem texto solto no body — não há ancestral legível
+    const empty = document.createElement('span');
+    document.body.appendChild(empty);
+
+    act(() => {
+      empty.click();
+    });
+
+    expect(speakMock).not.toHaveBeenCalled();
+    empty.remove();
+  });
+
   it('prefers aria-label over innerText when present', () => {
     useAccessibilityStore.setState({ ttsMode: 'click-to-read' });
     render(<TTSController />);

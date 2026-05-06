@@ -24,14 +24,17 @@ export default function TTSController() {
     if (!isSupported || ttsMode !== 'click-to-read') return;
 
     const handler = (event: MouseEvent) => {
-      const target = event.target as HTMLElement | null;
-      if (!target) return;
+      const initialTarget = event.target as HTMLElement | null;
+      if (!initialTarget) return;
 
       // Ignora cliques dentro do próprio widget
-      if (target.closest('.a11y-widget-shield')) return;
+      if (initialTarget.closest('.a11y-widget-shield')) return;
 
-      const text = extractReadableText(target);
-      if (!text) return;
+      // Sobe pela árvore até achar o ancestral que tem texto legível.
+      // Cobre o caso comum de IconButtons com `<svg>` interno: clicar no
+      // SVG não retorna texto, mas o botão pai tem aria-label.
+      const found = findReadableAncestor(initialTarget);
+      if (!found) return;
 
       event.preventDefault();
       event.stopPropagation();
@@ -40,9 +43,9 @@ export default function TTSController() {
       document
         .querySelectorAll(`.${HIGHLIGHT_CLASS}`)
         .forEach((el) => el.classList.remove(HIGHLIGHT_CLASS));
-      target.classList.add(HIGHLIGHT_CLASS);
+      found.node.classList.add(HIGHLIGHT_CLASS);
 
-      speak(text);
+      speak(found.text);
     };
 
     // capture: true → pegamos o clique antes do handler do app/link
@@ -92,4 +95,27 @@ const extractReadableText = (el: HTMLElement): string => {
   // Limita comprimento para evitar leitura infinita ao clicar em
   // contêineres grandes (ex.: <main>). 600 chars ≈ 1min de fala.
   return text.length > 600 ? `${text.slice(0, 600)}...` : text;
+};
+
+/** Quantos níveis de ancestralidade subimos buscando um nó legível. */
+const MAX_ANCESTOR_LOOKUP = 8;
+
+/**
+ * Caminha pela árvore a partir do elemento clicado até achar o ancestral
+ * mais próximo que tenha texto legível (`aria-label`, `title` ou
+ * `innerText`). Limita a profundidade e nunca retorna o `<body>` para
+ * evitar ler a página inteira ao clicar em ícones soltos.
+ */
+const findReadableAncestor = (
+  start: HTMLElement
+): { node: HTMLElement; text: string } | null => {
+  let node: HTMLElement | null = start;
+  let depth = 0;
+  while (node && depth < MAX_ANCESTOR_LOOKUP && node !== document.body) {
+    const text = extractReadableText(node);
+    if (text) return { node, text };
+    node = node.parentElement;
+    depth++;
+  }
+  return null;
 };
