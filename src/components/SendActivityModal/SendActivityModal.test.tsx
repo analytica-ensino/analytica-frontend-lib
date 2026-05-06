@@ -1,4 +1,10 @@
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from '@testing-library/react';
 import SendActivityModal from './SendActivityModal';
 import { ActivitySubtype, ActivityMode, CategoryConfig, Item } from './types';
 import { useSendActivityModalStore } from './hooks/useSendActivityModal';
@@ -1433,7 +1439,9 @@ describe('SendActivityModal', () => {
       expect(useSendActivityModalStore.getState().formData.mode).toBe(
         ActivityMode.PRESENCIAL
       );
-      expect(useSendActivityModalStore.getState().formData.canRetry).toBe(false);
+      expect(useSendActivityModalStore.getState().formData.canRetry).toBe(
+        false
+      );
 
       fireEvent.click(screen.getByText('Próximo'));
 
