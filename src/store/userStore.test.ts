@@ -1,5 +1,13 @@
 import { createUserStore, type UserStoreApiClient } from './userStore';
-import type { MyDataResponse, UpdateMyDataRequest } from '../types/user';
+import type { MyDataResponse } from '../types/user';
+import { useAuthStore } from './authStore';
+
+// Mock authStore
+jest.mock('./authStore', () => ({
+  useAuthStore: {
+    getState: jest.fn(() => ({ user: null })),
+  },
+}));
 
 // Mock localStorage
 const mockLocalStorage = {
@@ -18,7 +26,7 @@ describe('createUserStore', () => {
   const mockUserData: MyDataResponse = {
     message: 'Success',
     user: {
-      id: '1',
+      id: 'user-1',
       email: 'test@example.com',
       name: 'Test User',
       active: true,
@@ -27,7 +35,7 @@ describe('createUserStore', () => {
     },
     userInfos: {
       id: '1',
-      userId: '1',
+      userId: 'user-1',
       urlProfilePicture: null,
       genre: null,
       facebook: null,
@@ -62,9 +70,15 @@ describe('createUserStore', () => {
     subTeacherTopicClasses: [],
   };
 
-  const mockUpdateData: UpdateMyDataRequest = {
-    name: 'Updated Name',
-    email: 'updated@example.com',
+  const mockUserData2: MyDataResponse = {
+    ...mockUserData,
+    message: 'Success User 2',
+    user: {
+      ...mockUserData.user,
+      id: 'user-2',
+      email: 'user2@example.com',
+      name: 'User Two',
+    },
   };
 
   let mockApiClient: UserStoreApiClient;
@@ -74,9 +88,11 @@ describe('createUserStore', () => {
     mockLocalStorage.getItem.mockReturnValue(null);
     jest.useFakeTimers();
 
+    // Default: user-1 logged in
+    (useAuthStore.getState as jest.Mock).mockReturnValue({ user: { id: 'user-1' } });
+
     mockApiClient = {
       get: jest.fn(),
-      patch: jest.fn(),
     };
   });
 
@@ -90,6 +106,7 @@ describe('createUserStore', () => {
       const state = useUserStore.getState();
 
       expect(state.data).toBeNull();
+      expect(state.cachedUserId).toBeNull();
       expect(state.lastFetched).toBeNull();
       expect(state.isLoading).toBe(false);
       expect(state.error).toBeNull();
@@ -98,7 +115,6 @@ describe('createUserStore', () => {
     it('should use default storage key', () => {
       createUserStore({ apiClient: mockApiClient });
 
-      // Check that localStorage was accessed with default key
       expect(mockLocalStorage.getItem).toHaveBeenCalledWith(
         'user-data-storage'
       );
@@ -128,6 +144,7 @@ describe('createUserStore', () => {
 
       expect(mockApiClient.get).toHaveBeenCalledWith('/auth/me');
       expect(useUserStore.getState().data).toEqual(mockUserData);
+      expect(useUserStore.getState().cachedUserId).toBe('user-1');
       expect(useUserStore.getState().isLoading).toBe(false);
       expect(useUserStore.getState().error).toBeNull();
       expect(useUserStore.getState().lastFetched).toBeGreaterThan(0);
@@ -288,106 +305,94 @@ describe('createUserStore', () => {
     });
   });
 
-  describe('updateUserData', () => {
-    it('should update user data successfully', async () => {
-      const updatedUserData = {
-        ...mockUserData,
-        user: { ...mockUserData.user, name: 'Updated Name' },
-      };
+  describe('Session validation (useAuthStore)', () => {
+    it('should invalidate cache when auth user changes', async () => {
+      (useAuthStore.getState as jest.Mock).mockReturnValue({ user: { id: 'user-1' } });
 
-      (mockApiClient.patch as jest.Mock).mockResolvedValueOnce({});
-      (mockApiClient.get as jest.Mock).mockResolvedValueOnce({
-        data: updatedUserData,
-      });
+      (mockApiClient.get as jest.Mock)
+        .mockResolvedValueOnce({ data: mockUserData })
+        .mockResolvedValueOnce({ data: mockUserData2 });
 
       const useUserStore = createUserStore({ apiClient: mockApiClient });
 
-      await useUserStore.getState().updateUserData(mockUpdateData);
+      // First fetch as user-1
+      await useUserStore.getState().fetchUserData();
+      expect(mockApiClient.get).toHaveBeenCalledTimes(1);
+      expect(useUserStore.getState().cachedUserId).toBe('user-1');
 
-      expect(mockApiClient.patch).toHaveBeenCalledWith(
-        '/user/me',
-        mockUpdateData
-      );
-      expect(mockApiClient.get).toHaveBeenCalledWith('/auth/me');
-      expect(useUserStore.getState().data).toEqual(updatedUserData);
-      expect(useUserStore.getState().isLoading).toBe(false);
-      expect(useUserStore.getState().error).toBeNull();
+      // Simulate user switch
+      (useAuthStore.getState as jest.Mock).mockReturnValue({ user: { id: 'user-2' } });
+
+      // Second fetch (should invalidate cache and fetch new data)
+      await useUserStore.getState().fetchUserData();
+      expect(mockApiClient.get).toHaveBeenCalledTimes(2);
+      expect(useUserStore.getState().cachedUserId).toBe('user-2');
+      expect(useUserStore.getState().data).toEqual(mockUserData2);
     });
 
-    it('should set loading state during update', async () => {
-      (mockApiClient.patch as jest.Mock).mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve({}), 100))
-      );
+    it('should use cache when auth user is the same', async () => {
+      (useAuthStore.getState as jest.Mock).mockReturnValue({ user: { id: 'user-1' } });
+
       (mockApiClient.get as jest.Mock).mockResolvedValueOnce({
         data: mockUserData,
       });
 
       const useUserStore = createUserStore({ apiClient: mockApiClient });
 
-      const updatePromise = useUserStore
-        .getState()
-        .updateUserData(mockUpdateData);
+      // First fetch
+      await useUserStore.getState().fetchUserData();
+      expect(mockApiClient.get).toHaveBeenCalledTimes(1);
 
-      expect(useUserStore.getState().isLoading).toBe(true);
-      expect(useUserStore.getState().error).toBeNull();
-
-      jest.advanceTimersByTime(100);
-      await updatePromise;
-
-      expect(useUserStore.getState().isLoading).toBe(false);
+      // Second fetch (should use cache since same user)
+      await useUserStore.getState().fetchUserData();
+      expect(mockApiClient.get).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle update error', async () => {
-      const errorMessage = 'Update failed';
-      (mockApiClient.patch as jest.Mock).mockRejectedValueOnce(
-        new Error(errorMessage)
-      );
+    it('should invalidate cache when auth user is null (logged out)', async () => {
+      (useAuthStore.getState as jest.Mock).mockReturnValue({ user: { id: 'user-1' } });
+
+      (mockApiClient.get as jest.Mock).mockResolvedValue({
+        data: mockUserData,
+      });
 
       const useUserStore = createUserStore({ apiClient: mockApiClient });
 
-      await expect(
-        useUserStore.getState().updateUserData(mockUpdateData)
-      ).rejects.toThrow(errorMessage);
+      // First fetch as user-1
+      await useUserStore.getState().fetchUserData();
+      expect(mockApiClient.get).toHaveBeenCalledTimes(1);
 
-      expect(useUserStore.getState().isLoading).toBe(false);
-      expect(useUserStore.getState().error).toBe(errorMessage);
+      // Simulate logout (no current user)
+      (useAuthStore.getState as jest.Mock).mockReturnValue({ user: null });
+
+      // Second fetch (should invalidate cache)
+      await useUserStore.getState().fetchUserData();
+      expect(mockApiClient.get).toHaveBeenCalledTimes(2);
     });
 
-    it('should handle fetch error after successful update', async () => {
-      (mockApiClient.patch as jest.Mock).mockResolvedValueOnce({});
-      (mockApiClient.get as jest.Mock).mockRejectedValueOnce(
-        new Error('Fetch after update failed')
-      );
+    it('should clear cached data when user changes', async () => {
+      (useAuthStore.getState as jest.Mock).mockReturnValue({ user: { id: 'user-1' } });
+
+      (mockApiClient.get as jest.Mock)
+        .mockResolvedValueOnce({ data: mockUserData })
+        .mockResolvedValueOnce({ data: mockUserData2 });
 
       const useUserStore = createUserStore({ apiClient: mockApiClient });
 
-      await expect(
-        useUserStore.getState().updateUserData(mockUpdateData)
-      ).rejects.toThrow('Fetch after update failed');
+      // Fetch as user-1
+      await useUserStore.getState().fetchUserData();
+      expect(useUserStore.getState().data?.user.id).toBe('user-1');
 
-      expect(mockApiClient.patch).toHaveBeenCalledWith(
-        '/user/me',
-        mockUpdateData
-      );
-      expect(mockApiClient.get).toHaveBeenCalledWith('/auth/me');
-      expect(useUserStore.getState().error).toBe('Fetch after update failed');
-    });
+      // Switch user
+      (useAuthStore.getState as jest.Mock).mockReturnValue({ user: { id: 'user-2' } });
 
-    it('should handle non-Error exception during update', async () => {
-      (mockApiClient.patch as jest.Mock).mockRejectedValueOnce('String error');
-
-      const useUserStore = createUserStore({ apiClient: mockApiClient });
-
-      await expect(
-        useUserStore.getState().updateUserData(mockUpdateData)
-      ).rejects.toBe('String error');
-
-      expect(useUserStore.getState().error).toBe('Failed to update user data');
+      // Fetch should clear old data and get new data
+      await useUserStore.getState().fetchUserData();
+      expect(useUserStore.getState().data?.user.id).toBe('user-2');
     });
   });
 
   describe('clearUserData', () => {
-    it('should clear all user data', async () => {
+    it('should clear all user data including cachedUserId', async () => {
       (mockApiClient.get as jest.Mock).mockResolvedValueOnce({
         data: mockUserData,
       });
@@ -397,11 +402,13 @@ describe('createUserStore', () => {
       // First fetch data
       await useUserStore.getState().fetchUserData();
       expect(useUserStore.getState().data).toEqual(mockUserData);
+      expect(useUserStore.getState().cachedUserId).toBe('user-1');
 
       // Clear data
       useUserStore.getState().clearUserData();
 
       expect(useUserStore.getState().data).toBeNull();
+      expect(useUserStore.getState().cachedUserId).toBeNull();
       expect(useUserStore.getState().lastFetched).toBeNull();
       expect(useUserStore.getState().isLoading).toBe(false);
       expect(useUserStore.getState().error).toBeNull();
@@ -475,14 +482,12 @@ describe('createUserStore', () => {
     it('should create independent store instances', async () => {
       const mockApiClient1: UserStoreApiClient = {
         get: jest.fn().mockResolvedValue({ data: mockUserData }),
-        patch: jest.fn(),
       };
 
       const mockApiClient2: UserStoreApiClient = {
         get: jest.fn().mockResolvedValue({
           data: { ...mockUserData, message: 'Different' },
         }),
-        patch: jest.fn(),
       };
 
       const useUserStore1 = createUserStore({
@@ -510,35 +515,23 @@ describe('createUserStore', () => {
   });
 
   describe('Integration', () => {
-    it('should execute complete flow: fetch -> update -> clear', async () => {
-      const updatedUserData = {
-        ...mockUserData,
-        user: { ...mockUserData.user, name: 'Updated Name' },
-      };
-
-      (mockApiClient.get as jest.Mock)
-        .mockResolvedValueOnce({ data: mockUserData })
-        .mockResolvedValueOnce({ data: updatedUserData });
-      (mockApiClient.patch as jest.Mock).mockResolvedValueOnce({});
+    it('should execute complete flow: fetch -> clear', async () => {
+      (mockApiClient.get as jest.Mock).mockResolvedValueOnce({
+        data: mockUserData,
+      });
 
       const useUserStore = createUserStore({ apiClient: mockApiClient });
 
       // 1. Initial fetch
       await useUserStore.getState().fetchUserData();
       expect(useUserStore.getState().data).toEqual(mockUserData);
+      expect(useUserStore.getState().cachedUserId).toBe('user-1');
       expect(useUserStore.getState().error).toBeNull();
 
-      // 2. Update
-      await useUserStore.getState().updateUserData(mockUpdateData);
-      expect(useUserStore.getState().data).toEqual(updatedUserData);
-      expect(mockApiClient.patch).toHaveBeenCalledWith(
-        '/user/me',
-        mockUpdateData
-      );
-
-      // 3. Clear
+      // 2. Clear
       useUserStore.getState().clearUserData();
       expect(useUserStore.getState().data).toBeNull();
+      expect(useUserStore.getState().cachedUserId).toBeNull();
       expect(useUserStore.getState().lastFetched).toBeNull();
     });
   });

@@ -1,13 +1,13 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import type { MyDataResponse, UpdateMyDataRequest } from '../types/user';
+import type { MyDataResponse } from '../types/user';
+import { useAuthStore } from './authStore';
 
 /**
  * API client interface for user store
  */
 export interface UserStoreApiClient {
   get: <T>(url: string) => Promise<{ data: T }>;
-  patch: (url: string, data: unknown) => Promise<unknown>;
 }
 
 /**
@@ -24,6 +24,7 @@ export interface CreateUserStoreConfig {
  */
 interface UserDataCache {
   data: MyDataResponse | null;
+  cachedUserId: string | null;
   lastFetched: number | null;
   isLoading: boolean;
   error: string | null;
@@ -34,7 +35,6 @@ interface UserDataCache {
  */
 export interface UserStoreState extends UserDataCache {
   fetchUserData: (force?: boolean) => Promise<void>;
-  updateUserData: (updateData: UpdateMyDataRequest) => Promise<void>;
   clearUserData: () => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
@@ -75,10 +75,29 @@ export function createUserStore(config: CreateUserStoreConfig) {
   };
 
   /**
-   * Update user data in the backend
+   * Get current user ID from auth store
    */
-  const updateMyData = async (data: UpdateMyDataRequest): Promise<void> => {
-    await apiClient.patch('/user/me', data);
+  const getCurrentUserId = (): string | null => {
+    return useAuthStore.getState().user?.id ?? null;
+  };
+
+  /**
+   * Check if cached data belongs to current user
+   */
+  const isCacheForCurrentUser = (cachedUserId: string | null): boolean => {
+    const currentUserId = getCurrentUserId();
+
+    if (!currentUserId) {
+      // No current user, cache is invalid
+      return false;
+    }
+
+    if (!cachedUserId) {
+      // No cached user ID, cache is invalid
+      return false;
+    }
+
+    return cachedUserId === currentUserId;
   };
 
   return create<UserStoreState>()(
@@ -86,6 +105,7 @@ export function createUserStore(config: CreateUserStoreConfig) {
       (set, get) => ({
         // Initial state
         data: null,
+        cachedUserId: null,
         lastFetched: null,
         isLoading: false,
         error: null,
@@ -94,14 +114,27 @@ export function createUserStore(config: CreateUserStoreConfig) {
          * Fetch user data from API with caching
          */
         fetchUserData: async (force = false): Promise<void> => {
-          const { data, lastFetched, isLoading } = get();
+          const { data, cachedUserId, lastFetched, isLoading } = get();
 
           // Avoid multiple simultaneous requests
           if (isLoading) return;
 
-          // Use cache if valid and not forcing refresh
-          if (!force && data && isCacheValid(lastFetched, cacheTTL)) {
+          // Validate cache belongs to current user
+          const cacheValidForUser = isCacheForCurrentUser(cachedUserId);
+
+          // Use cache if valid, belongs to current user, and not forcing refresh
+          if (
+            !force &&
+            data &&
+            cacheValidForUser &&
+            isCacheValid(lastFetched, cacheTTL)
+          ) {
             return;
+          }
+
+          // If cache doesn't belong to current user, clear it
+          if (!cacheValidForUser && data) {
+            set({ data: null, cachedUserId: null, lastFetched: null });
           }
 
           try {
@@ -111,6 +144,7 @@ export function createUserStore(config: CreateUserStoreConfig) {
 
             set({
               data: userData,
+              cachedUserId: userData.user?.id ?? null,
               lastFetched: Date.now(),
               isLoading: false,
               error: null,
@@ -131,46 +165,12 @@ export function createUserStore(config: CreateUserStoreConfig) {
         },
 
         /**
-         * Update user data and refresh cache
-         */
-        updateUserData: async (
-          updateData: UpdateMyDataRequest
-        ): Promise<void> => {
-          try {
-            set({ isLoading: true, error: null });
-
-            await updateMyData(updateData);
-
-            // Refresh data after successful update
-            const userData = await getMyData();
-
-            set({
-              data: userData,
-              lastFetched: Date.now(),
-              isLoading: false,
-              error: null,
-            });
-          } catch (error) {
-            const errorMessage =
-              error instanceof Error
-                ? error.message
-                : 'Failed to update user data';
-
-            set({
-              isLoading: false,
-              error: errorMessage,
-            });
-
-            throw error;
-          }
-        },
-
-        /**
          * Clear all user data from store
          */
         clearUserData: (): void => {
           set({
             data: null,
+            cachedUserId: null,
             lastFetched: null,
             isLoading: false,
             error: null,
@@ -194,9 +194,10 @@ export function createUserStore(config: CreateUserStoreConfig) {
       {
         name: storageKey,
         storage: createJSONStorage(() => localStorage),
-        // Only persist data and lastFetched, not loading/error states
+        // Persist data, cachedUserId and lastFetched (not loading/error states)
         partialize: (state) => ({
           data: state.data,
+          cachedUserId: state.cachedUserId,
           lastFetched: state.lastFetched,
         }),
       }
