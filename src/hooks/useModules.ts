@@ -8,6 +8,8 @@ export interface UseModulesReturn {
   hasForum: boolean;
   hasSupport: boolean;
   hasSimulatedReports: boolean;
+  hasActivitiesReports: boolean;
+  hasLessonsReports: boolean;
 }
 
 /**
@@ -39,5 +41,7 @@ export const useModules = (): UseModulesReturn => {
     hasForum: modules.forum,
     hasSupport: modules.support,
     hasSimulatedReports: modules.simulatedReports,
+    hasActivitiesReports: modules.activitiesReports,
+    hasLessonsReports: modules.lessonsReports,
   };
 };
