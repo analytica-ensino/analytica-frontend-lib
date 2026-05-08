@@ -142,6 +142,11 @@ export const useModulesStore = create<ModulesState>()(
       onRehydrateStorage: () => (rehydrated) => {
         if (!rehydrated) return;
 
+        // Merge with defaultModules to ensure new fields have proper defaults
+        // when loading old localStorage data that may be missing new fields
+        const mergedModules = { ...defaultModules, ...rehydrated.modules };
+        useModulesStore.setState({ modules: mergedModules });
+
         const currentInstitutionId =
           useAuthStore.getState().sessionInfo?.institutionId ?? null;
         if (
