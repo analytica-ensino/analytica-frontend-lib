@@ -277,6 +277,277 @@ describe('ModulesStore', () => {
       // Should continue with fetch despite invalid cache
       expect(mockApi.get).toHaveBeenCalled();
     });
+
+    it('should fetch when localStorage returns null', async () => {
+      const institutionId = 'test-institution';
+
+      localStorageMock.getItem.mockReturnValueOnce(null);
+      mockApi.get.mockResolvedValueOnce({
+        data: {
+          data: {
+            featureFlags: {
+              version: { simulator: false },
+            },
+          },
+        },
+      });
+
+      await useModulesStore
+        .getState()
+        .fetchModules(institutionId, mockApi as unknown as AxiosInstance);
+
+      expect(mockApi.get).toHaveBeenCalled();
+    });
+
+    it('should fetch when cache has no state property', async () => {
+      const institutionId = 'test-institution';
+      const cachedData = { someOtherData: true };
+
+      localStorageMock.getItem.mockReturnValueOnce(JSON.stringify(cachedData));
+      mockApi.get.mockResolvedValueOnce({
+        data: {
+          data: {
+            featureFlags: {
+              version: { essay: false },
+            },
+          },
+        },
+      });
+
+      await useModulesStore
+        .getState()
+        .fetchModules(institutionId, mockApi as unknown as AxiosInstance);
+
+      expect(mockApi.get).toHaveBeenCalled();
+    });
+
+    it('should fetch when cache state has undefined ownerInstitutionId', async () => {
+      const institutionId = 'test-institution';
+      const cachedData = {
+        state: {
+          modules: defaultModules,
+          // ownerInstitutionId is undefined (not present)
+        },
+      };
+
+      localStorageMock.getItem.mockReturnValueOnce(JSON.stringify(cachedData));
+      mockApi.get.mockResolvedValueOnce({
+        data: {
+          data: {
+            featureFlags: {
+              version: { forum: false },
+            },
+          },
+        },
+      });
+
+      await useModulesStore
+        .getState()
+        .fetchModules(institutionId, mockApi as unknown as AxiosInstance);
+
+      expect(mockApi.get).toHaveBeenCalled();
+    });
+
+    it('should fetch when cache state has empty string ownerInstitutionId', async () => {
+      const institutionId = 'test-institution';
+      const cachedData = {
+        state: {
+          modules: defaultModules,
+          ownerInstitutionId: '',
+        },
+      };
+
+      localStorageMock.getItem.mockReturnValueOnce(JSON.stringify(cachedData));
+      mockApi.get.mockResolvedValueOnce({
+        data: {
+          data: {
+            featureFlags: {
+              version: { support: false },
+            },
+          },
+        },
+      });
+
+      await useModulesStore
+        .getState()
+        .fetchModules(institutionId, mockApi as unknown as AxiosInstance);
+
+      expect(mockApi.get).toHaveBeenCalled();
+    });
+  });
+
+  describe('race condition guard', () => {
+    const mockApi: MockApi = {
+      get: jest.fn(),
+    };
+
+    beforeEach(() => {
+      mockApi.get.mockReset();
+      useModulesStore.setState({
+        modules: defaultModules,
+        loading: false,
+        ownerInstitutionId: null,
+      });
+    });
+
+    it('should discard stale response when newer request is made', async () => {
+      const firstInstitution = 'institution-A';
+      const secondInstitution = 'institution-B';
+
+      // First request takes longer
+      let resolveFirst: (value: unknown) => void;
+      const firstPromise = new Promise((resolve) => {
+        resolveFirst = resolve;
+      });
+
+      // Second request resolves immediately
+      const secondResponse = {
+        data: {
+          data: {
+            featureFlags: {
+              version: { simulator: false, essay: false, forum: false, support: false },
+            },
+          },
+        },
+      };
+
+      mockApi.get
+        .mockImplementationOnce(() => firstPromise)
+        .mockResolvedValueOnce(secondResponse);
+
+      // Start first fetch
+      const firstFetch = useModulesStore
+        .getState()
+        .fetchModules(firstInstitution, mockApi as unknown as AxiosInstance);
+
+      // Start second fetch before first completes
+      const secondFetch = useModulesStore
+        .getState()
+        .fetchModules(secondInstitution, mockApi as unknown as AxiosInstance);
+
+      // Wait for second to complete
+      await secondFetch;
+
+      // Now resolve first (stale)
+      resolveFirst!({
+        data: {
+          data: {
+            featureFlags: {
+              version: { simulator: true, essay: true, forum: true, support: true },
+            },
+          },
+        },
+      });
+
+      await firstFetch;
+
+      // State should reflect second request, not first
+      const state = useModulesStore.getState();
+      expect(state.ownerInstitutionId).toBe(secondInstitution);
+      expect(state.modules).toEqual({
+        simulator: false,
+        essay: false,
+        forum: false,
+        support: false,
+      });
+    });
+
+    it('should discard stale error when newer request is made', async () => {
+      const firstInstitution = 'institution-A';
+      const secondInstitution = 'institution-B';
+
+      // First request fails after delay
+      let rejectFirst: (error: Error) => void;
+      const firstPromise = new Promise((_, reject) => {
+        rejectFirst = reject;
+      });
+
+      // Second request succeeds immediately
+      const secondResponse = {
+        data: {
+          data: {
+            featureFlags: {
+              version: { simulator: false },
+            },
+          },
+        },
+      };
+
+      mockApi.get
+        .mockImplementationOnce(() => firstPromise)
+        .mockResolvedValueOnce(secondResponse);
+
+      // Start first fetch
+      const firstFetch = useModulesStore
+        .getState()
+        .fetchModules(firstInstitution, mockApi as unknown as AxiosInstance);
+
+      // Start second fetch
+      const secondFetch = useModulesStore
+        .getState()
+        .fetchModules(secondInstitution, mockApi as unknown as AxiosInstance);
+
+      await secondFetch;
+
+      // Now reject first (stale error)
+      rejectFirst!(new Error('Stale error'));
+
+      await firstFetch;
+
+      // State should reflect second request
+      const state = useModulesStore.getState();
+      expect(state.ownerInstitutionId).toBe(secondInstitution);
+      expect(state.modules.simulator).toBe(false);
+    });
+
+    it('should not set loading to false for stale request', async () => {
+      const firstInstitution = 'institution-A';
+      const secondInstitution = 'institution-B';
+
+      let resolveFirst: (value: unknown) => void;
+      const firstPromise = new Promise((resolve) => {
+        resolveFirst = resolve;
+      });
+
+      let resolveSecond: (value: unknown) => void;
+      const secondPromise = new Promise((resolve) => {
+        resolveSecond = resolve;
+      });
+
+      mockApi.get
+        .mockImplementationOnce(() => firstPromise)
+        .mockImplementationOnce(() => secondPromise);
+
+      // Start both fetches
+      const firstFetch = useModulesStore
+        .getState()
+        .fetchModules(firstInstitution, mockApi as unknown as AxiosInstance);
+
+      const secondFetch = useModulesStore
+        .getState()
+        .fetchModules(secondInstitution, mockApi as unknown as AxiosInstance);
+
+      // Both should be loading
+      expect(useModulesStore.getState().loading).toBe(true);
+
+      // Resolve first (stale)
+      resolveFirst!({
+        data: { data: { featureFlags: { version: {} } } },
+      });
+      await firstFetch;
+
+      // Should still be loading because second is pending
+      expect(useModulesStore.getState().loading).toBe(true);
+
+      // Resolve second
+      resolveSecond!({
+        data: { data: { featureFlags: { version: { simulator: false } } } },
+      });
+      await secondFetch;
+
+      // Now loading should be false
+      expect(useModulesStore.getState().loading).toBe(false);
+    });
   });
 
   describe('clearModules', () => {
