@@ -50,6 +50,9 @@ interface ModulesFeatureFlagResponse {
   } | null;
 }
 
+// Guard against stale async responses
+let latestRequestId = 0;
+
 /**
  * Zustand store for managing modules visibility with persistence
  * Works with both student and professor frontends
@@ -84,11 +87,16 @@ export const useModulesStore = create<ModulesState>()(
           }
         }
 
+        const requestId = ++latestRequestId;
         set({ loading: true });
+
         try {
           const response = await api.get<ModulesFeatureFlagResponse>(
             `/featureFlags/institution/${institutionId}/page/MODULES`
           );
+
+          if (requestId !== latestRequestId) return;
+
           const version = response.data?.data?.featureFlags?.version;
           if (version) {
             set({
@@ -99,9 +107,12 @@ export const useModulesStore = create<ModulesState>()(
             set({ modules: defaultModules, ownerInstitutionId: institutionId });
           }
         } catch {
+          if (requestId !== latestRequestId) return;
           set({ modules: defaultModules, ownerInstitutionId: institutionId });
         } finally {
-          set({ loading: false });
+          if (requestId === latestRequestId) {
+            set({ loading: false });
+          }
         }
       },
 
