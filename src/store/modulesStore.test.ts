@@ -417,7 +417,12 @@ describe('ModulesStore', () => {
         data: {
           data: {
             featureFlags: {
-              version: { simulator: false, essay: false, forum: false, support: false },
+              version: {
+                simulator: false,
+                essay: false,
+                forum: false,
+                support: false,
+              },
             },
           },
         },
@@ -445,7 +450,12 @@ describe('ModulesStore', () => {
         data: {
           data: {
             featureFlags: {
-              version: { simulator: true, essay: true, forum: true, support: true },
+              version: {
+                simulator: true,
+                essay: true,
+                forum: true,
+                support: true,
+              },
             },
           },
         },
