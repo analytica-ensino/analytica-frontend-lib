@@ -85,7 +85,7 @@ describe('ModulesStore', () => {
       mockApi.get.mockReset();
     });
 
-    it('should skip fetch if cached data exists for same institution', async () => {
+    it('should skip fetch if cached data exists in localStorage', async () => {
       const institutionId = 'test-institution';
       const cachedData = {
         state: {
@@ -95,7 +95,7 @@ describe('ModulesStore', () => {
             forum: true,
             support: false,
           },
-          ownerInstitutionId: institutionId,
+          ownerInstitutionId: 'any-institution',
         },
       };
 
@@ -108,12 +108,12 @@ describe('ModulesStore', () => {
       expect(mockApi.get).not.toHaveBeenCalled();
     });
 
-    it('should fetch if cached data is for different institution', async () => {
-      const institutionId = 'new-institution';
+    it('should fetch if no ownerInstitutionId in cache', async () => {
+      const institutionId = 'test-institution';
       const cachedData = {
         state: {
           modules: defaultModules,
-          ownerInstitutionId: 'old-institution',
+          ownerInstitutionId: null,
         },
       };
 

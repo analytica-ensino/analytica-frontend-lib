@@ -63,19 +63,20 @@ export const useModulesStore = create<ModulesState>()(
 
       /**
        * Fetch modules configuration from the API
-       * Skips fetch if data already exists in localStorage for the same institution
-       * Falls back to all modules enabled if API fails or no flag exists
+       * Only fetches if:
+       * 1. No modules data exists in localStorage
+       * 2. User made a new login (data cleared by auth subscriber)
        */
       fetchModules: async (
         institutionId: string,
         api: AxiosInstance
       ): Promise<void> => {
-        // Check localStorage directly to avoid hydration timing issues
+        // Skip if modules already cached in localStorage
         const cached = localStorage.getItem(KEYS.MODULES_STORAGE);
         if (cached) {
           try {
             const parsed = JSON.parse(cached);
-            if (parsed.state?.ownerInstitutionId === institutionId) {
+            if (parsed.state?.ownerInstitutionId) {
               return;
             }
           } catch {
@@ -98,7 +99,6 @@ export const useModulesStore = create<ModulesState>()(
             set({ modules: defaultModules, ownerInstitutionId: institutionId });
           }
         } catch {
-          // If API fails, use default (all enabled)
           set({ modules: defaultModules, ownerInstitutionId: institutionId });
         } finally {
           set({ loading: false });
