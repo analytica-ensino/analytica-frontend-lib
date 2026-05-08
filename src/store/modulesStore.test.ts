@@ -1,5 +1,11 @@
+import type { AxiosInstance } from 'axios';
 import { useModulesStore, type ModulesConfig } from './modulesStore';
 import { KEYS } from '../utils/keys';
+
+// Mock API type for testing
+type MockApi = Pick<AxiosInstance, 'get'> & {
+  get: jest.Mock;
+};
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -71,7 +77,7 @@ describe('ModulesStore', () => {
   });
 
   describe('fetchModules', () => {
-    const mockApi = {
+    const mockApi: MockApi = {
       get: jest.fn(),
     };
 
@@ -83,14 +89,21 @@ describe('ModulesStore', () => {
       const institutionId = 'test-institution';
       const cachedData = {
         state: {
-          modules: { simulator: false, essay: true, forum: true, support: false },
+          modules: {
+            simulator: false,
+            essay: true,
+            forum: true,
+            support: false,
+          },
           ownerInstitutionId: institutionId,
         },
       };
 
       localStorageMock.getItem.mockReturnValueOnce(JSON.stringify(cachedData));
 
-      await useModulesStore.getState().fetchModules(institutionId, mockApi as any);
+      await useModulesStore
+        .getState()
+        .fetchModules(institutionId, mockApi as unknown as AxiosInstance);
 
       expect(mockApi.get).not.toHaveBeenCalled();
     });
@@ -109,13 +122,20 @@ describe('ModulesStore', () => {
         data: {
           data: {
             featureFlags: {
-              version: { simulator: false, essay: true, forum: false, support: true },
+              version: {
+                simulator: false,
+                essay: true,
+                forum: false,
+                support: true,
+              },
             },
           },
         },
       });
 
-      await useModulesStore.getState().fetchModules(institutionId, mockApi as any);
+      await useModulesStore
+        .getState()
+        .fetchModules(institutionId, mockApi as unknown as AxiosInstance);
 
       expect(mockApi.get).toHaveBeenCalledWith(
         `/featureFlags/institution/${institutionId}/page/MODULES`
@@ -139,7 +159,7 @@ describe('ModulesStore', () => {
 
       const fetchPromise = useModulesStore
         .getState()
-        .fetchModules(institutionId, mockApi as any);
+        .fetchModules(institutionId, mockApi as unknown as AxiosInstance);
 
       // Check loading is true during fetch
       expect(useModulesStore.getState().loading).toBe(true);
@@ -169,7 +189,9 @@ describe('ModulesStore', () => {
         },
       });
 
-      await useModulesStore.getState().fetchModules(institutionId, mockApi as any);
+      await useModulesStore
+        .getState()
+        .fetchModules(institutionId, mockApi as unknown as AxiosInstance);
 
       const state = useModulesStore.getState();
       expect(state.modules).toEqual(apiModules);
@@ -190,7 +212,9 @@ describe('ModulesStore', () => {
         },
       });
 
-      await useModulesStore.getState().fetchModules(institutionId, mockApi as any);
+      await useModulesStore
+        .getState()
+        .fetchModules(institutionId, mockApi as unknown as AxiosInstance);
 
       const { modules } = useModulesStore.getState();
       expect(modules.simulator).toBe(false); // From API
@@ -208,7 +232,9 @@ describe('ModulesStore', () => {
         },
       });
 
-      await useModulesStore.getState().fetchModules(institutionId, mockApi as any);
+      await useModulesStore
+        .getState()
+        .fetchModules(institutionId, mockApi as unknown as AxiosInstance);
 
       const state = useModulesStore.getState();
       expect(state.modules).toEqual(defaultModules);
@@ -220,7 +246,9 @@ describe('ModulesStore', () => {
 
       mockApi.get.mockRejectedValueOnce(new Error('API Error'));
 
-      await useModulesStore.getState().fetchModules(institutionId, mockApi as any);
+      await useModulesStore
+        .getState()
+        .fetchModules(institutionId, mockApi as unknown as AxiosInstance);
 
       const state = useModulesStore.getState();
       expect(state.modules).toEqual(defaultModules);
@@ -242,7 +270,9 @@ describe('ModulesStore', () => {
         },
       });
 
-      await useModulesStore.getState().fetchModules(institutionId, mockApi as any);
+      await useModulesStore
+        .getState()
+        .fetchModules(institutionId, mockApi as unknown as AxiosInstance);
 
       // Should continue with fetch despite invalid cache
       expect(mockApi.get).toHaveBeenCalled();
@@ -253,7 +283,12 @@ describe('ModulesStore', () => {
     it('should reset modules to defaults', () => {
       // First set some non-default values
       useModulesStore.setState({
-        modules: { simulator: false, essay: false, forum: false, support: false },
+        modules: {
+          simulator: false,
+          essay: false,
+          forum: false,
+          support: false,
+        },
         ownerInstitutionId: 'some-institution',
       });
 

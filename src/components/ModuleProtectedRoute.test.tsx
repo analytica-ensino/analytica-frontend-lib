@@ -1,3 +1,4 @@
+import React, { ReactElement } from 'react';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { ModuleProtectedRoute } from './ModuleProtectedRoute';
@@ -12,7 +13,7 @@ const mockUseModules = useModules as jest.MockedFunction<typeof useModules>;
 
 // Helper to render with router
 const renderWithRouter = (
-  ui: React.ReactElement,
+  ui: ReactElement,
   { initialEntries = ['/test'] } = {}
 ) => {
   return render(
@@ -20,7 +21,10 @@ const renderWithRouter = (
       <Routes>
         <Route path="/test" element={ui} />
         <Route path="/painel" element={<div>Painel Page</div>} />
-        <Route path="/custom-redirect" element={<div>Custom Redirect Page</div>} />
+        <Route
+          path="/custom-redirect"
+          element={<div>Custom Redirect Page</div>}
+        />
       </Routes>
     </MemoryRouter>
   );
@@ -288,7 +292,9 @@ describe('ModuleProtectedRoute', () => {
 
       expect(screen.getByText('Title')).toBeInTheDocument();
       expect(screen.getByText('Description')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Action' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Action' })
+      ).toBeInTheDocument();
     });
 
     it('should render multiple children when module is enabled', () => {
