@@ -1243,6 +1243,14 @@ describe('Select controlled value sync', () => {
     expect(screen.getByRole('button')).toHaveTextContent('Pick something');
   });
 
+  it('should fall back to placeholder when controlled value has no matching SelectItem', () => {
+    const { rerender } = renderControlled('option1');
+    expect(screen.getByRole('button')).toHaveTextContent('Option 1');
+
+    rerenderControlled(rerender, 'value-with-no-matching-item');
+    expect(screen.getByRole('button')).toHaveTextContent('Pick something');
+  });
+
   it('should clear an internally selected label when parent resets value to empty', async () => {
     // Simulates the cascade scenario: parent programmatically resets the
     // field after the user already clicked something (e.g. react-hook-form

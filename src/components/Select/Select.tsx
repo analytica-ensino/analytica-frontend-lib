@@ -287,13 +287,11 @@ const Select = ({
     // Skip when the consumer isn't using controlled mode
     if (propValue === undefined) return;
     setValue(propValue);
-    // Empty string means "no selection" — clear label so placeholder shows
-    if (propValue === '') {
-      store.setState({ selectedLabel: '' });
-      return;
-    }
+    // Resolve the label for the new value; if it can't be resolved (empty
+    // value, or a value with no matching SelectItem), clear the stale label
+    // so the placeholder takes over.
     const label = findLabelForValue(children, propValue);
-    if (label) store.setState({ selectedLabel: label });
+    store.setState({ selectedLabel: label ?? '' });
   }, [propValue, children]);
 
   const sizeClasses = SIZE_CLASSES[size];
