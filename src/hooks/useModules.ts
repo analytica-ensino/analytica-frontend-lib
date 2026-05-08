@@ -7,6 +7,7 @@ export interface UseModulesReturn {
   hasEssay: boolean;
   hasForum: boolean;
   hasSupport: boolean;
+  hasSimulatedReports: boolean;
 }
 
 /**
@@ -37,5 +38,6 @@ export const useModules = (): UseModulesReturn => {
     hasEssay: modules.essay,
     hasForum: modules.forum,
     hasSupport: modules.support,
+    hasSimulatedReports: modules.simulatedReports,
   };
 };

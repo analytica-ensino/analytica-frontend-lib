@@ -12,6 +12,9 @@ const defaultModules: ModulesConfig = {
   essay: true,
   forum: true,
   support: true,
+  simulatedReports: true,
+  activitiesReports: true,
+  lessonsReports: true,
 };
 
 /**
@@ -23,6 +26,9 @@ export interface ModulesConfig {
   essay: boolean;
   forum: boolean;
   support: boolean;
+  simulatedReports: boolean;
+  activitiesReports: boolean;
+  lessonsReports: boolean;
 }
 
 /**
