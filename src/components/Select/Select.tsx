@@ -284,12 +284,17 @@ const Select = ({
   }, [open, selectId, setOpen]);
 
   useEffect(() => {
-    if (propValue) {
-      setValue(propValue);
-      const label = findLabelForValue(children, propValue);
-      if (label) store.setState({ selectedLabel: label });
+    // Skip when the consumer isn't using controlled mode
+    if (propValue === undefined) return;
+    setValue(propValue);
+    // Empty string means "no selection" — clear label so placeholder shows
+    if (propValue === '') {
+      store.setState({ selectedLabel: '' });
+      return;
     }
-  }, [propValue]);
+    const label = findLabelForValue(children, propValue);
+    if (label) store.setState({ selectedLabel: label });
+  }, [propValue, children]);
 
   const sizeClasses = SIZE_CLASSES[size];
 

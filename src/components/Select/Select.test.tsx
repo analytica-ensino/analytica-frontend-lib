@@ -8,7 +8,7 @@ import Select, {
   getLabelAsNode,
   createSelectStore,
 } from './Select';
-import { ComponentProps } from 'react';
+import { ComponentProps, ReactElement } from 'react';
 
 describe('Select component', () => {
   const setup = (props?: Partial<ComponentProps<typeof Select>>) => {
@@ -1187,5 +1187,73 @@ describe('SelectItem selection behavior', () => {
     await userEvent.click(screen.getByRole('button'));
     await userEvent.click(screen.getByText('Option 2'));
     expect(onValueChange).toHaveBeenCalledWith('option2');
+  });
+});
+
+describe('Select controlled value sync', () => {
+  const renderControlled = (value: string | undefined) =>
+    render(
+      <Select value={value}>
+        <SelectTrigger>
+          <SelectValue placeholder="Pick something" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="option1">Option 1</SelectItem>
+          <SelectItem value="option2">Option 2</SelectItem>
+          <SelectItem value="option3">Option 3</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+  const rerenderControlled = (
+    rerender: (ui: ReactElement) => void,
+    value: string | undefined
+  ) =>
+    rerender(
+      <Select value={value}>
+        <SelectTrigger>
+          <SelectValue placeholder="Pick something" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="option1">Option 1</SelectItem>
+          <SelectItem value="option2">Option 2</SelectItem>
+          <SelectItem value="option3">Option 3</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+  it('should display the label matching the initial controlled value', () => {
+    renderControlled('option2');
+    expect(screen.getByRole('button')).toHaveTextContent('Option 2');
+  });
+
+  it('should update the displayed label when the controlled value changes', () => {
+    const { rerender } = renderControlled('option1');
+    expect(screen.getByRole('button')).toHaveTextContent('Option 1');
+
+    rerenderControlled(rerender, 'option3');
+    expect(screen.getByRole('button')).toHaveTextContent('Option 3');
+  });
+
+  it('should fall back to placeholder when controlled value becomes empty string', () => {
+    const { rerender } = renderControlled('option2');
+    expect(screen.getByRole('button')).toHaveTextContent('Option 2');
+
+    rerenderControlled(rerender, '');
+    expect(screen.getByRole('button')).toHaveTextContent('Pick something');
+  });
+
+  it('should clear an internally selected label when parent resets value to empty', async () => {
+    // Simulates the cascade scenario: parent programmatically resets the
+    // field after the user already clicked something (e.g. react-hook-form
+    // resetField triggered by a sibling field changing).
+    const { rerender } = renderControlled('option1');
+
+    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByText('Option 2'));
+    expect(screen.getByRole('button')).toHaveTextContent('Option 2');
+
+    rerenderControlled(rerender, '');
+    expect(screen.getByRole('button')).toHaveTextContent('Pick something');
   });
 });
