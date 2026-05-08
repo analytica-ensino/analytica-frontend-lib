@@ -44,6 +44,9 @@ describe('ModulesStore', () => {
     essay: true,
     forum: true,
     support: true,
+    simulatedReports: true,
+    activitiesReports: true,
+    lessonsReports: true,
   };
 
   beforeEach(() => {
@@ -73,6 +76,9 @@ describe('ModulesStore', () => {
       expect(modules.essay).toBe(true);
       expect(modules.forum).toBe(true);
       expect(modules.support).toBe(true);
+      expect(modules.simulatedReports).toBe(true);
+      expect(modules.activitiesReports).toBe(true);
+      expect(modules.lessonsReports).toBe(true);
     });
   });
 
@@ -177,6 +183,9 @@ describe('ModulesStore', () => {
         essay: true,
         forum: false,
         support: true,
+        simulatedReports: true,
+        activitiesReports: true,
+        lessonsReports: true,
       };
 
       mockApi.get.mockResolvedValueOnce({
@@ -221,6 +230,9 @@ describe('ModulesStore', () => {
       expect(modules.essay).toBe(true); // Default
       expect(modules.forum).toBe(true); // Default
       expect(modules.support).toBe(true); // Default
+      expect(modules.simulatedReports).toBe(true); // Default
+      expect(modules.activitiesReports).toBe(true); // Default
+      expect(modules.lessonsReports).toBe(true); // Default
     });
 
     it('should use defaults when API returns no version', async () => {
@@ -449,6 +461,9 @@ describe('ModulesStore', () => {
         essay: false,
         forum: false,
         support: false,
+        simulatedReports: true,
+        activitiesReports: true,
+        lessonsReports: true,
       });
     });
 
@@ -559,6 +574,9 @@ describe('ModulesStore', () => {
           essay: false,
           forum: false,
           support: false,
+          simulatedReports: false,
+          activitiesReports: false,
+          lessonsReports: false,
         },
         ownerInstitutionId: 'some-institution',
       });

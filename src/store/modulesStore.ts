@@ -12,6 +12,9 @@ const defaultModules: ModulesConfig = {
   essay: true,
   forum: true,
   support: true,
+  simulatedReports: true,
+  activitiesReports: true,
+  lessonsReports: true,
 };
 
 /**
@@ -23,6 +26,9 @@ export interface ModulesConfig {
   essay: boolean;
   forum: boolean;
   support: boolean;
+  simulatedReports: boolean;
+  activitiesReports: boolean;
+  lessonsReports: boolean;
 }
 
 /**
@@ -135,6 +141,11 @@ export const useModulesStore = create<ModulesState>()(
       }),
       onRehydrateStorage: () => (rehydrated) => {
         if (!rehydrated) return;
+
+        // Merge with defaultModules to ensure new fields have proper defaults
+        // when loading old localStorage data that may be missing new fields
+        const mergedModules = { ...defaultModules, ...rehydrated.modules };
+        useModulesStore.setState({ modules: mergedModules });
 
         const currentInstitutionId =
           useAuthStore.getState().sessionInfo?.institutionId ?? null;
