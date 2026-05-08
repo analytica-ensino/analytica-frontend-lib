@@ -31,9 +31,13 @@ describe('keys', () => {
       expect(KEYS.LESSONS_STORAGE).toBe('@lessons-storage:analytica:v2');
     });
 
+    it('should have MODULES_STORAGE key', () => {
+      expect(KEYS.MODULES_STORAGE).toBe('@modules-storage:analytica:v1');
+    });
+
     it('should have correct number of keys', () => {
       const keys = Object.keys(KEYS);
-      expect(keys).toHaveLength(3);
+      expect(keys).toHaveLength(4);
     });
 
     it('should have string values', () => {
