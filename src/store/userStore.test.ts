@@ -89,7 +89,9 @@ describe('createUserStore', () => {
     jest.useFakeTimers();
 
     // Default: user-1 logged in
-    (useAuthStore.getState as jest.Mock).mockReturnValue({ user: { id: 'user-1' } });
+    (useAuthStore.getState as jest.Mock).mockReturnValue({
+      user: { id: 'user-1' },
+    });
 
     mockApiClient = {
       get: jest.fn(),
@@ -307,7 +309,9 @@ describe('createUserStore', () => {
 
   describe('Session validation (useAuthStore)', () => {
     it('should invalidate cache when auth user changes', async () => {
-      (useAuthStore.getState as jest.Mock).mockReturnValue({ user: { id: 'user-1' } });
+      (useAuthStore.getState as jest.Mock).mockReturnValue({
+        user: { id: 'user-1' },
+      });
 
       (mockApiClient.get as jest.Mock)
         .mockResolvedValueOnce({ data: mockUserData })
@@ -321,7 +325,9 @@ describe('createUserStore', () => {
       expect(useUserStore.getState().cachedUserId).toBe('user-1');
 
       // Simulate user switch
-      (useAuthStore.getState as jest.Mock).mockReturnValue({ user: { id: 'user-2' } });
+      (useAuthStore.getState as jest.Mock).mockReturnValue({
+        user: { id: 'user-2' },
+      });
 
       // Second fetch (should invalidate cache and fetch new data)
       await useUserStore.getState().fetchUserData();
@@ -331,7 +337,9 @@ describe('createUserStore', () => {
     });
 
     it('should use cache when auth user is the same', async () => {
-      (useAuthStore.getState as jest.Mock).mockReturnValue({ user: { id: 'user-1' } });
+      (useAuthStore.getState as jest.Mock).mockReturnValue({
+        user: { id: 'user-1' },
+      });
 
       (mockApiClient.get as jest.Mock).mockResolvedValueOnce({
         data: mockUserData,
@@ -349,7 +357,9 @@ describe('createUserStore', () => {
     });
 
     it('should invalidate cache when auth user is null (logged out)', async () => {
-      (useAuthStore.getState as jest.Mock).mockReturnValue({ user: { id: 'user-1' } });
+      (useAuthStore.getState as jest.Mock).mockReturnValue({
+        user: { id: 'user-1' },
+      });
 
       (mockApiClient.get as jest.Mock).mockResolvedValue({
         data: mockUserData,
@@ -370,7 +380,9 @@ describe('createUserStore', () => {
     });
 
     it('should clear cached data when user changes', async () => {
-      (useAuthStore.getState as jest.Mock).mockReturnValue({ user: { id: 'user-1' } });
+      (useAuthStore.getState as jest.Mock).mockReturnValue({
+        user: { id: 'user-1' },
+      });
 
       (mockApiClient.get as jest.Mock)
         .mockResolvedValueOnce({ data: mockUserData })
@@ -383,7 +395,9 @@ describe('createUserStore', () => {
       expect(useUserStore.getState().data?.user.id).toBe('user-1');
 
       // Switch user
-      (useAuthStore.getState as jest.Mock).mockReturnValue({ user: { id: 'user-2' } });
+      (useAuthStore.getState as jest.Mock).mockReturnValue({
+        user: { id: 'user-2' },
+      });
 
       // Fetch should clear old data and get new data
       await useUserStore.getState().fetchUserData();

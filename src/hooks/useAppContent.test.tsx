@@ -15,7 +15,24 @@ const mockSetSelectedProfile = jest.fn();
 const mockUseAuthStore = jest.fn();
 
 jest.mock('../store/authStore', () => ({
-  useAuthStore: () => mockUseAuthStore(),
+  useAuthStore: Object.assign(() => mockUseAuthStore(), {
+    getState: jest.fn(() => ({
+      sessionInfo: { institutionId: 'test-institution-id' },
+    })),
+    subscribe: jest.fn(() => jest.fn()),
+  }),
+}));
+
+// Mock do modulesStore
+const mockFetchModules = jest.fn();
+jest.mock('../store/modulesStore', () => ({
+  useModulesStore: {
+    getState: jest.fn(() => ({
+      fetchModules: mockFetchModules,
+    })),
+    setState: jest.fn(),
+    subscribe: jest.fn(() => jest.fn()),
+  },
 }));
 
 // Mock do analytica-frontend-lib
@@ -62,6 +79,7 @@ describe('useAppContent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
+    mockFetchModules.mockClear();
 
     // Setup default mocks
     mockUseAuthStore.mockReturnValue({
@@ -560,5 +578,80 @@ describe('useAppContent', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
 
     consoleSpy.mockRestore();
+  });
+
+  describe('fetchModules', () => {
+    it('should call fetchModules when institutionIdToUse is available', () => {
+      mockUseAuth.mockReturnValue({
+        sessionInfo: mockSessionInfo,
+        isAuthenticated: true,
+      });
+
+      renderHook(() => useAppContent(defaultConfig));
+
+      expect(mockFetchModules).toHaveBeenCalledWith(
+        'test-institution',
+        mockApiConfig
+      );
+    });
+
+    it('should not call fetchModules when institutionIdToUse is null', () => {
+      const configWithoutInstitutionId = {
+        ...defaultConfig,
+        getInstitutionId: null,
+      };
+
+      mockUseAuth.mockReturnValue({
+        sessionInfo: null,
+        isAuthenticated: false,
+      });
+
+      renderHook(() => useAppContent(configWithoutInstitutionId));
+
+      expect(mockFetchModules).not.toHaveBeenCalled();
+    });
+
+    it('should call fetchModules with getInstitutionId when sessionInfo is not available', () => {
+      mockUseAuth.mockReturnValue({
+        sessionInfo: null,
+        isAuthenticated: false,
+      });
+
+      renderHook(() => useAppContent(defaultConfig));
+
+      expect(mockFetchModules).toHaveBeenCalledWith(
+        'test-institution-id',
+        mockApiConfig
+      );
+    });
+
+    it('should call fetchModules when institutionIdToUse changes', () => {
+      mockUseAuth.mockReturnValue({
+        sessionInfo: null,
+        isAuthenticated: false,
+      });
+
+      const { rerender } = renderHook(() => useAppContent(defaultConfig));
+
+      expect(mockFetchModules).toHaveBeenCalledWith(
+        'test-institution-id',
+        mockApiConfig
+      );
+
+      mockFetchModules.mockClear();
+
+      // Update sessionInfo to have institutionId
+      mockUseAuth.mockReturnValue({
+        sessionInfo: mockSessionInfo,
+        isAuthenticated: true,
+      });
+
+      rerender();
+
+      expect(mockFetchModules).toHaveBeenCalledWith(
+        'test-institution',
+        mockApiConfig
+      );
+    });
   });
 });

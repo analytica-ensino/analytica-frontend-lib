@@ -779,6 +779,12 @@ export { useQuestionFiltersStore } from './store/questionFiltersStore';
 export type { QuestionFiltersState } from './store/questionFiltersStore';
 export { useLessonFiltersStore } from './store/lessonFiltersStore';
 export type { LessonFiltersState } from './store/lessonFiltersStore';
+export { useModulesStore } from './store/modulesStore';
+export type { ModulesState, ModulesConfig } from './store/modulesStore';
+export { useModules } from './hooks/useModules';
+export type { UseModulesReturn } from './hooks/useModules';
+export { ModuleProtectedRoute } from './components/ModuleProtectedRoute';
+export type { ModuleProtectedRouteProps } from './components/ModuleProtectedRoute';
 export type {
   AuthState,
   SessionInfo,
