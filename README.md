@@ -62,3 +62,4 @@ import 'analytica-frontend-lib/styles.css';
 
 Link público:
 https://analytica-ensino.github.io/analytica-frontend-lib/
+
