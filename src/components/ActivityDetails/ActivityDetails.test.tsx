@@ -752,6 +752,41 @@ describe('ActivityDetails', () => {
       });
     });
 
+    it('should render singular label "Nota do Aluno" when activity has a single student', async () => {
+      const singleStudentData: ActivityDetailsData = {
+        ...mockActivityData,
+        students: [mockActivityData.students[0]],
+        pagination: {
+          ...mockActivityData.pagination,
+          total: 1,
+        },
+      };
+
+      const mockFetchSingleStudent = jest
+        .fn()
+        .mockResolvedValue(singleStudentData);
+
+      (useActivityDetails as jest.Mock).mockReturnValue({
+        fetchActivityDetails: mockFetchSingleStudent,
+        fetchStudentCorrection: jest.fn(),
+        fetchStudentFeedback: jest
+          .fn()
+          .mockResolvedValue({ teacherFeedback: null, attachment: null }),
+        safeFetchStudentFeedback: jest
+          .fn()
+          .mockResolvedValue({ teacherFeedback: null, attachment: null }),
+        submitObservation: jest.fn(),
+        submitQuestionCorrection: jest.fn(),
+      });
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Nota do Aluno')).toBeInTheDocument();
+      });
+      expect(screen.queryByText('Média da Turma')).not.toBeInTheDocument();
+    });
+
     it('should render question statistics', async () => {
       render(<ActivityDetails {...defaultProps} />);
 
