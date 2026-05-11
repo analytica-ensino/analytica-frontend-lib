@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import type { AxiosInstance } from 'axios';
 import { useAuthStore } from '../store/authStore';
+import { useModulesStore } from '../store/modulesStore';
 import { useApiConfig, useUrlAuthentication, useTheme, useAuth } from '..';
 
 /**
@@ -138,6 +140,15 @@ export function useAppContent(config: UseAppContentConfig) {
       initialize(institutionIdToUse);
     }
   }, [institutionIdToUse, initialize, initialized]);
+
+  // Fetch modules configuration when institutionId is available
+  useEffect(() => {
+    if (institutionIdToUse) {
+      useModulesStore
+        .getState()
+        .fetchModules(institutionIdToUse, apiConfig as AxiosInstance);
+    }
+  }, [institutionIdToUse, apiConfig]);
 
   return {
     handleNotFoundNavigation,
