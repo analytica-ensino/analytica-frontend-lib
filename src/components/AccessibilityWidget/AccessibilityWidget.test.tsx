@@ -44,11 +44,14 @@ describe('AccessibilityWidget', () => {
     render(<AccessibilityWidget />);
     await userEvent.click(screen.getByTestId('accessibility-fab'));
 
+    // Sections viraram accordions colapsadas — precisa expandir antes
+    await userEvent.click(screen.getByTestId('a11y-section-vision'));
     await userEvent.click(screen.getByRole('radio', { name: 'Alto' }));
     expect(
       document.documentElement.classList.contains('a11y-contrast-high')
     ).toBe(true);
 
+    await userEvent.click(screen.getByTestId('a11y-section-navigation'));
     await userEvent.click(screen.getByTestId('a11y-toggle-big-cursor'));
     expect(document.documentElement.classList.contains('a11y-big-cursor')).toBe(
       true

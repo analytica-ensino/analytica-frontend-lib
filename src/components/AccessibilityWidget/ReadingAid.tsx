@@ -57,13 +57,13 @@ export default function ReadingAid() {
       <div
         aria-hidden="true"
         data-testid="a11y-reading-mask-top"
-        className="a11y-widget-shield pointer-events-none fixed left-0 right-0 top-0 z-30 bg-black/65"
+        className="a11y-widget-shield pointer-events-none fixed left-0 right-0 top-0 z-30 bg-black/90"
         style={{ height: Math.max(0, mouseY - MASK_GAP_PX) }}
       />
       <div
         aria-hidden="true"
         data-testid="a11y-reading-mask-bottom"
-        className="a11y-widget-shield pointer-events-none fixed left-0 right-0 bottom-0 z-30 bg-black/65"
+        className="a11y-widget-shield pointer-events-none fixed left-0 right-0 bottom-0 z-30 bg-black/90"
         style={{ top: mouseY + MASK_GAP_PX }}
       />
     </>
