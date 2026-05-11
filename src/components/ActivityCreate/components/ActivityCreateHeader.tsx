@@ -24,6 +24,7 @@ export const ActivityCreateHeader = ({
   isRecommendedLessonMode,
   onLessonPreview,
   onAddActivity,
+  enableExamMode = false,
 }: {
   activity?: ActivityData;
   activityType: ActivityType;
@@ -36,8 +37,25 @@ export const ActivityCreateHeader = ({
   isRecommendedLessonMode?: boolean;
   onLessonPreview?: () => void;
   onAddActivity?: () => void;
+  /** Enable exam mode - changes text labels from 'atividade' to 'prova' */
+  enableExamMode?: boolean;
 }) => {
   const activityTypeLabel = getActivityTypeLabel(activityType);
+
+  // Text labels based on exam mode
+  const labels = enableExamMode
+    ? {
+        create: 'Criar prova',
+        edit: 'Editar prova',
+        send: 'Enviar prova',
+        description: 'Crie uma prova customizada adicionando questões manualmente ou automaticamente.',
+      }
+    : {
+        create: 'Criar atividade',
+        edit: 'Editar atividade',
+        send: 'Enviar atividade',
+        description: 'Crie uma atividade customizada adicionando questões manualmente ou automaticamente.',
+      };
 
   return (
     <div className="w-full h-[80px] flex flex-row items-center justify-between px-6 gap-3 flex-shrink-0">
@@ -54,7 +72,7 @@ export const ActivityCreateHeader = ({
       <section className="flex flex-col gap-0.5 w-full">
         <div className="flex flex-row items-center justify-between w-full text-text-950">
           <Text size="lg" weight="bold">
-            {activity ? 'Editar atividade' : 'Criar atividade'}
+            {activity ? labels.edit : labels.create}
           </Text>
 
           <div className="flex flex-row gap-4 items-center">
@@ -100,15 +118,14 @@ export const ActivityCreateHeader = ({
                 onClick={onSendActivity}
                 disabled={questionsCount === 0}
               >
-                Enviar atividade
+                {labels.send}
               </Button>
             )}
           </div>
         </div>
 
         <Text size="sm">
-          Crie uma atividade customizada adicionando questões manualmente ou
-          automaticamente.
+          {labels.description}
         </Text>
       </section>
     </div>

@@ -104,7 +104,7 @@ export type DeadlineStepData = z.infer<typeof deadlineStepSchema>;
  * Validates the activity step (Step 1) using Zod
  * @param data - Partial form data
  * @param options - Validation options
- * @param options.enableExamMode - When true, validates the mode field when subtype is PROVA
+ * @param options.enableExamMode - When true, only validates title (exam mode has simplified form)
  * @returns StepErrors object with any validation errors
  */
 export function validateActivityStep(
@@ -113,6 +113,15 @@ export function validateActivityStep(
 ): StepErrors {
   const errors: StepErrors = {};
 
+  // In exam mode, only validate title
+  if (options?.enableExamMode) {
+    if (!data.title || data.title.trim().length === 0) {
+      errors.title = ERROR_MESSAGES.TITLE_REQUIRED;
+    }
+    return errors;
+  }
+
+  // Activity mode: full validation
   const result = activityStepSchema.safeParse({
     subtype: data.subtype,
     title: data.title,
@@ -126,14 +135,6 @@ export function validateActivityStep(
         errors[field] = issue.message;
       }
     });
-  }
-
-  if (
-    options?.enableExamMode &&
-    data.subtype === ActivitySubtype.PROVA &&
-    !data.mode
-  ) {
-    errors.mode = ERROR_MESSAGES.MODE_REQUIRED;
   }
 
   return errors;
@@ -167,13 +168,25 @@ export function validateRecipientStep(
 /**
  * Validates the deadline step (Step 3) using Zod
  * @param data - Partial form data
+ * @param options - Validation options
+ * @param options.enableExamMode - When true, only validates startDate (exam date)
  * @returns StepErrors object with any validation errors
  */
 export function validateDeadlineStep(
-  data: Partial<SendActivityFormData>
+  data: Partial<SendActivityFormData>,
+  options?: { enableExamMode?: boolean }
 ): StepErrors {
   const errors: StepErrors = {};
 
+  // In exam mode, only validate startDate (exam date)
+  if (options?.enableExamMode) {
+    if (!data.startDate) {
+      errors.startDate = ERROR_MESSAGES.START_DATE_REQUIRED;
+    }
+    return errors;
+  }
+
+  // Activity mode: full validation
   // First validate individual fields
   if (!data.startDate) {
     errors.startDate = ERROR_MESSAGES.START_DATE_REQUIRED;
@@ -224,7 +237,7 @@ export function validateStep(
     case 2:
       return validateRecipientStep(data);
     case 3:
-      return validateDeadlineStep(data);
+      return validateDeadlineStep(data, options);
     default:
       return {};
   }

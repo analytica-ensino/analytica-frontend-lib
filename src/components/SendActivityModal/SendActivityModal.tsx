@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, ChangeEvent } from 'react';
+import { useCallback, useEffect, useRef, ChangeEvent, useMemo } from 'react';
 import Modal from '../Modal/Modal';
 import Stepper from '../Stepper/Stepper';
 import Chips from '../Chips/Chips';
@@ -6,6 +6,7 @@ import Input from '../Input/Input';
 import TextArea from '../TextArea/TextArea';
 import Text from '../Text/Text';
 import { RadioGroup, RadioGroupItem } from '../Radio/Radio';
+import DateTimeInput from '../DateTimeInput/DateTimeInput';
 import { useSendActivityModalStore } from './hooks/useSendActivityModal';
 import {
   SendActivityModalProps,
@@ -28,10 +29,19 @@ import {
 } from '../shared/SendModalBase';
 
 /**
- * Stepper steps configuration
+ * Stepper steps configuration for activity mode
  */
-const STEPPER_STEPS = [
+const ACTIVITY_STEPPER_STEPS = [
   { id: 'activity', label: 'Atividade', state: 'pending' as const },
+  { id: 'recipient', label: 'Destinatário', state: 'pending' as const },
+  { id: 'deadline', label: 'Prazo', state: 'pending' as const },
+];
+
+/**
+ * Stepper steps configuration for exam mode
+ */
+const EXAM_STEPPER_STEPS = [
+  { id: 'exam', label: 'Prova', state: 'pending' as const },
   { id: 'recipient', label: 'Destinatário', state: 'pending' as const },
   { id: 'deadline', label: 'Prazo', state: 'pending' as const },
 ];
@@ -40,8 +50,6 @@ const STEPPER_STEPS = [
  * Modal configuration constants
  */
 const MAX_STEPS = 3;
-const ENTITY_NAME = 'atividade';
-const ENTITY_NAME_WITH_ARTICLE = 'a atividade';
 
 /**
  * SendActivityModal component for sending activities to students
@@ -61,15 +69,26 @@ const SendActivityModal = ({
   onError,
   initialData,
   enableExamMode = false,
+  isInPersonExam = false,
 }: SendActivityModalProps) => {
   const store = useSendActivityModalStore();
   const reset = useSendActivityModalStore((state) => state.reset);
+  const setFormData = useSendActivityModalStore((state) => state.setFormData);
   const setCategories = useSendActivityModalStore(
     (state) => state.setCategories
   );
   const storeCategories = useSendActivityModalStore(
     (state) => state.categories
   );
+
+  /**
+   * Dynamic configuration based on exam mode
+   */
+  const isExamMode = enableExamMode || isInPersonExam;
+  const stepperSteps = isExamMode ? EXAM_STEPPER_STEPS : ACTIVITY_STEPPER_STEPS;
+  const modalTitle = isExamMode ? 'Enviar prova' : 'Enviar atividade';
+  const entityName = isExamMode ? 'prova' : 'atividade';
+  const entityNameWithArticle = isExamMode ? 'a prova' : 'a atividade';
 
   /**
    * Track the previous initialData reference to detect changes
@@ -114,14 +133,14 @@ const SendActivityModal = ({
    */
   useEffect(() => {
     if (isOpen && initialData && prevInitialDataRef.current !== initialData) {
-      store.setFormData({
+      setFormData({
         title: initialData.title ?? '',
         subtype: initialData.subtype ?? ActivitySubtype.TAREFA,
         notification: initialData.notification ?? '',
       });
       prevInitialDataRef.current = initialData;
     }
-  }, [isOpen, initialData, store]);
+  }, [isOpen, initialData, setFormData]);
 
   /**
    * Reset store when modal closes
@@ -134,6 +153,30 @@ const SendActivityModal = ({
   }, [isOpen, reset]);
 
   /**
+   * Auto-set subtype for exam mode (enableExamMode without isInPersonExam)
+   */
+  useEffect(() => {
+    if (isOpen && enableExamMode && !isInPersonExam) {
+      setFormData({
+        subtype: ActivitySubtype.PROVA,
+      });
+    }
+  }, [isOpen, enableExamMode, isInPersonExam, setFormData]);
+
+  /**
+   * Auto-set subtype and mode for in-person exam
+   */
+  useEffect(() => {
+    if (isOpen && isInPersonExam) {
+      setFormData({
+        subtype: ActivitySubtype.PROVA,
+        mode: ActivityMode.PRESENCIAL,
+        canRetry: false,
+      });
+    }
+  }, [isOpen, isInPersonExam, setFormData]);
+
+  /**
    * Date/time change handlers from shared hook
    */
   const {
@@ -141,7 +184,7 @@ const SendActivityModal = ({
     handleStartTimeChange,
     handleFinalDateChange,
     handleFinalTimeChange,
-  } = useDateTimeHandlers({ setFormData: store.setFormData });
+  } = useDateTimeHandlers({ setFormData });
 
   /**
    * Handle categories change from CheckboxGroup
@@ -164,9 +207,9 @@ const SendActivityModal = ({
         subtype !== ActivitySubtype.PROVA
           ? { subtype, mode: undefined }
           : { subtype };
-      store.setFormData(update);
+      setFormData(update);
     },
-    [store]
+    [setFormData]
   );
 
   /**
@@ -176,9 +219,9 @@ const SendActivityModal = ({
     (mode: ActivityMode) => {
       const update: Partial<SendActivityFormData> =
         mode === ActivityMode.PRESENCIAL ? { mode, canRetry: false } : { mode };
-      store.setFormData(update);
+      setFormData(update);
     },
-    [store]
+    [setFormData]
   );
 
   /**
@@ -186,9 +229,9 @@ const SendActivityModal = ({
    */
   const handleTitleChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
-      store.setFormData({ title: e.target.value });
+      setFormData({ title: e.target.value });
     },
-    [store]
+    [setFormData]
   );
 
   /**
@@ -196,9 +239,9 @@ const SendActivityModal = ({
    */
   const handleNotificationChange = useCallback(
     (e: ChangeEvent<HTMLTextAreaElement>) => {
-      store.setFormData({ notification: e.target.value });
+      setFormData({ notification: e.target.value });
     },
-    [store]
+    [setFormData]
   );
 
   /**
@@ -206,16 +249,17 @@ const SendActivityModal = ({
    */
   const handleRetryChange = useCallback(
     (value: string) => {
-      store.setFormData({ canRetry: value === 'yes' });
+      setFormData({ canRetry: value === 'yes' });
     },
-    [store]
+    [setFormData]
   );
 
   /**
    * Handle form submission
    */
   const handleSubmit = useCallback(async () => {
-    const isValid = store.validateAllSteps(enableExamMode);
+    // For in-person exams, always validate as exam mode since mode is auto-set
+    const isValid = store.validateAllSteps(enableExamMode || isInPersonExam);
     if (!isValid) return;
 
     try {
@@ -228,7 +272,7 @@ const SendActivityModal = ({
         console.error('Falha ao enviar atividade:', error);
       }
     }
-  }, [store, onSubmit, onError, enableExamMode]);
+  }, [store, onSubmit, onError, enableExamMode, isInPersonExam]);
 
   /**
    * Handle cancel button click
@@ -238,81 +282,133 @@ const SendActivityModal = ({
   }, [onClose]);
 
   /**
-   * Render Step 1 - Activity (unique to SendActivityModal)
+   * Render Step 1 - Activity/Exam (unique to SendActivityModal)
+   * In exam mode: only shows title input
+   * In activity mode: shows type selection, title, and notification
    */
-  const renderActivityStep = () => (
-    <div className="flex flex-col gap-6">
-      {/* Activity Type Selection */}
-      <div>
-        <Text size="sm" weight="medium" color="text-text-700" className="mb-3">
-          Tipo de atividade*
-        </Text>
-        <div className="flex flex-wrap gap-2">
-          {ACTIVITY_TYPE_OPTIONS.map((type) => (
-            <Chips
-              key={type.value}
-              selected={store.formData.subtype === type.value}
-              onClick={() => handleActivityTypeSelect(type.value)}
+  const renderActivityStep = () => {
+    // Exam mode: simplified step with only title
+    if (isExamMode) {
+      return (
+        <div className="flex flex-col gap-6">
+          <Input
+            label="Título"
+            placeholder="Digite o título da prova"
+            value={store.formData.title || ''}
+            onChange={handleTitleChange}
+            variant="rounded"
+            required
+            errorMessage={store.errors.title}
+          />
+        </div>
+      );
+    }
+
+    // Activity mode: full form
+    return (
+      <div className="flex flex-col gap-6">
+        {/* Activity Type Selection - hidden for in-person exams (auto-set to PROVA) */}
+        {!isInPersonExam && (
+          <div>
+            <Text
+              size="sm"
+              weight="medium"
+              color="text-text-700"
+              className="mb-3"
             >
-              {type.label}
-            </Chips>
-          ))}
-        </div>
-        <SendModalError error={store.errors.subtype} />
-      </div>
-
-      {/* Prova Mode Selection — only visible when enableExamMode and subtype is PROVA */}
-      {enableExamMode && store.formData.subtype === ActivitySubtype.PROVA && (
-        <div>
-          <Text
-            size="sm"
-            weight="medium"
-            color="text-text-700"
-            className="mb-3"
-          >
-            Modo de prova*
-          </Text>
-          <div className="flex flex-wrap gap-2">
-            {ACTIVITY_MODE_OPTIONS.map((modeOption) => (
-              <Chips
-                key={modeOption.value}
-                selected={store.formData.mode === modeOption.value}
-                onClick={() => handleModeSelect(modeOption.value)}
-              >
-                {modeOption.label}
-              </Chips>
-            ))}
+              Tipo de atividade*
+            </Text>
+            <div className="flex flex-wrap gap-2">
+              {ACTIVITY_TYPE_OPTIONS.map((type) => (
+                <Chips
+                  key={type.value}
+                  selected={store.formData.subtype === type.value}
+                  onClick={() => handleActivityTypeSelect(type.value)}
+                >
+                  {type.label}
+                </Chips>
+              ))}
+            </div>
+            <SendModalError error={store.errors.subtype} />
           </div>
-          <SendModalError error={store.errors.mode} />
-        </div>
-      )}
+        )}
 
-      {/* Title Input */}
-      <Input
-        label="Título"
-        placeholder="Digite o título da atividade"
-        value={store.formData.title || ''}
-        onChange={handleTitleChange}
-        variant="rounded"
-        required
-        errorMessage={store.errors.title}
-      />
+        {/* In-person exam indicator */}
+        {isInPersonExam && (
+          <div>
+            <Text
+              size="sm"
+              weight="medium"
+              color="text-text-700"
+              className="mb-3"
+            >
+              Tipo de atividade
+            </Text>
+            <Chips selected disabled>
+              Prova Presencial
+            </Chips>
+          </div>
+        )}
 
-      {/* Notification Message */}
-      <TextArea
-        label="Mensagem da notificação"
-        placeholder="Digite uma mensagem para a notificação (opcional)"
-        value={store.formData.notification || ''}
-        onChange={handleNotificationChange}
-      />
-    </div>
-  );
+        {/* Prova Mode Selection — only visible when enableExamMode and subtype is PROVA and NOT in-person exam */}
+        {enableExamMode &&
+          !isInPersonExam &&
+          store.formData.subtype === ActivitySubtype.PROVA && (
+            <div>
+              <Text
+                size="sm"
+                weight="medium"
+                color="text-text-700"
+                className="mb-3"
+              >
+                Modo de prova*
+              </Text>
+              <div className="flex flex-wrap gap-2">
+                {ACTIVITY_MODE_OPTIONS.map((modeOption) => (
+                  <Chips
+                    key={modeOption.value}
+                    selected={store.formData.mode === modeOption.value}
+                    onClick={() => handleModeSelect(modeOption.value)}
+                  >
+                    {modeOption.label}
+                  </Chips>
+                ))}
+              </div>
+              <SendModalError error={store.errors.mode} />
+            </div>
+          )}
+
+        {/* Title Input */}
+        <Input
+          label="Título"
+          placeholder="Digite o título da atividade"
+          value={store.formData.title || ''}
+          onChange={handleTitleChange}
+          variant="rounded"
+          required
+          errorMessage={store.errors.title}
+        />
+
+        {/* Notification Message */}
+        <TextArea
+          label="Mensagem da notificação"
+          placeholder="Digite uma mensagem para a notificação (opcional)"
+          value={store.formData.notification || ''}
+          onChange={handleNotificationChange}
+        />
+      </div>
+    );
+  };
 
   /**
    * Render retry option for deadline step
+   * Hidden for in-person exams since retry is always disabled
    */
   const renderRetryOption = () => {
-    if (enableExamMode && store.formData.mode === ActivityMode.PRESENCIAL) {
+    if (
+      isInPersonExam ||
+      (enableExamMode && store.formData.mode === ActivityMode.PRESENCIAL)
+    ) {
       return null;
     }
 
@@ -356,6 +452,26 @@ const SendActivityModal = ({
   };
 
   /**
+   * Render simplified deadline step for exam mode
+   * Only shows "Data da prova" field
+   */
+  const renderExamDeadlineStep = () => (
+    <div className="flex flex-col gap-4 sm:gap-6 pt-6">
+      <DateTimeInput
+        label="Data da prova*"
+        date={store.formData.startDate || ''}
+        time={store.formData.startTime || ''}
+        onDateChange={handleStartDateChange}
+        onTimeChange={handleStartTimeChange}
+        errorMessage={store.errors.startDate}
+        defaultTime="08:00"
+        testId="exam-datetime"
+        className="w-full max-w-xs"
+      />
+    </div>
+  );
+
+  /**
    * Render current step content
    */
   const renderStepContent = () => {
@@ -371,11 +487,16 @@ const SendActivityModal = ({
           <RecipientStep
             categories={categoriesToRender}
             onCategoriesChange={handleCategoriesChange}
-            entityNameWithArticle={ENTITY_NAME_WITH_ARTICLE}
+            entityNameWithArticle={entityNameWithArticle}
             studentsError={store.errors.students}
           />
         );
       case 3:
+        // Exam mode: simplified deadline with only exam date
+        if (isExamMode) {
+          return renderExamDeadlineStep();
+        }
+        // Activity mode: full deadline with start/end dates and retry option
         return (
           <DeadlineStep
             startDate={store.formData.startDate || ''}
@@ -409,9 +530,9 @@ const SendActivityModal = ({
       isLoading={isLoading}
       onCancel={handleCancel}
       onPreviousStep={store.previousStep}
-      onNextStep={() => store.nextStep(enableExamMode)}
+      onNextStep={() => store.nextStep(isExamMode)}
       onSubmit={handleSubmit}
-      entityName={ENTITY_NAME}
+      entityName={entityName}
     />
   );
 
@@ -419,14 +540,14 @@ const SendActivityModal = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Enviar atividade"
+      title={modalTitle}
       size="md"
       footer={renderFooter()}
       contentClassName="flex flex-col gap-8 sm:gap-10 max-h-[70vh] overflow-y-auto"
     >
       {/* Stepper */}
       <Stepper
-        steps={STEPPER_STEPS}
+        steps={stepperSteps}
         currentStep={store.currentStep - 1}
         size="small"
       />

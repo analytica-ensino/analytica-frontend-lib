@@ -276,13 +276,15 @@ export function buildSendActivityPayload(
   subjectId: string,
   questionIds: string[],
   startDateTime: string,
-  finalDateTime: string
+  finalDateTime: string | null,
+  activityType?: 'ATIVIDADE' | 'PROVA'
 ): CreateActivityPayload {
   return {
     title: formData.title,
     subjectId,
     questionIds,
     subtype: formData.subtype,
+    type: activityType,
     notification: formData.notification || '',
     startDate: startDateTime,
     finalDate: finalDateTime,

@@ -15,6 +15,7 @@ import {
   useToastStore,
   Modal,
   Text,
+  QUESTION_TYPE,
 } from '../..';
 import Menu, { MenuContent, MenuItem } from '../Menu/Menu';
 import type {
@@ -67,6 +68,9 @@ const CreateActivity = ({
   onSaveModel,
   onAddActivityToLesson,
   enableExamMode = false,
+  isInPersonExam = false,
+  basePath = '/criar-atividade',
+  activityCategory = 'ATIVIDADE',
 }: {
   apiClient: BaseApiClient;
   institutionId: string;
@@ -79,6 +83,12 @@ const CreateActivity = ({
   onSaveModel?: (response: ActivityDraftResponse) => void;
   onAddActivityToLesson?: (activityDraftId: string) => void;
   enableExamMode?: boolean;
+  /** Force in-person exam mode: auto-selects PROVA subtype and PRESENCIAL mode */
+  isInPersonExam?: boolean;
+  /** Base path for URL navigation (default: '/criar-atividade') */
+  basePath?: string;
+  /** Activity category: 'ATIVIDADE' or 'PROVA' - sent in draft payloads */
+  activityCategory?: 'ATIVIDADE' | 'PROVA';
 }) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -116,13 +126,14 @@ const CreateActivity = ({
         params.set('onFinish', onFinishPath);
       }
 
-      return `/criar-atividade?${params.toString()}`;
+      return `${basePath}?${params.toString()}`;
     },
     [
       recommendedLessonDraftId,
       recommendedLessonId,
       classTypeParam,
       onFinishPath,
+      basePath,
     ]
   );
 
@@ -370,6 +381,10 @@ const CreateActivity = ({
     hasAppliedInitialFiltersRef.current = false;
   }, [activity?.id, activity?.filters, resolvedPreFilters]);
 
+  // Determine endpoints based on activity category
+  const draftEndpoint = activityCategory === 'PROVA' ? '/exam-drafts' : '/activity-drafts';
+  const activityEndpoint = activityCategory === 'PROVA' ? '/exams' : '/activities';
+
   /**
    * Busca o rascunho/modelo da atividade quando há um id na URL
    * Só faz a busca se o id mudou para um diferente do que está sendo trabalhado
@@ -383,7 +398,7 @@ const CreateActivity = ({
         try {
           const response = await apiClient.get<
             { data: ActivityData } | ActivityData
-          >(`/activity-drafts/${idParam}`);
+          >(`${draftEndpoint}/${idParam}`);
           const activityData =
             'data' in response.data ? response.data.data : response.data;
 
@@ -414,7 +429,7 @@ const CreateActivity = ({
     };
 
     fetchActivityDraft();
-  }, [idParam, apiClient, addToast]);
+  }, [idParam, apiClient, addToast, draftEndpoint]);
 
   /**
    * Monitora activity.id e activity.type e atualiza a URL quando necessário
@@ -481,12 +496,14 @@ const CreateActivity = ({
 
     return {
       type: activityType,
+      activityType: activityCategory,
       title,
       subjectId,
       filters,
       questionIds,
+      isDigital: !isInPersonExam,
     };
-  }, [appliedFilters, activityType, knowledgeAreas, questions]);
+  }, [appliedFilters, activityType, knowledgeAreas, questions, isInPersonExam, activityCategory]);
 
   /**
    * Update existing draft via PATCH
@@ -500,9 +517,10 @@ const CreateActivity = ({
       subjectId: string;
       filters: BackendFiltersFormat;
       questionIds: string[];
+      isDigital: boolean;
     }) => {
       const response = await apiClient.patch<ActivityDraftResponse>(
-        `/activity-drafts/${draftId}`,
+        `${draftEndpoint}/${draftId}`,
         payload
       );
       lastSavedQuestionsRef.current = questions;
@@ -556,7 +574,7 @@ const CreateActivity = ({
         onSaveModel(response.data);
       }
     },
-    [draftId, apiClient, questions, appliedFilters, onSaveModel]
+    [draftId, apiClient, questions, appliedFilters, onSaveModel, draftEndpoint]
   );
 
   /**
@@ -715,7 +733,7 @@ const CreateActivity = ({
         }
 
         const response = await apiClient.post<ActivityDraftResponse>(
-          '/activity-drafts',
+          draftEndpoint,
           payload
         );
         hasFirstSaveBeenDone.current = true;
@@ -989,6 +1007,26 @@ const CreateActivity = ({
     hasAppliedInitialFiltersRef.current = true;
   }, [initialFiltersData, setDraftFilters, applyFilters]);
 
+  /**
+   * Force ALTERNATIVA question type filter for in-person exams
+   * In-person exams only support multiple choice questions
+   */
+  useEffect(() => {
+    if (isInPersonExam) {
+      setDraftFilters({
+        types: [QUESTION_TYPE.ALTERNATIVA],
+        bankIds: draftFilters?.bankIds || [],
+        yearIds: draftFilters?.yearIds || [],
+        subjectIds: draftFilters?.subjectIds || [],
+        topicIds: draftFilters?.topicIds || [],
+        subtopicIds: draftFilters?.subtopicIds || [],
+        contentIds: draftFilters?.contentIds || [],
+      });
+      applyFilters();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isInPersonExam]);
+
   const saveDraftRef = useRef(saveDraft);
   useEffect(() => {
     saveDraftRef.current = saveDraft;
@@ -1180,22 +1218,27 @@ const CreateActivity = ({
         const startDateTime = new Date(
           `${formData.startDate}T${formData.startTime}`
         ).toISOString();
-        const finalDateTime = new Date(
-          `${formData.finalDate}T${formData.finalTime}`
-        ).toISOString();
+        // In exam mode, finalDate is null (no deadline)
+        const finalDateTime =
+          enableExamMode || isInPersonExam
+            ? null
+            : new Date(
+                `${formData.finalDate}T${formData.finalTime}`
+              ).toISOString();
 
         const activityPayload = buildSendActivityPayload(
           formData,
           subjectId,
           questions.map((q) => q.id),
           startDateTime,
-          finalDateTime
+          finalDateTime,
+          activityCategory
         );
 
-        // First POST: Create activity and capture response
+        // First POST: Create activity/exam and capture response
         const createActivityResponse =
           await apiClient.post<ActivityCreateResponse>(
-            '/activities',
+            activityEndpoint,
             activityPayload
           );
 
@@ -1219,7 +1262,7 @@ const CreateActivity = ({
         const sendToStudentsResponse = await apiClient.post<{
           message: string;
           data: unknown;
-        }>('/activities/send-to-students', sendToStudentsPayload);
+        }>(`${activityEndpoint}/send-to-students`, sendToStudentsPayload);
 
         // Validate both responses
         if (!createActivityResponse?.data) {
@@ -1259,7 +1302,7 @@ const CreateActivity = ({
         setIsSendingActivity(false);
       }
     },
-    [activity, appliedFilters, questions, apiClient, addToast]
+    [activity, appliedFilters, questions, apiClient, addToast, activityEndpoint]
   );
 
   const addedQuestionIds = useMemo(
@@ -1290,6 +1333,7 @@ const CreateActivity = ({
         isRecommendedLessonMode={isRecommendedLessonMode}
         onLessonPreview={handleLessonPreview}
         onAddActivity={handleAddActivityToLesson}
+        enableExamMode={enableExamMode || isInPersonExam}
       />
 
       {/* Main Content */}
@@ -1306,6 +1350,9 @@ const CreateActivity = ({
               triggerLabel="Filtro de questões"
               onApplyFilters={handleApplyFilters}
               onClearFilters={clearFilters}
+              allowedQuestionTypes={
+                isInPersonExam ? [QUESTION_TYPE.ALTERNATIVA] : undefined
+              }
             />
             <div className="flex-shrink-0">
               <Menu
@@ -1321,7 +1368,7 @@ const CreateActivity = ({
                     Banco de questões
                   </MenuItem>
                   <MenuItem value="preview" variant="breadcrumb">
-                    Prévia da atividade
+                    {enableExamMode || isInPersonExam ? 'Prévia da prova' : 'Prévia da atividade'}
                   </MenuItem>
                 </MenuContent>
               </Menu>
@@ -1336,6 +1383,7 @@ const CreateActivity = ({
                   apiClient={apiClient}
                   onAddQuestion={handleAddQuestion}
                   addedQuestionIds={addedQuestionIds}
+                  enableExamMode={enableExamMode || isInPersonExam}
                 />
               </div>
             ) : (
@@ -1380,6 +1428,9 @@ const CreateActivity = ({
                 variant={'default'}
                 onFiltersChange={handleFiltersChange}
                 initialFilters={initialFiltersData || undefined}
+                allowedQuestionTypes={
+                  isInPersonExam ? [QUESTION_TYPE.ALTERNATIVA] : undefined
+                }
               />
             </div>
             <div className="flex-shrink-0">
@@ -1402,6 +1453,7 @@ const CreateActivity = ({
                 apiClient={apiClient}
                 onAddQuestion={handleAddQuestion}
                 addedQuestionIds={addedQuestionIds}
+                enableExamMode={enableExamMode || isInPersonExam}
               />
             </div>
           </div>
@@ -1452,7 +1504,8 @@ const CreateActivity = ({
         categories={categories}
         onCategoriesChange={handleCategoriesChange}
         isLoading={isSendingActivity}
-        enableExamMode={enableExamMode}
+        enableExamMode={enableExamMode || isInPersonExam}
+        isInPersonExam={isInPersonExam}
         onError={(error) => {
           console.error('Erro ao enviar atividade:', error);
           const errorMessage =
