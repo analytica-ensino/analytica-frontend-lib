@@ -1,10 +1,5 @@
-import { useMemo, type ReactElement } from 'react';
-import {
-  PauseIcon,
-  PlayIcon,
-  SpeakerHighIcon,
-  StopIcon,
-} from '@phosphor-icons/react';
+import { useMemo, type ReactElement, type ReactNode } from 'react';
+import { PauseIcon, PlayIcon, StopIcon } from '@phosphor-icons/react';
 import Button from '../Button/Button';
 import Text from '../Text/Text';
 import Select, {
@@ -13,26 +8,33 @@ import Select, {
   SelectItem,
   SelectValue,
 } from '../Select/Select';
+import AccessibilityToggleRow from './AccessibilityToggleRow';
 import { useAccessibilityStore } from '../../store/accessibilityStore';
 import { useTTS } from '../../hooks/useTTS';
 
-const TTS_SEGMENTED: { value: 'off' | 'click-to-read'; label: string }[] = [
-  { value: 'off', label: 'Desligado' },
-  { value: 'click-to-read', label: 'Clique para ler' },
-];
-
-const RATE_OPTIONS = [
-  { value: '0.75', label: 'Lento' },
-  { value: '1', label: 'Normal' },
-  { value: '1.25', label: 'Rápido' },
-  { value: '1.5', label: 'Muito rápido' },
+/**
+ * Opções de velocidade da fala. O `preview` mostra o valor numérico
+ * dentro do botão (1.0, 1.25, etc.) e o `label` aparece como caption
+ * abaixo. Valores escolhidos para casarem com o que o Web Speech API
+ * aceita (0.5–2.0) — `0.75` foi mantido para "Lento" em vez de algo
+ * mais agressivo porque vozes nativas ficam ininteligíveis abaixo disso.
+ */
+const RATE_OPTIONS: {
+  value: string;
+  label: string;
+  preview: ReactNode;
+}[] = [
+  { value: '0.75', label: 'Lento', preview: '0.75' },
+  { value: '1', label: 'Normal', preview: '1.0' },
+  { value: '1.25', label: 'Rápido', preview: '1.25' },
+  { value: '2', label: 'Muito rápido', preview: '2.0' },
 ];
 
 export interface TTSSectionProps {
-  /** Reaproveita o componente de segmented do painel principal */
-  Segmented: <T extends string | number>(props: {
+  /** Componente de segmented com preview visual + label abaixo */
+  PreviewSegmented: <T extends string | number>(props: {
     value: T;
-    options: { value: T; label: string }[];
+    options: { value: T; label: string; preview: ReactNode }[];
     ariaLabel: string;
     onChange: (value: T) => void;
   }) => ReactElement;
@@ -40,10 +42,14 @@ export interface TTSSectionProps {
 
 /**
  * Bloco de controles do leitor de texto dentro do painel.
- * Exibe estado da síntese, seletor de voz, velocidade e botões
- * de play/pause/stop conforme o status atual.
+ * Estrutura segue o design do Figma:
+ *  1. "Texto para voz" — toggle que ativa/desativa o modo click-to-read
+ *  2. "Voz" — seletor de voz
+ *  3. "Velocidade" — PreviewSegmented com valor numérico
  */
-export default function TTSSection({ Segmented }: Readonly<TTSSectionProps>) {
+export default function TTSSection({
+  PreviewSegmented,
+}: Readonly<TTSSectionProps>) {
   const ttsMode = useAccessibilityStore((s) => s.ttsMode);
   const ttsStatus = useAccessibilityStore((s) => s.ttsStatus);
   const ttsRate = useAccessibilityStore((s) => s.ttsRate);
@@ -52,15 +58,8 @@ export default function TTSSection({ Segmented }: Readonly<TTSSectionProps>) {
   const setTTSRate = useAccessibilityStore((s) => s.setTTSRate);
   const setTTSVoiceId = useAccessibilityStore((s) => s.setTTSVoiceId);
 
-  const {
-    isSupported,
-    voices,
-    hasPortugueseVoice,
-    speak,
-    pause,
-    resume,
-    stop,
-  } = useTTS();
+  const { isSupported, voices, hasPortugueseVoice, pause, resume, stop } =
+    useTTS();
 
   // Preferimos vozes em português; demais ficam ao final.
   const sortedVoices = useMemo(() => {
@@ -80,19 +79,26 @@ export default function TTSSection({ Segmented }: Readonly<TTSSectionProps>) {
     );
   }
 
-  const handleReadSelection = () => {
-    const selection = globalThis.getSelection?.()?.toString().trim();
-    if (selection) speak(selection);
-  };
+  const isClickToReadOn = ttsMode === 'click-to-read';
 
   return (
-    <div className="flex flex-col gap-3">
-      <Segmented
-        ariaLabel="Modo do leitor de texto"
-        value={ttsMode === 'read-selection' ? 'off' : ttsMode}
-        options={TTS_SEGMENTED}
-        onChange={setTTSMode}
-      />
+    <div className="flex flex-col gap-6">
+      {/* Texto para voz: toggle row */}
+      <div className="flex flex-col gap-2">
+        <Text
+          size="xs"
+          weight="medium"
+          className="uppercase leading-none text-text-600"
+        >
+          Texto para voz
+        </Text>
+        <AccessibilityToggleRow
+          label="Ative a leitura e clique no texto para ouvir"
+          rowTestId="a11y-tts-mode-toggle"
+          checked={isClickToReadOn}
+          onChange={() => setTTSMode(isClickToReadOn ? 'off' : 'click-to-read')}
+        />
+      </div>
 
       {!hasPortugueseVoice && (
         <Text size="2xs" className="text-warning-700">
@@ -101,81 +107,94 @@ export default function TTSSection({ Segmented }: Readonly<TTSSectionProps>) {
         </Text>
       )}
 
-      <Select
-        label="Voz"
-        size="small"
-        value={ttsVoiceId ?? ''}
-        onValueChange={(value) => setTTSVoiceId(value || null)}
-      >
-        <SelectTrigger
-          aria-label="Voz da síntese de fala"
-          data-testid="a11y-tts-voice-select"
+      {/* Voz: pill select */}
+      <div className="flex flex-col gap-2">
+        <Text
+          size="xs"
+          weight="medium"
+          className="uppercase leading-none text-text-600"
         >
-          <SelectValue placeholder="Padrão do navegador" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="">Padrão do navegador</SelectItem>
-          {sortedVoices.map((v) => (
-            <SelectItem key={v.id} value={v.id}>
-              {v.name} — {v.lang}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+          Voz
+        </Text>
+        <Select
+          size="small"
+          value={ttsVoiceId ?? ''}
+          onValueChange={(value) => setTTSVoiceId(value || null)}
+        >
+          <SelectTrigger
+            variant="rounded"
+            aria-label="Voz da síntese de fala"
+            data-testid="a11y-tts-voice-select"
+          >
+            <SelectValue placeholder="Padrão do navegador" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Padrão do navegador</SelectItem>
+            {sortedVoices.map((v) => (
+              <SelectItem key={v.id} value={v.id}>
+                {v.name} — {v.lang}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-      <div className="flex flex-col gap-1">
-        <Text size="2xs" className="text-text-700">
+      {/* Velocidade: preview segmented com valor numérico no botão */}
+      <div className="flex flex-col gap-2">
+        <Text
+          size="xs"
+          weight="medium"
+          className="uppercase leading-none text-text-600"
+        >
           Velocidade
         </Text>
-        <Segmented
+        <PreviewSegmented
           ariaLabel="Velocidade da fala"
           value={String(ttsRate)}
-          options={RATE_OPTIONS}
+          options={RATE_OPTIONS.map((opt) => ({
+            value: opt.value,
+            label: opt.label,
+            preview: (
+              <span className="text-base font-bold leading-none">
+                {opt.preview}
+              </span>
+            ),
+          }))}
           onChange={(v) => setTTSRate(Number(v))}
         />
       </div>
 
-      <div className="flex items-center gap-2">
-        <Button
-          variant="outline"
-          action="secondary"
-          size="small"
-          iconLeft={
-            <SpeakerHighIcon size={14} weight="bold" aria-hidden="true" />
-          }
-          onClick={handleReadSelection}
-          data-testid="a11y-tts-read-selection"
-        >
-          Ler seleção
-        </Button>
+      {/* Ações: pause/resume/stop conforme status — só visíveis durante a fala */}
+      {ttsStatus !== 'idle' && (
+        <div className="flex items-center gap-2">
+          {ttsStatus === 'speaking' && (
+            <Button
+              variant="outline"
+              action="secondary"
+              size="small"
+              iconLeft={
+                <PauseIcon size={14} weight="bold" aria-hidden="true" />
+              }
+              onClick={pause}
+              data-testid="a11y-tts-pause"
+            >
+              Pausar
+            </Button>
+          )}
 
-        {ttsStatus === 'speaking' && (
-          <Button
-            variant="outline"
-            action="secondary"
-            size="small"
-            iconLeft={<PauseIcon size={14} weight="bold" aria-hidden="true" />}
-            onClick={pause}
-            data-testid="a11y-tts-pause"
-          >
-            Pausar
-          </Button>
-        )}
+          {ttsStatus === 'paused' && (
+            <Button
+              variant="outline"
+              action="secondary"
+              size="small"
+              iconLeft={<PlayIcon size={14} weight="bold" aria-hidden="true" />}
+              onClick={resume}
+              data-testid="a11y-tts-resume"
+            >
+              Retomar
+            </Button>
+          )}
 
-        {ttsStatus === 'paused' && (
-          <Button
-            variant="outline"
-            action="secondary"
-            size="small"
-            iconLeft={<PlayIcon size={14} weight="bold" aria-hidden="true" />}
-            onClick={resume}
-            data-testid="a11y-tts-resume"
-          >
-            Retomar
-          </Button>
-        )}
-
-        {ttsStatus !== 'idle' && (
           <Button
             variant="outline"
             action="negative"
@@ -187,8 +206,8 @@ export default function TTSSection({ Segmented }: Readonly<TTSSectionProps>) {
           >
             Parar
           </Button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -28,6 +28,16 @@ describe('AccessibilityFab', () => {
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
+  it('renders the accessibility.png icon (not an inline SVG icon)', () => {
+    render(<AccessibilityFab onClick={() => undefined} />);
+    const fab = screen.getByTestId('accessibility-fab');
+    const img = fab.querySelector('img');
+    expect(img).toBeInTheDocument();
+    expect(img).toHaveAttribute('aria-hidden', 'true');
+    // Sem SVG embutido: o ícone agora é uma `<img>` (PNG importado).
+    expect(fab.querySelector('svg')).toBeNull();
+  });
+
   it.each([
     ['right', /right-0/, /rounded-l-lg/],
     ['left', /left-0/, /rounded-r-lg/],

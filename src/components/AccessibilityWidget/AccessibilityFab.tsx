@@ -1,7 +1,7 @@
-import { PersonArmsSpreadIcon } from '@phosphor-icons/react';
 import Button from '../Button/Button';
 import { Tooltip } from '../Tooltip/Tooltip';
 import { cn } from '../../utils/utils';
+import accessibilityIcon from '../../assets/img/accessibility.png';
 import {
   FAB_POSITION_CLASSES,
   FAB_TOOLTIP_POSITION,
@@ -70,7 +70,12 @@ export default function AccessibilityFab({
           className
         )}
       >
-        <PersonArmsSpreadIcon size={25} weight="fill" aria-hidden="true" />
+        <img
+          src={accessibilityIcon}
+          alt=""
+          aria-hidden="true"
+          className="h-7 w-7"
+        />
       </Button>
     </Tooltip>
   );
