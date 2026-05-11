@@ -93,11 +93,13 @@ export type { CorrectActivityModalProps } from './components/CorrectActivityModa
 export {
   QUESTION_STATUS as CORRECTION_QUESTION_STATUS,
   getQuestionStatusBadgeConfig,
+  convertApiResponseToCorrectionData,
 } from './utils/studentActivityCorrection';
 export type {
   QuestionStatus as CorrectionQuestionStatus,
   StudentQuestion,
   StudentActivityCorrectionData,
+  QuestionsAnswersByStudentResponse,
 } from './utils/studentActivityCorrection';
 
 // FileAttachment Component
