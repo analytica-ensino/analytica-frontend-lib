@@ -1012,7 +1012,7 @@ export const ActivityDetails = ({
               <Star size={16} className="text-white" weight="regular" />
             </div>
             <Text className="text-2xs font-bold uppercase text-center text-warning-600">
-              Média da Turma
+              {data.pagination.total === 1 ? 'Nota do Aluno' : 'Média da Turma'}
             </Text>
             <Text className="text-xl font-bold text-warning-600">
               {data.generalStats.averageScore.toFixed(1)}
