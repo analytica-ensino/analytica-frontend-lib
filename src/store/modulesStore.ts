@@ -161,12 +161,16 @@ export const useModulesStore = create<ModulesState>()(
 );
 
 // Clear modules whenever institution changes (same-tab user switch)
+// Only clear when institution actually CHANGES (not on initial hydration)
 let lastInstitutionId: string | null =
   useAuthStore.getState().sessionInfo?.institutionId ?? null;
 useAuthStore.subscribe((state) => {
   const nextId = state.sessionInfo?.institutionId ?? null;
   if (nextId !== lastInstitutionId) {
-    useModulesStore.getState().clearModules();
+    // Only clear modules if there was a previous institution (actual change, not initial load)
+    if (lastInstitutionId !== null) {
+      useModulesStore.getState().clearModules();
+    }
     if (nextId) {
       useModulesStore.setState({ ownerInstitutionId: nextId });
     }
