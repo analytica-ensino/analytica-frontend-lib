@@ -64,7 +64,10 @@ export default function AccessibilityFab({
           'a11y-widget-shield',
           FAB_POSITION_CLASSES[position],
           'flex h-10 w-10 cursor-pointer items-center justify-center',
-          'bg-info-900 text-white shadow-lg',
+          // `text-text-50` flipa junto com `bg-info-900` (claro no light,
+          // escuro no dark). `text-white` deixaria o ícone branco sumindo
+          // no tema escuro, onde `bg-info-900` resolve pra azul-claro.
+          'bg-info-900 text-text-50 shadow-lg',
           'transition-all duration-200 hover:scale-110 hover:bg-info-800',
           'focus:outline-none focus:ring-4 focus:ring-info-300',
           className

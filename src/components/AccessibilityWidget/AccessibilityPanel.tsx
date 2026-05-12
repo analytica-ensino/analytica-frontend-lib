@@ -386,11 +386,13 @@ export default function AccessibilityPanel({
         className
       )}
     >
-      {/* Header — tokens do Figma:
-          bg via `--color-map-attention` (#E3F1FB em Paraná/base; muda
-          conforme white-label institucional). Título 16px/700/100%/0.2px
-          #171717, subtítulo 12px/400/100% #404040. */}
-      <header className="flex items-center justify-between gap-3 bg-map-attention px-4 py-3">
+      {/* Header — visual do Figma: bg azul-claro (Paraná) / rosa-claro
+          (Paraíba) usando `primary-50`. Preferido em vez de `map-attention`
+          porque `primary-50` flipa corretamente no dark mode em todos os
+          temas (ex.: Paraná dark = #27344a), enquanto `map-attention`
+          ficou idêntico em light/dark no theme do Paraná, deixando o
+          texto branco invisível sobre o azul-claro no dark. */}
+      <header className="flex items-center justify-between gap-3 bg-primary-50 px-4 py-3">
         <div className="flex min-w-0 items-center gap-3">
           <img
             src={accessibilityIcon}
