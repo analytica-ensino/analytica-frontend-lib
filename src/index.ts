@@ -1834,6 +1834,15 @@ export {
 } from './components/ExamPageLayout';
 export type { ExamTableCallbacks } from './components/ExamPageLayout';
 
+// Gabarito Preview Components
+export { GabaritoPreview } from './components/ExamPageLayout';
+export type { GabaritoPreviewProps } from './components/ExamPageLayout';
+export { GabaritosBatchPreview } from './components/ExamPageLayout';
+export type {
+  GabaritosBatchPreviewProps,
+  GabaritoData,
+} from './components/ExamPageLayout';
+
 // Exam Filter Helpers
 export {
   EXAM_STATUS_OPTIONS,

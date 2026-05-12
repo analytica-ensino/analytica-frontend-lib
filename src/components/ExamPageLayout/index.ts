@@ -5,3 +5,10 @@ export {
   createExamDraftsModelsTableColumns,
   type ExamTableCallbacks,
 } from './examDraftsModelsTableConfig';
+export { GabaritoPreview } from './GabaritoPreview';
+export type { GabaritoPreviewProps } from './GabaritoPreview';
+export { GabaritosBatchPreview } from './GabaritosBatchPreview';
+export type {
+  GabaritosBatchPreviewProps,
+  GabaritoData,
+} from './GabaritosBatchPreview';
