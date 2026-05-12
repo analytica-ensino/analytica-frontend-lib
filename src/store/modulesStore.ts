@@ -84,6 +84,12 @@ const hasCachedModules = (): boolean => {
 };
 
 /**
+ * Check if this request has been superseded by a newer one
+ */
+const isStaleRequest = (requestId: number): boolean =>
+  requestId !== latestRequestId;
+
+/**
  * Attempt to fetch modules from API with retry logic
  * Returns the modules config on success, null on failure
  */
@@ -97,14 +103,14 @@ const fetchWithRetry = async (
       await delay(INITIAL_RETRY_DELAY * Math.pow(2, attempt - 1));
     }
 
-    if (requestId !== latestRequestId) return null;
+    if (isStaleRequest(requestId)) return null;
 
     try {
       const response = await api.get<ModulesFeatureFlagResponse>(
         `/featureFlags/institution/${institutionId}/page/MODULES`
       );
 
-      if (requestId !== latestRequestId) return null;
+      if (isStaleRequest(requestId)) return null;
 
       return response.data?.data?.featureFlags?.version ?? {};
     } catch {
@@ -145,16 +151,16 @@ export const useModulesStore = create<ModulesState>()(
 
         const version = await fetchWithRetry(institutionId, api, requestId);
 
-        if (requestId !== latestRequestId) return;
+        if (isStaleRequest(requestId)) return;
 
-        if (version !== null) {
+        if (version === null) {
+          set({ modules: defaultModules, loading: false });
+        } else {
           set({
             modules: { ...defaultModules, ...version },
             ownerInstitutionId: institutionId,
             loading: false,
           });
-        } else {
-          set({ modules: defaultModules, loading: false });
         }
       },
 
