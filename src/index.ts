@@ -1751,3 +1751,94 @@ export type {
   UserTelemetryData,
   StudentDetailsResponse,
 } from './types/user';
+
+// Exam Types
+export {
+  ExamStatus,
+  ExamDisplayStatus,
+  mapExamStatusToDisplay,
+} from './types/examsHistory';
+export type {
+  ExamFilterOption,
+  ExamApiFilterOptions,
+  ExamSubject,
+  ExamBreakdownItem,
+  ExamHistoryResponse,
+  ExamTableItem,
+  ExamsHistoryApiResponse,
+  ExamHistoryFilters,
+  ExamPagination,
+} from './types/examsHistory';
+
+export {
+  ExamDraftType,
+  ExamActivityCategory,
+} from './types/examDrafts';
+export type {
+  ExamDraftFilters,
+  ExamModelResponse,
+  ExamModelTableItem,
+  ExamModelsApiResponse,
+  ExamModelFilters,
+  ExamModelsPagination,
+} from './types/examDrafts';
+
+// Exam Hooks Factories
+export {
+  createUseExamsHistory,
+  createExamsHistoryHook,
+  transformExamToTableItem,
+  handleExamFetchError,
+  extractExamFilterOptions,
+  mergeExamFilterOptions,
+  examsHistoryApiResponseSchema,
+  DEFAULT_EXAMS_PAGINATION,
+  DEFAULT_EXAM_FILTER_OPTIONS,
+} from './hooks/useExamsHistory';
+export type {
+  UseExamsHistoryState,
+  UseExamsHistoryReturn,
+} from './hooks/useExamsHistory';
+
+export {
+  createUseExamModels,
+  createExamModelsHook,
+  transformModelToTableItem as transformExamModelToTableItem,
+  DEFAULT_EXAM_MODELS_PAGINATION,
+} from './hooks/useExamModels';
+export type {
+  UseExamModelsState,
+  UseExamModelsReturn,
+} from './hooks/useExamModels';
+
+export {
+  createUseExamDrafts,
+  createExamDraftsHook,
+  transformDraftToTableItem,
+  DEFAULT_EXAM_DRAFTS_PAGINATION,
+} from './hooks/useExamDrafts';
+export type {
+  UseExamDraftsState,
+  UseExamDraftsReturn,
+} from './hooks/useExamDrafts';
+
+// Exam Page Layout Component
+export { ExamPageLayout, ExamTab } from './components/ExamPageLayout';
+export type { ExamPageLayoutProps } from './components/ExamPageLayout';
+
+// Exam Table Configs
+export {
+  examsTableColumns,
+  getExamStatusBadgeAction,
+  createExamDraftsModelsTableColumns,
+} from './components/ExamPageLayout';
+export type { ExamTableCallbacks } from './components/ExamPageLayout';
+
+// Exam Filter Helpers
+export {
+  EXAM_STATUS_OPTIONS,
+  EXAM_FILTER_CATEGORY,
+  EXAM_FILTER_GROUP,
+  createExamDraftsModelsFiltersConfig,
+  createExamHistoryFiltersConfig,
+} from './utils/examFilterHelpers';
