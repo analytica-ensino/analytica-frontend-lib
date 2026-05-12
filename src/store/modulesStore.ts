@@ -59,6 +59,69 @@ interface ModulesFeatureFlagResponse {
 // Guard against stale async responses
 let latestRequestId = 0;
 
+// Retry configuration
+const MAX_RETRIES = 3;
+const INITIAL_RETRY_DELAY = 1000; // 1 second
+
+/**
+ * Delay helper for retry backoff
+ */
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Check if modules are already cached in localStorage
+ */
+const hasCachedModules = (): boolean => {
+  const cached = localStorage.getItem(KEYS.MODULES_STORAGE);
+  if (!cached) return false;
+
+  try {
+    const parsed = JSON.parse(cached);
+    return Boolean(parsed.state?.ownerInstitutionId);
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Check if this request has been superseded by a newer one
+ */
+const isStaleRequest = (requestId: number): boolean =>
+  requestId !== latestRequestId;
+
+/**
+ * Attempt to fetch modules from API with retry logic
+ * Returns the modules config on success, null on failure
+ */
+const fetchWithRetry = async (
+  institutionId: string,
+  api: AxiosInstance,
+  requestId: number
+): Promise<Partial<ModulesConfig> | null> => {
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    if (attempt > 0) {
+      await delay(INITIAL_RETRY_DELAY * Math.pow(2, attempt - 1));
+    }
+
+    if (isStaleRequest(requestId)) return null;
+
+    try {
+      const response = await api.get<ModulesFeatureFlagResponse>(
+        `/featureFlags/institution/${institutionId}/page/MODULES`
+      );
+
+      if (isStaleRequest(requestId)) return null;
+
+      return response.data?.data?.featureFlags?.version ?? {};
+    } catch {
+      // Continue to next retry attempt
+    }
+  }
+
+  console.warn('[modulesStore] Failed to fetch modules after retries');
+  return null;
+};
+
 /**
  * Zustand store for managing modules visibility with persistence
  * Works with both student and professor frontends
@@ -75,50 +138,29 @@ export const useModulesStore = create<ModulesState>()(
        * Only fetches if:
        * 1. No modules data exists in localStorage
        * 2. User made a new login (data cleared by auth subscriber)
+       * Implements retry with exponential backoff on failure
        */
       fetchModules: async (
         institutionId: string,
         api: AxiosInstance
       ): Promise<void> => {
-        // Skip if modules already cached in localStorage
-        const cached = localStorage.getItem(KEYS.MODULES_STORAGE);
-        if (cached) {
-          try {
-            const parsed = JSON.parse(cached);
-            if (parsed.state?.ownerInstitutionId) {
-              return;
-            }
-          } catch {
-            // Invalid JSON, continue with fetch
-          }
-        }
+        if (hasCachedModules()) return;
 
         const requestId = ++latestRequestId;
         set({ loading: true });
 
-        try {
-          const response = await api.get<ModulesFeatureFlagResponse>(
-            `/featureFlags/institution/${institutionId}/page/MODULES`
-          );
+        const version = await fetchWithRetry(institutionId, api, requestId);
 
-          if (requestId !== latestRequestId) return;
+        if (isStaleRequest(requestId)) return;
 
-          const version = response.data?.data?.featureFlags?.version;
-          if (version) {
-            set({
-              modules: { ...defaultModules, ...version },
-              ownerInstitutionId: institutionId,
-            });
-          } else {
-            set({ modules: defaultModules, ownerInstitutionId: institutionId });
-          }
-        } catch {
-          if (requestId !== latestRequestId) return;
-          set({ modules: defaultModules, ownerInstitutionId: institutionId });
-        } finally {
-          if (requestId === latestRequestId) {
-            set({ loading: false });
-          }
+        if (version === null) {
+          set({ modules: defaultModules, loading: false });
+        } else {
+          set({
+            modules: { ...defaultModules, ...version },
+            ownerInstitutionId: institutionId,
+            loading: false,
+          });
         }
       },
 
