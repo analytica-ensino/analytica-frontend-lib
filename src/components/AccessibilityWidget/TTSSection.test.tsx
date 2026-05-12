@@ -29,15 +29,16 @@ jest.mock('../../hooks/useTTS', () => ({
   }),
 }));
 
-// Segmented stub que renderiza radios simples para testes determinísticos.
-const StubSegmented = <T extends string | number>({
+// Stub do PreviewSegmented — exibe label como children pra que o
+// `screen.getByRole('radio', { name: ... })` continue achando.
+const StubPreviewSegmented = <T extends string | number>({
   value,
   options,
   onChange,
   ariaLabel,
 }: {
   value: T;
-  options: { value: T; label: string }[];
+  options: { value: T; label: string; preview: unknown }[];
   onChange: (v: T) => void;
   ariaLabel: string;
 }) => (
@@ -56,7 +57,8 @@ const StubSegmented = <T extends string | number>({
   </div>
 );
 
-const renderSection = () => render(<TTSSection Segmented={StubSegmented} />);
+const renderSection = () =>
+  render(<TTSSection PreviewSegmented={StubPreviewSegmented} />);
 
 describe('TTSSection', () => {
   beforeEach(() => {
@@ -104,47 +106,36 @@ describe('TTSSection', () => {
     expect(screen.getByText(/Voice en-US/)).toBeInTheDocument();
   });
 
-  it('updates ttsMode through the segmented control', async () => {
+  it('toggles ttsMode via the "Texto para voz" switch row', async () => {
     renderSection();
-    await userEvent.click(
-      screen.getByRole('radio', { name: 'Clique para ler' })
-    );
+    expect(useAccessibilityStore.getState().ttsMode).toBe('off');
+
+    await userEvent.click(screen.getByTestId('a11y-tts-mode-toggle'));
     expect(useAccessibilityStore.getState().ttsMode).toBe('click-to-read');
+
+    await userEvent.click(screen.getByTestId('a11y-tts-mode-toggle'));
+    expect(useAccessibilityStore.getState().ttsMode).toBe('off');
+  });
+
+  it('toggles ttsMode via the keyboard (Enter on the row)', async () => {
+    renderSection();
+    const row = screen.getByTestId('a11y-tts-mode-toggle');
+    row.focus();
+    await userEvent.keyboard('{Enter}');
+    expect(useAccessibilityStore.getState().ttsMode).toBe('click-to-read');
+  });
+
+  it('updates the persisted voice id when a voice is picked', async () => {
+    renderSection();
+    await userEvent.click(screen.getByTestId('a11y-tts-voice-select'));
+    await userEvent.click(screen.getByText(/Voz pt-BR/));
+    expect(useAccessibilityStore.getState().ttsVoiceId).toBe('pt');
   });
 
   it('updates rate via the rate segmented', async () => {
     renderSection();
     await userEvent.click(screen.getByRole('radio', { name: 'Rápido' }));
     expect(useAccessibilityStore.getState().ttsRate).toBe(1.25);
-  });
-
-  it('reads the current selection when clicking "Ler seleção"', async () => {
-    // Mocka window.getSelection para devolver texto.
-    const originalGetSelection = globalThis.getSelection;
-    (globalThis as unknown as { getSelection: () => unknown }).getSelection =
-      () => ({ toString: () => 'trecho selecionado' });
-
-    renderSection();
-    await userEvent.click(screen.getByTestId('a11y-tts-read-selection'));
-    expect(speakMock).toHaveBeenCalledWith('trecho selecionado');
-
-    (
-      globalThis as unknown as { getSelection: typeof originalGetSelection }
-    ).getSelection = originalGetSelection;
-  });
-
-  it('does not call speak when no text is selected', async () => {
-    const originalGetSelection = globalThis.getSelection;
-    (globalThis as unknown as { getSelection: () => unknown }).getSelection =
-      () => ({ toString: () => '   ' });
-
-    renderSection();
-    await userEvent.click(screen.getByTestId('a11y-tts-read-selection'));
-    expect(speakMock).not.toHaveBeenCalled();
-
-    (
-      globalThis as unknown as { getSelection: typeof originalGetSelection }
-    ).getSelection = originalGetSelection;
   });
 
   it('shows pause and stop buttons while speaking', async () => {

@@ -265,6 +265,14 @@ const normalizeWithPositions = (items: PreviewQuestion[]) =>
   }));
 
 /**
+ * Return the average-score card label depending on how many students were assigned to the activity.
+ * @param totalStudents - total students attributed to the activity
+ * @returns singular label when only one student is attributed, plural label otherwise
+ */
+const getAverageScoreLabel = (totalStudents: number): string =>
+  totalStudents === 1 ? 'Nota do Aluno' : 'Média da Turma';
+
+/**
  * ActivityDetails component
  * Displays detailed information about an activity including statistics and student progress
  */
@@ -1012,7 +1020,7 @@ export const ActivityDetails = ({
               <Star size={16} className="text-white" weight="regular" />
             </div>
             <Text className="text-2xs font-bold uppercase text-center text-warning-600">
-              Média da Turma
+              {getAverageScoreLabel(data.pagination.total)}
             </Text>
             <Text className="text-xl font-bold text-warning-600">
               {data.generalStats.averageScore.toFixed(1)}

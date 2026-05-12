@@ -1,26 +1,24 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   ArrowCounterClockwiseIcon,
-  XIcon,
-  TextAaIcon,
-  TextTIcon,
-  CursorIcon,
-  CircleHalfIcon,
-  DropIcon,
-  BookOpenTextIcon,
+  CaretDownIcon,
+  EyeIcon,
+  FilmReelIcon,
   KeyboardIcon,
-  PaletteIcon,
+  NavigationArrowIcon,
   SpeakerHighIcon,
+  TextTIcon,
+  XIcon,
 } from '@phosphor-icons/react';
+import accessibilityIcon from '../../assets/img/accessibility.png';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
 import IconButton from '../IconButton/IconButton';
-import ToggleSwitch from '../ToggleSwitch/ToggleSwitch';
+import AccessibilityToggleRow from './AccessibilityToggleRow';
 import TTSSection from './TTSSection';
 import { cn } from '../../utils/utils';
 import {
   useAccessibilityStore,
-  ColorBlindMode,
   type ContrastMode,
   type SaturationMode,
   type ReadingAid,
@@ -45,14 +43,31 @@ const READING_AID_OPTIONS: { value: ReadingAid; label: string }[] = [
   { value: 'mask', label: 'Máscara' },
 ];
 
-const COLOR_BLIND_OPTIONS: { value: ColorBlindMode; label: string }[] = [
-  { value: ColorBlindMode.None, label: 'Nenhum' },
-  { value: ColorBlindMode.Protanopia, label: 'Protanopia' },
-  { value: ColorBlindMode.Deuteranopia, label: 'Deuteranopia' },
-  { value: ColorBlindMode.Tritanopia, label: 'Tritanopia' },
-];
-
 const LEVEL_LABELS = ['Padrão', 'Pequeno', 'Médio', 'Grande'] as const;
+
+/** Tamanho de fonte do preview "Aa" em cada botão (Padrão → Grande). */
+const FONT_SIZE_PREVIEW_CLASSES = [
+  'text-base', // Padrão
+  'text-lg', // Pequeno (= maior que Padrão, segue a escala incremental do widget)
+  'text-2xl', // Médio
+  'text-4xl', // Grande
+] as const;
+
+/** Letter-spacing do preview "Aa" em cada botão. */
+const LETTER_SPACING_PREVIEW_CLASSES = [
+  'tracking-tighter', // Padrão (junto)
+  'tracking-normal',
+  'tracking-wider',
+  'tracking-widest',
+] as const;
+
+/** Gap vertical entre as 3 barras do preview de espaçamento entre linhas. */
+const LINE_SPACING_PREVIEW_GAPS = [
+  'gap-0.5', // Padrão (2px) — linhas próximas
+  'gap-1.5', // Pequeno (6px)
+  'gap-2.5', // Médio (10px)
+  'gap-3.5', // Grande (14px)
+] as const;
 
 /**
  * `<dialog open>` aplica `left: 0; right: 0` como user-agent style. Sem
@@ -60,28 +75,95 @@ const LEVEL_LABELS = ['Padrão', 'Pequeno', 'Médio', 'Grande'] as const;
  * errado mesmo com `right-6` ou `left-6` aplicado.
  */
 const PANEL_EDGE_CLASSES: Record<AccessibilityFabPosition, string> = {
-  right: 'right-6 left-auto',
-  left: 'left-6 right-auto',
+  right: 'right-10 left-auto',
+  left: 'left-10 right-auto',
 };
 
-interface SectionProps {
+interface AccordionSectionProps {
   title: string;
   icon: ReactNode;
+  defaultExpanded?: boolean;
+  testId?: string;
   children: ReactNode;
 }
 
-const Section = ({ title, icon, children }: Readonly<SectionProps>) => (
-  <section className="flex flex-col gap-2 border-b border-background-200 px-4 py-3 last:border-b-0">
-    <header className="flex items-center gap-2">
-      <span className="text-text-700" aria-hidden="true">
-        {icon}
-      </span>
-      <Text size="sm" weight="semibold" className="text-text-900">
-        {title}
-      </Text>
-    </header>
+/**
+ * Item de accordion estilo lista (sem cantos arredondados nem card),
+ * com ícone + título à esquerda e caret à direita. Cada item separado
+ * do próximo por uma linha fina. Mantém a estrutura visual do design
+ * do Figma sem usar o `CardAccordation` da lib (que tem visual de card).
+ */
+const AccordionSection = ({
+  title,
+  icon,
+  defaultExpanded = false,
+  testId,
+  children,
+}: Readonly<AccordionSectionProps>) => {
+  const [expanded, setExpanded] = useState(defaultExpanded);
+  return (
+    <section className="border-b border-background-200 last:border-b-0">
+      <Button
+        variant="raw"
+        aria-expanded={expanded}
+        onClick={() => setExpanded((v) => !v)}
+        data-testid={testId}
+        className={cn(
+          'flex w-full cursor-pointer items-center justify-between gap-2 px-4 py-3',
+          'text-left transition-colors hover:bg-background-50',
+          'focus:outline-none focus-visible:ring-2 focus-visible:ring-info-500 focus-visible:ring-inset'
+        )}
+      >
+        <span className="flex items-center gap-2">
+          <span className="text-text-800" aria-hidden="true">
+            {icon}
+          </span>
+          <Text
+            size="md"
+            weight="semibold"
+            className="leading-none text-text-800"
+          >
+            {title}
+          </Text>
+        </span>
+        <CaretDownIcon
+          size={16}
+          weight="bold"
+          aria-hidden="true"
+          className={cn(
+            'text-text-700 transition-transform duration-200',
+            expanded ? 'rotate-180' : 'rotate-0'
+          )}
+        />
+      </Button>
+      {expanded && (
+        <div className="flex flex-col gap-6 px-4 pb-4 pt-2">{children}</div>
+      )}
+    </section>
+  );
+};
+
+interface SubControlProps {
+  label: string;
+  children: ReactNode;
+}
+
+/**
+ * Wrapper para uma control (segmented/toggle) com título dentro do
+ * accordion. Tipografia do label segue o Figma: Roboto 12px/500/100%
+ * uppercase, cor `text-text-600` (#737373).
+ */
+const SubControl = ({ label, children }: Readonly<SubControlProps>) => (
+  <div className="flex flex-col gap-2">
+    <Text
+      size="xs"
+      weight="medium"
+      className="uppercase leading-none text-text-600"
+    >
+      {label}
+    </Text>
     {children}
-  </section>
+  </div>
 );
 
 interface SegmentedProps<T extends string | number> {
@@ -91,6 +173,12 @@ interface SegmentedProps<T extends string | number> {
   ariaLabel: string;
 }
 
+/**
+ * Estilo de segmented baseado no `SelectionButton` da lib: cada opção é
+ * um botão independente com `border` + `bg-background`, e o selecionado
+ * ganha `ring-primary-950` (mesma identidade visual do componente da lib,
+ * sem o overhead de ícone obrigatório do SelectionButton).
+ */
 const Segmented = <T extends string | number>({
   value,
   options,
@@ -100,7 +188,7 @@ const Segmented = <T extends string | number>({
   <div
     role="radiogroup"
     aria-label={ariaLabel}
-    className="flex flex-wrap gap-1 rounded-lg bg-background-100 p-1"
+    className="flex flex-wrap gap-2"
   >
     {options.map((opt) => {
       const isActive = opt.value === value;
@@ -112,12 +200,16 @@ const Segmented = <T extends string | number>({
           aria-checked={isActive}
           onClick={() => onChange(opt.value)}
           className={cn(
-            'flex-1 cursor-pointer rounded-md px-3 py-1.5 text-sm font-medium',
-            'transition-all duration-150',
-            'focus:outline-none focus-visible:ring-2 focus-visible:ring-info-500',
-            isActive
-              ? 'bg-white text-text-900 shadow-sm hover:bg-background-50'
-              : 'text-text-700 hover:bg-white/70 hover:text-text-900 hover:shadow-sm'
+            'flex-1 cursor-pointer rounded-xl border border-border-50 bg-background',
+            // Texto segue spec do Figma: Roboto 14px/700/100%/0.2px, cor
+            // #525252 (text-700). Quando ativo, troca pra primary-950
+            // (azul escuro), mas mantém a mesma typography.
+            'px-4 py-4 text-sm font-bold leading-none tracking-[0.2px] text-text-700',
+            'shadow-soft-shadow-1 transition-all duration-150',
+            'hover:bg-background-100',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indicator-info',
+            isActive &&
+              'ring-2 ring-primary-950 ring-offset-0 shadow-none text-primary-950'
           )}
         >
           {opt.label}
@@ -127,57 +219,67 @@ const Segmented = <T extends string | number>({
   </div>
 );
 
-interface ToggleRowProps {
+interface PreviewSegmentedOption<T extends string | number> {
+  value: T;
   label: string;
-  description?: string;
-  checked: boolean;
-  onChange: () => void;
-  testId?: string;
+  /** Conteúdo visual exibido DENTRO do botão (preview do efeito). */
+  preview: ReactNode;
 }
 
-const ToggleRow = ({
-  label,
-  description,
-  checked,
+interface PreviewSegmentedProps<T extends string | number> {
+  value: T;
+  options: PreviewSegmentedOption<T>[];
+  onChange: (value: T) => void;
+  ariaLabel: string;
+}
+
+/**
+ * Variante do Segmented onde o botão mostra um preview visual do efeito
+ * (ex.: "Aa" em tamanhos diferentes para "Tamanho da fonte") e o label
+ * textual fica abaixo do botão como legenda.
+ */
+const PreviewSegmented = <T extends string | number>({
+  value,
+  options,
   onChange,
-  testId,
-}: Readonly<ToggleRowProps>) => (
-  <div
-    role="switch"
-    tabIndex={0}
-    aria-checked={checked}
-    aria-label={label}
-    className={cn(
-      '-mx-2 flex items-center justify-between gap-3 rounded-md px-2 py-1.5',
-      'cursor-pointer transition-colors duration-150 hover:bg-background-100',
-      'focus:outline-none focus-visible:ring-2 focus-visible:ring-info-500'
-    )}
-    onClick={onChange}
-    onKeyDown={(e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        onChange();
-      }
-    }}
-  >
-    <div className="flex flex-col">
-      <Text size="sm" className="text-text-900">
-        {label}
-      </Text>
-      {description && (
-        <Text size="2xs" className="text-text-600">
-          {description}
-        </Text>
-      )}
-    </div>
-    <ToggleSwitch
-      checked={checked}
-      onChange={() => undefined}
-      checkedColor="bg-info-600"
-      data-testid={testId}
-      tabIndex={-1}
-      aria-hidden
-    />
+  ariaLabel,
+}: Readonly<PreviewSegmentedProps<T>>) => (
+  <div role="radiogroup" aria-label={ariaLabel} className="flex gap-2">
+    {options.map((opt) => {
+      const isActive = opt.value === value;
+      return (
+        <div
+          key={String(opt.value)}
+          className="flex flex-1 flex-col items-center gap-2"
+        >
+          <Button
+            variant="raw"
+            role="radio"
+            aria-checked={isActive}
+            aria-label={opt.label}
+            onClick={() => onChange(opt.value)}
+            className={cn(
+              'flex aspect-square w-full items-center justify-center',
+              'cursor-pointer rounded-xl border border-border-50 bg-background',
+              'text-text-700 shadow-soft-shadow-1 transition-all duration-150',
+              'hover:bg-background-100',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indicator-info',
+              isActive &&
+                'ring-2 ring-primary-950 ring-offset-0 shadow-none text-primary-950'
+            )}
+          >
+            {opt.preview}
+          </Button>
+          <Text
+            size="xs"
+            weight="normal"
+            className="leading-none text-text-700"
+          >
+            {opt.label}
+          </Text>
+        </div>
+      );
+    })}
   </div>
 );
 
@@ -190,9 +292,11 @@ export interface AccessibilityPanelProps {
 }
 
 /**
- * Painel lateral com todos os controles de acessibilidade. As
- * preferências são lidas/escritas no `useAccessibilityStore`. O
- * próprio painel fica dentro do wrapper `.a11y-widget-root`, então
+ * Painel lateral com os controles de acessibilidade organizados em
+ * accordions colapsáveis (Visão, Leitura, Leitor de texto, Animação,
+ * Navegação, Atalho de teclado).
+ *
+ * O próprio painel fica dentro de `.a11y-widget-shield`, então
  * filtros aplicados no `<html>` (alto contraste, etc.) não afetam
  * sua legibilidade.
  */
@@ -217,7 +321,6 @@ export default function AccessibilityPanel({
     dyslexiaFont,
     readingAid,
     keyboardShortcut,
-    colorBlindMode,
     setContrastMode,
     setSaturationMode,
     setFontSize,
@@ -229,7 +332,6 @@ export default function AccessibilityPanel({
     setDyslexiaFont,
     setReadingAid,
     setKeyboardShortcut,
-    setColorBlindMode,
     resetPreferences,
   } = useAccessibilityStore();
 
@@ -270,28 +372,48 @@ export default function AccessibilityPanel({
       open
       aria-label="Opções de acessibilidade"
       data-testid="accessibility-panel"
-      style={{ height: 'min(720px, calc(100vh - 3rem))' }}
+      // `<dialog>` não estica automaticamente com `top` + `bottom`, por
+      // isso a altura fica explícita: `100vh - 5rem` (80px de respiro do
+      // topo). Combinado com `bottom-0` no className, o painel encosta
+      // na base da viewport como no Figma.
+      style={{ height: 'calc(100vh - 5rem)' }}
       className={cn(
         'a11y-widget-shield',
-        'fixed bottom-6 z-40 m-0',
+        'fixed bottom-0 z-40 m-0',
         PANEL_EDGE_CLASSES[position],
-        'flex w-[calc(100vw-3rem)] max-w-[400px] flex-col overflow-hidden rounded-2xl p-0',
+        'flex w-[calc(100vw-3rem)] max-w-110 flex-col overflow-hidden rounded-2xl p-0',
         'border border-background-200 bg-background shadow-2xl',
         className
       )}
     >
-      <header className="flex items-center justify-between gap-2 bg-info-600 px-4 py-3 text-white">
-        <div className="flex min-w-0 flex-col">
-          <Text
-            size="md"
-            weight="semibold"
-            className="leading-tight text-white"
-          >
-            Acessibilidade
-          </Text>
-          <Text size="2xs" className="leading-tight text-white/80">
-            Personalize a leitura e a navegação
-          </Text>
+      {/* Header — tokens do Figma:
+          bg via `--color-map-attention` (#E3F1FB em Paraná/base; muda
+          conforme white-label institucional). Título 16px/700/100%/0.2px
+          #171717, subtítulo 12px/400/100% #404040. */}
+      <header className="flex items-center justify-between gap-3 bg-map-attention px-4 py-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <img
+            src={accessibilityIcon}
+            alt=""
+            aria-hidden="true"
+            className="h-10 w-10 shrink-0"
+          />
+          <div className="flex min-w-0 flex-col gap-1">
+            <Text
+              size="md"
+              weight="bold"
+              className="leading-none tracking-[0.2px] text-text-950"
+            >
+              Acessibilidade
+            </Text>
+            <Text
+              size="xs"
+              weight="normal"
+              className="leading-none text-text-800"
+            >
+              Personalize a leitura e navegação
+            </Text>
+          </div>
         </div>
         <IconButton
           ref={closeButtonRef}
@@ -299,168 +421,211 @@ export default function AccessibilityPanel({
           aria-label="Fechar opções de acessibilidade"
           onClick={onClose}
           icon={<XIcon size={18} />}
-          className="text-white! hover:bg-white/15! hover:text-white! focus-visible:ring-white/60!"
         />
       </header>
 
       <div className="flex-1 overflow-y-auto">
-        <Section
-          title="Contraste"
-          icon={<CircleHalfIcon size={18} weight="fill" />}
+        <AccordionSection
+          title="Visão"
+          icon={<EyeIcon size={18} />}
+          testId="a11y-section-vision"
         >
-          <Segmented
-            ariaLabel="Modo de contraste"
-            value={contrastMode}
-            options={CONTRAST_OPTIONS}
-            onChange={setContrastMode}
-          />
-        </Section>
-
-        <Section title="Saturação" icon={<DropIcon size={18} weight="fill" />}>
-          <Segmented
-            ariaLabel="Modo de saturação"
-            value={saturationMode}
-            options={SATURATION_OPTIONS}
-            onChange={setSaturationMode}
-          />
-        </Section>
-
-        <Section
-          title="Tamanho da fonte"
-          icon={<TextAaIcon size={18} weight="bold" />}
-        >
-          <Segmented
-            ariaLabel="Tamanho da fonte"
-            value={fontSize}
-            options={levelOptions}
-            onChange={setFontSize}
-          />
-        </Section>
-
-        <Section
-          title="Espaçamento entre letras"
-          icon={<TextTIcon size={18} weight="bold" />}
-        >
-          <Segmented
-            ariaLabel="Espaçamento entre letras"
-            value={letterSpacing}
-            options={levelOptions}
-            onChange={setLetterSpacing}
-          />
-        </Section>
-
-        <Section
-          title="Espaçamento entre linhas"
-          icon={<TextTIcon size={18} weight="bold" />}
-        >
-          <Segmented
-            ariaLabel="Espaçamento entre linhas"
-            value={lineSpacing}
-            options={levelOptions}
-            onChange={setLineSpacing}
-          />
-        </Section>
-
-        <Section
-          title="Auxiliar de leitura"
-          icon={<BookOpenTextIcon size={18} weight="fill" />}
-        >
-          <Segmented
-            ariaLabel="Auxiliar de leitura"
-            value={readingAid}
-            options={READING_AID_OPTIONS}
-            onChange={setReadingAid}
-          />
-        </Section>
-
-        <Section
-          title="Daltonismo"
-          icon={<PaletteIcon size={18} weight="fill" />}
-        >
-          <Segmented
-            ariaLabel="Modo de daltonismo"
-            value={colorBlindMode}
-            options={COLOR_BLIND_OPTIONS}
-            onChange={setColorBlindMode}
-          />
-        </Section>
-
-        <Section
-          title="Leitor de texto"
-          icon={<SpeakerHighIcon size={18} weight="fill" />}
-        >
-          <TTSSection Segmented={Segmented} />
-        </Section>
-
-        <Section
-          title="Outras opções"
-          icon={<CursorIcon size={18} weight="fill" />}
-        >
-          <div className="flex flex-col gap-3">
-            <ToggleRow
-              label="Destacar links e botões"
-              description="Adiciona contorno e sublinhado em elementos clicáveis"
-              checked={highlightLinks}
-              onChange={() => setHighlightLinks(!highlightLinks)}
-              testId="a11y-toggle-highlight-links"
+          <SubControl label="Contraste">
+            <Segmented
+              ariaLabel="Modo de contraste"
+              value={contrastMode}
+              options={CONTRAST_OPTIONS}
+              onChange={setContrastMode}
             />
-            <ToggleRow
-              label="Pausar animações"
-              description="Reduz movimentos para conforto visual"
-              checked={pauseAnimations}
-              onChange={() => setPauseAnimations(!pauseAnimations)}
-              testId="a11y-toggle-pause-animations"
+          </SubControl>
+          <SubControl label="Saturação">
+            <Segmented
+              ariaLabel="Modo de saturação"
+              value={saturationMode}
+              options={SATURATION_OPTIONS}
+              onChange={setSaturationMode}
             />
-            <ToggleRow
-              label="Cursor aumentado"
-              description="Cursor maior e de alto contraste"
-              checked={bigCursor}
-              onChange={() => setBigCursor(!bigCursor)}
-              testId="a11y-toggle-big-cursor"
-            />
-            <ToggleRow
-              label="Fonte para dislexia"
-              description="OpenDyslexic com fallback para Comic Sans MS"
+          </SubControl>
+          {/* Daltonismo removido por enquanto — store/store actions
+              mantidos para reativação futura sem refactor. */}
+        </AccordionSection>
+
+        <AccordionSection
+          title="Leitura"
+          icon={<TextTIcon size={18} />}
+          testId="a11y-section-reading"
+        >
+          <SubControl label="Fonte para dislexia">
+            <AccessibilityToggleRow
+              ariaLabel="Trocar para Comic Sans MS"
+              rowTestId="a11y-toggle-dyslexia-font-row"
+              switchTestId="a11y-toggle-dyslexia-font"
               checked={dyslexiaFont}
               onChange={() => setDyslexiaFont(!dyslexiaFont)}
-              testId="a11y-toggle-dyslexia-font"
+              label={
+                <>
+                  Trocar para{' '}
+                  <span style={{ fontFamily: '"Comic Sans MS", cursive' }}>
+                    Comic Sans MS
+                  </span>
+                </>
+              }
             />
-          </div>
-        </Section>
+          </SubControl>
 
-        <Section
-          title="Atalho de teclado"
-          icon={<KeyboardIcon size={18} weight="fill" />}
+          <SubControl label="Tamanho da fonte">
+            <PreviewSegmented
+              ariaLabel="Tamanho da fonte"
+              value={fontSize}
+              options={levelOptions.map((opt) => ({
+                ...opt,
+                preview: (
+                  <span
+                    className={cn(
+                      'font-semibold leading-none',
+                      FONT_SIZE_PREVIEW_CLASSES[opt.value]
+                    )}
+                  >
+                    Aa
+                  </span>
+                ),
+              }))}
+              onChange={setFontSize}
+            />
+          </SubControl>
+
+          <SubControl label="Espaçamento entre letras">
+            <PreviewSegmented
+              ariaLabel="Espaçamento entre letras"
+              value={letterSpacing}
+              options={levelOptions.map((opt) => ({
+                ...opt,
+                preview: (
+                  <span
+                    className={cn(
+                      // Mesmo tamanho do "Aa" no botão Padrão de "Tamanho
+                      // da fonte" (text-base), pra que essa scale visualize
+                      // só a variação de letter-spacing.
+                      'text-base font-semibold leading-none',
+                      LETTER_SPACING_PREVIEW_CLASSES[opt.value]
+                    )}
+                  >
+                    Aa
+                  </span>
+                ),
+              }))}
+              onChange={setLetterSpacing}
+            />
+          </SubControl>
+
+          <SubControl label="Espaçamento entre linhas">
+            <PreviewSegmented
+              ariaLabel="Espaçamento entre linhas"
+              value={lineSpacing}
+              options={levelOptions.map((opt) => ({
+                ...opt,
+                preview: (
+                  <span
+                    className={cn(
+                      'flex flex-col items-stretch',
+                      LINE_SPACING_PREVIEW_GAPS[opt.value]
+                    )}
+                  >
+                    <span className="h-0.5 w-7 rounded-full bg-current" />
+                    <span className="h-0.5 w-7 rounded-full bg-current" />
+                    <span className="h-0.5 w-7 rounded-full bg-current" />
+                  </span>
+                ),
+              }))}
+              onChange={setLineSpacing}
+            />
+          </SubControl>
+
+          <SubControl label="Auxiliar de leitura">
+            <Segmented
+              ariaLabel="Auxiliar de leitura"
+              value={readingAid}
+              options={READING_AID_OPTIONS}
+              onChange={setReadingAid}
+            />
+          </SubControl>
+        </AccordionSection>
+
+        <AccordionSection
+          title="Leitor de texto"
+          icon={<SpeakerHighIcon size={18} />}
+          testId="a11y-section-tts"
         >
-          <ToggleRow
-            label="Alt + A para abrir o painel"
-            description="Atalho global, ignorado durante digitação em campos"
+          <TTSSection PreviewSegmented={PreviewSegmented} />
+        </AccordionSection>
+
+        <AccordionSection
+          title="Animação"
+          icon={<FilmReelIcon size={18} />}
+          testId="a11y-section-animation"
+        >
+          <AccessibilityToggleRow
+            label="Pausar animações para conforto visual"
+            checked={pauseAnimations}
+            onChange={() => setPauseAnimations(!pauseAnimations)}
+            switchTestId="a11y-toggle-pause-animations"
+          />
+        </AccordionSection>
+
+        <AccordionSection
+          title="Navegação"
+          icon={<NavigationArrowIcon size={18} />}
+          testId="a11y-section-navigation"
+        >
+          <SubControl label="Destacar links e botões">
+            <AccessibilityToggleRow
+              label="Adicionar contorno em elementos clicáveis"
+              checked={highlightLinks}
+              onChange={() => setHighlightLinks(!highlightLinks)}
+              switchTestId="a11y-toggle-highlight-links"
+            />
+          </SubControl>
+          <SubControl label="Cursor maior">
+            <AccessibilityToggleRow
+              label="Aumentar e escurecer cursor"
+              checked={bigCursor}
+              onChange={() => setBigCursor(!bigCursor)}
+              switchTestId="a11y-toggle-big-cursor"
+            />
+          </SubControl>
+        </AccordionSection>
+
+        <AccordionSection
+          title="Atalho de teclado"
+          icon={<KeyboardIcon size={18} />}
+          testId="a11y-section-shortcut"
+        >
+          <AccessibilityToggleRow
+            label="Alt+A para abrir o painel"
             checked={keyboardShortcut}
             onChange={() => setKeyboardShortcut(!keyboardShortcut)}
-            testId="a11y-toggle-keyboard-shortcut"
+            switchTestId="a11y-toggle-keyboard-shortcut"
           />
-        </Section>
+        </AccordionSection>
       </div>
 
-      <footer className="flex items-center justify-between gap-2 border-t border-background-200 px-4 py-3">
-        <Text size="2xs" className="text-text-600">
-          As preferências são salvas neste dispositivo.
-        </Text>
+      <footer className="border-t border-background-200 px-4 py-3">
         <Button
           variant="outline"
-          action="secondary"
-          size="small"
+          action="primary"
+          size="medium"
           iconLeft={
             <ArrowCounterClockwiseIcon
-              size={14}
+              size={16}
               weight="bold"
               aria-hidden="true"
             />
           }
           onClick={resetPreferences}
           data-testid="a11y-reset"
+          className="w-full justify-center"
         >
-          Redefinir
+          Redefinir ajustes
         </Button>
       </footer>
     </dialog>
