@@ -59,6 +59,15 @@ interface ModulesFeatureFlagResponse {
 // Guard against stale async responses
 let latestRequestId = 0;
 
+// Retry configuration
+const MAX_RETRIES = 3;
+const INITIAL_RETRY_DELAY = 1000; // 1 second
+
+/**
+ * Delay helper for retry backoff
+ */
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 /**
  * Zustand store for managing modules visibility with persistence
  * Works with both student and professor frontends
@@ -75,6 +84,7 @@ export const useModulesStore = create<ModulesState>()(
        * Only fetches if:
        * 1. No modules data exists in localStorage
        * 2. User made a new login (data cleared by auth subscriber)
+       * Implements retry with exponential backoff on failure
        */
       fetchModules: async (
         institutionId: string,
@@ -96,29 +106,53 @@ export const useModulesStore = create<ModulesState>()(
         const requestId = ++latestRequestId;
         set({ loading: true });
 
-        try {
-          const response = await api.get<ModulesFeatureFlagResponse>(
-            `/featureFlags/institution/${institutionId}/page/MODULES`
+        let lastError: unknown;
+
+        for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+          try {
+            // Wait before retry (exponential backoff)
+            if (attempt > 0) {
+              await delay(INITIAL_RETRY_DELAY * Math.pow(2, attempt - 1));
+            }
+
+            // Check if this request is still the latest
+            if (requestId !== latestRequestId) return;
+
+            const response = await api.get<ModulesFeatureFlagResponse>(
+              `/featureFlags/institution/${institutionId}/page/MODULES`
+            );
+
+            if (requestId !== latestRequestId) return;
+
+            const version = response.data?.data?.featureFlags?.version;
+            if (version) {
+              set({
+                modules: { ...defaultModules, ...version },
+                ownerInstitutionId: institutionId,
+                loading: false,
+              });
+            } else {
+              set({
+                modules: defaultModules,
+                ownerInstitutionId: institutionId,
+                loading: false,
+              });
+            }
+            return; // Success, exit retry loop
+          } catch (error) {
+            lastError = error;
+            // Continue to next retry attempt
+          }
+        }
+
+        // All retries exhausted, set defaults without ownerInstitutionId
+        // so it can retry on next call
+        if (requestId === latestRequestId) {
+          console.warn(
+            '[modulesStore] Failed to fetch modules after retries:',
+            lastError
           );
-
-          if (requestId !== latestRequestId) return;
-
-          const version = response.data?.data?.featureFlags?.version;
-          if (version) {
-            set({
-              modules: { ...defaultModules, ...version },
-              ownerInstitutionId: institutionId,
-            });
-          } else {
-            set({ modules: defaultModules, ownerInstitutionId: institutionId });
-          }
-        } catch {
-          if (requestId !== latestRequestId) return;
-          set({ modules: defaultModules, ownerInstitutionId: institutionId });
-        } finally {
-          if (requestId === latestRequestId) {
-            set({ loading: false });
-          }
+          set({ modules: defaultModules, loading: false });
         }
       },
 
