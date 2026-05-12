@@ -1851,3 +1851,49 @@ export {
   createExamDraftsModelsFiltersConfig,
   createExamHistoryFiltersConfig,
 } from './utils/examFilterHelpers';
+
+// Exam Details Types
+export {
+  StudentAnswerStatus,
+  StudentAnswerDisplayStatus,
+} from './types/examDetails';
+export type {
+  ExamStudentResult,
+  ExamStudentTableItem,
+  ExamStats,
+  ExamDetailsData,
+  ExamDetailsPagination,
+  ExamDetailsFilters,
+} from './types/examDetails';
+
+// Exam Details Hook Factory
+export {
+  createUseExamDetails,
+  createExamDetailsHook,
+  transformStudent,
+  mapBackendStatusToFrontend,
+  handleExamDetailsFetchError,
+  examDetailsApiResponseSchema,
+  examInfoResponseSchema,
+  DEFAULT_EXAM_DETAILS_PAGINATION,
+} from './hooks/useExamDetails';
+export type {
+  UseExamDetailsState,
+  UseExamDetailsReturn,
+} from './hooks/useExamDetails';
+
+// Exam Details Layout Components
+export {
+  ExamDetailsHeader,
+  ExamStatsCards,
+  formatQuestions,
+  ExamStudentsTable,
+  createExamStudentsTableColumns,
+  getExamStudentStatusBadgeAction,
+  getExamStudentStatusDisplayText,
+} from './components/ExamDetailsLayout';
+export type {
+  ExamDetailsHeaderProps,
+  ExamStatsCardsProps,
+  ExamStudentsTableProps,
+} from './components/ExamDetailsLayout';
