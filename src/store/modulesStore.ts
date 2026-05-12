@@ -69,6 +69,54 @@ const INITIAL_RETRY_DELAY = 1000; // 1 second
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
+ * Check if modules are already cached in localStorage
+ */
+const hasCachedModules = (): boolean => {
+  const cached = localStorage.getItem(KEYS.MODULES_STORAGE);
+  if (!cached) return false;
+
+  try {
+    const parsed = JSON.parse(cached);
+    return Boolean(parsed.state?.ownerInstitutionId);
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Attempt to fetch modules from API with retry logic
+ * Returns the modules config on success, null on failure
+ */
+const fetchWithRetry = async (
+  institutionId: string,
+  api: AxiosInstance,
+  requestId: number
+): Promise<Partial<ModulesConfig> | null> => {
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    if (attempt > 0) {
+      await delay(INITIAL_RETRY_DELAY * Math.pow(2, attempt - 1));
+    }
+
+    if (requestId !== latestRequestId) return null;
+
+    try {
+      const response = await api.get<ModulesFeatureFlagResponse>(
+        `/featureFlags/institution/${institutionId}/page/MODULES`
+      );
+
+      if (requestId !== latestRequestId) return null;
+
+      return response.data?.data?.featureFlags?.version ?? {};
+    } catch {
+      // Continue to next retry attempt
+    }
+  }
+
+  console.warn('[modulesStore] Failed to fetch modules after retries');
+  return null;
+};
+
+/**
  * Zustand store for managing modules visibility with persistence
  * Works with both student and professor frontends
  */
@@ -90,68 +138,22 @@ export const useModulesStore = create<ModulesState>()(
         institutionId: string,
         api: AxiosInstance
       ): Promise<void> => {
-        // Skip if modules already cached in localStorage
-        const cached = localStorage.getItem(KEYS.MODULES_STORAGE);
-        if (cached) {
-          try {
-            const parsed = JSON.parse(cached);
-            if (parsed.state?.ownerInstitutionId) {
-              return;
-            }
-          } catch {
-            // Invalid JSON, continue with fetch
-          }
-        }
+        if (hasCachedModules()) return;
 
         const requestId = ++latestRequestId;
         set({ loading: true });
 
-        let lastError: unknown;
+        const version = await fetchWithRetry(institutionId, api, requestId);
 
-        for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-          try {
-            // Wait before retry (exponential backoff)
-            if (attempt > 0) {
-              await delay(INITIAL_RETRY_DELAY * Math.pow(2, attempt - 1));
-            }
+        if (requestId !== latestRequestId) return;
 
-            // Check if this request is still the latest
-            if (requestId !== latestRequestId) return;
-
-            const response = await api.get<ModulesFeatureFlagResponse>(
-              `/featureFlags/institution/${institutionId}/page/MODULES`
-            );
-
-            if (requestId !== latestRequestId) return;
-
-            const version = response.data?.data?.featureFlags?.version;
-            if (version) {
-              set({
-                modules: { ...defaultModules, ...version },
-                ownerInstitutionId: institutionId,
-                loading: false,
-              });
-            } else {
-              set({
-                modules: defaultModules,
-                ownerInstitutionId: institutionId,
-                loading: false,
-              });
-            }
-            return; // Success, exit retry loop
-          } catch (error) {
-            lastError = error;
-            // Continue to next retry attempt
-          }
-        }
-
-        // All retries exhausted, set defaults without ownerInstitutionId
-        // so it can retry on next call
-        if (requestId === latestRequestId) {
-          console.warn(
-            '[modulesStore] Failed to fetch modules after retries:',
-            lastError
-          );
+        if (version !== null) {
+          set({
+            modules: { ...defaultModules, ...version },
+            ownerInstitutionId: institutionId,
+            loading: false,
+          });
+        } else {
           set({ modules: defaultModules, loading: false });
         }
       },
