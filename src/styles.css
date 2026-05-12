@@ -17,6 +17,16 @@
 @import './themes/paraiba/light.css';
 @import './themes/paraiba/dark.css';
 
+/*
+ * Regras globais do AccessibilityWidget (classes em <html> para
+ * contraste, fonte, dislexia, etc. e regra que esconde o botão nativo
+ * do VLibras). Incluído aqui porque o consumidor só importa
+ * `analytica-frontend-lib/styles.css`; o CSS empacotado junto da
+ * AccessibilityWidget (per-component sidecar) não é carregado
+ * automaticamente.
+ */
+@import './components/AccessibilityWidget/accessibility.css';
+
 /* Safelist compacto para todas as cores do tema */
 @source inline("{bg,text,border}-{primary,secondary,tertiary,text,background,border,success,error,warning,info}-{50,{100..900..100},950}");
 
