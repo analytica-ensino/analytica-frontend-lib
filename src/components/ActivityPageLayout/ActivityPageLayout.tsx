@@ -16,7 +16,11 @@ export enum ActivityTab {
  * Tab configuration for activity pages
  */
 const ACTIVITY_TABS = [
-  { value: ActivityTab.HISTORY, label: 'Histórico', testId: 'menu-item-history' },
+  {
+    value: ActivityTab.HISTORY,
+    label: 'Histórico',
+    testId: 'menu-item-history',
+  },
   { value: ActivityTab.DRAFTS, label: 'Rascunhos', testId: 'menu-item-drafts' },
   { value: ActivityTab.MODELS, label: 'Modelos', testId: 'menu-item-models' },
 ];
