@@ -12,19 +12,19 @@ import {
   DEFAULT_EXAM_FILTER_OPTIONS,
 } from './useExamsHistory';
 import { ExamStatus, ExamDisplayStatus } from '../types/examsHistory';
-import type { ExamHistoryResponse, ExamFilterOption } from '../types/examsHistory';
+import type {
+  ExamHistoryResponse,
+  ExamFilterOption,
+} from '../types/examsHistory';
 import type { BaseApiClient } from '../types/api';
 
 // Mock dayjs
 jest.mock('dayjs', () => {
   const actual = jest.requireActual('dayjs');
-  return Object.assign(
-    (date?: string | Date) => {
-      if (date) return actual(date);
-      return actual('2024-06-15');
-    },
-    actual
-  );
+  return Object.assign((date?: string | Date) => {
+    if (date) return actual(date);
+    return actual('2024-06-15');
+  }, actual);
 });
 
 describe('useExamsHistory', () => {
@@ -344,7 +344,11 @@ describe('useExamsHistory', () => {
           completionPercentage: 75,
           questionCount: 20,
           createdAt: '2024-06-01',
-          subject: { id: 'subject-2', name: 'Zology', areaKnowledgeId: 'area-1' },
+          subject: {
+            id: 'subject-2',
+            name: 'Zology',
+            areaKnowledgeId: 'area-1',
+          },
           creator: null,
           breakdown: [
             {
@@ -365,7 +369,11 @@ describe('useExamsHistory', () => {
           completionPercentage: 80,
           questionCount: 25,
           createdAt: '2024-06-02',
-          subject: { id: 'subject-1', name: 'Arithmetic', areaKnowledgeId: 'area-1' },
+          subject: {
+            id: 'subject-1',
+            name: 'Arithmetic',
+            areaKnowledgeId: 'area-1',
+          },
           creator: null,
           breakdown: [
             {
@@ -715,7 +723,9 @@ describe('useExamsHistory', () => {
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
       expect(result.current.pagination).toEqual(DEFAULT_EXAMS_PAGINATION);
-      expect(result.current.apiFilterOptions).toEqual(DEFAULT_EXAM_FILTER_OPTIONS);
+      expect(result.current.apiFilterOptions).toEqual(
+        DEFAULT_EXAM_FILTER_OPTIONS
+      );
       expect(result.current.fetchExams).toBeInstanceOf(Function);
     });
 
@@ -833,7 +843,9 @@ describe('useExamsHistory', () => {
       });
 
       expect(result.current.loading).toBe(false);
-      expect(result.current.error).toBe('Erro ao validar dados de historico de provas');
+      expect(result.current.error).toBe(
+        'Erro ao validar dados de historico de provas'
+      );
 
       consoleErrorSpy.mockRestore();
     });
@@ -854,7 +866,9 @@ describe('useExamsHistory', () => {
       expect(result.current.apiFilterOptions.classes).toHaveLength(1);
       expect(result.current.apiFilterOptions.classes[0].name).toBe('Class A');
       expect(result.current.apiFilterOptions.subjects).toHaveLength(1);
-      expect(result.current.apiFilterOptions.subjects[0].name).toBe('Mathematics');
+      expect(result.current.apiFilterOptions.subjects[0].name).toBe(
+        'Mathematics'
+      );
       expect(result.current.apiFilterOptions.schoolYears).toHaveLength(1);
       expect(result.current.apiFilterOptions.schoolYears[0].name).toBe('2024');
     });

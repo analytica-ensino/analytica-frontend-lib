@@ -102,7 +102,12 @@ export interface ActivitiesHistoryApiResponse {
 export interface ActivityHistoryFilters {
   page?: number;
   limit?: number;
-  type?: 'ATIVIDADE' | 'PROVA' | 'SIMULADO' | 'QUESTIONARIO' | 'AULA_RECOMENDADA';
+  type?:
+    | 'ATIVIDADE'
+    | 'PROVA'
+    | 'SIMULADO'
+    | 'QUESTIONARIO'
+    | 'AULA_RECOMENDADA';
   status?: GenericApiStatus;
   search?: string;
   startDate?: string;

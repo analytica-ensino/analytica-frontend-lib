@@ -16,13 +16,10 @@ import type { BaseApiClient } from '../types/api';
 // Mock dayjs
 jest.mock('dayjs', () => {
   const actual = jest.requireActual('dayjs');
-  return Object.assign(
-    (date?: string | Date) => {
-      if (date) return actual(date);
-      return actual('2024-06-15');
-    },
-    actual
-  );
+  return Object.assign((date?: string | Date) => {
+    if (date) return actual(date);
+    return actual('2024-06-15');
+  }, actual);
 });
 
 describe('useExamDetails', () => {
@@ -217,9 +214,18 @@ describe('useExamDetails', () => {
           },
           breakdown: [
             {
-              school: { id: '123e4567-e89b-12d3-a456-426614174001', name: 'School A' },
-              schoolYear: { id: '123e4567-e89b-12d3-a456-426614174002', name: '2024' },
-              class: { id: '123e4567-e89b-12d3-a456-426614174003', name: 'Class A' },
+              school: {
+                id: '123e4567-e89b-12d3-a456-426614174001',
+                name: 'School A',
+              },
+              schoolYear: {
+                id: '123e4567-e89b-12d3-a456-426614174002',
+                name: '2024',
+              },
+              class: {
+                id: '123e4567-e89b-12d3-a456-426614174003',
+                name: 'Class A',
+              },
               totalStudents: 30,
               answeredStudents: 25,
               completionPercentage: 83.3,
@@ -239,7 +245,11 @@ describe('useExamDetails', () => {
           students: [],
           pagination: { total: 0, page: 1, limit: 10, totalPages: 0 },
           generalStats: { averageScore: 0, completionPercentage: 0 },
-          questionStats: { mostCorrect: [], mostIncorrect: [], notAnswered: [] },
+          questionStats: {
+            mostCorrect: [],
+            mostIncorrect: [],
+            notAnswered: [],
+          },
           breakdown: [
             {
               school: null,
@@ -295,12 +305,25 @@ describe('useExamDetails', () => {
           ],
           pagination: { total: 1, page: 1, limit: 10, totalPages: 1 },
           generalStats: { averageScore: 8.5, completionPercentage: 100 },
-          questionStats: { mostCorrect: [1], mostIncorrect: [2], notAnswered: [] },
+          questionStats: {
+            mostCorrect: [1],
+            mostIncorrect: [2],
+            notAnswered: [],
+          },
           breakdown: [
             {
-              school: { id: '123e4567-e89b-12d3-a456-426614174020', name: 'School A' },
-              schoolYear: { id: '123e4567-e89b-12d3-a456-426614174021', name: '2024' },
-              class: { id: '123e4567-e89b-12d3-a456-426614174022', name: 'Class A' },
+              school: {
+                id: '123e4567-e89b-12d3-a456-426614174020',
+                name: 'School A',
+              },
+              schoolYear: {
+                id: '123e4567-e89b-12d3-a456-426614174021',
+                name: '2024',
+              },
+              class: {
+                id: '123e4567-e89b-12d3-a456-426614174022',
+                name: 'Class A',
+              },
               totalStudents: 30,
               answeredStudents: 25,
               completionPercentage: 83.3,
@@ -322,7 +345,9 @@ describe('useExamDetails', () => {
       expect(result.current.examData).toBeNull();
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
-      expect(result.current.pagination).toEqual(DEFAULT_EXAM_DETAILS_PAGINATION);
+      expect(result.current.pagination).toEqual(
+        DEFAULT_EXAM_DETAILS_PAGINATION
+      );
       expect(result.current.fetchExamDetails).toBeInstanceOf(Function);
     });
 
@@ -336,13 +361,19 @@ describe('useExamDetails', () => {
       const { result } = renderHook(() => useExamDetails());
 
       await act(async () => {
-        await result.current.fetchExamDetails('exam-123', { page: 1, limit: 10 });
+        await result.current.fetchExamDetails('exam-123', {
+          page: 1,
+          limit: 10,
+        });
       });
 
       expect(mockApiClient.get).toHaveBeenCalledWith('/activities/exam-123');
-      expect(mockApiClient.get).toHaveBeenCalledWith('/activities/exam-123/details', {
-        params: { page: 1, limit: 10 },
-      });
+      expect(mockApiClient.get).toHaveBeenCalledWith(
+        '/activities/exam-123/details',
+        {
+          params: { page: 1, limit: 10 },
+        }
+      );
       expect(result.current.examData).not.toBeNull();
       expect(result.current.examData?.title).toBe('Math Exam');
       expect(result.current.examData?.students).toHaveLength(1);
@@ -363,9 +394,12 @@ describe('useExamDetails', () => {
         await result.current.fetchExamDetails('exam-123');
       });
 
-      expect(mockApiClient.get).toHaveBeenCalledWith('/activities/exam-123/details', {
-        params: {},
-      });
+      expect(mockApiClient.get).toHaveBeenCalledWith(
+        '/activities/exam-123/details',
+        {
+          params: {},
+        }
+      );
     });
 
     it('should exclude null and undefined filter values', async () => {
@@ -386,12 +420,15 @@ describe('useExamDetails', () => {
         });
       });
 
-      expect(mockApiClient.get).toHaveBeenCalledWith('/activities/exam-123/details', {
-        params: {
-          page: 1,
-          limit: 10,
-        },
-      });
+      expect(mockApiClient.get).toHaveBeenCalledWith(
+        '/activities/exam-123/details',
+        {
+          params: {
+            page: 1,
+            limit: 10,
+          },
+        }
+      );
     });
 
     it('should set loading state while fetching', async () => {
@@ -475,7 +512,9 @@ describe('useExamDetails', () => {
       });
 
       expect(result.current.loading).toBe(false);
-      expect(result.current.error).toBe('Erro ao validar dados de detalhes da prova');
+      expect(result.current.error).toBe(
+        'Erro ao validar dados de detalhes da prova'
+      );
 
       consoleErrorSpy.mockRestore();
     });
@@ -519,7 +558,11 @@ describe('useExamDetails', () => {
             students: [],
             pagination: { total: 0, page: 1, limit: 10, totalPages: 0 },
             generalStats: { averageScore: 0, completionPercentage: 0 },
-            questionStats: { mostCorrect: [], mostIncorrect: [], notAnswered: [] },
+            questionStats: {
+              mostCorrect: [],
+              mostIncorrect: [],
+              notAnswered: [],
+            },
             breakdown: [],
           },
         },
@@ -550,20 +593,36 @@ describe('useExamDetails', () => {
             students: [],
             pagination: { total: 0, page: 1, limit: 10, totalPages: 0 },
             generalStats: { averageScore: 0, completionPercentage: 0 },
-            questionStats: { mostCorrect: [], mostIncorrect: [], notAnswered: [] },
+            questionStats: {
+              mostCorrect: [],
+              mostIncorrect: [],
+              notAnswered: [],
+            },
             breakdown: [
               {
-                school: { id: '123e4567-e89b-12d3-a456-426614174010', name: 'School A' },
+                school: {
+                  id: '123e4567-e89b-12d3-a456-426614174010',
+                  name: 'School A',
+                },
                 schoolYear: null,
-                class: { id: '123e4567-e89b-12d3-a456-426614174011', name: 'Class A' },
+                class: {
+                  id: '123e4567-e89b-12d3-a456-426614174011',
+                  name: 'Class A',
+                },
                 totalStudents: 10,
                 answeredStudents: 5,
                 completionPercentage: 50,
               },
               {
-                school: { id: '123e4567-e89b-12d3-a456-426614174012', name: 'School B' },
+                school: {
+                  id: '123e4567-e89b-12d3-a456-426614174012',
+                  name: 'School B',
+                },
                 schoolYear: null,
-                class: { id: '123e4567-e89b-12d3-a456-426614174013', name: 'Class B' },
+                class: {
+                  id: '123e4567-e89b-12d3-a456-426614174013',
+                  name: 'Class B',
+                },
                 totalStudents: 15,
                 answeredStudents: 10,
                 completionPercentage: 66.6,
@@ -598,7 +657,11 @@ describe('useExamDetails', () => {
             students: [],
             pagination: { total: 0, page: 1, limit: 10, totalPages: 0 },
             generalStats: { averageScore: 0, completionPercentage: 0 },
-            questionStats: { mostCorrect: [], mostIncorrect: [], notAnswered: [] },
+            questionStats: {
+              mostCorrect: [],
+              mostIncorrect: [],
+              notAnswered: [],
+            },
             breakdown: [
               {
                 school: null,

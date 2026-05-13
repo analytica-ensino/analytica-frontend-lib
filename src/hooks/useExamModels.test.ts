@@ -12,13 +12,10 @@ import type { BaseApiClient } from '../types/api';
 // Mock dayjs
 jest.mock('dayjs', () => {
   const actual = jest.requireActual('dayjs');
-  return Object.assign(
-    (date?: string | Date) => {
-      if (date) return actual(date);
-      return actual('2024-06-15');
-    },
-    actual
-  );
+  return Object.assign((date?: string | Date) => {
+    if (date) return actual(date);
+    return actual('2024-06-15');
+  }, actual);
 });
 
 describe('useExamModels', () => {
@@ -308,7 +305,9 @@ describe('useExamModels', () => {
 
     it('should delete model successfully', async () => {
       const mockApiClient = createMockApiClient();
-      mockApiClient.delete.mockResolvedValueOnce({ data: { message: 'Deleted' } });
+      mockApiClient.delete.mockResolvedValueOnce({
+        data: { message: 'Deleted' },
+      });
 
       const useExamModels = createUseExamModels(mockApiClient);
       const { result } = renderHook(() => useExamModels());
@@ -317,7 +316,9 @@ describe('useExamModels', () => {
         await result.current.deleteModel('model-123');
       });
 
-      expect(mockApiClient.delete).toHaveBeenCalledWith('/activity-drafts/model-123');
+      expect(mockApiClient.delete).toHaveBeenCalledWith(
+        '/activity-drafts/model-123'
+      );
     });
 
     it('should calculate totalPages correctly', async () => {

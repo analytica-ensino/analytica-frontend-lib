@@ -6,7 +6,7 @@ import {
   act,
 } from '@testing-library/react';
 import SendActivityModal from './SendActivityModal';
-import { ActivitySubtype, ActivityMode, CategoryConfig, Item } from './types';
+import { ActivitySubtype, CategoryConfig, Item } from './types';
 import { useSendActivityModalStore } from './hooks/useSendActivityModal';
 
 /**
