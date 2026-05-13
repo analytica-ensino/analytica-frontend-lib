@@ -59,13 +59,17 @@ export const transformDraftToTableItem = (
 
 /**
  * Build query params from filters
+ * Uses activityType=PROVA to filter for exam drafts
  */
 const buildQueryParams = (
   filters?: ExamModelFilters
 ): Record<string, unknown> => {
-  if (!filters) return { type: ExamDraftType.RASCUNHO };
+  if (!filters) return { type: ExamDraftType.RASCUNHO, activityType: 'PROVA' };
 
-  const params: Record<string, unknown> = { type: ExamDraftType.RASCUNHO };
+  const params: Record<string, unknown> = {
+    type: ExamDraftType.RASCUNHO,
+    activityType: 'PROVA',
+  };
   for (const key in filters) {
     const value = filters[key as keyof ExamModelFilters];
     if (value !== undefined && value !== null) {
@@ -95,12 +99,14 @@ const useExamDraftsImpl = (apiClient: BaseApiClient): UseExamDraftsReturn => {
 
       try {
         const params = buildQueryParams(filters);
+        // Use activity-drafts endpoint with activityType=PROVA
         const response = await apiClient.get<ExamModelsApiResponse>(
-          '/exam-drafts',
+          '/activity-drafts',
           { params }
         );
 
-        const tableItems = response.data.data.examDrafts.map(
+        // Response uses activityDrafts field
+        const tableItems = response.data.data.activityDrafts.map(
           transformDraftToTableItem
         );
 
@@ -135,7 +141,8 @@ const useExamDraftsImpl = (apiClient: BaseApiClient): UseExamDraftsReturn => {
    */
   const deleteDraft = useCallback(
     async (id: string): Promise<void> => {
-      await apiClient.delete(`/exam-drafts/${id}`);
+      // Use activity-drafts endpoint
+      await apiClient.delete(`/activity-drafts/${id}`);
     },
     [apiClient]
   );

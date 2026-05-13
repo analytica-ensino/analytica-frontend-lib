@@ -381,11 +381,10 @@ const CreateActivity = ({
     hasAppliedInitialFiltersRef.current = false;
   }, [activity?.id, activity?.filters, resolvedPreFilters]);
 
-  // Determine endpoints based on activity category
-  const draftEndpoint =
-    activityCategory === 'PROVA' ? '/exam-drafts' : '/activity-drafts';
-  const activityEndpoint =
-    activityCategory === 'PROVA' ? '/exams' : '/activities';
+  // Use unified /activity-drafts and /activities endpoints
+  // For exams, we add activityType=PROVA query param instead of using separate endpoints
+  const draftEndpoint = '/activity-drafts';
+  const activityEndpoint = '/activities';
 
   /**
    * Busca o rascunho/modelo da atividade quando há um id na URL

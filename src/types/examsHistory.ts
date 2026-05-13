@@ -4,7 +4,7 @@
  * This file contains types related to the exam history feature,
  * including API responses, table items, and filters.
  *
- * Uses dedicated /exams/history endpoint which returns only exams (type=PROVA).
+ * Uses /activities/history endpoint with type=PROVA to filter for exams.
  */
 
 /**
@@ -132,12 +132,12 @@ export interface ExamTableItem extends Record<string, unknown> {
 }
 
 /**
- * Exams history API complete response from /exams/history endpoint
+ * Exams history API complete response from /activities/history endpoint with type=PROVA
  */
 export interface ExamsHistoryApiResponse {
   message: string;
   data: {
-    exams: ExamHistoryResponse[];
+    activities: ExamHistoryResponse[];
     pagination: {
       total: number;
       page: number;

@@ -60,7 +60,8 @@ const examHistoryResponseSchema = z.object({
 export const examsHistoryApiResponseSchema = z.object({
   message: z.string(),
   data: z.object({
-    exams: z.array(z.unknown()).transform((items) =>
+    // Response uses 'activities' field from /activities/history endpoint
+    activities: z.array(z.unknown()).transform((items) =>
       items
         .map((item) => examHistoryResponseSchema.safeParse(item))
         .filter(
@@ -233,13 +234,15 @@ export const mergeExamFilterOptions = (
 
 /**
  * Build query params from filters
+ * Always includes type=PROVA to filter for exams
  */
 const buildQueryParams = (
   filters?: ExamHistoryFilters
 ): Record<string, unknown> => {
-  if (!filters) return {};
+  // Always include type=PROVA for exam filtering
+  if (!filters) return { type: 'PROVA' };
 
-  const params: Record<string, unknown> = {};
+  const params: Record<string, unknown> = { type: 'PROVA' };
   for (const key in filters) {
     const value = filters[key as keyof ExamHistoryFilters];
     if (value !== undefined && value !== null) {
@@ -273,8 +276,9 @@ const useExamsHistoryImpl = (
 
       try {
         const params = buildQueryParams(filters);
+        // Use activities/history endpoint with type=PROVA
         const response = await apiClient.get<ExamsHistoryApiResponse>(
-          '/exams/history',
+          '/activities/history',
           { params }
         );
 
@@ -283,14 +287,14 @@ const useExamsHistoryImpl = (
         // Validate response with Zod
         const validatedData = examsHistoryApiResponseSchema.parse(responseData);
 
-        // Transform exams to table format
-        const tableItems = validatedData.data.exams.map((exam) =>
+        // Transform activities to table format (response uses 'activities' field)
+        const tableItems = validatedData.data.activities.map((exam) =>
           transformExamToTableItem(exam as ExamHistoryResponse)
         );
 
         // Extract filter options from response
         const extracted = extractExamFilterOptions(
-          responseData.data.exams as ExamHistoryResponse[]
+          responseData.data.activities as ExamHistoryResponse[]
         );
 
         // Update state with validated and transformed data

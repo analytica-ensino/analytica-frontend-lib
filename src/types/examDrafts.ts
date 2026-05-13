@@ -2,7 +2,7 @@
  * Exam Drafts and Models Types
  *
  * This file contains types for exam drafts and models features.
- * Uses dedicated /exam-drafts endpoint which already enforces activityType=PROVA.
+ * Uses /activity-drafts endpoint with activityType=PROVA to filter for exam drafts.
  */
 
 /**
@@ -34,7 +34,7 @@ export interface ExamDraftFilters {
 }
 
 /**
- * Exam model/draft response from backend API (/exam-drafts)
+ * Exam model/draft response from backend API (/activity-drafts?activityType=PROVA)
  */
 export interface ExamModelResponse {
   id: string;
@@ -61,12 +61,13 @@ export interface ExamModelTableItem extends Record<string, unknown> {
 }
 
 /**
- * Exam models/drafts API response from /exam-drafts endpoint
+ * Exam models/drafts API response from /activity-drafts endpoint
+ * Note: Uses activityDrafts field (not examDrafts) since we now use /activity-drafts?activityType=PROVA
  */
 export interface ExamModelsApiResponse {
   message: string;
   data: {
-    examDrafts: ExamModelResponse[];
+    activityDrafts: ExamModelResponse[];
     total: number;
   };
 }

@@ -217,13 +217,13 @@ const useExamDetailsImpl = (apiClient: BaseApiClient): UseExamDetailsReturn => {
       try {
         const params = buildQueryParams(filters);
 
-        // Fetch exam info and details in parallel
+        // Fetch exam info and details in parallel using activities endpoints
         const [examInfoResponse, examDetailsResponse] = await Promise.all([
           apiClient.get<z.infer<typeof examInfoResponseSchema>>(
-            `/exams/${examId}`
+            `/activities/${examId}`
           ),
           apiClient.get<z.infer<typeof examDetailsApiResponseSchema>>(
-            `/exams/${examId}/details`,
+            `/activities/${examId}/details`,
             { params }
           ),
         ]);
