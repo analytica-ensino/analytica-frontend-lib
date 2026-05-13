@@ -17,8 +17,8 @@ export interface ExamFilterOption {
 }
 
 /**
- * Exam status enum - manually set by professor
- * Different from activity status (which is automatic based on dates)
+ * Exam status enum - specific for PROVA type activities
+ * Manually set by professor (different from automatic activity status)
  */
 export enum ExamStatus {
   AGENDADA = 'AGENDADA',

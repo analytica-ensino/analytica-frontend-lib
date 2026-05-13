@@ -3,7 +3,7 @@ import type { ExamFilterOption } from '../types/examsHistory';
 
 /**
  * Exam status options for filters
- * Used in exam history page - manually set by professor
+ * Used in exam history page - specific PROVA status values
  */
 export const EXAM_STATUS_OPTIONS: ExamFilterOption[] = [
   { id: 'AGENDADA', name: 'Agendada' },

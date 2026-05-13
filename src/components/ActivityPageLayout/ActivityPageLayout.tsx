@@ -1,12 +1,7 @@
-import { useCallback, useMemo } from 'react';
-import Text from '../Text/Text';
-import { Menu, MenuContent, MenuItem } from '../Menu/Menu';
-import Button from '../Button/Button';
-import TableProvider from '../TableProvider/TableProvider';
+import type { ReactNode } from 'react';
+import { BasePageLayout } from '../BasePageLayout/BasePageLayout';
 import type { TableParams, ColumnConfig } from '../TableProvider/TableProvider';
 import type { FilterConfig } from '../Filter/useTableFilter';
-import { Plus } from 'phosphor-react';
-import type { ReactNode } from 'react';
 
 /**
  * Enum for activity page tabs
@@ -16,6 +11,15 @@ export enum ActivityTab {
   DRAFTS = 'rascunhos',
   MODELS = 'modelos',
 }
+
+/**
+ * Tab configuration for activity pages
+ */
+const ACTIVITY_TABS = [
+  { value: ActivityTab.HISTORY, label: 'Histórico', testId: 'menu-item-history' },
+  { value: ActivityTab.DRAFTS, label: 'Rascunhos', testId: 'menu-item-drafts' },
+  { value: ActivityTab.MODELS, label: 'Modelos', testId: 'menu-item-models' },
+];
 
 /**
  * Props for the ActivityPageLayout component
@@ -58,12 +62,13 @@ export interface ActivityPageLayoutProps<T extends Record<string, unknown>> {
   onTabChange: (tab: ActivityTab) => void;
   /** Callback when the create activity button is clicked */
   onCreateActivity: () => void;
+  /** Label for the create button (default: "Criar atividade") */
+  createButtonLabel?: string;
 }
 
 /**
- * Shared layout component for activity pages (History, Drafts, Models).
- * Provides consistent structure with tabs navigation, search, filters, and table display.
- * Navigation and asset injection are handled via callbacks and props.
+ * Layout component for activity pages (History, Drafts, Models).
+ * Wraps BasePageLayout with activity-specific configuration.
  * @returns JSX element representing the activity page layout
  */
 export function ActivityPageLayout<T extends Record<string, unknown>>({
@@ -84,166 +89,29 @@ export function ActivityPageLayout<T extends Record<string, unknown>>({
   onRowClick,
   onTabChange,
   onCreateActivity,
+  createButtonLabel = 'Criar atividade',
 }: Readonly<ActivityPageLayoutProps<T>>) {
-  /**
-   * Compute a stable key for TableProvider based on filter options availability.
-   * Forces remount when userData loads and filter options become available,
-   * ensuring TableProvider initializes with correct filter data.
-   */
-  const tableKey = useMemo(() => {
-    const totalOptions = Array.isArray(initialFilters)
-      ? initialFilters
-          .flatMap((group) => group.categories)
-          .reduce(
-            (sum, cat: FilterConfig['categories'][number]) =>
-              sum + (cat.itens?.length ?? 0),
-            0
-          )
-      : 0;
-    return `filters-${totalOptions}`;
-  }, [initialFilters]);
-
-  /**
-   * Whether filters should be enabled — only when at least one filter has options.
-   */
-  const enableFilters = useMemo(
-    () =>
-      Array.isArray(initialFilters) &&
-      initialFilters
-        .flatMap((g) => g.categories)
-        .some((c) => (c.itens?.length ?? 0) > 0),
-    [initialFilters]
-  );
-
-  /**
-   * Handles tab change by forwarding to the onTabChange callback.
-   * @param value - Tab value selected by the user
-   */
-  const handleTabChange = useCallback(
-    (value: string) => {
-      onTabChange(value as ActivityTab);
-    },
-    [onTabChange]
-  );
-
   return (
-    <div
-      data-testid={testId}
-      className="flex flex-col w-full h-auto relative justify-center items-center mb-5 overflow-hidden"
-    >
-      {/* Background decoration */}
-      <span className="absolute top-0 left-0 h-[150px] w-full z-0" />
-
-      {/* Main container */}
-      <div className="flex flex-col w-full h-full max-w-[1350px] mx-auto z-10 lg:px-0 px-4 pt-4 sm:pt-0">
-        {/* Header Section */}
-        <div className="flex flex-col sm:flex-row w-full mb-6 items-start sm:items-center sm:justify-between gap-0 sm:gap-4">
-          {/* Page Title */}
-          <Text
-            as="h1"
-            className="font-bold leading-[28px] tracking-[0.2px] text-text-950 text-xl lg:text-2xl"
-          >
-            {pageTitle}
-          </Text>
-
-          {/* Tabs Menu */}
-          <div className="flex-shrink-0 lg:w-auto self-center sm:self-auto">
-            <Menu
-              defaultValue={activeTab}
-              value={activeTab}
-              onValueChange={handleTabChange}
-              variant="menu2"
-              className="bg-transparent shadow-none px-0"
-            >
-              <MenuContent
-                variant="menu2"
-                className="w-full lg:w-auto max-w-full min-w-0"
-              >
-                <MenuItem
-                  variant="menu2"
-                  value={ActivityTab.HISTORY}
-                  data-testid="menu-item-history"
-                  className="whitespace-nowrap flex-1 lg:flex-none"
-                >
-                  Histórico
-                </MenuItem>
-                <MenuItem
-                  variant="menu2"
-                  value={ActivityTab.DRAFTS}
-                  data-testid="menu-item-drafts"
-                  className="whitespace-nowrap flex-1 lg:flex-none"
-                >
-                  Rascunhos
-                </MenuItem>
-                <MenuItem
-                  variant="menu2"
-                  value={ActivityTab.MODELS}
-                  data-testid="menu-item-models"
-                  className="whitespace-nowrap flex-1 lg:flex-none"
-                >
-                  Modelos
-                </MenuItem>
-              </MenuContent>
-            </Menu>
-          </div>
-        </div>
-
-        {/* Content Area */}
-        <div className="flex flex-col items-center w-full min-h-0 flex-1">
-          {/* Error State */}
-          {error ? (
-            <div className="flex items-center justify-center bg-background rounded-xl w-full min-h-[705px]">
-              <Text size="lg" color="text-error-500">
-                {error}
-              </Text>
-            </div>
-          ) : (
-            <div className="w-full">
-              <TableProvider
-                key={tableKey}
-                data={data}
-                headers={headers}
-                loading={loading}
-                variant="borderless"
-                enableSearch
-                enableFilters={enableFilters}
-                enableTableSort
-                enablePagination
-                enableRowClick
-                initialFilters={initialFilters}
-                paginationConfig={{
-                  itemLabel,
-                  itemsPerPageOptions: [10, 20, 50, 100],
-                  defaultItemsPerPage: 10,
-                  totalItems: pagination.total,
-                  totalPages: pagination.totalPages,
-                }}
-                searchPlaceholder={searchPlaceholder}
-                noSearchResultState={{
-                  image: noSearchImage,
-                }}
-                emptyState={{
-                  component: emptyState,
-                }}
-                onParamsChange={onParamsChange}
-                onRowClick={onRowClick}
-                headerContent={
-                  <Button
-                    variant="solid"
-                    action="primary"
-                    size="medium"
-                    onClick={onCreateActivity}
-                    iconLeft={<Plus size={18} weight="bold" />}
-                  >
-                    Criar atividade
-                  </Button>
-                }
-                containerClassName="bg-background rounded-xl p-6 space-y-4"
-              />
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+    <BasePageLayout
+      activeTab={activeTab}
+      pageTitle={pageTitle}
+      testId={testId}
+      data={data}
+      headers={headers}
+      loading={loading}
+      error={error}
+      pagination={pagination}
+      initialFilters={initialFilters}
+      itemLabel={itemLabel}
+      searchPlaceholder={searchPlaceholder}
+      emptyState={emptyState}
+      noSearchImage={noSearchImage}
+      tabs={ACTIVITY_TABS}
+      createButtonLabel={createButtonLabel}
+      onParamsChange={onParamsChange}
+      onRowClick={onRowClick}
+      onTabChange={(tab) => onTabChange(tab as ActivityTab)}
+      onCreate={onCreateActivity}
+    />
   );
 }

@@ -366,7 +366,9 @@ describe('useExamDetails', () => {
         });
       });
 
-      expect(mockApiClient.get).toHaveBeenCalledWith('/activities/exam-123');
+      expect(mockApiClient.get).toHaveBeenCalledWith(
+        '/activities/exam-123/quiz'
+      );
       expect(mockApiClient.get).toHaveBeenCalledWith(
         '/activities/exam-123/details',
         {

@@ -88,18 +88,19 @@ export const examDetailsApiResponseSchema = z.object({
 });
 
 /**
- * Zod schema for exam info (basic data)
+ * Zod schema for exam info (basic data from /quiz endpoint)
+ * The quiz endpoint returns more fields, but we only validate what we need
  */
 const examInfoSchema = z.object({
   id: z.string().uuid(),
   title: z.string(),
-  startDate: z.string().nullable(),
-  createdAt: z.string(),
+  startDate: z.coerce.date().nullable(),
+  createdAt: z.coerce.date(),
 });
 
 export const examInfoResponseSchema = z.object({
   message: z.string(),
-  data: examInfoSchema,
+  data: examInfoSchema.passthrough(), // Allow extra fields from quiz response
 });
 
 /**
@@ -218,9 +219,10 @@ const useExamDetailsImpl = (apiClient: BaseApiClient): UseExamDetailsReturn => {
         const params = buildQueryParams(filters);
 
         // Fetch exam info and details in parallel using activities endpoints
+        // Use /quiz endpoint instead of /:id to support all user profiles (teachers, managers)
         const [examInfoResponse, examDetailsResponse] = await Promise.all([
           apiClient.get<z.infer<typeof examInfoResponseSchema>>(
-            `/activities/${examId}`
+            `/activities/${examId}/quiz`
           ),
           apiClient.get<z.infer<typeof examDetailsApiResponseSchema>>(
             `/activities/${examId}/details`,
