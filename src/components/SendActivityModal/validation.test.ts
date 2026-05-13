@@ -7,7 +7,7 @@ import {
   isFormValid,
   ERROR_MESSAGES,
 } from './validation';
-import { ActivityMode, ActivitySubtype, SendActivityFormData } from './types';
+import { ActivitySubtype, SendActivityFormData } from './types';
 
 describe('validation', () => {
   describe('validateActivityStep', () => {
