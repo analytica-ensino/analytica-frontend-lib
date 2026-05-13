@@ -272,7 +272,6 @@ describe('useExamDetails', () => {
     const createMockApiClient = (): jest.Mocked<BaseApiClient> => ({
       get: jest.fn(),
       post: jest.fn(),
-      put: jest.fn(),
       patch: jest.fn(),
       delete: jest.fn(),
     });
@@ -415,8 +414,8 @@ describe('useExamDetails', () => {
         await result.current.fetchExamDetails('exam-123', {
           page: 1,
           limit: 10,
-          search: undefined,
-          orderBy: null as unknown as string,
+          sortBy: undefined,
+          status: null as unknown as string,
         });
       });
 
@@ -701,7 +700,6 @@ describe('useExamDetails', () => {
       const mockApiClient: BaseApiClient = {
         get: jest.fn(),
         post: jest.fn(),
-        put: jest.fn(),
         patch: jest.fn(),
         delete: jest.fn(),
       };

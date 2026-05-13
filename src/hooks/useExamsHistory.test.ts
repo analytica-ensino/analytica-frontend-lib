@@ -664,7 +664,6 @@ describe('useExamsHistory', () => {
     const createMockApiClient = (): jest.Mocked<BaseApiClient> => ({
       get: jest.fn(),
       post: jest.fn(),
-      put: jest.fn(),
       patch: jest.fn(),
       delete: jest.fn(),
     });
@@ -1005,7 +1004,6 @@ describe('useExamsHistory', () => {
       const mockApiClient: BaseApiClient = {
         get: jest.fn(),
         post: jest.fn(),
-        put: jest.fn(),
         patch: jest.fn(),
         delete: jest.fn(),
       };

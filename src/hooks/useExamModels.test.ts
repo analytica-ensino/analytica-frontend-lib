@@ -5,7 +5,7 @@ import {
   transformModelToTableItem,
   DEFAULT_EXAM_MODELS_PAGINATION,
 } from './useExamModels';
-import { ExamDraftType } from '../types/examDrafts';
+import { ExamDraftType, ExamActivityCategory } from '../types/examDrafts';
 import type { ExamModelResponse } from '../types/examDrafts';
 import type { BaseApiClient } from '../types/api';
 
@@ -34,9 +34,13 @@ describe('useExamModels', () => {
     it('should transform model with all fields', () => {
       const model: ExamModelResponse = {
         id: '123e4567-e89b-12d3-a456-426614174000',
+        type: ExamDraftType.MODELO,
+        activityType: ExamActivityCategory.PROVA,
         title: 'Math Model',
+        creatorUserInstitutionId: null,
         subjectId: 'subject-1',
         subject: { id: 'subject-1', name: 'Mathematics' },
+        filters: null,
         updatedAt: '2024-06-15T10:30:00.000Z',
         createdAt: '2024-06-01T10:00:00.000Z',
       };
@@ -53,9 +57,13 @@ describe('useExamModels', () => {
     it('should handle null title', () => {
       const model: ExamModelResponse = {
         id: '123e4567-e89b-12d3-a456-426614174000',
-        title: null as unknown as string,
+        type: ExamDraftType.MODELO,
+        activityType: ExamActivityCategory.PROVA,
+        title: null,
+        creatorUserInstitutionId: null,
         subjectId: 'subject-1',
         subject: { id: 'subject-1', name: 'Mathematics' },
+        filters: null,
         updatedAt: '2024-06-15T10:30:00.000Z',
         createdAt: '2024-06-01T10:00:00.000Z',
       };
@@ -68,9 +76,13 @@ describe('useExamModels', () => {
     it('should handle empty title', () => {
       const model: ExamModelResponse = {
         id: '123e4567-e89b-12d3-a456-426614174000',
+        type: ExamDraftType.MODELO,
+        activityType: ExamActivityCategory.PROVA,
         title: '',
+        creatorUserInstitutionId: null,
         subjectId: 'subject-1',
         subject: { id: 'subject-1', name: 'Mathematics' },
+        filters: null,
         updatedAt: '2024-06-15T10:30:00.000Z',
         createdAt: '2024-06-01T10:00:00.000Z',
       };
@@ -83,9 +95,13 @@ describe('useExamModels', () => {
     it('should handle null updatedAt', () => {
       const model: ExamModelResponse = {
         id: '123e4567-e89b-12d3-a456-426614174000',
+        type: ExamDraftType.MODELO,
+        activityType: ExamActivityCategory.PROVA,
         title: 'Math Model',
+        creatorUserInstitutionId: null,
         subjectId: 'subject-1',
         subject: { id: 'subject-1', name: 'Mathematics' },
+        filters: null,
         updatedAt: null as unknown as string,
         createdAt: '2024-06-01T10:00:00.000Z',
       };
@@ -98,9 +114,13 @@ describe('useExamModels', () => {
     it('should handle null subject', () => {
       const model: ExamModelResponse = {
         id: '123e4567-e89b-12d3-a456-426614174000',
+        type: ExamDraftType.MODELO,
+        activityType: ExamActivityCategory.PROVA,
         title: 'Math Model',
+        creatorUserInstitutionId: null,
         subjectId: 'subject-1',
-        subject: null as unknown as { id: string; name: string },
+        subject: null,
+        filters: null,
         updatedAt: '2024-06-15T10:30:00.000Z',
         createdAt: '2024-06-01T10:00:00.000Z',
       };
@@ -113,9 +133,13 @@ describe('useExamModels', () => {
     it('should handle undefined subject name', () => {
       const model: ExamModelResponse = {
         id: '123e4567-e89b-12d3-a456-426614174000',
+        type: ExamDraftType.MODELO,
+        activityType: ExamActivityCategory.PROVA,
         title: 'Math Model',
+        creatorUserInstitutionId: null,
         subjectId: 'subject-1',
         subject: { id: 'subject-1', name: undefined as unknown as string },
+        filters: null,
         updatedAt: '2024-06-15T10:30:00.000Z',
         createdAt: '2024-06-01T10:00:00.000Z',
       };
@@ -130,7 +154,6 @@ describe('useExamModels', () => {
     const createMockApiClient = (): jest.Mocked<BaseApiClient> => ({
       get: jest.fn(),
       post: jest.fn(),
-      put: jest.fn(),
       patch: jest.fn(),
       delete: jest.fn(),
     });
@@ -241,7 +264,7 @@ describe('useExamModels', () => {
           page: 1,
           limit: 10,
           search: undefined,
-          orderBy: null as unknown as string,
+          subjectId: null as unknown as string,
         });
       });
 
@@ -402,7 +425,6 @@ describe('useExamModels', () => {
       const mockApiClient: BaseApiClient = {
         get: jest.fn(),
         post: jest.fn(),
-        put: jest.fn(),
         patch: jest.fn(),
         delete: jest.fn(),
       };
