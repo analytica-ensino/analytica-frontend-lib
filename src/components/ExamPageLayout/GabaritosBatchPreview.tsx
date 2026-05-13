@@ -466,7 +466,9 @@ function SingleGabarito({
               </div>
             </div>
             <div className="item">
-              <span>PARTICIPANTE PRESENTE DEIXOU O CARTAO-RESPOSTA EM BRANCO</span>
+              <span>
+                PARTICIPANTE PRESENTE DEIXOU O CARTAO-RESPOSTA EM BRANCO
+              </span>
               <div className="checkbox-group">
                 <span>SIM</span>
                 <span className="checkbox" />
@@ -535,7 +537,9 @@ function SingleGabarito({
               transparente.
             </strong>
           </p>
-          <p>Nao sera permitido o uso de lapis, lapiseira (grafite) e borracha.</p>
+          <p>
+            Nao sera permitido o uso de lapis, lapiseira (grafite) e borracha.
+          </p>
         </ExemploTexto>
         <ExemploBox>
           <div className="title">Exemplo de resposta</div>

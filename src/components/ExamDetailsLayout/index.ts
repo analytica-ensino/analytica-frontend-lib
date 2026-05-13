@@ -8,6 +8,9 @@ export type { ExamStatsCardsProps } from './ExamStatsCards';
 export { ExamStudentsTable } from './ExamStudentsTable';
 export type { ExamStudentsTableProps } from './ExamStudentsTable';
 
+export { ExamDetailsPage } from './ExamDetailsPage';
+export type { ExamDetailsPageProps } from './ExamDetailsPage';
+
 // Table config
 export {
   createExamStudentsTableColumns,

@@ -100,8 +100,9 @@ const useExamDraftsImpl = (apiClient: BaseApiClient): UseExamDraftsReturn => {
           { params }
         );
 
-        const tableItems =
-          response.data.data.examDrafts.map(transformDraftToTableItem);
+        const tableItems = response.data.data.examDrafts.map(
+          transformDraftToTableItem
+        );
 
         const limit = filters.limit || 10;
         const total = response.data.data.total;

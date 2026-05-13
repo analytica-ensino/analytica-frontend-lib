@@ -514,7 +514,8 @@ export const ActivityListQuestions = ({
           <div className="px-6 py-6 flex flex-col gap-4">
             <Text size="sm" className="text-text-600">
               Defina a quantidade de questões que você quer que o sistema
-              adicione automaticamente na sua {enableExamMode ? 'prova' : 'atividade'}
+              adicione automaticamente na sua{' '}
+              {enableExamMode ? 'prova' : 'atividade'}
             </Text>
 
             <div className="flex flex-col gap-2">

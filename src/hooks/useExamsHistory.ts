@@ -2,10 +2,7 @@ import { useState, useCallback } from 'react';
 import { z } from 'zod';
 import dayjs from 'dayjs';
 import type { BaseApiClient } from '../types/api';
-import {
-  ExamStatus,
-  mapExamStatusToDisplay,
-} from '../types/examsHistory';
+import { ExamStatus, mapExamStatusToDisplay } from '../types/examsHistory';
 import type {
   ExamHistoryResponse,
   ExamTableItem,
@@ -284,8 +281,7 @@ const useExamsHistoryImpl = (
         const responseData = response.data;
 
         // Validate response with Zod
-        const validatedData =
-          examsHistoryApiResponseSchema.parse(responseData);
+        const validatedData = examsHistoryApiResponseSchema.parse(responseData);
 
         // Transform exams to table format
         const tableItems = validatedData.data.exams.map((exam) =>

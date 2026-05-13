@@ -382,8 +382,10 @@ const CreateActivity = ({
   }, [activity?.id, activity?.filters, resolvedPreFilters]);
 
   // Determine endpoints based on activity category
-  const draftEndpoint = activityCategory === 'PROVA' ? '/exam-drafts' : '/activity-drafts';
-  const activityEndpoint = activityCategory === 'PROVA' ? '/exams' : '/activities';
+  const draftEndpoint =
+    activityCategory === 'PROVA' ? '/exam-drafts' : '/activity-drafts';
+  const activityEndpoint =
+    activityCategory === 'PROVA' ? '/exams' : '/activities';
 
   /**
    * Busca o rascunho/modelo da atividade quando há um id na URL
@@ -503,7 +505,14 @@ const CreateActivity = ({
       questionIds,
       isDigital: !isInPersonExam,
     };
-  }, [appliedFilters, activityType, knowledgeAreas, questions, isInPersonExam, activityCategory]);
+  }, [
+    appliedFilters,
+    activityType,
+    knowledgeAreas,
+    questions,
+    isInPersonExam,
+    activityCategory,
+  ]);
 
   /**
    * Update existing draft via PATCH
@@ -1368,7 +1377,9 @@ const CreateActivity = ({
                     Banco de questões
                   </MenuItem>
                   <MenuItem value="preview" variant="breadcrumb">
-                    {enableExamMode || isInPersonExam ? 'Prévia da prova' : 'Prévia da atividade'}
+                    {enableExamMode || isInPersonExam
+                      ? 'Prévia da prova'
+                      : 'Prévia da atividade'}
                   </MenuItem>
                 </MenuContent>
               </Menu>

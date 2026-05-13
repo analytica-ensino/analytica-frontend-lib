@@ -480,7 +480,9 @@ export function GabaritoPreview({
                 </div>
               </div>
               <div className="item">
-                <span>PARTICIPANTE PRESENTE DEIXOU O CARTAO-RESPOSTA EM BRANCO</span>
+                <span>
+                  PARTICIPANTE PRESENTE DEIXOU O CARTAO-RESPOSTA EM BRANCO
+                </span>
                 <div className="checkbox-group">
                   <span>SIM</span>
                   <span className="checkbox" />
@@ -502,7 +504,8 @@ export function GabaritoPreview({
           <div className="text">
             <p>
               1. Verifique se seu nome completo e os dados impressos neste
-              CARTAO-RESPOSTA estao corretos. Assine somente no local apropriado.
+              CARTAO-RESPOSTA estao corretos. Assine somente no local
+              apropriado.
             </p>
             <p>
               2. O CARTAO-RESPOSTA e o unico documento para correcao eletronica.
@@ -510,13 +513,13 @@ export function GabaritoPreview({
               erro do participante.
             </p>
             <p>
-              3. Em nenhuma hipotese voce podera levar o CARTAO-RESPOSTA ao deixar
-              a sala de provas, sob pena de eliminacao no exame.
+              3. Em nenhuma hipotese voce podera levar o CARTAO-RESPOSTA ao
+              deixar a sala de provas, sob pena de eliminacao no exame.
             </p>
             <p>
-              4. Preencha suas respostas nos campos apropriados conforme o EXEMPLO
-              DE PREENCHIMENTO. O preenchimento incorreto impossibilita a leitura
-              otica.
+              4. Preencha suas respostas nos campos apropriados conforme o
+              EXEMPLO DE PREENCHIMENTO. O preenchimento incorreto impossibilita
+              a leitura otica.
             </p>
             <p>
               5. Entregue este CARTAO-RESPOSTA ao aplicador ao termino da
@@ -549,7 +552,9 @@ export function GabaritoPreview({
                 transparente.
               </strong>
             </p>
-            <p>Nao sera permitido o uso de lapis, lapiseira (grafite) e borracha.</p>
+            <p>
+              Nao sera permitido o uso de lapis, lapiseira (grafite) e borracha.
+            </p>
           </ExemploTexto>
           <ExemploBox>
             <div className="title">Exemplo de resposta</div>

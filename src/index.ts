@@ -1770,10 +1770,7 @@ export type {
   ExamPagination,
 } from './types/examsHistory';
 
-export {
-  ExamDraftType,
-  ExamActivityCategory,
-} from './types/examDrafts';
+export { ExamDraftType, ExamActivityCategory } from './types/examDrafts';
 export type {
   ExamDraftFilters,
   ExamModelResponse,
@@ -1891,9 +1888,11 @@ export {
   createExamStudentsTableColumns,
   getExamStudentStatusBadgeAction,
   getExamStudentStatusDisplayText,
+  ExamDetailsPage,
 } from './components/ExamDetailsLayout';
 export type {
   ExamDetailsHeaderProps,
   ExamStatsCardsProps,
   ExamStudentsTableProps,
+  ExamDetailsPageProps,
 } from './components/ExamDetailsLayout';

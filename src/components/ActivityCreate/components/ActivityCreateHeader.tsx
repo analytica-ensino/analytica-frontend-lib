@@ -48,13 +48,15 @@ export const ActivityCreateHeader = ({
         create: 'Criar prova',
         edit: 'Editar prova',
         send: 'Enviar prova',
-        description: 'Crie uma prova customizada adicionando questões manualmente ou automaticamente.',
+        description:
+          'Crie uma prova customizada adicionando questões manualmente ou automaticamente.',
       }
     : {
         create: 'Criar atividade',
         edit: 'Editar atividade',
         send: 'Enviar atividade',
-        description: 'Crie uma atividade customizada adicionando questões manualmente ou automaticamente.',
+        description:
+          'Crie uma atividade customizada adicionando questões manualmente ou automaticamente.',
       };
 
   return (
@@ -124,9 +126,7 @@ export const ActivityCreateHeader = ({
           </div>
         </div>
 
-        <Text size="sm">
-          {labels.description}
-        </Text>
+        <Text size="sm">{labels.description}</Text>
       </section>
     </div>
   );
