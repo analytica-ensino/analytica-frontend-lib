@@ -164,8 +164,14 @@ export const createUseActivitiesHistory = (
         setState((prev) => ({ ...prev, loading: true, error: null }));
 
         try {
+          // Always include type=ATIVIDADE to filter for activities (not exams)
+          const filtersWithType = {
+            ...filters,
+            type: 'ATIVIDADE' as const,
+          };
+
           // Fetch data from API
-          const responseData = await fetchActivitiesHistory(filters);
+          const responseData = await fetchActivitiesHistory(filtersWithType);
 
           // Validate response with Zod
           const validatedData =
