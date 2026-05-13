@@ -65,35 +65,36 @@ describe('validation', () => {
       expect(errors.title).toBe(ERROR_MESSAGES.TITLE_REQUIRED);
     });
 
-    it('should return mode error when enableExamMode is true, subtype is PROVA, and mode is missing', () => {
+    it('should only validate title when enableExamMode is true (no mode validation)', () => {
       const data: Partial<SendActivityFormData> = {
         subtype: ActivitySubtype.PROVA,
         title: 'Test',
       };
       const errors = validateActivityStep(data, { enableExamMode: true });
 
-      expect(errors.mode).toBe(ERROR_MESSAGES.MODE_REQUIRED);
+      // In exam mode, only title is validated - mode is not validated
+      expect(errors.mode).toBeUndefined();
+      expect(errors.subtype).toBeUndefined();
+      expect(errors.title).toBeUndefined();
     });
 
-    it('should not return mode error when enableExamMode is true, subtype is PROVA, and mode is provided', () => {
+    it('should return title error when enableExamMode is true and title is missing', () => {
       const data: Partial<SendActivityFormData> = {
         subtype: ActivitySubtype.PROVA,
-        title: 'Test',
-        mode: ActivityMode.ONLINE,
       };
       const errors = validateActivityStep(data, { enableExamMode: true });
 
-      expect(errors.mode).toBeUndefined();
+      expect(errors.title).toBe(ERROR_MESSAGES.TITLE_REQUIRED);
+      expect(errors.mode).toBeUndefined(); // Mode is not validated in exam mode
     });
 
-    it('should not return mode error when enableExamMode is true but subtype is not PROVA', () => {
+    it('should return no errors when enableExamMode is true and title is valid', () => {
       const data: Partial<SendActivityFormData> = {
-        subtype: ActivitySubtype.TAREFA,
         title: 'Test',
       };
       const errors = validateActivityStep(data, { enableExamMode: true });
 
-      expect(errors.mode).toBeUndefined();
+      expect(errors).toEqual({});
     });
 
     it('should not return mode error when enableExamMode is false and subtype is PROVA', () => {
@@ -322,10 +323,23 @@ describe('validation', () => {
       expect(isFormValid(data)).toBe(true);
     });
 
-    it('should return false when enableExamMode is true and mode is missing for PROVA', () => {
+    it('should return true when enableExamMode is true with valid data (mode not validated)', () => {
       const data: Partial<SendActivityFormData> = {
         subtype: ActivitySubtype.PROVA,
         title: 'Test',
+        // Note: mode is not provided but should still be valid since mode is not validated in exam mode
+        students: [{ studentId: '1', userInstitutionId: '1' }],
+        startDate: '2025-01-01',
+        startTime: '00:00',
+        finalDate: '2025-01-15',
+        finalTime: '23:59',
+      };
+      // In exam mode: step 1 only validates title (not mode or subtype)
+      expect(isFormValid(data, { enableExamMode: true })).toBe(true);
+    });
+
+    it('should return false when enableExamMode is true and title is missing', () => {
+      const data: Partial<SendActivityFormData> = {
         students: [{ studentId: '1', userInstitutionId: '1' }],
         startDate: '2025-01-01',
         startTime: '00:00',
@@ -333,20 +347,6 @@ describe('validation', () => {
         finalTime: '23:59',
       };
       expect(isFormValid(data, { enableExamMode: true })).toBe(false);
-    });
-
-    it('should return true when enableExamMode is true and mode is provided for PROVA', () => {
-      const data: Partial<SendActivityFormData> = {
-        subtype: ActivitySubtype.PROVA,
-        title: 'Test',
-        mode: ActivityMode.PRESENCIAL,
-        students: [{ studentId: '1', userInstitutionId: '1' }],
-        startDate: '2025-01-01',
-        startTime: '00:00',
-        finalDate: '2025-01-15',
-        finalTime: '23:59',
-      };
-      expect(isFormValid(data, { enableExamMode: true })).toBe(true);
     });
   });
 });

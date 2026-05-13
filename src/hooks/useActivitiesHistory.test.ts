@@ -555,6 +555,7 @@ describe('useActivitiesHistory', () => {
       expect(mockFetchActivitiesHistory).toHaveBeenCalledWith({
         page: 1,
         limit: 10,
+        type: 'ATIVIDADE',
       });
       expect(result.current.activities).toHaveLength(1);
       expect(result.current.activities[0].title).toBe('Test Activity');
@@ -705,7 +706,9 @@ describe('useActivitiesHistory', () => {
         await result.current.fetchActivities();
       });
 
-      expect(mockFetchActivitiesHistory).toHaveBeenCalledWith(undefined);
+      expect(mockFetchActivitiesHistory).toHaveBeenCalledWith({
+        type: 'ATIVIDADE',
+      });
       expect(result.current.activities).toHaveLength(1);
     });
   });

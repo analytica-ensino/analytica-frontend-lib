@@ -1418,56 +1418,67 @@ describe('SendActivityModal', () => {
   });
 
   describe('enableExamMode', () => {
-    it('should set canRetry to false and not show retry option on step 3 when PRESENCIAL mode is selected', async () => {
-      render(
-        <SendActivityModal
-          {...defaultProps}
-          enableExamMode
-          categories={categoriesWithAllSelected}
-        />
-      );
-
-      // Step 1: select PROVA, fill title, select PRESENCIAL mode
-      fireEvent.click(screen.getByText('Prova'));
-      fireEvent.change(
-        screen.getByPlaceholderText('Digite o título da atividade'),
-        { target: { value: 'Prova Presencial' } }
-      );
-      fireEvent.click(screen.getByText('Presencial'));
-
-      // Verify store sets canRetry=false when PRESENCIAL selected (line 178)
-      expect(useSendActivityModalStore.getState().formData.mode).toBe(
-        ActivityMode.PRESENCIAL
-      );
-      expect(useSendActivityModalStore.getState().formData.canRetry).toBe(
-        false
-      );
-
-      fireEvent.click(screen.getByText('Próximo'));
-
-      // Step 2: advance to step 3
-      fireEvent.click(screen.getByText('Próximo'));
-
-      // Step 3: retry option should NOT be rendered (lines 315-316)
-      expect(screen.queryByText('Permitir refazer?')).not.toBeInTheDocument();
-    });
-
-    it('should show "Modo de prova" selector when enableExamMode=true and subtype is PROVA', () => {
+    it('should show simplified exam form with only title input when enableExamMode=true', () => {
       render(<SendActivityModal {...defaultProps} enableExamMode />);
 
-      fireEvent.click(screen.getByText('Prova'));
+      // In exam mode, only title input is shown (no activity type selection)
+      expect(
+        screen.getByPlaceholderText('Digite o título da prova')
+      ).toBeInTheDocument();
 
-      expect(screen.getByText('Modo de prova*')).toBeInTheDocument();
-      expect(screen.getByText('Online')).toBeInTheDocument();
-      expect(screen.getByText('Presencial')).toBeInTheDocument();
-    });
-
-    it('should NOT show "Modo de prova" selector when enableExamMode=true but subtype is not PROVA', () => {
-      render(<SendActivityModal {...defaultProps} enableExamMode />);
-
-      fireEvent.click(screen.getByText('Tarefa'));
-
+      // These should NOT be visible in exam mode
+      expect(screen.queryByText('Tipo de atividade*')).not.toBeInTheDocument();
+      expect(screen.queryByText('Tarefa')).not.toBeInTheDocument();
+      expect(screen.queryByText('Trabalho')).not.toBeInTheDocument();
       expect(screen.queryByText('Modo de prova*')).not.toBeInTheDocument();
+    });
+
+    it('should use "Enviar prova" as modal title when enableExamMode=true', () => {
+      render(<SendActivityModal {...defaultProps} enableExamMode />);
+
+      expect(screen.getByText('Enviar prova')).toBeInTheDocument();
+    });
+
+    it('should use exam stepper labels when enableExamMode=true', () => {
+      render(<SendActivityModal {...defaultProps} enableExamMode />);
+
+      expect(screen.getByText('Prova')).toBeInTheDocument();
+      expect(screen.getByText('Destinatário')).toBeInTheDocument();
+      expect(screen.getByText('Prazo')).toBeInTheDocument();
+    });
+
+    it('should auto-set subtype to PROVA when enableExamMode=true', () => {
+      render(<SendActivityModal {...defaultProps} enableExamMode />);
+
+      expect(useSendActivityModalStore.getState().formData.subtype).toBe(
+        ActivitySubtype.PROVA
+      );
+    });
+
+    it('should show title validation error when advancing without title', () => {
+      render(<SendActivityModal {...defaultProps} enableExamMode />);
+
+      // Try to advance without filling title
+      fireEvent.click(screen.getByText('Próximo'));
+
+      expect(
+        screen.getByText(
+          'Campo obrigatório! Por favor, preencha este campo para continuar.'
+        )
+      ).toBeInTheDocument();
+    });
+
+    it('should advance to step 2 when title is valid', () => {
+      render(<SendActivityModal {...defaultProps} enableExamMode />);
+
+      fireEvent.change(
+        screen.getByPlaceholderText('Digite o título da prova'),
+        { target: { value: 'Prova de Matemática' } }
+      );
+      fireEvent.click(screen.getByText('Próximo'));
+
+      // Should be on step 2 now
+      expect(screen.getByTestId('checkbox-group-mock')).toBeInTheDocument();
     });
 
     it('should NOT show "Modo de prova" selector when enableExamMode is false even with PROVA selected', () => {
@@ -1478,52 +1489,30 @@ describe('SendActivityModal', () => {
       expect(screen.queryByText('Modo de prova*')).not.toBeInTheDocument();
     });
 
-    it('should show MODE_REQUIRED error when advancing without selecting mode with enableExamMode=true and PROVA', () => {
-      render(<SendActivityModal {...defaultProps} enableExamMode />);
-
-      fireEvent.click(screen.getByText('Prova'));
-      fireEvent.change(
-        screen.getByPlaceholderText('Digite o título da atividade'),
-        { target: { value: 'Prova Final' } }
+    it('should show simplified deadline step with only exam date in exam mode', async () => {
+      render(
+        <SendActivityModal
+          {...defaultProps}
+          enableExamMode
+          categories={categoriesWithAllSelected}
+        />
       );
 
-      fireEvent.click(screen.getByText('Próximo'));
-
-      expect(
-        screen.getByText(
-          'Campo obrigatório! Por favor, selecione o modo de prova para continuar.'
-        )
-      ).toBeInTheDocument();
-    });
-
-    it('should advance to step 2 after selecting mode when enableExamMode=true and PROVA', () => {
-      render(<SendActivityModal {...defaultProps} enableExamMode />);
-
-      fireEvent.click(screen.getByText('Prova'));
+      // Fill step 1
       fireEvent.change(
-        screen.getByPlaceholderText('Digite o título da atividade'),
-        { target: { value: 'Prova Final' } }
+        screen.getByPlaceholderText('Digite o título da prova'),
+        { target: { value: 'Prova de Matemática' } }
       );
-      fireEvent.click(screen.getByText('Online'));
-
       fireEvent.click(screen.getByText('Próximo'));
 
-      expect(
-        screen.queryByText(
-          'Campo obrigatório! Por favor, selecione o modo de prova para continuar.'
-        )
-      ).not.toBeInTheDocument();
-      expect(screen.getByTestId('checkbox-group-mock')).toBeInTheDocument();
-    });
+      // Step 2: students already selected, advance
+      fireEvent.click(screen.getByText('Próximo'));
 
-    it('should hide "Modo de prova" selector when subtype changes away from PROVA', () => {
-      render(<SendActivityModal {...defaultProps} enableExamMode />);
-
-      fireEvent.click(screen.getByText('Prova'));
-      expect(screen.getByText('Modo de prova*')).toBeInTheDocument();
-
-      fireEvent.click(screen.getByText('Tarefa'));
-      expect(screen.queryByText('Modo de prova*')).not.toBeInTheDocument();
+      // Step 3: Should show "Data da prova*" (exam date) instead of start/end dates
+      expect(screen.getByText('Data da prova*')).toBeInTheDocument();
+      expect(screen.queryByText('Iniciar em*')).not.toBeInTheDocument();
+      expect(screen.queryByText('Finalizar até*')).not.toBeInTheDocument();
+      expect(screen.queryByText('Permitir refazer?')).not.toBeInTheDocument();
     });
   });
 });
