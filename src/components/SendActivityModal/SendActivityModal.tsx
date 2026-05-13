@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, ChangeEvent, useMemo } from 'react';
+import { useCallback, useEffect, useRef, ChangeEvent } from 'react';
 import Modal from '../Modal/Modal';
 import Stepper from '../Stepper/Stepper';
 import Chips from '../Chips/Chips';

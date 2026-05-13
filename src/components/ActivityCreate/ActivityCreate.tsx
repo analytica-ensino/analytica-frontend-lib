@@ -1033,7 +1033,6 @@ const CreateActivity = ({
       });
       applyFilters();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isInPersonExam]);
 
   const saveDraftRef = useRef(saveDraft);
