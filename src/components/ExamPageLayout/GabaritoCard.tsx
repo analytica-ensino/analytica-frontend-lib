@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled, { createGlobalStyle } from 'styled-components';
 
 export interface GabaritoCardProps {
   nomeAluno: string;
@@ -9,23 +9,46 @@ export interface GabaritoCardProps {
   turmaNome?: string;
 }
 
+/**
+ * Global print styles to remove browser headers/footers (URL, date, title)
+ * and ensure full-page printing
+ */
+export const PrintStyles = createGlobalStyle`
+  @media print {
+    @page {
+      size: A4;
+      margin: 0;
+    }
+
+    html, body {
+      margin: 0 !important;
+      padding: 0 !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+  }
+`;
+
 export const PageContainer = styled.div`
   min-height: 100vh;
   background: #f3f4f6;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   padding: 24px 0;
 
   @media print {
     padding: 0;
+    margin: 0;
     background: white;
+    display: block;
   }
 `;
 
 export const CartaoContainer = styled.div`
   background: white;
   width: 210mm;
-  min-height: 297mm;
+  height: 297mm;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   border: 1px solid #d1d5db;
   padding: 24px;
@@ -34,16 +57,23 @@ export const CartaoContainer = styled.div`
   font-family: Arial, Helvetica, sans-serif;
   color: #000000;
   position: relative;
+  box-sizing: border-box;
   page-break-after: always;
+  page-break-inside: avoid;
+  margin-bottom: 24px;
 
   &:last-child {
     page-break-after: auto;
+    margin-bottom: 0;
   }
 
   @media print {
     box-shadow: none;
     border: none;
-    padding: 16px;
+    padding: 12mm;
+    margin: 0;
+    width: 210mm;
+    height: 297mm;
   }
 `;
 

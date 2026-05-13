@@ -1,7 +1,12 @@
 import { useRef, useEffect, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import QRCode from 'qrcode';
-import { PageContainer, CartaoContainer, GabaritoCard } from './GabaritoCard';
+import {
+  PageContainer,
+  CartaoContainer,
+  GabaritoCard,
+  PrintStyles,
+} from './GabaritoCard';
 
 export interface GabaritoData {
   nomeAluno: string;
@@ -40,7 +45,24 @@ export function GabaritosBatchPreview({
 
   const handlePrint = useReactToPrint({
     contentRef,
-    documentTitle: `gabaritos_${(gabaritos[0]?.tituloProva || 'prova').replace(/[^a-zA-Z0-9]/g, '_')}`,
+    documentTitle: ' ',
+    pageStyle: `
+      @page {
+        size: A4 portrait;
+        margin: 0mm !important;
+      }
+      @media print {
+        * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        html, body {
+          width: 210mm !important;
+          margin: 0mm !important;
+          padding: 0mm !important;
+        }
+      }
+    `,
     onAfterPrint: () => {
       if (onComplete) {
         onComplete();
@@ -59,22 +81,25 @@ export function GabaritosBatchPreview({
   }, [qrCodeDataUrls, gabaritos.length, handlePrint]);
 
   return (
-    <PageContainer>
-      <div ref={contentRef}>
-        {gabaritos.map((gabarito, index) => (
-          <CartaoContainer key={index}>
-            <GabaritoCard
-              nomeAluno={gabarito.nomeAluno}
-              qrCodeDataUrl={qrCodeDataUrls[index] || ''}
-              totalQuestoes={gabarito.totalQuestoes}
-              tituloProva={gabarito.tituloProva}
-              escolaNome={gabarito.escolaNome}
-              turmaNome={gabarito.turmaNome}
-            />
-          </CartaoContainer>
-        ))}
-      </div>
-    </PageContainer>
+    <>
+      <PrintStyles />
+      <PageContainer>
+        <div ref={contentRef}>
+          {gabaritos.map((gabarito, index) => (
+            <CartaoContainer key={index}>
+              <GabaritoCard
+                nomeAluno={gabarito.nomeAluno}
+                qrCodeDataUrl={qrCodeDataUrls[index] || ''}
+                totalQuestoes={gabarito.totalQuestoes}
+                tituloProva={gabarito.tituloProva}
+                escolaNome={gabarito.escolaNome}
+                turmaNome={gabarito.turmaNome}
+              />
+            </CartaoContainer>
+          ))}
+        </div>
+      </PageContainer>
+    </>
   );
 }
 

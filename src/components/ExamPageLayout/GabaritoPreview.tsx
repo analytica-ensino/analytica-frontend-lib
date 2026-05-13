@@ -1,7 +1,12 @@
 import { useRef, useEffect, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import QRCode from 'qrcode';
-import { PageContainer, CartaoContainer, GabaritoCard } from './GabaritoCard';
+import {
+  PageContainer,
+  CartaoContainer,
+  GabaritoCard,
+  PrintStyles,
+} from './GabaritoCard';
 
 export interface GabaritoPreviewProps {
   nomeAluno: string;
@@ -34,7 +39,24 @@ export function GabaritoPreview({
 
   const handlePrint = useReactToPrint({
     contentRef,
-    documentTitle: `cartao_resposta_${nomeAluno.replace(/[^a-zA-Z0-9]/g, '_')}`,
+    documentTitle: ' ',
+    pageStyle: `
+      @page {
+        size: A4 portrait;
+        margin: 0mm !important;
+      }
+      @media print {
+        * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        html, body {
+          width: 210mm !important;
+          margin: 0mm !important;
+          padding: 0mm !important;
+        }
+      }
+    `,
     onAfterPrint: () => {
       if (onComplete) {
         onComplete();
@@ -53,18 +75,21 @@ export function GabaritoPreview({
   }, [qrCodeDataUrl, handlePrint]);
 
   return (
-    <PageContainer>
-      <CartaoContainer ref={contentRef}>
-        <GabaritoCard
-          nomeAluno={nomeAluno}
-          qrCodeDataUrl={qrCodeDataUrl}
-          totalQuestoes={totalQuestoes}
-          tituloProva={tituloProva}
-          escolaNome={escolaNome}
-          turmaNome={turmaNome}
-        />
-      </CartaoContainer>
-    </PageContainer>
+    <>
+      <PrintStyles />
+      <PageContainer>
+        <CartaoContainer ref={contentRef}>
+          <GabaritoCard
+            nomeAluno={nomeAluno}
+            qrCodeDataUrl={qrCodeDataUrl}
+            totalQuestoes={totalQuestoes}
+            tituloProva={tituloProva}
+            escolaNome={escolaNome}
+            turmaNome={turmaNome}
+          />
+        </CartaoContainer>
+      </PageContainer>
+    </>
   );
 }
 
