@@ -92,15 +92,20 @@ const cardContainerStyle: CSSProperties = {
   marginBottom: '24px',
 };
 
-export const CardContainer = forwardRef<HTMLDivElement, { children: ReactNode }>(
-  ({ children }, ref) => {
-    return (
-      <div ref={ref} className="gabarito-card-container" style={cardContainerStyle}>
-        {children}
-      </div>
-    );
-  }
-);
+export const CardContainer = forwardRef<
+  HTMLDivElement,
+  { children: ReactNode }
+>(({ children }, ref) => {
+  return (
+    <div
+      ref={ref}
+      className="gabarito-card-container"
+      style={cardContainerStyle}
+    >
+      {children}
+    </div>
+  );
+});
 
 CardContainer.displayName = 'CardContainer';
 
@@ -477,12 +482,20 @@ export function AnswerSheetCard({
         <span>&#9632;</span>
         <span>CARTAO-RESPOSTA</span>
       </div>
-      <div style={styles.subHeader}>{examTitle || 'Simulado Analytica 2026'}</div>
+      <div style={styles.subHeader}>
+        {examTitle || 'Simulado Analytica 2026'}
+      </div>
 
       {/* Nome / Info do Aluno */}
       <div style={styles.infoBox}>
         <div style={styles.infoRow}>
-          <div style={{ ...styles.infoField, flex: 3, borderRight: '1px solid #9ca3af' }}>
+          <div
+            style={{
+              ...styles.infoField,
+              flex: 3,
+              borderRight: '1px solid #9ca3af',
+            }}
+          >
             <div style={styles.infoFieldLabel}>NOME COMPLETO:</div>
             <div style={styles.infoFieldContent}>{studentName}</div>
           </div>
@@ -517,7 +530,9 @@ export function AnswerSheetCard({
             </div>
           </div>
           <div style={styles.proctorBox}>
-            <div style={styles.proctorTitle}>PARA USO EXCLUSIVO DO FISCAL DE SALA</div>
+            <div style={styles.proctorTitle}>
+              PARA USO EXCLUSIVO DO FISCAL DE SALA
+            </div>
             <div style={styles.proctorItem}>
               <span>PARTICIPANTE AUSENTE</span>
               <div style={styles.checkboxGroup}>
@@ -526,7 +541,9 @@ export function AnswerSheetCard({
               </div>
             </div>
             <div style={styles.proctorItem}>
-              <span>PARTICIPANTE PRESENTE DEIXOU O CARTAO-RESPOSTA EM BRANCO</span>
+              <span>
+                PARTICIPANTE PRESENTE DEIXOU O CARTAO-RESPOSTA EM BRANCO
+              </span>
               <div style={styles.checkboxGroup}>
                 <span>SIM</span>
                 <span style={styles.checkbox} />
@@ -608,11 +625,17 @@ export function AnswerSheetCard({
           ].map(({ q, label, answer }) => (
             <div key={q} style={styles.exampleRow}>
               <span>Resposta da questao X = {label} -&gt;</span>
-              <span style={styles.exampleRowNumero}>{String(q).padStart(2, '0')}</span>
+              <span style={styles.exampleRowNumero}>
+                {String(q).padStart(2, '0')}
+              </span>
               {OPTIONS.map((opt) => (
                 <span
                   key={opt}
-                  style={opt === answer ? styles.exampleBubbleFilled : styles.exampleBubble}
+                  style={
+                    opt === answer
+                      ? styles.exampleBubbleFilled
+                      : styles.exampleBubble
+                  }
                 >
                   {opt}
                 </span>
@@ -629,7 +652,11 @@ export function AnswerSheetCard({
           {Array.from({ length: NUM_COLUMNS }, (_, i) => (
             <div
               key={i}
-              style={i < NUM_COLUMNS - 1 ? styles.gridHeaderCellWithBorder : styles.gridHeaderCell}
+              style={
+                i < NUM_COLUMNS - 1
+                  ? styles.gridHeaderCellWithBorder
+                  : styles.gridHeaderCell
+              }
             >
               Questao / Resposta
             </div>
@@ -640,7 +667,11 @@ export function AnswerSheetCard({
         {Array.from({ length: ROWS_PER_COLUMN }, (_, rowIdx) => (
           <div
             key={rowIdx}
-            style={rowIdx < ROWS_PER_COLUMN - 1 ? styles.gridRowWithBorder : styles.gridRow}
+            style={
+              rowIdx < ROWS_PER_COLUMN - 1
+                ? styles.gridRowWithBorder
+                : styles.gridRow
+            }
           >
             {Array.from({ length: NUM_COLUMNS }, (_, colIdx) => {
               const questionNum = getQuestionNumber(colIdx, rowIdx);
@@ -648,7 +679,11 @@ export function AnswerSheetCard({
               return (
                 <div
                   key={colIdx}
-                  style={colIdx < NUM_COLUMNS - 1 ? styles.gridCellWithBorder : styles.gridCell}
+                  style={
+                    colIdx < NUM_COLUMNS - 1
+                      ? styles.gridCellWithBorder
+                      : styles.gridCell
+                  }
                 >
                   {questionNum === null ? (
                     <span style={styles.gridCellEmpty}>-</span>
