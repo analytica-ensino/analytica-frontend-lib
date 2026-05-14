@@ -66,7 +66,7 @@ const pageContainerStyle: CSSProperties = {
   padding: '24px 0',
 };
 
-export function PageContainer({ children }: { children: ReactNode }) {
+export function PageContainer({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <div className="gabarito-page-container" style={pageContainerStyle}>
       {children}
