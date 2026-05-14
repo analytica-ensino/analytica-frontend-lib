@@ -106,6 +106,8 @@ export interface SendActivityModalProps {
   initialData?: SendActivityModalInitialData;
   /** Enable "Modo de prova" field (Online/Presencial), required when subtype is PROVA */
   enableExamMode?: boolean;
+  /** Force in-person exam mode: auto-selects PROVA subtype and PRESENCIAL mode */
+  isInPersonExam?: boolean;
 }
 
 /**

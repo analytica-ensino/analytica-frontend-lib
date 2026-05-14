@@ -45,10 +45,11 @@ export interface CreateActivityPayload {
   subjectId: string | null;
   questionIds: string[];
   subtype: string;
+  type?: 'ATIVIDADE' | 'PROVA';
   isDigital?: boolean;
   notification?: string;
   startDate: string;
-  finalDate: string;
+  finalDate: string | null;
   canRetry: boolean;
 }
 

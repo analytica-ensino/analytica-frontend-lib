@@ -1,19 +1,16 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { z } from 'zod';
 import {
   createUseActivityModels,
   createActivityModelsHook,
   transformModelToTableItem,
-  handleModelFetchError,
-  activityModelsApiResponseSchema,
   DEFAULT_MODELS_PAGINATION,
 } from './useActivityModels';
 import { ActivityDraftType } from '../types/activitiesHistory';
 import type {
   ActivityModelResponse,
   ActivityModelsApiResponse,
-  ActivityModelFilters,
 } from '../types/activitiesHistory';
+import type { BaseApiClient } from '../types/api';
 
 describe('useActivityModels', () => {
   describe('DEFAULT_MODELS_PAGINATION', () => {
@@ -114,167 +111,13 @@ describe('useActivityModels', () => {
     });
   });
 
-  describe('handleModelFetchError', () => {
-    let consoleErrorSpy: jest.SpyInstance;
-
-    beforeEach(() => {
-      consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-    });
-
-    afterEach(() => {
-      consoleErrorSpy.mockRestore();
-    });
-
-    it('should return specific message for Zod errors', () => {
-      const zodError = new z.ZodError([
-        {
-          code: 'invalid_type',
-          expected: 'string',
-          path: ['data', 'activityDrafts'],
-          message: 'Expected string, received number',
-        },
-      ]);
-
-      const result = handleModelFetchError(zodError);
-      expect(result).toBe('Erro ao validar dados de modelos de atividades');
-      expect(consoleErrorSpy).toHaveBeenCalled();
-    });
-
-    it('should return generic message for other errors', () => {
-      const genericError = new Error('Network error');
-      const result = handleModelFetchError(genericError);
-      expect(result).toBe('Erro ao carregar modelos de atividades');
-      expect(consoleErrorSpy).toHaveBeenCalled();
-    });
-
-    it('should return generic message for unknown error types', () => {
-      const result = handleModelFetchError('string error');
-      expect(result).toBe('Erro ao carregar modelos de atividades');
-      expect(consoleErrorSpy).toHaveBeenCalled();
-    });
-  });
-
-  describe('activityModelsApiResponseSchema', () => {
-    it('should validate a valid API response', () => {
-      const validResponse = {
-        message: 'Success',
-        data: {
-          activityDrafts: [
-            {
-              id: '123e4567-e89b-12d3-a456-426614174000',
-              type: ActivityDraftType.MODELO,
-              title: 'Test Model',
-              creatorUserInstitutionId: '123e4567-e89b-12d3-a456-426614174001',
-              subjectId: '123e4567-e89b-12d3-a456-426614174002',
-              filters: {
-                questionTypes: ['multiple_choice'],
-                subjects: ['math'],
-              },
-              createdAt: '2024-06-01T10:00:00Z',
-              updatedAt: '2024-06-15T14:30:00Z',
-            },
-          ],
-          total: 1,
-        },
-      };
-
-      const result = activityModelsApiResponseSchema.safeParse(validResponse);
-      expect(result.success).toBe(true);
-    });
-
-    it('should validate response with nullable fields', () => {
-      const responseWithNulls = {
-        message: 'Success',
-        data: {
-          activityDrafts: [
-            {
-              id: '123e4567-e89b-12d3-a456-426614174000',
-              type: ActivityDraftType.MODELO,
-              title: null,
-              creatorUserInstitutionId: null,
-              subjectId: null,
-              filters: null,
-              createdAt: '2024-06-01T10:00:00Z',
-              updatedAt: '2024-06-15T14:30:00Z',
-            },
-          ],
-          total: 1,
-        },
-      };
-
-      const result =
-        activityModelsApiResponseSchema.safeParse(responseWithNulls);
-      expect(result.success).toBe(true);
-    });
-
-    it('should reject invalid model id format', () => {
-      const invalidResponse = {
-        message: 'Success',
-        data: {
-          activityDrafts: [
-            {
-              id: 'not-a-uuid',
-              type: ActivityDraftType.MODELO,
-              title: 'Test',
-              creatorUserInstitutionId: null,
-              subjectId: null,
-              filters: null,
-              createdAt: '2024-06-01T10:00:00Z',
-              updatedAt: '2024-06-15T14:30:00Z',
-            },
-          ],
-          total: 1,
-        },
-      };
-
-      const result = activityModelsApiResponseSchema.safeParse(invalidResponse);
-      expect(result.success).toBe(false);
-    });
-
-    it('should reject missing total field', () => {
-      const missingTotal = {
-        message: 'Success',
-        data: {
-          activityDrafts: [],
-        },
-      };
-
-      const result = activityModelsApiResponseSchema.safeParse(missingTotal);
-      expect(result.success).toBe(false);
-    });
-
-    it('should reject invalid type value', () => {
-      const invalidType = {
-        message: 'Success',
-        data: {
-          activityDrafts: [
-            {
-              id: '123e4567-e89b-12d3-a456-426614174000',
-              type: 'INVALID_TYPE',
-              title: 'Test',
-              creatorUserInstitutionId: null,
-              subjectId: null,
-              filters: null,
-              createdAt: '2024-06-01T10:00:00Z',
-              updatedAt: '2024-06-15T14:30:00Z',
-            },
-          ],
-          total: 1,
-        },
-      };
-
-      const result = activityModelsApiResponseSchema.safeParse(invalidType);
-      expect(result.success).toBe(false);
-    });
-  });
-
   describe('createUseActivityModels', () => {
-    const mockFetchActivityModels = jest.fn<
-      Promise<ActivityModelsApiResponse>,
-      [ActivityModelFilters?]
-    >();
-
-    const mockDeleteActivityModel = jest.fn<Promise<void>, [string]>();
+    const createMockApiClient = (): jest.Mocked<BaseApiClient> => ({
+      get: jest.fn(),
+      post: jest.fn(),
+      patch: jest.fn(),
+      delete: jest.fn(),
+    });
 
     const validApiResponse: ActivityModelsApiResponse = {
       message: 'Success',
@@ -299,15 +142,15 @@ describe('useActivityModels', () => {
       ['123e4567-e89b-12d3-a456-426614174002', 'Matemática'],
     ]);
 
+    let mockApiClient: jest.Mocked<BaseApiClient>;
+
     beforeEach(() => {
       jest.clearAllMocks();
+      mockApiClient = createMockApiClient();
     });
 
     it('should return initial state', () => {
-      const useActivityModels = createUseActivityModels(
-        mockFetchActivityModels,
-        mockDeleteActivityModel
-      );
+      const useActivityModels = createUseActivityModels(mockApiClient);
       const { result } = renderHook(() => useActivityModels());
 
       expect(result.current.models).toEqual([]);
@@ -319,21 +162,21 @@ describe('useActivityModels', () => {
     });
 
     it('should fetch models successfully', async () => {
-      mockFetchActivityModels.mockResolvedValueOnce(validApiResponse);
+      mockApiClient.get.mockResolvedValueOnce({ data: validApiResponse });
 
-      const useActivityModels = createUseActivityModels(
-        mockFetchActivityModels,
-        mockDeleteActivityModel
-      );
+      const useActivityModels = createUseActivityModels(mockApiClient);
       const { result } = renderHook(() => useActivityModels());
 
       await act(async () => {
         await result.current.fetchModels({ page: 1, limit: 10 }, subjectsMap);
       });
 
-      expect(mockFetchActivityModels).toHaveBeenCalledWith({
-        page: 1,
-        limit: 10,
+      expect(mockApiClient.get).toHaveBeenCalledWith('/activity-drafts', {
+        params: expect.objectContaining({
+          page: 1,
+          limit: 10,
+          type: ActivityDraftType.MODELO,
+        }),
       });
       expect(result.current.models).toHaveLength(1);
       expect(result.current.models[0].title).toBe('Test Model');
@@ -356,12 +199,9 @@ describe('useActivityModels', () => {
         },
       };
 
-      mockFetchActivityModels.mockResolvedValueOnce(responseWith25Items);
+      mockApiClient.get.mockResolvedValueOnce({ data: responseWith25Items });
 
-      const useActivityModels = createUseActivityModels(
-        mockFetchActivityModels,
-        mockDeleteActivityModel
-      );
+      const useActivityModels = createUseActivityModels(mockApiClient);
       const { result } = renderHook(() => useActivityModels());
 
       await act(async () => {
@@ -377,12 +217,9 @@ describe('useActivityModels', () => {
     });
 
     it('should use default pagination values when not provided', async () => {
-      mockFetchActivityModels.mockResolvedValueOnce(validApiResponse);
+      mockApiClient.get.mockResolvedValueOnce({ data: validApiResponse });
 
-      const useActivityModels = createUseActivityModels(
-        mockFetchActivityModels,
-        mockDeleteActivityModel
-      );
+      const useActivityModels = createUseActivityModels(mockApiClient);
       const { result } = renderHook(() => useActivityModels());
 
       await act(async () => {
@@ -394,17 +231,16 @@ describe('useActivityModels', () => {
     });
 
     it('should set loading state while fetching', async () => {
-      let resolvePromise: (value: ActivityModelsApiResponse) => void;
-      const promise = new Promise<ActivityModelsApiResponse>((resolve) => {
-        resolvePromise = resolve;
-      });
-
-      mockFetchActivityModels.mockReturnValueOnce(promise);
-
-      const useActivityModels = createUseActivityModels(
-        mockFetchActivityModels,
-        mockDeleteActivityModel
+      let resolvePromise: (value: { data: ActivityModelsApiResponse }) => void;
+      const promise = new Promise<{ data: ActivityModelsApiResponse }>(
+        (resolve) => {
+          resolvePromise = resolve;
+        }
       );
+
+      mockApiClient.get.mockReturnValueOnce(promise);
+
+      const useActivityModels = createUseActivityModels(mockApiClient);
       const { result } = renderHook(() => useActivityModels());
 
       act(() => {
@@ -416,7 +252,7 @@ describe('useActivityModels', () => {
       });
 
       await act(async () => {
-        resolvePromise!(validApiResponse);
+        resolvePromise!({ data: validApiResponse });
         await promise;
       });
 
@@ -428,12 +264,9 @@ describe('useActivityModels', () => {
         .spyOn(console, 'error')
         .mockImplementation(() => {});
 
-      mockFetchActivityModels.mockRejectedValueOnce(new Error('Network error'));
+      mockApiClient.get.mockRejectedValueOnce(new Error('Network error'));
 
-      const useActivityModels = createUseActivityModels(
-        mockFetchActivityModels,
-        mockDeleteActivityModel
-      );
+      const useActivityModels = createUseActivityModels(mockApiClient);
       const { result } = renderHook(() => useActivityModels());
 
       await act(async () => {
@@ -449,48 +282,10 @@ describe('useActivityModels', () => {
       consoleErrorSpy.mockRestore();
     });
 
-    it('should handle validation error', async () => {
-      const consoleErrorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
-
-      const invalidResponse = {
-        message: 'Success',
-        data: {
-          activityDrafts: 'invalid',
-          total: 1,
-        },
-      };
-
-      mockFetchActivityModels.mockResolvedValueOnce(
-        invalidResponse as unknown as ActivityModelsApiResponse
-      );
-
-      const useActivityModels = createUseActivityModels(
-        mockFetchActivityModels,
-        mockDeleteActivityModel
-      );
-      const { result } = renderHook(() => useActivityModels());
-
-      await act(async () => {
-        await result.current.fetchModels();
-      });
-
-      expect(result.current.loading).toBe(false);
-      expect(result.current.error).toBe(
-        'Erro ao validar dados de modelos de atividades'
-      );
-
-      consoleErrorSpy.mockRestore();
-    });
-
     it('should delete model successfully', async () => {
-      mockDeleteActivityModel.mockResolvedValueOnce(undefined);
+      mockApiClient.delete.mockResolvedValueOnce({ data: {} });
 
-      const useActivityModels = createUseActivityModels(
-        mockFetchActivityModels,
-        mockDeleteActivityModel
-      );
+      const useActivityModels = createUseActivityModels(mockApiClient);
       const { result } = renderHook(() => useActivityModels());
 
       let deleteResult: boolean = false;
@@ -499,7 +294,9 @@ describe('useActivityModels', () => {
       });
 
       expect(deleteResult).toBe(true);
-      expect(mockDeleteActivityModel).toHaveBeenCalledWith('model-id');
+      expect(mockApiClient.delete).toHaveBeenCalledWith(
+        '/activity-drafts/model-id'
+      );
     });
 
     it('should return false on delete failure', async () => {
@@ -507,12 +304,9 @@ describe('useActivityModels', () => {
         .spyOn(console, 'error')
         .mockImplementation(() => {});
 
-      mockDeleteActivityModel.mockRejectedValueOnce(new Error('Delete failed'));
+      mockApiClient.delete.mockRejectedValueOnce(new Error('Delete failed'));
 
-      const useActivityModels = createUseActivityModels(
-        mockFetchActivityModels,
-        mockDeleteActivityModel
-      );
+      const useActivityModels = createUseActivityModels(mockApiClient);
       const { result } = renderHook(() => useActivityModels());
 
       let deleteResult: boolean = true;
@@ -531,12 +325,9 @@ describe('useActivityModels', () => {
         .spyOn(console, 'error')
         .mockImplementation(() => {});
 
-      mockFetchActivityModels.mockRejectedValueOnce(new Error('Network error'));
+      mockApiClient.get.mockRejectedValueOnce(new Error('Network error'));
 
-      const useActivityModels = createUseActivityModels(
-        mockFetchActivityModels,
-        mockDeleteActivityModel
-      );
+      const useActivityModels = createUseActivityModels(mockApiClient);
       const { result } = renderHook(() => useActivityModels());
 
       await act(async () => {
@@ -547,7 +338,7 @@ describe('useActivityModels', () => {
         'Erro ao carregar modelos de atividades'
       );
 
-      mockFetchActivityModels.mockResolvedValueOnce(validApiResponse);
+      mockApiClient.get.mockResolvedValueOnce({ data: validApiResponse });
 
       await act(async () => {
         await result.current.fetchModels();
@@ -557,6 +348,25 @@ describe('useActivityModels', () => {
 
       consoleErrorSpy.mockRestore();
     });
+
+    it('should pass activityCategory to API params', async () => {
+      mockApiClient.get.mockResolvedValueOnce({ data: validApiResponse });
+
+      const useActivityModels = createUseActivityModels(mockApiClient, {
+        activityCategory: 'PROVA',
+      });
+      const { result } = renderHook(() => useActivityModels());
+
+      await act(async () => {
+        await result.current.fetchModels({ page: 1, limit: 10 });
+      });
+
+      expect(mockApiClient.get).toHaveBeenCalledWith('/activity-drafts', {
+        params: expect.objectContaining({
+          activityType: 'PROVA',
+        }),
+      });
+    });
   });
 
   describe('createActivityModelsHook', () => {
@@ -565,13 +375,19 @@ describe('useActivityModels', () => {
     });
 
     it('should create a functional hook', () => {
-      const mockFetch = jest.fn().mockResolvedValue({
-        message: 'Success',
-        data: { activityDrafts: [], total: 0 },
-      });
-      const mockDelete = jest.fn().mockResolvedValue(undefined);
+      const mockApiClient: BaseApiClient = {
+        get: jest.fn().mockResolvedValue({
+          data: {
+            message: 'Success',
+            data: { activityDrafts: [], total: 0 },
+          },
+        }),
+        post: jest.fn(),
+        patch: jest.fn(),
+        delete: jest.fn().mockResolvedValue({ data: {} }),
+      };
 
-      const useHook = createActivityModelsHook(mockFetch, mockDelete);
+      const useHook = createActivityModelsHook(mockApiClient);
       const { result } = renderHook(() => useHook());
 
       expect(result.current.fetchModels).toBeInstanceOf(Function);

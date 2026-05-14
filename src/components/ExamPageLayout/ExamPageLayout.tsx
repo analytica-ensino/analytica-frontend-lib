@@ -4,33 +4,29 @@ import type { TableParams, ColumnConfig } from '../TableProvider/TableProvider';
 import type { FilterConfig } from '../Filter/useTableFilter';
 
 /**
- * Enum for activity page tabs
+ * Enum for exam page tabs
  */
-export enum ActivityTab {
+export enum ExamTab {
   HISTORY = 'historico',
   DRAFTS = 'rascunhos',
   MODELS = 'modelos',
 }
 
 /**
- * Tab configuration for activity pages
+ * Tab configuration for exam pages
  */
-const ACTIVITY_TABS = [
-  {
-    value: ActivityTab.HISTORY,
-    label: 'Histórico',
-    testId: 'menu-item-history',
-  },
-  { value: ActivityTab.DRAFTS, label: 'Rascunhos', testId: 'menu-item-drafts' },
-  { value: ActivityTab.MODELS, label: 'Modelos', testId: 'menu-item-models' },
+const EXAM_TABS = [
+  { value: ExamTab.HISTORY, label: 'Histórico', testId: 'menu-item-history' },
+  { value: ExamTab.DRAFTS, label: 'Rascunhos', testId: 'menu-item-drafts' },
+  { value: ExamTab.MODELS, label: 'Modelos', testId: 'menu-item-models' },
 ];
 
 /**
- * Props for the ActivityPageLayout component
+ * Props for the ExamPageLayout component
  */
-export interface ActivityPageLayoutProps<T extends Record<string, unknown>> {
+export interface ExamPageLayoutProps<T extends Record<string, unknown>> {
   /** Current active tab */
-  activeTab: ActivityTab;
+  activeTab: ExamTab;
   /** Page title displayed in the header */
   pageTitle: string;
   /** Test ID for the page container */
@@ -50,7 +46,7 @@ export interface ActivityPageLayoutProps<T extends Record<string, unknown>> {
   };
   /** Initial filter configuration */
   initialFilters?: FilterConfig[];
-  /** Label for pagination items (e.g., "atividades", "rascunhos") */
+  /** Label for pagination items (e.g., "provas", "rascunhos") */
   itemLabel: string;
   /** Search placeholder text */
   searchPlaceholder: string;
@@ -63,19 +59,19 @@ export interface ActivityPageLayoutProps<T extends Record<string, unknown>> {
   /** Callback when a row is clicked */
   onRowClick: (row: T) => void;
   /** Callback when a tab is changed */
-  onTabChange: (tab: ActivityTab) => void;
-  /** Callback when the create activity button is clicked */
-  onCreateActivity: () => void;
-  /** Label for the create button (default: "Criar atividade") */
+  onTabChange: (tab: ExamTab) => void;
+  /** Callback when the create button is clicked */
+  onCreateExam: () => void;
+  /** Label for the create button (default: "Criar prova") */
   createButtonLabel?: string;
 }
 
 /**
- * Layout component for activity pages (History, Drafts, Models).
- * Wraps BasePageLayout with activity-specific configuration.
- * @returns JSX element representing the activity page layout
+ * Layout component for exam pages (History, Drafts, Models).
+ * Wraps BasePageLayout with exam-specific configuration.
+ * @returns JSX element representing the exam page layout
  */
-export function ActivityPageLayout<T extends Record<string, unknown>>({
+export function ExamPageLayout<T extends Record<string, unknown>>({
   activeTab,
   pageTitle,
   testId,
@@ -92,9 +88,9 @@ export function ActivityPageLayout<T extends Record<string, unknown>>({
   onParamsChange,
   onRowClick,
   onTabChange,
-  onCreateActivity,
-  createButtonLabel = 'Criar atividade',
-}: Readonly<ActivityPageLayoutProps<T>>) {
+  onCreateExam,
+  createButtonLabel = 'Criar prova',
+}: Readonly<ExamPageLayoutProps<T>>) {
   return (
     <BasePageLayout
       activeTab={activeTab}
@@ -110,12 +106,12 @@ export function ActivityPageLayout<T extends Record<string, unknown>>({
       searchPlaceholder={searchPlaceholder}
       emptyState={emptyState}
       noSearchImage={noSearchImage}
-      tabs={ACTIVITY_TABS}
+      tabs={EXAM_TABS}
       createButtonLabel={createButtonLabel}
       onParamsChange={onParamsChange}
       onRowClick={onRowClick}
-      onTabChange={(tab) => onTabChange(tab as ActivityTab)}
-      onCreate={onCreateActivity}
+      onTabChange={(tab) => onTabChange(tab as ExamTab)}
+      onCreate={onCreateExam}
     />
   );
 }

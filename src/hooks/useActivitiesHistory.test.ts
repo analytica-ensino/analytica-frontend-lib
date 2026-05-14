@@ -1,11 +1,8 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { z } from 'zod';
 import {
   createUseActivitiesHistory,
   createActivitiesHistoryHook,
   transformActivityToTableItem,
-  handleActivityFetchError,
-  activitiesHistoryApiResponseSchema,
   DEFAULT_ACTIVITIES_PAGINATION,
 } from './useActivitiesHistory';
 import {
@@ -15,8 +12,8 @@ import {
 import type {
   ActivityHistoryResponse,
   ActivitiesHistoryApiResponse,
-  ActivityHistoryFilters,
 } from '../types/activitiesHistory';
+import type { BaseApiClient } from '../types/api';
 
 // Mock dayjs
 jest.mock('dayjs', () => {
@@ -214,285 +211,13 @@ describe('useActivitiesHistory', () => {
     });
   });
 
-  describe('handleActivityFetchError', () => {
-    let consoleErrorSpy: jest.SpyInstance;
-
-    beforeEach(() => {
-      consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-    });
-
-    afterEach(() => {
-      consoleErrorSpy.mockRestore();
-    });
-
-    it('should return specific message for Zod errors', () => {
-      const zodError = new z.ZodError([
-        {
-          code: 'invalid_type',
-          expected: 'string',
-          path: ['data', 'activities'],
-          message: 'Expected string, received number',
-        },
-      ]);
-
-      const result = handleActivityFetchError(zodError);
-      expect(result).toBe('Erro ao validar dados de histórico de atividades');
-      expect(consoleErrorSpy).toHaveBeenCalled();
-    });
-
-    it('should return generic message for other errors', () => {
-      const genericError = new Error('Network error');
-      const result = handleActivityFetchError(genericError);
-      expect(result).toBe('Erro ao carregar histórico de atividades');
-      expect(consoleErrorSpy).toHaveBeenCalled();
-    });
-
-    it('should return generic message for unknown error types', () => {
-      const result = handleActivityFetchError('string error');
-      expect(result).toBe('Erro ao carregar histórico de atividades');
-      expect(consoleErrorSpy).toHaveBeenCalled();
-    });
-  });
-
-  describe('activitiesHistoryApiResponseSchema', () => {
-    it('should validate a valid API response', () => {
-      const validResponse = {
-        message: 'Success',
-        data: {
-          activities: [
-            {
-              id: '123e4567-e89b-12d3-a456-426614174000',
-              title: 'Test Activity',
-              startDate: '2024-06-01',
-              finalDate: '2024-12-31',
-              status: ActivityApiStatus.A_VENCER,
-              completionPercentage: 75,
-              subjectId: '123e4567-e89b-12d3-a456-426614174001',
-              schoolId: 'school-1',
-              schoolName: 'School A',
-              year: '2024',
-              className: 'Class A',
-              subjectName: 'Math',
-            },
-          ],
-          pagination: {
-            total: 1,
-            page: 1,
-            limit: 10,
-            totalPages: 1,
-          },
-        },
-      };
-
-      const result =
-        activitiesHistoryApiResponseSchema.safeParse(validResponse);
-      expect(result.success).toBe(true);
-    });
-
-    it('should validate response with optional fields missing', () => {
-      const responseWithOptionals = {
-        message: 'Success',
-        data: {
-          activities: [
-            {
-              id: '123e4567-e89b-12d3-a456-426614174000',
-              title: 'Test Activity',
-              startDate: null,
-              finalDate: null,
-              status: ActivityApiStatus.A_VENCER,
-              completionPercentage: 0,
-              subjectId: '123e4567-e89b-12d3-a456-426614174001',
-            },
-          ],
-          pagination: {
-            total: 1,
-            page: 1,
-            limit: 10,
-            totalPages: 1,
-          },
-        },
-      };
-
-      const result = activitiesHistoryApiResponseSchema.safeParse(
-        responseWithOptionals
-      );
-      expect(result.success).toBe(true);
-    });
-
-    it('should validate response with undefined subjectId', () => {
-      const responseWithUndefinedSubjectId = {
-        message: 'Success',
-        data: {
-          activities: [
-            {
-              id: '123e4567-e89b-12d3-a456-426614174000',
-              title: 'Test Activity',
-              startDate: null,
-              finalDate: null,
-              status: ActivityApiStatus.A_VENCER,
-              completionPercentage: 0,
-            },
-          ],
-          pagination: {
-            total: 1,
-            page: 1,
-            limit: 10,
-            totalPages: 1,
-          },
-        },
-      };
-
-      const result = activitiesHistoryApiResponseSchema.safeParse(
-        responseWithUndefinedSubjectId
-      );
-      expect(result.success).toBe(true);
-    });
-
-    it('should validate response with null subjectId', () => {
-      const responseWithNullSubjectId = {
-        message: 'Success',
-        data: {
-          activities: [
-            {
-              id: '123e4567-e89b-12d3-a456-426614174000',
-              title: 'Test Activity',
-              startDate: null,
-              finalDate: null,
-              status: ActivityApiStatus.A_VENCER,
-              completionPercentage: 0,
-              subjectId: null,
-            },
-          ],
-          pagination: {
-            total: 1,
-            page: 1,
-            limit: 10,
-            totalPages: 1,
-          },
-        },
-      };
-
-      const result = activitiesHistoryApiResponseSchema.safeParse(
-        responseWithNullSubjectId
-      );
-      expect(result.success).toBe(true);
-    });
-
-    it('should filter out activities with invalid id format', () => {
-      const invalidResponse = {
-        message: 'Success',
-        data: {
-          activities: [
-            {
-              id: 'not-a-uuid',
-              title: 'Test Activity',
-              startDate: null,
-              finalDate: null,
-              status: ActivityApiStatus.A_VENCER,
-              completionPercentage: 0,
-              subjectId: '123e4567-e89b-12d3-a456-426614174001',
-            },
-          ],
-          pagination: {
-            total: 1,
-            page: 1,
-            limit: 10,
-            totalPages: 1,
-          },
-        },
-      };
-
-      const result =
-        activitiesHistoryApiResponseSchema.safeParse(invalidResponse);
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.data.activities).toHaveLength(0);
-      }
-    });
-
-    it('should reject missing required fields', () => {
-      const missingFields = {
-        message: 'Success',
-        data: {
-          activities: [],
-          // missing pagination
-        },
-      };
-
-      const result =
-        activitiesHistoryApiResponseSchema.safeParse(missingFields);
-      expect(result.success).toBe(false);
-    });
-
-    it('should filter out activities with invalid status value', () => {
-      const invalidStatus = {
-        message: 'Success',
-        data: {
-          activities: [
-            {
-              id: '123e4567-e89b-12d3-a456-426614174000',
-              title: 'Test Activity',
-              startDate: null,
-              finalDate: null,
-              status: 'INVALID_STATUS',
-              completionPercentage: 0,
-              subjectId: '123e4567-e89b-12d3-a456-426614174001',
-            },
-          ],
-          pagination: {
-            total: 1,
-            page: 1,
-            limit: 10,
-            totalPages: 1,
-          },
-        },
-      };
-
-      const result =
-        activitiesHistoryApiResponseSchema.safeParse(invalidStatus);
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.data.activities).toHaveLength(0);
-      }
-    });
-
-    it('should filter out activities with completion percentage out of range', () => {
-      const outOfRange = {
-        message: 'Success',
-        data: {
-          activities: [
-            {
-              id: '123e4567-e89b-12d3-a456-426614174000',
-              title: 'Test Activity',
-              startDate: null,
-              finalDate: null,
-              status: ActivityApiStatus.A_VENCER,
-              completionPercentage: 150,
-              subjectId: '123e4567-e89b-12d3-a456-426614174001',
-            },
-          ],
-          pagination: {
-            total: 1,
-            page: 1,
-            limit: 10,
-            totalPages: 1,
-          },
-        },
-      };
-
-      const result = activitiesHistoryApiResponseSchema.safeParse(outOfRange);
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.data.activities).toHaveLength(0);
-      }
-    });
-  });
-
   describe('createUseActivitiesHistory', () => {
-    const mockFetchActivitiesHistory = jest.fn<
-      Promise<ActivitiesHistoryApiResponse>,
-      [ActivityHistoryFilters?]
-    >();
+    const createMockApiClient = (): jest.Mocked<BaseApiClient> => ({
+      get: jest.fn(),
+      post: jest.fn(),
+      patch: jest.fn(),
+      delete: jest.fn(),
+    });
 
     const validApiResponse: ActivitiesHistoryApiResponse = {
       message: 'Success',
@@ -523,14 +248,15 @@ describe('useActivitiesHistory', () => {
       },
     };
 
+    let mockApiClient: jest.Mocked<BaseApiClient>;
+
     beforeEach(() => {
       jest.clearAllMocks();
+      mockApiClient = createMockApiClient();
     });
 
     it('should return initial state', () => {
-      const useActivitiesHistory = createUseActivitiesHistory(
-        mockFetchActivitiesHistory
-      );
+      const useActivitiesHistory = createUseActivitiesHistory(mockApiClient);
       const { result } = renderHook(() => useActivitiesHistory());
 
       expect(result.current.activities).toEqual([]);
@@ -541,20 +267,23 @@ describe('useActivitiesHistory', () => {
     });
 
     it('should fetch activities successfully', async () => {
-      mockFetchActivitiesHistory.mockResolvedValueOnce(validApiResponse);
+      mockApiClient.get.mockResolvedValueOnce({ data: validApiResponse });
 
-      const useActivitiesHistory = createUseActivitiesHistory(
-        mockFetchActivitiesHistory
-      );
+      const useActivitiesHistory = createUseActivitiesHistory(mockApiClient, {
+        activityCategory: 'ATIVIDADE',
+      });
       const { result } = renderHook(() => useActivitiesHistory());
 
       await act(async () => {
         await result.current.fetchActivities({ page: 1, limit: 10 });
       });
 
-      expect(mockFetchActivitiesHistory).toHaveBeenCalledWith({
-        page: 1,
-        limit: 10,
+      expect(mockApiClient.get).toHaveBeenCalledWith('/activities/history', {
+        params: expect.objectContaining({
+          page: 1,
+          limit: 10,
+          type: 'ATIVIDADE',
+        }),
       });
       expect(result.current.activities).toHaveLength(1);
       expect(result.current.activities[0].title).toBe('Test Activity');
@@ -569,16 +298,18 @@ describe('useActivitiesHistory', () => {
     });
 
     it('should set loading state while fetching', async () => {
-      let resolvePromise: (value: ActivitiesHistoryApiResponse) => void;
-      const promise = new Promise<ActivitiesHistoryApiResponse>((resolve) => {
-        resolvePromise = resolve;
-      });
-
-      mockFetchActivitiesHistory.mockReturnValueOnce(promise);
-
-      const useActivitiesHistory = createUseActivitiesHistory(
-        mockFetchActivitiesHistory
+      let resolvePromise: (value: {
+        data: ActivitiesHistoryApiResponse;
+      }) => void;
+      const promise = new Promise<{ data: ActivitiesHistoryApiResponse }>(
+        (resolve) => {
+          resolvePromise = resolve;
+        }
       );
+
+      mockApiClient.get.mockReturnValueOnce(promise);
+
+      const useActivitiesHistory = createUseActivitiesHistory(mockApiClient);
       const { result } = renderHook(() => useActivitiesHistory());
 
       act(() => {
@@ -590,7 +321,7 @@ describe('useActivitiesHistory', () => {
       });
 
       await act(async () => {
-        resolvePromise!(validApiResponse);
+        resolvePromise!({ data: validApiResponse });
         await promise;
       });
 
@@ -602,13 +333,9 @@ describe('useActivitiesHistory', () => {
         .spyOn(console, 'error')
         .mockImplementation(() => {});
 
-      mockFetchActivitiesHistory.mockRejectedValueOnce(
-        new Error('Network error')
-      );
+      mockApiClient.get.mockRejectedValueOnce(new Error('Network error'));
 
-      const useActivitiesHistory = createUseActivitiesHistory(
-        mockFetchActivitiesHistory
-      );
+      const useActivitiesHistory = createUseActivitiesHistory(mockApiClient);
       const { result } = renderHook(() => useActivitiesHistory());
 
       await act(async () => {
@@ -624,52 +351,14 @@ describe('useActivitiesHistory', () => {
       consoleErrorSpy.mockRestore();
     });
 
-    it('should handle validation error', async () => {
-      const consoleErrorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
-
-      const invalidResponse = {
-        message: 'Success',
-        data: {
-          activities: 'invalid',
-          pagination: { total: 1, page: 1, limit: 10, totalPages: 1 },
-        },
-      };
-
-      mockFetchActivitiesHistory.mockResolvedValueOnce(
-        invalidResponse as unknown as ActivitiesHistoryApiResponse
-      );
-
-      const useActivitiesHistory = createUseActivitiesHistory(
-        mockFetchActivitiesHistory
-      );
-      const { result } = renderHook(() => useActivitiesHistory());
-
-      await act(async () => {
-        await result.current.fetchActivities();
-      });
-
-      expect(result.current.loading).toBe(false);
-      expect(result.current.error).toBe(
-        'Erro ao validar dados de histórico de atividades'
-      );
-
-      consoleErrorSpy.mockRestore();
-    });
-
     it('should clear error on new fetch', async () => {
       const consoleErrorSpy = jest
         .spyOn(console, 'error')
         .mockImplementation(() => {});
 
-      mockFetchActivitiesHistory.mockRejectedValueOnce(
-        new Error('Network error')
-      );
+      mockApiClient.get.mockRejectedValueOnce(new Error('Network error'));
 
-      const useActivitiesHistory = createUseActivitiesHistory(
-        mockFetchActivitiesHistory
-      );
+      const useActivitiesHistory = createUseActivitiesHistory(mockApiClient);
       const { result } = renderHook(() => useActivitiesHistory());
 
       // First fetch - should fail
@@ -682,7 +371,7 @@ describe('useActivitiesHistory', () => {
       );
 
       // Second fetch - should clear error
-      mockFetchActivitiesHistory.mockResolvedValueOnce(validApiResponse);
+      mockApiClient.get.mockResolvedValueOnce({ data: validApiResponse });
 
       await act(async () => {
         await result.current.fetchActivities();
@@ -694,19 +383,38 @@ describe('useActivitiesHistory', () => {
     });
 
     it('should fetch activities without filters', async () => {
-      mockFetchActivitiesHistory.mockResolvedValueOnce(validApiResponse);
+      mockApiClient.get.mockResolvedValueOnce({ data: validApiResponse });
 
-      const useActivitiesHistory = createUseActivitiesHistory(
-        mockFetchActivitiesHistory
-      );
+      const useActivitiesHistory = createUseActivitiesHistory(mockApiClient);
       const { result } = renderHook(() => useActivitiesHistory());
 
       await act(async () => {
         await result.current.fetchActivities();
       });
 
-      expect(mockFetchActivitiesHistory).toHaveBeenCalledWith(undefined);
+      expect(mockApiClient.get).toHaveBeenCalledWith('/activities/history', {
+        params: {},
+      });
       expect(result.current.activities).toHaveLength(1);
+    });
+
+    it('should pass activityCategory to API params', async () => {
+      mockApiClient.get.mockResolvedValueOnce({ data: validApiResponse });
+
+      const useActivitiesHistory = createUseActivitiesHistory(mockApiClient, {
+        activityCategory: 'PROVA',
+      });
+      const { result } = renderHook(() => useActivitiesHistory());
+
+      await act(async () => {
+        await result.current.fetchActivities({ page: 1, limit: 10 });
+      });
+
+      expect(mockApiClient.get).toHaveBeenCalledWith('/activities/history', {
+        params: expect.objectContaining({
+          type: 'PROVA',
+        }),
+      });
     });
   });
 
@@ -716,15 +424,22 @@ describe('useActivitiesHistory', () => {
     });
 
     it('should create a functional hook', () => {
-      const mockFetch = jest.fn().mockResolvedValue({
-        message: 'Success',
-        data: {
-          activities: [],
-          pagination: { total: 0, page: 1, limit: 10, totalPages: 0 },
-        },
-      });
+      const mockApiClient: BaseApiClient = {
+        get: jest.fn().mockResolvedValue({
+          data: {
+            message: 'Success',
+            data: {
+              activities: [],
+              pagination: { total: 0, page: 1, limit: 10, totalPages: 0 },
+            },
+          },
+        }),
+        post: jest.fn(),
+        patch: jest.fn(),
+        delete: jest.fn(),
+      };
 
-      const useHook = createActivitiesHistoryHook(mockFetch);
+      const useHook = createActivitiesHistoryHook(mockApiClient);
       const { result } = renderHook(() => useHook());
 
       expect(result.current.fetchActivities).toBeInstanceOf(Function);

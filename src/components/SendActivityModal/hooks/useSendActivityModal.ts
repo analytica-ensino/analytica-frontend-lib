@@ -132,7 +132,7 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
       const options = { enableExamMode };
       const errors1 = validateStep(1, state.formData, options);
       const errors2 = validateStep(2, formDataForStep2);
-      const errors3 = validateStep(3, state.formData);
+      const errors3 = validateStep(3, state.formData, options);
       const allErrors = { ...errors1, ...errors2, ...errors3 };
       set({ errors: allErrors });
       return Object.keys(allErrors).length === 0;

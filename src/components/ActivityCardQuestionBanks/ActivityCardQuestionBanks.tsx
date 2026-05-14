@@ -41,6 +41,8 @@ interface ActivityCardQuestionBanksProps {
   assunto?: string;
   enunciado?: string;
   additionalContent?: string | null;
+  /** Enable exam mode - changes text labels from 'atividade' to 'prova' */
+  enableExamMode?: boolean;
 }
 
 export const ActivityCardQuestionBanks = ({
@@ -53,6 +55,7 @@ export const ActivityCardQuestionBanks = ({
   assunto,
   enunciado,
   additionalContent,
+  enableExamMode = false,
 }: ActivityCardQuestionBanksProps = {}) => {
   // Transform question options into Alternative format for teacher view
   const alternatives = useMemo(() => {
@@ -337,7 +340,7 @@ export const ActivityCardQuestionBanks = ({
             }
           }}
         >
-          Adicionar à atividade
+          {enableExamMode ? 'Adicionar à prova' : 'Adicionar à atividade'}
         </Button>
       </section>
     </div>
