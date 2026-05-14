@@ -1,4 +1,5 @@
-import styled, { createGlobalStyle } from 'styled-components';
+import type { CSSProperties, ReactNode } from 'react';
+import { forwardRef } from 'react';
 
 export interface AnswerSheetCardProps {
   studentName: string;
@@ -13,395 +14,439 @@ export interface AnswerSheetCardProps {
  * Global print styles to remove browser headers/footers (URL, date, title)
  * and ensure full-page printing
  */
-export const PrintStyles = createGlobalStyle`
-  @media print {
-    @page {
-      size: A4;
-      margin: 0;
-    }
+export function PrintStyles() {
+  return (
+    <style>
+      {`
+        @media print {
+          @page {
+            size: A4;
+            margin: 0;
+          }
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .gabarito-page-container {
+            padding: 0 !important;
+            margin: 0 !important;
+            background: white !important;
+            display: block !important;
+          }
+          .gabarito-card-container {
+            box-shadow: none !important;
+            border: none !important;
+            padding: 12mm !important;
+            margin: 0 !important;
+            width: 210mm !important;
+            height: 297mm !important;
+          }
+          .gabarito-card-container:last-child {
+            page-break-after: auto !important;
+            margin-bottom: 0 !important;
+          }
+          .gabarito-qr-code {
+            bottom: 12px !important;
+            right: 12px !important;
+          }
+        }
+      `}
+    </style>
+  );
+}
 
-    html, body {
-      margin: 0 !important;
-      padding: 0 !important;
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
-    }
+const pageContainerStyle: CSSProperties = {
+  minHeight: '100vh',
+  background: '#f3f4f6',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  padding: '24px 0',
+};
+
+export function PageContainer({ children }: { children: ReactNode }) {
+  return (
+    <div className="gabarito-page-container" style={pageContainerStyle}>
+      {children}
+    </div>
+  );
+}
+
+const cardContainerStyle: CSSProperties = {
+  background: 'white',
+  width: '210mm',
+  height: '297mm',
+  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+  border: '1px solid #d1d5db',
+  padding: '24px',
+  fontSize: '11px',
+  lineHeight: 1.3,
+  fontFamily: 'Arial, Helvetica, sans-serif',
+  color: '#000000',
+  position: 'relative',
+  boxSizing: 'border-box',
+  pageBreakAfter: 'always',
+  pageBreakInside: 'avoid',
+  marginBottom: '24px',
+};
+
+export const CardContainer = forwardRef<HTMLDivElement, { children: ReactNode }>(
+  ({ children }, ref) => {
+    return (
+      <div ref={ref} className="gabarito-card-container" style={cardContainerStyle}>
+        {children}
+      </div>
+    );
   }
-`;
+);
 
-export const PageContainer = styled.div`
-  min-height: 100vh;
-  background: #f3f4f6;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 24px 0;
+CardContainer.displayName = 'CardContainer';
 
-  @media print {
-    padding: 0;
-    margin: 0;
-    background: white;
-    display: block;
-  }
-`;
+// Styles objects for inline styling
+const styles = {
+  headerBar: {
+    background: '#000000',
+    color: 'white',
+    padding: '6px 12px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    fontSize: '16px',
+    fontWeight: 700,
+    marginBottom: 0,
+  } as CSSProperties,
 
-export const CardContainer = styled.div`
-  background: white;
-  width: 210mm;
-  height: 297mm;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #d1d5db;
-  padding: 24px;
-  font-size: 11px;
-  line-height: 1.3;
-  font-family: Arial, Helvetica, sans-serif;
-  color: #000000;
-  position: relative;
-  box-sizing: border-box;
-  page-break-after: always;
-  page-break-inside: avoid;
-  margin-bottom: 24px;
+  subHeader: {
+    padding: '4px 12px',
+    fontSize: '10px',
+    color: '#374151',
+    borderLeft: '1px solid #9ca3af',
+    borderRight: '1px solid #9ca3af',
+  } as CSSProperties,
 
-  &:last-child {
-    page-break-after: auto;
-    margin-bottom: 0;
-  }
+  infoBox: {
+    border: '1px solid #9ca3af',
+    marginTop: '4px',
+  } as CSSProperties,
 
-  @media print {
-    box-shadow: none;
-    border: none;
-    padding: 12mm;
-    margin: 0;
-    width: 210mm;
-    height: 297mm;
-  }
-`;
+  infoRow: {
+    display: 'flex',
+  } as CSSProperties,
 
-const HeaderBar = styled.div`
-  background: #000000;
-  color: white;
-  padding: 6px 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 16px;
-  font-weight: 700;
-  margin-bottom: 0;
-`;
+  infoRowWithBorder: {
+    display: 'flex',
+    borderTop: '1px solid #9ca3af',
+  } as CSSProperties,
 
-const SubHeader = styled.div`
-  padding: 4px 12px;
-  font-size: 10px;
-  color: #374151;
-  border-left: 1px solid #9ca3af;
-  border-right: 1px solid #9ca3af;
-`;
+  infoField: {
+    flex: 1,
+    padding: '6px',
+  } as CSSProperties,
 
-const InfoBox = styled.div`
-  border: 1px solid #9ca3af;
-  margin-top: 4px;
-`;
+  infoFieldLabel: {
+    fontWeight: 700,
+    fontSize: '9px',
+  } as CSSProperties,
 
-const InfoRow = styled.div<{ withBorder?: boolean }>`
-  display: flex;
-  ${(props) => props.withBorder && 'border-top: 1px solid #9ca3af;'}
-`;
+  infoFieldContent: {
+    height: '20px',
+    marginTop: '2px',
+  } as CSSProperties,
 
-const InfoField = styled.div<{ flex?: number; withBorder?: boolean }>`
-  flex: ${(props) => props.flex || 1};
-  padding: 6px;
-  ${(props) => props.withBorder && 'border-right: 1px solid #9ca3af;'}
+  smallInfoField: {
+    width: '144px',
+    padding: '6px',
+    display: 'flex',
+    alignItems: 'flex-start',
+  } as CSSProperties,
 
-  .label {
-    font-weight: 700;
-    font-size: 9px;
-  }
+  foreignLanguageBox: {
+    width: '160px',
+    borderRight: '1px solid #9ca3af',
+    padding: '8px',
+  } as CSSProperties,
 
-  .content {
-    height: 20px;
-    margin-top: 2px;
-  }
-`;
+  foreignLanguageTitle: {
+    fontWeight: 700,
+    fontSize: '9px',
+    textAlign: 'center' as const,
+    marginBottom: '4px',
+  } as CSSProperties,
 
-const SmallInfoField = styled.div`
-  width: 144px;
-  padding: 6px;
-  display: flex;
-  align-items: flex-start;
+  foreignLanguageOption: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    marginLeft: '8px',
+    marginTop: '4px',
+  } as CSSProperties,
 
-  .label {
-    font-weight: 700;
-    font-size: 9px;
-  }
-`;
+  checkbox: {
+    width: '12px',
+    height: '12px',
+    borderRadius: '50%',
+    border: '1px solid #6b7280',
+    display: 'inline-block',
+  } as CSSProperties,
 
-const ForeignLanguageBox = styled.div`
-  width: 160px;
-  border-right: 1px solid #9ca3af;
-  padding: 8px;
+  proctorBox: {
+    flex: 1,
+    padding: '8px',
+  } as CSSProperties,
 
-  .title {
-    font-weight: 700;
-    font-size: 9px;
-    text-align: center;
-    margin-bottom: 4px;
-  }
+  proctorTitle: {
+    fontWeight: 700,
+    fontSize: '9px',
+    textAlign: 'center' as const,
+    marginBottom: '4px',
+  } as CSSProperties,
 
-  .option {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-left: 8px;
-    margin-top: 4px;
-  }
+  proctorItem: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '0 8px',
+    fontSize: '10px',
+    marginTop: '4px',
+  } as CSSProperties,
 
-  .checkbox {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: 1px solid #6b7280;
-    display: inline-block;
-  }
-`;
+  checkboxGroup: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+  } as CSSProperties,
 
-const ProctorBox = styled.div`
-  flex: 1;
-  padding: 8px;
+  signatureBox: {
+    border: '1px solid #9ca3af',
+    borderTop: 0,
+    padding: '8px',
+    textAlign: 'center' as const,
+  } as CSSProperties,
 
-  .title {
-    font-weight: 700;
-    font-size: 9px;
-    text-align: center;
-    margin-bottom: 4px;
-  }
+  signatureTitle: {
+    fontWeight: 700,
+    fontSize: '9px',
+    marginBottom: '8px',
+  } as CSSProperties,
 
-  .item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 8px;
-    font-size: 10px;
-    margin-top: 4px;
-  }
+  signatureLine: {
+    borderBottom: '1px solid #9ca3af',
+    margin: '16px 32px 0 32px',
+  } as CSSProperties,
 
-  .checkbox-group {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
+  instructionsBox: {
+    border: '1px solid #9ca3af',
+    borderTop: 0,
+    padding: '8px',
+  } as CSSProperties,
 
-  .checkbox {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: 1px solid #6b7280;
-    display: inline-block;
-  }
-`;
+  instructionsTitle: {
+    fontWeight: 700,
+    fontSize: '10px',
+    textAlign: 'center' as const,
+    marginBottom: '4px',
+  } as CSSProperties,
 
-const SignatureBox = styled.div`
-  border: 1px solid #9ca3af;
-  border-top: 0;
-  padding: 8px;
-  text-align: center;
+  instructionsText: {
+    fontSize: '9px',
+    padding: '0 4px',
+  } as CSSProperties,
 
-  .title {
-    font-weight: 700;
-    font-size: 9px;
-    margin-bottom: 8px;
-  }
+  instructionsParagraph: {
+    margin: '2px 0',
+  } as CSSProperties,
 
-  .line {
-    border-bottom: 1px solid #9ca3af;
-    margin: 16px 32px 0 32px;
-  }
-`;
+  transcriptionBox: {
+    border: '1px solid #9ca3af',
+    borderTop: 0,
+    padding: '8px',
+  } as CSSProperties,
 
-const InstructionsBox = styled.div`
-  border: 1px solid #9ca3af;
-  border-top: 0;
-  padding: 8px;
+  transcriptionTitle: {
+    fontWeight: 700,
+    fontSize: '9px',
+    textAlign: 'center' as const,
+  } as CSSProperties,
 
-  .title {
-    font-weight: 700;
-    font-size: 10px;
-    text-align: center;
-    margin-bottom: 4px;
-  }
+  transcriptionLine: {
+    borderBottom: '1px solid #9ca3af',
+    margin: '20px 16px 0 16px',
+  } as CSSProperties,
 
-  .text {
-    font-size: 9px;
-    padding: 0 4px;
+  transcriptionLineSecond: {
+    borderBottom: '1px solid #9ca3af',
+    margin: '16px 16px 0 16px',
+  } as CSSProperties,
 
-    p {
-      margin: 2px 0;
-    }
-  }
-`;
+  exampleSection: {
+    marginTop: '8px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    padding: '0 4px',
+    gap: '12px',
+  } as CSSProperties,
 
-const TranscriptionBox = styled.div`
-  border: 1px solid #9ca3af;
-  border-top: 0;
-  padding: 8px;
+  exampleText: {
+    flex: 1,
+  } as CSSProperties,
 
-  .title {
-    font-weight: 700;
-    font-size: 9px;
-    text-align: center;
-  }
+  exampleTextTitle: {
+    fontWeight: 700,
+    fontSize: '10px',
+    marginBottom: '4px',
+  } as CSSProperties,
 
-  .line {
-    border-bottom: 1px solid #9ca3af;
-    margin: 20px 16px 0 16px;
+  exampleTextParagraph: {
+    fontSize: '9px',
+    margin: '2px 0',
+  } as CSSProperties,
 
-    &:nth-child(3) {
-      margin-top: 16px;
-    }
-  }
-`;
+  exampleBox: {
+    width: '224px',
+    border: '1px solid #9ca3af',
+    padding: '6px',
+  } as CSSProperties,
 
-const ExampleSection = styled.div`
-  margin-top: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 0 4px;
-  gap: 12px;
-`;
+  exampleBoxTitle: {
+    fontWeight: 700,
+    fontSize: '9px',
+    marginBottom: '4px',
+  } as CSSProperties,
 
-const ExampleText = styled.div`
-  flex: 1;
+  exampleRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    fontSize: '9px',
+    marginBottom: '2px',
+  } as CSSProperties,
 
-  .title {
-    font-weight: 700;
-    font-size: 10px;
-    margin-bottom: 4px;
-  }
+  exampleRowNumero: {
+    fontWeight: 700,
+    marginLeft: '4px',
+  } as CSSProperties,
 
-  p {
-    font-size: 9px;
-    margin: 2px 0;
+  exampleBubble: {
+    width: '16px',
+    height: '16px',
+    borderRadius: '50%',
+    border: '1px solid #6b7280',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '7px',
+    fontWeight: 700,
+    background: 'white',
+    color: '#6b7280',
+  } as CSSProperties,
 
-    strong {
-      font-weight: 700;
-    }
-  }
-`;
+  exampleBubbleFilled: {
+    width: '16px',
+    height: '16px',
+    borderRadius: '50%',
+    border: '1px solid #6b7280',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '7px',
+    fontWeight: 700,
+    background: '#000000',
+    color: 'white',
+  } as CSSProperties,
 
-const ExampleBox = styled.div`
-  width: 224px;
-  border: 1px solid #9ca3af;
-  padding: 6px;
+  gridContainer: {
+    marginTop: '8px',
+    border: '1px solid #9ca3af',
+  } as CSSProperties,
 
-  .title {
-    font-weight: 700;
-    font-size: 9px;
-    margin-bottom: 4px;
-  }
-`;
+  gridHeader: {
+    display: 'flex',
+    background: '#e5e7eb',
+    borderBottom: '1px solid #9ca3af',
+  } as CSSProperties,
 
-const ExampleRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 9px;
-  margin-bottom: 2px;
+  gridHeaderCell: {
+    flex: 1,
+    textAlign: 'center' as const,
+    fontSize: '8px',
+    fontWeight: 700,
+    padding: '4px 0',
+  } as CSSProperties,
 
-  .numero {
-    font-weight: 700;
-    margin-left: 4px;
-  }
-`;
+  gridHeaderCellWithBorder: {
+    flex: 1,
+    textAlign: 'center' as const,
+    fontSize: '8px',
+    fontWeight: 700,
+    padding: '4px 0',
+    borderRight: '1px solid #9ca3af',
+  } as CSSProperties,
 
-const ExampleBubble = styled.span<{ filled?: boolean }>`
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 1px solid #6b7280;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 7px;
-  font-weight: 700;
-  background: ${(props) => (props.filled ? '#000000' : 'white')};
-  color: ${(props) => (props.filled ? 'white' : '#6b7280')};
-`;
+  gridRow: {
+    display: 'flex',
+  } as CSSProperties,
 
-const GridContainer = styled.div`
-  margin-top: 8px;
-  border: 1px solid #9ca3af;
-`;
+  gridRowWithBorder: {
+    display: 'flex',
+    borderBottom: '1px solid #e5e7eb',
+  } as CSSProperties,
 
-const GridHeader = styled.div`
-  display: flex;
-  background: #e5e7eb;
-  border-bottom: 1px solid #9ca3af;
-`;
+  gridCell: {
+    flex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    padding: '6px 4px',
+  } as CSSProperties,
 
-const GridHeaderCell = styled.div<{ withBorder?: boolean }>`
-  flex: 1;
-  text-align: center;
-  font-size: 8px;
-  font-weight: 700;
-  padding: 4px 0;
-  ${(props) => props.withBorder && 'border-right: 1px solid #9ca3af;'}
-`;
+  gridCellWithBorder: {
+    flex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    padding: '6px 4px',
+    borderRight: '1px solid #9ca3af',
+  } as CSSProperties,
 
-const GridRow = styled.div<{ withBorder?: boolean }>`
-  display: flex;
-  ${(props) => props.withBorder && 'border-bottom: 1px solid #e5e7eb;'}
-`;
+  gridCellNumero: {
+    width: '20px',
+    textAlign: 'right' as const,
+    fontSize: '9px',
+    fontWeight: 500,
+    marginRight: '8px',
+  } as CSSProperties,
 
-const GridCell = styled.div<{ withBorder?: boolean }>`
-  flex: 1;
-  display: flex;
-  align-items: center;
-  padding: 6px 4px;
-  ${(props) => props.withBorder && 'border-right: 1px solid #9ca3af;'}
+  gridCellBubbles: {
+    display: 'flex',
+    gap: '1px',
+  } as CSSProperties,
 
-  .numero {
-    width: 20px;
-    text-align: right;
-    font-size: 9px;
-    font-weight: 500;
-    margin-right: 8px;
-  }
+  gridCellEmpty: {
+    color: '#d1d5db',
+    marginLeft: '24px',
+  } as CSSProperties,
 
-  .bubbles {
-    display: flex;
-    gap: 1px;
-  }
+  answerBubble: {
+    width: '18px',
+    height: '18px',
+    borderRadius: '50%',
+    border: '1px solid #9ca3af',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '9px',
+    color: '#9ca3af',
+  } as CSSProperties,
 
-  .empty {
-    color: #d1d5db;
-    margin-left: 24px;
-  }
-`;
-
-const AnswerBubble = styled.span`
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 1px solid #9ca3af;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 9px;
-  color: #9ca3af;
-`;
-
-const QRCodeImage = styled.img`
-  width: 200px;
-  height: 200px;
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-
-  @media print {
-    bottom: 12px;
-    right: 12px;
-  }
-`;
+  qrCodeImage: {
+    width: '180px',
+    height: '180px',
+    position: 'absolute' as const,
+    bottom: '20px',
+    right: '20px',
+  } as CSSProperties,
+};
 
 const OPTIONS = ['A', 'B', 'C', 'D', 'E'];
 const NUM_COLUMNS = 5;
@@ -428,194 +473,213 @@ export function AnswerSheetCard({
   return (
     <>
       {/* Header */}
-      <HeaderBar>
+      <div style={styles.headerBar}>
         <span>&#9632;</span>
         <span>CARTAO-RESPOSTA</span>
-      </HeaderBar>
-      <SubHeader>{examTitle || 'Simulado Analytica 2026'}</SubHeader>
+      </div>
+      <div style={styles.subHeader}>{examTitle || 'Simulado Analytica 2026'}</div>
 
       {/* Nome / Info do Aluno */}
-      <InfoBox>
-        <InfoRow>
-          <InfoField flex={3} withBorder>
-            <div className="label">NOME COMPLETO:</div>
-            <div className="content">{studentName}</div>
-          </InfoField>
-          <SmallInfoField>
-            <div className="label">INFORMACOES DO ALUNO</div>
-          </SmallInfoField>
-        </InfoRow>
-        <InfoRow withBorder>
-          <InfoField>
-            <div className="label">ESCOLA E TURMA:</div>
-            <div className="content">
+      <div style={styles.infoBox}>
+        <div style={styles.infoRow}>
+          <div style={{ ...styles.infoField, flex: 3, borderRight: '1px solid #9ca3af' }}>
+            <div style={styles.infoFieldLabel}>NOME COMPLETO:</div>
+            <div style={styles.infoFieldContent}>{studentName}</div>
+          </div>
+          <div style={styles.smallInfoField}>
+            <div style={styles.infoFieldLabel}>INFORMACOES DO ALUNO</div>
+          </div>
+        </div>
+        <div style={styles.infoRowWithBorder}>
+          <div style={styles.infoField}>
+            <div style={styles.infoFieldLabel}>ESCOLA E TURMA:</div>
+            <div style={styles.infoFieldContent}>
               {schoolName && className
                 ? `${schoolName} - ${className}`
                 : schoolName || className || ''}
             </div>
-          </InfoField>
-        </InfoRow>
-      </InfoBox>
+          </div>
+        </div>
+      </div>
 
       {/* Lingua Estrangeira / Fiscal */}
-      <InfoBox style={{ borderTop: '0' }}>
-        <InfoRow>
-          <ForeignLanguageBox>
-            <div className="title">LINGUA ESTRANGEIRA</div>
-            <div className="option">
-              <span className="checkbox" />
+      <div style={{ ...styles.infoBox, borderTop: 0 }}>
+        <div style={styles.infoRow}>
+          <div style={styles.foreignLanguageBox}>
+            <div style={styles.foreignLanguageTitle}>LINGUA ESTRANGEIRA</div>
+            <div style={styles.foreignLanguageOption}>
+              <span style={styles.checkbox} />
               <span>INGLES</span>
             </div>
-            <div className="option">
-              <span className="checkbox" />
+            <div style={styles.foreignLanguageOption}>
+              <span style={styles.checkbox} />
               <span>ESPANHOL</span>
             </div>
-          </ForeignLanguageBox>
-          <ProctorBox>
-            <div className="title">PARA USO EXCLUSIVO DO FISCAL DE SALA</div>
-            <div className="item">
+          </div>
+          <div style={styles.proctorBox}>
+            <div style={styles.proctorTitle}>PARA USO EXCLUSIVO DO FISCAL DE SALA</div>
+            <div style={styles.proctorItem}>
               <span>PARTICIPANTE AUSENTE</span>
-              <div className="checkbox-group">
+              <div style={styles.checkboxGroup}>
                 <span>SIM</span>
-                <span className="checkbox" />
+                <span style={styles.checkbox} />
               </div>
             </div>
-            <div className="item">
-              <span>
-                PARTICIPANTE PRESENTE DEIXOU O CARTAO-RESPOSTA EM BRANCO
-              </span>
-              <div className="checkbox-group">
+            <div style={styles.proctorItem}>
+              <span>PARTICIPANTE PRESENTE DEIXOU O CARTAO-RESPOSTA EM BRANCO</span>
+              <div style={styles.checkboxGroup}>
                 <span>SIM</span>
-                <span className="checkbox" />
+                <span style={styles.checkbox} />
               </div>
             </div>
-          </ProctorBox>
-        </InfoRow>
-      </InfoBox>
+          </div>
+        </div>
+      </div>
 
       {/* Assinatura */}
-      <SignatureBox>
-        <div className="title">ASSINATURA DO PARTICIPANTE</div>
-        <div className="line" />
-      </SignatureBox>
+      <div style={styles.signatureBox}>
+        <div style={styles.signatureTitle}>ASSINATURA DO PARTICIPANTE</div>
+        <div style={styles.signatureLine} />
+      </div>
 
       {/* Instrucoes */}
-      <InstructionsBox>
-        <div className="title">INSTRUCOES</div>
-        <div className="text">
-          <p>
+      <div style={styles.instructionsBox}>
+        <div style={styles.instructionsTitle}>INSTRUCOES</div>
+        <div style={styles.instructionsText}>
+          <p style={styles.instructionsParagraph}>
             1. Verifique se seu nome completo e os dados impressos neste
             CARTAO-RESPOSTA estao corretos. Assine somente no local apropriado.
           </p>
-          <p>
+          <p style={styles.instructionsParagraph}>
             2. O CARTAO-RESPOSTA e o unico documento para correcao eletronica.
             Nao o amasse, rasque, dobre ou rasure. Nao havera substituicao por
             erro do participante.
           </p>
-          <p>
+          <p style={styles.instructionsParagraph}>
             3. Em nenhuma hipotese voce podera levar o CARTAO-RESPOSTA ao deixar
             a sala de provas, sob pena de eliminacao no exame.
           </p>
-          <p>
+          <p style={styles.instructionsParagraph}>
             4. Preencha suas respostas nos campos apropriados conforme o EXEMPLO
             DE PREENCHIMENTO. O preenchimento incorreto impossibilita a leitura
             otica.
           </p>
-          <p>
+          <p style={styles.instructionsParagraph}>
             5. Entregue este CARTAO-RESPOSTA ao aplicador ao termino da
             realizacao do exame.
           </p>
         </div>
-      </InstructionsBox>
+      </div>
 
       {/* Transcreva frase */}
-      <TranscriptionBox>
-        <div className="title">
+      <div style={styles.transcriptionBox}>
+        <div style={styles.transcriptionTitle}>
           TRANSCREVA AQUI A FRASE APRESENTADA NA CAPA DE SEU CADERNO DE
           QUESTOES, CONFORME AS INSTRUCOES NELA CONTIDAS.
         </div>
-        <div className="line" />
-        <div className="line" />
-      </TranscriptionBox>
+        <div style={styles.transcriptionLine} />
+        <div style={styles.transcriptionLineSecond} />
+      </div>
 
       {/* Exemplo de preenchimento */}
-      <ExampleSection>
-        <ExampleText>
-          <div className="title">EXEMPLO DE PREENCHIMENTO</div>
-          <p>
+      <div style={styles.exampleSection}>
+        <div style={styles.exampleText}>
+          <div style={styles.exampleTextTitle}>EXEMPLO DE PREENCHIMENTO</div>
+          <p style={styles.exampleTextParagraph}>
             Preencha os circulos completamente, conforme a imagem ao lado,
             utilizando
           </p>
-          <p>
+          <p style={styles.exampleTextParagraph}>
             <strong>
               caneta esferografica de tinta preta, fabricada em material
               transparente.
             </strong>
           </p>
-          <p>
+          <p style={styles.exampleTextParagraph}>
             Nao sera permitido o uso de lapis, lapiseira (grafite) e borracha.
           </p>
-        </ExampleText>
-        <ExampleBox>
-          <div className="title">Exemplo de resposta</div>
+        </div>
+        <div style={styles.exampleBox}>
+          <div style={styles.exampleBoxTitle}>Exemplo de resposta</div>
           {[
             { q: 1, label: 'A', answer: 'A' },
             { q: 2, label: 'B', answer: 'B' },
             { q: 3, label: 'C', answer: 'C' },
           ].map(({ q, label, answer }) => (
-            <ExampleRow key={q}>
+            <div key={q} style={styles.exampleRow}>
               <span>Resposta da questao X = {label} -&gt;</span>
-              <span className="numero">{String(q).padStart(2, '0')}</span>
+              <span style={styles.exampleRowNumero}>{String(q).padStart(2, '0')}</span>
               {OPTIONS.map((opt) => (
-                <ExampleBubble key={opt} filled={opt === answer}>
+                <span
+                  key={opt}
+                  style={opt === answer ? styles.exampleBubbleFilled : styles.exampleBubble}
+                >
                   {opt}
-                </ExampleBubble>
+                </span>
               ))}
-            </ExampleRow>
+            </div>
           ))}
-        </ExampleBox>
-      </ExampleSection>
+        </div>
+      </div>
 
       {/* Grid de Questoes */}
-      <GridContainer>
+      <div style={styles.gridContainer}>
         {/* Header */}
-        <GridHeader>
+        <div style={styles.gridHeader}>
           {Array.from({ length: NUM_COLUMNS }, (_, i) => (
-            <GridHeaderCell key={i} withBorder={i < NUM_COLUMNS - 1}>
+            <div
+              key={i}
+              style={i < NUM_COLUMNS - 1 ? styles.gridHeaderCellWithBorder : styles.gridHeaderCell}
+            >
               Questao / Resposta
-            </GridHeaderCell>
+            </div>
           ))}
-        </GridHeader>
+        </div>
 
         {/* Rows */}
         {Array.from({ length: ROWS_PER_COLUMN }, (_, rowIdx) => (
-          <GridRow key={rowIdx} withBorder={rowIdx < ROWS_PER_COLUMN - 1}>
+          <div
+            key={rowIdx}
+            style={rowIdx < ROWS_PER_COLUMN - 1 ? styles.gridRowWithBorder : styles.gridRow}
+          >
             {Array.from({ length: NUM_COLUMNS }, (_, colIdx) => {
               const questionNum = getQuestionNumber(colIdx, rowIdx);
 
               return (
-                <GridCell key={colIdx} withBorder={colIdx < NUM_COLUMNS - 1}>
+                <div
+                  key={colIdx}
+                  style={colIdx < NUM_COLUMNS - 1 ? styles.gridCellWithBorder : styles.gridCell}
+                >
                   {questionNum === null ? (
-                    <span className="empty">-</span>
+                    <span style={styles.gridCellEmpty}>-</span>
                   ) : (
                     <>
-                      <span className="numero">{questionNum}</span>
-                      <div className="bubbles">
+                      <span style={styles.gridCellNumero}>{questionNum}</span>
+                      <div style={styles.gridCellBubbles}>
                         {OPTIONS.map((opt) => (
-                          <AnswerBubble key={opt}>{opt}</AnswerBubble>
+                          <span key={opt} style={styles.answerBubble}>
+                            {opt}
+                          </span>
                         ))}
                       </div>
                     </>
                   )}
-                </GridCell>
+                </div>
               );
             })}
-          </GridRow>
+          </div>
         ))}
-      </GridContainer>
+      </div>
 
       {/* QR Code */}
-      {qrCodeDataUrl && <QRCodeImage src={qrCodeDataUrl} alt="QR Code" />}
+      {qrCodeDataUrl && (
+        <img
+          src={qrCodeDataUrl}
+          alt="QR Code"
+          className="gabarito-qr-code"
+          style={styles.qrCodeImage}
+        />
+      )}
     </>
   );
 }
