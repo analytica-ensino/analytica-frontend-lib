@@ -93,11 +93,13 @@ export type { CorrectActivityModalProps } from './components/CorrectActivityModa
 export {
   QUESTION_STATUS as CORRECTION_QUESTION_STATUS,
   getQuestionStatusBadgeConfig,
+  convertApiResponseToCorrectionData,
 } from './utils/studentActivityCorrection';
 export type {
   QuestionStatus as CorrectionQuestionStatus,
   StudentQuestion,
   StudentActivityCorrectionData,
+  QuestionsAnswersByStudentResponse,
 } from './utils/studentActivityCorrection';
 
 // FileAttachment Component
@@ -1173,25 +1175,40 @@ export {
   createUseActivitiesHistory,
   createActivitiesHistoryHook,
   transformActivityToTableItem,
-  handleActivityFetchError,
-  activitiesHistoryApiResponseSchema,
+  extractActivityFilterOptions,
+  mergeActivityFilterOptions,
   DEFAULT_ACTIVITIES_PAGINATION,
+  DEFAULT_ACTIVITY_FILTER_OPTIONS,
 } from './hooks/useActivitiesHistory';
 export type {
+  UseActivitiesHistoryOptions,
   UseActivitiesHistoryState,
   UseActivitiesHistoryReturn,
+  ActivityApiFilterOptions,
 } from './hooks/useActivitiesHistory';
+
+// Activity Drafts Hook Factory
+export {
+  createUseActivityDrafts,
+  createActivityDraftsHook,
+  transformDraftToTableItem as transformActivityDraftToTableItem,
+  DEFAULT_DRAFTS_PAGINATION,
+} from './hooks/useActivityDrafts';
+export type {
+  UseActivityDraftsOptions,
+  UseActivityDraftsState,
+  UseActivityDraftsReturn,
+} from './hooks/useActivityDrafts';
 
 // Activity Models Hook Factory
 export {
   createUseActivityModels,
   createActivityModelsHook,
   transformModelToTableItem,
-  handleModelFetchError,
-  activityModelsApiResponseSchema,
   DEFAULT_MODELS_PAGINATION,
 } from './hooks/useActivityModels';
 export type {
+  UseActivityModelsOptions,
   UseActivityModelsState,
   UseActivityModelsReturn,
 } from './hooks/useActivityModels';
@@ -1749,3 +1766,132 @@ export type {
   UserTelemetryData,
   StudentDetailsResponse,
 } from './types/user';
+
+// Exam Types
+export {
+  ExamStatus,
+  ExamDisplayStatus,
+  mapExamStatusToDisplay,
+} from './types/examsHistory';
+export type {
+  ExamFilterOption,
+  ExamApiFilterOptions,
+  ExamSubject,
+  ExamBreakdownItem,
+  ExamHistoryResponse,
+  ExamTableItem,
+  ExamsHistoryApiResponse,
+  ExamHistoryFilters,
+  ExamPagination,
+} from './types/examsHistory';
+
+export { ExamDraftType, ExamActivityCategory } from './types/examDrafts';
+export type {
+  ExamDraftFilters,
+  ExamModelResponse,
+  ExamModelTableItem,
+  ExamModelsApiResponse,
+  ExamModelFilters,
+  ExamModelsPagination,
+} from './types/examDrafts';
+
+// Exam Hooks Factories
+export {
+  createUseExamsHistory,
+  createExamsHistoryHook,
+  transformExamToTableItem,
+  handleExamFetchError,
+  extractExamFilterOptions,
+  mergeExamFilterOptions,
+  DEFAULT_EXAMS_PAGINATION,
+  DEFAULT_EXAM_FILTER_OPTIONS,
+} from './hooks/useExamsHistory';
+export type {
+  UseExamsHistoryState,
+  UseExamsHistoryReturn,
+} from './hooks/useExamsHistory';
+
+// NOTE: useExamDrafts and useExamModels removed - use createUseActivityDrafts/createUseActivityModels with { activityCategory: 'PROVA' }
+
+// Exam Page Layout Component
+export { ExamPageLayout, ExamTab } from './components/ExamPageLayout';
+export type { ExamPageLayoutProps } from './components/ExamPageLayout';
+
+// Exam Table Configs
+export {
+  examsTableColumns,
+  getExamStatusBadgeAction,
+  createExamDraftsModelsTableColumns,
+} from './components/ExamPageLayout';
+export type { ExamTableCallbacks } from './components/ExamPageLayout';
+
+// Answer Sheet Preview Components
+export {
+  AnswerSheetPreview,
+  AnswerSheetsBatchPreview,
+  AnswerSheetCard,
+  CardContainer as AnswerSheetCardContainer,
+  PageContainer as AnswerSheetPageContainer,
+  PrintStyles as AnswerSheetPrintStyles,
+} from './components/ExamPageLayout';
+export type {
+  AnswerSheetPreviewProps,
+  AnswerSheetsBatchPreviewProps,
+  AnswerSheetData,
+  AnswerSheetCardProps,
+} from './components/ExamPageLayout';
+
+// Exam Filter Helpers
+export {
+  EXAM_STATUS_OPTIONS,
+  EXAM_FILTER_CATEGORY,
+  EXAM_FILTER_GROUP,
+  createExamDraftsModelsFiltersConfig,
+  createExamHistoryFiltersConfig,
+} from './utils/examFilterHelpers';
+
+// Exam Details Types
+export {
+  StudentAnswerStatus,
+  StudentAnswerDisplayStatus,
+} from './types/examDetails';
+export type {
+  ExamStudentResult,
+  ExamStudentTableItem,
+  ExamStats,
+  ExamDetailsData,
+  ExamDetailsPagination,
+  ExamDetailsFilters,
+} from './types/examDetails';
+
+// Exam Details Hook Factory
+export {
+  createUseExamDetails,
+  createExamDetailsHook,
+  transformStudent,
+  mapBackendStatusToFrontend,
+  handleExamDetailsFetchError,
+  DEFAULT_EXAM_DETAILS_PAGINATION,
+} from './hooks/useExamDetails';
+export type {
+  UseExamDetailsState,
+  UseExamDetailsReturn,
+} from './hooks/useExamDetails';
+
+// Exam Details Layout Components
+export {
+  ExamDetailsHeader,
+  ExamStatsCards,
+  formatQuestions,
+  ExamStudentsTable,
+  createExamStudentsTableColumns,
+  getExamStudentStatusBadgeAction,
+  getExamStudentStatusDisplayText,
+  ExamDetailsPage,
+} from './components/ExamDetailsLayout';
+export type {
+  ExamDetailsHeaderProps,
+  ExamStatsCardsProps,
+  ExamStudentsTableProps,
+  ExamDetailsPageProps,
+} from './components/ExamDetailsLayout';

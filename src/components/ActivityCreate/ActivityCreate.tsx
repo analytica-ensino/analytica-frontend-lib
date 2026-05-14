@@ -2,9 +2,6 @@ import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useTabletScreen } from '../../hooks/useScreen';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
-  ActivityFilters,
-  ActivityFiltersPopover,
-  ActivityPreview,
   Button,
   SkeletonText,
   useQuestionFiltersStore,
@@ -15,8 +12,8 @@ import {
   useToastStore,
   Modal,
   Text,
+  QUESTION_TYPE,
 } from '../..';
-import Menu, { MenuContent, MenuItem } from '../Menu/Menu';
 import type {
   ActivityFiltersData,
   BaseApiClient,
@@ -26,8 +23,7 @@ import type {
   SendActivityFormData,
 } from '../..';
 import type { Lesson } from '../../types/lessons';
-import { Funnel, MonitorPlay } from 'phosphor-react';
-import { ActivityListQuestions } from '../ActivityListQuestions/ActivityListQuestions';
+import { MonitorPlay } from 'phosphor-react';
 import { areFiltersEqual } from '../../utils/activityFilters';
 import type {
   ActivityDraftResponse,
@@ -41,15 +37,43 @@ import { ActivityType } from './ActivityCreate.types';
 import type { CreateActivityPayload } from '../../types/sendActivity';
 import {
   convertFiltersToBackendFormat,
-  convertBackendFiltersToActivityFiltersData,
   generateTitle,
   convertQuestionToPreview,
   getTypeFromUrl,
   getTypeFromUrlString,
   buildSendActivityPayload,
+  extractLessonsFromResponse,
+  hasQuestionsChanged,
+  shouldSkipAutoSave,
+  extractDraftFromResponse,
+  buildISODateTime,
+  buildFinalDateTime,
+  buildUrlWithParams,
+  getRecommendedClassEndpoint,
+  buildLessonDraftUpdatePayload,
+  formatNavigatePath,
+  getSubjectIdOrThrow,
+  extractActivityIdFromResponse,
+  validateSendActivityResponses,
+  formatErrorMessage,
+  buildActivityDataFromDraft,
+  buildPartialActivityUpdate,
+  buildPayloadWithTypeOverride,
+  shouldUpdateUrl,
+  resolvePreFilters,
+  getInitialFiltersData,
+  shouldTriggerSaveOnReorder,
+  hasRequiredSubjectIds,
+  shouldSaveDraftBeforeAddingToLesson,
+  shouldUseCustomAddActivityCallback,
+  shouldAddActivityToLessonDraft,
 } from './ActivityCreate.utils';
 import { ActivityCreateSkeleton } from './components/ActivityCreateSkeleton';
 import { ActivityCreateHeader } from './components/ActivityCreateHeader';
+import {
+  SmallScreenLayout,
+  DesktopLayout,
+} from './components/ActivityCreateContent';
 import { loadCategoriesData } from '../../utils/categoryDataUtils';
 import { useDynamicStudentFetching } from '../../utils/useDynamicStudentFetching';
 
@@ -67,6 +91,9 @@ const CreateActivity = ({
   onSaveModel,
   onAddActivityToLesson,
   enableExamMode = false,
+  isInPersonExam = false,
+  basePath = '/criar-atividade',
+  activityCategory = 'ATIVIDADE',
 }: {
   apiClient: BaseApiClient;
   institutionId: string;
@@ -79,6 +106,12 @@ const CreateActivity = ({
   onSaveModel?: (response: ActivityDraftResponse) => void;
   onAddActivityToLesson?: (activityDraftId: string) => void;
   enableExamMode?: boolean;
+  /** Force in-person exam mode: auto-selects PROVA subtype and PRESENCIAL mode */
+  isInPersonExam?: boolean;
+  /** Base path for URL navigation (default: '/criar-atividade') */
+  basePath?: string;
+  /** Activity category: 'ATIVIDADE' or 'PROVA' - sent in draft payloads */
+  activityCategory?: 'ATIVIDADE' | 'PROVA';
 }) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -96,33 +129,23 @@ const CreateActivity = ({
    * Build URL preserving existing query parameters
    * Used when updating URL after saving draft to maintain context for navigation
    */
-  const buildUrlWithParams = useCallback(
-    (newType: string, newId: string) => {
-      const params = new URLSearchParams();
-      params.set('type', newType);
-      params.set('id', newId);
-
-      // Preserve existing params for recommended lesson flow
-      if (recommendedLessonDraftId) {
-        params.set('recommended-class-draft', recommendedLessonDraftId);
-      }
-      if (recommendedLessonId) {
-        params.set('recommended-class', recommendedLessonId);
-      }
-      if (classTypeParam) {
-        params.set('classType', classTypeParam);
-      }
-      if (onFinishPath) {
-        params.set('onFinish', onFinishPath);
-      }
-
-      return `/criar-atividade?${params.toString()}`;
-    },
+  const buildActivityUrl = useCallback(
+    (newType: string, newId: string) =>
+      buildUrlWithParams({
+        newType,
+        newId,
+        basePath,
+        recommendedLessonDraftId,
+        recommendedLessonId,
+        classTypeParam,
+        onFinishPath,
+      }),
     [
       recommendedLessonDraftId,
       recommendedLessonId,
       classTypeParam,
       onFinishPath,
+      basePath,
     ]
   );
 
@@ -196,7 +219,7 @@ const CreateActivity = ({
   );
 
   const handleApplyFilters = useCallback(() => {
-    if (!draftFilters?.subjectIds?.length) {
+    if (!hasRequiredSubjectIds(draftFilters?.subjectIds)) {
       addToast({
         title: 'Selecione ao menos uma matéria para pesquisar',
         action: 'warning',
@@ -212,20 +235,13 @@ const CreateActivity = ({
    * If onFinishPath is provided, navigate to that path instead
    */
   const handleBack = useCallback(() => {
-    // Clear filters from store
     clearFilters();
 
-    // If onFinishPath is provided, navigate to it
     if (onFinishPath) {
-      // Handle path that may already include query params
-      const navigatePath = onFinishPath.startsWith('/')
-        ? onFinishPath
-        : `/${onFinishPath}`;
-      navigate(navigatePath);
+      navigate(formatNavigatePath(onFinishPath));
       return;
     }
 
-    // Call original onBack if provided
     if (onBack) {
       onBack();
     }
@@ -237,7 +253,6 @@ const CreateActivity = ({
   const handleLessonPreview = useCallback(async () => {
     setIsLessonPreviewModalOpen(true);
 
-    // Get the draft ID from URL params
     const draftIdToFetch = recommendedLessonDraftId || recommendedLessonId;
     if (!draftIdToFetch) {
       return;
@@ -245,88 +260,18 @@ const CreateActivity = ({
 
     setIsLoadingPreviewLessons(true);
     try {
-      // Determine endpoint based on which ID we have
       const endpoint = recommendedLessonDraftId
         ? `/recommended-class/drafts/${draftIdToFetch}`
         : `/recommended-class/${draftIdToFetch}`;
 
       const response = await apiClient.get<{
         message?: string;
-        data: {
-          draft?: {
-            selectedLessons?: Lesson[];
-            lessons?: Array<{
-              lessonId: string;
-              sequence: number;
-              lesson?: Lesson;
-            }>;
-          };
-          selectedLessons?: Lesson[];
-          lessons?: Array<{
-            lessonId: string;
-            sequence: number;
-            lesson?: Lesson;
-          }>;
-        };
+        data: Parameters<typeof extractLessonsFromResponse>[0];
       }>(endpoint);
 
-      // Extract lessons from response
-      // Handle multiple response formats:
-      // 1. data.data.draft.selectedLessons (array of Lesson)
-      // 2. data.data.selectedLessons (array of Lesson)
-      // 3. data.data.draft.lessons (array with lesson property)
-      // 4. data.data.lessons (array with lesson property)
-      let lessons: Lesson[] = [];
-
-      // Handle both response.data.data and response.data formats
       const responseData =
         'data' in response.data ? response.data.data : response.data;
-      const draft = responseData.draft;
-
-      // Try draft.selectedLessons first
-      if (draft?.selectedLessons && draft.selectedLessons.length > 0) {
-        lessons = draft.selectedLessons;
-      }
-      // Try responseData.selectedLessons
-      else if (
-        responseData.selectedLessons &&
-        responseData.selectedLessons.length > 0
-      ) {
-        lessons = responseData.selectedLessons;
-      }
-      // Try draft.lessons (extract lesson property)
-      else if (draft?.lessons && draft.lessons.length > 0) {
-        lessons = draft.lessons
-          .map((item) => {
-            if (
-              item &&
-              typeof item === 'object' &&
-              'lesson' in item &&
-              item.lesson
-            ) {
-              return item.lesson;
-            }
-            return null;
-          })
-          .filter((lesson): lesson is Lesson => lesson !== null);
-      }
-      // Try responseData.lessons (extract lesson property) - this is the actual format
-      else if (responseData.lessons && responseData.lessons.length > 0) {
-        lessons = responseData.lessons
-          .map((item) => {
-            if (
-              item &&
-              typeof item === 'object' &&
-              'lesson' in item &&
-              item.lesson
-            ) {
-              return item.lesson;
-            }
-            return null;
-          })
-          .filter((lesson): lesson is Lesson => lesson !== null);
-      }
-
+      const lessons = extractLessonsFromResponse(responseData);
       setPreviewLessons(lessons);
     } catch (error) {
       console.error('Error fetching lesson preview:', error);
@@ -342,33 +287,24 @@ const CreateActivity = ({
     institutionId,
   });
 
-  const resolvedPreFilters = useMemo(() => {
-    if (!preFilters) {
-      return null;
-    }
-    if (
-      typeof preFilters === 'object' &&
-      preFilters !== null &&
-      'filters' in preFilters
-    ) {
-      return (preFilters as { filters?: BackendFiltersFormat | null }).filters;
-    }
-    return preFilters as BackendFiltersFormat;
-  }, [preFilters]);
+  const resolvedPreFilters = useMemo(
+    () => resolvePreFilters(preFilters),
+    [preFilters]
+  );
 
-  const initialFiltersData = useMemo(() => {
-    if (activity?.filters) {
-      return convertBackendFiltersToActivityFiltersData(activity.filters);
-    }
-    if (resolvedPreFilters) {
-      return convertBackendFiltersToActivityFiltersData(resolvedPreFilters);
-    }
-    return null;
-  }, [activity?.filters, resolvedPreFilters]);
+  const initialFiltersData = useMemo(
+    () => getInitialFiltersData(activity?.filters, resolvedPreFilters),
+    [activity?.filters, resolvedPreFilters]
+  );
 
   useEffect(() => {
     hasAppliedInitialFiltersRef.current = false;
   }, [activity?.id, activity?.filters, resolvedPreFilters]);
+
+  // Use unified /activity-drafts and /activities endpoints
+  // For exams, we add activityType=PROVA query param instead of using separate endpoints
+  const draftEndpoint = '/activity-drafts';
+  const activityEndpoint = '/activities';
 
   /**
    * Busca o rascunho/modelo da atividade quando há um id na URL
@@ -383,7 +319,7 @@ const CreateActivity = ({
         try {
           const response = await apiClient.get<
             { data: ActivityData } | ActivityData
-          >(`/activity-drafts/${idParam}`);
+          >(`${draftEndpoint}/${idParam}`);
           const activityData =
             'data' in response.data ? response.data.data : response.data;
 
@@ -399,10 +335,10 @@ const CreateActivity = ({
           console.error('Erro ao buscar rascunho da atividade:', error);
           addToast({
             title: 'Erro ao carregar atividade',
-            description:
-              error instanceof Error
-                ? error.message
-                : 'Ocorreu um erro ao carregar a atividade. Tente novamente.',
+            description: formatErrorMessage(
+              error,
+              'Ocorreu um erro ao carregar a atividade. Tente novamente.'
+            ),
             variant: 'solid',
             action: 'warning',
             position: 'top-right',
@@ -414,29 +350,17 @@ const CreateActivity = ({
     };
 
     fetchActivityDraft();
-  }, [idParam, apiClient, addToast]);
+  }, [idParam, apiClient, addToast, draftEndpoint]);
 
   /**
    * Monitora activity.id e activity.type e atualiza a URL quando necessário
-   * Se activity.id ou activity.type mudarem, atualiza a URL para refletir o tipo correto
    */
   useEffect(() => {
-    if (activity?.id && activity?.type) {
-      const urlType = getTypeFromUrl(activity.type);
-      const currentUrlType = typeParam;
-      const currentUrlId = idParam;
-
-      // Atualiza a URL se o tipo ou id mudaram
-      if (
-        !currentUrlType ||
-        !currentUrlId ||
-        currentUrlId !== activity.id ||
-        currentUrlType !== urlType
-      ) {
-        navigate(buildUrlWithParams(urlType, activity.id), {
-          replace: true,
-        });
-      }
+    if (shouldUpdateUrl(activity?.id, activity?.type, typeParam, idParam)) {
+      const urlType = getTypeFromUrl(activity!.type);
+      navigate(buildActivityUrl(urlType, activity!.id!), {
+        replace: true,
+      });
     }
   }, [
     activity?.id,
@@ -444,7 +368,7 @@ const CreateActivity = ({
     typeParam,
     idParam,
     navigate,
-    buildUrlWithParams,
+    buildActivityUrl,
   ]);
 
   /**
@@ -453,16 +377,15 @@ const CreateActivity = ({
    * @returns true if save can proceed, false otherwise
    */
   const validateSaveConditions = useCallback((): boolean => {
-    if (questions.length === 0 && !hasFirstSaveBeenDone.current) {
+    if (isSaving || !hasRequiredSubjectIds(appliedFilters?.subjectIds)) {
       return false;
     }
-    if (!appliedFilters?.subjectIds?.length) {
-      return false;
-    }
-    if (loadingInitialQuestions || isSaving) {
-      return false;
-    }
-    return true;
+    return !shouldSkipAutoSave({
+      loadingInitialQuestions,
+      questionsCount: questions.length,
+      hasFirstSaveBeenDone: hasFirstSaveBeenDone.current,
+      appliedFilters,
+    });
   }, [questions.length, appliedFilters, loadingInitialQuestions, isSaving]);
 
   /**
@@ -481,12 +404,21 @@ const CreateActivity = ({
 
     return {
       type: activityType,
+      activityType: activityCategory,
       title,
       subjectId,
       filters,
       questionIds,
+      isDigital: !isInPersonExam,
     };
-  }, [appliedFilters, activityType, knowledgeAreas, questions]);
+  }, [
+    appliedFilters,
+    activityType,
+    knowledgeAreas,
+    questions,
+    isInPersonExam,
+    activityCategory,
+  ]);
 
   /**
    * Update existing draft via PATCH
@@ -500,54 +432,38 @@ const CreateActivity = ({
       subjectId: string;
       filters: BackendFiltersFormat;
       questionIds: string[];
+      isDigital: boolean;
     }) => {
       const response = await apiClient.patch<ActivityDraftResponse>(
-        `/activity-drafts/${draftId}`,
+        `${draftEndpoint}/${draftId}`,
         payload
       );
       lastSavedQuestionsRef.current = questions;
       lastSavedFiltersRef.current = appliedFilters!;
-      // Use updatedAt from response if available, otherwise use current time
+
       const savedDraft = response?.data?.data?.draft;
       setLastSavedAt(
         savedDraft?.updatedAt ? new Date(savedDraft.updatedAt) : new Date()
       );
 
-      // Atualiza o estado interno da atividade apenas com campos que mudaram
-      // Não atualizamos filters para evitar disparar novas buscas desnecessárias
       if (savedDraft) {
+        const questionIds = questions.map((q) => q.id);
         setActivity((prevActivity) => {
           if (prevActivity?.id !== savedDraft.id) {
-            // Se não há atividade anterior ou o ID mudou, atualiza tudo
-            return {
-              id: savedDraft.id,
-              type: savedDraft.type,
-              title: savedDraft.title,
-              subjectId: savedDraft.subjectId,
-              filters: savedDraft.filters,
-              questionIds: questions.map((q) => q.id),
-              updatedAt: savedDraft.updatedAt,
-            };
+            return buildActivityDataFromDraft(savedDraft, questionIds);
           }
-          // Se é a mesma atividade, só atualiza campos que podem ter mudado
-          // Mantém filters do estado anterior para evitar refetch
-          return {
-            ...prevActivity,
-            type: savedDraft.type,
-            title: savedDraft.title,
-            subjectId: savedDraft.subjectId,
-            questionIds: questions.map((q) => q.id),
-            updatedAt: savedDraft.updatedAt,
-          };
+          return buildPartialActivityUpdate(
+            prevActivity,
+            savedDraft,
+            questionIds
+          );
         });
         setActivityType(savedDraft.type);
-        // Atualiza o ref para evitar refetch desnecessário
         if (savedDraft.id) {
           lastFetchedActivityIdRef.current = savedDraft.id;
         }
       }
 
-      // Call onSaveModel callback if type is MODELO and callback is provided
       if (
         payload.type === ActivityType.MODELO &&
         onSaveModel &&
@@ -556,59 +472,7 @@ const CreateActivity = ({
         onSaveModel(response.data);
       }
     },
-    [draftId, apiClient, questions, appliedFilters, onSaveModel]
-  );
-
-  /**
-   * Extract draft from API response
-   *
-   * @param response - API response object
-   * @returns Extracted draft object
-   * @throws Error if draft cannot be extracted
-   */
-  const extractDraftFromResponse = useCallback(
-    (response: {
-      data: ActivityDraftResponse;
-    }): ActivityDraftResponse['data']['draft'] => {
-      if (!response?.data) {
-        console.error('❌ Resposta vazia da API ao criar rascunho:', response);
-        throw new Error('Invalid response: empty response from API');
-      }
-
-      let savedDraft: ActivityDraftResponse['data']['draft'] | undefined;
-
-      if (response.data.data?.draft) {
-        savedDraft = response.data.data.draft;
-      } else if (
-        response.data &&
-        'draft' in response.data &&
-        typeof response.data === 'object'
-      ) {
-        savedDraft = (
-          response.data as unknown as {
-            draft: ActivityDraftResponse['data']['draft'];
-          }
-        )?.draft;
-      }
-
-      if (!savedDraft?.id) {
-        console.error('❌ Resposta inválida da API ao criar rascunho:', {
-          response,
-          responseData: response?.data,
-          responseDataData: response?.data?.data,
-          responseKeys: response?.data ? Object.keys(response.data) : [],
-          responseDataKeys: response?.data?.data
-            ? Object.keys(response.data.data)
-            : [],
-        });
-        throw new Error(
-          'Invalid response: draft data is missing. Expected structure: response.data.data.draft'
-        );
-      }
-
-      return savedDraft;
-    },
-    []
+    [draftId, apiClient, questions, appliedFilters, onSaveModel, draftEndpoint]
   );
 
   /**
@@ -649,7 +513,7 @@ const CreateActivity = ({
       // Se foi um novo rascunho, atualiza a URL
       if (wasNewDraft && savedDraft.id) {
         const urlType = getTypeFromUrl(savedDraft.type);
-        navigate(buildUrlWithParams(urlType, savedDraft.id), {
+        navigate(buildActivityUrl(urlType, savedDraft.id), {
           replace: true,
         });
       }
@@ -691,22 +555,18 @@ const CreateActivity = ({
       try {
         let payload = createDraftPayload();
 
-        // Override type if provided
         if (typeOverride) {
-          const subjectId = appliedFilters?.subjectIds?.[0];
-          if (!subjectId) {
-            throw new Error('Subject ID não encontrado');
-          }
-          const trimmedCustomTitle = customTitle?.trim();
-          const title =
-            trimmedCustomTitle && trimmedCustomTitle.length > 0
-              ? trimmedCustomTitle
-              : generateTitle(typeOverride, subjectId, knowledgeAreas);
-          payload = {
-            ...payload,
-            type: typeOverride,
-            title,
-          };
+          const subjectId = getSubjectIdOrThrow(
+            undefined,
+            appliedFilters?.subjectIds
+          );
+          payload = buildPayloadWithTypeOverride(
+            payload,
+            typeOverride,
+            customTitle,
+            subjectId,
+            knowledgeAreas
+          );
         }
 
         if (draftId) {
@@ -715,7 +575,7 @@ const CreateActivity = ({
         }
 
         const response = await apiClient.post<ActivityDraftResponse>(
-          '/activity-drafts',
+          draftEndpoint,
           payload
         );
         hasFirstSaveBeenDone.current = true;
@@ -725,15 +585,12 @@ const CreateActivity = ({
         return savedDraft.id;
       } catch (error) {
         console.error('❌ Erro ao salvar rascunho:', error);
-
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : 'Ocorreu um erro ao salvar o rascunho. Tente novamente.';
-
         addToast({
           title: 'Erro ao salvar rascunho',
-          description: errorMessage,
+          description: formatErrorMessage(
+            error,
+            'Ocorreu um erro ao salvar o rascunho. Tente novamente.'
+          ),
           variant: 'solid',
           action: 'warning',
           position: 'top-right',
@@ -749,7 +606,6 @@ const CreateActivity = ({
       draftId,
       updateExistingDraft,
       apiClient,
-      extractDraftFromResponse,
       updateStateAfterSave,
       addToast,
       appliedFilters,
@@ -794,68 +650,29 @@ const CreateActivity = ({
   );
 
   /**
-   * Get endpoint for recommended class based on class type
-   */
-  const getRecommendedClassEndpoint = useCallback(
-    (lessonDraftId: string) => {
-      const baseUrl =
-        classTypeParam === 'modelo'
-          ? '/recommended-class/models'
-          : '/recommended-class/drafts';
-      return `${baseUrl}/${lessonDraftId}`;
-    },
-    [classTypeParam]
-  );
-
-  /**
    * Add activity to lesson draft via API
    */
   const addActivityToLessonDraft = useCallback(
     async (activityDraftId: string, lessonDraftId: string) => {
-      const endpoint = getRecommendedClassEndpoint(lessonDraftId);
+      const endpoint = getRecommendedClassEndpoint(
+        lessonDraftId,
+        classTypeParam
+      );
 
       // Get current lesson draft data
       const response =
         await apiClient.get<RecommendedClassDraftResponse>(endpoint);
       const currentLesson = response.data.data;
 
-      // Build activityDraftIds array
-      const existingActivities = currentLesson.activityDrafts || [];
-      const activityDraftIds = [
-        ...existingActivities.map(
-          (a: { activityDraftId: string; sequence: number }) => ({
-            activityDraftId: a.activityDraftId,
-            sequence: a.sequence,
-          })
-        ),
-        {
-          activityDraftId,
-          sequence: existingActivities.length + 1,
-        },
-      ];
-
-      // Build lessonIds array
-      const lessonIds =
-        currentLesson.lessons?.map(
-          (l: { lessonId: string; sequence: number }) => ({
-            lessonId: l.lessonId,
-            sequence: l.sequence,
-          })
-        ) || [];
-
-      // Update lesson draft
-      const updatePayload = {
-        type: currentLesson.type,
-        title: currentLesson.title,
-        subjectId: currentLesson.subjectId,
-        filters: currentLesson.filters,
-        lessonIds,
-        activityDraftIds,
-      };
+      // Build update payload using utility function
+      const updatePayload = buildLessonDraftUpdatePayload(
+        currentLesson,
+        activityDraftId
+      );
 
       await apiClient.patch(endpoint, updatePayload);
     },
-    [getRecommendedClassEndpoint, apiClient]
+    [classTypeParam, apiClient]
   );
 
   /**
@@ -865,10 +682,7 @@ const CreateActivity = ({
     clearFilters();
 
     if (onFinishPath) {
-      const navigatePath = onFinishPath.startsWith('/')
-        ? onFinishPath
-        : `/${onFinishPath}`;
-      navigate(navigatePath);
+      navigate(formatNavigatePath(onFinishPath));
     } else if (onBack) {
       onBack();
     }
@@ -878,31 +692,31 @@ const CreateActivity = ({
    * Handle add activity to lesson - saves draft and navigates back or calls callback
    */
   const handleAddActivityToLesson = useCallback(async () => {
-    // Get the current draft ID or save and get the new one
     let activityDraftId: string | null | undefined = draftId;
 
-    // Always save as MODELO before adding to lesson
-    if (questions.length > 0 || activityDraftId) {
+    if (
+      shouldSaveDraftBeforeAddingToLesson(questions.length, activityDraftId)
+    ) {
       activityDraftId = await saveDraft(ActivityType.MODELO);
     }
 
-    // Update local state
     setActivityType(ActivityType.MODELO);
 
-    // If custom callback is provided, use it
-    if (onAddActivityToLesson && activityDraftId) {
-      onAddActivityToLesson(activityDraftId);
+    if (
+      shouldUseCustomAddActivityCallback(onAddActivityToLesson, activityDraftId)
+    ) {
+      onAddActivityToLesson!(activityDraftId!);
       return;
     }
 
-    // Default behavior: add activity to lesson draft automatically
-    if (activityDraftId && recommendedLessonDraftId) {
+    if (
+      shouldAddActivityToLessonDraft(activityDraftId, recommendedLessonDraftId)
+    ) {
       try {
         await addActivityToLessonDraft(
-          activityDraftId,
-          recommendedLessonDraftId
+          activityDraftId!,
+          recommendedLessonDraftId!
         );
-
         addToast({
           title: 'Atividade adicionada à aula com sucesso',
           action: 'success',
@@ -989,6 +803,25 @@ const CreateActivity = ({
     hasAppliedInitialFiltersRef.current = true;
   }, [initialFiltersData, setDraftFilters, applyFilters]);
 
+  /**
+   * Force ALTERNATIVA question type filter for in-person exams
+   * In-person exams only support multiple choice questions
+   */
+  useEffect(() => {
+    if (isInPersonExam) {
+      setDraftFilters({
+        types: [QUESTION_TYPE.ALTERNATIVA],
+        bankIds: draftFilters?.bankIds || [],
+        yearIds: draftFilters?.yearIds || [],
+        subjectIds: draftFilters?.subjectIds || [],
+        topicIds: draftFilters?.topicIds || [],
+        subtopicIds: draftFilters?.subtopicIds || [],
+        contentIds: draftFilters?.contentIds || [],
+      });
+      applyFilters();
+    }
+  }, [isInPersonExam]);
+
   const saveDraftRef = useRef(saveDraft);
   useEffect(() => {
     saveDraftRef.current = saveDraft;
@@ -1002,24 +835,21 @@ const CreateActivity = ({
       clearTimeout(saveTimeoutRef.current);
     }
 
-    if (loadingInitialQuestions) {
+    const skipAutoSave = shouldSkipAutoSave({
+      loadingInitialQuestions,
+      questionsCount: questions.length,
+      hasFirstSaveBeenDone: hasFirstSaveBeenDone.current,
+      appliedFilters,
+    });
+
+    if (skipAutoSave) {
       return;
     }
 
-    if (questions.length === 0 && !hasFirstSaveBeenDone.current) {
-      return;
-    }
-
-    if (!appliedFilters) {
-      return;
-    }
-
-    const questionIds = questions.map((q) => q.id).join(',');
-    const lastSavedQuestionIds = lastSavedQuestionsRef.current
-      .map((q) => q.id)
-      .join(',');
-    const questionsChanged = questionIds !== lastSavedQuestionIds;
-
+    const questionsChanged = hasQuestionsChanged(
+      questions,
+      lastSavedQuestionsRef.current
+    );
     const filtersChanged = !areFiltersEqual(
       lastSavedFiltersRef.current,
       appliedFilters
@@ -1085,15 +915,13 @@ const CreateActivity = ({
   const handleReorder = useCallback(
     (orderedQuestions: PreviewQuestion[]) => {
       setQuestions(orderedQuestions);
-      const hasSubjectIds =
-        Array.isArray(appliedFilters?.subjectIds) &&
-        appliedFilters.subjectIds.length > 0;
-      if (
-        hasFirstSaveBeenDone.current &&
-        hasSubjectIds &&
-        !loadingInitialQuestions &&
-        !isSaving
-      ) {
+      const shouldSave = shouldTriggerSaveOnReorder({
+        hasFirstSaveBeenDone: hasFirstSaveBeenDone.current,
+        subjectIds: appliedFilters?.subjectIds,
+        loadingInitialQuestions,
+        isSaving,
+      });
+      if (shouldSave) {
         if (saveTimeoutRef.current) {
           clearTimeout(saveTimeoutRef.current);
         }
@@ -1134,7 +962,7 @@ const CreateActivity = ({
    * Handle opening the send activity modal
    */
   const handleOpenSendModal = useCallback(async () => {
-    if (!draftFilters?.subjectIds?.length) {
+    if (!hasRequiredSubjectIds(draftFilters?.subjectIds)) {
       addToast({
         title: 'Selecione ao menos uma matéria para pesquisar',
         action: 'warning',
@@ -1171,67 +999,61 @@ const CreateActivity = ({
     async (formData: SendActivityFormData) => {
       setIsSendingActivity(true);
       try {
-        const subjectId =
-          activity?.subjectId || appliedFilters?.subjectIds?.[0];
-        if (!subjectId) {
-          throw new Error('Subject ID não encontrado');
-        }
+        const subjectId = getSubjectIdOrThrow(
+          activity?.subjectId,
+          appliedFilters?.subjectIds
+        );
 
-        const startDateTime = new Date(
-          `${formData.startDate}T${formData.startTime}`
-        ).toISOString();
-        const finalDateTime = new Date(
-          `${formData.finalDate}T${formData.finalTime}`
-        ).toISOString();
+        const startDateTime = buildISODateTime(
+          formData.startDate,
+          formData.startTime
+        );
+        const finalDateTime = buildFinalDateTime(
+          formData.finalDate,
+          formData.finalTime,
+          enableExamMode || isInPersonExam
+        );
 
         const activityPayload = buildSendActivityPayload(
           formData,
           subjectId,
           questions.map((q) => q.id),
           startDateTime,
-          finalDateTime
+          finalDateTime,
+          activityCategory
         );
 
-        // First POST: Create activity and capture response
+        // Create activity/exam
         const createActivityResponse =
           await apiClient.post<ActivityCreateResponse>(
-            '/activities',
+            activityEndpoint,
             activityPayload
           );
 
-        // Extract activity ID from response
-        const activityId = createActivityResponse?.data?.data?.id;
-        if (!activityId) {
-          throw new Error('ID da atividade não retornado pela API');
-        }
+        const activityId = extractActivityIdFromResponse(
+          createActivityResponse
+        );
 
-        // Call onCreateActivity callback if provided
         if (onCreateActivity) {
           onCreateActivity(activityId, activityPayload);
         }
 
-        // Second POST: Send activity to students with activityId and students
+        // Send activity to students
         const sendToStudentsPayload = {
-          activityId: activityId,
+          activityId,
           students: formData.students,
         };
 
         const sendToStudentsResponse = await apiClient.post<{
           message: string;
           data: unknown;
-        }>('/activities/send-to-students', sendToStudentsPayload);
+        }>(`${activityEndpoint}/send-to-students`, sendToStudentsPayload);
 
-        // Validate both responses
-        if (!createActivityResponse?.data) {
-          throw new Error('Resposta inválida ao criar atividade');
-        }
-        if (!sendToStudentsResponse?.data) {
-          throw new Error(
-            'Resposta inválida ao enviar atividade para estudantes'
-          );
-        }
+        validateSendActivityResponses(
+          createActivityResponse,
+          sendToStudentsResponse
+        );
 
-        // Only close modal and show success after both succeed
         setIsSendModalOpen(false);
         addToast({
           title: 'Atividade enviada com sucesso!',
@@ -1243,13 +1065,12 @@ const CreateActivity = ({
         });
       } catch (error) {
         console.error('Erro ao enviar atividade:', error);
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : 'Ocorreu um erro ao enviar a atividade. Tente novamente.';
         addToast({
           title: 'Erro ao enviar atividade',
-          description: errorMessage,
+          description: formatErrorMessage(
+            error,
+            'Ocorreu um erro ao enviar a atividade. Tente novamente.'
+          ),
           variant: 'solid',
           action: 'warning',
           position: 'top-right',
@@ -1259,7 +1080,7 @@ const CreateActivity = ({
         setIsSendingActivity(false);
       }
     },
-    [activity, appliedFilters, questions, apiClient, addToast]
+    [activity, appliedFilters, questions, apiClient, addToast, activityEndpoint]
   );
 
   const addedQuestionIds = useMemo(
@@ -1290,150 +1111,50 @@ const CreateActivity = ({
         isRecommendedLessonMode={isRecommendedLessonMode}
         onLessonPreview={handleLessonPreview}
         onAddActivity={handleAddActivityToLesson}
+        enableExamMode={enableExamMode || isInPersonExam}
       />
 
       {/* Main Content */}
       {isSmallScreen ? (
-        /* Small Screen Layout (<= 1200px) */
-        <div className="flex flex-col w-full flex-1 overflow-hidden gap-5 min-h-0">
-          {/* Filters and Menu Row */}
-          <div className="flex flex-row items-center justify-between gap-4 flex-shrink-0">
-            <ActivityFiltersPopover
-              apiClient={apiClient}
-              institutionId={institutionId}
-              onFiltersChange={handleFiltersChange}
-              initialFilters={initialFiltersData || undefined}
-              triggerLabel="Filtro de questões"
-              onApplyFilters={handleApplyFilters}
-              onClearFilters={clearFilters}
-            />
-            <div className="flex-shrink-0">
-              <Menu
-                defaultValue="questions"
-                value={selectedView}
-                onValueChange={(value) =>
-                  setSelectedView(value as 'questions' | 'preview')
-                }
-                variant="breadcrumb"
-              >
-                <MenuContent variant="breadcrumb">
-                  <MenuItem value="questions" variant="breadcrumb">
-                    Banco de questões
-                  </MenuItem>
-                  <MenuItem value="preview" variant="breadcrumb">
-                    Prévia da atividade
-                  </MenuItem>
-                </MenuContent>
-              </Menu>
-            </div>
-          </div>
-
-          {/* Content Area - Single Column */}
-          <div className="flex-1 min-w-0 relative">
-            {selectedView === 'questions' ? (
-              <div className="absolute inset-0 overflow-hidden">
-                <ActivityListQuestions
-                  apiClient={apiClient}
-                  onAddQuestion={handleAddQuestion}
-                  addedQuestionIds={addedQuestionIds}
-                />
-              </div>
-            ) : (
-              <div className="absolute inset-0 overflow-hidden">
-                {loadingInitialQuestions ? (
-                  <div className="flex flex-col gap-4 p-4">
-                    <div className="flex flex-col gap-2">
-                      <SkeletonText lines={1} width={200} />
-                      <SkeletonText lines={1} width={150} />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="p-4 border rounded">
-                          <SkeletonText lines={2} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <ActivityPreview
-                    questions={questions}
-                    onRemoveAll={handleRemoveAll}
-                    onRemoveQuestion={handleRemoveQuestion}
-                    onReorder={handleReorder}
-                    isDark={isDark}
-                    className="h-full overflow-y-auto"
-                  />
-                )}
-              </div>
-            )}
-          </div>
-        </div>
+        <SmallScreenLayout
+          apiClient={apiClient}
+          institutionId={institutionId}
+          isDark={isDark}
+          selectedView={selectedView}
+          onViewChange={setSelectedView}
+          initialFiltersData={initialFiltersData}
+          onFiltersChange={handleFiltersChange}
+          onApplyFilters={handleApplyFilters}
+          onClearFilters={clearFilters}
+          onAddQuestion={handleAddQuestion}
+          addedQuestionIds={addedQuestionIds}
+          enableExamMode={enableExamMode || isInPersonExam}
+          isInPersonExam={isInPersonExam}
+          loadingInitialQuestions={loadingInitialQuestions}
+          questions={questions}
+          onRemoveAll={handleRemoveAll}
+          onRemoveQuestion={handleRemoveQuestion}
+          onReorder={handleReorder}
+        />
       ) : (
-        /* Desktop Layout (> 1200px) - 3 columns */
-        <div className="flex flex-row w-full flex-1 overflow-hidden gap-5 min-h-0">
-          {/* First Column - Filters */}
-          <div className="flex flex-col gap-3 overflow-hidden h-full min-h-0 max-h-full relative w-[400px] flex-shrink-0">
-            <div className="flex flex-col overflow-y-auto overflow-x-hidden flex-1 min-h-0 max-h-full">
-              <ActivityFilters
-                apiClient={apiClient}
-                institutionId={institutionId}
-                variant={'default'}
-                onFiltersChange={handleFiltersChange}
-                initialFilters={initialFiltersData || undefined}
-              />
-            </div>
-            <div className="flex-shrink-0">
-              <Button
-                size="medium"
-                iconLeft={<Funnel />}
-                onClick={handleApplyFilters}
-                disabled={!draftFilters}
-                className="w-full"
-              >
-                Filtrar
-              </Button>
-            </div>
-          </div>
-
-          {/* Second Column - Center, fills remaining space */}
-          <div className="flex-1 min-w-0 relative">
-            <div className="absolute inset-0 overflow-hidden">
-              <ActivityListQuestions
-                apiClient={apiClient}
-                onAddQuestion={handleAddQuestion}
-                addedQuestionIds={addedQuestionIds}
-              />
-            </div>
-          </div>
-
-          {/* Third Column - Activity Preview */}
-          <div className="w-[400px] flex-shrink-0 overflow-hidden h-full min-h-0">
-            {loadingInitialQuestions ? (
-              <div className="flex flex-col gap-4 p-4">
-                <div className="flex flex-col gap-2">
-                  <SkeletonText lines={1} width={200} />
-                  <SkeletonText lines={1} width={150} />
-                </div>
-                <div className="flex flex-col gap-2">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="p-4 border rounded">
-                      <SkeletonText lines={2} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <ActivityPreview
-                questions={questions}
-                onRemoveAll={handleRemoveAll}
-                onRemoveQuestion={handleRemoveQuestion}
-                onReorder={handleReorder}
-                isDark={isDark}
-                className="h-full overflow-y-auto"
-              />
-            )}
-          </div>
-        </div>
+        <DesktopLayout
+          apiClient={apiClient}
+          institutionId={institutionId}
+          isDark={isDark}
+          initialFiltersData={initialFiltersData}
+          draftFilters={draftFilters}
+          onFiltersChange={handleFiltersChange}
+          onApplyFilters={handleApplyFilters}
+          onAddQuestion={handleAddQuestion}
+          addedQuestionIds={addedQuestionIds}
+          enableExamMode={enableExamMode || isInPersonExam}
+          isInPersonExam={isInPersonExam}
+          loadingInitialQuestions={loadingInitialQuestions}
+          questions={questions}
+          onRemoveAll={handleRemoveAll}
+          onRemoveQuestion={handleRemoveQuestion}
+          onReorder={handleReorder}
+        />
       )}
 
       {/* Save Activity Model Modal */}
@@ -1452,7 +1173,8 @@ const CreateActivity = ({
         categories={categories}
         onCategoriesChange={handleCategoriesChange}
         isLoading={isSendingActivity}
-        enableExamMode={enableExamMode}
+        enableExamMode={enableExamMode || isInPersonExam}
+        isInPersonExam={isInPersonExam}
         onError={(error) => {
           console.error('Erro ao enviar atividade:', error);
           const errorMessage =

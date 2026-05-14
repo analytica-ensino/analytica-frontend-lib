@@ -4,7 +4,7 @@
  * Based on /activities/history and /activity-drafts endpoints
  */
 
-import { ActivityType } from '@/components/ActivityCreate/ActivityCreate.types';
+import { ActivityType } from '../components/ActivityCreate/ActivityCreate.types';
 import {
   GenericApiStatus,
   GenericDisplayStatus,
@@ -102,12 +102,19 @@ export interface ActivitiesHistoryApiResponse {
 export interface ActivityHistoryFilters {
   page?: number;
   limit?: number;
+  type?:
+    | 'ATIVIDADE'
+    | 'PROVA'
+    | 'SIMULADO'
+    | 'QUESTIONARIO'
+    | 'AULA_RECOMENDADA';
   status?: GenericApiStatus;
   search?: string;
   startDate?: string;
   finalDate?: string;
   subjectId?: string;
   schoolId?: string;
+  classId?: string;
   sortBy?: 'finalDate' | 'title' | 'completionPercentage';
   sortOrder?: 'asc' | 'desc';
 }

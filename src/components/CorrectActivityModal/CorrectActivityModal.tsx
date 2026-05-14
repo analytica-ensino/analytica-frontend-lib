@@ -5,7 +5,7 @@ import {
   useCallback,
   type ReactNode,
 } from 'react';
-import { PencilSimple, Paperclip, X } from 'phosphor-react';
+import { PencilSimple, Paperclip, X, Image } from 'phosphor-react';
 import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
@@ -61,6 +61,10 @@ export interface CorrectActivityModalProps {
     studentId: string,
     payload: SaveQuestionCorrectionPayload
   ) => Promise<void>;
+  /** URL of the scanned answer sheet image (for exam mode) */
+  answerSheetImageUrl?: string | null;
+  /** Callback when "Ver gabarito escaneado" button is clicked */
+  onViewScannedAnswerSheet?: () => void;
 }
 
 /** Field names for essay correction state updates */
@@ -96,6 +100,8 @@ const CorrectActivityModal = ({
   isViewOnly = false,
   onObservationSubmit,
   onQuestionCorrectionSubmit,
+  answerSheetImageUrl,
+  onViewScannedAnswerSheet,
 }: CorrectActivityModalProps) => {
   const [observation, setObservation] = useState('');
   const [isObservationExpanded, setIsObservationExpanded] = useState(false);
@@ -770,15 +776,29 @@ const CorrectActivityModal = ({
     >
       <div className="space-y-6">
         {/* Student Info */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
-            <Text className="text-lg font-semibold text-primary-700">
-              {data.studentName?.charAt(0).toUpperCase() || '-'}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+              <Text className="text-lg font-semibold text-primary-700">
+                {data.studentName?.charAt(0).toUpperCase() || '-'}
+              </Text>
+            </div>
+            <Text className="text-lg font-medium text-text-950">
+              {data.studentName || 'Aluno'}
             </Text>
           </div>
-          <Text className="text-lg font-medium text-text-950">
-            {data.studentName || 'Aluno'}
-          </Text>
+
+          {/* View scanned answer sheet button */}
+          {answerSheetImageUrl && onViewScannedAnswerSheet && (
+            <Button
+              variant="outline"
+              size="small"
+              onClick={onViewScannedAnswerSheet}
+            >
+              <Image size={18} className="mr-2" />
+              Ver gabarito escaneado
+            </Button>
+          )}
         </div>
 
         {/* Stats Cards */}

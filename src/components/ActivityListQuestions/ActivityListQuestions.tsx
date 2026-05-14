@@ -25,6 +25,8 @@ interface ActivityListQuestionsProps {
   onAddQuestion?: (question: Question) => void;
   addedQuestionIds?: string[];
   className?: string;
+  /** Enable exam mode - changes text labels from 'atividade' to 'prova' */
+  enableExamMode?: boolean;
 }
 
 /**
@@ -37,6 +39,7 @@ export const ActivityListQuestions = ({
   onAddQuestion,
   addedQuestionIds = [],
   className,
+  enableExamMode = false,
 }: ActivityListQuestionsProps) => {
   const { isDark } = useTheme();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -436,6 +439,7 @@ export const ActivityListQuestions = ({
                   onAddQuestion(question);
                 }
               }}
+              enableExamMode={enableExamMode}
             />
           );
         })}
@@ -510,7 +514,8 @@ export const ActivityListQuestions = ({
           <div className="px-6 py-6 flex flex-col gap-4">
             <Text size="sm" className="text-text-600">
               Defina a quantidade de questões que você quer que o sistema
-              adicione automaticamente na sua atividade
+              adicione automaticamente na sua{' '}
+              {enableExamMode ? 'prova' : 'atividade'}
             </Text>
 
             <div className="flex flex-col gap-2">
