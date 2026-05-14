@@ -154,7 +154,9 @@ export const ModelsTabBase = <
         _url: string,
         options?: { params?: Record<string, unknown> }
       ) => {
-        const result = await fetchModelsRef.current(options?.params as TFilters);
+        const result = await fetchModelsRef.current(
+          options?.params as TFilters
+        );
         return { data: result as R };
       },
       delete: async (_url: string) => {

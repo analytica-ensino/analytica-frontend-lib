@@ -74,10 +74,19 @@ describe('useRecommendedClassDrafts', () => {
 
     // Create API client adapter from mock functions
     const createMockApiClient = () => ({
-      get: jest.fn().mockImplementation(async (_url: string, options?: { params?: Record<string, unknown> }) => {
-        const result = await mockFetchRecommendedClassDrafts(options?.params as RecommendedClassModelFilters);
-        return { data: result };
-      }),
+      get: jest
+        .fn()
+        .mockImplementation(
+          async (
+            _url: string,
+            options?: { params?: Record<string, unknown> }
+          ) => {
+            const result = await mockFetchRecommendedClassDrafts(
+              options?.params as RecommendedClassModelFilters
+            );
+            return { data: result };
+          }
+        ),
       delete: jest.fn().mockImplementation(async (url: string) => {
         const id = url.split('/').pop() || '';
         await mockDeleteRecommendedClassDraft(id);
@@ -116,7 +125,8 @@ describe('useRecommendedClassDrafts', () => {
 
     it('should return initial state', () => {
       const mockApiClient = createMockApiClient();
-      const useRecommendedClassDrafts = createUseRecommendedClassDrafts(mockApiClient);
+      const useRecommendedClassDrafts =
+        createUseRecommendedClassDrafts(mockApiClient);
       const { result } = renderHook(() => useRecommendedClassDrafts());
 
       expect(result.current.models).toEqual([]);
@@ -133,7 +143,8 @@ describe('useRecommendedClassDrafts', () => {
       mockFetchRecommendedClassDrafts.mockResolvedValueOnce(validApiResponse);
       const mockApiClient = createMockApiClient();
 
-      const useRecommendedClassDrafts = createUseRecommendedClassDrafts(mockApiClient);
+      const useRecommendedClassDrafts =
+        createUseRecommendedClassDrafts(mockApiClient);
       const { result } = renderHook(() => useRecommendedClassDrafts());
 
       await act(async () => {
@@ -157,10 +168,13 @@ describe('useRecommendedClassDrafts', () => {
         },
       };
 
-      mockFetchRecommendedClassDrafts.mockResolvedValueOnce(responseWith25Items);
+      mockFetchRecommendedClassDrafts.mockResolvedValueOnce(
+        responseWith25Items
+      );
       const mockApiClient = createMockApiClient();
 
-      const useRecommendedClassDrafts = createUseRecommendedClassDrafts(mockApiClient);
+      const useRecommendedClassDrafts =
+        createUseRecommendedClassDrafts(mockApiClient);
       const { result } = renderHook(() => useRecommendedClassDrafts());
 
       await act(async () => {
@@ -179,7 +193,8 @@ describe('useRecommendedClassDrafts', () => {
       mockFetchRecommendedClassDrafts.mockResolvedValueOnce(validApiResponse);
       const mockApiClient = createMockApiClient();
 
-      const useRecommendedClassDrafts = createUseRecommendedClassDrafts(mockApiClient);
+      const useRecommendedClassDrafts =
+        createUseRecommendedClassDrafts(mockApiClient);
       const { result } = renderHook(() => useRecommendedClassDrafts());
 
       await act(async () => {
@@ -201,7 +216,8 @@ describe('useRecommendedClassDrafts', () => {
       mockFetchRecommendedClassDrafts.mockReturnValueOnce(promise);
       const mockApiClient = createMockApiClient();
 
-      const useRecommendedClassDrafts = createUseRecommendedClassDrafts(mockApiClient);
+      const useRecommendedClassDrafts =
+        createUseRecommendedClassDrafts(mockApiClient);
       const { result } = renderHook(() => useRecommendedClassDrafts());
 
       act(() => {
@@ -230,7 +246,8 @@ describe('useRecommendedClassDrafts', () => {
       );
       const mockApiClient = createMockApiClient();
 
-      const useRecommendedClassDrafts = createUseRecommendedClassDrafts(mockApiClient);
+      const useRecommendedClassDrafts =
+        createUseRecommendedClassDrafts(mockApiClient);
       const { result } = renderHook(() => useRecommendedClassDrafts());
 
       await act(async () => {
@@ -262,7 +279,8 @@ describe('useRecommendedClassDrafts', () => {
       );
       const mockApiClient = createMockApiClient();
 
-      const useRecommendedClassDrafts = createUseRecommendedClassDrafts(mockApiClient);
+      const useRecommendedClassDrafts =
+        createUseRecommendedClassDrafts(mockApiClient);
       const { result } = renderHook(() => useRecommendedClassDrafts());
 
       await act(async () => {
@@ -281,7 +299,8 @@ describe('useRecommendedClassDrafts', () => {
       mockDeleteRecommendedClassDraft.mockResolvedValueOnce(undefined);
       const mockApiClient = createMockApiClient();
 
-      const useRecommendedClassDrafts = createUseRecommendedClassDrafts(mockApiClient);
+      const useRecommendedClassDrafts =
+        createUseRecommendedClassDrafts(mockApiClient);
       const { result } = renderHook(() => useRecommendedClassDrafts());
 
       let deleteResult: boolean = false;
@@ -303,7 +322,8 @@ describe('useRecommendedClassDrafts', () => {
       );
       const mockApiClient = createMockApiClient();
 
-      const useRecommendedClassDrafts = createUseRecommendedClassDrafts(mockApiClient);
+      const useRecommendedClassDrafts =
+        createUseRecommendedClassDrafts(mockApiClient);
       const { result } = renderHook(() => useRecommendedClassDrafts());
 
       let deleteResult: boolean = true;
@@ -327,7 +347,8 @@ describe('useRecommendedClassDrafts', () => {
       );
       const mockApiClient = createMockApiClient();
 
-      const useRecommendedClassDrafts = createUseRecommendedClassDrafts(mockApiClient);
+      const useRecommendedClassDrafts =
+        createUseRecommendedClassDrafts(mockApiClient);
       const { result } = renderHook(() => useRecommendedClassDrafts());
 
       await act(async () => {

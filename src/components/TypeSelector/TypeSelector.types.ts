@@ -111,7 +111,10 @@ export const PROVA_LABELS: TypeLabels = {
 /**
  * Default status options by type
  */
-export const DEFAULT_STATUS_OPTIONS: Record<ActivityCategory, Array<{ id: string; name: string }>> = {
+export const DEFAULT_STATUS_OPTIONS: Record<
+  ActivityCategory,
+  Array<{ id: string; name: string }>
+> = {
   ATIVIDADE: ACTIVITY_FILTER_STATUS_OPTIONS,
   PROVA: EXAM_STATUS_OPTIONS,
 };

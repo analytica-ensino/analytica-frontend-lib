@@ -548,7 +548,10 @@ export type {
 } from './components/SearchSelect/SearchSelect';
 
 // TypeSelector Component (Activity/Exam type switcher)
-export { TypeSelector, default as TypeSelectorDefault } from './components/TypeSelector';
+export {
+  TypeSelector,
+  default as TypeSelectorDefault,
+} from './components/TypeSelector';
 export type { TypeSelectorProps } from './components/TypeSelector';
 export {
   type ActivityCategory,

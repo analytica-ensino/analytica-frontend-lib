@@ -12,3 +12,26 @@ export interface BaseApiClient {
   patch: <T>(url: string, data?: object) => Promise<{ data: T }>;
   delete: <T>(url: string) => Promise<{ data: T }>;
 }
+
+/**
+ * Minimal API client with only GET method
+ * Used by hooks that only need to fetch data
+ */
+export interface ApiClientWithGet {
+  get: <T>(
+    url: string,
+    config?: { params?: Record<string, unknown> }
+  ) => Promise<{ data: T }>;
+}
+
+/**
+ * API client with GET and DELETE methods
+ * Used by hooks that need to fetch and delete data
+ */
+export interface ApiClientWithGetAndDelete {
+  get: <T>(
+    url: string,
+    config?: { params?: Record<string, unknown> }
+  ) => Promise<{ data: T }>;
+  delete: <T>(url: string) => Promise<{ data: T }>;
+}
