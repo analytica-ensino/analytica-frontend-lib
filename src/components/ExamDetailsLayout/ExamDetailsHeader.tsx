@@ -6,7 +6,7 @@ export interface ExamDetailsHeaderProps {
   examTitle: string;
   examDate: string;
   school: string;
-  className: string;
+  classroomName: string;
   createdAt: string;
   onBack: () => void;
   onDownloadExam: () => void;
@@ -24,7 +24,7 @@ export const ExamDetailsHeader = ({
   examTitle,
   examDate,
   school,
-  className,
+  classroomName,
   createdAt,
   onBack,
   onDownloadExam,
@@ -38,7 +38,7 @@ export const ExamDetailsHeader = ({
         value="current-page"
         defaultValue="current-page"
         variant="breadcrumb"
-        className="!px-0"
+        className="px-0!"
       >
         <MenuContent variant="breadcrumb">
           <MenuItem
@@ -62,7 +62,7 @@ export const ExamDetailsHeader = ({
             {examTitle}
           </Text>
           <Text size="sm" color="secondary">
-            Data da prova {examDate} • {school} • {className} • Criada em{' '}
+            Data da prova {examDate} • {school} • {classroomName} • Criada em{' '}
             {createdAt}
           </Text>
         </div>

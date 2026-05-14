@@ -31,7 +31,7 @@ export const createExamDraftsModelsTableColumns = (
 ): ColumnConfig<ExamModelTableItem>[] => [
   {
     key: 'title',
-    label: 'Titulo',
+    label: 'Título',
     sortable: true,
     className: 'max-w-[300px] truncate',
     render: renderTextCell,

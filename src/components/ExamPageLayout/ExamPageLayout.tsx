@@ -16,7 +16,7 @@ export enum ExamTab {
  * Tab configuration for exam pages
  */
 const EXAM_TABS = [
-  { value: ExamTab.HISTORY, label: 'Historico', testId: 'menu-item-history' },
+  { value: ExamTab.HISTORY, label: 'Histórico', testId: 'menu-item-history' },
   { value: ExamTab.DRAFTS, label: 'Rascunhos', testId: 'menu-item-drafts' },
   { value: ExamTab.MODELS, label: 'Modelos', testId: 'menu-item-models' },
 ];

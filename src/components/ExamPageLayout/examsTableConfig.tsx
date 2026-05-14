@@ -50,7 +50,7 @@ export const examsTableColumns: ColumnConfig<ExamTableItem>[] = [
   },
   {
     key: 'title',
-    label: 'Titulo',
+    label: 'Título',
     sortable: true,
     className: 'max-w-[200px] truncate',
     render: renderTextCell,
@@ -86,7 +86,7 @@ export const examsTableColumns: ColumnConfig<ExamTableItem>[] = [
   },
   {
     key: 'questionCount',
-    label: 'Questoes',
+    label: 'Questões',
     sortable: true,
     className: 'text-center',
   },
@@ -97,18 +97,24 @@ export const examsTableColumns: ColumnConfig<ExamTableItem>[] = [
   },
   {
     key: 'completionPercentage',
-    label: 'Conclusao',
+    label: 'Conclusão',
     sortable: true,
-    render: (value: unknown) => (
-      <ProgressBar
-        value={Number(value)}
-        variant="blue"
-        size="medium"
-        layout="compact"
-        showPercentage={true}
-        compactWidth="w-[100px]"
-      />
-    ),
+    render: (value: unknown) => {
+      const numValue = Number(value);
+      const safeValue = Number.isFinite(numValue)
+        ? Math.max(0, Math.min(100, numValue))
+        : 0;
+      return (
+        <ProgressBar
+          value={safeValue}
+          variant="blue"
+          size="medium"
+          layout="compact"
+          showPercentage={true}
+          compactWidth="w-[100px]"
+        />
+      );
+    },
   },
   {
     key: 'navigation',

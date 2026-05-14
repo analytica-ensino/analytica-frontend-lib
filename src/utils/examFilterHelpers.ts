@@ -49,11 +49,11 @@ export const createExamDraftsModelsFiltersConfig = (
 ): FilterConfig[] => [
   {
     key: EXAM_FILTER_GROUP.CONTENT,
-    label: 'CONTEUDO',
+    label: 'CONTEÚDO',
     categories: [
       {
         key: EXAM_FILTER_CATEGORY.SUBJECT,
-        label: 'Materia',
+        label: 'Matéria',
         selectedIds: [],
         itens: subjectOptions,
       },
@@ -98,7 +98,7 @@ export const createExamHistoryFiltersConfig = (options: {
   },
   {
     key: EXAM_FILTER_GROUP.ACADEMIC,
-    label: 'DADOS ACADEMICOS',
+    label: 'DADOS ACADÊMICOS',
     categories: [
       {
         key: EXAM_FILTER_CATEGORY.SCHOOL,
@@ -122,11 +122,11 @@ export const createExamHistoryFiltersConfig = (options: {
   },
   {
     key: EXAM_FILTER_GROUP.CONTENT,
-    label: 'CONTEUDO',
+    label: 'CONTEÚDO',
     categories: [
       {
         key: EXAM_FILTER_CATEGORY.SUBJECT,
-        label: 'Materia',
+        label: 'Matéria',
         selectedIds: [],
         itens: options.subjects ?? [],
       },

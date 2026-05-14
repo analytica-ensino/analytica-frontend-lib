@@ -272,6 +272,6 @@ export function isFormValid(
   return (
     isStepValid(1, data, options) &&
     isStepValid(2, data) &&
-    isStepValid(3, data)
+    isStepValid(3, data, options)
   );
 }

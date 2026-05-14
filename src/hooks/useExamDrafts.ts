@@ -141,8 +141,22 @@ const useExamDraftsImpl = (apiClient: BaseApiClient): UseExamDraftsReturn => {
    */
   const deleteDraft = useCallback(
     async (id: string): Promise<void> => {
-      // Use activity-drafts endpoint
-      await apiClient.delete(`/activity-drafts/${id}`);
+      try {
+        // Use activity-drafts endpoint
+        await apiClient.delete(`/activity-drafts/${id}`);
+        // Update local state on success
+        setState((prev) => ({
+          ...prev,
+          drafts: prev.drafts.filter((d) => d.id !== id),
+          pagination: {
+            ...prev.pagination,
+            total: Math.max(0, prev.pagination.total - 1),
+          },
+        }));
+      } catch (error) {
+        console.error('Erro ao deletar rascunho de prova:', error);
+        throw error;
+      }
     },
     [apiClient]
   );

@@ -141,8 +141,22 @@ const useExamModelsImpl = (apiClient: BaseApiClient): UseExamModelsReturn => {
    */
   const deleteModel = useCallback(
     async (id: string): Promise<void> => {
-      // Use activity-drafts endpoint
-      await apiClient.delete(`/activity-drafts/${id}`);
+      try {
+        // Use activity-drafts endpoint
+        await apiClient.delete(`/activity-drafts/${id}`);
+        // Update local state on success
+        setState((prev) => ({
+          ...prev,
+          models: prev.models.filter((m) => m.id !== id),
+          pagination: {
+            ...prev.pagination,
+            total: Math.max(0, prev.pagination.total - 1),
+          },
+        }));
+      } catch (error) {
+        console.error('Erro ao deletar modelo de prova:', error);
+        throw error;
+      }
     },
     [apiClient]
   );
