@@ -37,7 +37,6 @@ import { ActivityType } from './ActivityCreate.types';
 import type { CreateActivityPayload } from '../../types/sendActivity';
 import {
   convertFiltersToBackendFormat,
-  convertBackendFiltersToActivityFiltersData,
   generateTitle,
   convertQuestionToPreview,
   getTypeFromUrl,
@@ -50,6 +49,24 @@ import {
   buildISODateTime,
   buildFinalDateTime,
   buildUrlWithParams,
+  getRecommendedClassEndpoint,
+  buildLessonDraftUpdatePayload,
+  formatNavigatePath,
+  getSubjectIdOrThrow,
+  extractActivityIdFromResponse,
+  validateSendActivityResponses,
+  formatErrorMessage,
+  buildActivityDataFromDraft,
+  buildPartialActivityUpdate,
+  buildPayloadWithTypeOverride,
+  shouldUpdateUrl,
+  resolvePreFilters,
+  getInitialFiltersData,
+  shouldTriggerSaveOnReorder,
+  hasRequiredSubjectIds,
+  shouldSaveDraftBeforeAddingToLesson,
+  shouldUseCustomAddActivityCallback,
+  shouldAddActivityToLessonDraft,
 } from './ActivityCreate.utils';
 import { ActivityCreateSkeleton } from './components/ActivityCreateSkeleton';
 import { ActivityCreateHeader } from './components/ActivityCreateHeader';
@@ -202,7 +219,7 @@ const CreateActivity = ({
   );
 
   const handleApplyFilters = useCallback(() => {
-    if (!draftFilters?.subjectIds?.length) {
+    if (!hasRequiredSubjectIds(draftFilters?.subjectIds)) {
       addToast({
         title: 'Selecione ao menos uma matéria para pesquisar',
         action: 'warning',
@@ -218,20 +235,13 @@ const CreateActivity = ({
    * If onFinishPath is provided, navigate to that path instead
    */
   const handleBack = useCallback(() => {
-    // Clear filters from store
     clearFilters();
 
-    // If onFinishPath is provided, navigate to it
     if (onFinishPath) {
-      // Handle path that may already include query params
-      const navigatePath = onFinishPath.startsWith('/')
-        ? onFinishPath
-        : `/${onFinishPath}`;
-      navigate(navigatePath);
+      navigate(formatNavigatePath(onFinishPath));
       return;
     }
 
-    // Call original onBack if provided
     if (onBack) {
       onBack();
     }
@@ -277,29 +287,15 @@ const CreateActivity = ({
     institutionId,
   });
 
-  const resolvedPreFilters = useMemo(() => {
-    if (!preFilters) {
-      return null;
-    }
-    if (
-      typeof preFilters === 'object' &&
-      preFilters !== null &&
-      'filters' in preFilters
-    ) {
-      return (preFilters as { filters?: BackendFiltersFormat | null }).filters;
-    }
-    return preFilters as BackendFiltersFormat;
-  }, [preFilters]);
+  const resolvedPreFilters = useMemo(
+    () => resolvePreFilters(preFilters),
+    [preFilters]
+  );
 
-  const initialFiltersData = useMemo(() => {
-    if (activity?.filters) {
-      return convertBackendFiltersToActivityFiltersData(activity.filters);
-    }
-    if (resolvedPreFilters) {
-      return convertBackendFiltersToActivityFiltersData(resolvedPreFilters);
-    }
-    return null;
-  }, [activity?.filters, resolvedPreFilters]);
+  const initialFiltersData = useMemo(
+    () => getInitialFiltersData(activity?.filters, resolvedPreFilters),
+    [activity?.filters, resolvedPreFilters]
+  );
 
   useEffect(() => {
     hasAppliedInitialFiltersRef.current = false;
@@ -339,10 +335,10 @@ const CreateActivity = ({
           console.error('Erro ao buscar rascunho da atividade:', error);
           addToast({
             title: 'Erro ao carregar atividade',
-            description:
-              error instanceof Error
-                ? error.message
-                : 'Ocorreu um erro ao carregar a atividade. Tente novamente.',
+            description: formatErrorMessage(
+              error,
+              'Ocorreu um erro ao carregar a atividade. Tente novamente.'
+            ),
             variant: 'solid',
             action: 'warning',
             position: 'top-right',
@@ -358,25 +354,13 @@ const CreateActivity = ({
 
   /**
    * Monitora activity.id e activity.type e atualiza a URL quando necessário
-   * Se activity.id ou activity.type mudarem, atualiza a URL para refletir o tipo correto
    */
   useEffect(() => {
-    if (activity?.id && activity?.type) {
-      const urlType = getTypeFromUrl(activity.type);
-      const currentUrlType = typeParam;
-      const currentUrlId = idParam;
-
-      // Atualiza a URL se o tipo ou id mudaram
-      if (
-        !currentUrlType ||
-        !currentUrlId ||
-        currentUrlId !== activity.id ||
-        currentUrlType !== urlType
-      ) {
-        navigate(buildActivityUrl(urlType, activity.id), {
-          replace: true,
-        });
-      }
+    if (shouldUpdateUrl(activity?.id, activity?.type, typeParam, idParam)) {
+      const urlType = getTypeFromUrl(activity!.type);
+      navigate(buildActivityUrl(urlType, activity!.id!), {
+        replace: true,
+      });
     }
   }, [
     activity?.id,
@@ -384,7 +368,7 @@ const CreateActivity = ({
     typeParam,
     idParam,
     navigate,
-    buildUrlWithParams,
+    buildActivityUrl,
   ]);
 
   /**
@@ -393,19 +377,15 @@ const CreateActivity = ({
    * @returns true if save can proceed, false otherwise
    */
   const validateSaveConditions = useCallback((): boolean => {
-    if (isSaving) {
+    if (isSaving || !hasRequiredSubjectIds(appliedFilters?.subjectIds)) {
       return false;
     }
-    if (!appliedFilters?.subjectIds?.length) {
-      return false;
-    }
-    const skipSave = shouldSkipAutoSave({
+    return !shouldSkipAutoSave({
       loadingInitialQuestions,
       questionsCount: questions.length,
       hasFirstSaveBeenDone: hasFirstSaveBeenDone.current,
       appliedFilters,
     });
-    return !skipSave;
   }, [questions.length, appliedFilters, loadingInitialQuestions, isSaving]);
 
   /**
@@ -460,47 +440,30 @@ const CreateActivity = ({
       );
       lastSavedQuestionsRef.current = questions;
       lastSavedFiltersRef.current = appliedFilters!;
-      // Use updatedAt from response if available, otherwise use current time
+
       const savedDraft = response?.data?.data?.draft;
       setLastSavedAt(
         savedDraft?.updatedAt ? new Date(savedDraft.updatedAt) : new Date()
       );
 
-      // Atualiza o estado interno da atividade apenas com campos que mudaram
-      // Não atualizamos filters para evitar disparar novas buscas desnecessárias
       if (savedDraft) {
+        const questionIds = questions.map((q) => q.id);
         setActivity((prevActivity) => {
           if (prevActivity?.id !== savedDraft.id) {
-            // Se não há atividade anterior ou o ID mudou, atualiza tudo
-            return {
-              id: savedDraft.id,
-              type: savedDraft.type,
-              title: savedDraft.title,
-              subjectId: savedDraft.subjectId,
-              filters: savedDraft.filters,
-              questionIds: questions.map((q) => q.id),
-              updatedAt: savedDraft.updatedAt,
-            };
+            return buildActivityDataFromDraft(savedDraft, questionIds);
           }
-          // Se é a mesma atividade, só atualiza campos que podem ter mudado
-          // Mantém filters do estado anterior para evitar refetch
-          return {
-            ...prevActivity,
-            type: savedDraft.type,
-            title: savedDraft.title,
-            subjectId: savedDraft.subjectId,
-            questionIds: questions.map((q) => q.id),
-            updatedAt: savedDraft.updatedAt,
-          };
+          return buildPartialActivityUpdate(
+            prevActivity,
+            savedDraft,
+            questionIds
+          );
         });
         setActivityType(savedDraft.type);
-        // Atualiza o ref para evitar refetch desnecessário
         if (savedDraft.id) {
           lastFetchedActivityIdRef.current = savedDraft.id;
         }
       }
 
-      // Call onSaveModel callback if type is MODELO and callback is provided
       if (
         payload.type === ActivityType.MODELO &&
         onSaveModel &&
@@ -592,22 +555,18 @@ const CreateActivity = ({
       try {
         let payload = createDraftPayload();
 
-        // Override type if provided
         if (typeOverride) {
-          const subjectId = appliedFilters?.subjectIds?.[0];
-          if (!subjectId) {
-            throw new Error('Subject ID não encontrado');
-          }
-          const trimmedCustomTitle = customTitle?.trim();
-          const title =
-            trimmedCustomTitle && trimmedCustomTitle.length > 0
-              ? trimmedCustomTitle
-              : generateTitle(typeOverride, subjectId, knowledgeAreas);
-          payload = {
-            ...payload,
-            type: typeOverride,
-            title,
-          };
+          const subjectId = getSubjectIdOrThrow(
+            undefined,
+            appliedFilters?.subjectIds
+          );
+          payload = buildPayloadWithTypeOverride(
+            payload,
+            typeOverride,
+            customTitle,
+            subjectId,
+            knowledgeAreas
+          );
         }
 
         if (draftId) {
@@ -626,15 +585,12 @@ const CreateActivity = ({
         return savedDraft.id;
       } catch (error) {
         console.error('❌ Erro ao salvar rascunho:', error);
-
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : 'Ocorreu um erro ao salvar o rascunho. Tente novamente.';
-
         addToast({
           title: 'Erro ao salvar rascunho',
-          description: errorMessage,
+          description: formatErrorMessage(
+            error,
+            'Ocorreu um erro ao salvar o rascunho. Tente novamente.'
+          ),
           variant: 'solid',
           action: 'warning',
           position: 'top-right',
@@ -694,68 +650,29 @@ const CreateActivity = ({
   );
 
   /**
-   * Get endpoint for recommended class based on class type
-   */
-  const getRecommendedClassEndpoint = useCallback(
-    (lessonDraftId: string) => {
-      const baseUrl =
-        classTypeParam === 'modelo'
-          ? '/recommended-class/models'
-          : '/recommended-class/drafts';
-      return `${baseUrl}/${lessonDraftId}`;
-    },
-    [classTypeParam]
-  );
-
-  /**
    * Add activity to lesson draft via API
    */
   const addActivityToLessonDraft = useCallback(
     async (activityDraftId: string, lessonDraftId: string) => {
-      const endpoint = getRecommendedClassEndpoint(lessonDraftId);
+      const endpoint = getRecommendedClassEndpoint(
+        lessonDraftId,
+        classTypeParam
+      );
 
       // Get current lesson draft data
       const response =
         await apiClient.get<RecommendedClassDraftResponse>(endpoint);
       const currentLesson = response.data.data;
 
-      // Build activityDraftIds array
-      const existingActivities = currentLesson.activityDrafts || [];
-      const activityDraftIds = [
-        ...existingActivities.map(
-          (a: { activityDraftId: string; sequence: number }) => ({
-            activityDraftId: a.activityDraftId,
-            sequence: a.sequence,
-          })
-        ),
-        {
-          activityDraftId,
-          sequence: existingActivities.length + 1,
-        },
-      ];
-
-      // Build lessonIds array
-      const lessonIds =
-        currentLesson.lessons?.map(
-          (l: { lessonId: string; sequence: number }) => ({
-            lessonId: l.lessonId,
-            sequence: l.sequence,
-          })
-        ) || [];
-
-      // Update lesson draft
-      const updatePayload = {
-        type: currentLesson.type,
-        title: currentLesson.title,
-        subjectId: currentLesson.subjectId,
-        filters: currentLesson.filters,
-        lessonIds,
-        activityDraftIds,
-      };
+      // Build update payload using utility function
+      const updatePayload = buildLessonDraftUpdatePayload(
+        currentLesson,
+        activityDraftId
+      );
 
       await apiClient.patch(endpoint, updatePayload);
     },
-    [getRecommendedClassEndpoint, apiClient]
+    [classTypeParam, apiClient]
   );
 
   /**
@@ -765,10 +682,7 @@ const CreateActivity = ({
     clearFilters();
 
     if (onFinishPath) {
-      const navigatePath = onFinishPath.startsWith('/')
-        ? onFinishPath
-        : `/${onFinishPath}`;
-      navigate(navigatePath);
+      navigate(formatNavigatePath(onFinishPath));
     } else if (onBack) {
       onBack();
     }
@@ -778,31 +692,31 @@ const CreateActivity = ({
    * Handle add activity to lesson - saves draft and navigates back or calls callback
    */
   const handleAddActivityToLesson = useCallback(async () => {
-    // Get the current draft ID or save and get the new one
     let activityDraftId: string | null | undefined = draftId;
 
-    // Always save as MODELO before adding to lesson
-    if (questions.length > 0 || activityDraftId) {
+    if (
+      shouldSaveDraftBeforeAddingToLesson(questions.length, activityDraftId)
+    ) {
       activityDraftId = await saveDraft(ActivityType.MODELO);
     }
 
-    // Update local state
     setActivityType(ActivityType.MODELO);
 
-    // If custom callback is provided, use it
-    if (onAddActivityToLesson && activityDraftId) {
-      onAddActivityToLesson(activityDraftId);
+    if (
+      shouldUseCustomAddActivityCallback(onAddActivityToLesson, activityDraftId)
+    ) {
+      onAddActivityToLesson!(activityDraftId!);
       return;
     }
 
-    // Default behavior: add activity to lesson draft automatically
-    if (activityDraftId && recommendedLessonDraftId) {
+    if (
+      shouldAddActivityToLessonDraft(activityDraftId, recommendedLessonDraftId)
+    ) {
       try {
         await addActivityToLessonDraft(
-          activityDraftId,
-          recommendedLessonDraftId
+          activityDraftId!,
+          recommendedLessonDraftId!
         );
-
         addToast({
           title: 'Atividade adicionada à aula com sucesso',
           action: 'success',
@@ -1001,15 +915,13 @@ const CreateActivity = ({
   const handleReorder = useCallback(
     (orderedQuestions: PreviewQuestion[]) => {
       setQuestions(orderedQuestions);
-      const hasSubjectIds =
-        Array.isArray(appliedFilters?.subjectIds) &&
-        appliedFilters.subjectIds.length > 0;
-      if (
-        hasFirstSaveBeenDone.current &&
-        hasSubjectIds &&
-        !loadingInitialQuestions &&
-        !isSaving
-      ) {
+      const shouldSave = shouldTriggerSaveOnReorder({
+        hasFirstSaveBeenDone: hasFirstSaveBeenDone.current,
+        subjectIds: appliedFilters?.subjectIds,
+        loadingInitialQuestions,
+        isSaving,
+      });
+      if (shouldSave) {
         if (saveTimeoutRef.current) {
           clearTimeout(saveTimeoutRef.current);
         }
@@ -1050,7 +962,7 @@ const CreateActivity = ({
    * Handle opening the send activity modal
    */
   const handleOpenSendModal = useCallback(async () => {
-    if (!draftFilters?.subjectIds?.length) {
+    if (!hasRequiredSubjectIds(draftFilters?.subjectIds)) {
       addToast({
         title: 'Selecione ao menos uma matéria para pesquisar',
         action: 'warning',
@@ -1087,11 +999,10 @@ const CreateActivity = ({
     async (formData: SendActivityFormData) => {
       setIsSendingActivity(true);
       try {
-        const subjectId =
-          activity?.subjectId || appliedFilters?.subjectIds?.[0];
-        if (!subjectId) {
-          throw new Error('Subject ID não encontrado');
-        }
+        const subjectId = getSubjectIdOrThrow(
+          activity?.subjectId,
+          appliedFilters?.subjectIds
+        );
 
         const startDateTime = buildISODateTime(
           formData.startDate,
@@ -1112,27 +1023,24 @@ const CreateActivity = ({
           activityCategory
         );
 
-        // First POST: Create activity/exam and capture response
+        // Create activity/exam
         const createActivityResponse =
           await apiClient.post<ActivityCreateResponse>(
             activityEndpoint,
             activityPayload
           );
 
-        // Extract activity ID from response
-        const activityId = createActivityResponse?.data?.data?.id;
-        if (!activityId) {
-          throw new Error('ID da atividade não retornado pela API');
-        }
+        const activityId = extractActivityIdFromResponse(
+          createActivityResponse
+        );
 
-        // Call onCreateActivity callback if provided
         if (onCreateActivity) {
           onCreateActivity(activityId, activityPayload);
         }
 
-        // Second POST: Send activity to students with activityId and students
+        // Send activity to students
         const sendToStudentsPayload = {
-          activityId: activityId,
+          activityId,
           students: formData.students,
         };
 
@@ -1141,17 +1049,11 @@ const CreateActivity = ({
           data: unknown;
         }>(`${activityEndpoint}/send-to-students`, sendToStudentsPayload);
 
-        // Validate both responses
-        if (!createActivityResponse?.data) {
-          throw new Error('Resposta inválida ao criar atividade');
-        }
-        if (!sendToStudentsResponse?.data) {
-          throw new Error(
-            'Resposta inválida ao enviar atividade para estudantes'
-          );
-        }
+        validateSendActivityResponses(
+          createActivityResponse,
+          sendToStudentsResponse
+        );
 
-        // Only close modal and show success after both succeed
         setIsSendModalOpen(false);
         addToast({
           title: 'Atividade enviada com sucesso!',
@@ -1163,13 +1065,12 @@ const CreateActivity = ({
         });
       } catch (error) {
         console.error('Erro ao enviar atividade:', error);
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : 'Ocorreu um erro ao enviar a atividade. Tente novamente.';
         addToast({
           title: 'Erro ao enviar atividade',
-          description: errorMessage,
+          description: formatErrorMessage(
+            error,
+            'Ocorreu um erro ao enviar a atividade. Tente novamente.'
+          ),
           variant: 'solid',
           action: 'warning',
           position: 'top-right',

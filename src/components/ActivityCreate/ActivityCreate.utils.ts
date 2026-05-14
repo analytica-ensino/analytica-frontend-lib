@@ -579,3 +579,497 @@ export function extractDraftFromResponse(response: {
 
   return savedDraft;
 }
+
+/**
+ * Get the recommended class endpoint URL based on class type
+ *
+ * @param lessonDraftId - The lesson draft ID
+ * @param classTypeParam - The class type parameter (modelo or undefined)
+ * @returns The endpoint URL for the recommended class
+ */
+export function getRecommendedClassEndpoint(
+  lessonDraftId: string,
+  classTypeParam?: string
+): string {
+  const baseUrl =
+    classTypeParam === 'modelo'
+      ? '/recommended-class/models'
+      : '/recommended-class/drafts';
+  return `${baseUrl}/${lessonDraftId}`;
+}
+
+/**
+ * Activity draft item for lesson draft update
+ */
+interface ActivityDraftItem {
+  activityDraftId: string;
+  sequence: number;
+}
+
+/**
+ * Lesson item for lesson draft update
+ */
+interface LessonItem {
+  lessonId: string;
+  sequence: number;
+}
+
+/**
+ * Current lesson data from API
+ */
+interface CurrentLessonData {
+  type: string;
+  title: string;
+  subjectId: string;
+  filters: BackendFiltersFormat;
+  activityDrafts?: ActivityDraftItem[];
+  lessons?: LessonItem[];
+}
+
+/**
+ * Build activity draft IDs array for lesson draft update
+ *
+ * @param existingActivities - Existing activity drafts from the lesson
+ * @param newActivityDraftId - New activity draft ID to add
+ * @returns Array of activity draft items with sequences
+ */
+export function buildActivityDraftIds(
+  existingActivities: ActivityDraftItem[] | undefined,
+  newActivityDraftId: string
+): ActivityDraftItem[] {
+  const activities = existingActivities || [];
+  return [
+    ...activities.map((a) => ({
+      activityDraftId: a.activityDraftId,
+      sequence: a.sequence,
+    })),
+    {
+      activityDraftId: newActivityDraftId,
+      sequence: activities.length + 1,
+    },
+  ];
+}
+
+/**
+ * Build lesson IDs array from current lesson data
+ *
+ * @param lessons - Lessons from the current lesson data
+ * @returns Array of lesson items with sequences
+ */
+export function buildLessonIds(
+  lessons: LessonItem[] | undefined
+): LessonItem[] {
+  return (
+    lessons?.map((l) => ({
+      lessonId: l.lessonId,
+      sequence: l.sequence,
+    })) || []
+  );
+}
+
+/**
+ * Build update payload for lesson draft
+ *
+ * @param currentLesson - Current lesson data from API
+ * @param newActivityDraftId - New activity draft ID to add
+ * @returns Update payload for PATCH request
+ */
+export function buildLessonDraftUpdatePayload(
+  currentLesson: CurrentLessonData,
+  newActivityDraftId: string
+): {
+  type: string;
+  title: string;
+  subjectId: string;
+  filters: BackendFiltersFormat;
+  lessonIds: LessonItem[];
+  activityDraftIds: ActivityDraftItem[];
+} {
+  return {
+    type: currentLesson.type,
+    title: currentLesson.title,
+    subjectId: currentLesson.subjectId,
+    filters: currentLesson.filters,
+    lessonIds: buildLessonIds(currentLesson.lessons),
+    activityDraftIds: buildActivityDraftIds(
+      currentLesson.activityDrafts,
+      newActivityDraftId
+    ),
+  };
+}
+
+/**
+ * Format a path to ensure it starts with /
+ *
+ * @param path - The path to format
+ * @returns Path starting with /
+ */
+export function formatNavigatePath(path: string): string {
+  return path.startsWith('/') ? path : `/${path}`;
+}
+
+/**
+ * Get subject ID from activity or applied filters
+ *
+ * @param activitySubjectId - Subject ID from activity
+ * @param appliedFiltersSubjectIds - Subject IDs from applied filters
+ * @returns Subject ID or throws error if not found
+ */
+export function getSubjectIdOrThrow(
+  activitySubjectId: string | undefined,
+  appliedFiltersSubjectIds: string[] | undefined
+): string {
+  const subjectId = activitySubjectId || appliedFiltersSubjectIds?.[0];
+  if (!subjectId) {
+    throw new Error('Subject ID não encontrado');
+  }
+  return subjectId;
+}
+
+/**
+ * Activity create response data structure
+ */
+interface ActivityCreateResponseData {
+  data?: {
+    data?: {
+      id?: string;
+    };
+  };
+}
+
+/**
+ * Extract activity ID from create activity response
+ *
+ * @param response - Response from create activity API
+ * @returns Activity ID or throws error if not found
+ */
+export function extractActivityIdFromResponse(
+  response: ActivityCreateResponseData
+): string {
+  const activityId = response?.data?.data?.id;
+  if (!activityId) {
+    throw new Error('ID da atividade não retornado pela API');
+  }
+  return activityId;
+}
+
+/**
+ * Build payload for sending activity to students
+ *
+ * @param activityId - Activity ID
+ * @param students - Array of student IDs
+ * @returns Send to students payload
+ */
+export function buildSendToStudentsPayload(
+  activityId: string,
+  students: string[]
+): { activityId: string; students: string[] } {
+  return {
+    activityId,
+    students,
+  };
+}
+
+/**
+ * Validate send activity responses
+ *
+ * @param createResponse - Response from create activity API
+ * @param sendResponse - Response from send to students API
+ * @throws Error if any response is invalid
+ */
+export function validateSendActivityResponses(
+  createResponse: { data?: unknown } | undefined,
+  sendResponse: { data?: unknown } | undefined
+): void {
+  if (!createResponse?.data) {
+    throw new Error('Resposta inválida ao criar atividade');
+  }
+  if (!sendResponse?.data) {
+    throw new Error('Resposta inválida ao enviar atividade para estudantes');
+  }
+}
+
+/**
+ * Format error message from unknown error
+ *
+ * @param error - Error object
+ * @param defaultMessage - Default message if error is not an Error instance
+ * @returns Formatted error message
+ */
+export function formatErrorMessage(
+  error: unknown,
+  defaultMessage: string
+): string {
+  return error instanceof Error ? error.message : defaultMessage;
+}
+
+/**
+ * Draft data from API response
+ */
+interface DraftData {
+  id: string;
+  type: ActivityType;
+  title: string;
+  subjectId: string;
+  filters: BackendFiltersFormat;
+  updatedAt?: string;
+}
+
+/**
+ * Build ActivityData from draft response
+ *
+ * @param draft - Draft data from API
+ * @param questionIds - Current question IDs
+ * @returns ActivityData object
+ */
+export function buildActivityDataFromDraft(
+  draft: DraftData,
+  questionIds: string[]
+): {
+  id: string;
+  type: ActivityType;
+  title: string;
+  subjectId: string;
+  filters: BackendFiltersFormat;
+  questionIds: string[];
+  updatedAt?: string;
+} {
+  return {
+    id: draft.id,
+    type: draft.type,
+    title: draft.title,
+    subjectId: draft.subjectId,
+    filters: draft.filters,
+    questionIds,
+    updatedAt: draft.updatedAt,
+  };
+}
+
+/**
+ * Build partial activity update (preserves filters)
+ *
+ * @param prevActivity - Previous activity state
+ * @param draft - New draft data
+ * @param questionIds - Current question IDs
+ * @returns Updated activity data
+ */
+export function buildPartialActivityUpdate(
+  prevActivity: { filters: BackendFiltersFormat },
+  draft: DraftData,
+  questionIds: string[]
+): {
+  id: string;
+  type: ActivityType;
+  title: string;
+  subjectId: string;
+  filters: BackendFiltersFormat;
+  questionIds: string[];
+  updatedAt?: string;
+} {
+  return {
+    id: draft.id,
+    type: draft.type,
+    title: draft.title,
+    subjectId: draft.subjectId,
+    filters: prevActivity.filters,
+    questionIds,
+    updatedAt: draft.updatedAt,
+  };
+}
+
+/**
+ * Build draft payload with type override
+ *
+ * @param basePayload - Base payload
+ * @param typeOverride - Type to override
+ * @param customTitle - Custom title (optional)
+ * @param subjectId - Subject ID for title generation
+ * @param knowledgeAreas - Knowledge areas for title generation
+ * @returns Updated payload
+ */
+export function buildPayloadWithTypeOverride<
+  T extends { type: ActivityType; title: string },
+>(
+  basePayload: T,
+  typeOverride: ActivityType,
+  customTitle: string | undefined,
+  subjectId: string,
+  knowledgeAreas: KnowledgeArea[]
+): T {
+  const trimmedCustomTitle = customTitle?.trim();
+  const title =
+    trimmedCustomTitle && trimmedCustomTitle.length > 0
+      ? trimmedCustomTitle
+      : generateTitle(typeOverride, subjectId, knowledgeAreas);
+
+  return {
+    ...basePayload,
+    type: typeOverride,
+    title,
+  };
+}
+
+/**
+ * Check if URL needs to be updated based on activity state
+ *
+ * @param activityId - Current activity ID
+ * @param activityType - Current activity type
+ * @param currentUrlType - Current URL type param
+ * @param currentUrlId - Current URL id param
+ * @returns True if URL needs update
+ */
+export function shouldUpdateUrl(
+  activityId: string | undefined,
+  activityType: ActivityType | undefined,
+  currentUrlType: string | undefined,
+  currentUrlId: string | undefined
+): boolean {
+  if (!activityId || !activityType) {
+    return false;
+  }
+  const urlType = getTypeFromUrl(activityType);
+  return (
+    !currentUrlType ||
+    !currentUrlId ||
+    currentUrlId !== activityId ||
+    currentUrlType !== urlType
+  );
+}
+
+/**
+ * Pre-filters input type
+ */
+type PreFiltersInput =
+  | BackendFiltersFormat
+  | { filters?: BackendFiltersFormat | null }
+  | null;
+
+/**
+ * Resolve pre-filters from various input formats
+ *
+ * @param preFilters - Pre-filters in various formats
+ * @returns Resolved BackendFiltersFormat or null
+ */
+export function resolvePreFilters(
+  preFilters: PreFiltersInput
+): BackendFiltersFormat | null | undefined {
+  if (!preFilters) {
+    return null;
+  }
+  if (
+    typeof preFilters === 'object' &&
+    preFilters !== null &&
+    'filters' in preFilters
+  ) {
+    return (preFilters as { filters?: BackendFiltersFormat | null }).filters;
+  }
+  return preFilters as BackendFiltersFormat;
+}
+
+/**
+ * Get initial filters data from activity or pre-filters
+ *
+ * @param activityFilters - Activity filters
+ * @param resolvedPreFilters - Resolved pre-filters
+ * @returns ActivityFiltersData or null
+ */
+export function getInitialFiltersData(
+  activityFilters: BackendFiltersFormat | undefined,
+  resolvedPreFilters: BackendFiltersFormat | null | undefined
+): ActivityFiltersData | null {
+  if (activityFilters) {
+    return convertBackendFiltersToActivityFiltersData(activityFilters);
+  }
+  if (resolvedPreFilters) {
+    return convertBackendFiltersToActivityFiltersData(resolvedPreFilters);
+  }
+  return null;
+}
+
+/**
+ * Parameters for checking if save should trigger on reorder
+ */
+interface ReorderSaveCheckParams {
+  hasFirstSaveBeenDone: boolean;
+  subjectIds: string[] | undefined;
+  loadingInitialQuestions: boolean;
+  isSaving: boolean;
+}
+
+/**
+ * Check if save should be triggered after reordering questions
+ *
+ * @param params - Check parameters
+ * @returns True if save should be triggered
+ */
+export function shouldTriggerSaveOnReorder(
+  params: ReorderSaveCheckParams
+): boolean {
+  const {
+    hasFirstSaveBeenDone,
+    subjectIds,
+    loadingInitialQuestions,
+    isSaving,
+  } = params;
+  const hasSubjectIds = Array.isArray(subjectIds) && subjectIds.length > 0;
+  return (
+    hasFirstSaveBeenDone &&
+    hasSubjectIds &&
+    !loadingInitialQuestions &&
+    !isSaving
+  );
+}
+
+/**
+ * Check if filters have required subject IDs
+ *
+ * @param subjectIds - Subject IDs from filters
+ * @returns True if at least one subject ID exists
+ */
+export function hasRequiredSubjectIds(
+  subjectIds: string[] | undefined
+): boolean {
+  return Array.isArray(subjectIds) && subjectIds.length > 0;
+}
+
+/**
+ * Check if should save draft before adding to lesson
+ *
+ * @param questionsCount - Number of questions
+ * @param activityDraftId - Current draft ID
+ * @returns True if draft should be saved
+ */
+export function shouldSaveDraftBeforeAddingToLesson(
+  questionsCount: number,
+  activityDraftId: string | null | undefined
+): boolean {
+  return questionsCount > 0 || !!activityDraftId;
+}
+
+/**
+ * Check if should use custom callback for adding activity
+ *
+ * @param onAddActivityToLesson - Callback function
+ * @param activityDraftId - Activity draft ID
+ * @returns True if custom callback should be used
+ */
+export function shouldUseCustomAddActivityCallback(
+  onAddActivityToLesson: ((id: string) => void) | undefined,
+  activityDraftId: string | null | undefined
+): boolean {
+  return !!(onAddActivityToLesson && activityDraftId);
+}
+
+/**
+ * Check if should add activity to lesson draft automatically
+ *
+ * @param activityDraftId - Activity draft ID
+ * @param recommendedLessonDraftId - Recommended lesson draft ID
+ * @returns True if should add automatically
+ */
+export function shouldAddActivityToLessonDraft(
+  activityDraftId: string | null | undefined,
+  recommendedLessonDraftId: string | undefined
+): boolean {
+  return !!(activityDraftId && recommendedLessonDraftId);
+}
