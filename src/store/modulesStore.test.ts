@@ -253,19 +253,34 @@ describe('ModulesStore', () => {
       expect(state.ownerInstitutionId).toBe(institutionId);
     });
 
-    it('should use defaults when API call fails', async () => {
+    it('should use defaults when API call fails after retries', async () => {
+      jest.useFakeTimers();
       const institutionId = 'test-institution';
 
-      mockApi.get.mockRejectedValueOnce(new Error('API Error'));
+      // Mock all retry attempts (initial + 3 retries = 4 rejections)
+      mockApi.get
+        .mockRejectedValueOnce(new Error('API Error'))
+        .mockRejectedValueOnce(new Error('API Error'))
+        .mockRejectedValueOnce(new Error('API Error'))
+        .mockRejectedValueOnce(new Error('API Error'));
 
-      await useModulesStore
+      const fetchPromise = useModulesStore
         .getState()
         .fetchModules(institutionId, mockApi as unknown as AxiosInstance);
 
+      // Advance timers through all retry delays (1s + 2s + 4s)
+      await jest.advanceTimersByTimeAsync(7000);
+
+      await fetchPromise;
+
       const state = useModulesStore.getState();
       expect(state.modules).toEqual(defaultModules);
-      expect(state.ownerInstitutionId).toBe(institutionId);
+      // ownerInstitutionId remains null after failed retries to allow future retry
+      expect(state.ownerInstitutionId).toBeNull();
       expect(state.loading).toBe(false);
+      expect(mockApi.get).toHaveBeenCalledTimes(4);
+
+      jest.useRealTimers();
     });
 
     it('should handle invalid JSON in localStorage gracefully', async () => {

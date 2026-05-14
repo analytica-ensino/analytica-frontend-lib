@@ -1,7 +1,7 @@
-import { PersonArmsSpreadIcon } from '@phosphor-icons/react';
 import Button from '../Button/Button';
 import { Tooltip } from '../Tooltip/Tooltip';
 import { cn } from '../../utils/utils';
+import accessibilityIcon from '../../assets/img/accessibility.png';
 import {
   FAB_POSITION_CLASSES,
   FAB_TOOLTIP_POSITION,
@@ -64,13 +64,21 @@ export default function AccessibilityFab({
           'a11y-widget-shield',
           FAB_POSITION_CLASSES[position],
           'flex h-10 w-10 cursor-pointer items-center justify-center',
-          'bg-info-900 text-white shadow-lg',
+          // `text-text-50` flipa junto com `bg-info-900` (claro no light,
+          // escuro no dark). `text-white` deixaria o ícone branco sumindo
+          // no tema escuro, onde `bg-info-900` resolve pra azul-claro.
+          'bg-info-900 text-text-50 shadow-lg',
           'transition-all duration-200 hover:scale-110 hover:bg-info-800',
           'focus:outline-none focus:ring-4 focus:ring-info-300',
           className
         )}
       >
-        <PersonArmsSpreadIcon size={25} weight="fill" aria-hidden="true" />
+        <img
+          src={accessibilityIcon}
+          alt=""
+          aria-hidden="true"
+          className="h-7 w-7"
+        />
       </Button>
     </Tooltip>
   );
