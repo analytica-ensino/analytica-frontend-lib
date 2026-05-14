@@ -3,30 +3,35 @@ import { useReactToPrint } from 'react-to-print';
 import QRCode from 'qrcode';
 import {
   PageContainer,
-  CartaoContainer,
-  GabaritoCard,
+  CardContainer,
+  AnswerSheetCard,
   PrintStyles,
 } from './GabaritoCard';
 
-export interface GabaritoPreviewProps {
-  nomeAluno: string;
+export interface AnswerSheetPreviewProps {
+  studentName: string;
   qrCodeUrl: string;
-  totalQuestoes: number;
-  tituloProva?: string;
-  escolaNome?: string;
-  turmaNome?: string;
+  totalQuestions: number;
+  examTitle?: string;
+  schoolName?: string;
+  className?: string;
   onComplete?: () => void;
 }
 
-export function GabaritoPreview({
-  nomeAluno,
+/**
+ * @deprecated Use AnswerSheetPreviewProps instead
+ */
+export type GabaritoPreviewProps = AnswerSheetPreviewProps;
+
+export function AnswerSheetPreview({
+  studentName,
   qrCodeUrl,
-  totalQuestoes,
-  tituloProva,
-  escolaNome,
-  turmaNome,
+  totalQuestions,
+  examTitle,
+  schoolName,
+  className,
   onComplete,
-}: Readonly<GabaritoPreviewProps>) {
+}: Readonly<AnswerSheetPreviewProps>) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const printedRef = useRef(false);
@@ -78,19 +83,24 @@ export function GabaritoPreview({
     <>
       <PrintStyles />
       <PageContainer>
-        <CartaoContainer ref={contentRef}>
-          <GabaritoCard
-            nomeAluno={nomeAluno}
+        <CardContainer ref={contentRef}>
+          <AnswerSheetCard
+            studentName={studentName}
             qrCodeDataUrl={qrCodeDataUrl}
-            totalQuestoes={totalQuestoes}
-            tituloProva={tituloProva}
-            escolaNome={escolaNome}
-            turmaNome={turmaNome}
+            totalQuestions={totalQuestions}
+            examTitle={examTitle}
+            schoolName={schoolName}
+            className={className}
           />
-        </CartaoContainer>
+        </CardContainer>
       </PageContainer>
     </>
   );
 }
 
-export default GabaritoPreview;
+/**
+ * @deprecated Use AnswerSheetPreview instead
+ */
+export const GabaritoPreview = AnswerSheetPreview;
+
+export default AnswerSheetPreview;

@@ -121,15 +121,15 @@ export const DEFAULT_EXAM_DETAILS_PAGINATION: ExamDetailsPagination = {
 export const mapBackendStatusToFrontend = (
   status: StudentActivityStatus
 ): StudentAnswerStatus => {
-  // If student completed or is awaiting correction, gabarito was received
-  // If awaiting response or not delivered, still waiting for gabarito
+  // If student completed or is awaiting correction, answer sheet was received
+  // If awaiting response or not delivered, still waiting for answer sheet
   if (
     status === StudentActivityStatus.CONCLUIDO ||
     status === StudentActivityStatus.AGUARDANDO_CORRECAO
   ) {
-    return StudentAnswerStatus.GABARITO_RECEBIDO;
+    return StudentAnswerStatus.ANSWER_SHEET_RECEIVED;
   }
-  return StudentAnswerStatus.AGUARDANDO_GABARITO;
+  return StudentAnswerStatus.AWAITING_ANSWER_SHEET;
 };
 
 /**

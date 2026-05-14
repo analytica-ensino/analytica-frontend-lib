@@ -3,29 +3,42 @@ import { useReactToPrint } from 'react-to-print';
 import QRCode from 'qrcode';
 import {
   PageContainer,
-  CartaoContainer,
-  GabaritoCard,
+  CardContainer,
+  AnswerSheetCard,
   PrintStyles,
 } from './GabaritoCard';
 
-export interface GabaritoData {
-  nomeAluno: string;
+export interface AnswerSheetData {
+  studentName: string;
   qrCodeUrl: string;
-  totalQuestoes: number;
-  tituloProva?: string;
-  escolaNome?: string;
-  turmaNome?: string;
+  totalQuestions: number;
+  examTitle?: string;
+  schoolName?: string;
+  className?: string;
 }
 
-export interface GabaritosBatchPreviewProps {
-  gabaritos: GabaritoData[];
+/**
+ * @deprecated Use AnswerSheetData instead
+ */
+export type GabaritoData = AnswerSheetData;
+
+export interface AnswerSheetsBatchPreviewProps {
+  answerSheets: AnswerSheetData[];
   onComplete?: () => void;
 }
 
-export function GabaritosBatchPreview({
-  gabaritos,
+/**
+ * @deprecated Use AnswerSheetsBatchPreviewProps instead
+ */
+export interface GabaritosBatchPreviewProps {
+  gabaritos: AnswerSheetData[];
+  onComplete?: () => void;
+}
+
+export function AnswerSheetsBatchPreview({
+  answerSheets,
   onComplete,
-}: Readonly<GabaritosBatchPreviewProps>) {
+}: Readonly<AnswerSheetsBatchPreviewProps>) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [qrCodeDataUrls, setQrCodeDataUrls] = useState<string[]>([]);
   const printedRef = useRef(false);
@@ -33,15 +46,15 @@ export function GabaritosBatchPreview({
   useEffect(() => {
     const generateQRCodes = async () => {
       const urls = await Promise.all(
-        gabaritos.map((gabarito) =>
-          QRCode.toDataURL(gabarito.qrCodeUrl, { width: 160 })
+        answerSheets.map((sheet) =>
+          QRCode.toDataURL(sheet.qrCodeUrl, { width: 160 })
         )
       );
       setQrCodeDataUrls(urls);
     };
 
     generateQRCodes();
-  }, [gabaritos]);
+  }, [answerSheets]);
 
   const handlePrint = useReactToPrint({
     contentRef,
@@ -71,31 +84,31 @@ export function GabaritosBatchPreview({
   });
 
   useEffect(() => {
-    if (!printedRef.current && qrCodeDataUrls.length === gabaritos.length) {
+    if (!printedRef.current && qrCodeDataUrls.length === answerSheets.length) {
       printedRef.current = true;
       const timer = setTimeout(() => {
         handlePrint();
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [qrCodeDataUrls, gabaritos.length, handlePrint]);
+  }, [qrCodeDataUrls, answerSheets.length, handlePrint]);
 
   return (
     <>
       <PrintStyles />
       <PageContainer>
         <div ref={contentRef}>
-          {gabaritos.map((gabarito, index) => (
-            <CartaoContainer key={gabarito.nomeAluno + index}>
-              <GabaritoCard
-                nomeAluno={gabarito.nomeAluno}
+          {answerSheets.map((sheet, index) => (
+            <CardContainer key={sheet.studentName + index}>
+              <AnswerSheetCard
+                studentName={sheet.studentName}
                 qrCodeDataUrl={qrCodeDataUrls[index] || ''}
-                totalQuestoes={gabarito.totalQuestoes}
-                tituloProva={gabarito.tituloProva}
-                escolaNome={gabarito.escolaNome}
-                turmaNome={gabarito.turmaNome}
+                totalQuestions={sheet.totalQuestions}
+                examTitle={sheet.examTitle}
+                schoolName={sheet.schoolName}
+                className={sheet.className}
               />
-            </CartaoContainer>
+            </CardContainer>
           ))}
         </div>
       </PageContainer>
@@ -103,4 +116,29 @@ export function GabaritosBatchPreview({
   );
 }
 
-export default GabaritosBatchPreview;
+/**
+ * @deprecated Use AnswerSheetsBatchPreview instead
+ */
+export function GabaritosBatchPreview({
+  gabaritos,
+  onComplete,
+}: Readonly<GabaritosBatchPreviewProps>) {
+  // Convert old prop names to new ones
+  const answerSheets: AnswerSheetData[] = gabaritos.map((g) => ({
+    studentName: g.studentName,
+    qrCodeUrl: g.qrCodeUrl,
+    totalQuestions: g.totalQuestions,
+    examTitle: g.examTitle,
+    schoolName: g.schoolName,
+    className: g.className,
+  }));
+
+  return (
+    <AnswerSheetsBatchPreview
+      answerSheets={answerSheets}
+      onComplete={onComplete}
+    />
+  );
+}
+
+export default AnswerSheetsBatchPreview;

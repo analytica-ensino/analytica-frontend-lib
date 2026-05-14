@@ -10,15 +10,23 @@
  * Represents the state of a student's answer sheet submission
  */
 export enum StudentAnswerStatus {
-  AGUARDANDO_GABARITO = 'AGUARDANDO_GABARITO',
-  GABARITO_RECEBIDO = 'GABARITO_RECEBIDO',
+  AWAITING_ANSWER_SHEET = 'AWAITING_ANSWER_SHEET',
+  ANSWER_SHEET_RECEIVED = 'ANSWER_SHEET_RECEIVED',
+  /** @deprecated Use AWAITING_ANSWER_SHEET instead */
+  AGUARDANDO_GABARITO = 'AWAITING_ANSWER_SHEET',
+  /** @deprecated Use ANSWER_SHEET_RECEIVED instead */
+  GABARITO_RECEBIDO = 'ANSWER_SHEET_RECEIVED',
 }
 
 /**
  * Student answer display status for UI
  */
 export enum StudentAnswerDisplayStatus {
+  AWAITING_ANSWER_SHEET = 'Aguardando gabarito',
+  ANSWER_SHEET_RECEIVED = 'Gabarito recebido',
+  /** @deprecated Use AWAITING_ANSWER_SHEET instead */
   AGUARDANDO_GABARITO = 'Aguardando gabarito',
+  /** @deprecated Use ANSWER_SHEET_RECEIVED instead */
   GABARITO_RECEBIDO = 'Gabarito recebido',
 }
 

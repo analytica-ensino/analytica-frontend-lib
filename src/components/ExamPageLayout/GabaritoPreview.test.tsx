@@ -3,7 +3,7 @@ import { render, screen, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { useReactToPrint } from 'react-to-print';
 import QRCode from 'qrcode';
-import { GabaritoPreview } from './GabaritoPreview';
+import { AnswerSheetPreview } from './GabaritoPreview';
 
 // Mock react-to-print
 const mockHandlePrint = jest.fn();
@@ -19,49 +19,49 @@ jest.mock('qrcode', () => ({
 const mockUseReactToPrint = jest.mocked(useReactToPrint);
 const mockQRCode = jest.mocked(QRCode);
 
-// Mock GabaritoCard components
+// Mock AnswerSheetCard components
 jest.mock('./GabaritoCard', () => ({
   PrintStyles: () => <div data-testid="print-styles" />,
   PageContainer: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="page-container">{children}</div>
   ),
-  CartaoContainer: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="cartao-container">{children}</div>
+  CardContainer: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="card-container">{children}</div>
   ),
-  GabaritoCard: ({
-    nomeAluno,
+  AnswerSheetCard: ({
+    studentName,
     qrCodeDataUrl,
-    totalQuestoes,
-    tituloProva,
-    escolaNome,
-    turmaNome,
+    totalQuestions,
+    examTitle,
+    schoolName,
+    className,
   }: {
-    nomeAluno: string;
+    studentName: string;
     qrCodeDataUrl: string;
-    totalQuestoes: number;
-    tituloProva?: string;
-    escolaNome?: string;
-    turmaNome?: string;
+    totalQuestions: number;
+    examTitle?: string;
+    schoolName?: string;
+    className?: string;
   }) => (
-    <div data-testid="gabarito-card">
-      <span data-testid="nome-aluno">{nomeAluno}</span>
+    <div data-testid="answer-sheet-card">
+      <span data-testid="student-name">{studentName}</span>
       <span data-testid="qr-code-url">{qrCodeDataUrl}</span>
-      <span data-testid="total-questoes">{totalQuestoes}</span>
-      <span data-testid="titulo-prova">{tituloProva}</span>
-      <span data-testid="escola-nome">{escolaNome}</span>
-      <span data-testid="turma-nome">{turmaNome}</span>
+      <span data-testid="total-questions">{totalQuestions}</span>
+      <span data-testid="exam-title">{examTitle}</span>
+      <span data-testid="school-name">{schoolName}</span>
+      <span data-testid="class-name">{className}</span>
     </div>
   ),
 }));
 
-describe('GabaritoPreview', () => {
+describe('AnswerSheetPreview', () => {
   const defaultProps = {
-    nomeAluno: 'João Silva',
+    studentName: 'João Silva',
     qrCodeUrl: 'https://example.com/qr/student123',
-    totalQuestoes: 50,
-    tituloProva: 'Simulado ENEM 2024',
-    escolaNome: 'Escola Municipal',
-    turmaNome: '3º Ano A',
+    totalQuestions: 50,
+    examTitle: 'Simulado ENEM 2024',
+    schoolName: 'Escola Municipal',
+    className: '3º Ano A',
   };
 
   beforeEach(() => {
@@ -76,53 +76,55 @@ describe('GabaritoPreview', () => {
   describe('rendering', () => {
     it('renders PrintStyles component', async () => {
       await act(async () => {
-        render(<GabaritoPreview {...defaultProps} />);
+        render(<AnswerSheetPreview {...defaultProps} />);
       });
       expect(screen.getByTestId('print-styles')).toBeInTheDocument();
     });
 
     it('renders PageContainer component', async () => {
       await act(async () => {
-        render(<GabaritoPreview {...defaultProps} />);
+        render(<AnswerSheetPreview {...defaultProps} />);
       });
       expect(screen.getByTestId('page-container')).toBeInTheDocument();
     });
 
-    it('renders CartaoContainer component', async () => {
+    it('renders CardContainer component', async () => {
       await act(async () => {
-        render(<GabaritoPreview {...defaultProps} />);
+        render(<AnswerSheetPreview {...defaultProps} />);
       });
-      expect(screen.getByTestId('cartao-container')).toBeInTheDocument();
+      expect(screen.getByTestId('card-container')).toBeInTheDocument();
     });
 
-    it('renders GabaritoCard component', async () => {
+    it('renders AnswerSheetCard component', async () => {
       await act(async () => {
-        render(<GabaritoPreview {...defaultProps} />);
+        render(<AnswerSheetPreview {...defaultProps} />);
       });
-      expect(screen.getByTestId('gabarito-card')).toBeInTheDocument();
+      expect(screen.getByTestId('answer-sheet-card')).toBeInTheDocument();
     });
 
-    it('passes correct props to GabaritoCard', async () => {
+    it('passes correct props to AnswerSheetCard', async () => {
       await act(async () => {
-        render(<GabaritoPreview {...defaultProps} />);
+        render(<AnswerSheetPreview {...defaultProps} />);
       });
 
-      expect(screen.getByTestId('nome-aluno')).toHaveTextContent('João Silva');
-      expect(screen.getByTestId('total-questoes')).toHaveTextContent('50');
-      expect(screen.getByTestId('titulo-prova')).toHaveTextContent(
+      expect(screen.getByTestId('student-name')).toHaveTextContent(
+        'João Silva'
+      );
+      expect(screen.getByTestId('total-questions')).toHaveTextContent('50');
+      expect(screen.getByTestId('exam-title')).toHaveTextContent(
         'Simulado ENEM 2024'
       );
-      expect(screen.getByTestId('escola-nome')).toHaveTextContent(
+      expect(screen.getByTestId('school-name')).toHaveTextContent(
         'Escola Municipal'
       );
-      expect(screen.getByTestId('turma-nome')).toHaveTextContent('3º Ano A');
+      expect(screen.getByTestId('class-name')).toHaveTextContent('3º Ano A');
     });
   });
 
   describe('QR code generation', () => {
     it('generates QR code from qrCodeUrl', async () => {
       await act(async () => {
-        render(<GabaritoPreview {...defaultProps} />);
+        render(<AnswerSheetPreview {...defaultProps} />);
       });
 
       await waitFor(() => {
@@ -133,9 +135,9 @@ describe('GabaritoPreview', () => {
       });
     });
 
-    it('passes generated QR code data URL to GabaritoCard', async () => {
+    it('passes generated QR code data URL to AnswerSheetCard', async () => {
       await act(async () => {
-        render(<GabaritoPreview {...defaultProps} />);
+        render(<AnswerSheetPreview {...defaultProps} />);
       });
 
       await waitFor(() => {
@@ -152,7 +154,7 @@ describe('GabaritoPreview', () => {
       );
 
       await act(async () => {
-        render(<GabaritoPreview {...defaultProps} />);
+        render(<AnswerSheetPreview {...defaultProps} />);
       });
 
       await waitFor(() => {
@@ -166,7 +168,7 @@ describe('GabaritoPreview', () => {
   describe('print functionality', () => {
     it('calls handlePrint after QR code is generated', async () => {
       await act(async () => {
-        render(<GabaritoPreview {...defaultProps} />);
+        render(<AnswerSheetPreview {...defaultProps} />);
       });
 
       await act(async () => {
@@ -180,7 +182,7 @@ describe('GabaritoPreview', () => {
 
     it('only prints once', async () => {
       await act(async () => {
-        render(<GabaritoPreview {...defaultProps} />);
+        render(<AnswerSheetPreview {...defaultProps} />);
       });
 
       await act(async () => {
@@ -196,7 +198,7 @@ describe('GabaritoPreview', () => {
       );
 
       await act(async () => {
-        render(<GabaritoPreview {...defaultProps} />);
+        render(<AnswerSheetPreview {...defaultProps} />);
       });
 
       await act(async () => {
@@ -221,7 +223,7 @@ describe('GabaritoPreview', () => {
 
       await act(async () => {
         render(
-          <GabaritoPreview {...defaultProps} onComplete={mockOnComplete} />
+          <AnswerSheetPreview {...defaultProps} onComplete={mockOnComplete} />
         );
       });
 
@@ -242,7 +244,7 @@ describe('GabaritoPreview', () => {
       );
 
       await act(async () => {
-        render(<GabaritoPreview {...defaultProps} />);
+        render(<AnswerSheetPreview {...defaultProps} />);
       });
 
       expect(() => {
@@ -254,45 +256,45 @@ describe('GabaritoPreview', () => {
   });
 
   describe('optional props', () => {
-    it('renders without tituloProva', async () => {
+    it('renders without examTitle', async () => {
       await act(async () => {
-        render(<GabaritoPreview {...defaultProps} tituloProva={undefined} />);
+        render(<AnswerSheetPreview {...defaultProps} examTitle={undefined} />);
       });
-      expect(screen.getByTestId('gabarito-card')).toBeInTheDocument();
+      expect(screen.getByTestId('answer-sheet-card')).toBeInTheDocument();
     });
 
-    it('renders without escolaNome', async () => {
+    it('renders without schoolName', async () => {
       await act(async () => {
-        render(<GabaritoPreview {...defaultProps} escolaNome={undefined} />);
+        render(<AnswerSheetPreview {...defaultProps} schoolName={undefined} />);
       });
-      expect(screen.getByTestId('gabarito-card')).toBeInTheDocument();
+      expect(screen.getByTestId('answer-sheet-card')).toBeInTheDocument();
     });
 
-    it('renders without turmaNome', async () => {
+    it('renders without className', async () => {
       await act(async () => {
-        render(<GabaritoPreview {...defaultProps} turmaNome={undefined} />);
+        render(<AnswerSheetPreview {...defaultProps} className={undefined} />);
       });
-      expect(screen.getByTestId('gabarito-card')).toBeInTheDocument();
+      expect(screen.getByTestId('answer-sheet-card')).toBeInTheDocument();
     });
 
     it('renders with minimal props', async () => {
       await act(async () => {
         render(
-          <GabaritoPreview
-            nomeAluno="Test Student"
+          <AnswerSheetPreview
+            studentName="Test Student"
             qrCodeUrl="https://example.com/qr"
-            totalQuestoes={10}
+            totalQuestions={10}
           />
         );
       });
-      expect(screen.getByTestId('gabarito-card')).toBeInTheDocument();
+      expect(screen.getByTestId('answer-sheet-card')).toBeInTheDocument();
     });
   });
 
   describe('useReactToPrint configuration', () => {
     it('configures useReactToPrint with correct options', async () => {
       await act(async () => {
-        render(<GabaritoPreview {...defaultProps} />);
+        render(<AnswerSheetPreview {...defaultProps} />);
       });
 
       expect(mockUseReactToPrint).toHaveBeenCalledWith(

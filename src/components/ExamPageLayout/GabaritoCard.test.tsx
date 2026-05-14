@@ -1,66 +1,66 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import {
-  GabaritoCard,
+  AnswerSheetCard,
   PrintStyles,
   PageContainer,
-  CartaoContainer,
+  CardContainer,
 } from './GabaritoCard';
 
-describe('GabaritoCard', () => {
+describe('AnswerSheetCard', () => {
   const defaultProps = {
-    nomeAluno: 'João Silva',
+    studentName: 'João Silva',
     qrCodeDataUrl: 'data:image/png;base64,test123',
-    totalQuestoes: 50,
-    tituloProva: 'Simulado ENEM 2024',
-    escolaNome: 'Escola Municipal',
-    turmaNome: '3º Ano A',
+    totalQuestions: 50,
+    examTitle: 'Simulado ENEM 2024',
+    schoolName: 'Escola Municipal',
+    className: '3º Ano A',
   };
 
   describe('rendering', () => {
     it('renders header with CARTAO-RESPOSTA title', () => {
-      render(<GabaritoCard {...defaultProps} />);
+      render(<AnswerSheetCard {...defaultProps} />);
       expect(screen.getByText('CARTAO-RESPOSTA')).toBeInTheDocument();
     });
 
     it('renders student name', () => {
-      render(<GabaritoCard {...defaultProps} />);
+      render(<AnswerSheetCard {...defaultProps} />);
       expect(screen.getByText('João Silva')).toBeInTheDocument();
     });
 
     it('renders exam title in subheader', () => {
-      render(<GabaritoCard {...defaultProps} />);
+      render(<AnswerSheetCard {...defaultProps} />);
       expect(screen.getByText('Simulado ENEM 2024')).toBeInTheDocument();
     });
 
-    it('renders default title when tituloProva is not provided', () => {
-      render(<GabaritoCard {...defaultProps} tituloProva={undefined} />);
+    it('renders default title when examTitle is not provided', () => {
+      render(<AnswerSheetCard {...defaultProps} examTitle={undefined} />);
       expect(screen.getByText('Simulado Analytica 2026')).toBeInTheDocument();
     });
 
     it('renders school and class combined', () => {
-      render(<GabaritoCard {...defaultProps} />);
+      render(<AnswerSheetCard {...defaultProps} />);
       expect(
         screen.getByText('Escola Municipal - 3º Ano A')
       ).toBeInTheDocument();
     });
 
     it('renders only school when class is not provided', () => {
-      render(<GabaritoCard {...defaultProps} turmaNome={undefined} />);
+      render(<AnswerSheetCard {...defaultProps} className={undefined} />);
       expect(screen.getByText('Escola Municipal')).toBeInTheDocument();
     });
 
     it('renders only class when school is not provided', () => {
-      render(<GabaritoCard {...defaultProps} escolaNome={undefined} />);
+      render(<AnswerSheetCard {...defaultProps} schoolName={undefined} />);
       expect(screen.getByText('3º Ano A')).toBeInTheDocument();
     });
 
     it('renders empty when neither school nor class provided', () => {
       render(
-        <GabaritoCard
+        <AnswerSheetCard
           {...defaultProps}
-          escolaNome={undefined}
-          turmaNome={undefined}
+          schoolName={undefined}
+          className={undefined}
         />
       );
       const content = screen.getByText('ESCOLA E TURMA:').parentElement;
@@ -69,28 +69,28 @@ describe('GabaritoCard', () => {
     });
 
     it('renders QR code image when qrCodeDataUrl is provided', () => {
-      render(<GabaritoCard {...defaultProps} />);
+      render(<AnswerSheetCard {...defaultProps} />);
       const qrImage = screen.getByAltText('QR Code');
       expect(qrImage).toBeInTheDocument();
       expect(qrImage).toHaveAttribute('src', 'data:image/png;base64,test123');
     });
 
     it('does not render QR code when qrCodeDataUrl is empty', () => {
-      render(<GabaritoCard {...defaultProps} qrCodeDataUrl="" />);
+      render(<AnswerSheetCard {...defaultProps} qrCodeDataUrl="" />);
       expect(screen.queryByAltText('QR Code')).not.toBeInTheDocument();
     });
   });
 
   describe('sections', () => {
     it('renders LINGUA ESTRANGEIRA section', () => {
-      render(<GabaritoCard {...defaultProps} />);
+      render(<AnswerSheetCard {...defaultProps} />);
       expect(screen.getByText('LINGUA ESTRANGEIRA')).toBeInTheDocument();
       expect(screen.getByText('INGLES')).toBeInTheDocument();
       expect(screen.getByText('ESPANHOL')).toBeInTheDocument();
     });
 
     it('renders fiscal section', () => {
-      render(<GabaritoCard {...defaultProps} />);
+      render(<AnswerSheetCard {...defaultProps} />);
       expect(
         screen.getByText('PARA USO EXCLUSIVO DO FISCAL DE SALA')
       ).toBeInTheDocument();
@@ -103,26 +103,26 @@ describe('GabaritoCard', () => {
     });
 
     it('renders signature section', () => {
-      render(<GabaritoCard {...defaultProps} />);
+      render(<AnswerSheetCard {...defaultProps} />);
       expect(
         screen.getByText('ASSINATURA DO PARTICIPANTE')
       ).toBeInTheDocument();
     });
 
     it('renders instructions section', () => {
-      render(<GabaritoCard {...defaultProps} />);
+      render(<AnswerSheetCard {...defaultProps} />);
       expect(screen.getByText('INSTRUCOES')).toBeInTheDocument();
     });
 
     it('renders transcription section', () => {
-      render(<GabaritoCard {...defaultProps} />);
+      render(<AnswerSheetCard {...defaultProps} />);
       expect(
         screen.getByText(/TRANSCREVA AQUI A FRASE APRESENTADA/)
       ).toBeInTheDocument();
     });
 
     it('renders example section', () => {
-      render(<GabaritoCard {...defaultProps} />);
+      render(<AnswerSheetCard {...defaultProps} />);
       expect(screen.getByText('EXEMPLO DE PREENCHIMENTO')).toBeInTheDocument();
       expect(screen.getByText('Exemplo de resposta')).toBeInTheDocument();
     });
@@ -130,18 +130,18 @@ describe('GabaritoCard', () => {
 
   describe('questions grid', () => {
     it('renders correct number of questions', () => {
-      render(<GabaritoCard {...defaultProps} totalQuestoes={50} />);
+      render(<AnswerSheetCard {...defaultProps} totalQuestions={50} />);
       // 50 questions should be rendered
       const questionNumbers = screen.getAllByText(/^[0-9]+$/);
       // Filter out example numbers (01, 02, 03)
       const gridNumbers = questionNumbers.filter(
-        (el) => !el.closest('[class*="ExemploRow"]')
+        (el) => !el.closest('[class*="ExampleRow"]')
       );
       expect(gridNumbers.length).toBeGreaterThanOrEqual(50);
     });
 
     it('renders answer bubbles A-E for each question', () => {
-      render(<GabaritoCard {...defaultProps} totalQuestoes={1} />);
+      render(<AnswerSheetCard {...defaultProps} totalQuestions={1} />);
       expect(screen.getAllByText('A').length).toBeGreaterThan(0);
       expect(screen.getAllByText('B').length).toBeGreaterThan(0);
       expect(screen.getAllByText('C').length).toBeGreaterThan(0);
@@ -150,7 +150,7 @@ describe('GabaritoCard', () => {
     });
 
     it('renders dash for empty cells when questions < grid capacity', () => {
-      render(<GabaritoCard {...defaultProps} totalQuestoes={3} />);
+      render(<AnswerSheetCard {...defaultProps} totalQuestions={3} />);
       // Grid has 5 columns x 10 rows = 50 cells
       // With 3 questions, 47 cells should be empty
       const dashes = screen.getAllByText('-');
@@ -158,7 +158,7 @@ describe('GabaritoCard', () => {
     });
 
     it('renders grid header with column titles', () => {
-      render(<GabaritoCard {...defaultProps} />);
+      render(<AnswerSheetCard {...defaultProps} />);
       const headers = screen.getAllByText('Questao / Resposta');
       expect(headers).toHaveLength(5); // 5 columns
     });
@@ -166,7 +166,7 @@ describe('GabaritoCard', () => {
 
   describe('example section', () => {
     it('renders three example rows', () => {
-      render(<GabaritoCard {...defaultProps} />);
+      render(<AnswerSheetCard {...defaultProps} />);
       expect(screen.getByText(/Resposta da questao X = A/)).toBeInTheDocument();
       expect(screen.getByText(/Resposta da questao X = B/)).toBeInTheDocument();
       expect(screen.getByText(/Resposta da questao X = C/)).toBeInTheDocument();
@@ -189,9 +189,9 @@ describe('PageContainer', () => {
   });
 });
 
-describe('CartaoContainer', () => {
+describe('CardContainer', () => {
   it('renders children', () => {
-    render(<CartaoContainer>Card Content</CartaoContainer>);
+    render(<CardContainer>Card Content</CardContainer>);
     expect(screen.getByText('Card Content')).toBeInTheDocument();
   });
 });

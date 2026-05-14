@@ -14,11 +14,13 @@ import {
 export const getExamStudentStatusBadgeAction = (
   status: StudentAnswerStatus
 ): 'warning' | 'success' => {
-  const actionMap: Record<StudentAnswerStatus, 'warning' | 'success'> = {
-    [StudentAnswerStatus.AGUARDANDO_GABARITO]: 'warning',
-    [StudentAnswerStatus.GABARITO_RECEBIDO]: 'success',
-  };
-  return actionMap[status];
+  switch (status) {
+    case StudentAnswerStatus.ANSWER_SHEET_RECEIVED:
+      return 'success';
+    case StudentAnswerStatus.AWAITING_ANSWER_SHEET:
+    default:
+      return 'warning';
+  }
 };
 
 /**
@@ -27,13 +29,13 @@ export const getExamStudentStatusBadgeAction = (
 export const getExamStudentStatusDisplayText = (
   status: StudentAnswerStatus
 ): string => {
-  const statusMap: Record<StudentAnswerStatus, string> = {
-    [StudentAnswerStatus.AGUARDANDO_GABARITO]:
-      StudentAnswerDisplayStatus.AGUARDANDO_GABARITO,
-    [StudentAnswerStatus.GABARITO_RECEBIDO]:
-      StudentAnswerDisplayStatus.GABARITO_RECEBIDO,
-  };
-  return statusMap[status];
+  switch (status) {
+    case StudentAnswerStatus.ANSWER_SHEET_RECEIVED:
+      return StudentAnswerDisplayStatus.ANSWER_SHEET_RECEIVED;
+    case StudentAnswerStatus.AWAITING_ANSWER_SHEET:
+    default:
+      return StudentAnswerDisplayStatus.AWAITING_ANSWER_SHEET;
+  }
 };
 
 /**
@@ -125,7 +127,8 @@ export const createExamStudentsTableColumns = (
     label: 'Resultado',
     sortable: false,
     render: (_value: unknown, row: ExamStudentTableItem) => {
-      const hasResponse = row.status === StudentAnswerStatus.GABARITO_RECEBIDO;
+      const hasResponse =
+        row.status === StudentAnswerStatus.ANSWER_SHEET_RECEIVED;
       return (
         <Button
           variant="outline"

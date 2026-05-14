@@ -4,8 +4,8 @@ import '@testing-library/jest-dom';
 import { useReactToPrint } from 'react-to-print';
 import QRCode from 'qrcode';
 import {
-  GabaritosBatchPreview,
-  type GabaritoData,
+  AnswerSheetsBatchPreview,
+  type AnswerSheetData,
 } from './GabaritosBatchPreview';
 
 // Mock react-to-print
@@ -22,58 +22,58 @@ jest.mock('qrcode', () => ({
 const mockUseReactToPrint = jest.mocked(useReactToPrint);
 const mockQRCode = jest.mocked(QRCode);
 
-// Mock GabaritoCard components
+// Mock AnswerSheetCard components
 jest.mock('./GabaritoCard', () => ({
   PrintStyles: () => <div data-testid="print-styles" />,
   PageContainer: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="page-container">{children}</div>
   ),
-  CartaoContainer: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="cartao-container">{children}</div>
+  CardContainer: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="card-container">{children}</div>
   ),
-  GabaritoCard: ({
-    nomeAluno,
+  AnswerSheetCard: ({
+    studentName,
     qrCodeDataUrl,
-    totalQuestoes,
-    tituloProva,
-    escolaNome,
-    turmaNome,
+    totalQuestions,
+    examTitle,
+    schoolName,
+    className,
   }: {
-    nomeAluno: string;
+    studentName: string;
     qrCodeDataUrl: string;
-    totalQuestoes: number;
-    tituloProva?: string;
-    escolaNome?: string;
-    turmaNome?: string;
+    totalQuestions: number;
+    examTitle?: string;
+    schoolName?: string;
+    className?: string;
   }) => (
-    <div data-testid="gabarito-card">
-      <span data-testid="nome-aluno">{nomeAluno}</span>
+    <div data-testid="answer-sheet-card">
+      <span data-testid="student-name">{studentName}</span>
       <span data-testid="qr-code-url">{qrCodeDataUrl}</span>
-      <span data-testid="total-questoes">{totalQuestoes}</span>
-      <span data-testid="titulo-prova">{tituloProva}</span>
-      <span data-testid="escola-nome">{escolaNome}</span>
-      <span data-testid="turma-nome">{turmaNome}</span>
+      <span data-testid="total-questions">{totalQuestions}</span>
+      <span data-testid="exam-title">{examTitle}</span>
+      <span data-testid="school-name">{schoolName}</span>
+      <span data-testid="class-name">{className}</span>
     </div>
   ),
 }));
 
-describe('GabaritosBatchPreview', () => {
-  const mockGabaritos: GabaritoData[] = [
+describe('AnswerSheetsBatchPreview', () => {
+  const mockAnswerSheets: AnswerSheetData[] = [
     {
-      nomeAluno: 'João Silva',
+      studentName: 'João Silva',
       qrCodeUrl: 'https://example.com/qr1',
-      totalQuestoes: 50,
-      tituloProva: 'Prova 1',
-      escolaNome: 'Escola A',
-      turmaNome: 'Turma 1',
+      totalQuestions: 50,
+      examTitle: 'Prova 1',
+      schoolName: 'Escola A',
+      className: 'Turma 1',
     },
     {
-      nomeAluno: 'Maria Santos',
+      studentName: 'Maria Santos',
       qrCodeUrl: 'https://example.com/qr2',
-      totalQuestoes: 50,
-      tituloProva: 'Prova 1',
-      escolaNome: 'Escola A',
-      turmaNome: 'Turma 2',
+      totalQuestions: 50,
+      examTitle: 'Prova 1',
+      schoolName: 'Escola A',
+      className: 'Turma 2',
     },
   ];
 
@@ -89,51 +89,51 @@ describe('GabaritosBatchPreview', () => {
   describe('rendering', () => {
     it('renders PrintStyles component', async () => {
       await act(async () => {
-        render(<GabaritosBatchPreview gabaritos={mockGabaritos} />);
+        render(<AnswerSheetsBatchPreview answerSheets={mockAnswerSheets} />);
       });
       expect(screen.getByTestId('print-styles')).toBeInTheDocument();
     });
 
     it('renders PageContainer component', async () => {
       await act(async () => {
-        render(<GabaritosBatchPreview gabaritos={mockGabaritos} />);
+        render(<AnswerSheetsBatchPreview answerSheets={mockAnswerSheets} />);
       });
       expect(screen.getByTestId('page-container')).toBeInTheDocument();
     });
 
-    it('renders correct number of CartaoContainers', async () => {
+    it('renders correct number of CardContainers', async () => {
       await act(async () => {
-        render(<GabaritosBatchPreview gabaritos={mockGabaritos} />);
+        render(<AnswerSheetsBatchPreview answerSheets={mockAnswerSheets} />);
       });
-      const containers = screen.getAllByTestId('cartao-container');
+      const containers = screen.getAllByTestId('card-container');
       expect(containers).toHaveLength(2);
     });
 
-    it('renders correct number of GabaritoCards', async () => {
+    it('renders correct number of AnswerSheetCards', async () => {
       await act(async () => {
-        render(<GabaritosBatchPreview gabaritos={mockGabaritos} />);
+        render(<AnswerSheetsBatchPreview answerSheets={mockAnswerSheets} />);
       });
-      const cards = screen.getAllByTestId('gabarito-card');
+      const cards = screen.getAllByTestId('answer-sheet-card');
       expect(cards).toHaveLength(2);
     });
 
-    it('passes correct props to each GabaritoCard', async () => {
+    it('passes correct props to each AnswerSheetCard', async () => {
       await act(async () => {
-        render(<GabaritosBatchPreview gabaritos={mockGabaritos} />);
+        render(<AnswerSheetsBatchPreview answerSheets={mockAnswerSheets} />);
       });
 
       await waitFor(() => {
-        const nomes = screen.getAllByTestId('nome-aluno');
-        expect(nomes[0]).toHaveTextContent('João Silva');
-        expect(nomes[1]).toHaveTextContent('Maria Santos');
+        const names = screen.getAllByTestId('student-name');
+        expect(names[0]).toHaveTextContent('João Silva');
+        expect(names[1]).toHaveTextContent('Maria Santos');
       });
     });
   });
 
   describe('QR code generation', () => {
-    it('generates QR codes for all gabaritos', async () => {
+    it('generates QR codes for all answer sheets', async () => {
       await act(async () => {
-        render(<GabaritosBatchPreview gabaritos={mockGabaritos} />);
+        render(<AnswerSheetsBatchPreview answerSheets={mockAnswerSheets} />);
       });
 
       await waitFor(() => {
@@ -153,7 +153,7 @@ describe('GabaritosBatchPreview', () => {
   describe('print functionality', () => {
     it('calls handlePrint after QR codes are generated', async () => {
       await act(async () => {
-        render(<GabaritosBatchPreview gabaritos={mockGabaritos} />);
+        render(<AnswerSheetsBatchPreview answerSheets={mockAnswerSheets} />);
       });
 
       await act(async () => {
@@ -167,7 +167,7 @@ describe('GabaritosBatchPreview', () => {
 
     it('only prints once', async () => {
       await act(async () => {
-        render(<GabaritosBatchPreview gabaritos={mockGabaritos} />);
+        render(<AnswerSheetsBatchPreview answerSheets={mockAnswerSheets} />);
       });
 
       await act(async () => {
@@ -193,8 +193,8 @@ describe('GabaritosBatchPreview', () => {
 
       await act(async () => {
         render(
-          <GabaritosBatchPreview
-            gabaritos={mockGabaritos}
+          <AnswerSheetsBatchPreview
+            answerSheets={mockAnswerSheets}
             onComplete={mockOnComplete}
           />
         );
@@ -218,7 +218,7 @@ describe('GabaritosBatchPreview', () => {
       );
 
       await act(async () => {
-        render(<GabaritosBatchPreview gabaritos={mockGabaritos} />);
+        render(<AnswerSheetsBatchPreview answerSheets={mockAnswerSheets} />);
       });
 
       // Should not throw
@@ -231,42 +231,46 @@ describe('GabaritosBatchPreview', () => {
   });
 
   describe('edge cases', () => {
-    it('handles empty gabaritos array', async () => {
+    it('handles empty answerSheets array', async () => {
       await act(async () => {
-        render(<GabaritosBatchPreview gabaritos={[]} />);
+        render(<AnswerSheetsBatchPreview answerSheets={[]} />);
       });
 
-      expect(screen.queryByTestId('gabarito-card')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('answer-sheet-card')).not.toBeInTheDocument();
     });
 
-    it('handles single gabarito', async () => {
+    it('handles single answer sheet', async () => {
       await act(async () => {
-        render(<GabaritosBatchPreview gabaritos={[mockGabaritos[0]]} />);
+        render(
+          <AnswerSheetsBatchPreview answerSheets={[mockAnswerSheets[0]]} />
+        );
       });
 
-      const cards = screen.getAllByTestId('gabarito-card');
+      const cards = screen.getAllByTestId('answer-sheet-card');
       expect(cards).toHaveLength(1);
     });
 
-    it('handles gabarito without optional fields', async () => {
-      const minimalGabarito: GabaritoData = {
-        nomeAluno: 'Test Student',
+    it('handles answer sheet without optional fields', async () => {
+      const minimalAnswerSheet: AnswerSheetData = {
+        studentName: 'Test Student',
         qrCodeUrl: 'https://example.com/qr',
-        totalQuestoes: 10,
+        totalQuestions: 10,
       };
 
       await act(async () => {
-        render(<GabaritosBatchPreview gabaritos={[minimalGabarito]} />);
+        render(
+          <AnswerSheetsBatchPreview answerSheets={[minimalAnswerSheet]} />
+        );
       });
 
-      expect(screen.getByTestId('gabarito-card')).toBeInTheDocument();
+      expect(screen.getByTestId('answer-sheet-card')).toBeInTheDocument();
     });
   });
 
   describe('useReactToPrint configuration', () => {
     it('configures useReactToPrint with correct options', async () => {
       await act(async () => {
-        render(<GabaritosBatchPreview gabaritos={mockGabaritos} />);
+        render(<AnswerSheetsBatchPreview answerSheets={mockAnswerSheets} />);
       });
 
       expect(mockUseReactToPrint).toHaveBeenCalledWith(

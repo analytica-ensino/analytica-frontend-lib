@@ -8,10 +8,37 @@ export {
   createExamDraftsModelsTableColumns,
   type ExamTableCallbacks,
 } from './examDraftsModelsTableConfig';
-export { GabaritoPreview } from './GabaritoPreview';
-export type { GabaritoPreviewProps } from './GabaritoPreview';
-export { GabaritosBatchPreview } from './GabaritosBatchPreview';
+
+// New English names
+export {
+  AnswerSheetPreview,
+  GabaritoPreview,
+} from './GabaritoPreview';
 export type {
+  AnswerSheetPreviewProps,
+  GabaritoPreviewProps,
+} from './GabaritoPreview';
+
+export {
+  AnswerSheetsBatchPreview,
+  GabaritosBatchPreview,
+} from './GabaritosBatchPreview';
+export type {
+  AnswerSheetsBatchPreviewProps,
   GabaritosBatchPreviewProps,
+  AnswerSheetData,
   GabaritoData,
 } from './GabaritosBatchPreview';
+
+export {
+  AnswerSheetCard,
+  GabaritoCard,
+  CardContainer,
+  CartaoContainer,
+  PageContainer,
+  PrintStyles,
+} from './GabaritoCard';
+export type {
+  AnswerSheetCardProps,
+  GabaritoCardProps,
+} from './GabaritoCard';

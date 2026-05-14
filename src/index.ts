@@ -1830,13 +1830,42 @@ export {
 } from './components/ExamPageLayout';
 export type { ExamTableCallbacks } from './components/ExamPageLayout';
 
-// Gabarito Preview Components
-export { GabaritoPreview } from './components/ExamPageLayout';
-export type { GabaritoPreviewProps } from './components/ExamPageLayout';
-export { GabaritosBatchPreview } from './components/ExamPageLayout';
+// Answer Sheet Preview Components (new English names)
+export {
+  AnswerSheetPreview,
+  AnswerSheetsBatchPreview,
+  AnswerSheetCard,
+  CardContainer as AnswerSheetCardContainer,
+  PageContainer as AnswerSheetPageContainer,
+  PrintStyles as AnswerSheetPrintStyles,
+} from './components/ExamPageLayout';
 export type {
+  AnswerSheetPreviewProps,
+  AnswerSheetsBatchPreviewProps,
+  AnswerSheetData,
+  AnswerSheetCardProps,
+} from './components/ExamPageLayout';
+
+// Gabarito Preview Components (deprecated - use Answer Sheet names instead)
+export {
+  /** @deprecated Use AnswerSheetPreview instead */
+  GabaritoPreview,
+  /** @deprecated Use AnswerSheetsBatchPreview instead */
+  GabaritosBatchPreview,
+  /** @deprecated Use AnswerSheetCard instead */
+  GabaritoCard,
+  /** @deprecated Use CardContainer instead */
+  CartaoContainer,
+} from './components/ExamPageLayout';
+export type {
+  /** @deprecated Use AnswerSheetPreviewProps instead */
+  GabaritoPreviewProps,
+  /** @deprecated Use AnswerSheetsBatchPreviewProps instead */
   GabaritosBatchPreviewProps,
+  /** @deprecated Use AnswerSheetData instead */
   GabaritoData,
+  /** @deprecated Use AnswerSheetCardProps instead */
+  GabaritoCardProps,
 } from './components/ExamPageLayout';
 
 // Exam Filter Helpers

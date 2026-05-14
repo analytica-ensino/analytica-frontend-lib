@@ -1,13 +1,18 @@
 import styled, { createGlobalStyle } from 'styled-components';
 
-export interface GabaritoCardProps {
-  nomeAluno: string;
+export interface AnswerSheetCardProps {
+  studentName: string;
   qrCodeDataUrl: string;
-  totalQuestoes: number;
-  tituloProva?: string;
-  escolaNome?: string;
-  turmaNome?: string;
+  totalQuestions: number;
+  examTitle?: string;
+  schoolName?: string;
+  className?: string;
 }
+
+/**
+ * @deprecated Use AnswerSheetCardProps instead
+ */
+export type GabaritoCardProps = AnswerSheetCardProps;
 
 /**
  * Global print styles to remove browser headers/footers (URL, date, title)
@@ -45,7 +50,7 @@ export const PageContainer = styled.div`
   }
 `;
 
-export const CartaoContainer = styled.div`
+export const CardContainer = styled.div`
   background: white;
   width: 210mm;
   height: 297mm;
@@ -76,6 +81,11 @@ export const CartaoContainer = styled.div`
     height: 297mm;
   }
 `;
+
+/**
+ * @deprecated Use CardContainer instead
+ */
+export const CartaoContainer = CardContainer;
 
 const HeaderBar = styled.div`
   background: #000000;
@@ -135,7 +145,7 @@ const SmallInfoField = styled.div`
   }
 `;
 
-const LinguaBox = styled.div`
+const ForeignLanguageBox = styled.div`
   width: 160px;
   border-right: 1px solid #9ca3af;
   padding: 8px;
@@ -164,7 +174,7 @@ const LinguaBox = styled.div`
   }
 `;
 
-const FiscalBox = styled.div`
+const ProctorBox = styled.div`
   flex: 1;
   padding: 8px;
 
@@ -199,7 +209,7 @@ const FiscalBox = styled.div`
   }
 `;
 
-const AssinaturaBox = styled.div`
+const SignatureBox = styled.div`
   border: 1px solid #9ca3af;
   border-top: 0;
   padding: 8px;
@@ -217,7 +227,7 @@ const AssinaturaBox = styled.div`
   }
 `;
 
-const InstrucoesBox = styled.div`
+const InstructionsBox = styled.div`
   border: 1px solid #9ca3af;
   border-top: 0;
   padding: 8px;
@@ -239,7 +249,7 @@ const InstrucoesBox = styled.div`
   }
 `;
 
-const TranscrevaBox = styled.div`
+const TranscriptionBox = styled.div`
   border: 1px solid #9ca3af;
   border-top: 0;
   padding: 8px;
@@ -260,7 +270,7 @@ const TranscrevaBox = styled.div`
   }
 `;
 
-const ExemploSection = styled.div`
+const ExampleSection = styled.div`
   margin-top: 8px;
   display: flex;
   justify-content: space-between;
@@ -269,7 +279,7 @@ const ExemploSection = styled.div`
   gap: 12px;
 `;
 
-const ExemploTexto = styled.div`
+const ExampleText = styled.div`
   flex: 1;
 
   .title {
@@ -288,7 +298,7 @@ const ExemploTexto = styled.div`
   }
 `;
 
-const ExemploBox = styled.div`
+const ExampleBox = styled.div`
   width: 224px;
   border: 1px solid #9ca3af;
   padding: 6px;
@@ -300,7 +310,7 @@ const ExemploBox = styled.div`
   }
 `;
 
-const ExemploRow = styled.div`
+const ExampleRow = styled.div`
   display: flex;
   align-items: center;
   gap: 4px;
@@ -313,7 +323,7 @@ const ExemploRow = styled.div`
   }
 `;
 
-const ExemploBubble = styled.span<{ filled?: boolean }>`
+const ExampleBubble = styled.span<{ filled?: boolean }>`
   width: 16px;
   height: 16px;
   border-radius: 50%;
@@ -403,26 +413,26 @@ const QRCodeImage = styled.img`
   }
 `;
 
-const OPCOES = ['A', 'B', 'C', 'D', 'E'];
-const NUM_COLUNAS = 5;
-const LINHAS_POR_COLUNA = 10;
+const OPTIONS = ['A', 'B', 'C', 'D', 'E'];
+const NUM_COLUMNS = 5;
+const ROWS_PER_COLUMN = 10;
 
 /**
- * Shared GabaritoCard component for rendering answer sheet content
- * Used by both GabaritoPreview (single) and GabaritosBatchPreview (batch)
- * NOTE: This component renders just the inner content - wrap it with CartaoContainer
+ * Shared AnswerSheetCard component for rendering answer sheet content
+ * Used by both AnswerSheetPreview (single) and AnswerSheetsBatchPreview (batch)
+ * NOTE: This component renders just the inner content - wrap it with CardContainer
  */
-export function GabaritoCard({
-  nomeAluno,
+export function AnswerSheetCard({
+  studentName,
   qrCodeDataUrl,
-  totalQuestoes,
-  tituloProva,
-  escolaNome,
-  turmaNome,
-}: Readonly<GabaritoCardProps>) {
-  const getQuestaoNumero = (colIdx: number, rowIdx: number): number | null => {
-    const questaoNum = colIdx * LINHAS_POR_COLUNA + rowIdx + 1;
-    return questaoNum <= totalQuestoes ? questaoNum : null;
+  totalQuestions,
+  examTitle,
+  schoolName,
+  className,
+}: Readonly<AnswerSheetCardProps>) {
+  const getQuestionNumber = (colIdx: number, rowIdx: number): number | null => {
+    const questionNum = colIdx * ROWS_PER_COLUMN + rowIdx + 1;
+    return questionNum <= totalQuestions ? questionNum : null;
   };
 
   return (
@@ -432,14 +442,14 @@ export function GabaritoCard({
         <span>&#9632;</span>
         <span>CARTAO-RESPOSTA</span>
       </HeaderBar>
-      <SubHeader>{tituloProva || 'Simulado Analytica 2026'}</SubHeader>
+      <SubHeader>{examTitle || 'Simulado Analytica 2026'}</SubHeader>
 
       {/* Nome / Info do Aluno */}
       <InfoBox>
         <InfoRow>
           <InfoField flex={3} withBorder>
             <div className="label">NOME COMPLETO:</div>
-            <div className="content">{nomeAluno}</div>
+            <div className="content">{studentName}</div>
           </InfoField>
           <SmallInfoField>
             <div className="label">INFORMACOES DO ALUNO</div>
@@ -449,9 +459,9 @@ export function GabaritoCard({
           <InfoField>
             <div className="label">ESCOLA E TURMA:</div>
             <div className="content">
-              {escolaNome && turmaNome
-                ? `${escolaNome} - ${turmaNome}`
-                : escolaNome || turmaNome || ''}
+              {schoolName && className
+                ? `${schoolName} - ${className}`
+                : schoolName || className || ''}
             </div>
           </InfoField>
         </InfoRow>
@@ -460,7 +470,7 @@ export function GabaritoCard({
       {/* Lingua Estrangeira / Fiscal */}
       <InfoBox style={{ borderTop: '0' }}>
         <InfoRow>
-          <LinguaBox>
+          <ForeignLanguageBox>
             <div className="title">LINGUA ESTRANGEIRA</div>
             <div className="option">
               <span className="checkbox" />
@@ -470,8 +480,8 @@ export function GabaritoCard({
               <span className="checkbox" />
               <span>ESPANHOL</span>
             </div>
-          </LinguaBox>
-          <FiscalBox>
+          </ForeignLanguageBox>
+          <ProctorBox>
             <div className="title">PARA USO EXCLUSIVO DO FISCAL DE SALA</div>
             <div className="item">
               <span>PARTICIPANTE AUSENTE</span>
@@ -489,18 +499,18 @@ export function GabaritoCard({
                 <span className="checkbox" />
               </div>
             </div>
-          </FiscalBox>
+          </ProctorBox>
         </InfoRow>
       </InfoBox>
 
       {/* Assinatura */}
-      <AssinaturaBox>
+      <SignatureBox>
         <div className="title">ASSINATURA DO PARTICIPANTE</div>
         <div className="line" />
-      </AssinaturaBox>
+      </SignatureBox>
 
       {/* Instrucoes */}
-      <InstrucoesBox>
+      <InstructionsBox>
         <div className="title">INSTRUCOES</div>
         <div className="text">
           <p>
@@ -526,21 +536,21 @@ export function GabaritoCard({
             realizacao do exame.
           </p>
         </div>
-      </InstrucoesBox>
+      </InstructionsBox>
 
       {/* Transcreva frase */}
-      <TranscrevaBox>
+      <TranscriptionBox>
         <div className="title">
           TRANSCREVA AQUI A FRASE APRESENTADA NA CAPA DE SEU CADERNO DE
           QUESTOES, CONFORME AS INSTRUCOES NELA CONTIDAS.
         </div>
         <div className="line" />
         <div className="line" />
-      </TranscrevaBox>
+      </TranscriptionBox>
 
       {/* Exemplo de preenchimento */}
-      <ExemploSection>
-        <ExemploTexto>
+      <ExampleSection>
+        <ExampleText>
           <div className="title">EXEMPLO DE PREENCHIMENTO</div>
           <p>
             Preencha os circulos completamente, conforme a imagem ao lado,
@@ -555,53 +565,53 @@ export function GabaritoCard({
           <p>
             Nao sera permitido o uso de lapis, lapiseira (grafite) e borracha.
           </p>
-        </ExemploTexto>
-        <ExemploBox>
+        </ExampleText>
+        <ExampleBox>
           <div className="title">Exemplo de resposta</div>
           {[
             { q: 1, label: 'A', answer: 'A' },
             { q: 2, label: 'B', answer: 'B' },
             { q: 3, label: 'C', answer: 'C' },
           ].map(({ q, label, answer }) => (
-            <ExemploRow key={q}>
+            <ExampleRow key={q}>
               <span>Resposta da questao X = {label} -&gt;</span>
               <span className="numero">{String(q).padStart(2, '0')}</span>
-              {OPCOES.map((opt) => (
-                <ExemploBubble key={opt} filled={opt === answer}>
+              {OPTIONS.map((opt) => (
+                <ExampleBubble key={opt} filled={opt === answer}>
                   {opt}
-                </ExemploBubble>
+                </ExampleBubble>
               ))}
-            </ExemploRow>
+            </ExampleRow>
           ))}
-        </ExemploBox>
-      </ExemploSection>
+        </ExampleBox>
+      </ExampleSection>
 
       {/* Grid de Questoes */}
       <GridContainer>
         {/* Header */}
         <GridHeader>
-          {Array.from({ length: NUM_COLUNAS }, (_, i) => (
-            <GridHeaderCell key={i} withBorder={i < NUM_COLUNAS - 1}>
+          {Array.from({ length: NUM_COLUMNS }, (_, i) => (
+            <GridHeaderCell key={i} withBorder={i < NUM_COLUMNS - 1}>
               Questao / Resposta
             </GridHeaderCell>
           ))}
         </GridHeader>
 
         {/* Rows */}
-        {Array.from({ length: LINHAS_POR_COLUNA }, (_, rowIdx) => (
-          <GridRow key={rowIdx} withBorder={rowIdx < LINHAS_POR_COLUNA - 1}>
-            {Array.from({ length: NUM_COLUNAS }, (_, colIdx) => {
-              const questaoNum = getQuestaoNumero(colIdx, rowIdx);
+        {Array.from({ length: ROWS_PER_COLUMN }, (_, rowIdx) => (
+          <GridRow key={rowIdx} withBorder={rowIdx < ROWS_PER_COLUMN - 1}>
+            {Array.from({ length: NUM_COLUMNS }, (_, colIdx) => {
+              const questionNum = getQuestionNumber(colIdx, rowIdx);
 
               return (
-                <GridCell key={colIdx} withBorder={colIdx < NUM_COLUNAS - 1}>
-                  {questaoNum === null ? (
+                <GridCell key={colIdx} withBorder={colIdx < NUM_COLUMNS - 1}>
+                  {questionNum === null ? (
                     <span className="empty">-</span>
                   ) : (
                     <>
-                      <span className="numero">{questaoNum}</span>
+                      <span className="numero">{questionNum}</span>
                       <div className="bubbles">
-                        {OPCOES.map((opt) => (
+                        {OPTIONS.map((opt) => (
                           <AnswerBubble key={opt}>{opt}</AnswerBubble>
                         ))}
                       </div>
@@ -620,4 +630,9 @@ export function GabaritoCard({
   );
 }
 
-export default GabaritoCard;
+/**
+ * @deprecated Use AnswerSheetCard instead
+ */
+export const GabaritoCard = AnswerSheetCard;
+
+export default AnswerSheetCard;

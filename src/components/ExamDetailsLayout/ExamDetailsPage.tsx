@@ -7,10 +7,10 @@ import type {
 } from '../../utils/studentActivityCorrection';
 import { convertApiResponseToCorrectionData } from '../../utils/studentActivityCorrection';
 import CorrectActivityModal from '../CorrectActivityModal/CorrectActivityModal';
-import { GabaritoPreview } from '../ExamPageLayout/GabaritoPreview';
+import { AnswerSheetPreview } from '../ExamPageLayout/GabaritoPreview';
 import {
-  GabaritosBatchPreview,
-  type GabaritoData,
+  AnswerSheetsBatchPreview,
+  type AnswerSheetData,
 } from '../ExamPageLayout/GabaritosBatchPreview';
 import { ExamDetailsHeader } from './ExamDetailsHeader';
 import { ExamStatsCards } from './ExamStatsCards';
@@ -154,18 +154,19 @@ export const ExamDetailsPage = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  // Gabarito preview states
-  const [showGabaritoPreview, setShowGabaritoPreview] = useState(false);
-  const [gabaritoData, setGabaritoData] = useState<GabaritoData | null>(null);
-  const [showBatchGabaritoPreview, setShowBatchGabaritoPreview] =
+  // Answer sheet preview states
+  const [showAnswerSheetPreview, setShowAnswerSheetPreview] = useState(false);
+  const [answerSheetPreviewData, setAnswerSheetPreviewData] =
+    useState<AnswerSheetData | null>(null);
+  const [showBatchAnswerSheetPreview, setShowBatchAnswerSheetPreview] =
     useState(false);
-  const [batchGabaritosData, setBatchGabaritosData] = useState<GabaritoData[]>(
-    []
-  );
+  const [batchAnswerSheetsData, setBatchAnswerSheetsData] = useState<
+    AnswerSheetData[]
+  >([]);
 
-  // Loading states for gabarito downloads
+  // Loading states for answer sheet downloads
   const [loadingStudentId, setLoadingStudentId] = useState<string | null>(null);
-  const [batchGabaritoLoading, setBatchGabaritoLoading] = useState(false);
+  const [batchAnswerSheetLoading, setBatchAnswerSheetLoading] = useState(false);
 
   // Correction modal states
   const [showCorrectionModal, setShowCorrectionModal] = useState(false);
@@ -197,7 +198,7 @@ export const ExamDetailsPage = ({
     (question: Question): PreviewQuestion => {
       return {
         id: question.id,
-        questionType: question.questionType as QUESTION_TYPE,
+        questionType: question.questionType,
         enunciado: question.statement,
         question: question.options
           ? {
@@ -331,7 +332,7 @@ export const ExamDetailsPage = ({
 
   /**
    * Download student's answer sheet
-   * Fetches the answer sheet data and displays the GabaritoPreview component
+   * Fetches the answer sheet data and displays the AnswerSheetPreview component
    */
   const handleDownloadAnswerSheet = useCallback(
     async (studentId: string) => {
@@ -349,17 +350,17 @@ export const ExamDetailsPage = ({
 
         const { student, activity, qrCodeUrl, schoolClass } =
           response.data.data;
-        const [escola, turma] = schoolClass?.split(' - ') || ['', ''];
+        const [school, className] = schoolClass?.split(' - ') || ['', ''];
 
-        setGabaritoData({
-          nomeAluno: student.name,
+        setAnswerSheetPreviewData({
+          studentName: student.name,
           qrCodeUrl,
-          totalQuestoes: activity.totalQuestions,
-          tituloProva: examData?.title,
-          escolaNome: escola || undefined,
-          turmaNome: turma || undefined,
+          totalQuestions: activity.totalQuestions,
+          examTitle: examData?.title,
+          schoolName: school || undefined,
+          className: className || undefined,
         });
-        setShowGabaritoPreview(true);
+        setShowAnswerSheetPreview(true);
       } catch (err) {
         console.error('Erro ao gerar gabarito:', err);
       } finally {
@@ -423,12 +424,12 @@ export const ExamDetailsPage = ({
 
   /**
    * Download all answer sheets for all students
-   * Fetches batch answer sheet data and displays GabaritosBatchPreview component
+   * Fetches batch answer sheet data and displays AnswerSheetsBatchPreview component
    */
   const handleDownloadAllAnswerSheets = useCallback(async () => {
     if (!examId || !institutionId) return;
 
-    setBatchGabaritoLoading(true);
+    setBatchAnswerSheetLoading(true);
 
     try {
       const studentFrontendUrl = globalThis.location.origin;
@@ -440,24 +441,24 @@ export const ExamDetailsPage = ({
 
       const { exam, students } = response.data.data;
 
-      const gabaritos: GabaritoData[] = students.map((s) => {
-        const [escola, turma] = s.schoolClass?.split(' - ') || ['', ''];
+      const answerSheets: AnswerSheetData[] = students.map((s) => {
+        const [school, className] = s.schoolClass?.split(' - ') || ['', ''];
         return {
-          nomeAluno: s.student.name,
+          studentName: s.student.name,
           qrCodeUrl: s.qrCodeUrl,
-          totalQuestoes: exam.totalQuestions,
-          tituloProva: exam.title,
-          escolaNome: escola || undefined,
-          turmaNome: turma || undefined,
+          totalQuestions: exam.totalQuestions,
+          examTitle: exam.title,
+          schoolName: school || undefined,
+          className: className || undefined,
         };
       });
 
-      setBatchGabaritosData(gabaritos);
-      setShowBatchGabaritoPreview(true);
+      setBatchAnswerSheetsData(answerSheets);
+      setShowBatchAnswerSheetPreview(true);
     } catch (err) {
       console.error('Erro ao gerar gabaritos:', err);
     } finally {
-      setBatchGabaritoLoading(false);
+      setBatchAnswerSheetLoading(false);
     }
   }, [examId, institutionId, apiClient]);
 
@@ -503,35 +504,35 @@ export const ExamDetailsPage = ({
         onViewAnswers={handleViewAnswers}
         onDownloadAllAnswerSheets={handleDownloadAllAnswerSheets}
         loadingStudentId={loadingStudentId}
-        batchLoading={batchGabaritoLoading}
+        batchLoading={batchAnswerSheetLoading}
       />
 
-      {/* Hidden Gabarito Preview for printing - single student */}
-      {showGabaritoPreview && gabaritoData && (
+      {/* Hidden Answer Sheet Preview for printing - single student */}
+      {showAnswerSheetPreview && answerSheetPreviewData && (
         <div style={{ position: 'fixed', top: '-9999px', left: '-9999px' }}>
-          <GabaritoPreview
-            nomeAluno={gabaritoData.nomeAluno}
-            qrCodeUrl={gabaritoData.qrCodeUrl}
-            totalQuestoes={gabaritoData.totalQuestoes}
-            tituloProva={gabaritoData.tituloProva}
-            escolaNome={gabaritoData.escolaNome}
-            turmaNome={gabaritoData.turmaNome}
+          <AnswerSheetPreview
+            studentName={answerSheetPreviewData.studentName}
+            qrCodeUrl={answerSheetPreviewData.qrCodeUrl}
+            totalQuestions={answerSheetPreviewData.totalQuestions}
+            examTitle={answerSheetPreviewData.examTitle}
+            schoolName={answerSheetPreviewData.schoolName}
+            className={answerSheetPreviewData.className}
             onComplete={() => {
-              setShowGabaritoPreview(false);
-              setGabaritoData(null);
+              setShowAnswerSheetPreview(false);
+              setAnswerSheetPreviewData(null);
             }}
           />
         </div>
       )}
 
-      {/* Hidden Batch Gabaritos Preview for printing - all students */}
-      {showBatchGabaritoPreview && batchGabaritosData.length > 0 && (
+      {/* Hidden Batch Answer Sheets Preview for printing - all students */}
+      {showBatchAnswerSheetPreview && batchAnswerSheetsData.length > 0 && (
         <div style={{ position: 'fixed', top: '-9999px', left: '-9999px' }}>
-          <GabaritosBatchPreview
-            gabaritos={batchGabaritosData}
+          <AnswerSheetsBatchPreview
+            answerSheets={batchAnswerSheetsData}
             onComplete={() => {
-              setShowBatchGabaritoPreview(false);
-              setBatchGabaritosData([]);
+              setShowBatchAnswerSheetPreview(false);
+              setBatchAnswerSheetsData([]);
             }}
           />
         </div>
