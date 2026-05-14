@@ -21,17 +21,19 @@ const generateSecureRandomId = (): string => {
  * that the editor saved in place of math operators.
  *
  * Why decode here: KaTeX is a LaTeX parser, not an HTML parser. If the
- * source has `&lt;`/`&gt;`/`&amp;` (because the editor HTML-escaped them on
- * save) KaTeX throws "Expected 'EOF', got '&'". Mapping to the equivalent
- * `\lt`/`\gt`/`\&` commands keeps the rendered output typographically
- * consistent (e.g. `<` rendered in the same math font as `\leq`).
+ * source has `&lt;`/`&gt;` (because the editor HTML-escaped them on save)
+ * KaTeX throws "Expected 'EOF', got '&'". `&lt;`/`&gt;` map to the
+ * equivalent `\lt`/`\gt` commands. `&amp;` decodes back to a bare `&` \u2014
+ * NOT `\&` \u2014 because in LaTeX `&` is the alignment character (used by
+ * `\begin{align}`, matrices, etc.); rewriting it to `\&` would break
+ * alignment and stop already-escaped `\&` from round-tripping.
  */
 export const cleanLatex = (str: string): string => {
   return str
     .replaceAll(/[\u200B-\u200D\uFEFF]/g, '')
     .replaceAll(/&amp;lt;|&lt;/gi, '\\lt ')
     .replaceAll(/&amp;gt;|&gt;/gi, '\\gt ')
-    .replaceAll(/&amp;amp;|&amp;/gi, '\\& ')
+    .replaceAll(/&amp;amp;|&amp;/gi, '&')
     .trim();
 };
 
@@ -42,13 +44,19 @@ export const cleanLatex = (str: string): string => {
  * pairs unrelated occurrences as math delimiters, sending Portuguese
  * prose to KaTeX (which then renders each letter as a math variable).
  *
- * Math signals: backslash commands, sub/super, grouping braces.
- * Short alphanumeric tokens (single variables, numbers) are also math.
+ * Approach:
+ * - Backslash commands / sub-super / grouping braces \u2192 definitely math.
+ * - Otherwise, treat it as PROSE only when it contains 2+ real words
+ *   (runs of 3+ letters). A sentence like "15,00 pelo custo fixo" has
+ *   many such words; genuine math \u2014 `x = 1`, `a + b`, `1 < 2`, `f0`,
+ *   even a lone `abc` \u2014 does not. This keeps normal spaced equations
+ *   rendering while still rejecting currency-`$` prose.
  */
 const looksLikeLatex = (str: string): boolean => {
   if (/[\\^_{}]/.test(str)) return true;
-  if (str.length <= 8 && !/\s/.test(str)) return true;
-  return false;
+  const words = str.match(/[a-zA-Z]{3,}/g);
+  if (words && words.length >= 2) return false;
+  return true;
 };
 
 /**
@@ -75,13 +83,21 @@ const recoverFromKatexErrorSpans = (htmlContent: string): string => {
     raw
       // Strip combining marks KaTeX puts in error titles at the error pos
       .replaceAll(/[\u0300-\u036F]/g, '')
-      // Map entities to equivalent LaTeX commands (survive DOM serialization
-      // \u2014 literal `<` would be re-encoded to `&lt;` when reading innerHTML)
-      .replaceAll(/&amp;lt;|&lt;/gi, '\\lt ')
-      .replaceAll(/&amp;gt;|&gt;/gi, '\\gt ')
-      .replaceAll(/&amp;amp;|&amp;/gi, '\\& ')
-      // Drop truncated tag markers leftover from broken serialization
+      // Drop truncated tag markers leftover from broken serialization.
+      // Done while literal `<`/`>` are still present (before they get
+      // mapped to LaTeX commands below).
       .replaceAll(/<\/?[a-zA-Z][a-zA-Z0-9]*\s*>?$/g, '')
+      // Map comparison operators to equivalent LaTeX commands. We match
+      // both the entity forms AND the literal `<`/`>` characters: the
+      // `title` attribute is entity-decoded by the DOM when read, so we
+      // often get literal `<`/`>`. Mapping them to `\lt`/`\gt` also avoids
+      // re-encoding to `&lt;`/`&gt;` on DOM serialization (which would make
+      // `looksLikeLatex` reject the recovered block as non-math).
+      // `&amp;` decodes to a bare `&` (the LaTeX alignment character), not
+      // `\&`, so `\begin{align}` environments survive recovery.
+      .replaceAll(/&amp;lt;|&lt;|</gi, '\\lt ')
+      .replaceAll(/&amp;gt;|&gt;|>/gi, '\\gt ')
+      .replaceAll(/&amp;amp;|&amp;/gi, '&')
       .trim();
 
   Array.from(tempContainer.querySelectorAll('.katex-error')).forEach(
@@ -89,7 +105,11 @@ const recoverFromKatexErrorSpans = (htmlContent: string): string => {
       if (!tempContainer.contains(errorNode)) return;
 
       const title = errorNode.getAttribute('title') || '';
-      const positionMatch = title.match(/at position\s+\d+:\s*(.+)$/);
+      // Note: no `\s*` before the capture group — `\s*(.+)` would let
+      // whitespace be split ambiguously between the two, causing
+      // super-linear backtracking (ReDoS). The capture is trimmed by
+      // sanitizeRecoveredLatex below instead.
+      const positionMatch = title.match(/at position\s+\d+:(.+)$/);
       let recovered = positionMatch ? positionMatch[1] : '';
 
       if (!recovered) {

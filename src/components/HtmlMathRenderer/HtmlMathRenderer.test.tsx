@@ -384,14 +384,25 @@ describe('utils', () => {
 
   describe('legacy data recovery', () => {
     describe('cleanLatex entity decoding', () => {
-      it('should map &lt; / &gt; / &amp; to LaTeX commands so KaTeX parses', () => {
+      it('should map &lt; / &gt; to LaTeX commands so KaTeX parses', () => {
         expect(cleanLatex('\\frac{1}{2} &lt; x \\leq 1')).toBe(
           '\\frac{1}{2} \\lt  x \\leq 1'
         );
         expect(cleanLatex('\\varepsilon(x) &gt; \\frac{9}{10}')).toBe(
           '\\varepsilon(x) \\gt  \\frac{9}{10}'
         );
-        expect(cleanLatex('a &amp; b')).toBe('a \\&  b');
+      });
+
+      it('should decode &amp; to a bare & (LaTeX alignment char), not \\&', () => {
+        expect(cleanLatex('a &amp; b')).toBe('a & b');
+      });
+
+      it('should preserve \\begin{align} alignment ampersands', () => {
+        // The editor HTML-escapes `&` on save; decoding must restore the
+        // bare `&` so the alignment environment still works.
+        expect(cleanLatex('\\begin{align}a &amp;= b\\end{align}')).toBe(
+          '\\begin{align}a &= b\\end{align}'
+        );
       });
 
       it('should also peel doubly-encoded entities (&amp;lt;)', () => {
@@ -445,6 +456,31 @@ describe('utils', () => {
       });
     });
 
+    describe('processHtmlWithMath — currency-safe $ matching (more)', () => {
+      it('should treat a short plain token between $ as math', () => {
+        const parts = processHtmlWithMath('a variável $abc$ aqui');
+        const mathParts = parts.filter((p) => p.type === 'math');
+        expect(mathParts).toHaveLength(1);
+        expect(mathParts[0].latex).toBe('abc');
+      });
+
+      it('should treat spaced operator equations between $ as math', () => {
+        // Regression: `$x = 1$` / `$a + b$` / `$1 < 2$` must still render
+        // as math even though they contain spaces and no backslash command.
+        for (const expr of ['x = 1', 'a + b', '1 < 2']) {
+          const parts = processHtmlWithMath(`Texto $${expr}$ mais`);
+          const mathParts = parts.filter((p) => p.type === 'math');
+          expect(mathParts).toHaveLength(1);
+        }
+      });
+
+      it('should NOT treat a multi-word phrase between $ as math', () => {
+        const input = 'comprou $valor muito alto$ reais no total';
+        const parts = processHtmlWithMath(input);
+        expect(parts.every((p) => p.type === 'text')).toBe(true);
+      });
+    });
+
     describe('processHtmlWithMath — katex-error recovery', () => {
       it('should recover LaTeX from a katex-error wrapper title', () => {
         const persisted =
@@ -455,6 +491,111 @@ describe('utils', () => {
         expect(mathParts[0].latex).toContain('\\frac{1}{2}');
         expect(mathParts[0].latex).toContain('\\lt');
         expect(mathParts[0].latex).toContain('\\leq 1');
+      });
+
+      it('should strip combining marks present in the error title', () => {
+        // KaTeX inserts a combining low line (U+0332) at the error position
+        const persisted =
+          '<span class="katex-error" title="ParseError: at position 5: x \\alpha̲ y">visual</span>';
+        const parts = processHtmlWithMath(persisted);
+        const mathParts = parts.filter((p) => p.type === 'math');
+        expect(mathParts).toHaveLength(1);
+        expect(mathParts[0].latex).toBe('x \\alpha y');
+      });
+
+      it('should fall back to inner <annotation> when title has no position', () => {
+        const persisted =
+          '<span class="katex-error" title="ParseError: generic failure">' +
+          '<span class="katex-mathml"><math><annotation>\\frac{1}{3}</annotation></math></span>' +
+          '<span class="katex-html">duplicated visual glyphs</span>' +
+          '</span>';
+        const parts = processHtmlWithMath(persisted);
+        const mathParts = parts.filter((p) => p.type === 'math');
+        expect(mathParts).toHaveLength(1);
+        expect(mathParts[0].latex).toContain('\\frac{1}{3}');
+        // The katex-html visual layer must NOT leak into the recovered LaTeX
+        expect(mathParts[0].latex).not.toContain('duplicated');
+      });
+
+      it('should drop a katex-error wrapper that yields no recoverable LaTeX', () => {
+        const persisted =
+          'antes <span class="katex-error" title="ParseError: no position here"></span> depois';
+        const parts = processHtmlWithMath(persisted);
+        expect(parts.every((p) => p.type === 'text')).toBe(true);
+        const text = parts.map((p) => p.content).join('');
+        expect(text).toContain('antes');
+        expect(text).toContain('depois');
+        expect(text).not.toContain('katex-error');
+      });
+
+      it('should strip truncated trailing tag markers from recovered LaTeX', () => {
+        const persisted =
+          '<span class="katex-error" title="ParseError: at position 9: \\sqrt{x}</span">visual</span>';
+        const parts = processHtmlWithMath(persisted);
+        const mathParts = parts.filter((p) => p.type === 'math');
+        expect(mathParts).toHaveLength(1);
+        expect(mathParts[0].latex).toBe('\\sqrt{x}');
+      });
+
+      it('should fall back to direct text content when there is no annotation', () => {
+        // No "at position" in the title, and no <annotation> child — the
+        // walker must collect the wrapper's own text node.
+        const persisted =
+          '<span class="katex-error" title="ParseError: generic"> \\pi r^2 </span>';
+        const parts = processHtmlWithMath(persisted);
+        const mathParts = parts.filter((p) => p.type === 'math');
+        expect(mathParts).toHaveLength(1);
+        expect(mathParts[0].latex).toBe('\\pi r^2');
+      });
+    });
+
+    describe('HtmlMathRenderer — rendering integration', () => {
+      it('should render recovered math from a katex-error wrapper', () => {
+        render(
+          <HtmlMathRenderer
+            content='<span class="katex-error" title="ParseError: at position 3: x &gt; y">v</span>'
+            testId="renderer"
+          />
+        );
+        expect(screen.getByTestId('inline-math')).toHaveTextContent('x \\gt y');
+      });
+
+      it('should render currency text without turning it into math', () => {
+        render(
+          <HtmlMathRenderer
+            content="pague R\$ 50,00 e receba R\$ 10,00 de volta"
+            testId="renderer"
+          />
+        );
+        const renderer = screen.getByTestId('renderer');
+        expect(renderer).toHaveTextContent('R$ 50,00');
+        expect(renderer).toHaveTextContent('R$ 10,00');
+        expect(screen.queryByTestId('inline-math')).not.toBeInTheDocument();
+      });
+
+      it('should decode \\$ escapes in inline mode (span wrapper)', () => {
+        render(
+          <HtmlMathRenderer
+            content="total R\$ 99,00"
+            inline
+            testId="renderer"
+          />
+        );
+        const renderer = screen.getByTestId('renderer');
+        expect(renderer.tagName).toBe('SPAN');
+        expect(renderer).toHaveTextContent('R$ 99,00');
+      });
+
+      it('should render block math recovered alongside text', () => {
+        render(
+          <HtmlMathRenderer
+            content="resultado: $$\\frac{a}{b}$$ final"
+            testId="renderer"
+          />
+        );
+        expect(screen.getByTestId('block-math')).toHaveTextContent(
+          '\\frac{a}{b}'
+        );
       });
     });
   });
