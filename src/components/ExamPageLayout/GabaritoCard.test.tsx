@@ -63,8 +63,8 @@ describe('AnswerSheetCard', () => {
           className={undefined}
         />
       );
-      const content = screen.getByText('ESCOLA E TURMA:').parentElement;
-      const contentDiv = content?.querySelector('.content');
+      const label = screen.getByText('ESCOLA E TURMA:');
+      const contentDiv = label.nextElementSibling;
       expect(contentDiv?.textContent).toBe('');
     });
 
