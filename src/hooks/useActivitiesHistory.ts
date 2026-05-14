@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import dayjs from 'dayjs';
-import type { ApiClientWithGet } from '../types/api';
+import type { BaseApiClient } from '../types/api';
 import { mapApiStatusToDisplay } from '../types/common';
 import type {
   ActivityHistoryResponse,
@@ -187,7 +187,7 @@ const buildQueryParams = (
  * Hook implementation
  */
 const useActivitiesHistoryImpl = (
-  apiClient: ApiClientWithGet,
+  apiClient: BaseApiClient,
   options?: UseActivitiesHistoryOptions
 ): UseActivitiesHistoryReturn => {
   const [state, setState] = useState<UseActivitiesHistoryState>({
@@ -272,7 +272,7 @@ const useActivitiesHistoryImpl = (
  * ```
  */
 export const createUseActivitiesHistory = (
-  apiClient: ApiClientWithGet,
+  apiClient: BaseApiClient,
   options?: UseActivitiesHistoryOptions
 ) => {
   return (): UseActivitiesHistoryReturn =>

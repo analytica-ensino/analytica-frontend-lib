@@ -72,6 +72,16 @@ export const HistoryTab = ({
         );
         return { data: result as T };
       },
+      // Methods not used by this component but required by BaseApiClient
+      post: async <T,>(): Promise<{ data: T }> => {
+        throw new Error('post not implemented in HistoryTab adapter');
+      },
+      patch: async <T,>(): Promise<{ data: T }> => {
+        throw new Error('patch not implemented in HistoryTab adapter');
+      },
+      delete: async <T,>(): Promise<{ data: T }> => {
+        throw new Error('delete not implemented in HistoryTab adapter');
+      },
     }),
     []
   );

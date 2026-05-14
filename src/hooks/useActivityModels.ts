@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import dayjs from 'dayjs';
-import type { ApiClientWithGetAndDelete } from '../types/api';
+import type { BaseApiClient } from '../types/api';
 import { ActivityDraftType } from '../types/activitiesHistory';
 import { ActivityType } from '../components/ActivityCreate/ActivityCreate.types';
 import type {
@@ -126,7 +126,7 @@ const buildQueryParams = (
  * Hook implementation
  */
 const useActivityModelsImpl = (
-  apiClient: ApiClientWithGetAndDelete,
+  apiClient: BaseApiClient,
   options?: UseActivityModelsOptions
 ): UseActivityModelsReturn => {
   const [state, setState] = useState<UseActivityModelsState>({
@@ -220,7 +220,7 @@ const useActivityModelsImpl = (
  * ```
  */
 export const createUseActivityModels = (
-  apiClient: ApiClientWithGetAndDelete,
+  apiClient: BaseApiClient,
   options?: UseActivityModelsOptions
 ) => {
   return (): UseActivityModelsReturn =>

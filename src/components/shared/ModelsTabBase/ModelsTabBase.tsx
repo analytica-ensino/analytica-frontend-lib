@@ -14,6 +14,7 @@ import type {
 import type { FilterConfig } from '../../Filter';
 import type { SubjectEnum } from '../../../enums/SubjectEnum';
 import type { BaseModelItem } from './createModelsTableColumnsBase';
+import type { BaseApiClient } from '../../../types/api';
 
 /**
  * Configuration for entity-specific text and labels
@@ -94,14 +95,8 @@ export interface ModelsTabBaseProps<
   createFiltersConfig: (userFilterData?: TUserFilterData) => FilterConfig[];
   /** Function to build filters from table params */
   buildFiltersFromParams: (params: TableParams) => TFilters;
-  /** Hook creator function that receives an API client adapter */
-  createUseModels: (apiClient: {
-    get: <R>(
-      url: string,
-      options?: { params?: Record<string, unknown> }
-    ) => Promise<{ data: R }>;
-    delete: (url: string) => Promise<{ data: unknown }>;
-  }) => () => UseModelsReturn<T>;
+  /** Hook creator function that receives an API client */
+  createUseModels: (apiClient: BaseApiClient) => () => UseModelsReturn<T>;
 }
 
 /**
@@ -159,11 +154,17 @@ export const ModelsTabBase = <
         );
         return { data: result as R };
       },
-      delete: async (_url: string) => {
+      delete: async <R,>(_url: string): Promise<{ data: R }> => {
         // The delete URL contains the ID, extract it
         const id = _url.split('/').pop() || '';
         await deleteModelRef.current(id);
-        return { data: {} };
+        return { data: {} as R };
+      },
+      post: async <R,>(): Promise<{ data: R }> => {
+        throw new Error('post not implemented in ModelsTabBase adapter');
+      },
+      patch: async <R,>(): Promise<{ data: R }> => {
+        throw new Error('patch not implemented in ModelsTabBase adapter');
       },
     }),
     []
