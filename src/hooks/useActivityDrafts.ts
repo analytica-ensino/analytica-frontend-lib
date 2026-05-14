@@ -237,7 +237,8 @@ export const createUseActivityDrafts = (
   apiClient: BaseApiClient,
   options?: UseActivityDraftsOptions
 ) => {
-  return (): UseActivityDraftsReturn => useActivityDraftsImpl(apiClient, options);
+  return (): UseActivityDraftsReturn =>
+    useActivityDraftsImpl(apiClient, options);
 };
 
 /**

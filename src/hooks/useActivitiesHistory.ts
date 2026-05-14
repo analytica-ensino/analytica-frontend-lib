@@ -184,9 +184,23 @@ const buildQueryParams = (
 };
 
 /**
- * Hook implementation
+ * Type guard to check if argument is a function
  */
-const useActivitiesHistoryImpl = (
+const isLegacyFetchFn = (
+  arg: BaseApiClient | FetchActivitiesHistoryFn
+): arg is FetchActivitiesHistoryFn => typeof arg === 'function';
+
+/**
+ * Legacy fetch function type (for backward compatibility)
+ */
+type FetchActivitiesHistoryFn = (
+  filters?: ActivityHistoryFilters
+) => Promise<ActivitiesHistoryApiResponse>;
+
+/**
+ * Hook implementation using BaseApiClient
+ */
+const useActivitiesHistoryWithClient = (
   apiClient: BaseApiClient,
   options?: UseActivitiesHistoryOptions
 ): UseActivitiesHistoryReturn => {
@@ -198,10 +212,6 @@ const useActivitiesHistoryImpl = (
     apiFilterOptions: DEFAULT_ACTIVITY_FILTER_OPTIONS,
   });
 
-  /**
-   * Fetch activities history from API
-   * @param filters - Optional filters for pagination, search, sorting, etc.
-   */
   const fetchActivities = useCallback(
     async (filters?: ActivityHistoryFilters) => {
       setState((prev) => ({ ...prev, loading: true, error: null }));
@@ -215,13 +225,9 @@ const useActivitiesHistoryImpl = (
 
         const { data } = response.data;
 
-        // Transform activities to table format
         const tableItems = data.activities.map(transformActivityToTableItem);
-
-        // Extract filter options from response
         const extracted = extractActivityFilterOptions(data.activities);
 
-        // Update state with transformed data and merged filter options
         setState((prev) => ({
           activities: tableItems,
           loading: false,
@@ -251,46 +257,118 @@ const useActivitiesHistoryImpl = (
         setState((prev) => ({
           ...prev,
           loading: false,
-          error: 'Erro ao carregar histórico',
+          error: 'Erro ao carregar histórico de atividades',
         }));
       }
     },
     [apiClient, options?.activityCategory]
   );
 
-  return {
-    ...state,
-    fetchActivities,
-  };
+  return { ...state, fetchActivities };
+};
+
+/**
+ * Hook implementation using legacy fetch function (backward compatibility)
+ */
+const useActivitiesHistoryWithFn = (
+  fetchFn: FetchActivitiesHistoryFn
+): UseActivitiesHistoryReturn => {
+  const [state, setState] = useState<UseActivitiesHistoryState>({
+    activities: [],
+    loading: false,
+    error: null,
+    pagination: DEFAULT_ACTIVITIES_PAGINATION,
+    apiFilterOptions: DEFAULT_ACTIVITY_FILTER_OPTIONS,
+  });
+
+  const fetchActivities = useCallback(
+    async (filters?: ActivityHistoryFilters) => {
+      setState((prev) => ({ ...prev, loading: true, error: null }));
+
+      try {
+        const response = await fetchFn(filters);
+        const { data } = response;
+
+        const tableItems = data.activities.map(transformActivityToTableItem);
+        const extracted = extractActivityFilterOptions(data.activities);
+
+        setState((prev) => ({
+          activities: tableItems,
+          loading: false,
+          error: null,
+          pagination: data.pagination,
+          apiFilterOptions: {
+            schools: mergeActivityFilterOptions(
+              prev.apiFilterOptions.schools,
+              extracted.schools
+            ),
+            classes: mergeActivityFilterOptions(
+              prev.apiFilterOptions.classes,
+              extracted.classes
+            ),
+            subjects: mergeActivityFilterOptions(
+              prev.apiFilterOptions.subjects,
+              extracted.subjects
+            ),
+            schoolYears: mergeActivityFilterOptions(
+              prev.apiFilterOptions.schoolYears,
+              extracted.schoolYears
+            ),
+          },
+        }));
+      } catch (error) {
+        console.error('Erro ao carregar histórico:', error);
+        setState((prev) => ({
+          ...prev,
+          loading: false,
+          error: 'Erro ao carregar histórico de atividades',
+        }));
+      }
+    },
+    [fetchFn]
+  );
+
+  return { ...state, fetchActivities };
 };
 
 /**
  * Factory function to create useActivitiesHistory hook
  *
- * @param apiClient - API client instance (axios, fetch wrapper, etc.)
- * @param options - Hook configuration options
+ * Supports two signatures for backward compatibility:
+ * 1. Legacy: `createUseActivitiesHistory(fetchFn)` - pass a fetch function directly
+ * 2. New: `createUseActivitiesHistory(apiClient, options)` - pass an API client with options
+ *
+ * @param apiClientOrFetchFn - API client instance or legacy fetch function
+ * @param options - Hook configuration options (only for new API)
  * @returns Hook for managing activities history
  *
  * @example
  * ```tsx
- * // For activities
+ * // New API with BaseApiClient
  * import { createUseActivitiesHistory } from 'analytica-frontend-lib';
  * import api from '@/services/apiService';
  *
  * const useActivitiesHistory = createUseActivitiesHistory(api, { activityCategory: 'ATIVIDADE' });
  *
- * // For exams (provas)
- * const useExamsHistory = createUseActivitiesHistory(api, { activityCategory: 'PROVA' });
+ * // Legacy API with fetch function
+ * const useActivitiesHistory = createUseActivitiesHistory((filters) => api.get('/activities/history', { params: filters }));
  *
  * // In your component
  * const { activities, loading, fetchActivities, apiFilterOptions } = useActivitiesHistory();
  * ```
  */
 export const createUseActivitiesHistory = (
-  apiClient: BaseApiClient,
+  apiClientOrFetchFn: BaseApiClient | FetchActivitiesHistoryFn,
   options?: UseActivitiesHistoryOptions
 ) => {
-  return (): UseActivitiesHistoryReturn => useActivitiesHistoryImpl(apiClient, options);
+  if (isLegacyFetchFn(apiClientOrFetchFn)) {
+    // Legacy API: function passed directly
+    return (): UseActivitiesHistoryReturn =>
+      useActivitiesHistoryWithFn(apiClientOrFetchFn);
+  }
+  // New API: BaseApiClient with options
+  return (): UseActivitiesHistoryReturn =>
+    useActivitiesHistoryWithClient(apiClientOrFetchFn, options);
 };
 
 /**

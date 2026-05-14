@@ -123,9 +123,28 @@ const buildQueryParams = (
 };
 
 /**
- * Hook implementation
+ * Legacy fetch function type (for backward compatibility)
  */
-const useActivityModelsImpl = (
+type FetchActivityModelsFn = (
+  filters?: ActivityModelFilters
+) => Promise<ActivityModelsApiResponse>;
+
+/**
+ * Legacy delete function type (for backward compatibility)
+ */
+type DeleteActivityModelFn = (id: string) => Promise<void>;
+
+/**
+ * Type guard to check if argument is a function
+ */
+const isLegacyFetchFn = (
+  arg: BaseApiClient | FetchActivityModelsFn
+): arg is FetchActivityModelsFn => typeof arg === 'function';
+
+/**
+ * Hook implementation using BaseApiClient
+ */
+const useActivityModelsWithClient = (
   apiClient: BaseApiClient,
   options?: UseActivityModelsOptions
 ): UseActivityModelsReturn => {
@@ -136,11 +155,6 @@ const useActivityModelsImpl = (
     pagination: DEFAULT_MODELS_PAGINATION,
   });
 
-  /**
-   * Fetch activity models from API
-   * @param filters - Optional filters for pagination, search, etc.
-   * @param subjectsMap - Map of subject IDs to subject names for display
-   */
   const fetchModels = useCallback(
     async (
       filters?: ActivityModelFilters,
@@ -155,51 +169,37 @@ const useActivityModelsImpl = (
           { params }
         );
 
-        // Transform models to table format
         const tableItems = response.data.data.activityDrafts.map((model) =>
           transformModelToTableItem(model, subjectsMap)
         );
 
-        // Calculate pagination
         const limit = filters?.limit || 10;
         const page = filters?.page || 1;
         const total = response.data.data.total;
         const totalPages = Math.ceil(total / limit);
 
-        // Update state with transformed data
         setState({
           models: tableItems,
           loading: false,
           error: null,
-          pagination: {
-            total,
-            page,
-            limit,
-            totalPages,
-          },
+          pagination: { total, page, limit, totalPages },
         });
       } catch (error) {
         console.error('Erro ao carregar modelos:', error);
         setState((prev) => ({
           ...prev,
           loading: false,
-          error: 'Erro ao carregar modelos',
+          error: 'Erro ao carregar modelos de atividades',
         }));
       }
     },
     [apiClient, options?.activityCategory]
   );
 
-  /**
-   * Delete an activity model
-   * @param id - Model ID to delete
-   * @returns True if deletion was successful
-   */
   const deleteModel = useCallback(
     async (id: string): Promise<boolean> => {
       try {
         await apiClient.delete(`/activity-drafts/${id}`);
-        // Update local state on success
         setState((prev) => ({
           ...prev,
           models: prev.models.filter((m) => m.id !== id),
@@ -217,40 +217,125 @@ const useActivityModelsImpl = (
     [apiClient]
   );
 
-  return {
-    ...state,
-    fetchModels,
-    deleteModel,
-  };
+  return { ...state, fetchModels, deleteModel };
+};
+
+/**
+ * Hook implementation using legacy fetch functions (backward compatibility)
+ */
+const useActivityModelsWithFn = (
+  fetchFn: FetchActivityModelsFn,
+  deleteFn: DeleteActivityModelFn
+): UseActivityModelsReturn => {
+  const [state, setState] = useState<UseActivityModelsState>({
+    models: [],
+    loading: false,
+    error: null,
+    pagination: DEFAULT_MODELS_PAGINATION,
+  });
+
+  const fetchModels = useCallback(
+    async (
+      filters?: ActivityModelFilters,
+      subjectsMap?: Map<string, string>
+    ) => {
+      setState((prev) => ({ ...prev, loading: true, error: null }));
+
+      try {
+        const response = await fetchFn(filters);
+        const { data } = response;
+
+        const tableItems = data.activityDrafts.map((model) =>
+          transformModelToTableItem(model, subjectsMap)
+        );
+
+        const limit = filters?.limit || 10;
+        const page = filters?.page || 1;
+        const total = data.total;
+        const totalPages = Math.ceil(total / limit);
+
+        setState({
+          models: tableItems,
+          loading: false,
+          error: null,
+          pagination: { total, page, limit, totalPages },
+        });
+      } catch (error) {
+        console.error('Erro ao carregar modelos:', error);
+        setState((prev) => ({
+          ...prev,
+          loading: false,
+          error: 'Erro ao carregar modelos de atividades',
+        }));
+      }
+    },
+    [fetchFn]
+  );
+
+  const deleteModel = useCallback(
+    async (id: string): Promise<boolean> => {
+      try {
+        await deleteFn(id);
+        setState((prev) => ({
+          ...prev,
+          models: prev.models.filter((m) => m.id !== id),
+          pagination: {
+            ...prev.pagination,
+            total: Math.max(0, prev.pagination.total - 1),
+          },
+        }));
+        return true;
+      } catch (error) {
+        console.error('Erro ao deletar modelo:', error);
+        return false;
+      }
+    },
+    [deleteFn]
+  );
+
+  return { ...state, fetchModels, deleteModel };
 };
 
 /**
  * Factory function to create useActivityModels hook
  *
- * @param apiClient - API client instance (axios, fetch wrapper, etc.)
- * @param options - Hook configuration options
+ * Supports two signatures for backward compatibility:
+ * 1. Legacy: `createUseActivityModels(fetchFn, deleteFn)` - pass functions directly
+ * 2. New: `createUseActivityModels(apiClient, options)` - pass an API client with options
+ *
+ * @param apiClientOrFetchFn - API client instance or legacy fetch function
+ * @param optionsOrDeleteFn - Hook options (new API) or delete function (legacy API)
  * @returns Hook for managing activity models
  *
  * @example
  * ```tsx
- * // For activities
+ * // New API with BaseApiClient
  * import { createUseActivityModels } from 'analytica-frontend-lib';
  * import api from '@/services/apiService';
  *
  * const useActivityModels = createUseActivityModels(api, { activityCategory: 'ATIVIDADE' });
  *
- * // For exams (provas)
- * const useExamModels = createUseActivityModels(api, { activityCategory: 'PROVA' });
+ * // Legacy API with fetch functions
+ * const useActivityModels = createUseActivityModels(fetchModelsFn, deleteModelFn);
  *
  * // In your component
  * const { models, loading, fetchModels, deleteModel } = useActivityModels();
  * ```
  */
 export const createUseActivityModels = (
-  apiClient: BaseApiClient,
-  options?: UseActivityModelsOptions
+  apiClientOrFetchFn: BaseApiClient | FetchActivityModelsFn,
+  optionsOrDeleteFn?: UseActivityModelsOptions | DeleteActivityModelFn
 ) => {
-  return (): UseActivityModelsReturn => useActivityModelsImpl(apiClient, options);
+  if (isLegacyFetchFn(apiClientOrFetchFn)) {
+    // Legacy API: functions passed directly
+    const deleteFn = optionsOrDeleteFn as DeleteActivityModelFn;
+    return (): UseActivityModelsReturn =>
+      useActivityModelsWithFn(apiClientOrFetchFn, deleteFn);
+  }
+  // New API: BaseApiClient with options
+  const options = optionsOrDeleteFn as UseActivityModelsOptions | undefined;
+  return (): UseActivityModelsReturn =>
+    useActivityModelsWithClient(apiClientOrFetchFn, options);
 };
 
 /**
