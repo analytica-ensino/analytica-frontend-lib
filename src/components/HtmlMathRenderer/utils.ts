@@ -31,8 +31,8 @@ const generateSecureRandomId = (): string => {
 export const cleanLatex = (str: string): string => {
   return str
     .replaceAll(/[\u200B-\u200D\uFEFF]/g, '')
-    .replaceAll(/&amp;lt;|&lt;/gi, '\\lt ')
-    .replaceAll(/&amp;gt;|&gt;/gi, '\\gt ')
+    .replaceAll(/&amp;lt;|&lt;/gi, String.raw`\lt `)
+    .replaceAll(/&amp;gt;|&gt;/gi, String.raw`\gt `)
     .replaceAll(/&amp;amp;|&amp;/gi, '&')
     .trim();
 };
@@ -95,8 +95,8 @@ const recoverFromKatexErrorSpans = (htmlContent: string): string => {
       // `looksLikeLatex` reject the recovered block as non-math).
       // `&amp;` decodes to a bare `&` (the LaTeX alignment character), not
       // `\&`, so `\begin{align}` environments survive recovery.
-      .replaceAll(/&amp;lt;|&lt;|</gi, '\\lt ')
-      .replaceAll(/&amp;gt;|&gt;|>/gi, '\\gt ')
+      .replaceAll(/&amp;lt;|&lt;|</gi, String.raw`\lt `)
+      .replaceAll(/&amp;gt;|&gt;|>/gi, String.raw`\gt `)
       .replaceAll(/&amp;amp;|&amp;/gi, '&')
       .trim();
 
@@ -109,7 +109,7 @@ const recoverFromKatexErrorSpans = (htmlContent: string): string => {
       // whitespace be split ambiguously between the two, causing
       // super-linear backtracking (ReDoS). The capture is trimmed by
       // sanitizeRecoveredLatex below instead.
-      const positionMatch = title.match(/at position\s+\d+:(.+)$/);
+      const positionMatch = /at position\s+\d+:(.+)$/.exec(title);
       let recovered = positionMatch ? positionMatch[1] : '';
 
       if (!recovered) {
@@ -154,7 +154,7 @@ const recoverFromKatexErrorSpans = (htmlContent: string): string => {
  * render with a visible backslash.
  */
 const decodeDollarEscapes = (text: string): string =>
-  text.replaceAll(/\\\$/g, '$');
+  text.replaceAll(String.raw`\$`, '$');
 
 /**
  * Dangerous attributes that should be removed for XSS protection
