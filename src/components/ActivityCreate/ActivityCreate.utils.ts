@@ -961,7 +961,7 @@ export function resolvePreFilters(
     preFilters !== null &&
     'filters' in preFilters
   ) {
-    return (preFilters as { filters?: BackendFiltersFormat | null }).filters;
+    return preFilters.filters;
   }
   return preFilters as BackendFiltersFormat;
 }

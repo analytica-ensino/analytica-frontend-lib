@@ -419,7 +419,7 @@ export function GabaritoCard({
   tituloProva,
   escolaNome,
   turmaNome,
-}: GabaritoCardProps) {
+}: Readonly<GabaritoCardProps>) {
   const getQuestaoNumero = (colIdx: number, rowIdx: number): number | null => {
     const questaoNum = colIdx * LINHAS_POR_COLUNA + rowIdx + 1;
     return questaoNum <= totalQuestoes ? questaoNum : null;
@@ -595,7 +595,9 @@ export function GabaritoCard({
 
               return (
                 <GridCell key={colIdx} withBorder={colIdx < NUM_COLUNAS - 1}>
-                  {questaoNum !== null ? (
+                  {questaoNum === null ? (
+                    <span className="empty">-</span>
+                  ) : (
                     <>
                       <span className="numero">{questaoNum}</span>
                       <div className="bubbles">
@@ -604,8 +606,6 @@ export function GabaritoCard({
                         ))}
                       </div>
                     </>
-                  ) : (
-                    <span className="empty">-</span>
                   )}
                 </GridCell>
               );

@@ -94,7 +94,7 @@ export const createExamStudentsTableColumns = (
     sortable: true,
     render: (value: unknown) => (
       <span className="text-sm">
-        {value !== null ? (value as number).toFixed(1) : '-'}
+        {value === null ? '-' : (value as number).toFixed(1)}
       </span>
     ),
   },

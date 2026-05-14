@@ -174,8 +174,6 @@ export const ExamDetailsPage = ({
   const [answerSheetImageUrl, setAnswerSheetImageUrl] = useState<string | null>(
     null
   );
-  const [_loadingCorrection, setLoadingCorrection] = useState(false);
-
   // Exam PDF download states
   const [examQuestions, setExamQuestions] = useState<PreviewQuestion[]>([]);
   const [isLoadingExamPdf, setIsLoadingExamPdf] = useState(false);
@@ -185,9 +183,7 @@ export const ExamDetailsPage = ({
   const hookFactoryRef = useRef<ReturnType<
     typeof createUseQuestionsList
   > | null>(null);
-  if (!hookFactoryRef.current) {
-    hookFactoryRef.current = createUseQuestionsList(apiClient);
-  }
+  hookFactoryRef.current ??= createUseQuestionsList(apiClient);
   const { fetchQuestionsByIds } = hookFactoryRef.current();
 
   // PDF print hook
@@ -381,8 +377,6 @@ export const ExamDetailsPage = ({
     async (studentId: string) => {
       if (!examId) return;
 
-      setLoadingCorrection(true);
-
       try {
         const response = await apiClient.get<StudentCorrectionResponse>(
           `/exams/${examId}/students/${studentId}/correction`
@@ -404,8 +398,6 @@ export const ExamDetailsPage = ({
         setShowCorrectionModal(true);
       } catch (err) {
         console.error('Erro ao buscar dados de correção:', err);
-      } finally {
-        setLoadingCorrection(false);
       }
     },
     [examId, apiClient]

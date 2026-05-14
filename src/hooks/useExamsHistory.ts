@@ -1,8 +1,7 @@
 import { useState, useCallback } from 'react';
-import { z } from 'zod';
 import dayjs from 'dayjs';
 import type { BaseApiClient } from '../types/api';
-import { ExamStatus, mapExamStatusToDisplay } from '../types/examsHistory';
+import { mapExamStatusToDisplay } from '../types/examsHistory';
 import type {
   ExamHistoryResponse,
   ExamTableItem,
@@ -14,74 +13,6 @@ import type {
   ExamBreakdownItem,
 } from '../types/examsHistory';
 import { createFetchErrorHandler } from '../utils/hookErrorHandler';
-
-/**
- * Zod schema for subject object from backend
- */
-const examSubjectSchema = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  areaKnowledgeId: z.string().uuid(),
-});
-
-/**
- * Zod schema for breakdown item per school/class
- */
-const examBreakdownItemSchema = z.object({
-  school: z.object({ id: z.string(), name: z.string() }).nullable().optional(),
-  schoolYear: z
-    .object({ id: z.string(), name: z.string() })
-    .nullable()
-    .optional(),
-  class: z.object({ id: z.string(), name: z.string() }).nullable().optional(),
-  totalStudents: z.number(),
-  answeredStudents: z.number(),
-  completionPercentage: z.number(),
-});
-
-/**
- * Zod schema for exam history API response validation
- */
-const examHistoryResponseSchema = z.object({
-  id: z.string().uuid(),
-  title: z.string(),
-  startDate: z.string().nullable(),
-  status: z.nativeEnum(ExamStatus),
-  completionPercentage: z.number().min(0).max(100),
-  questionCount: z.number().int().min(0),
-  createdAt: z.string(),
-  subject: examSubjectSchema.nullable(),
-  creator: z.object({ id: z.string(), name: z.string() }).nullable().optional(),
-  totalStudents: z.number().optional(),
-  answeredStudents: z.number().optional(),
-  breakdown: z.array(examBreakdownItemSchema).optional(),
-});
-
-export const examsHistoryApiResponseSchema = z.object({
-  message: z.string(),
-  data: z.object({
-    // Response uses 'activities' field from /activities/history endpoint
-    activities: z.array(z.unknown()).transform((items) =>
-      items
-        .map((item) => examHistoryResponseSchema.safeParse(item))
-        .filter(
-          (
-            result
-          ): result is {
-            success: true;
-            data: z.infer<typeof examHistoryResponseSchema>;
-          } => result.success
-        )
-        .map((result) => result.data)
-    ),
-    pagination: z.object({
-      total: z.number(),
-      page: z.number(),
-      limit: z.number(),
-      totalPages: z.number(),
-    }),
-  }),
-});
 
 /**
  * Hook state interface
@@ -282,27 +213,22 @@ const useExamsHistoryImpl = (
           { params }
         );
 
-        const responseData = response.data;
-
-        // Validate response with Zod
-        const validatedData = examsHistoryApiResponseSchema.parse(responseData);
+        const { data } = response.data;
 
         // Transform activities to table format (response uses 'activities' field)
-        const tableItems = validatedData.data.activities.map((exam) =>
-          transformExamToTableItem(exam as ExamHistoryResponse)
+        const tableItems = data.activities.map((exam) =>
+          transformExamToTableItem(exam)
         );
 
         // Extract filter options from response
-        const extracted = extractExamFilterOptions(
-          responseData.data.activities as ExamHistoryResponse[]
-        );
+        const extracted = extractExamFilterOptions(data.activities);
 
-        // Update state with validated and transformed data
+        // Update state with transformed data
         setState((prev) => ({
           exams: tableItems,
           loading: false,
           error: null,
-          pagination: validatedData.data.pagination,
+          pagination: data.pagination,
           apiFilterOptions: {
             schools: mergeExamFilterOptions(
               prev.apiFilterOptions.schools,

@@ -1788,7 +1788,6 @@ export {
   handleExamFetchError,
   extractExamFilterOptions,
   mergeExamFilterOptions,
-  examsHistoryApiResponseSchema,
   DEFAULT_EXAMS_PAGINATION,
   DEFAULT_EXAM_FILTER_OPTIONS,
 } from './hooks/useExamsHistory';
@@ -1870,8 +1869,6 @@ export {
   transformStudent,
   mapBackendStatusToFrontend,
   handleExamDetailsFetchError,
-  examDetailsApiResponseSchema,
-  examInfoResponseSchema,
   DEFAULT_EXAM_DETAILS_PAGINATION,
 } from './hooks/useExamDetails';
 export type {

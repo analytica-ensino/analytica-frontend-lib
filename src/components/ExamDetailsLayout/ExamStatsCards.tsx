@@ -1,4 +1,4 @@
-import { Star, Medal, WarningCircle } from '@phosphor-icons/react';
+import { StarIcon, MedalIcon, WarningCircleIcon } from '@phosphor-icons/react';
 import Text from '../Text/Text';
 
 export interface ExamStatsCardsProps {
@@ -48,7 +48,7 @@ export const ExamStatsCards = ({
         {/* Average Score Card */}
         <div className="border border-border-50 rounded-xl py-4 px-3 flex flex-col items-center justify-center gap-1 bg-warning-background">
           <div className="w-[30px] h-[30px] rounded-2xl flex items-center justify-center bg-warning-300">
-            <Star size={16} className="text-white" weight="regular" />
+            <StarIcon size={16} className="text-white" weight="regular" />
           </div>
           <Text className="text-2xs font-bold uppercase text-center text-warning-600">
             Média da Turma
@@ -61,7 +61,7 @@ export const ExamStatsCards = ({
         {/* Most Correct Questions Card */}
         <div className="border border-border-50 rounded-xl py-2 px-3 flex flex-col items-center justify-center gap-1 bg-success-200">
           <div className="w-[30px] h-[30px] rounded-2xl flex items-center justify-center bg-indicator-positive">
-            <Medal size={16} className="text-text-950" weight="regular" />
+            <MedalIcon size={16} className="text-text-950" weight="regular" />
           </div>
           <Text className="text-2xs font-bold uppercase text-center text-success-700">
             Questões com mais acertos
@@ -74,7 +74,11 @@ export const ExamStatsCards = ({
         {/* Most Incorrect Questions Card */}
         <div className="border border-border-50 rounded-xl py-2 px-3 flex flex-col items-center justify-center gap-1 bg-error-100">
           <div className="w-[30px] h-[30px] rounded-2xl flex items-center justify-center bg-indicator-negative">
-            <WarningCircle size={16} className="text-white" weight="regular" />
+            <WarningCircleIcon
+              size={16}
+              className="text-white"
+              weight="regular"
+            />
           </div>
           <Text className="text-2xs font-bold uppercase text-center text-error-700">
             Questões com mais erros
@@ -87,7 +91,11 @@ export const ExamStatsCards = ({
         {/* Unanswered Questions Card */}
         <div className="border border-border-50 rounded-xl py-2 px-3 flex flex-col items-center justify-center gap-1 bg-info-background">
           <div className="w-[30px] h-[30px] rounded-2xl flex items-center justify-center bg-info-500">
-            <WarningCircle size={16} className="text-white" weight="regular" />
+            <WarningCircleIcon
+              size={16}
+              className="text-white"
+              weight="regular"
+            />
           </div>
           <Text className="text-2xs font-bold uppercase text-center text-info-700">
             Questões não respondidas

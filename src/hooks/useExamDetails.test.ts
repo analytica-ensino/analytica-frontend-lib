@@ -1,13 +1,10 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { z } from 'zod';
 import {
   createUseExamDetails,
   createExamDetailsHook,
   transformStudent,
   mapBackendStatusToFrontend,
   handleExamDetailsFetchError,
-  examDetailsApiResponseSchema,
-  examInfoResponseSchema,
   DEFAULT_EXAM_DETAILS_PAGINATION,
 } from './useExamDetails';
 import { StudentAnswerStatus } from '../types/examDetails';
@@ -106,22 +103,7 @@ describe('useExamDetails', () => {
       consoleErrorSpy.mockRestore();
     });
 
-    it('should return specific message for Zod errors', () => {
-      const zodError = new z.ZodError([
-        {
-          code: 'invalid_type',
-          expected: 'string',
-          path: ['data', 'students'],
-          message: 'Expected string, received number',
-        },
-      ]);
-
-      const result = handleExamDetailsFetchError(zodError);
-      expect(result).toBe('Erro ao validar dados de detalhes da prova');
-      expect(consoleErrorSpy).toHaveBeenCalled();
-    });
-
-    it('should return generic message for other errors', () => {
+    it('should return generic message for errors', () => {
       const genericError = new Error('Network error');
       const result = handleExamDetailsFetchError(genericError);
       expect(result).toBe('Erro ao carregar detalhes da prova');
@@ -132,139 +114,6 @@ describe('useExamDetails', () => {
       const result = handleExamDetailsFetchError('string error');
       expect(result).toBe('Erro ao carregar detalhes da prova');
       expect(consoleErrorSpy).toHaveBeenCalled();
-    });
-  });
-
-  describe('examInfoResponseSchema', () => {
-    it('should validate a valid exam info response', () => {
-      const validResponse = {
-        message: 'Success',
-        data: {
-          id: '123e4567-e89b-12d3-a456-426614174000',
-          title: 'Math Exam',
-          startDate: '2024-06-15',
-          createdAt: '2024-06-01T10:00:00.000Z',
-        },
-      };
-
-      const result = examInfoResponseSchema.safeParse(validResponse);
-      expect(result.success).toBe(true);
-    });
-
-    it('should validate response with null startDate', () => {
-      const responseWithNullDate = {
-        message: 'Success',
-        data: {
-          id: '123e4567-e89b-12d3-a456-426614174000',
-          title: 'Math Exam',
-          startDate: null,
-          createdAt: '2024-06-01T10:00:00.000Z',
-        },
-      };
-
-      const result = examInfoResponseSchema.safeParse(responseWithNullDate);
-      expect(result.success).toBe(true);
-    });
-
-    it('should reject invalid id format', () => {
-      const invalidResponse = {
-        message: 'Success',
-        data: {
-          id: 'not-a-uuid',
-          title: 'Math Exam',
-          startDate: null,
-          createdAt: '2024-06-01T10:00:00.000Z',
-        },
-      };
-
-      const result = examInfoResponseSchema.safeParse(invalidResponse);
-      expect(result.success).toBe(false);
-    });
-  });
-
-  describe('examDetailsApiResponseSchema', () => {
-    it('should validate a valid API response', () => {
-      const validResponse = {
-        message: 'Success',
-        data: {
-          students: [
-            {
-              studentId: '123e4567-e89b-12d3-a456-426614174000',
-              studentName: 'John Doe',
-              answeredAt: '2024-06-15T10:30:00.000Z',
-              timeSpent: 3600,
-              score: 8.5,
-              status: 'CONCLUIDO',
-            },
-          ],
-          pagination: {
-            total: 1,
-            page: 1,
-            limit: 10,
-            totalPages: 1,
-          },
-          generalStats: {
-            averageScore: 8.5,
-            completionPercentage: 100,
-          },
-          questionStats: {
-            mostCorrect: [1, 2, 3],
-            mostIncorrect: [4, 5],
-            notAnswered: [],
-          },
-          breakdown: [
-            {
-              school: {
-                id: '123e4567-e89b-12d3-a456-426614174001',
-                name: 'School A',
-              },
-              schoolYear: {
-                id: '123e4567-e89b-12d3-a456-426614174002',
-                name: '2024',
-              },
-              class: {
-                id: '123e4567-e89b-12d3-a456-426614174003',
-                name: 'Class A',
-              },
-              totalStudents: 30,
-              answeredStudents: 25,
-              completionPercentage: 83.3,
-            },
-          ],
-        },
-      };
-
-      const result = examDetailsApiResponseSchema.safeParse(validResponse);
-      expect(result.success).toBe(true);
-    });
-
-    it('should validate response with null breakdown fields', () => {
-      const responseWithNulls = {
-        message: 'Success',
-        data: {
-          students: [],
-          pagination: { total: 0, page: 1, limit: 10, totalPages: 0 },
-          generalStats: { averageScore: 0, completionPercentage: 0 },
-          questionStats: {
-            mostCorrect: [],
-            mostIncorrect: [],
-            notAnswered: [],
-          },
-          breakdown: [
-            {
-              school: null,
-              schoolYear: null,
-              class: null,
-              totalStudents: 0,
-              answeredStudents: 0,
-              completionPercentage: 0,
-            },
-          ],
-        },
-      };
-
-      const result = examDetailsApiResponseSchema.safeParse(responseWithNulls);
-      expect(result.success).toBe(true);
     });
   });
 
@@ -487,7 +336,7 @@ describe('useExamDetails', () => {
       consoleErrorSpy.mockRestore();
     });
 
-    it('should handle validation error', async () => {
+    it('should handle invalid response data', async () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       const mockApiClient = createMockApiClient();
 
@@ -495,7 +344,7 @@ describe('useExamDetails', () => {
         data: {
           message: 'Success',
           data: {
-            id: 'invalid-uuid', // Invalid UUID
+            id: 'invalid-uuid',
             title: 'Math Exam',
             startDate: null,
             createdAt: '2024-06-01',
@@ -513,9 +362,7 @@ describe('useExamDetails', () => {
       });
 
       expect(result.current.loading).toBe(false);
-      expect(result.current.error).toBe(
-        'Erro ao validar dados de detalhes da prova'
-      );
+      expect(result.current.error).toBe('Erro ao carregar detalhes da prova');
 
       consoleErrorSpy.mockRestore();
     });

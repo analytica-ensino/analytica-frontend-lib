@@ -1,5 +1,4 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { z } from 'zod';
 import {
   createUseExamsHistory,
   createExamsHistoryHook,
@@ -7,7 +6,6 @@ import {
   handleExamFetchError,
   extractExamFilterOptions,
   mergeExamFilterOptions,
-  examsHistoryApiResponseSchema,
   DEFAULT_EXAMS_PAGINATION,
   DEFAULT_EXAM_FILTER_OPTIONS,
 } from './useExamsHistory';
@@ -215,22 +213,7 @@ describe('useExamsHistory', () => {
       consoleErrorSpy.mockRestore();
     });
 
-    it('should return specific message for Zod errors', () => {
-      const zodError = new z.ZodError([
-        {
-          code: 'invalid_type',
-          expected: 'string',
-          path: ['data', 'activities'],
-          message: 'Expected string, received number',
-        },
-      ]);
-
-      const result = handleExamFetchError(zodError);
-      expect(result).toBe('Erro ao validar dados de historico de provas');
-      expect(consoleErrorSpy).toHaveBeenCalled();
-    });
-
-    it('should return generic message for other errors', () => {
+    it('should return generic message for errors', () => {
       const genericError = new Error('Network error');
       const result = handleExamFetchError(genericError);
       expect(result).toBe('Erro ao carregar historico de provas');
@@ -556,110 +539,6 @@ describe('useExamsHistory', () => {
     });
   });
 
-  describe('examsHistoryApiResponseSchema', () => {
-    it('should validate a valid API response', () => {
-      const validResponse = {
-        message: 'Success',
-        data: {
-          activities: [
-            {
-              id: '123e4567-e89b-12d3-a456-426614174000',
-              title: 'Math Exam',
-              startDate: '2024-06-15',
-              status: ExamStatus.AGENDADA,
-              completionPercentage: 75,
-              questionCount: 20,
-              createdAt: '2024-06-01T10:00:00.000Z',
-              subject: {
-                id: '123e4567-e89b-12d3-a456-426614174001',
-                name: 'Mathematics',
-                areaKnowledgeId: '123e4567-e89b-12d3-a456-426614174002',
-              },
-              creator: { id: 'creator-1', name: 'Prof. Maria' },
-              breakdown: [],
-            },
-          ],
-          pagination: {
-            total: 1,
-            page: 1,
-            limit: 10,
-            totalPages: 1,
-          },
-        },
-      };
-
-      const result = examsHistoryApiResponseSchema.safeParse(validResponse);
-      expect(result.success).toBe(true);
-    });
-
-    it('should filter out activities with invalid id format', () => {
-      const invalidResponse = {
-        message: 'Success',
-        data: {
-          activities: [
-            {
-              id: 'not-a-uuid',
-              title: 'Math Exam',
-              startDate: null,
-              status: ExamStatus.AGENDADA,
-              completionPercentage: 75,
-              questionCount: 20,
-              createdAt: '2024-06-01',
-              subject: null,
-            },
-          ],
-          pagination: { total: 1, page: 1, limit: 10, totalPages: 1 },
-        },
-      };
-
-      const result = examsHistoryApiResponseSchema.safeParse(invalidResponse);
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.data.activities).toHaveLength(0);
-      }
-    });
-
-    it('should filter out activities with invalid status', () => {
-      const invalidResponse = {
-        message: 'Success',
-        data: {
-          activities: [
-            {
-              id: '123e4567-e89b-12d3-a456-426614174000',
-              title: 'Math Exam',
-              startDate: null,
-              status: 'INVALID_STATUS',
-              completionPercentage: 75,
-              questionCount: 20,
-              createdAt: '2024-06-01',
-              subject: null,
-            },
-          ],
-          pagination: { total: 1, page: 1, limit: 10, totalPages: 1 },
-        },
-      };
-
-      const result = examsHistoryApiResponseSchema.safeParse(invalidResponse);
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.data.activities).toHaveLength(0);
-      }
-    });
-
-    it('should reject missing required fields', () => {
-      const missingFields = {
-        message: 'Success',
-        data: {
-          activities: [],
-          // missing pagination
-        },
-      };
-
-      const result = examsHistoryApiResponseSchema.safeParse(missingFields);
-      expect(result.success).toBe(false);
-    });
-  });
-
   describe('createUseExamsHistory', () => {
     const createMockApiClient = (): jest.Mocked<BaseApiClient> => ({
       get: jest.fn(),
@@ -818,7 +697,7 @@ describe('useExamsHistory', () => {
       consoleErrorSpy.mockRestore();
     });
 
-    it('should handle validation error', async () => {
+    it('should handle invalid response data', async () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       const mockApiClient = createMockApiClient();
 
@@ -842,9 +721,7 @@ describe('useExamsHistory', () => {
       });
 
       expect(result.current.loading).toBe(false);
-      expect(result.current.error).toBe(
-        'Erro ao validar dados de historico de provas'
-      );
+      expect(result.current.error).toBe('Erro ao carregar historico de provas');
 
       consoleErrorSpy.mockRestore();
     });

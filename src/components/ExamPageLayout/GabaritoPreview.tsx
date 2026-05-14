@@ -26,7 +26,7 @@ export function GabaritoPreview({
   escolaNome,
   turmaNome,
   onComplete,
-}: GabaritoPreviewProps) {
+}: Readonly<GabaritoPreviewProps>) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const printedRef = useRef(false);

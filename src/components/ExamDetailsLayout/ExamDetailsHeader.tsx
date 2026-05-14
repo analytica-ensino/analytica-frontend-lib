@@ -1,8 +1,7 @@
-import { DownloadSimple } from '@phosphor-icons/react';
 import { Menu, MenuContent, MenuItem } from '../Menu/Menu';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
-
+import { DownloadSimple } from 'phosphor-react';
 export interface ExamDetailsHeaderProps {
   examTitle: string;
   examDate: string;

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { DownloadSimple } from '@phosphor-icons/react';
+import { DownloadSimple } from 'phosphor-react';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
 import TableProvider from '../TableProvider/TableProvider';

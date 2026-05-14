@@ -25,7 +25,7 @@ export interface GabaritosBatchPreviewProps {
 export function GabaritosBatchPreview({
   gabaritos,
   onComplete,
-}: GabaritosBatchPreviewProps) {
+}: Readonly<GabaritosBatchPreviewProps>) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [qrCodeDataUrls, setQrCodeDataUrls] = useState<string[]>([]);
   const printedRef = useRef(false);
@@ -86,7 +86,7 @@ export function GabaritosBatchPreview({
       <PageContainer>
         <div ref={contentRef}>
           {gabaritos.map((gabarito, index) => (
-            <CartaoContainer key={index}>
+            <CartaoContainer key={gabarito.nomeAluno + index}>
               <GabaritoCard
                 nomeAluno={gabarito.nomeAluno}
                 qrCodeDataUrl={qrCodeDataUrls[index] || ''}

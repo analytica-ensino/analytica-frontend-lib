@@ -152,10 +152,11 @@ jest.mock('../CorrectActivityModal/CorrectActivityModal', () => ({
     ) : null,
 }));
 
+const mockHandlePrintExam = jest.fn();
 jest.mock('../QuestionsPdfGenerator/QuestionsPdfGenerator', () => ({
   useQuestionsPdfPrint: () => ({
     contentRef: { current: document.createElement('div') },
-    handlePrint: jest.fn(),
+    handlePrint: mockHandlePrintExam,
   }),
   QuestionsPdfContent: () => <div data-testid="questions-pdf-content" />,
 }));
@@ -817,6 +818,7 @@ describe('ExamDetailsPage', () => {
 
     it('triggers print after questions are loaded', async () => {
       jest.useFakeTimers();
+      mockHandlePrintExam.mockClear();
 
       mockApiClient.get.mockResolvedValueOnce({
         data: {
@@ -843,6 +845,8 @@ describe('ExamDetailsPage', () => {
       await act(async () => {
         jest.advanceTimersByTime(150);
       });
+
+      expect(mockHandlePrintExam).toHaveBeenCalled();
 
       jest.useRealTimers();
     });

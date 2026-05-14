@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-import { z } from 'zod';
 import dayjs from 'dayjs';
 import type { BaseApiClient } from '../types/api';
 import {
@@ -23,85 +22,68 @@ enum StudentActivityStatus {
 }
 
 /**
- * Zod schema for student in exam details
+ * API student type
  */
-const examStudentSchema = z.object({
-  studentId: z.string().uuid(),
-  studentName: z.string(),
-  answeredAt: z.string().nullable(),
-  timeSpent: z.number(),
-  score: z.number().nullable(),
-  status: z.nativeEnum(StudentActivityStatus),
-});
+interface ApiExamStudent {
+  studentId: string;
+  studentName: string;
+  answeredAt: string | null;
+  timeSpent: number;
+  score: number | null;
+  status: StudentActivityStatus;
+}
 
 /**
- * Zod schema for breakdown item
+ * API breakdown item type
  */
-const breakdownItemSchema = z.object({
-  school: z
-    .object({
-      id: z.string().uuid(),
-      name: z.string(),
-    })
-    .nullable(),
-  schoolYear: z
-    .object({
-      id: z.string().uuid(),
-      name: z.string(),
-    })
-    .nullable(),
-  class: z
-    .object({
-      id: z.string().uuid(),
-      name: z.string(),
-    })
-    .nullable(),
-  totalStudents: z.number(),
-  answeredStudents: z.number(),
-  completionPercentage: z.number(),
-});
+interface ApiBreakdownItem {
+  school: { id: string; name: string } | null;
+  schoolYear: { id: string; name: string } | null;
+  class: { id: string; name: string } | null;
+  totalStudents: number;
+  answeredStudents: number;
+  completionPercentage: number;
+}
 
 /**
- * Zod schema for exam details API response
+ * Exam details API response type
  */
-export const examDetailsApiResponseSchema = z.object({
-  message: z.string(),
-  data: z.object({
-    students: z.array(examStudentSchema),
-    pagination: z.object({
-      total: z.number(),
-      page: z.number(),
-      limit: z.number(),
-      totalPages: z.number(),
-    }),
-    generalStats: z.object({
-      averageScore: z.number(),
-      completionPercentage: z.number(),
-    }),
-    questionStats: z.object({
-      mostCorrect: z.array(z.number()),
-      mostIncorrect: z.array(z.number()),
-      notAnswered: z.array(z.number()),
-    }),
-    breakdown: z.array(breakdownItemSchema),
-  }),
-});
+export interface ExamDetailsApiResponse {
+  message: string;
+  data: {
+    students: ApiExamStudent[];
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+    generalStats: {
+      averageScore: number;
+      completionPercentage: number;
+    };
+    questionStats: {
+      mostCorrect: number[];
+      mostIncorrect: number[];
+      notAnswered: number[];
+    };
+    breakdown: ApiBreakdownItem[];
+  };
+}
 
 /**
- * Zod schema for exam info (basic data from /quiz endpoint)
- * The quiz endpoint returns more fields, but we only validate what we need
+ * Exam info API response type
  */
-const examInfoSchema = z.object({
-  id: z.string().uuid(),
-  title: z.string(),
-  startDate: z.coerce.date().nullable(),
-  createdAt: z.coerce.date(),
-});
-
-export const examInfoResponseSchema = z.object({
-  message: z.string(),
-  data: examInfoSchema.passthrough(), // Allow extra fields from quiz response
-});
+export interface ExamInfoApiResponse {
+  message: string;
+  data: {
+    id: string;
+    title: string;
+    startDate: string | null;
+    createdAt: string;
+    [key: string]: unknown;
+  };
+}
 
 /**
  * Hook state interface
@@ -134,11 +116,6 @@ export const DEFAULT_EXAM_DETAILS_PAGINATION: ExamDetailsPagination = {
 };
 
 /**
- * Inferred types
- */
-type ValidatedStudent = z.infer<typeof examStudentSchema>;
-
-/**
  * Map backend status to frontend status
  */
 export const mapBackendStatusToFrontend = (
@@ -159,7 +136,7 @@ export const mapBackendStatusToFrontend = (
  * Transform API student to frontend format
  */
 export const transformStudent = (
-  student: ValidatedStudent
+  student: ApiExamStudent
 ): ExamStudentResult => ({
   id: student.studentId,
   studentId: student.studentId,
@@ -221,36 +198,31 @@ const useExamDetailsImpl = (apiClient: BaseApiClient): UseExamDetailsReturn => {
         // Fetch exam info and details in parallel using activities endpoints
         // Use /quiz endpoint instead of /:id to support all user profiles (teachers, managers)
         const [examInfoResponse, examDetailsResponse] = await Promise.all([
-          apiClient.get<z.infer<typeof examInfoResponseSchema>>(
-            `/activities/${examId}/quiz`
-          ),
-          apiClient.get<z.infer<typeof examDetailsApiResponseSchema>>(
+          apiClient.get<ExamInfoApiResponse>(`/activities/${examId}/quiz`),
+          apiClient.get<ExamDetailsApiResponse>(
             `/activities/${examId}/details`,
-            { params }
+            {
+              params,
+            }
           ),
         ]);
 
-        const validatedInfo = examInfoResponseSchema.parse(
-          examInfoResponse.data
-        );
-        const validatedDetails = examDetailsApiResponseSchema.parse(
-          examDetailsResponse.data
-        );
+        const examInfo = examInfoResponse.data;
+        const examDetails = examDetailsResponse.data;
 
         // Transform students
-        const students = validatedDetails.data.students.map(transformStudent);
+        const students = examDetails.data.students.map(transformStudent);
 
         // Build exam stats
         const stats: ExamStats = {
-          averageScore: validatedDetails.data.generalStats.averageScore,
-          mostCorrectQuestions: validatedDetails.data.questionStats.mostCorrect,
-          mostIncorrectQuestions:
-            validatedDetails.data.questionStats.mostIncorrect,
-          unansweredQuestions: validatedDetails.data.questionStats.notAnswered,
+          averageScore: examDetails.data.generalStats.averageScore,
+          mostCorrectQuestions: examDetails.data.questionStats.mostCorrect,
+          mostIncorrectQuestions: examDetails.data.questionStats.mostIncorrect,
+          unansweredQuestions: examDetails.data.questionStats.notAnswered,
         };
 
         // Extract school and class from breakdown
-        const breakdown = validatedDetails.data.breakdown;
+        const breakdown = examDetails.data.breakdown;
 
         // Get unique school names from breakdown
         const schoolNames = [
@@ -272,14 +244,14 @@ const useExamDetailsImpl = (apiClient: BaseApiClient): UseExamDetailsReturn => {
 
         // Build exam data
         const examData: ExamDetailsData = {
-          id: validatedInfo.data.id,
-          title: validatedInfo.data.title,
-          startDate: validatedInfo.data.startDate
-            ? dayjs(validatedInfo.data.startDate).format('DD/MM/YYYY')
+          id: examInfo.data.id,
+          title: examInfo.data.title,
+          startDate: examInfo.data.startDate
+            ? dayjs(examInfo.data.startDate).format('DD/MM/YYYY')
             : '-',
           school: schoolNames.length > 0 ? schoolNames.join(', ') : '-',
           className: classNames.length > 0 ? classNames.join(', ') : '-',
-          createdAt: dayjs(validatedInfo.data.createdAt).format('DD/MM/YYYY'),
+          createdAt: dayjs(examInfo.data.createdAt).format('DD/MM/YYYY'),
           stats,
           students,
         };
@@ -288,7 +260,7 @@ const useExamDetailsImpl = (apiClient: BaseApiClient): UseExamDetailsReturn => {
           examData,
           loading: false,
           error: null,
-          pagination: validatedDetails.data.pagination,
+          pagination: examDetails.data.pagination,
         });
       } catch (error) {
         const errorMessage = handleExamDetailsFetchError(error);
