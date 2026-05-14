@@ -2,9 +2,6 @@ import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useTabletScreen } from '../../hooks/useScreen';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
-  ActivityFilters,
-  ActivityFiltersPopover,
-  ActivityPreview,
   Button,
   SkeletonText,
   useQuestionFiltersStore,
@@ -17,7 +14,6 @@ import {
   Text,
   QUESTION_TYPE,
 } from '../..';
-import Menu, { MenuContent, MenuItem } from '../Menu/Menu';
 import type {
   ActivityFiltersData,
   BaseApiClient,
@@ -27,8 +23,7 @@ import type {
   SendActivityFormData,
 } from '../..';
 import type { Lesson } from '../../types/lessons';
-import { Funnel, MonitorPlay } from 'phosphor-react';
-import { ActivityListQuestions } from '../ActivityListQuestions/ActivityListQuestions';
+import { MonitorPlay } from 'phosphor-react';
 import { areFiltersEqual } from '../../utils/activityFilters';
 import type {
   ActivityDraftResponse,
@@ -48,9 +43,20 @@ import {
   getTypeFromUrl,
   getTypeFromUrlString,
   buildSendActivityPayload,
+  extractLessonsFromResponse,
+  hasQuestionsChanged,
+  shouldSkipAutoSave,
+  extractDraftFromResponse,
+  buildISODateTime,
+  buildFinalDateTime,
+  buildUrlWithParams,
 } from './ActivityCreate.utils';
 import { ActivityCreateSkeleton } from './components/ActivityCreateSkeleton';
 import { ActivityCreateHeader } from './components/ActivityCreateHeader';
+import {
+  SmallScreenLayout,
+  DesktopLayout,
+} from './components/ActivityCreateContent';
 import { loadCategoriesData } from '../../utils/categoryDataUtils';
 import { useDynamicStudentFetching } from '../../utils/useDynamicStudentFetching';
 
@@ -106,28 +112,17 @@ const CreateActivity = ({
    * Build URL preserving existing query parameters
    * Used when updating URL after saving draft to maintain context for navigation
    */
-  const buildUrlWithParams = useCallback(
-    (newType: string, newId: string) => {
-      const params = new URLSearchParams();
-      params.set('type', newType);
-      params.set('id', newId);
-
-      // Preserve existing params for recommended lesson flow
-      if (recommendedLessonDraftId) {
-        params.set('recommended-class-draft', recommendedLessonDraftId);
-      }
-      if (recommendedLessonId) {
-        params.set('recommended-class', recommendedLessonId);
-      }
-      if (classTypeParam) {
-        params.set('classType', classTypeParam);
-      }
-      if (onFinishPath) {
-        params.set('onFinish', onFinishPath);
-      }
-
-      return `${basePath}?${params.toString()}`;
-    },
+  const buildActivityUrl = useCallback(
+    (newType: string, newId: string) =>
+      buildUrlWithParams({
+        newType,
+        newId,
+        basePath,
+        recommendedLessonDraftId,
+        recommendedLessonId,
+        classTypeParam,
+        onFinishPath,
+      }),
     [
       recommendedLessonDraftId,
       recommendedLessonId,
@@ -248,7 +243,6 @@ const CreateActivity = ({
   const handleLessonPreview = useCallback(async () => {
     setIsLessonPreviewModalOpen(true);
 
-    // Get the draft ID from URL params
     const draftIdToFetch = recommendedLessonDraftId || recommendedLessonId;
     if (!draftIdToFetch) {
       return;
@@ -256,88 +250,18 @@ const CreateActivity = ({
 
     setIsLoadingPreviewLessons(true);
     try {
-      // Determine endpoint based on which ID we have
       const endpoint = recommendedLessonDraftId
         ? `/recommended-class/drafts/${draftIdToFetch}`
         : `/recommended-class/${draftIdToFetch}`;
 
       const response = await apiClient.get<{
         message?: string;
-        data: {
-          draft?: {
-            selectedLessons?: Lesson[];
-            lessons?: Array<{
-              lessonId: string;
-              sequence: number;
-              lesson?: Lesson;
-            }>;
-          };
-          selectedLessons?: Lesson[];
-          lessons?: Array<{
-            lessonId: string;
-            sequence: number;
-            lesson?: Lesson;
-          }>;
-        };
+        data: Parameters<typeof extractLessonsFromResponse>[0];
       }>(endpoint);
 
-      // Extract lessons from response
-      // Handle multiple response formats:
-      // 1. data.data.draft.selectedLessons (array of Lesson)
-      // 2. data.data.selectedLessons (array of Lesson)
-      // 3. data.data.draft.lessons (array with lesson property)
-      // 4. data.data.lessons (array with lesson property)
-      let lessons: Lesson[] = [];
-
-      // Handle both response.data.data and response.data formats
       const responseData =
         'data' in response.data ? response.data.data : response.data;
-      const draft = responseData.draft;
-
-      // Try draft.selectedLessons first
-      if (draft?.selectedLessons && draft.selectedLessons.length > 0) {
-        lessons = draft.selectedLessons;
-      }
-      // Try responseData.selectedLessons
-      else if (
-        responseData.selectedLessons &&
-        responseData.selectedLessons.length > 0
-      ) {
-        lessons = responseData.selectedLessons;
-      }
-      // Try draft.lessons (extract lesson property)
-      else if (draft?.lessons && draft.lessons.length > 0) {
-        lessons = draft.lessons
-          .map((item) => {
-            if (
-              item &&
-              typeof item === 'object' &&
-              'lesson' in item &&
-              item.lesson
-            ) {
-              return item.lesson;
-            }
-            return null;
-          })
-          .filter((lesson): lesson is Lesson => lesson !== null);
-      }
-      // Try responseData.lessons (extract lesson property) - this is the actual format
-      else if (responseData.lessons && responseData.lessons.length > 0) {
-        lessons = responseData.lessons
-          .map((item) => {
-            if (
-              item &&
-              typeof item === 'object' &&
-              'lesson' in item &&
-              item.lesson
-            ) {
-              return item.lesson;
-            }
-            return null;
-          })
-          .filter((lesson): lesson is Lesson => lesson !== null);
-      }
-
+      const lessons = extractLessonsFromResponse(responseData);
       setPreviewLessons(lessons);
     } catch (error) {
       console.error('Error fetching lesson preview:', error);
@@ -449,7 +373,7 @@ const CreateActivity = ({
         currentUrlId !== activity.id ||
         currentUrlType !== urlType
       ) {
-        navigate(buildUrlWithParams(urlType, activity.id), {
+        navigate(buildActivityUrl(urlType, activity.id), {
           replace: true,
         });
       }
@@ -469,16 +393,19 @@ const CreateActivity = ({
    * @returns true if save can proceed, false otherwise
    */
   const validateSaveConditions = useCallback((): boolean => {
-    if (questions.length === 0 && !hasFirstSaveBeenDone.current) {
+    if (isSaving) {
       return false;
     }
     if (!appliedFilters?.subjectIds?.length) {
       return false;
     }
-    if (loadingInitialQuestions || isSaving) {
-      return false;
-    }
-    return true;
+    const skipSave = shouldSkipAutoSave({
+      loadingInitialQuestions,
+      questionsCount: questions.length,
+      hasFirstSaveBeenDone: hasFirstSaveBeenDone.current,
+      appliedFilters,
+    });
+    return !skipSave;
   }, [questions.length, appliedFilters, loadingInitialQuestions, isSaving]);
 
   /**
@@ -586,58 +513,6 @@ const CreateActivity = ({
   );
 
   /**
-   * Extract draft from API response
-   *
-   * @param response - API response object
-   * @returns Extracted draft object
-   * @throws Error if draft cannot be extracted
-   */
-  const extractDraftFromResponse = useCallback(
-    (response: {
-      data: ActivityDraftResponse;
-    }): ActivityDraftResponse['data']['draft'] => {
-      if (!response?.data) {
-        console.error('❌ Resposta vazia da API ao criar rascunho:', response);
-        throw new Error('Invalid response: empty response from API');
-      }
-
-      let savedDraft: ActivityDraftResponse['data']['draft'] | undefined;
-
-      if (response.data.data?.draft) {
-        savedDraft = response.data.data.draft;
-      } else if (
-        response.data &&
-        'draft' in response.data &&
-        typeof response.data === 'object'
-      ) {
-        savedDraft = (
-          response.data as unknown as {
-            draft: ActivityDraftResponse['data']['draft'];
-          }
-        )?.draft;
-      }
-
-      if (!savedDraft?.id) {
-        console.error('❌ Resposta inválida da API ao criar rascunho:', {
-          response,
-          responseData: response?.data,
-          responseDataData: response?.data?.data,
-          responseKeys: response?.data ? Object.keys(response.data) : [],
-          responseDataKeys: response?.data?.data
-            ? Object.keys(response.data.data)
-            : [],
-        });
-        throw new Error(
-          'Invalid response: draft data is missing. Expected structure: response.data.data.draft'
-        );
-      }
-
-      return savedDraft;
-    },
-    []
-  );
-
-  /**
    * Update component state after successful draft save
    *
    * @param savedDraft - Saved draft object from API
@@ -675,7 +550,7 @@ const CreateActivity = ({
       // Se foi um novo rascunho, atualiza a URL
       if (wasNewDraft && savedDraft.id) {
         const urlType = getTypeFromUrl(savedDraft.type);
-        navigate(buildUrlWithParams(urlType, savedDraft.id), {
+        navigate(buildActivityUrl(urlType, savedDraft.id), {
           replace: true,
         });
       }
@@ -775,7 +650,6 @@ const CreateActivity = ({
       draftId,
       updateExistingDraft,
       apiClient,
-      extractDraftFromResponse,
       updateStateAfterSave,
       addToast,
       appliedFilters,
@@ -1047,24 +921,21 @@ const CreateActivity = ({
       clearTimeout(saveTimeoutRef.current);
     }
 
-    if (loadingInitialQuestions) {
+    const skipAutoSave = shouldSkipAutoSave({
+      loadingInitialQuestions,
+      questionsCount: questions.length,
+      hasFirstSaveBeenDone: hasFirstSaveBeenDone.current,
+      appliedFilters,
+    });
+
+    if (skipAutoSave) {
       return;
     }
 
-    if (questions.length === 0 && !hasFirstSaveBeenDone.current) {
-      return;
-    }
-
-    if (!appliedFilters) {
-      return;
-    }
-
-    const questionIds = questions.map((q) => q.id).join(',');
-    const lastSavedQuestionIds = lastSavedQuestionsRef.current
-      .map((q) => q.id)
-      .join(',');
-    const questionsChanged = questionIds !== lastSavedQuestionIds;
-
+    const questionsChanged = hasQuestionsChanged(
+      questions,
+      lastSavedQuestionsRef.current
+    );
     const filtersChanged = !areFiltersEqual(
       lastSavedFiltersRef.current,
       appliedFilters
@@ -1222,16 +1093,15 @@ const CreateActivity = ({
           throw new Error('Subject ID não encontrado');
         }
 
-        const startDateTime = new Date(
-          `${formData.startDate}T${formData.startTime}`
-        ).toISOString();
-        // In exam mode, finalDate is null (no deadline)
-        const finalDateTime =
+        const startDateTime = buildISODateTime(
+          formData.startDate,
+          formData.startTime
+        );
+        const finalDateTime = buildFinalDateTime(
+          formData.finalDate,
+          formData.finalTime,
           enableExamMode || isInPersonExam
-            ? null
-            : new Date(
-                `${formData.finalDate}T${formData.finalTime}`
-              ).toISOString();
+        );
 
         const activityPayload = buildSendActivityPayload(
           formData,
@@ -1345,156 +1215,45 @@ const CreateActivity = ({
 
       {/* Main Content */}
       {isSmallScreen ? (
-        /* Small Screen Layout (<= 1200px) */
-        <div className="flex flex-col w-full flex-1 overflow-hidden gap-5 min-h-0">
-          {/* Filters and Menu Row */}
-          <div className="flex flex-row items-center justify-between gap-4 flex-shrink-0">
-            <ActivityFiltersPopover
-              apiClient={apiClient}
-              institutionId={institutionId}
-              onFiltersChange={handleFiltersChange}
-              initialFilters={initialFiltersData || undefined}
-              triggerLabel="Filtro de questões"
-              onApplyFilters={handleApplyFilters}
-              onClearFilters={clearFilters}
-              allowedQuestionTypes={
-                isInPersonExam ? [QUESTION_TYPE.ALTERNATIVA] : undefined
-              }
-            />
-            <div className="flex-shrink-0">
-              <Menu
-                defaultValue="questions"
-                value={selectedView}
-                onValueChange={(value) =>
-                  setSelectedView(value as 'questions' | 'preview')
-                }
-                variant="breadcrumb"
-              >
-                <MenuContent variant="breadcrumb">
-                  <MenuItem value="questions" variant="breadcrumb">
-                    Banco de questões
-                  </MenuItem>
-                  <MenuItem value="preview" variant="breadcrumb">
-                    {enableExamMode || isInPersonExam
-                      ? 'Prévia da prova'
-                      : 'Prévia da atividade'}
-                  </MenuItem>
-                </MenuContent>
-              </Menu>
-            </div>
-          </div>
-
-          {/* Content Area - Single Column */}
-          <div className="flex-1 min-w-0 relative">
-            {selectedView === 'questions' ? (
-              <div className="absolute inset-0 overflow-hidden">
-                <ActivityListQuestions
-                  apiClient={apiClient}
-                  onAddQuestion={handleAddQuestion}
-                  addedQuestionIds={addedQuestionIds}
-                  enableExamMode={enableExamMode || isInPersonExam}
-                />
-              </div>
-            ) : (
-              <div className="absolute inset-0 overflow-hidden">
-                {loadingInitialQuestions ? (
-                  <div className="flex flex-col gap-4 p-4">
-                    <div className="flex flex-col gap-2">
-                      <SkeletonText lines={1} width={200} />
-                      <SkeletonText lines={1} width={150} />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="p-4 border rounded">
-                          <SkeletonText lines={2} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <ActivityPreview
-                    questions={questions}
-                    onRemoveAll={handleRemoveAll}
-                    onRemoveQuestion={handleRemoveQuestion}
-                    onReorder={handleReorder}
-                    isDark={isDark}
-                    className="h-full overflow-y-auto"
-                  />
-                )}
-              </div>
-            )}
-          </div>
-        </div>
+        <SmallScreenLayout
+          apiClient={apiClient}
+          institutionId={institutionId}
+          isDark={isDark}
+          selectedView={selectedView}
+          onViewChange={setSelectedView}
+          initialFiltersData={initialFiltersData}
+          onFiltersChange={handleFiltersChange}
+          onApplyFilters={handleApplyFilters}
+          onClearFilters={clearFilters}
+          onAddQuestion={handleAddQuestion}
+          addedQuestionIds={addedQuestionIds}
+          enableExamMode={enableExamMode || isInPersonExam}
+          isInPersonExam={isInPersonExam}
+          loadingInitialQuestions={loadingInitialQuestions}
+          questions={questions}
+          onRemoveAll={handleRemoveAll}
+          onRemoveQuestion={handleRemoveQuestion}
+          onReorder={handleReorder}
+        />
       ) : (
-        /* Desktop Layout (> 1200px) - 3 columns */
-        <div className="flex flex-row w-full flex-1 overflow-hidden gap-5 min-h-0">
-          {/* First Column - Filters */}
-          <div className="flex flex-col gap-3 overflow-hidden h-full min-h-0 max-h-full relative w-[400px] flex-shrink-0">
-            <div className="flex flex-col overflow-y-auto overflow-x-hidden flex-1 min-h-0 max-h-full">
-              <ActivityFilters
-                apiClient={apiClient}
-                institutionId={institutionId}
-                variant={'default'}
-                onFiltersChange={handleFiltersChange}
-                initialFilters={initialFiltersData || undefined}
-                allowedQuestionTypes={
-                  isInPersonExam ? [QUESTION_TYPE.ALTERNATIVA] : undefined
-                }
-              />
-            </div>
-            <div className="flex-shrink-0">
-              <Button
-                size="medium"
-                iconLeft={<Funnel />}
-                onClick={handleApplyFilters}
-                disabled={!draftFilters}
-                className="w-full"
-              >
-                Filtrar
-              </Button>
-            </div>
-          </div>
-
-          {/* Second Column - Center, fills remaining space */}
-          <div className="flex-1 min-w-0 relative">
-            <div className="absolute inset-0 overflow-hidden">
-              <ActivityListQuestions
-                apiClient={apiClient}
-                onAddQuestion={handleAddQuestion}
-                addedQuestionIds={addedQuestionIds}
-                enableExamMode={enableExamMode || isInPersonExam}
-              />
-            </div>
-          </div>
-
-          {/* Third Column - Activity Preview */}
-          <div className="w-[400px] flex-shrink-0 overflow-hidden h-full min-h-0">
-            {loadingInitialQuestions ? (
-              <div className="flex flex-col gap-4 p-4">
-                <div className="flex flex-col gap-2">
-                  <SkeletonText lines={1} width={200} />
-                  <SkeletonText lines={1} width={150} />
-                </div>
-                <div className="flex flex-col gap-2">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="p-4 border rounded">
-                      <SkeletonText lines={2} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <ActivityPreview
-                questions={questions}
-                onRemoveAll={handleRemoveAll}
-                onRemoveQuestion={handleRemoveQuestion}
-                onReorder={handleReorder}
-                isDark={isDark}
-                className="h-full overflow-y-auto"
-              />
-            )}
-          </div>
-        </div>
+        <DesktopLayout
+          apiClient={apiClient}
+          institutionId={institutionId}
+          isDark={isDark}
+          initialFiltersData={initialFiltersData}
+          draftFilters={draftFilters}
+          onFiltersChange={handleFiltersChange}
+          onApplyFilters={handleApplyFilters}
+          onAddQuestion={handleAddQuestion}
+          addedQuestionIds={addedQuestionIds}
+          enableExamMode={enableExamMode || isInPersonExam}
+          isInPersonExam={isInPersonExam}
+          loadingInitialQuestions={loadingInitialQuestions}
+          questions={questions}
+          onRemoveAll={handleRemoveAll}
+          onRemoveQuestion={handleRemoveQuestion}
+          onReorder={handleReorder}
+        />
       )}
 
       {/* Save Activity Model Modal */}
