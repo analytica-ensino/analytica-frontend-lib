@@ -547,6 +547,23 @@ export type {
   SearchSelectPagination,
 } from './components/SearchSelect/SearchSelect';
 
+// TypeSelector Component (Activity/Exam type switcher)
+export { TypeSelector, default as TypeSelectorDefault } from './components/TypeSelector';
+export type { TypeSelectorProps } from './components/TypeSelector';
+export {
+  type ActivityCategory,
+  type ActiveTab,
+  type TypeLabels,
+  type TypeRoutes,
+  type TypeConfig,
+  ATIVIDADE_LABELS,
+  PROVA_LABELS,
+  DEFAULT_STATUS_OPTIONS,
+  getTabPath,
+  getTabFromPath,
+  createActivityCategoryConfig,
+} from './components/TypeSelector';
+
 // Menu Components
 export {
   default as Menu,
