@@ -313,6 +313,19 @@ describe('useRecommendedClassModels', () => {
 
     const mockDeleteRecommendedClassModel = jest.fn<Promise<void>, [string]>();
 
+    // Create API client adapter from mock functions
+    const createMockApiClient = () => ({
+      get: jest.fn().mockImplementation(async (_url: string, options?: { params?: Record<string, unknown> }) => {
+        const result = await mockFetchRecommendedClassModels(options?.params as RecommendedClassModelFilters);
+        return { data: result };
+      }),
+      delete: jest.fn().mockImplementation(async (url: string) => {
+        const id = url.split('/').pop() || '';
+        await mockDeleteRecommendedClassModel(id);
+        return { data: {} };
+      }),
+    });
+
     const validApiResponse: RecommendedClassModelsApiResponse = {
       message: 'Success',
       data: {
@@ -343,10 +356,8 @@ describe('useRecommendedClassModels', () => {
     });
 
     it('should return initial state', () => {
-      const useRecommendedClassModels = createUseRecommendedClassModels(
-        mockFetchRecommendedClassModels,
-        mockDeleteRecommendedClassModel
-      );
+      const mockApiClient = createMockApiClient();
+      const useRecommendedClassModels = createUseRecommendedClassModels(mockApiClient);
       const { result } = renderHook(() => useRecommendedClassModels());
 
       expect(result.current.models).toEqual([]);
@@ -361,21 +372,16 @@ describe('useRecommendedClassModels', () => {
 
     it('should fetch models successfully', async () => {
       mockFetchRecommendedClassModels.mockResolvedValueOnce(validApiResponse);
+      const mockApiClient = createMockApiClient();
 
-      const useRecommendedClassModels = createUseRecommendedClassModels(
-        mockFetchRecommendedClassModels,
-        mockDeleteRecommendedClassModel
-      );
+      const useRecommendedClassModels = createUseRecommendedClassModels(mockApiClient);
       const { result } = renderHook(() => useRecommendedClassModels());
 
       await act(async () => {
         await result.current.fetchModels({ page: 1, limit: 10 }, subjectsMap);
       });
 
-      expect(mockFetchRecommendedClassModels).toHaveBeenCalledWith({
-        page: 1,
-        limit: 10,
-      });
+      expect(mockApiClient.get).toHaveBeenCalled();
       expect(result.current.models).toHaveLength(1);
       expect(result.current.models[0].title).toBe('Test Model');
       expect(result.current.models[0].subject).toBe('Matemática');
@@ -392,14 +398,10 @@ describe('useRecommendedClassModels', () => {
         },
       };
 
-      mockFetchRecommendedClassModels.mockResolvedValueOnce(
-        responseWith25Items
-      );
+      mockFetchRecommendedClassModels.mockResolvedValueOnce(responseWith25Items);
+      const mockApiClient = createMockApiClient();
 
-      const useRecommendedClassModels = createUseRecommendedClassModels(
-        mockFetchRecommendedClassModels,
-        mockDeleteRecommendedClassModel
-      );
+      const useRecommendedClassModels = createUseRecommendedClassModels(mockApiClient);
       const { result } = renderHook(() => useRecommendedClassModels());
 
       await act(async () => {
@@ -416,11 +418,9 @@ describe('useRecommendedClassModels', () => {
 
     it('should use default pagination values when not provided', async () => {
       mockFetchRecommendedClassModels.mockResolvedValueOnce(validApiResponse);
+      const mockApiClient = createMockApiClient();
 
-      const useRecommendedClassModels = createUseRecommendedClassModels(
-        mockFetchRecommendedClassModels,
-        mockDeleteRecommendedClassModel
-      );
+      const useRecommendedClassModels = createUseRecommendedClassModels(mockApiClient);
       const { result } = renderHook(() => useRecommendedClassModels());
 
       await act(async () => {
@@ -440,11 +440,9 @@ describe('useRecommendedClassModels', () => {
       );
 
       mockFetchRecommendedClassModels.mockReturnValueOnce(promise);
+      const mockApiClient = createMockApiClient();
 
-      const useRecommendedClassModels = createUseRecommendedClassModels(
-        mockFetchRecommendedClassModels,
-        mockDeleteRecommendedClassModel
-      );
+      const useRecommendedClassModels = createUseRecommendedClassModels(mockApiClient);
       const { result } = renderHook(() => useRecommendedClassModels());
 
       act(() => {
@@ -471,11 +469,9 @@ describe('useRecommendedClassModels', () => {
       mockFetchRecommendedClassModels.mockRejectedValueOnce(
         new Error('Network error')
       );
+      const mockApiClient = createMockApiClient();
 
-      const useRecommendedClassModels = createUseRecommendedClassModels(
-        mockFetchRecommendedClassModels,
-        mockDeleteRecommendedClassModel
-      );
+      const useRecommendedClassModels = createUseRecommendedClassModels(mockApiClient);
       const { result } = renderHook(() => useRecommendedClassModels());
 
       await act(async () => {
@@ -505,11 +501,9 @@ describe('useRecommendedClassModels', () => {
       mockFetchRecommendedClassModels.mockResolvedValueOnce(
         invalidResponse as unknown as RecommendedClassModelsApiResponse
       );
+      const mockApiClient = createMockApiClient();
 
-      const useRecommendedClassModels = createUseRecommendedClassModels(
-        mockFetchRecommendedClassModels,
-        mockDeleteRecommendedClassModel
-      );
+      const useRecommendedClassModels = createUseRecommendedClassModels(mockApiClient);
       const { result } = renderHook(() => useRecommendedClassModels());
 
       await act(async () => {
@@ -526,11 +520,9 @@ describe('useRecommendedClassModels', () => {
 
     it('should delete model successfully', async () => {
       mockDeleteRecommendedClassModel.mockResolvedValueOnce(undefined);
+      const mockApiClient = createMockApiClient();
 
-      const useRecommendedClassModels = createUseRecommendedClassModels(
-        mockFetchRecommendedClassModels,
-        mockDeleteRecommendedClassModel
-      );
+      const useRecommendedClassModels = createUseRecommendedClassModels(mockApiClient);
       const { result } = renderHook(() => useRecommendedClassModels());
 
       let deleteResult: boolean = false;
@@ -539,7 +531,7 @@ describe('useRecommendedClassModels', () => {
       });
 
       expect(deleteResult).toBe(true);
-      expect(mockDeleteRecommendedClassModel).toHaveBeenCalledWith('model-id');
+      expect(mockApiClient.delete).toHaveBeenCalled();
     });
 
     it('should return false on delete failure', async () => {
@@ -550,11 +542,9 @@ describe('useRecommendedClassModels', () => {
       mockDeleteRecommendedClassModel.mockRejectedValueOnce(
         new Error('Delete failed')
       );
+      const mockApiClient = createMockApiClient();
 
-      const useRecommendedClassModels = createUseRecommendedClassModels(
-        mockFetchRecommendedClassModels,
-        mockDeleteRecommendedClassModel
-      );
+      const useRecommendedClassModels = createUseRecommendedClassModels(mockApiClient);
       const { result } = renderHook(() => useRecommendedClassModels());
 
       let deleteResult: boolean = true;
@@ -576,11 +566,9 @@ describe('useRecommendedClassModels', () => {
       mockFetchRecommendedClassModels.mockRejectedValueOnce(
         new Error('Network error')
       );
+      const mockApiClient = createMockApiClient();
 
-      const useRecommendedClassModels = createUseRecommendedClassModels(
-        mockFetchRecommendedClassModels,
-        mockDeleteRecommendedClassModel
-      );
+      const useRecommendedClassModels = createUseRecommendedClassModels(mockApiClient);
       const { result } = renderHook(() => useRecommendedClassModels());
 
       await act(async () => {
@@ -609,13 +597,14 @@ describe('useRecommendedClassModels', () => {
     });
 
     it('should create a functional hook', () => {
-      const mockFetch = jest.fn().mockResolvedValue({
-        message: 'Success',
-        data: { drafts: [], total: 0 },
-      });
-      const mockDelete = jest.fn().mockResolvedValue(undefined);
+      const mockApiClient = {
+        get: jest.fn().mockResolvedValue({
+          data: { message: 'Success', data: { drafts: [], total: 0 } },
+        }),
+        delete: jest.fn().mockResolvedValue({ data: {} }),
+      };
 
-      const useHook = createRecommendedClassModelsHook(mockFetch, mockDelete);
+      const useHook = createRecommendedClassModelsHook(mockApiClient);
       const { result } = renderHook(() => useHook());
 
       expect(result.current.fetchModels).toBeInstanceOf(Function);

@@ -94,11 +94,14 @@ export interface ModelsTabBaseProps<
   createFiltersConfig: (userFilterData?: TUserFilterData) => FilterConfig[];
   /** Function to build filters from table params */
   buildFiltersFromParams: (params: TableParams) => TFilters;
-  /** Hook creator function */
-  createUseModels: (
-    fetchFn: (filters?: TFilters) => Promise<TResponse>,
-    deleteFn: (id: string) => Promise<void>
-  ) => () => UseModelsReturn<T>;
+  /** Hook creator function that receives an API client adapter */
+  createUseModels: (apiClient: {
+    get: <R>(
+      url: string,
+      options?: { params?: Record<string, unknown> }
+    ) => Promise<{ data: R }>;
+    delete: (url: string) => Promise<{ data: unknown }>;
+  }) => () => UseModelsReturn<T>;
 }
 
 /**
@@ -144,14 +147,30 @@ export const ModelsTabBase = <
   const subjectsMapRef = useRef(subjectsMap);
   subjectsMapRef.current = subjectsMap;
 
-  // Create hook instance with stable fetch function wrappers
+  // Create an API client adapter that wraps the fetch/delete functions
+  const apiClientAdapter = useMemo(
+    () => ({
+      get: async <R,>(
+        _url: string,
+        options?: { params?: Record<string, unknown> }
+      ) => {
+        const result = await fetchModelsRef.current(options?.params as TFilters);
+        return { data: result as R };
+      },
+      delete: async (_url: string) => {
+        // The delete URL contains the ID, extract it
+        const id = _url.split('/').pop() || '';
+        await deleteModelRef.current(id);
+        return { data: {} };
+      },
+    }),
+    []
+  );
+
+  // Create hook instance with the API client adapter
   const useModels = useMemo(
-    () =>
-      createUseModels(
-        (filters) => fetchModelsRef.current(filters),
-        (id) => deleteModelRef.current(id)
-      ),
-    [createUseModels]
+    () => createUseModels(apiClientAdapter),
+    [createUseModels, apiClientAdapter]
   );
 
   // Use the hook

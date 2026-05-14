@@ -12,6 +12,17 @@ import type {
 import { createFetchErrorHandler } from '../utils/hookErrorHandler';
 
 /**
+ * API client interface for the hook
+ */
+interface ApiClientAdapter {
+  get: <T>(
+    url: string,
+    options?: { params?: Record<string, unknown> }
+  ) => Promise<{ data: T }>;
+  delete: (url: string) => Promise<{ data: unknown }>;
+}
+
+/**
  * Zod schema for recommendedClass model response validation
  */
 const recommendedClassModelResponseSchema = z.object({
@@ -106,33 +117,19 @@ export const handleRecommendedClassModelFetchError = createFetchErrorHandler(
 /**
  * Factory function to create useRecommendedClassModels hook
  *
- * @param fetchRecommendedClassModels - Function to fetch models from API
- * @param deleteRecommendedClassModel - Function to delete a model
+ * @param apiClient - API client adapter with get and delete methods
  * @returns Hook for managing recommendedClass models
  *
  * @example
  * ```tsx
- * // In your app setup
- * const fetchRecommendedClassModels = async (filters) => {
- *   const response = await api.get('/recommended-class/drafts', { params: { ...filters, type: 'MODELO' } });
- *   return response.data;
- * };
- *
- * const deleteRecommendedClassModel = async (id) => {
- *   await api.delete(`/recommended-class/drafts/${id}`);
- * };
- *
- * const useRecommendedClassModels = createUseRecommendedClassModels(fetchRecommendedClassModels, deleteRecommendedClassModel);
+ * const useRecommendedClassModels = createUseRecommendedClassModels(apiClientAdapter);
  *
  * // In your component
  * const { models, loading, error, pagination, fetchModels, deleteModel } = useRecommendedClassModels();
  * ```
  */
 export const createUseRecommendedClassModels = (
-  fetchRecommendedClassModels: (
-    filters?: RecommendedClassModelFilters
-  ) => Promise<RecommendedClassModelsApiResponse>,
-  deleteRecommendedClassModel: (id: string) => Promise<void>
+  apiClient: ApiClientAdapter
 ) => {
   return (): UseRecommendedClassModelsReturn => {
     const [state, setState] = useState<UseRecommendedClassModelsState>({
@@ -155,12 +152,17 @@ export const createUseRecommendedClassModels = (
         setState((prev) => ({ ...prev, loading: true, error: null }));
 
         try {
-          // Fetch data from API
-          const responseData = await fetchRecommendedClassModels(filters);
+          // Fetch data from API using adapter
+          const response =
+            await apiClient.get<RecommendedClassModelsApiResponse>(
+              '/recommended-class/drafts',
+              { params: filters as Record<string, unknown> }
+            );
 
           // Validate response with Zod
-          const validatedData =
-            recommendedClassModelsApiResponseSchema.parse(responseData);
+          const validatedData = recommendedClassModelsApiResponseSchema.parse(
+            response.data
+          );
 
           // Transform models to table format
           const tableItems = validatedData.data.drafts.map((model) =>
@@ -194,7 +196,7 @@ export const createUseRecommendedClassModels = (
           }));
         }
       },
-      [fetchRecommendedClassModels]
+      [apiClient]
     );
 
     /**
@@ -205,14 +207,14 @@ export const createUseRecommendedClassModels = (
     const deleteModel = useCallback(
       async (id: string): Promise<boolean> => {
         try {
-          await deleteRecommendedClassModel(id);
+          await apiClient.delete(`/recommended-class/drafts/${id}`);
           return true;
         } catch (error) {
           console.error('Erro ao deletar modelo:', error);
           return false;
         }
       },
-      [deleteRecommendedClassModel]
+      [apiClient]
     );
 
     return {

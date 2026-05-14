@@ -60,13 +60,26 @@ export const HistoryTab = ({
   const fetchActivitiesHistoryRef = useRef(fetchActivitiesHistory);
   fetchActivitiesHistoryRef.current = fetchActivitiesHistory;
 
-  // Create hook instance with stable fetch function wrapper
-  const useActivitiesHistory = useMemo(
-    () =>
-      createUseActivitiesHistory((filters) =>
-        fetchActivitiesHistoryRef.current(filters)
-      ),
+  // Create an API client adapter that wraps the fetch function
+  const apiClientAdapter = useMemo(
+    () => ({
+      get: async <T,>(
+        _url: string,
+        options?: { params?: Record<string, unknown> }
+      ) => {
+        const result = await fetchActivitiesHistoryRef.current(
+          options?.params as ActivityHistoryFilters
+        );
+        return { data: result as T };
+      },
+    }),
     []
+  );
+
+  // Create hook instance with the API client adapter
+  const useActivitiesHistory = useMemo(
+    () => createUseActivitiesHistory(apiClientAdapter),
+    [apiClientAdapter]
   );
 
   // Use the hook
