@@ -50,7 +50,7 @@ export const TypeSelector = ({
   return (
     <Select value={value} onValueChange={handleTypeChange} size="small">
       <SelectTrigger
-        className="w-[140px] h-8 bg-background"
+        className="w-[160px] h-8 bg-background"
         variant="outlined"
       >
         <SelectValue placeholder="Tipo" />
