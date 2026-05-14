@@ -4,17 +4,17 @@ import type { BaseApiClient } from '../types/api';
 import { ActivityDraftType } from '../types/activitiesHistory';
 import { ActivityType } from '../components/ActivityCreate/ActivityCreate.types';
 import type {
+  ActivityModelFilters,
+  ActivityModelsApiResponse,
   ActivityModelResponse,
   ActivityModelTableItem,
-  ActivityModelsApiResponse,
-  ActivityModelFilters,
   ActivityPagination,
 } from '../types/activitiesHistory';
 
 /**
- * Options for configuring the useActivityModels hook
+ * Options for configuring the useActivityDrafts hook
  */
-export interface UseActivityModelsOptions {
+export interface UseActivityDraftsOptions {
   /** Filter by activity category (PROVA, ATIVIDADE, etc.) */
   activityCategory?: 'PROVA' | 'ATIVIDADE';
 }
@@ -22,8 +22,8 @@ export interface UseActivityModelsOptions {
 /**
  * Hook state interface
  */
-export interface UseActivityModelsState {
-  models: ActivityModelTableItem[];
+export interface UseActivityDraftsState {
+  drafts: ActivityModelTableItem[];
   loading: boolean;
   error: string | null;
   pagination: ActivityPagination;
@@ -32,18 +32,15 @@ export interface UseActivityModelsState {
 /**
  * Hook return type
  */
-export interface UseActivityModelsReturn extends UseActivityModelsState {
-  fetchModels: (
-    filters?: ActivityModelFilters,
-    subjectsMap?: Map<string, string>
-  ) => Promise<void>;
-  deleteModel: (id: string) => Promise<boolean>;
+export interface UseActivityDraftsReturn extends UseActivityDraftsState {
+  fetchDrafts: (filters?: ActivityModelFilters) => Promise<void>;
+  deleteDraft: (id: string) => Promise<void>;
 }
 
 /**
  * Default pagination values
  */
-export const DEFAULT_MODELS_PAGINATION: ActivityPagination = {
+export const DEFAULT_DRAFTS_PAGINATION: ActivityPagination = {
   total: 0,
   page: 1,
   limit: 10,
@@ -52,22 +49,21 @@ export const DEFAULT_MODELS_PAGINATION: ActivityPagination = {
 
 /**
  * Transform API response to table item format
- * @param model - Activity model from API response
- * @param subjectsMap - Map of subject IDs to subject names (fallback if subject is not in response)
- * @returns Formatted model for table display
+ * @param draft - Draft from API response
+ * @param subjectsMap - Optional map of subject IDs to names
+ * @returns Formatted draft for table display
  */
-export const transformModelToTableItem = (
-  model: ActivityModelResponse,
+export const transformDraftToTableItem = (
+  draft: ActivityModelResponse,
   subjectsMap?: Map<string, string>
 ): ActivityModelTableItem => {
   // Use subject from API response if available
-  // If not available and subjectsMap is provided, create a basic subject object
-  let subject = model.subject;
-  if (!subject && model.subjectId && subjectsMap) {
-    const subjectName = subjectsMap.get(model.subjectId);
+  let subject = draft.subject;
+  if (!subject && draft.subjectId && subjectsMap) {
+    const subjectName = subjectsMap.get(draft.subjectId);
     if (subjectName) {
       subject = {
-        id: model.subjectId,
+        id: draft.subjectId,
         name: subjectName,
         icon: 'BookOpen',
         color: '#6B7280',
@@ -77,17 +73,19 @@ export const transformModelToTableItem = (
 
   // Map ActivityDraftType to ActivityType
   const activityType =
-    model.type === ActivityDraftType.MODELO
+    draft.type === ActivityDraftType.MODELO
       ? ActivityType.MODELO
       : ActivityType.RASCUNHO;
 
   return {
-    id: model.id,
+    id: draft.id,
     type: activityType,
-    title: model.title || 'Sem título',
-    savedAt: dayjs(model.createdAt).format('DD/MM/YYYY'),
+    title: draft.title || 'Sem título',
+    savedAt: draft.updatedAt
+      ? dayjs(draft.updatedAt).format('DD/MM/YYYY')
+      : '-',
     subject: subject || null,
-    subjectId: model.subjectId,
+    subjectId: draft.subjectId,
   };
 };
 
@@ -102,7 +100,7 @@ const buildQueryParams = (
   activityCategory?: string
 ): Record<string, unknown> => {
   const params: Record<string, unknown> = {
-    type: ActivityDraftType.MODELO, // models = MODELO
+    type: ActivityDraftType.RASCUNHO, // drafts = RASCUNHO
   };
 
   // Add activityCategory filter if provided
@@ -125,27 +123,23 @@ const buildQueryParams = (
 /**
  * Hook implementation
  */
-const useActivityModelsImpl = (
+const useActivityDraftsImpl = (
   apiClient: BaseApiClient,
-  options?: UseActivityModelsOptions
-): UseActivityModelsReturn => {
-  const [state, setState] = useState<UseActivityModelsState>({
-    models: [],
+  options?: UseActivityDraftsOptions
+): UseActivityDraftsReturn => {
+  const [state, setState] = useState<UseActivityDraftsState>({
+    drafts: [],
     loading: false,
     error: null,
-    pagination: DEFAULT_MODELS_PAGINATION,
+    pagination: DEFAULT_DRAFTS_PAGINATION,
   });
 
   /**
-   * Fetch activity models from API
+   * Fetch activity drafts from API
    * @param filters - Optional filters for pagination, search, etc.
-   * @param subjectsMap - Map of subject IDs to subject names for display
    */
-  const fetchModels = useCallback(
-    async (
-      filters?: ActivityModelFilters,
-      subjectsMap?: Map<string, string>
-    ) => {
+  const fetchDrafts = useCallback(
+    async (filters: ActivityModelFilters = {}) => {
       setState((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
@@ -155,35 +149,30 @@ const useActivityModelsImpl = (
           { params }
         );
 
-        // Transform models to table format
-        const tableItems = response.data.data.activityDrafts.map((model) =>
-          transformModelToTableItem(model, subjectsMap)
+        const tableItems = response.data.data.activityDrafts.map((draft) =>
+          transformDraftToTableItem(draft)
         );
 
-        // Calculate pagination
-        const limit = filters?.limit || 10;
-        const page = filters?.page || 1;
+        const limit = filters.limit || 10;
         const total = response.data.data.total;
-        const totalPages = Math.ceil(total / limit);
 
-        // Update state with transformed data
         setState({
-          models: tableItems,
+          drafts: tableItems,
           loading: false,
           error: null,
           pagination: {
             total,
-            page,
+            page: filters.page || 1,
             limit,
-            totalPages,
+            totalPages: Math.ceil(total / limit),
           },
         });
       } catch (error) {
-        console.error('Erro ao carregar modelos:', error);
+        console.error('Erro ao carregar rascunhos:', error);
         setState((prev) => ({
           ...prev,
           loading: false,
-          error: 'Erro ao carregar modelos',
+          error: 'Erro ao carregar rascunhos',
         }));
       }
     },
@@ -191,27 +180,25 @@ const useActivityModelsImpl = (
   );
 
   /**
-   * Delete an activity model
-   * @param id - Model ID to delete
-   * @returns True if deletion was successful
+   * Delete an activity draft
+   * @param id - Draft ID to delete
    */
-  const deleteModel = useCallback(
-    async (id: string): Promise<boolean> => {
+  const deleteDraft = useCallback(
+    async (id: string): Promise<void> => {
       try {
         await apiClient.delete(`/activity-drafts/${id}`);
         // Update local state on success
         setState((prev) => ({
           ...prev,
-          models: prev.models.filter((m) => m.id !== id),
+          drafts: prev.drafts.filter((d) => d.id !== id),
           pagination: {
             ...prev.pagination,
             total: Math.max(0, prev.pagination.total - 1),
           },
         }));
-        return true;
       } catch (error) {
-        console.error('Erro ao deletar modelo:', error);
-        return false;
+        console.error('Erro ao deletar rascunho:', error);
+        throw error;
       }
     },
     [apiClient]
@@ -219,41 +206,41 @@ const useActivityModelsImpl = (
 
   return {
     ...state,
-    fetchModels,
-    deleteModel,
+    fetchDrafts,
+    deleteDraft,
   };
 };
 
 /**
- * Factory function to create useActivityModels hook
+ * Factory function to create useActivityDrafts hook
  *
  * @param apiClient - API client instance (axios, fetch wrapper, etc.)
  * @param options - Hook configuration options
- * @returns Hook for managing activity models
+ * @returns Hook for managing activity drafts
  *
  * @example
  * ```tsx
  * // For activities
- * import { createUseActivityModels } from 'analytica-frontend-lib';
+ * import { createUseActivityDrafts } from 'analytica-frontend-lib';
  * import api from '@/services/apiService';
  *
- * const useActivityModels = createUseActivityModels(api, { activityCategory: 'ATIVIDADE' });
+ * const useActivityDrafts = createUseActivityDrafts(api, { activityCategory: 'ATIVIDADE' });
  *
  * // For exams (provas)
- * const useExamModels = createUseActivityModels(api, { activityCategory: 'PROVA' });
+ * const useExamDrafts = createUseActivityDrafts(api, { activityCategory: 'PROVA' });
  *
  * // In your component
- * const { models, loading, fetchModels, deleteModel } = useActivityModels();
+ * const { drafts, loading, fetchDrafts, deleteDraft } = useActivityDrafts();
  * ```
  */
-export const createUseActivityModels = (
+export const createUseActivityDrafts = (
   apiClient: BaseApiClient,
-  options?: UseActivityModelsOptions
+  options?: UseActivityDraftsOptions
 ) => {
-  return (): UseActivityModelsReturn => useActivityModelsImpl(apiClient, options);
+  return (): UseActivityDraftsReturn => useActivityDraftsImpl(apiClient, options);
 };
 
 /**
- * Alias for createUseActivityModels
+ * Alias for createUseActivityDrafts
  */
-export const createActivityModelsHook = createUseActivityModels;
+export const createActivityDraftsHook = createUseActivityDrafts;

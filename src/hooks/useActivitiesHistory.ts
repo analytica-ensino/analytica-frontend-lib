@@ -1,63 +1,33 @@
 import { useState, useCallback } from 'react';
-import { z } from 'zod';
 import dayjs from 'dayjs';
-import {
-  ActivityApiStatus,
-  mapActivityStatusToDisplay,
-} from '../types/activitiesHistory';
+import type { BaseApiClient } from '../types/api';
+import { mapApiStatusToDisplay } from '../types/common';
 import type {
   ActivityHistoryResponse,
   ActivityTableItem,
   ActivitiesHistoryApiResponse,
   ActivityHistoryFilters,
   ActivityPagination,
+  ActivityFilterOption,
 } from '../types/activitiesHistory';
-import { createFetchErrorHandler } from '../utils/hookErrorHandler';
 
 /**
- * Zod schema for activity history API response validation
- * Based on /activities/history endpoint
+ * Options for configuring the useActivitiesHistory hook
  */
-const activityHistoryResponseSchema = z.object({
-  id: z.string().uuid(),
-  title: z.string(),
-  startDate: z.string().nullable(),
-  finalDate: z.string().nullable(),
-  status: z.nativeEnum(ActivityApiStatus),
-  completionPercentage: z.number().min(0).max(100).optional().default(0),
-  subjectId: z.string().uuid().optional().nullable(),
-  schoolId: z.string().optional(),
-  schoolName: z.string().optional(),
-  year: z.string().optional(),
-  className: z.string().optional(),
-  subjectName: z.string().optional(),
-  creator: z.object({ id: z.string(), name: z.string() }).nullable().optional(),
-});
+export interface UseActivitiesHistoryOptions {
+  /** Filter by activity category (PROVA, ATIVIDADE, etc.) */
+  activityCategory?: 'PROVA' | 'ATIVIDADE';
+}
 
-export const activitiesHistoryApiResponseSchema = z.object({
-  message: z.string(),
-  data: z.object({
-    activities: z.array(z.unknown()).transform((items) =>
-      items
-        .map((item) => activityHistoryResponseSchema.safeParse(item))
-        .filter(
-          (
-            result
-          ): result is {
-            success: true;
-            data: z.infer<typeof activityHistoryResponseSchema>;
-          } => result.success
-        )
-        .map((result) => result.data)
-    ),
-    pagination: z.object({
-      total: z.number(),
-      page: z.number(),
-      limit: z.number(),
-      totalPages: z.number(),
-    }),
-  }),
-});
+/**
+ * API filter options extracted from response
+ */
+export interface ActivityApiFilterOptions {
+  schools: ActivityFilterOption[];
+  classes: ActivityFilterOption[];
+  subjects: ActivityFilterOption[];
+  schoolYears: ActivityFilterOption[];
+}
 
 /**
  * Hook state interface
@@ -67,6 +37,7 @@ export interface UseActivitiesHistoryState {
   loading: boolean;
   error: string | null;
   pagination: ActivityPagination;
+  apiFilterOptions: ActivityApiFilterOptions;
 }
 
 /**
@@ -84,6 +55,16 @@ export const DEFAULT_ACTIVITIES_PAGINATION: ActivityPagination = {
   page: 1,
   limit: 10,
   totalPages: 0,
+};
+
+/**
+ * Default API filter options
+ */
+export const DEFAULT_ACTIVITY_FILTER_OPTIONS: ActivityApiFilterOptions = {
+  schools: [],
+  classes: [],
+  subjects: [],
+  schoolYears: [],
 };
 
 /**
@@ -108,104 +89,208 @@ export const transformActivityToTableItem = (
     year: activity.year || '-',
     subject: activity.subjectName || '-',
     class: activity.className || '-',
-    status: mapActivityStatusToDisplay(activity.status),
+    status: mapApiStatusToDisplay(activity.status),
     completionPercentage: activity.completionPercentage,
   };
 };
 
 /**
- * Handle errors during activity fetch
- * Uses the generic error handler factory to reduce code duplication
+ * Extract unique filter options from activities API response
  */
-export const handleActivityFetchError = createFetchErrorHandler(
-  'Erro ao validar dados de histórico de atividades',
-  'Erro ao carregar histórico de atividades'
-);
+export const extractActivityFilterOptions = (
+  activities: ActivityHistoryResponse[]
+): ActivityApiFilterOptions => {
+  const schoolsMap = new Map<string, string>();
+  const classesMap = new Map<string, string>();
+  const subjectsMap = new Map<string, string>();
+  const schoolYearsMap = new Map<string, string>();
+
+  for (const activity of activities) {
+    if (activity.schoolId && activity.schoolName) {
+      schoolsMap.set(activity.schoolId, activity.schoolName);
+    }
+    if (activity.subjectId && activity.subjectName) {
+      subjectsMap.set(activity.subjectId, activity.subjectName);
+    }
+    if (activity.className) {
+      // Use className as ID if no classId available
+      classesMap.set(activity.className, activity.className);
+    }
+    if (activity.year) {
+      schoolYearsMap.set(activity.year, activity.year);
+    }
+  }
+
+  const toOptions = (map: Map<string, string>): ActivityFilterOption[] =>
+    Array.from(map.entries())
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+
+  return {
+    schools: toOptions(schoolsMap),
+    classes: toOptions(classesMap),
+    subjects: toOptions(subjectsMap),
+    schoolYears: toOptions(schoolYearsMap),
+  };
+};
+
+/**
+ * Merge two filter option arrays, deduplicating by ID
+ */
+export const mergeActivityFilterOptions = (
+  base: ActivityFilterOption[],
+  extra: ActivityFilterOption[]
+): ActivityFilterOption[] => {
+  if (extra.length === 0) return base;
+  const baseIds = new Set(base.map((item) => item.id));
+  const hasNew = extra.some((item) => !baseIds.has(item.id));
+  if (!hasNew) return base;
+  const map = new Map(base.map((item) => [item.id, item.name] as const));
+  extra.forEach((item) => {
+    if (!map.has(item.id)) map.set(item.id, item.name);
+  });
+  return Array.from(map.entries())
+    .map(([id, name]) => ({ id, name }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+};
+
+/**
+ * Build query params from filters
+ * @param filters - User filters
+ * @param activityCategory - Optional activity category filter
+ * @returns Query params object
+ */
+const buildQueryParams = (
+  filters?: ActivityHistoryFilters,
+  activityCategory?: string
+): Record<string, unknown> => {
+  const params: Record<string, unknown> = {};
+
+  // Add activityCategory filter (type param for /activities/history)
+  if (activityCategory) {
+    params.type = activityCategory;
+  }
+
+  if (filters) {
+    for (const key in filters) {
+      const value = filters[key as keyof ActivityHistoryFilters];
+      if (value !== undefined && value !== null) {
+        params[key] = value;
+      }
+    }
+  }
+
+  return params;
+};
+
+/**
+ * Hook implementation
+ */
+const useActivitiesHistoryImpl = (
+  apiClient: BaseApiClient,
+  options?: UseActivitiesHistoryOptions
+): UseActivitiesHistoryReturn => {
+  const [state, setState] = useState<UseActivitiesHistoryState>({
+    activities: [],
+    loading: false,
+    error: null,
+    pagination: DEFAULT_ACTIVITIES_PAGINATION,
+    apiFilterOptions: DEFAULT_ACTIVITY_FILTER_OPTIONS,
+  });
+
+  /**
+   * Fetch activities history from API
+   * @param filters - Optional filters for pagination, search, sorting, etc.
+   */
+  const fetchActivities = useCallback(
+    async (filters?: ActivityHistoryFilters) => {
+      setState((prev) => ({ ...prev, loading: true, error: null }));
+
+      try {
+        const params = buildQueryParams(filters, options?.activityCategory);
+        const response = await apiClient.get<ActivitiesHistoryApiResponse>(
+          '/activities/history',
+          { params }
+        );
+
+        const { data } = response.data;
+
+        // Transform activities to table format
+        const tableItems = data.activities.map(transformActivityToTableItem);
+
+        // Extract filter options from response
+        const extracted = extractActivityFilterOptions(data.activities);
+
+        // Update state with transformed data and merged filter options
+        setState((prev) => ({
+          activities: tableItems,
+          loading: false,
+          error: null,
+          pagination: data.pagination,
+          apiFilterOptions: {
+            schools: mergeActivityFilterOptions(
+              prev.apiFilterOptions.schools,
+              extracted.schools
+            ),
+            classes: mergeActivityFilterOptions(
+              prev.apiFilterOptions.classes,
+              extracted.classes
+            ),
+            subjects: mergeActivityFilterOptions(
+              prev.apiFilterOptions.subjects,
+              extracted.subjects
+            ),
+            schoolYears: mergeActivityFilterOptions(
+              prev.apiFilterOptions.schoolYears,
+              extracted.schoolYears
+            ),
+          },
+        }));
+      } catch (error) {
+        console.error('Erro ao carregar histórico:', error);
+        setState((prev) => ({
+          ...prev,
+          loading: false,
+          error: 'Erro ao carregar histórico',
+        }));
+      }
+    },
+    [apiClient, options?.activityCategory]
+  );
+
+  return {
+    ...state,
+    fetchActivities,
+  };
+};
 
 /**
  * Factory function to create useActivitiesHistory hook
  *
- * @param fetchActivitiesHistory - Function to fetch activities from API
+ * @param apiClient - API client instance (axios, fetch wrapper, etc.)
+ * @param options - Hook configuration options
  * @returns Hook for managing activities history
  *
  * @example
  * ```tsx
- * // In your app setup
- * const fetchActivitiesHistory = async (filters) => {
- *   const response = await api.get('/activities/history', { params: filters });
- *   return response.data;
- * };
+ * // For activities
+ * import { createUseActivitiesHistory } from 'analytica-frontend-lib';
+ * import api from '@/services/apiService';
  *
- * const useActivitiesHistory = createUseActivitiesHistory(fetchActivitiesHistory);
+ * const useActivitiesHistory = createUseActivitiesHistory(api, { activityCategory: 'ATIVIDADE' });
+ *
+ * // For exams (provas)
+ * const useExamsHistory = createUseActivitiesHistory(api, { activityCategory: 'PROVA' });
  *
  * // In your component
- * const { activities, loading, error, pagination, fetchActivities } = useActivitiesHistory();
+ * const { activities, loading, fetchActivities, apiFilterOptions } = useActivitiesHistory();
  * ```
  */
 export const createUseActivitiesHistory = (
-  fetchActivitiesHistory: (
-    filters?: ActivityHistoryFilters
-  ) => Promise<ActivitiesHistoryApiResponse>
+  apiClient: BaseApiClient,
+  options?: UseActivitiesHistoryOptions
 ) => {
-  return (): UseActivitiesHistoryReturn => {
-    const [state, setState] = useState<UseActivitiesHistoryState>({
-      activities: [],
-      loading: false,
-      error: null,
-      pagination: DEFAULT_ACTIVITIES_PAGINATION,
-    });
-
-    /**
-     * Fetch activities history from API
-     * @param filters - Optional filters for pagination, search, sorting, etc.
-     */
-    const fetchActivities = useCallback(
-      async (filters?: ActivityHistoryFilters) => {
-        setState((prev) => ({ ...prev, loading: true, error: null }));
-
-        try {
-          // Always include type=ATIVIDADE to filter for activities (not exams)
-          const filtersWithType = {
-            ...filters,
-            type: 'ATIVIDADE' as const,
-          };
-
-          // Fetch data from API
-          const responseData = await fetchActivitiesHistory(filtersWithType);
-
-          // Validate response with Zod
-          const validatedData =
-            activitiesHistoryApiResponseSchema.parse(responseData);
-
-          // Transform activities to table format
-          const tableItems = validatedData.data.activities.map(
-            transformActivityToTableItem
-          );
-
-          // Update state with validated and transformed data
-          setState({
-            activities: tableItems,
-            loading: false,
-            error: null,
-            pagination: validatedData.data.pagination,
-          });
-        } catch (error) {
-          const errorMessage = handleActivityFetchError(error);
-          setState((prev) => ({
-            ...prev,
-            loading: false,
-            error: errorMessage,
-          }));
-        }
-      },
-      [fetchActivitiesHistory]
-    );
-
-    return {
-      ...state,
-      fetchActivities,
-    };
-  };
+  return (): UseActivitiesHistoryReturn => useActivitiesHistoryImpl(apiClient, options);
 };
 
 /**

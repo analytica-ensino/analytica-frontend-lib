@@ -1175,25 +1175,40 @@ export {
   createUseActivitiesHistory,
   createActivitiesHistoryHook,
   transformActivityToTableItem,
-  handleActivityFetchError,
-  activitiesHistoryApiResponseSchema,
+  extractActivityFilterOptions,
+  mergeActivityFilterOptions,
   DEFAULT_ACTIVITIES_PAGINATION,
+  DEFAULT_ACTIVITY_FILTER_OPTIONS,
 } from './hooks/useActivitiesHistory';
 export type {
+  UseActivitiesHistoryOptions,
   UseActivitiesHistoryState,
   UseActivitiesHistoryReturn,
+  ActivityApiFilterOptions,
 } from './hooks/useActivitiesHistory';
+
+// Activity Drafts Hook Factory
+export {
+  createUseActivityDrafts,
+  createActivityDraftsHook,
+  transformDraftToTableItem as transformActivityDraftToTableItem,
+  DEFAULT_DRAFTS_PAGINATION,
+} from './hooks/useActivityDrafts';
+export type {
+  UseActivityDraftsOptions,
+  UseActivityDraftsState,
+  UseActivityDraftsReturn,
+} from './hooks/useActivityDrafts';
 
 // Activity Models Hook Factory
 export {
   createUseActivityModels,
   createActivityModelsHook,
   transformModelToTableItem,
-  handleModelFetchError,
-  activityModelsApiResponseSchema,
   DEFAULT_MODELS_PAGINATION,
 } from './hooks/useActivityModels';
 export type {
+  UseActivityModelsOptions,
   UseActivityModelsState,
   UseActivityModelsReturn,
 } from './hooks/useActivityModels';
@@ -1796,27 +1811,7 @@ export type {
   UseExamsHistoryReturn,
 } from './hooks/useExamsHistory';
 
-export {
-  createUseExamModels,
-  createExamModelsHook,
-  transformModelToTableItem as transformExamModelToTableItem,
-  DEFAULT_EXAM_MODELS_PAGINATION,
-} from './hooks/useExamModels';
-export type {
-  UseExamModelsState,
-  UseExamModelsReturn,
-} from './hooks/useExamModels';
-
-export {
-  createUseExamDrafts,
-  createExamDraftsHook,
-  transformDraftToTableItem,
-  DEFAULT_EXAM_DRAFTS_PAGINATION,
-} from './hooks/useExamDrafts';
-export type {
-  UseExamDraftsState,
-  UseExamDraftsReturn,
-} from './hooks/useExamDrafts';
+// NOTE: useExamDrafts and useExamModels removed - use createUseActivityDrafts/createUseActivityModels with { activityCategory: 'PROVA' }
 
 // Exam Page Layout Component
 export { ExamPageLayout, ExamTab } from './components/ExamPageLayout';

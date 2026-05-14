@@ -4,7 +4,7 @@
  * Based on /activities/history and /activity-drafts endpoints
  */
 
-import { ActivityType } from '@/components/ActivityCreate/ActivityCreate.types';
+import { ActivityType } from '../components/ActivityCreate/ActivityCreate.types';
 import {
   GenericApiStatus,
   GenericDisplayStatus,
@@ -114,6 +114,7 @@ export interface ActivityHistoryFilters {
   finalDate?: string;
   subjectId?: string;
   schoolId?: string;
+  classId?: string;
   sortBy?: 'finalDate' | 'title' | 'completionPercentage';
   sortOrder?: 'asc' | 'desc';
 }
