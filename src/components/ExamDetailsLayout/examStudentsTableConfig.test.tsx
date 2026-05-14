@@ -98,7 +98,7 @@ describe('examStudentsTableConfig', () => {
         );
         const nameColumn = columns.find((c) => c.key === 'studentName');
         const { container } = render(
-          <>{nameColumn?.render?.(mockStudent.studentName, mockStudent)}</>
+          <>{nameColumn?.render?.(mockStudent.studentName, mockStudent, 0)}</>
         );
 
         expect(screen.getByText('João Silva')).toBeInTheDocument();
@@ -125,7 +125,9 @@ describe('examStudentsTableConfig', () => {
           null
         );
         const statusColumn = columns.find((c) => c.key === 'status');
-        render(<>{statusColumn?.render?.(mockStudent.status, mockStudent)}</>);
+        render(
+          <>{statusColumn?.render?.(mockStudent.status, mockStudent, 0)}</>
+        );
 
         expect(screen.getByText('Gabarito recebido')).toBeInTheDocument();
       });
@@ -141,7 +143,8 @@ describe('examStudentsTableConfig', () => {
           <>
             {statusColumn?.render?.(
               mockStudentWaiting.status,
-              mockStudentWaiting
+              mockStudentWaiting,
+              0
             )}
           </>
         );
@@ -169,7 +172,9 @@ describe('examStudentsTableConfig', () => {
         );
         const dateColumn = columns.find((c) => c.key === 'answerReceivedAt');
         render(
-          <>{dateColumn?.render?.(mockStudent.answerReceivedAt, mockStudent)}</>
+          <>
+            {dateColumn?.render?.(mockStudent.answerReceivedAt, mockStudent, 0)}
+          </>
         );
 
         expect(screen.getByText('01 Jan 2024')).toBeInTheDocument();
@@ -182,7 +187,7 @@ describe('examStudentsTableConfig', () => {
           null
         );
         const dateColumn = columns.find((c) => c.key === 'answerReceivedAt');
-        render(<>{dateColumn?.render?.(null, mockStudentWaiting)}</>);
+        render(<>{dateColumn?.render?.(null, mockStudentWaiting, 0)}</>);
 
         expect(screen.getByText('-')).toBeInTheDocument();
       });
@@ -206,7 +211,7 @@ describe('examStudentsTableConfig', () => {
           null
         );
         const scoreColumn = columns.find((c) => c.key === 'score');
-        render(<>{scoreColumn?.render?.(mockStudent.score, mockStudent)}</>);
+        render(<>{scoreColumn?.render?.(mockStudent.score, mockStudent, 0)}</>);
 
         expect(screen.getByText('8.5')).toBeInTheDocument();
       });
@@ -218,7 +223,7 @@ describe('examStudentsTableConfig', () => {
           null
         );
         const scoreColumn = columns.find((c) => c.key === 'score');
-        render(<>{scoreColumn?.render?.(null, mockStudentWaiting)}</>);
+        render(<>{scoreColumn?.render?.(null, mockStudentWaiting, 0)}</>);
 
         expect(screen.getByText('-')).toBeInTheDocument();
       });
@@ -244,7 +249,7 @@ describe('examStudentsTableConfig', () => {
         const downloadColumn = columns.find(
           (c) => c.key === 'downloadAnswerSheet'
         );
-        render(<>{downloadColumn?.render?.(undefined, mockStudent)}</>);
+        render(<>{downloadColumn?.render?.(undefined, mockStudent, 0)}</>);
 
         expect(screen.getByText('Baixar gabarito')).toBeInTheDocument();
       });
@@ -258,7 +263,7 @@ describe('examStudentsTableConfig', () => {
         const downloadColumn = columns.find(
           (c) => c.key === 'downloadAnswerSheet'
         );
-        render(<>{downloadColumn?.render?.(undefined, mockStudent)}</>);
+        render(<>{downloadColumn?.render?.(undefined, mockStudent, 0)}</>);
 
         const button = screen.getByText('Baixar gabarito');
         fireEvent.click(button);
@@ -275,7 +280,7 @@ describe('examStudentsTableConfig', () => {
         const downloadColumn = columns.find(
           (c) => c.key === 'downloadAnswerSheet'
         );
-        render(<>{downloadColumn?.render?.(undefined, mockStudent)}</>);
+        render(<>{downloadColumn?.render?.(undefined, mockStudent, 0)}</>);
 
         expect(screen.getByText('Carregando...')).toBeInTheDocument();
       });
@@ -289,7 +294,7 @@ describe('examStudentsTableConfig', () => {
         const downloadColumn = columns.find(
           (c) => c.key === 'downloadAnswerSheet'
         );
-        render(<>{downloadColumn?.render?.(undefined, mockStudent)}</>);
+        render(<>{downloadColumn?.render?.(undefined, mockStudent, 0)}</>);
 
         const button = screen.getByRole('button');
         expect(button).toBeDisabled();
@@ -304,7 +309,7 @@ describe('examStudentsTableConfig', () => {
         const downloadColumn = columns.find(
           (c) => c.key === 'downloadAnswerSheet'
         );
-        render(<>{downloadColumn?.render?.(undefined, mockStudent)}</>);
+        render(<>{downloadColumn?.render?.(undefined, mockStudent, 0)}</>);
 
         const button = screen.getByText('Baixar gabarito');
         const event = { stopPropagation: jest.fn() };
@@ -334,7 +339,7 @@ describe('examStudentsTableConfig', () => {
           null
         );
         const viewColumn = columns.find((c) => c.key === 'viewAnswers');
-        render(<>{viewColumn?.render?.(undefined, mockStudent)}</>);
+        render(<>{viewColumn?.render?.(undefined, mockStudent, 0)}</>);
 
         expect(screen.getByText('Ver respostas')).toBeInTheDocument();
       });
@@ -346,7 +351,7 @@ describe('examStudentsTableConfig', () => {
           null
         );
         const viewColumn = columns.find((c) => c.key === 'viewAnswers');
-        render(<>{viewColumn?.render?.(undefined, mockStudent)}</>);
+        render(<>{viewColumn?.render?.(undefined, mockStudent, 0)}</>);
 
         const button = screen.getByRole('button');
         expect(button).not.toBeDisabled();
@@ -359,7 +364,7 @@ describe('examStudentsTableConfig', () => {
           null
         );
         const viewColumn = columns.find((c) => c.key === 'viewAnswers');
-        render(<>{viewColumn?.render?.(undefined, mockStudentWaiting)}</>);
+        render(<>{viewColumn?.render?.(undefined, mockStudentWaiting, 0)}</>);
 
         const button = screen.getByRole('button');
         expect(button).toBeDisabled();
@@ -372,7 +377,7 @@ describe('examStudentsTableConfig', () => {
           null
         );
         const viewColumn = columns.find((c) => c.key === 'viewAnswers');
-        render(<>{viewColumn?.render?.(undefined, mockStudent)}</>);
+        render(<>{viewColumn?.render?.(undefined, mockStudent, 0)}</>);
 
         const button = screen.getByText('Ver respostas');
         fireEvent.click(button);
@@ -387,7 +392,7 @@ describe('examStudentsTableConfig', () => {
           null
         );
         const viewColumn = columns.find((c) => c.key === 'viewAnswers');
-        render(<>{viewColumn?.render?.(undefined, mockStudent)}</>);
+        render(<>{viewColumn?.render?.(undefined, mockStudent, 0)}</>);
 
         const button = screen.getByText('Ver respostas');
         const event = { stopPropagation: jest.fn() };

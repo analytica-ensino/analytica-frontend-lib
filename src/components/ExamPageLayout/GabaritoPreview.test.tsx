@@ -147,7 +147,7 @@ describe('GabaritoPreview', () => {
 
     it('handles QR code generation error', async () => {
       const consoleError = jest.spyOn(console, 'error').mockImplementation();
-      mockQRCode.toDataURL.mockRejectedValueOnce(
+      (mockQRCode.toDataURL as jest.Mock).mockRejectedValueOnce(
         new Error('QR generation failed')
       );
 
@@ -191,7 +191,7 @@ describe('GabaritoPreview', () => {
     });
 
     it('does not print if QR code is not ready', async () => {
-      mockQRCode.toDataURL.mockImplementationOnce(
+      (mockQRCode.toDataURL as jest.Mock).mockImplementationOnce(
         () => new Promise(() => {}) // Never resolves
       );
 
