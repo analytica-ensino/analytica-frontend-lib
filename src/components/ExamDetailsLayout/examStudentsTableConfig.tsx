@@ -1,6 +1,7 @@
 import type { MouseEvent } from 'react';
 import Badge from '../Badge/Badge';
 import Button from '../Button/Button';
+import Text from '../Text/Text';
 import type { ColumnConfig } from '../TableProvider/TableProvider';
 import {
   StudentAnswerStatus,
@@ -57,11 +58,13 @@ export const createExamStudentsTableColumns = (
     render: (_value: unknown, row: ExamStudentTableItem) => (
       <div className="flex items-center gap-2">
         <div className="w-8 h-8 rounded-full bg-warning-200 flex items-center justify-center">
-          <span className="text-sm font-bold text-warning-700">
+          <Text as="span" size="sm" weight="bold" color="text-warning-700">
             {row.studentName.charAt(0).toUpperCase()}
-          </span>
+          </Text>
         </div>
-        <span className="text-sm">{row.studentName}</span>
+        <Text as="span" size="sm">
+          {row.studentName}
+        </Text>
       </div>
     ),
   },
@@ -87,7 +90,9 @@ export const createExamStudentsTableColumns = (
     label: 'Gabarito recebido em',
     sortable: true,
     render: (value: unknown) => (
-      <span className="text-sm">{(value as string) || '-'}</span>
+      <Text as="span" size="sm">
+        {(value as string) || '-'}
+      </Text>
     ),
   },
   {
@@ -95,9 +100,9 @@ export const createExamStudentsTableColumns = (
     label: 'Nota',
     sortable: true,
     render: (value: unknown) => (
-      <span className="text-sm">
+      <Text as="span" size="sm">
         {value === null ? '-' : (value as number).toFixed(1)}
-      </span>
+      </Text>
     ),
   },
   {
