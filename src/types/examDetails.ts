@@ -12,10 +12,6 @@
 export enum StudentAnswerStatus {
   AWAITING_ANSWER_SHEET = 'AWAITING_ANSWER_SHEET',
   ANSWER_SHEET_RECEIVED = 'ANSWER_SHEET_RECEIVED',
-  /** @deprecated Use AWAITING_ANSWER_SHEET instead */
-  AGUARDANDO_GABARITO = 'AWAITING_ANSWER_SHEET',
-  /** @deprecated Use ANSWER_SHEET_RECEIVED instead */
-  GABARITO_RECEBIDO = 'ANSWER_SHEET_RECEIVED',
 }
 
 /**
@@ -24,10 +20,6 @@ export enum StudentAnswerStatus {
 export enum StudentAnswerDisplayStatus {
   AWAITING_ANSWER_SHEET = 'Aguardando gabarito',
   ANSWER_SHEET_RECEIVED = 'Gabarito recebido',
-  /** @deprecated Use AWAITING_ANSWER_SHEET instead */
-  AGUARDANDO_GABARITO = 'Aguardando gabarito',
-  /** @deprecated Use ANSWER_SHEET_RECEIVED instead */
-  GABARITO_RECEBIDO = 'Gabarito recebido',
 }
 
 /**

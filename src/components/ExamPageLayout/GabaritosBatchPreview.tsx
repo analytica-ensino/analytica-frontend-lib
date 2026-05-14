@@ -17,21 +17,8 @@ export interface AnswerSheetData {
   className?: string;
 }
 
-/**
- * @deprecated Use AnswerSheetData instead
- */
-export type GabaritoData = AnswerSheetData;
-
 export interface AnswerSheetsBatchPreviewProps {
   answerSheets: AnswerSheetData[];
-  onComplete?: () => void;
-}
-
-/**
- * @deprecated Use AnswerSheetsBatchPreviewProps instead
- */
-export interface GabaritosBatchPreviewProps {
-  gabaritos: AnswerSheetData[];
   onComplete?: () => void;
 }
 
@@ -113,31 +100,6 @@ export function AnswerSheetsBatchPreview({
         </div>
       </PageContainer>
     </>
-  );
-}
-
-/**
- * @deprecated Use AnswerSheetsBatchPreview instead
- */
-export function GabaritosBatchPreview({
-  gabaritos,
-  onComplete,
-}: Readonly<GabaritosBatchPreviewProps>) {
-  // Convert old prop names to new ones
-  const answerSheets: AnswerSheetData[] = gabaritos.map((g) => ({
-    studentName: g.studentName,
-    qrCodeUrl: g.qrCodeUrl,
-    totalQuestions: g.totalQuestions,
-    examTitle: g.examTitle,
-    schoolName: g.schoolName,
-    className: g.className,
-  }));
-
-  return (
-    <AnswerSheetsBatchPreview
-      answerSheets={answerSheets}
-      onComplete={onComplete}
-    />
   );
 }
 

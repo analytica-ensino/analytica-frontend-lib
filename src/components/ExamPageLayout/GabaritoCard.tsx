@@ -10,11 +10,6 @@ export interface AnswerSheetCardProps {
 }
 
 /**
- * @deprecated Use AnswerSheetCardProps instead
- */
-export type GabaritoCardProps = AnswerSheetCardProps;
-
-/**
  * Global print styles to remove browser headers/footers (URL, date, title)
  * and ensure full-page printing
  */
@@ -81,11 +76,6 @@ export const CardContainer = styled.div`
     height: 297mm;
   }
 `;
-
-/**
- * @deprecated Use CardContainer instead
- */
-export const CartaoContainer = CardContainer;
 
 const HeaderBar = styled.div`
   background: #000000;
@@ -629,10 +619,5 @@ export function AnswerSheetCard({
     </>
   );
 }
-
-/**
- * @deprecated Use AnswerSheetCard instead
- */
-export const GabaritoCard = AnswerSheetCard;
 
 export default AnswerSheetCard;

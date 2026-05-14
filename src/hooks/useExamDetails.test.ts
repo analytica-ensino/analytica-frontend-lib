@@ -32,24 +32,24 @@ describe('useExamDetails', () => {
   });
 
   describe('mapBackendStatusToFrontend', () => {
-    it('should map CONCLUIDO to GABARITO_RECEBIDO', () => {
+    it('should map CONCLUIDO to ANSWER_SHEET_RECEIVED', () => {
       const result = mapBackendStatusToFrontend('CONCLUIDO' as never);
-      expect(result).toBe(StudentAnswerStatus.GABARITO_RECEBIDO);
+      expect(result).toBe(StudentAnswerStatus.ANSWER_SHEET_RECEIVED);
     });
 
-    it('should map AGUARDANDO_CORRECAO to GABARITO_RECEBIDO', () => {
+    it('should map AGUARDANDO_CORRECAO to ANSWER_SHEET_RECEIVED', () => {
       const result = mapBackendStatusToFrontend('AGUARDANDO_CORRECAO' as never);
-      expect(result).toBe(StudentAnswerStatus.GABARITO_RECEBIDO);
+      expect(result).toBe(StudentAnswerStatus.ANSWER_SHEET_RECEIVED);
     });
 
-    it('should map AGUARDANDO_RESPOSTA to AGUARDANDO_GABARITO', () => {
+    it('should map AGUARDANDO_RESPOSTA to AWAITING_ANSWER_SHEET', () => {
       const result = mapBackendStatusToFrontend('AGUARDANDO_RESPOSTA' as never);
-      expect(result).toBe(StudentAnswerStatus.AGUARDANDO_GABARITO);
+      expect(result).toBe(StudentAnswerStatus.AWAITING_ANSWER_SHEET);
     });
 
-    it('should map NAO_ENTREGUE to AGUARDANDO_GABARITO', () => {
+    it('should map NAO_ENTREGUE to AWAITING_ANSWER_SHEET', () => {
       const result = mapBackendStatusToFrontend('NAO_ENTREGUE' as never);
-      expect(result).toBe(StudentAnswerStatus.AGUARDANDO_GABARITO);
+      expect(result).toBe(StudentAnswerStatus.AWAITING_ANSWER_SHEET);
     });
   });
 
@@ -69,7 +69,7 @@ describe('useExamDetails', () => {
       expect(result.id).toBe(student.studentId);
       expect(result.studentId).toBe(student.studentId);
       expect(result.studentName).toBe('John Doe');
-      expect(result.status).toBe(StudentAnswerStatus.GABARITO_RECEBIDO);
+      expect(result.status).toBe(StudentAnswerStatus.ANSWER_SHEET_RECEIVED);
       expect(result.answerReceivedAt).toBe('15 Jun 2024');
       expect(result.score).toBe(8.5);
     });
@@ -88,7 +88,7 @@ describe('useExamDetails', () => {
 
       expect(result.answerReceivedAt).toBeNull();
       expect(result.score).toBeNull();
-      expect(result.status).toBe(StudentAnswerStatus.AGUARDANDO_GABARITO);
+      expect(result.status).toBe(StudentAnswerStatus.AWAITING_ANSWER_SHEET);
     });
   });
 

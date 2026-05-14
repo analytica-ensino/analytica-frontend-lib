@@ -92,15 +92,15 @@ jest.mock('./ExamStudentsTable', () => ({
 }));
 
 jest.mock('../ExamPageLayout/GabaritoPreview', () => ({
-  GabaritoPreview: ({
-    nomeAluno,
+  AnswerSheetPreview: ({
+    studentName,
     onComplete,
   }: {
-    nomeAluno: string;
+    studentName: string;
     onComplete?: () => void;
   }) => (
     <div data-testid="gabarito-preview">
-      <span data-testid="gabarito-nome">{nomeAluno}</span>
+      <span data-testid="gabarito-nome">{studentName}</span>
       <button data-testid="complete-preview" onClick={onComplete}>
         Complete
       </button>
@@ -109,21 +109,21 @@ jest.mock('../ExamPageLayout/GabaritoPreview', () => ({
 }));
 
 jest.mock('../ExamPageLayout/GabaritosBatchPreview', () => ({
-  GabaritosBatchPreview: ({
-    gabaritos,
+  AnswerSheetsBatchPreview: ({
+    answerSheets,
     onComplete,
   }: {
-    gabaritos: { nomeAluno: string }[];
+    answerSheets: { studentName: string }[];
     onComplete?: () => void;
   }) => (
     <div data-testid="gabaritos-batch-preview">
-      <span data-testid="batch-count">{gabaritos.length}</span>
+      <span data-testid="batch-count">{answerSheets.length}</span>
       <button data-testid="complete-batch-preview" onClick={onComplete}>
         Complete Batch
       </button>
     </div>
   ),
-  GabaritoData: {},
+  AnswerSheetData: {},
 }));
 
 jest.mock('../CorrectActivityModal/CorrectActivityModal', () => ({
@@ -207,7 +207,7 @@ describe('ExamDetailsPage', () => {
         id: 'student-1',
         studentId: 'student-1',
         studentName: 'João Silva',
-        status: StudentAnswerStatus.GABARITO_RECEBIDO,
+        status: StudentAnswerStatus.ANSWER_SHEET_RECEIVED,
         answerReceivedAt: '01 Jan 2024',
         score: 8.5,
       },

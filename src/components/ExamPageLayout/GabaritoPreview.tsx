@@ -18,11 +18,6 @@ export interface AnswerSheetPreviewProps {
   onComplete?: () => void;
 }
 
-/**
- * @deprecated Use AnswerSheetPreviewProps instead
- */
-export type GabaritoPreviewProps = AnswerSheetPreviewProps;
-
 export function AnswerSheetPreview({
   studentName,
   qrCodeUrl,
@@ -97,10 +92,5 @@ export function AnswerSheetPreview({
     </>
   );
 }
-
-/**
- * @deprecated Use AnswerSheetPreview instead
- */
-export const GabaritoPreview = AnswerSheetPreview;
 
 export default AnswerSheetPreview;

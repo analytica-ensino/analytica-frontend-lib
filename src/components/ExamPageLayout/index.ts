@@ -9,36 +9,20 @@ export {
   type ExamTableCallbacks,
 } from './examDraftsModelsTableConfig';
 
-// New English names
-export {
-  AnswerSheetPreview,
-  GabaritoPreview,
-} from './GabaritoPreview';
-export type {
-  AnswerSheetPreviewProps,
-  GabaritoPreviewProps,
-} from './GabaritoPreview';
+// Answer Sheet Components
+export { AnswerSheetPreview } from './GabaritoPreview';
+export type { AnswerSheetPreviewProps } from './GabaritoPreview';
 
-export {
-  AnswerSheetsBatchPreview,
-  GabaritosBatchPreview,
-} from './GabaritosBatchPreview';
+export { AnswerSheetsBatchPreview } from './GabaritosBatchPreview';
 export type {
   AnswerSheetsBatchPreviewProps,
-  GabaritosBatchPreviewProps,
   AnswerSheetData,
-  GabaritoData,
 } from './GabaritosBatchPreview';
 
 export {
   AnswerSheetCard,
-  GabaritoCard,
   CardContainer,
-  CartaoContainer,
   PageContainer,
   PrintStyles,
 } from './GabaritoCard';
-export type {
-  AnswerSheetCardProps,
-  GabaritoCardProps,
-} from './GabaritoCard';
+export type { AnswerSheetCardProps } from './GabaritoCard';

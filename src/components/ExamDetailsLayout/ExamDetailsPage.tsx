@@ -27,7 +27,6 @@ import {
 } from '../QuestionsPdfGenerator/QuestionsPdfGenerator';
 import type { PreviewQuestion } from '../ActivityPreview/ActivityPreview';
 import type { Question } from '../../types/questions';
-import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import { SkeletonCard } from '../Skeleton/Skeleton';
 import Text from '../Text/Text';
 

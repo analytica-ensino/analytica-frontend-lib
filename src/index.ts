@@ -1830,7 +1830,7 @@ export {
 } from './components/ExamPageLayout';
 export type { ExamTableCallbacks } from './components/ExamPageLayout';
 
-// Answer Sheet Preview Components (new English names)
+// Answer Sheet Preview Components
 export {
   AnswerSheetPreview,
   AnswerSheetsBatchPreview,
@@ -1844,28 +1844,6 @@ export type {
   AnswerSheetsBatchPreviewProps,
   AnswerSheetData,
   AnswerSheetCardProps,
-} from './components/ExamPageLayout';
-
-// Gabarito Preview Components (deprecated - use Answer Sheet names instead)
-export {
-  /** @deprecated Use AnswerSheetPreview instead */
-  GabaritoPreview,
-  /** @deprecated Use AnswerSheetsBatchPreview instead */
-  GabaritosBatchPreview,
-  /** @deprecated Use AnswerSheetCard instead */
-  GabaritoCard,
-  /** @deprecated Use CardContainer instead */
-  CartaoContainer,
-} from './components/ExamPageLayout';
-export type {
-  /** @deprecated Use AnswerSheetPreviewProps instead */
-  GabaritoPreviewProps,
-  /** @deprecated Use AnswerSheetsBatchPreviewProps instead */
-  GabaritosBatchPreviewProps,
-  /** @deprecated Use AnswerSheetData instead */
-  GabaritoData,
-  /** @deprecated Use AnswerSheetCardProps instead */
-  GabaritoCardProps,
 } from './components/ExamPageLayout';
 
 // Exam Filter Helpers

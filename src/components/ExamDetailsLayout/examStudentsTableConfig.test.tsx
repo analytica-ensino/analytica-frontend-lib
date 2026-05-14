@@ -10,29 +10,37 @@ import type { ExamStudentTableItem } from '../../types/examDetails';
 
 describe('examStudentsTableConfig', () => {
   describe('getExamStudentStatusBadgeAction', () => {
-    it('returns warning for AGUARDANDO_GABARITO status', () => {
+    it('returns warning for AWAITING_ANSWER_SHEET status', () => {
       expect(
-        getExamStudentStatusBadgeAction(StudentAnswerStatus.AGUARDANDO_GABARITO)
+        getExamStudentStatusBadgeAction(
+          StudentAnswerStatus.AWAITING_ANSWER_SHEET
+        )
       ).toBe('warning');
     });
 
-    it('returns success for GABARITO_RECEBIDO status', () => {
+    it('returns success for ANSWER_SHEET_RECEIVED status', () => {
       expect(
-        getExamStudentStatusBadgeAction(StudentAnswerStatus.GABARITO_RECEBIDO)
+        getExamStudentStatusBadgeAction(
+          StudentAnswerStatus.ANSWER_SHEET_RECEIVED
+        )
       ).toBe('success');
     });
   });
 
   describe('getExamStudentStatusDisplayText', () => {
-    it('returns display text for AGUARDANDO_GABARITO', () => {
+    it('returns display text for AWAITING_ANSWER_SHEET', () => {
       expect(
-        getExamStudentStatusDisplayText(StudentAnswerStatus.AGUARDANDO_GABARITO)
+        getExamStudentStatusDisplayText(
+          StudentAnswerStatus.AWAITING_ANSWER_SHEET
+        )
       ).toBe('Aguardando gabarito');
     });
 
-    it('returns display text for GABARITO_RECEBIDO', () => {
+    it('returns display text for ANSWER_SHEET_RECEIVED', () => {
       expect(
-        getExamStudentStatusDisplayText(StudentAnswerStatus.GABARITO_RECEBIDO)
+        getExamStudentStatusDisplayText(
+          StudentAnswerStatus.ANSWER_SHEET_RECEIVED
+        )
       ).toBe('Gabarito recebido');
     });
   });
@@ -45,7 +53,7 @@ describe('examStudentsTableConfig', () => {
       id: 'student-1',
       studentId: 'student-1',
       studentName: 'João Silva',
-      status: StudentAnswerStatus.GABARITO_RECEBIDO,
+      status: StudentAnswerStatus.ANSWER_SHEET_RECEIVED,
       answerReceivedAt: '01 Jan 2024',
       score: 8.5,
     };
@@ -54,7 +62,7 @@ describe('examStudentsTableConfig', () => {
       id: 'student-2',
       studentId: 'student-2',
       studentName: 'Maria Santos',
-      status: StudentAnswerStatus.AGUARDANDO_GABARITO,
+      status: StudentAnswerStatus.AWAITING_ANSWER_SHEET,
       answerReceivedAt: null,
       score: null,
     };
@@ -118,7 +126,7 @@ describe('examStudentsTableConfig', () => {
     });
 
     describe('status column', () => {
-      it('renders badge for GABARITO_RECEBIDO status', () => {
+      it('renders badge for ANSWER_SHEET_RECEIVED status', () => {
         const columns = createExamStudentsTableColumns(
           mockOnDownloadAnswerSheet,
           mockOnViewAnswers,
@@ -132,7 +140,7 @@ describe('examStudentsTableConfig', () => {
         expect(screen.getByText('Gabarito recebido')).toBeInTheDocument();
       });
 
-      it('renders badge for AGUARDANDO_GABARITO status', () => {
+      it('renders badge for AWAITING_ANSWER_SHEET status', () => {
         const columns = createExamStudentsTableColumns(
           mockOnDownloadAnswerSheet,
           mockOnViewAnswers,
@@ -344,7 +352,7 @@ describe('examStudentsTableConfig', () => {
         expect(screen.getByText('Ver respostas')).toBeInTheDocument();
       });
 
-      it('enables button when status is GABARITO_RECEBIDO', () => {
+      it('enables button when status is ANSWER_SHEET_RECEIVED', () => {
         const columns = createExamStudentsTableColumns(
           mockOnDownloadAnswerSheet,
           mockOnViewAnswers,
@@ -357,7 +365,7 @@ describe('examStudentsTableConfig', () => {
         expect(button).not.toBeDisabled();
       });
 
-      it('disables button when status is AGUARDANDO_GABARITO', () => {
+      it('disables button when status is AWAITING_ANSWER_SHEET', () => {
         const columns = createExamStudentsTableColumns(
           mockOnDownloadAnswerSheet,
           mockOnViewAnswers,
