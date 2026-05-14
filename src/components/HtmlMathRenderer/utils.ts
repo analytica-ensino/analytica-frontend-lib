@@ -17,12 +17,124 @@ const generateSecureRandomId = (): string => {
 };
 
 /**
- * Cleans LaTeX string from invisible characters
+ * Cleans LaTeX string from invisible characters and decodes HTML entities
+ * that the editor saved in place of math operators.
+ *
+ * Why decode here: KaTeX is a LaTeX parser, not an HTML parser. If the
+ * source has `&lt;`/`&gt;`/`&amp;` (because the editor HTML-escaped them on
+ * save) KaTeX throws "Expected 'EOF', got '&'". Mapping to the equivalent
+ * `\lt`/`\gt`/`\&` commands keeps the rendered output typographically
+ * consistent (e.g. `<` rendered in the same math font as `\leq`).
  */
 export const cleanLatex = (str: string): string => {
-  // Remove zero-width characters, invisible characters, and other problematic Unicode
-  return str.replaceAll(/[\u200B-\u200D\uFEFF]/g, '').trim();
+  return str
+    .replaceAll(/[\u200B-\u200D\uFEFF]/g, '')
+    .replaceAll(/&amp;lt;|&lt;/gi, '\\lt ')
+    .replaceAll(/&amp;gt;|&gt;/gi, '\\gt ')
+    .replaceAll(/&amp;amp;|&amp;/gi, '\\& ')
+    .trim();
 };
+
+/**
+ * Heuristic that flags a string as "likely real LaTeX math" vs prose.
+ * Used to reject `$...$` blocks that wrap regular text \u2014 typically
+ * happens when authors type `$` as a currency symbol and the renderer
+ * pairs unrelated occurrences as math delimiters, sending Portuguese
+ * prose to KaTeX (which then renders each letter as a math variable).
+ *
+ * Math signals: backslash commands, sub/super, grouping braces.
+ * Short alphanumeric tokens (single variables, numbers) are also math.
+ */
+const looksLikeLatex = (str: string): boolean => {
+  if (/[\\^_{}]/.test(str)) return true;
+  if (str.length <= 8 && !/\s/.test(str)) return true;
+  return false;
+};
+
+/**
+ * Recovers usable LaTeX source from `<span class="katex-error">` wrappers
+ * that previous editor cycles persisted into the database. The error's
+ * `title` attribute carries the original LaTeX after "at position N: ".
+ * Replaces each wrapper with `$LATEX$` so downstream patterns can render
+ * it cleanly via KaTeX.
+ *
+ * No-op outside browser contexts (no `document`).
+ */
+const recoverFromKatexErrorSpans = (htmlContent: string): string => {
+  if (
+    typeof document === 'undefined' ||
+    !/class="[^"]*katex-error/i.test(htmlContent)
+  ) {
+    return htmlContent;
+  }
+
+  const tempContainer = document.createElement('div');
+  tempContainer.innerHTML = htmlContent;
+
+  const sanitizeRecoveredLatex = (raw: string): string =>
+    raw
+      // Strip combining marks KaTeX puts in error titles at the error pos
+      .replaceAll(/[\u0300-\u036F]/g, '')
+      // Map entities to equivalent LaTeX commands (survive DOM serialization
+      // \u2014 literal `<` would be re-encoded to `&lt;` when reading innerHTML)
+      .replaceAll(/&amp;lt;|&lt;/gi, '\\lt ')
+      .replaceAll(/&amp;gt;|&gt;/gi, '\\gt ')
+      .replaceAll(/&amp;amp;|&amp;/gi, '\\& ')
+      // Drop truncated tag markers leftover from broken serialization
+      .replaceAll(/<\/?[a-zA-Z][a-zA-Z0-9]*\s*>?$/g, '')
+      .trim();
+
+  Array.from(tempContainer.querySelectorAll('.katex-error')).forEach(
+    (errorNode) => {
+      if (!tempContainer.contains(errorNode)) return;
+
+      const title = errorNode.getAttribute('title') || '';
+      const positionMatch = title.match(/at position\s+\d+:\s*(.+)$/);
+      let recovered = positionMatch ? positionMatch[1] : '';
+
+      if (!recovered) {
+        // Fallback: collect from inner <annotation> elements, skipping the
+        // visual `katex-html` layer to avoid duplicating Unicode glyphs.
+        const parts: string[] = [];
+        const walk = (n: Node) => {
+          if (n.nodeType === Node.TEXT_NODE) {
+            parts.push(n.textContent || '');
+            return;
+          }
+          if (n.nodeType !== Node.ELEMENT_NODE) return;
+          const el = n as Element;
+          if (el.tagName.toLowerCase() === 'annotation') {
+            parts.push(el.textContent || '');
+            return;
+          }
+          if (el.classList.contains('katex-html')) return;
+          Array.from(el.childNodes).forEach(walk);
+        };
+        Array.from(errorNode.childNodes).forEach(walk);
+        recovered = parts.join(' ');
+      }
+
+      recovered = sanitizeRecoveredLatex(recovered);
+      if (recovered) {
+        errorNode.replaceWith(document.createTextNode(`$${recovered}$`));
+      } else {
+        errorNode.remove();
+      }
+    }
+  );
+
+  return tempContainer.innerHTML;
+};
+
+/**
+ * Decodes `\$` escape sequences to literal `$` characters. Applied only to
+ * text fragments outside math blocks \u2014 the `(?<!\\)` lookbehind in the
+ * `$...$` matcher already skipped these, but the `\` is still in the output
+ * unless we decode it. Without this, currency strings like `R\$ 130,00`
+ * render with a visible backslash.
+ */
+const decodeDollarEscapes = (text: string): string =>
+  text.replaceAll(/\\\$/g, '$');
 
 /**
  * Dangerous attributes that should be removed for XSS protection
@@ -146,7 +258,10 @@ export const sanitizeHtmlForDisplay = (htmlContent: string): string => {
 export const processHtmlWithMath = (htmlContent: string): MathPart[] => {
   if (!htmlContent) return [];
 
-  let processedContent = htmlContent;
+  // Pre-pass: recover original LaTeX from any `katex-error` wrappers that
+  // older editor saves left in the content. This turns persisted error HTML
+  // into clean `$LATEX$` strings so the steps below can render them.
+  let processedContent = recoverFromKatexErrorSpans(htmlContent);
   const parts: MathPart[] = [];
 
   // Generate unique sentinel per call to avoid collision with content
@@ -200,11 +315,15 @@ export const processHtmlWithMath = (htmlContent: string): MathPart[] => {
     }
   );
 
-  // Step 4: Handle single $...$ expressions for inline math
+  // Step 4: Handle single $...$ expressions for inline math.
+  // Skip matches whose content doesn't look like LaTeX — those are usually
+  // currency `$` symbols pairing up across prose (e.g. `R$ 15,00 ... R$ 42,00`)
+  // and sending Portuguese text to KaTeX produces gibberish output.
   const singleDollarPattern = /(?<!\\)\$([\s\S]+?)\$/g;
   processedContent = processedContent.replaceAll(
     singleDollarPattern,
     (match, latex) => {
+      if (!looksLikeLatex(latex)) return match;
       const placeholder = `${sentinel}${parts.length}__`;
       parts.push({
         type: 'math',
@@ -262,7 +381,9 @@ export const processHtmlWithMath = (htmlContent: string): MathPart[] => {
     if (match.index > currentIndex) {
       finalParts.push({
         type: 'text',
-        content: processedContent.slice(currentIndex, match.index),
+        content: decodeDollarEscapes(
+          processedContent.slice(currentIndex, match.index)
+        ),
       });
     }
 
@@ -279,7 +400,7 @@ export const processHtmlWithMath = (htmlContent: string): MathPart[] => {
   if (currentIndex < processedContent.length) {
     finalParts.push({
       type: 'text',
-      content: processedContent.slice(currentIndex),
+      content: decodeDollarEscapes(processedContent.slice(currentIndex)),
     });
   }
 

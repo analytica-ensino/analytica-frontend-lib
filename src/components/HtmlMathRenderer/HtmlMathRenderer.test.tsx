@@ -381,4 +381,81 @@ describe('utils', () => {
       );
     });
   });
+
+  describe('legacy data recovery', () => {
+    describe('cleanLatex entity decoding', () => {
+      it('should map &lt; / &gt; / &amp; to LaTeX commands so KaTeX parses', () => {
+        expect(cleanLatex('\\frac{1}{2} &lt; x \\leq 1')).toBe(
+          '\\frac{1}{2} \\lt  x \\leq 1'
+        );
+        expect(cleanLatex('\\varepsilon(x) &gt; \\frac{9}{10}')).toBe(
+          '\\varepsilon(x) \\gt  \\frac{9}{10}'
+        );
+        expect(cleanLatex('a &amp; b')).toBe('a \\&  b');
+      });
+
+      it('should also peel doubly-encoded entities (&amp;lt;)', () => {
+        expect(cleanLatex('x &amp;lt; y')).toBe('x \\lt  y');
+      });
+    });
+
+    describe('processHtmlWithMath — currency-safe $ matching', () => {
+      it('should NOT pair $ delimiters across Portuguese prose', () => {
+        const input =
+          'pagou R$ 15,00 pelo custo fixo e mais R$ 3,00 por unidade';
+        const parts = processHtmlWithMath(input);
+        expect(parts.every((p) => p.type === 'text')).toBe(true);
+        expect(parts.map((p) => p.content).join('')).toBe(input);
+      });
+
+      it('should still treat short math tokens between $ as math', () => {
+        const parts = processHtmlWithMath('o valor de $x^2$ é importante');
+        const mathParts = parts.filter((p) => p.type === 'math');
+        expect(mathParts).toHaveLength(1);
+        expect(mathParts[0].latex).toBe('x^2');
+      });
+
+      it('should treat $...$ blocks containing \\command as math', () => {
+        const parts = processHtmlWithMath('$\\text{Mais grave} f_r &lt; f_0$');
+        const mathParts = parts.filter((p) => p.type === 'math');
+        expect(mathParts).toHaveLength(1);
+        // The entity gets mapped through cleanLatex to a LaTeX command
+        expect(mathParts[0].latex).toContain('\\lt');
+      });
+    });
+
+    describe('processHtmlWithMath — \\$ escape decoding', () => {
+      it('should decode \\$ to literal $ in text fragments', () => {
+        const parts = processHtmlWithMath('custo de R\\$ 130,00 pelo ingresso');
+        expect(parts).toHaveLength(1);
+        expect(parts[0].type).toBe('text');
+        expect(parts[0].content).toBe('custo de R$ 130,00 pelo ingresso');
+      });
+
+      it('should decode \\$ in text fragments around math', () => {
+        const parts = processHtmlWithMath(
+          'preço R\\$ 10,00 e fórmula $x^2$ aqui'
+        );
+        const text = parts
+          .filter((p) => p.type === 'text')
+          .map((p) => p.content)
+          .join('');
+        expect(text).toContain('R$ 10,00');
+        expect(text).not.toContain('R\\$');
+      });
+    });
+
+    describe('processHtmlWithMath — katex-error recovery', () => {
+      it('should recover LaTeX from a katex-error wrapper title', () => {
+        const persisted =
+          '<span class="katex-error" title="ParseError: KaTeX parse error: Expected \'EOF\', got \'&\' at position 13: \\frac{1}{2} &lt; x \\leq 1"><span class="katex-html">broken visual</span></span>';
+        const parts = processHtmlWithMath(persisted);
+        const mathParts = parts.filter((p) => p.type === 'math');
+        expect(mathParts).toHaveLength(1);
+        expect(mathParts[0].latex).toContain('\\frac{1}{2}');
+        expect(mathParts[0].latex).toContain('\\lt');
+        expect(mathParts[0].latex).toContain('\\leq 1');
+      });
+    });
+  });
 });
