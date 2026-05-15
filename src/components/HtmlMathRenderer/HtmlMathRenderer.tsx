@@ -67,14 +67,18 @@ const HtmlMathRenderer = forwardRef<HTMLElement, HtmlMathRendererProps>(
 
       const parts = processHtmlWithMath(processedContent);
 
-      // If all parts are text (or empty), render as plain HTML
+      // If all parts are text (or empty), render as plain HTML. Use the
+      // joined parts (not the raw `processedContent`) so post-split fixes
+      // applied inside `processHtmlWithMath` — like decoding `\$` escapes
+      // to literal `$` — actually reach the rendered output.
       if (parts.every((part) => part.type === 'text')) {
+        const joinedHtml = parts.map((part) => part.content).join('');
         // Use span for inline mode to allow valid nesting in labels
         const Element = inline ? 'span' : 'div';
         return (
           <Element
             dangerouslySetInnerHTML={{
-              __html: processedContent,
+              __html: joinedHtml || processedContent,
             }}
           />
         );
@@ -135,6 +139,11 @@ const HtmlMathRenderer = forwardRef<HTMLElement, HtmlMathRendererProps>(
       'leading-relaxed',
       // Paragraph styles
       '[&_p]:mb-0',
+      // Hide the KaTeX MathML accessibility layer visually (still readable
+      // to screen readers). Tailwind preflight overrides the KaTeX default
+      // `position: absolute; clip:...` rule, so the MathML layer ends up
+      // duplicating every formula as raw text next to the visual render.
+      '[&_.katex-mathml]:sr-only',
       // Table styles (only relevant for block mode, but harmless for inline)
       '[&_table]:border-collapse [&_table]:w-full [&_table]:my-2.5 [&_table]:table-auto',
       '[&_table_td]:border [&_table_td]:border-border-200 [&_table_td]:p-2 [&_table_td]:min-w-[50px] [&_table_td]:align-top',
