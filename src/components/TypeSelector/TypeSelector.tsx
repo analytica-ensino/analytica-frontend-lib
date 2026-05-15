@@ -47,7 +47,6 @@ export const TypeSelector = ({
     [value, currentTab, navigate, config]
   );
 
-  // Generate select items from config to support extensibility
   const selectItems = (Object.keys(config) as ActivityCategory[]).map(
     (category) => (
       <SelectItem key={category} value={category}>

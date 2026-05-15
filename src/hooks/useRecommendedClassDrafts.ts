@@ -67,9 +67,7 @@ export const handleRecommendedClassDraftFetchError = createFetchErrorHandler(
  * const { models, loading, error, pagination, fetchModels, deleteModel } = useRecommendedClassDrafts();
  * ```
  */
-export const createUseRecommendedClassDrafts = (
-  apiClient: BaseApiClient
-) => {
+export const createUseRecommendedClassDrafts = (apiClient: BaseApiClient) => {
   return (): UseRecommendedClassDraftsReturn => {
     const [state, setState] = useState<UseRecommendedClassDraftsState>({
       models: [],

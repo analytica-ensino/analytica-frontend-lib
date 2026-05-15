@@ -135,13 +135,10 @@ export const getTabPath = (tab: ActiveTab): string => {
 
 /**
  * Get tab value from URL path segment
- * Strips query string and fragment to avoid false positives
  */
 export const getTabFromPath = (pathname: string): ActiveTab => {
-  // Strip query string and fragment
   const cleanPath = pathname.split('?')[0].split('#')[0];
 
-  // Match whole path segments to avoid false positives
   if (/(^|\/)rascunhos(\/|$)/.test(cleanPath)) return 'drafts';
   if (/(^|\/)modelos(\/|$)/.test(cleanPath)) return 'models';
   return 'history';

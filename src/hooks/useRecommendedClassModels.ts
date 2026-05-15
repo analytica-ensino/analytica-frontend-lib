@@ -118,9 +118,7 @@ export const handleRecommendedClassModelFetchError = createFetchErrorHandler(
  * const { models, loading, error, pagination, fetchModels, deleteModel } = useRecommendedClassModels();
  * ```
  */
-export const createUseRecommendedClassModels = (
-  apiClient: BaseApiClient
-) => {
+export const createUseRecommendedClassModels = (apiClient: BaseApiClient) => {
   return (): UseRecommendedClassModelsReturn => {
     const [state, setState] = useState<UseRecommendedClassModelsState>({
       models: [],

@@ -155,8 +155,6 @@ export const ModelsTabBase = <
         return { data: result as R };
       },
       delete: async <R,>(_url: string): Promise<{ data: R }> => {
-        // Extract ID from URL (e.g., "/activity-drafts/123" -> "123")
-        // Strip query params and trailing slashes for robust parsing
         const cleanUrl = _url.split('?')[0].replace(/\/+$/, '');
         const id = cleanUrl.split('/').pop() || '';
 
