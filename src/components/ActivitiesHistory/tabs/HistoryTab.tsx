@@ -60,13 +60,34 @@ export const HistoryTab = ({
   const fetchActivitiesHistoryRef = useRef(fetchActivitiesHistory);
   fetchActivitiesHistoryRef.current = fetchActivitiesHistory;
 
-  // Create hook instance with stable fetch function wrapper
-  const useActivitiesHistory = useMemo(
-    () =>
-      createUseActivitiesHistory((filters) =>
-        fetchActivitiesHistoryRef.current(filters)
-      ),
+  // Create an API client adapter that wraps the fetch function
+  const apiClientAdapter = useMemo(
+    () => ({
+      get: async <T,>(
+        _url: string,
+        options?: { params?: Record<string, unknown> }
+      ) => {
+        const result = await fetchActivitiesHistoryRef.current(options?.params);
+        return { data: result as T };
+      },
+      // Methods not used by this component but required by BaseApiClient
+      post: async <T,>(): Promise<{ data: T }> => {
+        throw new Error('post not implemented in HistoryTab adapter');
+      },
+      patch: async <T,>(): Promise<{ data: T }> => {
+        throw new Error('patch not implemented in HistoryTab adapter');
+      },
+      delete: async <T,>(): Promise<{ data: T }> => {
+        throw new Error('delete not implemented in HistoryTab adapter');
+      },
+    }),
     []
+  );
+
+  // Create hook instance with the API client adapter
+  const useActivitiesHistory = useMemo(
+    () => createUseActivitiesHistory(apiClientAdapter),
+    [apiClientAdapter]
   );
 
   // Use the hook

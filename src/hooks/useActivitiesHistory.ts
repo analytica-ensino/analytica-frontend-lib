@@ -184,23 +184,9 @@ const buildQueryParams = (
 };
 
 /**
- * Type guard to check if argument is a function
+ * Hook implementation
  */
-const isLegacyFetchFn = (
-  arg: BaseApiClient | FetchActivitiesHistoryFn
-): arg is FetchActivitiesHistoryFn => typeof arg === 'function';
-
-/**
- * Legacy fetch function type (for backward compatibility)
- */
-type FetchActivitiesHistoryFn = (
-  filters?: ActivityHistoryFilters
-) => Promise<ActivitiesHistoryApiResponse>;
-
-/**
- * Hook implementation using BaseApiClient
- */
-const useActivitiesHistoryWithClient = (
+const useActivitiesHistoryImpl = (
   apiClient: BaseApiClient,
   options?: UseActivitiesHistoryOptions
 ): UseActivitiesHistoryReturn => {
@@ -268,107 +254,29 @@ const useActivitiesHistoryWithClient = (
 };
 
 /**
- * Hook implementation using legacy fetch function (backward compatibility)
- */
-const useActivitiesHistoryWithFn = (
-  fetchFn: FetchActivitiesHistoryFn
-): UseActivitiesHistoryReturn => {
-  const [state, setState] = useState<UseActivitiesHistoryState>({
-    activities: [],
-    loading: false,
-    error: null,
-    pagination: DEFAULT_ACTIVITIES_PAGINATION,
-    apiFilterOptions: DEFAULT_ACTIVITY_FILTER_OPTIONS,
-  });
-
-  const fetchActivities = useCallback(
-    async (filters?: ActivityHistoryFilters) => {
-      setState((prev) => ({ ...prev, loading: true, error: null }));
-
-      try {
-        const response = await fetchFn(filters);
-        const { data } = response;
-
-        const tableItems = data.activities.map(transformActivityToTableItem);
-        const extracted = extractActivityFilterOptions(data.activities);
-
-        setState((prev) => ({
-          activities: tableItems,
-          loading: false,
-          error: null,
-          pagination: data.pagination,
-          apiFilterOptions: {
-            schools: mergeActivityFilterOptions(
-              prev.apiFilterOptions.schools,
-              extracted.schools
-            ),
-            classes: mergeActivityFilterOptions(
-              prev.apiFilterOptions.classes,
-              extracted.classes
-            ),
-            subjects: mergeActivityFilterOptions(
-              prev.apiFilterOptions.subjects,
-              extracted.subjects
-            ),
-            schoolYears: mergeActivityFilterOptions(
-              prev.apiFilterOptions.schoolYears,
-              extracted.schoolYears
-            ),
-          },
-        }));
-      } catch (error) {
-        console.error('Erro ao carregar histórico:', error);
-        setState((prev) => ({
-          ...prev,
-          loading: false,
-          error: 'Erro ao carregar histórico de atividades',
-        }));
-      }
-    },
-    [fetchFn]
-  );
-
-  return { ...state, fetchActivities };
-};
-
-/**
  * Factory function to create useActivitiesHistory hook
  *
- * Supports two signatures for backward compatibility:
- * 1. Legacy: `createUseActivitiesHistory(fetchFn)` - pass a fetch function directly
- * 2. New: `createUseActivitiesHistory(apiClient, options)` - pass an API client with options
- *
- * @param apiClientOrFetchFn - API client instance or legacy fetch function
- * @param options - Hook configuration options (only for new API)
+ * @param apiClient - API client instance (axios, fetch wrapper, etc.)
+ * @param options - Hook configuration options
  * @returns Hook for managing activities history
  *
  * @example
  * ```tsx
- * // New API with BaseApiClient
  * import { createUseActivitiesHistory } from 'analytica-frontend-lib';
  * import api from '@/services/apiService';
  *
  * const useActivitiesHistory = createUseActivitiesHistory(api, { activityCategory: 'ATIVIDADE' });
- *
- * // Legacy API with fetch function
- * const useActivitiesHistory = createUseActivitiesHistory((filters) => api.get('/activities/history', { params: filters }));
  *
  * // In your component
  * const { activities, loading, fetchActivities, apiFilterOptions } = useActivitiesHistory();
  * ```
  */
 export const createUseActivitiesHistory = (
-  apiClientOrFetchFn: BaseApiClient | FetchActivitiesHistoryFn,
+  apiClient: BaseApiClient,
   options?: UseActivitiesHistoryOptions
 ) => {
-  if (isLegacyFetchFn(apiClientOrFetchFn)) {
-    // Legacy API: function passed directly
-    return (): UseActivitiesHistoryReturn =>
-      useActivitiesHistoryWithFn(apiClientOrFetchFn);
-  }
-  // New API: BaseApiClient with options
   return (): UseActivitiesHistoryReturn =>
-    useActivitiesHistoryWithClient(apiClientOrFetchFn, options);
+    useActivitiesHistoryImpl(apiClient, options);
 };
 
 /**
