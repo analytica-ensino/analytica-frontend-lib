@@ -5,6 +5,7 @@ import type {
   ActivityTableItem,
   ActivitiesHistoryApiResponse,
 } from '../../../types/activitiesHistory';
+import { GenericDisplayStatus } from '../../../types/common';
 
 // Mock dependencies
 jest.mock('../../TableProvider/TableProvider', () => ({
@@ -94,7 +95,7 @@ const mockActivities: ActivityTableItem[] = [
     year: '2024',
     subject: 'Math',
     class: '1A',
-    status: 'Em andamento',
+    status: GenericDisplayStatus.ATIVA,
     completionPercentage: 50,
   },
 ];

@@ -4,10 +4,13 @@ import {
   type ExamTableCallbacks,
 } from './examDraftsModelsTableConfig';
 import type { ActivityModelTableItem } from '../../types/activitiesHistory';
+import { ActivityType } from '../../components/ActivityCreate/ActivityCreate.types';
 
 // Mock the renderSubjectCell utility
 jest.mock('../../utils/renderSubjectCell', () => ({
-  renderSubjectCell: (value: string) => <span data-testid="subject">{value}</span>,
+  renderSubjectCell: (value: string) => (
+    <span data-testid="subject">{value}</span>
+  ),
 }));
 
 // Mock the mapSubjectNameToEnum utility
@@ -32,7 +35,7 @@ describe('examDraftsModelsTableConfig', () => {
       icon: 'Calculator',
       color: '#FF0000',
     },
-    type: 'MODELO' as const,
+    type: ActivityType.MODELO,
     subjectId: 'math-1',
   };
 

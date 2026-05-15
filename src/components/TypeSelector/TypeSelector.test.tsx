@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TypeSelector } from './TypeSelector';
 import type { ActivityCategory, TypeConfig } from './TypeSelector.types';
+import { ReactNode } from 'react';
 
 // Mock react-router-dom
 const mockNavigate = jest.fn();
@@ -18,7 +19,7 @@ jest.mock('../Select/Select', () => ({
   }: {
     value: string;
     onValueChange: (value: string) => void;
-    children: React.ReactNode;
+    children: ReactNode;
   }) => (
     <div data-testid="select" data-value={value}>
       {children}
@@ -36,22 +37,16 @@ jest.mock('../Select/Select', () => ({
       </button>
     </div>
   ),
-  SelectTrigger: ({ children }: { children: React.ReactNode }) => (
+  SelectTrigger: ({ children }: { children: ReactNode }) => (
     <div data-testid="select-trigger">{children}</div>
   ),
   SelectValue: ({ placeholder }: { placeholder: string }) => (
     <span data-testid="select-value">{placeholder}</span>
   ),
-  SelectContent: ({ children }: { children: React.ReactNode }) => (
+  SelectContent: ({ children }: { children: ReactNode }) => (
     <div data-testid="select-content">{children}</div>
   ),
-  SelectItem: ({
-    value,
-    children,
-  }: {
-    value: string;
-    children: React.ReactNode;
-  }) => (
+  SelectItem: ({ value, children }: { value: string; children: ReactNode }) => (
     <div data-testid={`select-item-${value}`} data-value={value}>
       {children}
     </div>
