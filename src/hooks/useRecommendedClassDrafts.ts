@@ -10,17 +10,7 @@ import type {
   RecommendedClassModelFilters,
   RecommendedClassModelPagination,
 } from '../types/recommendedLessons';
-
-/**
- * API client interface for the hook
- */
-interface ApiClientAdapter {
-  get: <T>(
-    url: string,
-    options?: { params?: Record<string, unknown> }
-  ) => Promise<{ data: T }>;
-  delete: (url: string) => Promise<{ data: unknown }>;
-}
+import type { BaseApiClient } from '../types/api';
 
 /**
  * Hook state interface for recommendedClass drafts
@@ -78,7 +68,7 @@ export const handleRecommendedClassDraftFetchError = createFetchErrorHandler(
  * ```
  */
 export const createUseRecommendedClassDrafts = (
-  apiClient: ApiClientAdapter
+  apiClient: BaseApiClient
 ) => {
   return (): UseRecommendedClassDraftsReturn => {
     const [state, setState] = useState<UseRecommendedClassDraftsState>({

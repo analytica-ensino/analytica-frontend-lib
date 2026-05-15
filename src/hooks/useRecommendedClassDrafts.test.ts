@@ -92,6 +92,8 @@ describe('useRecommendedClassDrafts', () => {
         await mockDeleteRecommendedClassDraft(id);
         return { data: {} };
       }),
+      post: jest.fn().mockResolvedValue({ data: {} }),
+      patch: jest.fn().mockResolvedValue({ data: {} }),
     });
 
     const validApiResponse: RecommendedClassModelsApiResponse = {
@@ -382,6 +384,8 @@ describe('useRecommendedClassDrafts', () => {
           data: { message: 'Success', data: { drafts: [], total: 0 } },
         }),
         delete: jest.fn().mockResolvedValue({ data: {} }),
+        post: jest.fn().mockResolvedValue({ data: {} }),
+        patch: jest.fn().mockResolvedValue({ data: {} }),
       };
 
       const useHook = createRecommendedClassDraftsHook(mockApiClient);

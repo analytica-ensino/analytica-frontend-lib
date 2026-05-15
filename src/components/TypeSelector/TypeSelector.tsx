@@ -47,19 +47,21 @@ export const TypeSelector = ({
     [value, currentTab, navigate, config]
   );
 
+  // Generate select items from config to support extensibility
+  const selectItems = (Object.keys(config) as ActivityCategory[]).map(
+    (category) => (
+      <SelectItem key={category} value={category}>
+        {config[category].labels.selectorLabel}
+      </SelectItem>
+    )
+  );
+
   return (
     <Select value={value} onValueChange={handleTypeChange} size="small">
       <SelectTrigger className="w-[160px] h-8 bg-background" variant="outlined">
         <SelectValue placeholder="Tipo" />
       </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="ATIVIDADE">
-          {config.ATIVIDADE.labels.selectorLabel}
-        </SelectItem>
-        <SelectItem value="PROVA">
-          {config.PROVA.labels.selectorLabel}
-        </SelectItem>
-      </SelectContent>
+      <SelectContent>{selectItems}</SelectContent>
     </Select>
   );
 };

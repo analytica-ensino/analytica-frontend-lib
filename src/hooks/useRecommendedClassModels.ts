@@ -10,17 +10,7 @@ import type {
   RecommendedClassModelPagination,
 } from '../types/recommendedLessons';
 import { createFetchErrorHandler } from '../utils/hookErrorHandler';
-
-/**
- * API client interface for the hook
- */
-interface ApiClientAdapter {
-  get: <T>(
-    url: string,
-    options?: { params?: Record<string, unknown> }
-  ) => Promise<{ data: T }>;
-  delete: (url: string) => Promise<{ data: unknown }>;
-}
+import type { BaseApiClient } from '../types/api';
 
 /**
  * Zod schema for recommendedClass model response validation
@@ -129,7 +119,7 @@ export const handleRecommendedClassModelFetchError = createFetchErrorHandler(
  * ```
  */
 export const createUseRecommendedClassModels = (
-  apiClient: ApiClientAdapter
+  apiClient: BaseApiClient
 ) => {
   return (): UseRecommendedClassModelsReturn => {
     const [state, setState] = useState<UseRecommendedClassModelsState>({

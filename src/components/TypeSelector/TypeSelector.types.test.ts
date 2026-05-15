@@ -44,6 +44,27 @@ describe('TypeSelector.types', () => {
       expect(getTabFromPath('/unknown')).toBe('history');
       expect(getTabFromPath('')).toBe('history');
     });
+
+    it('should strip query strings before matching', () => {
+      expect(getTabFromPath('/atividades/rascunhos?id=123')).toBe('drafts');
+      expect(getTabFromPath('/provas/modelos?filter=active')).toBe('models');
+      expect(getTabFromPath('/atividades?tab=rascunhos')).toBe('history');
+    });
+
+    it('should strip fragments before matching', () => {
+      expect(getTabFromPath('/atividades/rascunhos#section')).toBe('drafts');
+      expect(getTabFromPath('/provas/modelos#top')).toBe('models');
+    });
+
+    it('should match whole path segments only', () => {
+      expect(getTabFromPath('/atividades?search=rascunhos')).toBe('history');
+      expect(getTabFromPath('/provas?filter=modelos')).toBe('history');
+    });
+
+    it('should handle trailing slashes', () => {
+      expect(getTabFromPath('/atividades/rascunhos/')).toBe('drafts');
+      expect(getTabFromPath('/provas/modelos/')).toBe('models');
+    });
   });
 
   describe('createActivityCategoryConfig', () => {

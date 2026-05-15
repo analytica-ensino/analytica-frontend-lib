@@ -333,6 +333,8 @@ describe('useRecommendedClassModels', () => {
         await mockDeleteRecommendedClassModel(id);
         return { data: {} };
       }),
+      post: jest.fn().mockResolvedValue({ data: {} }),
+      patch: jest.fn().mockResolvedValue({ data: {} }),
     });
 
     const validApiResponse: RecommendedClassModelsApiResponse = {
@@ -623,6 +625,8 @@ describe('useRecommendedClassModels', () => {
           data: { message: 'Success', data: { drafts: [], total: 0 } },
         }),
         delete: jest.fn().mockResolvedValue({ data: {} }),
+        post: jest.fn().mockResolvedValue({ data: {} }),
+        patch: jest.fn().mockResolvedValue({ data: {} }),
       };
 
       const useHook = createRecommendedClassModelsHook(mockApiClient);
