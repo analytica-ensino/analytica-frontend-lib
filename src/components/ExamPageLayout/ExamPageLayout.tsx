@@ -30,7 +30,7 @@ export interface ExamPageLayoutProps<T extends Record<string, unknown>> {
   /** Page title displayed in the header */
   pageTitle: string;
   /** Optional content rendered to the right of the page title (e.g., type selector) */
-  headerLeftContent?: ReactNode;
+  headerRightContent?: ReactNode;
   /** Test ID for the page container */
   testId: string;
   /** Data to display in the table */
@@ -76,7 +76,7 @@ export interface ExamPageLayoutProps<T extends Record<string, unknown>> {
 export function ExamPageLayout<T extends Record<string, unknown>>({
   activeTab,
   pageTitle,
-  headerLeftContent,
+  headerRightContent,
   testId,
   data,
   headers,
@@ -98,7 +98,7 @@ export function ExamPageLayout<T extends Record<string, unknown>>({
     <BasePageLayout
       activeTab={activeTab}
       pageTitle={pageTitle}
-      headerLeftContent={headerLeftContent}
+      headerRightContent={headerRightContent}
       testId={testId}
       data={data}
       headers={headers}

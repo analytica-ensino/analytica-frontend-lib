@@ -26,7 +26,7 @@ export interface BasePageLayoutProps<T extends Record<string, unknown>> {
   /** Page title displayed in the header */
   pageTitle: string;
   /** Optional content rendered to the right of the page title (e.g., type selector) */
-  headerLeftContent?: ReactNode;
+  headerRightContent?: ReactNode;
   /** Test ID for the page container */
   testId: string;
   /** Data to display in the table */
@@ -75,7 +75,7 @@ export interface BasePageLayoutProps<T extends Record<string, unknown>> {
 export function BasePageLayout<T extends Record<string, unknown>>({
   activeTab,
   pageTitle,
-  headerLeftContent,
+  headerRightContent,
   testId,
   data,
   headers,
@@ -147,7 +147,7 @@ export function BasePageLayout<T extends Record<string, unknown>>({
       <div className="flex flex-col w-full h-full max-w-[1350px] mx-auto z-10 lg:px-0 px-4 pt-4 sm:pt-0">
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row w-full mb-6 items-start sm:items-center sm:justify-between gap-0 sm:gap-4">
-          {/* Page Title + Optional Left Content */}
+          {/* Page Title + Optional Right Content */}
           <div className="flex items-center gap-3">
             <Text
               as="h1"
@@ -155,7 +155,7 @@ export function BasePageLayout<T extends Record<string, unknown>>({
             >
               {pageTitle}
             </Text>
-            {headerLeftContent}
+            {headerRightContent}
           </div>
 
           {/* Tabs Menu */}
