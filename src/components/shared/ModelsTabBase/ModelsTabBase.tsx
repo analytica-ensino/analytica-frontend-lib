@@ -155,7 +155,10 @@ export const ModelsTabBase = <
         return { data: result as R };
       },
       delete: async <R,>(_url: string): Promise<{ data: R }> => {
-        const cleanUrl = _url.split('?')[0].replace(/\/+$/, '');
+        let cleanUrl = _url.split('?')[0];
+        while (cleanUrl.endsWith('/')) {
+          cleanUrl = cleanUrl.slice(0, -1);
+        }
         const id = cleanUrl.split('/').pop() || '';
 
         if (!id) {
