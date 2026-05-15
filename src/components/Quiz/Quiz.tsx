@@ -59,6 +59,11 @@ export const getQuizTypeConfig = (type: QUIZ_TYPE) => {
       article: 'a',
       preposition: 'da',
     },
+    [QUIZ_TYPE.AULA_RECOMENDADA]: {
+      label: 'Aula recomendada',
+      article: 'a',
+      preposition: 'da',
+    },
   } as const;
 
   const config = QUIZ_TYPE_CONFIG[type];
@@ -84,6 +89,15 @@ export const getQuizPreposition = (type: QUIZ_TYPE) => {
 export const getCompletionTitle = (type: QUIZ_TYPE) => {
   const config = getQuizTypeConfig(type);
   return `Você concluiu ${config.article} ${config.label.toLowerCase()}!`;
+};
+
+// Função para gerar o rótulo do botão de retorno no modal de conclusão
+export const getGoBackButtonLabel = (type: QUIZ_TYPE): string => {
+  if (type === QUIZ_TYPE.SIMULADO) return 'Ir para simulados';
+  if (type === QUIZ_TYPE.QUESTIONARIO) return 'Ir para aulas';
+  if (type === QUIZ_TYPE.ATIVIDADE) return 'Ir para atividades';
+  if (type === QUIZ_TYPE.AULA_RECOMENDADA) return 'Ir para aulas recomendadas';
+  return 'Ir para simulados';
 };
 
 // Função para gerar texto de confirmação de saída
@@ -660,9 +674,7 @@ const QuizFooter = forwardRef<
                 size="small"
                 onClick={onGoToSimulated}
               >
-                {quizTypeLabel === 'Questionário'
-                  ? 'Ir para aulas'
-                  : `Ir para ${quizTypeLabel.toLocaleLowerCase()}s`}
+                {getGoBackButtonLabel(quizType)}
               </Button>
 
               <Button className="w-full" onClick={onDetailResult}>

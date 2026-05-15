@@ -394,6 +394,7 @@ jest.mock('./useQuizStore', () => ({
     SIMULADO: 'SIMULADO',
     QUESTIONARIO: 'QUESTIONARIO',
     ATIVIDADE: 'ATIVIDADE',
+    AULA_RECOMENDADA: 'AULA_RECOMENDADA',
   },
   SUBTYPE_ENUM: {
     PROVA: 'PROVA',
@@ -2823,6 +2824,10 @@ describe('Quiz', () => {
       expect(getQuizArticle(QUIZ_TYPE.ATIVIDADE)).toBe('a');
     });
 
+    it('should return correct article for aula recomendada', () => {
+      expect(getQuizArticle(QUIZ_TYPE.AULA_RECOMENDADA)).toBe('a');
+    });
+
     it('should return default article for unknown type', () => {
       expect(getQuizArticle('unknown' as QUIZ_TYPE)).toBe('o');
       expect(getQuizArticle('' as QUIZ_TYPE)).toBe('o');
@@ -2841,6 +2846,10 @@ describe('Quiz', () => {
 
     it('should return correct preposition for atividade', () => {
       expect(getQuizPreposition(QUIZ_TYPE.ATIVIDADE)).toBe('da');
+    });
+
+    it('should return correct preposition for aula recomendada', () => {
+      expect(getQuizPreposition(QUIZ_TYPE.AULA_RECOMENDADA)).toBe('da');
     });
 
     it('should return default preposition for unknown type', () => {
@@ -2864,6 +2873,10 @@ describe('Quiz', () => {
     it('should return correct label for atividade', () => {
       expect(getTypeLabel(QUIZ_TYPE.ATIVIDADE)).toBe('Atividade');
       expect(getTypeLabel(QUIZ_TYPE.ATIVIDADE)).toBe('Atividade');
+    });
+
+    it('should return correct label for aula recomendada', () => {
+      expect(getTypeLabel(QUIZ_TYPE.AULA_RECOMENDADA)).toBe('Aula recomendada');
     });
 
     it('should return default label for unknown type', () => {
@@ -2898,6 +2911,12 @@ describe('Quiz', () => {
       );
       expect(getExitConfirmationText(QUIZ_TYPE.ATIVIDADE)).toBe(
         'Se você sair da atividade agora, todas as respostas serão perdidas.'
+      );
+    });
+
+    it('should return correct text for aula recomendada', () => {
+      expect(getExitConfirmationText(QUIZ_TYPE.AULA_RECOMENDADA)).toBe(
+        'Se você sair da aula recomendada agora, todas as respostas serão perdidas.'
       );
     });
 
@@ -2937,6 +2956,12 @@ describe('Quiz', () => {
       );
       expect(getFinishConfirmationText(QUIZ_TYPE.ATIVIDADE)).toBe(
         'Tem certeza que deseja finalizar a atividade?'
+      );
+    });
+
+    it('should return correct text for aula recomendada', () => {
+      expect(getFinishConfirmationText(QUIZ_TYPE.AULA_RECOMENDADA)).toBe(
+        'Tem certeza que deseja finalizar a aula recomendada?'
       );
     });
 
@@ -3523,6 +3548,47 @@ describe('Quiz', () => {
       expect(screen.getByText('Ir para atividades')).toBeInTheDocument();
 
       // Verificar se o botão "Ir para aulas" NÃO está presente
+      expect(screen.queryByText('Ir para aulas')).not.toBeInTheDocument();
+    });
+
+    it('should show "Ir para aulas recomendadas" button text when quiz type is AULA_RECOMENDADA', async () => {
+      const mockAulaRecomendadaQuiz = {
+        id: '1',
+        title: 'Aula Recomendada de Sociologia',
+        type: QUIZ_TYPE.AULA_RECOMENDADA,
+        questions: [],
+      };
+
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        quiz: mockAulaRecomendadaQuiz,
+        getCurrentAnswer: jest.fn().mockReturnValue('a'),
+        getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('answered'),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalQuestions: 1,
+          correctAnswers: 1,
+          incorrectAnswers: 0,
+          timeSpent: 120,
+        }),
+        getUnansweredQuestionsFromUserAnswers: jest.fn().mockReturnValue([]),
+        skipCurrentQuestionIfUnanswered: jest.fn(),
+      });
+
+      render(<QuizFooter />);
+
+      const finishButton = screen.getByText('Finalizar');
+
+      await act(async () => {
+        finishButton.click();
+      });
+
+      expect(
+        screen.getByText('Ir para aulas recomendadas')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('Você concluiu a aula recomendada!')
+      ).toBeInTheDocument();
+      expect(screen.queryByText('Ir para simulados')).not.toBeInTheDocument();
       expect(screen.queryByText('Ir para aulas')).not.toBeInTheDocument();
     });
   });
