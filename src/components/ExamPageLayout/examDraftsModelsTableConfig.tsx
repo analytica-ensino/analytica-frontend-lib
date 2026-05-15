@@ -6,18 +6,18 @@ import { renderSubjectCell } from '../../utils/renderSubjectCell';
 import { mapSubjectNameToEnum } from '../../utils/subjectMappers';
 import type { ColumnConfig } from '../TableProvider/TableProvider';
 import { PaperPlaneTilt, Trash, PencilSimple } from 'phosphor-react';
-import type { ExamModelTableItem } from '../../types/examDrafts';
+import type { ActivityModelTableItem } from '../../types/activitiesHistory';
 
 /**
  * Callbacks interface for table action buttons
  */
 export interface ExamTableCallbacks {
   /** Callback when send exam button is clicked */
-  onSend: (row: ExamModelTableItem) => void;
+  onSend: (row: ActivityModelTableItem) => void;
   /** Callback when delete button is clicked */
-  onDelete: (row: ExamModelTableItem) => void;
+  onDelete: (row: ActivityModelTableItem) => void;
   /** Callback when edit button is clicked */
-  onEdit: (row: ExamModelTableItem) => void;
+  onEdit: (row: ActivityModelTableItem) => void;
 }
 
 /**
@@ -28,7 +28,7 @@ export interface ExamTableCallbacks {
  */
 export const createExamDraftsModelsTableColumns = (
   callbacks: ExamTableCallbacks
-): ColumnConfig<ExamModelTableItem>[] => [
+): ColumnConfig<ActivityModelTableItem>[] => [
   {
     key: 'title',
     label: 'Título',
@@ -46,18 +46,24 @@ export const createExamDraftsModelsTableColumns = (
     label: 'Disciplina',
     sortable: true,
     className: 'max-w-[200px]',
-    render: (value: unknown) =>
-      renderSubjectCell(
+    render: (value: unknown) => {
+      // Handle both object format (SubjectData) and string format
+      if (value && typeof value === 'object' && 'name' in value) {
+        const subjectData = value as { name: string };
+        return renderSubjectCell(subjectData.name || '-', mapSubjectNameToEnum);
+      }
+      return renderSubjectCell(
         typeof value === 'string' ? value : '-',
         mapSubjectNameToEnum
-      ),
+      );
+    },
   },
   {
     key: 'actions',
     label: '',
     sortable: false,
     className: 'w-[280px]',
-    render: (_value: unknown, row: ExamModelTableItem) => (
+    render: (_value: unknown, row: ActivityModelTableItem) => (
       <div className="flex items-center justify-end gap-2">
         <Button
           variant="outline"

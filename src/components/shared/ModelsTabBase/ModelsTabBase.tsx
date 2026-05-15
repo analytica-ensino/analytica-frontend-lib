@@ -14,6 +14,7 @@ import type {
 import type { FilterConfig } from '../../Filter';
 import type { SubjectEnum } from '../../../enums/SubjectEnum';
 import type { BaseModelItem } from './createModelsTableColumnsBase';
+import type { BaseApiClient } from '../../../types/api';
 
 /**
  * Configuration for entity-specific text and labels
@@ -94,11 +95,8 @@ export interface ModelsTabBaseProps<
   createFiltersConfig: (userFilterData?: TUserFilterData) => FilterConfig[];
   /** Function to build filters from table params */
   buildFiltersFromParams: (params: TableParams) => TFilters;
-  /** Hook creator function */
-  createUseModels: (
-    fetchFn: (filters?: TFilters) => Promise<TResponse>,
-    deleteFn: (id: string) => Promise<void>
-  ) => () => UseModelsReturn<T>;
+  /** Hook creator function that receives an API client */
+  createUseModels: (apiClient: BaseApiClient) => () => UseModelsReturn<T>;
 }
 
 /**
@@ -144,14 +142,46 @@ export const ModelsTabBase = <
   const subjectsMapRef = useRef(subjectsMap);
   subjectsMapRef.current = subjectsMap;
 
-  // Create hook instance with stable fetch function wrappers
+  // Create an API client adapter that wraps the fetch/delete functions
+  const apiClientAdapter = useMemo(
+    () => ({
+      get: async <R,>(
+        _url: string,
+        options?: { params?: Record<string, unknown> }
+      ) => {
+        const result = await fetchModelsRef.current(
+          options?.params as TFilters
+        );
+        return { data: result as R };
+      },
+      delete: async <R,>(_url: string): Promise<{ data: R }> => {
+        let cleanUrl = _url.split('?')[0];
+        while (cleanUrl.endsWith('/')) {
+          cleanUrl = cleanUrl.slice(0, -1);
+        }
+        const id = cleanUrl.split('/').pop() || '';
+
+        if (!id) {
+          throw new Error(`Cannot extract ID from URL: ${_url}`);
+        }
+
+        await deleteModelRef.current(id);
+        return { data: {} as R };
+      },
+      post: async <R,>(): Promise<{ data: R }> => {
+        throw new Error('post not implemented in ModelsTabBase adapter');
+      },
+      patch: async <R,>(): Promise<{ data: R }> => {
+        throw new Error('patch not implemented in ModelsTabBase adapter');
+      },
+    }),
+    []
+  );
+
+  // Create hook instance with the API client adapter
   const useModels = useMemo(
-    () =>
-      createUseModels(
-        (filters) => fetchModelsRef.current(filters),
-        (id) => deleteModelRef.current(id)
-      ),
-    [createUseModels]
+    () => createUseModels(apiClientAdapter),
+    [createUseModels, apiClientAdapter]
   );
 
   // Use the hook

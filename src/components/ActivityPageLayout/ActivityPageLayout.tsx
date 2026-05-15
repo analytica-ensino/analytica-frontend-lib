@@ -33,6 +33,8 @@ export interface ActivityPageLayoutProps<T extends Record<string, unknown>> {
   activeTab: ActivityTab;
   /** Page title displayed in the header */
   pageTitle: string;
+  /** Optional content rendered to the right of the page title (e.g., type selector) */
+  headerRightContent?: ReactNode;
   /** Test ID for the page container */
   testId: string;
   /** Data to display in the table */
@@ -78,6 +80,7 @@ export interface ActivityPageLayoutProps<T extends Record<string, unknown>> {
 export function ActivityPageLayout<T extends Record<string, unknown>>({
   activeTab,
   pageTitle,
+  headerRightContent,
   testId,
   data,
   headers,
@@ -99,6 +102,7 @@ export function ActivityPageLayout<T extends Record<string, unknown>>({
     <BasePageLayout
       activeTab={activeTab}
       pageTitle={pageTitle}
+      headerRightContent={headerRightContent}
       testId={testId}
       data={data}
       headers={headers}

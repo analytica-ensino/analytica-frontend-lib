@@ -10,6 +10,7 @@ import type {
   RecommendedClassModelFilters,
   RecommendedClassModelPagination,
 } from '../types/recommendedLessons';
+import type { BaseApiClient } from '../types/api';
 
 /**
  * Hook state interface for recommendedClass drafts
@@ -55,34 +56,18 @@ export const handleRecommendedClassDraftFetchError = createFetchErrorHandler(
 /**
  * Factory function to create useRecommendedClassDrafts hook
  *
- * @param fetchRecommendedClassDrafts - Function to fetch drafts from API
- * @param deleteRecommendedClassDraft - Function to delete a draft
+ * @param apiClient - API client adapter with get and delete methods
  * @returns Hook for managing recommendedClass drafts
  *
  * @example
  * ```tsx
- * // In your app setup
- * const fetchRecommendedClassDrafts = async (filters) => {
- *   const response = await api.get('/recommended-class/drafts', { params: { ...filters, type: 'RASCUNHO' } });
- *   return response.data;
- * };
- *
- * const deleteRecommendedClassDraft = async (id) => {
- *   await api.delete(`/recommended-class/drafts/${id}`);
- * };
- *
- * const useRecommendedClassDrafts = createUseRecommendedClassDrafts(fetchRecommendedClassDrafts, deleteRecommendedClassDraft);
+ * const useRecommendedClassDrafts = createUseRecommendedClassDrafts(apiClientAdapter);
  *
  * // In your component
  * const { models, loading, error, pagination, fetchModels, deleteModel } = useRecommendedClassDrafts();
  * ```
  */
-export const createUseRecommendedClassDrafts = (
-  fetchRecommendedClassDrafts: (
-    filters?: RecommendedClassModelFilters
-  ) => Promise<RecommendedClassModelsApiResponse>,
-  deleteRecommendedClassDraft: (id: string) => Promise<void>
-) => {
+export const createUseRecommendedClassDrafts = (apiClient: BaseApiClient) => {
   return (): UseRecommendedClassDraftsReturn => {
     const [state, setState] = useState<UseRecommendedClassDraftsState>({
       models: [],
@@ -104,12 +89,17 @@ export const createUseRecommendedClassDrafts = (
         setState((prev) => ({ ...prev, loading: true, error: null }));
 
         try {
-          // Fetch data from API
-          const responseData = await fetchRecommendedClassDrafts(filters);
+          // Fetch data from API using adapter
+          const response =
+            await apiClient.get<RecommendedClassModelsApiResponse>(
+              '/recommended-class/drafts',
+              { params: filters as Record<string, unknown> }
+            );
 
           // Validate response with Zod
-          const validatedData =
-            recommendedClassModelsApiResponseSchema.parse(responseData);
+          const validatedData = recommendedClassModelsApiResponseSchema.parse(
+            response.data
+          );
 
           // Transform drafts to table format
           const tableItems = validatedData.data.drafts.map((draft) =>
@@ -143,7 +133,7 @@ export const createUseRecommendedClassDrafts = (
           }));
         }
       },
-      [fetchRecommendedClassDrafts]
+      [apiClient]
     );
 
     /**
@@ -154,14 +144,14 @@ export const createUseRecommendedClassDrafts = (
     const deleteModel = useCallback(
       async (id: string): Promise<boolean> => {
         try {
-          await deleteRecommendedClassDraft(id);
+          await apiClient.delete(`/recommended-class/drafts/${id}`);
           return true;
         } catch (error) {
           console.error('Erro ao deletar rascunho:', error);
           return false;
         }
       },
-      [deleteRecommendedClassDraft]
+      [apiClient]
     );
 
     return {
