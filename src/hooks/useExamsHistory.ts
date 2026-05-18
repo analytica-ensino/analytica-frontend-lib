@@ -13,6 +13,7 @@ import type {
   ExamBreakdownItem,
 } from '../types/examsHistory';
 import { createFetchErrorHandler } from '../utils/hookErrorHandler';
+import { mergeFilterOptions } from '../utils/filterHelpers';
 
 /**
  * Hook state interface
@@ -144,26 +145,6 @@ export const extractExamFilterOptions = (
 };
 
 /**
- * Merge two filter option arrays, deduplicating by ID
- */
-export const mergeExamFilterOptions = (
-  base: ExamFilterOption[],
-  extra: ExamFilterOption[]
-): ExamFilterOption[] => {
-  if (extra.length === 0) return base;
-  const baseIds = new Set(base.map((item) => item.id));
-  const hasNew = extra.some((item) => !baseIds.has(item.id));
-  if (!hasNew) return base;
-  const map = new Map(base.map((item) => [item.id, item.name] as const));
-  extra.forEach((item) => {
-    if (!map.has(item.id)) map.set(item.id, item.name);
-  });
-  return Array.from(map.entries())
-    .map(([id, name]) => ({ id, name }))
-    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
-};
-
-/**
  * Build query params from filters
  * Always includes type=PROVA to filter for exams
  */
@@ -230,19 +211,19 @@ const useExamsHistoryImpl = (
           error: null,
           pagination: data.pagination,
           apiFilterOptions: {
-            schools: mergeExamFilterOptions(
+            schools: mergeFilterOptions(
               prev.apiFilterOptions.schools,
               extracted.schools
             ),
-            classes: mergeExamFilterOptions(
+            classes: mergeFilterOptions(
               prev.apiFilterOptions.classes,
               extracted.classes
             ),
-            subjects: mergeExamFilterOptions(
+            subjects: mergeFilterOptions(
               prev.apiFilterOptions.subjects,
               extracted.subjects
             ),
-            schoolYears: mergeExamFilterOptions(
+            schoolYears: mergeFilterOptions(
               prev.apiFilterOptions.schoolYears,
               extracted.schoolYears
             ),

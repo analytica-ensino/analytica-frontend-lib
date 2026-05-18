@@ -1204,7 +1204,6 @@ export {
   createActivitiesHistoryHook,
   transformActivityToTableItem,
   extractActivityFilterOptions,
-  mergeActivityFilterOptions,
   DEFAULT_ACTIVITIES_PAGINATION,
   DEFAULT_ACTIVITY_FILTER_OPTIONS,
 } from './hooks/useActivitiesHistory';
@@ -1838,7 +1837,6 @@ export {
   transformExamToTableItem,
   handleExamFetchError,
   extractExamFilterOptions,
-  mergeExamFilterOptions,
   DEFAULT_EXAMS_PAGINATION,
   DEFAULT_EXAM_FILTER_OPTIONS,
 } from './hooks/useExamsHistory';
