@@ -7,9 +7,9 @@ import EmptyState from '../EmptyState/EmptyState';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import TypeSelector from '../TypeSelector/TypeSelector';
 import { createActivityCategoryConfig } from '../TypeSelector/TypeSelector.types';
-import type { ActivityModelTableItem } from '../../types/activityDrafts';
+import type { ActivityModelTableItem } from '../../types/activitiesHistory';
 import { createExamDraftsModelsTableColumns } from '../ExamPageLayout/examDraftsModelsTableConfig';
-import type { FilterConfig } from '../../types/filters';
+import type { FilterConfig } from '../Filter';
 
 /**
  * Filter option type
@@ -17,12 +17,19 @@ import type { FilterConfig } from '../../types/filters';
 interface FilterOption {
   id: string;
   name: string;
+  [key: string]: unknown;
 }
 
 /**
  * Extract subject options from user data
  */
-const getSubjectOptions = (userData: any): FilterOption[] => {
+const getSubjectOptions = (
+  userData: {
+    subTeacherTopicClasses?: Array<{
+      subject?: { id: string; name: string } | null;
+    }>;
+  } | null
+): FilterOption[] => {
   if (!userData?.subTeacherTopicClasses) {
     return [];
   }
@@ -169,10 +176,14 @@ export const UnifiedDraftModelPage = ({
   const handleEdit = useCallback(
     (row: ActivityModelTableItem) => {
       const currentRoutes = routes[activityCategory];
-      const editRoute = type === 'drafts'
-        ? currentRoutes.editDraft?.(row.id)
-        : currentRoutes.editModel?.(row.id);
-      navigate(editRoute || `${currentRoutes.create}?type=${config.editUrlType}&id=${row.id}`);
+      const editRoute =
+        type === 'drafts'
+          ? currentRoutes.editDraft?.(row.id)
+          : currentRoutes.editModel?.(row.id);
+      navigate(
+        editRoute ||
+          `${currentRoutes.create}?type=${config.editUrlType}&id=${row.id}`
+      );
     },
     [navigate, routes, type, config.editUrlType, activityCategory]
   );
@@ -180,9 +191,12 @@ export const UnifiedDraftModelPage = ({
   /**
    * Handle send button click
    */
-  const handleSend = useCallback((row: ActivityModelTableItem) => {
-    onSend?.(row);
-  }, [onSend]);
+  const handleSend = useCallback(
+    (row: ActivityModelTableItem) => {
+      onSend?.(row);
+    },
+    [onSend]
+  );
 
   /**
    * Create table columns with action callbacks
@@ -245,10 +259,14 @@ export const UnifiedDraftModelPage = ({
   const handleRowClick = useCallback(
     (row: ActivityModelTableItem) => {
       const currentRoutes = routes[activityCategory];
-      const editRoute = type === 'drafts'
-        ? currentRoutes.editDraft?.(row.id)
-        : currentRoutes.editModel?.(row.id);
-      navigate(editRoute || `${currentRoutes.create}?type=${config.editUrlType}&id=${row.id}`);
+      const editRoute =
+        type === 'drafts'
+          ? currentRoutes.editDraft?.(row.id)
+          : currentRoutes.editModel?.(row.id);
+      navigate(
+        editRoute ||
+          `${currentRoutes.create}?type=${config.editUrlType}&id=${row.id}`
+      );
     },
     [navigate, routes, type, config.editUrlType, activityCategory]
   );
@@ -294,7 +312,8 @@ export const UnifiedDraftModelPage = ({
 
   return (
     <>
-      <PageLayout {...layoutProps} />
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      <PageLayout {...(layoutProps as any)} />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog

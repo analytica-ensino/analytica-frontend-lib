@@ -1,5 +1,10 @@
-import type { ActivityCategory, TypeRoutes } from '../TypeSelector/TypeSelector.types';
-import type { ActivityTableItem, ExamTableItem } from '../../types/activitiesHistory';
+import type {
+  ActivityCategory,
+  TypeRoutes,
+} from '../TypeSelector/TypeSelector.types';
+import type { ActivityTableItem } from '../../types/activitiesHistory';
+import type { ExamTableItem } from '../../types/examsHistory';
+import type { TableParams } from '../TableProvider/TableProvider';
 
 /**
  * User data type for filter options
@@ -53,7 +58,7 @@ export interface UnifiedHistoryPageProps {
   /** API filter options */
   apiFilterOptions: ApiFilterOptions;
   /** Fetch function to call when params change */
-  onParamsChange: (params: any) => void;
+  onParamsChange: (params: TableParams) => void;
   /** User data for filter options (optional) */
   userData?: UserData | null;
   /** Image for empty state */

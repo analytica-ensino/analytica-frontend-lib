@@ -6,14 +6,10 @@ import type { UnifiedHistoryPageProps } from './types';
 import EmptyState from '../EmptyState/EmptyState';
 import TypeSelector from '../TypeSelector/TypeSelector';
 import { createActivityCategoryConfig } from '../TypeSelector/TypeSelector.types';
-import type { FilterConfig } from '../../types/filters';
-import type { TableParams } from '../../types/table';
-import type {
-  ActivityTableItem,
-  ExamTableItem,
-} from '../../types/activitiesHistory';
-import { ActivityApiStatus } from '../../enums/activityStatus';
-import { ExamStatus } from '../../enums/examStatus';
+import type { FilterConfig } from '../Filter';
+import type { TableParams } from '../TableProvider/TableProvider';
+import type { ActivityTableItem } from '../../types/activitiesHistory';
+import type { ExamTableItem } from '../../types/examsHistory';
 
 /**
  * Filter option type
@@ -21,6 +17,7 @@ import { ExamStatus } from '../../enums/examStatus';
 interface FilterOption {
   id: string;
   name: string;
+  [key: string]: unknown;
 }
 
 /**
@@ -34,7 +31,19 @@ const CREATOR_TYPE_OPTIONS: FilterOption[] = [
 /**
  * Extract filter options from user data
  */
-const extractFilterOptions = (userData: any) => {
+const extractFilterOptions = (
+  userData: {
+    userInstitutions?: Array<{
+      school?: { id: string; name: string } | null;
+      schoolYear?: { id: string; name: string } | null;
+      class?: { id: string; name: string } | null;
+    }>;
+    subTeacherTopicClasses?: Array<{
+      subject?: { id: string; name: string } | null;
+      class?: { id: string; name: string } | null;
+    }>;
+  } | null
+) => {
   const schoolsMap = new Map<string, string>();
   const schoolYearsMap = new Map<string, string>();
   const classesMap = new Map<string, string>();
@@ -315,5 +324,6 @@ export const UnifiedHistoryPage = ({
     [config.onCreatePropName]: handleCreate,
   };
 
-  return <PageLayout {...layoutProps} />;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return <PageLayout {...(layoutProps as any)} />;
 };

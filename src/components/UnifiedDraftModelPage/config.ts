@@ -1,6 +1,9 @@
-import { ActivityPageLayout, ActivityTab } from '../ActivityPageLayout/ActivityPageLayout';
+import {
+  ActivityPageLayout,
+  ActivityTab,
+} from '../ActivityPageLayout/ActivityPageLayout';
 import { ExamPageLayout, ExamTab } from '../ExamPageLayout/ExamPageLayout';
-import type { ActivityCategory } from '../../types/activities';
+import type { ActivityCategory } from '../TypeSelector/TypeSelector.types';
 
 /**
  * Page config type for drafts or models

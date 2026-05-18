@@ -1,10 +1,16 @@
-import { ActivityPageLayout, ActivityTab } from '../ActivityPageLayout/ActivityPageLayout';
+import {
+  ActivityPageLayout,
+  ActivityTab,
+} from '../ActivityPageLayout/ActivityPageLayout';
 import { ExamPageLayout, ExamTab } from '../ExamPageLayout/ExamPageLayout';
 import { ACTIVITY_FILTER_STATUS_OPTIONS } from '../../types/activitiesHistory';
 import { EXAM_STATUS_OPTIONS } from '../../utils/examFilterHelpers';
 import { activitiesTableColumns } from '../ActivityPageLayout/activitiesTableConfig';
 import { examsTableColumns } from '../ExamPageLayout/examsTableConfig';
-import type { ActivityCategory } from '../../types/activities';
+import type { ActivityCategory } from '../TypeSelector/TypeSelector.types';
+import type { ColumnConfig } from '../TableProvider/TableProvider';
+import type { ActivityTableItem } from '../../types/activitiesHistory';
+import type { ExamTableItem } from '../../types/examsHistory';
 
 /**
  * Page configuration type for activities or exams
@@ -21,7 +27,9 @@ export interface PageConfig {
   testId: string;
   statusOptions: Array<{ id: string; name: string }>;
   statusLabel: string;
-  tableColumns: any;
+  tableColumns:
+    | ColumnConfig<ActivityTableItem>[]
+    | ColumnConfig<ExamTableItem>[];
   tabs: {
     HISTORY: string;
     DRAFTS: string;

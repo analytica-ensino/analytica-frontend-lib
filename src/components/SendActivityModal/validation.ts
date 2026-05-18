@@ -145,7 +145,6 @@ export function validateActivityStep(
     errors.mode = ERROR_MESSAGES.MODE_REQUIRED;
   }
 
-
   return errors;
 }
 

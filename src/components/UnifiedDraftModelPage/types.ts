@@ -1,5 +1,8 @@
-import type { ActivityCategory, TypeRoutes } from '../TypeSelector/TypeSelector.types';
-import type { ActivityModelTableItem } from '../../types/activityDrafts';
+import type {
+  ActivityCategory,
+  TypeRoutes,
+} from '../TypeSelector/TypeSelector.types';
+import type { ActivityModelTableItem } from '../../types/activitiesHistory';
 
 /**
  * User data type for filter options
@@ -41,7 +44,12 @@ export interface UnifiedDraftModelPageProps {
   /** Send function (optional) */
   onSend?: (row: ActivityModelTableItem) => void;
   /** Fetch function to call when params change */
-  onParamsChange: (params: any) => void;
+  onParamsChange: (params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    subjectId?: string;
+  }) => void;
   /** User data for filter options (optional) */
   userData?: UserData | null;
   /** Image for empty state */

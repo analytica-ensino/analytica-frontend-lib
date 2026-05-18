@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { FilterConfig } from '../types/filters';
-import type { ActivityModelTableItem } from '../types/activityDrafts';
-import type { ColumnConfig } from '../types/table';
-import type { ActivityCategory, TypeRoutes } from '../types/activities';
+import type { FilterConfig } from '../components/Filter';
+import type { ActivityModelTableItem } from '../types/activitiesHistory';
+import type { ColumnConfig } from '../components/TableProvider/TableProvider';
+import type {
+  ActivityCategory,
+  TypeRoutes,
+} from '../components/TypeSelector/TypeSelector.types';
 import { createExamDraftsModelsTableColumns } from '../components/ExamPageLayout/examDraftsModelsTableConfig';
 
 /**
@@ -12,6 +15,7 @@ import { createExamDraftsModelsTableColumns } from '../components/ExamPageLayout
 interface FilterOption {
   id: string;
   name: string;
+  [key: string]: unknown;
 }
 
 /**
@@ -91,7 +95,12 @@ export interface UseActivityDraftModelPageOptions {
   /** Activity category (ATIVIDADE or PROVA) */
   activityCategory: ActivityCategory;
   /** Function to fetch data with the given filters */
-  fetchFn: (params: any) => Promise<void> | void;
+  fetchFn: (params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    subjectId?: string;
+  }) => Promise<void> | void;
   /** Function to delete an item by id */
   deleteFn: (id: string) => Promise<void> | Promise<boolean>;
   /** User data for filter options */
@@ -138,7 +147,7 @@ export interface UseActivityDraftModelPageReturn {
  * @returns Shared state and callbacks for the page
  */
 export const useActivityDraftModelPage = ({
-  activityCategory,
+  activityCategory: _activityCategory,
   fetchFn,
   deleteFn,
   userData,
@@ -153,7 +162,15 @@ export const useActivityDraftModelPage = ({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [itemToDeleteId, setItemToDeleteId] = useState<string | null>(null);
   const [itemToDeleteTitle, setItemToDeleteTitle] = useState<string>('');
-  const [currentParams, setCurrentParams] = useState<any>({ page: 1, limit: 10 });
+  const [currentParams, setCurrentParams] = useState<{
+    page?: number;
+    limit?: number;
+    search?: string;
+    subjectId?: string;
+  }>({
+    page: 1,
+    limit: 10,
+  });
 
   /**
    * Initial filter configuration: merge userData subjects + subjects from API response
@@ -193,7 +210,11 @@ export const useActivityDraftModelPage = ({
    */
   const handleEdit = useCallback(
     (row: ActivityModelTableItem) => {
-      navigate(routes.editDraft?.(row.id) || routes.editModel?.(row.id) || `${routes.create}?type=${editUrlType}&id=${row.id}`);
+      navigate(
+        routes.editDraft?.(row.id) ||
+          routes.editModel?.(row.id) ||
+          `${routes.create}?type=${editUrlType}&id=${row.id}`
+      );
     },
     [navigate, routes, editUrlType]
   );
@@ -261,7 +282,11 @@ export const useActivityDraftModelPage = ({
    */
   const handleRowClick = useCallback(
     (row: ActivityModelTableItem) => {
-      navigate(routes.editDraft?.(row.id) || routes.editModel?.(row.id) || `${routes.create}?type=${editUrlType}&id=${row.id}`);
+      navigate(
+        routes.editDraft?.(row.id) ||
+          routes.editModel?.(row.id) ||
+          `${routes.create}?type=${editUrlType}&id=${row.id}`
+      );
     },
     [navigate, routes, editUrlType]
   );
