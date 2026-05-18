@@ -31,6 +31,7 @@ export enum BadgeActionType {
   SUCCESS = 'success',
   WARNING = 'warning',
   ERROR = 'error',
+  INFO = 'info',
 }
 
 /**

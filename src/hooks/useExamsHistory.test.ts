@@ -5,10 +5,10 @@ import {
   transformExamToTableItem,
   handleExamFetchError,
   extractExamFilterOptions,
-  mergeExamFilterOptions,
   DEFAULT_EXAMS_PAGINATION,
   DEFAULT_EXAM_FILTER_OPTIONS,
 } from './useExamsHistory';
+import { mergeFilterOptions } from '../utils/filterHelpers';
 import { ExamStatus, ExamDisplayStatus } from '../types/examsHistory';
 import type {
   ExamHistoryResponse,
@@ -479,12 +479,12 @@ describe('useExamsHistory', () => {
     });
   });
 
-  describe('mergeExamFilterOptions', () => {
+  describe('mergeFilterOptions', () => {
     it('should merge two arrays of filter options', () => {
       const base: ExamFilterOption[] = [{ id: '1', name: 'Option A' }];
       const extra: ExamFilterOption[] = [{ id: '2', name: 'Option B' }];
 
-      const result = mergeExamFilterOptions(base, extra);
+      const result = mergeFilterOptions(base, extra);
 
       expect(result).toHaveLength(2);
       expect(result[0].name).toBe('Option A');
@@ -498,17 +498,19 @@ describe('useExamsHistory', () => {
         { id: '2', name: 'Option B' },
       ];
 
-      const result = mergeExamFilterOptions(base, extra);
+      const result = mergeFilterOptions(base, extra);
 
       expect(result).toHaveLength(2);
-      expect(result.find((o) => o.id === '1')?.name).toBe('Option A');
+      expect(result.find((o: ExamFilterOption) => o.id === '1')?.name).toBe(
+        'Option A'
+      );
     });
 
     it('should return base array when extra is empty', () => {
       const base: ExamFilterOption[] = [{ id: '1', name: 'Option A' }];
       const extra: ExamFilterOption[] = [];
 
-      const result = mergeExamFilterOptions(base, extra);
+      const result = mergeFilterOptions(base, extra);
 
       expect(result).toBe(base);
     });
@@ -523,7 +525,7 @@ describe('useExamsHistory', () => {
         { id: '2', name: 'Option B' },
       ];
 
-      const result = mergeExamFilterOptions(base, extra);
+      const result = mergeFilterOptions(base, extra);
 
       expect(result).toBe(base);
     });
@@ -532,7 +534,7 @@ describe('useExamsHistory', () => {
       const base: ExamFilterOption[] = [{ id: '1', name: 'Zebra' }];
       const extra: ExamFilterOption[] = [{ id: '2', name: 'Alpha' }];
 
-      const result = mergeExamFilterOptions(base, extra);
+      const result = mergeFilterOptions(base, extra);
 
       expect(result[0].name).toBe('Alpha');
       expect(result[1].name).toBe('Zebra');

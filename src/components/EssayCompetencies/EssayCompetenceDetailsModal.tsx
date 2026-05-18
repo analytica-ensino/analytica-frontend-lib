@@ -283,12 +283,14 @@ function CounterCard({
     [BadgeActionType.SUCCESS]: 'bg-success-50',
     [BadgeActionType.WARNING]: 'bg-warning-50',
     [BadgeActionType.ERROR]: 'bg-error-50',
+    [BadgeActionType.INFO]: 'bg-info-50',
   };
 
   const textColors: Record<BadgeActionType, string> = {
     [BadgeActionType.SUCCESS]: 'text-success-700',
     [BadgeActionType.WARNING]: 'text-warning-700',
     [BadgeActionType.ERROR]: 'text-error-700',
+    [BadgeActionType.INFO]: 'text-info-700',
   };
 
   return (

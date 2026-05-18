@@ -10,6 +10,7 @@ import type {
   ActivityPagination,
   ActivityFilterOption,
 } from '../types/activitiesHistory';
+import { mergeFilterOptions } from '../utils/filterHelpers';
 
 /**
  * Options for configuring the useActivitiesHistory hook
@@ -135,26 +136,6 @@ export const extractActivityFilterOptions = (
 };
 
 /**
- * Merge two filter option arrays, deduplicating by ID
- */
-export const mergeActivityFilterOptions = (
-  base: ActivityFilterOption[],
-  extra: ActivityFilterOption[]
-): ActivityFilterOption[] => {
-  if (extra.length === 0) return base;
-  const baseIds = new Set(base.map((item) => item.id));
-  const hasNew = extra.some((item) => !baseIds.has(item.id));
-  if (!hasNew) return base;
-  const map = new Map(base.map((item) => [item.id, item.name] as const));
-  extra.forEach((item) => {
-    if (!map.has(item.id)) map.set(item.id, item.name);
-  });
-  return Array.from(map.entries())
-    .map(([id, name]) => ({ id, name }))
-    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
-};
-
-/**
  * Build query params from filters
  * @param filters - User filters
  * @param activityCategory - Optional activity category filter
@@ -220,19 +201,19 @@ const useActivitiesHistoryImpl = (
           error: null,
           pagination: data.pagination,
           apiFilterOptions: {
-            schools: mergeActivityFilterOptions(
+            schools: mergeFilterOptions(
               prev.apiFilterOptions.schools,
               extracted.schools
             ),
-            classes: mergeActivityFilterOptions(
+            classes: mergeFilterOptions(
               prev.apiFilterOptions.classes,
               extracted.classes
             ),
-            subjects: mergeActivityFilterOptions(
+            subjects: mergeFilterOptions(
               prev.apiFilterOptions.subjects,
               extracted.subjects
             ),
-            schoolYears: mergeActivityFilterOptions(
+            schoolYears: mergeFilterOptions(
               prev.apiFilterOptions.schoolYears,
               extracted.schoolYears
             ),

@@ -194,3 +194,36 @@ export const buildUserFilterData = (
   schools: getSchoolOptionsFromUserData(userData),
   subjects: getSubjectOptionsFromUserData(userData),
 });
+
+/**
+ * Merge two filter option arrays, deduplicating by ID.
+ * Returns the base array unchanged if extra adds no new items.
+ *
+ * @param base - Base filter options array
+ * @param extra - Additional filter options to merge
+ * @returns Merged and sorted array of unique filter options
+ *
+ * @example
+ * ```typescript
+ * const userSubjects = getSubjectOptionsFromUserData(userData);
+ * const apiSubjects = [{ id: '3', name: 'História' }];
+ * const allSubjects = mergeFilterOptions(userSubjects, apiSubjects);
+ * // Returns deduplicated and sorted array
+ * ```
+ */
+export const mergeFilterOptions = (
+  base: ActivityFilterOption[],
+  extra: ActivityFilterOption[]
+): ActivityFilterOption[] => {
+  if (extra.length === 0) return base;
+  const baseIds = new Set(base.map((item) => item.id));
+  const hasNew = extra.some((item) => !baseIds.has(item.id));
+  if (!hasNew) return base;
+  const map = new Map(base.map((item) => [item.id, item.name] as const));
+  extra.forEach((item) => {
+    if (!map.has(item.id)) map.set(item.id, item.name);
+  });
+  return Array.from(map.entries())
+    .map(([id, name]) => ({ id, name }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+};

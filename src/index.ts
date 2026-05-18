@@ -1190,13 +1190,27 @@ export {
 } from './components/ActivityPageLayout';
 export type { ActivityPageLayoutProps } from './components/ActivityPageLayout';
 
+// Unified History Page Component
+export { UnifiedHistoryPage } from './components/UnifiedHistoryPage';
+export type {
+  UnifiedHistoryPageProps,
+  UserData as UnifiedHistoryPageUserData,
+  ApiFilterOptions as UnifiedHistoryPageApiFilterOptions,
+} from './components/UnifiedHistoryPage';
+
+// Unified Draft Model Page Component
+export { UnifiedDraftModelPage } from './components/UnifiedDraftModelPage';
+export type {
+  UnifiedDraftModelPageProps,
+  UserData as UnifiedDraftModelPageUserData,
+} from './components/UnifiedDraftModelPage';
+
 // Activities History Hook Factory
 export {
   createUseActivitiesHistory,
   createActivitiesHistoryHook,
   transformActivityToTableItem,
   extractActivityFilterOptions,
-  mergeActivityFilterOptions,
   DEFAULT_ACTIVITIES_PAGINATION,
   DEFAULT_ACTIVITY_FILTER_OPTIONS,
 } from './hooks/useActivitiesHistory';
@@ -1227,6 +1241,13 @@ export {
   transformModelToTableItem,
   DEFAULT_MODELS_PAGINATION,
 } from './hooks/useActivityModels';
+
+// Activity Draft Model Page Hook (shared logic for drafts/models pages)
+export { useActivityDraftModelPage } from './hooks/useActivityDraftModelPage';
+export type {
+  UseActivityDraftModelPageOptions,
+  UseActivityDraftModelPageReturn,
+} from './hooks/useActivityDraftModelPage';
 export type {
   UseActivityModelsOptions,
   UseActivityModelsState,
@@ -1317,12 +1338,19 @@ export {
   getSchoolYearOptionsFromUserData,
   getClassOptionsFromUserData,
   buildUserFilterData,
+  mergeFilterOptions,
 } from './utils/filterHelpers';
 export type {
   UserInstitutionData,
   SubTeacherTopicClassData,
   UserFilterSourceData,
 } from './utils/filterHelpers';
+
+// Draft Model Filter Helpers
+export { createDraftsModelsFiltersConfig } from './utils/draftModelFilterHelpers';
+
+// Pagination Types
+export type { PaginationData } from './types/pagination';
 
 // Chat Hooks
 export { useChat, createUseChat, WS_STATES } from './hooks/useChat';
@@ -1822,7 +1850,6 @@ export {
   transformExamToTableItem,
   handleExamFetchError,
   extractExamFilterOptions,
-  mergeExamFilterOptions,
   DEFAULT_EXAMS_PAGINATION,
   DEFAULT_EXAM_FILTER_OPTIONS,
 } from './hooks/useExamsHistory';
