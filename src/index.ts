@@ -1190,6 +1190,14 @@ export {
 } from './components/ActivityPageLayout';
 export type { ActivityPageLayoutProps } from './components/ActivityPageLayout';
 
+// Unified History Page Component
+export { UnifiedHistoryPage } from './components/UnifiedHistoryPage';
+export type { UnifiedHistoryPageProps } from './components/UnifiedHistoryPage';
+
+// Unified Draft Model Page Component
+export { UnifiedDraftModelPage } from './components/UnifiedDraftModelPage';
+export type { UnifiedDraftModelPageProps } from './components/UnifiedDraftModelPage';
+
 // Activities History Hook Factory
 export {
   createUseActivitiesHistory,
@@ -1227,6 +1235,13 @@ export {
   transformModelToTableItem,
   DEFAULT_MODELS_PAGINATION,
 } from './hooks/useActivityModels';
+
+// Activity Draft Model Page Hook (shared logic for drafts/models pages)
+export { useActivityDraftModelPage } from './hooks/useActivityDraftModelPage';
+export type {
+  UseActivityDraftModelPageOptions,
+  UseActivityDraftModelPageReturn,
+} from './hooks/useActivityDraftModelPage';
 export type {
   UseActivityModelsOptions,
   UseActivityModelsState,
