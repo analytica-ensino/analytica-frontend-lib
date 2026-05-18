@@ -197,6 +197,22 @@ jest.mock('../TypeSelector/TypeSelector.types', () => ({
   createActivityCategoryConfig: jest.fn(() => ({})),
 }));
 
+jest.mock('../ActivityPageLayout/ActivityPageLayout', () => ({
+  ActivityTab: {
+    HISTORY: 'historico',
+    DRAFTS: 'rascunhos',
+    MODELS: 'modelos',
+  },
+}));
+
+jest.mock('../ExamPageLayout/ExamPageLayout', () => ({
+  ExamTab: {
+    HISTORY: 'historico',
+    DRAFTS: 'rascunhos',
+    MODELS: 'modelos',
+  },
+}));
+
 describe('UnifiedDraftModelPage', () => {
   const mockOnDelete = jest.fn();
   const mockOnSend = jest.fn();

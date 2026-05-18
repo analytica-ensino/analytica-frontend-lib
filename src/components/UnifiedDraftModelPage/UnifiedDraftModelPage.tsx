@@ -9,6 +9,8 @@ import TypeSelector from '../TypeSelector/TypeSelector';
 import { createActivityCategoryConfig } from '../TypeSelector/TypeSelector.types';
 import type { ActivityModelTableItem } from '../../types/activitiesHistory';
 import { useActivityDraftModelPage } from '../../hooks/useActivityDraftModelPage';
+import { ActivityTab } from '../ActivityPageLayout/ActivityPageLayout';
+import { ExamTab } from '../ExamPageLayout/ExamPageLayout';
 
 /**
  * Unified page component for Activity/Exam Drafts and Models
@@ -96,13 +98,16 @@ export const UnifiedDraftModelPage = ({
     (tab: string) => {
       const currentRoutes = routes[activityCategory];
       switch (tab) {
-        case 'historico': // ActivityTab.HISTORY / ExamTab.HISTORY
+        case ActivityTab.HISTORY:
+        case ExamTab.HISTORY:
           navigate(currentRoutes.base);
           break;
-        case 'rascunhos': // ActivityTab.DRAFTS / ExamTab.DRAFTS
+        case ActivityTab.DRAFTS:
+        case ExamTab.DRAFTS:
           navigate(`${currentRoutes.base}/rascunhos`);
           break;
-        case 'modelos': // ActivityTab.MODELS / ExamTab.MODELS
+        case ActivityTab.MODELS:
+        case ExamTab.MODELS:
           navigate(`${currentRoutes.base}/modelos`);
           break;
         default:
