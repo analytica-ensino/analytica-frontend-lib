@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'phosphor-react';
 import { PAGE_CONFIG, getPageLayout } from './config';
@@ -8,16 +8,11 @@ import { AlertDialog } from '../AlertDialog/AlertDialog';
 import TypeSelector from '../TypeSelector/TypeSelector';
 import { createActivityCategoryConfig } from '../TypeSelector/TypeSelector.types';
 import type { ActivityModelTableItem } from '../../types/activitiesHistory';
-import { createExamDraftsModelsTableColumns } from '../ExamPageLayout/examDraftsModelsTableConfig';
-import {
-  getSubjectOptionsFromUserData,
-  mergeFilterOptions,
-} from '../../utils/filterHelpers';
-import { createDraftsModelsFiltersConfig } from '../../utils/draftModelFilterHelpers';
+import { useActivityDraftModelPage } from '../../hooks/useActivityDraftModelPage';
 
 /**
  * Unified page component for Activity/Exam Drafts and Models
- * Encapsulates all common logic between drafts and models pages
+ * Delegates most logic to useActivityDraftModelPage hook
  */
 export const UnifiedDraftModelPage = ({
   type,
@@ -37,11 +32,6 @@ export const UnifiedDraftModelPage = ({
   const navigate = useNavigate();
   const config = PAGE_CONFIG[activityCategory][type];
   const PageLayout = getPageLayout(activityCategory);
-
-  // Delete dialog state
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [itemToDeleteId, setItemToDeleteId] = useState<string | null>(null);
-  const [itemToDeleteTitle, setItemToDeleteTitle] = useState<string>('');
 
   /**
    * TypeSelector config with proper labels, routes, and status options
@@ -66,101 +56,40 @@ export const UnifiedDraftModelPage = ({
     [data]
   );
 
-  // Initial filter configuration: merge userData subjects + subjects from API response
-  const initialFilterConfigs = useMemo(
-    () =>
-      createDraftsModelsFiltersConfig(
-        mergeFilterOptions(
-          getSubjectOptionsFromUserData(userData),
-          apiSubjectOptions
-        )
-      ),
-    [userData, apiSubjectOptions]
-  );
+  // Use shared hook for state and handlers
+  const {
+    isDeleteDialogOpen,
+    setIsDeleteDialogOpen,
+    itemToDeleteTitle,
+    initialFilterConfigs,
+    tableColumns,
+    handleConfirmDelete: hookHandleConfirmDelete,
+    handleParamsChange,
+    handleCreateActivity,
+    handleRowClick,
+  } = useActivityDraftModelPage({
+    activityCategory,
+    fetchFn: onParamsChange,
+    deleteFn: onDelete,
+    userData,
+    apiSubjectOptions,
+    openSendModal: onSend || (() => {}),
+    editUrlType: config.editUrlType,
+    errorLogLabel: config.errorLogLabel,
+    routes: routes[activityCategory],
+  });
 
-  /**
-   * Handle delete button click
-   */
-  const handleDelete = useCallback((row: ActivityModelTableItem) => {
-    setItemToDeleteId(row.id);
-    setItemToDeleteTitle(row.title);
-    setIsDeleteDialogOpen(true);
-  }, []);
-
-  /**
-   * Handle confirm delete action
-   */
+  // Wrap hook's handleConfirmDelete to close dialog on success
   const handleConfirmDelete = useCallback(async () => {
-    if (!itemToDeleteId) return;
-
-    try {
-      const result = await onDelete(itemToDeleteId);
-      // Only close dialog if onDelete returns true or void (undefined)
-      // If it returns false, keep dialog open to allow retry
-      if (result !== false) {
-        setIsDeleteDialogOpen(false);
-        setItemToDeleteId(null);
-        setItemToDeleteTitle('');
-      }
-    } catch (err) {
-      console.error(`Erro ao deletar ${config.errorLogLabel}:`, err);
-      // Keep dialog open on error to allow retry
-    }
-  }, [itemToDeleteId, onDelete, config.errorLogLabel]);
-
-  /**
-   * Handle edit button click
-   */
-  const handleEdit = useCallback(
-    (row: ActivityModelTableItem) => {
-      const currentRoutes = routes[activityCategory];
-      const editRoute =
-        type === 'drafts'
-          ? currentRoutes.editDraft?.(row.id)
-          : currentRoutes.editModel?.(row.id);
-      navigate(
-        editRoute ||
-          `${currentRoutes.create}?type=${config.editUrlType}&id=${row.id}`
-      );
-    },
-    [navigate, routes, type, config.editUrlType, activityCategory]
-  );
-
-  /**
-   * Handle send button click
-   */
-  const handleSend = useCallback(
-    (row: ActivityModelTableItem) => {
-      onSend?.(row);
-    },
-    [onSend]
-  );
-
-  /**
-   * Create table columns with action callbacks
-   */
-  const tableColumns = useMemo(
-    () =>
-      createExamDraftsModelsTableColumns({
-        onSend: handleSend,
-        onDelete: handleDelete,
-        onEdit: handleEdit,
-      }),
-    [handleSend, handleDelete, handleEdit]
-  );
-
-  /**
-   * Handle table params change
-   */
-  const handleParamsChange = useCallback(
-    (params: { page?: number; limit?: number; search?: string }) => {
-      onParamsChange(params);
-    },
-    [onParamsChange]
-  );
+    await hookHandleConfirmDelete();
+    // Hook's version calls deleteFn which may return false to keep dialog open
+    // If we reach here without error, the delete was successful, so close dialog
+    setIsDeleteDialogOpen(false);
+  }, [hookHandleConfirmDelete, setIsDeleteDialogOpen]);
 
   /**
    * Handle tab change - navigate to the corresponding page
+   * Component-specific: not provided by hook
    */
   const handleTabChange = useCallback(
     (tab: string) => {
@@ -182,31 +111,6 @@ export const UnifiedDraftModelPage = ({
       }
     },
     [navigate, routes, type, activityCategory]
-  );
-
-  /**
-   * Handle create activity button click
-   */
-  const handleCreateActivity = useCallback(() => {
-    navigate(routes[activityCategory].create);
-  }, [navigate, routes, activityCategory]);
-
-  /**
-   * Handle row click - navigate to edit item
-   */
-  const handleRowClick = useCallback(
-    (row: ActivityModelTableItem) => {
-      const currentRoutes = routes[activityCategory];
-      const editRoute =
-        type === 'drafts'
-          ? currentRoutes.editDraft?.(row.id)
-          : currentRoutes.editModel?.(row.id);
-      navigate(
-        editRoute ||
-          `${currentRoutes.create}?type=${config.editUrlType}&id=${row.id}`
-      );
-    },
-    [navigate, routes, type, config.editUrlType, activityCategory]
   );
 
   // Build layout props dynamically

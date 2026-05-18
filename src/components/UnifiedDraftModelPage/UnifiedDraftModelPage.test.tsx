@@ -68,6 +68,15 @@ interface MockPageLayoutProps {
   headerRightContent?: React.ReactNode;
   loading?: boolean;
   error?: Error | null;
+  pageTitle?: string;
+  emptyState?: React.ReactNode;
+  noSearchImage?: string;
+  pagination?: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }
 
 const MockActivityPageLayout = jest.fn(
@@ -76,8 +85,10 @@ const MockActivityPageLayout = jest.fn(
     onParamsChange,
     onRowClick,
     onCreateActivity,
+    headerRightContent,
   }: MockPageLayoutProps) => (
     <div data-testid="activity-page-layout">
+      {headerRightContent}
       <div data-testid="data-count">{data.length}</div>
       <button onClick={() => onParamsChange({ page: 2 })}>Change Params</button>
       <button onClick={() => onRowClick(data[0])}>Click Row</button>
@@ -87,8 +98,15 @@ const MockActivityPageLayout = jest.fn(
 );
 
 const MockExamPageLayout = jest.fn(
-  ({ data, onParamsChange, onRowClick, onCreateExam }: MockPageLayoutProps) => (
+  ({
+    data,
+    onParamsChange,
+    onRowClick,
+    onCreateExam,
+    headerRightContent,
+  }: MockPageLayoutProps) => (
     <div data-testid="exam-page-layout">
+      {headerRightContent}
       <div data-testid="data-count">{data.length}</div>
       <button onClick={() => onParamsChange({ page: 2 })}>Change Params</button>
       <button onClick={() => onRowClick(data[0])}>Click Row</button>
@@ -344,6 +362,253 @@ describe('UnifiedDraftModelPage', () => {
           MockActivityPageLayout.mock.calls.length - 1
         ];
       expect(lastCall[0].error).toBe(errorMessage);
+    });
+  });
+
+  describe('page type variations', () => {
+    it('should render models page for type="models"', () => {
+      render(<UnifiedDraftModelPage {...baseProps} type="models" />);
+      expect(screen.getByTestId('activity-page-layout')).toBeInTheDocument();
+    });
+
+    it('should use correct config for models page', () => {
+      render(<UnifiedDraftModelPage {...baseProps} type="models" />);
+      const lastCall =
+        MockActivityPageLayout.mock.calls[
+          MockActivityPageLayout.mock.calls.length - 1
+        ];
+      expect(lastCall[0].pageTitle).toBe('Modelos de Atividades');
+    });
+
+    it('should use correct config for drafts page', () => {
+      render(<UnifiedDraftModelPage {...baseProps} type="drafts" />);
+      const lastCall =
+        MockActivityPageLayout.mock.calls[
+          MockActivityPageLayout.mock.calls.length - 1
+        ];
+      expect(lastCall[0].pageTitle).toBe('Rascunhos de Atividades');
+    });
+  });
+
+  describe('exam category', () => {
+    it('should render exam drafts page correctly', () => {
+      render(
+        <UnifiedDraftModelPage
+          {...baseProps}
+          activityCategory="PROVA"
+          type="drafts"
+        />
+      );
+      expect(screen.getByTestId('exam-page-layout')).toBeInTheDocument();
+      const lastCall =
+        MockExamPageLayout.mock.calls[MockExamPageLayout.mock.calls.length - 1];
+      expect(lastCall[0].pageTitle).toBe('Rascunhos de Provas');
+    });
+
+    it('should render exam models page correctly', () => {
+      render(
+        <UnifiedDraftModelPage
+          {...baseProps}
+          activityCategory="PROVA"
+          type="models"
+        />
+      );
+      expect(screen.getByTestId('exam-page-layout')).toBeInTheDocument();
+      const lastCall =
+        MockExamPageLayout.mock.calls[MockExamPageLayout.mock.calls.length - 1];
+      expect(lastCall[0].pageTitle).toBe('Modelos de Provas');
+    });
+  });
+
+  describe('subject options extraction', () => {
+    it('should extract valid subject options from data', () => {
+      render(<UnifiedDraftModelPage {...baseProps} />);
+      // Component should filter and extract subjects with valid subjectId
+      expect(screen.getByTestId('activity-page-layout')).toBeInTheDocument();
+    });
+
+    it('should filter out items without subjectId', () => {
+      const dataWithMissingSubjects: ActivityModelTableItem[] = [
+        ...mockData,
+        {
+          id: '3',
+          title: 'No Subject ID',
+          savedAt: '2024-01-03',
+          type: ActivityType.ATIVIDADE,
+          subject: { id: '', name: 'Test', icon: 'test', color: 'blue' },
+          subjectId: null,
+        },
+      ];
+
+      render(
+        <UnifiedDraftModelPage {...baseProps} data={dataWithMissingSubjects} />
+      );
+      expect(screen.getByTestId('activity-page-layout')).toBeInTheDocument();
+    });
+
+    it('should filter out items with subject name as "-"', () => {
+      const dataWithDashSubject: ActivityModelTableItem[] = [
+        ...mockData,
+        {
+          id: '3',
+          title: 'Dash Subject',
+          savedAt: '2024-01-03',
+          type: ActivityType.ATIVIDADE,
+          subject: { id: 'sub-3', name: '-', icon: 'none', color: 'gray' },
+          subjectId: 'sub-3',
+        },
+      ];
+
+      render(
+        <UnifiedDraftModelPage {...baseProps} data={dataWithDashSubject} />
+      );
+      expect(screen.getByTestId('activity-page-layout')).toBeInTheDocument();
+    });
+  });
+
+  describe('user data handling', () => {
+    it('should handle null userData', () => {
+      render(<UnifiedDraftModelPage {...baseProps} userData={null} />);
+      expect(screen.getByTestId('activity-page-layout')).toBeInTheDocument();
+    });
+
+    it('should handle userData with subjects', () => {
+      const userData = {
+        subTeacherTopicClasses: [
+          { subject: { id: '1', name: 'Matemática' } },
+          { subject: { id: '2', name: 'Português' } },
+        ],
+      };
+
+      render(<UnifiedDraftModelPage {...baseProps} userData={userData} />);
+      expect(screen.getByTestId('activity-page-layout')).toBeInTheDocument();
+    });
+
+    it('should handle empty userData', () => {
+      const userData = {
+        subTeacherTopicClasses: [],
+      };
+
+      render(<UnifiedDraftModelPage {...baseProps} userData={userData} />);
+      expect(screen.getByTestId('activity-page-layout')).toBeInTheDocument();
+    });
+  });
+
+  describe('empty state', () => {
+    it('should pass empty state to PageLayout when activityImage is provided', () => {
+      render(
+        <UnifiedDraftModelPage
+          {...baseProps}
+          activityImage="https://example.com/empty.png"
+        />
+      );
+
+      const lastCall =
+        MockActivityPageLayout.mock.calls[
+          MockActivityPageLayout.mock.calls.length - 1
+        ];
+      expect(lastCall[0].emptyState).toBeDefined();
+    });
+
+    it('should not pass empty state when activityImage is not provided', () => {
+      render(<UnifiedDraftModelPage {...baseProps} />);
+
+      const lastCall =
+        MockActivityPageLayout.mock.calls[
+          MockActivityPageLayout.mock.calls.length - 1
+        ];
+      expect(lastCall[0].emptyState).toBeUndefined();
+    });
+
+    it('should pass noSearchImage to PageLayout', () => {
+      render(
+        <UnifiedDraftModelPage
+          {...baseProps}
+          noSearchImage="https://example.com/no-search.png"
+        />
+      );
+
+      const lastCall =
+        MockActivityPageLayout.mock.calls[
+          MockActivityPageLayout.mock.calls.length - 1
+        ];
+      expect(lastCall[0].noSearchImage).toBe(
+        'https://example.com/no-search.png'
+      );
+    });
+  });
+
+  describe('pagination', () => {
+    it('should pass pagination to PageLayout', () => {
+      const pagination = {
+        total: 50,
+        page: 2,
+        limit: 20,
+        totalPages: 3,
+      };
+
+      render(<UnifiedDraftModelPage {...baseProps} pagination={pagination} />);
+
+      const lastCall =
+        MockActivityPageLayout.mock.calls[
+          MockActivityPageLayout.mock.calls.length - 1
+        ];
+      expect(lastCall[0].pagination).toEqual(pagination);
+    });
+  });
+
+  describe('optional callbacks', () => {
+    it('should handle missing onSend callback', () => {
+      const propsWithoutOnSend = {
+        ...baseProps,
+        onSend: undefined,
+      };
+
+      render(<UnifiedDraftModelPage {...propsWithoutOnSend} />);
+      expect(screen.getByTestId('activity-page-layout')).toBeInTheDocument();
+    });
+  });
+
+  describe('route configuration', () => {
+    it('should use provided routes for activity category', () => {
+      render(<UnifiedDraftModelPage {...baseProps} />);
+      expect(screen.getByTestId('activity-page-layout')).toBeInTheDocument();
+    });
+
+    it('should use provided routes for exam category', () => {
+      render(<UnifiedDraftModelPage {...baseProps} activityCategory="PROVA" />);
+      expect(screen.getByTestId('exam-page-layout')).toBeInTheDocument();
+    });
+  });
+
+  describe('type selector', () => {
+    it('should render TypeSelector in header', () => {
+      render(<UnifiedDraftModelPage {...baseProps} />);
+      expect(screen.getByTestId('type-selector')).toBeInTheDocument();
+    });
+
+    it('should configure TypeSelector with routes', () => {
+      render(<UnifiedDraftModelPage {...baseProps} />);
+      const typeSelector = screen.getByTestId('type-selector');
+      expect(typeSelector).toBeInTheDocument();
+    });
+  });
+
+  describe('data handling', () => {
+    it('should handle empty data array', () => {
+      render(<UnifiedDraftModelPage {...baseProps} data={[]} />);
+      expect(screen.getByTestId('activity-page-layout')).toBeInTheDocument();
+      expect(screen.getByTestId('data-count')).toHaveTextContent('0');
+    });
+
+    it('should pass all data items to PageLayout', () => {
+      render(<UnifiedDraftModelPage {...baseProps} />);
+
+      const lastCall =
+        MockActivityPageLayout.mock.calls[
+          MockActivityPageLayout.mock.calls.length - 1
+        ];
+      expect(lastCall[0].data).toEqual(mockData);
     });
   });
 });

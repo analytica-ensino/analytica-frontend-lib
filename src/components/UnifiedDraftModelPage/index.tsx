@@ -1,2 +1,2 @@
 export { UnifiedDraftModelPage } from './UnifiedDraftModelPage';
-export type { UnifiedDraftModelPageProps } from './types';
+export type { UnifiedDraftModelPageProps, UserData } from './types';

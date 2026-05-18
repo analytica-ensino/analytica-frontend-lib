@@ -1192,11 +1192,18 @@ export type { ActivityPageLayoutProps } from './components/ActivityPageLayout';
 
 // Unified History Page Component
 export { UnifiedHistoryPage } from './components/UnifiedHistoryPage';
-export type { UnifiedHistoryPageProps } from './components/UnifiedHistoryPage';
+export type {
+  UnifiedHistoryPageProps,
+  UserData as UnifiedHistoryPageUserData,
+  ApiFilterOptions as UnifiedHistoryPageApiFilterOptions,
+} from './components/UnifiedHistoryPage';
 
 // Unified Draft Model Page Component
 export { UnifiedDraftModelPage } from './components/UnifiedDraftModelPage';
-export type { UnifiedDraftModelPageProps } from './components/UnifiedDraftModelPage';
+export type {
+  UnifiedDraftModelPageProps,
+  UserData as UnifiedDraftModelPageUserData,
+} from './components/UnifiedDraftModelPage';
 
 // Activities History Hook Factory
 export {
