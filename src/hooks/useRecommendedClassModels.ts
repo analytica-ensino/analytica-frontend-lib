@@ -33,7 +33,7 @@ const recommendedClassModelResponseSchema = z.object({
   activityDrafts: z
     .array(
       z.object({
-        activityDraftId: z.string().uuid(),
+        activityDraftId: z.uuid(),
         sequence: z.number(),
         title: z.string().nullable().optional(),
       })
