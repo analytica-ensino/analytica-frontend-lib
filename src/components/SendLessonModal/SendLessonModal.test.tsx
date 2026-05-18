@@ -838,12 +838,18 @@ describe('SendLessonModal', () => {
     it('should render null for invalid step', () => {
       render(<SendLessonModal {...defaultProps} />);
 
-      // Force store to invalid step
-      const store = useSendLessonModalStore.getState();
-      store.goToStep(5);
+      // Bypass goToStep guard (it clamps to 1..3) by writing directly into
+      // the store, forcing the switch default branch in renderStepContent.
+      act(() => {
+        useSendLessonModalStore.setState({ currentStep: 5 });
+      });
 
-      // Re-render won't show any step content (but modal still shows)
+      // Modal chrome still renders, but no step-specific content is visible.
       expect(screen.getByText('Enviar aula recomendada')).toBeInTheDocument();
+      expect(
+        screen.queryByPlaceholderText('Digite o título da aula')
+      ).not.toBeInTheDocument();
+      expect(screen.queryByText('Iniciar em*')).not.toBeInTheDocument();
     });
   });
 
