@@ -81,10 +81,11 @@ export const UnifiedDraftModelPage = ({
 
   // Wrap hook's handleConfirmDelete to close dialog on success
   const handleConfirmDelete = useCallback(async () => {
-    await hookHandleConfirmDelete();
-    // Hook's version calls deleteFn which may return false to keep dialog open
-    // If we reach here without error, the delete was successful, so close dialog
-    setIsDeleteDialogOpen(false);
+    const success = await hookHandleConfirmDelete();
+    // Only close dialog if delete was successful
+    if (success) {
+      setIsDeleteDialogOpen(false);
+    }
   }, [hookHandleConfirmDelete, setIsDeleteDialogOpen]);
 
   /**

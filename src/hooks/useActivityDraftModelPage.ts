@@ -59,11 +59,12 @@ export interface UseActivityDraftModelPageReturn {
   handleSend: (row: ActivityModelTableItem) => void;
   handleDelete: (row: ActivityModelTableItem) => void;
   handleEdit: (row: ActivityModelTableItem) => void;
-  handleConfirmDelete: () => Promise<void>;
+  handleConfirmDelete: () => Promise<boolean>;
   handleParamsChange: (params: {
     page?: number;
     limit?: number;
     search?: string;
+    subjectId?: string;
   }) => void;
   handleCreateActivity: () => void;
   handleRowClick: (row: ActivityModelTableItem) => void;
@@ -154,15 +155,18 @@ export const useActivityDraftModelPage = ({
 
   /**
    * Handle confirm delete action
+   * @returns true if delete was successful, false otherwise
    */
-  const handleConfirmDelete = useCallback(async () => {
-    if (!itemToDeleteId) return;
+  const handleConfirmDelete = useCallback(async (): Promise<boolean> => {
+    if (!itemToDeleteId) return false;
 
     try {
       await deleteFn(itemToDeleteId);
       await fetchFn(currentParams);
+      return true;
     } catch (err) {
       console.error(`Erro ao deletar ${errorLogLabel}:`, err);
+      return false;
     }
   }, [itemToDeleteId, deleteFn, fetchFn, currentParams, errorLogLabel]);
 
@@ -183,11 +187,17 @@ export const useActivityDraftModelPage = ({
    * Handle table params change
    */
   const handleParamsChange = useCallback(
-    (params: { page?: number; limit?: number; search?: string }) => {
+    (params: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      subjectId?: string;
+    }) => {
       const filters = {
         page: params.page || 1,
         limit: params.limit || 10,
         search: params.search,
+        subjectId: params.subjectId,
       };
       setCurrentParams(filters);
       fetchFn(filters);
