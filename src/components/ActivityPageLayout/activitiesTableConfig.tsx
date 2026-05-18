@@ -6,17 +6,10 @@ import { mapSubjectNameToEnum } from '../../utils/subjectMappers';
 import type { ColumnConfig } from '../TableProvider/TableProvider';
 import { CaretRight } from 'phosphor-react';
 import type { ActivityTableItem } from '../../types/activitiesHistory';
-import { ActivityDisplayStatus } from '../../types/activitiesHistory';
-
-/**
- * Badge action type for activity status
- */
-export enum ActivityBadgeActionType {
-  SUCCESS = 'success',
-  WARNING = 'warning',
-  ERROR = 'error',
-  INFO = 'info',
-}
+import {
+  ActivityDisplayStatus,
+  ActivityBadgeActionType,
+} from '../../types/activitiesHistory';
 
 /**
  * Get badge action based on activity status

@@ -1332,6 +1332,7 @@ export {
   getSchoolYearOptionsFromUserData,
   getClassOptionsFromUserData,
   buildUserFilterData,
+  mergeFilterOptions,
 } from './utils/filterHelpers';
 export type {
   UserInstitutionData,

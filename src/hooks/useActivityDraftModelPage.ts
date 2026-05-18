@@ -8,71 +8,18 @@ import type {
   TypeRoutes,
 } from '../components/TypeSelector/TypeSelector.types';
 import { createExamDraftsModelsTableColumns } from '../components/ExamPageLayout/examDraftsModelsTableConfig';
-
-/**
- * Filter option type
- */
-interface FilterOption {
-  id: string;
-  name: string;
-  [key: string]: unknown;
-}
-
-/**
- * User data type for filter options
- */
-interface UserData {
-  subTeacherTopicClasses?: Array<{
-    subject?: { id: string; name: string };
-  }>;
-}
-
-/**
- * Merge two filter option arrays, deduplicating by ID
- */
-const mergeFilterOptions = (
-  base: FilterOption[],
-  extra: FilterOption[]
-): FilterOption[] => {
-  if (extra.length === 0) return base;
-  const baseIds = new Set(base.map((item) => item.id));
-  const hasNew = extra.some((item) => !baseIds.has(item.id));
-  if (!hasNew) return base;
-  const map = new Map(base.map((item) => [item.id, item.name] as const));
-  extra.forEach((item) => {
-    if (!map.has(item.id)) map.set(item.id, item.name);
-  });
-  return Array.from(map.entries())
-    .map(([id, name]) => ({ id, name }))
-    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
-};
-
-/**
- * Extract subject options from user data
- */
-const getSubjectOptions = (userData: UserData | null): FilterOption[] => {
-  if (!userData?.subTeacherTopicClasses) {
-    return [];
-  }
-
-  const subjectsMap = new Map<string, string>();
-
-  for (const subTeacher of userData.subTeacherTopicClasses) {
-    if (subTeacher.subject?.id && subTeacher.subject?.name) {
-      subjectsMap.set(subTeacher.subject.id, subTeacher.subject.name);
-    }
-  }
-
-  return Array.from(subjectsMap.entries())
-    .map(([id, name]) => ({ id, name }))
-    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
-};
+import {
+  getSubjectOptionsFromUserData,
+  mergeFilterOptions,
+  type UserFilterSourceData,
+} from '../utils/filterHelpers';
+import type { ActivityFilterOption } from '../types/activitiesHistory';
 
 /**
  * Create filter configuration for drafts/models
  */
 const createDraftsModelsFiltersConfig = (
-  subjectOptions: FilterOption[]
+  subjectOptions: ActivityFilterOption[]
 ): FilterConfig[] => [
   {
     key: 'content',
@@ -104,9 +51,9 @@ export interface UseActivityDraftModelPageOptions {
   /** Function to delete an item by id */
   deleteFn: (id: string) => Promise<void> | Promise<boolean>;
   /** User data for filter options */
-  userData: UserData | null;
+  userData: UserFilterSourceData | null;
   /** Subject options from API response */
-  apiSubjectOptions: FilterOption[];
+  apiSubjectOptions: ActivityFilterOption[];
   /** Function to open the send activity modal */
   openSendModal: (row: ActivityModelTableItem) => void;
   /** URL type segment used in edit/row-click navigation */
@@ -178,7 +125,10 @@ export const useActivityDraftModelPage = ({
   const initialFilterConfigs = useMemo(
     () =>
       createDraftsModelsFiltersConfig(
-        mergeFilterOptions(getSubjectOptions(userData), apiSubjectOptions)
+        mergeFilterOptions(
+          getSubjectOptionsFromUserData(userData),
+          apiSubjectOptions
+        )
       ),
     [userData, apiSubjectOptions]
   );

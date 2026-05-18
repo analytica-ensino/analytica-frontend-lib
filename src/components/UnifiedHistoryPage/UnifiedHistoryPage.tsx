@@ -8,104 +8,26 @@ import TypeSelector from '../TypeSelector/TypeSelector';
 import { createActivityCategoryConfig } from '../TypeSelector/TypeSelector.types';
 import type { FilterConfig } from '../Filter';
 import type { TableParams } from '../TableProvider/TableProvider';
-import type { ActivityTableItem } from '../../types/activitiesHistory';
+import type {
+  ActivityTableItem,
+  ActivityFilterOption,
+} from '../../types/activitiesHistory';
 import type { ExamTableItem } from '../../types/examsHistory';
-
-/**
- * Filter option type
- */
-interface FilterOption {
-  id: string;
-  name: string;
-  [key: string]: unknown;
-}
+import {
+  getSchoolOptionsFromUserData,
+  getSchoolYearOptionsFromUserData,
+  getClassOptionsFromUserData,
+  getSubjectOptionsFromUserData,
+  mergeFilterOptions,
+} from '../../utils/filterHelpers';
 
 /**
  * Creator type filter options (for managers only)
  */
-const CREATOR_TYPE_OPTIONS: FilterOption[] = [
+const CREATOR_TYPE_OPTIONS: ActivityFilterOption[] = [
   { id: 'own', name: 'Minhas' },
   { id: 'teachers', name: 'Dos Professores' },
 ];
-
-/**
- * Extract filter options from user data
- */
-const extractFilterOptions = (
-  userData: {
-    userInstitutions?: Array<{
-      school?: { id: string; name: string } | null;
-      schoolYear?: { id: string; name: string } | null;
-      class?: { id: string; name: string } | null;
-    }>;
-    subTeacherTopicClasses?: Array<{
-      subject?: { id: string; name: string } | null;
-      class?: { id: string; name: string } | null;
-    }>;
-  } | null
-) => {
-  const schoolsMap = new Map<string, string>();
-  const schoolYearsMap = new Map<string, string>();
-  const classesMap = new Map<string, string>();
-  const subjectsMap = new Map<string, string>();
-
-  if (userData?.userInstitutions) {
-    for (const userInst of userData.userInstitutions) {
-      if (userInst.school?.id && userInst.school?.name) {
-        schoolsMap.set(userInst.school.id, userInst.school.name);
-      }
-      if (userInst.schoolYear?.id && userInst.schoolYear?.name) {
-        schoolYearsMap.set(userInst.schoolYear.id, userInst.schoolYear.name);
-      }
-      if (userInst.class?.id && userInst.class?.name) {
-        classesMap.set(userInst.class.id, userInst.class.name);
-      }
-    }
-  }
-
-  if (userData?.subTeacherTopicClasses) {
-    for (const subTeacher of userData.subTeacherTopicClasses) {
-      if (subTeacher.subject?.id && subTeacher.subject?.name) {
-        subjectsMap.set(subTeacher.subject.id, subTeacher.subject.name);
-      }
-      if (subTeacher.class?.id && subTeacher.class?.name) {
-        classesMap.set(subTeacher.class.id, subTeacher.class.name);
-      }
-    }
-  }
-
-  const toOptions = (map: Map<string, string>): FilterOption[] =>
-    Array.from(map.entries())
-      .map(([id, name]) => ({ id, name }))
-      .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
-
-  return {
-    schools: toOptions(schoolsMap),
-    schoolYears: toOptions(schoolYearsMap),
-    classes: toOptions(classesMap),
-    subjects: toOptions(subjectsMap),
-  };
-};
-
-/**
- * Merge two filter option arrays, deduplicating by ID
- */
-const mergeFilterOptions = (
-  base: FilterOption[],
-  extra: FilterOption[]
-): FilterOption[] => {
-  if (extra.length === 0) return base;
-  const baseIds = new Set(base.map((item) => item.id));
-  const hasNew = extra.some((item) => !baseIds.has(item.id));
-  if (!hasNew) return base;
-  const map = new Map(base.map((item) => [item.id, item.name] as const));
-  extra.forEach((item) => {
-    if (!map.has(item.id)) map.set(item.id, item.name);
-  });
-  return Array.from(map.entries())
-    .map(([id, name]) => ({ id, name }))
-    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
-};
 
 /**
  * Unified page component for Activities and Exams History
@@ -131,7 +53,12 @@ export const UnifiedHistoryPage = ({
 
   // Extract user filter options
   const userFilterOptions = useMemo(
-    () => extractFilterOptions(userData),
+    () => ({
+      schools: getSchoolOptionsFromUserData(userData),
+      schoolYears: getSchoolYearOptionsFromUserData(userData),
+      classes: getClassOptionsFromUserData(userData),
+      subjects: getSubjectOptionsFromUserData(userData),
+    }),
     [userData]
   );
 

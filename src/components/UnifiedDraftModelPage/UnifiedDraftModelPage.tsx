@@ -7,71 +7,22 @@ import EmptyState from '../EmptyState/EmptyState';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import TypeSelector from '../TypeSelector/TypeSelector';
 import { createActivityCategoryConfig } from '../TypeSelector/TypeSelector.types';
-import type { ActivityModelTableItem } from '../../types/activitiesHistory';
+import type {
+  ActivityModelTableItem,
+  ActivityFilterOption,
+} from '../../types/activitiesHistory';
 import { createExamDraftsModelsTableColumns } from '../ExamPageLayout/examDraftsModelsTableConfig';
 import type { FilterConfig } from '../Filter';
-
-/**
- * Filter option type
- */
-interface FilterOption {
-  id: string;
-  name: string;
-  [key: string]: unknown;
-}
-
-/**
- * Extract subject options from user data
- */
-const getSubjectOptions = (
-  userData: {
-    subTeacherTopicClasses?: Array<{
-      subject?: { id: string; name: string } | null;
-    }>;
-  } | null
-): FilterOption[] => {
-  if (!userData?.subTeacherTopicClasses) {
-    return [];
-  }
-
-  const subjectsMap = new Map<string, string>();
-
-  for (const subTeacher of userData.subTeacherTopicClasses) {
-    if (subTeacher.subject?.id && subTeacher.subject?.name) {
-      subjectsMap.set(subTeacher.subject.id, subTeacher.subject.name);
-    }
-  }
-
-  return Array.from(subjectsMap.entries())
-    .map(([id, name]) => ({ id, name }))
-    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
-};
-
-/**
- * Merge two filter option arrays, deduplicating by ID
- */
-const mergeFilterOptions = (
-  base: FilterOption[],
-  extra: FilterOption[]
-): FilterOption[] => {
-  if (extra.length === 0) return base;
-  const baseIds = new Set(base.map((item) => item.id));
-  const hasNew = extra.some((item) => !baseIds.has(item.id));
-  if (!hasNew) return base;
-  const map = new Map(base.map((item) => [item.id, item.name] as const));
-  extra.forEach((item) => {
-    if (!map.has(item.id)) map.set(item.id, item.name);
-  });
-  return Array.from(map.entries())
-    .map(([id, name]) => ({ id, name }))
-    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
-};
+import {
+  getSubjectOptionsFromUserData,
+  mergeFilterOptions,
+} from '../../utils/filterHelpers';
 
 /**
  * Create filter configuration for drafts/models
  */
 const createDraftsModelsFiltersConfig = (
-  subjectOptions: FilterOption[]
+  subjectOptions: ActivityFilterOption[]
 ): FilterConfig[] => [
   {
     key: 'content',
@@ -142,7 +93,10 @@ export const UnifiedDraftModelPage = ({
   const initialFilterConfigs = useMemo(
     () =>
       createDraftsModelsFiltersConfig(
-        mergeFilterOptions(getSubjectOptions(userData), apiSubjectOptions)
+        mergeFilterOptions(
+          getSubjectOptionsFromUserData(userData),
+          apiSubjectOptions
+        )
       ),
     [userData, apiSubjectOptions]
   );
