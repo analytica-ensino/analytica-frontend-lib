@@ -1144,6 +1144,8 @@ const RecommendedLessonCreate = ({
           targetStudentIds: formData.students.map((s) => s.userInstitutionId),
           // Send notification as separate field (backend expects "notification")
           ...(formData.notification && { notification: formData.notification }),
+          // Forward retry flag — only meaningful when activityDraftIds is set.
+          canRetry: formData.canRetry ?? false,
         };
 
         // POST: Create recommended lesson
@@ -1416,6 +1418,9 @@ const RecommendedLessonCreate = ({
         categories={categories}
         onCategoriesChange={handleCategoriesChange}
         isLoading={isSendingLesson}
+        hasAttachedActivities={
+          (recommendedLesson?.activityDraftIds?.length ?? 0) > 0
+        }
         onError={(error) => {
           console.error('Error sending lesson:', error);
           const errorMessage =
