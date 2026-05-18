@@ -234,19 +234,42 @@ describe('useActivityDraftModelPage', () => {
       });
     });
 
-    it('should not call deleteFn if no item is selected', async () => {
+    it('should return true on successful delete', async () => {
+      mockDeleteFn.mockResolvedValue(true);
+
       const { result } = renderHook(() =>
         useActivityDraftModelPage(baseOptions)
       );
 
+      const mockRow = createMockRow();
+
+      act(() => {
+        result.current.handleDelete(mockRow);
+      });
+
+      let success = false;
       await act(async () => {
-        await result.current.handleConfirmDelete();
+        success = await result.current.handleConfirmDelete();
+      });
+
+      expect(success).toBe(true);
+    });
+
+    it('should return false when no item is selected', async () => {
+      const { result } = renderHook(() =>
+        useActivityDraftModelPage(baseOptions)
+      );
+
+      let success = true;
+      await act(async () => {
+        success = await result.current.handleConfirmDelete();
       });
 
       expect(mockDeleteFn).not.toHaveBeenCalled();
+      expect(success).toBe(false);
     });
 
-    it('should handle delete error', async () => {
+    it('should return false and log error on delete failure', async () => {
       const consoleErrorSpy = jest
         .spyOn(console, 'error')
         .mockImplementation(() => {});
@@ -262,14 +285,16 @@ describe('useActivityDraftModelPage', () => {
         result.current.handleDelete(mockRow);
       });
 
+      let success = true;
       await act(async () => {
-        await result.current.handleConfirmDelete();
+        success = await result.current.handleConfirmDelete();
       });
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         'Erro ao deletar rascunho:',
         expect.any(Error)
       );
+      expect(success).toBe(false);
 
       consoleErrorSpy.mockRestore();
     });
@@ -293,6 +318,7 @@ describe('useActivityDraftModelPage', () => {
         page: 2,
         limit: 20,
         search: 'test',
+        subjectId: undefined,
       });
     });
 
@@ -309,6 +335,56 @@ describe('useActivityDraftModelPage', () => {
         page: 1,
         limit: 10,
         search: undefined,
+        subjectId: undefined,
+      });
+    });
+
+    it('should include subjectId in params when provided', () => {
+      const { result } = renderHook(() =>
+        useActivityDraftModelPage(baseOptions)
+      );
+
+      act(() => {
+        result.current.handleParamsChange({
+          page: 1,
+          limit: 10,
+          subjectId: 'sub-123',
+        });
+      });
+
+      expect(mockFetchFn).toHaveBeenCalledWith({
+        page: 1,
+        limit: 10,
+        search: undefined,
+        subjectId: 'sub-123',
+      });
+    });
+
+    it('should preserve subjectId when changing other params', () => {
+      const { result } = renderHook(() =>
+        useActivityDraftModelPage(baseOptions)
+      );
+
+      act(() => {
+        result.current.handleParamsChange({
+          page: 1,
+          limit: 10,
+          subjectId: 'math-101',
+        });
+      });
+
+      act(() => {
+        result.current.handleParamsChange({
+          page: 2,
+          search: 'algebra',
+        });
+      });
+
+      expect(mockFetchFn).toHaveBeenLastCalledWith({
+        page: 2,
+        limit: 10,
+        search: 'algebra',
+        subjectId: undefined,
       });
     });
   });
