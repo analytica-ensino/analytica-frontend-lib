@@ -1,37 +1,15 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'phosphor-react';
 import { PAGE_CONFIG, getPageLayout } from './config';
 import type { UnifiedDraftModelPageProps } from './types';
 import EmptyState from '../EmptyState/EmptyState';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
-import { SendActivityModal } from '../SendActivityModal';
 import TypeSelector from '../TypeSelector/TypeSelector';
-import { createUseActivityDrafts } from '../../hooks/useActivityDrafts';
-import { createUseActivityModels } from '../../hooks/useActivityModels';
-import { useSendActivity } from '../../hooks/useSendActivity';
-import { useActivityDraftModelPage } from '../../hooks/useActivityDraftModelPage';
+import { createActivityCategoryConfig } from '../TypeSelector/TypeSelector.types';
 import type { ActivityModelTableItem } from '../../types/activityDrafts';
-
-/**
- * Common hook return type for drafts and models
- */
-interface DraftModelHookResult {
-  drafts?: ActivityModelTableItem[];
-  models?: ActivityModelTableItem[];
-  loading: boolean;
-  error: string | null;
-  pagination: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
-  fetchDrafts?: (params: any) => Promise<void> | void;
-  fetchModels?: (params: any) => Promise<void> | void;
-  deleteDraft?: (id: string) => Promise<void> | Promise<boolean>;
-  deleteModel?: (id: string) => Promise<void> | Promise<boolean>;
-}
+import { createExamDraftsModelsTableColumns } from '../ExamPageLayout/examDraftsModelsTableConfig';
+import type { FilterConfig } from '../../types/filters';
 
 /**
  * Filter option type
@@ -63,12 +41,59 @@ const getSubjectOptions = (userData: any): FilterOption[] => {
 };
 
 /**
+ * Merge two filter option arrays, deduplicating by ID
+ */
+const mergeFilterOptions = (
+  base: FilterOption[],
+  extra: FilterOption[]
+): FilterOption[] => {
+  if (extra.length === 0) return base;
+  const baseIds = new Set(base.map((item) => item.id));
+  const hasNew = extra.some((item) => !baseIds.has(item.id));
+  if (!hasNew) return base;
+  const map = new Map(base.map((item) => [item.id, item.name] as const));
+  extra.forEach((item) => {
+    if (!map.has(item.id)) map.set(item.id, item.name);
+  });
+  return Array.from(map.entries())
+    .map(([id, name]) => ({ id, name }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+};
+
+/**
+ * Create filter configuration for drafts/models
+ */
+const createDraftsModelsFiltersConfig = (
+  subjectOptions: FilterOption[]
+): FilterConfig[] => [
+  {
+    key: 'content',
+    label: 'CONTEÚDO',
+    categories: [
+      {
+        key: 'subject',
+        label: 'Matéria',
+        selectedIds: [],
+        itens: subjectOptions,
+      },
+    ],
+  },
+];
+
+/**
  * Unified page component for Activity/Exam Drafts and Models
  * Encapsulates all common logic between drafts and models pages
  */
 export const UnifiedDraftModelPage = ({
   type,
   activityCategory,
+  data,
+  loading,
+  error,
+  pagination,
+  onDelete,
+  onSend,
+  onParamsChange,
   userData = null,
   activityImage,
   noSearchImage,
@@ -78,33 +103,18 @@ export const UnifiedDraftModelPage = ({
   const config = PAGE_CONFIG[activityCategory][type];
   const PageLayout = getPageLayout(activityCategory);
 
-  // Use the appropriate hook (drafts or models)
-  const useDraftsHook = useActivityDrafts({ activityCategory });
-  const useModelsHook = useActivityModels({ activityCategory });
+  // Delete dialog state
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [itemToDeleteId, setItemToDeleteId] = useState<string | null>(null);
+  const [itemToDeleteTitle, setItemToDeleteTitle] = useState<string>('');
 
-  const draftsResult = useDraftsHook();
-  const modelsResult = useModelsHook();
-
-  const hookResult = (
-    type === 'drafts' ? draftsResult : modelsResult
-  ) as DraftModelHookResult;
-  const data = hookResult[config.dataKey] as ActivityModelTableItem[];
-  const fetchFn = hookResult[config.fetchKey] as (params: any) => Promise<void> | void;
-  const deleteFn = hookResult[config.deleteKey] as (id: string) => Promise<void> | Promise<boolean>;
-  const { loading, error, pagination } = hookResult;
-
-  // Send activity modal hook
-  const {
-    isOpen: isSendModalOpen,
-    openModal: openSendModal,
-    closeModal: closeSendModal,
-    initialData: sendActivityInitialData,
-    categories: sendModalCategories,
-    onCategoriesChange,
-    isLoading: isSendLoading,
-    isCategoriesLoading,
-    handleSubmit: handleSendActivitySubmit,
-  } = useSendActivity();
+  /**
+   * TypeSelector config with proper labels, routes, and status options
+   */
+  const typeSelectorConfig = useMemo(
+    () => createActivityCategoryConfig(routes),
+    [routes]
+  );
 
   // Extract subject options from fetched data
   const apiSubjectOptions = useMemo(
@@ -121,51 +131,126 @@ export const UnifiedDraftModelPage = ({
     [data]
   );
 
-  // Use shared hook for common logic
-  const {
-    isDeleteDialogOpen,
-    setIsDeleteDialogOpen,
-    itemToDeleteTitle,
-    initialFilterConfigs,
-    tableColumns,
-    handleParamsChange,
-    handleConfirmDelete,
-    handleCreateActivity,
-    handleRowClick,
-  } = useActivityDraftModelPage({
-    activityCategory,
-    fetchFn,
-    deleteFn,
-    userData,
-    apiSubjectOptions,
-    openSendModal,
-    editUrlType: config.editUrlType,
-    errorLogLabel: config.errorLogLabel,
-    routes,
-  });
+  // Initial filter configuration: merge userData subjects + subjects from API response
+  const initialFilterConfigs = useMemo(
+    () =>
+      createDraftsModelsFiltersConfig(
+        mergeFilterOptions(getSubjectOptions(userData), apiSubjectOptions)
+      ),
+    [userData, apiSubjectOptions]
+  );
+
+  /**
+   * Handle delete button click
+   */
+  const handleDelete = useCallback((row: ActivityModelTableItem) => {
+    setItemToDeleteId(row.id);
+    setItemToDeleteTitle(row.title);
+    setIsDeleteDialogOpen(true);
+  }, []);
+
+  /**
+   * Handle confirm delete action
+   */
+  const handleConfirmDelete = useCallback(async () => {
+    if (!itemToDeleteId) return;
+
+    try {
+      await onDelete(itemToDeleteId);
+      setIsDeleteDialogOpen(false);
+    } catch (err) {
+      console.error(`Erro ao deletar ${config.errorLogLabel}:`, err);
+    }
+  }, [itemToDeleteId, onDelete, config.errorLogLabel]);
+
+  /**
+   * Handle edit button click
+   */
+  const handleEdit = useCallback(
+    (row: ActivityModelTableItem) => {
+      const currentRoutes = routes[activityCategory];
+      const editRoute = type === 'drafts'
+        ? currentRoutes.editDraft?.(row.id)
+        : currentRoutes.editModel?.(row.id);
+      navigate(editRoute || `${currentRoutes.create}?type=${config.editUrlType}&id=${row.id}`);
+    },
+    [navigate, routes, type, config.editUrlType, activityCategory]
+  );
+
+  /**
+   * Handle send button click
+   */
+  const handleSend = useCallback((row: ActivityModelTableItem) => {
+    onSend?.(row);
+  }, [onSend]);
+
+  /**
+   * Create table columns with action callbacks
+   */
+  const tableColumns = useMemo(
+    () =>
+      createExamDraftsModelsTableColumns({
+        onSend: handleSend,
+        onDelete: handleDelete,
+        onEdit: handleEdit,
+      }),
+    [handleSend, handleDelete, handleEdit]
+  );
+
+  /**
+   * Handle table params change
+   */
+  const handleParamsChange = useCallback(
+    (params: { page?: number; limit?: number; search?: string }) => {
+      onParamsChange(params);
+    },
+    [onParamsChange]
+  );
 
   /**
    * Handle tab change - navigate to the corresponding page
    */
   const handleTabChange = useCallback(
     (tab: string) => {
+      const currentRoutes = routes[activityCategory];
       switch (tab) {
         case 'historico': // ActivityTab.HISTORY / ExamTab.HISTORY
-          navigate(routes.base);
+          navigate(currentRoutes.base);
           break;
         case 'rascunhos': // ActivityTab.DRAFTS / ExamTab.DRAFTS
-          navigate(`${routes.base}/rascunhos`);
+          navigate(`${currentRoutes.base}/rascunhos`);
           break;
         case 'modelos': // ActivityTab.MODELS / ExamTab.MODELS
-          navigate(`${routes.base}/modelos`);
+          navigate(`${currentRoutes.base}/modelos`);
           break;
         default:
           navigate(
-            `${routes.base}/${type === 'drafts' ? 'rascunhos' : 'modelos'}`
+            `${currentRoutes.base}/${type === 'drafts' ? 'rascunhos' : 'modelos'}`
           );
       }
     },
-    [navigate, routes, type]
+    [navigate, routes, type, activityCategory]
+  );
+
+  /**
+   * Handle create activity button click
+   */
+  const handleCreateActivity = useCallback(() => {
+    navigate(routes[activityCategory].create);
+  }, [navigate, routes, activityCategory]);
+
+  /**
+   * Handle row click - navigate to edit item
+   */
+  const handleRowClick = useCallback(
+    (row: ActivityModelTableItem) => {
+      const currentRoutes = routes[activityCategory];
+      const editRoute = type === 'drafts'
+        ? currentRoutes.editDraft?.(row.id)
+        : currentRoutes.editModel?.(row.id);
+      navigate(editRoute || `${currentRoutes.create}?type=${config.editUrlType}&id=${row.id}`);
+    },
+    [navigate, routes, type, config.editUrlType, activityCategory]
   );
 
   // Build layout props dynamically
@@ -176,10 +261,7 @@ export const UnifiedDraftModelPage = ({
       <TypeSelector
         value={activityCategory}
         currentTab={config.currentTab}
-        config={{
-          ATIVIDADE: routes,
-          PROVA: routes,
-        }}
+        config={typeSelectorConfig}
       />
     ),
     testId: config.testId,
@@ -223,18 +305,6 @@ export const UnifiedDraftModelPage = ({
         cancelButtonLabel="Cancelar"
         submitButtonLabel="Excluir"
         onSubmit={handleConfirmDelete}
-      />
-
-      {/* Send Activity Modal */}
-      <SendActivityModal
-        isOpen={isSendModalOpen}
-        onClose={closeSendModal}
-        onSubmit={handleSendActivitySubmit}
-        categories={sendModalCategories}
-        onCategoriesChange={onCategoriesChange}
-        isLoading={isSendLoading || isCategoriesLoading}
-        initialData={sendActivityInitialData}
-        enableExamMode
       />
     </>
   );

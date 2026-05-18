@@ -1,11 +1,7 @@
-import {
-  ActivityPageLayout,
-  ExamPageLayout,
-  ActivityTab,
-  ExamTab,
-  ACTIVITY_FILTER_STATUS_OPTIONS,
-  EXAM_STATUS_OPTIONS,
-} from '../..';
+import { ActivityPageLayout, ActivityTab } from '../ActivityPageLayout/ActivityPageLayout';
+import { ExamPageLayout, ExamTab } from '../ExamPageLayout/ExamPageLayout';
+import { ACTIVITY_FILTER_STATUS_OPTIONS } from '../../types/activitiesHistory';
+import { EXAM_STATUS_OPTIONS } from '../../utils/examFilterHelpers';
 import { activitiesTableColumns } from '../ActivityPageLayout/activitiesTableConfig';
 import { examsTableColumns } from '../ExamPageLayout/examsTableConfig';
 import type { ActivityCategory } from '../../types/activities';

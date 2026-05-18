@@ -1,9 +1,5 @@
-import {
-  ActivityPageLayout,
-  ExamPageLayout,
-  ActivityTab,
-  ExamTab,
-} from '../..';
+import { ActivityPageLayout, ActivityTab } from '../ActivityPageLayout/ActivityPageLayout';
+import { ExamPageLayout, ExamTab } from '../ExamPageLayout/ExamPageLayout';
 import type { ActivityCategory } from '../../types/activities';
 
 /**

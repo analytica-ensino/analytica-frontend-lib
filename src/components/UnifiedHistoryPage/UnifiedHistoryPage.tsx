@@ -1,22 +1,19 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'phosphor-react';
 import { PAGE_CONFIG } from './config';
 import type { UnifiedHistoryPageProps } from './types';
 import EmptyState from '../EmptyState/EmptyState';
 import TypeSelector from '../TypeSelector/TypeSelector';
+import { createActivityCategoryConfig } from '../TypeSelector/TypeSelector.types';
 import type { FilterConfig } from '../../types/filters';
 import type { TableParams } from '../../types/table';
 import type {
-  ActivityHistoryFilters,
-  ExamHistoryFilters,
   ActivityTableItem,
   ExamTableItem,
 } from '../../types/activitiesHistory';
 import { ActivityApiStatus } from '../../enums/activityStatus';
 import { ExamStatus } from '../../enums/examStatus';
-import { createUseActivitiesHistory } from '../../hooks/useActivitiesHistory';
-import { createUseExamsHistory } from '../../hooks/useExamsHistory';
 
 /**
  * Filter option type
@@ -107,6 +104,12 @@ const mergeFilterOptions = (
  */
 export const UnifiedHistoryPage = ({
   activityCategory,
+  data,
+  loading,
+  error,
+  pagination,
+  apiFilterOptions,
+  onParamsChange,
   userData = null,
   activityImage,
   noSearchImage,
@@ -122,51 +125,6 @@ export const UnifiedHistoryPage = ({
     () => extractFilterOptions(userData),
     [userData]
   );
-
-  // Use the appropriate history hook - call both unconditionally
-  const useActivitiesHistoryHook = createUseActivitiesHistory();
-  const useExamsHistoryHook = createUseExamsHistory();
-
-  const activitiesResult = useActivitiesHistoryHook();
-  const examsResult = useExamsHistoryHook();
-
-  // Select the appropriate result based on activity category
-  const historyData =
-    activityCategory === 'ATIVIDADE' ? activitiesResult : examsResult;
-
-  const {
-    activities,
-    exams,
-    loading,
-    error,
-    pagination,
-    fetchActivities,
-    fetchExams,
-    apiFilterOptions,
-  } = historyData as {
-    activities?: ActivityTableItem[];
-    exams?: ExamTableItem[];
-    loading: boolean;
-    error: string | null;
-    pagination: {
-      total: number;
-      page: number;
-      limit: number;
-      totalPages: number;
-    };
-    fetchActivities?: (filters: ActivityHistoryFilters) => void;
-    fetchExams?: (filters: ExamHistoryFilters) => void;
-    apiFilterOptions: {
-      schools: Array<{ id: string; name: string }>;
-      schoolYears: Array<{ id: string; name: string }>;
-      classes: Array<{ id: string; name: string }>;
-      subjects: Array<{ id: string; name: string }>;
-    };
-  };
-
-  const data = activityCategory === 'ATIVIDADE' ? activities : exams;
-  const fetchFn =
-    activityCategory === 'ATIVIDADE' ? fetchActivities : fetchExams;
 
   /**
    * Build filter configuration merging userData and API-sourced options
@@ -255,7 +213,6 @@ export const UnifiedHistoryPage = ({
       },
     ],
     [
-      userData,
       apiFilterOptions,
       config.statusOptions,
       config.statusLabel,
@@ -269,102 +226,54 @@ export const UnifiedHistoryPage = ({
    */
   const handleParamsChange = useCallback(
     (params: TableParams) => {
-      const filters: ActivityHistoryFilters | ExamHistoryFilters = {
-        page: params.page,
-        limit: params.limit,
-      };
-
-      if (params.search) {
-        filters.search = params.search;
-      }
-
-      if (
-        params.status &&
-        Array.isArray(params.status) &&
-        params.status.length > 0
-      ) {
-        filters.status = params.status[0] as ActivityApiStatus | ExamStatus;
-      }
-
-      if (
-        params.school &&
-        Array.isArray(params.school) &&
-        params.school.length > 0
-      ) {
-        filters.schoolId = params.school[0];
-      }
-
-      if (
-        params.subject &&
-        Array.isArray(params.subject) &&
-        params.subject.length > 0
-      ) {
-        filters.subjectId = params.subject[0];
-      }
-
-      if (
-        params.class &&
-        Array.isArray(params.class) &&
-        params.class.length > 0
-      ) {
-        filters.classId = params.class[0];
-      }
-
-      if (
-        includeCreatorFilter &&
-        params.creatorType &&
-        Array.isArray(params.creatorType) &&
-        params.creatorType.length > 0
-      ) {
-        (filters as any).creatorType = params.creatorType[0];
-      }
-
-      fetchFn?.(filters as never);
+      onParamsChange(params);
     },
-    [fetchFn, includeCreatorFilter]
+    [onParamsChange]
   );
 
   /**
-   * Fetch initial data on component mount
+   * TypeSelector config with proper labels, routes, and status options
    */
-  useEffect(() => {
-    fetchFn?.({ page: 1, limit: 10 } as never);
-  }, [fetchFn]);
+  const typeSelectorConfig = useMemo(
+    () => createActivityCategoryConfig(routes),
+    [routes]
+  );
 
   /**
    * Handle tab change
    */
   const handleTabChange = useCallback(
     (tab: string) => {
+      const currentRoutes = routes[activityCategory];
       switch (tab) {
         case config.tabs.DRAFTS:
-          navigate(`${routes.base}/rascunhos`);
+          navigate(`${currentRoutes.base}/rascunhos`);
           break;
         case config.tabs.MODELS:
-          navigate(`${routes.base}/modelos`);
+          navigate(`${currentRoutes.base}/modelos`);
           break;
         default:
-          navigate(routes.base);
+          navigate(currentRoutes.base);
       }
     },
-    [navigate, config, routes]
+    [navigate, config, routes, activityCategory]
   );
 
   /**
    * Handle create button click
    */
   const handleCreate = useCallback(() => {
-    navigate(routes.create);
-  }, [navigate, routes]);
+    navigate(routes[activityCategory].create);
+  }, [navigate, routes, activityCategory]);
 
   /**
    * Handle row click
    */
   const handleRowClick = useCallback(
     (row: ActivityTableItem | ExamTableItem) => {
-      navigate(routes.details(row.id));
+      navigate(routes[activityCategory].details(row.id));
     },
-    [navigate, routes]
+    [navigate, routes, activityCategory]
   );
 
   // Build layout props dynamically
@@ -375,10 +284,7 @@ export const UnifiedHistoryPage = ({
       <TypeSelector
         value={activityCategory}
         currentTab="history"
-        config={{
-          ATIVIDADE: routes,
-          PROVA: routes,
-        }}
+        config={typeSelectorConfig}
       />
     ),
     testId: config.testId,
