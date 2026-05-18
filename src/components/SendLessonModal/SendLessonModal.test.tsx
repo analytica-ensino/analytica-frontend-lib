@@ -425,6 +425,88 @@ describe('SendLessonModal', () => {
 
       expect(finalTimeInput).toHaveValue('18:45');
     });
+
+    it('should not render "Permitir refazer?" by default', () => {
+      expect(screen.queryByText('Permitir refazer?')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('step 3 - Retry option (when activities are attached)', () => {
+    const advanceToStep3 = () => {
+      const titleInput = screen.getByPlaceholderText('Digite o título da aula');
+      fireEvent.change(titleInput, { target: { value: 'Aula com atividade' } });
+      fireEvent.click(screen.getByText('Próximo')); // Step 1 -> 2
+      fireEvent.click(screen.getByText('Próximo')); // Step 2 -> 3
+    };
+
+    it('should render "Permitir refazer?" when hasAttachedActivities=true', () => {
+      render(
+        <SendLessonModal
+          {...defaultProps}
+          categories={mockCategoriesWithSelection}
+          hasAttachedActivities
+        />
+      );
+      advanceToStep3();
+      expect(screen.getByText('Permitir refazer?')).toBeInTheDocument();
+    });
+
+    it('should submit canRetry=true when "Sim" is selected', async () => {
+      const onSubmit = jest.fn().mockResolvedValue(undefined);
+      render(
+        <SendLessonModal
+          {...defaultProps}
+          onSubmit={onSubmit}
+          categories={mockCategoriesWithSelection}
+          hasAttachedActivities
+        />
+      );
+      advanceToStep3();
+
+      fireEvent.change(screen.getByTestId('start-datetime-input'), {
+        target: { value: '2025-01-20T10:00' },
+      });
+      fireEvent.change(screen.getByTestId('final-datetime-input'), {
+        target: { value: '2025-01-25T18:00' },
+      });
+
+      const yesRadio = screen.getByLabelText('Sim');
+      fireEvent.click(yesRadio);
+
+      fireEvent.click(screen.getByRole('button', { name: /Enviar aula/i }));
+
+      await waitFor(() => {
+        expect(onSubmit).toHaveBeenCalled();
+      });
+      expect(onSubmit.mock.calls[0][0]).toMatchObject({ canRetry: true });
+    });
+
+    it('should submit canRetry=false by default', async () => {
+      const onSubmit = jest.fn().mockResolvedValue(undefined);
+      render(
+        <SendLessonModal
+          {...defaultProps}
+          onSubmit={onSubmit}
+          categories={mockCategoriesWithSelection}
+          hasAttachedActivities
+        />
+      );
+      advanceToStep3();
+
+      fireEvent.change(screen.getByTestId('start-datetime-input'), {
+        target: { value: '2025-01-20T10:00' },
+      });
+      fireEvent.change(screen.getByTestId('final-datetime-input'), {
+        target: { value: '2025-01-25T18:00' },
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: /Enviar aula/i }));
+
+      await waitFor(() => {
+        expect(onSubmit).toHaveBeenCalled();
+      });
+      expect(onSubmit.mock.calls[0][0]).toMatchObject({ canRetry: false });
+    });
   });
 
   describe('navigation', () => {
@@ -756,12 +838,18 @@ describe('SendLessonModal', () => {
     it('should render null for invalid step', () => {
       render(<SendLessonModal {...defaultProps} />);
 
-      // Force store to invalid step
-      const store = useSendLessonModalStore.getState();
-      store.goToStep(5 as unknown as number);
+      // Bypass goToStep guard (it clamps to 1..3) by writing directly into
+      // the store, forcing the switch default branch in renderStepContent.
+      act(() => {
+        useSendLessonModalStore.setState({ currentStep: 5 });
+      });
 
-      // Re-render won't show any step content (but modal still shows)
+      // Modal chrome still renders, but no step-specific content is visible.
       expect(screen.getByText('Enviar aula recomendada')).toBeInTheDocument();
+      expect(
+        screen.queryByPlaceholderText('Digite o título da aula')
+      ).not.toBeInTheDocument();
+      expect(screen.queryByText('Iniciar em*')).not.toBeInTheDocument();
     });
   });
 

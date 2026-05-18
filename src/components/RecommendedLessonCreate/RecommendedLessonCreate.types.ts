@@ -108,6 +108,9 @@ export interface RecommendedLessonCreatePayload {
   activityDraftIds?: RecommendedLessonActivityDraft[];
   startDate: string;
   finalDate: string;
+  /** Whether attached activities can be retried by the student.
+   *  Only meaningful when activityDraftIds is non-empty. */
+  canRetry?: boolean;
   [key: string]: unknown;
 }
 

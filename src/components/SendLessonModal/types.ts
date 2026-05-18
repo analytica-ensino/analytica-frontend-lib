@@ -24,6 +24,9 @@ export interface SendLessonFormData {
   finalDate: string;
   /** End time in HH:MM format (Step 3) */
   finalTime: string;
+  /** Whether attached activities can be retried by the student.
+   *  Only relevant when the model has activity drafts attached. */
+  canRetry?: boolean;
 }
 
 /**
@@ -46,6 +49,10 @@ export interface SendLessonModalProps {
   onError?: (error: unknown) => void;
   /** Modal title for display */
   modalTitle?: string;
+  /** When true, render the "Permitir refazer?" radio on step 3.
+   *  Caller decides based on whether the selected model has any
+   *  activity drafts attached. Defaults to false (no radio shown). */
+  hasAttachedActivities?: boolean;
 }
 
 /**

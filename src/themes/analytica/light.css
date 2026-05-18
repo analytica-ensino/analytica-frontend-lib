@@ -1,0 +1,211 @@
+@layer base {
+  /*
+   * Tema institucional Analytica Ensino — light.
+   * Primário: Verde Vibrante (#00ad20)
+   * Terciário: Roxo Analytica (#6a4ac2 / #3f248a)
+   */
+  [data-theme='analytica-light'] {
+    /* Primary Colors — Verde Vibrante */
+    --color-primary: #f6f9f6;
+    --color-primary-50: #eef6f0;
+    --color-primary-100: #d7f4dd;
+    --color-primary-200: #abf2b8;
+    --color-primary-300: #5af677;
+    --color-primary-400: #0aff37;
+    --color-primary-500: #00ad20;
+    --color-primary-600: #008a19;
+    --color-primary-700: #006b14;
+    --color-primary-800: #004c0e;
+    --color-primary-900: #01320a;
+    --color-primary-950: #022208;
+
+    /* Secondary Colors — Neutros */
+    --color-secondary: #fdfdfd;
+    --color-secondary-50: #fbfbfb;
+    --color-secondary-100: #f6f6f6;
+    --color-secondary-200: #f2f2f2;
+    --color-secondary-300: #ededed;
+    --color-secondary-400: #e6e6e7;
+    --color-secondary-500: #d9d9db;
+    --color-secondary-600: #c6c7c7;
+    --color-secondary-700: #bdbdbd;
+    --color-secondary-800: #b1b1b1;
+    --color-secondary-900: #a5a4a4;
+    --color-secondary-950: #9d9d9d;
+
+    /* Tertiary Colors — Roxo Analytica */
+    --color-tertiary: #f7f6f9;
+    --color-tertiary-50: #f0eef6;
+    --color-tertiary-100: #e0d9f2;
+    --color-tertiary-200: #c4b6ed;
+    --color-tertiary-300: #9b81e4;
+    --color-tertiary-400: #7c5cd6;
+    --color-tertiary-500: #6a4ac2;
+    --color-tertiary-600: #502fac;
+    --color-tertiary-700: #3f248a;
+    --color-tertiary-800: #2e1966;
+    --color-tertiary-900: #201244;
+    --color-tertiary-950: #150d2b;
+
+    /* Text Colors */
+    --color-text: #fefeff;
+    --color-text-50: #f5f5f5;
+    --color-text-100: #e5e5e5;
+    --color-text-200: #dbdbdc;
+    --color-text-300: #d4d4d4;
+    --color-text-400: #a3a3a3;
+    --color-text-500: #8c8c8c;
+    --color-text-600: #737373;
+    --color-text-700: #525252;
+    --color-text-800: #404040;
+    --color-text-900: #262627;
+    --color-text-950: #171717;
+
+    /* Background Colors */
+    --color-background: #ffffff;
+    --color-background-50: #f6f6f6;
+    --color-background-100: #f2f1f1;
+    --color-background-200: #dcdbdb;
+    --color-background-300: #d5d4d4;
+    --color-background-400: #a2a3a3;
+    --color-background-500: #8e8e8e;
+    --color-background-600: #747474;
+    --color-background-700: #535252;
+    --color-background-800: #414040;
+    --color-background-900: #272625;
+    --color-background-950: #121212;
+    --color-background-muted: #f7f8f7;
+
+    /* Border Colors */
+    --color-border: #fdfefe;
+    --color-border-50: #f3f3f3;
+    --color-border-100: #e6e6e6;
+    --color-border-200: #dddcdb;
+    --color-border-300: #d3d3d3;
+    --color-border-400: #a5a3a3;
+    --color-border-500: #8c8d8d;
+    --color-border-600: #737474;
+    --color-border-700: #535252;
+    --color-border-800: #414141;
+    --color-border-900: #272624;
+    --color-border-950: #1a1717;
+
+    /* Success Colors — derivados do verde primário */
+    --color-success: #edfcf0;
+    --color-success-50: #d7f4dd;
+    --color-success-100: #abf2b8;
+    --color-success-200: #84d39a;
+    --color-success-300: #5eb57b;
+    --color-success-400: #3d975d;
+    --color-success-500: #00ad20;
+    --color-success-600: #008a19;
+    --color-success-700: #006b14;
+    --color-success-800: #004c0e;
+    --color-success-900: #01320a;
+    --color-success-950: #022208;
+    --color-success-background: #edfcf2;
+
+    /* Error Colors */
+    --color-error: #fee9e9;
+    --color-error-50: #fee2e2;
+    --color-error-100: #fecaca;
+    --color-error-200: #fca5a5;
+    --color-error-300: #f87171;
+    --color-error-400: #ef4444;
+    --color-error-500: #e63535;
+    --color-error-600: #dc2626;
+    --color-error-700: #b91c1c;
+    --color-error-800: #991b1b;
+    --color-error-900: #7f1d1d;
+    --color-error-950: #531313;
+    --color-error-background: #fef1f1;
+
+    /* Warning Colors */
+    --color-warning: #fff9f5;
+    --color-warning-50: #fff4ec;
+    --color-warning-100: #ffe7d5;
+    --color-warning-200: #fecdaa;
+    --color-warning-300: #fdad74;
+    --color-warning-400: #fb954b;
+    --color-warning-500: #e77828;
+    --color-warning-600: #d76c1f;
+    --color-warning-700: #b45a1a;
+    --color-warning-800: #824417;
+    --color-warning-900: #6c3813;
+    --color-warning-950: #542d12;
+    --color-warning-background: #fff3ea;
+
+    /* Info Colors — derivados do roxo terciário */
+    --color-info: #f0eef6;
+    --color-info-50: #e0d9f2;
+    --color-info-100: #c4b6ed;
+    --color-info-200: #9b81e4;
+    --color-info-300: #7c5cd6;
+    --color-info-400: #6a4ac2;
+    --color-info-500: #502fac;
+    --color-info-600: #3f248a;
+    --color-info-700: #2e1966;
+    --color-info-800: #201244;
+    --color-info-900: #150d2b;
+    --color-info-950: #0d0819;
+    --color-info-background: #f0eef6;
+
+    /* Indicator Colors */
+    --color-indicator-primary: #373737;
+    --color-indicator-info: #6a4ac2;
+    --color-indicator-error: #b91c1c;
+    --color-indicator-positive: #00ad20;
+    --color-indicator-negative: #be4f4f;
+
+    /* Subject and Exam Colors — harmonizados com verde e roxo */
+    --color-exam-1: #eef6f0;
+    --color-exam-2: #f0eef6;
+    --color-exam-3: #fff4d1;
+    --color-exam-4: #ddf5e5;
+    --color-subject-1: #abf2b8;
+    --color-subject-2: #fbd1a5;
+    --color-subject-3: #c4b6ed;
+    --color-subject-4: #a3d9b1;
+    --color-subject-5: #d4f1a8;
+    --color-subject-6: #d7f4dd;
+    --color-subject-7: #9b81e4;
+    --color-subject-8: #f3b3c2;
+    --color-subject-9: #e0d9f2;
+    --color-subject-10: #fbd1e0;
+    --color-subject-11: #feec9c;
+    --color-subject-12: #c4b6ed;
+    --color-subject-13: #f4d2c8;
+    --color-subject-14: #e7ec85;
+    --color-subject-15: #abf2b8;
+    --color-subject-16: #badfc8;
+    --color-typography-1: #502fac;
+    --color-typography-2: #006b14;
+
+    /* Question Type Colors */
+    --color-question-type-multiple-choice: #3f248a;
+    --color-question-type-fill-blank: #006b14;
+    --color-question-type-image: #715904;
+    --color-question-type-matching: #6a4ac2;
+
+    /* Map Choropleth Colors — escala verde Analytica */
+    --color-map-highlight: #006b14;
+    --color-map-above-avg: #008a19;
+    --color-map-below-avg: #abf2b8;
+    --color-map-attention: #eef6f0;
+    --color-map-stroke-city: #5af677;
+    --color-map-stroke-nre: #004c0e;
+
+    /* Hard Shadow Colors */
+    --shadow-hard-shadow-1: -2px 2px 8px rgba(38, 38, 38, 0.2);
+    --shadow-hard-shadow-2: 0px 3px 10px rgba(38, 38, 38, 0.2);
+    --shadow-hard-shadow-3: 2px 2px 8px rgba(38, 38, 38, 0.2);
+    --shadow-hard-shadow-4: 0px -3px 10px rgba(38, 38, 38, 0.2);
+    --shadow-hard-shadow-5: 0px 2px 10px rgba(38, 38, 38, 0.1);
+
+    /* Soft Shadow Colors */
+    --shadow-soft-shadow-1: 0px 0px 10px rgba(38, 38, 38, 0.1);
+    --shadow-soft-shadow-2: 0px 0px 20px rgba(38, 38, 38, 0.1);
+    --shadow-soft-shadow-3: 0px 0px 30px rgba(38, 38, 38, 0.1);
+    --shadow-soft-shadow-4: 0px 0px 40px rgba(38, 38, 38, 0.2);
+  }
+}

@@ -3,6 +3,8 @@ import Modal from '../Modal/Modal';
 import Stepper from '../Stepper/Stepper';
 import Input from '../Input/Input';
 import TextArea from '../TextArea/TextArea';
+import Text from '../Text/Text';
+import { RadioGroup, RadioGroupItem } from '../Radio/Radio';
 import { useSendLessonModalStore } from './hooks/useSendLessonModal';
 import {
   SendLessonModalProps,
@@ -51,6 +53,7 @@ const SendLessonModal = ({
   isLoading = false,
   onError,
   modalTitle: modalTitleProp,
+  hasAttachedActivities = false,
 }: SendLessonModalProps) => {
   const store = useSendLessonModalStore();
   const reset = useSendLessonModalStore((state) => state.reset);
@@ -129,6 +132,63 @@ const SendLessonModal = ({
   );
 
   /**
+   * Handle retry option change (only relevant when activities are attached)
+   */
+  const handleRetryChange = useCallback(
+    (value: string) => {
+      store.setFormData({ canRetry: value === 'yes' });
+    },
+    [store]
+  );
+
+  /**
+   * Render retry option for the deadline step.
+   * Only visible when the selected model has activity drafts attached —
+   * otherwise the radio would have no effect on backend state.
+   */
+  const renderRetryOption = () => {
+    if (!hasAttachedActivities) return null;
+
+    return (
+      <div>
+        <Text size="sm" weight="medium" color="text-text-700" className="mb-3">
+          Permitir refazer?
+        </Text>
+        <RadioGroup
+          value={store.formData.canRetry ? 'yes' : 'no'}
+          onValueChange={handleRetryChange}
+          className="flex flex-row gap-6"
+        >
+          <div className="flex items-center gap-2">
+            <RadioGroupItem value="yes" id="send-lesson-retry-yes" />
+            <Text
+              as="label"
+              size="sm"
+              color="text-text-700"
+              className="cursor-pointer"
+              htmlFor="send-lesson-retry-yes"
+            >
+              Sim
+            </Text>
+          </div>
+          <div className="flex items-center gap-2">
+            <RadioGroupItem value="no" id="send-lesson-retry-no" />
+            <Text
+              as="label"
+              size="sm"
+              color="text-text-700"
+              className="cursor-pointer"
+              htmlFor="send-lesson-retry-no"
+            >
+              Não
+            </Text>
+          </div>
+        </RadioGroup>
+      </div>
+    );
+  };
+
+  /**
    * Handle form submission
    */
   const handleSubmit = useCallback(async () => {
@@ -202,20 +262,23 @@ const SendLessonModal = ({
         );
       case 3:
         return (
-          <DeadlineStep
-            startDate={store.formData.startDate || ''}
-            startTime={store.formData.startTime || ''}
-            finalDate={store.formData.finalDate || ''}
-            finalTime={store.formData.finalTime || ''}
-            onStartDateChange={handleStartDateChange}
-            onStartTimeChange={handleStartTimeChange}
-            onFinalDateChange={handleFinalDateChange}
-            onFinalTimeChange={handleFinalTimeChange}
-            errors={{
-              startDate: store.errors.startDate,
-              finalDate: store.errors.finalDate,
-            }}
-          />
+          <div className="flex flex-col gap-6">
+            <DeadlineStep
+              startDate={store.formData.startDate || ''}
+              startTime={store.formData.startTime || ''}
+              finalDate={store.formData.finalDate || ''}
+              finalTime={store.formData.finalTime || ''}
+              onStartDateChange={handleStartDateChange}
+              onStartTimeChange={handleStartTimeChange}
+              onFinalDateChange={handleFinalDateChange}
+              onFinalTimeChange={handleFinalTimeChange}
+              errors={{
+                startDate: store.errors.startDate,
+                finalDate: store.errors.finalDate,
+              }}
+            />
+            {renderRetryOption()}
+          </div>
         );
       default:
         return null;

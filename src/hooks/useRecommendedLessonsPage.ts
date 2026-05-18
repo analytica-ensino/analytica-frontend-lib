@@ -173,6 +173,9 @@ export interface UseRecommendedLessonsPageReturn {
     onCategoriesChange: (categories: CategoryConfig[]) => void;
     isLoading: boolean;
     modalTitle: string | undefined;
+    /** Whether the selected model has activity drafts attached, which
+     *  controls the visibility of the "Permitir refazer?" field. */
+    hasAttachedActivities: boolean;
   };
   /** Navigate function for custom tab handlers */
   navigate: (path: string, options?: { state?: unknown }) => void;
@@ -582,7 +585,7 @@ export const createUseRecommendedLessonsPage = (
         const params = buildQueryParams({
           ...filters,
           type: RecommendedClassDraftType.MODELO,
-        } as Record<string, unknown>);
+        });
         const response = await api.get<RecommendedClassModelsApiResponse>(
           endpoints.recommendedClassDrafts,
           { params }
@@ -624,7 +627,7 @@ export const createUseRecommendedLessonsPage = (
         const params = buildQueryParams({
           ...filters,
           type: RecommendedClassDraftType.RASCUNHO,
-        } as Record<string, unknown>);
+        });
         const response = await api.get<RecommendedClassModelsApiResponse>(
           endpoints.recommendedClassDrafts,
           { params }
@@ -742,6 +745,7 @@ export const createUseRecommendedLessonsPage = (
             students: formData.students,
             startDate: `${formData.startDate}T${formData.startTime}:00`,
             finalDate: `${formData.finalDate}T${formData.finalTime}:00`,
+            canRetry: formData.canRetry ?? false,
           });
 
           setSendModalOpen(false);
@@ -804,6 +808,7 @@ export const createUseRecommendedLessonsPage = (
         onCategoriesChange: handleCategoriesChange,
         isLoading: sendModalLoading,
         modalTitle: selectedModel?.title,
+        hasAttachedActivities: (selectedModel?.activityDraftsCount ?? 0) > 0,
       },
       navigate,
     };

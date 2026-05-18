@@ -1,0 +1,213 @@
+@layer base {
+  /*
+   * Dark institucional Analytica Ensino — verde e roxo institucionais em fundo
+   * escuro. Primary (verde) e tertiary (roxo) têm escala invertida espelhando
+   * o light; demais tokens (success/error/warning/info/subject/exam/background/
+   * text/border) herdam do dark neutro.
+   */
+  [data-theme='analytica-dark'] {
+    /* Primary Colors — Verde Vibrante (escala invertida, 500 preservado) */
+    --color-primary: #022208;
+    --color-primary-50: #022208;
+    --color-primary-100: #01320a;
+    --color-primary-200: #004c0e;
+    --color-primary-300: #006b14;
+    --color-primary-400: #008a19;
+    --color-primary-500: #00ad20;
+    --color-primary-600: #0aff37;
+    --color-primary-700: #5af677;
+    --color-primary-800: #abf2b8;
+    --color-primary-900: #d7f4dd;
+    --color-primary-950: #eef6f0;
+
+    /* Secondary Colors */
+    --color-secondary: #141414;
+    --color-secondary-50: #171717;
+    --color-secondary-100: #1f1f1f;
+    --color-secondary-200: #272727;
+    --color-secondary-300: #2c2c2c;
+    --color-secondary-400: #383939;
+    --color-secondary-500: #3f4040;
+    --color-secondary-600: #565656;
+    --color-secondary-700: #656565;
+    --color-secondary-800: #878787;
+    --color-secondary-900: #969696;
+    --color-secondary-950: #a4a4a4;
+
+    /* Tertiary Colors — Roxo Analytica (escala invertida, 500 preservado) */
+    --color-tertiary: #150d2b;
+    --color-tertiary-50: #150d2b;
+    --color-tertiary-100: #201244;
+    --color-tertiary-200: #2e1966;
+    --color-tertiary-300: #3f248a;
+    --color-tertiary-400: #502fac;
+    --color-tertiary-500: #6a4ac2;
+    --color-tertiary-600: #7c5cd6;
+    --color-tertiary-700: #9b81e4;
+    --color-tertiary-800: #c4b6ed;
+    --color-tertiary-900: #e0d9f2;
+    --color-tertiary-950: #f0eef6;
+
+    /* Text Colors */
+    --color-text: #171717;
+    --color-text-50: #262627;
+    --color-text-100: #404040;
+    --color-text-200: #525252;
+    --color-text-300: #737373;
+    --color-text-400: #8c8c8c;
+    --color-text-500: #a3a3a3;
+    --color-text-600: #d4d4d4;
+    --color-text-700: #dbdbdc;
+    --color-text-800: #e5e5e5;
+    --color-text-900: #f5f5f5;
+    --color-text-950: #fefeff;
+
+    /* Background Colors */
+    --color-background: #121212;
+    --color-background-50: #272625;
+    --color-background-100: #414040;
+    --color-background-200: #535252;
+    --color-background-300: #747474;
+    --color-background-400: #8e8e8e;
+    --color-background-500: #a2a3a3;
+    --color-background-600: #d5d4d4;
+    --color-background-700: #e5e4e4;
+    --color-background-800: #f2f1f1;
+    --color-background-900: #f6f6f6;
+    --color-background-950: #ffffff;
+    --color-background-muted: #333333;
+
+    /* Border Colors */
+    --color-border: #1a1717;
+    --color-border-50: #272624;
+    --color-border-100: #414141;
+    --color-border-200: #535252;
+    --color-border-300: #737474;
+    --color-border-400: #8c8d8d;
+    --color-border-500: #a5a3a3;
+    --color-border-600: #d3d3d3;
+    --color-border-700: #dddcdb;
+    --color-border-800: #e6e6e6;
+    --color-border-900: #f3f3f3;
+    --color-border-950: #fdfefe;
+
+    /* Success Colors — derivados do verde primário (invertido) */
+    --color-success: #022208;
+    --color-success-50: #01320a;
+    --color-success-100: #004c0e;
+    --color-success-200: #006b14;
+    --color-success-300: #008a19;
+    --color-success-400: #3d975d;
+    --color-success-500: #00ad20;
+    --color-success-600: #5eb57b;
+    --color-success-700: #84d39a;
+    --color-success-800: #abf2b8;
+    --color-success-900: #d7f4dd;
+    --color-success-950: #edfcf0;
+    --color-success-background: #1c2b21;
+
+    /* Error Colors */
+    --color-error: #531313;
+    --color-error-50: #7f1d1d;
+    --color-error-100: #991b1b;
+    --color-error-200: #b91c1c;
+    --color-error-300: #dc2626;
+    --color-error-400: #e63535;
+    --color-error-500: #ef4444;
+    --color-error-600: #f96160;
+    --color-error-700: #e55b5a;
+    --color-error-800: #fecaca;
+    --color-error-900: #fee2e2;
+    --color-error-950: #fee9e9;
+    --color-error-background: #422b2b;
+
+    /* Warning Colors */
+    --color-warning: #542d12;
+    --color-warning-50: #6c3813;
+    --color-warning-100: #824417;
+    --color-warning-200: #b45a1a;
+    --color-warning-300: #d76c1f;
+    --color-warning-400: #e77828;
+    --color-warning-500: #fb954b;
+    --color-warning-600: #fdad74;
+    --color-warning-700: #fecdaa;
+    --color-warning-800: #ffe7d5;
+    --color-warning-900: #fff4ed;
+    --color-warning-950: #fff9f5;
+    --color-warning-background: #412f23;
+
+    /* Info Colors — derivados do roxo terciário (invertido) */
+    --color-info: #0d0819;
+    --color-info-50: #150d2b;
+    --color-info-100: #201244;
+    --color-info-200: #2e1966;
+    --color-info-300: #3f248a;
+    --color-info-400: #502fac;
+    --color-info-500: #6a4ac2;
+    --color-info-600: #7c5cd6;
+    --color-info-700: #9b81e4;
+    --color-info-800: #c4b6ed;
+    --color-info-900: #e0d9f2;
+    --color-info-950: #f0eef6;
+    --color-info-background: #1f1a2e;
+
+    /* Indicator Colors */
+    --color-indicator-primary: #f7f7f7;
+    --color-indicator-info: #9b81e4;
+    --color-indicator-error: #e84645;
+    --color-indicator-positive: #5af677;
+    --color-indicator-negative: #d08181;
+
+    /* Subject and Exam Colors — subjects relacionados ao verde e roxo
+       usam tons institucionais escuros; demais subjects herdam do dark neutro. */
+    --color-exam-1: #004c0e;
+    --color-exam-2: #2e1966;
+    --color-exam-3: #b88c00;
+    --color-exam-4: #286137;
+    --color-subject-1: #008a19;
+    --color-subject-2: #b46108;
+    --color-subject-3: #502fac;
+    --color-subject-4: #286137;
+    --color-subject-5: #5e8d17;
+    --color-subject-6: #006b14;
+    --color-subject-7: #6a4ac2;
+    --color-subject-8: #a31a3a;
+    --color-subject-9: #3f248a;
+    --color-subject-10: #c0114f;
+    --color-subject-11: #bb9902;
+    --color-subject-12: #502fac;
+    --color-subject-13: #ae4323;
+    --color-subject-14: #9da319;
+    --color-subject-15: #008a19;
+    --color-subject-16: #4ea76f;
+    --color-typography-1: #c4b6ed;
+    --color-typography-2: #abf2b8;
+
+    /* Question Type Colors */
+    --color-question-type-multiple-choice: #A855F7;
+    --color-question-type-fill-blank: #22D3EE;
+    --color-question-type-image: #EAB308;
+    --color-question-type-matching: #C084FC;
+
+    /* Map Choropleth Colors — escala verde Analytica (dark) */
+    --color-map-highlight: #004c0e;
+    --color-map-above-avg: #00ad20;
+    --color-map-below-avg: #abf2b8;
+    --color-map-attention: #022208;
+    --color-map-stroke-city: #5af677;
+    --color-map-stroke-nre: #006b14;
+
+    /* Hard Shadow Colors */
+    --shadow-hard-shadow-1: -2px 2px 8px rgba(255, 255, 255, 0.1);
+    --shadow-hard-shadow-2: 0px 3px 10px rgba(255, 255, 255, 0.1);
+    --shadow-hard-shadow-3: 2px 2px 8px rgba(255, 255, 255, 0.1);
+    --shadow-hard-shadow-4: 0px -3px 10px rgba(255, 255, 255, 0.1);
+    --shadow-hard-shadow-5: 0px 2px 10px rgba(255, 255, 255, 0.05);
+
+    /* Soft Shadow Colors */
+    --shadow-soft-shadow-1: 0px 0px 10px rgba(255, 255, 255, 0.05);
+    --shadow-soft-shadow-2: 0px 0px 20px rgba(255, 255, 255, 0.05);
+    --shadow-soft-shadow-3: 0px 0px 30px rgba(255, 255, 255, 0.05);
+    --shadow-soft-shadow-4: 0px 0px 40px rgba(255, 255, 255, 0.1);
+  }
+}

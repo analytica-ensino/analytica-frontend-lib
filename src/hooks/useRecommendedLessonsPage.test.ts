@@ -681,6 +681,7 @@ describe('useRecommendedLessonsPage', () => {
       students: [{ studentId: 'student-1', userInstitutionId: 'inst-1' }],
       startDate: '2024-06-01T08:00:00',
       finalDate: '2024-06-15T23:59:00',
+      canRetry: false,
     });
     expect(result.current.modalProps.isOpen).toBe(false);
   });
