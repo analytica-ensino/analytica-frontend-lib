@@ -45,6 +45,7 @@ const initialState = {
   formData: {
     startTime: '00:00',
     finalTime: '23:59',
+    canRetry: false,
   } as Partial<SendLessonFormData>,
   currentStep: 1,
   completedSteps: [] as number[],

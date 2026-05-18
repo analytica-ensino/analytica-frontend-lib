@@ -27,6 +27,19 @@ const recommendedClassModelResponseSchema = z.object({
   finalDate: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
+  // Activity drafts attached to this model. Kept in the schema so Zod
+  // preserves the field during validation — used to derive
+  // activityDraftsCount for the send-modal "Permitir refazer?" gate.
+  activityDrafts: z
+    .array(
+      z.object({
+        activityDraftId: z.uuid(),
+        sequence: z.number(),
+        title: z.string().nullable().optional(),
+      })
+    )
+    .optional()
+    .default([]),
 });
 
 /**
@@ -92,6 +105,7 @@ export const transformRecommendedClassModelToTableItem = (
     savedAt: dayjs(model.createdAt).format('DD/MM/YYYY'),
     subject: subjectName,
     subjectId: model.subjectId,
+    activityDraftsCount: model.activityDrafts?.length ?? 0,
   };
 };
 
