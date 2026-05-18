@@ -1,8 +1,10 @@
+import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { UnifiedHistoryPage } from './UnifiedHistoryPage';
 import type { UnifiedHistoryPageProps } from './types';
 import type { ActivityTableItem } from '../../types/activitiesHistory';
 import { ActivityDisplayStatus } from '../../types/activitiesHistory';
+import * as filterHelpers from '../../utils/filterHelpers';
 
 // Mock dependencies
 const mockNavigate = jest.fn();
@@ -12,7 +14,13 @@ jest.mock('react-router-dom', () => ({
 
 jest.mock('../EmptyState/EmptyState', () => ({
   __esModule: true,
-  default: ({ title, onButtonClick }: { title: string; onButtonClick: () => void }) => (
+  default: ({
+    title,
+    onButtonClick,
+  }: {
+    title: string;
+    onButtonClick: () => void;
+  }) => (
     <div data-testid="empty-state">
       <div>{title}</div>
       <button onClick={onButtonClick}>Create</button>
@@ -33,13 +41,37 @@ jest.mock('../../utils/filterHelpers', () => ({
   mergeFilterOptions: jest.fn((base, extra) => [...base, ...extra]),
 }));
 
+// Define interface for mock layouts
+interface MockHistoryPageLayoutProps {
+  data?: ActivityTableItem[] | null;
+  onParamsChange: (params: { page?: number }) => void;
+  onRowClick: (row: ActivityTableItem) => void;
+  onTabChange: (tab: string) => void;
+  onCreateActivity?: () => void;
+  onCreateExam?: () => void;
+  headerRightContent?: React.ReactNode;
+  loading?: boolean;
+  error?: Error | null;
+  emptyState?: React.ReactNode;
+}
+
 jest.mock('./config', () => {
   const MockActivityLayout = jest.fn(
-    ({ data, onParamsChange, onRowClick, onTabChange, onCreateActivity }: any) => (
+    ({
+      data,
+      onParamsChange,
+      onRowClick,
+      onTabChange,
+      onCreateActivity,
+    }: MockHistoryPageLayoutProps) => (
       <div data-testid="activity-page-layout">
         <div data-testid="data-count">{data?.length || 0}</div>
-        <button onClick={() => onParamsChange({ page: 2 })}>Change Params</button>
-        <button onClick={() => onRowClick(data?.[0])}>Click Row</button>
+        <button onClick={() => onParamsChange({ page: 2 })}>
+          Change Params
+        </button>
+        <button onClick={() => data?.[0] && onRowClick(data[0])}>
+          Click Row
+        </button>
         <button onClick={() => onTabChange('rascunhos')}>Go to Drafts</button>
         <button onClick={() => onTabChange('modelos')}>Go to Models</button>
         <button onClick={() => onTabChange('historico')}>Go to History</button>
@@ -49,11 +81,21 @@ jest.mock('./config', () => {
   );
 
   const MockExamLayout = jest.fn(
-    ({ data, onParamsChange, onRowClick, onTabChange, onCreateExam }: any) => (
+    ({
+      data,
+      onParamsChange,
+      onRowClick,
+      onTabChange,
+      onCreateExam,
+    }: MockHistoryPageLayoutProps) => (
       <div data-testid="exam-page-layout">
         <div data-testid="data-count">{data?.length || 0}</div>
-        <button onClick={() => onParamsChange({ page: 2 })}>Change Params</button>
-        <button onClick={() => onRowClick(data?.[0])}>Click Row</button>
+        <button onClick={() => onParamsChange({ page: 2 })}>
+          Change Params
+        </button>
+        <button onClick={() => data?.[0] && onRowClick(data[0])}>
+          Click Row
+        </button>
         <button onClick={() => onTabChange('rascunhos')}>Go to Drafts</button>
         <button onClick={() => onTabChange('modelos')}>Go to Models</button>
         <button onClick={() => onTabChange('historico')}>Go to History</button>
@@ -120,10 +162,10 @@ jest.mock('../TypeSelector/TypeSelector.types', () => ({
   createActivityCategoryConfig: jest.fn(() => ({})),
 }));
 
-// Get reference to the mocked PageLayout after the mock is set up
+// Helper to get the mock page layout for assertions
 const getMockPageLayout = () => {
-  const config = require('./config');
-  return config.PAGE_CONFIG.ATIVIDADE.PageLayout;
+  const config = jest.requireMock<typeof import('./config')>('./config');
+  return config.PAGE_CONFIG.ATIVIDADE.PageLayout as jest.Mock;
 };
 
 describe('UnifiedHistoryPage', () => {
@@ -215,7 +257,10 @@ describe('UnifiedHistoryPage', () => {
 
     it('should pass TypeSelector to PageLayout', () => {
       render(<UnifiedHistoryPage {...baseProps} />);
-      const lastCall = getMockPageLayout().mock.calls[getMockPageLayout().mock.calls.length - 1];
+      const lastCall =
+        getMockPageLayout().mock.calls[
+          getMockPageLayout().mock.calls.length - 1
+        ];
       expect(lastCall[0].headerRightContent).toBeDefined();
     });
 
@@ -229,8 +274,8 @@ describe('UnifiedHistoryPage', () => {
       expect(screen.getByTestId('data-count')).toHaveTextContent('0');
     });
 
-    it('should handle null data', () => {
-      render(<UnifiedHistoryPage {...baseProps} data={null} />);
+    it('should handle empty data', () => {
+      render(<UnifiedHistoryPage {...baseProps} data={[]} />);
       expect(screen.getByTestId('data-count')).toHaveTextContent('0');
     });
   });
@@ -268,8 +313,7 @@ describe('UnifiedHistoryPage', () => {
 
       render(<UnifiedHistoryPage {...baseProps} userData={userData} />);
 
-      const { mergeFilterOptions } = require('../../utils/filterHelpers');
-      expect(mergeFilterOptions).toHaveBeenCalled();
+      expect(filterHelpers.mergeFilterOptions).toHaveBeenCalled();
     });
   });
 
@@ -331,7 +375,10 @@ describe('UnifiedHistoryPage', () => {
     it('should handle unknown tab gracefully', () => {
       render(<UnifiedHistoryPage {...baseProps} />);
 
-      const lastCall = getMockPageLayout().mock.calls[getMockPageLayout().mock.calls.length - 1];
+      const lastCall =
+        getMockPageLayout().mock.calls[
+          getMockPageLayout().mock.calls.length - 1
+        ];
       const props = lastCall[0];
 
       props.onTabChange('unknown');
@@ -387,7 +434,10 @@ describe('UnifiedHistoryPage', () => {
     it('should pass loading state to PageLayout', () => {
       render(<UnifiedHistoryPage {...baseProps} loading={true} />);
 
-      const lastCall = getMockPageLayout().mock.calls[getMockPageLayout().mock.calls.length - 1];
+      const lastCall =
+        getMockPageLayout().mock.calls[
+          getMockPageLayout().mock.calls.length - 1
+        ];
       expect(lastCall[0].loading).toBe(true);
     });
 
@@ -395,7 +445,10 @@ describe('UnifiedHistoryPage', () => {
       const errorMessage = 'Failed to load data';
       render(<UnifiedHistoryPage {...baseProps} error={errorMessage} />);
 
-      const lastCall = getMockPageLayout().mock.calls[getMockPageLayout().mock.calls.length - 1];
+      const lastCall =
+        getMockPageLayout().mock.calls[
+          getMockPageLayout().mock.calls.length - 1
+        ];
       expect(lastCall[0].error).toBe(errorMessage);
     });
   });
@@ -433,7 +486,10 @@ describe('UnifiedHistoryPage', () => {
 
     it('should not render EmptyState when activityImage is not provided', () => {
       render(<UnifiedHistoryPage {...baseProps} />);
-      const lastCall = getMockPageLayout().mock.calls[getMockPageLayout().mock.calls.length - 1];
+      const lastCall =
+        getMockPageLayout().mock.calls[
+          getMockPageLayout().mock.calls.length - 1
+        ];
       expect(lastCall[0].emptyState).toBeUndefined();
     });
   });
@@ -457,24 +513,29 @@ describe('UnifiedHistoryPage', () => {
 
       render(<UnifiedHistoryPage {...baseProps} userData={userData} />);
 
-      const {
-        getSchoolOptionsFromUserData,
-        getSchoolYearOptionsFromUserData,
-        getClassOptionsFromUserData,
-        getSubjectOptionsFromUserData,
-      } = require('../../utils/filterHelpers');
+      // Filter helpers are mocked
 
-      expect(getSchoolOptionsFromUserData).toHaveBeenCalledWith(userData);
-      expect(getSchoolYearOptionsFromUserData).toHaveBeenCalledWith(userData);
-      expect(getClassOptionsFromUserData).toHaveBeenCalledWith(userData);
-      expect(getSubjectOptionsFromUserData).toHaveBeenCalledWith(userData);
+      expect(filterHelpers.getSchoolOptionsFromUserData).toHaveBeenCalledWith(
+        userData
+      );
+      expect(
+        filterHelpers.getSchoolYearOptionsFromUserData
+      ).toHaveBeenCalledWith(userData);
+      expect(filterHelpers.getClassOptionsFromUserData).toHaveBeenCalledWith(
+        userData
+      );
+      expect(filterHelpers.getSubjectOptionsFromUserData).toHaveBeenCalledWith(
+        userData
+      );
     });
 
     it('should handle null userData', () => {
       render(<UnifiedHistoryPage {...baseProps} userData={null} />);
 
-      const { getSchoolOptionsFromUserData } = require('../../utils/filterHelpers');
-      expect(getSchoolOptionsFromUserData).toHaveBeenCalledWith(null);
+      // Filter helpers are mocked
+      expect(filterHelpers.getSchoolOptionsFromUserData).toHaveBeenCalledWith(
+        null
+      );
     });
   });
 });

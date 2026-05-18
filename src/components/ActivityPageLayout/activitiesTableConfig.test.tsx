@@ -137,21 +137,39 @@ describe('activitiesTableConfig', () => {
 
       it('should render Badge with correct props for CONCLUIDA status', () => {
         const { container } = render(
-          <>{statusColumn.render?.(ActivityDisplayStatus.CONCLUIDA, {} as ActivityTableItem, 0)}</>
+          <>
+            {statusColumn.render?.(
+              ActivityDisplayStatus.CONCLUIDA,
+              {} as ActivityTableItem,
+              0
+            )}
+          </>
         );
         expect(container.textContent).toContain('CONCLUÍDA');
       });
 
       it('should render Badge with correct props for ATIVA status', () => {
         const { container } = render(
-          <>{statusColumn.render?.(ActivityDisplayStatus.ATIVA, {} as ActivityTableItem, 0)}</>
+          <>
+            {statusColumn.render?.(
+              ActivityDisplayStatus.ATIVA,
+              {} as ActivityTableItem,
+              0
+            )}
+          </>
         );
         expect(container.textContent).toContain('ATIVA');
       });
 
       it('should render Badge with correct props for VENCIDA status', () => {
         const { container } = render(
-          <>{statusColumn.render?.(ActivityDisplayStatus.VENCIDA, {} as ActivityTableItem, 0)}</>
+          <>
+            {statusColumn.render?.(
+              ActivityDisplayStatus.VENCIDA,
+              {} as ActivityTableItem,
+              0
+            )}
+          </>
         );
         expect(container.textContent).toContain('VENCIDA');
       });
@@ -205,7 +223,9 @@ describe('activitiesTableConfig', () => {
 
       it('should render subject with string value', () => {
         const { container } = render(
-          <>{subjectColumn.render?.('Matemática', {} as ActivityTableItem, 0)}</>
+          <>
+            {subjectColumn.render?.('Matemática', {} as ActivityTableItem, 0)}
+          </>
         );
         expect(container).toBeInTheDocument();
       });

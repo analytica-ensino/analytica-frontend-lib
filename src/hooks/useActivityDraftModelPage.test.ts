@@ -1,11 +1,9 @@
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { useActivityDraftModelPage } from './useActivityDraftModelPage';
-import type {
-  UseActivityDraftModelPageOptions,
-  UseActivityDraftModelPageReturn,
-} from './useActivityDraftModelPage';
+import type { UseActivityDraftModelPageOptions } from './useActivityDraftModelPage';
 import type { ActivityModelTableItem } from '../types/activitiesHistory';
 import type { TypeRoutes } from '../components/TypeSelector/TypeSelector.types';
+import { ActivityType } from '../components/ActivityCreate/ActivityCreate.types';
 
 // Mock react-router-dom
 const mockNavigate = jest.fn();
@@ -25,6 +23,23 @@ describe('useActivityDraftModelPage', () => {
     editDraft: (id: string) => `/atividades/rascunhos/${id}`,
     editModel: (id: string) => `/atividades/modelos/${id}`,
   };
+
+  const createMockRow = (
+    overrides: Partial<ActivityModelTableItem> = {}
+  ): ActivityModelTableItem => ({
+    id: '1',
+    title: 'Test Activity',
+    savedAt: '2024-01-01',
+    type: ActivityType.ATIVIDADE,
+    subject: {
+      id: 'sub-1',
+      name: 'Matemática',
+      icon: 'math',
+      color: 'blue',
+    },
+    subjectId: 'sub-1',
+    ...overrides,
+  });
 
   const baseOptions: UseActivityDraftModelPageOptions = {
     activityCategory: 'ATIVIDADE',
@@ -104,13 +119,7 @@ describe('useActivityDraftModelPage', () => {
         useActivityDraftModelPage(baseOptions)
       );
 
-      const mockRow: ActivityModelTableItem = {
-        id: '1',
-        title: 'Test Activity',
-        savedAt: '2024-01-01',
-        subject: { name: 'Matemática', color: 'blue' },
-        subjectId: 'sub-1',
-      };
+      const mockRow = createMockRow();
 
       act(() => {
         result.current.handleSend(mockRow);
@@ -126,13 +135,7 @@ describe('useActivityDraftModelPage', () => {
         useActivityDraftModelPage(baseOptions)
       );
 
-      const mockRow: ActivityModelTableItem = {
-        id: '1',
-        title: 'Test Activity',
-        savedAt: '2024-01-01',
-        subject: { name: 'Matemática', color: 'blue' },
-        subjectId: 'sub-1',
-      };
+      const mockRow = createMockRow();
 
       act(() => {
         result.current.handleDelete(mockRow);
@@ -149,13 +152,7 @@ describe('useActivityDraftModelPage', () => {
         useActivityDraftModelPage(baseOptions)
       );
 
-      const mockRow: ActivityModelTableItem = {
-        id: '1',
-        title: 'Test Activity',
-        savedAt: '2024-01-01',
-        subject: { name: 'Matemática', color: 'blue' },
-        subjectId: 'sub-1',
-      };
+      const mockRow = createMockRow();
 
       act(() => {
         result.current.handleEdit(mockRow);
@@ -167,7 +164,7 @@ describe('useActivityDraftModelPage', () => {
     it('should navigate to editModel route when editDraft is not available', () => {
       const routesWithoutEditDraft: TypeRoutes = {
         ...mockRoutes,
-        editDraft: undefined as any,
+        editDraft: undefined as unknown as (id: string) => string,
       };
 
       const { result } = renderHook(() =>
@@ -177,13 +174,7 @@ describe('useActivityDraftModelPage', () => {
         })
       );
 
-      const mockRow: ActivityModelTableItem = {
-        id: '1',
-        title: 'Test Activity',
-        savedAt: '2024-01-01',
-        subject: { name: 'Matemática', color: 'blue' },
-        subjectId: 'sub-1',
-      };
+      const mockRow = createMockRow();
 
       act(() => {
         result.current.handleEdit(mockRow);
@@ -195,8 +186,8 @@ describe('useActivityDraftModelPage', () => {
     it('should navigate to create with query params when no edit routes available', () => {
       const routesWithoutEdit: TypeRoutes = {
         ...mockRoutes,
-        editDraft: undefined as any,
-        editModel: undefined as any,
+        editDraft: undefined as unknown as (id: string) => string,
+        editModel: undefined as unknown as (id: string) => string,
       };
 
       const { result } = renderHook(() =>
@@ -206,13 +197,7 @@ describe('useActivityDraftModelPage', () => {
         })
       );
 
-      const mockRow: ActivityModelTableItem = {
-        id: '1',
-        title: 'Test Activity',
-        savedAt: '2024-01-01',
-        subject: { name: 'Matemática', color: 'blue' },
-        subjectId: 'sub-1',
-      };
+      const mockRow = createMockRow();
 
       act(() => {
         result.current.handleEdit(mockRow);
@@ -232,13 +217,7 @@ describe('useActivityDraftModelPage', () => {
         useActivityDraftModelPage(baseOptions)
       );
 
-      const mockRow: ActivityModelTableItem = {
-        id: '1',
-        title: 'Test Activity',
-        savedAt: '2024-01-01',
-        subject: { name: 'Matemática', color: 'blue' },
-        subjectId: 'sub-1',
-      };
+      const mockRow = createMockRow();
 
       act(() => {
         result.current.handleDelete(mockRow);
@@ -277,13 +256,7 @@ describe('useActivityDraftModelPage', () => {
         useActivityDraftModelPage(baseOptions)
       );
 
-      const mockRow: ActivityModelTableItem = {
-        id: '1',
-        title: 'Test Activity',
-        savedAt: '2024-01-01',
-        subject: { name: 'Matemática', color: 'blue' },
-        subjectId: 'sub-1',
-      };
+      const mockRow = createMockRow();
 
       act(() => {
         result.current.handleDelete(mockRow);
@@ -360,13 +333,7 @@ describe('useActivityDraftModelPage', () => {
         useActivityDraftModelPage(baseOptions)
       );
 
-      const mockRow: ActivityModelTableItem = {
-        id: '1',
-        title: 'Test Activity',
-        savedAt: '2024-01-01',
-        subject: { name: 'Matemática', color: 'blue' },
-        subjectId: 'sub-1',
-      };
+      const mockRow = createMockRow();
 
       act(() => {
         result.current.handleRowClick(mockRow);
@@ -378,7 +345,7 @@ describe('useActivityDraftModelPage', () => {
     it('should navigate to editModel route when editDraft is not available', () => {
       const routesWithoutEditDraft: TypeRoutes = {
         ...mockRoutes,
-        editDraft: undefined as any,
+        editDraft: undefined as unknown as (id: string) => string,
       };
 
       const { result } = renderHook(() =>
@@ -388,13 +355,7 @@ describe('useActivityDraftModelPage', () => {
         })
       );
 
-      const mockRow: ActivityModelTableItem = {
-        id: '1',
-        title: 'Test Activity',
-        savedAt: '2024-01-01',
-        subject: { name: 'Matemática', color: 'blue' },
-        subjectId: 'sub-1',
-      };
+      const mockRow = createMockRow();
 
       act(() => {
         result.current.handleRowClick(mockRow);
