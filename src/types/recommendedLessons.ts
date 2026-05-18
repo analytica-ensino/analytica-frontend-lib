@@ -513,6 +513,14 @@ export interface RecommendedClassModelResponse {
   finalDate: string | null;
   createdAt: string;
   updatedAt: string;
+  /** Activity drafts attached to this model (returned by
+   *  GET /recommended-class/drafts). Used to derive whether the model has
+   *  any activities for the "Permitir refazer?" field on the send modal. */
+  activityDrafts?: Array<{
+    activityDraftId: string;
+    sequence: number;
+    title?: string | null;
+  }>;
 }
 
 /**
@@ -527,6 +535,8 @@ export interface RecommendedClassModelTableItem extends Record<
   savedAt: string;
   subject: string;
   subjectId: string | null;
+  /** Number of activity drafts attached to this model. */
+  activityDraftsCount?: number;
 }
 
 /**

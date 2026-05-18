@@ -92,6 +92,7 @@ export const transformRecommendedClassModelToTableItem = (
     savedAt: dayjs(model.createdAt).format('DD/MM/YYYY'),
     subject: subjectName,
     subjectId: model.subjectId,
+    activityDraftsCount: model.activityDrafts?.length ?? 0,
   };
 };
 
