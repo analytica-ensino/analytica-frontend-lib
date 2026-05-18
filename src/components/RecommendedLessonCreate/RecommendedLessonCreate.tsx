@@ -1130,6 +1130,9 @@ const RecommendedLessonCreate = ({
             }))
           : undefined;
 
+        const hasAttachedActivities =
+          !!activityDraftIds && activityDraftIds.length > 0;
+
         const lessonPayload: RecommendedLessonCreatePayload = {
           title:
             formData.title || recommendedLesson?.title || 'Aula Recomendada',
@@ -1144,8 +1147,11 @@ const RecommendedLessonCreate = ({
           targetStudentIds: formData.students.map((s) => s.userInstitutionId),
           // Send notification as separate field (backend expects "notification")
           ...(formData.notification && { notification: formData.notification }),
-          // Forward retry flag — only meaningful when activityDraftIds is set.
-          canRetry: formData.canRetry ?? false,
+          // Forward retry flag only when activities are actually attached
+          // — backend ignores it otherwise and it would just be noise.
+          ...(hasAttachedActivities && {
+            canRetry: formData.canRetry ?? false,
+          }),
         };
 
         // POST: Create recommended lesson
