@@ -16,6 +16,8 @@
 @import './themes/parana/dark.css';
 @import './themes/paraiba/light.css';
 @import './themes/paraiba/dark.css';
+@import './themes/analytica/light.css';
+@import './themes/analytica/dark.css';
 
 /*
  * Regras globais do AccessibilityWidget (classes em <html> para
