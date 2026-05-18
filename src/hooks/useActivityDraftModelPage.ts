@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { FilterConfig } from '../components/Filter';
-import type { ActivityModelTableItem } from '../types/activitiesHistory';
+import type {
+  ActivityModelTableItem,
+  ActivityFilterOption,
+} from '../types/activitiesHistory';
 import type { ColumnConfig } from '../components/TableProvider/TableProvider';
 import type {
   ActivityCategory,
@@ -13,7 +16,6 @@ import {
   mergeFilterOptions,
   type UserFilterSourceData,
 } from '../utils/filterHelpers';
-import type { ActivityFilterOption } from '../types/activitiesHistory';
 
 /**
  * Create filter configuration for drafts/models

@@ -294,10 +294,6 @@ describe('UnifiedDraftModelPage', () => {
   });
 
   describe('delete functionality', () => {
-    it('should open delete dialog when delete is triggered', () => {
-      // Filters are merged internally
-    });
-
     it('should filter out items without subject', () => {
       const dataWithInvalidSubjects: ActivityModelTableItem[] = [
         ...mockData,
@@ -317,26 +313,6 @@ describe('UnifiedDraftModelPage', () => {
 
       // Component should filter out the item with invalid subject
       expect(screen.getByTestId('activity-page-layout')).toBeInTheDocument();
-    });
-  });
-
-  describe('with userData', () => {
-    it('should merge userData subjects with API subjects', () => {
-      const propsWithUserData = {
-        ...baseProps,
-        userData: {
-          subTeacherTopicClasses: [
-            {
-              subject: { id: 'user-sub-1', name: 'História' },
-            },
-          ],
-        },
-      };
-
-      render(<UnifiedDraftModelPage {...propsWithUserData} />);
-
-      // Filter options are extracted from userData
-      // Filters are merged internally
     });
   });
 
