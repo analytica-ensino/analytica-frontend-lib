@@ -190,6 +190,11 @@ describe('activitiesTableConfig', () => {
           <>{completionColumn.render?.(75, {} as ActivityTableItem, 0)}</>
         );
         expect(container).toBeInTheDocument();
+        // ProgressBar renders a progress element with value
+        const progressElement = container.querySelector('progress');
+        expect(progressElement).toBeInTheDocument();
+        expect(progressElement).toHaveAttribute('value', '75');
+        expect(progressElement).toHaveAttribute('max', '100');
       });
 
       it('should handle zero value', () => {
@@ -197,6 +202,8 @@ describe('activitiesTableConfig', () => {
           <>{completionColumn.render?.(0, {} as ActivityTableItem, 0)}</>
         );
         expect(container).toBeInTheDocument();
+        const progressElement = container.querySelector('progress');
+        expect(progressElement).toHaveAttribute('value', '0');
       });
 
       it('should handle 100 value', () => {
@@ -204,6 +211,8 @@ describe('activitiesTableConfig', () => {
           <>{completionColumn.render?.(100, {} as ActivityTableItem, 0)}</>
         );
         expect(container).toBeInTheDocument();
+        const progressElement = container.querySelector('progress');
+        expect(progressElement).toHaveAttribute('value', '100');
       });
     });
 

@@ -282,17 +282,34 @@ describe('UnifiedHistoryPage', () => {
 
   describe('filter configuration', () => {
     it('should create filters without creator filter by default', () => {
-      const { container } = render(<UnifiedHistoryPage {...baseProps} />);
-      expect(container).toBeInTheDocument();
-      // Filters are created internally, we verify through proper rendering
+      render(<UnifiedHistoryPage {...baseProps} />);
+
+      // Verify creator filter is NOT included in initialFilters
+      const lastCall =
+        getMockPageLayout().mock.calls[
+          getMockPageLayout().mock.calls.length - 1
+        ];
+      const initialFilters = lastCall[0].initialFilters;
+      const hasCreatorFilter = initialFilters.some(
+        (filter: { key: string }) => filter.key === 'creator'
+      );
+      expect(hasCreatorFilter).toBe(false);
     });
 
     it('should include creator filter when includeCreatorFilter is true', () => {
-      const { container } = render(
-        <UnifiedHistoryPage {...baseProps} includeCreatorFilter={true} />
+      render(<UnifiedHistoryPage {...baseProps} includeCreatorFilter={true} />);
+
+      // Verify creator filter IS included in initialFilters
+      const lastCall =
+        getMockPageLayout().mock.calls[
+          getMockPageLayout().mock.calls.length - 1
+        ];
+      const initialFilters = lastCall[0].initialFilters;
+      const creatorFilter = initialFilters.find(
+        (filter: { key: string }) => filter.key === 'creator'
       );
-      expect(container).toBeInTheDocument();
-      // Creator filter is included in initialFilterConfigs
+      expect(creatorFilter).toBeDefined();
+      expect(creatorFilter.label).toBe('CRIADO POR');
     });
 
     it('should merge user filter options with API options', () => {
@@ -480,8 +497,14 @@ describe('UnifiedHistoryPage', () => {
         activityImage: 'https://example.com/image.png',
       };
       render(<UnifiedHistoryPage {...propsWithImage} />);
-      // EmptyState is passed as prop to PageLayout
-      expect(getMockPageLayout()).toHaveBeenCalled();
+
+      // Verify EmptyState is passed as prop to PageLayout
+      const lastCall =
+        getMockPageLayout().mock.calls[
+          getMockPageLayout().mock.calls.length - 1
+        ];
+      expect(lastCall[0].emptyState).toBeDefined();
+      expect(lastCall[0].emptyState).not.toBeNull();
     });
 
     it('should not render EmptyState when activityImage is not provided', () => {

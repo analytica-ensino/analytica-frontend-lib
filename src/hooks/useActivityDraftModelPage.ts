@@ -16,26 +16,7 @@ import {
   mergeFilterOptions,
   type UserFilterSourceData,
 } from '../utils/filterHelpers';
-
-/**
- * Create filter configuration for drafts/models
- */
-const createDraftsModelsFiltersConfig = (
-  subjectOptions: ActivityFilterOption[]
-): FilterConfig[] => [
-  {
-    key: 'content',
-    label: 'CONTEÚDO',
-    categories: [
-      {
-        key: 'subject',
-        label: 'Matéria',
-        selectedIds: [],
-        itens: subjectOptions,
-      },
-    ],
-  },
-];
+import { createDraftsModelsFiltersConfig } from '../utils/draftModelFilterHelpers';
 
 /**
  * Configuration options for the useActivityDraftModelPage hook
@@ -179,7 +160,7 @@ export const useActivityDraftModelPage = ({
 
     try {
       await deleteFn(itemToDeleteId);
-      fetchFn(currentParams);
+      await fetchFn(currentParams);
     } catch (err) {
       console.error(`Erro ao deletar ${errorLogLabel}:`, err);
     }

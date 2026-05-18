@@ -5,6 +5,7 @@ import type {
 import type { ActivityTableItem } from '../../types/activitiesHistory';
 import type { ExamTableItem } from '../../types/examsHistory';
 import type { TableParams } from '../TableProvider/TableProvider';
+import type { PaginationData } from '../../types/pagination';
 
 /**
  * User data type for filter options
@@ -29,16 +30,6 @@ export interface ApiFilterOptions {
   schoolYears: Array<{ id: string; name: string }>;
   classes: Array<{ id: string; name: string }>;
   subjects: Array<{ id: string; name: string }>;
-}
-
-/**
- * Pagination data
- */
-export interface PaginationData {
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
 }
 
 /**

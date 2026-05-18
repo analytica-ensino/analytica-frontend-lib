@@ -102,10 +102,18 @@ export const activitiesTableColumns: ColumnConfig<ActivityTableItem>[] = [
     sortable: true,
     render: (value: unknown) => {
       const status = typeof value === 'string' ? value : '';
+      // Validate status is a valid ActivityDisplayStatus enum value
+      const validStatuses = Object.values(ActivityDisplayStatus);
+      const validatedStatus = validStatuses.includes(
+        value as ActivityDisplayStatus
+      )
+        ? (value as ActivityDisplayStatus)
+        : ActivityDisplayStatus.ATIVA; // Default fallback
+
       return (
         <Badge
           variant="solid"
-          action={getActivityStatusBadgeAction(value as ActivityDisplayStatus)}
+          action={getActivityStatusBadgeAction(validatedStatus)}
           size="small"
         >
           {status}
@@ -117,16 +125,24 @@ export const activitiesTableColumns: ColumnConfig<ActivityTableItem>[] = [
     key: 'completionPercentage',
     label: 'Conclusão',
     sortable: true,
-    render: (value: unknown) => (
-      <ProgressBar
-        value={Number(value)}
-        variant="blue"
-        size="medium"
-        layout="compact"
-        showPercentage={true}
-        compactWidth="w-[100px]"
-      />
-    ),
+    render: (value: unknown) => {
+      // Sanitize value: coerce to number, default to 0 if NaN, clamp to 0-100 range
+      const numericValue = Number(value);
+      const sanitizedValue = Number.isNaN(numericValue)
+        ? 0
+        : Math.max(0, Math.min(100, numericValue));
+
+      return (
+        <ProgressBar
+          value={sanitizedValue}
+          variant="blue"
+          size="medium"
+          layout="compact"
+          showPercentage={true}
+          compactWidth="w-[100px]"
+        />
+      );
+    },
   },
   {
     key: 'navigation',

@@ -3,6 +3,7 @@ import type {
   TypeRoutes,
 } from '../TypeSelector/TypeSelector.types';
 import type { ActivityModelTableItem } from '../../types/activitiesHistory';
+import type { PaginationData } from '../../types/pagination';
 
 /**
  * User data type for filter options
@@ -11,16 +12,6 @@ export interface UserData {
   subTeacherTopicClasses?: Array<{
     subject?: { id: string; name: string };
   }>;
-}
-
-/**
- * Pagination data
- */
-export interface PaginationData {
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
 }
 
 /**

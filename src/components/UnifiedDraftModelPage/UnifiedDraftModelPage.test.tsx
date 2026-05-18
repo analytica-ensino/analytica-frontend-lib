@@ -293,8 +293,8 @@ describe('UnifiedDraftModelPage', () => {
     });
   });
 
-  describe('delete functionality', () => {
-    it('should filter out items without subject', () => {
+  describe('subject filtering', () => {
+    it('should display all items but exclude invalid subjects from filter options', () => {
       const dataWithInvalidSubjects: ActivityModelTableItem[] = [
         ...mockData,
         {
@@ -311,8 +311,16 @@ describe('UnifiedDraftModelPage', () => {
         <UnifiedDraftModelPage {...baseProps} data={dataWithInvalidSubjects} />
       );
 
-      // Component should filter out the item with invalid subject
+      // Component should display all items including the one with invalid subject
       expect(screen.getByTestId('activity-page-layout')).toBeInTheDocument();
+      expect(screen.getByTestId('data-count')).toHaveTextContent('3');
+
+      // PageLayout receives all items - filtering only applies to subject options
+      const lastCall =
+        MockActivityPageLayout.mock.calls[
+          MockActivityPageLayout.mock.calls.length - 1
+        ];
+      expect(lastCall[0].data).toHaveLength(3);
     });
   });
 

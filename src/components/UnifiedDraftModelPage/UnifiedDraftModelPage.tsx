@@ -7,36 +7,13 @@ import EmptyState from '../EmptyState/EmptyState';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import TypeSelector from '../TypeSelector/TypeSelector';
 import { createActivityCategoryConfig } from '../TypeSelector/TypeSelector.types';
-import type {
-  ActivityModelTableItem,
-  ActivityFilterOption,
-} from '../../types/activitiesHistory';
+import type { ActivityModelTableItem } from '../../types/activitiesHistory';
 import { createExamDraftsModelsTableColumns } from '../ExamPageLayout/examDraftsModelsTableConfig';
-import type { FilterConfig } from '../Filter';
 import {
   getSubjectOptionsFromUserData,
   mergeFilterOptions,
 } from '../../utils/filterHelpers';
-
-/**
- * Create filter configuration for drafts/models
- */
-const createDraftsModelsFiltersConfig = (
-  subjectOptions: ActivityFilterOption[]
-): FilterConfig[] => [
-  {
-    key: 'content',
-    label: 'CONTEÚDO',
-    categories: [
-      {
-        key: 'subject',
-        label: 'Matéria',
-        selectedIds: [],
-        itens: subjectOptions,
-      },
-    ],
-  },
-];
+import { createDraftsModelsFiltersConfig } from '../../utils/draftModelFilterHelpers';
 
 /**
  * Unified page component for Activity/Exam Drafts and Models
@@ -117,10 +94,17 @@ export const UnifiedDraftModelPage = ({
     if (!itemToDeleteId) return;
 
     try {
-      await onDelete(itemToDeleteId);
-      setIsDeleteDialogOpen(false);
+      const result = await onDelete(itemToDeleteId);
+      // Only close dialog if onDelete returns true or void (undefined)
+      // If it returns false, keep dialog open to allow retry
+      if (result !== false) {
+        setIsDeleteDialogOpen(false);
+        setItemToDeleteId(null);
+        setItemToDeleteTitle('');
+      }
     } catch (err) {
       console.error(`Erro ao deletar ${config.errorLogLabel}:`, err);
+      // Keep dialog open on error to allow retry
     }
   }, [itemToDeleteId, onDelete, config.errorLogLabel]);
 
@@ -266,6 +250,10 @@ export const UnifiedDraftModelPage = ({
 
   return (
     <>
+      {/* Type assertion needed: PageLayout is conditionally ActivityPageLayout | ExamPageLayout.
+          layoutProps uses computed property [config.onCreatePropName] which is either
+          'onCreateActivity' or 'onCreateExam', satisfying both layouts at runtime.
+          TypeScript cannot verify this dynamic key matches the expected prop name. */}
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       <PageLayout {...(layoutProps as any)} />
 
