@@ -138,6 +138,13 @@ export function Tooltip({
   useLayoutEffect(() => {
     if (!usePortal || !open) return;
     updatePosition();
+    const onViewportChange = () => updatePosition();
+    window.addEventListener('resize', onViewportChange);
+    window.addEventListener('scroll', onViewportChange, true);
+    return () => {
+      window.removeEventListener('resize', onViewportChange);
+      window.removeEventListener('scroll', onViewportChange, true);
+    };
   }, [usePortal, open, updatePosition, content]);
 
   /**
