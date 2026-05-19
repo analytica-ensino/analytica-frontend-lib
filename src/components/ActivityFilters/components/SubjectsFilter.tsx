@@ -2,6 +2,7 @@ import {
   Radio,
   IconRender,
   Text,
+  TruncatedText,
   useTheme,
   getSubjectColorWithOpacity,
 } from '../../..';
@@ -60,18 +61,20 @@ export const SubjectsFilter = ({
           value={noSubjectValue}
           checked={selectedSubject === noSubjectValue}
           onChange={() => onSubjectChange(noSubjectValue)}
+          labelClassName="overflow-visible"
           label={
             <div className="flex items-center gap-2 w-full min-w-0">
               <span className="size-4 rounded-sm flex items-center justify-center shrink-0 text-text-600 bg-background-100">
                 <Prohibit size={14} weight="bold" />
               </span>
-              <Text
+              <TruncatedText
                 size="sm"
                 weight="normal"
-                className="truncate flex-1 text-text-600"
+                color="text-text-600"
+                className="flex-1"
               >
                 Sem matéria
-              </Text>
+              </TruncatedText>
             </div>
           }
         />
@@ -82,6 +85,7 @@ export const SubjectsFilter = ({
           value={area.id}
           checked={selectedSubject === area.id}
           onChange={() => onSubjectChange(area.id)}
+          labelClassName="overflow-visible"
           label={
             <div className="flex items-center gap-2 w-full min-w-0">
               <span
@@ -99,9 +103,9 @@ export const SubjectsFilter = ({
                   color="currentColor"
                 />
               </span>
-              <Text size="sm" weight="normal" className="truncate flex-1">
+              <TruncatedText size="sm" weight="normal" className="flex-1">
                 {area.name}
-              </Text>
+              </TruncatedText>
             </div>
           }
         />

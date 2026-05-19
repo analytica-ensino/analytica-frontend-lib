@@ -2,6 +2,7 @@ import type { MouseEvent, ReactNode } from 'react';
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Plus, CaretRight, Trash, PencilSimple } from 'phosphor-react';
 import Text from '../Text/Text';
+import { TruncatedText } from '../TruncatedText/TruncatedText';
 import Button from '../Button/Button';
 import IconButton from '../IconButton/IconButton';
 import Badge from '../Badge/Badge';
@@ -313,42 +314,30 @@ const createTableColumns = (
     key: 'creator',
     label: 'Autor',
     sortable: false,
-    className: 'max-w-[150px] truncate',
+    className: 'max-w-[150px]',
     render: (value: unknown) => {
       const name = typeof value === 'string' ? value : '';
-      return (
-        <Text size="sm" title={name}>
-          {name}
-        </Text>
-      );
+      return <TruncatedText size="sm">{name}</TruncatedText>;
     },
   },
   {
     key: 'title',
     label: 'Título',
     sortable: true,
-    className: 'max-w-[200px] truncate',
+    className: 'max-w-[200px]',
     render: (value: unknown) => {
       const title = typeof value === 'string' ? value : '';
-      return (
-        <Text size="sm" title={title}>
-          {title}
-        </Text>
-      );
+      return <TruncatedText size="sm">{title}</TruncatedText>;
     },
   },
   {
     key: 'school',
     label: 'Escola',
     sortable: true,
-    className: 'max-w-[150px] truncate',
+    className: 'max-w-[150px]',
     render: (value: unknown) => {
       const school = typeof value === 'string' ? value : '';
-      return (
-        <Text size="sm" title={school}>
-          {school}
-        </Text>
-      );
+      return <TruncatedText size="sm">{school}</TruncatedText>;
     },
   },
   {
@@ -366,17 +355,13 @@ const createTableColumns = (
       const subjectEnum = mapSubjectNameToEnum?.(subjectName);
 
       if (!subjectEnum) {
-        return (
-          <Text size="sm" className="truncate" title={subjectName}>
-            {subjectName}
-          </Text>
-        );
+        return <TruncatedText size="sm">{subjectName}</TruncatedText>;
       }
 
       const subjectInfo = getSubjectInfo(subjectEnum);
 
       return (
-        <div className="flex items-center gap-2" title={subjectName}>
+        <div className="flex items-center gap-2 min-w-0">
           <span
             className={cn(
               'w-[21px] h-[21px] flex items-center justify-center rounded-sm text-text-950 shrink-0',
@@ -385,9 +370,7 @@ const createTableColumns = (
           >
             {subjectInfo.icon}
           </span>
-          <Text size="sm" className="truncate">
-            {subjectName}
-          </Text>
+          <TruncatedText size="sm">{subjectName}</TruncatedText>
         </div>
       );
     },

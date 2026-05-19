@@ -1,6 +1,6 @@
 import type { MouseEvent } from 'react';
 import { Trash, PencilSimple, PaperPlaneTilt } from 'phosphor-react';
-import Text from '../../Text/Text';
+import { TruncatedText } from '../../TruncatedText/TruncatedText';
 import Button from '../../Button/Button';
 import IconButton from '../../IconButton/IconButton';
 import { renderSubjectCell } from '../../../utils/renderSubjectCell';
@@ -68,11 +68,7 @@ export const createModelsTableColumnsBase = <T extends BaseModelItem>(
     className: 'max-w-[400px]',
     render: (value: unknown) => {
       const title = typeof value === 'string' ? value : '';
-      return (
-        <Text size="sm" title={title} className="truncate block">
-          {title}
-        </Text>
-      );
+      return <TruncatedText size="sm">{title}</TruncatedText>;
     },
   },
   {

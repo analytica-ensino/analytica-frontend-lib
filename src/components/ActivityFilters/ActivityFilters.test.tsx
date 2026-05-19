@@ -228,8 +228,9 @@ describe('ActivityFilters', () => {
 
     expect(screen.getByText('Banca 1')).toBeInTheDocument();
     expect(screen.getByText('Banca 2')).toBeInTheDocument();
-    expect(screen.getByText('Matemática')).toBeInTheDocument();
-    expect(screen.getByText('Português')).toBeInTheDocument();
+    // Subjects appear twice (label + tooltip content) — use getAllByText
+    expect(screen.getAllByText('Matemática').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Português').length).toBeGreaterThan(0);
   });
 
   it('renders question types from API', () => {
