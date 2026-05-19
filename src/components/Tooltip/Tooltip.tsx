@@ -7,6 +7,7 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
+import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
 
 /**
@@ -173,7 +174,8 @@ export function Tooltip({
 
   if (usePortal) {
     return (
-      <span
+      <Text
+        as="span"
         ref={triggerRef}
         className={cn('relative inline-flex', className)}
         aria-describedby={open ? 'tooltip-portal' : undefined}
@@ -198,7 +200,7 @@ export function Tooltip({
             </div>,
             document.body
           )}
-      </span>
+      </Text>
     );
   }
 
