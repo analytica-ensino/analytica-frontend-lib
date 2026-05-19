@@ -111,6 +111,26 @@ jest.mock('../../../index', () => ({
       {children}
     </span>
   ),
+  TruncatedText: ({
+    children,
+    size,
+    color,
+    className,
+  }: {
+    children: React.ReactNode;
+    size?: string;
+    color?: string;
+    className?: string;
+  }) => (
+    <span
+      data-testid="truncated-text"
+      data-size={size}
+      data-color={color}
+      className={className}
+    >
+      {children}
+    </span>
+  ),
 }));
 
 // Mock do createModelsTableColumnsBase
@@ -372,11 +392,6 @@ describe('ActivityModelsList', () => {
       const subjectCell = screen.getByTestId('subject-cell-model-with-subject');
       expect(subjectCell).toBeInTheDocument();
 
-      // Check container with title attribute
-      const subjectContainer = subjectCell.querySelector('[title]');
-      expect(subjectContainer).toBeInTheDocument();
-      expect(subjectContainer).toHaveAttribute('title', mockSubject1.name);
-
       // Check icon container with background color
       const iconContainer = subjectCell.querySelector(
         '.w-\\[21px\\].h-\\[21px\\]'
@@ -396,10 +411,9 @@ describe('ActivityModelsList', () => {
       expect(icon).toHaveAttribute('data-color', 'currentColor');
 
       // Check text
-      const text = subjectCell.querySelector('[data-testid="text"]');
+      const text = subjectCell.querySelector('[data-testid="truncated-text"]');
       expect(text).toBeInTheDocument();
       expect(text).toHaveAttribute('data-size', 'sm');
-      expect(text?.className).toContain('truncate');
       expect(text?.textContent).toBe(mockSubject1.name);
     });
 
@@ -438,7 +452,7 @@ describe('ActivityModelsList', () => {
       });
       const mathIcon = mathCell.querySelector('[data-icon-name]');
       expect(mathIcon).toHaveAttribute('data-icon-name', mockSubject1.icon);
-      const mathText = mathCell.querySelector('[data-testid="text"]');
+      const mathText = mathCell.querySelector('[data-testid="truncated-text"]');
       expect(mathText?.textContent).toBe(mockSubject1.name);
 
       // Check second subject (Portuguese)
@@ -449,7 +463,7 @@ describe('ActivityModelsList', () => {
       });
       const portIcon = portCell.querySelector('[data-icon-name]');
       expect(portIcon).toHaveAttribute('data-icon-name', mockSubject2.icon);
-      const portText = portCell.querySelector('[data-testid="text"]');
+      const portText = portCell.querySelector('[data-testid="truncated-text"]');
       expect(portText?.textContent).toBe(mockSubject2.name);
     });
 
@@ -479,7 +493,9 @@ describe('ActivityModelsList', () => {
       const withSubjectCell = screen.getByTestId('subject-cell-with-subject');
       const icon = withSubjectCell.querySelector('[data-icon-name]');
       expect(icon).toBeInTheDocument();
-      const text = withSubjectCell.querySelector('[data-testid="text"]');
+      const text = withSubjectCell.querySelector(
+        '[data-testid="truncated-text"]'
+      );
       expect(text?.textContent).toBe(mockSubject1.name);
 
       // Check model without subject
@@ -554,9 +570,9 @@ describe('ActivityModelsList', () => {
       );
 
       const subjectCell = screen.getByTestId('subject-cell-long-name');
-      const text = subjectCell.querySelector('[data-testid="text"]');
+      const text = subjectCell.querySelector('[data-testid="truncated-text"]');
 
-      expect(text?.className).toContain('truncate');
+      expect(text).toBeInTheDocument();
       expect(text?.textContent).toBe(longSubject.name);
     });
   });

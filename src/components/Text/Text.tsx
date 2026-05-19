@@ -1,4 +1,4 @@
-import { ComponentPropsWithoutRef, ElementType, ReactNode } from 'react';
+import { ComponentPropsWithRef, ElementType, ReactNode } from 'react';
 import { cn } from '../../utils/utils';
 
 /**
@@ -42,7 +42,7 @@ type BaseTextProps = {
 type TextProps<T extends ElementType = 'p'> = BaseTextProps & {
   /** HTML tag to render */
   as?: T;
-} & Omit<ComponentPropsWithoutRef<T>, keyof BaseTextProps>;
+} & Omit<ComponentPropsWithRef<T>, keyof BaseTextProps>;
 
 /**
  * Text component for Analytica Ensino platforms

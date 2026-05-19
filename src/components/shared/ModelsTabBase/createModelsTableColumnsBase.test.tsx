@@ -88,8 +88,12 @@ describe('createModelsTableColumnsBase', () => {
         defaultConfig
       );
       const titleColumn = columns[0];
-      render(<>{titleColumn.render?.(mockModel.title, mockModel, 0)}</>);
-      expect(screen.getByText('Test Model')).toBeInTheDocument();
+      const { container } = render(
+        <>{titleColumn.render?.(mockModel.title, mockModel, 0)}</>
+      );
+      expect(container.querySelector('span.truncate')).toHaveTextContent(
+        'Test Model'
+      );
     });
 
     it('should handle empty title', () => {
@@ -104,8 +108,8 @@ describe('createModelsTableColumnsBase', () => {
       const { container } = render(
         <>{titleColumn.render?.('', mockModel, 0)}</>
       );
-      // Text component renders a p element with empty content
-      const element = container.querySelector('p');
+      // TruncatedText renders a span element with empty content
+      const element = container.querySelector('span');
       expect(element).toBeInTheDocument();
       expect(element?.textContent).toBe('');
     });
@@ -122,8 +126,8 @@ describe('createModelsTableColumnsBase', () => {
       const { container } = render(
         <>{titleColumn.render?.(123 as unknown as string, mockModel, 0)}</>
       );
-      // Text component renders a p element with empty content for non-string values
-      const element = container.querySelector('p');
+      // TruncatedText renders a span element with empty content for non-string values
+      const element = container.querySelector('span');
       expect(element).toBeInTheDocument();
       expect(element?.textContent).toBe('');
     });

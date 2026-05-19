@@ -30,6 +30,13 @@ export type {
 export { default as IconButton } from './components/IconButton/IconButton';
 export { Tooltip } from './components/Tooltip/Tooltip';
 export type { TooltipProps } from './components/Tooltip/Tooltip';
+export { TruncatedText } from './components/TruncatedText/TruncatedText';
+export type {
+  TruncatedTextProps,
+  TruncatedTextSize,
+  TruncatedTextWeight,
+  TruncatedTextTooltipPosition,
+} from './components/TruncatedText/TruncatedText';
 export { default as IconRoundedButton } from './components/IconRoundedButton/IconRoundedButton';
 export { default as NavButton } from './components/NavButton/NavButton';
 export { default as SelectionButton } from './components/SelectionButton/SelectionButton';

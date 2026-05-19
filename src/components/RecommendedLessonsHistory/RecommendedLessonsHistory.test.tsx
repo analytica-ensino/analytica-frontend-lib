@@ -746,13 +746,7 @@ describe('RecommendedLessonsHistory', () => {
       await waitFor(() => {
         const creatorCell = screen.getByTestId('creator-cell');
         expect(creatorCell).toBeInTheDocument();
-        expect(creatorCell.querySelector('span')).toHaveAttribute(
-          'title',
-          'Professor João'
-        );
-        expect(creatorCell.querySelector('span')).toHaveTextContent(
-          'Professor João'
-        );
+        expect(creatorCell).toHaveTextContent('Professor João');
       });
     });
 
@@ -777,8 +771,7 @@ describe('RecommendedLessonsHistory', () => {
 
       await waitFor(() => {
         const creatorCell = screen.getByTestId('creator-cell');
-        expect(creatorCell.querySelector('span')).toHaveAttribute('title', '-');
-        expect(creatorCell.querySelector('span')).toHaveTextContent('-');
+        expect(creatorCell).toHaveTextContent('-');
       });
     });
 
@@ -802,10 +795,7 @@ describe('RecommendedLessonsHistory', () => {
       await waitFor(() => {
         const titleCell = screen.getByTestId('title-cell');
         expect(titleCell).toBeInTheDocument();
-        expect(titleCell.querySelector('span')).toHaveAttribute(
-          'title',
-          'Aula de Matemática'
-        );
+        expect(titleCell).toHaveTextContent('Aula de Matemática');
       });
     });
 
@@ -815,10 +805,7 @@ describe('RecommendedLessonsHistory', () => {
       await waitFor(() => {
         const schoolCell = screen.getByTestId('school-cell');
         expect(schoolCell).toBeInTheDocument();
-        expect(schoolCell.querySelector('span')).toHaveAttribute(
-          'title',
-          'Escola Exemplo'
-        );
+        expect(schoolCell).toHaveTextContent('Escola Exemplo');
       });
     });
 
