@@ -6,6 +6,7 @@ import type {
   SendActivityCategoriesData,
   ActivityModelItem,
 } from '../types/sendActivity';
+import type { BaseApiClient } from '../types/api';
 import { ActivitySubtype } from '../components/SendActivityModal/types';
 import type { SendActivityFormData } from '../components/SendActivityModal/types';
 
@@ -80,57 +81,71 @@ const mockFormData: SendActivityFormData = {
 };
 
 /**
- * Create mock Axios instance for UseSendActivityConfig
+ * Type for mockable BaseApiClient
  */
-const createMockAxiosInstance = () => ({
-  get: jest.fn((url: string) => {
-    if (url === '/school') {
-      return Promise.resolve({
-        data: { data: mockCategoriesData.schools },
-      });
-    }
-    if (url === '/schoolYear') {
-      return Promise.resolve({
-        data: { data: mockCategoriesData.schoolYears },
-      });
-    }
-    if (url === '/classes') {
-      return Promise.resolve({
-        data: { data: mockCategoriesData.classes },
-      });
-    }
-    if (url === '/students') {
-      return Promise.resolve({
-        data: { data: mockCategoriesData.students },
-      });
-    }
-    if (url.includes('/activity-drafts/')) {
-      return Promise.resolve({
-        data: {
+interface MockableApiClient extends BaseApiClient {
+  get: jest.Mock;
+  post: jest.Mock;
+  patch: jest.Mock;
+  delete: jest.Mock;
+}
+
+/**
+ * Create mock API client that implements BaseApiClient
+ */
+const createMockApiClient = (): MockableApiClient => {
+  const mockApi: MockableApiClient = {
+    get: jest.fn((url: string) => {
+      if (url === '/school') {
+        return Promise.resolve({
+          data: { data: mockCategoriesData.schools },
+        });
+      }
+      if (url === '/schoolYear') {
+        return Promise.resolve({
+          data: { data: mockCategoriesData.schoolYears },
+        });
+      }
+      if (url === '/classes') {
+        return Promise.resolve({
+          data: { data: mockCategoriesData.classes },
+        });
+      }
+      if (url === '/students') {
+        return Promise.resolve({
+          data: { data: mockCategoriesData.students },
+        });
+      }
+      if (url.includes('/activity-drafts/')) {
+        return Promise.resolve({
           data: {
-            selectedQuestions: [{ id: 'q1' }, { id: 'q2' }, { id: 'q3' }],
+            data: {
+              selectedQuestions: [{ id: 'q1' }, { id: 'q2' }, { id: 'q3' }],
+            },
           },
-        },
-      });
-    }
-    return Promise.reject(new Error('Not found'));
-  }),
-  post: jest.fn((url: string) => {
-    if (url === '/activities') {
-      return Promise.resolve({
-        data: { data: { id: 'activity-123' } },
-      });
-    }
-    if (url === '/activities/send-to-students') {
-      return Promise.resolve({
-        data: { data: {} },
-      });
-    }
-    return Promise.reject(new Error('Not found'));
-  }),
-  patch: jest.fn(() => Promise.resolve({ data: {} })),
-  delete: jest.fn(() => Promise.resolve({ data: {} })),
-});
+        });
+      }
+      return Promise.reject(new Error('Not found'));
+    }),
+    post: jest.fn((url: string) => {
+      if (url === '/activities') {
+        return Promise.resolve({
+          data: { data: { id: 'activity-123' } },
+        });
+      }
+      if (url === '/activities/send-to-students') {
+        return Promise.resolve({
+          data: { data: {} },
+        });
+      }
+      return Promise.reject(new Error('Not found'));
+    }),
+    patch: jest.fn(() => Promise.resolve({ data: {} })),
+    delete: jest.fn(() => Promise.resolve({ data: {} })),
+  };
+
+  return mockApi;
+};
 
 /**
  * Create mock config for useSendActivity
@@ -138,7 +153,7 @@ const createMockAxiosInstance = () => ({
 const createMockConfig = (
   overrides?: Partial<UseSendActivityConfig>
 ): UseSendActivityConfig => ({
-  api: createMockAxiosInstance() as any,
+  api: createMockApiClient(),
   onSuccess: jest.fn(),
   onError: jest.fn(),
   ...overrides,
@@ -261,11 +276,11 @@ describe('useSendActivity', () => {
     });
 
     it('should handle error when loading categories fails', async () => {
-      const mockApi = createMockAxiosInstance();
+      const mockApi = createMockApiClient();
       mockApi.get = jest.fn().mockRejectedValue(new Error('Network Error'));
 
       const config = createMockConfig({
-        api: mockApi as any,
+        api: mockApi,
       });
       const { result } = renderHook(() => useSendActivity(config));
 
@@ -284,11 +299,11 @@ describe('useSendActivity', () => {
     });
 
     it('should handle error without onError callback', async () => {
-      const mockApi = createMockAxiosInstance();
+      const mockApi = createMockApiClient();
       mockApi.get = jest.fn().mockRejectedValue(new Error('Network Error'));
 
       const config = createMockConfig({
-        api: mockApi as any,
+        api: mockApi,
         onError: undefined,
       });
       const { result } = renderHook(() => useSendActivity(config));
@@ -425,18 +440,19 @@ describe('useSendActivity', () => {
     });
 
     it('should handle error when fetchQuestionIds returns null', async () => {
-      const mockApi = createMockAxiosInstance();
+      const defaultMockApi = createMockApiClient();
+      const mockApi = createMockApiClient();
       mockApi.get = jest.fn((url: string) => {
         if (url.includes('/activity-drafts/')) {
           return Promise.resolve({
             data: { data: { selectedQuestions: null } },
           });
         }
-        return (createMockAxiosInstance() as any).get(url);
+        return defaultMockApi.get(url);
       });
 
       const config = createMockConfig({
-        api: mockApi as any,
+        api: mockApi,
       });
       const { result } = renderHook(() => useSendActivity(config));
 
@@ -456,18 +472,19 @@ describe('useSendActivity', () => {
     });
 
     it('should handle error when fetchQuestionIds returns empty array', async () => {
-      const mockApi = createMockAxiosInstance();
+      const defaultMockApi = createMockApiClient();
+      const mockApi = createMockApiClient();
       mockApi.get = jest.fn((url: string) => {
         if (url.includes('/activity-drafts/')) {
           return Promise.resolve({
             data: { data: { selectedQuestions: [] } },
           });
         }
-        return (createMockAxiosInstance() as any).get(url);
+        return defaultMockApi.get(url);
       });
 
       const config = createMockConfig({
-        api: mockApi as any,
+        api: mockApi,
       });
       const { result } = renderHook(() => useSendActivity(config));
 
@@ -487,17 +504,17 @@ describe('useSendActivity', () => {
     });
 
     it('should handle error when createActivity fails', async () => {
-      const mockApi = createMockAxiosInstance();
-      const originalPost = mockApi.post;
+      const defaultMockApi = createMockApiClient();
+      const mockApi = createMockApiClient();
       mockApi.post = jest.fn((url: string) => {
         if (url === '/activities') {
           return Promise.reject(new Error('API Error'));
         }
-        return originalPost(url);
+        return defaultMockApi.post(url);
       });
 
       const config = createMockConfig({
-        api: mockApi as any,
+        api: mockApi,
       });
       const { result } = renderHook(() => useSendActivity(config));
 
@@ -514,17 +531,17 @@ describe('useSendActivity', () => {
     });
 
     it('should handle error when sendToStudents fails', async () => {
-      const mockApi = createMockAxiosInstance();
-      const originalPost = mockApi.post;
+      const defaultMockApi = createMockApiClient();
+      const mockApi = createMockApiClient();
       mockApi.post = jest.fn((url: string) => {
         if (url === '/activities/send-to-students') {
           return Promise.reject(new Error('API Error'));
         }
-        return originalPost(url);
+        return defaultMockApi.post(url);
       });
 
       const config = createMockConfig({
-        api: mockApi as any,
+        api: mockApi,
       });
       const { result } = renderHook(() => useSendActivity(config));
 
@@ -541,18 +558,19 @@ describe('useSendActivity', () => {
     });
 
     it('should handle error without onError callback', async () => {
-      const mockApi = createMockAxiosInstance();
+      const defaultMockApi = createMockApiClient();
+      const mockApi = createMockApiClient();
       mockApi.get = jest.fn((url: string) => {
         if (url.includes('/activity-drafts/')) {
           return Promise.resolve({
             data: { data: { selectedQuestions: null } },
           });
         }
-        return (createMockAxiosInstance() as any).get(url);
+        return defaultMockApi.get(url);
       });
 
       const config = createMockConfig({
-        api: mockApi as any,
+        api: mockApi,
         onError: undefined,
       });
       const { result } = renderHook(() => useSendActivity(config));
@@ -596,17 +614,17 @@ describe('useSendActivity', () => {
         resolveCreateActivity = resolve;
       });
 
-      const mockApi = createMockAxiosInstance();
-      const originalPost = mockApi.post;
+      const defaultMockApi = createMockApiClient();
+      const mockApi = createMockApiClient();
       mockApi.post = jest.fn((url: string) => {
         if (url === '/activities') {
           return createActivityPromise;
         }
-        return originalPost(url);
+        return defaultMockApi.post(url);
       });
 
       const config = createMockConfig({
-        api: mockApi as any,
+        api: mockApi,
       });
       const { result } = renderHook(() => useSendActivity(config));
 
