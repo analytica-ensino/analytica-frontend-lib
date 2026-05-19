@@ -1519,11 +1519,10 @@ export type {
   CalendarActivitiesResponse,
 } from './types/activities';
 
-// Send Activity Hook (with API injection pattern)
+// Send Activity Hook
 export { useSendActivity } from './hooks/useSendActivity';
 export type {
   UseSendActivityConfig,
-  UseSendActivityDirectConfig,
   UseSendActivityReturn,
   SendActivityCategoriesData,
   CreateActivityPayload,

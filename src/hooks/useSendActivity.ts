@@ -2,9 +2,7 @@
  * useSendActivity Hook
  *
  * Hook for managing the SendActivityModal state and actions.
- * Supports two usage patterns:
- * 1. Direct API instance (recommended): Pass AxiosInstance with optional endpoint config
- * 2. Custom functions: Pass individual API functions for full control
+ * Uses BaseApiClient for type-safe API calls to backend-monolito endpoints.
  */
 
 import { useState, useCallback, useMemo, useRef } from 'react';
@@ -17,12 +15,9 @@ import {
 } from '../components/SendActivityModal/types';
 import type {
   UseSendActivityConfig,
-  UseSendActivityDirectConfig,
   UseSendActivityReturn,
   SendActivityCategoriesData,
   ActivityModelItem,
-  CreateActivityPayload,
-  StudentPayload,
 } from '../types/sendActivity';
 
 /**
@@ -86,80 +81,15 @@ function toISODateTime(date: string, time: string): string {
 }
 
 /**
- * Type guard to check if config is direct API config
- */
-function isDirectConfig(
-  config: UseSendActivityConfig | UseSendActivityDirectConfig
-): config is UseSendActivityDirectConfig {
-  return 'api' in config;
-}
-
-/**
- * Create API functions from Axios instance using backend-monolito endpoints
- * Using any for api to avoid peer dependency issues between different axios versions
- */
-function createApiFunctions(api: any) {
-  return {
-    fetchCategories: async (): Promise<SendActivityCategoriesData> => {
-      const [schoolsRes, yearsRes, classesRes, studentsRes] = await Promise.all(
-        [
-          api.get('/school'),
-          api.get('/schoolYear'),
-          api.get('/classes'),
-          api.get('/students'),
-        ]
-      );
-
-      return {
-        schools: schoolsRes.data.data || [],
-        schoolYears: yearsRes.data.data || [],
-        classes: classesRes.data.data || [],
-        students: studentsRes.data.data || [],
-      };
-    },
-
-    createActivity: async (
-      data: CreateActivityPayload
-    ): Promise<{ id: string }> => {
-      const response = await api.post('/activities', data);
-      return { id: response.data.data.id };
-    },
-
-    sendToStudents: async (
-      activityId: string,
-      students: StudentPayload[]
-    ): Promise<void> => {
-      await api.post('/activities/send-to-students', {
-        activityId,
-        students,
-      });
-    },
-
-    fetchQuestionIds: async (modelId: string): Promise<string[] | null> => {
-      try {
-        const response = await api.get(`/activity-drafts/${modelId}`);
-        const draft = response.data.data;
-        return (
-          draft.selectedQuestions?.map((q: { id: string }) => q.id) || null
-        );
-      } catch {
-        return null;
-      }
-    },
-  };
-}
-
-/**
  * Hook for managing the SendActivityModal state and actions
  *
- * Supports two usage patterns:
- * 1. Direct (recommended): Pass Axios instance and optional callbacks
- * 2. Custom functions: Pass individual API functions for full control
+ * Pass a BaseApiClient instance and the hook will handle all API calls internally
+ * using the backend-monolito endpoints.
  *
- * @param config - Configuration with either Axios instance or custom functions
+ * @param config - Configuration with BaseApiClient instance and optional callbacks
  * @returns Object with modal state, categories, and handlers
  *
- * @example Direct usage (recommended)
+ * @example
  * ```tsx
  * import { useSendActivity } from 'analytica-frontend-lib';
  * import api from '@/services/apiService';
@@ -170,60 +100,11 @@ function createApiFunctions(api: any) {
  *   onError: (msg) => toast.error(msg),
  * });
  * ```
- *
- * @example Custom functions (legacy)
- * ```tsx
- * const sendActivity = useSendActivity({
- *   fetchCategories: async () => {
- *     const [schools, years, classes, students] = await Promise.all([
- *       api.get('/schools'),
- *       api.get('/school-years'),
- *       api.get('/classes'),
- *       api.get('/students'),
- *     ]);
- *     return { schools, schoolYears: years, classes, students };
- *   },
- *   createActivity: async (data) => {
- *     const response = await api.post('/activities', data);
- *     return { id: response.data.id };
- *   },
- *   sendToStudents: async (activityId, students) => {
- *     await api.post('/activities/send-to-students', { activityId, students });
- *   },
- *   fetchQuestionIds: async (modelId) => {
- *     const response = await api.get(`/activity-drafts/${modelId}`);
- *     return response.data.selectedQuestions?.map(q => q.id) || null;
- *   },
- *   onSuccess: (msg) => toast.success(msg),
- *   onError: (msg) => toast.error(msg),
- * });
- * ```
  */
 export function useSendActivity(
-  config: UseSendActivityDirectConfig
-): UseSendActivityReturn;
-export function useSendActivity(
   config: UseSendActivityConfig
-): UseSendActivityReturn;
-export function useSendActivity(
-  config: UseSendActivityConfig | UseSendActivityDirectConfig
 ): UseSendActivityReturn {
-  // Extract API functions based on config type
-  const apiFunctions = useMemo(() => {
-    if (isDirectConfig(config)) {
-      return createApiFunctions(config.api);
-    }
-    return {
-      fetchCategories: config.fetchCategories,
-      createActivity: config.createActivity,
-      sendToStudents: config.sendToStudents,
-      fetchQuestionIds: config.fetchQuestionIds,
-    };
-  }, [config]);
-
-  const { fetchCategories, createActivity, sendToStudents, fetchQuestionIds } =
-    apiFunctions;
-  const { onSuccess, onError } = config;
+  const { api, onSuccess, onError } = config;
 
   const [isOpen, setIsOpen] = useState(false);
   const [selectedModel, setSelectedModel] = useState<ActivityModelItem | null>(
@@ -253,7 +134,22 @@ export function useSendActivity(
 
     setIsCategoriesLoading(true);
     try {
-      const data = await fetchCategories();
+      const [schoolsRes, yearsRes, classesRes, studentsRes] = await Promise.all(
+        [
+          api.get<{ data: unknown[] }>('/school'),
+          api.get<{ data: unknown[] }>('/schoolYear'),
+          api.get<{ data: unknown[] }>('/classes'),
+          api.get<{ data: unknown[] }>('/students'),
+        ]
+      );
+
+      const data: SendActivityCategoriesData = {
+        schools: (schoolsRes.data.data as []) || [],
+        schoolYears: (yearsRes.data.data as []) || [],
+        classes: (classesRes.data.data as []) || [],
+        students: (studentsRes.data.data as []) || [],
+      };
+
       const categoryConfig = transformToCategoryConfig(data);
       setCategories(categoryConfig);
       categoriesLoadedRef.current = true;
@@ -263,7 +159,7 @@ export function useSendActivity(
     } finally {
       setIsCategoriesLoading(false);
     }
-  }, [fetchCategories, onError]);
+  }, [api, onError]);
 
   /**
    * Open the modal with a selected model
@@ -309,29 +205,45 @@ export function useSendActivity(
 
       try {
         // 1. Fetch question IDs from draft/model
-        const questionIds = await fetchQuestionIds(selectedModel.id);
+        let questionIds: string[] | null = null;
+        try {
+          const response = await api.get<{
+            data: { selectedQuestions?: { id: string }[] };
+          }>(`/activity-drafts/${selectedModel.id}`);
+          questionIds =
+            response.data.data.selectedQuestions?.map((q) => q.id) || null;
+        } catch {
+          questionIds = null;
+        }
+
         if (!questionIds || questionIds.length === 0) {
           throw new Error('Não foi possível obter questões do modelo');
         }
 
         // 2. Create activity
-        const createResponse = await createActivity({
-          title: data.title,
-          subjectId: selectedModel.subjectId,
-          questionIds,
-          subtype: data.subtype,
-          isDigital:
-            data.mode === undefined
-              ? undefined
-              : data.mode === ActivityMode.ONLINE,
-          notification: data.notification,
-          startDate: toISODateTime(data.startDate, data.startTime),
-          finalDate: toISODateTime(data.finalDate, data.finalTime),
-          canRetry: data.canRetry,
-        });
+        const createResponse = await api.post<{ data: { id: string } }>(
+          '/activities',
+          {
+            title: data.title,
+            subjectId: selectedModel.subjectId,
+            questionIds,
+            subtype: data.subtype,
+            isDigital:
+              data.mode === undefined
+                ? undefined
+                : data.mode === ActivityMode.ONLINE,
+            notification: data.notification,
+            startDate: toISODateTime(data.startDate, data.startTime),
+            finalDate: toISODateTime(data.finalDate, data.finalTime),
+            canRetry: data.canRetry,
+          }
+        );
 
         // 3. Send to students
-        await sendToStudents(createResponse.id, data.students);
+        await api.post('/activities/send-to-students', {
+          activityId: createResponse.data.data.id,
+          students: data.students,
+        });
 
         onSuccess?.(`Atividade enviada para ${data.students.length} aluno(s)`);
 
@@ -343,15 +255,7 @@ export function useSendActivity(
         setIsLoading(false);
       }
     },
-    [
-      selectedModel,
-      fetchQuestionIds,
-      createActivity,
-      sendToStudents,
-      onSuccess,
-      onError,
-      closeModal,
-    ]
+    [selectedModel, api, onSuccess, onError, closeModal]
   );
 
   return {

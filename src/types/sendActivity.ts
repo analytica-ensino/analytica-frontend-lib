@@ -10,6 +10,7 @@ import type {
   SendActivityFormData,
   SendActivityModalInitialData,
 } from '../components/SendActivityModal/types';
+import type { BaseApiClient } from './api';
 
 /**
  * Recipient item for category selection
@@ -71,65 +72,15 @@ export interface ActivityModelItem {
 }
 
 /**
- * Direct configuration for the useSendActivity hook (recommended)
- * Pass an Axios instance and the hook will handle all API calls internally
- */
-export interface UseSendActivityDirectConfig {
-  /**
-   * Axios instance for making API calls
-   * The hook will use backend-monolito endpoints internally
-   * Using any to avoid peer dependency issues between different axios versions
-   */
-  api: any;
-
-  /**
-   * Callback when activity is sent successfully
-   * @param message - Success message
-   */
-  onSuccess?: (message: string) => void;
-
-  /**
-   * Callback when an error occurs
-   * @param message - Error message
-   */
-  onError?: (message: string) => void;
-}
-
-/**
- * Configuration for the useSendActivity hook with custom functions
- * Following the API injection pattern (like ActivityDetails)
- * @deprecated Use UseSendActivityDirectConfig for simpler usage
+ * Configuration for the useSendActivity hook
+ * Pass a BaseApiClient instance and the hook will handle all API calls internally
  */
 export interface UseSendActivityConfig {
   /**
-   * Function to fetch categories for recipient selection
-   * Must return schools, schoolYears, classes, and students
+   * API client for making HTTP requests
+   * The hook will use backend-monolito endpoints internally
    */
-  fetchCategories: () => Promise<SendActivityCategoriesData>;
-
-  /**
-   * Function to create an activity
-   * @param data - Activity creation payload
-   * @returns Promise with created activity id
-   */
-  createActivity: (data: CreateActivityPayload) => Promise<{ id: string }>;
-
-  /**
-   * Function to send activity to students
-   * @param activityId - Created activity ID
-   * @param students - Array of student data
-   */
-  sendToStudents: (
-    activityId: string,
-    students: StudentPayload[]
-  ) => Promise<void>;
-
-  /**
-   * Function to fetch question IDs from a model/draft
-   * @param modelId - Model or draft ID
-   * @returns Promise with question IDs array or null
-   */
-  fetchQuestionIds: (modelId: string) => Promise<string[] | null>;
+  api: BaseApiClient;
 
   /**
    * Callback when activity is sent successfully

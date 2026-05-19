@@ -80,15 +80,65 @@ const mockFormData: SendActivityFormData = {
 };
 
 /**
+ * Create mock Axios instance for UseSendActivityConfig
+ */
+const createMockAxiosInstance = () => ({
+  get: jest.fn((url: string) => {
+    if (url === '/school') {
+      return Promise.resolve({
+        data: { data: mockCategoriesData.schools },
+      });
+    }
+    if (url === '/schoolYear') {
+      return Promise.resolve({
+        data: { data: mockCategoriesData.schoolYears },
+      });
+    }
+    if (url === '/classes') {
+      return Promise.resolve({
+        data: { data: mockCategoriesData.classes },
+      });
+    }
+    if (url === '/students') {
+      return Promise.resolve({
+        data: { data: mockCategoriesData.students },
+      });
+    }
+    if (url.includes('/activity-drafts/')) {
+      return Promise.resolve({
+        data: {
+          data: {
+            selectedQuestions: [{ id: 'q1' }, { id: 'q2' }, { id: 'q3' }],
+          },
+        },
+      });
+    }
+    return Promise.reject(new Error('Not found'));
+  }),
+  post: jest.fn((url: string) => {
+    if (url === '/activities') {
+      return Promise.resolve({
+        data: { data: { id: 'activity-123' } },
+      });
+    }
+    if (url === '/activities/send-to-students') {
+      return Promise.resolve({
+        data: { data: {} },
+      });
+    }
+    return Promise.reject(new Error('Not found'));
+  }),
+  patch: jest.fn(() => Promise.resolve({ data: {} })),
+  delete: jest.fn(() => Promise.resolve({ data: {} })),
+});
+
+/**
  * Create mock config for useSendActivity
  */
 const createMockConfig = (
   overrides?: Partial<UseSendActivityConfig>
 ): UseSendActivityConfig => ({
-  fetchCategories: jest.fn().mockResolvedValue(mockCategoriesData),
-  createActivity: jest.fn().mockResolvedValue({ id: 'activity-123' }),
-  sendToStudents: jest.fn().mockResolvedValue(undefined),
-  fetchQuestionIds: jest.fn().mockResolvedValue(['q1', 'q2', 'q3']),
+  api: createMockAxiosInstance() as any,
   onSuccess: jest.fn(),
   onError: jest.fn(),
   ...overrides,
@@ -143,7 +193,10 @@ describe('useSendActivity', () => {
         expect(result.current.isCategoriesLoading).toBe(false);
       });
 
-      expect(config.fetchCategories).toHaveBeenCalled();
+      expect(config.api.get).toHaveBeenCalledWith('/school');
+      expect(config.api.get).toHaveBeenCalledWith('/schoolYear');
+      expect(config.api.get).toHaveBeenCalledWith('/classes');
+      expect(config.api.get).toHaveBeenCalledWith('/students');
       expect(result.current.categories).toHaveLength(4);
     });
 
@@ -194,8 +247,7 @@ describe('useSendActivity', () => {
         expect(result.current.isCategoriesLoading).toBe(false);
       });
 
-      const initialCallCount = (config.fetchCategories as jest.Mock).mock.calls
-        .length;
+      const initialCallCount = (config.api.get as jest.Mock).mock.calls.length;
 
       await act(async () => {
         result.current.closeModal();
@@ -205,14 +257,15 @@ describe('useSendActivity', () => {
         result.current.openModal(mockModel);
       });
 
-      expect(config.fetchCategories).toHaveBeenCalledTimes(initialCallCount);
+      expect(config.api.get).toHaveBeenCalledTimes(initialCallCount);
     });
 
     it('should handle error when loading categories fails', async () => {
+      const mockApi = createMockAxiosInstance();
+      mockApi.get = jest.fn().mockRejectedValue(new Error('Network Error'));
+
       const config = createMockConfig({
-        fetchCategories: jest
-          .fn()
-          .mockRejectedValue(new Error('Network Error')),
+        api: mockApi as any,
       });
       const { result } = renderHook(() => useSendActivity(config));
 
@@ -231,10 +284,11 @@ describe('useSendActivity', () => {
     });
 
     it('should handle error without onError callback', async () => {
+      const mockApi = createMockAxiosInstance();
+      mockApi.get = jest.fn().mockRejectedValue(new Error('Network Error'));
+
       const config = createMockConfig({
-        fetchCategories: jest
-          .fn()
-          .mockRejectedValue(new Error('Network Error')),
+        api: mockApi as any,
         onError: undefined,
       });
       const { result } = renderHook(() => useSendActivity(config));
@@ -324,8 +378,13 @@ describe('useSendActivity', () => {
         await result.current.handleSubmit(mockFormData);
       });
 
-      expect(config.fetchQuestionIds).not.toHaveBeenCalled();
-      expect(config.createActivity).not.toHaveBeenCalled();
+      expect(config.api.get).not.toHaveBeenCalledWith(
+        expect.stringContaining('/activity-drafts/')
+      );
+      expect(config.api.post).not.toHaveBeenCalledWith(
+        '/activities',
+        expect.anything()
+      );
     });
 
     it('should successfully submit activity', async () => {
@@ -340,9 +399,9 @@ describe('useSendActivity', () => {
         await result.current.handleSubmit(mockFormData);
       });
 
-      expect(config.fetchQuestionIds).toHaveBeenCalledWith('model-123');
+      expect(config.api.get).toHaveBeenCalledWith('/activity-drafts/model-123');
       // Verify exact UTC conversion using dayjs (same timezone as the hook)
-      expect(config.createActivity).toHaveBeenCalledWith({
+      expect(config.api.post).toHaveBeenCalledWith('/activities', {
         title: 'New Activity',
         subjectId: 'subject-1',
         questionIds: ['q1', 'q2', 'q3'],
@@ -352,9 +411,12 @@ describe('useSendActivity', () => {
         finalDate: expectedISODateTime('2025-01-20', '23:59'),
         canRetry: false,
       });
-      expect(config.sendToStudents).toHaveBeenCalledWith(
-        'activity-123',
-        mockFormData.students
+      expect(config.api.post).toHaveBeenCalledWith(
+        '/activities/send-to-students',
+        {
+          activityId: 'activity-123',
+          students: mockFormData.students,
+        }
       );
       expect(config.onSuccess).toHaveBeenCalledWith(
         'Atividade enviada para 2 aluno(s)'
@@ -363,8 +425,18 @@ describe('useSendActivity', () => {
     });
 
     it('should handle error when fetchQuestionIds returns null', async () => {
+      const mockApi = createMockAxiosInstance();
+      mockApi.get = jest.fn((url: string) => {
+        if (url.includes('/activity-drafts/')) {
+          return Promise.resolve({
+            data: { data: { selectedQuestions: null } },
+          });
+        }
+        return (createMockAxiosInstance() as any).get(url);
+      });
+
       const config = createMockConfig({
-        fetchQuestionIds: jest.fn().mockResolvedValue(null),
+        api: mockApi as any,
       });
       const { result } = renderHook(() => useSendActivity(config));
 
@@ -376,13 +448,26 @@ describe('useSendActivity', () => {
         await result.current.handleSubmit(mockFormData);
       });
 
-      expect(config.createActivity).not.toHaveBeenCalled();
+      expect(config.api.post).not.toHaveBeenCalledWith(
+        '/activities',
+        expect.anything()
+      );
       expect(config.onError).toHaveBeenCalledWith('Erro ao enviar atividade');
     });
 
     it('should handle error when fetchQuestionIds returns empty array', async () => {
+      const mockApi = createMockAxiosInstance();
+      mockApi.get = jest.fn((url: string) => {
+        if (url.includes('/activity-drafts/')) {
+          return Promise.resolve({
+            data: { data: { selectedQuestions: [] } },
+          });
+        }
+        return (createMockAxiosInstance() as any).get(url);
+      });
+
       const config = createMockConfig({
-        fetchQuestionIds: jest.fn().mockResolvedValue([]),
+        api: mockApi as any,
       });
       const { result } = renderHook(() => useSendActivity(config));
 
@@ -394,13 +479,25 @@ describe('useSendActivity', () => {
         await result.current.handleSubmit(mockFormData);
       });
 
-      expect(config.createActivity).not.toHaveBeenCalled();
+      expect(config.api.post).not.toHaveBeenCalledWith(
+        '/activities',
+        expect.anything()
+      );
       expect(config.onError).toHaveBeenCalledWith('Erro ao enviar atividade');
     });
 
     it('should handle error when createActivity fails', async () => {
+      const mockApi = createMockAxiosInstance();
+      const originalPost = mockApi.post;
+      mockApi.post = jest.fn((url: string) => {
+        if (url === '/activities') {
+          return Promise.reject(new Error('API Error'));
+        }
+        return originalPost(url);
+      });
+
       const config = createMockConfig({
-        createActivity: jest.fn().mockRejectedValue(new Error('API Error')),
+        api: mockApi as any,
       });
       const { result } = renderHook(() => useSendActivity(config));
 
@@ -417,8 +514,17 @@ describe('useSendActivity', () => {
     });
 
     it('should handle error when sendToStudents fails', async () => {
+      const mockApi = createMockAxiosInstance();
+      const originalPost = mockApi.post;
+      mockApi.post = jest.fn((url: string) => {
+        if (url === '/activities/send-to-students') {
+          return Promise.reject(new Error('API Error'));
+        }
+        return originalPost(url);
+      });
+
       const config = createMockConfig({
-        sendToStudents: jest.fn().mockRejectedValue(new Error('API Error')),
+        api: mockApi as any,
       });
       const { result } = renderHook(() => useSendActivity(config));
 
@@ -435,8 +541,18 @@ describe('useSendActivity', () => {
     });
 
     it('should handle error without onError callback', async () => {
+      const mockApi = createMockAxiosInstance();
+      mockApi.get = jest.fn((url: string) => {
+        if (url.includes('/activity-drafts/')) {
+          return Promise.resolve({
+            data: { data: { selectedQuestions: null } },
+          });
+        }
+        return (createMockAxiosInstance() as any).get(url);
+      });
+
       const config = createMockConfig({
-        fetchQuestionIds: jest.fn().mockResolvedValue(null),
+        api: mockApi as any,
         onError: undefined,
       });
       const { result } = renderHook(() => useSendActivity(config));
@@ -471,13 +587,26 @@ describe('useSendActivity', () => {
     });
 
     it('should set isLoading to true during submission', async () => {
-      let resolveCreateActivity: (value: { id: string }) => void;
-      const createActivityPromise = new Promise<{ id: string }>((resolve) => {
+      let resolveCreateActivity: (value: {
+        data: { data: { id: string } };
+      }) => void;
+      const createActivityPromise = new Promise<{
+        data: { data: { id: string } };
+      }>((resolve) => {
         resolveCreateActivity = resolve;
       });
 
+      const mockApi = createMockAxiosInstance();
+      const originalPost = mockApi.post;
+      mockApi.post = jest.fn((url: string) => {
+        if (url === '/activities') {
+          return createActivityPromise;
+        }
+        return originalPost(url);
+      });
+
       const config = createMockConfig({
-        createActivity: jest.fn().mockReturnValue(createActivityPromise),
+        api: mockApi as any,
       });
       const { result } = renderHook(() => useSendActivity(config));
 
@@ -495,7 +624,7 @@ describe('useSendActivity', () => {
       });
 
       await act(async () => {
-        resolveCreateActivity!({ id: 'activity-123' });
+        resolveCreateActivity!({ data: { data: { id: 'activity-123' } } });
         await submitPromise;
       });
 
@@ -525,7 +654,8 @@ describe('useSendActivity', () => {
       });
 
       // Verify exact UTC conversion using dayjs (same timezone as the hook)
-      expect(config.createActivity).toHaveBeenCalledWith(
+      expect(config.api.post).toHaveBeenCalledWith(
+        '/activities',
         expect.objectContaining({
           startDate: expectedISODateTime('2025-03-15', '14:30'),
           finalDate: expectedISODateTime('2025-03-20', '18:45'),
