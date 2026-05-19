@@ -10,6 +10,7 @@ import type {
   SendActivityFormData,
   SendActivityModalInitialData,
 } from '../components/SendActivityModal/types';
+import type { BaseApiClient } from './api';
 
 /**
  * Recipient item for category selection
@@ -72,38 +73,14 @@ export interface ActivityModelItem {
 
 /**
  * Configuration for the useSendActivity hook
- * Following the API injection pattern (like ActivityDetails)
+ * Pass a BaseApiClient instance and the hook will handle all API calls internally
  */
 export interface UseSendActivityConfig {
   /**
-   * Function to fetch categories for recipient selection
-   * Must return schools, schoolYears, classes, and students
+   * API client for making HTTP requests
+   * The hook will use backend-monolito endpoints internally
    */
-  fetchCategories: () => Promise<SendActivityCategoriesData>;
-
-  /**
-   * Function to create an activity
-   * @param data - Activity creation payload
-   * @returns Promise with created activity id
-   */
-  createActivity: (data: CreateActivityPayload) => Promise<{ id: string }>;
-
-  /**
-   * Function to send activity to students
-   * @param activityId - Created activity ID
-   * @param students - Array of student data
-   */
-  sendToStudents: (
-    activityId: string,
-    students: StudentPayload[]
-  ) => Promise<void>;
-
-  /**
-   * Function to fetch question IDs from a model/draft
-   * @param modelId - Model or draft ID
-   * @returns Promise with question IDs array or null
-   */
-  fetchQuestionIds: (modelId: string) => Promise<string[] | null>;
+  api: BaseApiClient;
 
   /**
    * Callback when activity is sent successfully
