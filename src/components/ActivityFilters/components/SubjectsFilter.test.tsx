@@ -56,6 +56,19 @@ jest.mock('../../..', () => {
         {children}
       </span>
     ),
+    TruncatedText: ({
+      children,
+      size,
+      className,
+    }: {
+      children: React.ReactNode;
+      size?: string;
+      className?: string;
+    }) => (
+      <span data-testid="truncated-text" data-size={size} className={className}>
+        {children}
+      </span>
+    ),
     useTheme: () => ({ isDark: false }),
     getSubjectColorWithOpacity: (color: string) => `${color}20`,
   };
@@ -282,11 +295,13 @@ describe('SubjectsFilter', () => {
       });
     });
 
-    it('renders subject name with truncation class', () => {
+    it('renders subject name through TruncatedText', () => {
       const { container } = render(<SubjectsFilter {...defaultProps} />);
 
-      const truncateElements = container.querySelectorAll('.truncate.flex-1');
-      expect(truncateElements).toHaveLength(3);
+      const truncatedTexts = container.querySelectorAll(
+        '[data-testid="truncated-text"]'
+      );
+      expect(truncatedTexts).toHaveLength(3);
     });
   });
 

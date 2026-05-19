@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { TableProvider, IconRender, Text } from '../../../index';
+import { TableProvider, IconRender, Text, TruncatedText } from '../../../index';
 import { createModelsTableColumnsBase } from '../../shared/ModelsTabBase/createModelsTableColumnsBase';
 import type {
   ActivityModelTableItem,
@@ -68,7 +68,7 @@ export const ActivityModelsList = ({
           }
 
           return (
-            <div className="flex items-center gap-2" title={subject.name}>
+            <div className="flex items-center gap-2 min-w-0">
               <span
                 className="w-[21px] h-[21px] flex items-center justify-center rounded-sm text-text-950 shrink-0"
                 style={{ backgroundColor: subject.color }}
@@ -79,9 +79,7 @@ export const ActivityModelsList = ({
                   color="currentColor"
                 />
               </span>
-              <Text size="sm" className="truncate">
-                {subject.name}
-              </Text>
+              <TruncatedText size="sm">{subject.name}</TruncatedText>
             </div>
           );
         },

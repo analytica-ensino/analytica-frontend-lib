@@ -62,7 +62,7 @@ describe('activitiesTableConfig', () => {
       expect(creatorColumn.key).toBe('creator');
       expect(creatorColumn.label).toBe('Autor');
       expect(creatorColumn.sortable).toBe(false);
-      expect(creatorColumn.className).toBe('max-w-[150px] truncate');
+      expect(creatorColumn.className).toBe('max-w-[150px]');
       expect(creatorColumn.render).toBeDefined();
     });
 
@@ -71,7 +71,7 @@ describe('activitiesTableConfig', () => {
       expect(titleColumn.key).toBe('title');
       expect(titleColumn.label).toBe('Título');
       expect(titleColumn.sortable).toBe(true);
-      expect(titleColumn.className).toBe('max-w-[200px] truncate');
+      expect(titleColumn.className).toBe('max-w-[200px]');
       expect(titleColumn.render).toBeDefined();
     });
 
@@ -80,7 +80,7 @@ describe('activitiesTableConfig', () => {
       expect(schoolColumn.key).toBe('school');
       expect(schoolColumn.label).toBe('Escola');
       expect(schoolColumn.sortable).toBe(true);
-      expect(schoolColumn.className).toBe('max-w-[150px] truncate');
+      expect(schoolColumn.className).toBe('max-w-[150px]');
       expect(schoolColumn.render).toBeDefined();
     });
 

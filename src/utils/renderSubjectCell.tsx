@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { SubjectEnum } from '../enums/SubjectEnum';
 import { getSubjectInfo } from '../components/SubjectInfo/SubjectInfo';
 import Text from '../components/Text/Text';
+import { TruncatedText } from '../components/TruncatedText/TruncatedText';
 import { cn } from './utils';
 
 /**
@@ -27,17 +28,13 @@ export const renderSubjectCell = (
   const subjectEnum = mapSubjectNameToEnum?.(subjectName);
 
   if (!subjectEnum) {
-    return (
-      <Text size="sm" className="truncate" title={subjectName}>
-        {subjectName}
-      </Text>
-    );
+    return <TruncatedText size="sm">{subjectName}</TruncatedText>;
   }
 
   const subjectInfo = getSubjectInfo(subjectEnum);
 
   return (
-    <div className="flex items-center gap-2" title={subjectName}>
+    <div className="flex items-center gap-2 min-w-0">
       <span
         className={cn(
           'w-[21px] h-[21px] flex items-center justify-center rounded-sm text-text-950 shrink-0',
@@ -46,9 +43,7 @@ export const renderSubjectCell = (
       >
         {subjectInfo.icon}
       </span>
-      <Text size="sm" className="truncate">
-        {subjectName}
-      </Text>
+      <TruncatedText size="sm">{subjectName}</TruncatedText>
     </div>
   );
 };
