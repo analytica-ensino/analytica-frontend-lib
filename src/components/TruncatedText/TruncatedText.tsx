@@ -118,7 +118,7 @@ export const TruncatedText = <T extends ElementType = 'span'>({
   as,
   ...rest
 }: TruncatedTextProps<T>) => {
-  const Component = (as ?? 'span') as ElementType;
+  const Component: ElementType = as ?? 'span';
 
   const resolvedTooltipContent =
     tooltipContent ?? (typeof children === 'string' ? children : '');
