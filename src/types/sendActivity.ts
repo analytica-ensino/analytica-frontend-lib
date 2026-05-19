@@ -71,8 +71,34 @@ export interface ActivityModelItem {
 }
 
 /**
- * Configuration for the useSendActivity hook
+ * Direct configuration for the useSendActivity hook (recommended)
+ * Pass an Axios instance and the hook will handle all API calls internally
+ */
+export interface UseSendActivityDirectConfig {
+  /**
+   * Axios instance for making API calls
+   * The hook will use backend-monolito endpoints internally
+   * Using any to avoid peer dependency issues between different axios versions
+   */
+  api: any;
+
+  /**
+   * Callback when activity is sent successfully
+   * @param message - Success message
+   */
+  onSuccess?: (message: string) => void;
+
+  /**
+   * Callback when an error occurs
+   * @param message - Error message
+   */
+  onError?: (message: string) => void;
+}
+
+/**
+ * Configuration for the useSendActivity hook with custom functions
  * Following the API injection pattern (like ActivityDetails)
+ * @deprecated Use UseSendActivityDirectConfig for simpler usage
  */
 export interface UseSendActivityConfig {
   /**

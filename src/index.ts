@@ -1523,6 +1523,7 @@ export type {
 export { useSendActivity } from './hooks/useSendActivity';
 export type {
   UseSendActivityConfig,
+  UseSendActivityDirectConfig,
   UseSendActivityReturn,
   SendActivityCategoriesData,
   CreateActivityPayload,

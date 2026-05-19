@@ -2,7 +2,9 @@
  * useSendActivity Hook
  *
  * Hook for managing the SendActivityModal state and actions.
- * Uses the API injection pattern (like ActivityDetails) for flexibility.
+ * Supports two usage patterns:
+ * 1. Direct API instance (recommended): Pass AxiosInstance with optional endpoint config
+ * 2. Custom functions: Pass individual API functions for full control
  */
 
 import { useState, useCallback, useMemo, useRef } from 'react';
@@ -15,9 +17,12 @@ import {
 } from '../components/SendActivityModal/types';
 import type {
   UseSendActivityConfig,
+  UseSendActivityDirectConfig,
   UseSendActivityReturn,
   SendActivityCategoriesData,
   ActivityModelItem,
+  CreateActivityPayload,
+  StudentPayload,
 } from '../types/sendActivity';
 
 /**
@@ -81,16 +86,92 @@ function toISODateTime(date: string, time: string): string {
 }
 
 /**
+ * Type guard to check if config is direct API config
+ */
+function isDirectConfig(
+  config: UseSendActivityConfig | UseSendActivityDirectConfig
+): config is UseSendActivityDirectConfig {
+  return 'api' in config;
+}
+
+/**
+ * Create API functions from Axios instance using backend-monolito endpoints
+ * Using any for api to avoid peer dependency issues between different axios versions
+ */
+function createApiFunctions(api: any) {
+  return {
+    fetchCategories: async (): Promise<SendActivityCategoriesData> => {
+      const [schoolsRes, yearsRes, classesRes, studentsRes] = await Promise.all(
+        [
+          api.get('/school'),
+          api.get('/schoolYear'),
+          api.get('/classes'),
+          api.get('/students'),
+        ]
+      );
+
+      return {
+        schools: schoolsRes.data.data || [],
+        schoolYears: yearsRes.data.data || [],
+        classes: classesRes.data.data || [],
+        students: studentsRes.data.data || [],
+      };
+    },
+
+    createActivity: async (
+      data: CreateActivityPayload
+    ): Promise<{ id: string }> => {
+      const response = await api.post('/activities', data);
+      return { id: response.data.data.id };
+    },
+
+    sendToStudents: async (
+      activityId: string,
+      students: StudentPayload[]
+    ): Promise<void> => {
+      await api.post('/activities/send-to-students', {
+        activityId,
+        students,
+      });
+    },
+
+    fetchQuestionIds: async (modelId: string): Promise<string[] | null> => {
+      try {
+        const response = await api.get(`/activity-drafts/${modelId}`);
+        const draft = response.data.data;
+        return (
+          draft.selectedQuestions?.map((q: { id: string }) => q.id) || null
+        );
+      } catch {
+        return null;
+      }
+    },
+  };
+}
+
+/**
  * Hook for managing the SendActivityModal state and actions
  *
- * Uses the API injection pattern - receives functions for API calls
- * instead of making calls directly. This allows the hook to be used
- * in different projects with different API configurations.
+ * Supports two usage patterns:
+ * 1. Direct (recommended): Pass Axios instance and optional callbacks
+ * 2. Custom functions: Pass individual API functions for full control
  *
- * @param config - Configuration with API functions and callbacks
+ * @param config - Configuration with either Axios instance or custom functions
  * @returns Object with modal state, categories, and handlers
  *
- * @example
+ * @example Direct usage (recommended)
+ * ```tsx
+ * import { useSendActivity } from 'analytica-frontend-lib';
+ * import api from '@/services/apiService';
+ *
+ * const sendActivity = useSendActivity({
+ *   api,
+ *   onSuccess: (msg) => toast.success(msg),
+ *   onError: (msg) => toast.error(msg),
+ * });
+ * ```
+ *
+ * @example Custom functions (legacy)
  * ```tsx
  * const sendActivity = useSendActivity({
  *   fetchCategories: async () => {
@@ -119,16 +200,30 @@ function toISODateTime(date: string, time: string): string {
  * ```
  */
 export function useSendActivity(
+  config: UseSendActivityDirectConfig
+): UseSendActivityReturn;
+export function useSendActivity(
   config: UseSendActivityConfig
+): UseSendActivityReturn;
+export function useSendActivity(
+  config: UseSendActivityConfig | UseSendActivityDirectConfig
 ): UseSendActivityReturn {
-  const {
-    fetchCategories,
-    createActivity,
-    sendToStudents,
-    fetchQuestionIds,
-    onSuccess,
-    onError,
-  } = config;
+  // Extract API functions based on config type
+  const apiFunctions = useMemo(() => {
+    if (isDirectConfig(config)) {
+      return createApiFunctions(config.api);
+    }
+    return {
+      fetchCategories: config.fetchCategories,
+      createActivity: config.createActivity,
+      sendToStudents: config.sendToStudents,
+      fetchQuestionIds: config.fetchQuestionIds,
+    };
+  }, [config]);
+
+  const { fetchCategories, createActivity, sendToStudents, fetchQuestionIds } =
+    apiFunctions;
+  const { onSuccess, onError } = config;
 
   const [isOpen, setIsOpen] = useState(false);
   const [selectedModel, setSelectedModel] = useState<ActivityModelItem | null>(
