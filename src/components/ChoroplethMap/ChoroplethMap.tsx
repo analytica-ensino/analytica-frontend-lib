@@ -55,29 +55,29 @@ const getColorClasses = (): ColorClass[] => [
   {
     min: 0.75,
     max: 1.01,
-    fillColor: getCssVar('--color-map-highlight', '#1C61B2'),
-    strokeColor: getCssVar('--color-map-highlight', '#1C61B2'),
+    fillColor: getCssVar('--color-map-highlight', '#2c7bb6'),
+    strokeColor: getCssVar('--color-map-highlight', '#2c7bb6'),
     label: 'Destaque',
   },
   {
     min: 0.5,
     max: 0.75,
-    fillColor: getCssVar('--color-map-above-avg', '#2883D7'),
-    strokeColor: getCssVar('--color-map-above-avg', '#2883D7'),
+    fillColor: getCssVar('--color-map-above-avg', '#abd9e9'),
+    strokeColor: getCssVar('--color-map-above-avg', '#abd9e9'),
     label: 'Acima da média',
   },
   {
     min: 0.25,
     max: 0.5,
-    fillColor: getCssVar('--color-map-below-avg', '#91C7F1'),
-    strokeColor: getCssVar('--color-map-below-avg', '#91C7F1'),
+    fillColor: getCssVar('--color-map-below-avg', '#fdae61'),
+    strokeColor: getCssVar('--color-map-below-avg', '#fdae61'),
     label: 'Abaixo da média',
   },
   {
     min: 0,
     max: 0.25,
-    fillColor: getCssVar('--color-map-attention', '#E3F1FB'),
-    strokeColor: getCssVar('--color-map-highlight', '#1C61B2'),
+    fillColor: getCssVar('--color-map-attention', '#d7191c'),
+    strokeColor: getCssVar('--color-map-attention', '#d7191c'),
     label: 'Ponto de atenção',
   },
 ];
@@ -374,8 +374,8 @@ const ChoroplethMap = ({
   useEffect(() => {
     if (!map || !stableData.length) return;
 
-    const strokeCityColor = getCssVar('--color-map-stroke-city', '#64B5F6');
-    const strokeNreColor = getCssVar('--color-map-stroke-nre', '#1565C0');
+    const strokeCityColor = getCssVar('--color-map-stroke-city', '#abd9e9');
+    const strokeNreColor = getCssVar('--color-map-stroke-nre', '#2c7bb6');
 
     // Clear existing data
     map.data.forEach((feature) => {

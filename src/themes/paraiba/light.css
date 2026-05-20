@@ -182,13 +182,13 @@
     --color-question-type-image: #715904;
     --color-question-type-matching: #660CB0;
 
-    /* Map Choropleth Colors — escala vermelha para a Paraíba */
-    --color-map-highlight: #6e0818;
-    --color-map-above-avg: #c8102e;
-    --color-map-below-avg: #f2909a;
-    --color-map-attention: #fdeaec;
-    --color-map-stroke-city: #e8606d;
-    --color-map-stroke-nre: #8a0a1e;
+    /* Map Choropleth Colors — diverging red→blue scale (0 = attention/red, 1 = highlight/blue) */
+    --color-map-highlight: #2c7bb6;
+    --color-map-above-avg: #abd9e9;
+    --color-map-below-avg: #fdae61;
+    --color-map-attention: #d7191c;
+    --color-map-stroke-city: #abd9e9;
+    --color-map-stroke-nre: #2c7bb6;
 
     /* Hard Shadow Colors */
     --shadow-hard-shadow-1: -2px 2px 8px rgba(38, 38, 38, 0.2);

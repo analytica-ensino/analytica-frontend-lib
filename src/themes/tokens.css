@@ -187,13 +187,13 @@
   --color-question-type-image: #715904;
   --color-question-type-matching: #660CB0;
 
-  /* Map Choropleth Colors */
-  --color-map-highlight: #1C61B2;
-  --color-map-above-avg: #2883D7;
-  --color-map-below-avg: #91C7F1;
-  --color-map-attention: #E3F1FB;
-  --color-map-stroke-city: #64B5F6;
-  --color-map-stroke-nre: #1565C0;
+  /* Map Choropleth Colors — diverging red→blue scale (0 = attention/red, 1 = highlight/blue) */
+  --color-map-highlight: #2c7bb6;
+  --color-map-above-avg: #abd9e9;
+  --color-map-below-avg: #fdae61;
+  --color-map-attention: #d7191c;
+  --color-map-stroke-city: #abd9e9;
+  --color-map-stroke-nre: #2c7bb6;
 
   /* Hard Shadow Colors */
   --shadow-hard-shadow-1: -2px 2px 8px rgba(38, 38, 38, 0.2);
