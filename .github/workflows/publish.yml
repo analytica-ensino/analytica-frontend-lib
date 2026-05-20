@@ -54,3 +54,86 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_OPTIONS: --max-old-space-size=8192
+
+      - name: Read package version
+        if: always()
+        id: pkg
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Notify Discord on failure
+        if: failure()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
+          PKG_VERSION: ${{ steps.pkg.outputs.version }}
+          COMMIT_SHA: ${{ github.sha }}
+          COMMIT_AUTHOR: ${{ github.actor }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "DISCORD_DEPLOY_WEBHOOK_URL not configured; skipping Discord notification."
+            exit 0
+          fi
+          SHORT_SHA=$(echo "$COMMIT_SHA" | cut -c1-7)
+          PAYLOAD=$(jq -n \
+            --arg title "❌ Publicação npm falhou: $REPO" \
+            --arg version "${PKG_VERSION:-desconhecida}" \
+            --arg sha "$SHORT_SHA" \
+            --arg author "$COMMIT_AUTHOR" \
+            --arg url "$RUN_URL" \
+            '{
+              username: "GitHub Publish",
+              embeds: [{
+                title: $title,
+                url: $url,
+                color: 15158332,
+                fields: [
+                  { name: "Versão", value: $version, inline: true },
+                  { name: "Commit", value: $sha, inline: true },
+                  { name: "Autor", value: $author, inline: true }
+                ]
+              }]
+            }')
+          curl -sS -H "Content-Type: application/json" \
+            -X POST \
+            -d "$PAYLOAD" \
+            "$DISCORD_WEBHOOK_URL"
+
+      - name: Notify Discord on success
+        if: success()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
+          PKG_VERSION: ${{ steps.pkg.outputs.version }}
+          COMMIT_SHA: ${{ github.sha }}
+          COMMIT_AUTHOR: ${{ github.actor }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "DISCORD_DEPLOY_WEBHOOK_URL not configured; skipping Discord notification."
+            exit 0
+          fi
+          SHORT_SHA=$(echo "$COMMIT_SHA" | cut -c1-7)
+          PAYLOAD=$(jq -n \
+            --arg title "✅ Publicação npm concluída: $REPO" \
+            --arg version "$PKG_VERSION" \
+            --arg sha "$SHORT_SHA" \
+            --arg author "$COMMIT_AUTHOR" \
+            --arg url "$RUN_URL" \
+            '{
+              username: "GitHub Publish",
+              embeds: [{
+                title: $title,
+                url: $url,
+                color: 3066993,
+                fields: [
+                  { name: "Versão", value: $version, inline: true },
+                  { name: "Commit", value: $sha, inline: true },
+                  { name: "Autor", value: $author, inline: true }
+                ]
+              }]
+            }')
+          curl -sS -H "Content-Type: application/json" \
+            -X POST \
+            -d "$PAYLOAD" \
+            "$DISCORD_WEBHOOK_URL"
