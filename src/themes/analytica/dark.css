@@ -189,13 +189,13 @@
     --color-question-type-image: #EAB308;
     --color-question-type-matching: #C084FC;
 
-    /* Map Choropleth Colors — escala verde Analytica (dark) */
-    --color-map-highlight: #004c0e;
-    --color-map-above-avg: #00ad20;
-    --color-map-below-avg: #abf2b8;
-    --color-map-attention: #022208;
-    --color-map-stroke-city: #5af677;
-    --color-map-stroke-nre: #006b14;
+    /* Map Choropleth Colors — diverging red→blue scale (0 = attention/red, 1 = highlight/blue) */
+    --color-map-highlight: #2c7bb6;
+    --color-map-above-avg: #abd9e9;
+    --color-map-below-avg: #fdae61;
+    --color-map-attention: #d7191c;
+    --color-map-stroke-city: #abd9e9;
+    --color-map-stroke-nre: #2c7bb6;
 
     /* Hard Shadow Colors */
     --shadow-hard-shadow-1: -2px 2px 8px rgba(255, 255, 255, 0.1);

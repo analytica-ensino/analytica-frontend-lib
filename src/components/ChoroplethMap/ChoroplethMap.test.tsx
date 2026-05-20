@@ -585,7 +585,7 @@ describe('ChoroplethMap animations', () => {
     };
     const initialStyle = initialStyleFn(mockFeature);
     expect(initialStyle.fillOpacity).toBe(0);
-    expect(initialStyle.strokeColor).toBe('#64B5F6');
+    expect(initialStyle.strokeColor).toBe('#abd9e9');
     expect(initialStyle.strokeWeight).toBe(0.3);
   });
 
@@ -682,7 +682,7 @@ describe('ChoroplethMap animations', () => {
     expect(mockOverrideStyle).toHaveBeenCalledWith(
       mockFeatureObj,
       expect.objectContaining({
-        strokeColor: '#64B5F6',
+        strokeColor: '#abd9e9',
       })
     );
   });
@@ -873,7 +873,7 @@ describe('ChoroplethMap NRE boundary layer', () => {
     await waitFor(() => {
       expect(mockNreSetStyle).toHaveBeenCalledWith({
         fillOpacity: 0,
-        strokeColor: '#1565C0',
+        strokeColor: '#2c7bb6',
         strokeWeight: 1.5,
         clickable: false,
       });
