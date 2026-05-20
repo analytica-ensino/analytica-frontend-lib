@@ -374,8 +374,8 @@ const ChoroplethMap = ({
   useEffect(() => {
     if (!map || !stableData.length) return;
 
-    const strokeCityColor = getCssVar('--color-map-stroke-city', '#abd9e9');
-    const strokeNreColor = getCssVar('--color-map-stroke-nre', '#2c7bb6');
+    const strokeCityColor = getCssVar('--color-map-stroke-city', '#9ca3af');
+    const strokeNreColor = getCssVar('--color-map-stroke-nre', '#4b5563');
 
     // Clear existing data
     map.data.forEach((feature) => {

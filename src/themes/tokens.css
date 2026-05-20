@@ -192,8 +192,8 @@
   --color-map-above-avg: #abd9e9;
   --color-map-below-avg: #fdae61;
   --color-map-attention: #d7191c;
-  --color-map-stroke-city: #abd9e9;
-  --color-map-stroke-nre: #2c7bb6;
+  --color-map-stroke-city: #9ca3af;
+  --color-map-stroke-nre: #4b5563;
 
   /* Hard Shadow Colors */
   --shadow-hard-shadow-1: -2px 2px 8px rgba(38, 38, 38, 0.2);
