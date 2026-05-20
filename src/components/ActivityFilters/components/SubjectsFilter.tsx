@@ -71,7 +71,7 @@ export const SubjectsFilter = ({
                 size="sm"
                 weight="normal"
                 color="text-text-600"
-                className="flex-1"
+                wrapperClassName="flex-1"
               >
                 Sem matéria
               </TruncatedText>
@@ -103,7 +103,11 @@ export const SubjectsFilter = ({
                   color="currentColor"
                 />
               </span>
-              <TruncatedText size="sm" weight="normal" className="flex-1">
+              <TruncatedText
+                size="sm"
+                weight="normal"
+                wrapperClassName="flex-1"
+              >
                 {area.name}
               </TruncatedText>
             </div>
