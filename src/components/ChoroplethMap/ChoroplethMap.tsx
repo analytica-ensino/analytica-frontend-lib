@@ -265,6 +265,7 @@ const ChoroplethMap = ({
   data,
   apiKey,
   title = 'Performance por região',
+  countLabel = 'Acessos',
   loading = false,
   bounds,
   onRegionClick,
@@ -754,7 +755,7 @@ const ChoroplethMap = ({
               {hoveredRegion.name}
             </Text>
             <Text size="xs" color="text-text-700">
-              Acessos: {hoveredRegion.accessCount.toLocaleString('pt-BR')}
+              {countLabel}: {hoveredRegion.accessCount.toLocaleString('pt-BR')}
             </Text>
           </div>
         )}

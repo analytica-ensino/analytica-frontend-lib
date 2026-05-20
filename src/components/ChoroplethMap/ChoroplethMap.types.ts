@@ -50,6 +50,8 @@ export interface ChoroplethMapProps {
   apiKey: string;
   /** Optional title for the map section */
   title?: string;
+  /** Label shown before the count value in the region tooltip (default: 'Acessos') */
+  countLabel?: string;
   /** Loading state indicator */
   loading?: boolean;
   /** Map bounds for initial view */
