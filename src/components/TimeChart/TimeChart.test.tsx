@@ -227,6 +227,16 @@ describe('TimeChart', () => {
       expect(screen.getAllByText('0').length).toBeGreaterThan(0);
       expect(screen.getAllByText(/\dh/).length).toBeGreaterThan(0);
     });
+
+    it('renders plain numbers on the Y-axis when unitSuffix is empty', () => {
+      render(<TimeChart data={studentData} unitSuffix="" />);
+      expect(screen.queryAllByText(/\dh/)).toHaveLength(0);
+    });
+
+    it('uses a custom unitSuffix on the Y-axis', () => {
+      render(<TimeChart data={studentData} unitSuffix=" pts" />);
+      expect(screen.getAllByText(/\d pts/).length).toBeGreaterThan(0);
+    });
   });
 
   describe('Edge Cases', () => {
