@@ -3,7 +3,11 @@
 import { render, screen, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ChoroplethMap from './ChoroplethMap';
-import type { RegionData, MapBounds } from './ChoroplethMap.types';
+import type {
+  RegionData,
+  MapBounds,
+  ChoroplethMapProps,
+} from './ChoroplethMap.types';
 
 // Mock useTheme - return light mode by default
 jest.mock('../../hooks/useTheme', () => ({
@@ -625,7 +629,15 @@ describe('ChoroplethMap animations', () => {
     expect(finalStyle.fillOpacity).toBe(0.8);
   });
 
-  it('triggers hover animation with overrideStyle on mouseover', async () => {
+  /**
+   * Render the map and fire a `mouseover` on a single region, leaving the
+   * hover tooltip visible.
+   * @param props - Extra props forwarded to ChoroplethMap (e.g. countLabel)
+   * @returns The mocked Data.Feature that received the hover
+   */
+  const renderAndHoverRegion = async (
+    props: Partial<ChoroplethMapProps> = {}
+  ): Promise<{ feature: unknown }> => {
     let mouseoverHandler: ((event: unknown) => void) | null = null;
     mockAddListener.mockImplementation((event, handler) => {
       if (event === 'mouseover') {
@@ -660,7 +672,7 @@ describe('ChoroplethMap animations', () => {
       },
     ];
 
-    render(<ChoroplethMap data={mockRegion} apiKey={mockApiKey} />);
+    render(<ChoroplethMap data={mockRegion} apiKey={mockApiKey} {...props} />);
 
     await waitFor(() => {
       expect(mouseoverHandler).not.toBeNull();
@@ -673,6 +685,12 @@ describe('ChoroplethMap animations', () => {
       });
     });
 
+    return { feature: mockFeatureObj };
+  };
+
+  it('triggers hover animation with overrideStyle on mouseover', async () => {
+    const { feature } = await renderAndHoverRegion();
+
     // Flush hover animation to completion (time >= HOVER_DURATION 200ms)
     act(() => {
       flushRAF(300);
@@ -680,11 +698,25 @@ describe('ChoroplethMap animations', () => {
 
     // After animation, overrideStyle should have been called with target values
     expect(mockOverrideStyle).toHaveBeenCalledWith(
-      mockFeatureObj,
+      feature,
       expect.objectContaining({
         strokeColor: '#9ca3af',
       })
     );
+  });
+
+  it('shows the default "Acessos" count label in the region tooltip', async () => {
+    await renderAndHoverRegion();
+
+    expect(screen.getByText(/Acessos: 200/)).toBeInTheDocument();
+  });
+
+  it('shows a custom countLabel in the region tooltip', async () => {
+    await renderAndHoverRegion({ countLabel: 'Atividades realizadas' });
+
+    expect(
+      screen.getByText(/Atividades realizadas: 200/)
+    ).toBeInTheDocument();
   });
 
   it('zooms to NRE region on click', async () => {
