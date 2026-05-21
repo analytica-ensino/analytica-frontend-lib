@@ -896,6 +896,73 @@ export const LoadingState: Story = () => {
 
 LoadingState.storyName = 'Loading State (Skeleton)';
 
+export const WithTruncatedSubjects: Story = () => {
+  // Mock API client that returns long subject names to demonstrate the
+  // truncation + tooltip behavior in the SubjectsFilter (3-column grid).
+  // Hover over each radio label to see the full name in the tooltip.
+  const truncatedSubjectsApiClient = {
+    ...mockApiClient,
+    get: async (url: string) => {
+      if (url === '/knowledge/subjects') {
+        return {
+          data: {
+            data: [
+              {
+                id: 'matematica',
+                name: 'Matemática Aplicada',
+                color: '#0066b8',
+                icon: 'MathOperations',
+              },
+              {
+                id: 'portugues',
+                name: 'Língua Portuguesa',
+                color: '#00a651',
+                icon: 'ChatPT',
+              },
+              {
+                id: 'historia',
+                name: 'História do Brasil',
+                color: '#6366f1',
+                icon: 'CastleTurret',
+              },
+              {
+                id: 'biologia',
+                name: 'Ciências Biológicas',
+                color: '#10B981',
+                icon: 'Atom',
+              },
+              {
+                id: 'sociologia',
+                name: 'Sociologia e Filosofia',
+                color: '#F59E0B',
+                icon: 'BookOpen',
+              },
+              {
+                id: 'fisica',
+                name: 'Física Quântica',
+                color: '#8B5CF6',
+                icon: 'Atom',
+              },
+            ],
+          },
+        };
+      }
+      return mockApiClient.get(url);
+    },
+  } as BaseApiClient;
+
+  return (
+    <BrowserRouter>
+      <RecommendedLessonCreate
+        apiClient={truncatedSubjectsApiClient}
+        institutionId="institution-1"
+      />
+    </BrowserRouter>
+  );
+};
+
+WithTruncatedSubjects.storyName = 'With Truncated Subjects (Tooltip on Hover)';
+
 export const WithSaveError: Story = () => {
   const errorApiClient = {
     ...mockApiClient,
