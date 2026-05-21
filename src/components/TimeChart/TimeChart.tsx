@@ -72,6 +72,11 @@ export interface TimeChartProps extends HTMLAttributes<HTMLDivElement> {
   chartHeight?: number;
   /** SVG pie chart diameter in pixels */
   pieSize?: number;
+  /**
+   * Suffix appended to the bar chart values (Y-axis and tooltips).
+   * Defaults to 'h' (hours). Pass '' for plain counts.
+   */
+  unitSuffix?: string;
 }
 
 /**
@@ -268,9 +273,11 @@ const ChartCard = ({
 const YAxis = ({
   ticks,
   chartHeight,
+  unitSuffix,
 }: {
   ticks: number[];
   chartHeight: number;
+  unitSuffix: string;
 }) => (
   <div
     className="flex flex-col justify-between items-end pr-3"
@@ -284,7 +291,7 @@ const YAxis = ({
         weight="medium"
         className="text-text-500"
       >
-        {tick === 0 ? '0' : `${tick}h`}
+        {tick === 0 ? '0' : `${tick}${unitSuffix}`}
       </Text>
     ))}
   </div>
@@ -315,11 +322,13 @@ const StackedBar = ({
   categories,
   maxValue,
   chartHeight,
+  unitSuffix,
 }: {
   day: TimeChartDayData;
   categories: TimeChartCategory[];
   maxValue: number;
   chartHeight: number;
+  unitSuffix: string;
 }) => {
   const nonZeroCategories = categories.filter(
     (cat) => getDayValue(day, cat.key) > 0
@@ -335,7 +344,8 @@ const StackedBar = ({
               style={{ background: bgClassToCssVar(cat.colorClass) }}
             />
             <Text as="span" size="xs" weight="medium" color="text-white">
-              {cat.label}: {getDayValue(day, cat.key)}h
+              {cat.label}: {getDayValue(day, cat.key)}
+              {unitSuffix}
             </Text>
           </div>
         ))}
@@ -376,7 +386,7 @@ const StackedBar = ({
                   isFirst && isLast && 'rounded-md'
                 )}
                 style={{ height: `${segmentHeight}px` }}
-                aria-label={`${cat.label}: ${value}h`}
+                aria-label={`${cat.label}: ${value}${unitSuffix}`}
               />
             );
           })}
@@ -616,6 +626,7 @@ export const TimeChart = ({
   pieChartTitle = 'Dados de horas por item',
   chartHeight = 180,
   pieSize = 200,
+  unitSuffix = 'h',
   className,
   ...props
 }: TimeChartProps) => {
@@ -653,7 +664,11 @@ export const TimeChart = ({
       {/* Stacked Bar Chart */}
       <ChartCard title={barChartTitle} categories={categories}>
         <div className="flex flex-row">
-          <YAxis ticks={yAxisTicks} chartHeight={chartHeight} />
+          <YAxis
+            ticks={yAxisTicks}
+            chartHeight={chartHeight}
+            unitSuffix={unitSuffix}
+          />
           <div className="w-4" />
           <div className="flex-1 relative">
             <GridLines ticks={yAxisTicks} chartHeight={chartHeight} />
@@ -665,6 +680,7 @@ export const TimeChart = ({
                   categories={categories}
                   maxValue={adjustedMax}
                   chartHeight={chartHeight}
+                  unitSuffix={unitSuffix}
                 />
               ))}
             </div>
