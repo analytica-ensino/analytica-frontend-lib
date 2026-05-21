@@ -61,7 +61,6 @@ export const SubjectsFilter = ({
           value={noSubjectValue}
           checked={selectedSubject === noSubjectValue}
           onChange={() => onSubjectChange(noSubjectValue)}
-          labelClassName="overflow-visible"
           label={
             <div className="flex items-center gap-2 w-full min-w-0">
               <span className="size-4 rounded-sm flex items-center justify-center shrink-0 text-text-600 bg-background-100">
@@ -85,7 +84,6 @@ export const SubjectsFilter = ({
           value={area.id}
           checked={selectedSubject === area.id}
           onChange={() => onSubjectChange(area.id)}
-          labelClassName="overflow-visible"
           label={
             <div className="flex items-center gap-2 w-full min-w-0">
               <span
