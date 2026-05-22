@@ -8,6 +8,7 @@ import {
   useToastStore,
   SendLessonModal,
   SaveActivityModelModal,
+  Divider,
 } from '../..';
 import type { ActivityModelTableItem } from '../../types/activitiesHistory';
 import { ActivityType } from '../ActivityCreate/ActivityCreate.types';
@@ -1368,6 +1369,8 @@ const RecommendedLessonCreate = ({
             </div>
           </div>
 
+          <Divider orientation="vertical" />
+
           {/* Second Column - Center, fills remaining space */}
           <div className="flex-1 min-w-0 overflow-hidden h-full">
             <LessonBank
@@ -1377,6 +1380,8 @@ const RecommendedLessonCreate = ({
               filters={lessonBankFilters}
             />
           </div>
+
+          <Divider orientation="vertical" />
 
           {/* Third Column - Lesson Preview */}
           <div className="w-[400px] flex-shrink-0 overflow-hidden h-full min-h-0">

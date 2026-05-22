@@ -5,6 +5,7 @@ import {
   Button,
   SkeletonText,
   QUESTION_TYPE,
+  Divider,
 } from '../../..';
 import Menu, { MenuContent, MenuItem } from '../../Menu/Menu';
 import { ActivityListQuestions } from '../../ActivityListQuestions/ActivityListQuestions';
@@ -227,6 +228,8 @@ export const DesktopLayout = ({
       </div>
     </div>
 
+    <Divider orientation="vertical" />
+
     {/* Second Column - Center, fills remaining space */}
     <div className="flex-1 min-w-0 relative">
       <div className="absolute inset-0 overflow-hidden">
@@ -238,6 +241,8 @@ export const DesktopLayout = ({
         />
       </div>
     </div>
+
+    <Divider orientation="vertical" />
 
     {/* Third Column - Activity Preview */}
     <div className="w-[400px] flex-shrink-0 overflow-hidden h-full min-h-0">
