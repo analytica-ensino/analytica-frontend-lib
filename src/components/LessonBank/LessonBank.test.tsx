@@ -128,7 +128,10 @@ jest.mock('../EmptyState/EmptyState', () => ({
   ),
 }));
 
-jest.mock('../../assets/svg/activities.svg', () => 'activities.svg');
+jest.mock('../../assets/icons/Activities', () => ({
+  __esModule: true,
+  default: () => <svg data-testid="activities-icon" />,
+}));
 
 jest.mock('../Skeleton/Skeleton', () => ({
   __esModule: true,

@@ -6,7 +6,7 @@ import Video from '../../assets/icons/subjects/Video';
 import { LessonWatchModal } from '../shared/LessonWatchModal';
 import { ToastNotification } from '../shared/ToastNotification/ToastNotification';
 import { useToastNotification } from '../shared/ToastNotification/useToastNotification';
-import activitiesSvg from '../../assets/svg/activities.svg';
+import Activities from '../../assets/icons/Activities';
 
 interface LessonBankProps {
   apiClient: BaseApiClient;
@@ -119,7 +119,7 @@ export const LessonBank = ({
     if (filteredLessons.length === 0) {
       return (
         <EmptyState
-          image={activitiesSvg}
+          image={<Activities />}
           title="Nenhum resultado encontrado"
           description="Utilize o filtro ao lado para encontrar aulas."
           size="compact"

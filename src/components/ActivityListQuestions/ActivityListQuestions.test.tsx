@@ -34,7 +34,10 @@ jest.mock('../../components/EmptyState/EmptyState', () => ({
     </div>
   ),
 }));
-jest.mock('../../assets/svg/activities.svg', () => 'activities.svg');
+jest.mock('../../assets/icons/Activities', () => ({
+  __esModule: true,
+  default: () => <svg data-testid="activities-icon" />,
+}));
 
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';

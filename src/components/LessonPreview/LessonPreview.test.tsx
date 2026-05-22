@@ -268,7 +268,10 @@ jest.mock('../shared/ToastNotification/useToastNotification', () => ({
   }),
 }));
 
-jest.mock('../../assets/svg/activities.svg', () => 'activities.svg');
+jest.mock('../../assets/icons/Activities', () => ({
+  __esModule: true,
+  default: () => <svg data-testid="activities-icon" />,
+}));
 
 describe('LessonPreview', () => {
   const mockLessons: Lesson[] = [

@@ -8,7 +8,7 @@ import {
   useQuestionsPdfPrint,
   QuestionsPdfContent,
 } from '../QuestionsPdfGenerator';
-import activitiesSvg from '../../assets/svg/activities.svg';
+import Activities from '../../assets/icons/Activities';
 
 type PreviewQuestion = {
   id: string;
@@ -151,7 +151,7 @@ export const ActivityPreview = ({
 
       {orderedQuestions.length === 0 ? (
         <EmptyState
-          image={activitiesSvg}
+          image={<Activities />}
           title="Nenhuma questão adicionada ainda"
           description="Utilize a coluna ao lado para adicionar questões à atividade."
           size="compact"

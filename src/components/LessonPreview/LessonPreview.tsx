@@ -12,7 +12,7 @@ import type { BaseApiClient } from '../../types/api';
 import type { ActivityModelTableItem } from '../../types/activitiesHistory';
 import { ToastNotification } from '../shared/ToastNotification/ToastNotification';
 import { useToastNotification } from '../shared/ToastNotification/useToastNotification';
-import activitiesSvg from '../../assets/svg/activities.svg';
+import Activities from '../../assets/icons/Activities';
 
 /**
  * Extended lesson type with optional media properties
@@ -352,7 +352,7 @@ export const LessonPreview = ({
 
         {orderedLessons.length === 0 ? (
           <EmptyState
-            image={activitiesSvg}
+            image={<Activities />}
             title="Nenhuma aula adicionada ainda"
             description="Utilize a coluna ao lado para adicionar aulas à aula recomendada."
             size="compact"

@@ -218,10 +218,14 @@ describe('EmptyState', () => {
     });
 
     it('should render image with fixed dimensions', () => {
-      render(<EmptyState image={mockImage} />);
+      const { container } = render(<EmptyState image={mockImage} />);
 
       const img = screen.getByRole('img');
-      expect(img).toHaveClass('w-[170px]', 'h-[150px]');
+      expect(img).toHaveClass('w-full', 'h-full');
+
+      // Check that the image container has the fixed dimensions
+      const imageContainer = img.parentElement;
+      expect(imageContainer).toHaveClass('w-[170px]', 'h-[150px]');
     });
 
     it('should render with minimum height', () => {

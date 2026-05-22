@@ -5,8 +5,9 @@ import Button from '../Button/Button';
 export interface EmptyStateProps {
   /**
    * Image source for the illustration (optional)
+   * Can be a string (URL) or a ReactNode (component)
    */
-  image?: string;
+  image?: string | ReactNode;
   /**
    * Title text to display
    * @default "Nenhum dado disponível"
@@ -105,7 +106,13 @@ const EmptyState = ({
     <div className="flex flex-col justify-center items-center gap-6 w-full min-h-[705px] bg-background rounded-xl p-6">
       {/* Illustration */}
       {image && (
-        <img src={image} alt={displayTitle} className="w-[170px] h-[150px]" />
+        <div className="w-[170px] h-[150px] flex items-center justify-center">
+          {typeof image === 'string' ? (
+            <img src={image} alt={displayTitle} className="w-full h-full" />
+          ) : (
+            image
+          )}
+        </div>
       )}
 
       {/* Text Content Container */}

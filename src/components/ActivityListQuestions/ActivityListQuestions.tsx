@@ -20,7 +20,7 @@ import {
 import { convertActivityFiltersToQuestionsFilter } from '../../utils/questionFiltersConverter';
 import { mapQuestionTypeToEnumRequired } from '../../utils/questionTypeUtils';
 import { areFiltersEqual } from '../../utils/activityFilters';
-import activitiesSvg from '../../assets/svg/activities.svg';
+import Activities from '../../assets/icons/Activities';
 
 interface ActivityListQuestionsProps {
   apiClient: BaseApiClient;
@@ -396,7 +396,7 @@ export const ActivityListQuestions = ({
     if (questions.length === 0) {
       return (
         <EmptyState
-          image={activitiesSvg}
+          image={<Activities />}
           title="Nenhum resultado encontrado"
           description="Utilize o filtro ao lado para encontrar questões."
           size="compact"
