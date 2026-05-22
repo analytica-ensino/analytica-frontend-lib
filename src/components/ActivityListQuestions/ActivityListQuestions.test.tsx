@@ -21,13 +21,7 @@ jest.mock('../../components/Support', () => ({}));
 jest.mock('../../assets/img/suporthistory.png', () => 'supporthistory.png');
 jest.mock('../../components/EmptyState/EmptyState', () => ({
   __esModule: true,
-  default: ({
-    title,
-    description,
-  }: {
-    title: string;
-    description: string;
-  }) => (
+  default: ({ title, description }: { title: string; description: string }) => (
     <div data-testid="empty-state">
       <div>{title}</div>
       <div>{description}</div>
@@ -494,9 +488,7 @@ describe('ActivityListQuestions', () => {
       render(<ActivityListQuestions {...defaultProps} />);
 
       expect(
-        screen.getByText(
-          'Nenhum resultado encontrado'
-        )
+        screen.getByText('Nenhum resultado encontrado')
       ).toBeInTheDocument();
     });
   });
@@ -1567,9 +1559,7 @@ describe('ActivityListQuestions', () => {
       render(<ActivityListQuestions {...defaultProps} />);
 
       expect(
-        screen.getByText(
-          'Nenhum resultado encontrado'
-        )
+        screen.getByText('Nenhum resultado encontrado')
       ).toBeInTheDocument();
     });
 

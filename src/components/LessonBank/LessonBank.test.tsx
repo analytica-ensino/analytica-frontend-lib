@@ -114,13 +114,7 @@ jest.mock('../Text/Text', () => ({
 
 jest.mock('../EmptyState/EmptyState', () => ({
   __esModule: true,
-  default: ({
-    title,
-    description,
-  }: {
-    title: string;
-    description: string;
-  }) => (
+  default: ({ title, description }: { title: string; description: string }) => (
     <div data-testid="empty-state">
       <div>{title}</div>
       <div>{description}</div>

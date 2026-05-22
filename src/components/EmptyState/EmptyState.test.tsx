@@ -218,7 +218,7 @@ describe('EmptyState', () => {
     });
 
     it('should render image with fixed dimensions', () => {
-      const { container } = render(<EmptyState image={mockImage} />);
+      render(<EmptyState image={mockImage} />);
 
       const img = screen.getByRole('img');
       expect(img).toHaveClass('w-full', 'h-full');
