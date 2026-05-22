@@ -3,6 +3,7 @@ import { Notebook } from 'phosphor-react';
 import {
   ActivityCardQuestionBanks,
   Button,
+  EmptyState,
   Input,
   Modal,
   Text,
@@ -19,6 +20,7 @@ import {
 import { convertActivityFiltersToQuestionsFilter } from '../../utils/questionFiltersConverter';
 import { mapQuestionTypeToEnumRequired } from '../../utils/questionTypeUtils';
 import { areFiltersEqual } from '../../utils/activityFilters';
+import activitiesSvg from '../../assets/svg/activities.svg';
 
 interface ActivityListQuestionsProps {
   apiClient: BaseApiClient;
@@ -393,11 +395,11 @@ export const ActivityListQuestions = ({
 
     if (questions.length === 0) {
       return (
-        <div className="flex items-center justify-center h-full">
-          <Text size="md" className="text-text-600">
-            Nenhuma questão encontrada. Aplique os filtros para buscar questões.
-          </Text>
-        </div>
+        <EmptyState
+          image={activitiesSvg}
+          title="Nenhum resultado encontrado"
+          description="Utilize o filtro ao lado para encontrar questões."
+        />
       );
     }
 

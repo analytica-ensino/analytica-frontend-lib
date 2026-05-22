@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { File, DownloadSimple, Trash } from 'phosphor-react';
-import { Button, IconButton, Text } from '../../index';
+import { Button, EmptyState, IconButton, Text } from '../../index';
 import { ActivityCardQuestionPreview } from '../ActivityCardQuestionPreview/ActivityCardQuestionPreview';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import { cn } from '../../utils/utils';
@@ -8,6 +8,7 @@ import {
   useQuestionsPdfPrint,
   QuestionsPdfContent,
 } from '../QuestionsPdfGenerator';
+import activitiesSvg from '../../assets/svg/activities.svg';
 
 type PreviewQuestion = {
   id: string;
@@ -136,32 +137,41 @@ export const ActivityPreview = ({
         <Text size="sm" className="text-text-800">
           {totalLabel}
         </Text>
-        <Button
-          size="small"
-          variant="outline"
-          iconLeft={<DownloadSimple />}
-          onClick={handleDownloadPdf}
-        >
-          Baixar pdf
-        </Button>
+        {orderedQuestions.length > 0 && (
+          <Button
+            size="small"
+            variant="outline"
+            iconLeft={<DownloadSimple />}
+            onClick={handleDownloadPdf}
+          >
+            Baixar pdf
+          </Button>
+        )}
       </section>
 
-      <section className="flex flex-col gap-3">
-        {orderedQuestions.map(
-          (
-            {
-              id,
-              subjectName = 'Assunto não informado',
-              subjectColor = '#000000',
-              iconName = 'BookOpen',
-              questionType,
-              questionTypeLabel,
-              enunciado,
-              question,
-              position,
-            },
-            index
-          ) => (
+      {orderedQuestions.length === 0 ? (
+        <EmptyState
+          image={activitiesSvg}
+          title="Nenhuma questão adicionada ainda"
+          description="Utilize a coluna ao lado para adicionar questões à atividade."
+        />
+      ) : (
+        <section className="flex flex-col gap-3">
+          {orderedQuestions.map(
+            (
+              {
+                id,
+                subjectName = 'Assunto não informado',
+                subjectColor = '#000000',
+                iconName = 'BookOpen',
+                questionType,
+                questionTypeLabel,
+                enunciado,
+                question,
+                position,
+              },
+              index
+            ) => (
             <div
               key={id}
               draggable
@@ -236,13 +246,16 @@ export const ActivityPreview = ({
                 position={position}
               ></ActivityCardQuestionPreview>
             </div>
-          )
-        )}
-      </section>
+            )
+          )}
+        </section>
+      )}
 
-      <Button variant="outline" onClick={onRemoveAll}>
-        Remover tudo
-      </Button>
+      {orderedQuestions.length > 0 && (
+        <Button variant="outline" onClick={onRemoveAll}>
+          Remover tudo
+        </Button>
+      )}
 
       <QuestionsPdfContent ref={contentRef} questions={orderedQuestions} />
     </div>
