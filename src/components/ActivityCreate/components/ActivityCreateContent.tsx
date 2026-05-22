@@ -58,6 +58,7 @@ interface SmallScreenLayoutProps {
   onRemoveAll: () => void;
   onRemoveQuestion: (questionId: string) => void;
   onReorder: (questions: PreviewQuestion[]) => void;
+  filtersKey?: number;
 }
 
 /**
@@ -82,11 +83,13 @@ export const SmallScreenLayout = ({
   onRemoveAll,
   onRemoveQuestion,
   onReorder,
+  filtersKey = 0,
 }: SmallScreenLayoutProps) => (
   <div className="flex flex-col w-full flex-1 overflow-hidden gap-5 min-h-0">
     {/* Filters and Menu Row */}
     <div className="flex flex-row items-center justify-between gap-4 flex-shrink-0">
       <ActivityFiltersPopover
+        key={filtersKey}
         apiClient={apiClient}
         institutionId={institutionId}
         onFiltersChange={onFiltersChange}
@@ -168,6 +171,7 @@ interface DesktopLayoutProps {
   onRemoveAll: () => void;
   onRemoveQuestion: (questionId: string) => void;
   onReorder: (questions: PreviewQuestion[]) => void;
+  filtersKey?: number;
 }
 
 /**
@@ -191,12 +195,14 @@ export const DesktopLayout = ({
   onRemoveAll,
   onRemoveQuestion,
   onReorder,
+  filtersKey = 0,
 }: DesktopLayoutProps) => (
   <div className="flex flex-row w-full flex-1 overflow-hidden gap-5 min-h-0">
     {/* First Column - Filters */}
     <div className="flex flex-col gap-3 overflow-hidden h-full min-h-0 max-h-full relative w-[400px] flex-shrink-0">
       <div className="flex flex-col overflow-y-auto overflow-x-hidden flex-1 min-h-0 max-h-full">
         <ActivityFilters
+          key={filtersKey}
           apiClient={apiClient}
           institutionId={institutionId}
           variant={'default'}

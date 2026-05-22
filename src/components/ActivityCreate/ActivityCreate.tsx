@@ -199,6 +199,7 @@ const CreateActivity = ({
   const [isSavingModel, setIsSavingModel] = useState(false);
   const [categories, setCategories] = useState<CategoryConfig[]>([]);
   const [isSendingActivity, setIsSendingActivity] = useState(false);
+  const [filtersKey, setFiltersKey] = useState(0);
 
   const [isLessonPreviewModalOpen, setIsLessonPreviewModalOpen] =
     useState(false);
@@ -298,23 +299,13 @@ const CreateActivity = ({
   );
 
   /**
-   * Handle clear filters button click - resets to initial filters or clears completely
+   * Handle clear filters button click - clears all filters and forces re-render
    */
   const handleClearFilters = useCallback(() => {
-    console.log('🧹 handleClearFilters chamado');
-    console.log('📋 initialFiltersData:', initialFiltersData);
-    console.log('📋 draftFilters antes:', draftFilters);
-    console.log('📋 appliedFilters antes:', appliedFilters);
-
-    if (initialFiltersData) {
-      console.log('✅ Resetando para filtros iniciais');
-      setDraftFilters(initialFiltersData);
-      applyFilters();
-    } else {
-      console.log('❌ Limpando todos os filtros');
-      clearFilters();
-    }
-  }, [initialFiltersData, setDraftFilters, applyFilters, clearFilters, draftFilters, appliedFilters]);
+    clearFilters();
+    // Force re-render of ActivityFilters component by changing key
+    setFiltersKey((prev) => prev + 1);
+  }, [clearFilters]);
 
   useEffect(() => {
     hasAppliedInitialFiltersRef.current = false;
@@ -1154,6 +1145,7 @@ const CreateActivity = ({
           onRemoveAll={handleRemoveAll}
           onRemoveQuestion={handleRemoveQuestion}
           onReorder={handleReorder}
+          filtersKey={filtersKey}
         />
       ) : (
         <DesktopLayout
@@ -1174,6 +1166,7 @@ const CreateActivity = ({
           onRemoveAll={handleRemoveAll}
           onRemoveQuestion={handleRemoveQuestion}
           onReorder={handleReorder}
+          filtersKey={filtersKey}
         />
       )}
 
