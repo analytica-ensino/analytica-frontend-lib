@@ -1,6 +1,6 @@
 import { RefObject, useEffect, useMemo, useRef, useState } from 'react';
 import { Book, Trash, PencilSimple } from 'phosphor-react';
-import { Button, Text, Divider } from '../../index';
+import { Button, Text, Divider, EmptyState } from '../../index';
 import type { Lesson } from '../../types/lessons';
 import type { WhiteboardImage } from '../Whiteboard/Whiteboard';
 import { cn } from '../../utils/utils';
@@ -12,6 +12,7 @@ import type { BaseApiClient } from '../../types/api';
 import type { ActivityModelTableItem } from '../../types/activitiesHistory';
 import { ToastNotification } from '../shared/ToastNotification/ToastNotification';
 import { useToastNotification } from '../shared/ToastNotification/useToastNotification';
+import activitiesSvg from '../../assets/svg/activities.svg';
 
 /**
  * Extended lesson type with optional media properties
@@ -336,7 +337,7 @@ export const LessonPreview = ({
           <Text size="sm" className="text-text-800">
             {totalLabel}
           </Text>
-          {onRemoveAll && (
+          {onRemoveAll && orderedLessons.length > 0 && (
             <Button
               size="small"
               variant="link"
@@ -349,8 +350,16 @@ export const LessonPreview = ({
           )}
         </section>
 
-        <section className="flex flex-col gap-3">
-          {orderedLessons.map(
+        {orderedLessons.length === 0 ? (
+          <EmptyState
+            image={activitiesSvg}
+            title="Nenhuma aula adicionada ainda"
+            description="Utilize a coluna ao lado para adicionar aulas à aula recomendada."
+            size="compact"
+          />
+        ) : (
+          <section className="flex flex-col gap-3">
+            {orderedLessons.map(
             (
               { id, title: lessonTitle = 'Aula sem título', position },
               index
@@ -465,7 +474,8 @@ export const LessonPreview = ({
               </div>
             )
           )}
-        </section>
+          </section>
+        )}
 
         {/* Activity Section */}
         <Divider />
