@@ -60,6 +60,18 @@ jest.mock('../../index', () => ({
     </span>
   ),
   Divider: () => <hr data-testid="divider" />,
+  EmptyState: ({
+    title,
+    description,
+  }: {
+    title: string;
+    description: string;
+  }) => (
+    <div data-testid="empty-state">
+      <div>{title}</div>
+      <div>{description}</div>
+    </div>
+  ),
 }));
 
 jest.mock('../shared/LessonWatchModal', () => ({
@@ -255,6 +267,8 @@ jest.mock('../shared/ToastNotification/useToastNotification', () => ({
     hideToast: jest.fn(),
   }),
 }));
+
+jest.mock('../../assets/svg/activities.svg', () => 'activities.svg');
 
 describe('LessonPreview', () => {
   const mockLessons: Lesson[] = [

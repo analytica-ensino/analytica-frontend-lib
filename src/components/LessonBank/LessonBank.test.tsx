@@ -112,6 +112,24 @@ jest.mock('../Text/Text', () => ({
   ),
 }));
 
+jest.mock('../EmptyState/EmptyState', () => ({
+  __esModule: true,
+  default: ({
+    title,
+    description,
+  }: {
+    title: string;
+    description: string;
+  }) => (
+    <div data-testid="empty-state">
+      <div>{title}</div>
+      <div>{description}</div>
+    </div>
+  ),
+}));
+
+jest.mock('../../assets/svg/activities.svg', () => 'activities.svg');
+
 jest.mock('../Skeleton/Skeleton', () => ({
   __esModule: true,
   SkeletonText: ({ lines }: { lines: number }) => (
@@ -483,7 +501,7 @@ describe('LessonBank', () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText('Nenhuma aula encontrada.')
+          screen.getByText('Nenhum resultado encontrado')
         ).toBeInTheDocument();
       });
     });

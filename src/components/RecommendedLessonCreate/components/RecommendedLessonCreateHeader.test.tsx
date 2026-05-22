@@ -239,9 +239,18 @@ describe('RecommendedLessonCreateHeader', () => {
 
     it('should call onSaveModel when "Salvar modelo" button is clicked', () => {
       const onSaveModel = jest.fn();
+      const recommendedLesson: RecommendedLessonData = {
+        id: 'lesson-1',
+        type: RecommendedClassDraftType.RASCUNHO,
+        title: 'Test Lesson',
+        filters: {},
+        lessonIds: [],
+        activityDraftIds: [],
+      };
       render(
         <RecommendedLessonCreateHeader
           {...defaultProps}
+          recommendedLesson={recommendedLesson}
           onSaveModel={onSaveModel}
         />
       );

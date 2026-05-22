@@ -70,6 +70,7 @@ jest.mock('../..', () => ({
   SkeletonText: ({ lines, width }: { lines?: number; width?: number }) => (
     <div data-testid="skeleton-text" data-lines={lines} data-width={width} />
   ),
+  Divider: () => <hr data-testid="divider" />,
   CategoryConfig: {},
   useToastStore: (selector: (state: { addToast: jest.Mock }) => unknown) =>
     selector({ addToast: mockAddToast }),
