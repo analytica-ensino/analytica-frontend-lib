@@ -1,4 +1,3 @@
-import { Funnel } from 'phosphor-react';
 import {
   ActivityFilters,
   ActivityFiltersPopover,
@@ -214,11 +213,7 @@ export const DesktopLayout = ({
         />
       </div>
       <div className="flex-shrink-0 grid grid-cols-2 gap-2">
-        <Button
-          size="medium"
-          variant="link"
-          onClick={onClearFilters}
-        >
+        <Button size="medium" variant="link" onClick={onClearFilters}>
           Limpar filtros
         </Button>
         <Button

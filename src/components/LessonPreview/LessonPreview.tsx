@@ -360,120 +360,122 @@ export const LessonPreview = ({
         ) : (
           <section className="flex flex-col gap-3">
             {orderedLessons.map(
-            (
-              { id, title: lessonTitle = 'Aula sem título', position },
-              index
-            ) => (
-              <div
-                key={id}
-                draggable
-                data-draggable="true"
-                role="button"
-                tabIndex={0}
-                aria-label={`Mover aula ${lessonTitle}`}
-                onDragStart={(e) => {
-                  e.dataTransfer.setData('text/plain', id);
-                  if (e.currentTarget instanceof HTMLElement) {
-                    const preview = e.currentTarget.querySelector(
-                      '[data-drag-preview="true"]'
-                    );
-                    if (preview) {
-                      e.dataTransfer.setDragImage(preview, 8, 8);
-                    } else {
-                      e.dataTransfer.setDragImage(e.currentTarget, 8, 8);
-                    }
-                  }
-                }}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                }}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  const fromId = e.dataTransfer.getData('text/plain');
-                  handleReorder(fromId, id);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'ArrowUp' && index > 0) {
-                    e.preventDefault();
-                    const targetId = orderedLessons[index - 1].id;
-                    handleReorder(id, targetId);
-                  } else if (
-                    e.key === 'ArrowDown' &&
-                    index < orderedLessons.length - 1
-                  ) {
-                    e.preventDefault();
-                    const targetId = orderedLessons[index + 1].id;
-                    handleReorder(id, targetId);
-                  } else if (e.key === 'Enter' || e.key === ' ') {
-                    // Keyboard grab/drop noop; prevent scroll on space
-                    e.preventDefault();
-                  }
-                }}
-                className="rounded-lg border border-border-200 bg-background relative group"
-              >
-                {/* Hidden drag preview with visual representation of the card */}
+              (
+                { id, title: lessonTitle = 'Aula sem título', position },
+                index
+              ) => (
                 <div
-                  data-drag-preview="true"
-                  className="fixed -left-[9999px] -top-[9999px] pointer-events-none z-[9999] w-[440px]"
+                  key={id}
+                  draggable
+                  data-draggable="true"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Mover aula ${lessonTitle}`}
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData('text/plain', id);
+                    if (e.currentTarget instanceof HTMLElement) {
+                      const preview = e.currentTarget.querySelector(
+                        '[data-drag-preview="true"]'
+                      );
+                      if (preview) {
+                        e.dataTransfer.setDragImage(preview, 8, 8);
+                      } else {
+                        e.dataTransfer.setDragImage(e.currentTarget, 8, 8);
+                      }
+                    }
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const fromId = e.dataTransfer.getData('text/plain');
+                    handleReorder(fromId, id);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'ArrowUp' && index > 0) {
+                      e.preventDefault();
+                      const targetId = orderedLessons[index - 1].id;
+                      handleReorder(id, targetId);
+                    } else if (
+                      e.key === 'ArrowDown' &&
+                      index < orderedLessons.length - 1
+                    ) {
+                      e.preventDefault();
+                      const targetId = orderedLessons[index + 1].id;
+                      handleReorder(id, targetId);
+                    } else if (e.key === 'Enter' || e.key === ' ') {
+                      // Keyboard grab/drop noop; prevent scroll on space
+                      e.preventDefault();
+                    }
+                  }}
+                  className="rounded-lg border border-border-200 bg-background relative group"
                 >
-                  <div className="w-full rounded-lg border border-border-200 bg-background">
-                    <div className="p-4 flex flex-row items-center justify-between gap-4">
-                      <div className="flex flex-row items-center gap-3 flex-1">
-                        <Text
-                          size="md"
-                          weight="bold"
-                          className="text-text-950 truncate"
-                        >
-                          {lessonTitle}
-                        </Text>
-                      </div>
-                      <div className="flex flex-row items-center text-text-950">
-                        <Video size={24} color="currentColor" />
+                  {/* Hidden drag preview with visual representation of the card */}
+                  <div
+                    data-drag-preview="true"
+                    className="fixed -left-[9999px] -top-[9999px] pointer-events-none z-[9999] w-[440px]"
+                  >
+                    <div className="w-full rounded-lg border border-border-200 bg-background">
+                      <div className="p-4 flex flex-row items-center justify-between gap-4">
+                        <div className="flex flex-row items-center gap-3 flex-1">
+                          <Text
+                            size="md"
+                            weight="bold"
+                            className="text-text-950 truncate"
+                          >
+                            {lessonTitle}
+                          </Text>
+                        </div>
+                        <div className="flex flex-row items-center text-text-950">
+                          <Video size={24} color="currentColor" />
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="p-4 flex flex-row items-center justify-between gap-4">
-                  <div className="flex flex-row items-center gap-3 flex-1">
-                    <Text size="md" weight="bold" className="text-text-950">
-                      {lessonTitle}
-                    </Text>
-                  </div>
-                  <div className="flex flex-row items-center text-text-950 gap-1">
-                    <Button
-                      variant="link"
-                      action="secondary"
-                      onClick={() => {
-                        const lesson = orderedLessons.find((l) => l.id === id);
-                        if (lesson) {
-                          handleWatch(lesson);
-                        }
-                      }}
-                      aria-label="Assistir aula"
-                      className="px-0 cursor-pointer"
-                    >
-                      <Video size={24} color="currentColor" />
-                    </Button>
-                    {onRemoveLesson && (
+                  <div className="p-4 flex flex-row items-center justify-between gap-4">
+                    <div className="flex flex-row items-center gap-3 flex-1">
+                      <Text size="md" weight="bold" className="text-text-950">
+                        {lessonTitle}
+                      </Text>
+                    </div>
+                    <div className="flex flex-row items-center text-text-950 gap-1">
                       <Button
                         variant="link"
                         action="secondary"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onRemoveLesson(id);
+                        onClick={() => {
+                          const lesson = orderedLessons.find(
+                            (l) => l.id === id
+                          );
+                          if (lesson) {
+                            handleWatch(lesson);
+                          }
                         }}
-                        aria-label={`Remover aula ${position ?? index + 1}`}
+                        aria-label="Assistir aula"
                         className="px-0 cursor-pointer"
                       >
-                        <Trash size={24} color="currentColor" />
+                        <Video size={24} color="currentColor" />
                       </Button>
-                    )}
+                      {onRemoveLesson && (
+                        <Button
+                          variant="link"
+                          action="secondary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onRemoveLesson(id);
+                          }}
+                          aria-label={`Remover aula ${position ?? index + 1}`}
+                          className="px-0 cursor-pointer"
+                        >
+                          <Trash size={24} color="currentColor" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )
-          )}
+              )
+            )}
           </section>
         )}
 

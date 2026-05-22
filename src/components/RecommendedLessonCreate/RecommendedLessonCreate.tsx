@@ -16,7 +16,6 @@ import type { BaseApiClient } from '../..';
 import type { LessonFiltersData } from '../../types/lessonFilters';
 import type { Lesson } from '../../types/lessons';
 import type { SendLessonFormData } from '../SendLessonModal';
-import { Funnel } from 'phosphor-react';
 import { LessonFilters } from '../LessonFilters/LessonFilters';
 import {
   LessonBank,
@@ -1355,11 +1354,7 @@ const RecommendedLessonCreate = ({
               />
             </div>
             <div className="flex-shrink-0 grid grid-cols-2 gap-2">
-              <Button
-                size="medium"
-                variant="link"
-                onClick={handleClearFilters}
-              >
+              <Button size="medium" variant="link" onClick={handleClearFilters}>
                 Limpar filtros
               </Button>
               <Button
