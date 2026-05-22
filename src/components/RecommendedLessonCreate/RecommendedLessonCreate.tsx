@@ -146,6 +146,7 @@ const RecommendedLessonCreate = ({
   const [isSavingModel, setIsSavingModel] = useState(false);
   const [categories, setCategories] = useState<CategoryConfig[]>([]);
   const [isSendingLesson, setIsSendingLesson] = useState(false);
+  const [filtersKey, setFiltersKey] = useState(0);
   const hasFirstSaveBeenDone = useRef(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedFiltersRef = useRef<LessonFiltersData | null>(null);
@@ -171,6 +172,8 @@ const RecommendedLessonCreate = ({
 
   const handleClearFilters = useCallback(() => {
     clearFilters();
+    // Force re-render of LessonFilters component by changing key
+    setFiltersKey((prev) => prev + 1);
   }, [clearFilters]);
 
   /**
@@ -1341,6 +1344,7 @@ const RecommendedLessonCreate = ({
           <div className="flex flex-col gap-3 overflow-hidden h-full min-h-0 max-h-full relative w-[400px] flex-shrink-0">
             <div className="flex flex-col overflow-y-auto overflow-x-hidden flex-1 min-h-0 max-h-full">
               <LessonFilters
+                key={filtersKey}
                 apiClient={apiClient}
                 institutionId={institutionId}
                 variant={'default'}
@@ -1350,13 +1354,19 @@ const RecommendedLessonCreate = ({
                 onApplyFilters={handleApplyFilters}
               />
             </div>
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 grid grid-cols-2 gap-2">
               <Button
                 size="medium"
-                iconLeft={<Funnel />}
+                variant="link"
+                onClick={handleClearFilters}
+              >
+                Limpar filtros
+              </Button>
+              <Button
+                size="medium"
+                variant="outline"
                 onClick={handleApplyFilters}
                 disabled={!draftFilters}
-                className="w-full"
               >
                 Filtrar
               </Button>
