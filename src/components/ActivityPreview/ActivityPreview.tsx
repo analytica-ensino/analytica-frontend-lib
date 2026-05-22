@@ -252,7 +252,7 @@ export const ActivityPreview = ({
         </section>
       )}
 
-      {orderedQuestions.length > 0 && (
+      {orderedQuestions.length > 0 && onRemoveAll && (
         <Button
           variant="link"
           action="negative"

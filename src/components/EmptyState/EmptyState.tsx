@@ -102,15 +102,25 @@ const EmptyState = ({
       ? 'text-text-600 text-sm font-normal text-center'
       : 'text-text-600 text-[18px] font-normal text-center';
 
+  const containerMinHeight = size === 'compact' ? 'min-h-0' : 'min-h-[705px]';
+
   return (
-    <div className="flex flex-col justify-center items-center gap-6 w-full min-h-[705px] bg-background rounded-xl p-6">
+    <div
+      className={`flex flex-col justify-center items-center gap-6 w-full ${containerMinHeight} bg-background rounded-xl p-6`}
+    >
       {/* Illustration */}
       {image && (
-        <div className="w-[170px] h-[150px] flex items-center justify-center">
+        <div className="max-w-[170px] max-h-[150px] flex items-center justify-center">
           {typeof image === 'string' ? (
-            <img src={image} alt={displayTitle} className="w-full h-full" />
+            <img
+              src={image}
+              alt={displayTitle}
+              className="w-full h-full max-w-[170px] max-h-[150px]"
+            />
           ) : (
-            image
+            <div className="w-[170px] h-[150px] flex items-center justify-center">
+              {image}
+            </div>
           )}
         </div>
       )}

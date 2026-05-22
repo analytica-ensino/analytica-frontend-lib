@@ -63,11 +63,16 @@ jest.mock('../../index', () => ({
   EmptyState: ({
     title,
     description,
+    image,
+    size,
   }: {
     title: string;
     description: string;
+    image?: React.ReactNode;
+    size?: string;
   }) => (
-    <div data-testid="empty-state">
+    <div data-testid="empty-state" data-size={size}>
+      {image && <div data-testid="empty-state-image">{image}</div>}
       <div>{title}</div>
       <div>{description}</div>
     </div>
@@ -740,6 +745,37 @@ describe('LessonPreview', () => {
         el.textContent?.includes('0 aulas adicionadas')
       );
       expect(countElement).toBeInTheDocument();
+    });
+
+    it('should render EmptyState with correct props when no lessons', () => {
+      const onRemoveAll = jest.fn();
+      render(
+        <LessonPreview
+          {...defaultProps}
+          lessons={[]}
+          onRemoveAll={onRemoveAll}
+        />
+      );
+
+      const emptyState = screen.getByTestId('empty-state');
+      expect(emptyState).toBeInTheDocument();
+      expect(emptyState).toHaveAttribute('data-size', 'compact');
+
+      // Should show image
+      expect(screen.getByTestId('empty-state-image')).toBeInTheDocument();
+
+      // Should show correct text
+      expect(
+        screen.getByText('Nenhuma aula adicionada ainda')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          'Utilize a coluna ao lado para adicionar aulas à aula recomendada.'
+        )
+      ).toBeInTheDocument();
+
+      // "Remover tudo" button should NOT be present
+      expect(screen.queryByText('Remover tudo')).not.toBeInTheDocument();
     });
 
     it('should handle lessons without titles', () => {

@@ -20,14 +20,14 @@ export const FilterActions = ({
 
   return (
     <div className="grid grid-cols-2 gap-2 justify-end mt-4 px-4 pt-4 border-t border-border-200">
-      {onApplyFilters && (
-        <Button variant="outline" onClick={onApplyFilters} size="small">
-          Filtrar
-        </Button>
-      )}
       {onClearFilters && (
         <Button variant="link" onClick={onClearFilters} size="small">
           Limpar filtros
+        </Button>
+      )}
+      {onApplyFilters && (
+        <Button variant="outline" onClick={onApplyFilters} size="small">
+          Filtrar
         </Button>
       )}
     </div>
