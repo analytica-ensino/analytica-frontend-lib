@@ -475,7 +475,11 @@ export const ActivityListQuestions = ({
               : `${totalQuestions} ${uniqueQuestion()} total`}
           </Text>
 
-          <Button size="small" onClick={() => setIsModalOpen(true)}>
+          <Button
+            size="small"
+            onClick={() => setIsModalOpen(true)}
+            disabled={totalQuestions === 0}
+          >
             Adicionar automaticamente
           </Button>
         </section>

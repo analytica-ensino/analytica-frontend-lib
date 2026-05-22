@@ -138,6 +138,25 @@ export const CheckboxGroup = ({
     );
   };
 
+  const areAllFilteredItemsSelected = (categoryKey: string) => {
+    const category = categories.find((c) => c.key === categoryKey);
+    if (!category) return false;
+
+    // Obtém apenas os itens filtrados (visíveis)
+    const formattedItems = getFormattedItems(categoryKey);
+    const filteredItems = formattedItems.flatMap((group) => group.itens || []);
+
+    // Se não há itens filtrados, retorna false
+    if (filteredItems.length === 0) return false;
+
+    const filteredItemIds = filteredItems.map((item) => item.id);
+
+    // Verifica se TODOS os itens filtrados estão selecionados
+    return filteredItemIds.every((itemId) =>
+      category.selectedIds?.includes(itemId)
+    );
+  };
+
   // Helper function to create combination of two arrays
   const createCombinations = (
     acc: string[][],
@@ -572,30 +591,35 @@ export const CheckboxGroup = ({
   const renderAccordionTrigger = (
     category: CategoryConfig,
     isEnabled: boolean
-  ) => (
-    <div className="flex items-center justify-between w-full p-2">
-      <div className="flex items-center gap-3">
-        <CheckBox
-          checked={isMinimalOneCheckBoxIsSelected(category.key)}
-          disabled={!isEnabled}
-          indeterminate={isMinimalOneCheckBoxIsSelected(category.key)}
-          onChange={() => toggleAllInCategory(category.key)}
-        />
-        <Text
-          size="sm"
-          weight="medium"
-          className={cn('text-text-800', !isEnabled && 'opacity-40')}
-        >
-          {category.label}
-        </Text>
+  ) => {
+    const allSelected = areAllFilteredItemsSelected(category.key);
+    const someSelected = isMinimalOneCheckBoxIsSelected(category.key);
+
+    return (
+      <div className="flex items-center justify-between w-full p-2">
+        <div className="flex items-center gap-3">
+          <CheckBox
+            checked={allSelected}
+            disabled={!isEnabled}
+            indeterminate={someSelected && !allSelected}
+            onChange={() => toggleAllInCategory(category.key)}
+          />
+          <Text
+            size="sm"
+            weight="medium"
+            className={cn('text-text-800', !isEnabled && 'opacity-40')}
+          >
+            {category.label}
+          </Text>
+        </div>
+        {(openAccordion === category.key || isEnabled) && (
+          <Badge variant="solid" action="info">
+            {getBadgeText(category)}
+          </Badge>
+        )}
       </div>
-      {(openAccordion === category.key || isEnabled) && (
-        <Badge variant="solid" action="info">
-          {getBadgeText(category)}
-        </Badge>
-      )}
-    </div>
-  );
+    );
+  };
 
   // Helper component to render compact single item view
   const renderCompactSingleItem = (category: CategoryConfig) => {
