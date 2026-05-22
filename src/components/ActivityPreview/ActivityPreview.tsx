@@ -253,7 +253,12 @@ export const ActivityPreview = ({
       )}
 
       {orderedQuestions.length > 0 && (
-        <Button variant="outline" onClick={onRemoveAll}>
+        <Button
+          variant="link"
+          action="negative"
+          iconLeft={<Trash />}
+          onClick={onRemoveAll}
+        >
           Remover tudo
         </Button>
       )}

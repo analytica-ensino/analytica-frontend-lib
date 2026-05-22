@@ -89,6 +89,7 @@ export const ActivityCreateHeader = ({
             )}
             <Button
               size="small"
+              variant="outline"
               onClick={onSaveModel}
               disabled={!activity || isSaving}
             >

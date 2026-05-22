@@ -332,6 +332,7 @@ export const ActivityCardQuestionBanks = ({
       <section>
         <Button
           size="small"
+          variant="outline"
           iconLeft={<Plus />}
           className="w-full"
           onClick={() => {
