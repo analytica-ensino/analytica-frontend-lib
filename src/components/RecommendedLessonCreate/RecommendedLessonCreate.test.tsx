@@ -596,7 +596,7 @@ describe('RecommendedLessonCreate', () => {
     });
 
     it('should render dividers to separate the three columns in desktop layout', async () => {
-      const { container } = await renderWithDesktopLayout(
+      await renderWithDesktopLayout(
         <RecommendedLessonCreate {...defaultProps} />
       );
 
