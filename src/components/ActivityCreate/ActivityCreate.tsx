@@ -297,6 +297,25 @@ const CreateActivity = ({
     [activity?.filters, resolvedPreFilters]
   );
 
+  /**
+   * Handle clear filters button click - resets to initial filters or clears completely
+   */
+  const handleClearFilters = useCallback(() => {
+    console.log('🧹 handleClearFilters chamado');
+    console.log('📋 initialFiltersData:', initialFiltersData);
+    console.log('📋 draftFilters antes:', draftFilters);
+    console.log('📋 appliedFilters antes:', appliedFilters);
+
+    if (initialFiltersData) {
+      console.log('✅ Resetando para filtros iniciais');
+      setDraftFilters(initialFiltersData);
+      applyFilters();
+    } else {
+      console.log('❌ Limpando todos os filtros');
+      clearFilters();
+    }
+  }, [initialFiltersData, setDraftFilters, applyFilters, clearFilters, draftFilters, appliedFilters]);
+
   useEffect(() => {
     hasAppliedInitialFiltersRef.current = false;
   }, [activity?.id, activity?.filters, resolvedPreFilters]);
@@ -1125,7 +1144,7 @@ const CreateActivity = ({
           initialFiltersData={initialFiltersData}
           onFiltersChange={handleFiltersChange}
           onApplyFilters={handleApplyFilters}
-          onClearFilters={clearFilters}
+          onClearFilters={handleClearFilters}
           onAddQuestion={handleAddQuestion}
           addedQuestionIds={addedQuestionIds}
           enableExamMode={enableExamMode || isInPersonExam}
@@ -1145,6 +1164,7 @@ const CreateActivity = ({
           draftFilters={draftFilters}
           onFiltersChange={handleFiltersChange}
           onApplyFilters={handleApplyFilters}
+          onClearFilters={handleClearFilters}
           onAddQuestion={handleAddQuestion}
           addedQuestionIds={addedQuestionIds}
           enableExamMode={enableExamMode || isInPersonExam}

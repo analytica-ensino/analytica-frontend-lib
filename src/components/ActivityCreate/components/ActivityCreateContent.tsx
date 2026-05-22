@@ -158,6 +158,7 @@ interface DesktopLayoutProps {
   draftFilters: ActivityFiltersData | null;
   onFiltersChange: (filters: ActivityFiltersData) => void;
   onApplyFilters: () => void;
+  onClearFilters: () => void;
   onAddQuestion: (question: Question) => void;
   addedQuestionIds: string[];
   enableExamMode: boolean;
@@ -180,6 +181,7 @@ export const DesktopLayout = ({
   draftFilters,
   onFiltersChange,
   onApplyFilters,
+  onClearFilters,
   onAddQuestion,
   addedQuestionIds,
   enableExamMode,
@@ -205,13 +207,19 @@ export const DesktopLayout = ({
           }
         />
       </div>
-      <div className="flex-shrink-0">
+      <div className="flex-shrink-0 grid grid-cols-2 gap-2">
         <Button
           size="medium"
-          iconLeft={<Funnel />}
+          variant="link"
+          onClick={onClearFilters}
+        >
+          Limpar filtros
+        </Button>
+        <Button
+          size="medium"
+          variant="outline"
           onClick={onApplyFilters}
           disabled={!draftFilters}
-          className="w-full"
         >
           Filtrar
         </Button>
