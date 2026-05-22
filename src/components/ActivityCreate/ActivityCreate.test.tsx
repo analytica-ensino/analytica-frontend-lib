@@ -986,6 +986,14 @@ describe('CreateActivity', () => {
 
       expect(screen.getByTestId('activity-preview')).toBeInTheDocument();
     });
+
+    it('should render dividers to separate the three columns in desktop layout', () => {
+      const { container } = render(<CreateActivity {...defaultProps} />);
+
+      // Desktop layout should have 2 vertical dividers to separate 3 columns
+      const dividers = container.querySelectorAll('hr[aria-orientation="vertical"]');
+      expect(dividers.length).toBeGreaterThanOrEqual(2);
+    });
   });
 
   describe('Filters', () => {
