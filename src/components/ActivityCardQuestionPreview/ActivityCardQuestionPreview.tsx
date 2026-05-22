@@ -140,7 +140,7 @@ export const ActivityCardQuestionPreview = ({
       return {
         value: option.id,
         label: option.option,
-        status: isCorrect ? ('correct' as const) : undefined,
+        status: isCorrect ? ('correct' as const) : ('incorrect' as const),
         disabled: !isCorrect,
       };
     });
@@ -155,7 +155,7 @@ export const ActivityCardQuestionPreview = ({
       return {
         value: option.id,
         label: option.option,
-        status: isCorrect ? ('correct' as const) : undefined,
+        status: isCorrect ? ('correct' as const) : ('incorrect' as const),
         disabled: !isCorrect,
       };
     });
