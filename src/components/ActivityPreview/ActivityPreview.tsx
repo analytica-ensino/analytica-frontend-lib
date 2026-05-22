@@ -154,6 +154,7 @@ export const ActivityPreview = ({
           image={activitiesSvg}
           title="Nenhuma questão adicionada ainda"
           description="Utilize a coluna ao lado para adicionar questões à atividade."
+          size="compact"
         />
       ) : (
         <section className="flex flex-col gap-3">
@@ -172,80 +173,80 @@ export const ActivityPreview = ({
               },
               index
             ) => (
-            <div
-              key={id}
-              draggable
-              data-draggable="true"
-              role="button"
-              tabIndex={0}
-              aria-label={`Mover questão ${enunciado ?? id}`}
-              onDragStart={(e) => {
-                e.dataTransfer.setData('text/plain', id);
-                if (e.currentTarget instanceof HTMLElement) {
-                  const preview = e.currentTarget.querySelector(
-                    '[data-drag-preview="true"]'
-                  );
-                  if (preview) {
-                    e.dataTransfer.setDragImage(preview, 8, 8);
-                  } else {
-                    e.dataTransfer.setDragImage(e.currentTarget, 8, 8);
+              <div
+                key={id}
+                draggable
+                data-draggable="true"
+                role="button"
+                tabIndex={0}
+                aria-label={`Mover questão ${enunciado ?? id}`}
+                onDragStart={(e) => {
+                  e.dataTransfer.setData('text/plain', id);
+                  if (e.currentTarget instanceof HTMLElement) {
+                    const preview = e.currentTarget.querySelector(
+                      '[data-drag-preview="true"]'
+                    );
+                    if (preview) {
+                      e.dataTransfer.setDragImage(preview, 8, 8);
+                    } else {
+                      e.dataTransfer.setDragImage(e.currentTarget, 8, 8);
+                    }
                   }
-                }
-              }}
-              onDragOver={(e) => {
-                e.preventDefault();
-              }}
-              onDrop={(e) => {
-                e.preventDefault();
-                const fromId = e.dataTransfer.getData('text/plain');
-                handleReorder(fromId, id);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'ArrowUp' && index > 0) {
+                }}
+                onDragOver={(e) => {
                   e.preventDefault();
-                  const targetId = orderedQuestions[index - 1].id;
-                  handleReorder(id, targetId);
-                } else if (
-                  e.key === 'ArrowDown' &&
-                  index < orderedQuestions.length - 1
-                ) {
+                }}
+                onDrop={(e) => {
                   e.preventDefault();
-                  const targetId = orderedQuestions[index + 1].id;
-                  handleReorder(id, targetId);
-                } else if (e.key === 'Enter' || e.key === ' ') {
-                  // Keyboard grab/drop noop; prevent scroll on space
-                  e.preventDefault();
-                }
-              }}
-              className="rounded-lg border border-border-200 bg-background relative group"
-            >
-              {onRemoveQuestion && (
-                <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <IconButton
-                    size="sm"
-                    icon={<Trash size={16} />}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onRemoveQuestion(id);
-                    }}
-                    aria-label={`Remover questão ${position ?? index + 1}`}
-                  />
-                </div>
-              )}
-              <ActivityCardQuestionPreview
-                subjectName={subjectName}
-                subjectColor={subjectColor}
-                iconName={iconName}
-                isDark={isDark}
-                questionType={questionType}
-                questionTypeLabel={questionTypeLabel}
-                enunciado={enunciado}
-                defaultExpanded={false}
-                question={question}
-                value={id}
-                position={position}
-              ></ActivityCardQuestionPreview>
-            </div>
+                  const fromId = e.dataTransfer.getData('text/plain');
+                  handleReorder(fromId, id);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowUp' && index > 0) {
+                    e.preventDefault();
+                    const targetId = orderedQuestions[index - 1].id;
+                    handleReorder(id, targetId);
+                  } else if (
+                    e.key === 'ArrowDown' &&
+                    index < orderedQuestions.length - 1
+                  ) {
+                    e.preventDefault();
+                    const targetId = orderedQuestions[index + 1].id;
+                    handleReorder(id, targetId);
+                  } else if (e.key === 'Enter' || e.key === ' ') {
+                    // Keyboard grab/drop noop; prevent scroll on space
+                    e.preventDefault();
+                  }
+                }}
+                className="rounded-lg border border-border-200 bg-background relative group"
+              >
+                {onRemoveQuestion && (
+                  <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <IconButton
+                      size="sm"
+                      icon={<Trash size={16} />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRemoveQuestion(id);
+                      }}
+                      aria-label={`Remover questão ${position ?? index + 1}`}
+                    />
+                  </div>
+                )}
+                <ActivityCardQuestionPreview
+                  subjectName={subjectName}
+                  subjectColor={subjectColor}
+                  iconName={iconName}
+                  isDark={isDark}
+                  questionType={questionType}
+                  questionTypeLabel={questionTypeLabel}
+                  enunciado={enunciado}
+                  defaultExpanded={false}
+                  question={question}
+                  value={id}
+                  position={position}
+                ></ActivityCardQuestionPreview>
+              </div>
             )
           )}
         </section>

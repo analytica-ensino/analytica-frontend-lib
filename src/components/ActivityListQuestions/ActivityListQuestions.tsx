@@ -399,6 +399,7 @@ export const ActivityListQuestions = ({
           image={activitiesSvg}
           title="Nenhum resultado encontrado"
           description="Utilize o filtro ao lado para encontrar questões."
+          size="compact"
         />
       );
     }

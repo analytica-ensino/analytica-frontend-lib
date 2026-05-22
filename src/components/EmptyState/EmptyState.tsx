@@ -39,6 +39,11 @@ export interface EmptyStateProps {
    * @default "primary"
    */
   buttonAction?: 'primary' | 'positive' | 'negative';
+  /**
+   * Text size variant
+   * @default "large"
+   */
+  size?: 'compact' | 'large';
 }
 
 /**
@@ -51,6 +56,7 @@ export interface EmptyStateProps {
  * import activityImage from './assets/activity.png';
  * import { Plus } from 'phosphor-react';
  *
+ * // Large variant (default) - for main page empty states
  * <EmptyState
  *   image={activityImage}
  *   title="Incentive sua turma ao aprendizado"
@@ -59,6 +65,14 @@ export interface EmptyStateProps {
  *   buttonIcon={<Plus size={18} />}
  *   buttonVariant="outline"
  *   onButtonClick={handleCreateActivity}
+ * />
+ *
+ * // Compact variant - for inline/contextual empty states
+ * <EmptyState
+ *   image={activityImage}
+ *   title="Nenhum resultado encontrado"
+ *   description="Utilize o filtro ao lado para encontrar questões."
+ *   size="compact"
  * />
  * ```
  */
@@ -71,10 +85,21 @@ const EmptyState = ({
   onButtonClick,
   buttonVariant = 'solid',
   buttonAction = 'primary',
+  size = 'large',
 }: EmptyStateProps) => {
   const displayTitle = title || 'Nenhum dado disponível';
   const displayDescription =
     description || 'Não há dados para exibir no momento.';
+
+  const titleClassName =
+    size === 'compact'
+      ? 'text-text-600 text-sm font-semibold text-center'
+      : 'text-text-950 text-3xl font-semibold text-center';
+
+  const descriptionClassName =
+    size === 'compact'
+      ? 'text-text-600 text-sm font-normal text-center'
+      : 'text-text-600 text-[18px] font-normal text-center';
 
   return (
     <div className="flex flex-col justify-center items-center gap-6 w-full min-h-[705px] bg-background rounded-xl p-6">
@@ -86,17 +111,12 @@ const EmptyState = ({
       {/* Text Content Container */}
       <div className="flex flex-col items-center gap-4 w-full max-w-[600px] px-6">
         {/* Title */}
-        <Text
-          as="h2"
-          className="text-text-950 font-semibold text-3xl leading-[35px] text-center"
-        >
+        <Text as="h2" className={titleClassName}>
           {displayTitle}
         </Text>
 
         {/* Description */}
-        <Text className="text-text-600 font-normal text-[18px] leading-[27px] text-center">
-          {displayDescription}
-        </Text>
+        <Text className={descriptionClassName}>{displayDescription}</Text>
       </div>
 
       {/* Button */}
