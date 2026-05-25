@@ -80,6 +80,8 @@ const CardBase = forwardRef<HTMLDivElement, CardBaseProps>(
       minHeight = 'medium',
       cursor = 'default',
       className = '',
+      onClick,
+      onKeyDown,
       ...props
     },
     ref
@@ -89,6 +91,16 @@ const CardBase = forwardRef<HTMLDivElement, CardBaseProps>(
     const minHeightClasses = CARD_MIN_HEIGHT_CLASSES[minHeight];
     const layoutClasses = CARD_LAYOUT_CLASSES[layout];
     const cursorClasses = CARD_CURSOR_CLASSES[cursor];
+
+    // Make cards with onClick focusable and keyboard accessible
+    const isInteractive = !!onClick;
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (isInteractive && ['Enter', ' '].includes(e.key)) {
+        e.preventDefault();
+        onClick?.(e as unknown as React.MouseEvent<HTMLDivElement>);
+      }
+      onKeyDown?.(e);
+    };
 
     return (
       <div
@@ -101,6 +113,10 @@ const CardBase = forwardRef<HTMLDivElement, CardBaseProps>(
           cursorClasses,
           className
         )}
+        onClick={onClick}
+        onKeyDown={handleKeyDown}
+        tabIndex={isInteractive ? 0 : undefined}
+        role={isInteractive ? 'button' : undefined}
         {...props}
       >
         {children}
