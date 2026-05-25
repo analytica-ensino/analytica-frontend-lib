@@ -547,7 +547,7 @@ describe('ActivityListQuestions', () => {
       );
       expect(card).toHaveAttribute('data-enunciado', 'Test question statement');
       expect(card).toHaveAttribute('data-subject-color', '#FF0000');
-      expect(card).toHaveAttribute('data-icon-name', 'Atom');
+      expect(card).toHaveAttribute('data-icon-name', 'Calculator');
     });
 
     it('should format question options correctly', () => {

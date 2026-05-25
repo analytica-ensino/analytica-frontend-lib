@@ -193,7 +193,6 @@ export const ActivityListQuestions = ({
     const subject = matrix.subject;
     const topic = matrix.topic;
     const subtopic = matrix.subtopic;
-
     if (!subject) {
       return { assunto: 'Sem assunto', color: '#6B7280' };
     }
@@ -205,6 +204,7 @@ export const ActivityListQuestions = ({
     return {
       assunto: parts.join(' - '),
       color: subject.color || '#6B7280',
+      icon: subject.icon || 'BookOpen',
     };
   };
 
@@ -431,7 +431,7 @@ export const ActivityListQuestions = ({
                   : undefined
               }
               questionType={questionType}
-              iconName="Atom"
+              iconName={subjectInfo.icon}
               subjectColor={subjectInfo.color}
               isDark={isDark}
               assunto={subjectInfo.assunto}

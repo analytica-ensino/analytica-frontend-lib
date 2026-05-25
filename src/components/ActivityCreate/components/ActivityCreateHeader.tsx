@@ -60,13 +60,14 @@ export const ActivityCreateHeader = ({
       };
 
   return (
-    <div className="w-full h-[80px] flex flex-row items-center justify-between px-6 gap-3 flex-shrink-0">
+    <div className="w-full h-[80px] flex flex-row items-center justify-between px-4 gap-3 flex-shrink-0">
       <Button
         onClick={onBack}
         aria-label="Voltar"
         type="button"
         variant="link"
         data-testid="back-button"
+        className='px-0'
       >
         <CaretLeft size={32} />
       </Button>
