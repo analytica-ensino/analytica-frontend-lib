@@ -1,5 +1,9 @@
 import type { Story } from '@ladle/react';
-import { AlternativesList, HeaderAlternative, OptionStatus } from './Alternative';
+import {
+  AlternativesList,
+  HeaderAlternative,
+  OptionStatus,
+} from './Alternative';
 
 export const AllAlternativesShowcase: Story = () => {
   return (

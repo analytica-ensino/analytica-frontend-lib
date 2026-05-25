@@ -338,9 +338,7 @@ describe('QuizContent', () => {
     });
 
     it('should return null for invalid status', () => {
-      const badge = getStatusBadge(
-        'invalid' as unknown as OptionStatus
-      );
+      const badge = getStatusBadge('invalid' as unknown as OptionStatus);
 
       expect(badge).toBeNull();
     });

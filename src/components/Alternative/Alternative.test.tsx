@@ -1,10 +1,12 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import { AlternativesList,
+import {
+  AlternativesList,
   Alternative,
   HeaderAlternative,
-  OptionStatus } from './Alternative';
+  OptionStatus,
+} from './Alternative';
 
 /**
  * Mock for useId hook to ensure consistent IDs in tests

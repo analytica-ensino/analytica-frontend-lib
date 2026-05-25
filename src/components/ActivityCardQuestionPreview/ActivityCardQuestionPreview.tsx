@@ -9,7 +9,11 @@ import {
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import { questionTypeLabels } from '../../types/questionTypes';
 import { cn } from '../../utils/utils';
-import { AlternativesList, type Alternative, OptionStatus } from '../Alternative/Alternative';
+import {
+  AlternativesList,
+  type Alternative,
+  OptionStatus,
+} from '../Alternative/Alternative';
 import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
 import { CheckCircle, XCircle } from 'phosphor-react';
 import {

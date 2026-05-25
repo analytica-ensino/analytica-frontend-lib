@@ -97,7 +97,9 @@ export const getTrueOrFalseOptionState = (
     ? TrueFalseEnum.VERDADEIRO
     : TrueFalseEnum.FALSO;
   const isStudentCorrect = hasAnswered && studentMarkedTrue === isStatementTrue;
-  const variantCorrect = isStudentCorrect ? OptionStatus.CORRECT : OptionStatus.INCORRECT;
+  const variantCorrect = isStudentCorrect
+    ? OptionStatus.CORRECT
+    : OptionStatus.INCORRECT;
 
   return {
     isStatementTrue,

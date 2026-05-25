@@ -2,7 +2,11 @@ import type { Story } from '@ladle/react';
 import { ActivityCardQuestionPreview } from './ActivityCardQuestionPreview';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import { useTheme } from '@/index';
-import { AlternativesList, type Alternative, OptionStatus } from '../Alternative/Alternative';
+import {
+  AlternativesList,
+  type Alternative,
+  OptionStatus,
+} from '../Alternative/Alternative';
 
 export const Default: Story = () => {
   const { isDark } = useTheme();

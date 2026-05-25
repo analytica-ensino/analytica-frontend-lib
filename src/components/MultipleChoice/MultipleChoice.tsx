@@ -106,7 +106,8 @@ const MultipleChoiceList = ({
                   content={choice.label}
                   className={cn(
                     'flex-1',
-                    isSelected || (choice.status && choice.status != OptionStatus.NEUTRAL)
+                    isSelected ||
+                      (choice.status && choice.status != OptionStatus.NEUTRAL)
                       ? 'text-text-950'
                       : 'text-text-600',
                     choice.disabled || disabled

@@ -56,7 +56,9 @@ export const renderQuestionTrueOrFalse = ({
 
           // Only show correctness styling when we have the official answer
           const canShowCorrectness = shouldShowStatus && hasCorrectAnswer;
-          const variantCorrect = isStudentCorrect ? OptionStatus.CORRECT : OptionStatus.INCORRECT;
+          const variantCorrect = isStudentCorrect
+            ? OptionStatus.CORRECT
+            : OptionStatus.INCORRECT;
           const studentAnswer = studentMarkedTrue
             ? TrueFalseEnum.VERDADEIRO
             : TrueFalseEnum.FALSO;
@@ -84,7 +86,11 @@ export const renderQuestionTrueOrFalse = ({
 
                 {canShowCorrectness && hasAnswered && (
                   <div className="flex-shrink-0">
-                    {getStatusBadge(isStudentCorrect ? OptionStatus.CORRECT : OptionStatus.INCORRECT)}
+                    {getStatusBadge(
+                      isStudentCorrect
+                        ? OptionStatus.CORRECT
+                        : OptionStatus.INCORRECT
+                    )}
                   </div>
                 )}
               </div>

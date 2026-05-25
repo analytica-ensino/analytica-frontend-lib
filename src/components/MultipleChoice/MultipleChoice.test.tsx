@@ -20,8 +20,16 @@ describe('MultipleChoiceList', () => {
   ];
 
   const mockChoicesWithStatus = [
-    { value: 'a', label: 'Alternativa A', status: OptionStatus.CORRECT as const },
-    { value: 'b', label: 'Alternativa B', status: OptionStatus.INCORRECT as const },
+    {
+      value: 'a',
+      label: 'Alternativa A',
+      status: OptionStatus.CORRECT as const,
+    },
+    {
+      value: 'b',
+      label: 'Alternativa B',
+      status: OptionStatus.INCORRECT as const,
+    },
     { value: 'c', label: 'Alternativa C' },
   ];
 
