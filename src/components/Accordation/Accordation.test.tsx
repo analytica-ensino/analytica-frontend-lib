@@ -374,9 +374,9 @@ describe('CardAccordation', () => {
       const header = getHeader();
       expect(header).toHaveClass(
         'focus:outline-none',
-        'focus:ring-2',
-        'focus:ring-primary-950',
-        'focus:ring-inset'
+        'focus-visible:ring-2',
+        'focus-visible:ring-primary-950',
+        'focus-visible:ring-inset'
       );
     });
 
