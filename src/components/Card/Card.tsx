@@ -1134,7 +1134,7 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                (e.currentTarget as HTMLButtonElement).click();
+                e.currentTarget.click();
               }
             }}
             aria-label="Barra de progresso do áudio"
