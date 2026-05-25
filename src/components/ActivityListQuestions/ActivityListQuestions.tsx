@@ -186,7 +186,7 @@ export const ActivityListQuestions = ({
    */
   const getSubjectInfo = (question: Question) => {
     if (!question.knowledgeMatrix || question.knowledgeMatrix.length === 0) {
-      return { assunto: 'Sem assunto', color: '#6B7280' };
+      return { assunto: 'Sem assunto', color: '#6B7280', icon: 'BookOpen' };
     }
 
     const matrix = question.knowledgeMatrix[0];
@@ -194,7 +194,7 @@ export const ActivityListQuestions = ({
     const topic = matrix.topic;
     const subtopic = matrix.subtopic;
     if (!subject) {
-      return { assunto: 'Sem assunto', color: '#6B7280' };
+      return { assunto: 'Sem assunto', color: '#6B7280', icon: 'BookOpen' };
     }
 
     const parts = [subject.name];

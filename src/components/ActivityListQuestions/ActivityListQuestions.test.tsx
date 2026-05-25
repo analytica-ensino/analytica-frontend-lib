@@ -597,6 +597,7 @@ describe('ActivityListQuestions', () => {
       const card = screen.getByTestId('activity-card-question-banks');
       expect(card).toHaveAttribute('data-assunto', 'Sem assunto');
       expect(card).toHaveAttribute('data-subject-color', '#6B7280');
+      expect(card).toHaveAttribute('data-icon-name', 'BookOpen');
     });
 
     it('should handle question with subject but no topic', () => {
