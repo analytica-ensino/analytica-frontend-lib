@@ -611,16 +611,18 @@ const QuizFooter = forwardRef<
               )}
             </>
           ) : (
-            <div className="flex flex-row items-center justify-center w-full">
-              <Button
-                variant="link"
-                action="primary"
-                size="medium"
-                onClick={() => openModal('modalResolution')}
-              >
-                Ver resolução
-              </Button>
-            </div>
+            currentQuestion?.solutionExplanation && (
+              <div className="flex flex-row items-center justify-center w-full">
+                <Button
+                  variant="link"
+                  action="primary"
+                  size="medium"
+                  onClick={() => openModal('modalResolution')}
+                >
+                  Ver resolução
+                </Button>
+              </div>
+            )
           )}
         </footer>
 

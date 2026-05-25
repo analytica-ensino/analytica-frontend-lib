@@ -80,6 +80,8 @@ const CardBase = forwardRef<HTMLDivElement, CardBaseProps>(
       minHeight = 'medium',
       cursor = 'default',
       className = '',
+      onClick,
+      onKeyDown,
       ...props
     },
     ref
@@ -90,6 +92,23 @@ const CardBase = forwardRef<HTMLDivElement, CardBaseProps>(
     const layoutClasses = CARD_LAYOUT_CLASSES[layout];
     const cursorClasses = CARD_CURSOR_CLASSES[cursor];
 
+    // Make cards with onClick focusable and keyboard accessible
+    const isInteractive = !!onClick;
+    const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+      if (isInteractive && ['Enter', ' '].includes(e.key)) {
+        e.preventDefault();
+        (e.currentTarget as HTMLElement).click();
+      }
+      onKeyDown?.(e);
+    };
+
+    /*
+     * Note: Using div with role="button" instead of native <button> element.
+     * Rationale:
+     * - Card is a complex container component with multiple child elements
+     * - Native button has layout/styling constraints incompatible with card design
+     * - Full WCAG/ARIA compliance implemented: role, tabIndex, keyboard support
+     */
     return (
       <div
         ref={ref}
@@ -101,6 +120,10 @@ const CardBase = forwardRef<HTMLDivElement, CardBaseProps>(
           cursorClasses,
           className
         )}
+        onClick={onClick}
+        onKeyDown={handleKeyDown}
+        tabIndex={isInteractive ? 0 : undefined}
+        role={isInteractive ? 'button' : undefined}
         {...props}
       >
         {children}
@@ -1111,9 +1134,7 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                handleProgressClick(
-                  e as unknown as MouseEvent<HTMLButtonElement>
-                );
+                e.currentTarget.click();
               }
             }}
             aria-label="Barra de progresso do áudio"
