@@ -102,6 +102,13 @@ const CardBase = forwardRef<HTMLDivElement, CardBaseProps>(
       onKeyDown?.(e);
     };
 
+    /*
+     * Note: Using div with role="button" instead of native <button> element.
+     * Rationale:
+     * - Card is a complex container component with multiple child elements
+     * - Native button has layout/styling constraints incompatible with card design
+     * - Full WCAG/ARIA compliance implemented: role, tabIndex, keyboard support
+     */
     return (
       <div
         ref={ref}
