@@ -2,10 +2,7 @@ import type { Story } from '@ladle/react';
 import { ActivityCardQuestionPreview } from './ActivityCardQuestionPreview';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import { useTheme } from '@/index';
-import {
-  AlternativesList,
-  type Alternative,
-} from '../Alternative/Alternative';
+import { AlternativesList, type Alternative } from '../Alternative/Alternative';
 import { OptionStatus } from '../../enums/Options';
 
 export const Default: Story = () => {

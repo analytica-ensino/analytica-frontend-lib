@@ -11,10 +11,7 @@ import {
   renderFromMap,
   type QuestionRendererMap,
 } from '../../utils/questionRenderer/index';
-import {
-  AlternativesList,
-  type Alternative,
-} from '../Alternative/Alternative';
+import { AlternativesList, type Alternative } from '../Alternative/Alternative';
 import { OptionStatus } from '../../enums/Options';
 import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
 import { FillInBlanks } from '../FillInBlanks/FillInBlanks';
