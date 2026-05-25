@@ -67,7 +67,9 @@ export const HistoryTab = ({
         _url: string,
         options?: { params?: Record<string, unknown> }
       ) => {
-        const result = await fetchActivitiesHistoryRef.current(options?.params);
+        const result = await fetchActivitiesHistoryRef.current(
+          options?.params as ActivityHistoryFilters | undefined
+        );
         return { data: result as T };
       },
       // Methods not used by this component but required by BaseApiClient

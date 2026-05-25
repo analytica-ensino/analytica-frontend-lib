@@ -39,6 +39,7 @@ describe('ModuleProtectedRoute', () => {
     simulatedReports: true,
     activitiesReports: true,
     lessonsReports: true,
+    exams: true,
   };
 
   beforeEach(() => {
@@ -57,6 +58,7 @@ describe('ModuleProtectedRoute', () => {
         hasSimulatedReports: true,
         hasActivitiesReports: true,
         hasLessonsReports: true,
+        hasExams: true,
       });
 
       const { container } = renderWithRouter(
@@ -82,6 +84,7 @@ describe('ModuleProtectedRoute', () => {
         hasSimulatedReports: true,
         hasActivitiesReports: true,
         hasLessonsReports: true,
+        hasExams: true,
       });
 
       renderWithRouter(
@@ -104,6 +107,7 @@ describe('ModuleProtectedRoute', () => {
         hasSimulatedReports: true,
         hasActivitiesReports: true,
         hasLessonsReports: true,
+        hasExams: true,
       });
 
       renderWithRouter(
@@ -126,6 +130,7 @@ describe('ModuleProtectedRoute', () => {
         hasSimulatedReports: true,
         hasActivitiesReports: true,
         hasLessonsReports: true,
+        hasExams: true,
       });
 
       renderWithRouter(
@@ -148,6 +153,7 @@ describe('ModuleProtectedRoute', () => {
         hasSimulatedReports: true,
         hasActivitiesReports: true,
         hasLessonsReports: true,
+        hasExams: true,
       });
 
       renderWithRouter(
@@ -172,6 +178,7 @@ describe('ModuleProtectedRoute', () => {
         hasSimulatedReports: true,
         hasActivitiesReports: true,
         hasLessonsReports: true,
+        hasExams: true,
       });
 
       renderWithRouter(
@@ -195,6 +202,7 @@ describe('ModuleProtectedRoute', () => {
         hasSimulatedReports: true,
         hasActivitiesReports: true,
         hasLessonsReports: true,
+        hasExams: true,
       });
 
       renderWithRouter(
@@ -218,6 +226,7 @@ describe('ModuleProtectedRoute', () => {
         hasSimulatedReports: true,
         hasActivitiesReports: true,
         hasLessonsReports: true,
+        hasExams: true,
       });
 
       renderWithRouter(
@@ -241,6 +250,7 @@ describe('ModuleProtectedRoute', () => {
         hasSimulatedReports: true,
         hasActivitiesReports: true,
         hasLessonsReports: true,
+        hasExams: true,
       });
 
       renderWithRouter(
@@ -266,6 +276,7 @@ describe('ModuleProtectedRoute', () => {
         hasSimulatedReports: true,
         hasActivitiesReports: true,
         hasLessonsReports: true,
+        hasExams: true,
       });
 
       renderWithRouter(
@@ -289,6 +300,7 @@ describe('ModuleProtectedRoute', () => {
         hasSimulatedReports: true,
         hasActivitiesReports: true,
         hasLessonsReports: true,
+        hasExams: true,
       });
 
       renderWithRouter(
@@ -313,6 +325,7 @@ describe('ModuleProtectedRoute', () => {
         hasSimulatedReports: true,
         hasActivitiesReports: true,
         hasLessonsReports: true,
+        hasExams: true,
       });
 
       const ComplexChild = () => (
@@ -347,6 +360,7 @@ describe('ModuleProtectedRoute', () => {
         hasSimulatedReports: true,
         hasActivitiesReports: true,
         hasLessonsReports: true,
+        hasExams: true,
       });
 
       renderWithRouter(

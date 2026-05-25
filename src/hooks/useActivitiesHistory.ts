@@ -10,7 +10,6 @@ import type {
   ActivityPagination,
   ActivityFilterOption,
 } from '../types/activitiesHistory';
-import type { TableParams } from '../components/TableProvider/TableProvider';
 import { mergeFilterOptions } from '../utils/filterHelpers';
 
 /**
@@ -46,7 +45,7 @@ export interface UseActivitiesHistoryState {
  * Hook return type
  */
 export interface UseActivitiesHistoryReturn extends UseActivitiesHistoryState {
-  fetchActivities: (params?: TableParams) => Promise<void>;
+  fetchActivities: (filters?: ActivityHistoryFilters) => Promise<void>;
 }
 
 /**
