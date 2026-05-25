@@ -181,7 +181,7 @@ const Modal = ({
 
   const sizeClasses = SIZE_CLASSES[size];
   const baseClasses =
-    'bg-secondary-50 rounded-3xl shadow-hard-shadow-2 border border-border-100 w-full mx-4';
+    'bg-secondary-50 rounded-3xl shadow-hard-shadow-2 border border-border-100 w-full mx-4 max-h-[calc(100dvh-2rem)] flex flex-col overflow-hidden';
   // Reset dialog default styles to prevent positioning issues
   const dialogResetClasses = 'p-0 m-0 border-none outline-none static';
   const modalClasses = cn(
@@ -226,7 +226,7 @@ const Modal = ({
           </div>
 
           {/* Conteúdo centralizado */}
-          <div className="flex flex-col items-center px-6 pb-6 gap-5">
+          <div className="flex flex-col items-center px-6 pb-6 gap-5 flex-1 min-h-0 overflow-y-auto">
             {/* Imagem ilustrativa */}
             {image && (
               <div className="flex justify-center">
@@ -330,7 +330,12 @@ const Modal = ({
 
         {/* Content */}
         {children && (
-          <div className={cn('px-6 pb-6', contentClassName)}>
+          <div
+            className={cn(
+              'px-6 pb-6 flex-1 min-h-0 overflow-y-auto',
+              contentClassName
+            )}
+          >
             <div
               className={cn(
                 'text-text-500 font-normal text-sm leading-6',
