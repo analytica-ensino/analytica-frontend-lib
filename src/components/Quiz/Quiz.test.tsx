@@ -2028,7 +2028,10 @@ describe('Quiz', () => {
       mockGetTotalQuestions.mockReturnValue(5);
       mockGetUnansweredQuestionsFromUserAnswers.mockReturnValue([]);
       mockGetCurrentAnswer.mockReturnValue({ answer: 'test answer' });
-      mockGetCurrentQuestion.mockReturnValue({ id: 'question-1' });
+      mockGetCurrentQuestion.mockReturnValue({
+        id: 'question-1',
+        solutionExplanation: 'Test solution explanation'
+      });
       mockGetQuestionStatusFromUserAnswers.mockReturnValue('answered');
       mockGetQuestionResultStatistics.mockReturnValue({ correctAnswers: 3 });
       mockGetQuestionsGroupedBySubject.mockReturnValue({});

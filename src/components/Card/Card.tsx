@@ -94,10 +94,10 @@ const CardBase = forwardRef<HTMLDivElement, CardBaseProps>(
 
     // Make cards with onClick focusable and keyboard accessible
     const isInteractive = !!onClick;
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
       if (isInteractive && ['Enter', ' '].includes(e.key)) {
         e.preventDefault();
-        onClick?.(e as unknown as React.MouseEvent<HTMLDivElement>);
+        onClick?.(e as unknown as MouseEvent<HTMLDivElement>);
       }
       onKeyDown?.(e);
     };
