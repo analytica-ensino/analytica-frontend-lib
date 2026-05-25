@@ -1,5 +1,6 @@
 import type { Story } from '@ladle/react';
 import { MultipleChoiceList } from './MultipleChoice';
+import { OptionStatus } from '../Alternative/Alternative';
 import { useState } from 'react';
 
 export const AllAlternativesShowcase: Story = () => {
@@ -10,22 +11,22 @@ export const AllAlternativesShowcase: Story = () => {
       value: 'a',
       label:
         'Alternativa A - Esta é uma alternativa com texto mais longo para demonstrar o comportamento do componente',
-      status: 'correct' as const,
+      status: OptionStatus.CORRECT as const,
     },
     {
       value: 'b',
       label: 'Alternativa B - Outra alternativa para teste',
-      status: 'incorrect' as const,
+      status: OptionStatus.INCORRECT as const,
     },
     {
       value: 'c',
       label: 'Alternativa C - Terceira opção disponível',
-      status: 'correct' as const,
+      status: OptionStatus.CORRECT as const,
     },
     {
       value: 'd',
       label: 'Alternativa D - Quarta opção com descrição',
-      status: 'incorrect' as const,
+      status: OptionStatus.INCORRECT as const,
     },
     {
       value: 'e',

@@ -7,6 +7,7 @@ import type { QuestionRendererProps } from '../types';
 import { getStatusBadge } from '../components';
 import { HtmlMathRenderer } from '../../../components/HtmlMathRenderer';
 import { TrueFalseEnum } from '../../../enums/Quiz';
+import { OptionStatus } from '../../../components/Alternative/Alternative';
 
 /**
  * Render true or false question
@@ -55,7 +56,7 @@ export const renderQuestionTrueOrFalse = ({
 
           // Only show correctness styling when we have the official answer
           const canShowCorrectness = shouldShowStatus && hasCorrectAnswer;
-          const variantCorrect = isStudentCorrect ? 'correct' : 'incorrect';
+          const variantCorrect = isStudentCorrect ? OptionStatus.CORRECT : OptionStatus.INCORRECT;
           const studentAnswer = studentMarkedTrue
             ? TrueFalseEnum.VERDADEIRO
             : TrueFalseEnum.FALSO;
@@ -83,7 +84,7 @@ export const renderQuestionTrueOrFalse = ({
 
                 {canShowCorrectness && hasAnswered && (
                   <div className="flex-shrink-0">
-                    {getStatusBadge(isStudentCorrect ? 'correct' : 'incorrect')}
+                    {getStatusBadge(isStudentCorrect ? OptionStatus.CORRECT : OptionStatus.INCORRECT)}
                   </div>
                 )}
               </div>

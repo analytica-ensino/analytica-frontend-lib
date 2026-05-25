@@ -79,6 +79,7 @@ jest.mock('../Select/Select', () => ({
 
 // Mock HeaderAlternative component
 jest.mock('../Alternative/Alternative', () => ({
+  ...jest.requireActual('../Alternative/Alternative'),
   HeaderAlternative: ({
     title,
     subTitle,

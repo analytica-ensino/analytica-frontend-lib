@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
+import { OptionStatus } from '../Alternative/Alternative';
 import {
   getStatusBadge,
   getStatusStyles,
@@ -132,6 +133,7 @@ jest.mock('./useQuizStore', () => ({
 
 // Mock HeaderAlternative component
 jest.mock('../Alternative/Alternative', () => ({
+  ...jest.requireActual('../Alternative/Alternative'),
   HeaderAlternative: ({
     title,
     subTitle,
@@ -314,7 +316,7 @@ const mockUseQuizStore = useQuizStore as jest.MockedFunction<
 describe('QuizContent', () => {
   describe('getStatusBadge', () => {
     it('should return correct badge for correct status', () => {
-      const badge = getStatusBadge('correct');
+      const badge = getStatusBadge(OptionStatus.CORRECT);
 
       render(<div>{badge}</div>);
 
@@ -322,7 +324,7 @@ describe('QuizContent', () => {
     });
 
     it('should return incorrect badge for incorrect status', () => {
-      const badge = getStatusBadge('incorrect');
+      const badge = getStatusBadge(OptionStatus.INCORRECT);
 
       render(<div>{badge}</div>);
 
@@ -337,7 +339,7 @@ describe('QuizContent', () => {
 
     it('should return null for invalid status', () => {
       const badge = getStatusBadge(
-        'invalid' as unknown as 'correct' | 'incorrect'
+        'invalid' as unknown as OptionStatus
       );
 
       expect(badge).toBeNull();
@@ -346,19 +348,19 @@ describe('QuizContent', () => {
 
   describe('getStatusStyles', () => {
     it('should return correct styles for correct status', () => {
-      const styles = getStatusStyles('correct');
+      const styles = getStatusStyles(OptionStatus.CORRECT);
 
       expect(styles).toBe('bg-success-background border-success-300');
     });
 
     it('should return incorrect styles for incorrect status', () => {
-      const styles = getStatusStyles('incorrect');
+      const styles = getStatusStyles(OptionStatus.INCORRECT);
 
       expect(styles).toBe('bg-error-background border-error-300');
     });
 
     it('should return empty string for invalid status', () => {
-      const styles = getStatusStyles('invalid');
+      const styles = getStatusStyles('invalid' as unknown as OptionStatus);
 
       expect(styles).toBe('');
     });

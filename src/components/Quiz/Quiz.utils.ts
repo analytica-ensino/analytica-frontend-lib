@@ -4,6 +4,7 @@ import {
   type TrueOrFalseOptionState,
 } from './Quiz.types';
 import { TrueFalseEnum } from '../../enums/Quiz';
+import { OptionStatus } from '../Alternative/Alternative';
 
 /**
  * Shuffle array using a seed for consistent ordering per question
@@ -96,7 +97,7 @@ export const getTrueOrFalseOptionState = (
     ? TrueFalseEnum.VERDADEIRO
     : TrueFalseEnum.FALSO;
   const isStudentCorrect = hasAnswered && studentMarkedTrue === isStatementTrue;
-  const variantCorrect = isStudentCorrect ? 'correct' : 'incorrect';
+  const variantCorrect = isStudentCorrect ? OptionStatus.CORRECT : OptionStatus.INCORRECT;
 
   return {
     isStatementTrue,

@@ -2,12 +2,10 @@ import type {
   Question,
   QuestionResult,
 } from '../../components/Quiz/useQuizStore';
+import { OptionStatus } from '../../components/Alternative/Alternative';
 
-export enum Status {
-  CORRECT = 'correct',
-  INCORRECT = 'incorrect',
-  NEUTRAL = 'neutral',
-}
+// Re-export OptionStatus for backward compatibility
+export { OptionStatus as Status };
 
 /**
  * Props for question renderers

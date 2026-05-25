@@ -14,6 +14,7 @@ import { CardAccordation } from '../../Accordation/Accordation';
 import {
   AlternativesList,
   type Alternative,
+  OptionStatus,
 } from '../../Alternative/Alternative';
 import type {
   StudentPerformanceData,
@@ -128,12 +129,12 @@ const PerformanceCard = ({
 const getAlternativeStatus = (
   isCorrect: boolean,
   isSelected: boolean
-): 'correct' | 'incorrect' | undefined => {
+): OptionStatus | undefined => {
   if (isCorrect) {
-    return 'correct';
+    return OptionStatus.CORRECT;
   }
   if (isSelected) {
-    return 'incorrect';
+    return OptionStatus.INCORRECT;
   }
   return undefined;
 };

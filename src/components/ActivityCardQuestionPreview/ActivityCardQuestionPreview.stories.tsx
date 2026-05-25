@@ -2,7 +2,7 @@ import type { Story } from '@ladle/react';
 import { ActivityCardQuestionPreview } from './ActivityCardQuestionPreview';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import { useTheme } from '@/index';
-import { AlternativesList, type Alternative } from '../Alternative/Alternative';
+import { AlternativesList, type Alternative, OptionStatus } from '../Alternative/Alternative';
 
 export const Default: Story = () => {
   const { isDark } = useTheme();
@@ -32,7 +32,7 @@ export const WithLongStatement: Story = () => {
     'A fotossíntese é um processo bioquímico fundamental para a vida na Terra, pois permite que organismos autotróficos convertam energia luminosa em energia química. Descreva as etapas da fase clara e da fase escura, detalhando os principais compostos envolvidos e como eles contribuem para a produção de glicose.';
 
   const alternatives: Alternative[] = [
-    { value: 'a', label: 'Apenas na fase clara', status: 'correct' },
+    { value: 'a', label: 'Apenas na fase clara', status: OptionStatus.CORRECT },
     { value: 'b', label: 'Apenas na fase escura' },
     { value: 'c', label: 'Nas duas fases' },
     { value: 'd', label: 'Em nenhuma das fases' },
@@ -107,7 +107,7 @@ $$x^2 - 5x + 6 = 0$$
 $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$`;
 
   const alternatives: Alternative[] = [
-    { value: 'a', label: '$x = 2$ e $x = 3$', status: 'correct' },
+    { value: 'a', label: '$x = 2$ e $x = 3$', status: OptionStatus.CORRECT },
     { value: 'b', label: '$x = -2$ e $x = -3$' },
     { value: 'c', label: '$x = 1$ e $x = 6$' },
     { value: 'd', label: '$x = -1$ e $x = -6$' },
@@ -221,7 +221,7 @@ export const ENEMStyleQuestion: Story = () => {
     {
       value: 'a',
       label: '$r \\approx 0,54m$ e $h \\approx 1,08m$',
-      status: 'correct',
+      status: OptionStatus.CORRECT,
     },
     { value: 'b', label: '$r \\approx 0,40m$ e $h \\approx 2,00m$' },
     { value: 'c', label: '$r \\approx 0,60m$ e $h \\approx 0,88m$' },

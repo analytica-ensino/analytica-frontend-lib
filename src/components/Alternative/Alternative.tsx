@@ -7,12 +7,21 @@ import { HtmlMathRenderer } from '../HtmlMathRenderer';
 import { QuizVariant } from '../Quiz/Quiz.types';
 
 /**
+ * Enum para definir o status de uma alternativa/opção
+ */
+export enum OptionStatus {
+  CORRECT = 'correct',
+  INCORRECT = 'incorrect',
+  NEUTRAL = 'neutral',
+}
+
+/**
  * Interface para definir uma alternativa
  */
 export interface Alternative {
   value: string;
   label: string;
-  status?: 'correct' | 'incorrect' | 'neutral';
+  status?: OptionStatus;
   disabled?: boolean;
   description?: string;
 }
@@ -101,9 +110,9 @@ const AlternativesList = ({
     const hoverClass = isReadonly ? '' : 'hover:bg-background-50';
 
     switch (status) {
-      case 'correct':
+      case OptionStatus.CORRECT:
         return 'bg-success-background border-success-300';
-      case 'incorrect':
+      case OptionStatus.INCORRECT:
         return 'bg-error-background border-error-300';
       default:
         return `bg-background border-border-100 ${hoverClass}`;
@@ -112,13 +121,13 @@ const AlternativesList = ({
 
   const getStatusBadge = (status?: Alternative['status']) => {
     switch (status) {
-      case 'correct':
+      case OptionStatus.CORRECT:
         return (
           <Badge variant="solid" action="success" iconLeft={<CheckCircle />}>
             Resposta correta
           </Badge>
         );
-      case 'incorrect':
+      case OptionStatus.INCORRECT:
         return (
           <Badge variant="solid" action="error" iconLeft={<XCircle />}>
             Resposta incorreta
@@ -144,16 +153,16 @@ const AlternativesList = ({
   const renderReadonlyAlternative = (alternative: Alternative) => {
     const alternativeId = alternative.value;
     const isUserSelected = selectedValue === alternative.value;
-    const isCorrectAnswer = alternative.status === 'correct';
+    const isCorrectAnswer = alternative.status === OptionStatus.CORRECT;
 
     // Determinar o status da alternativa para visualização
     let displayStatus: Alternative['status'] = undefined;
     if (isUserSelected && !isCorrectAnswer) {
       // Usuário selecionou alternativa incorreta
-      displayStatus = 'incorrect';
+      displayStatus = OptionStatus.INCORRECT;
     } else if (isCorrectAnswer) {
       // Alternativa correta (independente se foi selecionada ou não)
-      displayStatus = 'correct';
+      displayStatus = OptionStatus.CORRECT;
     }
 
     const statusStyles = getStatusStyles(displayStatus, true);

@@ -1,4 +1,5 @@
 import type { QuestionResult } from './useQuizStore';
+import { OptionStatus } from '../Alternative/Alternative';
 
 export enum QuizVariant {
   DEFAULT = 'default',
@@ -18,5 +19,5 @@ export interface TrueOrFalseOptionState {
   studentAnswer: string;
   correctAnswer: string;
   isStudentCorrect: boolean;
-  variantCorrect: 'correct' | 'incorrect';
+  variantCorrect: OptionStatus;
 }
