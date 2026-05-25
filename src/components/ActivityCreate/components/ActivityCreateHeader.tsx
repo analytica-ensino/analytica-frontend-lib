@@ -67,7 +67,7 @@ export const ActivityCreateHeader = ({
         type="button"
         variant="link"
         data-testid="back-button"
-        className='px-0'
+        className="px-0"
       >
         <CaretLeft size={32} />
       </Button>

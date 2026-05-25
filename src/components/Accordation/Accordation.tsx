@@ -100,7 +100,7 @@ const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
           onKeyDown={handleKeyDown}
           disabled={disabled}
           className={cn(
-            'w-full cursor-pointer not-aria-expanded:rounded-xl aria-expanded:rounded-t-xl flex items-center justify-between gap-3 text-left transition-colors duration-200 focus:outline-none focus:border-2 focus:border-primary-950 focus:ring-inset px-2',
+            'w-full cursor-pointer not-aria-expanded:rounded-xl aria-expanded:rounded-t-xl flex items-center justify-between gap-3 text-left transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-950 focus:ring-inset pl-2 pr-10',
             disabled && 'cursor-not-allowed text-text-400',
             triggerClassName
           )}
