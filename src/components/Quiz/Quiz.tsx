@@ -39,6 +39,7 @@ import {
 } from './QuizContent';
 import { CardStatus } from '../Card/Card';
 import Text from '../Text/Text';
+import HtmlMathRenderer from '../HtmlMathRenderer/HtmlMathRenderer';
 
 // Função para obter configuração do tipo de quiz
 export const getQuizTypeConfig = (type: QUIZ_TYPE) => {
@@ -725,7 +726,10 @@ const QuizFooter = forwardRef<
           title="Resolução"
           size={'lg'}
         >
-          {currentQuestion?.solutionExplanation}
+          <HtmlMathRenderer
+            content={currentQuestion?.solutionExplanation || ''}
+            className="text-text-950 text-base"
+          />
         </Modal>
 
         <Modal

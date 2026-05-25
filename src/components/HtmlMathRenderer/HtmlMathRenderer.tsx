@@ -154,6 +154,10 @@ const HtmlMathRenderer = forwardRef<HTMLElement, HtmlMathRendererProps>(
       '[&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-md [&_img]:my-2',
       // Link styles
       '[&_a]:text-primary-500 [&_a]:underline [&_a:hover]:text-primary-600',
+      // Text formatting styles
+      '[&_b]:font-bold [&_strong]:font-bold',
+      '[&_i]:italic [&_em]:italic',
+      '[&_u]:underline',
       className
     );
 
