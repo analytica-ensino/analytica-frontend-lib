@@ -2030,7 +2030,7 @@ describe('Quiz', () => {
       mockGetCurrentAnswer.mockReturnValue({ answer: 'test answer' });
       mockGetCurrentQuestion.mockReturnValue({
         id: 'question-1',
-        solutionExplanation: 'Test solution explanation'
+        solutionExplanation: 'Test solution explanation',
       });
       mockGetQuestionStatusFromUserAnswers.mockReturnValue('answered');
       mockGetQuestionResultStatistics.mockReturnValue({ correctAnswers: 3 });
