@@ -97,7 +97,7 @@ const CardBase = forwardRef<HTMLDivElement, CardBaseProps>(
     const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
       if (isInteractive && ['Enter', ' '].includes(e.key)) {
         e.preventDefault();
-        onClick?.(e as unknown as MouseEvent<HTMLDivElement>);
+        (e.currentTarget as HTMLElement).click();
       }
       onKeyDown?.(e);
     };
@@ -1134,9 +1134,7 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                handleProgressClick(
-                  e as unknown as MouseEvent<HTMLButtonElement>
-                );
+                (e.currentTarget as HTMLButtonElement).click();
               }
             }}
             aria-label="Barra de progresso do áudio"
