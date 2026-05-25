@@ -18,8 +18,8 @@ import { CardAccordation, AccordionGroup } from '../../Accordation';
 import {
   AlternativesList,
   type Alternative,
-  OptionStatus,
 } from '../../Alternative/Alternative';
+import { OptionStatus } from '../../../enums/Options';
 import useToastStore from '../../Toast/utils/ToastStore';
 import { StatCard } from '../../shared/StatCard';
 import type { BaseApiClient } from '../../../types/api';

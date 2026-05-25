@@ -5,15 +5,7 @@ import { forwardRef, HTMLAttributes, useId, useState } from 'react';
 import { cn } from '../../utils/utils';
 import { HtmlMathRenderer } from '../HtmlMathRenderer';
 import { QuizVariant } from '../Quiz/Quiz.types';
-
-/**
- * Enum para definir o status de uma alternativa/opção
- */
-export enum OptionStatus {
-  CORRECT = 'correct',
-  INCORRECT = 'incorrect',
-  NEUTRAL = 'neutral',
-}
+import { OptionStatus } from '../../enums/Options';
 
 /**
  * Interface para definir uma alternativa

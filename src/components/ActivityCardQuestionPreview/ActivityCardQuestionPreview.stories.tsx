@@ -5,8 +5,8 @@ import { useTheme } from '@/index';
 import {
   AlternativesList,
   type Alternative,
-  OptionStatus,
 } from '../Alternative/Alternative';
+import { OptionStatus } from '../../enums/Options';
 
 export const Default: Story = () => {
   const { isDark } = useTheme();

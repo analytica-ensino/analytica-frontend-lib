@@ -14,8 +14,8 @@ import {
 import {
   AlternativesList,
   type Alternative,
-  OptionStatus,
 } from '../Alternative/Alternative';
+import { OptionStatus } from '../../enums/Options';
 import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
 import { FillInBlanks } from '../FillInBlanks/FillInBlanks';
 import { ConnectDots } from '../ConnectDots/ConnectDots';

@@ -1,6 +1,6 @@
 import type { Story } from '@ladle/react';
 import { MultipleChoiceList } from './MultipleChoice';
-import { OptionStatus } from '../Alternative/Alternative';
+import { OptionStatus } from '../../enums/Options';
 import { useState } from 'react';
 
 export const AllAlternativesShowcase: Story = () => {

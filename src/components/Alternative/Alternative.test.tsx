@@ -5,8 +5,8 @@ import {
   AlternativesList,
   Alternative,
   HeaderAlternative,
-  OptionStatus,
 } from './Alternative';
+import { OptionStatus } from '../../enums/Options';
 
 /**
  * Mock for useId hook to ensure consistent IDs in tests

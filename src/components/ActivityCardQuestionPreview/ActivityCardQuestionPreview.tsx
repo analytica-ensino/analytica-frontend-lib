@@ -12,8 +12,8 @@ import { cn } from '../../utils/utils';
 import {
   AlternativesList,
   type Alternative,
-  OptionStatus,
 } from '../Alternative/Alternative';
+import { OptionStatus } from '../../enums/Options';
 import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
 import { CheckCircle, XCircle } from 'phosphor-react';
 import {

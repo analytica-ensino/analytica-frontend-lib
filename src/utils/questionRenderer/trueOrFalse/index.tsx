@@ -7,7 +7,7 @@ import type { QuestionRendererProps } from '../types';
 import { getStatusBadge } from '../components';
 import { HtmlMathRenderer } from '../../../components/HtmlMathRenderer';
 import { TrueFalseEnum } from '../../../enums/Quiz';
-import { OptionStatus } from '../../../components/Alternative/Alternative';
+import { OptionStatus } from '../../../enums/Options';
 
 /**
  * Render true or false question

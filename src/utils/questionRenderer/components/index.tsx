@@ -5,7 +5,7 @@ import { cn } from '../../utils';
 import Text from '../../../components/Text/Text';
 import type { QuestionRendererProps } from '../types';
 import { stripHtmlTags } from '../../stringUtils';
-import { OptionStatus } from '../../../components/Alternative/Alternative';
+import { OptionStatus } from '../../../enums/Options';
 
 /**
  * Get status badge component

@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { MultipleChoiceList } from './MultipleChoice';
-import { OptionStatus } from '../Alternative/Alternative';
+import { OptionStatus } from '../../enums/Options';
 
 /**
  * Mock for useId hook to ensure consistent IDs in tests

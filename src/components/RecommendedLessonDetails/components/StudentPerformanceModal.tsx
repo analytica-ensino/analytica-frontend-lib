@@ -14,8 +14,8 @@ import { CardAccordation } from '../../Accordation/Accordation';
 import {
   AlternativesList,
   type Alternative,
-  OptionStatus,
 } from '../../Alternative/Alternative';
+import { OptionStatus } from '../../../enums/Options';
 import type {
   StudentPerformanceData,
   StudentPerformanceLabels,

@@ -27,7 +27,8 @@ import Select, {
   SelectValue,
 } from '../Select/Select';
 import TextArea from '../TextArea/TextArea';
-import { AlternativesList, OptionStatus } from '../Alternative/Alternative';
+import { AlternativesList } from '../Alternative/Alternative';
+import { OptionStatus } from '../../enums/Options';
 import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
 import Badge from '../Badge/Badge';
 import { CheckCircle, XCircle } from 'phosphor-react';

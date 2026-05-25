@@ -1,5 +1,5 @@
 import type { QuestionResult } from './useQuizStore';
-import { OptionStatus } from '../Alternative/Alternative';
+import { OptionStatus } from '../../enums/Options';
 
 export enum QuizVariant {
   DEFAULT = 'default',

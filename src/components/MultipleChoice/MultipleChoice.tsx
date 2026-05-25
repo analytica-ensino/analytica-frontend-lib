@@ -5,7 +5,7 @@ import { CheckCircle, XCircle, Check } from 'phosphor-react';
 import Badge from '../Badge/Badge';
 import { HtmlMathRenderer } from '../HtmlMathRenderer';
 import { QuizVariant } from '../Quiz/Quiz.types';
-import { OptionStatus } from '../Alternative/Alternative';
+import { OptionStatus } from '../../enums/Options';
 
 interface Choice {
   value: string;

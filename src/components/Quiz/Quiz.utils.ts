@@ -4,7 +4,7 @@ import {
   type TrueOrFalseOptionState,
 } from './Quiz.types';
 import { TrueFalseEnum } from '../../enums/Quiz';
-import { OptionStatus } from '../Alternative/Alternative';
+import { OptionStatus } from '../../enums/Options';
 
 /**
  * Shuffle array using a seed for consistent ordering per question
