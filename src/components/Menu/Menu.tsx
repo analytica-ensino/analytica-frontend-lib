@@ -64,6 +64,14 @@ const VARIANT_CLASSES = {
   breadcrumb: 'bg-transparent shadow-none !px-0',
 };
 
+const BASE_CLASSES_BY_VARIANT: Record<MenuVariant, string> = {
+  menu: 'w-full py-2 flex flex-row items-center justify-center',
+  menu2: 'w-full py-2 flex flex-row items-center justify-center',
+  'menu-overflow': 'w-fit py-2 flex flex-row items-center justify-center',
+  'menu-overflow-col': 'w-full py-2 flex flex-row items-center justify-start',
+  breadcrumb: 'w-full py-2 flex flex-row items-center justify-center',
+};
+
 const Menu = forwardRef<HTMLDivElement, MenuProps>(
   (
     {
@@ -86,12 +94,7 @@ const Menu = forwardRef<HTMLDivElement, MenuProps>(
       setValue(propValue ?? defaultValue);
     }, [defaultValue, propValue, setValue]);
 
-    const baseClasses =
-      variant === 'menu-overflow'
-        ? 'w-fit py-2 flex flex-row items-center justify-center'
-        : variant === 'menu-overflow-col'
-          ? 'w-full py-2 flex flex-row items-center justify-start'
-          : 'w-full py-2 flex flex-row items-center justify-center';
+    const baseClasses = BASE_CLASSES_BY_VARIANT[variant];
     const variantClasses = VARIANT_CLASSES[variant];
 
     return (
