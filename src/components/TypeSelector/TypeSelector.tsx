@@ -13,6 +13,7 @@ import {
   getTabPath,
 } from './TypeSelector.types';
 import { useModules } from '../../hooks/useModules';
+import { ExamActivityCategory } from '../../types/examDrafts';
 
 /**
  * Props for the TypeSelector component
@@ -53,9 +54,9 @@ export const TypeSelector = ({
     }
 
     // Otherwise, calculate based on hasExams flag
-    const categories: ActivityCategory[] = ['ATIVIDADE'];
+    const categories: ActivityCategory[] = [ExamActivityCategory.ATIVIDADE];
     if (hasExams) {
-      categories.push('PROVA');
+      categories.push(ExamActivityCategory.PROVA);
     }
     return categories;
   }, [hasExams, allowedCategoriesProp]);
