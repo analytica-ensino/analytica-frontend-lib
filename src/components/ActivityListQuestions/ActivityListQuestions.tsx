@@ -3,6 +3,7 @@ import { Notebook } from 'phosphor-react';
 import {
   ActivityCardQuestionBanks,
   Button,
+  EmptyState,
   Input,
   Modal,
   Text,
@@ -19,6 +20,7 @@ import {
 import { convertActivityFiltersToQuestionsFilter } from '../../utils/questionFiltersConverter';
 import { mapQuestionTypeToEnumRequired } from '../../utils/questionTypeUtils';
 import { areFiltersEqual } from '../../utils/activityFilters';
+import Activities from '../../assets/icons/Activities';
 
 interface ActivityListQuestionsProps {
   apiClient: BaseApiClient;
@@ -184,16 +186,15 @@ export const ActivityListQuestions = ({
    */
   const getSubjectInfo = (question: Question) => {
     if (!question.knowledgeMatrix || question.knowledgeMatrix.length === 0) {
-      return { assunto: 'Sem assunto', color: '#6B7280' };
+      return { assunto: 'Sem assunto', color: '#6B7280', icon: 'BookOpen' };
     }
 
     const matrix = question.knowledgeMatrix[0];
     const subject = matrix.subject;
     const topic = matrix.topic;
     const subtopic = matrix.subtopic;
-
     if (!subject) {
-      return { assunto: 'Sem assunto', color: '#6B7280' };
+      return { assunto: 'Sem assunto', color: '#6B7280', icon: 'BookOpen' };
     }
 
     const parts = [subject.name];
@@ -203,6 +204,7 @@ export const ActivityListQuestions = ({
     return {
       assunto: parts.join(' - '),
       color: subject.color || '#6B7280',
+      icon: subject.icon || 'BookOpen',
     };
   };
 
@@ -393,11 +395,12 @@ export const ActivityListQuestions = ({
 
     if (questions.length === 0) {
       return (
-        <div className="flex items-center justify-center h-full">
-          <Text size="md" className="text-text-600">
-            Nenhuma questão encontrada. Aplique os filtros para buscar questões.
-          </Text>
-        </div>
+        <EmptyState
+          image={<Activities />}
+          title="Nenhum resultado encontrado"
+          description="Utilize o filtro ao lado para encontrar questões."
+          size="compact"
+        />
       );
     }
 
@@ -428,7 +431,7 @@ export const ActivityListQuestions = ({
                   : undefined
               }
               questionType={questionType}
-              iconName="Atom"
+              iconName={subjectInfo.icon}
               subjectColor={subjectInfo.color}
               isDark={isDark}
               assunto={subjectInfo.assunto}
@@ -475,7 +478,11 @@ export const ActivityListQuestions = ({
               : `${totalQuestions} ${uniqueQuestion()} total`}
           </Text>
 
-          <Button size="small" onClick={() => setIsModalOpen(true)}>
+          <Button
+            size="small"
+            onClick={() => setIsModalOpen(true)}
+            disabled={totalQuestions === 0}
+          >
             Adicionar automaticamente
           </Button>
         </section>

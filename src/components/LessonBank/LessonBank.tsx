@@ -1,11 +1,12 @@
 import { Book, Plus } from 'phosphor-react';
-import { Button, Text, SkeletonText, BaseApiClient } from '../..';
+import { Button, Text, SkeletonText, BaseApiClient, EmptyState } from '../..';
 import type { Lesson } from '../../types/lessons';
 import { useLessonBank, type LessonFilters } from './hooks/useLessonBank';
 import Video from '../../assets/icons/subjects/Video';
 import { LessonWatchModal } from '../shared/LessonWatchModal';
 import { ToastNotification } from '../shared/ToastNotification/ToastNotification';
 import { useToastNotification } from '../shared/ToastNotification/useToastNotification';
+import Activities from '../../assets/icons/Activities';
 
 interface LessonBankProps {
   apiClient: BaseApiClient;
@@ -116,18 +117,13 @@ export const LessonBank = ({
     }
 
     if (filteredLessons.length === 0) {
-      // Check if filters are applied
-      const hasFiltersApplied =
-        filters?.subjectId && filters.subjectId.length > 0;
-
       return (
-        <div className="flex items-center justify-center h-full">
-          <Text size="md" className="text-text-600">
-            {hasFiltersApplied
-              ? 'Nenhuma aula encontrada.'
-              : 'Nenhuma aula encontrada. Aplique os filtros para buscar aulas.'}
-          </Text>
-        </div>
+        <EmptyState
+          image={<Activities />}
+          title="Nenhum resultado encontrado"
+          description="Utilize o filtro ao lado para encontrar aulas."
+          size="compact"
+        />
       );
     }
 

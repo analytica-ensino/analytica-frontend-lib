@@ -12,6 +12,7 @@ import {
   type QuestionRendererMap,
 } from '../../utils/questionRenderer/index';
 import { AlternativesList, type Alternative } from '../Alternative/Alternative';
+import { OptionStatus } from '../../enums/Options';
 import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
 import { FillInBlanks } from '../FillInBlanks/FillInBlanks';
 import { ConnectDots } from '../ConnectDots/ConnectDots';
@@ -71,7 +72,7 @@ export const ActivityCardQuestionBanks = ({
       return {
         value: option.id,
         label: option.option,
-        status: isCorrect ? ('correct' as const) : undefined,
+        status: isCorrect ? OptionStatus.CORRECT : undefined,
         disabled: !isCorrect,
       } satisfies Alternative;
     });
@@ -98,7 +99,7 @@ export const ActivityCardQuestionBanks = ({
       return {
         value: option.id,
         label: option.option,
-        status: isCorrect ? ('correct' as const) : undefined,
+        status: isCorrect ? OptionStatus.CORRECT : undefined,
         disabled: !isCorrect,
       };
     });
@@ -332,6 +333,7 @@ export const ActivityCardQuestionBanks = ({
       <section>
         <Button
           size="small"
+          variant="outline"
           iconLeft={<Plus />}
           className="w-full"
           onClick={() => {

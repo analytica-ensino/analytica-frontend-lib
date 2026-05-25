@@ -1,5 +1,6 @@
 import type { Story } from '@ladle/react';
 import { AlternativesList, HeaderAlternative } from './Alternative';
+import { OptionStatus } from '../../enums/Options';
 
 export const AllAlternativesShowcase: Story = () => {
   return (
@@ -150,7 +151,7 @@ export const AllAlternativesShowcase: Story = () => {
                   value: 'readonly-correct',
                   label:
                     'Opção B - Esta foi a escolha correta do usuário! Texto longo demonstrando como alternativas corretas são destacadas visualmente no modo readonly quando o usuário acerta a questão',
-                  status: 'correct',
+                  status: OptionStatus.CORRECT,
                 },
                 {
                   value: 'readonly-wrong2',
@@ -181,7 +182,7 @@ export const AllAlternativesShowcase: Story = () => {
                   value: 'readonly-correct2',
                   label:
                     'Opção A - Esta era a resposta correta que o usuário deveria ter selecionado, apresentada com texto longo para demonstrar como respostas corretas não selecionadas são exibidas',
-                  status: 'correct',
+                  status: OptionStatus.CORRECT,
                 },
                 {
                   value: 'readonly-wrong4',
@@ -223,7 +224,7 @@ export const AllAlternativesShowcase: Story = () => {
                   'Análise Detalhada e Aprofundada - Opção A Correta Não Selecionada com Título Extenso para Teste de Layout Readonly Detalhado',
                 description:
                   'Esta era a resposta absolutamente correta que o usuário deveria ter identificado e selecionado. A descrição extensa serve para demonstrar como o componente apresenta visualmente informações completas sobre a alternativa correta mesmo quando não foi escolhida pelo usuário. Inclui explicações detalhadas sobre por que esta opção é a mais adequada, fundamentação teórica sólida, evidências empíricas de suporte, casos de sucesso documentados, e orientações para futuras situações similares. O badge de resposta correta aparece mas o radio não está selecionado, criando uma clara distinção visual entre o que era correto e o que foi escolhido.',
-                status: 'correct',
+                status: OptionStatus.CORRECT,
               },
               {
                 value: 'detailed-neutral1',
@@ -269,7 +270,7 @@ export const AllAlternativesShowcase: Story = () => {
                   value: 'compact-correct',
                   label:
                     'Opção B - Resposta correta selecionada pelo usuário com texto extenso demonstrando sucesso no layout compacto readonly',
-                  status: 'correct',
+                  status: OptionStatus.CORRECT,
                 },
                 {
                   value: 'compact-wrong2',
@@ -298,7 +299,7 @@ export const AllAlternativesShowcase: Story = () => {
                   value: 'compact-correct2',
                   label:
                     'Opção A - Esta era a resposta correta não selecionada, apresentada com texto longo no layout compacto readonly',
-                  status: 'correct',
+                  status: OptionStatus.CORRECT,
                 },
                 {
                   value: 'compact-neutral',
@@ -462,7 +463,7 @@ export const ReadonlyExamples: Story = () => {
                 value: 'acerto-total',
                 label:
                   'Resposta correta selecionada pelo usuário com texto muito longo demonstrando sucesso completo na identificação da alternativa adequada',
-                status: 'correct',
+                status: OptionStatus.CORRECT,
               },
               {
                 value: 'acerto-outras1',
@@ -490,7 +491,7 @@ export const ReadonlyExamples: Story = () => {
                 value: 'erro-correta',
                 label:
                   'Esta era a alternativa correta que o usuário deveria ter identificado, apresentada com texto longo para demonstrar feedback educativo',
-                status: 'correct',
+                status: OptionStatus.CORRECT,
               },
               {
                 value: 'erro-escolha',

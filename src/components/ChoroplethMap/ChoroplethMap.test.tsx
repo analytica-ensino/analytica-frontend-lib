@@ -714,9 +714,7 @@ describe('ChoroplethMap animations', () => {
   it('shows a custom countLabel in the region tooltip', async () => {
     await renderAndHoverRegion({ countLabel: 'Atividades realizadas' });
 
-    expect(
-      screen.getByText(/Atividades realizadas: 200/)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Atividades realizadas: 200/)).toBeInTheDocument();
   });
 
   it('zooms to NRE region on click', async () => {

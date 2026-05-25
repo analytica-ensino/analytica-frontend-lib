@@ -6,6 +6,7 @@ import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 
 // Mock components
 jest.mock('../Alternative/Alternative', () => ({
+  ...jest.requireActual('../Alternative/Alternative'),
   AlternativesList: ({
     alternatives,
     mode,

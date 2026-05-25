@@ -10,6 +10,7 @@ export interface UseModulesReturn {
   hasSimulatedReports: boolean;
   hasActivitiesReports: boolean;
   hasLessonsReports: boolean;
+  hasExams: boolean;
 }
 
 /**
@@ -43,5 +44,6 @@ export const useModules = (): UseModulesReturn => {
     hasSimulatedReports: modules.simulatedReports,
     hasActivitiesReports: modules.activitiesReports,
     hasLessonsReports: modules.lessonsReports,
+    hasExams: modules.exams,
   };
 };

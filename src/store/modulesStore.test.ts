@@ -47,6 +47,7 @@ describe('ModulesStore', () => {
     simulatedReports: true,
     activitiesReports: true,
     lessonsReports: true,
+    exams: true,
   };
 
   beforeEach(() => {
@@ -79,6 +80,7 @@ describe('ModulesStore', () => {
       expect(modules.simulatedReports).toBe(true);
       expect(modules.activitiesReports).toBe(true);
       expect(modules.lessonsReports).toBe(true);
+      expect(modules.exams).toBe(true);
     });
   });
 
@@ -100,6 +102,7 @@ describe('ModulesStore', () => {
             essay: true,
             forum: true,
             support: false,
+            exams: true,
           },
           ownerInstitutionId: 'any-institution',
         },
@@ -133,6 +136,7 @@ describe('ModulesStore', () => {
                 essay: true,
                 forum: false,
                 support: true,
+                exams: true,
               },
             },
           },
@@ -186,6 +190,7 @@ describe('ModulesStore', () => {
         simulatedReports: true,
         activitiesReports: true,
         lessonsReports: true,
+        exams: true,
       };
 
       mockApi.get.mockResolvedValueOnce({
@@ -437,6 +442,7 @@ describe('ModulesStore', () => {
                 essay: false,
                 forum: false,
                 support: false,
+                exams: true,
               },
             },
           },
@@ -489,6 +495,7 @@ describe('ModulesStore', () => {
         simulatedReports: true,
         activitiesReports: true,
         lessonsReports: true,
+        exams: true,
       });
     });
 
@@ -602,6 +609,7 @@ describe('ModulesStore', () => {
           simulatedReports: false,
           activitiesReports: false,
           lessonsReports: false,
+          exams: false,
         },
         ownerInstitutionId: 'some-institution',
       });

@@ -19,6 +19,7 @@ import {
   AlternativesList,
   type Alternative,
 } from '../../Alternative/Alternative';
+import { OptionStatus } from '../../../enums/Options';
 import useToastStore from '../../Toast/utils/ToastStore';
 import { StatCard } from '../../shared/StatCard';
 import type { BaseApiClient } from '../../../types/api';
@@ -32,12 +33,6 @@ import type {
 import { DEFAULT_ACTIVITY_PERFORMANCE_LABELS } from '../types';
 import { cn } from '../../../utils/utils';
 import { HtmlMathRenderer } from '../../HtmlMathRenderer';
-
-/** Status of an alternative (correct/incorrect) for display */
-const AlternativeStatus = {
-  Correct: 'correct',
-  Incorrect: 'incorrect',
-} as const;
 
 /** Field names for essay correction state updates */
 const EssayCorrectionField = {
@@ -146,9 +141,9 @@ const InfoCard = ({
 const getAlternativeStatus = (
   isCorrect: boolean,
   isSelected: boolean
-): (typeof AlternativeStatus)[keyof typeof AlternativeStatus] | undefined => {
-  if (isCorrect) return AlternativeStatus.Correct;
-  if (isSelected) return AlternativeStatus.Incorrect;
+): OptionStatus | undefined => {
+  if (isCorrect) return OptionStatus.CORRECT;
+  if (isSelected) return OptionStatus.INCORRECT;
   return undefined;
 };
 

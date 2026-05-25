@@ -60,6 +60,7 @@ jest.mock('../../index', () => {
 });
 
 jest.mock('../Alternative/Alternative', () => ({
+  ...jest.requireActual('../Alternative/Alternative'),
   AlternativesList: ({
     alternatives,
     selectedValue,

@@ -199,6 +199,7 @@ const CreateActivity = ({
   const [isSavingModel, setIsSavingModel] = useState(false);
   const [categories, setCategories] = useState<CategoryConfig[]>([]);
   const [isSendingActivity, setIsSendingActivity] = useState(false);
+  const [filtersKey, setFiltersKey] = useState(0);
 
   const [isLessonPreviewModalOpen, setIsLessonPreviewModalOpen] =
     useState(false);
@@ -296,6 +297,15 @@ const CreateActivity = ({
     () => getInitialFiltersData(activity?.filters, resolvedPreFilters),
     [activity?.filters, resolvedPreFilters]
   );
+
+  /**
+   * Handle clear filters button click - clears all filters and forces re-render
+   */
+  const handleClearFilters = useCallback(() => {
+    clearFilters();
+    // Force re-render of ActivityFilters component by changing key
+    setFiltersKey((prev) => prev + 1);
+  }, [clearFilters]);
 
   useEffect(() => {
     hasAppliedInitialFiltersRef.current = false;
@@ -1125,7 +1135,7 @@ const CreateActivity = ({
           initialFiltersData={initialFiltersData}
           onFiltersChange={handleFiltersChange}
           onApplyFilters={handleApplyFilters}
-          onClearFilters={clearFilters}
+          onClearFilters={handleClearFilters}
           onAddQuestion={handleAddQuestion}
           addedQuestionIds={addedQuestionIds}
           enableExamMode={enableExamMode || isInPersonExam}
@@ -1135,6 +1145,7 @@ const CreateActivity = ({
           onRemoveAll={handleRemoveAll}
           onRemoveQuestion={handleRemoveQuestion}
           onReorder={handleReorder}
+          filtersKey={filtersKey}
         />
       ) : (
         <DesktopLayout
@@ -1145,6 +1156,7 @@ const CreateActivity = ({
           draftFilters={draftFilters}
           onFiltersChange={handleFiltersChange}
           onApplyFilters={handleApplyFilters}
+          onClearFilters={handleClearFilters}
           onAddQuestion={handleAddQuestion}
           addedQuestionIds={addedQuestionIds}
           enableExamMode={enableExamMode || isInPersonExam}
@@ -1154,6 +1166,7 @@ const CreateActivity = ({
           onRemoveAll={handleRemoveAll}
           onRemoveQuestion={handleRemoveQuestion}
           onReorder={handleReorder}
+          filtersKey={filtersKey}
         />
       )}
 

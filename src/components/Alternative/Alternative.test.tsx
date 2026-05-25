@@ -6,6 +6,7 @@ import {
   Alternative,
   HeaderAlternative,
 } from './Alternative';
+import { OptionStatus } from '../../enums/Options';
 
 /**
  * Mock for useId hook to ensure consistent IDs in tests
@@ -23,8 +24,8 @@ describe('AlternativesList', () => {
   ];
 
   const mockAlternativesWithStatus: Alternative[] = [
-    { value: 'a', label: 'Alternativa A', status: 'correct' },
-    { value: 'b', label: 'Alternativa B', status: 'incorrect' },
+    { value: 'a', label: 'Alternativa A', status: OptionStatus.CORRECT },
+    { value: 'b', label: 'Alternativa B', status: OptionStatus.INCORRECT },
     { value: 'c', label: 'Alternativa C' },
   ];
 
@@ -33,7 +34,7 @@ describe('AlternativesList', () => {
       value: 'a',
       label: 'Alternativa A',
       description: 'Descrição da alternativa A',
-      status: 'correct',
+      status: OptionStatus.CORRECT,
     },
     {
       value: 'b',
@@ -590,13 +591,13 @@ describe('AlternativesList', () => {
         {
           value: 'a',
           label: 'Correta e desabilitada',
-          status: 'correct',
+          status: OptionStatus.CORRECT,
           disabled: true,
         },
         {
           value: 'b',
           label: 'Incorreta e desabilitada',
-          status: 'incorrect',
+          status: OptionStatus.INCORRECT,
           disabled: true,
         },
       ];
@@ -645,9 +646,9 @@ describe('AlternativesList', () => {
 
     it('renders badges only for alternatives with status', () => {
       const mixedAlternatives: Alternative[] = [
-        { value: 'a', label: 'Alternativa A', status: 'correct' },
+        { value: 'a', label: 'Alternativa A', status: OptionStatus.CORRECT },
         { value: 'b', label: 'Alternativa B' }, // without status
-        { value: 'c', label: 'Alternativa C', status: 'incorrect' },
+        { value: 'c', label: 'Alternativa C', status: OptionStatus.INCORRECT },
       ];
 
       render(<AlternativesList alternatives={mixedAlternatives} />);
@@ -710,7 +711,7 @@ describe('AlternativesList', () => {
         {
           value: 'c',
           label: 'Alternativa com status e disabled',
-          status: 'correct',
+          status: OptionStatus.CORRECT,
           disabled: true,
         },
       ];
@@ -762,7 +763,7 @@ describe('AlternativesList', () => {
           label: 'Alternativa detalhada desabilitada',
           description: 'Descrição da alternativa',
           disabled: true,
-          status: 'incorrect',
+          status: OptionStatus.INCORRECT,
         },
       ];
 

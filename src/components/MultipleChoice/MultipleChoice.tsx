@@ -5,11 +5,12 @@ import { CheckCircle, XCircle, Check } from 'phosphor-react';
 import Badge from '../Badge/Badge';
 import { HtmlMathRenderer } from '../HtmlMathRenderer';
 import { QuizVariant } from '../Quiz/Quiz.types';
+import { OptionStatus } from '../../enums/Options';
 
 interface Choice {
   value: string;
   label: string;
-  status?: 'correct' | 'incorrect' | 'neutral';
+  status?: OptionStatus;
   disabled?: boolean;
 }
 
@@ -38,13 +39,13 @@ const MultipleChoiceList = ({
   }, [selectedValues]);
   const getStatusBadge = (status: Choice['status']) => {
     switch (status) {
-      case 'correct':
+      case OptionStatus.CORRECT:
         return (
           <Badge variant="solid" action="success" iconLeft={<CheckCircle />}>
             Resposta correta
           </Badge>
         );
-      case 'incorrect':
+      case OptionStatus.INCORRECT:
         return (
           <Badge variant="solid" action="error" iconLeft={<XCircle />}>
             Resposta incorreta
@@ -57,9 +58,9 @@ const MultipleChoiceList = ({
 
   const getStatusStyles = (status: Choice['status']) => {
     switch (status) {
-      case 'correct':
+      case OptionStatus.CORRECT:
         return 'bg-success-background border-success-300';
-      case 'incorrect':
+      case OptionStatus.INCORRECT:
         return 'bg-error-background border-error-300';
       default:
         return `bg-background border-border-100`;
@@ -105,7 +106,8 @@ const MultipleChoiceList = ({
                   content={choice.label}
                   className={cn(
                     'flex-1',
-                    isSelected || (choice.status && choice.status != 'neutral')
+                    isSelected ||
+                      (choice.status && choice.status != OptionStatus.NEUTRAL)
                       ? 'text-text-950'
                       : 'text-text-600',
                     choice.disabled || disabled

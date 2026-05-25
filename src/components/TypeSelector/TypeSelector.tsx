@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Select, {
   SelectTrigger,
@@ -12,6 +12,8 @@ import {
   type TypeConfig,
   getTabPath,
 } from './TypeSelector.types';
+import { useModules } from '../../hooks/useModules';
+import { ExamActivityCategory } from '../../types/examDrafts';
 
 /**
  * Props for the TypeSelector component
@@ -23,6 +25,12 @@ export interface TypeSelectorProps {
   currentTab: ActiveTab;
   /** Configuration for activity types (routes and labels) */
   config: Record<ActivityCategory, TypeConfig>;
+  /**
+   * Optional filter to include only specific categories.
+   * If not provided, automatically calculated based on hasExams flag from useModules.
+   * Only use this prop for special cases where you need to override the default behavior.
+   */
+  allowedCategories?: ActivityCategory[];
 }
 
 /**
@@ -33,8 +41,25 @@ export const TypeSelector = ({
   value,
   currentTab,
   config,
+  allowedCategories: allowedCategoriesProp,
 }: TypeSelectorProps) => {
   const navigate = useNavigate();
+  const { hasExams } = useModules();
+
+  // Calculate allowed categories based on exams module
+  const allowedCategories = useMemo(() => {
+    // If prop is explicitly provided, use it
+    if (allowedCategoriesProp) {
+      return allowedCategoriesProp;
+    }
+
+    // Otherwise, calculate based on hasExams flag
+    const categories: ActivityCategory[] = [ExamActivityCategory.ATIVIDADE];
+    if (hasExams) {
+      categories.push(ExamActivityCategory.PROVA);
+    }
+    return categories;
+  }, [hasExams, allowedCategoriesProp]);
 
   const handleTypeChange = useCallback(
     (newType: string) => {
@@ -47,13 +72,11 @@ export const TypeSelector = ({
     [value, currentTab, navigate, config]
   );
 
-  const selectItems = (Object.keys(config) as ActivityCategory[]).map(
-    (category) => (
-      <SelectItem key={category} value={category}>
-        {config[category].labels.selectorLabel}
-      </SelectItem>
-    )
-  );
+  const selectItems = allowedCategories.map((category) => (
+    <SelectItem key={category} value={category}>
+      {config[category].labels.selectorLabel}
+    </SelectItem>
+  ));
 
   return (
     <Select value={value} onValueChange={handleTypeChange} size="small">

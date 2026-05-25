@@ -5,19 +5,20 @@ import { cn } from '../../utils';
 import Text from '../../../components/Text/Text';
 import type { QuestionRendererProps } from '../types';
 import { stripHtmlTags } from '../../stringUtils';
+import { OptionStatus } from '../../../enums/Options';
 
 /**
  * Get status badge component
  */
-export const getStatusBadge = (status?: 'correct' | 'incorrect'): ReactNode => {
+export const getStatusBadge = (status?: OptionStatus): ReactNode => {
   switch (status) {
-    case 'correct':
+    case OptionStatus.CORRECT:
       return (
         <Badge variant="solid" action="success" iconLeft={<CheckCircle />}>
           Resposta correta
         </Badge>
       );
-    case 'incorrect':
+    case OptionStatus.INCORRECT:
       return (
         <Badge variant="solid" action="error" iconLeft={<XCircle />}>
           Resposta incorreta
