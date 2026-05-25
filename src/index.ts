@@ -73,6 +73,18 @@ export type {
   AlertData,
   RecipientItem,
 } from './components/AlertManager/types';
+export { AppHeader } from './components/AppHeader/AppHeader';
+export type {
+  AppHeaderProps,
+  AppHeaderUser,
+  AppHeaderSessionInfo,
+  AppHeaderNotifications,
+} from './components/AppHeader/AppHeader';
+export { AppLayout } from './components/AppLayout/AppLayout';
+export type {
+  AppLayoutProps,
+  AppLayoutMenuItem,
+} from './components/AppLayout/AppLayout';
 export {
   default as Radio,
   RadioGroup,
