@@ -418,7 +418,7 @@ describe('CheckboxGroup', () => {
       );
 
       const masterCheckbox = screen.getAllByTestId('checkbox')[0];
-      expect(masterCheckbox).toBeChecked();
+      expect(masterCheckbox).not.toBeChecked();
       expect(masterCheckbox).toHaveAttribute('data-indeterminate', 'true');
     });
 

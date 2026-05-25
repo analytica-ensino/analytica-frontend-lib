@@ -15,6 +15,7 @@ import {
   AlternativesList,
   type Alternative,
 } from '../../Alternative/Alternative';
+import { OptionStatus } from '../../../enums/Options';
 import type {
   StudentPerformanceData,
   StudentPerformanceLabels,
@@ -128,12 +129,12 @@ const PerformanceCard = ({
 const getAlternativeStatus = (
   isCorrect: boolean,
   isSelected: boolean
-): 'correct' | 'incorrect' | undefined => {
+): OptionStatus | undefined => {
   if (isCorrect) {
-    return 'correct';
+    return OptionStatus.CORRECT;
   }
   if (isSelected) {
-    return 'incorrect';
+    return OptionStatus.INCORRECT;
   }
   return undefined;
 };

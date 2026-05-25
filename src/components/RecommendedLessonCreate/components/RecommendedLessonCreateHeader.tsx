@@ -63,7 +63,12 @@ export const RecommendedLessonCreateHeader = ({
                 {isSaving ? 'Salvando...' : 'Nenhum rascunho salvo'}
               </Text>
             )}
-            <Button size="small" onClick={onSaveModel}>
+            <Button
+              size="small"
+              variant="outline"
+              onClick={onSaveModel}
+              disabled={!recommendedLesson || isSaving}
+            >
               Salvar modelo
             </Button>
             <Button

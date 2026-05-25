@@ -11,7 +11,6 @@ import type { QuestionRendererProps } from './types';
 
 // Re-export types
 export type { QuestionRendererProps } from './types';
-export { Status } from './types';
 
 // Re-export components
 export {

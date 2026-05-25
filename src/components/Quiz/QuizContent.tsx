@@ -28,21 +28,22 @@ import Select, {
 } from '../Select/Select';
 import TextArea from '../TextArea/TextArea';
 import { AlternativesList } from '../Alternative/Alternative';
+import { OptionStatus } from '../../enums/Options';
 import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
 import Badge from '../Badge/Badge';
 import { CheckCircle, XCircle } from 'phosphor-react';
 import ImageQuestion from '../../assets/img/mock-image-question.png';
 import Text from '../Text/Text';
 import { HtmlMathRenderer } from '../HtmlMathRenderer';
-export const getStatusBadge = (status?: 'correct' | 'incorrect') => {
+export const getStatusBadge = (status?: OptionStatus) => {
   switch (status) {
-    case 'correct':
+    case OptionStatus.CORRECT:
       return (
         <Badge variant="solid" action="success" iconLeft={<CheckCircle />}>
           Resposta correta
         </Badge>
       );
-    case 'incorrect':
+    case OptionStatus.INCORRECT:
       return (
         <Badge variant="solid" action="error" iconLeft={<XCircle />}>
           Resposta incorreta
@@ -53,11 +54,11 @@ export const getStatusBadge = (status?: 'correct' | 'incorrect') => {
   }
 };
 
-export const getStatusStyles = (variantCorrect?: string) => {
+export const getStatusStyles = (variantCorrect?: OptionStatus) => {
   switch (variantCorrect) {
-    case 'correct':
+    case OptionStatus.CORRECT:
       return 'bg-success-background border-success-300';
-    case 'incorrect':
+    case OptionStatus.INCORRECT:
       return 'bg-error-background border-error-300';
     default:
       return '';
@@ -129,17 +130,11 @@ const parseStoredAnswers = (
  */
 const getAnswerStatus = (
   isCorrect: boolean | null
-): 'correct' | 'incorrect' | undefined => {
-  if (isCorrect === true) return 'correct';
-  if (isCorrect === false) return 'incorrect';
+): OptionStatus | undefined => {
+  if (isCorrect === true) return OptionStatus.CORRECT;
+  if (isCorrect === false) return OptionStatus.INCORRECT;
   return undefined;
 };
-
-enum Status {
-  CORRECT = 'correct',
-  INCORRECT = 'incorrect',
-  NEUTRAL = 'neutral',
-}
 
 interface QuizVariantInterface {
   paddingBottom?: string;
@@ -188,7 +183,7 @@ const QuizAlternative = ({ paddingBottom }: QuizVariantInterface) => {
 
   const currentAnswer = getCurrentAnswer();
   const alternatives = currentQuestion?.options?.map((option) => {
-    let status: Status = Status.NEUTRAL;
+    let status: OptionStatus = OptionStatus.NEUTRAL;
     if (variant === QuizVariant.RESULT) {
       const isCorrectOption =
         currentQuestionResult?.options?.find((op) => op.id === option.id)
@@ -206,15 +201,15 @@ const QuizAlternative = ({ paddingBottom }: QuizVariantInterface) => {
 
       if (shouldShowCorrectAnswers) {
         if (isCorrectOption) {
-          status = Status.CORRECT;
+          status = OptionStatus.CORRECT;
         } else if (isSelected && !isCorrectOption) {
-          status = Status.INCORRECT;
+          status = OptionStatus.INCORRECT;
         } else {
-          status = Status.NEUTRAL;
+          status = OptionStatus.NEUTRAL;
         }
       } else {
         // When pending evaluation, show all options as neutral
-        status = Status.NEUTRAL;
+        status = OptionStatus.NEUTRAL;
       }
     }
 
@@ -356,7 +351,7 @@ const QuizMultipleChoice = ({ paddingBottom }: QuizVariantInterface) => {
     [currentQuestion?.id]
   );
   const choices = currentQuestion?.options?.map((option) => {
-    let status: Status = Status.NEUTRAL;
+    let status: OptionStatus = OptionStatus.NEUTRAL;
 
     if (variant === QuizVariant.RESULT) {
       const isCorrectOption =
@@ -375,15 +370,15 @@ const QuizMultipleChoice = ({ paddingBottom }: QuizVariantInterface) => {
 
       if (shouldShowCorrectAnswers) {
         if (isCorrectOption) {
-          status = Status.CORRECT;
+          status = OptionStatus.CORRECT;
         } else if (isSelected && !isCorrectOption) {
-          status = Status.INCORRECT;
+          status = OptionStatus.INCORRECT;
         } else {
-          status = Status.NEUTRAL;
+          status = OptionStatus.NEUTRAL;
         }
       } else {
         // When pending evaluation, show all options as neutral
-        status = Status.NEUTRAL;
+        status = OptionStatus.NEUTRAL;
       }
     }
 

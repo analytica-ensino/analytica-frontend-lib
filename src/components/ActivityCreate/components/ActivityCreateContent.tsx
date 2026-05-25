@@ -1,4 +1,3 @@
-import { Funnel } from 'phosphor-react';
 import {
   ActivityFilters,
   ActivityFiltersPopover,
@@ -6,6 +5,7 @@ import {
   Button,
   SkeletonText,
   QUESTION_TYPE,
+  Divider,
 } from '../../..';
 import Menu, { MenuContent, MenuItem } from '../../Menu/Menu';
 import { ActivityListQuestions } from '../../ActivityListQuestions/ActivityListQuestions';
@@ -58,6 +58,7 @@ interface SmallScreenLayoutProps {
   onRemoveAll: () => void;
   onRemoveQuestion: (questionId: string) => void;
   onReorder: (questions: PreviewQuestion[]) => void;
+  filtersKey?: number;
 }
 
 /**
@@ -82,11 +83,13 @@ export const SmallScreenLayout = ({
   onRemoveAll,
   onRemoveQuestion,
   onReorder,
+  filtersKey = 0,
 }: SmallScreenLayoutProps) => (
   <div className="flex flex-col w-full flex-1 overflow-hidden gap-5 min-h-0">
     {/* Filters and Menu Row */}
     <div className="flex flex-row items-center justify-between gap-4 flex-shrink-0">
       <ActivityFiltersPopover
+        key={filtersKey}
         apiClient={apiClient}
         institutionId={institutionId}
         onFiltersChange={onFiltersChange}
@@ -158,6 +161,7 @@ interface DesktopLayoutProps {
   draftFilters: ActivityFiltersData | null;
   onFiltersChange: (filters: ActivityFiltersData) => void;
   onApplyFilters: () => void;
+  onClearFilters: () => void;
   onAddQuestion: (question: Question) => void;
   addedQuestionIds: string[];
   enableExamMode: boolean;
@@ -167,6 +171,7 @@ interface DesktopLayoutProps {
   onRemoveAll: () => void;
   onRemoveQuestion: (questionId: string) => void;
   onReorder: (questions: PreviewQuestion[]) => void;
+  filtersKey?: number;
 }
 
 /**
@@ -180,6 +185,7 @@ export const DesktopLayout = ({
   draftFilters,
   onFiltersChange,
   onApplyFilters,
+  onClearFilters,
   onAddQuestion,
   addedQuestionIds,
   enableExamMode,
@@ -189,12 +195,14 @@ export const DesktopLayout = ({
   onRemoveAll,
   onRemoveQuestion,
   onReorder,
+  filtersKey = 0,
 }: DesktopLayoutProps) => (
   <div className="flex flex-row w-full flex-1 overflow-hidden gap-5 min-h-0">
     {/* First Column - Filters */}
     <div className="flex flex-col gap-3 overflow-hidden h-full min-h-0 max-h-full relative w-[400px] flex-shrink-0">
       <div className="flex flex-col overflow-y-auto overflow-x-hidden flex-1 min-h-0 max-h-full">
         <ActivityFilters
+          key={filtersKey}
           apiClient={apiClient}
           institutionId={institutionId}
           variant={'default'}
@@ -205,18 +213,22 @@ export const DesktopLayout = ({
           }
         />
       </div>
-      <div className="flex-shrink-0">
+      <div className="flex-shrink-0 grid grid-cols-2 gap-2">
+        <Button size="medium" variant="link" onClick={onClearFilters}>
+          Limpar filtros
+        </Button>
         <Button
           size="medium"
-          iconLeft={<Funnel />}
+          variant="outline"
           onClick={onApplyFilters}
           disabled={!draftFilters}
-          className="w-full"
         >
           Filtrar
         </Button>
       </div>
     </div>
+
+    <Divider orientation="vertical" />
 
     {/* Second Column - Center, fills remaining space */}
     <div className="flex-1 min-w-0 relative">
@@ -229,6 +241,8 @@ export const DesktopLayout = ({
         />
       </div>
     </div>
+
+    <Divider orientation="vertical" />
 
     {/* Third Column - Activity Preview */}
     <div className="w-[400px] flex-shrink-0 overflow-hidden h-full min-h-0">

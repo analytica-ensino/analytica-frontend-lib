@@ -349,12 +349,15 @@ export function convertQuestionToPreview(question: Question): PreviewQuestion {
     question: question.options
       ? {
           options: question.options.map(
-            (opt: { id: string; option: string }) => ({
+            (opt: { id: string; option: string; isCorrect?: boolean }) => ({
               id: opt.id,
               option: opt.option,
+              isCorrect: opt.isCorrect,
             })
           ),
-          correctOptionIds: [],
+          correctOptionIds: question.options
+            .filter((opt: { isCorrect?: boolean }) => opt.isCorrect === true)
+            .map((opt: { id: string }) => opt.id),
         }
       : undefined,
     ...subjectInfo,

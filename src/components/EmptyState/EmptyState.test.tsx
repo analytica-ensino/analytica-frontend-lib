@@ -221,14 +221,47 @@ describe('EmptyState', () => {
       render(<EmptyState image={mockImage} />);
 
       const img = screen.getByRole('img');
-      expect(img).toHaveClass('w-[170px]', 'h-[150px]');
+      expect(img).toHaveClass(
+        'w-full',
+        'h-full',
+        'max-w-[170px]',
+        'max-h-[150px]'
+      );
+
+      // Check that the image container has the max dimensions
+      const imageContainer = img.parentElement;
+      expect(imageContainer).toHaveClass('max-w-[170px]', 'max-h-[150px]');
     });
 
-    it('should render with minimum height', () => {
-      const { container } = render(<EmptyState image={mockImage} />);
+    it('should render ReactNode image with fixed dimensions', () => {
+      const CustomIcon = () => <svg data-testid="custom-icon">test</svg>;
+      render(<EmptyState image={<CustomIcon />} />);
+
+      const icon = screen.getByTestId('custom-icon');
+      expect(icon).toBeInTheDocument();
+
+      // Check that the ReactNode container has fixed dimensions
+      const iconContainer = icon.parentElement;
+      expect(iconContainer).toHaveClass('w-[170px]', 'h-[150px]');
+    });
+
+    it('should render with minimum height for large variant', () => {
+      const { container } = render(
+        <EmptyState image={mockImage} size="large" />
+      );
 
       const mainContainer = container.firstChild;
       expect(mainContainer).toHaveClass('min-h-[705px]');
+    });
+
+    it('should render without minimum height for compact variant', () => {
+      const { container } = render(
+        <EmptyState image={mockImage} size="compact" />
+      );
+
+      const mainContainer = container.firstChild;
+      expect(mainContainer).toHaveClass('min-h-0');
+      expect(mainContainer).not.toHaveClass('min-h-[705px]');
     });
 
     it('should render with background and rounded corners', () => {

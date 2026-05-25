@@ -70,6 +70,7 @@ jest.mock('../..', () => ({
   SkeletonText: ({ lines, width }: { lines?: number; width?: number }) => (
     <div data-testid="skeleton-text" data-lines={lines} data-width={width} />
   ),
+  Divider: () => <hr data-testid="divider" />,
   CategoryConfig: {},
   useToastStore: (selector: (state: { addToast: jest.Mock }) => unknown) =>
     selector({ addToast: mockAddToast }),
@@ -592,6 +593,16 @@ describe('RecommendedLessonCreate', () => {
       );
 
       expect(screen.getByText('Filtrar')).toBeInTheDocument();
+    });
+
+    it('should render dividers to separate the three columns in desktop layout', async () => {
+      await renderWithDesktopLayout(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      // Desktop layout should have 2 dividers to separate 3 columns (filters, bank, preview)
+      const dividers = screen.getAllByTestId('divider');
+      expect(dividers.length).toBeGreaterThanOrEqual(2);
     });
   });
 

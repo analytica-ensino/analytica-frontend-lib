@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { MultipleChoiceList } from './MultipleChoice';
+import { OptionStatus } from '../../enums/Options';
 
 /**
  * Mock for useId hook to ensure consistent IDs in tests
@@ -19,8 +20,16 @@ describe('MultipleChoiceList', () => {
   ];
 
   const mockChoicesWithStatus = [
-    { value: 'a', label: 'Alternativa A', status: 'correct' as const },
-    { value: 'b', label: 'Alternativa B', status: 'incorrect' as const },
+    {
+      value: 'a',
+      label: 'Alternativa A',
+      status: OptionStatus.CORRECT as const,
+    },
+    {
+      value: 'b',
+      label: 'Alternativa B',
+      status: OptionStatus.INCORRECT as const,
+    },
     { value: 'c', label: 'Alternativa C' },
   ];
 

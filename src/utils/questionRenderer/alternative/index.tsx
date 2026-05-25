@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
 import { ANSWER_STATUS } from '../../../components/Quiz/useQuizStore';
 import { AlternativesList } from '../../../components/Alternative/Alternative';
+import { OptionStatus } from '../../../enums/Options';
 import Text from '../../../components/Text/Text';
 import type { QuestionRendererProps } from '../types';
-import { Status } from '../types';
 
 /**
  * Render alternative question (single choice)
@@ -32,18 +32,18 @@ export const renderQuestionAlternative = ({
       result?.answerStatus !== ANSWER_STATUS.PENDENTE_AVALIACAO ||
       hasAutoValidation;
 
-    let status: Status;
+    let status: OptionStatus;
     if (shouldShowCorrectAnswers) {
       if (isCorrectOption) {
-        status = Status.CORRECT;
+        status = OptionStatus.CORRECT;
       } else if (isSelected && !isCorrectOption) {
-        status = Status.INCORRECT;
+        status = OptionStatus.INCORRECT;
       } else {
-        status = Status.NEUTRAL;
+        status = OptionStatus.NEUTRAL;
       }
     } else {
       // When pending evaluation and no auto-validation, show all options as neutral
-      status = Status.NEUTRAL;
+      status = OptionStatus.NEUTRAL;
     }
 
     return {

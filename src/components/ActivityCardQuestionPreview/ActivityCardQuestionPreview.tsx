@@ -10,6 +10,7 @@ import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import { questionTypeLabels } from '../../types/questionTypes';
 import { cn } from '../../utils/utils';
 import { AlternativesList, type Alternative } from '../Alternative/Alternative';
+import { OptionStatus } from '../../enums/Options';
 import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
 import { CheckCircle, XCircle } from 'phosphor-react';
 import {
@@ -140,7 +141,7 @@ export const ActivityCardQuestionPreview = ({
       return {
         value: option.id,
         label: option.option,
-        status: isCorrect ? ('correct' as const) : undefined,
+        status: isCorrect ? OptionStatus.CORRECT : OptionStatus.INCORRECT,
         disabled: !isCorrect,
       };
     });
@@ -155,7 +156,7 @@ export const ActivityCardQuestionPreview = ({
       return {
         value: option.id,
         label: option.option,
-        status: isCorrect ? ('correct' as const) : undefined,
+        status: isCorrect ? OptionStatus.CORRECT : OptionStatus.INCORRECT,
         disabled: !isCorrect,
       };
     });

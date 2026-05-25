@@ -15,6 +15,7 @@ const defaultModules: ModulesConfig = {
   simulatedReports: true,
   activitiesReports: true,
   lessonsReports: true,
+  exams: true,
 };
 
 /**
@@ -29,6 +30,7 @@ export interface ModulesConfig {
   simulatedReports: boolean;
   activitiesReports: boolean;
   lessonsReports: boolean;
+  exams: boolean;
 }
 
 /**

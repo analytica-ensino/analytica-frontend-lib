@@ -19,6 +19,19 @@ jest.mock(
 jest.mock('../../components/Support/Support', () => () => null);
 jest.mock('../../components/Support', () => ({}));
 jest.mock('../../assets/img/suporthistory.png', () => 'supporthistory.png');
+jest.mock('../../components/EmptyState/EmptyState', () => ({
+  __esModule: true,
+  default: ({ title, description }: { title: string; description: string }) => (
+    <div data-testid="empty-state">
+      <div>{title}</div>
+      <div>{description}</div>
+    </div>
+  ),
+}));
+jest.mock('../../assets/icons/Activities', () => ({
+  __esModule: true,
+  default: () => <svg data-testid="activities-icon" />,
+}));
 
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
@@ -475,9 +488,7 @@ describe('ActivityListQuestions', () => {
       render(<ActivityListQuestions {...defaultProps} />);
 
       expect(
-        screen.getByText(
-          'Nenhuma questão encontrada. Aplique os filtros para buscar questões.'
-        )
+        screen.getByText('Nenhum resultado encontrado')
       ).toBeInTheDocument();
     });
   });
@@ -536,7 +547,7 @@ describe('ActivityListQuestions', () => {
       );
       expect(card).toHaveAttribute('data-enunciado', 'Test question statement');
       expect(card).toHaveAttribute('data-subject-color', '#FF0000');
-      expect(card).toHaveAttribute('data-icon-name', 'Atom');
+      expect(card).toHaveAttribute('data-icon-name', 'Calculator');
     });
 
     it('should format question options correctly', () => {
@@ -586,6 +597,7 @@ describe('ActivityListQuestions', () => {
       const card = screen.getByTestId('activity-card-question-banks');
       expect(card).toHaveAttribute('data-assunto', 'Sem assunto');
       expect(card).toHaveAttribute('data-subject-color', '#6B7280');
+      expect(card).toHaveAttribute('data-icon-name', 'BookOpen');
     });
 
     it('should handle question with subject but no topic', () => {
@@ -1112,6 +1124,12 @@ describe('ActivityListQuestions', () => {
 
   describe('Add Automatically Modal', () => {
     it('should open modal when button is clicked', () => {
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [mockQuestion],
+        pagination: { total: 10, hasNext: true, page: 1 },
+        loading: false,
+      });
+
       render(<ActivityListQuestions {...defaultProps} />);
 
       const button = screen.getByText('Adicionar automaticamente');
@@ -1124,6 +1142,12 @@ describe('ActivityListQuestions', () => {
     });
 
     it('should close modal when close button is clicked', () => {
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [mockQuestion],
+        pagination: { total: 10, hasNext: true, page: 1 },
+        loading: false,
+      });
+
       render(<ActivityListQuestions {...defaultProps} />);
 
       const openButton = screen.getByText('Adicionar automaticamente');
@@ -1138,6 +1162,12 @@ describe('ActivityListQuestions', () => {
     });
 
     it('should reset question count when modal closes', () => {
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [mockQuestion],
+        pagination: { total: 10, hasNext: true, page: 1 },
+        loading: false,
+      });
+
       render(<ActivityListQuestions {...defaultProps} />);
 
       const openButton = screen.getByText('Adicionar automaticamente');
@@ -1156,6 +1186,12 @@ describe('ActivityListQuestions', () => {
     });
 
     it('should update question count when input changes', () => {
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [mockQuestion],
+        pagination: { total: 10, hasNext: true, page: 1 },
+        loading: false,
+      });
+
       render(<ActivityListQuestions {...defaultProps} />);
 
       const openButton = screen.getByText('Adicionar automaticamente');
@@ -1168,6 +1204,12 @@ describe('ActivityListQuestions', () => {
     });
 
     it('should handle empty input', () => {
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [mockQuestion],
+        pagination: { total: 10, hasNext: true, page: 1 },
+        loading: false,
+      });
+
       render(<ActivityListQuestions {...defaultProps} />);
 
       const openButton = screen.getByText('Adicionar automaticamente');
@@ -1181,6 +1223,12 @@ describe('ActivityListQuestions', () => {
     });
 
     it('should not allow negative numbers', () => {
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [mockQuestion],
+        pagination: { total: 10, hasNext: true, page: 1 },
+        loading: false,
+      });
+
       render(<ActivityListQuestions {...defaultProps} />);
 
       const openButton = screen.getByText('Adicionar automaticamente');
@@ -1193,6 +1241,12 @@ describe('ActivityListQuestions', () => {
     });
 
     it('should disable add button when questionCount is 0', () => {
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [mockQuestion],
+        pagination: { total: 10, hasNext: true, page: 1 },
+        loading: false,
+      });
+
       render(<ActivityListQuestions {...defaultProps} />);
 
       const openButton = screen.getByText('Adicionar automaticamente');
@@ -1210,6 +1264,12 @@ describe('ActivityListQuestions', () => {
 
     it('should disable add button when no filters are applied', () => {
       mockAppliedFilters.mockReturnValue(null);
+
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [mockQuestion],
+        pagination: { total: 10, hasNext: true, page: 1 },
+        loading: false,
+      });
 
       render(<ActivityListQuestions {...defaultProps} />);
 
@@ -1236,6 +1296,12 @@ describe('ActivityListQuestions', () => {
 
       mockAppliedFilters.mockReturnValue(filters);
       mockFetchRandomQuestions.mockResolvedValue([mockQuestion]);
+
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [mockQuestion],
+        pagination: { total: 10, hasNext: true, page: 1 },
+        loading: false,
+      });
 
       render(<ActivityListQuestions {...defaultProps} />);
 
@@ -1287,6 +1353,12 @@ describe('ActivityListQuestions', () => {
 
       mockFetchRandomQuestions.mockRejectedValue(new Error('API Error'));
 
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [mockQuestion],
+        pagination: { total: 10, hasNext: true, page: 1 },
+        loading: false,
+      });
+
       render(<ActivityListQuestions {...defaultProps} />);
 
       const openButton = screen.getByText('Adicionar automaticamente');
@@ -1320,6 +1392,12 @@ describe('ActivityListQuestions', () => {
       };
 
       mockAppliedFilters.mockReturnValue(filters);
+
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [mockQuestion],
+        pagination: { total: 10, hasNext: true, page: 1 },
+        loading: false,
+      });
 
       render(<ActivityListQuestions {...defaultProps} />);
 
@@ -1360,6 +1438,12 @@ describe('ActivityListQuestions', () => {
 
       mockAppliedFilters.mockReturnValue(filters);
       mockFetchRandomQuestions.mockResolvedValue([mockQuestion]);
+
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [mockQuestion],
+        pagination: { total: 10, hasNext: true, page: 1 },
+        loading: false,
+      });
 
       render(
         <ActivityListQuestions
@@ -1403,6 +1487,12 @@ describe('ActivityListQuestions', () => {
 
       mockAppliedFilters.mockReturnValue(filters);
       mockFetchRandomQuestions.mockResolvedValue([mockQuestion]);
+
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [mockQuestion],
+        pagination: { total: 10, hasNext: true, page: 1 },
+        loading: false,
+      });
 
       render(<ActivityListQuestions {...defaultProps} />);
 
@@ -1470,9 +1560,7 @@ describe('ActivityListQuestions', () => {
       render(<ActivityListQuestions {...defaultProps} />);
 
       expect(
-        screen.getByText(
-          'Nenhuma questão encontrada. Aplique os filtros para buscar questões.'
-        )
+        screen.getByText('Nenhum resultado encontrado')
       ).toBeInTheDocument();
     });
 
