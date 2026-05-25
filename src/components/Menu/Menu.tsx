@@ -16,7 +16,12 @@ import {
 import { CaretLeft, CaretRight } from 'phosphor-react';
 import { cn } from '../../utils/utils';
 
-type MenuVariant = 'menu' | 'menu2' | 'menu-overflow' | 'breadcrumb';
+type MenuVariant =
+  | 'menu'
+  | 'menu2'
+  | 'menu-overflow'
+  | 'menu-overflow-col'
+  | 'breadcrumb';
 
 interface MenuStore {
   value: string;
@@ -55,6 +60,7 @@ const VARIANT_CLASSES = {
   menu: 'bg-background shadow-soft-shadow-1 px-6',
   menu2: '',
   'menu-overflow': '',
+  'menu-overflow-col': 'bg-background shadow-soft-shadow-1',
   breadcrumb: 'bg-transparent shadow-none !px-0',
 };
 
@@ -83,7 +89,9 @@ const Menu = forwardRef<HTMLDivElement, MenuProps>(
     const baseClasses =
       variant === 'menu-overflow'
         ? 'w-fit py-2 flex flex-row items-center justify-center'
-        : 'w-full py-2 flex flex-row items-center justify-center';
+        : variant === 'menu-overflow-col'
+          ? 'w-full py-2 flex flex-row items-center justify-start'
+          : 'w-full py-2 flex flex-row items-center justify-center';
     const variantClasses = VARIANT_CLASSES[variant];
 
     return (
@@ -112,10 +120,13 @@ const MenuContent = forwardRef<HTMLUListElement, MenuContentProps>(
   ({ className, children, variant = 'menu', ...props }, ref) => {
     const baseClasses = 'w-full flex flex-row items-center gap-2';
 
-    const variantClasses =
-      variant === 'menu2' || variant === 'menu-overflow'
-        ? 'overflow-x-auto scroll-smooth'
-        : '';
+    const isOverflowVariant =
+      variant === 'menu2' ||
+      variant === 'menu-overflow' ||
+      variant === 'menu-overflow-col';
+    const variantClasses = isOverflowVariant
+      ? 'overflow-x-auto scroll-smooth'
+      : '';
 
     return (
       <ul
@@ -127,7 +138,7 @@ const MenuContent = forwardRef<HTMLUListElement, MenuContentProps>(
           ${className ?? ''}
         `}
         style={
-          variant === 'menu2' || variant === 'menu-overflow'
+          isOverflowVariant
             ? { scrollbarWidth: 'none', msOverflowStyle: 'none' }
             : undefined
         }
@@ -249,6 +260,21 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
           {selectedValue === value && (
             <div className="h-1 w-full bg-primary-950 rounded-lg" />
           )}
+        </li>
+      ),
+      'menu-overflow-col': (
+        <li
+          data-variant="menu-overflow-col"
+          className={cn(
+            'flex-1 min-w-fit flex flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-sm font-medium text-xs whitespace-nowrap [&>svg]:size-6 cursor-pointer hover:bg-primary-600 hover:text-text focus:outline-none focus:border-indicator-info focus:border-2',
+            selectedValue === value
+              ? 'bg-primary-50 text-primary-950'
+              : 'text-text-950',
+            className
+          )}
+          {...commonProps}
+        >
+          {children}
         </li>
       ),
       breadcrumb: (

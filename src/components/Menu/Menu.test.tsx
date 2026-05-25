@@ -179,6 +179,83 @@ describe('Menu Component', () => {
     });
   });
 
+  describe('Menu-overflow-col Variant', () => {
+    it('renders items with data-variant menu-overflow-col', () => {
+      render(
+        <Menu defaultValue="home" variant="menu-overflow-col">
+          <MenuItem value="home" variant="menu-overflow-col">
+            Home
+          </MenuItem>
+          <MenuItem value="dashboard" variant="menu-overflow-col">
+            Dashboard
+          </MenuItem>
+        </Menu>
+      );
+
+      const items = screen.getAllByRole('menuitem');
+      expect(
+        items.some(
+          (item) => item.getAttribute('data-variant') === 'menu-overflow-col'
+        )
+      ).toBe(true);
+    });
+
+    it('applies selected classes when item is selected', () => {
+      render(
+        <Menu defaultValue="home" variant="menu-overflow-col">
+          <MenuItem value="home" variant="menu-overflow-col">
+            Home
+          </MenuItem>
+          <MenuItem value="dashboard" variant="menu-overflow-col">
+            Dashboard
+          </MenuItem>
+        </Menu>
+      );
+
+      const items = screen.getAllByRole('menuitem');
+      const selected = items.find(
+        (item) =>
+          item.getAttribute('data-variant') === 'menu-overflow-col' &&
+          item.textContent === 'Home'
+      )!;
+      expect(selected).toHaveClass('bg-primary-50');
+      expect(selected).toHaveClass('text-primary-950');
+    });
+
+    it('does not render the bottom indicator line', () => {
+      render(
+        <Menu defaultValue="home" variant="menu-overflow-col">
+          <MenuItem value="home" variant="menu-overflow-col">
+            Home
+          </MenuItem>
+        </Menu>
+      );
+
+      const menuItem = screen.getByRole('menuitem');
+      // The h-1 bg-primary-950 indicator div used by menu2/menu-overflow
+      // should not be present in menu-overflow-col.
+      const indicator = menuItem.querySelector('div.h-1.bg-primary-950');
+      expect(indicator).toBeNull();
+    });
+
+    it('applies flex-1 min-w-fit flex-col on items', () => {
+      render(
+        <Menu defaultValue="home" variant="menu-overflow-col">
+          <MenuItem value="home" variant="menu-overflow-col">
+            Home
+          </MenuItem>
+        </Menu>
+      );
+
+      const menuItem = screen.getByRole('menuitem');
+      expect(menuItem).toHaveClass('flex-1');
+      expect(menuItem).toHaveClass('min-w-fit');
+      expect(menuItem).toHaveClass('flex');
+      expect(menuItem).toHaveClass('flex-col');
+      expect(menuItem).toHaveClass('whitespace-nowrap');
+    });
+  });
+
   describe('User Interaction', () => {
     it('updates value on item click', () => {
       const handleChange = jest.fn();

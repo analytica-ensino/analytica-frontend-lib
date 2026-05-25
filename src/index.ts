@@ -80,6 +80,11 @@ export type {
   AppHeaderSessionInfo,
   AppHeaderNotifications,
 } from './components/AppHeader/AppHeader';
+export { AppLayout } from './components/AppLayout/AppLayout';
+export type {
+  AppLayoutProps,
+  AppLayoutMenuItem,
+} from './components/AppLayout/AppLayout';
 export {
   default as Radio,
   RadioGroup,

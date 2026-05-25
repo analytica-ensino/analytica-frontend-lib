@@ -73,6 +73,7 @@ export default defineConfig({
     'AlertManagerView/index':
       'src/components/AlertManagerView/AlertsManagerView.tsx',
     'AppHeader/index': 'src/components/AppHeader/AppHeader.tsx',
+    'AppLayout/index': 'src/components/AppLayout/AppLayout.tsx',
     // Hooks
     'hooks/useMobile/index': 'src/hooks/useMobile.ts',
     'hooks/useTheme/index': 'src/hooks/useTheme.ts',

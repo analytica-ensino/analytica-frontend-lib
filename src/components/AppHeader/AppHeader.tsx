@@ -116,7 +116,7 @@ export const AppHeader = ({
   onNavigateToMyData,
   onNavigateByNotification,
 }: AppHeaderProps) => {
-  const { isMobile } = useMobile();
+  const { isMobile, isExtraSmallMobile } = useMobile();
   const [activeStates, setActiveStates] = useState<Record<string, boolean>>({});
 
   const toggleActive = (buttonId: string) => {
@@ -150,9 +150,23 @@ export const AppHeader = ({
 
   const displayName = sessionInfo?.userName ?? user?.name ?? 'Usuário';
   const displayEmail = sessionInfo?.email ?? user?.email ?? '';
-  const profileDropdownWidth = isMobile ? 'min-w-[280px]' : 'min-w-[320px]';
-  const sectionGap = isMobile ? 'gap-2' : 'gap-3';
-  const logoHeight = isMobile ? 'h-8' : 'h-10';
+
+  const pickResponsiveClass = (
+    extraSmall: string,
+    mobile: string,
+    desktop: string
+  ): string => {
+    if (isExtraSmallMobile) return extraSmall;
+    if (isMobile) return mobile;
+    return desktop;
+  };
+  const profileDropdownWidth = pickResponsiveClass(
+    'min-w-[260px]',
+    'min-w-[280px]',
+    'min-w-[320px]'
+  );
+  const sectionGap = pickResponsiveClass('gap-1', 'gap-2', 'gap-3');
+  const logoHeight = pickResponsiveClass('h-6', 'h-8', 'h-10');
 
   return (
     <header

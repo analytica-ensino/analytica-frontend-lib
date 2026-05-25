@@ -13,17 +13,18 @@ import {
   File,
 } from 'phosphor-react';
 import { useState } from 'react';
+import Text from '../Text/Text';
 
 export const AllMenus: Story = () => {
   const [value, setValue] = useState('home');
 
   return (
     <div className="flex flex-col gap-8">
-      <h2 className="font-bold text-3xl text-text-900">
+      <Text as="h2" size="3xl" weight="bold" color="text-text-900">
         Menu: Valor selecionado - {value}
-      </h2>
+      </Text>
       <div className="flex flex-col gap-8">
-        <p>Selecionado: {value}</p>
+        <Text>Selecionado: {value}</Text>
         <Menu defaultValue="home">
           <MenuContent className="max-w-[1000px]">
             <MenuItem value="home">
@@ -109,6 +110,36 @@ export const AllMenus: Story = () => {
 
           <MenuItem variant="menu-overflow" value="suport">
             <MenuItemIcon className="bg-blue-500" icon={<Headphones />} />
+            Suporte
+          </MenuItem>
+        </MenuOverflow>
+
+        <Text as="h3" weight="bold" color="text-text-950">
+          MenuOverflow Column variant
+        </Text>
+        <MenuOverflow className="max-w-[400px]" defaultValue="home">
+          <MenuItem variant="menu-overflow-col" value="home">
+            <House />
+            Painel
+          </MenuItem>
+
+          <MenuItem variant="menu-overflow-col" value="simulated">
+            <File />
+            Simulados
+          </MenuItem>
+
+          <MenuItem variant="menu-overflow-col" value="lecture">
+            <ChalkboardTeacher />
+            Aulas
+          </MenuItem>
+
+          <MenuItem variant="menu-overflow-col" value="performance">
+            <ChartLine />
+            Desempenho
+          </MenuItem>
+
+          <MenuItem variant="menu-overflow-col" value="suport">
+            <Headphones />
             Suporte
           </MenuItem>
         </MenuOverflow>
