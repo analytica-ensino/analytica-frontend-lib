@@ -351,7 +351,9 @@ const DropdownMenuContent = forwardRef<
           }
         }
 
-        setPortalPosition({ top, left });
+        setPortalPosition((prev) =>
+          prev.top === top && prev.left === left ? prev : { top, left }
+        );
       }
     }, [portal, open, triggerRef, align, side, sideOffset]);
 
