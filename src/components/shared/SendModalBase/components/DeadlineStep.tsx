@@ -54,7 +54,7 @@ export const DeadlineStep: FC<DeadlineStepProps> = ({
       data-testid={testIdPrefix ? `${testIdPrefix}-deadline-step` : undefined}
     >
       {/* Date/Time Row - Side by Side */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="flex flex-col gap-2 sm:grid sm:grid-cols-2">
         <DateTimeInput
           label="Iniciar em*"
           date={startDate}

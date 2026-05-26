@@ -1,6 +1,8 @@
-import { HTMLAttributes } from 'react';
+import { HTMLAttributes, useEffect, useRef } from 'react';
 import { CheckCircle, WarningCircle, Info, X } from 'phosphor-react';
 import { cn } from '../../utils/utils';
+
+const DEFAULT_TOAST_DURATION_MS = 3000;
 
 /**
  * Lookup table for variant and action class combinations
@@ -40,6 +42,8 @@ type ToastProps = {
   /** Action type of the badge  */
   action?: 'warning' | 'success' | 'info';
   position?: ToastPosition;
+  /** Auto-dismiss duration in ms. Pass 0 to disable. Defaults to 4000ms. */
+  duration?: number;
 } & HTMLAttributes<HTMLDivElement>;
 
 const iconMap = {
@@ -56,8 +60,20 @@ const Toast = ({
   title,
   description,
   position = 'default',
+  duration = DEFAULT_TOAST_DURATION_MS,
   ...props
 }: ToastProps) => {
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    if (duration <= 0) return;
+    const timer = setTimeout(() => onCloseRef.current(), duration);
+    return () => clearTimeout(timer);
+  }, [duration]);
+
   // Get classes from lookup tables
   const variantClasses = VARIANT_ACTION_CLASSES[variant][action];
 

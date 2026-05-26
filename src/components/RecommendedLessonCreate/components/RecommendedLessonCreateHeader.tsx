@@ -4,6 +4,7 @@ import type { RecommendedLessonData } from '../RecommendedLessonCreate.types';
 import { RecommendedClassDraftType } from '../RecommendedLessonCreate.types';
 import { getGoalDraftTypeLabel } from '../RecommendedLessonCreate.utils';
 import { formatTime } from '../../../utils/categoryDataUtils';
+import { useMobile } from '../../../hooks/useMobile';
 
 /**
  * Header component for RecommendedLessonCreate page
@@ -32,60 +33,89 @@ export const RecommendedLessonCreateHeader = ({
   onBack?: () => void;
 }) => {
   const typeLabel = getGoalDraftTypeLabel(draftType);
+  const { isMobile } = useMobile();
+
+  const titleText = recommendedLesson
+    ? 'Editar aula recomendada'
+    : 'Criar aula recomendada';
+
+  const statusText = lastSavedAt
+    ? `${typeLabel} salvo às ${formatTime(lastSavedAt)}`
+    : isSaving
+      ? 'Salvando...'
+      : 'Nenhum rascunho salvo';
+
+  const subtitleText =
+    'Crie uma aula recomendada customizada adicionando aulas do banco de aulas.';
+
+  const backButton = (
+    <Button
+      onClick={onBack}
+      aria-label="Voltar"
+      type="button"
+      variant="link"
+      data-testid="back-button"
+    >
+      <CaretLeft size={isMobile ? 24 : 32} />
+    </Button>
+  );
+
+  const actionButtons = (
+    <>
+      <Button
+        size="small"
+        variant="outline"
+        onClick={onSaveModel}
+        disabled={!recommendedLesson || isSaving}
+      >
+        Salvar modelo
+      </Button>
+      <Button
+        size="small"
+        iconLeft={<PaperPlaneTilt />}
+        onClick={onSendLesson}
+        disabled={lessonsCount === 0}
+      >
+        Enviar aula
+      </Button>
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <div className="w-full flex flex-col gap-3 px-4 py-4 flex-shrink-0">
+        <div className="flex flex-row items-center gap-2">
+          {backButton}
+          <Text size="lg" weight="bold">
+            {titleText}
+          </Text>
+        </div>
+        <Text size="sm">{subtitleText}</Text>
+        <div className="flex flex-row items-center justify-between gap-2 flex-wrap">
+          <Text size="sm">{statusText}</Text>
+          <div className="flex flex-row gap-2">{actionButtons}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-[80px] flex flex-row items-center justify-between px-6 gap-3 flex-shrink-0">
-      <Button
-        onClick={onBack}
-        aria-label="Voltar"
-        type="button"
-        variant="link"
-        data-testid="back-button"
-      >
-        <CaretLeft size={32} />
-      </Button>
+      {backButton}
 
       <section className="flex flex-col gap-0.5 w-full">
         <div className="flex flex-row items-center justify-between w-full text-text-950">
           <Text size="lg" weight="bold">
-            {recommendedLesson
-              ? 'Editar aula recomendada'
-              : 'Criar aula recomendada'}
+            {titleText}
           </Text>
 
           <div className="flex flex-row gap-4 items-center">
-            {lastSavedAt ? (
-              <Text size="sm">
-                {typeLabel} salvo às {formatTime(lastSavedAt)}
-              </Text>
-            ) : (
-              <Text size="sm">
-                {isSaving ? 'Salvando...' : 'Nenhum rascunho salvo'}
-              </Text>
-            )}
-            <Button
-              size="small"
-              variant="outline"
-              onClick={onSaveModel}
-              disabled={!recommendedLesson || isSaving}
-            >
-              Salvar modelo
-            </Button>
-            <Button
-              size="small"
-              iconLeft={<PaperPlaneTilt />}
-              onClick={onSendLesson}
-              disabled={lessonsCount === 0}
-            >
-              Enviar aula
-            </Button>
+            <Text size="sm">{statusText}</Text>
+            {actionButtons}
           </div>
         </div>
 
-        <Text size="sm">
-          Crie uma aula recomendada customizada adicionando aulas do banco de
-          aulas.
-        </Text>
+        <Text size="sm">{subtitleText}</Text>
       </section>
     </div>
   );
