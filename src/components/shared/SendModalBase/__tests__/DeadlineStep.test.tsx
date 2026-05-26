@@ -176,9 +176,12 @@ describe('DeadlineStep', () => {
     ).toHaveLength(0);
   });
 
-  it('should have grid layout for date inputs', () => {
+  it('should stack date inputs in column on mobile and use grid on sm+', () => {
     const { container } = render(<DeadlineStep {...defaultProps} />);
-    const gridContainer = container.querySelector('.grid.grid-cols-2');
-    expect(gridContainer).toBeInTheDocument();
+    // Mobile: flex-col; Desktop (sm+): grid 2 cols
+    const responsiveContainer = container.querySelector(
+      '.flex.flex-col.sm\\:grid.sm\\:grid-cols-2'
+    );
+    expect(responsiveContainer).toBeInTheDocument();
   });
 });

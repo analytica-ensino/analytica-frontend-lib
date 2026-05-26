@@ -238,8 +238,25 @@ jest.mock('../Menu/Menu', () => ({
       )}
     </div>
   ),
-  MenuContent: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="menu-content">{children}</div>
+  MenuContent: ({
+    children,
+    onValueChange,
+  }: {
+    children: React.ReactNode;
+    onValueChange?: (value: string) => void;
+  }) => (
+    <div data-testid="menu-content">
+      {React.Children.map(children, (child) =>
+        React.isValidElement(child)
+          ? React.cloneElement(
+              child as React.ReactElement<{
+                onValueChange?: (value: string) => void;
+              }>,
+              { onValueChange }
+            )
+          : child
+      )}
+    </div>
   ),
   MenuItem: ({
     children,
@@ -256,6 +273,28 @@ jest.mock('../Menu/Menu', () => ({
     >
       {children}
     </button>
+  ),
+  MenuOverflow: ({
+    children,
+    value,
+    onValueChange,
+  }: {
+    children: React.ReactNode;
+    value?: string;
+    onValueChange?: (value: string) => void;
+  }) => (
+    <div data-testid="menu-overflow-wrapper" data-value={value}>
+      {React.Children.map(children, (child) =>
+        React.isValidElement(child)
+          ? React.cloneElement(
+              child as React.ReactElement<{
+                onValueChange?: (value: string) => void;
+              }>,
+              { onValueChange }
+            )
+          : child
+      )}
+    </div>
   ),
 }));
 
@@ -1122,7 +1161,7 @@ describe('RecommendedLessonCreate', () => {
       });
 
       // Small screen layout should show menu
-      expect(screen.getByTestId('menu')).toBeInTheDocument();
+      expect(screen.getByTestId('menu-overflow-wrapper')).toBeInTheDocument();
     });
   });
 
@@ -1954,24 +1993,25 @@ describe('RecommendedLessonCreate', () => {
         <RecommendedLessonCreate {...defaultProps} />
       );
 
-      expect(screen.getByTestId('menu')).toBeInTheDocument();
+      expect(screen.getByTestId('menu-overflow-wrapper')).toBeInTheDocument();
     });
 
-    it('should show lesson bank by default on small screen', async () => {
+    it('should show filters view by default on small screen', async () => {
       await renderWithSmallScreen(
         <RecommendedLessonCreate {...defaultProps} />
       );
 
-      // By default should show lessons view
-      expect(screen.getByTestId('lesson-bank')).toBeInTheDocument();
+      // By default should show filters view
+      expect(screen.getByTestId('lesson-filters')).toBeInTheDocument();
     });
 
-    it('should have menu items for switching views', async () => {
+    it('should have menu items for switching views (filters, lessons, preview)', async () => {
       await renderWithSmallScreen(
         <RecommendedLessonCreate {...defaultProps} />
       );
 
-      // Check menu items exist
+      // All three tabs should be present
+      expect(screen.getByTestId('menu-item-filters')).toBeInTheDocument();
       expect(screen.getByTestId('menu-item-lessons')).toBeInTheDocument();
       expect(screen.getByTestId('menu-item-preview')).toBeInTheDocument();
     });
@@ -1991,6 +2031,45 @@ describe('RecommendedLessonCreate', () => {
       expect(
         screen.getByTestId('create-recommended-class-page')
       ).toBeInTheDocument();
+    });
+
+    it('should switch to lesson bank when "Banco de aulas" tab is clicked', async () => {
+      await renderWithSmallScreen(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      // Default = filters → LessonFilters visible, LessonBank not
+      expect(screen.getByTestId('lesson-filters')).toBeInTheDocument();
+      expect(screen.queryByTestId('lesson-bank')).not.toBeInTheDocument();
+
+      // Click "Banco de aulas" tab
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('menu-item-lessons'));
+      });
+
+      // Now LessonBank should be rendered and LessonFilters hidden
+      expect(screen.getByTestId('lesson-bank')).toBeInTheDocument();
+      expect(screen.queryByTestId('lesson-filters')).not.toBeInTheDocument();
+    });
+
+    it('should switch back to filters when "Filtros" tab is clicked', async () => {
+      await renderWithSmallScreen(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      // Move to lessons first (default is filters)
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('menu-item-lessons'));
+      });
+      expect(screen.getByTestId('lesson-bank')).toBeInTheDocument();
+
+      // Move back to filters
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('menu-item-filters'));
+      });
+
+      expect(screen.getByTestId('lesson-filters')).toBeInTheDocument();
+      expect(screen.queryByTestId('lesson-bank')).not.toBeInTheDocument();
     });
   });
 
