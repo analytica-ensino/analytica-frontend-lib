@@ -40,11 +40,11 @@ export const RecommendedLessonCreateHeader = ({
     : 'Criar aula recomendada';
 
   const getStatusText = () => {
-    if (lastSavedAt) {
-      return `${typeLabel} salvo às ${formatTime(lastSavedAt)}`;
-    }
     if (isSaving) {
       return 'Salvando...';
+    }
+    if (lastSavedAt) {
+      return `${typeLabel} salvo às ${formatTime(lastSavedAt)}`;
     }
     return 'Nenhum rascunho salvo';
   };

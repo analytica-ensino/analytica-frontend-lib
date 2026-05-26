@@ -42,7 +42,7 @@ type ToastProps = {
   /** Action type of the badge  */
   action?: 'warning' | 'success' | 'info';
   position?: ToastPosition;
-  /** Auto-dismiss duration in ms. Pass 0 to disable. Defaults to 4000ms. */
+  /** Auto-dismiss duration in ms. Pass 0 to disable. Defaults to 3000ms. */
   duration?: number;
 } & HTMLAttributes<HTMLDivElement>;
 
