@@ -12,7 +12,7 @@ import {
 } from '../..';
 import type { ActivityModelTableItem } from '../../types/activitiesHistory';
 import { ActivityType } from '../ActivityCreate/ActivityCreate.types';
-import Menu, { MenuContent, MenuItem } from '../Menu/Menu';
+import { MenuItem, MenuOverflow } from '../Menu/Menu';
 import type { BaseApiClient } from '../..';
 import type { LessonFiltersData } from '../../types/lessonFilters';
 import type { Lesson } from '../../types/lessons';
@@ -123,9 +123,9 @@ const RecommendedLessonCreate = ({
 
   // Responsive state for screen width <= 1200px
   const isSmallScreen = useTabletScreen();
-  const [selectedView, setSelectedView] = useState<'lessons' | 'preview'>(
-    'lessons'
-  );
+  const [selectedView, setSelectedView] = useState<
+    'filters' | 'lessons' | 'preview'
+  >('filters');
 
   // Internal states
   const [recommendedLesson, setRecommendedLesson] =
@@ -168,7 +168,14 @@ const RecommendedLessonCreate = ({
 
   const handleApplyFilters = useCallback(() => {
     applyFilters();
-  }, [applyFilters]);
+    addToast({
+      title: 'Filtros aplicados',
+      description: 'Banco de aulas atualizado',
+      variant: 'solid',
+      action: 'success',
+      position: 'top-right',
+    });
+  }, [applyFilters, addToast]);
 
   const handleClearFilters = useCallback(() => {
     clearFilters();
@@ -1270,39 +1277,73 @@ const RecommendedLessonCreate = ({
       {isSmallScreen ? (
         /* Small Screen Layout (<= 1200px) */
         <div className="flex flex-col w-full flex-1 overflow-hidden gap-5 min-h-0">
-          {/* Filters and Menu Row */}
-          <div className="flex flex-row items-center justify-between gap-4 flex-shrink-0">
-            <div className="flex-shrink-0">
-              <Menu
-                defaultValue="lessons"
+          {/* Tabs row */}
+          <div className="flex flex-row items-center justify-between gap-4 flex-shrink-0 min-w-0">
+            <div className="flex-1 min-w-0">
+              <MenuOverflow
+                defaultValue="filters"
                 value={selectedView}
-                onValueChange={(value) =>
-                  setSelectedView(value as 'lessons' | 'preview')
+                onValueChange={(value: string) =>
+                  setSelectedView(value as 'filters' | 'lessons' | 'preview')
                 }
-                variant="breadcrumb"
               >
-                <MenuContent variant="breadcrumb">
-                  <MenuItem value="lessons" variant="breadcrumb">
-                    Banco de aulas
-                  </MenuItem>
-                  <MenuItem value="preview" variant="breadcrumb">
-                    Prévia da aula
-                  </MenuItem>
-                </MenuContent>
-              </Menu>
+                <MenuItem value="filters" variant="menu2">
+                  Filtros
+                </MenuItem>
+                <MenuItem value="lessons" variant="menu2">
+                  Banco de aulas
+                </MenuItem>
+                <MenuItem value="preview" variant="menu2">
+                  Prévia da aula
+                </MenuItem>
+              </MenuOverflow>
             </div>
           </div>
 
           {/* Content Area - Single Column */}
           <div className="flex-1 min-w-0 overflow-hidden h-full">
-            {selectedView === 'lessons' ? (
+            {selectedView === 'filters' && (
+              <div className="flex flex-col gap-3 overflow-hidden h-full min-h-0">
+                <div className="flex-1 min-h-0 overflow-y-auto">
+                  <LessonFilters
+                    key={filtersKey}
+                    apiClient={apiClient}
+                    institutionId={institutionId}
+                    variant={'default'}
+                    onFiltersChange={handleFiltersChange}
+                    initialFilters={initialFiltersData || undefined}
+                    onClearFilters={handleClearFilters}
+                    onApplyFilters={handleApplyFilters}
+                  />
+                </div>
+                <div className="flex-shrink-0 grid grid-cols-2 gap-2">
+                  <Button
+                    size="medium"
+                    variant="link"
+                    onClick={handleClearFilters}
+                  >
+                    Limpar filtros
+                  </Button>
+                  <Button
+                    size="medium"
+                    variant="outline"
+                    onClick={handleApplyFilters}
+                    disabled={!draftFilters}
+                  >
+                    Filtrar
+                  </Button>
+                </div>
+              </div>
+            )}
+            {selectedView === 'lessons' && (
               <LessonBank
                 apiClient={apiClient}
                 onAddLesson={handleAddLesson}
                 addedLessonIds={addedLessonIds}
                 filters={lessonBankFilters}
               />
-            ) : (
+            )}
+            {selectedView === 'preview' && (
               <div className="w-full h-full overflow-hidden min-h-0">
                 {loadingInitialLessons ? (
                   <div className="flex flex-col gap-4 p-4">
