@@ -39,11 +39,16 @@ export const RecommendedLessonCreateHeader = ({
     ? 'Editar aula recomendada'
     : 'Criar aula recomendada';
 
-  const statusText = lastSavedAt
-    ? `${typeLabel} salvo às ${formatTime(lastSavedAt)}`
-    : isSaving
-      ? 'Salvando...'
-      : 'Nenhum rascunho salvo';
+  const getStatusText = () => {
+    if (lastSavedAt) {
+      return `${typeLabel} salvo às ${formatTime(lastSavedAt)}`;
+    }
+    if (isSaving) {
+      return 'Salvando...';
+    }
+    return 'Nenhum rascunho salvo';
+  };
+  const statusText = getStatusText();
 
   const subtitleText =
     'Crie uma aula recomendada customizada adicionando aulas do banco de aulas.';
