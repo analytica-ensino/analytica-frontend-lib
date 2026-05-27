@@ -178,7 +178,7 @@ const QuizTitle = forwardRef<
     if (onBack) {
       onBack();
     } else {
-      window.history.back();
+      globalThis.history.back();
     }
   };
 
@@ -419,13 +419,15 @@ const QuizResultModal = ({
     <div className="flex flex-col w-full h-full items-center justify-center gap-4">
       {image ? (
         <div className="w-[282px] h-auto">{image}</div>
-      ) : showImagePlaceholder ? (
-        <div className="w-[282px] h-[200px] bg-gray-100 rounded-md flex items-center justify-center">
-          <Text as="span" size="sm" color="text-gray-500">
-            Imagem de resultado
-          </Text>
-        </div>
-      ) : null}
+      ) : (
+        showImagePlaceholder && (
+          <div className="w-[282px] h-[200px] bg-gray-100 rounded-md flex items-center justify-center">
+            <Text as="span" size="sm" color="text-gray-500">
+              Imagem de resultado
+            </Text>
+          </div>
+        )
+      )}
       <div className="flex flex-col gap-2 text-center">
         <Text as="h2" size="lg" weight="bold">
           {title}
@@ -833,53 +835,42 @@ const QuizFooter = forwardRef<
           }
           footer={
             <div className="flex flex-row justify-center items-center gap-2 w-full">
+              {quiz?.canRetry && (
+                <Button
+                  type="button"
+                  variant="link"
+                  size="small"
+                  className="w-auto"
+                  onClick={() => {
+                    closeModal();
+                    openModal('alertDialogTryLater');
+                  }}
+                >
+                  Tentar depois
+                </Button>
+              )}
+
+              <Button
+                variant="outline"
+                size="small"
+                className="w-auto"
+                onClick={onDetailResult}
+              >
+                Detalhar resultado
+              </Button>
+
               {quiz?.canRetry ? (
-                <>
-                  <Button
-                    type="button"
-                    variant="link"
-                    size="small"
-                    className="w-auto"
-                    onClick={() => {
-                      closeModal();
-                      openModal('alertDialogTryLater');
-                    }}
-                  >
-                    Tentar depois
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    size="small"
-                    className="w-auto"
-                    onClick={onDetailResult}
-                  >
-                    Detalhar resultado
-                  </Button>
-
-                  <Button className="w-auto" size="small" onClick={onRepeat}>
-                    Repetir questionário
-                  </Button>
-                </>
+                <Button className="w-auto" size="small" onClick={onRepeat}>
+                  Repetir questionário
+                </Button>
               ) : (
-                <>
-                  <Button
-                    variant="outline"
-                    size="small"
-                    className="w-auto"
-                    onClick={onDetailResult}
-                  >
-                    Detalhar resultado
-                  </Button>
-
-                  <Button
-                    className="w-auto"
-                    size="small"
-                    onClick={onGoToSimulated}
-                  >
-                    {getGoBackButtonLabel(quizType)}
-                  </Button>
-                </>
+                <Button
+                  className="w-auto"
+                  size="small"
+                  onClick={onGoToSimulated}
+                >
+                  {getGoBackButtonLabel(quizType)}
+                </Button>
               )}
             </div>
           }
