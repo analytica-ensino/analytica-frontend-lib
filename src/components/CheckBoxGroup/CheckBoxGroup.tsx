@@ -37,12 +37,14 @@ export const CheckboxGroup = ({
   compactSingleItem = true,
   showDivider = true,
   showSingleItem = false,
+  disableAutoSelection = false,
 }: {
   categories: CategoryConfig[];
   onCategoriesChange: (categories: CategoryConfig[]) => void;
   compactSingleItem?: boolean;
   showDivider?: boolean;
   showSingleItem?: boolean;
+  disableAutoSelection?: boolean;
 }) => {
   const [openAccordion, setOpenAccordion] = useState<string>('');
 
@@ -61,6 +63,11 @@ export const CheckboxGroup = ({
 
   // Auto-seleciona categorias com apenas um item (considerando itens filtrados)
   const categoriesWithAutoSelection = useMemo(() => {
+    // Se auto-seleção está desabilitada, retorna as categorias sem modificação
+    if (disableAutoSelection) {
+      return categories;
+    }
+
     return categories.map((category) => {
       // Get filtered/visible items for this category
       const filteredItems = calculateFormattedItemsForAutoSelection(
@@ -80,7 +87,7 @@ export const CheckboxGroup = ({
       }
       return category;
     });
-  }, [categories]);
+  }, [categories, disableAutoSelection]);
 
   // Aplica a auto-seleção se necessário
   // Note: onCategoriesChange should be memoized by the parent component to prevent re-renders
