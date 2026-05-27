@@ -512,6 +512,40 @@ const QuizFooter = forwardRef<
     const moduleName =
       quiz?.questions?.[0]?.knowledgeMatrix?.[0]?.subtopic?.name;
 
+    // Submits the answers and opens the correct result modal. Statistics must
+    // be read AFTER handleFinishSimulated, which is what populates
+    // questionsResult in the store (the render-time values are still empty).
+    const submitAndOpenResultModal = async () => {
+      if (handleFinishSimulated) {
+        await Promise.resolve(handleFinishSimulated());
+      }
+
+      const latestStats = getQuestionResultStatistics();
+      const latestCorrect = latestStats?.correctAnswers;
+      const latestTotal = latestStats?.totalAnswered;
+
+      if (
+        quizType === QUIZ_TYPE.QUESTIONARIO &&
+        typeof latestCorrect === 'number' &&
+        typeof latestTotal === 'number' &&
+        latestCorrect === latestTotal
+      ) {
+        openModal('modalQuestionnaireAllCorrect');
+        return;
+      }
+
+      if (
+        quizType === QUIZ_TYPE.QUESTIONARIO &&
+        typeof latestCorrect === 'number' &&
+        latestCorrect === 0
+      ) {
+        openModal('modalQuestionnaireAllIncorrect');
+        return;
+      }
+
+      openModal('modalResult');
+    };
+
     const handleFinishQuiz = async () => {
       // Marca a questão atual como pulada se não foi respondida
       skipCurrentQuestionIfUnanswered();
@@ -522,77 +556,18 @@ const QuizFooter = forwardRef<
       }
 
       try {
-        if (handleFinishSimulated) {
-          await Promise.resolve(handleFinishSimulated());
-        }
-
-        // Read the statistics AFTER the submit: handleFinishSimulated is what
-        // populates questionsResult in the store, so the render-time values
-        // captured above are still empty at this point.
-        const latestStats = getQuestionResultStatistics();
-        const latestCorrect = latestStats?.correctAnswers;
-        const latestTotal = latestStats?.totalAnswered;
-
-        if (
-          quizType === QUIZ_TYPE.QUESTIONARIO &&
-          typeof latestCorrect === 'number' &&
-          typeof latestTotal === 'number' &&
-          latestCorrect === latestTotal
-        ) {
-          openModal('modalQuestionnaireAllCorrect');
-          return;
-        }
-
-        if (
-          quizType === QUIZ_TYPE.QUESTIONARIO &&
-          typeof latestCorrect === 'number' &&
-          latestCorrect === 0
-        ) {
-          openModal('modalQuestionnaireAllIncorrect');
-          return;
-        }
-        openModal('modalResult');
+        await submitAndOpenResultModal();
       } catch (err) {
         console.error('handleFinishSimulated failed:', err);
-        return;
       }
     };
 
     const handleAlertSubmit = async () => {
       try {
-        if (handleFinishSimulated) {
-          await Promise.resolve(handleFinishSimulated());
-        }
-
-        // Read the statistics AFTER the submit (see handleFinishQuiz above).
-        const latestStats = getQuestionResultStatistics();
-        const latestCorrect = latestStats?.correctAnswers;
-        const latestTotal = latestStats?.totalAnswered;
-
-        if (
-          quizType === QUIZ_TYPE.QUESTIONARIO &&
-          typeof latestCorrect === 'number' &&
-          typeof latestTotal === 'number' &&
-          latestCorrect === latestTotal
-        ) {
-          openModal('modalQuestionnaireAllCorrect');
-          return;
-        }
-
-        if (
-          quizType === QUIZ_TYPE.QUESTIONARIO &&
-          typeof latestCorrect === 'number' &&
-          latestCorrect === 0
-        ) {
-          openModal('modalQuestionnaireAllIncorrect');
-          return;
-        }
-
-        openModal('modalResult');
+        await submitAndOpenResultModal();
       } catch (err) {
         console.error('handleFinishSimulated failed:', err);
         closeModal();
-        return;
       }
     };
 
