@@ -386,6 +386,57 @@ const QuizQuestionList = ({
   );
 };
 
+/**
+ * Shared layout for the quiz result modals (generic result, all-correct and
+ * all-incorrect questionnaire variants): a centered image, a title and a
+ * footer with action buttons.
+ */
+const QuizResultModal = ({
+  isOpen,
+  onClose,
+  image,
+  showImagePlaceholder = true,
+  title,
+  description,
+  footer,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  image?: ReactNode;
+  showImagePlaceholder?: boolean;
+  title: ReactNode;
+  description: ReactNode;
+  footer: ReactNode;
+}) => (
+  <Modal
+    isOpen={isOpen}
+    onClose={onClose}
+    title=""
+    closeOnEscape={false}
+    hideCloseButton
+    size={'md'}
+  >
+    <div className="flex flex-col w-full h-full items-center justify-center gap-4">
+      {image ? (
+        <div className="w-[282px] h-auto">{image}</div>
+      ) : showImagePlaceholder ? (
+        <div className="w-[282px] h-[200px] bg-gray-100 rounded-md flex items-center justify-center">
+          <Text as="span" size="sm" color="text-gray-500">
+            Imagem de resultado
+          </Text>
+        </div>
+      ) : null}
+      <div className="flex flex-col gap-2 text-center">
+        <Text as="h2" size="lg" weight="bold">
+          {title}
+        </Text>
+        {description}
+      </div>
+      {footer}
+    </div>
+  </Modal>
+);
+
 const QuizFooter = forwardRef<
   HTMLDivElement,
   {
@@ -658,34 +709,17 @@ const QuizFooter = forwardRef<
           onSubmit={handleAlertSubmit}
         />
 
-        <Modal
+        <QuizResultModal
           isOpen={isModalOpen('modalResult')}
           onClose={closeModal}
-          title=""
-          closeOnEscape={false}
-          hideCloseButton
-          size={'md'}
-        >
-          <div className="flex flex-col w-full h-full items-center justify-center gap-4">
-            {resultImageComponent ? (
-              <div className="w-[282px] h-auto">{resultImageComponent}</div>
-            ) : (
-              <div className="w-[282px] h-[200px] bg-gray-100 rounded-md flex items-center justify-center">
-                <span className="text-gray-500 text-sm">
-                  Imagem de resultado
-                </span>
-              </div>
-            )}
-            <div className="flex flex-col gap-2 text-center">
-              <h2 className="text-text-950 font-bold text-lg">
-                {getCompletionTitle(quizType)}
-              </h2>
-              <p className="text-text-500 font-sm">
-                Você acertou {correctAnswers ?? '--'} de {allQuestions}{' '}
-                questões.
-              </p>
-            </div>
-
+          image={resultImageComponent}
+          title={getCompletionTitle(quizType)}
+          description={
+            <Text as="p" size="sm" color="text-text-500">
+              Você acertou {correctAnswers ?? '--'} de {allQuestions} questões.
+            </Text>
+          }
+          footer={
             <div className="px-6 flex flex-row items-center gap-2 w-full">
               <Button
                 variant="outline"
@@ -700,8 +734,8 @@ const QuizFooter = forwardRef<
                 Detalhar resultado
               </Button>
             </div>
-          </div>
-        </Modal>
+          }
+        />
 
         <Modal
           isOpen={isModalOpen('modalNavigate')}
@@ -750,61 +784,35 @@ const QuizFooter = forwardRef<
           />
         </Modal>
 
-        <Modal
+        <QuizResultModal
           isOpen={isModalOpen('modalQuestionnaireAllCorrect')}
           onClose={closeModal}
-          title=""
-          closeOnEscape={false}
-          hideCloseButton
-          size={'md'}
-        >
-          <div className="flex flex-col w-full h-full items-center justify-center gap-4">
-            {resultImageComponent ? (
-              <div className="w-[282px] h-auto">{resultImageComponent}</div>
-            ) : (
-              <div className="w-[282px] h-[200px] bg-gray-100 rounded-md flex items-center justify-center">
-                <Text as="span" size="sm" color="text-gray-500">
-                  Imagem de resultado
-                </Text>
-              </div>
-            )}
-            <div className="flex flex-col gap-2 text-center">
-              <Text as="h2" size="lg" weight="bold">
-                🎉 Parabéns!
-              </Text>
-              <Text as="p" size="sm" color="text-text-500">
-                {moduleName
-                  ? `Você concluiu o módulo ${moduleName}.`
-                  : 'Você concluiu o questionário!'}
-              </Text>
-            </div>
-
+          image={resultImageComponent}
+          title="🎉 Parabéns!"
+          description={
+            <Text as="p" size="sm" color="text-text-500">
+              {moduleName
+                ? `Você concluiu o módulo ${moduleName}.`
+                : 'Você concluiu o questionário!'}
+            </Text>
+          }
+          footer={
             <div className="px-6 flex flex-row items-center gap-2 w-full">
               <Button className="w-full" onClick={onGoToNextModule}>
                 {getGoBackButtonLabel(quizType)}
               </Button>
             </div>
-          </div>
-        </Modal>
+          }
+        />
 
-        <Modal
+        <QuizResultModal
           isOpen={isModalOpen('modalQuestionnaireAllIncorrect')}
           onClose={closeModal}
-          title=""
-          closeOnEscape={false}
-          hideCloseButton
-          size={'md'}
-        >
-          <div className="flex flex-col w-full h-full items-center justify-center gap-4">
-            {resultIncorrectImageComponent ? (
-              <div className="w-[282px] h-auto">
-                {resultIncorrectImageComponent}
-              </div>
-            ) : null}
-            <div className="flex flex-col gap-2 text-center">
-              <Text as="h2" size="lg" weight="bold">
-                😕 Não foi dessa vez...
-              </Text>
+          image={resultIncorrectImageComponent}
+          showImagePlaceholder={false}
+          title="😕 Não foi dessa vez..."
+          description={
+            <>
               <Text as="p" size="sm" color="text-text-500">
                 Você tirou 0 no questionário, mas não se preocupe! Isso é apenas
                 uma oportunidade de aprendizado.
@@ -821,8 +829,9 @@ const QuizFooter = forwardRef<
                   💪
                 </Text>
               )}
-            </div>
-
+            </>
+          }
+          footer={
             <div className="flex flex-row justify-center items-center gap-2 w-full">
               {quiz?.canRetry ? (
                 <>
@@ -873,8 +882,8 @@ const QuizFooter = forwardRef<
                 </>
               )}
             </div>
-          </div>
-        </Modal>
+          }
+        />
 
         <AlertDialog
           isOpen={isModalOpen('alertDialogTryLater')}
