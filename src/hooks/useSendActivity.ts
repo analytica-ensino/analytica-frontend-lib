@@ -10,6 +10,7 @@ import dayjs from 'dayjs';
 import type { CategoryConfig } from '../components/CheckBoxGroup/CheckBoxGroup';
 import {
   ActivityMode,
+  ActivitySubtype,
   type SendActivityFormData,
   type SendActivityModalInitialData,
 } from '../components/SendActivityModal/types';
@@ -229,9 +230,9 @@ export function useSendActivity(
             questionIds,
             subtype: data.subtype,
             isDigital:
-              data.mode === undefined
-                ? undefined
-                : data.mode === ActivityMode.ONLINE,
+              data.subtype === ActivitySubtype.PROVA
+                ? data.mode !== ActivityMode.PRESENCIAL
+                : true,
             notification: data.notification,
             startDate: toISODateTime(data.startDate, data.startTime),
             finalDate: toISODateTime(data.finalDate, data.finalTime),

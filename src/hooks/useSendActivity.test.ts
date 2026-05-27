@@ -7,7 +7,10 @@ import type {
   ActivityModelItem,
 } from '../types/sendActivity';
 import type { BaseApiClient } from '../types/api';
-import { ActivitySubtype } from '../components/SendActivityModal/types';
+import {
+  ActivityMode,
+  ActivitySubtype,
+} from '../components/SendActivityModal/types';
 import type { SendActivityFormData } from '../components/SendActivityModal/types';
 
 /**
@@ -421,6 +424,7 @@ describe('useSendActivity', () => {
         subjectId: 'subject-1',
         questionIds: ['q1', 'q2', 'q3'],
         subtype: ActivitySubtype.TAREFA,
+        isDigital: true,
         notification: 'true',
         startDate: expectedISODateTime('2025-01-15', '08:00'),
         finalDate: expectedISODateTime('2025-01-20', '23:59'),
@@ -438,6 +442,37 @@ describe('useSendActivity', () => {
       );
       expect(result.current.isOpen).toBe(false);
     });
+
+    it.each([
+      [ActivitySubtype.TAREFA, undefined, true],
+      [ActivitySubtype.TRABALHO, undefined, true],
+      [ActivitySubtype.PROVA, ActivityMode.ONLINE, true],
+      [ActivitySubtype.PROVA, ActivityMode.PRESENCIAL, false],
+      [ActivitySubtype.PROVA, undefined, true],
+    ])(
+      'should send isDigital correctly for subtype=%s mode=%s (expected=%s)',
+      async (subtype, mode, expectedIsDigital) => {
+        const config = createMockConfig();
+        const { result } = renderHook(() => useSendActivity(config));
+
+        await act(async () => {
+          result.current.openModal(mockModel);
+        });
+
+        await act(async () => {
+          await result.current.handleSubmit({
+            ...mockFormData,
+            subtype,
+            mode,
+          });
+        });
+
+        expect(config.api.post).toHaveBeenCalledWith(
+          '/activities',
+          expect.objectContaining({ isDigital: expectedIsDigital })
+        );
+      }
+    );
 
     it('should handle error when fetchQuestionIds returns null', async () => {
       const defaultMockApi = createMockApiClient();

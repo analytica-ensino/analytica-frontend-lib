@@ -794,6 +794,8 @@ export type {
   ApiClient as DraftApiClientAdapter,
   UseDraftAutoSaveOptions,
 } from './hooks/useDraftAutoSave';
+export { useCep } from './hooks/useCep';
+export type { CepData } from './hooks/useCep';
 
 // BreadcrumbMenu Components
 export { BreadcrumbMenu } from './components/BreadcrumbMenu/BreadcrumbMenu';
