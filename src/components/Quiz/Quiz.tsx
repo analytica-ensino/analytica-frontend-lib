@@ -763,18 +763,20 @@ const QuizFooter = forwardRef<
               <div className="w-[282px] h-auto">{resultImageComponent}</div>
             ) : (
               <div className="w-[282px] h-[200px] bg-gray-100 rounded-md flex items-center justify-center">
-                <span className="text-gray-500 text-sm">
+                <Text as="span" size="sm" color="text-gray-500">
                   Imagem de resultado
-                </span>
+                </Text>
               </div>
             )}
             <div className="flex flex-col gap-2 text-center">
-              <h2 className="text-text-950 font-bold text-lg">🎉 Parabéns!</h2>
-              <p className="text-text-500 font-sm">
+              <Text as="h2" size="lg" weight="bold">
+                🎉 Parabéns!
+              </Text>
+              <Text as="p" size="sm" color="text-text-500">
                 {moduleName
                   ? `Você concluiu o módulo ${moduleName}.`
                   : 'Você concluiu o questionário!'}
-              </p>
+              </Text>
             </div>
 
             <div className="px-6 flex flex-row items-center gap-2 w-full">
@@ -800,24 +802,24 @@ const QuizFooter = forwardRef<
               </div>
             ) : null}
             <div className="flex flex-col gap-2 text-center">
-              <h2 className="text-text-950 font-bold text-lg">
+              <Text as="h2" size="lg" weight="bold">
                 😕 Não foi dessa vez...
-              </h2>
-              <p className="text-text-500 font-sm">
+              </Text>
+              <Text as="p" size="sm" color="text-text-500">
                 Você tirou 0 no questionário, mas não se preocupe! Isso é apenas
                 uma oportunidade de aprendizado.
-              </p>
+              </Text>
 
-              <p className="text-text-500 font-sm">
+              <Text as="p" size="sm" color="text-text-500">
                 Que tal tentar novamente para melhorar sua nota? Estamos aqui
                 para te ajudar a entender o conteúdo e evoluir.
-              </p>
+              </Text>
 
               {quiz?.canRetry && (
-                <p className="text-text-500 font-sm">
+                <Text as="p" size="sm" color="text-text-500">
                   Clique em Repetir Questionário e mostre do que você é capaz!
                   💪
-                </p>
+                </Text>
               )}
             </div>
 
