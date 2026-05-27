@@ -5,7 +5,7 @@ import type {
   SendActivityFormData,
 } from '../..';
 import type { Lesson } from '../../types/lessons';
-import { ActivityMode } from '../SendActivityModal/types';
+import { ActivityMode, ActivitySubtype } from '../SendActivityModal/types';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import type {
   BackendFiltersFormat,
@@ -412,9 +412,9 @@ export function buildSendActivityPayload(
     finalDate: finalDateTime,
     canRetry: formData.canRetry,
     isDigital:
-      formData.mode === undefined
-        ? undefined
-        : formData.mode === ActivityMode.ONLINE,
+      formData.subtype === ActivitySubtype.PROVA
+        ? formData.mode !== ActivityMode.PRESENCIAL
+        : true,
   };
 }
 

@@ -7,13 +7,15 @@ import {
   convertQuestionToPreview,
   getTypeFromUrl,
   getTypeFromUrlString,
+  buildSendActivityPayload,
   type KnowledgeArea,
 } from './ActivityCreate.utils';
 import { loadCategoriesData, formatTime } from '@/utils/categoryDataUtils';
 import { ActivityType } from './ActivityCreate.types';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
+import { ActivityMode, ActivitySubtype } from '../SendActivityModal/types';
 import type { BaseApiClient } from '../../types/api';
-import type { ActivityFiltersData } from '../..';
+import type { ActivityFiltersData, SendActivityFormData } from '../..';
 import type {
   BackendFiltersFormat,
   School,
@@ -835,5 +837,41 @@ describe('ActivityCreate.utils', () => {
       expect(getTypeFromUrlString('rascunho')).toBe(ActivityType.RASCUNHO);
       expect(getTypeFromUrlString('modelo')).toBe(ActivityType.MODELO);
     });
+  });
+
+  describe('buildSendActivityPayload', () => {
+    const baseFormData: SendActivityFormData = {
+      title: 'Atividade',
+      subtype: ActivitySubtype.TAREFA,
+      notification: '',
+      students: [],
+      startDate: '2026-01-01',
+      startTime: '08:00',
+      finalDate: '2026-01-02',
+      finalTime: '18:00',
+      canRetry: false,
+    };
+
+    it.each([
+      [ActivitySubtype.TAREFA, undefined, true],
+      [ActivitySubtype.TRABALHO, undefined, true],
+      [ActivitySubtype.PROVA, ActivityMode.ONLINE, true],
+      [ActivitySubtype.PROVA, ActivityMode.PRESENCIAL, false],
+      [ActivitySubtype.PROVA, undefined, true],
+    ])(
+      'should set isDigital correctly for subtype=%s mode=%s (expected=%s)',
+      (subtype, mode, expectedIsDigital) => {
+        const payload = buildSendActivityPayload(
+          { ...baseFormData, subtype, mode },
+          'subject-1',
+          ['q-1'],
+          '2026-01-01T08:00:00.000Z',
+          '2026-01-02T18:00:00.000Z',
+          'ATIVIDADE'
+        );
+
+        expect(payload.isDigital).toBe(expectedIsDigital);
+      }
+    );
   });
 });
