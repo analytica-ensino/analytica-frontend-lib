@@ -2985,6 +2985,7 @@ describe('Quiz', () => {
       id: '1',
       title: 'Questionário Teste',
       type: QUIZ_TYPE.QUESTIONARIO,
+      canRetry: true,
       questions: [
         {
           id: 'q1',
@@ -3033,7 +3034,146 @@ describe('Quiz', () => {
       // Verificar se o modal de questionário todos incorretos está aberto
       expect(screen.getByText('😕 Não foi dessa vez...')).toBeInTheDocument();
       expect(screen.getByText('Tentar depois')).toBeInTheDocument();
-      expect(screen.getByText('Próximo módulo')).toBeInTheDocument();
+      expect(screen.getByText('Repetir questionário')).toBeInTheDocument();
+      // Sem placeholder de imagem cinza.
+      expect(screen.queryByText('Imagem de resultado')).not.toBeInTheDocument();
+
+      // O terceiro botão agora repete o questionário em vez de uma navegação
+      // de "próximo módulo" inexistente.
+      clickElement(screen.getByText('Repetir questionário'));
+      expect(mockOnRepeat).toHaveBeenCalled();
+    });
+
+    it('should hide retry buttons in the all-incorrect modal when canRetry is false', async () => {
+      const mockOnGoToSimulated = jest.fn();
+      const mockOnDetailResult = jest.fn();
+
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        quiz: { ...mockQuiz, canRetry: false },
+        getCurrentAnswer: jest.fn().mockReturnValue('b'),
+        getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('answered'),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalQuestions: 1,
+          correctAnswers: 0,
+          incorrectAnswers: 1,
+          timeSpent: 120,
+        }),
+      });
+
+      render(
+        <QuizFooter
+          onGoToSimulated={mockOnGoToSimulated}
+          onDetailResult={mockOnDetailResult}
+        />
+      );
+
+      clickElement(screen.getByText('Finalizar'));
+
+      expect(screen.getByText('😕 Não foi dessa vez...')).toBeInTheDocument();
+      // Sem opções de refazer quando canRetry é falso.
+      expect(
+        screen.queryByText('Repetir questionário')
+      ).not.toBeInTheDocument();
+      expect(screen.queryByText('Tentar depois')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/Clique em Repetir Questionário/)
+      ).not.toBeInTheDocument();
+      // Restam apenas "Detalhar resultado" e "Ir para aulas".
+      expect(screen.getByText('Detalhar resultado')).toBeInTheDocument();
+      clickElement(screen.getByText('Ir para aulas'));
+      expect(mockOnGoToSimulated).toHaveBeenCalled();
+    });
+
+    it('should show questionnaire all correct modal with the real subtopic name and the back-to-lessons button', async () => {
+      const mockOnGoToNextModule = jest.fn();
+
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        quiz: {
+          ...mockQuiz,
+          questions: [
+            {
+              ...mockQuiz.questions[0],
+              knowledgeMatrix: [{ subtopic: { id: 's1', name: 'Cinemática' } }],
+            },
+          ],
+        },
+        getCurrentAnswer: jest.fn().mockReturnValue('a'),
+        getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('answered'),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalAnswered: 1,
+          correctAnswers: 1,
+          incorrectAnswers: 0,
+          timeSpent: 120,
+        }),
+      });
+
+      render(<QuizFooter onGoToNextModule={mockOnGoToNextModule} />);
+
+      clickElement(screen.getByText('Finalizar'));
+
+      expect(screen.getByText('🎉 Parabéns!')).toBeInTheDocument();
+      expect(
+        screen.getByText('Você concluiu o módulo Cinemática.')
+      ).toBeInTheDocument();
+
+      // For QUESTIONARIO the back button reads "Ir para aulas".
+      clickElement(screen.getByText('Ir para aulas'));
+      expect(mockOnGoToNextModule).toHaveBeenCalled();
+    });
+
+    it('should fall back to a generic completion message when the subtopic is missing', async () => {
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        quiz: mockQuiz,
+        getCurrentAnswer: jest.fn().mockReturnValue('a'),
+        getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('answered'),
+        getQuestionResultStatistics: jest.fn().mockReturnValue({
+          totalAnswered: 1,
+          correctAnswers: 1,
+          incorrectAnswers: 0,
+          timeSpent: 120,
+        }),
+      });
+
+      render(<QuizFooter onGoToNextModule={jest.fn()} />);
+
+      clickElement(screen.getByText('Finalizar'));
+
+      expect(
+        screen.getByText('Você concluiu o questionário!')
+      ).toBeInTheDocument();
+    });
+
+    it('should evaluate the result statistics only after handleFinishSimulated populates them', async () => {
+      // Statistics are null at render time and only become available after the
+      // answers are submitted (handleFinishSimulated). The footer must re-read
+      // them after the await, otherwise the special modals never open.
+      const getStats = jest.fn().mockReturnValue(null);
+      const handleFinishSimulated = jest.fn(() => {
+        getStats.mockReturnValue({
+          totalAnswered: 1,
+          correctAnswers: 1,
+          incorrectAnswers: 0,
+          timeSpent: 120,
+        });
+      });
+
+      mockUseQuizStore.mockReturnValue({
+        ...mockUseQuizStore(),
+        quiz: mockQuiz,
+        getCurrentAnswer: jest.fn().mockReturnValue('a'),
+        getQuestionStatusFromUserAnswers: jest.fn().mockReturnValue('answered'),
+        getQuestionResultStatistics: getStats,
+      });
+
+      render(<QuizFooter handleFinishSimulated={handleFinishSimulated} />);
+
+      clickElement(screen.getByText('Finalizar'));
+
+      expect(await screen.findByText('🎉 Parabéns!')).toBeInTheDocument();
+      expect(handleFinishSimulated).toHaveBeenCalled();
     });
 
     it('should show alert dialog when trying later is clicked', async () => {

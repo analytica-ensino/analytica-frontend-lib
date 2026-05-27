@@ -451,9 +451,13 @@ const QuizFooter = forwardRef<
     const allQuestions = getTotalQuestions();
     const stats = getQuestionResultStatistics();
     const correctAnswers = stats?.correctAnswers;
-    const totalAnswers = stats?.totalAnswered;
     const quizType = quiz?.type || QUIZ_TYPE.SIMULADO;
     const quizTypeLabel = getTypeLabel(quizType);
+    // Real subtopic name, used to label the questionnaire completion modals.
+    // The backend always populates the question knowledge matrix, so this is
+    // available as soon as the quiz is loaded.
+    const moduleName =
+      quiz?.questions?.[0]?.knowledgeMatrix?.[0]?.subtopic?.name;
 
     const handleFinishQuiz = async () => {
       // Marca a questão atual como pulada se não foi respondida
@@ -469,11 +473,18 @@ const QuizFooter = forwardRef<
           await Promise.resolve(handleFinishSimulated());
         }
 
+        // Read the statistics AFTER the submit: handleFinishSimulated is what
+        // populates questionsResult in the store, so the render-time values
+        // captured above are still empty at this point.
+        const latestStats = getQuestionResultStatistics();
+        const latestCorrect = latestStats?.correctAnswers;
+        const latestTotal = latestStats?.totalAnswered;
+
         if (
           quizType === QUIZ_TYPE.QUESTIONARIO &&
-          typeof correctAnswers === 'number' &&
-          typeof totalAnswers === 'number' &&
-          correctAnswers === totalAnswers
+          typeof latestCorrect === 'number' &&
+          typeof latestTotal === 'number' &&
+          latestCorrect === latestTotal
         ) {
           openModal('modalQuestionnaireAllCorrect');
           return;
@@ -481,8 +492,8 @@ const QuizFooter = forwardRef<
 
         if (
           quizType === QUIZ_TYPE.QUESTIONARIO &&
-          typeof correctAnswers === 'number' &&
-          correctAnswers === 0
+          typeof latestCorrect === 'number' &&
+          latestCorrect === 0
         ) {
           openModal('modalQuestionnaireAllIncorrect');
           return;
@@ -500,11 +511,16 @@ const QuizFooter = forwardRef<
           await Promise.resolve(handleFinishSimulated());
         }
 
+        // Read the statistics AFTER the submit (see handleFinishQuiz above).
+        const latestStats = getQuestionResultStatistics();
+        const latestCorrect = latestStats?.correctAnswers;
+        const latestTotal = latestStats?.totalAnswered;
+
         if (
           quizType === QUIZ_TYPE.QUESTIONARIO &&
-          typeof correctAnswers === 'number' &&
-          typeof totalAnswers === 'number' &&
-          correctAnswers === totalAnswers
+          typeof latestCorrect === 'number' &&
+          typeof latestTotal === 'number' &&
+          latestCorrect === latestTotal
         ) {
           openModal('modalQuestionnaireAllCorrect');
           return;
@@ -512,8 +528,8 @@ const QuizFooter = forwardRef<
 
         if (
           quizType === QUIZ_TYPE.QUESTIONARIO &&
-          typeof correctAnswers === 'number' &&
-          correctAnswers === 0
+          typeof latestCorrect === 'number' &&
+          latestCorrect === 0
         ) {
           openModal('modalQuestionnaireAllIncorrect');
           return;
@@ -755,13 +771,15 @@ const QuizFooter = forwardRef<
             <div className="flex flex-col gap-2 text-center">
               <h2 className="text-text-950 font-bold text-lg">🎉 Parabéns!</h2>
               <p className="text-text-500 font-sm">
-                Você concluiu o módulo Movimento Uniforme.
+                {moduleName
+                  ? `Você concluiu o módulo ${moduleName}.`
+                  : 'Você concluiu o questionário!'}
               </p>
             </div>
 
             <div className="px-6 flex flex-row items-center gap-2 w-full">
               <Button className="w-full" onClick={onGoToNextModule}>
-                Próximo módulo
+                {getGoBackButtonLabel(quizType)}
               </Button>
             </div>
           </div>
@@ -780,13 +798,7 @@ const QuizFooter = forwardRef<
               <div className="w-[282px] h-auto">
                 {resultIncorrectImageComponent}
               </div>
-            ) : (
-              <div className="w-[282px] h-[200px] bg-gray-100 rounded-md flex items-center justify-center">
-                <span className="text-gray-500 text-sm">
-                  Imagem de resultado
-                </span>
-              </div>
-            )}
+            ) : null}
             <div className="flex flex-col gap-2 text-center">
               <h2 className="text-text-950 font-bold text-lg">
                 😕 Não foi dessa vez...
@@ -801,41 +813,63 @@ const QuizFooter = forwardRef<
                 para te ajudar a entender o conteúdo e evoluir.
               </p>
 
-              <p className="text-text-500 font-sm">
-                Clique em Repetir Questionário e mostre do que você é capaz! 💪
-              </p>
+              {quiz?.canRetry && (
+                <p className="text-text-500 font-sm">
+                  Clique em Repetir Questionário e mostre do que você é capaz!
+                  💪
+                </p>
+              )}
             </div>
 
             <div className="flex flex-row justify-center items-center gap-2 w-full">
-              <Button
-                type="button"
-                variant="link"
-                size="small"
-                className="w-auto"
-                onClick={() => {
-                  closeModal();
-                  openModal('alertDialogTryLater');
-                }}
-              >
-                Tentar depois
-              </Button>
+              {quiz?.canRetry ? (
+                <>
+                  <Button
+                    type="button"
+                    variant="link"
+                    size="small"
+                    className="w-auto"
+                    onClick={() => {
+                      closeModal();
+                      openModal('alertDialogTryLater');
+                    }}
+                  >
+                    Tentar depois
+                  </Button>
 
-              <Button
-                variant="outline"
-                size="small"
-                className="w-auto"
-                onClick={onDetailResult}
-              >
-                Detalhar resultado
-              </Button>
+                  <Button
+                    variant="outline"
+                    size="small"
+                    className="w-auto"
+                    onClick={onDetailResult}
+                  >
+                    Detalhar resultado
+                  </Button>
 
-              <Button
-                className="w-auto"
-                size="small"
-                onClick={onGoToNextModule}
-              >
-                Próximo módulo
-              </Button>
+                  <Button className="w-auto" size="small" onClick={onRepeat}>
+                    Repetir questionário
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    variant="outline"
+                    size="small"
+                    className="w-auto"
+                    onClick={onDetailResult}
+                  >
+                    Detalhar resultado
+                  </Button>
+
+                  <Button
+                    className="w-auto"
+                    size="small"
+                    onClick={onGoToSimulated}
+                  >
+                    {getGoBackButtonLabel(quizType)}
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </Modal>
