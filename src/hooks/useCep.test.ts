@@ -5,6 +5,7 @@ import { useCep } from './useCep';
 describe('useCep', () => {
   beforeEach(() => {
     global.fetch = jest.fn();
+    jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -157,25 +158,15 @@ describe('useCep', () => {
       expect(result.current.error).toBe('Erro ao buscar CEP');
     });
     expect(data).toBe(null);
+    expect(console.error).toHaveBeenCalledWith(
+      'Erro ao buscar CEP:',
+      expect.any(Error)
+    );
   });
 
   it('should handle network error', async () => {
-    (global.fetch as jest.Mock).mockRejectedValueOnce(
-      new Error('Network error')
-    );
-
-    const { result } = renderHook(() => useCep());
-
-    const data = await result.current.fetchCep('01310100');
-
-    await waitFor(() => {
-      expect(result.current.error).toBe('Network error');
-    });
-    expect(data).toBe(null);
-  });
-
-  it('should handle unknown error type', async () => {
-    (global.fetch as jest.Mock).mockRejectedValueOnce('Unknown error');
+    const networkError = new Error('Network error');
+    (global.fetch as jest.Mock).mockRejectedValueOnce(networkError);
 
     const { result } = renderHook(() => useCep());
 
@@ -185,6 +176,28 @@ describe('useCep', () => {
       expect(result.current.error).toBe('Erro ao buscar CEP');
     });
     expect(data).toBe(null);
+    expect(console.error).toHaveBeenCalledWith(
+      'Erro ao buscar CEP:',
+      networkError
+    );
+  });
+
+  it('should handle unknown error type', async () => {
+    const unknownError = 'Unknown error';
+    (global.fetch as jest.Mock).mockRejectedValueOnce(unknownError);
+
+    const { result } = renderHook(() => useCep());
+
+    const data = await result.current.fetchCep('01310100');
+
+    await waitFor(() => {
+      expect(result.current.error).toBe('Erro ao buscar CEP');
+    });
+    expect(data).toBe(null);
+    expect(console.error).toHaveBeenCalledWith(
+      'Erro ao buscar CEP:',
+      unknownError
+    );
   });
 
   it('should clear previous error on new successful fetch', async () => {

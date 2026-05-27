@@ -69,9 +69,11 @@ export function useCep(): UseCepResult {
 
       return data;
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : 'Erro ao buscar CEP';
-      setError(errorMessage);
+      // Log error details for debugging
+      console.error('Erro ao buscar CEP:', err);
+
+      // Always show user-friendly Portuguese message
+      setError('Erro ao buscar CEP');
       return null;
     } finally {
       setLoading(false);
