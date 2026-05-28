@@ -78,7 +78,7 @@ export interface UseActivityDraftModelPageReturn {
  * @returns Shared state and callbacks for the page
  */
 export const useActivityDraftModelPage = ({
-  activityCategory: _activityCategory,
+  activityCategory,
   fetchFn,
   deleteFn,
   userData,
@@ -171,16 +171,23 @@ export const useActivityDraftModelPage = ({
   }, [itemToDeleteId, deleteFn, fetchFn, currentParams, errorLogLabel]);
 
   /**
-   * Create table columns with action callbacks
+   * Create table columns with action callbacks.
+   * The send button label follows the category: "Enviar prova" for exams,
+   * "Enviar atividade" for activities.
    */
+  const sendLabel =
+    activityCategory === 'PROVA' ? 'Enviar prova' : 'Enviar atividade';
   const tableColumns = useMemo(
     () =>
-      createExamDraftsModelsTableColumns({
-        onSend: handleSend,
-        onDelete: handleDelete,
-        onEdit: handleEdit,
-      }),
-    [handleSend, handleDelete, handleEdit]
+      createExamDraftsModelsTableColumns(
+        {
+          onSend: handleSend,
+          onDelete: handleDelete,
+          onEdit: handleEdit,
+        },
+        sendLabel
+      ),
+    [handleSend, handleDelete, handleEdit, sendLabel]
   );
 
   /**
