@@ -147,6 +147,23 @@ describe('examDraftsModelsTableConfig', () => {
       ).toBeInTheDocument();
     });
 
+    it('should render send button with a custom label when provided', () => {
+      const columns = createExamDraftsModelsTableColumns(
+        mockCallbacks,
+        'Enviar atividade'
+      );
+      const actionsColumn = columns.find((col) => col.key === 'actions');
+
+      render(<>{actionsColumn?.render?.(undefined, mockRow, 0)}</>);
+
+      expect(
+        screen.getByRole('button', { name: /enviar atividade/i })
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /enviar prova/i })
+      ).not.toBeInTheDocument();
+    });
+
     it('should render delete button', () => {
       const columns = createExamDraftsModelsTableColumns(mockCallbacks);
       const actionsColumn = columns.find((col) => col.key === 'actions');

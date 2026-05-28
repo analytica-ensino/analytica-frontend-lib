@@ -21,13 +21,16 @@ export interface ExamTableCallbacks {
 }
 
 /**
- * Factory function to create column configuration for exam drafts and models tables
+ * Factory function to create column configuration for drafts and models tables
+ * (used by both exam and activity pages).
  * Returns columns with action buttons that use the provided callbacks
  * @param callbacks - Object containing onSend, onDelete, and onEdit handlers
+ * @param sendLabel - Label for the send button (e.g. "Enviar prova" / "Enviar atividade")
  * @returns Column configuration array for TableProvider
  */
 export const createExamDraftsModelsTableColumns = (
-  callbacks: ExamTableCallbacks
+  callbacks: ExamTableCallbacks,
+  sendLabel = 'Enviar prova'
 ): ColumnConfig<ActivityModelTableItem>[] => [
   {
     key: 'title',
@@ -75,7 +78,7 @@ export const createExamDraftsModelsTableColumns = (
             callbacks.onSend(row);
           }}
         >
-          Enviar prova
+          {sendLabel}
         </Button>
         <IconButton
           icon={<Trash size={20} />}
