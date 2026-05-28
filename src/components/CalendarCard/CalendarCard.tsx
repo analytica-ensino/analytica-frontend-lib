@@ -1,6 +1,6 @@
 import { CalendarBlank } from 'phosphor-react';
 import type { ReactNode } from 'react';
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import DropdownMenu, {
   DropdownMenuContent,
   DropdownMenuTrigger,
@@ -50,19 +50,19 @@ export const CalendarCard = ({
   const isControlled = isOpen !== undefined;
   const effectiveOpen = isControlled ? isOpen : internalOpen;
 
-  const handleOpenChange = (open: boolean) => {
-    if (!isControlled) {
-      setInternalOpen(open);
-    }
-    onOpenChange?.(open);
-  };
-
-  // Keep the internal mirror in sync if the consumer toggles to controlled mid-life.
-  useEffect(() => {
-    if (isControlled) {
-      setInternalOpen(isOpen);
-    }
-  }, [isControlled, isOpen]);
+  // `useCallback` keeps the reference stable across renders, so the
+  // `DropdownMenu`'s `useEffect [open, onOpenChange]` doesn't re-fire on
+  // every parent re-render (which is what triggers the infinite update loop
+  // observed before).
+  const handleOpenChange = useCallback(
+    (open: boolean) => {
+      if (!isControlled) {
+        setInternalOpen(open);
+      }
+      onOpenChange?.(open);
+    },
+    [isControlled, onOpenChange]
+  );
 
   const iconColor = effectiveOpen ? 'text-primary-950' : 'text-primary';
   const triggerIcon = <CalendarBlank size={24} className={iconColor} />;

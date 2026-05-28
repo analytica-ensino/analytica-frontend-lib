@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { CaretRight, User } from 'phosphor-react';
 
 import { BrandingLogo } from '../BrandingLogo/BrandingLogo';
@@ -144,6 +144,30 @@ export const AppHeader = ({
     });
   };
 
+  // Stable callback so `DropdownMenu`'s `useEffect [open, onOpenChange]`
+  // doesn't re-fire on every parent re-render, which would cascade into a
+  // Maximum-update-depth loop (same root cause class as PR #435).
+  const handleCalendarOpenChange = useCallback(
+    (open: boolean) => {
+      setActiveStates((prev) => {
+        const current = prev.calendar ?? false;
+        if (current === open) {
+          return prev;
+        }
+        if (open) {
+          return {
+            calendar: true,
+            notifications: false,
+            profile: false,
+          };
+        }
+        return { ...prev, calendar: false };
+      });
+      onCalendarOpenChange?.(open);
+    },
+    [onCalendarOpenChange]
+  );
+
   useEffect(() => {
     const handleEscapeKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -196,14 +220,7 @@ export const AppHeader = ({
               <CalendarCard
                 content={calendarContent}
                 isOpen={calendarOpen ?? activeStates.calendar ?? false}
-                onOpenChange={(open: boolean) => {
-                  if (open && !activeStates.calendar) {
-                    toggleActive('calendar');
-                  } else if (!open && activeStates.calendar) {
-                    setActiveStates((prev) => ({ ...prev, calendar: false }));
-                  }
-                  onCalendarOpenChange?.(open);
-                }}
+                onOpenChange={handleCalendarOpenChange}
               />
             )}
 
