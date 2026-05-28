@@ -56,6 +56,7 @@ export default defineConfig({
     'Skeleton/index': 'src/components/Skeleton/Skeleton.tsx',
     'NotificationCard/index':
       'src/components/NotificationCard/NotificationCard.tsx',
+    'CalendarCard/index': 'src/components/CalendarCard/CalendarCard.tsx',
     'NotFound/index': 'src/components/NotFound/NotFound.tsx',
     'NoSearchResult/index': 'src/components/NoSearchResult/NoSearchResult.tsx',
     'EmptyState/index': 'src/components/EmptyState/EmptyState.tsx',
