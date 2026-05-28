@@ -36,7 +36,7 @@ const makeUseMobileMock = (
     () => 'flex flex-row justify-between items-center gap-6 mb-8'
   ),
   getVideoContainerClasses: jest.fn(() => 'aspect-video'),
-  getDeviceType: jest.fn(() => 'desktop' as DeviceType),
+  getDeviceType: jest.fn((): DeviceType => 'desktop'),
   ...overrides,
 });
 
@@ -80,14 +80,14 @@ describe('AppHeader', () => {
     expect(screen.getAllByRole('button').length).toBeGreaterThanOrEqual(2);
   });
 
-  it('does not render calendar dropdown when showCalendar is false', () => {
+  it('does not render calendar trigger when showCalendar is false', () => {
     render(<AppHeader {...baseProps()} />);
-    expect(
-      document.querySelector('[data-component="AppHeader"] .lg\\:hidden')
-    ).toBeNull();
+    // Each icon trigger contributes 2 buttons (DropdownMenuTrigger > IconButton).
+    // Without calendar: notification + profile = 4 buttons total.
+    expect(screen.getAllByRole('button')).toHaveLength(4);
   });
 
-  it('renders calendar dropdown when showCalendar is true', () => {
+  it('renders calendar trigger when showCalendar is true', () => {
     render(
       <AppHeader
         {...baseProps({
@@ -96,15 +96,14 @@ describe('AppHeader', () => {
         })}
       />
     );
-    expect(
-      document.querySelector('[data-component="AppHeader"] .lg\\:hidden')
-    ).not.toBeNull();
+    // Calendar + notification + profile = 6 buttons total (2 per icon).
+    expect(screen.getAllByRole('button')).toHaveLength(6);
   });
 
   it('opens profile dropdown and displays user information', () => {
     render(<AppHeader {...baseProps()} />);
     const triggers = screen.getAllByRole('button');
-    fireEvent.click(triggers[triggers.length - 1]);
+    fireEvent.click(triggers.at(-1)!);
     expect(screen.getByText('Maria Session')).toBeInTheDocument();
     expect(screen.getByText('maria.session@example.com')).toBeInTheDocument();
   });
@@ -118,7 +117,7 @@ describe('AppHeader', () => {
       />
     );
     const triggers = screen.getAllByRole('button');
-    fireEvent.click(triggers[triggers.length - 1]);
+    fireEvent.click(triggers.at(-1)!);
     expect(screen.getByText('Maria')).toBeInTheDocument();
     expect(screen.getByText('maria@example.com')).toBeInTheDocument();
   });
@@ -126,7 +125,7 @@ describe('AppHeader', () => {
   it('renders ProfileMenuInfo when showProfileInfo is true', () => {
     render(<AppHeader {...baseProps({ showProfileInfo: true })} />);
     const triggers = screen.getAllByRole('button');
-    fireEvent.click(triggers[triggers.length - 1]);
+    fireEvent.click(triggers.at(-1)!);
     expect(screen.getByText('Escola X')).toBeInTheDocument();
     expect(screen.getByText('3A')).toBeInTheDocument();
     expect(screen.getByText('2026')).toBeInTheDocument();
@@ -135,7 +134,7 @@ describe('AppHeader', () => {
   it('does not render ProfileMenuInfo when showProfileInfo is false', () => {
     render(<AppHeader {...baseProps()} />);
     const triggers = screen.getAllByRole('button');
-    fireEvent.click(triggers[triggers.length - 1]);
+    fireEvent.click(triggers.at(-1)!);
     expect(screen.queryByText('Escola X')).not.toBeInTheDocument();
   });
 
@@ -143,7 +142,7 @@ describe('AppHeader', () => {
     const onNavigateToMyData = jest.fn();
     render(<AppHeader {...baseProps({ onNavigateToMyData })} />);
     const triggers = screen.getAllByRole('button');
-    fireEvent.click(triggers[triggers.length - 1]);
+    fireEvent.click(triggers.at(-1)!);
     fireEvent.click(screen.getByText('Meus dados'));
     expect(onNavigateToMyData).toHaveBeenCalledTimes(1);
   });

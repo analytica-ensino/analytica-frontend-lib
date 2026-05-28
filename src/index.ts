@@ -144,6 +144,8 @@ export type {
 export { default as ImagePreviewCard } from './components/ImagePreviewCard/ImagePreviewCard';
 export type { ImagePreviewCardProps } from './components/ImagePreviewCard/ImagePreviewCard';
 export { default as NotificationCard } from './components/NotificationCard/NotificationCard';
+export { default as CalendarCard } from './components/CalendarCard/CalendarCard';
+export type { CalendarCardProps } from './components/CalendarCard/CalendarCard';
 export { ThemeToggle } from './components/ThemeToggle/ThemeToggle';
 
 // Choropleth Map Component

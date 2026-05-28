@@ -37,7 +37,11 @@ type DropdownStoreApi = StoreApi<DropdownStore>;
 export function createDropdownStore(): DropdownStoreApi {
   return create<DropdownStore>((set) => ({
     open: false,
-    setOpen: (open) => set({ open }),
+    // Bail out when the value didn't change. Skipping `set` here prevents
+    // zustand from creating a new state object, which in turn keeps
+    // `useStore(store, (s) => s)` subscribers from re-rendering on no-op
+    // syncs (e.g. the `useEffect [propOpen]` controlled-mode bridge).
+    setOpen: (open) => set((state) => (state.open === open ? state : { open })),
   }));
 }
 

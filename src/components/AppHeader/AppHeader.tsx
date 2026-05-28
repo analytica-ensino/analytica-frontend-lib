@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
-import { useEffect, useState } from 'react';
-import { CalendarBlank, CaretRight, User } from 'phosphor-react';
+import { useCallback, useEffect, useState } from 'react';
+import { CaretRight, User } from 'phosphor-react';
 
 import { BrandingLogo } from '../BrandingLogo/BrandingLogo';
+import CalendarCard from '../CalendarCard/CalendarCard';
 import IconButton from '../IconButton/IconButton';
 import DropdownMenu, {
   DropdownMenuContent,
@@ -68,10 +69,18 @@ export interface AppHeaderProps {
   sessionInfo?: AppHeaderSessionInfo;
   /** Notifications wiring (state + callbacks). */
   notifications: AppHeaderNotifications;
-  /** Show calendar dropdown on viewports below `lg` (1024px). */
+  /** Show the calendar widget in the header. */
   showCalendar?: boolean;
-  /** Content rendered inside the calendar dropdown. */
+  /** Content rendered inside the calendar (dropdown on tablet/desktop, modal on mobile). */
   calendarContent?: ReactNode;
+  /**
+   * Optional controlled open state for the calendar.
+   * When provided, the consumer is the source of truth; useful for closing
+   * the calendar programmatically (e.g. on route change).
+   */
+  calendarOpen?: boolean;
+  /** Fired whenever the calendar open state changes. */
+  onCalendarOpenChange?: (open: boolean) => void;
   /** Show school/class/year inside the profile dropdown. */
   showProfileInfo?: boolean;
   /** Optional fallback image for the notifications empty state. */
@@ -108,6 +117,8 @@ export const AppHeader = ({
   notifications,
   showCalendar = false,
   calendarContent,
+  calendarOpen,
+  onCalendarOpenChange,
   showProfileInfo = false,
   emptyNotificationsImage,
   emptyNotificationsTitle = DEFAULT_EMPTY_TITLE,
@@ -132,6 +143,30 @@ export const AppHeader = ({
       };
     });
   };
+
+  // Stable callback so `DropdownMenu`'s `useEffect [open, onOpenChange]`
+  // doesn't re-fire on every parent re-render, which would cascade into a
+  // Maximum-update-depth loop (same root cause class as PR #435).
+  const handleCalendarOpenChange = useCallback(
+    (open: boolean) => {
+      setActiveStates((prev) => {
+        const current = prev.calendar ?? false;
+        if (current === open) {
+          return prev;
+        }
+        if (open) {
+          return {
+            calendar: true,
+            notifications: false,
+            profile: false,
+          };
+        }
+        return { ...prev, calendar: false };
+      });
+      onCalendarOpenChange?.(open);
+    },
+    [onCalendarOpenChange]
+  );
 
   useEffect(() => {
     const handleEscapeKey = (event: KeyboardEvent) => {
@@ -182,42 +217,11 @@ export const AppHeader = ({
           />
           <section className={`flex flex-row items-center ${sectionGap}`}>
             {showCalendar && (
-              <span className="lg:hidden">
-                <DropdownMenu
-                  onOpenChange={(open: boolean) => {
-                    syncDropdownState(
-                      open,
-                      activeStates.calendar,
-                      setActiveStates,
-                      'calendar'
-                    );
-                  }}
-                >
-                  <DropdownMenuTrigger className="text-primary cursor-pointer">
-                    <IconButton
-                      active={activeStates.calendar}
-                      onClick={() => toggleActive('calendar')}
-                      icon={
-                        <CalendarBlank
-                          size={24}
-                          className={
-                            activeStates.calendar
-                              ? 'text-primary-950'
-                              : 'text-primary'
-                          }
-                        />
-                      }
-                    />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    className="w-[320px] max-w-[calc(100vw-16px)] max-h-[80vh] overflow-y-auto"
-                    align={isMobile ? 'start' : 'end'}
-                    side={isMobile ? 'bottom' : 'left'}
-                  >
-                    {calendarContent}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </span>
+              <CalendarCard
+                content={calendarContent}
+                isOpen={calendarOpen ?? activeStates.calendar ?? false}
+                onOpenChange={handleCalendarOpenChange}
+              />
             )}
 
             <NotificationCard
