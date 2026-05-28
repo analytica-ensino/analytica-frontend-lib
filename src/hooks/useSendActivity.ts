@@ -17,58 +17,10 @@ import {
 import type {
   UseSendActivityConfig,
   UseSendActivityReturn,
-  SendActivityCategoriesData,
   ActivityModelItem,
 } from '../types/sendActivity';
-
-/**
- * Transform categories data to CategoryConfig format for CheckboxGroup
- * @param data - Categories data from API
- * @returns Array of CategoryConfig for CheckboxGroup
- */
-function transformToCategoryConfig(
-  data: SendActivityCategoriesData
-): CategoryConfig[] {
-  return [
-    {
-      key: 'escola',
-      label: 'Escola',
-      itens: data.schools,
-      selectedIds: [],
-    },
-    {
-      key: 'serie',
-      label: 'Série',
-      dependsOn: ['escola'],
-      itens: data.schoolYears,
-      filteredBy: [{ key: 'escola', internalField: 'escolaId' }],
-      selectedIds: [],
-    },
-    {
-      key: 'turma',
-      label: 'Turma',
-      dependsOn: ['escola', 'serie'],
-      itens: data.classes,
-      filteredBy: [
-        { key: 'escola', internalField: 'escolaId' },
-        { key: 'serie', internalField: 'serieId' },
-      ],
-      selectedIds: [],
-    },
-    {
-      key: 'students',
-      label: 'Aluno',
-      dependsOn: ['escola', 'serie', 'turma'],
-      itens: data.students,
-      filteredBy: [
-        { key: 'escola', internalField: 'escolaId' },
-        { key: 'serie', internalField: 'serieId' },
-        { key: 'turma', internalField: 'turmaId' },
-      ],
-      selectedIds: [],
-    },
-  ];
-}
+import { loadCategoriesData } from '../utils/categoryDataUtils';
+import { useDynamicStudentFetching } from '../utils/useDynamicStudentFetching';
 
 /**
  * Convert date and time to ISO datetime string
@@ -135,23 +87,7 @@ export function useSendActivity(
 
     setIsCategoriesLoading(true);
     try {
-      const [schoolsRes, yearsRes, classesRes, studentsRes] = await Promise.all(
-        [
-          api.get<{ data: unknown[] }>('/school'),
-          api.get<{ data: unknown[] }>('/schoolYear'),
-          api.get<{ data: unknown[] }>('/classes'),
-          api.get<{ data: unknown[] }>('/students'),
-        ]
-      );
-
-      const data: SendActivityCategoriesData = {
-        schools: (schoolsRes.data.data as []) || [],
-        schoolYears: (yearsRes.data.data as []) || [],
-        classes: (classesRes.data.data as []) || [],
-        students: (studentsRes.data.data as []) || [],
-      };
-
-      const categoryConfig = transformToCategoryConfig(data);
+      const categoryConfig = await loadCategoriesData(api, []);
       setCategories(categoryConfig);
       categoriesLoadedRef.current = true;
     } catch (error) {
@@ -184,15 +120,12 @@ export function useSendActivity(
   }, []);
 
   /**
-   * Handle categories change from CheckboxGroup
-   * @param updatedCategories - Updated categories array
+   * Handle categories change from CheckboxGroup.
+   * Fetches students dynamically via POST /students/filters when the
+   * school/série/turma selections change, mirroring the activity creation flow.
    */
-  const onCategoriesChange = useCallback(
-    (updatedCategories: CategoryConfig[]) => {
-      setCategories(updatedCategories);
-    },
-    []
-  );
+  const { handleCategoriesChange: onCategoriesChange } =
+    useDynamicStudentFetching(setCategories, { apiClient: api });
 
   /**
    * Handle form submission

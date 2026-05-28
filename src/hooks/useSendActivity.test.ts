@@ -3,7 +3,6 @@ import dayjs from 'dayjs';
 import { useSendActivity } from './useSendActivity';
 import type {
   UseSendActivityConfig,
-  SendActivityCategoriesData,
   ActivityModelItem,
 } from '../types/sendActivity';
 import type { BaseApiClient } from '../types/api';
@@ -25,36 +24,37 @@ function expectedISODateTime(date: string, time: string): string {
 }
 
 /**
- * Mock categories data
+ * Mock categories data — raw API shapes consumed by loadCategoriesData.
+ * Schools expose `companyName`, schoolYears expose `schoolId`, classes expose
+ * `schoolYearId`; students are fetched dynamically via POST /students/filters.
  */
-const mockCategoriesData: SendActivityCategoriesData = {
-  schools: [
-    { id: 'school-1', name: 'School A', escolaId: 'school-1' },
-    { id: 'school-2', name: 'School B', escolaId: 'school-2' },
-  ],
-  schoolYears: [
-    { id: 'year-1', name: '1st Year', escolaId: 'school-1', serieId: 'year-1' },
-    { id: 'year-2', name: '2nd Year', escolaId: 'school-2', serieId: 'year-2' },
-  ],
-  classes: [
-    {
-      id: 'class-1',
-      name: 'Class A',
-      escolaId: 'school-1',
-      serieId: 'year-1',
-      turmaId: 'class-1',
-    },
-  ],
-  students: [
-    {
-      id: 'student-1',
-      name: 'Student A',
-      escolaId: 'school-1',
-      serieId: 'year-1',
-      turmaId: 'class-1',
-    },
-  ],
-};
+const mockSchools = [
+  { id: 'school-1', companyName: 'School A' },
+  { id: 'school-2', companyName: 'School B' },
+];
+const mockSchoolYears = [
+  { id: 'year-1', name: '1st Year', schoolId: 'school-1' },
+  { id: 'year-2', name: '2nd Year', schoolId: 'school-2' },
+];
+const mockClasses = [
+  { id: 'class-1', name: 'Class A', schoolYearId: 'year-1' },
+];
+const mockStudents = [
+  {
+    id: 'student-1',
+    email: 'student-a@example.com',
+    name: 'Student A',
+    active: true,
+    createdAt: '2025-01-01',
+    updatedAt: '2025-01-01',
+    userInstitutionId: 'inst-1',
+    institutionId: 'institution-1',
+    profileId: 'profile-1',
+    school: { id: 'school-1', name: 'School A' },
+    schoolYear: { id: 'year-1', name: '1st Year' },
+    class: { id: 'class-1', name: 'Class A' },
+  },
+];
 
 /**
  * Mock activity model
@@ -101,22 +101,17 @@ const createMockApiClient = (): MockableApiClient => {
     get: jest.fn((url: string) => {
       if (url === '/school') {
         return Promise.resolve({
-          data: { data: mockCategoriesData.schools },
+          data: { data: { schools: mockSchools } },
         });
       }
       if (url === '/schoolYear') {
         return Promise.resolve({
-          data: { data: mockCategoriesData.schoolYears },
+          data: { data: { schoolYears: mockSchoolYears } },
         });
       }
       if (url === '/classes') {
         return Promise.resolve({
-          data: { data: mockCategoriesData.classes },
-        });
-      }
-      if (url === '/students') {
-        return Promise.resolve({
-          data: { data: mockCategoriesData.students },
+          data: { data: { classes: mockClasses } },
         });
       }
       if (url.includes('/activity-drafts/')) {
@@ -139,6 +134,11 @@ const createMockApiClient = (): MockableApiClient => {
       if (url === '/activities/send-to-students') {
         return Promise.resolve({
           data: { data: {} },
+        });
+      }
+      if (url === '/students/filters') {
+        return Promise.resolve({
+          data: { data: { students: mockStudents } },
         });
       }
       return Promise.reject(new Error('Not found'));
@@ -214,7 +214,6 @@ describe('useSendActivity', () => {
       expect(config.api.get).toHaveBeenCalledWith('/school');
       expect(config.api.get).toHaveBeenCalledWith('/schoolYear');
       expect(config.api.get).toHaveBeenCalledWith('/classes');
-      expect(config.api.get).toHaveBeenCalledWith('/students');
       expect(result.current.categories).toHaveLength(4);
     });
 
@@ -232,25 +231,20 @@ describe('useSendActivity', () => {
 
       expect(result.current.categories[0].key).toBe('escola');
       expect(result.current.categories[0].label).toBe('Escola');
-      expect(result.current.categories[0].itens).toEqual(
-        mockCategoriesData.schools
-      );
+      expect(result.current.categories[0].itens).toEqual([
+        { id: 'school-1', name: 'School A' },
+        { id: 'school-2', name: 'School B' },
+      ]);
 
       expect(result.current.categories[1].key).toBe('serie');
       expect(result.current.categories[1].dependsOn).toEqual(['escola']);
 
       expect(result.current.categories[2].key).toBe('turma');
-      expect(result.current.categories[2].dependsOn).toEqual([
-        'escola',
-        'serie',
-      ]);
+      expect(result.current.categories[2].dependsOn).toEqual(['serie']);
 
       expect(result.current.categories[3].key).toBe('students');
-      expect(result.current.categories[3].dependsOn).toEqual([
-        'escola',
-        'serie',
-        'turma',
-      ]);
+      expect(result.current.categories[3].dependsOn).toEqual(['turma']);
+      expect(result.current.categories[3].itens).toEqual([]);
     });
 
     it('should not reload categories if already loaded', async () => {
@@ -374,7 +368,7 @@ describe('useSendActivity', () => {
         {
           key: 'escola',
           label: 'Escola',
-          itens: mockCategoriesData.schools,
+          itens: [{ id: 'school-1', name: 'School A' }],
           selectedIds: ['school-1'],
         },
       ];
@@ -384,6 +378,43 @@ describe('useSendActivity', () => {
       });
 
       expect(result.current.categories).toEqual(newCategories);
+    });
+
+    it('should fetch students dynamically when a class is selected', async () => {
+      const config = createMockConfig();
+      const { result } = renderHook(() => useSendActivity(config));
+
+      const categoriesWithClassSelected = [
+        {
+          key: 'escola',
+          label: 'Escola',
+          itens: [],
+          selectedIds: ['school-1'],
+        },
+        { key: 'serie', label: 'Série', itens: [], selectedIds: ['year-1'] },
+        { key: 'turma', label: 'Turma', itens: [], selectedIds: ['class-1'] },
+        { key: 'students', label: 'Alunos', itens: [], selectedIds: [] },
+      ];
+
+      await act(async () => {
+        await result.current.onCategoriesChange(categoriesWithClassSelected);
+      });
+
+      expect(config.api.post).toHaveBeenCalledWith('/students/filters', {
+        schoolIds: ['school-1'],
+        schoolYearIds: ['year-1'],
+        classIds: ['class-1'],
+      });
+
+      const studentsCategory = result.current.categories.find(
+        (c) => c.key === 'students'
+      );
+      expect(studentsCategory?.itens).toHaveLength(1);
+      expect(studentsCategory?.itens?.[0]).toMatchObject({
+        name: 'Student A',
+        studentId: 'student-1',
+        userInstitutionId: 'inst-1',
+      });
     });
   });
 
