@@ -23,6 +23,9 @@ import type {
 } from '../components/SendLessonModal/types';
 import type { FilterConfig } from '../components/Filter';
 import { SubjectEnum } from '../enums/SubjectEnum';
+import type { BaseApiClient } from '../types/api';
+import { loadCategoriesData } from '../utils/categoryDataUtils';
+import { useDynamicStudentFetching } from '../utils/useDynamicStudentFetching';
 
 /**
  * API client interface
@@ -704,31 +707,25 @@ export const createUseRecommendedLessonsPage = (
      * Handle send lesson button click - opens modal
      */
     const handleSendLesson = useCallback(
-      (model: RecommendedClassModelTableItem) => {
+      async (model: RecommendedClassModelTableItem) => {
         setSelectedModel(model);
 
-        // Build categories from user data for CheckboxGroup
-        const classes = getClassOptions(userData);
-        const categories: CategoryConfig[] = [];
-
-        if (classes.length > 0) {
-          categories.push({
-            key: 'students',
-            label: 'Turmas',
-            selectedIds: [],
-            itens: classes.map((cls) => ({
-              id: cls.id,
-              name: cls.name,
-              studentId: cls.id,
-              userInstitutionId: cls.id,
-            })),
-          });
+        // Load recipients from the API (same flow as lesson creation), so the
+        // Destinatário step shows the Escola → Série → Turma → Aluno cascade.
+        try {
+          const categories = await loadCategoriesData(
+            api as unknown as BaseApiClient,
+            []
+          );
+          setSendModalCategories(categories);
+        } catch (error) {
+          console.error('Erro ao carregar destinatários:', error);
+          setSendModalCategories([]);
         }
 
-        setSendModalCategories(categories);
         setSendModalOpen(true);
       },
-      [userData]
+      [api]
     );
 
     /**
@@ -740,12 +737,48 @@ export const createUseRecommendedLessonsPage = (
 
         setSendModalLoading(true);
         try {
+          // The model row only carries summary data, so fetch the draft to get
+          // its lessons/activities. POST /recommended-class requires lessonIds
+          // and a target — here we target the selected students.
+          const draftResponse = await api.get<{
+            data: {
+              title: string;
+              lessons?: Array<{ lessonId: string }>;
+              activityDrafts?: Array<{ activityDraftId: string }>;
+            };
+          }>(`${endpoints.recommendedClassDrafts}/${selectedModel.id}`);
+          const draft = draftResponse.data.data;
+
+          const lessonIds = (draft.lessons ?? []).map((lesson, index) => ({
+            lessonId: lesson.lessonId,
+            sequence: index + 1,
+          }));
+
+          const activityDraftIds = (draft.activityDrafts ?? []).map(
+            (activity, index) => ({
+              activityDraftId: activity.activityDraftId,
+              sequence: index + 1,
+            })
+          );
+          const hasAttachedActivities = activityDraftIds.length > 0;
+
           await api.post(endpoints.submitRecommendedClass, {
-            draftId: selectedModel.id,
-            students: formData.students,
-            startDate: `${formData.startDate}T${formData.startTime}:00`,
-            finalDate: `${formData.finalDate}T${formData.finalTime}:00`,
-            canRetry: formData.canRetry ?? false,
+            title: formData.title || selectedModel.title,
+            startDate: new Date(
+              `${formData.startDate}T${formData.startTime}`
+            ).toISOString(),
+            finalDate: new Date(
+              `${formData.finalDate}T${formData.finalTime}`
+            ).toISOString(),
+            lessonIds,
+            ...(hasAttachedActivities && { activityDraftIds }),
+            targetStudentIds: formData.students.map((s) => s.userInstitutionId),
+            ...(formData.notification && {
+              notification: formData.notification,
+            }),
+            ...(hasAttachedActivities && {
+              canRetry: formData.canRetry ?? false,
+            }),
           });
 
           setSendModalOpen(false);
@@ -754,7 +787,12 @@ export const createUseRecommendedLessonsPage = (
           setSendModalLoading(false);
         }
       },
-      [api, endpoints.submitRecommendedClass, selectedModel]
+      [
+        api,
+        endpoints.recommendedClassDrafts,
+        endpoints.submitRecommendedClass,
+        selectedModel,
+      ]
     );
 
     /**
@@ -766,13 +804,12 @@ export const createUseRecommendedLessonsPage = (
     }, []);
 
     /**
-     * Handle categories change in send modal
+     * Handle categories change in the send modal, fetching students
+     * dynamically as the school/série/turma selection changes.
      */
-    const handleCategoriesChange = useCallback(
-      (categories: CategoryConfig[]) => {
-        setSendModalCategories(categories);
-      },
-      []
+    const { handleCategoriesChange } = useDynamicStudentFetching(
+      setSendModalCategories,
+      { apiClient: api as unknown as BaseApiClient }
     );
 
     return {

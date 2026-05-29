@@ -20,6 +20,55 @@ import type {
 } from '../types/recommendedLessons';
 import type { SendLessonFormData } from '../components/SendLessonModal/types';
 import { SubjectEnum } from '../enums/SubjectEnum';
+import { loadCategoriesData } from '../utils/categoryDataUtils';
+
+// Recipients are loaded from the API (same flow as lesson creation); mock the
+// loader and the dynamic student fetching so this suite focuses on the hook's
+// send-modal orchestration. Both utilities have their own dedicated test suites.
+jest.mock('../utils/categoryDataUtils', () => ({
+  ...jest.requireActual('../utils/categoryDataUtils'),
+  loadCategoriesData: jest.fn(),
+}));
+
+jest.mock('../utils/useDynamicStudentFetching', () => ({
+  useDynamicStudentFetching: (
+    setCategories: (categories: unknown) => void
+  ) => ({
+    handleCategoriesChange: (categories: unknown) => setCategories(categories),
+  }),
+}));
+
+const mockLoadCategoriesData = loadCategoriesData as jest.Mock;
+
+const mockSendCategories = [
+  {
+    key: 'escola',
+    label: 'Escola',
+    selectedIds: [],
+    itens: [{ id: 'school-1', name: 'School One' }],
+  },
+  {
+    key: 'serie',
+    label: 'Série',
+    dependsOn: ['escola'],
+    selectedIds: [],
+    itens: [],
+  },
+  {
+    key: 'turma',
+    label: 'Turma',
+    dependsOn: ['serie'],
+    selectedIds: [],
+    itens: [],
+  },
+  {
+    key: 'students',
+    label: 'Alunos',
+    dependsOn: ['turma'],
+    selectedIds: [],
+    itens: [],
+  },
+];
 
 /**
  * Test suite for useRecommendedLessonsPage hook factory
@@ -190,6 +239,7 @@ describe('useRecommendedLessonsPage', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockLoadCategoriesData.mockResolvedValue(mockSendCategories);
   });
 
   // Factory function tests
@@ -607,25 +657,24 @@ describe('useRecommendedLessonsPage', () => {
     expect(modalProps.onCategoriesChange).toBeInstanceOf(Function);
   });
 
-  it('modalProps: onSendLesson should open modal and set categories', () => {
+  it('modalProps: onSendLesson should open modal and load categories from API', async () => {
     const { result } = setupHook();
 
-    act(() => {
-      result.current.historyProps.onSendLesson(testModel);
+    await act(async () => {
+      await result.current.historyProps.onSendLesson(testModel);
     });
 
     expect(result.current.modalProps.isOpen).toBe(true);
     expect(result.current.modalProps.modalTitle).toBe('Test Model');
-    expect(result.current.modalProps.categories).toHaveLength(1);
-    expect(result.current.modalProps.categories[0].key).toBe('students');
-    expect(result.current.modalProps.categories[0].itens).toHaveLength(2);
+    expect(mockLoadCategoriesData).toHaveBeenCalled();
+    expect(result.current.modalProps.categories).toEqual(mockSendCategories);
   });
 
-  it('modalProps: onClose should reset state', () => {
+  it('modalProps: onClose should reset state', async () => {
     const { result } = setupHook();
 
-    act(() => {
-      result.current.historyProps.onSendLesson(testModel);
+    await act(async () => {
+      await result.current.historyProps.onSendLesson(testModel);
     });
     expect(result.current.modalProps.isOpen).toBe(true);
 
@@ -664,24 +713,38 @@ describe('useRecommendedLessonsPage', () => {
   });
 
   it('modalProps: onSubmit should submit lesson successfully', async () => {
+    // onSubmit fetches the model draft (for lessonIds) then creates the class.
+    (mockApi.get as jest.Mock).mockResolvedValueOnce({
+      data: {
+        data: {
+          title: 'Test Model',
+          lessons: [{ lessonId: 'lesson-1' }],
+          activityDrafts: [],
+        },
+      },
+    });
     (mockApi.post as jest.Mock).mockResolvedValueOnce({ data: {} });
 
     const { result } = setupHook();
 
-    act(() => {
-      result.current.historyProps.onSendLesson(testModel);
+    await act(async () => {
+      await result.current.historyProps.onSendLesson(testModel);
     });
 
     await act(async () => {
       await result.current.modalProps.onSubmit(testFormData);
     });
 
+    expect(mockApi.get).toHaveBeenCalledWith(
+      '/recommended-class/drafts/model-123'
+    );
     expect(mockApi.post).toHaveBeenCalledWith('/recommendedClass', {
-      draftId: 'model-123',
-      students: [{ studentId: 'student-1', userInstitutionId: 'inst-1' }],
-      startDate: '2024-06-01T08:00:00',
-      finalDate: '2024-06-15T23:59:00',
-      canRetry: false,
+      title: 'Test Lesson',
+      startDate: new Date('2024-06-01T08:00').toISOString(),
+      finalDate: new Date('2024-06-15T23:59').toISOString(),
+      lessonIds: [{ lessonId: 'lesson-1', sequence: 1 }],
+      targetStudentIds: ['inst-1'],
+      notification: 'Test notification',
     });
     expect(result.current.modalProps.isOpen).toBe(false);
   });
@@ -691,12 +754,15 @@ describe('useRecommendedLessonsPage', () => {
     const postPromise = new Promise<{ data: object }>((resolve) => {
       resolvePost = () => resolve({ data: {} });
     });
+    (mockApi.get as jest.Mock).mockResolvedValueOnce({
+      data: { data: { title: 'Test Model', lessons: [], activityDrafts: [] } },
+    });
     (mockApi.post as jest.Mock).mockReturnValueOnce(postPromise);
 
     const { result } = setupHook();
 
-    act(() => {
-      result.current.historyProps.onSendLesson(testModel);
+    await act(async () => {
+      await result.current.historyProps.onSendLesson(testModel);
     });
 
     act(() => {
@@ -726,14 +792,17 @@ describe('useRecommendedLessonsPage', () => {
   });
 
   it('modalProps: should reset loading state on error', async () => {
+    (mockApi.get as jest.Mock).mockResolvedValueOnce({
+      data: { data: { title: 'Test Model', lessons: [], activityDrafts: [] } },
+    });
     (mockApi.post as jest.Mock).mockRejectedValueOnce(
       new Error('Network error')
     );
 
     const { result } = setupHook();
 
-    act(() => {
-      result.current.historyProps.onSendLesson(testModel);
+    await act(async () => {
+      await result.current.historyProps.onSendLesson(testModel);
     });
 
     try {
@@ -891,16 +960,12 @@ describe('useRecommendedLessonsPage', () => {
     );
   });
 
-  it('edge case: onSendLesson with no classes should open modal with empty categories', () => {
-    const { result } = setupHook({
-      userData: {
-        userInstitutions: [],
-        subTeacherTopicClasses: [],
-      },
-    });
+  it('edge case: onSendLesson should open modal with empty categories when loading fails', async () => {
+    mockLoadCategoriesData.mockRejectedValueOnce(new Error('Network error'));
+    const { result } = setupHook();
 
-    act(() => {
-      result.current.historyProps.onSendLesson(testModel);
+    await act(async () => {
+      await result.current.historyProps.onSendLesson(testModel);
     });
 
     expect(result.current.modalProps.isOpen).toBe(true);
