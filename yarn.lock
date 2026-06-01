@@ -3782,18 +3782,18 @@ __metadata:
     "@hookform/resolvers": ">=3.0.0"
     "@phosphor-icons/react": ">=2.0.0"
     "@react-google-maps/api": ">=2.20.0"
-    "@tiptap/core": ">=2.0.0"
-    "@tiptap/extension-color": ">=2.0.0"
-    "@tiptap/extension-highlight": ">=2.0.0"
-    "@tiptap/extension-link": ">=2.0.0"
-    "@tiptap/extension-placeholder": ">=2.0.0"
-    "@tiptap/extension-subscript": ">=2.0.0"
-    "@tiptap/extension-superscript": ">=2.0.0"
-    "@tiptap/extension-text-align": ">=2.0.0"
-    "@tiptap/extension-text-style": ">=2.0.0"
-    "@tiptap/extension-underline": ">=2.0.0"
-    "@tiptap/react": ">=2.0.0"
-    "@tiptap/starter-kit": ">=2.0.0"
+    "@tiptap/core": ^3.0.0
+    "@tiptap/extension-color": ^3.0.0
+    "@tiptap/extension-highlight": ^3.0.0
+    "@tiptap/extension-link": ^3.0.0
+    "@tiptap/extension-placeholder": ^3.0.0
+    "@tiptap/extension-subscript": ^3.0.0
+    "@tiptap/extension-superscript": ^3.0.0
+    "@tiptap/extension-text-align": ^3.0.0
+    "@tiptap/extension-text-style": ^3.0.0
+    "@tiptap/extension-underline": ^3.0.0
+    "@tiptap/react": ^3.0.0
+    "@tiptap/starter-kit": ^3.0.0
     "@turf/helpers": ">=7.0.0"
     "@turf/union": ">=7.0.0"
     dayjs: ">=1.11.18"
