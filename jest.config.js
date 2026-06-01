@@ -7,11 +7,19 @@ const config = {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   testMatch: ['<rootDir>/src/**/*.test.(ts|tsx)'],
   transform: {
-    '^.+\\.(ts|tsx)$': [
+    '^.+\\.(ts|tsx|js|jsx|mjs)$': [
       'ts-jest',
       {
         tsconfig: {
           jsx: 'react-jsx',
+          // TS 6 requires an explicit rootDir whenever declaration emit is on
+          // (inherited from the base config); set it for the test compilation.
+          declaration: false,
+          declarationMap: false,
+          rootDir: 'src',
+          // Allow transforming the ESM .js files from html-react-parser &
+          // friends (allowlisted in transformIgnorePatterns) down to CJS.
+          allowJs: true,
         },
       },
     ],
@@ -40,6 +48,12 @@ const config = {
     '<rootDir>/node_modules/',
     '<rootDir>/.ladle/',
     String.raw`.*\.stories\.(ts|tsx)$`,
+  ],
+  // html-react-parser v6 (and its html-dom-parser dep) ship ESM only, which
+  // ts-jest (CommonJS) can't load without transforming. Allow those packages
+  // through the node_modules transform.
+  transformIgnorePatterns: [
+    '<rootDir>/node_modules/(?!(html-react-parser|html-dom-parser|domhandler|domelementtype|domutils|entities|dom-serializer)/)',
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],

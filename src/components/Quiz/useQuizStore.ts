@@ -373,7 +373,9 @@ export interface QuizState {
   formatTime: (seconds: number) => string;
   getUserAnswers: () => UserAnswerItem[];
   getUnansweredQuestionsFromUserAnswers: () => number[];
-  getQuestionsGroupedBySubject: () => { [key: string]: Question[] };
+  getQuestionsGroupedBySubject: () => {
+    [key: string]: (Question | QuestionResult['answers'][number])[];
+  };
   getUserId: () => string;
   setCurrentQuestion: (question: Question) => void;
 

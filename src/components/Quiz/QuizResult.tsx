@@ -512,7 +512,7 @@ const QuizListResultByMateria = ({
                       return 'pending';
                     return undefined;
                   })()}
-                  onClick={() => onQuestionClick?.(question)}
+                  onClick={() => onQuestionClick?.(question as Question)}
                 />
               </li>
             );
