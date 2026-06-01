@@ -12,22 +12,28 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       id-token: write
+    concurrency:
+      group: publish-${{ github.ref }}
+      cancel-in-progress: false
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
           registry-url: 'https://registry.npmjs.org/'
           cache: yarn
 
       - name: Restore node_modules cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             node_modules
@@ -35,6 +41,24 @@ jobs:
             .pnp.*
           key: ${{ inputs.cache-key }}
           fail-on-cache-miss: true
+
+      - name: Bump patch version and push to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Bump the patch version in package.json only (no git tag).
+          NEW_VERSION=$(npm version patch --no-git-tag-version)
+          echo "Bumped to $NEW_VERSION"
+
+          # Commit just the version bump back to main. [skip ci] prevents this
+          # push from re-triggering the CI/publish pipeline (no infinite loop).
+          git add package.json
+          git commit -m "chore(release): $NEW_VERSION [skip ci]"
+
+          # Rebase onto the latest main in case it moved since checkout, then push.
+          git pull --rebase origin main
+          git push origin HEAD:main
 
       - name: Add exports to package.json
         run: yarn add:exports

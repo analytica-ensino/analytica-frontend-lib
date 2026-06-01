@@ -3,6 +3,7 @@ import { CardResults, CardStatus } from '../Card/Card';
 import {
   ANSWER_STATUS,
   Question,
+  QuestionResult,
   QUESTION_DIFFICULTY,
   QUIZ_TYPE,
   SUBTYPE_ENUM,
@@ -458,7 +459,9 @@ const QuizListResultByMateria = ({
   subjectName,
 }: {
   subject: string;
-  onQuestionClick: (question: Question) => void;
+  onQuestionClick: (
+    question: Question | QuestionResult['answers'][number]
+  ) => void;
   subjectName?: string;
 }) => {
   const { getQuestionsGroupedBySubject, getQuestionIndex } = useQuizStore();
