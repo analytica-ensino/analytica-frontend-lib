@@ -16,16 +16,16 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: yarn
 
       - name: Restore node_modules cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             node_modules
@@ -40,16 +40,8 @@ jobs:
           NODE_OPTIONS: "--max-old-space-size=4096"
         run: yarn test
 
-      - name: Upload Coverage Reports to Codecov
-        uses: codecov/codecov-action@v4
-        if: always()
-        with:
-          file: ./coverage/lcov.info
-          flags: unittests
-          name: analytica-frontend-lib-coverage
-
       - name: Upload Coverage Artifacts for SonarCloud
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: coverage-reports
