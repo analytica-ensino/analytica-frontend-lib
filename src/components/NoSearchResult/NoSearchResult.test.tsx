@@ -60,7 +60,8 @@ describe('NoSearchResult', () => {
     const mainDiv = container.firstChild as HTMLElement;
     expect(mainDiv).toHaveClass(
       'flex',
-      'flex-row',
+      'flex-col',
+      'lg:flex-row',
       'justify-center',
       'items-center'
     );

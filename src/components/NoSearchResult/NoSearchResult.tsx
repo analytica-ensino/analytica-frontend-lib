@@ -40,9 +40,9 @@ const NoSearchResult = ({ image, title, description }: NoSearchResultProps) => {
     'Não encontramos nenhum resultado com esse nome. Tente revisar a busca ou usar outra palavra-chave.';
 
   return (
-    <div className="flex flex-row justify-center items-center gap-8 w-full max-w-4xl min-h-96">
+    <div className="flex flex-col lg:flex-row justify-center items-center gap-6 lg:gap-8 w-full max-w-4xl min-h-96 px-4 lg:px-0">
       {/* Illustration */}
-      <div className="w-72 h-72 flex-shrink-0 relative">
+      <div className="w-48 h-48 lg:w-72 lg:h-72 flex-shrink-0 relative max-w-full">
         <img
           src={image}
           alt="No search results"
@@ -51,13 +51,13 @@ const NoSearchResult = ({ image, title, description }: NoSearchResultProps) => {
       </div>
 
       {/* Text Content */}
-      <div className="flex flex-col items-start w-full max-w-md">
+      <div className="flex flex-col items-center lg:items-start w-full max-w-md min-w-0">
         {/* Header Container */}
-        <div className="flex flex-row justify-between items-end px-6 pt-6 pb-4 w-full rounded-t-xl">
+        <div className="flex flex-row justify-center lg:justify-between items-end px-6 pt-6 pb-4 w-full rounded-t-xl">
           {/* Title */}
           <Text
             as="h2"
-            className="text-text-950 font-semibold text-3xl leading-tight w-full flex items-center"
+            className="text-text-950 font-semibold text-xl lg:text-3xl leading-tight w-full flex items-center justify-center lg:justify-start text-center lg:text-left"
           >
             {displayTitle}
           </Text>
@@ -66,7 +66,7 @@ const NoSearchResult = ({ image, title, description }: NoSearchResultProps) => {
         {/* Description Container */}
         <div className="flex flex-row justify-center items-center px-6 gap-2 w-full">
           {/* Description */}
-          <Text className="text-text-600 font-normal text-lg leading-relaxed w-full text-justify">
+          <Text className="text-text-600 font-normal text-base lg:text-lg leading-relaxed w-full text-center lg:text-justify">
             {displayDescription}
           </Text>
         </div>
