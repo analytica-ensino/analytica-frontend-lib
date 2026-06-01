@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react';
+import { useMobile } from '../../hooks/useMobile';
 import Text from '../Text/Text';
 import { Menu, MenuContent, MenuItem } from '../Menu/Menu';
 import Button from '../Button/Button';
@@ -94,6 +95,8 @@ export function BasePageLayout<T extends Record<string, unknown>>({
   onTabChange,
   onCreate,
 }: Readonly<BasePageLayoutProps<T>>) {
+  const { isMobile } = useMobile();
+
   /**
    * Compute a stable key for TableProvider based on filter options availability.
    * Forces remount when userData loads and filter options become available,
@@ -148,7 +151,11 @@ export function BasePageLayout<T extends Record<string, unknown>>({
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row w-full mb-6 items-start sm:items-center sm:justify-between gap-0 sm:gap-4">
           {/* Page Title + Optional Right Content */}
-          <div className="flex items-center gap-3">
+          <div
+            className={`flex gap-3 ${
+              isMobile ? 'flex-col items-start' : 'items-center'
+            }`}
+          >
             <Text
               as="h1"
               className="font-bold leading-[28px] tracking-[0.2px] text-text-950 text-xl lg:text-2xl whitespace-nowrap"
@@ -233,6 +240,7 @@ export function BasePageLayout<T extends Record<string, unknown>>({
                     size="medium"
                     onClick={onCreate}
                     iconLeft={<Plus size={18} weight="bold" />}
+                    className="w-full lg:w-auto"
                   >
                     {createButtonLabel}
                   </Button>

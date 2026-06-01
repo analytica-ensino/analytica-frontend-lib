@@ -449,7 +449,9 @@ export function TableProvider<T extends Record<string, unknown>>({
 
       {/* Search */}
       {enableSearch && (
-        <div className={cn('flex-1', searchContainerClassName)}>
+        <div
+          className={cn('flex-1 flex justify-end', searchContainerClassName)}
+        >
           <Search
             value={searchQuery}
             onSearch={handleSearchChange}
@@ -464,12 +466,12 @@ export function TableProvider<T extends Record<string, unknown>>({
 
   // Header with content and controls
   const headerSection = (headerContent || controls) && (
-    <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+    <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
       {/* Header Content (e.g., action buttons) */}
       {headerContent && <div>{headerContent}</div>}
 
       {/* Controls (search and filters) */}
-      {controls && <div className="flex-1 md:flex-none">{controls}</div>}
+      {controls && <div className="flex-1 lg:flex-none">{controls}</div>}
     </div>
   );
 
