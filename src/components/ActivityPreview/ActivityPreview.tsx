@@ -15,9 +15,11 @@ type PreviewQuestion = {
   subjectName?: string;
   subjectColor?: string;
   iconName?: string;
+  bank?: string;
+  year?: string;
   questionType?: QUESTION_TYPE;
   questionTypeLabel?: string;
-  enunciado?: string;
+  statement?: string;
   question?: {
     options: { id: string; option: string }[];
     correctOptionIds?: string[];
@@ -165,9 +167,11 @@ export const ActivityPreview = ({
                 subjectName = 'Assunto não informado',
                 subjectColor = '#000000',
                 iconName = 'BookOpen',
+                bank,
+                year,
                 questionType,
                 questionTypeLabel,
-                enunciado,
+                statement,
                 question,
                 position,
               },
@@ -179,7 +183,7 @@ export const ActivityPreview = ({
                 data-draggable="true"
                 role="button"
                 tabIndex={0}
-                aria-label={`Mover questão ${enunciado ?? id}`}
+                aria-label={`Mover questão ${statement ?? id}`}
                 onDragStart={(e) => {
                   e.dataTransfer.setData('text/plain', id);
                   if (e.currentTarget instanceof HTMLElement) {
@@ -238,9 +242,11 @@ export const ActivityPreview = ({
                   subjectColor={subjectColor}
                   iconName={iconName}
                   isDark={isDark}
+                  bank={bank}
+                  year={year}
                   questionType={questionType}
                   questionTypeLabel={questionTypeLabel}
-                  enunciado={enunciado}
+                  statement={statement}
                   defaultExpanded={false}
                   question={question}
                   value={id}

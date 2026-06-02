@@ -230,7 +230,19 @@ export const QuestionsPdfContent = forwardRef<
           Questão {questionNumber}
         </h3>
 
-        {question.enunciado && (
+        {(question.bank || question.year) && (
+          <div
+            style={{
+              fontSize: '12px',
+              marginBottom: '12px',
+              color: '#555',
+            }}
+          >
+            {[question.bank, question.year].filter(Boolean).join(' - ')}
+          </div>
+        )}
+
+        {question.statement && (
           <div
             style={{
               marginBottom: '12px',
@@ -238,7 +250,7 @@ export const QuestionsPdfContent = forwardRef<
               color: '#000',
             }}
           >
-            <LatexRenderer content={question.enunciado} />
+            <LatexRenderer content={question.statement} />
           </div>
         )}
 

@@ -117,8 +117,8 @@ jest.mock('../ActivityCardQuestionBanks/ActivityCardQuestionBanks', () => ({
   ActivityCardQuestionBanks: ({
     question,
     questionType,
-    assunto,
-    enunciado,
+    content,
+    statement,
     onAddToActivity,
     subjectColor,
     isDark,
@@ -126,8 +126,8 @@ jest.mock('../ActivityCardQuestionBanks/ActivityCardQuestionBanks', () => ({
   }: {
     question?: unknown;
     questionType: QUESTION_TYPE;
-    assunto: string;
-    enunciado: string;
+    content: string;
+    statement: string;
     onAddToActivity?: () => void;
     subjectColor: string;
     isDark: boolean;
@@ -136,8 +136,8 @@ jest.mock('../ActivityCardQuestionBanks/ActivityCardQuestionBanks', () => ({
     <div
       data-testid="activity-card-question-banks"
       data-question-type={questionType}
-      data-assunto={assunto}
-      data-enunciado={enunciado}
+      data-content={content}
+      data-statement={statement}
       data-subject-color={subjectColor}
       data-is-dark={isDark}
       data-icon-name={iconName}
@@ -523,7 +523,7 @@ describe('ActivityListQuestions', () => {
       const cards = screen.getAllByTestId('activity-card-question-banks');
       expect(cards).toHaveLength(1);
       expect(cards[0]).toHaveAttribute(
-        'data-enunciado',
+        'data-statement',
         'Test question statement'
       );
     });
@@ -542,10 +542,10 @@ describe('ActivityListQuestions', () => {
         String(QUESTION_TYPE.ALTERNATIVA)
       );
       expect(card).toHaveAttribute(
-        'data-assunto',
+        'data-content',
         'Matemática - Álgebra - Equações'
       );
-      expect(card).toHaveAttribute('data-enunciado', 'Test question statement');
+      expect(card).toHaveAttribute('data-statement', 'Test question statement');
       expect(card).toHaveAttribute('data-subject-color', '#FF0000');
       expect(card).toHaveAttribute('data-icon-name', 'Calculator');
     });
@@ -595,7 +595,7 @@ describe('ActivityListQuestions', () => {
       render(<ActivityListQuestions {...defaultProps} />);
 
       const card = screen.getByTestId('activity-card-question-banks');
-      expect(card).toHaveAttribute('data-assunto', 'Sem assunto');
+      expect(card).toHaveAttribute('data-content', 'Sem assunto');
       expect(card).toHaveAttribute('data-subject-color', '#6B7280');
       expect(card).toHaveAttribute('data-icon-name', 'BookOpen');
     });
@@ -625,7 +625,7 @@ describe('ActivityListQuestions', () => {
       render(<ActivityListQuestions {...defaultProps} />);
 
       const card = screen.getByTestId('activity-card-question-banks');
-      expect(card).toHaveAttribute('data-assunto', 'Matemática');
+      expect(card).toHaveAttribute('data-content', 'Matemática');
     });
 
     it('should map all question types correctly', () => {
@@ -1613,7 +1613,7 @@ describe('ActivityListQuestions', () => {
       render(<ActivityListQuestions {...defaultProps} />);
 
       const card = screen.getByTestId('activity-card-question-banks');
-      expect(card).toHaveAttribute('data-enunciado', 'Fresh API question');
+      expect(card).toHaveAttribute('data-statement', 'Fresh API question');
     });
 
     it('should use cached questions while loading', () => {
@@ -1659,7 +1659,7 @@ describe('ActivityListQuestions', () => {
       render(<ActivityListQuestions {...defaultProps} />);
 
       const card = screen.getByTestId('activity-card-question-banks');
-      expect(card).toHaveAttribute('data-enunciado', 'Cached question');
+      expect(card).toHaveAttribute('data-statement', 'Cached question');
     });
 
     it('should update cache even when API returns empty results', async () => {
@@ -1768,7 +1768,7 @@ describe('ActivityListQuestions', () => {
       render(<ActivityListQuestions {...defaultProps} />);
 
       const card = screen.getByTestId('activity-card-question-banks');
-      expect(card).toHaveAttribute('data-assunto', 'Sem assunto');
+      expect(card).toHaveAttribute('data-content', 'Sem assunto');
     });
 
     it('should handle question with subject but no color', () => {

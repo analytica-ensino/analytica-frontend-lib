@@ -19,7 +19,7 @@ export const Default: Story = () => {
         iconName="Book"
         isDark={isDark}
         questionType={QUESTION_TYPE.ALTERNATIVA}
-        enunciado="Considere uma floresta tropical onde diversas espécies de plantas e animais interagem. Explique como as relações de mutualismo e competição influenciam a estabilidade desse ecossistema ao longo do tempo."
+        statement="Considere uma floresta tropical onde diversas espécies de plantas e animais interagem. Explique como as relações de mutualismo e competição influenciam a estabilidade desse ecossistema ao longo do tempo."
         position={1}
       />
     </div>
@@ -42,7 +42,7 @@ export const WithLongStatement: Story = () => {
   return (
     <div className="p-6 flex flex-col gap-6">
       <h2 className="font-bold text-2xl text-text-900">
-        Preview com enunciado longo
+        Preview com statement longo
       </h2>
 
       <ActivityCardQuestionPreview
@@ -51,7 +51,7 @@ export const WithLongStatement: Story = () => {
         iconName="Leaf"
         isDark={isDark}
         questionType={QUESTION_TYPE.MULTIPLA_ESCOLHA}
-        enunciado={longStatement}
+        statement={longStatement}
         value="bio-fotossintese"
       >
         <div className="mt-4">
@@ -88,7 +88,7 @@ export const WithInlineMath: Story = () => {
         iconName="Atom"
         isDark={isDark}
         questionType={QUESTION_TYPE.DISSERTATIVA}
-        enunciado={mathStatement}
+        statement={mathStatement}
         position={1}
         value="fisica-mu"
       />
@@ -126,7 +126,7 @@ $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$`;
         iconName="Calculator"
         isDark={isDark}
         questionType={QUESTION_TYPE.ALTERNATIVA}
-        enunciado={blockMathStatement}
+        statement={blockMathStatement}
         position={2}
         question={{
           options: alternatives.map((a) => ({ id: a.value, option: a.label })),
@@ -160,7 +160,7 @@ $$B = \\begin{pmatrix} 1 & 0 \\\\ 2 & 1 \\end{pmatrix}$$
         iconName="Grid"
         isDark={isDark}
         questionType={QUESTION_TYPE.DISSERTATIVA}
-        enunciado={matrixStatement}
+        statement={matrixStatement}
         position={3}
         value="mat-matriz"
       />
@@ -195,7 +195,7 @@ $$CH_4 + 2O_2 \\rightarrow CO_2 + 2H_2O$$
         iconName="Flask"
         isDark={isDark}
         questionType={QUESTION_TYPE.DISSERTATIVA}
-        enunciado={htmlMathStatement}
+        statement={htmlMathStatement}
         position={4}
         value="quim-estequiometria"
       />
@@ -240,7 +240,7 @@ export const ENEMStyleQuestion: Story = () => {
         iconName="Cylinder"
         isDark={isDark}
         questionType={QUESTION_TYPE.ALTERNATIVA}
-        enunciado={enemStatement}
+        statement={enemStatement}
         position={5}
         question={{
           options: alternatives.map((a) => ({ id: a.value, option: a.label })),
@@ -275,7 +275,7 @@ $$\\sin(2x) + \\cos(x) = 0$$
         iconName="CircleHalf"
         isDark={isDark}
         questionType={QUESTION_TYPE.DISSERTATIVA}
-        enunciado={trigStatement}
+        statement={trigStatement}
         position={6}
         value="mat-trig"
       />
@@ -294,7 +294,7 @@ export const MultipleQuestionsWithMath: Story = () => {
       subject: 'Física',
       color: '#EF4444',
       icon: 'Atom',
-      enunciado:
+      statement:
         '<p>Calcule a energia cinética de um objeto com massa $m = 5kg$ e velocidade $v = 10m/s$.</p><p>Use a fórmula: $E_c = \\frac{1}{2}mv^2$</p>',
       position: 1,
     },
@@ -302,14 +302,14 @@ export const MultipleQuestionsWithMath: Story = () => {
       subject: 'Matemática',
       color: '#3B82F6',
       icon: 'Calculator',
-      enunciado: '<p>Calcule a integral definida:</p>$$\\int_0^1 x^2 dx$$',
+      statement: '<p>Calcule a integral definida:</p>$$\\int_0^1 x^2 dx$$',
       position: 2,
     },
     {
       subject: 'Química',
       color: '#10B981',
       icon: 'Flask',
-      enunciado:
+      statement:
         '<p>Balanceie a equação química:</p>$$Fe + O_2 \\rightarrow Fe_2O_3$$',
       position: 3,
     },
@@ -329,7 +329,7 @@ export const MultipleQuestionsWithMath: Story = () => {
           iconName={q.icon}
           isDark={isDark}
           questionType={QUESTION_TYPE.DISSERTATIVA}
-          enunciado={q.enunciado}
+          statement={q.statement}
           position={q.position}
           value={`question-${index}`}
         />

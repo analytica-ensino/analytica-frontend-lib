@@ -344,7 +344,9 @@ export function convertQuestionToPreview(question: Question): PreviewQuestion {
 
   return {
     id: question.id,
-    enunciado: question.statement,
+    statement: question.statement,
+    bank: question.questionBankYear?.questionBank?.name || undefined,
+    year: question.questionBankYear?.year || undefined,
     questionType: question.questionType,
     question: question.options
       ? {

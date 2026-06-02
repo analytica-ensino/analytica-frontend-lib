@@ -69,7 +69,7 @@ export const ActivityModelDetails = ({
                 question.knowledgeMatrix?.[0]?.subject?.icon ?? 'BookOpen'
               }
               questionType={question.questionType}
-              enunciado={question.statement}
+              statement={question.statement}
               defaultExpanded={false}
               question={{
                 options:

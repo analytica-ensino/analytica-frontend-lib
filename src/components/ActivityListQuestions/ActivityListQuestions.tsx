@@ -186,7 +186,7 @@ export const ActivityListQuestions = ({
    */
   const getSubjectInfo = (question: Question) => {
     if (!question.knowledgeMatrix || question.knowledgeMatrix.length === 0) {
-      return { assunto: 'Sem assunto', color: '#6B7280', icon: 'BookOpen' };
+      return { content: 'Sem assunto', color: '#6B7280', icon: 'BookOpen' };
     }
 
     const matrix = question.knowledgeMatrix[0];
@@ -194,7 +194,7 @@ export const ActivityListQuestions = ({
     const topic = matrix.topic;
     const subtopic = matrix.subtopic;
     if (!subject) {
-      return { assunto: 'Sem assunto', color: '#6B7280', icon: 'BookOpen' };
+      return { content: 'Sem assunto', color: '#6B7280', icon: 'BookOpen' };
     }
 
     const parts = [subject.name];
@@ -202,7 +202,7 @@ export const ActivityListQuestions = ({
     if (subtopic?.name) parts.push(subtopic.name);
 
     return {
-      assunto: parts.join(' - '),
+      content: parts.join(' - '),
       color: subject.color || '#6B7280',
       icon: subject.icon || 'BookOpen',
     };
@@ -434,8 +434,10 @@ export const ActivityListQuestions = ({
               iconName={subjectInfo.icon}
               subjectColor={subjectInfo.color}
               isDark={isDark}
-              assunto={subjectInfo.assunto}
-              enunciado={question.statement}
+              content={subjectInfo.content}
+              bank={question.questionBankYear?.questionBank?.name}
+              year={question.questionBankYear?.year}
+              statement={question.statement}
               additionalContent={question.additionalContent}
               onAddToActivity={() => {
                 if (onAddQuestion) {

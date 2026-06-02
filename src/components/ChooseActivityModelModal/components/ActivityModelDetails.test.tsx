@@ -36,7 +36,7 @@ jest.mock(
       subjectColor,
       iconName,
       questionType,
-      enunciado,
+      statement,
       defaultExpanded,
       question,
       value,
@@ -46,7 +46,7 @@ jest.mock(
       subjectColor: string;
       iconName: string;
       questionType: QUESTION_TYPE;
-      enunciado: string;
+      statement: string;
       defaultExpanded: boolean;
       question: {
         options: { id: string; option: string }[];
@@ -61,7 +61,7 @@ jest.mock(
         data-subject-color={subjectColor}
         data-icon-name={iconName}
         data-question-type={questionType}
-        data-enunciado={enunciado}
+        data-statement={statement}
         data-default-expanded={defaultExpanded}
         data-value={value}
         data-position={position}
@@ -235,7 +235,7 @@ describe('ActivityModelDetails', () => {
         'data-question-type',
         QUESTION_TYPE.ALTERNATIVA
       );
-      expect(questionCards[0]).toHaveAttribute('data-enunciado', 'Question 1');
+      expect(questionCards[0]).toHaveAttribute('data-statement', 'Question 1');
       expect(questionCards[0]).toHaveAttribute('data-value', 'q1');
       expect(questionCards[0]).toHaveAttribute('data-position', '1');
 
@@ -250,7 +250,7 @@ describe('ActivityModelDetails', () => {
         'data-question-type',
         QUESTION_TYPE.DISSERTATIVA
       );
-      expect(questionCards[1]).toHaveAttribute('data-enunciado', 'Question 2');
+      expect(questionCards[1]).toHaveAttribute('data-statement', 'Question 2');
       expect(questionCards[1]).toHaveAttribute('data-value', 'q2');
       expect(questionCards[1]).toHaveAttribute('data-position', '2');
     });

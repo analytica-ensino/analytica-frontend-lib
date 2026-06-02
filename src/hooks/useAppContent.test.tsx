@@ -555,7 +555,9 @@ describe('useAppContent', () => {
     expect(mockSetSelectedProfile).toHaveBeenCalledWith(testProfile);
 
     urlAuthConfig.clearParamsFromURL();
-    expect(mockNavigate).toHaveBeenCalledWith('/memoized/path', { replace: true });
+    expect(mockNavigate).toHaveBeenCalledWith('/memoized/path', {
+      replace: true,
+    });
 
     const consoleSpy = jest
       .spyOn(console, 'error')

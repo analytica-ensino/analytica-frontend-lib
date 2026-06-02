@@ -55,11 +55,11 @@ beforeEach(() => {
 describe('QuestionsPdfContent', () => {
   const baseQuestion: PreviewQuestion = {
     id: 'q1',
-    enunciado: 'Qual é a resposta?',
+    statement: 'Qual é a resposta?',
     questionType: QUESTION_TYPE.ALTERNATIVA,
   };
 
-  it('renders question with number and enunciado', () => {
+  it('renders question with number and statement', () => {
     const { container } = render(
       <QuestionsPdfContent questions={[baseQuestion]} />
     );
@@ -73,7 +73,7 @@ describe('QuestionsPdfContent', () => {
   it('renders multiple questions with correct numbering', () => {
     const questions: PreviewQuestion[] = [
       { ...baseQuestion, id: 'q1' },
-      { ...baseQuestion, id: 'q2', enunciado: 'Segunda questão' },
+      { ...baseQuestion, id: 'q2', statement: 'Segunda questão' },
     ];
 
     const { container } = render(<QuestionsPdfContent questions={questions} />);
@@ -380,7 +380,7 @@ describe('useQuestionsPdfPrint', () => {
   });
 
   it('returns contentRef and handlePrint function', () => {
-    const result = createTestHook([{ id: 'q1', enunciado: 'Test' }]);
+    const result = createTestHook([{ id: 'q1', statement: 'Test' }]);
 
     expect(result).toBeDefined();
     expect(result.contentRef).toBeDefined();
@@ -390,7 +390,7 @@ describe('useQuestionsPdfPrint', () => {
 
   it('calls onPrint callback when handlePrint is called', () => {
     const result = createTestHook(
-      [{ id: 'q1', enunciado: 'Test' }],
+      [{ id: 'q1', statement: 'Test' }],
       mockOnPrint
     );
 
@@ -402,7 +402,7 @@ describe('useQuestionsPdfPrint', () => {
   it('opens print window and writes content', () => {
     const question: PreviewQuestion = {
       id: 'q1',
-      enunciado: 'Test question',
+      statement: 'Test question',
       questionType: QUESTION_TYPE.ALTERNATIVA,
     };
 
@@ -424,7 +424,7 @@ describe('useQuestionsPdfPrint', () => {
   it('calls onPrintError when contentRef is null', () => {
     const TestComponentWithHook = () => {
       const result = useQuestionsPdfPrint(
-        [{ id: 'q1', enunciado: 'Test' }],
+        [{ id: 'q1', statement: 'Test' }],
         undefined,
         mockOnPrintError
       );
@@ -444,7 +444,7 @@ describe('useQuestionsPdfPrint', () => {
     mockWindowOpen.mockReturnValueOnce(null as unknown as Window);
 
     const result = createTestHook(
-      [{ id: 'q1', enunciado: 'Test' }],
+      [{ id: 'q1', statement: 'Test' }],
       undefined,
       mockOnPrintError
     );
@@ -458,7 +458,7 @@ describe('useQuestionsPdfPrint', () => {
   });
 
   it('includes KaTeX CSS link in print window', () => {
-    const result = createTestHook([{ id: 'q1', enunciado: 'Test' }]);
+    const result = createTestHook([{ id: 'q1', statement: 'Test' }]);
 
     result.handlePrint();
 
@@ -469,7 +469,7 @@ describe('useQuestionsPdfPrint', () => {
   });
 
   it('closes document after writing', () => {
-    const result = createTestHook([{ id: 'q1', enunciado: 'Test' }]);
+    const result = createTestHook([{ id: 'q1', statement: 'Test' }]);
 
     result.handlePrint();
 
@@ -477,7 +477,7 @@ describe('useQuestionsPdfPrint', () => {
   });
 
   it('calls doc.open() before doc.write()', () => {
-    const result = createTestHook([{ id: 'q1', enunciado: 'Test' }]);
+    const result = createTestHook([{ id: 'q1', statement: 'Test' }]);
 
     result.handlePrint();
 
@@ -498,7 +498,7 @@ describe('useQuestionsPdfPrint', () => {
   });
 
   it('includes all required CSS styles in print window', () => {
-    const result = createTestHook([{ id: 'q1', enunciado: 'Test' }]);
+    const result = createTestHook([{ id: 'q1', statement: 'Test' }]);
 
     result.handlePrint();
 
@@ -521,7 +521,7 @@ describe('useQuestionsPdfPrint', () => {
       configurable: true,
     });
 
-    const result = createTestHook([{ id: 'q1', enunciado: 'Test' }]);
+    const result = createTestHook([{ id: 'q1', statement: 'Test' }]);
 
     // Should not throw error
     expect(() => result.handlePrint()).not.toThrow();
@@ -541,7 +541,7 @@ describe('useQuestionsPdfPrint', () => {
       configurable: true,
     });
 
-    const result = createTestHook([{ id: 'q1', enunciado: 'Test' }]);
+    const result = createTestHook([{ id: 'q1', statement: 'Test' }]);
 
     result.handlePrint();
 
@@ -557,7 +557,7 @@ describe('useQuestionsPdfPrint', () => {
       configurable: true,
     });
 
-    const result = createTestHook([{ id: 'q1', enunciado: 'Test' }]);
+    const result = createTestHook([{ id: 'q1', statement: 'Test' }]);
 
     expect(() => result.handlePrint()).not.toThrow();
     expect(mockPrintWindow.document.write).toHaveBeenCalled();
@@ -566,7 +566,7 @@ describe('useQuestionsPdfPrint', () => {
   it('includes contentHTML in the generated HTML', () => {
     const question: PreviewQuestion = {
       id: 'q1',
-      enunciado: 'Test question content',
+      statement: 'Test question content',
       questionType: QUESTION_TYPE.ALTERNATIVA,
     };
 
@@ -584,12 +584,12 @@ describe('useQuestionsPdfPrint', () => {
     result!.handlePrint();
 
     const writtenContent = mockPrintWindow.document.write.mock.calls[0][0];
-    // Should contain the question content (the enunciado will be rendered by LatexRenderer)
+    // Should contain the question content (the statement will be rendered by LatexRenderer)
     expect(writtenContent).toContain('Test question content');
   });
 
   it('handles multiple calls to handlePrint', () => {
-    const result = createTestHook([{ id: 'q1', enunciado: 'Test' }]);
+    const result = createTestHook([{ id: 'q1', statement: 'Test' }]);
 
     result.handlePrint();
     result.handlePrint();
@@ -617,7 +617,7 @@ describe('useQuestionsPdfPrint', () => {
       printWindowWithFonts as unknown as Window
     );
 
-    const result = createTestHook([{ id: 'q1', enunciado: 'Test' }]);
+    const result = createTestHook([{ id: 'q1', statement: 'Test' }]);
 
     result.handlePrint();
 
@@ -651,7 +651,7 @@ describe('useQuestionsPdfPrint', () => {
       printWindowWithoutFonts as unknown as Window
     );
 
-    const result = createTestHook([{ id: 'q1', enunciado: 'Test' }]);
+    const result = createTestHook([{ id: 'q1', statement: 'Test' }]);
 
     result.handlePrint();
 
@@ -681,7 +681,7 @@ describe('useQuestionsPdfPrint', () => {
       printWindowWithPartialFonts as unknown as Window
     );
 
-    const result = createTestHook([{ id: 'q1', enunciado: 'Test' }]);
+    const result = createTestHook([{ id: 'q1', statement: 'Test' }]);
 
     result.handlePrint();
 
@@ -715,7 +715,7 @@ describe('useQuestionsPdfPrint', () => {
       printWindowWithFontsError as unknown as Window
     );
 
-    const result = createTestHook([{ id: 'q1', enunciado: 'Test' }]);
+    const result = createTestHook([{ id: 'q1', statement: 'Test' }]);
 
     result.handlePrint();
 
@@ -734,7 +734,7 @@ describe('QuestionsPdfGenerator', () => {
   const baseQuestions: PreviewQuestion[] = [
     {
       id: 'q1',
-      enunciado: 'Test question',
+      statement: 'Test question',
       questionType: QUESTION_TYPE.ALTERNATIVA,
     },
   ];
@@ -866,7 +866,7 @@ describe('QuestionsPdfGenerator', () => {
     const allTypesQuestions: PreviewQuestion[] = [
       {
         id: 'q1',
-        enunciado: 'Alternativa',
+        statement: 'Alternativa',
         questionType: QUESTION_TYPE.ALTERNATIVA,
         question: {
           options: [{ id: 'a', option: 'Opção A' }],
@@ -874,7 +874,7 @@ describe('QuestionsPdfGenerator', () => {
       },
       {
         id: 'q2',
-        enunciado: 'Múltipla escolha',
+        statement: 'Múltipla escolha',
         questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
         question: {
           options: [{ id: 'a', option: 'Opção A' }],
@@ -882,12 +882,12 @@ describe('QuestionsPdfGenerator', () => {
       },
       {
         id: 'q3',
-        enunciado: 'Dissertativa',
+        statement: 'Dissertativa',
         questionType: QUESTION_TYPE.DISSERTATIVA,
       },
       {
         id: 'q4',
-        enunciado: 'Verdadeiro ou Falso',
+        statement: 'Verdadeiro ou Falso',
         questionType: QUESTION_TYPE.VERDADEIRO_FALSO,
         question: {
           options: [{ id: 'a', option: 'Afirmação' }],

@@ -29,13 +29,15 @@ interface ActivityCardQuestionPreviewProps {
   subjectName?: string;
   subjectColor?: string;
   iconName?: string;
+  bank?: string;
+  year?: string;
   isDark?: boolean;
   questionType?: QUESTION_TYPE;
   /**
    * Optional label override when questionType is not provided.
    */
   questionTypeLabel?: string;
-  enunciado?: string;
+  statement?: string;
   question?: {
     options: {
       id: string;
@@ -61,12 +63,16 @@ const QuestionHeader = ({
   iconName,
   subjectName,
   resolvedQuestionTypeLabel,
+  bank,
+  year,
   position,
 }: {
   badgeColor: string;
   iconName?: string;
   subjectName?: string;
   resolvedQuestionTypeLabel?: string;
+  bank?: string;
+  year?: string;
   position?: number;
 }) => (
   <div className="flex flex-row gap-2 text-text-650">
@@ -99,6 +105,12 @@ const QuestionHeader = ({
         {resolvedQuestionTypeLabel ?? 'Tipo de questão'}
       </Text>
     </div>
+
+    {(bank || year) && (
+      <div className="py-1 px-2 flex flex-row items-center gap-1">
+        <Text size="sm">{[bank, year].filter(Boolean).join(' - ')}</Text>
+      </div>
+    )}
   </div>
 );
 
@@ -106,10 +118,12 @@ export const ActivityCardQuestionPreview = ({
   subjectName = 'Assunto não informado',
   subjectColor = '#000000',
   iconName = 'Book',
+  bank,
+  year,
   isDark = false,
   questionType,
   questionTypeLabel,
-  enunciado = 'Enunciado não informado',
+  statement = 'Enunciado não informado',
   question,
   matchingPairs,
   defaultExpanded = false,
@@ -337,7 +351,7 @@ export const ActivityCardQuestionPreview = ({
         }
       }}
     >
-      {/* Hidden drag preview with header + truncated enunciado (closed state) */}
+      {/* Hidden drag preview with header + truncated statement (closed state) */}
       <div
         data-drag-preview="true"
         className="fixed -left-[9999px] -top-[9999px] pointer-events-none z-[9999] w-[440px]"
@@ -349,6 +363,8 @@ export const ActivityCardQuestionPreview = ({
               iconName={safeIconName}
               subjectName={safeSubjectName}
               resolvedQuestionTypeLabel={safeResolvedLabel}
+              bank={bank}
+              year={year}
               position={position}
             />
 
@@ -357,7 +373,7 @@ export const ActivityCardQuestionPreview = ({
               weight="medium"
               className="text-text-950 truncate px-3"
             >
-              {stripHtml(enunciado)}
+              {stripHtml(statement)}
             </Text>
           </div>
         </div>
@@ -379,6 +395,8 @@ export const ActivityCardQuestionPreview = ({
               iconName={safeIconName}
               subjectName={safeSubjectName}
               resolvedQuestionTypeLabel={safeResolvedLabel}
+              bank={bank}
+              year={year}
               position={position}
             />
 
@@ -388,14 +406,14 @@ export const ActivityCardQuestionPreview = ({
                 weight="medium"
                 className="text-text-950 truncate px-3"
               >
-                {stripHtml(enunciado)}
+                {stripHtml(statement)}
               </Text>
             )}
           </div>
         }
       >
         <HtmlMathRenderer
-          content={enunciado}
+          content={statement}
           className="text-text-950 text-md break-words"
         />
         {renderFromMap(questionRenderers, questionType)}

@@ -14,7 +14,7 @@ export const Default: Story = () => {
       subjectColor: '#84cc16',
       iconName: 'BookOpen',
       questionType: QUESTION_TYPE.ALTERNATIVA,
-      enunciado:
+      statement:
         'Um grupo de cientistas está estudando o comportamento de uma população de rãs em um lago. Após várias observações, eles notaram que a quantidade de rãs aumenta em média 15% a cada mês. Qual será a população de rãs após 6 meses, se inicialmente havia 200 rãs no lago?',
       question: {
         options: [
@@ -32,7 +32,7 @@ export const Default: Story = () => {
       subjectColor: '#6366f1',
       iconName: 'Dna',
       questionType: QUESTION_TYPE.DISSERTATIVA,
-      enunciado:
+      statement:
         'Explique o princípio da segregação de Mendel e como ele se aplica à formação de gametas.',
       question: {
         options: [],
@@ -69,7 +69,7 @@ export const AllQuestionTypes: Story = () => {
       subjectColor: '#16a34a',
       iconName: 'Leaf',
       questionType: QUESTION_TYPE.ALTERNATIVA,
-      enunciado: 'Qual é a principal fonte de energia para a fotossíntese?',
+      statement: 'Qual é a principal fonte de energia para a fotossíntese?',
       question: {
         options: [
           { id: 'a', option: 'Glicose' },
@@ -86,7 +86,7 @@ export const AllQuestionTypes: Story = () => {
       subjectColor: '#6366f1',
       iconName: 'CastleTurret',
       questionType: QUESTION_TYPE.MULTIPLA_ESCOLHA,
-      enunciado: 'Selecione características do feudalismo:',
+      statement: 'Selecione características do feudalismo:',
       question: {
         options: [
           { id: 'a', option: 'Economia agrária' },
@@ -103,7 +103,7 @@ export const AllQuestionTypes: Story = () => {
       subjectColor: '#f97316',
       iconName: 'Article',
       questionType: QUESTION_TYPE.DISSERTATIVA,
-      enunciado:
+      statement:
         'Explique a importância da coesão e coerência em um texto dissertativo-argumentativo.',
       question: {
         options: [],
@@ -116,7 +116,7 @@ export const AllQuestionTypes: Story = () => {
       subjectColor: '#06b6d4',
       iconName: 'CheckCircle',
       questionType: QUESTION_TYPE.VERDADEIRO_FALSO,
-      enunciado: 'Assinale V ou F para as afirmações sobre estados da matéria:',
+      statement: 'Assinale V ou F para as afirmações sobre estados da matéria:',
       question: {
         options: [
           { id: 'a', option: 'Sólidos têm forma e volume definidos.' },
@@ -132,7 +132,7 @@ export const AllQuestionTypes: Story = () => {
       subjectColor: '#8b5cf6',
       iconName: 'GlobeHemisphereWest',
       questionType: QUESTION_TYPE.RELACIONAR,
-      enunciado: 'Associe países às suas capitais.',
+      statement: 'Associe países às suas capitais.',
       question: {
         options: [],
         correctOptionIds: [],
@@ -144,7 +144,7 @@ export const AllQuestionTypes: Story = () => {
       subjectColor: '#14b8a6',
       iconName: 'MathOperations',
       questionType: QUESTION_TYPE.PREENCHER_LACUNAS,
-      enunciado:
+      statement:
         'Complete: A soma dos ângulos internos de um triângulo é ____.',
       question: {
         options: [],
@@ -157,7 +157,7 @@ export const AllQuestionTypes: Story = () => {
       subjectColor: '#f43f5e',
       iconName: 'ImageSquare',
       questionType: QUESTION_TYPE.IMAGEM,
-      enunciado: 'Identifique o movimento artístico representado na imagem.',
+      statement: 'Identifique o movimento artístico representado na imagem.',
       question: {
         options: [],
         correctOptionIds: [],
