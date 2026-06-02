@@ -2,8 +2,8 @@
   "name": "analytica-frontend-lib",
   "version": "1.4.46",
   "description": "Repositório público dos componentes utilizados nas plataformas da Analytica Ensino",
-  "main": "dist/index.cjs",
-  "module": "./dist/index.js",
+  "main": "dist/index.js",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "files": [
     "dist"
@@ -16,8 +16,8 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
     },
     "./styles.css": "./dist/styles.css"
   },
