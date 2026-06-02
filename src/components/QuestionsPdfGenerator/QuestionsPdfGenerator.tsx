@@ -230,6 +230,18 @@ export const QuestionsPdfContent = forwardRef<
           Questão {questionNumber}
         </h3>
 
+        {(question.banca || question.ano) && (
+          <div
+            style={{
+              fontSize: '12px',
+              marginBottom: '12px',
+              color: '#555',
+            }}
+          >
+            {[question.banca, question.ano].filter(Boolean).join(' - ')}
+          </div>
+        )}
+
         {question.enunciado && (
           <div
             style={{

@@ -40,6 +40,8 @@ interface ActivityCardQuestionBanksProps {
   isDark?: boolean;
   onAddToActivity?: () => void;
   assunto?: string;
+  banca?: string;
+  ano?: string;
   enunciado?: string;
   additionalContent?: string | null;
   /** Enable exam mode - changes text labels from 'atividade' to 'prova' */
@@ -54,6 +56,8 @@ export const ActivityCardQuestionBanks = ({
   isDark = false,
   onAddToActivity,
   assunto,
+  banca,
+  ano,
   enunciado,
   additionalContent,
   enableExamMode = false,
@@ -313,6 +317,12 @@ export const ActivityCardQuestionBanks = ({
               : 'Tipo de questão'}
           </Text>
         </div>
+
+        {(banca || ano) && (
+          <div className="py-1 px-2 flex flex-row items-center gap-1">
+            <Text size="sm">{[banca, ano].filter(Boolean).join(' - ')}</Text>
+          </div>
+        )}
       </section>
 
       <section className="flex flex-col gap-1">

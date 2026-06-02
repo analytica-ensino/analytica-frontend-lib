@@ -435,6 +435,8 @@ export const ActivityListQuestions = ({
               subjectColor={subjectInfo.color}
               isDark={isDark}
               assunto={subjectInfo.assunto}
+              banca={question.questionBankYear?.questionBank?.name}
+              ano={question.questionBankYear?.year}
               enunciado={question.statement}
               additionalContent={question.additionalContent}
               onAddToActivity={() => {

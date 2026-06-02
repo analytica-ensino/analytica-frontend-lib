@@ -29,6 +29,8 @@ interface ActivityCardQuestionPreviewProps {
   subjectName?: string;
   subjectColor?: string;
   iconName?: string;
+  banca?: string;
+  ano?: string;
   isDark?: boolean;
   questionType?: QUESTION_TYPE;
   /**
@@ -61,12 +63,16 @@ const QuestionHeader = ({
   iconName,
   subjectName,
   resolvedQuestionTypeLabel,
+  banca,
+  ano,
   position,
 }: {
   badgeColor: string;
   iconName?: string;
   subjectName?: string;
   resolvedQuestionTypeLabel?: string;
+  banca?: string;
+  ano?: string;
   position?: number;
 }) => (
   <div className="flex flex-row gap-2 text-text-650">
@@ -99,6 +105,12 @@ const QuestionHeader = ({
         {resolvedQuestionTypeLabel ?? 'Tipo de questão'}
       </Text>
     </div>
+
+    {(banca || ano) && (
+      <div className="py-1 px-2 flex flex-row items-center gap-1">
+        <Text size="sm">{[banca, ano].filter(Boolean).join(' - ')}</Text>
+      </div>
+    )}
   </div>
 );
 
@@ -106,6 +118,8 @@ export const ActivityCardQuestionPreview = ({
   subjectName = 'Assunto não informado',
   subjectColor = '#000000',
   iconName = 'Book',
+  banca,
+  ano,
   isDark = false,
   questionType,
   questionTypeLabel,
@@ -349,6 +363,8 @@ export const ActivityCardQuestionPreview = ({
               iconName={safeIconName}
               subjectName={safeSubjectName}
               resolvedQuestionTypeLabel={safeResolvedLabel}
+              banca={banca}
+              ano={ano}
               position={position}
             />
 
@@ -379,6 +395,8 @@ export const ActivityCardQuestionPreview = ({
               iconName={safeIconName}
               subjectName={safeSubjectName}
               resolvedQuestionTypeLabel={safeResolvedLabel}
+              banca={banca}
+              ano={ano}
               position={position}
             />
 

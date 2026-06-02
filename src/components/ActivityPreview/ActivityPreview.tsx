@@ -15,6 +15,8 @@ type PreviewQuestion = {
   subjectName?: string;
   subjectColor?: string;
   iconName?: string;
+  banca?: string;
+  ano?: string;
   questionType?: QUESTION_TYPE;
   questionTypeLabel?: string;
   enunciado?: string;
@@ -165,6 +167,8 @@ export const ActivityPreview = ({
                 subjectName = 'Assunto não informado',
                 subjectColor = '#000000',
                 iconName = 'BookOpen',
+                banca,
+                ano,
                 questionType,
                 questionTypeLabel,
                 enunciado,
@@ -238,6 +242,8 @@ export const ActivityPreview = ({
                   subjectColor={subjectColor}
                   iconName={iconName}
                   isDark={isDark}
+                  banca={banca}
+                  ano={ano}
                   questionType={questionType}
                   questionTypeLabel={questionTypeLabel}
                   enunciado={enunciado}
