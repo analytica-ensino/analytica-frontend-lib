@@ -256,7 +256,6 @@ jest.mock('../TableProvider/TableProvider', () => {
 
       // Find column renderers
       const actionsColumn = headers?.find((h) => h.key === 'actions');
-      const creatorColumn = headers?.find((h) => h.key === 'creator');
       const titleColumn = headers?.find((h) => h.key === 'title');
       const schoolColumn = headers?.find((h) => h.key === 'school');
       const subjectColumn = headers?.find((h) => h.key === 'subject');
@@ -283,11 +282,6 @@ jest.mock('../TableProvider/TableProvider', () => {
                       data-testid={`row-${row.id}`}
                       onClick={() => onRowClick?.(row)}
                     >
-                      <td data-testid="creator-cell">
-                        {creatorColumn?.render
-                          ? creatorColumn.render(row.creator, row)
-                          : row.creator}
-                      </td>
                       <td data-testid="title-cell">
                         {titleColumn?.render
                           ? titleColumn.render(row.title, row)
@@ -740,55 +734,6 @@ describe('RecommendedLessonsHistory', () => {
   });
 
   describe('Column Renderers', () => {
-    it('should render creator column with tooltip', async () => {
-      render(<RecommendedLessonsHistory {...defaultProps} />);
-
-      await waitFor(() => {
-        const creatorCell = screen.getByTestId('creator-cell');
-        expect(creatorCell).toBeInTheDocument();
-        expect(creatorCell).toHaveTextContent('Professor João');
-      });
-    });
-
-    it('should render creator column with "-" when creator is null', async () => {
-      const responseWithNullCreator: RecommendedClassHistoryApiResponse = {
-        message: 'Success',
-        data: {
-          recommendedClass: [
-            {
-              ...validApiResponse.data.recommendedClass[0],
-              creator: null,
-            },
-          ],
-          total: 1,
-        },
-      };
-      mockFetchRecommendedClassHistory.mockResolvedValue(
-        responseWithNullCreator
-      );
-
-      render(<RecommendedLessonsHistory {...defaultProps} />);
-
-      await waitFor(() => {
-        const creatorCell = screen.getByTestId('creator-cell');
-        expect(creatorCell).toHaveTextContent('-');
-      });
-    });
-
-    it('should handle non-string values in creator column', async () => {
-      render(<RecommendedLessonsHistory {...defaultProps} />);
-
-      await waitFor(() => {
-        expect(capturedHeaders).toBeDefined();
-      });
-
-      const creatorColumn = capturedHeaders?.find((h) => h.key === 'creator');
-      expect(creatorColumn?.render).toBeDefined();
-
-      const result = creatorColumn?.render?.(null, {});
-      expect(result).toBeDefined();
-    });
-
     it('should render title column with tooltip', async () => {
       render(<RecommendedLessonsHistory {...defaultProps} />);
 

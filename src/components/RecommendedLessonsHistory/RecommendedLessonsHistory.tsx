@@ -311,16 +311,6 @@ const createTableColumns = (
     sortable: true,
   },
   {
-    key: 'creator',
-    label: 'Autor',
-    sortable: false,
-    className: 'max-w-[150px]',
-    render: (value: unknown) => {
-      const name = typeof value === 'string' ? value : '';
-      return <TruncatedText size="sm">{name}</TruncatedText>;
-    },
-  },
-  {
     key: 'title',
     label: 'Título',
     sortable: true,
@@ -339,11 +329,6 @@ const createTableColumns = (
       const school = typeof value === 'string' ? value : '';
       return <TruncatedText size="sm">{school}</TruncatedText>;
     },
-  },
-  {
-    key: 'year',
-    label: 'Ano',
-    sortable: true,
   },
   {
     key: 'subject',
@@ -379,6 +364,11 @@ const createTableColumns = (
     key: 'class',
     label: 'Turma',
     sortable: true,
+    className: 'max-w-[120px]',
+    render: (value: unknown) => {
+      const className = typeof value === 'string' ? value : '';
+      return <TruncatedText size="sm">{className}</TruncatedText>;
+    },
   },
   {
     key: 'status',

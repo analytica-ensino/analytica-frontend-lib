@@ -7,6 +7,7 @@ import {
   DownloadSimple,
 } from 'phosphor-react';
 import Text from '../Text/Text';
+import { TruncatedText } from '../TruncatedText/TruncatedText';
 import Button from '../Button/Button';
 import Badge from '../Badge/Badge';
 import EmptyState from '../EmptyState/EmptyState';
@@ -94,16 +95,19 @@ const createTableColumns = (
       key: 'studentName',
       label: 'Aluno',
       sortable: true,
+      className: 'max-w-[220px]',
       render: (value: unknown) => {
         const name = typeof value === 'string' ? value : '';
         return (
-          <div className="flex items-center gap-3">
-            <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
               <Text className="text-xs font-semibold text-primary-700">
                 {name.charAt(0).toUpperCase()}
               </Text>
             </div>
-            <Text className="text-sm font-normal text-text-950">{name}</Text>
+            <TruncatedText size="sm" color="text-text-950">
+              {name}
+            </TruncatedText>
           </div>
         );
       },
