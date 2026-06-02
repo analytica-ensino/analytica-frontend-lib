@@ -850,6 +850,35 @@ describe('RecommendedLessonsHistory', () => {
       expect(result).toBeDefined();
     });
 
+    it('should render class column with tooltip', async () => {
+      render(<RecommendedLessonsHistory {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(capturedHeaders).toBeDefined();
+      });
+
+      const classColumn = capturedHeaders?.find((h) => h.key === 'class');
+      expect(classColumn?.render).toBeDefined();
+
+      const result = classColumn?.render?.('Turma A', {});
+      expect(result).toBeDefined();
+    });
+
+    it('should handle non-string values in class column', async () => {
+      render(<RecommendedLessonsHistory {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(capturedHeaders).toBeDefined();
+      });
+
+      const classColumn = capturedHeaders?.find((h) => h.key === 'class');
+      expect(classColumn?.render).toBeDefined();
+
+      // Test with non-string value
+      const result = classColumn?.render?.(null, {});
+      expect(result).toBeDefined();
+    });
+
     it('should handle non-string values in subject column', async () => {
       render(<RecommendedLessonsHistory {...defaultProps} />);
 
