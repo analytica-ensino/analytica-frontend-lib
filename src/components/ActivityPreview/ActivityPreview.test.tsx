@@ -65,11 +65,11 @@ jest.mock('../Quiz/useQuizStore', () => ({
 
 jest.mock('../ActivityCardQuestionPreview/ActivityCardQuestionPreview', () => ({
   ActivityCardQuestionPreview: ({
-    enunciado,
+    statement,
     value,
     position,
   }: {
-    enunciado?: string;
+    statement?: string;
     value: string;
     position?: number;
   }) => (
@@ -79,7 +79,7 @@ jest.mock('../ActivityCardQuestionPreview/ActivityCardQuestionPreview', () => ({
       data-position={position}
     >
       <div data-drag-preview="true">drag-preview</div>
-      <span>{enunciado ?? value}</span>
+      <span>{statement ?? value}</span>
       <span data-testid="position">{position}</span>
     </div>
   ),
@@ -97,8 +97,8 @@ const createDataTransfer = (initialId?: string) => {
 };
 
 const baseQuestions: PreviewQuestion[] = [
-  { id: 'q1', enunciado: 'First question' },
-  { id: 'q2', enunciado: 'Second question' },
+  { id: 'q1', statement: 'First question' },
+  { id: 'q2', statement: 'Second question' },
 ];
 
 const renderComponent = (props: Partial<ActivityPreviewProps> = {}) =>
@@ -264,7 +264,7 @@ describe('ActivityPreview', () => {
     onPositionsChange.mockClear();
 
     const newQuestions: PreviewQuestion[] = [
-      { id: 'q3', enunciado: 'Third question' },
+      { id: 'q3', statement: 'Third question' },
     ];
     rerender(
       <ActivityPreview

@@ -480,7 +480,7 @@ describe('ActivityCreate.utils', () => {
 
       expect(result).toEqual({
         id: 'q1',
-        enunciado: 'Test question statement',
+        statement: 'Test question statement',
         questionType: QUESTION_TYPE.ALTERNATIVA,
         question: {
           options: [
@@ -507,7 +507,7 @@ describe('ActivityCreate.utils', () => {
 
       expect(result).toEqual({
         id: 'q1',
-        enunciado: 'Test question statement',
+        statement: 'Test question statement',
         questionType: QUESTION_TYPE.DISSERTATIVA,
         question: {
           options: [],
@@ -537,7 +537,7 @@ describe('ActivityCreate.utils', () => {
 
       expect(result).toEqual({
         id: 'q1',
-        enunciado: 'Test question statement',
+        statement: 'Test question statement',
         questionType: QUESTION_TYPE.DISSERTATIVA,
         question: undefined,
         subjectName: 'Português',
@@ -559,7 +559,7 @@ describe('ActivityCreate.utils', () => {
 
       expect(result).toEqual({
         id: 'q1',
-        enunciado: 'Test question statement',
+        statement: 'Test question statement',
         questionType: QUESTION_TYPE.ALTERNATIVA,
         question: {
           options: [{ id: 'opt1', option: 'Option 1' }],
@@ -592,7 +592,7 @@ describe('ActivityCreate.utils', () => {
 
       expect(result).toEqual({
         id: 'q1',
-        enunciado: 'Test question statement',
+        statement: 'Test question statement',
         questionType: QUESTION_TYPE.ALTERNATIVA,
         question: {
           options: [],
@@ -617,7 +617,7 @@ describe('ActivityCreate.utils', () => {
 
       expect(result).toEqual({
         id: 'q1',
-        enunciado: 'Test question statement',
+        statement: 'Test question statement',
         questionType: QUESTION_TYPE.ALTERNATIVA,
         question: {
           options: [],

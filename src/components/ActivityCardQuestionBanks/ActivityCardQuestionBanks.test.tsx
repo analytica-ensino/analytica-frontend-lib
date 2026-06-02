@@ -227,17 +227,17 @@ describe('ActivityCardQuestionBanks', () => {
       expect(icon).toHaveAttribute('data-icon', 'BookOpen');
     });
 
-    it('should render assunto when provided', () => {
+    it('should render content when provided', () => {
       render(
         <ActivityCardQuestionBanks
           {...defaultProps}
-          assunto="Matemática - Álgebra"
+          content="Matemática - Álgebra"
         />
       );
       expect(screen.getByText('Matemática - Álgebra')).toBeInTheDocument();
     });
 
-    it('should render default assunto when not provided', () => {
+    it('should render default content when not provided', () => {
       render(<ActivityCardQuestionBanks {...defaultProps} />);
       expect(screen.getByText('Assunto não informado')).toBeInTheDocument();
     });
@@ -1014,11 +1014,11 @@ describe('ActivityCardQuestionBanks', () => {
       expect(mainContainer).toHaveClass('w-full', 'flex', 'flex-col');
     });
 
-    it('should render header section with assunto and question type', () => {
+    it('should render header section with content and question type', () => {
       render(
         <ActivityCardQuestionBanks
           {...defaultProps}
-          assunto="Test Subject"
+          content="Test Subject"
           questionType={QUESTION_TYPE.ALTERNATIVA}
         />
       );
@@ -1026,34 +1026,34 @@ describe('ActivityCardQuestionBanks', () => {
       expect(screen.getByText('Alternativa')).toBeInTheDocument();
     });
 
-    it('should render default enunciado when not provided', () => {
+    it('should render default statement when not provided', () => {
       render(<ActivityCardQuestionBanks {...defaultProps} />);
       const statement = screen.getByText('Enunciado não informado');
       expect(statement).toBeInTheDocument();
     });
 
-    it('should render custom enunciado when provided', () => {
+    it('should render custom statement when provided', () => {
       const customEnunciado = 'Qual é a capital do Brasil?';
       render(
         <ActivityCardQuestionBanks
           {...defaultProps}
-          enunciado={customEnunciado}
+          statement={customEnunciado}
         />
       );
       const statement = screen.getByText(customEnunciado);
       expect(statement).toBeInTheDocument();
     });
 
-    it('should render enunciado with correct styling', () => {
-      const customEnunciado = 'Teste de enunciado';
+    it('should render statement with correct styling', () => {
+      const customEnunciado = 'Teste de statement';
       render(
         <ActivityCardQuestionBanks
           {...defaultProps}
-          enunciado={customEnunciado}
+          statement={customEnunciado}
         />
       );
       const statement = screen.getByText(customEnunciado);
-      // HtmlMathRenderer is used for enunciado, find the parent container with styles
+      // HtmlMathRenderer is used for statement, find the parent container with styles
       const statementContainer = statement.closest('.text-text-950');
       expect(statementContainer).toBeInTheDocument();
       expect(statementContainer).toHaveClass(

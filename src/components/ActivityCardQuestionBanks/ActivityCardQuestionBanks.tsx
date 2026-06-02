@@ -39,10 +39,10 @@ interface ActivityCardQuestionBanksProps {
   subjectColor?: string;
   isDark?: boolean;
   onAddToActivity?: () => void;
-  assunto?: string;
-  banca?: string;
-  ano?: string;
-  enunciado?: string;
+  content?: string;
+  bank?: string;
+  year?: string;
+  statement?: string;
   additionalContent?: string | null;
   /** Enable exam mode - changes text labels from 'atividade' to 'prova' */
   enableExamMode?: boolean;
@@ -55,10 +55,10 @@ export const ActivityCardQuestionBanks = ({
   subjectColor = '#000000',
   isDark = false,
   onAddToActivity,
-  assunto,
-  banca,
-  ano,
-  enunciado,
+  content,
+  bank,
+  year,
+  statement,
   additionalContent,
   enableExamMode = false,
 }: ActivityCardQuestionBanksProps = {}) => {
@@ -307,7 +307,7 @@ export const ActivityCardQuestionBanks = ({
           >
             <IconRender iconName={iconName} size={14} color="currentColor" />
           </span>
-          <Text size="sm">{assunto || 'Assunto não informado'}</Text>
+          <Text size="sm">{content || 'Assunto não informado'}</Text>
         </div>
 
         <div className="py-1 px-2 flex flex-row items-center gap-1">
@@ -318,17 +318,17 @@ export const ActivityCardQuestionBanks = ({
           </Text>
         </div>
 
-        {(banca || ano) && (
+        {(bank || year) && (
           <div className="py-1 px-2 flex flex-row items-center gap-1">
-            <Text size="sm">{[banca, ano].filter(Boolean).join(' - ')}</Text>
+            <Text size="sm">{[bank, year].filter(Boolean).join(' - ')}</Text>
           </div>
         )}
       </section>
 
       <section className="flex flex-col gap-1">
-        {enunciado ? (
+        {statement ? (
           <HtmlMathRenderer
-            content={enunciado}
+            content={statement}
             className="text-text-950 text-md font-medium"
           />
         ) : (

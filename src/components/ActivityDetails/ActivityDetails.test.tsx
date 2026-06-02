@@ -325,7 +325,7 @@ jest.mock('../QuestionsPdfGenerator/QuestionsPdfGenerator', () => ({
 // Mock ActivityCreate utils
 const mockConvertQuestionToPreview = jest.fn((question: Question) => ({
   id: question.id,
-  enunciado: question.statement,
+  statement: question.statement,
   questionType: question.questionType,
   question: question.options
     ? {

@@ -96,7 +96,7 @@ const baseProps = {
   subjectName: 'Biologia',
   subjectColor: '#00aa00',
   iconName: 'Leaf',
-  enunciado: 'Texto da questão',
+  statement: 'Texto da questão',
 };
 
 describe('ActivityCardQuestionPreview', () => {
@@ -114,7 +114,7 @@ describe('ActivityCardQuestionPreview', () => {
       screen.getAllByText(questionTypeLabels[QUESTION_TYPE.ALTERNATIVA])[0]
     ).toBeInTheDocument();
     expect(screen.getAllByText(`#${3}`)[0]).toBeInTheDocument();
-    expect(screen.getAllByText(baseProps.enunciado)[0]).toBeInTheDocument();
+    expect(screen.getAllByText(baseProps.statement)[0]).toBeInTheDocument();
     const positionContainer = screen
       .getAllByText(baseProps.subjectName)[0]
       .closest('[data-position]');
@@ -133,7 +133,7 @@ describe('ActivityCardQuestionPreview', () => {
   });
 
   it('uses defaults when subjectName and iconName are missing', () => {
-    render(<ActivityCardQuestionPreview enunciado="Sem assunto" />);
+    render(<ActivityCardQuestionPreview statement="Sem assunto" />);
 
     expect(screen.getAllByText('Assunto não informado')[0]).toBeInTheDocument();
     expect(screen.getAllByText('Book')[0]).toBeInTheDocument();

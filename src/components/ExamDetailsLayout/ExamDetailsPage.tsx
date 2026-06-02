@@ -198,7 +198,7 @@ export const ExamDetailsPage = ({
       return {
         id: question.id,
         questionType: question.questionType,
-        enunciado: question.statement,
+        statement: question.statement,
         question: question.options
           ? {
               options: question.options.map((opt) => ({
