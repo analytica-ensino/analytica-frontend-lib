@@ -98,6 +98,14 @@ export interface AppHeaderProps {
     entityType?: NotificationEntityType,
     entityId?: string
   ) => void;
+  /**
+   * Tailwind class overriding the default `max-w-[1000px]` of the header
+   * content (forwarded to the internal `PageContainer`'s `innerClassName`).
+   * Pass e.g. `max-w-[1350px]` to align the header with a widened page
+   * content. When omitted, the default `max-w-[1000px]` is kept, so other
+   * consumers are unaffected.
+   */
+  contentMaxWidth?: string;
 }
 
 const DEFAULT_EMPTY_TITLE = 'Nenhuma notificação no momento';
@@ -126,6 +134,7 @@ export const AppHeader = ({
   onLogout,
   onNavigateToMyData,
   onNavigateByNotification,
+  contentMaxWidth,
 }: AppHeaderProps) => {
   const { isMobile, isExtraSmallMobile } = useMobile();
   const [activeStates, setActiveStates] = useState<Record<string, boolean>>({});
@@ -208,7 +217,10 @@ export const AppHeader = ({
       data-component="AppHeader"
       className="bg-primary-800 w-full h-[70px] flex justify-center items-center"
     >
-      <PageContainer className="pb-0 justify-center">
+      <PageContainer
+        className="pb-0 justify-center"
+        innerClassName={contentMaxWidth}
+      >
         <div className="w-full flex flex-row justify-between items-center">
           <BrandingLogo
             variant="main"

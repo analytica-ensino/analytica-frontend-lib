@@ -34,6 +34,13 @@ export interface AppLayoutProps {
    * Pass e.g. `max-w-[1150px]` to widen for roles with more items.
    */
   menuMaxWidth?: string;
+  /**
+   * Tailwind class overriding the default `max-w-[1000px]` of the page content
+   * (forwarded to `PageContainer`'s `innerClassName`). Pass e.g.
+   * `max-w-[1280px]` to widen the content area. When omitted, the default
+   * `max-w-[1000px]` is kept, so other consumers are unaffected.
+   */
+  contentMaxWidth?: string;
   /** Page content (e.g. `<Outlet />`). */
   children: ReactNode;
   /**
@@ -58,6 +65,7 @@ export const AppLayout = ({
   activeMenuValue,
   onMenuItemClick,
   menuMaxWidth,
+  contentMaxWidth,
   children,
   bottomSlot,
 }: AppLayoutProps) => {
@@ -87,7 +95,9 @@ export const AppLayout = ({
         ))}
       </MenuOverflow>
       <div className="md:[height:calc(100dvh-120px)] md:overflow-auto w-full">
-        <PageContainer>{children}</PageContainer>
+        <PageContainer innerClassName={contentMaxWidth}>
+          {children}
+        </PageContainer>
       </div>
       {bottomSlot}
     </div>

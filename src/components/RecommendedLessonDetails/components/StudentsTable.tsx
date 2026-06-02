@@ -1,5 +1,6 @@
 import { UserIcon } from '@phosphor-icons/react';
 import Text from '../../Text/Text';
+import { TruncatedText } from '../../TruncatedText/TruncatedText';
 import Button from '../../Button/Button';
 import Badge from '../../Badge/Badge';
 import ProgressBar from '../../ProgressBar/ProgressBar';
@@ -89,17 +90,17 @@ export const StudentsTable = ({
           ) : (
             sortedData.map((student) => (
               <TableRow key={student.id}>
-                <TableCell>
-                  <div className="flex items-center gap-2">
+                <TableCell className="max-w-[220px]">
+                  <div className="flex items-center gap-2 min-w-0">
                     <Text
                       as="span"
-                      className="size-8 rounded-full bg-background-100 flex items-center justify-center"
+                      className="size-8 rounded-full bg-background-100 flex items-center justify-center shrink-0"
                     >
                       <UserIcon size={16} className="text-text-500" />
                     </Text>
-                    <Text size="sm" className="text-text-950">
+                    <TruncatedText size="sm" color="text-text-950">
                       {student.name}
-                    </Text>
+                    </TruncatedText>
                   </div>
                 </TableCell>
                 <TableCell>

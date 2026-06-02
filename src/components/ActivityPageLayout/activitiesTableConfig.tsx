@@ -34,7 +34,6 @@ export const getActivityStatusBadgeAction = (
  * Columns:
  * - startDate: Data de inicio
  * - deadline: Prazo
- * - creator: Autor
  * - title: Titulo
  * - school: Escola
  * - year: Ano
@@ -53,13 +52,6 @@ export const activitiesTableColumns: ColumnConfig<ActivityTableItem>[] = [
     key: 'deadline',
     label: 'Prazo',
     sortable: true,
-  },
-  {
-    key: 'creator',
-    label: 'Autor',
-    sortable: false,
-    className: 'max-w-[150px]',
-    render: renderTextCell,
   },
   {
     key: 'title',
@@ -95,6 +87,8 @@ export const activitiesTableColumns: ColumnConfig<ActivityTableItem>[] = [
     key: 'class',
     label: 'Turma',
     sortable: true,
+    className: 'max-w-[120px]',
+    render: renderTextCell,
   },
   {
     key: 'status',
