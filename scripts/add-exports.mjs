@@ -59,14 +59,17 @@ async function addExports() {
     }
   }
 
-  // Merge with existing exports, adding main bundle export and preserving base exports
+  // Merge with existing exports, adding main bundle export and preserving base exports.
+  // The root "." entry is applied AFTER spreading the existing exports so a stale/wrong
+  // "." in the committed package.json can never clobber the correct mapping
+  // (import -> ESM .mjs, require -> CJS .js).
   const newExports = {
+    ...packageJson.exports,
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     },
-    ...packageJson.exports,
     ...componentExports
   };
 
