@@ -300,12 +300,13 @@ describe('useAppContent', () => {
   });
 
   it('should handle handleClearParamsFromURL without custom callback', () => {
+    window.history.pushState({}, '', '/some/path');
     renderHook(() => useAppContent(defaultConfig));
 
     const urlAuthConfig = mockUseUrlAuthentication.mock.calls[0][0];
     urlAuthConfig.clearParamsFromURL();
 
-    expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
+    expect(mockNavigate).toHaveBeenCalledWith('/some/path', { replace: true });
   });
 
   it('should handle handleClearParamsFromURL with custom callback', () => {
@@ -538,6 +539,7 @@ describe('useAppContent', () => {
   });
 
   it('should test all callback functions are properly memoized', () => {
+    window.history.pushState({}, '', '/memoized/path');
     renderHook(() => useAppContent(defaultConfig));
 
     const urlAuthConfig = mockUseUrlAuthentication.mock.calls[0][0];
@@ -553,7 +555,7 @@ describe('useAppContent', () => {
     expect(mockSetSelectedProfile).toHaveBeenCalledWith(testProfile);
 
     urlAuthConfig.clearParamsFromURL();
-    expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
+    expect(mockNavigate).toHaveBeenCalledWith('/memoized/path', { replace: true });
 
     const consoleSpy = jest
       .spyOn(console, 'error')
