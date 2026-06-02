@@ -2,6 +2,7 @@ import type { MouseEvent } from 'react';
 import Badge from '../Badge/Badge';
 import Button from '../Button/Button';
 import Text from '../Text/Text';
+import { TruncatedText } from '../TruncatedText/TruncatedText';
 import type { ColumnConfig } from '../TableProvider/TableProvider';
 import {
   StudentAnswerStatus,
@@ -55,16 +56,15 @@ export const createExamStudentsTableColumns = (
     key: 'studentName',
     label: 'Aluno',
     sortable: true,
+    className: 'max-w-[220px]',
     render: (_value: unknown, row: ExamStudentTableItem) => (
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-full bg-warning-200 flex items-center justify-center">
+      <div className="flex items-center gap-2 min-w-0">
+        <div className="w-8 h-8 rounded-full bg-warning-200 flex items-center justify-center shrink-0">
           <Text as="span" size="sm" weight="bold" color="text-warning-700">
             {row.studentName.charAt(0).toUpperCase()}
           </Text>
         </div>
-        <Text as="span" size="sm">
-          {row.studentName}
-        </Text>
+        <TruncatedText size="sm">{row.studentName}</TruncatedText>
       </div>
     ),
   },

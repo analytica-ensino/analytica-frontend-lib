@@ -66,6 +66,8 @@ export const examsTableColumns: ColumnConfig<ExamTableItem>[] = [
     key: 'class',
     label: 'Turma',
     sortable: true,
+    className: 'max-w-[120px]',
+    render: renderTextCell,
   },
   {
     key: 'status',

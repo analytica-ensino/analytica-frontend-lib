@@ -40,7 +40,7 @@ describe('activitiesTableConfig', () => {
 
   describe('activitiesTableColumns', () => {
     it('should have correct number of columns', () => {
-      expect(activitiesTableColumns).toHaveLength(11);
+      expect(activitiesTableColumns).toHaveLength(10);
     });
 
     it('should have startDate column with correct config', () => {
@@ -57,17 +57,8 @@ describe('activitiesTableConfig', () => {
       expect(deadlineColumn.sortable).toBe(true);
     });
 
-    it('should have creator column with correct config', () => {
-      const creatorColumn = activitiesTableColumns[2];
-      expect(creatorColumn.key).toBe('creator');
-      expect(creatorColumn.label).toBe('Autor');
-      expect(creatorColumn.sortable).toBe(false);
-      expect(creatorColumn.className).toBe('max-w-[150px]');
-      expect(creatorColumn.render).toBeDefined();
-    });
-
     it('should have title column with correct config', () => {
-      const titleColumn = activitiesTableColumns[3];
+      const titleColumn = activitiesTableColumns[2];
       expect(titleColumn.key).toBe('title');
       expect(titleColumn.label).toBe('Título');
       expect(titleColumn.sortable).toBe(true);
@@ -76,7 +67,7 @@ describe('activitiesTableConfig', () => {
     });
 
     it('should have school column with correct config', () => {
-      const schoolColumn = activitiesTableColumns[4];
+      const schoolColumn = activitiesTableColumns[3];
       expect(schoolColumn.key).toBe('school');
       expect(schoolColumn.label).toBe('Escola');
       expect(schoolColumn.sortable).toBe(true);
@@ -85,14 +76,14 @@ describe('activitiesTableConfig', () => {
     });
 
     it('should have year column with correct config', () => {
-      const yearColumn = activitiesTableColumns[5];
+      const yearColumn = activitiesTableColumns[4];
       expect(yearColumn.key).toBe('year');
       expect(yearColumn.label).toBe('Ano');
       expect(yearColumn.sortable).toBe(true);
     });
 
     it('should have subject column with correct config', () => {
-      const subjectColumn = activitiesTableColumns[6];
+      const subjectColumn = activitiesTableColumns[5];
       expect(subjectColumn.key).toBe('subject');
       expect(subjectColumn.label).toBe('Matéria');
       expect(subjectColumn.sortable).toBe(true);
@@ -101,14 +92,14 @@ describe('activitiesTableConfig', () => {
     });
 
     it('should have class column with correct config', () => {
-      const classColumn = activitiesTableColumns[7];
+      const classColumn = activitiesTableColumns[6];
       expect(classColumn.key).toBe('class');
       expect(classColumn.label).toBe('Turma');
       expect(classColumn.sortable).toBe(true);
     });
 
     it('should have status column with correct config', () => {
-      const statusColumn = activitiesTableColumns[8];
+      const statusColumn = activitiesTableColumns[7];
       expect(statusColumn.key).toBe('status');
       expect(statusColumn.label).toBe('Status');
       expect(statusColumn.sortable).toBe(true);
@@ -116,7 +107,7 @@ describe('activitiesTableConfig', () => {
     });
 
     it('should have completionPercentage column with correct config', () => {
-      const completionColumn = activitiesTableColumns[9];
+      const completionColumn = activitiesTableColumns[8];
       expect(completionColumn.key).toBe('completionPercentage');
       expect(completionColumn.label).toBe('Conclusão');
       expect(completionColumn.sortable).toBe(true);
@@ -124,7 +115,7 @@ describe('activitiesTableConfig', () => {
     });
 
     it('should have navigation column with correct config', () => {
-      const navigationColumn = activitiesTableColumns[10];
+      const navigationColumn = activitiesTableColumns[9];
       expect(navigationColumn.key).toBe('navigation');
       expect(navigationColumn.label).toBe('');
       expect(navigationColumn.sortable).toBe(false);
@@ -133,7 +124,7 @@ describe('activitiesTableConfig', () => {
     });
 
     describe('status column render', () => {
-      const statusColumn = activitiesTableColumns[8];
+      const statusColumn = activitiesTableColumns[7];
 
       it('should render Badge with correct props for CONCLUIDA status', () => {
         const { container } = render(
@@ -183,7 +174,7 @@ describe('activitiesTableConfig', () => {
     });
 
     describe('completionPercentage column render', () => {
-      const completionColumn = activitiesTableColumns[9];
+      const completionColumn = activitiesTableColumns[8];
 
       it('should render ProgressBar with correct value', () => {
         const { container } = render(
@@ -217,7 +208,7 @@ describe('activitiesTableConfig', () => {
     });
 
     describe('navigation column render', () => {
-      const navigationColumn = activitiesTableColumns[10];
+      const navigationColumn = activitiesTableColumns[9];
 
       it('should render CaretRight icon', () => {
         const { container } = render(
@@ -228,7 +219,7 @@ describe('activitiesTableConfig', () => {
     });
 
     describe('subject column render', () => {
-      const subjectColumn = activitiesTableColumns[6];
+      const subjectColumn = activitiesTableColumns[5];
 
       it('should render subject with string value', () => {
         const { container } = render(
