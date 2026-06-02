@@ -84,6 +84,21 @@ describe('AlertDialog', () => {
         screen.getByRole('button', { name: 'Deletar' })
       ).toBeInTheDocument();
     });
+
+    it('should render submit button with positive action classes when submitAction="positive"', () => {
+      render(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={true}
+          onChangeOpen={jest.fn()}
+          submitAction="positive"
+        />
+      );
+
+      const submitButton = screen.getByRole('button', { name: 'Confirm' });
+      expect(submitButton).toBeInTheDocument();
+      expect(submitButton).toHaveClass('bg-success-500');
+    });
   });
 
   describe('Controlled Mode', () => {
