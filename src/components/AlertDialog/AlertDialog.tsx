@@ -48,6 +48,8 @@ interface AlertDialogProps extends HTMLAttributes<HTMLDivElement> {
   submitButtonLabel?: string;
   /** Size of the alert dialog */
   size?: 'extra-small' | 'small' | 'medium' | 'large' | 'extra-large';
+  /** Action type for the submit button (controls color/style). Defaults to 'negative' (destructive) */
+  submitAction?: 'primary' | 'secondary' | 'positive' | 'negative';
 }
 
 const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
@@ -67,6 +69,7 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
       onCancel,
       cancelValue,
       size = 'medium',
+      submitAction = 'negative',
       ...props
     },
     ref
@@ -163,7 +166,7 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
                 <Button
                   variant="solid"
                   size="small"
-                  action="negative"
+                  action={submitAction}
                   onClick={handleSubmit}
                 >
                   {submitButtonLabel}

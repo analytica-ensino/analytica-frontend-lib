@@ -1,6 +1,5 @@
 import { renderHook } from '@testing-library/react';
 import { useAppContent } from './useAppContent';
-import { mockWindowLocation } from '../test-utils/mockLocation';
 
 // Mock do react-router-dom
 const mockNavigate = jest.fn();
@@ -301,16 +300,12 @@ describe('useAppContent', () => {
   });
 
   it('should handle handleClearParamsFromURL without custom callback', () => {
-    const mockReplace = jest.fn();
-    const { restore } = mockWindowLocation({ replace: mockReplace });
-
     renderHook(() => useAppContent(defaultConfig));
 
     const urlAuthConfig = mockUseUrlAuthentication.mock.calls[0][0];
     urlAuthConfig.clearParamsFromURL();
 
-    expect(mockReplace).toHaveBeenCalledWith('/painel');
-    restore();
+    expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
   });
 
   it('should handle handleClearParamsFromURL with custom callback', () => {
@@ -557,14 +552,8 @@ describe('useAppContent', () => {
     urlAuthConfig.setSelectedProfile(testProfile);
     expect(mockSetSelectedProfile).toHaveBeenCalledWith(testProfile);
 
-    const mockReplace = jest.fn();
-    const { restore: restoreLoc } = mockWindowLocation({
-      replace: mockReplace,
-    });
-
     urlAuthConfig.clearParamsFromURL();
-    expect(mockReplace).toHaveBeenCalledWith('/painel');
-    restoreLoc();
+    expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
 
     const consoleSpy = jest
       .spyOn(console, 'error')
