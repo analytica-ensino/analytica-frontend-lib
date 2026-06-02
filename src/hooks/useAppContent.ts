@@ -83,9 +83,9 @@ export function useAppContent(config: UseAppContentConfig) {
     if (onClearParamsFromURL) {
       onClearParamsFromURL();
     } else {
-      globalThis.location.replace('/painel');
+      navigate(globalThis.location.pathname, { replace: true });
     }
-  }, [onClearParamsFromURL]);
+  }, [onClearParamsFromURL, navigate]);
 
   const handleError = useCallback(
     (error: unknown) => {
