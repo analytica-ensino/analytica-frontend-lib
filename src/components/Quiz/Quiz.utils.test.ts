@@ -2,6 +2,7 @@ import {
   shuffleWithSeed,
   prependLetterToHtml,
   getTrueOrFalseOptionState,
+  formatExamInfo,
 } from './Quiz.utils';
 import { QuizVariant } from './Quiz.types';
 import { TrueFalseEnum } from '../../enums/Quiz';
@@ -287,5 +288,55 @@ describe('getTrueOrFalseOptionState', () => {
       expect(state.studentMarkedTrue).toBe(false);
       expect(state.studentAnswer).toBe(TrueFalseEnum.FALSO);
     });
+  });
+});
+
+describe('formatExamInfo', () => {
+  it('should return formatted string with bank and year when both are provided', () => {
+    expect(formatExamInfo('ENEM', '2023')).toBe('(ENEM - 2023)');
+  });
+
+  it('should return only bank when year is null', () => {
+    expect(formatExamInfo('UFPR', null)).toBe('(UFPR)');
+  });
+
+  it('should return only bank when year is undefined', () => {
+    expect(formatExamInfo('FUVEST', undefined)).toBe('(FUVEST)');
+  });
+
+  it('should return only year when bank is null', () => {
+    expect(formatExamInfo(null, '2022')).toBe('(2022)');
+  });
+
+  it('should return only year when bank is undefined', () => {
+    expect(formatExamInfo(undefined, '2021')).toBe('(2021)');
+  });
+
+  it('should return empty string when both are null', () => {
+    expect(formatExamInfo(null, null)).toBe('');
+  });
+
+  it('should return empty string when both are undefined', () => {
+    expect(formatExamInfo(undefined, undefined)).toBe('');
+  });
+
+  it('should return empty string when bank is null and year is undefined', () => {
+    expect(formatExamInfo(null, undefined)).toBe('');
+  });
+
+  it('should return empty string when bank is undefined and year is null', () => {
+    expect(formatExamInfo(undefined, null)).toBe('');
+  });
+
+  it('should handle empty string bank as falsy', () => {
+    expect(formatExamInfo('', '2023')).toBe('(2023)');
+  });
+
+  it('should handle empty string year as falsy', () => {
+    expect(formatExamInfo('ENEM', '')).toBe('(ENEM)');
+  });
+
+  it('should return empty string when both are empty strings', () => {
+    expect(formatExamInfo('', '')).toBe('');
   });
 });
