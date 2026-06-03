@@ -43,6 +43,38 @@ describe('ToggleSwitch', () => {
 
       expect(onChange).not.toHaveBeenCalled();
     });
+
+    it('deve chamar onClick e onChange quando ambos são passados', () => {
+      const onClick = jest.fn();
+      const onChange = jest.fn();
+      render(<ToggleSwitch onClick={onClick} onChange={onChange} />);
+
+      fireEvent.click(screen.getByRole('switch'));
+
+      expect(onClick).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('deve chamar onChange mesmo quando onClick chama stopPropagation', () => {
+      const onClick = jest.fn((e: React.MouseEvent) => e.stopPropagation());
+      const onChange = jest.fn();
+      render(<ToggleSwitch onClick={onClick} onChange={onChange} />);
+
+      fireEvent.click(screen.getByRole('switch'));
+
+      expect(onChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('não deve chamar onChange quando onClick chama preventDefault', () => {
+      const onClick = jest.fn((e: React.MouseEvent) => e.preventDefault());
+      const onChange = jest.fn();
+      render(<ToggleSwitch onClick={onClick} onChange={onChange} />);
+
+      fireEvent.click(screen.getByRole('switch'));
+
+      expect(onClick).toHaveBeenCalledTimes(1);
+      expect(onChange).not.toHaveBeenCalled();
+    });
   });
 
   describe('Tamanhos', () => {
