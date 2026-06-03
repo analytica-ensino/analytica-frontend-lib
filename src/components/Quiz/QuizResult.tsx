@@ -16,6 +16,7 @@ import { cn, getSubjectColorWithOpacity } from '../../utils/utils';
 import Badge from '../Badge/Badge';
 import { useTheme } from '../../hooks/useTheme';
 import Button from '../Button/Button';
+import { formatExamInfo } from './Quiz.utils';
 
 const QuizBadge = ({
   subtype,
@@ -489,15 +490,25 @@ const QuizListResultByMateria = ({
 
         <ul className="flex flex-col gap-2 pt-4">
           {formattedQuestions.map((question) => {
-            const questionIndex = getQuestionIndex(
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (question as any).questionId ?? question.id
-            );
+            // questionId exists in QuestionResult answers, id in Question
+            const questionId =
+              'questionId' in question ? question.questionId : question.id;
+            const questionIndex = getQuestionIndex(questionId);
+
+            // examBoard and examYear only exist in Question type
+            const examBoard =
+              'examBoard' in question ? question.examBoard : null;
+            const examYear = 'examYear' in question ? question.examYear : null;
+            const examInfo = formatExamInfo(examBoard, examYear);
+            const questionTitle = `Questão ${questionIndex.toString().padStart(2, '0')}`;
+            const header = examInfo
+              ? `${questionTitle} ${examInfo}`
+              : questionTitle;
             return (
               <li key={question.id}>
                 <CardStatus
                   className="max-w-full"
-                  header={`Questão ${questionIndex.toString().padStart(2, '0')}`}
+                  header={header}
                   status={(() => {
                     if (
                       question.answerStatus === ANSWER_STATUS.RESPOSTA_CORRETA

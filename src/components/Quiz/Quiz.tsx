@@ -40,6 +40,7 @@ import {
 import { CardStatus } from '../Card/Card';
 import Text from '../Text/Text';
 import HtmlMathRenderer from '../HtmlMathRenderer/HtmlMathRenderer';
+import { formatExamInfo } from './Quiz.utils';
 
 // Função para obter configuração do tipo de quiz
 export const getQuizTypeConfig = (type: QUIZ_TYPE) => {
@@ -244,13 +245,21 @@ const QuizHeader = () => {
       ? (currentQuestion.questionId as string)
       : currentQuestion?.id;
   const questionIndex = getQuestionIndex(currentId!);
+
+  const questionNumber = currentQuestion
+    ? `Questão ${questionIndex.toString().padStart(2, '0')}`
+    : 'Questão';
+
+  const examInfo = formatExamInfo(
+    currentQuestion?.examBoard,
+    currentQuestion?.examYear
+  );
+
+  const title = examInfo ? `${questionNumber} ${examInfo}` : questionNumber;
+
   return (
     <HeaderAlternative
-      title={
-        currentQuestion
-          ? `Questão ${questionIndex.toString().padStart(2, '0')}`
-          : 'Questão'
-      }
+      title={title}
       subTitle={currentQuestion?.knowledgeMatrix?.[0]?.topic?.name ?? ''}
       content={currentQuestion?.statement ?? ''}
     />
@@ -366,10 +375,18 @@ const QuizQuestionList = ({
               {questions.map((question) => {
                 const status = getQuestionStatus(question.id);
                 const questionNumber = getQuestionIndex(question.id);
+                const examInfo = formatExamInfo(
+                  question.examBoard,
+                  question.examYear
+                );
+                const questionTitle = `Questão ${questionNumber.toString().padStart(2, '0')}`;
+                const header = examInfo
+                  ? `${questionTitle} ${examInfo}`
+                  : questionTitle;
                 return (
                   <CardStatus
                     key={question.id}
-                    header={`Questão ${questionNumber.toString().padStart(2, '0')}`}
+                    header={header}
                     label={getStatusLabel(status)}
                     onClick={() => {
                       goToQuestion(questionNumber - 1);

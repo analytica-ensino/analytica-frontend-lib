@@ -7,6 +7,28 @@ import { TrueFalseEnum } from '../../enums/Quiz';
 import { OptionStatus } from '../../enums/Options';
 
 /**
+ * Helper function to format exam info (bank - year)
+ * @param examBoard - The exam board/bank name
+ * @param examYear - The exam year
+ * @returns Formatted string like "(ENEM - 2023)" or empty string if no info
+ */
+export const formatExamInfo = (
+  examBoard: string | null | undefined,
+  examYear: string | null | undefined
+): string => {
+  if (examBoard && examYear) {
+    return `(${examBoard} - ${examYear})`;
+  }
+  if (examBoard) {
+    return `(${examBoard})`;
+  }
+  if (examYear) {
+    return `(${examYear})`;
+  }
+  return '';
+};
+
+/**
  * Shuffle array using a seed for consistent ordering per question
  * Uses Fisher-Yates shuffle with seeded random for deterministic results
  */
