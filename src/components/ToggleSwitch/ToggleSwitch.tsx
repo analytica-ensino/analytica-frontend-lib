@@ -112,9 +112,14 @@ const ToggleSwitch = ({
       role="switch"
       aria-checked={checked}
       disabled={disabled}
-      onClick={onChange}
       className={trackClasses}
       {...props}
+      onClick={(e) => {
+        props.onClick?.(e);
+        if (!e.defaultPrevented) {
+          onChange?.();
+        }
+      }}
     >
       <span className={thumbClasses} />
     </Button>
