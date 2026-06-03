@@ -15,6 +15,7 @@ const createMockLocation = (
   hash: '',
   state: null,
   key: 'default',
+  unstable_mask: undefined,
   ...overrides,
 });
 

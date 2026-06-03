@@ -494,11 +494,10 @@ const QuizListResultByMateria = ({
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               (question as any).questionId ?? question.id
             );
+
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const examInfo = formatExamInfo(
-              (question as any).examBoard,
-              (question as any).examYear
-            );
+            const q = question as any;
+            const examInfo = formatExamInfo(q.examBoard, q.examYear);
             const questionTitle = `Questão ${questionIndex.toString().padStart(2, '0')}`;
             const header = examInfo
               ? `${questionTitle} ${examInfo}`
