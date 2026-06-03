@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { type MouseEvent } from 'react';
 import ToggleSwitch from './ToggleSwitch';
 
 describe('ToggleSwitch', () => {
@@ -56,7 +57,9 @@ describe('ToggleSwitch', () => {
     });
 
     it('deve chamar onChange mesmo quando onClick chama stopPropagation', () => {
-      const onClick = jest.fn((e: React.MouseEvent) => e.stopPropagation());
+      const onClick = jest.fn((e: MouseEvent<HTMLButtonElement>) =>
+        e.stopPropagation()
+      );
       const onChange = jest.fn();
       render(<ToggleSwitch onClick={onClick} onChange={onChange} />);
 
@@ -66,7 +69,9 @@ describe('ToggleSwitch', () => {
     });
 
     it('não deve chamar onChange quando onClick chama preventDefault', () => {
-      const onClick = jest.fn((e: React.MouseEvent) => e.preventDefault());
+      const onClick = jest.fn((e: MouseEvent<HTMLButtonElement>) =>
+        e.preventDefault()
+      );
       const onChange = jest.fn();
       render(<ToggleSwitch onClick={onClick} onChange={onChange} />);
 
