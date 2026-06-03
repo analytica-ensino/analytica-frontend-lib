@@ -9,15 +9,15 @@ jest.mock('react-router-dom', () => ({
 
 const createMockLocation = (
   overrides: Partial<ReturnType<typeof useLocation>> = {}
-): ReturnType<typeof useLocation> => ({
-  pathname: '/',
-  search: '',
-  hash: '',
-  state: null,
-  key: 'default',
-  unstable_mask: undefined,
-  ...overrides,
-});
+) =>
+  ({
+    pathname: '/',
+    search: '',
+    hash: '',
+    state: null,
+    key: 'default',
+    ...overrides,
+  }) as ReturnType<typeof useLocation>;
 
 describe('useUrlParams', () => {
   const mockUseLocation = useLocation as jest.MockedFunction<
