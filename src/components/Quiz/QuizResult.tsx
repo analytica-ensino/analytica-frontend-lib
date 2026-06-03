@@ -16,6 +16,7 @@ import { cn, getSubjectColorWithOpacity } from '../../utils/utils';
 import Badge from '../Badge/Badge';
 import { useTheme } from '../../hooks/useTheme';
 import Button from '../Button/Button';
+import { formatExamInfo } from './Quiz.utils';
 
 const QuizBadge = ({
   subtype,
@@ -493,11 +494,20 @@ const QuizListResultByMateria = ({
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               (question as any).questionId ?? question.id
             );
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const examInfo = formatExamInfo(
+              (question as any).examBoard,
+              (question as any).examYear
+            );
+            const questionTitle = `Questão ${questionIndex.toString().padStart(2, '0')}`;
+            const header = examInfo
+              ? `${questionTitle} ${examInfo}`
+              : questionTitle;
             return (
               <li key={question.id}>
                 <CardStatus
                   className="max-w-full"
-                  header={`Questão ${questionIndex.toString().padStart(2, '0')}`}
+                  header={header}
                   status={(() => {
                     if (
                       question.answerStatus === ANSWER_STATUS.RESPOSTA_CORRETA

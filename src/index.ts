@@ -740,6 +740,7 @@ export {
 export { TeacherFeedbackSection } from './components/Quiz/TeacherFeedbackSection';
 export type { TeacherFeedbackSectionProps } from './components/Quiz/TeacherFeedbackSection';
 export { useQuizStore } from './components/Quiz/useQuizStore';
+export { formatExamInfo } from './components/Quiz/Quiz.utils';
 
 // Quiz Types and Enums
 export {
