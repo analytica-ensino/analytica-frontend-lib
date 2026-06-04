@@ -234,10 +234,10 @@ const LessonAccordionItem = ({
   const trigger = (
     <div className="flex flex-col gap-1 py-3">
       <Text size="xs" className="text-text-500">
-        {lesson.topic.name} • {lesson.subtopic.name} • {lesson.content.name}
+        {lesson.topic?.name} • {lesson.subtopic?.name} • {lesson.content?.name}
       </Text>
       <Text size="md" weight="medium" className="text-text-950">
-        {lesson.content.name || lesson.videoTitle}
+        {lesson.content?.name || lesson.videoTitle}
       </Text>
     </div>
   );

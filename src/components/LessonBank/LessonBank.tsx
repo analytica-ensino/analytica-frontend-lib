@@ -212,6 +212,8 @@ export const LessonBank = ({
         onClose={handleCloseModal}
         selectedLesson={selectedLesson}
         title={
+          selectedLesson?.content?.name ||
+          selectedLesson?.videoTitle ||
           selectedLesson?.content?.bnccCode ||
           selectedLesson?.title ||
           'Assistir Aula'
