@@ -33,6 +33,8 @@ const config = {
     // transform node_modules ESM without heavy config).
     '^react-markdown$': '<rootDir>/src/testing/mockReactMarkdown.tsx',
     '^remark-gfm$': '<rootDir>/src/testing/mockRemarkGfm.ts',
+    '^remark-math$': '<rootDir>/src/testing/mockRemarkMath.ts',
+    '^rehype-katex$': '<rootDir>/src/testing/mockRehypeKatex.ts',
   },
   // Coverage configuration
   collectCoverage: true,

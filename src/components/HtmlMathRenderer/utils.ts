@@ -52,11 +52,46 @@ export const cleanLatex = (str: string): string => {
  *   even a lone `abc` \u2014 does not. This keeps normal spaced equations
  *   rendering while still rejecting currency-`$` prose.
  */
-const looksLikeLatex = (str: string): boolean => {
+export const looksLikeLatex = (str: string): boolean => {
   if (/[\\^_{}]/.test(str)) return true;
   const words = str.match(/[a-zA-Z]{3,}/g);
   if (words && words.length >= 2) return false;
   return true;
+};
+
+/**
+ * Heuristic that decides whether `content` is Markdown (as opposed to the
+ * HTML the backoffice RichEditor produces). AI-generated questions and
+ * resolutions arrive as Markdown + LaTeX (`**bold**`, `#### heading`,
+ * `* lists`, `$...$`, `$$...$$`), whereas the editor stores HTML (`<p>`,
+ * `<b>`, `<span class="math-formula" data-latex="...">`). The two sources are
+ * cleanly separable, so we bias toward the proven HTML path:
+ *
+ * - If any real HTML element tag is present we return `false` and let
+ *   `HtmlMathRenderer` handle it exactly as before (math-formula spans,
+ *   currency heuristic, katex-error recovery, sanitization).
+ * - Otherwise we return `true` only when an unmistakable Markdown marker is
+ *   present (ATX heading, bold, bullet/ordered list, or a paragraph break),
+ *   which is what breaks today: Markdown rendered as HTML shows the raw
+ *   `**`/`####`/`*` tokens and collapses line breaks.
+ */
+export const isLikelyMarkdown = (content: string): boolean => {
+  if (!content) return false;
+
+  // Presence of real HTML element tags => treat as HTML (RichEditor output).
+  const HTML_TAG_PATTERN =
+    /<\/?(?:p|div|span|br|b|strong|i|em|u|s|ul|ol|li|h[1-6]|a|img|table|thead|tbody|tfoot|tr|td|th|blockquote|pre|code|sub|sup|font|latex)\b/i;
+  if (HTML_TAG_PATTERN.test(content)) return false;
+
+  const MARKDOWN_SIGNALS = [
+    /(?:^|\n)#{1,6}\s+\S/, // ATX heading (#, ##, ... ######)
+    /\*\*[^*\n]+\*\*/, // bold
+    /__[^_\n]+__/, // bold (underscore)
+    /(?:^|\n)\s*[-*+]\s+\S/, // bullet list
+    /(?:^|\n)\s*\d+\.\s+\S/, // ordered list
+    /\n\n/, // paragraph break (only reached when no HTML tag is present)
+  ];
+  return MARKDOWN_SIGNALS.some((pattern) => pattern.test(content));
 };
 
 /**

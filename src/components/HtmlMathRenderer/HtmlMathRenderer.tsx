@@ -2,7 +2,12 @@ import { CSSProperties, forwardRef, memo, ReactNode, Ref } from 'react';
 import 'katex/dist/katex.min.css';
 import { InlineMath, BlockMath } from 'react-katex';
 import { cn } from '../../utils/utils';
-import { processHtmlWithMath, sanitizeHtmlForDisplay } from './utils';
+import MarkdownMathRenderer from '../MarkdownMathRenderer/MarkdownMathRenderer';
+import {
+  isLikelyMarkdown,
+  processHtmlWithMath,
+  sanitizeHtmlForDisplay,
+} from './utils';
 
 export interface HtmlMathRendererProps {
   /** HTML content to render, may contain LaTeX math expressions */
@@ -52,6 +57,23 @@ const HtmlMathRenderer = forwardRef<HTMLElement, HtmlMathRendererProps>(
     },
     ref
   ) => {
+    // AI-generated questions/resolutions arrive as Markdown + LaTeX. The HTML
+    // pipeline below would render their `**`/`####`/`*` tokens literally and
+    // collapse line breaks, so route that content to the Markdown renderer.
+    // Inline usage stays on the HTML path to keep phrasing-content validity
+    // (Markdown emits block elements: <p>, <ul>, <h4>, ...).
+    if (!inline && content && isLikelyMarkdown(content)) {
+      return (
+        <MarkdownMathRenderer
+          ref={ref as Ref<HTMLDivElement>}
+          content={content}
+          className={className}
+          style={style}
+          testId={testId}
+        />
+      );
+    }
+
     const defaultErrorRenderer = (latex: string) => (
       <span className="text-error-600 text-sm">Math Error: {latex}</span>
     );
