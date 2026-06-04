@@ -2141,7 +2141,9 @@ describe('Quiz', () => {
 
         render(<QuizQuestionList />);
 
-        expect(screen.getByText('Questão 01 (ENEM - 2023)')).toBeInTheDocument();
+        expect(
+          screen.getByText('Questão 01 (ENEM - 2023)')
+        ).toBeInTheDocument();
       });
 
       it('should NOT display examBoard/examYear when quiz type is ATIVIDADE', () => {
@@ -2167,7 +2169,9 @@ describe('Quiz', () => {
         render(<QuizQuestionList />);
 
         expect(screen.getByText('Questão 01')).toBeInTheDocument();
-        expect(screen.queryByText('Questão 01 (ENEM - 2023)')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('Questão 01 (ENEM - 2023)')
+        ).not.toBeInTheDocument();
       });
 
       it('should NOT display examBoard/examYear when quiz type is QUESTIONARIO', () => {
@@ -2193,7 +2197,9 @@ describe('Quiz', () => {
         render(<QuizQuestionList />);
 
         expect(screen.getByText('Questão 01')).toBeInTheDocument();
-        expect(screen.queryByText('Questão 01 (UNICAMP - 2022)')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('Questão 01 (UNICAMP - 2022)')
+        ).not.toBeInTheDocument();
       });
 
       it('should NOT display examBoard/examYear when quiz type is AULA_RECOMENDADA', () => {
@@ -2219,7 +2225,9 @@ describe('Quiz', () => {
         render(<QuizQuestionList />);
 
         expect(screen.getByText('Questão 01')).toBeInTheDocument();
-        expect(screen.queryByText('Questão 01 (FUVEST - 2021)')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('Questão 01 (FUVEST - 2021)')
+        ).not.toBeInTheDocument();
       });
 
       it('should NOT display exam info when quiz is undefined', () => {
@@ -2245,7 +2253,9 @@ describe('Quiz', () => {
         render(<QuizQuestionList />);
 
         expect(screen.getByText('Questão 01')).toBeInTheDocument();
-        expect(screen.queryByText('Questão 01 (ENEM - 2023)')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('Questão 01 (ENEM - 2023)')
+        ).not.toBeInTheDocument();
       });
     });
   });
