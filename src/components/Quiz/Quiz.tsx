@@ -238,7 +238,7 @@ const QuizTitle = forwardRef<
 });
 
 const QuizHeader = () => {
-  const { getCurrentQuestion, getQuestionIndex } = useQuizStore();
+  const { getCurrentQuestion, getQuestionIndex, quiz } = useQuizStore();
   const currentQuestion = getCurrentQuestion();
   let currentId =
     currentQuestion && 'questionId' in currentQuestion
@@ -250,10 +250,11 @@ const QuizHeader = () => {
     ? `Questão ${questionIndex.toString().padStart(2, '0')}`
     : 'Questão';
 
-  const examInfo = formatExamInfo(
-    currentQuestion?.examBoard,
-    currentQuestion?.examYear
-  );
+  // Only show exam info (banca/year) for SIMULADO type
+  const shouldShowExamInfo = quiz?.type === QUIZ_TYPE.SIMULADO;
+  const examInfo = shouldShowExamInfo
+    ? formatExamInfo(currentQuestion?.examBoard, currentQuestion?.examYear)
+    : '';
 
   const title = examInfo ? `${questionNumber} ${examInfo}` : questionNumber;
 
@@ -311,7 +312,11 @@ const QuizQuestionList = ({
     goToQuestion,
     getQuestionStatusFromUserAnswers,
     getQuestionIndex,
+    quiz,
   } = useQuizStore();
+
+  // Only show exam info (banca/year) for SIMULADO type
+  const shouldShowExamInfo = quiz?.type === QUIZ_TYPE.SIMULADO;
 
   const groupedQuestions = getQuestionsGroupedBySubject();
   const getQuestionStatus = (questionId: string) => {
@@ -375,10 +380,9 @@ const QuizQuestionList = ({
               {questions.map((question) => {
                 const status = getQuestionStatus(question.id);
                 const questionNumber = getQuestionIndex(question.id);
-                const examInfo = formatExamInfo(
-                  question.examBoard,
-                  question.examYear
-                );
+                const examInfo = shouldShowExamInfo
+                  ? formatExamInfo(question.examBoard, question.examYear)
+                  : '';
                 const questionTitle = `Questão ${questionNumber.toString().padStart(2, '0')}`;
                 const header = examInfo
                   ? `${questionTitle} ${examInfo}`
