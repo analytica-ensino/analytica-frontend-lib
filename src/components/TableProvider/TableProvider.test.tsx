@@ -1,6 +1,6 @@
 import type { HTMLAttributes, InputHTMLAttributes, ReactNode } from 'react';
 import '@testing-library/jest-dom';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import {
   TableProvider,
   type ColumnConfig,
@@ -349,7 +349,10 @@ describe('TableProvider', () => {
       );
 
       const searchInput = screen.getByPlaceholderText('Buscar...');
+      jest.useFakeTimers();
       fireEvent.change(searchInput, { target: { value: 'Alice' } });
+      act(() => { jest.advanceTimersByTime(300); });
+      jest.useRealTimers();
 
       expect(searchInput).toHaveValue('Alice');
     });
@@ -783,7 +786,10 @@ describe('TableProvider', () => {
       onParamsChange.mockClear();
 
       const searchInput = screen.getByPlaceholderText('Buscar...');
+      jest.useFakeTimers();
       fireEvent.change(searchInput, { target: { value: 'Alice' } });
+      act(() => { jest.advanceTimersByTime(300); });
+      jest.useRealTimers();
 
       expect(onParamsChange).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -970,7 +976,10 @@ describe('TableProvider', () => {
       expect(screen.getByText(/Página 2 de 3/)).toBeInTheDocument();
 
       const searchInput = screen.getByPlaceholderText('Buscar...');
+      jest.useFakeTimers();
       fireEvent.change(searchInput, { target: { value: 'test' } });
+      act(() => { jest.advanceTimersByTime(300); });
+      jest.useRealTimers();
 
       expect(screen.getByText(/Página 1 de 3/)).toBeInTheDocument();
     });
@@ -986,7 +995,10 @@ describe('TableProvider', () => {
       );
 
       const searchInput = screen.getByPlaceholderText('Buscar...');
+      jest.useFakeTimers();
       fireEvent.change(searchInput, { target: { value: 'Alice' } });
+      act(() => { jest.advanceTimersByTime(300); });
+      jest.useRealTimers();
 
       const nameHeader = screen.getByText('Name');
       fireEvent.click(nameHeader);
@@ -1024,7 +1036,10 @@ describe('TableProvider', () => {
       );
 
       const searchInput = screen.getByPlaceholderText('Buscar...');
+      jest.useFakeTimers();
       fireEvent.change(searchInput, { target: { value: 'test' } });
+      act(() => { jest.advanceTimersByTime(300); });
+      jest.useRealTimers();
 
       expect(
         screen.getByText('Nenhum resultado encontrado')

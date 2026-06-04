@@ -35,6 +35,8 @@ type SearchProps = {
   dropdownMaxHeight?: number;
   /** Text to show when no results are found */
   noResultsText?: string;
+  /** Debounce delay in ms for onSearch. Default 0 (no debounce). */
+  debounceMs?: number;
   /** Additional CSS classes to apply to the input */
   className?: string;
   /** Additional CSS classes to apply to the container */
@@ -140,6 +142,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       onChange,
       placeholder = 'Buscar...',
       onKeyDown: userOnKeyDown,
+      debounceMs = 0,
       ...props
     },
     ref
@@ -151,6 +154,13 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
     const dropdownStore = useRef(createDropdownStore()).current;
     const dropdownRef = useRef<HTMLDivElement>(null);
     const inputElRef = useRef<HTMLInputElement>(null);
+    const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+      return () => {
+        if (debounceTimer.current) clearTimeout(debounceTimer.current);
+      };
+    }, []);
 
     // Filter options based on input value
     const filteredOptions = useMemo(() => {
@@ -256,7 +266,15 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
       setForceClose(false); // Allow dropdown to open when user types
       onChange?.(e);
-      onSearch?.(e.target.value);
+      if (debounceMs > 0) {
+        if (debounceTimer.current) clearTimeout(debounceTimer.current);
+        const value = e.target.value;
+        debounceTimer.current = setTimeout(() => {
+          onSearch?.(value);
+        }, debounceMs);
+      } else {
+        onSearch?.(e.target.value);
+      }
     };
 
     // Handle keyboard events
