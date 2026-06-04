@@ -252,7 +252,10 @@ const LessonAccordionItem = ({
         style={
           subjectColor && !subjectColor.startsWith('bg-')
             ? {
-                backgroundColor: getSubjectColorWithOpacity(subjectColor, isDark),
+                backgroundColor: getSubjectColorWithOpacity(
+                  subjectColor,
+                  isDark
+                ),
               }
             : undefined
         }
@@ -297,12 +300,9 @@ export const RecommendedLessonViewModal = ({
     {}
   );
 
-  const handleLessonLoaded = useCallback(
-    (lessonId: string, lesson: Lesson) => {
-      setCachedLessons((prev) => ({ ...prev, [lessonId]: lesson }));
-    },
-    []
-  );
+  const handleLessonLoaded = useCallback((lessonId: string, lesson: Lesson) => {
+    setCachedLessons((prev) => ({ ...prev, [lessonId]: lesson }));
+  }, []);
 
   // Reset cache when modal closes
   useEffect(() => {
