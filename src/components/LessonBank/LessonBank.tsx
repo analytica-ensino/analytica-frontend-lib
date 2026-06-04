@@ -135,7 +135,7 @@ export const LessonBank = ({
             className="flex flex-col gap-3 p-4 border border-border-200 rounded-lg bg-background"
           >
             <Text size="md" weight="medium" className="text-text-950">
-              {lesson.videoTitle || lesson.title || 'Aula sem título'}
+              {lesson.content?.name || lesson.videoTitle || lesson.title || 'Aula sem título'}
             </Text>
 
             <div className="flex gap-2">

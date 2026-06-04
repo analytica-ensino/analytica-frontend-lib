@@ -124,7 +124,7 @@ export function generateTitle(
   // Get first lesson name if available
   const firstLessonName =
     lessons && lessons.length > 0
-      ? lessons[0].videoTitle || lessons[0].title || null
+      ? lessons[0].content?.name || lessons[0].videoTitle || lessons[0].title || null
       : null;
 
   // Format current date as DD/MM/YYYY
@@ -203,7 +203,7 @@ export function getTypeFromUrlString(
 export function convertLessonToPreview(lesson: Lesson): PreviewLesson {
   return {
     ...lesson,
-    title: lesson.videoTitle || lesson.title,
+    title: lesson.content?.name || lesson.videoTitle || lesson.title,
     position: undefined,
     // Map API fields to component-expected fields for LessonPreview
     videoSrc: lesson.urlVideo,
