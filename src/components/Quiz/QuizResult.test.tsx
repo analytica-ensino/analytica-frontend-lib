@@ -2951,5 +2951,191 @@ describe('Quiz', () => {
         expect(screen.getByText('Matemática')).toBeInTheDocument();
       });
     });
+
+    describe('Exam Info Display (examBoard/examYear)', () => {
+      it('should display examBoard and examYear when quiz type is SIMULADO', () => {
+        const mockGroupedQuestions = {
+          'subject-1': [
+            {
+              id: 'question-1',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              knowledgeMatrix: [{ subject: { name: 'Matemática' } }],
+              examBoard: 'ENEM',
+              examYear: '2023',
+            },
+          ],
+        };
+
+        mockUseQuizStore.mockReturnValue({
+          getQuestionsGroupedBySubject: () => mockGroupedQuestions,
+          getQuestionIndex: () => 1,
+          quiz: { type: QUIZ_TYPE.SIMULADO },
+        } as MockQuizStore);
+
+        render(
+          <QuizListResultByMateria
+            subject="subject-1"
+            onQuestionClick={jest.fn()}
+          />
+        );
+
+        // Should show exam info in the header
+        expect(screen.getByText('Questão 01 (ENEM - 2023)')).toBeInTheDocument();
+      });
+
+      it('should display only examBoard when examYear is null and quiz type is SIMULADO', () => {
+        const mockGroupedQuestions = {
+          'subject-1': [
+            {
+              id: 'question-1',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              knowledgeMatrix: [{ subject: { name: 'Matemática' } }],
+              examBoard: 'FUVEST',
+              examYear: null,
+            },
+          ],
+        };
+
+        mockUseQuizStore.mockReturnValue({
+          getQuestionsGroupedBySubject: () => mockGroupedQuestions,
+          getQuestionIndex: () => 1,
+          quiz: { type: QUIZ_TYPE.SIMULADO },
+        } as MockQuizStore);
+
+        render(
+          <QuizListResultByMateria
+            subject="subject-1"
+            onQuestionClick={jest.fn()}
+          />
+        );
+
+        // Should show only examBoard
+        expect(screen.getByText('Questão 01 (FUVEST)')).toBeInTheDocument();
+      });
+
+      it('should NOT display examBoard/examYear when quiz type is ATIVIDADE', () => {
+        const mockGroupedQuestions = {
+          'subject-1': [
+            {
+              id: 'question-1',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              knowledgeMatrix: [{ subject: { name: 'Matemática' } }],
+              examBoard: 'ENEM',
+              examYear: '2023',
+            },
+          ],
+        };
+
+        mockUseQuizStore.mockReturnValue({
+          getQuestionsGroupedBySubject: () => mockGroupedQuestions,
+          getQuestionIndex: () => 1,
+          quiz: { type: QUIZ_TYPE.ATIVIDADE },
+        } as MockQuizStore);
+
+        render(
+          <QuizListResultByMateria
+            subject="subject-1"
+            onQuestionClick={jest.fn()}
+          />
+        );
+
+        // Should NOT show exam info, only question number
+        expect(screen.getByText('Questão 01')).toBeInTheDocument();
+        expect(screen.queryByText('Questão 01 (ENEM - 2023)')).not.toBeInTheDocument();
+      });
+
+      it('should NOT display examBoard/examYear when quiz type is QUESTIONARIO', () => {
+        const mockGroupedQuestions = {
+          'subject-1': [
+            {
+              id: 'question-1',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              knowledgeMatrix: [{ subject: { name: 'Matemática' } }],
+              examBoard: 'UNICAMP',
+              examYear: '2022',
+            },
+          ],
+        };
+
+        mockUseQuizStore.mockReturnValue({
+          getQuestionsGroupedBySubject: () => mockGroupedQuestions,
+          getQuestionIndex: () => 1,
+          quiz: { type: QUIZ_TYPE.QUESTIONARIO },
+        } as MockQuizStore);
+
+        render(
+          <QuizListResultByMateria
+            subject="subject-1"
+            onQuestionClick={jest.fn()}
+          />
+        );
+
+        // Should NOT show exam info, only question number
+        expect(screen.getByText('Questão 01')).toBeInTheDocument();
+        expect(screen.queryByText('Questão 01 (UNICAMP - 2022)')).not.toBeInTheDocument();
+      });
+
+      it('should NOT display examBoard/examYear when quiz type is AULA_RECOMENDADA', () => {
+        const mockGroupedQuestions = {
+          'subject-1': [
+            {
+              id: 'question-1',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              knowledgeMatrix: [{ subject: { name: 'Matemática' } }],
+              examBoard: 'ENEM',
+              examYear: '2021',
+            },
+          ],
+        };
+
+        mockUseQuizStore.mockReturnValue({
+          getQuestionsGroupedBySubject: () => mockGroupedQuestions,
+          getQuestionIndex: () => 1,
+          quiz: { type: QUIZ_TYPE.AULA_RECOMENDADA },
+        } as MockQuizStore);
+
+        render(
+          <QuizListResultByMateria
+            subject="subject-1"
+            onQuestionClick={jest.fn()}
+          />
+        );
+
+        // Should NOT show exam info, only question number
+        expect(screen.getByText('Questão 01')).toBeInTheDocument();
+        expect(screen.queryByText('Questão 01 (ENEM - 2021)')).not.toBeInTheDocument();
+      });
+
+      it('should NOT display exam info when quiz is undefined', () => {
+        const mockGroupedQuestions = {
+          'subject-1': [
+            {
+              id: 'question-1',
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              knowledgeMatrix: [{ subject: { name: 'Matemática' } }],
+              examBoard: 'ENEM',
+              examYear: '2023',
+            },
+          ],
+        };
+
+        mockUseQuizStore.mockReturnValue({
+          getQuestionsGroupedBySubject: () => mockGroupedQuestions,
+          getQuestionIndex: () => 1,
+          quiz: undefined,
+        } as MockQuizStore);
+
+        render(
+          <QuizListResultByMateria
+            subject="subject-1"
+            onQuestionClick={jest.fn()}
+          />
+        );
+
+        // Should NOT show exam info when quiz is undefined
+        expect(screen.getByText('Questão 01')).toBeInTheDocument();
+        expect(screen.queryByText('Questão 01 (ENEM - 2023)')).not.toBeInTheDocument();
+      });
+    });
   });
 });
