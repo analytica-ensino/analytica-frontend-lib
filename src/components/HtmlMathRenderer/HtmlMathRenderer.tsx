@@ -1,6 +1,6 @@
 import { CSSProperties, forwardRef, memo, ReactNode, Ref } from 'react';
 import 'katex/dist/katex.min.css';
-import { InlineMath, BlockMath } from 'react-katex';
+import { KatexMath } from './KatexMath';
 import { cn } from '../../utils/utils';
 import MarkdownMathRenderer from '../MarkdownMathRenderer/MarkdownMathRenderer';
 import {
@@ -125,17 +125,17 @@ const HtmlMathRenderer = forwardRef<HTMLElement, HtmlMathRendererProps>(
             const key = getPartKey(part, index);
             if (part.type === 'math' && part.latex) {
               return (
-                <InlineMath
+                <KatexMath
                   key={key}
                   math={part.latex}
                   renderError={() => errorRenderer(part.latex!)}
                 />
               );
             } else if (part.type === 'block-math' && part.latex) {
-              // When inline mode, use InlineMath to avoid block-level elements inside span
+              // When inline mode, render inline to avoid block-level elements inside span
               if (inline) {
                 return (
-                  <InlineMath
+                  <KatexMath
                     key={key}
                     math={part.latex}
                     renderError={() => errorRenderer(part.latex!)}
@@ -144,8 +144,9 @@ const HtmlMathRenderer = forwardRef<HTMLElement, HtmlMathRendererProps>(
               }
               return (
                 <div key={key} className="my-2.5 text-center">
-                  <BlockMath
+                  <KatexMath
                     math={part.latex}
+                    displayMode
                     renderError={() => errorRenderer(part.latex!)}
                   />
                 </div>

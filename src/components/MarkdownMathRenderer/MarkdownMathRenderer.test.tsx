@@ -7,15 +7,21 @@ import HtmlMathRenderer from '../HtmlMathRenderer/HtmlMathRenderer';
 import { isLikelyMarkdown } from '../HtmlMathRenderer/utils';
 
 // react-markdown / remark / rehype ship ESM and are stubbed via jest
-// moduleNameMapper. react-katex is mocked here for the HTML-path branches that
-// HtmlMathRenderer may exercise.
-jest.mock('react-katex', () => ({
-  InlineMath: ({ math }: { math: string }) => (
-    <span data-testid="inline-math">{math}</span>
-  ),
-  BlockMath: ({ math }: { math: string }) => (
-    <div data-testid="block-math">{math}</div>
-  ),
+// moduleNameMapper. KatexMath (used by HtmlMathRenderer) is mocked here for the
+// HTML-path branches that the delegation tests may exercise.
+jest.mock('../HtmlMathRenderer/KatexMath', () => ({
+  KatexMath: ({
+    math,
+    displayMode,
+  }: {
+    math: string;
+    displayMode?: boolean;
+  }) =>
+    displayMode ? (
+      <div data-testid="block-math">{math}</div>
+    ) : (
+      <span data-testid="inline-math">{math}</span>
+    ),
 }));
 
 describe('isLikelyMarkdown', () => {
