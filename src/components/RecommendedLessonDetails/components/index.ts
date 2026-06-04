@@ -7,3 +7,5 @@ export { StudentPerformanceModal } from './StudentPerformanceModal';
 export type { StudentPerformanceModalProps } from './StudentPerformanceModal';
 export { StudentActivityPerformanceModal } from './StudentActivityPerformanceModal';
 export type { StudentActivityPerformanceModalProps } from './StudentActivityPerformanceModal';
+export { RecommendedLessonViewModal } from './RecommendedLessonViewModal';
+export type { RecommendedLessonViewModalProps } from './RecommendedLessonViewModal';
