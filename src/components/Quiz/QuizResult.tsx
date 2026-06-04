@@ -465,8 +465,12 @@ const QuizListResultByMateria = ({
   ) => void;
   subjectName?: string;
 }) => {
-  const { getQuestionsGroupedBySubject, getQuestionIndex } = useQuizStore();
+  const { getQuestionsGroupedBySubject, getQuestionIndex, quiz } =
+    useQuizStore();
   const groupedQuestions = getQuestionsGroupedBySubject();
+
+  // Only show exam info (banca/year) for SIMULADO type
+  const shouldShowExamInfo = quiz?.type === QUIZ_TYPE.SIMULADO;
 
   const answeredQuestions = groupedQuestions[subject] || [];
   const formattedQuestions =
@@ -495,11 +499,13 @@ const QuizListResultByMateria = ({
               'questionId' in question ? question.questionId : question.id;
             const questionIndex = getQuestionIndex(questionId);
 
-            // examBoard and examYear only exist in Question type
+            // examBoard and examYear only exist in Question type - only show for SIMULADO
             const examBoard =
               'examBoard' in question ? question.examBoard : null;
             const examYear = 'examYear' in question ? question.examYear : null;
-            const examInfo = formatExamInfo(examBoard, examYear);
+            const examInfo = shouldShowExamInfo
+              ? formatExamInfo(examBoard, examYear)
+              : '';
             const questionTitle = `Questão ${questionIndex.toString().padStart(2, '0')}`;
             const header = examInfo
               ? `${questionTitle} ${examInfo}`
