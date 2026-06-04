@@ -1,4 +1,4 @@
-import { CSSProperties, forwardRef, memo, Ref } from 'react';
+import { CSSProperties, forwardRef, memo } from 'react';
 import 'katex/dist/katex.min.css';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -54,8 +54,39 @@ export const reflowDisplayMath = (markdown: string): string =>
     (_match, inner: string) => `\n\n$$\n${inner.trim()}\n$$\n\n`
   );
 
+/**
+ * Runs `transform` over the markdown while shielding fenced code blocks and
+ * inline code spans: each is stashed behind a placeholder, the transform runs
+ * on the rest, then the originals are restored before the markdown reaches
+ * react-markdown. Without this, the currency / display-math passes would
+ * rewrite literal `$`/`$$` that authors put inside code samples (e.g. a fenced
+ * block containing `price = $value`). The placeholder is purely transient (it
+ * never reaches the markdown parser) and contains no `$`, so the passes ignore
+ * it.
+ */
+const withProtectedCode = (
+  markdown: string,
+  transform: (input: string) => string
+): string => {
+  const stash: string[] = [];
+  const tokenized = markdown.replaceAll(
+    /```[\s\S]*?```|`[^`\n]*`/g,
+    (segment) => {
+      const token = `__CODE_SEG_${stash.length}__`;
+      stash.push(segment);
+      return token;
+    }
+  );
+  return transform(tokenized).replaceAll(
+    /__CODE_SEG_(\d+)__/g,
+    (_match, index: string) => stash[Number(index)]
+  );
+};
+
 const preprocessMarkdown = (content: string): string =>
-  reflowDisplayMath(protectCurrencyInlineMath(stripInvisibleChars(content)));
+  withProtectedCode(stripInvisibleChars(content), (safe) =>
+    reflowDisplayMath(protectCurrencyInlineMath(safe))
+  );
 
 /**
  * MarkdownMathRenderer - Renders Markdown content with embedded LaTeX math.
@@ -114,7 +145,7 @@ const MarkdownMathRenderer = forwardRef<
 
   return (
     <div
-      ref={ref as Ref<HTMLDivElement>}
+      ref={ref}
       className={sharedClassName}
       style={style}
       data-testid={testId}

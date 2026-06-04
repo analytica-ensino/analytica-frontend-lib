@@ -51,6 +51,13 @@ describe('isLikelyMarkdown', () => {
     // multiplication asterisks must not be treated as bold
     expect(isLikelyMarkdown('Calcule 3 * 4 * 5 com cuidado.')).toBe(false);
   });
+
+  it('detects GFM tables via the delimiter row', () => {
+    expect(isLikelyMarkdown('| A | B |\n|---|---|\n| 1 | 2 |')).toBe(true);
+    expect(isLikelyMarkdown('| x | y |\n| :-- | --: |\n| 1 | 2 |')).toBe(true);
+    // a stray pipe in prose is not a table
+    expect(isLikelyMarkdown('use a | b para separar valores')).toBe(false);
+  });
 });
 
 describe('protectCurrencyInlineMath', () => {
@@ -146,5 +153,19 @@ describe('HtmlMathRenderer delegation', () => {
     // On the inline HTML path the markdown tokens stay literal (no <strong>).
     expect(container.querySelector('strong')).toBeNull();
     expect(container.textContent).toContain('**destaque**');
+  });
+});
+
+describe('MarkdownMathRenderer code protection', () => {
+  it('does not escape currency $ inside inline code spans', () => {
+    // The `$ ... $` inside the code span looks like prose-currency and would
+    // be escaped by protectCurrencyInlineMath if not shielded. withProtectedCode
+    // must keep the code content verbatim.
+    const { container } = render(
+      <MarkdownMathRenderer content="`valor R$ 15,00 pelo custo fixo R$ 42,00`" />
+    );
+    const code = container.querySelector('code');
+    expect(code?.textContent).toBe('valor R$ 15,00 pelo custo fixo R$ 42,00');
+    expect(container.textContent).not.toContain('\\$');
   });
 });

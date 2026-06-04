@@ -62,6 +62,13 @@ const HtmlMathRenderer = forwardRef<HTMLElement, HtmlMathRendererProps>(
     // collapse line breaks, so route that content to the Markdown renderer.
     // Inline usage stays on the HTML path to keep phrasing-content validity
     // (Markdown emits block elements: <p>, <ul>, <h4>, ...).
+    //
+    // Note: `renderMathError` is intentionally not forwarded here. The Markdown
+    // path renders math via rehype-katex, which already degrades gracefully on
+    // invalid LaTeX (KaTeX's built-in red error output) rather than throwing.
+    // `renderMathError` is an HTML-path-only customization and is currently
+    // unused by any consumer; honoring it on the Markdown path would require a
+    // bespoke rehype plugin for no practical gain.
     if (!inline && content && isLikelyMarkdown(content)) {
       return (
         <MarkdownMathRenderer
