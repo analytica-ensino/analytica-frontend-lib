@@ -14,11 +14,6 @@
     "./dist/index.css"
   ],
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
-    },
     "./styles.css": "./dist/styles.css"
   },
   "scripts": {
@@ -142,13 +137,12 @@
     "dayjs": "^1.11.21",
     "dompurify": "^3.4.7",
     "html-react-parser": "6.1.2",
-    "katex": "^0.17.0",
+    "katex": "^0.16.0",
     "phosphor-react": "^1.4.1",
     "prop-types": "^15.8.1",
     "qrcode": "^1.5.4",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "react-katex": "^3.1.0",
     "react-markdown": "^10.1.0",
     "react-to-print": "^3.3.0",
     "rehype-katex": "^7.0.0",
@@ -192,7 +186,6 @@
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
-    "@types/react-katex": "^3.0.4",
     "@typescript-eslint/eslint-plugin": "^8.60.0",
     "@typescript-eslint/parser": "^8.60.0",
     "autoprefixer": "^10.5.0",

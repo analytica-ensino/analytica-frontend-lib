@@ -9,14 +9,21 @@ import {
   stripHtml,
 } from './utils';
 
-// Mock react-katex to avoid actual LaTeX rendering in tests
-jest.mock('react-katex', () => ({
-  InlineMath: ({ math }: { math: string }) => (
-    <span data-testid="inline-math">{math}</span>
-  ),
-  BlockMath: ({ math }: { math: string }) => (
-    <div data-testid="block-math">{math}</div>
-  ),
+// Mock KatexMath (which calls katex directly) to avoid actual LaTeX rendering
+// in tests and keep deterministic test ids for inline vs block math.
+jest.mock('./KatexMath', () => ({
+  KatexMath: ({
+    math,
+    displayMode,
+  }: {
+    math: string;
+    displayMode?: boolean;
+  }) =>
+    displayMode ? (
+      <div data-testid="block-math">{math}</div>
+    ) : (
+      <span data-testid="inline-math">{math}</span>
+    ),
 }));
 
 describe('HtmlMathRenderer', () => {

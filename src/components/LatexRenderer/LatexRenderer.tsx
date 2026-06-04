@@ -1,6 +1,6 @@
 import { CSSProperties, ReactNode } from 'react';
 import 'katex/dist/katex.min.css';
-import { InlineMath, BlockMath } from 'react-katex';
+import { KatexMath } from '../HtmlMathRenderer/KatexMath';
 import DOMPurify from 'dompurify';
 import parse, {
   DOMNode,
@@ -80,7 +80,7 @@ const createMathReplacer = (
 
       if (mathPart.type === 'inline') {
         return (
-          <InlineMath
+          <KatexMath
             key={`math-${mathId}`}
             math={mathPart.latex}
             renderError={() => errorRenderer(mathPart.latex)}
@@ -89,8 +89,9 @@ const createMathReplacer = (
       } else {
         return (
           <div key={`math-${mathId}`} className="my-2.5 text-center">
-            <BlockMath
+            <KatexMath
               math={mathPart.latex}
+              displayMode
               renderError={() => errorRenderer(mathPart.latex)}
             />
           </div>

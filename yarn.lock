@@ -3234,24 +3234,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-katex@npm:^3.0.4":
-  version: 3.0.4
-  resolution: "@types/react-katex@npm:3.0.4"
-  dependencies:
-    "@types/react": "npm:*"
-  checksum: 10c0/919d5752eb5ea8e5eb72dde1cb2f2b3e0b0d7e74e463eb95a8da4a3a12478223b92e78c0b1bece53ce9e5404aa1a0ac63955ef1a4e00829080ad41808ee82538
-  languageName: node
-  linkType: hard
-
-"@types/react@npm:*":
-  version: 19.2.14
-  resolution: "@types/react@npm:19.2.14"
-  dependencies:
-    csstype: "npm:^3.2.2"
-  checksum: 10c0/7d25bf41b57719452d86d2ac0570b659210402707313a36ee612666bf11275a1c69824f8c3ee1fdca077ccfe15452f6da8f1224529b917050eb2d861e52b59b7
-  languageName: node
-  linkType: hard
-
 "@types/react@npm:^19.2.15":
   version: 19.2.15
   resolution: "@types/react@npm:19.2.15"
@@ -3736,7 +3718,6 @@ __metadata:
     "@types/qrcode": "npm:^1.5.6"
     "@types/react": "npm:^19.2.15"
     "@types/react-dom": "npm:^19.2.3"
-    "@types/react-katex": "npm:^3.0.4"
     "@typescript-eslint/eslint-plugin": "npm:^8.60.0"
     "@typescript-eslint/parser": "npm:^8.60.0"
     autoprefixer: "npm:^10.5.0"
@@ -3754,7 +3735,7 @@ __metadata:
     jest-environment-jsdom: "npm:^30.4.1"
     jest-sonar-reporter: "npm:^2.0.0"
     jsdom: "npm:^29.1.1"
-    katex: "npm:^0.17.0"
+    katex: "npm:^0.16.0"
     phosphor-react: "npm:^1.4.1"
     polished: "npm:^4.3.1"
     postcss: "npm:^8.5.15"
@@ -3764,7 +3745,6 @@ __metadata:
     react: "npm:^19.2.6"
     react-dom: "npm:^19.2.6"
     react-hook-form: "npm:^7.77.0"
-    react-katex: "npm:^3.1.0"
     react-markdown: "npm:^10.1.0"
     react-router-dom: "npm:^7.16.0"
     react-to-print: "npm:^3.3.0"
@@ -7831,17 +7811,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"katex@npm:^0.17.0":
-  version: 0.17.0
-  resolution: "katex@npm:0.17.0"
-  dependencies:
-    commander: "npm:^8.3.0"
-  bin:
-    katex: cli.js
-  checksum: 10c0/e80ad159961341799940740ceeaf9501338f9f04a91089f35e08ee25a13aeeff1cb0771a1ae5394f0b5eb98cc5c8e6ef2569c29ae60a1554c4844bcd079a2e21
-  languageName: node
-  linkType: hard
-
 "kdbush@npm:^4.0.2":
   version: 4.0.2
   resolution: "kdbush@npm:4.0.2"
@@ -10143,18 +10112,6 @@ __metadata:
   version: 17.0.2
   resolution: "react-is@npm:17.0.2"
   checksum: 10c0/2bdb6b93fbb1820b024b496042cce405c57e2f85e777c9aabd55f9b26d145408f9f74f5934676ffdc46f3dcff656d78413a6e43968e7b3f92eea35b3052e9053
-  languageName: node
-  linkType: hard
-
-"react-katex@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "react-katex@npm:3.1.0"
-  dependencies:
-    katex: "npm:^0.16.0"
-  peerDependencies:
-    prop-types: ^15.8.1
-    react: ">=15.3.2 <20"
-  checksum: 10c0/a61eb2c19a2dc384ad5864a27af66f40c504643f984150f4e270373df88293c2586779b53b2ee7ee4e75076f3c5284b36f425bbc1021d164ccb2997d11d8678f
   languageName: node
   linkType: hard
 
