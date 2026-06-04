@@ -178,10 +178,11 @@ export default function ImageUpload({
         <Button
           type="button"
           variant="link"
+          className="gap-1.5"
           onClick={handleButtonClick}
           disabled={disabled}
         >
-          {buttonIcon || <Image className="h-4 w-4 mr-2" />}
+          {buttonIcon || <Image className="h-4 w-4" />}
           {buttonText}
         </Button>
       )}

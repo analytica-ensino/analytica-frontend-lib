@@ -951,4 +951,99 @@ describe('Search Component', () => {
       expect(refCallback).toHaveBeenCalledWith(expect.any(HTMLInputElement));
     });
   });
+
+  describe('debounceMs', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('should call onSearch immediately when debounceMs is not set', async () => {
+      const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+      const onSearch = jest.fn();
+
+      render(
+        <Search options={[]} onSearch={onSearch} />
+      );
+
+      const input = screen.getByRole('textbox');
+      await user.type(input, 'a');
+
+      expect(onSearch).toHaveBeenCalledTimes(1);
+      expect(onSearch).toHaveBeenCalledWith('a');
+    });
+
+    it('should call onSearch immediately when debounceMs is 0', async () => {
+      const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+      const onSearch = jest.fn();
+
+      render(
+        <Search options={[]} onSearch={onSearch} debounceMs={0} />
+      );
+
+      const input = screen.getByRole('textbox');
+      await user.type(input, 'a');
+
+      expect(onSearch).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not call onSearch immediately when debounceMs is set', async () => {
+      const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+      const onSearch = jest.fn();
+
+      render(
+        <Search options={[]} onSearch={onSearch} debounceMs={300} />
+      );
+
+      const input = screen.getByRole('textbox');
+      await user.type(input, 'a');
+
+      expect(onSearch).not.toHaveBeenCalled();
+    });
+
+    it('should call onSearch once after debounce delay', async () => {
+      const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+      const onSearch = jest.fn();
+
+      render(
+        <Search options={[]} onSearch={onSearch} debounceMs={300} />
+      );
+
+      const input = screen.getByRole('textbox');
+      await user.type(input, 'abc');
+
+      expect(onSearch).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(300);
+
+      expect(onSearch).toHaveBeenCalledTimes(1);
+      expect(onSearch).toHaveBeenCalledWith('abc');
+    });
+
+    it('should reset debounce timer on each keystroke', async () => {
+      const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+      const onSearch = jest.fn();
+
+      render(
+        <Search options={[]} onSearch={onSearch} debounceMs={300} />
+      );
+
+      const input = screen.getByRole('textbox');
+
+      await user.type(input, 'a');
+      jest.advanceTimersByTime(100);
+      await user.type(input, 'b');
+      jest.advanceTimersByTime(100);
+      await user.type(input, 'c');
+
+      expect(onSearch).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(300);
+
+      expect(onSearch).toHaveBeenCalledTimes(1);
+    });
+  });
 });

@@ -458,6 +458,7 @@ export function TableProvider<T extends Record<string, unknown>>({
             onClear={() => handleSearchChange('')}
             options={[]}
             placeholder={searchPlaceholder}
+            debounceMs={300}
           />
         </div>
       )}
