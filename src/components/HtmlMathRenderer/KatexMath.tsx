@@ -26,20 +26,14 @@ export const KatexMath = ({
   displayMode = false,
   renderError,
 }: KatexMathProps) => {
-  let html: string | null = null;
-  let error: unknown = null;
-
+  let html: string;
   try {
     html = katex.renderToString(math, {
       displayMode,
       throwOnError: true,
     });
-  } catch (caught) {
-    error = caught;
-  }
-
-  if (error !== null) {
-    return <>{renderError ? renderError(error) : null}</>;
+  } catch (error_) {
+    return <>{renderError ? renderError(error_) : null}</>;
   }
 
   const Tag = displayMode ? 'div' : 'span';
@@ -48,7 +42,7 @@ export const KatexMath = ({
       data-testid="react-katex"
       // KaTeX output is sanitized markup it generates itself from the parsed
       // LaTeX; there is no untrusted HTML passthrough here.
-      dangerouslySetInnerHTML={{ __html: html as string }}
+      dangerouslySetInnerHTML={{ __html: html }}
     />
   );
 };
