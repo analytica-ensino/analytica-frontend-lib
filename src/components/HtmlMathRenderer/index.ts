@@ -6,5 +6,7 @@ export {
   cleanLatex,
   containsMath,
   stripHtml,
+  looksLikeLatex,
+  isLikelyMarkdown,
   type MathPart,
 } from './utils';

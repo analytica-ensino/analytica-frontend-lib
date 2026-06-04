@@ -22,11 +22,19 @@ export {
   cleanLatex,
   containsMath,
   stripHtml,
+  looksLikeLatex,
+  isLikelyMarkdown,
 } from './components/HtmlMathRenderer';
 export type {
   HtmlMathRendererProps,
   MathPart,
 } from './components/HtmlMathRenderer';
+export {
+  MarkdownMathRenderer,
+  protectCurrencyInlineMath,
+  reflowDisplayMath,
+} from './components/MarkdownMathRenderer';
+export type { MarkdownMathRendererProps } from './components/MarkdownMathRenderer';
 export { default as IconButton } from './components/IconButton/IconButton';
 export { Tooltip } from './components/Tooltip/Tooltip';
 export type { TooltipProps } from './components/Tooltip/Tooltip';

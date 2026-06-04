@@ -52,11 +52,106 @@ export const cleanLatex = (str: string): string => {
  *   even a lone `abc` \u2014 does not. This keeps normal spaced equations
  *   rendering while still rejecting currency-`$` prose.
  */
-const looksLikeLatex = (str: string): boolean => {
+export const looksLikeLatex = (str: string): boolean => {
   if (/[\\^_{}]/.test(str)) return true;
   const words = str.match(/[a-zA-Z]{3,}/g);
   if (words && words.length >= 2) return false;
   return true;
+};
+
+/**
+ * HTML element names the backoffice RichEditor emits. Kept as a Set (instead
+ * of a long regex alternation) so the tag-detection regex below stays simple
+ * and cheap to reason about.
+ */
+const HTML_TAG_NAMES = new Set([
+  'p',
+  'div',
+  'span',
+  'br',
+  'b',
+  'strong',
+  'i',
+  'em',
+  'u',
+  's',
+  'ul',
+  'ol',
+  'li',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'a',
+  'img',
+  'table',
+  'thead',
+  'tbody',
+  'tfoot',
+  'tr',
+  'td',
+  'th',
+  'blockquote',
+  'pre',
+  'code',
+  'sub',
+  'sup',
+  'font',
+  'latex',
+]);
+
+/**
+ * True when `content` contains a real HTML element tag (open or close) whose
+ * name is one the editor produces. A single generic regex captures any
+ * `<tag`/`</tag` candidate; membership is then checked against the Set, which
+ * keeps the regex trivial and avoids a giant alternation.
+ */
+const containsHtmlTag = (content: string): boolean => {
+  for (const match of content.matchAll(/<\/?([a-z][a-z0-9]*)/gi)) {
+    if (HTML_TAG_NAMES.has(match[1].toLowerCase())) return true;
+  }
+  return false;
+};
+
+/**
+ * Heuristic that decides whether `content` is Markdown (as opposed to the
+ * HTML the backoffice RichEditor produces). AI-generated questions and
+ * resolutions arrive as Markdown + LaTeX (`**bold**`, `#### heading`,
+ * `* lists`, `$...$`, `$$...$$`), whereas the editor stores HTML (`<p>`,
+ * `<b>`, `<span class="math-formula" data-latex="...">`). The two sources are
+ * cleanly separable, so we bias toward the proven HTML path:
+ *
+ * - If any real HTML element tag is present we return `false` and let
+ *   `HtmlMathRenderer` handle it exactly as before (math-formula spans,
+ *   currency heuristic, katex-error recovery, sanitization).
+ * - Otherwise we return `true` only when an unmistakable Markdown marker is
+ *   present (ATX heading, bold, bullet/ordered list, GFM table, or a paragraph
+ *   break), which is what breaks today: Markdown rendered as HTML shows the raw
+ *   `**`/`####`/`*` tokens and collapses line breaks.
+ *
+ * Regex note: line-anchored signals use the `m` flag with `^` and restrict
+ * horizontal whitespace to `[ \t]` (never `\s`, which also matches `\n`). This
+ * keeps each quantifier on a single line and avoids the super-linear
+ * backtracking that `(?:^|\n)\s*…\s+` can trigger across newlines.
+ */
+export const isLikelyMarkdown = (content: string): boolean => {
+  if (!content) return false;
+
+  // Presence of real HTML element tags => treat as HTML (RichEditor output).
+  if (containsHtmlTag(content)) return false;
+
+  const MARKDOWN_SIGNALS = [
+    /^#{1,6}[ \t]+\S/m, // ATX heading (#, ##, ... ######)
+    /\*\*[^*\n]+\*\*/, // bold
+    /__[^_\n]+__/, // bold (underscore)
+    /^[ \t]*[-*+][ \t]+\S/m, // bullet list
+    /^[ \t]*\d+\.[ \t]+\S/m, // ordered list
+    /\|[ \t]*:?-+:?[ \t]*\|/, // GFM table delimiter row (|---|---|)
+    /\n\n/, // paragraph break (only reached when no HTML tag is present)
+  ];
+  return MARKDOWN_SIGNALS.some((pattern) => pattern.test(content));
 };
 
 /**
