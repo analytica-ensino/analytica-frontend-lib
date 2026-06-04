@@ -41,6 +41,7 @@ export interface Lesson {
   content?: {
     id: string;
     name: string;
+    bnccCode?: string;
   };
   [key: string]: unknown;
 }

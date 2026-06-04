@@ -536,6 +536,11 @@ export const LessonPreview = ({
         isOpen={isWatchModalOpen}
         onClose={handleCloseModal}
         selectedLesson={selectedLesson}
+        title={
+          selectedLesson?.content?.bnccCode ||
+          selectedLesson?.title ||
+          'Assistir Aula'
+        }
         userId={userId}
         getVideoData={getVideoData}
         getInitialTimestampValue={getInitialTimestampValue}

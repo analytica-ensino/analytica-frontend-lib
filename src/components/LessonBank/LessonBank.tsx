@@ -135,7 +135,10 @@ export const LessonBank = ({
             className="flex flex-col gap-3 p-4 border border-border-200 rounded-lg bg-background"
           >
             <Text size="md" weight="medium" className="text-text-950">
-              {lesson.content?.name || lesson.videoTitle || lesson.title || 'Aula sem título'}
+              {lesson.content?.name ||
+                lesson.videoTitle ||
+                lesson.title ||
+                'Aula sem título'}
             </Text>
 
             <div className="flex gap-2">
@@ -208,6 +211,11 @@ export const LessonBank = ({
         isOpen={isWatchModalOpen}
         onClose={handleCloseModal}
         selectedLesson={selectedLesson}
+        title={
+          selectedLesson?.content?.bnccCode ||
+          selectedLesson?.title ||
+          'Assistir Aula'
+        }
         userId={userId}
         getVideoData={getVideoData}
         getInitialTimestampValue={getInitialTimestampValue}

@@ -124,7 +124,10 @@ export function generateTitle(
   // Get first lesson name if available
   const firstLessonName =
     lessons && lessons.length > 0
-      ? lessons[0].content?.name || lessons[0].videoTitle || lessons[0].title || null
+      ? lessons[0].content?.name ||
+        lessons[0].videoTitle ||
+        lessons[0].title ||
+        null
       : null;
 
   // Format current date as DD/MM/YYYY
