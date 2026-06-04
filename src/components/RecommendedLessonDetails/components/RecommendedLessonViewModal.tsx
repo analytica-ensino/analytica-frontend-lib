@@ -5,13 +5,14 @@ import Button from '../../Button/Button';
 import Badge from '../../Badge/Badge';
 import Alert from '../../Alert/Alert';
 import VideoPlayer from '../../VideoPlayer/VideoPlayer';
-import { CardAudio } from '../../Card/Card';
+import { CardAudio, CardBase } from '../../Card/Card';
 import Whiteboard from '../../Whiteboard/Whiteboard';
 import { CardAccordation } from '../../Accordation';
-import { CardBase } from '../../Card/Card';
 import { Skeleton, SkeletonRounded } from '../../Skeleton/Skeleton';
-import type { LessonDetailsData } from '../../../types/recommendedLessons';
-import type { RecommendedClassLessonsItem } from '../../../types/recommendedLessons';
+import type {
+  LessonDetailsData,
+  RecommendedClassLessonsItem,
+} from '../../../types/recommendedLessons';
 import type { Lesson } from '../../../types/lessons';
 import type { BaseApiClient } from '../../../types/api';
 import type { WhiteboardImage } from '../../Whiteboard/Whiteboard';
