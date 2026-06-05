@@ -273,7 +273,14 @@ export const UnifiedHistoryPage = ({
       baseColumns.splice(navIndex, 0, actionsColumn);
     }
     return baseColumns;
-  }, [config.tableColumns, deleteEnabled, currentUserId]);
+  }, [
+    config.tableColumns,
+    deleteEnabled,
+    currentUserId,
+    navigate,
+    routes,
+    activityCategory,
+  ]);
 
   /**
    * TypeSelector config with proper labels, routes, and status options

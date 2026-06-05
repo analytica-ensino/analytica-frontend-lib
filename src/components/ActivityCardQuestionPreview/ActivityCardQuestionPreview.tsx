@@ -423,7 +423,7 @@ export const ActivityCardQuestionPreview = ({
           className="text-text-950 text-md break-words"
         />
         {renderFromMap(questionRenderers, questionType)}
-        {solutionExplanation && stripHtml(solutionExplanation).trim() && (
+        {solutionExplanation?.replaceAll(/<[^<>]*>/g, '').trim() && (
           <div className="mt-4 rounded-lg border border-info-300 bg-info-background p-3">
             <Text size="sm" weight="bold" className="text-info-700 mb-1">
               Resolução

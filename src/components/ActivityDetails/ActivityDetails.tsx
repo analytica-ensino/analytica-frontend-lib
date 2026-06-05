@@ -272,6 +272,69 @@ const normalizeWithPositions = (items: PreviewQuestion[]) =>
   }));
 
 /**
+ * Extract the question ids from a quiz/activity endpoint response, supporting
+ * both a `questions` array and a `questionIds` array.
+ * @param response - the raw endpoint response (may be undefined when it failed)
+ * @returns the list of question ids (empty when none are present)
+ */
+const extractQuestionIds = (response?: {
+  data?: { data?: { questions?: Question[]; questionIds?: string[] } };
+}): string[] =>
+  response?.data?.data?.questions?.map((q) => q.id) ??
+  response?.data?.data?.questionIds ??
+  [];
+
+/** Result shape returned by the quiz/activity question endpoints helpers */
+type QuestionsEndpointResult = {
+  response?: {
+    data?: { data?: { questions?: Question[]; questionIds?: string[] } };
+  };
+  error?: Error;
+};
+
+/**
+ * Resolve the activity's questions (with answer key + resolution) for the
+ * "Ver atividade" modal: tries the quiz endpoint, falls back to the activity
+ * endpoint, then loads the full questions via `/questions/by-ids`.
+ * Kept at module scope to keep the component's cognitive complexity low.
+ *
+ * @returns the converted preview questions (empty when none are found)
+ * @throws when both endpoints fail outright
+ */
+const loadViewQuestions = async (
+  tryQuiz: () => Promise<QuestionsEndpointResult>,
+  tryActivity: () => Promise<QuestionsEndpointResult>,
+  fetchByIds: (ids: string[]) => Promise<Question[]>
+): Promise<PreviewQuestion[]> => {
+  const { response: quizResponse, error: quizError } = await tryQuiz();
+  let ids = extractQuestionIds(quizResponse);
+
+  if (ids.length === 0) {
+    const { response: activityResponse, error: activityError } =
+      await tryActivity();
+
+    // If both endpoints failed outright, surface the error instead of silently
+    // showing an empty modal.
+    if (!quizResponse && !activityResponse) {
+      throw (
+        quizError ??
+        activityError ??
+        new Error('Erro ao buscar questões da atividade. Tente novamente.')
+      );
+    }
+
+    ids = extractQuestionIds(activityResponse);
+  }
+
+  if (ids.length === 0) {
+    return [];
+  }
+
+  const fullQuestions = await fetchByIds(ids);
+  return fullQuestions.map((q) => convertQuestionToPreview(q));
+};
+
+/**
  * Return the average-score card label depending on how many students were assigned to the activity.
  * @param totalStudents - total students attributed to the activity
  * @returns singular label when only one student is attributed, plural label otherwise
@@ -584,7 +647,7 @@ export const ActivityDetails = ({
       setSortBy(params.sortBy ? sortByMap[params.sortBy] : undefined);
     }
     if (params.sortOrder !== undefined) {
-      setSortOrder(params.sortOrder as 'asc' | 'desc' | undefined);
+      setSortOrder(params.sortOrder);
     }
   };
 
@@ -784,47 +847,28 @@ export const ActivityDetails = ({
    * Fetch the activity questions WITH the answer key + resolution for the
    * "Ver atividade" modal. Unlike the PDF download (student-facing quiz), this
    * resolves the question ids and loads them via `/questions/by-ids`, which
-   * returns `options.isCorrect` and `solutionExplanation`.
-   *
-   * @returns true if questions were loaded (non-empty), false otherwise
+   * returns `options.isCorrect` and `solutionExplanation`. On no questions the
+   * `viewQuestions` list is cleared so the modal shows an empty state; on a real
+   * fetch failure a feedback toast is shown via `handleQuestionsFetchError`.
    */
-  const fetchViewQuestions = useCallback(async (): Promise<boolean> => {
-    if (!activityId) return false;
+  const fetchViewQuestions = useCallback(async (): Promise<void> => {
+    if (!activityId) return;
 
     setIsLoadingQuestions(true);
     setActivityQuestionsError(null);
     try {
-      // Resolve the activity's question ids from quiz/activity endpoints
-      const { response: quizResponse } = await tryFetchQuizResponse();
-      let ids =
-        quizResponse?.data?.data?.questions?.map((q) => q.id) ??
-        quizResponse?.data?.data?.questionIds ??
-        [];
-
-      if (ids.length === 0) {
-        const { response: activityResponse } = await tryFetchActivityResponse();
-        ids =
-          activityResponse?.data?.data?.questions?.map((q) => q.id) ??
-          activityResponse?.data?.data?.questionIds ??
-          [];
-      }
-
-      if (ids.length === 0) {
-        setViewQuestions([]);
-        return false;
-      }
-
-      // Load full questions (with answer key + resolution) and convert
-      const fullQuestions = await fetchQuestionsByIds(ids);
-      setViewQuestions(fullQuestions.map((q) => convertQuestionToPreview(q)));
-      return fullQuestions.length > 0;
+      const questions = await loadViewQuestions(
+        tryFetchQuizResponse,
+        tryFetchActivityResponse,
+        fetchQuestionsByIds
+      );
+      setViewQuestions(questions);
     } catch (err) {
       const errorMessage =
         err instanceof Error
           ? err.message
           : 'Erro ao buscar questões da atividade. Tente novamente.';
       handleQuestionsFetchError(errorMessage);
-      return false;
     } finally {
       setIsLoadingQuestions(false);
     }

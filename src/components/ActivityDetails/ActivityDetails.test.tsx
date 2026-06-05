@@ -1133,6 +1133,26 @@ describe('ActivityDetails', () => {
         expect(screen.queryByText('Ver atividade')).not.toBeInTheDocument();
       });
     });
+
+    it('shows a warning toast when both endpoints fail to load questions', async () => {
+      (mockApiClient.get as jest.Mock).mockRejectedValue(
+        new Error('network down')
+      );
+
+      render(<ActivityDetails {...defaultProps} />);
+      await waitFor(() => {
+        expect(screen.getByText('Ver Atividade')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Ver Atividade'));
+
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith(
+          expect.objectContaining({ action: 'warning' })
+        );
+      });
+      expect(mockFetchQuestionsByIds).not.toHaveBeenCalled();
+    });
   });
 
   describe('API Integration', () => {
