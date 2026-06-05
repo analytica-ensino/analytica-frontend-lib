@@ -77,23 +77,25 @@ export const AppLayout = ({
       className="w-screen min-h-[100dvh] md:h-[100dvh] bg-secondary-50 flex flex-col items-center overflow-x-hidden md:overflow-hidden"
     >
       {header}
-      <MenuOverflow
-        value={activeMenuValue}
-        defaultValue=""
-        className={`z-10 ${menuMaxWidth ?? 'max-w-[1000px]'}`}
-        onValueChange={onMenuItemClick}
-      >
-        {visibleItems.map((item) => (
-          <MenuItem
-            key={item.value}
-            variant="menu-overflow-col"
-            value={item.value}
-          >
-            {item.icon}
-            {item.label}
-          </MenuItem>
-        ))}
-      </MenuOverflow>
+      <div className="z-10 w-full flex flex-col items-center bg-background shadow-soft-shadow-1">
+        <MenuOverflow
+          value={activeMenuValue}
+          defaultValue=""
+          className={menuMaxWidth ?? 'max-w-[1000px]'}
+          onValueChange={onMenuItemClick}
+        >
+          {visibleItems.map((item) => (
+            <MenuItem
+              key={item.value}
+              variant="menu-overflow-col"
+              value={item.value}
+            >
+              {item.icon}
+              {item.label}
+            </MenuItem>
+          ))}
+        </MenuOverflow>
+      </div>
       <div className="md:[height:calc(100dvh-120px)] md:overflow-auto w-full">
         <PageContainer innerClassName={contentMaxWidth}>
           {children}
