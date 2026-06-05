@@ -8,9 +8,12 @@ import {
   FileAudio,
   FilePdf,
   ClosedCaptioning,
+  Paperclip,
+  PencilSimple,
   X,
 } from 'phosphor-react';
 import Text from '../Text/Text';
+import Button from '../Button/Button';
 import { cn } from '../../utils/utils';
 
 export type FileType = 'image' | 'video' | 'audio' | 'pdf' | 'subtitle';
@@ -40,6 +43,8 @@ export interface FileDropzoneProps {
   placeholder?: string;
   /** Text shown when hovering over an existing file */
   changeText?: string;
+  /** Label of the replace button shown in the image preview state (default: "Trocar") */
+  changeButtonText?: string;
   /** Disabled state */
   disabled?: boolean;
   /** Required field indicator */
@@ -134,6 +139,7 @@ export default function FileDropzone({
   actionText = 'Clique aqui',
   placeholder,
   changeText,
+  changeButtonText = 'Trocar',
   disabled = false,
   required = false,
   className,
@@ -271,6 +277,16 @@ export default function FileDropzone({
     }
   };
 
+  const handleChangeClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!disabled) {
+      fileInputRef.current?.click();
+    }
+  };
+
+  const fileName = selectedFile?.name || (fileUrl ? 'Arquivo carregado' : '');
+
   const getBorderClasses = () => {
     if (hasError) {
       return disabled
@@ -291,36 +307,65 @@ export default function FileDropzone({
     disabled && 'cursor-not-allowed opacity-50'
   );
 
+  // Image preview state (Figma): solid card with preview + file chip + actions
+  const isImagePreview =
+    fileType === 'image' && showPreview && Boolean(displayUrl);
+
+  const imageCardClasses = cn(
+    'flex flex-col items-center justify-center gap-3 p-6 rounded-lg bg-background-100',
+    hasError && 'border-2 border-indicator-error',
+    disabled && 'opacity-50'
+  );
+
   const getAriaDescribedBy = (): string | undefined => {
     if (errorMessage) return `${inputId}-error`;
     if (helperText) return `${inputId}-helper`;
     return undefined;
   };
 
-  const renderFilePreview = () => {
-    // For images with showPreview enabled
-    if (fileType === 'image' && showPreview && displayUrl) {
-      return (
-        <div className="flex flex-col items-center gap-2">
-          <img
-            src={displayUrl}
-            alt="Preview do arquivo"
-            className={cn(
-              'max-w-full rounded-lg object-cover',
-              previewMaxHeight
-            )}
-          />
-          <Text size="xs" className="text-text-500">
-            {defaultChangeText}
-          </Text>
-        </div>
-      );
-    }
+  // Image preview state (Figma): preview + file chip (with remove) + replace button
+  const renderImagePreview = () => (
+    <>
+      <img
+        src={displayUrl ?? undefined}
+        alt="Preview do arquivo"
+        className={cn('max-w-full rounded-lg object-contain', previewMaxHeight)}
+      />
 
+      <div className="flex items-center gap-2 rounded-full border border-border-200 bg-background px-3 py-1.5">
+        <Paperclip size={16} className="text-text-600" />
+        <Text size="sm" className="text-text-700 max-w-[200px] truncate">
+          {fileName}
+        </Text>
+        {onRemoveFile && !disabled && (
+          <button
+            type="button"
+            onClick={handleRemove}
+            className="p-0.5 rounded-full hover:bg-error-100 transition-colors"
+            aria-label="Remover arquivo"
+          >
+            <X size={14} className="text-indicator-error" />
+          </button>
+        )}
+      </div>
+
+      {!disabled && (
+        <Button
+          variant="outline"
+          action="primary"
+          size="small"
+          iconLeft={<PencilSimple size={16} />}
+          onClick={handleChangeClick}
+        >
+          {changeButtonText}
+        </Button>
+      )}
+    </>
+  );
+
+  const renderFilePreview = () => {
     // For non-image files or images without preview - show file info with check
     if (hasFile) {
-      const fileName =
-        selectedFile?.name || (fileUrl ? 'Arquivo carregado' : '');
       return (
         <div className="flex flex-col items-center gap-3">
           <div className="flex items-center justify-center w-12 h-12 rounded-full bg-success-100">
@@ -372,27 +417,40 @@ export default function FileDropzone({
         </label>
       )}
 
-      <label
-        className={dropzoneClasses}
-        onDragEnter={handleDragEnter}
-        onDragLeave={handleDragLeave}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-      >
-        <input
-          ref={fileInputRef}
-          id={inputId}
-          type="file"
-          accept={accept}
-          onChange={handleFileChange}
-          className="hidden"
-          disabled={disabled}
-          aria-invalid={hasError}
-          aria-describedby={getAriaDescribedBy()}
-        />
+      <input
+        ref={fileInputRef}
+        id={inputId}
+        type="file"
+        accept={accept}
+        onChange={handleFileChange}
+        className="hidden"
+        disabled={disabled}
+        aria-invalid={hasError}
+        aria-describedby={getAriaDescribedBy()}
+      />
 
-        {renderFilePreview()}
-      </label>
+      {isImagePreview ? (
+        <div
+          className={imageCardClasses}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+        >
+          {renderImagePreview()}
+        </div>
+      ) : (
+        <label
+          htmlFor={inputId}
+          className={dropzoneClasses}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+        >
+          {renderFilePreview()}
+        </label>
+      )}
 
       <div className="mt-1">
         {helperText && !errorMessage && (

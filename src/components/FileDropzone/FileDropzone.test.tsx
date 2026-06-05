@@ -1,6 +1,20 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import FileDropzone from './FileDropzone';
 
+// Mock URL.createObjectURL/revokeObjectURL for image preview from a selectedFile
+(
+  globalThis.URL as unknown as {
+    createObjectURL: jest.Mock;
+    revokeObjectURL: jest.Mock;
+  }
+).createObjectURL = jest.fn(() => 'blob:mock-url');
+(
+  globalThis.URL as unknown as {
+    createObjectURL: jest.Mock;
+    revokeObjectURL: jest.Mock;
+  }
+).revokeObjectURL = jest.fn();
+
 describe('FileDropzone', () => {
   const defaultProps = {
     accept: 'image/*',
@@ -555,6 +569,90 @@ describe('FileDropzone', () => {
 
       const img = screen.getByRole('img');
       expect(img.className).toContain('max-h-64');
+    });
+  });
+
+  describe('Image preview actions', () => {
+    const imageProps = {
+      accept: 'image/*',
+      fileType: 'image' as const,
+      fileUrl: 'https://example.com/image.jpg',
+      showPreview: true,
+    };
+
+    it('should render the replace button (Trocar) in image preview', () => {
+      render(<FileDropzone {...imageProps} />);
+
+      expect(
+        screen.getByRole('button', { name: 'Trocar' })
+      ).toBeInTheDocument();
+    });
+
+    it('should render a custom replace button label', () => {
+      render(<FileDropzone {...imageProps} changeButtonText="Substituir" />);
+
+      expect(
+        screen.getByRole('button', { name: 'Substituir' })
+      ).toBeInTheDocument();
+    });
+
+    it('should not render the replace button when disabled', () => {
+      render(<FileDropzone {...imageProps} disabled />);
+
+      expect(
+        screen.queryByRole('button', { name: 'Trocar' })
+      ).not.toBeInTheDocument();
+    });
+
+    it('should open the file picker when the replace button is clicked', () => {
+      render(<FileDropzone {...imageProps} />);
+
+      const input = document.querySelector(
+        'input[type="file"]'
+      ) as HTMLInputElement;
+      const clickSpy = jest.spyOn(input, 'click');
+
+      fireEvent.click(screen.getByRole('button', { name: 'Trocar' }));
+
+      expect(clickSpy).toHaveBeenCalled();
+    });
+
+    it('should show remove button in image preview when onRemoveFile is provided', () => {
+      render(<FileDropzone {...imageProps} onRemoveFile={jest.fn()} />);
+
+      expect(screen.getByLabelText('Remover arquivo')).toBeInTheDocument();
+    });
+
+    it('should call onRemoveFile when remove button is clicked in image preview', () => {
+      const handleRemoveFile = jest.fn();
+      render(<FileDropzone {...imageProps} onRemoveFile={handleRemoveFile} />);
+
+      fireEvent.click(screen.getByLabelText('Remover arquivo'));
+
+      expect(handleRemoveFile).toHaveBeenCalled();
+    });
+
+    it('should not render remove button in image preview without onRemoveFile', () => {
+      render(<FileDropzone {...imageProps} />);
+
+      expect(
+        screen.queryByLabelText('Remover arquivo')
+      ).not.toBeInTheDocument();
+    });
+
+    it('should display "Arquivo carregado" in the chip when only fileUrl is provided', () => {
+      render(<FileDropzone {...imageProps} />);
+
+      expect(screen.getByText('Arquivo carregado')).toBeInTheDocument();
+    });
+
+    it('should display the selected file name in the image preview chip', () => {
+      const file = new File(['test'], 'logo.png', { type: 'image/png' });
+      render(
+        <FileDropzone accept="image/*" fileType="image" selectedFile={file} />
+      );
+
+      expect(screen.getByText('logo.png')).toBeInTheDocument();
     });
   });
 
