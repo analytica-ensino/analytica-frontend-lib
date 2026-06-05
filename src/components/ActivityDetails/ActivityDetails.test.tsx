@@ -1087,7 +1087,13 @@ describe('ActivityDetails', () => {
         expect(mockFetchQuestionsByIds).toHaveBeenCalledTimes(1);
       });
 
-      // Close and reopen — questions are cached, so no new fetch happens
+      // Close the modal (Escape)
+      fireEvent.keyDown(document, { key: 'Escape' });
+      await waitFor(() => {
+        expect(screen.queryByText('Ver atividade')).not.toBeInTheDocument();
+      });
+
+      // Reopen — questions are cached, so no new fetch happens
       fireEvent.click(screen.getByText('Ver Atividade'));
       await waitFor(() => {
         expect(screen.getByText('Ver atividade')).toBeInTheDocument();
