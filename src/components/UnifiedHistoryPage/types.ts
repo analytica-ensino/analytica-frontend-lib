@@ -6,6 +6,7 @@ import type { ActivityTableItem } from '../../types/activitiesHistory';
 import type { ExamTableItem } from '../../types/examsHistory';
 import type { TableParams } from '../TableProvider/TableProvider';
 import type { PaginationData } from '../../types/pagination';
+import type { BaseApiClient } from '../../types/api';
 
 /**
  * User data type for filter options
@@ -60,4 +61,15 @@ export interface UnifiedHistoryPageProps {
   includeCreatorFilter?: boolean;
   /** Routes configuration for both ATIVIDADE and PROVA */
   routes: Record<ActivityCategory, TypeRoutes>;
+  /**
+   * Logged user id. When provided together with `apiClient` (and category is
+   * ATIVIDADE), enables the owner-only delete action on activities created by
+   * this user (row.creatorId === currentUserId).
+   */
+  currentUserId?: string | null;
+  /**
+   * API client used to delete an activity (DELETE /activities/:id). Required to
+   * enable the delete action; pairs with `currentUserId`.
+   */
+  apiClient?: BaseApiClient;
 }

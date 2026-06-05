@@ -1,13 +1,17 @@
-import { useCallback, useMemo } from 'react';
+import type { MouseEvent } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus } from 'phosphor-react';
+import { Plus, Trash, PencilSimple } from 'phosphor-react';
 import { PAGE_CONFIG } from './config';
 import type { UnifiedHistoryPageProps } from './types';
 import EmptyState from '../EmptyState/EmptyState';
+import IconButton from '../IconButton/IconButton';
+import { AlertDialog } from '../AlertDialog/AlertDialog';
+import useToastStore from '../Toast/utils/ToastStore';
 import TypeSelector from '../TypeSelector/TypeSelector';
 import { createActivityCategoryConfig } from '../TypeSelector/TypeSelector.types';
 import type { FilterConfig } from '../Filter';
-import type { TableParams } from '../TableProvider/TableProvider';
+import type { TableParams, ColumnConfig } from '../TableProvider/TableProvider';
 import type {
   ActivityTableItem,
   ActivityFilterOption,
@@ -46,10 +50,29 @@ export const UnifiedHistoryPage = ({
   noSearchImage,
   includeCreatorFilter = false,
   routes,
+  currentUserId,
+  apiClient,
 }: UnifiedHistoryPageProps) => {
   const navigate = useNavigate();
   const config = PAGE_CONFIG[activityCategory];
   const PageLayout = config.PageLayout;
+  const addToast = useToastStore((state) => state.addToast);
+
+  /**
+   * Whether the owner-only delete action is enabled. Requires an api client and
+   * the logged user id, and only applies to activities (not exams).
+   */
+  const deleteEnabled =
+    activityCategory === 'ATIVIDADE' && !!apiClient && !!currentUserId;
+
+  /** Activity currently pending deletion confirmation (drives the AlertDialog) */
+  const [activityToDelete, setActivityToDelete] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
+
+  /** Last table params received, used to reload the list after a deletion */
+  const lastParamsRef = useRef<TableParams | null>(null);
 
   // Extract user filter options
   const userFilterOptions = useMemo(
@@ -162,10 +185,95 @@ export const UnifiedHistoryPage = ({
    */
   const handleParamsChange = useCallback(
     (params: TableParams) => {
+      lastParamsRef.current = params;
       onParamsChange(params);
     },
     [onParamsChange]
   );
+
+  /**
+   * Confirm deletion of the selected activity: calls DELETE /activities/:id,
+   * reloads the list with the current params and shows a feedback toast.
+   */
+  const handleConfirmDelete = useCallback(async () => {
+    if (!activityToDelete || !apiClient) {
+      return;
+    }
+
+    try {
+      await apiClient.delete(`/activities/${activityToDelete.id}`);
+      setActivityToDelete(null);
+      if (lastParamsRef.current) {
+        onParamsChange(lastParamsRef.current);
+      }
+      addToast({
+        title: 'Atividade excluída com sucesso',
+        action: 'success',
+      });
+    } catch {
+      setActivityToDelete(null);
+      addToast({ title: 'Erro ao excluir atividade', action: 'warning' });
+    }
+  }, [activityToDelete, apiClient, onParamsChange, addToast]);
+
+  /**
+   * Table headers, optionally augmented with an owner-only delete action column
+   * inserted right before the navigation (caret) column.
+   */
+  const headers = useMemo(() => {
+    if (!deleteEnabled) {
+      return config.tableColumns;
+    }
+
+    const actionsColumn: ColumnConfig<ActivityTableItem> = {
+      key: 'actions',
+      label: '',
+      sortable: false,
+      className: 'w-24',
+      render: (_value, row) => {
+        if (!row.creatorId || row.creatorId !== currentUserId) {
+          return null;
+        }
+        return (
+          <div className="flex items-center justify-end gap-2">
+            <IconButton
+              icon={<Trash size={20} />}
+              size="sm"
+              title="Excluir"
+              className="hover:text-error-500"
+              aria-label="Excluir"
+              onClick={(e: MouseEvent) => {
+                e.stopPropagation();
+                setActivityToDelete({ id: row.id, title: row.title });
+              }}
+            />
+            <IconButton
+              icon={<PencilSimple size={20} />}
+              size="sm"
+              title="Editar"
+              className="hover:text-primary-700"
+              aria-label="Editar"
+              onClick={(e: MouseEvent) => {
+                e.stopPropagation();
+                navigate(`${routes[activityCategory].create}?id=${row.id}`);
+              }}
+            />
+          </div>
+        );
+      },
+    };
+
+    const baseColumns = [
+      ...(config.tableColumns as ColumnConfig<ActivityTableItem>[]),
+    ];
+    const navIndex = baseColumns.findIndex((c) => c.key === 'navigation');
+    if (navIndex === -1) {
+      baseColumns.push(actionsColumn);
+    } else {
+      baseColumns.splice(navIndex, 0, actionsColumn);
+    }
+    return baseColumns;
+  }, [config.tableColumns, deleteEnabled, currentUserId]);
 
   /**
    * TypeSelector config with proper labels, routes, and status options
@@ -225,7 +333,7 @@ export const UnifiedHistoryPage = ({
     ),
     testId: config.testId,
     data: data || [],
-    headers: config.tableColumns,
+    headers,
     loading,
     error,
     pagination,
@@ -251,6 +359,29 @@ export const UnifiedHistoryPage = ({
     [config.onCreatePropName]: handleCreate,
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return <PageLayout {...(layoutProps as any)} />;
+  return (
+    <>
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      <PageLayout {...(layoutProps as any)} />
+      {deleteEnabled && (
+        <AlertDialog
+          isOpen={!!activityToDelete}
+          onChangeOpen={(open) => {
+            if (!open) {
+              setActivityToDelete(null);
+            }
+          }}
+          title="Excluir atividade"
+          description={`Tem certeza que deseja excluir a atividade "${
+            activityToDelete?.title ?? ''
+          }"? Esta ação não pode ser desfeita.`}
+          submitButtonLabel="Excluir"
+          cancelButtonLabel="Cancelar"
+          submitAction="negative"
+          onSubmit={handleConfirmDelete}
+          onCancel={() => setActivityToDelete(null)}
+        />
+      )}
+    </>
+  );
 };

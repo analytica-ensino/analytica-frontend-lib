@@ -66,6 +66,8 @@ export interface ActivityTableItem extends Record<string, unknown> {
   startDate: string | null;
   deadline: string | null;
   creator: string;
+  /** Creator user id, used to gate owner-only actions (e.g. delete) */
+  creatorId?: string | null;
   title: string;
   school: string;
   year: string;
