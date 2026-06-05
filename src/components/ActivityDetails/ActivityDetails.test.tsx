@@ -1015,6 +1015,123 @@ describe('ActivityDetails', () => {
       await waitFor(() => {
         expect(screen.getByText('Ver atividade')).toBeInTheDocument();
       });
+      // The modal lists the loaded question cards
+      expect(screen.getByText('Questao um')).toBeInTheDocument();
+      expect(screen.getByText('Questao dois')).toBeInTheDocument();
+    });
+
+    it('falls back to the activity endpoint when the quiz returns no ids', async () => {
+      (mockApiClient.get as jest.Mock).mockImplementation((url: string) =>
+        url.endsWith('/quiz')
+          ? Promise.resolve({ data: { data: {} } })
+          : Promise.resolve({ data: { data: { questionIds: ['qa', 'qb'] } } })
+      );
+
+      render(<ActivityDetails {...defaultProps} />);
+      await waitFor(() => {
+        expect(screen.getByText('Ver Atividade')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Ver Atividade'));
+
+      await waitFor(() => {
+        expect(mockFetchQuestionsByIds).toHaveBeenCalledWith(['qa', 'qb']);
+      });
+    });
+
+    it('opens the modal with an empty state when there are no questions', async () => {
+      (mockApiClient.get as jest.Mock).mockResolvedValue({
+        data: { data: {} },
+      });
+
+      render(<ActivityDetails {...defaultProps} />);
+      await waitFor(() => {
+        expect(screen.getByText('Ver Atividade')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Ver Atividade'));
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Nenhuma questão encontrada para esta atividade.')
+        ).toBeInTheDocument();
+      });
+      expect(mockFetchQuestionsByIds).not.toHaveBeenCalled();
+    });
+
+    it('shows a warning toast when loading the questions fails', async () => {
+      mockFetchQuestionsByIds.mockRejectedValueOnce(new Error('boom'));
+
+      render(<ActivityDetails {...defaultProps} />);
+      await waitFor(() => {
+        expect(screen.getByText('Ver Atividade')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Ver Atividade'));
+
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith(
+          expect.objectContaining({ action: 'warning' })
+        );
+      });
+    });
+
+    it('reuses already-loaded questions on a second click (no refetch)', async () => {
+      render(<ActivityDetails {...defaultProps} />);
+      await waitFor(() => {
+        expect(screen.getByText('Ver Atividade')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Ver Atividade'));
+      await waitFor(() => {
+        expect(mockFetchQuestionsByIds).toHaveBeenCalledTimes(1);
+      });
+
+      // Close and reopen — questions are cached, so no new fetch happens
+      fireEvent.click(screen.getByText('Ver Atividade'));
+      await waitFor(() => {
+        expect(screen.getByText('Ver atividade')).toBeInTheDocument();
+      });
+      expect(mockFetchQuestionsByIds).toHaveBeenCalledTimes(1);
+    });
+
+    it('loads from the activity endpoint questions array (not ids)', async () => {
+      (mockApiClient.get as jest.Mock).mockImplementation((url: string) =>
+        url.endsWith('/quiz')
+          ? Promise.resolve({ data: { data: {} } })
+          : Promise.resolve({
+              data: { data: { questions: [{ id: 'qa' }, { id: 'qb' }] } },
+            })
+      );
+
+      render(<ActivityDetails {...defaultProps} />);
+      await waitFor(() => {
+        expect(screen.getByText('Ver Atividade')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Ver Atividade'));
+
+      await waitFor(() => {
+        expect(mockFetchQuestionsByIds).toHaveBeenCalledWith(['qa', 'qb']);
+      });
+    });
+
+    it('closes the modal when pressing Escape', async () => {
+      render(<ActivityDetails {...defaultProps} />);
+      await waitFor(() => {
+        expect(screen.getByText('Ver Atividade')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Ver Atividade'));
+      await waitFor(() => {
+        expect(screen.getByText('Ver atividade')).toBeInTheDocument();
+      });
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      await waitFor(() => {
+        expect(screen.queryByText('Ver atividade')).not.toBeInTheDocument();
+      });
     });
   });
 

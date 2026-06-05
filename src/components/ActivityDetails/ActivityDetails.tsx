@@ -838,17 +838,14 @@ export const ActivityDetails = ({
 
   /**
    * Handle "Ver atividade" button click: ensure questions (with answer key) are
-   * loaded, then open the read-only questions modal.
+   * loaded, then open the read-only questions modal. The modal always opens — if
+   * no questions are found it shows an empty-state message.
    */
   const handleViewActivity = useCallback(async () => {
-    if (viewQuestions.length > 0) {
-      setIsViewModalOpen(true);
-      return;
+    if (viewQuestions.length === 0) {
+      await fetchViewQuestions();
     }
-    const success = await fetchViewQuestions();
-    if (success) {
-      setIsViewModalOpen(true);
-    }
+    setIsViewModalOpen(true);
   }, [viewQuestions.length, fetchViewQuestions]);
 
   /**

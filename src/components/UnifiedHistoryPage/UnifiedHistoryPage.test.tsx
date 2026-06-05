@@ -646,8 +646,9 @@ describe('UnifiedHistoryPage', () => {
       );
       const examMock = jest.requireMock<typeof import('./config')>('./config')
         .PAGE_CONFIG.PROVA.PageLayout as jest.Mock;
-      const lastCall = examMock.mock.calls[examMock.mock.calls.length - 1];
-      const headers = lastCall[0].headers as ColumnConfig<ActivityTableItem>[];
+      const lastCall = examMock.mock.calls.at(-1);
+      const headers = lastCall?.[0]
+        .headers as ColumnConfig<ActivityTableItem>[];
       expect(headers.some((c) => c.key === 'actions')).toBe(false);
     });
 
@@ -720,6 +721,22 @@ describe('UnifiedHistoryPage', () => {
       fireEvent.click(screen.getByText('Cancelar'));
       expect(screen.queryByText('Excluir atividade')).not.toBeInTheDocument();
       expect(apiClient.delete).not.toHaveBeenCalled();
+    });
+
+    it('inserts the actions column right before the navigation column when present', () => {
+      const cfg = jest.requireMock<typeof import('./config')>('./config');
+      const original = cfg.PAGE_CONFIG.ATIVIDADE.tableColumns;
+      cfg.PAGE_CONFIG.ATIVIDADE.tableColumns = [
+        { key: 'navigation', label: '', sortable: false },
+      ];
+      try {
+        render(<UnifiedHistoryPage {...deleteProps()} />);
+        const headers = getMockPageLayout().mock.calls.at(-1)?.[0]
+          .headers as ColumnConfig<ActivityTableItem>[];
+        expect(headers.map((c) => c.key)).toEqual(['actions', 'navigation']);
+      } finally {
+        cfg.PAGE_CONFIG.ATIVIDADE.tableColumns = original;
+      }
     });
   });
 });
