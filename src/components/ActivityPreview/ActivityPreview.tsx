@@ -24,6 +24,7 @@ type PreviewQuestion = {
     options: { id: string; option: string }[];
     correctOptionIds?: string[];
   };
+  solutionExplanation?: string | null;
   position?: number;
 };
 
@@ -173,6 +174,7 @@ export const ActivityPreview = ({
                 questionTypeLabel,
                 statement,
                 question,
+                solutionExplanation,
                 position,
               },
               index
@@ -249,6 +251,7 @@ export const ActivityPreview = ({
                   statement={statement}
                   defaultExpanded={false}
                   question={question}
+                  solutionExplanation={solutionExplanation}
                   value={id}
                   position={position}
                 ></ActivityCardQuestionPreview>

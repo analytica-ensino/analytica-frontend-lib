@@ -345,6 +345,7 @@ export function convertQuestionToPreview(question: Question): PreviewQuestion {
   return {
     id: question.id,
     statement: question.statement,
+    solutionExplanation: question.solutionExplanation ?? null,
     bank: question.questionBankYear?.questionBank?.name || undefined,
     year: question.questionBankYear?.year || undefined,
     questionType: question.questionType,

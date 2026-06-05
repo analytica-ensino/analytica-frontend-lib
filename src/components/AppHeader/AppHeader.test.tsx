@@ -100,6 +100,21 @@ describe('AppHeader', () => {
     expect(screen.getAllByRole('button')).toHaveLength(6);
   });
 
+  it('wraps the calendar in an lg:hidden container (visible only below 1024px)', () => {
+    const { container } = render(
+      <AppHeader
+        {...baseProps({
+          showCalendar: true,
+          calendarContent: <div data-testid="calendar-body">cal</div>,
+        })}
+      />
+    );
+    const wrapper = container.querySelector('.lg\\:hidden');
+    expect(wrapper).toBeInTheDocument();
+    // The wrapper holds the calendar trigger button
+    expect(wrapper?.querySelector('button')).toBeTruthy();
+  });
+
   it('opens profile dropdown and displays user information', () => {
     render(<AppHeader {...baseProps()} />);
     const triggers = screen.getAllByRole('button');

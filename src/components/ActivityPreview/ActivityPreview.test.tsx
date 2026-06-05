@@ -68,15 +68,18 @@ jest.mock('../ActivityCardQuestionPreview/ActivityCardQuestionPreview', () => ({
     statement,
     value,
     position,
+    solutionExplanation,
   }: {
     statement?: string;
     value: string;
     position?: number;
+    solutionExplanation?: string | null;
   }) => (
     <div
       data-testid="activity-card-preview"
       data-value={value}
       data-position={position}
+      data-solution={solutionExplanation ?? ''}
     >
       <div data-drag-preview="true">drag-preview</div>
       <span>{statement ?? value}</span>
@@ -279,5 +282,17 @@ describe('ActivityPreview', () => {
         expect.objectContaining({ id: 'q3', position: 1 }),
       ])
     );
+  });
+
+  it('passes solutionExplanation through to each question card', () => {
+    renderComponent({
+      questions: [
+        { id: 'q1', statement: 'First', solutionExplanation: 'Resolucao X' },
+      ],
+    });
+
+    expect(
+      screen.getByTestId('activity-card-preview').getAttribute('data-solution')
+    ).toBe('Resolucao X');
   });
 });

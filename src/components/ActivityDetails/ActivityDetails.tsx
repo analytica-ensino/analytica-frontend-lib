@@ -5,11 +5,14 @@ import {
   CaretRight,
   WarningCircle,
   DownloadSimple,
+  Eye,
 } from 'phosphor-react';
 import Text from '../Text/Text';
 import { TruncatedText } from '../TruncatedText/TruncatedText';
 import Button from '../Button/Button';
 import Badge from '../Badge/Badge';
+import Modal from '../Modal/Modal';
+import { ActivityCardQuestionPreview } from '../ActivityCardQuestionPreview/ActivityCardQuestionPreview';
 import EmptyState from '../EmptyState/EmptyState';
 import {
   SkeletonText,
@@ -269,6 +272,118 @@ const normalizeWithPositions = (items: PreviewQuestion[]) =>
   }));
 
 /**
+ * Extract the question ids from a quiz/activity endpoint response, supporting
+ * both a `questions` array and a `questionIds` array.
+ * @param response - the raw endpoint response (may be undefined when it failed)
+ * @returns the list of question ids (empty when none are present)
+ */
+const extractQuestionIds = (response?: {
+  data?: { data?: { questions?: Question[]; questionIds?: string[] } };
+}): string[] =>
+  response?.data?.data?.questions?.map((q) => q.id) ??
+  response?.data?.data?.questionIds ??
+  [];
+
+/**
+ * Resolve an error message from an unknown thrown value, falling back to a
+ * provided default when it is not an `Error` instance.
+ */
+const toErrorMessage = (err: unknown, fallback: string): string =>
+  err instanceof Error ? err.message : fallback;
+
+/**
+ * Body of the "Ver atividade" modal: renders the read-only question cards
+ * (with answer key + resolution) or an empty-state message. Kept as a separate
+ * component to keep the parent's cognitive complexity low.
+ */
+const ViewQuestionsModalBody = ({
+  questions,
+}: {
+  questions: PreviewQuestion[];
+}) => {
+  if (questions.length === 0) {
+    return (
+      <Text className="text-text-600 text-sm">
+        Nenhuma questão encontrada para esta atividade.
+      </Text>
+    );
+  }
+
+  return (
+    <>
+      {questions.map((q, index) => (
+        <ActivityCardQuestionPreview
+          key={q.id}
+          subjectName={q.subjectName}
+          subjectColor={q.subjectColor}
+          iconName={q.iconName}
+          bank={q.bank}
+          year={q.year}
+          questionType={q.questionType}
+          questionTypeLabel={q.questionTypeLabel}
+          statement={q.statement}
+          question={q.question}
+          solutionExplanation={q.solutionExplanation}
+          position={q.position ?? index + 1}
+          defaultExpanded
+          value={q.id}
+        />
+      ))}
+    </>
+  );
+};
+
+/** Result shape returned by the quiz/activity question endpoints helpers */
+type QuestionsEndpointResult = {
+  response?: {
+    data?: { data?: { questions?: Question[]; questionIds?: string[] } };
+  };
+  error?: Error;
+};
+
+/**
+ * Resolve the activity's questions (with answer key + resolution) for the
+ * "Ver atividade" modal: tries the quiz endpoint, falls back to the activity
+ * endpoint, then loads the full questions via `/questions/by-ids`.
+ * Kept at module scope to keep the component's cognitive complexity low.
+ *
+ * @returns the converted preview questions (empty when none are found)
+ * @throws when both endpoints fail outright
+ */
+const loadViewQuestions = async (
+  tryQuiz: () => Promise<QuestionsEndpointResult>,
+  tryActivity: () => Promise<QuestionsEndpointResult>,
+  fetchByIds: (ids: string[]) => Promise<Question[]>
+): Promise<PreviewQuestion[]> => {
+  const { response: quizResponse, error: quizError } = await tryQuiz();
+  let ids = extractQuestionIds(quizResponse);
+
+  if (ids.length === 0) {
+    const { response: activityResponse, error: activityError } =
+      await tryActivity();
+
+    // If both endpoints failed outright, surface the error instead of silently
+    // showing an empty modal.
+    if (!quizResponse && !activityResponse) {
+      throw (
+        quizError ??
+        activityError ??
+        new Error('Erro ao buscar questões da atividade. Tente novamente.')
+      );
+    }
+
+    ids = extractQuestionIds(activityResponse);
+  }
+
+  if (ids.length === 0) {
+    return [];
+  }
+
+  const fullQuestions = await fetchByIds(ids);
+  return fullQuestions.map((q) => convertQuestionToPreview(q));
+};
+
+/**
  * Return the average-score card label depending on how many students were assigned to the activity.
  * @param totalStudents - total students attributed to the activity
  * @returns singular label when only one student is attributed, plural label otherwise
@@ -289,6 +404,7 @@ export const ActivityDetails = ({
   onDownloadAnswerSheet,
 }: ActivityDetailsProps) => {
   const { isMobile } = useMobile();
+  const statsGridColsClass = isMobile ? 'grid-cols-2' : 'grid-cols-5';
 
   // Pagination and sorting state
   const [page, setPage] = useState(1);
@@ -320,6 +436,11 @@ export const ActivityDetails = ({
   );
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
   const [shouldPrint, setShouldPrint] = useState(false);
+  // "Ver atividade" modal state
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  // Questions WITH answer key + resolution, used only by the "Ver atividade" modal
+  // (kept separate from `activityQuestions`, which feeds the student-facing PDF download)
+  const [viewQuestions, setViewQuestions] = useState<PreviewQuestion[]>([]);
   const [activityQuestionsError, setActivityQuestionsError] = useState<
     string | null
   >(null);
@@ -357,6 +478,7 @@ export const ActivityDetails = ({
    */
   useEffect(() => {
     setActivityQuestions([]);
+    setViewQuestions([]);
     setIsLoadingQuestions(false);
     setShouldPrint(false);
     setActivityQuestionsError(null);
@@ -381,9 +503,7 @@ export const ActivityDetails = ({
         });
         setData(result);
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : 'Erro ao carregar detalhes'
-        );
+        setError(toErrorMessage(err, 'Erro ao carregar detalhes'));
       } finally {
         setLoading(false);
       }
@@ -575,7 +695,7 @@ export const ActivityDetails = ({
       setSortBy(params.sortBy ? sortByMap[params.sortBy] : undefined);
     }
     if (params.sortOrder !== undefined) {
-      setSortOrder(params.sortOrder as 'asc' | 'desc' | undefined);
+      setSortOrder(params.sortOrder);
     }
   };
 
@@ -772,6 +892,56 @@ export const ActivityDetails = ({
   }, [activityQuestions.length, fetchActivityQuestions]);
 
   /**
+   * Fetch the activity questions WITH the answer key + resolution for the
+   * "Ver atividade" modal. Unlike the PDF download (student-facing quiz), this
+   * resolves the question ids and loads them via `/questions/by-ids`, which
+   * returns `options.isCorrect` and `solutionExplanation`. On no questions the
+   * `viewQuestions` list is cleared so the modal shows an empty state; on a real
+   * fetch failure a feedback toast is shown via `handleQuestionsFetchError`.
+   */
+  const fetchViewQuestions = useCallback(async (): Promise<void> => {
+    if (!activityId) return;
+
+    setIsLoadingQuestions(true);
+    setActivityQuestionsError(null);
+    try {
+      const questions = await loadViewQuestions(
+        tryFetchQuizResponse,
+        tryFetchActivityResponse,
+        fetchQuestionsByIds
+      );
+      setViewQuestions(questions);
+    } catch (err) {
+      handleQuestionsFetchError(
+        toErrorMessage(
+          err,
+          'Erro ao buscar questões da atividade. Tente novamente.'
+        )
+      );
+    } finally {
+      setIsLoadingQuestions(false);
+    }
+  }, [
+    activityId,
+    tryFetchQuizResponse,
+    tryFetchActivityResponse,
+    fetchQuestionsByIds,
+    handleQuestionsFetchError,
+  ]);
+
+  /**
+   * Handle "Ver atividade" button click: ensure questions (with answer key) are
+   * loaded, then open the read-only questions modal. The modal always opens — if
+   * no questions are found it shows an empty-state message.
+   */
+  const handleViewActivity = useCallback(async () => {
+    if (viewQuestions.length === 0) {
+      await fetchViewQuestions();
+    }
+    setIsViewModalOpen(true);
+  }, [viewQuestions.length, fetchViewQuestions]);
+
+  /**
    * Effect to handle PDF printing when shouldPrint flag is set
    * Waits for contentRef to be ready and questions to be loaded
    */
@@ -836,12 +1006,7 @@ export const ActivityDetails = ({
           <SkeletonRounded className="w-full h-[120px]" />
 
           {/* Statistics Cards Skeleton */}
-          <div
-            className={cn(
-              'grid gap-5',
-              isMobile ? 'grid-cols-2' : 'grid-cols-5'
-            )}
-          >
+          <div className={cn('grid gap-5', statsGridColsClass)}>
             {[
               'total-students',
               'completed',
@@ -954,15 +1119,28 @@ export const ActivityDetails = ({
                 </div>
               </div>
               <div className="flex flex-col items-end gap-2">
-                <Button
-                  size="small"
-                  onClick={handleDownloadPdf}
-                  disabled={isLoadingQuestions}
-                  iconLeft={<DownloadSimple size={16} />}
-                  className="bg-primary-950 text-text gap-2"
-                >
-                  {isLoadingQuestions ? 'Carregando...' : 'Baixar Atividade'}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="small"
+                    variant="outline"
+                    action="primary"
+                    onClick={handleViewActivity}
+                    disabled={isLoadingQuestions}
+                    iconLeft={<Eye size={16} />}
+                    className="gap-2"
+                  >
+                    Ver Atividade
+                  </Button>
+                  <Button
+                    size="small"
+                    onClick={handleDownloadPdf}
+                    disabled={isLoadingQuestions}
+                    iconLeft={<DownloadSimple size={16} />}
+                    className="bg-primary-950 text-text gap-2"
+                  >
+                    {isLoadingQuestions ? 'Carregando...' : 'Baixar Atividade'}
+                  </Button>
+                </div>
                 {activityQuestionsError && (
                   <div className="flex items-center gap-2 max-w-[300px]">
                     <WarningCircle
@@ -981,9 +1159,7 @@ export const ActivityDetails = ({
         )}
 
         {/* Statistics cards */}
-        <div
-          className={cn('grid gap-5', isMobile ? 'grid-cols-2' : 'grid-cols-5')}
-        >
+        <div className={cn('grid gap-5', statsGridColsClass)}>
           {/* Completion percentage */}
           <div className="border border-border-50 rounded-xl py-4 px-0 flex flex-col items-center justify-center gap-2 bg-primary-50">
             <div className="relative w-[90px] h-[90px]">
@@ -1133,6 +1309,18 @@ export const ActivityDetails = ({
         onObservationSubmit={handleObservationSubmit}
         onQuestionCorrectionSubmit={handleQuestionCorrectionSubmit}
       />
+
+      {/* Ver atividade (read-only questions with answer key + resolution) */}
+      <Modal
+        isOpen={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
+        title="Ver atividade"
+        size="xl"
+      >
+        <div className="flex flex-col gap-3 max-h-[70vh] overflow-y-auto pr-1">
+          <ViewQuestionsModalBody questions={viewQuestions} />
+        </div>
+      </Modal>
 
       {/* Hidden PDF content for printing */}
       <div style={{ display: 'none' }}>

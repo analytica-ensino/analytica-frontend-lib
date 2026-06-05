@@ -229,11 +229,13 @@ export const AppHeader = ({
           />
           <section className={`flex flex-row items-center ${sectionGap}`}>
             {showCalendar && (
-              <CalendarCard
-                content={calendarContent}
-                isOpen={calendarOpen ?? activeStates.calendar ?? false}
-                onOpenChange={handleCalendarOpenChange}
-              />
+              <div className="lg:hidden">
+                <CalendarCard
+                  content={calendarContent}
+                  isOpen={calendarOpen ?? activeStates.calendar ?? false}
+                  onOpenChange={handleCalendarOpenChange}
+                />
+              </div>
             )}
 
             <NotificationCard

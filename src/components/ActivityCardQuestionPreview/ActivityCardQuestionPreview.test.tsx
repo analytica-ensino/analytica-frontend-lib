@@ -305,4 +305,44 @@ describe('ActivityCardQuestionPreview', () => {
 
     expect(screen.queryByText('Alternativas')).not.toBeInTheDocument();
   });
+
+  it('renders the resolution block when solutionExplanation is provided', () => {
+    render(
+      <ActivityCardQuestionPreview
+        {...baseProps}
+        questionType={QUESTION_TYPE.ALTERNATIVA}
+        solutionExplanation="Explicacao da resolucao"
+        defaultExpanded
+      />
+    );
+
+    expect(screen.getByText('Resolução')).toBeInTheDocument();
+    expect(screen.getByText('Explicacao da resolucao')).toBeInTheDocument();
+  });
+
+  it('does not render the resolution block when solutionExplanation is null', () => {
+    render(
+      <ActivityCardQuestionPreview
+        {...baseProps}
+        questionType={QUESTION_TYPE.ALTERNATIVA}
+        solutionExplanation={null}
+        defaultExpanded
+      />
+    );
+
+    expect(screen.queryByText('Resolução')).not.toBeInTheDocument();
+  });
+
+  it('does not render the resolution block when solutionExplanation is only whitespace/markup', () => {
+    render(
+      <ActivityCardQuestionPreview
+        {...baseProps}
+        questionType={QUESTION_TYPE.ALTERNATIVA}
+        solutionExplanation="   "
+        defaultExpanded
+      />
+    );
+
+    expect(screen.queryByText('Resolução')).not.toBeInTheDocument();
+  });
 });

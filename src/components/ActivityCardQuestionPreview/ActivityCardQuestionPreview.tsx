@@ -51,6 +51,11 @@ interface ActivityCardQuestionPreviewProps {
    * Each pair has an option (left column) and correctValue (right column).
    */
   matchingPairs?: MatchingPairPreview[];
+  /**
+   * Optional solution/explanation (gabarito comentado). When provided, renders a
+   * "Resolução" block at the end of the expanded card.
+   */
+  solutionExplanation?: string | null;
   defaultExpanded?: boolean;
   value?: string;
   className?: string;
@@ -126,6 +131,7 @@ export const ActivityCardQuestionPreview = ({
   statement = 'Enunciado não informado',
   question,
   matchingPairs,
+  solutionExplanation,
   defaultExpanded = false,
   value,
   className,
@@ -417,6 +423,17 @@ export const ActivityCardQuestionPreview = ({
           className="text-text-950 text-md break-words"
         />
         {renderFromMap(questionRenderers, questionType)}
+        {solutionExplanation?.replaceAll(/<[^<>]*>/g, '').trim() && (
+          <div className="mt-4 rounded-lg border border-info-300 bg-info-background p-3">
+            <Text size="sm" weight="bold" className="text-info-700 mb-1">
+              Resolução
+            </Text>
+            <HtmlMathRenderer
+              content={solutionExplanation}
+              className="text-text-900 text-sm break-words"
+            />
+          </div>
+        )}
         {children}
       </CardAccordation>
     </div>

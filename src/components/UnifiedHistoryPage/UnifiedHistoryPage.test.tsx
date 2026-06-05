@@ -1,9 +1,11 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { UnifiedHistoryPage } from './UnifiedHistoryPage';
 import type { UnifiedHistoryPageProps } from './types';
 import type { ActivityTableItem } from '../../types/activitiesHistory';
 import { ActivityDisplayStatus } from '../../types/activitiesHistory';
+import type { BaseApiClient } from '../../types/api';
+import type { ColumnConfig } from '../TableProvider/TableProvider';
 import * as filterHelpers from '../../utils/filterHelpers';
 
 // Mock dependencies
@@ -11,6 +13,22 @@ const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }));
+
+// Mock toast store so we can assert delete feedback toasts
+jest.mock('../Toast/utils/ToastStore', () => {
+  const addToast = jest.fn();
+  return {
+    __esModule: true,
+    default: (selector: (s: { addToast: jest.Mock }) => unknown) =>
+      selector({ addToast }),
+    __addToast: addToast,
+  };
+});
+
+/** Retrieve the mocked addToast for assertions */
+const getMockAddToast = (): jest.Mock =>
+  (jest.requireMock('../Toast/utils/ToastStore') as { __addToast: jest.Mock })
+    .__addToast;
 
 jest.mock('../EmptyState/EmptyState', () => ({
   __esModule: true,
@@ -44,6 +62,7 @@ jest.mock('../../utils/filterHelpers', () => ({
 // Define interface for mock layouts
 interface MockHistoryPageLayoutProps {
   data?: ActivityTableItem[] | null;
+  headers?: ColumnConfig<ActivityTableItem>[];
   onParamsChange: (params: { page?: number }) => void;
   onRowClick: (row: ActivityTableItem) => void;
   onTabChange: (tab: string) => void;
@@ -59,25 +78,39 @@ jest.mock('./config', () => {
   const MockActivityLayout = jest.fn(
     ({
       data,
+      headers,
       onParamsChange,
       onRowClick,
       onTabChange,
       onCreateActivity,
-    }: MockHistoryPageLayoutProps) => (
-      <div data-testid="activity-page-layout">
-        <div data-testid="data-count">{data?.length || 0}</div>
-        <button onClick={() => onParamsChange({ page: 2 })}>
-          Change Params
-        </button>
-        <button onClick={() => data?.[0] && onRowClick(data[0])}>
-          Click Row
-        </button>
-        <button onClick={() => onTabChange('rascunhos')}>Go to Drafts</button>
-        <button onClick={() => onTabChange('modelos')}>Go to Models</button>
-        <button onClick={() => onTabChange('historico')}>Go to History</button>
-        <button onClick={onCreateActivity}>Create Activity</button>
-      </div>
-    )
+    }: MockHistoryPageLayoutProps) => {
+      const actionsColumn = headers?.find((c) => c.key === 'actions');
+      return (
+        <div data-testid="activity-page-layout">
+          <div data-testid="data-count">{data?.length || 0}</div>
+          <div data-testid="has-actions-column">{String(!!actionsColumn)}</div>
+          <button onClick={() => onParamsChange({ page: 2 })}>
+            Change Params
+          </button>
+          <button onClick={() => data?.[0] && onRowClick(data[0])}>
+            Click Row
+          </button>
+          <button onClick={() => onTabChange('rascunhos')}>Go to Drafts</button>
+          <button onClick={() => onTabChange('modelos')}>Go to Models</button>
+          <button onClick={() => onTabChange('historico')}>
+            Go to History
+          </button>
+          <button onClick={onCreateActivity}>Create Activity</button>
+          {/* Render the actions cell for each row so action buttons are testable */}
+          {actionsColumn?.render &&
+            data?.map((row, index) => (
+              <div key={row.id} data-testid={`actions-cell-${row.id}`}>
+                {actionsColumn.render?.(undefined, row, index)}
+              </div>
+            ))}
+        </div>
+      );
+    }
   );
 
   const MockExamLayout = jest.fn(
@@ -559,6 +592,151 @@ describe('UnifiedHistoryPage', () => {
       expect(filterHelpers.getSchoolOptionsFromUserData).toHaveBeenCalledWith(
         null
       );
+    });
+  });
+
+  describe('owner actions (delete/edit)', () => {
+    const currentUserId = 'user-1';
+    const ownedRow: ActivityTableItem = {
+      ...mockActivityData[0],
+      id: 'own-1',
+      creatorId: 'user-1',
+      title: 'Minha Atividade',
+    };
+    const otherRow: ActivityTableItem = {
+      ...mockActivityData[1],
+      id: 'other-1',
+      creatorId: 'user-2',
+    };
+    const nullCreatorRow: ActivityTableItem = {
+      ...mockActivityData[0],
+      id: 'null-1',
+      creatorId: null,
+    };
+
+    let apiClient: { delete: jest.Mock };
+
+    const deleteProps = (): UnifiedHistoryPageProps => ({
+      ...baseProps,
+      data: [ownedRow, otherRow, nullCreatorRow],
+      currentUserId,
+      apiClient: apiClient as unknown as BaseApiClient,
+    });
+
+    beforeEach(() => {
+      apiClient = { delete: jest.fn().mockResolvedValue({ data: {} }) };
+      getMockAddToast().mockClear();
+    });
+
+    it('does not add an actions column without currentUserId/apiClient', () => {
+      render(<UnifiedHistoryPage {...baseProps} />);
+      expect(screen.getByTestId('has-actions-column')).toHaveTextContent(
+        'false'
+      );
+    });
+
+    it('does not add an actions column for PROVA even when enabled', () => {
+      render(
+        <UnifiedHistoryPage
+          {...baseProps}
+          activityCategory="PROVA"
+          currentUserId={currentUserId}
+          apiClient={apiClient as unknown as BaseApiClient}
+        />
+      );
+      const examMock = jest.requireMock<typeof import('./config')>('./config')
+        .PAGE_CONFIG.PROVA.PageLayout as jest.Mock;
+      const lastCall = examMock.mock.calls.at(-1);
+      const headers = lastCall?.[0]
+        .headers as ColumnConfig<ActivityTableItem>[];
+      expect(headers.some((c) => c.key === 'actions')).toBe(false);
+    });
+
+    it('adds an actions column when delete is enabled', () => {
+      render(<UnifiedHistoryPage {...deleteProps()} />);
+      expect(screen.getByTestId('has-actions-column')).toHaveTextContent(
+        'true'
+      );
+    });
+
+    it('shows action buttons only for activities owned by the current user', () => {
+      render(<UnifiedHistoryPage {...deleteProps()} />);
+      expect(screen.getAllByTitle('Excluir')).toHaveLength(1);
+      expect(screen.getAllByTitle('Editar')).toHaveLength(1);
+      expect(
+        screen.getByTestId('actions-cell-own-1').querySelector('button')
+      ).toBeTruthy();
+      expect(
+        screen.getByTestId('actions-cell-other-1').querySelector('button')
+      ).toBeFalsy();
+      expect(
+        screen.getByTestId('actions-cell-null-1').querySelector('button')
+      ).toBeFalsy();
+    });
+
+    it('navigates to the edit route when clicking edit', () => {
+      render(<UnifiedHistoryPage {...deleteProps()} />);
+      fireEvent.click(screen.getByTitle('Editar'));
+      expect(mockNavigate).toHaveBeenCalledWith('/atividades/criar?id=own-1');
+    });
+
+    it('opens confirm dialog, deletes, reloads with last params and toasts success', async () => {
+      render(<UnifiedHistoryPage {...deleteProps()} />);
+      // Record last params so the post-delete reload uses them
+      fireEvent.click(screen.getByText('Change Params'));
+      // Open the confirmation dialog
+      fireEvent.click(screen.getByTitle('Excluir'));
+      expect(screen.getByText('Excluir atividade')).toBeInTheDocument();
+      // Confirm (dialog submit button text is "Excluir")
+      fireEvent.click(screen.getByText('Excluir'));
+
+      await waitFor(() =>
+        expect(apiClient.delete).toHaveBeenCalledWith('/activities/own-1')
+      );
+      expect(mockOnParamsChange).toHaveBeenCalledWith({ page: 2 });
+      await waitFor(() =>
+        expect(getMockAddToast()).toHaveBeenCalledWith(
+          expect.objectContaining({ action: 'success' })
+        )
+      );
+    });
+
+    it('toasts a warning when deletion fails', async () => {
+      apiClient.delete.mockRejectedValueOnce(new Error('fail'));
+      render(<UnifiedHistoryPage {...deleteProps()} />);
+      fireEvent.click(screen.getByTitle('Excluir'));
+      fireEvent.click(screen.getByText('Excluir'));
+
+      await waitFor(() =>
+        expect(getMockAddToast()).toHaveBeenCalledWith(
+          expect.objectContaining({ action: 'warning' })
+        )
+      );
+    });
+
+    it('closes the dialog without deleting when cancelled', () => {
+      render(<UnifiedHistoryPage {...deleteProps()} />);
+      fireEvent.click(screen.getByTitle('Excluir'));
+      expect(screen.getByText('Excluir atividade')).toBeInTheDocument();
+      fireEvent.click(screen.getByText('Cancelar'));
+      expect(screen.queryByText('Excluir atividade')).not.toBeInTheDocument();
+      expect(apiClient.delete).not.toHaveBeenCalled();
+    });
+
+    it('inserts the actions column right before the navigation column when present', () => {
+      const cfg = jest.requireMock<typeof import('./config')>('./config');
+      const original = cfg.PAGE_CONFIG.ATIVIDADE.tableColumns;
+      cfg.PAGE_CONFIG.ATIVIDADE.tableColumns = [
+        { key: 'navigation', label: '', sortable: false },
+      ];
+      try {
+        render(<UnifiedHistoryPage {...deleteProps()} />);
+        const headers = getMockPageLayout().mock.calls.at(-1)?.[0]
+          .headers as ColumnConfig<ActivityTableItem>[];
+        expect(headers.map((c) => c.key)).toEqual(['actions', 'navigation']);
+      } finally {
+        cfg.PAGE_CONFIG.ATIVIDADE.tableColumns = original;
+      }
     });
   });
 });
