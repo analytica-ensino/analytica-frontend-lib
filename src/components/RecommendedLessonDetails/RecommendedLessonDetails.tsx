@@ -12,6 +12,7 @@ import {
   ResultsSection,
   StudentsTable,
   StudentActivityPerformanceModal,
+  RecommendedLessonViewModal,
 } from './components';
 import { transformStudentForDisplay } from './utils/lessonDetailsUtils';
 import {
@@ -104,6 +105,9 @@ const RecommendedLessonDetails = ({
   const [performanceLoading, setPerformanceLoading] = useState(false);
   const [performanceError, setPerformanceError] = useState<string | null>(null);
 
+  // View lesson modal state
+  const [viewLessonModalOpen, setViewLessonModalOpen] = useState(false);
+
   /**
    * Handle correct activity action
    * Fetches all activities and lessons for the student and opens the performance modal
@@ -175,6 +179,25 @@ const RecommendedLessonDetails = ({
     setPerformanceError(null);
   }, []);
 
+  /**
+   * Handle view lesson action
+   * If onViewLesson prop is provided, call it; otherwise open internal modal
+   */
+  const handleViewLesson = useCallback(() => {
+    if (onViewLesson) {
+      onViewLesson();
+    } else {
+      setViewLessonModalOpen(true);
+    }
+  }, [onViewLesson]);
+
+  /**
+   * Handle close view lesson modal
+   */
+  const handleCloseViewLessonModal = useCallback(() => {
+    setViewLessonModalOpen(false);
+  }, []);
+
   const defaultBreadcrumbs: BreadcrumbItem[] = useMemo(
     () => [
       { label: 'Aulas recomendadas', path: '/aulas-recomendadas' },
@@ -237,7 +260,7 @@ const RecommendedLessonDetails = ({
         {/* Header with metadata */}
         <LessonHeader
           data={data}
-          onViewLesson={onViewLesson}
+          onViewLesson={handleViewLesson}
           mapSubjectNameToEnum={mapSubjectNameToEnum}
           viewLessonLabel={labels.viewLesson}
         />
@@ -264,6 +287,14 @@ const RecommendedLessonDetails = ({
           apiClient={apiClient}
         />
       )}
+
+      {/* View Lesson Modal */}
+      <RecommendedLessonViewModal
+        isOpen={viewLessonModalOpen}
+        onClose={handleCloseViewLessonModal}
+        data={data}
+        apiClient={apiClient}
+      />
     </>
   );
 };
