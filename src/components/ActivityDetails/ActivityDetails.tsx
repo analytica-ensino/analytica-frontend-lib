@@ -284,6 +284,13 @@ const extractQuestionIds = (response?: {
   response?.data?.data?.questionIds ??
   [];
 
+/**
+ * Resolve an error message from an unknown thrown value, falling back to a
+ * provided default when it is not an `Error` instance.
+ */
+const toErrorMessage = (err: unknown, fallback: string): string =>
+  err instanceof Error ? err.message : fallback;
+
 /** Result shape returned by the quiz/activity question endpoints helpers */
 type QuestionsEndpointResult = {
   response?: {
@@ -453,9 +460,7 @@ export const ActivityDetails = ({
         });
         setData(result);
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : 'Erro ao carregar detalhes'
-        );
+        setError(toErrorMessage(err, 'Erro ao carregar detalhes'));
       } finally {
         setLoading(false);
       }
@@ -864,11 +869,12 @@ export const ActivityDetails = ({
       );
       setViewQuestions(questions);
     } catch (err) {
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : 'Erro ao buscar questões da atividade. Tente novamente.';
-      handleQuestionsFetchError(errorMessage);
+      handleQuestionsFetchError(
+        toErrorMessage(
+          err,
+          'Erro ao buscar questões da atividade. Tente novamente.'
+        )
+      );
     } finally {
       setIsLoadingQuestions(false);
     }
