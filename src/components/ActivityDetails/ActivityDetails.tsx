@@ -291,6 +291,48 @@ const extractQuestionIds = (response?: {
 const toErrorMessage = (err: unknown, fallback: string): string =>
   err instanceof Error ? err.message : fallback;
 
+/**
+ * Body of the "Ver atividade" modal: renders the read-only question cards
+ * (with answer key + resolution) or an empty-state message. Kept as a separate
+ * component to keep the parent's cognitive complexity low.
+ */
+const ViewQuestionsModalBody = ({
+  questions,
+}: {
+  questions: PreviewQuestion[];
+}) => {
+  if (questions.length === 0) {
+    return (
+      <Text className="text-text-600 text-sm">
+        Nenhuma questão encontrada para esta atividade.
+      </Text>
+    );
+  }
+
+  return (
+    <>
+      {questions.map((q, index) => (
+        <ActivityCardQuestionPreview
+          key={q.id}
+          subjectName={q.subjectName}
+          subjectColor={q.subjectColor}
+          iconName={q.iconName}
+          bank={q.bank}
+          year={q.year}
+          questionType={q.questionType}
+          questionTypeLabel={q.questionTypeLabel}
+          statement={q.statement}
+          question={q.question}
+          solutionExplanation={q.solutionExplanation}
+          position={q.position ?? index + 1}
+          defaultExpanded
+          value={q.id}
+        />
+      ))}
+    </>
+  );
+};
+
 /** Result shape returned by the quiz/activity question endpoints helpers */
 type QuestionsEndpointResult = {
   response?: {
@@ -362,6 +404,7 @@ export const ActivityDetails = ({
   onDownloadAnswerSheet,
 }: ActivityDetailsProps) => {
   const { isMobile } = useMobile();
+  const statsGridColsClass = isMobile ? 'grid-cols-2' : 'grid-cols-5';
 
   // Pagination and sorting state
   const [page, setPage] = useState(1);
@@ -963,12 +1006,7 @@ export const ActivityDetails = ({
           <SkeletonRounded className="w-full h-[120px]" />
 
           {/* Statistics Cards Skeleton */}
-          <div
-            className={cn(
-              'grid gap-5',
-              isMobile ? 'grid-cols-2' : 'grid-cols-5'
-            )}
-          >
+          <div className={cn('grid gap-5', statsGridColsClass)}>
             {[
               'total-students',
               'completed',
@@ -1121,9 +1159,7 @@ export const ActivityDetails = ({
         )}
 
         {/* Statistics cards */}
-        <div
-          className={cn('grid gap-5', isMobile ? 'grid-cols-2' : 'grid-cols-5')}
-        >
+        <div className={cn('grid gap-5', statsGridColsClass)}>
           {/* Completion percentage */}
           <div className="border border-border-50 rounded-xl py-4 px-0 flex flex-col items-center justify-center gap-2 bg-primary-50">
             <div className="relative w-[90px] h-[90px]">
@@ -1282,30 +1318,7 @@ export const ActivityDetails = ({
         size="xl"
       >
         <div className="flex flex-col gap-3 max-h-[70vh] overflow-y-auto pr-1">
-          {viewQuestions.length === 0 ? (
-            <Text className="text-text-600 text-sm">
-              Nenhuma questão encontrada para esta atividade.
-            </Text>
-          ) : (
-            viewQuestions.map((q, index) => (
-              <ActivityCardQuestionPreview
-                key={q.id}
-                subjectName={q.subjectName}
-                subjectColor={q.subjectColor}
-                iconName={q.iconName}
-                bank={q.bank}
-                year={q.year}
-                questionType={q.questionType}
-                questionTypeLabel={q.questionTypeLabel}
-                statement={q.statement}
-                question={q.question}
-                solutionExplanation={q.solutionExplanation}
-                position={q.position ?? index + 1}
-                defaultExpanded
-                value={q.id}
-              />
-            ))
-          )}
+          <ViewQuestionsModalBody questions={viewQuestions} />
         </div>
       </Modal>
 
