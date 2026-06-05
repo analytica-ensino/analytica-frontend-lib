@@ -347,6 +347,22 @@ jest.mock('../ActivityCreate/ActivityCreate.utils', () => ({
   convertQuestionToPreview: mockConvertQuestionToPreview,
 }));
 
+// Lightweight stub for the question card so the "Ver atividade" modal can render
+// without pulling the full card subtree (HtmlMathRenderer, index barrel, etc.)
+jest.mock('../ActivityCardQuestionPreview/ActivityCardQuestionPreview', () => ({
+  ActivityCardQuestionPreview: ({
+    statement,
+    value,
+  }: {
+    statement?: string;
+    value?: string;
+  }) => (
+    <div data-testid="view-question-card" data-value={value}>
+      {statement}
+    </div>
+  ),
+}));
+
 // Mock useQuestionsList hook
 const mockFetchQuestionsByIds = jest.fn();
 
@@ -951,6 +967,53 @@ describe('ActivityDetails', () => {
 
       await waitFor(() => {
         expect(mockFetchStudentCorrection).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Ver Atividade (questions modal)', () => {
+    beforeEach(() => {
+      (mockApiClient.get as jest.Mock).mockResolvedValue({
+        data: { data: { questions: [{ id: 'q1' }, { id: 'q2' }] } },
+      });
+      mockFetchQuestionsByIds.mockResolvedValue([
+        {
+          id: 'q1',
+          statement: 'Questao um',
+          questionType: 'ALTERNATIVA',
+          options: [],
+        },
+        {
+          id: 'q2',
+          statement: 'Questao dois',
+          questionType: 'ALTERNATIVA',
+          options: [],
+        },
+      ]);
+    });
+
+    it('renders the Ver Atividade button', async () => {
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Ver Atividade')).toBeInTheDocument();
+      });
+    });
+
+    it('loads questions via fetchQuestionsByIds and opens the modal on click', async () => {
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Ver Atividade')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Ver Atividade'));
+
+      await waitFor(() => {
+        expect(mockFetchQuestionsByIds).toHaveBeenCalledWith(['q1', 'q2']);
+      });
+      await waitFor(() => {
+        expect(screen.getByText('Ver atividade')).toBeInTheDocument();
       });
     });
   });
