@@ -5,11 +5,14 @@ import {
   CaretRight,
   WarningCircle,
   DownloadSimple,
+  Eye,
 } from 'phosphor-react';
 import Text from '../Text/Text';
 import { TruncatedText } from '../TruncatedText/TruncatedText';
 import Button from '../Button/Button';
 import Badge from '../Badge/Badge';
+import Modal from '../Modal/Modal';
+import { ActivityCardQuestionPreview } from '../ActivityCardQuestionPreview/ActivityCardQuestionPreview';
 import EmptyState from '../EmptyState/EmptyState';
 import {
   SkeletonText,
@@ -320,6 +323,11 @@ export const ActivityDetails = ({
   );
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
   const [shouldPrint, setShouldPrint] = useState(false);
+  // "Ver atividade" modal state
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  // Questions WITH answer key + resolution, used only by the "Ver atividade" modal
+  // (kept separate from `activityQuestions`, which feeds the student-facing PDF download)
+  const [viewQuestions, setViewQuestions] = useState<PreviewQuestion[]>([]);
   const [activityQuestionsError, setActivityQuestionsError] = useState<
     string | null
   >(null);
@@ -357,6 +365,7 @@ export const ActivityDetails = ({
    */
   useEffect(() => {
     setActivityQuestions([]);
+    setViewQuestions([]);
     setIsLoadingQuestions(false);
     setShouldPrint(false);
     setActivityQuestionsError(null);
@@ -772,6 +781,77 @@ export const ActivityDetails = ({
   }, [activityQuestions.length, fetchActivityQuestions]);
 
   /**
+   * Fetch the activity questions WITH the answer key + resolution for the
+   * "Ver atividade" modal. Unlike the PDF download (student-facing quiz), this
+   * resolves the question ids and loads them via `/questions/by-ids`, which
+   * returns `options.isCorrect` and `solutionExplanation`.
+   *
+   * @returns true if questions were loaded (non-empty), false otherwise
+   */
+  const fetchViewQuestions = useCallback(async (): Promise<boolean> => {
+    if (!activityId) return false;
+
+    setIsLoadingQuestions(true);
+    setActivityQuestionsError(null);
+    try {
+      // Resolve the activity's question ids from quiz/activity endpoints
+      const { response: quizResponse } = await tryFetchQuizResponse();
+      let ids =
+        quizResponse?.data?.data?.questions?.map((q) => q.id) ??
+        quizResponse?.data?.data?.questionIds ??
+        [];
+
+      if (ids.length === 0) {
+        const { response: activityResponse } = await tryFetchActivityResponse();
+        ids =
+          activityResponse?.data?.data?.questions?.map((q) => q.id) ??
+          activityResponse?.data?.data?.questionIds ??
+          [];
+      }
+
+      if (ids.length === 0) {
+        setViewQuestions([]);
+        return false;
+      }
+
+      // Load full questions (with answer key + resolution) and convert
+      const fullQuestions = await fetchQuestionsByIds(ids);
+      setViewQuestions(fullQuestions.map((q) => convertQuestionToPreview(q)));
+      return fullQuestions.length > 0;
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : 'Erro ao buscar questões da atividade. Tente novamente.';
+      handleQuestionsFetchError(errorMessage);
+      return false;
+    } finally {
+      setIsLoadingQuestions(false);
+    }
+  }, [
+    activityId,
+    tryFetchQuizResponse,
+    tryFetchActivityResponse,
+    fetchQuestionsByIds,
+    handleQuestionsFetchError,
+  ]);
+
+  /**
+   * Handle "Ver atividade" button click: ensure questions (with answer key) are
+   * loaded, then open the read-only questions modal.
+   */
+  const handleViewActivity = useCallback(async () => {
+    if (viewQuestions.length > 0) {
+      setIsViewModalOpen(true);
+      return;
+    }
+    const success = await fetchViewQuestions();
+    if (success) {
+      setIsViewModalOpen(true);
+    }
+  }, [viewQuestions.length, fetchViewQuestions]);
+
+  /**
    * Effect to handle PDF printing when shouldPrint flag is set
    * Waits for contentRef to be ready and questions to be loaded
    */
@@ -954,15 +1034,28 @@ export const ActivityDetails = ({
                 </div>
               </div>
               <div className="flex flex-col items-end gap-2">
-                <Button
-                  size="small"
-                  onClick={handleDownloadPdf}
-                  disabled={isLoadingQuestions}
-                  iconLeft={<DownloadSimple size={16} />}
-                  className="bg-primary-950 text-text gap-2"
-                >
-                  {isLoadingQuestions ? 'Carregando...' : 'Baixar Atividade'}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="small"
+                    variant="outline"
+                    action="primary"
+                    onClick={handleViewActivity}
+                    disabled={isLoadingQuestions}
+                    iconLeft={<Eye size={16} />}
+                    className="gap-2"
+                  >
+                    Ver Atividade
+                  </Button>
+                  <Button
+                    size="small"
+                    onClick={handleDownloadPdf}
+                    disabled={isLoadingQuestions}
+                    iconLeft={<DownloadSimple size={16} />}
+                    className="bg-primary-950 text-text gap-2"
+                  >
+                    {isLoadingQuestions ? 'Carregando...' : 'Baixar Atividade'}
+                  </Button>
+                </div>
                 {activityQuestionsError && (
                   <div className="flex items-center gap-2 max-w-[300px]">
                     <WarningCircle
@@ -1133,6 +1226,41 @@ export const ActivityDetails = ({
         onObservationSubmit={handleObservationSubmit}
         onQuestionCorrectionSubmit={handleQuestionCorrectionSubmit}
       />
+
+      {/* Ver atividade (read-only questions with answer key + resolution) */}
+      <Modal
+        isOpen={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
+        title="Ver atividade"
+        size="xl"
+      >
+        <div className="flex flex-col gap-3 max-h-[70vh] overflow-y-auto pr-1">
+          {viewQuestions.length === 0 ? (
+            <Text className="text-text-600 text-sm">
+              Nenhuma questão encontrada para esta atividade.
+            </Text>
+          ) : (
+            viewQuestions.map((q, index) => (
+              <ActivityCardQuestionPreview
+                key={q.id}
+                subjectName={q.subjectName}
+                subjectColor={q.subjectColor}
+                iconName={q.iconName}
+                bank={q.bank}
+                year={q.year}
+                questionType={q.questionType}
+                questionTypeLabel={q.questionTypeLabel}
+                statement={q.statement}
+                question={q.question}
+                solutionExplanation={q.solutionExplanation}
+                position={q.position ?? index + 1}
+                defaultExpanded
+                value={q.id}
+              />
+            ))
+          )}
+        </div>
+      </Modal>
 
       {/* Hidden PDF content for printing */}
       <div style={{ display: 'none' }}>
