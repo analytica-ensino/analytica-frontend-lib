@@ -342,6 +342,26 @@ const CreateActivity = ({
           }
           lastFetchedActivityIdRef.current = idParam;
         } catch (error) {
+          const status = (
+            error as { response?: { status?: number } } | undefined
+          )?.response?.status;
+
+          // A published activity (or a missing draft) is not loadable here:
+          // /activity-drafts/:id only serves drafts/models. Show a friendly
+          // notice instead of a scary error and go back.
+          if (status === 404) {
+            addToast({
+              title: 'Atividade já publicada',
+              description:
+                'Atividades publicadas não podem ser editadas. Você pode editar rascunhos e modelos.',
+              variant: 'solid',
+              action: 'info',
+              position: 'top-right',
+            });
+            handleBack();
+            return;
+          }
+
           console.error('Erro ao buscar rascunho da atividade:', error);
           addToast({
             title: 'Erro ao carregar atividade',
@@ -360,7 +380,7 @@ const CreateActivity = ({
     };
 
     fetchActivityDraft();
-  }, [idParam, apiClient, addToast, draftEndpoint]);
+  }, [idParam, apiClient, addToast, draftEndpoint, handleBack]);
 
   /**
    * Monitora activity.id e activity.type e atualiza a URL quando necessário
