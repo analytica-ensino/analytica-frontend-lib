@@ -5,10 +5,10 @@ import { cn } from '../../utils/utils';
  * SelectionButton component props interface
  */
 type SelectionButtonProps = {
-  /** Ícone a ser exibido no botão */
-  icon: ReactNode;
+  /** Ícone a ser exibido no botão (opcional) */
+  icon?: ReactNode;
   /** Texto/label a ser exibido ao lado do ícone */
-  label: string;
+  label: ReactNode;
   /** Estado de seleção do botão */
   selected?: boolean;
   /** Additional CSS classes to apply */
@@ -107,7 +107,11 @@ const SelectionButton = forwardRef<HTMLButtonElement, SelectionButtonProps>(
         aria-pressed={selected}
         {...props}
       >
-        <span className="flex items-center justify-center w-6 h-6">{icon}</span>
+        {icon && (
+          <span className="flex items-center justify-center w-6 h-6">
+            {icon}
+          </span>
+        )}
         <span>{label}</span>
       </button>
     );

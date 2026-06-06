@@ -207,7 +207,11 @@ export function getTypeFromUrlString(
 export function convertLessonToPreview(lesson: Lesson): PreviewLesson {
   return {
     ...lesson,
-    title: lesson.content?.name || lesson.videoTitle || lesson.content?.bnccCode || lesson.title,
+    title:
+      lesson.content?.name ||
+      lesson.videoTitle ||
+      lesson.content?.bnccCode ||
+      lesson.title,
     position: undefined,
     // Map API fields to component-expected fields for LessonPreview
     videoSrc: lesson.urlVideo,
