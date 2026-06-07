@@ -338,14 +338,15 @@ export default function FileDropzone({
           {fileName}
         </Text>
         {onRemoveFile && !disabled && (
-          <button
+          <Button
+            variant="raw"
             type="button"
             onClick={handleRemove}
             className="p-0.5 rounded-full hover:bg-error-100 transition-colors"
             aria-label="Remover arquivo"
           >
             <X size={14} className="text-indicator-error" />
-          </button>
+          </Button>
         )}
       </div>
 
@@ -377,14 +378,15 @@ export default function FileDropzone({
               {fileName}
             </Text>
             {onRemoveFile && !disabled && (
-              <button
+              <Button
+                variant="raw"
                 type="button"
                 onClick={handleRemove}
                 className="p-1 rounded-full hover:bg-error-100 transition-colors"
                 aria-label="Remover arquivo"
               >
                 <X size={14} className="text-indicator-error" />
-              </button>
+              </Button>
             )}
           </div>
           <Text size="xs" className="text-text-500">
