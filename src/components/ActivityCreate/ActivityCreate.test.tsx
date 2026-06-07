@@ -1367,6 +1367,50 @@ describe('CreateActivity', () => {
       });
     });
 
+    it('shows an info toast and goes back when the id is a published activity (404)', async () => {
+      mockParams.id = 'published-1';
+      const mockOnBack = jest.fn();
+      mockApiClient.get = jest
+        .fn()
+        .mockRejectedValue({ response: { status: 404 } });
+
+      render(<CreateActivity {...defaultProps} onBack={mockOnBack} />);
+
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            title: 'Atividade já publicada',
+            action: 'info',
+          })
+        );
+      });
+      expect(mockOnBack).toHaveBeenCalled();
+      // The generic error toast must not be shown for a 404
+      expect(mockAddToast).not.toHaveBeenCalledWith(
+        expect.objectContaining({ title: 'Erro ao carregar atividade' })
+      );
+    });
+
+    it('shows an error toast (and does not go back) on a non-404 fetch failure', async () => {
+      mockParams.id = 'broken-draft';
+      const mockOnBack = jest.fn();
+      mockApiClient.get = jest
+        .fn()
+        .mockRejectedValue({ response: { status: 500 } });
+
+      render(<CreateActivity {...defaultProps} onBack={mockOnBack} />);
+
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            title: 'Erro ao carregar atividade',
+            action: 'warning',
+          })
+        );
+      });
+      expect(mockOnBack).not.toHaveBeenCalled();
+    });
+
     it('should not save if no questions and first save not done', async () => {
       render(<CreateActivity {...defaultProps} />);
 
