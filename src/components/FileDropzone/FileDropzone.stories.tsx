@@ -16,6 +16,7 @@ const FileDropzoneWithState = ({
   initialFileUrl,
   disabled,
   required,
+  changeButtonText,
 }: {
   fileType: FileType;
   accept: string;
@@ -26,6 +27,7 @@ const FileDropzoneWithState = ({
   initialFileUrl?: string;
   disabled?: boolean;
   required?: boolean;
+  changeButtonText?: string;
 }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(initialFileUrl || null);
@@ -71,6 +73,7 @@ const FileDropzoneWithState = ({
       onTypeError={handleTypeError}
       disabled={disabled}
       required={required}
+      changeButtonText={changeButtonText}
     />
   );
 };
@@ -206,7 +209,8 @@ export const SubtitleUpload: Story = () => (
 );
 
 /**
- * Com arquivo pré-carregado (URL)
+ * Com imagem pré-carregada (URL): preview + chip com nome,
+ * botão de deletar (X) e botão "Trocar".
  */
 export const WithExistingFile: Story = () => (
   <div className="p-4 max-w-md">
@@ -216,6 +220,22 @@ export const WithExistingFile: Story = () => (
       label="Capa da aula"
       initialFileUrl="https://picsum.photos/400/300"
       showPreview={true}
+    />
+  </div>
+);
+
+/**
+ * Imagem pré-carregada com label customizado do botão de troca.
+ */
+export const ImagePreviewCustomReplaceLabel: Story = () => (
+  <div className="p-4 max-w-md">
+    <FileDropzoneWithState
+      fileType="image"
+      accept="image/*"
+      label="Logo login"
+      initialFileUrl="https://picsum.photos/400/300"
+      showPreview={true}
+      changeButtonText="Substituir imagem"
     />
   </div>
 );
