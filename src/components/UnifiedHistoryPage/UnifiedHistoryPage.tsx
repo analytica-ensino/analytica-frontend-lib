@@ -7,6 +7,7 @@ import type { UnifiedHistoryPageProps } from './types';
 import EmptyState from '../EmptyState/EmptyState';
 import IconButton from '../IconButton/IconButton';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
+import { EditActivityModal } from './EditActivityModal';
 import useToastStore from '../Toast/utils/ToastStore';
 import TypeSelector from '../TypeSelector/TypeSelector';
 import { createActivityCategoryConfig } from '../TypeSelector/TypeSelector.types';
@@ -71,7 +72,12 @@ export const UnifiedHistoryPage = ({
     title: string;
   } | null>(null);
 
-  /** Last table params received, used to reload the list after a deletion */
+  /** Activity currently being edited (drives the EditActivityModal) */
+  const [activityToEdit, setActivityToEdit] = useState<{ id: string } | null>(
+    null
+  );
+
+  /** Last table params received, used to reload the list after a mutation */
   const lastParamsRef = useRef<TableParams | null>(null);
 
   // Extract user filter options
@@ -255,7 +261,7 @@ export const UnifiedHistoryPage = ({
               aria-label="Editar"
               onClick={(e: MouseEvent) => {
                 e.stopPropagation();
-                navigate(`${routes[activityCategory].create}?id=${row.id}`);
+                setActivityToEdit({ id: row.id });
               }}
             />
           </div>
@@ -387,6 +393,20 @@ export const UnifiedHistoryPage = ({
           submitAction="negative"
           onSubmit={handleConfirmDelete}
           onCancel={() => setActivityToDelete(null)}
+        />
+      )}
+      {deleteEnabled && (
+        <EditActivityModal
+          isOpen={!!activityToEdit}
+          activityId={activityToEdit?.id}
+          apiClient={apiClient}
+          onClose={() => setActivityToEdit(null)}
+          onSaved={() => {
+            setActivityToEdit(null);
+            if (lastParamsRef.current) {
+              onParamsChange(lastParamsRef.current);
+            }
+          }}
         />
       )}
     </>

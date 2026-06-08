@@ -51,6 +51,19 @@ jest.mock('../TypeSelector/TypeSelector', () => ({
   default: () => <div data-testid="type-selector">TypeSelector</div>,
 }));
 
+// Stub the quick-edit modal: assert it is opened with the right activity id
+jest.mock('./EditActivityModal', () => ({
+  __esModule: true,
+  EditActivityModal: ({
+    isOpen,
+    activityId,
+  }: {
+    isOpen: boolean;
+    activityId?: string;
+  }) =>
+    isOpen ? <div data-testid="edit-activity-modal">{activityId}</div> : null,
+}));
+
 jest.mock('../../utils/filterHelpers', () => ({
   getSchoolOptionsFromUserData: jest.fn(() => []),
   getSchoolYearOptionsFromUserData: jest.fn(() => []),
@@ -674,10 +687,14 @@ describe('UnifiedHistoryPage', () => {
       ).toBeFalsy();
     });
 
-    it('navigates to the edit route when clicking edit', () => {
+    it('opens the quick-edit modal with the activity id when clicking edit', () => {
       render(<UnifiedHistoryPage {...deleteProps()} />);
+      expect(screen.queryByTestId('edit-activity-modal')).toBeNull();
       fireEvent.click(screen.getByTitle('Editar'));
-      expect(mockNavigate).toHaveBeenCalledWith('/atividades/criar?id=own-1');
+      expect(screen.getByTestId('edit-activity-modal')).toHaveTextContent(
+        'own-1'
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('opens confirm dialog, deletes, reloads with last params and toasts success', async () => {
