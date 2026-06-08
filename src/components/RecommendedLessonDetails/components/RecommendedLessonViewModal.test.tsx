@@ -76,7 +76,11 @@ jest.mock('../../Card/Card', () => ({
 // Mock Whiteboard component
 jest.mock('../../Whiteboard/Whiteboard', () => ({
   __esModule: true,
-  default: ({ images }: { images: Array<{ id: string; imageUrl: string }> }) => (
+  default: ({
+    images,
+  }: {
+    images: Array<{ id: string; imageUrl: string }>;
+  }) => (
     <div data-testid="whiteboard">
       {images.map((img) => (
         <img key={img.id} src={img.imageUrl} alt={img.id} />
@@ -253,7 +257,9 @@ describe('RecommendedLessonViewModal', () => {
 
     it('should call onClose when close button is clicked', () => {
       const onClose = jest.fn();
-      render(<RecommendedLessonViewModal {...defaultProps} onClose={onClose} />);
+      render(
+        <RecommendedLessonViewModal {...defaultProps} onClose={onClose} />
+      );
 
       const closeButton = screen.getByRole('button', { name: /fechar/i });
       fireEvent.click(closeButton);
@@ -418,10 +424,7 @@ describe('RecommendedLessonViewModal', () => {
     it('should expand lesson accordion when clicked', async () => {
       const apiClient = createMockApiClient();
       render(
-        <RecommendedLessonViewModal
-          {...defaultProps}
-          apiClient={apiClient}
-        />
+        <RecommendedLessonViewModal {...defaultProps} apiClient={apiClient} />
       );
 
       // Find the accordion trigger (the content name text)
@@ -437,10 +440,7 @@ describe('RecommendedLessonViewModal', () => {
     it('should fetch lesson data when accordion expands', async () => {
       const apiClient = createMockApiClient();
       render(
-        <RecommendedLessonViewModal
-          {...defaultProps}
-          apiClient={apiClient}
-        />
+        <RecommendedLessonViewModal {...defaultProps} apiClient={apiClient} />
       );
 
       const accordionTrigger = screen.getByText('Equações do 1º Grau');
@@ -454,10 +454,7 @@ describe('RecommendedLessonViewModal', () => {
     it('should cache lesson data and not refetch on second expansion', async () => {
       const apiClient = createMockApiClient();
       render(
-        <RecommendedLessonViewModal
-          {...defaultProps}
-          apiClient={apiClient}
-        />
+        <RecommendedLessonViewModal {...defaultProps} apiClient={apiClient} />
       );
 
       const accordionTrigger = screen.getByText('Equações do 1º Grau');
@@ -486,10 +483,7 @@ describe('RecommendedLessonViewModal', () => {
       );
 
       render(
-        <RecommendedLessonViewModal
-          {...defaultProps}
-          apiClient={apiClient}
-        />
+        <RecommendedLessonViewModal {...defaultProps} apiClient={apiClient} />
       );
 
       const accordionTrigger = screen.getByText('Equações do 1º Grau');
@@ -506,10 +500,7 @@ describe('RecommendedLessonViewModal', () => {
       );
 
       render(
-        <RecommendedLessonViewModal
-          {...defaultProps}
-          apiClient={apiClient}
-        />
+        <RecommendedLessonViewModal {...defaultProps} apiClient={apiClient} />
       );
 
       const accordionTrigger = screen.getByText('Equações do 1º Grau');
@@ -528,10 +519,7 @@ describe('RecommendedLessonViewModal', () => {
       );
 
       render(
-        <RecommendedLessonViewModal
-          {...defaultProps}
-          apiClient={apiClient}
-        />
+        <RecommendedLessonViewModal {...defaultProps} apiClient={apiClient} />
       );
 
       const accordionTrigger = screen.getByText('Equações do 1º Grau');
@@ -551,10 +539,7 @@ describe('RecommendedLessonViewModal', () => {
       );
 
       render(
-        <RecommendedLessonViewModal
-          {...defaultProps}
-          apiClient={apiClient}
-        />
+        <RecommendedLessonViewModal {...defaultProps} apiClient={apiClient} />
       );
 
       const accordionTrigger = screen.getByText('Equações do 1º Grau');
@@ -569,10 +554,7 @@ describe('RecommendedLessonViewModal', () => {
       const apiClient = createMockApiClient();
 
       render(
-        <RecommendedLessonViewModal
-          {...defaultProps}
-          apiClient={apiClient}
-        />
+        <RecommendedLessonViewModal {...defaultProps} apiClient={apiClient} />
       );
 
       const accordionTrigger = screen.getByText('Equações do 1º Grau');
@@ -597,10 +579,7 @@ describe('RecommendedLessonViewModal', () => {
       };
 
       render(
-        <RecommendedLessonViewModal
-          {...defaultProps}
-          apiClient={apiClient}
-        />
+        <RecommendedLessonViewModal {...defaultProps} apiClient={apiClient} />
       );
 
       const accordionTrigger = screen.getByText('Equações do 1º Grau');
@@ -695,10 +674,7 @@ describe('RecommendedLessonViewModal', () => {
     it('should clear lesson cache when modal closes', async () => {
       const apiClient = createMockApiClient();
       const { rerender } = render(
-        <RecommendedLessonViewModal
-          {...defaultProps}
-          apiClient={apiClient}
-        />
+        <RecommendedLessonViewModal {...defaultProps} apiClient={apiClient} />
       );
 
       // Expand accordion and fetch data
@@ -747,7 +723,9 @@ describe('RecommendedLessonViewModal', () => {
       // When no apiClient is provided, the component shows loading skeleton
       // since it cannot fetch the lesson data
       await waitFor(() => {
-        expect(screen.getAllByTestId('skeleton-rounded').length).toBeGreaterThan(0);
+        expect(
+          screen.getAllByTestId('skeleton-rounded').length
+        ).toBeGreaterThan(0);
       });
     });
   });
