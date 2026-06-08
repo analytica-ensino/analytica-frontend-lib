@@ -965,9 +965,7 @@ describe('Search Component', () => {
       const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
       const onSearch = jest.fn();
 
-      render(
-        <Search options={[]} onSearch={onSearch} />
-      );
+      render(<Search options={[]} onSearch={onSearch} />);
 
       const input = screen.getByRole('textbox');
       await user.type(input, 'a');
@@ -980,9 +978,7 @@ describe('Search Component', () => {
       const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
       const onSearch = jest.fn();
 
-      render(
-        <Search options={[]} onSearch={onSearch} debounceMs={0} />
-      );
+      render(<Search options={[]} onSearch={onSearch} debounceMs={0} />);
 
       const input = screen.getByRole('textbox');
       await user.type(input, 'a');
@@ -994,9 +990,7 @@ describe('Search Component', () => {
       const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
       const onSearch = jest.fn();
 
-      render(
-        <Search options={[]} onSearch={onSearch} debounceMs={300} />
-      );
+      render(<Search options={[]} onSearch={onSearch} debounceMs={300} />);
 
       const input = screen.getByRole('textbox');
       await user.type(input, 'a');
@@ -1008,9 +1002,7 @@ describe('Search Component', () => {
       const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
       const onSearch = jest.fn();
 
-      render(
-        <Search options={[]} onSearch={onSearch} debounceMs={300} />
-      );
+      render(<Search options={[]} onSearch={onSearch} debounceMs={300} />);
 
       const input = screen.getByRole('textbox');
       await user.type(input, 'abc');
@@ -1027,9 +1019,7 @@ describe('Search Component', () => {
       const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
       const onSearch = jest.fn();
 
-      render(
-        <Search options={[]} onSearch={onSearch} debounceMs={300} />
-      );
+      render(<Search options={[]} onSearch={onSearch} debounceMs={300} />);
 
       const input = screen.getByRole('textbox');
 

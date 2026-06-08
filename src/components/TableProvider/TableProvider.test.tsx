@@ -351,7 +351,9 @@ describe('TableProvider', () => {
       const searchInput = screen.getByPlaceholderText('Buscar...');
       jest.useFakeTimers();
       fireEvent.change(searchInput, { target: { value: 'Alice' } });
-      act(() => { jest.advanceTimersByTime(300); });
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
       jest.useRealTimers();
 
       expect(searchInput).toHaveValue('Alice');
@@ -788,7 +790,9 @@ describe('TableProvider', () => {
       const searchInput = screen.getByPlaceholderText('Buscar...');
       jest.useFakeTimers();
       fireEvent.change(searchInput, { target: { value: 'Alice' } });
-      act(() => { jest.advanceTimersByTime(300); });
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
       jest.useRealTimers();
 
       expect(onParamsChange).toHaveBeenCalledWith(
@@ -978,7 +982,9 @@ describe('TableProvider', () => {
       const searchInput = screen.getByPlaceholderText('Buscar...');
       jest.useFakeTimers();
       fireEvent.change(searchInput, { target: { value: 'test' } });
-      act(() => { jest.advanceTimersByTime(300); });
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
       jest.useRealTimers();
 
       expect(screen.getByText(/Página 1 de 3/)).toBeInTheDocument();
@@ -997,7 +1003,9 @@ describe('TableProvider', () => {
       const searchInput = screen.getByPlaceholderText('Buscar...');
       jest.useFakeTimers();
       fireEvent.change(searchInput, { target: { value: 'Alice' } });
-      act(() => { jest.advanceTimersByTime(300); });
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
       jest.useRealTimers();
 
       const nameHeader = screen.getByText('Name');
@@ -1038,7 +1046,9 @@ describe('TableProvider', () => {
       const searchInput = screen.getByPlaceholderText('Buscar...');
       jest.useFakeTimers();
       fireEvent.change(searchInput, { target: { value: 'test' } });
-      act(() => { jest.advanceTimersByTime(300); });
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
       jest.useRealTimers();
 
       expect(
