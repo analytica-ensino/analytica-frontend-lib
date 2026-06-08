@@ -1,4 +1,11 @@
-import { useState, useEffect, useMemo, useCallback, ReactNode, ChangeEvent } from 'react';
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  ReactNode,
+  ChangeEvent,
+} from 'react';
 import Table, {
   TableBody,
   TableHead,
@@ -461,7 +468,10 @@ export function TableProvider<T extends Record<string, unknown>>({
             value={inputValue}
             onChange={handleInputChange}
             onSearch={handleSearchChange}
-            onClear={() => { setInputValue(''); handleSearchChange(''); }}
+            onClear={() => {
+              setInputValue('');
+              handleSearchChange('');
+            }}
             options={[]}
             placeholder={searchPlaceholder}
             debounceMs={300}

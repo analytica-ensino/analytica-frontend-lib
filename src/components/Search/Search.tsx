@@ -239,6 +239,10 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
 
     // Handle clear button
     const handleClear = () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+        debounceTimer.current = null;
+      }
       if (onClear) {
         onClear();
       } else {
