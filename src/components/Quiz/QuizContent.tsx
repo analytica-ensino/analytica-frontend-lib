@@ -885,9 +885,13 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
                       : ''
                   )}
                 >
-                  <Text size="sm" className="text-text-900">
-                    {getLetterByIndex(index) + ') ' + option.label}
-                  </Text>
+                  <HtmlMathRenderer
+                    content={prependLetterToHtml(
+                      getLetterByIndex(index),
+                      option.label
+                    )}
+                    className="text-text-900 text-sm"
+                  />
 
                   {isDefaultVariant ? (
                     <Select
@@ -897,7 +901,11 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
                     >
                       <SelectTrigger
                         className="w-[180px] overflow-hidden truncate"
-                        title={answer.dotOption || undefined}
+                        title={
+                          answer.dotOption
+                            ? stripHtmlTags(answer.dotOption)
+                            : undefined
+                        }
                       >
                         <SelectValue placeholder="Selecione opção" />
                       </SelectTrigger>
@@ -913,10 +921,10 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
                             <SelectItem
                               key={dot.label}
                               value={dot.label}
-                              title={dot.label}
+                              title={stripHtmlTags(dot.label)}
                               truncate
                             >
-                              {dot.label}
+                              {stripHtmlTags(dot.label)}
                             </SelectItem>
                           ))}
                       </SelectContent>
@@ -933,11 +941,14 @@ const QuizConnectDots = ({ paddingBottom }: QuizVariantInterface) => {
                 {!isDefaultVariant && (
                   <span className="flex flex-row gap-2 items-center">
                     <Text size="2xs" className="text-text-800">
-                      Resposta selecionada: {answer.dotOption || 'Nenhuma'}
+                      Resposta selecionada:{' '}
+                      {answer.dotOption
+                        ? stripHtmlTags(answer.dotOption)
+                        : 'Nenhuma'}
                     </Text>
                     {answer.isCorrect === false && (
                       <Text size="2xs" className="text-text-800">
-                        Resposta correta: {answer.correctOption}
+                        Resposta correta: {stripHtmlTags(answer.correctOption)}
                       </Text>
                     )}
                   </span>
@@ -1049,7 +1060,7 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
   // Get option text by ID
   const getOptionTextById = (optionId: string): string => {
     const option = questionOptions.find((opt) => opt.id === optionId);
-    return option?.option || '';
+    return stripHtmlTags(option?.option || '');
   };
 
   // Check if an answer is correct (for result mode)
@@ -1075,9 +1086,10 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
         >
           <SelectTrigger
             className="w-auto min-w-[120px] max-w-[200px] h-7 px-2 bg-background border-gray-300 overflow-hidden truncate"
-            title={
-              shuffledOptions.find((o) => o.id === selectedOptionId)?.option
-            }
+            title={stripHtmlTags(
+              shuffledOptions.find((o) => o.id === selectedOptionId)?.option ||
+                ''
+            )}
           >
             <SelectValue placeholder="Selecione opção" />
           </SelectTrigger>
@@ -1086,10 +1098,10 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
               <SelectItem
                 key={option.id}
                 value={option.id}
-                title={option.option}
+                title={stripHtmlTags(option.option)}
                 truncate
               >
-                {option.option}
+                {stripHtmlTags(option.option)}
               </SelectItem>
             ))}
           </SelectContent>

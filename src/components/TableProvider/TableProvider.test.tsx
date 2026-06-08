@@ -376,7 +376,9 @@ describe('TableProvider', () => {
 
       const searchInput = screen.getByPlaceholderText('Buscar...');
       await user.type(searchInput, 'Alice');
-      act(() => { jest.advanceTimersByTime(300); });
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
 
       const clearButton = screen.getByLabelText('Limpar busca');
       await user.click(clearButton);
