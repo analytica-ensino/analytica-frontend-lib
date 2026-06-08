@@ -1,6 +1,7 @@
 import type { HTMLAttributes, InputHTMLAttributes, ReactNode } from 'react';
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent, act } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import {
   TableProvider,
   type ColumnConfig,
@@ -357,6 +358,32 @@ describe('TableProvider', () => {
       jest.useRealTimers();
 
       expect(searchInput).toHaveValue('Alice');
+    });
+
+    it('should clear search input and reset query when clear button is clicked', async () => {
+      jest.useFakeTimers();
+      const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+      const onParamsChange = jest.fn();
+
+      render(
+        <TableProvider
+          data={testData}
+          headers={testHeaders}
+          enableSearch={true}
+          onParamsChange={onParamsChange}
+        />
+      );
+
+      const searchInput = screen.getByPlaceholderText('Buscar...');
+      await user.type(searchInput, 'Alice');
+      act(() => { jest.advanceTimersByTime(300); });
+
+      const clearButton = screen.getByLabelText('Limpar busca');
+      await user.click(clearButton);
+
+      expect(searchInput).toHaveValue('');
+
+      jest.useRealTimers();
     });
   });
 

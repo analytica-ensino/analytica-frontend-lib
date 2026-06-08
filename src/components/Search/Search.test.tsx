@@ -1035,5 +1035,76 @@ describe('Search Component', () => {
 
       expect(onSearch).toHaveBeenCalledTimes(1);
     });
+
+    it('should cancel pending debounce when clear button is clicked', async () => {
+      const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+      const onSearch = jest.fn();
+
+      const TestWrapper = () => {
+        const [val, setVal] = React.useState('');
+        return (
+          <Search
+            options={[]}
+            value={val}
+            onChange={(e) => setVal(e.target.value)}
+            onSearch={onSearch}
+            debounceMs={300}
+          />
+        );
+      };
+
+      render(<TestWrapper />);
+
+      const input = screen.getByRole('textbox');
+      await user.type(input, 'abc');
+
+      expect(onSearch).not.toHaveBeenCalled();
+
+      const clearButton = screen.getByLabelText('Limpar busca');
+      await user.click(clearButton);
+
+      jest.advanceTimersByTime(300);
+
+      expect(onSearch).not.toHaveBeenCalled();
+    });
+
+    it('should cancel pending debounce and invoke onClear when clear is clicked with custom onClear', async () => {
+      const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+      const onSearch = jest.fn();
+      const handleClear = jest.fn();
+
+      const TestWrapper = () => {
+        const [val, setVal] = React.useState('');
+        return (
+          <Search
+            options={[]}
+            value={val}
+            onChange={(e) => setVal(e.target.value)}
+            onSearch={onSearch}
+            onClear={() => {
+              setVal('');
+              handleClear();
+            }}
+            debounceMs={300}
+          />
+        );
+      };
+
+      render(<TestWrapper />);
+
+      const input = screen.getByRole('textbox');
+      await user.type(input, 'abc');
+
+      expect(onSearch).not.toHaveBeenCalled();
+
+      const clearButton = screen.getByLabelText('Limpar busca');
+      await user.click(clearButton);
+
+      expect(handleClear).toHaveBeenCalledTimes(1);
+
+      jest.advanceTimersByTime(300);
+
+      expect(onSearch).not.toHaveBeenCalled();
+    });
   });
 });
