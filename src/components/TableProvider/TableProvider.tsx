@@ -1,4 +1,11 @@
-import { useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  ReactNode,
+  ChangeEvent,
+} from 'react';
 import Table, {
   TableBody,
   TableHead,
@@ -258,6 +265,7 @@ export function TableProvider<T extends Record<string, unknown>>({
 }: TableProviderProps<T>) {
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
+  const [inputValue, setInputValue] = useState('');
 
   // Sorting state - always call hook (React Rules of Hooks)
   const sortResultRaw = useTableSort(data, { syncWithUrl: true });
@@ -360,6 +368,10 @@ export function TableProvider<T extends Record<string, unknown>>({
     setCurrentPage(1); // Reset to first page on search
   }, []);
 
+  const handleInputChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+  }, []);
+
   // Handle filter apply
   const handleFilterApply = useCallback(() => {
     applyFilters();
@@ -453,9 +465,13 @@ export function TableProvider<T extends Record<string, unknown>>({
           className={cn('flex-1 flex justify-end', searchContainerClassName)}
         >
           <Search
-            value={searchQuery}
+            value={inputValue}
+            onChange={handleInputChange}
             onSearch={handleSearchChange}
-            onClear={() => handleSearchChange('')}
+            onClear={() => {
+              setInputValue('');
+              handleSearchChange('');
+            }}
             options={[]}
             placeholder={searchPlaceholder}
             debounceMs={300}
