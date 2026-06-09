@@ -81,7 +81,11 @@ describe('Menu Component', () => {
 
       // Programmatic prop change (e.g. route-driven active item) must NOT fire.
       rerender(
-        <Menu defaultValue="home" value="dashboard" onValueChange={handleChange}>
+        <Menu
+          defaultValue="home"
+          value="dashboard"
+          onValueChange={handleChange}
+        >
           <MenuItem value="home">Home</MenuItem>
           <MenuItem value="dashboard">Dashboard</MenuItem>
         </Menu>

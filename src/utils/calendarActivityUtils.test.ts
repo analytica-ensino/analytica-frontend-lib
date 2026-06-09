@@ -70,7 +70,10 @@ describe('calendarActivityUtils', () => {
     ];
 
     it('includes an activity on its own local day and drops null finalDate', () => {
-      const result = filterActivitiesFromDate(activities, localDay(earlyUtcIso));
+      const result = filterActivitiesFromDate(
+        activities,
+        localDay(earlyUtcIso)
+      );
       expect(result.map((x) => x.id)).toEqual(['a', 'b']);
     });
 

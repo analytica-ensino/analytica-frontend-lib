@@ -57,6 +57,8 @@ export function filterActivitiesFromDate<T extends DatedActivity>(
   baseDate: string
 ): T[] {
   return activities.filter((activity) =>
-    activity.finalDate ? getActivityDateKey(activity.finalDate) >= baseDate : false
+    activity.finalDate
+      ? getActivityDateKey(activity.finalDate) >= baseDate
+      : false
   );
 }
