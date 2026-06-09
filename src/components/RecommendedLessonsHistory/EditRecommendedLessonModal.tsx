@@ -1,12 +1,13 @@
 import type { ChangeEvent, FC } from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import { FloppyDisk as FloppyDiskIcon } from 'phosphor-react';
 import Modal from '../Modal/Modal';
 import Input from '../Input/Input';
 import Button from '../Button/Button';
 import Text from '../Text/Text';
 import DeadlineStep from '../shared/SendModalBase/components/DeadlineStep';
-import { useDateTimeHandlers } from '../shared/SendModalBase/hooks/useDateTimeHandlers';
+import { useEditModalForm } from '../shared/SendModalBase/hooks/useEditModalForm';
+import { splitDateTime } from '../shared/SendModalBase/utils/splitDateTime';
 import { validateDeadlineStep } from '../SendActivityModal/validation';
 import type {
   SendActivityFormData,
@@ -48,23 +49,6 @@ export interface EditRecommendedLessonModalProps {
 const TITLE_REQUIRED =
   'Campo obrigatório! Por favor, preencha este campo para continuar.';
 
-const pad = (value: number): string => String(value).padStart(2, '0');
-
-/**
- * Split an ISO datetime into the local `date` (YYYY-MM-DD) + `time` (HH:MM)
- * pair expected by `DateTimeInput`. Mirrors the local interpretation used by
- * `buildISODateTime` so the round-trip is stable.
- */
-const splitDateTime = (iso?: string | null): { date: string; time: string } => {
-  if (!iso) return { date: '', time: '' };
-  const parsed = new Date(iso);
-  if (Number.isNaN(parsed.getTime())) return { date: '', time: '' };
-  return {
-    date: `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}`,
-    time: `${pad(parsed.getHours())}:${pad(parsed.getMinutes())}`,
-  };
-};
-
 /**
  * Quick-edit modal for a recommended class, limited to the editable fields the
  * product allows: title and the start/deadline dates. Loads via the injected
@@ -76,59 +60,45 @@ export const EditRecommendedLessonModal: FC<
 > = ({ isOpen, recommendedClassId, fetchById, onUpdate, onClose, onSaved }) => {
   const addToast = useToastStore((state) => state.addToast);
 
-  const [formData, setFormData] = useState<EditFormData>({});
-  const [errors, setErrors] = useState<StepErrors>({});
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
+  /** Fetch the recommended class and map it to the editable form fields */
+  const load = useCallback(async (): Promise<EditFormData> => {
+    if (!recommendedClassId) return {};
+    const data = await fetchById(recommendedClassId);
+    const start = splitDateTime(data.startDate);
+    const final = splitDateTime(data.finalDate);
+    return {
+      title: data.title ?? '',
+      startDate: start.date,
+      startTime: start.time || '00:00',
+      finalDate: final.date,
+      finalTime: final.time || '23:59',
+    };
+  }, [fetchById, recommendedClassId]);
 
-  /** Merge a partial into the form and clear any standing validation errors */
-  const updateFormData = useCallback((data: EditFormData) => {
-    setFormData((prev) => ({ ...prev, ...data }));
-    setErrors({});
-  }, []);
+  const onLoadError = useCallback(() => {
+    addToast({
+      title: 'Erro ao carregar aula recomendada',
+      action: 'warning',
+      position: 'top-right',
+    });
+    onClose();
+  }, [addToast, onClose]);
 
-  const dateHandlers = useDateTimeHandlers<SendActivityFormData>({
-    setFormData: updateFormData,
+  const {
+    formData,
+    errors,
+    setErrors,
+    loading,
+    saving,
+    setSaving,
+    updateFormData,
+    dateHandlers,
+  } = useEditModalForm<EditFormData>({
+    isOpen,
+    enabled: !!recommendedClassId,
+    load,
+    onLoadError,
   });
-
-  // Load and pre-fill the recommended class when the modal opens
-  useEffect(() => {
-    if (!isOpen || !recommendedClassId) return;
-
-    let active = true;
-    const load = async () => {
-      setLoading(true);
-      setErrors({});
-      try {
-        const data = await fetchById(recommendedClassId);
-        if (!active) return;
-        const start = splitDateTime(data.startDate);
-        const final = splitDateTime(data.finalDate);
-        setFormData({
-          title: data.title ?? '',
-          startDate: start.date,
-          startTime: start.time || '00:00',
-          finalDate: final.date,
-          finalTime: final.time || '23:59',
-        });
-      } catch {
-        if (!active) return;
-        addToast({
-          title: 'Erro ao carregar aula recomendada',
-          action: 'warning',
-          position: 'top-right',
-        });
-        onClose();
-      } finally {
-        if (active) setLoading(false);
-      }
-    };
-
-    load();
-    return () => {
-      active = false;
-    };
-  }, [isOpen, recommendedClassId, fetchById, addToast, onClose]);
 
   const handleTitleChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) =>

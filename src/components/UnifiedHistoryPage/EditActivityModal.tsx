@@ -1,5 +1,5 @@
 import type { ChangeEvent, FC } from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   CaretLeft as CaretLeftIcon,
   ArrowRight as ArrowRightIcon,
@@ -15,7 +15,8 @@ import Stepper from '../Stepper/Stepper';
 import type { StepData } from '../Stepper/Stepper';
 import DeadlineStep from '../shared/SendModalBase/components/DeadlineStep';
 import { SendModalError } from '../shared/SendModalBase/components/SendModalError';
-import { useDateTimeHandlers } from '../shared/SendModalBase/hooks/useDateTimeHandlers';
+import { useEditModalForm } from '../shared/SendModalBase/hooks/useEditModalForm';
+import { splitDateTime } from '../shared/SendModalBase/utils/splitDateTime';
 import {
   ACTIVITY_TYPE_OPTIONS,
   ActivitySubtype,
@@ -77,23 +78,6 @@ const STEPPER_STEPS: StepData[] = [
   { id: 'activity', label: 'Atividade', state: 'pending' },
   { id: 'deadline', label: 'Prazo', state: 'pending' },
 ];
-
-const pad = (value: number): string => String(value).padStart(2, '0');
-
-/**
- * Split an ISO datetime into the local `date` (YYYY-MM-DD) + `time` (HH:MM)
- * pair expected by `DateTimeInput`. Mirrors the local interpretation used by
- * `buildISODateTime` so the round-trip is stable.
- */
-const splitDateTime = (iso?: string | null): { date: string; time: string } => {
-  if (!iso) return { date: '', time: '' };
-  const parsed = new Date(iso);
-  if (Number.isNaN(parsed.getTime())) return { date: '', time: '' };
-  return {
-    date: `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}`,
-    time: `${pad(parsed.getHours())}:${pad(parsed.getMinutes())}`,
-  };
-};
 
 /** Coerce a backend subtype string into the local enum, if valid */
 const toSubtype = (value?: string | null): ActivitySubtype | undefined =>
@@ -256,65 +240,52 @@ export const EditActivityModal: FC<EditActivityModalProps> = ({
   const addToast = useToastStore((state) => state.addToast);
 
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState<EditFormData>({});
-  const [errors, setErrors] = useState<StepErrors>({});
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
 
-  /** Merge a partial into the form and clear any standing validation errors */
-  const updateFormData = useCallback((data: EditFormData) => {
-    setFormData((prev) => ({ ...prev, ...data }));
-    setErrors({});
-  }, []);
+  /** Fetch the activity and map it to the editable form fields */
+  const load = useCallback(async (): Promise<EditFormData> => {
+    if (!apiClient || !activityId) return {};
+    setCurrentStep(1);
+    const response = await apiClient.get<{ data: EditableActivity }>(
+      `/activities/${activityId}/quiz`
+    );
+    const activity = response.data.data;
+    const start = splitDateTime(activity.startDate);
+    const final = splitDateTime(activity.finalDate);
+    return {
+      subtype: toSubtype(activity.subtype),
+      title: activity.title ?? '',
+      notification: activity.notification ?? '',
+      startDate: start.date,
+      startTime: start.time || '00:00',
+      finalDate: final.date,
+      finalTime: final.time || '23:59',
+    };
+  }, [apiClient, activityId]);
 
-  const dateHandlers = useDateTimeHandlers<SendActivityFormData>({
-    setFormData: updateFormData,
+  const onLoadError = useCallback(() => {
+    addToast({
+      title: 'Erro ao carregar atividade',
+      action: 'warning',
+      position: 'top-right',
+    });
+    onClose();
+  }, [addToast, onClose]);
+
+  const {
+    formData,
+    errors,
+    setErrors,
+    loading,
+    saving,
+    setSaving,
+    updateFormData,
+    dateHandlers,
+  } = useEditModalForm<EditFormData>({
+    isOpen,
+    enabled: !!activityId && !!apiClient,
+    load,
+    onLoadError,
   });
-
-  // Load and pre-fill the activity when the modal opens
-  useEffect(() => {
-    if (!isOpen || !activityId || !apiClient) return;
-
-    let active = true;
-    const load = async () => {
-      setLoading(true);
-      setCurrentStep(1);
-      setErrors({});
-      try {
-        const response = await apiClient.get<{ data: EditableActivity }>(
-          `/activities/${activityId}/quiz`
-        );
-        if (!active) return;
-        const activity = response.data.data;
-        const start = splitDateTime(activity.startDate);
-        const final = splitDateTime(activity.finalDate);
-        setFormData({
-          subtype: toSubtype(activity.subtype),
-          title: activity.title ?? '',
-          notification: activity.notification ?? '',
-          startDate: start.date,
-          startTime: start.time || '00:00',
-          finalDate: final.date,
-          finalTime: final.time || '23:59',
-        });
-      } catch {
-        if (!active) return;
-        addToast({
-          title: 'Erro ao carregar atividade',
-          action: 'warning',
-          position: 'top-right',
-        });
-        onClose();
-      } finally {
-        if (active) setLoading(false);
-      }
-    };
-
-    load();
-    return () => {
-      active = false;
-    };
-  }, [isOpen, activityId, apiClient, addToast, onClose]);
 
   const handleSubtypeSelect = useCallback(
     (value: ActivitySubtype) => updateFormData({ subtype: value }),
