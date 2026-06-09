@@ -11,6 +11,8 @@ import {
   type RecommendedClassHistoryFilters,
   type RecommendedClassHistoryApiResponse,
   type RecommendedClassTableItem,
+  type RecommendedClassData,
+  type UpdateRecommendedClassData,
   type RecommendedClassHistoryItem,
   type RecommendedClassModelFilters,
   type RecommendedClassModelsApiResponse,
@@ -36,6 +38,7 @@ export interface RecommendedLessonsApiClient {
     config?: { params?: Record<string, unknown> }
   ) => Promise<{ data: T }>;
   post: <T>(url: string, data?: unknown) => Promise<{ data: T }>;
+  patch: <T>(url: string, data?: unknown) => Promise<{ data: T }>;
   delete: <T>(url: string) => Promise<{ data: T }>;
 }
 
@@ -143,7 +146,12 @@ export interface UseRecommendedLessonsPageReturn {
     onCreateLesson: () => void;
     onCreateModel: () => void;
     onRowClick: (row: RecommendedClassTableItem) => void;
-    onEditRecommendedClass: (id: string) => void;
+    deleteRecommendedClass: (id: string) => Promise<void>;
+    updateRecommendedClass: (
+      id: string,
+      data: UpdateRecommendedClassData
+    ) => Promise<void>;
+    fetchRecommendedClassById: (id: string) => Promise<RecommendedClassData>;
     onEditModel: (model: RecommendedClassModelTableItem) => void;
     onSendLesson: (model: RecommendedClassModelTableItem) => void;
     fetchRecommendedClassDrafts: (
@@ -687,11 +695,37 @@ export const createUseRecommendedLessonsPage = (
     }, []);
 
     /**
-     * Handle edit recommendedClass action
+     * Delete a recommendedClass (history item)
      */
-    const handleEditRecommendedClass = useCallback((id: string) => {
-      navigate(`${paths.editLesson}/${id}/editar`);
-    }, []);
+    const deleteRecommendedClass = useCallback(
+      async (id: string): Promise<void> => {
+        await api.delete(`${endpoints.submitRecommendedClass}/${id}`);
+      },
+      [api, endpoints.submitRecommendedClass]
+    );
+
+    /**
+     * Update a recommendedClass (history item) title and/or dates
+     */
+    const updateRecommendedClass = useCallback(
+      async (id: string, data: UpdateRecommendedClassData): Promise<void> => {
+        await api.patch(`${endpoints.submitRecommendedClass}/${id}`, data);
+      },
+      [api, endpoints.submitRecommendedClass]
+    );
+
+    /**
+     * Fetch a single recommendedClass by id (used to pre-fill the edit modal)
+     */
+    const fetchRecommendedClassById = useCallback(
+      async (id: string): Promise<RecommendedClassData> => {
+        const response = await api.get<{ data: RecommendedClassData }>(
+          `${endpoints.submitRecommendedClass}/${id}`
+        );
+        return response.data.data;
+      },
+      [api, endpoints.submitRecommendedClass]
+    );
 
     /**
      * Handle edit model action
@@ -713,10 +747,7 @@ export const createUseRecommendedLessonsPage = (
         // Load recipients from the API (same flow as lesson creation), so the
         // Destinatário step shows the Escola → Série → Turma → Aluno cascade.
         try {
-          const categories = await loadCategoriesData(
-            api as unknown as BaseApiClient,
-            []
-          );
+          const categories = await loadCategoriesData(api, []);
           setSendModalCategories(categories);
         } catch (error) {
           console.error('Erro ao carregar destinatários:', error);
@@ -820,7 +851,9 @@ export const createUseRecommendedLessonsPage = (
         onCreateLesson: handleCreateLesson,
         onCreateModel: handleCreateModel,
         onRowClick: handleRowClick,
-        onEditRecommendedClass: handleEditRecommendedClass,
+        deleteRecommendedClass,
+        updateRecommendedClass,
+        fetchRecommendedClassById,
         onEditModel: handleEditModel,
         onSendLesson: handleSendLesson,
         fetchRecommendedClassDrafts,

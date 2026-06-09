@@ -382,8 +382,22 @@ const defaultProps: RecommendedLessonsHistoryProps = {
   },
   onCreateLesson: () => console.log('Create lesson clicked'),
   onRowClick: (row) => console.log('Row clicked:', row),
-  onDeleteRecommendedClass: (id) => console.log('Delete recommendedClass:', id),
-  onEditRecommendedClass: (id) => console.log('Edit recommendedClass:', id),
+  deleteRecommendedClass: async (id) =>
+    console.log('Delete recommendedClass:', id),
+  updateRecommendedClass: async (id, data) =>
+    console.log('Update recommendedClass:', id, data),
+  fetchRecommendedClassById: async (id) => {
+    console.log('Fetch recommendedClass:', id);
+    return {
+      id,
+      title: 'Aula de exemplo',
+      startDate: '2024-06-01T00:00:00.000Z',
+      finalDate: '2024-12-31T23:59:00.000Z',
+      createdAt: '2024-06-01T10:00:00.000Z',
+      progress: 0,
+      totalLessons: 0,
+    };
+  },
   mapSubjectNameToEnum,
   userFilterData: mockUserFilterData,
   // Model props - enables Models tab in all stories

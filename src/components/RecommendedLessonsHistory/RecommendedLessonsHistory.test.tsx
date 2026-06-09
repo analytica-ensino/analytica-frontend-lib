@@ -1,5 +1,12 @@
 import type { ReactNode } from 'react';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import {
+  render,
+  screen,
+  waitFor,
+  fireEvent,
+  within,
+  act,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { RecommendedClassHistoryApiResponse } from '../../types/recommendedLessons';
 
@@ -18,6 +25,11 @@ jest.mock('phosphor-react', () => ({
   CaretRight: () => <span data-testid="caret-right">→</span>,
   Trash: () => <span data-testid="trash-icon">🗑</span>,
   PencilSimple: () => <span data-testid="pencil-icon">✎</span>,
+  // Icons used by the Toaster/Toast rendered in the Drafts/Models tabs
+  CheckCircle: () => <span data-testid="check-circle">✓</span>,
+  WarningCircle: () => <span data-testid="warning-circle">!</span>,
+  Info: () => <span data-testid="info-icon">i</span>,
+  X: () => <span data-testid="x-icon">×</span>,
 }));
 
 // Mock utils
@@ -330,6 +342,56 @@ jest.mock('../TableProvider/TableProvider', () => {
   };
 });
 
+// Stub the confirmation dialog and edit modal: their internal behavior is
+// covered by their own tests; here we only verify the wiring.
+jest.mock('../AlertDialog/AlertDialog', () => ({
+  __esModule: true,
+  AlertDialog: ({
+    isOpen,
+    title,
+    submitButtonLabel,
+    cancelButtonLabel,
+    onSubmit,
+    onCancel,
+  }: {
+    isOpen: boolean;
+    title: string;
+    submitButtonLabel?: string;
+    cancelButtonLabel?: string;
+    onSubmit?: () => void;
+    onCancel?: () => void;
+  }) =>
+    isOpen ? (
+      <div data-testid="alert-dialog-overlay">
+        <span>{title}</span>
+        <button onClick={() => onSubmit?.()}>{submitButtonLabel}</button>
+        <button onClick={() => onCancel?.()}>{cancelButtonLabel}</button>
+      </div>
+    ) : null,
+}));
+
+jest.mock('./EditRecommendedLessonModal', () => ({
+  __esModule: true,
+  EditRecommendedLessonModal: ({
+    isOpen,
+    recommendedClassId,
+    onSaved,
+    onClose,
+  }: {
+    isOpen: boolean;
+    recommendedClassId?: string;
+    onSaved?: () => void;
+    onClose?: () => void;
+  }) =>
+    isOpen ? (
+      <div data-testid="edit-modal" data-id={recommendedClassId}>
+        <span>Editar aula recomendada</span>
+        <button onClick={() => onSaved?.()}>save-edit</button>
+        <button onClick={() => onClose?.()}>close-edit</button>
+      </div>
+    ) : null,
+}));
+
 // Import component after all mocks
 import {
   RecommendedLessonsHistory,
@@ -344,15 +406,31 @@ describe('RecommendedLessonsHistory', () => {
   >();
   const mockOnCreateLesson = jest.fn();
   const mockOnRowClick = jest.fn();
-  const mockOnDeleteRecommendedClass = jest.fn();
-  const mockOnEditRecommendedClass = jest.fn();
+  const mockDeleteRecommendedClass = jest.fn<Promise<void>, [string]>();
+  const mockUpdateRecommendedClass = jest.fn<
+    Promise<void>,
+    [string, unknown]
+  >();
+  const mockFetchRecommendedClassById = jest.fn<
+    Promise<{
+      id: string;
+      title: string;
+      startDate: string | null;
+      finalDate: string | null;
+      createdAt: string;
+      progress: number;
+      totalLessons: number;
+    }>,
+    [string]
+  >();
 
   const defaultProps: RecommendedLessonsHistoryProps = {
     fetchRecommendedClassHistory: mockFetchRecommendedClassHistory,
     onCreateLesson: mockOnCreateLesson,
     onRowClick: mockOnRowClick,
-    onDeleteRecommendedClass: mockOnDeleteRecommendedClass,
-    onEditRecommendedClass: mockOnEditRecommendedClass,
+    deleteRecommendedClass: mockDeleteRecommendedClass,
+    updateRecommendedClass: mockUpdateRecommendedClass,
+    fetchRecommendedClassById: mockFetchRecommendedClassById,
   };
 
   const validApiResponse: RecommendedClassHistoryApiResponse = {
@@ -409,6 +487,17 @@ describe('RecommendedLessonsHistory', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFetchRecommendedClassHistory.mockResolvedValue(validApiResponse);
+    mockDeleteRecommendedClass.mockResolvedValue(undefined);
+    mockUpdateRecommendedClass.mockResolvedValue(undefined);
+    mockFetchRecommendedClassById.mockResolvedValue({
+      id: '123e4567-e89b-12d3-a456-426614174000',
+      title: 'Aula de Matemática',
+      startDate: '2024-06-01T00:00:00.000Z',
+      finalDate: '2024-12-31T23:59:00.000Z',
+      createdAt: '2024-06-01T10:00:00.000Z',
+      progress: 50,
+      totalLessons: 10,
+    });
   });
 
   describe('Rendering', () => {
@@ -546,7 +635,63 @@ describe('RecommendedLessonsHistory', () => {
       expect(mockOnCreateLesson).toHaveBeenCalled();
     });
 
-    it('should call onDeleteRecommendedClass when delete button is clicked', async () => {
+    it('should delete a recommended class after confirming the dialog', async () => {
+      render(<RecommendedLessonsHistory {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTitle('Excluir')).toBeInTheDocument();
+      });
+
+      // Open the confirmation dialog
+      fireEvent.click(screen.getByTitle('Excluir'));
+
+      const dialog = await screen.findByTestId('alert-dialog-overlay');
+      expect(
+        within(dialog).getByText('Excluir aula recomendada')
+      ).toBeInTheDocument();
+
+      // Confirm deletion
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Excluir' }));
+
+      await waitFor(() => {
+        expect(mockDeleteRecommendedClass).toHaveBeenCalledWith(
+          '123e4567-e89b-12d3-a456-426614174000'
+        );
+      });
+    });
+
+    it('does not fire multiple deletes on repeated confirms (in-flight guard)', async () => {
+      let resolveDelete: () => void = () => {};
+      mockDeleteRecommendedClass.mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            resolveDelete = resolve;
+          })
+      );
+
+      render(<RecommendedLessonsHistory {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTitle('Excluir')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTitle('Excluir'));
+      const dialog = await screen.findByTestId('alert-dialog-overlay');
+      const confirm = within(dialog).getByRole('button', { name: 'Excluir' });
+
+      // Rapid double-confirm while the DELETE is still in flight
+      fireEvent.click(confirm);
+      fireEvent.click(confirm);
+
+      expect(mockDeleteRecommendedClass).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        resolveDelete();
+        await Promise.resolve();
+      });
+    });
+
+    it('should not delete when the confirmation dialog is cancelled', async () => {
       render(<RecommendedLessonsHistory {...defaultProps} />);
 
       await waitFor(() => {
@@ -555,12 +700,18 @@ describe('RecommendedLessonsHistory', () => {
 
       fireEvent.click(screen.getByTitle('Excluir'));
 
-      expect(mockOnDeleteRecommendedClass).toHaveBeenCalledWith(
-        '123e4567-e89b-12d3-a456-426614174000'
-      );
+      const dialog = await screen.findByTestId('alert-dialog-overlay');
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Cancelar' }));
+
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId('alert-dialog-overlay')
+        ).not.toBeInTheDocument();
+      });
+      expect(mockDeleteRecommendedClass).not.toHaveBeenCalled();
     });
 
-    it('should call onEditRecommendedClass when edit button is clicked', async () => {
+    it('should open the edit modal with the selected id when edit is clicked', async () => {
       render(<RecommendedLessonsHistory {...defaultProps} />);
 
       await waitFor(() => {
@@ -569,9 +720,29 @@ describe('RecommendedLessonsHistory', () => {
 
       fireEvent.click(screen.getByTitle('Editar'));
 
-      expect(mockOnEditRecommendedClass).toHaveBeenCalledWith(
+      const modal = await screen.findByTestId('edit-modal');
+      expect(modal).toHaveAttribute(
+        'data-id',
         '123e4567-e89b-12d3-a456-426614174000'
       );
+      expect(screen.getByText('Editar aula recomendada')).toBeInTheDocument();
+    });
+
+    it('should reload the list after the edit modal saves', async () => {
+      render(<RecommendedLessonsHistory {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTitle('Editar')).toBeInTheDocument();
+      });
+
+      mockFetchRecommendedClassHistory.mockClear();
+      fireEvent.click(screen.getByTitle('Editar'));
+      fireEvent.click(await screen.findByText('save-edit'));
+
+      await waitFor(() => {
+        expect(mockFetchRecommendedClassHistory).toHaveBeenCalled();
+      });
+      expect(screen.queryByTestId('edit-modal')).not.toBeInTheDocument();
     });
 
     it('should stop event propagation on delete click', async () => {
@@ -1276,10 +1447,10 @@ describe('RecommendedLessonsHistory', () => {
   });
 
   describe('Actions Column', () => {
-    it('should render delete button but not call callback when onDeleteRecommendedClass is not provided', async () => {
+    it('should not render the delete button when deleteRecommendedClass is not provided', async () => {
       const propsWithoutDelete = {
         ...defaultProps,
-        onDeleteRecommendedClass: undefined,
+        deleteRecommendedClass: undefined,
       };
 
       render(<RecommendedLessonsHistory {...propsWithoutDelete} />);
@@ -1288,16 +1459,16 @@ describe('RecommendedLessonsHistory', () => {
         expect(screen.getByTestId('table')).toBeInTheDocument();
       });
 
-      // Button is always rendered, but clicking does nothing
-      const deleteButton = screen.getByTitle('Excluir');
-      fireEvent.click(deleteButton);
-      // No callback should be called since it's undefined
+      expect(screen.queryByTitle('Excluir')).not.toBeInTheDocument();
+      // Edit remains available
+      expect(screen.getByTitle('Editar')).toBeInTheDocument();
     });
 
-    it('should render edit button but not call callback when onEditRecommendedClass is not provided', async () => {
+    it('should not render the edit button when edit capability is not provided', async () => {
       const propsWithoutEdit = {
         ...defaultProps,
-        onEditRecommendedClass: undefined,
+        updateRecommendedClass: undefined,
+        fetchRecommendedClassById: undefined,
       };
 
       render(<RecommendedLessonsHistory {...propsWithoutEdit} />);
@@ -1306,10 +1477,27 @@ describe('RecommendedLessonsHistory', () => {
         expect(screen.getByTestId('table')).toBeInTheDocument();
       });
 
-      // Button is always rendered, but clicking does nothing
-      const editButton = screen.getByTitle('Editar');
-      fireEvent.click(editButton);
-      // No callback should be called since it's undefined
+      expect(screen.queryByTitle('Editar')).not.toBeInTheDocument();
+      // Delete remains available
+      expect(screen.getByTitle('Excluir')).toBeInTheDocument();
+    });
+
+    it('should render no actions column when neither capability is provided', async () => {
+      const propsWithoutActions = {
+        ...defaultProps,
+        deleteRecommendedClass: undefined,
+        updateRecommendedClass: undefined,
+        fetchRecommendedClassById: undefined,
+      };
+
+      render(<RecommendedLessonsHistory {...propsWithoutActions} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('table')).toBeInTheDocument();
+      });
+
+      expect(screen.queryByTitle('Excluir')).not.toBeInTheDocument();
+      expect(screen.queryByTitle('Editar')).not.toBeInTheDocument();
     });
   });
 
