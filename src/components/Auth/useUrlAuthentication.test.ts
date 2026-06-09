@@ -8,6 +8,7 @@ const mockSetTokens = jest.fn();
 const mockSetSessionInfo = jest.fn();
 const mockSetSelectedProfile = jest.fn();
 const mockClearParams = jest.fn();
+const mockOnAuthHydrated = jest.fn();
 
 const mockApi = {
   get: jest.fn(),
@@ -722,6 +723,115 @@ describe('useUrlAuthentication', () => {
           anotherField: 'another value',
         });
       });
+    });
+  });
+
+  describe('onAuthHydrated', () => {
+    it('deve chamar onAuthHydrated após setSessionInfo e antes de clearParamsFromURL, aguardando resolução async', async () => {
+      const callOrder: string[] = [];
+      mockSetSessionInfo.mockImplementation(() =>
+        callOrder.push('setSessionInfo')
+      );
+      // async mock to prove the await is respected
+      mockOnAuthHydrated.mockImplementation(
+        () =>
+          new Promise<void>((resolve) =>
+            setTimeout(() => {
+              callOrder.push('onAuthHydrated');
+              resolve();
+            }, 10)
+          )
+      );
+      mockClearParams.mockImplementation(() =>
+        callOrder.push('clearParamsFromURL')
+      );
+
+      mockApi.get.mockResolvedValue({
+        data: { data: { profileId: 'p1', foo: 'bar' } },
+      });
+
+      await act(async () => {
+        renderHook(
+          () =>
+            useUrlAuthentication({
+              setTokens: mockSetTokens,
+              setSessionInfo: mockSetSessionInfo,
+              setSelectedProfile: mockSetSelectedProfile,
+              api: mockApi,
+              endpoint: '/auth/session-info',
+              clearParamsFromURL: mockClearParams,
+              onAuthHydrated: mockOnAuthHydrated,
+            }),
+          { wrapper }
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockOnAuthHydrated).toHaveBeenCalledTimes(1);
+        expect(callOrder).toEqual([
+          'setSessionInfo',
+          'onAuthHydrated',
+          'clearParamsFromURL',
+        ]);
+      });
+    });
+
+    it('não quebra quando onAuthHydrated não é fornecido', async () => {
+      mockApi.get.mockResolvedValue({
+        data: { data: { profileId: 'p1', foo: 'bar' } },
+      });
+
+      await act(async () => {
+        renderHook(
+          () =>
+            useUrlAuthentication({
+              setTokens: mockSetTokens,
+              setSessionInfo: mockSetSessionInfo,
+              api: mockApi,
+              endpoint: '/auth/session-info',
+              clearParamsFromURL: mockClearParams,
+            }),
+          { wrapper }
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockSetSessionInfo).toHaveBeenCalledWith({
+          profileId: 'p1',
+          foo: 'bar',
+        });
+        expect(mockClearParams).toHaveBeenCalled();
+      });
+    });
+
+    it('não chama onAuthHydrated quando há erro na api', async () => {
+      mockApi.get.mockRejectedValue(new Error('fail'));
+
+      await act(async () => {
+        renderHook(
+          () =>
+            useUrlAuthentication({
+              setTokens: mockSetTokens,
+              setSessionInfo: mockSetSessionInfo,
+              api: mockApi,
+              endpoint: '/auth/session-info',
+              clearParamsFromURL: mockClearParams,
+              onAuthHydrated: mockOnAuthHydrated,
+              maxRetries: 1,
+              retryDelay: 10,
+            }),
+          { wrapper }
+        );
+      });
+
+      await waitFor(
+        () => {
+          expect(mockSetSessionInfo).not.toHaveBeenCalled();
+          expect(mockOnAuthHydrated).not.toHaveBeenCalled();
+          expect(mockClearParams).not.toHaveBeenCalled();
+        },
+        { timeout: 3000 }
+      );
     });
   });
 

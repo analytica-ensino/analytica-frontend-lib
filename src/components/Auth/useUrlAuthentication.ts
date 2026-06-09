@@ -22,6 +22,9 @@ import { useLocation } from 'react-router-dom';
  * @property {number} [maxRetries] - Maximum number of retry attempts (default: 3)
  * @property {number} [retryDelay] - Base delay between retries in milliseconds (default: 1000)
  * @property {(error: unknown) => void} [onError] - Error handler callback
+ * @property {() => void} [onAuthHydrated] - Called after session is stored, before URL params are cleared.
+ *   Use this to re-run the auth context check so guards re-evaluate immediately,
+ *   preventing the "Área Restrita" flash on the first login redirect.
  */
 export interface UseUrlAuthOptions<
   Tokens = unknown,
@@ -44,6 +47,7 @@ export interface UseUrlAuthOptions<
   maxRetries?: number;
   retryDelay?: number;
   onError?: (error: unknown) => void;
+  onAuthHydrated?: () => void | Promise<void>;
 }
 
 /**
@@ -279,6 +283,9 @@ export function useUrlAuthentication<
         options.setSessionInfo(sessionData as Session);
         handleProfileSelection(sessionData, options.setSelectedProfile);
         handleUserData(sessionData, options.setUser);
+        // Notify caller that auth state is hydrated into the store so any
+        // auth context can re-check before URL params are removed.
+        if (options.onAuthHydrated) await options.onAuthHydrated();
         options.clearParamsFromURL?.();
       } catch (error) {
         console.error('Erro ao obter informações da sessão:', error);
@@ -303,5 +310,6 @@ export function useUrlAuthentication<
     options.maxRetries,
     options.retryDelay,
     options.onError,
+    options.onAuthHydrated,
   ]);
 }
