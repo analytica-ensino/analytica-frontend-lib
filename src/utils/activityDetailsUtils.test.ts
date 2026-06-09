@@ -7,6 +7,7 @@ import {
   formatTimeSpent,
   formatQuestionNumbers,
   formatDateToBrazilian,
+  formatActivityDateToBrazilian,
 } from './activityDetailsUtils';
 
 describe('activityDetailsUtils', () => {
@@ -176,6 +177,29 @@ describe('activityDetailsUtils', () => {
 
     it('should format date with timezone offset correctly', () => {
       expect(formatDateToBrazilian('2024-06-20T23:59:59Z')).toBe('20/06/2024');
+    });
+
+    it('keeps the UTC day for lesson-style midnight-UTC dates', () => {
+      // Lessons are stored as UTC midnight; the UTC day is the intended one,
+      // so this formatter must stay UTC-based (separate from activity dates).
+      expect(formatDateToBrazilian('2024-01-01T00:00:00Z')).toBe('01/01/2024');
+    });
+  });
+
+  describe('formatActivityDateToBrazilian', () => {
+    it('uses the LOCAL day for an early-UTC (02:59Z) activity deadline', () => {
+      // 02:59Z is 23:59 of the previous day in UTC-3. Compared against native
+      // local Date getters so it is TZ-agnostic and guards a regression to UTC.
+      const iso = '2026-06-14T02:59:00.000Z';
+      const d = new Date(iso);
+      const expected = `${String(d.getDate()).padStart(2, '0')}/${String(
+        d.getMonth() + 1
+      ).padStart(2, '0')}/${d.getFullYear()}`;
+      expect(formatActivityDateToBrazilian(iso)).toBe(expected);
+    });
+
+    it('keeps date-only inputs on the same day', () => {
+      expect(formatActivityDateToBrazilian('2024-01-15')).toBe('15/01/2024');
     });
   });
 });

@@ -25,7 +25,16 @@ type MenuVariant =
 
 interface MenuStore {
   value: string;
+  /** User-initiated selection (e.g. a MenuItem click): fires `onValueChange`. */
   setValue: (value: string) => void;
+  /**
+   * Syncs the controlled `value`/`defaultValue` prop into the store WITHOUT
+   * firing `onValueChange`. A prop change is not a user selection, so it must
+   * not dispatch a click — otherwise a route-driven `value` change would
+   * trigger navigation (e.g. bouncing `/atividades/detalhes/:id` back to
+   * `/atividades`).
+   */
+  syncValue: (value: string) => void;
   onValueChange?: (value: string) => void;
 }
 
@@ -40,6 +49,8 @@ const createMenuStore = (
       set({ value });
       onValueChange?.(value);
     },
+    syncValue: (value) =>
+      set((state) => (state.value === value ? state : { value })),
     onValueChange,
   }));
 
@@ -88,11 +99,13 @@ const Menu = forwardRef<HTMLDivElement, MenuProps>(
     const storeRef = useRef<MenuStoreApi>(null);
     storeRef.current ??= createMenuStore(onValueChange);
     const store = storeRef.current;
-    const { setValue } = useStore(store, (s) => s);
+    const { syncValue } = useStore(store, (s) => s);
 
+    // Sync the controlled/default value into the store WITHOUT firing
+    // onValueChange — a prop change is not a user click.
     useEffect(() => {
-      setValue(propValue ?? defaultValue);
-    }, [defaultValue, propValue, setValue]);
+      syncValue(propValue ?? defaultValue);
+    }, [defaultValue, propValue, syncValue]);
 
     const baseClasses = BASE_CLASSES_BY_VARIANT[variant];
     const variantClasses = VARIANT_CLASSES[variant];

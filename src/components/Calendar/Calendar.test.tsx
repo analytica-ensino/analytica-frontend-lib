@@ -243,6 +243,34 @@ describe('Calendar', () => {
       expect(overdueDay.parentElement).toHaveClass('border-error-300');
     });
 
+    it('shows the activity indicator on today (takes precedence over the today style)', () => {
+      const today = new Date();
+      const todayKey = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate()
+      )
+        .toISOString()
+        .split('T')[0];
+      const activities: Record<string, CalendarActivity[]> = {
+        [todayKey]: [{ id: 't', status: 'near-deadline', title: 'Hoje' }],
+      };
+
+      render(
+        <Calendar
+          variant="navigation"
+          activities={activities}
+          showActivities={true}
+        />
+      );
+
+      // A deadline that falls on today must still show its colored dot, not be
+      // hidden by the "today" emphasis (regression: isToday short-circuited it).
+      const todayCell = screen.getByText(String(today.getDate()));
+      expect(todayCell.parentElement).toHaveClass('bg-warning-background');
+      expect(todayCell.parentElement).toHaveClass('border-warning-400');
+    });
+
     it('should handle activities with unknown status correctly in navigation variant', () => {
       // This test covers the else block for unknown status
       const activities: Record<string, CalendarActivity[]> = {
