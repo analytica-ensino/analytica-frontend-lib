@@ -58,6 +58,7 @@ export function useAppContent(config: UseAppContentConfig) {
   } = config;
 
   const apiConfig = useApiConfig(api);
+  const { checkAuth } = useAuth();
 
   // Aplica o sistema de dark mode baseado nas preferências do sistema
   useTheme();
@@ -99,6 +100,12 @@ export function useAppContent(config: UseAppContentConfig) {
     [navigate, onError]
   );
 
+  // Re-runs the AuthProvider check after tokens are written into the store,
+  // so guards re-evaluate before URL params are cleared (fixes first-login race).
+  const handleAuthHydrated = useCallback(async () => {
+    await checkAuth();
+  }, [checkAuth]);
+
   // Memoize the entire configuration object to prevent re-execution
   const urlAuthConfig = useMemo(
     () => ({
@@ -111,6 +118,7 @@ export function useAppContent(config: UseAppContentConfig) {
       maxRetries,
       retryDelay,
       onError: handleError,
+      onAuthHydrated: handleAuthHydrated,
     }),
     [
       setTokens,
@@ -122,6 +130,7 @@ export function useAppContent(config: UseAppContentConfig) {
       maxRetries,
       retryDelay,
       handleError,
+      handleAuthHydrated,
     ]
   );
 
