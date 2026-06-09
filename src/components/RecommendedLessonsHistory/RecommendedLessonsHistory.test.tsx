@@ -5,6 +5,7 @@ import {
   waitFor,
   fireEvent,
   within,
+  act,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { RecommendedClassHistoryApiResponse } from '../../types/recommendedLessons';
@@ -656,6 +657,37 @@ describe('RecommendedLessonsHistory', () => {
         expect(mockDeleteRecommendedClass).toHaveBeenCalledWith(
           '123e4567-e89b-12d3-a456-426614174000'
         );
+      });
+    });
+
+    it('does not fire multiple deletes on repeated confirms (in-flight guard)', async () => {
+      let resolveDelete: () => void = () => {};
+      mockDeleteRecommendedClass.mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            resolveDelete = resolve;
+          })
+      );
+
+      render(<RecommendedLessonsHistory {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTitle('Excluir')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTitle('Excluir'));
+      const dialog = await screen.findByTestId('alert-dialog-overlay');
+      const confirm = within(dialog).getByRole('button', { name: 'Excluir' });
+
+      // Rapid double-confirm while the DELETE is still in flight
+      fireEvent.click(confirm);
+      fireEvent.click(confirm);
+
+      expect(mockDeleteRecommendedClass).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        resolveDelete();
+        await Promise.resolve();
       });
     });
 

@@ -580,6 +580,9 @@ export const RecommendedLessonsHistory = ({
     undefined
   );
 
+  // In-flight guard so a double-click on "Excluir" can't fire multiple DELETEs
+  const deletingRef = useRef(false);
+
   const handleOpenDelete = useCallback((row: RecommendedClassTableItem) => {
     setRecommendedClassToDelete({ id: row.id, title: row.title });
   }, []);
@@ -599,9 +602,14 @@ export const RecommendedLessonsHistory = ({
    * Confirm deletion of the selected recommended class, then reload the list
    */
   const handleConfirmDelete = useCallback(async () => {
-    if (!recommendedClassToDelete || !deleteRecommendedClass) {
+    if (
+      !recommendedClassToDelete ||
+      !deleteRecommendedClass ||
+      deletingRef.current
+    ) {
       return;
     }
+    deletingRef.current = true;
     try {
       await deleteRecommendedClass(recommendedClassToDelete.id);
       setRecommendedClassToDelete(null);
@@ -618,6 +626,8 @@ export const RecommendedLessonsHistory = ({
         action: 'warning',
         position: 'top-right',
       });
+    } finally {
+      deletingRef.current = false;
     }
   }, [
     recommendedClassToDelete,
@@ -694,20 +704,25 @@ export const RecommendedLessonsHistory = ({
         />
       )}
 
-      {/* Edit modal (title + dates) */}
-      {editEnabled && fetchRecommendedClassById && updateRecommendedClass && (
-        <EditRecommendedLessonModal
-          isOpen={!!recommendedClassToEdit}
-          recommendedClassId={recommendedClassToEdit?.id}
-          fetchById={fetchRecommendedClassById}
-          onUpdate={updateRecommendedClass}
-          onClose={() => setRecommendedClassToEdit(null)}
-          onSaved={() => {
-            setRecommendedClassToEdit(null);
-            reloadHistory();
-          }}
-        />
-      )}
+      {/* Edit modal (title + dates) — keyed by id so it remounts per row,
+          avoiding a stale-form flash when switching between lessons */}
+      {editEnabled &&
+        fetchRecommendedClassById &&
+        updateRecommendedClass &&
+        recommendedClassToEdit && (
+          <EditRecommendedLessonModal
+            key={recommendedClassToEdit.id}
+            isOpen
+            recommendedClassId={recommendedClassToEdit.id}
+            fetchById={fetchRecommendedClassById}
+            onUpdate={updateRecommendedClass}
+            onClose={() => setRecommendedClassToEdit(null)}
+            onSaved={() => {
+              setRecommendedClassToEdit(null);
+              reloadHistory();
+            }}
+          />
+        )}
 
       {/* Background decoration */}
       <span className="absolute top-0 left-0 h-[150px] w-full z-0" />
