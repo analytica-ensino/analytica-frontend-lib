@@ -747,10 +747,7 @@ export const createUseRecommendedLessonsPage = (
         // Load recipients from the API (same flow as lesson creation), so the
         // Destinatário step shows the Escola → Série → Turma → Aluno cascade.
         try {
-          const categories = await loadCategoriesData(
-            api as unknown as BaseApiClient,
-            []
-          );
+          const categories = await loadCategoriesData(api, []);
           setSendModalCategories(categories);
         } catch (error) {
           console.error('Erro ao carregar destinatários:', error);
