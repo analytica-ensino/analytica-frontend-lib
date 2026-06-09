@@ -79,6 +79,7 @@ describe('useRecommendedLessonsPage', () => {
   const mockApi: RecommendedLessonsApiClient = {
     get: jest.fn(),
     post: jest.fn(),
+    patch: jest.fn(),
     delete: jest.fn(),
   };
 
@@ -267,7 +268,9 @@ describe('useRecommendedLessonsPage', () => {
     expect(historyProps.onCreateLesson).toBeInstanceOf(Function);
     expect(historyProps.onCreateModel).toBeInstanceOf(Function);
     expect(historyProps.onRowClick).toBeInstanceOf(Function);
-    expect(historyProps.onEditRecommendedClass).toBeInstanceOf(Function);
+    expect(historyProps.deleteRecommendedClass).toBeInstanceOf(Function);
+    expect(historyProps.updateRecommendedClass).toBeInstanceOf(Function);
+    expect(historyProps.fetchRecommendedClassById).toBeInstanceOf(Function);
     expect(historyProps.onEditModel).toBeInstanceOf(Function);
     expect(historyProps.onSendLesson).toBeInstanceOf(Function);
     expect(historyProps.emptyStateImage).toBe('/empty.png');
@@ -621,16 +624,61 @@ describe('useRecommendedLessonsPage', () => {
     );
   });
 
-  it('navigation: onEditRecommendedClass should navigate correctly', () => {
+  it('deleteRecommendedClass: should call DELETE on the recommended-class endpoint', async () => {
+    (mockApi.delete as jest.Mock).mockResolvedValueOnce({ data: {} });
     const { result } = setupHook();
-    act(() => {
-      result.current.historyProps.onEditRecommendedClass(
+    await act(async () => {
+      await result.current.historyProps.deleteRecommendedClass(
         'recommendedClass-123'
       );
     });
-    expect(mockNavigate).toHaveBeenCalledWith(
-      '/lessons/recommendedClass-123/editar'
+    expect(mockApi.delete).toHaveBeenCalledWith(
+      '/recommendedClass/recommendedClass-123'
     );
+  });
+
+  it('updateRecommendedClass: should PATCH the recommended-class endpoint with payload', async () => {
+    (mockApi.patch as jest.Mock).mockResolvedValueOnce({ data: {} });
+    const { result } = setupHook();
+    const payload = {
+      title: 'New title',
+      startDate: '2024-01-01T00:00:00.000Z',
+      finalDate: '2024-01-10T23:59:00.000Z',
+    };
+    await act(async () => {
+      await result.current.historyProps.updateRecommendedClass(
+        'recommendedClass-123',
+        payload
+      );
+    });
+    expect(mockApi.patch).toHaveBeenCalledWith(
+      '/recommendedClass/recommendedClass-123',
+      payload
+    );
+  });
+
+  it('fetchRecommendedClassById: should GET and unwrap the recommended-class data', async () => {
+    const data = {
+      id: 'recommendedClass-123',
+      title: 'A class',
+      startDate: '2024-01-01T00:00:00.000Z',
+      finalDate: '2024-01-10T23:59:00.000Z',
+      createdAt: '2024-01-01T00:00:00.000Z',
+      progress: 0,
+      totalLessons: 3,
+    };
+    (mockApi.get as jest.Mock).mockResolvedValueOnce({ data: { data } });
+    const { result } = setupHook();
+    let returned;
+    await act(async () => {
+      returned = await result.current.historyProps.fetchRecommendedClassById(
+        'recommendedClass-123'
+      );
+    });
+    expect(mockApi.get).toHaveBeenCalledWith(
+      '/recommendedClass/recommendedClass-123'
+    );
+    expect(returned).toEqual(data);
   });
 
   it('navigation: onEditModel should navigate correctly', () => {
