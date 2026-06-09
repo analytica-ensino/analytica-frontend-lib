@@ -93,6 +93,7 @@ describe('useAppContent', () => {
     mockUseAuth.mockReturnValue({
       sessionInfo: null,
       isAuthenticated: false,
+      checkAuth: jest.fn().mockResolvedValue(true),
     });
   });
 
@@ -137,8 +138,25 @@ describe('useAppContent', () => {
         maxRetries: 1,
         retryDelay: 2000,
         onError: expect.any(Function),
+        onAuthHydrated: expect.any(Function),
       })
     );
+  });
+
+  it('should call checkAuth when onAuthHydrated is invoked', async () => {
+    const mockCheckAuth = jest.fn().mockResolvedValue(true);
+    mockUseAuth.mockReturnValue({
+      sessionInfo: null,
+      isAuthenticated: false,
+      checkAuth: mockCheckAuth,
+    });
+
+    renderHook(() => useAppContent(defaultConfig));
+
+    const urlAuthConfig = mockUseUrlAuthentication.mock.calls[0][0];
+    await urlAuthConfig.onAuthHydrated();
+
+    expect(mockCheckAuth).toHaveBeenCalledTimes(1);
   });
 
   it('should use default endpoint when not provided', () => {
