@@ -727,11 +727,24 @@ describe('useUrlAuthentication', () => {
   });
 
   describe('onAuthHydrated', () => {
-    it('deve chamar onAuthHydrated após setSessionInfo e antes de clearParamsFromURL', async () => {
+    it('deve chamar onAuthHydrated após setSessionInfo e antes de clearParamsFromURL, aguardando resolução async', async () => {
       const callOrder: string[] = [];
-      mockSetSessionInfo.mockImplementation(() => callOrder.push('setSessionInfo'));
-      mockOnAuthHydrated.mockImplementation(() => callOrder.push('onAuthHydrated'));
-      mockClearParams.mockImplementation(() => callOrder.push('clearParamsFromURL'));
+      mockSetSessionInfo.mockImplementation(() =>
+        callOrder.push('setSessionInfo')
+      );
+      // async mock to prove the await is respected
+      mockOnAuthHydrated.mockImplementation(
+        () =>
+          new Promise<void>((resolve) =>
+            setTimeout(() => {
+              callOrder.push('onAuthHydrated');
+              resolve();
+            }, 10)
+          )
+      );
+      mockClearParams.mockImplementation(() =>
+        callOrder.push('clearParamsFromURL')
+      );
 
       mockApi.get.mockResolvedValue({
         data: { data: { profileId: 'p1', foo: 'bar' } },

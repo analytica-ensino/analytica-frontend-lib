@@ -285,7 +285,7 @@ export function useUrlAuthentication<
         handleUserData(sessionData, options.setUser);
         // Notify caller that auth state is hydrated into the store so any
         // auth context can re-check before URL params are removed.
-        options.onAuthHydrated?.();
+        if (options.onAuthHydrated) await options.onAuthHydrated();
         options.clearParamsFromURL?.();
       } catch (error) {
         console.error('Erro ao obter informações da sessão:', error);
