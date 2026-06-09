@@ -34,13 +34,17 @@ export function getCalendarActivityStatus(
   finalDate: string,
   now: Date = new Date()
 ): CalendarActivityStatus {
-  const diffDays = Math.ceil(
-    (new Date(finalDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-  );
+  const deadlineMs = new Date(finalDate).getTime();
+  const nowMs = now.getTime();
 
-  if (diffDays < 0) {
+  // Compare timestamps first: a deadline already in the past is OVERDUE even if
+  // it passed only a few hours ago. (Math.ceil on a small negative delta would
+  // round to 0 and misclassify it as NEAR_DEADLINE.)
+  if (deadlineMs < nowMs) {
     return CalendarActivityStatus.OVERDUE;
   }
+
+  const diffDays = Math.ceil((deadlineMs - nowMs) / (1000 * 60 * 60 * 24));
   if (diffDays <= 3) {
     return CalendarActivityStatus.NEAR_DEADLINE;
   }

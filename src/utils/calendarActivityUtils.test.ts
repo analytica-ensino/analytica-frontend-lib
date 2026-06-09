@@ -49,6 +49,14 @@ describe('calendarActivityUtils', () => {
       );
     });
 
+    it('returns OVERDUE for a deadline that passed only a few hours ago', () => {
+      // Guards the off-by-up-to-24h bug: Math.ceil on a small negative delta
+      // rounded to 0 and misclassified a just-expired deadline as NEAR_DEADLINE.
+      expect(getCalendarActivityStatus('2026-06-08T09:00:00.000Z', now)).toBe(
+        CalendarActivityStatus.OVERDUE
+      );
+    });
+
     it('returns NEAR_DEADLINE within 3 days', () => {
       expect(getCalendarActivityStatus('2026-06-10T12:00:00.000Z', now)).toBe(
         CalendarActivityStatus.NEAR_DEADLINE
