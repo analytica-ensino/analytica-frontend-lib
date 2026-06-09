@@ -168,17 +168,18 @@ const getDayStyles = (
   let dayStyle = '';
   let textStyle: string;
 
+  const dayActivities = day.activities ?? [];
+  const hasActivityIndicator =
+    variant === 'navigation' && showActivities && dayActivities.length > 0;
+
   if (variant === 'selection' && day.isSelected) {
     dayStyle = 'bg-primary-800';
     textStyle = 'text-text';
-  } else if (day.isToday) {
-    textStyle = 'text-primary-800';
-  } else if (
-    variant === 'navigation' &&
-    showActivities &&
-    day.activities?.length
-  ) {
-    const primaryActivity = day.activities[0];
+  } else if (hasActivityIndicator) {
+    // The activity indicator takes precedence over the "today" emphasis so a
+    // deadline that falls on today still shows its colored dot (previously the
+    // isToday branch short-circuited and hid it).
+    const primaryActivity = dayActivities[0];
     if (primaryActivity.status === 'near-deadline') {
       dayStyle = 'bg-warning-background border-2 border-warning-400';
       textStyle = 'text-text-950';
@@ -192,6 +193,8 @@ const getDayStyles = (
       dayStyle = 'border-2 border-blue-500';
       textStyle = 'text-blue-500';
     }
+  } else if (day.isToday) {
+    textStyle = 'text-primary-800';
   } else {
     textStyle = 'text-text-950 hover:bg-background-100';
   }

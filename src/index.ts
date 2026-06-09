@@ -933,12 +933,21 @@ export {
   isLessonExpired,
 } from './utils/lessonAvailabilityUtils';
 
+// Calendar Activity Utils (timezone-safe date helpers shared by aluno/professor)
+export {
+  getActivityDateKey,
+  getCalendarActivityStatus,
+  filterActivitiesFromDate,
+} from './utils/calendarActivityUtils';
+export type { DatedActivity } from './utils/calendarActivityUtils';
+
 // Activity Details Utils
 export {
   getStatusBadgeConfig,
   formatTimeSpent,
   formatQuestionNumbers,
   formatDateToBrazilian,
+  formatActivityDateToBrazilian,
 } from './utils/utils';
 export type {
   StudentActivityStatus,

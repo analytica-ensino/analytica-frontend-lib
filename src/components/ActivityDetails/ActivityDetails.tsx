@@ -43,6 +43,7 @@ import {
   formatTimeSpent,
   formatQuestionNumbers,
   formatDateToBrazilian,
+  formatActivityDateToBrazilian,
 } from '../../utils/activityDetailsUtils';
 import type { BaseApiClient } from '../../types/api';
 import { useActivityDetails } from '../../hooks/useActivityDetails';
@@ -1074,14 +1075,14 @@ export const ActivityDetails = ({
                   <Text className="text-sm text-text-500">
                     Início{' '}
                     {data.activity.startDate
-                      ? formatDateToBrazilian(data.activity.startDate)
+                      ? formatActivityDateToBrazilian(data.activity.startDate)
                       : '00/00/0000'}
                   </Text>
                   <span className="w-1 h-1 rounded-full bg-text-500" />
                   <Text className="text-sm text-text-500">
                     Prazo final{' '}
                     {data.activity.finalDate
-                      ? formatDateToBrazilian(data.activity.finalDate)
+                      ? formatActivityDateToBrazilian(data.activity.finalDate)
                       : '00/00/0000'}
                   </Text>
                   <span className="w-1 h-1 rounded-full bg-text-500" />
