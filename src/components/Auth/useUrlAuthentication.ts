@@ -47,7 +47,7 @@ export interface UseUrlAuthOptions<
   maxRetries?: number;
   retryDelay?: number;
   onError?: (error: unknown) => void;
-  onAuthHydrated?: () => void;
+  onAuthHydrated?: () => void | Promise<void>;
 }
 
 /**
