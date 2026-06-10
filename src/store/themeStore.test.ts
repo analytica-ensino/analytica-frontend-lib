@@ -92,6 +92,10 @@ describe('themeStore', () => {
       return null;
     });
 
+    // Clear persisted theme (cookie + localStorage) so state never leaks between tests
+    document.cookie = 'theme-store=; Max-Age=0; Path=/';
+    globalThis.localStorage.removeItem('theme-store');
+
     // Clear Zustand store
     useThemeStore.setState({ themeMode: 'system', isDark: false });
   });
@@ -594,6 +598,21 @@ describe('themeStore', () => {
 
       expect(useThemeStore.getState().themeMode).toBe('system');
       expect(mockDocumentElement.setAttribute).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe('persistence (cookie + localStorage)', () => {
+    it('should persist themeMode to both cookie and localStorage on setTheme', () => {
+      const { setTheme } = useThemeStore.getState();
+
+      setTheme('dark');
+
+      const expected = encodeURIComponent('"themeMode":"dark"');
+      expect(document.cookie).toContain('theme-store=');
+      expect(document.cookie).toContain(expected);
+      expect(globalThis.localStorage.getItem('theme-store')).toContain(
+        '"themeMode":"dark"'
+      );
     });
   });
 });

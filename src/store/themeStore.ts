@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { devtools, persist } from 'zustand/middleware';
+import { createJSONStorage, devtools, persist } from 'zustand/middleware';
+import { themeCookieStorage } from './themeStorage';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -209,7 +210,9 @@ export const useThemeStore = create<ThemeStore>()(
         },
       }),
       {
-        name: 'theme-store', // Nome da chave no localStorage
+        name: 'theme-store', // Storage key (cookie + localStorage)
+        // Root-domain cookie so login and app subdomains share the theme
+        storage: createJSONStorage(() => themeCookieStorage),
         partialize: (state) => ({
           themeMode: state.themeMode,
         }), // Só persiste o themeMode, não o isDark

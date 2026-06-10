@@ -1733,6 +1733,11 @@ export type {
 export { default as PrintableUsersTable } from './components/PrintableUsersTable/PrintableUsersTable';
 export type { PrintableUsersTableProps } from './components/PrintableUsersTable/PrintableUsersTable';
 
+// Cookie and Domain Utils
+export { getCookie, setCookie, removeCookie } from './utils/cookieUtils';
+export type { CookieOptions } from './utils/cookieUtils';
+export { resolveRootHostname } from './utils/domainUtils';
+
 // Report Export Utils
 export { downloadExcel } from './utils/exportExcel';
 export { printAsPdf } from './utils/exportPdf';
