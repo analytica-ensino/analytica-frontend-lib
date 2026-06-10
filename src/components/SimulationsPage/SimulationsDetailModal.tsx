@@ -353,6 +353,18 @@ export function SimulationsDetailModal({
     };
   }, []);
 
+  // Bumped on every new session (open / student change) so in-flight responses
+  // from a previous student are ignored instead of writing into the new one.
+  const requestEpochRef = useRef(0);
+  useEffect(() => {
+    requestEpochRef.current += 1;
+  }, [isOpen, student?.userInstitutionId]);
+
+  const isStaleResponse = useCallback(
+    (epoch: number) => !mountedRef.current || requestEpochRef.current !== epoch,
+    []
+  );
+
   useEffect(() => {
     if (!isOpen || !student) return;
 
@@ -383,6 +395,7 @@ export function SimulationsDetailModal({
   const handleToggle = useCallback(
     (simulationId: string) => {
       if (!student) return;
+      const requestEpoch = requestEpochRef.current;
       const next = expandedId === simulationId ? null : simulationId;
       setExpandedId(next);
 
@@ -393,14 +406,14 @@ export function SimulationsDetailModal({
         }));
         fetchSimulationDetail(student.userInstitutionId, simulationId)
           .then((data) => {
-            if (!mountedRef.current) return;
+            if (isStaleResponse(requestEpoch)) return;
             setDetails((prev) => ({
               ...prev,
               [simulationId]: { loading: false, error: null, data },
             }));
           })
           .catch(() => {
-            if (!mountedRef.current) return;
+            if (isStaleResponse(requestEpoch)) return;
             setDetails((prev) => ({
               ...prev,
               [simulationId]: {
@@ -417,14 +430,14 @@ export function SimulationsDetailModal({
         }));
         fetchNote(student.userInstitutionId, simulationId)
           .then((data) => {
-            if (!mountedRef.current) return;
+            if (isStaleResponse(requestEpoch)) return;
             setNotes((prev) => ({
               ...prev,
               [simulationId]: { loading: false, data },
             }));
           })
           .catch(() => {
-            if (!mountedRef.current) return;
+            if (isStaleResponse(requestEpoch)) return;
             setNotes((prev) => ({
               ...prev,
               [simulationId]: { loading: false, data: null },
@@ -432,24 +445,32 @@ export function SimulationsDetailModal({
           });
       }
     },
-    [student, expandedId, details, fetchSimulationDetail, fetchNote]
+    [
+      student,
+      expandedId,
+      details,
+      fetchSimulationDetail,
+      fetchNote,
+      isStaleResponse,
+    ]
   );
 
   const makeSaveNote = useCallback(
     (simulationId: string) => async (text: string) => {
       if (!student) return;
+      const requestEpoch = requestEpochRef.current;
       const saved = await saveNote(
         student.userInstitutionId,
         simulationId,
         text
       );
-      if (!mountedRef.current) return;
+      if (isStaleResponse(requestEpoch)) return;
       setNotes((prev) => ({
         ...prev,
         [simulationId]: { loading: false, data: saved },
       }));
     },
-    [student, saveNote]
+    [student, saveNote, isStaleResponse]
   );
 
   return (

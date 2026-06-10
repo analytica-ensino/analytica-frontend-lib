@@ -1,4 +1,10 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from '@testing-library/react';
 import { SimulationsDetailModal } from './SimulationsDetailModal';
 import type { BaseApiClient } from '../../types/api';
 
@@ -200,5 +206,92 @@ describe('SimulationsDetailModal', () => {
     expect(
       screen.getByPlaceholderText('Escreva uma observação para este simulado')
     ).toHaveValue('Boa evolução');
+  });
+
+  it('ignores a stale detail response after switching students', async () => {
+    // Student A's detail fetch is deferred so it can resolve after the switch.
+    let resolveADetail!: (value: unknown) => void;
+    const aDetail = new Promise((resolve) => {
+      resolveADetail = resolve;
+    });
+
+    const listFor = (uii: string) => ({
+      message: 'ok',
+      data: {
+        student: { userInstitutionId: uii, name: uii, simulationsAnswered: 1 },
+        simulations: {
+          data: [
+            {
+              id: 'sim-1',
+              title: 'Simulado 1',
+              correctCount: 0,
+              incorrectCount: 0,
+              blankCount: 0,
+              totalQuestions: 0,
+              createdAt: null,
+            },
+          ],
+          page: 1,
+          limit: 20,
+          total: 1,
+        },
+      },
+    });
+
+    const get = jest.fn((url: string) => {
+      if (url.endsWith('/note')) {
+        return Promise.resolve({ data: { message: 'ok', data: null } });
+      }
+      if (/\/students\/[^/]+\/[^/]+$/.test(url)) {
+        // Detail: defer student A so it resolves after we switch to B.
+        return url.includes('ui-A')
+          ? aDetail
+          : Promise.resolve({ data: detailPayload });
+      }
+      return Promise.resolve({
+        data: listFor(url.includes('ui-A') ? 'ui-A' : 'ui-B'),
+      });
+    });
+    const api = {
+      get,
+      post: jest.fn(),
+      patch: jest.fn(),
+      delete: jest.fn(),
+    } as unknown as BaseApiClient;
+
+    const { rerender } = render(
+      <SimulationsDetailModal
+        api={api}
+        isOpen
+        onClose={jest.fn()}
+        student={{ userInstitutionId: 'ui-A', name: 'Ana' }}
+      />
+    );
+    // Expand for A → starts the deferred A detail fetch.
+    fireEvent.click(await screen.findByText('Simulado 1'));
+
+    // Switch to student B before A's detail resolves.
+    rerender(
+      <SimulationsDetailModal
+        api={api}
+        isOpen
+        onClose={jest.fn()}
+        student={{ userInstitutionId: 'ui-B', name: 'Bruno' }}
+      />
+    );
+    await screen.findByText('Simulado 1');
+
+    // Now resolve A's (stale) detail — it must NOT populate B's session.
+    await act(async () => {
+      resolveADetail({ data: detailPayload });
+    });
+
+    // Expanding B's simulado must trigger a fresh B fetch (stale write ignored).
+    fireEvent.click(screen.getByText('Simulado 1'));
+    await waitFor(() =>
+      expect(get).toHaveBeenCalledWith(
+        '/performance/simulations/students/ui-B/sim-1'
+      )
+    );
   });
 });
