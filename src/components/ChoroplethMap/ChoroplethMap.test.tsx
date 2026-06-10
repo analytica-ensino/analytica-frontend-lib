@@ -20,13 +20,19 @@ jest.mock('@turf/union', () => ({
   default: jest.fn((a: unknown) => a),
 }));
 
-// Mock requestAnimationFrame for animation tests
-let rafCallbacks: ((time: number) => void)[] = [];
+// Mock requestAnimationFrame for animation tests.
+// cancelAnimationFrame must faithfully drop the callback so tests can
+// detect animations being wrongly cancelled (stuck hover regression).
+let rafCallbacks = new Map<number, (time: number) => void>();
+let rafIdCounter = 0;
 jest.spyOn(globalThis, 'requestAnimationFrame').mockImplementation((cb) => {
-  rafCallbacks.push(cb);
-  return rafCallbacks.length;
+  rafIdCounter += 1;
+  rafCallbacks.set(rafIdCounter, cb);
+  return rafIdCounter;
 });
-jest.spyOn(globalThis, 'cancelAnimationFrame').mockImplementation(() => {});
+jest.spyOn(globalThis, 'cancelAnimationFrame').mockImplementation((id) => {
+  rafCallbacks.delete(id);
+});
 jest.spyOn(performance, 'now').mockReturnValue(0);
 
 /**
@@ -34,8 +40,8 @@ jest.spyOn(performance, 'now').mockReturnValue(0);
  * @param time - Simulated timestamp to pass to callbacks
  */
 const flushRAF = (time: number) => {
-  const callbacks = [...rafCallbacks];
-  rafCallbacks = [];
+  const callbacks = [...rafCallbacks.values()];
+  rafCallbacks = new Map();
   callbacks.forEach((cb) => {
     cb(time);
   });
@@ -183,7 +189,7 @@ describe('ChoroplethMap', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockForEach.mockReset();
-    rafCallbacks = [];
+    rafCallbacks = new Map();
     mockAddGeoJson.mockReturnValue([
       {
         setProperty: jest.fn(),
@@ -411,7 +417,7 @@ describe('ChoroplethMap color classification', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockForEach.mockReset();
-    rafCallbacks = [];
+    rafCallbacks = new Map();
     mockAddGeoJson.mockReturnValue([{ setProperty: jest.fn() }]);
   });
 
@@ -482,7 +488,7 @@ describe('ChoroplethMap static map and styling', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockForEach.mockReset();
-    rafCallbacks = [];
+    rafCallbacks = new Map();
     mockAddGeoJson.mockReturnValue([{ setProperty: jest.fn() }]);
   });
 
@@ -557,7 +563,7 @@ describe('ChoroplethMap animations', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockForEach.mockReset();
-    rafCallbacks = [];
+    rafCallbacks = new Map();
     mockAddGeoJson.mockReturnValue([{ setProperty: jest.fn() }]);
   });
 
@@ -705,6 +711,100 @@ describe('ChoroplethMap animations', () => {
     );
   });
 
+  it('keeps the revert animation of the previous NRE running when hovering another NRE', async () => {
+    let mouseoverHandler: ((event: unknown) => void) | null = null;
+    mockAddListener.mockImplementation((event, handler) => {
+      if (event === 'mouseover') {
+        mouseoverHandler = handler;
+      }
+      return {};
+    });
+
+    /**
+     * Build a mocked Data.Feature for a given region
+     * @param id - Region id returned by getProperty('regionId')
+     * @param name - NRE name returned by getProperty('regionName')
+     * @returns Mocked feature object
+     */
+    const makeFeature = (id: string, name: string) => ({
+      getProperty: (prop: string) => {
+        if (prop === 'regionId') return id;
+        if (prop === 'regionName') return name;
+        if (prop === 'regionValue') return 0.5;
+        return null;
+      },
+      getGeometry: () => ({ forEachLatLng: jest.fn() }),
+    });
+    const featureA = makeFeature('rA', 'NRE A');
+    const featureB = makeFeature('rB', 'NRE B');
+
+    mockForEach.mockImplementation((cb) => {
+      cb(featureA);
+      cb(featureB);
+    });
+
+    const data: RegionData[] = [
+      {
+        id: 'rA',
+        name: 'NRE A',
+        value: 0.5,
+        accessCount: 10,
+        geoJson: {
+          type: 'Feature',
+          properties: {},
+          geometry: { type: 'Polygon', coordinates: [[]] },
+        },
+      },
+      {
+        id: 'rB',
+        name: 'NRE B',
+        value: 0.5,
+        accessCount: 20,
+        geoJson: {
+          type: 'Feature',
+          properties: {},
+          geometry: { type: 'Polygon', coordinates: [[]] },
+        },
+      },
+    ];
+
+    render(<ChoroplethMap data={data} apiKey={mockApiKey} />);
+
+    await waitFor(() => {
+      expect(mouseoverHandler).not.toBeNull();
+    });
+
+    // Hover NRE A, then move straight to NRE B while A's animation runs
+    act(() => {
+      (mouseoverHandler as unknown as (event: unknown) => void)({
+        feature: featureA,
+        domEvent: { clientX: 0, clientY: 0 },
+      });
+    });
+    act(() => {
+      (mouseoverHandler as unknown as (event: unknown) => void)({
+        feature: featureB,
+        domEvent: { clientX: 0, clientY: 0 },
+      });
+    });
+
+    // Complete all running animations (time >= HOVER_DURATION 200ms)
+    act(() => {
+      flushRAF(600);
+    });
+
+    // NRE A must be reverted to resting style (not stuck in hover style)
+    expect(mockOverrideStyle).toHaveBeenCalledWith(
+      featureA,
+      expect.objectContaining({ fillOpacity: 0.8, strokeWeight: 0.5 })
+    );
+    // NRE B must reach the hover style
+    expect(mockOverrideStyle).toHaveBeenCalledWith(
+      featureB,
+      expect.objectContaining({ fillOpacity: 1, strokeWeight: 1 })
+    );
+  });
+
   it('shows the default "Acessos" count label in the region tooltip', async () => {
     await renderAndHoverRegion();
 
@@ -803,7 +903,7 @@ describe('ChoroplethMap animations', () => {
     });
 
     // requestAnimationFrame should have been called for fade-in
-    expect(rafCallbacks.length).toBeGreaterThan(0);
+    expect(rafCallbacks.size).toBeGreaterThan(0);
   });
 });
 
@@ -882,7 +982,7 @@ describe('ChoroplethMap NRE boundary layer', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockForEach.mockReset();
-    rafCallbacks = [];
+    rafCallbacks = new Map();
     mockAddGeoJson.mockReturnValue([{ setProperty: jest.fn() }]);
   });
 
@@ -904,7 +1004,7 @@ describe('ChoroplethMap NRE boundary layer', () => {
       expect(mockNreSetStyle).toHaveBeenCalledWith({
         fillOpacity: 0,
         strokeColor: '#ffffff',
-        strokeWeight: 1.5,
+        strokeWeight: 1,
         clickable: false,
       });
     });
@@ -966,7 +1066,7 @@ describe('ChoroplethMap legend interaction', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockForEach.mockReset();
-    rafCallbacks = [];
+    rafCallbacks = new Map();
     mockAddGeoJson.mockReturnValue([{ setProperty: jest.fn() }]);
   });
 
