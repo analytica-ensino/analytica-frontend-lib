@@ -30,7 +30,11 @@ export const resolveRootHostname = (hostname: string): string | null => {
   }
 
   const parts = hostname.split('.');
-  const isHml = hostname.includes('hml');
+  // Label-based detection: matches 'hml' and 'hml-*' labels (e.g. hml-aluno)
+  // without false positives on substrings like 'html'
+  const isHml = parts.some(
+    (label) => label === 'hml' || label.startsWith('hml-')
+  );
 
   // Handle Brazilian .com.br domains and similar patterns
   if (parts.length >= 3 && parts.at(-2) === 'com' && parts.at(-1) === 'br') {
@@ -41,13 +45,13 @@ export const resolveRootHostname = (hostname: string): string | null => {
     // For domains like aluno.analiticaensino.com.br, return analiticaensino.com.br
     const base = parts.slice(-3).join('.');
     // If in hml environment, resolve to hml.base (e.g., hml.analiticaensino.com.br)
-    return isHml ? `hml.${base}` : base;
+    return isHml && !base.startsWith('hml.') ? `hml.${base}` : base;
   }
 
   // Only treat as subdomain if there are 3+ parts (e.g., subdomain.example.com)
   if (parts.length > 2) {
     const base = parts.slice(-2).join('.');
-    return isHml ? `hml.${base}` : base;
+    return isHml && !base.startsWith('hml.') ? `hml.${base}` : base;
   }
 
   // For 2-part domains (example.com) or single domains, return as-is

@@ -29,6 +29,25 @@ const readLocalStorage = (name: string): string | null => {
 };
 
 /**
+ * Returns the value only when it contains valid JSON, null otherwise
+ * (guards against corrupted persisted values)
+ *
+ * @param raw - The raw persisted value, or null when absent
+ * @returns The same value when it is valid JSON, or null
+ */
+const validJsonOrNull = (raw: string | null): string | null => {
+  if (raw === null) {
+    return null;
+  }
+  try {
+    JSON.parse(raw);
+    return raw;
+  } catch {
+    return null;
+  }
+};
+
+/**
  * Zustand StateStorage that persists theme state in a cookie scoped to the
  * root domain, so the login app (root domain) and the profile apps
  * (subdomains) all share the chosen theme. Reads fall back to localStorage
@@ -41,16 +60,11 @@ export const themeCookieStorage: StateStorage = {
     if (typeof document === 'undefined') {
       return null;
     }
-    const raw = getCookie(name) ?? readLocalStorage(name);
-    if (raw === null) {
-      return null;
-    }
-    try {
-      JSON.parse(raw); // guard against corrupted values
-    } catch {
-      return null;
-    }
-    return raw;
+    // A corrupted cookie must not block the localStorage fallback
+    return (
+      validJsonOrNull(getCookie(name)) ??
+      validJsonOrNull(readLocalStorage(name))
+    );
   },
   setItem: (name: string, value: string): void => {
     if (typeof document === 'undefined') {

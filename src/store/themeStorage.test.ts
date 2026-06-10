@@ -51,6 +51,20 @@ describe('themeCookieStorage', () => {
       expect(themeCookieStorage.getItem(STORE_KEY)).toBeNull();
     });
 
+    it('should fall back to a valid localStorage value when the cookie is corrupted', () => {
+      document.cookie = `${STORE_KEY}=garbage; Path=/`;
+      globalThis.localStorage.setItem(STORE_KEY, DARK_ENVELOPE);
+
+      expect(themeCookieStorage.getItem(STORE_KEY)).toBe(DARK_ENVELOPE);
+    });
+
+    it('should return null when both cookie and localStorage are corrupted', () => {
+      document.cookie = `${STORE_KEY}=garbage; Path=/`;
+      globalThis.localStorage.setItem(STORE_KEY, 'also-garbage');
+
+      expect(themeCookieStorage.getItem(STORE_KEY)).toBeNull();
+    });
+
     it('should not throw when localStorage access fails', () => {
       jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
         throw new Error('storage disabled');

@@ -4,7 +4,7 @@ describe('resolveRootHostname', () => {
   it.each([
     ['localhost', null],
     ['127.0.0.1', null],
-    ['192.168.0.10', null],
+    ['127.0.0.2', null],
     ['::1', null],
     ['2001:db8::1', null],
   ])('should return null for %s (host-only cookie)', (hostname, expected) => {
@@ -17,6 +17,7 @@ describe('resolveRootHostname', () => {
     ['professor.analiticaensino.com.br', 'analiticaensino.com.br'],
     ['hml.analiticaensino.com.br', 'hml.analiticaensino.com.br'],
     ['aluno.hml.analiticaensino.com.br', 'hml.analiticaensino.com.br'],
+    ['hml-aluno.analiticaensino.com.br', 'hml.analiticaensino.com.br'],
   ])('should resolve %s to %s (.com.br rules)', (hostname, expected) => {
     expect(resolveRootHostname(hostname)).toBe(expected);
   });
@@ -26,8 +27,19 @@ describe('resolveRootHostname', () => {
     ['sub.example.com', 'example.com'],
     ['deep.sub.example.com', 'example.com'],
     ['app.hml.example.com', 'hml.example.com'],
+    ['hml-aluno.example.com', 'hml.example.com'],
     ['intranet', 'intranet'],
   ])('should resolve %s to %s (generic rules)', (hostname, expected) => {
     expect(resolveRootHostname(hostname)).toBe(expected);
   });
+
+  it.each([
+    ['aluno.html.example.com', 'example.com'],
+    ['html.analiticaensino.com.br', 'analiticaensino.com.br'],
+  ])(
+    'should not treat %s as hml environment (label-based detection)',
+    (hostname, expected) => {
+      expect(resolveRootHostname(hostname)).toBe(expected);
+    }
+  );
 });
