@@ -21,7 +21,6 @@ import type {
   MunicipalitiesOverviewData,
 } from '../SimulatedStudentsOverview/types';
 import type { SimulatedContentItem } from '../SimulatedContentsPerformance/types';
-import type { BaseApiClient } from '../../types/api';
 import { SimulatedViewTab, type SimulatedPerformanceViewProps } from './types';
 import { ReactNode, useMemo } from 'react';
 
