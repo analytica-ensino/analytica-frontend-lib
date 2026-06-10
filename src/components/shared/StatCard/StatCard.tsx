@@ -1,4 +1,4 @@
-import { Star, Medal, WarningCircle } from 'phosphor-react';
+import { Star, Medal, WarningCircle, Info } from 'phosphor-react';
 import type { Icon } from 'phosphor-react';
 import Text from '../../Text/Text';
 import { cn } from '../../../utils/utils';
@@ -6,7 +6,7 @@ import { cn } from '../../../utils/utils';
 /**
  * Available variants for the StatCard component
  */
-export type StatVariant = 'score' | 'correct' | 'incorrect';
+export type StatVariant = 'score' | 'correct' | 'incorrect' | 'blank';
 
 /**
  * Configuration for each stat card variant
@@ -41,6 +41,13 @@ export const variantConfig: Record<
     iconBg: 'bg-indicator-negative',
     iconColor: 'text-white',
     IconComponent: WarningCircle,
+  },
+  blank: {
+    bg: 'bg-info',
+    text: 'text-info-800',
+    iconBg: 'bg-indicator-info',
+    iconColor: 'text-white',
+    IconComponent: Info,
   },
 };
 

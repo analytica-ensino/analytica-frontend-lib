@@ -57,6 +57,15 @@ describe('StatCard', () => {
       const card = container.firstChild as HTMLElement;
       expect(card).toHaveClass(variantConfig.incorrect.bg);
     });
+
+    it('should apply blank variant styles', () => {
+      const { container } = render(
+        <StatCard label="EM BRANCO" value={4} variant="blank" />
+      );
+
+      const card = container.firstChild as HTMLElement;
+      expect(card).toHaveClass(variantConfig.blank.bg);
+    });
   });
 
   describe('icon rendering', () => {
@@ -118,6 +127,14 @@ describe('StatCard', () => {
       expect(variantConfig.incorrect.iconBg).toBe('bg-indicator-negative');
       expect(variantConfig.incorrect.iconColor).toBe('text-white');
       expect(variantConfig.incorrect.IconComponent).toBeDefined();
+    });
+
+    it('should have correct configuration for blank variant', () => {
+      expect(variantConfig.blank.bg).toBe('bg-info');
+      expect(variantConfig.blank.text).toBe('text-info-800');
+      expect(variantConfig.blank.iconBg).toBe('bg-indicator-info');
+      expect(variantConfig.blank.iconColor).toBe('text-white');
+      expect(variantConfig.blank.IconComponent).toBeDefined();
     });
   });
 
