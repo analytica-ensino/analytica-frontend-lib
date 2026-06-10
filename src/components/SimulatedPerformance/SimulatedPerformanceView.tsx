@@ -13,11 +13,17 @@ import { SimulatedContentDetailsModal } from '../SimulatedContentDetailsModal';
 import { EssayCompetenciesTable } from '../EssayCompetencies';
 import { EssayStudentDetailsModal } from '../EssayStudentDetailsModal';
 import { SimulatedFiltersModal } from '../SimulatedFilters';
-import type { SimulatedStudentItem } from '../SimulatedStudentsOverview/types';
+import type {
+  SimulatedStudentItem,
+  OverviewAggregationType,
+  StudentsOnlyOverviewData,
+  ClassesOverviewData,
+  MunicipalitiesOverviewData,
+} from '../SimulatedStudentsOverview/types';
 import type { SimulatedContentItem } from '../SimulatedContentsPerformance/types';
 import type { BaseApiClient } from '../../types/api';
-import { SimulatedViewTab, type UseSimulatedPerformanceReturn } from './types';
-import { ReactNode } from 'react';
+import { SimulatedViewTab, type SimulatedPerformanceViewProps } from './types';
+import { ReactNode, useMemo } from 'react';
 
 /**
  * Reusable section wrapper handling loading/error states
@@ -52,9 +58,28 @@ function SectionContent({
   return <>{children}</>;
 }
 
-export interface SimulatedPerformanceViewProps extends UseSimulatedPerformanceReturn {
-  api: BaseApiClient;
-  noSearchImage?: string;
+/**
+ * Type guards for aggregated overview data
+ */
+function isStudentsData(
+  data: StudentsOnlyOverviewData | ClassesOverviewData | MunicipalitiesOverviewData | null,
+  type: OverviewAggregationType
+): data is StudentsOnlyOverviewData {
+  return type === 'students' && data !== null;
+}
+
+function isClassesData(
+  data: StudentsOnlyOverviewData | ClassesOverviewData | MunicipalitiesOverviewData | null,
+  type: OverviewAggregationType
+): data is ClassesOverviewData {
+  return type === 'classes' && data !== null;
+}
+
+function isMunicipalitiesData(
+  data: StudentsOnlyOverviewData | ClassesOverviewData | MunicipalitiesOverviewData | null,
+  type: OverviewAggregationType
+): data is MunicipalitiesOverviewData {
+  return type === 'municipalities' && data !== null;
 }
 
 /**
@@ -70,7 +95,9 @@ export function SimulatedPerformanceView({
   simulatedViewTab,
   isEssaySelected,
   filters,
+  aggregationType,
   generalOverview,
+  aggregatedOverview,
   studentsOverview,
   contentsPerformance,
   handlePeriodChange,
@@ -89,6 +116,74 @@ export function SimulatedPerformanceView({
   contentsTableColumns,
   noSearchImage,
 }: Readonly<SimulatedPerformanceViewProps>) {
+  // Transform aggregated data to ranking format based on aggregation type
+  const { highlightItems, attentionItems, highlightTitle, attentionTitle } = useMemo(() => {
+    const data = aggregatedOverview.data;
+
+    if (isStudentsData(data, aggregationType)) {
+      return {
+        highlightItems: data.topHighlights?.map((s, index) => ({
+          position: index + 1,
+          name: s.name,
+          average: s.average,
+          userInstitutionId: s.userInstitutionId,
+        })) || [],
+        attentionItems: data.topDifficulties?.map((s, index) => ({
+          position: index + 1,
+          name: s.name,
+          average: s.average,
+          userInstitutionId: s.userInstitutionId,
+        })) || [],
+        highlightTitle: 'Estudantes em destaque',
+        attentionTitle: 'Estudantes com maior dificuldade',
+      };
+    }
+
+    if (isClassesData(data, aggregationType)) {
+      return {
+        highlightItems: data.topHighlights?.map((c, index) => ({
+          position: index + 1,
+          name: `${c.className} - ${c.schoolName}`,
+          average: c.average,
+          subtitle: `${c.studentCount} estudantes`,
+        })) || [],
+        attentionItems: data.topDifficulties?.map((c, index) => ({
+          position: index + 1,
+          name: `${c.className} - ${c.schoolName}`,
+          average: c.average,
+          subtitle: `${c.studentCount} estudantes`,
+        })) || [],
+        highlightTitle: 'Turmas em destaque',
+        attentionTitle: 'Turmas com maior dificuldade',
+      };
+    }
+
+    if (isMunicipalitiesData(data, aggregationType)) {
+      return {
+        highlightItems: data.topHighlights?.map((m, index) => ({
+          position: index + 1,
+          name: `${m.municipality} - ${m.state}`,
+          average: m.average,
+          subtitle: `${m.schoolCount} escolas, ${m.studentCount} estudantes`,
+        })) || [],
+        attentionItems: data.topDifficulties?.map((m, index) => ({
+          position: index + 1,
+          name: `${m.municipality} - ${m.state}`,
+          average: m.average,
+          subtitle: `${m.schoolCount} escolas, ${m.studentCount} estudantes`,
+        })) || [],
+        highlightTitle: 'Municípios em destaque',
+        attentionTitle: 'Municípios com maior dificuldade',
+      };
+    }
+
+    return {
+      highlightItems: [],
+      attentionItems: [],
+      highlightTitle: 'Em destaque',
+      attentionTitle: 'Com maior dificuldade',
+    };
+  }, [aggregatedOverview.data, aggregationType]);
   return (
     <>
       {/* Period tabs */}
@@ -128,31 +223,17 @@ export function SimulatedPerformanceView({
         )}
       </div>
 
-      {/* Student Ranking Section */}
+      {/* Ranking Section (adapts to aggregation type: students/classes/municipalities) */}
       <SectionContent
-        loading={studentsOverview.loading}
-        error={studentsOverview.error}
+        loading={aggregatedOverview.loading}
+        error={aggregatedOverview.error}
         minHeight="min-h-[200px]"
       >
         <SimulatedStudentRanking
-          highlightStudents={
-            studentsOverview.data?.topHighlights?.map((s, index) => ({
-              position: index + 1,
-              name: s.name,
-              average: s.average,
-              userInstitutionId: s.userInstitutionId,
-            })) || []
-          }
-          attentionStudents={
-            studentsOverview.data?.topDifficulties?.map((s, index) => ({
-              position: index + 1,
-              name: s.name,
-              average: s.average,
-              userInstitutionId: s.userInstitutionId,
-            })) || []
-          }
-          highlightTitle="Estudantes em destaque"
-          attentionTitle="Estudantes com maior dificuldade"
+          highlightStudents={highlightItems}
+          attentionStudents={attentionItems}
+          highlightTitle={highlightTitle}
+          attentionTitle={attentionTitle}
           scoreType={scoreType}
         />
       </SectionContent>

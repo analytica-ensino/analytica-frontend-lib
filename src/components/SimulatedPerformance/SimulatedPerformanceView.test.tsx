@@ -255,9 +255,16 @@ const createDefaultProps = (
     studentsIds: [],
   },
   activeFiltersCount: 0,
+  aggregationType: 'students',
   generalOverview: {
     data: null,
     loading: false,
+    error: null,
+  },
+  aggregatedOverview: {
+    data: null,
+    loading: false,
+    isRefreshing: false,
     error: null,
   },
   studentsOverview: {

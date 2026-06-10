@@ -1744,6 +1744,27 @@ export type {
   SimulatedPerformanceViewProps,
 } from './components/SimulatedPerformance';
 
+// Profile Aggregation Utils
+export {
+  getAggregationTypeByProfile,
+  shouldUseAggregatedOverview,
+} from './utils/profileAggregation';
+
+// Aggregated Overview Hook
+export { useAggregatedOverview } from './components/SimulatedStudentsOverview';
+export type {
+  OverviewAggregationType,
+  ClassOverviewItem,
+  MunicipalityOverviewItem,
+  StudentsOnlyOverviewData,
+  ClassesOverviewData,
+  MunicipalitiesOverviewData,
+  AggregatedOverviewData,
+  AggregatedOverviewParams,
+  UseAggregatedOverviewState,
+  UseAggregatedOverviewReturn,
+} from './components/SimulatedStudentsOverview';
+
 // ComparatorChart Components
 export {
   // Base chart components

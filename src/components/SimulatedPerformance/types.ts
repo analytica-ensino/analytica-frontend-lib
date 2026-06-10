@@ -6,6 +6,8 @@ import type { GeneralOverviewData } from '../GeneralOverviewSection/types';
 import type {
   SimulatedOverviewData,
   SimulatedStudentItem,
+  AggregatedOverviewData,
+  OverviewAggregationType,
 } from '../SimulatedStudentsOverview/types';
 import type {
   ContentsPerformanceData,
@@ -23,6 +25,13 @@ export enum SimulatedViewTab {
 
 export interface UseSimulatedPerformanceOptions {
   api: BaseApiClient;
+  /**
+   * User's profile name to determine aggregation type.
+   * - UNIT_MANAGER: aggregates by classes
+   * - REGIONAL_MANAGER: aggregates by municipalities
+   * - GENERAL_MANAGER, TEACHER, others: shows students (default)
+   */
+  profileName?: string;
 }
 
 export interface UseSimulatedPerformanceReturn {
@@ -40,12 +49,31 @@ export interface UseSimulatedPerformanceReturn {
   filters: SimulatedFilters;
   activeFiltersCount: number;
 
+  // === Aggregation Type ===
+  aggregationType: OverviewAggregationType;
+
   // === Dados da API ===
   generalOverview: {
     data: GeneralOverviewData | null;
     loading: boolean;
     error: string | null;
   };
+  /**
+   * Aggregated overview data based on profile.
+   * - students: contains StudentsOnlyOverviewData
+   * - classes: contains ClassesOverviewData
+   * - municipalities: contains MunicipalitiesOverviewData
+   */
+  aggregatedOverview: {
+    data: AggregatedOverviewData | null;
+    loading: boolean;
+    isRefreshing: boolean;
+    error: string | null;
+  };
+  /**
+   * Paginated students list for the table (legacy endpoint).
+   * Still used for drilling into individual student details.
+   */
   studentsOverview: {
     data: SimulatedOverviewData | null;
     loading: boolean;
@@ -95,4 +123,5 @@ export interface UseSimulatedPerformanceReturn {
 
 export interface SimulatedPerformanceViewProps extends UseSimulatedPerformanceReturn {
   api: BaseApiClient;
+  noSearchImage?: string;
 }
