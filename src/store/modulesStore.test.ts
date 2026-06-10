@@ -48,6 +48,8 @@ describe('ModulesStore', () => {
     activitiesReports: true,
     lessonsReports: true,
     exams: true,
+    simulatedScoreTri: false,
+    simulatedScoreAbsoluto: false,
   };
 
   beforeEach(() => {
@@ -610,6 +612,8 @@ describe('ModulesStore', () => {
           activitiesReports: false,
           lessonsReports: false,
           exams: false,
+          simulatedScoreTri: false,
+          simulatedScoreAbsoluto: false,
         },
         ownerInstitutionId: 'some-institution',
       });

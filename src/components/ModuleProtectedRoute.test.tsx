@@ -40,6 +40,8 @@ describe('ModuleProtectedRoute', () => {
     activitiesReports: true,
     lessonsReports: true,
     exams: true,
+    simulatedScoreTri: false,
+    simulatedScoreAbsoluto: false,
   };
 
   beforeEach(() => {
@@ -59,6 +61,8 @@ describe('ModuleProtectedRoute', () => {
         hasActivitiesReports: true,
         hasLessonsReports: true,
         hasExams: true,
+        hasSimulatedScoreTri: false,
+        hasSimulatedScoreAbsoluto: false,
       });
 
       const { container } = renderWithRouter(
@@ -85,6 +89,8 @@ describe('ModuleProtectedRoute', () => {
         hasActivitiesReports: true,
         hasLessonsReports: true,
         hasExams: true,
+        hasSimulatedScoreTri: false,
+        hasSimulatedScoreAbsoluto: false,
       });
 
       renderWithRouter(
@@ -108,6 +114,8 @@ describe('ModuleProtectedRoute', () => {
         hasActivitiesReports: true,
         hasLessonsReports: true,
         hasExams: true,
+        hasSimulatedScoreTri: false,
+        hasSimulatedScoreAbsoluto: false,
       });
 
       renderWithRouter(
@@ -131,6 +139,8 @@ describe('ModuleProtectedRoute', () => {
         hasActivitiesReports: true,
         hasLessonsReports: true,
         hasExams: true,
+        hasSimulatedScoreTri: false,
+        hasSimulatedScoreAbsoluto: false,
       });
 
       renderWithRouter(
@@ -154,6 +164,8 @@ describe('ModuleProtectedRoute', () => {
         hasActivitiesReports: true,
         hasLessonsReports: true,
         hasExams: true,
+        hasSimulatedScoreTri: false,
+        hasSimulatedScoreAbsoluto: false,
       });
 
       renderWithRouter(
@@ -179,6 +191,8 @@ describe('ModuleProtectedRoute', () => {
         hasActivitiesReports: true,
         hasLessonsReports: true,
         hasExams: true,
+        hasSimulatedScoreTri: false,
+        hasSimulatedScoreAbsoluto: false,
       });
 
       renderWithRouter(
@@ -203,6 +217,8 @@ describe('ModuleProtectedRoute', () => {
         hasActivitiesReports: true,
         hasLessonsReports: true,
         hasExams: true,
+        hasSimulatedScoreTri: false,
+        hasSimulatedScoreAbsoluto: false,
       });
 
       renderWithRouter(
@@ -227,6 +243,8 @@ describe('ModuleProtectedRoute', () => {
         hasActivitiesReports: true,
         hasLessonsReports: true,
         hasExams: true,
+        hasSimulatedScoreTri: false,
+        hasSimulatedScoreAbsoluto: false,
       });
 
       renderWithRouter(
@@ -251,6 +269,8 @@ describe('ModuleProtectedRoute', () => {
         hasActivitiesReports: true,
         hasLessonsReports: true,
         hasExams: true,
+        hasSimulatedScoreTri: false,
+        hasSimulatedScoreAbsoluto: false,
       });
 
       renderWithRouter(
@@ -277,6 +297,8 @@ describe('ModuleProtectedRoute', () => {
         hasActivitiesReports: true,
         hasLessonsReports: true,
         hasExams: true,
+        hasSimulatedScoreTri: false,
+        hasSimulatedScoreAbsoluto: false,
       });
 
       renderWithRouter(
@@ -301,6 +323,8 @@ describe('ModuleProtectedRoute', () => {
         hasActivitiesReports: true,
         hasLessonsReports: true,
         hasExams: true,
+        hasSimulatedScoreTri: false,
+        hasSimulatedScoreAbsoluto: false,
       });
 
       renderWithRouter(
@@ -326,6 +350,8 @@ describe('ModuleProtectedRoute', () => {
         hasActivitiesReports: true,
         hasLessonsReports: true,
         hasExams: true,
+        hasSimulatedScoreTri: false,
+        hasSimulatedScoreAbsoluto: false,
       });
 
       const ComplexChild = () => (
@@ -361,6 +387,8 @@ describe('ModuleProtectedRoute', () => {
         hasActivitiesReports: true,
         hasLessonsReports: true,
         hasExams: true,
+        hasSimulatedScoreTri: false,
+        hasSimulatedScoreAbsoluto: false,
       });
 
       renderWithRouter(

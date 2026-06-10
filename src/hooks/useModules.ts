@@ -11,6 +11,10 @@ export interface UseModulesReturn {
   hasActivitiesReports: boolean;
   hasLessonsReports: boolean;
   hasExams: boolean;
+  /** Whether TRI score type is available in simulated reports */
+  hasSimulatedScoreTri: boolean;
+  /** Whether ABSOLUTO score type is available in simulated reports */
+  hasSimulatedScoreAbsoluto: boolean;
 }
 
 /**
@@ -45,5 +49,7 @@ export const useModules = (): UseModulesReturn => {
     hasActivitiesReports: modules.activitiesReports,
     hasLessonsReports: modules.lessonsReports,
     hasExams: modules.exams,
+    hasSimulatedScoreTri: modules.simulatedScoreTri,
+    hasSimulatedScoreAbsoluto: modules.simulatedScoreAbsoluto,
   };
 };

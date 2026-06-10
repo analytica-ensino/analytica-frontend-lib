@@ -62,21 +62,33 @@ function SectionContent({
  * Type guards for aggregated overview data
  */
 function isStudentsData(
-  data: StudentsOnlyOverviewData | ClassesOverviewData | MunicipalitiesOverviewData | null,
+  data:
+    | StudentsOnlyOverviewData
+    | ClassesOverviewData
+    | MunicipalitiesOverviewData
+    | null,
   type: OverviewAggregationType
 ): data is StudentsOnlyOverviewData {
   return type === 'students' && data !== null;
 }
 
 function isClassesData(
-  data: StudentsOnlyOverviewData | ClassesOverviewData | MunicipalitiesOverviewData | null,
+  data:
+    | StudentsOnlyOverviewData
+    | ClassesOverviewData
+    | MunicipalitiesOverviewData
+    | null,
   type: OverviewAggregationType
 ): data is ClassesOverviewData {
   return type === 'classes' && data !== null;
 }
 
 function isMunicipalitiesData(
-  data: StudentsOnlyOverviewData | ClassesOverviewData | MunicipalitiesOverviewData | null,
+  data:
+    | StudentsOnlyOverviewData
+    | ClassesOverviewData
+    | MunicipalitiesOverviewData
+    | null,
   type: OverviewAggregationType
 ): data is MunicipalitiesOverviewData {
   return type === 'municipalities' && data !== null;
@@ -117,73 +129,80 @@ export function SimulatedPerformanceView({
   noSearchImage,
 }: Readonly<SimulatedPerformanceViewProps>) {
   // Transform aggregated data to ranking format based on aggregation type
-  const { highlightItems, attentionItems, highlightTitle, attentionTitle } = useMemo(() => {
-    const data = aggregatedOverview.data;
+  const { highlightItems, attentionItems, highlightTitle, attentionTitle } =
+    useMemo(() => {
+      const data = aggregatedOverview.data;
 
-    if (isStudentsData(data, aggregationType)) {
+      if (isStudentsData(data, aggregationType)) {
+        return {
+          highlightItems:
+            data.topHighlights?.map((s, index) => ({
+              position: index + 1,
+              name: s.name,
+              average: s.average,
+              userInstitutionId: s.userInstitutionId,
+            })) || [],
+          attentionItems:
+            data.topDifficulties?.map((s, index) => ({
+              position: index + 1,
+              name: s.name,
+              average: s.average,
+              userInstitutionId: s.userInstitutionId,
+            })) || [],
+          highlightTitle: 'Estudantes em destaque',
+          attentionTitle: 'Estudantes com maior dificuldade',
+        };
+      }
+
+      if (isClassesData(data, aggregationType)) {
+        return {
+          highlightItems:
+            data.topHighlights?.map((c, index) => ({
+              position: index + 1,
+              name: `${c.className} - ${c.schoolName}`,
+              average: c.average,
+              subtitle: `${c.studentCount} estudantes`,
+            })) || [],
+          attentionItems:
+            data.topDifficulties?.map((c, index) => ({
+              position: index + 1,
+              name: `${c.className} - ${c.schoolName}`,
+              average: c.average,
+              subtitle: `${c.studentCount} estudantes`,
+            })) || [],
+          highlightTitle: 'Turmas em destaque',
+          attentionTitle: 'Turmas com maior dificuldade',
+        };
+      }
+
+      if (isMunicipalitiesData(data, aggregationType)) {
+        return {
+          highlightItems:
+            data.topHighlights?.map((m, index) => ({
+              position: index + 1,
+              name: `${m.municipality} - ${m.state}`,
+              average: m.average,
+              subtitle: `${m.schoolCount} escolas, ${m.studentCount} estudantes`,
+            })) || [],
+          attentionItems:
+            data.topDifficulties?.map((m, index) => ({
+              position: index + 1,
+              name: `${m.municipality} - ${m.state}`,
+              average: m.average,
+              subtitle: `${m.schoolCount} escolas, ${m.studentCount} estudantes`,
+            })) || [],
+          highlightTitle: 'Municípios em destaque',
+          attentionTitle: 'Municípios com maior dificuldade',
+        };
+      }
+
       return {
-        highlightItems: data.topHighlights?.map((s, index) => ({
-          position: index + 1,
-          name: s.name,
-          average: s.average,
-          userInstitutionId: s.userInstitutionId,
-        })) || [],
-        attentionItems: data.topDifficulties?.map((s, index) => ({
-          position: index + 1,
-          name: s.name,
-          average: s.average,
-          userInstitutionId: s.userInstitutionId,
-        })) || [],
-        highlightTitle: 'Estudantes em destaque',
-        attentionTitle: 'Estudantes com maior dificuldade',
+        highlightItems: [],
+        attentionItems: [],
+        highlightTitle: 'Em destaque',
+        attentionTitle: 'Com maior dificuldade',
       };
-    }
-
-    if (isClassesData(data, aggregationType)) {
-      return {
-        highlightItems: data.topHighlights?.map((c, index) => ({
-          position: index + 1,
-          name: `${c.className} - ${c.schoolName}`,
-          average: c.average,
-          subtitle: `${c.studentCount} estudantes`,
-        })) || [],
-        attentionItems: data.topDifficulties?.map((c, index) => ({
-          position: index + 1,
-          name: `${c.className} - ${c.schoolName}`,
-          average: c.average,
-          subtitle: `${c.studentCount} estudantes`,
-        })) || [],
-        highlightTitle: 'Turmas em destaque',
-        attentionTitle: 'Turmas com maior dificuldade',
-      };
-    }
-
-    if (isMunicipalitiesData(data, aggregationType)) {
-      return {
-        highlightItems: data.topHighlights?.map((m, index) => ({
-          position: index + 1,
-          name: `${m.municipality} - ${m.state}`,
-          average: m.average,
-          subtitle: `${m.schoolCount} escolas, ${m.studentCount} estudantes`,
-        })) || [],
-        attentionItems: data.topDifficulties?.map((m, index) => ({
-          position: index + 1,
-          name: `${m.municipality} - ${m.state}`,
-          average: m.average,
-          subtitle: `${m.schoolCount} escolas, ${m.studentCount} estudantes`,
-        })) || [],
-        highlightTitle: 'Municípios em destaque',
-        attentionTitle: 'Municípios com maior dificuldade',
-      };
-    }
-
-    return {
-      highlightItems: [],
-      attentionItems: [],
-      highlightTitle: 'Em destaque',
-      attentionTitle: 'Com maior dificuldade',
-    };
-  }, [aggregatedOverview.data, aggregationType]);
+    }, [aggregatedOverview.data, aggregationType]);
   return (
     <>
       {/* Period tabs */}

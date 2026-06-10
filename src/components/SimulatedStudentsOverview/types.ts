@@ -233,8 +233,7 @@ export interface UseAggregatedOverviewState {
 /**
  * Hook return type for aggregated overview
  */
-export interface UseAggregatedOverviewReturn
-  extends UseAggregatedOverviewState {
+export interface UseAggregatedOverviewReturn extends UseAggregatedOverviewState {
   fetchOverview: (
     params: AggregatedOverviewParams,
     refresh?: boolean

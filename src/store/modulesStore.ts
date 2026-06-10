@@ -16,6 +16,8 @@ const defaultModules: ModulesConfig = {
   activitiesReports: true,
   lessonsReports: true,
   exams: true,
+  simulatedScoreTri: false,
+  simulatedScoreAbsoluto: false,
 };
 
 /**
@@ -31,6 +33,10 @@ export interface ModulesConfig {
   activitiesReports: boolean;
   lessonsReports: boolean;
   exams: boolean;
+  /** Whether TRI score type is available in simulated reports */
+  simulatedScoreTri: boolean;
+  /** Whether ABSOLUTO score type is available in simulated reports */
+  simulatedScoreAbsoluto: boolean;
 }
 
 /**

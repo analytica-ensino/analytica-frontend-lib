@@ -590,7 +590,13 @@ export function useSimulatedPerformance({
       }
       loadGeneralOverviewData(newPeriod, effectiveScoreType);
     },
-    [setSearchParams, loadStudentsData, loadSkillsData, loadGeneralOverviewData, loadAggregatedOverviewData]
+    [
+      setSearchParams,
+      loadStudentsData,
+      loadSkillsData,
+      loadGeneralOverviewData,
+      loadAggregatedOverviewData,
+    ]
   );
 
   const handleScoreTypeChange = useCallback(
@@ -720,7 +726,12 @@ export function useSimulatedPerformance({
       }
       loadGeneralOverviewData();
     },
-    [loadStudentsData, loadSkillsData, loadGeneralOverviewData, loadAggregatedOverviewData]
+    [
+      loadStudentsData,
+      loadSkillsData,
+      loadGeneralOverviewData,
+      loadAggregatedOverviewData,
+    ]
   );
 
   const handleStudentsParamsChange = useCallback(
@@ -871,7 +882,12 @@ export function useSimulatedPerformance({
     Promise.resolve().then(() => {
       hasInitialLoadCompleted.current = true;
     });
-  }, [loadStudentsData, loadGeneralOverviewData, loadAggregatedOverviewData, profileName]);
+  }, [
+    loadStudentsData,
+    loadGeneralOverviewData,
+    loadAggregatedOverviewData,
+    profileName,
+  ]);
 
   // === Recarregar quando scoreType muda ===
   useEffect(() => {
@@ -899,7 +915,13 @@ export function useSimulatedPerformance({
       );
     }
     loadGeneralOverviewData();
-  }, [scoreType, loadStudentsData, loadSkillsData, loadGeneralOverviewData, loadAggregatedOverviewData]);
+  }, [
+    scoreType,
+    loadStudentsData,
+    loadSkillsData,
+    loadGeneralOverviewData,
+    loadAggregatedOverviewData,
+  ]);
 
   // === Recarregar quando aggregationType muda (perfil carregado após mount) ===
   const previousAggregationTypeRef = useRef(aggregationType);
@@ -911,9 +933,12 @@ export function useSimulatedPerformance({
     // Skip if initial load hasn't completed
     if (!hasInitialLoadCompleted.current) return;
 
-    console.log('[useSimulatedPerformance] AggregationType changed, reloading:', {
-      aggregationType,
-    });
+    console.log(
+      '[useSimulatedPerformance] AggregationType changed, reloading:',
+      {
+        aggregationType,
+      }
+    );
 
     // Reload aggregated overview with new aggregation type
     loadAggregatedOverviewData(
