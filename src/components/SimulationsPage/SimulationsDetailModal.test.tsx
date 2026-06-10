@@ -120,7 +120,7 @@ describe('SimulationsDetailModal', () => {
     expect(screen.getByText('Incorreta')).toBeInTheDocument();
   });
 
-  it('shows the options with correct/incorrect markers', async () => {
+  it('renders the alternatives for a question (shared AlternativesList)', async () => {
     render(
       <SimulationsDetailModal
         api={makeApi()}
@@ -134,9 +134,9 @@ describe('SimulationsDetailModal', () => {
     fireEvent.click(await screen.findByText('Alternativas'));
 
     await waitFor(() =>
-      expect(screen.getByText('Resposta correta')).toBeInTheDocument()
+      expect(screen.getByText('25 metros')).toBeInTheDocument()
     );
-    expect(screen.getByText('Resposta incorreta')).toBeInTheDocument();
+    expect(screen.getByText('40 metros')).toBeInTheDocument();
   });
 
   it('saves a note via the Incluir flow', async () => {

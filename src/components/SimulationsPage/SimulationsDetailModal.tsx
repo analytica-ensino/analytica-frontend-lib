@@ -1,26 +1,19 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react';
-import {
-  UserCircle,
-  CheckCircle,
-  XCircle,
-  Trophy,
-  WarningCircle,
-  Info,
-} from 'phosphor-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { UserCircle } from 'phosphor-react';
 import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
-import Badge from '../Badge/Badge';
 import TextArea from '../TextArea/TextArea';
 import { CardAccordation } from '../Accordation';
 import { SkeletonCard } from '../Skeleton/Skeleton';
+import { StatCard } from '../shared/StatCard';
+import { AlternativesList } from '../Alternative/Alternative';
+import { OptionStatus } from '../../enums/Options';
+import {
+  getQuestionStatusBadgeConfig,
+  QUESTION_STATUS,
+  type QuestionStatus,
+} from '../../utils/studentActivityCorrection';
 import { cn } from '../../utils/utils';
 import type { BaseApiClient } from '../../types/api';
 import { createUseSimulations } from '../../hooks/useSimulations';
@@ -28,7 +21,6 @@ import type {
   SimulationsListData,
   SimulationDetailData,
   SimulationDetailQuestion,
-  SimulationDetailOption,
   StudentSimulationItem,
   NoteData,
 } from '../../types/simulations';
@@ -53,78 +45,19 @@ interface NoteState {
   data: NoteData | null;
 }
 
-// ---------------------------------------------------------------------------
-// Level 3 — Options
-// ---------------------------------------------------------------------------
-
-function OptionRow({ option }: { readonly option: SimulationDetailOption }) {
-  const isSelectedWrong = option.isSelected && !option.isCorrect;
-
-  return (
-    <div
-      className={cn(
-        'flex items-center justify-between gap-3 rounded-lg border px-3 py-2',
-        option.isCorrect && 'border-success-300 bg-success-100',
-        isSelectedWrong && 'border-error-300 bg-error-100',
-        !option.isCorrect && !isSelectedWrong && 'border-border-200'
-      )}
-    >
-      <span className="flex items-center gap-3">
-        <span
-          className={cn(
-            'flex size-4 items-center justify-center rounded-full border-2',
-            option.isSelected ? 'border-primary-950' : 'border-border-400'
-          )}
-        >
-          {option.isSelected && (
-            <span className="size-2 rounded-full bg-primary-950" />
-          )}
-        </span>
-        <Text size="sm" className="text-text-900">
-          {option.option}
-        </Text>
-      </span>
-
-      {option.isCorrect && (
-        <span className="flex items-center gap-1 text-success-700">
-          <CheckCircle size={16} weight="fill" />
-          <Text size="xs" className="text-success-700">
-            Resposta correta
-          </Text>
-        </span>
-      )}
-      {isSelectedWrong && (
-        <span className="flex items-center gap-1 text-error-700">
-          <XCircle size={16} weight="fill" />
-          <Text size="xs" className="text-error-700">
-            Resposta incorreta
-          </Text>
-        </span>
-      )}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Level 2 — Question
-// ---------------------------------------------------------------------------
-
-const STATUS_BADGE: Record<
+/** Map the simulation question status to the shared correction status. */
+const QUESTION_STATUS_MAP: Record<
   SimulationDetailQuestion['status'],
-  { action: 'success' | 'error' | 'muted'; label: string; icon: ReactNode }
+  QuestionStatus
 > = {
-  CORRECT: {
-    action: 'success',
-    label: 'Correta',
-    icon: <CheckCircle size={14} weight="fill" />,
-  },
-  INCORRECT: {
-    action: 'error',
-    label: 'Incorreta',
-    icon: <XCircle size={14} weight="fill" />,
-  },
-  BLANK: { action: 'muted', label: 'Em branco', icon: null },
+  CORRECT: QUESTION_STATUS.CORRETA,
+  INCORRECT: QUESTION_STATUS.INCORRETA,
+  BLANK: QUESTION_STATUS.EM_BRANCO,
 };
+
+// ---------------------------------------------------------------------------
+// Level 2 — Question (reuses the shared alternatives renderer + status badge)
+// ---------------------------------------------------------------------------
 
 function QuestionItem({
   question,
@@ -133,7 +66,21 @@ function QuestionItem({
   readonly question: SimulationDetailQuestion;
   readonly index: number;
 }) {
-  const badge = STATUS_BADGE[question.status];
+  const badge = getQuestionStatusBadgeConfig(
+    QUESTION_STATUS_MAP[question.status]
+  );
+
+  const alternatives = question.options.map((option) => {
+    let status: OptionStatus;
+    if (option.isCorrect) {
+      status = OptionStatus.CORRECT;
+    } else if (option.isSelected) {
+      status = OptionStatus.INCORRECT;
+    } else {
+      status = OptionStatus.NEUTRAL;
+    }
+    return { label: option.option, value: option.id, status };
+  });
 
   return (
     <CardAccordation
@@ -143,12 +90,15 @@ function QuestionItem({
           <Text size="sm" weight="bold" className="text-text-950">
             Questão {index + 1}
           </Text>
-          <Badge variant="solid" action={badge.action} size="small">
-            <span className="flex items-center gap-1">
-              {badge.icon}
-              {badge.label}
-            </span>
-          </Badge>
+          <span
+            className={cn(
+              'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
+              badge.bgColor,
+              badge.textColor
+            )}
+          >
+            {badge.label}
+          </span>
         </div>
       }
       contentClassName="px-3 pb-3"
@@ -168,11 +118,13 @@ function QuestionItem({
           }
           contentClassName="px-3 pb-3"
         >
-          <div className="flex flex-col gap-2">
-            {question.options.map((option) => (
-              <OptionRow key={option.id} option={option} />
-            ))}
-          </div>
+          <AlternativesList
+            mode="readonly"
+            layout="compact"
+            name={`question-${question.questionId}`}
+            alternatives={alternatives}
+            selectedValue={question.selectedOptionId ?? ''}
+          />
         </CardAccordation>
       </div>
     </CardAccordation>
@@ -180,43 +132,8 @@ function QuestionItem({
 }
 
 // ---------------------------------------------------------------------------
-// Stat cards + Note
+// Note ("Observação")
 // ---------------------------------------------------------------------------
-
-function StatCard({
-  label,
-  value,
-  variant,
-  icon,
-}: {
-  readonly label: string;
-  readonly value: number;
-  readonly variant: 'success' | 'error' | 'info';
-  readonly icon: ReactNode;
-}) {
-  const styles = {
-    success: 'bg-success-200 text-success-800',
-    error: 'bg-error-100 text-error-700',
-    info: 'bg-info text-info-800',
-  }[variant];
-
-  return (
-    <div
-      className={cn(
-        'flex flex-1 flex-col items-center justify-center gap-2 rounded-xl px-3 py-5',
-        styles
-      )}
-    >
-      {icon}
-      <Text size="2xs" weight="bold" className="text-center uppercase">
-        {label}
-      </Text>
-      <Text size="2xl" weight="bold">
-        {value}
-      </Text>
-    </div>
-  );
-}
 
 function NoteRow({
   note,
@@ -358,28 +275,17 @@ function SimulationItem({
             <StatCard
               label="Nº de questões corretas"
               value={detail.data.counts.correct}
-              variant="success"
-              icon={
-                <Trophy size={20} weight="fill" className="text-warning-500" />
-              }
+              variant="correct"
             />
             <StatCard
               label="Nº de questões incorretas"
               value={detail.data.counts.incorrect}
-              variant="error"
-              icon={
-                <WarningCircle
-                  size={20}
-                  weight="fill"
-                  className="text-error-600"
-                />
-              }
+              variant="incorrect"
             />
             <StatCard
               label="Nº de questões em branco"
               value={detail.data.counts.blank}
-              variant="info"
-              icon={<Info size={20} weight="fill" className="text-info-700" />}
+              variant="blank"
             />
           </div>
 
@@ -414,7 +320,8 @@ function SimulationItem({
 /**
  * Modal that shows a single student's answered simulations as a nested
  * accordion (simulation -> question -> options), lazily loading each
- * simulation's detail when it is expanded.
+ * simulation's detail when it is expanded. Reuses the shared StatCard and
+ * AlternativesList components so the detail matches the activity correction UI.
  */
 export function SimulationsDetailModal({
   api,
