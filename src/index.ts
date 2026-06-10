@@ -1753,6 +1753,35 @@ export type {
   SimulatedPerformanceViewProps,
 } from './components/SimulatedPerformance';
 
+// Simulations Component (teacher-facing list + nested detail modal)
+export {
+  SimulationsPage,
+  SimulationsDetailModal,
+} from './components/SimulationsPage';
+export type {
+  SimulationsPageProps,
+  SimulationsDetailModalProps,
+} from './components/SimulationsPage';
+export { createUseSimulations } from './hooks/useSimulations';
+export type { UseSimulationsReturn } from './hooks/useSimulations';
+export type {
+  SimulationsStudentItem,
+  SimulationsStudentsPage,
+  SimulationsStudentsResponse,
+  SimulationsStudentsFilters,
+  StudentSimulationItem,
+  SimulationsListData,
+  SimulationsListResponse,
+  SimulationsListFilters,
+  SimulationQuestionStatus,
+  SimulationDetailOption,
+  SimulationDetailQuestion,
+  SimulationDetailData,
+  SimulationDetailResponse,
+  NoteData,
+  NoteResponse,
+} from './types/simulations';
+
 // ComparatorChart Components
 export {
   // Base chart components
