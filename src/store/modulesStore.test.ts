@@ -193,6 +193,8 @@ describe('ModulesStore', () => {
         activitiesReports: true,
         lessonsReports: true,
         exams: true,
+        simulatedScoreTri: false,
+        simulatedScoreAbsoluto: false,
       };
 
       mockApi.get.mockResolvedValueOnce({
@@ -498,6 +500,8 @@ describe('ModulesStore', () => {
         activitiesReports: true,
         lessonsReports: true,
         exams: true,
+        simulatedScoreTri: false,
+        simulatedScoreAbsoluto: false,
       });
     });
 

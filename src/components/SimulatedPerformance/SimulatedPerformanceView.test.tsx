@@ -456,11 +456,11 @@ describe('SimulatedPerformanceView', () => {
   });
 
   describe('loading states', () => {
-    it('shows skeleton when students overview is loading', () => {
+    it('shows skeleton when aggregated overview is loading', () => {
       render(
         <SimulatedPerformanceView
           {...createDefaultProps({
-            studentsOverview: {
+            aggregatedOverview: {
               data: null,
               loading: true,
               isRefreshing: false,

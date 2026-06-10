@@ -34,6 +34,14 @@ jest.mock('../SimulatedStudentsOverview', () => ({
     error: null,
     fetchOverview: mockFetchSimulatedOverview,
   }),
+  useAggregatedOverview: () => ({
+    data: null,
+    loading: false,
+    isRefreshing: false,
+    error: null,
+    fetchOverview: jest.fn(),
+    reset: jest.fn(),
+  }),
 }));
 
 jest.mock('../SimulatedContentsPerformance', () => ({
