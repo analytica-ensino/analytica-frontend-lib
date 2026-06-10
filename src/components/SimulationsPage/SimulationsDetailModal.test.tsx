@@ -171,4 +171,34 @@ describe('SimulationsDetailModal', () => {
       )
     );
   });
+
+  it('shows an error and keeps editing open when saving the note fails', async () => {
+    const post = jest.fn(() => Promise.reject(new Error('network')));
+    render(
+      <SimulationsDetailModal
+        api={makeApi(post)}
+        isOpen
+        onClose={jest.fn()}
+        student={student}
+      />
+    );
+    fireEvent.click(await screen.findByText('Simulado 1'));
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Incluir' }));
+    const textarea = await screen.findByPlaceholderText(
+      'Escreva uma observação para este simulado'
+    );
+    fireEvent.change(textarea, { target: { value: 'Boa evolução' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByText('Erro ao salvar a observação. Tente novamente.')
+      ).toBeInTheDocument()
+    );
+    // Editing stays open with the draft preserved.
+    expect(
+      screen.getByPlaceholderText('Escreva uma observação para este simulado')
+    ).toHaveValue('Boa evolução');
+  });
 });

@@ -2,6 +2,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
@@ -229,18 +230,24 @@ function NoteRow({
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const startEditing = () => {
     setDraft(note?.note ?? '');
+    setError(null);
     setEditing(true);
   };
 
   const handleSave = async () => {
     if (!draft.trim()) return;
     setSaving(true);
+    setError(null);
     try {
       await onSave(draft.trim());
       setEditing(false);
+    } catch {
+      // Keep the editing UI open (draft preserved) and surface the failure.
+      setError('Erro ao salvar a observação. Tente novamente.');
     } finally {
       setSaving(false);
     }
@@ -259,6 +266,11 @@ function NoteRow({
           placeholder="Escreva uma observação para este simulado"
           rows={3}
         />
+        {error && (
+          <Text size="sm" className="text-error-600">
+            {error}
+          </Text>
+        )}
         <div className="flex justify-end gap-2">
           <Button
             variant="outline"
@@ -425,6 +437,15 @@ export function SimulationsDetailModal({
   const [details, setDetails] = useState<Record<string, DetailState>>({});
   const [notes, setNotes] = useState<Record<string, NoteState>>({});
 
+  // Guards async state updates against the modal unmounting mid-request.
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
   useEffect(() => {
     if (!isOpen || !student) return;
 
@@ -464,13 +485,15 @@ export function SimulationsDetailModal({
           [simulationId]: { loading: true, error: null, data: null },
         }));
         fetchSimulationDetail(student.userInstitutionId, simulationId)
-          .then((data) =>
+          .then((data) => {
+            if (!mountedRef.current) return;
             setDetails((prev) => ({
               ...prev,
               [simulationId]: { loading: false, error: null, data },
-            }))
-          )
-          .catch(() =>
+            }));
+          })
+          .catch(() => {
+            if (!mountedRef.current) return;
             setDetails((prev) => ({
               ...prev,
               [simulationId]: {
@@ -478,26 +501,28 @@ export function SimulationsDetailModal({
                 error: 'Erro ao carregar o simulado',
                 data: null,
               },
-            }))
-          );
+            }));
+          });
 
         setNotes((prev) => ({
           ...prev,
           [simulationId]: { loading: true, data: null },
         }));
         fetchNote(student.userInstitutionId, simulationId)
-          .then((data) =>
+          .then((data) => {
+            if (!mountedRef.current) return;
             setNotes((prev) => ({
               ...prev,
               [simulationId]: { loading: false, data },
-            }))
-          )
-          .catch(() =>
+            }));
+          })
+          .catch(() => {
+            if (!mountedRef.current) return;
             setNotes((prev) => ({
               ...prev,
               [simulationId]: { loading: false, data: null },
-            }))
-          );
+            }));
+          });
       }
     },
     [student, expandedId, details, fetchSimulationDetail, fetchNote]
@@ -511,6 +536,7 @@ export function SimulationsDetailModal({
         simulationId,
         text
       );
+      if (!mountedRef.current) return;
       setNotes((prev) => ({
         ...prev,
         [simulationId]: { loading: false, data: saved },
@@ -541,7 +567,7 @@ export function SimulationsDetailModal({
               {listError}
             </Text>
           )}
-          {list && list.simulations.data.length === 0 && !listLoading && (
+          {list?.simulations.data.length === 0 && !listLoading && (
             <Text size="sm" className="text-text-600">
               Este estudante ainda não respondeu nenhum simulado.
             </Text>

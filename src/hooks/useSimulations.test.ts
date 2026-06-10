@@ -77,7 +77,12 @@ describe('createUseSimulations', () => {
     api.get.mockResolvedValue({
       data: {
         message: 'ok',
-        data: { simulationId: 'sim-1', title: 'S1', counts: {}, questions: [] },
+        data: {
+          simulationId: 'sim-1',
+          title: 'S1',
+          counts: { correct: 0, incorrect: 0, blank: 0 },
+          questions: [],
+        },
       },
     });
     const { result } = renderHook(() => createUseSimulations(api)());
@@ -88,6 +93,30 @@ describe('createUseSimulations', () => {
       '/performance/simulations/students/ui-1/sim-1'
     );
     expect(data.simulationId).toBe('sim-1');
+  });
+
+  it('fetchNote calls the note endpoint and unwraps nullable data', async () => {
+    const api = makeApi();
+    api.get.mockResolvedValue({
+      data: {
+        message: 'ok',
+        data: {
+          id: 'n1',
+          activityId: 'sim-1',
+          studentUserInstitutionId: 'ui-1',
+          note: 'Boa',
+          updatedAt: '2026-06-10T00:00:00.000Z',
+        },
+      },
+    });
+    const { result } = renderHook(() => createUseSimulations(api)());
+
+    const data = await result.current.fetchNote('ui-1', 'sim-1');
+
+    expect(api.get).toHaveBeenCalledWith(
+      '/performance/simulations/students/ui-1/sim-1/note'
+    );
+    expect(data?.note).toBe('Boa');
   });
 
   it('saveNote posts the note', async () => {

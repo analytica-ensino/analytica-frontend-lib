@@ -15,6 +15,9 @@ import type {
 
 const BASE_URL = '/performance/simulations';
 
+/** Encode a value before interpolating it into a request path segment. */
+const segment = (value: string) => encodeURIComponent(value);
+
 /**
  * Hook return type for the teacher-facing Simulations feature.
  *
@@ -77,7 +80,7 @@ export const createUseSimulations =
       ): Promise<SimulationsListData> => {
         const { page = 1, limit = 20 } = filters;
         const response = await apiClient.get<SimulationsListResponse>(
-          `${BASE_URL}/students/${userInstitutionId}`,
+          `${BASE_URL}/students/${segment(userInstitutionId)}`,
           { params: { page, limit } }
         );
         return response.data.data;
@@ -91,7 +94,7 @@ export const createUseSimulations =
         simulationId: string
       ): Promise<SimulationDetailData> => {
         const response = await apiClient.get<SimulationDetailResponse>(
-          `${BASE_URL}/students/${userInstitutionId}/${simulationId}`
+          `${BASE_URL}/students/${segment(userInstitutionId)}/${segment(simulationId)}`
         );
         return response.data.data;
       },
@@ -104,7 +107,7 @@ export const createUseSimulations =
         simulationId: string
       ): Promise<NoteData | null> => {
         const response = await apiClient.get<NoteResponse>(
-          `${BASE_URL}/students/${userInstitutionId}/${simulationId}/note`
+          `${BASE_URL}/students/${segment(userInstitutionId)}/${segment(simulationId)}/note`
         );
         return response.data.data;
       },
@@ -118,7 +121,7 @@ export const createUseSimulations =
         note: string
       ): Promise<NoteData | null> => {
         const response = await apiClient.post<NoteResponse>(
-          `${BASE_URL}/students/${userInstitutionId}/${simulationId}/note`,
+          `${BASE_URL}/students/${segment(userInstitutionId)}/${segment(simulationId)}/note`,
           { note }
         );
         return response.data.data;
