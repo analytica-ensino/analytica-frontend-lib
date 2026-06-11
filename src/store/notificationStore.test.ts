@@ -176,6 +176,41 @@ describe('notificationStore', () => {
       });
     });
 
+    it('should not reduce unreadCount below existing global count from fetchUnreadCount', async () => {
+      (mockApiClient.get as jest.Mock).mockResolvedValue({
+        data: mockBackendResponse, // has 1 unread notification
+      });
+
+      const { result } = renderHook(() => useNotificationStore());
+
+      // Simulate fetchUnreadCount having set a higher global total
+      act(() => {
+        useNotificationStore.setState({ unreadCount: 10 });
+      });
+
+      await act(async () => {
+        await result.current.fetchNotifications();
+      });
+
+      // Should preserve the higher global count, not drop to page-local count (1)
+      expect(result.current.unreadCount).toBe(10);
+    });
+
+    it('should use local unread count when it exceeds existing global count', async () => {
+      (mockApiClient.get as jest.Mock).mockResolvedValue({
+        data: mockBackendResponse, // has 1 unread notification
+      });
+
+      const { result } = renderHook(() => useNotificationStore());
+
+      // Start with unreadCount=0 (initial state, fetchUnreadCount not yet called)
+      await act(async () => {
+        await result.current.fetchNotifications();
+      });
+
+      expect(result.current.unreadCount).toBe(1);
+    });
+
     it('should handle pagination correctly when hasMore is true', async () => {
       const responseWithMorePages = {
         ...mockBackendResponse,

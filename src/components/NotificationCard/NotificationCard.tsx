@@ -706,10 +706,15 @@ const NotificationCenter = ({
             <div className="relative">
               <Bell size={24} className="text-primary" />
               {unreadCount > 0 && (
-                <span
-                  aria-label="Notificações não lidas"
-                  className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-error-500 border border-background"
-                />
+                <>
+                  <span
+                    aria-hidden="true"
+                    className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-error-500 border border-background"
+                  />
+                  <span className="sr-only">
+                    {unreadCount} notificações não lidas
+                  </span>
+                </>
               )}
             </div>
           }
@@ -804,10 +809,15 @@ const NotificationCenter = ({
                   className={isActive ? 'text-primary-950' : 'text-primary'}
                 />
                 {unreadCount > 0 && (
-                  <span
-                    aria-label="Notificações não lidas"
-                    className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-error-500 border border-background"
-                  />
+                  <>
+                    <span
+                      aria-hidden="true"
+                      className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-error-500 border border-background"
+                    />
+                    <span className="sr-only">
+                      {unreadCount} notificações não lidas
+                    </span>
+                  </>
                 )}
               </div>
             }

@@ -254,9 +254,10 @@ export const createNotificationStore = (apiClient: NotificationApiClient) => {
               new Map(merged.map((n) => [n.id, n])).values()
             );
 
+            const localUnread = deduped.filter((n) => !n.isRead).length;
             set({
               notifications: deduped,
-              unreadCount: deduped.filter((n) => !n.isRead).length,
+              unreadCount: Math.max(localUnread, get().unreadCount),
               hasMore: page < totalPages,
               currentPage: page,
               loading: false,

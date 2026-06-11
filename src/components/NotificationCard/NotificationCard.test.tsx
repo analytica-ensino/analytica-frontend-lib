@@ -1504,6 +1504,100 @@ describe('NotificationCard', () => {
     });
   });
 
+  describe('Unread badge accessibility', () => {
+    it('renders aria-hidden decorative dot and sr-only count text in desktop mode', () => {
+      render(
+        <NotificationCard
+          mode="center"
+          isActive={false}
+          unreadCount={5}
+          groupedNotifications={[]}
+        />
+      );
+
+      const srText = screen.getByText('5 notificações não lidas');
+      expect(srText).toBeInTheDocument();
+      expect(srText).toHaveClass('sr-only');
+
+      const decorativeDot = document.querySelector('[aria-hidden="true"].absolute');
+      expect(decorativeDot).toBeInTheDocument();
+      expect(decorativeDot).not.toHaveAttribute('aria-label');
+    });
+
+    it('does not render badge elements when unreadCount is 0 in desktop mode', () => {
+      render(
+        <NotificationCard
+          mode="center"
+          isActive={false}
+          unreadCount={0}
+          groupedNotifications={[]}
+        />
+      );
+
+      expect(screen.queryByText(/notificações não lidas/)).not.toBeInTheDocument();
+    });
+
+    it('renders aria-hidden decorative dot and sr-only count text in mobile mode', () => {
+      mockUseMobile.mockReturnValue(
+        makeUseMobileMock({
+          isMobile: true,
+          isTablet: true,
+          isSmallMobile: true,
+          isExtraSmallMobile: true,
+          isUltraSmallMobile: true,
+          isTinyMobile: true,
+          getFormContainerClasses: () => '',
+          getHeaderClasses: () => '',
+          getMobileHeaderClasses: () => '',
+          getDesktopHeaderClasses: () => '',
+          getVideoContainerClasses: () => 'aspect-square',
+          getDeviceType: (): DeviceType => 'responsive',
+        })
+      );
+
+      render(
+        <NotificationCard
+          mode="center"
+          unreadCount={3}
+          groupedNotifications={[]}
+        />
+      );
+
+      const srText = screen.getByText('3 notificações não lidas');
+      expect(srText).toBeInTheDocument();
+      expect(srText).toHaveClass('sr-only');
+
+      const decorativeDot = document.querySelector('[aria-hidden="true"].absolute');
+      expect(decorativeDot).toBeInTheDocument();
+      expect(decorativeDot).not.toHaveAttribute('aria-label');
+    });
+
+    it('does not render badge elements when unreadCount is 0 in mobile mode', () => {
+      mockUseMobile.mockReturnValue(
+        makeUseMobileMock({
+          isMobile: true,
+          isTablet: true,
+          getFormContainerClasses: () => '',
+          getHeaderClasses: () => '',
+          getMobileHeaderClasses: () => '',
+          getDesktopHeaderClasses: () => '',
+          getVideoContainerClasses: () => 'aspect-square',
+          getDeviceType: (): DeviceType => 'responsive',
+        })
+      );
+
+      render(
+        <NotificationCard
+          mode="center"
+          unreadCount={0}
+          groupedNotifications={[]}
+        />
+      );
+
+      expect(screen.queryByText(/notificações não lidas/)).not.toBeInTheDocument();
+    });
+  });
+
   describe('NotificationCenter mobile', () => {
     beforeEach(() => {
       jest.clearAllMocks();
