@@ -76,14 +76,21 @@ function StudentCard({
         {student.position}
       </Text>
 
-      {/* Student name */}
-      <Text
-        size="sm"
-        weight="bold"
-        className="flex-1 min-w-0 text-text-950 tracking-[0.2px] truncate"
-      >
-        {student.name}
-      </Text>
+      {/* Name and optional subtitle */}
+      <div className="flex-1 min-w-0 flex flex-col">
+        <Text
+          size="sm"
+          weight="bold"
+          className="text-text-950 tracking-[0.2px] truncate"
+        >
+          {student.name}
+        </Text>
+        {student.subtitle && (
+          <Text size="xs" className="text-text-500 truncate">
+            {student.subtitle}
+          </Text>
+        )}
+      </div>
 
       {/* Score badge */}
       <Text

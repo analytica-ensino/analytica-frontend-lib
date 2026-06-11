@@ -48,6 +48,8 @@ describe('ModulesStore', () => {
     activitiesReports: true,
     lessonsReports: true,
     exams: true,
+    simulatedScoreTri: false,
+    simulatedScoreAbsoluto: false,
   };
 
   beforeEach(() => {
@@ -191,6 +193,8 @@ describe('ModulesStore', () => {
         activitiesReports: true,
         lessonsReports: true,
         exams: true,
+        simulatedScoreTri: false,
+        simulatedScoreAbsoluto: false,
       };
 
       mockApi.get.mockResolvedValueOnce({
@@ -496,6 +500,8 @@ describe('ModulesStore', () => {
         activitiesReports: true,
         lessonsReports: true,
         exams: true,
+        simulatedScoreTri: false,
+        simulatedScoreAbsoluto: false,
       });
     });
 
@@ -610,6 +616,8 @@ describe('ModulesStore', () => {
           activitiesReports: false,
           lessonsReports: false,
           exams: false,
+          simulatedScoreTri: false,
+          simulatedScoreAbsoluto: false,
         },
         ownerInstitutionId: 'some-institution',
       });

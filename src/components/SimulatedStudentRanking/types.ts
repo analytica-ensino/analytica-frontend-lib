@@ -7,13 +7,15 @@ import { ScoreType } from '../../types/common';
 export type RankingVariant = 'highlight' | 'attention';
 
 /**
- * Student item for ranking
+ * Item for ranking (can be student, class, or municipality)
  */
 export interface SimulatedStudentRankingItem {
   position: number;
   name: string;
   average: number;
   userInstitutionId?: string;
+  /** Optional subtitle for additional context (e.g., "3 students", "2 schools, 15 students") */
+  subtitle?: string;
 }
 
 /**

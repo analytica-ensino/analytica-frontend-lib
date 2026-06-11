@@ -1,11 +1,14 @@
 import { useState, useCallback, useRef } from 'react';
 import type { BaseApiClient } from '../../types/api';
 import type {
-  SimulatedOverviewData,
-  SimulatedOverviewParams,
-  SimulatedOverviewApiResponse,
-  UseSimulatedOverviewState,
-  UseSimulatedOverviewReturn,
+  AggregatedOverviewData,
+  AggregatedOverviewParams,
+  StudentsOverviewApiResponse,
+  ClassesOverviewApiResponse,
+  MunicipalitiesOverviewApiResponse,
+  UseAggregatedOverviewState,
+  UseAggregatedOverviewReturn,
+  OverviewAggregationType,
 } from './types';
 import {
   simulationTypeToActivityFilters,
@@ -16,7 +19,7 @@ import { getErrorMessage } from './utils';
 /**
  * Body type for POST endpoints
  */
-interface SimulatedOverviewBody {
+interface AggregatedOverviewBody {
   period?: string;
   subjectId?: string;
   areaKnowledgeId?: string;
@@ -24,61 +27,42 @@ interface SimulatedOverviewBody {
   schoolYearIds?: string[];
   classIds?: string[];
   studentsIds?: string[];
-  page?: number;
-  limit?: number;
-  orderBy?: string;
-  order?: 'asc' | 'desc';
 }
 
 /**
- * Build the API endpoint with activity filters and scoreType as query params
+ * Build the API endpoint based on aggregation type
  */
 function buildEndpoint(
+  aggregationType: OverviewAggregationType,
   simulationType: SimulationType,
   scoreType?: string
 ): string {
-  // Essays still use the legacy endpoint since they don't have activity filters
+  // Essays use the legacy endpoint
   if (simulationType === 'essays') {
-    const params = new URLSearchParams();
-    if (scoreType && scoreType !== 'percentage') {
-      params.append('scoreType', scoreType);
-    }
-    const queryString = params.toString();
-    const endpoint = '/performance/simulated/essays/students-overview';
-
-    if (!queryString) {
-      return endpoint;
-    }
-
-    return `${endpoint}?${queryString}`;
+    return '/performance/simulated/essays/students-overview';
   }
 
   const activityFilters = simulationTypeToActivityFilters(simulationType);
   const params = new URLSearchParams();
 
+  // Add aggregationType as query param (unified endpoint)
+  params.append('aggregationType', aggregationType);
+
   activityFilters.types?.forEach((t) => params.append('types', t));
-  // Note: subtypes are not sent - the backend filters by areaKnowledgeId/subjectId in the body
   activityFilters.statuses?.forEach((s) => params.append('statuses', s));
 
-  // Add scoreType if not default (percentage)
   if (scoreType && scoreType !== 'percentage') {
     params.append('scoreType', scoreType);
   }
 
-  const queryString = params.toString();
-  const endpoint = '/performance/simulated/activities/students-overview';
-
-  if (!queryString) {
-    return endpoint;
-  }
-
-  return `${endpoint}?${queryString}`;
+  const basePath = '/performance/simulated/activities/overview';
+  return `${basePath}?${params.toString()}`;
 }
 
 /**
  * Initial state for the hook
  */
-const initialState: UseSimulatedOverviewState = {
+const initialState: UseAggregatedOverviewState = {
   data: null,
   loading: false,
   isRefreshing: false,
@@ -86,28 +70,41 @@ const initialState: UseSimulatedOverviewState = {
 };
 
 /**
- * Hook for fetching simulated exams overview data
- * Supports ENEM Prova 1, ENEM Prova 2, and Essays
+ * Hook for fetching aggregated overview data (without students list)
+ * Supports different aggregation types: students, classes, municipalities
  *
  * @param api - API client with post method
  *
  * @example
  * ```tsx
- * const { data, loading, error, fetchOverview } = useSimulatedOverview(api);
+ * const { data, loading, error, fetchOverview } = useAggregatedOverview(api);
  *
+ * // For students overview
  * fetchOverview({
+ *   aggregationType: 'students',
  *   simulationType: 'enem-1',
  *   period: '1_MONTH',
- *   subjectId: 'subject-uuid',
- *   page: 1,
- *   limit: 10,
+ * });
+ *
+ * // For classes overview (UNIT_MANAGER)
+ * fetchOverview({
+ *   aggregationType: 'classes',
+ *   simulationType: 'enem-1',
+ *   period: '1_MONTH',
+ * });
+ *
+ * // For municipalities overview (REGIONAL_MANAGER)
+ * fetchOverview({
+ *   aggregationType: 'municipalities',
+ *   simulationType: 'enem-1',
+ *   period: '1_MONTH',
  * });
  * ```
  */
-export function useSimulatedOverview(
+export function useAggregatedOverview(
   api: BaseApiClient
-): UseSimulatedOverviewReturn {
-  const [data, setData] = useState<SimulatedOverviewData | null>(
+): UseAggregatedOverviewReturn {
+  const [data, setData] = useState<AggregatedOverviewData | null>(
     initialState.data
   );
   const [loading, setLoading] = useState(initialState.loading);
@@ -121,8 +118,8 @@ export function useSimulatedOverview(
    * Convert params to POST body format
    */
   const paramsToBody = (
-    params: SimulatedOverviewParams
-  ): SimulatedOverviewBody => {
+    params: AggregatedOverviewParams
+  ): AggregatedOverviewBody => {
     return {
       period: params.period,
       subjectId: params.subjectId,
@@ -131,15 +128,11 @@ export function useSimulatedOverview(
       schoolYearIds: params.schoolYearIds,
       classIds: params.classIds,
       studentsIds: params.studentsIds,
-      page: params.page ?? 1,
-      limit: params.limit ?? 10,
-      orderBy: params.orderBy ?? 'name',
-      order: params.order ?? 'asc',
     };
   };
 
   const fetchOverview = useCallback(
-    async (params: SimulatedOverviewParams, refresh = false) => {
+    async (params: AggregatedOverviewParams, refresh = false) => {
       const currentRequestId = ++requestIdRef.current;
 
       try {
@@ -150,27 +143,53 @@ export function useSimulatedOverview(
         }
         setError(null);
 
-        const endpoint = buildEndpoint(params.simulationType, params.scoreType);
+        const endpoint = buildEndpoint(
+          params.aggregationType,
+          params.simulationType,
+          params.scoreType
+        );
         const body = paramsToBody(params);
 
-        const response = await api.post<SimulatedOverviewApiResponse>(
-          endpoint,
-          body
-        );
+        let responseData: AggregatedOverviewData;
+
+        switch (params.aggregationType) {
+          case 'classes': {
+            const response = await api.post<ClassesOverviewApiResponse>(
+              endpoint,
+              body
+            );
+            responseData = response.data.data;
+            break;
+          }
+          case 'municipalities': {
+            const response = await api.post<MunicipalitiesOverviewApiResponse>(
+              endpoint,
+              body
+            );
+            responseData = response.data.data;
+            break;
+          }
+          case 'students':
+          default: {
+            const response = await api.post<StudentsOverviewApiResponse>(
+              endpoint,
+              body
+            );
+            responseData = response.data.data;
+            break;
+          }
+        }
 
         // Ignore stale responses
         if (currentRequestId !== requestIdRef.current) return;
 
-        setData(response.data.data);
+        setData(responseData);
       } catch (err) {
         // Ignore errors from stale requests
         if (currentRequestId !== requestIdRef.current) return;
 
         setError(
-          getErrorMessage(
-            err,
-            'Não foi possível carregar os dados de simulados'
-          )
+          getErrorMessage(err, 'Não foi possível carregar os dados de overview')
         );
       } finally {
         // Only update loading state for current request

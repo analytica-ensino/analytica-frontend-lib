@@ -6,6 +6,7 @@ import type { SimulatedPerformanceViewProps } from './types';
 import { ScoreType } from '../../types/common';
 import type { BaseApiClient } from '../../types/api';
 import { ReactNode } from 'react';
+import { SimulatedPerformanceTag } from '../SimulatedStudentDetailsModal/types';
 
 // Mock all child components
 jest.mock('../Text/Text', () => ({
@@ -255,9 +256,16 @@ const createDefaultProps = (
     studentsIds: [],
   },
   activeFiltersCount: 0,
+  aggregationType: 'students',
   generalOverview: {
     data: null,
     loading: false,
+    error: null,
+  },
+  aggregatedOverview: {
+    data: null,
+    loading: false,
+    isRefreshing: false,
     error: null,
   },
   studentsOverview: {
@@ -401,6 +409,185 @@ describe('SimulatedPerformanceView', () => {
     });
   });
 
+  describe('aggregated ranking', () => {
+    it('transforms classes data to ranking format', () => {
+      const classesData = {
+        classAverage: 75,
+        totalClasses: 5,
+        totalStudents: 100,
+        counters: {
+          highlight: 1,
+          aboveAverage: 2,
+          belowAverage: 1,
+          attentionPoint: 1,
+        },
+        topHighlights: [
+          {
+            classId: 'class-1',
+            className: 'Turma A',
+            schoolName: 'Escola X',
+            schoolYearName: '9º ano',
+            shift: 'Manhã',
+            average: 85,
+            studentCount: 30,
+            performance: SimulatedPerformanceTag.HIGHLIGHT,
+          },
+        ],
+        topDifficulties: [
+          {
+            classId: 'class-2',
+            className: 'Turma B',
+            schoolName: 'Escola Y',
+            schoolYearName: '8º ano',
+            shift: 'Tarde',
+            average: 55,
+            studentCount: 25,
+            performance: SimulatedPerformanceTag.ATTENTION_POINT,
+          },
+        ],
+      };
+
+      render(
+        <SimulatedPerformanceView
+          {...createDefaultProps({
+            aggregationType: 'classes',
+            aggregatedOverview: {
+              data: classesData,
+              loading: false,
+              isRefreshing: false,
+              error: null,
+            },
+          })}
+        />
+      );
+
+      expect(screen.getByTestId('student-ranking')).toBeInTheDocument();
+      expect(screen.getByText('Destaques: 1')).toBeInTheDocument();
+      expect(screen.getByText('Atenção: 1')).toBeInTheDocument();
+    });
+
+    it('transforms municipalities data to ranking format', () => {
+      const municipalitiesData = {
+        classAverage: 70,
+        totalMunicipalities: 3,
+        totalSchools: 10,
+        totalStudents: 500,
+        counters: {
+          highlight: 1,
+          aboveAverage: 1,
+          belowAverage: 1,
+          attentionPoint: 0,
+        },
+        topHighlights: [
+          {
+            municipality: 'São Paulo',
+            state: 'SP',
+            average: 80,
+            schoolCount: 5,
+            studentCount: 200,
+            performance: SimulatedPerformanceTag.HIGHLIGHT,
+          },
+        ],
+        topDifficulties: [
+          {
+            municipality: 'Rio de Janeiro',
+            state: 'RJ',
+            average: 60,
+            schoolCount: 3,
+            studentCount: 150,
+            performance: SimulatedPerformanceTag.ATTENTION_POINT,
+          },
+        ],
+      };
+
+      render(
+        <SimulatedPerformanceView
+          {...createDefaultProps({
+            aggregationType: 'municipalities',
+            aggregatedOverview: {
+              data: municipalitiesData,
+              loading: false,
+              isRefreshing: false,
+              error: null,
+            },
+          })}
+        />
+      );
+
+      expect(screen.getByTestId('student-ranking')).toBeInTheDocument();
+      expect(screen.getByText('Destaques: 1')).toBeInTheDocument();
+      expect(screen.getByText('Atenção: 1')).toBeInTheDocument();
+    });
+
+    it('transforms students data to ranking format', () => {
+      const studentsData = {
+        classAverage: 72,
+        totalStudents: 50,
+        counters: {
+          highlight: 2,
+          aboveAverage: 20,
+          belowAverage: 20,
+          attentionPoint: 8,
+        },
+        topHighlights: [
+          {
+            studentId: 'student-1',
+            institutionId: 'inst-1',
+            userInstitutionId: 'user-1',
+            name: 'João Silva',
+            school: 'Escola X',
+            schoolYear: '9º ano',
+            class: 'Turma A',
+            average: 95,
+            performance: SimulatedPerformanceTag.HIGHLIGHT,
+          },
+          {
+            studentId: 'student-2',
+            institutionId: 'inst-1',
+            userInstitutionId: 'user-2',
+            name: 'Maria Santos',
+            school: 'Escola X',
+            schoolYear: '9º ano',
+            class: 'Turma A',
+            average: 92,
+            performance: SimulatedPerformanceTag.HIGHLIGHT,
+          },
+        ],
+        topDifficulties: [
+          {
+            studentId: 'student-3',
+            institutionId: 'inst-1',
+            userInstitutionId: 'user-3',
+            name: 'Pedro Costa',
+            school: 'Escola Y',
+            schoolYear: '8º ano',
+            class: 'Turma B',
+            average: 45,
+            performance: SimulatedPerformanceTag.ATTENTION_POINT,
+          },
+        ],
+      };
+
+      render(
+        <SimulatedPerformanceView
+          {...createDefaultProps({
+            aggregationType: 'students',
+            aggregatedOverview: {
+              data: studentsData,
+              loading: false,
+              isRefreshing: false,
+              error: null,
+            },
+          })}
+        />
+      );
+
+      expect(screen.getByTestId('student-ranking')).toBeInTheDocument();
+      expect(screen.getByText('Destaques: 2')).toBeInTheDocument();
+      expect(screen.getByText('Atenção: 1')).toBeInTheDocument();
+    });
+  });
+
   describe('skills view', () => {
     it('renders contents table in skills tab', () => {
       render(
@@ -449,11 +636,11 @@ describe('SimulatedPerformanceView', () => {
   });
 
   describe('loading states', () => {
-    it('shows skeleton when students overview is loading', () => {
+    it('shows skeleton when aggregated overview is loading', () => {
       render(
         <SimulatedPerformanceView
           {...createDefaultProps({
-            studentsOverview: {
+            aggregatedOverview: {
               data: null,
               loading: true,
               isRefreshing: false,

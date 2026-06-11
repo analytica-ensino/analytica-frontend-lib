@@ -2,11 +2,15 @@ import { useEffect, useCallback, useState, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Badge from '../Badge/Badge';
 import { useGeneralOverview } from '../GeneralOverviewSection';
-import { useSimulatedOverview } from '../SimulatedStudentsOverview';
+import {
+  useSimulatedOverview,
+  useAggregatedOverview,
+} from '../SimulatedStudentsOverview';
 import { useSimulatedContents } from '../SimulatedContentsPerformance';
 import { ESSAY_AREA_ID } from '../AreaKnowledgeSelector';
 import { SIMULATED_PERFORMANCE_TAG_CONFIG } from '../SimulatedStudentDetailsModal';
 import { formatScore } from '../../utils/utils';
+import { getAggregationTypeByProfile } from '../../utils/profileAggregation';
 import type { ColumnConfig } from '../TableProvider';
 import type { StudentsHighlightPeriod } from '../../hooks/useStudentsHighlight';
 import { ScoreType } from '../../types/common';
@@ -190,8 +194,15 @@ const contentsTableColumns: ColumnConfig<SimulatedContentItem>[] = [
  */
 export function useSimulatedPerformance({
   api,
+  profileName,
 }: UseSimulatedPerformanceOptions): UseSimulatedPerformanceReturn {
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // === Aggregation Type based on Profile ===
+  const aggregationType = useMemo(
+    () => getAggregationTypeByProfile(profileName),
+    [profileName]
+  );
 
   // === Query Params ===
   const period = useMemo((): StudentsHighlightPeriod => {
@@ -253,6 +264,7 @@ export function useSimulatedPerformance({
   const simulatedViewTabRef = useRef<SimulatedViewTab>(simulatedViewTab);
   const scoreTypeRef = useRef<ScoreType>(scoreType);
   const periodRef = useRef<StudentsHighlightPeriod>(period);
+  const aggregationTypeRef = useRef(aggregationType);
 
   // Keep refs in sync
   useEffect(() => {
@@ -279,6 +291,10 @@ export function useSimulatedPerformance({
     periodRef.current = period;
   }, [period]);
 
+  useEffect(() => {
+    aggregationTypeRef.current = aggregationType;
+  }, [aggregationType]);
+
   // === Hooks de API ===
   const {
     data: generalOverviewData,
@@ -287,6 +303,16 @@ export function useSimulatedPerformance({
     fetchOverview: fetchGeneralOverview,
   } = useGeneralOverview(api);
 
+  // Aggregated overview based on profile (classes/municipalities/students)
+  const {
+    data: aggregatedData,
+    loading: aggregatedLoading,
+    isRefreshing: aggregatedRefreshing,
+    error: aggregatedError,
+    fetchOverview: fetchAggregatedOverview,
+  } = useAggregatedOverview(api);
+
+  // Paginated students overview for table
   const {
     data: simulatedData,
     loading: simulatedLoading,
@@ -445,6 +471,49 @@ export function useSimulatedPerformance({
     [fetchGeneralOverview]
   );
 
+  /**
+   * Load aggregated overview data based on profile (classes/municipalities/students)
+   */
+  const loadAggregatedOverviewData = useCallback(
+    async (
+      areaKnowledgeId: string | null,
+      subjectId: string | null,
+      refresh = false,
+      periodOverride?: StudentsHighlightPeriod,
+      scoreTypeOverride?: ScoreType
+    ) => {
+      const currentFilters = filtersRef.current;
+      const currentPeriod = periodOverride ?? periodRef.current;
+      const currentScoreType = scoreTypeOverride ?? scoreTypeRef.current;
+      const currentAggregationType = aggregationTypeRef.current;
+      const isEssay = areaKnowledgeId === ESSAY_AREA_ID;
+
+      const effectiveSubjectId =
+        !isEssay && subjectId && subjectId !== 'all' ? subjectId : undefined;
+      const effectiveAreaKnowledgeId =
+        !isEssay && areaKnowledgeId && areaKnowledgeId !== 'all'
+          ? areaKnowledgeId
+          : undefined;
+
+      await fetchAggregatedOverview(
+        {
+          aggregationType: currentAggregationType,
+          simulationType: isEssay ? 'essays' : 'enem-1',
+          period: currentPeriod,
+          subjectId: effectiveSubjectId,
+          areaKnowledgeId: effectiveAreaKnowledgeId,
+          schoolIds: currentFilters.schoolIds,
+          schoolYearIds: currentFilters.schoolYearIds,
+          classIds: currentFilters.classIds,
+          studentsIds: currentFilters.studentsIds,
+          scoreType: currentScoreType,
+        },
+        refresh
+      );
+    },
+    [fetchAggregatedOverview]
+  );
+
   // === Handlers ===
   const handlePeriodChange = useCallback(
     (value: string) => {
@@ -468,6 +537,15 @@ export function useSimulatedPerformance({
         }
         return newParams;
       });
+
+      // Reload aggregated overview
+      loadAggregatedOverviewData(
+        selectedAreaKnowledgeIdRef.current,
+        selectedSubjectIdRef.current,
+        false,
+        newPeriod,
+        effectiveScoreType
+      );
 
       // Reload data with new period
       if (simulatedViewTabRef.current === SimulatedViewTab.STUDENTS) {
@@ -497,7 +575,13 @@ export function useSimulatedPerformance({
       }
       loadGeneralOverviewData(newPeriod, effectiveScoreType);
     },
-    [setSearchParams, loadStudentsData, loadSkillsData, loadGeneralOverviewData]
+    [
+      setSearchParams,
+      loadStudentsData,
+      loadSkillsData,
+      loadGeneralOverviewData,
+      loadAggregatedOverviewData,
+    ]
   );
 
   const handleScoreTypeChange = useCallback(
@@ -535,9 +619,10 @@ export function useSimulatedPerformance({
       setSelectedSubjectId(null);
       setSimulatedViewTab(SimulatedViewTab.STUDENTS);
 
+      loadAggregatedOverviewData(areaId, null);
       loadStudentsData(areaId, null);
     },
-    [loadStudentsData]
+    [loadStudentsData, loadAggregatedOverviewData]
   );
 
   const handleSubjectChange = useCallback(
@@ -549,6 +634,12 @@ export function useSimulatedPerformance({
       }
 
       setSelectedSubjectId(effectiveSubjectId);
+
+      // Always reload aggregated overview
+      loadAggregatedOverviewData(
+        selectedAreaKnowledgeIdRef.current,
+        effectiveSubjectId
+      );
 
       if (simulatedViewTabRef.current === SimulatedViewTab.STUDENTS) {
         loadStudentsData(
@@ -563,7 +654,7 @@ export function useSimulatedPerformance({
         );
       }
     },
-    [loadStudentsData, loadSkillsData]
+    [loadStudentsData, loadSkillsData, loadAggregatedOverviewData]
   );
 
   const handleViewTabChange = useCallback(
@@ -597,6 +688,12 @@ export function useSimulatedPerformance({
       filtersRef.current = newFilters;
       setFilters(newFilters);
 
+      // Reload aggregated overview
+      loadAggregatedOverviewData(
+        selectedAreaKnowledgeIdRef.current,
+        selectedSubjectIdRef.current
+      );
+
       if (simulatedViewTabRef.current === SimulatedViewTab.STUDENTS) {
         loadStudentsData(
           selectedAreaKnowledgeIdRef.current,
@@ -614,7 +711,12 @@ export function useSimulatedPerformance({
       }
       loadGeneralOverviewData();
     },
-    [loadStudentsData, loadSkillsData, loadGeneralOverviewData]
+    [
+      loadStudentsData,
+      loadSkillsData,
+      loadGeneralOverviewData,
+      loadAggregatedOverviewData,
+    ]
   );
 
   const handleStudentsParamsChange = useCallback(
@@ -747,6 +849,9 @@ export function useSimulatedPerformance({
     if (initialLoadRef.current) return;
     initialLoadRef.current = true;
 
+    // Load aggregated overview (based on profile)
+    loadAggregatedOverviewData(null, null);
+    // Load paginated students for table
     loadStudentsData(null, null);
     loadGeneralOverviewData();
 
@@ -754,11 +859,17 @@ export function useSimulatedPerformance({
     Promise.resolve().then(() => {
       hasInitialLoadCompleted.current = true;
     });
-  }, [loadStudentsData, loadGeneralOverviewData]);
+  }, [loadStudentsData, loadGeneralOverviewData, loadAggregatedOverviewData]);
 
   // === Recarregar quando scoreType muda ===
   useEffect(() => {
     if (!hasInitialLoadCompleted.current) return;
+
+    // Always reload aggregated overview
+    loadAggregatedOverviewData(
+      selectedAreaKnowledgeIdRef.current,
+      selectedSubjectIdRef.current
+    );
 
     if (simulatedViewTabRef.current === SimulatedViewTab.STUDENTS) {
       loadStudentsData(
@@ -776,7 +887,30 @@ export function useSimulatedPerformance({
       );
     }
     loadGeneralOverviewData();
-  }, [scoreType, loadStudentsData, loadSkillsData, loadGeneralOverviewData]);
+  }, [
+    scoreType,
+    loadStudentsData,
+    loadSkillsData,
+    loadGeneralOverviewData,
+    loadAggregatedOverviewData,
+  ]);
+
+  // === Recarregar quando aggregationType muda (perfil carregado após mount) ===
+  const previousAggregationTypeRef = useRef(aggregationType);
+  useEffect(() => {
+    // Skip if aggregationType hasn't actually changed
+    if (previousAggregationTypeRef.current === aggregationType) return;
+    previousAggregationTypeRef.current = aggregationType;
+
+    // Skip if initial load hasn't completed
+    if (!hasInitialLoadCompleted.current) return;
+
+    // Reload aggregated overview with new aggregation type
+    loadAggregatedOverviewData(
+      selectedAreaKnowledgeIdRef.current,
+      selectedSubjectIdRef.current
+    );
+  }, [aggregationType, loadAggregatedOverviewData]);
 
   return {
     // Query Params
@@ -793,11 +927,20 @@ export function useSimulatedPerformance({
     filters,
     activeFiltersCount,
 
+    // Aggregation Type
+    aggregationType,
+
     // Dados da API
     generalOverview: {
       data: generalOverviewData,
       loading: generalOverviewLoading,
       error: generalOverviewError,
+    },
+    aggregatedOverview: {
+      data: aggregatedData,
+      loading: aggregatedLoading,
+      isRefreshing: aggregatedRefreshing,
+      error: aggregatedError,
     },
     studentsOverview: {
       data: simulatedData,
