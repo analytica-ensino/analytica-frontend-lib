@@ -91,7 +91,7 @@ describe('utils', () => {
   });
 
   describe('isStudentsData', () => {
-    it('returns true when type is students and data is not null', () => {
+    it('returns true when type is students and data has students shape', () => {
       expect(isStudentsData(mockStudentsData, 'students')).toBe(true);
     });
 
@@ -103,10 +103,18 @@ describe('utils', () => {
     it('returns false when data is null', () => {
       expect(isStudentsData(null, 'students')).toBe(false);
     });
+
+    it('returns false when type is students but data has classes shape', () => {
+      expect(isStudentsData(mockClassesData, 'students')).toBe(false);
+    });
+
+    it('returns false when type is students but data has municipalities shape', () => {
+      expect(isStudentsData(mockMunicipalitiesData, 'students')).toBe(false);
+    });
   });
 
   describe('isClassesData', () => {
-    it('returns true when type is classes and data is not null', () => {
+    it('returns true when type is classes and data has classes shape', () => {
       expect(isClassesData(mockClassesData, 'classes')).toBe(true);
     });
 
@@ -118,10 +126,18 @@ describe('utils', () => {
     it('returns false when data is null', () => {
       expect(isClassesData(null, 'classes')).toBe(false);
     });
+
+    it('returns false when type is classes but data has students shape', () => {
+      expect(isClassesData(mockStudentsData, 'classes')).toBe(false);
+    });
+
+    it('returns false when type is classes but data has municipalities shape', () => {
+      expect(isClassesData(mockMunicipalitiesData, 'classes')).toBe(false);
+    });
   });
 
   describe('isMunicipalitiesData', () => {
-    it('returns true when type is municipalities and data is not null', () => {
+    it('returns true when type is municipalities and data has municipalities shape', () => {
       expect(
         isMunicipalitiesData(mockMunicipalitiesData, 'municipalities')
       ).toBe(true);
@@ -138,6 +154,18 @@ describe('utils', () => {
 
     it('returns false when data is null', () => {
       expect(isMunicipalitiesData(null, 'municipalities')).toBe(false);
+    });
+
+    it('returns false when type is municipalities but data has students shape', () => {
+      expect(isMunicipalitiesData(mockStudentsData, 'municipalities')).toBe(
+        false
+      );
+    });
+
+    it('returns false when type is municipalities but data has classes shape', () => {
+      expect(isMunicipalitiesData(mockClassesData, 'municipalities')).toBe(
+        false
+      );
     });
   });
 });
