@@ -284,6 +284,44 @@ describe('notificationStore', () => {
     });
   });
 
+  describe('fetchUnreadCount', () => {
+    it('should set unreadCount from pagination total on success', async () => {
+      (mockApiClient.get as jest.Mock).mockResolvedValue({
+        data: {
+          notifications: [],
+          pagination: { page: 1, limit: 1, total: 7, totalPages: 7 },
+        },
+      });
+
+      const { result } = renderHook(() => useNotificationStore());
+
+      await act(async () => {
+        await result.current.fetchUnreadCount();
+      });
+
+      expect(mockApiClient.get).toHaveBeenCalledWith('/notifications', {
+        params: { read: false, limit: 1, page: 1 },
+      });
+      expect(result.current.unreadCount).toBe(7);
+    });
+
+    it('should fail silently and keep existing unreadCount on error', async () => {
+      (mockApiClient.get as jest.Mock).mockRejectedValue(new Error('Network Error'));
+
+      const { result } = renderHook(() => useNotificationStore());
+
+      act(() => {
+        useNotificationStore.setState({ unreadCount: 3 });
+      });
+
+      await act(async () => {
+        await result.current.fetchUnreadCount();
+      });
+
+      expect(result.current.unreadCount).toBe(3);
+    });
+  });
+
   describe('markAsRead', () => {
     it('should mark notification as read successfully', async () => {
       (mockApiClient.patch as jest.Mock).mockResolvedValue({
