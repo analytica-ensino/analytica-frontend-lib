@@ -805,12 +805,12 @@ const NotificationCenter = ({
                 <Badge
                   variant="notification"
                   notificationActive={unreadCount > 0}
-                  className={cn('p-0', isActive && '!text-primary-950')}
+                  className={cn('p-0', isActive && 'text-primary-950!')}
                 />
                 {unreadCount > 0 && (
-                  <span className="sr-only">
+                  <Text as="span" className="sr-only">
                     {unreadCount} notificações não lidas
-                  </span>
+                  </Text>
                 )}
               </>
             }
