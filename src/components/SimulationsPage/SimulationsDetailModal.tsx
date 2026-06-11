@@ -276,16 +276,19 @@ function SimulationItem({
               label="Nº de questões corretas"
               value={detail.data.counts.correct}
               variant="correct"
+              className="flex-1"
             />
             <StatCard
               label="Nº de questões incorretas"
               value={detail.data.counts.incorrect}
               variant="incorrect"
+              className="flex-1"
             />
             <StatCard
               label="Nº de questões em branco"
               value={detail.data.counts.blank}
               variant="blank"
+              className="flex-1"
             />
           </div>
 
