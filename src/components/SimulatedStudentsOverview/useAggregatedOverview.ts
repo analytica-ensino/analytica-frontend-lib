@@ -17,6 +17,7 @@ import {
   simulationTypeToActivityFilters,
   SimulationType,
 } from '../SimulatedStudentDetailsModal/types';
+import { getErrorMessage } from './utils';
 
 /**
  * Body type for POST endpoints
@@ -202,11 +203,9 @@ export function useAggregatedOverview(
         // Ignore errors from stale requests
         if (currentRequestId !== requestIdRef.current) return;
 
-        const errorMessage =
-          err instanceof Error
-            ? err.message
-            : 'Não foi possível carregar os dados de overview';
-        setError(errorMessage);
+        setError(
+          getErrorMessage(err, 'Não foi possível carregar os dados de overview')
+        );
       } finally {
         // Only update loading state for current request
         if (currentRequestId === requestIdRef.current) {
