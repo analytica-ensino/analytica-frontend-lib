@@ -3,9 +3,6 @@ import type { BaseApiClient } from '../../types/api';
 import type {
   AggregatedOverviewData,
   AggregatedOverviewParams,
-  StudentsOnlyOverviewData,
-  ClassesOverviewData,
-  MunicipalitiesOverviewData,
   StudentsOverviewApiResponse,
   ClassesOverviewApiResponse,
   MunicipalitiesOverviewApiResponse,
@@ -173,7 +170,7 @@ export function useAggregatedOverview(
               endpoint,
               body
             );
-            responseData = response.data.data as ClassesOverviewData;
+            responseData = response.data.data;
             break;
           }
           case 'municipalities': {
@@ -181,7 +178,7 @@ export function useAggregatedOverview(
               endpoint,
               body
             );
-            responseData = response.data.data as MunicipalitiesOverviewData;
+            responseData = response.data.data;
             break;
           }
           case 'students':
@@ -190,7 +187,7 @@ export function useAggregatedOverview(
               endpoint,
               body
             );
-            responseData = response.data.data as StudentsOnlyOverviewData;
+            responseData = response.data.data;
             break;
           }
         }

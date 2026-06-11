@@ -13,13 +13,12 @@ import { SimulatedContentDetailsModal } from '../SimulatedContentDetailsModal';
 import { EssayCompetenciesTable } from '../EssayCompetencies';
 import { EssayStudentDetailsModal } from '../EssayStudentDetailsModal';
 import { SimulatedFiltersModal } from '../SimulatedFilters';
-import type {
-  SimulatedStudentItem,
-  OverviewAggregationType,
-  StudentsOnlyOverviewData,
-  ClassesOverviewData,
-  MunicipalitiesOverviewData,
-} from '../SimulatedStudentsOverview/types';
+import type { SimulatedStudentItem } from '../SimulatedStudentsOverview/types';
+import {
+  isStudentsData,
+  isClassesData,
+  isMunicipalitiesData,
+} from '../SimulatedStudentsOverview/utils';
 import type { SimulatedContentItem } from '../SimulatedContentsPerformance/types';
 import { SimulatedViewTab, type SimulatedPerformanceViewProps } from './types';
 import { ReactNode, useMemo } from 'react';
@@ -55,42 +54,6 @@ function SectionContent({
   }
 
   return <>{children}</>;
-}
-
-/**
- * Type guards for aggregated overview data
- */
-function isStudentsData(
-  data:
-    | StudentsOnlyOverviewData
-    | ClassesOverviewData
-    | MunicipalitiesOverviewData
-    | null,
-  type: OverviewAggregationType
-): data is StudentsOnlyOverviewData {
-  return type === 'students' && data !== null;
-}
-
-function isClassesData(
-  data:
-    | StudentsOnlyOverviewData
-    | ClassesOverviewData
-    | MunicipalitiesOverviewData
-    | null,
-  type: OverviewAggregationType
-): data is ClassesOverviewData {
-  return type === 'classes' && data !== null;
-}
-
-function isMunicipalitiesData(
-  data:
-    | StudentsOnlyOverviewData
-    | ClassesOverviewData
-    | MunicipalitiesOverviewData
-    | null,
-  type: OverviewAggregationType
-): data is MunicipalitiesOverviewData {
-  return type === 'municipalities' && data !== null;
 }
 
 /**
