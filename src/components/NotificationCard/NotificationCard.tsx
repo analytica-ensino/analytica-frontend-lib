@@ -710,9 +710,9 @@ const NotificationCenter = ({
                 className="p-0"
               />
               {unreadCount > 0 && (
-                <span className="sr-only">
+                <Text as="span" className="sr-only">
                   {unreadCount} notificações não lidas
-                </span>
+                </Text>
               )}
             </>
           }
