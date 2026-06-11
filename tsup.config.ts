@@ -152,6 +152,11 @@ export default defineConfig({
     'ActivityPageLayout/index':
       'src/components/ActivityPageLayout/ActivityPageLayout.tsx',
 
+    // Simulations (teacher-facing list + nested detail modal)
+    'SimulationsPage/index': 'src/components/SimulationsPage/index.ts',
+    'hooks/useSimulations/index': 'src/hooks/useSimulations.ts',
+    'types/simulations/index': 'src/types/simulations.ts',
+
     // ActivitiesHistory
     'ActivitiesHistory/index': 'src/components/ActivitiesHistory/index.ts',
     'hooks/useActivitiesHistory/index': 'src/hooks/useActivitiesHistory.ts',

@@ -282,8 +282,9 @@ describe('EditActivityModal', () => {
     });
     renderModal(apiClient);
 
-    await waitFor(() => expect(apiClient.get).toHaveBeenCalled());
-    expect(screen.getByLabelText('Título')).toHaveValue('');
+    await waitFor(() =>
+      expect(screen.getByLabelText('Título')).toHaveValue('')
+    );
     expect(screen.getByTestId('chip-Tarefa')).toHaveAttribute(
       'data-selected',
       'false'
@@ -372,7 +373,9 @@ describe('EditActivityModal', () => {
     const apiClient = buildApiClient();
     renderModal(apiClient);
 
-    await waitFor(() => expect(apiClient.get).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(screen.getByTestId('chip-Prova')).toBeInTheDocument()
+    );
     fireEvent.click(screen.getByTestId('chip-Prova'));
     expect(screen.getByTestId('chip-Prova')).toHaveAttribute(
       'data-selected',

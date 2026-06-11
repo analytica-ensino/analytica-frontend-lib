@@ -81,6 +81,15 @@ export interface RecommendedClassData {
 }
 
 /**
+ * Editable fields of a recommended class (history item)
+ */
+export interface UpdateRecommendedClassData {
+  title?: string;
+  startDate?: string;
+  finalDate?: string;
+}
+
+/**
  * Recommended Class history item from /recommended-class/history endpoint
  */
 export interface RecommendedClassHistoryItem {

@@ -3,6 +3,7 @@
  * Helper functions for activity details components
  */
 
+import dayjs from 'dayjs';
 import type {
   StudentActivityStatus,
   StatusBadgeConfig,
@@ -95,4 +96,22 @@ export const formatDateToBrazilian = (dateString: string): string => {
   const month = String(date.getUTCMonth() + 1).padStart(2, '0');
   const year = date.getUTCFullYear();
   return `${day}/${month}/${year}`;
+};
+
+/**
+ * Format an ACTIVITY date (start/deadline) to Brazilian DD/MM/YYYY in LOCAL
+ * time. Activity dates are stored in local-time terms — a deadline "ends on
+ * day X" is persisted as 23:59 local (e.g. 02:59Z of day X+1). Formatting in
+ * UTC (see formatDateToBrazilian) would show the day after for such values,
+ * disagreeing with the calendar dots and the activities list. Use this for
+ * activity start/final dates so all three stay on the same local day.
+ *
+ * NOTE: this is intentionally separate from formatDateToBrazilian, which is
+ * also used for lesson dates stored as UTC midnight ('2024-01-01T00:00:00Z')
+ * where the UTC day is the intended one.
+ * @param dateString - ISO date string
+ * @returns Formatted date string (DD/MM/YYYY) in local time
+ */
+export const formatActivityDateToBrazilian = (dateString: string): string => {
+  return dayjs(dateString).format('DD/MM/YYYY');
 };

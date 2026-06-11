@@ -282,7 +282,7 @@ const ChoroplethMap = ({
     new Set([0, 1, 2, 3])
   );
   const fadeAnimationRef = useRef<number | null>(null);
-  const hoverAnimationRef = useRef<number | null>(null);
+  const hoverAnimationsRef = useRef<Map<string, number>>(new Map());
   const nreBoundaryLayerRef = useRef<google.maps.Data | null>(null);
   const onRegionClickRef = useRef(onRegionClick);
   onRegionClickRef.current = onRegionClick;
@@ -375,8 +375,8 @@ const ChoroplethMap = ({
   useEffect(() => {
     if (!map || !stableData.length) return;
 
-    const strokeCityColor = getCssVar('--color-map-stroke-city', '#9ca3af');
-    const strokeNreColor = getCssVar('--color-map-stroke-nre', '#4b5563');
+    const strokeCityColor = getCssVar('--color-map-stroke-city', '#ffffff');
+    const strokeNreColor = getCssVar('--color-map-stroke-nre', '#ffffff');
 
     // Clear existing data
     map.data.forEach((feature) => {
@@ -432,7 +432,7 @@ const ChoroplethMap = ({
     nreLayer.setStyle({
       fillOpacity: 0,
       strokeColor: strokeNreColor,
-      strokeWeight: 1.5,
+      strokeWeight: 1,
       clickable: false,
     });
     nreLayer.setMap(map);
@@ -478,7 +478,11 @@ const ChoroplethMap = ({
     };
 
     /**
-     * Animate hover transition for a group of features
+     * Animate hover transition for a group of features.
+     * Animations are tracked per NRE group so a new animation only cancels
+     * a running one for the SAME group — revert and highlight of different
+     * groups must run concurrently.
+     * @param groupKey - NRE group name identifying this animation
      * @param features - Target features to animate
      * @param from - Starting opacity
      * @param to - Target opacity
@@ -486,14 +490,16 @@ const ChoroplethMap = ({
      * @param toWeight - Target stroke weight
      */
     const animateHover = (
+      groupKey: string,
       features: google.maps.Data.Feature[],
       from: number,
       to: number,
       fromWeight: number,
       toWeight: number
     ) => {
-      if (hoverAnimationRef.current) {
-        cancelAnimationFrame(hoverAnimationRef.current);
+      const running = hoverAnimationsRef.current.get(groupKey);
+      if (running) {
+        cancelAnimationFrame(running);
       }
       const start = performance.now();
       const animate = (now: number) => {
@@ -502,12 +508,15 @@ const ChoroplethMap = ({
         const weight = fromWeight + (toWeight - fromWeight) * progress;
         applyHoverStyle(features, opacity, weight);
         if (progress < 1) {
-          hoverAnimationRef.current = requestAnimationFrame(animate);
+          hoverAnimationsRef.current.set(
+            groupKey,
+            requestAnimationFrame(animate)
+          );
         } else {
-          hoverAnimationRef.current = null;
+          hoverAnimationsRef.current.delete(groupKey);
         }
       };
-      hoverAnimationRef.current = requestAnimationFrame(animate);
+      hoverAnimationsRef.current.set(groupKey, requestAnimationFrame(animate));
     };
 
     // Handle hover events - highlight all cities in the same NRE
@@ -551,11 +560,11 @@ const ChoroplethMap = ({
         if (currentNRE !== regionName) {
           if (currentNRE) {
             const prevFeatures = collectNREFeatures(currentNRE);
-            animateHover(prevFeatures, 1, TARGET_OPACITY, 1.5, 0.5);
+            animateHover(currentNRE, prevFeatures, 1, TARGET_OPACITY, 1, 0.5);
           }
           currentNRE = regionName;
           const nreFeatures = collectNREFeatures(regionName);
-          animateHover(nreFeatures, TARGET_OPACITY, 1, 0.5, 1.5);
+          animateHover(regionName, nreFeatures, TARGET_OPACITY, 1, 0.5, 1);
         }
       }
     );
@@ -567,7 +576,7 @@ const ChoroplethMap = ({
         setInfoPosition(null);
         if (currentNRE) {
           const prevFeatures = collectNREFeatures(currentNRE);
-          animateHover(prevFeatures, 1, TARGET_OPACITY, 1.5, 0.5);
+          animateHover(currentNRE, prevFeatures, 1, TARGET_OPACITY, 1, 0.5);
           currentNRE = null;
         }
       }, 50);
@@ -621,8 +630,8 @@ const ChoroplethMap = ({
     return () => {
       if (fadeAnimationRef.current)
         cancelAnimationFrame(fadeAnimationRef.current);
-      if (hoverAnimationRef.current)
-        cancelAnimationFrame(hoverAnimationRef.current);
+      hoverAnimationsRef.current.forEach((id) => cancelAnimationFrame(id));
+      hoverAnimationsRef.current.clear();
       if (revertTimeout) clearTimeout(revertTimeout);
       if (nreBoundaryLayerRef.current) {
         nreBoundaryLayerRef.current.setMap(null);

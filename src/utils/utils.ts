@@ -21,6 +21,7 @@ export {
   formatTimeSpent,
   formatQuestionNumbers,
   formatDateToBrazilian,
+  formatActivityDateToBrazilian,
 } from './activityDetailsUtils';
 
 /**

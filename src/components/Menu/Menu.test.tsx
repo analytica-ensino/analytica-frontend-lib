@@ -14,7 +14,7 @@ import { House } from 'phosphor-react';
 
 describe('Menu Component', () => {
   describe('Default Value (Uncontrolled)', () => {
-    it('sets default value on mount', () => {
+    it('highlights the default value on mount without firing onValueChange', () => {
       const handleChange = jest.fn();
 
       render(
@@ -25,7 +25,8 @@ describe('Menu Component', () => {
       );
 
       expect(screen.getByText('Home')).toHaveClass('bg-primary-50');
-      expect(handleChange).toHaveBeenCalledWith('home');
+      // Syncing the default value is not a user selection — it must not fire.
+      expect(handleChange).not.toHaveBeenCalled();
     });
 
     it('invalid menu item variant', () => {
@@ -63,7 +64,40 @@ describe('Menu Component', () => {
       expect(screen.getByTestId('icon')).toHaveClass(
         '[&>svg]:w-[17px] [&>svg]:h-[17px]'
       );
-      expect(handleChange).toHaveBeenCalledWith('dashboard');
+      // The controlled value is reflected in the highlight but, since it comes
+      // from a prop and not a click, onValueChange must not fire.
+      expect(handleChange).not.toHaveBeenCalled();
+    });
+
+    it('does not fire onValueChange when the controlled value prop changes', () => {
+      const handleChange = jest.fn();
+
+      const { rerender } = render(
+        <Menu defaultValue="home" value="home" onValueChange={handleChange}>
+          <MenuItem value="home">Home</MenuItem>
+          <MenuItem value="dashboard">Dashboard</MenuItem>
+        </Menu>
+      );
+
+      // Programmatic prop change (e.g. route-driven active item) must NOT fire.
+      rerender(
+        <Menu
+          defaultValue="home"
+          value="dashboard"
+          onValueChange={handleChange}
+        >
+          <MenuItem value="home">Home</MenuItem>
+          <MenuItem value="dashboard">Dashboard</MenuItem>
+        </Menu>
+      );
+
+      expect(screen.getByText('Dashboard')).toHaveClass('bg-primary-50');
+      expect(handleChange).not.toHaveBeenCalled();
+
+      // A real user click still fires onValueChange.
+      fireEvent.click(screen.getByText('Home'));
+      expect(handleChange).toHaveBeenCalledTimes(1);
+      expect(handleChange).toHaveBeenCalledWith('home');
     });
 
     it('prevents focus on mouse down', () => {

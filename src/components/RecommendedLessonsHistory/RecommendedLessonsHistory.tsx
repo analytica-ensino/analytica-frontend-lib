@@ -11,6 +11,9 @@ import { Menu, MenuItem, MenuContent } from '../Menu/Menu';
 import { TableProvider } from '../TableProvider/TableProvider';
 import ProgressBar from '../ProgressBar/ProgressBar';
 import { getSubjectInfo } from '../SubjectInfo/SubjectInfo';
+import { AlertDialog } from '../AlertDialog/AlertDialog';
+import useToastStore from '../Toast/utils/ToastStore';
+import { EditRecommendedLessonModal } from './EditRecommendedLessonModal';
 import { cn } from '../../utils/utils';
 import { SubjectEnum } from '../../enums/SubjectEnum';
 import type { ColumnConfig, TableParams } from '../TableProvider/TableProvider';
@@ -28,6 +31,8 @@ import {
   type RecommendedClassModelFilters,
   type RecommendedClassModelsApiResponse,
   type RecommendedClassModelTableItem,
+  type RecommendedClassData,
+  type UpdateRecommendedClassData,
 } from '../../types/recommendedLessons';
 import {
   createUseRecommendedLessonsHistory,
@@ -57,10 +62,15 @@ export interface RecommendedLessonsHistoryProps {
   onCreateLesson: () => void;
   /** Callback when a row is clicked */
   onRowClick: (row: RecommendedClassTableItem) => void;
-  /** Callback when delete action is clicked */
-  onDeleteRecommendedClass?: (id: string) => void;
-  /** Callback when edit action is clicked */
-  onEditRecommendedClass?: (id: string) => void;
+  /** Delete a recommended class (history item). Enables the row delete action. */
+  deleteRecommendedClass?: (id: string) => Promise<void>;
+  /** Update a recommended class title/dates. Enables the row edit action (with fetchRecommendedClassById). */
+  updateRecommendedClass?: (
+    id: string,
+    data: UpdateRecommendedClassData
+  ) => Promise<void>;
+  /** Load a single recommended class to pre-fill the edit modal. */
+  fetchRecommendedClassById?: (id: string) => Promise<RecommendedClassData>;
   /** Image for empty state */
   emptyStateImage?: string;
   /** Image for no search results */
@@ -297,8 +307,8 @@ const createRecommendedClassFiltersConfig = (
  */
 const createTableColumns = (
   mapSubjectNameToEnum: ((name: string) => SubjectEnum | null) | undefined,
-  onDeleteRecommendedClass: ((id: string) => void) | undefined,
-  onEditRecommendedClass: ((id: string) => void) | undefined
+  onDelete: ((row: RecommendedClassTableItem) => void) | undefined,
+  onEdit: ((row: RecommendedClassTableItem) => void) | undefined
 ): ColumnConfig<RecommendedClassTableItem>[] => [
   {
     key: 'startDate',
@@ -417,30 +427,40 @@ const createTableColumns = (
     sortable: false,
     className: 'w-20',
     render: (_value: unknown, row: RecommendedClassTableItem) => {
+      if (!onDelete && !onEdit) {
+        return null;
+      }
+
       const handleDelete = (e: MouseEvent) => {
         e.stopPropagation();
-        onDeleteRecommendedClass?.(row.id);
+        onDelete?.(row);
       };
 
       const handleEdit = (e: MouseEvent) => {
         e.stopPropagation();
-        onEditRecommendedClass?.(row.id);
+        onEdit?.(row);
       };
 
       return (
         <div className="flex justify-center gap-2">
-          <IconButton
-            icon={<Trash size={20} />}
-            size="sm"
-            title="Excluir"
-            onClick={handleDelete}
-          />
-          <IconButton
-            icon={<PencilSimple size={20} />}
-            size="sm"
-            title="Editar"
-            onClick={handleEdit}
-          />
+          {onDelete && (
+            <IconButton
+              icon={<Trash size={20} />}
+              size="sm"
+              title="Excluir"
+              aria-label="Excluir"
+              onClick={handleDelete}
+            />
+          )}
+          {onEdit && (
+            <IconButton
+              icon={<PencilSimple size={20} />}
+              size="sm"
+              title="Editar"
+              aria-label="Editar"
+              onClick={handleEdit}
+            />
+          )}
         </div>
       );
     },
@@ -466,8 +486,9 @@ export const RecommendedLessonsHistory = ({
   fetchRecommendedClassHistory,
   onCreateLesson,
   onRowClick,
-  onDeleteRecommendedClass,
-  onEditRecommendedClass,
+  deleteRecommendedClass,
+  updateRecommendedClass,
+  fetchRecommendedClassById,
   emptyStateImage,
   noSearchImage,
   mapSubjectNameToEnum,
@@ -535,6 +556,86 @@ export const RecommendedLessonsHistory = ({
     fetchRecommendedClass,
   }: UseRecommendedLessonsHistoryReturn = useRecommendedClassHistory();
 
+  const addToast = useToastStore((state) => state.addToast);
+
+  // Whether the per-row edit/delete actions are available
+  const deleteEnabled = Boolean(deleteRecommendedClass);
+  const editEnabled = Boolean(
+    updateRecommendedClass && fetchRecommendedClassById
+  );
+
+  // Recommended class pending deletion confirmation (drives the AlertDialog)
+  const [recommendedClassToDelete, setRecommendedClassToDelete] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
+
+  // Recommended class currently being edited (drives the EditRecommendedLessonModal)
+  const [recommendedClassToEdit, setRecommendedClassToEdit] = useState<{
+    id: string;
+  } | null>(null);
+
+  // Last applied filters, used to reload the list after a mutation
+  const lastFiltersRef = useRef<RecommendedClassHistoryFilters | undefined>(
+    undefined
+  );
+
+  // In-flight guard so a double-click on "Excluir" can't fire multiple DELETEs
+  const deletingRef = useRef(false);
+
+  const handleOpenDelete = useCallback((row: RecommendedClassTableItem) => {
+    setRecommendedClassToDelete({ id: row.id, title: row.title });
+  }, []);
+
+  const handleOpenEdit = useCallback((row: RecommendedClassTableItem) => {
+    setRecommendedClassToEdit({ id: row.id });
+  }, []);
+
+  /**
+   * Reload the history list with the last applied filters (after a mutation)
+   */
+  const reloadHistory = useCallback(() => {
+    fetchRecommendedClass(lastFiltersRef.current);
+  }, [fetchRecommendedClass]);
+
+  /**
+   * Confirm deletion of the selected recommended class, then reload the list
+   */
+  const handleConfirmDelete = useCallback(async () => {
+    if (
+      !recommendedClassToDelete ||
+      !deleteRecommendedClass ||
+      deletingRef.current
+    ) {
+      return;
+    }
+    deletingRef.current = true;
+    try {
+      await deleteRecommendedClass(recommendedClassToDelete.id);
+      setRecommendedClassToDelete(null);
+      reloadHistory();
+      addToast({
+        title: 'Aula recomendada excluída com sucesso',
+        action: 'success',
+        position: 'top-right',
+      });
+    } catch {
+      setRecommendedClassToDelete(null);
+      addToast({
+        title: 'Erro ao excluir aula recomendada',
+        action: 'warning',
+        position: 'top-right',
+      });
+    } finally {
+      deletingRef.current = false;
+    }
+  }, [
+    recommendedClassToDelete,
+    deleteRecommendedClass,
+    reloadHistory,
+    addToast,
+  ]);
+
   // Create filter and column configurations, merging extra filters if provided
   const initialFilterConfigs = useMemo(
     () => [
@@ -551,10 +652,16 @@ export const RecommendedLessonsHistory = ({
     () =>
       createTableColumns(
         mapSubjectNameToEnum,
-        onDeleteRecommendedClass,
-        onEditRecommendedClass
+        deleteEnabled ? handleOpenDelete : undefined,
+        editEnabled ? handleOpenEdit : undefined
       ),
-    [mapSubjectNameToEnum, onDeleteRecommendedClass, onEditRecommendedClass]
+    [
+      mapSubjectNameToEnum,
+      deleteEnabled,
+      editEnabled,
+      handleOpenDelete,
+      handleOpenEdit,
+    ]
   );
 
   /**
@@ -565,6 +672,7 @@ export const RecommendedLessonsHistory = ({
   const handleParamsChange = useCallback(
     (params: TableParams) => {
       const filters = buildFiltersFromParams(params);
+      lastFiltersRef.current = filters;
       fetchRecommendedClass(filters);
     },
     [fetchRecommendedClass]
@@ -575,6 +683,47 @@ export const RecommendedLessonsHistory = ({
       data-testid="recommended-class-history"
       className="flex flex-col w-full h-auto relative justify-center items-center mb-5 overflow-hidden"
     >
+      {/* Delete confirmation dialog */}
+      {deleteEnabled && (
+        <AlertDialog
+          isOpen={!!recommendedClassToDelete}
+          onChangeOpen={(open) => {
+            if (!open) {
+              setRecommendedClassToDelete(null);
+            }
+          }}
+          title="Excluir aula recomendada"
+          description={`Tem certeza que deseja excluir a aula "${
+            recommendedClassToDelete?.title ?? ''
+          }"? Esta ação não pode ser desfeita.`}
+          submitButtonLabel="Excluir"
+          cancelButtonLabel="Cancelar"
+          submitAction="negative"
+          onSubmit={handleConfirmDelete}
+          onCancel={() => setRecommendedClassToDelete(null)}
+        />
+      )}
+
+      {/* Edit modal (title + dates) — keyed by id so it remounts per row,
+          avoiding a stale-form flash when switching between lessons */}
+      {editEnabled &&
+        fetchRecommendedClassById &&
+        updateRecommendedClass &&
+        recommendedClassToEdit && (
+          <EditRecommendedLessonModal
+            key={recommendedClassToEdit.id}
+            isOpen
+            recommendedClassId={recommendedClassToEdit.id}
+            fetchById={fetchRecommendedClassById}
+            onUpdate={updateRecommendedClass}
+            onClose={() => setRecommendedClassToEdit(null)}
+            onSaved={() => {
+              setRecommendedClassToEdit(null);
+              reloadHistory();
+            }}
+          />
+        )}
+
       {/* Background decoration */}
       <span className="absolute top-0 left-0 h-[150px] w-full z-0" />
 

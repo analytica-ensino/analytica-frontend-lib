@@ -933,12 +933,21 @@ export {
   isLessonExpired,
 } from './utils/lessonAvailabilityUtils';
 
+// Calendar Activity Utils (timezone-safe date helpers shared by aluno/professor)
+export {
+  getActivityDateKey,
+  getCalendarActivityStatus,
+  filterActivitiesFromDate,
+} from './utils/calendarActivityUtils';
+export type { DatedActivity } from './utils/calendarActivityUtils';
+
 // Activity Details Utils
 export {
   getStatusBadgeConfig,
   formatTimeSpent,
   formatQuestionNumbers,
   formatDateToBrazilian,
+  formatActivityDateToBrazilian,
 } from './utils/utils';
 export type {
   StudentActivityStatus,
@@ -1764,6 +1773,34 @@ export type {
   UseAggregatedOverviewState,
   UseAggregatedOverviewReturn,
 } from './components/SimulatedStudentsOverview';
+// Simulations Component (teacher-facing list + nested detail modal)
+export {
+  SimulationsPage,
+  SimulationsDetailModal,
+} from './components/SimulationsPage';
+export type {
+  SimulationsPageProps,
+  SimulationsDetailModalProps,
+} from './components/SimulationsPage';
+export { createUseSimulations } from './hooks/useSimulations';
+export type { UseSimulationsReturn } from './hooks/useSimulations';
+export type {
+  SimulationsStudentItem,
+  SimulationsStudentsPage,
+  SimulationsStudentsResponse,
+  SimulationsStudentsFilters,
+  StudentSimulationItem,
+  SimulationsListData,
+  SimulationsListResponse,
+  SimulationsListFilters,
+  SimulationQuestionStatus,
+  SimulationDetailOption,
+  SimulationDetailQuestion,
+  SimulationDetailData,
+  SimulationDetailResponse,
+  NoteData,
+  NoteResponse,
+} from './types/simulations';
 
 // ComparatorChart Components
 export {
