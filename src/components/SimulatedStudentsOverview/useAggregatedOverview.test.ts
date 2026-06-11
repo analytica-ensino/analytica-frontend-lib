@@ -164,7 +164,7 @@ describe('useAggregatedOverview', () => {
       });
 
       expect(api.post).toHaveBeenCalledWith(
-        '/performance/simulated/activities/overview/students?types=SIMULADO',
+        '/performance/simulated/activities/overview?aggregationType=students&types=SIMULADO',
         {
           period: '1_MONTH',
           subjectId: undefined,
@@ -197,7 +197,7 @@ describe('useAggregatedOverview', () => {
       });
 
       expect(api.post).toHaveBeenCalledWith(
-        '/performance/simulated/activities/overview/students?types=SIMULADO&scoreType=tri',
+        '/performance/simulated/activities/overview?aggregationType=students&types=SIMULADO&scoreType=tri',
         expect.any(Object)
       );
     });
@@ -223,7 +223,7 @@ describe('useAggregatedOverview', () => {
       });
 
       expect(api.post).toHaveBeenCalledWith(
-        '/performance/simulated/activities/overview/classes?types=SIMULADO',
+        '/performance/simulated/activities/overview?aggregationType=classes&types=SIMULADO',
         expect.any(Object)
       );
       expect(result.current.data).toEqual(response.data);
@@ -273,7 +273,7 @@ describe('useAggregatedOverview', () => {
       });
 
       expect(api.post).toHaveBeenCalledWith(
-        '/performance/simulated/activities/overview/municipalities?types=SIMULADO',
+        '/performance/simulated/activities/overview?aggregationType=municipalities&types=SIMULADO',
         expect.any(Object)
       );
       expect(result.current.data).toEqual(response.data);

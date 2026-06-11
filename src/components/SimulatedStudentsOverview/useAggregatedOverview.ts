@@ -45,6 +45,9 @@ function buildEndpoint(
   const activityFilters = simulationTypeToActivityFilters(simulationType);
   const params = new URLSearchParams();
 
+  // Add aggregationType as query param (unified endpoint)
+  params.append('aggregationType', aggregationType);
+
   activityFilters.types?.forEach((t) => params.append('types', t));
   activityFilters.statuses?.forEach((s) => params.append('statuses', s));
 
@@ -52,15 +55,8 @@ function buildEndpoint(
     params.append('scoreType', scoreType);
   }
 
-  const queryString = params.toString();
   const basePath = '/performance/simulated/activities/overview';
-  const endpoint = `${basePath}/${aggregationType}`;
-
-  if (!queryString) {
-    return endpoint;
-  }
-
-  return `${endpoint}?${queryString}`;
+  return `${basePath}?${params.toString()}`;
 }
 
 /**
