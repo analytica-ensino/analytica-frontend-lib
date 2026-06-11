@@ -703,20 +703,18 @@ const NotificationCenter = ({
           active={isModalOpen}
           onClick={handleMobileClick}
           icon={
-            <div className="relative">
-              <Bell size={24} className="text-primary" />
+            <>
+              <Badge
+                variant="notification"
+                notificationActive={unreadCount > 0}
+                className="p-0"
+              />
               {unreadCount > 0 && (
-                <>
-                  <span
-                    aria-hidden="true"
-                    className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-error-500 border border-background"
-                  />
-                  <span className="sr-only">
-                    {unreadCount} notificações não lidas
-                  </span>
-                </>
+                <span className="sr-only">
+                  {unreadCount} notificações não lidas
+                </span>
               )}
-            </div>
+            </>
           }
           className={className}
         />
@@ -803,23 +801,18 @@ const NotificationCenter = ({
             active={isActive}
             onClick={handleDesktopClick}
             icon={
-              <div className="relative">
-                <Bell
-                  size={24}
-                  className={isActive ? 'text-primary-950' : 'text-primary'}
+              <>
+                <Badge
+                  variant="notification"
+                  notificationActive={unreadCount > 0}
+                  className={cn('p-0', isActive && '!text-primary-950')}
                 />
                 {unreadCount > 0 && (
-                  <>
-                    <span
-                      aria-hidden="true"
-                      className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-error-500 border border-background"
-                    />
-                    <span className="sr-only">
-                      {unreadCount} notificações não lidas
-                    </span>
-                  </>
+                  <span className="sr-only">
+                    {unreadCount} notificações não lidas
+                  </span>
                 )}
-              </div>
+              </>
             }
             className={className}
           />

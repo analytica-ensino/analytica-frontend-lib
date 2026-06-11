@@ -1519,7 +1519,9 @@ describe('NotificationCard', () => {
       expect(srText).toBeInTheDocument();
       expect(srText).toHaveClass('sr-only');
 
-      const decorativeDot = document.querySelector('[aria-hidden="true"].absolute');
+      const decorativeDot = document.querySelector(
+        '[data-testid="notification-dot"]'
+      );
       expect(decorativeDot).toBeInTheDocument();
       expect(decorativeDot).not.toHaveAttribute('aria-label');
     });
@@ -1534,7 +1536,9 @@ describe('NotificationCard', () => {
         />
       );
 
-      expect(screen.queryByText(/notificações não lidas/)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/notificações não lidas/)
+      ).not.toBeInTheDocument();
     });
 
     it('renders aria-hidden decorative dot and sr-only count text in mobile mode', () => {
@@ -1567,7 +1571,9 @@ describe('NotificationCard', () => {
       expect(srText).toBeInTheDocument();
       expect(srText).toHaveClass('sr-only');
 
-      const decorativeDot = document.querySelector('[aria-hidden="true"].absolute');
+      const decorativeDot = document.querySelector(
+        '[data-testid="notification-dot"]'
+      );
       expect(decorativeDot).toBeInTheDocument();
       expect(decorativeDot).not.toHaveAttribute('aria-label');
     });
@@ -1594,7 +1600,9 @@ describe('NotificationCard', () => {
         />
       );
 
-      expect(screen.queryByText(/notificações não lidas/)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/notificações não lidas/)
+      ).not.toBeInTheDocument();
     });
   });
 

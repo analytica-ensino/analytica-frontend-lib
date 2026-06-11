@@ -306,7 +306,9 @@ describe('notificationStore', () => {
     });
 
     it('should fail silently and keep existing unreadCount on error', async () => {
-      (mockApiClient.get as jest.Mock).mockRejectedValue(new Error('Network Error'));
+      (mockApiClient.get as jest.Mock).mockRejectedValue(
+        new Error('Network Error')
+      );
 
       const { result } = renderHook(() => useNotificationStore());
 
