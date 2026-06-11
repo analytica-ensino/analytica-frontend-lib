@@ -167,7 +167,10 @@ export function useSimulatedOverview(
         if (currentRequestId !== requestIdRef.current) return;
 
         setError(
-          getErrorMessage(err, 'Não foi possível carregar os dados de simulados')
+          getErrorMessage(
+            err,
+            'Não foi possível carregar os dados de simulados'
+          )
         );
       } finally {
         // Only update loading state for current request
