@@ -6,6 +6,7 @@ import type { SimulatedPerformanceViewProps } from './types';
 import { ScoreType } from '../../types/common';
 import type { BaseApiClient } from '../../types/api';
 import { ReactNode } from 'react';
+import { SimulatedPerformanceTag } from '../SimulatedStudentDetailsModal/types';
 
 // Mock all child components
 jest.mock('../Text/Text', () => ({
@@ -425,8 +426,11 @@ describe('SimulatedPerformanceView', () => {
             classId: 'class-1',
             className: 'Turma A',
             schoolName: 'Escola X',
+            schoolYearName: '9º ano',
+            shift: 'Manhã',
             average: 85,
             studentCount: 30,
+            performance: SimulatedPerformanceTag.HIGHLIGHT,
           },
         ],
         topDifficulties: [
@@ -434,8 +438,11 @@ describe('SimulatedPerformanceView', () => {
             classId: 'class-2',
             className: 'Turma B',
             schoolName: 'Escola Y',
+            schoolYearName: '8º ano',
+            shift: 'Tarde',
             average: 55,
             studentCount: 25,
+            performance: SimulatedPerformanceTag.ATTENTION_POINT,
           },
         ],
       };
@@ -478,6 +485,7 @@ describe('SimulatedPerformanceView', () => {
             average: 80,
             schoolCount: 5,
             studentCount: 200,
+            performance: SimulatedPerformanceTag.HIGHLIGHT,
           },
         ],
         topDifficulties: [
@@ -487,6 +495,7 @@ describe('SimulatedPerformanceView', () => {
             average: 60,
             schoolCount: 3,
             studentCount: 150,
+            performance: SimulatedPerformanceTag.ATTENTION_POINT,
           },
         ],
       };
@@ -522,21 +531,39 @@ describe('SimulatedPerformanceView', () => {
         },
         topHighlights: [
           {
+            studentId: 'student-1',
+            institutionId: 'inst-1',
             userInstitutionId: 'user-1',
             name: 'João Silva',
+            school: 'Escola X',
+            schoolYear: '9º ano',
+            class: 'Turma A',
             average: 95,
+            performance: SimulatedPerformanceTag.HIGHLIGHT,
           },
           {
+            studentId: 'student-2',
+            institutionId: 'inst-1',
             userInstitutionId: 'user-2',
             name: 'Maria Santos',
+            school: 'Escola X',
+            schoolYear: '9º ano',
+            class: 'Turma A',
             average: 92,
+            performance: SimulatedPerformanceTag.HIGHLIGHT,
           },
         ],
         topDifficulties: [
           {
+            studentId: 'student-3',
+            institutionId: 'inst-1',
             userInstitutionId: 'user-3',
             name: 'Pedro Costa',
+            school: 'Escola Y',
+            schoolYear: '8º ano',
+            class: 'Turma B',
             average: 45,
+            performance: SimulatedPerformanceTag.ATTENTION_POINT,
           },
         ],
       };

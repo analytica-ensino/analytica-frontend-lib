@@ -859,7 +859,6 @@ export function useSimulatedPerformance({
     Promise.resolve().then(() => {
       hasInitialLoadCompleted.current = true;
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- profileName changes trigger aggregationType effect separately
   }, [loadStudentsData, loadGeneralOverviewData, loadAggregatedOverviewData]);
 
   // === Recarregar quando scoreType muda ===
