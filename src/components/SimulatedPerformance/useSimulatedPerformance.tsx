@@ -204,12 +204,6 @@ export function useSimulatedPerformance({
     [profileName]
   );
 
-  // Debug log for aggregation type
-  console.log('[useSimulatedPerformance] Profile and aggregation:', {
-    profileName,
-    aggregationType,
-  });
-
   // === Query Params ===
   const period = useMemo((): StudentsHighlightPeriod => {
     const periodParam = searchParams.get('period');
@@ -493,15 +487,6 @@ export function useSimulatedPerformance({
       const currentScoreType = scoreTypeOverride ?? scoreTypeRef.current;
       const currentAggregationType = aggregationTypeRef.current;
       const isEssay = areaKnowledgeId === ESSAY_AREA_ID;
-
-      // Debug log
-      console.log('[loadAggregatedOverviewData] Called with:', {
-        areaKnowledgeId,
-        subjectId,
-        currentAggregationType,
-        currentPeriod,
-        isEssay,
-      });
 
       const effectiveSubjectId =
         !isEssay && subjectId && subjectId !== 'all' ? subjectId : undefined;
@@ -861,16 +846,8 @@ export function useSimulatedPerformance({
   const hasInitialLoadCompleted = useRef(false);
 
   useEffect(() => {
-    console.log('[useSimulatedPerformance] Initial load effect triggered:', {
-      alreadyLoaded: initialLoadRef.current,
-      profileName,
-      aggregationType: aggregationTypeRef.current,
-    });
-
     if (initialLoadRef.current) return;
     initialLoadRef.current = true;
-
-    console.log('[useSimulatedPerformance] Starting initial load...');
 
     // Load aggregated overview (based on profile)
     loadAggregatedOverviewData(null, null);
@@ -882,12 +859,8 @@ export function useSimulatedPerformance({
     Promise.resolve().then(() => {
       hasInitialLoadCompleted.current = true;
     });
-  }, [
-    loadStudentsData,
-    loadGeneralOverviewData,
-    loadAggregatedOverviewData,
-    profileName,
-  ]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- profileName changes trigger aggregationType effect separately
+  }, [loadStudentsData, loadGeneralOverviewData, loadAggregatedOverviewData]);
 
   // === Recarregar quando scoreType muda ===
   useEffect(() => {
@@ -932,13 +905,6 @@ export function useSimulatedPerformance({
 
     // Skip if initial load hasn't completed
     if (!hasInitialLoadCompleted.current) return;
-
-    console.log(
-      '[useSimulatedPerformance] AggregationType changed, reloading:',
-      {
-        aggregationType,
-      }
-    );
 
     // Reload aggregated overview with new aggregation type
     loadAggregatedOverviewData(

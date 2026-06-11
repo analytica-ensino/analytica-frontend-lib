@@ -154,14 +154,6 @@ export function useAggregatedOverview(
         );
         const body = paramsToBody(params);
 
-        // Debug logs
-        console.log('[useAggregatedOverview] Fetching overview:', {
-          aggregationType: params.aggregationType,
-          simulationType: params.simulationType,
-          endpoint,
-          body,
-        });
-
         let responseData: AggregatedOverviewData;
 
         switch (params.aggregationType) {

@@ -124,6 +124,7 @@ export function SimulatedPerformanceView({
               name: `${c.className} - ${c.schoolName}`,
               average: c.average,
               subtitle: `${c.studentCount} estudantes`,
+              userInstitutionId: c.classId,
             })) || [],
           attentionItems:
             data.topDifficulties?.map((c, index) => ({
@@ -131,6 +132,7 @@ export function SimulatedPerformanceView({
               name: `${c.className} - ${c.schoolName}`,
               average: c.average,
               subtitle: `${c.studentCount} estudantes`,
+              userInstitutionId: c.classId,
             })) || [],
           highlightTitle: 'Turmas em destaque',
           attentionTitle: 'Turmas com maior dificuldade',

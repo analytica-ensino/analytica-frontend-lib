@@ -408,6 +408,159 @@ describe('SimulatedPerformanceView', () => {
     });
   });
 
+  describe('aggregated ranking', () => {
+    it('transforms classes data to ranking format', () => {
+      const classesData = {
+        classAverage: 75,
+        totalClasses: 5,
+        totalStudents: 100,
+        counters: {
+          highlight: 1,
+          aboveAverage: 2,
+          belowAverage: 1,
+          attentionPoint: 1,
+        },
+        topHighlights: [
+          {
+            classId: 'class-1',
+            className: 'Turma A',
+            schoolName: 'Escola X',
+            average: 85,
+            studentCount: 30,
+          },
+        ],
+        topDifficulties: [
+          {
+            classId: 'class-2',
+            className: 'Turma B',
+            schoolName: 'Escola Y',
+            average: 55,
+            studentCount: 25,
+          },
+        ],
+      };
+
+      render(
+        <SimulatedPerformanceView
+          {...createDefaultProps({
+            aggregationType: 'classes',
+            aggregatedOverview: {
+              data: classesData,
+              loading: false,
+              isRefreshing: false,
+              error: null,
+            },
+          })}
+        />
+      );
+
+      expect(screen.getByTestId('student-ranking')).toBeInTheDocument();
+      expect(screen.getByText('Destaques: 1')).toBeInTheDocument();
+      expect(screen.getByText('Atenção: 1')).toBeInTheDocument();
+    });
+
+    it('transforms municipalities data to ranking format', () => {
+      const municipalitiesData = {
+        classAverage: 70,
+        totalMunicipalities: 3,
+        totalSchools: 10,
+        totalStudents: 500,
+        counters: {
+          highlight: 1,
+          aboveAverage: 1,
+          belowAverage: 1,
+          attentionPoint: 0,
+        },
+        topHighlights: [
+          {
+            municipality: 'São Paulo',
+            state: 'SP',
+            average: 80,
+            schoolCount: 5,
+            studentCount: 200,
+          },
+        ],
+        topDifficulties: [
+          {
+            municipality: 'Rio de Janeiro',
+            state: 'RJ',
+            average: 60,
+            schoolCount: 3,
+            studentCount: 150,
+          },
+        ],
+      };
+
+      render(
+        <SimulatedPerformanceView
+          {...createDefaultProps({
+            aggregationType: 'municipalities',
+            aggregatedOverview: {
+              data: municipalitiesData,
+              loading: false,
+              isRefreshing: false,
+              error: null,
+            },
+          })}
+        />
+      );
+
+      expect(screen.getByTestId('student-ranking')).toBeInTheDocument();
+      expect(screen.getByText('Destaques: 1')).toBeInTheDocument();
+      expect(screen.getByText('Atenção: 1')).toBeInTheDocument();
+    });
+
+    it('transforms students data to ranking format', () => {
+      const studentsData = {
+        classAverage: 72,
+        totalStudents: 50,
+        counters: {
+          highlight: 2,
+          aboveAverage: 20,
+          belowAverage: 20,
+          attentionPoint: 8,
+        },
+        topHighlights: [
+          {
+            userInstitutionId: 'user-1',
+            name: 'João Silva',
+            average: 95,
+          },
+          {
+            userInstitutionId: 'user-2',
+            name: 'Maria Santos',
+            average: 92,
+          },
+        ],
+        topDifficulties: [
+          {
+            userInstitutionId: 'user-3',
+            name: 'Pedro Costa',
+            average: 45,
+          },
+        ],
+      };
+
+      render(
+        <SimulatedPerformanceView
+          {...createDefaultProps({
+            aggregationType: 'students',
+            aggregatedOverview: {
+              data: studentsData,
+              loading: false,
+              isRefreshing: false,
+              error: null,
+            },
+          })}
+        />
+      );
+
+      expect(screen.getByTestId('student-ranking')).toBeInTheDocument();
+      expect(screen.getByText('Destaques: 2')).toBeInTheDocument();
+      expect(screen.getByText('Atenção: 1')).toBeInTheDocument();
+    });
+  });
+
   describe('skills view', () => {
     it('renders contents table in skills tab', () => {
       render(
