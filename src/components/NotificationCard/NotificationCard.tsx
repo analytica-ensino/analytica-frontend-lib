@@ -702,7 +702,17 @@ const NotificationCenter = ({
         <IconButton
           active={isModalOpen}
           onClick={handleMobileClick}
-          icon={<Bell size={24} className="text-primary" />}
+          icon={
+            <div className="relative">
+              <Bell size={24} className="text-primary" />
+              {unreadCount > 0 && (
+                <span
+                  aria-label="Notificações não lidas"
+                  className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-error-500 border border-background"
+                />
+              )}
+            </div>
+          }
           className={className}
         />
         <Modal
@@ -788,10 +798,18 @@ const NotificationCenter = ({
             active={isActive}
             onClick={handleDesktopClick}
             icon={
-              <Bell
-                size={24}
-                className={isActive ? 'text-primary-950' : 'text-primary'}
-              />
+              <div className="relative">
+                <Bell
+                  size={24}
+                  className={isActive ? 'text-primary-950' : 'text-primary'}
+                />
+                {unreadCount > 0 && (
+                  <span
+                    aria-label="Notificações não lidas"
+                    className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-error-500 border border-background"
+                  />
+                )}
+              </div>
             }
             className={className}
           />

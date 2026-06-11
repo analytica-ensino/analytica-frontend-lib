@@ -59,6 +59,7 @@ export interface AppHeaderNotifications {
   markAsRead: (id: string) => void;
   deleteNotification: (id: string) => void;
   fetchNotifications: () => void;
+  fetchUnreadCount?: () => void;
   getActionLabel: (entityType?: NotificationEntityType) => string | undefined;
 }
 
@@ -138,6 +139,10 @@ export const AppHeader = ({
 }: AppHeaderProps) => {
   const { isMobile, isExtraSmallMobile } = useMobile();
   const [activeStates, setActiveStates] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    notifications.fetchUnreadCount?.();
+  }, []);
 
   const toggleActive = (buttonId: string) => {
     setActiveStates((prev) => {

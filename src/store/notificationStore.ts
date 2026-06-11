@@ -50,6 +50,10 @@ export interface NotificationActions {
    */
   fetchNotifications: (params?: FetchNotificationsParams) => Promise<void>;
   /**
+   * Fetch unread notification count without loading the full list
+   */
+  fetchUnreadCount: () => Promise<void>;
+  /**
    * Mark a specific notification as read
    */
   markAsRead: (id: string) => Promise<void>;
@@ -263,6 +267,18 @@ export const createNotificationStore = (apiClient: NotificationApiClient) => {
               error: 'Erro ao carregar notificações',
               loading: false,
             });
+          }
+        },
+
+        fetchUnreadCount: async () => {
+          try {
+            const response = await apiClient.get<BackendNotificationsResponse>(
+              '/notifications',
+              { params: { read: false, limit: 1, page: 1 } }
+            );
+            set({ unreadCount: response.data.pagination.total });
+          } catch {
+            // fail silently — badge keeps its last known value
           }
         },
 
