@@ -59,11 +59,13 @@ const mockRevertStyle = jest.fn();
 
 const mockGetZoom = jest.fn().mockReturnValue(7);
 const mockSetZoom = jest.fn();
+const mockGetBounds = jest.fn();
 
 const mockMap = {
   fitBounds: mockFitBounds,
   getZoom: mockGetZoom,
   setZoom: mockSetZoom,
+  getBounds: mockGetBounds,
   data: {
     setStyle: mockSetStyle,
     addGeoJson: mockAddGeoJson,
@@ -276,7 +278,32 @@ describe('ChoroplethMap', () => {
     });
   });
 
-  it('frames the provided bounds with padding and without a zoom bump', async () => {
+  it('grows the fractional zoom by the remaining slack after fitBounds', async () => {
+    // Viewport spans are exactly twice the target bounds spans
+    // (lat 8 vs 4, lng 14 vs 7) → slack of 1 zoom level minus safety margin
+    mockGetBounds.mockReturnValue({
+      getNorthEast: () => ({ lat: () => -21, lng: () => -44.5 }),
+      getSouthWest: () => ({ lat: () => -29, lng: () => -58.5 }),
+    });
+
+    render(<ChoroplethMap data={[]} apiKey={mockApiKey} bounds={mockBounds} />);
+
+    await waitFor(() => {
+      expect(mockFitBounds).toHaveBeenCalledWith(expect.anything(), 20);
+    });
+
+    await waitFor(() => {
+      expect(mockSetZoom).toHaveBeenCalledWith(7.95);
+    });
+  });
+
+  it('does not zoom past the fitted bounds when there is no slack', async () => {
+    // Viewport spans match the target bounds spans exactly: no room to grow
+    mockGetBounds.mockReturnValue({
+      getNorthEast: () => ({ lat: () => -23, lng: () => -48 }),
+      getSouthWest: () => ({ lat: () => -27, lng: () => -55 }),
+    });
+
     render(<ChoroplethMap data={[]} apiKey={mockApiKey} bounds={mockBounds} />);
 
     await waitFor(() => {
