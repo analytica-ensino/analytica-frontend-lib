@@ -702,7 +702,20 @@ const NotificationCenter = ({
         <IconButton
           active={isModalOpen}
           onClick={handleMobileClick}
-          icon={<Bell size={24} className="text-primary" />}
+          icon={
+            <>
+              <Badge
+                variant="notification"
+                notificationActive={unreadCount > 0}
+                className="p-0"
+              />
+              {unreadCount > 0 && (
+                <Text as="span" className="sr-only">
+                  {unreadCount} notificações não lidas
+                </Text>
+              )}
+            </>
+          }
           className={className}
         />
         <Modal
@@ -788,10 +801,18 @@ const NotificationCenter = ({
             active={isActive}
             onClick={handleDesktopClick}
             icon={
-              <Bell
-                size={24}
-                className={isActive ? 'text-primary-950' : 'text-primary'}
-              />
+              <>
+                <Badge
+                  variant="notification"
+                  notificationActive={unreadCount > 0}
+                  className={cn('p-0', isActive && 'text-primary-950!')}
+                />
+                {unreadCount > 0 && (
+                  <Text as="span" className="sr-only">
+                    {unreadCount} notificações não lidas
+                  </Text>
+                )}
+              </>
             }
             className={className}
           />

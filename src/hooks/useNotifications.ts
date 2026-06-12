@@ -26,6 +26,7 @@ export const createUseNotifications = (apiClient: NotificationApiClient) => {
       hasMore,
       currentPage,
       fetchNotifications,
+      fetchUnreadCount,
       markAsRead,
       markAllAsRead,
       deleteNotification,
@@ -163,6 +164,7 @@ export const createUseNotifications = (apiClient: NotificationApiClient) => {
 
       // Actions
       fetchNotifications,
+      fetchUnreadCount,
       markAsRead,
       markAllAsRead,
       deleteNotification,

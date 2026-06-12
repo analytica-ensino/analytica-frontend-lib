@@ -176,6 +176,41 @@ describe('notificationStore', () => {
       });
     });
 
+    it('should not reduce unreadCount below existing global count from fetchUnreadCount', async () => {
+      (mockApiClient.get as jest.Mock).mockResolvedValue({
+        data: mockBackendResponse, // has 1 unread notification
+      });
+
+      const { result } = renderHook(() => useNotificationStore());
+
+      // Simulate fetchUnreadCount having set a higher global total
+      act(() => {
+        useNotificationStore.setState({ unreadCount: 10 });
+      });
+
+      await act(async () => {
+        await result.current.fetchNotifications();
+      });
+
+      // Should preserve the higher global count, not drop to page-local count (1)
+      expect(result.current.unreadCount).toBe(10);
+    });
+
+    it('should use local unread count when it exceeds existing global count', async () => {
+      (mockApiClient.get as jest.Mock).mockResolvedValue({
+        data: mockBackendResponse, // has 1 unread notification
+      });
+
+      const { result } = renderHook(() => useNotificationStore());
+
+      // Start with unreadCount=0 (initial state, fetchUnreadCount not yet called)
+      await act(async () => {
+        await result.current.fetchNotifications();
+      });
+
+      expect(result.current.unreadCount).toBe(1);
+    });
+
     it('should handle pagination correctly when hasMore is true', async () => {
       const responseWithMorePages = {
         ...mockBackendResponse,
@@ -246,6 +281,46 @@ describe('notificationStore', () => {
       });
 
       expect(result.current.loading).toBe(false);
+    });
+  });
+
+  describe('fetchUnreadCount', () => {
+    it('should set unreadCount from pagination total on success', async () => {
+      (mockApiClient.get as jest.Mock).mockResolvedValue({
+        data: {
+          notifications: [],
+          pagination: { page: 1, limit: 1, total: 7, totalPages: 7 },
+        },
+      });
+
+      const { result } = renderHook(() => useNotificationStore());
+
+      await act(async () => {
+        await result.current.fetchUnreadCount();
+      });
+
+      expect(mockApiClient.get).toHaveBeenCalledWith('/notifications', {
+        params: { read: false, limit: 1, page: 1 },
+      });
+      expect(result.current.unreadCount).toBe(7);
+    });
+
+    it('should fail silently and keep existing unreadCount on error', async () => {
+      (mockApiClient.get as jest.Mock).mockRejectedValue(
+        new Error('Network Error')
+      );
+
+      const { result } = renderHook(() => useNotificationStore());
+
+      act(() => {
+        useNotificationStore.setState({ unreadCount: 3 });
+      });
+
+      await act(async () => {
+        await result.current.fetchUnreadCount();
+      });
+
+      expect(result.current.unreadCount).toBe(3);
     });
   });
 
