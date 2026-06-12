@@ -43,6 +43,7 @@ function transformGeoJSONFeatures(
     value: feature.properties?.value ?? 0,
     accessCount: feature.properties?.totalAccess ?? 0,
     geoJson: feature,
+    isManagedRegion: feature.properties?.isManagedRegion !== false,
   }));
 }
 
@@ -65,6 +66,7 @@ function transformRegionData(
     value: region.value,
     accessCount: region.totalAccess,
     geoJson: region.geoJson,
+    isManagedRegion: region.isManagedRegion !== false,
   };
 }
 

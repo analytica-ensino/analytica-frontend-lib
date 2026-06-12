@@ -107,9 +107,52 @@ describe('useMapData', () => {
       expect(result.current.data[0].name).toBe('NRE Curitiba');
       expect(result.current.data[0].value).toBe(85);
       expect(result.current.data[0].accessCount).toBe(1200);
+      expect(result.current.data[0].isManagedRegion).toBe(true);
       expect(result.current.bounds).toEqual(mockBounds);
       expect(result.current.geoJSON).toBe(geoJSON);
       expect(result.current.error).toBeNull();
+    });
+
+    it('should map isManagedRegion from feature properties, defaulting to true', async () => {
+      const geoJSON: FeatureCollection<Polygon | MultiPolygon> = {
+        type: 'FeatureCollection',
+        features: [
+          createMockFeature({
+            GEOCODIGO: '4113700',
+            NOME: 'Londrina',
+            NRE: 'Londrina',
+            value: 0,
+            totalAccess: 0,
+            isManagedRegion: false,
+          }),
+          createMockFeature({
+            GEOCODIGO: '4115200',
+            NOME: 'Maringá',
+            NRE: 'Maringá',
+            value: 0.4,
+            totalAccess: 300,
+          }),
+        ],
+      };
+
+      mockFetchMapData.mockResolvedValueOnce({
+        message: 'Success',
+        data: {
+          state: 'PR',
+          regions: [],
+          bounds: mockBounds,
+          geoJSON,
+        },
+      });
+
+      const { result } = renderHook(() => useMapData(defaultFilters));
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.data[0].isManagedRegion).toBe(false);
+      expect(result.current.data[1].isManagedRegion).toBe(true);
     });
 
     it('should use NOME when NRE is missing', async () => {
@@ -252,6 +295,49 @@ describe('useMapData', () => {
       expect(result.current.data[0].code).toBe('NRE-01');
       expect(result.current.data[0].value).toBe(72);
       expect(result.current.data[0].accessCount).toBe(500);
+      expect(result.current.data[0].isManagedRegion).toBe(true);
+    });
+
+    it('should map isManagedRegion from regions, defaulting to true', async () => {
+      const mockFeature = createMockFeature({}) as Feature<
+        MultiPolygon | Polygon
+      >;
+
+      mockFetchMapData.mockResolvedValueOnce({
+        message: 'Success',
+        data: {
+          state: 'PR',
+          regions: [
+            {
+              schoolGroupId: 'sg-unmanaged',
+              schoolGroupName: 'NRE Londrina',
+              schoolGroupCode: 'NRE-02',
+              totalAccess: 0,
+              value: 0,
+              geoJson: mockFeature,
+              isManagedRegion: false,
+            },
+            {
+              schoolGroupId: 'sg-legacy',
+              schoolGroupName: 'NRE Maringá',
+              schoolGroupCode: 'NRE-03',
+              totalAccess: 80,
+              value: 0.2,
+              geoJson: mockFeature,
+            },
+          ],
+          bounds: mockBounds,
+        },
+      });
+
+      const { result } = renderHook(() => useMapData(defaultFilters));
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.data[0].isManagedRegion).toBe(false);
+      expect(result.current.data[1].isManagedRegion).toBe(true);
     });
 
     it('should filter out regions with null geoJson', async () => {
