@@ -504,5 +504,20 @@ describe('ModuleProtectedRoute', () => {
 
       expect(container).toBeEmptyDOMElement();
     });
+
+    it('should fail closed (redirect) when neither module nor enabled is provided', () => {
+      mockUseModules.mockReturnValue({ ...baseReturn });
+
+      renderWithRouter(
+        // @ts-expect-error — the prop types require a gate; this verifies the
+        // defensive runtime fallback redirects rather than failing open.
+        <ModuleProtectedRoute>
+          <div>Ungated Content</div>
+        </ModuleProtectedRoute>
+      );
+
+      expect(screen.queryByText('Ungated Content')).not.toBeInTheDocument();
+      expect(screen.getByText('Painel Page')).toBeInTheDocument();
+    });
   });
 });

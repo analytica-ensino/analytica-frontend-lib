@@ -2581,6 +2581,55 @@ describe('CardSimulado', () => {
       expect(screen.getByTestId('caret-icon')).toBeInTheDocument();
       expect(screen.queryByTestId('badge-em-breve')).not.toBeInTheDocument();
     });
+
+    it('does not activate onClick when comingSoon, even via keyboard', () => {
+      const handleClick = jest.fn();
+      render(
+        <CardSimulado
+          {...baseProps}
+          comingSoon
+          onClick={handleClick}
+          data-testid="card-simulado"
+        />
+      );
+
+      const card = screen.getByTestId('card-simulado');
+      // CardBase derives role="button"/keyboard activation from a present onClick.
+      expect(card).not.toHaveAttribute('role', 'button');
+      fireEvent.click(card);
+      fireEvent.keyDown(card, { key: 'Enter' });
+      fireEvent.keyDown(card, { key: ' ' });
+      expect(handleClick).not.toHaveBeenCalled();
+    });
+
+    it('does not activate onClick when disabled', () => {
+      const handleClick = jest.fn();
+      render(
+        <CardSimulado
+          {...baseProps}
+          disabled
+          onClick={handleClick}
+          data-testid="card-simulado"
+        />
+      );
+
+      fireEvent.click(screen.getByTestId('card-simulado'));
+      expect(handleClick).not.toHaveBeenCalled();
+    });
+
+    it('activates onClick when interactive', () => {
+      const handleClick = jest.fn();
+      render(
+        <CardSimulado
+          {...baseProps}
+          onClick={handleClick}
+          data-testid="card-simulado"
+        />
+      );
+
+      fireEvent.click(screen.getByTestId('card-simulado'));
+      expect(handleClick).toHaveBeenCalledTimes(1);
+    });
   });
 });
 

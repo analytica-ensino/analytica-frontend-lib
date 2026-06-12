@@ -1289,6 +1289,8 @@ const CardSimulado = forwardRef<HTMLDivElement, CardSimuladoProps>(
       comingSoon = false,
       disabled = false,
       className,
+      onClick,
+      onKeyDown,
       ...props
     },
     ref
@@ -1304,6 +1306,11 @@ const CardSimulado = forwardRef<HTMLDivElement, CardSimuladoProps>(
         minHeight="none"
         cursor={isInteractive ? 'pointer' : 'default'}
         aria-disabled={isInteractive ? undefined : true}
+        // Only forward handlers when interactive: CardBase derives tabIndex,
+        // role="button" and Enter/Space activation from the presence of onClick,
+        // so a disabled/coming-soon card must not receive them.
+        onClick={isInteractive ? onClick : undefined}
+        onKeyDown={isInteractive ? onKeyDown : undefined}
         className={cn(
           backgroundClass,
           isInteractive

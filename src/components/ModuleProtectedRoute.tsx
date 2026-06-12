@@ -5,18 +5,26 @@ import type { ModulesConfig } from '../store/modulesStore';
 
 type ModuleKey = keyof ModulesConfig;
 
-export interface ModuleProtectedRouteProps {
-  /** Boolean module key from ModulesConfig (e.g. "simulator"). */
-  module?: ModuleKey;
-  /**
-   * Explicit enabled flag. When provided, takes precedence over `module` —
-   * use it for derived/nested gates such as the Simulados master toggle
-   * (`simulations.enabled`).
-   */
-  enabled?: boolean;
+/** Keys of ModulesConfig whose value is a boolean (i.e. gateable modules). */
+type BooleanModuleKey = {
+  [K in ModuleKey]: ModulesConfig[K] extends boolean ? K : never;
+}[ModuleKey];
+
+interface BaseModuleProtectedRouteProps {
   children: React.ReactNode;
   redirectTo?: string;
 }
+
+/**
+ * Gate on a boolean module key (`module`) OR on an explicit `enabled` flag
+ * (for derived/nested gates such as the Simulados master, `simulations.enabled`).
+ * At least one of the two is required, so a route can never be left ungated.
+ */
+export type ModuleProtectedRouteProps = BaseModuleProtectedRouteProps &
+  (
+    | { module: BooleanModuleKey; enabled?: boolean }
+    | { module?: BooleanModuleKey; enabled: boolean }
+  );
 
 /**
  * Route guard component that redirects if the specified module is disabled
@@ -49,8 +57,9 @@ export const ModuleProtectedRoute = ({
     return null;
   }
 
-  // `enabled` wins when provided; otherwise fall back to the boolean module key.
-  const isEnabled = enabled ?? (module ? Boolean(modules[module]) : true);
+  // `enabled` wins when provided; otherwise gate on the boolean module key.
+  // Fail closed when neither is supplied (the types prevent this, defensive).
+  const isEnabled = enabled ?? (module ? Boolean(modules[module]) : false);
 
   // If disabled, redirect
   if (!isEnabled) {

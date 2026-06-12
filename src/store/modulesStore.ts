@@ -79,11 +79,18 @@ export interface ModulesConfig {
  * Shallow-merges top-level fields and deep-merges the nested `simulations`
  * object so newly added keys keep their defaults when older configs omit them.
  */
-const mergeModules = (version: Partial<ModulesConfig>): ModulesConfig => ({
-  ...defaultModules,
-  ...version,
-  simulations: { ...DEFAULT_SIMULATIONS, ...(version.simulations ?? {}) },
-});
+const mergeModules = (
+  version?: Partial<ModulesConfig> | null
+): ModulesConfig => {
+  // Guard against malformed/legacy persisted state where `modules` is missing.
+  const v = version ?? {};
+  return {
+    ...defaultModules,
+    ...v,
+    // Object spread treats `undefined` as a no-op, so no `?? {}` fallback needed.
+    simulations: { ...DEFAULT_SIMULATIONS, ...v.simulations },
+  };
+};
 
 /**
  * Interface defining the modules state
