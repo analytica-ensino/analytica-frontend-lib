@@ -8,6 +8,7 @@ import { CardAccordation } from '../Accordation';
 import { SkeletonCard } from '../Skeleton/Skeleton';
 import { StatCard } from '../shared/StatCard';
 import { AlternativesList } from '../Alternative/Alternative';
+import { HtmlMathRenderer } from '../HtmlMathRenderer';
 import { OptionStatus } from '../../enums/Options';
 import {
   getQuestionStatusBadgeConfig,
@@ -104,9 +105,10 @@ function QuestionItem({
       contentClassName="px-3 pb-3"
     >
       <div className="flex flex-col gap-3">
-        <Text size="sm" className="text-text-800">
-          {question.statement}
-        </Text>
+        <HtmlMathRenderer
+          content={question.statement}
+          className="text-sm text-text-800"
+        />
         <CardAccordation
           value={`${question.questionId}-options`}
           trigger={

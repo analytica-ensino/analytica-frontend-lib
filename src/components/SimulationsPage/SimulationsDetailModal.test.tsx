@@ -294,4 +294,62 @@ describe('SimulationsDetailModal', () => {
       )
     );
   });
+
+  it('renders LaTeX in the question statement', async () => {
+    const mathDetail = {
+      message: 'ok',
+      data: {
+        simulationId: 'sim-1',
+        title: 'Simulado 1',
+        counts: { correct: 0, incorrect: 0, blank: 1 },
+        questions: [
+          {
+            questionId: 'q1',
+            statement: 'A energia é $E = mc^2$ no total',
+            status: 'BLANK',
+            selectedOptionId: null,
+            options: [
+              {
+                id: 'opt-a',
+                option: '25 metros',
+                isCorrect: true,
+                isSelected: false,
+              },
+            ],
+          },
+        ],
+      },
+    };
+    const get = jest.fn((url: string) => {
+      if (url.endsWith('/note')) {
+        return Promise.resolve({ data: { message: 'ok', data: null } });
+      }
+      if (/\/students\/[^/]+\/[^/]+$/.test(url)) {
+        return Promise.resolve({ data: mathDetail });
+      }
+      return Promise.resolve({ data: listPayload });
+    });
+    const api = {
+      get,
+      post: jest.fn(),
+      patch: jest.fn(),
+      delete: jest.fn(),
+    } as unknown as BaseApiClient;
+
+    const { container } = render(
+      <SimulationsDetailModal
+        api={api}
+        isOpen
+        onClose={jest.fn()}
+        student={student}
+      />
+    );
+    fireEvent.click(await screen.findByText('Simulado 1'));
+    fireEvent.click(await screen.findByText('Questão 1'));
+
+    // The `$E = mc^2$` is rendered by KaTeX (a `.katex` node), not shown raw.
+    await waitFor(() =>
+      expect(container.querySelector('.katex')).toBeInTheDocument()
+    );
+  });
 });
