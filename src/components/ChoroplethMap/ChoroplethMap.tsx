@@ -139,17 +139,32 @@ const computeNREBoundaries = (
 
 /**
  * Create style function for Data Layer features
+ *
+ * Regions flagged as not managed by the logged user ignore the color
+ * classes and are rendered with the unmanaged gray fill.
+ *
  * @param opacity - Current fill opacity
  * @param colorClasses - Array of color class configurations
  * @param strokeCityColor - Stroke color for city borders
+ * @param unmanagedFillColor - Fill color for regions outside the user scope
  * @returns Style function for map.data.setStyle
  */
 const createStyleFunction = (
   opacity: number,
   colorClasses: ColorClass[],
-  strokeCityColor: string
+  strokeCityColor: string,
+  unmanagedFillColor: string
 ) => {
   return (feature: google.maps.Data.Feature) => {
+    if (feature.getProperty('regionIsManaged') === false) {
+      return {
+        fillColor: unmanagedFillColor,
+        fillOpacity: opacity,
+        strokeColor: strokeCityColor,
+        strokeWeight: 0.3,
+        cursor: 'default',
+      };
+    }
     const value = feature.getProperty('regionValue') as number;
     const colorClass = getColorClass(value ?? 0, colorClasses);
     return {
@@ -292,7 +307,12 @@ const ChoroplethMap = ({
   const dataSignature = useMemo(
     () =>
       data
-        .map((d) => `${d.id}:${d.value}:${d.name}:${d.accessCount}`)
+        .map(
+          (d) =>
+            `${d.id}:${d.value}:${d.name}:${d.accessCount}:${
+              d.isManagedRegion === false ? 0 : 1
+            }`
+        )
         .join('|'),
     [data]
   );
@@ -336,17 +356,40 @@ const ChoroplethMap = ({
     (mapInstance: google.maps.Map) => {
       setMap(mapInstance);
 
-      // Fit bounds if provided, then bump zoom to fill the container
+      // Fit bounds if provided so the whole region is framed on load.
+      // fitBounds snaps the zoom down to the next level that fits, often
+      // leaving the region small in the container. After the fit settles,
+      // grow the (fractional) zoom by exactly how much slack is left, so the
+      // region fills the container without cropping its edges.
       if (bounds) {
         const googleBounds = new google.maps.LatLngBounds(
           { lat: bounds.south, lng: bounds.west },
           { lat: bounds.north, lng: bounds.east }
         );
-        mapInstance.fitBounds(googleBounds, 0);
+        mapInstance.fitBounds(googleBounds, 20);
         google.maps.event.addListenerOnce(mapInstance, 'idle', () => {
-          const currentZoom = mapInstance.getZoom();
-          if (currentZoom) {
-            mapInstance.setZoom(currentZoom + 0.8);
+          const view = mapInstance.getBounds();
+          const zoom = mapInstance.getZoom();
+          if (!view || zoom == null) return;
+
+          const viewSpanLat =
+            view.getNorthEast().lat() - view.getSouthWest().lat();
+          const viewSpanLng =
+            view.getNorthEast().lng() - view.getSouthWest().lng();
+          const targetSpanLat = bounds.north - bounds.south;
+          const targetSpanLng = bounds.east - bounds.west;
+          if (targetSpanLat <= 0 || targetSpanLng <= 0) return;
+
+          // Largest extra zoom that keeps both spans inside the viewport,
+          // with a small safety margin for Mercator distortion
+          const extraZoom =
+            Math.min(
+              Math.log2(viewSpanLat / targetSpanLat),
+              Math.log2(viewSpanLng / targetSpanLng)
+            ) - 0.05;
+
+          if (extraZoom > 0) {
+            mapInstance.setZoom(zoom + Math.min(extraZoom, 1));
           }
         });
       }
@@ -376,6 +419,10 @@ const ChoroplethMap = ({
     if (!map || !stableData.length) return;
 
     const strokeCityColor = getCssVar('--color-map-stroke-city', '#ffffff');
+    const unmanagedFillColor = getCssVar(
+      '--color-map-unmanaged-region',
+      '#e0e0e0'
+    );
     const strokeNreColor = getCssVar('--color-map-stroke-nre', '#ffffff');
 
     // Clear existing data
@@ -400,6 +447,7 @@ const ChoroplethMap = ({
             f.setProperty('regionName', region.name);
             f.setProperty('regionValue', region.value);
             f.setProperty('regionAccessCount', region.accessCount);
+            f.setProperty('regionIsManaged', region.isManagedRegion !== false);
           });
         }
       } catch (error) {
@@ -422,7 +470,9 @@ const ChoroplethMap = ({
     });
 
     // Start with opacity 0 for fade-in animation
-    map.data.setStyle(createStyleFunction(0, colorClasses, strokeCityColor));
+    map.data.setStyle(
+      createStyleFunction(0, colorClasses, strokeCityColor, unmanagedFillColor)
+    );
 
     // Add NRE boundary overlay
     const nreLayer = new google.maps.Data();
@@ -446,7 +496,12 @@ const ChoroplethMap = ({
       const currentOpacity = progress * TARGET_OPACITY;
 
       map.data.setStyle(
-        createStyleFunction(currentOpacity, colorClasses, strokeCityColor)
+        createStyleFunction(
+          currentOpacity,
+          colorClasses,
+          strokeCityColor,
+          unmanagedFillColor
+        )
       );
 
       if (progress < 1) {
@@ -616,7 +671,7 @@ const ChoroplethMap = ({
         const regionId = event.feature.getProperty('regionId') as string;
         const regionName = event.feature.getProperty('regionName') as string;
         const region = stableData.find((r) => r.id === regionId);
-        if (region) {
+        if (region && region.isManagedRegion !== false) {
           onRegionClickRef.current?.(region);
         }
 
@@ -646,15 +701,27 @@ const ChoroplethMap = ({
 
   /**
    * Apply visibility filter based on active legend classes
-   * and adjust map bounds to fit visible features
+   * and adjust map bounds to fit visible features.
+   *
+   * Bounds are only refit while a legend filter is active: with every class
+   * enabled the initial framing comes from the `bounds` prop (whole state),
+   * which keeps unmanaged regions in view for region-scoped managers.
    */
   useEffect(() => {
     if (!map || !stableData.length) return;
 
+    const isFiltering = activeClasses.size < colorClasses.length;
     const visibleBounds = new google.maps.LatLngBounds();
     let hasVisibleFeatures = false;
 
     map.data.forEach((feature: google.maps.Data.Feature) => {
+      // Unmanaged regions don't belong to any legend class: always visible,
+      // and they never drive the fit-bounds of the visible selection.
+      if (feature.getProperty('regionIsManaged') === false) {
+        map.data.overrideStyle(feature, { visible: true });
+        return;
+      }
+
       const value = feature.getProperty('regionValue') as number;
       const colorClass = getColorClass(value ?? 0, colorClasses);
       const classIndex = colorClasses.indexOf(colorClass);
@@ -670,7 +737,7 @@ const ChoroplethMap = ({
       }
     });
 
-    if (hasVisibleFeatures && !visibleBounds.isEmpty()) {
+    if (isFiltering && hasVisibleFeatures && !visibleBounds.isEmpty()) {
       map.fitBounds(visibleBounds, 20);
     }
   }, [map, stableData, activeClasses, colorClasses]);
@@ -763,9 +830,12 @@ const ChoroplethMap = ({
             <Text size="sm" weight="semibold">
               {hoveredRegion.name}
             </Text>
-            <Text size="xs" color="text-text-700">
-              {countLabel}: {hoveredRegion.accessCount.toLocaleString('pt-BR')}
-            </Text>
+            {hoveredRegion.isManagedRegion !== false && (
+              <Text size="xs" color="text-text-700">
+                {countLabel}:{' '}
+                {hoveredRegion.accessCount.toLocaleString('pt-BR')}
+              </Text>
+            )}
           </div>
         )}
       </div>

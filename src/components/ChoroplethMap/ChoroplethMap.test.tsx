@@ -59,11 +59,13 @@ const mockRevertStyle = jest.fn();
 
 const mockGetZoom = jest.fn().mockReturnValue(7);
 const mockSetZoom = jest.fn();
+const mockGetBounds = jest.fn();
 
 const mockMap = {
   fitBounds: mockFitBounds,
   getZoom: mockGetZoom,
   setZoom: mockSetZoom,
+  getBounds: mockGetBounds,
   data: {
     setStyle: mockSetStyle,
     addGeoJson: mockAddGeoJson,
@@ -276,20 +278,40 @@ describe('ChoroplethMap', () => {
     });
   });
 
-  it('bumps zoom by 0.8 after fitBounds completes', async () => {
+  it('grows the fractional zoom by the remaining slack after fitBounds', async () => {
+    // Viewport spans are exactly twice the target bounds spans
+    // (lat 8 vs 4, lng 14 vs 7) → slack of 1 zoom level minus safety margin
+    mockGetBounds.mockReturnValue({
+      getNorthEast: () => ({ lat: () => -21, lng: () => -44.5 }),
+      getSouthWest: () => ({ lat: () => -29, lng: () => -58.5 }),
+    });
+
     render(<ChoroplethMap data={[]} apiKey={mockApiKey} bounds={mockBounds} />);
 
     await waitFor(() => {
-      expect(mockGoogle.maps.event.addListenerOnce).toHaveBeenCalledWith(
-        expect.anything(),
-        'idle',
-        expect.any(Function)
-      );
+      expect(mockFitBounds).toHaveBeenCalledWith(expect.anything(), 20);
     });
 
     await waitFor(() => {
-      expect(mockSetZoom).toHaveBeenCalledWith(7.8);
+      expect(mockSetZoom).toHaveBeenCalledWith(7.95);
     });
+  });
+
+  it('does not zoom past the fitted bounds when there is no slack', async () => {
+    // Viewport spans match the target bounds spans exactly: no room to grow
+    mockGetBounds.mockReturnValue({
+      getNorthEast: () => ({ lat: () => -23, lng: () => -48 }),
+      getSouthWest: () => ({ lat: () => -27, lng: () => -55 }),
+    });
+
+    render(<ChoroplethMap data={[]} apiKey={mockApiKey} bounds={mockBounds} />);
+
+    await waitFor(() => {
+      expect(mockFitBounds).toHaveBeenCalledWith(expect.anything(), 20);
+    });
+
+    // Zooming past the fitted bounds would crop the edges of the state
+    expect(mockSetZoom).not.toHaveBeenCalled();
   });
 
   it('adds GeoJSON data to map when data is provided', async () => {
@@ -1222,6 +1244,475 @@ describe('ChoroplethMap legend interaction', () => {
     await waitFor(() => {
       expect(mockLatLngBounds).toHaveBeenCalled();
       expect(mockFitBounds).toHaveBeenCalledWith(expect.any(Object), 20);
+    });
+  });
+});
+
+describe('ChoroplethMap isManagedRegion', () => {
+  const mockApiKey = 'test-api-key';
+
+  /**
+   * Build a minimal GeoJSON polygon feature for region fixtures
+   * @returns GeoJSON feature with an empty polygon geometry
+   */
+  const makeGeoJson = (): RegionData['geoJson'] => ({
+    type: 'Feature',
+    properties: {},
+    geometry: { type: 'Polygon', coordinates: [[]] },
+  });
+
+  const managedRegion: RegionData = {
+    id: 'managed-1',
+    name: 'NRE Gerido',
+    value: 0.9,
+    accessCount: 350,
+    geoJson: makeGeoJson(),
+  };
+
+  const explicitManagedRegion: RegionData = {
+    id: 'managed-2',
+    name: 'NRE Gerido Explicito',
+    value: 0.6,
+    accessCount: 120,
+    isManagedRegion: true,
+    geoJson: makeGeoJson(),
+  };
+
+  const unmanagedRegion: RegionData = {
+    id: 'unmanaged-1',
+    name: 'NRE Fora do Escopo',
+    value: 0.2,
+    accessCount: 40,
+    isManagedRegion: false,
+    geoJson: makeGeoJson(),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockForEach.mockReset();
+    rafCallbacks = new Map();
+    mockAddGeoJson.mockReturnValue([{ setProperty: jest.fn() }]);
+  });
+
+  /**
+   * Render the map with the given data and fire a `mouseover` on one region
+   * @param data - Region data passed to the component
+   * @param hovered - Region whose feature receives the mouseover event
+   */
+  const renderAndHover = async (data: RegionData[], hovered: RegionData) => {
+    let mouseoverHandler: ((event: unknown) => void) | null = null;
+    mockAddListener.mockImplementation((event, handler) => {
+      if (event === 'mouseover') {
+        mouseoverHandler = handler;
+      }
+      return {};
+    });
+
+    const featureObj = {
+      getProperty: (prop: string) => {
+        if (prop === 'regionId') return hovered.id;
+        if (prop === 'regionName') return hovered.name;
+        if (prop === 'regionValue') return hovered.value;
+        if (prop === 'regionIsManaged')
+          return hovered.isManagedRegion !== false;
+        return null;
+      },
+      getGeometry: () => ({ forEachLatLng: jest.fn() }),
+    };
+    mockForEach.mockImplementation((cb) => cb(featureObj));
+
+    render(<ChoroplethMap data={data} apiKey={mockApiKey} />);
+
+    await waitFor(() => {
+      expect(mouseoverHandler).not.toBeNull();
+    });
+
+    act(() => {
+      (mouseoverHandler as unknown as (event: unknown) => void)({
+        feature: featureObj,
+        domEvent: { clientX: 100, clientY: 200 },
+      });
+    });
+  };
+
+  it('styles unmanaged regions with the unmanaged fill color and default cursor', async () => {
+    render(
+      <ChoroplethMap
+        data={[managedRegion, unmanagedRegion]}
+        apiKey={mockApiKey}
+      />
+    );
+
+    await waitFor(() => {
+      expect(mockSetStyle).toHaveBeenCalled();
+    });
+
+    // First setStyle call is the fade-in start (opacity 0)
+    const styleFn = mockSetStyle.mock.calls[0][0];
+
+    const unmanagedFeature = {
+      getProperty: (prop: string) => {
+        if (prop === 'regionIsManaged') return false;
+        if (prop === 'regionValue') return 0.2;
+        return null;
+      },
+    };
+    expect(styleFn(unmanagedFeature)).toEqual({
+      fillColor: '#e0e0e0',
+      fillOpacity: 0,
+      strokeColor: '#ffffff',
+      strokeWeight: 0.3,
+      cursor: 'default',
+    });
+
+    const managedFeature = {
+      getProperty: (prop: string) => {
+        if (prop === 'regionIsManaged') return true;
+        if (prop === 'regionValue') return 0.9;
+        return null;
+      },
+    };
+    expect(styleFn(managedFeature)).toEqual({
+      fillColor: '#2c7bb6',
+      fillOpacity: 0,
+      strokeColor: '#ffffff',
+      strokeWeight: 0.3,
+      cursor: 'pointer',
+    });
+  });
+
+  it('keeps the unmanaged style at target opacity after fade-in completes', async () => {
+    render(<ChoroplethMap data={[unmanagedRegion]} apiKey={mockApiKey} />);
+
+    await waitFor(() => {
+      expect(mockSetStyle).toHaveBeenCalled();
+    });
+
+    act(() => {
+      flushRAF(500);
+    });
+
+    const styleFn = mockSetStyle.mock.calls.at(-1)![0];
+    const unmanagedFeature = {
+      getProperty: (prop: string) =>
+        prop === 'regionIsManaged' ? false : null,
+    };
+    expect(styleFn(unmanagedFeature)).toEqual({
+      fillColor: '#e0e0e0',
+      fillOpacity: 0.8,
+      strokeColor: '#ffffff',
+      strokeWeight: 0.3,
+      cursor: 'default',
+    });
+  });
+
+  it('sets regionIsManaged property according to each region flag', async () => {
+    const createdFeatures: Array<{ setProperty: jest.Mock }> = [];
+    mockAddGeoJson.mockImplementation(() => {
+      const feature = { setProperty: jest.fn() };
+      createdFeatures.push(feature);
+      return [feature];
+    });
+
+    render(
+      <ChoroplethMap
+        data={[explicitManagedRegion, managedRegion, unmanagedRegion]}
+        apiKey={mockApiKey}
+      />
+    );
+
+    await waitFor(() => {
+      expect(mockAddGeoJson).toHaveBeenCalledTimes(3);
+    });
+
+    // Explicit true
+    expect(createdFeatures[0].setProperty).toHaveBeenCalledWith(
+      'regionIsManaged',
+      true
+    );
+    // Undefined is treated as managed
+    expect(createdFeatures[1].setProperty).toHaveBeenCalledWith(
+      'regionIsManaged',
+      true
+    );
+    // Explicit false
+    expect(createdFeatures[2].setProperty).toHaveBeenCalledWith(
+      'regionIsManaged',
+      false
+    );
+  });
+
+  it('shows a name-only tooltip when hovering an unmanaged region', async () => {
+    await renderAndHover([managedRegion, unmanagedRegion], unmanagedRegion);
+
+    expect(screen.getByText('NRE Fora do Escopo')).toBeInTheDocument();
+    expect(screen.queryByText(/Acessos:/)).not.toBeInTheDocument();
+  });
+
+  it('shows name and access count when hovering a managed region', async () => {
+    await renderAndHover([managedRegion, unmanagedRegion], managedRegion);
+
+    expect(screen.getByText('NRE Gerido')).toBeInTheDocument();
+    expect(screen.getByText(/Acessos: 350/)).toBeInTheDocument();
+  });
+
+  /**
+   * Render the map and fire a click on the feature of the given region
+   * @param data - Region data passed to the component
+   * @param clicked - Region whose feature receives the click event
+   * @param onRegionClick - Click callback forwarded to the component
+   */
+  const renderAndClick = async (
+    data: RegionData[],
+    clicked: RegionData,
+    onRegionClick: jest.Mock
+  ) => {
+    let clickHandler: ((event: unknown) => void) | null = null;
+    mockAddListener.mockImplementation((event, handler) => {
+      if (event === 'click') {
+        clickHandler = handler;
+      }
+      return {};
+    });
+
+    const mockForEachLatLng = jest.fn();
+    mockForEach.mockImplementation((cb) => {
+      cb({
+        getProperty: (prop: string) => {
+          if (prop === 'regionName') return clicked.name;
+          return null;
+        },
+        getGeometry: () => ({ forEachLatLng: mockForEachLatLng }),
+      });
+    });
+
+    render(
+      <ChoroplethMap
+        data={data}
+        apiKey={mockApiKey}
+        onRegionClick={onRegionClick}
+      />
+    );
+
+    await waitFor(() => {
+      expect(clickHandler).not.toBeNull();
+    });
+
+    act(() => {
+      (clickHandler as unknown as (event: unknown) => void)({
+        feature: {
+          getProperty: (prop: string) => {
+            if (prop === 'regionId') return clicked.id;
+            if (prop === 'regionName') return clicked.name;
+            return null;
+          },
+        },
+      });
+    });
+  };
+
+  it('does not call onRegionClick for an unmanaged region but still zooms to it', async () => {
+    const onRegionClick = jest.fn();
+
+    await renderAndClick(
+      [managedRegion, unmanagedRegion],
+      unmanagedRegion,
+      onRegionClick
+    );
+
+    expect(onRegionClick).not.toHaveBeenCalled();
+    // NRE zoom still happens for unmanaged regions
+    expect(mockFitBounds).toHaveBeenCalledWith(expect.any(Object), 20);
+  });
+
+  it('calls onRegionClick for a managed region', async () => {
+    const onRegionClick = jest.fn();
+
+    await renderAndClick(
+      [managedRegion, unmanagedRegion],
+      managedRegion,
+      onRegionClick
+    );
+
+    expect(onRegionClick).toHaveBeenCalledWith(managedRegion);
+  });
+
+  it('keeps unmanaged features visible and out of fit bounds when a legend class is toggled off', async () => {
+    const managedLatLng = jest.fn();
+    const unmanagedLatLng = jest.fn();
+
+    const managedFeature = {
+      getProperty: (prop: string) => {
+        if (prop === 'regionIsManaged') return true;
+        if (prop === 'regionValue') return 0.9;
+        if (prop === 'regionName') return 'NRE Gerido';
+        return null;
+      },
+      getGeometry: () => ({ forEachLatLng: managedLatLng }),
+    };
+    const unmanagedFeature = {
+      getProperty: (prop: string) => {
+        if (prop === 'regionIsManaged') return false;
+        if (prop === 'regionValue') return 0.2;
+        if (prop === 'regionName') return 'NRE Fora do Escopo';
+        return null;
+      },
+      getGeometry: () => ({ forEachLatLng: unmanagedLatLng }),
+    };
+    mockForEach.mockImplementation((cb) => {
+      cb(managedFeature);
+      cb(unmanagedFeature);
+    });
+
+    render(
+      <ChoroplethMap
+        data={[managedRegion, unmanagedRegion]}
+        apiKey={mockApiKey}
+      />
+    );
+
+    await waitFor(() => {
+      expect(mockSetStyle).toHaveBeenCalled();
+    });
+
+    mockOverrideStyle.mockClear();
+    mockFitBounds.mockClear();
+    unmanagedLatLng.mockClear();
+
+    // Toggle off "Destaque" — the managed feature (value 0.9) belongs to it
+    const destaqueBtn = screen.getByText('Destaque').closest('button')!;
+    act(() => {
+      destaqueBtn.click();
+    });
+
+    await waitFor(() => {
+      expect(mockOverrideStyle).toHaveBeenCalledWith(managedFeature, {
+        visible: false,
+      });
+      expect(mockOverrideStyle).toHaveBeenCalledWith(unmanagedFeature, {
+        visible: true,
+      });
+    });
+
+    // Unmanaged geometry never extends the visible bounds, and with no
+    // visible managed feature left, fitBounds must not run
+    expect(unmanagedLatLng).not.toHaveBeenCalled();
+    expect(mockFitBounds).not.toHaveBeenCalled();
+  });
+
+  it('does not refit bounds on mount when all legend classes are active', async () => {
+    const managedFeature = {
+      getProperty: (prop: string) => {
+        if (prop === 'regionIsManaged') return true;
+        if (prop === 'regionValue') return 0.9;
+        if (prop === 'regionName') return 'NRE Gerido';
+        return null;
+      },
+      getGeometry: () => ({ forEachLatLng: jest.fn() }),
+    };
+    mockForEach.mockImplementation((cb) => {
+      cb(managedFeature);
+    });
+
+    render(<ChoroplethMap data={[managedRegion]} apiKey={mockApiKey} />);
+
+    await waitFor(() => {
+      expect(mockSetStyle).toHaveBeenCalled();
+    });
+
+    // Without a legend filter the initial framing comes from the bounds
+    // prop, so the visibility effect must not zoom into managed regions
+    expect(mockFitBounds).not.toHaveBeenCalled();
+  });
+
+  it('refits bounds to visible managed features when a legend class is toggled off', async () => {
+    const highValueLatLng = jest.fn();
+    const lowValueLatLng = jest.fn();
+
+    const highValueFeature = {
+      getProperty: (prop: string) => {
+        if (prop === 'regionIsManaged') return true;
+        if (prop === 'regionValue') return 0.9;
+        if (prop === 'regionName') return 'NRE Destaque';
+        return null;
+      },
+      getGeometry: () => ({ forEachLatLng: highValueLatLng }),
+    };
+    const lowValueFeature = {
+      getProperty: (prop: string) => {
+        if (prop === 'regionIsManaged') return true;
+        if (prop === 'regionValue') return 0.1;
+        if (prop === 'regionName') return 'NRE Atenção';
+        return null;
+      },
+      getGeometry: () => ({ forEachLatLng: lowValueLatLng }),
+    };
+    mockForEach.mockImplementation((cb) => {
+      cb(highValueFeature);
+      cb(lowValueFeature);
+    });
+
+    render(
+      <ChoroplethMap
+        data={[managedRegion, unmanagedRegion]}
+        apiKey={mockApiKey}
+      />
+    );
+
+    await waitFor(() => {
+      expect(mockSetStyle).toHaveBeenCalled();
+    });
+
+    mockFitBounds.mockClear();
+    lowValueLatLng.mockClear();
+
+    // Toggle off "Destaque": the low-value managed feature stays visible
+    // and the map refits to it
+    const destaqueBtn = screen.getByText('Destaque').closest('button')!;
+    act(() => {
+      destaqueBtn.click();
+    });
+
+    await waitFor(() => {
+      expect(lowValueLatLng).toHaveBeenCalled();
+      expect(mockFitBounds).toHaveBeenCalledWith(expect.anything(), 20);
+    });
+  });
+
+  it('re-adds GeoJSON data when only isManagedRegion changes', async () => {
+    const { rerender } = render(
+      <ChoroplethMap
+        data={[managedRegion, unmanagedRegion]}
+        apiKey={mockApiKey}
+      />
+    );
+
+    await waitFor(() => {
+      expect(mockAddGeoJson).toHaveBeenCalledTimes(2);
+    });
+
+    // Same signature (new array, same values): data is NOT re-added
+    rerender(
+      <ChoroplethMap
+        data={[{ ...managedRegion }, { ...unmanagedRegion }]}
+        apiKey={mockApiKey}
+      />
+    );
+    expect(mockAddGeoJson).toHaveBeenCalledTimes(2);
+
+    // Only the isManagedRegion flag changes: signature differs, data re-added
+    rerender(
+      <ChoroplethMap
+        data={[
+          { ...managedRegion, isManagedRegion: false },
+          { ...unmanagedRegion },
+        ]}
+        apiKey={mockApiKey}
+      />
+    );
+
+    await waitFor(() => {
+      expect(mockAddGeoJson).toHaveBeenCalledTimes(4);
     });
   });
 });

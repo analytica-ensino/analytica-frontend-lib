@@ -197,6 +197,7 @@
     --color-map-stroke-city: #ffffff;
     --color-map-stroke-nre: #ffffff;
 
+    --color-map-unmanaged-region: #3f3f46;
     /* Hard Shadow Colors */
     --shadow-hard-shadow-1: -2px 2px 8px rgba(255, 255, 255, 0.1);
     --shadow-hard-shadow-2: 0px 3px 10px rgba(255, 255, 255, 0.1);
