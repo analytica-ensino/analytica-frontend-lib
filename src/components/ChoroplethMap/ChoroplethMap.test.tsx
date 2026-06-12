@@ -276,20 +276,15 @@ describe('ChoroplethMap', () => {
     });
   });
 
-  it('bumps zoom by 0.8 after fitBounds completes', async () => {
+  it('frames the provided bounds with padding and without a zoom bump', async () => {
     render(<ChoroplethMap data={[]} apiKey={mockApiKey} bounds={mockBounds} />);
 
     await waitFor(() => {
-      expect(mockGoogle.maps.event.addListenerOnce).toHaveBeenCalledWith(
-        expect.anything(),
-        'idle',
-        expect.any(Function)
-      );
+      expect(mockFitBounds).toHaveBeenCalledWith(expect.anything(), 20);
     });
 
-    await waitFor(() => {
-      expect(mockSetZoom).toHaveBeenCalledWith(7.8);
-    });
+    // Zooming past the fitted bounds would crop the edges of the state
+    expect(mockSetZoom).not.toHaveBeenCalled();
   });
 
   it('adds GeoJSON data to map when data is provided', async () => {
@@ -1576,6 +1571,85 @@ describe('ChoroplethMap isManagedRegion', () => {
     // visible managed feature left, fitBounds must not run
     expect(unmanagedLatLng).not.toHaveBeenCalled();
     expect(mockFitBounds).not.toHaveBeenCalled();
+  });
+
+  it('does not refit bounds on mount when all legend classes are active', async () => {
+    const managedFeature = {
+      getProperty: (prop: string) => {
+        if (prop === 'regionIsManaged') return true;
+        if (prop === 'regionValue') return 0.9;
+        if (prop === 'regionName') return 'NRE Gerido';
+        return null;
+      },
+      getGeometry: () => ({ forEachLatLng: jest.fn() }),
+    };
+    mockForEach.mockImplementation((cb) => {
+      cb(managedFeature);
+    });
+
+    render(<ChoroplethMap data={[managedRegion]} apiKey={mockApiKey} />);
+
+    await waitFor(() => {
+      expect(mockSetStyle).toHaveBeenCalled();
+    });
+
+    // Without a legend filter the initial framing comes from the bounds
+    // prop, so the visibility effect must not zoom into managed regions
+    expect(mockFitBounds).not.toHaveBeenCalled();
+  });
+
+  it('refits bounds to visible managed features when a legend class is toggled off', async () => {
+    const highValueLatLng = jest.fn();
+    const lowValueLatLng = jest.fn();
+
+    const highValueFeature = {
+      getProperty: (prop: string) => {
+        if (prop === 'regionIsManaged') return true;
+        if (prop === 'regionValue') return 0.9;
+        if (prop === 'regionName') return 'NRE Destaque';
+        return null;
+      },
+      getGeometry: () => ({ forEachLatLng: highValueLatLng }),
+    };
+    const lowValueFeature = {
+      getProperty: (prop: string) => {
+        if (prop === 'regionIsManaged') return true;
+        if (prop === 'regionValue') return 0.1;
+        if (prop === 'regionName') return 'NRE Atenção';
+        return null;
+      },
+      getGeometry: () => ({ forEachLatLng: lowValueLatLng }),
+    };
+    mockForEach.mockImplementation((cb) => {
+      cb(highValueFeature);
+      cb(lowValueFeature);
+    });
+
+    render(
+      <ChoroplethMap
+        data={[managedRegion, unmanagedRegion]}
+        apiKey={mockApiKey}
+      />
+    );
+
+    await waitFor(() => {
+      expect(mockSetStyle).toHaveBeenCalled();
+    });
+
+    mockFitBounds.mockClear();
+    lowValueLatLng.mockClear();
+
+    // Toggle off "Destaque": the low-value managed feature stays visible
+    // and the map refits to it
+    const destaqueBtn = screen.getByText('Destaque').closest('button')!;
+    act(() => {
+      destaqueBtn.click();
+    });
+
+    await waitFor(() => {
+      expect(lowValueLatLng).toHaveBeenCalled();
+      expect(mockFitBounds).toHaveBeenCalledWith(expect.anything(), 20);
+    });
   });
 
   it('re-adds GeoJSON data when only isManagedRegion changes', async () => {

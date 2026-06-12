@@ -356,17 +356,40 @@ const ChoroplethMap = ({
     (mapInstance: google.maps.Map) => {
       setMap(mapInstance);
 
-      // Fit bounds if provided, then bump zoom to fill the container
+      // Fit bounds if provided so the whole region is framed on load.
+      // fitBounds snaps the zoom down to the next level that fits, often
+      // leaving the region small in the container. After the fit settles,
+      // grow the (fractional) zoom by exactly how much slack is left, so the
+      // region fills the container without cropping its edges.
       if (bounds) {
         const googleBounds = new google.maps.LatLngBounds(
           { lat: bounds.south, lng: bounds.west },
           { lat: bounds.north, lng: bounds.east }
         );
-        mapInstance.fitBounds(googleBounds, 0);
+        mapInstance.fitBounds(googleBounds, 20);
         google.maps.event.addListenerOnce(mapInstance, 'idle', () => {
-          const currentZoom = mapInstance.getZoom();
-          if (currentZoom) {
-            mapInstance.setZoom(currentZoom + 0.8);
+          const view = mapInstance.getBounds();
+          const zoom = mapInstance.getZoom();
+          if (!view || zoom == null) return;
+
+          const viewSpanLat =
+            view.getNorthEast().lat() - view.getSouthWest().lat();
+          const viewSpanLng =
+            view.getNorthEast().lng() - view.getSouthWest().lng();
+          const targetSpanLat = bounds.north - bounds.south;
+          const targetSpanLng = bounds.east - bounds.west;
+          if (targetSpanLat <= 0 || targetSpanLng <= 0) return;
+
+          // Largest extra zoom that keeps both spans inside the viewport,
+          // with a small safety margin for Mercator distortion
+          const extraZoom =
+            Math.min(
+              Math.log2(viewSpanLat / targetSpanLat),
+              Math.log2(viewSpanLng / targetSpanLng)
+            ) - 0.05;
+
+          if (extraZoom > 0) {
+            mapInstance.setZoom(zoom + Math.min(extraZoom, 1));
           }
         });
       }
@@ -678,11 +701,16 @@ const ChoroplethMap = ({
 
   /**
    * Apply visibility filter based on active legend classes
-   * and adjust map bounds to fit visible features
+   * and adjust map bounds to fit visible features.
+   *
+   * Bounds are only refit while a legend filter is active: with every class
+   * enabled the initial framing comes from the `bounds` prop (whole state),
+   * which keeps unmanaged regions in view for region-scoped managers.
    */
   useEffect(() => {
     if (!map || !stableData.length) return;
 
+    const isFiltering = activeClasses.size < colorClasses.length;
     const visibleBounds = new google.maps.LatLngBounds();
     let hasVisibleFeatures = false;
 
@@ -709,7 +737,7 @@ const ChoroplethMap = ({
       }
     });
 
-    if (hasVisibleFeatures && !visibleBounds.isEmpty()) {
+    if (isFiltering && hasVisibleFeatures && !visibleBounds.isEmpty()) {
       map.fitBounds(visibleBounds, 20);
     }
   }, [map, stableData, activeClasses, colorClasses]);
