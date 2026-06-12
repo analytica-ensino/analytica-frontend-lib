@@ -39,6 +39,8 @@ export interface MapDataRegion {
   totalAccess: number;
   value: number;
   geoJson: Feature<MultiPolygon | Polygon> | null;
+  /** False when the region is outside the logged manager's scope */
+  isManagedRegion?: boolean;
 }
 
 /**

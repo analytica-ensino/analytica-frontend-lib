@@ -139,17 +139,32 @@ const computeNREBoundaries = (
 
 /**
  * Create style function for Data Layer features
+ *
+ * Regions flagged as not managed by the logged user ignore the color
+ * classes and are rendered with the unmanaged gray fill.
+ *
  * @param opacity - Current fill opacity
  * @param colorClasses - Array of color class configurations
  * @param strokeCityColor - Stroke color for city borders
+ * @param unmanagedFillColor - Fill color for regions outside the user scope
  * @returns Style function for map.data.setStyle
  */
 const createStyleFunction = (
   opacity: number,
   colorClasses: ColorClass[],
-  strokeCityColor: string
+  strokeCityColor: string,
+  unmanagedFillColor: string
 ) => {
   return (feature: google.maps.Data.Feature) => {
+    if (feature.getProperty('regionIsManaged') === false) {
+      return {
+        fillColor: unmanagedFillColor,
+        fillOpacity: opacity,
+        strokeColor: strokeCityColor,
+        strokeWeight: 0.3,
+        cursor: 'default',
+      };
+    }
     const value = feature.getProperty('regionValue') as number;
     const colorClass = getColorClass(value ?? 0, colorClasses);
     return {
@@ -292,7 +307,12 @@ const ChoroplethMap = ({
   const dataSignature = useMemo(
     () =>
       data
-        .map((d) => `${d.id}:${d.value}:${d.name}:${d.accessCount}`)
+        .map(
+          (d) =>
+            `${d.id}:${d.value}:${d.name}:${d.accessCount}:${
+              d.isManagedRegion === false ? 0 : 1
+            }`
+        )
         .join('|'),
     [data]
   );
@@ -376,6 +396,10 @@ const ChoroplethMap = ({
     if (!map || !stableData.length) return;
 
     const strokeCityColor = getCssVar('--color-map-stroke-city', '#ffffff');
+    const unmanagedFillColor = getCssVar(
+      '--color-map-unmanaged-region',
+      '#e0e0e0'
+    );
     const strokeNreColor = getCssVar('--color-map-stroke-nre', '#ffffff');
 
     // Clear existing data
@@ -400,6 +424,7 @@ const ChoroplethMap = ({
             f.setProperty('regionName', region.name);
             f.setProperty('regionValue', region.value);
             f.setProperty('regionAccessCount', region.accessCount);
+            f.setProperty('regionIsManaged', region.isManagedRegion !== false);
           });
         }
       } catch (error) {
@@ -422,7 +447,9 @@ const ChoroplethMap = ({
     });
 
     // Start with opacity 0 for fade-in animation
-    map.data.setStyle(createStyleFunction(0, colorClasses, strokeCityColor));
+    map.data.setStyle(
+      createStyleFunction(0, colorClasses, strokeCityColor, unmanagedFillColor)
+    );
 
     // Add NRE boundary overlay
     const nreLayer = new google.maps.Data();
@@ -446,7 +473,12 @@ const ChoroplethMap = ({
       const currentOpacity = progress * TARGET_OPACITY;
 
       map.data.setStyle(
-        createStyleFunction(currentOpacity, colorClasses, strokeCityColor)
+        createStyleFunction(
+          currentOpacity,
+          colorClasses,
+          strokeCityColor,
+          unmanagedFillColor
+        )
       );
 
       if (progress < 1) {
@@ -616,7 +648,7 @@ const ChoroplethMap = ({
         const regionId = event.feature.getProperty('regionId') as string;
         const regionName = event.feature.getProperty('regionName') as string;
         const region = stableData.find((r) => r.id === regionId);
-        if (region) {
+        if (region && region.isManagedRegion !== false) {
           onRegionClickRef.current?.(region);
         }
 
@@ -655,6 +687,13 @@ const ChoroplethMap = ({
     let hasVisibleFeatures = false;
 
     map.data.forEach((feature: google.maps.Data.Feature) => {
+      // Unmanaged regions don't belong to any legend class: always visible,
+      // and they never drive the fit-bounds of the visible selection.
+      if (feature.getProperty('regionIsManaged') === false) {
+        map.data.overrideStyle(feature, { visible: true });
+        return;
+      }
+
       const value = feature.getProperty('regionValue') as number;
       const colorClass = getColorClass(value ?? 0, colorClasses);
       const classIndex = colorClasses.indexOf(colorClass);
@@ -763,9 +802,12 @@ const ChoroplethMap = ({
             <Text size="sm" weight="semibold">
               {hoveredRegion.name}
             </Text>
-            <Text size="xs" color="text-text-700">
-              {countLabel}: {hoveredRegion.accessCount.toLocaleString('pt-BR')}
-            </Text>
+            {hoveredRegion.isManagedRegion !== false && (
+              <Text size="xs" color="text-text-700">
+                {countLabel}:{' '}
+                {hoveredRegion.accessCount.toLocaleString('pt-BR')}
+              </Text>
+            )}
           </div>
         )}
       </div>

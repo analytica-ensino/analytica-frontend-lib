@@ -16,6 +16,12 @@ export interface RegionData {
   accessCount: number;
   /** GeoJSON feature for the region polygon */
   geoJson: Feature<MultiPolygon | Polygon>;
+  /**
+   * Whether the region is managed by the logged user. When false, the region
+   * is rendered with the unmanaged gray fill, shows a name-only tooltip and
+   * does not trigger onRegionClick. Undefined is treated as true.
+   */
+  isManagedRegion?: boolean;
 }
 
 /**
