@@ -5,6 +5,38 @@ import { useAuthStore } from './authStore';
 import type { AxiosInstance } from 'axios';
 
 /**
+ * Visibility state of a single simulado type on the student platform.
+ * - ENABLED: shown and clickable
+ * - COMING_SOON: shown but disabled, with an "Em breve" badge
+ * - HIDDEN: not shown at all
+ */
+export type SimulationVisibility = 'ENABLED' | 'COMING_SOON' | 'HIDDEN';
+
+/**
+ * Per-institution configuration of the Simulados module.
+ * `enabled` is the master toggle (gates the whole module/menu); the remaining
+ * keys map 1:1 to each simulado type's `backgroundColor` (the card catalog).
+ */
+export interface SimulationsConfig {
+  enabled: boolean;
+  enem: SimulationVisibility;
+  prova: SimulationVisibility;
+  simuladao: SimulationVisibility;
+  vestibular: SimulationVisibility;
+}
+
+/**
+ * Default simulados configuration - module on, all types enabled
+ */
+export const DEFAULT_SIMULATIONS: SimulationsConfig = {
+  enabled: true,
+  enem: 'ENABLED',
+  prova: 'ENABLED',
+  simuladao: 'ENABLED',
+  vestibular: 'ENABLED',
+};
+
+/**
  * Default modules configuration - all enabled
  */
 const defaultModules: ModulesConfig = {
@@ -18,6 +50,7 @@ const defaultModules: ModulesConfig = {
   exams: true,
   simulatedScoreTri: false,
   simulatedScoreAbsoluto: false,
+  simulations: DEFAULT_SIMULATIONS,
 };
 
 /**
@@ -37,7 +70,27 @@ export interface ModulesConfig {
   simulatedScoreTri: boolean;
   /** Whether ABSOLUTO score type is available in simulated reports */
   simulatedScoreAbsoluto: boolean;
+  /** Simulados module: master toggle + per-type visibility */
+  simulations: SimulationsConfig;
 }
+
+/**
+ * Merge a (possibly partial) feature-flag version onto the defaults.
+ * Shallow-merges top-level fields and deep-merges the nested `simulations`
+ * object so newly added keys keep their defaults when older configs omit them.
+ */
+const mergeModules = (
+  version?: Partial<ModulesConfig> | null
+): ModulesConfig => {
+  // Guard against malformed/legacy persisted state where `modules` is missing.
+  const v = version ?? {};
+  return {
+    ...defaultModules,
+    ...v,
+    // Object spread treats `undefined` as a no-op, so no `?? {}` fallback needed.
+    simulations: { ...DEFAULT_SIMULATIONS, ...v.simulations },
+  };
+};
 
 /**
  * Interface defining the modules state
@@ -165,7 +218,7 @@ export const useModulesStore = create<ModulesState>()(
           set({ modules: defaultModules, loading: false });
         } else {
           set({
-            modules: { ...defaultModules, ...version },
+            modules: mergeModules(version),
             ownerInstitutionId: institutionId,
             loading: false,
           });
@@ -194,7 +247,7 @@ export const useModulesStore = create<ModulesState>()(
 
         // Merge with defaultModules to ensure new fields have proper defaults
         // when loading old localStorage data that may be missing new fields
-        const mergedModules = { ...defaultModules, ...rehydrated.modules };
+        const mergedModules = mergeModules(rehydrated.modules);
         useModulesStore.setState({ modules: mergedModules });
 
         const currentInstitutionId =

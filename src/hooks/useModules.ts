@@ -1,4 +1,9 @@
-import { useModulesStore, type ModulesConfig } from '../store/modulesStore';
+import {
+  useModulesStore,
+  DEFAULT_SIMULATIONS,
+  type ModulesConfig,
+  type SimulationsConfig,
+} from '../store/modulesStore';
 
 export interface UseModulesReturn {
   modules: ModulesConfig;
@@ -15,6 +20,10 @@ export interface UseModulesReturn {
   hasSimulatedScoreTri: boolean;
   /** Whether ABSOLUTO score type is available in simulated reports */
   hasSimulatedScoreAbsoluto: boolean;
+  /** Simulados module config (master toggle + per-type visibility) */
+  simulations: SimulationsConfig;
+  /** Whether the Simulados module is enabled (master toggle) */
+  hasSimulations: boolean;
 }
 
 /**
@@ -38,6 +47,9 @@ export interface UseModulesReturn {
 export const useModules = (): UseModulesReturn => {
   const { modules, loading } = useModulesStore();
 
+  // Defensive fallback: older persisted state or partial mocks may omit it.
+  const simulations = modules.simulations ?? DEFAULT_SIMULATIONS;
+
   return {
     modules,
     loading,
@@ -51,5 +63,7 @@ export const useModules = (): UseModulesReturn => {
     hasExams: modules.exams,
     hasSimulatedScoreTri: modules.simulatedScoreTri,
     hasSimulatedScoreAbsoluto: modules.simulatedScoreAbsoluto,
+    simulations,
+    hasSimulations: simulations.enabled,
   };
 };

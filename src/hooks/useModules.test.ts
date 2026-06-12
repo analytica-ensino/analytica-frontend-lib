@@ -2,9 +2,17 @@ import { renderHook } from '@testing-library/react';
 import { useModules } from './useModules';
 import { useModulesStore } from '../store/modulesStore';
 
-// Mock the modulesStore
+// Mock the modulesStore (must also provide DEFAULT_SIMULATIONS, which useModules
+// imports as the defensive fallback for the nested `simulations` config).
 jest.mock('../store/modulesStore', () => ({
   useModulesStore: jest.fn(),
+  DEFAULT_SIMULATIONS: {
+    enabled: true,
+    enem: 'ENABLED',
+    prova: 'ENABLED',
+    simuladao: 'ENABLED',
+    vestibular: 'ENABLED',
+  },
 }));
 
 const mockUseModulesStore = useModulesStore as jest.MockedFunction<
@@ -209,6 +217,41 @@ describe('useModules', () => {
 
       expect(result.current.loading).toBe(false);
       expect(result.current.modules).toEqual(customModules);
+    });
+  });
+
+  describe('simulations config', () => {
+    const fullSimulations = {
+      enabled: false,
+      enem: 'ENABLED' as const,
+      prova: 'COMING_SOON' as const,
+      simuladao: 'HIDDEN' as const,
+      vestibular: 'ENABLED' as const,
+    };
+
+    it('should expose the simulations object and hasSimulations from the store', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: { ...defaultModules, simulations: fullSimulations },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.simulations).toEqual(fullSimulations);
+      expect(result.current.hasSimulations).toBe(false);
+    });
+
+    it('should fall back to defaults when simulations is missing', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: defaultModules, // no `simulations` key
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasSimulations).toBe(true);
+      expect(result.current.simulations.enem).toBe('ENABLED');
+      expect(result.current.simulations.simuladao).toBe('ENABLED');
     });
   });
 });
