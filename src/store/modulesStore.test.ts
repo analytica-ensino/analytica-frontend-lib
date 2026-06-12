@@ -1,5 +1,9 @@
 import type { AxiosInstance } from 'axios';
-import { useModulesStore, type ModulesConfig } from './modulesStore';
+import {
+  useModulesStore,
+  DEFAULT_SIMULATIONS,
+  type ModulesConfig,
+} from './modulesStore';
 import { KEYS } from '../utils/keys';
 
 // Mock API type for testing
@@ -50,6 +54,7 @@ describe('ModulesStore', () => {
     exams: true,
     simulatedScoreTri: false,
     simulatedScoreAbsoluto: false,
+    simulations: DEFAULT_SIMULATIONS,
   };
 
   beforeEach(() => {
@@ -195,6 +200,7 @@ describe('ModulesStore', () => {
         exams: true,
         simulatedScoreTri: false,
         simulatedScoreAbsoluto: false,
+        simulations: DEFAULT_SIMULATIONS,
       };
 
       mockApi.get.mockResolvedValueOnce({
@@ -242,6 +248,37 @@ describe('ModulesStore', () => {
       expect(modules.simulatedReports).toBe(true); // Default
       expect(modules.activitiesReports).toBe(true); // Default
       expect(modules.lessonsReports).toBe(true); // Default
+      // simulations falls back entirely to defaults when not provided
+      expect(modules.simulations).toEqual(DEFAULT_SIMULATIONS);
+    });
+
+    it('should deep-merge a partial simulations object with defaults', async () => {
+      const institutionId = 'test-institution';
+      // Only the master flag and one type are set; remaining types must default.
+      const partialModules = {
+        simulations: { enabled: false, vestibular: 'HIDDEN' },
+      };
+
+      mockApi.get.mockResolvedValueOnce({
+        data: {
+          data: {
+            featureFlags: {
+              version: partialModules,
+            },
+          },
+        },
+      });
+
+      await useModulesStore
+        .getState()
+        .fetchModules(institutionId, mockApi as unknown as AxiosInstance);
+
+      const { modules } = useModulesStore.getState();
+      expect(modules.simulations.enabled).toBe(false); // From API
+      expect(modules.simulations.vestibular).toBe('HIDDEN'); // From API
+      expect(modules.simulations.enem).toBe('ENABLED'); // Default
+      expect(modules.simulations.prova).toBe('ENABLED'); // Default
+      expect(modules.simulations.simuladao).toBe('ENABLED'); // Default
     });
 
     it('should use defaults when API returns no version', async () => {
@@ -502,6 +539,7 @@ describe('ModulesStore', () => {
         exams: true,
         simulatedScoreTri: false,
         simulatedScoreAbsoluto: false,
+        simulations: DEFAULT_SIMULATIONS,
       });
     });
 
@@ -618,6 +656,7 @@ describe('ModulesStore', () => {
           exams: false,
           simulatedScoreTri: false,
           simulatedScoreAbsoluto: false,
+          simulations: { ...DEFAULT_SIMULATIONS, enabled: false },
         },
         ownerInstitutionId: 'some-institution',
       });

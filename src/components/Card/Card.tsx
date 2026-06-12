@@ -1263,6 +1263,13 @@ interface CardSimuladoProps extends HTMLAttributes<HTMLDivElement> {
   duration?: string;
   info: string;
   backgroundColor: 'enem' | 'prova' | 'simuladao' | 'vestibular';
+  /**
+   * Renders the card in a non-interactive "coming soon" state: greyed out,
+   * not clickable, with an "Em breve" badge next to the title.
+   */
+  comingSoon?: boolean;
+  /** Disables interaction (greyed out, not clickable) without a badge. */
+  disabled?: boolean;
 }
 
 const SIMULADO_BACKGROUND_CLASSES = {
@@ -1273,8 +1280,21 @@ const SIMULADO_BACKGROUND_CLASSES = {
 };
 
 const CardSimulado = forwardRef<HTMLDivElement, CardSimuladoProps>(
-  ({ title, duration, info, backgroundColor, className, ...props }, ref) => {
+  (
+    {
+      title,
+      duration,
+      info,
+      backgroundColor,
+      comingSoon = false,
+      disabled = false,
+      className,
+      ...props
+    },
+    ref
+  ) => {
     const backgroundClass = SIMULADO_BACKGROUND_CLASSES[backgroundColor];
+    const isInteractive = !comingSoon && !disabled;
 
     return (
       <CardBase
@@ -1282,18 +1302,43 @@ const CardSimulado = forwardRef<HTMLDivElement, CardSimuladoProps>(
         layout="horizontal"
         padding="medium"
         minHeight="none"
-        cursor="pointer"
+        cursor={isInteractive ? 'pointer' : 'default'}
+        aria-disabled={isInteractive ? undefined : true}
         className={cn(
-          `${backgroundClass} hover:shadow-soft-shadow-2 transition-shadow duration-200`,
+          backgroundClass,
+          isInteractive
+            ? 'hover:shadow-soft-shadow-2 transition-shadow duration-200'
+            : 'opacity-60 pointer-events-none',
           className
         )}
         {...props}
       >
         <div className="flex justify-between items-center w-full gap-4">
           <div className="flex flex-col gap-1 flex-1 min-w-0">
-            <Text size="lg" weight="bold" className="text-text-950 truncate">
-              {title}
-            </Text>
+            {comingSoon ? (
+              <div className="flex items-center gap-2 min-w-0">
+                <Text
+                  size="lg"
+                  weight="bold"
+                  className="text-text-950 truncate"
+                >
+                  {title}
+                </Text>
+                <Badge
+                  size="small"
+                  variant="solid"
+                  action="info"
+                  className="flex-shrink-0"
+                  data-testid="badge-em-breve"
+                >
+                  Em breve
+                </Badge>
+              </div>
+            ) : (
+              <Text size="lg" weight="bold" className="text-text-950 truncate">
+                {title}
+              </Text>
+            )}
 
             <div className="flex items-center gap-4 text-text-700">
               {duration && (
@@ -1309,11 +1354,13 @@ const CardSimulado = forwardRef<HTMLDivElement, CardSimuladoProps>(
             </div>
           </div>
 
-          <CaretRight
-            size={24}
-            className="text-text-800 flex-shrink-0"
-            data-testid="caret-icon"
-          />
+          {isInteractive && (
+            <CaretRight
+              size={24}
+              className="text-text-800 flex-shrink-0"
+              data-testid="caret-icon"
+            />
+          )}
         </div>
       </CardBase>
     );

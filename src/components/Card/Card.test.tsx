@@ -2536,6 +2536,52 @@ describe('CardSimulado', () => {
     expect(card.className).toContain('custom-class');
     expect(card.className).toContain('another-class');
   });
+
+  describe('comingSoon / disabled states', () => {
+    it('should render the "Em breve" badge and hide the caret when comingSoon', () => {
+      render(
+        <CardSimulado {...baseProps} comingSoon data-testid="card-simulado" />
+      );
+
+      expect(screen.getByTestId('badge-em-breve')).toBeInTheDocument();
+      expect(screen.getByText('Em breve')).toBeInTheDocument();
+      expect(screen.queryByTestId('caret-icon')).not.toBeInTheDocument();
+    });
+
+    it('should apply disabled visuals and block pointer events when comingSoon', () => {
+      render(
+        <CardSimulado {...baseProps} comingSoon data-testid="card-simulado" />
+      );
+
+      const card = screen.getByTestId('card-simulado');
+      expect(card.className).toContain('opacity-60');
+      expect(card.className).toContain('pointer-events-none');
+      expect(card.className).not.toContain('cursor-pointer');
+      expect(card).toHaveAttribute('aria-disabled', 'true');
+    });
+
+    it('should apply disabled visuals without a badge when disabled', () => {
+      render(
+        <CardSimulado {...baseProps} disabled data-testid="card-simulado" />
+      );
+
+      const card = screen.getByTestId('card-simulado');
+      expect(card.className).toContain('opacity-60');
+      expect(card.className).toContain('pointer-events-none');
+      expect(screen.queryByTestId('badge-em-breve')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('caret-icon')).not.toBeInTheDocument();
+    });
+
+    it('should stay interactive (caret, no badge) by default', () => {
+      render(<CardSimulado {...baseProps} data-testid="card-simulado" />);
+
+      const card = screen.getByTestId('card-simulado');
+      expect(card.className).toContain('cursor-pointer');
+      expect(card.className).not.toContain('opacity-60');
+      expect(screen.getByTestId('caret-icon')).toBeInTheDocument();
+      expect(screen.queryByTestId('badge-em-breve')).not.toBeInTheDocument();
+    });
+  });
 });
 
 describe('CardTest', () => {
