@@ -2,9 +2,14 @@ import type { AxiosInstance } from 'axios';
 import {
   useModulesStore,
   DEFAULT_SIMULATIONS,
+  DEFAULT_EXAMS,
+  DEFAULT_PERFORMANCE_GRAPHS,
+  DEFAULT_REPORTS,
+  DEFAULT_SIMULATED_SCORE,
   type ModulesConfig,
 } from './modulesStore';
 import { KEYS } from '../utils/keys';
+import { DEFAULT_MODULES } from '../types/modulesConfig';
 
 // Mock API type for testing
 type MockApi = Pick<AxiosInstance, 'get'> & {
@@ -37,25 +42,15 @@ jest.mock('./authStore', () => ({
   useAuthStore: {
     getState: jest.fn(() => ({
       sessionInfo: { institutionId: 'test-institution-id' },
+      selectedProfile: { name: 'STUDENT' },
     })),
     subscribe: jest.fn(() => jest.fn()),
   },
 }));
 
 describe('ModulesStore', () => {
-  const defaultModules: ModulesConfig = {
-    simulator: true,
-    essay: true,
-    forum: true,
-    support: true,
-    simulatedReports: true,
-    activitiesReports: true,
-    lessonsReports: true,
-    exams: true,
-    simulatedScoreTri: false,
-    simulatedScoreAbsoluto: false,
-    simulations: DEFAULT_SIMULATIONS,
-  };
+  // Use DEFAULT_MODULES for test defaults
+  const defaultModules: ModulesConfig = DEFAULT_MODULES;
 
   beforeEach(() => {
     // Clear store state before each test
@@ -63,6 +58,7 @@ describe('ModulesStore', () => {
       modules: defaultModules,
       loading: false,
       ownerInstitutionId: null,
+      ownerProfileType: null,
     });
     localStorageMock.clear();
     jest.clearAllMocks();
@@ -646,6 +642,7 @@ describe('ModulesStore', () => {
       // First set some non-default values
       useModulesStore.setState({
         modules: {
+          ...DEFAULT_MODULES,
           simulator: false,
           essay: false,
           forum: false,
@@ -653,12 +650,13 @@ describe('ModulesStore', () => {
           simulatedReports: false,
           activitiesReports: false,
           lessonsReports: false,
-          exams: false,
+          exams: { ...DEFAULT_EXAMS, enabled: false },
           simulatedScoreTri: false,
           simulatedScoreAbsoluto: false,
           simulations: { ...DEFAULT_SIMULATIONS, enabled: false },
         },
         ownerInstitutionId: 'some-institution',
+        ownerProfileType: 'STUDENT',
       });
 
       useModulesStore.getState().clearModules();
@@ -666,16 +664,19 @@ describe('ModulesStore', () => {
       const state = useModulesStore.getState();
       expect(state.modules).toEqual(defaultModules);
       expect(state.ownerInstitutionId).toBeNull();
+      expect(state.ownerProfileType).toBeNull();
     });
 
-    it('should clear ownerInstitutionId', () => {
+    it('should clear ownerInstitutionId and ownerProfileType', () => {
       useModulesStore.setState({
         ownerInstitutionId: 'test-institution',
+        ownerProfileType: 'TEACHER',
       });
 
       useModulesStore.getState().clearModules();
 
       expect(useModulesStore.getState().ownerInstitutionId).toBeNull();
+      expect(useModulesStore.getState().ownerProfileType).toBeNull();
     });
   });
 

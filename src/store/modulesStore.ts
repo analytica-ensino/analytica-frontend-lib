@@ -3,94 +3,46 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { KEYS } from '../utils/keys';
 import { useAuthStore } from './authStore';
 import type { AxiosInstance } from 'axios';
+import {
+  type ModulesConfig,
+  type SimulationsConfig,
+  type ExamsConfig,
+  type PerformanceGraphsConfig,
+  type ReportsConfig,
+  type SimulatedScoreConfig,
+  type FeatureVisibility,
+  DEFAULT_MODULES,
+  DEFAULT_SIMULATIONS,
+  DEFAULT_EXAMS,
+  DEFAULT_PERFORMANCE_GRAPHS,
+  DEFAULT_REPORTS,
+  DEFAULT_SIMULATED_SCORE,
+  mergeModulesConfig,
+} from '../types/modulesConfig';
 
-/**
- * Visibility state of a single simulado type on the student platform.
- * - ENABLED: shown and clickable
- * - COMING_SOON: shown but disabled, with an "Em breve" badge
- * - HIDDEN: not shown at all
- */
-export type SimulationVisibility = 'ENABLED' | 'COMING_SOON' | 'HIDDEN';
-
-/**
- * Per-institution configuration of the Simulados module.
- * `enabled` is the master toggle (gates the whole module/menu); the remaining
- * keys map 1:1 to each simulado type's `backgroundColor` (the card catalog).
- */
-export interface SimulationsConfig {
-  enabled: boolean;
-  enem: SimulationVisibility;
-  prova: SimulationVisibility;
-  simuladao: SimulationVisibility;
-  vestibular: SimulationVisibility;
-}
-
-/**
- * Default simulados configuration - module on, all types enabled
- */
-export const DEFAULT_SIMULATIONS: SimulationsConfig = {
-  enabled: true,
-  enem: 'ENABLED',
-  prova: 'ENABLED',
-  simuladao: 'ENABLED',
-  vestibular: 'ENABLED',
+// Re-export types for backwards compatibility
+export type {
+  ModulesConfig,
+  SimulationsConfig,
+  ExamsConfig,
+  PerformanceGraphsConfig,
+  ReportsConfig,
+  SimulatedScoreConfig,
+  FeatureVisibility,
+};
+export type SimulationVisibility = FeatureVisibility;
+export {
+  DEFAULT_SIMULATIONS,
+  DEFAULT_EXAMS,
+  DEFAULT_PERFORMANCE_GRAPHS,
+  DEFAULT_REPORTS,
+  DEFAULT_SIMULATED_SCORE,
 };
 
 /**
  * Default modules configuration - all enabled
  */
-const defaultModules: ModulesConfig = {
-  simulator: true,
-  essay: true,
-  forum: true,
-  support: true,
-  simulatedReports: true,
-  activitiesReports: true,
-  lessonsReports: true,
-  exams: true,
-  simulatedScoreTri: false,
-  simulatedScoreAbsoluto: false,
-  simulations: DEFAULT_SIMULATIONS,
-};
-
-/**
- * Interface for modules configuration
- * All modules that can be controlled via feature flags
- */
-export interface ModulesConfig {
-  simulator: boolean;
-  essay: boolean;
-  forum: boolean;
-  support: boolean;
-  simulatedReports: boolean;
-  activitiesReports: boolean;
-  lessonsReports: boolean;
-  exams: boolean;
-  /** Whether TRI score type is available in simulated reports */
-  simulatedScoreTri: boolean;
-  /** Whether ABSOLUTO score type is available in simulated reports */
-  simulatedScoreAbsoluto: boolean;
-  /** Simulados module: master toggle + per-type visibility */
-  simulations: SimulationsConfig;
-}
-
-/**
- * Merge a (possibly partial) feature-flag version onto the defaults.
- * Shallow-merges top-level fields and deep-merges the nested `simulations`
- * object so newly added keys keep their defaults when older configs omit them.
- */
-const mergeModules = (
-  version?: Partial<ModulesConfig> | null
-): ModulesConfig => {
-  // Guard against malformed/legacy persisted state where `modules` is missing.
-  const v = version ?? {};
-  return {
-    ...defaultModules,
-    ...v,
-    // Object spread treats `undefined` as a no-op, so no `?? {}` fallback needed.
-    simulations: { ...DEFAULT_SIMULATIONS, ...v.simulations },
-  };
-};
+const defaultModules = DEFAULT_MODULES;
 
 /**
  * Interface defining the modules state
@@ -99,8 +51,19 @@ export interface ModulesState {
   modules: ModulesConfig;
   loading: boolean;
   ownerInstitutionId: string | null;
+  ownerProfileType: string | null;
 
-  fetchModules: (institutionId: string, api: AxiosInstance) => Promise<void>;
+  /**
+   * Fetch modules configuration from the API
+   * @param institutionId - The institution UUID
+   * @param api - Axios instance for API calls
+   * @param profileType - Optional profile type (STUDENT, TEACHER, UNIT_MANAGER, etc.)
+   */
+  fetchModules: (
+    institutionId: string,
+    api: AxiosInstance,
+    profileType?: string
+  ) => Promise<void>;
   clearModules: () => void;
 }
 
@@ -112,7 +75,10 @@ interface ModulesFeatureFlagResponse {
     featureFlags: {
       institutionId: string;
       page: string;
+      profileType?: string | null;
       version: Partial<ModulesConfig>;
+      isDefault?: boolean;
+      isProfileSpecific?: boolean;
     };
   } | null;
 }
@@ -127,18 +93,23 @@ const INITIAL_RETRY_DELAY = 1000; // 1 second
 /**
  * Delay helper for retry backoff
  */
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const delay = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
- * Check if modules are already cached in localStorage
+ * Check if modules are already cached in localStorage for the given profile
  */
-const hasCachedModules = (): boolean => {
+const hasCachedModules = (profileType?: string): boolean => {
   const cached = localStorage.getItem(KEYS.MODULES_STORAGE);
   if (!cached) return false;
 
   try {
     const parsed = JSON.parse(cached);
-    return Boolean(parsed.state?.ownerInstitutionId);
+    // Check both institution and profile match
+    const hasInstitution = Boolean(parsed.state?.ownerInstitutionId);
+    const profileMatches =
+      !profileType || parsed.state?.ownerProfileType === profileType;
+    return hasInstitution && profileMatches;
   } catch {
     return false;
   }
@@ -157,7 +128,8 @@ const isStaleRequest = (requestId: number): boolean =>
 const fetchWithRetry = async (
   institutionId: string,
   api: AxiosInstance,
-  requestId: number
+  requestId: number,
+  profileType?: string
 ): Promise<Partial<ModulesConfig> | null> => {
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     if (attempt > 0) {
@@ -167,9 +139,13 @@ const fetchWithRetry = async (
     if (isStaleRequest(requestId)) return null;
 
     try {
-      const response = await api.get<ModulesFeatureFlagResponse>(
-        `/featureFlags/institution/${institutionId}/page/MODULES`
-      );
+      // Use the new profile-specific endpoint if profileType is provided
+      const endpoint = profileType
+        ? `/featureFlags/institution/${institutionId}/page/MODULES/profile/${profileType}`
+        : `/featureFlags/institution/${institutionId}/page/MODULES`;
+
+      const response =
+        await api.get<ModulesFeatureFlagResponse>(endpoint);
 
       if (isStaleRequest(requestId)) return null;
 
@@ -185,7 +161,8 @@ const fetchWithRetry = async (
 
 /**
  * Zustand store for managing modules visibility with persistence
- * Works with both student and professor frontends
+ * Works with all frontends (student, professor, gestor)
+ * Supports profile-specific feature flags
  */
 export const useModulesStore = create<ModulesState>()(
   persist(
@@ -193,24 +170,35 @@ export const useModulesStore = create<ModulesState>()(
       modules: defaultModules,
       loading: false,
       ownerInstitutionId: null,
+      ownerProfileType: null,
 
       /**
        * Fetch modules configuration from the API
        * Only fetches if:
-       * 1. No modules data exists in localStorage
+       * 1. No modules data exists in localStorage for this profile
        * 2. User made a new login (data cleared by auth subscriber)
        * Implements retry with exponential backoff on failure
+       *
+       * @param institutionId - The institution UUID
+       * @param api - Axios instance for API calls
+       * @param profileType - Optional profile type (STUDENT, TEACHER, etc.)
        */
       fetchModules: async (
         institutionId: string,
-        api: AxiosInstance
+        api: AxiosInstance,
+        profileType?: string
       ): Promise<void> => {
-        if (hasCachedModules()) return;
+        if (hasCachedModules(profileType)) return;
 
         const requestId = ++latestRequestId;
         set({ loading: true });
 
-        const version = await fetchWithRetry(institutionId, api, requestId);
+        const version = await fetchWithRetry(
+          institutionId,
+          api,
+          requestId,
+          profileType
+        );
 
         if (isStaleRequest(requestId)) return;
 
@@ -218,20 +206,22 @@ export const useModulesStore = create<ModulesState>()(
           set({ modules: defaultModules, loading: false });
         } else {
           set({
-            modules: mergeModules(version),
+            modules: mergeModulesConfig(version),
             ownerInstitutionId: institutionId,
+            ownerProfileType: profileType ?? null,
             loading: false,
           });
         }
       },
 
       /**
-       * Clear modules data (useful when user/institution changes)
+       * Clear modules data (useful when user/institution/profile changes)
        */
       clearModules: (): void => {
         set({
           modules: defaultModules,
           ownerInstitutionId: null,
+          ownerProfileType: null,
         });
       },
     }),
@@ -241,20 +231,27 @@ export const useModulesStore = create<ModulesState>()(
       partialize: (state) => ({
         modules: state.modules,
         ownerInstitutionId: state.ownerInstitutionId,
+        ownerProfileType: state.ownerProfileType,
       }),
       onRehydrateStorage: () => (rehydrated) => {
         if (!rehydrated) return;
 
         // Merge with defaultModules to ensure new fields have proper defaults
         // when loading old localStorage data that may be missing new fields
-        const mergedModules = mergeModules(rehydrated.modules);
+        const mergedModules = mergeModulesConfig(rehydrated.modules);
         useModulesStore.setState({ modules: mergedModules });
 
         const currentInstitutionId =
           useAuthStore.getState().sessionInfo?.institutionId ?? null;
+        const currentProfile =
+          useAuthStore.getState().selectedProfile?.name ?? null;
+
+        // Clear if institution or profile changed
         if (
-          rehydrated.ownerInstitutionId &&
-          rehydrated.ownerInstitutionId !== currentInstitutionId
+          (rehydrated.ownerInstitutionId &&
+            rehydrated.ownerInstitutionId !== currentInstitutionId) ||
+          (rehydrated.ownerProfileType &&
+            rehydrated.ownerProfileType !== currentProfile)
         ) {
           useModulesStore.getState().clearModules();
         }
@@ -263,20 +260,32 @@ export const useModulesStore = create<ModulesState>()(
   )
 );
 
-// Clear modules whenever institution changes (same-tab user switch)
-// Only clear when institution actually CHANGES (not on initial hydration)
+// Clear modules whenever institution or profile changes (same-tab user switch)
+// Only clear when institution/profile actually CHANGES (not on initial hydration)
 let lastInstitutionId: string | null =
   useAuthStore.getState().sessionInfo?.institutionId ?? null;
+let lastProfileType: string | null =
+  useAuthStore.getState().selectedProfile?.name ?? null;
+
 useAuthStore.subscribe((state) => {
-  const nextId = state.sessionInfo?.institutionId ?? null;
-  if (nextId !== lastInstitutionId) {
-    // Only clear modules if there was a previous institution (actual change, not initial load)
-    if (lastInstitutionId !== null) {
+  const nextInstitutionId = state.sessionInfo?.institutionId ?? null;
+  const nextProfileType = state.selectedProfile?.name ?? null;
+
+  if (
+    nextInstitutionId !== lastInstitutionId ||
+    nextProfileType !== lastProfileType
+  ) {
+    // Only clear modules if there was a previous value (actual change, not initial load)
+    if (lastInstitutionId !== null || lastProfileType !== null) {
       useModulesStore.getState().clearModules();
     }
-    if (nextId) {
-      useModulesStore.setState({ ownerInstitutionId: nextId });
+    if (nextInstitutionId) {
+      useModulesStore.setState({ ownerInstitutionId: nextInstitutionId });
     }
-    lastInstitutionId = nextId;
+    if (nextProfileType) {
+      useModulesStore.setState({ ownerProfileType: nextProfileType });
+    }
+    lastInstitutionId = nextInstitutionId;
+    lastProfileType = nextProfileType;
   }
 });

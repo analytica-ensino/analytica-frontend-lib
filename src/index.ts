@@ -833,15 +833,32 @@ export { useQuestionFiltersStore } from './store/questionFiltersStore';
 export type { QuestionFiltersState } from './store/questionFiltersStore';
 export { useLessonFiltersStore } from './store/lessonFiltersStore';
 export type { LessonFiltersState } from './store/lessonFiltersStore';
-export { useModulesStore, DEFAULT_SIMULATIONS } from './store/modulesStore';
+export {
+  useModulesStore,
+  DEFAULT_SIMULATIONS,
+  DEFAULT_EXAMS,
+  DEFAULT_PERFORMANCE_GRAPHS,
+  DEFAULT_REPORTS,
+  DEFAULT_SIMULATED_SCORE,
+} from './store/modulesStore';
 export type {
   ModulesState,
   ModulesConfig,
   SimulationsConfig,
   SimulationVisibility,
+  ExamsConfig,
+  PerformanceGraphsConfig,
+  ReportsConfig,
+  SimulatedScoreConfig,
+  FeatureVisibility,
 } from './store/modulesStore';
 export { useModules } from './hooks/useModules';
 export type { UseModulesReturn } from './hooks/useModules';
+// Re-export from types for direct access
+export {
+  DEFAULT_MODULES,
+  mergeModulesConfig,
+} from './types/modulesConfig';
 export { ModuleProtectedRoute } from './components/ModuleProtectedRoute';
 export type { ModuleProtectedRouteProps } from './components/ModuleProtectedRoute';
 export type {
