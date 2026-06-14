@@ -122,7 +122,7 @@ export const useModules = (): UseModulesReturn => {
     hasExams:
       typeof modules.exams === 'object'
         ? exams.enabled
-        : (modules.exams as boolean) ?? true,
+        : ((modules.exams as boolean) ?? true),
     hasPresencialExams: exams.presenciais ?? true,
     hasDigitalExams: exams.digitais ?? true,
     exams,
@@ -145,8 +145,7 @@ export const useModules = (): UseModulesReturn => {
       reports.simulatedReports ?? modules.simulatedReports ?? true,
     hasActivitiesReports:
       reports.activitiesReports ?? modules.activitiesReports ?? true,
-    hasLessonsReports:
-      reports.lessonsReports ?? modules.lessonsReports ?? true,
+    hasLessonsReports: reports.lessonsReports ?? modules.lessonsReports ?? true,
     hasEssayReports: reports.essayReports ?? true,
     reports,
 

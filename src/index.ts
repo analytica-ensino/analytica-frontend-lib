@@ -855,10 +855,7 @@ export type {
 export { useModules } from './hooks/useModules';
 export type { UseModulesReturn } from './hooks/useModules';
 // Re-export from types for direct access
-export {
-  DEFAULT_MODULES,
-  mergeModulesConfig,
-} from './types/modulesConfig';
+export { DEFAULT_MODULES, mergeModulesConfig } from './types/modulesConfig';
 export { ModuleProtectedRoute } from './components/ModuleProtectedRoute';
 export type { ModuleProtectedRouteProps } from './components/ModuleProtectedRoute';
 export type {

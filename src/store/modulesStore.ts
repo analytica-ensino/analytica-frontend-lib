@@ -93,8 +93,7 @@ const INITIAL_RETRY_DELAY = 1000; // 1 second
 /**
  * Delay helper for retry backoff
  */
-const delay = (ms: number) =>
-  new Promise((resolve) => setTimeout(resolve, ms));
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * Check if modules are already cached in localStorage for the given profile
@@ -144,8 +143,7 @@ const fetchWithRetry = async (
         ? `/featureFlags/institution/${institutionId}/page/MODULES/profile/${profileType}`
         : `/featureFlags/institution/${institutionId}/page/MODULES`;
 
-      const response =
-        await api.get<ModulesFeatureFlagResponse>(endpoint);
+      const response = await api.get<ModulesFeatureFlagResponse>(endpoint);
 
       if (isStaleRequest(requestId)) return null;
 

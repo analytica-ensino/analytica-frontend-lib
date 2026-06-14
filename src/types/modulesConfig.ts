@@ -190,7 +190,10 @@ export const mergeModulesConfig = (
     ...v,
     exams: { ...DEFAULT_EXAMS, ...v.exams },
     simulations: { ...DEFAULT_SIMULATIONS, ...v.simulations },
-    performanceGraphs: { ...DEFAULT_PERFORMANCE_GRAPHS, ...v.performanceGraphs },
+    performanceGraphs: {
+      ...DEFAULT_PERFORMANCE_GRAPHS,
+      ...v.performanceGraphs,
+    },
     reports: { ...DEFAULT_REPORTS, ...v.reports },
     simulatedScore: { ...DEFAULT_SIMULATED_SCORE, ...v.simulatedScore },
   };

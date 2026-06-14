@@ -373,7 +373,9 @@ describe('ModuleProtectedRoute', () => {
     });
 
     it('should render nothing while loading even when enabled is true', () => {
-      mockUseModules.mockReturnValue(createMockModulesReturn({ loading: true }));
+      mockUseModules.mockReturnValue(
+        createMockModulesReturn({ loading: true })
+      );
 
       const { container } = renderWithRouter(
         <ModuleProtectedRoute enabled={true}>
