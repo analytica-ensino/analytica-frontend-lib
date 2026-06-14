@@ -308,7 +308,7 @@ describe('SimulationsDetailModal', () => {
           data: [
             {
               id: 'sim-1',
-              title: 'Prova ENEM Matemática',
+              title: '  Prova ENEM Matemática  ',
               correctCount: 0,
               incorrectCount: 0,
               blankCount: 0,
@@ -344,9 +344,9 @@ describe('SimulationsDetailModal', () => {
       />
     );
 
-    await waitFor(() =>
-      expect(screen.getByText('Prova ENEM Matemática')).toBeInTheDocument()
-    );
+    const titleNode = await screen.findByText('Prova ENEM Matemática');
+    // The title is rendered trimmed (no leading/trailing whitespace).
+    expect(titleNode.textContent).toBe('Prova ENEM Matemática');
   });
 
   it('falls back to "Simulado N" when the simulation has no title', async () => {

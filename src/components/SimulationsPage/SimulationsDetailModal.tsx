@@ -260,7 +260,7 @@ function SimulationItem({
         <div className="flex-1 py-4">
           <Text weight="bold" className="text-text-950">
             {simulation.title?.trim()
-              ? simulation.title
+              ? simulation.title.trim()
               : `Simulado ${index + 1}`}
           </Text>
         </div>
