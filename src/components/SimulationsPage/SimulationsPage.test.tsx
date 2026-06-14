@@ -34,9 +34,24 @@ const studentSimulationsPayload = {
   },
 };
 
+const accessPayload = {
+  message: 'ok',
+  data: {
+    schools: [{ id: 'sch-1', name: 'Escola 1' }],
+    schoolYears: [{ id: 'sy-1', name: '3º Ano', schoolId: 'sch-1' }],
+    classes: [
+      { id: 'c1', name: 'Turma A', schoolId: 'sch-1', schoolYearId: 'sy-1' },
+      { id: 'c2', name: 'Turma B', schoolId: 'sch-1', schoolYearId: 'sy-1' },
+    ],
+  },
+};
+
 function makeApi(): BaseApiClient {
   return {
     get: jest.fn((url: string) => {
+      if (url.endsWith('/auth/me')) {
+        return Promise.resolve({ data: accessPayload });
+      }
       if (url.endsWith('/students')) {
         return Promise.resolve({ data: studentsPayload });
       }
@@ -74,5 +89,35 @@ describe('SimulationsPage', () => {
     await waitFor(() =>
       expect(screen.getByText('40 simulados respondidos')).toBeInTheDocument()
     );
+  });
+
+  it('lists the manager classes inside the filter modal', async () => {
+    render(<SimulationsPage api={makeApi()} />);
+
+    await screen.findByText('Ana Costa');
+    fireEvent.click(screen.getByText('Filtros'));
+
+    expect(await screen.findByText('Turma A')).toBeInTheDocument();
+    expect(screen.getByText('Turma B')).toBeInTheDocument();
+  });
+
+  it('refetches students with classIds when a turma filter is applied', async () => {
+    const api = makeApi();
+    render(<SimulationsPage api={api} />);
+
+    await screen.findByText('Ana Costa');
+    fireEvent.click(screen.getByText('Filtros'));
+
+    // Select "Turma A" and apply the filter.
+    fireEvent.click(await screen.findByText('Turma A'));
+    fireEvent.click(screen.getByText('Aplicar'));
+
+    await waitFor(() => {
+      const studentsCalls = (api.get as jest.Mock).mock.calls.filter(
+        ([url]: [string]) => url.endsWith('/students')
+      );
+      const lastCall = studentsCalls.at(-1);
+      expect(lastCall?.[1]?.params?.classIds).toEqual(['c1']);
+    });
   });
 });
