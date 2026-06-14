@@ -5,6 +5,8 @@ import Text from '../Text/Text';
 import Button from '../Button/Button';
 import { TableProvider } from '../TableProvider';
 import type { ColumnConfig, TableParams } from '../TableProvider';
+import type { FilterConfig } from '../Filter/useTableFilter';
+import { useUserAccessData } from '../SimulatedFilters/hooks';
 import type { BaseApiClient } from '../../types/api';
 import { createUseSimulations } from '../../hooks/useSimulations';
 import type { SimulationsStudentItem } from '../../types/simulations';
@@ -27,6 +29,7 @@ const DEFAULT_LIMIT = 10;
 export function SimulationsPage({ api, noSearchImage }: SimulationsPageProps) {
   const useSimulations = useMemo(() => createUseSimulations(api), [api]);
   const { fetchStudents } = useSimulations();
+  const { classes } = useUserAccessData(api);
 
   const [students, setStudents] = useState<SimulationsStudentItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -36,13 +39,38 @@ export function SimulationsPage({ api, noSearchImage }: SimulationsPageProps) {
     name: string;
   } | null>(null);
 
+  // Build a single-category "Turma" filter so the TableProvider's native filter
+  // modal handles multi-selection. The category key is `classIds`, so the
+  // selected ids surface in TableParams as `params.classIds`.
+  const initialFilters = useMemo<FilterConfig[]>(
+    () => [
+      {
+        key: 'turma',
+        label: 'Turma',
+        categories: [
+          {
+            key: 'classIds',
+            label: 'Turma',
+            selectedIds: [],
+            itens: classes.map((c) => ({ id: c.id, name: c.name })),
+          },
+        ],
+      },
+    ],
+    [classes]
+  );
+
   const handleParamsChange = useCallback(
     (params: TableParams) => {
+      const classIds = Array.isArray(params.classIds)
+        ? (params.classIds as string[])
+        : undefined;
       setLoading(true);
       fetchStudents({
         page: params.page,
         limit: params.limit,
         search: params.search?.trim() || undefined,
+        classIds: classIds?.length ? classIds : undefined,
       })
         .then((result) => {
           setStudents(result.data);
@@ -130,7 +158,9 @@ export function SimulationsPage({ api, noSearchImage }: SimulationsPageProps) {
         loading={loading}
         variant="borderless"
         enableSearch
+        enableFilters
         enablePagination
+        initialFilters={initialFilters}
         rowKey="userInstitutionId"
         searchPlaceholder="Buscar estudante"
         onParamsChange={handleParamsChange}

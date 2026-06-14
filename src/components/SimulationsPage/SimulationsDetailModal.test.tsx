@@ -295,6 +295,114 @@ describe('SimulationsDetailModal', () => {
     );
   });
 
+  it('shows the title the student gave the simulation', async () => {
+    const titledList = {
+      message: 'ok',
+      data: {
+        student: {
+          userInstitutionId: 'ui-1',
+          name: 'Ana Costa',
+          simulationsAnswered: 1,
+        },
+        simulations: {
+          data: [
+            {
+              id: 'sim-1',
+              title: '  Prova ENEM Matemática  ',
+              correctCount: 0,
+              incorrectCount: 0,
+              blankCount: 0,
+              totalQuestions: 0,
+              createdAt: null,
+            },
+          ],
+          page: 1,
+          limit: 20,
+          total: 1,
+        },
+      },
+    };
+    const get = jest.fn((url: string) => {
+      if (url.endsWith('/note')) {
+        return Promise.resolve({ data: { message: 'ok', data: null } });
+      }
+      return Promise.resolve({ data: titledList });
+    });
+    const api = {
+      get,
+      post: jest.fn(),
+      patch: jest.fn(),
+      delete: jest.fn(),
+    } as unknown as BaseApiClient;
+
+    render(
+      <SimulationsDetailModal
+        api={api}
+        isOpen
+        onClose={jest.fn()}
+        student={student}
+      />
+    );
+
+    const titleNode = await screen.findByText('Prova ENEM Matemática');
+    // The title is rendered trimmed (no leading/trailing whitespace).
+    expect(titleNode.textContent).toBe('Prova ENEM Matemática');
+  });
+
+  it('falls back to "Simulado N" when the simulation has no title', async () => {
+    const untitledList = {
+      message: 'ok',
+      data: {
+        student: {
+          userInstitutionId: 'ui-1',
+          name: 'Ana Costa',
+          simulationsAnswered: 1,
+        },
+        simulations: {
+          data: [
+            {
+              id: 'sim-1',
+              title: '   ',
+              correctCount: 0,
+              incorrectCount: 0,
+              blankCount: 0,
+              totalQuestions: 0,
+              createdAt: null,
+            },
+          ],
+          page: 1,
+          limit: 20,
+          total: 1,
+        },
+      },
+    };
+    const get = jest.fn((url: string) => {
+      if (url.endsWith('/note')) {
+        return Promise.resolve({ data: { message: 'ok', data: null } });
+      }
+      return Promise.resolve({ data: untitledList });
+    });
+    const api = {
+      get,
+      post: jest.fn(),
+      patch: jest.fn(),
+      delete: jest.fn(),
+    } as unknown as BaseApiClient;
+
+    render(
+      <SimulationsDetailModal
+        api={api}
+        isOpen
+        onClose={jest.fn()}
+        student={student}
+      />
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText('Simulado 1')).toBeInTheDocument()
+    );
+  });
+
   it('renders LaTeX in the question statement', async () => {
     const mathDetail = {
       message: 'ok',

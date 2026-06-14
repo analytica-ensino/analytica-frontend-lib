@@ -259,7 +259,9 @@ function SimulationItem({
       trigger={
         <div className="flex-1 py-4">
           <Text weight="bold" className="text-text-950">
-            Simulado {index + 1}
+            {simulation.title?.trim()
+              ? simulation.title.trim()
+              : `Simulado ${index + 1}`}
           </Text>
         </div>
       }
