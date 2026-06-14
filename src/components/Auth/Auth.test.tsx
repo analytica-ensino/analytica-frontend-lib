@@ -1053,7 +1053,7 @@ describe('Auth Components', () => {
 
     it('should handle Brazilian .com.br domains correctly', () => {
       const mockLocation = {
-        hostname: 'aluno.analiticaensino.com.br',
+        hostname: 'aluno.analyticaensino.com.br',
         protocol: 'https:',
         port: '',
       };
@@ -1063,12 +1063,12 @@ describe('Auth Components', () => {
 
       const result = getRootDomain();
 
-      expect(result).toBe('https://analiticaensino.com.br');
+      expect(result).toBe('https://analyticaensino.com.br');
     });
 
     it('should handle multi-level .com.br domains', () => {
       const mockLocation = {
-        hostname: 'portal.admin.analiticaensino.com.br',
+        hostname: 'portal.admin.analyticaensino.com.br',
         protocol: 'https:',
         port: '',
       };
@@ -1078,7 +1078,7 @@ describe('Auth Components', () => {
 
       const result = getRootDomain();
 
-      expect(result).toBe('https://analiticaensino.com.br');
+      expect(result).toBe('https://analyticaensino.com.br');
     });
 
     it('should handle regular .com domains', () => {
@@ -1128,7 +1128,7 @@ describe('Auth Components', () => {
 
     it('should handle .com.br without subdomain', () => {
       const mockLocation = {
-        hostname: 'analiticaensino.com.br',
+        hostname: 'analyticaensino.com.br',
         protocol: 'https:',
         port: '',
       };
@@ -1138,12 +1138,12 @@ describe('Auth Components', () => {
 
       const result = getRootDomain();
 
-      expect(result).toBe('https://analiticaensino.com.br');
+      expect(result).toBe('https://analyticaensino.com.br');
     });
 
     it('should handle port numbers correctly', () => {
       const mockLocation = {
-        hostname: 'aluno.analiticaensino.com.br',
+        hostname: 'aluno.analyticaensino.com.br',
         protocol: 'https:',
         port: '8080',
       };
@@ -1153,7 +1153,7 @@ describe('Auth Components', () => {
 
       const result = getRootDomain();
 
-      expect(result).toBe('https://analiticaensino.com.br:8080');
+      expect(result).toBe('https://analyticaensino.com.br:8080');
     });
 
     it('should handle IPv4 addresses correctly', () => {
@@ -1234,7 +1234,7 @@ describe('Auth Components', () => {
 
     it('should redirect to hml login for hml .com.br subdomains', () => {
       const mockLocation = {
-        hostname: 'hml-aluno.analiticaensino.com.br',
+        hostname: 'hml-aluno.analyticaensino.com.br',
         protocol: 'https:',
         port: '',
       };
@@ -1244,7 +1244,7 @@ describe('Auth Components', () => {
 
       const result = getRootDomain();
 
-      expect(result).toBe('https://hml.analiticaensino.com.br');
+      expect(result).toBe('https://hml.analyticaensino.com.br');
     });
 
     it('should redirect to hml login for hml .com subdomains', () => {
@@ -1264,7 +1264,7 @@ describe('Auth Components', () => {
 
     it('should not add hml prefix for production .com.br subdomains', () => {
       const mockLocation = {
-        hostname: 'aluno.analiticaensino.com.br',
+        hostname: 'aluno.analyticaensino.com.br',
         protocol: 'https:',
         port: '',
       };
@@ -1274,7 +1274,7 @@ describe('Auth Components', () => {
 
       const result = getRootDomain();
 
-      expect(result).toBe('https://analiticaensino.com.br');
+      expect(result).toBe('https://analyticaensino.com.br');
     });
   });
 

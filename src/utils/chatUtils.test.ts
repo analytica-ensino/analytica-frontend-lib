@@ -100,14 +100,14 @@ describe('chatUtils', () => {
     });
 
     it('should convert bff-hml to bff-hml-chat domain', () => {
-      expect(getChatWsUrl('https://bff-hml.analiticaensino.com.br')).toBe(
-        'wss://bff-hml-chat.analiticaensino.com.br'
+      expect(getChatWsUrl('https://bff-hml.analyticaensino.com.br')).toBe(
+        'wss://bff-hml-chat.analyticaensino.com.br'
       );
     });
 
-    it('should convert bff to bff-chat domain (production)', () => {
-      expect(getChatWsUrl('https://bff.analiticaensino.com.br')).toBe(
-        'wss://bff-chat.analiticaensino.com.br'
+    it('should convert bff-prod to bff-prod-chat domain (production)', () => {
+      expect(getChatWsUrl('https://bff-prod.analyticaensino.com.br')).toBe(
+        'wss://bff-prod-chat.analyticaensino.com.br'
       );
     });
 

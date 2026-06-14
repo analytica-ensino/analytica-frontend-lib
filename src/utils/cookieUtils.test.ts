@@ -83,7 +83,7 @@ describe('cookieUtils', () => {
 
     it('should write all provided attributes', () => {
       setCookie('theme-store', 'x', {
-        domain: 'analiticaensino.com.br',
+        domain: 'analyticaensino.com.br',
         path: '/',
         maxAge: 31536000,
         sameSite: 'Lax',
@@ -91,7 +91,7 @@ describe('cookieUtils', () => {
       });
 
       expect(cookieSetter).toHaveBeenCalledWith(
-        'theme-store=x; Path=/; Max-Age=31536000; Domain=analiticaensino.com.br; SameSite=Lax; Secure'
+        'theme-store=x; Path=/; Max-Age=31536000; Domain=analyticaensino.com.br; SameSite=Lax; Secure'
       );
     });
 
@@ -112,10 +112,10 @@ describe('cookieUtils', () => {
     });
 
     it('should expire the cookie with Max-Age=0 on removeCookie', () => {
-      removeCookie('theme-store', { domain: 'analiticaensino.com.br' });
+      removeCookie('theme-store', { domain: 'analyticaensino.com.br' });
 
       expect(cookieSetter).toHaveBeenCalledWith(
-        'theme-store=; Path=/; Max-Age=0; Domain=analiticaensino.com.br; SameSite=Lax'
+        'theme-store=; Path=/; Max-Age=0; Domain=analyticaensino.com.br; SameSite=Lax'
       );
     });
   });

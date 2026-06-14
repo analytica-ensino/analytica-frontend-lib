@@ -34,22 +34,23 @@ export const isChatUserInfoValid = (userInfo: ChatUserInfo): boolean => {
  * Get WebSocket URL from API URL
  * Converts https:// to wss://, http:// to ws://, and replaces bff domain with chat domain
  *
- * @param apiUrl - The API URL (e.g., 'https://bff-hml.analiticaensino.com.br')
- * @returns WebSocket URL for chat (e.g., 'wss://bff-hml-chat.analiticaensino.com.br')
+ * @param apiUrl - The API URL (e.g., 'https://bff-hml.analyticaensino.com.br')
+ * @returns WebSocket URL for chat (e.g., 'wss://bff-hml-chat.analyticaensino.com.br')
  *
  * @example
  * ```ts
- * const wsUrl = getChatWsUrl('https://bff-hml.analiticaensino.com.br');
- * // Returns: 'wss://bff-hml-chat.analiticaensino.com.br'
+ * const wsUrl = getChatWsUrl('https://bff-hml.analyticaensino.com.br');
+ * // Returns: 'wss://bff-hml-chat.analyticaensino.com.br'
  *
- * const wsUrl = getChatWsUrl('https://bff.analiticaensino.com.br');
- * // Returns: 'wss://bff-chat.analiticaensino.com.br'
+ * const wsUrl = getChatWsUrl('https://bff-prod.analyticaensino.com.br');
+ * // Returns: 'wss://bff-prod-chat.analyticaensino.com.br'
  * ```
  */
 export const getChatWsUrl = (apiUrl: string): string => {
   return apiUrl
     .replace(/^https?/, 'wss')
     .replace(/bff-hml\./, 'bff-hml-chat.')
+    .replace(/bff-prod\./, 'bff-prod-chat.')
     .replace(/bff\./, 'bff-chat.');
 };
 

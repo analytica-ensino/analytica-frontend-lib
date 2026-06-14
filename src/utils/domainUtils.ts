@@ -10,8 +10,8 @@
  *
  * @example
  * ```typescript
- * resolveRootHostname('aluno.analiticaensino.com.br'); // 'analiticaensino.com.br'
- * resolveRootHostname('aluno.hml.analiticaensino.com.br'); // 'hml.analiticaensino.com.br'
+ * resolveRootHostname('aluno.analyticaensino.com.br'); // 'analyticaensino.com.br'
+ * resolveRootHostname('aluno.hml.analyticaensino.com.br'); // 'hml.analyticaensino.com.br'
  * resolveRootHostname('sub.example.com'); // 'example.com'
  * resolveRootHostname('localhost'); // null
  * resolveRootHostname('127.0.0.1'); // null
@@ -39,12 +39,12 @@ export const resolveRootHostname = (hostname: string): string | null => {
   // Handle Brazilian .com.br domains and similar patterns
   if (parts.length >= 3 && parts.at(-2) === 'com' && parts.at(-1) === 'br') {
     if (parts.length === 3) {
-      // Already at root level for .com.br (e.g., analiticaensino.com.br)
+      // Already at root level for .com.br (e.g., analyticaensino.com.br)
       return hostname;
     }
-    // For domains like aluno.analiticaensino.com.br, return analiticaensino.com.br
+    // For domains like aluno.analyticaensino.com.br, return analyticaensino.com.br
     const base = parts.slice(-3).join('.');
-    // If in hml environment, resolve to hml.base (e.g., hml.analiticaensino.com.br)
+    // If in hml environment, resolve to hml.base (e.g., hml.analyticaensino.com.br)
     return isHml && !base.startsWith('hml.') ? `hml.${base}` : base;
   }
 

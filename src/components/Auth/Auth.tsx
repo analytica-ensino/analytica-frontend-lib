@@ -529,7 +529,7 @@ export const useRouteAuth = (fallbackPath = '/') => {
  * @example
  * ```typescript
  * // Domain examples
- * aluno.analiticaensino.com.br -> analiticaensino.com.br
+ * aluno.analyticaensino.com.br -> analyticaensino.com.br
  * subdomain.example.com -> example.com
  *
  * // IP address examples

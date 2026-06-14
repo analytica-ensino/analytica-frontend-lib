@@ -12,12 +12,12 @@ describe('resolveRootHostname', () => {
   });
 
   it.each([
-    ['analiticaensino.com.br', 'analiticaensino.com.br'],
-    ['aluno.analiticaensino.com.br', 'analiticaensino.com.br'],
-    ['professor.analiticaensino.com.br', 'analiticaensino.com.br'],
-    ['hml.analiticaensino.com.br', 'hml.analiticaensino.com.br'],
-    ['aluno.hml.analiticaensino.com.br', 'hml.analiticaensino.com.br'],
-    ['hml-aluno.analiticaensino.com.br', 'hml.analiticaensino.com.br'],
+    ['analyticaensino.com.br', 'analyticaensino.com.br'],
+    ['aluno.analyticaensino.com.br', 'analyticaensino.com.br'],
+    ['professor.analyticaensino.com.br', 'analyticaensino.com.br'],
+    ['hml.analyticaensino.com.br', 'hml.analyticaensino.com.br'],
+    ['aluno.hml.analyticaensino.com.br', 'hml.analyticaensino.com.br'],
+    ['hml-aluno.analyticaensino.com.br', 'hml.analyticaensino.com.br'],
   ])('should resolve %s to %s (.com.br rules)', (hostname, expected) => {
     expect(resolveRootHostname(hostname)).toBe(expected);
   });
@@ -35,7 +35,7 @@ describe('resolveRootHostname', () => {
 
   it.each([
     ['aluno.html.example.com', 'example.com'],
-    ['html.analiticaensino.com.br', 'analiticaensino.com.br'],
+    ['html.analyticaensino.com.br', 'analyticaensino.com.br'],
   ])(
     'should not treat %s as hml environment (label-based detection)',
     (hostname, expected) => {
