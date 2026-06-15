@@ -51,7 +51,7 @@ describe('useSimulatedSubjects', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('fetches subjects filtered by areaKnowledgeId', async () => {
+  it('fetches subjects filtered by areaKnowledgeIds', async () => {
     const api = createMockApi();
     api.get.mockResolvedValueOnce({
       data: { message: 'ok', data: createMockSubjects() },
@@ -60,11 +60,28 @@ describe('useSimulatedSubjects', () => {
     const { result } = renderHook(() => useSimulatedSubjects(api));
 
     await act(async () => {
-      await result.current.fetchSubjects('area-1');
+      await result.current.fetchSubjects(['area-1']);
     });
 
     expect(api.get).toHaveBeenCalledWith(
-      '/performance/simulated/subjects?areaKnowledgeId=area-1'
+      '/performance/simulated/subjects?areaKnowledgeIds=area-1'
+    );
+  });
+
+  it('fetches subjects filtered by multiple areaKnowledgeIds', async () => {
+    const api = createMockApi();
+    api.get.mockResolvedValueOnce({
+      data: { message: 'ok', data: createMockSubjects() },
+    });
+
+    const { result } = renderHook(() => useSimulatedSubjects(api));
+
+    await act(async () => {
+      await result.current.fetchSubjects(['area-1', 'area-2']);
+    });
+
+    expect(api.get).toHaveBeenCalledWith(
+      '/performance/simulated/subjects?areaKnowledgeIds=area-1%2Carea-2'
     );
   });
 

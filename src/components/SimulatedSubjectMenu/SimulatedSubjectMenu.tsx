@@ -45,7 +45,8 @@ export function SimulatedSubjectMenu({
 
   useEffect(() => {
     // Use relatedIds when available (for merged areas), otherwise fallback to single ID
-    const idsToFetch = relatedIds ?? (areaKnowledgeId ? [areaKnowledgeId] : null);
+    const idsToFetch =
+      relatedIds ?? (areaKnowledgeId ? [areaKnowledgeId] : null);
     fetchSubjects(idsToFetch);
   }, [fetchSubjects, areaKnowledgeId, relatedIds]);
 
