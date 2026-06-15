@@ -225,6 +225,9 @@ export function useSimulatedPerformance({
   const [selectedAreaKnowledgeId, setSelectedAreaKnowledgeId] = useState<
     string | null
   >(null);
+  const [selectedAreaRelatedIds, setSelectedAreaRelatedIds] = useState<
+    string[]
+  >([]);
   const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(
     null
   );
@@ -615,14 +618,19 @@ export function useSimulatedPerformance({
         return;
       }
 
+      // Find the area to get relatedIds (for merged areas with same name)
+      const area = generalOverviewData?.areas.find((a) => a.id === areaId);
+      const relatedIds = area?.relatedIds ?? (areaId ? [areaId] : []);
+
       setSelectedAreaKnowledgeId(areaId);
+      setSelectedAreaRelatedIds(relatedIds);
       setSelectedSubjectId(null);
       setSimulatedViewTab(SimulatedViewTab.STUDENTS);
 
       loadAggregatedOverviewData(areaId, null);
       loadStudentsData(areaId, null);
     },
-    [loadStudentsData, loadAggregatedOverviewData]
+    [loadStudentsData, loadAggregatedOverviewData, generalOverviewData]
   );
 
   const handleSubjectChange = useCallback(
@@ -919,6 +927,7 @@ export function useSimulatedPerformance({
 
     // Estados de Seleção
     selectedAreaKnowledgeId,
+    selectedAreaRelatedIds,
     selectedSubjectId,
     simulatedViewTab,
     isEssaySelected,

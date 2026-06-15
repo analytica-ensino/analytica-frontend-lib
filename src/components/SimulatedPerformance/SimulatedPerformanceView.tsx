@@ -65,6 +65,7 @@ export function SimulatedPerformanceView({
   period,
   scoreType,
   selectedAreaKnowledgeId,
+  selectedAreaRelatedIds,
   selectedSubjectId,
   simulatedViewTab,
   isEssaySelected,
@@ -199,6 +200,7 @@ export function SimulatedPerformanceView({
           <SimulatedSubjectMenu
             api={api}
             areaKnowledgeId={selectedAreaKnowledgeId}
+            relatedIds={selectedAreaRelatedIds}
             selectedSubjectId={selectedSubjectId}
             onSubjectChange={handleSubjectChange}
             loading={studentsOverview.loading}

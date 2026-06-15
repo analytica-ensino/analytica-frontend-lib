@@ -17,11 +17,11 @@ const initialState: UseSimulatedSubjectsState = {
 
 /**
  * Build the API endpoint for subjects
- * Supports filtering by areaKnowledgeId
+ * Supports filtering by areaKnowledgeId (single) or areaKnowledgeIds (array for merged areas)
  */
-function buildEndpoint(areaKnowledgeId?: string | null): string {
-  if (areaKnowledgeId) {
-    return `/performance/simulated/subjects?areaKnowledgeId=${encodeURIComponent(areaKnowledgeId)}`;
+function buildEndpoint(areaKnowledgeIds?: string[] | null): string {
+  if (areaKnowledgeIds && areaKnowledgeIds.length > 0) {
+    return `/performance/simulated/subjects?areaKnowledgeIds=${encodeURIComponent(areaKnowledgeIds.join(','))}`;
   }
   return '/performance/simulated/subjects';
 }
@@ -52,11 +52,12 @@ export function useSimulatedSubjects(
   const [state, setState] = useState<UseSimulatedSubjectsState>(initialState);
 
   /**
-   * Fetch subjects, optionally filtered by area
-   * @param areaKnowledgeId - Optional area knowledge ID to filter subjects
+   * Fetch subjects, optionally filtered by area(s)
+   * @param areaKnowledgeIds - Optional array of area knowledge IDs to filter subjects
+   *                          (supports multiple IDs for merged areas)
    */
   const fetchSubjects = useCallback(
-    async (areaKnowledgeId?: string | null) => {
+    async (areaKnowledgeIds?: string[] | null) => {
       setState((prev) => ({
         ...prev,
         loading: true,
@@ -64,7 +65,7 @@ export function useSimulatedSubjects(
       }));
 
       try {
-        const endpoint = buildEndpoint(areaKnowledgeId);
+        const endpoint = buildEndpoint(areaKnowledgeIds);
         const response = await api.get<SimulatedSubjectsApiResponse>(endpoint);
 
         setState({

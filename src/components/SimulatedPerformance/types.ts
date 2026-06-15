@@ -41,6 +41,8 @@ export interface UseSimulatedPerformanceReturn {
 
   // === Estados de Seleção ===
   selectedAreaKnowledgeId: string | null;
+  /** Related IDs for merged areas (includes all IDs when area was deduplicated) */
+  selectedAreaRelatedIds: string[];
   selectedSubjectId: string | null;
   simulatedViewTab: SimulatedViewTab;
   isEssaySelected: boolean;
