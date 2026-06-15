@@ -34,6 +34,7 @@ export interface TimeReportData {
   activity_time: TimeMetric;
   exam_simulation_time?: TimeMetric;
   content_time?: TimeMetric;
+  questionnaire_time?: TimeMetric;
   recommended_classes_time: TimeMetric;
 }
 
