@@ -97,9 +97,11 @@ describe('AreaKnowledgeSelector', () => {
       await user.click(trigger);
 
       await waitFor(() => {
+        // Verify dropdown menu is open
+        expect(screen.getByRole('menu')).toBeInTheDocument();
         // "Todos" appears both in trigger (selected) and in dropdown menu
         const todosElements = screen.getAllByText('Todos');
-        expect(todosElements.length).toBeGreaterThanOrEqual(1);
+        expect(todosElements).toHaveLength(2);
       });
     });
 
@@ -262,9 +264,11 @@ describe('AreaKnowledgeSelector', () => {
       await user.click(trigger);
 
       await waitFor(() => {
+        // Verify dropdown menu is open
+        expect(screen.getByRole('menu')).toBeInTheDocument();
         // "Todos" appears both in trigger (selected) and in dropdown menu
         const todosElements = screen.getAllByText('Todos');
-        expect(todosElements.length).toBeGreaterThanOrEqual(1);
+        expect(todosElements).toHaveLength(2);
       });
     });
 
@@ -325,9 +329,11 @@ describe('AreaKnowledgeSelector', () => {
       await user.keyboard('{Enter}');
 
       await waitFor(() => {
+        // Verify dropdown menu is open
+        expect(screen.getByRole('menu')).toBeInTheDocument();
         // "Todos" appears both in trigger (selected) and in dropdown menu
         const todosElements = screen.getAllByText('Todos');
-        expect(todosElements.length).toBeGreaterThanOrEqual(1);
+        expect(todosElements).toHaveLength(2);
       });
     });
   });

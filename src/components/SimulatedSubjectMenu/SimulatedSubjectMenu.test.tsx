@@ -139,6 +139,25 @@ describe('SimulatedSubjectMenu', () => {
     expect(mockFetchSubjects).toHaveBeenLastCalledWith(['area-1']);
   });
 
+  it('uses relatedIds over areaKnowledgeId when both are provided', () => {
+    render(
+      <SimulatedSubjectMenu
+        api={api}
+        areaKnowledgeId="area-1"
+        relatedIds={['area-1', 'area-2', 'area-3']}
+        selectedSubjectId={null}
+        onSubjectChange={onSubjectChange}
+      />
+    );
+
+    // relatedIds should take precedence over areaKnowledgeId
+    expect(mockFetchSubjects).toHaveBeenCalledWith([
+      'area-1',
+      'area-2',
+      'area-3',
+    ]);
+  });
+
   it('uses "all" as effective value when selectedSubjectId is null', () => {
     render(
       <SimulatedSubjectMenu

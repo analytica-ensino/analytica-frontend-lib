@@ -344,6 +344,18 @@ export function useSimulatedPerformance({
     return count;
   }, [filters]);
 
+  // Sync selectedAreaRelatedIds when generalOverviewData is refreshed
+  useEffect(() => {
+    if (!selectedAreaKnowledgeId || !generalOverviewData?.areas) {
+      return;
+    }
+    const area = generalOverviewData.areas.find(
+      (a) => a.id === selectedAreaKnowledgeId
+    );
+    const relatedIds = area?.relatedIds ?? [selectedAreaKnowledgeId];
+    setSelectedAreaRelatedIds(relatedIds);
+  }, [generalOverviewData, selectedAreaKnowledgeId]);
+
   // === Colunas das Tabelas (memoizadas) ===
   const studentsTableColumns = useMemo(
     (): ColumnConfig<SimulatedStudentItem>[] =>
