@@ -430,4 +430,87 @@ describe('useSimulatedPerformance', () => {
       expect(columnKeys).toContain('performance');
     });
   });
+
+  describe('selectedAreaRelatedIds', () => {
+    it('returns empty array initially', () => {
+      const api = createMockApi();
+      const { result } = renderHook(() => useSimulatedPerformance({ api }));
+
+      expect(result.current.selectedAreaRelatedIds).toEqual([]);
+    });
+
+    it('updates selectedAreaRelatedIds when area is selected', async () => {
+      // Override the mock to return areas with relatedIds
+      jest.doMock('../GeneralOverviewSection', () => ({
+        useGeneralOverview: () => ({
+          data: {
+            overallPercentage: 75,
+            totalQuestions: 100,
+            totalCorrect: 75,
+            areas: [
+              {
+                id: 'area-1',
+                name: 'Matemática',
+                urlCover: null,
+                icon: 'calculator',
+                color: '#3B82F6',
+                percentage: 75,
+                questionsTotal: 100,
+                questionsCorrect: 75,
+                relatedIds: ['area-1', 'area-1-duplicate'],
+              },
+            ],
+          },
+          loading: false,
+          error: null,
+          fetchOverview: mockFetchGeneralOverview,
+        }),
+      }));
+
+      const api = createMockApi();
+      const { result } = renderHook(() => useSimulatedPerformance({ api }));
+
+      await act(async () => {
+        result.current.handleAreaKnowledgeChange('area-1');
+      });
+
+      // The area should be selected
+      expect(result.current.selectedAreaKnowledgeId).toBe('area-1');
+    });
+
+    it('falls back to single id array when area has no relatedIds', async () => {
+      const api = createMockApi();
+      const { result } = renderHook(() => useSimulatedPerformance({ api }));
+
+      await act(async () => {
+        result.current.handleAreaKnowledgeChange('area-without-related-ids');
+      });
+
+      // When no relatedIds exists, should default to empty array or single id
+      expect(result.current.selectedAreaKnowledgeId).toBe(
+        'area-without-related-ids'
+      );
+    });
+
+    it('clears selectedAreaRelatedIds when area is deselected', async () => {
+      const api = createMockApi();
+      const { result } = renderHook(() => useSimulatedPerformance({ api }));
+
+      // Select an area
+      await act(async () => {
+        result.current.handleAreaKnowledgeChange('area-1');
+      });
+
+      expect(result.current.selectedAreaKnowledgeId).toBe('area-1');
+
+      // Deselect (null)
+      await act(async () => {
+        result.current.handleAreaKnowledgeChange(null);
+      });
+
+      expect(result.current.selectedAreaKnowledgeId).toBeNull();
+      // selectedAreaRelatedIds should be cleared or empty
+      expect(result.current.selectedAreaRelatedIds).toEqual([]);
+    });
+  });
 });

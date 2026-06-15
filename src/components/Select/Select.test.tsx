@@ -731,6 +731,82 @@ describe('Select label finding behavior', () => {
 
     expect(screen.getByText('Select...')).toBeInTheDocument();
   });
+
+  it('should correctly display JSX children as label when selected', () => {
+    render(
+      <Select defaultValue="jsx-option">
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="jsx-option">
+            <span className="flex items-center gap-2">
+              <span className="w-2 h-2 bg-red-500 rounded-full" />
+              Matemática
+            </span>
+          </SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    // The label should render the JSX content properly
+    expect(screen.getByText('Matemática')).toBeInTheDocument();
+  });
+
+  it('should handle SelectItem with icon and text as children', async () => {
+    render(
+      <Select defaultValue="with-icon">
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="with-icon">
+            <div className="flex items-center">
+              <span data-testid="color-dot" className="w-3 h-3 rounded-full" />
+              <span>Linguagens</span>
+            </div>
+          </SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    // Should display the label content in trigger
+    expect(screen.getByText('Linguagens')).toBeInTheDocument();
+    // Should render the color dot
+    expect(screen.getByTestId('color-dot')).toBeInTheDocument();
+  });
+
+  it('should update trigger label when selecting item with JSX children', async () => {
+    render(
+      <Select>
+        <SelectTrigger>
+          <SelectValue placeholder="Selecione uma área" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="area-1">
+            <div className="flex items-center gap-2">
+              <span
+                data-testid="area-color"
+                className="w-2 h-2 rounded-full bg-blue-500"
+              />
+              Ciências Humanas
+            </div>
+          </SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    // Initially shows placeholder
+    expect(screen.getByText('Selecione uma área')).toBeInTheDocument();
+
+    // Open and select the item with JSX children
+    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByText('Ciências Humanas'));
+
+    // After selection, should show the JSX content in trigger
+    expect(screen.getByText('Ciências Humanas')).toBeInTheDocument();
+    expect(screen.getByTestId('area-color')).toBeInTheDocument();
+  });
 });
 
 describe('useSelectStore', () => {
