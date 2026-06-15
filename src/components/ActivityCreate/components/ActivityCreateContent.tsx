@@ -199,7 +199,15 @@ export const DesktopLayout = ({
 }: DesktopLayoutProps) => (
   <div className="flex flex-row w-full flex-1 overflow-hidden gap-5 min-h-0">
     {/* First Column - Filters */}
-    <div className="flex flex-col gap-3 overflow-hidden h-full min-h-0 max-h-full relative w-[400px] flex-shrink-0">
+    {/*
+      overflow-clip (not overflow-hidden): an overflow-hidden box is still a
+      scroll container, so when a descendant (accordion/checkbox) receives focus
+      while the content transiently overflows, the browser scrolls this box via
+      scrollIntoView. With no scrollbar the user can't scroll back and the filter
+      appears blank until a zoom forces a reflow. overflow-clip clips identically
+      but never becomes scrollable, so the offset can't get stuck.
+    */}
+    <div className="flex flex-col gap-3 overflow-clip h-full min-h-0 max-h-full relative w-[400px] flex-shrink-0">
       <div className="flex flex-col overflow-y-auto overflow-x-hidden flex-1 min-h-0 max-h-full">
         <ActivityFilters
           key={filtersKey}
