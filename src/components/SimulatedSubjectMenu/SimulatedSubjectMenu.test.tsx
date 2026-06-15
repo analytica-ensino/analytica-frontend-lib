@@ -136,7 +136,7 @@ describe('SimulatedSubjectMenu', () => {
       />
     );
 
-    expect(mockFetchSubjects).toHaveBeenLastCalledWith('area-1');
+    expect(mockFetchSubjects).toHaveBeenLastCalledWith(['area-1']);
   });
 
   it('uses "all" as effective value when selectedSubjectId is null', () => {

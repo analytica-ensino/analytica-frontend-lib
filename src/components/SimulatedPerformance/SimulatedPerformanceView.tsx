@@ -193,6 +193,7 @@ export function SimulatedPerformanceView({
           selectedAreaId={selectedAreaKnowledgeId}
           onAreaChange={handleAreaKnowledgeChange}
           loading={generalOverview.loading}
+          includeEssay={!!generalOverview.data?.essay}
         />
 
         {/* Subject Menu - Hidden when essay is selected */}
