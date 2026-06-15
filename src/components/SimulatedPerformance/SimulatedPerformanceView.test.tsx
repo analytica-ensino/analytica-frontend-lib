@@ -246,6 +246,7 @@ const createDefaultProps = (
   period: '1_MONTH',
   scoreType: ScoreType.PERCENTAGE,
   selectedAreaKnowledgeId: null,
+  selectedAreaRelatedIds: [],
   selectedSubjectId: null,
   simulatedViewTab: SimulatedViewTab.STUDENTS,
   isEssaySelected: false,

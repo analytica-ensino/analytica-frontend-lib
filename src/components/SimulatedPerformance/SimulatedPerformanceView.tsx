@@ -65,6 +65,7 @@ export function SimulatedPerformanceView({
   period,
   scoreType,
   selectedAreaKnowledgeId,
+  selectedAreaRelatedIds,
   selectedSubjectId,
   simulatedViewTab,
   isEssaySelected,
@@ -192,6 +193,7 @@ export function SimulatedPerformanceView({
           selectedAreaId={selectedAreaKnowledgeId}
           onAreaChange={handleAreaKnowledgeChange}
           loading={generalOverview.loading}
+          includeEssay={!!generalOverview.data?.essay}
         />
 
         {/* Subject Menu - Hidden when essay is selected */}
@@ -199,6 +201,7 @@ export function SimulatedPerformanceView({
           <SimulatedSubjectMenu
             api={api}
             areaKnowledgeId={selectedAreaKnowledgeId}
+            relatedIds={selectedAreaRelatedIds}
             selectedSubjectId={selectedSubjectId}
             onSubjectChange={handleSubjectChange}
             loading={studentsOverview.loading}

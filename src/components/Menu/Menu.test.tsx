@@ -739,4 +739,81 @@ describe('MenuOverflow', () => {
       expect(screen.getByText('Home')).toBeInTheDocument();
     });
   });
+
+  describe('MutationObserver', () => {
+    it('sets up and disconnects MutationObserver on mount/unmount', () => {
+      const observeMock = jest.fn();
+      const disconnectMock = jest.fn();
+
+      const mockMutationObserver = jest.fn().mockImplementation(() => ({
+        observe: observeMock,
+        disconnect: disconnectMock,
+      }));
+
+      const originalMutationObserver = window.MutationObserver;
+      window.MutationObserver = mockMutationObserver;
+
+      const { unmount } = render(
+        <MenuOverflow defaultValue="item1">
+          <div>Item 1</div>
+        </MenuOverflow>
+      );
+
+      expect(mockMutationObserver).toHaveBeenCalled();
+      expect(observeMock).toHaveBeenCalledWith(expect.any(HTMLElement), {
+        childList: true,
+        subtree: true,
+      });
+
+      unmount();
+      expect(disconnectMock).toHaveBeenCalled();
+
+      window.MutationObserver = originalMutationObserver;
+    });
+
+    it('calls MutationObserver callback when children change', () => {
+      // Track callbacks registered with MutationObserver
+      type MutationCallbackFn = (
+        mutations: MutationRecord[],
+        observer: MutationObserver
+      ) => void;
+      let mutationCallback: MutationCallbackFn | null = null;
+      const observeMock = jest.fn();
+      const disconnectMock = jest.fn();
+
+      const mockMutationObserver = jest
+        .fn()
+        .mockImplementation((callback: MutationCallbackFn) => {
+          mutationCallback = callback;
+          return {
+            observe: observeMock,
+            disconnect: disconnectMock,
+          };
+        });
+
+      const originalMutationObserver = window.MutationObserver;
+      window.MutationObserver = mockMutationObserver;
+
+      render(
+        <MenuOverflow defaultValue="item1">
+          <div>Item 1</div>
+        </MenuOverflow>
+      );
+
+      // MutationObserver should be created and observing
+      expect(mockMutationObserver).toHaveBeenCalled();
+      expect(observeMock).toHaveBeenCalled();
+
+      // Simulate a mutation by calling the callback
+      expect(mutationCallback).not.toBeNull();
+      if (mutationCallback) {
+        // This should not throw - the callback should handle mutations gracefully
+        expect(() => {
+          mutationCallback!([], {} as MutationObserver);
+        }).not.toThrow();
+      }
+
+      window.MutationObserver = originalMutationObserver;
+    });
+  });
 });

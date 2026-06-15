@@ -15,6 +15,8 @@ export interface AreaKnowledgePerformance {
   percentage: number;
   questionsTotal: number;
   questionsCorrect: number;
+  /** All IDs when areas with same name are merged (for multi-school scenarios) */
+  relatedIds?: string[];
 }
 
 /**

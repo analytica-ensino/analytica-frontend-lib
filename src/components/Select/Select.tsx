@@ -196,8 +196,8 @@ const Select = ({
   const findLabelForValue = (
     children: ReactNode,
     targetValue: string
-  ): string | null => {
-    let found: string | null = null;
+  ): ReactNode | null => {
+    let found: ReactNode | null = null;
     const search = (nodes: ReactNode) => {
       Children.forEach(nodes, (child) => {
         if (!isValidElement(child)) return;
@@ -209,8 +209,8 @@ const Select = ({
           typedChild.type === SelectItem &&
           typedChild.props.value === targetValue
         ) {
-          if (typeof typedChild.props.children === 'string')
-            found = typedChild.props.children;
+          // Use getLabelAsNode to handle both string and ReactNode children
+          found = getLabelAsNode(typedChild.props.children);
         }
         if (typedChild.props.children && !found)
           search(typedChild.props.children);

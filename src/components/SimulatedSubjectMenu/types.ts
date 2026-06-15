@@ -31,7 +31,7 @@ export interface UseSimulatedSubjectsState {
  * Hook return type
  */
 export interface UseSimulatedSubjectsReturn extends UseSimulatedSubjectsState {
-  fetchSubjects: (areaKnowledgeId?: string | null) => Promise<void>;
+  fetchSubjects: (areaKnowledgeIds?: string[] | null) => Promise<void>;
   reset: () => void;
 }
 
@@ -43,6 +43,8 @@ export interface SimulatedSubjectMenuProps {
   readonly api: BaseApiClient;
   /** Area knowledge ID to filter subjects (null for all) */
   readonly areaKnowledgeId: string | null;
+  /** Related IDs for merged areas (includes all IDs when area was deduplicated) */
+  readonly relatedIds?: string[];
   /** Currently selected subject ID (null means "Todos") */
   readonly selectedSubjectId: string | null;
   /** Callback when subject changes (null means "Todos") */

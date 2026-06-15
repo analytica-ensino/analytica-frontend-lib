@@ -30,6 +30,7 @@ import type { SimulatedSubjectMenuProps, SimulatedSubjectItem } from './types';
 export function SimulatedSubjectMenu({
   api,
   areaKnowledgeId,
+  relatedIds,
   selectedSubjectId,
   onSubjectChange,
   loading: externalLoading = false,
@@ -43,8 +44,11 @@ export function SimulatedSubjectMenu({
   const { isDark } = useTheme();
 
   useEffect(() => {
-    fetchSubjects(areaKnowledgeId);
-  }, [fetchSubjects, areaKnowledgeId]);
+    // Use relatedIds when available (for merged areas), otherwise fallback to single ID
+    const idsToFetch =
+      relatedIds ?? (areaKnowledgeId ? [areaKnowledgeId] : null);
+    fetchSubjects(idsToFetch);
+  }, [fetchSubjects, areaKnowledgeId, relatedIds]);
 
   const loading = externalLoading || subjectsLoading;
 

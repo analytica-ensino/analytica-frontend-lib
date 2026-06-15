@@ -399,9 +399,18 @@ const MenuOverflow = ({
     const container = containerRef.current;
     container?.addEventListener('scroll', checkScroll);
     window.addEventListener('resize', checkScroll);
+
+    // Use MutationObserver to detect when children are added/removed
+    let mutationObserver: MutationObserver | null = null;
+    if (container) {
+      mutationObserver = new MutationObserver(checkScroll);
+      mutationObserver.observe(container, { childList: true, subtree: true });
+    }
+
     return () => {
       container?.removeEventListener('scroll', checkScroll);
       window.removeEventListener('resize', checkScroll);
+      mutationObserver?.disconnect();
     };
   }, []);
 
