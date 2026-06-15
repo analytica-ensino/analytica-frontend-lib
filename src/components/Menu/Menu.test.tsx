@@ -750,8 +750,8 @@ describe('MenuOverflow', () => {
         disconnect: disconnectMock,
       }));
 
-      const originalMutationObserver = global.MutationObserver;
-      global.MutationObserver = mockMutationObserver;
+      const originalMutationObserver = window.MutationObserver;
+      window.MutationObserver = mockMutationObserver;
 
       const { unmount } = render(
         <MenuOverflow defaultValue="item1">
@@ -768,18 +768,22 @@ describe('MenuOverflow', () => {
       unmount();
       expect(disconnectMock).toHaveBeenCalled();
 
-      global.MutationObserver = originalMutationObserver;
+      window.MutationObserver = originalMutationObserver;
     });
 
     it('calls MutationObserver callback when children change', () => {
       // Track callbacks registered with MutationObserver
-      let mutationCallback: MutationCallback | null = null;
+      type MutationCallbackFn = (
+        mutations: MutationRecord[],
+        observer: MutationObserver
+      ) => void;
+      let mutationCallback: MutationCallbackFn | null = null;
       const observeMock = jest.fn();
       const disconnectMock = jest.fn();
 
       const mockMutationObserver = jest
         .fn()
-        .mockImplementation((callback: MutationCallback) => {
+        .mockImplementation((callback: MutationCallbackFn) => {
           mutationCallback = callback;
           return {
             observe: observeMock,
@@ -787,8 +791,8 @@ describe('MenuOverflow', () => {
           };
         });
 
-      const originalMutationObserver = global.MutationObserver;
-      global.MutationObserver = mockMutationObserver;
+      const originalMutationObserver = window.MutationObserver;
+      window.MutationObserver = mockMutationObserver;
 
       render(
         <MenuOverflow defaultValue="item1">
@@ -809,7 +813,7 @@ describe('MenuOverflow', () => {
         }).not.toThrow();
       }
 
-      global.MutationObserver = originalMutationObserver;
+      window.MutationObserver = originalMutationObserver;
     });
   });
 });
