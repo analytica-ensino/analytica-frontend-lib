@@ -1,11 +1,4 @@
-import {
-  BookOpen,
-  CaretLeft,
-  CaretRight,
-  Clock,
-  SquaresFour,
-} from 'phosphor-react';
-import Badge from '../Badge/Badge';
+import { BookOpen, CaretLeft, CaretRight, SquaresFour } from 'phosphor-react';
 import { HeaderAlternative } from '../Alternative/Alternative';
 import Button from '../Button/Button';
 import IconButton from '../IconButton/IconButton';
@@ -105,7 +98,13 @@ export const getGoBackButtonLabel = (type: QUIZ_TYPE): string => {
 // Função para gerar texto de confirmação de saída
 export const getExitConfirmationText = (type: QUIZ_TYPE) => {
   const config = getQuizTypeConfig(type);
-  return `Se você sair ${config.preposition} ${config.label.toLowerCase()} agora, todas as respostas serão perdidas.`;
+  // QUESTIONARIO não tem rascunho: ao sair, as respostas são perdidas.
+  // Demais tipos (SIMULADO, ATIVIDADE, AULA_RECOMENDADA e fallback) salvam o
+  // progresso, então o aluno pode continuar depois de onde parou.
+  if (type === QUIZ_TYPE.QUESTIONARIO) {
+    return `Se você sair ${config.preposition} ${config.label.toLowerCase()} agora, todas as respostas serão perdidas.`;
+  }
+  return `Se você sair ${config.preposition} ${config.label.toLowerCase()} agora, seu progresso será salvo e você poderá continuar depois.`;
 };
 
 // Função para gerar texto de confirmação de finalização
@@ -135,32 +134,13 @@ const QuizTitle = forwardRef<
   HTMLDivElement,
   { className?: string; onBack?: () => void }
 >(({ className, onBack, ...props }, ref) => {
-  const {
-    quiz,
-    currentQuestionIndex,
-    getTotalQuestions,
-    getQuizTitle,
-    timeElapsed,
-    formatTime,
-    isStarted,
-    timeLimit,
-    getRemainingTime,
-  } = useQuizStore();
+  const { quiz, currentQuestionIndex, getTotalQuestions, getQuizTitle, isStarted } =
+    useQuizStore();
 
   const [showExitConfirmation, setShowExitConfirmation] = useState(false);
 
   const totalQuestions = getTotalQuestions();
   const quizTitle = getQuizTitle();
-
-  const hasTimeLimit = timeLimit !== null;
-  const remainingTime = getRemainingTime() ?? 0;
-  const isTimeRunningOut = hasTimeLimit && remainingTime <= 300;
-
-  const getTimerDisplay = () => {
-    if (!isStarted) return '00:00';
-    if (hasTimeLimit) return formatTime(remainingTime);
-    return formatTime(timeElapsed);
-  };
 
   const handleBackClick = () => {
     if (isStarted) {
@@ -210,16 +190,6 @@ const QuizTitle = forwardRef<
               ? `${currentQuestionIndex + 1} de ${totalQuestions}`
               : '0 de 0'}
           </p>
-        </span>
-
-        <span className="flex flex-row items-center justify-center">
-          <Badge
-            variant="outlined"
-            action={isStarted && isTimeRunningOut ? 'error' : 'info'}
-            iconLeft={<Clock />}
-          >
-            {getTimerDisplay()}
-          </Badge>
         </span>
       </div>
 

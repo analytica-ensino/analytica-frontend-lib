@@ -1521,6 +1521,14 @@ interface SimulationItem {
   title: string;
   type: 'enem' | 'prova' | 'simulado' | 'vestibular';
   info: string;
+  /**
+   * Optional status badge (e.g. "Em andamento" / "Concluído"). When provided it
+   * is rendered next to the type badge. `action` maps to the Badge color action.
+   */
+  statusBadge?: {
+    label: string;
+    action: 'success' | 'warning' | 'info' | 'error';
+  };
 }
 
 interface SimulationHistoryData {
@@ -1620,6 +1628,16 @@ const CardSimulationHistory = forwardRef<
                             >
                               {typeStyles.text}
                             </Badge>
+
+                            {simulation.statusBadge && (
+                              <Badge
+                                variant="outlined"
+                                action={simulation.statusBadge.action}
+                                size="medium"
+                              >
+                                {simulation.statusBadge.label}
+                              </Badge>
+                            )}
 
                             <Text size="sm" className="text-text-800 truncate">
                               {simulation.info}

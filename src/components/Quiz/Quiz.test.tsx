@@ -623,113 +623,6 @@ describe('Quiz', () => {
       expect(screen.getByText('5 de 10')).toBeInTheDocument();
     });
 
-    it('should display formatted time when quiz is started', () => {
-      render(<QuizTitle />);
-
-      expect(screen.getByText('02:00')).toBeInTheDocument();
-    });
-
-    it('should display 00:00 when quiz is not started', () => {
-      mockUseQuizStore.mockReturnValue({
-        currentQuestionIndex: 0,
-        getTotalQuestions: mockGetTotalQuestions,
-        getQuizTitle: mockGetQuizTitle,
-        timeElapsed: 120,
-        formatTime: mockFormatTime,
-        isStarted: false,
-        timeLimit: null,
-        getRemainingTime: jest.fn().mockReturnValue(null),
-      });
-
-      render(<QuizTitle />);
-
-      expect(screen.getByText('00:00')).toBeInTheDocument();
-    });
-
-    it('should display remaining time when timeLimit is set', () => {
-      const mockGetRemainingTime = jest.fn().mockReturnValue(1800);
-      mockFormatTime.mockReturnValue('30:00');
-
-      mockUseQuizStore.mockReturnValue({
-        currentQuestionIndex: 0,
-        getTotalQuestions: mockGetTotalQuestions,
-        getQuizTitle: mockGetQuizTitle,
-        timeElapsed: 1800,
-        formatTime: mockFormatTime,
-        isStarted: true,
-        timeLimit: 3600,
-        getRemainingTime: mockGetRemainingTime,
-      });
-
-      render(<QuizTitle />);
-
-      expect(mockFormatTime).toHaveBeenCalledWith(1800);
-      expect(screen.getByText('30:00')).toBeInTheDocument();
-    });
-
-    it('should show error badge when remaining time is 5 minutes or less', () => {
-      const mockGetRemainingTime = jest.fn().mockReturnValue(250);
-      mockFormatTime.mockReturnValue('04:10');
-
-      mockUseQuizStore.mockReturnValue({
-        currentQuestionIndex: 0,
-        getTotalQuestions: mockGetTotalQuestions,
-        getQuizTitle: mockGetQuizTitle,
-        timeElapsed: 3350,
-        formatTime: mockFormatTime,
-        isStarted: true,
-        timeLimit: 3600,
-        getRemainingTime: mockGetRemainingTime,
-      });
-
-      const { container } = render(<QuizTitle />);
-
-      const badge = container.querySelector('[data-action="error"]');
-      expect(badge).toBeInTheDocument();
-    });
-
-    it('should show error badge when remaining time is exactly 5 minutes (boundary)', () => {
-      const mockGetRemainingTime = jest.fn().mockReturnValue(300);
-      mockFormatTime.mockReturnValue('05:00');
-
-      mockUseQuizStore.mockReturnValue({
-        currentQuestionIndex: 0,
-        getTotalQuestions: mockGetTotalQuestions,
-        getQuizTitle: mockGetQuizTitle,
-        timeElapsed: 3300,
-        formatTime: mockFormatTime,
-        isStarted: true,
-        timeLimit: 3600,
-        getRemainingTime: mockGetRemainingTime,
-      });
-
-      const { container } = render(<QuizTitle />);
-
-      const badge = container.querySelector('[data-action="error"]');
-      expect(badge).toBeInTheDocument();
-    });
-
-    it('should show info badge when remaining time is more than 5 minutes', () => {
-      const mockGetRemainingTime = jest.fn().mockReturnValue(600);
-      mockFormatTime.mockReturnValue('10:00');
-
-      mockUseQuizStore.mockReturnValue({
-        currentQuestionIndex: 0,
-        getTotalQuestions: mockGetTotalQuestions,
-        getQuizTitle: mockGetQuizTitle,
-        timeElapsed: 3000,
-        formatTime: mockFormatTime,
-        isStarted: true,
-        timeLimit: 3600,
-        getRemainingTime: mockGetRemainingTime,
-      });
-
-      const { container } = render(<QuizTitle />);
-
-      const badge = container.querySelector('[data-action="info"]');
-      expect(badge).toBeInTheDocument();
-    });
-
     it('should apply custom className', () => {
       const { container } = render(<QuizTitle className="custom-class" />);
       const titleElement = container.firstChild as HTMLElement;
@@ -757,12 +650,6 @@ describe('Quiz', () => {
       render(<QuizTitle ref={ref} />);
 
       expect(ref.current).toBeInstanceOf(HTMLDivElement);
-    });
-
-    it('should call formatTime with correct timeElapsed value', () => {
-      render(<QuizTitle />);
-
-      expect(mockFormatTime).toHaveBeenCalledWith(120);
     });
 
     it('should update when quiz data changes', () => {
@@ -3170,10 +3057,7 @@ describe('Quiz', () => {
   describe('getExitConfirmationText', () => {
     it('should return correct text for simulado', () => {
       expect(getExitConfirmationText(QUIZ_TYPE.SIMULADO)).toBe(
-        'Se você sair do simulado agora, todas as respostas serão perdidas.'
-      );
-      expect(getExitConfirmationText(QUIZ_TYPE.SIMULADO)).toBe(
-        'Se você sair do simulado agora, todas as respostas serão perdidas.'
+        'Se você sair do simulado agora, seu progresso será salvo e você poderá continuar depois.'
       );
     });
 
@@ -3181,32 +3065,26 @@ describe('Quiz', () => {
       expect(getExitConfirmationText(QUIZ_TYPE.QUESTIONARIO)).toBe(
         'Se você sair do questionário agora, todas as respostas serão perdidas.'
       );
-      expect(getExitConfirmationText(QUIZ_TYPE.QUESTIONARIO)).toBe(
-        'Se você sair do questionário agora, todas as respostas serão perdidas.'
-      );
     });
 
     it('should return correct text for atividade', () => {
       expect(getExitConfirmationText(QUIZ_TYPE.ATIVIDADE)).toBe(
-        'Se você sair da atividade agora, todas as respostas serão perdidas.'
-      );
-      expect(getExitConfirmationText(QUIZ_TYPE.ATIVIDADE)).toBe(
-        'Se você sair da atividade agora, todas as respostas serão perdidas.'
+        'Se você sair da atividade agora, seu progresso será salvo e você poderá continuar depois.'
       );
     });
 
     it('should return correct text for aula recomendada', () => {
       expect(getExitConfirmationText(QUIZ_TYPE.AULA_RECOMENDADA)).toBe(
-        'Se você sair da aula recomendada agora, todas as respostas serão perdidas.'
+        'Se você sair da aula recomendada agora, seu progresso será salvo e você poderá continuar depois.'
       );
     });
 
     it('should return default text for unknown type', () => {
       expect(getExitConfirmationText('unknown' as QUIZ_TYPE)).toBe(
-        'Se você sair do simulado agora, todas as respostas serão perdidas.'
+        'Se você sair do simulado agora, seu progresso será salvo e você poderá continuar depois.'
       );
       expect(getExitConfirmationText('' as QUIZ_TYPE)).toBe(
-        'Se você sair do simulado agora, todas as respostas serão perdidas.'
+        'Se você sair do simulado agora, seu progresso será salvo e você poderá continuar depois.'
       );
     });
   });
