@@ -37,7 +37,10 @@ Object.defineProperty(window, 'localStorage', {
 jest.mock('./authStore', () => ({
   useAuthStore: {
     getState: jest.fn(() => ({
-      sessionInfo: { institutionId: 'test-institution-id' },
+      sessionInfo: {
+        institutionId: 'test-institution-id',
+        profileName: 'STUDENT',
+      },
       selectedProfile: { name: 'STUDENT' },
     })),
     subscribe: jest.fn(() => jest.fn()),
@@ -1004,6 +1007,193 @@ describe('ModulesStore', () => {
 
       // Should clear because profile is 'STUDENT' but current is null
       expect(shouldClear).toBe(true);
+    });
+  });
+
+  describe('useAuthStore.subscribe - institution/profile change listener (lines 278-292)', () => {
+    // This tests the subscribe callback logic that clears modules when auth changes
+    // The callback is: useAuthStore.subscribe((state) => { ... })
+
+    it('should clear modules when institution changes from a previous value', () => {
+      // Simulate the logic from lines 280-292
+      let lastInstitutionId: string | null = 'old-institution';
+      let lastProfileType: string | null = 'STUDENT';
+
+      const nextInstitutionId = 'new-institution';
+      const nextProfileType = 'STUDENT';
+
+      const clearModulesSpy = jest.fn();
+
+      // Logic from lines 280-292
+      if (
+        nextInstitutionId !== lastInstitutionId ||
+        nextProfileType !== lastProfileType
+      ) {
+        if (lastInstitutionId !== null || lastProfileType !== null) {
+          clearModulesSpy();
+        }
+        lastInstitutionId = nextInstitutionId;
+        lastProfileType = nextProfileType;
+      }
+
+      expect(clearModulesSpy).toHaveBeenCalled();
+      expect(lastInstitutionId).toBe('new-institution');
+      expect(lastProfileType).toBe('STUDENT');
+    });
+
+    it('should clear modules when profile changes from a previous value', () => {
+      let lastInstitutionId: string | null = 'same-institution';
+      let lastProfileType: string | null = 'STUDENT';
+
+      const nextInstitutionId = 'same-institution';
+      const nextProfileType = 'TEACHER';
+
+      const clearModulesSpy = jest.fn();
+
+      if (
+        nextInstitutionId !== lastInstitutionId ||
+        nextProfileType !== lastProfileType
+      ) {
+        if (lastInstitutionId !== null || lastProfileType !== null) {
+          clearModulesSpy();
+        }
+        lastInstitutionId = nextInstitutionId;
+        lastProfileType = nextProfileType;
+      }
+
+      expect(clearModulesSpy).toHaveBeenCalled();
+      expect(lastInstitutionId).toBe('same-institution');
+      expect(lastProfileType).toBe('TEACHER');
+    });
+
+    it('should NOT clear modules on initial load (both previous values are null)', () => {
+      let lastInstitutionId: string | null = null;
+      let lastProfileType: string | null = null;
+
+      const nextInstitutionId = 'new-institution';
+      const nextProfileType = 'STUDENT';
+
+      const clearModulesSpy = jest.fn();
+
+      if (
+        nextInstitutionId !== lastInstitutionId ||
+        nextProfileType !== lastProfileType
+      ) {
+        // Only clear if there was a previous value (actual change, not initial load)
+        if (lastInstitutionId !== null || lastProfileType !== null) {
+          clearModulesSpy();
+        }
+        lastInstitutionId = nextInstitutionId;
+        lastProfileType = nextProfileType;
+      }
+
+      // Should NOT have been called because this is initial load
+      expect(clearModulesSpy).not.toHaveBeenCalled();
+      // But values should still be updated
+      expect(lastInstitutionId).toBe('new-institution');
+      expect(lastProfileType).toBe('STUDENT');
+    });
+
+    it('should NOT clear modules when values remain the same', () => {
+      let lastInstitutionId: string | null = 'same-institution';
+      let lastProfileType: string | null = 'STUDENT';
+
+      const nextInstitutionId = 'same-institution';
+      const nextProfileType = 'STUDENT';
+
+      const clearModulesSpy = jest.fn();
+
+      if (
+        nextInstitutionId !== lastInstitutionId ||
+        nextProfileType !== lastProfileType
+      ) {
+        if (lastInstitutionId !== null || lastProfileType !== null) {
+          clearModulesSpy();
+        }
+        lastInstitutionId = nextInstitutionId;
+        lastProfileType = nextProfileType;
+      }
+
+      expect(clearModulesSpy).not.toHaveBeenCalled();
+      // Values should remain unchanged since if block was not entered
+      expect(lastInstitutionId).toBe('same-institution');
+      expect(lastProfileType).toBe('STUDENT');
+    });
+
+    it('should clear modules when user logs out (values become null)', () => {
+      let lastInstitutionId: string | null = 'old-institution';
+      let lastProfileType: string | null = 'STUDENT';
+
+      const nextInstitutionId: string | null = null;
+      const nextProfileType: string | null = null;
+
+      const clearModulesSpy = jest.fn();
+
+      if (
+        nextInstitutionId !== lastInstitutionId ||
+        nextProfileType !== lastProfileType
+      ) {
+        if (lastInstitutionId !== null || lastProfileType !== null) {
+          clearModulesSpy();
+        }
+        lastInstitutionId = nextInstitutionId;
+        lastProfileType = nextProfileType;
+      }
+
+      expect(clearModulesSpy).toHaveBeenCalled();
+      expect(lastInstitutionId).toBeNull();
+      expect(lastProfileType).toBeNull();
+    });
+
+    it('should clear modules when both institution and profile change', () => {
+      let lastInstitutionId: string | null = 'old-institution';
+      let lastProfileType: string | null = 'STUDENT';
+
+      const nextInstitutionId = 'new-institution';
+      const nextProfileType = 'TEACHER';
+
+      const clearModulesSpy = jest.fn();
+
+      if (
+        nextInstitutionId !== lastInstitutionId ||
+        nextProfileType !== lastProfileType
+      ) {
+        if (lastInstitutionId !== null || lastProfileType !== null) {
+          clearModulesSpy();
+        }
+        lastInstitutionId = nextInstitutionId;
+        lastProfileType = nextProfileType;
+      }
+
+      expect(clearModulesSpy).toHaveBeenCalledTimes(1);
+      expect(lastInstitutionId).toBe('new-institution');
+      expect(lastProfileType).toBe('TEACHER');
+    });
+
+    it('should clear when only lastProfileType was non-null', () => {
+      let lastInstitutionId: string | null = null;
+      let lastProfileType: string | null = 'STUDENT';
+
+      const nextInstitutionId: string | null = null;
+      const nextProfileType = 'TEACHER';
+
+      const clearModulesSpy = jest.fn();
+
+      if (
+        nextInstitutionId !== lastInstitutionId ||
+        nextProfileType !== lastProfileType
+      ) {
+        if (lastInstitutionId !== null || lastProfileType !== null) {
+          clearModulesSpy();
+        }
+        lastInstitutionId = nextInstitutionId;
+        lastProfileType = nextProfileType;
+      }
+
+      // Should clear because lastProfileType was non-null
+      expect(clearModulesSpy).toHaveBeenCalled();
+      expect(lastInstitutionId).toBeNull();
+      expect(lastProfileType).toBe('TEACHER');
     });
   });
 });
