@@ -21,12 +21,9 @@ export interface SimulationsConfig {
 
 /**
  * Configuration for Provas (Exams) module
+ * Simple boolean - true means exams are enabled
  */
-export interface ExamsConfig {
-  enabled: boolean;
-  presenciais: boolean; // Provas presenciais
-  digitais: boolean; // Provas digitais
-}
+export type ExamsConfig = boolean;
 
 /**
  * Configuration for Performance screen graphs
@@ -72,11 +69,7 @@ export const DEFAULT_SIMULATIONS: SimulationsConfig = {
 /**
  * Default exams configuration
  */
-export const DEFAULT_EXAMS: ExamsConfig = {
-  enabled: true,
-  presenciais: true,
-  digitais: true,
-};
+export const DEFAULT_EXAMS: ExamsConfig = true;
 
 /**
  * Default performance graphs configuration
@@ -179,7 +172,7 @@ export const DEFAULT_MODULES: ModulesConfig = {
 
 /**
  * Deep merge a partial config onto defaults.
- * Handles nested objects (exams, simulations, performanceGraphs, reports, simulatedScore).
+ * Handles nested objects (simulations, performanceGraphs, reports, simulatedScore).
  */
 export const mergeModulesConfig = (
   version?: Partial<ModulesConfig> | null
@@ -188,7 +181,8 @@ export const mergeModulesConfig = (
   return {
     ...DEFAULT_MODULES,
     ...v,
-    exams: { ...DEFAULT_EXAMS, ...v.exams },
+    // exams is now a simple boolean, use default if not provided
+    exams: v.exams ?? DEFAULT_EXAMS,
     simulations: { ...DEFAULT_SIMULATIONS, ...v.simulations },
     performanceGraphs: {
       ...DEFAULT_PERFORMANCE_GRAPHS,

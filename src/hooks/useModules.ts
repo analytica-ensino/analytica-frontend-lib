@@ -1,13 +1,11 @@
 import {
   useModulesStore,
   DEFAULT_SIMULATIONS,
-  DEFAULT_EXAMS,
   DEFAULT_PERFORMANCE_GRAPHS,
   DEFAULT_REPORTS,
   DEFAULT_SIMULATED_SCORE,
   type ModulesConfig,
   type SimulationsConfig,
-  type ExamsConfig,
   type PerformanceGraphsConfig,
   type ReportsConfig,
   type SimulatedScoreConfig,
@@ -33,9 +31,6 @@ export interface UseModulesReturn {
 
   // Exams
   hasExams: boolean;
-  hasPresencialExams: boolean;
-  hasDigitalExams: boolean;
-  exams: ExamsConfig;
 
   // Simulations
   hasSimulations: boolean;
@@ -94,7 +89,6 @@ export const useModules = (): UseModulesReturn => {
 
   // Defensive fallbacks for nested objects - handles older persisted state
   const simulations = modules.simulations ?? DEFAULT_SIMULATIONS;
-  const exams = modules.exams ?? DEFAULT_EXAMS;
   const performanceGraphs =
     modules.performanceGraphs ?? DEFAULT_PERFORMANCE_GRAPHS;
   const reports = modules.reports ?? DEFAULT_REPORTS;
@@ -118,14 +112,11 @@ export const useModules = (): UseModulesReturn => {
     hasDashboard: modules.dashboard ?? true,
     hasLessons: modules.lessons ?? true,
 
-    // Exams
+    // Exams (simple boolean, with backwards compatibility for old object format)
     hasExams:
       typeof modules.exams === 'object'
-        ? exams.enabled
-        : ((modules.exams as boolean) ?? true),
-    hasPresencialExams: exams.presenciais ?? true,
-    hasDigitalExams: exams.digitais ?? true,
-    exams,
+        ? ((modules.exams as { enabled?: boolean }).enabled ?? true)
+        : (modules.exams ?? true),
 
     // Simulations
     hasSimulations: simulations.enabled,

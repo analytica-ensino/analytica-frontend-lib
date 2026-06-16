@@ -5,7 +5,6 @@ import { ModuleProtectedRoute } from './ModuleProtectedRoute';
 import { useModules, type UseModulesReturn } from '../hooks/useModules';
 import {
   DEFAULT_SIMULATIONS,
-  DEFAULT_EXAMS,
   DEFAULT_PERFORMANCE_GRAPHS,
   DEFAULT_REPORTS,
   DEFAULT_SIMULATED_SCORE,
@@ -57,9 +56,6 @@ const createMockModulesReturn = (
   hasDashboard: true,
   hasLessons: true,
   hasExams: true,
-  hasPresencialExams: true,
-  hasDigitalExams: true,
-  exams: DEFAULT_EXAMS,
   hasSimulations: true,
   simulations: DEFAULT_SIMULATIONS,
   hasPerformanceAulas: true,

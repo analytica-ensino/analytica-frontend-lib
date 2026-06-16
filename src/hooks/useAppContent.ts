@@ -161,7 +161,11 @@ export function useAppContent(config: UseAppContentConfig) {
     if (institutionIdToUse) {
       useModulesStore
         .getState()
-        .fetchModules(institutionIdToUse, apiConfig as AxiosInstance, profileType);
+        .fetchModules(
+          institutionIdToUse,
+          apiConfig as AxiosInstance,
+          profileType
+        );
     }
   }, [institutionIdToUse, apiConfig, profileType]);
 
