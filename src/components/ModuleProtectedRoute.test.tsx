@@ -2,8 +2,14 @@ import React, { ReactElement } from 'react';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { ModuleProtectedRoute } from './ModuleProtectedRoute';
-import { useModules } from '../hooks/useModules';
-import { DEFAULT_SIMULATIONS } from '../store/modulesStore';
+import { useModules, type UseModulesReturn } from '../hooks/useModules';
+import {
+  DEFAULT_MODULES,
+  DEFAULT_SIMULATIONS,
+  DEFAULT_PERFORMANCE_GRAPHS,
+  DEFAULT_REPORTS,
+  DEFAULT_SIMULATED_SCORE,
+} from '../types/modulesConfig';
 
 // Mock the useModules hook
 jest.mock('../hooks/useModules', () => ({
@@ -31,20 +37,47 @@ const renderWithRouter = (
   );
 };
 
+// Create a complete mock return value for useModules
+const createMockModulesReturn = (
+  overrides: Partial<UseModulesReturn> = {}
+): UseModulesReturn => ({
+  modules: DEFAULT_MODULES,
+  loading: false,
+  hasSimulator: true,
+  hasEssay: true,
+  hasForum: true,
+  hasSupport: true,
+  hasChat: true,
+  hasRecommendedLessons: true,
+  hasActivities: true,
+  hasQuestionBanks: true,
+  hasComparator: true,
+  hasPerformance: true,
+  hasDashboard: true,
+  hasLessons: true,
+  hasExams: true,
+  hasSimulations: true,
+  simulations: DEFAULT_SIMULATIONS,
+  hasPerformanceAulas: true,
+  hasPerformanceAcessos: true,
+  hasPerformanceSimulados: true,
+  hasPerformanceAtividades: true,
+  hasPerformanceQuestoes: true,
+  hasPerformanceRanking: true,
+  performanceGraphs: DEFAULT_PERFORMANCE_GRAPHS,
+  hasSimulatedReports: true,
+  hasActivitiesReports: true,
+  hasLessonsReports: true,
+  hasEssayReports: true,
+  reports: DEFAULT_REPORTS,
+  hasSimulatedScoreTri: false,
+  hasSimulatedScoreAbsoluto: false,
+  simulatedScore: DEFAULT_SIMULATED_SCORE,
+  ...overrides,
+});
+
 describe('ModuleProtectedRoute', () => {
-  const defaultModules = {
-    simulator: true,
-    essay: true,
-    forum: true,
-    support: true,
-    simulatedReports: true,
-    activitiesReports: true,
-    lessonsReports: true,
-    exams: true,
-    simulatedScoreTri: false,
-    simulatedScoreAbsoluto: false,
-    simulations: DEFAULT_SIMULATIONS,
-  };
+  const defaultModules = DEFAULT_MODULES;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -52,22 +85,9 @@ describe('ModuleProtectedRoute', () => {
 
   describe('when loading', () => {
     it('should render nothing while loading', () => {
-      mockUseModules.mockReturnValue({
-        modules: defaultModules,
-        loading: true,
-        hasSimulator: true,
-        hasEssay: true,
-        hasForum: true,
-        hasSupport: true,
-        hasSimulatedReports: true,
-        hasActivitiesReports: true,
-        hasLessonsReports: true,
-        hasExams: true,
-        hasSimulatedScoreTri: false,
-        hasSimulatedScoreAbsoluto: false,
-        simulations: DEFAULT_SIMULATIONS,
-        hasSimulations: true,
-      });
+      mockUseModules.mockReturnValue(
+        createMockModulesReturn({ loading: true })
+      );
 
       const { container } = renderWithRouter(
         <ModuleProtectedRoute module="simulator">
@@ -82,22 +102,12 @@ describe('ModuleProtectedRoute', () => {
 
   describe('when module is enabled', () => {
     it('should render children when simulator module is enabled', () => {
-      mockUseModules.mockReturnValue({
-        modules: { ...defaultModules, simulator: true },
-        loading: false,
-        hasSimulator: true,
-        hasEssay: true,
-        hasForum: true,
-        hasSupport: true,
-        hasSimulatedReports: true,
-        hasActivitiesReports: true,
-        hasLessonsReports: true,
-        hasExams: true,
-        hasSimulatedScoreTri: false,
-        hasSimulatedScoreAbsoluto: false,
-        simulations: DEFAULT_SIMULATIONS,
-        hasSimulations: true,
-      });
+      mockUseModules.mockReturnValue(
+        createMockModulesReturn({
+          modules: { ...defaultModules, simulator: true },
+          hasSimulator: true,
+        })
+      );
 
       renderWithRouter(
         <ModuleProtectedRoute module="simulator">
@@ -109,22 +119,12 @@ describe('ModuleProtectedRoute', () => {
     });
 
     it('should render children when essay module is enabled', () => {
-      mockUseModules.mockReturnValue({
-        modules: { ...defaultModules, essay: true },
-        loading: false,
-        hasSimulator: true,
-        hasEssay: true,
-        hasForum: true,
-        hasSupport: true,
-        hasSimulatedReports: true,
-        hasActivitiesReports: true,
-        hasLessonsReports: true,
-        hasExams: true,
-        hasSimulatedScoreTri: false,
-        hasSimulatedScoreAbsoluto: false,
-        simulations: DEFAULT_SIMULATIONS,
-        hasSimulations: true,
-      });
+      mockUseModules.mockReturnValue(
+        createMockModulesReturn({
+          modules: { ...defaultModules, essay: true },
+          hasEssay: true,
+        })
+      );
 
       renderWithRouter(
         <ModuleProtectedRoute module="essay">
@@ -136,22 +136,12 @@ describe('ModuleProtectedRoute', () => {
     });
 
     it('should render children when forum module is enabled', () => {
-      mockUseModules.mockReturnValue({
-        modules: { ...defaultModules, forum: true },
-        loading: false,
-        hasSimulator: true,
-        hasEssay: true,
-        hasForum: true,
-        hasSupport: true,
-        hasSimulatedReports: true,
-        hasActivitiesReports: true,
-        hasLessonsReports: true,
-        hasExams: true,
-        hasSimulatedScoreTri: false,
-        hasSimulatedScoreAbsoluto: false,
-        simulations: DEFAULT_SIMULATIONS,
-        hasSimulations: true,
-      });
+      mockUseModules.mockReturnValue(
+        createMockModulesReturn({
+          modules: { ...defaultModules, forum: true },
+          hasForum: true,
+        })
+      );
 
       renderWithRouter(
         <ModuleProtectedRoute module="forum">
@@ -163,22 +153,12 @@ describe('ModuleProtectedRoute', () => {
     });
 
     it('should render children when support module is enabled', () => {
-      mockUseModules.mockReturnValue({
-        modules: { ...defaultModules, support: true },
-        loading: false,
-        hasSimulator: true,
-        hasEssay: true,
-        hasForum: true,
-        hasSupport: true,
-        hasSimulatedReports: true,
-        hasActivitiesReports: true,
-        hasLessonsReports: true,
-        hasExams: true,
-        hasSimulatedScoreTri: false,
-        hasSimulatedScoreAbsoluto: false,
-        simulations: DEFAULT_SIMULATIONS,
-        hasSimulations: true,
-      });
+      mockUseModules.mockReturnValue(
+        createMockModulesReturn({
+          modules: { ...defaultModules, support: true },
+          hasSupport: true,
+        })
+      );
 
       renderWithRouter(
         <ModuleProtectedRoute module="support">
@@ -192,22 +172,12 @@ describe('ModuleProtectedRoute', () => {
 
   describe('when module is disabled', () => {
     it('should redirect to /painel when simulator module is disabled', () => {
-      mockUseModules.mockReturnValue({
-        modules: { ...defaultModules, simulator: false },
-        loading: false,
-        hasSimulator: false,
-        hasEssay: true,
-        hasForum: true,
-        hasSupport: true,
-        hasSimulatedReports: true,
-        hasActivitiesReports: true,
-        hasLessonsReports: true,
-        hasExams: true,
-        hasSimulatedScoreTri: false,
-        hasSimulatedScoreAbsoluto: false,
-        simulations: DEFAULT_SIMULATIONS,
-        hasSimulations: true,
-      });
+      mockUseModules.mockReturnValue(
+        createMockModulesReturn({
+          modules: { ...defaultModules, simulator: false },
+          hasSimulator: false,
+        })
+      );
 
       renderWithRouter(
         <ModuleProtectedRoute module="simulator">
@@ -220,22 +190,12 @@ describe('ModuleProtectedRoute', () => {
     });
 
     it('should redirect to /painel when essay module is disabled', () => {
-      mockUseModules.mockReturnValue({
-        modules: { ...defaultModules, essay: false },
-        loading: false,
-        hasSimulator: true,
-        hasEssay: false,
-        hasForum: true,
-        hasSupport: true,
-        hasSimulatedReports: true,
-        hasActivitiesReports: true,
-        hasLessonsReports: true,
-        hasExams: true,
-        hasSimulatedScoreTri: false,
-        hasSimulatedScoreAbsoluto: false,
-        simulations: DEFAULT_SIMULATIONS,
-        hasSimulations: true,
-      });
+      mockUseModules.mockReturnValue(
+        createMockModulesReturn({
+          modules: { ...defaultModules, essay: false },
+          hasEssay: false,
+        })
+      );
 
       renderWithRouter(
         <ModuleProtectedRoute module="essay">
@@ -248,22 +208,12 @@ describe('ModuleProtectedRoute', () => {
     });
 
     it('should redirect to /painel when forum module is disabled', () => {
-      mockUseModules.mockReturnValue({
-        modules: { ...defaultModules, forum: false },
-        loading: false,
-        hasSimulator: true,
-        hasEssay: true,
-        hasForum: false,
-        hasSupport: true,
-        hasSimulatedReports: true,
-        hasActivitiesReports: true,
-        hasLessonsReports: true,
-        hasExams: true,
-        hasSimulatedScoreTri: false,
-        hasSimulatedScoreAbsoluto: false,
-        simulations: DEFAULT_SIMULATIONS,
-        hasSimulations: true,
-      });
+      mockUseModules.mockReturnValue(
+        createMockModulesReturn({
+          modules: { ...defaultModules, forum: false },
+          hasForum: false,
+        })
+      );
 
       renderWithRouter(
         <ModuleProtectedRoute module="forum">
@@ -276,22 +226,12 @@ describe('ModuleProtectedRoute', () => {
     });
 
     it('should redirect to /painel when support module is disabled', () => {
-      mockUseModules.mockReturnValue({
-        modules: { ...defaultModules, support: false },
-        loading: false,
-        hasSimulator: true,
-        hasEssay: true,
-        hasForum: true,
-        hasSupport: false,
-        hasSimulatedReports: true,
-        hasActivitiesReports: true,
-        hasLessonsReports: true,
-        hasExams: true,
-        hasSimulatedScoreTri: false,
-        hasSimulatedScoreAbsoluto: false,
-        simulations: DEFAULT_SIMULATIONS,
-        hasSimulations: true,
-      });
+      mockUseModules.mockReturnValue(
+        createMockModulesReturn({
+          modules: { ...defaultModules, support: false },
+          hasSupport: false,
+        })
+      );
 
       renderWithRouter(
         <ModuleProtectedRoute module="support">
@@ -306,22 +246,12 @@ describe('ModuleProtectedRoute', () => {
 
   describe('custom redirectTo', () => {
     it('should redirect to custom path when module is disabled', () => {
-      mockUseModules.mockReturnValue({
-        modules: { ...defaultModules, simulator: false },
-        loading: false,
-        hasSimulator: false,
-        hasEssay: true,
-        hasForum: true,
-        hasSupport: true,
-        hasSimulatedReports: true,
-        hasActivitiesReports: true,
-        hasLessonsReports: true,
-        hasExams: true,
-        hasSimulatedScoreTri: false,
-        hasSimulatedScoreAbsoluto: false,
-        simulations: DEFAULT_SIMULATIONS,
-        hasSimulations: true,
-      });
+      mockUseModules.mockReturnValue(
+        createMockModulesReturn({
+          modules: { ...defaultModules, simulator: false },
+          hasSimulator: false,
+        })
+      );
 
       renderWithRouter(
         <ModuleProtectedRoute module="simulator" redirectTo="/custom-redirect">
@@ -334,22 +264,12 @@ describe('ModuleProtectedRoute', () => {
     });
 
     it('should use default /painel when redirectTo is not specified', () => {
-      mockUseModules.mockReturnValue({
-        modules: { ...defaultModules, essay: false },
-        loading: false,
-        hasSimulator: true,
-        hasEssay: false,
-        hasForum: true,
-        hasSupport: true,
-        hasSimulatedReports: true,
-        hasActivitiesReports: true,
-        hasLessonsReports: true,
-        hasExams: true,
-        hasSimulatedScoreTri: false,
-        hasSimulatedScoreAbsoluto: false,
-        simulations: DEFAULT_SIMULATIONS,
-        hasSimulations: true,
-      });
+      mockUseModules.mockReturnValue(
+        createMockModulesReturn({
+          modules: { ...defaultModules, essay: false },
+          hasEssay: false,
+        })
+      );
 
       renderWithRouter(
         <ModuleProtectedRoute module="essay">
@@ -363,22 +283,7 @@ describe('ModuleProtectedRoute', () => {
 
   describe('complex children', () => {
     it('should render complex children components when module is enabled', () => {
-      mockUseModules.mockReturnValue({
-        modules: defaultModules,
-        loading: false,
-        hasSimulator: true,
-        hasEssay: true,
-        hasForum: true,
-        hasSupport: true,
-        hasSimulatedReports: true,
-        hasActivitiesReports: true,
-        hasLessonsReports: true,
-        hasExams: true,
-        hasSimulatedScoreTri: false,
-        hasSimulatedScoreAbsoluto: false,
-        simulations: DEFAULT_SIMULATIONS,
-        hasSimulations: true,
-      });
+      mockUseModules.mockReturnValue(createMockModulesReturn());
 
       const ComplexChild = () => (
         <div>
@@ -402,22 +307,7 @@ describe('ModuleProtectedRoute', () => {
     });
 
     it('should render multiple children when module is enabled', () => {
-      mockUseModules.mockReturnValue({
-        modules: defaultModules,
-        loading: false,
-        hasSimulator: true,
-        hasEssay: true,
-        hasForum: true,
-        hasSupport: true,
-        hasSimulatedReports: true,
-        hasActivitiesReports: true,
-        hasLessonsReports: true,
-        hasExams: true,
-        hasSimulatedScoreTri: false,
-        hasSimulatedScoreAbsoluto: false,
-        simulations: DEFAULT_SIMULATIONS,
-        hasSimulations: true,
-      });
+      mockUseModules.mockReturnValue(createMockModulesReturn());
 
       renderWithRouter(
         <ModuleProtectedRoute module="forum">
@@ -434,25 +324,8 @@ describe('ModuleProtectedRoute', () => {
   });
 
   describe('enabled prop (derived gates)', () => {
-    const baseReturn = {
-      modules: defaultModules,
-      loading: false,
-      hasSimulator: true,
-      hasEssay: true,
-      hasForum: true,
-      hasSupport: true,
-      hasSimulatedReports: true,
-      hasActivitiesReports: true,
-      hasLessonsReports: true,
-      hasExams: true,
-      hasSimulatedScoreTri: false,
-      hasSimulatedScoreAbsoluto: false,
-      simulations: DEFAULT_SIMULATIONS,
-      hasSimulations: true,
-    };
-
     it('should render children when enabled is true', () => {
-      mockUseModules.mockReturnValue({ ...baseReturn });
+      mockUseModules.mockReturnValue(createMockModulesReturn());
 
       renderWithRouter(
         <ModuleProtectedRoute enabled={true}>
@@ -464,7 +337,7 @@ describe('ModuleProtectedRoute', () => {
     });
 
     it('should redirect when enabled is false', () => {
-      mockUseModules.mockReturnValue({ ...baseReturn });
+      mockUseModules.mockReturnValue(createMockModulesReturn());
 
       renderWithRouter(
         <ModuleProtectedRoute enabled={false}>
@@ -477,10 +350,12 @@ describe('ModuleProtectedRoute', () => {
     });
 
     it('should prefer enabled over the module key when both are provided', () => {
-      mockUseModules.mockReturnValue({
-        ...baseReturn,
-        modules: { ...defaultModules, simulator: true },
-      });
+      mockUseModules.mockReturnValue(
+        createMockModulesReturn({
+          modules: { ...defaultModules, simulator: true },
+          hasSimulator: true,
+        })
+      );
 
       renderWithRouter(
         <ModuleProtectedRoute module="simulator" enabled={false}>
@@ -494,7 +369,9 @@ describe('ModuleProtectedRoute', () => {
     });
 
     it('should render nothing while loading even when enabled is true', () => {
-      mockUseModules.mockReturnValue({ ...baseReturn, loading: true });
+      mockUseModules.mockReturnValue(
+        createMockModulesReturn({ loading: true })
+      );
 
       const { container } = renderWithRouter(
         <ModuleProtectedRoute enabled={true}>
@@ -506,7 +383,7 @@ describe('ModuleProtectedRoute', () => {
     });
 
     it('should fail closed (redirect) when neither module nor enabled is provided', () => {
-      mockUseModules.mockReturnValue({ ...baseReturn });
+      mockUseModules.mockReturnValue(createMockModulesReturn());
 
       renderWithRouter(
         // @ts-expect-error — the prop types require a gate; this verifies the

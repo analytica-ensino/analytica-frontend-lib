@@ -144,6 +144,11 @@ export function useAppContent(config: UseAppContentConfig) {
     return sessionInfo?.institutionId || getInstitutionId;
   }, [sessionInfo?.institutionId, getInstitutionId]);
 
+  // Get the profile type from session info (e.g., STUDENT, TEACHER, UNIT_MANAGER)
+  const profileType = useMemo(() => {
+    return (sessionInfo as { profileName?: string })?.profileName ?? undefined;
+  }, [sessionInfo]);
+
   useEffect(() => {
     if (institutionIdToUse && !initialized) {
       initialize(institutionIdToUse);
@@ -151,13 +156,18 @@ export function useAppContent(config: UseAppContentConfig) {
   }, [institutionIdToUse, initialize, initialized]);
 
   // Fetch modules configuration when institutionId is available
+  // Includes profileType for profile-specific feature flags
   useEffect(() => {
     if (institutionIdToUse) {
       useModulesStore
         .getState()
-        .fetchModules(institutionIdToUse, apiConfig as AxiosInstance);
+        .fetchModules(
+          institutionIdToUse,
+          apiConfig as AxiosInstance,
+          profileType
+        );
     }
-  }, [institutionIdToUse, apiConfig]);
+  }, [institutionIdToUse, apiConfig, profileType]);
 
   return {
     handleNotFoundNavigation,

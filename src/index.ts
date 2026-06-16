@@ -833,13 +833,26 @@ export { useQuestionFiltersStore } from './store/questionFiltersStore';
 export type { QuestionFiltersState } from './store/questionFiltersStore';
 export { useLessonFiltersStore } from './store/lessonFiltersStore';
 export type { LessonFiltersState } from './store/lessonFiltersStore';
-export { useModulesStore, DEFAULT_SIMULATIONS } from './store/modulesStore';
+export { useModulesStore } from './store/modulesStore';
+export type { ModulesState } from './store/modulesStore';
+export {
+  DEFAULT_MODULES,
+  DEFAULT_SIMULATIONS,
+  DEFAULT_EXAMS,
+  DEFAULT_PERFORMANCE_GRAPHS,
+  DEFAULT_REPORTS,
+  DEFAULT_SIMULATED_SCORE,
+  mergeModulesConfig,
+} from './types/modulesConfig';
 export type {
-  ModulesState,
   ModulesConfig,
   SimulationsConfig,
-  SimulationVisibility,
-} from './store/modulesStore';
+  PerformanceGraphsConfig,
+  ReportsConfig,
+  SimulatedScoreConfig,
+  FeatureVisibility,
+  FeatureVisibility as SimulationVisibility,
+} from './types/modulesConfig';
 export { useModules } from './hooks/useModules';
 export type { UseModulesReturn } from './hooks/useModules';
 export { ModuleProtectedRoute } from './components/ModuleProtectedRoute';

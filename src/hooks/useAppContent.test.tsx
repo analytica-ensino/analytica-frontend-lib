@@ -602,7 +602,8 @@ describe('useAppContent', () => {
 
       expect(mockFetchModules).toHaveBeenCalledWith(
         'test-institution',
-        mockApiConfig
+        mockApiConfig,
+        undefined
       );
     });
 
@@ -632,7 +633,8 @@ describe('useAppContent', () => {
 
       expect(mockFetchModules).toHaveBeenCalledWith(
         'test-institution-id',
-        mockApiConfig
+        mockApiConfig,
+        undefined
       );
     });
 
@@ -646,7 +648,8 @@ describe('useAppContent', () => {
 
       expect(mockFetchModules).toHaveBeenCalledWith(
         'test-institution-id',
-        mockApiConfig
+        mockApiConfig,
+        undefined
       );
 
       mockFetchModules.mockClear();
@@ -661,7 +664,8 @@ describe('useAppContent', () => {
 
       expect(mockFetchModules).toHaveBeenCalledWith(
         'test-institution',
-        mockApiConfig
+        mockApiConfig,
+        undefined
       );
     });
   });

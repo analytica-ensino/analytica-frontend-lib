@@ -2,8 +2,8 @@ import { renderHook } from '@testing-library/react';
 import { useModules } from './useModules';
 import { useModulesStore } from '../store/modulesStore';
 
-// Mock the modulesStore (must also provide DEFAULT_SIMULATIONS, which useModules
-// imports as the defensive fallback for the nested `simulations` config).
+// Mock the modulesStore (must also provide DEFAULT_SIMULATIONS and DEFAULT_PERFORMANCE_GRAPHS,
+// which useModules imports as defensive fallbacks for nested configs).
 jest.mock('../store/modulesStore', () => ({
   useModulesStore: jest.fn(),
   DEFAULT_SIMULATIONS: {
@@ -12,6 +12,24 @@ jest.mock('../store/modulesStore', () => ({
     prova: 'ENABLED',
     simuladao: 'ENABLED',
     vestibular: 'ENABLED',
+  },
+  DEFAULT_PERFORMANCE_GRAPHS: {
+    aulas: true,
+    acessos: true,
+    simulados: true,
+    atividades: true,
+    questoes: true,
+    ranking: true,
+  },
+  DEFAULT_REPORTS: {
+    simulatedReports: true,
+    activitiesReports: true,
+    lessonsReports: true,
+    essayReports: true,
+  },
+  DEFAULT_SIMULATED_SCORE: {
+    tri: true,
+    absoluto: true,
   },
 }));
 
@@ -25,6 +43,24 @@ describe('useModules', () => {
     essay: true,
     forum: true,
     support: true,
+    performanceGraphs: {
+      aulas: true,
+      acessos: true,
+      simulados: true,
+      atividades: true,
+      questoes: true,
+      ranking: true,
+    },
+    reports: {
+      simulatedReports: true,
+      activitiesReports: true,
+      lessonsReports: true,
+      essayReports: true,
+    },
+    simulatedScore: {
+      tri: true,
+      absoluto: true,
+    },
   };
 
   beforeEach(() => {
@@ -220,6 +256,77 @@ describe('useModules', () => {
     });
   });
 
+  describe('hasExams config (lines 116-119)', () => {
+    it('should return hasExams true when exams is boolean true', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: { ...defaultModules, exams: true },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+      expect(result.current.hasExams).toBe(true);
+    });
+
+    it('should return hasExams false when exams is boolean false', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: { ...defaultModules, exams: false },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+      expect(result.current.hasExams).toBe(false);
+    });
+
+    it('should handle exams as object with enabled property (backwards compat)', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {
+          ...defaultModules,
+          exams: { enabled: false } as unknown as boolean,
+        },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+      expect(result.current.hasExams).toBe(false);
+    });
+
+    it('should handle exams object with enabled true', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {
+          ...defaultModules,
+          exams: { enabled: true } as unknown as boolean,
+        },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+      expect(result.current.hasExams).toBe(true);
+    });
+
+    it('should handle exams object without enabled property (defaults to true)', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {
+          ...defaultModules,
+          exams: {} as unknown as boolean,
+        },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+      expect(result.current.hasExams).toBe(true);
+    });
+
+    it('should default to true when exams is undefined', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: { ...defaultModules, exams: undefined },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+      expect(result.current.hasExams).toBe(true);
+    });
+  });
+
   describe('simulations config', () => {
     const fullSimulations = {
       enabled: false,
@@ -252,6 +359,372 @@ describe('useModules', () => {
       expect(result.current.hasSimulations).toBe(true);
       expect(result.current.simulations.enem).toBe('ENABLED');
       expect(result.current.simulations.simuladao).toBe('ENABLED');
+    });
+  });
+
+  describe('performanceGraphs config (lines 125-132)', () => {
+    it('should return all performance graph flags when provided', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {
+          ...defaultModules,
+          performanceGraphs: {
+            aulas: false,
+            acessos: true,
+            simulados: false,
+            atividades: true,
+            questoes: false,
+            ranking: true,
+          },
+        },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasPerformanceAulas).toBe(false);
+      expect(result.current.hasPerformanceAcessos).toBe(true);
+      expect(result.current.hasPerformanceSimulados).toBe(false);
+      expect(result.current.hasPerformanceAtividades).toBe(true);
+      expect(result.current.hasPerformanceQuestoes).toBe(false);
+      expect(result.current.hasPerformanceRanking).toBe(true);
+      expect(result.current.performanceGraphs).toEqual({
+        aulas: false,
+        acessos: true,
+        simulados: false,
+        atividades: true,
+        questoes: false,
+        ranking: true,
+      });
+    });
+
+    it('should fall back to defaults when performanceGraphs is missing', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {}, // no performanceGraphs
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasPerformanceAulas).toBe(true);
+      expect(result.current.hasPerformanceAcessos).toBe(true);
+      expect(result.current.hasPerformanceSimulados).toBe(true);
+      expect(result.current.hasPerformanceAtividades).toBe(true);
+      expect(result.current.hasPerformanceQuestoes).toBe(true);
+      expect(result.current.hasPerformanceRanking).toBe(true);
+    });
+
+    it('should use nullish coalescing for undefined individual values', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {
+          ...defaultModules,
+          performanceGraphs: {
+            aulas: undefined,
+            acessos: false,
+            // missing other keys
+          },
+        },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      // undefined ?? true = true
+      expect(result.current.hasPerformanceAulas).toBe(true);
+      expect(result.current.hasPerformanceAcessos).toBe(false);
+    });
+
+    it('should handle null values in performanceGraphs (null is nullish, falls back to true)', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {
+          ...defaultModules,
+          performanceGraphs: {
+            aulas: null as unknown as boolean,
+            acessos: null as unknown as boolean,
+            simulados: true,
+            atividades: false,
+            questoes: null as unknown as boolean,
+            ranking: null as unknown as boolean,
+          },
+        },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      // null ?? true = true (null is nullish)
+      expect(result.current.hasPerformanceAulas).toBe(true);
+      expect(result.current.hasPerformanceAcessos).toBe(true);
+      expect(result.current.hasPerformanceSimulados).toBe(true);
+      expect(result.current.hasPerformanceAtividades).toBe(false);
+      expect(result.current.hasPerformanceQuestoes).toBe(true);
+      expect(result.current.hasPerformanceRanking).toBe(true);
+    });
+  });
+
+  describe('reports config (lines 134-141)', () => {
+    it('should return all report flags from nested reports object', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {
+          ...defaultModules,
+          reports: {
+            simulatedReports: false,
+            activitiesReports: true,
+            lessonsReports: false,
+            essayReports: true,
+          },
+        },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasSimulatedReports).toBe(false);
+      expect(result.current.hasActivitiesReports).toBe(true);
+      expect(result.current.hasLessonsReports).toBe(false);
+      expect(result.current.hasEssayReports).toBe(true);
+      expect(result.current.reports).toEqual({
+        simulatedReports: false,
+        activitiesReports: true,
+        lessonsReports: false,
+        essayReports: true,
+      });
+    });
+
+    it('should fall back to flat modules values when nested reports has undefined values', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {
+          ...defaultModules,
+          // Flat values (old format) - used as fallback
+          simulatedReports: false,
+          activitiesReports: false,
+          lessonsReports: false,
+          // Nested reports with undefined values
+          reports: {
+            simulatedReports: undefined,
+            activitiesReports: undefined,
+            lessonsReports: undefined,
+            essayReports: true,
+          },
+        },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      // Should use flat values when nested values are undefined
+      expect(result.current.hasSimulatedReports).toBe(false);
+      expect(result.current.hasActivitiesReports).toBe(false);
+      expect(result.current.hasLessonsReports).toBe(false);
+      expect(result.current.hasEssayReports).toBe(true);
+    });
+
+    it('should prefer nested reports values over flat values', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {
+          ...defaultModules,
+          // Flat values (old format)
+          simulatedReports: true,
+          activitiesReports: true,
+          // Nested reports (new format) - should take precedence
+          reports: {
+            simulatedReports: false,
+            activitiesReports: false,
+            lessonsReports: true,
+            essayReports: true,
+          },
+        },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      // Nested values should win
+      expect(result.current.hasSimulatedReports).toBe(false);
+      expect(result.current.hasActivitiesReports).toBe(false);
+      expect(result.current.hasLessonsReports).toBe(true);
+    });
+
+    it('should fall back to defaults when both nested and flat are missing', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {}, // Empty modules
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      // All should default to true
+      expect(result.current.hasSimulatedReports).toBe(true);
+      expect(result.current.hasActivitiesReports).toBe(true);
+      expect(result.current.hasLessonsReports).toBe(true);
+      expect(result.current.hasEssayReports).toBe(true);
+    });
+
+    it('should handle null values in reports (null is nullish, uses flat fallback)', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {
+          ...defaultModules,
+          // Flat fallbacks - will be used when nested is null
+          simulatedReports: false,
+          activitiesReports: true,
+          lessonsReports: false,
+          reports: {
+            simulatedReports: null as unknown as boolean,
+            activitiesReports: null as unknown as boolean,
+            lessonsReports: null as unknown as boolean,
+            essayReports: false,
+          },
+        },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      // null ?? flat ?? true - uses flat fallback values
+      expect(result.current.hasSimulatedReports).toBe(false);
+      expect(result.current.hasActivitiesReports).toBe(true);
+      expect(result.current.hasLessonsReports).toBe(false);
+      expect(result.current.hasEssayReports).toBe(false);
+    });
+  });
+
+  describe('simulatedScore config (lines 143-148)', () => {
+    it('should return score type flags from nested simulatedScore object', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {
+          ...defaultModules,
+          simulatedScore: {
+            tri: true,
+            absoluto: false,
+          },
+        },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasSimulatedScoreTri).toBe(true);
+      expect(result.current.hasSimulatedScoreAbsoluto).toBe(false);
+      expect(result.current.simulatedScore).toEqual({
+        tri: true,
+        absoluto: false,
+      });
+    });
+
+    it('should fall back to flat modules values for backwards compatibility', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {
+          ...defaultModules,
+          // Flat values (old format)
+          simulatedScoreTri: true,
+          simulatedScoreAbsoluto: true,
+          // No nested simulatedScore object
+        },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      // Should use flat values when simulatedScore object is missing
+      expect(result.current.hasSimulatedScoreTri).toBe(true);
+      expect(result.current.hasSimulatedScoreAbsoluto).toBe(true);
+    });
+
+    it('should prefer nested simulatedScore values over flat values', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {
+          ...defaultModules,
+          // Flat values (old format)
+          simulatedScoreTri: true,
+          simulatedScoreAbsoluto: true,
+          // Nested simulatedScore (new format) - should take precedence
+          simulatedScore: {
+            tri: false,
+            absoluto: false,
+          },
+        },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      // Nested values should win
+      expect(result.current.hasSimulatedScoreTri).toBe(false);
+      expect(result.current.hasSimulatedScoreAbsoluto).toBe(false);
+    });
+
+    it('should use DEFAULT_SIMULATED_SCORE when both nested and flat are missing', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {}, // Empty modules
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      // Uses DEFAULT_SIMULATED_SCORE from mock (tri: true, absoluto: true)
+      expect(result.current.hasSimulatedScoreTri).toBe(true);
+      expect(result.current.hasSimulatedScoreAbsoluto).toBe(true);
+    });
+
+    it('should handle partial nested simulatedScore with flat fallback', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {
+          ...defaultModules,
+          // Flat fallback value
+          simulatedScoreAbsoluto: true,
+          simulatedScore: {
+            tri: false,
+            absoluto: undefined, // will fall back to flat value
+          },
+        },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasSimulatedScoreTri).toBe(false);
+      // absoluto falls back to modules.simulatedScoreAbsoluto which is true
+      expect(result.current.hasSimulatedScoreAbsoluto).toBe(true);
+    });
+
+    it('should handle null values in simulatedScore (null is nullish, uses flat fallback)', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {
+          ...defaultModules,
+          simulatedScoreTri: true,
+          simulatedScoreAbsoluto: false,
+          simulatedScore: {
+            tri: null as unknown as boolean,
+            absoluto: null as unknown as boolean,
+          },
+        },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      // null ?? flat ?? false - uses flat fallback values
+      expect(result.current.hasSimulatedScoreTri).toBe(true);
+      expect(result.current.hasSimulatedScoreAbsoluto).toBe(false);
+    });
+
+    it('should use flat fallback when nested value is undefined and flat is defined', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {
+          ...defaultModules,
+          simulatedScoreTri: true,
+          simulatedScoreAbsoluto: false,
+          simulatedScore: {
+            tri: undefined,
+            absoluto: undefined,
+          },
+        },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasSimulatedScoreTri).toBe(true);
+      expect(result.current.hasSimulatedScoreAbsoluto).toBe(false);
     });
   });
 });
