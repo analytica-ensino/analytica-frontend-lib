@@ -847,7 +847,6 @@ export {
 export type {
   ModulesConfig,
   SimulationsConfig,
-  ExamsConfig,
   PerformanceGraphsConfig,
   ReportsConfig,
   SimulatedScoreConfig,

@@ -20,12 +20,6 @@ export interface SimulationsConfig {
 }
 
 /**
- * Configuration for Provas (Exams) module
- * Simple boolean - true means exams are enabled
- */
-export type ExamsConfig = boolean;
-
-/**
  * Configuration for Performance screen graphs
  */
 export interface PerformanceGraphsConfig {
@@ -69,7 +63,7 @@ export const DEFAULT_SIMULATIONS: SimulationsConfig = {
 /**
  * Default exams configuration
  */
-export const DEFAULT_EXAMS: ExamsConfig = true;
+export const DEFAULT_EXAMS: boolean = true;
 
 /**
  * Default performance graphs configuration
@@ -129,7 +123,7 @@ export interface ModulesConfig {
   lessons: boolean;
 
   // Nested configurations
-  exams: ExamsConfig;
+  exams: boolean;
   simulations: SimulationsConfig;
   performanceGraphs: PerformanceGraphsConfig;
   reports: ReportsConfig;
