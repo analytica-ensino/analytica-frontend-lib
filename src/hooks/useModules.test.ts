@@ -2,8 +2,8 @@ import { renderHook } from '@testing-library/react';
 import { useModules } from './useModules';
 import { useModulesStore } from '../store/modulesStore';
 
-// Mock the modulesStore (must also provide DEFAULT_SIMULATIONS, which useModules
-// imports as the defensive fallback for the nested `simulations` config).
+// Mock the modulesStore (must also provide DEFAULT_SIMULATIONS and DEFAULT_PERFORMANCE_GRAPHS,
+// which useModules imports as defensive fallbacks for nested configs).
 jest.mock('../store/modulesStore', () => ({
   useModulesStore: jest.fn(),
   DEFAULT_SIMULATIONS: {
@@ -12,6 +12,24 @@ jest.mock('../store/modulesStore', () => ({
     prova: 'ENABLED',
     simuladao: 'ENABLED',
     vestibular: 'ENABLED',
+  },
+  DEFAULT_PERFORMANCE_GRAPHS: {
+    aulas: true,
+    acessos: true,
+    simulados: true,
+    atividades: true,
+    questoes: true,
+    ranking: true,
+  },
+  DEFAULT_REPORTS: {
+    simulatedReports: true,
+    activitiesReports: true,
+    lessonsReports: true,
+    essayReports: true,
+  },
+  DEFAULT_SIMULATED_SCORE: {
+    tri: true,
+    absoluto: true,
   },
 }));
 
@@ -25,6 +43,24 @@ describe('useModules', () => {
     essay: true,
     forum: true,
     support: true,
+    performanceGraphs: {
+      aulas: true,
+      acessos: true,
+      simulados: true,
+      atividades: true,
+      questoes: true,
+      ranking: true,
+    },
+    reports: {
+      simulatedReports: true,
+      activitiesReports: true,
+      lessonsReports: true,
+      essayReports: true,
+    },
+    simulatedScore: {
+      tri: true,
+      absoluto: true,
+    },
   };
 
   beforeEach(() => {

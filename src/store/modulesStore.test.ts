@@ -2,9 +2,6 @@ import type { AxiosInstance } from 'axios';
 import {
   useModulesStore,
   DEFAULT_SIMULATIONS,
-  DEFAULT_PERFORMANCE_GRAPHS,
-  DEFAULT_REPORTS,
-  DEFAULT_SIMULATED_SCORE,
   type ModulesConfig,
 } from './modulesStore';
 import { KEYS } from '../utils/keys';
