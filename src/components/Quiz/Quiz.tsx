@@ -104,7 +104,7 @@ export const getExitConfirmationText = (type: QUIZ_TYPE) => {
   if (type === QUIZ_TYPE.QUESTIONARIO) {
     return `Se você sair ${config.preposition} ${config.label.toLowerCase()} agora, todas as respostas serão perdidas.`;
   }
-  return `Se você sair ${config.preposition} ${config.label.toLowerCase()} agora, seu progresso será salvo e você poderá continuar depois.`;
+  return `Se você sair ${config.preposition} ${config.label.toLowerCase()} agora, poderá continuar de onde parou depois.`;
 };
 
 // Função para gerar texto de confirmação de finalização

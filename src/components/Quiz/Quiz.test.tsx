@@ -3057,7 +3057,7 @@ describe('Quiz', () => {
   describe('getExitConfirmationText', () => {
     it('should return correct text for simulado', () => {
       expect(getExitConfirmationText(QUIZ_TYPE.SIMULADO)).toBe(
-        'Se você sair do simulado agora, seu progresso será salvo e você poderá continuar depois.'
+        'Se você sair do simulado agora, poderá continuar de onde parou depois.'
       );
     });
 
@@ -3069,22 +3069,22 @@ describe('Quiz', () => {
 
     it('should return correct text for atividade', () => {
       expect(getExitConfirmationText(QUIZ_TYPE.ATIVIDADE)).toBe(
-        'Se você sair da atividade agora, seu progresso será salvo e você poderá continuar depois.'
+        'Se você sair da atividade agora, poderá continuar de onde parou depois.'
       );
     });
 
     it('should return correct text for aula recomendada', () => {
       expect(getExitConfirmationText(QUIZ_TYPE.AULA_RECOMENDADA)).toBe(
-        'Se você sair da aula recomendada agora, seu progresso será salvo e você poderá continuar depois.'
+        'Se você sair da aula recomendada agora, poderá continuar de onde parou depois.'
       );
     });
 
     it('should return default text for unknown type', () => {
       expect(getExitConfirmationText('unknown' as QUIZ_TYPE)).toBe(
-        'Se você sair do simulado agora, seu progresso será salvo e você poderá continuar depois.'
+        'Se você sair do simulado agora, poderá continuar de onde parou depois.'
       );
       expect(getExitConfirmationText('' as QUIZ_TYPE)).toBe(
-        'Se você sair do simulado agora, seu progresso será salvo e você poderá continuar depois.'
+        'Se você sair do simulado agora, poderá continuar de onde parou depois.'
       );
     });
   });
