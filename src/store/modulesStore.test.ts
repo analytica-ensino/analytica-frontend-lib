@@ -673,6 +673,57 @@ describe('ModulesStore', () => {
       expect(useModulesStore.getState().ownerInstitutionId).toBeNull();
       expect(useModulesStore.getState().ownerProfileType).toBeNull();
     });
+
+    it('should invalidate in-flight requests to prevent stale data', async () => {
+      const mockApi: MockApi = { get: jest.fn() };
+      const institutionId = 'test-institution';
+
+      // Create a delayed response
+      let resolveRequest: (value: unknown) => void;
+      const pendingRequest = new Promise((resolve) => {
+        resolveRequest = resolve;
+      });
+
+      mockApi.get.mockImplementationOnce(() => pendingRequest);
+
+      // Start fetch
+      const fetchPromise = useModulesStore
+        .getState()
+        .fetchModules(institutionId, mockApi as unknown as AxiosInstance);
+
+      // Verify loading state
+      expect(useModulesStore.getState().loading).toBe(true);
+
+      // Clear modules while fetch is in-flight
+      useModulesStore.getState().clearModules();
+
+      // State should be cleared
+      expect(useModulesStore.getState().modules).toEqual(defaultModules);
+      expect(useModulesStore.getState().ownerInstitutionId).toBeNull();
+
+      // Now resolve the stale request with different data
+      resolveRequest!({
+        data: {
+          data: {
+            featureFlags: {
+              version: {
+                simulator: false,
+                essay: false,
+                forum: false,
+              },
+            },
+          },
+        },
+      });
+
+      await fetchPromise;
+
+      // Stale response should be discarded - state remains cleared/defaults
+      const state = useModulesStore.getState();
+      expect(state.modules).toEqual(defaultModules);
+      expect(state.ownerInstitutionId).toBeNull();
+      expect(state.loading).toBe(false);
+    });
   });
 
   describe('persistence', () => {

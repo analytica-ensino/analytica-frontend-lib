@@ -220,6 +220,7 @@ export const useModulesStore = create<ModulesState>()(
         latestRequestId++;
         set({
           modules: defaultModules,
+          loading: false,
           ownerInstitutionId: null,
           ownerProfileType: null,
         });
