@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useModules } from '../hooks/useModules';
-import type { ModulesConfig } from '../store/modulesStore';
+import type { ModulesConfig } from '../types/modulesConfig';
 
 type ModuleKey = keyof ModulesConfig;
 

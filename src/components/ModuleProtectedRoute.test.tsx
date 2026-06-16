@@ -4,12 +4,12 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { ModuleProtectedRoute } from './ModuleProtectedRoute';
 import { useModules, type UseModulesReturn } from '../hooks/useModules';
 import {
+  DEFAULT_MODULES,
   DEFAULT_SIMULATIONS,
   DEFAULT_PERFORMANCE_GRAPHS,
   DEFAULT_REPORTS,
   DEFAULT_SIMULATED_SCORE,
-} from '../store/modulesStore';
-import { DEFAULT_MODULES } from '../types/modulesConfig';
+} from '../types/modulesConfig';
 
 // Mock the useModules hook
 jest.mock('../hooks/useModules', () => ({

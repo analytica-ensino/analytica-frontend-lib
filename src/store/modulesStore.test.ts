@@ -1,11 +1,11 @@
 import type { AxiosInstance } from 'axios';
+import { useModulesStore } from './modulesStore';
+import { KEYS } from '../utils/keys';
 import {
-  useModulesStore,
+  DEFAULT_MODULES,
   DEFAULT_SIMULATIONS,
   type ModulesConfig,
-} from './modulesStore';
-import { KEYS } from '../utils/keys';
-import { DEFAULT_MODULES } from '../types/modulesConfig';
+} from '../types/modulesConfig';
 
 // Mock API type for testing
 type MockApi = Pick<AxiosInstance, 'get'> & {

@@ -1,5 +1,5 @@
+import { useModulesStore } from '../store/modulesStore';
 import {
-  useModulesStore,
   DEFAULT_SIMULATIONS,
   DEFAULT_PERFORMANCE_GRAPHS,
   DEFAULT_REPORTS,
@@ -9,7 +9,7 @@ import {
   type PerformanceGraphsConfig,
   type ReportsConfig,
   type SimulatedScoreConfig,
-} from '../store/modulesStore';
+} from '../types/modulesConfig';
 
 export interface UseModulesReturn {
   modules: ModulesConfig;

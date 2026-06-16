@@ -5,39 +5,9 @@ import { useAuthStore } from './authStore';
 import type { AxiosInstance } from 'axios';
 import {
   type ModulesConfig,
-  type SimulationsConfig,
-  type ExamsConfig,
-  type PerformanceGraphsConfig,
-  type ReportsConfig,
-  type SimulatedScoreConfig,
-  type FeatureVisibility,
   DEFAULT_MODULES,
-  DEFAULT_SIMULATIONS,
-  DEFAULT_EXAMS,
-  DEFAULT_PERFORMANCE_GRAPHS,
-  DEFAULT_REPORTS,
-  DEFAULT_SIMULATED_SCORE,
   mergeModulesConfig,
 } from '../types/modulesConfig';
-
-// Re-export types for backwards compatibility
-export type {
-  ModulesConfig,
-  SimulationsConfig,
-  ExamsConfig,
-  PerformanceGraphsConfig,
-  ReportsConfig,
-  SimulatedScoreConfig,
-  FeatureVisibility,
-};
-export type SimulationVisibility = FeatureVisibility;
-export {
-  DEFAULT_SIMULATIONS,
-  DEFAULT_EXAMS,
-  DEFAULT_PERFORMANCE_GRAPHS,
-  DEFAULT_REPORTS,
-  DEFAULT_SIMULATED_SCORE,
-};
 
 /**
  * Default modules configuration - all enabled
