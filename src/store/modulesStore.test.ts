@@ -680,23 +680,26 @@ describe('ModulesStore', () => {
       expect(KEYS.MODULES_STORAGE).toBe('@modules-storage:analytica:v1');
     });
 
-    it('should only persist modules and ownerInstitutionId', () => {
+    it('should only persist modules, ownerInstitutionId, and ownerProfileType', () => {
       // The partialize function should exclude loading from persistence
       const state = {
         modules: defaultModules,
         loading: true,
         ownerInstitutionId: 'test-id',
+        ownerProfileType: 'STUDENT',
       };
 
       // Simulate what partialize does
       const partializedState = {
         modules: state.modules,
         ownerInstitutionId: state.ownerInstitutionId,
+        ownerProfileType: state.ownerProfileType,
       };
 
       expect(partializedState).not.toHaveProperty('loading');
       expect(partializedState).toHaveProperty('modules');
       expect(partializedState).toHaveProperty('ownerInstitutionId');
+      expect(partializedState).toHaveProperty('ownerProfileType');
     });
   });
 });

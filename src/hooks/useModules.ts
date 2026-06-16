@@ -72,7 +72,7 @@ export interface UseModulesReturn {
  *   hasSupport,
  *   hasSimulator,
  *   hasPerformanceAulas,
- *   hasPresencialExams,
+ *   hasExams,
  * } = useModules();
  *
  * return (

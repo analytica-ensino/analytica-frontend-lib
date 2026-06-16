@@ -214,8 +214,10 @@ export const useModulesStore = create<ModulesState>()(
 
       /**
        * Clear modules data (useful when user/institution/profile changes)
+       * Also invalidates any in-flight requests to prevent stale data overwriting cleared state
        */
       clearModules: (): void => {
+        latestRequestId++;
         set({
           modules: defaultModules,
           ownerInstitutionId: null,
