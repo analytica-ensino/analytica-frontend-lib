@@ -102,6 +102,14 @@ export const DEFAULT_SIMULATED_SCORE: SimulatedScoreConfig = {
 };
 
 /**
+ * Utility type that recursively makes all properties optional.
+ * Used for API payloads and test data where only a subset of fields are provided.
+ */
+export type DeepPartial<T> = T extends object
+  ? { [P in keyof T]?: DeepPartial<T[P]> }
+  : T;
+
+/**
  * Complete modules configuration interface
  * All modules that can be controlled via feature flags
  */
@@ -175,7 +183,7 @@ export const DEFAULT_MODULES: ModulesConfig = {
  * Handles nested objects (simulations, performanceGraphs, reports, simulatedScore).
  */
 export const mergeModulesConfig = (
-  version?: Partial<ModulesConfig> | null
+  version?: DeepPartial<ModulesConfig> | null
 ): ModulesConfig => {
   const v = version ?? {};
   return {

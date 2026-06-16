@@ -244,8 +244,10 @@ export const useModulesStore = create<ModulesState>()(
 
         const currentInstitutionId =
           useAuthStore.getState().sessionInfo?.institutionId ?? null;
+        // Use sessionInfo.profileName to match what useAppContent passes to fetchModules
         const currentProfile =
-          useAuthStore.getState().selectedProfile?.name ?? null;
+          (useAuthStore.getState().sessionInfo as { profileName?: string })
+            ?.profileName ?? null;
 
         // Clear if institution or profile changed
         if (
@@ -263,28 +265,28 @@ export const useModulesStore = create<ModulesState>()(
 
 // Clear modules whenever institution or profile changes (same-tab user switch)
 // Only clear when institution/profile actually CHANGES (not on initial hydration)
+// Use sessionInfo.profileName to match what useAppContent passes to fetchModules
 let lastInstitutionId: string | null =
   useAuthStore.getState().sessionInfo?.institutionId ?? null;
 let lastProfileType: string | null =
-  useAuthStore.getState().selectedProfile?.name ?? null;
+  (useAuthStore.getState().sessionInfo as { profileName?: string })
+    ?.profileName ?? null;
 
 useAuthStore.subscribe((state) => {
   const nextInstitutionId = state.sessionInfo?.institutionId ?? null;
-  const nextProfileType = state.selectedProfile?.name ?? null;
+  const nextProfileType =
+    (state.sessionInfo as { profileName?: string })?.profileName ?? null;
 
   if (
     nextInstitutionId !== lastInstitutionId ||
     nextProfileType !== lastProfileType
   ) {
     // Only clear modules if there was a previous value (actual change, not initial load)
+    // NOTE: Don't set ownerInstitutionId/ownerProfileType here - let fetchModules set them
+    // after a successful fetch. Setting them here would cause hasCachedModules to return
+    // true even though we only have DEFAULT_MODULES, skipping the necessary fetch.
     if (lastInstitutionId !== null || lastProfileType !== null) {
       useModulesStore.getState().clearModules();
-    }
-    if (nextInstitutionId) {
-      useModulesStore.setState({ ownerInstitutionId: nextInstitutionId });
-    }
-    if (nextProfileType) {
-      useModulesStore.setState({ ownerProfileType: nextProfileType });
     }
     lastInstitutionId = nextInstitutionId;
     lastProfileType = nextProfileType;
