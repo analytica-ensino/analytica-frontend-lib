@@ -134,8 +134,13 @@ const QuizTitle = forwardRef<
   HTMLDivElement,
   { className?: string; onBack?: () => void }
 >(({ className, onBack, ...props }, ref) => {
-  const { quiz, currentQuestionIndex, getTotalQuestions, getQuizTitle, isStarted } =
-    useQuizStore();
+  const {
+    quiz,
+    currentQuestionIndex,
+    getTotalQuestions,
+    getQuizTitle,
+    isStarted,
+  } = useQuizStore();
 
   const [showExitConfirmation, setShowExitConfirmation] = useState(false);
 
