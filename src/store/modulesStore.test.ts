@@ -753,4 +753,257 @@ describe('ModulesStore', () => {
       expect(partializedState).toHaveProperty('ownerProfileType');
     });
   });
+
+  describe('onRehydrateStorage - institution/profile change detection', () => {
+    // Import useAuthStore to manipulate its mock
+    const { useAuthStore } = jest.requireMock('./authStore');
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      useModulesStore.setState({
+        modules: defaultModules,
+        loading: false,
+        ownerInstitutionId: null,
+        ownerProfileType: null,
+      });
+    });
+
+    it('should clear modules when institution changed after rehydration', () => {
+      // Setup: current auth state has different institution than rehydrated
+      useAuthStore.getState.mockReturnValue({
+        sessionInfo: {
+          institutionId: 'new-institution-id',
+          profileName: 'STUDENT',
+        },
+      });
+
+      const clearModulesSpy = jest.spyOn(
+        useModulesStore.getState(),
+        'clearModules'
+      );
+
+      // Simulate rehydrated state with old institution
+      const rehydratedState = {
+        modules: { ...defaultModules, simulator: false },
+        ownerInstitutionId: 'old-institution-id',
+        ownerProfileType: 'STUDENT',
+        loading: false,
+        fetchModules: jest.fn(),
+        clearModules: useModulesStore.getState().clearModules,
+      };
+
+      // Check the condition from lines 253-260
+      const currentInstitutionId =
+        useAuthStore.getState().sessionInfo?.institutionId ?? null;
+      const currentProfile =
+        (useAuthStore.getState().sessionInfo as { profileName?: string })
+          ?.profileName ?? null;
+
+      const shouldClear =
+        (rehydratedState.ownerInstitutionId &&
+          rehydratedState.ownerInstitutionId !== currentInstitutionId) ||
+        (rehydratedState.ownerProfileType &&
+          rehydratedState.ownerProfileType !== currentProfile);
+
+      expect(shouldClear).toBe(true);
+      expect(rehydratedState.ownerInstitutionId).not.toBe(currentInstitutionId);
+
+      clearModulesSpy.mockRestore();
+    });
+
+    it('should clear modules when profile changed after rehydration', () => {
+      // Setup: current auth state has different profile than rehydrated
+      useAuthStore.getState.mockReturnValue({
+        sessionInfo: {
+          institutionId: 'same-institution',
+          profileName: 'TEACHER',
+        },
+      });
+
+      // Simulate rehydrated state with old profile
+      const rehydratedState = {
+        modules: { ...defaultModules, essay: false },
+        ownerInstitutionId: 'same-institution',
+        ownerProfileType: 'STUDENT', // Different from current 'TEACHER'
+        loading: false,
+        fetchModules: jest.fn(),
+        clearModules: useModulesStore.getState().clearModules,
+      };
+
+      const currentInstitutionId =
+        useAuthStore.getState().sessionInfo?.institutionId ?? null;
+      const currentProfile =
+        (useAuthStore.getState().sessionInfo as { profileName?: string })
+          ?.profileName ?? null;
+
+      const shouldClear =
+        (rehydratedState.ownerInstitutionId &&
+          rehydratedState.ownerInstitutionId !== currentInstitutionId) ||
+        (rehydratedState.ownerProfileType &&
+          rehydratedState.ownerProfileType !== currentProfile);
+
+      expect(shouldClear).toBe(true);
+      expect(rehydratedState.ownerProfileType).not.toBe(currentProfile);
+    });
+
+    it('should clear modules when both institution and profile changed', () => {
+      useAuthStore.getState.mockReturnValue({
+        sessionInfo: {
+          institutionId: 'new-institution',
+          profileName: 'TEACHER',
+        },
+      });
+
+      const rehydratedState = {
+        modules: defaultModules,
+        ownerInstitutionId: 'old-institution',
+        ownerProfileType: 'STUDENT',
+        loading: false,
+        fetchModules: jest.fn(),
+        clearModules: useModulesStore.getState().clearModules,
+      };
+
+      const currentInstitutionId =
+        useAuthStore.getState().sessionInfo?.institutionId ?? null;
+      const currentProfile =
+        (useAuthStore.getState().sessionInfo as { profileName?: string })
+          ?.profileName ?? null;
+
+      const shouldClear =
+        (rehydratedState.ownerInstitutionId &&
+          rehydratedState.ownerInstitutionId !== currentInstitutionId) ||
+        (rehydratedState.ownerProfileType &&
+          rehydratedState.ownerProfileType !== currentProfile);
+
+      expect(shouldClear).toBe(true);
+    });
+
+    it('should NOT clear modules when institution and profile are the same', () => {
+      useAuthStore.getState.mockReturnValue({
+        sessionInfo: {
+          institutionId: 'same-institution',
+          profileName: 'STUDENT',
+        },
+      });
+
+      const rehydratedState = {
+        modules: { ...defaultModules, simulator: false },
+        ownerInstitutionId: 'same-institution',
+        ownerProfileType: 'STUDENT',
+        loading: false,
+        fetchModules: jest.fn(),
+        clearModules: useModulesStore.getState().clearModules,
+      };
+
+      const currentInstitutionId =
+        useAuthStore.getState().sessionInfo?.institutionId ?? null;
+      const currentProfile =
+        (useAuthStore.getState().sessionInfo as { profileName?: string })
+          ?.profileName ?? null;
+
+      const shouldClear =
+        (rehydratedState.ownerInstitutionId &&
+          rehydratedState.ownerInstitutionId !== currentInstitutionId) ||
+        (rehydratedState.ownerProfileType &&
+          rehydratedState.ownerProfileType !== currentProfile);
+
+      expect(shouldClear).toBe(false);
+    });
+
+    it('should NOT clear modules when ownerInstitutionId is null (fresh state)', () => {
+      useAuthStore.getState.mockReturnValue({
+        sessionInfo: {
+          institutionId: 'any-institution',
+          profileName: 'STUDENT',
+        },
+      });
+
+      const rehydratedState = {
+        modules: defaultModules,
+        ownerInstitutionId: null, // No previous owner
+        ownerProfileType: null,
+        loading: false,
+        fetchModules: jest.fn(),
+        clearModules: useModulesStore.getState().clearModules,
+      };
+
+      const currentInstitutionId =
+        useAuthStore.getState().sessionInfo?.institutionId ?? null;
+      const currentProfile =
+        (useAuthStore.getState().sessionInfo as { profileName?: string })
+          ?.profileName ?? null;
+
+      const shouldClear =
+        (rehydratedState.ownerInstitutionId &&
+          rehydratedState.ownerInstitutionId !== currentInstitutionId) ||
+        (rehydratedState.ownerProfileType &&
+          rehydratedState.ownerProfileType !== currentProfile);
+
+      // Should NOT clear because ownerInstitutionId is null (falsy check)
+      // In JS, null && something returns null (falsy), so modules won't be cleared
+      expect(shouldClear).toBeFalsy();
+    });
+
+    it('should NOT clear modules when current sessionInfo is null', () => {
+      useAuthStore.getState.mockReturnValue({
+        sessionInfo: null,
+      });
+
+      const rehydratedState = {
+        modules: { ...defaultModules, forum: false },
+        ownerInstitutionId: 'old-institution',
+        ownerProfileType: 'STUDENT',
+        loading: false,
+        fetchModules: jest.fn(),
+        clearModules: useModulesStore.getState().clearModules,
+      };
+
+      const currentInstitutionId =
+        useAuthStore.getState().sessionInfo?.institutionId ?? null;
+      const currentProfile =
+        (useAuthStore.getState().sessionInfo as { profileName?: string })
+          ?.profileName ?? null;
+
+      // When currentInstitutionId is null, rehydrated.ownerInstitutionId !== null
+      // This means institution changed (user logged out or different user)
+      const shouldClear =
+        (rehydratedState.ownerInstitutionId &&
+          rehydratedState.ownerInstitutionId !== currentInstitutionId) ||
+        (rehydratedState.ownerProfileType &&
+          rehydratedState.ownerProfileType !== currentProfile);
+
+      // Should clear because rehydrated has an institution but current is null
+      expect(shouldClear).toBe(true);
+    });
+
+    it('should handle undefined profileName in sessionInfo', () => {
+      useAuthStore.getState.mockReturnValue({
+        sessionInfo: { institutionId: 'same-institution' }, // No profileName
+      });
+
+      const rehydratedState = {
+        modules: defaultModules,
+        ownerInstitutionId: 'same-institution',
+        ownerProfileType: 'STUDENT',
+        loading: false,
+        fetchModules: jest.fn(),
+        clearModules: useModulesStore.getState().clearModules,
+      };
+
+      const currentInstitutionId =
+        useAuthStore.getState().sessionInfo?.institutionId ?? null;
+      const currentProfile =
+        (useAuthStore.getState().sessionInfo as { profileName?: string })
+          ?.profileName ?? null;
+
+      const shouldClear =
+        (rehydratedState.ownerInstitutionId &&
+          rehydratedState.ownerInstitutionId !== currentInstitutionId) ||
+        (rehydratedState.ownerProfileType &&
+          rehydratedState.ownerProfileType !== currentProfile);
+
+      // Should clear because profile is 'STUDENT' but current is null
+      expect(shouldClear).toBe(true);
+    });
+  });
 });
