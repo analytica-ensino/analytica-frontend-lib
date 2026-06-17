@@ -43,14 +43,17 @@ export const useAppStore = create<AppState>()(
       },
 
       /**
-       * Initialize the app by reading the institution ID from meta tag
+       * Initialize the app by reading the institution ID from meta tag.
+       * The meta tag is the source of truth on each load: if the incoming
+       * id differs from the persisted one (e.g. institution changed since
+       * the last session), it overwrites the stale value.
        * @returns {void}
        */
       initialize: (id: string | null): void => {
-        const { initialized } = get();
+        const { initialized, institutionId } = get();
 
-        if (initialized) {
-          return; // Already initialized
+        if (initialized && institutionId === id) {
+          return; // Already initialized with the same institution
         }
 
         set({

@@ -92,10 +92,9 @@ describe('appStore', () => {
       expect(result.current.initialized).toBe(true);
     });
 
-    it('should not reinitialize if already initialized', () => {
+    it('should not reinitialize when called again with the same institution', () => {
       const { result } = renderHook(() => useAppStore());
 
-      // Primeira inicialização
       act(() => {
         result.current.initialize('first-institution');
       });
@@ -103,13 +102,30 @@ describe('appStore', () => {
       expect(result.current.institutionId).toBe('first-institution');
       expect(result.current.initialized).toBe(true);
 
-      // Tentar inicializar novamente
+      // Mesma instituição: mantém os valores
+      act(() => {
+        result.current.initialize('first-institution');
+      });
+
+      expect(result.current.institutionId).toBe('first-institution');
+      expect(result.current.initialized).toBe(true);
+    });
+
+    it('should overwrite the institution when the meta tag id changes', () => {
+      const { result } = renderHook(() => useAppStore());
+
+      act(() => {
+        result.current.initialize('first-institution');
+      });
+
+      expect(result.current.institutionId).toBe('first-institution');
+
+      // Instituição mudou desde a última sessão: meta tag é a fonte de verdade
       act(() => {
         result.current.initialize('second-institution');
       });
 
-      // Deve manter os valores originais
-      expect(result.current.institutionId).toBe('first-institution');
+      expect(result.current.institutionId).toBe('second-institution');
       expect(result.current.initialized).toBe(true);
     });
   });
