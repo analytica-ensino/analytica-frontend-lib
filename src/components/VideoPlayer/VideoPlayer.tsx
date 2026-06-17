@@ -640,7 +640,7 @@ const VideoPlayer = ({
    */
   useEffect(() => {
     const start = getInitialTime();
-    if (start !== undefined && videoRef.current) {
+    if (start !== undefined && Number.isFinite(start) && videoRef.current) {
       videoRef.current.currentTime = start;
       setCurrentTime(start);
     }
@@ -735,7 +735,7 @@ const VideoPlayer = ({
    */
   const handleSeek = useCallback((newTime: number) => {
     const video = videoRef.current;
-    if (video) {
+    if (video && Number.isFinite(newTime)) {
       video.currentTime = newTime;
     }
   }, []);
@@ -774,10 +774,11 @@ const VideoPlayer = ({
         videoElement.webkitExitFullscreen();
       }
     } else if (!isFullscreen && container.requestFullscreen) {
-      // Standard fullscreen API for other browsers
-      container.requestFullscreen();
+      // Standard fullscreen API for other browsers. The returned promise can
+      // reject (e.g. document not active after a tab switch); swallow it.
+      container.requestFullscreen().catch(() => {});
     } else if (isFullscreen && document.exitFullscreen) {
-      document.exitFullscreen();
+      document.exitFullscreen().catch(() => {});
     }
   }, [isFullscreen, isSafariIOS]);
 

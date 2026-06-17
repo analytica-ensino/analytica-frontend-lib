@@ -959,7 +959,9 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
         setIsPlaying(false);
         onPause?.();
       } else {
-        audioRef.current?.play();
+        // play() returns a promise that rejects (AbortError) when interrupted
+        // by a pause() before playback starts; swallow it to avoid crashing.
+        audioRef.current?.play()?.catch(() => {});
         setIsPlaying(true);
         onPlay?.();
       }
@@ -991,10 +993,10 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
       const percentage = clickX / width;
       const newTime = percentage * duration;
 
-      if (audioRef.current) {
+      if (audioRef.current && Number.isFinite(newTime)) {
         audioRef.current.currentTime = newTime;
+        setCurrentTime(newTime);
       }
-      setCurrentTime(newTime);
     };
 
     const handleVolumeChange = (e: ChangeEvent<HTMLInputElement>) => {
