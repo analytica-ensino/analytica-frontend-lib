@@ -85,3 +85,11 @@ export interface CalendarActivitiesResponse {
     pastActivities: ActivityResponse[];
   };
 }
+
+/**
+ * Alias consumed by the apps under the name `GeneralActivityStatus`.
+ * Re-exported here so it is reachable via the `types/activities` subpath
+ * (and not only via the root barrel). `ActivityStatus` is an enum (runtime
+ * value), so this is a value re-export, not a type-only one.
+ */
+export { ActivityStatus as GeneralActivityStatus };

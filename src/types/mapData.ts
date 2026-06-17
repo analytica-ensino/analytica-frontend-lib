@@ -56,3 +56,10 @@ export interface MapDataApiResponse {
     geoJSON?: FeatureCollection<Polygon | MultiPolygon>;
   };
 }
+
+/**
+ * Alias consumed by the apps under the name `MapDataFilters`.
+ * Re-exported here so it is reachable via the `types/mapData` subpath
+ * (and not only via the root barrel).
+ */
+export type { MapFilters as MapDataFilters };

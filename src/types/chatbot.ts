@@ -103,3 +103,10 @@ export interface ChatbotApiClient {
    */
   deleteConversation(conversationId: string): Promise<void>;
 }
+
+/**
+ * Alias consumed by the apps under the name `ChatbotMessageData`.
+ * Re-exported here so it is reachable via the `types/chatbot` subpath
+ * (and not only via the root barrel).
+ */
+export type { ChatbotMessage as ChatbotMessageData };

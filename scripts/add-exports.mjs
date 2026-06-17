@@ -7,87 +7,144 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const ROOT_DIR = path.join(__dirname, '..');
+
 /**
- * Adds component exports to package.json for publishing
- * Keeps the local package.json clean while ensuring all exports are available for consumers
+ * Parse the `entry` object from tsup.config.ts.
+ *
+ * tsup is the single source of truth for what gets compiled into the dist
+ * (one `.mjs` + `.js` per entry). Deriving the package.json `exports` map from
+ * the same list guarantees every compiled module is reachable as a subpath and
+ * that we never drift (a new tsup entry is automatically exported).
+ *
+ * Returns a map of outputPath -> srcPath, e.g.
+ *   'Button/index'        -> 'src/components/Button/Button.tsx'
+ *   'hooks/useMobile/index' -> 'src/hooks/useMobile.ts'
  */
-async function addExports() {
-  const packageJsonPath = path.join(__dirname, '..', 'package.json');
-  const srcDir = path.join(__dirname, '..', 'src', 'components');
+function parseTsupEntries() {
+  const configPath = path.join(ROOT_DIR, 'tsup.config.ts');
+  const content = fs.readFileSync(configPath, 'utf-8');
 
-  console.log('📦 Adding component exports to package.json for publishing...');
-
-  // Read current package.json
-  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
-
-  // Get all component directories
-  const componentDirs = fs.readdirSync(srcDir, { withFileTypes: true })
-    .filter(dirent => dirent.isDirectory())
-    .map(dirent => dirent.name);
-
-  // Create component exports object
-  const componentExports = {};
-
-  for (const componentName of componentDirs) {
-    const componentFile = path.join(srcDir, componentName, `${componentName}.tsx`);
-
-    if (fs.existsSync(componentFile)) {
-      // Convert ComponentName to kebab-case for export key
-      const exportKey = componentName
-        .replace(/([A-Z])/g, '-$1')
-        .toLowerCase()
-        .replace(/^-/, '');
-
-      // Add main component export
-      componentExports[`./${exportKey}`] = `./dist/${componentName}/index.js`;
-
-      // Check for utils directory (Toast case)
-      const utilsDir = path.join(srcDir, componentName, 'utils');
-      if (fs.existsSync(utilsDir)) {
-        const utilFiles = fs.readdirSync(utilsDir)
-          .filter(file => file.endsWith('.tsx') || file.endsWith('.ts'))
-          .filter(file => !file.includes('.test.') && !file.includes('.stories.'))
-          .map(file => path.basename(file, path.extname(file)));
-
-        for (const utilName of utilFiles) {
-          const utilExportKey = `./${exportKey}/${utilName.toLowerCase()}`;
-          componentExports[utilExportKey] = `./dist/${componentName}/${utilName}/index.js`;
-        }
-      }
-
-      console.log(`✅ Added export for ${componentName} -> ./${exportKey}`);
-    }
+  const entryMatch = content.match(/entry:\s*\{([\s\S]*?)\n\s*\}/);
+  if (!entryMatch) {
+    throw new Error('Could not find entry object in tsup.config.ts');
   }
 
-  // Merge with existing exports, adding main bundle export and preserving base exports.
-  // The root "." entry is applied AFTER spreading the existing exports so a stale/wrong
-  // "." in the committed package.json can never clobber the correct mapping
-  // (import -> ESM .mjs, require -> CJS .js).
-  const newExports = {
-    ...packageJson.exports,
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
-    },
-    ...componentExports
-  };
+  const entryContent = entryMatch[1];
+  const entries = {};
+  const lineRegex =
+    /['"]?([^'":\s]+(?:\/[^'":\s]+)*)['"]?\s*:\s*['"]([^'"]+)['"]/g;
+  let match;
 
-  // Update package.json
-  packageJson.exports = newExports;
+  while ((match = lineRegex.exec(entryContent)) !== null) {
+    const [, outputPath, srcPath] = match;
+    // Skip non-ts/tsx entries (e.g. styles.css)
+    if (!srcPath.endsWith('.ts') && !srcPath.endsWith('.tsx')) {
+      continue;
+    }
+    entries[outputPath] = srcPath;
+  }
 
-  // Write updated package.json
-  fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
-
-  console.log(`✨ Successfully added ${Object.keys(componentExports).length} component exports!`);
-  console.log('\n📋 Available exports:');
-
-  // Log all exports for reference
-  Object.keys(newExports).forEach(key => {
-    console.log(`   ${key} -> ${newExports[key]}`);
-  });
-
-  console.log('\n🚀 package.json ready for publishing!');
+  return entries;
 }
 
-addExports().catch(console.error);
+/**
+ * Convert a PascalCase component dir name to the kebab-case export key the
+ * apps already rely on, e.g. ActivityFilters -> activity-filters.
+ */
+function toKebab(name) {
+  return name
+    .replace(/([A-Z])/g, '-$1')
+    .toLowerCase()
+    .replace(/^-/, '');
+}
+
+/**
+ * Derive the public subpath export key from a tsup output path.
+ *
+ * - Components live under '<Component>/index' -> './<component-kebab>'
+ *   and nested helpers '<Component>/<helper>/index' -> './<component-kebab>/<helper-lower>'.
+ *   This preserves the historical, app-facing keys.
+ * - Everything else (hooks/, store/, utils/, types/, enums/, etc.) keeps its
+ *   directory structure, lowercased, dropping the trailing '/index'.
+ *   e.g. 'hooks/useMobile/index' -> './hooks/usemobile'
+ *        'utils/index'           -> './utils'
+ */
+function outputPathToExportKey(outputPath) {
+  const segments = outputPath.replace(/\/index$/, '').split('/');
+
+  // Component entries: top-level PascalCase dir mapped from src/components/*
+  const isComponent = /^[A-Z]/.test(segments[0]);
+  if (isComponent) {
+    const [component, ...rest] = segments;
+    const base = toKebab(component);
+    if (rest.length === 0) {
+      return `./${base}`;
+    }
+    return `./${base}/${rest.join('/').toLowerCase()}`;
+  }
+
+  // Non-component entries keep their path, lowercased.
+  return `./${segments.join('/').toLowerCase()}`;
+}
+
+/**
+ * Build a conditional export entry that exposes the ESM build first so bundlers
+ * (Vite/Rollup/webpack) tree-shake the subpath. CJS is kept as the `require`
+ * fallback for legacy consumers. `types` points at the per-entry .d.ts emitted
+ * by `build:types` (tsc + fix-dts-paths.mjs).
+ */
+function buildEntry(distBase) {
+  return {
+    types: `${distBase}/index.d.ts`,
+    import: `${distBase}/index.mjs`,
+    require: `${distBase}/index.js`,
+  };
+}
+
+async function addExports() {
+  const packageJsonPath = path.join(ROOT_DIR, 'package.json');
+
+  console.log('📦 Deriving subpath exports from tsup entries...');
+
+  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+  const entries = parseTsupEntries();
+
+  const derivedExports = {};
+  for (const outputPath of Object.keys(entries)) {
+    // The root bundle (index) is handled explicitly below as ".".
+    if (outputPath === 'index') {
+      continue;
+    }
+    const exportKey = outputPathToExportKey(outputPath);
+    const distBase = `./dist/${outputPath.replace(/\/index$/, '')}`;
+    derivedExports[exportKey] = buildEntry(distBase);
+    console.log(`✅ ${exportKey} -> ${distBase}/index.mjs`);
+  }
+
+  // Merge: keep any base exports (e.g. ./styles.css), then force the root "."
+  // to the correct ESM/CJS/types mapping, then layer the derived subpaths.
+  const newExports = {
+    ...packageJson.exports,
+    '.': {
+      types: './dist/index.d.ts',
+      import: './dist/index.mjs',
+      require: './dist/index.js',
+    },
+    ...derivedExports,
+  };
+
+  packageJson.exports = newExports;
+
+  fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+
+  console.log(
+    `\n✨ Successfully added ${Object.keys(derivedExports).length} subpath exports!`
+  );
+  console.log('🚀 package.json ready for publishing!');
+}
+
+addExports().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

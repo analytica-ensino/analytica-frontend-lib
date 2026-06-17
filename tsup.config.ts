@@ -209,12 +209,135 @@ export default defineConfig({
       'src/hooks/useA11yKeyboardShortcut.ts',
     'hooks/useTTS/index': 'src/hooks/useTTS.ts',
 
+    // Stores (consumed directly by the apps; needed as subpaths so importing a
+    // single store does not pull the whole barrel)
+    'store/authStore/index': 'src/store/authStore.ts',
+    'store/appStore/index': 'src/store/appStore.ts',
+    'store/userStore/index': 'src/store/userStore.ts',
+    'store/notificationStore/index': 'src/store/notificationStore.ts',
+    'store/themeStore/index': 'src/store/themeStore.ts',
+
+    // Enums / shared types consumed directly by the apps
+    'enums/SubjectEnum/index': 'src/enums/SubjectEnum.ts',
+    'types/questions/index': 'src/types/questions.ts',
+    'types/questionTypes/index': 'src/types/questionTypes.ts',
+    'types/chat/index': 'src/types/chat.ts',
+
+    // Support / Zendesk (consumed directly by the apps)
+    'ZendeskWidget/index': 'src/components/ZendeskWidget/ZendeskWidget.tsx',
+    'hooks/useSupportFeatureFlag/index': 'src/hooks/useSupportFeatureFlag.ts',
+
+    // ============================================================
+    // Bundle migration: subpath entries for symbols consumed by the
+    // apps. Grouped by kind for legibility. Each entry maps a public
+    // subpath to the source file that DEFINES the consumed symbol(s),
+    // listed in the trailing comment.
+    // ============================================================
+
+    // === migration: Components ===
+    'AccessReportModal/index': 'src/components/AccessReportModal/AccessReportModal.tsx', // AccessReportModal, AccessReportProfessionalData, AccessReportStudentData
+    'Accordation/AccordionGroup/index': 'src/components/Accordation/AccordionGroup.tsx', // AccordionGroup
+    'ActivityCreate/index': 'src/components/ActivityCreate/ActivityCreate.tsx', // CreateActivity
+    'ActivityCreate/ActivityCreate.types/index': 'src/components/ActivityCreate/ActivityCreate.types.ts', // ActivityType
+    'AlertManager/types/index': 'src/components/AlertManager/types.ts', // AlertData, AlertsConfig
+    'AlertManager/useAlertForm/index': 'src/components/AlertManager/useAlertForm.ts', // useAlertFormStore
+    'Chat/index': 'src/components/Chat/Chat.tsx', // Chat
+    'CheckBoxGroup/index': 'src/components/CheckBoxGroup/CheckBoxGroup.tsx', // CategoryConfig, CheckboxGroup
+    'ChoroplethMap/ChoroplethMap.types/index': 'src/components/ChoroplethMap/ChoroplethMap.types.ts', // RegionData
+    'ColorPicker/index': 'src/components/ColorPicker/ColorPicker.tsx', // ColorPicker
+    'ComparatorChart/ComparatorView/index': 'src/components/ComparatorChart/ComparatorView.tsx', // ComparatorView
+    'ExamDetailsLayout/ExamDetailsPage/index': 'src/components/ExamDetailsLayout/ExamDetailsPage.tsx', // ExamDetailsPage
+    'ExamPageLayout/index': 'src/components/ExamPageLayout/ExamPageLayout.tsx', // ExamPageLayout, ExamTab
+    'ExamPageLayout/GabaritoCard/index': 'src/components/ExamPageLayout/GabaritoCard.tsx', // PageContainer
+    'ExamPageLayout/examsTableConfig/index': 'src/components/ExamPageLayout/examsTableConfig.tsx', // examsTableColumns
+    'FileDropzone/index': 'src/components/FileDropzone/FileDropzone.tsx', // FileDropzone
+    'Filter/useTableFilter/index': 'src/components/Filter/useTableFilter.ts', // FilterConfig, useTableFilter
+    'Forum/index': 'src/components/Forum/Forum.tsx', // Forum
+    'ImageUpload/index': 'src/components/ImageUpload/ImageUpload.tsx', // ImageUpload
+    'MaskedInput/index': 'src/components/MaskedInput/MaskedInput.tsx', // MaskedInput
+    'ModuleProtectedRoute/index': 'src/components/ModuleProtectedRoute.tsx', // ModuleProtectedRoute
+    'PerformanceQuestionsData/index': 'src/components/PerformanceQuestionsData/PerformanceQuestionsData.tsx', // ContentVariantData, PerformanceQuestionsData, PerformanceQuestionsVariant, QuestionsVariantData
+    'PerformanceRanking/index': 'src/components/PerformanceRanking/PerformanceRanking.tsx', // GroupedBy, PerformanceRanking, PerformanceRankingData, PerformanceRankingItem
+    'PerformanceReport/index': 'src/components/PerformanceReport/PerformanceReport.tsx', // PerformanceCardData, PerformanceDefaultData, PerformanceReport, PerformanceReportTab, PerformanceStudentData
+    'PerformanceReportModal/index': 'src/components/PerformanceReportModal/PerformanceReportModal.tsx', // PerformanceReportModal, UserPerformanceProfessionalData, UserPerformanceStudentData
+    'PeriodSelector/index': 'src/components/PeriodSelector/PeriodSelector.tsx', // PeriodSelector
+    'Quiz/Quiz.types/index': 'src/components/Quiz/Quiz.types.ts', // QuizVariant
+    'Quiz/QuizResult/index': 'src/components/Quiz/QuizResult.tsx', // QuizHeaderResult, QuizListResult, QuizListResultByMateria, QuizResultHeaderTitle, QuizResultPerformance, QuizResultTitle
+    'Quiz/TeacherFeedbackSection/index': 'src/components/Quiz/TeacherFeedbackSection.tsx', // TeacherFeedbackSection
+    'RecommendedLessonCreate/index': 'src/components/RecommendedLessonCreate/RecommendedLessonCreate.tsx', // RecommendedLessonCreate
+    'RecommendedLessonDetails/index': 'src/components/RecommendedLessonDetails/RecommendedLessonDetails.tsx', // RecommendedLessonDetails
+    'RecommendedLessonDetails/types/index': 'src/components/RecommendedLessonDetails/types.ts', // StudentPerformanceData
+    'RestrictedAccess/index': 'src/components/RestrictedAccess/RestrictedAccess.tsx', // RestrictedAccess
+    'SearchSelect/index': 'src/components/SearchSelect/SearchSelect.tsx', // SearchSelect, SearchSelectOption, SearchSelectPagination
+    'SendLessonModal/index': 'src/components/SendLessonModal/SendLessonModal.tsx', // SendLessonModal
+    'SimulatedPerformance/SimulatedPerformanceView/index': 'src/components/SimulatedPerformance/SimulatedPerformanceView.tsx', // SimulatedPerformanceView
+    'SimulatedPerformance/constants/index': 'src/components/SimulatedPerformance/constants.ts', // SCORE_TYPE_OPTIONS
+    'SimulatedPerformance/useSimulatedPerformance/index': 'src/components/SimulatedPerformance/useSimulatedPerformance.tsx', // useSimulatedPerformance
+    'StudentLessonProgressModal/types/index': 'src/components/StudentLessonProgressModal/types.ts', // StudentLessonProgressData
+    'StudentPerformanceDetailsModal/types/index': 'src/components/StudentPerformanceDetailsModal/types.ts', // StudentPerformanceDetailsData
+    'TimeChart/index': 'src/components/TimeChart/TimeChart.tsx', // DEFAULT_CATEGORIES, STUDENT_CATEGORIES, TimeChart, TimeChartData
+    'TimeReport/index': 'src/components/TimeReport/TimeReport.tsx', // TimeReport, TimeReportData, TimeReportTab, formatHoursToTime, formatVariation, getTrendDirection
+    'ToggleSwitch/index': 'src/components/ToggleSwitch/ToggleSwitch.tsx', // ToggleSwitch
+    'TokenValidation/index': 'src/components/TokenValidation/TokenValidation.tsx', // TokenValidation
+    'TypeSelector/index': 'src/components/TypeSelector/TypeSelector.tsx', // TypeSelector
+    'TypeSelector/TypeSelector.types/index': 'src/components/TypeSelector/TypeSelector.types.ts', // ActivityCategory, TypeRoutes, createActivityCategoryConfig
+    'UnifiedDraftModelPage/index': 'src/components/UnifiedDraftModelPage/UnifiedDraftModelPage.tsx', // UnifiedDraftModelPage
+    'UnifiedHistoryPage/index': 'src/components/UnifiedHistoryPage/UnifiedHistoryPage.tsx', // UnifiedHistoryPage
+
+    // === migration: Hooks ===
+    'hooks/useActivityDrafts/index': 'src/hooks/useActivityDrafts.ts', // createUseActivityDrafts
+    'hooks/useAppContent/index': 'src/hooks/useAppContent.ts', // useAppContent
+    'hooks/useAppInitialization/index': 'src/hooks/useAppInitialization.ts', // useAppInitialization
+    'hooks/useCep/index': 'src/hooks/useCep.ts', // useCep
+    'hooks/useComparator/index': 'src/hooks/useComparator.ts', // createUseComparator
+    'hooks/useDraftAutoSave/index': 'src/hooks/useDraftAutoSave.ts', // useDraftAutoSave
+    'hooks/useExamDetails/index': 'src/hooks/useExamDetails.ts', // createUseExamDetails
+    'hooks/useExamsHistory/index': 'src/hooks/useExamsHistory.ts', // createUseExamsHistory
+    'hooks/useInstitution/index': 'src/hooks/useInstitution.ts', // useInstitution
+    'hooks/useModules/index': 'src/hooks/useModules.ts', // useModules
+    'hooks/useNotificationStore/index': 'src/hooks/useNotificationStore.ts', // createUseNotificationStore
+    'hooks/useNotifications/index': 'src/hooks/useNotifications.ts', // createNotificationsHook
+    'hooks/useQuestionsData/index': 'src/hooks/useQuestionsData.ts', // QuestionsDataApiResponse, QuestionsDataFilters, createUseQuestionsData
+    'hooks/useStudentsHighlight/index': 'src/hooks/useStudentsHighlight.ts', // PERIOD_TABS, StudentsHighlightApiResponse, StudentsHighlightFilters, StudentsHighlightPeriod, StudentsHighlightType, createUseStudentsHighlight
+
+    // === migration: Stores ===
+    'store/comparatorStore/index': 'src/store/comparatorStore.ts', // createComparatorStore
+
+    // === migration: Enums ===
+    'enums/Quiz/index': 'src/enums/Quiz.ts', // TrueFalseEnum
+
+    // === migration: Types ===
+    'types/activityDetails/index': 'src/types/activityDetails.ts', // ACTIVITY_AVAILABILITY, ActivityAvailability, STUDENT_ACTIVITY_STATUS, StudentActivityStatus
+    'types/activityFilters/index': 'src/types/activityFilters.ts', // ActivityFiltersData
+    'types/api/index': 'src/types/api.ts', // BaseApiClient
+    'types/common/index': 'src/types/common.ts', // REPORT_MODAL_VARIANT
+    'types/comparator/index': 'src/types/comparator.ts', // ComparatorTabType
+    'types/examDrafts/index': 'src/types/examDrafts.ts', // ExamActivityCategory
+    'types/examsHistory/index': 'src/types/examsHistory.ts', // ExamHistoryFilters, ExamStatus, ExamTableItem
+    'types/forum/index': 'src/types/forum.ts', // ForumApiClient, ForumTopicDetailResponse, ForumTopicsResponse
+    'types/lessonAvailability/index': 'src/types/lessonAvailability.ts', // LESSON_AVAILABILITY
+    'types/notifications/index': 'src/types/notifications.ts', // NotificationEntityType
+    'types/performance/index': 'src/types/performance.ts', // PERFORMANCE_TAG_CONFIG, PerformanceTag, PerformanceTagConfig, TimeInterval, getPerformanceTagConfig
+    'types/user/index': 'src/types/user.ts', // MyDataResponse, StudentDetailsResponse, UpdateMyDataRequest, UserTelemetryData
+
+    // === migration: Utils ===
+    'utils/brazilianFormatters/index': 'src/utils/brazilianFormatters.ts', // MASK_TYPE, formatCnpj, formatPhone
+    'utils/brazilianStates/index': 'src/utils/brazilianStates.ts', // UF_LIST
+    'utils/calendarActivityUtils/index': 'src/utils/calendarActivityUtils.ts', // filterActivitiesFromDate, getActivityDateKey, getCalendarActivityStatus
+    'utils/chatUtils/index': 'src/utils/chatUtils.ts', // getChatUserInfo, getChatWsUrl
+    'utils/examFilterHelpers/index': 'src/utils/examFilterHelpers.ts', // EXAM_STATUS_OPTIONS
+    'utils/lessonAvailabilityUtils/index': 'src/utils/lessonAvailabilityUtils.ts', // checkLessonAvailability
+    'utils/renderSubjectCell/index': 'src/utils/renderSubjectCell.tsx', // renderSubjectCell
+    'utils/renderTextCell/index': 'src/utils/renderTextCell.tsx', // renderTextCell
+    'utils/studentActivityCorrection_types/index': 'src/utils/studentActivityCorrection/types.ts', // StudentActivityCorrectionData
+    'utils/subjectMappers/index': 'src/utils/subjectMappers.ts', // mapSubjectNameToEnum
+
     // Styles
     styles: 'src/styles.css',
   },
   format: ['esm', 'cjs'],
   outDir: 'dist',
-  splitting: false,
+  splitting: true,
   clean: true,
   external: [
     'react',
