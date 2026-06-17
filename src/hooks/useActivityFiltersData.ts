@@ -130,10 +130,7 @@ export interface UseActivityFiltersDataReturn {
   };
   enableSummary: boolean;
   loadTopics: (subjectIds: string[]) => Promise<void>;
-  loadSubtopics: (
-    topicIds: string[],
-    options?: { forceApi?: boolean }
-  ) => Promise<void>;
+  loadSubtopics: (topicIds: string[]) => Promise<void>;
   loadContents: (subtopicIds: string[]) => Promise<void>;
 
   // Question Types
@@ -464,10 +461,11 @@ const useActivityFiltersDataImpl = (
    * Load subtopics for given topic IDs
    */
   const loadSubtopics = useCallback(
-    async (topicIds: string[], options: { forceApi?: boolean } = {}) => {
-      const { forceApi = false } = options;
-
-      if (topicIds.length === 0 && !forceApi) {
+    async (topicIds: string[]) => {
+      // With no topics there is nothing to fetch — POST /knowledge/subtopics
+      // requires at least one topicId and would 400. Clear the dependent state
+      // and bail out.
+      if (topicIds.length === 0) {
         setKnowledgeStructure((prev) => ({
           ...prev,
           subtopics: [],
@@ -641,9 +639,7 @@ const useActivityFiltersDataImpl = (
         );
 
       if (topicIdsChanged) {
-        loadSubtopics(selectedTopicIds, {
-          forceApi: selectedTopicIds.length === 0,
-        });
+        loadSubtopics(selectedTopicIds);
       }
 
       const subtopicIdsChanged =

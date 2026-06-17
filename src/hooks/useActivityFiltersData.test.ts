@@ -997,17 +997,6 @@ describe('useActivityFiltersData', () => {
         })
       );
 
-      const mockSubtopicsResponse = {
-        data: {
-          message: 'Success',
-          data: [],
-        },
-      };
-
-      (mockApiClient.post as jest.Mock).mockResolvedValueOnce(
-        mockSubtopicsResponse
-      );
-
       const updatedCategories = [
         {
           key: 'tema',
@@ -1038,16 +1027,18 @@ describe('useActivityFiltersData', () => {
         result.current.handleCategoriesChange(updatedCategories);
       });
 
+      // With no topics selected there is nothing to fetch: the subtopics list
+      // is cleared locally and POST /knowledge/subtopics is NOT called (an empty
+      // topicIds array would 400 on the backend).
       await waitFor(
         () => {
-          expect(mockApiClient.post).toHaveBeenCalledWith(
-            '/knowledge/subtopics',
-            {
-              topicIds: [],
-            }
-          );
+          expect(result.current.knowledgeStructure.subtopics).toEqual([]);
         },
         { timeout: 3000 }
+      );
+      expect(mockApiClient.post).not.toHaveBeenCalledWith(
+        '/knowledge/subtopics',
+        { topicIds: [] }
       );
     });
   });
