@@ -727,4 +727,61 @@ describe('useModules', () => {
       expect(result.current.hasSimulatedScoreAbsoluto).toBe(false);
     });
   });
+
+  describe('tutorial menu link', () => {
+    it('hasTutorial is false by default (not configured)', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: defaultModules,
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasTutorial).toBe(false);
+      expect(result.current.tutorialUrl).toBe('');
+    });
+
+    it('hasTutorial is true when enabled and url is non-empty', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {
+          ...defaultModules,
+          tutorial: true,
+          tutorialUrl: 'https://x.com/tutorial',
+        },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasTutorial).toBe(true);
+      expect(result.current.tutorialUrl).toBe('https://x.com/tutorial');
+    });
+
+    it('hasTutorial is false when enabled but url is blank', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: { ...defaultModules, tutorial: true, tutorialUrl: '   ' },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasTutorial).toBe(false);
+      expect(result.current.tutorialUrl).toBe('');
+    });
+
+    it('hasTutorial is false when url is set but tutorial is disabled', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {
+          ...defaultModules,
+          tutorial: false,
+          tutorialUrl: 'https://x.com/tutorial',
+        },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasTutorial).toBe(false);
+    });
+  });
 });
