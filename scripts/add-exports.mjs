@@ -94,11 +94,12 @@ function outputPathToExportKey(outputPath) {
  * fallback for legacy consumers. `types` points at the per-entry .d.ts emitted
  * by `build:types` (tsc + fix-dts-paths.mjs).
  */
-function buildEntry(distBase) {
+function buildEntry(outputPath) {
+  const distFileBase = `./dist/${outputPath}`;
   return {
-    types: `${distBase}/index.d.ts`,
-    import: `${distBase}/index.mjs`,
-    require: `${distBase}/index.js`,
+    types: `${distFileBase}.d.ts`,
+    import: `${distFileBase}.mjs`,
+    require: `${distFileBase}.js`,
   };
 }
 
@@ -117,9 +118,8 @@ async function addExports() {
       continue;
     }
     const exportKey = outputPathToExportKey(outputPath);
-    const distBase = `./dist/${outputPath.replace(/\/index$/, '')}`;
-    derivedExports[exportKey] = buildEntry(distBase);
-    console.log(`✅ ${exportKey} -> ${distBase}/index.mjs`);
+    derivedExports[exportKey] = buildEntry(outputPath);
+    console.log(`✅ ${exportKey} -> ./dist/${outputPath}.mjs`);
   }
 
   // Merge: keep any base exports (e.g. ./styles.css), then force the root "."
