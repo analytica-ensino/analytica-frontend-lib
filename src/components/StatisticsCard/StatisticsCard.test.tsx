@@ -27,6 +27,25 @@ describe('StatisticsCard', () => {
       ).toBeInTheDocument();
     });
 
+    it('should render the description when provided', () => {
+      render(
+        <StatisticsCard
+          {...defaultProps}
+          description="Resumo geral dos dados"
+        />
+      );
+
+      expect(screen.getByText('Resumo geral dos dados')).toBeInTheDocument();
+    });
+
+    it('should not render a description when not provided', () => {
+      render(<StatisticsCard {...defaultProps} />);
+
+      expect(
+        screen.queryByText('Resumo geral dos dados')
+      ).not.toBeInTheDocument();
+    });
+
     it('should render empty state message', () => {
       render(<StatisticsCard {...defaultProps} />);
 
@@ -404,6 +423,49 @@ describe('StatisticsCard', () => {
         'grid-cols-1',
         'sm:grid-cols-2',
         'lg:grid-cols-2'
+      );
+    });
+
+    it('should render grid with 5 columns for 5 items', () => {
+      const fiveItemData = [
+        { label: 'Item 1', value: 10, variant: 'high' as const },
+        { label: 'Item 2', value: 20, variant: 'medium' as const },
+        { label: 'Item 3', value: 30, variant: 'total' as const },
+        { label: 'Item 4', value: 40, variant: 'low' as const },
+        { label: 'Item 5', value: 50, variant: 'high' as const },
+      ];
+
+      const { container } = render(
+        <StatisticsCard title="Estatística" data={fiveItemData} />
+      );
+
+      const grid = container.querySelector('.grid');
+      expect(grid).toHaveClass(
+        'grid-cols-1',
+        'sm:grid-cols-2',
+        'lg:grid-cols-5'
+      );
+    });
+
+    it('should render grid with 6 columns for 6 items', () => {
+      const sixItemData = [
+        { label: 'Item 1', value: 10, variant: 'high' as const },
+        { label: 'Item 2', value: 20, variant: 'medium' as const },
+        { label: 'Item 3', value: 30, variant: 'total' as const },
+        { label: 'Item 4', value: 40, variant: 'low' as const },
+        { label: 'Item 5', value: 50, variant: 'high' as const },
+        { label: 'Item 6', value: 60, variant: 'total' as const },
+      ];
+
+      const { container } = render(
+        <StatisticsCard title="Estatística" data={sixItemData} />
+      );
+
+      const grid = container.querySelector('.grid');
+      expect(grid).toHaveClass(
+        'grid-cols-1',
+        'sm:grid-cols-2',
+        'lg:grid-cols-6'
       );
     });
 
