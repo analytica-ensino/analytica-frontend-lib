@@ -1,6 +1,6 @@
 import type { ChangeEvent, FC } from 'react';
 import { useCallback } from 'react';
-import { FloppyDisk as FloppyDiskIcon } from 'phosphor-react';
+import { FloppyDiskIcon } from '@phosphor-icons/react/dist/csr/FloppyDisk';
 import Modal from '../Modal/Modal';
 import Input from '../Input/Input';
 import Button from '../Button/Button';

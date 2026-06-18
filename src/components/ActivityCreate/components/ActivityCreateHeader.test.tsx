@@ -2,12 +2,6 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { ActivityCreateHeader } from './ActivityCreateHeader';
 import { ActivityType } from '../ActivityCreate.types';
 
-// Mock phosphor-react icons
-jest.mock('phosphor-react', () => ({
-  CaretLeft: () => <span data-testid="caret-left-icon">←</span>,
-  PaperPlaneTilt: () => <span data-testid="paper-plane-icon">→</span>,
-}));
-
 // Mock Button component
 jest.mock('../../..', () => ({
   Button: ({

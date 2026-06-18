@@ -1,5 +1,5 @@
 import type { Story } from '@ladle/react';
-import { Info } from 'phosphor-react';
+import { InfoIcon } from '@phosphor-icons/react/dist/csr/Info';
 import Tooltip from './Tooltip';
 
 /**
@@ -19,7 +19,7 @@ export const AllTooltips: Story = () => (
       <div className="flex flex-row gap-16 items-center justify-center py-16">
         <div className="flex flex-col items-center gap-2">
           <Tooltip content="Tooltip no topo" position="top">
-            <Info
+            <InfoIcon
               size={18}
               weight="bold"
               className="text-text-950 cursor-pointer"
@@ -30,7 +30,7 @@ export const AllTooltips: Story = () => (
 
         <div className="flex flex-col items-center gap-2">
           <Tooltip content="Tooltip embaixo" position="bottom">
-            <Info
+            <InfoIcon
               size={18}
               weight="bold"
               className="text-text-950 cursor-pointer"
@@ -41,7 +41,7 @@ export const AllTooltips: Story = () => (
 
         <div className="flex flex-col items-center gap-2">
           <Tooltip content="Tooltip à esquerda" position="left">
-            <Info
+            <InfoIcon
               size={18}
               weight="bold"
               className="text-text-950 cursor-pointer"
@@ -52,7 +52,7 @@ export const AllTooltips: Story = () => (
 
         <div className="flex flex-col items-center gap-2">
           <Tooltip content="Tooltip à direita" position="right">
-            <Info
+            <InfoIcon
               size={18}
               weight="bold"
               className="text-text-950 cursor-pointer"
@@ -69,7 +69,7 @@ export const AllTooltips: Story = () => (
       <div className="flex items-center gap-2 py-8">
         <span className="text-text-950 font-medium">Desempenho</span>
         <Tooltip content="Desempenho baseado nas atividades" position="bottom">
-          <Info
+          <InfoIcon
             size={18}
             weight="bold"
             className="text-text-950 cursor-pointer"
@@ -86,7 +86,11 @@ export const AllTooltips: Story = () => (
 export const Default: Story = () => (
   <div className="flex items-center justify-center py-16">
     <Tooltip content="Informação adicional">
-      <Info size={18} weight="bold" className="text-text-950 cursor-pointer" />
+      <InfoIcon
+        size={18}
+        weight="bold"
+        className="text-text-950 cursor-pointer"
+      />
     </Tooltip>
   </div>
 );
@@ -97,7 +101,11 @@ export const Default: Story = () => (
 export const BottomPosition: Story = () => (
   <div className="flex items-center justify-center py-16">
     <Tooltip content="Informação adicional" position="bottom">
-      <Info size={18} weight="bold" className="text-text-950 cursor-pointer" />
+      <InfoIcon
+        size={18}
+        weight="bold"
+        className="text-text-950 cursor-pointer"
+      />
     </Tooltip>
   </div>
 );
@@ -108,7 +116,11 @@ export const BottomPosition: Story = () => (
 export const LeftPosition: Story = () => (
   <div className="flex items-center justify-center py-16">
     <Tooltip content="Informação adicional" position="left">
-      <Info size={18} weight="bold" className="text-text-950 cursor-pointer" />
+      <InfoIcon
+        size={18}
+        weight="bold"
+        className="text-text-950 cursor-pointer"
+      />
     </Tooltip>
   </div>
 );
@@ -119,7 +131,11 @@ export const LeftPosition: Story = () => (
 export const RightPosition: Story = () => (
   <div className="flex items-center justify-center py-16">
     <Tooltip content="Informação adicional" position="right">
-      <Info size={18} weight="bold" className="text-text-950 cursor-pointer" />
+      <InfoIcon
+        size={18}
+        weight="bold"
+        className="text-text-950 cursor-pointer"
+      />
     </Tooltip>
   </div>
 );

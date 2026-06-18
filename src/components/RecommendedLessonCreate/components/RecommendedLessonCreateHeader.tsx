@@ -1,5 +1,6 @@
 import { Button, Text } from '../../..';
-import { CaretLeft, PaperPlaneTilt } from 'phosphor-react';
+import { CaretLeftIcon } from '@phosphor-icons/react/dist/csr/CaretLeft';
+import { PaperPlaneTiltIcon } from '@phosphor-icons/react/dist/csr/PaperPlaneTilt';
 import type { RecommendedLessonData } from '../RecommendedLessonCreate.types';
 import { RecommendedClassDraftType } from '../RecommendedLessonCreate.types';
 import { getGoalDraftTypeLabel } from '../RecommendedLessonCreate.utils';
@@ -61,7 +62,7 @@ export const RecommendedLessonCreateHeader = ({
       variant="link"
       data-testid="back-button"
     >
-      <CaretLeft size={isMobile ? 24 : 32} />
+      <CaretLeftIcon size={isMobile ? 24 : 32} />
     </Button>
   );
 
@@ -77,7 +78,7 @@ export const RecommendedLessonCreateHeader = ({
       </Button>
       <Button
         size="small"
-        iconLeft={<PaperPlaneTilt />}
+        iconLeft={<PaperPlaneTiltIcon />}
         onClick={onSendLesson}
         disabled={lessonsCount === 0}
       >

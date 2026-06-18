@@ -23,7 +23,7 @@ import type {
   SendActivityFormData,
 } from '../..';
 import type { Lesson } from '../../types/lessons';
-import { MonitorPlay } from 'phosphor-react';
+import { MonitorPlayIcon } from '@phosphor-icons/react/dist/csr/MonitorPlay';
 import { areFiltersEqual } from '../../utils/activityFilters';
 import type {
   ActivityDraftResponse,
@@ -1240,7 +1240,7 @@ const CreateActivity = ({
                     >
                       {lesson.videoTitle || lesson.title || 'Aula sem título'}
                     </Text>
-                    <MonitorPlay
+                    <MonitorPlayIcon
                       size={20}
                       className="text-text-400 flex-shrink-0"
                     />

@@ -488,11 +488,6 @@ jest.mock('./components/RecommendedLessonCreateHeader', () => ({
   ),
 }));
 
-// Mock phosphor-react
-jest.mock('phosphor-react', () => ({
-  Funnel: () => <svg data-testid="funnel-icon" />,
-}));
-
 // Mock utils
 jest.mock('../../utils/lessonFilters', () => ({
   areLessonFiltersEqual: (a: unknown, b: unknown) =>

@@ -4,7 +4,7 @@ import Text from '../Text/Text';
 import ProgressBar from '../ProgressBar/ProgressBar';
 import { SkeletonRounded } from '../Skeleton/Skeleton';
 import { TableProvider, type TableParams } from '../TableProvider';
-import { ArrowLeft } from 'phosphor-react';
+import { ArrowLeftIcon } from '@phosphor-icons/react/dist/csr/ArrowLeft';
 import { useSimulatedContentDetails } from './useSimulatedContentDetails';
 import { formatPercentageRounded } from '../../utils/utils';
 import type {
@@ -149,7 +149,7 @@ export function SimulatedContentDetailsModal({
         className="p-1 hover:bg-background-100 rounded-md transition-colors"
         aria-label="Fechar modal"
       >
-        <ArrowLeft size={20} className="text-text-600" />
+        <ArrowLeftIcon size={20} className="text-text-600" />
       </Button>
       <Text>Desempenho competência</Text>
     </div>

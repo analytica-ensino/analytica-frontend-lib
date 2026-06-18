@@ -1,5 +1,5 @@
 import { forwardRef, useId, InputHTMLAttributes, ChangeEvent } from 'react';
-import { WarningCircle } from 'phosphor-react';
+import { WarningCircleIcon } from '@phosphor-icons/react/dist/csr/WarningCircle';
 import { cn } from '../../utils/utils';
 import Text from '../Text/Text';
 
@@ -146,7 +146,7 @@ const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(
           )}
           {errorMessage && (
             <Text size="xs" color="text-indicator-error">
-              <WarningCircle size={14} /> {errorMessage}
+              <WarningCircleIcon size={14} /> {errorMessage}
             </Text>
           )}
         </div>

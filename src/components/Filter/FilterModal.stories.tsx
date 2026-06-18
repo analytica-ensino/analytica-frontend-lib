@@ -12,7 +12,7 @@ import Table, {
   useTableSort,
 } from '../Table/Table';
 import Button from '../Button/Button';
-import { Funnel } from 'phosphor-react';
+import { FunnelIcon } from '@phosphor-icons/react/dist/csr/Funnel';
 
 // Mock data for activities table
 type Activity = {
@@ -236,7 +236,10 @@ export const BasicFilterModal: Story = () => {
           onClick={() => setIsOpen(true)}
           className="flex items-center gap-2"
         >
-          <Funnel size={20} weight={hasActiveFilters ? 'fill' : 'regular'} />
+          <FunnelIcon
+            size={20}
+            weight={hasActiveFilters ? 'fill' : 'regular'}
+          />
           Filtros
           {hasActiveFilters && (
             <span className="ml-1 px-2 py-0.5 text-xs bg-primary-500 text-white rounded-full">
@@ -368,7 +371,10 @@ export const WithTableIntegration: Story = () => {
           onClick={() => setIsOpen(true)}
           className="flex items-center gap-2"
         >
-          <Funnel size={20} weight={hasActiveFilters ? 'fill' : 'regular'} />
+          <FunnelIcon
+            size={20}
+            weight={hasActiveFilters ? 'fill' : 'regular'}
+          />
           Filtros
           {hasActiveFilters && (
             <span className="ml-1 px-2 py-0.5 text-xs bg-primary-500 text-white rounded-full">
@@ -555,7 +561,10 @@ export const WithURLSync: Story = () => {
           onClick={() => setIsOpen(true)}
           className="flex items-center gap-2"
         >
-          <Funnel size={20} weight={hasActiveFilters ? 'fill' : 'regular'} />
+          <FunnelIcon
+            size={20}
+            weight={hasActiveFilters ? 'fill' : 'regular'}
+          />
           Filtros
           {hasActiveFilters && (
             <span className="ml-1 px-2 py-0.5 text-xs bg-primary-500 text-white rounded-full">

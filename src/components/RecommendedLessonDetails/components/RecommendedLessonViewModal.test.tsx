@@ -13,15 +13,6 @@ jest.mock('../../../hooks/useTheme', () => ({
   useTheme: () => ({ isDark: false }),
 }));
 
-// Mock phosphor-react icons
-jest.mock('phosphor-react', () => ({
-  X: () => <div data-testid="close-icon" />,
-  CaretDown: () => <div data-testid="caret-down-icon" />,
-  CaretUp: () => <div data-testid="caret-up-icon" />,
-  Play: () => <div data-testid="play-icon" />,
-  DownloadSimple: () => <div data-testid="download-icon" />,
-}));
-
 // Mock Modal component
 jest.mock('../../Modal/Modal', () => ({
   __esModule: true,

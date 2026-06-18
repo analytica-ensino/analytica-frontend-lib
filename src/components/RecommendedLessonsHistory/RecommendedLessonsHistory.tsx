@@ -1,6 +1,9 @@
 import type { MouseEvent, ReactNode } from 'react';
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { Plus, CaretRight, Trash, PencilSimple } from 'phosphor-react';
+import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
+import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
+import { TrashIcon } from '@phosphor-icons/react/dist/csr/Trash';
+import { PencilSimpleIcon } from '@phosphor-icons/react/dist/csr/PencilSimple';
 import Text from '../Text/Text';
 import { TruncatedText } from '../TruncatedText/TruncatedText';
 import Button from '../Button/Button';
@@ -445,7 +448,7 @@ const createTableColumns = (
         <div className="flex justify-center gap-2">
           {onDelete && (
             <IconButton
-              icon={<Trash size={20} />}
+              icon={<TrashIcon size={20} />}
               size="sm"
               title="Excluir"
               aria-label="Excluir"
@@ -454,7 +457,7 @@ const createTableColumns = (
           )}
           {onEdit && (
             <IconButton
-              icon={<PencilSimple size={20} />}
+              icon={<PencilSimpleIcon size={20} />}
               size="sm"
               title="Editar"
               aria-label="Editar"
@@ -472,7 +475,7 @@ const createTableColumns = (
     className: 'w-12',
     render: () => (
       <div className="flex justify-center">
-        <CaretRight size={20} className="text-text-600" />
+        <CaretRightIcon size={20} className="text-text-600" />
       </div>
     ),
   },
@@ -824,7 +827,7 @@ export const RecommendedLessonsHistory = ({
                           title="Crie uma nova aula"
                           description="Selecione um conjunto de aulas organizadas por tema e ajude seus alunos a estudarem de forma estruturada e eficiente!"
                           buttonText={createButtonText}
-                          buttonIcon={<Plus size={18} />}
+                          buttonIcon={<PlusIcon size={18} />}
                           buttonVariant="outline"
                           buttonAction="primary"
                           onButtonClick={onCreateLesson}
@@ -853,7 +856,7 @@ export const RecommendedLessonsHistory = ({
                               action="primary"
                               size="medium"
                               onClick={onCreateLesson}
-                              iconLeft={<Plus size={18} weight="bold" />}
+                              iconLeft={<PlusIcon size={18} weight="bold" />}
                             >
                               {createButtonText}
                             </Button>

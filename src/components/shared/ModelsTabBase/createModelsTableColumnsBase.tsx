@@ -1,5 +1,7 @@
 import type { MouseEvent } from 'react';
-import { Trash, PencilSimple, PaperPlaneTilt } from 'phosphor-react';
+import { TrashIcon } from '@phosphor-icons/react/dist/csr/Trash';
+import { PencilSimpleIcon } from '@phosphor-icons/react/dist/csr/PencilSimple';
+import { PaperPlaneTiltIcon } from '@phosphor-icons/react/dist/csr/PaperPlaneTilt';
 import { TruncatedText } from '../../TruncatedText/TruncatedText';
 import Button from '../../Button/Button';
 import IconButton from '../../IconButton/IconButton';
@@ -115,7 +117,7 @@ export const createModelsTableColumnsBase = <T extends BaseModelItem>(
               variant="outline"
               action="primary"
               size="small"
-              iconLeft={<PaperPlaneTilt size={16} />}
+              iconLeft={<PaperPlaneTiltIcon size={16} />}
               onClick={handleSend}
               aria-label={config.sendButtonAriaLabel}
             >
@@ -123,7 +125,7 @@ export const createModelsTableColumnsBase = <T extends BaseModelItem>(
             </Button>
           )}
           <IconButton
-            icon={<Trash size={20} />}
+            icon={<TrashIcon size={20} />}
             size="md"
             onClick={handleDelete}
             aria-label={config.deleteButtonAriaLabel}
@@ -131,7 +133,7 @@ export const createModelsTableColumnsBase = <T extends BaseModelItem>(
           />
           {onEdit && (
             <IconButton
-              icon={<PencilSimple size={20} />}
+              icon={<PencilSimpleIcon size={20} />}
               size="md"
               onClick={handleEdit}
               aria-label={config.editButtonAriaLabel}

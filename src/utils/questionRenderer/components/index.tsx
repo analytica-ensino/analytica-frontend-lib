@@ -1,6 +1,7 @@
 import { Fragment, useId, type ReactNode } from 'react';
 import Badge from '../../../components/Badge/Badge';
-import { CheckCircle, XCircle } from 'phosphor-react';
+import { CheckCircleIcon } from '@phosphor-icons/react/dist/csr/CheckCircle';
+import { XCircleIcon } from '@phosphor-icons/react/dist/csr/XCircle';
 import { cn } from '../../utils';
 import Text from '../../../components/Text/Text';
 import type { QuestionRendererProps } from '../types';
@@ -14,13 +15,13 @@ export const getStatusBadge = (status?: OptionStatus): ReactNode => {
   switch (status) {
     case OptionStatus.CORRECT:
       return (
-        <Badge variant="solid" action="success" iconLeft={<CheckCircle />}>
+        <Badge variant="solid" action="success" iconLeft={<CheckCircleIcon />}>
           Resposta correta
         </Badge>
       );
     case OptionStatus.INCORRECT:
       return (
-        <Badge variant="solid" action="error" iconLeft={<XCircle />}>
+        <Badge variant="solid" action="error" iconLeft={<XCircleIcon />}>
           Resposta incorreta
         </Badge>
       );
@@ -152,7 +153,7 @@ export const FillQuestionContent = ({
           <Badge
             variant="solid"
             action="error"
-            iconRight={<XCircle />}
+            iconRight={<XCircleIcon />}
             size="large"
             className="py-1 px-2"
           >
@@ -170,7 +171,7 @@ export const FillQuestionContent = ({
         <Badge
           variant="solid"
           action={isCorrect ? 'success' : 'error'}
-          iconRight={isCorrect ? <CheckCircle /> : <XCircle />}
+          iconRight={isCorrect ? <CheckCircleIcon /> : <XCircleIcon />}
           size="large"
           className="py-1 px-2"
         >

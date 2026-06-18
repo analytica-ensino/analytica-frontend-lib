@@ -96,13 +96,6 @@ jest.mock('../../..', () => ({
   ),
 }));
 
-// Mock icons
-jest.mock('phosphor-react', () => ({
-  CaretLeft: () => <span data-testid="caret-left">←</span>,
-  CaretRight: () => <span data-testid="caret-right">→</span>,
-  PaperPlaneTilt: () => <span data-testid="paper-plane">✈</span>,
-}));
-
 // Mock AlertSteps
 jest.mock('../AlertSteps', () => ({
   MessageStep: ({

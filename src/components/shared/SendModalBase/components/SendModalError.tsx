@@ -1,5 +1,5 @@
 import React from 'react';
-import { WarningCircle as WarningCircleIcon } from 'phosphor-react';
+import { WarningCircleIcon } from '@phosphor-icons/react/dist/csr/WarningCircle';
 import Text from '../../../Text/Text';
 
 /**

@@ -1,7 +1,9 @@
 import type { MouseEvent } from 'react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Trash, PencilSimple } from 'phosphor-react';
+import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
+import { TrashIcon } from '@phosphor-icons/react/dist/csr/Trash';
+import { PencilSimpleIcon } from '@phosphor-icons/react/dist/csr/PencilSimple';
 import { PAGE_CONFIG } from './config';
 import type { UnifiedHistoryPageProps } from './types';
 import EmptyState from '../EmptyState/EmptyState';
@@ -243,7 +245,7 @@ export const UnifiedHistoryPage = ({
         return (
           <div className="flex items-center justify-end gap-2">
             <IconButton
-              icon={<Trash size={20} />}
+              icon={<TrashIcon size={20} />}
               size="sm"
               title="Excluir"
               className="hover:text-error-500"
@@ -254,7 +256,7 @@ export const UnifiedHistoryPage = ({
               }}
             />
             <IconButton
-              icon={<PencilSimple size={20} />}
+              icon={<PencilSimpleIcon size={20} />}
               size="sm"
               title="Editar"
               className="hover:text-primary-700"
@@ -359,7 +361,7 @@ export const UnifiedHistoryPage = ({
         title={config.emptyTitle}
         description={config.emptyDescription}
         buttonText={config.buttonText}
-        buttonIcon={<Plus size={18} />}
+        buttonIcon={<PlusIcon size={18} />}
         buttonVariant="outline"
         buttonAction="primary"
         onButtonClick={handleCreate}

@@ -55,7 +55,7 @@ export interface EmptyStateProps {
  * ```tsx
  * import { EmptyState } from 'analytica-frontend-lib';
  * import activityImage from './assets/activity.png';
- * import { Plus } from 'phosphor-react';
+ * import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
  *
  * // Large variant (default) - for main page empty states
  * <EmptyState
@@ -63,7 +63,7 @@ export interface EmptyStateProps {
  *   title="Incentive sua turma ao aprendizado"
  *   description="Crie uma nova atividade e ajude seus alunos a colocarem o conteúdo em prática!"
  *   buttonText="Criar atividade"
- *   buttonIcon={<Plus size={18} />}
+ *   buttonIcon={<PlusIcon size={18} />}
  *   buttonVariant="outline"
  *   onButtonClick={handleCreateActivity}
  * />

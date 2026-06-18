@@ -1,6 +1,9 @@
 import type { Story } from '@ladle/react';
 import { ChangeEvent, ReactNode, useState } from 'react';
-import { Buildings, IdentificationCard, MapPin, Phone } from 'phosphor-react';
+import { BuildingsIcon } from '@phosphor-icons/react/dist/csr/Buildings';
+import { IdentificationCardIcon } from '@phosphor-icons/react/dist/csr/IdentificationCard';
+import { MapPinIcon } from '@phosphor-icons/react/dist/csr/MapPin';
+import { PhoneIcon } from '@phosphor-icons/react/dist/csr/Phone';
 import MaskedInput from './MaskedInput';
 import { MASK_TYPE } from '../../utils/brazilianFormatters';
 
@@ -205,25 +208,25 @@ export const WithIcons: Story = () => (
     <MaskedInput
       label="CNPJ"
       mask={MASK_TYPE.CNPJ}
-      iconLeft={<Buildings />}
+      iconLeft={<BuildingsIcon />}
       placeholder="00.000.000/0000-00"
     />
     <MaskedInput
       label="CPF"
       mask={MASK_TYPE.CPF}
-      iconLeft={<IdentificationCard />}
+      iconLeft={<IdentificationCardIcon />}
       placeholder="000.000.000-00"
     />
     <MaskedInput
       label="Telefone"
       mask={MASK_TYPE.PHONE}
-      iconLeft={<Phone />}
+      iconLeft={<PhoneIcon />}
       placeholder="(00) 00000-0000"
     />
     <MaskedInput
       label="CEP"
       mask={MASK_TYPE.CEP}
-      iconLeft={<MapPin />}
+      iconLeft={<MapPinIcon />}
       placeholder="00000-000"
     />
   </div>

@@ -1,4 +1,5 @@
-import { Moon, Sun } from 'phosphor-react';
+import { MoonIcon } from '@phosphor-icons/react/dist/csr/Moon';
+import { SunIcon } from '@phosphor-icons/react/dist/csr/Sun';
 import { useState, useEffect } from 'react';
 import SelectionButton from '../SelectionButton/SelectionButton';
 import type { ThemeMode } from '@/hooks/useTheme';
@@ -25,12 +26,12 @@ export const ThemeToggle = ({
     {
       id: 'light' as ThemeMode,
       title: 'Claro',
-      icon: <Sun size={24} />,
+      icon: <SunIcon size={24} />,
     },
     {
       id: 'dark' as ThemeMode,
       title: 'Escuro',
-      icon: <Moon size={24} />,
+      icon: <MoonIcon size={24} />,
     },
     {
       id: 'system' as ThemeMode,

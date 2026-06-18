@@ -6,7 +6,7 @@ import Select, {
   SelectContent,
   SelectItem,
 } from '../Select/Select';
-import { Plus } from 'phosphor-react';
+import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
 
 /**
  * Statistics data item
@@ -236,7 +236,7 @@ export const StatisticsCard = ({
               action="primary"
               size="small"
               onClick={onEmptyStateButtonClick}
-              iconLeft={<Plus size={16} weight="bold" />}
+              iconLeft={<PlusIcon size={16} weight="bold" />}
             >
               {emptyStateButtonText}
             </Button>

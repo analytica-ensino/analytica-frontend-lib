@@ -7,12 +7,6 @@ jest.mock('../../..', () => ({
   SkeletonCard: () => null,
 }));
 
-// Mock phosphor-react
-jest.mock('phosphor-react', () => ({
-  CaretLeft: () => null,
-  PaperPlaneTilt: () => null,
-}));
-
 import {
   RecommendedLessonCreateHeader,
   RecommendedLessonCreateSkeleton,

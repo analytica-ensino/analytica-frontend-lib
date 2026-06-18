@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { UserCircle } from 'phosphor-react';
+import { UserCircleIcon } from '@phosphor-icons/react/dist/csr/UserCircle';
 import { PageContainer } from '../PageContainer/PageContainer';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
@@ -92,7 +92,7 @@ export function SimulationsPage({ api, noSearchImage }: SimulationsPageProps) {
         label: 'Estudante',
         render: (_value, row) => (
           <span className="flex items-center gap-2">
-            <UserCircle size={24} weight="fill" className="text-info-700" />
+            <UserCircleIcon size={24} weight="fill" className="text-info-700" />
             <Text size="sm" className="text-text-950">
               {row.name}
             </Text>

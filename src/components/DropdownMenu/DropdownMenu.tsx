@@ -1,4 +1,6 @@
-import { CaretRight, SignOut, User } from 'phosphor-react';
+import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
+import { SignOutIcon } from '@phosphor-icons/react/dist/csr/SignOut';
+import { UserIcon } from '@phosphor-icons/react/dist/csr/User';
 import {
   forwardRef,
   ReactNode,
@@ -573,7 +575,7 @@ const ProfileMenuTrigger = forwardRef<
       {...props}
     >
       <span className="size-6 rounded-full bg-primary-100 flex items-center justify-center">
-        <User className="text-primary-950" size={18} />
+        <UserIcon className="text-primary-950" size={18} />
       </span>
     </button>
   );
@@ -607,7 +609,7 @@ const ProfileMenuHeader = forwardRef<
             className="w-full h-full object-cover"
           />
         ) : (
-          <User size={34} className="text-primary-800" />
+          <UserIcon size={34} className="text-primary-800" />
         )}
       </span>
       <div className="flex flex-col min-w-0">
@@ -744,7 +746,7 @@ const ProfileToggleTheme = ({
             />
           </svg>
         }
-        iconRight={<CaretRight />}
+        iconRight={<CaretRightIcon />}
         onClick={handleClick}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
@@ -823,7 +825,7 @@ const ProfileMenuFooter = ({
       {...props}
     >
       <span className="mr-2 flex items-center">
-        <SignOut className="text-inherit" />
+        <SignOutIcon className="text-inherit" />
       </span>
       <Text color="inherit">Sair</Text>
     </Button>

@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { File, DownloadSimple, Trash } from 'phosphor-react';
+import { FileIcon } from '@phosphor-icons/react/dist/csr/File';
+import { DownloadSimpleIcon } from '@phosphor-icons/react/dist/csr/DownloadSimple';
+import { TrashIcon } from '@phosphor-icons/react/dist/csr/Trash';
 import { Button, EmptyState, IconButton, Text } from '../../index';
 import { ActivityCardQuestionPreview } from '../ActivityCardQuestionPreview/ActivityCardQuestionPreview';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
@@ -130,7 +132,7 @@ export const ActivityPreview = ({
       )}
     >
       <section className="flex flex-row items-center gap-2 text-text-950">
-        <File size={24} />
+        <FileIcon size={24} />
         <Text size="lg" weight="bold">
           {title}
         </Text>
@@ -144,7 +146,7 @@ export const ActivityPreview = ({
           <Button
             size="small"
             variant="outline"
-            iconLeft={<DownloadSimple />}
+            iconLeft={<DownloadSimpleIcon />}
             onClick={handleDownloadPdf}
           >
             Baixar pdf
@@ -230,7 +232,7 @@ export const ActivityPreview = ({
                   <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                     <IconButton
                       size="sm"
-                      icon={<Trash size={16} />}
+                      icon={<TrashIcon size={16} />}
                       onClick={(e) => {
                         e.stopPropagation();
                         onRemoveQuestion(id);
@@ -265,7 +267,7 @@ export const ActivityPreview = ({
         <Button
           variant="link"
           action="negative"
-          iconLeft={<Trash />}
+          iconLeft={<TrashIcon />}
           onClick={onRemoveAll}
         >
           Remover tudo

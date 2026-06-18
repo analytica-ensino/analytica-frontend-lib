@@ -11,7 +11,8 @@ import React, {
   ReactNode,
 } from 'react';
 import { cn } from '../../utils/utils';
-import { CaretUp, CaretDown } from 'phosphor-react';
+import { CaretUpIcon } from '@phosphor-icons/react/dist/csr/CaretUp';
+import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
 import NoSearchResult from '../NoSearchResult/NoSearchResult';
 import EmptyState from '../EmptyState/EmptyState';
 import { SkeletonTable } from '../Skeleton/Skeleton';
@@ -544,10 +545,18 @@ const TableHead = forwardRef<HTMLTableCellElement, TableHeadProps>(
           {sortable && (
             <div className="flex flex-col">
               {sortDirection === 'asc' && (
-                <CaretUp size={16} weight="fill" className="text-text-800" />
+                <CaretUpIcon
+                  size={16}
+                  weight="fill"
+                  className="text-text-800"
+                />
               )}
               {sortDirection === 'desc' && (
-                <CaretDown size={16} weight="fill" className="text-text-800" />
+                <CaretDownIcon
+                  size={16}
+                  weight="fill"
+                  className="text-text-800"
+                />
               )}
             </div>
           )}

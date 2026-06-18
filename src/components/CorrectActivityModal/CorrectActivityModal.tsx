@@ -5,7 +5,10 @@ import {
   useCallback,
   type ReactNode,
 } from 'react';
-import { PencilSimple, Paperclip, X, Image } from 'phosphor-react';
+import { PencilSimpleIcon } from '@phosphor-icons/react/dist/csr/PencilSimple';
+import { PaperclipIcon } from '@phosphor-icons/react/dist/csr/Paperclip';
+import { XIcon } from '@phosphor-icons/react/dist/csr/X';
+import { ImageIcon } from '@phosphor-icons/react/dist/csr/Image';
 import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
@@ -585,7 +588,7 @@ const CorrectActivityModal = ({
       if (attachedFiles.length > 0) {
         return (
           <div className="flex items-center justify-center gap-2 px-5 h-10 bg-secondary-500 rounded-full min-w-0 max-w-[150px]">
-            <Paperclip size={18} className="text-text-800 flex-shrink-0" />
+            <PaperclipIcon size={18} className="text-text-800 flex-shrink-0" />
             <span className="text-base font-medium text-text-800 truncate">
               {attachedFiles[0].file.name}
             </span>
@@ -595,7 +598,7 @@ const CorrectActivityModal = ({
               className="text-text-700 hover:text-text-800 flex-shrink-0"
               aria-label={`Remover ${attachedFiles[0].file.name}`}
             >
-              <X size={18} />
+              <XIcon size={18} />
             </button>
           </div>
         );
@@ -610,7 +613,10 @@ const CorrectActivityModal = ({
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-5 h-10 bg-secondary-500 rounded-full min-w-0 max-w-[150px] hover:bg-secondary-600 transition-colors"
             >
-              <Paperclip size={18} className="text-text-800 flex-shrink-0" />
+              <PaperclipIcon
+                size={18}
+                className="text-text-800 flex-shrink-0"
+              />
               <span className="text-base font-medium text-text-800 truncate">
                 {getFileNameFromUrl(existingAttachment)}
               </span>
@@ -622,7 +628,7 @@ const CorrectActivityModal = ({
               onClick={() => fileInputRef.current?.click()}
               className="flex items-center gap-2"
             >
-              <Paperclip size={18} />
+              <PaperclipIcon size={18} />
               Trocar
             </Button>
           </div>
@@ -637,7 +643,7 @@ const CorrectActivityModal = ({
           onClick={() => fileInputRef.current?.click()}
           className="flex items-center gap-2"
         >
-          <Paperclip size={18} />
+          <PaperclipIcon size={18} />
           Anexar
         </Button>
       );
@@ -653,7 +659,7 @@ const CorrectActivityModal = ({
               {/* Show newly attached file */}
               {savedFiles.length > 0 && (
                 <div className="flex items-center gap-2 px-5 h-10 bg-secondary-500 rounded-full min-w-0 max-w-[150px]">
-                  <Paperclip
+                  <PaperclipIcon
                     size={18}
                     className="text-text-800 flex-shrink-0"
                   />
@@ -670,7 +676,7 @@ const CorrectActivityModal = ({
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-5 h-10 bg-secondary-500 rounded-full min-w-0 max-w-[150px] hover:bg-secondary-600 transition-colors"
                 >
-                  <Paperclip
+                  <PaperclipIcon
                     size={18}
                     className="text-text-800 flex-shrink-0"
                   />
@@ -686,7 +692,7 @@ const CorrectActivityModal = ({
                 onClick={handleEditObservation}
                 className="flex items-center gap-2 flex-shrink-0"
               >
-                <PencilSimple size={16} />
+                <PencilSimpleIcon size={16} />
                 Editar
               </Button>
             </div>
@@ -795,7 +801,7 @@ const CorrectActivityModal = ({
               size="small"
               onClick={onViewScannedAnswerSheet}
             >
-              <Image size={18} className="mr-2" />
+              <ImageIcon size={18} className="mr-2" />
               Ver gabarito escaneado
             </Button>
           )}

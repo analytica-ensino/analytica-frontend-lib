@@ -1,6 +1,6 @@
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
-import { CircleNotch } from 'phosphor-react';
+import { CircleNotchIcon } from '@phosphor-icons/react/dist/csr/CircleNotch';
 
 /**
  * Props interface for the TokenValidation component
@@ -59,7 +59,10 @@ const TokenValidation = ({
 
         <div className="bg-background rounded-xl p-8 w-full flex flex-col items-center gap-6 shadow-lg">
           <div className="bg-primary-100 p-4 rounded-full">
-            <CircleNotch size={48} className="text-primary-800 animate-spin" />
+            <CircleNotchIcon
+              size={48}
+              className="text-primary-800 animate-spin"
+            />
           </div>
 
           <div className="flex flex-col items-center gap-2 text-center">

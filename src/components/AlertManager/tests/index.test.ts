@@ -29,14 +29,6 @@ jest.mock('../AlertSteps', () => ({
   PreviewStep: () => null,
 }));
 
-// Mock phosphor-react icons
-jest.mock('phosphor-react', () => ({
-  CaretLeft: () => null,
-  CaretRight: () => null,
-  PaperPlaneTilt: () => null,
-  Trash: () => null,
-}));
-
 describe('AlertManager index exports', () => {
   describe('component exports', () => {
     it('should export AlertsManager component', () => {

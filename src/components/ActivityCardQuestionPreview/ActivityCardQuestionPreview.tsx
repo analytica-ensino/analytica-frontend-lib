@@ -12,7 +12,8 @@ import { cn } from '../../utils/utils';
 import { AlternativesList, type Alternative } from '../Alternative/Alternative';
 import { OptionStatus } from '../../enums/Options';
 import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
-import { CheckCircle, XCircle } from 'phosphor-react';
+import { CheckCircleIcon } from '@phosphor-icons/react/dist/csr/CheckCircle';
+import { XCircleIcon } from '@phosphor-icons/react/dist/csr/XCircle';
 import {
   renderFromMap,
   type QuestionRendererMap,
@@ -245,7 +246,9 @@ export const ActivityCardQuestionPreview = ({
                     <Badge
                       variant="solid"
                       action={isCorrect ? 'success' : 'error'}
-                      iconLeft={isCorrect ? <CheckCircle /> : <XCircle />}
+                      iconLeft={
+                        isCorrect ? <CheckCircleIcon /> : <XCircleIcon />
+                      }
                     >
                       {isCorrect ? 'Resposta correta' : 'Resposta incorreta'}
                     </Badge>
@@ -300,7 +303,7 @@ export const ActivityCardQuestionPreview = ({
                     <Badge
                       variant="solid"
                       action="success"
-                      iconLeft={<CheckCircle />}
+                      iconLeft={<CheckCircleIcon />}
                     >
                       Resposta correta
                     </Badge>

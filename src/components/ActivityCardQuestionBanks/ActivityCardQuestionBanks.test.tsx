@@ -180,12 +180,6 @@ jest.mock('@/index', () => ({
   },
 }));
 
-jest.mock('phosphor-react', () => ({
-  Plus: () => <span data-testid="plus-icon">Plus</span>,
-  CheckCircle: () => <span data-testid="check-circle-icon">CheckCircle</span>,
-  XCircle: () => <span data-testid="x-circle-icon">XCircle</span>,
-}));
-
 describe('ActivityCardQuestionBanks', () => {
   const defaultProps = {
     iconName: 'BookOpen',
@@ -818,7 +812,7 @@ describe('ActivityCardQuestionBanks', () => {
 
     it('should render button with Plus icon', () => {
       render(<ActivityCardQuestionBanks {...defaultProps} />);
-      expect(screen.getByTestId('plus-icon')).toBeInTheDocument();
+      expect(screen.getByTestId('phosphor-plus')).toBeInTheDocument();
       expect(screen.getByTestId('button-icon-left')).toBeInTheDocument();
     });
 

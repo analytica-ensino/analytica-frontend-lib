@@ -1,6 +1,8 @@
 import type React from 'react';
 import { useRef, useState } from 'react';
-import { Image, Paperclip, X } from 'phosphor-react';
+import { ImageIcon } from '@phosphor-icons/react/dist/csr/Image';
+import { PaperclipIcon } from '@phosphor-icons/react/dist/csr/Paperclip';
+import { XIcon } from '@phosphor-icons/react/dist/csr/X';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
 import { cn } from '../../utils/utils';
@@ -116,7 +118,7 @@ export default function ImageUpload({
       <div className={cn('inline-flex items-center gap-2', className)}>
         {hasFile ? (
           <div className="inline-flex items-center gap-2 bg-muted rounded-md px-3 py-1.5">
-            <Paperclip className="h-4 w-4 text-text-800" />
+            <PaperclipIcon className="h-4 w-4 text-text-800" />
             <Text size="sm" weight="medium" className="text-text-800">
               {currentFile.name}
             </Text>
@@ -128,7 +130,7 @@ export default function ImageUpload({
               aria-label="Remover imagem"
               title="Remover imagem"
             >
-              <X className="h-3 w-3 text-primary-950" />
+              <XIcon className="h-3 w-3 text-primary-950" />
             </button>
           </div>
         ) : (
@@ -139,7 +141,7 @@ export default function ImageUpload({
             onClick={handleButtonClick}
             disabled={disabled}
           >
-            {buttonIcon || <Image className="h-4 w-4" />}
+            {buttonIcon || <ImageIcon className="h-4 w-4" />}
             <span className="ml-2">{buttonText}</span>
           </Button>
         )}
@@ -160,7 +162,7 @@ export default function ImageUpload({
       {hasFile ? (
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 bg-muted rounded-md px-3 py-2">
-            <Paperclip className="h-4 w-4 text-text-800" />
+            <PaperclipIcon className="h-4 w-4 text-text-800" />
             <Text size="sm" weight="medium" className="text-text-800">
               {currentFile.name}
             </Text>
@@ -170,7 +172,7 @@ export default function ImageUpload({
               disabled={disabled}
               className="hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <X className="h-4 w-4 text-primary-950 cursor-pointer" />
+              <XIcon className="h-4 w-4 text-primary-950 cursor-pointer" />
             </button>
           </div>
         </div>
@@ -182,7 +184,7 @@ export default function ImageUpload({
           onClick={handleButtonClick}
           disabled={disabled}
         >
-          {buttonIcon || <Image className="h-4 w-4" />}
+          {buttonIcon || <ImageIcon className="h-4 w-4" />}
           {buttonText}
         </Button>
       )}

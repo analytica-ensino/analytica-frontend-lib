@@ -1,5 +1,8 @@
 import { HTMLAttributes } from 'react';
-import { CheckCircle, Info, WarningCircle, XCircle } from 'phosphor-react';
+import { CheckCircleIcon } from '@phosphor-icons/react/dist/csr/CheckCircle';
+import { InfoIcon } from '@phosphor-icons/react/dist/csr/Info';
+import { WarningCircleIcon } from '@phosphor-icons/react/dist/csr/WarningCircle';
+import { XCircleIcon } from '@phosphor-icons/react/dist/csr/XCircle';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
 
@@ -37,11 +40,11 @@ const COLOR_CLASSES = {
 } as const;
 
 const ICONS = {
-  default: <CheckCircle size={18} />,
-  info: <Info size={18} />,
-  success: <CheckCircle size={18} />,
-  warning: <WarningCircle size={18} />,
-  error: <XCircle size={18} />,
+  default: <CheckCircleIcon size={18} />,
+  info: <InfoIcon size={18} />,
+  success: <CheckCircleIcon size={18} />,
+  warning: <WarningCircleIcon size={18} />,
+  error: <XCircleIcon size={18} />,
 } as const;
 
 const Alert = ({

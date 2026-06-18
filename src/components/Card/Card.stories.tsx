@@ -1,6 +1,8 @@
 import type { Story } from '@ladle/react';
 import { useState } from 'react';
-import { Book, Key, Star } from 'phosphor-react';
+import { BookIcon } from '@phosphor-icons/react/dist/csr/Book';
+import { KeyIcon } from '@phosphor-icons/react/dist/csr/Key';
+import { StarIcon } from '@phosphor-icons/react/dist/csr/Star';
 import {
   CardActivitiesResults,
   CardAudio,
@@ -24,7 +26,7 @@ import Badge from '../Badge/Badge';
 
 export const AllCardComponentsShowcase: Story = () => {
   const baseProps = {
-    icon: <Star size={16} weight="fill" />,
+    icon: <StarIcon size={16} weight="fill" />,
     title: 'Título',
     subTitle: 'Subtítulo',
     header: 'Header Example',
@@ -79,7 +81,7 @@ export const AllCardComponentsShowcase: Story = () => {
               endDate="20 Mar 2025"
               progress={65}
               color="#FFB366"
-              icon={<Book />}
+              icon={<BookIcon />}
               progressVariant="blue"
               showDates={true}
             />
@@ -104,7 +106,7 @@ export const AllCardComponentsShowcase: Story = () => {
                     endDate="20 Mar 2025"
                     progress={20}
                     color="subject-16"
-                    icon={<Book />}
+                    icon={<BookIcon />}
                     progressVariant="blue"
                     showDates={true}
                   />
@@ -118,7 +120,7 @@ export const AllCardComponentsShowcase: Story = () => {
                     header="Progresso Horizontal"
                     progress={20}
                     color="#B7DFFF"
-                    icon={<Book />}
+                    icon={<BookIcon />}
                     progressVariant="blue"
                     showDates={false}
                   />
@@ -133,7 +135,7 @@ export const AllCardComponentsShowcase: Story = () => {
                     header="Progresso Vertical"
                     progress={20}
                     color="#B7DFFF"
-                    icon={<Book />}
+                    icon={<BookIcon />}
                     subhead="0 de 3"
                     progressVariant="blue"
                   />
@@ -159,7 +161,7 @@ export const AllCardComponentsShowcase: Story = () => {
                     endDate="20 Mar 2025"
                     progress={20}
                     color="#B7DFFF"
-                    icon={<Book />}
+                    icon={<BookIcon />}
                     progressVariant="green"
                     showDates={true}
                   />
@@ -173,7 +175,7 @@ export const AllCardComponentsShowcase: Story = () => {
                     header="Progresso Horizontal"
                     progress={20}
                     color="#B7DFFF"
-                    icon={<Book />}
+                    icon={<BookIcon />}
                     progressVariant="green"
                     showDates={false}
                   />
@@ -188,7 +190,7 @@ export const AllCardComponentsShowcase: Story = () => {
                     header="Progresso Vertical"
                     progress={20}
                     color="#B7DFFF"
-                    icon={<Book />}
+                    icon={<BookIcon />}
                     subhead="0 de 3"
                     progressVariant="green"
                   />
@@ -576,7 +578,7 @@ export const AllCardComponentsShowcase: Story = () => {
                 header="Resultado do Teste"
                 correct_answers={10}
                 incorrect_answers={5}
-                icon={'Book'}
+                icon={'BookIcon'}
               />
             </div>
             <div>
@@ -588,7 +590,7 @@ export const AllCardComponentsShowcase: Story = () => {
                 header="Resultado do Teste"
                 correct_answers={10}
                 incorrect_answers={5}
-                icon={'Book'}
+                icon={'BookIcon'}
                 direction="row"
               />
             </div>
@@ -656,7 +658,7 @@ export const AllCardComponentsShowcase: Story = () => {
             <CardSettings
               className="max-w-full"
               header="Configurações da Conta"
-              icon={<Book />}
+              icon={<BookIcon />}
             />
           </div>
         </div>
@@ -676,7 +678,7 @@ export const AllCardComponentsShowcase: Story = () => {
                 <Badge variant="solid" action="success">
                   Aberto
                 </Badge>
-                <Badge variant="solid" action="muted" iconLeft={<Key />}>
+                <Badge variant="solid" action="muted" iconLeft={<KeyIcon />}>
                   Chave
                 </Badge>
               </CardSupport>
@@ -693,7 +695,7 @@ export const AllCardComponentsShowcase: Story = () => {
                 <Badge variant="solid" action="success">
                   Aberto
                 </Badge>
-                <Badge variant="solid" action="muted" iconLeft={<Key />}>
+                <Badge variant="solid" action="muted" iconLeft={<KeyIcon />}>
                   Chave
                 </Badge>
               </CardSupport>

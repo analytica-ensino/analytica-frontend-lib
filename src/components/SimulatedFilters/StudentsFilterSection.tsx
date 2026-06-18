@@ -3,7 +3,8 @@ import Text from '../Text/Text';
 import CheckBox from '../CheckBox/CheckBox';
 import type { StudentGroup, StudentsFilterSectionProps } from './types';
 import Input from '../Input/Input';
-import { Users, MagnifyingGlass } from 'phosphor-react';
+import { UsersIcon } from '@phosphor-icons/react/dist/csr/Users';
+import { MagnifyingGlassIcon } from '@phosphor-icons/react/dist/csr/MagnifyingGlass';
 
 /**
  * Students filter section with search and grouping by school/year/class
@@ -126,7 +127,7 @@ export function StudentsFilterSection({
     return (
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-2 text-text-400 text-sm font-medium uppercase">
-          <Users size={16} className="text-text-400" />
+          <UsersIcon size={16} className="text-text-400" />
           <span>ESTUDANTES</span>
         </div>
         <div className="flex items-center justify-center py-6 px-4 bg-background-100 rounded-lg">
@@ -143,7 +144,7 @@ export function StudentsFilterSection({
     return (
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-2 text-text-400 text-sm font-medium uppercase">
-          <Users size={16} className="text-text-400" />
+          <UsersIcon size={16} className="text-text-400" />
           <span>ESTUDANTES</span>
         </div>
         <div className="flex items-center justify-center py-6 px-4 bg-background-100 rounded-lg">
@@ -159,7 +160,7 @@ export function StudentsFilterSection({
     <div className="flex flex-col gap-4">
       {/* Header */}
       <div className="flex items-center gap-2 text-text-400 text-sm font-medium uppercase">
-        <Users size={16} className="text-text-400" />
+        <UsersIcon size={16} className="text-text-400" />
         <Text size="sm" weight="semibold" className="text-text-400 uppercase">
           ESTUDANTES
         </Text>
@@ -182,7 +183,7 @@ export function StudentsFilterSection({
         onChange={(e) => onSearchChange(e.target.value)}
         placeholder="Buscar"
         disabled={isLoading}
-        iconLeft={<MagnifyingGlass size={18} />}
+        iconLeft={<MagnifyingGlassIcon size={18} />}
       />
 
       {/* Select all checkbox */}

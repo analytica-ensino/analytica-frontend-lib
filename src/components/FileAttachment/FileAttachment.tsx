@@ -1,5 +1,7 @@
 import React, { useRef } from 'react';
-import { Paperclip, FileText, X } from 'phosphor-react';
+import { PaperclipIcon } from '@phosphor-icons/react/dist/csr/Paperclip';
+import { FileTextIcon } from '@phosphor-icons/react/dist/csr/FileText';
+import { XIcon } from '@phosphor-icons/react/dist/csr/X';
 import Button from '../Button/Button';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
@@ -140,7 +142,7 @@ const FileAttachment = ({
           onClick={handleAttachClick}
           className="self-start flex items-center gap-2"
         >
-          <Paperclip size={16} />
+          <PaperclipIcon size={16} />
           {buttonLabel}
         </Button>
       )}
@@ -153,7 +155,7 @@ const FileAttachment = ({
               key={attachedFile.id}
               className="flex items-center gap-2 bg-background-50 px-3 py-2 rounded-lg border border-border-100"
             >
-              <FileText size={16} className="text-text-500 shrink-0" />
+              <FileTextIcon size={16} className="text-text-500 shrink-0" />
               <Text className="text-sm text-text-700 truncate max-w-[200px]">
                 {attachedFile.file.name}
               </Text>
@@ -167,7 +169,7 @@ const FileAttachment = ({
                   className="text-text-400 hover:text-error-500 transition-colors shrink-0"
                   aria-label={`Remover ${attachedFile.file.name}`}
                 >
-                  <X size={14} />
+                  <XIcon size={14} />
                 </button>
               )}
             </div>

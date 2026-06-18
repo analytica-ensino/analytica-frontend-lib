@@ -2,13 +2,13 @@ import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import { createRef } from 'react';
-import { House } from 'phosphor-react';
+import { HouseIcon } from '@phosphor-icons/react/dist/csr/House';
 import NavButton from './NavButton';
 
 /**
  * Test icon component using phosphor-react
  */
-const TestIcon = () => <House data-testid="test-icon" size={20} />;
+const TestIcon = () => <HouseIcon data-testid="test-icon" size={20} />;
 
 describe('NavButton', () => {
   it('renders the button with icon and label', () => {

@@ -2,7 +2,7 @@ import Badge from '../Badge/Badge';
 import ProgressBar from '../ProgressBar/ProgressBar';
 import { renderTextCell } from '../../utils/renderTextCell';
 import type { ColumnConfig } from '../TableProvider/TableProvider';
-import { CaretRight } from 'phosphor-react';
+import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
 import type { ExamTableItem } from '../../types/examsHistory';
 import { ExamDisplayStatus } from '../../types/examsHistory';
 
@@ -125,7 +125,7 @@ export const examsTableColumns: ColumnConfig<ExamTableItem>[] = [
     className: 'w-12',
     render: () => (
       <div className="flex justify-center">
-        <CaretRight size={20} className="text-text-600" />
+        <CaretRightIcon size={20} className="text-text-600" />
       </div>
     ),
   },

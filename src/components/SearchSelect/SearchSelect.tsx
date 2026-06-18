@@ -10,7 +10,10 @@ import {
   CSSProperties,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { CaretDown, Check, MagnifyingGlass, SpinnerGap } from 'phosphor-react';
+import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
+import { CheckIcon } from '@phosphor-icons/react/dist/csr/Check';
+import { MagnifyingGlassIcon } from '@phosphor-icons/react/dist/csr/MagnifyingGlass';
+import { SpinnerGapIcon } from '@phosphor-icons/react/dist/csr/SpinnerGap';
 import { cn } from '../../utils/utils';
 import Input from '../Input/Input';
 import Text from '../Text/Text';
@@ -445,7 +448,7 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
       if (loading) {
         return (
           <div className="flex items-center justify-center gap-2 p-4 text-text-500">
-            <SpinnerGap size={18} className="animate-spin" />
+            <SpinnerGapIcon size={18} className="animate-spin" />
             <Text size="sm" className="text-text-500">
               {loadingText}
             </Text>
@@ -505,7 +508,11 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
                   {option.label}
                 </Text>
                 {isSelected && (
-                  <Check size={16} className="text-primary-700" weight="bold" />
+                  <CheckIcon
+                    size={16}
+                    className="text-primary-700"
+                    weight="bold"
+                  />
                 )}
               </div>
             );
@@ -514,7 +521,7 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
           {/* Loading more indicator */}
           {loadingMore && (
             <div className="flex items-center justify-center gap-2 p-3 text-text-500 border-t border-border-100">
-              <SpinnerGap size={16} className="animate-spin" />
+              <SpinnerGapIcon size={16} className="animate-spin" />
               <Text size="xs" className="text-text-500">
                 Carregando mais...
               </Text>
@@ -564,7 +571,7 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
             placeholder={searchPlaceholder}
             size="small"
             variant="outlined"
-            iconRight={<MagnifyingGlass size={16} />}
+            iconRight={<MagnifyingGlassIcon size={16} />}
             containerClassName="w-full"
           />
         </div>
@@ -631,7 +638,7 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
               : 'cursor-pointer hover:bg-background-50 text-text-700'
           )}
           iconRight={
-            <CaretDown
+            <CaretDownIcon
               className={cn(
                 'h-4 w-4 opacity-50 transition-transform shrink-0',
                 open && 'rotate-180'
@@ -642,7 +649,7 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
           <div className={cn('truncate', !selectedLabel && 'text-text-500')}>
             {loading ? (
               <div className="flex items-center gap-2">
-                <SpinnerGap size={14} className="animate-spin" />
+                <SpinnerGapIcon size={14} className="animate-spin" />
                 <Text size="sm" className="text-text-500">
                   {loadingText}
                 </Text>

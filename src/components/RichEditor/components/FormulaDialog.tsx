@@ -5,7 +5,7 @@ import Menu, { MenuContent, MenuItem } from '../../Menu/Menu';
 import Modal from '../../Modal/Modal';
 import Text from '../../Text/Text';
 import TextArea from '../../TextArea/TextArea';
-import { Sparkle } from 'phosphor-react';
+import { SparkleIcon } from '@phosphor-icons/react/dist/csr/Sparkle';
 import { useMobile } from '../../../hooks/useMobile';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
@@ -368,7 +368,7 @@ export function FormulaDialog({
           {/* AI description */}
           <div className="mb-4">
             <div className="flex items-center gap-1 mb-2">
-              <Sparkle size={14} className="text-primary-600" />
+              <SparkleIcon size={14} className="text-primary-600" />
               <Text className="text-xs font-medium text-text-600">
                 Descreva o que deseja criar com IA
               </Text>
@@ -401,7 +401,7 @@ export function FormulaDialog({
               onClick={handleGenerateWithAI}
               className="mt-2 ml-auto flex items-center gap-1"
             >
-              <Sparkle size={14} />
+              <SparkleIcon size={14} />
               {isGeneratingAI ? 'Gerando...' : 'Gerar fórmula'}
             </Button>
           </div>

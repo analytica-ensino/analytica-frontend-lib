@@ -1,12 +1,10 @@
 import type { Story } from '@ladle/react';
 import Input from './Input';
-import {
-  MagnifyingGlass,
-  Eye,
-  User,
-  EnvelopeSimple,
-  Phone,
-} from 'phosphor-react';
+import { MagnifyingGlassIcon } from '@phosphor-icons/react/dist/csr/MagnifyingGlass';
+import { EyeIcon } from '@phosphor-icons/react/dist/csr/Eye';
+import { UserIcon } from '@phosphor-icons/react/dist/csr/User';
+import { EnvelopeSimpleIcon } from '@phosphor-icons/react/dist/csr/EnvelopeSimple';
+import { PhoneIcon } from '@phosphor-icons/react/dist/csr/Phone';
 
 const sizes = ['small', 'medium', 'large', 'extra-large'] as const;
 const variants = ['outlined', 'underlined', 'rounded'] as const;
@@ -93,21 +91,21 @@ export const AllInputs: Story = () => (
         <Input
           label="Ícone à esquerda"
           placeholder="Digite para buscar..."
-          iconLeft={<MagnifyingGlass />}
+          iconLeft={<MagnifyingGlassIcon />}
           helperText="Use o ícone de busca"
         />
         <Input
           label="Ícone à direita"
           type="password"
           placeholder="Digite sua senha"
-          iconRight={<Eye />}
+          iconRight={<EyeIcon />}
           helperText="Clique no olho para mostrar/ocultar"
         />
         <Input
           label="Ícones em ambos os lados"
           placeholder="Digite seu nome de usuário"
-          iconLeft={<User />}
-          iconRight={<MagnifyingGlass />}
+          iconLeft={<UserIcon />}
+          iconRight={<MagnifyingGlassIcon />}
           helperText="Ícones em ambos os lados"
         />
       </div>
@@ -121,7 +119,7 @@ export const AllInputs: Story = () => (
           label="Email"
           type="email"
           placeholder="exemplo@email.com"
-          iconLeft={<EnvelopeSimple />}
+          iconLeft={<EnvelopeSimpleIcon />}
           helperText="Insira um endereço de email válido"
         />
         <Input
@@ -140,7 +138,7 @@ export const AllInputs: Story = () => (
           label="Telefone"
           type="tel"
           placeholder="(11) 99999-9999"
-          iconLeft={<Phone />}
+          iconLeft={<PhoneIcon />}
           helperText="Formato: (XX) XXXXX-XXXX"
         />
       </div>

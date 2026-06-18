@@ -52,14 +52,6 @@ jest.mock('../../..', () => ({
   ),
 }));
 
-// Mock phosphor-react icons
-jest.mock('phosphor-react', () => ({
-  CaretLeft: ({ size }: { size: number }) => (
-    <svg data-testid="caret-left-icon" data-size={size} />
-  ),
-  PaperPlaneTilt: () => <svg data-testid="paper-plane-icon" />,
-}));
-
 describe('RecommendedLessonCreateHeader', () => {
   const defaultProps = {
     draftType: RecommendedClassDraftType.RASCUNHO,
@@ -130,7 +122,7 @@ describe('RecommendedLessonCreateHeader', () => {
       render(<RecommendedLessonCreateHeader {...defaultProps} />);
 
       expect(screen.getByTestId('back-button')).toBeInTheDocument();
-      expect(screen.getByTestId('caret-left-icon')).toBeInTheDocument();
+      expect(screen.getByTestId('phosphor-caret-left')).toBeInTheDocument();
     });
 
     it('should render "Salvar modelo" button', () => {
@@ -143,7 +135,9 @@ describe('RecommendedLessonCreateHeader', () => {
       render(<RecommendedLessonCreateHeader {...defaultProps} />);
 
       expect(screen.getByText('Enviar aula')).toBeInTheDocument();
-      expect(screen.getByTestId('paper-plane-icon')).toBeInTheDocument();
+      expect(
+        screen.getByTestId('phosphor-paper-plane-tilt')
+      ).toBeInTheDocument();
     });
   });
 

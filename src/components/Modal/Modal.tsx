@@ -1,5 +1,5 @@
 import { ReactNode, useEffect, useId } from 'react';
-import { X } from 'phosphor-react';
+import { XIcon } from '@phosphor-icons/react/dist/csr/X';
 import { cn } from '../../utils/utils';
 import Button from '../Button/Button';
 import {
@@ -212,7 +212,7 @@ const Modal = ({
           aria-modal="true"
           open
         >
-          {/* Header simples com X */}
+          {/* Header simples com XIcon */}
           <div className="flex justify-end p-6 pb-0">
             {!hideCloseButton && (
               <button
@@ -220,7 +220,7 @@ const Modal = ({
                 className="p-1 text-text-500 hover:text-text-700 hover:bg-background-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-indicator-info focus:ring-offset-2"
                 aria-label="Fechar modal"
               >
-                <X size={18} />
+                <XIcon size={18} />
               </button>
             )}
           </div>
@@ -323,7 +323,7 @@ const Modal = ({
               className="p-1 text-text-500 hover:text-text-700 hover:bg-background-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-indicator-info focus:ring-offset-2"
               aria-label="Fechar modal"
             >
-              <X size={18} />
+              <XIcon size={18} />
             </button>
           )}
         </div>

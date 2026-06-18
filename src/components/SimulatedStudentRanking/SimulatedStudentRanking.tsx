@@ -1,6 +1,7 @@
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
-import { Medal, Warning } from 'phosphor-react';
+import { MedalIcon } from '@phosphor-icons/react/dist/csr/Medal';
+import { WarningIcon } from '@phosphor-icons/react/dist/csr/Warning';
 import { ScoreType } from '../../types/common';
 import { formatScore } from './utils';
 import {
@@ -181,14 +182,18 @@ export function SimulatedStudentRanking({
         title={highlightTitle}
         variant="highlight"
         students={highlightStudents}
-        icon={<Medal size={20} weight="fill" className="text-warning-500" />}
+        icon={
+          <MedalIcon size={20} weight="fill" className="text-warning-500" />
+        }
         scoreType={scoreType}
       />
       <SimulatedRankingCard
         title={attentionTitle}
         variant="attention"
         students={attentionStudents}
-        icon={<Warning size={20} weight="fill" className="text-error-500" />}
+        icon={
+          <WarningIcon size={20} weight="fill" className="text-error-500" />
+        }
         scoreType={scoreType}
       />
     </div>

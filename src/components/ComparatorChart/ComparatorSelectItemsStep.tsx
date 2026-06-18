@@ -1,4 +1,4 @@
-import { X } from 'phosphor-react';
+import { XIcon } from '@phosphor-icons/react/dist/csr/X';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
 import Badge from '../Badge/Badge';
@@ -77,7 +77,7 @@ export function ComparatorSelectItemsStep({
                 className="ml-1 p-0.5 rounded-full hover:bg-secondary-200 transition-colors"
                 aria-label={`Remover ${item.name}`}
               >
-                <X size={14} />
+                <XIcon size={14} />
               </Button>
             </Badge>
           ))}

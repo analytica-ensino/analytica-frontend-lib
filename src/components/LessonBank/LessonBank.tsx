@@ -1,4 +1,5 @@
-import { Book, Plus } from 'phosphor-react';
+import { BookIcon } from '@phosphor-icons/react/dist/csr/Book';
+import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
 import { Button, Text, SkeletonText, BaseApiClient, EmptyState } from '../..';
 import type { Lesson } from '../../types/lessons';
 import { useLessonBank, type LessonFilters } from './hooks/useLessonBank';
@@ -158,7 +159,7 @@ export const LessonBank = ({
                 size="small"
                 onClick={() => handleAddWithToast(lesson)}
                 className="flex-1"
-                iconLeft={<Plus size={16} />}
+                iconLeft={<PlusIcon size={16} />}
               >
                 Adicionar à aula
               </Button>
@@ -188,7 +189,7 @@ export const LessonBank = ({
     >
       <div className="flex flex-col gap-2 flex-shrink-0">
         <section className="flex flex-row items-center gap-2 text-text-950">
-          <Book size={24} />
+          <BookIcon size={24} />
           <Text size="lg" weight="bold">
             Banco de Aulas
           </Text>

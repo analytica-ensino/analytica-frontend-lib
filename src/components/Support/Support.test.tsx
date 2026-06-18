@@ -22,14 +22,6 @@ jest.mock('dayjs', () => {
 
 jest.mock('dayjs/locale/pt-br', () => ({}));
 
-// Mock @phosphor-icons/react
-jest.mock('@phosphor-icons/react', () => ({
-  KeyIcon: () => <svg data-testid="key-icon" />,
-  BugIcon: () => <svg data-testid="bug-icon" />,
-  InfoIcon: () => <svg data-testid="info-icon" />,
-  CaretRightIcon: () => <svg data-testid="caret-right-icon" />,
-}));
-
 // Mock zod
 jest.mock('zod', () => {
   const createZodType = () => ({

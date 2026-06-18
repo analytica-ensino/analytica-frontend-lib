@@ -1,4 +1,5 @@
-import { CheckCircle, XCircle } from 'phosphor-react';
+import { CheckCircleIcon } from '@phosphor-icons/react/dist/csr/CheckCircle';
+import { XCircleIcon } from '@phosphor-icons/react/dist/csr/XCircle';
 import Badge from '../Badge/Badge';
 import { RadioGroup, RadioGroupItem } from '../Radio/Radio';
 import { forwardRef, HTMLAttributes, useId, useState } from 'react';
@@ -115,13 +116,17 @@ const AlternativesList = ({
     switch (status) {
       case OptionStatus.CORRECT:
         return (
-          <Badge variant="solid" action="success" iconLeft={<CheckCircle />}>
+          <Badge
+            variant="solid"
+            action="success"
+            iconLeft={<CheckCircleIcon />}
+          >
             Resposta correta
           </Badge>
         );
       case OptionStatus.INCORRECT:
         return (
-          <Badge variant="solid" action="error" iconLeft={<XCircle />}>
+          <Badge variant="solid" action="error" iconLeft={<XCircleIcon />}>
             Resposta incorreta
           </Badge>
         );

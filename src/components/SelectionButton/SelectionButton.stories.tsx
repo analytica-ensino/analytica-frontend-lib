@@ -1,6 +1,9 @@
 import type { Story } from '@ladle/react';
 import { useState } from 'react';
-import { Tag, Star, Clock, Archive } from 'phosphor-react';
+import { TagIcon } from '@phosphor-icons/react/dist/csr/Tag';
+import { StarIcon } from '@phosphor-icons/react/dist/csr/Star';
+import { ClockIcon } from '@phosphor-icons/react/dist/csr/Clock';
+import { ArchiveIcon } from '@phosphor-icons/react/dist/csr/Archive';
 import SelectionButton from './SelectionButton';
 
 /**
@@ -22,9 +25,9 @@ export const AllSelectionButtons: Story = () => {
       {/* Estados básicos */}
       <h3 className="font-bold text-2xl text-text-900">Estados Básicos:</h3>
       <div className="flex flex-row gap-4 items-center">
-        <SelectionButton icon={<Tag size={24} />} label="Default" />
+        <SelectionButton icon={<TagIcon size={24} />} label="Default" />
         <SelectionButton
-          icon={<Tag size={24} />}
+          icon={<TagIcon size={24} />}
           label="Selected"
           selected={true}
         />
@@ -40,19 +43,19 @@ export const AllSelectionButtons: Story = () => {
           </div>
           <div className="flex flex-row gap-3 flex-wrap">
             <SelectionButton
-              icon={<Tag size={24} />}
+              icon={<TagIcon size={24} />}
               label="Todos"
               selected={selectedCategory === 'all'}
               onClick={() => setSelectedCategory('all')}
             />
             <SelectionButton
-              icon={<Star size={24} />}
+              icon={<StarIcon size={24} />}
               label="Favoritos"
               selected={selectedCategory === 'favorites'}
               onClick={() => setSelectedCategory('favorites')}
             />
             <SelectionButton
-              icon={<Clock size={24} />}
+              icon={<ClockIcon size={24} />}
               label="Recentes"
               selected={selectedCategory === 'recent'}
               onClick={() => setSelectedCategory('recent')}
@@ -69,25 +72,25 @@ export const AllSelectionButtons: Story = () => {
           </div>
           <div className="flex flex-row gap-3 flex-wrap">
             <SelectionButton
-              icon={<Tag size={24} />}
+              icon={<TagIcon size={24} />}
               label="React"
               selected={selectedTag === 'react'}
               onClick={() => setSelectedTag('react')}
             />
             <SelectionButton
-              icon={<Tag size={24} />}
+              icon={<TagIcon size={24} />}
               label="TypeScript"
               selected={selectedTag === 'typescript'}
               onClick={() => setSelectedTag('typescript')}
             />
             <SelectionButton
-              icon={<Tag size={24} />}
+              icon={<TagIcon size={24} />}
               label="JavaScript"
               selected={selectedTag === 'javascript'}
               onClick={() => setSelectedTag('javascript')}
             />
             <SelectionButton
-              icon={<Tag size={24} />}
+              icon={<TagIcon size={24} />}
               label="CSS"
               selected={selectedTag === 'css'}
               onClick={() => setSelectedTag('css')}
@@ -107,9 +110,9 @@ export const AllSelectionButtons: Story = () => {
  */
 export const BasicStates: Story = () => (
   <div className="flex flex-row gap-4">
-    <SelectionButton icon={<Tag size={24} />} label="Default" />
+    <SelectionButton icon={<TagIcon size={24} />} label="Default" />
     <SelectionButton
-      icon={<Tag size={24} />}
+      icon={<TagIcon size={24} />}
       label="Selected"
       selected={true}
     />
@@ -127,25 +130,25 @@ export const CategoryMenu: Story = () => {
       <div className="font-medium text-text-900">Filtrar por categoria</div>
       <div className="flex flex-row gap-3 flex-wrap">
         <SelectionButton
-          icon={<Tag size={24} />}
+          icon={<TagIcon size={24} />}
           label="Todos"
           selected={selectedCategory === 'all'}
           onClick={() => setSelectedCategory('all')}
         />
         <SelectionButton
-          icon={<Star size={24} />}
+          icon={<StarIcon size={24} />}
           label="Favoritos"
           selected={selectedCategory === 'favorites'}
           onClick={() => setSelectedCategory('favorites')}
         />
         <SelectionButton
-          icon={<Clock size={24} />}
+          icon={<ClockIcon size={24} />}
           label="Recentes"
           selected={selectedCategory === 'recent'}
           onClick={() => setSelectedCategory('recent')}
         />
         <SelectionButton
-          icon={<Archive size={24} />}
+          icon={<ArchiveIcon size={24} />}
           label="Arquivados"
           selected={selectedCategory === 'archived'}
           onClick={() => setSelectedCategory('archived')}

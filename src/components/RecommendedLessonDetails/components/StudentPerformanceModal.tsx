@@ -1,11 +1,9 @@
 import { useMemo, type ReactNode } from 'react';
-import {
-  LightbulbFilament,
-  WarningCircle,
-  User,
-  CheckCircle,
-  XCircle,
-} from 'phosphor-react';
+import { LightbulbFilamentIcon } from '@phosphor-icons/react/dist/csr/LightbulbFilament';
+import { WarningCircleIcon } from '@phosphor-icons/react/dist/csr/WarningCircle';
+import { UserIcon } from '@phosphor-icons/react/dist/csr/User';
+import { CheckCircleIcon } from '@phosphor-icons/react/dist/csr/CheckCircle';
+import { XCircleIcon } from '@phosphor-icons/react/dist/csr/XCircle';
 import Modal from '../../Modal/Modal';
 import Text from '../../Text/Text';
 import Badge from '../../Badge/Badge';
@@ -182,7 +180,7 @@ const QuestionAccordionItem = ({
           size="small"
           action={question.isCorrect ? 'success' : 'error'}
           variant="solid"
-          iconLeft={question.isCorrect ? <CheckCircle /> : <XCircle />}
+          iconLeft={question.isCorrect ? <CheckCircleIcon /> : <XCircleIcon />}
         >
           {question.isCorrect ? 'Correta' : 'Incorreta'}
         </Badge>
@@ -303,7 +301,7 @@ const ErrorContent = ({ message }: { message: string }) => (
       as="span"
       className="size-12 rounded-full bg-error-100 flex items-center justify-center"
     >
-      <WarningCircle size={24} className="text-error-700" />
+      <WarningCircleIcon size={24} className="text-error-700" />
     </Text>
     <Text size="md" className="text-error-700 text-center">
       {message}
@@ -328,7 +326,7 @@ const PerformanceContent = ({
         as="span"
         className="size-8 rounded-full bg-background-100 flex items-center justify-center"
       >
-        <User size={16} className="text-text-500" />
+        <UserIcon size={16} className="text-text-500" />
       </Text>
       <Text size="md" weight="medium" className="text-text-950">
         {data.studentName}
@@ -340,7 +338,11 @@ const PerformanceContent = ({
       {/* Correct answers card */}
       <PerformanceCard
         icon={
-          <LightbulbFilament size={18} weight="fill" className="text-white" />
+          <LightbulbFilamentIcon
+            size={18}
+            weight="fill"
+            className="text-white"
+          />
         }
         label={labels.correctAnswersLabel}
         value={data.correctAnswers}
@@ -352,7 +354,11 @@ const PerformanceContent = ({
       {/* Incorrect answers card */}
       <PerformanceCard
         icon={
-          <WarningCircle size={18} weight="fill" className="text-error-700" />
+          <WarningCircleIcon
+            size={18}
+            weight="fill"
+            className="text-error-700"
+          />
         }
         label={labels.incorrectAnswersLabel}
         value={data.incorrectAnswers}

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { Plus } from 'phosphor-react';
+import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
 import Button from '../../Button/Button';
 import EmptyState from '../../EmptyState/EmptyState';
 import { TableProvider } from '../../TableProvider/TableProvider';
@@ -300,7 +300,7 @@ export const ModelsTabBase = <
                   title={config.emptyStateTitle}
                   description={config.emptyStateDescription}
                   buttonText="Criar modelo"
-                  buttonIcon={<Plus size={18} />}
+                  buttonIcon={<PlusIcon size={18} />}
                   buttonVariant="outline"
                   buttonAction="primary"
                   onButtonClick={onCreateModel}
@@ -328,7 +328,7 @@ export const ModelsTabBase = <
                       action="primary"
                       size="medium"
                       onClick={onCreateModel}
-                      iconLeft={<Plus size={18} weight="bold" />}
+                      iconLeft={<PlusIcon size={18} weight="bold" />}
                     >
                       Criar modelo
                     </Button>

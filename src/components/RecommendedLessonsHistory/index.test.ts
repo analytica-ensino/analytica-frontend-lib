@@ -32,12 +32,6 @@ jest.mock('../Text/Text', () => ({ __esModule: true, default: () => null }));
 jest.mock('../SubjectInfo/SubjectInfo', () => ({
   getSubjectInfo: () => ({ icon: null, colorClass: '' }),
 }));
-jest.mock('phosphor-react', () => ({
-  Plus: () => null,
-  CaretRight: () => null,
-  Trash: () => null,
-  PencilSimple: () => null,
-}));
 
 describe('RecommendedLessonsHistory index exports', () => {
   it('should export RecommendedLessonsHistory component from index', async () => {

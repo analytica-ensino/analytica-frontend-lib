@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { CaretLeft } from 'phosphor-react';
+import { CaretLeftIcon } from '@phosphor-icons/react/dist/csr/CaretLeft';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
 import Modal from '../Modal/Modal';
@@ -277,7 +277,7 @@ export function ComparatorView({
             onClick={onBack}
             className="flex items-center gap-2 text-text-950 hover:text-text-700 transition-colors"
           >
-            <CaretLeft size={20} weight="bold" />
+            <CaretLeftIcon size={20} weight="bold" />
             <Text size="lg" weight="semibold">
               {labels.title}
             </Text>

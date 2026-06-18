@@ -1,5 +1,5 @@
 import Text from '../Text/Text';
-import { Check } from 'phosphor-react';
+import { CheckIcon } from '@phosphor-icons/react/dist/csr/Check';
 import { cn } from '../../utils/utils';
 
 /**
@@ -189,7 +189,7 @@ export const Step = ({
           aria-label={getAriaLabel()}
         >
           {isCompleted ? (
-            <Check
+            <CheckIcon
               weight="bold"
               className={`
                 ${stateClasses.indicatorText}

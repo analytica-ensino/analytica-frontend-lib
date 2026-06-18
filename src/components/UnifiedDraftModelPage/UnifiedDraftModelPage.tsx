@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus } from 'phosphor-react';
+import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
 import { PAGE_CONFIG, getPageLayout } from './config';
 import type { UnifiedDraftModelPageProps } from './types';
 import EmptyState from '../EmptyState/EmptyState';
@@ -145,7 +145,7 @@ export const UnifiedDraftModelPage = ({
         title={config.emptyTitle}
         description={config.emptyDescription}
         buttonText={config.buttonText}
-        buttonIcon={<Plus size={18} />}
+        buttonIcon={<PlusIcon size={18} />}
         buttonVariant="outline"
         buttonAction="primary"
         onButtonClick={handleCreateActivity}

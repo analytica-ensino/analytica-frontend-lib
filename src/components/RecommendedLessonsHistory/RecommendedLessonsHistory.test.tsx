@@ -19,19 +19,6 @@ jest.mock('dayjs', () => {
   }, actual);
 });
 
-// Mock phosphor icons
-jest.mock('phosphor-react', () => ({
-  Plus: () => <span data-testid="plus-icon">+</span>,
-  CaretRight: () => <span data-testid="caret-right">→</span>,
-  Trash: () => <span data-testid="trash-icon">🗑</span>,
-  PencilSimple: () => <span data-testid="pencil-icon">✎</span>,
-  // Icons used by the Toaster/Toast rendered in the Drafts/Models tabs
-  CheckCircle: () => <span data-testid="check-circle">✓</span>,
-  WarningCircle: () => <span data-testid="warning-circle">!</span>,
-  Info: () => <span data-testid="info-icon">i</span>,
-  X: () => <span data-testid="x-icon">×</span>,
-}));
-
 // Mock utils
 jest.mock('../../utils/utils', () => ({
   cn: (...inputs: (string | undefined)[]) => inputs.filter(Boolean).join(' '),
@@ -987,7 +974,7 @@ describe('RecommendedLessonsHistory', () => {
       await waitFor(() => {
         const navigationCell = screen.getByTestId('navigation-cell');
         expect(navigationCell).toBeInTheDocument();
-        expect(screen.getByTestId('caret-right')).toBeInTheDocument();
+        expect(screen.getByTestId('phosphor-caret-right')).toBeInTheDocument();
       });
     });
 

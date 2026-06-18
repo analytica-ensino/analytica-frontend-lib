@@ -1,12 +1,10 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import {
-  Medal,
-  Star,
-  CaretRight,
-  WarningCircle,
-  DownloadSimple,
-  Eye,
-} from 'phosphor-react';
+import { MedalIcon } from '@phosphor-icons/react/dist/csr/Medal';
+import { StarIcon } from '@phosphor-icons/react/dist/csr/Star';
+import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
+import { WarningCircleIcon } from '@phosphor-icons/react/dist/csr/WarningCircle';
+import { DownloadSimpleIcon } from '@phosphor-icons/react/dist/csr/DownloadSimple';
+import { EyeIcon } from '@phosphor-icons/react/dist/csr/Eye';
 import Text from '../Text/Text';
 import { TruncatedText } from '../TruncatedText/TruncatedText';
 import Button from '../Button/Button';
@@ -1057,7 +1055,7 @@ export const ActivityDetails = ({
           >
             Atividades
           </button>
-          <CaretRight size={16} className="text-text-500" />
+          <CaretRightIcon size={16} className="text-text-500" />
           <Text className="text-text-950 text-sm font-bold">
             {data.activity?.title || 'Atividade'}
           </Text>
@@ -1127,7 +1125,7 @@ export const ActivityDetails = ({
                     action="primary"
                     onClick={handleViewActivity}
                     disabled={isLoadingQuestions}
-                    iconLeft={<Eye size={16} />}
+                    iconLeft={<EyeIcon size={16} />}
                     className="gap-2"
                   >
                     Ver Atividade
@@ -1136,7 +1134,7 @@ export const ActivityDetails = ({
                     size="small"
                     onClick={handleDownloadPdf}
                     disabled={isLoadingQuestions}
-                    iconLeft={<DownloadSimple size={16} />}
+                    iconLeft={<DownloadSimpleIcon size={16} />}
                     className="bg-primary-950 text-text gap-2"
                   >
                     {isLoadingQuestions ? 'Carregando...' : 'Baixar Atividade'}
@@ -1144,7 +1142,7 @@ export const ActivityDetails = ({
                 </div>
                 {activityQuestionsError && (
                   <div className="flex items-center gap-2 max-w-[300px]">
-                    <WarningCircle
+                    <WarningCircleIcon
                       size={16}
                       className="text-error-600 shrink-0"
                       weight="fill"
@@ -1198,7 +1196,7 @@ export const ActivityDetails = ({
           {/* Average score */}
           <div className="border border-border-50 rounded-xl py-4 px-3 flex flex-col items-center justify-center gap-1 bg-warning-background">
             <div className="w-[30px] h-[30px] rounded-2xl flex items-center justify-center bg-warning-300">
-              <Star size={16} className="text-white" weight="regular" />
+              <StarIcon size={16} className="text-white" weight="regular" />
             </div>
             <Text className="text-2xs font-bold uppercase text-center text-warning-600">
               {getAverageScoreLabel(data.pagination.total)}
@@ -1211,7 +1209,7 @@ export const ActivityDetails = ({
           {/* Most correct questions */}
           <div className="border border-border-50 rounded-xl py-2 px-3 flex flex-col items-center justify-center gap-1 bg-success-200">
             <div className="w-[30px] h-[30px] rounded-2xl flex items-center justify-center bg-indicator-positive">
-              <Medal size={16} className="text-text-950" weight="regular" />
+              <MedalIcon size={16} className="text-text-950" weight="regular" />
             </div>
             <Text className="text-2xs font-bold uppercase text-center text-success-700">
               Questões com mais acertos
@@ -1224,7 +1222,7 @@ export const ActivityDetails = ({
           {/* Most incorrect questions */}
           <div className="border border-border-50 rounded-xl py-2 px-3 flex flex-col items-center justify-center gap-1 bg-error-100">
             <div className="w-[30px] h-[30px] rounded-2xl flex items-center justify-center bg-indicator-negative">
-              <WarningCircle
+              <WarningCircleIcon
                 size={16}
                 className="text-white"
                 weight="regular"
@@ -1241,7 +1239,7 @@ export const ActivityDetails = ({
           {/* Not answered questions */}
           <div className="border border-border-50 rounded-xl py-2 px-3 flex flex-col items-center justify-center gap-1 bg-info-background">
             <div className="w-[30px] h-[30px] rounded-2xl flex items-center justify-center bg-info-500">
-              <WarningCircle
+              <WarningCircleIcon
                 size={16}
                 className="text-white"
                 weight="regular"
@@ -1259,7 +1257,11 @@ export const ActivityDetails = ({
         {/* Correction error message */}
         {correctionError && (
           <div className="w-full bg-error-50 border border-error-200 rounded-xl p-4 flex items-center gap-3">
-            <WarningCircle size={20} className="text-error-600" weight="fill" />
+            <WarningCircleIcon
+              size={20}
+              className="text-error-600"
+              weight="fill"
+            />
             <Text className="text-error-700 text-sm">{correctionError}</Text>
           </div>
         )}

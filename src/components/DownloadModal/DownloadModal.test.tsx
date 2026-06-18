@@ -83,12 +83,6 @@ jest.mock('../Skeleton/Skeleton', () => ({
   ),
 }));
 
-jest.mock('@phosphor-icons/react', () => ({
-  FilePdfIcon: () => <span data-testid="file-pdf-icon" />,
-  FileXlsIcon: () => <span data-testid="file-xls-icon" />,
-  DownloadSimpleIcon: () => <span data-testid="download-icon" />,
-}));
-
 import DownloadModal from './DownloadModal';
 
 describe('DownloadModal', () => {
@@ -135,8 +129,8 @@ describe('DownloadModal', () => {
     ).toBeInTheDocument();
     expect(screen.getByTestId('download-pdf-option')).toBeInTheDocument();
     expect(screen.getByTestId('download-excel-option')).toBeInTheDocument();
-    expect(screen.getByTestId('file-pdf-icon')).toBeInTheDocument();
-    expect(screen.getByTestId('file-xls-icon')).toBeInTheDocument();
+    expect(screen.getByTestId('phosphor-file-pdf')).toBeInTheDocument();
+    expect(screen.getByTestId('phosphor-file-xls')).toBeInTheDocument();
     expect(screen.getByTestId('modal-footer')).toBeInTheDocument();
     expect(screen.getByTestId('download-cancel-btn')).toBeInTheDocument();
     expect(screen.getByTestId('download-confirm-btn')).toBeInTheDocument();

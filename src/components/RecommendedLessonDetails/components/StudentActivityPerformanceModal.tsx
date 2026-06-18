@@ -5,8 +5,12 @@ import {
   useEffect,
   type ReactNode,
 } from 'react';
-import { Timer, Trophy, Warning, User, WarningCircle } from 'phosphor-react';
-import type { Icon } from 'phosphor-react';
+import { TimerIcon } from '@phosphor-icons/react/dist/csr/Timer';
+import { TrophyIcon } from '@phosphor-icons/react/dist/csr/Trophy';
+import { WarningIcon } from '@phosphor-icons/react/dist/csr/Warning';
+import { UserIcon } from '@phosphor-icons/react/dist/csr/User';
+import { WarningCircleIcon } from '@phosphor-icons/react/dist/csr/WarningCircle';
+import type { Icon } from '@phosphor-icons/react';
 import Modal from '../../Modal/Modal';
 import Text from '../../Text/Text';
 import Badge from '../../Badge/Badge';
@@ -87,19 +91,19 @@ const infoVariantConfig: Record<
   time: {
     borderColor: 'border-primary-200',
     labelColor: 'text-primary-600',
-    IconComponent: Timer,
+    IconComponent: TimerIcon,
     iconColor: 'text-primary-600',
   },
   best: {
     borderColor: 'border-success-200',
     labelColor: 'text-success-600',
-    IconComponent: Trophy,
+    IconComponent: TrophyIcon,
     iconColor: 'text-success-600',
   },
   hardest: {
     borderColor: 'border-error-200',
     labelColor: 'text-error-600',
-    IconComponent: Warning,
+    IconComponent: WarningIcon,
     iconColor: 'text-error-600',
   },
 };
@@ -256,7 +260,7 @@ const ErrorContent = ({ message }: { message: string }) => (
       as="span"
       className="size-12 rounded-full bg-error-100 flex items-center justify-center"
     >
-      <WarningCircle size={24} className="text-error-700" />
+      <WarningCircleIcon size={24} className="text-error-700" />
     </Text>
     <Text size="md" className="text-error-700 text-center">
       {message}
@@ -642,7 +646,7 @@ export const StudentActivityPerformanceModal = ({
               as="span"
               className="size-8 rounded-full bg-background-100 flex items-center justify-center"
             >
-              <User size={16} className="text-text-500" />
+              <UserIcon size={16} className="text-text-500" />
             </Text>
             <Text size="md" weight="medium" className="text-text-950">
               {data.studentName}

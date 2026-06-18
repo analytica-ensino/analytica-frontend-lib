@@ -1,5 +1,5 @@
 import { forwardRef } from 'react';
-import { Paperclip } from 'phosphor-react';
+import { PaperclipIcon } from '@phosphor-icons/react/dist/csr/Paperclip';
 import { cn } from '../../utils/utils';
 import Text from '../Text/Text';
 import { useQuizStore } from './useQuizStore';
@@ -44,7 +44,7 @@ export const TeacherFeedbackSection = forwardRef<
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 px-3 py-2 bg-secondary-100 rounded-full text-text-800 hover:bg-secondary-200 transition-colors"
         >
-          <Paperclip size={16} />
+          <PaperclipIcon size={16} />
           <Text size="sm" weight="medium" color="text-text-800">
             Ver anexo
           </Text>

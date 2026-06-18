@@ -182,13 +182,6 @@ jest.mock('../Badge/Badge', () => ({
   ),
 }));
 
-// Mock icons
-jest.mock('phosphor-react', () => ({
-  CaretLeft: () => <span data-testid="caret-left">←</span>,
-  CaretRight: () => <span data-testid="caret-right">→</span>,
-  User: () => <span data-testid="user-icon">👤</span>,
-}));
-
 // Mock notification image
 jest.mock('../../assets/img/notification.png', () => 'notification.png');
 
@@ -430,7 +423,7 @@ describe('AlertsManagerView', () => {
     it('should display user icons for recipients', () => {
       render(<AlertsManagerView alertData={mockAlertData} isOpen={true} />);
 
-      const userIcons = screen.getAllByTestId('user-icon');
+      const userIcons = screen.getAllByTestId('phosphor-user');
       expect(userIcons.length).toBe(mockAlertData.recipients.length);
     });
 

@@ -1,17 +1,15 @@
 import type React from 'react';
 import { useRef, useState, useCallback, useId, useEffect } from 'react';
-import {
-  Upload,
-  WarningCircle,
-  CheckCircle,
-  FileVideo,
-  FileAudio,
-  FilePdf,
-  ClosedCaptioning,
-  Paperclip,
-  PencilSimple,
-  X,
-} from 'phosphor-react';
+import { UploadIcon } from '@phosphor-icons/react/dist/csr/Upload';
+import { WarningCircleIcon } from '@phosphor-icons/react/dist/csr/WarningCircle';
+import { CheckCircleIcon } from '@phosphor-icons/react/dist/csr/CheckCircle';
+import { FileVideoIcon } from '@phosphor-icons/react/dist/csr/FileVideo';
+import { FileAudioIcon } from '@phosphor-icons/react/dist/csr/FileAudio';
+import { FilePdfIcon } from '@phosphor-icons/react/dist/csr/FilePdf';
+import { ClosedCaptioningIcon } from '@phosphor-icons/react/dist/csr/ClosedCaptioning';
+import { PaperclipIcon } from '@phosphor-icons/react/dist/csr/Paperclip';
+import { PencilSimpleIcon } from '@phosphor-icons/react/dist/csr/PencilSimple';
+import { XIcon } from '@phosphor-icons/react/dist/csr/X';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
 import { cn } from '../../utils/utils';
@@ -71,23 +69,23 @@ const FILE_TYPE_CONFIG: Record<
   }
 > = {
   image: {
-    icon: Upload,
+    icon: UploadIcon,
     defaultPlaceholder: 'para subir a imagem ou arraste aqui',
   },
   video: {
-    icon: FileVideo,
+    icon: FileVideoIcon,
     defaultPlaceholder: 'para subir o vídeo ou arraste aqui',
   },
   audio: {
-    icon: FileAudio,
+    icon: FileAudioIcon,
     defaultPlaceholder: 'para subir o áudio ou arraste aqui',
   },
   pdf: {
-    icon: FilePdf,
+    icon: FilePdfIcon,
     defaultPlaceholder: 'para subir o PDF ou arraste aqui',
   },
   subtitle: {
-    icon: ClosedCaptioning,
+    icon: ClosedCaptioningIcon,
     defaultPlaceholder: 'para subir a legenda ou arraste aqui',
   },
 };
@@ -333,7 +331,7 @@ export default function FileDropzone({
       />
 
       <div className="flex items-center gap-2 rounded-full border border-border-200 bg-background px-3 py-1.5">
-        <Paperclip size={16} className="text-text-600" />
+        <PaperclipIcon size={16} className="text-text-600" />
         <Text size="sm" className="text-text-700 max-w-[200px] truncate">
           {fileName}
         </Text>
@@ -345,7 +343,7 @@ export default function FileDropzone({
             className="p-0.5 rounded-full hover:bg-error-100 transition-colors"
             aria-label="Remover arquivo"
           >
-            <X size={14} className="text-indicator-error" />
+            <XIcon size={14} className="text-indicator-error" />
           </Button>
         )}
       </div>
@@ -355,7 +353,7 @@ export default function FileDropzone({
           variant="outline"
           action="primary"
           size="small"
-          iconLeft={<PencilSimple size={16} />}
+          iconLeft={<PencilSimpleIcon size={16} />}
           onClick={handleChangeClick}
         >
           {changeButtonText}
@@ -370,7 +368,11 @@ export default function FileDropzone({
       return (
         <div className="flex flex-col items-center gap-3">
           <div className="flex items-center justify-center w-12 h-12 rounded-full bg-success-100">
-            <CheckCircle size={28} className="text-success-600" weight="fill" />
+            <CheckCircleIcon
+              size={28}
+              className="text-success-600"
+              weight="fill"
+            />
           </div>
           <div className="flex items-center gap-2">
             <IconComponent size={20} className="text-text-600" />
@@ -385,7 +387,7 @@ export default function FileDropzone({
                 className="p-1 rounded-full hover:bg-error-100 transition-colors"
                 aria-label="Remover arquivo"
               >
-                <X size={14} className="text-indicator-error" />
+                <XIcon size={14} className="text-indicator-error" />
               </Button>
             )}
           </div>
@@ -462,7 +464,7 @@ export default function FileDropzone({
         )}
         {errorMessage && (
           <Text id={`${inputId}-error`} size="xs" color="text-indicator-error">
-            <WarningCircle size={14} /> {errorMessage}
+            <WarningCircleIcon size={14} /> {errorMessage}
           </Text>
         )}
       </div>

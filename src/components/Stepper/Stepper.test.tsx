@@ -1,15 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import Stepper, { StepData, Step } from './Stepper';
 
-// Mock phosphor-react Check icon
-jest.mock('phosphor-react', () => ({
-  Check: ({ weight, className }: { weight?: string; className?: string }) => (
-    <div data-testid="check-icon" data-weight={weight} className={className}>
-      ✓
-    </div>
-  ),
-}));
-
 const mockSteps: StepData[] = [
   {
     id: '1',
@@ -83,7 +74,7 @@ describe('Stepper', () => {
 
       render(<Stepper steps={completedSteps} />);
 
-      expect(screen.getByTestId('check-icon')).toBeInTheDocument();
+      expect(screen.getByTestId('phosphor-check')).toBeInTheDocument();
     });
 
     it('renders current state with step number', () => {
@@ -149,7 +140,7 @@ describe('Stepper', () => {
       render(<Stepper steps={mockSteps} currentStep={1} />);
 
       // Step 0 should be completed, step 1 should be current, step 2 should be pending
-      const checkIcon = screen.getByTestId('check-icon');
+      const checkIcon = screen.getByTestId('phosphor-check');
       expect(checkIcon).toBeInTheDocument();
     });
 
@@ -157,7 +148,7 @@ describe('Stepper', () => {
       render(<Stepper steps={mockSteps} />);
 
       // Should use the states from mockSteps
-      expect(screen.getByTestId('check-icon')).toBeInTheDocument();
+      expect(screen.getByTestId('phosphor-check')).toBeInTheDocument();
     });
   });
 
@@ -293,7 +284,7 @@ describe('Stepper', () => {
 
       render(<Stepper steps={completedSteps} size={size} />);
 
-      const checkIcon = screen.getByTestId('check-icon');
+      const checkIcon = screen.getByTestId('phosphor-check');
       expect(checkIcon).toBeInTheDocument();
       // Just verify the icon is rendered correctly, size classes are applied via CSS
       expect(checkIcon).toHaveAttribute('data-weight', 'bold');

@@ -1,5 +1,5 @@
 import { ButtonHTMLAttributes, ReactNode } from 'react';
-import { Check } from 'phosphor-react';
+import { CheckIcon } from '@phosphor-icons/react/dist/csr/Check';
 import { cn } from '../../utils/utils';
 
 /**
@@ -74,7 +74,7 @@ const Chips = ({
     >
       {selected && (
         <span className={`flex items-center`}>
-          <Check weight="bold" size={16} />
+          <CheckIcon weight="bold" size={16} />
         </span>
       )}
 

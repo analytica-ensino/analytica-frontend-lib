@@ -15,12 +15,6 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => jest.fn(),
 }));
 
-jest.mock('phosphor-react', () => ({
-  CaretLeft: () => null,
-  PaperPlaneTilt: () => null,
-  Funnel: () => null,
-}));
-
 jest.mock('../LessonFilters/LessonFilters', () => ({
   LessonFilters: () => null,
 }));

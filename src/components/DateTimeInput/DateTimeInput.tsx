@@ -1,5 +1,5 @@
 import { ChangeEvent, useRef, useState } from 'react';
-import { CalendarBlank } from 'phosphor-react';
+import { CalendarBlankIcon } from '@phosphor-icons/react/dist/csr/CalendarBlank';
 import Input from '../Input/Input';
 import Calendar from '../Calendar/Calendar';
 import DropdownMenu, {
@@ -135,7 +135,7 @@ const DateTimeInput = ({
           errorMessage={errorMessage}
           disabled={disabled}
           data-testid={testId ? `${testId}-input` : undefined}
-          iconRight={<CalendarBlank size={14} />}
+          iconRight={<CalendarBlankIcon size={14} />}
           className="[&::-webkit-calendar-picker-indicator]:hidden"
         />
       </DropdownMenuTrigger>

@@ -1,5 +1,6 @@
 import { type HTMLAttributes } from 'react';
-import { TrendUp, TrendDown } from 'phosphor-react';
+import { TrendUpIcon } from '@phosphor-icons/react/dist/csr/TrendUp';
+import { TrendDownIcon } from '@phosphor-icons/react/dist/csr/TrendDown';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
 import type { StudentHighlightItem } from '../../hooks/useStudentsHighlight';
@@ -36,7 +37,7 @@ const StudentCard = ({
   student: StudentRankingItem;
   variant: RankingVariant;
 }) => {
-  const TrendIcon = variant === 'highlight' ? TrendUp : TrendDown;
+  const TrendIcon = variant === 'highlight' ? TrendUpIcon : TrendDownIcon;
   const backgroundClass = getPositionBackgroundClass(variant, student.position);
 
   return (

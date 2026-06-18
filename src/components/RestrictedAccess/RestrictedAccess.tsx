@@ -1,7 +1,7 @@
 import Text from '../Text/Text';
 import Button from '../Button/Button';
 import { cn } from '../../utils/utils';
-import { ShieldCheck } from 'phosphor-react';
+import { ShieldCheckIcon } from '@phosphor-icons/react/dist/csr/ShieldCheck';
 import { getRootDomain } from '../Auth/Auth';
 
 /**
@@ -71,7 +71,7 @@ const RestrictedAccess = ({
 
         <div className="bg-background rounded-xl p-8 w-full flex flex-col items-center gap-6 shadow-lg">
           <div className="bg-primary-100 p-4 rounded-full">
-            <ShieldCheck size={48} className="text-primary-800" />
+            <ShieldCheckIcon size={48} className="text-primary-800" />
           </div>
 
           <div className="flex flex-col items-center gap-2 text-center">

@@ -1,4 +1,5 @@
-import { X, MagnifyingGlass } from 'phosphor-react';
+import { XIcon } from '@phosphor-icons/react/dist/csr/X';
+import { MagnifyingGlassIcon } from '@phosphor-icons/react/dist/csr/MagnifyingGlass';
 import {
   InputHTMLAttributes,
   forwardRef,
@@ -360,7 +361,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
                 aria-label="Limpar busca"
               >
                 <span className="w-6 h-6 text-text-800 flex items-center justify-center hover:text-text-600 transition-colors">
-                  <X />
+                  <XIcon />
                 </span>
               </button>
             </div>
@@ -376,7 +377,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
                 aria-label="Buscar"
               >
                 <span className="w-6 h-6 text-text-800 flex items-center justify-center hover:text-text-600 transition-colors">
-                  <MagnifyingGlass />
+                  <MagnifyingGlassIcon />
                 </span>
               </button>
             </div>

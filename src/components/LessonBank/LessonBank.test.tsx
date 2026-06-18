@@ -253,19 +253,6 @@ jest.mock('../Whiteboard/Whiteboard', () => ({
   ),
 }));
 
-jest.mock('phosphor-react', () => ({
-  Book: ({ size }: { size?: number }) => (
-    <span data-testid="book-icon" data-size={size}>
-      Book
-    </span>
-  ),
-  Plus: () => <span data-testid="plus-icon">Plus</span>,
-}));
-
-jest.mock('@phosphor-icons/react', () => ({
-  Video: () => <span data-testid="video-icon">Video</span>,
-}));
-
 // Mock localStorage
 const localStorageMock = (() => {
   let store: Record<string, string> = {};

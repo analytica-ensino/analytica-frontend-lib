@@ -6,7 +6,7 @@ import Button from '../Button/Button';
 import TableProvider from '../TableProvider/TableProvider';
 import type { TableParams, ColumnConfig } from '../TableProvider/TableProvider';
 import type { FilterConfig } from '../Filter/useTableFilter';
-import { Plus } from 'phosphor-react';
+import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
 import type { ReactNode } from 'react';
 
 /**
@@ -239,7 +239,7 @@ export function BasePageLayout<T extends Record<string, unknown>>({
                     action="primary"
                     size="medium"
                     onClick={onCreate}
-                    iconLeft={<Plus size={18} weight="bold" />}
+                    iconLeft={<PlusIcon size={18} weight="bold" />}
                     className="w-full lg:w-auto"
                   >
                     {createButtonLabel}

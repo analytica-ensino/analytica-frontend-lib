@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { UserCircle } from 'phosphor-react';
+import { UserCircleIcon } from '@phosphor-icons/react/dist/csr/UserCircle';
 import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
@@ -486,7 +486,11 @@ export function SimulationsDetailModal({
         <div className="flex max-h-[70vh] flex-col gap-4 overflow-y-auto pr-1">
           <div className="flex items-center justify-between gap-3">
             <span className="flex items-center gap-2">
-              <UserCircle size={24} weight="fill" className="text-info-700" />
+              <UserCircleIcon
+                size={24}
+                weight="fill"
+                className="text-info-700"
+              />
               <Text weight="bold" className="text-text-950">
                 {student.name}
               </Text>

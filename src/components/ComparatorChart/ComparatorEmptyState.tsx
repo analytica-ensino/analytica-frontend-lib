@@ -1,4 +1,4 @@
-import { Plus } from 'phosphor-react';
+import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
 import type { ComparatorLabels } from '../../types/comparator';
@@ -81,7 +81,7 @@ export function ComparatorEmptyState({
           onClick={onSelectClick}
           disabled={isLoading}
         >
-          <Plus size={18} />
+          <PlusIcon size={18} />
           {buttonText}
         </Button>
       )}

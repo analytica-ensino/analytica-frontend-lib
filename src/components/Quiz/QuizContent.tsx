@@ -31,7 +31,8 @@ import { AlternativesList } from '../Alternative/Alternative';
 import { OptionStatus } from '../../enums/Options';
 import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
 import Badge from '../Badge/Badge';
-import { CheckCircle, XCircle } from 'phosphor-react';
+import { CheckCircleIcon } from '@phosphor-icons/react/dist/csr/CheckCircle';
+import { XCircleIcon } from '@phosphor-icons/react/dist/csr/XCircle';
 import ImageQuestion from '../../assets/img/mock-image-question.png';
 import Text from '../Text/Text';
 import { HtmlMathRenderer } from '../HtmlMathRenderer';
@@ -39,13 +40,13 @@ export const getStatusBadge = (status?: OptionStatus) => {
   switch (status) {
     case OptionStatus.CORRECT:
       return (
-        <Badge variant="solid" action="success" iconLeft={<CheckCircle />}>
+        <Badge variant="solid" action="success" iconLeft={<CheckCircleIcon />}>
           Resposta correta
         </Badge>
       );
     case OptionStatus.INCORRECT:
       return (
-        <Badge variant="solid" action="error" iconLeft={<XCircle />}>
+        <Badge variant="solid" action="error" iconLeft={<XCircleIcon />}>
           Resposta incorreta
         </Badge>
       );
@@ -1126,7 +1127,7 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
           <Badge
             variant="solid"
             action="error"
-            iconRight={<XCircle />}
+            iconRight={<XCircleIcon />}
             size="large"
             className="py-1 px-2"
           >
@@ -1145,7 +1146,7 @@ const QuizFill = ({ paddingBottom }: QuizVariantInterface) => {
         <Badge
           variant="solid"
           action={isCorrect ? 'success' : 'error'}
-          iconRight={isCorrect ? <CheckCircle /> : <XCircle />}
+          iconRight={isCorrect ? <CheckCircleIcon /> : <XCircleIcon />}
           size="large"
           className="py-1 px-2"
         >

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useCallback, useMemo, useRef } from 'react';
-import { Plus } from 'phosphor-react';
+import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
 import Button from '../../Button/Button';
 import EmptyState from '../../EmptyState/EmptyState';
 import { TableProvider } from '../../TableProvider/TableProvider';
@@ -157,7 +157,7 @@ export const HistoryTab = ({
               title="Incentive sua turma ao aprendizado"
               description="Crie uma nova atividade e ajude seus alunos a colocarem o conteúdo em prática!"
               buttonText="Criar atividade"
-              buttonIcon={<Plus size={18} />}
+              buttonIcon={<PlusIcon size={18} />}
               buttonVariant="outline"
               buttonAction="primary"
               onButtonClick={onCreateActivity}
@@ -186,7 +186,7 @@ export const HistoryTab = ({
                   action="primary"
                   size="medium"
                   onClick={onCreateActivity}
-                  iconLeft={<Plus size={18} weight="bold" />}
+                  iconLeft={<PlusIcon size={18} weight="bold" />}
                 >
                   Criar atividade
                 </Button>

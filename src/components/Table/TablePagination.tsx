@@ -1,5 +1,7 @@
 import { HTMLAttributes, ChangeEvent } from 'react';
-import { CaretLeft, CaretRight, CaretDown } from 'phosphor-react';
+import { CaretLeftIcon } from '@phosphor-icons/react/dist/csr/CaretLeft';
+import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
+import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
 import { cn } from '../../utils/utils';
 
 export interface TablePaginationProps extends HTMLAttributes<HTMLDivElement> {
@@ -126,7 +128,7 @@ const TablePagination = ({
                 </option>
               ))}
             </select>
-            <CaretDown
+            <CaretDownIcon
               size={14}
               weight="regular"
               className="absolute right-3 top-1/2 -translate-y-1/2 text-background-600 pointer-events-none"
@@ -151,7 +153,7 @@ const TablePagination = ({
           )}
           aria-label="Página anterior"
         >
-          <CaretLeft size={12} weight="bold" className="text-primary-950" />
+          <CaretLeftIcon size={12} weight="bold" className="text-primary-950" />
           <span className="font-medium text-xs leading-[14px] text-primary-950">
             Anterior
           </span>
@@ -172,7 +174,11 @@ const TablePagination = ({
           <span className="font-medium text-xs leading-[14px] text-primary-950">
             Próxima
           </span>
-          <CaretRight size={12} weight="bold" className="text-primary-950" />
+          <CaretRightIcon
+            size={12}
+            weight="bold"
+            className="text-primary-950"
+          />
         </button>
       </div>
     </div>

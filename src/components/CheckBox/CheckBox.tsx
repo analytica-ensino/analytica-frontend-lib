@@ -7,7 +7,8 @@ import {
   ChangeEvent,
 } from 'react';
 import Text from '../Text/Text';
-import { Check, Minus } from 'phosphor-react';
+import { CheckIcon } from '@phosphor-icons/react/dist/csr/Check';
+import { MinusIcon } from '@phosphor-icons/react/dist/csr/Minus';
 import { cn } from '../../utils/utils';
 
 /**
@@ -197,7 +198,7 @@ const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
     const renderIcon = () => {
       if (indeterminate) {
         return (
-          <Minus
+          <MinusIcon
             size={sizeClasses.iconSize}
             weight="bold"
             color="currentColor"
@@ -207,7 +208,7 @@ const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
 
       if (checked) {
         return (
-          <Check
+          <CheckIcon
             size={sizeClasses.iconSize}
             weight="bold"
             color="currentColor"

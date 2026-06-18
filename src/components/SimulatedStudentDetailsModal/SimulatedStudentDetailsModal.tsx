@@ -3,7 +3,8 @@ import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
 import ProgressBar from '../ProgressBar/ProgressBar';
 import Badge from '../Badge/Badge';
-import { ArrowLeft, CaretRight } from 'phosphor-react';
+import { ArrowLeftIcon } from '@phosphor-icons/react/dist/csr/ArrowLeft';
+import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
 import { useSimulatedStudentDetails } from './useSimulatedStudentDetails';
 import { formatPercentageRounded } from '../../utils/utils';
 import {
@@ -94,7 +95,7 @@ export function SimulatedStudentDetailsModal({
         className="p-1 hover:bg-background-100 rounded-md transition-colors"
         aria-label="Voltar para lista de matérias"
       >
-        <ArrowLeft size={20} className="text-text-600" />
+        <ArrowLeftIcon size={20} className="text-text-600" />
       </Button>
       <Text>{selectedSubject.name}</Text>
     </div>
@@ -264,7 +265,7 @@ function SubjectItem({
       </div>
 
       {/* Arrow indicator */}
-      <CaretRight size={16} className="text-text-400 flex-shrink-0" />
+      <CaretRightIcon size={16} className="text-text-400 flex-shrink-0" />
     </button>
   );
 }

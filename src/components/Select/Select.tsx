@@ -18,7 +18,9 @@ import {
   CSSProperties,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { CaretDown, Check, WarningCircle } from 'phosphor-react';
+import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
+import { CheckIcon } from '@phosphor-icons/react/dist/csr/Check';
+import { WarningCircleIcon } from '@phosphor-icons/react/dist/csr/WarningCircle';
 import { cn } from '../../utils/utils';
 
 const VARIANT_CLASSES = {
@@ -230,9 +232,9 @@ const Select = ({
   useEffect(() => {
     const handleClickOutside = (event: globalThis.MouseEvent) => {
       const target = event.target as Node;
-      // Check if click is inside the trigger container
+      // CheckIcon if click is inside the trigger container
       const isInsideTrigger = selectRef.current?.contains(target);
-      // Check if click is inside the portaled content (scoped to this Select instance)
+      // CheckIcon if click is inside the portaled content (scoped to this Select instance)
       const portaledMenu = document.body.querySelector(
         `[role="menu"][data-select-id="${selectId}"]`
       );
@@ -319,7 +321,7 @@ const Select = ({
           {helperText && <p className="text-sm text-text-500">{helperText}</p>}
           {errorMessage && (
             <p className="flex gap-1 items-center text-sm text-indicator-error">
-              <WarningCircle size={16} /> {errorMessage}
+              <WarningCircleIcon size={16} /> {errorMessage}
             </p>
           )}
         </div>
@@ -454,7 +456,7 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
         {...props}
       >
         {props.children}
-        <CaretDown
+        <CaretDownIcon
           className={cn(
             'h-[1em] w-[1em] opacity-50 transition-transform',
             open ? 'rotate-180' : ''
@@ -662,7 +664,7 @@ const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
         {...props}
       >
         <span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
-          {selectedValue === value && <Check className="" />}
+          {selectedValue === value && <CheckIcon className="" />}
         </span>
         {truncate ? (
           <span className="truncate block max-w-[200px]">{children}</span>

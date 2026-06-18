@@ -1,7 +1,8 @@
 import { HtmlHTMLAttributes, useMemo, useId, ReactNode } from 'react';
 import { cn } from '../../utils/utils';
 import { parseContent } from '../../utils/parseContent';
-import { CheckCircle, XCircle } from 'phosphor-react';
+import { CheckCircleIcon } from '@phosphor-icons/react/dist/csr/CheckCircle';
+import { XCircleIcon } from '@phosphor-icons/react/dist/csr/XCircle';
 import Badge from '../Badge/Badge';
 import Text from '../Text/Text';
 import Select, {
@@ -153,7 +154,7 @@ const FillInBlanks = ({
           <Badge
             variant="solid"
             action="error"
-            iconRight={<XCircle />}
+            iconRight={<XCircleIcon />}
             size="large"
             className="py-1 px-2"
           >
@@ -171,7 +172,7 @@ const FillInBlanks = ({
         <Badge
           variant="solid"
           action={isCorrect ? 'success' : 'error'}
-          iconRight={isCorrect ? <CheckCircle /> : <XCircle />}
+          iconRight={isCorrect ? <CheckCircleIcon /> : <XCircleIcon />}
           size="large"
           className="py-1 px-2"
         >

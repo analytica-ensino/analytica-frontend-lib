@@ -1,6 +1,10 @@
 import type { Story } from '@ladle/react';
 import { useState } from 'react';
-import { House, SquaresFour, Users, Gear, ChartBar } from 'phosphor-react';
+import { HouseIcon } from '@phosphor-icons/react/dist/csr/House';
+import { SquaresFourIcon } from '@phosphor-icons/react/dist/csr/SquaresFour';
+import { UsersIcon } from '@phosphor-icons/react/dist/csr/Users';
+import { GearIcon } from '@phosphor-icons/react/dist/csr/Gear';
+import { ChartBarIcon } from '@phosphor-icons/react/dist/csr/ChartBar';
 import NavButton from './NavButton';
 
 /**
@@ -22,9 +26,9 @@ export const AllNavButtons: Story = () => {
       {/* Estados básicos */}
       <h3 className="font-bold text-2xl text-text-900">Estados Básicos:</h3>
       <div className="flex flex-row gap-4 items-center">
-        <NavButton icon={<House size={20} />} label="Default" />
+        <NavButton icon={<HouseIcon size={20} />} label="Default" />
         <NavButton
-          icon={<House size={20} />}
+          icon={<HouseIcon size={20} />}
           label="Selected"
           selected={true}
         />
@@ -40,25 +44,25 @@ export const AllNavButtons: Story = () => {
           <div className="font-medium text-text-900 mb-3">Menu Principal</div>
           <div className="flex flex-row gap-3 flex-wrap">
             <NavButton
-              icon={<House size={20} />}
+              icon={<HouseIcon size={20} />}
               label="Início"
               selected={activePage === 'home'}
               onClick={() => setActivePage('home')}
             />
             <NavButton
-              icon={<SquaresFour size={20} />}
+              icon={<SquaresFourIcon size={20} />}
               label="Dashboard"
               selected={activePage === 'dashboard'}
               onClick={() => setActivePage('dashboard')}
             />
             <NavButton
-              icon={<Users size={20} />}
+              icon={<UsersIcon size={20} />}
               label="Usuários"
               selected={activePage === 'users'}
               onClick={() => setActivePage('users')}
             />
             <NavButton
-              icon={<Gear size={20} />}
+              icon={<GearIcon size={20} />}
               label="Configurações"
               selected={activePage === 'settings'}
               onClick={() => setActivePage('settings')}
@@ -73,19 +77,19 @@ export const AllNavButtons: Story = () => {
           <div className="font-medium text-text-900 mb-3">Tabs de Seção</div>
           <div className="flex flex-row gap-3 flex-wrap">
             <NavButton
-              icon={<SquaresFour size={20} />}
+              icon={<SquaresFourIcon size={20} />}
               label="Dashboard"
               selected={activeTab === 'dashboard'}
               onClick={() => setActiveTab('dashboard')}
             />
             <NavButton
-              icon={<ChartBar size={20} />}
+              icon={<ChartBarIcon size={20} />}
               label="Analytics"
               selected={activeTab === 'analytics'}
               onClick={() => setActiveTab('analytics')}
             />
             <NavButton
-              icon={<Gear size={20} />}
+              icon={<GearIcon size={20} />}
               label="Relatórios"
               selected={activeTab === 'reports'}
               onClick={() => setActiveTab('reports')}

@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { DownloadSimple } from 'phosphor-react';
+import { DownloadSimpleIcon } from '@phosphor-icons/react/dist/csr/DownloadSimple';
 import IconButton from '../IconButton/IconButton';
 import { cn } from '../../utils/utils';
 
@@ -299,7 +299,7 @@ const DownloadButton = ({
   return (
     <div className={cn('flex items-center', className)}>
       <IconButton
-        icon={<DownloadSimple size={24} />}
+        icon={<DownloadSimpleIcon size={24} />}
         onClick={handleDownload}
         disabled={disabled || isDownloading}
         aria-label={(() => {

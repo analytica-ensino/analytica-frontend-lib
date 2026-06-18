@@ -21,7 +21,9 @@ import {
   EssayReviewStatus,
   type EssayHistoryData,
 } from './Card';
-import { ChartBar, Gear, Star } from 'phosphor-react';
+import { ChartBarIcon } from '@phosphor-icons/react/dist/csr/ChartBar';
+import { GearIcon } from '@phosphor-icons/react/dist/csr/Gear';
+import { StarIcon } from '@phosphor-icons/react/dist/csr/Star';
 
 // Mock Badge component
 jest.mock('../Badge/Badge', () => {
@@ -294,7 +296,7 @@ describe('CardBase', () => {
 
 describe('CardActivitiesResults', () => {
   const baseProps = {
-    icon: <Star data-testid="icon" />,
+    icon: <StarIcon data-testid="icon" />,
     title: 'Título Teste',
     subTitle: 'Subtítulo Teste',
     header: 'Header Teste',
@@ -447,7 +449,7 @@ describe('CardQuestions', () => {
 describe('CardProgress', () => {
   const baseProps = {
     header: 'Progresso do Projeto',
-    icon: <ChartBar />,
+    icon: <ChartBarIcon />,
   };
 
   it('should render subhead in vertical layout', () => {
@@ -1134,7 +1136,7 @@ describe('CardStatus', () => {
 describe('CardSettings', () => {
   const baseProps = {
     header: 'Configurações',
-    icon: <Gear data-testid="icon-gear" />,
+    icon: <GearIcon data-testid="icon-gear" />,
   };
 
   it('should render with icon and header', () => {

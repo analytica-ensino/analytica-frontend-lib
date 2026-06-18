@@ -1,6 +1,8 @@
 import { HtmlHTMLAttributes, useMemo, useId, ReactNode } from 'react';
 import { cn } from '../../utils/utils';
-import { CheckCircle, XCircle, ArrowRight } from 'phosphor-react';
+import { CheckCircleIcon } from '@phosphor-icons/react/dist/csr/CheckCircle';
+import { XCircleIcon } from '@phosphor-icons/react/dist/csr/XCircle';
+import { ArrowRightIcon } from '@phosphor-icons/react/dist/csr/ArrowRight';
 import Badge from '../Badge/Badge';
 import Text from '../Text/Text';
 import { HtmlMathRenderer } from '../HtmlMathRenderer';
@@ -106,7 +108,7 @@ const ConnectDots = ({
           />
         </div>
 
-        <ArrowRight size={20} className="text-text-400 flex-shrink-0" />
+        <ArrowRightIcon size={20} className="text-text-400 flex-shrink-0" />
 
         <div className="w-[150px] flex-shrink-0">
           <Select
@@ -149,7 +151,7 @@ const ConnectDots = ({
           />
         </div>
 
-        <ArrowRight size={20} className="text-success-600 flex-shrink-0" />
+        <ArrowRightIcon size={20} className="text-success-600 flex-shrink-0" />
 
         <div className="flex-shrink-0">
           <Text size="sm" weight="medium" className="text-success-700">
@@ -188,14 +190,14 @@ const ConnectDots = ({
           />
         </div>
 
-        <ArrowRight size={20} className={cn('flex-shrink-0', arrowColor)} />
+        <ArrowRightIcon size={20} className={cn('flex-shrink-0', arrowColor)} />
 
         <div className="flex-shrink-0">
           {hasAnswer ? (
             <Badge
               variant="solid"
               action={isCorrect ? 'success' : 'error'}
-              iconRight={isCorrect ? <CheckCircle /> : <XCircle />}
+              iconRight={isCorrect ? <CheckCircleIcon /> : <XCircleIcon />}
               size="large"
               className="py-1 px-2"
             >
@@ -205,7 +207,7 @@ const ConnectDots = ({
             <Badge
               variant="solid"
               action="error"
-              iconRight={<XCircle />}
+              iconRight={<XCircleIcon />}
               size="large"
               className="py-1 px-2"
             >

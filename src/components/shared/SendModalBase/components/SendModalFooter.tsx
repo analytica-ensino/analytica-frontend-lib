@@ -1,9 +1,7 @@
 import React from 'react';
-import {
-  CaretLeft as CaretLeftIcon,
-  ArrowRight as ArrowRightIcon,
-  PaperPlaneTilt as PaperPlaneTiltIcon,
-} from 'phosphor-react';
+import { CaretLeftIcon } from '@phosphor-icons/react/dist/csr/CaretLeft';
+import { ArrowRightIcon } from '@phosphor-icons/react/dist/csr/ArrowRight';
+import { PaperPlaneTiltIcon } from '@phosphor-icons/react/dist/csr/PaperPlaneTilt';
 import Button from '../../../Button/Button';
 
 /**

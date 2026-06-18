@@ -1,5 +1,6 @@
 import { Modal, Text, SelectionButton } from '../../../index';
-import { FileText, Plus } from 'phosphor-react';
+import { FileTextIcon } from '@phosphor-icons/react/dist/csr/FileText';
+import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
 
 export type ActivityOption = 'choose-model' | 'create-new';
 
@@ -30,14 +31,14 @@ export const AddActivityOptionModal = ({
         </Text>
         <div className="flex flex-col gap-2">
           <SelectionButton
-            icon={<FileText size={24} />}
+            icon={<FileTextIcon size={24} />}
             label="Escolher modelo de atividade"
             selected={false}
             onClick={() => onSelectOption('choose-model')}
             className="w-full"
           />
           <SelectionButton
-            icon={<Plus size={24} />}
+            icon={<PlusIcon size={24} />}
             label="Criar nova atividade"
             selected={false}
             onClick={() => onSelectOption('create-new')}

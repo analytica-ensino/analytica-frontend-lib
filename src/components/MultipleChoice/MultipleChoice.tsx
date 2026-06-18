@@ -1,7 +1,9 @@
 import { HtmlHTMLAttributes, useEffect, useState } from 'react';
 import CheckboxList, { CheckboxListItem } from '../CheckBox/CheckboxList';
 import { cn } from '../../utils/utils';
-import { CheckCircle, XCircle, Check } from 'phosphor-react';
+import { CheckCircleIcon } from '@phosphor-icons/react/dist/csr/CheckCircle';
+import { XCircleIcon } from '@phosphor-icons/react/dist/csr/XCircle';
+import { CheckIcon } from '@phosphor-icons/react/dist/csr/Check';
 import Badge from '../Badge/Badge';
 import { HtmlMathRenderer } from '../HtmlMathRenderer';
 import { QuizVariant } from '../Quiz/Quiz.types';
@@ -41,13 +43,17 @@ const MultipleChoiceList = ({
     switch (status) {
       case OptionStatus.CORRECT:
         return (
-          <Badge variant="solid" action="success" iconLeft={<CheckCircle />}>
+          <Badge
+            variant="solid"
+            action="success"
+            iconLeft={<CheckCircleIcon />}
+          >
             Resposta correta
           </Badge>
         );
       case OptionStatus.INCORRECT:
         return (
-          <Badge variant="solid" action="error" iconLeft={<XCircle />}>
+          <Badge variant="solid" action="error" iconLeft={<XCircleIcon />}>
             Resposta incorreta
           </Badge>
         );
@@ -78,7 +84,7 @@ const MultipleChoiceList = ({
 
     return (
       <div className={checkboxClasses}>
-        {isSelected && <Check size={16} weight="bold" />}
+        {isSelected && <CheckIcon size={16} weight="bold" />}
       </div>
     );
   };

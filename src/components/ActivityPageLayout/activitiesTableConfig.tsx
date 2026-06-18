@@ -4,7 +4,7 @@ import { renderTextCell } from '../../utils/renderTextCell';
 import { renderSubjectCell } from '../../utils/renderSubjectCell';
 import { mapSubjectNameToEnum } from '../../utils/subjectMappers';
 import type { ColumnConfig } from '../TableProvider/TableProvider';
-import { CaretRight } from 'phosphor-react';
+import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
 import type { ActivityTableItem } from '../../types/activitiesHistory';
 import {
   ActivityDisplayStatus,
@@ -145,7 +145,7 @@ export const activitiesTableColumns: ColumnConfig<ActivityTableItem>[] = [
     className: 'w-12',
     render: () => (
       <div className="flex justify-center">
-        <CaretRight size={20} className="text-text-600" />
+        <CaretRightIcon size={20} className="text-text-600" />
       </div>
     ),
   },

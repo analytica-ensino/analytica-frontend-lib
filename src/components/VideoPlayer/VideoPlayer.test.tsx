@@ -47,18 +47,6 @@ const performAsyncFullscreenExit = async () => {
   fireEvent.click(exitFullscreenButton);
 };
 
-// Mock phosphor-react icons
-jest.mock('phosphor-react', () => ({
-  Play: () => <div data-testid="play-icon" />,
-  Pause: () => <div data-testid="pause-icon" />,
-  SpeakerHigh: () => <div data-testid="speaker-high-icon" />,
-  SpeakerSlash: () => <div data-testid="speaker-slash-icon" />,
-  ArrowsOutSimple: () => <div data-testid="fullscreen-icon" />,
-  ArrowsInSimple: () => <div data-testid="exit-fullscreen-icon" />,
-  DotsThreeVertical: () => <div data-testid="menu-icon" />,
-  ClosedCaptioning: () => <div data-testid="captions-icon" />,
-}));
-
 // Global spy references
 let mockPlay: jest.SpyInstance;
 let mockPause: jest.SpyInstance;

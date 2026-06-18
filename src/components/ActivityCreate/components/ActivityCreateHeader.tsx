@@ -1,5 +1,8 @@
 import { Button, Text } from '../../..';
-import { CaretLeft, PaperPlaneTilt, Eye, Plus } from 'phosphor-react';
+import { CaretLeftIcon } from '@phosphor-icons/react/dist/csr/CaretLeft';
+import { PaperPlaneTiltIcon } from '@phosphor-icons/react/dist/csr/PaperPlaneTilt';
+import { EyeIcon } from '@phosphor-icons/react/dist/csr/Eye';
+import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
 import type { ActivityData } from '../ActivityCreate.types';
 import { ActivityType } from '../ActivityCreate.types';
 import { getActivityTypeLabel } from '../ActivityCreate.utils';
@@ -69,7 +72,7 @@ export const ActivityCreateHeader = ({
         data-testid="back-button"
         className="px-0"
       >
-        <CaretLeft size={32} />
+        <CaretLeftIcon size={32} />
       </Button>
 
       <section className="flex flex-col gap-0.5 w-full">
@@ -100,7 +103,7 @@ export const ActivityCreateHeader = ({
               <>
                 <Button
                   size="small"
-                  iconLeft={<Eye />}
+                  iconLeft={<EyeIcon />}
                   onClick={onLessonPreview}
                   variant="outline"
                 >
@@ -108,7 +111,7 @@ export const ActivityCreateHeader = ({
                 </Button>
                 <Button
                   size="small"
-                  iconLeft={<Plus />}
+                  iconLeft={<PlusIcon />}
                   onClick={onAddActivity}
                   disabled={questionsCount === 0}
                 >
@@ -118,7 +121,7 @@ export const ActivityCreateHeader = ({
             ) : (
               <Button
                 size="small"
-                iconLeft={<PaperPlaneTilt />}
+                iconLeft={<PaperPlaneTiltIcon />}
                 onClick={onSendActivity}
                 disabled={questionsCount === 0}
               >

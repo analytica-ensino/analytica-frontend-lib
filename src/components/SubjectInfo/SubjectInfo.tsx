@@ -5,19 +5,17 @@ import { ChatPT } from '../../assets/icons/subjects/ChatPT';
 import { HeadCircuit } from '../../assets/icons/subjects/HeadCircuit';
 import { Microscope } from '../../assets/icons/subjects/Microscope';
 import { SubjectEnum } from '../../enums/SubjectEnum';
-import {
-  ArticleNyTimes,
-  Atom,
-  Book,
-  BookBookmark,
-  DribbbleLogo,
-  Flask,
-  GlobeHemisphereWest,
-  MathOperations,
-  Palette,
-  Person,
-  Scroll,
-} from 'phosphor-react';
+import { ArticleNyTimesIcon } from '@phosphor-icons/react/dist/csr/ArticleNyTimes';
+import { AtomIcon } from '@phosphor-icons/react/dist/csr/Atom';
+import { BookIcon } from '@phosphor-icons/react/dist/csr/Book';
+import { BookBookmarkIcon } from '@phosphor-icons/react/dist/csr/BookBookmark';
+import { DribbbleLogoIcon } from '@phosphor-icons/react/dist/csr/DribbbleLogo';
+import { FlaskIcon } from '@phosphor-icons/react/dist/csr/Flask';
+import { GlobeHemisphereWestIcon } from '@phosphor-icons/react/dist/csr/GlobeHemisphereWest';
+import { MathOperationsIcon } from '@phosphor-icons/react/dist/csr/MathOperations';
+import { PaletteIcon } from '@phosphor-icons/react/dist/csr/Palette';
+import { PersonIcon } from '@phosphor-icons/react/dist/csr/Person';
+import { ScrollIcon } from '@phosphor-icons/react/dist/csr/Scroll';
 import { ReactElement } from 'react';
 export interface IconProps {
   size?: number;
@@ -32,12 +30,12 @@ export interface SubjectData {
 
 export const SubjectInfo: Record<SubjectEnum, SubjectData> = {
   [SubjectEnum.FISICA]: {
-    icon: <Atom size={17} color="currentColor" />,
+    icon: <AtomIcon size={17} color="currentColor" />,
     colorClass: 'bg-subject-1',
     name: SubjectEnum.FISICA,
   },
   [SubjectEnum.HISTORIA]: {
-    icon: <Scroll size={17} color="currentColor" />,
+    icon: <ScrollIcon size={17} color="currentColor" />,
     colorClass: 'bg-subject-2',
     name: SubjectEnum.HISTORIA,
   },
@@ -47,7 +45,7 @@ export const SubjectInfo: Record<SubjectEnum, SubjectData> = {
     name: SubjectEnum.LITERATURA,
   },
   [SubjectEnum.GEOGRAFIA]: {
-    icon: <GlobeHemisphereWest size={17} color="currentColor" />,
+    icon: <GlobeHemisphereWestIcon size={17} color="currentColor" />,
     colorClass: 'bg-subject-4',
     name: SubjectEnum.GEOGRAFIA,
   },
@@ -62,17 +60,17 @@ export const SubjectInfo: Record<SubjectEnum, SubjectData> = {
     name: SubjectEnum.PORTUGUES,
   },
   [SubjectEnum.QUIMICA]: {
-    icon: <Flask size={17} color="currentColor" />,
+    icon: <FlaskIcon size={17} color="currentColor" />,
     colorClass: 'bg-subject-7',
     name: SubjectEnum.QUIMICA,
   },
   [SubjectEnum.ARTES]: {
-    icon: <Palette size={17} color="currentColor" />,
+    icon: <PaletteIcon size={17} color="currentColor" />,
     colorClass: 'bg-subject-8',
     name: SubjectEnum.ARTES,
   },
   [SubjectEnum.MATEMATICA]: {
-    icon: <MathOperations size={17} color="currentColor" />,
+    icon: <MathOperationsIcon size={17} color="currentColor" />,
     colorClass: 'bg-subject-9',
     name: SubjectEnum.MATEMATICA,
   },
@@ -87,12 +85,12 @@ export const SubjectInfo: Record<SubjectEnum, SubjectData> = {
     name: SubjectEnum.ESPANHOL,
   },
   [SubjectEnum.REDACAO]: {
-    icon: <ArticleNyTimes size={17} color="currentColor" />,
+    icon: <ArticleNyTimesIcon size={17} color="currentColor" />,
     colorClass: 'bg-subject-12',
     name: SubjectEnum.REDACAO,
   },
   [SubjectEnum.SOCIOLOGIA]: {
-    icon: <Person size={17} color="currentColor" />,
+    icon: <PersonIcon size={17} color="currentColor" />,
     colorClass: 'bg-subject-13',
     name: SubjectEnum.SOCIOLOGIA,
   },
@@ -102,12 +100,12 @@ export const SubjectInfo: Record<SubjectEnum, SubjectData> = {
     name: SubjectEnum.INGLES,
   },
   [SubjectEnum.EDUCACAO_FISICA]: {
-    icon: <DribbbleLogo size={17} color="currentColor" />,
+    icon: <DribbbleLogoIcon size={17} color="currentColor" />,
     colorClass: 'bg-subject-15',
     name: SubjectEnum.EDUCACAO_FISICA,
   },
   [SubjectEnum.TRILHAS]: {
-    icon: <BookBookmark size={17} color="currentColor" />,
+    icon: <BookBookmarkIcon size={17} color="currentColor" />,
     colorClass: 'bg-subject-16',
     name: SubjectEnum.TRILHAS,
   },
@@ -116,7 +114,7 @@ export const SubjectInfo: Record<SubjectEnum, SubjectData> = {
 export const getSubjectInfo = (subject: SubjectEnum): SubjectData => {
   return (
     SubjectInfo[subject] || {
-      icon: <Book size={17} color="currentColor" />,
+      icon: <BookIcon size={17} color="currentColor" />,
       colorClass: 'bg-subject-16',
       name: subject,
     }

@@ -1,7 +1,8 @@
 import type { Story } from '@ladle/react';
 import { useState, Dispatch, SetStateAction } from 'react';
 import ImageUpload from './ImageUpload';
-import { Upload, FileImage } from 'phosphor-react';
+import { UploadIcon } from '@phosphor-icons/react/dist/csr/Upload';
+import { FileImageIcon } from '@phosphor-icons/react/dist/csr/FileImage';
 
 /**
  * Showcase principal: todas as variações do ImageUpload
@@ -32,7 +33,7 @@ export const AllVariations: Story = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-      <h2 className="font-bold text-3xl text-text-900">Image Upload</h2>
+      <h2 className="font-bold text-3xl text-text-900">Image UploadIcon</h2>
       <p className="text-text-700">
         Variações possíveis do componente <code>ImageUpload</code>
       </p>
@@ -120,7 +121,7 @@ export const AllVariations: Story = () => {
           <div>
             <p className="text-sm text-text-700 mb-2">Custom button text</p>
             <ImageUpload
-              buttonText="Upload Image"
+              buttonText="UploadIcon Image"
               selectedFile={file3}
               onFileSelect={setFile3}
               onRemoveFile={() => setFile3(null)}
@@ -131,7 +132,7 @@ export const AllVariations: Story = () => {
             <p className="text-sm text-text-700 mb-2">Custom icon</p>
             <ImageUpload
               buttonText="Choose File"
-              buttonIcon={<Upload className="h-4 w-4 mr-2" />}
+              buttonIcon={<UploadIcon className="h-4 w-4 mr-2" />}
               selectedFile={null}
               onFileSelect={() => {}}
             />
@@ -209,7 +210,7 @@ export const SimpleExample: Story = () => {
 
   return (
     <div className="p-4">
-      <h3 className="font-bold text-xl mb-4">Simple Upload Example</h3>
+      <h3 className="font-bold text-xl mb-4">Simple UploadIcon Example</h3>
       <ImageUpload
         selectedFile={file}
         uploadProgress={progress}
@@ -218,7 +219,7 @@ export const SimpleExample: Story = () => {
       />
       {file && (
         <p className="mt-4 text-sm text-text-700">
-          Upload progress: {progress}%
+          UploadIcon progress: {progress}%
         </p>
       )}
     </div>
@@ -255,7 +256,7 @@ export const CustomButton: Story = () => {
       <h3 className="font-bold text-xl mb-4">Custom Button</h3>
       <ImageUpload
         buttonText="Escolher Arquivo"
-        buttonIcon={<FileImage className="h-4 w-4 mr-2" />}
+        buttonIcon={<FileImageIcon className="h-4 w-4 mr-2" />}
         selectedFile={file}
         onFileSelect={setFile}
         onRemoveFile={() => setFile(null)}

@@ -1,6 +1,6 @@
 import type { Story } from '@ladle/react';
 import { useState } from 'react';
-import { Gear } from 'phosphor-react';
+import { GearIcon } from '@phosphor-icons/react/dist/csr/Gear';
 import IconButton from './IconButton';
 
 /**
@@ -31,7 +31,7 @@ export const AllIconButtons: Story = () => {
         <div className="flex flex-row gap-8 items-center">
           <div className="flex flex-col items-center gap-2">
             <IconButton
-              icon={<Gear size={16} />}
+              icon={<GearIcon size={16} />}
               size="sm"
               active={activeStates.small}
               onClick={() => toggleActive('small')}
@@ -40,7 +40,7 @@ export const AllIconButtons: Story = () => {
           </div>
           <div className="flex flex-col items-center gap-2">
             <IconButton
-              icon={<Gear size={24} />}
+              icon={<GearIcon size={24} />}
               size="md"
               active={activeStates.medium}
               onClick={() => toggleActive('medium')}

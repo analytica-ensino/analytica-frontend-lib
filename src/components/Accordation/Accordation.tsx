@@ -8,7 +8,7 @@ import {
   useEffect,
 } from 'react';
 import { CardBase } from '../Card/Card';
-import { CaretRight } from 'phosphor-react';
+import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
 import { cn } from '../../utils/utils';
 
 interface CardAccordationProps extends HTMLAttributes<HTMLDivElement> {
@@ -111,7 +111,7 @@ const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
         >
           {trigger}
 
-          <CaretRight
+          <CaretRightIcon
             size={20}
             className={cn(
               'transition-transform duration-200 flex-shrink-0',

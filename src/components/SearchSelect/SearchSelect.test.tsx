@@ -160,7 +160,9 @@ describe('SearchSelect component', () => {
     it('should rotate caret icon when open', () => {
       setup();
       const trigger = screen.getByRole('button');
-      const caret = trigger.querySelector('svg:last-child');
+      const caret = trigger.querySelector(
+        '[data-testid="phosphor-caret-down"]'
+      );
 
       expect(caret).not.toHaveClass('rotate-180');
 

@@ -1,5 +1,8 @@
-import { Star, Medal, WarningCircle, Info } from 'phosphor-react';
-import type { Icon } from 'phosphor-react';
+import { StarIcon } from '@phosphor-icons/react/dist/csr/Star';
+import { MedalIcon } from '@phosphor-icons/react/dist/csr/Medal';
+import { WarningCircleIcon } from '@phosphor-icons/react/dist/csr/WarningCircle';
+import { InfoIcon } from '@phosphor-icons/react/dist/csr/Info';
+import type { Icon } from '@phosphor-icons/react';
 import Text from '../../Text/Text';
 import { cn } from '../../../utils/utils';
 
@@ -26,28 +29,28 @@ export const variantConfig: Record<
     text: 'text-warning-600',
     iconBg: 'bg-warning-300',
     iconColor: 'text-white',
-    IconComponent: Star,
+    IconComponent: StarIcon,
   },
   correct: {
     bg: 'bg-success-200',
     text: 'text-success-700',
     iconBg: 'bg-indicator-positive',
     iconColor: 'text-text-950',
-    IconComponent: Medal,
+    IconComponent: MedalIcon,
   },
   incorrect: {
     bg: 'bg-error-100',
     text: 'text-error-700',
     iconBg: 'bg-indicator-negative',
     iconColor: 'text-white',
-    IconComponent: WarningCircle,
+    IconComponent: WarningCircleIcon,
   },
   blank: {
     bg: 'bg-info',
     text: 'text-info-800',
     iconBg: 'bg-indicator-info',
     iconColor: 'text-white',
-    IconComponent: Info,
+    IconComponent: InfoIcon,
   },
 };
 

@@ -10,7 +10,7 @@ import {
   useQuizStore,
 } from './useQuizStore';
 import ProgressCircle from '../ProgressCircle/ProgressCircle';
-import { Clock } from 'phosphor-react';
+import { ClockIcon } from '@phosphor-icons/react/dist/csr/Clock';
 import ProgressBar from '../ProgressBar/ProgressBar';
 import { cn, getSubjectColorWithOpacity } from '../../utils/utils';
 import Badge from '../Badge/Badge';
@@ -325,7 +325,7 @@ const QuizResultPerformance = forwardRef<
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           {showDetails && (
             <div className="flex items-center gap-1 mb-1">
-              <Clock size={12} weight="regular" className="text-text-800" />
+              <ClockIcon size={12} weight="regular" className="text-text-800" />
               <span className="text-2xs font-medium text-text-800">
                 {formatTime(
                   (getQuestionResultStatistics()?.timeSpent ?? 0) * 60

@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
-import { Paperclip, X } from 'phosphor-react';
+import { PaperclipIcon } from '@phosphor-icons/react/dist/csr/Paperclip';
+import { XIcon } from '@phosphor-icons/react/dist/csr/X';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
 
@@ -64,7 +65,7 @@ const ImagePreviewCard = ({
         />
 
         <div className="flex flex-row items-center gap-2 border border-border-200 rounded-full px-3 py-1.5 bg-secondary-50 max-w-full min-w-0">
-          <Paperclip size={16} className="shrink-0 text-text-700" />
+          <PaperclipIcon size={16} className="shrink-0 text-text-700" />
           <Text size="sm" className="text-text-800 truncate min-w-0">
             {fileName}
           </Text>
@@ -75,7 +76,7 @@ const ImagePreviewCard = ({
               aria-label={removeAriaLabel}
               className="shrink-0 text-text-700 hover:text-text-950 cursor-pointer"
             >
-              <X size={14} />
+              <XIcon size={14} />
             </button>
           )}
         </div>

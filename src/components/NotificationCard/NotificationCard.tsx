@@ -1,4 +1,5 @@
-import { DotsThreeVertical, Bell } from 'phosphor-react';
+import { DotsThreeVerticalIcon } from '@phosphor-icons/react/dist/csr/DotsThreeVertical';
+import { BellIcon } from '@phosphor-icons/react/dist/csr/Bell';
 import { MouseEvent, ReactNode, useState, useEffect } from 'react';
 import { cn } from '../../utils/utils';
 import DropdownMenu, {
@@ -316,7 +317,7 @@ const NotificationHeader = ({
           variant="solid"
           action="info"
           size="small"
-          iconLeft={<Bell size={12} aria-hidden="true" focusable="false" />}
+          iconLeft={<BellIcon size={12} aria-hidden="true" focusable="false" />}
           className="border-0"
         >
           {unreadCount === 1 ? '1 não lida' : `${unreadCount} não lidas`}
@@ -397,7 +398,7 @@ const SingleNotificationCard = ({
             className="flex-shrink-0 inline-flex items-center justify-center font-medium bg-transparent text-text-950 cursor-pointer hover:bg-info-50 w-6 h-6 rounded-lg"
             aria-label="Menu de ações"
           >
-            <DotsThreeVertical size={24} />
+            <DotsThreeVerticalIcon size={24} />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="min-w-[160px]">
             {!isRead && (

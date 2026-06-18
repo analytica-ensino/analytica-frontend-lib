@@ -11,7 +11,8 @@ import Table, {
 } from './Table';
 import Badge from '../Badge/Badge';
 import ProgressBar from '../ProgressBar/ProgressBar';
-import { CaretRight, FileText } from 'phosphor-react';
+import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
+import { FileTextIcon } from '@phosphor-icons/react/dist/csr/FileText';
 
 // Definindo os estados para demonstração
 const rowStates = ['default', 'selected', 'invalid', 'disabled'] as const;
@@ -469,7 +470,7 @@ export const ActivityTable: Story = () => {
               <TableCell>{activity.ano}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
-                  <FileText
+                  <FileTextIcon
                     size={20}
                     className={getIconColor(activity.materiaIcon)}
                     weight="fill"
@@ -501,7 +502,7 @@ export const ActivityTable: Story = () => {
               </TableCell>
               <TableCell>
                 <div className="flex justify-center">
-                  <CaretRight size={20} className="text-text-600" />
+                  <CaretRightIcon size={20} className="text-text-600" />
                 </div>
               </TableCell>
             </TableRow>

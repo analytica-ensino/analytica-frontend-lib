@@ -1,5 +1,6 @@
 import { Story } from '@ladle/react';
-import { Moon, Sun } from 'phosphor-react';
+import { MoonIcon } from '@phosphor-icons/react/dist/csr/Moon';
+import { SunIcon } from '@phosphor-icons/react/dist/csr/Sun';
 import { ReactNode } from 'react';
 
 // Componente reutilizável para cada cor
@@ -34,7 +35,7 @@ const ThemeSection = ({
       <div
         className={`p-1 rounded-md ${isDark ? 'bg-background-900 text-background-100' : 'bg-background-50'}`}
       >
-        {isDark ? <Moon /> : <Sun />}
+        {isDark ? <MoonIcon /> : <SunIcon />}
       </div>
       <p className="text-lg text-950 font-semibold">
         {isDark ? 'Dark mode' : 'Light mode'}
@@ -87,7 +88,7 @@ const ColorSection = ({
         <div className="flex flex-col gap-1 px-10">
           <span className="flex flex-row gap-1 items-center border-b border-b-background-50 pb-2">
             <div className="p-1 rounded-md bg-background-50">
-              <Sun />
+              <SunIcon />
             </div>
             <p className="text-lg text-950 font-semibold">
               Enem Paraná Light mode

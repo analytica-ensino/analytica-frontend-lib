@@ -1,4 +1,7 @@
-import { BookOpen, CaretLeft, CaretRight, SquaresFour } from 'phosphor-react';
+import { BookOpenIcon } from '@phosphor-icons/react/dist/csr/BookOpen';
+import { CaretLeftIcon } from '@phosphor-icons/react/dist/csr/CaretLeft';
+import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
+import { SquaresFourIcon } from '@phosphor-icons/react/dist/csr/SquaresFour';
 import { HeaderAlternative } from '../Alternative/Alternative';
 import Button from '../Button/Button';
 import IconButton from '../IconButton/IconButton';
@@ -183,7 +186,7 @@ const QuizTitle = forwardRef<
         {...props}
       >
         <IconButton
-          icon={<CaretLeft size={24} />}
+          icon={<CaretLeftIcon size={24} />}
           size="md"
           aria-label="Voltar"
           onClick={handleBackClick}
@@ -343,7 +346,7 @@ const QuizQuestionList = ({
           <section key={subjectId} className="flex flex-col gap-2">
             <span className="pt-6 pb-4 flex flex-row gap-2">
               <div className="bg-primary-500 p-1 rounded-sm flex items-center justify-center">
-                <BookOpen size={17} className="text-white" />
+                <BookOpenIcon size={17} className="text-white" />
               </div>
               <p className="text-text-800 font-bold text-lg">
                 {questions?.[0]?.knowledgeMatrix?.[0]?.subject?.name ??
@@ -581,7 +584,7 @@ const QuizFooter = forwardRef<
             <>
               <div className="flex flex-row items-center gap-1">
                 <IconButton
-                  icon={<SquaresFour size={24} className="text-text-950" />}
+                  icon={<SquaresFourIcon size={24} className="text-text-950" />}
                   size="md"
                   onClick={() => openModal('modalNavigate')}
                 />
@@ -602,7 +605,7 @@ const QuizFooter = forwardRef<
                     size="medium"
                     variant="link"
                     action="primary"
-                    iconLeft={<CaretLeft size={18} />}
+                    iconLeft={<CaretLeftIcon size={18} />}
                     onClick={() => {
                       goToPreviousQuestion();
                     }}
@@ -640,7 +643,7 @@ const QuizFooter = forwardRef<
                   size="medium"
                   variant="link"
                   action="primary"
-                  iconRight={<CaretRight size={18} />}
+                  iconRight={<CaretRightIcon size={18} />}
                   disabled={!currentAnswer && !isCurrentQuestionSkipped}
                   onClick={() => {
                     goToNextQuestion();

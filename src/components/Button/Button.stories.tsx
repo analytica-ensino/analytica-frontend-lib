@@ -1,5 +1,5 @@
 import type { Story } from '@ladle/react';
-import { Plus } from 'phosphor-react';
+import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
 import Button from './Button';
 
 const sizes = [
@@ -59,7 +59,7 @@ export const AllButtons: Story = () => (
               key={variant}
               variant={variant}
               className="my-4"
-              iconLeft={<Plus size={16} />}
+              iconLeft={<PlusIcon size={16} />}
             >
               Button
             </Button>
@@ -74,7 +74,7 @@ export const AllButtons: Story = () => (
               key={variant}
               variant={variant}
               className="my-4"
-              iconRight={<Plus size={16} />}
+              iconRight={<PlusIcon size={16} />}
             >
               Button
             </Button>
@@ -126,7 +126,7 @@ export const Link: Story = () => (
 export const IconLeft: Story = () => (
   <div className="flex flex-row gap-4">
     {variants.map((variant) => (
-      <Button key={variant} variant={variant} iconLeft={<Plus size={16} />}>
+      <Button key={variant} variant={variant} iconLeft={<PlusIcon size={16} />}>
         Ícone à esquerda
       </Button>
     ))}
@@ -135,7 +135,11 @@ export const IconLeft: Story = () => (
 export const IconRight: Story = () => (
   <div className="flex flex-row gap-4">
     {variants.map((variant) => (
-      <Button key={variant} variant={variant} iconRight={<Plus size={16} />}>
+      <Button
+        key={variant}
+        variant={variant}
+        iconRight={<PlusIcon size={16} />}
+      >
         Ícone à direita
       </Button>
     ))}

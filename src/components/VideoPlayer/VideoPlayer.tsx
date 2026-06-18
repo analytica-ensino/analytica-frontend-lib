@@ -7,16 +7,14 @@ import {
   KeyboardEvent,
 } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  Play,
-  Pause,
-  SpeakerHigh,
-  SpeakerSlash,
-  ArrowsOutSimple,
-  ArrowsInSimple,
-  ClosedCaptioning,
-  DotsThreeVertical,
-} from 'phosphor-react';
+import { PlayIcon } from '@phosphor-icons/react/dist/csr/Play';
+import { PauseIcon } from '@phosphor-icons/react/dist/csr/Pause';
+import { SpeakerHighIcon } from '@phosphor-icons/react/dist/csr/SpeakerHigh';
+import { SpeakerSlashIcon } from '@phosphor-icons/react/dist/csr/SpeakerSlash';
+import { ArrowsOutSimpleIcon } from '@phosphor-icons/react/dist/csr/ArrowsOutSimple';
+import { ArrowsInSimpleIcon } from '@phosphor-icons/react/dist/csr/ArrowsInSimple';
+import { ClosedCaptioningIcon } from '@phosphor-icons/react/dist/csr/ClosedCaptioning';
+import { DotsThreeVerticalIcon } from '@phosphor-icons/react/dist/csr/DotsThreeVertical';
 import { cn } from '../../utils/utils';
 import IconButton from '../IconButton/IconButton';
 import Text from '../Text/Text';
@@ -147,9 +145,9 @@ const VolumeControls = ({
     <IconButton
       icon={
         isMuted ? (
-          <SpeakerSlash size={iconSize} />
+          <SpeakerSlashIcon size={iconSize} />
         ) : (
-          <SpeakerHigh size={iconSize} />
+          <SpeakerHighIcon size={iconSize} />
         )
       }
       onClick={onToggleMute}
@@ -297,7 +295,7 @@ const SpeedMenu = ({
     <div className="relative" ref={speedMenuContainerRef}>
       <IconButton
         ref={buttonRef}
-        icon={<DotsThreeVertical size={iconSize} />}
+        icon={<DotsThreeVerticalIcon size={iconSize} />}
         onClick={onToggleMenu}
         aria-label="Playback speed"
         aria-haspopup="menu"
@@ -1215,7 +1213,7 @@ const VideoPlayer = ({
             )}
           >
             <IconButton
-              icon={<Play size={32} weight="regular" className="ml-1" />}
+              icon={<PlayIcon size={32} weight="regular" className="ml-1" />}
               onClick={togglePlayPause}
               aria-label="Play video"
               className="!bg-transparent !text-white !w-auto !h-auto hover:!bg-transparent hover:!text-gray-200"
@@ -1234,9 +1232,9 @@ const VideoPlayer = ({
             <IconButton
               icon={
                 isFullscreen ? (
-                  <ArrowsInSimple size={24} />
+                  <ArrowsInSimpleIcon size={24} />
                 ) : (
-                  <ArrowsOutSimple size={24} />
+                  <ArrowsOutSimpleIcon size={24} />
                 )
               }
               onClick={toggleFullscreen}
@@ -1275,9 +1273,9 @@ const VideoPlayer = ({
               <IconButton
                 icon={
                   isPlaying ? (
-                    <Pause size={getIconSize()} />
+                    <PauseIcon size={getIconSize()} />
                   ) : (
-                    <Play size={getIconSize()} />
+                    <PlayIcon size={getIconSize()} />
                   )
                 }
                 onClick={togglePlayPause}
@@ -1298,7 +1296,7 @@ const VideoPlayer = ({
               {/* Captions - Only show after validation is complete and valid */}
               {groupedSubTitleValid && (
                 <IconButton
-                  icon={<ClosedCaptioning size={getIconSize()} />}
+                  icon={<ClosedCaptioningIcon size={getIconSize()} />}
                   onClick={toggleCaptions}
                   aria-label={showCaptions ? 'Hide captions' : 'Show captions'}
                   className={cn(

@@ -1,4 +1,4 @@
-import { CaretRight } from 'phosphor-react';
+import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
 import Text from '../../Text/Text';
 import Badge from '../../Badge/Badge';
 import ProgressBar from '../../ProgressBar/ProgressBar';
@@ -115,7 +115,7 @@ export const createHistoryTableColumns = (
     className: 'w-12',
     render: () => (
       <div className="flex justify-center">
-        <CaretRight size={20} className="text-text-600" />
+        <CaretRightIcon size={20} className="text-text-600" />
       </div>
     ),
   },

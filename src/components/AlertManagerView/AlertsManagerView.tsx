@@ -10,7 +10,9 @@ import Table, {
 } from '../Table/Table';
 import Button from '../Button/Button';
 import Badge from '../Badge/Badge';
-import { CaretLeft, CaretRight, User } from 'phosphor-react';
+import { CaretLeftIcon } from '@phosphor-icons/react/dist/csr/CaretLeft';
+import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
+import { UserIcon } from '@phosphor-icons/react/dist/csr/User';
 import type { AlertData } from '../AlertManager/types';
 
 // Interface para os dados de visualização do alerta
@@ -142,7 +144,7 @@ export const AlertsManagerView = ({
                   <TableRow key={recipient.id}>
                     <TableCell className="py-2 px-3.5 flex flex-row gap-2 text-start truncate">
                       <div className="rounded-full size-6 bg-primary-100 flex items-center justify-center">
-                        <User className="text-primary-950" size={18} />
+                        <UserIcon className="text-primary-950" size={18} />
                       </div>
                       {recipient.name}
                     </TableCell>
@@ -181,7 +183,7 @@ export const AlertsManagerView = ({
                         onPageChange(Math.max(1, effectiveCurrentPage - 1))
                       }
                       disabled={effectiveCurrentPage === 1}
-                      iconLeft={<CaretLeft />}
+                      iconLeft={<CaretLeftIcon />}
                     >
                       Anterior
                     </Button>
@@ -194,7 +196,7 @@ export const AlertsManagerView = ({
                         )
                       }
                       disabled={effectiveCurrentPage === totalPages}
-                      iconRight={<CaretRight />}
+                      iconRight={<CaretRightIcon />}
                     >
                       Próximo
                     </Button>
@@ -205,7 +207,7 @@ export const AlertsManagerView = ({
                       variant="link"
                       size="extra-small"
                       disabled={effectiveCurrentPage === 1}
-                      iconLeft={<CaretLeft />}
+                      iconLeft={<CaretLeftIcon />}
                     >
                       Anterior
                     </Button>
@@ -213,7 +215,7 @@ export const AlertsManagerView = ({
                       variant="link"
                       size="extra-small"
                       disabled={effectiveCurrentPage === totalPages}
-                      iconRight={<CaretRight />}
+                      iconRight={<CaretRightIcon />}
                     >
                       Próximo
                     </Button>

@@ -1,5 +1,6 @@
 import { type HTMLAttributes, type ReactNode } from 'react';
-import { Trophy, Warning } from 'phosphor-react';
+import { TrophyIcon } from '@phosphor-icons/react/dist/csr/Trophy';
+import { WarningIcon } from '@phosphor-icons/react/dist/csr/Warning';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
 
@@ -78,7 +79,7 @@ export function BaseRankingCard<T>({
   className,
   ...props
 }: Readonly<BaseRankingCardProps<T>>) {
-  const DefaultIcon = variant === 'highlight' ? Trophy : Warning;
+  const DefaultIcon = variant === 'highlight' ? TrophyIcon : WarningIcon;
 
   return (
     <div

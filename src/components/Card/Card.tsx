@@ -14,18 +14,16 @@ import {
 import Button from '../Button/Button';
 import Badge from '../Badge/Badge';
 import ProgressBar from '../ProgressBar/ProgressBar';
-import {
-  CaretRight,
-  ChatCircleText,
-  CheckCircle,
-  Clock,
-  DotsThreeVertical,
-  Play,
-  SpeakerHigh,
-  SpeakerLow,
-  SpeakerSimpleX,
-  XCircle,
-} from 'phosphor-react';
+import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
+import { ChatCircleTextIcon } from '@phosphor-icons/react/dist/csr/ChatCircleText';
+import { CheckCircleIcon } from '@phosphor-icons/react/dist/csr/CheckCircle';
+import { ClockIcon } from '@phosphor-icons/react/dist/csr/Clock';
+import { DotsThreeVerticalIcon } from '@phosphor-icons/react/dist/csr/DotsThreeVertical';
+import { PlayIcon } from '@phosphor-icons/react/dist/csr/Play';
+import { SpeakerHighIcon } from '@phosphor-icons/react/dist/csr/SpeakerHigh';
+import { SpeakerLowIcon } from '@phosphor-icons/react/dist/csr/SpeakerLow';
+import { SpeakerSimpleXIcon } from '@phosphor-icons/react/dist/csr/SpeakerSimpleX';
+import { XCircleIcon } from '@phosphor-icons/react/dist/csr/XCircle';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
 import IconRender from '../IconRender/IconRender';
@@ -586,7 +584,7 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
         </div>
 
         {actionVariant == 'caret' && (
-          <CaretRight
+          <CaretRightIcon
             className="size-4.5 text-text-800 cursor-pointer"
             data-testid="caret-icon"
           />
@@ -654,7 +652,7 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
                 action="success"
                 variant="solid"
                 size="large"
-                iconLeft={<CheckCircle />}
+                iconLeft={<CheckCircleIcon />}
               >
                 {correct_answers} Corretas
               </Badge>
@@ -663,14 +661,14 @@ const CardResults = forwardRef<HTMLDivElement, CardResultsProps>(
                 action="error"
                 variant="solid"
                 size="large"
-                iconLeft={<XCircle />}
+                iconLeft={<XCircleIcon />}
               >
                 {incorrect_answers} Incorretas
               </Badge>
             </span>
           </div>
 
-          <CaretRight className="min-w-6 min-h-6 text-text-800" />
+          <CaretRightIcon className="min-w-6 min-h-6 text-text-800" />
         </div>
       </CardBase>
     );
@@ -703,13 +701,13 @@ const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
     const getIconBadge = (status: CardStatusProps['status']) => {
       switch (status) {
         case 'correct':
-          return <CheckCircle />;
+          return <CheckCircleIcon />;
         case 'incorrect':
-          return <XCircle />;
+          return <XCircleIcon />;
         case 'pending':
-          return <Clock />;
+          return <ClockIcon />;
         default:
-          return <XCircle />;
+          return <XCircleIcon />;
       }
     };
 
@@ -752,7 +750,7 @@ const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
             )}
             {label && <p className="text-sm text-text-800">{label}</p>}
           </span>
-          <CaretRight className="min-w-6 min-h-6 text-text-800 cursor-pointer flex-shrink-0 ml-2" />
+          <CaretRightIcon className="min-w-6 min-h-6 text-text-800 cursor-pointer flex-shrink-0 ml-2" />
         </div>
       </CardBase>
     );
@@ -782,7 +780,7 @@ const CardSettings = forwardRef<HTMLDivElement, CardSettingsProps>(
 
         <p className="w-full text-sm truncate">{header}</p>
 
-        <CaretRight size={24} className="cursor-pointer" />
+        <CaretRightIcon size={24} className="cursor-pointer" />
       </CardBase>
     );
   }
@@ -820,7 +818,7 @@ const CardSupport = forwardRef<HTMLDivElement, CardSupportProps>(
           <span className="flex flex-row gap-1">{children}</span>
         </div>
 
-        <CaretRight className="text-text-800 cursor-pointer" size={24} />
+        <CaretRightIcon className="text-text-800 cursor-pointer" size={24} />
       </CardBase>
     );
   }
@@ -892,7 +890,7 @@ const CardForum = forwardRef<HTMLDivElement, CardForumProps>(
             onClick={() => onClickComments?.(valueComments)}
             className="text-text-600 flex flex-row gap-2 items-center"
           >
-            <ChatCircleText aria-hidden="true" size={16} />
+            <ChatCircleTextIcon aria-hidden="true" size={16} />
             <p className="text-xs">{comments} respostas</p>
           </button>
         </div>
@@ -1027,12 +1025,12 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
 
     const getVolumeIcon = () => {
       if (volume === 0) {
-        return <SpeakerSimpleX size={24} />;
+        return <SpeakerSimpleXIcon size={24} />;
       }
       if (volume < 0.5) {
-        return <SpeakerLow size={24} />;
+        return <SpeakerLowIcon size={24} />;
       }
-      return <SpeakerHigh size={24} />;
+      return <SpeakerHighIcon size={24} />;
     };
 
     useEffect(() => {
@@ -1118,7 +1116,7 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
               </div>
             </div>
           ) : (
-            <Play size={24} />
+            <PlayIcon size={24} />
           )}
         </button>
 
@@ -1226,7 +1224,7 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
             className="cursor-pointer text-text-950 hover:text-primary-600"
             aria-label="Opções de velocidade"
           >
-            <DotsThreeVertical size={24} />
+            <DotsThreeVerticalIcon size={24} />
           </button>
 
           {showSpeedMenu && (
@@ -1352,7 +1350,7 @@ const CardSimulado = forwardRef<HTMLDivElement, CardSimuladoProps>(
             <div className="flex items-center gap-4 text-text-700">
               {duration && (
                 <div className="flex items-center gap-1">
-                  <Clock size={16} className="flex-shrink-0" />
+                  <ClockIcon size={16} className="flex-shrink-0" />
                   <Text size="sm">{duration}</Text>
                 </div>
               )}
@@ -1364,7 +1362,7 @@ const CardSimulado = forwardRef<HTMLDivElement, CardSimuladoProps>(
           </div>
 
           {isInteractive && (
-            <CaretRight
+            <CaretRightIcon
               size={24}
               className="text-text-800 flex-shrink-0"
               data-testid="caret-icon"
@@ -1455,7 +1453,7 @@ const CardTest = forwardRef<HTMLElement, CardTestProps>(
             <div className="flex flex-row justify-start items-end gap-4 w-full">
               {duration && (
                 <div className="flex flex-row items-center gap-1 flex-shrink-0">
-                  <Clock size={16} className="text-text-700" />
+                  <ClockIcon size={16} className="text-text-700" />
                   <Text
                     size="sm"
                     className="text-text-700 leading-[21px] whitespace-nowrap"
@@ -1495,7 +1493,7 @@ const CardTest = forwardRef<HTMLElement, CardTestProps>(
           <div className="flex flex-row justify-start items-end gap-4 w-full">
             {duration && (
               <div className="flex flex-row items-center gap-1 flex-shrink-0">
-                <Clock size={16} className="text-text-700" />
+                <ClockIcon size={16} className="text-text-700" />
                 <Text
                   size="sm"
                   className="text-text-700 leading-[21px] whitespace-nowrap"
@@ -1647,7 +1645,7 @@ const CardSimulationHistory = forwardRef<
                           </div>
                         </div>
 
-                        <CaretRight
+                        <CaretRightIcon
                           size={24}
                           className="text-text-800 flex-shrink-0"
                           data-testid="caret-icon"
@@ -1857,7 +1855,7 @@ const CardEssayHistory = forwardRef<HTMLDivElement, CardEssayHistoryProps>(
                           {visual.text}
                         </Text>
                         {isClickable && (
-                          <CaretRight
+                          <CaretRightIcon
                             size={20}
                             className="text-text-800 shrink-0"
                           />

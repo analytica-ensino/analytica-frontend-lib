@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { DownloadSimple } from 'phosphor-react';
+import { DownloadSimpleIcon } from '@phosphor-icons/react/dist/csr/DownloadSimple';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
 import TableProvider from '../TableProvider/TableProvider';
@@ -69,7 +69,7 @@ export const ExamStudentsTable = ({
         <Button
           action="primary"
           onClick={onDownloadAllAnswerSheets}
-          iconLeft={<DownloadSimple size={18} />}
+          iconLeft={<DownloadSimpleIcon size={18} />}
           disabled={batchLoading}
         >
           {batchLoading ? downloadAllLoadingLabel : downloadAllLabel}

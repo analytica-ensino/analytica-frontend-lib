@@ -1,5 +1,5 @@
 import type { Story } from '@ladle/react';
-import { Plus } from 'phosphor-react';
+import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
 import Badge from './Badge';
 
 const sizes = ['small', 'medium', 'large'] as const;
@@ -184,7 +184,7 @@ export const AllBadges: Story = () => (
                 variant={variant}
                 action={getActionForVariant(variant)}
                 className="my-4"
-                iconLeft={<Plus size={16} />}
+                iconLeft={<PlusIcon size={16} />}
               >
                 Badge
               </Badge>
@@ -202,7 +202,7 @@ export const AllBadges: Story = () => (
                 variant={variant}
                 action={getActionForVariant(variant)}
                 className="my-4"
-                iconRight={<Plus size={16} />}
+                iconRight={<PlusIcon size={16} />}
               >
                 Badge
               </Badge>
@@ -279,7 +279,7 @@ export const IconLeftBadge: Story = () => (
           key={variant}
           variant={variant}
           action={getActionForVariant(variant)}
-          iconLeft={<Plus size={16} />}
+          iconLeft={<PlusIcon size={16} />}
         >
           Ícone à esquerda
         </Badge>
@@ -296,7 +296,7 @@ export const IconRightBadge: Story = () => (
           key={variant}
           variant={variant}
           action={getActionForVariant(variant)}
-          iconRight={<Plus size={16} />}
+          iconRight={<PlusIcon size={16} />}
         >
           Ícone à direita
         </Badge>

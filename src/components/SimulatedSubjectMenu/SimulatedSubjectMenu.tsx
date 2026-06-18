@@ -4,7 +4,7 @@ import IconRender from '../IconRender/IconRender';
 import Text from '../Text/Text';
 import { cn, getSubjectColorWithOpacity } from '../../utils/utils';
 import { useTheme } from '../../hooks/useTheme';
-import { GridFour } from 'phosphor-react';
+import { GridFourIcon } from '@phosphor-icons/react/dist/csr/GridFour';
 import { useSimulatedSubjects } from './useSimulatedSubjects';
 import type { SimulatedSubjectMenuProps, SimulatedSubjectItem } from './types';
 
@@ -113,7 +113,7 @@ export function SimulatedSubjectMenu({
                 }
               >
                 {subject.id === 'all' ? (
-                  <GridFour size={17} weight="bold" />
+                  <GridFourIcon size={17} weight="bold" />
                 ) : (
                   <IconRender
                     iconName={subject.icon ?? 'Shapes'}

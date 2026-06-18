@@ -1,4 +1,6 @@
-import { WarningCircle, Eye, EyeSlash } from 'phosphor-react';
+import { WarningCircleIcon } from '@phosphor-icons/react/dist/csr/WarningCircle';
+import { EyeIcon } from '@phosphor-icons/react/dist/csr/Eye';
+import { EyeSlashIcon } from '@phosphor-icons/react/dist/csr/EyeSlash';
 import {
   InputHTMLAttributes,
   ReactNode,
@@ -149,7 +151,7 @@ const getPasswordToggleConfig = (
   let ariaLabel: string | undefined;
 
   if (shouldShowPasswordToggle) {
-    actualIconRight = showPassword ? <EyeSlash /> : <Eye />;
+    actualIconRight = showPassword ? <EyeSlashIcon /> : <EyeIcon />;
     ariaLabel = showPassword ? 'Ocultar senha' : 'Mostrar senha';
   }
 
@@ -305,7 +307,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           {helperText && <p className="text-sm text-text-500">{helperText}</p>}
           {errorMessage && (
             <p className="flex gap-1 items-center text-sm text-indicator-error">
-              <WarningCircle size={16} /> {errorMessage}
+              <WarningCircleIcon size={16} /> {errorMessage}
             </p>
           )}
         </div>

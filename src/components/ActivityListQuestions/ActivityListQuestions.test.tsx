@@ -284,14 +284,6 @@ jest.mock('../../components/Skeleton/Skeleton', () => ({
   ),
 }));
 
-jest.mock('phosphor-react', () => ({
-  Notebook: ({ size }: { size?: number }) => (
-    <span data-testid="notebook-icon" data-size={size}>
-      Notebook
-    </span>
-  ),
-}));
-
 // Mock IntersectionObserver
 (globalThis as { IntersectionObserver: unknown }).IntersectionObserver = jest
   .fn()
@@ -382,7 +374,7 @@ describe('ActivityListQuestions', () => {
     it('should render component with header', () => {
       render(<ActivityListQuestions {...defaultProps} />);
 
-      expect(screen.getByTestId('notebook-icon')).toBeInTheDocument();
+      expect(screen.getByTestId('phosphor-notebook')).toBeInTheDocument();
       expect(screen.getByText('Banco de questões')).toBeInTheDocument();
     });
 

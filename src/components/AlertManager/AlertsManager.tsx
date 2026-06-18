@@ -8,7 +8,9 @@ import {
   useRef,
 } from 'react';
 import { Button, Modal, Stepper } from '../..';
-import { CaretLeft, CaretRight, PaperPlaneTilt } from 'phosphor-react';
+import { CaretLeftIcon } from '@phosphor-icons/react/dist/csr/CaretLeft';
+import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
+import { PaperPlaneTiltIcon } from '@phosphor-icons/react/dist/csr/PaperPlaneTilt';
 import { StepData } from '../Stepper/Stepper';
 import { useAlertFormStore } from './useAlertForm';
 import type { AlertsConfig, CategoryConfig } from '.';
@@ -333,7 +335,7 @@ export const AlertsManager = ({
               <Button
                 variant="outline"
                 size="small"
-                iconLeft={<CaretLeft />}
+                iconLeft={<CaretLeftIcon />}
                 onClick={handlePrevious}
               >
                 {labels?.previousButton || 'Anterior'}
@@ -342,7 +344,7 @@ export const AlertsManager = ({
             {isLastStep ? (
               <Button
                 variant="solid"
-                iconLeft={<PaperPlaneTilt />}
+                iconLeft={<PaperPlaneTiltIcon />}
                 size="small"
                 onClick={handleFinish}
                 disabled={!canFinish()}
@@ -352,7 +354,7 @@ export const AlertsManager = ({
             ) : (
               <Button
                 variant="solid"
-                iconRight={<CaretRight />}
+                iconRight={<CaretRightIcon />}
                 size="small"
                 onClick={handleNext}
                 disabled={!isCurrentStepValid()}

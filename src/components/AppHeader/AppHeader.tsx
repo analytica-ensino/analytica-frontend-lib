@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useState } from 'react';
-import { CaretRight, User } from 'phosphor-react';
+import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
+import { UserIcon as UserPhosphorIcon } from '@phosphor-icons/react/dist/csr/User';
 
 import { BrandingLogo } from '../BrandingLogo/BrandingLogo';
 import CalendarCard from '../CalendarCard/CalendarCard';
@@ -319,8 +320,8 @@ export const AppHeader = ({
                 <ProfileMenuSection>
                   <DropdownMenuItem
                     variant="profile"
-                    iconLeft={<User />}
-                    iconRight={<CaretRight />}
+                    iconLeft={<UserPhosphorIcon />}
+                    iconRight={<CaretRightIcon />}
                     onClick={handleMyDataClick}
                   >
                     <Text size="md" color="text-text-700">

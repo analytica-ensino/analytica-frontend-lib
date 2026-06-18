@@ -1,7 +1,7 @@
 import { Menu, MenuContent, MenuItem } from '../Menu/Menu';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
-import { DownloadSimple } from 'phosphor-react';
+import { DownloadSimpleIcon } from '@phosphor-icons/react/dist/csr/DownloadSimple';
 export interface ExamDetailsHeaderProps {
   examTitle: string;
   examDate: string;
@@ -69,7 +69,7 @@ export const ExamDetailsHeader = ({
         <Button
           action="primary"
           onClick={onDownloadExam}
-          iconLeft={<DownloadSimple size={18} />}
+          iconLeft={<DownloadSimpleIcon size={18} />}
         >
           {downloadLabel}
         </Button>

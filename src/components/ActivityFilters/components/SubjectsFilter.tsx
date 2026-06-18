@@ -7,7 +7,7 @@ import {
   getSubjectColorWithOpacity,
 } from '../../..';
 import type { KnowledgeArea } from '../../../types/activityFilters';
-import { Prohibit } from 'phosphor-react';
+import { ProhibitIcon } from '@phosphor-icons/react/dist/csr/Prohibit';
 
 export interface SubjectsFilterProps {
   knowledgeAreas: KnowledgeArea[];
@@ -64,7 +64,7 @@ export const SubjectsFilter = ({
           label={
             <div className="flex items-center gap-2 w-full min-w-0">
               <span className="size-4 rounded-sm flex items-center justify-center shrink-0 text-text-600 bg-background-100">
-                <Prohibit size={14} weight="bold" />
+                <ProhibitIcon size={14} weight="bold" />
               </span>
               <TruncatedText
                 size="sm"

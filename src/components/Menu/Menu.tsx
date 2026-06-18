@@ -13,7 +13,8 @@ import {
   cloneElement,
   useState,
 } from 'react';
-import { CaretLeft, CaretRight } from 'phosphor-react';
+import { CaretLeftIcon } from '@phosphor-icons/react/dist/csr/CaretLeft';
+import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
 import { cn } from '../../utils/utils';
 
 type MenuVariant =
@@ -316,7 +317,7 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
           </span>
 
           {separator && (
-            <CaretRight
+            <CaretRightIcon
               size={16}
               className="text-text-600"
               data-testid="separator"
@@ -425,7 +426,7 @@ const MenuOverflow = ({
           className="absolute left-0 top-1/2 -translate-y-1/2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md cursor-pointer"
           data-testid="scroll-left-button"
         >
-          <CaretLeft size={16} />
+          <CaretLeftIcon size={16} />
           <span className="sr-only">Scroll left</span>
         </button>
       )}
@@ -448,7 +449,7 @@ const MenuOverflow = ({
           className="absolute right-0 top-1/2 -translate-y-1/2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md cursor-pointer"
           data-testid="scroll-right-button"
         >
-          <CaretRight size={16} />
+          <CaretRightIcon size={16} />
           <span className="sr-only">Scroll right</span>
         </button>
       )}

@@ -11,7 +11,10 @@ import DropdownMenu, {
   ProfileMenuSection,
   ProfileToggleTheme,
 } from './DropdownMenu';
-import { Plus, Check, CaretRight, User } from 'phosphor-react';
+import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
+import { CheckIcon } from '@phosphor-icons/react/dist/csr/Check';
+import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
+import { UserIcon } from '@phosphor-icons/react/dist/csr/User';
 
 const sizes = ['small', 'medium'] as const;
 
@@ -79,13 +82,13 @@ export const AllDropdownComponents: Story = () => {
             <DropdownMenu>
               <DropdownMenuTrigger>Menu with Icons</DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem iconLeft={<Plus />}>
+                <DropdownMenuItem iconLeft={<PlusIcon />}>
                   <MenuLabel>New Item</MenuLabel>
                 </DropdownMenuItem>
-                <DropdownMenuItem iconLeft={<Check />}>
+                <DropdownMenuItem iconLeft={<CheckIcon />}>
                   <MenuLabel>Completed</MenuLabel>
                 </DropdownMenuItem>
-                <DropdownMenuItem iconRight={<Plus />}>
+                <DropdownMenuItem iconRight={<PlusIcon />}>
                   <MenuLabel>Add More</MenuLabel>
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -135,7 +138,7 @@ export const AllDropdownComponents: Story = () => {
                 <DropdownMenuItem disabled>
                   <MenuLabel>Disabled Item</MenuLabel>
                 </DropdownMenuItem>
-                <DropdownMenuItem disabled iconLeft={<Check />}>
+                <DropdownMenuItem disabled iconLeft={<CheckIcon />}>
                   <MenuLabel>Disabled with Icon</MenuLabel>
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -169,8 +172,8 @@ export const AllDropdownComponents: Story = () => {
                 <ProfileMenuSection>
                   <DropdownMenuItem
                     variant="profile"
-                    iconLeft={<User />}
-                    iconRight={<CaretRight />}
+                    iconLeft={<UserIcon />}
+                    iconRight={<CaretRightIcon />}
                   >
                     Meus dados
                   </DropdownMenuItem>
@@ -202,16 +205,16 @@ export const AllDropdownComponents: Story = () => {
                 <ProfileMenuSection>
                   <DropdownMenuItem
                     variant="profile"
-                    iconLeft={<User />}
-                    iconRight={<CaretRight />}
+                    iconLeft={<UserIcon />}
+                    iconRight={<CaretRightIcon />}
                     disabled
                   >
                     Meus dados (desabilitado)
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     variant="profile"
-                    iconLeft={<User />}
-                    iconRight={<CaretRight />}
+                    iconLeft={<UserIcon />}
+                    iconRight={<CaretRightIcon />}
                   >
                     Configurações
                   </DropdownMenuItem>
@@ -245,8 +248,8 @@ export const AllDropdownComponents: Story = () => {
                 <ProfileMenuSection>
                   <DropdownMenuItem
                     variant="profile"
-                    iconLeft={<User />}
-                    iconRight={<CaretRight />}
+                    iconLeft={<UserIcon />}
+                    iconRight={<CaretRightIcon />}
                   >
                     Meus dados
                   </DropdownMenuItem>
@@ -281,8 +284,8 @@ export const AllDropdownComponents: Story = () => {
                 <ProfileMenuSection>
                   <DropdownMenuItem
                     variant="profile"
-                    iconLeft={<User />}
-                    iconRight={<CaretRight />}
+                    iconLeft={<UserIcon />}
+                    iconRight={<CaretRightIcon />}
                   >
                     Meus dados
                   </DropdownMenuItem>
@@ -322,13 +325,13 @@ export const MenuWithIcons: Story = () => (
   <DropdownMenu>
     <DropdownMenuTrigger>Menu with Icons</DropdownMenuTrigger>
     <DropdownMenuContent>
-      <DropdownMenuItem iconLeft={<Plus />}>
+      <DropdownMenuItem iconLeft={<PlusIcon />}>
         <MenuLabel>New Item</MenuLabel>
       </DropdownMenuItem>
-      <DropdownMenuItem iconLeft={<Check />}>
+      <DropdownMenuItem iconLeft={<CheckIcon />}>
         <MenuLabel>Completed</MenuLabel>
       </DropdownMenuItem>
-      <DropdownMenuItem iconRight={<Plus />}>
+      <DropdownMenuItem iconRight={<PlusIcon />}>
         <MenuLabel>Add More</MenuLabel>
       </DropdownMenuItem>
     </DropdownMenuContent>
@@ -366,7 +369,7 @@ export const DisabledMenuItems: Story = () => (
       <DropdownMenuItem disabled>
         <MenuLabel>Disabled Item</MenuLabel>
       </DropdownMenuItem>
-      <DropdownMenuItem disabled iconLeft={<Check />}>
+      <DropdownMenuItem disabled iconLeft={<CheckIcon />}>
         <MenuLabel>Disabled with Icon</MenuLabel>
       </DropdownMenuItem>
     </DropdownMenuContent>
@@ -416,15 +419,15 @@ export const BasicProfileMenu: Story = () => (
       <ProfileMenuSection>
         <DropdownMenuItem
           variant="profile"
-          iconLeft={<User />}
-          iconRight={<CaretRight />}
+          iconLeft={<UserIcon />}
+          iconRight={<CaretRightIcon />}
         >
           Meus dados
         </DropdownMenuItem>
         <DropdownMenuItem
           variant="profile"
-          iconLeft={<User />}
-          iconRight={<CaretRight />}
+          iconLeft={<UserIcon />}
+          iconRight={<CaretRightIcon />}
         >
           Configurações
         </DropdownMenuItem>
@@ -442,16 +445,16 @@ export const ProfileMenuWithDisabledItems: Story = () => (
       <ProfileMenuSection>
         <DropdownMenuItem
           variant="profile"
-          iconLeft={<User />}
-          iconRight={<CaretRight />}
+          iconLeft={<UserIcon />}
+          iconRight={<CaretRightIcon />}
           disabled
         >
           Meus dados (desabilitado)
         </DropdownMenuItem>
         <DropdownMenuItem
           variant="profile"
-          iconLeft={<User />}
-          iconRight={<CaretRight />}
+          iconLeft={<UserIcon />}
+          iconRight={<CaretRightIcon />}
         >
           Configurações
         </DropdownMenuItem>
@@ -473,8 +476,8 @@ export const ProfileMenuWithPhoto: Story = () => (
       <ProfileMenuSection>
         <DropdownMenuItem
           variant="profile"
-          iconLeft={<User />}
-          iconRight={<CaretRight />}
+          iconLeft={<UserIcon />}
+          iconRight={<CaretRightIcon />}
         >
           Meus dados
         </DropdownMenuItem>
@@ -493,8 +496,8 @@ export const ProfileMenuWithoutPhoto: Story = () => (
       <ProfileMenuSection>
         <DropdownMenuItem
           variant="profile"
-          iconLeft={<User />}
-          iconRight={<CaretRight />}
+          iconLeft={<UserIcon />}
+          iconRight={<CaretRightIcon />}
         >
           Meus dados
         </DropdownMenuItem>

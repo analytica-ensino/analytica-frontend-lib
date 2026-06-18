@@ -7,7 +7,7 @@ import Select, {
 } from '../Select/Select';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
-import { GridFour } from 'phosphor-react';
+import { GridFourIcon } from '@phosphor-icons/react/dist/csr/GridFour';
 import type { AreaKnowledgeSelectorProps } from './types';
 import type { AreaKnowledgePerformance } from '../GeneralOverviewSection/types';
 import { ESSAY_AREA_ID } from './types';
@@ -106,7 +106,7 @@ export function AreaKnowledgeSelector({
               if (item.id === 'all') {
                 itemIcon = (
                   <span className="w-[21px] h-[21px] flex items-center justify-center">
-                    <GridFour
+                    <GridFourIcon
                       size={17}
                       weight="bold"
                       className="text-gray-600"

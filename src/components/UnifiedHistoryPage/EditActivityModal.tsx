@@ -1,10 +1,8 @@
 import type { ChangeEvent, FC } from 'react';
 import { useCallback, useMemo, useState } from 'react';
-import {
-  CaretLeft as CaretLeftIcon,
-  ArrowRight as ArrowRightIcon,
-  FloppyDisk as FloppyDiskIcon,
-} from 'phosphor-react';
+import { CaretLeftIcon } from '@phosphor-icons/react/dist/csr/CaretLeft';
+import { ArrowRightIcon } from '@phosphor-icons/react/dist/csr/ArrowRight';
+import { FloppyDiskIcon } from '@phosphor-icons/react/dist/csr/FloppyDisk';
 import Modal from '../Modal/Modal';
 import Input from '../Input/Input';
 import TextArea from '../TextArea/TextArea';

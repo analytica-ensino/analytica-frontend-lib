@@ -1,4 +1,4 @@
-import { CalendarBlank } from 'phosphor-react';
+import { CalendarBlankIcon } from '@phosphor-icons/react/dist/csr/CalendarBlank';
 import type { ReactNode } from 'react';
 import { useCallback, useState } from 'react';
 import DropdownMenu, {
@@ -65,7 +65,7 @@ export const CalendarCard = ({
   );
 
   const iconColor = effectiveOpen ? 'text-primary-950' : 'text-primary';
-  const triggerIcon = <CalendarBlank size={24} className={iconColor} />;
+  const triggerIcon = <CalendarBlankIcon size={24} className={iconColor} />;
 
   if (isMobile) {
     return (

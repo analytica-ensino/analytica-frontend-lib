@@ -34,12 +34,6 @@ jest.mock('../Select/Select', () => ({
   ),
 }));
 
-// Mock phosphor-react icons
-jest.mock('phosphor-react', () => ({
-  CheckCircle: () => <span data-testid="check-circle-icon" />,
-  XCircle: () => <span data-testid="x-circle-icon" />,
-}));
-
 const mockOptions = [
   { id: 'uuid-1', option: 'Terra' },
   { id: 'uuid-2', option: 'planeta' },
@@ -254,7 +248,7 @@ describe('FillInBlanks', () => {
         />
       );
       expect(screen.getByText('Terra')).toBeInTheDocument();
-      expect(screen.getByTestId('check-circle-icon')).toBeInTheDocument();
+      expect(screen.getByTestId('phosphor-check-circle')).toBeInTheDocument();
     });
 
     it('renders incorrect answer with error badge', () => {
@@ -270,7 +264,7 @@ describe('FillInBlanks', () => {
         />
       );
       expect(screen.getByText('Lua')).toBeInTheDocument();
-      expect(screen.getByTestId('x-circle-icon')).toBeInTheDocument();
+      expect(screen.getByTestId('phosphor-xcircle')).toBeInTheDocument();
     });
 
     it('renders "Não respondido" for unanswered placeholders', () => {
@@ -283,7 +277,7 @@ describe('FillInBlanks', () => {
         />
       );
       expect(screen.getByText('Não respondido')).toBeInTheDocument();
-      expect(screen.getByTestId('x-circle-icon')).toBeInTheDocument();
+      expect(screen.getByTestId('phosphor-xcircle')).toBeInTheDocument();
     });
 
     it('handles multiple placeholders with mixed results', () => {
@@ -301,8 +295,8 @@ describe('FillInBlanks', () => {
           }}
         />
       );
-      const checkIcons = screen.getAllByTestId('check-circle-icon');
-      const xIcons = screen.getAllByTestId('x-circle-icon');
+      const checkIcons = screen.getAllByTestId('phosphor-check-circle');
+      const xIcons = screen.getAllByTestId('phosphor-xcircle');
       expect(checkIcons).toHaveLength(1);
       expect(xIcons).toHaveLength(1);
     });

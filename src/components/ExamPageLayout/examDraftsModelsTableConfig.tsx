@@ -5,7 +5,9 @@ import { renderTextCell } from '../../utils/renderTextCell';
 import { renderSubjectCell } from '../../utils/renderSubjectCell';
 import { mapSubjectNameToEnum } from '../../utils/subjectMappers';
 import type { ColumnConfig } from '../TableProvider/TableProvider';
-import { PaperPlaneTilt, Trash, PencilSimple } from 'phosphor-react';
+import { PaperPlaneTiltIcon } from '@phosphor-icons/react/dist/csr/PaperPlaneTilt';
+import { TrashIcon } from '@phosphor-icons/react/dist/csr/Trash';
+import { PencilSimpleIcon } from '@phosphor-icons/react/dist/csr/PencilSimple';
 import type { ActivityModelTableItem } from '../../types/activitiesHistory';
 
 /**
@@ -72,7 +74,7 @@ export const createExamDraftsModelsTableColumns = (
           variant="outline"
           action="primary"
           size="small"
-          iconLeft={<PaperPlaneTilt size={16} />}
+          iconLeft={<PaperPlaneTiltIcon size={16} />}
           onClick={(e: MouseEvent) => {
             e.stopPropagation();
             callbacks.onSend(row);
@@ -81,7 +83,7 @@ export const createExamDraftsModelsTableColumns = (
           {sendLabel}
         </Button>
         <IconButton
-          icon={<Trash size={20} />}
+          icon={<TrashIcon size={20} />}
           className="hover:text-error-500"
           aria-label="Deletar"
           onClick={(e: MouseEvent) => {
@@ -90,7 +92,7 @@ export const createExamDraftsModelsTableColumns = (
           }}
         />
         <IconButton
-          icon={<PencilSimple size={20} />}
+          icon={<PencilSimpleIcon size={20} />}
           className="hover:text-primary-700"
           aria-label="Editar"
           onClick={(e: MouseEvent) => {

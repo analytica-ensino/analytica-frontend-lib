@@ -4,7 +4,7 @@ import {
   IconRender,
   Text,
 } from '../../index';
-import { Plus } from 'phosphor-react';
+import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import { prependLetterToHtml } from '../Quiz/Quiz.utils';
 import {
@@ -344,7 +344,7 @@ export const ActivityCardQuestionBanks = ({
         <Button
           size="small"
           variant="outline"
-          iconLeft={<Plus />}
+          iconLeft={<PlusIcon />}
           className="w-full"
           onClick={() => {
             if (onAddToActivity) {

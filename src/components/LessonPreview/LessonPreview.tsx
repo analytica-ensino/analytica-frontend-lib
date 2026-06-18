@@ -1,5 +1,7 @@
 import { RefObject, useEffect, useMemo, useRef, useState } from 'react';
-import { Book, Trash, PencilSimple } from 'phosphor-react';
+import { BookIcon } from '@phosphor-icons/react/dist/csr/Book';
+import { TrashIcon } from '@phosphor-icons/react/dist/csr/Trash';
+import { PencilSimpleIcon } from '@phosphor-icons/react/dist/csr/PencilSimple';
 import { Button, Text, Divider, EmptyState } from '../../index';
 import type { Lesson } from '../../types/lessons';
 import type { WhiteboardImage } from '../Whiteboard/Whiteboard';
@@ -327,7 +329,7 @@ export const LessonPreview = ({
         )}
       >
         <section className="flex flex-row items-center gap-2 text-text-950">
-          <Book size={24} />
+          <BookIcon size={24} />
           <Text size="lg" weight="bold">
             {title}
           </Text>
@@ -342,7 +344,7 @@ export const LessonPreview = ({
               size="small"
               variant="link"
               action="negative"
-              iconLeft={<Trash size={16} />}
+              iconLeft={<TrashIcon size={16} />}
               onClick={onRemoveAll}
             >
               Remover tudo
@@ -468,7 +470,7 @@ export const LessonPreview = ({
                           aria-label={`Remover aula ${position ?? index + 1}`}
                           className="px-0 cursor-pointer"
                         >
-                          <Trash size={24} color="currentColor" />
+                          <TrashIcon size={24} color="currentColor" />
                         </Button>
                       )}
                     </div>
@@ -482,7 +484,7 @@ export const LessonPreview = ({
         {/* Activity Section */}
         <Divider />
         <section className="flex flex-row items-center gap-2 text-text-950">
-          <Book size={24} />
+          <BookIcon size={24} />
           <Text size="lg" weight="bold">
             Atividade da aula
           </Text>
@@ -505,7 +507,7 @@ export const LessonPreview = ({
                     aria-label="Editar atividade"
                     className="px-0 cursor-pointer"
                   >
-                    <PencilSimple size={24} color="currentColor" />
+                    <PencilSimpleIcon size={24} color="currentColor" />
                   </Button>
                   <Button
                     variant="link"
@@ -514,7 +516,7 @@ export const LessonPreview = ({
                     aria-label="Remover atividade"
                     className="px-0 cursor-pointer"
                   >
-                    <Trash size={24} color="currentColor" />
+                    <TrashIcon size={24} color="currentColor" />
                   </Button>
                 </div>
               </div>

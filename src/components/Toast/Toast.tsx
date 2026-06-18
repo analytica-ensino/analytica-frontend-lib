@@ -1,5 +1,8 @@
 import { HTMLAttributes, useEffect, useRef } from 'react';
-import { CheckCircle, WarningCircle, Info, X } from 'phosphor-react';
+import { CheckCircleIcon } from '@phosphor-icons/react/dist/csr/CheckCircle';
+import { WarningCircleIcon } from '@phosphor-icons/react/dist/csr/WarningCircle';
+import { InfoIcon } from '@phosphor-icons/react/dist/csr/Info';
+import { XIcon } from '@phosphor-icons/react/dist/csr/X';
 import { cn } from '../../utils/utils';
 
 const DEFAULT_TOAST_DURATION_MS = 3000;
@@ -47,9 +50,9 @@ type ToastProps = {
 } & HTMLAttributes<HTMLDivElement>;
 
 const iconMap = {
-  success: CheckCircle,
-  info: Info,
-  warning: WarningCircle,
+  success: CheckCircleIcon,
+  info: InfoIcon,
+  warning: WarningCircleIcon,
 };
 
 const Toast = ({
@@ -121,7 +124,7 @@ const Toast = ({
         aria-label="Dismiss notification"
         className="text-background-500 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
       >
-        <X />
+        <XIcon />
       </button>
     </div>
   );

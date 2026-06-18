@@ -5,7 +5,7 @@ import {
   MedalIcon,
   SealWarningIcon,
 } from '@phosphor-icons/react';
-import { CaretRight } from 'phosphor-react';
+import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
 import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
 import ProgressBar from '../ProgressBar/ProgressBar';
@@ -106,7 +106,7 @@ const SubtopicAccordionItem = ({
         </div>
 
         {hasChildren && (
-          <CaretRight
+          <CaretRightIcon
             size={20}
             className={cn(
               'transition-transform duration-200 flex-shrink-0 text-text-700',
@@ -197,7 +197,7 @@ const TopicAccordionItem = ({
         </div>
 
         {hasChildren && (
-          <CaretRight
+          <CaretRightIcon
             size={20}
             className={cn(
               'transition-transform duration-200 flex-shrink-0 text-text-700',

@@ -90,16 +90,6 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }));
 
-// Mock icons
-jest.mock('phosphor-react', () => ({
-  CaretLeft: () => <span data-testid="caret-left">←</span>,
-  PaperPlaneTilt: () => <span data-testid="paper-plane">✈</span>,
-  Funnel: () => <span data-testid="funnel">🔽</span>,
-  MonitorPlay: () => <span data-testid="monitor-play">🖥️</span>,
-  Eye: () => <span data-testid="eye">👁️</span>,
-  Plus: () => <span data-testid="plus">➕</span>,
-}));
-
 // Mock components
 jest.mock('../ActivityFilters/ActivityFilters', () => ({
   ActivityFilters: ({

@@ -18,7 +18,7 @@ import { useTableFilter, FilterConfig } from '../Filter/useTableFilter';
 import Search from '../Search/Search';
 import { FilterModal } from '../Filter/FilterModal';
 import Button from '../Button/Button';
-import { Funnel } from 'phosphor-react';
+import { FunnelIcon } from '@phosphor-icons/react/dist/csr/Funnel';
 import { cn } from '../../utils/utils';
 
 /**
@@ -449,7 +449,7 @@ export function TableProvider<T extends Record<string, unknown>>({
           size="medium"
           onClick={() => setIsFilterModalOpen(true)}
         >
-          <Funnel size={20} />
+          <FunnelIcon size={20} />
           Filtros
           {activeFiltersCount > 0 && (
             <span className="ml-2 rounded-full bg-primary-500 px-2 py-0.5 text-xs text-white">

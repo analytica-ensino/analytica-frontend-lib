@@ -1,5 +1,6 @@
 import { type HTMLAttributes, type ReactNode } from 'react';
-import { TrendUp, TrendDown } from 'phosphor-react';
+import { TrendUpIcon } from '@phosphor-icons/react/dist/csr/TrendUp';
+import { TrendDownIcon } from '@phosphor-icons/react/dist/csr/TrendDown';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 import Text from '../Text/Text';
@@ -139,11 +140,11 @@ export interface TimeReportProps extends HTMLAttributes<HTMLDivElement> {
 const TREND_CONFIG = {
   up: {
     colorClass: 'text-success-500',
-    Icon: TrendUp,
+    Icon: TrendUpIcon,
   },
   down: {
     colorClass: 'text-error-500',
-    Icon: TrendDown,
+    Icon: TrendDownIcon,
   },
 } as const;
 

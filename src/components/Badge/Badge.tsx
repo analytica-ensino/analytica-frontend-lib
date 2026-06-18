@@ -1,5 +1,5 @@
 import { HTMLAttributes, ReactNode } from 'react';
-import { Bell } from 'phosphor-react';
+import { BellIcon } from '@phosphor-icons/react/dist/csr/Bell';
 import { cn } from '../../utils/utils';
 
 /**
@@ -152,7 +152,7 @@ const Badge = ({
         className={cn(baseClasses, variantClasses, sizeClasses, className)}
         {...props}
       >
-        <Bell size={24} className="text-current" aria-hidden="true" />
+        <BellIcon size={24} className="text-current" aria-hidden="true" />
 
         {notificationActive && (
           <span

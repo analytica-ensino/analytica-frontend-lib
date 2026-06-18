@@ -12,26 +12,24 @@ import Placeholder from '@tiptap/extension-placeholder';
 import { MathNode } from './components/MathNode';
 import { processLatexInHtml } from './components/utils';
 import 'katex/dist/katex.min.css';
-import {
-  TextBolder,
-  TextItalic,
-  TextUnderline,
-  TextStrikethrough,
-  TextAlignLeft,
-  TextAlignCenter,
-  TextAlignRight,
-  TextAlignJustify,
-  Link as LinkIcon,
-  ListBullets,
-  ListNumbers,
-  Quotes,
-  Minus,
-  Code,
-  TextHOne,
-  TextHTwo,
-  TextHThree,
-  MathOperations,
-} from 'phosphor-react';
+import { TextBolderIcon } from '@phosphor-icons/react/dist/csr/TextB';
+import { TextItalicIcon } from '@phosphor-icons/react/dist/csr/TextItalic';
+import { TextUnderlineIcon } from '@phosphor-icons/react/dist/csr/TextUnderline';
+import { TextStrikethroughIcon } from '@phosphor-icons/react/dist/csr/TextStrikethrough';
+import { TextAlignLeftIcon } from '@phosphor-icons/react/dist/csr/TextAlignLeft';
+import { TextAlignCenterIcon } from '@phosphor-icons/react/dist/csr/TextAlignCenter';
+import { TextAlignRightIcon } from '@phosphor-icons/react/dist/csr/TextAlignRight';
+import { TextAlignJustifyIcon } from '@phosphor-icons/react/dist/csr/TextAlignJustify';
+import { LinkIcon } from '@phosphor-icons/react/dist/csr/Link';
+import { ListBulletsIcon } from '@phosphor-icons/react/dist/csr/ListBullets';
+import { ListNumbersIcon } from '@phosphor-icons/react/dist/csr/ListNumbers';
+import { QuotesIcon } from '@phosphor-icons/react/dist/csr/Quotes';
+import { MinusIcon } from '@phosphor-icons/react/dist/csr/Minus';
+import { CodeIcon } from '@phosphor-icons/react/dist/csr/Code';
+import { TextHOneIcon } from '@phosphor-icons/react/dist/csr/TextHOne';
+import { TextHTwoIcon } from '@phosphor-icons/react/dist/csr/TextHTwo';
+import { TextHThreeIcon } from '@phosphor-icons/react/dist/csr/TextHThree';
+import { MathOperationsIcon } from '@phosphor-icons/react/dist/csr/MathOperations';
 import { useState, useRef, useEffect, ReactNode } from 'react';
 import { FormulaDialog } from './components/FormulaDialog';
 import Button from '../Button/Button';
@@ -165,7 +163,7 @@ export function RichEditor({
           active={editor.isActive('heading', { level: 1 })}
           title="Título 1"
         >
-          <TextHOne size={16} weight="bold" />
+          <TextHOneIcon size={16} weight="bold" />
         </ToolbarBtn>
         <ToolbarBtn
           onClick={() =>
@@ -174,7 +172,7 @@ export function RichEditor({
           active={editor.isActive('heading', { level: 2 })}
           title="Título 2"
         >
-          <TextHTwo size={16} weight="bold" />
+          <TextHTwoIcon size={16} weight="bold" />
         </ToolbarBtn>
         <ToolbarBtn
           onClick={() =>
@@ -183,7 +181,7 @@ export function RichEditor({
           active={editor.isActive('heading', { level: 3 })}
           title="Título 3"
         >
-          <TextHThree size={16} weight="bold" />
+          <TextHThreeIcon size={16} weight="bold" />
         </ToolbarBtn>
 
         <Divider />
@@ -194,28 +192,28 @@ export function RichEditor({
           active={editor.isActive('bold')}
           title="Negrito (Ctrl+B)"
         >
-          <TextBolder size={16} weight="bold" />
+          <TextBolderIcon size={16} weight="bold" />
         </ToolbarBtn>
         <ToolbarBtn
           onClick={() => editor.chain().focus().toggleItalic().run()}
           active={editor.isActive('italic')}
           title="Itálico (Ctrl+I)"
         >
-          <TextItalic size={16} />
+          <TextItalicIcon size={16} />
         </ToolbarBtn>
         <ToolbarBtn
           onClick={() => editor.chain().focus().toggleUnderline().run()}
           active={editor.isActive('underline')}
           title="Sublinhado (Ctrl+U)"
         >
-          <TextUnderline size={16} />
+          <TextUnderlineIcon size={16} />
         </ToolbarBtn>
         <ToolbarBtn
           onClick={() => editor.chain().focus().toggleStrike().run()}
           active={editor.isActive('strike')}
           title="Tachado"
         >
-          <TextStrikethrough size={16} />
+          <TextStrikethroughIcon size={16} />
         </ToolbarBtn>
         <ToolbarBtn
           onClick={() => editor.chain().focus().toggleSubscript().run()}
@@ -240,7 +238,7 @@ export function RichEditor({
           active={editor.isActive('code')}
           title="Código inline"
         >
-          <Code size={16} />
+          <CodeIcon size={16} />
         </ToolbarBtn>
 
         <Divider />
@@ -251,28 +249,28 @@ export function RichEditor({
           active={editor.isActive({ textAlign: 'left' })}
           title="Alinhar à esquerda"
         >
-          <TextAlignLeft size={16} />
+          <TextAlignLeftIcon size={16} />
         </ToolbarBtn>
         <ToolbarBtn
           onClick={() => editor.chain().focus().setTextAlign('center').run()}
           active={editor.isActive({ textAlign: 'center' })}
           title="Centralizar"
         >
-          <TextAlignCenter size={16} />
+          <TextAlignCenterIcon size={16} />
         </ToolbarBtn>
         <ToolbarBtn
           onClick={() => editor.chain().focus().setTextAlign('right').run()}
           active={editor.isActive({ textAlign: 'right' })}
           title="Alinhar à direita"
         >
-          <TextAlignRight size={16} />
+          <TextAlignRightIcon size={16} />
         </ToolbarBtn>
         <ToolbarBtn
           onClick={() => editor.chain().focus().setTextAlign('justify').run()}
           active={editor.isActive({ textAlign: 'justify' })}
           title="Justificar"
         >
-          <TextAlignJustify size={16} />
+          <TextAlignJustifyIcon size={16} />
         </ToolbarBtn>
 
         <Divider />
@@ -283,28 +281,28 @@ export function RichEditor({
           active={editor.isActive('bulletList')}
           title="Lista com marcadores"
         >
-          <ListBullets size={16} />
+          <ListBulletsIcon size={16} />
         </ToolbarBtn>
         <ToolbarBtn
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
           active={editor.isActive('orderedList')}
           title="Lista numerada"
         >
-          <ListNumbers size={16} />
+          <ListNumbersIcon size={16} />
         </ToolbarBtn>
         <ToolbarBtn
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
           active={editor.isActive('blockquote')}
           title="Citação"
         >
-          <Quotes size={16} />
+          <QuotesIcon size={16} />
         </ToolbarBtn>
         <ToolbarBtn
           onClick={() => editor.chain().focus().setHorizontalRule().run()}
           active={false}
           title="Linha horizontal"
         >
-          <Minus size={16} />
+          <MinusIcon size={16} />
         </ToolbarBtn>
 
         <Divider />
@@ -326,7 +324,7 @@ export function RichEditor({
           size="extra-small"
           variant="link"
         >
-          <MathOperations size={16} />
+          <MathOperationsIcon size={16} />
           LaTeX
         </Button>
       </div>

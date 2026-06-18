@@ -1,31 +1,29 @@
 import type { Story } from '@ladle/react';
-import {
-  House,
-  Exam,
-  ClipboardText,
-  Calculator,
-  ChalkboardTeacher,
-  Files,
-  BookBookmark,
-  Headset,
-} from 'phosphor-react';
+import { HouseIcon } from '@phosphor-icons/react/dist/csr/House';
+import { ExamIcon } from '@phosphor-icons/react/dist/csr/Exam';
+import { ClipboardTextIcon } from '@phosphor-icons/react/dist/csr/ClipboardText';
+import { CalculatorIcon } from '@phosphor-icons/react/dist/csr/Calculator';
+import { ChalkboardTeacherIcon } from '@phosphor-icons/react/dist/csr/ChalkboardTeacher';
+import { FilesIcon } from '@phosphor-icons/react/dist/csr/Files';
+import { BookBookmarkIcon } from '@phosphor-icons/react/dist/csr/BookBookmark';
+import { HeadsetIcon } from '@phosphor-icons/react/dist/csr/Headset';
 import Text from '../Text/Text';
 import { AppLayout, type AppLayoutMenuItem } from './AppLayout';
 
 const noop = () => undefined;
 
 const studentItems: AppLayoutMenuItem[] = [
-  { value: 'home', label: 'Painel', icon: <House /> },
-  { value: 'simulated', label: 'Simulados', icon: <Exam /> },
-  { value: 'provas', label: 'Provas', icon: <ClipboardText /> },
-  { value: 'simulador', label: 'Simulador', icon: <Calculator /> },
-  { value: 'lecture', label: 'Aulas', icon: <ChalkboardTeacher /> },
+  { value: 'home', label: 'Painel', icon: <HouseIcon /> },
+  { value: 'simulated', label: 'Simulados', icon: <ExamIcon /> },
+  { value: 'provas', label: 'Provas', icon: <ClipboardTextIcon /> },
+  { value: 'simulador', label: 'Simulador', icon: <CalculatorIcon /> },
+  { value: 'lecture', label: 'Aulas', icon: <ChalkboardTeacherIcon /> },
 ];
 
 const managerItems: AppLayoutMenuItem[] = [
-  { value: 'reports', label: 'Relatórios', icon: <Files /> },
-  { value: 'trails', label: 'Aulas Recomendadas', icon: <BookBookmark /> },
-  { value: 'suport', label: 'Suporte', icon: <Headset /> },
+  { value: 'reports', label: 'Relatórios', icon: <FilesIcon /> },
+  { value: 'trails', label: 'Aulas Recomendadas', icon: <BookBookmarkIcon /> },
+  { value: 'suport', label: 'Suporte', icon: <HeadsetIcon /> },
 ];
 
 const FakeHeader = () => (

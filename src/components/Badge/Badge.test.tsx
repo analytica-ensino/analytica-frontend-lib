@@ -1,12 +1,14 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { MagnifyingGlass } from 'phosphor-react';
+import { MagnifyingGlassIcon } from '@phosphor-icons/react/dist/csr/MagnifyingGlass';
 import Badge from './Badge';
 
 /**
  * Test icon component using phosphor-react
  */
-const TestIcon = () => <MagnifyingGlass data-testid="test-icon" size={16} />;
+const TestIcon = () => (
+  <MagnifyingGlassIcon data-testid="test-icon" size={16} />
+);
 
 describe('Badge', () => {
   describe('Basic rendering', () => {

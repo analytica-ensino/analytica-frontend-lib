@@ -10,7 +10,7 @@ import {
   MenuItemIcon,
   MenuOverflow,
 } from './Menu';
-import { House } from 'phosphor-react';
+import { HouseIcon } from '@phosphor-icons/react/dist/csr/House';
 
 describe('Menu Component', () => {
   describe('Default Value (Uncontrolled)', () => {
@@ -55,7 +55,7 @@ describe('Menu Component', () => {
           <MenuItem value="home">Home</MenuItem>
           <MenuItem value="dashboard">Dashboard</MenuItem>
           <MenuItem value="dashboard">
-            <MenuItemIcon icon={<House />} data-testid="icon" />
+            <MenuItemIcon icon={<HouseIcon />} data-testid="icon" />
           </MenuItem>
         </Menu>
       );

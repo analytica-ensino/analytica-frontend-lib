@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Notebook } from 'phosphor-react';
+import { NotebookIcon } from '@phosphor-icons/react/dist/csr/Notebook';
 import {
   ActivityCardQuestionBanks,
   Button,
@@ -467,7 +467,7 @@ export const ActivityListQuestions = ({
     >
       <div className="flex flex-col gap-2 flex-shrink-0">
         <section className="flex flex-row items-center gap-2 text-text-950">
-          <Notebook size={24} />
+          <NotebookIcon size={24} />
           <Text size="lg" weight="bold">
             Banco de questões
           </Text>

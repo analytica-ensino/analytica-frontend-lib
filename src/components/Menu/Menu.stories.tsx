@@ -5,13 +5,11 @@ import Menu, {
   MenuItemIcon,
   MenuOverflow,
 } from './Menu';
-import {
-  Headphones,
-  House,
-  ChartLine,
-  ChalkboardTeacher,
-  File,
-} from 'phosphor-react';
+import { HeadphonesIcon } from '@phosphor-icons/react/dist/csr/Headphones';
+import { HouseIcon } from '@phosphor-icons/react/dist/csr/House';
+import { ChartLineIcon } from '@phosphor-icons/react/dist/csr/ChartLine';
+import { ChalkboardTeacherIcon } from '@phosphor-icons/react/dist/csr/ChalkboardTeacher';
+import { FileIcon } from '@phosphor-icons/react/dist/csr/File';
 import { useState } from 'react';
 import Text from '../Text/Text';
 
@@ -28,27 +26,27 @@ export const AllMenus: Story = () => {
         <Menu defaultValue="home">
           <MenuContent className="max-w-[1000px]">
             <MenuItem value="home">
-              <House />
+              <HouseIcon />
               Painel
             </MenuItem>
 
             <MenuItem value="simulated">
-              <File />
+              <FileIcon />
               Simulados
             </MenuItem>
 
             <MenuItem value="lecture">
-              <ChalkboardTeacher />
+              <ChalkboardTeacherIcon />
               Aulas
             </MenuItem>
 
             <MenuItem value="performance">
-              <ChartLine />
+              <ChartLineIcon />
               Desempenho
             </MenuItem>
 
             <MenuItem value="suport">
-              <Headphones />
+              <HeadphonesIcon />
               Suporte
             </MenuItem>
           </MenuContent>
@@ -86,30 +84,30 @@ export const AllMenus: Story = () => {
 
         <MenuOverflow className="max-w-[500px]" defaultValue="home">
           <MenuItem variant="menu-overflow" value="home">
-            <MenuItemIcon className="bg-amber-500" icon={<House />} />
+            <MenuItemIcon className="bg-amber-500" icon={<HouseIcon />} />
             Painel
           </MenuItem>
 
           <MenuItem variant="menu-overflow" value="simulated">
-            <MenuItemIcon className="bg-exam-2" icon={<File />} />
+            <MenuItemIcon className="bg-exam-2" icon={<FileIcon />} />
             Simulados
           </MenuItem>
 
           <MenuItem variant="menu-overflow" value="lecture">
             <MenuItemIcon
               className="bg-success-500"
-              icon={<ChalkboardTeacher />}
+              icon={<ChalkboardTeacherIcon />}
             />
             Aulas
           </MenuItem>
 
           <MenuItem variant="menu-overflow" value="performance">
-            <MenuItemIcon className="bg-yellow-500" icon={<ChartLine />} />
+            <MenuItemIcon className="bg-yellow-500" icon={<ChartLineIcon />} />
             Desempenho
           </MenuItem>
 
           <MenuItem variant="menu-overflow" value="suport">
-            <MenuItemIcon className="bg-blue-500" icon={<Headphones />} />
+            <MenuItemIcon className="bg-blue-500" icon={<HeadphonesIcon />} />
             Suporte
           </MenuItem>
         </MenuOverflow>
@@ -119,27 +117,27 @@ export const AllMenus: Story = () => {
         </Text>
         <MenuOverflow className="max-w-[400px]" defaultValue="home">
           <MenuItem variant="menu-overflow-col" value="home">
-            <House />
+            <HouseIcon />
             Painel
           </MenuItem>
 
           <MenuItem variant="menu-overflow-col" value="simulated">
-            <File />
+            <FileIcon />
             Simulados
           </MenuItem>
 
           <MenuItem variant="menu-overflow-col" value="lecture">
-            <ChalkboardTeacher />
+            <ChalkboardTeacherIcon />
             Aulas
           </MenuItem>
 
           <MenuItem variant="menu-overflow-col" value="performance">
-            <ChartLine />
+            <ChartLineIcon />
             Desempenho
           </MenuItem>
 
           <MenuItem variant="menu-overflow-col" value="suport">
-            <Headphones />
+            <HeadphonesIcon />
             Suporte
           </MenuItem>
         </MenuOverflow>
