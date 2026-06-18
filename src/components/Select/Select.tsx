@@ -562,6 +562,7 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
       const styles: CSSProperties = {
         position: 'fixed',
         zIndex: 9999,
+        width: triggerRect.width,
       };
 
       const isVertical = side === 'top' || side === 'bottom';
