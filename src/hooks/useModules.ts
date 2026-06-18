@@ -29,6 +29,10 @@ export interface UseModulesReturn {
   hasDashboard: boolean;
   hasLessons: boolean;
 
+  // Tutorial menu link (true only when enabled AND tutorialUrl is non-empty)
+  hasTutorial: boolean;
+  tutorialUrl: string;
+
   // Exams
   hasExams: boolean;
 
@@ -93,6 +97,7 @@ export const useModules = (): UseModulesReturn => {
     modules.performanceGraphs ?? DEFAULT_PERFORMANCE_GRAPHS;
   const reports = modules.reports ?? DEFAULT_REPORTS;
   const simulatedScore = modules.simulatedScore ?? DEFAULT_SIMULATED_SCORE;
+  const tutorialUrl = (modules.tutorialUrl ?? '').trim();
 
   return {
     modules,
@@ -111,6 +116,10 @@ export const useModules = (): UseModulesReturn => {
     hasPerformance: modules.performance ?? true,
     hasDashboard: modules.dashboard ?? true,
     hasLessons: modules.lessons ?? true,
+
+    // Tutorial: only show the menu link when enabled AND a url is configured
+    hasTutorial: (modules.tutorial ?? false) && tutorialUrl.length > 0,
+    tutorialUrl,
 
     // Exams (simple boolean, with backwards compatibility for old object format)
     hasExams:

@@ -55,6 +55,8 @@ const createMockModulesReturn = (
   hasPerformance: true,
   hasDashboard: true,
   hasLessons: true,
+  hasTutorial: false,
+  tutorialUrl: '',
   hasExams: true,
   hasSimulations: true,
   simulations: DEFAULT_SIMULATIONS,

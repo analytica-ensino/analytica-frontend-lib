@@ -122,6 +122,10 @@ export interface ModulesConfig {
   dashboard: boolean;
   lessons: boolean;
 
+  // Tutorial menu link (off by default; also needs a non-empty tutorialUrl)
+  tutorial: boolean;
+  tutorialUrl: string;
+
   // Nested configurations
   exams: boolean;
   simulations: SimulationsConfig;
@@ -155,6 +159,10 @@ export const DEFAULT_MODULES: ModulesConfig = {
   performance: true,
   dashboard: true,
   lessons: true,
+
+  // Tutorial off by default (opt-in per institution, requires a url)
+  tutorial: false,
+  tutorialUrl: '',
 
   // Nested configurations
   exams: DEFAULT_EXAMS,
