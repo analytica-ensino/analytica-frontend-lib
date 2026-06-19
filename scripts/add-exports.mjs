@@ -97,8 +97,10 @@ function outputPathToExportKey(outputPath) {
 function buildEntry(distBase) {
   return {
     types: `${distBase}/index.d.ts`,
+    module: `${distBase}/index.mjs`,
     import: `${distBase}/index.mjs`,
     require: `${distBase}/index.js`,
+    default: `${distBase}/index.mjs`,
   };
 }
 
