@@ -26,6 +26,8 @@ interface StatItem {
 interface StatisticsCardProps {
   /** Title displayed at the top of the card */
   title: string;
+  /** Optional description displayed below the title */
+  description?: string;
   /** Statistics data to display */
   data?: StatItem[];
   /** Show placeholder "-" in values when true (for created items without data yet) */
@@ -108,6 +110,8 @@ const StatCard = ({ item, showPlaceholder = false }: StatCardProps) => {
  * Get grid column class based on number of items
  */
 const getGridColumnsClass = (itemCount: number): string => {
+  if (itemCount === 6) return 'lg:grid-cols-6';
+  if (itemCount === 5) return 'lg:grid-cols-5';
   if (itemCount === 4) return 'lg:grid-cols-4';
   if (itemCount === 3) return 'lg:grid-cols-3';
   if (itemCount === 2) return 'lg:grid-cols-2';
@@ -147,6 +151,7 @@ const getGridColumnsClass = (itemCount: number): string => {
  */
 export const StatisticsCard = ({
   title,
+  description,
   data,
   showPlaceholder = false,
   emptyStateMessage,
@@ -164,19 +169,20 @@ export const StatisticsCard = ({
 
   return (
     <div
-      className={`bg-background rounded-xl p-4 h-auto lg:h-[185px] flex flex-col gap-2 ${className}`}
+      className={`bg-background rounded-xl p-4 h-auto lg:min-h-[185px] flex flex-col gap-2 ${className}`}
     >
       {/* Header with title and optional dropdown */}
       <div className="flex flex-row justify-between items-center gap-4">
-        <Text
-          as="h3"
-          size="sm"
-          weight="medium"
-          color="text-text-600"
-          className="flex-1 min-w-0"
-        >
-          {title}
-        </Text>
+        <div className="flex-1 min-w-0 flex flex-col gap-1">
+          <Text as="h3" size="sm" weight="medium" color="text-text-600">
+            {title}
+          </Text>
+          {description && (
+            <Text size="sm" color="text-text-700">
+              {description}
+            </Text>
+          )}
+        </div>
 
         {dropdownOptions && dropdownOptions.length > 0 && (
           <div className="w-[120px] min-w-[90px] sm:shrink-0">
