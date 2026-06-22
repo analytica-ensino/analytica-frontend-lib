@@ -239,7 +239,7 @@ export function PeriodSelectorModal({
           </Text>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1">
-              <label className="text-xs text-text-500">Data inicial</label>
+              <Text className="text-xs text-text-500">Data inicial</Text>
               <input
                 type="date"
                 value={startDate}
@@ -253,7 +253,7 @@ export function PeriodSelectorModal({
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs text-text-500">Data final</label>
+              <Text className="text-xs text-text-500">Data final</Text>
               <input
                 type="date"
                 value={endDate}
