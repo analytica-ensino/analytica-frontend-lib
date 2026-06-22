@@ -1649,6 +1649,13 @@ export type {
   TimeChartResponse,
 } from './components/TimeChart/TimeChart';
 
+// SimpleBarChart Components
+export { SimpleBarChart } from './components/SimpleBarChart/SimpleBarChart';
+export type {
+  SimpleBarChartProps,
+  SimpleBarChartDataItem,
+} from './components/SimpleBarChart/SimpleBarChart';
+
 // TimeReport Components
 export {
   TimeReport,
@@ -1740,7 +1747,16 @@ export type {
   AccessReportTimePercentage,
   AccessReportUser,
   AccessReportByPlatform,
+  AccessCountByPeriodItem,
 } from './components/AccessReportModal/AccessReportModal';
+
+// PeriodSelectorModal Components
+export {
+  PeriodSelectorModal,
+  DEFAULT_PERIOD_SELECTION,
+  getPeriodSelectionLabel,
+} from './components/PeriodSelectorModal/PeriodSelectorModal';
+export type { PeriodSelection } from './components/PeriodSelectorModal/PeriodSelectorModal';
 
 // DownloadModal Components
 export { default as DownloadModal } from './components/DownloadModal/DownloadModal';

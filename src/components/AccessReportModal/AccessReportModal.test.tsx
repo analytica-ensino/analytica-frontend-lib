@@ -172,7 +172,9 @@ describe('AccessReportModal', () => {
           data={mockStudentData}
         />
       );
-      expect(screen.getByText('Plataforma de acesso')).toBeInTheDocument();
+      expect(
+        screen.getByText('Dados de acesso por plataforma')
+      ).toBeInTheDocument();
       expect(screen.getByText('Web')).toBeInTheDocument();
       expect(screen.getByText('Celular')).toBeInTheDocument();
     });
@@ -186,7 +188,7 @@ describe('AccessReportModal', () => {
           data={mockStudentData}
         />
       );
-      expect(screen.getByText('Horas por item')).toBeInTheDocument();
+      expect(screen.getByText('Dados de horas por item')).toBeInTheDocument();
       expect(screen.getAllByText('Atividades').length).toBeGreaterThan(0);
       expect(screen.getByText('Questionários')).toBeInTheDocument();
     });
@@ -258,11 +260,13 @@ describe('AccessReportModal', () => {
           data={mockProfessionalData}
         />
       );
-      expect(screen.getByText('Plataforma de acesso')).toBeInTheDocument();
-      // "Horas por item" section is not shown for professional variant
+      expect(
+        screen.getByText('Dados de acesso por plataforma')
+      ).toBeInTheDocument();
+      // "Dados de horas por item" section is not shown for professional variant
     });
 
-    it('should NOT render "Horas por item" section for professional variant', () => {
+    it('should NOT render "Dados de horas por item" section for professional variant', () => {
       render(
         <AccessReportModal
           isOpen={true}
@@ -271,7 +275,9 @@ describe('AccessReportModal', () => {
           data={mockProfessionalData}
         />
       );
-      expect(screen.queryByText('Horas por item')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Dados de horas por item')
+      ).not.toBeInTheDocument();
     });
 
     it('should render only 1 pie chart for professional variant', () => {
@@ -285,7 +291,7 @@ describe('AccessReportModal', () => {
       );
       // Only the platform pie chart should be rendered
       const pieCharts = container.querySelectorAll('svg[aria-hidden="true"]');
-      expect(pieCharts.length).toBe(1);
+      expect(pieCharts).toHaveLength(1);
     });
   });
 
@@ -329,7 +335,7 @@ describe('AccessReportModal', () => {
       const skeletonBoxes = container.querySelectorAll(
         '.animate-pulse .h-16.bg-background-200.rounded-xl'
       );
-      expect(skeletonBoxes.length).toBe(6);
+      expect(skeletonBoxes).toHaveLength(6);
     });
 
     it('should render 3 metric box skeletons for professional variant', () => {
@@ -345,7 +351,7 @@ describe('AccessReportModal', () => {
       const skeletonBoxes = container.querySelectorAll(
         '.animate-pulse .h-16.bg-background-200.rounded-xl'
       );
-      expect(skeletonBoxes.length).toBe(3);
+      expect(skeletonBoxes).toHaveLength(3);
     });
 
     it('should render 2 chart skeletons for student variant (platform + hours)', () => {
@@ -361,7 +367,7 @@ describe('AccessReportModal', () => {
       const chartSkeletons = container.querySelectorAll(
         '.animate-pulse .h-32.bg-background-200.rounded-xl'
       );
-      expect(chartSkeletons.length).toBe(2);
+      expect(chartSkeletons).toHaveLength(2);
     });
 
     it('should render 1 chart skeleton for professional variant (platform only)', () => {
@@ -377,7 +383,7 @@ describe('AccessReportModal', () => {
       const chartSkeletons = container.querySelectorAll(
         '.animate-pulse .h-32.bg-background-200.rounded-xl'
       );
-      expect(chartSkeletons.length).toBe(1);
+      expect(chartSkeletons).toHaveLength(1);
     });
   });
 
