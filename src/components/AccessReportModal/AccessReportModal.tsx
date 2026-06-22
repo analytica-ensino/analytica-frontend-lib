@@ -8,10 +8,7 @@ import {
   ErrorContent,
 } from '../shared/ModalComponents';
 import { REPORT_MODAL_VARIANT } from '../../types/common';
-import {
-  SimpleBarChart,
-  type SimpleBarChartDataItem,
-} from '../SimpleBarChart/SimpleBarChart';
+import { SimpleBarChart } from '../SimpleBarChart/SimpleBarChart';
 
 // ─── API Types ────────────────────────────────────────────────
 

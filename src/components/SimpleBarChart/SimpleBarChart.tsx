@@ -1,4 +1,4 @@
-import { useState, type HTMLAttributes } from 'react';
+import { type HTMLAttributes } from 'react';
 import Text from '../Text/Text';
 import { Tooltip } from '../Tooltip/Tooltip';
 import { cn } from '../../utils/utils';

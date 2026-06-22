@@ -56,15 +56,6 @@ function formatDateDisplay(isoDate: string | undefined): string {
 }
 
 /**
- * Parse display date (DD/MM/YYYY) to ISO format (YYYY-MM-DD)
- */
-function parseDisplayDate(displayDate: string): string {
-  const [day, month, year] = displayDate.split('/');
-  if (!day || !month || !year) return '';
-  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-}
-
-/**
  * Get display label for a period selection
  */
 export function getPeriodSelectionLabel(selection: PeriodSelection): string {
