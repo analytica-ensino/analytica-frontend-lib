@@ -1043,10 +1043,7 @@ export type {
 
 // Zendesk messenger loader (resilient: retry until ready)
 export { useZendesk } from './hooks/useZendesk';
-export type {
-  UseZendeskConfig,
-  UseZendeskReturn,
-} from './hooks/useZendesk';
+export type { UseZendeskConfig, UseZendeskReturn } from './hooks/useZendesk';
 
 // SendActivityModal Component
 export { SendActivityModal } from './components/SendActivityModal';
