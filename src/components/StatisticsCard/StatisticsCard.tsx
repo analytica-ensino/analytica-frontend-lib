@@ -174,7 +174,7 @@ export const StatisticsCard = ({
       {/* Header with title and optional dropdown */}
       <div className="flex flex-row justify-between items-center gap-4">
         <div className="flex-1 min-w-0 flex flex-col gap-1">
-          <Text as="h3" size="sm" weight="medium" color="text-text-600">
+          <Text as="h3" size="lg" weight="bold" color="text-text-950">
             {title}
           </Text>
           {description && (
