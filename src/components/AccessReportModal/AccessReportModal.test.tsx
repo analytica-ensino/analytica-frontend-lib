@@ -172,7 +172,9 @@ describe('AccessReportModal', () => {
           data={mockStudentData}
         />
       );
-      expect(screen.getByText('Plataforma de acesso')).toBeInTheDocument();
+      expect(
+        screen.getByText('Dados de acesso por plataforma')
+      ).toBeInTheDocument();
       expect(screen.getByText('Web')).toBeInTheDocument();
       expect(screen.getByText('Celular')).toBeInTheDocument();
     });
@@ -186,7 +188,7 @@ describe('AccessReportModal', () => {
           data={mockStudentData}
         />
       );
-      expect(screen.getByText('Horas por item')).toBeInTheDocument();
+      expect(screen.getByText('Dados de horas por item')).toBeInTheDocument();
       expect(screen.getAllByText('Atividades').length).toBeGreaterThan(0);
       expect(screen.getByText('Questionários')).toBeInTheDocument();
     });
@@ -258,11 +260,13 @@ describe('AccessReportModal', () => {
           data={mockProfessionalData}
         />
       );
-      expect(screen.getByText('Plataforma de acesso')).toBeInTheDocument();
-      // "Horas por item" section is not shown for professional variant
+      expect(
+        screen.getByText('Dados de acesso por plataforma')
+      ).toBeInTheDocument();
+      // "Dados de horas por item" section is not shown for professional variant
     });
 
-    it('should NOT render "Horas por item" section for professional variant', () => {
+    it('should NOT render "Dados de horas por item" section for professional variant', () => {
       render(
         <AccessReportModal
           isOpen={true}
@@ -271,7 +275,9 @@ describe('AccessReportModal', () => {
           data={mockProfessionalData}
         />
       );
-      expect(screen.queryByText('Horas por item')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Dados de horas por item')
+      ).not.toBeInTheDocument();
     });
 
     it('should render only 1 pie chart for professional variant', () => {
