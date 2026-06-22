@@ -247,7 +247,9 @@ describe('PeriodSelectorModal', () => {
         endDate: '2024-01-31',
       };
 
-      expect(getPeriodSelectionLabel(selection)).toBe('15/01/2024 - 31/01/2024');
+      expect(getPeriodSelectionLabel(selection)).toBe(
+        '15/01/2024 - 31/01/2024'
+      );
     });
 
     it('should return default label when fixed period is undefined', () => {

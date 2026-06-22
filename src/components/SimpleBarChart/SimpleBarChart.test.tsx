@@ -1,9 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import {
-  SimpleBarChart,
-  type SimpleBarChartDataItem,
-} from './SimpleBarChart';
+import { SimpleBarChart, type SimpleBarChartDataItem } from './SimpleBarChart';
 
 // ─── Mock data ────────────────────────────────────────────────
 
@@ -41,12 +38,7 @@ describe('SimpleBarChart', () => {
     });
 
     it('should render all data labels', () => {
-      render(
-        <SimpleBarChart
-          data={mockData}
-          title="Test Chart"
-        />
-      );
+      render(<SimpleBarChart data={mockData} title="Test Chart" />);
 
       expect(screen.getByTestId('label-SEG')).toBeInTheDocument();
       expect(screen.getByTestId('label-TER')).toBeInTheDocument();
@@ -56,12 +48,7 @@ describe('SimpleBarChart', () => {
     });
 
     it('should render bars for items with positive values', () => {
-      render(
-        <SimpleBarChart
-          data={mockData}
-          title="Test Chart"
-        />
-      );
+      render(<SimpleBarChart data={mockData} title="Test Chart" />);
 
       expect(screen.getByTestId('bar-SEG')).toBeInTheDocument();
       expect(screen.getByTestId('bar-TER')).toBeInTheDocument();
@@ -69,12 +56,7 @@ describe('SimpleBarChart', () => {
     });
 
     it('should not render bars for items with zero values', () => {
-      render(
-        <SimpleBarChart
-          data={mockDataWithZeros}
-          title="Test Chart"
-        />
-      );
+      render(<SimpleBarChart data={mockDataWithZeros} title="Test Chart" />);
 
       expect(screen.queryByTestId('bar-SEG')).not.toBeInTheDocument();
       expect(screen.queryByTestId('bar-TER')).not.toBeInTheDocument();
@@ -82,12 +64,7 @@ describe('SimpleBarChart', () => {
     });
 
     it('should render Y-axis ticks', () => {
-      render(
-        <SimpleBarChart
-          data={mockData}
-          title="Test Chart"
-        />
-      );
+      render(<SimpleBarChart data={mockData} title="Test Chart" />);
 
       // Y-axis should show tick values including 0
       expect(screen.getByText('0')).toBeInTheDocument();
@@ -95,10 +72,7 @@ describe('SimpleBarChart', () => {
 
     it('should render with single data item', () => {
       render(
-        <SimpleBarChart
-          data={mockDataSingleItem}
-          title="Single Item Chart"
-        />
+        <SimpleBarChart data={mockDataSingleItem} title="Single Item Chart" />
       );
 
       expect(screen.getByTestId('label-Total')).toBeInTheDocument();
@@ -108,12 +82,7 @@ describe('SimpleBarChart', () => {
 
   describe('Styling', () => {
     it('should apply default bar color', () => {
-      render(
-        <SimpleBarChart
-          data={mockData}
-          title="Test Chart"
-        />
-      );
+      render(<SimpleBarChart data={mockData} title="Test Chart" />);
 
       const bar = screen.getByTestId('bar-SEG');
       expect(bar).toHaveClass('bg-info-500');
@@ -147,10 +116,7 @@ describe('SimpleBarChart', () => {
 
     it('should apply default container styles', () => {
       const { container } = render(
-        <SimpleBarChart
-          data={mockData}
-          title="Test Chart"
-        />
+        <SimpleBarChart data={mockData} title="Test Chart" />
       );
 
       const chartContainer = container.firstChild;
@@ -162,12 +128,7 @@ describe('SimpleBarChart', () => {
 
   describe('Chart height', () => {
     it('should use default chart height', () => {
-      const { container } = render(
-        <SimpleBarChart
-          data={mockData}
-          title="Test Chart"
-        />
-      );
+      render(<SimpleBarChart data={mockData} title="Test Chart" />);
 
       // Check that chart area exists with default height
       const bar = screen.getByTestId('bar-SEG');
@@ -175,12 +136,8 @@ describe('SimpleBarChart', () => {
     });
 
     it('should apply custom chart height', () => {
-      const { container } = render(
-        <SimpleBarChart
-          data={mockData}
-          title="Test Chart"
-          chartHeight={250}
-        />
+      render(
+        <SimpleBarChart data={mockData} title="Test Chart" chartHeight={250} />
       );
 
       const bar = screen.getByTestId('bar-SEG');
@@ -190,24 +147,14 @@ describe('SimpleBarChart', () => {
 
   describe('Accessibility', () => {
     it('should have aria-label on container', () => {
-      render(
-        <SimpleBarChart
-          data={mockData}
-          title="Acessos por dia"
-        />
-      );
+      render(<SimpleBarChart data={mockData} title="Acessos por dia" />);
 
       const chart = screen.getByLabelText('Acessos por dia');
       expect(chart).toBeInTheDocument();
     });
 
     it('should have aria-label on each bar', () => {
-      render(
-        <SimpleBarChart
-          data={mockData}
-          title="Test Chart"
-        />
-      );
+      render(<SimpleBarChart data={mockData} title="Test Chart" />);
 
       const barSEG = screen.getByTestId('bar-SEG');
       expect(barSEG).toHaveAttribute('aria-label', 'SEG: 150');
@@ -218,10 +165,7 @@ describe('SimpleBarChart', () => {
 
     it('should have aria-hidden on Y-axis', () => {
       const { container } = render(
-        <SimpleBarChart
-          data={mockData}
-          title="Test Chart"
-        />
+        <SimpleBarChart data={mockData} title="Test Chart" />
       );
 
       const yAxis = container.querySelector('[aria-hidden="true"]');
@@ -231,12 +175,7 @@ describe('SimpleBarChart', () => {
 
   describe('Edge cases', () => {
     it('should handle empty data array', () => {
-      render(
-        <SimpleBarChart
-          data={[]}
-          title="Empty Chart"
-        />
-      );
+      render(<SimpleBarChart data={[]} title="Empty Chart" />);
 
       expect(screen.getByText('Empty Chart')).toBeInTheDocument();
       expect(screen.getByText('0')).toBeInTheDocument();
@@ -244,10 +183,7 @@ describe('SimpleBarChart', () => {
 
     it('should handle all zero values', () => {
       render(
-        <SimpleBarChart
-          data={mockDataWithZeros}
-          title="Zero Values Chart"
-        />
+        <SimpleBarChart data={mockDataWithZeros} title="Zero Values Chart" />
       );
 
       expect(screen.getByText('Zero Values Chart')).toBeInTheDocument();
@@ -261,12 +197,7 @@ describe('SimpleBarChart', () => {
         { label: 'B', value: 500000 },
       ];
 
-      render(
-        <SimpleBarChart
-          data={largeData}
-          title="Large Values Chart"
-        />
-      );
+      render(<SimpleBarChart data={largeData} title="Large Values Chart" />);
 
       expect(screen.getByTestId('bar-A')).toBeInTheDocument();
       expect(screen.getByTestId('bar-B')).toBeInTheDocument();
