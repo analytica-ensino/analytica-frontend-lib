@@ -12,6 +12,7 @@ import {
   PERIOD_TABS,
   type StudentsHighlightPeriod,
 } from '../../hooks/useStudentsHighlight';
+import Text from '../Text/Text';
 
 /**
  * Period selection type - either a fixed period or custom date range
@@ -37,13 +38,13 @@ export const DEFAULT_PERIOD_SELECTION: PeriodSelection = {
 
 interface PeriodSelectorModalProps {
   /** Whether the modal is open */
-  isOpen: boolean;
+  readonly isOpen: boolean;
   /** Callback when modal is closed */
-  onClose: () => void;
+  readonly onClose: () => void;
   /** Callback when period selection is applied */
-  onApply: (selection: PeriodSelection) => void;
+  readonly onApply: (selection: PeriodSelection) => void;
   /** Current period selection */
-  currentSelection?: PeriodSelection;
+  readonly currentSelection?: PeriodSelection;
 }
 
 /**
@@ -207,9 +208,9 @@ export function PeriodSelectorModal({
       <div className="flex flex-col gap-6">
         {/* Fixed period selector */}
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-text-700">
+          <Text className="text-sm font-medium text-text-700">
             Selecionar período fixo
-          </label>
+          </Text>
           <Select value={selectedPeriod} onValueChange={handlePeriodChange}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Selecione um período" />
@@ -233,9 +234,9 @@ export function PeriodSelectorModal({
 
         {/* Custom date range */}
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-text-700">
+          <Text className="text-sm font-medium text-text-700">
             Escolher data
-          </label>
+          </Text>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1">
               <label className="text-xs text-text-500">Data inicial</label>
