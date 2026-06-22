@@ -66,19 +66,31 @@ export const useZendesk = ({
       retryTimer = setTimeout(inject, delay);
     }
 
+    function handleScriptError() {
+      if (cancelled) return;
+      document.getElementById(SCRIPT_ID)?.remove();
+      scheduleRetry();
+    }
+
     function inject() {
       if (cancelled || confirmReady()) return;
-      // Injeção já em andamento (script presente, ainda não falhou).
-      if (document.getElementById(SCRIPT_ID)) return;
+
+      // Se o snippet já existe (ex.: injetado por outro ponto, como o
+      // ZendeskWidget), não injeta de novo — mas adota o tratamento de erro
+      // para manter o retry e não deixar `ready` travado caso ele falhe.
+      const existing = document.getElementById(
+        SCRIPT_ID
+      ) as HTMLScriptElement | null;
+      if (existing) {
+        existing.addEventListener('error', handleScriptError, { once: true });
+        return;
+      }
 
       const script = document.createElement('script');
       script.id = SCRIPT_ID;
       script.src = `https://static.zdassets.com/ekr/snippet.js?key=${zendeskKey}`;
       script.async = true;
-      script.onerror = () => {
-        document.getElementById(SCRIPT_ID)?.remove();
-        scheduleRetry();
-      };
+      script.addEventListener('error', handleScriptError, { once: true });
       document.body.appendChild(script);
     }
 
