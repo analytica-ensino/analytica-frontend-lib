@@ -1645,6 +1645,13 @@ export type {
   TimeChartResponse,
 } from './components/TimeChart/TimeChart';
 
+// SimpleBarChart Components
+export { SimpleBarChart } from './components/SimpleBarChart/SimpleBarChart';
+export type {
+  SimpleBarChartProps,
+  SimpleBarChartDataItem,
+} from './components/SimpleBarChart/SimpleBarChart';
+
 // TimeReport Components
 export {
   TimeReport,
@@ -1736,6 +1743,7 @@ export type {
   AccessReportTimePercentage,
   AccessReportUser,
   AccessReportByPlatform,
+  AccessCountByPeriodItem,
 } from './components/AccessReportModal/AccessReportModal';
 
 // DownloadModal Components

@@ -8,6 +8,10 @@ import {
   ErrorContent,
 } from '../shared/ModalComponents';
 import { REPORT_MODAL_VARIANT } from '../../types/common';
+import {
+  SimpleBarChart,
+  type SimpleBarChartDataItem,
+} from '../SimpleBarChart/SimpleBarChart';
 
 // ─── API Types ────────────────────────────────────────────────
 
@@ -88,6 +92,14 @@ export interface AccessReportProfessionalData {
 /** @deprecated Use {@link REPORT_MODAL_VARIANT} instead. Re-exported for backwards compatibility. */
 export { REPORT_MODAL_VARIANT as AccessReportModalVariant } from '../../types/common';
 
+/**
+ * Access count by period item for bar chart
+ */
+export interface AccessCountByPeriodItem {
+  label: string;
+  count: number;
+}
+
 interface AccessReportModalBaseProps {
   isOpen: boolean;
   onClose: () => void;
@@ -95,6 +107,8 @@ interface AccessReportModalBaseProps {
   title?: string;
   loading?: boolean;
   error?: string | null;
+  /** Optional access count by period data for rendering the access count chart */
+  accessCountByPeriod?: AccessCountByPeriodItem[];
 }
 
 type AccessReportModalStudentProps = {
@@ -167,11 +181,13 @@ const ReportContentLayout = ({
   metricBoxes,
   platformSlices,
   hoursSlices,
+  accessCountByPeriod,
 }: {
   user: AccessReportUser;
   metricBoxes: ReactNode;
   platformSlices: PieSlice[];
   hoursSlices: PieSlice[];
+  accessCountByPeriod?: AccessCountByPeriodItem[];
 }) => (
   <div className="flex flex-col gap-6">
     <UserHeader
@@ -183,23 +199,42 @@ const ReportContentLayout = ({
 
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{metricBoxes}</div>
 
+    {accessCountByPeriod && accessCountByPeriod.length > 0 && (
+      <SimpleBarChart
+        data={accessCountByPeriod.map((item) => ({
+          label: item.label,
+          value: item.count,
+        }))}
+        title="Quantidade de acessos por período"
+        barColor="bg-info-500"
+        chartHeight={150}
+      />
+    )}
+
     <div className="flex flex-col gap-3">
-      <SectionTitle>Plataforma de acesso</SectionTitle>
+      <SectionTitle>Dados de acesso por plataforma</SectionTitle>
       <LegendPieCard slices={platformSlices} />
     </div>
 
     <div className="flex flex-col gap-3">
-      <SectionTitle>Horas por item</SectionTitle>
+      <SectionTitle>Dados de horas por item</SectionTitle>
       <LegendPieCard slices={hoursSlices} />
     </div>
   </div>
 );
 
-const StudentModalContent = ({ data }: { data: AccessReportStudentData }) => (
+const StudentModalContent = ({
+  data,
+  accessCountByPeriod,
+}: {
+  data: AccessReportStudentData;
+  accessCountByPeriod?: AccessCountByPeriodItem[];
+}) => (
   <ReportContentLayout
     user={data.user}
     platformSlices={buildPlatformSlices(data.accessByPlatform)}
     hoursSlices={buildStudentHoursSlices(data.hoursByItem)}
+    accessCountByPeriod={accessCountByPeriod}
     metricBoxes={
       <>
         <MetricBox label="Tempo total" value={data.accessData.totalTime} />
@@ -224,8 +259,10 @@ const StudentModalContent = ({ data }: { data: AccessReportStudentData }) => (
 
 const ProfessionalModalContent = ({
   data,
+  accessCountByPeriod,
 }: {
   data: AccessReportProfessionalData;
+  accessCountByPeriod?: AccessCountByPeriodItem[];
 }) => (
   <div className="flex flex-col gap-6">
     <UserHeader
@@ -250,8 +287,20 @@ const ProfessionalModalContent = ({
       />
     </div>
 
+    {accessCountByPeriod && accessCountByPeriod.length > 0 && (
+      <SimpleBarChart
+        data={accessCountByPeriod.map((item) => ({
+          label: item.label,
+          value: item.count,
+        }))}
+        title="Quantidade de acessos por período"
+        barColor="bg-info-500"
+        chartHeight={150}
+      />
+    )}
+
     <div className="flex flex-col gap-3">
-      <SectionTitle>Plataforma de acesso</SectionTitle>
+      <SectionTitle>Dados de acesso por plataforma</SectionTitle>
       <LegendPieCard slices={buildPlatformSlices(data.accessByPlatform)} />
     </div>
   </div>
@@ -313,6 +362,7 @@ export const AccessReportModal = ({
   title = 'Relatório de acesso',
   loading = false,
   error = null,
+  accessCountByPeriod,
   ...variantProps
 }: AccessReportModalProps) => {
   let content: ReactNode;
@@ -334,9 +384,19 @@ export const AccessReportModal = ({
   } else if (variantProps.data === null) {
     content = <ErrorContent message="Nenhum dado disponível." />;
   } else if (variantProps.variant === REPORT_MODAL_VARIANT.STUDENT) {
-    content = <StudentModalContent data={variantProps.data} />;
+    content = (
+      <StudentModalContent
+        data={variantProps.data}
+        accessCountByPeriod={accessCountByPeriod}
+      />
+    );
   } else if (variantProps.variant === REPORT_MODAL_VARIANT.PROFESSIONAL) {
-    content = <ProfessionalModalContent data={variantProps.data} />;
+    content = (
+      <ProfessionalModalContent
+        data={variantProps.data}
+        accessCountByPeriod={accessCountByPeriod}
+      />
+    );
   } else {
     content = <ErrorContent message="Variante de relatório inválida." />;
   }
