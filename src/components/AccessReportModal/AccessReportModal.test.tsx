@@ -291,7 +291,7 @@ describe('AccessReportModal', () => {
       );
       // Only the platform pie chart should be rendered
       const pieCharts = container.querySelectorAll('svg[aria-hidden="true"]');
-      expect(pieCharts.length).toBe(1);
+      expect(pieCharts).toHaveLength(1);
     });
   });
 
@@ -335,7 +335,7 @@ describe('AccessReportModal', () => {
       const skeletonBoxes = container.querySelectorAll(
         '.animate-pulse .h-16.bg-background-200.rounded-xl'
       );
-      expect(skeletonBoxes.length).toBe(6);
+      expect(skeletonBoxes).toHaveLength(6);
     });
 
     it('should render 3 metric box skeletons for professional variant', () => {
@@ -351,7 +351,7 @@ describe('AccessReportModal', () => {
       const skeletonBoxes = container.querySelectorAll(
         '.animate-pulse .h-16.bg-background-200.rounded-xl'
       );
-      expect(skeletonBoxes.length).toBe(3);
+      expect(skeletonBoxes).toHaveLength(3);
     });
 
     it('should render 2 chart skeletons for student variant (platform + hours)', () => {
@@ -367,7 +367,7 @@ describe('AccessReportModal', () => {
       const chartSkeletons = container.querySelectorAll(
         '.animate-pulse .h-32.bg-background-200.rounded-xl'
       );
-      expect(chartSkeletons.length).toBe(2);
+      expect(chartSkeletons).toHaveLength(2);
     });
 
     it('should render 1 chart skeleton for professional variant (platform only)', () => {
@@ -383,7 +383,7 @@ describe('AccessReportModal', () => {
       const chartSkeletons = container.querySelectorAll(
         '.animate-pulse .h-32.bg-background-200.rounded-xl'
       );
-      expect(chartSkeletons.length).toBe(1);
+      expect(chartSkeletons).toHaveLength(1);
     });
   });
 
