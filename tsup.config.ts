@@ -226,6 +226,7 @@ export default defineConfig({
     // Support / Zendesk (consumed directly by the apps)
     'ZendeskWidget/index': 'src/components/ZendeskWidget/ZendeskWidget.tsx',
     'hooks/useSupportFeatureFlag/index': 'src/hooks/useSupportFeatureFlag.ts',
+    'hooks/useZendesk/index': 'src/hooks/useZendesk.ts',
 
     // ============================================================
     // Bundle migration: subpath entries for symbols consumed by the
