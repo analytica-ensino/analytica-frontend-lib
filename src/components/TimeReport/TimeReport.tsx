@@ -30,6 +30,11 @@ export interface TimeMetric {
   variation_percent: number | null;
 }
 
+export interface CountMetric {
+  count: number;
+  variation_percent: number | null;
+}
+
 export interface TimeReportData {
   total_platform_time: TimeMetric;
   activity_time: TimeMetric;
@@ -37,6 +42,7 @@ export interface TimeReportData {
   content_time?: TimeMetric;
   questionnaire_time?: TimeMetric;
   recommended_classes_time: TimeMetric;
+  total_access_count?: CountMetric;
 }
 
 export interface TimeReportResponse {
