@@ -1673,6 +1673,7 @@ export type {
   TimeReportPeriod,
   TimeReportRequest,
   TimeMetric,
+  CountMetric,
   TimeReportData,
   TimeReportResponse,
 } from './components/TimeReport/TimeReport';
