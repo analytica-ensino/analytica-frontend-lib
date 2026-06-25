@@ -9,6 +9,7 @@ import type {
   ActivityHistoryFilters,
   ActivityPagination,
   ActivityFilterOption,
+  ActivityBreakdownItem,
 } from '../types/activitiesHistory';
 import { mergeFilterOptions } from '../utils/filterHelpers';
 
@@ -76,6 +77,7 @@ export const DEFAULT_ACTIVITY_FILTER_OPTIONS: ActivityApiFilterOptions = {
 export const transformActivityToTableItem = (
   activity: ActivityHistoryResponse
 ): ActivityTableItem => {
+  const firstBreakdown = activity.breakdown?.[0];
   return {
     id: activity.id,
     startDate: activity.startDate
@@ -87,13 +89,35 @@ export const transformActivityToTableItem = (
     creator: activity.creator?.name?.trim() ? activity.creator.name : '-',
     creatorId: activity.creator?.id ?? null,
     title: activity.title,
-    school: activity.schoolName || '-',
-    year: activity.year || '-',
-    subject: activity.subjectName || '-',
-    class: activity.className || '-',
+    school: firstBreakdown?.school?.name ?? '-',
+    year: firstBreakdown?.schoolYear?.name ?? '-',
+    subject: activity.subject?.name ?? '-',
+    class: firstBreakdown?.class?.name ?? '-',
     status: mapApiStatusToDisplay(activity.status),
     completionPercentage: activity.completionPercentage,
   };
+};
+
+type ActivityFilterMaps = {
+  schoolsMap: Map<string, string>;
+  classesMap: Map<string, string>;
+  subjectsMap: Map<string, string>;
+  schoolYearsMap: Map<string, string>;
+};
+
+const populateBreakdownMaps = (
+  item: ActivityBreakdownItem,
+  maps: ActivityFilterMaps
+): void => {
+  if (item.school?.id && item.school?.name) {
+    maps.schoolsMap.set(item.school.id, item.school.name);
+  }
+  if (item.class?.id && item.class?.name) {
+    maps.classesMap.set(item.class.id, item.class.name);
+  }
+  if (item.schoolYear?.id && item.schoolYear?.name) {
+    maps.schoolYearsMap.set(item.schoolYear.id, item.schoolYear.name);
+  }
 };
 
 /**
@@ -102,25 +126,18 @@ export const transformActivityToTableItem = (
 export const extractActivityFilterOptions = (
   activities: ActivityHistoryResponse[]
 ): ActivityApiFilterOptions => {
-  const schoolsMap = new Map<string, string>();
-  const classesMap = new Map<string, string>();
-  const subjectsMap = new Map<string, string>();
-  const schoolYearsMap = new Map<string, string>();
+  const maps: ActivityFilterMaps = {
+    schoolsMap: new Map<string, string>(),
+    classesMap: new Map<string, string>(),
+    subjectsMap: new Map<string, string>(),
+    schoolYearsMap: new Map<string, string>(),
+  };
 
   for (const activity of activities) {
-    if (activity.schoolId && activity.schoolName) {
-      schoolsMap.set(activity.schoolId, activity.schoolName);
+    if (activity.subject?.id && activity.subject?.name) {
+      maps.subjectsMap.set(activity.subject.id, activity.subject.name);
     }
-    if (activity.subjectId && activity.subjectName) {
-      subjectsMap.set(activity.subjectId, activity.subjectName);
-    }
-    if (activity.className) {
-      // Use className as ID if no classId available
-      classesMap.set(activity.className, activity.className);
-    }
-    if (activity.year) {
-      schoolYearsMap.set(activity.year, activity.year);
-    }
+    activity.breakdown?.forEach((item) => populateBreakdownMaps(item, maps));
   }
 
   const toOptions = (map: Map<string, string>): ActivityFilterOption[] =>
@@ -129,10 +146,10 @@ export const extractActivityFilterOptions = (
       .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
 
   return {
-    schools: toOptions(schoolsMap),
-    classes: toOptions(classesMap),
-    subjects: toOptions(subjectsMap),
-    schoolYears: toOptions(schoolYearsMap),
+    schools: toOptions(maps.schoolsMap),
+    classes: toOptions(maps.classesMap),
+    subjects: toOptions(maps.subjectsMap),
+    schoolYears: toOptions(maps.schoolYearsMap),
   };
 };
 
