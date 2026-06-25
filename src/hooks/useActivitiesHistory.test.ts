@@ -45,13 +45,22 @@ describe('useActivitiesHistory', () => {
       finalDate: '2024-12-31',
       status: ActivityApiStatus.A_VENCER,
       completionPercentage: 75,
-      subjectId: 'subject-1',
-      schoolId: 'school-1',
-      schoolName: 'Escola Exemplo',
-      year: '2024',
-      className: 'Turma A',
-      subjectName: 'Matemática',
+      subject: {
+        id: 'subject-1',
+        name: 'Matemática',
+        areaKnowledgeId: 'area-1',
+      },
       creator: { id: 'creator-1', name: 'Prof. Maria' },
+      breakdown: [
+        {
+          school: { id: 'school-1', name: 'Escola Exemplo' },
+          schoolYear: { id: 'year-1', name: '2024' },
+          class: { id: 'class-1', name: 'Turma A' },
+          totalStudents: 30,
+          answeredStudents: 20,
+          completionPercentage: 75,
+        },
+      ],
     };
 
     it('should transform activity correctly with all fields', () => {
@@ -90,44 +99,124 @@ describe('useActivitiesHistory', () => {
       expect(result.deadline).toBe('-');
     });
 
-    it('should handle missing schoolName', () => {
+    it('should use "-" when breakdown is absent', () => {
       const activity: ActivityHistoryResponse = {
         ...baseActivity,
-        schoolName: undefined,
+        breakdown: undefined,
       };
 
       const result = transformActivityToTableItem(activity);
       expect(result.school).toBe('-');
-    });
-
-    it('should handle missing className', () => {
-      const activity: ActivityHistoryResponse = {
-        ...baseActivity,
-        className: undefined,
-      };
-
-      const result = transformActivityToTableItem(activity);
+      expect(result.year).toBe('-');
       expect(result.class).toBe('-');
     });
 
-    it('should handle missing subjectName', () => {
+    it('should use "-" when breakdown is empty array', () => {
       const activity: ActivityHistoryResponse = {
         ...baseActivity,
-        subjectName: undefined,
+        breakdown: [],
+      };
+
+      const result = transformActivityToTableItem(activity);
+      expect(result.school).toBe('-');
+      expect(result.year).toBe('-');
+      expect(result.class).toBe('-');
+    });
+
+    it('should use "-" when subject is null', () => {
+      const activity: ActivityHistoryResponse = {
+        ...baseActivity,
+        subject: null,
       };
 
       const result = transformActivityToTableItem(activity);
       expect(result.subject).toBe('-');
     });
 
-    it('should handle missing year', () => {
+    it('should use "-" when breakdown school is null', () => {
       const activity: ActivityHistoryResponse = {
         ...baseActivity,
-        year: undefined,
+        breakdown: [
+          {
+            school: null,
+            schoolYear: { id: 'year-1', name: '2024' },
+            class: { id: 'class-1', name: 'Turma A' },
+            totalStudents: 30,
+            answeredStudents: 20,
+            completionPercentage: 75,
+          },
+        ],
+      };
+
+      const result = transformActivityToTableItem(activity);
+      expect(result.school).toBe('-');
+    });
+
+    it('should use "-" when breakdown schoolYear is null', () => {
+      const activity: ActivityHistoryResponse = {
+        ...baseActivity,
+        breakdown: [
+          {
+            school: { id: 'school-1', name: 'Escola Exemplo' },
+            schoolYear: null,
+            class: { id: 'class-1', name: 'Turma A' },
+            totalStudents: 30,
+            answeredStudents: 20,
+            completionPercentage: 75,
+          },
+        ],
       };
 
       const result = transformActivityToTableItem(activity);
       expect(result.year).toBe('-');
+    });
+
+    it('should use "-" when breakdown class is null', () => {
+      const activity: ActivityHistoryResponse = {
+        ...baseActivity,
+        breakdown: [
+          {
+            school: { id: 'school-1', name: 'Escola Exemplo' },
+            schoolYear: { id: 'year-1', name: '2024' },
+            class: null,
+            totalStudents: 30,
+            answeredStudents: 20,
+            completionPercentage: 75,
+          },
+        ],
+      };
+
+      const result = transformActivityToTableItem(activity);
+      expect(result.class).toBe('-');
+    });
+
+    it('should use first breakdown entry for school/year/class', () => {
+      const activity: ActivityHistoryResponse = {
+        ...baseActivity,
+        breakdown: [
+          {
+            school: { id: 'school-1', name: 'Escola Exemplo' },
+            schoolYear: { id: 'year-1', name: '2024' },
+            class: { id: 'class-1', name: 'Turma A' },
+            totalStudents: 30,
+            answeredStudents: 20,
+            completionPercentage: 75,
+          },
+          {
+            school: { id: 'school-2', name: 'Outra Escola' },
+            schoolYear: { id: 'year-2', name: '2025' },
+            class: { id: 'class-2', name: 'Turma B' },
+            totalStudents: 25,
+            answeredStudents: 15,
+            completionPercentage: 60,
+          },
+        ],
+      };
+
+      const result = transformActivityToTableItem(activity);
+      expect(result.school).toBe('Escola Exemplo');
+      expect(result.year).toBe('2024');
+      expect(result.class).toBe('Turma A');
     });
 
     it('should map A_VENCER status to ATIVA', () => {
@@ -180,16 +269,6 @@ describe('useActivitiesHistory', () => {
       expect(result.creator).toBe('-');
     });
 
-    it('should use "-" when creator is undefined', () => {
-      const activity: ActivityHistoryResponse = {
-        ...baseActivity,
-        creator: undefined,
-      };
-
-      const result = transformActivityToTableItem(activity);
-      expect(result.creator).toBe('-');
-    });
-
     it('should use "-" when creator name is empty string', () => {
       const activity: ActivityHistoryResponse = {
         ...baseActivity,
@@ -230,13 +309,22 @@ describe('useActivitiesHistory', () => {
             finalDate: '2024-12-31',
             status: ActivityApiStatus.A_VENCER,
             completionPercentage: 75,
-            subjectId: '123e4567-e89b-12d3-a456-426614174001',
-            schoolId: 'school-1',
-            schoolName: 'Escola Exemplo',
-            year: '2024',
-            className: 'Turma A',
-            subjectName: 'Matemática',
+            subject: {
+              id: '123e4567-e89b-12d3-a456-426614174001',
+              name: 'Matemática',
+              areaKnowledgeId: 'area-knowledge-1',
+            },
             creator: { id: 'creator-1', name: 'Prof. Maria' },
+            breakdown: [
+              {
+                school: { id: 'school-1', name: 'Escola Exemplo' },
+                schoolYear: { id: 'year-1', name: '2024' },
+                class: { id: 'class-1', name: 'Turma A' },
+                totalStudents: 30,
+                answeredStudents: 20,
+                completionPercentage: 75,
+              },
+            ],
           },
         ],
         pagination: {
