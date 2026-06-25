@@ -150,6 +150,8 @@ describe('useActivitiesHistory', () => {
 
       const result = transformActivityToTableItem(activity);
       expect(result.school).toBe('-');
+      expect(result.year).toBe('2024');
+      expect(result.class).toBe('Turma A');
     });
 
     it('should use "-" when breakdown schoolYear is null', () => {
@@ -169,6 +171,8 @@ describe('useActivitiesHistory', () => {
 
       const result = transformActivityToTableItem(activity);
       expect(result.year).toBe('-');
+      expect(result.school).toBe('Escola Exemplo');
+      expect(result.class).toBe('Turma A');
     });
 
     it('should use "-" when breakdown class is null', () => {
@@ -188,6 +192,8 @@ describe('useActivitiesHistory', () => {
 
       const result = transformActivityToTableItem(activity);
       expect(result.class).toBe('-');
+      expect(result.school).toBe('Escola Exemplo');
+      expect(result.year).toBe('2024');
     });
 
     it('should use first breakdown entry for school/year/class', () => {
@@ -312,7 +318,7 @@ describe('useActivitiesHistory', () => {
             subject: {
               id: '123e4567-e89b-12d3-a456-426614174001',
               name: 'Matemática',
-              areaKnowledgeId: 'area-knowledge-1',
+              areaKnowledgeId: 'area-1',
             },
             creator: { id: 'creator-1', name: 'Prof. Maria' },
             breakdown: [
