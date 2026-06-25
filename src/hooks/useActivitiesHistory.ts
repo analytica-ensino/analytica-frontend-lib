@@ -105,6 +105,9 @@ type ActivityFilterMaps = {
   schoolYearsMap: Map<string, string>;
 };
 
+/**
+ * Populate filter maps from a single breakdown item.
+ */
 const populateBreakdownMaps = (
   item: ActivityBreakdownItem,
   maps: ActivityFilterMaps
