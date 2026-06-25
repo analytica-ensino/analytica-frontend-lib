@@ -10,7 +10,10 @@ import type {
   ActivityPagination,
   ActivityFilterOption,
 } from '../types/activitiesHistory';
-import { mergeFilterOptions } from '../utils/filterHelpers';
+import {
+  mergeFilterOptions,
+  extractBreakdownFilterOptions,
+} from '../utils/filterHelpers';
 
 /**
  * Options for configuring the useActivitiesHistory hook
@@ -76,6 +79,7 @@ export const DEFAULT_ACTIVITY_FILTER_OPTIONS: ActivityApiFilterOptions = {
 export const transformActivityToTableItem = (
   activity: ActivityHistoryResponse
 ): ActivityTableItem => {
+  const firstBreakdown = activity.breakdown?.[0];
   return {
     id: activity.id,
     startDate: activity.startDate
@@ -87,54 +91,22 @@ export const transformActivityToTableItem = (
     creator: activity.creator?.name?.trim() ? activity.creator.name : '-',
     creatorId: activity.creator?.id ?? null,
     title: activity.title,
-    school: activity.schoolName || '-',
-    year: activity.year || '-',
-    subject: activity.subjectName || '-',
-    class: activity.className || '-',
+    school: firstBreakdown?.school?.name ?? '-',
+    year: firstBreakdown?.schoolYear?.name ?? '-',
+    subject: activity.subject?.name ?? '-',
+    class: firstBreakdown?.class?.name ?? '-',
     status: mapApiStatusToDisplay(activity.status),
     completionPercentage: activity.completionPercentage,
   };
 };
 
 /**
- * Extract unique filter options from activities API response
+ * Extract unique filter options from activities API response.
+ * Delegates to the shared extractBreakdownFilterOptions helper.
  */
 export const extractActivityFilterOptions = (
   activities: ActivityHistoryResponse[]
-): ActivityApiFilterOptions => {
-  const schoolsMap = new Map<string, string>();
-  const classesMap = new Map<string, string>();
-  const subjectsMap = new Map<string, string>();
-  const schoolYearsMap = new Map<string, string>();
-
-  for (const activity of activities) {
-    if (activity.schoolId && activity.schoolName) {
-      schoolsMap.set(activity.schoolId, activity.schoolName);
-    }
-    if (activity.subjectId && activity.subjectName) {
-      subjectsMap.set(activity.subjectId, activity.subjectName);
-    }
-    if (activity.className) {
-      // Use className as ID if no classId available
-      classesMap.set(activity.className, activity.className);
-    }
-    if (activity.year) {
-      schoolYearsMap.set(activity.year, activity.year);
-    }
-  }
-
-  const toOptions = (map: Map<string, string>): ActivityFilterOption[] =>
-    Array.from(map.entries())
-      .map(([id, name]) => ({ id, name }))
-      .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
-
-  return {
-    schools: toOptions(schoolsMap),
-    classes: toOptions(classesMap),
-    subjects: toOptions(subjectsMap),
-    schoolYears: toOptions(schoolYearsMap),
-  };
-};
+): ActivityApiFilterOptions => extractBreakdownFilterOptions(activities);
 
 /**
  * Build query params from filters

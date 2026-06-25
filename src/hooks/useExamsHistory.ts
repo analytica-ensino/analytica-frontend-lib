@@ -9,11 +9,12 @@ import type {
   ExamHistoryFilters,
   ExamPagination,
   ExamApiFilterOptions,
-  ExamFilterOption,
-  ExamBreakdownItem,
 } from '../types/examsHistory';
 import { createFetchErrorHandler } from '../utils/hookErrorHandler';
-import { mergeFilterOptions } from '../utils/filterHelpers';
+import {
+  mergeFilterOptions,
+  extractBreakdownFilterOptions,
+} from '../utils/filterHelpers';
 
 /**
  * Hook state interface
@@ -86,63 +87,13 @@ export const handleExamFetchError = createFetchErrorHandler(
   'Erro ao carregar historico de provas'
 );
 
-type ExamFilterMaps = {
-  schoolsMap: Map<string, string>;
-  classesMap: Map<string, string>;
-  subjectsMap: Map<string, string>;
-  schoolYearsMap: Map<string, string>;
-};
-
 /**
- * Populate filter maps from a single breakdown item.
- */
-const populateBreakdownMaps = (
-  item: ExamBreakdownItem,
-  maps: ExamFilterMaps
-): void => {
-  if (item.school?.id && item.school?.name) {
-    maps.schoolsMap.set(item.school.id, item.school.name);
-  }
-  if (item.class?.id && item.class?.name) {
-    maps.classesMap.set(item.class.id, item.class.name);
-  }
-  if (item.schoolYear?.id && item.schoolYear?.name) {
-    maps.schoolYearsMap.set(item.schoolYear.id, item.schoolYear.name);
-  }
-};
-
-/**
- * Extract unique school, class, and subject filter options from exams API response
+ * Extract unique filter options from exams API response.
+ * Delegates to the shared extractBreakdownFilterOptions helper.
  */
 export const extractExamFilterOptions = (
   exams: ExamHistoryResponse[]
-): ExamApiFilterOptions => {
-  const maps: ExamFilterMaps = {
-    schoolsMap: new Map<string, string>(),
-    classesMap: new Map<string, string>(),
-    subjectsMap: new Map<string, string>(),
-    schoolYearsMap: new Map<string, string>(),
-  };
-
-  for (const exam of exams) {
-    if (exam.subject?.id && exam.subject?.name) {
-      maps.subjectsMap.set(exam.subject.id, exam.subject.name);
-    }
-    exam.breakdown?.forEach((item) => populateBreakdownMaps(item, maps));
-  }
-
-  const toOptions = (map: Map<string, string>): ExamFilterOption[] =>
-    Array.from(map.entries())
-      .map(([id, name]) => ({ id, name }))
-      .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
-
-  return {
-    schools: toOptions(maps.schoolsMap),
-    classes: toOptions(maps.classesMap),
-    subjects: toOptions(maps.subjectsMap),
-    schoolYears: toOptions(maps.schoolYearsMap),
-  };
-};
+): ExamApiFilterOptions => extractBreakdownFilterOptions(exams);
 
 /**
  * Build query params from filters
