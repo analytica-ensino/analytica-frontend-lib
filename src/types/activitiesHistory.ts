@@ -40,6 +40,30 @@ export enum ActivityDraftType {
 }
 
 /**
+ * Generic entity reference with id and name
+ */
+type EntityRef = { id: string; name: string };
+
+/**
+ * Subject object from backend API response
+ */
+export interface ActivitySubject extends EntityRef {
+  areaKnowledgeId: string;
+}
+
+/**
+ * Breakdown item per school/class for an activity response
+ */
+export interface ActivityBreakdownItem {
+  school?: EntityRef | null;
+  schoolYear?: EntityRef | null;
+  class?: EntityRef | null;
+  totalStudents: number;
+  answeredStudents: number;
+  completionPercentage: number;
+}
+
+/**
  * Activity history response from backend API /activities/history
  */
 export interface ActivityHistoryResponse {
@@ -49,13 +73,11 @@ export interface ActivityHistoryResponse {
   finalDate: string | null;
   status: GenericApiStatus;
   completionPercentage: number;
-  subjectId?: string | null;
-  schoolId?: string;
-  schoolName?: string;
-  year?: string;
-  className?: string;
-  subjectName?: string;
-  creator?: { id: string; name: string } | null;
+  subject: ActivitySubject | null;
+  creator: EntityRef | null;
+  totalStudents?: number;
+  answeredStudents?: number;
+  breakdown?: ActivityBreakdownItem[];
 }
 
 /**
