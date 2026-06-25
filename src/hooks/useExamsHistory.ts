@@ -9,7 +9,6 @@ import type {
   ExamHistoryFilters,
   ExamPagination,
   ExamApiFilterOptions,
-  ExamFilterOption,
 } from '../types/examsHistory';
 import { createFetchErrorHandler } from '../utils/hookErrorHandler';
 import {
