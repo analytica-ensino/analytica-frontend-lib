@@ -9,9 +9,11 @@ import type {
   ActivityHistoryFilters,
   ActivityPagination,
   ActivityFilterOption,
-  ActivityBreakdownItem,
 } from '../types/activitiesHistory';
-import { mergeFilterOptions } from '../utils/filterHelpers';
+import {
+  mergeFilterOptions,
+  extractBreakdownFilterOptions,
+} from '../utils/filterHelpers';
 
 /**
  * Options for configuring the useActivitiesHistory hook
@@ -98,63 +100,13 @@ export const transformActivityToTableItem = (
   };
 };
 
-type ActivityFilterMaps = {
-  schoolsMap: Map<string, string>;
-  classesMap: Map<string, string>;
-  subjectsMap: Map<string, string>;
-  schoolYearsMap: Map<string, string>;
-};
-
 /**
- * Populate filter maps from a single breakdown item.
- */
-const populateBreakdownMaps = (
-  item: ActivityBreakdownItem,
-  maps: ActivityFilterMaps
-): void => {
-  if (item.school?.id && item.school?.name) {
-    maps.schoolsMap.set(item.school.id, item.school.name);
-  }
-  if (item.class?.id && item.class?.name) {
-    maps.classesMap.set(item.class.id, item.class.name);
-  }
-  if (item.schoolYear?.id && item.schoolYear?.name) {
-    maps.schoolYearsMap.set(item.schoolYear.id, item.schoolYear.name);
-  }
-};
-
-/**
- * Extract unique filter options from activities API response
+ * Extract unique filter options from activities API response.
+ * Delegates to the shared extractBreakdownFilterOptions helper.
  */
 export const extractActivityFilterOptions = (
   activities: ActivityHistoryResponse[]
-): ActivityApiFilterOptions => {
-  const maps: ActivityFilterMaps = {
-    schoolsMap: new Map<string, string>(),
-    classesMap: new Map<string, string>(),
-    subjectsMap: new Map<string, string>(),
-    schoolYearsMap: new Map<string, string>(),
-  };
-
-  for (const activity of activities) {
-    if (activity.subject?.id && activity.subject?.name) {
-      maps.subjectsMap.set(activity.subject.id, activity.subject.name);
-    }
-    activity.breakdown?.forEach((item) => populateBreakdownMaps(item, maps));
-  }
-
-  const toOptions = (map: Map<string, string>): ActivityFilterOption[] =>
-    Array.from(map.entries())
-      .map(([id, name]) => ({ id, name }))
-      .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
-
-  return {
-    schools: toOptions(maps.schoolsMap),
-    classes: toOptions(maps.classesMap),
-    subjects: toOptions(maps.subjectsMap),
-    schoolYears: toOptions(maps.schoolYearsMap),
-  };
-};
+): ActivityApiFilterOptions => extractBreakdownFilterOptions(activities);
 
 /**
  * Build query params from filters

@@ -227,3 +227,93 @@ export const mergeFilterOptions = (
     .map(([id, name]) => ({ id, name }))
     .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
 };
+
+/**
+ * Generic entity reference with id and name.
+ * Used internally for structural typing in extractBreakdownFilterOptions.
+ */
+interface EntityRefLike {
+  id: string;
+  name: string;
+}
+
+/**
+ * Structural shape of a single breakdown entry (school/class/schoolYear).
+ * Matches both ActivityBreakdownItem and ExamBreakdownItem.
+ */
+interface BreakdownLike {
+  school?: EntityRefLike | null;
+  schoolYear?: EntityRefLike | null;
+  class?: EntityRefLike | null;
+}
+
+/**
+ * Structural shape of a history item that carries subject and breakdown data.
+ * Matches both ActivityHistoryResponse and ExamHistoryResponse.
+ */
+interface BreakdownHistoryItem {
+  subject?: EntityRefLike | null;
+  breakdown?: BreakdownLike[];
+}
+
+/**
+ * Filter options extracted from a list of history items with breakdown data.
+ */
+export interface BreakdownFilterOptions {
+  schools: ActivityFilterOption[];
+  classes: ActivityFilterOption[];
+  subjects: ActivityFilterOption[];
+  schoolYears: ActivityFilterOption[];
+}
+
+/**
+ * Extract unique filter options (schools, classes, subjects, schoolYears)
+ * from a list of history items that carry subject and breakdown data.
+ *
+ * Used by both useActivitiesHistory and useExamsHistory to avoid duplication.
+ *
+ * @param items - Array of history items (activities or exams) from the API
+ * @returns Deduplicated, sorted filter options grouped by dimension
+ *
+ * @example
+ * ```typescript
+ * const options = extractBreakdownFilterOptions(data.activities);
+ * // Returns: { schools: [...], classes: [...], subjects: [...], schoolYears: [...] }
+ * ```
+ */
+export const extractBreakdownFilterOptions = (
+  items: BreakdownHistoryItem[]
+): BreakdownFilterOptions => {
+  const schoolsMap = new Map<string, string>();
+  const classesMap = new Map<string, string>();
+  const subjectsMap = new Map<string, string>();
+  const schoolYearsMap = new Map<string, string>();
+
+  const setIfPresent = (
+    map: Map<string, string>,
+    ref: EntityRefLike | null | undefined
+  ): void => {
+    if (ref?.id && ref?.name) map.set(ref.id, ref.name);
+  };
+
+  for (const item of items) {
+    setIfPresent(subjectsMap, item.subject);
+    item.breakdown?.forEach((b) => {
+      setIfPresent(schoolsMap, b.school);
+      setIfPresent(classesMap, b.class);
+      setIfPresent(schoolYearsMap, b.schoolYear);
+    });
+  }
+
+  const toOptions = (map: Map<string, string>): ActivityFilterOption[] =>
+    Array.from(map.entries())
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+
+  return {
+    schools: toOptions(schoolsMap),
+    classes: toOptions(classesMap),
+    subjects: toOptions(subjectsMap),
+    schoolYears: toOptions(schoolYearsMap),
+  };
+};
