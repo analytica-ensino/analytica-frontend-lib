@@ -50,10 +50,19 @@ export const useProfileLabels = (
   const { institutionId } = useAppStore();
 
   useEffect(() => {
+    // Clear the previous institution's labels so we never render stale
+    // nomenclatura while the next fetch is in flight (or when it goes null).
+    setCustomLabels({});
+
     if (!institutionId) {
       setLoading(false);
       return;
     }
+
+    // Guard against out-of-order responses: a slower earlier request must not
+    // overwrite the labels of a newer institutionId.
+    let active = true;
+    setLoading(true);
 
     const fetchProfileLabels = async () => {
       try {
@@ -61,17 +70,22 @@ export const useProfileLabels = (
           data: { featureFlags: ProfileLabelsFeatureFlag };
         }>(`/featureFlags/institution/${institutionId}/page/PROFILE_LABELS`);
 
+        if (!active) return;
         const version = response?.data?.featureFlags?.version;
         setCustomLabels(version ?? {});
       } catch {
-        setCustomLabels({});
+        if (active) setCustomLabels({});
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
 
     fetchProfileLabels();
-  }, [institutionId]);
+
+    return () => {
+      active = false;
+    };
+  }, [institutionId, config.apiClient]);
 
   const labels = useMemo(
     () => ({ ...DEFAULT_PROFILE_LABELS, ...customLabels }),

@@ -166,6 +166,97 @@ describe('useProfileLabels', () => {
         '/featureFlags/institution/institution-456/page/PROFILE_LABELS'
       );
     });
+
+    it('limpa os labels da instituição anterior enquanto o novo fetch está em andamento', async () => {
+      let resolveSecond: (value: unknown) => void = () => {};
+      const apiClient: ApiClient = {
+        get: jest
+          .fn()
+          .mockResolvedValueOnce({
+            data: flagResponse({ STUDENT: 'Estudante' }),
+          })
+          .mockImplementationOnce(
+            () =>
+              new Promise((resolve) => {
+                resolveSecond = resolve;
+              })
+          ),
+      };
+
+      const { result } = renderHook(() => useProfileLabels({ apiClient }));
+
+      await waitFor(() =>
+        expect(result.current.getProfileLabel(PROFILE_ROLES.STUDENT)).toBe(
+          'Estudante'
+        )
+      );
+
+      act(() => {
+        useAppStore.setState({ institutionId: 'institution-456' });
+      });
+
+      // Enquanto o fetch da nova instituição não resolve, não pode exibir o
+      // label customizado da anterior — cai no padrão.
+      expect(result.current.customLabels).toEqual({});
+      expect(result.current.getProfileLabel(PROFILE_ROLES.STUDENT)).toBe(
+        'Aluno'
+      );
+
+      await act(async () => {
+        resolveSecond({ data: flagResponse({ TEACHER: 'Professor(a)' }) });
+      });
+
+      expect(result.current.getProfileLabel(PROFILE_ROLES.TEACHER)).toBe(
+        'Professor(a)'
+      );
+    });
+
+    it('ignora uma resposta antiga que chega depois da troca de institutionId (race)', async () => {
+      let resolveFirst: (value: unknown) => void = () => {};
+      let resolveSecond: (value: unknown) => void = () => {};
+      const apiClient: ApiClient = {
+        get: jest
+          .fn()
+          .mockImplementationOnce(
+            () =>
+              new Promise((resolve) => {
+                resolveFirst = resolve;
+              })
+          )
+          .mockImplementationOnce(
+            () =>
+              new Promise((resolve) => {
+                resolveSecond = resolve;
+              })
+          ),
+      };
+
+      const { result } = renderHook(() => useProfileLabels({ apiClient }));
+
+      act(() => {
+        useAppStore.setState({ institutionId: 'institution-456' });
+      });
+
+      // A resposta da instituição nova (a segunda chamada) chega primeiro.
+      await act(async () => {
+        resolveSecond({ data: flagResponse({ TEACHER: 'Professor(a)' }) });
+      });
+      expect(result.current.getProfileLabel(PROFILE_ROLES.TEACHER)).toBe(
+        'Professor(a)'
+      );
+
+      // A resposta antiga (instituição já trocada) chega por último e deve ser
+      // ignorada pelo guard de cleanup.
+      await act(async () => {
+        resolveFirst({ data: flagResponse({ STUDENT: 'Antigo' }) });
+      });
+      expect(result.current.getProfileLabel(PROFILE_ROLES.STUDENT)).toBe(
+        'Aluno'
+      );
+      expect(result.current.getProfileLabel(PROFILE_ROLES.TEACHER)).toBe(
+        'Professor(a)'
+      );
+    });
   });
 });
 
