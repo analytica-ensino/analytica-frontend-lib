@@ -67,7 +67,10 @@ const mockActivitiesResponse: ActivitiesHistoryApiResponse = {
         creator: { id: MOCK_UUIDS.users.user1, name: 'Prof. Carlos' },
         breakdown: [
           {
-            school: { id: MOCK_UUIDS.schools.school1, name: 'Escola Municipal São Paulo' },
+            school: {
+              id: MOCK_UUIDS.schools.school1,
+              name: 'Escola Municipal São Paulo',
+            },
             schoolYear: { id: 'year-2024', name: '2024' },
             class: { id: 'class-9a', name: '9º Ano A' },
             totalStudents: 35,
@@ -91,7 +94,10 @@ const mockActivitiesResponse: ActivitiesHistoryApiResponse = {
         creator: { id: MOCK_UUIDS.users.user1, name: 'Prof. Carlos' },
         breakdown: [
           {
-            school: { id: MOCK_UUIDS.schools.school1, name: 'Escola Municipal São Paulo' },
+            school: {
+              id: MOCK_UUIDS.schools.school1,
+              name: 'Escola Municipal São Paulo',
+            },
             schoolYear: { id: 'year-2024', name: '2024' },
             class: { id: 'class-8b', name: '8º Ano B' },
             totalStudents: 30,
@@ -115,7 +121,10 @@ const mockActivitiesResponse: ActivitiesHistoryApiResponse = {
         creator: { id: MOCK_UUIDS.users.user1, name: 'Prof. Carlos' },
         breakdown: [
           {
-            school: { id: MOCK_UUIDS.schools.school2, name: 'Colégio Estadual Central' },
+            school: {
+              id: MOCK_UUIDS.schools.school2,
+              name: 'Colégio Estadual Central',
+            },
             schoolYear: { id: 'year-2024', name: '2024' },
             class: { id: 'class-1em', name: '1º Ano EM' },
             totalStudents: 28,
@@ -139,7 +148,10 @@ const mockActivitiesResponse: ActivitiesHistoryApiResponse = {
         creator: { id: MOCK_UUIDS.users.user1, name: 'Prof. Carlos' },
         breakdown: [
           {
-            school: { id: MOCK_UUIDS.schools.school1, name: 'Escola Municipal São Paulo' },
+            school: {
+              id: MOCK_UUIDS.schools.school1,
+              name: 'Escola Municipal São Paulo',
+            },
             schoolYear: { id: 'year-2024', name: '2024' },
             class: { id: 'class-7c', name: '7º Ano C' },
             totalStudents: 32,

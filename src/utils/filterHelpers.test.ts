@@ -515,11 +515,23 @@ describe('filterHelpers', () => {
       const result = extractBreakdownFilterOptions([
         {
           subject: { id: 'sub-1', name: 'Matemática' },
-          breakdown: [{ school: { id: 'sch-1', name: 'Escola A' }, schoolYear: null, class: null }],
+          breakdown: [
+            {
+              school: { id: 'sch-1', name: 'Escola A' },
+              schoolYear: null,
+              class: null,
+            },
+          ],
         },
         {
           subject: { id: 'sub-1', name: 'Matemática' },
-          breakdown: [{ school: { id: 'sch-1', name: 'Escola A' }, schoolYear: null, class: null }],
+          breakdown: [
+            {
+              school: { id: 'sch-1', name: 'Escola A' },
+              schoolYear: null,
+              class: null,
+            },
+          ],
         },
       ]);
 
@@ -531,11 +543,23 @@ describe('filterHelpers', () => {
       const result = extractBreakdownFilterOptions([
         {
           subject: { id: 'sub-1', name: 'Matemática' },
-          breakdown: [{ school: { id: 'sch-1', name: 'Escola A' }, schoolYear: null, class: null }],
+          breakdown: [
+            {
+              school: { id: 'sch-1', name: 'Escola A' },
+              schoolYear: null,
+              class: null,
+            },
+          ],
         },
         {
           subject: { id: 'sub-2', name: 'Português' },
-          breakdown: [{ school: { id: 'sch-2', name: 'Escola B' }, schoolYear: null, class: null }],
+          breakdown: [
+            {
+              school: { id: 'sch-2', name: 'Escola B' },
+              schoolYear: null,
+              class: null,
+            },
+          ],
         },
       ]);
 
@@ -548,8 +572,16 @@ describe('filterHelpers', () => {
         {
           subject: { id: 'sub-1', name: 'Matemática' },
           breakdown: [
-            { school: { id: 'sch-1', name: 'Escola A' }, schoolYear: { id: 'sy-1', name: '2024' }, class: { id: 'cls-1', name: 'Turma A' } },
-            { school: { id: 'sch-2', name: 'Escola B' }, schoolYear: { id: 'sy-2', name: '2025' }, class: { id: 'cls-2', name: 'Turma B' } },
+            {
+              school: { id: 'sch-1', name: 'Escola A' },
+              schoolYear: { id: 'sy-1', name: '2024' },
+              class: { id: 'cls-1', name: 'Turma A' },
+            },
+            {
+              school: { id: 'sch-2', name: 'Escola B' },
+              schoolYear: { id: 'sy-2', name: '2025' },
+              class: { id: 'cls-2', name: 'Turma B' },
+            },
           ],
         },
       ]);
@@ -563,11 +595,23 @@ describe('filterHelpers', () => {
       const result = extractBreakdownFilterOptions([
         {
           subject: { id: 'sub-2', name: 'Português' },
-          breakdown: [{ school: { id: 'sch-2', name: 'Zebra School' }, schoolYear: null, class: null }],
+          breakdown: [
+            {
+              school: { id: 'sch-2', name: 'Zebra School' },
+              schoolYear: null,
+              class: null,
+            },
+          ],
         },
         {
           subject: { id: 'sub-1', name: 'Matemática' },
-          breakdown: [{ school: { id: 'sch-1', name: 'Alpha School' }, schoolYear: null, class: null }],
+          breakdown: [
+            {
+              school: { id: 'sch-1', name: 'Alpha School' },
+              schoolYear: null,
+              class: null,
+            },
+          ],
         },
       ]);
 
@@ -581,7 +625,13 @@ describe('filterHelpers', () => {
       const result = extractBreakdownFilterOptions([
         {
           subject: null,
-          breakdown: [{ school: { id: 'sch-1', name: 'Escola A' }, schoolYear: null, class: null }],
+          breakdown: [
+            {
+              school: { id: 'sch-1', name: 'Escola A' },
+              schoolYear: null,
+              class: null,
+            },
+          ],
         },
       ]);
 
