@@ -146,7 +146,9 @@ export const useModules = (): UseModulesReturn => {
     hasSimulatedReports:
       reports.simulatedReports ?? modules.simulatedReports ?? true,
     hasSimulatedGenericReports:
-      reports.simulatedGenericReports ?? modules.simulatedGenericReports ?? false,
+      reports.simulatedGenericReports ??
+      modules.simulatedGenericReports ??
+      false,
     hasActivitiesReports:
       reports.activitiesReports ?? modules.activitiesReports ?? true,
     hasQuestionnairesReports:
