@@ -228,6 +228,10 @@ export default defineConfig({
     'hooks/useSupportFeatureFlag/index': 'src/hooks/useSupportFeatureFlag.ts',
     'hooks/useZendesk/index': 'src/hooks/useZendesk.ts',
 
+    // Profile labels (per-institution custom nomenclatura)
+    'hooks/useProfileLabels/index': 'src/hooks/useProfileLabels.ts',
+    'types/profileLabels/index': 'src/types/profileLabels.ts',
+
     // ============================================================
     // Bundle migration: subpath entries for symbols consumed by the
     // apps. Grouped by kind for legibility. Each entry maps a public
