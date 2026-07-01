@@ -51,7 +51,9 @@ export interface UseModulesReturn {
 
   // Reports
   hasSimulatedReports: boolean;
+  hasSimulatedGenericReports: boolean;
   hasActivitiesReports: boolean;
+  hasQuestionnairesReports: boolean;
   hasLessonsReports: boolean;
   hasEssayReports: boolean;
   reports: ReportsConfig;
@@ -143,8 +145,12 @@ export const useModules = (): UseModulesReturn => {
     // Reports (support both nested and flat for backwards compatibility)
     hasSimulatedReports:
       reports.simulatedReports ?? modules.simulatedReports ?? true,
+    hasSimulatedGenericReports:
+      reports.simulatedGenericReports ?? modules.simulatedGenericReports ?? false,
     hasActivitiesReports:
       reports.activitiesReports ?? modules.activitiesReports ?? true,
+    hasQuestionnairesReports:
+      reports.questionnairesReports ?? modules.questionnairesReports ?? false,
     hasLessonsReports: reports.lessonsReports ?? modules.lessonsReports ?? true,
     hasEssayReports: reports.essayReports ?? true,
     reports,

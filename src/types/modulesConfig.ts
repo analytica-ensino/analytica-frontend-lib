@@ -35,8 +35,10 @@ export interface PerformanceGraphsConfig {
  * Configuration for Reports
  */
 export interface ReportsConfig {
-  simulatedReports: boolean;
+  simulatedReports: boolean; // Simulados Enem (existing)
+  simulatedGenericReports: boolean; // Simulados (new version)
   activitiesReports: boolean;
+  questionnairesReports: boolean; // Questionários
   lessonsReports: boolean;
   essayReports: boolean;
 }
@@ -82,7 +84,9 @@ export const DEFAULT_PERFORMANCE_GRAPHS: PerformanceGraphsConfig = {
  */
 export const DEFAULT_REPORTS: ReportsConfig = {
   simulatedReports: true,
+  simulatedGenericReports: false, // New reports default to disabled
   activitiesReports: true,
+  questionnairesReports: false, // New reports default to disabled
   lessonsReports: true,
   essayReports: true,
 };
@@ -135,7 +139,9 @@ export interface ModulesConfig {
 
   // Legacy flat fields (for backwards compatibility)
   simulatedReports: boolean;
+  simulatedGenericReports: boolean;
   activitiesReports: boolean;
+  questionnairesReports: boolean;
   lessonsReports: boolean;
   essayReports: boolean;
   simulatedScoreTri: boolean;
@@ -173,7 +179,9 @@ export const DEFAULT_MODULES: ModulesConfig = {
 
   // Legacy flat fields (for backwards compatibility)
   simulatedReports: true,
+  simulatedGenericReports: false,
   activitiesReports: true,
+  questionnairesReports: false,
   lessonsReports: true,
   essayReports: true,
   simulatedScoreTri: true,
