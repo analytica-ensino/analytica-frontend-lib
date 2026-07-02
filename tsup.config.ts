@@ -51,6 +51,11 @@ export default defineConfig({
     'StatisticsCard/index': 'src/components/StatisticsCard/StatisticsCard.tsx',
     'StudentRanking/index': 'src/components/StudentRanking/StudentRanking.tsx',
     'QuestionsData/index': 'src/components/QuestionsData/QuestionsData.tsx',
+    'SimpleBarChart/index': 'src/components/SimpleBarChart/SimpleBarChart.tsx',
+    'VerticalBarChart/index':
+      'src/components/VerticalBarChart/VerticalBarChart.tsx',
+    'ProficiencyChart/index':
+      'src/components/ProficiencyChart/ProficiencyChart.tsx',
     'Calendar/index': 'src/components/Calendar/Calendar.tsx',
     'Stepper/index': 'src/components/Stepper/Stepper.tsx',
     'Skeleton/index': 'src/components/Skeleton/Skeleton.tsx',
