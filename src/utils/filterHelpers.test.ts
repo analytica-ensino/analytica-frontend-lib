@@ -4,6 +4,7 @@ import {
   getSchoolYearOptionsFromUserData,
   getClassOptionsFromUserData,
   buildUserFilterData,
+  extractBreakdownFilterOptions,
   type UserFilterSourceData,
 } from './filterHelpers';
 
@@ -478,6 +479,198 @@ describe('filterHelpers', () => {
       expect(result.subjects).toHaveLength(1);
       expect(result.schools[0].name).toBe('Escola A');
       expect(result.subjects[0].name).toBe('Matemática');
+    });
+  });
+
+  describe('extractBreakdownFilterOptions', () => {
+    it('should return empty arrays when given empty list', () => {
+      const result = extractBreakdownFilterOptions([]);
+      expect(result.schools).toEqual([]);
+      expect(result.classes).toEqual([]);
+      expect(result.subjects).toEqual([]);
+      expect(result.schoolYears).toEqual([]);
+    });
+
+    it('should extract subject, school, class and schoolYear from a single item', () => {
+      const result = extractBreakdownFilterOptions([
+        {
+          subject: { id: 'sub-1', name: 'Matemática' },
+          breakdown: [
+            {
+              school: { id: 'sch-1', name: 'Escola A' },
+              schoolYear: { id: 'sy-1', name: '2024' },
+              class: { id: 'cls-1', name: 'Turma A' },
+            },
+          ],
+        },
+      ]);
+
+      expect(result.subjects).toEqual([{ id: 'sub-1', name: 'Matemática' }]);
+      expect(result.schools).toEqual([{ id: 'sch-1', name: 'Escola A' }]);
+      expect(result.schoolYears).toEqual([{ id: 'sy-1', name: '2024' }]);
+      expect(result.classes).toEqual([{ id: 'cls-1', name: 'Turma A' }]);
+    });
+
+    it('should deduplicate entries by id across multiple items', () => {
+      const result = extractBreakdownFilterOptions([
+        {
+          subject: { id: 'sub-1', name: 'Matemática' },
+          breakdown: [
+            {
+              school: { id: 'sch-1', name: 'Escola A' },
+              schoolYear: null,
+              class: null,
+            },
+          ],
+        },
+        {
+          subject: { id: 'sub-1', name: 'Matemática' },
+          breakdown: [
+            {
+              school: { id: 'sch-1', name: 'Escola A' },
+              schoolYear: null,
+              class: null,
+            },
+          ],
+        },
+      ]);
+
+      expect(result.subjects).toHaveLength(1);
+      expect(result.schools).toHaveLength(1);
+    });
+
+    it('should aggregate breakdown entries across multiple items', () => {
+      const result = extractBreakdownFilterOptions([
+        {
+          subject: { id: 'sub-1', name: 'Matemática' },
+          breakdown: [
+            {
+              school: { id: 'sch-1', name: 'Escola A' },
+              schoolYear: null,
+              class: null,
+            },
+          ],
+        },
+        {
+          subject: { id: 'sub-2', name: 'Português' },
+          breakdown: [
+            {
+              school: { id: 'sch-2', name: 'Escola B' },
+              schoolYear: null,
+              class: null,
+            },
+          ],
+        },
+      ]);
+
+      expect(result.subjects).toHaveLength(2);
+      expect(result.schools).toHaveLength(2);
+    });
+
+    it('should aggregate multiple breakdowns within a single item', () => {
+      const result = extractBreakdownFilterOptions([
+        {
+          subject: { id: 'sub-1', name: 'Matemática' },
+          breakdown: [
+            {
+              school: { id: 'sch-1', name: 'Escola A' },
+              schoolYear: { id: 'sy-1', name: '2024' },
+              class: { id: 'cls-1', name: 'Turma A' },
+            },
+            {
+              school: { id: 'sch-2', name: 'Escola B' },
+              schoolYear: { id: 'sy-2', name: '2025' },
+              class: { id: 'cls-2', name: 'Turma B' },
+            },
+          ],
+        },
+      ]);
+
+      expect(result.schools).toHaveLength(2);
+      expect(result.schoolYears).toHaveLength(2);
+      expect(result.classes).toHaveLength(2);
+    });
+
+    it('should sort results by name in pt-BR locale', () => {
+      const result = extractBreakdownFilterOptions([
+        {
+          subject: { id: 'sub-2', name: 'Português' },
+          breakdown: [
+            {
+              school: { id: 'sch-2', name: 'Zebra School' },
+              schoolYear: null,
+              class: null,
+            },
+          ],
+        },
+        {
+          subject: { id: 'sub-1', name: 'Matemática' },
+          breakdown: [
+            {
+              school: { id: 'sch-1', name: 'Alpha School' },
+              schoolYear: null,
+              class: null,
+            },
+          ],
+        },
+      ]);
+
+      expect(result.subjects[0].name).toBe('Matemática');
+      expect(result.subjects[1].name).toBe('Português');
+      expect(result.schools[0].name).toBe('Alpha School');
+      expect(result.schools[1].name).toBe('Zebra School');
+    });
+
+    it('should use "-" fallback — subject null is ignored', () => {
+      const result = extractBreakdownFilterOptions([
+        {
+          subject: null,
+          breakdown: [
+            {
+              school: { id: 'sch-1', name: 'Escola A' },
+              schoolYear: null,
+              class: null,
+            },
+          ],
+        },
+      ]);
+
+      expect(result.subjects).toEqual([]);
+      expect(result.schools).toHaveLength(1);
+    });
+
+    it('should ignore breakdown when absent', () => {
+      const result = extractBreakdownFilterOptions([
+        { subject: { id: 'sub-1', name: 'Matemática' } },
+      ]);
+
+      expect(result.subjects).toHaveLength(1);
+      expect(result.schools).toEqual([]);
+      expect(result.classes).toEqual([]);
+      expect(result.schoolYears).toEqual([]);
+    });
+
+    it('should ignore breakdown when empty array', () => {
+      const result = extractBreakdownFilterOptions([
+        { subject: { id: 'sub-1', name: 'Matemática' }, breakdown: [] },
+      ]);
+
+      expect(result.subjects).toHaveLength(1);
+      expect(result.schools).toEqual([]);
+    });
+
+    it('should ignore null school/class/schoolYear within a breakdown entry', () => {
+      const result = extractBreakdownFilterOptions([
+        {
+          subject: { id: 'sub-1', name: 'Matemática' },
+          breakdown: [{ school: null, schoolYear: null, class: null }],
+        },
+      ]);
+
+      expect(result.schools).toEqual([]);
+      expect(result.classes).toEqual([]);
+      expect(result.schoolYears).toEqual([]);
+      expect(result.subjects).toHaveLength(1);
     });
   });
 });

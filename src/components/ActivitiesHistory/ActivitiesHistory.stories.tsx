@@ -59,11 +59,25 @@ const mockActivitiesResponse: ActivitiesHistoryApiResponse = {
         finalDate: '2024-12-15',
         status: ActivityApiStatus.A_VENCER,
         completionPercentage: 75,
-        subjectId: MOCK_UUIDS.subjects.math,
-        schoolName: 'Escola Municipal São Paulo',
-        year: '2024',
-        className: '9º Ano A',
-        subjectName: 'Matemática',
+        subject: {
+          id: MOCK_UUIDS.subjects.math,
+          name: 'Matemática',
+          areaKnowledgeId: 'area-exatas',
+        },
+        creator: { id: MOCK_UUIDS.users.user1, name: 'Prof. Carlos' },
+        breakdown: [
+          {
+            school: {
+              id: MOCK_UUIDS.schools.school1,
+              name: 'Escola Municipal São Paulo',
+            },
+            schoolYear: { id: 'year-2024', name: '2024' },
+            class: { id: 'class-9a', name: '9º Ano A' },
+            totalStudents: 35,
+            answeredStudents: 26,
+            completionPercentage: 75,
+          },
+        ],
       },
       {
         id: MOCK_UUIDS.activities.activity2,
@@ -72,11 +86,25 @@ const mockActivitiesResponse: ActivitiesHistoryApiResponse = {
         finalDate: '2024-11-30',
         status: ActivityApiStatus.VENCIDA,
         completionPercentage: 45,
-        subjectId: MOCK_UUIDS.subjects.portuguese,
-        schoolName: 'Escola Municipal São Paulo',
-        year: '2024',
-        className: '8º Ano B',
-        subjectName: 'Português',
+        subject: {
+          id: MOCK_UUIDS.subjects.portuguese,
+          name: 'Português',
+          areaKnowledgeId: 'area-humanas',
+        },
+        creator: { id: MOCK_UUIDS.users.user1, name: 'Prof. Carlos' },
+        breakdown: [
+          {
+            school: {
+              id: MOCK_UUIDS.schools.school1,
+              name: 'Escola Municipal São Paulo',
+            },
+            schoolYear: { id: 'year-2024', name: '2024' },
+            class: { id: 'class-8b', name: '8º Ano B' },
+            totalStudents: 30,
+            answeredStudents: 14,
+            completionPercentage: 45,
+          },
+        ],
       },
       {
         id: MOCK_UUIDS.activities.activity3,
@@ -85,11 +113,25 @@ const mockActivitiesResponse: ActivitiesHistoryApiResponse = {
         finalDate: '2024-10-01',
         status: ActivityApiStatus.CONCLUIDA,
         completionPercentage: 100,
-        subjectId: MOCK_UUIDS.subjects.physics,
-        schoolName: 'Colégio Estadual Central',
-        year: '2024',
-        className: '1º Ano EM',
-        subjectName: 'Física',
+        subject: {
+          id: MOCK_UUIDS.subjects.physics,
+          name: 'Física',
+          areaKnowledgeId: 'area-exatas',
+        },
+        creator: { id: MOCK_UUIDS.users.user1, name: 'Prof. Carlos' },
+        breakdown: [
+          {
+            school: {
+              id: MOCK_UUIDS.schools.school2,
+              name: 'Colégio Estadual Central',
+            },
+            schoolYear: { id: 'year-2024', name: '2024' },
+            class: { id: 'class-1em', name: '1º Ano EM' },
+            totalStudents: 28,
+            answeredStudents: 28,
+            completionPercentage: 100,
+          },
+        ],
       },
       {
         id: MOCK_UUIDS.activities.activity4,
@@ -98,11 +140,25 @@ const mockActivitiesResponse: ActivitiesHistoryApiResponse = {
         finalDate: '2024-12-20',
         status: ActivityApiStatus.A_VENCER,
         completionPercentage: 30,
-        subjectId: MOCK_UUIDS.subjects.history,
-        schoolName: 'Escola Municipal São Paulo',
-        year: '2024',
-        className: '7º Ano C',
-        subjectName: 'História',
+        subject: {
+          id: MOCK_UUIDS.subjects.history,
+          name: 'História',
+          areaKnowledgeId: 'area-humanas',
+        },
+        creator: { id: MOCK_UUIDS.users.user1, name: 'Prof. Carlos' },
+        breakdown: [
+          {
+            school: {
+              id: MOCK_UUIDS.schools.school1,
+              name: 'Escola Municipal São Paulo',
+            },
+            schoolYear: { id: 'year-2024', name: '2024' },
+            class: { id: 'class-7c', name: '7º Ano C' },
+            totalStudents: 32,
+            answeredStudents: 10,
+            completionPercentage: 30,
+          },
+        ],
       },
     ],
     pagination: {
