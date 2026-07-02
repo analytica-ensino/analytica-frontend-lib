@@ -257,7 +257,10 @@ export const ProficiencyChart = ({
               onMouseLeave={() => setHoveredSlice(null)}
             >
               <span
-                className={cn('w-3 h-3 rounded-full shrink-0', slice.colorClass)}
+                className={cn(
+                  'w-3 h-3 rounded-full shrink-0',
+                  slice.colorClass
+                )}
               />
               <div className="flex flex-col">
                 <Text size="sm" weight="medium" className="text-text-950">

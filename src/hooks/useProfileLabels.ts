@@ -24,9 +24,9 @@ export interface UseProfileLabelsReturn {
 export const useProfileLabels = (
   config: UseProfileLabelsConfig
 ): UseProfileLabelsReturn => {
-  const [customLabels, setCustomLabels] = useState<ProfileLabelsMap | undefined>(
-    undefined
-  );
+  const [customLabels, setCustomLabels] = useState<
+    ProfileLabelsMap | undefined
+  >(undefined);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { institutionId } = useAppStore();
