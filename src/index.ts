@@ -1041,6 +1041,18 @@ export type {
   UseSupportFeatureFlagReturn,
 } from './hooks/useSupportFeatureFlag';
 
+// Profile Labels Hook
+export { useProfileLabels } from './hooks/useProfileLabels';
+export type {
+  UseProfileLabelsConfig,
+  UseProfileLabelsReturn,
+} from './hooks/useProfileLabels';
+export type {
+  ProfileLabelsMap,
+  ProfileLabelsApiClient,
+  ProfileLabelsFlagVersion,
+} from './types/profileLabels';
+
 // Zendesk messenger loader (resilient: retry until ready)
 export { useZendesk } from './hooks/useZendesk';
 export type { UseZendeskConfig, UseZendeskReturn } from './hooks/useZendesk';
@@ -1655,6 +1667,20 @@ export type {
   SimpleBarChartProps,
   SimpleBarChartDataItem,
 } from './components/SimpleBarChart/SimpleBarChart';
+
+// VerticalBarChart Components
+export { VerticalBarChart } from './components/VerticalBarChart/VerticalBarChart';
+export type {
+  VerticalBarChartProps,
+  VerticalBarChartDataItem,
+} from './components/VerticalBarChart/VerticalBarChart';
+
+// ProficiencyChart Components
+export { ProficiencyChart } from './components/ProficiencyChart/ProficiencyChart';
+export type {
+  ProficiencyChartProps,
+  ProficiencyCounters,
+} from './components/ProficiencyChart/ProficiencyChart';
 
 // TimeReport Components
 export {
