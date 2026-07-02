@@ -15,7 +15,10 @@ describe('ProficiencyChart', () => {
   describe('Rendering', () => {
     it('should render with title', () => {
       render(
-        <ProficiencyChart counters={mockCounters} totalStudents={totalStudents} />
+        <ProficiencyChart
+          counters={mockCounters}
+          totalStudents={totalStudents}
+        />
       );
 
       expect(
@@ -25,7 +28,10 @@ describe('ProficiencyChart', () => {
 
     it('should render all legend labels', () => {
       render(
-        <ProficiencyChart counters={mockCounters} totalStudents={totalStudents} />
+        <ProficiencyChart
+          counters={mockCounters}
+          totalStudents={totalStudents}
+        />
       );
 
       expect(screen.getByText('Ponto de atenção')).toBeInTheDocument();
@@ -36,7 +42,10 @@ describe('ProficiencyChart', () => {
 
     it('should render total count', () => {
       render(
-        <ProficiencyChart counters={mockCounters} totalStudents={totalStudents} />
+        <ProficiencyChart
+          counters={mockCounters}
+          totalStudents={totalStudents}
+        />
       );
 
       expect(screen.getByText(/Total: 55 alunos/)).toBeInTheDocument();
@@ -45,7 +54,12 @@ describe('ProficiencyChart', () => {
     it('should render singular "aluno" when total is 1', () => {
       render(
         <ProficiencyChart
-          counters={{ highlight: 1, aboveAverage: 0, belowAverage: 0, attentionPoint: 0 }}
+          counters={{
+            highlight: 1,
+            aboveAverage: 0,
+            belowAverage: 0,
+            attentionPoint: 0,
+          }}
           totalStudents={1}
         />
       );
@@ -96,7 +110,10 @@ describe('ProficiencyChart', () => {
   describe('Legend Values', () => {
     it('should display count and percentage for each category', () => {
       render(
-        <ProficiencyChart counters={mockCounters} totalStudents={totalStudents} />
+        <ProficiencyChart
+          counters={mockCounters}
+          totalStudents={totalStudents}
+        />
       );
 
       // Check attention point: 5 alunos (9.1%) - use exact match at start
@@ -116,9 +133,7 @@ describe('ProficiencyChart', () => {
         belowAverage: 0,
         attentionPoint: 0,
       };
-      render(
-        <ProficiencyChart counters={singleCounters} totalStudents={1} />
-      );
+      render(<ProficiencyChart counters={singleCounters} totalStudents={1} />);
 
       expect(screen.getByText(/^1 aluno \(/)).toBeInTheDocument();
     });
@@ -127,7 +142,10 @@ describe('ProficiencyChart', () => {
   describe('Pie Chart SVG', () => {
     it('should render SVG element', () => {
       const { container } = render(
-        <ProficiencyChart counters={mockCounters} totalStudents={totalStudents} />
+        <ProficiencyChart
+          counters={mockCounters}
+          totalStudents={totalStudents}
+        />
       );
 
       const svg = container.querySelector('svg');
@@ -137,7 +155,10 @@ describe('ProficiencyChart', () => {
 
     it('should render path elements for non-zero slices', () => {
       const { container } = render(
-        <ProficiencyChart counters={mockCounters} totalStudents={totalStudents} />
+        <ProficiencyChart
+          counters={mockCounters}
+          totalStudents={totalStudents}
+        />
       );
 
       const paths = container.querySelectorAll('path');
@@ -161,7 +182,10 @@ describe('ProficiencyChart', () => {
 
     it('should render percentage labels inside slices (>8%)', () => {
       const { container } = render(
-        <ProficiencyChart counters={mockCounters} totalStudents={totalStudents} />
+        <ProficiencyChart
+          counters={mockCounters}
+          totalStudents={totalStudents}
+        />
       );
 
       // All slices are > 8% so all should have text labels
@@ -173,11 +197,16 @@ describe('ProficiencyChart', () => {
   describe('Hover Interactions', () => {
     it('should reduce opacity of other legend items on hover', () => {
       const { container } = render(
-        <ProficiencyChart counters={mockCounters} totalStudents={totalStudents} />
+        <ProficiencyChart
+          counters={mockCounters}
+          totalStudents={totalStudents}
+        />
       );
 
       // Find all legend items
-      const legendItems = container.querySelectorAll('.cursor-pointer.transition-opacity');
+      const legendItems = container.querySelectorAll(
+        '.cursor-pointer.transition-opacity'
+      );
       expect(legendItems.length).toBeGreaterThan(0);
 
       // Hover on first item
@@ -189,10 +218,15 @@ describe('ProficiencyChart', () => {
 
     it('should restore opacity on mouse leave', () => {
       const { container } = render(
-        <ProficiencyChart counters={mockCounters} totalStudents={totalStudents} />
+        <ProficiencyChart
+          counters={mockCounters}
+          totalStudents={totalStudents}
+        />
       );
 
-      const legendItems = container.querySelectorAll('.cursor-pointer.transition-opacity');
+      const legendItems = container.querySelectorAll(
+        '.cursor-pointer.transition-opacity'
+      );
 
       fireEvent.mouseEnter(legendItems[0]);
       fireEvent.mouseLeave(legendItems[0]);
@@ -207,7 +241,10 @@ describe('ProficiencyChart', () => {
   describe('Color Classes', () => {
     it('should render colored dots in legend', () => {
       const { container } = render(
-        <ProficiencyChart counters={mockCounters} totalStudents={totalStudents} />
+        <ProficiencyChart
+          counters={mockCounters}
+          totalStudents={totalStudents}
+        />
       );
 
       expect(container.querySelector('.bg-error-600')).toBeInTheDocument();
@@ -220,7 +257,10 @@ describe('ProficiencyChart', () => {
   describe('Styles', () => {
     it('should have correct container classes', () => {
       const { container } = render(
-        <ProficiencyChart counters={mockCounters} totalStudents={totalStudents} />
+        <ProficiencyChart
+          counters={mockCounters}
+          totalStudents={totalStudents}
+        />
       );
 
       const wrapper = container.firstChild as HTMLElement;
@@ -231,10 +271,15 @@ describe('ProficiencyChart', () => {
 
     it('should have border on total section', () => {
       const { container } = render(
-        <ProficiencyChart counters={mockCounters} totalStudents={totalStudents} />
+        <ProficiencyChart
+          counters={mockCounters}
+          totalStudents={totalStudents}
+        />
       );
 
-      const totalSection = container.querySelector('.border-t.border-border-100');
+      const totalSection = container.querySelector(
+        '.border-t.border-border-100'
+      );
       expect(totalSection).toBeInTheDocument();
     });
   });
@@ -242,12 +287,17 @@ describe('ProficiencyChart', () => {
   describe('Accessibility', () => {
     it('should use semantic heading for title', () => {
       render(
-        <ProficiencyChart counters={mockCounters} totalStudents={totalStudents} />
+        <ProficiencyChart
+          counters={mockCounters}
+          totalStudents={totalStudents}
+        />
       );
 
       const heading = screen.getByRole('heading', { level: 3 });
       expect(heading).toBeInTheDocument();
-      expect(heading).toHaveTextContent('Proficiência por quantidade de estudante');
+      expect(heading).toHaveTextContent(
+        'Proficiência por quantidade de estudante'
+      );
     });
   });
 
@@ -289,7 +339,10 @@ describe('ProficiencyChart', () => {
         attentionPoint: 0,
       };
       const { container } = render(
-        <ProficiencyChart counters={singleCategoryCounters} totalStudents={100} />
+        <ProficiencyChart
+          counters={singleCategoryCounters}
+          totalStudents={100}
+        />
       );
 
       // Should render a full circle

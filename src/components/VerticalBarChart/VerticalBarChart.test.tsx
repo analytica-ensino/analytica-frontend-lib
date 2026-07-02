@@ -13,7 +13,9 @@ describe('VerticalBarChart', () => {
 
   describe('Rendering', () => {
     it('should render with title', () => {
-      render(<VerticalBarChart data={mockData} title="Atividades por período" />);
+      render(
+        <VerticalBarChart data={mockData} title="Atividades por período" />
+      );
 
       expect(screen.getByText('Atividades por período')).toBeInTheDocument();
     });
@@ -40,7 +42,11 @@ describe('VerticalBarChart', () => {
 
     it('should apply custom className', () => {
       const { container } = render(
-        <VerticalBarChart data={mockData} title="Test" className="custom-class" />
+        <VerticalBarChart
+          data={mockData}
+          title="Test"
+          className="custom-class"
+        />
       );
 
       const wrapper = container.firstChild as HTMLElement;
