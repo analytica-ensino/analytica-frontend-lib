@@ -1,35 +1,14 @@
-import { useMemo, useState, type HTMLAttributes } from 'react';
+import { useMemo, useState } from 'react';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
+import type {
+  ProficiencyCounters,
+  ProficiencyChartProps,
+  SliceData,
+  PieChartProps,
+} from './interfaces';
 
-/**
- * Proficiency level counters
- */
-export interface ProficiencyCounters {
-  highlight: number;
-  aboveAverage: number;
-  belowAverage: number;
-  attentionPoint: number;
-}
-
-/**
- * Props for the ProficiencyChart component
- */
-export interface ProficiencyChartProps extends HTMLAttributes<HTMLDivElement> {
-  /** Proficiency level counters */
-  counters?: ProficiencyCounters;
-  /** Total number of students */
-  totalStudents?: number;
-}
-
-interface SliceData {
-  key: string;
-  label: string;
-  value: number;
-  percentage: number;
-  colorClass: string;
-  fillColor: string;
-}
+export type { ProficiencyCounters, ProficiencyChartProps } from './interfaces';
 
 /**
  * Build slices from counters
@@ -78,12 +57,6 @@ const buildSlices = (
 
 /** SVG viewBox size */
 const CHART_SIZE = 180;
-
-interface PieChartProps {
-  slices: SliceData[];
-  hoveredSlice: string | null;
-  onSliceHover: (key: string | null) => void;
-}
 
 /**
  * Simple pie chart sub-component
