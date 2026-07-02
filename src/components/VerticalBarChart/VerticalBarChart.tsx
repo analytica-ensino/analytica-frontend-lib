@@ -1,39 +1,22 @@
-import { useState, useMemo, type HTMLAttributes } from 'react';
+import { useState, useMemo } from 'react';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
 import { calculateTicks } from './utils';
+import type {
+  VerticalBarChartProps,
+  BarProps,
+  YAxisProps,
+  XAxisLabelsProps,
+} from './interfaces';
 
-/**
- * Data item for VerticalBarChart
- */
-export interface VerticalBarChartDataItem {
-  label: string;
-  value: number;
-}
-
-/**
- * Props for the VerticalBarChart component
- */
-export interface VerticalBarChartProps extends HTMLAttributes<HTMLDivElement> {
-  /** Chart data with labels and values */
-  data: VerticalBarChartDataItem[];
-  /** Title for the chart card */
-  title: string;
-  /** Height of the bar chart area in pixels */
-  chartHeight?: number;
-  /** Color for the bars (hex, rgb, or CSS color) */
-  barColor?: string;
-}
+export type {
+  VerticalBarChartDataItem,
+  VerticalBarChartProps,
+} from './interfaces';
 
 // --- Sub-components ---
 
-const YAxis = ({
-  ticks,
-  chartHeight,
-}: {
-  ticks: number[];
-  chartHeight: number;
-}) => (
+const YAxis = ({ ticks, chartHeight }: YAxisProps) => (
   <div
     // w-12 (48px) matches ml-12 on XAxisLabels for alignment
     className="flex flex-col justify-between text-right pr-2 w-12 shrink-0"
@@ -62,16 +45,7 @@ const Bar = ({
   anyHovered,
   onMouseEnter,
   onMouseLeave,
-}: {
-  item: VerticalBarChartDataItem;
-  maxValue: number;
-  chartHeight: number;
-  barColor: string;
-  isHovered: boolean;
-  anyHovered: boolean;
-  onMouseEnter: () => void;
-  onMouseLeave: () => void;
-}) => {
+}: BarProps) => {
   const barHeight = maxValue === 0 ? 0 : (item.value / maxValue) * chartHeight;
 
   return (
@@ -102,7 +76,7 @@ const Bar = ({
   );
 };
 
-const XAxisLabels = ({ data }: { data: VerticalBarChartDataItem[] }) => (
+const XAxisLabels = ({ data }: XAxisLabelsProps) => (
   // ml-12 (48px) matches w-12 on YAxis for alignment
   <div className="flex gap-1 ml-12">
     {data.map((item) => (
