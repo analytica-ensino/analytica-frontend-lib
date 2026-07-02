@@ -1,6 +1,7 @@
 import { useState, useMemo, type HTMLAttributes } from 'react';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
+import { calculateTicks } from './utils';
 
 /**
  * Data item for VerticalBarChart
@@ -24,27 +25,6 @@ export interface VerticalBarChartProps extends HTMLAttributes<HTMLDivElement> {
   barColor?: string;
 }
 
-/**
- * Calculate Y-axis tick values for count display.
- * Rounds up to create evenly spaced ticks.
- */
-const calculateTicks = (maxValue: number): number[] => {
-  if (maxValue <= 0) return [0];
-
-  const step = Math.ceil(maxValue / 4 / 50) * 50 || Math.ceil(maxValue / 4);
-  const ticks: number[] = [];
-
-  for (let i = 0; i <= maxValue; i += step) {
-    ticks.push(i);
-  }
-
-  if (ticks.at(-1)! < maxValue) {
-    ticks.push(ticks.at(-1)! + step);
-  }
-
-  return ticks.reverse();
-};
-
 // --- Sub-components ---
 
 const YAxis = ({
@@ -55,7 +35,8 @@ const YAxis = ({
   chartHeight: number;
 }) => (
   <div
-    className="flex flex-col justify-between text-right pr-2"
+    // w-12 (48px) matches ml-12 on XAxisLabels for alignment
+    className="flex flex-col justify-between text-right pr-2 w-12 shrink-0"
     style={{ height: chartHeight }}
     aria-hidden="true"
   >
@@ -122,7 +103,8 @@ const Bar = ({
 };
 
 const XAxisLabels = ({ data }: { data: VerticalBarChartDataItem[] }) => (
-  <div className="flex gap-1 ml-10">
+  // ml-12 (48px) matches w-12 on YAxis for alignment
+  <div className="flex gap-1 ml-12">
     {data.map((item) => (
       <div key={item.label} className="flex-1 text-center">
         <Text
