@@ -162,7 +162,7 @@ describe('ProficiencyChart', () => {
       );
 
       const paths = container.querySelectorAll('path');
-      expect(paths.length).toBe(4); // All 4 categories have values > 0
+      expect(paths).toHaveLength(4); // All 4 categories have values > 0
     });
 
     it('should not render path for zero value categories', () => {
@@ -177,7 +177,7 @@ describe('ProficiencyChart', () => {
       );
 
       const paths = container.querySelectorAll('path');
-      expect(paths.length).toBe(1); // Only highlight has value
+      expect(paths).toHaveLength(1); // Only highlight has value
     });
 
     it('should render percentage labels inside slices (>8%)', () => {
@@ -190,7 +190,7 @@ describe('ProficiencyChart', () => {
 
       // All slices are > 8% so all should have text labels
       const textElements = container.querySelectorAll('svg text');
-      expect(textElements.length).toBeGreaterThan(0);
+      expect(textElements.length).toBeGreaterThan(0); // toHaveLength doesn't support range checks
     });
   });
 
@@ -207,7 +207,7 @@ describe('ProficiencyChart', () => {
       const legendItems = container.querySelectorAll(
         '.cursor-pointer.transition-opacity'
       );
-      expect(legendItems.length).toBeGreaterThan(0);
+      expect(legendItems.length).toBeGreaterThan(0); // toHaveLength doesn't support range checks
 
       // Hover on first item
       fireEvent.mouseEnter(legendItems[0]);
@@ -347,7 +347,7 @@ describe('ProficiencyChart', () => {
 
       // Should render a full circle
       const paths = container.querySelectorAll('path');
-      expect(paths.length).toBe(1);
+      expect(paths).toHaveLength(1);
     });
   });
 });
