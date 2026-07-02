@@ -1047,10 +1047,10 @@ export type {
   UseProfileLabelsConfig,
   UseProfileLabelsReturn,
 } from './hooks/useProfileLabels';
+export { DEFAULT_PROFILE_LABELS, getProfileLabel } from './types/profileLabels';
 export type {
   ProfileLabelsMap,
-  ProfileLabelsApiClient,
-  ProfileLabelsFlagVersion,
+  ProfileLabelsFeatureFlag,
 } from './types/profileLabels';
 
 // Zendesk messenger loader (resilient: retry until ready)
