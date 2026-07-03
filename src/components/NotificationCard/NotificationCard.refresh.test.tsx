@@ -181,6 +181,6 @@ describe('NotificationList loading gate (no skeleton flash on refresh)', () => {
     );
 
     expect(screen.getByText('Test Notification 1')).toBeInTheDocument();
-    expect(document.querySelectorAll('.animate-pulse').length).toBe(0);
+    expect(document.querySelectorAll('.animate-pulse')).toHaveLength(0);
   });
 });
