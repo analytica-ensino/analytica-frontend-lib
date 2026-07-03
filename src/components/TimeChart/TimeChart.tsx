@@ -372,7 +372,10 @@ const StackedBar = ({
             if (segmentHeight === 0) return null;
 
             const isFirst = cat === nonZeroCategories[0];
-            const isLast = cat === nonZeroCategories.at(-1);
+            // Index access instead of .at() for old-browser support
+            // (Chrome < 92 / Android 7), see FRONTEND-LOGIN-WEB-20.
+            const isLast =
+              cat === nonZeroCategories[nonZeroCategories.length - 1];
 
             return (
               <div

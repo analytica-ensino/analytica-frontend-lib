@@ -36,8 +36,16 @@ export const resolveRootHostname = (hostname: string): string | null => {
     (label) => label === 'hml' || label.startsWith('hml-')
   );
 
-  // Handle Brazilian .com.br domains and similar patterns
-  if (parts.length >= 3 && parts.at(-2) === 'com' && parts.at(-1) === 'br') {
+  // Handle Brazilian .com.br domains and similar patterns.
+  // Use index access rather than Array.prototype.at(): `.at()` is unsupported
+  // on older mobile browsers (e.g. Chrome < 92 on Android 7) and threw
+  // "TypeError: r.at is not a function" here during theme init on app mount,
+  // breaking the page for those users (FRONTEND-LOGIN-WEB-20).
+  if (
+    parts.length >= 3 &&
+    parts[parts.length - 2] === 'com' &&
+    parts[parts.length - 1] === 'br'
+  ) {
     if (parts.length === 3) {
       // Already at root level for .com.br (e.g., analyticaensino.com.br)
       return hostname;

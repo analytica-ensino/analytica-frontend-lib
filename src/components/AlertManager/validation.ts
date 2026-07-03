@@ -32,7 +32,9 @@ export const validateRecipientsStep = (
   categories: CategoryConfig[]
 ): boolean | string => {
   if (categories.length === 0) return 'Nenhuma categoria configurada';
-  const lastCategory = categories.at(-1);
+  // Index access instead of Array.prototype.at() for old-browser support
+  // (Chrome < 92 / Android 7), see domainUtils.ts / FRONTEND-LOGIN-WEB-20.
+  const lastCategory = categories[categories.length - 1];
   if (!lastCategory?.selectedIds?.length) return 'Selecione destinatários';
   return true;
 };
