@@ -961,8 +961,14 @@ export const ActivityDetails = ({
       handlePrint &&
       typeof handlePrint === 'function'
     ) {
-      handlePrint();
+      // Defer handlePrint out of React's commit phase. handlePrint calls
+      // window.open() synchronously; running it inside this passive effect
+      // re-enters the scheduler (Sentry Replay also patches window.open) and
+      // throws "Error: Should not already be working" (FRONTEND-ALUNO-WEB-EF).
+      // A macrotask lets the commit finish before the print window opens.
       setShouldPrint(false);
+      const printFn = handlePrint;
+      setTimeout(() => printFn(), 0);
       return;
     }
 
