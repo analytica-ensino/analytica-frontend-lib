@@ -21,6 +21,12 @@ import type {
 import { formatTimeAgo } from '../../store/notificationStore';
 import mockContentImage from '../../assets/img/mock-content.png';
 
+/**
+ * Default interval (in ms) to auto-refresh the notification center while it is
+ * open, so newly received notifications appear without reopening it.
+ */
+const DEFAULT_REFRESH_INTERVAL_MS = 3000;
+
 // Extended notification item for component usage with time string
 export interface NotificationItem extends Omit<Notification, 'createdAt'> {
   time: string;
@@ -207,6 +213,12 @@ interface NotificationCenterMode extends BaseNotificationProps {
    * Callback when dropdown open state changes (for synchronization with parent)
    */
   onOpenChange?: (open: boolean) => void;
+  /**
+   * Interval (in ms) to auto-refresh the list while the center is open, so newly
+   * received notifications appear without reopening it. Defaults to 3000 (3s).
+   * Set to 0 to disable polling.
+   */
+  refreshIntervalMs?: number;
 }
 
 // Union type for all modes
@@ -506,8 +518,9 @@ const NotificationList = ({
     );
   }
 
-  // Loading state
-  if (loading) {
+  // Loading state — only show the skeleton on the initial load (empty list).
+  // Background refreshes (e.g. while the center polls) keep the list visible.
+  if (loading && groupedNotifications.length === 0) {
     return (
       <div className="flex flex-col gap-0 w-full">
         {['skeleton-first', 'skeleton-second', 'skeleton-third'].map(
@@ -649,6 +662,7 @@ const NotificationCenter = ({
   emptyStateTitle,
   emptyStateDescription,
   className,
+  refreshIntervalMs = DEFAULT_REFRESH_INTERVAL_MS,
 }: NotificationCenterProps) => {
   const { isMobile } = useMobile();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -688,6 +702,20 @@ const NotificationCenter = ({
       onFetchNotifications?.();
     }
   }, [isActive, onFetchNotifications]);
+
+  // While the center is open, poll periodically so newly received notifications
+  // appear without the user having to reopen it. The list is not replaced by a
+  // skeleton on these background refreshes (see NotificationList loading gate).
+  const isCenterOpen = isMobile ? isModalOpen : Boolean(isActive);
+  useEffect(() => {
+    if (!isCenterOpen || !onFetchNotifications || refreshIntervalMs <= 0) {
+      return;
+    }
+    const intervalId = setInterval(() => {
+      onFetchNotifications();
+    }, refreshIntervalMs);
+    return () => clearInterval(intervalId);
+  }, [isCenterOpen, onFetchNotifications, refreshIntervalMs]);
 
   const renderEmptyState = () => (
     <NotificationEmpty
