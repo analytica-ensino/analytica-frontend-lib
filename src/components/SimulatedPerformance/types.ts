@@ -33,8 +33,11 @@ export interface UseSimulatedPerformanceOptions {
    */
   profileName?: string;
   /**
-   * When false, the hook will not make any API calls.
-   * Useful for lazy loading when the simulated report is not active.
+   * When false, the hook will not make automatic API calls (effect-triggered fetches).
+   * The initial data load and effect-based reloads (e.g., scoreType URL changes) will be
+   * skipped. However, manual handler calls (handlePeriodChange, handleFiltersApply, etc.)
+   * will still trigger API requests if invoked directly.
+   * Useful for lazy loading when the simulated report tab is not active.
    * @default true
    */
   enabled?: boolean;
