@@ -1146,7 +1146,11 @@ describe('ChoroplethMap legend interaction', () => {
 
   it('hides features on map when legend class is toggled off', async () => {
     const mockFeature = {
-      getProperty: (prop: string) => (prop === 'regionValue' ? 0.9 : null),
+      getProperty: (prop: string) => {
+        if (prop === 'regionValue') return 0.9;
+        if (prop === 'regionAccessCount') return 100;
+        return null;
+      },
       getGeometry: () => ({ forEachLatLng: jest.fn() }),
     };
     mockForEach.mockImplementation((cb: (f: typeof mockFeature) => void) => {
@@ -1176,7 +1180,11 @@ describe('ChoroplethMap legend interaction', () => {
 
   it('shows features on map when legend class is toggled back on', async () => {
     const mockFeature = {
-      getProperty: (prop: string) => (prop === 'regionValue' ? 0.9 : null),
+      getProperty: (prop: string) => {
+        if (prop === 'regionValue') return 0.9;
+        if (prop === 'regionAccessCount') return 100;
+        return null;
+      },
       getGeometry: () => ({ forEachLatLng: jest.fn() }),
     };
     mockForEach.mockImplementation((cb: (f: typeof mockFeature) => void) => {
@@ -1219,7 +1227,11 @@ describe('ChoroplethMap legend interaction', () => {
   it('adjusts map zoom to fit visible features when legend toggled', async () => {
     const mockForEachLatLng = jest.fn();
     const mockFeature = {
-      getProperty: (prop: string) => (prop === 'regionValue' ? 0.9 : null),
+      getProperty: (prop: string) => {
+        if (prop === 'regionValue') return 0.9;
+        if (prop === 'regionAccessCount') return 100;
+        return null;
+      },
       getGeometry: () => ({ forEachLatLng: mockForEachLatLng }),
     };
     mockForEach.mockImplementation((cb: (f: typeof mockFeature) => void) => {
@@ -1369,11 +1381,12 @@ describe('ChoroplethMap isManagedRegion', () => {
       getProperty: (prop: string) => {
         if (prop === 'regionIsManaged') return true;
         if (prop === 'regionValue') return 0.9;
+        if (prop === 'regionAccessCount') return 500;
         return null;
       },
     };
     expect(styleFn(managedFeature)).toEqual({
-      fillColor: '#2c7bb6',
+      fillColor: '#66b584',
       fillOpacity: 0,
       strokeColor: '#ffffff',
       strokeWeight: 0.3,
@@ -1545,6 +1558,7 @@ describe('ChoroplethMap isManagedRegion', () => {
       getProperty: (prop: string) => {
         if (prop === 'regionIsManaged') return true;
         if (prop === 'regionValue') return 0.9;
+        if (prop === 'regionAccessCount') return 100;
         if (prop === 'regionName') return 'NRE Gerido';
         return null;
       },
@@ -1605,6 +1619,7 @@ describe('ChoroplethMap isManagedRegion', () => {
       getProperty: (prop: string) => {
         if (prop === 'regionIsManaged') return true;
         if (prop === 'regionValue') return 0.9;
+        if (prop === 'regionAccessCount') return 100;
         if (prop === 'regionName') return 'NRE Gerido';
         return null;
       },
@@ -1633,6 +1648,7 @@ describe('ChoroplethMap isManagedRegion', () => {
       getProperty: (prop: string) => {
         if (prop === 'regionIsManaged') return true;
         if (prop === 'regionValue') return 0.9;
+        if (prop === 'regionAccessCount') return 100;
         if (prop === 'regionName') return 'NRE Destaque';
         return null;
       },
@@ -1642,6 +1658,7 @@ describe('ChoroplethMap isManagedRegion', () => {
       getProperty: (prop: string) => {
         if (prop === 'regionIsManaged') return true;
         if (prop === 'regionValue') return 0.1;
+        if (prop === 'regionAccessCount') return 20;
         if (prop === 'regionName') return 'NRE Atenção';
         return null;
       },
