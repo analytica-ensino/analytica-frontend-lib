@@ -141,9 +141,7 @@ describe('useSimulatedPerformance', () => {
   describe('enabled parameter', () => {
     it('does NOT load initial data when enabled is false', async () => {
       const api = createMockApi();
-      renderHook(() =>
-        useSimulatedPerformance({ api, enabled: false })
-      );
+      renderHook(() => useSimulatedPerformance({ api, enabled: false }));
 
       // Wait a tick to ensure effects would have run
       await act(async () => {
