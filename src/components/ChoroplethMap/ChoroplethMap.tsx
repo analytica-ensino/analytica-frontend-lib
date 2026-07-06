@@ -55,35 +55,46 @@ const getColorClasses = (): ColorClass[] => [
   {
     min: 0.75,
     max: 1.01,
-    fillColor: getCssVar('--color-map-highlight', '#2c7bb6'),
-    strokeColor: getCssVar('--color-map-highlight', '#2c7bb6'),
+    fillColor: getCssVar('--color-map-highlight', '#66b584'),
+    strokeColor: getCssVar('--color-map-highlight', '#66b584'),
     label: 'Destaque',
   },
   {
     min: 0.5,
     max: 0.75,
-    fillColor: getCssVar('--color-map-above-avg', '#abd9e9'),
-    strokeColor: getCssVar('--color-map-above-avg', '#abd9e9'),
+    fillColor: getCssVar('--color-map-above-avg', '#f8cc2e'),
+    strokeColor: getCssVar('--color-map-above-avg', '#f8cc2e'),
     label: 'Acima da média',
   },
   {
     min: 0.25,
     max: 0.5,
-    fillColor: getCssVar('--color-map-below-avg', '#fdae61'),
-    strokeColor: getCssVar('--color-map-below-avg', '#fdae61'),
+    fillColor: getCssVar('--color-map-below-avg', '#fb954b'),
+    strokeColor: getCssVar('--color-map-below-avg', '#fb954b'),
     label: 'Abaixo da média',
   },
   {
     min: 0,
     max: 0.25,
-    fillColor: getCssVar('--color-map-attention', '#d7191c'),
-    strokeColor: getCssVar('--color-map-attention', '#d7191c'),
+    fillColor: getCssVar('--color-map-attention', '#b91c1c'),
+    strokeColor: getCssVar('--color-map-attention', '#b91c1c'),
     label: 'Ponto de atenção',
+  },
+  {
+    // Selected by a zero access count, not by the value range: min/max are set
+    // so getColorClass() never matches this band.
+    min: 0,
+    max: 0,
+    noAccess: true,
+    fillColor: getCssVar('--color-map-no-access', '#414040'),
+    strokeColor: getCssVar('--color-border-500', '#8c8d8d'),
+    label: 'Sem acesso',
   },
 ];
 
 /**
- * Get color class based on value
+ * Get color class based on the normalized value.
+ * Skips the `noAccess` band, which is keyed by access count (see classifyRegion).
  * @param value - Normalized value between 0 and 1
  * @param colorClasses - Array of color class configurations
  * @returns Color class configuration
@@ -93,11 +104,38 @@ const getColorClass = (
   colorClasses: ColorClass[]
 ): ColorClass => {
   for (const colorClass of colorClasses) {
+    if (colorClass.noAccess) continue;
     if (value >= colorClass.min && value < colorClass.max) {
       return colorClass;
     }
   }
   return colorClasses[0];
+};
+
+/**
+ * Classify a region into a color class.
+ *
+ * A zero `accessCount` maps to the "Sem acesso" band regardless of the
+ * normalized value (min-max normalization gives the lowest region a value of 0
+ * even when it has access, so the band must key off the raw count). Any region
+ * with access falls back to the value-based color scale.
+ *
+ * @param value - Normalized value between 0 and 1
+ * @param accessCount - Raw access count for the region
+ * @param colorClasses - Array of color class configurations
+ * @returns Color class configuration
+ */
+const classifyRegion = (
+  value: number,
+  accessCount: number,
+  colorClasses: ColorClass[]
+): ColorClass => {
+  if (accessCount === 0) {
+    return (
+      colorClasses.find((colorClass) => colorClass.noAccess) ?? colorClasses[0]
+    );
+  }
+  return getColorClass(value, colorClasses);
 };
 
 /**
@@ -166,7 +204,12 @@ const createStyleFunction = (
       };
     }
     const value = feature.getProperty('regionValue') as number;
-    const colorClass = getColorClass(value ?? 0, colorClasses);
+    const accessCount = feature.getProperty('regionAccessCount') as number;
+    const colorClass = classifyRegion(
+      value ?? 0,
+      accessCount ?? 0,
+      colorClasses
+    );
     return {
       fillColor: colorClass.fillColor,
       fillOpacity: opacity,
@@ -252,7 +295,8 @@ const LoadingSkeleton = () => (
  * ChoroplethMap component for displaying regional performance data
  *
  * Displays an interactive Google Map with colored regions based on normalized values.
- * Uses 4 color classes to represent different performance levels.
+ * Uses 5 color classes to represent different performance levels (including a
+ * "Sem acesso" band for zero-access regions).
  * Includes fade-in animation, smooth hover transitions, and zoom-to-region on click.
  * NRE boundaries are rendered as a separate overlay with thicker strokes.
  *
@@ -294,7 +338,7 @@ const ChoroplethMap = ({
     y: number;
   } | null>(null);
   const [activeClasses, setActiveClasses] = useState<Set<number>>(
-    new Set([0, 1, 2, 3])
+    new Set([0, 1, 2, 3, 4])
   );
   const fadeAnimationRef = useRef<number | null>(null);
   const hoverAnimationsRef = useRef<Map<string, number>>(new Map());
@@ -723,7 +767,12 @@ const ChoroplethMap = ({
       }
 
       const value = feature.getProperty('regionValue') as number;
-      const colorClass = getColorClass(value ?? 0, colorClasses);
+      const accessCount = feature.getProperty('regionAccessCount') as number;
+      const colorClass = classifyRegion(
+        value ?? 0,
+        accessCount ?? 0,
+        colorClasses
+      );
       const classIndex = colorClasses.indexOf(colorClass);
 
       if (activeClasses.has(classIndex)) {
