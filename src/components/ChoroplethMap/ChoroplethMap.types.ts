@@ -82,10 +82,4 @@ export interface ColorClass {
   strokeColor: string;
   /** Label for the legend */
   label: string;
-  /**
-   * When true, this class is selected by a zero access count instead of by the
-   * normalized `value` range (used for the "Sem acesso" band). Its `min`/`max`
-   * are set so the value-range matcher never picks it.
-   */
-  noAccess?: boolean;
 }

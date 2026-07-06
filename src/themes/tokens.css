@@ -187,13 +187,11 @@
   --color-question-type-image: #715904;
   --color-question-type-matching: #660CB0;
 
-  /* Map Choropleth Colors — semantic scale: highlight/green (best) → attention/red (worst),
-     plus no-access/dark for zero-access regions */
+  /* Map Choropleth Colors — semantic scale: highlight/green (best) → attention/red (worst) */
   --color-map-highlight: #66b584; /* success-300 — Destaque */
   --color-map-above-avg: #f8cc2e; /* indicator-positive — Acima da média */
   --color-map-below-avg: #fb954b; /* warning-400 — Abaixo da média */
   --color-map-attention: #b91c1c; /* error-700 — Ponto de atenção */
-  --color-map-no-access: #414040; /* background-800 — Sem acesso */
   --color-map-stroke-city: #ffffff;
   --color-map-stroke-nre: #ffffff;
 

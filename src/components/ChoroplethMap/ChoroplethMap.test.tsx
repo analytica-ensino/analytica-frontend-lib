@@ -220,7 +220,6 @@ describe('ChoroplethMap', () => {
     expect(screen.getByText('Acima da média')).toBeInTheDocument();
     expect(screen.getByText('Abaixo da média')).toBeInTheDocument();
     expect(screen.getByText('Ponto de atenção')).toBeInTheDocument();
-    expect(screen.getByText('Sem acesso')).toBeInTheDocument();
   });
 
   it('shows loading skeleton when loading is true', () => {
@@ -502,50 +501,6 @@ describe('ChoroplethMap color classification', () => {
 
     const styleFunction = mockSetStyle.mock.calls[0][0];
     expect(typeof styleFunction).toBe('function');
-  });
-
-  it('paints zero-access regions with the "Sem acesso" color, distinct from low-value regions with access', async () => {
-    const data: RegionData[] = [
-      {
-        id: 'r1',
-        name: 'R1',
-        value: 0,
-        accessCount: 0,
-        geoJson: {
-          type: 'Feature',
-          properties: {},
-          geometry: { type: 'Polygon', coordinates: [[]] },
-        },
-      },
-    ];
-
-    render(<ChoroplethMap data={data} apiKey={mockApiKey} />);
-
-    await waitFor(() => {
-      expect(mockSetStyle).toHaveBeenCalled();
-    });
-
-    const styleFunction = mockSetStyle.mock.calls[0][0];
-
-    // Zero access → "Sem acesso" band (background-800 fallback), regardless of value.
-    const noAccessFeature = {
-      getProperty: (prop: string) => {
-        if (prop === 'regionValue') return 0;
-        if (prop === 'regionAccessCount') return 0;
-        return null;
-      },
-    };
-    // Low normalized value but WITH access → stays "Ponto de atenção" (error-700 fallback).
-    const lowWithAccessFeature = {
-      getProperty: (prop: string) => {
-        if (prop === 'regionValue') return 0.1;
-        if (prop === 'regionAccessCount') return 5;
-        return null;
-      },
-    };
-
-    expect(styleFunction(noAccessFeature).fillColor).toBe('#414040');
-    expect(styleFunction(lowWithAccessFeature).fillColor).toBe('#b91c1c');
   });
 });
 
