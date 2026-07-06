@@ -126,6 +126,89 @@ describe('useSimulatedPerformance', () => {
         expect(mockFetchGeneralOverview).toHaveBeenCalled();
       });
     });
+
+    it('loads initial data when enabled is true (explicit)', async () => {
+      const api = createMockApi();
+      renderHook(() => useSimulatedPerformance({ api, enabled: true }));
+
+      await waitFor(() => {
+        expect(mockFetchSimulatedOverview).toHaveBeenCalled();
+        expect(mockFetchGeneralOverview).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('enabled parameter', () => {
+    it('does NOT load initial data when enabled is false', async () => {
+      const api = createMockApi();
+      renderHook(() => useSimulatedPerformance({ api, enabled: false }));
+
+      // Wait a tick to ensure effects would have run
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      });
+
+      expect(mockFetchSimulatedOverview).not.toHaveBeenCalled();
+      expect(mockFetchGeneralOverview).not.toHaveBeenCalled();
+    });
+
+    it('returns default state when disabled', () => {
+      const api = createMockApi();
+      const { result } = renderHook(() =>
+        useSimulatedPerformance({ api, enabled: false })
+      );
+
+      // Hook should still return all the expected properties
+      expect(result.current.period).toBe('1_MONTH');
+      expect(result.current.scoreType).toBe('percentage');
+      expect(result.current.selectedAreaKnowledgeId).toBeNull();
+      expect(result.current.simulatedViewTab).toBe(SimulatedViewTab.STUDENTS);
+      expect(result.current.studentsTableColumns).toBeDefined();
+      expect(result.current.contentsTableColumns).toBeDefined();
+    });
+
+    it('does NOT reload data on scoreType change when disabled', async () => {
+      mockSearchParams.set('scoreType', 'percentage');
+
+      const api = createMockApi();
+      const { rerender } = renderHook(
+        ({ enabled }) => useSimulatedPerformance({ api, enabled }),
+        { initialProps: { enabled: false } }
+      );
+
+      // Clear any mocks
+      jest.clearAllMocks();
+
+      // Simulate scoreType change by updating URL params
+      mockSearchParams.set('scoreType', 'tri');
+      rerender({ enabled: false });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      });
+
+      // Should NOT have made any API calls
+      expect(mockFetchSimulatedOverview).not.toHaveBeenCalled();
+      expect(mockFetchGeneralOverview).not.toHaveBeenCalled();
+    });
+
+    it('handlers still work when disabled (for UI state management)', async () => {
+      const api = createMockApi();
+      const { result } = renderHook(() =>
+        useSimulatedPerformance({ api, enabled: false })
+      );
+
+      // Modals should still be controllable
+      await act(async () => {
+        result.current.filtersModal.open();
+      });
+      expect(result.current.filtersModal.isOpen).toBe(true);
+
+      await act(async () => {
+        result.current.filtersModal.close();
+      });
+      expect(result.current.filtersModal.isOpen).toBe(false);
+    });
   });
 
   describe('handlePeriodChange', () => {

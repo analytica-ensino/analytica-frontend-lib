@@ -195,6 +195,7 @@ const contentsTableColumns: ColumnConfig<SimulatedContentItem>[] = [
 export function useSimulatedPerformance({
   api,
   profileName,
+  enabled = true,
 }: UseSimulatedPerformanceOptions): UseSimulatedPerformanceReturn {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -866,6 +867,8 @@ export function useSimulatedPerformance({
   const hasInitialLoadCompleted = useRef(false);
 
   useEffect(() => {
+    // Skip if hook is disabled (e.g., not on simulated report)
+    if (!enabled) return;
     if (initialLoadRef.current) return;
     initialLoadRef.current = true;
 
@@ -879,10 +882,17 @@ export function useSimulatedPerformance({
     Promise.resolve().then(() => {
       hasInitialLoadCompleted.current = true;
     });
-  }, [loadStudentsData, loadGeneralOverviewData, loadAggregatedOverviewData]);
+  }, [
+    enabled,
+    loadStudentsData,
+    loadGeneralOverviewData,
+    loadAggregatedOverviewData,
+  ]);
 
   // === Recarregar quando scoreType muda ===
   useEffect(() => {
+    // Skip if hook is disabled
+    if (!enabled) return;
     if (!hasInitialLoadCompleted.current) return;
 
     // Always reload aggregated overview
@@ -908,6 +918,7 @@ export function useSimulatedPerformance({
     }
     loadGeneralOverviewData();
   }, [
+    enabled,
     scoreType,
     loadStudentsData,
     loadSkillsData,
@@ -918,6 +929,8 @@ export function useSimulatedPerformance({
   // === Recarregar quando aggregationType muda (perfil carregado após mount) ===
   const previousAggregationTypeRef = useRef(aggregationType);
   useEffect(() => {
+    // Skip if hook is disabled
+    if (!enabled) return;
     // Skip if aggregationType hasn't actually changed
     if (previousAggregationTypeRef.current === aggregationType) return;
     previousAggregationTypeRef.current = aggregationType;
@@ -930,7 +943,7 @@ export function useSimulatedPerformance({
       selectedAreaKnowledgeIdRef.current,
       selectedSubjectIdRef.current
     );
-  }, [aggregationType, loadAggregatedOverviewData]);
+  }, [enabled, aggregationType, loadAggregatedOverviewData]);
 
   return {
     // Query Params
