@@ -32,6 +32,12 @@ export interface UseSimulatedPerformanceOptions {
    * - GENERAL_MANAGER, TEACHER, others: shows students (default)
    */
   profileName?: string;
+  /**
+   * When false, the hook will not make any API calls.
+   * Useful for lazy loading when the simulated report is not active.
+   * @default true
+   */
+  enabled?: boolean;
 }
 
 export interface UseSimulatedPerformanceReturn {
