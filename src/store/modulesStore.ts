@@ -66,10 +66,24 @@ const INITIAL_RETRY_DELAY = 1000; // 1 second
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
+ * Read a key from localStorage, tolerating environments where access is
+ * denied. Reading `localStorage` throws `SecurityError` (DOMException 18) in
+ * privacy mode, with blocked cookies, or in sandboxed/cross-origin iframes;
+ * treat that as "no cached value" instead of letting it crash app boot.
+ */
+const readLocalStorage = (key: string): string | null => {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+/**
  * Check if modules are already cached in localStorage for the given profile
  */
 const hasCachedModules = (profileType?: string): boolean => {
-  const cached = localStorage.getItem(KEYS.MODULES_STORAGE);
+  const cached = readLocalStorage(KEYS.MODULES_STORAGE);
   if (!cached) return false;
 
   try {

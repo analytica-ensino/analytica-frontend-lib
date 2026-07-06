@@ -362,6 +362,33 @@ describe('ModulesStore', () => {
       expect(mockApi.get).toHaveBeenCalled();
     });
 
+    it('should not crash and should fetch when localStorage access is denied (SecurityError)', async () => {
+      const institutionId = 'test-institution';
+
+      // Storage denied (private mode / blocked cookies / sandboxed iframe).
+      localStorageMock.getItem.mockImplementationOnce(() => {
+        throw new DOMException('Access is denied', 'SecurityError');
+      });
+      mockApi.get.mockResolvedValueOnce({
+        data: {
+          data: {
+            featureFlags: {
+              version: { simulator: false },
+            },
+          },
+        },
+      });
+
+      await expect(
+        useModulesStore
+          .getState()
+          .fetchModules(institutionId, mockApi as unknown as AxiosInstance)
+      ).resolves.not.toThrow();
+
+      // No usable cache -> proceeds with the fetch.
+      expect(mockApi.get).toHaveBeenCalled();
+    });
+
     it('should fetch when localStorage returns null', async () => {
       const institutionId = 'test-institution';
 
