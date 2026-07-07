@@ -190,7 +190,9 @@ describe('AccessReportModal', () => {
       );
       expect(screen.getByText('Dados de horas por item')).toBeInTheDocument();
       expect(screen.getAllByText('Atividades').length).toBeGreaterThan(0);
-      expect(screen.getByText('Questionários das Videoaulas')).toBeInTheDocument();
+      expect(
+        screen.getByText('Questionários das Videoaulas')
+      ).toBeInTheDocument();
     });
 
     it('should render SVG pie charts', () => {
