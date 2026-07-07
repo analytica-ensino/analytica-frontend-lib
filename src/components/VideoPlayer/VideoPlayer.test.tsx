@@ -208,6 +208,8 @@ describe('VideoPlayer', () => {
       expect(video).toBeInTheDocument();
       expect(video).toHaveAttribute('src', defaultProps.src);
       expect(video).toHaveAttribute('controlsList', 'nodownload');
+      // Necessário para carregar o <track> de legenda cross-origin (CDN)
+      expect(video).toHaveAttribute('crossorigin', 'anonymous');
     });
 
     it('should render with title and subtitle', () => {

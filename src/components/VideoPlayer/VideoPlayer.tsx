@@ -1176,6 +1176,7 @@ const VideoPlayer = ({
           ref={videoRef}
           src={src}
           poster={poster}
+          crossOrigin="anonymous"
           className="w-full h-full object-contain analytica-video"
           controlsList="nodownload"
           playsInline
