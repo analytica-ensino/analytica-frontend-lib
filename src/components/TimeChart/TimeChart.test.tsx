@@ -121,9 +121,9 @@ describe('TimeChart', () => {
     it('renders correct number of legend items for student profile', () => {
       render(<TimeChart data={studentData} />);
       expect(screen.getAllByText('Atividades')).toHaveLength(2);
-      expect(screen.getAllByText('Conteúdo')).toHaveLength(2);
+      expect(screen.getAllByText('Videoaulas')).toHaveLength(2);
       expect(screen.getAllByText('Simulados')).toHaveLength(2);
-      expect(screen.getAllByText('Questionários')).toHaveLength(2);
+      expect(screen.getAllByText('Questionários das Videoaulas')).toHaveLength(2);
     });
 
     it('renders correct number of legend items for teacher profile', () => {

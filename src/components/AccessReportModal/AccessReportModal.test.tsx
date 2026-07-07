@@ -125,7 +125,7 @@ describe('AccessReportModal', () => {
         />
       );
       expect(screen.getByText('Tempo total')).toBeInTheDocument();
-      expect(screen.getAllByText('Conteúdo').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Videoaulas').length).toBeGreaterThan(0);
       expect(screen.getByText('Aulas recomendadas')).toBeInTheDocument();
       expect(screen.getAllByText('Simulados').length).toBeGreaterThan(0);
       expect(screen.getByText('Quantidade de acessos')).toBeInTheDocument();
@@ -190,7 +190,7 @@ describe('AccessReportModal', () => {
       );
       expect(screen.getByText('Dados de horas por item')).toBeInTheDocument();
       expect(screen.getAllByText('Atividades').length).toBeGreaterThan(0);
-      expect(screen.getByText('Questionários')).toBeInTheDocument();
+      expect(screen.getByText('Questionários das Videoaulas')).toBeInTheDocument();
     });
 
     it('should render SVG pie charts', () => {
