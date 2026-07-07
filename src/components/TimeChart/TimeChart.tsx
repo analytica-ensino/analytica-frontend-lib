@@ -90,7 +90,7 @@ export const STUDENT_CATEGORIES: TimeChartCategory[] = [
   },
   {
     key: TIME_CHART_CATEGORY_KEY.CONTENT,
-    label: 'Conteúdo',
+    label: 'Videoaulas',
     colorClass: 'bg-success-300',
   },
   {
@@ -100,7 +100,7 @@ export const STUDENT_CATEGORIES: TimeChartCategory[] = [
   },
   {
     key: TIME_CHART_CATEGORY_KEY.QUESTIONNAIRES,
-    label: 'Questionários',
+    label: 'Questionários das Videoaulas',
     colorClass: 'bg-indicator-positive',
   },
 ];

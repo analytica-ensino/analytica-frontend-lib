@@ -151,7 +151,7 @@ function buildStudentHoursSlices(
       color: 'var(--Success-success700, #206F3E)',
     },
     {
-      label: 'Conteúdo',
+      label: 'Videoaulas',
       value: hoursByItem.content.percentage,
       colorClass: 'bg-success-300',
       color: 'var(--Success-success300, #66B584)',
@@ -163,7 +163,7 @@ function buildStudentHoursSlices(
       color: 'var(--Warning-warning300, #FDAD74)',
     },
     {
-      label: 'Questionários',
+      label: 'Questionários das Videoaulas',
       value: hoursByItem.questionnaires.percentage,
       colorClass: 'bg-indicator-positive',
       color: 'var(--Indicator-Indicator-Positive, #F8CC2E)',
@@ -235,7 +235,7 @@ const StudentModalContent = ({
     metricBoxes={
       <>
         <MetricBox label="Tempo total" value={data.accessData.totalTime} />
-        <MetricBox label="Conteúdo" value={data.accessData.contentTime} />
+        <MetricBox label="Videoaulas" value={data.accessData.contentTime} />
         <MetricBox
           label="Aulas recomendadas"
           value={data.accessData.recommendedLessonsTime}
