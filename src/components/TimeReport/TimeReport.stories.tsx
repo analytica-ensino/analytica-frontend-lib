@@ -71,7 +71,7 @@ const studentCardsFromApi = (data: TimeReportData): TimeCardData[] => {
     cards.push(
       metricToCard(
         'content',
-        'TEMPO EM CONTEÚDO',
+        'TEMPO EM VIDEOAULAS',
         <ChalkboardTeacherIcon />,
         data.content_time
       )
@@ -243,7 +243,7 @@ export const IndividualCards: Story = () => (
       <TimeCard
         data={metricToCard(
           'down',
-          'TEMPO EM CONTEÚDO',
+          'TEMPO EM VIDEOAULAS',
           <ChalkboardTeacherIcon />,
           { hours: 25.8, variation_percent: -5.2 }
         )}
