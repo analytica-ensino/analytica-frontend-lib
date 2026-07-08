@@ -327,6 +327,23 @@ describe('useAppContent', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/some/path', { replace: true });
   });
 
+  it('strips only auth params and preserves the rest of the query', () => {
+    window.history.pushState(
+      {},
+      '',
+      '/conteudo/editar?id=abc-123&token=t&refreshToken=r&sessionId=s'
+    );
+    renderHook(() => useAppContent(defaultConfig));
+
+    const urlAuthConfig = mockUseUrlAuthentication.mock.calls[0][0];
+    urlAuthConfig.clearParamsFromURL();
+
+    // token/refreshToken/sessionId removed; id kept.
+    expect(mockNavigate).toHaveBeenCalledWith('/conteudo/editar?id=abc-123', {
+      replace: true,
+    });
+  });
+
   it('should handle handleClearParamsFromURL with custom callback', () => {
     const customOnClearParamsFromURL = jest.fn();
     const configWithCustomCallback = {

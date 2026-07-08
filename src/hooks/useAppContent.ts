@@ -83,9 +83,19 @@ export function useAppContent(config: UseAppContentConfig) {
   const handleClearParamsFromURL = useCallback(() => {
     if (onClearParamsFromURL) {
       onClearParamsFromURL();
-    } else {
-      navigate(globalThis.location.pathname, { replace: true });
+      return;
     }
+    // Strip ONLY the auth params injected by the login redirect, preserving any
+    // other query the deep link carried (e.g. ?id=... on an edit page). Dropping
+    // the whole query here used to lose those params after hydration.
+    const params = new URLSearchParams(globalThis.location.search);
+    params.delete('token');
+    params.delete('refreshToken');
+    params.delete('sessionId');
+    const query = params.toString();
+    navigate(`${globalThis.location.pathname}${query ? `?${query}` : ''}`, {
+      replace: true,
+    });
   }, [onClearParamsFromURL, navigate]);
 
   const handleError = useCallback(
