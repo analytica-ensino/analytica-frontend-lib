@@ -54,6 +54,12 @@ export interface CalendarProps {
   activities?: Record<string, CalendarActivity[]>;
   /** Show activities indicators */
   showActivities?: boolean;
+  /**
+   * When true, a subtle overlay + spinner is shown over the grid while the
+   * month header and navigation stay visible and interactive. Lets consumers
+   * refetch a month's activities without hiding/resetting the whole calendar.
+   */
+  loading?: boolean;
   /** Additional CSS classes */
   className?: string;
 }
@@ -215,6 +221,7 @@ const Calendar = ({
   onMonthChange,
   activities = {},
   showActivities = true,
+  loading = false,
   className = '',
 }: CalendarProps) => {
   const [currentDate, setCurrentDate] = useState(selectedDate || new Date());
@@ -335,12 +342,34 @@ const Calendar = ({
     onDateSelect?.(day.date);
   };
 
+  // Subtle loading overlay: fades the grid and shows a spinner while a month's
+  // activities are (re)fetched. The month header/navigation stay above it and
+  // remain interactive. The faded backdrop and the spinner are separate layers
+  // so the spinner keeps full opacity.
+  const loadingOverlay = loading ? (
+    <div
+      className="absolute inset-0 z-10 rounded-xl"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+      data-testid="calendar-loading"
+    >
+      <div className="absolute inset-0 rounded-xl bg-background opacity-60" />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="sr-only">Carregando atividades</span>
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-border-200 border-t-primary-800" />
+      </div>
+    </div>
+  ) : null;
+
   // Navigation variant (compact)
   if (variant === 'navigation') {
     return (
-      <div className={cn('bg-background rounded-xl pt-6', className)}>
-        {/* Compact header */}
-        <div className="flex items-center justify-between mb-4 px-6">
+      <div className={cn('bg-background rounded-xl pt-6 relative', className)}>
+        {loadingOverlay}
+        {/* Compact header — stacks above the loading overlay so month
+            navigation stays clickable while loading. */}
+        <div className="flex items-center justify-between mb-4 px-6 relative z-20">
           <div className="relative" ref={monthPickerContainerRef}>
             <button
               onClick={toggleMonthPicker}
@@ -490,9 +519,11 @@ const Calendar = ({
 
   // Selection variant (full)
   return (
-    <div className={cn('bg-background rounded-xl p-4', className)}>
-      {/* Full header */}
-      <div className="flex items-center justify-between mb-3.5">
+    <div className={cn('bg-background rounded-xl p-4 relative', className)}>
+      {loadingOverlay}
+      {/* Full header — stacks above the loading overlay so month navigation
+          stays clickable while loading. */}
+      <div className="flex items-center justify-between mb-3.5 relative z-20">
         <div className="relative" ref={monthPickerContainerRef}>
           <button
             onClick={toggleMonthPicker}

@@ -479,4 +479,57 @@ describe('Calendar', () => {
       expect(nonTodayElement).not.toHaveAttribute('aria-current');
     });
   });
+
+  describe('Loading state', () => {
+    it('should not render the loading overlay by default', () => {
+      render(<Calendar variant="navigation" />);
+      expect(screen.queryByTestId('calendar-loading')).not.toBeInTheDocument();
+    });
+
+    it('should render the loading overlay when loading is true (navigation)', () => {
+      render(<Calendar variant="navigation" loading />);
+      const overlay = screen.getByTestId('calendar-loading');
+      expect(overlay).toBeInTheDocument();
+      expect(overlay).toHaveAttribute('aria-busy', 'true');
+    });
+
+    it('should render the loading overlay when loading is true (selection)', () => {
+      render(<Calendar variant="selection" loading />);
+      expect(screen.getByTestId('calendar-loading')).toBeInTheDocument();
+    });
+
+    it('should keep month navigation visible and interactive while loading', () => {
+      const selectedDate = new Date(2025, 0, 15); // January 2025
+      render(
+        <Calendar
+          variant="navigation"
+          loading
+          selectedDate={selectedDate}
+          onMonthChange={mockOnMonthChange}
+        />
+      );
+
+      // The overlay must not hide/replace the calendar header or nav buttons.
+      expect(screen.getByText(/Janeiro 2025/)).toBeInTheDocument();
+      const nextButton = screen.getByLabelText('Próximo mês');
+      fireEvent.click(nextButton);
+      expect(mockOnMonthChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('stacks the header above the overlay so navigation stays clickable', () => {
+      // jsdom does not hit-test, so assert structurally that the header wrapper
+      // has a higher stacking order than the z-10 overlay — otherwise the
+      // absolute overlay would intercept clicks in a real browser.
+      render(<Calendar variant="navigation" loading />);
+
+      const overlay = screen.getByTestId('calendar-loading');
+      expect(overlay).toHaveClass('z-10');
+
+      const header = screen
+        .getByLabelText('Próximo mês')
+        .closest('.z-20') as HTMLElement | null;
+      expect(header).not.toBeNull();
+      expect(header).toHaveClass('relative', 'z-20');
+    });
+  });
 });
