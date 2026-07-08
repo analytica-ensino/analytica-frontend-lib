@@ -111,6 +111,8 @@ export interface AlertData {
   date: string;
   time: string;
   sendToday: boolean;
+  /** Whether to also send a copy of the alert to each recipient's email. */
+  sendCopyToEmail?: boolean;
   recipientCategories: Record<
     string,
     {
