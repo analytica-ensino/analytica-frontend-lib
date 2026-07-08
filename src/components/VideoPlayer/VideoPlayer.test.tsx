@@ -224,13 +224,14 @@ describe('VideoPlayer', () => {
       expect(screen.getByText('Test Description')).toBeInTheDocument();
     });
 
-    it('should render with poster image', () => {
+    it('should render the poster as a full-bleed cover image before playback', () => {
       const posterUrl = 'https://example.com/poster.jpg';
       const { container } = render(
         <VideoPlayer {...defaultProps} poster={posterUrl} />
       );
-      const video = container.querySelector('video');
-      expect(video).toHaveAttribute('poster', posterUrl);
+      const posterImg = container.querySelector('img');
+      expect(posterImg).toHaveAttribute('src', posterUrl);
+      expect(posterImg).toHaveClass('object-cover');
     });
 
     it('should render with custom className', () => {

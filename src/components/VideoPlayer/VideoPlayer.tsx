@@ -337,6 +337,7 @@ const VideoPlayer = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const { isUltraSmallMobile, isTinyMobile } = useMobile();
   const [isPlaying, setIsPlaying] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
@@ -352,6 +353,7 @@ const VideoPlayer = ({
   // Reset completion flag when changing videos
   useEffect(() => {
     setHasCompleted(false);
+    setHasStarted(false);
   }, [src]);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
@@ -484,7 +486,10 @@ const VideoPlayer = ({
     const video = videoRef.current;
     if (!video) return;
 
-    const onPlay = () => setIsPlaying(true);
+    const onPlay = () => {
+      setIsPlaying(true);
+      setHasStarted(true);
+    };
     const onPause = () => setIsPlaying(false);
     const onEnded = () => setIsPlaying(false);
 
@@ -1110,6 +1115,7 @@ const VideoPlayer = ({
   );
 
   const groupedSubTitleValid = subtitles && subtitlesValidation === 'valid';
+  const showPoster = Boolean(poster) && !hasStarted;
 
   return (
     <div className={cn('flex flex-col', className)}>
@@ -1175,7 +1181,6 @@ const VideoPlayer = ({
         <video
           ref={videoRef}
           src={src}
-          poster={poster}
           crossOrigin="anonymous"
           className="w-full h-full object-contain analytica-video"
           controlsList="nodownload"
@@ -1204,6 +1209,15 @@ const VideoPlayer = ({
             default={false}
           />
         </video>
+
+        {showPoster && (
+          <img
+            src={poster}
+            alt={title ? `Capa: ${title}` : 'Capa do vídeo'}
+            className="absolute inset-0 w-full h-full object-cover"
+            aria-hidden="true"
+          />
+        )}
 
         {/* Center Play Button */}
         {!isPlaying && (
