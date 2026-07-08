@@ -335,6 +335,7 @@ export default defineConfig({
     'utils/brazilianStates/index': 'src/utils/brazilianStates.ts', // UF_LIST
     'utils/calendarActivityUtils/index': 'src/utils/calendarActivityUtils.ts', // filterActivitiesFromDate, getActivityDateKey, getCalendarActivityStatus
     'utils/chatUtils/index': 'src/utils/chatUtils.ts', // getChatUserInfo, getChatWsUrl
+    'utils/domainUtils/index': 'src/utils/domainUtils.ts', // resolveRootHostname, extractSubdomainSlug, buildLoginUrlWithReturnTo
     'utils/examFilterHelpers/index': 'src/utils/examFilterHelpers.ts', // EXAM_STATUS_OPTIONS
     'utils/lessonAvailabilityUtils/index': 'src/utils/lessonAvailabilityUtils.ts', // checkLessonAvailability
     'utils/renderSubjectCell/index': 'src/utils/renderSubjectCell.tsx', // renderSubjectCell
