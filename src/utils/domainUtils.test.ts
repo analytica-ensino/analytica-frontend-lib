@@ -1,4 +1,9 @@
-import { resolveRootHostname } from './domainUtils';
+import {
+  resolveRootHostname,
+  extractSubdomainSlug,
+  buildLoginUrlWithReturnTo,
+} from './domainUtils';
+import { mockWindowLocation } from '../test-utils/mockLocation';
 
 describe('resolveRootHostname', () => {
   it.each([
@@ -42,4 +47,108 @@ describe('resolveRootHostname', () => {
       expect(resolveRootHostname(hostname)).toBe(expected);
     }
   );
+});
+
+describe('extractSubdomainSlug', () => {
+  it.each([
+    ['aluno.analyticaensino.com.br', 'aluno'],
+    ['professor.analyticaensino.com.br', 'professor'],
+    ['backoffice.analyticaensino.com.br', 'backoffice'],
+    ['sub.example.com', 'sub'],
+  ])('should extract the profile slug from %s', (hostname, expected) => {
+    expect(extractSubdomainSlug(hostname)).toBe(expected);
+  });
+
+  it.each([
+    ['hml-aluno.hml.analyticaensino.com.br', 'aluno'],
+    ['hml-backoffice.hml.analyticaensino.com.br', 'backoffice'],
+    ['hml-aluno.analyticaensino.com.br', 'aluno'],
+  ])('should strip the hml- prefix from %s', (hostname, expected) => {
+    expect(extractSubdomainSlug(hostname)).toBe(expected);
+  });
+
+  it.each([
+    ['analyticaensino.com.br', null], // root, no leading profile label
+    ['example.com', null],
+    ['localhost', null],
+    ['127.0.0.1', null],
+  ])(
+    'should return null for %s (no profile subdomain)',
+    (hostname, expected) => {
+      expect(extractSubdomainSlug(hostname)).toBe(expected);
+    }
+  );
+});
+
+describe('buildLoginUrlWithReturnTo', () => {
+  const ROOT = 'https://analyticaensino.com.br';
+
+  let restoreLocation: (() => void) | undefined;
+
+  // Point window.location at a fixture URL for the duration of one test.
+  const setLocation = (href: string) => {
+    const url = new URL(href);
+    const { restore } = mockWindowLocation({
+      href,
+      hostname: url.hostname,
+      pathname: url.pathname,
+      search: url.search,
+      protocol: url.protocol,
+      port: url.port,
+    });
+    restoreLocation = restore;
+  };
+
+  afterEach(() => {
+    restoreLocation?.();
+    restoreLocation = undefined;
+  });
+
+  it('appends the current URL as an encoded returnTo when there is a deep path', () => {
+    setLocation(
+      'https://backoffice.analyticaensino.com.br/instituicoes/123?tab=users'
+    );
+
+    const result = buildLoginUrlWithReturnTo(ROOT);
+
+    expect(result).toBe(
+      `${ROOT}?returnTo=${encodeURIComponent(
+        'https://backoffice.analyticaensino.com.br/instituicoes/123?tab=users'
+      )}`
+    );
+  });
+
+  it('keeps a query-only returnTo (path is "/" but search is present)', () => {
+    setLocation('https://aluno.analyticaensino.com.br/?aula=lesson-2');
+
+    const result = buildLoginUrlWithReturnTo(ROOT);
+
+    expect(result).toBe(
+      `${ROOT}?returnTo=${encodeURIComponent(
+        'https://aluno.analyticaensino.com.br/?aula=lesson-2'
+      )}`
+    );
+  });
+
+  it('returns the bare root domain when already at "/" with no query', () => {
+    setLocation('https://backoffice.analyticaensino.com.br/');
+
+    expect(buildLoginUrlWithReturnTo(ROOT)).toBe(ROOT);
+  });
+
+  it('skips the flow on localhost, returning the bare root domain', () => {
+    setLocation('http://localhost:3004/instituicoes/123');
+
+    expect(buildLoginUrlWithReturnTo('http://localhost:3004')).toBe(
+      'http://localhost:3004'
+    );
+  });
+
+  it('skips the flow on IP literals, returning the bare root domain', () => {
+    setLocation('http://127.0.0.1:3004/instituicoes/123');
+
+    expect(buildLoginUrlWithReturnTo('http://127.0.0.1:3004')).toBe(
+      'http://127.0.0.1:3004'
+    );
+  });
 });

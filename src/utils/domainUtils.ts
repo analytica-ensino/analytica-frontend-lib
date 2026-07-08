@@ -65,3 +65,81 @@ export const resolveRootHostname = (hostname: string): string | null => {
   // For 2-part domains (example.com) or single domains, return as-is
   return hostname;
 };
+
+/**
+ * Extracts the profile "slug" from a hostname's leading subdomain label,
+ * stripping the homolog prefix so it matches the bare profile name the backend
+ * returns (e.g. "aluno"). Used to compare the profile a shared link belongs to
+ * against the profile the user actually logged in as.
+ *
+ * @param hostname - The hostname to read (e.g. window.location.hostname)
+ * @returns The profile slug, or null for localhost / IP literals / hosts with
+ *          no subdomain (a root-level host carries no profile identity)
+ *
+ * @example
+ * ```typescript
+ * extractSubdomainSlug('aluno.analyticaensino.com.br'); // 'aluno'
+ * extractSubdomainSlug('hml-aluno.hml.analyticaensino.com.br'); // 'aluno'
+ * extractSubdomainSlug('analyticaensino.com.br'); // null (no subdomain)
+ * extractSubdomainSlug('localhost'); // null
+ * ```
+ */
+export const extractSubdomainSlug = (hostname: string): string | null => {
+  // localhost / IP literals have no profile subdomain
+  if (resolveRootHostname(hostname) === null) {
+    return null;
+  }
+
+  // If stripping the subdomain yields the hostname unchanged, there is no
+  // leading profile label (already at root, e.g. analyticaensino.com.br).
+  if (resolveRootHostname(hostname) === hostname) {
+    return null;
+  }
+
+  const firstLabel = hostname.split('.')[0];
+  // Homolog uses a "hml-<profile>" leading label; strip it to the bare profile.
+  return firstLabel.startsWith('hml-')
+    ? firstLabel.slice('hml-'.length)
+    : firstLabel;
+};
+
+/**
+ * Builds the login URL (root domain) with the current deep link preserved as a
+ * `returnTo` query param, so that after the user logs in they can be sent back
+ * to the page they originally tried to open.
+ *
+ * Deliberately a no-op in two cases, returning the bare `rootDomain`:
+ * - **localhost / IP literals**: the deep-link-return flow is skipped entirely
+ *   in local development (no subdomain to validate against).
+ * - **no meaningful path**: the user was at the root already, so there is
+ *   nothing worth remembering.
+ *
+ * The stored value is the full current URL (origin + path + query). The login
+ * app later validates that its host's profile matches the logged-in profile
+ * before honoring it, and only ever reuses the path — never the host — so a
+ * crafted `returnTo` cannot redirect to a foreign origin.
+ *
+ * @param rootDomain - The login/root domain to redirect to (from getRootDomain)
+ * @returns `rootDomain` with `?returnTo=<encoded current URL>` appended, or the
+ *          bare `rootDomain` when the flow should be skipped
+ */
+export const buildLoginUrlWithReturnTo = (rootDomain: string): string => {
+  if (typeof window === 'undefined') {
+    return rootDomain;
+  }
+
+  const { hostname, pathname, search } = window.location;
+
+  // Skip the whole deep-link flow on localhost / IP literals.
+  if (resolveRootHostname(hostname) === null) {
+    return rootDomain;
+  }
+
+  // Nothing worth remembering when already at the root with no query.
+  if (pathname === '/' && !search) {
+    return rootDomain;
+  }
+
+  const returnTo = encodeURIComponent(window.location.href);
+  return `${rootDomain}?returnTo=${returnTo}`;
+};

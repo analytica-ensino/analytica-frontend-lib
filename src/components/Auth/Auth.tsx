@@ -10,7 +10,10 @@ import {
 } from 'react';
 import { useLocation, Navigate } from 'react-router-dom';
 import { useTokenInUrl } from './useTokenInUrl';
-import { resolveRootHostname } from '../../utils/domainUtils';
+import {
+  resolveRootHostname,
+  buildLoginUrlWithReturnTo,
+} from '../../utils/domainUtils';
 
 /**
  * Interface for basic authentication tokens
@@ -333,7 +336,8 @@ export const ProtectedRoute = ({
       // Only redirect if the root domain is different from current location
       const currentLocation = `${window.location.protocol}//${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}`;
       if (rootDomain !== currentLocation) {
-        window.location.href = rootDomain;
+        // Preserve the page the user tried to open so login can return here.
+        window.location.href = buildLoginUrlWithReturnTo(rootDomain);
         return null;
       }
     }
