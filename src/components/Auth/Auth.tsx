@@ -297,6 +297,11 @@ export interface ProtectedRouteProps {
    * Função adicional de verificação (ex: verificar permissões específicas)
    */
   additionalCheck?: (authState: AuthState) => boolean;
+  /**
+   * Componente exibido enquanto os tokens presentes na URL são validados
+   * (hidratação assíncrona da sessão). Sem ele, o loading padrão é usado.
+   */
+  tokenValidationComponent?: ReactNode;
 }
 
 /**
@@ -314,8 +319,10 @@ export const ProtectedRoute = ({
   redirectTo = '/',
   loadingComponent,
   additionalCheck,
+  tokenValidationComponent,
 }: ProtectedRouteProps) => {
   const { isAuthenticated, isLoading, ...authState } = useAuth();
+  const { hasTokenInUrl } = useTokenInUrl();
 
   // Componente de loading padrão
   const defaultLoadingComponent = (
@@ -327,6 +334,21 @@ export const ProtectedRoute = ({
   // Mostrar loading enquanto verifica autenticação
   if (isLoading) {
     return <>{loadingComponent || defaultLoadingComponent}</>;
+  }
+
+  // Deep link com tokens na URL (login redirecionou direto para a rota
+  // protegida): a hidratação da sessão é assíncrona. Segurar o render até os
+  // tokens saírem da URL, em vez de redirecionar de volta pro login com a
+  // sessão ainda não hidratada — o que geraria um loop capturando os próprios
+  // tokens como returnTo.
+  if (!isAuthenticated && hasTokenInUrl) {
+    return (
+      <>
+        {tokenValidationComponent ||
+          loadingComponent ||
+          defaultLoadingComponent}
+      </>
+    );
   }
 
   // Verificar autenticação básica

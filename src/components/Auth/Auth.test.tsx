@@ -431,6 +431,84 @@ describe('Auth Components', () => {
       });
     });
 
+    it('shows the token-validation component (not redirect) while tokens are in the URL', async () => {
+      // Deep link arriving on a protected route with tokens still in the URL:
+      // the session is not hydrated yet, so ProtectedRoute must wait instead of
+      // bouncing to login (which would loop, capturing the tokens as returnTo).
+      const checkAuthFn = jest.fn().mockResolvedValue(false);
+
+      const mockLocation = {
+        hostname: 'backoffice.example.com',
+        protocol: 'https:',
+        port: '',
+        href: 'https://backoffice.example.com/protected?token=t&refreshToken=r&sessionId=s',
+      };
+      const { restore } = mockWindowLocation(mockLocation);
+      restoreLocation = restore;
+
+      render(
+        <MemoryRouter
+          initialEntries={['/protected?token=t&refreshToken=r&sessionId=s']}
+        >
+          <AuthProvider checkAuthFn={checkAuthFn}>
+            <ProtectedRoute
+              redirectTo="/login"
+              tokenValidationComponent={
+                <div data-testid="token-validation">Validando…</div>
+              }
+            >
+              <TestComponent />
+            </ProtectedRoute>
+          </AuthProvider>
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('token-validation')).toBeInTheDocument();
+      });
+      // Must NOT have redirected while tokens are pending hydration.
+      expect(mockLocation.href).toBe(
+        'https://backoffice.example.com/protected?token=t&refreshToken=r&sessionId=s'
+      );
+      expect(screen.queryByTestId('test-component')).not.toBeInTheDocument();
+    });
+
+    it('falls back to the loading component when tokens are in the URL but no validation component is given', async () => {
+      const checkAuthFn = jest.fn().mockResolvedValue(false);
+
+      const mockLocation = {
+        hostname: 'backoffice.example.com',
+        protocol: 'https:',
+        port: '',
+        href: 'https://backoffice.example.com/protected?token=t&refreshToken=r&sessionId=s',
+      };
+      const { restore } = mockWindowLocation(mockLocation);
+      restoreLocation = restore;
+
+      render(
+        <MemoryRouter
+          initialEntries={['/protected?token=t&refreshToken=r&sessionId=s']}
+        >
+          <AuthProvider checkAuthFn={checkAuthFn}>
+            <ProtectedRoute
+              redirectTo="/login"
+              loadingComponent={<div data-testid="custom-loading">wait</div>}
+            >
+              <TestComponent />
+            </ProtectedRoute>
+          </AuthProvider>
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('custom-loading')).toBeInTheDocument();
+      });
+      // No redirect while tokens pending.
+      expect(mockLocation.href).toBe(
+        'https://backoffice.example.com/protected?token=t&refreshToken=r&sessionId=s'
+      );
+    });
+
     it('should not redirect for single domain when already on root', async () => {
       const checkAuthFn = jest.fn().mockResolvedValue(false);
 
