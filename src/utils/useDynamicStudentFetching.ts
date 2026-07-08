@@ -1,15 +1,29 @@
 import { useCallback, useRef } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import type { CategoryConfig } from '../components/CheckBoxGroup/CheckBoxGroup';
 import type { BaseApiClient } from '../types/api';
-import { fetchStudentsByFilters } from './categoryDataUtils';
+import {
+  fetchStudentsByFilters,
+  fetchClassesByFilters as defaultFetchClassesByFilters,
+} from './categoryDataUtils';
+import type { Class } from './categoryDataUtils';
 import type {
   FetchStudentsByFiltersFunction,
   StudentWithNestedData,
 } from './studentTypes';
 
+/**
+ * Function type for fetching classes by filters
+ */
+export type FetchClassesByFiltersFunction = (
+  apiClient: BaseApiClient,
+  filters: { schoolIds?: string[]; schoolYearIds?: string[] }
+) => Promise<Class[]>;
+
 export interface UseDynamicStudentFetchingOptions {
   apiClient?: BaseApiClient;
   fetchStudentsByFilters?: FetchStudentsByFiltersFunction;
+  fetchClassesByFilters?: FetchClassesByFiltersFunction;
   onError?: (error: Error) => void;
 }
 
@@ -121,54 +135,74 @@ function transformStudentsToItems(students: StudentWithNestedData[]): Array<{
 }
 
 /**
- * Update categories with student items
+ * Transform classes to items format.
+ *
+ * Each item MUST carry `schoolYearId`: the turma category's `filteredBy` is
+ * `[{ key: 'serie', internalField: 'schoolYearId' }]`, so items without it are
+ * filtered out and never render.
  */
-function updateCategoriesWithStudents(
+function transformClassesToItems(classes: Class[]): Array<{
+  id: string;
+  name: string;
+  schoolYearId: string;
+}> {
+  return classes.map((c) => ({
+    id: c.id,
+    name: c.name,
+    schoolYearId: c.schoolYearId,
+  }));
+}
+
+/**
+ * Immutably replace the `itens` of a single category (by key), leaving every
+ * other category untouched. Clearing a category is `setCategoryItems(cats, key, [])`.
+ */
+function setCategoryItems(
+  categories: CategoryConfig[],
+  key: string,
+  itens: NonNullable<CategoryConfig['itens']>
+): CategoryConfig[] {
+  return categories.map((cat) => (cat.key === key ? { ...cat, itens } : cat));
+}
+
+/**
+ * Commit the new `selectedIds` from a change while preserving each category's
+ * prior `itens`. The `itens` for turma/alunos are owned exclusively by the async
+ * write-backs, so the eager commit must never overwrite them (which would revert
+ * async-loaded options when a rapid second call carries a stale snapshot).
+ */
+function commitSelectionsPreservingItems(
   updatedCategories: CategoryConfig[],
-  studentItems: Array<{
-    id: string;
-    name: string;
-    classId: string;
-    schoolId: string;
-    schoolYearId: string;
-    studentId: string;
-    userInstitutionId: string;
-    escolaId: string;
-    serieId: string;
-    turmaId: string;
-  }>
+  prev: CategoryConfig[]
 ): CategoryConfig[] {
-  return updatedCategories.map((cat) =>
-    cat.key === 'students' ? { ...cat, itens: studentItems } : cat
-  );
+  return updatedCategories.map((cat) => {
+    const prior = prev.find((p) => p.key === cat.key);
+    return prior ? { ...cat, itens: prior.itens } : cat;
+  });
 }
 
 /**
- * Clear students from categories
- */
-function clearStudentsFromCategories(
-  updatedCategories: CategoryConfig[]
-): CategoryConfig[] {
-  return updatedCategories.map((cat) =>
-    cat.key === 'students' ? { ...cat, itens: [] } : cat
-  );
-}
-
-/**
- * Hook to handle dynamic student fetching based on category selections.
+ * Hook to dynamically load BOTH turmas and alunos based on category selections.
  *
  * This hook provides a `handleCategoriesChange` function that:
  * - Detects changes in school/series/class selections
- * - Fetches students only when these selections change (not when only students are toggled)
- * - Transforms fetched students into the correct format for CategoryConfig
+ * - Fetches turmas (classes) when the school/série selection changes and a série
+ *   is selected; clears turmas when the série selection becomes empty
+ * - Fetches alunos (students) only when school/series/class selections change and
+ *   a turma is selected (not when only students are toggled); clears alunos otherwise
+ * - Writes each fetched set back into ONLY its own category via functional state
+ *   updates, so a late turma response never clobbers a student write and vice-versa
+ * - Transforms fetched turmas/alunos into the correct format for CategoryConfig
+ *   (turma items carry `schoolYearId` so the turma `filteredBy` does not hide them)
+ * - Uses separate request-id guards for turmas and alunos to drop stale responses
  * - Handles errors gracefully
  *
- * @param setCategories - Function to update categories state
+ * @param setCategories - React state setter for categories (supports functional updates)
  * @param options - Configuration options
  * @returns Object with handleCategoriesChange function
  */
 export function useDynamicStudentFetching(
-  setCategories: (categories: CategoryConfig[]) => void,
+  setCategories: Dispatch<SetStateAction<CategoryConfig[]>>,
   options: UseDynamicStudentFetchingOptions = {}
 ): {
   handleCategoriesChange: (
@@ -178,6 +212,7 @@ export function useDynamicStudentFetching(
   const {
     apiClient,
     fetchStudentsByFilters: customFetchStudents,
+    fetchClassesByFilters: fetchClasses = defaultFetchClassesByFilters,
     onError,
   } = options;
 
@@ -192,8 +227,11 @@ export function useDynamicStudentFetching(
     classIds: [],
   });
 
-  // Ref to track fetch request ID and prevent race conditions
+  // Refs to track fetch request IDs and prevent race conditions.
+  // Separate ids for turmas and alunos so the two async writes never invalidate
+  // each other.
   const fetchRequestId = useRef(0);
+  const fetchClassesRequestId = useRef(0);
 
   /**
    * Build filters object for student fetching
@@ -304,24 +342,46 @@ export function useDynamicStudentFetching(
   );
 
   /**
-   * Handle successful student fetch
+   * Fetch classes (turmas) filtered by selected schools/schoolYears
+   */
+  const performClassFetch = useCallback(
+    async (
+      selectedSchoolIds: string[],
+      selectedSchoolYearIds: string[],
+      localRequestId: number
+    ): Promise<Class[] | null> => {
+      if (!apiClient) {
+        return null;
+      }
+
+      const filters = {
+        schoolIds: selectedSchoolIds.length > 0 ? selectedSchoolIds : undefined,
+        schoolYearIds:
+          selectedSchoolYearIds.length > 0 ? selectedSchoolYearIds : undefined,
+      };
+      const classes = await fetchClasses(apiClient, filters);
+
+      if (localRequestId !== fetchClassesRequestId.current) {
+        return null;
+      }
+
+      return classes;
+    },
+    [apiClient, fetchClasses]
+  );
+
+  /**
+   * Handle successful student fetch. Patches ONLY the students category on top of
+   * the latest state so a concurrent turma write is not clobbered.
    */
   const handleSuccessfulFetch = useCallback(
-    (
-      students: StudentWithNestedData[],
-      updatedCategories: CategoryConfig[],
-      localRequestId: number
-    ): boolean => {
+    (students: StudentWithNestedData[], localRequestId: number): boolean => {
       if (localRequestId !== fetchRequestId.current) {
         return false;
       }
 
       const studentItems = transformStudentsToItems(students);
-      const finalCategories = updateCategoriesWithStudents(
-        updatedCategories,
-        studentItems
-      );
-      setCategories(finalCategories);
+      setCategories((prev) => setCategoryItems(prev, 'students', studentItems));
       return true;
     },
     [setCategories]
@@ -331,11 +391,7 @@ export function useDynamicStudentFetching(
    * Handle error during student fetch
    */
   const handleFetchError = useCallback(
-    (
-      error: unknown,
-      updatedCategories: CategoryConfig[],
-      localRequestId: number
-    ): boolean => {
+    (error: unknown, localRequestId: number): boolean => {
       console.error('Error fetching students:', error);
       if (onError && error instanceof Error) {
         onError(error);
@@ -345,11 +401,139 @@ export function useDynamicStudentFetching(
         return false;
       }
 
-      const finalCategories = clearStudentsFromCategories(updatedCategories);
-      setCategories(finalCategories);
+      setCategories((prev) => setCategoryItems(prev, 'students', []));
       return true;
     },
     [onError, setCategories]
+  );
+
+  /**
+   * Handle successful class fetch. Patches ONLY the turma category on top of the
+   * latest state so a concurrent student write is not clobbered.
+   */
+  const handleSuccessfulClassFetch = useCallback(
+    (classes: Class[], localRequestId: number): boolean => {
+      if (localRequestId !== fetchClassesRequestId.current) {
+        return false;
+      }
+
+      const classItems = transformClassesToItems(classes);
+      setCategories((prev) => setCategoryItems(prev, 'turma', classItems));
+      return true;
+    },
+    [setCategories]
+  );
+
+  /**
+   * Handle error during class fetch
+   */
+  const handleClassFetchError = useCallback(
+    (error: unknown, localRequestId: number): boolean => {
+      console.error('Error fetching classes:', error);
+      if (onError && error instanceof Error) {
+        onError(error);
+      }
+
+      if (localRequestId !== fetchClassesRequestId.current) {
+        return false;
+      }
+
+      setCategories((prev) => setCategoryItems(prev, 'turma', []));
+      return true;
+    },
+    [onError, setCategories]
+  );
+
+  /**
+   * Fetch turmas (or clear them) in response to a school/série selection change
+   */
+  const handleClassesChange = useCallback(
+    async (
+      selectedSchoolIds: string[],
+      selectedSchoolYearIds: string[]
+    ): Promise<void> => {
+      // No apiClient => this consumer manages `turma` itself (e.g. AlertsManager
+      // with pre-populated categories). Never fetch OR clear turma in that case.
+      if (!apiClient) return;
+
+      // Turma depends on a selected série: fetch only when a série is selected.
+      if (selectedSchoolYearIds.length > 0) {
+        fetchClassesRequestId.current += 1;
+        const localRequestId = fetchClassesRequestId.current;
+
+        try {
+          const classes = await performClassFetch(
+            selectedSchoolIds,
+            selectedSchoolYearIds,
+            localRequestId
+          );
+
+          if (classes === null) {
+            return; // Request was invalidated
+          }
+
+          handleSuccessfulClassFetch(classes, localRequestId);
+        } catch (error) {
+          handleClassFetchError(error, localRequestId);
+        }
+      } else {
+        // Série selection became empty -> reset turma options
+        fetchClassesRequestId.current += 1;
+        setCategories((prev) => setCategoryItems(prev, 'turma', []));
+      }
+    },
+    [
+      apiClient,
+      performClassFetch,
+      handleSuccessfulClassFetch,
+      handleClassFetchError,
+      setCategories,
+    ]
+  );
+
+  /**
+   * Fetch alunos (or clear them) in response to a selection change
+   */
+  const handleStudentsChange = useCallback(
+    async (
+      selectedSchoolIds: string[],
+      selectedSchoolYearIds: string[],
+      selectedClassIds: string[],
+      studentsCategory: CategoryConfig | undefined
+    ): Promise<void> => {
+      if (selectedClassIds.length > 0 && studentsCategory) {
+        // Increment request ID to invalidate any in-flight requests
+        fetchRequestId.current += 1;
+        const localRequestId = fetchRequestId.current;
+
+        try {
+          const students = await performStudentFetch(
+            selectedSchoolIds,
+            selectedSchoolYearIds,
+            selectedClassIds,
+            localRequestId
+          );
+
+          if (students === null) {
+            return; // Request was invalidated
+          }
+
+          handleSuccessfulFetch(students, localRequestId);
+        } catch (error) {
+          handleFetchError(error, localRequestId);
+        }
+      } else if (studentsCategory) {
+        // If no classes selected after a change, clear students
+        fetchRequestId.current += 1;
+        setCategories((prev) => setCategoryItems(prev, 'students', []));
+      }
+    },
+    [
+      performStudentFetch,
+      handleSuccessfulFetch,
+      handleFetchError,
+      setCategories,
+    ]
   );
 
   const handleCategoriesChange = useCallback(
@@ -370,14 +554,12 @@ export function useDynamicStudentFetching(
 
       // Detect if selections have changed
       const previousSelections = previousSelectionsRef.current;
-      const { shouldFetchStudents } = detectSelectionChanges(
-        previousSelections,
-        {
+      const { schoolIdsChanged, schoolYearIdsChanged, shouldFetchStudents } =
+        detectSelectionChanges(previousSelections, {
           schoolIds: selectedSchoolIds,
           schoolYearIds: selectedSchoolYearIds,
           classIds: selectedClassIds,
-        }
-      );
+        });
 
       // Update previous selections
       previousSelectionsRef.current = {
@@ -386,49 +568,35 @@ export function useDynamicStudentFetching(
         classIds: [...selectedClassIds],
       };
 
-      // Only fetch students if school/series/class selections changed
-      if (
-        shouldFetchStudents &&
-        selectedClassIds.length > 0 &&
-        studentsCategory
-      ) {
-        // Increment request ID to invalidate any in-flight requests
-        fetchRequestId.current += 1;
-        const localRequestId = fetchRequestId.current;
+      // Commit the new selections immediately, but NEVER the snapshot's `itens`
+      // (owned exclusively by the async write-backs below). This keeps the
+      // no-clobber invariant regardless of caller timing.
+      setCategories((prev) =>
+        commitSelectionsPreservingItems(updatedCategories, prev)
+      );
 
-        try {
-          const students = await performStudentFetch(
-            selectedSchoolIds,
-            selectedSchoolYearIds,
-            selectedClassIds,
-            localRequestId
-          );
+      // Dynamic TURMA fetching: react to school/série selection changes
+      if (schoolIdsChanged || schoolYearIdsChanged) {
+        await handleClassesChange(selectedSchoolIds, selectedSchoolYearIds);
+      }
 
-          if (students === null) {
-            return; // Request was invalidated
-          }
-
-          handleSuccessfulFetch(students, updatedCategories, localRequestId);
-        } catch (error) {
-          handleFetchError(error, updatedCategories, localRequestId);
-        }
-      } else if (shouldFetchStudents && studentsCategory) {
-        // If no classes selected after a change, clear students
-        fetchRequestId.current += 1;
-        const finalCategories = clearStudentsFromCategories(updatedCategories);
-        setCategories(finalCategories);
-      } else {
-        // No relevant changes (only student selections changed), just update categories as-is
-        setCategories(updatedCategories);
+      // Dynamic ALUNOS fetching: react to school/série/turma selection changes
+      // (skipped when only student selections changed)
+      if (shouldFetchStudents) {
+        await handleStudentsChange(
+          selectedSchoolIds,
+          selectedSchoolYearIds,
+          selectedClassIds,
+          studentsCategory
+        );
       }
     },
     [
       apiClient,
       customFetchStudents,
       setCategories,
-      performStudentFetch,
-      handleSuccessfulFetch,
-      handleFetchError,
+      handleClassesChange,
+      handleStudentsChange,
     ]
   );
 

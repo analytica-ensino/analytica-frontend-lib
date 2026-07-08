@@ -1488,6 +1488,109 @@ describe('RecommendedLessonsHistory', () => {
     });
   });
 
+  describe('Actions Column ownership gating (currentUserId)', () => {
+    // The default mocked row is created by this user id (creator.id).
+    const OWNER_ID = '123e4567-e89b-12d3-a456-426614174002';
+    const OTHER_ID = '00000000-0000-0000-0000-000000000999';
+
+    const responseWithCreator = (
+      creator: { id: string; name: string } | null
+    ): RecommendedClassHistoryApiResponse => ({
+      message: 'Success',
+      data: {
+        recommendedClass: [
+          {
+            recommendedClass: {
+              id: '123e4567-e89b-12d3-a456-426614174000',
+              title: 'Aula de Matemática',
+              startDate: '2024-06-01',
+              finalDate: '2024-12-31',
+              createdAt: '2024-06-01T10:00:00Z',
+              progress: 50,
+              totalLessons: 10,
+            },
+            subject: {
+              id: '123e4567-e89b-12d3-a456-426614174001',
+              name: 'Matemática',
+            },
+            creator,
+            stats: {
+              totalStudents: 30,
+              completedCount: 15,
+              completionPercentage: 50,
+            },
+            breakdown: [
+              {
+                classId: '123e4567-e89b-12d3-a456-426614174003',
+                className: 'Turma A',
+                schoolId: 'school-1',
+                schoolName: 'Escola Exemplo',
+                studentCount: 30,
+                completedCount: 15,
+              },
+            ],
+          },
+        ],
+        total: 1,
+      },
+    });
+
+    it('should show edit/delete actions when currentUserId matches the row creator', async () => {
+      render(
+        <RecommendedLessonsHistory {...defaultProps} currentUserId={OWNER_ID} />
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('table')).toBeInTheDocument();
+      });
+
+      expect(screen.getByTitle('Excluir')).toBeInTheDocument();
+      expect(screen.getByTitle('Editar')).toBeInTheDocument();
+    });
+
+    it('should hide edit/delete actions when currentUserId does not match the row creator', async () => {
+      render(
+        <RecommendedLessonsHistory {...defaultProps} currentUserId={OTHER_ID} />
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('table')).toBeInTheDocument();
+      });
+
+      expect(screen.queryByTitle('Excluir')).not.toBeInTheDocument();
+      expect(screen.queryByTitle('Editar')).not.toBeInTheDocument();
+    });
+
+    it('should hide edit/delete actions when the row has no creator (creatorId null)', async () => {
+      mockFetchRecommendedClassHistory.mockResolvedValue(
+        responseWithCreator(null)
+      );
+
+      render(
+        <RecommendedLessonsHistory {...defaultProps} currentUserId={OWNER_ID} />
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('table')).toBeInTheDocument();
+      });
+
+      expect(screen.queryByTitle('Excluir')).not.toBeInTheDocument();
+      expect(screen.queryByTitle('Editar')).not.toBeInTheDocument();
+    });
+
+    it('should show actions for every row when currentUserId is not provided', async () => {
+      // No currentUserId → opt-in gate disabled, behavior unchanged.
+      render(<RecommendedLessonsHistory {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('table')).toBeInTheDocument();
+      });
+
+      expect(screen.getByTitle('Excluir')).toBeInTheDocument();
+      expect(screen.getByTitle('Editar')).toBeInTheDocument();
+    });
+  });
+
   describe('Row Click', () => {
     it('should call onRowClick when row is clicked', async () => {
       render(<RecommendedLessonsHistory {...defaultProps} />);

@@ -108,6 +108,8 @@ export interface RecommendedClassTableItem extends Record<string, unknown> {
   startDate: string | null;
   deadline: string | null;
   creator: string;
+  /** Id of the user who created the recommended class, or null when unknown. */
+  creatorId: string | null;
   title: string;
   school: string;
   year: string;

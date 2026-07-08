@@ -1993,9 +1993,15 @@ describe('CreateActivity', () => {
       fireEvent.click(screen.getByText('Enviar atividade'));
 
       await waitFor(() => {
-        expect(mockApiClient.get).toHaveBeenCalledWith('/school');
-        expect(mockApiClient.get).toHaveBeenCalledWith('/schoolYear');
-        expect(mockApiClient.get).toHaveBeenCalledWith('/classes');
+        // /school and /schoolYear are paginated with params; /classes is no
+        // longer eager-fetched (turmas load dynamically once a série is chosen).
+        expect(mockApiClient.get).toHaveBeenCalledWith('/school', {
+          params: { page: 1, limit: 100 },
+        });
+        expect(mockApiClient.get).toHaveBeenCalledWith('/schoolYear', {
+          params: { page: 1, limit: 100 },
+        });
+        expect(mockApiClient.get).not.toHaveBeenCalledWith('/classes');
       });
     });
 
@@ -2065,8 +2071,9 @@ describe('CreateActivity', () => {
       fireEvent.click(screen.getByText('Enviar atividade'));
 
       await waitFor(() => {
-        // Now only 3 calls: /school, /schoolYear, /classes (students are loaded dynamically)
-        expect(mockApiClient.get).toHaveBeenCalledTimes(3);
+        // Now only 2 calls: /school + /schoolYear (turmas and students load
+        // dynamically, so /classes is no longer eager-fetched here).
+        expect(mockApiClient.get).toHaveBeenCalledTimes(2);
       });
     });
 

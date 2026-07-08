@@ -115,8 +115,15 @@ const hasAllFiltersApplied = (filters?: {
 const createMockApiClient = (
   onSave?: (method: string, url: string, payload: unknown) => void
 ) => {
+  // Turmas (classes) available in this mock, filtered dynamically by série.
+  const allClasses = [
+    { id: 'class-1', name: 'Turma A', schoolYearId: 'year-1' },
+    { id: 'class-2', name: 'Turma B', schoolYearId: 'year-1' },
+    { id: 'class-3', name: 'Turma A', schoolYearId: 'year-2' },
+  ];
+
   return {
-    get: async (url: string) => {
+    get: async (url: string, config?: { params?: Record<string, unknown> }) => {
       // Mock subjects endpoint
       if (url === '/subjects') {
         return {
@@ -184,6 +191,7 @@ const createMockApiClient = (
                   companyName: 'Colégio Estadual São Paulo',
                 },
               ],
+              pagination: { page: 1, limit: 100, totalPages: 1 },
             },
           },
         };
@@ -212,34 +220,31 @@ const createMockApiClient = (
                   schoolId: 'school-2',
                 },
               ],
+              pagination: { page: 1, limit: 100, totalPages: 1 },
             },
           },
         };
       }
 
-      // Mock classes endpoint
+      // Mock classes endpoint: turmas load dynamically, filtered by the
+      // comma-joined `schoolYearId` (and optional `schoolId`) query params.
       if (url === '/classes') {
+        const schoolYearIdParam = config?.params?.schoolYearId;
+        const schoolYearIds =
+          typeof schoolYearIdParam === 'string'
+            ? schoolYearIdParam.split(',')
+            : [];
+        const classes =
+          schoolYearIds.length > 0
+            ? allClasses.filter((c) => schoolYearIds.includes(c.schoolYearId))
+            : allClasses;
+
         return {
           data: {
             message: 'Classes fetched successfully',
             data: {
-              classes: [
-                {
-                  id: 'class-1',
-                  name: 'Turma A',
-                  schoolYearId: 'year-1',
-                },
-                {
-                  id: 'class-2',
-                  name: 'Turma B',
-                  schoolYearId: 'year-1',
-                },
-                {
-                  id: 'class-3',
-                  name: 'Turma A',
-                  schoolYearId: 'year-2',
-                },
-              ],
+              classes,
+              pagination: { page: 1, limit: 100, totalPages: 1 },
             },
           },
         };
