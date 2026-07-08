@@ -165,20 +165,42 @@ describe('buildLoginUrlWithReturnTo', () => {
     expect(buildLoginUrlWithReturnTo(ROOT)).toBe(ROOT);
   });
 
-  it('consumes the explicit-logout flag one-shot (next redirect keeps returnTo)', () => {
+  it('suppresses returnTo for EVERY redirect within the logout window (race-safe)', () => {
     setLocation(
       'https://backoffice.analyticaensino.com.br/instituicoes/123?tab=users'
     );
 
     markExplicitLogout();
-    // First call (the logout redirect) is clean...
-    expect(buildLoginUrlWithReturnTo(ROOT)).toBe(ROOT);
 
-    // ...a later session-expiry redirect on a deep path preserves returnTo again.
-    expect(buildLoginUrlWithReturnTo(ROOT)).toBe(
-      `${ROOT}?returnTo=${encodeURIComponent(
-        'https://backoffice.analyticaensino.com.br/instituicoes/123?tab=users'
-      )}`
+    // A single logout fans out multiple redirects (ProtectedRoute + a 401 from
+    // an in-flight request). All must stay clean — a one-shot flag would let the
+    // second re-append returnTo.
+    expect(buildLoginUrlWithReturnTo(ROOT)).toBe(ROOT);
+    expect(buildLoginUrlWithReturnTo(ROOT)).toBe(ROOT);
+    expect(buildLoginUrlWithReturnTo(ROOT)).toBe(ROOT);
+  });
+
+  it('appends returnTo again after the logout window expires', () => {
+    setLocation(
+      'https://backoffice.analyticaensino.com.br/instituicoes/123?tab=users'
     );
+
+    const nowSpy = jest.spyOn(Date, 'now');
+    try {
+      nowSpy.mockReturnValue(1_000_000);
+      markExplicitLogout();
+      // Within the window: clean.
+      expect(buildLoginUrlWithReturnTo(ROOT)).toBe(ROOT);
+
+      // Past the 5s window: a genuine session expiry preserves the deep link.
+      nowSpy.mockReturnValue(1_000_000 + 6000);
+      expect(buildLoginUrlWithReturnTo(ROOT)).toBe(
+        `${ROOT}?returnTo=${encodeURIComponent(
+          'https://backoffice.analyticaensino.com.br/instituicoes/123?tab=users'
+        )}`
+      );
+    } finally {
+      nowSpy.mockRestore();
+    }
   });
 });

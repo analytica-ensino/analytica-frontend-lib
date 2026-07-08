@@ -133,9 +133,8 @@ export const buildLoginUrlWithReturnTo = (rootDomain: string): string => {
     return rootDomain;
   }
 
-  // An explicit logout must not preserve a deep link. Consuming the flag here
-  // makes it one-shot, so a genuine session-expiry redirect later still works.
-  if (consumeExplicitLogout()) {
+  // An explicit logout must not preserve a deep link.
+  if (isExplicitLogoutActive()) {
     return rootDomain;
   }
 
@@ -156,20 +155,29 @@ export const buildLoginUrlWithReturnTo = (rootDomain: string): string => {
 };
 
 const EXPLICIT_LOGOUT_KEY = '@auth:explicit-logout';
+// How long after markExplicitLogout() a redirect is still treated as part of
+// the logout. Long enough to cover the redirects a single logout fans out
+// (ProtectedRoute re-render + any in-flight request that 401s as the tokens are
+// cleared), short enough that a genuine session expiry later is unaffected.
+const EXPLICIT_LOGOUT_WINDOW_MS = 5000;
 
 /**
- * Marks that the user is intentionally logging out, so the subsequent redirect
- * to login does NOT preserve a `returnTo` deep link. Call this right before
- * clearing the session in an explicit "Sair" handler.
+ * Marks that the user is intentionally logging out, so redirects to login
+ * during the logout do NOT preserve a `returnTo` deep link. Call this right
+ * before clearing the session in an explicit "Sair" handler.
  *
- * The flag lives in sessionStorage on the current subdomain; it only needs to
- * survive the same synchronous tick (the ProtectedRoute re-render that can race
- * the logout navigation), and `buildLoginUrlWithReturnTo` consumes it one-shot.
+ * Stored as a timestamp (not a one-shot flag) because a single logout can
+ * trigger MORE THAN ONE redirect through buildLoginUrlWithReturnTo — e.g. the
+ * ProtectedRoute re-render after signOut() AND the 401 interceptor firing on an
+ * in-flight request whose token was just cleared. A one-shot flag would be
+ * eaten by the first redirect, letting the second re-append returnTo. A
+ * time-boxed marker covers every redirect in the logout window and then expires
+ * on its own, so it never suppresses a later, genuine session-expiry redirect.
  */
 export const markExplicitLogout = (): void => {
   if (typeof window === 'undefined') return;
   try {
-    sessionStorage.setItem(EXPLICIT_LOGOUT_KEY, '1');
+    sessionStorage.setItem(EXPLICIT_LOGOUT_KEY, String(Date.now()));
   } catch {
     // sessionStorage unavailable: worst case the URL carries a harmless
     // returnTo that the login flow validates and can still ignore.
@@ -177,15 +185,21 @@ export const markExplicitLogout = (): void => {
 };
 
 /**
- * Reads and clears the explicit-logout flag. Returns true when an explicit
- * logout is in progress.
+ * Returns true when an explicit logout was marked within the recent window.
+ * Does not clear the marker (it expires by time), so several redirects fanned
+ * out by the same logout all see it.
  */
-const consumeExplicitLogout = (): boolean => {
+const isExplicitLogoutActive = (): boolean => {
   if (typeof window === 'undefined') return false;
   try {
-    const flag = sessionStorage.getItem(EXPLICIT_LOGOUT_KEY);
-    if (flag) sessionStorage.removeItem(EXPLICIT_LOGOUT_KEY);
-    return Boolean(flag);
+    const raw = sessionStorage.getItem(EXPLICIT_LOGOUT_KEY);
+    if (!raw) return false;
+    const ts = Number(raw);
+    if (!Number.isFinite(ts)) return false;
+    const active = Date.now() - ts < EXPLICIT_LOGOUT_WINDOW_MS;
+    // Once expired, remove it so it can't linger and suppress a future 401.
+    if (!active) sessionStorage.removeItem(EXPLICIT_LOGOUT_KEY);
+    return active;
   } catch {
     return false;
   }
