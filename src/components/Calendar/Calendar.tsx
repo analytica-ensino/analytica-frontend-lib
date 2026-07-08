@@ -367,8 +367,9 @@ const Calendar = ({
     return (
       <div className={cn('bg-background rounded-xl pt-6 relative', className)}>
         {loadingOverlay}
-        {/* Compact header */}
-        <div className="flex items-center justify-between mb-4 px-6">
+        {/* Compact header — stacks above the loading overlay so month
+            navigation stays clickable while loading. */}
+        <div className="flex items-center justify-between mb-4 px-6 relative z-20">
           <div className="relative" ref={monthPickerContainerRef}>
             <button
               onClick={toggleMonthPicker}
@@ -520,8 +521,9 @@ const Calendar = ({
   return (
     <div className={cn('bg-background rounded-xl p-4 relative', className)}>
       {loadingOverlay}
-      {/* Full header */}
-      <div className="flex items-center justify-between mb-3.5">
+      {/* Full header — stacks above the loading overlay so month navigation
+          stays clickable while loading. */}
+      <div className="flex items-center justify-between mb-3.5 relative z-20">
         <div className="relative" ref={monthPickerContainerRef}>
           <button
             onClick={toggleMonthPicker}

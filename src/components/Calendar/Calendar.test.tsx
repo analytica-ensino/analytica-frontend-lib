@@ -515,5 +515,21 @@ describe('Calendar', () => {
       fireEvent.click(nextButton);
       expect(mockOnMonthChange).toHaveBeenCalledTimes(1);
     });
+
+    it('stacks the header above the overlay so navigation stays clickable', () => {
+      // jsdom does not hit-test, so assert structurally that the header wrapper
+      // has a higher stacking order than the z-10 overlay — otherwise the
+      // absolute overlay would intercept clicks in a real browser.
+      render(<Calendar variant="navigation" loading />);
+
+      const overlay = screen.getByTestId('calendar-loading');
+      expect(overlay).toHaveClass('z-10');
+
+      const header = screen
+        .getByLabelText('Próximo mês')
+        .closest('.z-20') as HTMLElement | null;
+      expect(header).not.toBeNull();
+      expect(header).toHaveClass('relative', 'z-20');
+    });
   });
 });
