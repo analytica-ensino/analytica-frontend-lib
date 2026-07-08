@@ -15,8 +15,22 @@ const createMockApiClient = (
   questionTypes: string[],
   onSaveActivity?: (method: string, url: string, payload: unknown) => void
 ) => {
+  // Turmas (classes) available in this mock, keyed for filtering by série.
+  const allClasses = [
+    {
+      id: 'class-1',
+      name: 'A',
+      shift: 'Manhã',
+      institutionId: 'institution-1',
+      schoolId: 'school-1',
+      schoolYearId: 'year-1',
+      createdAt: '2025-12-12T19:16:28.544Z',
+      updatedAt: '2025-12-12T19:16:28.544Z',
+    },
+  ];
+
   return {
-    get: async (url: string) => {
+    get: async (url: string, config?: { params?: Record<string, unknown> }) => {
       if (url === '/questions/exam-institutions') {
         return {
           data: {
@@ -138,28 +152,28 @@ const createMockApiClient = (
         };
       }
 
-      // Mock classes endpoint
+      // Mock classes endpoint: turmas load dynamically, filtered by the
+      // comma-joined `schoolYearId` (and optional `schoolId`) query params.
       if (url === '/classes') {
+        const schoolYearIdParam = config?.params?.schoolYearId;
+        const schoolYearIds =
+          typeof schoolYearIdParam === 'string'
+            ? schoolYearIdParam.split(',')
+            : [];
+        const classes =
+          schoolYearIds.length > 0
+            ? allClasses.filter((c) => schoolYearIds.includes(c.schoolYearId))
+            : allClasses;
+
         return {
           data: {
             message: 'Classes obtidas com sucesso',
             data: {
-              classes: [
-                {
-                  id: 'class-1',
-                  name: 'A',
-                  shift: 'Manhã',
-                  institutionId: 'institution-1',
-                  schoolId: 'school-1',
-                  schoolYearId: 'year-1',
-                  createdAt: '2025-12-12T19:16:28.544Z',
-                  updatedAt: '2025-12-12T19:16:28.544Z',
-                },
-              ],
+              classes,
               pagination: {
                 page: 1,
-                limit: 10,
-                total: 1,
+                limit: 100,
+                total: classes.length,
                 totalPages: 1,
               },
             },

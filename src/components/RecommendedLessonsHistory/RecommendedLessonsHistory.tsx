@@ -131,6 +131,14 @@ export interface RecommendedLessonsHistoryProps {
    * Merged with default filters when provided.
    */
   extraFilterCategories?: FilterConfig[];
+  /**
+   * Id of the current user. When provided, the edit/delete actions are shown
+   * only for rows the current user created (i.e. rows whose `creatorId`
+   * matches this id). When undefined, the actions behave as before and are
+   * shown for every row (subject to the delete/edit capabilities), keeping
+   * other consumers of this shared component unaffected.
+   */
+  currentUserId?: string;
 }
 
 /**
@@ -311,7 +319,8 @@ const createRecommendedClassFiltersConfig = (
 const createTableColumns = (
   mapSubjectNameToEnum: ((name: string) => SubjectEnum | null) | undefined,
   onDelete: ((row: RecommendedClassTableItem) => void) | undefined,
-  onEdit: ((row: RecommendedClassTableItem) => void) | undefined
+  onEdit: ((row: RecommendedClassTableItem) => void) | undefined,
+  currentUserId?: string
 ): ColumnConfig<RecommendedClassTableItem>[] => [
   {
     key: 'startDate',
@@ -434,6 +443,13 @@ const createTableColumns = (
         return null;
       }
 
+      // Opt-in ownership gate: when a current user id is provided, only the
+      // row's creator may see the edit/delete actions. Rows created by others
+      // (or with an unknown creator) hide the actions.
+      if (currentUserId && row.creatorId !== currentUserId) {
+        return null;
+      }
+
       const handleDelete = (e: MouseEvent) => {
         e.stopPropagation();
         onDelete?.(row);
@@ -512,6 +528,7 @@ export const RecommendedLessonsHistory = ({
   defaultTab,
   onTabChange,
   extraFilterCategories,
+  currentUserId,
 }: RecommendedLessonsHistoryProps) => {
   const [activeTab, setActiveTab] = useState<RecommendedClassPageTab>(
     defaultTab ?? RecommendedClassPageTab.HISTORY
@@ -656,7 +673,8 @@ export const RecommendedLessonsHistory = ({
       createTableColumns(
         mapSubjectNameToEnum,
         deleteEnabled ? handleOpenDelete : undefined,
-        editEnabled ? handleOpenEdit : undefined
+        editEnabled ? handleOpenEdit : undefined,
+        currentUserId
       ),
     [
       mapSubjectNameToEnum,
@@ -664,6 +682,7 @@ export const RecommendedLessonsHistory = ({
       editEnabled,
       handleOpenDelete,
       handleOpenEdit,
+      currentUserId,
     ]
   );
 

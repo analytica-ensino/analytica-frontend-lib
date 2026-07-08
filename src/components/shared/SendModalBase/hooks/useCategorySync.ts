@@ -9,9 +9,23 @@ export interface UseCategorySyncProps {
   categoriesInitializedRef: RefObject<boolean>;
 }
 
+/** Categories whose itens are loaded dynamically (async) by the parent. */
+const DYNAMIC_KEYS = ['turma', 'students'] as const;
+
+/** Signature of the dynamically-loaded categories' item ids, to detect changes
+ *  the store hasn't picked up yet (robust to same-length, different-content). */
+function dynamicItemsSignature(categories: CategoryConfig[]): string {
+  return DYNAMIC_KEYS.map((key) => {
+    const category = categories.find((c) => c.key === key);
+    const ids = (category?.itens ?? []).map((item) => item.id).join(',');
+    return `${key}:${ids}`;
+  }).join('|');
+}
+
 /**
- * Hook to sync categories from parent when they change (e.g., after fetching students)
- * This ensures the store is updated when parent updates categories
+ * Hook to sync categories from parent when they change (e.g., after fetching
+ * turmas or alunos). This ensures the store is updated when the parent updates
+ * the dynamically-loaded categories.
  */
 export function useCategorySync({
   isOpen,
@@ -26,22 +40,12 @@ export function useCategorySync({
       initialCategories.length > 0 &&
       categoriesInitializedRef.current
     ) {
-      // Only sync if categories have students (indicates they were fetched)
-      const studentsCategory = initialCategories.find(
-        (c) => c.key === 'students'
-      );
-      const storeStudentsCategory = storeCategories.find(
-        (c) => c.key === 'students'
-      );
-
-      // If parent has students but store doesn't, or vice versa, sync
-      const parentHasStudents =
-        studentsCategory?.itens && studentsCategory.itens.length > 0;
-      const storeHasStudents =
-        storeStudentsCategory?.itens && storeStudentsCategory.itens.length > 0;
-
-      if (parentHasStudents !== storeHasStudents || parentHasStudents) {
-        // Update store with parent categories to sync students
+      // Sync only when the dynamic categories (turma/students) actually differ
+      // from the store, comparing item ids so same-length content changes count.
+      if (
+        dynamicItemsSignature(initialCategories) !==
+        dynamicItemsSignature(storeCategories)
+      ) {
         setCategories(initialCategories);
       }
     }

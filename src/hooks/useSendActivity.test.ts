@@ -211,10 +211,19 @@ describe('useSendActivity', () => {
         expect(result.current.isCategoriesLoading).toBe(false);
       });
 
-      expect(config.api.get).toHaveBeenCalledWith('/school');
-      expect(config.api.get).toHaveBeenCalledWith('/schoolYear');
-      expect(config.api.get).toHaveBeenCalledWith('/classes');
+      // /school and /schoolYear are paginated with params; /classes is no longer
+      // eager-fetched (turmas load dynamically once a série is selected).
+      expect(config.api.get).toHaveBeenCalledWith('/school', {
+        params: { page: 1, limit: 100 },
+      });
+      expect(config.api.get).toHaveBeenCalledWith('/schoolYear', {
+        params: { page: 1, limit: 100 },
+      });
+      expect(config.api.get).not.toHaveBeenCalledWith('/classes');
       expect(result.current.categories).toHaveLength(4);
+      // turma category exists but its items load dynamically (starts empty)
+      expect(result.current.categories[2].key).toBe('turma');
+      expect(result.current.categories[2].itens).toEqual([]);
     });
 
     it('should transform categories to CategoryConfig format', async () => {

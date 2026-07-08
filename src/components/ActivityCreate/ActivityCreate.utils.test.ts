@@ -734,17 +734,14 @@ describe('ActivityCreate.utils', () => {
         ],
         selectedIds: [],
       });
+      // Turmas load dynamically once a série is selected; loadCategoriesData
+      // no longer eager-fetches /classes, so turma starts with empty items.
       expect(result[2]).toMatchObject({
         key: 'turma',
         label: 'Turma',
         dependsOn: ['serie'],
-        itens: [
-          {
-            id: 'class1',
-            name: 'Turma A',
-            schoolYearId: 'year1',
-          },
-        ],
+        filteredBy: [{ key: 'serie', internalField: 'schoolYearId' }],
+        itens: [],
         selectedIds: [],
       });
       expect(result[3]).toMatchObject({

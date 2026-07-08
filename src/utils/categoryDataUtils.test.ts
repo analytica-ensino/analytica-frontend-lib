@@ -1,5 +1,6 @@
 import {
   fetchStudentsByFilters,
+  fetchClassesByFilters,
   loadCategoriesData,
   formatTime,
   type School,
@@ -228,7 +229,7 @@ describe('categoryDataUtils', () => {
       expect(apiClient.get).not.toHaveBeenCalled();
     });
 
-    it('should fetch and transform categories from API', async () => {
+    it('should fetch and transform categories from API (single page)', async () => {
       const mockSchools: School[] = [
         { id: 'school-1', companyName: 'School One' },
         { id: 'school-2', companyName: 'School Two' },
@@ -239,34 +240,45 @@ describe('categoryDataUtils', () => {
         { id: 'year-2', name: '2nd Grade', schoolId: 'school-2' },
       ];
 
-      const mockClasses: Class[] = [
-        { id: 'class-1', name: 'Class A', schoolYearId: 'year-1' },
-        { id: 'class-2', name: 'Class B', schoolYearId: 'year-2' },
-      ];
-
       const apiClient = createMockApiClient({
-        get: jest
-          .fn()
-          .mockResolvedValueOnce({
-            data: { message: 'Success', data: { schools: mockSchools } },
-          })
-          .mockResolvedValueOnce({
-            data: {
-              message: 'Success',
-              data: { schoolYears: mockSchoolYears },
-            },
-          })
-          .mockResolvedValueOnce({
-            data: { message: 'Success', data: { classes: mockClasses } },
-          }),
+        get: jest.fn().mockImplementation((url: string) => {
+          if (url === '/school') {
+            return Promise.resolve({
+              data: {
+                message: 'Success',
+                data: { schools: mockSchools, pagination: { totalPages: 1 } },
+              },
+            });
+          }
+          if (url === '/schoolYear') {
+            return Promise.resolve({
+              data: {
+                message: 'Success',
+                data: {
+                  schoolYears: mockSchoolYears,
+                  pagination: { totalPages: 1 },
+                },
+              },
+            });
+          }
+          return Promise.reject(new Error('Unknown URL'));
+        }),
       });
 
       const result = await loadCategoriesData(apiClient, []);
 
-      expect(apiClient.get).toHaveBeenCalledTimes(3);
-      expect(apiClient.get).toHaveBeenCalledWith('/school');
-      expect(apiClient.get).toHaveBeenCalledWith('/schoolYear');
-      expect(apiClient.get).toHaveBeenCalledWith('/classes');
+      // Only /school and /schoolYear are fetched now; /classes is dynamic
+      expect(apiClient.get).toHaveBeenCalledTimes(2);
+      expect(apiClient.get).toHaveBeenCalledWith('/school', {
+        params: { page: 1, limit: 100 },
+      });
+      expect(apiClient.get).toHaveBeenCalledWith('/schoolYear', {
+        params: { page: 1, limit: 100 },
+      });
+      expect(apiClient.get).not.toHaveBeenCalledWith(
+        '/classes',
+        expect.anything()
+      );
 
       expect(result).toHaveLength(4);
 
@@ -294,16 +306,13 @@ describe('categoryDataUtils', () => {
         selectedIds: [],
       });
 
-      // Check turma category
+      // Check turma category — now dynamic (empty), no eager classes
       expect(result[2]).toEqual({
         key: 'turma',
         label: 'Turma',
         dependsOn: ['serie'],
         filteredBy: [{ key: 'serie', internalField: 'schoolYearId' }],
-        itens: [
-          { id: 'class-1', name: 'Class A', schoolYearId: 'year-1' },
-          { id: 'class-2', name: 'Class B', schoolYearId: 'year-2' },
-        ],
+        itens: [],
         selectedIds: [],
       });
 
@@ -322,34 +331,408 @@ describe('categoryDataUtils', () => {
       });
     });
 
-    it('should make parallel API calls', async () => {
+    it('should paginate /school and /schoolYear across all pages', async () => {
+      const apiClient = createMockApiClient({
+        get: jest
+          .fn()
+          .mockImplementation(
+            (url: string, config?: { params?: { page?: number } }) => {
+              const page = config?.params?.page;
+              if (url === '/school') {
+                if (page === 1) {
+                  return Promise.resolve({
+                    data: {
+                      message: 'Success',
+                      data: {
+                        schools: [
+                          { id: 'school-1', companyName: 'School One' },
+                        ],
+                        pagination: { totalPages: 2 },
+                      },
+                    },
+                  });
+                }
+                return Promise.resolve({
+                  data: {
+                    message: 'Success',
+                    data: {
+                      schools: [{ id: 'school-2', companyName: 'School Two' }],
+                      pagination: { totalPages: 2 },
+                    },
+                  },
+                });
+              }
+              if (url === '/schoolYear') {
+                if (page === 1) {
+                  return Promise.resolve({
+                    data: {
+                      message: 'Success',
+                      data: {
+                        schoolYears: [
+                          { id: 'year-1', name: '1st', schoolId: 'school-1' },
+                        ],
+                        pagination: { totalPages: 2 },
+                      },
+                    },
+                  });
+                }
+                return Promise.resolve({
+                  data: {
+                    message: 'Success',
+                    data: {
+                      schoolYears: [
+                        { id: 'year-2', name: '2nd', schoolId: 'school-2' },
+                      ],
+                      pagination: { totalPages: 2 },
+                    },
+                  },
+                });
+              }
+              return Promise.reject(new Error('Unknown URL'));
+            }
+          ),
+      });
+
+      const result = await loadCategoriesData(apiClient, []);
+
+      // 2 pages each for /school and /schoolYear
+      expect(apiClient.get).toHaveBeenCalledTimes(4);
+      expect(apiClient.get).toHaveBeenCalledWith('/school', {
+        params: { page: 1, limit: 100 },
+      });
+      expect(apiClient.get).toHaveBeenCalledWith('/school', {
+        params: { page: 2, limit: 100 },
+      });
+      expect(apiClient.get).toHaveBeenCalledWith('/schoolYear', {
+        params: { page: 1, limit: 100 },
+      });
+      expect(apiClient.get).toHaveBeenCalledWith('/schoolYear', {
+        params: { page: 2, limit: 100 },
+      });
+
+      // escola aggregates items from BOTH pages
+      expect(result[0].itens).toEqual([
+        { id: 'school-1', name: 'School One' },
+        { id: 'school-2', name: 'School Two' },
+      ]);
+
+      // serie aggregates items from BOTH pages
+      expect(result[1].itens).toEqual([
+        { id: 'year-1', name: '1st', schoolId: 'school-1' },
+        { id: 'year-2', name: '2nd', schoolId: 'school-2' },
+      ]);
+    });
+
+    it('should not fetch /classes eagerly (turma is dynamic)', async () => {
       const apiClient = createMockApiClient({
         get: jest.fn().mockImplementation((url: string) => {
           if (url === '/school') {
             return Promise.resolve({
-              data: { message: 'Success', data: { schools: [] } },
+              data: {
+                message: 'Success',
+                data: { schools: [], pagination: { totalPages: 1 } },
+              },
             });
           }
           if (url === '/schoolYear') {
             return Promise.resolve({
-              data: { message: 'Success', data: { schoolYears: [] } },
-            });
-          }
-          if (url === '/classes') {
-            return Promise.resolve({
-              data: { message: 'Success', data: { classes: [] } },
+              data: {
+                message: 'Success',
+                data: { schoolYears: [], pagination: { totalPages: 1 } },
+              },
             });
           }
           return Promise.reject(new Error('Unknown URL'));
         }),
       });
 
-      await loadCategoriesData(apiClient, []);
+      const result = await loadCategoriesData(apiClient, []);
 
-      // All calls should have been made
-      expect(apiClient.get).toHaveBeenCalledWith('/school');
-      expect(apiClient.get).toHaveBeenCalledWith('/schoolYear');
-      expect(apiClient.get).toHaveBeenCalledWith('/classes');
+      const calledUrls = (apiClient.get as jest.Mock).mock.calls.map(
+        (call) => call[0]
+      );
+      expect(calledUrls).not.toContain('/classes');
+
+      const turma = result.find((c) => c.key === 'turma');
+      expect(turma?.itens).toEqual([]);
+    });
+  });
+
+  describe('fetchClassesByFilters', () => {
+    it('should return empty array when no filters are provided', async () => {
+      const apiClient = createMockApiClient();
+
+      const result = await fetchClassesByFilters(apiClient, {});
+
+      expect(result).toEqual([]);
+      expect(apiClient.get).not.toHaveBeenCalled();
+    });
+
+    it('should return empty array when filter arrays are empty', async () => {
+      const apiClient = createMockApiClient();
+
+      const result = await fetchClassesByFilters(apiClient, {
+        schoolIds: [],
+        schoolYearIds: [],
+      });
+
+      expect(result).toEqual([]);
+      expect(apiClient.get).not.toHaveBeenCalled();
+    });
+
+    it('should fetch classes with comma-joined schoolId and schoolYearId', async () => {
+      const mockClasses: Class[] = [
+        { id: 'class-1', name: 'Class A', schoolYearId: 'year-1' },
+      ];
+
+      const apiClient = createMockApiClient({
+        get: jest.fn().mockResolvedValue({
+          data: { message: 'Success', data: { classes: mockClasses } },
+        }),
+      });
+
+      const result = await fetchClassesByFilters(apiClient, {
+        schoolIds: ['school-1', 'school-2'],
+        schoolYearIds: ['year-1', 'year-2'],
+      });
+
+      expect(result).toEqual(mockClasses);
+      expect(apiClient.get).toHaveBeenCalledWith('/classes', {
+        params: {
+          schoolId: 'school-1,school-2',
+          schoolYearId: 'year-1,year-2',
+          page: 1,
+          limit: 100,
+        },
+      });
+    });
+
+    it('should send only schoolYearId when only schoolYearIds provided', async () => {
+      const apiClient = createMockApiClient({
+        get: jest.fn().mockResolvedValue({
+          data: { message: 'Success', data: { classes: [] } },
+        }),
+      });
+
+      await fetchClassesByFilters(apiClient, {
+        schoolYearIds: ['year-1'],
+      });
+
+      expect(apiClient.get).toHaveBeenCalledWith('/classes', {
+        params: {
+          schoolYearId: 'year-1',
+          page: 1,
+          limit: 100,
+        },
+      });
+    });
+
+    it('should send only schoolId when only schoolIds provided', async () => {
+      const apiClient = createMockApiClient({
+        get: jest.fn().mockResolvedValue({
+          data: { message: 'Success', data: { classes: [] } },
+        }),
+      });
+
+      await fetchClassesByFilters(apiClient, {
+        schoolIds: ['school-1'],
+      });
+
+      expect(apiClient.get).toHaveBeenCalledWith('/classes', {
+        params: {
+          schoolId: 'school-1',
+          page: 1,
+          limit: 100,
+        },
+      });
+    });
+
+    it('should aggregate classes across multiple pages', async () => {
+      const apiClient = createMockApiClient({
+        get: jest
+          .fn()
+          .mockImplementation(
+            (_url: string, config?: { params?: { page?: number } }) => {
+              const page = config?.params?.page;
+              if (page === 1) {
+                return Promise.resolve({
+                  data: {
+                    message: 'Success',
+                    data: {
+                      classes: [
+                        { id: 'class-1', name: 'Class A', schoolYearId: 'y-1' },
+                      ],
+                      pagination: { totalPages: 2 },
+                    },
+                  },
+                });
+              }
+              return Promise.resolve({
+                data: {
+                  message: 'Success',
+                  data: {
+                    classes: [
+                      { id: 'class-2', name: 'Class B', schoolYearId: 'y-2' },
+                    ],
+                    pagination: { totalPages: 2 },
+                  },
+                },
+              });
+            }
+          ),
+      });
+
+      const result = await fetchClassesByFilters(apiClient, {
+        schoolIds: ['school-1', 'school-2'],
+        schoolYearIds: ['year-1'],
+      });
+
+      expect(apiClient.get).toHaveBeenCalledTimes(2);
+      expect(apiClient.get).toHaveBeenCalledWith('/classes', {
+        params: {
+          schoolId: 'school-1,school-2',
+          schoolYearId: 'year-1',
+          page: 1,
+          limit: 100,
+        },
+      });
+      expect(apiClient.get).toHaveBeenCalledWith('/classes', {
+        params: {
+          schoolId: 'school-1,school-2',
+          schoolYearId: 'year-1',
+          page: 2,
+          limit: 100,
+        },
+      });
+      expect(result).toEqual([
+        { id: 'class-1', name: 'Class A', schoolYearId: 'y-1' },
+        { id: 'class-2', name: 'Class B', schoolYearId: 'y-2' },
+      ]);
+    });
+
+    it('should aggregate three pages IN ORDER even when later pages resolve first', async () => {
+      // Page 3 resolves before page 2 to prove ordering comes from the
+      // Promise.all array index, not resolution order.
+      let resolvePage2: (value: unknown) => void = () => {};
+      const page2Promise = new Promise((resolve) => {
+        resolvePage2 = resolve;
+      });
+
+      const apiClient = createMockApiClient({
+        get: jest
+          .fn()
+          .mockImplementation(
+            (_url: string, config?: { params?: { page?: number } }) => {
+              const page = config?.params?.page;
+              if (page === 1) {
+                return Promise.resolve({
+                  data: {
+                    message: 'Success',
+                    data: {
+                      classes: [
+                        { id: 'class-1', name: 'Class A', schoolYearId: 'y-1' },
+                      ],
+                      pagination: { totalPages: 3 },
+                    },
+                  },
+                });
+              }
+              if (page === 2) {
+                // Deferred: only resolves after page 3 has already resolved.
+                return page2Promise;
+              }
+              // page === 3 resolves immediately, then releases page 2.
+              const page3 = Promise.resolve({
+                data: {
+                  message: 'Success',
+                  data: {
+                    classes: [
+                      { id: 'class-3', name: 'Class C', schoolYearId: 'y-3' },
+                    ],
+                    pagination: { totalPages: 3 },
+                  },
+                },
+              });
+              page3.then(() =>
+                resolvePage2({
+                  data: {
+                    message: 'Success',
+                    data: {
+                      classes: [
+                        { id: 'class-2', name: 'Class B', schoolYearId: 'y-2' },
+                      ],
+                      pagination: { totalPages: 3 },
+                    },
+                  },
+                })
+              );
+              return page3;
+            }
+          ),
+      });
+
+      const result = await fetchClassesByFilters(apiClient, {
+        schoolIds: ['school-1'],
+      });
+
+      // Page 1 requested first.
+      expect((apiClient.get as jest.Mock).mock.calls[0]).toEqual([
+        '/classes',
+        { params: { schoolId: 'school-1', page: 1, limit: 100 } },
+      ]);
+      // Pages 2 AND 3 both requested with limit:100 and the extraParams.
+      expect(apiClient.get).toHaveBeenCalledWith('/classes', {
+        params: { schoolId: 'school-1', page: 2, limit: 100 },
+      });
+      expect(apiClient.get).toHaveBeenCalledWith('/classes', {
+        params: { schoolId: 'school-1', page: 3, limit: 100 },
+      });
+      expect(apiClient.get).toHaveBeenCalledTimes(3);
+      // Final result concatenated IN PAGE ORDER (page1, page2, page3) despite
+      // page 3 resolving before page 2.
+      expect(result).toEqual([
+        { id: 'class-1', name: 'Class A', schoolYearId: 'y-1' },
+        { id: 'class-2', name: 'Class B', schoolYearId: 'y-2' },
+        { id: 'class-3', name: 'Class C', schoolYearId: 'y-3' },
+      ]);
+    });
+
+    it('should make a single request when response has no pagination (fallback to 1 page)', async () => {
+      const apiClient = createMockApiClient({
+        get: jest.fn().mockResolvedValue({
+          data: {
+            message: 'Success',
+            data: {
+              classes: [
+                { id: 'class-1', name: 'Class A', schoolYearId: 'y-1' },
+              ],
+            },
+          },
+        }),
+      });
+
+      const result = await fetchClassesByFilters(apiClient, {
+        schoolIds: ['school-1'],
+      });
+
+      expect(apiClient.get).toHaveBeenCalledTimes(1);
+      expect(result).toEqual([
+        { id: 'class-1', name: 'Class A', schoolYearId: 'y-1' },
+      ]);
+    });
+
+    it('should return empty array when API returns undefined classes', async () => {
+      const apiClient = createMockApiClient({
+        get: jest.fn().mockResolvedValue({
+          data: { message: 'Success', data: {} },
+        }),
+      });
+
+      const result = await fetchClassesByFilters(apiClient, {
+        schoolIds: ['school-1'],
+      });
+
+      expect(result).toEqual([]);
     });
   });
 

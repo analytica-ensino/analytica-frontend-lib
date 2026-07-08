@@ -108,6 +108,26 @@ describe('useRecommendedLessons', () => {
       expect(result.class).toBe('Turma A');
       expect(result.completionPercentage).toBe(50);
       expect(result.status).toBe(RecommendedClassDisplayStatus.ATIVA);
+      expect(result.creator).toBe('Professor João');
+      expect(result.creatorId).toBe('creator-1');
+    });
+
+    it('should populate creatorId from the creator id', () => {
+      const result = transformRecommendedClassToTableItem(
+        baseRecommendedClassHistoryItem
+      );
+      expect(result.creatorId).toBe('creator-1');
+    });
+
+    it('should set creatorId to null when creator is null', () => {
+      const item: RecommendedClassHistoryItem = {
+        ...baseRecommendedClassHistoryItem,
+        creator: null,
+      };
+
+      const result = transformRecommendedClassToTableItem(item);
+      expect(result.creatorId).toBeNull();
+      expect(result.creator).toBe('-');
     });
 
     it('should handle null startDate', () => {
