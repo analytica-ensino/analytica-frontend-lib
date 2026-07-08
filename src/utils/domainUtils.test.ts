@@ -2,6 +2,7 @@ import {
   resolveRootHostname,
   extractSubdomainSlug,
   buildLoginUrlWithReturnTo,
+  markExplicitLogout,
 } from './domainUtils';
 import { mockWindowLocation } from '../test-utils/mockLocation';
 
@@ -102,6 +103,7 @@ describe('buildLoginUrlWithReturnTo', () => {
   afterEach(() => {
     restoreLocation?.();
     restoreLocation = undefined;
+    sessionStorage.clear();
   });
 
   it('appends the current URL as an encoded returnTo when there is a deep path', () => {
@@ -149,6 +151,34 @@ describe('buildLoginUrlWithReturnTo', () => {
 
     expect(buildLoginUrlWithReturnTo('http://127.0.0.1:3004')).toBe(
       'http://127.0.0.1:3004'
+    );
+  });
+
+  it('does not append returnTo right after an explicit logout', () => {
+    setLocation(
+      'https://backoffice.analyticaensino.com.br/instituicoes/123?tab=users'
+    );
+
+    markExplicitLogout();
+
+    // Even on a deep path, an explicit logout returns the bare root domain.
+    expect(buildLoginUrlWithReturnTo(ROOT)).toBe(ROOT);
+  });
+
+  it('consumes the explicit-logout flag one-shot (next redirect keeps returnTo)', () => {
+    setLocation(
+      'https://backoffice.analyticaensino.com.br/instituicoes/123?tab=users'
+    );
+
+    markExplicitLogout();
+    // First call (the logout redirect) is clean...
+    expect(buildLoginUrlWithReturnTo(ROOT)).toBe(ROOT);
+
+    // ...a later session-expiry redirect on a deep path preserves returnTo again.
+    expect(buildLoginUrlWithReturnTo(ROOT)).toBe(
+      `${ROOT}?returnTo=${encodeURIComponent(
+        'https://backoffice.analyticaensino.com.br/instituicoes/123?tab=users'
+      )}`
     );
   });
 });

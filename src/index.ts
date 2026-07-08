@@ -1805,6 +1805,7 @@ export {
   resolveRootHostname,
   extractSubdomainSlug,
   buildLoginUrlWithReturnTo,
+  markExplicitLogout,
 } from './utils/domainUtils';
 
 // Report Export Utils

@@ -119,12 +119,23 @@ export const extractSubdomainSlug = (hostname: string): string | null => {
  * before honoring it, and only ever reuses the path — never the host — so a
  * crafted `returnTo` cannot redirect to a foreign origin.
  *
+ * Also a no-op right after an explicit logout (see `markExplicitLogout`): a
+ * user who chose to sign out should never be bounced back to the page they were
+ * on, and clearing the session synchronously can make ProtectedRoute redirect
+ * through here before the app's own clean logout navigation completes.
+ *
  * @param rootDomain - The login/root domain to redirect to (from getRootDomain)
  * @returns `rootDomain` with `?returnTo=<encoded current URL>` appended, or the
  *          bare `rootDomain` when the flow should be skipped
  */
 export const buildLoginUrlWithReturnTo = (rootDomain: string): string => {
   if (typeof window === 'undefined') {
+    return rootDomain;
+  }
+
+  // An explicit logout must not preserve a deep link. Consuming the flag here
+  // makes it one-shot, so a genuine session-expiry redirect later still works.
+  if (consumeExplicitLogout()) {
     return rootDomain;
   }
 
@@ -142,4 +153,40 @@ export const buildLoginUrlWithReturnTo = (rootDomain: string): string => {
 
   const returnTo = encodeURIComponent(window.location.href);
   return `${rootDomain}?returnTo=${returnTo}`;
+};
+
+const EXPLICIT_LOGOUT_KEY = '@auth:explicit-logout';
+
+/**
+ * Marks that the user is intentionally logging out, so the subsequent redirect
+ * to login does NOT preserve a `returnTo` deep link. Call this right before
+ * clearing the session in an explicit "Sair" handler.
+ *
+ * The flag lives in sessionStorage on the current subdomain; it only needs to
+ * survive the same synchronous tick (the ProtectedRoute re-render that can race
+ * the logout navigation), and `buildLoginUrlWithReturnTo` consumes it one-shot.
+ */
+export const markExplicitLogout = (): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    sessionStorage.setItem(EXPLICIT_LOGOUT_KEY, '1');
+  } catch {
+    // sessionStorage unavailable: worst case the URL carries a harmless
+    // returnTo that the login flow validates and can still ignore.
+  }
+};
+
+/**
+ * Reads and clears the explicit-logout flag. Returns true when an explicit
+ * logout is in progress.
+ */
+const consumeExplicitLogout = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  try {
+    const flag = sessionStorage.getItem(EXPLICIT_LOGOUT_KEY);
+    if (flag) sessionStorage.removeItem(EXPLICIT_LOGOUT_KEY);
+    return Boolean(flag);
+  } catch {
+    return false;
+  }
 };
