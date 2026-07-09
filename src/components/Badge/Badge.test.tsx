@@ -295,6 +295,8 @@ describe('Badge', () => {
       render(<Badge variant="notification" notificationActive={true} />);
       const dot = screen.getByTestId('notification-dot');
       expect(dot).toBeInTheDocument();
+      // The dot must sit at the bell's top-right corner (not over its body).
+      expect(dot).toHaveClass('absolute', 'top-[2px]', 'right-[2px]');
     });
 
     it('does not show notification dot when inactive', () => {
