@@ -21,6 +21,7 @@ import {
 import { convertActivityFiltersToQuestionsFilter } from '../../utils/questionFiltersConverter';
 import { mapQuestionTypeToEnumRequired } from '../../utils/questionTypeUtils';
 import { areFiltersEqual } from '../../utils/activityFilters';
+import { normalizeText, highlightSearchTerm } from '../../utils/stringUtils';
 import Activities from '../../assets/icons/Activities';
 
 interface ActivityListQuestionsProps {
@@ -172,29 +173,6 @@ export const ActivityListQuestions = ({
   const lastLoadedPageRef = useRef<number>(1);
 
   /**
-   * Normalize string for case/accent-insensitive comparison
-   */
-  const normalize = (s: string) =>
-    s
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase();
-
-  /**
-   * Wrap occurrences of the search term in the HTML string with a highlight span.
-   * Safe to inject into HtmlMathRenderer since it only wraps existing content.
-   */
-  const highlightStatement = (html: string, term: string): string => {
-    if (!term || !html) return html;
-    const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(`(${escaped})`, 'gi');
-    return html.replace(
-      regex,
-      '<span style="color:#2883D7;font-weight:600">$1</span>'
-    );
-  };
-
-  /**
    * Convert question options to the format expected by ActivityCardQuestionBanks
    */
   const formatQuestionOptions = (
@@ -245,16 +223,16 @@ export const ActivityListQuestions = ({
    */
   const displayedQuestions = useMemo(() => {
     if (!searchTerm) return questions;
-    const term = normalize(searchTerm);
+    const term = normalizeText(searchTerm);
     return questions.filter((q) => {
       const subjectText = getSubjectInfo(q).content;
       const bankName = q.questionBankYear?.questionBank?.name ?? '';
       const year = String(q.questionBankYear?.year ?? '');
       return (
-        normalize(subjectText).includes(term) ||
-        normalize(q.statement ?? '').includes(term) ||
-        normalize(bankName).includes(term) ||
-        normalize(year).includes(term)
+        normalizeText(subjectText).includes(term) ||
+        normalizeText(q.statement ?? '').includes(term) ||
+        normalizeText(bankName).includes(term) ||
+        normalizeText(year).includes(term)
       );
     });
   }, [questions, searchTerm]);
@@ -358,7 +336,10 @@ export const ActivityListQuestions = ({
 
     prefetchAll();
     return () => {
+      // Reset so a cancelled prefetch never freezes the UI or blocks the next search
       cancelled = true;
+      prefetchDoneRef.current = false;
+      setIsPrefetchingAll(false);
     };
   }, [searchTerm, appliedFilters, fetchQuestions]); // effectivePagination intentionally excluded: read via ref to avoid cancelling the loop on each page load
 
@@ -562,7 +543,7 @@ export const ActivityListQuestions = ({
               year={question.questionBankYear?.year}
               statement={
                 searchTerm
-                  ? highlightStatement(question.statement ?? '', searchTerm)
+                  ? highlightSearchTerm(question.statement ?? '', searchTerm)
                   : question.statement
               }
               additionalContent={question.additionalContent}
