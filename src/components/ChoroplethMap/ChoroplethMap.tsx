@@ -101,7 +101,9 @@ const getColorClass = (
 };
 
 /**
- * Compute NRE boundary polygons by merging city polygons that share the same regionName
+ * Compute NRE boundary polygons by merging city polygons that share the same
+ * group (the NRE). Grouping uses `groupName` (the NRE label); when a region has
+ * no `groupName`, it falls back to its own `name` so it forms its own group.
  * @param data - Array of region data with individual city GeoJSON features
  * @returns Array of GeoJSON features representing NRE boundaries
  */
@@ -110,9 +112,10 @@ const computeNREBoundaries = (
 ): Feature<Polygon | MultiPolygon>[] => {
   const groups = new Map<string, RegionData[]>();
   data.forEach((region) => {
-    const existing = groups.get(region.name) ?? [];
+    const groupKey = region.groupName ?? region.name;
+    const existing = groups.get(groupKey) ?? [];
     existing.push(region);
-    groups.set(region.name, existing);
+    groups.set(groupKey, existing);
   });
 
   const boundaries: Feature<Polygon | MultiPolygon>[] = [];
@@ -458,14 +461,15 @@ const ChoroplethMap = ({
       }
     });
 
-    // Build NRE feature index for O(1) lookup by region name
-    const nreFeatureIndex = new Map<string, google.maps.Data.Feature[]>();
+    // Build per-city feature index for O(1) lookup by region id.
+    // Hover highlight and click-zoom operate per municipality (not per NRE).
+    const cityFeatureIndex = new Map<string, google.maps.Data.Feature[]>();
     map.data.forEach((f) => {
-      const name = f.getProperty('regionName') as string;
-      if (name) {
-        const list = nreFeatureIndex.get(name) ?? [];
+      const id = f.getProperty('regionId') as string;
+      if (id) {
+        const list = cityFeatureIndex.get(id) ?? [];
         list.push(f);
-        nreFeatureIndex.set(name, list);
+        cityFeatureIndex.set(id, list);
       }
     });
 
@@ -574,32 +578,31 @@ const ChoroplethMap = ({
       hoverAnimationsRef.current.set(groupKey, requestAnimationFrame(animate));
     };
 
-    // Handle hover events - highlight all cities in the same NRE
-    let currentNRE: string | null = null;
+    // Handle hover events - highlight only the hovered city
+    let currentCityId: string | null = null;
     let revertTimeout: ReturnType<typeof setTimeout> | null = null;
 
     /**
-     * Collect all features belonging to a given NRE name (O(1) index lookup)
-     * @param nreName - NRE region name to match
+     * Collect all features belonging to a given city id (O(1) index lookup)
+     * @param cityId - Region (city) id to match
      * @returns Array of matching features
      */
-    const collectNREFeatures = (
-      nreName: string
+    const collectCityFeatures = (
+      cityId: string
     ): google.maps.Data.Feature[] => {
-      return nreFeatureIndex.get(nreName) ?? [];
+      return cityFeatureIndex.get(cityId) ?? [];
     };
 
     const mouseoverListener = map.data.addListener(
       'mouseover',
       (event: google.maps.Data.MouseEvent) => {
-        // Cancel pending revert (when moving between cities in same NRE)
+        // Cancel pending revert (when moving between adjacent cities)
         if (revertTimeout) {
           clearTimeout(revertTimeout);
           revertTimeout = null;
         }
 
         const regionId = event.feature.getProperty('regionId') as string;
-        const regionName = event.feature.getProperty('regionName') as string;
         const region = stableData.find((r) => r.id === regionId);
         if (region) {
           setHoveredRegion(region);
@@ -611,28 +614,35 @@ const ChoroplethMap = ({
           }
         }
 
-        // Animate highlight for all features in the same NRE group
-        if (currentNRE !== regionName) {
-          if (currentNRE) {
-            const prevFeatures = collectNREFeatures(currentNRE);
-            animateHover(currentNRE, prevFeatures, 1, TARGET_OPACITY, 1, 0.5);
+        // Animate highlight for the hovered city only
+        if (currentCityId !== regionId) {
+          if (currentCityId) {
+            const prevFeatures = collectCityFeatures(currentCityId);
+            animateHover(
+              currentCityId,
+              prevFeatures,
+              1,
+              TARGET_OPACITY,
+              1,
+              0.5
+            );
           }
-          currentNRE = regionName;
-          const nreFeatures = collectNREFeatures(regionName);
-          animateHover(regionName, nreFeatures, TARGET_OPACITY, 1, 0.5, 1);
+          currentCityId = regionId;
+          const cityFeatures = collectCityFeatures(regionId);
+          animateHover(regionId, cityFeatures, TARGET_OPACITY, 1, 0.5, 1);
         }
       }
     );
 
     const mouseoutListener = map.data.addListener('mouseout', () => {
-      // Defer revert to avoid flicker when moving between cities in same NRE
+      // Defer revert to avoid flicker when moving between adjacent cities
       revertTimeout = setTimeout(() => {
         setHoveredRegion(null);
         setInfoPosition(null);
-        if (currentNRE) {
-          const prevFeatures = collectNREFeatures(currentNRE);
-          animateHover(currentNRE, prevFeatures, 1, TARGET_OPACITY, 1, 0.5);
-          currentNRE = null;
+        if (currentCityId) {
+          const prevFeatures = collectCityFeatures(currentCityId);
+          animateHover(currentCityId, prevFeatures, 1, TARGET_OPACITY, 1, 0.5);
+          currentCityId = null;
         }
       }, 50);
     });
@@ -650,34 +660,33 @@ const ChoroplethMap = ({
     );
 
     /**
-     * Compute bounds for all features matching a given NRE name
-     * @param nreName - NRE region name to match
+     * Compute bounds for all features matching a given city id
+     * @param cityId - Region (city) id to match
      * @returns LatLngBounds encompassing all matching features
      */
-    const computeNREBounds = (nreName: string): google.maps.LatLngBounds => {
-      const nreBounds = new google.maps.LatLngBounds();
-      for (const f of collectNREFeatures(nreName)) {
-        f.getGeometry()?.forEachLatLng((latLng) => {
-          nreBounds.extend(latLng);
+    const computeCityBounds = (cityId: string): google.maps.LatLngBounds => {
+      const cityBounds = new google.maps.LatLngBounds();
+      for (const f of collectCityFeatures(cityId)) {
+        f.getGeometry()?.forEachLatLng((latLng: google.maps.LatLng) => {
+          cityBounds.extend(latLng);
         });
       }
-      return nreBounds;
+      return cityBounds;
     };
 
-    // Handle click events - zoom to NRE region
+    // Handle click events - zoom to the clicked city
     const clickListener = map.data.addListener(
       'click',
       (event: google.maps.Data.MouseEvent) => {
         const regionId = event.feature.getProperty('regionId') as string;
-        const regionName = event.feature.getProperty('regionName') as string;
         const region = stableData.find((r) => r.id === regionId);
         if (region && region.isManagedRegion !== false) {
           onRegionClickRef.current?.(region);
         }
 
-        const nreBounds = computeNREBounds(regionName);
-        if (!nreBounds.isEmpty()) {
-          map.fitBounds(nreBounds, 20);
+        const cityBounds = computeCityBounds(regionId);
+        if (!cityBounds.isEmpty()) {
+          map.fitBounds(cityBounds, 20);
         }
       }
     );
