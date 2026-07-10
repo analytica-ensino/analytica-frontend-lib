@@ -44,10 +44,7 @@ export function stripHtmlTags(html: string): string {
  * normalizeText('Ação')       // 'acao'
  */
 export function normalizeText(value: string): string {
-  return value
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase();
+  return value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 }
 
 /**
@@ -73,7 +70,7 @@ export function highlightSearchTerm(html: string, term: string): string {
   if (!term || !html) return html;
   if (globalThis.window === undefined) return html;
 
-  const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
   const matchRegex = new RegExp(escaped, 'gi');
 
   const container = document.createElement('div');

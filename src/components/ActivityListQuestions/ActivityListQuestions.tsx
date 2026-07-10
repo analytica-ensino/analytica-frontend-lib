@@ -407,6 +407,17 @@ export const ActivityListQuestions = ({
   const uniqueQuestion = (count = displayedCount) =>
     count === 1 ? 'questão' : 'questões';
 
+  const getStatusText = () => {
+    if (loading && !isPrefetchingAll && displayedQuestions.length === 0) {
+      return 'Carregando...';
+    }
+    if (isPrefetchingAll) {
+      const agreement = displayedCount === 1 ? 'encontrada' : 'encontradas';
+      return `Buscando... (${displayedCount} ${uniqueQuestion(displayedCount)} ${agreement})`;
+    }
+    return `${displayedCount} ${uniqueQuestion(displayedCount)} total`;
+  };
+
   /**
    * Handle adding questions automatically using random search
    */
@@ -598,11 +609,7 @@ export const ActivityListQuestions = ({
 
         <section className="flex flex-row justify-between items-center">
           <Text size="sm" className="text-text-800">
-            {loading && !isPrefetchingAll && displayedQuestions.length === 0
-              ? 'Carregando...'
-              : isPrefetchingAll
-                ? `Buscando... (${displayedCount} ${uniqueQuestion(displayedCount)} ${displayedCount === 1 ? 'encontrada' : 'encontradas'})`
-                : `${displayedCount} ${uniqueQuestion(displayedCount)} total`}
+            {getStatusText()}
           </Text>
 
           <Button
