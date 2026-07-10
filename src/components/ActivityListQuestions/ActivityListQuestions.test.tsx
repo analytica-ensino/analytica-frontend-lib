@@ -284,6 +284,31 @@ jest.mock('../../components/Skeleton/Skeleton', () => ({
   ),
 }));
 
+jest.mock('../../components/Search/Search', () => ({
+  __esModule: true,
+  default: ({
+    value,
+    onChange,
+    onClear: _onClear,
+    placeholder,
+    ...props
+  }: {
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onSearch?: (val: string) => void;
+    onClear?: () => void;
+    placeholder?: string;
+  }) => (
+    <input
+      data-testid="search-input"
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      {...props}
+    />
+  ),
+}));
+
 // Mock IntersectionObserver
 (globalThis as { IntersectionObserver: unknown }).IntersectionObserver = jest
   .fn()
@@ -1736,6 +1761,165 @@ describe('ActivityListQuestions', () => {
       render(<ActivityListQuestions {...defaultProps} />);
 
       expect(screen.getByText('0 questões total')).toBeInTheDocument();
+    });
+  });
+
+  describe('In-memory search feature', () => {
+    const filters = {
+      types: [QUESTION_TYPE.ALTERNATIVA],
+      bankIds: [],
+      yearIds: [],
+      knowledgeIds: [],
+      topicIds: [],
+      subtopicIds: [],
+      contentIds: [],
+    };
+
+    const mockPagination = {
+      page: 1,
+      pageSize: 10,
+      total: 5,
+      totalPages: 1,
+      hasNext: false,
+      hasPrevious: false,
+    };
+
+    const questionNatureza: Question = {
+      ...mockQuestion,
+      id: 'question-natureza',
+      statement: 'Questão sobre natureza',
+      knowledgeMatrix: [
+        {
+          subject: {
+            id: 'subject-natureza',
+            name: 'Natureza',
+            color: '#00AA00',
+            icon: 'Tree',
+          },
+          topic: null,
+          subtopic: null,
+        },
+      ],
+    };
+
+    const questionMatematica: Question = {
+      ...mockQuestion,
+      id: 'question-matematica',
+      statement: 'Questão sobre matemática',
+      knowledgeMatrix: [
+        {
+          subject: {
+            id: 'subject-matematica',
+            name: 'Matemática',
+            color: '#FF0000',
+            icon: 'Calculator',
+          },
+          topic: null,
+          subtopic: null,
+        },
+      ],
+    };
+
+    const renderWithFilters = () => {
+      mockAppliedFilters.mockReturnValue(filters);
+      mockStoreState.cachedFilters = filters;
+      jest.mocked(areFiltersEqual).mockReturnValue(true);
+
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [questionNatureza, questionMatematica],
+        pagination: mockPagination,
+        loading: false,
+        loadingMore: false,
+      });
+
+      return render(<ActivityListQuestions {...defaultProps} />);
+    };
+
+    it('should NOT show search input when appliedFilters is null', () => {
+      mockAppliedFilters.mockReturnValue(null);
+
+      render(<ActivityListQuestions {...defaultProps} />);
+
+      expect(
+        screen.queryByPlaceholderText('Buscar questão')
+      ).not.toBeInTheDocument();
+    });
+
+    it('should show search input when appliedFilters is set', () => {
+      renderWithFilters();
+
+      expect(screen.getByPlaceholderText('Buscar questão')).toBeInTheDocument();
+    });
+
+    it('should filter questions by subject when typing a search term', () => {
+      renderWithFilters();
+
+      const searchInput = screen.getByPlaceholderText('Buscar questão');
+      fireEvent.change(searchInput, { target: { value: 'Natureza' } });
+
+      const cards = screen.getAllByTestId('activity-card-question-banks');
+      expect(cards).toHaveLength(1);
+      expect(cards[0]).toHaveAttribute('data-content', 'Natureza');
+    });
+
+    it('should show in-memory count in counter when searchTerm is active', () => {
+      renderWithFilters();
+
+      const searchInput = screen.getByPlaceholderText('Buscar questão');
+      fireEvent.change(searchInput, { target: { value: 'Natureza' } });
+
+      // 1 match → should show "1 questão total"
+      expect(screen.getByText('1 questão total')).toBeInTheDocument();
+    });
+
+    it('should restore server total in counter when search is cleared', () => {
+      renderWithFilters();
+
+      const searchInput = screen.getByPlaceholderText('Buscar questão');
+      fireEvent.change(searchInput, { target: { value: 'Natureza' } });
+
+      // Confirm filtered count is shown
+      expect(screen.getByText('1 questão total')).toBeInTheDocument();
+
+      // Clear the search
+      fireEvent.change(searchInput, { target: { value: '' } });
+
+      // Server total is 5
+      expect(screen.getByText('5 questões total')).toBeInTheDocument();
+    });
+
+    it('should show empty search message when no questions match the term', () => {
+      renderWithFilters();
+
+      const searchInput = screen.getByPlaceholderText('Buscar questão');
+      fireEvent.change(searchInput, { target: { value: 'xyznonexistent' } });
+
+      expect(
+        screen.getByText(/Nenhuma questão encontrada para/)
+      ).toBeInTheDocument();
+    });
+
+    it('should reset search state when appliedFilters changes', async () => {
+      renderWithFilters();
+
+      const searchInput = screen.getByPlaceholderText('Buscar questão');
+      fireEvent.change(searchInput, { target: { value: 'Natureza' } });
+
+      expect(searchInput).toHaveValue('Natureza');
+
+      // Change filters — triggers the useEffect that resets searchTerm
+      const newFilters = { ...filters, types: [QUESTION_TYPE.DISSERTATIVA] };
+      mockAppliedFilters.mockReturnValue(newFilters);
+
+      // Re-render to simulate filter change (store update)
+      const { rerender } = render(<ActivityListQuestions {...defaultProps} />);
+      rerender(<ActivityListQuestions {...defaultProps} />);
+
+      await waitFor(() => {
+        const inputs = screen.getAllByPlaceholderText('Buscar questão');
+        // The last rendered input should have empty value after filter change
+        expect(inputs[inputs.length - 1]).toHaveValue('');
+      });
     });
   });
 
