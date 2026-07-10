@@ -312,7 +312,7 @@ const ChoroplethMap = ({
       data
         .map(
           (d) =>
-            `${d.id}:${d.value}:${d.name}:${d.accessCount}:${
+            `${d.id}:${d.value}:${d.name}:${d.groupName ?? ''}:${d.accessCount}:${
               d.isManagedRegion === false ? 0 : 1
             }`
         )
