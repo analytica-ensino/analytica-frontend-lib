@@ -216,10 +216,16 @@ describe('ChoroplethMap', () => {
   it('renders all legend items', () => {
     render(<ChoroplethMap data={[]} apiKey={mockApiKey} />);
 
-    expect(screen.getByText('Destaque')).toBeInTheDocument();
-    expect(screen.getByText('Acima da média')).toBeInTheDocument();
-    expect(screen.getByText('Abaixo da média')).toBeInTheDocument();
-    expect(screen.getByText('Ponto de atenção')).toBeInTheDocument();
+    expect(screen.getByText('Destaque (75% com acesso)')).toBeInTheDocument();
+    expect(
+      screen.getByText('Acima da média (50 até 74% com acesso)')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Abaixo da média (26 até 49% com acesso)')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Ponto de atenção (Abaixo de 25% com acesso)')
+    ).toBeInTheDocument();
   });
 
   it('shows loading skeleton when loading is true', () => {
@@ -839,6 +845,69 @@ describe('ChoroplethMap animations', () => {
     expect(screen.getByText(/Atividades realizadas: 200/)).toBeInTheDocument();
   });
 
+  it('shows the per-profile breakdown in the tooltip when accessBreakdown is present', async () => {
+    await renderAndHoverRegion({
+      data: [
+        {
+          id: 'r1',
+          name: 'NRE Test',
+          value: 0.5,
+          accessCount: 200,
+          accessBreakdown: {
+            students: { withAccess: 300, withoutAccess: 1000 },
+            teachers: { withAccess: 40, withoutAccess: 5 },
+            managers: { withAccess: 2, withoutAccess: 8 },
+          },
+          geoJson: {
+            type: 'Feature',
+            properties: {},
+            geometry: { type: 'Polygon', coordinates: [[]] },
+          },
+        },
+      ],
+    });
+
+    expect(
+      screen.getByText(/Estudantes: 300 com acesso, 1\.000 sem acessos/)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Professores\(as\): 40 com acesso, 5 sem acessos/)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Diretores\(as\): 2 com acesso, 8 sem acessos/)
+    ).toBeInTheDocument();
+    // Falls back away from the single-count label
+    expect(screen.queryByText(/Acessos: 200/)).not.toBeInTheDocument();
+  });
+
+  it('renders a headerAction on the right of the header', () => {
+    render(
+      <ChoroplethMap
+        data={[]}
+        apiKey={mockApiKey}
+        headerAction={<button type="button">Todos dispositivos</button>}
+      />
+    );
+
+    expect(
+      screen.getByRole('button', { name: 'Todos dispositivos' })
+    ).toBeInTheDocument();
+  });
+
+  it('renders an info alert below the map when infoText is provided', () => {
+    render(
+      <ChoroplethMap
+        data={[]}
+        apiKey={mockApiKey}
+        infoText="Dados do mapa somam acessos por escola."
+      />
+    );
+
+    expect(
+      screen.getByText('Dados do mapa somam acessos por escola.')
+    ).toBeInTheDocument();
+  });
+
   it('zooms to NRE region on click', async () => {
     let clickHandler: ((event: unknown) => void) | null = null;
     mockAddListener.mockImplementation((event, handler) => {
@@ -1095,10 +1164,18 @@ describe('ChoroplethMap legend interaction', () => {
   it('renders all legend items as buttons', () => {
     render(<ChoroplethMap data={[]} apiKey={mockApiKey} />);
 
-    const destaqueBtn = screen.getByText('Destaque').closest('button');
-    const acimaBtn = screen.getByText('Acima da média').closest('button');
-    const abaixoBtn = screen.getByText('Abaixo da média').closest('button');
-    const atencaoBtn = screen.getByText('Ponto de atenção').closest('button');
+    const destaqueBtn = screen
+      .getByText('Destaque (75% com acesso)')
+      .closest('button');
+    const acimaBtn = screen
+      .getByText('Acima da média (50 até 74% com acesso)')
+      .closest('button');
+    const abaixoBtn = screen
+      .getByText('Abaixo da média (26 até 49% com acesso)')
+      .closest('button');
+    const atencaoBtn = screen
+      .getByText('Ponto de atenção (Abaixo de 25% com acesso)')
+      .closest('button');
 
     expect(destaqueBtn).toBeInTheDocument();
     expect(acimaBtn).toBeInTheDocument();
@@ -1118,7 +1195,9 @@ describe('ChoroplethMap legend interaction', () => {
   it('toggles legend class opacity on click', () => {
     render(<ChoroplethMap data={[]} apiKey={mockApiKey} />);
 
-    const destaqueBtn = screen.getByText('Destaque').closest('button')!;
+    const destaqueBtn = screen
+      .getByText('Destaque (75% com acesso)')
+      .closest('button')!;
     expect(destaqueBtn).toHaveStyle({ opacity: 1 });
 
     act(() => {
@@ -1131,7 +1210,9 @@ describe('ChoroplethMap legend interaction', () => {
   it('restores legend class opacity on second click', () => {
     render(<ChoroplethMap data={[]} apiKey={mockApiKey} />);
 
-    const destaqueBtn = screen.getByText('Destaque').closest('button')!;
+    const destaqueBtn = screen
+      .getByText('Destaque (75% com acesso)')
+      .closest('button')!;
 
     act(() => {
       destaqueBtn.click();
@@ -1166,7 +1247,9 @@ describe('ChoroplethMap legend interaction', () => {
     mockOverrideStyle.mockClear();
     mockRevertStyle.mockClear();
 
-    const destaqueBtn = screen.getByText('Destaque').closest('button')!;
+    const destaqueBtn = screen
+      .getByText('Destaque (75% com acesso)')
+      .closest('button')!;
     act(() => {
       destaqueBtn.click();
     });
@@ -1197,7 +1280,9 @@ describe('ChoroplethMap legend interaction', () => {
       expect(mockSetStyle).toHaveBeenCalled();
     });
 
-    const destaqueBtn = screen.getByText('Destaque').closest('button')!;
+    const destaqueBtn = screen
+      .getByText('Destaque (75% com acesso)')
+      .closest('button')!;
 
     // Toggle off
     act(() => {
@@ -1248,7 +1333,9 @@ describe('ChoroplethMap legend interaction', () => {
     mockLatLngBounds.mockClear();
 
     // Toggle off "Abaixo da média" (index 2) — "Destaque" stays visible
-    const abaixoBtn = screen.getByText('Abaixo da média').closest('button')!;
+    const abaixoBtn = screen
+      .getByText('Abaixo da média (26 até 49% com acesso)')
+      .closest('button')!;
     act(() => {
       abaixoBtn.click();
     });
@@ -1594,7 +1681,9 @@ describe('ChoroplethMap isManagedRegion', () => {
     unmanagedLatLng.mockClear();
 
     // Toggle off "Destaque" — the managed feature (value 0.9) belongs to it
-    const destaqueBtn = screen.getByText('Destaque').closest('button')!;
+    const destaqueBtn = screen
+      .getByText('Destaque (75% com acesso)')
+      .closest('button')!;
     act(() => {
       destaqueBtn.click();
     });
@@ -1685,7 +1774,9 @@ describe('ChoroplethMap isManagedRegion', () => {
 
     // Toggle off "Destaque": the low-value managed feature stays visible
     // and the map refits to it
-    const destaqueBtn = screen.getByText('Destaque').closest('button')!;
+    const destaqueBtn = screen
+      .getByText('Destaque (75% com acesso)')
+      .closest('button')!;
     act(() => {
       destaqueBtn.click();
     });

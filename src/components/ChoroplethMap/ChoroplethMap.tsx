@@ -6,6 +6,7 @@ import type { Feature, MultiPolygon, Polygon } from 'geojson';
 import { cn } from '../../utils/utils';
 import { useTheme } from '../../hooks/useTheme';
 import Text from '../Text/Text';
+import Alert from '../Alert/Alert';
 import type {
   ChoroplethMapProps,
   ColorClass,
@@ -57,28 +58,28 @@ const getColorClasses = (): ColorClass[] => [
     max: 1.01,
     fillColor: getCssVar('--color-map-highlight', '#66b584'),
     strokeColor: getCssVar('--color-map-highlight', '#66b584'),
-    label: 'Destaque',
+    label: 'Destaque (75% com acesso)',
   },
   {
     min: 0.5,
     max: 0.75,
     fillColor: getCssVar('--color-map-above-avg', '#f8cc2e'),
     strokeColor: getCssVar('--color-map-above-avg', '#f8cc2e'),
-    label: 'Acima da média',
+    label: 'Acima da média (50 até 74% com acesso)',
   },
   {
     min: 0.25,
     max: 0.5,
     fillColor: getCssVar('--color-map-below-avg', '#fb954b'),
     strokeColor: getCssVar('--color-map-below-avg', '#fb954b'),
-    label: 'Abaixo da média',
+    label: 'Abaixo da média (26 até 49% com acesso)',
   },
   {
     min: 0,
     max: 0.25,
     fillColor: getCssVar('--color-map-attention', '#b91c1c'),
     strokeColor: getCssVar('--color-map-attention', '#b91c1c'),
-    label: 'Ponto de atenção',
+    label: 'Ponto de atenção (Abaixo de 25% com acesso)',
   },
 ];
 
@@ -287,6 +288,8 @@ const ChoroplethMap = ({
   loading = false,
   bounds,
   onRegionClick,
+  headerAction,
+  infoText,
   className,
 }: ChoroplethMapProps) => {
   const mapId = GOOGLE_MAPS_LOADER_ID;
@@ -310,12 +313,15 @@ const ChoroplethMap = ({
   const dataSignature = useMemo(
     () =>
       data
-        .map(
-          (d) =>
-            `${d.id}:${d.value}:${d.name}:${d.groupName ?? ''}:${d.accessCount}:${
-              d.isManagedRegion === false ? 0 : 1
-            }`
-        )
+        .map((d) => {
+          const b = d.accessBreakdown;
+          const breakdown = b
+            ? `${b.students.withAccess}/${b.students.withoutAccess}/${b.teachers.withAccess}/${b.teachers.withoutAccess}/${b.managers.withAccess}/${b.managers.withoutAccess}`
+            : '';
+          return `${d.id}:${d.value}:${d.name}:${d.groupName ?? ''}:${d.accessCount}:${
+            d.isManagedRegion === false ? 0 : 1
+          }:${breakdown}`;
+        })
         .join('|'),
     [data]
   );
@@ -784,14 +790,17 @@ const ChoroplethMap = ({
     >
       {/* Header */}
       <div className="flex flex-col gap-4">
-        <Text
-          as="h2"
-          size="lg"
-          weight="bold"
-          className="leading-[21px] tracking-[0.2px]"
-        >
-          {title}
-        </Text>
+        <div className="flex flex-row items-center gap-4">
+          <Text
+            as="h2"
+            size="lg"
+            weight="bold"
+            className="flex-1 leading-[21px] tracking-[0.2px]"
+          >
+            {title}
+          </Text>
+          {headerAction}
+        </div>
 
         {/* Legend */}
         <div className="flex flex-wrap gap-8">
@@ -839,15 +848,62 @@ const ChoroplethMap = ({
             <Text size="sm" weight="semibold">
               {hoveredRegion.name}
             </Text>
-            {hoveredRegion.isManagedRegion !== false && (
-              <Text size="xs" color="text-text-700">
-                {countLabel}:{' '}
-                {hoveredRegion.accessCount.toLocaleString('pt-BR')}
-              </Text>
-            )}
+            {hoveredRegion.isManagedRegion !== false &&
+              (hoveredRegion.accessBreakdown ? (
+                <div className="mt-1 flex flex-col gap-0.5">
+                  <Text size="xs" color="text-text-700">
+                    Estudantes:{' '}
+                    {hoveredRegion.accessBreakdown.students.withAccess.toLocaleString(
+                      'pt-BR'
+                    )}{' '}
+                    com acesso,{' '}
+                    {hoveredRegion.accessBreakdown.students.withoutAccess.toLocaleString(
+                      'pt-BR'
+                    )}{' '}
+                    sem acessos
+                  </Text>
+                  <Text size="xs" color="text-text-700">
+                    Professores(as):{' '}
+                    {hoveredRegion.accessBreakdown.teachers.withAccess.toLocaleString(
+                      'pt-BR'
+                    )}{' '}
+                    com acesso,{' '}
+                    {hoveredRegion.accessBreakdown.teachers.withoutAccess.toLocaleString(
+                      'pt-BR'
+                    )}{' '}
+                    sem acessos
+                  </Text>
+                  <Text size="xs" color="text-text-700">
+                    Diretores(as):{' '}
+                    {hoveredRegion.accessBreakdown.managers.withAccess.toLocaleString(
+                      'pt-BR'
+                    )}{' '}
+                    com acesso,{' '}
+                    {hoveredRegion.accessBreakdown.managers.withoutAccess.toLocaleString(
+                      'pt-BR'
+                    )}{' '}
+                    sem acessos
+                  </Text>
+                </div>
+              ) : (
+                <Text size="xs" color="text-text-700">
+                  {countLabel}:{' '}
+                  {hoveredRegion.accessCount.toLocaleString('pt-BR')}
+                </Text>
+              ))}
           </div>
         )}
       </div>
+
+      {/* Info alert below the map, inside the card */}
+      {infoText && (
+        <Alert
+          action="info"
+          variant="solid"
+          description={infoText}
+          className="w-full"
+        />
+      )}
     </div>
   );
 };

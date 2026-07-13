@@ -164,6 +164,8 @@ export type {
   MapBounds,
   LegendItem,
   ColorClass,
+  AccessBreakdown,
+  AccessBreakdownEntry,
 } from './components/ChoroplethMap/ChoroplethMap.types';
 
 // Map Data Hook
