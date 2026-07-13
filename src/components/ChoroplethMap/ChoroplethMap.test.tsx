@@ -1732,4 +1732,30 @@ describe('ChoroplethMap isManagedRegion', () => {
       expect(mockAddGeoJson).toHaveBeenCalledTimes(4);
     });
   });
+
+  it('re-adds GeoJSON data when only groupName changes (NRE reassignment)', async () => {
+    const { rerender } = render(
+      <ChoroplethMap
+        data={[{ ...managedRegion, groupName: 'NRE A' }]}
+        apiKey={mockApiKey}
+      />
+    );
+
+    await waitFor(() => {
+      expect(mockAddGeoJson).toHaveBeenCalledTimes(1);
+    });
+
+    // Only the NRE (groupName) changes while every other field stays the same:
+    // signature must differ so stableData/nreBoundaries recompute.
+    rerender(
+      <ChoroplethMap
+        data={[{ ...managedRegion, groupName: 'NRE B' }]}
+        apiKey={mockApiKey}
+      />
+    );
+
+    await waitFor(() => {
+      expect(mockAddGeoJson).toHaveBeenCalledTimes(2);
+    });
+  });
 });

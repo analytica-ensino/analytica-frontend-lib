@@ -4,10 +4,17 @@ import type { Feature, MultiPolygon, Polygon } from 'geojson';
  * Region data interface for choropleth map
  */
 export interface RegionData {
-  /** Unique identifier for the region */
+  /** Unique identifier for the region (per-city) */
   id: string;
-  /** Display name of the region */
+  /** Display name of the region — the municipality (city) name */
   name: string;
+  /**
+   * Grouping label used only to draw the NRE outline that visually groups the
+   * cities of the same NRE. When omitted, the region's own `name` is used as the
+   * group (each region is its own group). Coloring, tooltip, hover and zoom are
+   * per-city (keyed on `id`/`name`), independent of this field.
+   */
+  groupName?: string;
   /** Code identifier for the region */
   code?: string | null;
   /** Normalized value between 0 and 1 for color classification */

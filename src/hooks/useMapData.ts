@@ -27,8 +27,12 @@ export interface UseMapDataReturn {
 }
 
 /**
- * Transform enriched GeoJSON features to ChoroplethMap region data
- * Each city feature has NRE, value, totalAccess from backend enrichment
+ * Transform enriched GeoJSON features to ChoroplethMap region data.
+ *
+ * Each feature is one municipality: `name` is the city and `value`/`accessCount`
+ * are its own per-city metric (colored individually). `groupName` carries the
+ * NRE label used only to draw the grouping outline.
+ *
  * @param geoJSON - Enriched GeoJSON FeatureCollection from backend
  * @returns Array of region data for ChoroplethMap
  */
@@ -37,9 +41,10 @@ function transformGeoJSONFeatures(
 ): ChoroplethRegionData[] {
   return geoJSON.features.map((feature) => ({
     id: feature.properties?.GEOCODIGO || feature.properties?.NOME || '',
-    name: feature.properties?.NRE
+    name: feature.properties?.NOME || '',
+    groupName: feature.properties?.NRE
       ? `NRE ${feature.properties.NRE}`
-      : feature.properties?.NOME || '',
+      : undefined,
     value: feature.properties?.value ?? 0,
     accessCount: feature.properties?.totalAccess ?? 0,
     geoJson: feature,

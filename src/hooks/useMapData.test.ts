@@ -104,7 +104,9 @@ describe('useMapData', () => {
 
       expect(result.current.data).toHaveLength(1);
       expect(result.current.data[0].id).toBe('4106902');
-      expect(result.current.data[0].name).toBe('NRE Curitiba');
+      // name is the city; the NRE goes to groupName (outline grouping only)
+      expect(result.current.data[0].name).toBe('Curitiba');
+      expect(result.current.data[0].groupName).toBe('NRE Curitiba');
       expect(result.current.data[0].value).toBe(85);
       expect(result.current.data[0].accessCount).toBe(1200);
       expect(result.current.data[0].isManagedRegion).toBe(true);
@@ -187,6 +189,7 @@ describe('useMapData', () => {
       });
 
       expect(result.current.data[0].name).toBe('Curitiba');
+      expect(result.current.data[0].groupName).toBeUndefined();
     });
 
     it('should use empty string when GEOCODIGO and NOME are missing', async () => {
