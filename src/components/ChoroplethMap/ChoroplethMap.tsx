@@ -72,7 +72,7 @@ const getColorClasses = (): ColorClass[] => [
     max: 0.5,
     fillColor: getCssVar('--color-map-below-avg', '#fb954b'),
     strokeColor: getCssVar('--color-map-below-avg', '#fb954b'),
-    label: 'Abaixo da média (26 até 49% com acesso)',
+    label: 'Abaixo da média (25 até 49% com acesso)',
   },
   {
     min: 0,

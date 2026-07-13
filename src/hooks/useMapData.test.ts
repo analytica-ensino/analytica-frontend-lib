@@ -116,11 +116,11 @@ describe('useMapData', () => {
     });
 
     it('should map accessBreakdown from feature properties for the tooltip', async () => {
-      const accessBreakdown = [
-        { profile: 'STUDENT', withAccess: 100, withoutAccess: 20 },
-        { profile: 'TEACHER', withAccess: 10, withoutAccess: 5 },
-        { profile: 'MANAGER', withAccess: 2, withoutAccess: 1 },
-      ];
+      const accessBreakdown = {
+        students: { withAccess: 100, withoutAccess: 20 },
+        teachers: { withAccess: 10, withoutAccess: 5 },
+        managers: { withAccess: 2, withoutAccess: 1 },
+      };
       const geoJSON: FeatureCollection<Polygon | MultiPolygon> = {
         type: 'FeatureCollection',
         features: [
