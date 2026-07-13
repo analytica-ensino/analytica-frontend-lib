@@ -839,58 +839,62 @@ const ChoroplethMap = ({
         {/* Tooltip */}
         {hoveredRegion && infoPosition && (
           <div
-            className="fixed z-50 bg-background border border-border-50 shadow-lg rounded-lg p-3 pointer-events-none"
+            className="fixed z-50 flex flex-col gap-2 bg-background-900 shadow-hard-shadow-2 rounded px-3 py-1 pointer-events-none"
             style={{
-              left: Math.min(infoPosition.x + 10, window.innerWidth - 220),
-              top: Math.min(infoPosition.y + 10, window.innerHeight - 80),
+              left: Math.min(infoPosition.x + 10, window.innerWidth - 460),
+              top: Math.min(infoPosition.y + 10, window.innerHeight - 160),
             }}
           >
-            <Text size="sm" weight="semibold">
+            <Text size="md" weight="semibold" color="text-text-50">
               {hoveredRegion.name}
             </Text>
-            {hoveredRegion.isManagedRegion !== false &&
-              (hoveredRegion.accessBreakdown ? (
-                <div className="mt-1 flex flex-col gap-0.5">
-                  <Text size="xs" color="text-text-700">
-                    Estudantes:{' '}
-                    {hoveredRegion.accessBreakdown.students.withAccess.toLocaleString(
-                      'pt-BR'
-                    )}{' '}
-                    com acesso,{' '}
-                    {hoveredRegion.accessBreakdown.students.withoutAccess.toLocaleString(
-                      'pt-BR'
-                    )}{' '}
-                    sem acessos
+            {hoveredRegion.isManagedRegion !== false && (
+              <>
+                <div className="h-px self-stretch bg-border-200" />
+                {hoveredRegion.accessBreakdown ? (
+                  <div className="flex flex-col gap-1">
+                    <Text size="md" color="text-text-50">
+                      Estudantes:{' '}
+                      {hoveredRegion.accessBreakdown.students.withAccess.toLocaleString(
+                        'pt-BR'
+                      )}{' '}
+                      com acesso,{' '}
+                      {hoveredRegion.accessBreakdown.students.withoutAccess.toLocaleString(
+                        'pt-BR'
+                      )}{' '}
+                      sem acessos
+                    </Text>
+                    <Text size="md" color="text-text-50">
+                      Professores(as):{' '}
+                      {hoveredRegion.accessBreakdown.teachers.withAccess.toLocaleString(
+                        'pt-BR'
+                      )}{' '}
+                      com acesso,{' '}
+                      {hoveredRegion.accessBreakdown.teachers.withoutAccess.toLocaleString(
+                        'pt-BR'
+                      )}{' '}
+                      sem acessos
+                    </Text>
+                    <Text size="md" color="text-text-50">
+                      Diretores(as):{' '}
+                      {hoveredRegion.accessBreakdown.managers.withAccess.toLocaleString(
+                        'pt-BR'
+                      )}{' '}
+                      com acesso,{' '}
+                      {hoveredRegion.accessBreakdown.managers.withoutAccess.toLocaleString(
+                        'pt-BR'
+                      )}{' '}
+                      sem acessos
+                    </Text>
+                  </div>
+                ) : (
+                  <Text size="md" color="text-text-50">
+                    {countLabel}:{' '}
+                    {hoveredRegion.accessCount.toLocaleString('pt-BR')}
                   </Text>
-                  <Text size="xs" color="text-text-700">
-                    Professores(as):{' '}
-                    {hoveredRegion.accessBreakdown.teachers.withAccess.toLocaleString(
-                      'pt-BR'
-                    )}{' '}
-                    com acesso,{' '}
-                    {hoveredRegion.accessBreakdown.teachers.withoutAccess.toLocaleString(
-                      'pt-BR'
-                    )}{' '}
-                    sem acessos
-                  </Text>
-                  <Text size="xs" color="text-text-700">
-                    Diretores(as):{' '}
-                    {hoveredRegion.accessBreakdown.managers.withAccess.toLocaleString(
-                      'pt-BR'
-                    )}{' '}
-                    com acesso,{' '}
-                    {hoveredRegion.accessBreakdown.managers.withoutAccess.toLocaleString(
-                      'pt-BR'
-                    )}{' '}
-                    sem acessos
-                  </Text>
-                </div>
-              ) : (
-                <Text size="xs" color="text-text-700">
-                  {countLabel}:{' '}
-                  {hoveredRegion.accessCount.toLocaleString('pt-BR')}
-                </Text>
-              ))}
+                )}
+              </>
+            )}
           </div>
         )}
       </div>

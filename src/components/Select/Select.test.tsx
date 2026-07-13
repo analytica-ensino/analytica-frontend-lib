@@ -220,6 +220,25 @@ describe('Select component', () => {
     expect(screen.getByText('Select something')).toBeInTheDocument();
   });
 
+  it('should render a leading icon in SelectValue when provided', () => {
+    render(
+      <Select defaultValue="">
+        <SelectTrigger>
+          <SelectValue
+            placeholder="Select something"
+            icon={<span data-testid="value-icon">icon</span>}
+          />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="option1">Option 1</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    expect(screen.getByTestId('value-icon')).toBeInTheDocument();
+    expect(screen.getByText('Select something')).toBeInTheDocument();
+  });
+
   it('should apply variant and size classes', () => {
     render(
       <Select size="large">
