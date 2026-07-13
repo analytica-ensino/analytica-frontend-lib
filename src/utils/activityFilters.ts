@@ -3,29 +3,6 @@ import type { ActivityFiltersData } from '../types/activityFilters';
 import { arraysEqual } from './arraysEqual';
 
 /**
- * Sentinel `subjectId` used by the "Todas as matérias" checkbox. When it is the
- * selected subject, the question search is sent with an empty subject filter so
- * the backend returns questions from every subject the user can access.
- */
-export const ALL_SUBJECTS_VALUE = '__ALL_SUBJECTS__';
-
-/**
- * Returns true when the only selected subject is the "Todas as matérias" sentinel.
- * It is a search-only pseudo-subject, so drafts/activities are not persisted
- * while it is active (a final activity requires a single real subject).
- * @param subjectIds - Selected subject ids
- */
-export function isAllSubjectsSelected(
-  subjectIds: string[] | undefined
-): boolean {
-  return (
-    Array.isArray(subjectIds) &&
-    subjectIds.length === 1 &&
-    subjectIds[0] === ALL_SUBJECTS_VALUE
-  );
-}
-
-/**
  * Extracts selected IDs from knowledge categories by their keys
  * @param categories - Array of category configurations
  * @param keys - Object mapping output keys to category keys

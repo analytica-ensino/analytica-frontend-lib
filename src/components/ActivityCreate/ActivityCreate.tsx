@@ -24,10 +24,7 @@ import type {
 } from '../..';
 import type { Lesson } from '../../types/lessons';
 import { MonitorPlayIcon } from '@phosphor-icons/react/dist/csr/MonitorPlay';
-import {
-  areFiltersEqual,
-  isAllSubjectsSelected,
-} from '../../utils/activityFilters';
+import { areFiltersEqual } from '../../utils/activityFilters';
 import type {
   ActivityDraftResponse,
   ActivityData,
@@ -390,13 +387,7 @@ const CreateActivity = ({
    * @returns true if save can proceed, false otherwise
    */
   const validateSaveConditions = useCallback((): boolean => {
-    // "Todas as matérias" is search-only: it has no single subject to persist,
-    // so drafts/activities are never saved while it is active.
-    if (
-      isSaving ||
-      !hasRequiredSubjectIds(appliedFilters?.subjectIds) ||
-      isAllSubjectsSelected(appliedFilters?.subjectIds)
-    ) {
+    if (isSaving || !hasRequiredSubjectIds(appliedFilters?.subjectIds)) {
       return false;
     }
     return !shouldSkipAutoSave({
@@ -413,11 +404,17 @@ const CreateActivity = ({
    * @returns Draft payload object
    */
   const createDraftPayload = useCallback(() => {
-    const subjectId = appliedFilters?.subjectIds?.[0];
-    if (!subjectId) {
+    const subjectIds = appliedFilters?.subjectIds ?? [];
+    const firstSubjectId = subjectIds[0];
+    if (!firstSubjectId) {
       throw new Error('Subject ID não encontrado');
     }
-    const title = generateTitle(activityType, subjectId, knowledgeAreas);
+    // A draft is bound to at most one subject. When several are selected we
+    // omit subjectId: the backend only enforces "all questions belong to the
+    // draft's subject" when subjectId is present, so omitting it lets a
+    // multi-subject draft save (filters.subjects still carries every subject).
+    const subjectId = subjectIds.length === 1 ? firstSubjectId : undefined;
+    const title = generateTitle(activityType, firstSubjectId, knowledgeAreas);
     const filters = convertFiltersToBackendFormat(appliedFilters);
     const questionIds = questions.map((q) => q.id);
 
@@ -448,7 +445,7 @@ const CreateActivity = ({
     async (payload: {
       type: ActivityType;
       title: string;
-      subjectId: string;
+      subjectId?: string;
       filters: BackendFiltersFormat;
       questionIds: string[];
       isDigital: boolean;
@@ -981,17 +978,6 @@ const CreateActivity = ({
    * Handle opening the send activity modal
    */
   const handleOpenSendModal = useCallback(async () => {
-    // A sent activity is bound to a single subject, so "Todas as matérias"
-    // (search-only) cannot be used to send — ask for a specific subject.
-    if (isAllSubjectsSelected(draftFilters?.subjectIds)) {
-      addToast({
-        title: 'Selecione uma matéria específica para enviar a atividade',
-        action: 'warning',
-        position: 'top-right',
-      });
-      return;
-    }
-
     if (!hasRequiredSubjectIds(draftFilters?.subjectIds)) {
       addToast({
         title: 'Selecione ao menos uma matéria para pesquisar',

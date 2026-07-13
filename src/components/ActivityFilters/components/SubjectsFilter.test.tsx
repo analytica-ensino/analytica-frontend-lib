@@ -31,6 +31,25 @@ jest.mock('../../..', () => {
         {label}
       </label>
     ),
+    CheckBox: ({
+      id,
+      checked,
+      indeterminate,
+      onChange,
+    }: {
+      id?: string;
+      checked: boolean;
+      indeterminate?: boolean;
+      onChange: () => void;
+    }) => (
+      <input
+        type="checkbox"
+        id={id}
+        checked={checked}
+        data-indeterminate={indeterminate ? 'true' : 'false'}
+        onChange={onChange}
+      />
+    ),
     IconRender: ({
       iconName,
       size,
@@ -481,6 +500,71 @@ describe('SubjectsFilter', () => {
 
       expect(screen.queryByText('Error message')).not.toBeInTheDocument();
       expect(screen.getByText('Matemática')).toBeInTheDocument();
+    });
+  });
+
+  describe('Multi-select mode', () => {
+    const multiProps = {
+      knowledgeAreas: mockKnowledgeAreas,
+      multiple: true as const,
+      selectedSubjectIds: [] as string[],
+      onToggleSubject: jest.fn(),
+      showAllSubjectsOption: true as const,
+      allSubjectsSelected: false,
+      onToggleAllSubjects: jest.fn(),
+    };
+
+    it('renders a checkbox per subject plus the "Todas as matérias" card', () => {
+      render(<SubjectsFilter {...multiProps} />);
+      const checkboxes = screen.getAllByRole('checkbox');
+      // 3 subjects + "Todas as matérias"
+      expect(checkboxes).toHaveLength(mockKnowledgeAreas.length + 1);
+      expect(screen.getByText('Todas as matérias')).toBeInTheDocument();
+      expect(screen.getByText('Matemática')).toBeInTheDocument();
+    });
+
+    it('marks only the selected subjects as checked', () => {
+      const { container } = render(
+        <SubjectsFilter {...multiProps} selectedSubjectIds={['math-1']} />
+      );
+      expect(container.querySelector('#subject-math-1')).toBeChecked();
+      expect(container.querySelector('#subject-physics-1')).not.toBeChecked();
+    });
+
+    it('calls onToggleSubject when a subject is clicked', () => {
+      const { container } = render(<SubjectsFilter {...multiProps} />);
+      fireEvent.click(container.querySelector('#subject-physics-1')!);
+      expect(multiProps.onToggleSubject).toHaveBeenCalledWith('physics-1');
+    });
+
+    it('calls onToggleAllSubjects when "Todas as matérias" is clicked', () => {
+      const { container } = render(<SubjectsFilter {...multiProps} />);
+      fireEvent.click(container.querySelector('#subject-all')!);
+      expect(multiProps.onToggleAllSubjects).toHaveBeenCalled();
+    });
+
+    it('checks "Todas as matérias" when allSubjectsSelected is true', () => {
+      const { container } = render(
+        <SubjectsFilter {...multiProps} allSubjectsSelected={true} />
+      );
+      expect(container.querySelector('#subject-all')).toBeChecked();
+    });
+
+    it('marks "Todas as matérias" indeterminate on a partial selection', () => {
+      const { container } = render(
+        <SubjectsFilter {...multiProps} selectedSubjectIds={['math-1']} />
+      );
+      const allCheckbox = container.querySelector('#subject-all')!;
+      expect(allCheckbox).not.toBeChecked();
+      expect(allCheckbox).toHaveAttribute('data-indeterminate', 'true');
+    });
+
+    it('does not render the "Todas as matérias" card without showAllSubjectsOption', () => {
+      render(<SubjectsFilter {...multiProps} showAllSubjectsOption={false} />);
+      expect(screen.queryByText('Todas as matérias')).not.toBeInTheDocument();
+      expect(screen.getAllByRole('checkbox')).toHaveLength(
+        mockKnowledgeAreas.length
+      );
     });
   });
 });
