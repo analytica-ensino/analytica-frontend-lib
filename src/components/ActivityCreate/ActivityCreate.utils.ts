@@ -268,6 +268,17 @@ export function generateTitle(
 }
 
 /**
+ * Builds a draft title when several subjects are selected and no single subject
+ * name applies (e.g. "Rascunho - Diversas matérias").
+ *
+ * @param type - Activity type used for the label prefix
+ * @returns Title string for a multi-subject draft
+ */
+export function generateMultiSubjectTitle(type: ActivityType): string {
+  return `${getActivityTypeLabel(type)} - Diversas matérias`;
+}
+
+/**
  * Converte ActivityType para o formato usado na URL
  *
  * @param type - ActivityType enum value

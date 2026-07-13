@@ -38,6 +38,7 @@ import type { CreateActivityPayload } from '../../types/sendActivity';
 import {
   convertFiltersToBackendFormat,
   generateTitle,
+  generateMultiSubjectTitle,
   convertQuestionToPreview,
   getTypeFromUrl,
   getTypeFromUrlString,
@@ -414,7 +415,10 @@ const CreateActivity = ({
     // draft's subject" when subjectId is present, so omitting it lets a
     // multi-subject draft save (filters.subjects still carries every subject).
     const subjectId = subjectIds.length === 1 ? firstSubjectId : undefined;
-    const title = generateTitle(activityType, firstSubjectId, knowledgeAreas);
+    const title =
+      subjectIds.length === 1
+        ? generateTitle(activityType, firstSubjectId, knowledgeAreas)
+        : generateMultiSubjectTitle(activityType);
     const filters = convertFiltersToBackendFormat(appliedFilters);
     const questionIds = questions.map((q) => q.id);
 
