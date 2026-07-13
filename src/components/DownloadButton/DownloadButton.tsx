@@ -1,6 +1,5 @@
 import { useCallback, useState } from 'react';
 import { DownloadSimpleIcon } from '@phosphor-icons/react/dist/csr/DownloadSimple';
-import JSZip from 'jszip';
 import IconButton from '../IconButton/IconButton';
 import ProgressModal from '../ProgressModal/ProgressModal';
 import { cn } from '../../utils/utils';
@@ -39,12 +38,52 @@ export interface DownloadButtonProps {
   disabled?: boolean;
 }
 
-/** A single downloadable item resolved from the lesson content */
+/** A single downloadable asset resolved from the lesson content */
 interface DownloadItem {
   type: string;
   url: string;
   label: string;
 }
+
+/**
+ * Minimal shape of the File System Access API we rely on.
+ *
+ * Typed locally because `showDirectoryPicker` is not in the DOM lib yet, and
+ * because only Chromium ships it — every use goes through `supportsDirectoryPicker`.
+ */
+interface FileSystemWritable {
+  write: (chunk: Uint8Array) => Promise<void>;
+  close: () => Promise<void>;
+  abort?: () => Promise<void>;
+}
+
+interface FileSystemFileHandleLike {
+  createWritable: () => Promise<FileSystemWritable>;
+}
+
+interface FileSystemDirectoryHandleLike {
+  getFileHandle: (
+    name: string,
+    options?: { create?: boolean }
+  ) => Promise<FileSystemFileHandleLike>;
+}
+
+type DirectoryPicker = (options?: {
+  mode?: string;
+  id?: string;
+}) => Promise<FileSystemDirectoryHandleLike>;
+
+/**
+ * Whether the browser can stream downloads straight to a folder on disk.
+ *
+ * Chromium-based browsers ship the File System Access API; Safari and Firefox
+ * do not, and fall back to plain per-file downloads.
+ *
+ * @returns Whether `showDirectoryPicker` is available
+ */
+const supportsDirectoryPicker = (): boolean =>
+  typeof (globalThis as { showDirectoryPicker?: DirectoryPicker })
+    .showDirectoryPicker === 'function';
 
 /**
  * Get file extension from URL
@@ -76,7 +115,7 @@ const slugifyTitle = (lessonTitle: string): string =>
     .substring(0, 50);
 
 /**
- * Generate the filename of an entry inside the zip
+ * Generate the filename an asset is saved as
  * @param contentType - Type of content being downloaded
  * @param url - URL to get extension from
  * @param lessonTitle - Title of the lesson
@@ -92,9 +131,10 @@ const generateFilename = (
 /**
  * Read the byte size of a remote file without downloading it.
  *
- * Used to weight per-file progress so the bar advances proportionally to the
- * real payload (the video dwarfs the images). Returns 0 when the server omits
- * `content-length` or the request fails — callers fall back to equal weights.
+ * Weights per-file progress against the real payload — a lesson video can be
+ * hundreds of MB while the board frames are ~1MB, so counting files would make
+ * the bar jump. Returns 0 when the server omits `content-length` or the request
+ * fails, and callers then fall back to counting files.
  *
  * @param url - URL to probe
  * @returns Size in bytes, or 0 when unknown
@@ -110,20 +150,24 @@ const getRemoteFileSize = async (url: string): Promise<number> => {
 };
 
 /**
- * Fetch a file as a Blob, reporting progress as bytes arrive.
+ * Stream a remote file straight into a file on disk.
  *
- * Streams the body so the caller sees real progress on the large files. When
- * the stream is unavailable (older browsers), falls back to a plain `.blob()`
- * and reports completion in one step.
+ * Nothing is buffered in memory: each chunk is written to the file handle as it
+ * arrives. This is what makes a ~900MB lesson video downloadable — holding it
+ * in a Blob (and zipping it) exhausts the tab's memory and silently drops the
+ * assets queued behind it.
  *
  * @param url - URL to download
- * @param onBytes - Called with the incremental byte count of each chunk
- * @returns The downloaded Blob
+ * @param dirHandle - Directory the user granted write access to
+ * @param filename - Name to save the file as
+ * @param onBytes - Called with the byte length of each chunk written
  */
-const fetchWithProgress = async (
+const streamToDisk = async (
   url: string,
+  dirHandle: FileSystemDirectoryHandleLike,
+  filename: string,
   onBytes: (chunkSize: number) => void
-): Promise<Blob> => {
+): Promise<void> => {
   const response = await fetch(url, { mode: 'cors' });
 
   if (!response.ok) {
@@ -131,59 +175,65 @@ const fetchWithProgress = async (
       `Failed to fetch file: ${response.status} ${response.statusText}`
     );
   }
-
   if (!response.body) {
-    const blob = await response.blob();
-    onBytes(blob.size);
-    return blob;
+    throw new Error('Response has no readable body');
   }
 
-  const reader = response.body.getReader();
-  // Each chunk is wrapped as a Blob so the array never has to be typed as
-  // BlobPart[] — Uint8Array<ArrayBufferLike> does not satisfy it under TS 5.7.
-  const chunks: Blob[] = [];
+  const fileHandle = await dirHandle.getFileHandle(filename, { create: true });
+  const writable = await fileHandle.createWritable();
 
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    chunks.push(new Blob([value]));
-    onBytes(value.length);
+  try {
+    const reader = response.body.getReader();
+
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      await writable.write(value);
+      onBytes(value.length);
+    }
+
+    await writable.close();
+  } catch (error) {
+    await writable.abort?.();
+    throw error;
   }
-
-  return new Blob(chunks);
 };
 
 /**
- * Save a Blob to disk through a single programmatic anchor click.
+ * Save a file through a plain anchor click, letting the browser download it.
  *
- * Browsers block multiple programmatic downloads in a row, which is why the
- * whole lesson is bundled into one zip and saved with a single click.
+ * Fallback for browsers without the File System Access API (Safari, Firefox).
+ * Note the `download` attribute is ignored cross-origin, and the CDN does not
+ * send `Content-Disposition: attachment`, so these browsers may open the asset
+ * in a tab rather than save it. Fixing that properly means setting that header
+ * on the CDN — it cannot be forced from the client.
  *
- * @param blob - Blob to save
- * @param filename - Filename for the download
+ * The browser streams the response to its own downloads folder, so memory is
+ * not a concern — but it
+ * cannot report progress, and firing several in a row is unreliable, which is
+ * why the caller spaces them out.
+ *
+ * @param url - URL to download
+ * @param filename - Suggested filename
  */
-const saveBlob = (blob: Blob, filename: string): void => {
-  const blobUrl = URL.createObjectURL(blob);
+const triggerBrowserDownload = (url: string, filename: string): void => {
   const link = document.createElement('a');
-  link.href = blobUrl;
+  link.href = url;
   link.download = filename;
   link.rel = 'noopener noreferrer';
 
   document.body.appendChild(link);
   link.click();
   link.remove();
-
-  setTimeout(() => {
-    URL.revokeObjectURL(blobUrl);
-  }, 1000);
 };
 
 /**
  * DownloadButton component for downloading lesson content
  *
- * Bundles every available lesson asset (video, podcast and board frames) into a
- * single zip and saves it in one click, mirroring the mobile app's "baixar aula
- * completa" behaviour. A progress modal reports the real byte progress.
+ * Downloads every asset of a lesson (video, podcast and board frames), matching
+ * the mobile app's "baixar aula completa". Where the browser supports it, the
+ * user picks a folder and each file is streamed straight to disk with real
+ * progress; elsewhere the browser downloads them one by one.
  *
  * @param props - DownloadButton component props
  * @returns Download button element
@@ -250,50 +300,42 @@ const DownloadButton = ({
   }, [content, isValidUrl]);
 
   /**
-   * Bundle every available asset into a zip and save it in a single click.
+   * Download every asset by streaming it into the folder the user picked.
    *
-   * Assets are fetched sequentially so the progress bar tracks one file at a
-   * time. A failed asset is reported through `onDownloadError` and skipped —
-   * the zip still ships whatever downloaded successfully.
+   * @param items - Assets to download
+   * @param dirHandle - Directory the user granted write access to
    */
-  const handleDownload = useCallback(async () => {
-    if (disabled || isDownloading) return;
-
-    const availableContent = getAvailableContent();
-    if (availableContent.length === 0) return;
-
-    setIsDownloading(true);
-    setProgress(0);
-
-    try {
+  const downloadToFolder = useCallback(
+    async (items: DownloadItem[], dirHandle: FileSystemDirectoryHandleLike) => {
       const sizes = await Promise.all(
-        availableContent.map((item) => getRemoteFileSize(item.url))
+        items.map((item) => getRemoteFileSize(item.url))
       );
-      // Unknown sizes (server omitted content-length) fall back to equal weights.
       const totalBytes = sizes.reduce((sum, size) => sum + size, 0);
-      const useEqualWeights = totalBytes === 0;
+      // No content-length anywhere: weight each file equally instead of by bytes.
+      const weighByFile = totalBytes === 0;
 
-      const zip = new JSZip();
       let downloadedBytes = 0;
-      let completedFiles = 0;
-      let zippedAny = false;
+      let succeeded = 0;
 
-      for (const [index, item] of availableContent.entries()) {
+      for (const [index, item] of items.entries()) {
         try {
           onDownloadStart?.(item.type);
 
-          const blob = await fetchWithProgress(item.url, (chunkSize) => {
-            downloadedBytes += chunkSize;
-            if (!useEqualWeights) {
-              setProgress(
-                Math.min(99, Math.round((downloadedBytes / totalBytes) * 100))
-              );
+          await streamToDisk(
+            item.url,
+            dirHandle,
+            generateFilename(item.type, item.url, lessonTitle),
+            (chunkSize) => {
+              downloadedBytes += chunkSize;
+              if (!weighByFile) {
+                setProgress(
+                  Math.min(99, Math.round((downloadedBytes / totalBytes) * 100))
+                );
+              }
             }
-          });
+          );
 
-          zip.file(generateFilename(item.type, item.url, lessonTitle), blob);
-          zippedAny = true;
-
+          succeeded++;
           onDownloadComplete?.(item.type);
         } catch (error) {
           onDownloadError?.(
@@ -303,25 +345,87 @@ const DownloadButton = ({
               : new Error(`Falha ao baixar ${item.label}`)
           );
         } finally {
-          completedFiles = index + 1;
-          if (useEqualWeights) {
+          if (weighByFile) {
             setProgress(
-              Math.min(
-                99,
-                Math.round((completedFiles / availableContent.length) * 100)
-              )
+              Math.min(99, Math.round(((index + 1) / items.length) * 100))
             );
           }
         }
       }
 
-      if (!zippedAny) {
+      if (succeeded === 0) {
         throw new Error('Nenhum conteúdo da aula pôde ser baixado');
       }
 
-      const zipBlob = await zip.generateAsync({ type: 'blob' });
-      saveBlob(zipBlob, `${slugifyTitle(lessonTitle)}.zip`);
       setProgress(100);
+    },
+    [lessonTitle, onDownloadStart, onDownloadComplete, onDownloadError]
+  );
+
+  /**
+   * Hand each asset to the browser's own downloader, one at a time.
+   *
+   * Used where the File System Access API is missing. Downloads are spaced out
+   * because browsers throttle several programmatic downloads fired at once.
+   *
+   * @param items - Assets to download
+   */
+  const downloadViaBrowser = useCallback(
+    async (items: DownloadItem[]) => {
+      for (const [index, item] of items.entries()) {
+        onDownloadStart?.(item.type);
+
+        triggerBrowserDownload(
+          item.url,
+          generateFilename(item.type, item.url, lessonTitle)
+        );
+
+        onDownloadComplete?.(item.type);
+        setProgress(Math.round(((index + 1) / items.length) * 100));
+
+        if (index < items.length - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 800));
+        }
+      }
+    },
+    [lessonTitle, onDownloadStart, onDownloadComplete]
+  );
+
+  /**
+   * Download every asset of the lesson.
+   *
+   * Prefers streaming to a user-picked folder, which is the only approach that
+   * survives a large lesson video. Falls back to the browser's downloader when
+   * the File System Access API is unavailable.
+   */
+  const handleDownload = useCallback(async () => {
+    if (disabled || isDownloading) return;
+
+    const availableContent = getAvailableContent();
+    if (availableContent.length === 0) return;
+
+    let dirHandle: FileSystemDirectoryHandleLike | null = null;
+
+    if (supportsDirectoryPicker()) {
+      try {
+        const picker = (globalThis as { showDirectoryPicker?: DirectoryPicker })
+          .showDirectoryPicker!;
+        dirHandle = await picker({ mode: 'readwrite', id: 'aulas' });
+      } catch {
+        // The user dismissed the folder picker: abort quietly, nothing to report.
+        return;
+      }
+    }
+
+    setIsDownloading(true);
+    setProgress(0);
+
+    try {
+      if (dirHandle) {
+        await downloadToFolder(availableContent, dirHandle);
+      } else {
+        await downloadViaBrowser(availableContent);
+      }
     } catch (error) {
       onDownloadError?.(
         'aula',
@@ -337,9 +441,8 @@ const DownloadButton = ({
     disabled,
     isDownloading,
     getAvailableContent,
-    lessonTitle,
-    onDownloadStart,
-    onDownloadComplete,
+    downloadToFolder,
+    downloadViaBrowser,
     onDownloadError,
   ]);
 

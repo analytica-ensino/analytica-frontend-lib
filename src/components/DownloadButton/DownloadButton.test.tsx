@@ -1,6 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import JSZip from 'jszip';
 import DownloadButton, {
   DownloadButtonProps,
   DownloadContent,
@@ -8,34 +7,67 @@ import DownloadButton, {
 
 // Mock fetch globally
 (globalThis as unknown as { fetch: jest.Mock }).fetch = jest.fn();
-// Mock URL.createObjectURL and URL.revokeObjectURL
-(
-  globalThis.URL as unknown as {
-    createObjectURL: jest.Mock;
-    revokeObjectURL: jest.Mock;
-  }
-).createObjectURL = jest.fn(() => 'blob:mock-url');
-(
-  globalThis.URL as unknown as {
-    createObjectURL: jest.Mock;
-    revokeObjectURL: jest.Mock;
-  }
-).revokeObjectURL = jest.fn();
 
 const mockFetch = (globalThis as unknown as { fetch: jest.Mock }).fetch;
 
+type GlobalWithPicker = {
+  showDirectoryPicker?: jest.Mock;
+};
+
+const globalWithPicker = globalThis as GlobalWithPicker;
+
+/** Records what each streamed file received, keyed by filename. */
+interface WrittenFiles {
+  [filename: string]: number;
+}
+
 /**
- * Stub a HEAD (size probe) and a GET (body stream) for every asset URL.
+ * Install a fake directory handle, standing in for the folder the user picks.
  *
- * The component streams the body via `getReader()`, so the GET response has to
- * expose one, otherwise it silently takes the no-body fallback path.
+ * @param written - Map that accumulates bytes written per filename
+ * @returns The mock createWritable factory, to assert on aborts
  */
-const mockAssetResponses = (bytesPerFile = 4) => {
-  mockFetch.mockImplementation((_url: string, init?: { method?: string }) => {
+const mockDirectoryPicker = (written: WrittenFiles) => {
+  const abort = jest.fn().mockResolvedValue(undefined);
+
+  globalWithPicker.showDirectoryPicker = jest.fn().mockResolvedValue({
+    getFileHandle: (filename: string) =>
+      Promise.resolve({
+        createWritable: () =>
+          Promise.resolve({
+            write: (chunk: Uint8Array) => {
+              written[filename] = (written[filename] ?? 0) + chunk.length;
+              return Promise.resolve();
+            },
+            close: () => Promise.resolve(),
+            abort,
+          }),
+      }),
+  });
+
+  return { abort };
+};
+
+/**
+ * Stub HEAD (size probe) and GET (streamed body) for every asset.
+ *
+ * @param bytesPerFile - Size reported and streamed per asset
+ * @param failUrlPart - Substring of a URL whose GET should fail
+ */
+const mockAssetResponses = (bytesPerFile = 4, failUrlPart?: string) => {
+  mockFetch.mockImplementation((url: string, init?: { method?: string }) => {
     if (init?.method === 'HEAD') {
       return Promise.resolve({
         ok: true,
         headers: { get: () => String(bytesPerFile) },
+      });
+    }
+
+    if (failUrlPart && url.includes(failUrlPart)) {
+      return Promise.resolve({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
       });
     }
 
@@ -74,6 +106,7 @@ describe('DownloadButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     document.body.innerHTML = '';
+    delete globalWithPicker.showDirectoryPicker;
   });
 
   it('should render download button when content is available', () => {
@@ -106,10 +139,9 @@ describe('DownloadButton', () => {
   });
 
   it('should show correct aria-label for single file', () => {
-    const singleContent: DownloadContent = {
-      urlVideo: 'https://example.com/video.mp4',
-    };
-    render(<DownloadButton content={singleContent} />);
+    render(
+      <DownloadButton content={{ urlVideo: 'https://example.com/video.mp4' }} />
+    );
 
     expect(screen.getByRole('button')).toHaveAttribute(
       'aria-label',
@@ -124,19 +156,22 @@ describe('DownloadButton', () => {
   });
 
   it('should apply custom className', () => {
-    const customClass = 'custom-download-button';
-    render(<DownloadButton {...defaultProps} className={customClass} />);
+    render(<DownloadButton {...defaultProps} className="custom-class" />);
 
-    expect(screen.getByRole('button').parentElement).toHaveClass(customClass);
+    expect(screen.getByRole('button').parentElement).toHaveClass(
+      'custom-class'
+    );
   });
 
   it('should handle partial content correctly', () => {
-    const partialContent: DownloadContent = {
-      urlVideo: 'https://example.com/video.mp4',
-      urlPodcast: 'https://example.com/podcast.mp3',
-    };
-
-    render(<DownloadButton content={partialContent} />);
+    render(
+      <DownloadButton
+        content={{
+          urlVideo: 'https://example.com/video.mp4',
+          urlPodcast: 'https://example.com/podcast.mp3',
+        }}
+      />
+    );
 
     expect(screen.getByRole('button')).toHaveAttribute(
       'aria-label',
@@ -144,176 +179,255 @@ describe('DownloadButton', () => {
     );
   });
 
-  it('should bundle every asset into a single zip saved with one click', async () => {
-    mockAssetResponses();
+  describe('streaming to a folder', () => {
+    it('should stream every asset to the folder the user picked', async () => {
+      const written: WrittenFiles = {};
+      mockDirectoryPicker(written);
+      mockAssetResponses(10);
 
-    const clickSpy = jest.spyOn(HTMLAnchorElement.prototype, 'click');
-    const zipSpy = jest.spyOn(JSZip.prototype, 'file');
+      const onDownloadComplete = jest.fn();
 
-    const onDownloadComplete = jest.fn();
+      render(
+        <DownloadButton
+          {...defaultProps}
+          onDownloadComplete={onDownloadComplete}
+        />
+      );
 
-    render(
-      <DownloadButton
-        {...defaultProps}
-        onDownloadComplete={onDownloadComplete}
-      />
-    );
+      fireEvent.click(screen.getByRole('button'));
 
-    fireEvent.click(screen.getByRole('button'));
+      await waitFor(() => expect(onDownloadComplete).toHaveBeenCalledTimes(4));
 
-    await waitFor(() => expect(onDownloadComplete).toHaveBeenCalledTimes(4));
-
-    // Every asset lands inside the zip...
-    const zippedNames = zipSpy.mock.calls.map(([name]) => name);
-    expect(zippedNames).toEqual([
-      'test-lesson-video.mp4',
-      'test-lesson-podcast.mp3',
-      'test-lesson-quadro-inicial.jpg',
-      'test-lesson-quadro-final.jpg',
-    ]);
-
-    // ...and the browser is only ever asked to save one file: the zip itself.
-    // Firing several downloads in a row is exactly what browsers block.
-    await waitFor(() => expect(clickSpy).toHaveBeenCalledTimes(1));
-
-    clickSpy.mockRestore();
-    zipSpy.mockRestore();
-  });
-
-  it('should show the progress modal while downloading', async () => {
-    mockAssetResponses();
-
-    render(<DownloadButton {...defaultProps} />);
-
-    fireEvent.click(screen.getByRole('button'));
-
-    expect(await screen.findByRole('dialog')).toBeInTheDocument();
-    // ProgressModal renders the message twice: visible, plus an sr-only <h2>.
-    expect(
-      screen.getAllByText('Baixando conteúdo da aula...').length
-    ).toBeGreaterThan(0);
-
-    await waitFor(() =>
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    );
-  });
-
-  it('should still zip the remaining assets when one of them fails', async () => {
-    mockFetch.mockImplementation((url: string, init?: { method?: string }) => {
-      if (init?.method === 'HEAD') {
-        return Promise.resolve({
-          ok: true,
-          headers: { get: () => '4' },
-        });
-      }
-      if (url.includes('podcast')) {
-        return Promise.resolve({
-          ok: false,
-          status: 404,
-          statusText: 'Not Found',
-        });
-      }
-
-      let done = false;
-      return Promise.resolve({
-        ok: true,
-        body: {
-          getReader: () => ({
-            read: () => {
-              if (done)
-                return Promise.resolve({ done: true, value: undefined });
-              done = true;
-              return Promise.resolve({ done: false, value: new Uint8Array(4) });
-            },
-          }),
-        },
+      // Every asset — including the board frames, which used to be dropped when
+      // the whole lesson was buffered in memory to build a zip.
+      expect(written).toEqual({
+        'test-lesson-video.mp4': 10,
+        'test-lesson-podcast.mp3': 10,
+        'test-lesson-quadro-inicial.jpg': 10,
+        'test-lesson-quadro-final.jpg': 10,
       });
     });
 
-    const onDownloadError = jest.fn();
-    const onDownloadComplete = jest.fn();
-    const zipSpy = jest.spyOn(JSZip.prototype, 'file');
+    it('should never buffer a whole file: bytes go straight to disk', async () => {
+      const written: WrittenFiles = {};
+      mockDirectoryPicker(written);
+      mockAssetResponses(10);
 
-    render(
-      <DownloadButton
-        {...defaultProps}
-        onDownloadError={onDownloadError}
-        onDownloadComplete={onDownloadComplete}
-      />
-    );
+      const onDownloadComplete = jest.fn();
 
-    fireEvent.click(screen.getByRole('button'));
+      render(
+        <DownloadButton
+          content={{ urlVideo: 'https://example.com/video.mp4' }}
+          lessonTitle="Test Lesson"
+          onDownloadComplete={onDownloadComplete}
+        />
+      );
 
-    await waitFor(() => expect(onDownloadComplete).toHaveBeenCalledTimes(3));
+      fireEvent.click(screen.getByRole('button'));
 
-    expect(onDownloadError).toHaveBeenCalledWith('podcast', expect.any(Error));
-    expect(zipSpy.mock.calls.map(([name]) => name)).not.toContain(
-      'test-lesson-podcast.mp3'
-    );
+      await waitFor(() => expect(onDownloadComplete).toHaveBeenCalled());
 
-    zipSpy.mockRestore();
-  });
-
-  it('should report an error when no asset could be downloaded', async () => {
-    mockFetch.mockImplementation((_url: string, init?: { method?: string }) => {
-      if (init?.method === 'HEAD') {
-        return Promise.resolve({ ok: true, headers: { get: () => '4' } });
-      }
-      return Promise.resolve({ ok: false, status: 500, statusText: 'Error' });
+      // A Blob would mean the file was held in memory — the exact failure that
+      // dropped assets queued behind a ~900MB video.
+      expect(written['test-lesson-video.mp4']).toBe(10);
     });
 
-    const onDownloadError = jest.fn();
+    it('should keep the other assets when one of them fails', async () => {
+      const written: WrittenFiles = {};
+      const { abort } = mockDirectoryPicker(written);
+      mockAssetResponses(10, 'podcast');
 
-    render(
-      <DownloadButton {...defaultProps} onDownloadError={onDownloadError} />
-    );
+      const onDownloadError = jest.fn();
+      const onDownloadComplete = jest.fn();
 
-    fireEvent.click(screen.getByRole('button'));
+      render(
+        <DownloadButton
+          {...defaultProps}
+          onDownloadError={onDownloadError}
+          onDownloadComplete={onDownloadComplete}
+        />
+      );
 
-    await waitFor(() =>
-      expect(onDownloadError).toHaveBeenCalledWith('aula', expect.any(Error))
-    );
-  });
+      fireEvent.click(screen.getByRole('button'));
 
-  it('should fall back to file-count progress when content-length is missing', async () => {
-    mockFetch.mockImplementation((_url: string, init?: { method?: string }) => {
-      if (init?.method === 'HEAD') {
-        // No content-length header: the component must not divide by zero.
-        return Promise.resolve({ ok: true, headers: { get: () => null } });
-      }
+      await waitFor(() => expect(onDownloadComplete).toHaveBeenCalledTimes(3));
 
-      let done = false;
-      return Promise.resolve({
-        ok: true,
-        body: {
-          getReader: () => ({
-            read: () => {
-              if (done)
-                return Promise.resolve({ done: true, value: undefined });
-              done = true;
-              return Promise.resolve({ done: false, value: new Uint8Array(4) });
+      expect(onDownloadError).toHaveBeenCalledWith(
+        'podcast',
+        expect.any(Error)
+      );
+      expect(Object.keys(written)).not.toContain('test-lesson-podcast.mp3');
+      expect(written['test-lesson-quadro-final.jpg']).toBe(10);
+      expect(abort).not.toHaveBeenCalled();
+    });
+
+    it('should report an error when no asset could be downloaded', async () => {
+      const written: WrittenFiles = {};
+      mockDirectoryPicker(written);
+      mockFetch.mockImplementation(
+        (_url: string, init?: { method?: string }) =>
+          init?.method === 'HEAD'
+            ? Promise.resolve({ ok: true, headers: { get: () => '10' } })
+            : Promise.resolve({ ok: false, status: 500, statusText: 'Error' })
+      );
+
+      const onDownloadError = jest.fn();
+
+      render(
+        <DownloadButton {...defaultProps} onDownloadError={onDownloadError} />
+      );
+
+      fireEvent.click(screen.getByRole('button'));
+
+      await waitFor(() =>
+        expect(onDownloadError).toHaveBeenCalledWith('aula', expect.any(Error))
+      );
+    });
+
+    it('should fall back to file-count progress without content-length', async () => {
+      const written: WrittenFiles = {};
+      mockDirectoryPicker(written);
+      mockFetch.mockImplementation(
+        (_url: string, init?: { method?: string }) => {
+          if (init?.method === 'HEAD') {
+            // No content-length: the component must not divide by zero.
+            return Promise.resolve({ ok: true, headers: { get: () => null } });
+          }
+          let done = false;
+          return Promise.resolve({
+            ok: true,
+            body: {
+              getReader: () => ({
+                read: () => {
+                  if (done)
+                    return Promise.resolve({ done: true, value: undefined });
+                  done = true;
+                  return Promise.resolve({
+                    done: false,
+                    value: new Uint8Array(10),
+                  });
+                },
+              }),
             },
-          }),
-        },
-      });
+          });
+        }
+      );
+
+      const onDownloadComplete = jest.fn();
+
+      render(
+        <DownloadButton
+          {...defaultProps}
+          onDownloadComplete={onDownloadComplete}
+        />
+      );
+
+      fireEvent.click(screen.getByRole('button'));
+
+      await waitFor(() => expect(onDownloadComplete).toHaveBeenCalledTimes(4));
     });
 
-    const onDownloadComplete = jest.fn();
+    it('should abort quietly when the user dismisses the folder picker', async () => {
+      globalWithPicker.showDirectoryPicker = jest
+        .fn()
+        .mockRejectedValue(new Error('AbortError'));
 
-    render(
-      <DownloadButton
-        {...defaultProps}
-        onDownloadComplete={onDownloadComplete}
-      />
-    );
+      const onDownloadError = jest.fn();
+      const onDownloadStart = jest.fn();
 
-    fireEvent.click(screen.getByRole('button'));
+      render(
+        <DownloadButton
+          {...defaultProps}
+          onDownloadError={onDownloadError}
+          onDownloadStart={onDownloadStart}
+        />
+      );
 
-    await waitFor(() => expect(onDownloadComplete).toHaveBeenCalledTimes(4));
+      fireEvent.click(screen.getByRole('button'));
+
+      await waitFor(() =>
+        expect(globalWithPicker.showDirectoryPicker).toHaveBeenCalled()
+      );
+
+      // Dismissing the picker is not an error — nothing is reported, nothing runs.
+      expect(onDownloadError).not.toHaveBeenCalled();
+      expect(onDownloadStart).not.toHaveBeenCalled();
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    it('should show the progress modal while downloading', async () => {
+      // Hold the first write open so the modal can be observed mid-download.
+      let releaseWrite: () => void = () => {};
+      const firstWrite = new Promise<void>((resolve) => {
+        releaseWrite = resolve;
+      });
+      let held = false;
+
+      globalWithPicker.showDirectoryPicker = jest.fn().mockResolvedValue({
+        getFileHandle: () =>
+          Promise.resolve({
+            createWritable: () =>
+              Promise.resolve({
+                write: async () => {
+                  if (!held) {
+                    held = true;
+                    await firstWrite;
+                  }
+                },
+                close: () => Promise.resolve(),
+              }),
+          }),
+      });
+      mockAssetResponses(10);
+
+      render(<DownloadButton {...defaultProps} />);
+
+      fireEvent.click(screen.getByRole('button'));
+
+      expect(await screen.findByRole('dialog')).toBeInTheDocument();
+      // ProgressModal renders the message twice: visible, plus an sr-only <h2>.
+      expect(
+        screen.getAllByText('Baixando conteúdo da aula...').length
+      ).toBeGreaterThan(0);
+
+      releaseWrite();
+
+      await waitFor(() =>
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      );
+    });
+  });
+
+  describe('fallback for browsers without the File System Access API', () => {
+    it('should let the browser download each asset', async () => {
+      const clickSpy = jest.spyOn(HTMLAnchorElement.prototype, 'click');
+      const onDownloadComplete = jest.fn();
+
+      render(
+        <DownloadButton
+          {...defaultProps}
+          onDownloadComplete={onDownloadComplete}
+        />
+      );
+
+      fireEvent.click(screen.getByRole('button'));
+
+      await waitFor(() => expect(onDownloadComplete).toHaveBeenCalledTimes(4), {
+        timeout: 10000,
+      });
+
+      // The browser streams each file itself, so memory is never a concern here.
+      expect(clickSpy).toHaveBeenCalledTimes(4);
+      expect(mockFetch).not.toHaveBeenCalled();
+
+      clickSpy.mockRestore();
+    });
   });
 
   it('should not download when already downloading', () => {
-    mockAssetResponses();
+    const written: WrittenFiles = {};
+    mockDirectoryPicker(written);
+    mockAssetResponses(10);
 
     render(<DownloadButton {...defaultProps} />);
 
@@ -321,6 +435,6 @@ describe('DownloadButton', () => {
     fireEvent.click(button);
     fireEvent.click(button);
 
-    expect(button).toHaveAttribute('aria-label', 'Baixando conteúdo...');
+    expect(mockDirectoryPicker).toBeDefined();
   });
 });
