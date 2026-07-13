@@ -1756,5 +1756,71 @@ describe('CheckboxGroup', () => {
         screen.getByText('Nenhum resultado encontrado')
       ).toBeInTheDocument();
     });
+
+    it('scopes the "select all" checkbox state to the visible items during search', async () => {
+      const user = userEvent.setup();
+      render(
+        <CheckboxGroup
+          categories={[
+            { ...searchableCategories[0], selectedIds: ['aluno-1'] },
+          ]}
+          onCategoriesChange={jest.fn()}
+        />
+      );
+
+      // 1 of 3 selected -> master checkbox is indeterminate before searching
+      expect(screen.getAllByRole('checkbox')[0]).toHaveAttribute(
+        'data-indeterminate',
+        'true'
+      );
+
+      await user.type(screen.getByPlaceholderText('Buscar'), 'carlos');
+
+      // Only Carlos is visible and it is not selected -> master is neither
+      // indeterminate nor checked (André, though selected, is filtered out)
+      const master = screen.getAllByRole('checkbox')[0];
+      expect(master).toHaveAttribute('data-indeterminate', 'false');
+      expect(master).not.toBeChecked();
+    });
+
+    it('selects only the visible items when clicking "select all" during search', async () => {
+      const user = userEvent.setup();
+      const onCategoriesChange = jest.fn();
+      render(
+        <CheckboxGroup
+          categories={searchableCategories}
+          onCategoriesChange={onCategoriesChange}
+        />
+      );
+
+      await user.type(screen.getByPlaceholderText('Buscar'), 'carlos');
+      onCategoriesChange.mockClear();
+
+      await user.click(screen.getAllByRole('checkbox')[0]); // master "select all"
+
+      expect(onCategoriesChange).toHaveBeenCalledTimes(1);
+      const updated = onCategoriesChange.mock.calls[0][0];
+      const category = updated.find(
+        (c: CategoryConfig) => c.key === 'estudantes'
+      );
+      // Only Carlos (the visible item), not the hidden André/Fernanda
+      expect(category?.selectedIds).toEqual(['aluno-2']);
+    });
+
+    it('scopes the badge count to the visible items during search', async () => {
+      const user = userEvent.setup();
+      render(
+        <CheckboxGroup
+          categories={searchableCategories}
+          onCategoriesChange={jest.fn()}
+        />
+      );
+
+      expect(screen.getByText('0 de 3 selecionados')).toBeInTheDocument();
+
+      await user.type(screen.getByPlaceholderText('Buscar'), 'carlos');
+
+      expect(screen.getByText('0 de 1 selecionados')).toBeInTheDocument();
+    });
   });
 });

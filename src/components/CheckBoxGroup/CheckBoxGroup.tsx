@@ -162,8 +162,8 @@ export const CheckboxGroup = ({
     const category = categories.find((c) => c.key === categoryKey);
     if (!category) return false;
 
-    // Obtém apenas os itens filtrados (visíveis)
-    const formattedItems = getFormattedItems(categoryKey);
+    // Obtém apenas os itens visíveis (dependências + busca ativa)
+    const formattedItems = getDisplayItems(categoryKey);
     const filteredItems = formattedItems.flatMap((group) => group.itens || []);
     const filteredItemIds = filteredItems.map((item) => item.id);
 
@@ -177,8 +177,8 @@ export const CheckboxGroup = ({
     const category = categories.find((c) => c.key === categoryKey);
     if (!category) return false;
 
-    // Obtém apenas os itens filtrados (visíveis)
-    const formattedItems = getFormattedItems(categoryKey);
+    // Obtém apenas os itens visíveis (dependências + busca ativa)
+    const formattedItems = getDisplayItems(categoryKey);
     const filteredItems = formattedItems.flatMap((group) => group.itens || []);
 
     // Se não há itens filtrados, retorna false
@@ -351,9 +351,21 @@ export const CheckboxGroup = ({
     return formattedItemsMap[categoryKey] || [{ itens: [] }];
   };
 
+  // Items actually visible to the user: dependency-filtered items narrowed by
+  // the active search query for searchable categories. Selection state, the
+  // "select all" toggle and the badge all operate on these so they match the
+  // rendered list.
+  const getDisplayItems = (categoryKey: string) => {
+    const formattedItems = getFormattedItems(categoryKey);
+    const category = categories.find((c) => c.key === categoryKey);
+    return category?.searchable
+      ? filterGroupsBySearch(categoryKey, formattedItems)
+      : formattedItems;
+  };
+
   // Helper function to get badge text for category
   const getBadgeText = (category: CategoryConfig): string => {
-    const formattedItems = getFormattedItems(category.key);
+    const formattedItems = getDisplayItems(category.key);
     return getBadgeTextHelper(category, formattedItems);
   };
 
@@ -511,8 +523,8 @@ export const CheckboxGroup = ({
     const category = categories.find((c) => c.key === categoryKey);
     if (!category) return;
 
-    // Obtém apenas os itens filtrados (visíveis)
-    const formattedItems = getFormattedItems(categoryKey);
+    // Obtém apenas os itens visíveis (dependências + busca ativa)
+    const formattedItems = getDisplayItems(categoryKey);
     const filteredItems = formattedItems.flatMap((group) => group.itens || []);
     const filteredItemIds = filteredItems.map((item) => item.id);
 
@@ -710,10 +722,8 @@ export const CheckboxGroup = ({
       (group) => !group.itens || group.itens.length === 0
     );
 
-    // Apply the search filter only for searchable categories
-    const displayGroups = category.searchable
-      ? filterGroupsBySearch(category.key, formattedItems)
-      : formattedItems;
+    // Items visible to the user (dependency filter + active search)
+    const displayGroups = getDisplayItems(category.key);
 
     const hasActiveSearch =
       !!category.searchable && !!searchQueries[category.key]?.trim();
@@ -739,6 +749,7 @@ export const CheckboxGroup = ({
               <Input
                 type="text"
                 size="small"
+                aria-label="Buscar"
                 value={searchQueries[category.key] ?? ''}
                 onChange={(e) =>
                   handleSearchChange(category.key, e.target.value)
