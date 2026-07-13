@@ -613,6 +613,13 @@ jest.mock('../../utils/activityFilters', () => ({
     if (!a || !b) return false;
     return JSON.stringify(a) === JSON.stringify(b);
   }),
+  ALL_SUBJECTS_VALUE: '__ALL_SUBJECTS__',
+  isAllSubjectsSelected: jest.fn(
+    (subjectIds) =>
+      Array.isArray(subjectIds) &&
+      subjectIds.length === 1 &&
+      subjectIds[0] === '__ALL_SUBJECTS__'
+  ),
 }));
 
 // Mock hooks - define these before using in jest.mock
