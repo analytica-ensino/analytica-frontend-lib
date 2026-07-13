@@ -332,9 +332,12 @@ const Select = ({
 
 const SelectValue = ({
   placeholder,
+  icon,
   store: externalStore,
 }: {
   placeholder?: string;
+  /** Optional leading icon rendered before the selected label/placeholder. */
+  icon?: ReactNode;
   store?: SelectStoreApi;
 }) => {
   const store = useSelectStore(externalStore);
@@ -343,6 +346,7 @@ const SelectValue = ({
   const value = useStore(store, (s) => s.value);
   return (
     <span className="text-inherit flex gap-2 items-center">
+      {icon}
       {selectedLabel || placeholder || value}
     </span>
   );

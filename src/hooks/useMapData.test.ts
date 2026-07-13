@@ -115,6 +115,77 @@ describe('useMapData', () => {
       expect(result.current.error).toBeNull();
     });
 
+    it('should map accessBreakdown from feature properties for the tooltip', async () => {
+      const accessBreakdown = {
+        students: { withAccess: 100, withoutAccess: 20 },
+        teachers: { withAccess: 10, withoutAccess: 5 },
+        managers: { withAccess: 2, withoutAccess: 1 },
+      };
+      const geoJSON: FeatureCollection<Polygon | MultiPolygon> = {
+        type: 'FeatureCollection',
+        features: [
+          createMockFeature({
+            GEOCODIGO: '4106902',
+            NOME: 'Curitiba',
+            NRE: 'Curitiba',
+            value: 85,
+            totalAccess: 1200,
+            accessBreakdown,
+          }),
+        ],
+      };
+
+      mockFetchMapData.mockResolvedValueOnce({
+        message: 'Success',
+        data: {
+          state: 'PR',
+          regions: [],
+          bounds: mockBounds,
+          geoJSON,
+        },
+      });
+
+      const { result } = renderHook(() => useMapData(defaultFilters));
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.data[0].accessBreakdown).toEqual(accessBreakdown);
+    });
+
+    it('should leave accessBreakdown undefined when feature omits it', async () => {
+      const geoJSON: FeatureCollection<Polygon | MultiPolygon> = {
+        type: 'FeatureCollection',
+        features: [
+          createMockFeature({
+            GEOCODIGO: '4106902',
+            NOME: 'Curitiba',
+            value: 85,
+            totalAccess: 1200,
+          }),
+        ],
+      };
+
+      mockFetchMapData.mockResolvedValueOnce({
+        message: 'Success',
+        data: {
+          state: 'PR',
+          regions: [],
+          bounds: mockBounds,
+          geoJSON,
+        },
+      });
+
+      const { result } = renderHook(() => useMapData(defaultFilters));
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.data[0].accessBreakdown).toBeUndefined();
+    });
+
     it('should map isManagedRegion from feature properties, defaulting to true', async () => {
       const geoJSON: FeatureCollection<Polygon | MultiPolygon> = {
         type: 'FeatureCollection',

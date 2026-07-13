@@ -1,4 +1,26 @@
+import type { ReactNode } from 'react';
 import type { Feature, MultiPolygon, Polygon } from 'geojson';
+
+/**
+ * With/without-access counts for a single profile group in a region.
+ */
+export interface AccessBreakdownEntry {
+  /** Users of this profile that accessed in the period */
+  withAccess: number;
+  /** Users of this profile that did NOT access in the period */
+  withoutAccess: number;
+}
+
+/**
+ * Per-profile access breakdown shown in the region tooltip. Always covers the
+ * three profile groups (students, teachers, managers), independent of any map
+ * filter.
+ */
+export interface AccessBreakdown {
+  students: AccessBreakdownEntry;
+  teachers: AccessBreakdownEntry;
+  managers: AccessBreakdownEntry;
+}
 
 /**
  * Region data interface for choropleth map
@@ -29,6 +51,12 @@ export interface RegionData {
    * does not trigger onRegionClick. Undefined is treated as true.
    */
   isManagedRegion?: boolean;
+  /**
+   * Optional per-profile access breakdown for the tooltip. When present, the
+   * tooltip shows the three profile lines (students/teachers/managers) instead
+   * of the single `countLabel` count.
+   */
+  accessBreakdown?: AccessBreakdown;
 }
 
 /**
@@ -71,6 +99,16 @@ export interface ChoroplethMapProps {
   bounds?: MapBounds;
   /** Callback when a region is clicked */
   onRegionClick?: (region: RegionData) => void;
+  /**
+   * Optional action rendered on the right side of the header (e.g. a device
+   * filter select).
+   */
+  headerAction?: ReactNode;
+  /**
+   * Optional informational text rendered in an info Alert below the map,
+   * inside the map card.
+   */
+  infoText?: string;
   /** Optional additional CSS classes */
   className?: string;
 }
