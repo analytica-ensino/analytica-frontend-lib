@@ -49,6 +49,7 @@ function transformGeoJSONFeatures(
     accessCount: feature.properties?.totalAccess ?? 0,
     geoJson: feature,
     isManagedRegion: feature.properties?.isManagedRegion !== false,
+    accessBreakdown: feature.properties?.accessBreakdown,
   }));
 }
 
