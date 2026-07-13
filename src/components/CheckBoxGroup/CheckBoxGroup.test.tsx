@@ -84,6 +84,12 @@ jest.mock('../../', () => ({
     );
   },
   Divider: () => <hr data-testid="divider" />,
+  Input: ({
+    iconLeft: _iconLeft,
+    ...props
+  }: InputHTMLAttributes<HTMLInputElement> & { iconLeft?: ReactNode }) => (
+    <input data-testid="search-input" {...props} />
+  ),
   cn: (...classes: string[]) => classes.filter(Boolean).join(' '),
 }));
 
@@ -1653,6 +1659,168 @@ describe('CheckboxGroup', () => {
       );
       expect(childCategory?.selectedIds).toContain('child-1');
       expect(childCategory?.selectedIds?.length).toBe(1);
+    });
+  });
+
+  describe('Searchable category', () => {
+    const searchableItems: Item[] = [
+      { id: 'aluno-1', name: 'André Silva' },
+      { id: 'aluno-2', name: 'Carlos Oliveira' },
+      { id: 'aluno-3', name: 'Fernanda Santos' },
+    ];
+
+    const searchableCategories: CategoryConfig[] = [
+      {
+        key: 'estudantes',
+        label: 'Estudantes',
+        itens: searchableItems,
+        selectedIds: [],
+        searchable: true,
+      },
+    ];
+
+    it('renders a search input for a searchable category', () => {
+      render(
+        <CheckboxGroup
+          categories={searchableCategories}
+          onCategoriesChange={jest.fn()}
+        />
+      );
+
+      expect(screen.getByPlaceholderText('Buscar')).toBeInTheDocument();
+    });
+
+    it('does not render a search input for a non-searchable category', () => {
+      render(<CheckboxGroup {...defaultProps} />);
+
+      expect(screen.queryByPlaceholderText('Buscar')).not.toBeInTheDocument();
+    });
+
+    it('filters items by name as the user types (case-insensitive)', async () => {
+      const user = userEvent.setup();
+      render(
+        <CheckboxGroup
+          categories={searchableCategories}
+          onCategoriesChange={jest.fn()}
+        />
+      );
+
+      // All items visible initially
+      expect(screen.getByText('André Silva')).toBeInTheDocument();
+      expect(screen.getByText('Carlos Oliveira')).toBeInTheDocument();
+      expect(screen.getByText('Fernanda Santos')).toBeInTheDocument();
+
+      await user.type(screen.getByPlaceholderText('Buscar'), 'carlos');
+
+      // Only the matching item remains visible
+      expect(screen.getByText('Carlos Oliveira')).toBeInTheDocument();
+      expect(screen.queryByText('André Silva')).not.toBeInTheDocument();
+      expect(screen.queryByText('Fernanda Santos')).not.toBeInTheDocument();
+    });
+
+    it('keeps a selected item selected even when filtered out of view', async () => {
+      const user = userEvent.setup();
+      const onCategoriesChange = jest.fn();
+      render(
+        <CheckboxGroup
+          categories={[
+            { ...searchableCategories[0], selectedIds: ['aluno-1'] },
+          ]}
+          onCategoriesChange={onCategoriesChange}
+        />
+      );
+
+      await user.type(screen.getByPlaceholderText('Buscar'), 'carlos');
+
+      // André (selected) is hidden by the filter, but selection is untouched:
+      // no onCategoriesChange call was triggered by searching.
+      expect(onCategoriesChange).not.toHaveBeenCalled();
+      expect(screen.queryByText('André Silva')).not.toBeInTheDocument();
+    });
+
+    it('shows an empty message when no item matches the search', async () => {
+      const user = userEvent.setup();
+      render(
+        <CheckboxGroup
+          categories={searchableCategories}
+          onCategoriesChange={jest.fn()}
+        />
+      );
+
+      await user.type(screen.getByPlaceholderText('Buscar'), 'zzz');
+
+      expect(screen.queryByText('André Silva')).not.toBeInTheDocument();
+      expect(screen.queryByText('Carlos Oliveira')).not.toBeInTheDocument();
+      expect(screen.queryByText('Fernanda Santos')).not.toBeInTheDocument();
+      expect(
+        screen.getByText('Nenhum resultado encontrado')
+      ).toBeInTheDocument();
+    });
+
+    it('scopes the "select all" checkbox state to the visible items during search', async () => {
+      const user = userEvent.setup();
+      render(
+        <CheckboxGroup
+          categories={[
+            { ...searchableCategories[0], selectedIds: ['aluno-1'] },
+          ]}
+          onCategoriesChange={jest.fn()}
+        />
+      );
+
+      // 1 of 3 selected -> master checkbox is indeterminate before searching
+      expect(screen.getAllByRole('checkbox')[0]).toHaveAttribute(
+        'data-indeterminate',
+        'true'
+      );
+
+      await user.type(screen.getByPlaceholderText('Buscar'), 'carlos');
+
+      // Only Carlos is visible and it is not selected -> master is neither
+      // indeterminate nor checked (André, though selected, is filtered out)
+      const master = screen.getAllByRole('checkbox')[0];
+      expect(master).toHaveAttribute('data-indeterminate', 'false');
+      expect(master).not.toBeChecked();
+    });
+
+    it('selects only the visible items when clicking "select all" during search', async () => {
+      const user = userEvent.setup();
+      const onCategoriesChange = jest.fn();
+      render(
+        <CheckboxGroup
+          categories={searchableCategories}
+          onCategoriesChange={onCategoriesChange}
+        />
+      );
+
+      await user.type(screen.getByPlaceholderText('Buscar'), 'carlos');
+      onCategoriesChange.mockClear();
+
+      await user.click(screen.getAllByRole('checkbox')[0]); // master "select all"
+
+      expect(onCategoriesChange).toHaveBeenCalledTimes(1);
+      const updated = onCategoriesChange.mock.calls[0][0];
+      const category = updated.find(
+        (c: CategoryConfig) => c.key === 'estudantes'
+      );
+      // Only Carlos (the visible item), not the hidden André/Fernanda
+      expect(category?.selectedIds).toEqual(['aluno-2']);
+    });
+
+    it('scopes the badge count to the visible items during search', async () => {
+      const user = userEvent.setup();
+      render(
+        <CheckboxGroup
+          categories={searchableCategories}
+          onCategoriesChange={jest.fn()}
+        />
+      );
+
+      expect(screen.getByText('0 de 3 selecionados')).toBeInTheDocument();
+
+      await user.type(screen.getByPlaceholderText('Buscar'), 'carlos');
+
+      expect(screen.getByText('0 de 1 selecionados')).toBeInTheDocument();
     });
   });
 });

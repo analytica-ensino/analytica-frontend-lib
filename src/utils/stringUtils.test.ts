@@ -1,4 +1,8 @@
-import { stripHtmlTags, normalizeText, highlightSearchTerm } from './stringUtils';
+import {
+  stripHtmlTags,
+  normalizeText,
+  highlightSearchTerm,
+} from './stringUtils';
 
 describe('stringUtils', () => {
   describe('stripHtmlTags', () => {
@@ -168,6 +172,5 @@ describe('stringUtils', () => {
     it('should return the original html when html is empty', () => {
       expect(highlightSearchTerm('', 'hello')).toBe('');
     });
-
   });
 });

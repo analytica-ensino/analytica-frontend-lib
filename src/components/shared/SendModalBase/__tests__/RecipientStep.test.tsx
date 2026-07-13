@@ -14,6 +14,7 @@ jest.mock('../../../CheckBoxGroup/CheckBoxGroup', () => ({
   }) => (
     <div data-testid="checkbox-group">
       <span data-testid="categories-count">{categories.length}</span>
+      <span data-testid="categories-json">{JSON.stringify(categories)}</span>
       <button
         data-testid="trigger-change"
         onClick={() => onCategoriesChange(categories)}
@@ -127,5 +128,41 @@ describe('RecipientStep', () => {
   it('should render scroll container with testId prefix when provided', () => {
     render(<RecipientStep {...defaultProps} testIdPrefix="lesson" />);
     expect(screen.getByTestId('lesson-scroll-container')).toBeInTheDocument();
+  });
+
+  it('marks the students category as searchable and leaves others untouched', () => {
+    const categories: CategoryConfig[] = [
+      { key: 'turma-a', label: 'Turma A', itens: [{ id: '1', name: 'A' }] },
+      {
+        key: 'students',
+        label: 'Estudantes',
+        itens: [
+          { id: '1', name: 'André' },
+          { id: '2', name: 'Carlos' },
+        ],
+      },
+    ];
+
+    render(<RecipientStep {...defaultProps} categories={categories} />);
+
+    const passed: CategoryConfig[] = JSON.parse(
+      screen.getByTestId('categories-json').textContent as string
+    );
+    const students = passed.find((c) => c.key === 'students');
+    const turma = passed.find((c) => c.key === 'turma-a');
+
+    expect(students?.searchable).toBe(true);
+    expect(turma?.searchable).toBeFalsy();
+  });
+
+  it('does not mutate the original categories prop', () => {
+    const categories: CategoryConfig[] = [
+      { key: 'students', label: 'Estudantes', itens: [{ id: '1', name: 'A' }] },
+    ];
+
+    render(<RecipientStep {...defaultProps} categories={categories} />);
+
+    // Original reference must remain unflagged (no in-place mutation)
+    expect(categories[0].searchable).toBeUndefined();
   });
 });
