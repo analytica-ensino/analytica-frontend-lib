@@ -6,6 +6,7 @@ import {
   EmptyState,
   Input,
   Modal,
+  Search,
   Text,
   useTheme,
   SkeletonText,
@@ -20,6 +21,7 @@ import {
 import { convertActivityFiltersToQuestionsFilter } from '../../utils/questionFiltersConverter';
 import { mapQuestionTypeToEnumRequired } from '../../utils/questionTypeUtils';
 import { areFiltersEqual } from '../../utils/activityFilters';
+import { normalizeText, highlightSearchTerm } from '../../utils/stringUtils';
 import Activities from '../../assets/icons/Activities';
 
 interface ActivityListQuestionsProps {
@@ -46,6 +48,9 @@ export const ActivityListQuestions = ({
   const { isDark } = useTheme();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [questionCount, setQuestionCount] = useState<number>(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isPrefetchingAll, setIsPrefetchingAll] = useState(false);
+  const prefetchDoneRef = useRef(false);
   const appliedFilters = useQuestionFiltersStore(
     (state: QuestionFiltersState) => state.appliedFilters
   );
@@ -94,9 +99,9 @@ export const ActivityListQuestions = ({
    * This is true even if the result is empty (0 questions)
    */
   const hasValidCacheResult = useMemo(() => {
-    if (!appliedFilters || !cachedFilters || !cachedPagination) return false;
+    if (!appliedFilters || !cachedFilters) return false;
     return areFiltersEqual(appliedFilters, cachedFilters);
-  }, [appliedFilters, cachedFilters, cachedPagination]);
+  }, [appliedFilters, cachedFilters]); // cachedPagination removed: only used as null guard, cachedFilters already guards
 
   /**
    * Check if cached questions match current filters AND have data
@@ -159,6 +164,11 @@ export const ActivityListQuestions = ({
     return pagination;
   }, [pagination, cachedPagination, filtersMatchCache]);
 
+  const effectivePaginationRef = useRef(effectivePagination);
+  useEffect(() => {
+    effectivePaginationRef.current = effectivePagination;
+  }, [effectivePagination]);
+
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lastLoadedPageRef = useRef<number>(1);
 
@@ -209,12 +219,34 @@ export const ActivityListQuestions = ({
   };
 
   /**
+   * Filtered questions based on in-memory search term
+   */
+  const displayedQuestions = useMemo(() => {
+    if (!searchTerm) return questions;
+    const term = normalizeText(searchTerm);
+    return questions.filter((q) => {
+      const subjectText = getSubjectInfo(q).content;
+      const bankName = q.questionBankYear?.questionBank?.name ?? '';
+      const year = String(q.questionBankYear?.year ?? '');
+      return (
+        normalizeText(subjectText).includes(term) ||
+        normalizeText(q.statement ?? '').includes(term) ||
+        normalizeText(bankName).includes(term) ||
+        normalizeText(year).includes(term)
+      );
+    });
+  }, [questions, searchTerm]);
+
+  /**
    * Initialize from cache if available and filters match
    * Only fetch if cache is invalid or filters changed
    */
   useEffect(() => {
     // Reset page tracking when filters change
     lastLoadedPageRef.current = 1;
+    // Reset search state when filters change
+    setSearchTerm('');
+    prefetchDoneRef.current = false;
 
     if (appliedFilters) {
       if (hasValidCacheResult) {
@@ -242,8 +274,7 @@ export const ActivityListQuestions = ({
     reset,
     hasValidCacheResult,
     clearCachedQuestions,
-    cachedPagination,
-  ]);
+  ]); // cachedPagination intentionally excluded: it changes every page load and would wipe searchTerm on each scroll
 
   useEffect(() => {
     if (appliedFilters && pagination) {
@@ -261,6 +292,56 @@ export const ActivityListQuestions = ({
       lastLoadedPageRef.current = effectivePagination.page;
     }
   }, [effectivePagination?.page]);
+
+  /**
+   * Pre-fetch all remaining pages when user starts typing a search term.
+   * Only triggers once per set of applied filters (tracked by prefetchDoneRef).
+   * If all pages are already loaded (single page), marks done immediately.
+   */
+  useEffect(() => {
+    if (!searchTerm || !appliedFilters || prefetchDoneRef.current) return;
+
+    const pag = effectivePaginationRef.current;
+    const total = pag?.total ?? 0;
+    const pageSize = pag?.pageSize ?? 10;
+
+    // Only prefetch if there are multiple pages
+    if (total <= pageSize || !pag?.hasNext) {
+      prefetchDoneRef.current = true;
+      return;
+    }
+
+    let cancelled = false;
+
+    const prefetchAll = async () => {
+      setIsPrefetchingAll(true);
+      prefetchDoneRef.current = true; // mark immediately to avoid re-entry
+
+      try {
+        const apiFilters = appliedFilters
+          ? convertActivityFiltersToQuestionsFilter(appliedFilters)
+          : undefined;
+
+        const totalPages = pag?.totalPages ?? 1;
+        const currentPage = pag?.page ?? 1;
+
+        for (let page = currentPage + 1; page <= totalPages; page++) {
+          if (cancelled) break;
+          await fetchQuestions({ ...apiFilters, page }, true);
+        }
+      } finally {
+        if (!cancelled) setIsPrefetchingAll(false);
+      }
+    };
+
+    prefetchAll();
+    return () => {
+      // Reset so a cancelled prefetch never freezes the UI or blocks the next search
+      cancelled = true;
+      prefetchDoneRef.current = false;
+      setIsPrefetchingAll(false);
+    };
+  }, [searchTerm, appliedFilters, fetchQuestions]); // effectivePagination intentionally excluded: read via ref to avoid cancelling the loop on each page load
 
   /**
    * Calculate progressive scroll threshold based on current page
@@ -320,9 +401,21 @@ export const ActivityListQuestions = ({
   }, [loading, loadingMore, effectivePagination, loadMore, appliedFilters]);
 
   const totalQuestions = effectivePagination?.total || 0;
+  const displayedCount = searchTerm
+    ? displayedQuestions.length
+    : totalQuestions;
+  const uniqueQuestion = (count = displayedCount) =>
+    count === 1 ? 'questão' : 'questões';
 
-  const uniqueQuestion = () => {
-    return totalQuestions === 1 ? 'questão' : 'questões';
+  const getStatusText = () => {
+    if (loading && !isPrefetchingAll && displayedQuestions.length === 0) {
+      return 'Carregando...';
+    }
+    if (isPrefetchingAll) {
+      const agreement = displayedCount === 1 ? 'encontrada' : 'encontradas';
+      return `Buscando... (${displayedCount} ${uniqueQuestion(displayedCount)} ${agreement})`;
+    }
+    return `${displayedCount} ${uniqueQuestion(displayedCount)} total`;
   };
 
   /**
@@ -371,7 +464,20 @@ export const ActivityListQuestions = ({
    * Renders the appropriate content based on loading, error, and questions state
    */
   const renderQuestionsContent = () => {
-    if (loading && questions.length === 0) {
+    // During prefetch, if no matches found yet in loaded pages, show skeleton instead of blank
+    if (isPrefetchingAll && displayedQuestions.length === 0) {
+      return (
+        <div className="flex flex-col gap-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="p-4 border rounded">
+              <SkeletonText lines={2} />
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if (loading && displayedQuestions.length === 0 && !searchTerm) {
       return (
         <div className="flex flex-col gap-2">
           {[1, 2, 3].map((i) => (
@@ -393,7 +499,16 @@ export const ActivityListQuestions = ({
       );
     }
 
-    if (questions.length === 0) {
+    if (displayedQuestions.length === 0 && !isPrefetchingAll) {
+      if (searchTerm) {
+        return (
+          <div className="flex items-center justify-center h-full">
+            <Text size="md" className="text-text-600">
+              Nenhuma questão encontrada para &quot;{searchTerm}&quot;.
+            </Text>
+          </div>
+        );
+      }
       return (
         <EmptyState
           image={<Activities />}
@@ -406,7 +521,7 @@ export const ActivityListQuestions = ({
 
     return (
       <>
-        {questions.map((question) => {
+        {displayedQuestions.map((question) => {
           const subjectInfo = getSubjectInfo(question);
           const questionType = mapQuestionTypeToEnumRequired(
             question.questionType
@@ -437,7 +552,11 @@ export const ActivityListQuestions = ({
               content={subjectInfo.content}
               bank={question.questionBankYear?.questionBank?.name}
               year={question.questionBankYear?.year}
-              statement={question.statement}
+              statement={
+                searchTerm
+                  ? highlightSearchTerm(question.statement ?? '', searchTerm)
+                  : question.statement
+              }
               additionalContent={question.additionalContent}
               onAddToActivity={() => {
                 if (onAddQuestion) {
@@ -466,18 +585,31 @@ export const ActivityListQuestions = ({
       className={`w-full flex flex-col p-4 gap-2 overflow-hidden h-full min-h-0 ${className || ''}`}
     >
       <div className="flex flex-col gap-2 flex-shrink-0">
-        <section className="flex flex-row items-center gap-2 text-text-950">
-          <NotebookIcon size={24} />
-          <Text size="lg" weight="bold">
-            Banco de questões
-          </Text>
+        <section className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-text-950">
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <NotebookIcon size={24} />
+            <Text size="lg" weight="bold">
+              Banco de questões
+            </Text>
+          </div>
+          {appliedFilters && (
+            <Search
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onSearch={(val) => setSearchTerm(val)}
+              onClear={() => setSearchTerm('')}
+              options={[]}
+              showDropdown={false}
+              placeholder="Buscar questão"
+              debounceMs={300}
+              containerClassName="w-full sm:w-64 sm:max-w-xs max-w-full"
+            />
+          )}
         </section>
 
         <section className="flex flex-row justify-between items-center">
           <Text size="sm" className="text-text-800">
-            {loading
-              ? 'Carregando...'
-              : `${totalQuestions} ${uniqueQuestion()} total`}
+            {getStatusText()}
           </Text>
 
           <Button

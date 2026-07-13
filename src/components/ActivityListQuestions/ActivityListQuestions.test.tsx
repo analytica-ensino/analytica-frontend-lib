@@ -284,6 +284,47 @@ jest.mock('../../components/Skeleton/Skeleton', () => ({
   ),
 }));
 
+jest.mock('../../components/Search/Search', () => ({
+  __esModule: true,
+  default: ({
+    value,
+    onChange,
+    onClear,
+    onSearch,
+    placeholder,
+    ...props
+  }: {
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onSearch?: (val: string) => void;
+    onClear?: () => void;
+    placeholder?: string;
+  }) => (
+    <div>
+      <input
+        data-testid="search-input"
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        {...props}
+      />
+      {onClear && (
+        <button data-testid="search-clear" onClick={onClear}>
+          Clear
+        </button>
+      )}
+      {onSearch && (
+        <button
+          data-testid="search-submit"
+          onClick={() => onSearch(value)}
+        >
+          Search
+        </button>
+      )}
+    </div>
+  ),
+}));
+
 // Mock IntersectionObserver
 (globalThis as { IntersectionObserver: unknown }).IntersectionObserver = jest
   .fn()
@@ -1736,6 +1777,356 @@ describe('ActivityListQuestions', () => {
       render(<ActivityListQuestions {...defaultProps} />);
 
       expect(screen.getByText('0 questões total')).toBeInTheDocument();
+    });
+  });
+
+  describe('In-memory search feature', () => {
+    const filters = {
+      types: [QUESTION_TYPE.ALTERNATIVA],
+      bankIds: [],
+      yearIds: [],
+      knowledgeIds: [],
+      topicIds: [],
+      subtopicIds: [],
+      contentIds: [],
+    };
+
+    const mockPagination = {
+      page: 1,
+      pageSize: 10,
+      total: 5,
+      totalPages: 1,
+      hasNext: false,
+      hasPrevious: false,
+    };
+
+    const questionNatureza: Question = {
+      ...mockQuestion,
+      id: 'question-natureza',
+      statement: 'Questão sobre natureza',
+      knowledgeMatrix: [
+        {
+          subject: {
+            id: 'subject-natureza',
+            name: 'Natureza',
+            color: '#00AA00',
+            icon: 'Tree',
+          },
+          topic: null,
+          subtopic: null,
+        },
+      ],
+    };
+
+    const questionMatematica: Question = {
+      ...mockQuestion,
+      id: 'question-matematica',
+      statement: 'Questão sobre matemática',
+      knowledgeMatrix: [
+        {
+          subject: {
+            id: 'subject-matematica',
+            name: 'Matemática',
+            color: '#FF0000',
+            icon: 'Calculator',
+          },
+          topic: null,
+          subtopic: null,
+        },
+      ],
+    };
+
+    const renderWithFilters = () => {
+      mockAppliedFilters.mockReturnValue(filters);
+      mockStoreState.cachedFilters = filters;
+      jest.mocked(areFiltersEqual).mockReturnValue(true);
+
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [questionNatureza, questionMatematica],
+        pagination: mockPagination,
+        loading: false,
+        loadingMore: false,
+      });
+
+      return render(<ActivityListQuestions {...defaultProps} />);
+    };
+
+    it('should NOT show search input when appliedFilters is null', () => {
+      mockAppliedFilters.mockReturnValue(null);
+
+      render(<ActivityListQuestions {...defaultProps} />);
+
+      expect(
+        screen.queryByPlaceholderText('Buscar questão')
+      ).not.toBeInTheDocument();
+    });
+
+    it('should show search input when appliedFilters is set', () => {
+      renderWithFilters();
+
+      expect(screen.getByPlaceholderText('Buscar questão')).toBeInTheDocument();
+    });
+
+    it('should filter questions by subject when typing a search term', () => {
+      renderWithFilters();
+
+      const searchInput = screen.getByPlaceholderText('Buscar questão');
+      fireEvent.change(searchInput, { target: { value: 'Natureza' } });
+
+      const cards = screen.getAllByTestId('activity-card-question-banks');
+      expect(cards).toHaveLength(1);
+      expect(cards[0]).toHaveAttribute('data-content', 'Natureza');
+    });
+
+    it('should show in-memory count in counter when searchTerm is active', () => {
+      renderWithFilters();
+
+      const searchInput = screen.getByPlaceholderText('Buscar questão');
+      fireEvent.change(searchInput, { target: { value: 'Natureza' } });
+
+      // 1 match → should show "1 questão total"
+      expect(screen.getByText('1 questão total')).toBeInTheDocument();
+    });
+
+    it('should restore server total in counter when search is cleared', () => {
+      renderWithFilters();
+
+      const searchInput = screen.getByPlaceholderText('Buscar questão');
+      fireEvent.change(searchInput, { target: { value: 'Natureza' } });
+
+      // Confirm filtered count is shown
+      expect(screen.getByText('1 questão total')).toBeInTheDocument();
+
+      // Clear the search
+      fireEvent.change(searchInput, { target: { value: '' } });
+
+      // Server total is 5
+      expect(screen.getByText('5 questões total')).toBeInTheDocument();
+    });
+
+    it('should show empty search message when no questions match the term', () => {
+      renderWithFilters();
+
+      const searchInput = screen.getByPlaceholderText('Buscar questão');
+      fireEvent.change(searchInput, { target: { value: 'xyznonexistent' } });
+
+      expect(
+        screen.getByText(/Nenhuma questão encontrada para/)
+      ).toBeInTheDocument();
+    });
+
+    it('should clear search term via onClear callback', () => {
+      renderWithFilters();
+
+      const searchInput = screen.getByPlaceholderText('Buscar questão');
+      fireEvent.change(searchInput, { target: { value: 'Natureza' } });
+      expect(searchInput).toHaveValue('Natureza');
+
+      const clearButton = screen.getByTestId('search-clear');
+      fireEvent.click(clearButton);
+
+      expect(searchInput).toHaveValue('');
+    });
+
+    it('should update search term via onSearch callback', () => {
+      renderWithFilters();
+
+      const searchInput = screen.getByPlaceholderText('Buscar questão');
+      fireEvent.change(searchInput, { target: { value: 'Natu' } });
+
+      const submitButton = screen.getByTestId('search-submit');
+      fireEvent.click(submitButton);
+
+      // onSearch fires with the current value; searchTerm stays the same
+      expect(searchInput).toHaveValue('Natu');
+    });
+
+    it('should reset search state when appliedFilters changes', async () => {
+      renderWithFilters();
+
+      const searchInput = screen.getByPlaceholderText('Buscar questão');
+      fireEvent.change(searchInput, { target: { value: 'Natureza' } });
+
+      expect(searchInput).toHaveValue('Natureza');
+
+      // Change filters — triggers the useEffect that resets searchTerm
+      const newFilters = { ...filters, types: [QUESTION_TYPE.DISSERTATIVA] };
+      mockAppliedFilters.mockReturnValue(newFilters);
+
+      // Re-render to simulate filter change (store update)
+      const { rerender } = render(<ActivityListQuestions {...defaultProps} />);
+      rerender(<ActivityListQuestions {...defaultProps} />);
+
+      await waitFor(() => {
+        const inputs = screen.getAllByPlaceholderText('Buscar questão');
+        // The last rendered input should have empty value after filter change
+        expect(inputs[inputs.length - 1]).toHaveValue('');
+      });
+    });
+  });
+
+  describe('Scroll threshold for advanced pages', () => {
+    const simulateScroll = (
+      container: HTMLElement,
+      scrollTop: number,
+      scrollHeight: number,
+      clientHeight: number
+    ) => {
+      Object.defineProperty(container, 'scrollTop', {
+        value: scrollTop,
+        configurable: true,
+      });
+      Object.defineProperty(container, 'scrollHeight', {
+        value: scrollHeight,
+        configurable: true,
+      });
+      Object.defineProperty(container, 'clientHeight', {
+        value: clientHeight,
+        configurable: true,
+      });
+      fireEvent.scroll(container);
+    };
+
+    it('should trigger loadMore at 96% threshold on page 5', () => {
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [mockQuestion],
+        pagination: {
+          total: 100,
+          hasNext: true,
+          page: 5,
+          pageSize: 10,
+          totalPages: 10,
+          hasPrevious: true,
+        },
+        loading: false,
+        loadingMore: false,
+      });
+
+      const { container } = render(<ActivityListQuestions {...defaultProps} />);
+      const scrollContainer = container.querySelector(
+        '.overflow-auto'
+      ) as HTMLElement;
+
+      // page 5 threshold = 0.95 + (5-4)*0.01 = 0.96 → (860+100)/1000 = 0.96
+      simulateScroll(scrollContainer, 860, 1000, 100);
+
+      expect(mockLoadMore).toHaveBeenCalledWith(
+        undefined,
+        expect.objectContaining({ page: 5, hasNext: true })
+      );
+    });
+
+    it('should trigger loadMore at 99.1% threshold on page 9', () => {
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [mockQuestion],
+        pagination: {
+          total: 200,
+          hasNext: true,
+          page: 9,
+          pageSize: 10,
+          totalPages: 20,
+          hasPrevious: true,
+        },
+        loading: false,
+        loadingMore: false,
+      });
+
+      const { container } = render(<ActivityListQuestions {...defaultProps} />);
+      const scrollContainer = container.querySelector(
+        '.overflow-auto'
+      ) as HTMLElement;
+
+      // page 9 threshold = min(0.99 + (9-8)*0.001, 0.999) = 0.991 → (891+100)/1000 = 0.991
+      simulateScroll(scrollContainer, 891, 1000, 100);
+
+      expect(mockLoadMore).toHaveBeenCalledWith(
+        undefined,
+        expect.objectContaining({ page: 9, hasNext: true })
+      );
+    });
+  });
+
+  describe('Prefetch on multi-page search', () => {
+    const filters = {
+      types: [QUESTION_TYPE.ALTERNATIVA],
+      bankIds: [],
+      yearIds: [],
+      knowledgeIds: [],
+      topicIds: [],
+      subtopicIds: [],
+      contentIds: [],
+    };
+
+    const multiPagePagination = {
+      page: 1,
+      pageSize: 10,
+      total: 30,
+      totalPages: 3,
+      hasNext: true,
+      hasPrevious: false,
+    };
+
+    beforeEach(() => {
+      mockAppliedFilters.mockReturnValue(filters);
+      mockStoreState.cachedFilters = filters;
+      mockStoreState.cachedQuestions = [];
+      mockStoreState.cachedPagination = null;
+      jest.mocked(areFiltersEqual).mockReturnValue(true);
+
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [mockQuestion],
+        pagination: multiPagePagination,
+        loading: false,
+        loadingMore: false,
+      });
+    });
+
+    it('should prefetch remaining pages when search term is typed', async () => {
+      mockFetchQuestions.mockResolvedValue(undefined);
+
+      render(<ActivityListQuestions {...defaultProps} />);
+
+      const searchInput = screen.getByPlaceholderText('Buscar questão');
+      fireEvent.change(searchInput, { target: { value: 'teste' } });
+
+      await waitFor(() => {
+        expect(mockFetchQuestions).toHaveBeenCalledWith(
+          expect.objectContaining({ page: 2 }),
+          true
+        );
+        expect(mockFetchQuestions).toHaveBeenCalledWith(
+          expect.objectContaining({ page: 3 }),
+          true
+        );
+      });
+    });
+
+    it('should show "Buscando..." text while prefetch is in progress', async () => {
+      mockFetchQuestions.mockImplementation(() => new Promise(() => {}));
+
+      render(<ActivityListQuestions {...defaultProps} />);
+
+      const searchInput = screen.getByPlaceholderText('Buscar questão');
+      fireEvent.change(searchInput, { target: { value: 'Matemática' } });
+
+      await waitFor(() => {
+        expect(screen.getByText(/Buscando\.\.\./)).toBeInTheDocument();
+      });
+    });
+
+    it('should show skeleton while prefetching and no questions match search', async () => {
+      mockFetchQuestions.mockImplementation(() => new Promise(() => {}));
+
+      render(<ActivityListQuestions {...defaultProps} />);
+
+      const searchInput = screen.getByPlaceholderText('Buscar questão');
+      // 'historia' does not match mockQuestion (Matemática / Test question statement)
+      fireEvent.change(searchInput, { target: { value: 'historia' } });
+
+      await waitFor(() => {
+        const skeletons = screen.getAllByTestId('skeleton-text');
+        expect(skeletons.length).toBeGreaterThan(0);
+      });
     });
   });
 
