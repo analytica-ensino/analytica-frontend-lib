@@ -137,6 +137,7 @@
     "dayjs": "^1.11.21",
     "dompurify": "^3.4.7",
     "html-react-parser": "6.1.2",
+    "jszip": "^3.10.1",
     "katex": "^0.16.0",
     "prop-types": "^15.8.1",
     "qrcode": "^1.5.4",

@@ -1,14 +1,14 @@
 import { useCallback, useState } from 'react';
 import { DownloadSimpleIcon } from '@phosphor-icons/react/dist/csr/DownloadSimple';
+import JSZip from 'jszip';
 import IconButton from '../IconButton/IconButton';
+import ProgressModal from '../ProgressModal/ProgressModal';
 import { cn } from '../../utils/utils';
 
 /**
  * Download content interface for lesson materials
  */
 export interface DownloadContent {
-  /** Document URL (PDF) */
-  urlDoc?: string;
   /** Initial frame image URL */
   urlInitialFrame?: string;
   /** Final frame image URL */
@@ -39,87 +39,12 @@ export interface DownloadButtonProps {
   disabled?: boolean;
 }
 
-/**
- * Get MIME type based on file extension
- * @param url - URL to extract extension from
- * @returns MIME type string
- */
-const getMimeType = (url: string): string => {
-  const extension = getFileExtension(url);
-  const mimeTypes: Record<string, string> = {
-    pdf: 'application/pdf',
-    png: 'image/png',
-    jpg: 'image/jpeg',
-    jpeg: 'image/jpeg',
-    mp3: 'audio/mpeg',
-    mp4: 'video/mp4',
-    vtt: 'text/vtt',
-  };
-  return mimeTypes[extension] || 'application/octet-stream';
-};
-
-/**
- * Download file via fetch and blob to ensure proper download behavior
- * @param url - URL to download
- * @param filename - Filename for the download
- * @returns Promise<void>
- */
-const triggerDownload = async (
-  url: string,
-  filename: string
-): Promise<void> => {
-  try {
-    // Fetch the file as blob
-    const response = await fetch(url, {
-      mode: 'cors',
-      credentials: 'same-origin',
-    });
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to fetch file: ${response.status} ${response.statusText}`
-      );
-    }
-
-    const blob = await response.blob();
-    const mimeType = getMimeType(url);
-
-    // Create a blob with the correct MIME type
-    const typedBlob = new Blob([blob], { type: mimeType });
-
-    // Create object URL
-    const blobUrl = URL.createObjectURL(typedBlob);
-
-    // Create download link
-    const link = document.createElement('a');
-    link.href = blobUrl;
-    link.download = filename;
-    link.rel = 'noopener noreferrer';
-
-    // Add to DOM, click, and remove
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-
-    // Clean up object URL after a short delay
-    setTimeout(() => {
-      URL.revokeObjectURL(blobUrl);
-    }, 1000);
-  } catch (error) {
-    // Fallback to direct link if fetch fails
-    console.warn('Fetch download failed, falling back to direct link:', error);
-
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    link.rel = 'noopener noreferrer';
-    link.target = '_blank'; // Open in new tab as fallback
-
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  }
-};
+/** A single downloadable item resolved from the lesson content */
+interface DownloadItem {
+  type: string;
+  url: string;
+  label: string;
+}
 
 /**
  * Get file extension from URL
@@ -139,30 +64,126 @@ const getFileExtension = (url: string): string => {
 };
 
 /**
- * Generate filename for download
- * @param contentType - Type of content being downloaded
+ * Slugify a lesson title for safe use in filenames
  * @param lessonTitle - Title of the lesson
+ * @returns Sanitized slug
+ */
+const slugifyTitle = (lessonTitle: string): string =>
+  lessonTitle
+    .toLowerCase()
+    .replaceAll(/[^a-z0-9\s]/g, '')
+    .replaceAll(/\s+/g, '-')
+    .substring(0, 50);
+
+/**
+ * Generate the filename of an entry inside the zip
+ * @param contentType - Type of content being downloaded
  * @param url - URL to get extension from
+ * @param lessonTitle - Title of the lesson
  * @returns Generated filename
  */
 const generateFilename = (
   contentType: string,
   url: string,
   lessonTitle: string = 'aula'
-): string => {
-  const sanitizedTitle = lessonTitle
-    .toLowerCase()
-    .replaceAll(/[^a-z0-9\s]/g, '')
-    .replaceAll(/\s+/g, '-')
-    .substring(0, 50);
+): string =>
+  `${slugifyTitle(lessonTitle)}-${contentType}.${getFileExtension(url)}`;
 
-  const extension = getFileExtension(url);
-  return `${sanitizedTitle}-${contentType}.${extension}`;
+/**
+ * Read the byte size of a remote file without downloading it.
+ *
+ * Used to weight per-file progress so the bar advances proportionally to the
+ * real payload (the video dwarfs the images). Returns 0 when the server omits
+ * `content-length` or the request fails — callers fall back to equal weights.
+ *
+ * @param url - URL to probe
+ * @returns Size in bytes, or 0 when unknown
+ */
+const getRemoteFileSize = async (url: string): Promise<number> => {
+  try {
+    const response = await fetch(url, { method: 'HEAD', mode: 'cors' });
+    if (!response.ok) return 0;
+    return Number(response.headers.get('content-length')) || 0;
+  } catch {
+    return 0;
+  }
+};
+
+/**
+ * Fetch a file as a Blob, reporting progress as bytes arrive.
+ *
+ * Streams the body so the caller sees real progress on the large files. When
+ * the stream is unavailable (older browsers), falls back to a plain `.blob()`
+ * and reports completion in one step.
+ *
+ * @param url - URL to download
+ * @param onBytes - Called with the incremental byte count of each chunk
+ * @returns The downloaded Blob
+ */
+const fetchWithProgress = async (
+  url: string,
+  onBytes: (chunkSize: number) => void
+): Promise<Blob> => {
+  const response = await fetch(url, { mode: 'cors' });
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch file: ${response.status} ${response.statusText}`
+    );
+  }
+
+  if (!response.body) {
+    const blob = await response.blob();
+    onBytes(blob.size);
+    return blob;
+  }
+
+  const reader = response.body.getReader();
+  // Each chunk is wrapped as a Blob so the array never has to be typed as
+  // BlobPart[] — Uint8Array<ArrayBufferLike> does not satisfy it under TS 5.7.
+  const chunks: Blob[] = [];
+
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(new Blob([value]));
+    onBytes(value.length);
+  }
+
+  return new Blob(chunks);
+};
+
+/**
+ * Save a Blob to disk through a single programmatic anchor click.
+ *
+ * Browsers block multiple programmatic downloads in a row, which is why the
+ * whole lesson is bundled into one zip and saved with a single click.
+ *
+ * @param blob - Blob to save
+ * @param filename - Filename for the download
+ */
+const saveBlob = (blob: Blob, filename: string): void => {
+  const blobUrl = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = blobUrl;
+  link.download = filename;
+  link.rel = 'noopener noreferrer';
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  setTimeout(() => {
+    URL.revokeObjectURL(blobUrl);
+  }, 1000);
 };
 
 /**
  * DownloadButton component for downloading lesson content
- * Provides a single button that downloads all available content for a lesson
+ *
+ * Bundles every available lesson asset (video, podcast and board frames) into a
+ * single zip and saves it in one click, mirroring the mobile app's "baixar aula
+ * completa" behaviour. A progress modal reports the real byte progress.
  *
  * @param props - DownloadButton component props
  * @returns Download button element
@@ -177,6 +198,7 @@ const DownloadButton = ({
   disabled = false,
 }: DownloadButtonProps) => {
   const [isDownloading, setIsDownloading] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   /**
    * Check if URL is valid and not empty
@@ -193,14 +215,18 @@ const DownloadButton = ({
    * Get available download content
    * @returns Array of available download items
    */
-  const getAvailableContent = useCallback(() => {
-    const downloads: Array<{ type: string; url: string; label: string }> = [];
+  const getAvailableContent = useCallback((): DownloadItem[] => {
+    const downloads: DownloadItem[] = [];
 
-    if (isValidUrl(content.urlDoc)) {
+    if (isValidUrl(content.urlVideo)) {
+      downloads.push({ type: 'video', url: content.urlVideo!, label: 'Vídeo' });
+    }
+
+    if (isValidUrl(content.urlPodcast)) {
       downloads.push({
-        type: 'documento',
-        url: content.urlDoc!,
-        label: 'Documento',
+        type: 'podcast',
+        url: content.urlPodcast!,
+        label: 'Podcast',
       });
     }
 
@@ -220,64 +246,92 @@ const DownloadButton = ({
       });
     }
 
-    if (isValidUrl(content.urlPodcast)) {
-      downloads.push({
-        type: 'podcast',
-        url: content.urlPodcast!,
-        label: 'Podcast',
-      });
-    }
-
-    if (isValidUrl(content.urlVideo)) {
-      downloads.push({ type: 'video', url: content.urlVideo!, label: 'Vídeo' });
-    }
-
     return downloads;
   }, [content, isValidUrl]);
 
   /**
-   * Handle download of all available content
+   * Bundle every available asset into a zip and save it in a single click.
+   *
+   * Assets are fetched sequentially so the progress bar tracks one file at a
+   * time. A failed asset is reported through `onDownloadError` and skipped —
+   * the zip still ships whatever downloaded successfully.
    */
   const handleDownload = useCallback(async () => {
     if (disabled || isDownloading) return;
 
     const availableContent = getAvailableContent();
-
-    if (availableContent.length === 0) {
-      return;
-    }
+    if (availableContent.length === 0) return;
 
     setIsDownloading(true);
+    setProgress(0);
 
     try {
-      // Download each available content sequentially with small delay
-      for (let i = 0; i < availableContent.length; i++) {
-        const item = availableContent[i];
+      const sizes = await Promise.all(
+        availableContent.map((item) => getRemoteFileSize(item.url))
+      );
+      // Unknown sizes (server omitted content-length) fall back to equal weights.
+      const totalBytes = sizes.reduce((sum, size) => sum + size, 0);
+      const useEqualWeights = totalBytes === 0;
 
+      const zip = new JSZip();
+      let downloadedBytes = 0;
+      let completedFiles = 0;
+      let zippedAny = false;
+
+      for (const [index, item] of availableContent.entries()) {
         try {
           onDownloadStart?.(item.type);
 
-          const filename = generateFilename(item.type, item.url, lessonTitle);
-          await triggerDownload(item.url, filename);
+          const blob = await fetchWithProgress(item.url, (chunkSize) => {
+            downloadedBytes += chunkSize;
+            if (!useEqualWeights) {
+              setProgress(
+                Math.min(99, Math.round((downloadedBytes / totalBytes) * 100))
+              );
+            }
+          });
+
+          zip.file(generateFilename(item.type, item.url, lessonTitle), blob);
+          zippedAny = true;
 
           onDownloadComplete?.(item.type);
-
-          // Add small delay between downloads to prevent browser blocking
-          if (i < availableContent.length - 1) {
-            await new Promise((resolve) => setTimeout(resolve, 200));
-          }
         } catch (error) {
-          // Silent error handling - delegate to callback
           onDownloadError?.(
             item.type,
             error instanceof Error
               ? error
               : new Error(`Falha ao baixar ${item.label}`)
           );
+        } finally {
+          completedFiles = index + 1;
+          if (useEqualWeights) {
+            setProgress(
+              Math.min(
+                99,
+                Math.round((completedFiles / availableContent.length) * 100)
+              )
+            );
+          }
         }
       }
+
+      if (!zippedAny) {
+        throw new Error('Nenhum conteúdo da aula pôde ser baixado');
+      }
+
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      saveBlob(zipBlob, `${slugifyTitle(lessonTitle)}.zip`);
+      setProgress(100);
+    } catch (error) {
+      onDownloadError?.(
+        'aula',
+        error instanceof Error
+          ? error
+          : new Error('Falha ao baixar o conteúdo da aula')
+      );
     } finally {
       setIsDownloading(false);
+      setProgress(0);
     }
   }, [
     disabled,
@@ -290,11 +344,13 @@ const DownloadButton = ({
   ]);
 
   // Don't render if no content is available
-  const hasContent = getAvailableContent().length > 0;
+  const availableCount = getAvailableContent().length;
 
-  if (!hasContent) {
+  if (availableCount === 0) {
     return null;
   }
+
+  const suffix = availableCount > 1 ? 's' : '';
 
   return (
     <div className={cn('flex items-center', className)}>
@@ -302,18 +358,22 @@ const DownloadButton = ({
         icon={<DownloadSimpleIcon size={24} />}
         onClick={handleDownload}
         disabled={disabled || isDownloading}
-        aria-label={(() => {
-          if (isDownloading) {
-            return 'Baixando conteúdo...';
-          }
-          const contentCount = getAvailableContent().length;
-          const suffix = contentCount > 1 ? 's' : '';
-          return `Baixar conteúdo da aula (${contentCount} arquivo${suffix})`;
-        })()}
+        aria-label={
+          isDownloading
+            ? 'Baixando conteúdo...'
+            : `Baixar conteúdo da aula (${availableCount} arquivo${suffix})`
+        }
         className={cn(
           '!bg-transparent hover:!bg-black/10 transition-colors',
           isDownloading && 'opacity-60 cursor-not-allowed'
         )}
+      />
+
+      <ProgressModal
+        isOpen={isDownloading}
+        onClose={() => {}}
+        message="Baixando conteúdo da aula..."
+        progress={progress}
       />
     </div>
   );

@@ -17,7 +17,6 @@ export const Default: Story = () => (
   <SimpleWrapper>
     <DownloadButton
       content={{
-        urlDoc: 'https://example.com/document.pdf',
         urlInitialFrame: 'https://example.com/initial-frame.jpg',
         urlFinalFrame: 'https://example.com/final-frame.jpg',
         urlPodcast: 'https://example.com/podcast.mp3',
