@@ -22,7 +22,6 @@ import type {
 import {
   getSelectedIdsFromCategories,
   toggleArrayItem,
-  toggleSingleValue,
   areFiltersEqual,
 } from '../../utils/activityFilters';
 import {
@@ -306,7 +305,7 @@ export const ActivityFilters = ({
   const [selectedQuestionTypes, setSelectedQuestionTypes] = useState<
     QUESTION_TYPE[]
   >([]);
-  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
+  const [selectedSubjectIds, setSelectedSubjectIds] = useState<string[]>([]);
 
   const {
     banks,
@@ -329,7 +328,9 @@ export const ActivityFilters = ({
     loadingQuestionTypes,
     questionTypesError,
   } = useActivityFiltersData({
-    selectedSubjects: selectedSubject ? [selectedSubject] : [],
+    // Tema/subtema/assunto only make sense for a single subject, so only load
+    // the knowledge structure when exactly one subject is selected.
+    selectedSubjects: selectedSubjectIds.length === 1 ? selectedSubjectIds : [],
     institutionId,
   });
 
@@ -402,17 +403,24 @@ export const ActivityFilters = ({
     bankCategoriesRef.current = bankCategories;
   }, [bankCategories]);
 
-  const selectedSubjects = useMemo(
-    () => (selectedSubject ? [selectedSubject] : []),
-    [selectedSubject]
-  );
+  // Whether every available subject is currently selected — drives the
+  // "Todas as matérias" card's checked state.
+  const allSubjectsSelected =
+    knowledgeAreas.length > 0 &&
+    knowledgeAreas.every((area) => selectedSubjectIds.includes(area.id));
 
   const toggleQuestionType = (questionType: QUESTION_TYPE) => {
     setSelectedQuestionTypes((prev) => toggleArrayItem(prev, questionType));
   };
 
-  const handleSubjectChange = (subjectId: string) => {
-    setSelectedSubject(toggleSingleValue(selectedSubject, subjectId));
+  const handleToggleSubject = (subjectId: string) => {
+    setSelectedSubjectIds((prev) => toggleArrayItem(prev, subjectId));
+  };
+
+  const handleToggleAllSubjects = () => {
+    setSelectedSubjectIds(
+      allSubjectsSelected ? [] : knowledgeAreas.map((area) => area.id)
+    );
   };
 
   const handleBankCategoriesChange = (updatedCategories: CategoryConfig[]) => {
@@ -465,7 +473,7 @@ export const ActivityFilters = ({
     }
 
     if (initialFilters.subjectIds && initialFilters.subjectIds.length > 0) {
-      setSelectedSubject(initialFilters.subjectIds[0]);
+      setSelectedSubjectIds(initialFilters.subjectIds);
     }
 
     hasAppliedBasicInitialFiltersRef.current = true;
@@ -570,14 +578,17 @@ export const ActivityFilters = ({
   useEffect(() => {
     const knowledgeIds = getSelectedKnowledgeIds();
     const bankIds = getSelectedBankIds();
+    // Tema/subtema/assunto only apply to a single subject; with 0 or 2+ (or
+    // "Todas") the knowledge selection is irrelevant and must not be sent.
+    const isSingleSubject = selectedSubjectIds.length === 1;
     const filters: ActivityFiltersData = {
       types: selectedQuestionTypes,
       bankIds: bankIds.bankIds || [],
       yearIds: bankIds.yearIds || [],
-      subjectIds: selectedSubjects,
-      topicIds: knowledgeIds.topicIds,
-      subtopicIds: knowledgeIds.subtopicIds,
-      contentIds: knowledgeIds.contentIds,
+      subjectIds: selectedSubjectIds,
+      topicIds: isSingleSubject ? knowledgeIds.topicIds : [],
+      subtopicIds: isSingleSubject ? knowledgeIds.subtopicIds : [],
+      contentIds: isSingleSubject ? knowledgeIds.contentIds : [],
     };
 
     if (!areFiltersEqual(prevFiltersRef.current, filters)) {
@@ -586,7 +597,7 @@ export const ActivityFilters = ({
     }
   }, [
     selectedQuestionTypes,
-    selectedSubjects,
+    selectedSubjectIds,
     knowledgeCategories,
     bankCategories,
     getSelectedKnowledgeIds,
@@ -655,11 +666,11 @@ export const ActivityFilters = ({
               <Text size="sm" weight="bold">
                 Matéria
               </Text>
-              {selectedSubject && (
+              {selectedSubjectIds.length > 0 && (
                 <Button
                   type="button"
                   variant="link"
-                  onClick={() => setSelectedSubject(null)}
+                  onClick={() => setSelectedSubjectIds([])}
                   size="small"
                 >
                   Limpar
@@ -667,15 +678,19 @@ export const ActivityFilters = ({
               )}
             </div>
             <SubjectsFilter
+              multiple
               knowledgeAreas={knowledgeAreas}
-              selectedSubject={selectedSubject}
-              onSubjectChange={handleSubjectChange}
+              selectedSubjectIds={selectedSubjectIds}
+              onToggleSubject={handleToggleSubject}
+              showAllSubjectsOption
+              allSubjectsSelected={allSubjectsSelected}
+              onToggleAllSubjects={handleToggleAllSubjects}
               loading={loadingSubjects}
               error={subjectsError}
             />
           </div>
 
-          {selectedSubject && (
+          {selectedSubjectIds.length === 1 && (
             <KnowledgeStructureFilter
               knowledgeStructure={knowledgeStructure}
               knowledgeCategories={knowledgeCategories}

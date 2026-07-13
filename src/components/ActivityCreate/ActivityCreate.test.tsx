@@ -123,6 +123,22 @@ jest.mock('../ActivityFilters/ActivityFilters', () => ({
       >
         Change Filters
       </button>
+      <button
+        data-testid="trigger-filters-change-multi"
+        onClick={() =>
+          onFiltersChange?.({
+            types: [QUESTION_TYPE.ALTERNATIVA],
+            bankIds: [],
+            yearIds: [],
+            subjectIds: ['subject1', 'subject2'],
+            topicIds: [],
+            subtopicIds: [],
+            contentIds: [],
+          })
+        }
+      >
+        Change Filters Multi
+      </button>
     </div>
   ),
   ActivityFiltersPopover: ({
@@ -1299,6 +1315,58 @@ describe('CreateActivity', () => {
           })
         );
       });
+    });
+
+    it('omits subjectId when multiple subjects are selected', async () => {
+      mockAppliedFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject1', 'subject2'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      mockApiClient.post = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            draft: {
+              id: 'draft1',
+              type: ActivityType.RASCUNHO,
+              title: 'Rascunho - Matemática',
+              creatorUserInstitutionId: 'user1',
+              filters: {},
+              createdAt: '2025-01-01',
+              updatedAt: '2025-01-01',
+            },
+            questionsLinked: 1,
+          },
+        },
+      });
+
+      render(<CreateActivity {...defaultProps} />);
+
+      fireEvent.click(screen.getByTestId('add-question'));
+
+      act(() => {
+        jest.advanceTimersByTime(600);
+      });
+
+      await waitFor(() => {
+        expect(mockApiClient.post).toHaveBeenCalledWith(
+          '/activity-drafts',
+          expect.objectContaining({ type: ActivityType.RASCUNHO })
+        );
+      });
+
+      const draftCall = (mockApiClient.post as jest.Mock).mock.calls.find(
+        (call) => call[0] === '/activity-drafts'
+      );
+      // Multi-subject drafts must not send a single subjectId (backend would
+      // reject questions from other subjects), but keep every subject in filters.
+      expect(draftCall?.[1]).toHaveProperty('subjectId', undefined);
+      expect(draftCall?.[1].filters.subjects).toEqual(['subject1', 'subject2']);
     });
 
     it('should update existing draft when draftId exists in URL', async () => {
