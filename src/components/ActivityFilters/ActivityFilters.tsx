@@ -3,6 +3,7 @@ import {
   Text,
   Chips,
   CheckboxGroup,
+  CheckBox,
   type CategoryConfig,
   Button,
   DropdownMenu,
@@ -24,6 +25,7 @@ import {
   toggleArrayItem,
   toggleSingleValue,
   areFiltersEqual,
+  ALL_SUBJECTS_VALUE,
 } from '../../utils/activityFilters';
 import {
   SubjectsFilter,
@@ -329,7 +331,12 @@ export const ActivityFilters = ({
     loadingQuestionTypes,
     questionTypesError,
   } = useActivityFiltersData({
-    selectedSubjects: selectedSubject ? [selectedSubject] : [],
+    // The "Todas as matérias" sentinel is not a real subject id, so it must not
+    // reach the topics/knowledge-structure endpoints (they expect UUIDs).
+    selectedSubjects:
+      selectedSubject && selectedSubject !== ALL_SUBJECTS_VALUE
+        ? [selectedSubject]
+        : [],
     institutionId,
   });
 
@@ -406,6 +413,14 @@ export const ActivityFilters = ({
     () => (selectedSubject ? [selectedSubject] : []),
     [selectedSubject]
   );
+
+  // "Todas as matérias" is a search-only pseudo-subject: it drives the search
+  // (with an empty subject filter) but has no topics/subtopics/contents.
+  const isAllSubjects = selectedSubject === ALL_SUBJECTS_VALUE;
+
+  const handleToggleAllSubjects = (checked: boolean) => {
+    setSelectedSubject(checked ? ALL_SUBJECTS_VALUE : null);
+  };
 
   const toggleQuestionType = (questionType: QUESTION_TYPE) => {
     setSelectedQuestionTypes((prev) => toggleArrayItem(prev, questionType));
@@ -655,7 +670,7 @@ export const ActivityFilters = ({
               <Text size="sm" weight="bold">
                 Matéria
               </Text>
-              {selectedSubject && (
+              {selectedSubject && !isAllSubjects && (
                 <Button
                   type="button"
                   variant="link"
@@ -666,16 +681,26 @@ export const ActivityFilters = ({
                 </Button>
               )}
             </div>
-            <SubjectsFilter
-              knowledgeAreas={knowledgeAreas}
-              selectedSubject={selectedSubject}
-              onSubjectChange={handleSubjectChange}
-              loading={loadingSubjects}
-              error={subjectsError}
-            />
+            <div className="mb-3">
+              <CheckBox
+                size="small"
+                label="Todas as matérias"
+                checked={isAllSubjects}
+                onChange={(e) => handleToggleAllSubjects(e.target.checked)}
+              />
+            </div>
+            {!isAllSubjects && (
+              <SubjectsFilter
+                knowledgeAreas={knowledgeAreas}
+                selectedSubject={selectedSubject}
+                onSubjectChange={handleSubjectChange}
+                loading={loadingSubjects}
+                error={subjectsError}
+              />
+            )}
           </div>
 
-          {selectedSubject && (
+          {selectedSubject && !isAllSubjects && (
             <KnowledgeStructureFilter
               knowledgeStructure={knowledgeStructure}
               knowledgeCategories={knowledgeCategories}
