@@ -24,7 +24,10 @@ import type {
 } from '../..';
 import type { Lesson } from '../../types/lessons';
 import { MonitorPlayIcon } from '@phosphor-icons/react/dist/csr/MonitorPlay';
-import { areFiltersEqual } from '../../utils/activityFilters';
+import {
+  areFiltersEqual,
+  isAllSubjectsSelected,
+} from '../../utils/activityFilters';
 import type {
   ActivityDraftResponse,
   ActivityData,
@@ -387,7 +390,13 @@ const CreateActivity = ({
    * @returns true if save can proceed, false otherwise
    */
   const validateSaveConditions = useCallback((): boolean => {
-    if (isSaving || !hasRequiredSubjectIds(appliedFilters?.subjectIds)) {
+    // "Todas as matérias" is search-only: it has no single subject to persist,
+    // so drafts/activities are never saved while it is active.
+    if (
+      isSaving ||
+      !hasRequiredSubjectIds(appliedFilters?.subjectIds) ||
+      isAllSubjectsSelected(appliedFilters?.subjectIds)
+    ) {
       return false;
     }
     return !shouldSkipAutoSave({
@@ -972,6 +981,17 @@ const CreateActivity = ({
    * Handle opening the send activity modal
    */
   const handleOpenSendModal = useCallback(async () => {
+    // A sent activity is bound to a single subject, so "Todas as matérias"
+    // (search-only) cannot be used to send — ask for a specific subject.
+    if (isAllSubjectsSelected(draftFilters?.subjectIds)) {
+      addToast({
+        title: 'Selecione uma matéria específica para enviar a atividade',
+        action: 'warning',
+        position: 'top-right',
+      });
+      return;
+    }
+
     if (!hasRequiredSubjectIds(draftFilters?.subjectIds)) {
       addToast({
         title: 'Selecione ao menos uma matéria para pesquisar',
