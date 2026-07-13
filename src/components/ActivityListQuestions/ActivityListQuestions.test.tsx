@@ -314,10 +314,7 @@ jest.mock('../../components/Search/Search', () => ({
         </button>
       )}
       {onSearch && (
-        <button
-          data-testid="search-submit"
-          onClick={() => onSearch(value)}
-        >
+        <button data-testid="search-submit" onClick={() => onSearch(value)}>
           Search
         </button>
       )}

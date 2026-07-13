@@ -7,7 +7,9 @@ import {
   cn,
   Text,
   Divider,
+  Input,
 } from '../../';
+import { MagnifyingGlassIcon } from '@phosphor-icons/react/dist/csr/MagnifyingGlass';
 import {
   areSelectedIdsEqual,
   isCategoryEnabled as isCategoryEnabledHelper,
@@ -29,6 +31,8 @@ export type CategoryConfig = {
   dependsOn?: string[];
   itens?: Item[];
   filteredBy?: { key: string; internalField: string }[];
+  /** When true, renders a search input to filter this category's items by name */
+  searchable?: boolean;
 };
 
 export const CheckboxGroup = ({
@@ -47,6 +51,30 @@ export const CheckboxGroup = ({
   disableAutoSelection?: boolean;
 }) => {
   const [openAccordion, setOpenAccordion] = useState<string>('');
+  // Search query per category key (only used by categories with searchable: true)
+  const [searchQueries, setSearchQueries] = useState<Record<string, string>>(
+    {}
+  );
+
+  const handleSearchChange = (categoryKey: string, value: string) => {
+    setSearchQueries((prev) => ({ ...prev, [categoryKey]: value }));
+  };
+
+  // Filters a category's formatted groups by its search query (case-insensitive).
+  // Returns the groups unchanged when there is no active query.
+  const filterGroupsBySearch = (
+    categoryKey: string,
+    groups: { groupLabel?: string; itens: Item[] }[]
+  ) => {
+    const query = searchQueries[categoryKey]?.trim().toLowerCase();
+    if (!query) return groups;
+    return groups.map((group) => ({
+      ...group,
+      itens: group.itens.filter((item) =>
+        item.name.toLowerCase().includes(query)
+      ),
+    }));
+  };
 
   // Refs to prevent infinite loops and track auto-selection state
   const onCategoriesChangeRef = useRef(onCategoriesChange);
@@ -682,6 +710,19 @@ export const CheckboxGroup = ({
       (group) => !group.itens || group.itens.length === 0
     );
 
+    // Apply the search filter only for searchable categories
+    const displayGroups = category.searchable
+      ? filterGroupsBySearch(category.key, formattedItems)
+      : formattedItems;
+
+    const hasActiveSearch =
+      !!category.searchable && !!searchQueries[category.key]?.trim();
+
+    const hasNoSearchResults =
+      hasActiveSearch &&
+      !hasNoItems &&
+      displayGroups.every((group) => !group.itens || group.itens.length === 0);
+
     return (
       <div key={category.key}>
         <CardAccordation
@@ -694,21 +735,62 @@ export const CheckboxGroup = ({
           trigger={renderAccordionTrigger(category, isEnabled)}
         >
           <div className="flex flex-col gap-3 pt-2">
-            {hasNoItems && isEnabled ? (
-              <div className="px-2 py-4">
-                <Text size="sm" className="text-text-500 text-center">
-                  Sem dados
-                </Text>
-              </div>
-            ) : (
-              formattedItems.map((formattedGroup, idx) =>
-                renderFormattedGroup(formattedGroup, idx, category.key)
-              )
+            {category.searchable && !hasNoItems && (
+              <Input
+                type="text"
+                size="small"
+                value={searchQueries[category.key] ?? ''}
+                onChange={(e) =>
+                  handleSearchChange(category.key, e.target.value)
+                }
+                placeholder="Buscar"
+                iconLeft={<MagnifyingGlassIcon size={18} />}
+              />
+            )}
+            {renderAccordionContent(
+              category,
+              isEnabled,
+              hasNoItems,
+              hasNoSearchResults,
+              displayGroups
             )}
           </div>
         </CardAccordation>
         {openAccordion !== category.key && showDivider && <Divider />}
       </div>
+    );
+  };
+
+  // Renders the item list (or an appropriate empty state) inside an accordion
+  const renderAccordionContent = (
+    category: CategoryConfig,
+    isEnabled: boolean,
+    hasNoItems: boolean,
+    hasNoSearchResults: boolean,
+    displayGroups: { groupLabel?: string; itens: Item[] }[]
+  ) => {
+    if (hasNoItems && isEnabled) {
+      return (
+        <div className="px-2 py-4">
+          <Text size="sm" className="text-text-500 text-center">
+            Sem dados
+          </Text>
+        </div>
+      );
+    }
+
+    if (hasNoSearchResults) {
+      return (
+        <div className="px-2 py-4">
+          <Text size="sm" className="text-text-500 text-center">
+            Nenhum resultado encontrado
+          </Text>
+        </div>
+      );
+    }
+
+    return displayGroups.map((formattedGroup, idx) =>
+      renderFormattedGroup(formattedGroup, idx, category.key)
     );
   };
 

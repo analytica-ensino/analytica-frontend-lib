@@ -1,4 +1,4 @@
-import type { FC } from 'react';
+import { useMemo, type FC } from 'react';
 import { cn } from '../../../../utils/utils';
 import Text from '../../../Text/Text';
 import { CheckboxGroup } from '../../../CheckBoxGroup/CheckBoxGroup';
@@ -32,6 +32,18 @@ export const RecipientStep: FC<RecipientStepProps> = ({
   studentsError,
   testIdPrefix,
 }) => {
+  // Enable the name search input on the students list (typically large),
+  // without touching the shorter categories (Escola/Série/Turma).
+  const categoriesWithSearch = useMemo(
+    () =>
+      categories.map((category) =>
+        category.key === 'students'
+          ? { ...category, searchable: true }
+          : category
+      ),
+    [categories]
+  );
+
   return (
     <div
       className="flex flex-col gap-4 min-h-0 flex-1"
@@ -56,7 +68,7 @@ export const RecipientStep: FC<RecipientStepProps> = ({
         }
       >
         <CheckboxGroup
-          categories={categories}
+          categories={categoriesWithSearch}
           onCategoriesChange={onCategoriesChange}
           compactSingleItem={true}
           showDivider={true}
