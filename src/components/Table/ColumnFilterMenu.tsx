@@ -51,13 +51,7 @@ const ColumnFilterMenu = ({
   };
 
   return (
-    // The wrapper stops clicks from reaching an enclosing sort handler.
-    <span
-      className="inline-flex"
-      onClick={(e) => e.stopPropagation()}
-      onKeyDown={(e) => e.stopPropagation()}
-      role="presentation"
-    >
+    <span className="inline-flex">
       <DropdownMenu>
         <DropdownMenuTrigger
           ref={triggerRef}
@@ -74,9 +68,21 @@ const ColumnFilterMenu = ({
           />
         </DropdownMenuTrigger>
 
-        {/* Portal: the table body sits inside `overflow-x-auto`, which would
-            clip an absolutely positioned menu. */}
-        <DropdownMenuContent portal triggerRef={triggerRef} align="start">
+        {/*
+         * Portal: the table body sits inside `overflow-x-auto`, which would clip
+         * an absolutely positioned menu.
+         *
+         * The click guard is still required despite the portal — React bubbles
+         * events through the component tree, not the DOM tree, so a click on an
+         * item would otherwise reach whatever wraps this header. (The trigger
+         * guards its own click; this covers the items.)
+         */}
+        <DropdownMenuContent
+          portal
+          triggerRef={triggerRef}
+          align="start"
+          onClick={(event) => event.stopPropagation()}
+        >
           <DropdownMenuItem
             onClick={() => onChange([])}
             className={cn(!hasFilter && 'font-bold')}

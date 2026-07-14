@@ -360,7 +360,7 @@ describe('Table Components', () => {
       expect(screen.getByTestId('head')).not.toHaveClass('cursor-pointer');
     });
 
-    it('calls onSort when clicked and sortable', () => {
+    it('calls onSort when the sort button is clicked', () => {
       const handleSort = jest.fn();
       render(
         <Table>
@@ -373,20 +373,43 @@ describe('Table Components', () => {
           </TableHeader>
         </Table>
       );
-      fireEvent.click(screen.getByTestId('head'));
+      fireEvent.click(screen.getByRole('button', { name: 'Name' }));
       expect(handleSort).toHaveBeenCalledTimes(1);
     });
 
-    it('does not call onSort when a filterSlot is present and the cell is clicked', () => {
-      // With a filter menu in the header, only the label toggles sorting — the
-      // rest of the cell is inert so the two targets don't fight.
+    it('sorts from the keyboard', () => {
+      // A click handler on the <th> is unreachable by keyboard, so sorting has
+      // to live on a real button.
+      const handleSort = jest.fn();
+      render(
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead sortable onSort={handleSort}>
+                Name
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+        </Table>
+      );
+
+      const button = screen.getByRole('button', { name: 'Name' });
+      button.focus();
+      expect(button).toHaveFocus();
+
+      fireEvent.keyDown(button, { key: 'Enter' });
+      fireEvent.keyUp(button, { key: 'Enter' });
+      fireEvent.click(button); // what the browser dispatches for Enter/Space
+      expect(handleSort).toHaveBeenCalled();
+    });
+
+    it('keeps sorting and filtering as separate targets in the same header', () => {
       const handleSort = jest.fn();
       render(
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead
-                data-testid="head"
                 sortable
                 onSort={handleSort}
                 filterSlot={<button type="button">filter</button>}
@@ -398,7 +421,7 @@ describe('Table Components', () => {
         </Table>
       );
 
-      fireEvent.click(screen.getByTestId('head'));
+      fireEvent.click(screen.getByRole('button', { name: 'filter' }));
       expect(handleSort).not.toHaveBeenCalled();
 
       fireEvent.click(screen.getByRole('button', { name: 'Status' }));

@@ -655,37 +655,42 @@ const TableHead = forwardRef<HTMLTableCellElement, TableHeadProps>(
       </span>
     );
 
-    // Cell-wide click target is only safe when nothing else in the header is
-    // interactive.
-    const cellIsSortTarget = sortable && !filterSlot;
-
     return (
       <th
         ref={ref}
         className={cn(
           'h-10 px-6 py-3.5 text-left align-middle font-bold text-base text-text-800 tracking-[0.2px] leading-none [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] whitespace-nowrap',
-          cellIsSortTarget && 'cursor-pointer select-none hover:bg-muted/30',
+          sortable && 'cursor-pointer select-none hover:bg-muted/30',
           className
         )}
         aria-sort={ariaSort}
-        onClick={cellIsSortTarget ? handleClick : undefined}
         {...props}
       >
         <div className="flex items-center gap-2">
-          {sortable && filterSlot ? (
+          {/*
+           * Sorting always lives on a real <button>, never on the <th> itself:
+           * a click handler on the cell is unreachable by keyboard, and giving
+           * the cell a role/tabindex would break the table semantics that
+           * aria-sort relies on. `flex-1` keeps the click target spanning the
+           * cell, so pointer users lose nothing.
+           */}
+          {sortable ? (
             <button
               type="button"
               onClick={handleClick}
-              className="flex items-center gap-2 cursor-pointer select-none hover:opacity-80"
+              className={cn(
+                'flex items-center gap-2 text-left cursor-pointer select-none hover:opacity-80',
+                // Span the cell so pointer users keep a full-width target — but
+                // not when a filter caret follows, or it would be shoved to the
+                // far edge of the column instead of sitting next to the label.
+                !filterSlot && 'flex-1'
+              )}
             >
               {children}
               {sortArrow}
             </button>
           ) : (
-            <>
-              {children}
-              {sortArrow}
-            </>
+            children
           )}
           {filterSlot}
         </div>

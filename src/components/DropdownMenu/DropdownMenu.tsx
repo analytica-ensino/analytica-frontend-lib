@@ -58,6 +58,21 @@ export const useDropdownStore = (externalStore?: DropdownStoreApi) => {
   return externalStore;
 };
 
+/**
+ * Keep the same style object when nothing moved — a fresh object on every
+ * scroll event would re-render the menu at 60fps for no reason.
+ */
+const PORTAL_STYLE_KEYS = [
+  'top',
+  'bottom',
+  'left',
+  'right',
+  'transform',
+] as const;
+
+const isSamePortalStyle = (a: CSSProperties, b: CSSProperties): boolean =>
+  PORTAL_STYLE_KEYS.every((key) => a[key] === b[key]);
+
 const injectStore = (
   children: ReactNode,
   store: DropdownStoreApi
@@ -327,7 +342,7 @@ const DropdownMenuContent = forwardRef<
     const store = useDropdownStore(externalStore);
     const open = useStore(store, (s) => s.open);
     const [isVisible, setIsVisible] = useState(open);
-    const [portalPosition, setPortalPosition] = useState({ top: 0, left: 0 });
+    const [portalStyle, setPortalStyle] = useState<CSSProperties>({});
     const contentRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -343,32 +358,37 @@ const DropdownMenuContent = forwardRef<
       if (!portal || !triggerRef?.current) return;
 
       const rect = triggerRef.current.getBoundingClientRect();
-      let top = rect.bottom + sideOffset;
-      let left = rect.left;
+      const style: CSSProperties = {};
 
-      // Handle horizontal sides (left/right)
-      if (side === 'left') {
-        left = rect.left - sideOffset;
-        top = rect.top;
-      } else if (side === 'right') {
-        left = rect.right + sideOffset;
-        top = rect.top;
+      // Each side anchors the menu by the edge that faces the trigger. Placing a
+      // `top`/`left` for the `top`/`left` sides would grow the menu back over
+      // the trigger instead of away from it.
+      if (side === 'left' || side === 'right') {
+        style.top = rect.top;
+
+        if (side === 'left') {
+          style.right = window.innerWidth - rect.left + sideOffset;
+        } else {
+          style.left = rect.right + sideOffset;
+        }
       } else {
-        // Handle vertical sides (top/bottom)
-        if (align === 'end') {
-          left = rect.right;
-        } else if (align === 'center') {
-          left = rect.left + rect.width / 2;
+        if (side === 'top') {
+          style.bottom = window.innerHeight - rect.top + sideOffset;
+        } else {
+          style.top = rect.bottom + sideOffset;
         }
 
-        if (side === 'top') {
-          top = rect.top - sideOffset;
+        if (align === 'end') {
+          style.right = window.innerWidth - rect.right;
+        } else if (align === 'center') {
+          style.left = rect.left + rect.width / 2;
+          style.transform = 'translateX(-50%)';
+        } else {
+          style.left = rect.left;
         }
       }
 
-      setPortalPosition((prev) =>
-        prev.top === top && prev.left === left ? prev : { top, left }
-      );
+      setPortalStyle((prev) => (isSamePortalStyle(prev, style) ? prev : style));
     }, [portal, triggerRef, align, side, sideOffset]);
 
     useLayoutEffect(() => {
@@ -405,25 +425,6 @@ const DropdownMenuContent = forwardRef<
       return `absolute ${vertical} ${horizontal}`;
     };
 
-    const getPortalAlignStyle = () => {
-      if (!portal) return {};
-
-      const baseStyle: CSSProperties = {
-        top: portalPosition.top,
-      };
-
-      if (align === 'end') {
-        baseStyle.right = window.innerWidth - portalPosition.left;
-      } else if (align === 'center') {
-        baseStyle.left = portalPosition.left;
-        baseStyle.transform = 'translateX(-50%)';
-      } else {
-        baseStyle.left = portalPosition.left;
-      }
-
-      return baseStyle;
-    };
-
     const variantClasses = MENUCONTENT_VARIANT_CLASSES[variant];
 
     const content = (
@@ -441,7 +442,7 @@ const DropdownMenuContent = forwardRef<
       `}
         style={{
           ...(portal
-            ? getPortalAlignStyle()
+            ? portalStyle
             : {
                 marginTop: side === 'bottom' ? sideOffset : undefined,
                 marginBottom: side === 'top' ? sideOffset : undefined,

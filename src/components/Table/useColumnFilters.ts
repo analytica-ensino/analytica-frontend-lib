@@ -100,10 +100,15 @@ export function useColumnFilters(
     const params = new URLSearchParams(globalThis.location.search);
     const result: Record<string, string[]> = {};
 
-    for (const { paramKey } of filterSpecs) {
+    for (const { paramKey, multiple } of filterSpecs) {
       const raw = params.get(urlKeyOf(paramKey, urlKeyPrefix));
       const values = raw?.split(',').filter(Boolean) ?? [];
-      if (values.length > 0) result[paramKey] = values;
+      if (values.length === 0) continue;
+
+      // A hand-edited URL can carry several values for a single-select column.
+      // The request would still go out with one (see columnFilterParams), but the
+      // menu reads this state directly and would tick every one of them.
+      result[paramKey] = multiple ? values : [values[0]];
     }
 
     return result;

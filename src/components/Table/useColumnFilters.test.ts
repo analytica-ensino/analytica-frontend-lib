@@ -126,6 +126,23 @@ describe('useColumnFilters', () => {
     });
   });
 
+  it('keeps a single-select filter to one value, even if the URL carries more', () => {
+    // Hand-edited URL. The request would still send one value, but the menu
+    // reads this state directly and would show both as selected.
+    location.href =
+      'http://localhost:3000/?colfilter_statusFilter=DESTAQUE,SEM_ACESSO';
+    location.search = '?colfilter_statusFilter=DESTAQUE,SEM_ACESSO';
+
+    const { result } = renderHook(() =>
+      useColumnFilters(columns, { syncWithUrl: true })
+    );
+
+    expect(result.current.columnFilters.statusFilter).toEqual(['DESTAQUE']);
+    expect(result.current.columnFilterParams).toEqual({
+      statusFilter: 'DESTAQUE',
+    });
+  });
+
   it('namespaces the URL keys with urlKeyPrefix', () => {
     const { result } = renderHook(() =>
       useColumnFilters(columns, { syncWithUrl: true, urlKeyPrefix: 'schools' })
@@ -174,7 +191,7 @@ describe('useColumnFilters', () => {
     rerender({ cols: [...columns] });
 
     expect(
-      (globalThis.history.replaceState as jest.Mock).mock.calls.length
-    ).toBe(callsAfterChange);
+      (globalThis.history.replaceState as jest.Mock).mock.calls
+    ).toHaveLength(callsAfterChange);
   });
 });
