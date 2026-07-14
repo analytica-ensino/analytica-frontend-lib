@@ -3,16 +3,18 @@ import React, {
   HTMLAttributes,
   TdHTMLAttributes,
   ThHTMLAttributes,
+  useCallback,
   useState,
   useMemo,
   useEffect,
+  useRef,
   Children,
   isValidElement,
   ReactNode,
 } from 'react';
 import { cn } from '../../utils/utils';
-import { CaretUpIcon } from '@phosphor-icons/react/dist/csr/CaretUp';
-import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
+import { ArrowUpIcon } from '@phosphor-icons/react/dist/csr/ArrowUp';
+import { ArrowDownIcon } from '@phosphor-icons/react/dist/csr/ArrowDown';
 import NoSearchResult from '../NoSearchResult/NoSearchResult';
 import EmptyState from '../EmptyState/EmptyState';
 import { SkeletonTable } from '../Skeleton/Skeleton';
@@ -26,10 +28,47 @@ type TableVariant = 'default' | 'borderless';
 type TableRowState = 'default' | 'selected' | 'invalid' | 'disabled';
 export type SortDirection = 'asc' | 'desc' | null;
 
+export type SortMode = 'client' | 'server';
+
+export interface SortState {
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
+}
+
 export interface UseTableSortOptions {
   /** Se true, sincroniza o estado de ordenação com os parâmetros da URL */
   syncWithUrl?: boolean;
+  /**
+   * `'client'` (padrão) ordena o array recebido no próprio navegador.
+   * `'server'` mantém a ordem dos dados como vieram — a ordenação é
+   * responsabilidade da API — e apenas rastreia a coluna/direção para
+   * emiti-las nos parâmetros da tabela.
+   */
+  mode?: SortMode;
+  /**
+   * Prefixo das chaves na URL (`vendas_sortBy` em vez de `sortBy`). Necessário
+   * quando mais de uma tabela compartilha a mesma URL, senão elas leem o estado
+   * de ordenação uma da outra.
+   */
+  urlKeyPrefix?: string;
+  /**
+   * Colunas aceitas. Um `sortBy` vindo da URL que não esteja nesta lista é
+   * descartado — uma URL colada não pode injetar uma coluna inexistente.
+   */
+  allowedColumns?: string[];
+  /** Ordenação inicial quando a URL não traz nenhuma. */
+  defaultSort?: SortState;
+  /** Chamado a cada mudança de ordenação (o TableProvider usa para voltar à página 1). */
+  onSortChange?: () => void;
 }
+
+/** Nomes das chaves de URL, opcionalmente prefixadas por tabela. */
+const getUrlKeys = (prefix?: string) => ({
+  sortBy: prefix ? `${prefix}_sortBy` : 'sortBy',
+  sortOrder: prefix ? `${prefix}_sortOrder` : 'sortOrder',
+  /** Contrato antigo (`sort=ASC`), ainda lido para não quebrar links salvos. */
+  legacySort: prefix ? `${prefix}_sort` : 'sort',
+});
 
 /**
  * Hook para gerenciar ordenação de dados da tabela
@@ -63,29 +102,58 @@ export function useTableSort<T extends Record<string, unknown>>(
   data: T[],
   options: UseTableSortOptions = {}
 ) {
-  const { syncWithUrl = false } = options;
+  const {
+    syncWithUrl = false,
+    mode = 'client',
+    urlKeyPrefix,
+    allowedColumns,
+    defaultSort,
+    onSortChange,
+  } = options;
 
-  // Inicializar estado a partir da URL se syncWithUrl estiver habilitado
-  const getInitialState = () => {
+  const urlKeys = useMemo(() => getUrlKeys(urlKeyPrefix), [urlKeyPrefix]);
+
+  // Read through refs so the popstate listener doesn't resubscribe on every
+  // render just because these arrived as new array/function identities.
+  const allowedColumnsRef = useRef(allowedColumns);
+  allowedColumnsRef.current = allowedColumns;
+  const onSortChangeRef = useRef(onSortChange);
+  onSortChangeRef.current = onSortChange;
+  const defaultSortRef = useRef(defaultSort);
+  defaultSortRef.current = defaultSort;
+
+  const readFromUrl = useCallback((): {
+    column: string | null;
+    direction: SortDirection;
+  } => {
+    const fallback = defaultSortRef.current
+      ? {
+          column: defaultSortRef.current.sortBy,
+          direction: defaultSortRef.current.sortOrder as SortDirection,
+        }
+      : { column: null, direction: null };
+
     if (!syncWithUrl || globalThis.window === undefined) {
-      return { column: null, direction: null };
+      return fallback;
     }
 
     const params = new URLSearchParams(globalThis.location.search);
-    const sortBy = params.get('sortBy');
-    const sort = params.get('sort');
+    const column = params.get(urlKeys.sortBy);
+    if (!column) return fallback;
 
-    if (sortBy && sort && (sort === 'ASC' || sort === 'DESC')) {
-      return {
-        column: sortBy,
-        direction: sort.toLowerCase() as SortDirection,
-      };
-    }
+    // Current contract: sortOrder=asc|desc. Legacy: sort=ASC|DESC.
+    const rawOrder =
+      params.get(urlKeys.sortOrder) ?? params.get(urlKeys.legacySort);
+    const direction = rawOrder?.toLowerCase();
+    if (direction !== 'asc' && direction !== 'desc') return fallback;
 
-    return { column: null, direction: null };
-  };
+    const allowed = allowedColumnsRef.current;
+    if (allowed && !allowed.includes(column)) return fallback;
 
-  const initialState = getInitialState();
+    return { column, direction };
+  }, [syncWithUrl, urlKeys]);
+
+  const [initialState] = useState(readFromUrl);
   const [sortColumn, setSortColumn] = useState<string | null>(
     initialState.column
   );
@@ -93,7 +161,11 @@ export function useTableSort<T extends Record<string, unknown>>(
     initialState.direction
   );
 
-  // Atualizar URL quando o estado de ordenação mudar
+  // Only ever remove the sort params this instance actually wrote. Without this
+  // guard a table that never sorted would wipe the sort params of whatever else
+  // shares the URL, just by mounting.
+  const hasWrittenUrlRef = useRef(false);
+
   useEffect(() => {
     if (!syncWithUrl || globalThis.window === undefined) return;
 
@@ -101,33 +173,55 @@ export function useTableSort<T extends Record<string, unknown>>(
     const params = url.searchParams;
 
     if (sortColumn && sortDirection) {
-      params.set('sortBy', sortColumn);
-      params.set('sort', sortDirection.toUpperCase());
+      params.set(urlKeys.sortBy, sortColumn);
+      params.set(urlKeys.sortOrder, sortDirection);
+      params.delete(urlKeys.legacySort);
+      hasWrittenUrlRef.current = true;
+    } else if (hasWrittenUrlRef.current) {
+      params.delete(urlKeys.sortBy);
+      params.delete(urlKeys.sortOrder);
+      params.delete(urlKeys.legacySort);
     } else {
-      params.delete('sortBy');
-      params.delete('sort');
+      return;
     }
 
-    // Atualizar URL sem recarregar a página
     globalThis.history.replaceState({}, '', url.toString());
-  }, [sortColumn, sortDirection, syncWithUrl]);
+  }, [sortColumn, sortDirection, syncWithUrl, urlKeys]);
 
+  // Back/forward has to bring the table's sort along with the URL.
+  useEffect(() => {
+    if (!syncWithUrl || globalThis.window === undefined) return;
+
+    const handlePopState = () => {
+      const next = readFromUrl();
+      setSortColumn(next.column);
+      setSortDirection(next.direction);
+    };
+
+    globalThis.addEventListener('popstate', handlePopState);
+    return () => globalThis.removeEventListener('popstate', handlePopState);
+  }, [syncWithUrl, readFromUrl]);
+
+  /** Cycles asc → desc → unsorted. */
   const handleSort = (column: string) => {
-    if (sortColumn === column) {
-      if (sortDirection === 'asc') {
-        setSortDirection('desc');
-      } else if (sortDirection === 'desc') {
-        setSortColumn(null);
-        setSortDirection(null);
-      }
+    if (sortColumn === column && sortDirection === 'asc') {
+      setSortDirection('desc');
+    } else if (sortColumn === column && sortDirection === 'desc') {
+      setSortColumn(null);
+      setSortDirection(null);
     } else {
       setSortColumn(column);
       setSortDirection('asc');
     }
+
+    onSortChangeRef.current?.();
   };
 
   const sortedData = useMemo(() => {
-    if (!sortColumn || !sortDirection) {
+    // In server mode the rows already arrive ordered. Re-sorting them here would
+    // shuffle the current page by whatever the cell happens to render — e.g.
+    // comparing "2h 05min" as a string.
+    if (mode === 'server' || !sortColumn || !sortDirection) {
       return data;
     }
 
@@ -146,7 +240,7 @@ export function useTableSort<T extends Record<string, unknown>>(
 
       return 0;
     });
-  }, [data, sortColumn, sortDirection]);
+  }, [data, sortColumn, sortDirection, mode]);
 
   return { sortedData, sortColumn, sortDirection, handleSort };
 }
@@ -503,21 +597,33 @@ const TableRow = forwardRef<HTMLTableRowElement, TableRowPropsExtended>(
 TableRow.displayName = 'TableRow';
 
 interface TableHeadProps extends ThHTMLAttributes<HTMLTableCellElement> {
-  /** Enable sorting on this column (default: true) */
+  /**
+   * Enable sorting on this column (default: false).
+   *
+   * This used to default to `true`, which made every header look clickable —
+   * including the ones whose `onSort` did nothing.
+   */
   sortable?: boolean;
   /** Current sort direction for this column */
   sortDirection?: SortDirection;
   /** Callback when column header is clicked */
   onSort?: () => void;
+  /**
+   * Rendered at the right of the label — the column's filter menu trigger.
+   * When present, only the label toggles sorting (instead of the whole cell),
+   * so the two click targets don't fight over the same pixels.
+   */
+  filterSlot?: ReactNode;
 }
 
 const TableHead = forwardRef<HTMLTableCellElement, TableHeadProps>(
   (
     {
       className,
-      sortable = true,
+      sortable = false,
       sortDirection = null,
       onSort,
+      filterSlot,
       children,
       ...props
     },
@@ -529,6 +635,26 @@ const TableHead = forwardRef<HTMLTableCellElement, TableHeadProps>(
       }
     };
 
+    const ariaSort = (() => {
+      if (!sortable) return undefined;
+      if (sortDirection === 'asc') return 'ascending' as const;
+      if (sortDirection === 'desc') return 'descending' as const;
+      return 'none' as const;
+    })();
+
+    // An arrow — distinct from the caret that opens a column's filter menu, so
+    // the two never read as the same affordance. Only the column actually being
+    // sorted shows it.
+    const sortArrow = sortable && sortDirection && (
+      <span className="flex shrink-0">
+        {sortDirection === 'asc' ? (
+          <ArrowUpIcon size={16} className="text-text-800" />
+        ) : (
+          <ArrowDownIcon size={16} className="text-text-800" />
+        )}
+      </span>
+    );
+
     return (
       <th
         ref={ref}
@@ -537,29 +663,36 @@ const TableHead = forwardRef<HTMLTableCellElement, TableHeadProps>(
           sortable && 'cursor-pointer select-none hover:bg-muted/30',
           className
         )}
-        onClick={handleClick}
+        aria-sort={ariaSort}
         {...props}
       >
         <div className="flex items-center gap-2">
-          {children}
-          {sortable && (
-            <div className="flex flex-col">
-              {sortDirection === 'asc' && (
-                <CaretUpIcon
-                  size={16}
-                  weight="fill"
-                  className="text-text-800"
-                />
+          {/*
+           * Sorting always lives on a real <button>, never on the <th> itself:
+           * a click handler on the cell is unreachable by keyboard, and giving
+           * the cell a role/tabindex would break the table semantics that
+           * aria-sort relies on. `flex-1` keeps the click target spanning the
+           * cell, so pointer users lose nothing.
+           */}
+          {sortable ? (
+            <button
+              type="button"
+              onClick={handleClick}
+              className={cn(
+                'flex items-center gap-2 text-left cursor-pointer select-none hover:opacity-80',
+                // Span the cell so pointer users keep a full-width target — but
+                // not when a filter caret follows, or it would be shoved to the
+                // far edge of the column instead of sitting next to the label.
+                !filterSlot && 'flex-1'
               )}
-              {sortDirection === 'desc' && (
-                <CaretDownIcon
-                  size={16}
-                  weight="fill"
-                  className="text-text-800"
-                />
-              )}
-            </div>
+            >
+              {children}
+              {sortArrow}
+            </button>
+          ) : (
+            children
           )}
+          {filterSlot}
         </div>
       </th>
     );

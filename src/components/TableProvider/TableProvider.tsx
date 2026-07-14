@@ -3,6 +3,7 @@ import {
   useEffect,
   useMemo,
   useCallback,
+  useRef,
   ReactNode,
   ChangeEvent,
 } from 'react';
@@ -13,7 +14,14 @@ import Table, {
   TableCell,
   useTableSort,
   TablePagination,
+  type SortMode,
+  type SortState,
 } from '../Table/Table';
+import ColumnFilterMenu from '../Table/ColumnFilterMenu';
+import {
+  useColumnFilters,
+  type ColumnFilterConfig,
+} from '../Table/useColumnFilters';
 import { useTableFilter, FilterConfig } from '../Filter/useTableFilter';
 import Search from '../Search/Search';
 import { FilterModal } from '../Filter/FilterModal';
@@ -29,8 +37,20 @@ export interface ColumnConfig<T = Record<string, unknown>> {
   key: string;
   /** Column label - can be string or JSX */
   label: string | ReactNode;
-  /** Enable sorting for this column */
+  /**
+   * Enable sorting for this column. Overrides `sortableColumns`; when omitted,
+   * `sortableColumns` decides.
+   */
   sortable?: boolean;
+  /**
+   * Field to sort by, when it differs from the rendered one. A column showing
+   * `totalTimeFormatted` ("2h 05min") must sort by `totalTime` — otherwise the
+   * API gets a field it doesn't know, and a client-side sort would compare the
+   * formatted strings. Defaults to `key`.
+   */
+  sortKey?: string;
+  /** Turns this column's header into a filter dropdown. */
+  filter?: ColumnFilterConfig;
   /** Custom render function for cell content */
   render?: (value: unknown, row: T, index: number) => ReactNode;
   /** Column width */
@@ -40,6 +60,28 @@ export interface ColumnConfig<T = Record<string, unknown>> {
   /** Text alignment */
   align?: 'left' | 'center' | 'right';
 }
+
+/**
+ * Which columns can be sorted, when a column doesn't say so itself.
+ *
+ * Defaults to none: turning `enableTableSort` on must not silently make every
+ * column clickable, since most tables here are paginated server-side and a
+ * client-side sort would only reorder the page you're looking at.
+ */
+export function isColumnSortable<T>(
+  header: ColumnConfig<T>,
+  enableTableSort: boolean,
+  sortableColumns: SortableColumns | undefined
+): boolean {
+  if (!enableTableSort) return false;
+  if (header.sortable !== undefined) return header.sortable;
+  if (sortableColumns === 'all') return true;
+  if (Array.isArray(sortableColumns))
+    return sortableColumns.includes(header.key);
+  return false;
+}
+
+export type SortableColumns = 'all' | string[];
 
 /**
  * Combined parameters sent via onParamsChange
@@ -152,6 +194,25 @@ export interface TableProviderProps<T = Record<string, unknown>> {
   readonly enableFilters?: boolean;
   /** Enable table sorting */
   readonly enableTableSort?: boolean;
+  /**
+   * Which columns are sortable: `'all'`, or an explicit list of column keys.
+   * A column's own `sortable` flag wins over this. Defaults to none.
+   */
+  readonly sortableColumns?: SortableColumns;
+  /**
+   * `'client'` (default) sorts the rows it was handed. `'server'` leaves them
+   * in the order they arrived and just reports `sortBy`/`sortOrder` through
+   * `onParamsChange`, for the API to sort.
+   */
+  readonly sortMode?: SortMode;
+  /** Sort applied when the URL doesn't specify one. */
+  readonly defaultSort?: SortState;
+  /**
+   * Namespaces this table's URL params (`vendas_sortBy` instead of `sortBy`).
+   * Required whenever two tables can share a URL — otherwise one reads the
+   * other's sort column, which the API will reject.
+   */
+  readonly tableId?: string;
   /** Enable pagination */
   readonly enablePagination?: boolean;
   /** Enable row click functionality */
@@ -247,6 +308,10 @@ export function TableProvider<T extends Record<string, unknown>>({
   enableSearch = false,
   enableFilters = false,
   enableTableSort = false,
+  sortableColumns,
+  sortMode = 'client',
+  defaultSort,
+  tableId,
   enablePagination = false,
   enableRowClick = false,
   initialFilters = [],
@@ -267,18 +332,50 @@ export function TableProvider<T extends Record<string, unknown>>({
   const [searchQuery, setSearchQuery] = useState('');
   const [inputValue, setInputValue] = useState('');
 
-  // Sorting state - always call hook (React Rules of Hooks)
-  const sortResultRaw = useTableSort(data, { syncWithUrl: true });
-  const sortResult = enableTableSort
-    ? sortResultRaw
-    : {
-        sortedData: data,
-        sortColumn: null,
-        sortDirection: null,
-        handleSort: () => {},
-      };
+  // Sorting and filtering both need to send the table back to page 1, but the
+  // pagination state is declared further down. Go through a ref instead of
+  // reshuffling the whole component.
+  const resetPageRef = useRef<() => void>(() => {});
 
-  const { sortedData, sortColumn, sortDirection, handleSort } = sortResult;
+  /** A column sorts by `sortKey` when it has one — see ColumnConfig.sortKey. */
+  const sortKeyOf = useCallback(
+    (header: ColumnConfig<T>) => header.sortKey ?? header.key,
+    []
+  );
+
+  // The only values this table accepts as sortBy — anything else in the URL is
+  // discarded rather than forwarded to the API.
+  const sortableKeys = useMemo(
+    () =>
+      headers
+        .filter((header) =>
+          isColumnSortable(header, enableTableSort, sortableColumns)
+        )
+        .map(sortKeyOf),
+    [headers, enableTableSort, sortableColumns, sortKeyOf]
+  );
+
+  // Always call the hook (React Rules of Hooks); `syncWithUrl` carries the gate,
+  // so a table with sorting off doesn't touch the URL at all.
+  const { sortedData, sortColumn, sortDirection, handleSort } = useTableSort(
+    data,
+    {
+      syncWithUrl: enableTableSort,
+      mode: sortMode,
+      urlKeyPrefix: tableId,
+      allowedColumns: sortableKeys,
+      defaultSort,
+      onSortChange: () => resetPageRef.current(),
+    }
+  );
+
+  // Per-column header filters
+  const { columnFilters, columnFilterParams, setColumnFilter } =
+    useColumnFilters(headers, {
+      syncWithUrl: true,
+      urlKeyPrefix: tableId,
+      onFiltersChange: () => resetPageRef.current(),
+    });
 
   // Filter state - always call hook (React Rules of Hooks)
   const filterResultRaw = useTableFilter(initialFilters, { syncWithUrl: true });
@@ -320,6 +417,10 @@ export function TableProvider<T extends Record<string, unknown>>({
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(defaultItemsPerPage);
 
+  // Sorting/filtering by a column invalidates the current page: page 3 of the
+  // old ordering has nothing to do with page 3 of the new one.
+  resetPageRef.current = () => setCurrentPage(1);
+
   // Filter modal state
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
@@ -343,6 +444,10 @@ export function TableProvider<T extends Record<string, unknown>>({
       params.sortOrder = sortDirection;
     }
 
+    // Header filters go out under each column's paramKey — the field name the
+    // API expects.
+    Object.assign(params, columnFilterParams);
+
     return params;
   }, [
     currentPage,
@@ -354,6 +459,7 @@ export function TableProvider<T extends Record<string, unknown>>({
     enableSearch,
     enableFilters,
     enableTableSort,
+    columnFilterParams,
   ]);
 
   // Notify parent when parameters change
@@ -508,24 +614,44 @@ export function TableProvider<T extends Record<string, unknown>>({
           <TableRow
             variant={variant === 'borderless' ? 'defaultBorderless' : 'default'}
           >
-            {headers.map((header, index) => (
-              <TableHead
-                key={`header-${header.key}-${index}`}
-                sortable={enableTableSort && header.sortable}
-                sortDirection={
-                  enableTableSort && sortColumn === header.key
-                    ? sortDirection
-                    : null
-                }
-                onSort={() =>
-                  enableTableSort && header.sortable && handleSort(header.key)
-                }
-                className={header.className}
-                style={header.width ? { width: header.width } : undefined}
-              >
-                {header.label}
-              </TableHead>
-            ))}
+            {headers.map((header, index) => {
+              const sortable = isColumnSortable(
+                header,
+                enableTableSort,
+                sortableColumns
+              );
+              const sortKey = sortKeyOf(header);
+              const filterParamKey = header.filter?.paramKey ?? header.key;
+
+              return (
+                <TableHead
+                  key={`header-${header.key}-${index}`}
+                  sortable={sortable}
+                  sortDirection={sortColumn === sortKey ? sortDirection : null}
+                  onSort={() => handleSort(sortKey)}
+                  filterSlot={
+                    header.filter && (
+                      <ColumnFilterMenu
+                        columnLabel={
+                          typeof header.label === 'string'
+                            ? header.label
+                            : header.key
+                        }
+                        config={header.filter}
+                        value={columnFilters[filterParamKey] ?? []}
+                        onChange={(values) =>
+                          setColumnFilter(filterParamKey, values)
+                        }
+                      />
+                    )
+                  }
+                  className={header.className}
+                  style={header.width ? { width: header.width } : undefined}
+                >
+                  {header.label}
+                </TableHead>
+              );
+            })}
           </TableRow>
         </thead>
 

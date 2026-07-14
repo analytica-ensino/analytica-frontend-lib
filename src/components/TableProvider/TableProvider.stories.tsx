@@ -307,3 +307,111 @@ export const CustomResponsiveLayout: Story = () => {
     </TableProvider>
   );
 };
+
+/**
+ * Server-side sorting + a filter dropdown inside a column header.
+ *
+ * The "Escola" and "% de acesso" columns sort; "Status" both sorts (by the
+ * ranking behind the label) and filters, through the caret in its header.
+ * Sorting/filtering only report the change through `onParamsChange` — the API
+ * is what actually reorders and filters. Watch the query string: it carries
+ * `schools_sortBy`, `schools_sortOrder` and `schools_colfilter_statusFilter`.
+ */
+interface School extends Record<string, unknown> {
+  schoolId: string;
+  schoolName: string;
+  municipalityName: string;
+  status: 'DESTAQUE' | 'ACIMA_DA_MEDIA' | 'PONTO_DE_ATENCAO' | 'SEM_ACESSO';
+  accessPercentage: number;
+}
+
+const mockSchools: School[] = [
+  {
+    schoolId: '1',
+    schoolName: 'Alberto Santos Dumont',
+    municipalityName: 'APUCARANA',
+    status: 'PONTO_DE_ATENCAO',
+    accessPercentage: 11,
+  },
+  {
+    schoolId: '2',
+    schoolName: 'Carlos Massaretto',
+    municipalityName: 'APUCARANA',
+    status: 'DESTAQUE',
+    accessPercentage: 85,
+  },
+  {
+    schoolId: '3',
+    schoolName: 'Jose Canale',
+    municipalityName: 'CURITIBA',
+    status: 'ACIMA_DA_MEDIA',
+    accessPercentage: 67,
+  },
+  {
+    schoolId: '4',
+    schoolName: 'Nilo Cairo',
+    municipalityName: 'LONDRINA',
+    status: 'SEM_ACESSO',
+    accessPercentage: 0,
+  },
+];
+
+const STATUS_LABELS: Record<School['status'], string> = {
+  DESTAQUE: 'DESTAQUE',
+  ACIMA_DA_MEDIA: 'ACIMA DA MÉDIA',
+  PONTO_DE_ATENCAO: 'PONTO DE ATENÇÃO',
+  SEM_ACESSO: 'SEM ACESSO',
+};
+
+export const ServerSortWithHeaderFilter: Story = () => {
+  const schoolColumns: ColumnConfig<School>[] = [
+    { key: 'schoolName', label: 'Escola' },
+    { key: 'municipalityName', label: 'Município' },
+    {
+      key: 'status',
+      label: 'Status',
+      filter: {
+        paramKey: 'statusFilter',
+        allLabel: 'Todos os status',
+        options: (Object.keys(STATUS_LABELS) as School['status'][]).map(
+          (value) => ({ value, label: STATUS_LABELS[value] })
+        ),
+      },
+      render: (_value, row) => (
+        <Badge variant="solid" action="info">
+          {STATUS_LABELS[row.status]}
+        </Badge>
+      ),
+    },
+    {
+      key: 'accessPercentage',
+      label: '% de acesso por período',
+      render: (_value, row) => (
+        <div className="flex flex-col gap-1">
+          <span>{row.accessPercentage}%</span>
+          <ProgressBar value={row.accessPercentage} />
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className="p-6">
+      <TableProvider<School>
+        data={mockSchools}
+        headers={schoolColumns}
+        tableId="schools"
+        enableTableSort
+        sortMode="server"
+        sortableColumns="all"
+        enablePagination
+        paginationConfig={{
+          itemLabel: 'escolas',
+          totalItems: 4,
+          totalPages: 1,
+        }}
+        onParamsChange={(params) => console.log('params →', params)}
+      />
+    </div>
+  );
+};

@@ -278,59 +278,97 @@ describe('DropdownMenuContent direction and positioning', () => {
       );
     };
 
+    // jsdom hands back an all-zero rect, which makes every placement look the
+    // same. Pin a real one so the assertions below mean something.
+    const TRIGGER_RECT = {
+      top: 100,
+      bottom: 130,
+      left: 200,
+      right: 260,
+      width: 60,
+      height: 30,
+      x: 200,
+      y: 100,
+      toJSON: () => ({}),
+    } as DOMRect;
+
+    const VIEWPORT = { width: 1000, height: 800 };
+    let rectSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      rectSpy = jest
+        .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+        .mockReturnValue(TRIGGER_RECT);
+      window.innerWidth = VIEWPORT.width;
+      window.innerHeight = VIEWPORT.height;
+    });
+
+    afterEach(() => rectSpy.mockRestore());
+
     it('renders portal with align="start" (default)', () => {
       render(<TestPortalDropdown align="start" />);
 
       const menu = screen.getByRole('menu');
       expect(menu).toHaveClass('fixed');
       expect(menu).toHaveAttribute('data-dropdown-content', 'true');
+      expect(menu.style.left).toBe(`${TRIGGER_RECT.left}px`);
     });
 
     it('renders portal with align="end"', () => {
       render(<TestPortalDropdown align="end" />);
 
       const menu = screen.getByRole('menu');
-      expect(menu).toHaveClass('fixed');
-      // align="end" sets right style
-      expect(menu.style.right).toBeDefined();
+      // Right edges line up.
+      expect(menu.style.right).toBe(`${VIEWPORT.width - TRIGGER_RECT.right}px`);
     });
 
     it('renders portal with align="center"', () => {
       render(<TestPortalDropdown align="center" />);
 
       const menu = screen.getByRole('menu');
-      expect(menu).toHaveClass('fixed');
-      // align="center" sets transform: translateX(-50%)
       expect(menu.style.transform).toBe('translateX(-50%)');
+      expect(menu.style.left).toBe(
+        `${TRIGGER_RECT.left + TRIGGER_RECT.width / 2}px`
+      );
     });
 
-    it('renders portal with side="top"', () => {
+    it('opens below the trigger with side="bottom"', () => {
+      render(<TestPortalDropdown side="bottom" />);
+
+      const menu = screen.getByRole('menu');
+      expect(menu.style.top).toBe(`${TRIGGER_RECT.bottom + 4}px`);
+    });
+
+    // A portaled menu has to be anchored by the edge that faces the trigger.
+    // Anchoring `top` for side="top" (or `left` for side="left") grows the menu
+    // back over the trigger it was supposed to sit outside of.
+    it('anchors its bottom edge with side="top", not its top', () => {
       render(<TestPortalDropdown side="top" />);
 
       const menu = screen.getByRole('menu');
-      expect(menu).toHaveClass('fixed');
-      // side="top" positions above the trigger
-      expect(menu.style.top).toBeDefined();
+      expect(menu.style.bottom).toBe(
+        `${VIEWPORT.height - TRIGGER_RECT.top + 4}px`
+      );
+      expect(menu.style.top).toBe('');
     });
 
-    it('renders portal with side="left"', () => {
+    it('anchors its right edge with side="left", not its left', () => {
       render(<TestPortalDropdown side="left" />);
 
       const menu = screen.getByRole('menu');
-      expect(menu).toHaveClass('fixed');
-      // side="left" positions to the left of the trigger
-      expect(menu.style.top).toBeDefined();
-      expect(menu.style.left).toBeDefined();
+      expect(menu.style.right).toBe(
+        `${VIEWPORT.width - TRIGGER_RECT.left + 4}px`
+      );
+      expect(menu.style.left).toBe('');
+      expect(menu.style.top).toBe(`${TRIGGER_RECT.top}px`);
     });
 
     it('renders portal with side="right"', () => {
       render(<TestPortalDropdown side="right" />);
 
       const menu = screen.getByRole('menu');
-      expect(menu).toHaveClass('fixed');
-      // side="right" positions to the right of the trigger
-      expect(menu.style.top).toBeDefined();
-      expect(menu.style.left).toBeDefined();
+      expect(menu.style.left).toBe(`${TRIGGER_RECT.right + 4}px`);
+      expect(menu.style.top).toBe(`${TRIGGER_RECT.top}px`);
     });
 
     it('does not close when clicking inside portal content', async () => {

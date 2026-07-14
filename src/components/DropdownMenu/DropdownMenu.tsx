@@ -5,6 +5,7 @@ import {
   forwardRef,
   ReactNode,
   ButtonHTMLAttributes,
+  useCallback,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -56,6 +57,21 @@ export const useDropdownStore = (externalStore?: DropdownStoreApi) => {
 
   return externalStore;
 };
+
+/**
+ * Keep the same style object when nothing moved — a fresh object on every
+ * scroll event would re-render the menu at 60fps for no reason.
+ */
+const PORTAL_STYLE_KEYS = [
+  'top',
+  'bottom',
+  'left',
+  'right',
+  'transform',
+] as const;
+
+const isSamePortalStyle = (a: CSSProperties, b: CSSProperties): boolean =>
+  PORTAL_STYLE_KEYS.every((key) => a[key] === b[key]);
 
 const injectStore = (
   children: ReactNode,
@@ -130,7 +146,14 @@ const DropdownMenu = ({
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   const handleArrowDownOrArrowUp = (event: globalThis.KeyboardEvent) => {
-    const menuContent = menuRef.current?.querySelector('[role="menu"]');
+    // A portaled content lives in document.body, outside menuRef — look it up
+    // globally in that case. Only the open menu carries data-open="true"
+    // (a closing one keeps rendering for the 200ms fade-out).
+    const menuContent =
+      menuRef.current?.querySelector('[role="menu"]') ??
+      document.querySelector(
+        '[data-dropdown-content="true"][data-open="true"]'
+      );
     if (menuContent) {
       event.preventDefault();
 
@@ -319,7 +342,7 @@ const DropdownMenuContent = forwardRef<
     const store = useDropdownStore(externalStore);
     const open = useStore(store, (s) => s.open);
     const [isVisible, setIsVisible] = useState(open);
-    const [portalPosition, setPortalPosition] = useState({ top: 0, left: 0 });
+    const [portalStyle, setPortalStyle] = useState<CSSProperties>({});
     const contentRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -331,37 +354,64 @@ const DropdownMenuContent = forwardRef<
       }
     }, [open]);
 
-    useLayoutEffect(() => {
-      if (portal && open && triggerRef?.current) {
-        const rect = triggerRef.current.getBoundingClientRect();
-        let top = rect.bottom + sideOffset;
-        let left = rect.left;
+    const updatePortalPosition = useCallback(() => {
+      if (!portal || !triggerRef?.current) return;
 
-        // Handle horizontal sides (left/right)
+      const rect = triggerRef.current.getBoundingClientRect();
+      const style: CSSProperties = {};
+
+      // Each side anchors the menu by the edge that faces the trigger. Placing a
+      // `top`/`left` for the `top`/`left` sides would grow the menu back over
+      // the trigger instead of away from it.
+      if (side === 'left' || side === 'right') {
+        style.top = rect.top;
+
         if (side === 'left') {
-          left = rect.left - sideOffset;
-          top = rect.top;
-        } else if (side === 'right') {
-          left = rect.right + sideOffset;
-          top = rect.top;
+          style.right = window.innerWidth - rect.left + sideOffset;
         } else {
-          // Handle vertical sides (top/bottom)
-          if (align === 'end') {
-            left = rect.right;
-          } else if (align === 'center') {
-            left = rect.left + rect.width / 2;
-          }
-
-          if (side === 'top') {
-            top = rect.top - sideOffset;
-          }
+          style.left = rect.right + sideOffset;
+        }
+      } else {
+        if (side === 'top') {
+          style.bottom = window.innerHeight - rect.top + sideOffset;
+        } else {
+          style.top = rect.bottom + sideOffset;
         }
 
-        setPortalPosition((prev) =>
-          prev.top === top && prev.left === left ? prev : { top, left }
-        );
+        if (align === 'end') {
+          style.right = window.innerWidth - rect.right;
+        } else if (align === 'center') {
+          style.left = rect.left + rect.width / 2;
+          style.transform = 'translateX(-50%)';
+        } else {
+          style.left = rect.left;
+        }
       }
-    }, [portal, open, triggerRef, align, side, sideOffset]);
+
+      setPortalStyle((prev) => (isSamePortalStyle(prev, style) ? prev : style));
+    }, [portal, triggerRef, align, side, sideOffset]);
+
+    useLayoutEffect(() => {
+      if (open) updatePortalPosition();
+    }, [open, updatePortalPosition]);
+
+    // A portaled menu is position:fixed, so it doesn't follow the trigger when
+    // an ancestor scrolls. Tables wrap their body in `overflow-x-auto`, so a
+    // menu anchored to a column header would drift away from its <th> on any
+    // horizontal scroll. Capture-phase catches scrolls on any ancestor, not
+    // just the window.
+    useEffect(() => {
+      if (!portal || !open) return;
+
+      const reposition = () => updatePortalPosition();
+      window.addEventListener('scroll', reposition, true);
+      window.addEventListener('resize', reposition);
+
+      return () => {
+        window.removeEventListener('scroll', reposition, true);
+        window.removeEventListener('resize', reposition);
+      };
+    }, [portal, open, updatePortalPosition]);
 
     if (!isVisible) return null;
 
@@ -375,25 +425,6 @@ const DropdownMenuContent = forwardRef<
       return `absolute ${vertical} ${horizontal}`;
     };
 
-    const getPortalAlignStyle = () => {
-      if (!portal) return {};
-
-      const baseStyle: CSSProperties = {
-        top: portalPosition.top,
-      };
-
-      if (align === 'end') {
-        baseStyle.right = window.innerWidth - portalPosition.left;
-      } else if (align === 'center') {
-        baseStyle.left = portalPosition.left;
-        baseStyle.transform = 'translateX(-50%)';
-      } else {
-        baseStyle.left = portalPosition.left;
-      }
-
-      return baseStyle;
-    };
-
     const variantClasses = MENUCONTENT_VARIANT_CLASSES[variant];
 
     const content = (
@@ -401,6 +432,7 @@ const DropdownMenuContent = forwardRef<
         ref={portal ? contentRef : ref}
         role="menu"
         data-dropdown-content="true"
+        data-open={open}
         className={`
         bg-background z-50 min-w-[210px] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md border-border-100
         ${open ? 'animate-in fade-in-0 zoom-in-95' : 'animate-out fade-out-0 zoom-out-95'}
@@ -410,7 +442,7 @@ const DropdownMenuContent = forwardRef<
       `}
         style={{
           ...(portal
-            ? getPortalAlignStyle()
+            ? portalStyle
             : {
                 marginTop: side === 'bottom' ? sideOffset : undefined,
                 marginBottom: side === 'top' ? sideOffset : undefined,

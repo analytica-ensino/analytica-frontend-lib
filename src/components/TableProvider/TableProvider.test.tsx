@@ -520,6 +520,249 @@ describe('TableProvider', () => {
   });
 
   // ======================
+  // GROUP 6b: Which columns are sortable
+  // ======================
+  describe('sortableColumns', () => {
+    // Columns that say nothing about sorting — the interesting case.
+    const plainHeaders: ColumnConfig<TestData>[] = [
+      { key: 'name', label: 'Name' },
+      { key: 'age', label: 'Age' },
+      { key: 'status', label: 'Status' },
+    ];
+
+    it('should sort no column by default, even with enableTableSort on', () => {
+      // Regression: `enableTableSort && header.sortable` evaluated to undefined
+      // for these columns, so TableHead fell back to its `sortable = true`
+      // default and every header looked clickable while doing nothing.
+      const { container } = render(
+        <TableProvider data={testData} headers={plainHeaders} enableTableSort />
+      );
+
+      for (const th of Array.from(container.querySelectorAll('th'))) {
+        expect(th).not.toHaveClass('cursor-pointer');
+      }
+    });
+
+    it('should make every column sortable with "all"', () => {
+      const { container } = render(
+        <TableProvider
+          data={testData}
+          headers={plainHeaders}
+          enableTableSort
+          sortableColumns="all"
+        />
+      );
+
+      for (const th of Array.from(container.querySelectorAll('th'))) {
+        expect(th).toHaveClass('cursor-pointer');
+      }
+    });
+
+    it('should make only the listed columns sortable', () => {
+      const { container } = render(
+        <TableProvider
+          data={testData}
+          headers={plainHeaders}
+          enableTableSort
+          sortableColumns={['name']}
+        />
+      );
+
+      const [name, age, status] = Array.from(container.querySelectorAll('th'));
+      expect(name).toHaveClass('cursor-pointer');
+      expect(age).not.toHaveClass('cursor-pointer');
+      expect(status).not.toHaveClass('cursor-pointer');
+    });
+
+    it('should let a column opt out even under "all"', () => {
+      const headers: ColumnConfig<TestData>[] = [
+        { key: 'name', label: 'Name' },
+        { key: 'age', label: 'Age', sortable: false },
+      ];
+
+      const { container } = render(
+        <TableProvider
+          data={testData}
+          headers={headers}
+          enableTableSort
+          sortableColumns="all"
+        />
+      );
+
+      const [name, age] = Array.from(container.querySelectorAll('th'));
+      expect(name).toHaveClass('cursor-pointer');
+      expect(age).not.toHaveClass('cursor-pointer');
+    });
+  });
+
+  // ======================
+  // GROUP 6c: Server-side sorting
+  // ======================
+  describe('Server-side sorting', () => {
+    const serverHeaders: ColumnConfig<TestData>[] = [
+      { key: 'name', label: 'Name', sortable: true },
+      // Displays a formatted value, sorts by the raw one.
+      { key: 'status', label: 'Age', sortable: true, sortKey: 'age' },
+    ];
+
+    it('should report sortBy/sortOrder instead of reordering the rows', () => {
+      const onParamsChange = jest.fn();
+      render(
+        <TableProvider
+          data={testData}
+          headers={serverHeaders}
+          enableTableSort
+          sortMode="server"
+          onParamsChange={onParamsChange}
+        />
+      );
+
+      fireEvent.click(screen.getByText('Name'));
+
+      expect(onParamsChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ sortBy: 'name', sortOrder: 'asc' })
+      );
+
+      // Rows stay in the order the API sent them.
+      const rows = screen.getAllByRole('row');
+      expect(rows[1]).toHaveTextContent('Alice');
+      expect(rows[2]).toHaveTextContent('Bob');
+    });
+
+    it('should send the column sortKey, not its display key', () => {
+      const onParamsChange = jest.fn();
+      render(
+        <TableProvider
+          data={testData}
+          headers={serverHeaders}
+          enableTableSort
+          sortMode="server"
+          onParamsChange={onParamsChange}
+        />
+      );
+
+      fireEvent.click(screen.getByText('Age'));
+
+      expect(onParamsChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ sortBy: 'age' })
+      );
+    });
+
+    it('should go back to page 1 when the sort changes', () => {
+      // Page 3 of the old ordering has nothing to do with page 3 of the new one.
+      const onParamsChange = jest.fn();
+      render(
+        <TableProvider
+          data={testData}
+          headers={serverHeaders}
+          enableTableSort
+          sortMode="server"
+          enablePagination
+          paginationConfig={{ totalItems: 100, totalPages: 10 }}
+          onParamsChange={onParamsChange}
+        />
+      );
+
+      fireEvent.click(screen.getByText('Próxima'));
+      expect(onParamsChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ page: 2 })
+      );
+
+      fireEvent.click(screen.getByText('Name'));
+      expect(onParamsChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ page: 1, sortBy: 'name' })
+      );
+    });
+  });
+
+  // ======================
+  // GROUP 6d: Header filter (column select)
+  // ======================
+  describe('Column header filter', () => {
+    const filterHeaders: ColumnConfig<TestData>[] = [
+      { key: 'name', label: 'Name' },
+      {
+        key: 'status',
+        label: 'Status',
+        filter: {
+          paramKey: 'statusFilter',
+          allLabel: 'Todos',
+          options: [
+            { value: 'active', label: 'Ativo' },
+            { value: 'inactive', label: 'Inativo' },
+          ],
+        },
+      },
+    ];
+
+    it('should emit the selected value under the column paramKey', () => {
+      const onParamsChange = jest.fn();
+      render(
+        <TableProvider
+          data={testData}
+          headers={filterHeaders}
+          onParamsChange={onParamsChange}
+        />
+      );
+
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Filtrar por Status' })
+      );
+      fireEvent.click(screen.getByText('Ativo'));
+
+      expect(onParamsChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ statusFilter: 'active' })
+      );
+    });
+
+    it('should drop the key when the filter is cleared', () => {
+      const onParamsChange = jest.fn();
+      render(
+        <TableProvider
+          data={testData}
+          headers={filterHeaders}
+          onParamsChange={onParamsChange}
+        />
+      );
+
+      const trigger = screen.getByRole('button', {
+        name: 'Filtrar por Status',
+      });
+
+      fireEvent.click(trigger);
+      fireEvent.click(screen.getByText('Ativo'));
+      fireEvent.click(trigger);
+      fireEvent.click(screen.getByText('Todos'));
+
+      const lastParams = onParamsChange.mock.calls.at(-1)?.[0];
+      expect(lastParams).not.toHaveProperty('statusFilter');
+    });
+
+    it('should go back to page 1 when a column filter changes', () => {
+      const onParamsChange = jest.fn();
+      render(
+        <TableProvider
+          data={testData}
+          headers={filterHeaders}
+          enablePagination
+          paginationConfig={{ totalItems: 100, totalPages: 10 }}
+          onParamsChange={onParamsChange}
+        />
+      );
+
+      fireEvent.click(screen.getByText('Próxima'));
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Filtrar por Status' })
+      );
+      fireEvent.click(screen.getByText('Ativo'));
+
+      expect(onParamsChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ page: 1, statusFilter: 'active' })
+      );
+    });
+  });
+
+  // ======================
   // GROUP 7: Pagination Functionality
   // ======================
   describe('Pagination Functionality', () => {
