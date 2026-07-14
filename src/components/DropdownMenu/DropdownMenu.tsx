@@ -5,6 +5,7 @@ import {
   forwardRef,
   ReactNode,
   ButtonHTMLAttributes,
+  useCallback,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -130,7 +131,14 @@ const DropdownMenu = ({
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   const handleArrowDownOrArrowUp = (event: globalThis.KeyboardEvent) => {
-    const menuContent = menuRef.current?.querySelector('[role="menu"]');
+    // A portaled content lives in document.body, outside menuRef — look it up
+    // globally in that case. Only the open menu carries data-open="true"
+    // (a closing one keeps rendering for the 200ms fade-out).
+    const menuContent =
+      menuRef.current?.querySelector('[role="menu"]') ??
+      document.querySelector(
+        '[data-dropdown-content="true"][data-open="true"]'
+      );
     if (menuContent) {
       event.preventDefault();
 
@@ -331,37 +339,59 @@ const DropdownMenuContent = forwardRef<
       }
     }, [open]);
 
-    useLayoutEffect(() => {
-      if (portal && open && triggerRef?.current) {
-        const rect = triggerRef.current.getBoundingClientRect();
-        let top = rect.bottom + sideOffset;
-        let left = rect.left;
+    const updatePortalPosition = useCallback(() => {
+      if (!portal || !triggerRef?.current) return;
 
-        // Handle horizontal sides (left/right)
-        if (side === 'left') {
-          left = rect.left - sideOffset;
-          top = rect.top;
-        } else if (side === 'right') {
-          left = rect.right + sideOffset;
-          top = rect.top;
-        } else {
-          // Handle vertical sides (top/bottom)
-          if (align === 'end') {
-            left = rect.right;
-          } else if (align === 'center') {
-            left = rect.left + rect.width / 2;
-          }
+      const rect = triggerRef.current.getBoundingClientRect();
+      let top = rect.bottom + sideOffset;
+      let left = rect.left;
 
-          if (side === 'top') {
-            top = rect.top - sideOffset;
-          }
+      // Handle horizontal sides (left/right)
+      if (side === 'left') {
+        left = rect.left - sideOffset;
+        top = rect.top;
+      } else if (side === 'right') {
+        left = rect.right + sideOffset;
+        top = rect.top;
+      } else {
+        // Handle vertical sides (top/bottom)
+        if (align === 'end') {
+          left = rect.right;
+        } else if (align === 'center') {
+          left = rect.left + rect.width / 2;
         }
 
-        setPortalPosition((prev) =>
-          prev.top === top && prev.left === left ? prev : { top, left }
-        );
+        if (side === 'top') {
+          top = rect.top - sideOffset;
+        }
       }
-    }, [portal, open, triggerRef, align, side, sideOffset]);
+
+      setPortalPosition((prev) =>
+        prev.top === top && prev.left === left ? prev : { top, left }
+      );
+    }, [portal, triggerRef, align, side, sideOffset]);
+
+    useLayoutEffect(() => {
+      if (open) updatePortalPosition();
+    }, [open, updatePortalPosition]);
+
+    // A portaled menu is position:fixed, so it doesn't follow the trigger when
+    // an ancestor scrolls. Tables wrap their body in `overflow-x-auto`, so a
+    // menu anchored to a column header would drift away from its <th> on any
+    // horizontal scroll. Capture-phase catches scrolls on any ancestor, not
+    // just the window.
+    useEffect(() => {
+      if (!portal || !open) return;
+
+      const reposition = () => updatePortalPosition();
+      window.addEventListener('scroll', reposition, true);
+      window.addEventListener('resize', reposition);
+
+      return () => {
+        window.removeEventListener('scroll', reposition, true);
+        window.removeEventListener('resize', reposition);
+      };
+    }, [portal, open, updatePortalPosition]);
 
     if (!isVisible) return null;
 
@@ -401,6 +431,7 @@ const DropdownMenuContent = forwardRef<
         ref={portal ? contentRef : ref}
         role="menu"
         data-dropdown-content="true"
+        data-open={open}
         className={`
         bg-background z-50 min-w-[210px] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md border-border-100
         ${open ? 'animate-in fade-in-0 zoom-in-95' : 'animate-out fade-out-0 zoom-out-95'}

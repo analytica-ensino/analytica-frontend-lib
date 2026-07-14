@@ -15,6 +15,7 @@ import Table, {
   TableFooter,
   TableCaption,
   useTableSort,
+  type SortDirection,
 } from './Table';
 import { mockWindowLocation } from '../../test-utils/mockLocation';
 
@@ -259,7 +260,7 @@ describe('Table Components', () => {
       expect(screen.getByTestId('head')).toHaveClass('whitespace-nowrap');
     });
 
-    it('is sortable by default', () => {
+    it('is not sortable by default', () => {
       render(
         <Table>
           <TableHeader>
@@ -269,8 +270,79 @@ describe('Table Components', () => {
           </TableHeader>
         </Table>
       );
+      expect(screen.getByTestId('head')).not.toHaveClass('cursor-pointer');
+      expect(screen.getByTestId('head')).not.toHaveAttribute('aria-sort');
+    });
+
+    it('is sortable when opted in', () => {
+      render(
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead data-testid="head" sortable>
+                Name
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+        </Table>
+      );
       expect(screen.getByTestId('head')).toHaveClass('cursor-pointer');
       expect(screen.getByTestId('head')).toHaveClass('select-none');
+      expect(screen.getByTestId('head')).toHaveAttribute('aria-sort', 'none');
+    });
+
+    // The design uses two different glyphs on purpose: an arrow means "this
+    // column is sorted", a caret means "this header opens a menu". Swapping one
+    // for the other makes a sortable column look filterable and vice-versa.
+    describe('sort indicator', () => {
+      const renderHead = (sortDirection: SortDirection) =>
+        render(
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead sortable sortDirection={sortDirection}>
+                  Name
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+          </Table>
+        );
+
+      it('shows an up arrow when sorted ascending', () => {
+        renderHead('asc');
+        expect(screen.getByTestId('phosphor-arrow-up')).toBeInTheDocument();
+        expect(
+          screen.queryByTestId('phosphor-arrow-down')
+        ).not.toBeInTheDocument();
+      });
+
+      it('shows a down arrow when sorted descending', () => {
+        renderHead('desc');
+        expect(screen.getByTestId('phosphor-arrow-down')).toBeInTheDocument();
+        expect(
+          screen.queryByTestId('phosphor-arrow-up')
+        ).not.toBeInTheDocument();
+      });
+
+      it('shows no arrow while the column is not the sorted one', () => {
+        renderHead(null);
+        expect(
+          screen.queryByTestId('phosphor-arrow-up')
+        ).not.toBeInTheDocument();
+        expect(
+          screen.queryByTestId('phosphor-arrow-down')
+        ).not.toBeInTheDocument();
+      });
+
+      it('never renders a caret — that glyph belongs to the filter menu', () => {
+        renderHead('asc');
+        expect(
+          screen.queryByTestId('phosphor-caret-down')
+        ).not.toBeInTheDocument();
+        expect(
+          screen.queryByTestId('phosphor-caret-up')
+        ).not.toBeInTheDocument();
+      });
     });
 
     it('can be non-sortable', () => {
@@ -294,7 +366,7 @@ describe('Table Components', () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead data-testid="head" onSort={handleSort}>
+              <TableHead data-testid="head" sortable onSort={handleSort}>
                 Name
               </TableHead>
             </TableRow>
@@ -302,6 +374,34 @@ describe('Table Components', () => {
         </Table>
       );
       fireEvent.click(screen.getByTestId('head'));
+      expect(handleSort).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call onSort when a filterSlot is present and the cell is clicked', () => {
+      // With a filter menu in the header, only the label toggles sorting — the
+      // rest of the cell is inert so the two targets don't fight.
+      const handleSort = jest.fn();
+      render(
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead
+                data-testid="head"
+                sortable
+                onSort={handleSort}
+                filterSlot={<button type="button">filter</button>}
+              >
+                Status
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+        </Table>
+      );
+
+      fireEvent.click(screen.getByTestId('head'));
+      expect(handleSort).not.toHaveBeenCalled();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Status' }));
       expect(handleSort).toHaveBeenCalledTimes(1);
     });
 
@@ -1137,17 +1237,17 @@ describe('Table Components', () => {
         expect(globalThis.history.replaceState).toHaveBeenCalled();
         const url = getLastUrlFromHistory();
         expect(url).toContain('sortBy=name');
-        expect(url).toContain('sort=ASC');
+        expect(url).toContain('sortOrder=asc');
       });
 
-      it('updates URL to DESC on second click', () => {
+      it('updates URL to desc on second click', () => {
         const { result } = setupHookWithSync();
         performSort(result, 'name');
         performSort(result, 'name');
 
         const url = getLastUrlFromHistory();
         expect(url).toContain('sortBy=name');
-        expect(url).toContain('sort=DESC');
+        expect(url).toContain('sortOrder=desc');
       });
 
       it('removes URL params when sort is cleared', () => {
@@ -1180,7 +1280,7 @@ describe('Table Components', () => {
         expect(url).toContain('page=2');
         expect(url).toContain('filter=active');
         expect(url).toContain('sortBy=name');
-        expect(url).toContain('sort=ASC');
+        expect(url).toContain('sortOrder=asc');
       });
 
       it('does not update URL when syncWithUrl is false', () => {
@@ -1188,6 +1288,148 @@ describe('Table Components', () => {
         performSort(result, 'name');
 
         expect(globalThis.history.replaceState).not.toHaveBeenCalled();
+      });
+
+      it('leaves someone else’s sort params alone when it never sorted', () => {
+        // Regression: a table with sorting off used to wipe sortBy/sortOrder
+        // from the URL on mount, clobbering whatever else shared the page.
+        globalThis.location.href =
+          'http://localhost:3000/?sortBy=name&sortOrder=asc';
+        globalThis.location.search = '?sortBy=name&sortOrder=asc';
+
+        renderHook(() => useTableSort(testData, { syncWithUrl: false }));
+
+        expect(globalThis.history.replaceState).not.toHaveBeenCalled();
+      });
+
+      it('still reads the legacy sort=ASC contract', () => {
+        globalThis.location.search = '?sortBy=name&sort=ASC';
+        const { result } = setupHookWithSync();
+
+        expect(result.current.sortColumn).toBe('name');
+        expect(result.current.sortDirection).toBe('asc');
+      });
+
+      it('namespaces the URL keys with urlKeyPrefix', () => {
+        const { result } = renderHook(() =>
+          useTableSort(testData, { syncWithUrl: true, urlKeyPrefix: 'schools' })
+        );
+        performSort(result, 'name');
+
+        const url = getLastUrlFromHistory();
+        expect(url).toContain('schools_sortBy=name');
+        expect(url).toContain('schools_sortOrder=asc');
+      });
+
+      it('reads only its own namespaced keys', () => {
+        // The other table's sort must not leak into this one.
+        globalThis.location.search = '?users_sortBy=name&users_sortOrder=asc';
+        const { result } = renderHook(() =>
+          useTableSort(testData, { syncWithUrl: true, urlKeyPrefix: 'schools' })
+        );
+
+        expect(result.current.sortColumn).toBeNull();
+      });
+
+      it('discards a URL sortBy that is not an allowed column', () => {
+        // A pasted/stale URL must never reach the API as an unknown field.
+        globalThis.location.search = '?sortBy=accessPercentage&sortOrder=asc';
+        const { result } = renderHook(() =>
+          useTableSort(testData, {
+            syncWithUrl: true,
+            allowedColumns: ['name', 'age'],
+          })
+        );
+
+        expect(result.current.sortColumn).toBeNull();
+        expect(result.current.sortDirection).toBeNull();
+      });
+
+      it('falls back to defaultSort when the URL has none', () => {
+        const { result } = renderHook(() =>
+          useTableSort(testData, {
+            syncWithUrl: true,
+            defaultSort: { sortBy: 'age', sortOrder: 'desc' },
+          })
+        );
+
+        expect(result.current.sortColumn).toBe('age');
+        expect(result.current.sortDirection).toBe('desc');
+      });
+
+      it('re-reads the sort from the URL on popstate', () => {
+        const { result } = setupHookWithSync();
+        performSort(result, 'name');
+        expect(result.current.sortColumn).toBe('name');
+
+        // The user hits Back, landing on a URL that sorted by age.
+        globalThis.location.search = '?sortBy=age&sortOrder=desc';
+        act(() => {
+          globalThis.dispatchEvent(new PopStateEvent('popstate'));
+        });
+
+        expect(result.current.sortColumn).toBe('age');
+        expect(result.current.sortDirection).toBe('desc');
+      });
+
+      it('clears the sort when going back to a URL without one', () => {
+        const { result } = setupHookWithSync();
+        performSort(result, 'name');
+
+        globalThis.location.search = '';
+        act(() => {
+          globalThis.dispatchEvent(new PopStateEvent('popstate'));
+        });
+
+        expect(result.current.sortColumn).toBeNull();
+        expect(result.current.sortDirection).toBeNull();
+      });
+    });
+
+    describe('sort modes', () => {
+      // NB: this describe block shadows the outer `testData`; its rows come in
+      // as Charlie, Alice, Bob.
+      it('reorders the rows in client mode', () => {
+        const { result } = renderHook(() => useTableSort(testData));
+        performSort(result, 'name');
+
+        expect(result.current.sortedData.map((r) => r.name)).toEqual([
+          'Alice',
+          'Bob',
+          'Charlie',
+        ]);
+      });
+
+      it('leaves the rows untouched in server mode', () => {
+        // The API already ordered them; re-sorting here would reshuffle the
+        // page by whatever the cell happens to render.
+        const { result } = renderHook(() =>
+          useTableSort(testData, { mode: 'server' })
+        );
+        performSort(result, 'name');
+
+        expect(result.current.sortColumn).toBe('name');
+        expect(result.current.sortDirection).toBe('asc');
+        expect(result.current.sortedData.map((r) => r.name)).toEqual([
+          'Charlie',
+          'Alice',
+          'Bob',
+        ]);
+      });
+    });
+
+    describe('onSortChange', () => {
+      it('fires on every sort change', () => {
+        const onSortChange = jest.fn();
+        const { result } = renderHook(() =>
+          useTableSort(testData, { onSortChange })
+        );
+
+        performSort(result, 'name'); // asc
+        performSort(result, 'name'); // desc
+        performSort(result, 'name'); // cleared
+
+        expect(onSortChange).toHaveBeenCalledTimes(3);
       });
     });
   });

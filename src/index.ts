@@ -322,7 +322,17 @@ export {
 export type {
   UseTableSortOptions,
   SortDirection,
+  SortMode,
+  SortState,
 } from './components/Table/Table';
+export { default as ColumnFilterMenu } from './components/Table/ColumnFilterMenu';
+export { useColumnFilters } from './components/Table/useColumnFilters';
+export type {
+  ColumnFilterConfig,
+  ColumnFilterOption,
+  UseColumnFiltersOptions,
+  UseColumnFiltersReturn,
+} from './components/Table/useColumnFilters';
 
 // Filter Components
 export { FilterModal, useTableFilter } from './components/Filter';
@@ -552,9 +562,10 @@ export type {
 export type { TablePaginationProps } from './components/Table/Table';
 
 // TableProvider Component
-export { TableProvider } from './components/TableProvider';
+export { TableProvider, isColumnSortable } from './components/TableProvider';
 export type {
   ColumnConfig,
+  SortableColumns,
   TableParams,
   PaginationConfig,
   TableProviderProps,
