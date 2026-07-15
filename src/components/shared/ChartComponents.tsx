@@ -157,10 +157,18 @@ export interface PieSlice {
   /** Unique key for the slice (uses label if not provided) */
   key?: string;
   label: string;
+  /** Drives the slice's angle. Always the number — never a formatted string. */
   value: number;
   colorClass: string;
   /** Direct CSS color value — takes precedence over colorClass when provided */
   color?: string;
+  /**
+   * What the legend shows, when it differs from `value`.
+   *
+   * The pie is sized by the percentage, but the legend often needs to read as
+   * something else — "1h 20min" rather than "45". Falls back to `value`.
+   */
+  displayValue?: string | number;
 }
 
 /** Default radius ratio (44% of size) */
@@ -378,11 +386,13 @@ export const LegendRow = ({
   color,
   label,
   value,
+  displayValue,
 }: {
   colorClass: string;
   color?: string;
   label: string;
   value: number;
+  displayValue?: string | number;
 }) => (
   <div className="flex items-center gap-2">
     <div
@@ -393,7 +403,7 @@ export const LegendRow = ({
       {label}
     </Text>
     <Text size="sm" weight="medium" className="text-text-600 ml-3">
-      {value}
+      {displayValue ?? value}
     </Text>
   </div>
 );
@@ -411,6 +421,7 @@ export const LegendPieCard = ({ slices }: { slices: PieSlice[] }) => (
           color={s.color}
           label={s.label}
           value={s.value}
+          displayValue={s.displayValue}
         />
       ))}
     </div>

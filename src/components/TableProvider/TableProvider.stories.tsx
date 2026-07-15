@@ -365,7 +365,24 @@ const STATUS_LABELS: Record<School['status'], string> = {
 
 export const ServerSortWithHeaderFilter: Story = () => {
   const schoolColumns: ColumnConfig<School>[] = [
-    { key: 'schoolName', label: 'Escola' },
+    {
+      key: 'schoolName',
+      label: 'Escola',
+      // A searchable header filter: the option list is fetched as the user
+      // types (here, filtered client-side over the mock), for lists too long
+      // to scan — a manager sees over a thousand schools.
+      filter: {
+        paramKey: 'schoolIds',
+        allLabel: 'Todas as escolas',
+        searchable: true,
+        searchPlaceholder: 'Buscar escola...',
+        options: mockSchools.map((s) => ({
+          value: s.schoolId,
+          label: s.schoolName,
+          searchText: s.schoolName,
+        })),
+      },
+    },
     { key: 'municipalityName', label: 'Município' },
     {
       key: 'status',

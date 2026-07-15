@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
 import { CheckIcon } from '@phosphor-icons/react/dist/csr/Check';
 import DropdownMenu, {
@@ -6,6 +6,8 @@ import DropdownMenu, {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../DropdownMenu/DropdownMenu';
+import Search from '../Search/Search';
+import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
 import type { ColumnFilterConfig } from './useColumnFilters';
 
@@ -32,9 +34,32 @@ const ColumnFilterMenu = ({
   onChange,
 }: ColumnFilterMenuProps) => {
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const { options, multiple = false, allLabel = 'Todos' } = config;
+  const {
+    options,
+    multiple = false,
+    allLabel = 'Todos',
+    searchable = false,
+    searchPlaceholder = 'Buscar...',
+    onSearch,
+    loading = false,
+  } = config;
+
+  const [query, setQuery] = useState('');
 
   const hasFilter = value.length > 0;
+
+  // With `onSearch` the consumer owns the list (it re-fetches per query), so the
+  // options arrive already filtered. Without it, filter what we were given.
+  const visibleOptions = useMemo(() => {
+    if (!searchable || onSearch || !query) return options;
+
+    const term = query.toLowerCase();
+    return options.filter((option) =>
+      String(option.searchText ?? option.value)
+        .toLowerCase()
+        .includes(term)
+    );
+  }, [searchable, onSearch, query, options]);
 
   const toggle = (optionValue: string) => {
     if (!multiple) {
@@ -81,8 +106,32 @@ const ColumnFilterMenu = ({
           portal
           triggerRef={triggerRef}
           align="start"
+          className="max-h-80 overflow-y-auto"
           onClick={(event) => event.stopPropagation()}
         >
+          {searchable && (
+            <div className="p-2">
+              {/*
+               * Two callbacks on purpose: `onChange` fires on every keystroke and
+               * drives the local filtering (debouncing that would make typing feel
+               * broken), while `onSearch` is debounced and is what hits the server.
+               */}
+              <Search
+                options={[]}
+                value={query}
+                placeholder={searchPlaceholder}
+                debounceMs={300}
+                onChange={(event) => setQuery(event.target.value)}
+                onSearch={onSearch}
+                onClear={() => {
+                  setQuery('');
+                  onSearch?.('');
+                }}
+                aria-label={`Buscar ${columnLabel}`}
+              />
+            </div>
+          )}
+
           <DropdownMenuItem
             onClick={() => onChange([])}
             className={cn(!hasFilter && 'font-bold')}
@@ -90,25 +139,42 @@ const ColumnFilterMenu = ({
             {allLabel}
           </DropdownMenuItem>
 
-          {options.map((option) => {
-            const selected = value.includes(option.value);
+          {loading && (
+            <div className="px-3 py-2">
+              <Text size="sm" className="text-text-600">
+                Carregando...
+              </Text>
+            </div>
+          )}
 
-            return (
-              <DropdownMenuItem
-                key={option.value}
-                preventClose={multiple}
-                onClick={() => toggle(option.value)}
-                iconRight={
-                  selected ? (
-                    <CheckIcon size={16} weight="bold" aria-hidden="true" />
-                  ) : undefined
-                }
-                className={cn(selected && 'font-bold')}
-              >
-                {option.label}
-              </DropdownMenuItem>
-            );
-          })}
+          {!loading && visibleOptions.length === 0 && (
+            <div className="px-3 py-2">
+              <Text size="sm" className="text-text-600">
+                Nenhum resultado encontrado
+              </Text>
+            </div>
+          )}
+
+          {!loading &&
+            visibleOptions.map((option) => {
+              const selected = value.includes(option.value);
+
+              return (
+                <DropdownMenuItem
+                  key={option.value}
+                  preventClose={multiple}
+                  onClick={() => toggle(option.value)}
+                  iconRight={
+                    selected ? (
+                      <CheckIcon size={16} weight="bold" aria-hidden="true" />
+                    ) : undefined
+                  }
+                  className={cn(selected && 'font-bold')}
+                >
+                  {option.label}
+                </DropdownMenuItem>
+              );
+            })}
         </DropdownMenuContent>
       </DropdownMenu>
     </span>

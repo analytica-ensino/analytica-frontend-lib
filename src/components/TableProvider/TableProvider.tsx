@@ -23,6 +23,13 @@ import {
   type ColumnFilterConfig,
 } from '../Table/useColumnFilters';
 import { useTableFilter, FilterConfig } from '../Filter/useTableFilter';
+
+// Re-exported here (not only from the barrel) because the `table-provider`
+// subpath maps to this file, and consumers set `ColumnConfig.filter` with it.
+export type {
+  ColumnFilterConfig,
+  ColumnFilterOption,
+} from '../Table/useColumnFilters';
 import Search from '../Search/Search';
 import { FilterModal } from '../Filter/FilterModal';
 import Button from '../Button/Button';

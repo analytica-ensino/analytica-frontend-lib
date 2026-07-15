@@ -220,9 +220,45 @@ describe('AccessReportModal', () => {
         />
       );
       // Professional variant shows simplified metrics without activity breakdown
-      expect(screen.getByText('Tempo na plataforma')).toBeInTheDocument();
-      expect(screen.getByText('Quantidade de acessos')).toBeInTheDocument();
+      expect(screen.getByText('Dados de acesso')).toBeInTheDocument();
+      expect(screen.getByText('Tempo total')).toBeInTheDocument();
+      expect(screen.getByText('Acessos')).toBeInTheDocument();
       expect(screen.getByText('Último acesso')).toBeInTheDocument();
+    });
+
+    it('shows the platform time in the legend, not the percentage', () => {
+      // The pie is sized by percentage, but the legend reads the time, per the
+      // design. The percentage number must not appear.
+      render(
+        <AccessReportModal
+          isOpen={true}
+          onClose={() => {}}
+          variant={AccessReportModalVariant.PROFESSIONAL}
+          data={mockProfessionalData}
+        />
+      );
+
+      expect(screen.getByText('14h50min')).toBeInTheDocument();
+      expect(screen.getByText('3h40min')).toBeInTheDocument();
+    });
+
+    it('omits the class segment for a user without one (no orphan bullet)', () => {
+      render(
+        <AccessReportModal
+          isOpen={true}
+          onClose={() => {}}
+          variant={AccessReportModalVariant.PROFESSIONAL}
+          data={{
+            ...mockProfessionalData,
+            user: { ...mockProfessionalData.user, class: null },
+          }}
+        />
+      );
+
+      // "Escola • • 2026" would have a doubled bullet; "Escola • 2026" doesn't.
+      expect(
+        screen.getByText('Escola Estadual Paraná • 2026')
+      ).toBeInTheDocument();
     });
 
     it('should render metric values from data', () => {
