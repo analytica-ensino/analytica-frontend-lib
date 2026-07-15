@@ -123,9 +123,8 @@ describe('TimeChart', () => {
       expect(screen.getAllByText('Atividades')).toHaveLength(2);
       expect(screen.getAllByText('Videoaulas')).toHaveLength(2);
       expect(screen.getAllByText('Simulados')).toHaveLength(2);
-      expect(screen.getAllByText('Questionários das Videoaulas')).toHaveLength(
-        2
-      );
+      expect(screen.getAllByText('Questionários')).toHaveLength(2);
+      expect(screen.getAllByText('Aulas recomendadas')).toHaveLength(2);
     });
 
     it('renders correct number of legend items for teacher profile', () => {
@@ -183,11 +182,13 @@ describe('TimeChart', () => {
 
     it('applies rounded corners correctly', () => {
       render(<TimeChart data={studentData} />);
+      // First category in STUDENT_CATEGORIES order is "activities"
       const firstSegment = screen.getByTestId('bar-segment-SEG-activities');
-      expect(firstSegment.className).toContain('rounded-b-md');
+      expect(firstSegment.className).toContain('rounded-b');
 
-      const lastSegment = screen.getByTestId('bar-segment-SEG-questionnaires');
-      expect(lastSegment.className).toContain('rounded-t-md');
+      // Last non-zero category for SEG is "content" (Videoaulas)
+      const lastSegment = screen.getByTestId('bar-segment-SEG-content');
+      expect(lastSegment.className).toContain('rounded-t');
     });
   });
 
@@ -305,13 +306,21 @@ describe('bgClassToCssVar', () => {
 });
 
 describe('Predefined Categories', () => {
-  it('STUDENT_CATEGORIES has 4 categories with enum keys', () => {
-    expect(STUDENT_CATEGORIES).toHaveLength(4);
+  it('STUDENT_CATEGORIES has 5 categories with enum keys in Figma order', () => {
+    expect(STUDENT_CATEGORIES).toHaveLength(5);
     expect(STUDENT_CATEGORIES.map((c) => c.key)).toEqual([
       TIME_CHART_CATEGORY_KEY.ACTIVITIES,
-      TIME_CHART_CATEGORY_KEY.CONTENT,
       TIME_CHART_CATEGORY_KEY.SIMULATIONS,
       TIME_CHART_CATEGORY_KEY.QUESTIONNAIRES,
+      TIME_CHART_CATEGORY_KEY.CONTENT,
+      TIME_CHART_CATEGORY_KEY.RECOMMENDED_LESSONS,
+    ]);
+    expect(STUDENT_CATEGORIES.map((c) => c.colorClass)).toEqual([
+      'bg-success-700',
+      'bg-warning-300',
+      'bg-indicator-info',
+      'bg-success-300',
+      'bg-indicator-positive',
     ]);
   });
 
