@@ -50,7 +50,13 @@ export const UserHeader = ({
       {statusBadge}
     </div>
     <Text size="xs" className="text-text-600">
-      {school} • {className} • {year}
+      {/*
+       * Only the parts that exist. A director or pedagogue has no class, and
+       * interpolating it blindly left an orphan bullet: "Escola Municipal •  • 2026".
+       */}
+      {[school, className, year]
+        .filter((part) => part !== undefined && part !== null && part !== '')
+        .join(' • ')}
     </Text>
   </div>
 );

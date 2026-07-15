@@ -124,16 +124,20 @@ export type AccessReportModalProps = AccessReportModalBaseProps &
 // ─── Pie slice builders ───────────────────────────────────────
 
 function buildPlatformSlices(platform: AccessReportByPlatform): PieSlice[] {
+  // The pie is sized by the percentage; the legend reads the time next to each
+  // platform (as in the design), not the percentage.
   return [
     {
       label: 'Web',
       value: platform.web.percentage,
+      displayValue: platform.web.time,
       colorClass: 'bg-success-700',
       color: 'var(--Success-success700, #206F3E)',
     },
     {
       label: 'Celular',
       value: platform.mobile.percentage,
+      displayValue: platform.mobile.time,
       colorClass: 'bg-success-300',
       color: 'var(--Success-success300, #66B584)',
     },
@@ -269,19 +273,16 @@ const ProfessionalModalContent = ({
       year={data.user.year}
     />
 
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-      <MetricBox
-        label="Tempo na plataforma"
-        value={data.accessData.totalTime}
-      />
-      <MetricBox
-        label="Quantidade de acessos"
-        value={data.accessData.accessCount}
-      />
-      <MetricBox
-        label="Último acesso"
-        value={data.accessData.lastAccess ?? '—'}
-      />
+    <div className="flex flex-col gap-3">
+      <SectionTitle>Dados de acesso</SectionTitle>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <MetricBox label="Tempo total" value={data.accessData.totalTime} />
+        <MetricBox label="Acessos" value={data.accessData.accessCount} />
+        <MetricBox
+          label="Último acesso"
+          value={data.accessData.lastAccess ?? '—'}
+        />
+      </div>
     </div>
 
     {accessCountByPeriod && accessCountByPeriod.length > 0 && (

@@ -10,6 +10,13 @@ import {
 export interface ColumnFilterOption {
   value: string;
   label: ReactNode;
+  /**
+   * Text a local search matches against. Needed because `label` is a ReactNode
+   * (a badge, an icon + text) and `value` is often an opaque id — neither is
+   * searchable. Ignored when the config supplies `onSearch`, since the server
+   * does the matching then.
+   */
+  searchText?: string;
 }
 
 export interface ColumnFilterConfig {
@@ -24,6 +31,24 @@ export interface ColumnFilterConfig {
    * the API expects. Defaults to the column's `key`.
    */
   paramKey?: string;
+  /**
+   * Show a search box at the top of the menu.
+   *
+   * Needed whenever the option list is too long to scan — a school manager sees
+   * over a thousand schools, and a plain list of those is unusable.
+   */
+  searchable?: boolean;
+  /** Placeholder of the search box (default: "Buscar..."). */
+  searchPlaceholder?: string;
+  /**
+   * Called (debounced) as the user types, for options fetched from a server.
+   *
+   * The consumer keeps owning `options`: it refreshes them as results arrive.
+   * When omitted, a `searchable` menu filters the given `options` in place.
+   */
+  onSearch?: (query: string) => void;
+  /** Show a loading state in the menu while the search is in flight. */
+  loading?: boolean;
 }
 
 /** Minimum shape `useColumnFilters` needs out of a column definition. */

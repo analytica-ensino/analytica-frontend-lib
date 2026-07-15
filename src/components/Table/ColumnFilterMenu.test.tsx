@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ColumnFilterMenu from './ColumnFilterMenu';
 import type { ColumnFilterConfig } from './useColumnFilters';
 
@@ -133,6 +133,157 @@ describe('ColumnFilterMenu', () => {
     fireEvent.click(screen.getByText('DESTAQUE'));
 
     expect(onChange).toHaveBeenCalledWith(['SEM_ACESSO']);
+  });
+
+  describe('searchable', () => {
+    const schools = {
+      paramKey: 'schoolIds',
+      searchable: true,
+      searchPlaceholder: 'Buscar escola...',
+      options: [
+        {
+          value: 's1',
+          label: 'Colégio Estadual do Paraná',
+          searchText: 'Colégio Estadual do Paraná',
+        },
+        {
+          value: 's2',
+          label: 'Escola Municipal São José',
+          searchText: 'Escola Municipal São José',
+        },
+      ],
+    } satisfies ColumnFilterConfig;
+
+    const openSchools = () =>
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Filtrar por Escola' })
+      );
+
+    it('has no search box unless asked for one', () => {
+      render(
+        <ColumnFilterMenu
+          columnLabel="Status"
+          config={config}
+          value={[]}
+          onChange={jest.fn()}
+        />
+      );
+      openMenu();
+
+      expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    });
+
+    it('filters the given options locally when there is no onSearch', () => {
+      render(
+        <ColumnFilterMenu
+          columnLabel="Escola"
+          config={schools}
+          value={[]}
+          onChange={jest.fn()}
+        />
+      );
+      openSchools();
+
+      expect(screen.getByText('Escola Municipal São José')).toBeInTheDocument();
+
+      fireEvent.change(screen.getByRole('textbox'), {
+        target: { value: 'paraná' },
+      });
+
+      expect(
+        screen.getByText('Colégio Estadual do Paraná')
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText('Escola Municipal São José')
+      ).not.toBeInTheDocument();
+    });
+
+    it('matches on searchText, since the label can be a node and the value an id', () => {
+      render(
+        <ColumnFilterMenu
+          columnLabel="Escola"
+          config={schools}
+          value={[]}
+          onChange={jest.fn()}
+        />
+      );
+      openSchools();
+
+      // 's1' is the value; searching for it must not match by accident.
+      fireEvent.change(screen.getByRole('textbox'), {
+        target: { value: 'municipal' },
+      });
+
+      expect(screen.getByText('Escola Municipal São José')).toBeInTheDocument();
+      expect(
+        screen.queryByText('Colégio Estadual do Paraná')
+      ).not.toBeInTheDocument();
+    });
+
+    it('hands the query to onSearch and stops filtering locally', async () => {
+      // With a server-side search the consumer owns the list — the options that
+      // come back are already the answer, so filtering them again would drop rows.
+      const onSearch = jest.fn();
+
+      render(
+        <ColumnFilterMenu
+          columnLabel="Escola"
+          config={{ ...schools, onSearch }}
+          value={[]}
+          onChange={jest.fn()}
+        />
+      );
+      openSchools();
+
+      fireEvent.change(screen.getByRole('textbox'), {
+        target: { value: 'nada casa com isto' },
+      });
+
+      await waitFor(() =>
+        expect(onSearch).toHaveBeenCalledWith('nada casa com isto')
+      );
+
+      // Both options are still listed: the server decides, not us.
+      expect(
+        screen.getByText('Colégio Estadual do Paraná')
+      ).toBeInTheDocument();
+      expect(screen.getByText('Escola Municipal São José')).toBeInTheDocument();
+    });
+
+    it('shows a loading state while the search is in flight', () => {
+      render(
+        <ColumnFilterMenu
+          columnLabel="Escola"
+          config={{ ...schools, onSearch: jest.fn(), loading: true }}
+          value={[]}
+          onChange={jest.fn()}
+        />
+      );
+      openSchools();
+
+      expect(screen.getByText('Carregando...')).toBeInTheDocument();
+      expect(
+        screen.queryByText('Colégio Estadual do Paraná')
+      ).not.toBeInTheDocument();
+    });
+
+    it('shows an empty state when nothing matches', () => {
+      render(
+        <ColumnFilterMenu
+          columnLabel="Escola"
+          config={{ ...schools, options: [] }}
+          value={[]}
+          onChange={jest.fn()}
+        />
+      );
+      openSchools();
+
+      expect(
+        screen.getByText('Nenhum resultado encontrado')
+      ).toBeInTheDocument();
+      // "Todos" stays reachable so the filter can always be cleared.
+      expect(screen.getByText('Todos')).toBeInTheDocument();
+    });
   });
 
   it('does not trigger an enclosing sort handler', () => {
