@@ -760,6 +760,80 @@ describe('TableProvider', () => {
         expect.objectContaining({ page: 1, statusFilter: 'active' })
       );
     });
+
+    it('offers a clear-filters action when a column filter empties the table', () => {
+      const onParamsChange = jest.fn();
+      const { rerender } = render(
+        <TableProvider
+          data={testData}
+          headers={filterHeaders}
+          onParamsChange={onParamsChange}
+        />
+      );
+
+      // Activate the filter while rows are present — the caret lives in the
+      // header row, which the empty state hides once the filter returns nothing.
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Filtrar por Status' })
+      );
+      fireEvent.click(screen.getByText('Ativo'));
+
+      // The consumer refetches and the filter now matches no rows.
+      rerender(
+        <TableProvider
+          data={[]}
+          headers={filterHeaders}
+          onParamsChange={onParamsChange}
+        />
+      );
+
+      const clearButton = screen.getByRole('button', {
+        name: 'Limpar filtros',
+      });
+      expect(clearButton).toBeInTheDocument();
+
+      fireEvent.click(clearButton);
+
+      const lastParams = onParamsChange.mock.calls.at(-1)?.[0];
+      expect(lastParams).not.toHaveProperty('statusFilter');
+    });
+
+    it('does not offer a clear-filters action when empty without an active filter', () => {
+      render(<TableProvider data={[]} headers={filterHeaders} />);
+
+      expect(
+        screen.queryByRole('button', { name: 'Limpar filtros' })
+      ).not.toBeInTheDocument();
+    });
+
+    it('keeps a consumer-provided empty-state action instead of overriding it', () => {
+      const onButtonClick = jest.fn();
+      const { rerender } = render(
+        <TableProvider
+          data={testData}
+          headers={filterHeaders}
+          emptyState={{ buttonText: 'Criar', onButtonClick }}
+        />
+      );
+
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Filtrar por Status' })
+      );
+      fireEvent.click(screen.getByText('Ativo'));
+
+      rerender(
+        <TableProvider
+          data={[]}
+          headers={filterHeaders}
+          emptyState={{ buttonText: 'Criar', onButtonClick }}
+        />
+      );
+
+      expect(screen.getByRole('button', { name: 'Criar' })).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: 'Limpar filtros' })
+      ).not.toBeInTheDocument();
+    });
   });
 
   // ======================

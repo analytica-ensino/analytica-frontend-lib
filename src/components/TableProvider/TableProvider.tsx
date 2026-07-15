@@ -552,6 +552,31 @@ export function TableProvider<T extends Record<string, unknown>>({
     !loading && data.length === 0 && searchQuery.trim() !== '';
   const showEmpty = !loading && data.length === 0 && searchQuery.trim() === '';
 
+  // A header filter that returns nothing replaces the whole header row — carets
+  // included — with the empty state, leaving no way to undo it. When the table is
+  // empty *because* of an active column filter, surface a one-click reset in the
+  // empty state itself.
+  const hasActiveColumnFilters = Object.keys(columnFilterParams).length > 0;
+
+  const clearAllColumnFilters = useCallback(() => {
+    for (const paramKey of Object.keys(columnFilters)) {
+      setColumnFilter(paramKey, []);
+    }
+  }, [columnFilters, setColumnFilter]);
+
+  const effectiveEmptyState = useMemo<EmptyStateConfig | undefined>(() => {
+    if (!hasActiveColumnFilters) return emptyState;
+    // Don't override a consumer that already defined its own action or body.
+    if (emptyState?.component || emptyState?.buttonText) return emptyState;
+    return {
+      ...emptyState,
+      buttonText: 'Limpar filtros',
+      buttonVariant: 'outline',
+      buttonAction: 'primary',
+      onButtonClick: clearAllColumnFilters,
+    };
+  }, [emptyState, hasActiveColumnFilters, clearAllColumnFilters]);
+
   // Extract components for render prop pattern
   const controls = (enableSearch || enableFilters) && (
     <div className="flex items-center gap-4">
@@ -614,7 +639,7 @@ export function TableProvider<T extends Record<string, unknown>>({
         showNoSearchResult={showNoSearchResult}
         noSearchResultState={noSearchResultState}
         showEmpty={showEmpty}
-        emptyState={emptyState}
+        emptyState={effectiveEmptyState}
       >
         {/* Table Header */}
         <thead>
