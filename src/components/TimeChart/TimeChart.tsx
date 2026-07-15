@@ -89,18 +89,23 @@ export const STUDENT_CATEGORIES: TimeChartCategory[] = [
     colorClass: 'bg-success-700',
   },
   {
-    key: TIME_CHART_CATEGORY_KEY.CONTENT,
-    label: 'Videoaulas',
-    colorClass: 'bg-success-300',
-  },
-  {
     key: TIME_CHART_CATEGORY_KEY.SIMULATIONS,
     label: 'Simulados',
     colorClass: 'bg-warning-300',
   },
   {
     key: TIME_CHART_CATEGORY_KEY.QUESTIONNAIRES,
-    label: 'Questionários das Videoaulas',
+    label: 'Questionários',
+    colorClass: 'bg-indicator-info',
+  },
+  {
+    key: TIME_CHART_CATEGORY_KEY.CONTENT,
+    label: 'Videoaulas',
+    colorClass: 'bg-success-300',
+  },
+  {
+    key: TIME_CHART_CATEGORY_KEY.RECOMMENDED_LESSONS,
+    label: 'Aulas recomendadas',
     colorClass: 'bg-indicator-positive',
   },
 ];
@@ -144,6 +149,7 @@ export interface TimeChartStudentPeriodItem {
   content: number;
   simulations: number;
   questionnaires: number;
+  recommendedLessons: number;
 }
 
 /**
@@ -154,6 +160,7 @@ export interface TimeChartStudentItemBreakdown {
   content: number;
   simulations: number;
   questionnaires: number;
+  recommendedLessons: number;
 }
 
 /**
@@ -228,7 +235,7 @@ const getDayValue = (day: TimeChartDayData, key: string): number =>
 const LegendItem = ({ color, label }: { color: string; label: string }) => (
   <div className="flex flex-row items-center gap-2">
     <div className={cn('w-2 h-2 rounded-full', color)} />
-    <Text size="xs" weight="medium" className="text-text-600">
+    <Text size="sm" weight="medium" className="text-text-600">
       {label}
     </Text>
   </div>
@@ -239,32 +246,39 @@ const ChartCard = ({
   categories,
   children,
   className,
+  contentGapClassName = 'gap-4',
   ...props
 }: {
   title: string;
   categories: TimeChartCategory[];
   children: ReactNode;
   className?: string;
+  /** Vertical gap between the header block and the chart area */
+  contentGapClassName?: string;
 } & HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      'flex flex-col p-5 gap-4 bg-background border border-border-50 rounded-xl',
+      'flex flex-col p-5 bg-background border border-border-50 rounded-xl',
+      contentGapClassName,
       className
     )}
     {...props}
   >
-    <Text
-      as="h3"
-      size="lg"
-      weight="bold"
-      className="text-text-950 tracking-[0.2px]"
-    >
-      {title}
-    </Text>
-    <div className="flex flex-row flex-wrap gap-x-6 gap-y-2">
-      {categories.map((cat) => (
-        <LegendItem key={cat.key} color={cat.colorClass} label={cat.label} />
-      ))}
+    {/* Header: title + legends */}
+    <div className="flex flex-col gap-4">
+      <Text
+        as="h3"
+        size="lg"
+        weight="bold"
+        className="text-text-950 tracking-[0.2px]"
+      >
+        {title}
+      </Text>
+      <div className="flex flex-row flex-wrap justify-between gap-x-6 gap-y-2">
+        {categories.map((cat) => (
+          <LegendItem key={cat.key} color={cat.colorClass} label={cat.label} />
+        ))}
+      </div>
     </div>
     {children}
   </div>
@@ -287,9 +301,9 @@ const YAxis = ({
     {ticks.map((tick, index) => (
       <Text
         key={`${tick}-${index}`}
-        size="xs"
-        weight="medium"
-        className="text-text-500"
+        size="md"
+        weight="normal"
+        className="text-text-700"
       >
         {tick === 0 ? '0' : `${tick}${unitSuffix}`}
       </Text>
@@ -382,11 +396,11 @@ const StackedBar = ({
                 key={cat.key}
                 data-testid={`bar-segment-${day.label}-${cat.key}`}
                 className={cn(
-                  'w-8',
+                  'w-9',
                   cat.colorClass,
-                  isFirst && 'rounded-b-md',
-                  isLast && 'rounded-t-md',
-                  isFirst && isLast && 'rounded-md'
+                  isFirst && 'rounded-b',
+                  isLast && 'rounded-t',
+                  isFirst && isLast && 'rounded'
                 )}
                 style={{ height: `${segmentHeight}px` }}
                 aria-label={`${cat.label}: ${value}${unitSuffix}`}
@@ -398,9 +412,9 @@ const StackedBar = ({
           )}
         </div>
         <Text
-          size="xs"
-          weight="medium"
-          className="text-text-600 text-center"
+          size="md"
+          weight="normal"
+          className="text-text-700 text-center"
           data-testid={`day-label-${day.label}`}
         >
           {day.label}
@@ -665,7 +679,11 @@ export const TimeChart = ({
       {...props}
     >
       {/* Stacked Bar Chart */}
-      <ChartCard title={barChartTitle} categories={categories}>
+      <ChartCard
+        title={barChartTitle}
+        categories={categories}
+        contentGapClassName="gap-8"
+      >
         <div className="flex flex-row">
           <YAxis
             ticks={yAxisTicks}
