@@ -102,6 +102,12 @@ export interface TimeCardData {
   trendValue?: string;
   /** Trend direction - determines color */
   trendDirection?: TimeCardTrend;
+  /**
+   * Plain gray line under the value (e.g., "1 município • 134 escolas"), for
+   * cards whose context is a breakdown rather than a trend. Rendered alongside
+   * the trend when both are present.
+   */
+  subtitle?: string;
 }
 
 /**
@@ -158,7 +164,7 @@ const TREND_CONFIG = {
  * TimeCard component - displays a single time statistic
  */
 export const TimeCard = ({ data, className, ...props }: TimeCardProps) => {
-  const { label, value, icon, trendValue, trendDirection } = data;
+  const { label, value, icon, trendValue, trendDirection, subtitle } = data;
 
   return (
     <div
@@ -188,6 +194,17 @@ export const TimeCard = ({ data, className, ...props }: TimeCardProps) => {
       >
         {value}
       </Text>
+
+      {/* Context line (e.g., "1 município • 134 escolas") */}
+      {subtitle && (
+        <Text
+          size="sm"
+          className="text-text-600 leading-[100%]"
+          data-testid={`subtitle-${data.id}`}
+        >
+          {subtitle}
+        </Text>
+      )}
 
       {/* Trend indicator */}
       {trendValue && trendDirection && (
