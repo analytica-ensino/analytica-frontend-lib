@@ -106,6 +106,24 @@ describe('TimeCard', () => {
     expect(screen.queryByTestId('trend-no-trend')).not.toBeInTheDocument();
   });
 
+  it('renders subtitle when provided', () => {
+    const cardWithSubtitle: TimeCardData = {
+      ...mockPlatformCard,
+      id: 'with-subtitle',
+      subtitle: 'de 16.778 professores',
+    };
+    render(<TimeCard data={cardWithSubtitle} />);
+
+    expect(screen.getByTestId('subtitle-with-subtitle')).toBeInTheDocument();
+    expect(screen.getByText('de 16.778 professores')).toBeInTheDocument();
+  });
+
+  it('does not render subtitle element when subtitle is not provided', () => {
+    render(<TimeCard data={mockNoTrendCard} />);
+
+    expect(screen.queryByTestId('subtitle-no-trend')).not.toBeInTheDocument();
+  });
+
   it('renders icon with correct styling', () => {
     render(<TimeCard data={mockPlatformCard} />);
 

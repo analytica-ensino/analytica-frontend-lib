@@ -102,6 +102,8 @@ export interface TimeCardData {
   trendValue?: string;
   /** Trend direction - determines color */
   trendDirection?: TimeCardTrend;
+  /** Optional subtitle shown below the value (e.g., "de 16.778 professores") */
+  subtitle?: string;
 }
 
 /**
@@ -158,7 +160,7 @@ const TREND_CONFIG = {
  * TimeCard component - displays a single time statistic
  */
 export const TimeCard = ({ data, className, ...props }: TimeCardProps) => {
-  const { label, value, icon, trendValue, trendDirection } = data;
+  const { label, value, icon, trendValue, trendDirection, subtitle } = data;
 
   return (
     <div
@@ -188,6 +190,17 @@ export const TimeCard = ({ data, className, ...props }: TimeCardProps) => {
       >
         {value}
       </Text>
+
+      {/* Subtitle (optional) */}
+      {subtitle && (
+        <Text
+          size="xs"
+          className="text-text-500 leading-[100%]"
+          data-testid={`subtitle-${data.id}`}
+        >
+          {subtitle}
+        </Text>
+      )}
 
       {/* Trend indicator */}
       {trendValue && trendDirection && (
