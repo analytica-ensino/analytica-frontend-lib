@@ -135,6 +135,34 @@ const toSingle = (value: unknown): string | undefined => {
 };
 
 /**
+ * Assign a resolved string value onto the params object only when it is present.
+ * Keeps the builder free of repetitive `if (value) params[key] = value` blocks.
+ */
+const assignIf = (
+  params: Record<string, unknown>,
+  key: string,
+  value: string | undefined
+): void => {
+  if (value) {
+    params[key] = value;
+  }
+};
+
+/**
+ * Raw scalar keys forwarded to the backend untouched (pagination, text search,
+ * date range and sorting). Copied verbatim when present and non-empty.
+ */
+const PASSTHROUGH_KEYS = [
+  'page',
+  'limit',
+  'search',
+  'startDate',
+  'finalDate',
+  'sortBy',
+  'sortOrder',
+] as const;
+
+/**
  * Build the `/activities/history` query params from the raw TableProvider filter
  * keys. TableProvider emits UI-category keys (`subject`, `school`, `class`,
  * `schoolYear`, `status`, `creatorType`) as arrays; the backend expects a
@@ -150,67 +178,39 @@ export const buildActivityHistoryQueryParams = (
   activityCategory?: string
 ): Record<string, unknown> => {
   const params: Record<string, unknown> = {};
-
-  if (activityCategory) {
-    params.type = activityCategory;
-  }
+  assignIf(params, 'type', activityCategory);
 
   if (!filters) {
     return params;
   }
 
-  if (filters.page !== undefined && filters.page !== null) {
-    params.page = filters.page;
-  }
-  if (filters.limit !== undefined && filters.limit !== null) {
-    params.limit = filters.limit;
-  }
-  if (typeof filters.search === 'string' && filters.search) {
-    params.search = filters.search;
-  }
-  if (typeof filters.startDate === 'string' && filters.startDate) {
-    params.startDate = filters.startDate;
-  }
-  if (typeof filters.finalDate === 'string' && filters.finalDate) {
-    params.finalDate = filters.finalDate;
-  }
-  if (filters.sortBy) {
-    params.sortBy = filters.sortBy;
-  }
-  if (filters.sortOrder) {
-    params.sortOrder = filters.sortOrder;
+  for (const key of PASSTHROUGH_KEYS) {
+    const value = filters[key];
+    if (value !== undefined && value !== null && value !== '') {
+      params[key] = value;
+    }
   }
 
-  // School: prefer raw multi-select (CSV); fall back to legacy singular.
-  const schoolIds = toCsv(filters.school);
-  if (schoolIds) {
-    params.schoolIds = schoolIds;
-  } else {
-    const schoolId = toSingle(filters.schoolId);
-    if (schoolId) params.schoolId = schoolId;
+  // Multi-select filters serialized as comma-separated ids. School and class each
+  // fall back to their legacy singular key when the raw multi-select key is absent.
+  assignIf(params, 'schoolIds', toCsv(filters.school));
+  assignIf(params, 'classIds', toCsv(filters.class));
+  assignIf(params, 'schoolYearIds', toCsv(filters.schoolYear));
+  if (!params.schoolIds) {
+    assignIf(params, 'schoolId', toSingle(filters.schoolId));
+  }
+  if (!params.classIds) {
+    assignIf(params, 'classId', toSingle(filters.classId));
   }
 
-  // Class: prefer raw multi-select (CSV); fall back to legacy singular.
-  const classIds = toCsv(filters.class);
-  if (classIds) {
-    params.classIds = classIds;
-  } else {
-    const classId = toSingle(filters.classId);
-    if (classId) params.classId = classId;
-  }
-
-  const schoolYearIds = toCsv(filters.schoolYear);
-  if (schoolYearIds) params.schoolYearIds = schoolYearIds;
-
-  const status = toSingle(filters.status);
-  if (status) params.status = status;
-
-  // Subject: prefer raw multi-select; fall back to legacy singular.
-  const subjectId = toSingle(filters.subject) ?? toSingle(filters.subjectId);
-  if (subjectId) params.subjectId = subjectId;
-
-  const creatorType = toSingle(filters.creatorType);
-  if (creatorType) params.creatorType = creatorType;
+  // Single-select filters (subject also honors the legacy singular key).
+  assignIf(params, 'status', toSingle(filters.status));
+  assignIf(
+    params,
+    'subjectId',
+    toSingle(filters.subject) ?? toSingle(filters.subjectId)
+  );
+  assignIf(params, 'creatorType', toSingle(filters.creatorType));
 
   return params;
 };
