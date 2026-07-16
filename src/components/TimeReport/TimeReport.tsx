@@ -102,6 +102,8 @@ export interface TimeCardData {
   trendValue?: string;
   /** Trend direction - determines color */
   trendDirection?: TimeCardTrend;
+  /** Optional footer text shown below the value (e.g., "de 16.778 escolas") */
+  footer?: ReactNode;
 }
 
 /**
@@ -158,7 +160,7 @@ const TREND_CONFIG = {
  * TimeCard component - displays a single time statistic
  */
 export const TimeCard = ({ data, className, ...props }: TimeCardProps) => {
-  const { label, value, icon, trendValue, trendDirection } = data;
+  const { label, value, icon, trendValue, trendDirection, footer } = data;
 
   return (
     <div
@@ -211,6 +213,13 @@ export const TimeCard = ({ data, className, ...props }: TimeCardProps) => {
             {trendValue}
           </Text>
         </div>
+      )}
+
+      {/* Footer */}
+      {footer && (
+        <Text size="xs" className="text-text-500 leading-[130%]">
+          {footer}
+        </Text>
       )}
     </div>
   );

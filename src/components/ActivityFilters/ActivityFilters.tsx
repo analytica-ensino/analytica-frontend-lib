@@ -581,10 +581,19 @@ export const ActivityFilters = ({
     // Tema/subtema/assunto only apply to a single subject; with 0 or 2+ (or
     // "Todas") the knowledge selection is irrelevant and must not be sent.
     const isSingleSubject = selectedSubjectIds.length === 1;
+    const selectedBankIds = bankIds.bankIds || [];
+    const selectedYearIds = bankIds.yearIds || [];
     const filters: ActivityFiltersData = {
       types: selectedQuestionTypes,
-      bankIds: bankIds.bankIds || [],
-      yearIds: bankIds.yearIds || [],
+      bankIds: selectedBankIds,
+      // The backend filters questions only by bank-year, not by bank alone, so a
+      // bank with no year picked would return everything. When a bank is
+      // selected but no year is chosen for it, send all of that bank's years.
+      yearIds: deriveYearIdsFromBankIds(
+        bankYears,
+        selectedBankIds,
+        selectedYearIds
+      ),
       subjectIds: selectedSubjectIds,
       topicIds: isSingleSubject ? knowledgeIds.topicIds : [],
       subtopicIds: isSingleSubject ? knowledgeIds.subtopicIds : [],
@@ -600,6 +609,7 @@ export const ActivityFilters = ({
     selectedSubjectIds,
     knowledgeCategories,
     bankCategories,
+    bankYears,
     getSelectedKnowledgeIds,
     getSelectedBankIds,
   ]);
