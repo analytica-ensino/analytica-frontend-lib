@@ -3,6 +3,7 @@ import {
   createUseActivitiesHistory,
   createActivitiesHistoryHook,
   transformActivityToTableItem,
+  buildActivityHistoryQueryParams,
   DEFAULT_ACTIVITIES_PAGINATION,
 } from './useActivitiesHistory';
 import {
@@ -539,5 +540,127 @@ describe('useActivitiesHistory', () => {
       expect(result.current.fetchActivities).toBeInstanceOf(Function);
       expect(result.current.activities).toEqual([]);
     });
+  });
+});
+
+describe('buildActivityHistoryQueryParams', () => {
+  it('adds type from activityCategory', () => {
+    const params = buildActivityHistoryQueryParams({}, 'ATIVIDADE');
+    expect(params.type).toBe('ATIVIDADE');
+  });
+
+  it('maps school[] to comma-separated schoolIds', () => {
+    const params = buildActivityHistoryQueryParams({
+      school: ['school-1', 'school-2'],
+    });
+    expect(params.schoolIds).toBe('school-1,school-2');
+    expect(params.school).toBeUndefined();
+  });
+
+  it('maps class[] to classIds and schoolYear[] to schoolYearIds (CSV)', () => {
+    const params = buildActivityHistoryQueryParams({
+      class: ['c1', 'c2'],
+      schoolYear: ['y1'],
+    });
+    expect(params.classIds).toBe('c1,c2');
+    expect(params.schoolYearIds).toBe('y1');
+  });
+
+  it('collapses single-select filters to the first value', () => {
+    const params = buildActivityHistoryQueryParams({
+      status: ['A_VENCER', 'VENCIDA'],
+      subject: ['subj-1', 'subj-2'],
+      creatorType: ['own'],
+    });
+    expect(params.status).toBe('A_VENCER');
+    expect(params.subjectId).toBe('subj-1');
+    expect(params.creatorType).toBe('own');
+    expect(params.subject).toBeUndefined();
+  });
+
+  it('forwards pagination, search and sorting untouched', () => {
+    const params = buildActivityHistoryQueryParams({
+      page: 2,
+      limit: 20,
+      search: 'prova',
+      sortBy: 'finalDate',
+      sortOrder: 'asc',
+    });
+    expect(params).toMatchObject({
+      page: 2,
+      limit: 20,
+      search: 'prova',
+      sortBy: 'finalDate',
+      sortOrder: 'asc',
+    });
+  });
+
+  it('omits empty filter arrays', () => {
+    const params = buildActivityHistoryQueryParams({
+      school: [],
+      status: [],
+      subject: [],
+    });
+    expect(params.schoolIds).toBeUndefined();
+    expect(params.status).toBeUndefined();
+    expect(params.subjectId).toBeUndefined();
+  });
+
+  it('honors legacy singular subjectId as a fallback', () => {
+    const params = buildActivityHistoryQueryParams({ subjectId: 'subj-1' });
+    expect(params.subjectId).toBe('subj-1');
+  });
+
+  it('honors legacy singular schoolId as a fallback', () => {
+    const params = buildActivityHistoryQueryParams({ schoolId: 'school-1' });
+    expect(params.schoolId).toBe('school-1');
+    expect(params.schoolIds).toBeUndefined();
+  });
+
+  it('honors legacy singular classId as a fallback', () => {
+    const params = buildActivityHistoryQueryParams({ classId: 'class-1' });
+    expect(params.classId).toBe('class-1');
+    expect(params.classIds).toBeUndefined();
+  });
+
+  it('prefers raw subject[] over legacy subjectId', () => {
+    const params = buildActivityHistoryQueryParams({
+      subject: ['a'],
+      subjectId: 'b',
+    });
+    expect(params.subjectId).toBe('a');
+  });
+
+  it('prefers raw school[] over legacy schoolId', () => {
+    const params = buildActivityHistoryQueryParams({
+      school: ['a', 'b'],
+      schoolId: 'c',
+    });
+    expect(params.schoolIds).toBe('a,b');
+    expect(params.schoolId).toBeUndefined();
+  });
+
+  it('prefers raw class[] over legacy classId', () => {
+    const params = buildActivityHistoryQueryParams({
+      class: ['a', 'b'],
+      classId: 'c',
+    });
+    expect(params.classIds).toBe('a,b');
+    expect(params.classId).toBeUndefined();
+  });
+
+  it('accepts a bare-string status', () => {
+    expect(buildActivityHistoryQueryParams({ status: 'A_VENCER' }).status).toBe(
+      'A_VENCER'
+    );
+  });
+
+  it('forwards startDate and finalDate', () => {
+    const params = buildActivityHistoryQueryParams({
+      startDate: '01/01/2026',
+      finalDate: '31/01/2026',
+    });
+    expect(params.startDate).toBe('01/01/2026');
+    expect(params.finalDate).toBe('31/01/2026');
   });
 });

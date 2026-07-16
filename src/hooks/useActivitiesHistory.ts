@@ -109,30 +109,108 @@ export const extractActivityFilterOptions = (
 ): ActivityApiFilterOptions => extractBreakdownFilterOptions(activities);
 
 /**
- * Build query params from filters
- * @param filters - User filters
- * @param activityCategory - Optional activity category filter
- * @returns Query params object
+ * Join an array of selected ids into the backend's comma-separated convention
+ * (e.g. `schoolIds=a,b,c`). Returns undefined for empty / non-array input so the
+ * query param is omitted entirely.
  */
-const buildQueryParams = (
-  filters?: ActivityHistoryFilters,
+const toCsv = (value: unknown): string | undefined => {
+  if (Array.isArray(value) && value.length > 0) {
+    return value.map(String).join(',');
+  }
+  return undefined;
+};
+
+/**
+ * Collapse a single-select filter (emitted as an array by TableProvider) to its
+ * first value. Also tolerates a bare string. Returns undefined when empty.
+ */
+const toSingle = (value: unknown): string | undefined => {
+  if (Array.isArray(value)) {
+    return value.length > 0 ? String(value[0]) : undefined;
+  }
+  if (typeof value === 'string' && value.length > 0) {
+    return value;
+  }
+  return undefined;
+};
+
+/**
+ * Build the `/activities/history` query params from the raw TableProvider filter
+ * keys. TableProvider emits UI-category keys (`subject`, `school`, `class`,
+ * `schoolYear`, `status`, `creatorType`) as arrays; the backend expects a
+ * different, mostly single-value contract. This adapter renames each key and
+ * collapses/serializes to what the backend actually reads. Mirrors
+ * `buildFiltersFromParams` in RecommendedLessonsHistory.
+ *
+ * @param filters - Raw table params (arrays under UI keys) plus page/limit/search/sort
+ * @param activityCategory - Optional value forwarded as the `type` param
+ */
+export const buildActivityHistoryQueryParams = (
+  filters?: Record<string, unknown>,
   activityCategory?: string
 ): Record<string, unknown> => {
   const params: Record<string, unknown> = {};
 
-  // Add activityCategory filter (type param for /activities/history)
   if (activityCategory) {
     params.type = activityCategory;
   }
 
-  if (filters) {
-    for (const key in filters) {
-      const value = filters[key as keyof ActivityHistoryFilters];
-      if (value !== undefined && value !== null) {
-        params[key] = value;
-      }
-    }
+  if (!filters) {
+    return params;
   }
+
+  if (filters.page !== undefined && filters.page !== null) {
+    params.page = filters.page;
+  }
+  if (filters.limit !== undefined && filters.limit !== null) {
+    params.limit = filters.limit;
+  }
+  if (typeof filters.search === 'string' && filters.search) {
+    params.search = filters.search;
+  }
+  if (typeof filters.startDate === 'string' && filters.startDate) {
+    params.startDate = filters.startDate;
+  }
+  if (typeof filters.finalDate === 'string' && filters.finalDate) {
+    params.finalDate = filters.finalDate;
+  }
+  if (filters.sortBy) {
+    params.sortBy = filters.sortBy;
+  }
+  if (filters.sortOrder) {
+    params.sortOrder = filters.sortOrder;
+  }
+
+  // School: prefer raw multi-select (CSV); fall back to legacy singular.
+  const schoolIds = toCsv(filters.school);
+  if (schoolIds) {
+    params.schoolIds = schoolIds;
+  } else {
+    const schoolId = toSingle(filters.schoolId);
+    if (schoolId) params.schoolId = schoolId;
+  }
+
+  // Class: prefer raw multi-select (CSV); fall back to legacy singular.
+  const classIds = toCsv(filters.class);
+  if (classIds) {
+    params.classIds = classIds;
+  } else {
+    const classId = toSingle(filters.classId);
+    if (classId) params.classId = classId;
+  }
+
+  const schoolYearIds = toCsv(filters.schoolYear);
+  if (schoolYearIds) params.schoolYearIds = schoolYearIds;
+
+  const status = toSingle(filters.status);
+  if (status) params.status = status;
+
+  // Subject: prefer raw multi-select; fall back to legacy singular.
+  const subjectId = toSingle(filters.subject) ?? toSingle(filters.subjectId);
+  if (subjectId) params.subjectId = subjectId;
+
+  const creatorType = toSingle(filters.creatorType);
+  if (creatorType) params.creatorType = creatorType;
 
   return params;
 };
@@ -157,7 +235,10 @@ const useActivitiesHistoryImpl = (
       setState((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
-        const params = buildQueryParams(filters, options?.activityCategory);
+        const params = buildActivityHistoryQueryParams(
+          filters as Record<string, unknown>,
+          options?.activityCategory
+        );
         const response = await apiClient.get<ActivitiesHistoryApiResponse>(
           '/activities/history',
           { params }

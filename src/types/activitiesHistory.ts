@@ -132,15 +132,26 @@ export interface ActivityHistoryFilters {
     | 'SIMULADO'
     | 'QUESTIONARIO'
     | 'AULA_RECOMENDADA';
-  status?: GenericApiStatus;
   search?: string;
+  sortBy?: 'finalDate' | 'title' | 'completionPercentage';
+  sortOrder?: 'asc' | 'desc';
+
+  // Raw TableProvider filter keys (arrays of selected ids/values).
+  // Remapped to the backend contract by buildActivityHistoryQueryParams.
+  status?: string[] | GenericApiStatus;
+  subject?: string[];
+  school?: string[];
+  class?: string[];
+  schoolYear?: string[];
+  creatorType?: string[];
+
+  // Legacy single-value fields, consumed by buildActivityHistoryQueryParams
+  // as fallbacks when the raw multi-select keys above are absent.
   startDate?: string;
   finalDate?: string;
   subjectId?: string;
   schoolId?: string;
   classId?: string;
-  sortBy?: 'finalDate' | 'title' | 'completionPercentage';
-  sortOrder?: 'asc' | 'desc';
 }
 
 /**
