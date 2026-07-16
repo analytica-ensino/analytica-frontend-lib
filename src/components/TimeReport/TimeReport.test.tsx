@@ -100,6 +100,30 @@ describe('TimeCard', () => {
     expect(trend).toHaveClass('text-success-500');
   });
 
+  it('renders the subtitle when provided', () => {
+    render(
+      <TimeCard
+        data={{
+          id: 'total',
+          label: 'TOTAL DE DIRETORES(AS)/PEDAGOGOS(AS)',
+          value: '16.778',
+          icon: <MockIcon />,
+          subtitle: '1 município • 134 escolas',
+        }}
+      />
+    );
+
+    expect(screen.getByTestId('subtitle-total')).toHaveTextContent(
+      '1 município • 134 escolas'
+    );
+  });
+
+  it('does not render the subtitle when not provided', () => {
+    render(<TimeCard data={mockNoTrendCard} />);
+
+    expect(screen.queryByTestId('subtitle-no-trend')).not.toBeInTheDocument();
+  });
+
   it('does not render trend when not provided', () => {
     render(<TimeCard data={mockNoTrendCard} />);
 
