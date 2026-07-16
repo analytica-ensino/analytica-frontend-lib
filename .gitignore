@@ -18,5 +18,3 @@ test-report.xml
 # for development
 CLAUDE.md
 /.cache
-.DS_Store
-.worktrees/
