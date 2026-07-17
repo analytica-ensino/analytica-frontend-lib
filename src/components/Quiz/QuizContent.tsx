@@ -266,12 +266,25 @@ const QuizMultipleChoice = ({ paddingBottom }: QuizVariantInterface) => {
   const {
     getCurrentQuestion,
     selectMultipleAnswer,
-    getAllCurrentAnswer,
     getQuestionResultByQuestionId,
     variant,
   } = useQuizStore();
   const currentQuestion = getCurrentQuestion();
-  const allCurrentAnswers = getAllCurrentAnswer();
+  // Derive the current question's answers from the stable `userAnswers` slice
+  // instead of calling getAllCurrentAnswer(), which allocates a fresh array on
+  // every render. That fresh identity propagated through the memos below and,
+  // combined with the store→prop→local-state mirror in MultipleChoiceList,
+  // caused a "Maximum update depth exceeded" loop on /questionario.
+  const userAnswers = useQuizStore((state) => state.userAnswers);
+  const allCurrentAnswers = useMemo(
+    () =>
+      currentQuestion
+        ? userAnswers.filter(
+            (answer) => answer.questionId === currentQuestion.id
+          )
+        : [],
+    [userAnswers, currentQuestion]
+  );
   const currentQuestionResult = getQuestionResultByQuestionId(
     currentQuestion?.id || ''
   );
