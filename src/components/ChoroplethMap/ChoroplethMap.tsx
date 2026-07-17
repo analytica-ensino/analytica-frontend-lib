@@ -58,28 +58,35 @@ const getColorClasses = (): ColorClass[] => [
     max: 1.01,
     fillColor: getCssVar('--color-map-highlight', '#66b584'),
     strokeColor: getCssVar('--color-map-highlight', '#66b584'),
-    label: 'Destaque (75% com acesso)',
+    label: 'Destaque (≥75% com acesso)',
   },
   {
     min: 0.5,
     max: 0.75,
     fillColor: getCssVar('--color-map-above-avg', '#f8cc2e'),
     strokeColor: getCssVar('--color-map-above-avg', '#f8cc2e'),
-    label: 'Acima da média (50 até 74% com acesso)',
+    label: 'Acima da média (50 a 74% com acesso)',
   },
   {
-    min: 0.25,
+    min: 0.26,
     max: 0.5,
     fillColor: getCssVar('--color-map-below-avg', '#fb954b'),
     strokeColor: getCssVar('--color-map-below-avg', '#fb954b'),
-    label: 'Abaixo da média (25 até 49% com acesso)',
+    label: 'Abaixo da média (26 a 49% com acesso)',
   },
   {
-    min: 0,
-    max: 0.25,
+    min: 0.01,
+    max: 0.26,
     fillColor: getCssVar('--color-map-attention', '#b91c1c'),
     strokeColor: getCssVar('--color-map-attention', '#b91c1c'),
-    label: 'Ponto de atenção (Abaixo de 25% com acesso)',
+    label: 'Ponto de atenção (1 a 25% com acesso)',
+  },
+  {
+    min: -0.01,
+    max: 0.01,
+    fillColor: getCssVar('--color-map-no-access', '#2f2f2f'),
+    strokeColor: getCssVar('--color-map-no-access', '#2f2f2f'),
+    label: 'Sem acesso (0%)',
   },
 ];
 
@@ -300,7 +307,7 @@ const ChoroplethMap = ({
     y: number;
   } | null>(null);
   const [activeClasses, setActiveClasses] = useState<Set<number>>(
-    new Set([0, 1, 2, 3])
+    new Set([0, 1, 2, 3, 4])
   );
   const fadeAnimationRef = useRef<number | null>(null);
   const hoverAnimationsRef = useRef<Map<string, number>>(new Map());
