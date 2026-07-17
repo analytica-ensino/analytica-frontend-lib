@@ -647,6 +647,37 @@ describe('ActivityFilters', () => {
       });
     });
 
+    it('should keep explicit years and derive all years for banks without one', async () => {
+      const onFiltersChange = jest.fn();
+      // bank1 + bank2 are selected but only bank1's year (year1) is picked.
+      // The payload must keep year1 for bank1 and send *all* of bank2's years
+      // (year2, year3) since no year was chosen for it.
+      const initialFilters = {
+        types: [],
+        bankIds: ['bank1', 'bank2'],
+        yearIds: ['year1'],
+        subjectIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      renderComponent({ onFiltersChange, initialFilters });
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            bankIds: ['bank1', 'bank2'],
+            yearIds: expect.arrayContaining(['year1', 'year2', 'year3']),
+          })
+        );
+      });
+
+      const lastCall =
+        onFiltersChange.mock.calls[onFiltersChange.mock.calls.length - 1][0];
+      expect(lastCall.yearIds).toHaveLength(3);
+    });
+
     it('should prefer explicit yearIds over derived ones', async () => {
       const onFiltersChange = jest.fn();
       const initialFilters = {

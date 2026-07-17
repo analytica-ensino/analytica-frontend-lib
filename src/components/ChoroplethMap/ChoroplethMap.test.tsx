@@ -221,11 +221,12 @@ describe('ChoroplethMap', () => {
       screen.getByText('Acima da média (50 até 74% com acesso)')
     ).toBeInTheDocument();
     expect(
-      screen.getByText('Abaixo da média (26 até 49% com acesso)')
+      screen.getByText('Abaixo da média (25 até 49% com acesso)')
     ).toBeInTheDocument();
     expect(
       screen.getByText('Ponto de atenção (Abaixo de 25% com acesso)')
     ).toBeInTheDocument();
+    expect(screen.getByText('Sem acesso (0%)')).toBeInTheDocument();
   });
 
   it('shows loading skeleton when loading is true', () => {
@@ -1171,7 +1172,7 @@ describe('ChoroplethMap legend interaction', () => {
       .getByText('Acima da média (50 até 74% com acesso)')
       .closest('button');
     const abaixoBtn = screen
-      .getByText('Abaixo da média (26 até 49% com acesso)')
+      .getByText('Abaixo da média (25 até 49% com acesso)')
       .closest('button');
     const atencaoBtn = screen
       .getByText('Ponto de atenção (Abaixo de 25% com acesso)')
@@ -1334,7 +1335,7 @@ describe('ChoroplethMap legend interaction', () => {
 
     // Toggle off "Abaixo da média" (index 2) — "Destaque" stays visible
     const abaixoBtn = screen
-      .getByText('Abaixo da média (26 até 49% com acesso)')
+      .getByText('Abaixo da média (25 até 49% com acesso)')
       .closest('button')!;
     act(() => {
       abaixoBtn.click();

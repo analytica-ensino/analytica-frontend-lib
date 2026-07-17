@@ -158,6 +158,22 @@ describe('TimeCard', () => {
     );
   });
 
+  it('renders a numeric zero footer', () => {
+    render(
+      <TimeCard
+        data={{
+          id: 'total',
+          label: 'TOTAL DE ESCOLAS',
+          value: '16.778',
+          icon: <MockIcon />,
+          footer: 0,
+        }}
+      />
+    );
+
+    expect(screen.getByText('0')).toBeInTheDocument();
+  });
+
   it('does not render the footer when not provided', () => {
     render(<TimeCard data={mockNoTrendCard} />);
 

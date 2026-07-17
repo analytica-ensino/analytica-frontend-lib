@@ -233,9 +233,8 @@ export const TimeCard = ({ data, className, ...props }: TimeCardProps) => {
         </div>
       )}
 
-      {/* Footer */}
-      {footer && (
-        <Text size="xs" className="text-text-500 leading-[130%]">
+      {footer !== undefined && footer !== null && footer !== false && (
+        <Text as="div" size="xs" className="text-text-500 leading-[130%]">
           {footer}
         </Text>
       )}
