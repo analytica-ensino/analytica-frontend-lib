@@ -34,10 +34,11 @@ const studentData: AccessReportStudentData = {
     mobile: { time: '14h45min', percentage: 35 },
   },
   hoursByItem: {
-    activities: { time: '20h00min', percentage: 47 },
+    activities: { time: '20h00min', percentage: 35 },
     content: { time: '10h00min', percentage: 24 },
     simulations: { time: '8h00min', percentage: 19 },
     questionnaires: { time: '4h15min', percentage: 10 },
+    recommendedLessons: { time: '5h00min', percentage: 12 },
   },
 };
 

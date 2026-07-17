@@ -34,10 +34,11 @@ const mockStudentData: AccessReportStudentData = {
     mobile: { time: '14h45min', percentage: 35 },
   },
   hoursByItem: {
-    activities: { time: '20h00min', percentage: 47 },
+    activities: { time: '20h00min', percentage: 35 },
     content: { time: '10h00min', percentage: 24 },
     simulations: { time: '8h00min', percentage: 19 },
     questionnaires: { time: '4h15min', percentage: 10 },
+    recommendedLessons: { time: '5h00min', percentage: 12 },
   },
 };
 
@@ -126,7 +127,10 @@ describe('AccessReportModal', () => {
       );
       expect(screen.getByText('Tempo total')).toBeInTheDocument();
       expect(screen.getAllByText('Videoaulas').length).toBeGreaterThan(0);
-      expect(screen.getByText('Aulas recomendadas')).toBeInTheDocument();
+      // 'Aulas recomendadas' now appears both as a metric box and a pie legend
+      expect(screen.getAllByText('Aulas recomendadas').length).toBeGreaterThan(
+        0
+      );
       expect(screen.getAllByText('Simulados').length).toBeGreaterThan(0);
       expect(screen.getByText('Quantidade de acessos')).toBeInTheDocument();
       expect(screen.getByText('Último acesso')).toBeInTheDocument();
@@ -189,10 +193,14 @@ describe('AccessReportModal', () => {
         />
       );
       expect(screen.getByText('Dados de horas por item')).toBeInTheDocument();
+      // 5 categories mirroring the reports page STUDENT_CATEGORIES
       expect(screen.getAllByText('Atividades').length).toBeGreaterThan(0);
-      expect(
-        screen.getByText('Questionários das Videoaulas')
-      ).toBeInTheDocument();
+      expect(screen.getAllByText('Simulados').length).toBeGreaterThan(0);
+      expect(screen.getByText('Questionários')).toBeInTheDocument();
+      expect(screen.getAllByText('Videoaulas').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Aulas recomendadas').length).toBeGreaterThan(
+        0
+      );
     });
 
     it('should render SVG pie charts', () => {

@@ -63,6 +63,7 @@ export interface AccessReportStudentData {
     content: AccessReportTimePercentage;
     simulations: AccessReportTimePercentage;
     questionnaires: AccessReportTimePercentage;
+    recommendedLessons: AccessReportTimePercentage;
   };
 }
 
@@ -147,30 +148,33 @@ function buildPlatformSlices(platform: AccessReportByPlatform): PieSlice[] {
 function buildStudentHoursSlices(
   hoursByItem: AccessReportStudentData['hoursByItem']
 ): PieSlice[] {
+  // Order, labels and colors mirror STUDENT_CATEGORIES from the reports page
+  // TimeChart so the modal breakdown matches the page chart 1:1.
   return [
     {
       label: 'Atividades',
       value: hoursByItem.activities.percentage,
       colorClass: 'bg-success-700',
-      color: 'var(--Success-success700, #206F3E)',
-    },
-    {
-      label: 'Videoaulas',
-      value: hoursByItem.content.percentage,
-      colorClass: 'bg-success-300',
-      color: 'var(--Success-success300, #66B584)',
     },
     {
       label: 'Simulados',
       value: hoursByItem.simulations.percentage,
       colorClass: 'bg-warning-300',
-      color: 'var(--Warning-warning300, #FDAD74)',
     },
     {
-      label: 'Questionários das Videoaulas',
+      label: 'Questionários',
       value: hoursByItem.questionnaires.percentage,
+      colorClass: 'bg-indicator-info',
+    },
+    {
+      label: 'Videoaulas',
+      value: hoursByItem.content.percentage,
+      colorClass: 'bg-success-300',
+    },
+    {
+      label: 'Aulas recomendadas',
+      value: hoursByItem.recommendedLessons.percentage,
       colorClass: 'bg-indicator-positive',
-      color: 'var(--Indicator-Indicator-Positive, #F8CC2E)',
     },
   ];
 }
