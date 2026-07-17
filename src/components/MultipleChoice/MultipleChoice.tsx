@@ -36,8 +36,16 @@ const MultipleChoiceList = ({
 }: MultipleChoiceListProps) => {
   const [actualValue, setActualValue] = useState(selectedValues);
 
+  // Mirror the incoming prop into local state, but only when its *value*
+  // actually changed. Comparing by reference alone would re-set state on every
+  // render where the parent hands us a new-but-equal array, which feeds an
+  // infinite re-render loop when the parent also subscribes to the store.
   useEffect(() => {
-    setActualValue(selectedValues);
+    setActualValue((prev) =>
+      JSON.stringify(prev) === JSON.stringify(selectedValues)
+        ? prev
+        : selectedValues
+    );
   }, [selectedValues]);
   const getStatusBadge = (status: Choice['status']) => {
     switch (status) {

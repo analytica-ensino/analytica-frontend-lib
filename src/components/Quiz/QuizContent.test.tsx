@@ -313,6 +313,18 @@ const mockUseQuizStore = useQuizStore as jest.MockedFunction<
   typeof useQuizStore
 >;
 
+// Make the mocked store selector-aware, mirroring zustand's real behaviour:
+// `useQuizStore(selector)` must run the selector against the mocked state, while
+// `useQuizStore()` returns the whole state. Tests keep calling
+// `mockUseQuizStore.mockReturnValue(state)` as before; we intercept it here so
+// components that read a slice (e.g. `useQuizStore((s) => s.userAnswers)`) work.
+mockUseQuizStore.mockReturnValue = ((state: ReturnType<typeof useQuizStore>) =>
+  mockUseQuizStore.mockImplementation((selector?: unknown) =>
+    typeof selector === 'function'
+      ? (selector as (s: unknown) => unknown)(state)
+      : state
+  )) as typeof mockUseQuizStore.mockReturnValue;
+
 describe('QuizContent', () => {
   describe('getStatusBadge', () => {
     it('should return correct badge for correct status', () => {
@@ -833,19 +845,27 @@ describe('QuizContent', () => {
   describe('QuizMultipleChoice Component', () => {
     const mockGetCurrentQuestion = jest.fn();
     const mockSelectMultipleAnswer = jest.fn();
-    const mockGetAllCurrentAnswer = jest.fn();
     const mockGetQuestionResultByQuestionId = jest.fn();
 
-    beforeEach(() => {
+    // The component derives the current question's answers from the `userAnswers`
+    // slice (filtered by questionId), so tests seed this array instead of a
+    // getAllCurrentAnswer() getter.
+    const setStore = (
+      userAnswers: unknown[],
+      overrides: Record<string, unknown> = {}
+    ) =>
       mockUseQuizStore.mockReturnValue({
         getCurrentQuestion: mockGetCurrentQuestion,
         selectMultipleAnswer: mockSelectMultipleAnswer,
-        getAllCurrentAnswer: mockGetAllCurrentAnswer,
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
         variant: 'default',
+        userAnswers,
+        ...overrides,
       } as unknown as ReturnType<typeof useQuizStore>);
 
+    beforeEach(() => {
       jest.clearAllMocks();
+      setStore([]);
     });
 
     it('should render multiple choice alternatives correctly', () => {
@@ -859,7 +879,6 @@ describe('QuizContent', () => {
       };
 
       mockGetCurrentQuestion.mockReturnValue(mockQuestion);
-      mockGetAllCurrentAnswer.mockReturnValue([]);
       mockGetQuestionResultByQuestionId.mockReturnValue(null);
 
       render(<QuizMultipleChoice paddingBottom="pb-4" />);
@@ -909,7 +928,6 @@ describe('QuizContent', () => {
       };
 
       mockGetCurrentQuestion.mockReturnValue(mockQuestion);
-      mockGetAllCurrentAnswer.mockReturnValue([]);
 
       render(<QuizMultipleChoice />);
 
@@ -931,10 +949,13 @@ describe('QuizContent', () => {
         ],
       };
 
-      const mockAnswers = [{ optionId: 'opt1' }, { optionId: 'opt3' }];
+      const mockAnswers = [
+        { questionId: 'question-1', optionId: 'opt1' },
+        { questionId: 'question-1', optionId: 'opt3' },
+      ];
 
       mockGetCurrentQuestion.mockReturnValue(mockQuestion);
-      mockGetAllCurrentAnswer.mockReturnValue(mockAnswers);
+      setStore(mockAnswers);
 
       render(<QuizMultipleChoice />);
 
@@ -967,7 +988,7 @@ describe('QuizContent', () => {
       mockUseQuizStore.mockReturnValue({
         getCurrentQuestion: mockGetCurrentQuestion,
         selectMultipleAnswer: mockSelectMultipleAnswer,
-        getAllCurrentAnswer: mockGetAllCurrentAnswer,
+        userAnswers: [],
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
         variant: QuizVariant.RESULT,
       } as unknown as ReturnType<typeof useQuizStore>);
@@ -997,7 +1018,7 @@ describe('QuizContent', () => {
       };
 
       mockGetCurrentQuestion.mockReturnValue(mockQuestion);
-      mockGetAllCurrentAnswer.mockReturnValue([{ optionId: 'opt1' }]);
+      setStore([{ questionId: 'question-1', optionId: 'opt1' }]);
 
       render(<QuizMultipleChoice />);
 
@@ -1047,7 +1068,7 @@ describe('QuizContent', () => {
       mockUseQuizStore.mockReturnValue({
         getCurrentQuestion: mockGetCurrentQuestion,
         selectMultipleAnswer: mockSelectMultipleAnswer,
-        getAllCurrentAnswer: mockGetAllCurrentAnswer,
+        userAnswers: [],
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
         variant: QuizVariant.RESULT,
       } as unknown as ReturnType<typeof useQuizStore>);
@@ -1072,7 +1093,7 @@ describe('QuizContent', () => {
       mockUseQuizStore.mockReturnValue({
         getCurrentQuestion: mockGetCurrentQuestion,
         selectMultipleAnswer: mockSelectMultipleAnswer,
-        getAllCurrentAnswer: mockGetAllCurrentAnswer,
+        userAnswers: [],
         getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
         variant: QuizVariant.RESULT,
       } as unknown as ReturnType<typeof useQuizStore>);
@@ -1096,7 +1117,7 @@ describe('QuizContent', () => {
       };
 
       mockGetCurrentQuestion.mockReturnValue(mockQuestion);
-      mockGetAllCurrentAnswer.mockReturnValue([{ optionId: 'opt1' }]);
+      setStore([{ questionId: 'question-1', optionId: 'opt1' }]);
 
       const { rerender } = render(<QuizMultipleChoice />);
 
