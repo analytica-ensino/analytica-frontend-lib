@@ -81,6 +81,25 @@ jest.mock('../../store/questionFiltersStore', () => ({
     return selector(mockState);
   },
 }));
+// Partial mock of the activityFilters utils: keep the real implementation for
+// everything, but allow a single test to override `getSelectedIdsFromCategories`
+// so it returns an object *without* `bankIds`/`yearIds`. This is the only way to
+// reach the defensive `|| []` fallbacks in ActivityFilters (lines 584-585),
+// since the real util always returns arrays. The variable is `mock`-prefixed so
+// jest allows referencing it inside the hoisted factory.
+let mockGetSelectedIdsImpl:
+  | ((...args: unknown[]) => Record<string, string[] | undefined>)
+  | null = null;
+jest.mock('../../utils/activityFilters', () => {
+  const actual = jest.requireActual('../../utils/activityFilters');
+  return {
+    ...actual,
+    getSelectedIdsFromCategories: (...args: unknown[]) =>
+      mockGetSelectedIdsImpl
+        ? mockGetSelectedIdsImpl(...args)
+        : actual.getSelectedIdsFromCategories(...args),
+  };
+});
 jest.mock('../../assets/img/mock-content.png', () => 'mock-content.png');
 jest.mock('../../components/Quiz/Quiz', () => () => null);
 jest.mock('../../components/Quiz/QuizContent', () => ({}));
@@ -209,6 +228,12 @@ const renderComponent = (
     />
   );
 
+// Always restore the real getSelectedIdsFromCategories after each test so the
+// per-test override below never leaks into other suites.
+afterEach(() => {
+  mockGetSelectedIdsImpl = null;
+});
+
 describe('ActivityFilters', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -287,6 +312,26 @@ describe('ActivityFilters', () => {
       subtopicIds: [],
       contentIds: [],
     });
+  });
+
+  it('falls back to empty arrays when selected bank/year ids are missing', async () => {
+    const onFiltersChange = jest.fn();
+
+    // Force getSelectedIdsFromCategories to return an object without the
+    // `bankIds`/`yearIds` keys so the `bankIds.bankIds || []` and
+    // `bankIds.yearIds || []` fallbacks are exercised.
+    mockGetSelectedIdsImpl = () => ({});
+
+    renderComponent({ onFiltersChange });
+
+    await waitFor(() => {
+      expect(onFiltersChange).toHaveBeenCalled();
+    });
+
+    const lastCall =
+      onFiltersChange.mock.calls[onFiltersChange.mock.calls.length - 1][0];
+    expect(lastCall.bankIds).toEqual([]);
+    expect(lastCall.yearIds).toEqual([]);
   });
 
   it('applies initialFilters and triggers dependent loads', async () => {
