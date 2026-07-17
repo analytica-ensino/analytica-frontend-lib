@@ -102,6 +102,8 @@ export interface TimeCardData {
   trendValue?: string;
   /** Trend direction - determines color */
   trendDirection?: TimeCardTrend;
+  /** Optional footer text shown below the value (e.g., "de 16.778 escolas") */
+  footer?: ReactNode;
   /**
    * Plain gray line under the value (e.g., "1 município • 134 escolas"), for
    * cards whose context is a breakdown rather than a trend. Rendered alongside
@@ -164,7 +166,8 @@ const TREND_CONFIG = {
  * TimeCard component - displays a single time statistic
  */
 export const TimeCard = ({ data, className, ...props }: TimeCardProps) => {
-  const { label, value, icon, trendValue, trendDirection, subtitle } = data;
+  const { label, value, icon, trendValue, trendDirection, footer, subtitle } =
+    data;
 
   return (
     <div
@@ -228,6 +231,12 @@ export const TimeCard = ({ data, className, ...props }: TimeCardProps) => {
             {trendValue}
           </Text>
         </div>
+      )}
+
+      {footer !== undefined && footer !== null && footer !== false && (
+        <Text as="div" size="xs" className="text-text-500 leading-[130%]">
+          {footer}
+        </Text>
       )}
     </div>
   );

@@ -43,6 +43,28 @@ describe('Badge', () => {
       expect(badge).toHaveClass('text-success-800');
     });
 
+    it('applies solid orange action classes', () => {
+      render(
+        <Badge variant="solid" action="orange">
+          Orange
+        </Badge>
+      );
+      const badge = screen.getByText('Orange');
+      expect(badge).toHaveClass('bg-orange-100');
+      expect(badge).toHaveClass('text-orange-700');
+    });
+
+    it('applies solid neutral action classes', () => {
+      render(
+        <Badge variant="solid" action="neutral">
+          Neutral
+        </Badge>
+      );
+      const badge = screen.getByText('Neutral');
+      expect(badge).toHaveClass('bg-black');
+      expect(badge).toHaveClass('text-white');
+    });
+
     it('applies outline variant classes', () => {
       render(
         <Badge variant="outlined" action="error">

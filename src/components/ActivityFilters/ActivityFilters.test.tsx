@@ -81,6 +81,25 @@ jest.mock('../../store/questionFiltersStore', () => ({
     return selector(mockState);
   },
 }));
+// Partial mock of the activityFilters utils: keep the real implementation for
+// everything, but allow a single test to override `getSelectedIdsFromCategories`
+// so it returns an object *without* `bankIds`/`yearIds`. This is the only way to
+// reach the defensive `|| []` fallbacks in ActivityFilters (lines 584-585),
+// since the real util always returns arrays. The variable is `mock`-prefixed so
+// jest allows referencing it inside the hoisted factory.
+let mockGetSelectedIdsImpl:
+  | ((...args: unknown[]) => Record<string, string[] | undefined>)
+  | null = null;
+jest.mock('../../utils/activityFilters', () => {
+  const actual = jest.requireActual('../../utils/activityFilters');
+  return {
+    ...actual,
+    getSelectedIdsFromCategories: (...args: unknown[]) =>
+      mockGetSelectedIdsImpl
+        ? mockGetSelectedIdsImpl(...args)
+        : actual.getSelectedIdsFromCategories(...args),
+  };
+});
 jest.mock('../../assets/img/mock-content.png', () => 'mock-content.png');
 jest.mock('../../components/Quiz/Quiz', () => () => null);
 jest.mock('../../components/Quiz/QuizContent', () => ({}));
@@ -209,6 +228,12 @@ const renderComponent = (
     />
   );
 
+// Always restore the real getSelectedIdsFromCategories after each test so the
+// per-test override below never leaks into other suites.
+afterEach(() => {
+  mockGetSelectedIdsImpl = null;
+});
+
 describe('ActivityFilters', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -287,6 +312,26 @@ describe('ActivityFilters', () => {
       subtopicIds: [],
       contentIds: [],
     });
+  });
+
+  it('falls back to empty arrays when selected bank/year ids are missing', async () => {
+    const onFiltersChange = jest.fn();
+
+    // Force getSelectedIdsFromCategories to return an object without the
+    // `bankIds`/`yearIds` keys so the `bankIds.bankIds || []` and
+    // `bankIds.yearIds || []` fallbacks are exercised.
+    mockGetSelectedIdsImpl = () => ({});
+
+    renderComponent({ onFiltersChange });
+
+    await waitFor(() => {
+      expect(onFiltersChange).toHaveBeenCalled();
+    });
+
+    const lastCall =
+      onFiltersChange.mock.calls[onFiltersChange.mock.calls.length - 1][0];
+    expect(lastCall.bankIds).toEqual([]);
+    expect(lastCall.yearIds).toEqual([]);
   });
 
   it('applies initialFilters and triggers dependent loads', async () => {
@@ -600,6 +645,37 @@ describe('ActivityFilters', () => {
           })
         );
       });
+    });
+
+    it('should keep explicit years and derive all years for banks without one', async () => {
+      const onFiltersChange = jest.fn();
+      // bank1 + bank2 are selected but only bank1's year (year1) is picked.
+      // The payload must keep year1 for bank1 and send *all* of bank2's years
+      // (year2, year3) since no year was chosen for it.
+      const initialFilters = {
+        types: [],
+        bankIds: ['bank1', 'bank2'],
+        yearIds: ['year1'],
+        subjectIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      renderComponent({ onFiltersChange, initialFilters });
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            bankIds: ['bank1', 'bank2'],
+            yearIds: expect.arrayContaining(['year1', 'year2', 'year3']),
+          })
+        );
+      });
+
+      const lastCall =
+        onFiltersChange.mock.calls[onFiltersChange.mock.calls.length - 1][0];
+      expect(lastCall.yearIds).toHaveLength(3);
     });
 
     it('should prefer explicit yearIds over derived ones', async () => {

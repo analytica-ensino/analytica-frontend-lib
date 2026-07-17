@@ -12,6 +12,8 @@ const VARIANT_ACTION_CLASSES = {
     success: 'bg-success text-success-800 focus-visible:outline-none',
     info: 'bg-info text-info-800 focus-visible:outline-none',
     muted: 'bg-background-muted text-background-800 focus-visible:outline-none',
+    orange: 'bg-orange-100 text-orange-700 focus-visible:outline-none',
+    neutral: 'bg-black text-white focus-visible:outline-none',
   },
   outlined: {
     error:
@@ -89,6 +91,8 @@ type BadgeProps = {
     | 'success'
     | 'info'
     | 'muted'
+    | 'orange'
+    | 'neutral'
     | 'exam1'
     | 'exam2'
     | 'exam3'

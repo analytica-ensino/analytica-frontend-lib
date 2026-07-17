@@ -124,6 +124,62 @@ describe('TimeCard', () => {
     expect(screen.queryByTestId('subtitle-no-trend')).not.toBeInTheDocument();
   });
 
+  it('renders the footer when provided', () => {
+    render(
+      <TimeCard
+        data={{
+          id: 'total',
+          label: 'TOTAL DE ESCOLAS',
+          value: '16.778',
+          icon: <MockIcon />,
+          footer: 'de 16.778 escolas',
+        }}
+      />
+    );
+
+    expect(screen.getByText('de 16.778 escolas')).toBeInTheDocument();
+  });
+
+  it('renders a ReactNode footer when provided', () => {
+    render(
+      <TimeCard
+        data={{
+          id: 'total',
+          label: 'TOTAL DE ESCOLAS',
+          value: '16.778',
+          icon: <MockIcon />,
+          footer: <span data-testid="custom-footer">Nota de rodapé</span>,
+        }}
+      />
+    );
+
+    expect(screen.getByTestId('custom-footer')).toHaveTextContent(
+      'Nota de rodapé'
+    );
+  });
+
+  it('renders a numeric zero footer', () => {
+    render(
+      <TimeCard
+        data={{
+          id: 'total',
+          label: 'TOTAL DE ESCOLAS',
+          value: '16.778',
+          icon: <MockIcon />,
+          footer: 0,
+        }}
+      />
+    );
+
+    expect(screen.getByText('0')).toBeInTheDocument();
+  });
+
+  it('does not render the footer when not provided', () => {
+    render(<TimeCard data={mockNoTrendCard} />);
+
+    expect(screen.queryByText(/escolas/)).not.toBeInTheDocument();
+  });
+
   it('does not render trend when not provided', () => {
     render(<TimeCard data={mockNoTrendCard} />);
 

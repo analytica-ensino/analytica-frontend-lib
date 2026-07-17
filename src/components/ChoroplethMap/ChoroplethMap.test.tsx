@@ -226,6 +226,7 @@ describe('ChoroplethMap', () => {
     expect(
       screen.getByText('Ponto de atenção (Abaixo de 25% com acesso)')
     ).toBeInTheDocument();
+    expect(screen.getByText('Sem acesso (0%)')).toBeInTheDocument();
   });
 
   it('shows loading skeleton when loading is true', () => {

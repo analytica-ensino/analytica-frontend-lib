@@ -2,6 +2,8 @@ import {
   getSelectedIdsFromCategories,
   toggleArrayItem,
   toggleSingleValue,
+  deriveYearIdsFromBankIds,
+  mergeYearIdsForSelectedBanks,
 } from './activityFilters';
 import type { CategoryConfig } from '../components/CheckBoxGroup/CheckBoxGroup';
 
@@ -176,6 +178,75 @@ describe('activityFilters utils', () => {
     it('should handle boolean values', () => {
       expect(toggleSingleValue(true, false)).toBe(false);
       expect(toggleSingleValue(false, true)).toBe(true);
+    });
+  });
+
+  const yearItens = [
+    { id: 'year1', name: '2023', bankId: 'bank1' },
+    { id: 'year2', name: '2024', bankId: 'bank2' },
+    { id: 'year3', name: '2023', bankId: 'bank2' },
+  ];
+
+  describe('deriveYearIdsFromBankIds', () => {
+    it('should return explicit year IDs when provided', () => {
+      expect(
+        deriveYearIdsFromBankIds(yearItens, ['bank1', 'bank2'], ['year1'])
+      ).toEqual(['year1']);
+    });
+
+    it('should derive all years for the given banks when none are explicit', () => {
+      expect(deriveYearIdsFromBankIds(yearItens, ['bank2'], [])).toEqual([
+        'year2',
+        'year3',
+      ]);
+    });
+
+    it('should return an empty array when no bank matches', () => {
+      expect(deriveYearIdsFromBankIds(yearItens, ['unknown'], [])).toEqual([]);
+    });
+
+    it('should ignore malformed year items', () => {
+      const messy = [...yearItens, null, { id: 5, bankId: 'bank1' }, {}];
+      expect(deriveYearIdsFromBankIds(messy, ['bank1'], [])).toEqual(['year1']);
+    });
+  });
+
+  describe('mergeYearIdsForSelectedBanks', () => {
+    it('should keep explicit years and derive years for banks without one', () => {
+      const result = mergeYearIdsForSelectedBanks(
+        yearItens,
+        ['bank1', 'bank2'],
+        ['year1']
+      );
+      expect(result).toEqual(
+        expect.arrayContaining(['year1', 'year2', 'year3'])
+      );
+      expect(result).toHaveLength(3);
+    });
+
+    it('should not add other years for a bank that has an explicit year', () => {
+      // bank2 has year2 explicitly picked, so year3 must NOT be added.
+      expect(
+        mergeYearIdsForSelectedBanks(yearItens, ['bank2'], ['year2'])
+      ).toEqual(['year2']);
+    });
+
+    it('should derive all years when no explicit year is given', () => {
+      expect(
+        mergeYearIdsForSelectedBanks(yearItens, ['bank1', 'bank2'], [])
+      ).toEqual(['year1', 'year2', 'year3']);
+    });
+
+    it('should preserve explicit years even when no bank is selected', () => {
+      expect(mergeYearIdsForSelectedBanks(yearItens, [], ['year1'])).toEqual([
+        'year1',
+      ]);
+    });
+
+    it('should deduplicate the resulting year IDs', () => {
+      expect(
+        mergeYearIdsForSelectedBanks(yearItens, ['bank2'], ['year2', 'year2'])
+      ).toEqual(['year2']);
     });
   });
 });

@@ -205,13 +205,20 @@ export const SimpleBarChart = ({
           <GridLines ticks={yAxisTicks} chartHeight={chartHeight} />
           <div className="flex flex-row flex-1 gap-2 relative z-10">
             {data.map((item, index) => (
-              <Bar
+              // Equal-width column wrapper: keeps every bucket the same width even
+              // when a bar's value is 0 (its Tooltip is disabled and would
+              // otherwise drop the flex-1 class, collapsing the column).
+              <div
                 key={`${item.label}-${index}`}
-                item={item}
-                maxValue={adjustedMax}
-                chartHeight={chartHeight}
-                barColor={barColor}
-              />
+                className="flex-1 flex min-w-0"
+              >
+                <Bar
+                  item={item}
+                  maxValue={adjustedMax}
+                  chartHeight={chartHeight}
+                  barColor={barColor}
+                />
+              </div>
             ))}
           </div>
         </div>

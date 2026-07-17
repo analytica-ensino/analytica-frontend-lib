@@ -64,3 +64,76 @@ export function areFiltersEqual(
     arraysEqual(filters1.contentIds, filters2.contentIds)
   );
 }
+
+/**
+ * Type guard to check if an item has a valid id and a bankId within bankIds
+ * @param item - The item to validate
+ * @param bankIds - Array of valid bank IDs to check against
+ * @returns True if item has valid id and bankId that matches bankIds
+ */
+function isValidBankYearItem(
+  item: unknown,
+  bankIds: string[]
+): item is { id: string; bankId: string } {
+  return (
+    !!item &&
+    typeof (item as { id?: unknown }).id === 'string' &&
+    typeof (item as { bankId?: unknown }).bankId === 'string' &&
+    bankIds.includes((item as { bankId: string }).bankId)
+  );
+}
+
+/**
+ * Derives year IDs from bank IDs when explicit year IDs are not provided
+ * @param yearItens - Array of year items to filter
+ * @param bankIds - Array of bank IDs to filter by
+ * @param explicitYearIds - Explicitly provided year IDs (takes precedence)
+ * @returns Array of year IDs
+ */
+export function deriveYearIdsFromBankIds(
+  yearItens: unknown[],
+  bankIds: string[],
+  explicitYearIds: string[]
+): string[] {
+  if (explicitYearIds.length > 0) {
+    return explicitYearIds;
+  }
+  return yearItens
+    .filter((item) => isValidBankYearItem(item, bankIds))
+    .map((item) => item.id);
+}
+
+/**
+ * Builds the year IDs to send for a set of selected banks, handling mixed
+ * selections: explicitly-selected years are retained for the banks that have
+ * them, and every selected bank *without* an explicit year contributes all of
+ * its available years (the backend filters only by bank-year, so a bank with no
+ * year would otherwise match everything). The result is deduplicated.
+ * @param yearItens - Array of year items (each with id/bankId)
+ * @param bankIds - Array of selected bank IDs
+ * @param explicitYearIds - Year IDs the user explicitly selected
+ * @returns Deduplicated array of year IDs
+ */
+export function mergeYearIdsForSelectedBanks(
+  yearItens: unknown[],
+  bankIds: string[],
+  explicitYearIds: string[]
+): string[] {
+  const validYears = yearItens.filter((item) =>
+    isValidBankYearItem(item, bankIds)
+  );
+  const explicitSet = new Set(explicitYearIds);
+  const result = new Set<string>(explicitYearIds);
+
+  for (const bankId of bankIds) {
+    const yearsForBank = validYears.filter((year) => year.bankId === bankId);
+    const hasExplicitYear = yearsForBank.some((year) =>
+      explicitSet.has(year.id)
+    );
+    if (!hasExplicitYear) {
+      yearsForBank.forEach((year) => result.add(year.id));
+    }
+  }
+
+  return Array.from(result);
+}

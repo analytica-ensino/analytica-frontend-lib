@@ -75,11 +75,18 @@ const getColorClasses = (): ColorClass[] => [
     label: 'Abaixo da média (25 até 49% com acesso)',
   },
   {
-    min: 0,
+    min: 0.01,
     max: 0.25,
     fillColor: getCssVar('--color-map-attention', '#b91c1c'),
     strokeColor: getCssVar('--color-map-attention', '#b91c1c'),
     label: 'Ponto de atenção (Abaixo de 25% com acesso)',
+  },
+  {
+    min: -0.01,
+    max: 0.01,
+    fillColor: getCssVar('--color-map-no-access', '#2f2f2f'),
+    strokeColor: getCssVar('--color-map-no-access', '#2f2f2f'),
+    label: 'Sem acesso (0%)',
   },
 ];
 
@@ -300,7 +307,7 @@ const ChoroplethMap = ({
     y: number;
   } | null>(null);
   const [activeClasses, setActiveClasses] = useState<Set<number>>(
-    new Set([0, 1, 2, 3])
+    new Set([0, 1, 2, 3, 4])
   );
   const fadeAnimationRef = useRef<number | null>(null);
   const hoverAnimationsRef = useRef<Map<string, number>>(new Map());

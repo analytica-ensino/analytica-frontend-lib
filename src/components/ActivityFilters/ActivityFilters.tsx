@@ -23,6 +23,8 @@ import {
   getSelectedIdsFromCategories,
   toggleArrayItem,
   areFiltersEqual,
+  deriveYearIdsFromBankIds,
+  mergeYearIdsForSelectedBanks,
 } from '../../utils/activityFilters';
 import {
   SubjectsFilter,
@@ -43,44 +45,6 @@ const questionTypesFallback = [
   QUESTION_TYPE.RELACIONAR,
   QUESTION_TYPE.PREENCHER_LACUNAS,
 ];
-
-/**
- * Type guard to check if an item has a valid bankId
- * @param item - The item to validate
- * @param bankIds - Array of valid bank IDs to check against
- * @returns True if item has valid id and bankId that matches bankIds
- */
-const isValidBankYearItem = (
-  item: unknown,
-  bankIds: string[]
-): item is { id: string; bankId: string } => {
-  return (
-    !!item &&
-    typeof (item as { id?: unknown }).id === 'string' &&
-    typeof (item as { bankId?: unknown }).bankId === 'string' &&
-    bankIds.includes((item as { bankId: string }).bankId)
-  );
-};
-
-/**
- * Derives year IDs from bank IDs when explicit year IDs are not provided
- * @param yearItens - Array of year items to filter
- * @param bankIds - Array of bank IDs to filter by
- * @param explicitYearIds - Explicitly provided year IDs (takes precedence)
- * @returns Array of year IDs
- */
-const deriveYearIdsFromBankIds = (
-  yearItens: unknown[],
-  bankIds: string[],
-  explicitYearIds: string[]
-): string[] => {
-  if (explicitYearIds.length > 0) {
-    return explicitYearIds;
-  }
-  return yearItens
-    .filter((item) => isValidBankYearItem(item, bankIds))
-    .map((item) => item.id);
-};
 
 /**
  * Checks if bank matches exist in the provided categories
@@ -581,10 +545,20 @@ export const ActivityFilters = ({
     // Tema/subtema/assunto only apply to a single subject; with 0 or 2+ (or
     // "Todas") the knowledge selection is irrelevant and must not be sent.
     const isSingleSubject = selectedSubjectIds.length === 1;
+    const selectedBankIds = bankIds.bankIds || [];
+    const selectedYearIds = bankIds.yearIds || [];
     const filters: ActivityFiltersData = {
       types: selectedQuestionTypes,
-      bankIds: bankIds.bankIds || [],
-      yearIds: bankIds.yearIds || [],
+      bankIds: selectedBankIds,
+      // The backend filters questions only by bank-year, not by bank alone, so a
+      // bank with no year picked would return everything. When a bank is
+      // selected but no year is chosen for it, send all of that bank's years,
+      // while keeping the explicitly-picked years for the banks that have them.
+      yearIds: mergeYearIdsForSelectedBanks(
+        bankYears,
+        selectedBankIds,
+        selectedYearIds
+      ),
       subjectIds: selectedSubjectIds,
       topicIds: isSingleSubject ? knowledgeIds.topicIds : [],
       subtopicIds: isSingleSubject ? knowledgeIds.subtopicIds : [],
@@ -600,6 +574,7 @@ export const ActivityFilters = ({
     selectedSubjectIds,
     knowledgeCategories,
     bankCategories,
+    bankYears,
     getSelectedKnowledgeIds,
     getSelectedBankIds,
   ]);
