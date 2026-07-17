@@ -45,18 +45,41 @@ describe('VLibrasLoader', () => {
     expect(script.src).toContain('vlibras.gov.br');
   });
 
-  it('removes the wrapper when librasEnabled returns to false', () => {
+  it('hides (does not remove) the wrapper when librasEnabled returns to false', () => {
     render(<VLibrasLoader />);
 
     act(() => {
       useAccessibilityStore.getState().setLibrasEnabled(true);
     });
-    expect(document.getElementById(WRAPPER_ID)).toBeInTheDocument();
+    const wrapper = document.getElementById(WRAPPER_ID);
+    expect(wrapper).toBeInTheDocument();
+    expect(wrapper?.style.display).toBe('');
 
     act(() => {
       useAccessibilityStore.getState().setLibrasEnabled(false);
     });
-    expect(document.getElementById(WRAPPER_ID)).not.toBeInTheDocument();
+    // The skeleton stays in the DOM (just hidden) so the plugin's orphan
+    // resize listener never runs `.closest()` on a null [vp]/[vw] node.
+    expect(document.getElementById(WRAPPER_ID)).toBeInTheDocument();
+    expect(document.getElementById(WRAPPER_ID)?.style.display).toBe('none');
+  });
+
+  it('re-shows the same wrapper on reactivation without recreating it', () => {
+    render(<VLibrasLoader />);
+
+    act(() => {
+      useAccessibilityStore.getState().setLibrasEnabled(true);
+    });
+    act(() => {
+      useAccessibilityStore.getState().setLibrasEnabled(false);
+    });
+    act(() => {
+      useAccessibilityStore.getState().setLibrasEnabled(true);
+    });
+
+    const wrappers = document.querySelectorAll(`#${WRAPPER_ID}`);
+    expect(wrappers.length).toBe(1);
+    expect(document.getElementById(WRAPPER_ID)?.style.display).toBe('');
   });
 
   it('does not duplicate the script on repeated activations', () => {

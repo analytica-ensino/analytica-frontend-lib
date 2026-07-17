@@ -22,8 +22,14 @@ interface VLibrasGlobal {
  *      avatar e os assets 3D.
  *
  * - Quando `librasEnabled === false`:
- *   - Remove o esqueleto DOM. O script permanece em cache (já carregado)
- *     para reativações rápidas.
+ *   - Apenas OCULTA o esqueleto DOM (não remove). O plugin do VLibras
+ *     registra um listener de `resize` no `window` que ele nunca desanexa;
+ *     se removêssemos o wrapper, esse listener rodaria `d("[vp]").closest(...)`
+ *     sobre um `null` (nós já removidos) e lançaria
+ *     `Cannot read properties of null (reading 'closest')` no próximo resize
+ *     (rotação de tela / teclado virtual no mobile). Mantendo o esqueleto
+ *     oculto no DOM, `[vp]`/`[vw]` continuam existindo e o handler órfão não
+ *     quebra. O script permanece em cache para reativações rápidas.
  *
  * O script é pesado (~MBs de avatares 3D), por isso só carregamos quando
  * o usuário clica para ativar — fluxo opt-in.
@@ -35,7 +41,7 @@ export default function VLibrasLoader() {
     if (typeof document === 'undefined') return;
 
     if (!enabled) {
-      removeWrapper();
+      hideWrapper();
       return;
     }
 
@@ -95,7 +101,14 @@ export default function VLibrasLoader() {
 }
 
 const injectWrapper = () => {
-  if (document.getElementById(WRAPPER_ID)) return;
+  const existing = document.getElementById(WRAPPER_ID);
+  if (existing) {
+    // Wrapper já foi criado numa ativação anterior e apenas ocultado ao
+    // desativar. Basta reexibi-lo em vez de recriar (o que reinjetaria os
+    // nós e recriaria o listener órfão do plugin).
+    existing.style.removeProperty('display');
+    return;
+  }
 
   const wrapper = document.createElement('div');
   wrapper.id = WRAPPER_ID;
@@ -117,8 +130,13 @@ const injectWrapper = () => {
   document.body.appendChild(wrapper);
 };
 
-const removeWrapper = () => {
-  document.getElementById(WRAPPER_ID)?.remove();
+const hideWrapper = () => {
+  const wrapper = document.getElementById(WRAPPER_ID);
+  if (wrapper) {
+    // Oculta sem remover: preserva os nós [vp]/[vw] que o listener de resize
+    // órfão do plugin do VLibras consulta via `.closest()`.
+    wrapper.style.display = 'none';
+  }
 };
 
 const loadScript = (): Promise<void> => {
@@ -144,5 +162,5 @@ export const __testing = {
   SCRIPT_URL,
   WRAPPER_ID,
   injectWrapper,
-  removeWrapper,
+  hideWrapper,
 };
