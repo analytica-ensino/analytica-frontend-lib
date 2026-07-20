@@ -11,7 +11,11 @@ interface MathNodeViewProps {
 }
 
 function MathNodeView({ node, editor, getPos }: MathNodeViewProps) {
-  const latex = node.attrs.latex as string;
+  // `node.attrs.latex` is not guaranteed to be a string: pasted/imported HTML
+  // without a `data-latex` attribute makes parseHTML return `undefined`, which
+  // bypasses the attribute's `default: ''`. Normalising here keeps both the
+  // KaTeX render and the cursor math below working on a real string.
+  const latex = typeof node.attrs.latex === 'string' ? node.attrs.latex : '';
 
   const renderedHtml = useMemo(() => {
     try {
@@ -27,7 +31,10 @@ function MathNodeView({ node, editor, getPos }: MathNodeViewProps) {
   // When clicked, convert back to editable text
   const handleClick = () => {
     const pos = getPos();
-    if (typeof pos !== 'number') return;
+    // `typeof NaN === 'number'`, so an explicit finite check is required here —
+    // a NaN position would flow into setTextSelection and make ProseMirror throw
+    // "Position NaN out of range" (FRONTEND-BACKOFFICE-WEB-P).
+    if (typeof pos !== 'number' || !Number.isFinite(pos)) return;
 
     editor
       .chain()
@@ -36,8 +43,12 @@ function MathNodeView({ node, editor, getPos }: MathNodeViewProps) {
       .insertContent(`$${latex}$`)
       .run();
 
-    // Move cursor to the end of the inserted text (before the last $)
-    const newPos = pos + latex.length + 1;
+    // Move cursor to the end of the inserted text (before the last $).
+    // Clamp to the document bounds: the position is derived from `pos`, which
+    // predates the edits above, so it can land past the end of the resulting
+    // document — another way ProseMirror would throw "out of range".
+    const docSize = editor.state.doc.content.size;
+    const newPos = Math.min(Math.max(pos + latex.length + 1, 0), docSize);
     editor.commands.setTextSelection(newPos);
   };
 
@@ -76,7 +87,11 @@ export const MathNode = Node.create({
       {
         tag: 'span[data-type="math-inline"]',
         getAttrs: (dom) => {
-          return { latex: dom.dataset.latex };
+          // Fall back to '' instead of forwarding `undefined`: returning the
+          // attribute explicitly overrides the `default: ''` declared above, so
+          // HTML pasted without `data-latex` would otherwise produce a node
+          // whose `latex` attr is undefined.
+          return { latex: dom.dataset.latex ?? '' };
         },
       },
     ];

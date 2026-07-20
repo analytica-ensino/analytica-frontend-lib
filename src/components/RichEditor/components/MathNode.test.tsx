@@ -1,4 +1,6 @@
 import '@testing-library/jest-dom';
+import { render, screen, fireEvent } from '@testing-library/react';
+import type { ReactElement } from 'react';
 import { MathNode } from './MathNode';
 
 // Mock katex
@@ -95,6 +97,19 @@ describe('MathNode Extension', () => {
 
       const result = getAttrs?.(mockDom);
       expect(result).toEqual({ latex: 'x^2 + y^2' });
+    });
+
+    it('deve usar string vazia quando data-latex está ausente', () => {
+      // Returning `undefined` here would override the attribute's default and
+      // produce a node whose latex attr is undefined, which broke the cursor
+      // math on click (FRONTEND-BACKOFFICE-WEB-P).
+      const parseRules = getConfigMethod(MathNode.config.parseHTML);
+      const getAttrs = parseRules?.[0].getAttrs;
+
+      const mockDom = { dataset: {} } as unknown as HTMLElement;
+
+      const result = getAttrs?.(mockDom);
+      expect(result).toEqual({ latex: '' });
     });
   });
 
@@ -373,6 +388,106 @@ describe('MathNodeView Component', () => {
       throwOnError: false,
       displayMode: false,
     });
+  });
+});
+
+describe('MathNodeView click handling', () => {
+  // The node view is what actually runs on click; ReactNodeViewRenderer is
+  // mocked as identity, so addNodeView() hands us the component itself.
+  const getNodeView = () =>
+    getConfigMethod(MathNode.config.addNodeView) as unknown as (props: {
+      node: unknown;
+      editor: unknown;
+      getPos: () => number | undefined;
+    }) => ReactElement;
+
+  const setup = ({
+    pos,
+    // Not a default parameter: passing `latex: undefined` explicitly must reach
+    // the component as undefined (a default would silently substitute it).
+    latex,
+    docSize = 100,
+  }: {
+    pos: number | undefined;
+    latex?: unknown;
+    docSize?: number;
+  }) => {
+    const setTextSelection = jest.fn();
+    const run = jest.fn();
+    const chain = {
+      focus: () => chain,
+      deleteRange: () => chain,
+      insertContent: () => chain,
+      run,
+    };
+    const editor = {
+      chain: () => chain,
+      commands: { setTextSelection },
+      state: { doc: { content: { size: docSize } } },
+    };
+    const node = { attrs: { latex }, nodeSize: 1 };
+
+    const NodeView = getNodeView();
+    render(<NodeView node={node} editor={editor} getPos={() => pos} />);
+
+    return { setTextSelection, run };
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('não chama setTextSelection quando getPos retorna NaN', () => {
+    // typeof NaN === 'number', so the old guard let it through and ProseMirror
+    // threw "Position NaN out of range" (FRONTEND-BACKOFFICE-WEB-P).
+    const { setTextSelection, run } = setup({ pos: NaN, latex: 'x^2' });
+
+    fireEvent.click(screen.getByTestId('node-view-wrapper'));
+
+    expect(run).not.toHaveBeenCalled();
+    expect(setTextSelection).not.toHaveBeenCalled();
+  });
+
+  it('não chama setTextSelection quando getPos retorna undefined', () => {
+    const { setTextSelection, run } = setup({ pos: undefined, latex: 'x^2' });
+
+    fireEvent.click(screen.getByTestId('node-view-wrapper'));
+
+    expect(run).not.toHaveBeenCalled();
+    expect(setTextSelection).not.toHaveBeenCalled();
+  });
+
+  it('usa uma posição numérica válida quando latex não é string', () => {
+    // `undefined.length` used to make the sum NaN.
+    const { setTextSelection } = setup({ pos: 5, latex: undefined });
+
+    fireEvent.click(screen.getByTestId('node-view-wrapper'));
+
+    expect(setTextSelection).toHaveBeenCalledTimes(1);
+    const calledWith = setTextSelection.mock.calls[0][0];
+    expect(Number.isFinite(calledWith)).toBe(true);
+    expect(calledWith).toBe(6); // pos + ''.length + 1
+  });
+
+  it('limita a posição ao tamanho do documento', () => {
+    // pos + latex.length + 1 would land past the end of the doc.
+    const { setTextSelection } = setup({
+      pos: 8,
+      latex: 'abcdef',
+      docSize: 10,
+    });
+
+    fireEvent.click(screen.getByTestId('node-view-wrapper'));
+
+    expect(setTextSelection).toHaveBeenCalledWith(10);
+  });
+
+  it('posiciona o cursor no fim do texto inserido no caso normal', () => {
+    const { setTextSelection } = setup({ pos: 3, latex: 'x^2', docSize: 100 });
+
+    fireEvent.click(screen.getByTestId('node-view-wrapper'));
+
+    expect(setTextSelection).toHaveBeenCalledWith(7); // 3 + 3 + 1
   });
 });
 
