@@ -1,0 +1,30 @@
+@layer base {
+  /*
+   * Papolê (light) — verde institucional.
+   *
+   * A plataforma usa APENAS uma rampa primary própria; todos os demais grupos
+   * (secondary, tertiary, text, background, border, success, error, warning,
+   * info, indicator, subject/exam, question-type, map e sombras) são herdados
+   * dos defaults de ../tokens.css de propósito.
+   *
+   * Mapeamento: o token "Papolê 0" da designer corresponde ao passo base da
+   * lib (`--color-primary`, sem sufixo); 50–950 são 1:1.
+   */
+  [data-theme='papole-light'] {
+    color-scheme: light;
+
+    /* Primary Colors — verde Papolê */
+    --color-primary: #f9fdfb;
+    --color-primary-50: #ceefd9;
+    --color-primary-100: #a4e1b7;
+    --color-primary-200: #79d296;
+    --color-primary-300: #4ec474;
+    --color-primary-400: #36a35a;
+    --color-primary-500: #287842;
+    --color-primary-600: #256f3d;
+    --color-primary-700: #226738;
+    --color-primary-800: #1f5e34;
+    --color-primary-900: #1c552f;
+    --color-primary-950: #194d2a;
+  }
+}

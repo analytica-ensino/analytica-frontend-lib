@@ -18,6 +18,8 @@
 @import './themes/paraiba/dark.css';
 @import './themes/analytica/light.css';
 @import './themes/analytica/dark.css';
+@import './themes/papole/light.css';
+@import './themes/papole/dark.css';
 
 /*
  * Regras globais do AccessibilityWidget (classes em <html> para
