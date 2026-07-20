@@ -130,6 +130,14 @@ export interface ModulesConfig {
   tutorial: boolean;
   tutorialUrl: string;
 
+  /**
+   * Reading-fluency mode (opt-in per institution, off by default).
+   * When `true`, the platform switches to the reading-fluency-only experience:
+   * the professor app hides the navigation menu and exposes only the
+   * "Teste de fluência" page. Consumed via `useModules().hasReadingFluency`.
+   */
+  readingFluency: boolean;
+
   // Nested configurations
   exams: boolean;
   simulations: SimulationsConfig;
@@ -169,6 +177,9 @@ export const DEFAULT_MODULES: ModulesConfig = {
   // Tutorial off by default (opt-in per institution, requires a url)
   tutorial: false,
   tutorialUrl: '',
+
+  // Reading-fluency mode off by default (opt-in per institution)
+  readingFluency: false,
 
   // Nested configurations
   exams: DEFAULT_EXAMS,

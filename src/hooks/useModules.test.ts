@@ -784,4 +784,39 @@ describe('useModules', () => {
       expect(result.current.hasTutorial).toBe(false);
     });
   });
+
+  describe('reading fluency mode', () => {
+    it('hasReadingFluency is false by default (opt-in per institution)', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: defaultModules,
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasReadingFluency).toBe(false);
+    });
+
+    it('hasReadingFluency is true when enabled', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: { ...defaultModules, readingFluency: true },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasReadingFluency).toBe(true);
+    });
+
+    it('hasReadingFluency defaults to false when the field is missing', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {}, // no readingFluency key (old persisted state)
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasReadingFluency).toBe(false);
+    });
+  });
 });
