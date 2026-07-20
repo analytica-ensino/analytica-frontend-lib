@@ -74,3 +74,22 @@ export const Manager: Story = () => (
     onNavigateByNotification={noop}
   />
 );
+
+/**
+ * Header with the "Tutoriais" pill button (opens the tutorial link).
+ */
+export const WithTutorial: Story = () => (
+  <AppHeader
+    user={{ name: 'Maria', email: 'maria@example.com' }}
+    sessionInfo={baseSession}
+    notifications={sampleNotifications}
+    tutorial={{ visible: true, onClick: noop }}
+    showCalendar
+    calendarContent={
+      <div className="p-4 text-text-700">Calendário do aluno</div>
+    }
+    onLogout={noop}
+    onNavigateToMyData={noop}
+    onNavigateByNotification={noop}
+  />
+);

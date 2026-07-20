@@ -209,4 +209,83 @@ describe('AppHeader', () => {
     );
     expect(screen.getByAltText('Logo')).toBeInTheDocument();
   });
+
+  it('does not render the tutorial button by default', () => {
+    render(<AppHeader {...baseProps()} />);
+    expect(screen.queryByText('Tutoriais')).not.toBeInTheDocument();
+  });
+
+  it('does not render the tutorial button when tutorial.visible is false', () => {
+    render(
+      <AppHeader
+        {...baseProps({ tutorial: { visible: false, onClick: jest.fn() } })}
+      />
+    );
+    expect(screen.queryByText('Tutoriais')).not.toBeInTheDocument();
+  });
+
+  it('renders the tutorial button with the default label when visible', () => {
+    render(
+      <AppHeader
+        {...baseProps({ tutorial: { visible: true, onClick: jest.fn() } })}
+      />
+    );
+    expect(
+      screen.getByRole('button', { name: 'Tutoriais' })
+    ).toBeInTheDocument();
+  });
+
+  it('renders a custom tutorial label when provided', () => {
+    render(
+      <AppHeader
+        {...baseProps({
+          tutorial: { visible: true, label: 'Tutorial', onClick: jest.fn() },
+        })}
+      />
+    );
+    expect(
+      screen.getByRole('button', { name: 'Tutorial' })
+    ).toBeInTheDocument();
+  });
+
+  // Regression: `text-*` inverts with the color mode while the header
+  // background (`bg-primary-800`) does not, which erased the button in dark
+  // mode. `primary` is the designed foreground of `primary-800` in every theme.
+  it('styles the tutorial button with the on-primary foreground token', () => {
+    render(
+      <AppHeader
+        {...baseProps({ tutorial: { visible: true, onClick: jest.fn() } })}
+      />
+    );
+    const button = screen.getByRole('button', { name: 'Tutoriais' });
+    expect(button).toHaveClass('text-primary', 'border-primary');
+    expect(button).not.toHaveClass('text-text', 'border-text');
+  });
+
+  it('calls tutorial.onClick when the tutorial button is clicked', () => {
+    const onClick = jest.fn();
+    render(
+      <AppHeader {...baseProps({ tutorial: { visible: true, onClick } })} />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Tutoriais' }));
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  // Regression: the tutorial pill widened the header enough to overflow narrow
+  // viewports, because an <img> resolves `min-width:auto` to its intrinsic
+  // width and refuses to shrink, pushing the actions off-screen.
+  it('lets the logo shrink and keeps the actions from being squashed', () => {
+    render(
+      <AppHeader
+        {...baseProps({ tutorial: { visible: true, onClick: jest.fn() } })}
+      />
+    );
+    const logo = screen.getByAltText('Logo');
+    expect(logo).toHaveClass('min-w-0', 'shrink');
+
+    const section = logo.parentElement?.querySelector('section');
+    expect(section).toHaveClass('shrink-0');
+    // A gap on the row guarantees the logo never touches the tutorial pill.
+    expect(logo.parentElement).toHaveClass('gap-3');
+  });
 });

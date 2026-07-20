@@ -48,6 +48,20 @@ export interface AppHeaderUser {
 }
 
 /**
+ * Tutorial action rendered as a pill button in the header (left of the
+ * notifications bell). The consumer owns the click behavior (usually opening
+ * the configured tutorial URL in a new tab).
+ */
+export interface AppHeaderTutorial {
+  /** Show the tutorial button. */
+  visible?: boolean;
+  /** Button label. Defaults to "Tutoriais". */
+  label?: string;
+  /** Fired when the tutorial button is clicked. */
+  onClick: () => void;
+}
+
+/**
  * Notifications data + callbacks the AppHeader forwards to NotificationCard.
  * Built by the consumer (usually via `createNotificationsHook(api)`).
  */
@@ -71,6 +85,8 @@ export interface AppHeaderProps {
   sessionInfo?: AppHeaderSessionInfo;
   /** Notifications wiring (state + callbacks). */
   notifications: AppHeaderNotifications;
+  /** Tutorial pill button shown before the notifications bell. */
+  tutorial?: AppHeaderTutorial;
   /** Show the calendar widget in the header. */
   showCalendar?: boolean;
   /** Content rendered inside the calendar (dropdown on tablet/desktop, modal on mobile). */
@@ -125,6 +141,7 @@ export const AppHeader = ({
   user,
   sessionInfo,
   notifications,
+  tutorial,
   showCalendar = false,
   calendarContent,
   calendarOpen,
@@ -217,6 +234,11 @@ export const AppHeader = ({
   );
   const sectionGap = pickResponsiveClass('gap-1', 'gap-2', 'gap-3');
   const logoHeight = pickResponsiveClass('h-6', 'h-8', 'h-10');
+  const tutorialPadding = pickResponsiveClass(
+    'px-3 py-1.5 text-xs',
+    'px-3.5 py-2 text-sm',
+    'px-4 py-2 text-sm'
+  );
 
   return (
     <header
@@ -227,13 +249,36 @@ export const AppHeader = ({
         className="pb-0 justify-center"
         innerClassName={contentMaxWidth}
       >
-        <div className="w-full flex flex-row justify-between items-center">
+        <div className="w-full flex flex-row justify-between items-center gap-3">
+          {/* `min-w-0 shrink` lets the logo compress instead of overflowing:
+              an <img> resolves `min-width:auto` to its intrinsic width, which
+              would otherwise block flex-shrink and push the actions off-screen
+              on narrow viewports. `object-left` keeps it left-aligned as it
+              scales down. The actions never shrink. */}
           <BrandingLogo
             variant="main"
             alt="Logo"
-            className={`${logoHeight} object-contain`}
+            className={`${logoHeight} object-contain object-left min-w-0 shrink`}
           />
-          <section className={`flex flex-row items-center ${sectionGap}`}>
+          <section
+            className={`flex flex-row items-center shrink-0 ${sectionGap}`}
+          >
+            {tutorial?.visible && (
+              <button
+                type="button"
+                data-testid="app-header-tutorial"
+                onClick={tutorial.onClick}
+                /* `primary` (não `text`) é o foreground de `primary-800` em
+                   todos os temas — os dois formam um par contrastante mesmo
+                   onde o dark inverte o header (paraiba/analytica). Usar
+                   `text-*` aqui inverteria com o modo enquanto o fundo do
+                   header não inverte, apagando o botão no dark. */
+                className={`rounded-full border border-primary text-primary font-medium whitespace-nowrap cursor-pointer transition-colors hover:bg-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${tutorialPadding}`}
+              >
+                {tutorial.label ?? 'Tutoriais'}
+              </button>
+            )}
+
             {showCalendar && (
               <div className="lg:hidden">
                 <CalendarCard

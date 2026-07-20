@@ -63,6 +63,7 @@ const DARK_THEME_MAP: Record<string, string> = {
   'enem-parana-light': 'enem-parana-dark',
   'enem-paraiba-light': 'enem-paraiba-dark',
   'analytica-light': 'analytica-dark',
+  'papole-light': 'papole-dark',
 };
 
 /**

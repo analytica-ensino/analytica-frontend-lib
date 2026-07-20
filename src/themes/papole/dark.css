@@ -1,0 +1,38 @@
+@layer base {
+  /*
+   * Papolê (dark) — verde institucional, variante escura definida pela
+   * designer (não é derivada por nós).
+   *
+   * Assim como no light, a plataforma só define a rampa primary; os demais
+   * grupos são herdados dos defaults de ../tokens.css.
+   *
+   * Os passos 100–900 são idênticos ao light (a cor de marca continua
+   * reconhecível); dos extremos, `50` vira um tom escuro e `950` um tom claro
+   * — mesmo padrão de ../parana/dark.css.
+   *
+   * DESVIO INTENCIONAL da tabela da designer: ela define "Papolê 0" do dark
+   * como #194D2A. O passo base não é só o topo da rampa — é o foreground de
+   * tudo que tem fundo `primary-800` (barra do AppHeader, ícones de sino,
+   * calendário e perfil). Como o `primary-800` do Papolê continua escuro no
+   * dark (#1f5e34), usar #194D2A daria contraste 1.27:1 e sumiria com o
+   * conteúdo da barra. Mantemos o base igual ao light, exatamente como
+   * parana/base fazem nos temas em que o header não inverte → 7.56:1.
+   */
+  [data-theme='papole-dark'] {
+    color-scheme: dark;
+
+    /* Primary Colors — verde Papolê (dark) */
+    --color-primary: #f9fdfb;
+    --color-primary-50: #1c552f;
+    --color-primary-100: #a4e1b7;
+    --color-primary-200: #79d296;
+    --color-primary-300: #4ec474;
+    --color-primary-400: #36a35a;
+    --color-primary-500: #287842;
+    --color-primary-600: #256f3d;
+    --color-primary-700: #226738;
+    --color-primary-800: #1f5e34;
+    --color-primary-900: #1c552f;
+    --color-primary-950: #79d296;
+  }
+}
