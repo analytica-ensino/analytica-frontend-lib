@@ -139,6 +139,28 @@ describe('AlertsManager Validation Functions', () => {
       expect(result).toBe(true);
     });
 
+    it('should return error when date is provided but time is missing', () => {
+      const formData = {
+        ...mockFormData,
+        sendToday: false,
+        date: '2024-01-01',
+        time: '',
+      };
+      const result = validateDateStep(formData);
+      expect(result).toBe('Hora é obrigatória');
+    });
+
+    it('should ignore a missing time when sendToday is true', () => {
+      const formData = {
+        ...mockFormData,
+        sendToday: true,
+        date: '',
+        time: '',
+      };
+      const result = validateDateStep(formData);
+      expect(result).toBe(true);
+    });
+
     it('should return error when neither sendToday nor date is provided', () => {
       const formData = { ...mockFormData, sendToday: false, date: '' };
       const result = validateDateStep(formData);

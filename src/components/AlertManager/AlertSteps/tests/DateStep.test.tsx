@@ -381,9 +381,11 @@ describe('DateStep', () => {
       jest.setSystemTime(mockDate);
 
       useAlertFormStore.getState().resetForm();
+      // sendToday primeiro: desmarcá-lo limpa data/hora, então a escolha
+      // manual precisa vir depois para não ser apagada.
+      useAlertFormStore.getState().setSendToday(false);
       useAlertFormStore.getState().setDate('2024-10-15');
       useAlertFormStore.getState().setTime('14:30');
-      useAlertFormStore.getState().setSendToday(false);
 
       render(<DateStep />);
 

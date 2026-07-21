@@ -118,10 +118,9 @@ describe('useAlertFormStore', () => {
       jest.useRealTimers();
     });
 
-    it('should set sendToday to false and still update date and time', () => {
+    it('should clear date and time when sendToday is unchecked', () => {
       const { result } = renderHook(() => useAlertFormStore());
 
-      // Mock current date using Jest fake timers
       const mockDate = new Date('2024-10-15T14:30:00');
       jest.useFakeTimers();
       jest.setSystemTime(mockDate);
@@ -134,14 +133,15 @@ describe('useAlertFormStore', () => {
         result.current.setSendToday(false);
       });
 
+      // Campos voltam a ser editáveis e ficam vazios para o usuário escolher
       expect(result.current.sendToday).toBe(false);
-      expect(result.current.date).toBe('2024-10-15');
-      expect(result.current.time).toBe('14:30');
+      expect(result.current.date).toBe('');
+      expect(result.current.time).toBe('');
 
       jest.useRealTimers();
     });
 
-    it('should always update date and time regardless of sendToday value', () => {
+    it('should overwrite date and time with "now" only when sendToday is checked', () => {
       const { result } = renderHook(() => useAlertFormStore());
 
       act(() => {
@@ -161,15 +161,6 @@ describe('useAlertFormStore', () => {
       });
 
       expect(result.current.sendToday).toBe(true);
-      expect(result.current.date).toBe('2024-10-15');
-      expect(result.current.time).toBe('14:30');
-
-      // Test with false as well
-      act(() => {
-        result.current.setSendToday(false);
-      });
-
-      expect(result.current.sendToday).toBe(false);
       expect(result.current.date).toBe('2024-10-15');
       expect(result.current.time).toBe('14:30');
 
@@ -409,9 +400,11 @@ describe('useAlertFormStore', () => {
         result.current.setTitle('Test Title');
         result.current.setMessage('Test Message');
         result.current.setImage(mockFile);
+        // sendToday primeiro: desmarcá-lo limpa data/hora, então a escolha
+        // manual precisa vir depois para não ser apagada.
+        result.current.setSendToday(false);
         result.current.setDate('2024-10-15');
         result.current.setTime('14:30');
-        result.current.setSendToday(false);
         result.current.initializeCategory(mockCategory);
       });
 

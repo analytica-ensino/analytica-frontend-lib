@@ -43,7 +43,10 @@ export const validateRecipientsStep = (
  * Valida o step de data
  */
 export const validateDateStep = (formData: AlertData): boolean | string => {
-  if (!formData.sendToday && !formData.date) return 'Data é obrigatória';
+  if (formData.sendToday) return true;
+  if (!formData.date) return 'Data é obrigatória';
+  // Sem hora não há como agendar um instante exato de envio
+  if (!formData.time) return 'Hora é obrigatória';
   return true;
 };
 
