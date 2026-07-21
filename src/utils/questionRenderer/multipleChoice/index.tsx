@@ -57,7 +57,7 @@ export const renderQuestionMultipleChoice = ({
     return (
       <div>
         <Text size="sm" weight="normal">
-          Não há Escolhas Múltiplas
+          Não há Caixas de seleção
         </Text>
       </div>
     );
