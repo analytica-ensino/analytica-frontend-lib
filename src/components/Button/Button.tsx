@@ -175,13 +175,15 @@ const PAPOLE_VARIANT_CLASSES = {
 } as const;
 
 /**
- * Classes por tamanho do botão Papolê — padding, gap, radius e o tamanho do
- * texto e do ícone. `xl` = texto 20px / ícone 24px; `medium` = texto 16px /
- * ícone 20px (esses dois valores do medium foram assumidos — confirmar a arte).
+ * Classes por tamanho do botão Papolê — padding (px = 2 × py), gap, radius e o
+ * tamanho do texto e do ícone. `xl` = texto 20px / ícone 24px; `medium` = texto
+ * 16px / ícone 20px; `small` = texto 14px / ícone 16px. Os valores de `medium` e
+ * `small` foram assumidos seguindo a progressão — confirmar com a arte.
  */
 const PAPOLE_SIZE_CLASSES = {
   xl: 'px-8 py-4 gap-2 rounded-[20px] text-[20px] [&_svg]:size-6',
   medium: 'px-8 py-4 gap-2 rounded-2xl text-[16px] [&_svg]:size-5',
+  small: 'px-6 py-3 gap-2 rounded-xl text-[14px] [&_svg]:size-4',
 } as const;
 
 type ButtonPapoleProps = {
@@ -199,7 +201,7 @@ type ButtonPapoleProps = {
 
 /**
  * Botão da variante Papolê. `variant` seleciona o estilo
- * (`solid` | `outline` | `link`) e `size` o tamanho (`xl` | `medium`).
+ * (`solid` | `outline` | `link`) e `size` o tamanho (`xl` | `medium` | `small`).
  *
  * Estados via pseudo-classes (hover / focus-visible / active) — ver
  * `PAPOLE_VARIANT_CLASSES`. As cores seguem os tokens do tema ativo.
