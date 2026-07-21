@@ -18,6 +18,13 @@ interface RichEditorProps {
    * @returns Promise resolving to the LaTeX string
    */
   readonly onGenerateLatexWithAI?: (description: string) => Promise<string>;
+  /**
+   * Optional callback to upload an image file and get back its public URL.
+   * If provided, the image insertion button is enabled in the toolbar.
+   * @param file - The image file selected by the user
+   * @returns Promise resolving to the public URL of the uploaded image
+   */
+  readonly onUploadImage?: (file: File) => Promise<string>;
 }
 
 interface ErrorBoundaryState {
@@ -64,6 +71,7 @@ const TIPTAP_DEPENDENCIES = [
   '@tiptap/extension-superscript',
   '@tiptap/extension-link',
   '@tiptap/extension-placeholder',
+  '@tiptap/extension-image',
 ];
 
 function MissingDependenciesError({ error }: { readonly error: Error }) {

@@ -1,15 +1,5 @@
 import { EditorContent, useEditor } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
-import TextAlign from '@tiptap/extension-text-align';
-import { Color } from '@tiptap/extension-color';
-import { TextStyle } from '@tiptap/extension-text-style';
-import Highlight from '@tiptap/extension-highlight';
-import Subscript from '@tiptap/extension-subscript';
-import Superscript from '@tiptap/extension-superscript';
-import Link from '@tiptap/extension-link';
-import Placeholder from '@tiptap/extension-placeholder';
-import { MathNode } from './components/MathNode';
+import { createRichEditorExtensions } from './components/extensions';
 import { processLatexInHtml } from './components/utils';
 import 'katex/dist/katex.min.css';
 import { TextBolderIcon } from '@phosphor-icons/react/dist/csr/TextB';
@@ -30,8 +20,10 @@ import { TextHOneIcon } from '@phosphor-icons/react/dist/csr/TextHOne';
 import { TextHTwoIcon } from '@phosphor-icons/react/dist/csr/TextHTwo';
 import { TextHThreeIcon } from '@phosphor-icons/react/dist/csr/TextHThree';
 import { MathOperationsIcon } from '@phosphor-icons/react/dist/csr/MathOperations';
+import { ImageIcon } from '@phosphor-icons/react/dist/csr/Image';
 import { useState, useRef, useEffect, ReactNode } from 'react';
 import { FormulaDialog } from './components/FormulaDialog';
+import { ImageDialog } from './components/ImageDialog';
 import Button from '../Button/Button';
 import Text from '../Text/Text';
 
@@ -69,6 +61,13 @@ interface RichEditorProps {
    * @returns Promise resolving to the LaTeX string
    */
   readonly onGenerateLatexWithAI?: (description: string) => Promise<string>;
+  /**
+   * Optional callback to upload an image file and get back its public URL.
+   * If provided, the image insertion button is enabled in the toolbar.
+   * @param file - The image file selected by the user
+   * @returns Promise resolving to the public URL of the uploaded image
+   */
+  readonly onUploadImage?: (file: File) => Promise<string>;
 }
 
 export function RichEditor({
@@ -76,25 +75,15 @@ export function RichEditor({
   onChange,
   placeholder = 'Digite aqui...',
   onGenerateLatexWithAI,
+  onUploadImage,
 }: RichEditorProps) {
   const [formulaOpen, setFormulaOpen] = useState(false);
+  const [imageOpen, setImageOpen] = useState(false);
   const isExternalUpdateRef = useRef(false);
   const lastContentRef = useRef(content);
 
   const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Underline,
-      TextStyle,
-      Color,
-      Highlight.configure({ multicolor: true }),
-      Subscript,
-      Superscript,
-      TextAlign.configure({ types: ['heading', 'paragraph'] }),
-      Link.configure({ openOnClick: false }),
-      Placeholder.configure({ placeholder }),
-      MathNode,
-    ],
+    extensions: createRichEditorExtensions(placeholder),
     content: processLatexInHtml(content || ''),
     onUpdate: ({ editor }) => {
       // Skip onChange callback during external content updates
@@ -137,6 +126,12 @@ export function RichEditor({
       })
       .run();
     setFormulaOpen(false);
+  };
+
+  const insertImage = (src: string, alt: string) => {
+    if (!src || !editor) return;
+    editor.chain().focus().setImage({ src, alt }).run();
+    setImageOpen(false);
   };
 
   const setLink = () => {
@@ -316,6 +311,15 @@ export function RichEditor({
           <LinkIcon size={16} />
         </ToolbarBtn>
 
+        {/* Image */}
+        <ToolbarBtn
+          onClick={() => setImageOpen(true)}
+          active={editor.isActive('image')}
+          title="Inserir imagem"
+        >
+          <ImageIcon size={16} />
+        </ToolbarBtn>
+
         {/* Formula */}
         <Button
           type="button"
@@ -346,6 +350,13 @@ export function RichEditor({
         onClose={() => setFormulaOpen(false)}
         onInsert={insertFormula}
         onGenerateWithAI={onGenerateLatexWithAI}
+      />
+
+      <ImageDialog
+        open={imageOpen}
+        onClose={() => setImageOpen(false)}
+        onInsert={insertImage}
+        onUploadImage={onUploadImage}
       />
     </div>
   );
