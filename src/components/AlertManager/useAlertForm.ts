@@ -149,7 +149,14 @@ export const useAlertFormStore = create<AlertFormStore>((set) => ({
   setTime: (time) => set({ time }),
 
   setSendToday: (sendToday: boolean) => {
-    // Define data e hora atuais quando sendToday é true
+    // Ao desmarcar, o campo volta a ser editável e deve ficar vazio para o
+    // usuário escolher — sobrescrever com "agora" apagaria a escolha dele.
+    if (!sendToday) {
+      set({ sendToday, date: '', time: '' });
+      return;
+    }
+
+    // Marcado: preenche com data e hora atuais (envio imediato)
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -158,7 +165,7 @@ export const useAlertFormStore = create<AlertFormStore>((set) => ({
     const minutes = String(now.getMinutes()).padStart(2, '0');
 
     set({
-      sendToday: sendToday,
+      sendToday,
       date: `${year}-${month}-${day}`,
       time: `${hours}:${minutes}`,
     });
