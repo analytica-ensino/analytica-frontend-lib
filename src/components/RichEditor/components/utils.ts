@@ -1,3 +1,6 @@
+// Re-exported so RichEditor consumers keep a single import surface.
+export { normalizeLineBreaksInHtml } from '../../../utils/htmlLineBreaks';
+
 /**
  * Processa HTML convertendo padrões $...$ para spans de math-inline
  * que o TipTap pode reconhecer

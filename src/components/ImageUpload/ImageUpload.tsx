@@ -171,6 +171,8 @@ export default function ImageUpload({
               onClick={handleRemoveFile}
               disabled={disabled}
               className="hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label="Remover imagem"
+              title="Remover imagem"
             >
               <XIcon className="h-4 w-4 text-primary-950 cursor-pointer" />
             </button>

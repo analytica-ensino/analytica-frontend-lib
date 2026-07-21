@@ -1,4 +1,10 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { RichEditor } from './RichEditorCore';
 import { useEditor } from '@tiptap/react';
@@ -29,6 +35,7 @@ interface MockChainResult {
   extendMarkRange: jest.Mock;
   setLink: jest.Mock;
   unsetLink: jest.Mock;
+  setImage: jest.Mock;
   insertContent: jest.Mock;
   setContent: jest.Mock;
   run: jest.Mock;
@@ -52,6 +59,7 @@ const createMockChain = (): MockChainResult => ({
   extendMarkRange: jest.fn(() => createMockChain()),
   setLink: jest.fn(() => createMockChain()),
   unsetLink: jest.fn(() => createMockChain()),
+  setImage: jest.fn(() => createMockChain()),
   insertContent: jest.fn(() => createMockChain()),
   setContent: jest.fn(() => createMockChain()),
   run: jest.fn(),
@@ -432,5 +440,122 @@ describe('RichEditor', () => {
 
       expect(container.firstChild).toBeNull();
     });
+  });
+});
+
+describe('Imagem', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // An earlier test sets useEditor to null to cover the "no editor" branch,
+    // and mockReturnValue survives clearAllMocks.
+    (useEditor as jest.Mock).mockReturnValue(mockEditor);
+  });
+
+  it('deve abrir o ImageDialog ao clicar no botão de imagem', () => {
+    render(<RichEditor />);
+
+    fireEvent.click(screen.getByTitle('Inserir imagem'));
+
+    expect(
+      screen.getByRole('heading', { name: 'Inserir imagem' })
+    ).toBeInTheDocument();
+  });
+
+  it('deve fechar o ImageDialog ao cancelar', () => {
+    render(<RichEditor />);
+
+    fireEvent.click(screen.getByTitle('Inserir imagem'));
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+    expect(
+      screen.queryByRole('heading', { name: 'Inserir imagem' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('deve inserir a imagem no editor ao confirmar uma URL', () => {
+    render(<RichEditor />);
+
+    fireEvent.click(screen.getByTitle('Inserir imagem'));
+    fireEvent.change(
+      screen.getByPlaceholderText('https://exemplo.com/imagem.png'),
+      { target: { value: 'https://cdn.exemplo.com/a.png' } }
+    );
+    // The toolbar button carries the same accessible name, so scope the query
+    // to the dialog.
+    fireEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', {
+        name: 'Inserir imagem',
+      })
+    );
+
+    expect(mockEditor.chain).toHaveBeenCalled();
+    expect(
+      screen.queryByRole('heading', { name: 'Inserir imagem' })
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe('Sincronização de conteúdo', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useEditor as jest.Mock).mockReturnValue(mockEditor);
+  });
+
+  // The last call is the render from the current test; earlier entries belong
+  // to previous ones.
+  const getEditorConfig = () =>
+    (useEditor as jest.Mock).mock.calls.at(-1)![0] as {
+      onUpdate: (arg: { editor: typeof mockEditor }) => void;
+    };
+
+  it('deve notificar onChange ao editar', () => {
+    const onChange = jest.fn();
+    render(<RichEditor onChange={onChange} />);
+
+    getEditorConfig().onUpdate({ editor: mockEditor });
+
+    expect(onChange).toHaveBeenCalledWith({
+      json: { type: 'doc', content: [] },
+      html: '<p>Test content</p>',
+    });
+  });
+
+  it('não deve quebrar quando onChange não é informado', () => {
+    render(<RichEditor />);
+
+    expect(() =>
+      getEditorConfig().onUpdate({ editor: mockEditor })
+    ).not.toThrow();
+  });
+
+  it('deve aplicar conteúdo novo vindo de fora', () => {
+    const { rerender } = render(<RichEditor content="<p>Inicial</p>" />);
+
+    rerender(<RichEditor content="<p>Carregado da API</p>" />);
+
+    expect(mockEditor.commands.setContent).toHaveBeenCalledWith(
+      '<p>Carregado da API</p>',
+      { emitUpdate: false }
+    );
+  });
+
+  it('deve normalizar quebras de linha do conteúdo externo', () => {
+    const { rerender } = render(<RichEditor content="inicial" />);
+
+    rerender(<RichEditor content={'Linha um.\n\n<b>Linha dois.</b>'} />);
+
+    expect(mockEditor.commands.setContent).toHaveBeenCalledWith(
+      '<p>Linha um.</p><p><b>Linha dois.</b></p>',
+      { emitUpdate: false }
+    );
+  });
+
+  it('não deve reaplicar o mesmo conteúdo', () => {
+    const { rerender } = render(<RichEditor content="<p>Igual</p>" />);
+    (mockEditor.commands.setContent as jest.Mock).mockClear();
+
+    rerender(<RichEditor content="<p>Igual</p>" />);
+
+    expect(mockEditor.commands.setContent).not.toHaveBeenCalled();
   });
 });

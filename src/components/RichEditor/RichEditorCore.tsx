@@ -1,16 +1,9 @@
 import { EditorContent, useEditor } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
-import TextAlign from '@tiptap/extension-text-align';
-import { Color } from '@tiptap/extension-color';
-import { TextStyle } from '@tiptap/extension-text-style';
-import Highlight from '@tiptap/extension-highlight';
-import Subscript from '@tiptap/extension-subscript';
-import Superscript from '@tiptap/extension-superscript';
-import Link from '@tiptap/extension-link';
-import Placeholder from '@tiptap/extension-placeholder';
-import { MathNode } from './components/MathNode';
-import { processLatexInHtml } from './components/utils';
+import { createRichEditorExtensions } from './components/extensions';
+import {
+  normalizeLineBreaksInHtml,
+  processLatexInHtml,
+} from './components/utils';
 import 'katex/dist/katex.min.css';
 import { TextBolderIcon } from '@phosphor-icons/react/dist/csr/TextB';
 import { TextItalicIcon } from '@phosphor-icons/react/dist/csr/TextItalic';
@@ -30,8 +23,10 @@ import { TextHOneIcon } from '@phosphor-icons/react/dist/csr/TextHOne';
 import { TextHTwoIcon } from '@phosphor-icons/react/dist/csr/TextHTwo';
 import { TextHThreeIcon } from '@phosphor-icons/react/dist/csr/TextHThree';
 import { MathOperationsIcon } from '@phosphor-icons/react/dist/csr/MathOperations';
+import { ImageIcon } from '@phosphor-icons/react/dist/csr/Image';
 import { useState, useRef, useEffect, ReactNode } from 'react';
 import { FormulaDialog } from './components/FormulaDialog';
+import { ImageDialog } from './components/ImageDialog';
 import Button from '../Button/Button';
 import Text from '../Text/Text';
 
@@ -58,6 +53,13 @@ const ToolbarBtn = ({ onClick, active, title, children }: ToolbarBtnProps) => (
 
 const Divider = () => <div className="w-px h-5 bg-border-200 mx-0.5" />;
 
+/**
+ * Prepares stored content for the TipTap parser. Line breaks are restored first
+ * so that LaTeX spans are injected into already-structured markup.
+ */
+const prepareContent = (content?: string) =>
+  processLatexInHtml(normalizeLineBreaksInHtml(content || ''));
+
 interface RichEditorProps {
   readonly content?: string;
   readonly onChange?: (data: { json: object; html: string }) => void;
@@ -69,6 +71,14 @@ interface RichEditorProps {
    * @returns Promise resolving to the LaTeX string
    */
   readonly onGenerateLatexWithAI?: (description: string) => Promise<string>;
+  /**
+   * Optional callback to upload an image file and get back its public URL.
+   * If provided, the file upload tab is enabled in the image dialog; otherwise
+   * images can still be inserted by URL.
+   * @param file - The image file selected by the user
+   * @returns Promise resolving to the public URL of the uploaded image
+   */
+  readonly onUploadImage?: (file: File) => Promise<string>;
 }
 
 export function RichEditor({
@@ -76,32 +86,18 @@ export function RichEditor({
   onChange,
   placeholder = 'Digite aqui...',
   onGenerateLatexWithAI,
+  onUploadImage,
 }: RichEditorProps) {
   const [formulaOpen, setFormulaOpen] = useState(false);
-  const isExternalUpdateRef = useRef(false);
+  const [imageOpen, setImageOpen] = useState(false);
   const lastContentRef = useRef(content);
 
   const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Underline,
-      TextStyle,
-      Color,
-      Highlight.configure({ multicolor: true }),
-      Subscript,
-      Superscript,
-      TextAlign.configure({ types: ['heading', 'paragraph'] }),
-      Link.configure({ openOnClick: false }),
-      Placeholder.configure({ placeholder }),
-      MathNode,
-    ],
-    content: processLatexInHtml(content || ''),
+    extensions: createRichEditorExtensions(placeholder),
+    content: prepareContent(content),
+    // External updates do not reach this callback: the sync effect below calls
+    // setContent with `emitUpdate: false`.
     onUpdate: ({ editor }) => {
-      // Skip onChange callback during external content updates
-      if (isExternalUpdateRef.current) {
-        isExternalUpdateRef.current = false;
-        return;
-      }
       const html = editor.getHTML();
       lastContentRef.current = html;
       onChange?.({
@@ -120,8 +116,9 @@ export function RichEditor({
   // Update editor content when prop changes externally (e.g., from loadQuestion)
   useEffect(() => {
     if (editor && content !== undefined && content !== lastContentRef.current) {
-      const processedContent = processLatexInHtml(content || '');
-      editor.commands.setContent(processedContent, { emitUpdate: false });
+      editor.commands.setContent(prepareContent(content), {
+        emitUpdate: false,
+      });
       lastContentRef.current = content;
     }
   }, [content, editor]);
@@ -137,6 +134,12 @@ export function RichEditor({
       })
       .run();
     setFormulaOpen(false);
+  };
+
+  const insertImage = (src: string, alt: string) => {
+    if (!src || !editor) return;
+    editor.chain().focus().setImage({ src, alt }).run();
+    setImageOpen(false);
   };
 
   const setLink = () => {
@@ -316,6 +319,15 @@ export function RichEditor({
           <LinkIcon size={16} />
         </ToolbarBtn>
 
+        {/* Image */}
+        <ToolbarBtn
+          onClick={() => setImageOpen(true)}
+          active={editor.isActive('image')}
+          title="Inserir imagem"
+        >
+          <ImageIcon size={16} />
+        </ToolbarBtn>
+
         {/* Formula */}
         <Button
           type="button"
@@ -346,6 +358,13 @@ export function RichEditor({
         onClose={() => setFormulaOpen(false)}
         onInsert={insertFormula}
         onGenerateWithAI={onGenerateLatexWithAI}
+      />
+
+      <ImageDialog
+        open={imageOpen}
+        onClose={() => setImageOpen(false)}
+        onInsert={insertImage}
+        onUploadImage={onUploadImage}
       />
     </div>
   );
