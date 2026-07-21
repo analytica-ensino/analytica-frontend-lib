@@ -11,6 +11,8 @@ export type { PageContainerProps } from './components/PageContainer/PageContaine
 // Basic Components
 export { default as Text } from './components/Text/Text';
 export { default as Button } from './components/Button/Button';
+export { ButtonPapole } from './components/Button/Button';
+export type { ButtonPapoleProps } from './components/Button/Button';
 export { default as Badge } from './components/Badge/Badge';
 export { default as Alert } from './components/Alert/Alert';
 export { default as LatexRenderer } from './components/LatexRenderer/LatexRenderer';

@@ -1,6 +1,7 @@
 import type { Story } from '@ladle/react';
 import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
-import Button from './Button';
+import { SignInIcon } from '@phosphor-icons/react/dist/csr/SignIn';
+import Button, { ButtonPapole } from './Button';
 
 const sizes = [
   'extra-small',
@@ -152,5 +153,33 @@ export const Disabled: Story = () => (
         Desabilitado
       </Button>
     ))}
+  </div>
+);
+
+/**
+ * ButtonPapole — variante default (solid) do botão do Papolê.
+ * Renderizado sob o tema papolê; os estados hover/pressed/foco são
+ * interativos (passe o mouse, clique e segure, ou use Tab).
+ */
+export const ButtonPapoleShowcase: Story = () => (
+  <div
+    data-theme="papole-light"
+    className="flex flex-col gap-6 p-8 bg-background"
+  >
+    <p className="text-sm text-text-700">
+      Interaja para ver os estados: <b>hover</b> (primary-600), <b>pressed</b>{' '}
+      (primary-700 + borda 2px + texto primary-100) e <b>foco</b> (borda
+      secondary-600 via Tab).
+    </p>
+
+    <div className="flex flex-wrap items-center gap-6">
+      <ButtonPapole>Entrar</ButtonPapole>
+
+      <ButtonPapole iconLeft={<SignInIcon weight="bold" />}>
+        Entrar
+      </ButtonPapole>
+
+      <ButtonPapole disabled>Entrar</ButtonPapole>
+    </div>
   </div>
 );

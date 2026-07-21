@@ -1509,7 +1509,10 @@ const PAPOLE_COLORS = {
 };
 
 export const CardPapoleShowcase: Story = () => (
-  <div className="flex flex-col gap-8 p-6 bg-primary-800">
+  <div
+    data-theme="papole-light"
+    className="flex flex-col gap-8 p-6 bg-primary-800"
+  >
     <div className="flex flex-col gap-3">
       <p className="text-sm font-bold uppercase text-primary">Estados</p>
       <div className="flex flex-wrap gap-4">
