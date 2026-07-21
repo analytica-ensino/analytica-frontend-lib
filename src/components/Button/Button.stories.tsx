@@ -1,6 +1,7 @@
 import type { Story } from '@ladle/react';
 import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
 import { SignInIcon } from '@phosphor-icons/react/dist/csr/SignIn';
+import { XIcon } from '@phosphor-icons/react/dist/csr/X';
 import Button, { ButtonPapole } from './Button';
 
 const sizes = [
@@ -221,6 +222,18 @@ export const ButtonPapoleShowcase: Story = () => (
         </ButtonPapole>
         <ButtonPapole size="small" iconLeft={<SignInIcon weight="bold" />}>
           Entrar
+        </ButtonPapole>
+      </div>
+    </div>
+
+    <div className="flex flex-col gap-3">
+      <p className="text-sm font-bold uppercase text-text-900">Ícone</p>
+      <div className="flex flex-wrap items-center gap-6">
+        <ButtonPapole variant="icon" aria-label="Fechar">
+          <XIcon weight="bold" />
+        </ButtonPapole>
+        <ButtonPapole variant="icon" aria-label="Fechar" disabled>
+          <XIcon weight="bold" />
         </ButtonPapole>
       </div>
     </div>
