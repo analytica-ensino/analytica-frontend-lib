@@ -3776,6 +3776,7 @@ __metadata:
     "@tiptap/core": ^3.0.0
     "@tiptap/extension-color": ^3.0.0
     "@tiptap/extension-highlight": ^3.0.0
+    "@tiptap/extension-image": ^3.0.0
     "@tiptap/extension-link": ^3.0.0
     "@tiptap/extension-placeholder": ^3.0.0
     "@tiptap/extension-subscript": ^3.0.0
@@ -3801,6 +3802,8 @@ __metadata:
     "@tiptap/extension-color":
       optional: true
     "@tiptap/extension-highlight":
+      optional: true
+    "@tiptap/extension-image":
       optional: true
     "@tiptap/extension-link":
       optional: true
