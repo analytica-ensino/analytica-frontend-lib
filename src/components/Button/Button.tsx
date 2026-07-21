@@ -155,62 +155,63 @@ Button.displayName = 'Button';
 export default Button;
 
 // ======================================================================
-// ButtonPapole — botão da variante Papolê (por ora só o estilo default/solid)
+// ButtonPapole — botão da variante Papolê (variantes: solid, outline)
 // ======================================================================
 
 /**
- * Sombra dos botões Papolê (constante em todos os estados):
- * - `0px 4px 0px 0px #D4A82E`: aresta inferior "3D".
- * - `0px 0px 4px 0px #00000021`: sombra ambiente suave.
+ * Classes por variante do botão Papolê — todos os estados numa única string, no
+ * mesmo formato do `VARIANT_ACTION_CLASSES` do `Button`. As duas sombras (aresta
+ * "3D" + ambiente) vão como propriedade arbitrária (`[box-shadow:...]`) pra
+ * poderem variar por estado — no `outline` a aresta cai de 4px→2px no pressed.
+ * `disabled` não veio na arte (padrão mínimo da lib).
  */
-const PAPOLE_BUTTON_SHADOW =
-  '0px 4px 0px 0px #D4A82E, 0px 0px 4px 0px #00000021';
+const PAPOLE_VARIANT_CLASSES = {
+  solid:
+    'bg-primary-500 border-4 border-primary-200 text-primary-900 hover:bg-primary-600 focus-visible:outline-none focus-visible:border-secondary-600 active:bg-primary-700 active:border-2 active:text-primary-100 disabled:opacity-40 disabled:cursor-not-allowed [box-shadow:0px_4px_0px_0px_#D4A82E,0px_0px_4px_0px_#00000021]',
+  outline:
+    'bg-transparent border-4 border-primary-200 text-primary-900 hover:bg-primary-100 focus-visible:outline-none focus-visible:border-secondary-600 active:bg-primary-200 active:border-2 active:border-primary-700 disabled:opacity-40 disabled:cursor-not-allowed [box-shadow:0px_4px_0px_0px_#F9CB3B,0px_0px_4px_0px_#00000021] active:[box-shadow:0px_2px_0px_0px_#F9CB3B,0px_0px_4px_0px_#00000021]',
+} as const;
 
 type ButtonPapoleProps = {
   /** Conteúdo (texto) do botão. */
   children: ReactNode;
   /** Ícone à esquerda do texto (renderizado a 24px). */
   iconLeft?: ReactNode;
+  /** Variante visual do botão (default: 'solid'). */
+  variant?: keyof typeof PAPOLE_VARIANT_CLASSES;
   /** Classes adicionais. */
   className?: string;
 } & ButtonHTMLAttributes<HTMLButtonElement>;
 
 /**
- * Botão da variante Papolê (estilo default/solid).
+ * Botão da variante Papolê. `variant` seleciona o estilo (`solid` | `outline`).
  *
- * Estados (via pseudo-classes): hover escurece para `primary-600`; pressed
- * (`active`) vai para `primary-700`, borda 2px e texto/ícone `primary-100`;
- * foco troca a borda para `secondary-600`. As cores seguem os tokens do tema
- * ativo (`primary-*`, `secondary-600`).
+ * Estados via pseudo-classes (hover / focus-visible / active) — ver
+ * `PAPOLE_VARIANT_CLASSES`. As cores seguem os tokens do tema ativo.
  */
 const ButtonPapole = forwardRef<HTMLButtonElement, ButtonPapoleProps>(
   (
-    { children, iconLeft, className = '', type = 'button', disabled, ...props },
+    {
+      children,
+      iconLeft,
+      variant = 'solid',
+      className = '',
+      type = 'button',
+      disabled,
+      ...props
+    },
     ref
   ) => {
+    const baseClasses =
+      'inline-flex items-center justify-center gap-2 rounded-xl cursor-pointer font-quicksand font-bold text-[20px] uppercase leading-none px-6 py-3 [&_svg]:size-6';
+    const variantClasses = PAPOLE_VARIANT_CLASSES[variant];
+
     return (
       <button
         ref={ref}
         type={type}
         disabled={disabled}
-        style={{ boxShadow: PAPOLE_BUTTON_SHADOW }}
-        className={cn(
-          'inline-flex items-center justify-center gap-2 rounded-xl cursor-pointer',
-          'font-quicksand font-bold text-[20px] uppercase leading-none px-6 py-3',
-          // Default
-          'bg-primary-500 border-4 border-primary-200 text-primary-900',
-          // Hover
-          'hover:bg-primary-600',
-          // Pressed
-          'active:bg-primary-700 active:border-2 active:text-primary-100',
-          // Focus
-          'focus-visible:outline-none focus-visible:border-secondary-600',
-          // Disabled (não especificado na arte — padrão mínimo da lib)
-          'disabled:opacity-40 disabled:cursor-not-allowed',
-          // Ícone a 24px
-          '[&_svg]:size-6',
-          className
-        )}
+        className={cn(baseClasses, variantClasses, className)}
         {...props}
       >
         {iconLeft && <span className="flex items-center">{iconLeft}</span>}

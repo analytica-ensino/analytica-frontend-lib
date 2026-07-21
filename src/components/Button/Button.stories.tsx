@@ -164,22 +164,35 @@ export const Disabled: Story = () => (
 export const ButtonPapoleShowcase: Story = () => (
   <div
     data-theme="papole-light"
-    className="flex flex-col gap-6 p-8 bg-background"
+    className="flex flex-col gap-8 p-8 bg-background"
   >
     <p className="text-sm text-text-700">
-      Interaja para ver os estados: <b>hover</b> (primary-600), <b>pressed</b>{' '}
-      (primary-700 + borda 2px + texto primary-100) e <b>foco</b> (borda
-      secondary-600 via Tab).
+      Interaja para ver os estados (hover / pressed / foco via Tab). Cada
+      variante segue os tokens do tema papolê.
     </p>
 
-    <div className="flex flex-wrap items-center gap-6">
-      <ButtonPapole>Entrar</ButtonPapole>
+    <div className="flex flex-col gap-3">
+      <p className="text-sm font-bold uppercase text-text-900">Solid</p>
+      <div className="flex flex-wrap items-center gap-6">
+        <ButtonPapole>Entrar</ButtonPapole>
+        <ButtonPapole iconLeft={<SignInIcon weight="bold" />}>
+          Entrar
+        </ButtonPapole>
+        <ButtonPapole disabled>Entrar</ButtonPapole>
+      </div>
+    </div>
 
-      <ButtonPapole iconLeft={<SignInIcon weight="bold" />}>
-        Entrar
-      </ButtonPapole>
-
-      <ButtonPapole disabled>Entrar</ButtonPapole>
+    <div className="flex flex-col gap-3">
+      <p className="text-sm font-bold uppercase text-text-900">Outline</p>
+      <div className="flex flex-wrap items-center gap-6">
+        <ButtonPapole variant="outline">Entrar</ButtonPapole>
+        <ButtonPapole variant="outline" iconLeft={<SignInIcon weight="bold" />}>
+          Entrar
+        </ButtonPapole>
+        <ButtonPapole variant="outline" disabled>
+          Entrar
+        </ButtonPapole>
+      </div>
     </div>
   </div>
 );
