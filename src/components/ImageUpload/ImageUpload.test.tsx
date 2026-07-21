@@ -259,7 +259,9 @@ describe('ImageUpload Component', () => {
         <ImageUpload selectedFile={mockFile} onRemoveFile={onRemoveFile} />
       );
 
-      const removeButton = screen.getByRole('button', { name: '' });
+      const removeButton = screen.getByRole('button', {
+        name: 'Remover imagem',
+      });
       fireEvent.click(removeButton);
 
       expect(onRemoveFile).toHaveBeenCalled();

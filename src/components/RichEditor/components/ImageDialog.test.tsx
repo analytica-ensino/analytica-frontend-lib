@@ -97,9 +97,7 @@ describe('ImageDialog', () => {
       );
       fireEvent.click(screen.getByRole('button', { name: 'Inserir imagem' }));
 
-      await waitFor(() =>
-        expect(screen.getByText('Falha na rede')).toBeInTheDocument()
-      );
+      expect(await screen.findByText('Falha na rede')).toBeInTheDocument();
       expect(onInsert).not.toHaveBeenCalled();
     });
 
@@ -109,11 +107,9 @@ describe('ImageDialog', () => {
 
       selectFile(imageFile('grande.png', MAX_IMAGE_SIZE + 1));
 
-      await waitFor(() =>
-        expect(
-          screen.getByText('A imagem deve ter no máximo 5MB.')
-        ).toBeInTheDocument()
-      );
+      expect(
+        await screen.findByText('A imagem deve ter no máximo 5MB.')
+      ).toBeInTheDocument();
       expect(onUploadImage).not.toHaveBeenCalled();
     });
 
@@ -159,6 +155,65 @@ describe('ImageDialog', () => {
           'Gráfico de barras'
         )
       );
+    });
+  });
+
+  describe('interações auxiliares', () => {
+    it('deve fechar e limpar o estado ao cancelar', () => {
+      const onUploadImage = jest.fn();
+      const { onClose } = setup({ onUploadImage });
+
+      selectFile(imageFile());
+      fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+      expect(onClose).toHaveBeenCalled();
+    });
+
+    it('deve rejeitar arquivo que não é imagem', async () => {
+      const onUploadImage = jest.fn();
+      setup({ onUploadImage });
+
+      const naoImagem = new File(['x'], 'documento.pdf', {
+        type: 'application/pdf',
+      });
+      selectFile(naoImagem);
+
+      expect(
+        await screen.findByText('Selecione um arquivo de imagem válido.')
+      ).toBeInTheDocument();
+      expect(onUploadImage).not.toHaveBeenCalled();
+    });
+
+    it('deve permitir voltar do modo URL para o modo arquivo', () => {
+      const onUploadImage = jest.fn();
+      setup({ onUploadImage });
+
+      fireEvent.click(screen.getByRole('button', { name: /Usar URL/ }));
+      expect(screen.getByText('URL da imagem')).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: /Enviar arquivo/ }));
+
+      expect(screen.queryByText('URL da imagem')).not.toBeInTheDocument();
+      expect(document.querySelector('input[type="file"]')).toBeInTheDocument();
+    });
+
+    it('deve limpar o arquivo selecionado ao removê-lo', async () => {
+      const onUploadImage = jest.fn();
+      setup({ onUploadImage });
+
+      selectFile(imageFile());
+      await waitFor(() =>
+        expect(
+          screen.getByRole('button', { name: 'Inserir imagem' })
+        ).toBeEnabled()
+      );
+
+      const remover = screen.getByRole('button', { name: /remover/i });
+      fireEvent.click(remover);
+
+      expect(
+        screen.getByRole('button', { name: 'Inserir imagem' })
+      ).toBeDisabled();
     });
   });
 });

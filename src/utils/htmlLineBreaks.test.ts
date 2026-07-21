@@ -93,4 +93,12 @@ describe('normalizeLineBreaksInHtml', () => {
       ).toBe('A) <b>ok</b><br><br>B) <b>não</b>');
     });
   });
+
+  describe('conteúdo só com quebras', () => {
+    it('deve devolver o original quando não sobra bloco algum', () => {
+      // Every block is whitespace, so there is nothing to wrap.
+      expect(normalizeLineBreaksInHtml('\n\n')).toBe('\n\n');
+      expect(normalizeLineBreaksInHtml('  \n\n   \n  ')).toBe('  \n\n   \n  ');
+    });
+  });
 });

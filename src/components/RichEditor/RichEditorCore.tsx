@@ -89,18 +89,14 @@ export function RichEditor({
 }: RichEditorProps) {
   const [formulaOpen, setFormulaOpen] = useState(false);
   const [imageOpen, setImageOpen] = useState(false);
-  const isExternalUpdateRef = useRef(false);
   const lastContentRef = useRef(content);
 
   const editor = useEditor({
     extensions: createRichEditorExtensions(placeholder),
     content: prepareContent(content),
+    // External updates do not reach this callback: the sync effect below calls
+    // setContent with `emitUpdate: false`.
     onUpdate: ({ editor }) => {
-      // Skip onChange callback during external content updates
-      if (isExternalUpdateRef.current) {
-        isExternalUpdateRef.current = false;
-        return;
-      }
       const html = editor.getHTML();
       lastContentRef.current = html;
       onChange?.({

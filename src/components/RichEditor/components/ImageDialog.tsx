@@ -166,6 +166,9 @@ export function ImageDialog({
               selectedFile={file}
               onFileSelect={handleFileSelect}
               onRemoveFile={() => setFile(null)}
+              // Defaults to "Inserir imagem", which would collide with the
+              // dialog's confirm button — same name, different action.
+              buttonText="Selecionar arquivo"
               maxSize={MAX_IMAGE_SIZE}
               onSizeError={handleSizeError}
               onTypeError={handleTypeError}
