@@ -194,5 +194,18 @@ export const ButtonPapoleShowcase: Story = () => (
         </ButtonPapole>
       </div>
     </div>
+
+    <div className="flex flex-col gap-3">
+      <p className="text-sm font-bold uppercase text-text-900">Link</p>
+      <div className="flex flex-wrap items-center gap-6">
+        <ButtonPapole variant="link">Entrar</ButtonPapole>
+        <ButtonPapole variant="link" iconLeft={<SignInIcon weight="bold" />}>
+          Entrar
+        </ButtonPapole>
+        <ButtonPapole variant="link" disabled>
+          Entrar
+        </ButtonPapole>
+      </div>
+    </div>
   </div>
 );

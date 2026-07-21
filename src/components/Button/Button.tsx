@@ -155,7 +155,7 @@ Button.displayName = 'Button';
 export default Button;
 
 // ======================================================================
-// ButtonPapole — botão da variante Papolê (variantes: solid, outline)
+// ButtonPapole — botão da variante Papolê (variantes: solid, outline, link)
 // ======================================================================
 
 /**
@@ -163,13 +163,15 @@ export default Button;
  * mesmo formato do `VARIANT_ACTION_CLASSES` do `Button`. As duas sombras (aresta
  * "3D" + ambiente) vão como propriedade arbitrária (`[box-shadow:...]`) pra
  * poderem variar por estado — no `outline` a aresta cai de 4px→2px no pressed.
- * `disabled` não veio na arte (padrão mínimo da lib).
+ * O `link` é só texto (sem sombra/borda); apenas o foco adiciona a borda
+ * `secondary-600`. `disabled` não veio na arte (padrão mínimo da lib).
  */
 const PAPOLE_VARIANT_CLASSES = {
   solid:
     'bg-primary-500 border-4 border-primary-200 text-primary-900 hover:bg-primary-600 focus-visible:outline-none focus-visible:border-secondary-600 active:bg-primary-700 active:border-2 active:text-primary-100 disabled:opacity-40 disabled:cursor-not-allowed [box-shadow:0px_4px_0px_0px_#D4A82E,0px_0px_4px_0px_#00000021]',
   outline:
     'bg-transparent border-4 border-primary-200 text-primary-900 hover:bg-primary-100 focus-visible:outline-none focus-visible:border-secondary-600 active:bg-primary-200 active:border-2 active:border-primary-700 disabled:opacity-40 disabled:cursor-not-allowed [box-shadow:0px_4px_0px_0px_#F9CB3B,0px_0px_4px_0px_#00000021] active:[box-shadow:0px_2px_0px_0px_#F9CB3B,0px_0px_4px_0px_#00000021]',
+  link: 'bg-transparent text-primary-900 hover:text-primary-700 focus-visible:outline-none focus-visible:border-4 focus-visible:border-secondary-600 active:text-primary-800 disabled:opacity-40 disabled:cursor-not-allowed',
 } as const;
 
 type ButtonPapoleProps = {
@@ -184,7 +186,8 @@ type ButtonPapoleProps = {
 } & ButtonHTMLAttributes<HTMLButtonElement>;
 
 /**
- * Botão da variante Papolê. `variant` seleciona o estilo (`solid` | `outline`).
+ * Botão da variante Papolê. `variant` seleciona o estilo
+ * (`solid` | `outline` | `link`).
  *
  * Estados via pseudo-classes (hover / focus-visible / active) — ver
  * `PAPOLE_VARIANT_CLASSES`. As cores seguem os tokens do tema ativo.
