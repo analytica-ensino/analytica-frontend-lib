@@ -73,7 +73,8 @@ interface RichEditorProps {
   readonly onGenerateLatexWithAI?: (description: string) => Promise<string>;
   /**
    * Optional callback to upload an image file and get back its public URL.
-   * If provided, the image insertion button is enabled in the toolbar.
+   * If provided, the file upload tab is enabled in the image dialog; otherwise
+   * images can still be inserted by URL.
    * @param file - The image file selected by the user
    * @returns Promise resolving to the public URL of the uploaded image
    */

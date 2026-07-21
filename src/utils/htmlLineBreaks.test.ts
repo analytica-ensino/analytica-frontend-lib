@@ -101,4 +101,28 @@ describe('normalizeLineBreaksInHtml', () => {
       expect(normalizeLineBreaksInHtml('  \n\n   \n  ')).toBe('  \n\n   \n  ');
     });
   });
+
+  describe('quebras CRLF', () => {
+    it('deve separar parágrafos vindos de conteúdo com CRLF', () => {
+      // CSV/XLSX importado traz \r\n; sem normalizar, o \r fica entre os \n
+      // e o split por \n{2,} nunca casa.
+      expect(normalizeLineBreaksInHtml('um\r\n\r\ndois')).toBe(
+        '<p>um</p><p>dois</p>'
+      );
+    });
+
+    it('deve tratar CRLF simples como quebra suave', () => {
+      expect(normalizeLineBreaksInHtml('um\r\ndois')).toBe('<p>um<br>dois</p>');
+    });
+
+    it('não deve deixar \\r solto na saída', () => {
+      expect(normalizeLineBreaksInHtml('um\r\n\r\ndois')).not.toContain('\r');
+    });
+
+    it('deve normalizar CRLF em conteúdo já estruturado', () => {
+      expect(normalizeLineBreaksInHtml('<p>um</p>\r\n<p>dois</p>')).toBe(
+        '<p>um</p>\n<p>dois</p>'
+      );
+    });
+  });
 });

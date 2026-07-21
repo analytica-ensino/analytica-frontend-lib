@@ -34,14 +34,19 @@ export function normalizeLineBreaksInHtml(
   options: NormalizeLineBreaksOptions = {}
 ): string {
   if (!html?.includes('\n')) return html;
-  if (BLOCK_LEVEL_TAG.test(html)) return html;
 
-  const blocks = html
+  // Content imported from CSV/XLSX arrives with CRLF. Without this the `\r`
+  // sits between the two `\n`, so `\n{2,}` never matches and a paragraph break
+  // degrades into a soft break with a stray `\r` left in the output.
+  const normalizedHtml = html.replaceAll('\r\n', '\n');
+  if (BLOCK_LEVEL_TAG.test(normalizedHtml)) return normalizedHtml;
+
+  const blocks = normalizedHtml
     .split(/\n{2,}/)
     .map((block) => block.trim())
     .filter(Boolean);
 
-  if (blocks.length === 0) return html;
+  if (blocks.length === 0) return normalizedHtml;
 
   if (options.inline) {
     // A blank line still reads as a stronger separation than a soft break.

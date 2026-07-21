@@ -1,4 +1,4 @@
-import { useState, ChangeEvent } from 'react';
+import { useState, useRef, ChangeEvent } from 'react';
 import Button from '../../Button/Button';
 import Input from '../../Input/Input';
 import ImageUpload from '../../ImageUpload/ImageUpload';
@@ -43,6 +43,8 @@ export function ImageDialog({
   const [alt, setAlt] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState('');
+  /** Bumped on close so a resolving upload can tell it has been superseded. */
+  const uploadTokenRef = useRef(0);
 
   const resetState = () => {
     setInputMode(onUploadImage ? 'file' : 'url');
@@ -54,6 +56,10 @@ export function ImageDialog({
   };
 
   const handleClose = () => {
+    // Invalidates any upload still in flight. The Modal closes on Escape and on
+    // its X button, so the user can dismiss the dialog mid-upload; without this
+    // the promise would resolve afterwards and insert an image they cancelled.
+    uploadTokenRef.current += 1;
     resetState();
     onClose();
   };
@@ -90,14 +96,17 @@ export function ImageDialog({
 
     setIsUploading(true);
     setError('');
+    const token = uploadTokenRef.current;
 
     try {
       // Upload before inserting so the saved HTML never holds a blob: URL,
       // which would break as soon as the page unloads.
       const uploadedUrl = await onUploadImage(file);
+      if (token !== uploadTokenRef.current) return;
       onInsert(uploadedUrl, alt.trim());
       resetState();
     } catch (err) {
+      if (token !== uploadTokenRef.current) return;
       setError(err instanceof Error ? err.message : 'Erro ao enviar a imagem.');
     } finally {
       setIsUploading(false);

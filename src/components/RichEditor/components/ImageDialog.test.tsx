@@ -216,4 +216,60 @@ describe('ImageDialog', () => {
       ).toBeDisabled();
     });
   });
+
+  describe('cancelamento durante o upload', () => {
+    it('não deve inserir a imagem se o diálogo for fechado antes do upload terminar', async () => {
+      let resolveUpload: (url: string) => void = () => {};
+      const onUploadImage = jest.fn(
+        () =>
+          new Promise<string>((resolve) => {
+            resolveUpload = resolve;
+          })
+      );
+      const { onInsert, onClose } = setup({ onUploadImage });
+
+      selectFile(imageFile());
+      await waitFor(() =>
+        expect(
+          screen.getByRole('button', { name: 'Inserir imagem' })
+        ).toBeEnabled()
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Inserir imagem' }));
+
+      // O botão Cancelar fica desabilitado durante o upload, mas o Modal ainda
+      // fecha no Escape — que é o caminho real do problema.
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(onClose).toHaveBeenCalled();
+
+      resolveUpload('https://cdn.exemplo.com/tardia.png');
+      await waitFor(() => expect(onUploadImage).toHaveBeenCalled());
+
+      expect(onInsert).not.toHaveBeenCalled();
+    });
+
+    it('não deve exibir erro de upload após o fechamento', async () => {
+      let rejectUpload: (e: Error) => void = () => {};
+      const onUploadImage = jest.fn(
+        () =>
+          new Promise<string>((_, reject) => {
+            rejectUpload = reject;
+          })
+      );
+      setup({ onUploadImage });
+
+      selectFile(imageFile());
+      await waitFor(() =>
+        expect(
+          screen.getByRole('button', { name: 'Inserir imagem' })
+        ).toBeEnabled()
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Inserir imagem' }));
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      rejectUpload(new Error('Falha tardia'));
+      await waitFor(() => expect(onUploadImage).toHaveBeenCalled());
+
+      expect(screen.queryByText('Falha tardia')).not.toBeInTheDocument();
+    });
+  });
 });
