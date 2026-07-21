@@ -643,12 +643,15 @@ export {
   CardSimulationHistory,
   CardAudio,
   CardEssayHistory,
+  CardPapole,
   EssayStatus,
   EssayReviewStatus,
 } from './components/Card/Card';
 export type {
   EssayHistoryItem,
   EssayHistoryData,
+  CardPapoleProps,
+  CardPapoleState,
 } from './components/Card/Card';
 export { StatisticsCard } from './components/StatisticsCard/StatisticsCard';
 export {

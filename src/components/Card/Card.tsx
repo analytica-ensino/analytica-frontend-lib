@@ -27,6 +27,7 @@ import { XCircleIcon } from '@phosphor-icons/react/dist/csr/XCircle';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
 import IconRender from '../IconRender/IconRender';
+import papoleBird from '../../assets/img/papole.png';
 
 // Componente base reutilizável para todos os cards
 interface CardBaseProps extends HTMLAttributes<HTMLDivElement> {
@@ -1873,6 +1874,134 @@ const CardEssayHistory = forwardRef<HTMLDivElement, CardEssayHistoryProps>(
   }
 );
 
+// ======================================================================
+// CardPapole — card de atividade da variante Papolê
+// ======================================================================
+
+type CardPapoleState = 'new' | 'coming-soon' | 'done';
+
+interface CardPapoleProps extends HTMLAttributes<HTMLDivElement> {
+  /**
+   * Estado do card:
+   * - `new`: nova atividade (badge "NOVA ATIVIDADE!", clicável)
+   * - `coming-soon`: em breve (opaco/desativado, borda tracejada, badge "EM BREVE")
+   * - `done`: atividade concluída (check no canto, clicável)
+   */
+  state?: CardPapoleState;
+  /** Cor de fundo do card em hex (vinda do backend, igual aos subjects). */
+  color?: string;
+  /** Sobrescreve a imagem do passarinho (default: asset padrão do Papolê). */
+  image?: string;
+  /** Texto alternativo/aria da imagem. */
+  label?: string;
+}
+
+/**
+ * Escurece um hex (`#RGB` ou `#RRGGBB`) multiplicando cada canal por `factor`.
+ * Usado no badge "EM BREVE" para derivar um tom mais escuro da cor do card.
+ * Retorna o próprio input se não for um hex válido.
+ */
+const darkenHex = (hex: string, factor: number): string => {
+  const normalized =
+    hex.length === 4
+      ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`
+      : hex;
+  if (!/^#[0-9a-fA-F]{6}$/.test(normalized)) return hex;
+  const channel = (start: number) => {
+    const value = Math.round(
+      Number.parseInt(normalized.slice(start, start + 2), 16) * factor
+    );
+    return Math.max(0, Math.min(255, value)).toString(16).padStart(2, '0');
+  };
+  return `#${channel(1)}${channel(3)}${channel(5)}`;
+};
+
+const CardPapole = forwardRef<HTMLDivElement, CardPapoleProps>(
+  (
+    {
+      state = 'new',
+      color = '#a3d9b1',
+      image,
+      label = 'Papolê',
+      className,
+      onClick,
+      onKeyDown,
+      ...props
+    },
+    ref
+  ) => {
+    const isComingSoon = state === 'coming-soon';
+    const isDone = state === 'done';
+    const isInteractive = !isComingSoon;
+    const isClickable = isInteractive && !!onClick;
+
+    const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+      if (isClickable && ['Enter', ' '].includes(e.key)) {
+        e.preventDefault();
+        (e.currentTarget as HTMLElement).click();
+      }
+      onKeyDown?.(e);
+    };
+
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          'relative flex items-center justify-center w-[240px] h-[182px] rounded-2xl px-[82px] py-[28px]',
+          isClickable && 'cursor-pointer',
+          isComingSoon &&
+            'opacity-60 pointer-events-none border-2 border-dashed border-border-300',
+          className
+        )}
+        style={{ backgroundColor: color }}
+        onClick={isInteractive ? onClick : undefined}
+        onKeyDown={handleKeyDown}
+        tabIndex={isClickable ? 0 : undefined}
+        role={isClickable ? 'button' : undefined}
+        aria-disabled={isComingSoon ? true : undefined}
+        {...props}
+      >
+        <img
+          src={image ?? papoleBird}
+          alt={label}
+          draggable={false}
+          className="w-full h-auto select-none"
+        />
+
+        {isDone && (
+          <CheckCircleIcon
+            weight="fill"
+            size={28}
+            className="absolute top-3 right-3 text-background drop-shadow-sm"
+            data-testid="papole-check"
+          />
+        )}
+
+        {state === 'new' && (
+          <span className="absolute bottom-3 left-1/2 -translate-x-1/2">
+            <Badge size="small" variant="solid" action="neutral">
+              NOVA ATIVIDADE!
+            </Badge>
+          </span>
+        )}
+
+        {isComingSoon && (
+          <span className="absolute bottom-3 left-1/2 -translate-x-1/2">
+            <Badge
+              size="small"
+              variant="solid"
+              action="neutral"
+              style={{ backgroundColor: darkenHex(color, 0.7) }}
+            >
+              EM BREVE
+            </Badge>
+          </span>
+        )}
+      </div>
+    );
+  }
+);
+
 export {
   CardBase,
   CardActivitiesResults,
@@ -1890,4 +2019,7 @@ export {
   CardTest,
   CardSimulationHistory,
   CardEssayHistory,
+  CardPapole,
 };
+
+export type { CardPapoleProps, CardPapoleState };

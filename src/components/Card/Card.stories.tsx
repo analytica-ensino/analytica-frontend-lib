@@ -19,6 +19,7 @@ import {
   CardTest,
   CardSimulationHistory,
   CardEssayHistory,
+  CardPapole,
   EssayStatus,
   type EssayHistoryData,
 } from './Card';
@@ -1498,3 +1499,50 @@ export const CardEssayHistoryInteractive: Story = () => {
     </div>
   );
 };
+
+// Paleta pastel (hex vindo do backend, como os subjects)
+const PAPOLE_COLORS = {
+  green: '#a3d9b1',
+  lilac: '#e9d4fa',
+  pink: '#fbd1e0',
+  blue: '#b7dfff',
+};
+
+export const CardPapoleShowcase: Story = () => (
+  <div className="flex flex-col gap-8 p-6 bg-primary-800">
+    <div className="flex flex-col gap-3">
+      <p className="text-sm font-bold uppercase text-primary">Estados</p>
+      <div className="flex flex-wrap gap-4">
+        <CardPapole
+          state="new"
+          color={PAPOLE_COLORS.green}
+          onClick={() => alert('nova atividade')}
+        />
+        <CardPapole state="coming-soon" color={PAPOLE_COLORS.lilac} />
+        <CardPapole
+          state="done"
+          color={PAPOLE_COLORS.pink}
+          onClick={() => alert('ver atividade')}
+        />
+      </div>
+    </div>
+
+    <div className="flex flex-col gap-3">
+      <p className="text-sm font-bold uppercase text-primary">
+        Grade (cores via hex)
+      </p>
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        <CardPapole state="new" color={PAPOLE_COLORS.green} />
+        <CardPapole state="coming-soon" color={PAPOLE_COLORS.lilac} />
+        <CardPapole state="coming-soon" color={PAPOLE_COLORS.pink} />
+        <CardPapole state="coming-soon" color={PAPOLE_COLORS.blue} />
+        <CardPapole state="done" color={PAPOLE_COLORS.pink} />
+        <CardPapole state="done" color={PAPOLE_COLORS.lilac} />
+        <CardPapole state="done" color={PAPOLE_COLORS.pink} />
+        <CardPapole state="done" color={PAPOLE_COLORS.green} />
+        <CardPapole state="done" color={PAPOLE_COLORS.blue} />
+        <CardPapole state="done" color={PAPOLE_COLORS.lilac} />
+      </div>
+    </div>
+  </div>
+);
