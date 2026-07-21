@@ -207,5 +207,19 @@ export const ButtonPapoleShowcase: Story = () => (
         </ButtonPapole>
       </div>
     </div>
+
+    <div className="flex flex-col gap-3">
+      <p className="text-sm font-bold uppercase text-text-900">
+        Tamanhos (xl / medium)
+      </p>
+      <div className="flex flex-wrap items-center gap-6">
+        <ButtonPapole size="xl" iconLeft={<SignInIcon weight="bold" />}>
+          Entrar
+        </ButtonPapole>
+        <ButtonPapole size="medium" iconLeft={<SignInIcon weight="bold" />}>
+          Entrar
+        </ButtonPapole>
+      </div>
+    </div>
   </div>
 );

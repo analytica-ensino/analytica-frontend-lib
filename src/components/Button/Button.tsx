@@ -174,20 +174,32 @@ const PAPOLE_VARIANT_CLASSES = {
   link: 'bg-transparent text-primary-900 hover:text-primary-700 focus-visible:outline-none focus-visible:border-4 focus-visible:border-secondary-600 active:text-primary-800 disabled:opacity-40 disabled:cursor-not-allowed',
 } as const;
 
+/**
+ * Classes por tamanho do botão Papolê — padding, gap, radius e o tamanho do
+ * texto e do ícone. `xl` = texto 20px / ícone 24px; `medium` = texto 16px /
+ * ícone 20px (esses dois valores do medium foram assumidos — confirmar a arte).
+ */
+const PAPOLE_SIZE_CLASSES = {
+  xl: 'px-8 py-4 gap-2 rounded-[20px] text-[20px] [&_svg]:size-6',
+  medium: 'px-8 py-4 gap-2 rounded-2xl text-[16px] [&_svg]:size-5',
+} as const;
+
 type ButtonPapoleProps = {
   /** Conteúdo (texto) do botão. */
   children: ReactNode;
-  /** Ícone à esquerda do texto (renderizado a 24px). */
+  /** Ícone à esquerda do texto (tamanho conforme `size`). */
   iconLeft?: ReactNode;
   /** Variante visual do botão (default: 'solid'). */
   variant?: keyof typeof PAPOLE_VARIANT_CLASSES;
+  /** Tamanho do botão (default: 'xl'). */
+  size?: keyof typeof PAPOLE_SIZE_CLASSES;
   /** Classes adicionais. */
   className?: string;
 } & ButtonHTMLAttributes<HTMLButtonElement>;
 
 /**
  * Botão da variante Papolê. `variant` seleciona o estilo
- * (`solid` | `outline` | `link`).
+ * (`solid` | `outline` | `link`) e `size` o tamanho (`xl` | `medium`).
  *
  * Estados via pseudo-classes (hover / focus-visible / active) — ver
  * `PAPOLE_VARIANT_CLASSES`. As cores seguem os tokens do tema ativo.
@@ -198,6 +210,7 @@ const ButtonPapole = forwardRef<HTMLButtonElement, ButtonPapoleProps>(
       children,
       iconLeft,
       variant = 'solid',
+      size = 'xl',
       className = '',
       type = 'button',
       disabled,
@@ -206,15 +219,16 @@ const ButtonPapole = forwardRef<HTMLButtonElement, ButtonPapoleProps>(
     ref
   ) => {
     const baseClasses =
-      'inline-flex items-center justify-center gap-2 rounded-xl cursor-pointer font-quicksand font-bold text-[20px] uppercase leading-none px-6 py-3 [&_svg]:size-6';
+      'inline-flex items-center justify-center cursor-pointer font-quicksand font-bold uppercase leading-none';
     const variantClasses = PAPOLE_VARIANT_CLASSES[variant];
+    const sizeClasses = PAPOLE_SIZE_CLASSES[size];
 
     return (
       <button
         ref={ref}
         type={type}
         disabled={disabled}
-        className={cn(baseClasses, variantClasses, className)}
+        className={cn(baseClasses, variantClasses, sizeClasses, className)}
         {...props}
       >
         {iconLeft && <span className="flex items-center">{iconLeft}</span>}
