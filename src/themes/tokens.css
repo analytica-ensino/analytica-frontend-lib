@@ -3,6 +3,10 @@
     'Roboto', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
+  /* Tipografia da variante Papolê. Gera o utilitário `font-quicksand`.
+     A fonte em si é carregada pelo app consumidor (e pelo Ladle no preview). */
+  --font-quicksand: 'Quicksand', 'Roboto', ui-sans-serif, system-ui, sans-serif;
+
   --color-background-dark: #181719;
   --color-background-light: #fbfbfb;
   /* Primary Colors */

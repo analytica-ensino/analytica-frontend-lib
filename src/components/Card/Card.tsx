@@ -1897,24 +1897,13 @@ interface CardPapoleProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 /**
- * Escurece um hex (`#RGB` ou `#RRGGBB`) multiplicando cada canal por `factor`.
- * Usado no badge "EM BREVE" para derivar um tom mais escuro da cor do card.
- * Retorna o próprio input se não for um hex válido.
+ * Badge dos cards Papolê. Dimensões e tipografia fixas da arte: 117×23,
+ * radius 8px, px 8 / py 4, gap 8, texto Quicksand 700/12px. A cor de fundo
+ * (preto com opacidade) varia por estado: 70% em "nova atividade", 30% em
+ * "em breve".
  */
-const darkenHex = (hex: string, factor: number): string => {
-  const normalized =
-    hex.length === 4
-      ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`
-      : hex;
-  if (!/^#[0-9a-fA-F]{6}$/.test(normalized)) return hex;
-  const channel = (start: number) => {
-    const value = Math.round(
-      Number.parseInt(normalized.slice(start, start + 2), 16) * factor
-    );
-    return Math.max(0, Math.min(255, value)).toString(16).padStart(2, '0');
-  };
-  return `#${channel(1)}${channel(3)}${channel(5)}`;
-};
+const PAPOLE_BADGE_CLASSES =
+  'flex items-center justify-center gap-2 w-[117px] h-[23px] rounded-lg px-2 py-1 text-[12px] font-bold text-white whitespace-nowrap';
 
 const CardPapole = forwardRef<HTMLDivElement, CardPapoleProps>(
   (
@@ -1947,10 +1936,10 @@ const CardPapole = forwardRef<HTMLDivElement, CardPapoleProps>(
       <div
         ref={ref}
         className={cn(
-          'relative flex items-center justify-center w-[240px] h-[182px] rounded-2xl px-[82px] py-[28px]',
+          'relative flex items-center justify-center w-[240px] h-[182px] rounded-2xl px-[82px] py-[28px] font-quicksand',
           isClickable && 'cursor-pointer',
           isComingSoon &&
-            'opacity-60 pointer-events-none border-2 border-dashed border-border-300',
+            'pointer-events-none border-2 border-dashed border-border-300',
           className
         )}
         style={{ backgroundColor: color }}
@@ -1965,7 +1954,10 @@ const CardPapole = forwardRef<HTMLDivElement, CardPapoleProps>(
           src={image ?? papoleBird}
           alt={label}
           draggable={false}
-          className="w-full h-auto select-none"
+          className={cn(
+            'w-full h-auto select-none',
+            isComingSoon && 'opacity-40'
+          )}
         />
 
         {isDone && (
@@ -1978,23 +1970,24 @@ const CardPapole = forwardRef<HTMLDivElement, CardPapoleProps>(
         )}
 
         {state === 'new' && (
-          <span className="absolute bottom-3 left-1/2 -translate-x-1/2">
-            <Badge size="small" variant="solid" action="neutral">
-              NOVA ATIVIDADE!
-            </Badge>
+          <span
+            className={cn(
+              'absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/70',
+              PAPOLE_BADGE_CLASSES
+            )}
+          >
+            NOVA ATIVIDADE!
           </span>
         )}
 
         {isComingSoon && (
-          <span className="absolute bottom-3 left-1/2 -translate-x-1/2">
-            <Badge
-              size="small"
-              variant="solid"
-              action="neutral"
-              style={{ backgroundColor: darkenHex(color, 0.7) }}
-            >
-              EM BREVE
-            </Badge>
+          <span
+            className={cn(
+              'absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/30',
+              PAPOLE_BADGE_CLASSES
+            )}
+          >
+            EM BREVE
           </span>
         )}
       </div>
