@@ -33,6 +33,10 @@ export interface UseModulesReturn {
   hasTutorial: boolean;
   tutorialUrl: string;
 
+  // Reading-fluency mode (institution-wide; switches the app to the
+  // fluency-only experience). Off by default.
+  hasReadingFluency: boolean;
+
   // Exams
   hasExams: boolean;
 
@@ -122,6 +126,9 @@ export const useModules = (): UseModulesReturn => {
     // Tutorial: only show the menu link when enabled AND a url is configured
     hasTutorial: (modules.tutorial ?? false) && tutorialUrl.length > 0,
     tutorialUrl,
+
+    // Reading-fluency mode (opt-in per institution, defaults off)
+    hasReadingFluency: modules.readingFluency ?? false,
 
     // Exams (simple boolean, with backwards compatibility for old object format)
     hasExams:
