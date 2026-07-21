@@ -1,6 +1,9 @@
 import { EditorContent, useEditor } from '@tiptap/react';
 import { createRichEditorExtensions } from './components/extensions';
-import { processLatexInHtml } from './components/utils';
+import {
+  normalizeLineBreaksInHtml,
+  processLatexInHtml,
+} from './components/utils';
 import 'katex/dist/katex.min.css';
 import { TextBolderIcon } from '@phosphor-icons/react/dist/csr/TextB';
 import { TextItalicIcon } from '@phosphor-icons/react/dist/csr/TextItalic';
@@ -50,6 +53,13 @@ const ToolbarBtn = ({ onClick, active, title, children }: ToolbarBtnProps) => (
 
 const Divider = () => <div className="w-px h-5 bg-border-200 mx-0.5" />;
 
+/**
+ * Prepares stored content for the TipTap parser. Line breaks are restored first
+ * so that LaTeX spans are injected into already-structured markup.
+ */
+const prepareContent = (content?: string) =>
+  processLatexInHtml(normalizeLineBreaksInHtml(content || ''));
+
 interface RichEditorProps {
   readonly content?: string;
   readonly onChange?: (data: { json: object; html: string }) => void;
@@ -84,7 +94,7 @@ export function RichEditor({
 
   const editor = useEditor({
     extensions: createRichEditorExtensions(placeholder),
-    content: processLatexInHtml(content || ''),
+    content: prepareContent(content),
     onUpdate: ({ editor }) => {
       // Skip onChange callback during external content updates
       if (isExternalUpdateRef.current) {
@@ -109,8 +119,9 @@ export function RichEditor({
   // Update editor content when prop changes externally (e.g., from loadQuestion)
   useEffect(() => {
     if (editor && content !== undefined && content !== lastContentRef.current) {
-      const processedContent = processLatexInHtml(content || '');
-      editor.commands.setContent(processedContent, { emitUpdate: false });
+      editor.commands.setContent(prepareContent(content), {
+        emitUpdate: false,
+      });
       lastContentRef.current = content;
     }
   }, [content, editor]);

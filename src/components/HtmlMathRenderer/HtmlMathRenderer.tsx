@@ -2,6 +2,7 @@ import { CSSProperties, forwardRef, memo, ReactNode, Ref } from 'react';
 import 'katex/dist/katex.min.css';
 import { KatexMath } from './KatexMath';
 import { cn } from '../../utils/utils';
+import { normalizeLineBreaksInHtml } from '../../utils/htmlLineBreaks';
 import MarkdownMathRenderer from '../MarkdownMathRenderer/MarkdownMathRenderer';
 import {
   isLikelyMarkdown,
@@ -90,9 +91,23 @@ const HtmlMathRenderer = forwardRef<HTMLElement, HtmlMathRendererProps>(
     const renderContent = () => {
       if (!content) return null;
 
+      // Question content is stored as plain text with `\n` line breaks mixed
+      // with loose inline tags. Newlines are insignificant whitespace in HTML,
+      // so without this the whole thing renders as one collapsed run of text.
+      // Content that is already structured HTML passes through untouched.
+      //
+      // Breaks are always emitted as <br>, never <p>: the mixed text+math path
+      // below wraps each part in its own element, which would cut a paragraph
+      // in half across a math expression. <br> is inline and survives the split
+      // intact — and `[&_p]:mb-0` below means paragraphs carry no spacing here
+      // anyway, so there is nothing to gain from block elements.
+      const normalizedContent = normalizeLineBreaksInHtml(content, {
+        inline: true,
+      });
+
       const processedContent = sanitize
-        ? sanitizeHtmlForDisplay(content)
-        : content;
+        ? sanitizeHtmlForDisplay(normalizedContent)
+        : normalizedContent;
 
       const parts = processHtmlWithMath(processedContent);
 

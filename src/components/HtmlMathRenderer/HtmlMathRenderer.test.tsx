@@ -607,3 +607,82 @@ describe('utils', () => {
     });
   });
 });
+
+describe('quebras de linha em conteúdo de texto puro', () => {
+  // Pure text with no tags takes the Markdown path (which already handles
+  // blank lines); a single loose tag forces the HTML path, where the bug lives.
+  it('deve separar com <br> texto com linha em branco', () => {
+    const { container } = render(
+      <HtmlMathRenderer content={'Primeira.\n\n<b>Segunda</b>.'} testId="r" />
+    );
+
+    expect(container.querySelectorAll('br')).toHaveLength(2);
+    expect(container).toHaveTextContent('Primeira.');
+    expect(container).toHaveTextContent('Segunda.');
+  });
+
+  it('deve converter quebra simples em um único <br>', () => {
+    const { container } = render(
+      <HtmlMathRenderer content={'Linha um.\nLinha dois.'} testId="r" />
+    );
+
+    expect(container.querySelectorAll('br')).toHaveLength(1);
+  });
+
+  it('deve preservar tags inline soltas ao quebrar linhas', () => {
+    const { container } = render(
+      <HtmlMathRenderer
+        content={'A) <b>Correta</b>.Explicação.\n\nB) <b>Incorreta</b>.Outra.'}
+        testId="r"
+      />
+    );
+
+    expect(container.querySelectorAll('b')).toHaveLength(2);
+    expect(container.querySelectorAll('br').length).toBeGreaterThan(0);
+  });
+
+  it('nunca deve emitir <p>, que o fatiamento por partes quebraria', () => {
+    const { container } = render(
+      <HtmlMathRenderer content={'Primeira.\n\n<b>Segunda</b>.'} testId="r" />
+    );
+
+    expect(container.querySelectorAll('p')).toHaveLength(0);
+  });
+
+  it('não deve emitir <p> no modo inline', () => {
+    const { container } = render(
+      <HtmlMathRenderer content={'Primeira.\n\nSegunda.'} inline testId="r" />
+    );
+
+    expect(container.querySelectorAll('p')).toHaveLength(0);
+    expect(container.querySelectorAll('br').length).toBeGreaterThan(0);
+  });
+
+  it('não deve alterar conteúdo que já é HTML estruturado', () => {
+    const { container } = render(
+      <HtmlMathRenderer
+        content={'<p>Primeira.</p>\n\n<p>Segunda.</p>'}
+        testId="r"
+      />
+    );
+
+    expect(container.querySelectorAll('p')).toHaveLength(2);
+    expect(container.querySelectorAll('br')).toHaveLength(0);
+  });
+
+  // Content with any HTML tag bypasses the Markdown path, so this hybrid shape
+  // (loose <b> + LaTeX + newlines) is exactly what reaches the HTML pipeline.
+  it('deve preservar quebras junto com LaTeX e tags inline', () => {
+    const { container } = render(
+      <HtmlMathRenderer
+        content={'A) <b>Correta</b>: $x = 1$.\n\nB) <b>Errada</b>: $y = 2$.'}
+        testId="r"
+      />
+    );
+
+    expect(screen.getAllByTestId('inline-math')).toHaveLength(2);
+    expect(container.querySelectorAll('b')).toHaveLength(2);
+    expect(container.querySelectorAll('br').length).toBeGreaterThan(0);
+    expect(container.querySelectorAll('p')).toHaveLength(0);
+  });
+});

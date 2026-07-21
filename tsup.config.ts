@@ -75,6 +75,8 @@ export default defineConfig({
     'utils/index': 'src/utils/utils.ts',
 
     'MultipleChoice/index': 'src/components/MultipleChoice/MultipleChoice.tsx',
+    'HtmlMathRenderer/index':
+      'src/components/HtmlMathRenderer/HtmlMathRenderer.tsx',
     'AlertManager/index': 'src/components/AlertManager/AlertsManager.tsx',
     'AlertManagerView/index':
       'src/components/AlertManagerView/AlertsManagerView.tsx',
@@ -335,6 +337,7 @@ export default defineConfig({
     'utils/brazilianStates/index': 'src/utils/brazilianStates.ts', // UF_LIST
     'utils/calendarActivityUtils/index': 'src/utils/calendarActivityUtils.ts', // filterActivitiesFromDate, getActivityDateKey, getCalendarActivityStatus
     'utils/chatUtils/index': 'src/utils/chatUtils.ts', // getChatUserInfo, getChatWsUrl
+    'utils/htmlLineBreaks/index': 'src/utils/htmlLineBreaks.ts', // normalizeLineBreaksInHtml
     'utils/domainUtils/index': 'src/utils/domainUtils.ts', // resolveRootHostname, extractSubdomainSlug, buildLoginUrlWithReturnTo
     'utils/examFilterHelpers/index': 'src/utils/examFilterHelpers.ts', // EXAM_STATUS_OPTIONS
     'utils/lessonAvailabilityUtils/index': 'src/utils/lessonAvailabilityUtils.ts', // checkLessonAvailability

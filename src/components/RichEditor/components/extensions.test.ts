@@ -1,5 +1,6 @@
 import { generateHTML, generateJSON } from '@tiptap/core';
 import { createRichEditorExtensions } from './extensions';
+import { normalizeLineBreaksInHtml, processLatexInHtml } from './utils';
 
 /**
  * These tests exercise the real Tiptap schema (not a mock) because the bug they
@@ -72,5 +73,82 @@ describe('createRichEditorExtensions', () => {
       expect(html).toContain('um');
       expect(html).toContain('dois');
     });
+  });
+});
+
+describe('normalizeLineBreaksInHtml + schema', () => {
+  const prepare = (content: string) =>
+    generateHTML(
+      generateJSON(
+        processLatexInHtml(normalizeLineBreaksInHtml(content)),
+        extensions
+      ),
+      extensions
+    );
+
+  it('deve separar em parágrafos texto puro com linha em branco', () => {
+    const html = prepare('Linha um.\n\nLinha dois.\n\nLinha três.');
+
+    expect(html).toContain('<p>Linha um.</p>');
+    expect(html).toContain('<p>Linha dois.</p>');
+    expect(html).toContain('<p>Linha três.</p>');
+  });
+
+  it('deve tratar quebra simples como <br> dentro do mesmo parágrafo', () => {
+    const html = prepare('Linha um.\nLinha dois.');
+
+    expect(html).toContain('<br>');
+    expect(html.match(/<p>/g)).toHaveLength(1);
+  });
+
+  it('deve preservar tags inline soltas ao separar parágrafos', () => {
+    const html = prepare('A) <b>Correta</b>.\n\nB) <b>Incorreta</b>.');
+
+    expect(html).toContain('<p>A) <strong>Correta</strong>.</p>');
+    expect(html).toContain('<p>B) <strong>Incorreta</strong>.</p>');
+  });
+
+  it('não deve duplicar parágrafos em conteúdo que já é HTML estruturado', () => {
+    const html = prepare('<p>Linha um.</p>\n\n<p>Linha dois.</p>');
+
+    expect(html).toEqual('<p>Linha um.</p><p>Linha dois.</p>');
+  });
+
+  it('deve manter LaTeX e quebras de linha juntos', () => {
+    const html = prepare('Item (I): $x = 1$.\n\nItem (II): $y = 2$.');
+
+    expect(html.match(/<p>/g)).toHaveLength(2);
+    expect(html).toContain('data-latex="x = 1"');
+    expect(html).toContain('data-latex="y = 2"');
+  });
+
+  it('deve estabilizar após o primeiro salvamento', () => {
+    const primeiraAbertura = prepare('Linha um.\n\nLinha dois.');
+    // O conteúdo salvo já vem estruturado na próxima abertura.
+    const segundaAbertura = prepare(primeiraAbertura);
+
+    expect(segundaAbertura).toEqual(primeiraAbertura);
+  });
+});
+
+describe('quebras de linha com imagens', () => {
+  const prepare = (content: string) =>
+    generateHTML(
+      generateJSON(
+        processLatexInHtml(normalizeLineBreaksInHtml(content)),
+        extensions
+      ),
+      extensions
+    );
+
+  it('não deve deixar parágrafo vazio ao redor de imagem isolada', () => {
+    const html = prepare(
+      'Veja a figura:\n\n<img src="https://cdn.exemplo.com/a.png">\n\nAnalise.'
+    );
+
+    expect(html).not.toContain('<p></p>');
+    expect(html).toContain('<p>Veja a figura:</p>');
+    expect(html).toContain('https://cdn.exemplo.com/a.png');
+    expect(html).toContain('<p>Analise.</p>');
   });
 });
