@@ -130,6 +130,8 @@ export type {
   MicrophonePermissionStatus,
   UseMicrophonePermissionReturn,
 } from './hooks/useMicrophonePermission';
+export { useAudioSpectrum } from './hooks/useAudioSpectrum';
+export type { UseAudioSpectrumOptions } from './hooks/useAudioSpectrum';
 export { default as CorrectActivityModal } from './components/CorrectActivityModal/CorrectActivityModal';
 export type { CorrectActivityModalProps } from './components/CorrectActivityModal/CorrectActivityModal';
 export {
@@ -834,6 +836,8 @@ export { BrandingLogo } from './components/BrandingLogo/BrandingLogo';
 export type { BrandingLogoProps } from './components/BrandingLogo/BrandingLogo';
 export { UserIcon } from './components/UserIcon/UserIcon';
 export type { UserIconProps } from './components/UserIcon/UserIcon';
+export { AudioMixerPapole } from './components/AudioMixerPapole/AudioMixerPapole';
+export type { AudioMixerPapoleProps } from './components/AudioMixerPapole/AudioMixerPapole';
 export {
   MicIconPapole,
   MicOffIconPapole,
