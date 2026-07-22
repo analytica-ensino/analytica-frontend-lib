@@ -123,6 +123,8 @@ export { MicOffModalPapole } from './components/Modal/Modal';
 export type { MicOffModalPapoleProps } from './components/Modal/Modal';
 export { AudioPlaybackModalPapole } from './components/Modal/Modal';
 export type { AudioPlaybackModalPapoleProps } from './components/Modal/Modal';
+export { SuccessModalPapole } from './components/Modal/Modal';
+export type { SuccessModalPapoleProps } from './components/Modal/Modal';
 export { useMicrophonePermission } from './hooks/useMicrophonePermission';
 export type {
   MicrophonePermissionStatus,

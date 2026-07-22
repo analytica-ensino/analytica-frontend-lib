@@ -889,3 +889,98 @@ AudioPlaybackModalPapole.displayName = 'AudioPlaybackModalPapole';
 
 export { AudioPlaybackModalPapole };
 export type { AudioPlaybackModalPapoleProps };
+
+// ======================================================================
+// SuccessModalPapole — modal Papolê de feedback positivo
+// ======================================================================
+
+type SuccessModalPapoleProps = {
+  /** Se o modal está aberto. */
+  isOpen: boolean;
+  /** Fecha o modal (X e Esc). */
+  onClose: () => void;
+  /** Título (ex.: "Incrível!"). */
+  title?: string;
+  /** Frase de reforço (ex.: "Você leu muito bem!"). */
+  description?: string;
+  /** Fecha ao pressionar Esc (default: true). */
+  closeOnEscape?: boolean;
+};
+
+/**
+ * Modal Papolê de comemoração/feedback positivo: card branco com o passarinho,
+ * um título grande e uma frase de reforço, e o botão de fechar. Sem header verde
+ * e sem ações — o aluno fecha no X (ou Esc). Título/descrição são configuráveis
+ * pra reaproveitar em outros feedbacks.
+ */
+const SuccessModalPapole = ({
+  isOpen,
+  onClose,
+  title = 'Incrível!',
+  description = 'Você leu muito bem!',
+  closeOnEscape = true,
+}: SuccessModalPapoleProps) => {
+  const titleId = useId();
+
+  useEffect(() => {
+    if (!isOpen || !closeOnEscape) return;
+    const handleEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen, closeOnEscape, onClose]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+      <dialog
+        open
+        aria-labelledby={titleId}
+        aria-modal="true"
+        className="font-quicksand static m-0 w-full max-w-[380px] overflow-hidden rounded-3xl border-none bg-background p-0 shadow-hard-shadow-2"
+      >
+        <div className="relative flex flex-col items-center gap-4 p-8 text-center">
+          <span className="absolute right-4 top-4">
+            <ButtonPapole variant="icon" aria-label="Fechar" onClick={onClose}>
+              <XIcon weight="bold" />
+            </ButtonPapole>
+          </span>
+
+          <img
+            src={papoleBird}
+            alt="Papolê"
+            className="h-[72px] w-auto select-none"
+            draggable={false}
+          />
+
+          <div className="flex flex-col items-center gap-1">
+            <h2
+              id={titleId}
+              className="text-[24px] font-bold uppercase text-secondary-900"
+            >
+              {title}
+            </h2>
+            <p className="text-[12px] font-bold uppercase tracking-wide text-text-500">
+              {description}
+            </p>
+          </div>
+        </div>
+      </dialog>
+    </div>
+  );
+};
+SuccessModalPapole.displayName = 'SuccessModalPapole';
+
+export { SuccessModalPapole };
+export type { SuccessModalPapoleProps };

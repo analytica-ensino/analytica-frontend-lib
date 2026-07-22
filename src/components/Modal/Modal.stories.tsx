@@ -4,6 +4,7 @@ import Modal, {
   MicPermissionModalPapole,
   MicOffModalPapole,
   AudioPlaybackModalPapole,
+  SuccessModalPapole,
 } from './Modal';
 import Button, { ButtonPapole } from '../Button/Button';
 import mockContentImage from '../../assets/img/mock-content.png';
@@ -363,6 +364,21 @@ export const AudioPlaybackPapole: Story = () => {
           setOpen(false);
         }}
       />
+    </div>
+  );
+};
+
+export const SuccessPapole: Story = () => {
+  const [open, setOpen] = useState(true);
+
+  return (
+    <div
+      data-theme="papole-light"
+      className="flex min-h-[420px] items-center justify-center bg-secondary-700 p-6"
+    >
+      <ButtonPapole onClick={() => setOpen(true)}>Abrir modal</ButtonPapole>
+
+      <SuccessModalPapole isOpen={open} onClose={() => setOpen(false)} />
     </div>
   );
 };
