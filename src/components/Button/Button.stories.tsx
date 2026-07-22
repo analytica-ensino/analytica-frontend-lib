@@ -197,6 +197,24 @@ export const ButtonPapoleShowcase: Story = () => (
     </div>
 
     <div className="flex flex-col gap-3">
+      <p className="text-sm font-bold uppercase text-text-900">
+        Outline-inverse (fundo escuro)
+      </p>
+      <div className="flex flex-wrap items-center gap-6 rounded-xl bg-secondary-500 p-6">
+        <ButtonPapole variant="outline-inverse">Sair</ButtonPapole>
+        <ButtonPapole
+          variant="outline-inverse"
+          iconLeft={<SignInIcon weight="bold" />}
+        >
+          Sair
+        </ButtonPapole>
+        <ButtonPapole variant="outline-inverse" disabled>
+          Sair
+        </ButtonPapole>
+      </div>
+    </div>
+
+    <div className="flex flex-col gap-3">
       <p className="text-sm font-bold uppercase text-text-900">Link</p>
       <div className="flex flex-wrap items-center gap-6">
         <ButtonPapole variant="link">Entrar</ButtonPapole>

@@ -1001,7 +1001,7 @@ const ProfileMenuPapoleFooter = ({
 
   return (
     <ButtonPapole
-      variant="outline"
+      variant="outline-inverse"
       size="medium"
       className={cn('w-full', className)}
       disabled={disabled}

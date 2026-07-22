@@ -171,6 +171,12 @@ const PAPOLE_VARIANT_CLASSES = {
     'bg-primary-500 border-4 border-primary-200 text-primary-900 hover:bg-primary-600 focus-visible:outline-none focus-visible:border-secondary-600 active:bg-primary-700 active:border-2 active:text-primary-100 disabled:opacity-40 disabled:cursor-not-allowed [box-shadow:0px_4px_0px_0px_#D4A82E,0px_0px_4px_0px_#00000021]',
   outline:
     'bg-transparent border-4 border-primary-200 text-primary-900 hover:bg-primary-100 focus-visible:outline-none focus-visible:border-secondary-600 active:bg-primary-200 active:border-2 active:border-primary-700 disabled:opacity-40 disabled:cursor-not-allowed [box-shadow:0px_4px_0px_0px_#F9CB3B,0px_0px_4px_0px_#00000021] active:[box-shadow:0px_2px_0px_0px_#F9CB3B,0px_0px_4px_0px_#00000021]',
+  // Inverso do outline p/ fundo escuro (ex.: SAIR no menu de perfil): texto
+  // claro (primary-100) por cima; no hover/pressed preenche dourado e escurece o
+  // texto p/ manter contraste; foco com borda clara (secondary-300). Valores por
+  // estado são uma proposta coerente — ajustar na story se necessário.
+  'outline-inverse':
+    'bg-transparent border-4 border-primary-200 text-primary-100 hover:bg-primary-100 hover:text-primary-900 focus-visible:outline-none focus-visible:border-secondary-300 active:bg-primary-200 active:text-primary-900 active:border-2 active:border-primary-700 disabled:opacity-40 disabled:cursor-not-allowed [box-shadow:0px_4px_0px_0px_#F9CB3B,0px_0px_4px_0px_#00000021] active:[box-shadow:0px_2px_0px_0px_#F9CB3B,0px_0px_4px_0px_#00000021]',
   link: 'bg-transparent text-primary-900 hover:text-primary-700 focus-visible:outline-none focus-visible:border-4 focus-visible:border-secondary-600 active:text-primary-800 disabled:opacity-40 disabled:cursor-not-allowed',
 } as const;
 
@@ -211,7 +217,7 @@ type ButtonPapoleProps = {
 
 /**
  * Botão da variante Papolê. `variant` seleciona o estilo
- * (`solid` | `outline` | `link` | `icon`) e `size` o tamanho
+ * (`solid` | `outline` | `outline-inverse` | `link` | `icon`) e `size` o tamanho
  * (`xl` | `medium` | `small`; ignorado no `icon`).
  *
  * Estados via pseudo-classes (hover / focus-visible / active) — ver
