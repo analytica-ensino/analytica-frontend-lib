@@ -22,9 +22,10 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { create, StoreApi, useStore } from 'zustand';
-import Button from '../Button/Button';
+import Button, { ButtonPapole } from '../Button/Button';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
+import papoleBird from '../../assets/img/papole.png';
 import Modal from '../Modal/Modal';
 import { ThemeToggle } from '../ThemeToggle/ThemeToggle';
 import type { ThemeMode } from '@/hooks/useTheme';
@@ -101,6 +102,8 @@ const injectStore = (
         'ProfileMenuHeader',
         'ProfileMenuFooter',
         'ProfileToggleTheme',
+        'ProfileMenuPapoleTrigger',
+        'ProfileMenuPapoleFooter',
       ];
 
       let newProps: Partial<{
@@ -290,9 +293,16 @@ const ALIGN_CLASSES = {
   end: 'right-0',
 };
 
+// O "chrome" do card (bg/borda/rounded/shadow) fica por variante para que a
+// variante `papole` possa ter o seu próprio (fundo secondary-500, sem borda,
+// sombra das vars --sds-* do Figma traduzidas: 0 8px 8px -2px, preto 10% + 20%).
+// `menu`/`profile` mantêm exatamente o visual de antes.
 const MENUCONTENT_VARIANT_CLASSES = {
-  menu: 'p-1',
-  profile: 'p-6',
+  menu: 'bg-background rounded-md border bg-popover text-popover-foreground shadow-md border-border-100 p-1',
+  profile:
+    'bg-background rounded-md border bg-popover text-popover-foreground shadow-md border-border-100 p-6',
+  papole:
+    'flex flex-col gap-4 bg-secondary-500 rounded-[20px] pt-6 px-6 pb-8 [box-shadow:0px_8px_8px_-2px_#0000001a,0px_8px_8px_-2px_#00000033]',
 };
 
 const MenuLabel = forwardRef<
@@ -317,7 +327,7 @@ const DropdownMenuContent = forwardRef<
   HTMLAttributes<HTMLDivElement> & {
     align?: 'start' | 'center' | 'end';
     side?: 'top' | 'right' | 'bottom' | 'left';
-    variant?: 'menu' | 'profile';
+    variant?: 'menu' | 'profile' | 'papole';
     sideOffset?: number;
     store?: DropdownStoreApi;
     portal?: boolean;
@@ -434,7 +444,7 @@ const DropdownMenuContent = forwardRef<
         data-dropdown-content="true"
         data-open={open}
         className={`
-        bg-background z-50 min-w-[210px] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md border-border-100
+        z-50 min-w-[210px] overflow-hidden
         ${open ? 'animate-in fade-in-0 zoom-in-95' : 'animate-out fade-out-0 zoom-out-95'}
         ${getPositionClasses()}
         ${variantClasses}
@@ -865,6 +875,148 @@ const ProfileMenuFooter = ({
 };
 ProfileMenuFooter.displayName = 'ProfileMenuFooter';
 
+// ======================================================================
+// Componentes do ProfileMenu Papolê (usados com variant="papole")
+// ======================================================================
+
+// Trigger de perfil Papolê: ícone circular de 42px. Mostra a foto do usuário
+// (`photoUrl`) e cai no passarinho quando não houver.
+const ProfileMenuPapoleTrigger = forwardRef<
+  HTMLButtonElement,
+  ButtonHTMLAttributes<HTMLButtonElement> & {
+    photoUrl?: string | null;
+    store?: DropdownStoreApi;
+  }
+>(({ className, onClick, photoUrl, store: externalStore, ...props }, ref) => {
+  const store = useDropdownStore(externalStore);
+  const open = useStore(store, (s) => s.open);
+  const toggleOpen = () => store.setState({ open: !open });
+
+  return (
+    <button
+      ref={ref}
+      type="button"
+      className={cn(
+        'size-[42px] rounded-full overflow-hidden cursor-pointer bg-secondary-600 flex items-center justify-center',
+        className
+      )}
+      onClick={(e) => {
+        e.stopPropagation();
+        toggleOpen();
+        onClick?.(e);
+      }}
+      aria-expanded={open}
+      aria-label="Abrir menu de perfil"
+      {...props}
+    >
+      <img
+        src={photoUrl ?? papoleBird}
+        alt="Foto de perfil"
+        className="w-full h-full object-cover"
+      />
+    </button>
+  );
+});
+ProfileMenuPapoleTrigger.displayName = 'ProfileMenuPapoleTrigger';
+
+// Card de informações do aluno (fundo secondary-600). Dois blocos texto1/texto2:
+// nome/email (sempre) e escola/turma (quando houver).
+const ProfileMenuPapoleInfo = forwardRef<
+  HTMLDivElement,
+  HTMLAttributes<HTMLDivElement> & {
+    name: string;
+    email: string;
+    schoolName?: string;
+    classYearName?: string;
+    schoolYearName?: string;
+    store?: DropdownStoreApi;
+  }
+>(
+  (
+    {
+      className,
+      name,
+      email,
+      schoolName,
+      classYearName,
+      schoolYearName,
+      store: _store,
+      ...props
+    },
+    ref
+  ) => {
+    const hasSchoolBlock = !!(schoolName || classYearName || schoolYearName);
+
+    return (
+      <div
+        ref={ref}
+        data-component="ProfileMenuPapoleInfo"
+        className={cn(
+          'font-quicksand flex flex-col gap-4 rounded-[20px] bg-secondary-600 p-4',
+          className
+        )}
+        {...props}
+      >
+        <div className="flex flex-col">
+          <p className="text-[16px] font-bold text-text-100 truncate">{name}</p>
+          <p className="text-[14px] font-medium text-secondary-300 truncate">
+            {email}
+          </p>
+        </div>
+
+        {hasSchoolBlock && (
+          <div className="flex flex-col">
+            {schoolName && (
+              <p className="text-[16px] font-bold text-text-100 truncate">
+                {schoolName}
+              </p>
+            )}
+            {(classYearName || schoolYearName) && (
+              <p className="text-[14px] font-medium text-secondary-300 truncate">
+                {[classYearName, schoolYearName].filter(Boolean).join(' • ')}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+);
+ProfileMenuPapoleInfo.displayName = 'ProfileMenuPapoleInfo';
+
+// Rodapé Papolê: botão "Sair" (ButtonPapole outline md). Fecha o menu e repassa
+// o onClick (logout).
+const ProfileMenuPapoleFooter = ({
+  className,
+  disabled = false,
+  onClick,
+  store: externalStore,
+  ...props
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
+  disabled?: boolean;
+  store?: DropdownStoreApi;
+}) => {
+  const store = useDropdownStore(externalStore);
+  const setOpen = useStore(store, (s) => s.setOpen);
+
+  return (
+    <ButtonPapole
+      variant="outline"
+      size="medium"
+      className={cn('w-full', className)}
+      disabled={disabled}
+      onClick={(e) => {
+        setOpen(false);
+        onClick?.(e);
+      }}
+      {...props}
+    >
+      Sair
+    </ButtonPapole>
+  );
+};
+ProfileMenuPapoleFooter.displayName = 'ProfileMenuPapoleFooter';
+
 // Exportações
 export default DropdownMenu;
 export {
@@ -882,4 +1034,9 @@ export {
   ProfileMenuFooter,
   ProfileToggleTheme,
   ProfileMenuInfo,
+
+  // Componentes do ProfileMenu Papolê
+  ProfileMenuPapoleTrigger,
+  ProfileMenuPapoleInfo,
+  ProfileMenuPapoleFooter,
 };

@@ -10,6 +10,9 @@ import DropdownMenu, {
   ProfileMenuHeader,
   ProfileMenuSection,
   ProfileToggleTheme,
+  ProfileMenuPapoleTrigger,
+  ProfileMenuPapoleInfo,
+  ProfileMenuPapoleFooter,
 } from './DropdownMenu';
 import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
 import { CheckIcon } from '@phosphor-icons/react/dist/csr/Check';
@@ -506,4 +509,30 @@ export const ProfileMenuWithoutPhoto: Story = () => (
       <ProfileMenuFooter onClick={() => console.log('Sair')} />
     </DropdownMenuContent>
   </DropdownMenu>
+);
+
+export const ProfileMenuPapole: Story = () => (
+  <div
+    data-theme="papole-light"
+    className="flex min-h-[420px] items-start justify-end bg-secondary-500 p-6"
+  >
+    <DropdownMenu>
+      <ProfileMenuPapoleTrigger />
+      <DropdownMenuContent
+        className="min-w-[320px]"
+        side="bottom"
+        align="end"
+        variant="papole"
+      >
+        <ProfileMenuPapoleInfo
+          name="Ana Clara"
+          email="ana@gmail.com"
+          schoolName="Escola X"
+          classYearName="Turma A"
+          schoolYearName="2º ano"
+        />
+        <ProfileMenuPapoleFooter onClick={() => console.log('Sair')} />
+      </DropdownMenuContent>
+    </DropdownMenu>
+  </div>
 );

@@ -307,6 +307,9 @@ export {
   MenuLabel,
   DropdownMenuSeparator,
   ProfileToggleTheme,
+  ProfileMenuPapoleTrigger,
+  ProfileMenuPapoleInfo,
+  ProfileMenuPapoleFooter,
 } from './components/DropdownMenu/DropdownMenu';
 
 export {
