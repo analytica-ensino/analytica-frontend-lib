@@ -881,6 +881,36 @@ describe('ChoroplethMap animations', () => {
     expect(screen.queryByText(/Acessos: 200/)).not.toBeInTheDocument();
   });
 
+  it('shows only the selected profile line when activeProfile is set', async () => {
+    await renderAndHoverRegion({
+      activeProfile: 'students',
+      data: [
+        {
+          id: 'r1',
+          name: 'NRE Test',
+          value: 0.5,
+          accessCount: 200,
+          accessBreakdown: {
+            students: { withAccess: 300, withoutAccess: 1000 },
+            teachers: { withAccess: 40, withoutAccess: 5 },
+            managers: { withAccess: 2, withoutAccess: 8 },
+          },
+          geoJson: {
+            type: 'Feature',
+            properties: {},
+            geometry: { type: 'Polygon', coordinates: [[]] },
+          },
+        },
+      ],
+    });
+
+    expect(
+      screen.getByText(/Estudantes: 300 com acesso, 1\.000 sem acessos/)
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Professores\(as\):/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Diretores\(as\):/)).not.toBeInTheDocument();
+  });
+
   it('renders a headerAction on the right of the header', () => {
     render(
       <ChoroplethMap
