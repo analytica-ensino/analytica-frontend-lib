@@ -109,6 +109,15 @@ export type { ColorPickerProps } from './components/ColorPicker/ColorPicker';
 export { default as Search } from './components/Search/Search';
 export { default as Chips } from './components/Chips/Chips';
 export { default as ProgressBar } from './components/ProgressBar/ProgressBar';
+export { RangeGauge, pointerPercent } from './components/RangeGauge/RangeGauge';
+export type {
+  RangeGaugeProps,
+  RangeGaugeZone,
+} from './components/RangeGauge/RangeGauge';
+export { LevelBar } from './components/LevelBar/LevelBar';
+export type { LevelBarProps } from './components/LevelBar/LevelBar';
+export { Avatar } from './components/Avatar/Avatar';
+export type { AvatarProps } from './components/Avatar/Avatar';
 export { default as ProgressCircle } from './components/ProgressCircle/ProgressCircle';
 export { default as Stepper } from './components/Stepper/Stepper';
 export { default as Calendar } from './components/Calendar/Calendar';
