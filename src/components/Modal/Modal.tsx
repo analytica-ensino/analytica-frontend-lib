@@ -17,6 +17,7 @@ import {
 import { cn } from '../../utils/utils';
 import Button, { ButtonPapole } from '../Button/Button';
 import papoleBird from '../../assets/img/papole.png';
+import papoleCelebration from '../../assets/gifs/Celebration.gif';
 import { useMicrophonePermission } from '../../hooks/useMicrophonePermission';
 import {
   isYouTubeUrl,
@@ -958,20 +959,20 @@ const SuccessModalPapole = ({
           </span>
 
           <img
-            src={papoleBird}
+            src={papoleCelebration}
             alt="Papolê"
-            className="h-[72px] w-auto select-none"
+            className="h-[172px] w-[252px] select-none object-contain"
             draggable={false}
           />
 
           <div className="flex flex-col items-center gap-1">
             <h2
               id={titleId}
-              className="text-[24px] font-bold uppercase text-secondary-900"
+              className="text-[32px] font-bold uppercase text-secondary-900"
             >
               {title}
             </h2>
-            <p className="text-[12px] font-bold uppercase tracking-wide text-text-500">
+            <p className="text-[14px] font-semibold uppercase tracking-wide text-text-500">
               {description}
             </p>
           </div>
