@@ -1,7 +1,9 @@
 import { ReactNode, useEffect, useId } from 'react';
 import { XIcon } from '@phosphor-icons/react/dist/csr/X';
+import { MicrophoneIcon } from '@phosphor-icons/react/dist/csr/Microphone';
 import { cn } from '../../utils/utils';
-import Button from '../Button/Button';
+import Button, { ButtonPapole } from '../Button/Button';
+import papoleBird from '../../assets/img/papole.png';
 import {
   isYouTubeUrl,
   getYouTubeVideoId,
@@ -358,3 +360,154 @@ const Modal = ({
 };
 
 export default Modal;
+
+// ======================================================================
+// MicPermissionModalPapole — modal Papolê de permissão de microfone
+// ======================================================================
+
+type MicPermissionModalPapoleProps = {
+  /** Se o modal está aberto. */
+  isOpen: boolean;
+  /** Fecha o modal (X e Esc). */
+  onClose: () => void;
+  /** Ação do botão "Habilitar permissões". */
+  onEnable?: () => void;
+  /** Ação do link "Configurar depois". */
+  onConfigureLater?: () => void;
+  /** Ação da barra "Saiba mais sobre como cuidamos dos dados". */
+  onLearnMore?: () => void;
+  /** Fecha ao pressionar Esc (default: true). */
+  closeOnEscape?: boolean;
+  /** Título (default: "Por que pedimos acesso ao microfone"). */
+  title?: string;
+  /** Texto explicativo (default: o texto da arte). */
+  description?: ReactNode;
+};
+
+/**
+ * Modal Papolê que pede permissão de uso do microfone.
+ *
+ * Header verde (`secondary-500`) com o passarinho + ícone de microfone e o botão
+ * de fechar (`ButtonPapole variant="icon"`); corpo branco com título, texto e as
+ * ações (`ButtonPapole` solid "Habilitar permissões" + link "Configurar depois");
+ * barra inferior verde-clara com o link "Saiba mais...".
+ *
+ * Observação: os tokens de cor/spacing são uma leitura da arte — ajustar na story.
+ */
+const MicPermissionModalPapole = ({
+  isOpen,
+  onClose,
+  onEnable,
+  onConfigureLater,
+  onLearnMore,
+  closeOnEscape = true,
+  title = 'Por que pedimos acesso ao microfone',
+  description,
+}: MicPermissionModalPapoleProps) => {
+  const titleId = useId();
+
+  useEffect(() => {
+    if (!isOpen || !closeOnEscape) return;
+    const handleEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen, closeOnEscape, onClose]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+      <dialog
+        open
+        aria-labelledby={titleId}
+        aria-modal="true"
+        className="font-quicksand static m-0 w-full max-w-[420px] overflow-hidden rounded-3xl border-none p-0 shadow-hard-shadow-2"
+      >
+        {/* Header verde */}
+        <div className="relative flex items-center justify-center gap-3 bg-secondary-500 px-6 pt-8 pb-10">
+          <span className="absolute right-4 top-4">
+            <ButtonPapole variant="icon" aria-label="Fechar" onClick={onClose}>
+              <XIcon weight="bold" />
+            </ButtonPapole>
+          </span>
+
+          <img
+            src={papoleBird}
+            alt="Papolê"
+            className="h-14 w-auto select-none"
+            draggable={false}
+          />
+
+          <span className="flex size-14 items-center justify-center rounded-full bg-background">
+            <MicrophoneIcon
+              size={28}
+              weight="fill"
+              className="text-secondary-500"
+            />
+          </span>
+        </div>
+
+        {/* Corpo */}
+        <div className="flex flex-col items-center gap-4 bg-background px-6 pt-6 pb-6 text-center">
+          <h2 id={titleId} className="text-[18px] font-bold text-secondary-900">
+            {title}
+          </h2>
+
+          <div className="flex flex-col gap-3 text-[14px] font-medium text-text-600">
+            {description ?? (
+              <>
+                <p>
+                  Usamos o microfone para gravar a leitura da criança e avaliar
+                  sua fluência leitora ao longo do tempo.
+                </p>
+                <p>
+                  As gravações ficam armazenadas com segurança e são usadas
+                  apenas para esse fim.
+                </p>
+              </>
+            )}
+          </div>
+
+          <ButtonPapole
+            variant="solid"
+            size="medium"
+            className="mt-2"
+            onClick={onEnable}
+          >
+            Habilitar permissões
+          </ButtonPapole>
+
+          <ButtonPapole variant="link" size="medium" onClick={onConfigureLater}>
+            Configurar depois
+          </ButtonPapole>
+        </div>
+
+        {/* Barra "Saiba mais" */}
+        <button
+          type="button"
+          onClick={onLearnMore}
+          className="w-full cursor-pointer bg-secondary-100 px-6 py-4 text-center"
+        >
+          <span className="font-quicksand text-[14px] font-medium text-secondary-700 underline">
+            Saiba mais sobre como cuidamos dos dados
+          </span>
+        </button>
+      </dialog>
+    </div>
+  );
+};
+MicPermissionModalPapole.displayName = 'MicPermissionModalPapole';
+
+export { MicPermissionModalPapole };
+export type { MicPermissionModalPapoleProps };

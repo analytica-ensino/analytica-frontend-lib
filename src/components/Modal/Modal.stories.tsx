@@ -1,7 +1,7 @@
 import type { Story } from '@ladle/react';
 import { useState } from 'react';
-import Modal from './Modal';
-import Button from '../Button/Button';
+import Modal, { MicPermissionModalPapole } from './Modal';
+import Button, { ButtonPapole } from '../Button/Button';
 import mockContentImage from '../../assets/img/mock-content.png';
 
 const sizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const;
@@ -261,5 +261,32 @@ export const ActivityModalNoAction: Story = () => {
         size="sm"
       />
     </>
+  );
+};
+
+export const MicPermissionPapole: Story = () => {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div
+      data-theme="papole-light"
+      className="flex min-h-[420px] items-center justify-center bg-secondary-700 p-6"
+    >
+      <ButtonPapole onClick={() => setOpen(true)}>Abrir modal</ButtonPapole>
+
+      <MicPermissionModalPapole
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        onEnable={() => {
+          console.log('habilitar permissões');
+          setOpen(false);
+        }}
+        onConfigureLater={() => {
+          console.log('configurar depois');
+          setOpen(false);
+        }}
+        onLearnMore={() => console.log('saiba mais')}
+      />
+    </div>
   );
 };

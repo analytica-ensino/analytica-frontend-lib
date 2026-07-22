@@ -117,6 +117,8 @@ export { default as Calendar } from './components/Calendar/Calendar';
 export { DateTimeInput } from './components/DateTimeInput';
 export type { DateTimeInputProps } from './components/DateTimeInput';
 export { default as Modal } from './components/Modal/Modal';
+export { MicPermissionModalPapole } from './components/Modal/Modal';
+export type { MicPermissionModalPapoleProps } from './components/Modal/Modal';
 export { default as CorrectActivityModal } from './components/CorrectActivityModal/CorrectActivityModal';
 export type { CorrectActivityModalProps } from './components/CorrectActivityModal/CorrectActivityModal';
 export {
