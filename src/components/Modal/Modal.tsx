@@ -1,7 +1,17 @@
-import { ReactNode, useCallback, useEffect, useId, useState } from 'react';
+import {
+  ReactNode,
+  MouseEvent,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from 'react';
 import { XIcon } from '@phosphor-icons/react/dist/csr/X';
 import { MicrophoneIcon } from '@phosphor-icons/react/dist/csr/Microphone';
 import { MicrophoneSlashIcon } from '@phosphor-icons/react/dist/csr/MicrophoneSlash';
+import { PlayIcon } from '@phosphor-icons/react/dist/csr/Play';
+import { PauseIcon } from '@phosphor-icons/react/dist/csr/Pause';
 import { cn } from '../../utils/utils';
 import Button, { ButtonPapole } from '../Button/Button';
 import papoleBird from '../../assets/img/papole.png';
@@ -673,3 +683,215 @@ MicOffModalPapole.displayName = 'MicOffModalPapole';
 
 export { MicOffModalPapole };
 export type { MicOffModalPapoleProps };
+
+// ======================================================================
+// AudioPlaybackModalPapole — modal Papolê para ouvir a gravação
+// ======================================================================
+
+type AudioPlaybackModalPapoleProps = {
+  /** Se o modal está aberto. */
+  isOpen: boolean;
+  /** Fecha o modal (X e Esc). */
+  onClose: () => void;
+  /** URL do áudio a reproduzir (a gravação). */
+  src?: string;
+  /** Ação do botão "Pronto!". */
+  onConfirm?: () => void;
+  /** Ação do link "Quero ler de novo". */
+  onRetry?: () => void;
+  /** Fecha ao pressionar Esc (default: true). */
+  closeOnEscape?: boolean;
+};
+
+// Alturas (px) das barras da waveform — decorativa (não reflete o áudio real).
+const PAPOLE_WAVEFORM_BARS = [
+  12, 20, 32, 16, 40, 24, 52, 28, 44, 60, 44, 28, 52, 24, 40, 16, 32, 20, 12,
+];
+
+const formatPlaybackTime = (seconds: number): string => {
+  const safe = Number.isFinite(seconds) ? Math.max(0, seconds) : 0;
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  const h = Math.floor(safe / 3600);
+  const m = Math.floor((safe % 3600) / 60);
+  const s = Math.floor(safe % 60);
+  return `${pad(h)}:${pad(m)}:${pad(s)}`;
+};
+
+/**
+ * Modal Papolê para o aluno ouvir a própria gravação. Header verde com uma
+ * waveform decorativa e um player simples (play/pause + barra de progresso +
+ * tempo) + botão de fechar; corpo branco com "Pronto!" (`ButtonPapole` solid) e
+ * "Quero ler de novo" (`ButtonPapole` link).
+ *
+ * Controlado: o app decide quando abrir (ex.: após finalizar a gravação).
+ *
+ * Observação: waveform é decorativa (não analisa o áudio) e os tokens de
+ * cor/spacing são uma leitura da arte — ajustar na story.
+ */
+const AudioPlaybackModalPapole = ({
+  isOpen,
+  onClose,
+  src,
+  onConfirm,
+  onRetry,
+  closeOnEscape = true,
+}: AudioPlaybackModalPapoleProps) => {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+
+  useEffect(() => {
+    if (!isOpen || !closeOnEscape) return;
+    const handleEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen, closeOnEscape, onClose]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      // Reseta o player ao fechar (o <audio> desmonta com o modal).
+      setIsPlaying(false);
+      setCurrentTime(0);
+      return;
+    }
+    const original = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, [isOpen]);
+
+  const togglePlay = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (isPlaying) {
+      audio.pause();
+      setIsPlaying(false);
+    } else {
+      // play() rejeita (AbortError) se pausado antes de iniciar — ignora.
+      audio.play()?.catch(() => {});
+      setIsPlaying(true);
+    }
+  };
+
+  const handleSeek = (event: MouseEvent<HTMLButtonElement>) => {
+    const audio = audioRef.current;
+    if (!audio || !Number.isFinite(duration) || duration <= 0) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const ratio = (event.clientX - rect.left) / rect.width;
+    audio.currentTime = Math.min(Math.max(ratio, 0), 1) * duration;
+    setCurrentTime(audio.currentTime);
+  };
+
+  if (!isOpen) return null;
+
+  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+      <dialog
+        open
+        aria-label="Ouvir gravação"
+        aria-modal="true"
+        className="font-quicksand static m-0 w-full max-w-[420px] overflow-hidden rounded-3xl border-none p-0 shadow-hard-shadow-2"
+      >
+        {/* Header verde: waveform + player */}
+        <div className="relative flex flex-col gap-5 bg-secondary-500 px-6 pt-8 pb-6">
+          <span className="absolute right-4 top-4">
+            <ButtonPapole variant="icon" aria-label="Fechar" onClick={onClose}>
+              <XIcon weight="bold" />
+            </ButtonPapole>
+          </span>
+
+          {/* Waveform (decorativa) */}
+          <div
+            className="flex h-16 items-center justify-center gap-1"
+            aria-hidden="true"
+          >
+            {PAPOLE_WAVEFORM_BARS.map((height, index) => (
+              <span
+                key={index}
+                style={{ height }}
+                className="w-1 rounded-full bg-error-400"
+              />
+            ))}
+          </div>
+
+          {/* Player */}
+          <div className="flex items-center gap-3">
+            <audio
+              ref={audioRef}
+              src={src}
+              preload="metadata"
+              onTimeUpdate={() =>
+                setCurrentTime(audioRef.current?.currentTime ?? 0)
+              }
+              onLoadedMetadata={() =>
+                setDuration(audioRef.current?.duration ?? 0)
+              }
+              onEnded={() => {
+                setIsPlaying(false);
+                setCurrentTime(0);
+              }}
+            >
+              <track kind="captions" />
+            </audio>
+
+            <button
+              type="button"
+              onClick={togglePlay}
+              disabled={!src}
+              aria-label={isPlaying ? 'Pausar' : 'Reproduzir'}
+              className="flex size-9 flex-shrink-0 items-center justify-center rounded-lg bg-primary-500 text-primary-900 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {isPlaying ? (
+                <PauseIcon size={20} weight="fill" />
+              ) : (
+                <PlayIcon size={20} weight="fill" />
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleSeek}
+              aria-label="Barra de progresso"
+              className="h-2 flex-1 overflow-hidden rounded-full bg-background"
+            >
+              <span
+                className="block h-full rounded-full bg-primary-500 transition-[width] duration-100"
+                style={{ width: `${progress}%` }}
+              />
+            </button>
+
+            <span className="flex-shrink-0 text-sm font-medium text-primary">
+              {formatPlaybackTime(currentTime)}
+            </span>
+          </div>
+        </div>
+
+        {/* Corpo (padding 24) */}
+        <div className="flex flex-col items-center gap-4 bg-background p-6 text-center">
+          <ButtonPapole
+            variant="solid"
+            size="medium"
+            className="w-full"
+            onClick={onConfirm}
+          >
+            Pronto!
+          </ButtonPapole>
+
+          <ButtonPapole variant="link" size="medium" onClick={onRetry}>
+            Quero ler de novo
+          </ButtonPapole>
+        </div>
+      </dialog>
+    </div>
+  );
+};
+AudioPlaybackModalPapole.displayName = 'AudioPlaybackModalPapole';
+
+export { AudioPlaybackModalPapole };
+export type { AudioPlaybackModalPapoleProps };
