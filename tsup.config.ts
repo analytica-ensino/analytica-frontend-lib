@@ -23,6 +23,7 @@ export default defineConfig({
     'NavButton/index': 'src/components/NavButton/NavButton.tsx',
     'Search/index': 'src/components/Search/Search.tsx',
     'ProgressBar/index': 'src/components/ProgressBar/ProgressBar.tsx',
+    'ChartComponents/index': 'src/components/shared/ChartComponents.tsx',
     'RangeGauge/index': 'src/components/RangeGauge/RangeGauge.tsx',
     'LevelBar/index': 'src/components/LevelBar/LevelBar.tsx',
     'Avatar/index': 'src/components/Avatar/Avatar.tsx',

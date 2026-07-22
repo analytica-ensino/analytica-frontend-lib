@@ -109,6 +109,15 @@ export type { ColorPickerProps } from './components/ColorPicker/ColorPicker';
 export { default as Search } from './components/Search/Search';
 export { default as Chips } from './components/Chips/Chips';
 export { default as ProgressBar } from './components/ProgressBar/ProgressBar';
+export {
+  SimplePieChart,
+  LegendRow,
+  LegendPieCard,
+} from './components/shared/ChartComponents';
+export type {
+  PieSlice,
+  SimplePieChartProps,
+} from './components/shared/ChartComponents';
 export { RangeGauge, pointerPercent } from './components/RangeGauge/RangeGauge';
 export type {
   RangeGaugeProps,
