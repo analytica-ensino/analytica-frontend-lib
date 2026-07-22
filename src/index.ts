@@ -837,7 +837,11 @@ export type { BrandingLogoProps } from './components/BrandingLogo/BrandingLogo';
 export { UserIcon } from './components/UserIcon/UserIcon';
 export type { UserIconProps } from './components/UserIcon/UserIcon';
 export { AudioMixerPapole } from './components/AudioMixerPapole/AudioMixerPapole';
-export type { AudioMixerPapoleProps } from './components/AudioMixerPapole/AudioMixerPapole';
+export type {
+  AudioMixerPapoleProps,
+  AudioMixerPapoleHandle,
+  AudioMixerStatus,
+} from './components/AudioMixerPapole/AudioMixerPapole';
 export {
   MicIconPapole,
   MicOffIconPapole,

@@ -1,6 +1,11 @@
 import type { Story } from '@ladle/react';
-import { useMemo } from 'react';
-import { AudioMixerPapole } from './AudioMixerPapole';
+import { useMemo, useRef, useState } from 'react';
+import {
+  AudioMixerPapole,
+  type AudioMixerPapoleHandle,
+  type AudioMixerStatus,
+} from './AudioMixerPapole';
+import { ButtonPapole } from '../Button/Button';
 
 // Áudio SAME-ORIGIN embutido (data URI WAV) só pra demo: um áudio externo sem
 // CORS ficaria mudo ao passar pelo Web Audio. Aqui toca e as barras reagem.
@@ -82,6 +87,95 @@ export const AudioMixer: Story = () => {
     >
       <div className="rounded-2xl bg-background px-6 py-4 shadow-hard-shadow-2">
         <AudioMixerPapole src={demoSrc} autoPlay loop showTime />
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Controle stop/pause/continue via prop `status` (declarativo). Os botões abaixo
+ * são temporários só pra demo — o design final do botão vem depois.
+ */
+export const AudioMixerControlled: Story = () => {
+  const demoSrc = useMemo(() => makePapoleDemoAudio(), []);
+  const [status, setStatus] = useState<AudioMixerStatus>('stopped');
+
+  return (
+    <div
+      data-theme="papole-light"
+      className="flex min-h-[420px] flex-col items-center justify-center gap-6 bg-secondary-100 p-6"
+    >
+      <div className="rounded-2xl bg-background px-6 py-4 shadow-hard-shadow-2">
+        <AudioMixerPapole
+          src={demoSrc}
+          status={status}
+          showTime
+          onEnded={() => setStatus('stopped')}
+        />
+      </div>
+
+      <div className="flex items-center gap-3">
+        <ButtonPapole size="small" onClick={() => setStatus('playing')}>
+          {status === 'paused' ? 'Continuar' : 'Tocar'}
+        </ButtonPapole>
+        <ButtonPapole
+          size="small"
+          variant="outline"
+          onClick={() => setStatus('paused')}
+        >
+          Pausar
+        </ButtonPapole>
+        <ButtonPapole
+          size="small"
+          variant="outline"
+          onClick={() => setStatus('stopped')}
+        >
+          Parar
+        </ButtonPapole>
+      </div>
+
+      <p className="text-xs text-text-700">
+        status atual: <strong>{status}</strong>
+      </p>
+    </div>
+  );
+};
+
+/**
+ * Mesmo controle, mas **imperativo** via `ref` (`play`/`pause`/`stop`) — a outra
+ * forma que um botão externo pode usar.
+ */
+export const AudioMixerImperative: Story = () => {
+  const demoSrc = useMemo(() => makePapoleDemoAudio(), []);
+  const mixerRef = useRef<AudioMixerPapoleHandle>(null);
+
+  return (
+    <div
+      data-theme="papole-light"
+      className="flex min-h-[420px] flex-col items-center justify-center gap-6 bg-secondary-100 p-6"
+    >
+      <div className="rounded-2xl bg-background px-6 py-4 shadow-hard-shadow-2">
+        <AudioMixerPapole ref={mixerRef} src={demoSrc} showTime />
+      </div>
+
+      <div className="flex items-center gap-3">
+        <ButtonPapole size="small" onClick={() => mixerRef.current?.play()}>
+          Tocar
+        </ButtonPapole>
+        <ButtonPapole
+          size="small"
+          variant="outline"
+          onClick={() => mixerRef.current?.pause()}
+        >
+          Pausar
+        </ButtonPapole>
+        <ButtonPapole
+          size="small"
+          variant="outline"
+          onClick={() => mixerRef.current?.stop()}
+        >
+          Parar
+        </ButtonPapole>
       </div>
     </div>
   );
