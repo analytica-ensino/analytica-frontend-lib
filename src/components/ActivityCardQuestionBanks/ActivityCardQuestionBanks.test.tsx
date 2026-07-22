@@ -276,7 +276,7 @@ describe('ActivityCardQuestionBanks', () => {
           questionType={QUESTION_TYPE.MULTIPLA_ESCOLHA}
         />
       );
-      expect(screen.getByText('Múltipla Escolha')).toBeInTheDocument();
+      expect(screen.getByText('Caixas de seleção')).toBeInTheDocument();
     });
 
     it('should render correct label for DISSERTATIVA', () => {

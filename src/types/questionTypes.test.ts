@@ -33,7 +33,7 @@ describe('questionTypes', () => {
 
     it('should have correct label for MULTIPLA_ESCOLHA', () => {
       expect(questionTypeLabels[QUESTION_TYPE.MULTIPLA_ESCOLHA]).toBe(
-        'Múltipla Escolha'
+        'Caixas de seleção'
       );
     });
 

@@ -348,7 +348,7 @@ describe('questionRenderer', () => {
 
       render(renderQuestionMultipleChoice({ question, result }));
 
-      expect(screen.getByText('Não há Escolhas Múltiplas')).toBeInTheDocument();
+      expect(screen.getByText('Não há Caixas de seleção')).toBeInTheDocument();
     });
 
     it('should show multiple selections', () => {
