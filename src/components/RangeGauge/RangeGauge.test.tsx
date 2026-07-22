@@ -53,12 +53,16 @@ describe('RangeGauge', () => {
     expect(container.querySelectorAll('.flex-1')).toHaveLength(3);
   });
 
-  it('exposes the current band to assistive tech', () => {
-    render(<RangeGauge value={104} max={120} zones={ZONES} />);
-    const meter = screen.getByRole('meter');
-    expect(meter).toHaveAttribute('aria-valuenow', '104');
-    expect(meter).toHaveAttribute('aria-valuemax', '120');
-    expect(meter).toHaveAttribute('aria-valuetext', 'Acima do esperado');
+  // The measurement and its band are shown as adjacent text by the consumer,
+  // so the gauge itself is decorative and must not be announced twice.
+  it('is hidden from assistive tech', () => {
+    const { container } = render(
+      <RangeGauge value={104} max={120} zones={ZONES} />
+    );
+    expect(
+      container.querySelector('[data-component="RangeGauge"]')
+    ).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.queryByRole('meter')).not.toBeInTheDocument();
   });
 
   it('positions the pointer', () => {
@@ -73,8 +77,21 @@ describe('RangeGauge', () => {
     expect(screen.queryByTestId('range-gauge-pointer')).not.toBeInTheDocument();
   });
 
-  it('falls back to the last bounded zone when max is omitted', () => {
-    render(<RangeGauge value={10} zones={ZONES} />);
-    expect(screen.getByRole('meter')).toHaveAttribute('aria-valuemax', '65');
+  it('pins the pointer to the end on an explicit-max overflow', () => {
+    render(<RangeGauge value={999} max={120} zones={ZONES} />);
+    expect(pointerLeft()).toBe('100%');
+  });
+
+  // With `max` omitted the scale ends at the last bounded threshold (65), so
+  // anything at or beyond it belongs at the end of the track — not at the
+  // start of the open-ended band.
+  it('pins the pointer to the end on an omitted-max overflow', () => {
+    render(<RangeGauge value={70} zones={ZONES} />);
+    expect(pointerLeft()).toBe('100%');
+  });
+
+  it('pins the pointer to the start below the scale', () => {
+    render(<RangeGauge value={-5} max={120} zones={ZONES} />);
+    expect(pointerLeft()).toBe('0%');
   });
 });

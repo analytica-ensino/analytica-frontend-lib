@@ -59,6 +59,11 @@ export const pointerPercent = (
   max: number
 ): number => {
   if (zones.length === 0) return 0;
+  // Pin to the scale ends. Without this an overflowing value on an
+  // open-ended last band (whose span is 0 when `max` is omitted) would land
+  // at the band's start instead of the end of the track.
+  if (value <= min) return 0;
+  if (value >= max) return 100;
 
   const index = zoneIndexOf(value, zones);
   const lower = index === 0 ? min : (zones[index - 1].to as number);
@@ -107,21 +112,20 @@ export const RangeGauge = ({
     .find((zone) => zone.to !== undefined);
   const scaleMax = max ?? lastBounded?.to ?? min;
   const percent = pointerPercent(value, zones, min, scaleMax);
-  const currentZone = zones[zoneIndexOf(value, zones)];
 
   return (
+    // Decorative: the measurement and its band are always rendered as adjacent
+    // text ("38 palavras/min" / "Abaixo do esperado"), so announcing the bar
+    // too would just repeat them. Wrap it with your own label if you render it
+    // without that text.
     <div
       data-component="RangeGauge"
       className={cn('flex flex-col gap-1 w-full', className)}
-      role="meter"
-      aria-valuenow={value}
-      aria-valuemin={min}
-      aria-valuemax={scaleMax}
-      aria-valuetext={currentZone?.label}
+      aria-hidden="true"
       {...props}
     >
       {/* Pointer rail — reserves the height even when the pointer is hidden */}
-      <div className="relative h-2 w-full" aria-hidden="true">
+      <div className="relative h-2 w-full">
         {showPointer && (
           <span
             data-testid="range-gauge-pointer"
@@ -140,7 +144,6 @@ export const RangeGauge = ({
           'flex w-full h-1.5 overflow-hidden rounded-full',
           barClassName
         )}
-        aria-hidden="true"
       >
         {zones.map((zone, index) => (
           <span

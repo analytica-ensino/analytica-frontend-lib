@@ -39,14 +39,13 @@ export const LevelBar = ({
   const filled = Math.min(Math.max(Math.trunc(value), 0), SEGMENTS);
 
   return (
+    // Decorative: the level is always rendered as adjacent text ("Nível 2 de
+    // 4"), so announcing the bar too would just repeat it. Wrap it with your
+    // own label if you render it without that text.
     <div
       data-component="LevelBar"
       className={cn('flex w-full items-center gap-1', className)}
-      role="meter"
-      aria-valuenow={filled}
-      aria-valuemin={0}
-      aria-valuemax={SEGMENTS}
-      aria-valuetext={`Nível ${filled} de ${SEGMENTS}`}
+      aria-hidden="true"
       {...props}
     >
       {Array.from({ length: SEGMENTS }, (_, index) => (

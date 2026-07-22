@@ -33,11 +33,13 @@ describe('LevelBar', () => {
     expect(screen.getAllByTestId('level-bar-empty')).toHaveLength(4);
   });
 
-  it('exposes the level to assistive tech', () => {
-    render(<LevelBar value={3} />);
-    const meter = screen.getByRole('meter');
-    expect(meter).toHaveAttribute('aria-valuenow', '3');
-    expect(meter).toHaveAttribute('aria-valuemax', '4');
-    expect(meter).toHaveAttribute('aria-valuetext', 'Nível 3 de 4');
+  // The level is shown as adjacent text by the consumer, so the bar itself is
+  // decorative and must not be announced twice.
+  it('is hidden from assistive tech', () => {
+    const { container } = render(<LevelBar value={3} />);
+    expect(
+      container.querySelector('[data-component="LevelBar"]')
+    ).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.queryByRole('meter')).not.toBeInTheDocument();
   });
 });
