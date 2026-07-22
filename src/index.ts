@@ -838,8 +838,8 @@ export {
   StopIconPapole,
   PlayIconPapole,
   PauseIconPapole,
-} from './components/PapoleIcons/PapoleIcons';
-export type { PapoleIconProps } from './components/PapoleIcons/PapoleIcons';
+} from './components/PapoleIcons';
+export type { PapoleIconProps } from './components/PapoleIcons';
 export { useDraftAutoSave } from './hooks/useDraftAutoSave';
 export type {
   ApiClient as DraftApiClientAdapter,

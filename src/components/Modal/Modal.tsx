@@ -13,7 +13,7 @@ import {
   MicOffIconPapole,
   PlayIconPapole,
   PauseIconPapole,
-} from '../PapoleIcons/PapoleIcons';
+} from '../PapoleIcons';
 import { cn } from '../../utils/utils';
 import Button, { ButtonPapole } from '../Button/Button';
 import papoleBird from '../../assets/img/papole.png';

@@ -5,7 +5,7 @@ import {
   StopIconPapole,
   PlayIconPapole,
   PauseIconPapole,
-} from './PapoleIcons';
+} from '.';
 
 const items = [
   { name: 'MicIconPapole', Icon: MicIconPapole, dark: true },
