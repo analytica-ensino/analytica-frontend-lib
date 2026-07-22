@@ -119,6 +119,8 @@ export type { DateTimeInputProps } from './components/DateTimeInput';
 export { default as Modal } from './components/Modal/Modal';
 export { MicPermissionModalPapole } from './components/Modal/Modal';
 export type { MicPermissionModalPapoleProps } from './components/Modal/Modal';
+export { MicOffModalPapole } from './components/Modal/Modal';
+export type { MicOffModalPapoleProps } from './components/Modal/Modal';
 export { useMicrophonePermission } from './hooks/useMicrophonePermission';
 export type {
   MicrophonePermissionStatus,

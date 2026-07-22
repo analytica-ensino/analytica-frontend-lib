@@ -1,6 +1,6 @@
 import type { Story } from '@ladle/react';
 import { useState } from 'react';
-import Modal, { MicPermissionModalPapole } from './Modal';
+import Modal, { MicPermissionModalPapole, MicOffModalPapole } from './Modal';
 import Button, { ButtonPapole } from '../Button/Button';
 import mockContentImage from '../../assets/img/mock-content.png';
 
@@ -312,3 +312,26 @@ export const MicPermissionPapoleManaged: Story = () => (
     />
   </div>
 );
+
+export const MicOffPapole: Story = () => {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div
+      data-theme="papole-light"
+      className="flex min-h-[420px] items-center justify-center bg-secondary-700 p-6"
+    >
+      <ButtonPapole onClick={() => setOpen(true)}>Abrir modal</ButtonPapole>
+
+      <MicOffModalPapole
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        onRetry={() => {
+          console.log('tentar ler de novo');
+          setOpen(false);
+        }}
+        onAskAdult={() => console.log('pedir ajuda a um adulto')}
+      />
+    </div>
+  );
+};

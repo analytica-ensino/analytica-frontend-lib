@@ -1,6 +1,7 @@
 import { ReactNode, useCallback, useEffect, useId, useState } from 'react';
 import { XIcon } from '@phosphor-icons/react/dist/csr/X';
 import { MicrophoneIcon } from '@phosphor-icons/react/dist/csr/Microphone';
+import { MicrophoneSlashIcon } from '@phosphor-icons/react/dist/csr/MicrophoneSlash';
 import { cn } from '../../utils/utils';
 import Button, { ButtonPapole } from '../Button/Button';
 import papoleBird from '../../assets/img/papole.png';
@@ -556,3 +557,119 @@ MicPermissionModalPapole.displayName = 'MicPermissionModalPapole';
 
 export { MicPermissionModalPapole };
 export type { MicPermissionModalPapoleProps };
+
+// ======================================================================
+// MicOffModalPapole — modal Papolê de "microfone parece desligado"
+// ======================================================================
+
+type MicOffModalPapoleProps = {
+  /** Se o modal está aberto. */
+  isOpen: boolean;
+  /** Fecha o modal (X e Esc). */
+  onClose: () => void;
+  /** Ação do botão "Tentar ler de novo". */
+  onRetry?: () => void;
+  /** Ação do link "Pedir ajuda a um adulto". */
+  onAskAdult?: () => void;
+  /** Fecha ao pressionar Esc (default: true). */
+  closeOnEscape?: boolean;
+  /** Título (default: "Parece que o microfone está desligado"). */
+  title?: string;
+};
+
+/**
+ * Modal Papolê exibido quando o microfone parece desligado/mudo durante a
+ * leitura. Header verde com o ícone de microfone cortado + botão de fechar;
+ * corpo branco com o título (uppercase) e as ações "Tentar ler de novo"
+ * (`ButtonPapole` solid) e "Pedir ajuda a um adulto" (`ButtonPapole` link).
+ *
+ * É um modal controlado (o app decide quando abrir — ex.: ao detectar que não
+ * há áudio durante a gravação).
+ *
+ * Observação: os tokens de cor/spacing são uma leitura da arte — ajustar na story.
+ */
+const MicOffModalPapole = ({
+  isOpen,
+  onClose,
+  onRetry,
+  onAskAdult,
+  closeOnEscape = true,
+  title = 'Parece que o microfone está desligado',
+}: MicOffModalPapoleProps) => {
+  const titleId = useId();
+
+  useEffect(() => {
+    if (!isOpen || !closeOnEscape) return;
+    const handleEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen, closeOnEscape, onClose]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+      <dialog
+        open
+        aria-labelledby={titleId}
+        aria-modal="true"
+        className="font-quicksand static m-0 w-full max-w-[420px] overflow-hidden rounded-3xl border-none p-0 shadow-hard-shadow-2"
+      >
+        {/* Header verde */}
+        <div className="relative flex items-center justify-center bg-secondary-500 px-6 pt-10 pb-10">
+          <span className="absolute right-4 top-4">
+            <ButtonPapole variant="icon" aria-label="Fechar" onClick={onClose}>
+              <XIcon weight="bold" />
+            </ButtonPapole>
+          </span>
+
+          <span className="flex size-20 items-center justify-center rounded-full bg-background shadow-hard-shadow-2">
+            <MicrophoneSlashIcon
+              size={40}
+              weight="fill"
+              className="text-secondary-700"
+            />
+          </span>
+        </div>
+
+        {/* Corpo (padding 24) */}
+        <div className="flex flex-col items-center gap-4 bg-background p-6 text-center">
+          <h2
+            id={titleId}
+            className="text-[18px] font-bold uppercase text-secondary-900"
+          >
+            {title}
+          </h2>
+
+          <ButtonPapole
+            variant="solid"
+            size="medium"
+            className="mt-2"
+            onClick={onRetry}
+          >
+            Tentar ler de novo
+          </ButtonPapole>
+
+          <ButtonPapole variant="link" size="medium" onClick={onAskAdult}>
+            Pedir ajuda a um adulto
+          </ButtonPapole>
+        </div>
+      </dialog>
+    </div>
+  );
+};
+MicOffModalPapole.displayName = 'MicOffModalPapole';
+
+export { MicOffModalPapole };
+export type { MicOffModalPapoleProps };
