@@ -1,9 +1,10 @@
-import { ReactNode, useEffect, useId } from 'react';
+import { ReactNode, useCallback, useEffect, useId, useState } from 'react';
 import { XIcon } from '@phosphor-icons/react/dist/csr/X';
 import { MicrophoneIcon } from '@phosphor-icons/react/dist/csr/Microphone';
 import { cn } from '../../utils/utils';
 import Button, { ButtonPapole } from '../Button/Button';
 import papoleBird from '../../assets/img/papole.png';
+import { useMicrophonePermission } from '../../hooks/useMicrophonePermission';
 import {
   isYouTubeUrl,
   getYouTubeVideoId,
@@ -366,12 +367,19 @@ export default Modal;
 // ======================================================================
 
 type MicPermissionModalPapoleProps = {
-  /** Se o modal está aberto. */
-  isOpen: boolean;
-  /** Fecha o modal (X e Esc). */
-  onClose: () => void;
-  /** Ação do botão "Habilitar permissões". */
-  onEnable?: () => void;
+  /**
+   * Controla a abertura (modo controlado). **Se omitido**, o modal entra em modo
+   * gerenciado: usa `useMicrophonePermission` e se abre sozinho quando o
+   * microfone ainda não foi concedido.
+   */
+  isOpen?: boolean;
+  /** Fecha o modal (X e Esc). No modo gerenciado, apenas dispensa na sessão. */
+  onClose?: () => void;
+  /**
+   * Chamado após o botão "Habilitar permissões" (o prompt do navegador já é
+   * disparado internamente). Recebe se a permissão foi concedida.
+   */
+  onEnable?: (granted: boolean) => void;
   /** Ação do link "Configurar depois". */
   onConfigureLater?: () => void;
   /** Ação da barra "Saiba mais sobre como cuidamos dos dados". */
@@ -392,6 +400,12 @@ type MicPermissionModalPapoleProps = {
  * ações (`ButtonPapole` solid "Habilitar permissões" + link "Configurar depois");
  * barra inferior verde-clara com o link "Saiba mais...".
  *
+ * Modo **gerenciado** (sem `isOpen`): usa `useMicrophonePermission` — abre
+ * sozinho quando o microfone não foi concedido, "Habilitar permissões" dispara o
+ * prompt do navegador e "Configurar depois" apenas dispensa na sessão (como não
+ * persiste, ao recarregar a página volta a pedir). Passando `isOpen`, vira
+ * controlado (o `onEnable` ainda dispara o prompt do navegador).
+ *
  * Observação: os tokens de cor/spacing são uma leitura da arte — ajustar na story.
  */
 const MicPermissionModalPapole = ({
@@ -405,26 +419,49 @@ const MicPermissionModalPapole = ({
   description,
 }: MicPermissionModalPapoleProps) => {
   const titleId = useId();
+  const { shouldAsk, requestPermission } = useMicrophonePermission();
+  const [dismissed, setDismissed] = useState(false);
+
+  const isControlled = isOpen !== undefined;
+  // Gerenciado: abre quando falta permissão e não foi dispensado nesta sessão.
+  const open = isControlled ? isOpen : shouldAsk && !dismissed;
+
+  const handleClose = useCallback(() => {
+    if (isControlled) onClose?.();
+    else setDismissed(true);
+  }, [isControlled, onClose]);
+
+  const handleEnable = async () => {
+    // Dispara o prompt nativo do navegador. No modo gerenciado, se conceder, o
+    // `shouldAsk` vira false e o modal fecha sozinho.
+    const granted = await requestPermission();
+    onEnable?.(granted);
+  };
+
+  const handleConfigureLater = () => {
+    if (!isControlled) setDismissed(true);
+    onConfigureLater?.();
+  };
 
   useEffect(() => {
-    if (!isOpen || !closeOnEscape) return;
+    if (!open || !closeOnEscape) return;
     const handleEscape = (event: globalThis.KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
+      if (event.key === 'Escape') handleClose();
     };
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, closeOnEscape, onClose]);
+  }, [open, closeOnEscape, handleClose]);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!open) return;
     const original = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = original;
     };
-  }, [isOpen]);
+  }, [open]);
 
-  if (!isOpen) return null;
+  if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
@@ -437,7 +474,11 @@ const MicPermissionModalPapole = ({
         {/* Header verde */}
         <div className="relative flex items-center justify-center gap-3 bg-secondary-500 px-6 pt-8 pb-10">
           <span className="absolute right-4 top-4">
-            <ButtonPapole variant="icon" aria-label="Fechar" onClick={onClose}>
+            <ButtonPapole
+              variant="icon"
+              aria-label="Fechar"
+              onClick={handleClose}
+            >
               <XIcon weight="bold" />
             </ButtonPapole>
           </span>
@@ -483,12 +524,16 @@ const MicPermissionModalPapole = ({
             variant="solid"
             size="medium"
             className="mt-2"
-            onClick={onEnable}
+            onClick={handleEnable}
           >
             Habilitar permissões
           </ButtonPapole>
 
-          <ButtonPapole variant="link" size="medium" onClick={onConfigureLater}>
+          <ButtonPapole
+            variant="link"
+            size="medium"
+            onClick={handleConfigureLater}
+          >
             Configurar depois
           </ButtonPapole>
 

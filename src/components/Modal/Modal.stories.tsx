@@ -277,8 +277,8 @@ export const MicPermissionPapole: Story = () => {
       <MicPermissionModalPapole
         isOpen={open}
         onClose={() => setOpen(false)}
-        onEnable={() => {
-          console.log('habilitar permissões');
+        onEnable={(granted) => {
+          console.log('habilitar permissões — concedido?', granted);
           setOpen(false);
         }}
         onConfigureLater={() => {
@@ -290,3 +290,25 @@ export const MicPermissionPapole: Story = () => {
     </div>
   );
 };
+
+/**
+ * Modo gerenciado (drop-in): sem `isOpen`, o modal usa `useMicrophonePermission`
+ * e se abre sozinho quando o microfone ainda NÃO foi concedido. "Habilitar
+ * permissões" dispara o prompt do navegador; "Configurar depois" só dispensa
+ * nesta sessão (recarregar a página volta a pedir). Se o mic já estiver
+ * concedido no seu navegador, ele não abre.
+ */
+export const MicPermissionPapoleManaged: Story = () => (
+  <div
+    data-theme="papole-light"
+    className="flex min-h-[420px] items-center justify-center bg-secondary-700 p-6"
+  >
+    <p className="text-center text-sm text-text-100">
+      Abre automaticamente se o microfone não estiver concedido.
+    </p>
+    <MicPermissionModalPapole
+      onEnable={(granted) => console.log('concedido?', granted)}
+      onLearnMore={() => console.log('saiba mais')}
+    />
+  </div>
+);
