@@ -8,6 +8,7 @@ import { useTheme } from '../../hooks/useTheme';
 import Text from '../Text/Text';
 import Alert from '../Alert/Alert';
 import type {
+  AccessBreakdown,
   ChoroplethMapProps,
   ColorClass,
   RegionData,
@@ -18,6 +19,17 @@ import type {
  * Must NOT use useId() — the loader rejects re-initialization with different IDs.
  */
 const GOOGLE_MAPS_LOADER_ID = 'google-maps-script';
+
+/**
+ * Profile lines rendered in the region tooltip, in display order. Each entry maps
+ * an `accessBreakdown` group to its Portuguese label. Used to render every line
+ * by default, or a single one when `activeProfile` is set.
+ */
+const TOOLTIP_PROFILE_LINES: { key: keyof AccessBreakdown; label: string }[] = [
+  { key: 'students', label: 'Estudantes' },
+  { key: 'teachers', label: 'Professores(as)' },
+  { key: 'managers', label: 'Diretores(as)' },
+];
 
 /**
  * Fade-in animation duration in milliseconds
@@ -297,6 +309,7 @@ const ChoroplethMap = ({
   onRegionClick,
   headerAction,
   infoText,
+  activeProfile,
   className,
 }: ChoroplethMapProps) => {
   const mapId = GOOGLE_MAPS_LOADER_ID;
@@ -860,39 +873,19 @@ const ChoroplethMap = ({
                 <div className="h-px self-stretch bg-border-200" />
                 {hoveredRegion.accessBreakdown ? (
                   <div className="flex flex-col gap-1">
-                    <Text size="md" color="text-text-50">
-                      Estudantes:{' '}
-                      {hoveredRegion.accessBreakdown.students.withAccess.toLocaleString(
-                        'pt-BR'
-                      )}{' '}
-                      com acesso,{' '}
-                      {hoveredRegion.accessBreakdown.students.withoutAccess.toLocaleString(
-                        'pt-BR'
-                      )}{' '}
-                      sem acessos
-                    </Text>
-                    <Text size="md" color="text-text-50">
-                      Professores(as):{' '}
-                      {hoveredRegion.accessBreakdown.teachers.withAccess.toLocaleString(
-                        'pt-BR'
-                      )}{' '}
-                      com acesso,{' '}
-                      {hoveredRegion.accessBreakdown.teachers.withoutAccess.toLocaleString(
-                        'pt-BR'
-                      )}{' '}
-                      sem acessos
-                    </Text>
-                    <Text size="md" color="text-text-50">
-                      Diretores(as):{' '}
-                      {hoveredRegion.accessBreakdown.managers.withAccess.toLocaleString(
-                        'pt-BR'
-                      )}{' '}
-                      com acesso,{' '}
-                      {hoveredRegion.accessBreakdown.managers.withoutAccess.toLocaleString(
-                        'pt-BR'
-                      )}{' '}
-                      sem acessos
-                    </Text>
+                    {TOOLTIP_PROFILE_LINES.filter(
+                      (line) => !activeProfile || line.key === activeProfile
+                    ).map((line) => {
+                      const entry = hoveredRegion.accessBreakdown![line.key];
+                      return (
+                        <Text key={line.key} size="md" color="text-text-50">
+                          {line.label}:{' '}
+                          {entry.withAccess.toLocaleString('pt-BR')} com acesso,{' '}
+                          {entry.withoutAccess.toLocaleString('pt-BR')} sem
+                          acessos
+                        </Text>
+                      );
+                    })}
                   </div>
                 ) : (
                   <Text size="md" color="text-text-50">

@@ -109,6 +109,12 @@ export interface ChoroplethMapProps {
    * inside the map card.
    */
   infoText?: string;
+  /**
+   * When set, the region tooltip shows only the given profile's access line
+   * instead of all three. Omit to show every profile (default; used by the
+   * schools map, which aggregates all three profile groups).
+   */
+  activeProfile?: keyof AccessBreakdown;
   /** Optional additional CSS classes */
   className?: string;
 }
