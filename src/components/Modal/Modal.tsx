@@ -8,10 +8,12 @@ import {
   useState,
 } from 'react';
 import { XIcon } from '@phosphor-icons/react/dist/csr/X';
-import { MicrophoneIcon } from '@phosphor-icons/react/dist/csr/Microphone';
-import { MicrophoneSlashIcon } from '@phosphor-icons/react/dist/csr/MicrophoneSlash';
-import { PlayIcon } from '@phosphor-icons/react/dist/csr/Play';
-import { PauseIcon } from '@phosphor-icons/react/dist/csr/Pause';
+import {
+  MicIconPapole,
+  MicOffIconPapole,
+  PlayIconPapole,
+  PauseIconPapole,
+} from '../PapoleIcons/PapoleIcons';
 import { cn } from '../../utils/utils';
 import Button, { ButtonPapole } from '../Button/Button';
 import papoleBird from '../../assets/img/papole.png';
@@ -502,11 +504,7 @@ const MicPermissionModalPapole = ({
           />
 
           <span className="flex size-14 items-center justify-center rounded-full bg-background">
-            <MicrophoneIcon
-              size={28}
-              weight="fill"
-              className="text-secondary-500"
-            />
+            <MicIconPapole size={28} />
           </span>
         </div>
 
@@ -645,11 +643,7 @@ const MicOffModalPapole = ({
           </span>
 
           <span className="flex size-20 items-center justify-center rounded-full bg-background shadow-hard-shadow-2">
-            <MicrophoneSlashIcon
-              size={40}
-              weight="fill"
-              className="text-secondary-700"
-            />
+            <MicOffIconPapole size={40} />
           </span>
         </div>
 
@@ -845,12 +839,12 @@ const AudioPlaybackModalPapole = ({
               onClick={togglePlay}
               disabled={!src}
               aria-label={isPlaying ? 'Pausar' : 'Reproduzir'}
-              className="flex size-9 flex-shrink-0 items-center justify-center rounded-lg bg-primary-500 text-primary-900 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex flex-shrink-0 items-center justify-center disabled:cursor-not-allowed disabled:opacity-40"
             >
               {isPlaying ? (
-                <PauseIcon size={20} weight="fill" />
+                <PauseIconPapole size={36} />
               ) : (
-                <PlayIcon size={20} weight="fill" />
+                <PlayIconPapole size={36} />
               )}
             </button>
 

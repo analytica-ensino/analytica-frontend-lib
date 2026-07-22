@@ -832,6 +832,14 @@ export { BrandingLogo } from './components/BrandingLogo/BrandingLogo';
 export type { BrandingLogoProps } from './components/BrandingLogo/BrandingLogo';
 export { UserIcon } from './components/UserIcon/UserIcon';
 export type { UserIconProps } from './components/UserIcon/UserIcon';
+export {
+  MicIconPapole,
+  MicOffIconPapole,
+  StopIconPapole,
+  PlayIconPapole,
+  PauseIconPapole,
+} from './components/PapoleIcons/PapoleIcons';
+export type { PapoleIconProps } from './components/PapoleIcons/PapoleIcons';
 export { useDraftAutoSave } from './hooks/useDraftAutoSave';
 export type {
   ApiClient as DraftApiClientAdapter,
