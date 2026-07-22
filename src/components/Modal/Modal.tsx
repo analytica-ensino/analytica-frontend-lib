@@ -458,8 +458,8 @@ const MicPermissionModalPapole = ({
           </span>
         </div>
 
-        {/* Corpo */}
-        <div className="flex flex-col items-center gap-4 bg-background px-6 pt-6 pb-6 text-center">
+        {/* Corpo (padding 24) */}
+        <div className="flex flex-col items-center gap-4 bg-background p-6 text-center">
           <h2 id={titleId} className="text-[18px] font-bold text-secondary-900">
             {title}
           </h2>
@@ -491,18 +491,18 @@ const MicPermissionModalPapole = ({
           <ButtonPapole variant="link" size="medium" onClick={onConfigureLater}>
             Configurar depois
           </ButtonPapole>
-        </div>
 
-        {/* Barra "Saiba mais" */}
-        <button
-          type="button"
-          onClick={onLearnMore}
-          className="w-full cursor-pointer bg-secondary-100 px-6 py-4 text-center"
-        >
-          <span className="font-quicksand text-[14px] font-medium text-secondary-700 underline">
-            Saiba mais sobre como cuidamos dos dados
-          </span>
-        </button>
+          {/* Barra "Saiba mais": botão arredondado, inset pelo padding do corpo */}
+          <button
+            type="button"
+            onClick={onLearnMore}
+            className="w-full cursor-pointer rounded-xl bg-secondary-100 px-4 py-4 text-center"
+          >
+            <span className="text-[14px] font-medium text-secondary-700 underline">
+              Saiba mais sobre como cuidamos dos dados
+            </span>
+          </button>
+        </div>
       </dialog>
     </div>
   );
