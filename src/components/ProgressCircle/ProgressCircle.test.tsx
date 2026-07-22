@@ -493,4 +493,43 @@ describe('ProgressCircle', () => {
       });
     });
   });
+
+  describe('custom colours', () => {
+    // Apps só dispõem das utilities de cor que a própria lib compila, então
+    // classes `stroke-*` de tokens arbitrários não existem lá — por isso a cor
+    // entra como valor CSS, não como classe.
+    it('paints the arc with `fillColor`, overriding the variant', () => {
+      const { container } = render(
+        <ProgressCircle
+          value={50}
+          variant="green"
+          fillColor="var(--color-warning-400)"
+        />
+      );
+      const [, arc] = container.querySelectorAll('circle');
+
+      expect(arc).toHaveStyle({ stroke: 'var(--color-warning-400)' });
+      expect(arc).not.toHaveClass('stroke-success-200');
+    });
+
+    it('paints the track with `trackColor`', () => {
+      const { container } = render(
+        <ProgressCircle value={50} trackColor="var(--color-background-300)" />
+      );
+      const [track] = container.querySelectorAll('circle');
+
+      expect(track).toHaveStyle({ stroke: 'var(--color-background-300)' });
+    });
+
+    it('keeps the variant classes when no colour is given', () => {
+      const { container } = render(
+        <ProgressCircle value={50} variant="green" />
+      );
+      const [track, arc] = container.querySelectorAll('circle');
+
+      expect(arc).toHaveClass('stroke-success-200');
+      expect(track).toHaveClass('stroke-background-300');
+      expect(arc.getAttribute('style')).toBeNull();
+    });
+  });
 });

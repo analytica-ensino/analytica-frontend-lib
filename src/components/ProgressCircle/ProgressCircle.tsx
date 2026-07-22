@@ -68,6 +68,16 @@ export type ProgressCircleProps = {
   size?: ProgressCircleSize;
   /** Color variant of the progress circle */
   variant?: ProgressCircleVariant;
+  /**
+   * Overrides the variant's arc colour with a raw CSS value, e.g.
+   * `var(--color-success-400)` or `#489766`. Use this — not a `stroke-*` class
+   * — when the colour encodes data (a score band): consumer apps only ship the
+   * colour utilities the lib itself compiles, so `stroke-*` classes for
+   * arbitrary tokens simply do not exist there and the arc renders invisible.
+   */
+  fillColor?: string;
+  /** Same as `fillColor`, for the track behind the arc. */
+  trackColor?: string;
   /** Optional label to display below percentage */
   label?: ReactNode;
   /** Show percentage text */
@@ -108,6 +118,8 @@ const ProgressCircle = ({
   max = 100,
   size = 'small',
   variant = 'blue',
+  fillColor,
+  trackColor,
   label,
   showPercentage = true,
   className = '',
@@ -122,6 +134,9 @@ const ProgressCircle = ({
   // Get size and variant classes
   const sizeClasses = SIZE_CLASSES[size];
   const variantClasses = VARIANT_CLASSES[variant];
+  // A cor por valor vence a da variante; quando ausente, mantém a classe.
+  const trackClass = trackColor ? undefined : variantClasses.background;
+  const fillClass = fillColor ? undefined : variantClasses.fill;
 
   // Calculate SVG dimensions and stroke properties
   // small: 107px container, radius = (107 - strokeWidth*2) / 2 ≈ 49.5, center = 53.5
@@ -156,7 +171,8 @@ const ProgressCircle = ({
           r={radius}
           fill="none"
           strokeWidth={sizeClasses.strokeWidth}
-          className={cn(variantClasses.background, 'rounded-lg')}
+          className={cn(trackClass, 'rounded-lg')}
+          style={trackColor ? { stroke: trackColor } : undefined}
         />
         {/* Progress circle - SVG stroke properties require style for animation */}
         <circle
@@ -169,9 +185,10 @@ const ProgressCircle = ({
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
           className={cn(
-            variantClasses.fill,
+            fillClass,
             'transition-all duration-500 ease-out shadow-soft-shadow-3 rounded-lg'
           )}
+          style={fillColor ? { stroke: fillColor } : undefined}
         />
       </svg>
 
