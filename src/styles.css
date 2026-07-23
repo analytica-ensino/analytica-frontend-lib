@@ -1,3 +1,11 @@
+/*
+ * Fonte da variante Papolê (Quicksand). Carregada aqui pra que todo app que
+ * importa `analytica-frontend-lib/styles.css` já receba a fonte sem precisar
+ * carregá-la por conta própria. Precisa ficar no TOPO (regra do @import) e só
+ * renderiza onde `font-quicksand` é usado — ou seja, nos componentes Papolê.
+ * Requer que o CSP do consumidor permita fonts.googleapis.com / fonts.gstatic.com.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 
 /*
