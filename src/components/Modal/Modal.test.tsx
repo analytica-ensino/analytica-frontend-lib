@@ -915,11 +915,9 @@ describe('AudioPlaybackModalPapole', () => {
     expect(playMock).toHaveBeenCalledTimes(1);
 
     // A falha não pode deixar a UI indicando reprodução ativa.
-    await waitFor(() =>
-      expect(
-        screen.getByRole('button', { name: 'Reproduzir' })
-      ).toBeInTheDocument()
-    );
+    expect(
+      await screen.findByRole('button', { name: 'Reproduzir' })
+    ).toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'Pausar' })
     ).not.toBeInTheDocument();

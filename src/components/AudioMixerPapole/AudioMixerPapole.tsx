@@ -71,11 +71,16 @@ export interface AudioMixerPapoleProps {
 const PAPOLE_MIXER_MIN_H = 8;
 const PAPOLE_MIXER_MAX_H = 56;
 
-// Alturas de repouso (px): onda simétrica suave (mais alta no meio).
-const buildRestHeights = (count: number): number[] =>
+// Barras de repouso: altura (px) em onda simétrica suave (mais alta no meio) e
+// um `id` estável por posição pra usar como `key` (a lista é fixa e nunca
+// reordena, mas as alturas se repetem, então não servem de chave).
+const buildRestBars = (count: number): { id: string; height: number }[] =>
   Array.from({ length: count }, (_, index) => {
     const t = count > 1 ? index / (count - 1) : 0.5;
-    return Math.round(14 + Math.sin(Math.PI * t) * 26); // ~14..40
+    return {
+      id: `bar-${index}`,
+      height: Math.round(14 + Math.sin(Math.PI * t) * 26), // ~14..40
+    };
   });
 
 /**
@@ -118,7 +123,7 @@ export const AudioMixerPapole = forwardRef<
     const [currentTime, setCurrentTime] = useState(0);
     const [objectUrl, setObjectUrl] = useState<string | undefined>(undefined);
 
-    const restHeights = useMemo(() => buildRestHeights(barCount), [barCount]);
+    const restBars = useMemo(() => buildRestBars(barCount), [barCount]);
     const resolvedSrc = objectUrl ?? src;
 
     // Ações de reprodução (estáveis) — usadas pelo ref e pelo controle via `status`.
@@ -173,11 +178,11 @@ export const AudioMixerPapole = forwardRef<
     // Ao pausar/parar, restaura as barras de repouso.
     useEffect(() => {
       if (playing) return;
-      restHeights.forEach((height, i) => {
+      restBars.forEach((restBar, i) => {
         const bar = barRefs.current[i];
-        if (bar) bar.style.height = `${height}px`;
+        if (bar) bar.style.height = `${restBar.height}px`;
       });
-    }, [playing, restHeights]);
+    }, [playing, restBars]);
 
     // Controle declarativo: sincroniza o áudio com a prop `status`.
     useEffect(() => {
@@ -247,13 +252,13 @@ export const AudioMixerPapole = forwardRef<
         </audio>
 
         <div className="flex h-16 items-center gap-1" aria-hidden="true">
-          {restHeights.map((height, index) => (
+          {restBars.map((restBar, index) => (
             <span
-              key={index}
+              key={restBar.id}
               ref={(bar) => {
                 barRefs.current[index] = bar;
               }}
-              style={{ height }}
+              style={{ height: restBar.height }}
               className="w-1.5 rounded-full bg-secondary-500 transition-[height] duration-75 ease-out"
             />
           ))}

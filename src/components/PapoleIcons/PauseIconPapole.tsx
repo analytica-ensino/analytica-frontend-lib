@@ -11,7 +11,7 @@ export const PauseIconPapole: FC<PapoleIconProps> = ({
   className,
 }) => {
   // id único (sem ":") pra o `mask` não colidir entre instâncias.
-  const maskId = `papole-pause-mask-${useId().replace(/:/g, '')}`;
+  const maskId = `papole-pause-mask-${useId().replaceAll(':', '')}`;
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
