@@ -45,7 +45,7 @@ export function useMicrophonePermission(): UseMicrophonePermissionReturn {
       return;
     }
 
-    // Nem todo navegador permite consultar 'microphone' pela Permissions API
+    // Nem todos os navegadores suportam a Permissions API para consultar 'microphone'
     // (ex.: Safari). Nesses casos assumimos 'prompt' (precisa perguntar).
     const permissions = nav.permissions;
     if (!permissions?.query) {
