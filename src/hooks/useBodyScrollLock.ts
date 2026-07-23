@@ -29,7 +29,13 @@ const applyLock = () => {
 
   // Compensa a scrollbar que some pra não deslocar o layout.
   if (scrollbarWidth > 0) {
-    document.body.style.paddingRight = `${scrollbarWidth}px`;
+    // Soma à padding-right JÁ existente (inline ou de folha de estilo) em vez de
+    // substituí-la — senão o espaçamento original do body seria descartado. O
+    // valor inline original fica salvo em `originalPaddingRight` pra restaurar.
+    const currentPaddingRight =
+      Number.parseFloat(window.getComputedStyle(document.body).paddingRight) ||
+      0;
+    document.body.style.paddingRight = `${currentPaddingRight + scrollbarWidth}px`;
 
     const overlay = document.createElement('div');
     overlay.id = SCROLLBAR_OVERLAY_ID;
