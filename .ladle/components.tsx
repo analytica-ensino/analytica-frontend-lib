@@ -6,5 +6,9 @@ import '../src/styles.css';
  * Uses local Tailwind CSS with custom configuration
  */
 export const Provider = ({ children }: { children: React.ReactNode }) => {
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+    </>
+  );
 };

@@ -3,6 +3,11 @@
     'Roboto', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
+  /* Tipografia da variante Papolê. Gera o utilitário `font-quicksand`.
+     Os arquivos da fonte são carregados pelo `@import` do Google Fonts no topo
+     do `styles.css` (o app só precisa importar o CSS da lib). */
+  --font-quicksand: 'Quicksand', 'Roboto', ui-sans-serif, system-ui, sans-serif;
+
   --color-background-dark: #181719;
   --color-background-light: #fbfbfb;
   /* Primary Colors */

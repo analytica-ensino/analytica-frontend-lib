@@ -1,6 +1,8 @@
 import type { Story } from '@ladle/react';
 import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
-import Button from './Button';
+import { SignInIcon } from '@phosphor-icons/react/dist/csr/SignIn';
+import { XIcon } from '@phosphor-icons/react/dist/csr/X';
+import Button, { ButtonPapole } from './Button';
 
 const sizes = [
   'extra-small',
@@ -152,5 +154,106 @@ export const Disabled: Story = () => (
         Desabilitado
       </Button>
     ))}
+  </div>
+);
+
+/**
+ * ButtonPapole — variante default (solid) do botão do Papolê.
+ * Renderizado sob o tema papolê; os estados hover/pressed/foco são
+ * interativos (passe o mouse, clique e segure, ou use Tab).
+ */
+export const ButtonPapoleShowcase: Story = () => (
+  <div
+    data-theme="papole-light"
+    className="flex flex-col gap-8 p-8 bg-background"
+  >
+    <p className="text-sm text-text-700">
+      Interaja para ver os estados (hover / pressed / foco via Tab). Cada
+      variante segue os tokens do tema papolê.
+    </p>
+
+    <div className="flex flex-col gap-3">
+      <p className="text-sm font-bold uppercase text-text-900">Solid</p>
+      <div className="flex flex-wrap items-center gap-6">
+        <ButtonPapole>Entrar</ButtonPapole>
+        <ButtonPapole iconLeft={<SignInIcon weight="bold" />}>
+          Entrar
+        </ButtonPapole>
+        <ButtonPapole disabled>Entrar</ButtonPapole>
+      </div>
+    </div>
+
+    <div className="flex flex-col gap-3">
+      <p className="text-sm font-bold uppercase text-text-900">Outline</p>
+      <div className="flex flex-wrap items-center gap-6">
+        <ButtonPapole variant="outline">Entrar</ButtonPapole>
+        <ButtonPapole variant="outline" iconLeft={<SignInIcon weight="bold" />}>
+          Entrar
+        </ButtonPapole>
+        <ButtonPapole variant="outline" disabled>
+          Entrar
+        </ButtonPapole>
+      </div>
+    </div>
+
+    <div className="flex flex-col gap-3">
+      <p className="text-sm font-bold uppercase text-text-900">
+        Outline-inverse (fundo escuro)
+      </p>
+      <div className="flex flex-wrap items-center gap-6 rounded-xl bg-secondary-500 p-6">
+        <ButtonPapole variant="outline-inverse">Sair</ButtonPapole>
+        <ButtonPapole
+          variant="outline-inverse"
+          iconLeft={<SignInIcon weight="bold" />}
+        >
+          Sair
+        </ButtonPapole>
+        <ButtonPapole variant="outline-inverse" disabled>
+          Sair
+        </ButtonPapole>
+      </div>
+    </div>
+
+    <div className="flex flex-col gap-3">
+      <p className="text-sm font-bold uppercase text-text-900">Link</p>
+      <div className="flex flex-wrap items-center gap-6">
+        <ButtonPapole variant="link">Entrar</ButtonPapole>
+        <ButtonPapole variant="link" iconLeft={<SignInIcon weight="bold" />}>
+          Entrar
+        </ButtonPapole>
+        <ButtonPapole variant="link" disabled>
+          Entrar
+        </ButtonPapole>
+      </div>
+    </div>
+
+    <div className="flex flex-col gap-3">
+      <p className="text-sm font-bold uppercase text-text-900">
+        Tamanhos (xl / medium / small)
+      </p>
+      <div className="flex flex-wrap items-center gap-6">
+        <ButtonPapole size="xl" iconLeft={<SignInIcon weight="bold" />}>
+          Entrar
+        </ButtonPapole>
+        <ButtonPapole size="medium" iconLeft={<SignInIcon weight="bold" />}>
+          Entrar
+        </ButtonPapole>
+        <ButtonPapole size="small" iconLeft={<SignInIcon weight="bold" />}>
+          Entrar
+        </ButtonPapole>
+      </div>
+    </div>
+
+    <div className="flex flex-col gap-3">
+      <p className="text-sm font-bold uppercase text-text-900">Ícone</p>
+      <div className="flex flex-wrap items-center gap-6">
+        <ButtonPapole variant="icon" aria-label="Fechar">
+          <XIcon weight="bold" />
+        </ButtonPapole>
+        <ButtonPapole variant="icon" aria-label="Fechar" disabled>
+          <XIcon weight="bold" />
+        </ButtonPapole>
+      </div>
+    </div>
   </div>
 );

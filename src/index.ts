@@ -11,6 +11,8 @@ export type { PageContainerProps } from './components/PageContainer/PageContaine
 // Basic Components
 export { default as Text } from './components/Text/Text';
 export { default as Button } from './components/Button/Button';
+export { ButtonPapole } from './components/Button/Button';
+export type { ButtonPapoleProps } from './components/Button/Button';
 export { default as Badge } from './components/Badge/Badge';
 export { default as Alert } from './components/Alert/Alert';
 export { default as LatexRenderer } from './components/LatexRenderer/LatexRenderer';
@@ -133,6 +135,21 @@ export { default as Calendar } from './components/Calendar/Calendar';
 export { DateTimeInput } from './components/DateTimeInput';
 export type { DateTimeInputProps } from './components/DateTimeInput';
 export { default as Modal } from './components/Modal/Modal';
+export { MicPermissionModalPapole } from './components/Modal/Modal';
+export type { MicPermissionModalPapoleProps } from './components/Modal/Modal';
+export { MicOffModalPapole } from './components/Modal/Modal';
+export type { MicOffModalPapoleProps } from './components/Modal/Modal';
+export { AudioPlaybackModalPapole } from './components/Modal/Modal';
+export type { AudioPlaybackModalPapoleProps } from './components/Modal/Modal';
+export { SuccessModalPapole } from './components/Modal/Modal';
+export type { SuccessModalPapoleProps } from './components/Modal/Modal';
+export { useMicrophonePermission } from './hooks/useMicrophonePermission';
+export type {
+  MicrophonePermissionStatus,
+  UseMicrophonePermissionReturn,
+} from './hooks/useMicrophonePermission';
+export { useAudioSpectrum } from './hooks/useAudioSpectrum';
+export type { UseAudioSpectrumOptions } from './hooks/useAudioSpectrum';
 export { default as CorrectActivityModal } from './components/CorrectActivityModal/CorrectActivityModal';
 export type { CorrectActivityModalProps } from './components/CorrectActivityModal/CorrectActivityModal';
 export {
@@ -323,6 +340,9 @@ export {
   MenuLabel,
   DropdownMenuSeparator,
   ProfileToggleTheme,
+  ProfileMenuPapoleTrigger,
+  ProfileMenuPapoleInfo,
+  ProfileMenuPapoleFooter,
 } from './components/DropdownMenu/DropdownMenu';
 
 export {
@@ -661,12 +681,15 @@ export {
   CardSimulationHistory,
   CardAudio,
   CardEssayHistory,
+  CardPapole,
   EssayStatus,
   EssayReviewStatus,
 } from './components/Card/Card';
 export type {
   EssayHistoryItem,
   EssayHistoryData,
+  CardPapoleProps,
+  CardPapoleState,
 } from './components/Card/Card';
 export { StatisticsCard } from './components/StatisticsCard/StatisticsCard';
 export {
@@ -831,6 +854,27 @@ export { BrandingLogo } from './components/BrandingLogo/BrandingLogo';
 export type { BrandingLogoProps } from './components/BrandingLogo/BrandingLogo';
 export { UserIcon } from './components/UserIcon/UserIcon';
 export type { UserIconProps } from './components/UserIcon/UserIcon';
+export { AudioMixerPapole } from './components/AudioMixerPapole/AudioMixerPapole';
+export type {
+  AudioMixerPapoleProps,
+  AudioMixerPapoleHandle,
+  AudioMixerStatus,
+} from './components/AudioMixerPapole/AudioMixerPapole';
+export { AudioRecorderPapole } from './components/AudioRecorderPapole/AudioRecorderPapole';
+export type {
+  AudioRecorderPapoleProps,
+  AudioRecorderPapoleHandle,
+} from './components/AudioRecorderPapole/AudioRecorderPapole';
+export { ReadAloudPromptPapole } from './components/ReadAloudPromptPapole/ReadAloudPromptPapole';
+export type { ReadAloudPromptPapoleProps } from './components/ReadAloudPromptPapole/ReadAloudPromptPapole';
+export {
+  MicIconPapole,
+  MicOffIconPapole,
+  StopIconPapole,
+  PlayIconPapole,
+  PauseIconPapole,
+} from './components/PapoleIcons';
+export type { PapoleIconProps } from './components/PapoleIcons';
 export { useDraftAutoSave } from './hooks/useDraftAutoSave';
 export type {
   ApiClient as DraftApiClientAdapter,

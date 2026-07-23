@@ -17,6 +17,7 @@ import {
   CardTest,
   CardSimulationHistory,
   CardEssayHistory,
+  CardPapole,
   EssayStatus,
   EssayReviewStatus,
   type EssayHistoryData,
@@ -3847,6 +3848,168 @@ describe('CardEssayHistory', () => {
       ];
       render(<CardEssayHistory data={data} />);
       expect(screen.queryByText('Corrigido por IA')).not.toBeInTheDocument();
+    });
+  });
+});
+
+describe('CardPapole', () => {
+  describe('default (new) state', () => {
+    it('renders the papolê bird image with the default alt/label', () => {
+      render(<CardPapole />);
+      const image = screen.getByAltText('Papolê');
+      expect(image).toBeInTheDocument();
+      // Static asset imports resolve to the jest file stub.
+      expect(image.getAttribute('src')).toBe('test-file-stub');
+    });
+
+    it('renders the "NOVA ATIVIDADE!" badge', () => {
+      render(<CardPapole />);
+      expect(screen.getByText('NOVA ATIVIDADE!')).toBeInTheDocument();
+      expect(screen.queryByText('EM BREVE')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('papole-check')).not.toBeInTheDocument();
+    });
+
+    it('applies the default background color', () => {
+      render(<CardPapole data-testid="card-papole" />);
+      expect(screen.getByTestId('card-papole')).toHaveStyle({
+        backgroundColor: '#a3d9b1',
+      });
+    });
+
+    it('is not interactive without an onClick handler', () => {
+      render(<CardPapole data-testid="card-papole" />);
+      const card = screen.getByTestId('card-papole');
+      expect(card).not.toHaveAttribute('role', 'button');
+      expect(card).not.toHaveAttribute('tabindex');
+      expect(card.className).not.toContain('cursor-pointer');
+    });
+
+    it('forwards custom className and props to the root element', () => {
+      render(<CardPapole className="custom-class" data-testid="card-papole" />);
+      const card = screen.getByTestId('card-papole');
+      expect(card.className).toContain('custom-class');
+      expect(card.className).toContain('rounded-2xl');
+    });
+  });
+
+  describe('custom props', () => {
+    it('overrides the image via the "image" prop', () => {
+      render(<CardPapole image="https://cdn.example.com/bird.png" />);
+      expect(screen.getByAltText('Papolê').getAttribute('src')).toBe(
+        'https://cdn.example.com/bird.png'
+      );
+    });
+
+    it('uses the "label" prop as the image alt text', () => {
+      render(<CardPapole label="Atividade de matemática" />);
+      expect(
+        screen.getByAltText('Atividade de matemática')
+      ).toBeInTheDocument();
+    });
+
+    it('applies a custom background color', () => {
+      render(<CardPapole color="#ff0000" data-testid="card-papole" />);
+      expect(screen.getByTestId('card-papole')).toHaveStyle({
+        backgroundColor: '#ff0000',
+      });
+    });
+  });
+
+  describe('interactivity (new state)', () => {
+    it('becomes a button and activates onClick on click', () => {
+      const handleClick = jest.fn();
+      render(<CardPapole onClick={handleClick} data-testid="card-papole" />);
+
+      const card = screen.getByTestId('card-papole');
+      expect(card).toHaveAttribute('role', 'button');
+      expect(card).toHaveAttribute('tabindex', '0');
+      expect(card.className).toContain('cursor-pointer');
+
+      fireEvent.click(card);
+      expect(handleClick).toHaveBeenCalledTimes(1);
+    });
+
+    it('activates onClick via Enter and Space', () => {
+      const handleClick = jest.fn();
+      render(<CardPapole onClick={handleClick} data-testid="card-papole" />);
+
+      const card = screen.getByTestId('card-papole');
+      fireEvent.keyDown(card, { key: 'Enter' });
+      fireEvent.keyDown(card, { key: ' ' });
+      expect(handleClick).toHaveBeenCalledTimes(2);
+    });
+
+    it('forwards the onKeyDown handler', () => {
+      const handleKeyDown = jest.fn();
+      render(
+        <CardPapole onKeyDown={handleKeyDown} data-testid="card-papole" />
+      );
+
+      fireEvent.keyDown(screen.getByTestId('card-papole'), { key: 'Tab' });
+      expect(handleKeyDown).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('done state', () => {
+    it('renders the check icon and no badges', () => {
+      render(<CardPapole state="done" />);
+      expect(screen.getByTestId('papole-check')).toBeInTheDocument();
+      expect(screen.queryByText('NOVA ATIVIDADE!')).not.toBeInTheDocument();
+      expect(screen.queryByText('EM BREVE')).not.toBeInTheDocument();
+    });
+
+    it('stays interactive when an onClick is provided', () => {
+      const handleClick = jest.fn();
+      render(
+        <CardPapole state="done" onClick={handleClick} data-testid="card-papole" />
+      );
+
+      const card = screen.getByTestId('card-papole');
+      expect(card).toHaveAttribute('role', 'button');
+      fireEvent.click(card);
+      expect(handleClick).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('coming-soon state', () => {
+    it('renders the "EM BREVE" badge and no check icon', () => {
+      render(<CardPapole state="coming-soon" />);
+      expect(screen.getByText('EM BREVE')).toBeInTheDocument();
+      expect(screen.queryByText('NOVA ATIVIDADE!')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('papole-check')).not.toBeInTheDocument();
+    });
+
+    it('applies disabled visuals and blocks pointer events', () => {
+      render(<CardPapole state="coming-soon" data-testid="card-papole" />);
+      const card = screen.getByTestId('card-papole');
+      expect(card.className).toContain('pointer-events-none');
+      expect(card.className).toContain('border-dashed');
+      expect(card.className).not.toContain('cursor-pointer');
+      expect(card).toHaveAttribute('aria-disabled', 'true');
+    });
+
+    it('dims the image', () => {
+      render(<CardPapole state="coming-soon" />);
+      expect(screen.getByAltText('Papolê').className).toContain('opacity-40');
+    });
+
+    it('is not interactive, even with an onClick handler', () => {
+      const handleClick = jest.fn();
+      render(
+        <CardPapole
+          state="coming-soon"
+          onClick={handleClick}
+          data-testid="card-papole"
+        />
+      );
+
+      const card = screen.getByTestId('card-papole');
+      expect(card).not.toHaveAttribute('role', 'button');
+      expect(card).not.toHaveAttribute('tabindex');
+      fireEvent.click(card);
+      fireEvent.keyDown(card, { key: 'Enter' });
+      fireEvent.keyDown(card, { key: ' ' });
+      expect(handleClick).not.toHaveBeenCalled();
     });
   });
 });

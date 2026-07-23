@@ -1,8 +1,22 @@
 import type { Story } from '@ladle/react';
 import { useState } from 'react';
-import Modal from './Modal';
-import Button from '../Button/Button';
+import Modal, {
+  MicPermissionModalPapole,
+  MicOffModalPapole,
+  AudioPlaybackModalPapole,
+  SuccessModalPapole,
+} from './Modal';
+import Button, { ButtonPapole } from '../Button/Button';
 import mockContentImage from '../../assets/img/mock-content.png';
+
+// Imagem "do cliente" (data URI, sem depender de rede) pra demonstrar o override
+// via `imageSrc` — quando o asset empacotado da lib não resolve no bundle, o
+// consumidor injeta a própria URL por aqui.
+const clientImage =
+  'data:image/svg+xml,' +
+  encodeURIComponent(
+    "<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><rect width='140' height='140' rx='20' fill='#7C5CFF'/><text x='70' y='64' font-family='sans-serif' font-size='19' font-weight='bold' fill='#ffffff' text-anchor='middle'>IMAGEM</text><text x='70' y='90' font-family='sans-serif' font-size='19' font-weight='bold' fill='#ffffff' text-anchor='middle'>CLIENTE</text></svg>"
+  );
 
 const sizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const;
 
@@ -261,5 +275,169 @@ export const ActivityModalNoAction: Story = () => {
         size="sm"
       />
     </>
+  );
+};
+
+export const MicPermissionPapole: Story = () => {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div
+      data-theme="papole-light"
+      className="flex min-h-[420px] items-center justify-center bg-secondary-700 p-6"
+    >
+      <ButtonPapole onClick={() => setOpen(true)}>Abrir modal</ButtonPapole>
+
+      <MicPermissionModalPapole
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        onEnable={(granted) => {
+          console.log('habilitar permissões — concedido?', granted);
+          setOpen(false);
+        }}
+        onConfigureLater={() => {
+          console.log('configurar depois');
+          setOpen(false);
+        }}
+        onLearnMore={() => console.log('saiba mais')}
+      />
+    </div>
+  );
+};
+
+/**
+ * Modo gerenciado (drop-in): sem `isOpen`, o modal usa `useMicrophonePermission`
+ * e se abre sozinho quando o microfone ainda NÃO foi concedido. "Habilitar
+ * permissões" dispara o prompt do navegador; "Configurar depois" só dispensa
+ * nesta sessão (recarregar a página volta a pedir). Se o mic já estiver
+ * concedido no seu navegador, ele não abre.
+ */
+export const MicPermissionPapoleManaged: Story = () => (
+  <div
+    data-theme="papole-light"
+    className="flex min-h-[420px] items-center justify-center bg-secondary-700 p-6"
+  >
+    <p className="text-center text-sm text-text-100">
+      Abre automaticamente se o microfone não estiver concedido.
+    </p>
+    <MicPermissionModalPapole
+      onEnable={(granted) => console.log('concedido?', granted)}
+      onLearnMore={() => console.log('saiba mais')}
+    />
+  </div>
+);
+
+export const MicOffPapole: Story = () => {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div
+      data-theme="papole-light"
+      className="flex min-h-[420px] items-center justify-center bg-secondary-700 p-6"
+    >
+      <ButtonPapole onClick={() => setOpen(true)}>Abrir modal</ButtonPapole>
+
+      <MicOffModalPapole
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        onRetry={() => {
+          console.log('tentar ler de novo');
+          setOpen(false);
+        }}
+        onAskAdult={() => console.log('pedir ajuda a um adulto')}
+      />
+    </div>
+  );
+};
+
+export const AudioPlaybackPapole: Story = () => {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div
+      data-theme="papole-light"
+      className="flex min-h-[420px] items-center justify-center bg-secondary-700 p-6"
+    >
+      <ButtonPapole onClick={() => setOpen(true)}>Abrir modal</ButtonPapole>
+
+      <AudioPlaybackModalPapole
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+        onConfirm={() => {
+          console.log('pronto!');
+          setOpen(false);
+        }}
+        onRetry={() => {
+          console.log('quero ler de novo');
+          setOpen(false);
+        }}
+      />
+    </div>
+  );
+};
+
+export const SuccessPapole: Story = () => {
+  const [open, setOpen] = useState(true);
+
+  return (
+    <div
+      data-theme="papole-light"
+      className="flex min-h-[420px] items-center justify-center bg-secondary-700 p-6"
+    >
+      <ButtonPapole onClick={() => setOpen(true)}>Abrir modal</ButtonPapole>
+
+      <SuccessModalPapole isOpen={open} onClose={() => setOpen(false)} />
+    </div>
+  );
+};
+
+/**
+ * Override da imagem via `imageSrc`: quando o passarinho empacotado na lib não
+ * resolve no bundle do consumidor, ele passa a própria URL. Aqui usamos um data
+ * URI de exemplo no lugar do `papole.png` padrão.
+ */
+export const MicPermissionPapoleComImagemDoCliente: Story = () => {
+  const [open, setOpen] = useState(true);
+
+  return (
+    <div
+      data-theme="papole-light"
+      className="flex min-h-[420px] items-center justify-center bg-secondary-700 p-6"
+    >
+      <ButtonPapole onClick={() => setOpen(true)}>Abrir modal</ButtonPapole>
+
+      <MicPermissionModalPapole
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        imageSrc={clientImage}
+        onEnable={() => setOpen(false)}
+        onConfigureLater={() => setOpen(false)}
+        onLearnMore={() => console.log('saiba mais')}
+      />
+    </div>
+  );
+};
+
+/**
+ * Override da imagem via `imageSrc`: substitui o gif de comemoração empacotado
+ * (`Celebration.gif`) por uma imagem fornecida pelo cliente (data URI de exemplo).
+ */
+export const SuccessPapoleComImagemDoCliente: Story = () => {
+  const [open, setOpen] = useState(true);
+
+  return (
+    <div
+      data-theme="papole-light"
+      className="flex min-h-[420px] items-center justify-center bg-secondary-700 p-6"
+    >
+      <ButtonPapole onClick={() => setOpen(true)}>Abrir modal</ButtonPapole>
+
+      <SuccessModalPapole
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        imageSrc={clientImage}
+      />
+    </div>
   );
 };

@@ -391,5 +391,6 @@ export default defineConfig({
   dts: false, // Use tsc directly for better memory efficiency
   loader: {
     '.png': 'dataurl',
+    '.gif': 'dataurl',
   },
 });
