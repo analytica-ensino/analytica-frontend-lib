@@ -1,7 +1,18 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import Modal from './Modal';
+import Modal, {
+  MicPermissionModalPapole,
+  MicOffModalPapole,
+  AudioPlaybackModalPapole,
+  SuccessModalPapole,
+} from './Modal';
+import { useMicrophonePermission } from '../../hooks/useMicrophonePermission';
 import * as videoUtils from './utils/videoUtils';
+
+// MicPermissionModalPapole reads the microphone permission via this hook; mock it
+// so we control `shouldAsk` (managed-mode visibility) and `requestPermission`.
+jest.mock('../../hooks/useMicrophonePermission');
+const mockUseMicrophonePermission = useMicrophonePermission as jest.Mock;
 
 describe('Modal', () => {
   const defaultProps = {
@@ -496,5 +507,538 @@ describe('Modal', () => {
       expect(h2Id).toBeTruthy();
       expect(dialog).toHaveAttribute('aria-labelledby', h2Id as string);
     });
+  });
+});
+
+// ======================================================================
+// MicPermissionModalPapole
+// ======================================================================
+
+describe('MicPermissionModalPapole', () => {
+  let requestPermission: jest.Mock;
+  let originalOverflow: string;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    originalOverflow = document.body.style.overflow;
+    requestPermission = jest.fn().mockResolvedValue(true);
+    // Default: microphone not granted yet (managed mode opens on its own).
+    mockUseMicrophonePermission.mockReturnValue({
+      shouldAsk: true,
+      requestPermission,
+    });
+  });
+
+  afterEach(() => {
+    document.body.style.overflow = originalOverflow;
+  });
+
+  describe('managed mode (no isOpen)', () => {
+    it('opens on its own when the mic still needs to be asked', () => {
+      render(<MicPermissionModalPapole />);
+      expect(
+        screen.getByText('Por que pedimos acesso ao microfone')
+      ).toBeInTheDocument();
+      expect(screen.getByText(/Usamos o microfone/)).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Habilitar permissões' })
+      ).toBeInTheDocument();
+    });
+
+    it('stays closed when permission is already granted', () => {
+      mockUseMicrophonePermission.mockReturnValue({
+        shouldAsk: false,
+        requestPermission,
+      });
+      render(<MicPermissionModalPapole />);
+      expect(
+        screen.queryByText('Por que pedimos acesso ao microfone')
+      ).not.toBeInTheDocument();
+    });
+
+    it('requests permission and reports the result via onEnable', async () => {
+      const onEnable = jest.fn();
+      render(<MicPermissionModalPapole onEnable={onEnable} />);
+
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Habilitar permissões' })
+      );
+
+      await waitFor(() => {
+        expect(requestPermission).toHaveBeenCalledTimes(1);
+        expect(onEnable).toHaveBeenCalledWith(true);
+      });
+    });
+
+    it('dismisses on "Configurar depois" and calls onConfigureLater', () => {
+      const onConfigureLater = jest.fn();
+      render(<MicPermissionModalPapole onConfigureLater={onConfigureLater} />);
+
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Configurar depois' })
+      );
+
+      expect(onConfigureLater).toHaveBeenCalledTimes(1);
+      expect(
+        screen.queryByText('Por que pedimos acesso ao microfone')
+      ).not.toBeInTheDocument();
+    });
+
+    it('dismisses when the close button is clicked', () => {
+      render(<MicPermissionModalPapole />);
+      fireEvent.click(screen.getByRole('button', { name: 'Fechar' }));
+      expect(
+        screen.queryByText('Por que pedimos acesso ao microfone')
+      ).not.toBeInTheDocument();
+    });
+
+    it('dismisses on Escape', () => {
+      render(<MicPermissionModalPapole />);
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(
+        screen.queryByText('Por que pedimos acesso ao microfone')
+      ).not.toBeInTheDocument();
+    });
+
+    it('calls onLearnMore when the "Saiba mais" bar is clicked', () => {
+      const onLearnMore = jest.fn();
+      render(<MicPermissionModalPapole onLearnMore={onLearnMore} />);
+      fireEvent.click(
+        screen.getByText('Saiba mais sobre como cuidamos dos dados')
+      );
+      expect(onLearnMore).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('controlled mode (isOpen provided)', () => {
+    it('renders when isOpen is true regardless of shouldAsk', () => {
+      mockUseMicrophonePermission.mockReturnValue({
+        shouldAsk: false,
+        requestPermission,
+      });
+      render(<MicPermissionModalPapole isOpen />);
+      expect(
+        screen.getByText('Por que pedimos acesso ao microfone')
+      ).toBeInTheDocument();
+    });
+
+    it('does not render when isOpen is false', () => {
+      render(<MicPermissionModalPapole isOpen={false} />);
+      expect(
+        screen.queryByText('Por que pedimos acesso ao microfone')
+      ).not.toBeInTheDocument();
+    });
+
+    it('calls onClose (not internal dismiss) on the close button', () => {
+      const onClose = jest.fn();
+      render(<MicPermissionModalPapole isOpen onClose={onClose} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Fechar' }));
+      expect(onClose).toHaveBeenCalledTimes(1);
+      // Still open: the parent owns visibility.
+      expect(
+        screen.getByText('Por que pedimos acesso ao microfone')
+      ).toBeInTheDocument();
+    });
+
+    it('calls onClose on Escape', () => {
+      const onClose = jest.fn();
+      render(<MicPermissionModalPapole isOpen onClose={onClose} />);
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('"Configurar depois" calls onConfigureLater without internally dismissing', () => {
+      const onConfigureLater = jest.fn();
+      render(
+        <MicPermissionModalPapole isOpen onConfigureLater={onConfigureLater} />
+      );
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Configurar depois' })
+      );
+      expect(onConfigureLater).toHaveBeenCalledTimes(1);
+      // Controlled: still visible until the parent flips isOpen.
+      expect(
+        screen.getByText('Por que pedimos acesso ao microfone')
+      ).toBeInTheDocument();
+    });
+
+    it('does not close on Escape when closeOnEscape is false', () => {
+      const onClose = jest.fn();
+      render(
+        <MicPermissionModalPapole
+          isOpen
+          onClose={onClose}
+          closeOnEscape={false}
+        />
+      );
+      fireEvent.keyDown(document, { key: 'Escape' });
+      expect(onClose).not.toHaveBeenCalled();
+    });
+  });
+
+  it('renders a custom title and description', () => {
+    render(
+      <MicPermissionModalPapole
+        isOpen
+        title="Título custom"
+        description={<p>Descrição custom</p>}
+      />
+    );
+    expect(screen.getByText('Título custom')).toBeInTheDocument();
+    expect(screen.getByText('Descrição custom')).toBeInTheDocument();
+  });
+});
+
+// ======================================================================
+// MicOffModalPapole
+// ======================================================================
+
+describe('MicOffModalPapole', () => {
+  const defaultProps = { isOpen: true, onClose: jest.fn() };
+  let originalOverflow: string;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    originalOverflow = document.body.style.overflow;
+  });
+
+  afterEach(() => {
+    document.body.style.overflow = originalOverflow;
+  });
+
+  it('renders the default title and actions when open', () => {
+    render(<MicOffModalPapole {...defaultProps} />);
+    expect(
+      screen.getByText('Parece que o microfone está desligado')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Tentar ler de novo' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Pedir ajuda a um adulto' })
+    ).toBeInTheDocument();
+  });
+
+  it('does not render when closed', () => {
+    render(<MicOffModalPapole {...defaultProps} isOpen={false} />);
+    expect(
+      screen.queryByText('Parece que o microfone está desligado')
+    ).not.toBeInTheDocument();
+  });
+
+  it('calls onRetry and onAskAdult', () => {
+    const onRetry = jest.fn();
+    const onAskAdult = jest.fn();
+    render(
+      <MicOffModalPapole
+        {...defaultProps}
+        onRetry={onRetry}
+        onAskAdult={onAskAdult}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Tentar ler de novo' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Pedir ajuda a um adulto' })
+    );
+
+    expect(onRetry).toHaveBeenCalledTimes(1);
+    expect(onAskAdult).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls onClose on the close button and on Escape', () => {
+    const onClose = jest.fn();
+    render(<MicOffModalPapole {...defaultProps} onClose={onClose} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Fechar' }));
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(onClose).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not close on Escape when closeOnEscape is false', () => {
+    const onClose = jest.fn();
+    render(
+      <MicOffModalPapole
+        {...defaultProps}
+        onClose={onClose}
+        closeOnEscape={false}
+      />
+    );
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('renders a custom title', () => {
+    render(<MicOffModalPapole {...defaultProps} title="Sem áudio" />);
+    expect(screen.getByText('Sem áudio')).toBeInTheDocument();
+  });
+});
+
+// ======================================================================
+// AudioPlaybackModalPapole
+// ======================================================================
+
+describe('AudioPlaybackModalPapole', () => {
+  const defaultProps = {
+    isOpen: true,
+    onClose: jest.fn(),
+    src: 'recording.webm',
+  };
+
+  let playMock: jest.Mock;
+  let pauseMock: jest.Mock;
+  let currentTimeValue: number;
+  let durationValue: number;
+  let originalOverflow: string;
+
+  const descriptors = {
+    play: Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'play'),
+    pause: Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'pause'),
+    currentTime: Object.getOwnPropertyDescriptor(
+      HTMLMediaElement.prototype,
+      'currentTime'
+    ),
+    duration: Object.getOwnPropertyDescriptor(
+      HTMLMediaElement.prototype,
+      'duration'
+    ),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    originalOverflow = document.body.style.overflow;
+    playMock = jest.fn().mockResolvedValue(undefined);
+    pauseMock = jest.fn();
+    currentTimeValue = 0;
+    durationValue = 0;
+
+    // jsdom doesn't implement media playback — stub it.
+    Object.defineProperty(HTMLMediaElement.prototype, 'play', {
+      configurable: true,
+      writable: true,
+      value: playMock,
+    });
+    Object.defineProperty(HTMLMediaElement.prototype, 'pause', {
+      configurable: true,
+      writable: true,
+      value: pauseMock,
+    });
+    Object.defineProperty(HTMLMediaElement.prototype, 'currentTime', {
+      configurable: true,
+      get: () => currentTimeValue,
+      set: (value: number) => {
+        currentTimeValue = value;
+      },
+    });
+    Object.defineProperty(HTMLMediaElement.prototype, 'duration', {
+      configurable: true,
+      get: () => durationValue,
+    });
+  });
+
+  afterEach(() => {
+    document.body.style.overflow = originalOverflow;
+    Object.defineProperty(HTMLMediaElement.prototype, 'play', descriptors.play!);
+    Object.defineProperty(
+      HTMLMediaElement.prototype,
+      'pause',
+      descriptors.pause!
+    );
+    if (descriptors.currentTime) {
+      Object.defineProperty(
+        HTMLMediaElement.prototype,
+        'currentTime',
+        descriptors.currentTime
+      );
+    }
+    if (descriptors.duration) {
+      Object.defineProperty(
+        HTMLMediaElement.prototype,
+        'duration',
+        descriptors.duration
+      );
+    }
+  });
+
+  const getAudio = () =>
+    document.querySelector('audio') as HTMLAudioElement;
+
+  it('renders the decorative waveform, player and body actions', () => {
+    const { container } = render(<AudioPlaybackModalPapole {...defaultProps} />);
+
+    // 19 decorative waveform bars.
+    const waveform = container.querySelector('[aria-hidden="true"]');
+    expect(waveform?.children).toHaveLength(19);
+
+    expect(
+      screen.getByRole('button', { name: 'Reproduzir' })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Pronto!' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Quero ler de novo' })
+    ).toBeInTheDocument();
+    expect(screen.getByText('00:00:00')).toBeInTheDocument();
+  });
+
+  it('does not render when closed', () => {
+    render(<AudioPlaybackModalPapole {...defaultProps} isOpen={false} />);
+    expect(
+      screen.queryByRole('button', { name: 'Reproduzir' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('disables the play button without a src', () => {
+    render(<AudioPlaybackModalPapole {...defaultProps} src={undefined} />);
+    expect(screen.getByRole('button', { name: 'Reproduzir' })).toBeDisabled();
+  });
+
+  it('toggles play/pause and updates the aria-label', () => {
+    render(<AudioPlaybackModalPapole {...defaultProps} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reproduzir' }));
+    expect(playMock).toHaveBeenCalledTimes(1);
+
+    // Now labelled "Pausar".
+    fireEvent.click(screen.getByRole('button', { name: 'Pausar' }));
+    expect(pauseMock).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByRole('button', { name: 'Reproduzir' })
+    ).toBeInTheDocument();
+  });
+
+  it('updates the displayed time on timeupdate', () => {
+    render(<AudioPlaybackModalPapole {...defaultProps} />);
+
+    currentTimeValue = 65; // 00:01:05
+    fireEvent.timeUpdate(getAudio());
+
+    expect(screen.getByText('00:01:05')).toBeInTheDocument();
+  });
+
+  it('seeks and updates the progress after metadata loads', () => {
+    const { container } = render(<AudioPlaybackModalPapole {...defaultProps} />);
+
+    durationValue = 100;
+    fireEvent.loadedMetadata(getAudio());
+
+    const progressButton = screen.getByRole('button', {
+      name: 'Barra de progresso',
+    });
+    // Seek to the middle of the track.
+    jest
+      .spyOn(progressButton, 'getBoundingClientRect')
+      .mockReturnValue({ left: 0, width: 200 } as DOMRect);
+    fireEvent.click(progressButton, { clientX: 100 });
+
+    expect(currentTimeValue).toBe(50);
+    const fill = container.querySelector(
+      '[aria-label="Barra de progresso"] span'
+    ) as HTMLElement;
+    expect(fill.style.width).toBe('50%');
+  });
+
+  it('resets playing state and time when the audio ends', () => {
+    render(<AudioPlaybackModalPapole {...defaultProps} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reproduzir' }));
+    currentTimeValue = 30;
+    fireEvent.timeUpdate(getAudio());
+    expect(screen.getByText('00:00:30')).toBeInTheDocument();
+
+    fireEvent.ended(getAudio());
+
+    expect(
+      screen.getByRole('button', { name: 'Reproduzir' })
+    ).toBeInTheDocument();
+    expect(screen.getByText('00:00:00')).toBeInTheDocument();
+  });
+
+  it('calls onConfirm, onRetry, onClose and Escape', () => {
+    const onConfirm = jest.fn();
+    const onRetry = jest.fn();
+    const onClose = jest.fn();
+    render(
+      <AudioPlaybackModalPapole
+        {...defaultProps}
+        onConfirm={onConfirm}
+        onRetry={onRetry}
+        onClose={onClose}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Pronto!' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Quero ler de novo' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Fechar' }));
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+    expect(onClose).toHaveBeenCalledTimes(2);
+  });
+});
+
+// ======================================================================
+// SuccessModalPapole
+// ======================================================================
+
+describe('SuccessModalPapole', () => {
+  const defaultProps = { isOpen: true, onClose: jest.fn() };
+  let originalOverflow: string;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    originalOverflow = document.body.style.overflow;
+  });
+
+  afterEach(() => {
+    document.body.style.overflow = originalOverflow;
+  });
+
+  it('renders the default title, description and celebration image', () => {
+    render(<SuccessModalPapole {...defaultProps} />);
+    expect(screen.getByText('Incrível!')).toBeInTheDocument();
+    expect(screen.getByText('Você leu muito bem!')).toBeInTheDocument();
+    expect(screen.getByAltText('Papolê')).toBeInTheDocument();
+  });
+
+  it('does not render when closed', () => {
+    render(<SuccessModalPapole {...defaultProps} isOpen={false} />);
+    expect(screen.queryByText('Incrível!')).not.toBeInTheDocument();
+  });
+
+  it('calls onClose on the close button and on Escape', () => {
+    const onClose = jest.fn();
+    render(<SuccessModalPapole {...defaultProps} onClose={onClose} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Fechar' }));
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(onClose).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not close on Escape when closeOnEscape is false', () => {
+    const onClose = jest.fn();
+    render(
+      <SuccessModalPapole
+        {...defaultProps}
+        onClose={onClose}
+        closeOnEscape={false}
+      />
+    );
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('renders custom title and description', () => {
+    render(
+      <SuccessModalPapole
+        {...defaultProps}
+        title="Muito bem!"
+        description="Continue assim!"
+      />
+    );
+    expect(screen.getByText('Muito bem!')).toBeInTheDocument();
+    expect(screen.getByText('Continue assim!')).toBeInTheDocument();
   });
 });
