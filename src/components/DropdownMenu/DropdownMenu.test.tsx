@@ -19,6 +19,9 @@ import DropdownMenu, {
   DropdownMenuItem,
   MenuLabel,
   DropdownMenuSeparator,
+  ProfileMenuPapoleTrigger,
+  ProfileMenuPapoleInfo,
+  ProfileMenuPapoleFooter,
 } from './DropdownMenu';
 import React from 'react';
 import type { ThemeMode } from '@/hooks/useTheme';
@@ -1385,5 +1388,239 @@ describe('useDropdownMenuStore', () => {
     );
 
     jest.restoreAllMocks();
+  });
+});
+
+// ======================================================================
+// ProfileMenu Papolê (variant="papole")
+// ======================================================================
+
+describe('ProfileMenuPapole components', () => {
+  describe('ProfileMenuPapoleTrigger', () => {
+    it('renders a profile button with the papolê bird by default', () => {
+      render(
+        <DropdownMenu>
+          <ProfileMenuPapoleTrigger />
+          <DropdownMenuContent variant="papole">Content</DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      const trigger = screen.getByRole('button', {
+        name: 'Abrir menu de perfil',
+      });
+      expect(trigger).toBeInTheDocument();
+      const img = screen.getByAltText('Foto de perfil');
+      expect(img.getAttribute('src')).toBe('test-file-stub');
+    });
+
+    it('uses the provided photoUrl when present', () => {
+      render(
+        <DropdownMenu>
+          <ProfileMenuPapoleTrigger photoUrl="https://cdn.example.com/me.png" />
+          <DropdownMenuContent variant="papole">Content</DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      expect(screen.getByAltText('Foto de perfil').getAttribute('src')).toBe(
+        'https://cdn.example.com/me.png'
+      );
+    });
+
+    it('toggles the menu open/closed on click', async () => {
+      render(
+        <DropdownMenu>
+          <ProfileMenuPapoleTrigger />
+          <DropdownMenuContent variant="papole">Content</DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      const trigger = screen.getByRole('button', {
+        name: 'Abrir menu de perfil',
+      });
+      expect(trigger).toHaveAttribute('aria-expanded', 'false');
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+
+      fireEvent.click(trigger);
+      expect(trigger).toHaveAttribute('aria-expanded', 'true');
+      expect(screen.getByRole('menu')).toBeInTheDocument();
+
+      fireEvent.click(trigger);
+      expect(trigger).toHaveAttribute('aria-expanded', 'false');
+      await waitFor(() =>
+        expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+      );
+    });
+
+    it('applies a custom className', () => {
+      render(
+        <DropdownMenu>
+          <ProfileMenuPapoleTrigger className="my-trigger" />
+          <DropdownMenuContent variant="papole">Content</DropdownMenuContent>
+        </DropdownMenu>
+      );
+      expect(
+        screen.getByRole('button', { name: 'Abrir menu de perfil' })
+      ).toHaveClass('my-trigger');
+    });
+  });
+
+  describe('DropdownMenuContent papole variant', () => {
+    it('applies the papolê chrome classes', () => {
+      render(
+        <DropdownMenu open>
+          <ProfileMenuPapoleTrigger />
+          <DropdownMenuContent variant="papole">Content</DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      const menu = screen.getByRole('menu');
+      expect(menu.className).toContain('bg-secondary-500');
+      expect(menu.className).toContain('rounded-[20px]');
+    });
+  });
+
+  describe('ProfileMenuPapoleInfo', () => {
+    it('always renders name and email', () => {
+      render(
+        <ProfileMenuPapoleInfo name="Ana Silva" email="ana@example.com" />
+      );
+      expect(screen.getByText('Ana Silva')).toBeInTheDocument();
+      expect(screen.getByText('ana@example.com')).toBeInTheDocument();
+    });
+
+    it('renders the school block joining class and school year with a bullet', () => {
+      render(
+        <ProfileMenuPapoleInfo
+          name="Ana"
+          email="ana@example.com"
+          schoolName="Escola Modelo"
+          classYearName="Turma A"
+          schoolYearName="9º ano"
+        />
+      );
+      expect(screen.getByText('Escola Modelo')).toBeInTheDocument();
+      expect(screen.getByText('Turma A • 9º ano')).toBeInTheDocument();
+    });
+
+    it('renders only the school name when no class/year is provided', () => {
+      render(
+        <ProfileMenuPapoleInfo
+          name="Ana"
+          email="ana@example.com"
+          schoolName="Escola Modelo"
+        />
+      );
+      expect(screen.getByText('Escola Modelo')).toBeInTheDocument();
+      expect(screen.queryByText(/•/)).not.toBeInTheDocument();
+    });
+
+    it('renders a single school-year value without a separator', () => {
+      render(
+        <ProfileMenuPapoleInfo
+          name="Ana"
+          email="ana@example.com"
+          classYearName="Turma A"
+        />
+      );
+      expect(screen.getByText('Turma A')).toBeInTheDocument();
+      expect(screen.queryByText(/•/)).not.toBeInTheDocument();
+    });
+
+    it('omits the school block when no school data is provided', () => {
+      const { container } = render(
+        <ProfileMenuPapoleInfo name="Ana" email="ana@example.com" />
+      );
+      // Only the name/email block — a single inner flex-col column.
+      const info = container.querySelector(
+        '[data-component="ProfileMenuPapoleInfo"]'
+      );
+      expect(info?.querySelectorAll(':scope > div')).toHaveLength(1);
+    });
+
+    it('exposes the data-component attribute and forwards className', () => {
+      const { container } = render(
+        <ProfileMenuPapoleInfo
+          name="Ana"
+          email="ana@example.com"
+          className="my-info"
+        />
+      );
+      const info = container.querySelector(
+        '[data-component="ProfileMenuPapoleInfo"]'
+      );
+      expect(info).toHaveClass('my-info');
+    });
+  });
+
+  describe('ProfileMenuPapoleFooter', () => {
+    it('renders the "Sair" button', () => {
+      render(
+        <DropdownMenu open>
+          <ProfileMenuPapoleTrigger />
+          <DropdownMenuContent variant="papole">
+            <ProfileMenuPapoleFooter />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      expect(
+        screen.getByRole('button', { name: 'Sair' })
+      ).toBeInTheDocument();
+    });
+
+    it('calls onClick and closes the menu', async () => {
+      const handleClick = jest.fn();
+      render(
+        <DropdownMenu>
+          <ProfileMenuPapoleTrigger />
+          <DropdownMenuContent variant="papole">
+            <ProfileMenuPapoleFooter onClick={handleClick} />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Abrir menu de perfil' })
+      );
+      expect(screen.getByRole('menu')).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Sair' }));
+
+      expect(handleClick).toHaveBeenCalledTimes(1);
+      await waitFor(() =>
+        expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+      );
+    });
+
+    it('is disabled and does not fire onClick when disabled', () => {
+      const handleClick = jest.fn();
+      render(
+        <DropdownMenu open>
+          <ProfileMenuPapoleTrigger />
+          <DropdownMenuContent variant="papole">
+            <ProfileMenuPapoleFooter disabled onClick={handleClick} />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      const button = screen.getByRole('button', { name: 'Sair' });
+      expect(button).toBeDisabled();
+      fireEvent.click(button);
+      expect(handleClick).not.toHaveBeenCalled();
+    });
+
+    it('applies a custom className', () => {
+      render(
+        <DropdownMenu open>
+          <ProfileMenuPapoleTrigger />
+          <DropdownMenuContent variant="papole">
+            <ProfileMenuPapoleFooter className="my-footer" />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+      expect(screen.getByRole('button', { name: 'Sair' })).toHaveClass(
+        'my-footer'
+      );
+    });
   });
 });
