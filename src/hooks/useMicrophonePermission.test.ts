@@ -319,29 +319,70 @@ describe('useMicrophonePermission', () => {
       expect(result.current.isGranted).toBe(true);
     });
 
-    it('marks "denied" and returns false when getUserMedia rejects', async () => {
-      const getUserMedia = jest.fn(() =>
-        Promise.reject(new Error('NotAllowedError'))
-      );
-      setMediaDevices({ getUserMedia });
-      setPermissions({
-        query: jest.fn(() => Promise.resolve(createPermissionStatus('prompt'))),
-      });
+    // getUserMedia rejeita com DOMException; o motivo vem no `name`, não na
+    // mensagem. Reproduzimos isso setando `name` no erro mockado.
+    const rejectionNamed = (name: string) =>
+      Object.assign(new Error(name), { name });
 
-      const { result } = renderHook(() => useMicrophonePermission());
+    it.each(['NotAllowedError', 'SecurityError', 'PermissionDeniedError'])(
+      'marks "denied" and returns false when getUserMedia rejects with %s',
+      async (name) => {
+        const getUserMedia = jest.fn(() =>
+          Promise.reject(rejectionNamed(name))
+        );
+        setMediaDevices({ getUserMedia });
+        setPermissions({
+          query: jest.fn(() =>
+            Promise.resolve(createPermissionStatus('prompt'))
+          ),
+        });
 
-      await waitFor(() => {
+        const { result } = renderHook(() => useMicrophonePermission());
+
+        await waitFor(() => {
+          expect(result.current.status).toBe('prompt');
+        });
+
+        let granted: boolean | undefined;
+        await act(async () => {
+          granted = await result.current.requestPermission();
+        });
+
+        expect(granted).toBe(false);
+        expect(result.current.status).toBe('denied');
+        expect(result.current.shouldAsk).toBe(true);
+      }
+    );
+
+    it.each(['NotFoundError', 'NotReadableError', 'AbortError'])(
+      'does not mark "denied" for the hardware/transient error %s',
+      async (name) => {
+        const getUserMedia = jest.fn(() =>
+          Promise.reject(rejectionNamed(name))
+        );
+        setMediaDevices({ getUserMedia });
+        setPermissions({
+          query: jest.fn(() =>
+            Promise.resolve(createPermissionStatus('prompt'))
+          ),
+        });
+
+        const { result } = renderHook(() => useMicrophonePermission());
+
+        await waitFor(() => {
+          expect(result.current.status).toBe('prompt');
+        });
+
+        let granted: boolean | undefined;
+        await act(async () => {
+          granted = await result.current.requestPermission();
+        });
+
+        // Não é rejeição: volta pro fallback 'prompt', nunca 'denied'.
+        expect(granted).toBe(false);
         expect(result.current.status).toBe('prompt');
-      });
-
-      let granted: boolean | undefined;
-      await act(async () => {
-        granted = await result.current.requestPermission();
-      });
-
-      expect(granted).toBe(false);
-      expect(result.current.status).toBe('denied');
-      expect(result.current.shouldAsk).toBe(true);
-    });
+        expect(result.current.status).not.toBe('denied');
+      }
+    );
   });
 });

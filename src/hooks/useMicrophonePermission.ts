@@ -90,8 +90,19 @@ export function useMicrophonePermission(): UseMicrophonePermissionReturn {
       stream.getTracks().forEach((track) => track.stop());
       setStatus('granted');
       return true;
-    } catch {
-      setStatus('denied');
+    } catch (error) {
+      // getUserMedia rejeita com uma DOMException cujo `name` diz o motivo. Só é
+      // rejeição de permissão de fato em NotAllowedError/SecurityError (e o
+      // legado PermissionDeniedError) → 'denied'. Falhas de hardware
+      // (NotFoundError sem mic, NotReadableError mic ocupado) ou transitórias
+      // (AbortError) NÃO são negação: voltam pro fallback 'prompt' pra permitir
+      // nova tentativa, sem travar o usuário num falso 'denied'.
+      const errorName = (error as { name?: unknown } | undefined)?.name;
+      const isDenial =
+        errorName === 'NotAllowedError' ||
+        errorName === 'SecurityError' ||
+        errorName === 'PermissionDeniedError';
+      setStatus(isDenial ? 'denied' : 'prompt');
       return false;
     }
   }, []);

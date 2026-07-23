@@ -105,7 +105,7 @@ export function useAudioSpectrum(
     if (!context || !analyser) return;
 
     // O AudioContext nasce suspenso até um gesto do usuário; o clique no play resolve.
-    void context.resume?.();
+    context.resume?.().catch(() => {});
 
     const bins = new Uint8Array(analyser.frequencyBinCount);
     const binCount = bins.length;
