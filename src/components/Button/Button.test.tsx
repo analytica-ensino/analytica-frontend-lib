@@ -1,7 +1,8 @@
-import { render } from '@testing-library/react';
+import { render, fireEvent } from '@testing-library/react';
 import { screen } from '@testing-library/dom';
 import '@testing-library/jest-dom';
-import Button from './Button';
+import { createRef } from 'react';
+import Button, { ButtonPapole } from './Button';
 
 describe('Button', () => {
   it('renders the button with children text', () => {
@@ -359,6 +360,174 @@ describe('Button', () => {
       expect(button).toHaveClass('text-sm');
       expect(button).toHaveClass('px-4');
       expect(button).toHaveClass('py-2.5');
+    });
+  });
+});
+
+describe('ButtonPapole', () => {
+  it('renders the button with children text', () => {
+    render(<ButtonPapole>Continuar</ButtonPapole>);
+    expect(screen.getByRole('button')).toHaveTextContent('Continuar');
+  });
+
+  it('defaults to the solid variant, xl size and the Papolê base classes', () => {
+    render(<ButtonPapole>Test</ButtonPapole>);
+    const button = screen.getByRole('button');
+    // base
+    expect(button).toHaveClass('font-quicksand', 'font-bold', 'uppercase');
+    // solid variant
+    expect(button).toHaveClass('bg-primary-500', 'border-primary-200', 'text-primary-900');
+    // xl size
+    expect(button).toHaveClass('rounded-[20px]', 'text-[20px]', 'px-8', 'py-4');
+  });
+
+  describe('variant classes', () => {
+    it('applies outline variant classes', () => {
+      render(<ButtonPapole variant="outline">Test</ButtonPapole>);
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass('bg-transparent', 'border-4', 'text-primary-900');
+    });
+
+    it('applies outline-inverse variant classes (light text)', () => {
+      render(<ButtonPapole variant="outline-inverse">Test</ButtonPapole>);
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass('bg-transparent', 'border-4', 'text-primary-100');
+    });
+
+    it('applies link variant classes (text only, no base border)', () => {
+      render(<ButtonPapole variant="link">Test</ButtonPapole>);
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass('bg-transparent', 'text-primary-900');
+      expect(button).not.toHaveClass('border-4');
+    });
+  });
+
+  describe('size classes', () => {
+    it('applies medium size classes', () => {
+      render(<ButtonPapole size="medium">Test</ButtonPapole>);
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass('rounded-2xl', 'text-[16px]', 'px-8', 'py-4');
+    });
+
+    it('applies small size classes', () => {
+      render(<ButtonPapole size="small">Test</ButtonPapole>);
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass('rounded-xl', 'text-[14px]', 'px-6', 'py-3');
+    });
+  });
+
+  describe('iconLeft', () => {
+    it('renders iconLeft in text variants', () => {
+      render(
+        <ButtonPapole iconLeft={<svg data-testid="left-icon" />}>
+          Test
+        </ButtonPapole>
+      );
+      expect(screen.getByTestId('left-icon')).toBeInTheDocument();
+    });
+  });
+
+  describe('icon variant', () => {
+    it('renders a 42px target wrapping the icon circle', () => {
+      render(
+        <ButtonPapole variant="icon" aria-label="Fechar">
+          <svg data-testid="icon" />
+        </ButtonPapole>
+      );
+
+      const button = screen.getByRole('button', { name: 'Fechar' });
+      expect(button).toHaveClass('size-[42px]');
+
+      // The child icon sits inside the visible circle span.
+      const circle = button.querySelector('span');
+      expect(circle).toHaveClass('bg-error-500', 'rounded-full');
+      expect(circle).toContainElement(screen.getByTestId('icon'));
+
+      // Text-variant size/variant classes are not applied to the icon button.
+      expect(button).not.toHaveClass('font-quicksand');
+      expect(button).not.toHaveClass('rounded-[20px]');
+    });
+
+    it('ignores iconLeft in the icon variant', () => {
+      render(
+        <ButtonPapole variant="icon" iconLeft={<svg data-testid="left-icon" />}>
+          <svg data-testid="icon" />
+        </ButtonPapole>
+      );
+      expect(screen.queryByTestId('left-icon')).not.toBeInTheDocument();
+      expect(screen.getByTestId('icon')).toBeInTheDocument();
+    });
+  });
+
+  describe('behavior', () => {
+    it('defaults to type="button"', () => {
+      render(<ButtonPapole>Test</ButtonPapole>);
+      expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
+    });
+
+    it('respects a custom type', () => {
+      render(<ButtonPapole type="submit">Test</ButtonPapole>);
+      expect(screen.getByRole('button')).toHaveAttribute('type', 'submit');
+    });
+
+    it('applies a custom className', () => {
+      render(<ButtonPapole className="my-class">Test</ButtonPapole>);
+      expect(screen.getByRole('button')).toHaveClass('my-class');
+    });
+
+    it('forwards arbitrary props', () => {
+      render(
+        <ButtonPapole data-testid="papole-btn" aria-label="Continuar">
+          Test
+        </ButtonPapole>
+      );
+      const button = screen.getByTestId('papole-btn');
+      expect(button).toHaveAttribute('aria-label', 'Continuar');
+    });
+
+    it('forwards the ref to the button element', () => {
+      const ref = createRef<HTMLButtonElement>();
+      render(<ButtonPapole ref={ref}>Test</ButtonPapole>);
+      expect(ref.current).toBeInstanceOf(HTMLButtonElement);
+    });
+
+    it('fires onClick when clicked', () => {
+      const handleClick = jest.fn();
+      render(<ButtonPapole onClick={handleClick}>Test</ButtonPapole>);
+      fireEvent.click(screen.getByRole('button'));
+      expect(handleClick).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not fire onClick when disabled', () => {
+      const handleClick = jest.fn();
+      render(
+        <ButtonPapole disabled onClick={handleClick}>
+          Test
+        </ButtonPapole>
+      );
+      const button = screen.getByRole('button');
+      expect(button).toBeDisabled();
+      expect(button).toHaveClass('disabled:opacity-40');
+      fireEvent.click(button);
+      expect(handleClick).not.toHaveBeenCalled();
+    });
+
+    it('disables the icon variant too', () => {
+      const handleClick = jest.fn();
+      render(
+        <ButtonPapole
+          variant="icon"
+          disabled
+          aria-label="Fechar"
+          onClick={handleClick}
+        >
+          <svg data-testid="icon" />
+        </ButtonPapole>
+      );
+      const button = screen.getByRole('button', { name: 'Fechar' });
+      expect(button).toBeDisabled();
+      fireEvent.click(button);
+      expect(handleClick).not.toHaveBeenCalled();
     });
   });
 });
