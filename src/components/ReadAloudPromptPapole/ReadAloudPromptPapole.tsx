@@ -8,6 +8,11 @@ export interface ReadAloudPromptPapoleProps {
   label?: string;
   /** Classes extras no container. */
   className?: string;
+  /**
+   * Fonte da imagem do passarinho. Default: o gif Papolê empacotado na lib.
+   * Passe uma URL pelo cliente caso o asset da lib não seja resolvido no bundle.
+   */
+  imageSrc?: string;
 }
 
 /**
@@ -22,10 +27,11 @@ export const ReadAloudPromptPapole = ({
   text,
   label = 'Leia em voz alta:',
   className,
+  imageSrc = motionBird,
 }: ReadAloudPromptPapoleProps) => (
   <div className={cn('font-quicksand flex items-center gap-6', className)}>
     <img
-      src={motionBird}
+      src={imageSrc}
       alt="Papolê"
       className="h-[254px] w-[203px] flex-shrink-0 select-none object-contain"
       draggable={false}

@@ -347,6 +347,11 @@ type MicPermissionModalPapoleProps = {
   title?: string;
   /** Texto explicativo (default: o texto da arte). */
   description?: ReactNode;
+  /**
+   * Fonte da imagem do passarinho. Default: o PNG Papolê empacotado na lib.
+   * Passe uma URL pelo cliente caso o asset da lib não seja resolvido no bundle.
+   */
+  imageSrc?: string;
 };
 
 /**
@@ -374,6 +379,7 @@ const MicPermissionModalPapole = ({
   closeOnEscape = true,
   title = 'Por que pedimos acesso ao microfone',
   description,
+  imageSrc = papoleBird,
 }: MicPermissionModalPapoleProps) => {
   const titleId = useId();
   const { shouldAsk, requestPermission } = useMicrophonePermission();
@@ -426,7 +432,7 @@ const MicPermissionModalPapole = ({
           </span>
 
           <img
-            src={papoleBird}
+            src={imageSrc}
             alt="Papolê"
             className="h-14 w-auto select-none"
             draggable={false}
@@ -811,6 +817,11 @@ type SuccessModalPapoleProps = {
   description?: string;
   /** Fecha ao pressionar Esc (default: true). */
   closeOnEscape?: boolean;
+  /**
+   * Fonte da imagem de comemoração. Default: o gif Papolê empacotado na lib.
+   * Passe uma URL pelo cliente caso o asset da lib não seja resolvido no bundle.
+   */
+  imageSrc?: string;
 };
 
 /**
@@ -825,6 +836,7 @@ const SuccessModalPapole = ({
   title = 'Incrível!',
   description = 'Você leu muito bem!',
   closeOnEscape = true,
+  imageSrc = papoleCelebration,
 }: SuccessModalPapoleProps) => {
   const titleId = useId();
 
@@ -849,7 +861,7 @@ const SuccessModalPapole = ({
           </span>
 
           <img
-            src={papoleCelebration}
+            src={imageSrc}
             alt="Papolê"
             className="h-[172px] w-[252px] select-none object-contain"
             draggable={false}
