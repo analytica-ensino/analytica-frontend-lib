@@ -177,7 +177,7 @@ const PAPOLE_VARIANT_CLASSES = {
   // estado são uma proposta coerente — ajustar na story se necessário.
   'outline-inverse':
     'bg-transparent border-4 border-primary-200 text-primary-100 hover:bg-primary-100 hover:text-primary-900 focus-visible:outline-none focus-visible:border-secondary-300 active:bg-primary-200 active:text-primary-900 active:border-2 active:border-primary-700 disabled:opacity-40 disabled:cursor-not-allowed [box-shadow:0px_4px_0px_0px_#F9CB3B,0px_0px_4px_0px_#00000021] active:[box-shadow:0px_2px_0px_0px_#F9CB3B,0px_0px_4px_0px_#00000021]',
-  link: 'bg-transparent text-primary-900 hover:text-primary-700 focus-visible:outline-none focus-visible:border-4 focus-visible:border-secondary-600 active:text-primary-800 disabled:opacity-40 disabled:cursor-not-allowed',
+  link: 'bg-transparent border-4 border-transparent text-primary-900 hover:text-primary-700 focus-visible:outline-none focus-visible:border-secondary-600 active:text-primary-800 disabled:opacity-40 disabled:cursor-not-allowed',
 } as const;
 
 /**

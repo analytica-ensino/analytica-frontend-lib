@@ -394,11 +394,15 @@ describe('ButtonPapole', () => {
       expect(button).toHaveClass('bg-transparent', 'border-4', 'text-primary-100');
     });
 
-    it('applies link variant classes (text only, no base border)', () => {
+    it('applies link variant classes (transparent base border, no layout shift on focus)', () => {
       render(<ButtonPapole variant="link">Test</ButtonPapole>);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('bg-transparent', 'text-primary-900');
-      expect(button).not.toHaveClass('border-4');
+      expect(button).toHaveClass(
+        'bg-transparent',
+        'text-primary-900',
+        'border-4',
+        'border-transparent'
+      );
     });
   });
 

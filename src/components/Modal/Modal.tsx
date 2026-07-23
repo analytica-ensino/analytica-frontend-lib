@@ -19,6 +19,8 @@ import Button, { ButtonPapole } from '../Button/Button';
 import papoleBird from '../../assets/img/papole.png';
 import papoleCelebration from '../../assets/gifs/Celebration.gif';
 import { useMicrophonePermission } from '../../hooks/useMicrophonePermission';
+import { useEscapeToClose } from '../../hooks/useEscapeToClose';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 import {
   isYouTubeUrl,
   getYouTubeVideoId,
@@ -132,67 +134,8 @@ const Modal = ({
 }: ModalProps) => {
   const titleId = useId();
 
-  // Handle escape key
-  useEffect(() => {
-    if (!isOpen || !closeOnEscape) return;
-
-    const handleEscape = (event: globalThis.KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, closeOnEscape, onClose]);
-
-  // Handle body scroll lock and scrollbar shift fix
-  useEffect(() => {
-    if (!isOpen) return;
-
-    // Calculate scrollbar width before hiding overflow
-    const scrollbarWidth =
-      window.innerWidth - document.documentElement.clientWidth;
-
-    // Save original styles
-    const originalOverflow = document.body.style.overflow;
-    const originalPaddingRight = document.body.style.paddingRight;
-
-    // Apply scroll lock
-    document.body.style.overflow = 'hidden';
-
-    // Fix scrollbar shift: add padding to compensate for lost scrollbar
-    if (scrollbarWidth > 0) {
-      document.body.style.paddingRight = `${scrollbarWidth}px`;
-
-      // Create overlay to cover the padding area with backdrop color
-      const overlay = document.createElement('div');
-      overlay.id = 'modal-scrollbar-overlay';
-      overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        right: 0;
-        width: ${scrollbarWidth}px;
-        height: 100vh;
-        background-color: rgb(0 0 0 / 0.6);
-        z-index: 40;
-        pointer-events: none;
-      `;
-      document.body.appendChild(overlay);
-    }
-
-    return () => {
-      // Restore original styles
-      document.body.style.overflow = originalOverflow;
-      document.body.style.paddingRight = originalPaddingRight;
-
-      // Remove overlay
-      const overlay = document.getElementById('modal-scrollbar-overlay');
-      if (overlay) {
-        overlay.remove();
-      }
-    };
-  }, [isOpen]);
+  useEscapeToClose(isOpen && closeOnEscape, onClose);
+  useBodyScrollLock(isOpen);
 
   if (!isOpen) return null;
 
@@ -457,23 +400,8 @@ const MicPermissionModalPapole = ({
     onConfigureLater?.();
   };
 
-  useEffect(() => {
-    if (!open || !closeOnEscape) return;
-    const handleEscape = (event: globalThis.KeyboardEvent) => {
-      if (event.key === 'Escape') handleClose();
-    };
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [open, closeOnEscape, handleClose]);
-
-  useEffect(() => {
-    if (!open) return;
-    const original = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = original;
-    };
-  }, [open]);
+  useEscapeToClose(open && closeOnEscape, handleClose);
+  useBodyScrollLock(open);
 
   if (!open) return null;
 
@@ -607,23 +535,8 @@ const MicOffModalPapole = ({
 }: MicOffModalPapoleProps) => {
   const titleId = useId();
 
-  useEffect(() => {
-    if (!isOpen || !closeOnEscape) return;
-    const handleEscape = (event: globalThis.KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, closeOnEscape, onClose]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const original = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = original;
-    };
-  }, [isOpen]);
+  useEscapeToClose(isOpen && closeOnEscape, onClose);
+  useBodyScrollLock(isOpen);
 
   if (!isOpen) return null;
 
@@ -736,27 +649,15 @@ const AudioPlaybackModalPapole = ({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
-  useEffect(() => {
-    if (!isOpen || !closeOnEscape) return;
-    const handleEscape = (event: globalThis.KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, closeOnEscape, onClose]);
+  useEscapeToClose(isOpen && closeOnEscape, onClose);
+  useBodyScrollLock(isOpen);
 
   useEffect(() => {
+    // Reseta o player ao fechar (o <audio> desmonta com o modal).
     if (!isOpen) {
-      // Reseta o player ao fechar (o <audio> desmonta com o modal).
       setIsPlaying(false);
       setCurrentTime(0);
-      return;
     }
-    const original = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = original;
-    };
   }, [isOpen]);
 
   const togglePlay = () => {
@@ -766,9 +667,13 @@ const AudioPlaybackModalPapole = ({
       audio.pause();
       setIsPlaying(false);
     } else {
-      // play() rejeita (AbortError) se pausado antes de iniciar — ignora.
-      audio.play()?.catch(() => {});
-      setIsPlaying(true);
+      // Só marca como tocando depois que o play() resolve. Se rejeitar
+      // (AbortError ao pausar antes de iniciar, fonte inválida, etc.) mantém
+      // false pra UI nunca indicar reprodução ativa numa falha.
+      audio
+        .play()
+        ?.then(() => setIsPlaying(true))
+        .catch(() => setIsPlaying(false));
     }
   };
 
@@ -923,23 +828,8 @@ const SuccessModalPapole = ({
 }: SuccessModalPapoleProps) => {
   const titleId = useId();
 
-  useEffect(() => {
-    if (!isOpen || !closeOnEscape) return;
-    const handleEscape = (event: globalThis.KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, closeOnEscape, onClose]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const original = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = original;
-    };
-  }, [isOpen]);
+  useEscapeToClose(isOpen && closeOnEscape, onClose);
+  useBodyScrollLock(isOpen);
 
   if (!isOpen) return null;
 

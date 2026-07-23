@@ -893,18 +893,36 @@ describe('AudioPlaybackModalPapole', () => {
     expect(screen.getByRole('button', { name: 'Reproduzir' })).toBeDisabled();
   });
 
-  it('toggles play/pause and updates the aria-label', () => {
+  it('toggles play/pause and updates the aria-label', async () => {
     render(<AudioPlaybackModalPapole {...defaultProps} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Reproduzir' }));
     expect(playMock).toHaveBeenCalledTimes(1);
 
-    // Now labelled "Pausar".
-    fireEvent.click(screen.getByRole('button', { name: 'Pausar' }));
+    // Só vira "Pausar" depois que o play() resolve.
+    fireEvent.click(await screen.findByRole('button', { name: 'Pausar' }));
     expect(pauseMock).toHaveBeenCalledTimes(1);
     expect(
       screen.getByRole('button', { name: 'Reproduzir' })
     ).toBeInTheDocument();
+  });
+
+  it('keeps the play label when play() rejects (e.g. invalid source)', async () => {
+    playMock.mockRejectedValueOnce(new Error('no supported source'));
+    render(<AudioPlaybackModalPapole {...defaultProps} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reproduzir' }));
+    expect(playMock).toHaveBeenCalledTimes(1);
+
+    // A falha não pode deixar a UI indicando reprodução ativa.
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: 'Reproduzir' })
+      ).toBeInTheDocument()
+    );
+    expect(
+      screen.queryByRole('button', { name: 'Pausar' })
+    ).not.toBeInTheDocument();
   });
 
   it('updates the displayed time on timeupdate', () => {
