@@ -5,7 +5,7 @@
  * renderiza onde `font-quicksand` é usado — ou seja, nos componentes Papolê.
  * Requer que o CSP do consumidor permita fonts.googleapis.com / fonts.gstatic.com.
  */
-@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap');
+@import 'https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap';
 @import 'tailwindcss';
 
 /*
