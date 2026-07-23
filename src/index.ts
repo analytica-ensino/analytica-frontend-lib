@@ -842,6 +842,11 @@ export type {
   AudioMixerPapoleHandle,
   AudioMixerStatus,
 } from './components/AudioMixerPapole/AudioMixerPapole';
+export { AudioRecorderPapole } from './components/AudioRecorderPapole/AudioRecorderPapole';
+export type {
+  AudioRecorderPapoleProps,
+  AudioRecorderPapoleHandle,
+} from './components/AudioRecorderPapole/AudioRecorderPapole';
 export { ReadAloudPromptPapole } from './components/ReadAloudPromptPapole/ReadAloudPromptPapole';
 export type { ReadAloudPromptPapoleProps } from './components/ReadAloudPromptPapole/ReadAloudPromptPapole';
 export {
