@@ -17,7 +17,7 @@ import {
 import { cn } from '../../utils/utils';
 import Button, { ButtonPapole } from '../Button/Button';
 import papoleBird from '../../assets/img/papole.png';
-import papoleCelebration from '../../assets/gifs/Celebration.gif';
+import papoleCelebration from '../../assets/gifs/celebration.gif';
 import { useMicrophonePermission } from '../../hooks/useMicrophonePermission';
 import { useEscapeToClose } from '../../hooks/useEscapeToClose';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';

@@ -421,7 +421,7 @@ export const MicPermissionPapoleComImagemDoCliente: Story = () => {
 
 /**
  * Override da imagem via `imageSrc`: substitui o gif de comemoração empacotado
- * (`Celebration.gif`) por uma imagem fornecida pelo cliente (data URI de exemplo).
+ * (`celebration.gif`) por uma imagem fornecida pelo cliente (data URI de exemplo).
  */
 export const SuccessPapoleComImagemDoCliente: Story = () => {
   const [open, setOpen] = useState(true);

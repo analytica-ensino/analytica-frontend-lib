@@ -1,4 +1,4 @@
-import motionBird from '../../assets/gifs/Motion mouth and eyes.gif';
+import motionBird from '../../assets/gifs/motionMouthAndEyes.gif';
 import { cn } from '../../utils/utils';
 
 export interface ReadAloudPromptPapoleProps {

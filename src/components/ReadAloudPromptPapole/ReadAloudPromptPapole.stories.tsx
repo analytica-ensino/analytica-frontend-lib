@@ -30,7 +30,7 @@ export const ReadAloudPromptLongo: Story = () => (
 /**
  * Override da imagem via `imageSrc`: quando o gif Papolê empacotado na lib não
  * resolve no bundle do consumidor, ele passa a própria URL (aqui um data URI de
- * exemplo no lugar do `Motion mouth and eyes.gif`).
+ * exemplo no lugar do `motionMouthAndEyes.gif`).
  */
 export const ReadAloudPromptComImagemDoCliente: Story = () => (
   <div
