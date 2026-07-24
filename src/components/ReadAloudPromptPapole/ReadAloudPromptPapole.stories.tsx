@@ -43,3 +43,19 @@ export const ReadAloudPromptComImagemDoCliente: Story = () => (
     />
   </div>
 );
+
+/**
+ * Sem o balão de conversa (`showBalloon={false}`): o rótulo e a caixa de leitura
+ * aparecem sem o fundo/sombra e sem a cauda apontando pro passarinho.
+ */
+export const ReadAloudPromptSemBalao: Story = () => (
+  <div
+    data-theme="papole-light"
+    className="flex min-h-[420px] items-center justify-center bg-[#CBC7F2] p-8"
+  >
+    <ReadAloudPromptPapole
+      text="O mar é azul. A onda vai e vem."
+      showBalloon={false}
+    />
+  </div>
+);
