@@ -405,6 +405,21 @@ describe('DropdownMenuContent direction and positioning', () => {
         expect(screen.getByRole('menu').style.maxHeight).toBe('200px');
       });
 
+      // The minimum floors the room the viewport offers, not the caller's
+      // ceiling: asking for 80px must not be raised to 120px.
+      it('honours a maximum height below the minimum', () => {
+        render(<TestPortalDropdown maxHeight={80} />);
+
+        expect(screen.getByRole('menu').style.maxHeight).toBe('80px');
+      });
+
+      it('honours a maximum height below the minimum when cramped too', () => {
+        placeTrigger(700);
+        render(<TestPortalDropdown maxHeight={80} />);
+
+        expect(screen.getByRole('menu').style.maxHeight).toBe('80px');
+      });
+
       it('shrinks to the space below the trigger', () => {
         // 800 - 600 bottom - 4 offset - 8 margin = 188px of room.
         placeTrigger(570);
@@ -433,6 +448,33 @@ describe('DropdownMenuContent direction and positioning', () => {
         render(<TestPortalDropdown />);
 
         expect(screen.getByRole('menu').style.maxHeight).toBe('120px');
+      });
+
+      // A side menu runs downwards from the trigger's top, so it overflows the
+      // bottom of the screen just as a menu opening below would.
+      it.each([['left'], ['right']] as const)(
+        'clamps a side="%s" menu to the room under the trigger',
+        (side) => {
+          // 800 - 570 top - 8 margin = 222px of room.
+          placeTrigger(570);
+          render(<TestPortalDropdown side={side} />);
+
+          const menu = screen.getByRole('menu');
+          expect(menu.style.maxHeight).toBe('222px');
+          expect(menu.style.overflowY).toBe('auto');
+          expect(menu.style.top).toBe('570px');
+        }
+      );
+
+      it('keeps a side menu anchored by the edge facing the trigger', () => {
+        placeTrigger(570);
+        render(<TestPortalDropdown side="left" />);
+
+        const menu = screen.getByRole('menu');
+        expect(menu.style.right).toBe(
+          `${VIEWPORT.width - TRIGGER_RECT.left + 4}px`
+        );
+        expect(menu.style.left).toBe('');
       });
     });
 
