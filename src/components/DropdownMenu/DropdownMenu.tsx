@@ -68,10 +68,23 @@ const PORTAL_STYLE_KEYS = [
   'left',
   'right',
   'transform',
+  'maxHeight',
 ] as const;
 
 const isSamePortalStyle = (a: CSSProperties, b: CSSProperties): boolean =>
   PORTAL_STYLE_KEYS.every((key) => a[key] === b[key]);
+
+/** Tallest a portaled menu gets when there is room for it. */
+const DEFAULT_PORTAL_MAX_HEIGHT = 320;
+
+/** Breathing room between the menu and the edge of the viewport. */
+const VIEWPORT_MARGIN = 8;
+
+/**
+ * Never shrink a menu below this, however cramped the trigger is: a 20px-tall
+ * scroller is worse than one that overhangs a little.
+ */
+const MIN_PORTAL_MAX_HEIGHT = 120;
 
 const injectStore = (
   children: ReactNode,
@@ -322,6 +335,11 @@ const DropdownMenuContent = forwardRef<
     store?: DropdownStoreApi;
     portal?: boolean;
     triggerRef?: RefObject<HTMLElement | null>;
+    /**
+     * Tallest the menu gets, in px, when the viewport allows it. Portaled menus
+     * only — it is capped by the space actually available around the trigger.
+     */
+    maxHeight?: number;
   }
 >(
   (
@@ -335,6 +353,7 @@ const DropdownMenuContent = forwardRef<
       store: externalStore,
       portal = false,
       triggerRef,
+      maxHeight = DEFAULT_PORTAL_MAX_HEIGHT,
       ...props
     },
     ref
@@ -372,7 +391,33 @@ const DropdownMenuContent = forwardRef<
           style.left = rect.right + sideOffset;
         }
       } else {
-        if (side === 'top') {
+        // A fixed menu can't be scrolled to, so anything past the bottom of the
+        // viewport is simply unreachable. Give it the room that actually
+        // exists, and flip it above the trigger when that side has more.
+        //
+        // The flip threshold is the minimum height, not the maximum: flipping
+        // as soon as the menu could not open at full height would send it over
+        // the table on any trigger past the middle of the screen, which reads
+        // as a glitch. It only turns over when clamping alone would still leave
+        // it overhanging.
+        const spaceBelow =
+          window.innerHeight - rect.bottom - sideOffset - VIEWPORT_MARGIN;
+        const spaceAbove = rect.top - sideOffset - VIEWPORT_MARGIN;
+        const openAbove =
+          side === 'top' ||
+          (spaceBelow < Math.min(maxHeight, MIN_PORTAL_MAX_HEIGHT) &&
+            spaceAbove > spaceBelow);
+
+        const available = Math.max(openAbove ? spaceAbove : spaceBelow, 0);
+        style.maxHeight = Math.max(
+          Math.min(maxHeight, available),
+          MIN_PORTAL_MAX_HEIGHT
+        );
+        // Wins over the `overflow-hidden` of the base class, so the clamped
+        // menu scrolls instead of hiding its tail.
+        style.overflowY = 'auto';
+
+        if (openAbove) {
           style.bottom = window.innerHeight - rect.top + sideOffset;
         } else {
           style.top = rect.bottom + sideOffset;
@@ -389,7 +434,7 @@ const DropdownMenuContent = forwardRef<
       }
 
       setPortalStyle((prev) => (isSamePortalStyle(prev, style) ? prev : style));
-    }, [portal, triggerRef, align, side, sideOffset]);
+    }, [portal, triggerRef, align, side, sideOffset, maxHeight]);
 
     useLayoutEffect(() => {
       if (open) updatePortalPosition();

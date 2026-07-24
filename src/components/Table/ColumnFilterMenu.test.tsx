@@ -31,6 +31,44 @@ describe('ColumnFilterMenu', () => {
     expect(screen.queryByTestId('phosphor-arrow-up')).not.toBeInTheDocument();
   });
 
+  // The menu used to carry a fixed `max-h-80`, which ignored the viewport: a
+  // filter near the footer opened past the bottom of the screen and its last
+  // option could not be reached, since a fixed element doesn't scroll.
+  it('sizes itself to the space around the trigger, not to a fixed height', () => {
+    const rectSpy = jest
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockReturnValue({
+        top: 500,
+        bottom: 530,
+        left: 200,
+        right: 260,
+        width: 60,
+        height: 30,
+        x: 200,
+        y: 500,
+        toJSON: () => ({}),
+      } as DOMRect);
+    window.innerHeight = 700;
+
+    render(
+      <ColumnFilterMenu
+        columnLabel="Status"
+        config={config}
+        value={[]}
+        onChange={jest.fn()}
+      />
+    );
+    openMenu();
+
+    const menu = screen.getByRole('menu');
+    // 700 - 530 - 4 offset - 8 margin = 158px of room.
+    expect(menu.style.maxHeight).toBe('158px');
+    expect(menu.style.overflowY).toBe('auto');
+    expect(menu).not.toHaveClass('max-h-80');
+
+    rectSpy.mockRestore();
+  });
+
   it('opens the menu on the trigger and lists the options', () => {
     render(
       <ColumnFilterMenu
