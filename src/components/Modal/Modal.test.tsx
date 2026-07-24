@@ -893,6 +893,34 @@ describe('AudioPlaybackModalPapole', () => {
     expect(screen.getByRole('button', { name: 'Reproduzir' })).toBeDisabled();
   });
 
+  it('accepts a File/Blob in src: builds (and revokes) an object URL and enables play', () => {
+    const origCreate = URL.createObjectURL;
+    const origRevoke = URL.revokeObjectURL;
+    const createObjectURL = jest.fn(
+      () => 'blob:mock-recording'
+    ) as typeof URL.createObjectURL;
+    const revokeObjectURL = jest.fn() as typeof URL.revokeObjectURL;
+    URL.createObjectURL = createObjectURL;
+    URL.revokeObjectURL = revokeObjectURL;
+
+    try {
+      const blob = new Blob(['audio'], { type: 'audio/webm' });
+      const { unmount } = render(
+        <AudioPlaybackModalPapole isOpen onClose={jest.fn()} src={blob} />
+      );
+
+      expect(createObjectURL).toHaveBeenCalledWith(blob);
+      expect(getAudio()).toHaveAttribute('src', 'blob:mock-recording');
+      expect(screen.getByRole('button', { name: 'Reproduzir' })).toBeEnabled();
+
+      unmount();
+      expect(revokeObjectURL).toHaveBeenCalledWith('blob:mock-recording');
+    } finally {
+      URL.createObjectURL = origCreate;
+      URL.revokeObjectURL = origRevoke;
+    }
+  });
+
   it('toggles play/pause and updates the aria-label', async () => {
     render(<AudioPlaybackModalPapole {...defaultProps} />);
 

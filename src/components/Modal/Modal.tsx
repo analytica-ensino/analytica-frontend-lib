@@ -607,8 +607,13 @@ type AudioPlaybackModalPapoleProps = {
   isOpen: boolean;
   /** Fecha o modal (X e Esc). */
   onClose: () => void;
-  /** URL do áudio a reproduzir (a gravação). */
-  src?: string;
+  /**
+   * A gravação a tocar: uma **URL** (string, ex.: blob URL) **ou** um
+   * **arquivo/blob** (`File`/`Blob` — ex.: o blob do `AudioRecorderPapole`).
+   * Quando é `File`/`Blob`, vira um object URL same-origin internamente
+   * (criado/revogado pelo componente).
+   */
+  src?: string | File | Blob;
   /** Ação do botão "Pronto!". */
   onConfirm?: () => void;
   /** Ação do link "Quero ler de novo". */
@@ -637,6 +642,9 @@ const formatPlaybackTime = (seconds: number): string => {
  * tempo) + botão de fechar; corpo branco com "Pronto!" (`ButtonPapole` solid) e
  * "Quero ler de novo" (`ButtonPapole` link).
  *
+ * A gravação entra por `src`, que aceita **URL** (string) **ou** **File/Blob**
+ * (ex.: o blob do `AudioRecorderPapole`, convertido em object URL internamente).
+ *
  * Controlado: o app decide quando abrir (ex.: após finalizar a gravação).
  *
  * Observação: waveform é decorativa (não analisa o áudio) e os tokens de
@@ -654,9 +662,24 @@ const AudioPlaybackModalPapole = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [objectUrl, setObjectUrl] = useState<string | undefined>(undefined);
+
+  // String → usa direto; File/Blob → usa o object URL criado no efeito abaixo.
+  const resolvedSrc = typeof src === 'string' ? src : objectUrl;
 
   useEscapeToClose(isOpen && closeOnEscape, onClose);
   useBodyScrollLock(isOpen);
+
+  // `src` File/Blob → object URL same-origin (criado/revogado aqui).
+  useEffect(() => {
+    if (!src || typeof src === 'string') {
+      setObjectUrl(undefined);
+      return;
+    }
+    const url = URL.createObjectURL(src);
+    setObjectUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [src]);
 
   useEffect(() => {
     // Reseta o player ao fechar (o <audio> desmonta com o modal).
@@ -730,7 +753,7 @@ const AudioPlaybackModalPapole = ({
           <div className="flex items-center gap-3">
             <audio
               ref={audioRef}
-              src={src}
+              src={resolvedSrc}
               preload="metadata"
               onTimeUpdate={() =>
                 setCurrentTime(audioRef.current?.currentTime ?? 0)
@@ -749,7 +772,7 @@ const AudioPlaybackModalPapole = ({
             <button
               type="button"
               onClick={togglePlay}
-              disabled={!src}
+              disabled={!resolvedSrc}
               aria-label={isPlaying ? 'Pausar' : 'Reproduzir'}
               className="flex flex-shrink-0 items-center justify-center disabled:cursor-not-allowed disabled:opacity-40"
             >
