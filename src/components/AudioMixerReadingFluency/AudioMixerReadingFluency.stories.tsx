@@ -1,15 +1,15 @@
 import type { Story } from '@ladle/react';
 import { useMemo, useRef, useState } from 'react';
 import {
-  AudioMixerPapole,
-  type AudioMixerPapoleHandle,
+  AudioMixerReadingFluency,
+  type AudioMixerReadingFluencyHandle,
   type AudioMixerStatus,
-} from './AudioMixerPapole';
-import { ButtonPapole } from '../Button/Button';
+} from './AudioMixerReadingFluency';
+import { ButtonReadingFluency } from '../Button/Button';
 
 // Áudio SAME-ORIGIN embutido (data URI WAV) só pra demo: um áudio externo sem
 // CORS ficaria mudo ao passar pelo Web Audio. Aqui toca e as barras reagem.
-function makePapoleDemoAudio(): string {
+function makeReadingFluencyDemoAudio(): string {
   const sampleRate = 22050;
   const duration = 10; // segundos
   const total = sampleRate * duration;
@@ -78,7 +78,7 @@ function makePapoleDemoAudio(): string {
  * `autoPlay` do componente cobre isso (começa no 1º clique/tecla, sem botão).
  */
 export const AudioMixer: Story = () => {
-  const demoSrc = useMemo(() => makePapoleDemoAudio(), []);
+  const demoSrc = useMemo(() => makeReadingFluencyDemoAudio(), []);
 
   return (
     <div
@@ -86,7 +86,7 @@ export const AudioMixer: Story = () => {
       className="flex min-h-[420px] items-center justify-center bg-secondary-100 p-6"
     >
       <div className="rounded-2xl bg-background px-6 py-4 shadow-hard-shadow-2">
-        <AudioMixerPapole src={demoSrc} autoPlay loop showTime />
+        <AudioMixerReadingFluency src={demoSrc} autoPlay loop showTime />
       </div>
     </div>
   );
@@ -97,7 +97,7 @@ export const AudioMixer: Story = () => {
  * são temporários só pra demo — o design final do botão vem depois.
  */
 export const AudioMixerControlled: Story = () => {
-  const demoSrc = useMemo(() => makePapoleDemoAudio(), []);
+  const demoSrc = useMemo(() => makeReadingFluencyDemoAudio(), []);
   const [status, setStatus] = useState<AudioMixerStatus>('stopped');
 
   return (
@@ -106,7 +106,7 @@ export const AudioMixerControlled: Story = () => {
       className="flex min-h-[420px] flex-col items-center justify-center gap-6 bg-secondary-100 p-6"
     >
       <div className="rounded-2xl bg-background px-6 py-4 shadow-hard-shadow-2">
-        <AudioMixerPapole
+        <AudioMixerReadingFluency
           src={demoSrc}
           status={status}
           showTime
@@ -115,23 +115,23 @@ export const AudioMixerControlled: Story = () => {
       </div>
 
       <div className="flex items-center gap-3">
-        <ButtonPapole size="small" onClick={() => setStatus('playing')}>
+        <ButtonReadingFluency size="small" onClick={() => setStatus('playing')}>
           {status === 'paused' ? 'Continuar' : 'Tocar'}
-        </ButtonPapole>
-        <ButtonPapole
+        </ButtonReadingFluency>
+        <ButtonReadingFluency
           size="small"
           variant="outline"
           onClick={() => setStatus('paused')}
         >
           Pausar
-        </ButtonPapole>
-        <ButtonPapole
+        </ButtonReadingFluency>
+        <ButtonReadingFluency
           size="small"
           variant="outline"
           onClick={() => setStatus('stopped')}
         >
           Parar
-        </ButtonPapole>
+        </ButtonReadingFluency>
       </div>
 
       <p className="text-xs text-text-700">
@@ -146,8 +146,8 @@ export const AudioMixerControlled: Story = () => {
  * forma que um botão externo pode usar.
  */
 export const AudioMixerImperative: Story = () => {
-  const demoSrc = useMemo(() => makePapoleDemoAudio(), []);
-  const mixerRef = useRef<AudioMixerPapoleHandle>(null);
+  const demoSrc = useMemo(() => makeReadingFluencyDemoAudio(), []);
+  const mixerRef = useRef<AudioMixerReadingFluencyHandle>(null);
 
   return (
     <div
@@ -155,27 +155,30 @@ export const AudioMixerImperative: Story = () => {
       className="flex min-h-[420px] flex-col items-center justify-center gap-6 bg-secondary-100 p-6"
     >
       <div className="rounded-2xl bg-background px-6 py-4 shadow-hard-shadow-2">
-        <AudioMixerPapole ref={mixerRef} src={demoSrc} showTime />
+        <AudioMixerReadingFluency ref={mixerRef} src={demoSrc} showTime />
       </div>
 
       <div className="flex items-center gap-3">
-        <ButtonPapole size="small" onClick={() => mixerRef.current?.play()}>
+        <ButtonReadingFluency
+          size="small"
+          onClick={() => mixerRef.current?.play()}
+        >
           Tocar
-        </ButtonPapole>
-        <ButtonPapole
+        </ButtonReadingFluency>
+        <ButtonReadingFluency
           size="small"
           variant="outline"
           onClick={() => mixerRef.current?.pause()}
         >
           Pausar
-        </ButtonPapole>
-        <ButtonPapole
+        </ButtonReadingFluency>
+        <ButtonReadingFluency
           size="small"
           variant="outline"
           onClick={() => mixerRef.current?.stop()}
         >
           Parar
-        </ButtonPapole>
+        </ButtonReadingFluency>
       </div>
     </div>
   );

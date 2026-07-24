@@ -1,11 +1,11 @@
 import type { FC } from 'react';
-import type { PapoleIconProps } from './types';
+import type { ReadingFluencyIconProps } from './types';
 
 /**
- * Microfone desligado — tema Papolê. Cor marrom `#604903` (fixa da arte).
+ * Microfone desligado — tema Reading Fluency. Cor marrom `#604903` (fixa da arte).
  * `aria-hidden` por ser decorativo; quem usa em botão deve prover o rótulo.
  */
-export const MicOffIconPapole: FC<PapoleIconProps> = ({
+export const MicOffIconReadingFluency: FC<ReadingFluencyIconProps> = ({
   size = 24,
   className,
 }) => (
@@ -24,4 +24,4 @@ export const MicOffIconPapole: FC<PapoleIconProps> = ({
     />
   </svg>
 );
-MicOffIconPapole.displayName = 'MicOffIconPapole';
+MicOffIconReadingFluency.displayName = 'MicOffIconReadingFluency';

@@ -1,11 +1,11 @@
 import type { FC } from 'react';
-import type { PapoleIconProps } from './types';
+import type { ReadingFluencyIconProps } from './types';
 
 /**
- * Parar (quadrado arredondado) — tema Papolê. Cor marrom `#604903` (fixa da
+ * Parar (quadrado arredondado) — tema Reading Fluency. Cor marrom `#604903` (fixa da
  * arte). `aria-hidden` por ser decorativo; quem usa em botão deve prover o rótulo.
  */
-export const StopIconPapole: FC<PapoleIconProps> = ({
+export const StopIconReadingFluency: FC<ReadingFluencyIconProps> = ({
   size = 24,
   className,
 }) => (
@@ -24,4 +24,4 @@ export const StopIconPapole: FC<PapoleIconProps> = ({
     />
   </svg>
 );
-StopIconPapole.displayName = 'StopIconPapole';
+StopIconReadingFluency.displayName = 'StopIconReadingFluency';

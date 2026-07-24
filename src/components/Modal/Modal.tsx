@@ -9,15 +9,15 @@ import {
 } from 'react';
 import { XIcon } from '@phosphor-icons/react/dist/csr/X';
 import {
-  MicIconPapole,
-  MicOffIconPapole,
-  PlayIconPapole,
-  PauseIconPapole,
-} from '../PapoleIcons';
+  MicIconReadingFluency,
+  MicOffIconReadingFluency,
+  PlayIconReadingFluency,
+  PauseIconReadingFluency,
+} from '../ReadingFluencyIcons';
 import { cn } from '../../utils/utils';
-import Button, { ButtonPapole } from '../Button/Button';
-import papoleBird from '../../assets/img/papole.png';
-import papoleCelebration from '../../assets/gifs/celebration.gif';
+import Button, { ButtonReadingFluency } from '../Button/Button';
+import readingFluencyBird from '../../assets/img/readingFluencyBird.png';
+import readingFluencyCelebration from '../../assets/gifs/celebration.gif';
 import { useMicrophonePermission } from '../../hooks/useMicrophonePermission';
 import { useEscapeToClose } from '../../hooks/useEscapeToClose';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
@@ -320,10 +320,10 @@ const Modal = ({
 export default Modal;
 
 // ======================================================================
-// MicPermissionModalPapole — modal Papolê de permissão de microfone
+// MicPermissionModalReadingFluency — modal Reading Fluency de permissão de microfone
 // ======================================================================
 
-type MicPermissionModalPapoleProps = {
+type MicPermissionModalReadingFluencyProps = {
   /**
    * Controla a abertura (modo controlado). **Se omitido**, o modal entra em modo
    * gerenciado: usa `useMicrophonePermission` e se abre sozinho quando o
@@ -348,18 +348,18 @@ type MicPermissionModalPapoleProps = {
   /** Texto explicativo (default: o texto da arte). */
   description?: ReactNode;
   /**
-   * Fonte da imagem do passarinho. Default: o PNG Papolê empacotado na lib.
+   * Fonte da imagem do passarinho. Default: o PNG Reading Fluency empacotado na lib.
    * Passe uma URL pelo cliente caso o asset da lib não seja resolvido no bundle.
    */
   imageSrc?: string;
 };
 
 /**
- * Modal Papolê que pede permissão de uso do microfone.
+ * Modal Reading Fluency que pede permissão de uso do microfone.
  *
  * Header verde (`secondary-500`) com o passarinho + ícone de microfone e o botão
- * de fechar (`ButtonPapole variant="icon"`); corpo branco com título, texto e as
- * ações (`ButtonPapole` solid "Habilitar permissões" + link "Configurar depois");
+ * de fechar (`ButtonReadingFluency variant="icon"`); corpo branco com título, texto e as
+ * ações (`ButtonReadingFluency` solid "Habilitar permissões" + link "Configurar depois");
  * barra inferior verde-clara com o link "Saiba mais...".
  *
  * Modo **gerenciado** (sem `isOpen`): usa `useMicrophonePermission` — abre
@@ -370,7 +370,7 @@ type MicPermissionModalPapoleProps = {
  *
  * Observação: os tokens de cor/spacing são uma leitura da arte — ajustar na story.
  */
-const MicPermissionModalPapole = ({
+const MicPermissionModalReadingFluency = ({
   isOpen,
   onClose,
   onEnable,
@@ -379,8 +379,8 @@ const MicPermissionModalPapole = ({
   closeOnEscape = true,
   title = 'Por que pedimos acesso ao microfone',
   description,
-  imageSrc = papoleBird,
-}: MicPermissionModalPapoleProps) => {
+  imageSrc = readingFluencyBird,
+}: MicPermissionModalReadingFluencyProps) => {
   const titleId = useId();
   const { shouldAsk, requestPermission } = useMicrophonePermission();
   const [dismissed, setDismissed] = useState(false);
@@ -422,24 +422,24 @@ const MicPermissionModalPapole = ({
         {/* Header verde */}
         <div className="relative flex items-center justify-center gap-3 bg-secondary-500 px-6 pt-8 pb-10">
           <span className="absolute right-4 top-4">
-            <ButtonPapole
+            <ButtonReadingFluency
               variant="icon"
               aria-label="Fechar"
               onClick={handleClose}
             >
               <XIcon weight="bold" />
-            </ButtonPapole>
+            </ButtonReadingFluency>
           </span>
 
           <img
             src={imageSrc}
-            alt="Papolê"
+            alt="Reading Fluency"
             className="h-14 w-auto select-none"
             draggable={false}
           />
 
           <span className="flex size-14 items-center justify-center rounded-full bg-background">
-            <MicIconPapole size={28} />
+            <MicIconReadingFluency size={28} />
           </span>
         </div>
 
@@ -464,22 +464,22 @@ const MicPermissionModalPapole = ({
             )}
           </div>
 
-          <ButtonPapole
+          <ButtonReadingFluency
             variant="solid"
             size="medium"
             className="mt-2"
             onClick={handleEnable}
           >
             Habilitar permissões
-          </ButtonPapole>
+          </ButtonReadingFluency>
 
-          <ButtonPapole
+          <ButtonReadingFluency
             variant="link"
             size="medium"
             onClick={handleConfigureLater}
           >
             Configurar depois
-          </ButtonPapole>
+          </ButtonReadingFluency>
 
           {/* Barra "Saiba mais": botão arredondado, inset pelo padding do corpo */}
           <button
@@ -496,16 +496,17 @@ const MicPermissionModalPapole = ({
     </div>
   );
 };
-MicPermissionModalPapole.displayName = 'MicPermissionModalPapole';
+MicPermissionModalReadingFluency.displayName =
+  'MicPermissionModalReadingFluency';
 
-export { MicPermissionModalPapole };
-export type { MicPermissionModalPapoleProps };
+export { MicPermissionModalReadingFluency };
+export type { MicPermissionModalReadingFluencyProps };
 
 // ======================================================================
-// MicOffModalPapole — modal Papolê de "microfone parece desligado"
+// MicOffModalReadingFluency — modal Reading Fluency de "microfone parece desligado"
 // ======================================================================
 
-type MicOffModalPapoleProps = {
+type MicOffModalReadingFluencyProps = {
   /** Se o modal está aberto. */
   isOpen: boolean;
   /** Fecha o modal (X e Esc). */
@@ -521,24 +522,24 @@ type MicOffModalPapoleProps = {
 };
 
 /**
- * Modal Papolê exibido quando o microfone parece desligado/mudo durante a
+ * Modal Reading Fluency exibido quando o microfone parece desligado/mudo durante a
  * leitura. Header verde com o ícone de microfone cortado + botão de fechar;
  * corpo branco com o título (uppercase) e as ações "Tentar ler de novo"
- * (`ButtonPapole` solid) e "Pedir ajuda a um adulto" (`ButtonPapole` link).
+ * (`ButtonReadingFluency` solid) e "Pedir ajuda a um adulto" (`ButtonReadingFluency` link).
  *
  * É um modal controlado (o app decide quando abrir — ex.: ao detectar que não
  * há áudio durante a gravação).
  *
  * Observação: os tokens de cor/spacing são uma leitura da arte — ajustar na story.
  */
-const MicOffModalPapole = ({
+const MicOffModalReadingFluency = ({
   isOpen,
   onClose,
   onRetry,
   onAskAdult,
   closeOnEscape = true,
   title = 'Parece que o microfone está desligado',
-}: MicOffModalPapoleProps) => {
+}: MicOffModalReadingFluencyProps) => {
   const titleId = useId();
 
   useEscapeToClose(isOpen && closeOnEscape, onClose);
@@ -557,13 +558,17 @@ const MicOffModalPapole = ({
         {/* Header verde */}
         <div className="relative flex items-center justify-center bg-secondary-500 px-6 pt-10 pb-10">
           <span className="absolute right-4 top-4">
-            <ButtonPapole variant="icon" aria-label="Fechar" onClick={onClose}>
+            <ButtonReadingFluency
+              variant="icon"
+              aria-label="Fechar"
+              onClick={onClose}
+            >
               <XIcon weight="bold" />
-            </ButtonPapole>
+            </ButtonReadingFluency>
           </span>
 
           <span className="flex size-20 items-center justify-center rounded-full bg-background shadow-hard-shadow-2">
-            <MicOffIconPapole size={40} />
+            <MicOffIconReadingFluency size={40} />
           </span>
         </div>
 
@@ -576,40 +581,44 @@ const MicOffModalPapole = ({
             {title}
           </h2>
 
-          <ButtonPapole
+          <ButtonReadingFluency
             variant="solid"
             size="medium"
             className="mt-2"
             onClick={onRetry}
           >
             Tentar ler de novo
-          </ButtonPapole>
+          </ButtonReadingFluency>
 
-          <ButtonPapole variant="link" size="medium" onClick={onAskAdult}>
+          <ButtonReadingFluency
+            variant="link"
+            size="medium"
+            onClick={onAskAdult}
+          >
             Pedir ajuda a um adulto
-          </ButtonPapole>
+          </ButtonReadingFluency>
         </div>
       </dialog>
     </div>
   );
 };
-MicOffModalPapole.displayName = 'MicOffModalPapole';
+MicOffModalReadingFluency.displayName = 'MicOffModalReadingFluency';
 
-export { MicOffModalPapole };
-export type { MicOffModalPapoleProps };
+export { MicOffModalReadingFluency };
+export type { MicOffModalReadingFluencyProps };
 
 // ======================================================================
-// AudioPlaybackModalPapole — modal Papolê para ouvir a gravação
+// AudioPlaybackModalReadingFluency — modal Reading Fluency para ouvir a gravação
 // ======================================================================
 
-type AudioPlaybackModalPapoleProps = {
+type AudioPlaybackModalReadingFluencyProps = {
   /** Se o modal está aberto. */
   isOpen: boolean;
   /** Fecha o modal (X e Esc). */
   onClose: () => void;
   /**
    * A gravação a tocar: uma **URL** (string, ex.: blob URL) **ou** um
-   * **arquivo/blob** (`File`/`Blob` — ex.: o blob do `AudioRecorderPapole`).
+   * **arquivo/blob** (`File`/`Blob` — ex.: o blob do `AudioRecorderReadingFluency`).
    * Quando é `File`/`Blob`, vira um object URL same-origin internamente
    * (criado/revogado pelo componente).
    */
@@ -637,27 +646,27 @@ const formatPlaybackTime = (seconds: number): string => {
 };
 
 /**
- * Modal Papolê para o aluno ouvir a própria gravação. Header verde com uma
+ * Modal Reading Fluency para o aluno ouvir a própria gravação. Header verde com uma
  * waveform decorativa e um player simples (play/pause + barra de progresso +
- * tempo) + botão de fechar; corpo branco com "Pronto!" (`ButtonPapole` solid) e
- * "Quero ler de novo" (`ButtonPapole` link).
+ * tempo) + botão de fechar; corpo branco com "Pronto!" (`ButtonReadingFluency` solid) e
+ * "Quero ler de novo" (`ButtonReadingFluency` link).
  *
  * A gravação entra por `src`, que aceita **URL** (string) **ou** **File/Blob**
- * (ex.: o blob do `AudioRecorderPapole`, convertido em object URL internamente).
+ * (ex.: o blob do `AudioRecorderReadingFluency`, convertido em object URL internamente).
  *
  * Controlado: o app decide quando abrir (ex.: após finalizar a gravação).
  *
  * Observação: waveform é decorativa (não analisa o áudio) e os tokens de
  * cor/spacing são uma leitura da arte — ajustar na story.
  */
-const AudioPlaybackModalPapole = ({
+const AudioPlaybackModalReadingFluency = ({
   isOpen,
   onClose,
   src,
   onConfirm,
   onRetry,
   closeOnEscape = true,
-}: AudioPlaybackModalPapoleProps) => {
+}: AudioPlaybackModalReadingFluencyProps) => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -730,9 +739,13 @@ const AudioPlaybackModalPapole = ({
         {/* Header verde: waveform + player */}
         <div className="relative flex flex-col gap-5 bg-secondary-500 px-6 pt-8 pb-6">
           <span className="absolute right-4 top-4">
-            <ButtonPapole variant="icon" aria-label="Fechar" onClick={onClose}>
+            <ButtonReadingFluency
+              variant="icon"
+              aria-label="Fechar"
+              onClick={onClose}
+            >
               <XIcon weight="bold" />
-            </ButtonPapole>
+            </ButtonReadingFluency>
           </span>
 
           {/* Waveform (decorativa) */}
@@ -777,9 +790,9 @@ const AudioPlaybackModalPapole = ({
               className="flex flex-shrink-0 items-center justify-center disabled:cursor-not-allowed disabled:opacity-40"
             >
               {isPlaying ? (
-                <PauseIconPapole size={36} />
+                <PauseIconReadingFluency size={36} />
               ) : (
-                <PlayIconPapole size={36} />
+                <PlayIconReadingFluency size={36} />
               )}
             </button>
 
@@ -803,33 +816,34 @@ const AudioPlaybackModalPapole = ({
 
         {/* Corpo (padding 24) */}
         <div className="flex flex-col items-center gap-4 bg-background p-6 text-center">
-          <ButtonPapole
+          <ButtonReadingFluency
             variant="solid"
             size="medium"
             className="w-full"
             onClick={onConfirm}
           >
             Pronto!
-          </ButtonPapole>
+          </ButtonReadingFluency>
 
-          <ButtonPapole variant="link" size="medium" onClick={onRetry}>
+          <ButtonReadingFluency variant="link" size="medium" onClick={onRetry}>
             Quero ler de novo
-          </ButtonPapole>
+          </ButtonReadingFluency>
         </div>
       </dialog>
     </div>
   );
 };
-AudioPlaybackModalPapole.displayName = 'AudioPlaybackModalPapole';
+AudioPlaybackModalReadingFluency.displayName =
+  'AudioPlaybackModalReadingFluency';
 
-export { AudioPlaybackModalPapole };
-export type { AudioPlaybackModalPapoleProps };
+export { AudioPlaybackModalReadingFluency };
+export type { AudioPlaybackModalReadingFluencyProps };
 
 // ======================================================================
-// SuccessModalPapole — modal Papolê de feedback positivo
+// SuccessModalReadingFluency — modal Reading Fluency de feedback positivo
 // ======================================================================
 
-type SuccessModalPapoleProps = {
+type SuccessModalReadingFluencyProps = {
   /** Se o modal está aberto. */
   isOpen: boolean;
   /** Fecha o modal (X e Esc). */
@@ -841,26 +855,26 @@ type SuccessModalPapoleProps = {
   /** Fecha ao pressionar Esc (default: true). */
   closeOnEscape?: boolean;
   /**
-   * Fonte da imagem de comemoração. Default: o gif Papolê empacotado na lib.
+   * Fonte da imagem de comemoração. Default: o gif Reading Fluency empacotado na lib.
    * Passe uma URL pelo cliente caso o asset da lib não seja resolvido no bundle.
    */
   imageSrc?: string;
 };
 
 /**
- * Modal Papolê de comemoração/feedback positivo: card branco com o passarinho,
+ * Modal Reading Fluency de comemoração/feedback positivo: card branco com o passarinho,
  * um título grande e uma frase de reforço, e o botão de fechar. Sem header verde
  * e sem ações — o aluno fecha no X (ou Esc). Título/descrição são configuráveis
  * pra reaproveitar em outros feedbacks.
  */
-const SuccessModalPapole = ({
+const SuccessModalReadingFluency = ({
   isOpen,
   onClose,
   title = 'Incrível!',
   description = 'Você leu muito bem!',
   closeOnEscape = true,
-  imageSrc = papoleCelebration,
-}: SuccessModalPapoleProps) => {
+  imageSrc = readingFluencyCelebration,
+}: SuccessModalReadingFluencyProps) => {
   const titleId = useId();
 
   useEscapeToClose(isOpen && closeOnEscape, onClose);
@@ -878,14 +892,18 @@ const SuccessModalPapole = ({
       >
         <div className="relative flex flex-col items-center gap-4 p-8 text-center">
           <span className="absolute right-4 top-4">
-            <ButtonPapole variant="icon" aria-label="Fechar" onClick={onClose}>
+            <ButtonReadingFluency
+              variant="icon"
+              aria-label="Fechar"
+              onClick={onClose}
+            >
               <XIcon weight="bold" />
-            </ButtonPapole>
+            </ButtonReadingFluency>
           </span>
 
           <img
             src={imageSrc}
-            alt="Papolê"
+            alt="Reading Fluency"
             className="h-[172px] w-[252px] select-none object-contain"
             draggable={false}
           />
@@ -906,7 +924,7 @@ const SuccessModalPapole = ({
     </div>
   );
 };
-SuccessModalPapole.displayName = 'SuccessModalPapole';
+SuccessModalReadingFluency.displayName = 'SuccessModalReadingFluency';
 
-export { SuccessModalPapole };
-export type { SuccessModalPapoleProps };
+export { SuccessModalReadingFluency };
+export type { SuccessModalReadingFluencyProps };

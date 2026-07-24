@@ -1,10 +1,10 @@
 import { ButtonHTMLAttributes, ReactNode, forwardRef } from 'react';
 import { cn } from '../../utils/utils';
-import { VoiceIconPapole } from '../PapoleIcons';
+import { VoiceIconReadingFluency } from '../ReadingFluencyIcons';
 
-export interface IconButtonPapoleProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface IconButtonReadingFluencyProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /**
-   * Ícone dentro do botão. **Default:** o `VoiceIconPapole` (ícone de voz).
+   * Ícone dentro do botão. **Default:** o `VoiceIconReadingFluency` (ícone de voz).
    * Passe seu próprio ícone (ReactNode) pra trocar.
    */
   children?: ReactNode;
@@ -13,10 +13,10 @@ export interface IconButtonPapoleProps extends ButtonHTMLAttributes<HTMLButtonEl
 }
 
 /**
- * Botão de ícone sólido "xl" do tema Papolê (o "Solid Icon button, xl" da arte).
+ * Botão de ícone sólido "xl" do tema Reading Fluency (o "Solid Icon button, xl" da arte).
  *
  * Caixa ~91×70, cantos 20px, borda 4px e a sombra "3D" (`#30A34D`) que **cai de
- * 4px→2px no pressed** (mesmo mecanismo dos botões Papolê). Estados via
+ * 4px→2px no pressed** (mesmo mecanismo dos botões Reading Fluency). Estados via
  * pseudo-classes:
  * - **default**: `secondary-400` + borda `secondary-200`;
  * - **hover**: `secondary-500`;
@@ -35,9 +35,9 @@ const BASE_CLASSES =
   '[box-shadow:0px_4px_0px_0px_#30A34D,0px_0px_4px_0px_#00000021] ' +
   'active:[box-shadow:0px_2px_0px_0px_#30A34D,0px_0px_4px_0px_#00000021]';
 
-export const IconButtonPapole = forwardRef<
+export const IconButtonReadingFluency = forwardRef<
   HTMLButtonElement,
-  IconButtonPapoleProps
+  IconButtonReadingFluencyProps
 >(({ children, className, type = 'button', ...props }, ref) => (
   <button
     ref={ref}
@@ -45,7 +45,7 @@ export const IconButtonPapole = forwardRef<
     className={cn(BASE_CLASSES, className)}
     {...props}
   >
-    {children ?? <VoiceIconPapole className="h-full w-full" />}
+    {children ?? <VoiceIconReadingFluency className="h-full w-full" />}
   </button>
 ));
-IconButtonPapole.displayName = 'IconButtonPapole';
+IconButtonReadingFluency.displayName = 'IconButtonReadingFluency';

@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { AudioRecorderPapole } from './AudioRecorderPapole';
+import { AudioRecorderReadingFluency } from './AudioRecorderReadingFluency';
 
 // jsdom não implementa getUserMedia / MediaRecorder / Web Audio — mockamos o
 // mínimo pra exercitar o fluxo gravar → parar.
@@ -92,7 +92,7 @@ afterEach(() => {
 });
 
 it('renders the idle button and the equalizer bars', () => {
-  const { container } = render(<AudioRecorderPapole barCount={13} />);
+  const { container } = render(<AudioRecorderReadingFluency barCount={13} />);
 
   expect(screen.getByRole('button', { name: /gravar/i })).toBeInTheDocument();
   expect(container.querySelectorAll('span.w-1\\.5')).toHaveLength(13);
@@ -100,7 +100,7 @@ it('renders the idle button and the equalizer bars', () => {
 
 it('starts recording on click: opens the mic, starts the recorder, flips the label', async () => {
   const onRecordingChange = jest.fn();
-  render(<AudioRecorderPapole onRecordingChange={onRecordingChange} />);
+  render(<AudioRecorderReadingFluency onRecordingChange={onRecordingChange} />);
 
   fireEvent.click(screen.getByRole('button', { name: /gravar/i }));
 
@@ -115,7 +115,7 @@ it('stops recording: emits the blob, stops the mic and resets the label', async 
   const onRecordingComplete = jest.fn();
   const onRecordingChange = jest.fn();
   render(
-    <AudioRecorderPapole
+    <AudioRecorderReadingFluency
       onRecordingComplete={onRecordingComplete}
       onRecordingChange={onRecordingChange}
     />
@@ -139,7 +139,7 @@ it('stops recording: emits the blob, stops the mic and resets the label', async 
 it('reports an error and stays idle when the mic is denied', async () => {
   getUserMedia.mockRejectedValueOnce(new Error('NotAllowedError'));
   const onError = jest.fn();
-  render(<AudioRecorderPapole onError={onError} />);
+  render(<AudioRecorderReadingFluency onError={onError} />);
 
   fireEvent.click(screen.getByRole('button', { name: /gravar/i }));
 
@@ -150,7 +150,7 @@ it('reports an error and stays idle when the mic is denied', async () => {
 it('reports an error when getUserMedia is unavailable', async () => {
   setMediaDevices(undefined);
   const onError = jest.fn();
-  render(<AudioRecorderPapole onError={onError} />);
+  render(<AudioRecorderReadingFluency onError={onError} />);
 
   fireEvent.click(screen.getByRole('button', { name: /gravar/i }));
 

@@ -1,7 +1,7 @@
 import motionBird from '../../assets/gifs/motionMouthAndEyes.gif';
 import { cn } from '../../utils/utils';
 
-export interface ReadAloudPromptPapoleProps {
+export interface ReadAloudPromptReadingFluencyProps {
   /** Texto a ser lido em voz alta (renderizado em MAIÚSCULAS). */
   text: string;
   /** Rótulo acima do texto. Default: "Leia em voz alta:". */
@@ -9,7 +9,7 @@ export interface ReadAloudPromptPapoleProps {
   /** Classes extras no container. */
   className?: string;
   /**
-   * Fonte da imagem do passarinho. Default: o gif Papolê empacotado na lib.
+   * Fonte da imagem do passarinho. Default: o gif Reading Fluency empacotado na lib.
    * Passe uma URL pelo cliente caso o asset da lib não seja resolvido no bundle.
    */
   imageSrc?: string;
@@ -22,7 +22,7 @@ export interface ReadAloudPromptPapoleProps {
 }
 
 /**
- * Prompt Papolê de "leia em voz alta": o passarinho animado ao lado de um card
+ * Prompt Reading Fluency de "leia em voz alta": o passarinho animado ao lado de um card
  * com o rótulo e o texto a ser lido (via prop `text`), dentro de uma caixa de
  * borda verde. Puramente apresentacional. O balão de conversa (fundo + cauda)
  * pode ser desligado com `showBalloon={false}`.
@@ -30,17 +30,17 @@ export interface ReadAloudPromptPapoleProps {
  * Obs.: o gif é 102×128 nativo e aqui aparece a 203×254 (~2× upscale) — pode
  * ficar suave/pixelado; trocável por um asset em maior resolução depois.
  */
-export const ReadAloudPromptPapole = ({
+export const ReadAloudPromptReadingFluency = ({
   text,
   label = 'Leia em voz alta:',
   className,
   imageSrc = motionBird,
   showBalloon = true,
-}: ReadAloudPromptPapoleProps) => (
+}: ReadAloudPromptReadingFluencyProps) => (
   <div className={cn('font-quicksand flex items-center gap-6', className)}>
     <img
       src={imageSrc}
-      alt="Papolê"
+      alt="Reading Fluency"
       className="h-[254px] w-[203px] flex-shrink-0 select-none object-contain"
       draggable={false}
     />
@@ -70,4 +70,4 @@ export const ReadAloudPromptPapole = ({
     </div>
   </div>
 );
-ReadAloudPromptPapole.displayName = 'ReadAloudPromptPapole';
+ReadAloudPromptReadingFluency.displayName = 'ReadAloudPromptReadingFluency';

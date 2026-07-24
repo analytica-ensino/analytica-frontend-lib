@@ -1,6 +1,6 @@
 import type { Story } from '@ladle/react';
 import { useState } from 'react';
-import { AudioRecorderPapole } from './AudioRecorderPapole';
+import { AudioRecorderReadingFluency } from './AudioRecorderReadingFluency';
 
 /**
  * Gravador ao vivo: clique em "Gravar", fale, e as barras acompanham o
@@ -11,7 +11,7 @@ export const Recorder: Story = () => (
     data-theme="papole-light"
     className="flex min-h-[280px] items-center justify-center bg-[#CBC7F2] p-8"
   >
-    <AudioRecorderPapole showTime />
+    <AudioRecorderReadingFluency showTime />
   </div>
 );
 
@@ -26,7 +26,7 @@ export const RecorderComPlayback: Story = () => {
       data-theme="papole-light"
       className="flex min-h-[280px] flex-col items-center justify-center gap-6 bg-[#CBC7F2] p-8"
     >
-      <AudioRecorderPapole
+      <AudioRecorderReadingFluency
         showTime
         onRecordingComplete={(_blob, recordedUrl) => setUrl(recordedUrl)}
       />

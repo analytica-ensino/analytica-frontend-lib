@@ -1,5 +1,5 @@
 import type { Story } from '@ladle/react';
-import { ReadAloudPromptPapole } from './ReadAloudPromptPapole';
+import { ReadAloudPromptReadingFluency } from './ReadAloudPromptReadingFluency';
 
 // Imagem "do cliente" (data URI, sem depender de rede) pra demonstrar o override
 // via `imageSrc` quando o gif empacotado da lib não resolve no bundle.
@@ -14,7 +14,7 @@ export const ReadAloudPrompt: Story = () => (
     data-theme="papole-light"
     className="flex min-h-[420px] items-center justify-center bg-[#CBC7F2] p-8"
   >
-    <ReadAloudPromptPapole text="O mar é azul. A onda vai e vem." />
+    <ReadAloudPromptReadingFluency text="O mar é azul. A onda vai e vem." />
   </div>
 );
 
@@ -23,12 +23,12 @@ export const ReadAloudPromptLongo: Story = () => (
     data-theme="papole-light"
     className="flex min-h-[420px] items-center justify-center bg-[#CBC7F2] p-8"
   >
-    <ReadAloudPromptPapole text="O gato subiu no telhado. A lua brilhava no céu e o vento soprava devagar." />
+    <ReadAloudPromptReadingFluency text="O gato subiu no telhado. A lua brilhava no céu e o vento soprava devagar." />
   </div>
 );
 
 /**
- * Override da imagem via `imageSrc`: quando o gif Papolê empacotado na lib não
+ * Override da imagem via `imageSrc`: quando o gif Reading Fluency empacotado na lib não
  * resolve no bundle do consumidor, ele passa a própria URL (aqui um data URI de
  * exemplo no lugar do `motionMouthAndEyes.gif`).
  */
@@ -37,7 +37,7 @@ export const ReadAloudPromptComImagemDoCliente: Story = () => (
     data-theme="papole-light"
     className="flex min-h-[420px] items-center justify-center bg-[#CBC7F2] p-8"
   >
-    <ReadAloudPromptPapole
+    <ReadAloudPromptReadingFluency
       text="O mar é azul. A onda vai e vem."
       imageSrc={clientImage}
     />
@@ -53,7 +53,7 @@ export const ReadAloudPromptSemBalao: Story = () => (
     data-theme="papole-light"
     className="flex min-h-[420px] items-center justify-center bg-[#CBC7F2] p-8"
   >
-    <ReadAloudPromptPapole
+    <ReadAloudPromptReadingFluency
       text="O mar é azul. A onda vai e vem."
       showBalloon={false}
     />

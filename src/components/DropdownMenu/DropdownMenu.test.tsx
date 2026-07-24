@@ -19,9 +19,9 @@ import DropdownMenu, {
   DropdownMenuItem,
   MenuLabel,
   DropdownMenuSeparator,
-  ProfileMenuPapoleTrigger,
-  ProfileMenuPapoleInfo,
-  ProfileMenuPapoleFooter,
+  ProfileMenuReadingFluencyTrigger,
+  ProfileMenuReadingFluencyInfo,
+  ProfileMenuReadingFluencyFooter,
 } from './DropdownMenu';
 import React from 'react';
 import type { ThemeMode } from '@/hooks/useTheme';
@@ -1392,15 +1392,15 @@ describe('useDropdownMenuStore', () => {
 });
 
 // ======================================================================
-// ProfileMenu Papolê (variant="papole")
+// ProfileMenu Reading Fluency (variant="papole")
 // ======================================================================
 
-describe('ProfileMenuPapole components', () => {
-  describe('ProfileMenuPapoleTrigger', () => {
-    it('renders a profile button with the papolê bird by default', () => {
+describe('ProfileMenuReadingFluency components', () => {
+  describe('ProfileMenuReadingFluencyTrigger', () => {
+    it('renders a profile button with the reading fluency bird by default', () => {
       render(
         <DropdownMenu>
-          <ProfileMenuPapoleTrigger />
+          <ProfileMenuReadingFluencyTrigger />
           <DropdownMenuContent variant="papole">Content</DropdownMenuContent>
         </DropdownMenu>
       );
@@ -1416,7 +1416,7 @@ describe('ProfileMenuPapole components', () => {
     it('uses the provided photoUrl when present', () => {
       render(
         <DropdownMenu>
-          <ProfileMenuPapoleTrigger photoUrl="https://cdn.example.com/me.png" />
+          <ProfileMenuReadingFluencyTrigger photoUrl="https://cdn.example.com/me.png" />
           <DropdownMenuContent variant="papole">Content</DropdownMenuContent>
         </DropdownMenu>
       );
@@ -1429,7 +1429,7 @@ describe('ProfileMenuPapole components', () => {
     it('toggles the menu open/closed on click', async () => {
       render(
         <DropdownMenu>
-          <ProfileMenuPapoleTrigger />
+          <ProfileMenuReadingFluencyTrigger />
           <DropdownMenuContent variant="papole">Content</DropdownMenuContent>
         </DropdownMenu>
       );
@@ -1454,7 +1454,7 @@ describe('ProfileMenuPapole components', () => {
     it('applies a custom className', () => {
       render(
         <DropdownMenu>
-          <ProfileMenuPapoleTrigger className="my-trigger" />
+          <ProfileMenuReadingFluencyTrigger className="my-trigger" />
           <DropdownMenuContent variant="papole">Content</DropdownMenuContent>
         </DropdownMenu>
       );
@@ -1465,10 +1465,10 @@ describe('ProfileMenuPapole components', () => {
   });
 
   describe('DropdownMenuContent papole variant', () => {
-    it('applies the papolê chrome classes', () => {
+    it('applies the reading fluency chrome classes', () => {
       render(
         <DropdownMenu open>
-          <ProfileMenuPapoleTrigger />
+          <ProfileMenuReadingFluencyTrigger />
           <DropdownMenuContent variant="papole">Content</DropdownMenuContent>
         </DropdownMenu>
       );
@@ -1479,10 +1479,13 @@ describe('ProfileMenuPapole components', () => {
     });
   });
 
-  describe('ProfileMenuPapoleInfo', () => {
+  describe('ProfileMenuReadingFluencyInfo', () => {
     it('always renders name and email', () => {
       render(
-        <ProfileMenuPapoleInfo name="Ana Silva" email="ana@example.com" />
+        <ProfileMenuReadingFluencyInfo
+          name="Ana Silva"
+          email="ana@example.com"
+        />
       );
       expect(screen.getByText('Ana Silva')).toBeInTheDocument();
       expect(screen.getByText('ana@example.com')).toBeInTheDocument();
@@ -1490,7 +1493,7 @@ describe('ProfileMenuPapole components', () => {
 
     it('renders the school block joining class and school year with a bullet', () => {
       render(
-        <ProfileMenuPapoleInfo
+        <ProfileMenuReadingFluencyInfo
           name="Ana"
           email="ana@example.com"
           schoolName="Escola Modelo"
@@ -1504,7 +1507,7 @@ describe('ProfileMenuPapole components', () => {
 
     it('renders only the school name when no class/year is provided', () => {
       render(
-        <ProfileMenuPapoleInfo
+        <ProfileMenuReadingFluencyInfo
           name="Ana"
           email="ana@example.com"
           schoolName="Escola Modelo"
@@ -1516,7 +1519,7 @@ describe('ProfileMenuPapole components', () => {
 
     it('renders a single school-year value without a separator', () => {
       render(
-        <ProfileMenuPapoleInfo
+        <ProfileMenuReadingFluencyInfo
           name="Ana"
           email="ana@example.com"
           classYearName="Turma A"
@@ -1528,53 +1531,51 @@ describe('ProfileMenuPapole components', () => {
 
     it('omits the school block when no school data is provided', () => {
       const { container } = render(
-        <ProfileMenuPapoleInfo name="Ana" email="ana@example.com" />
+        <ProfileMenuReadingFluencyInfo name="Ana" email="ana@example.com" />
       );
       // Only the name/email block — a single inner flex-col column.
       const info = container.querySelector(
-        '[data-component="ProfileMenuPapoleInfo"]'
+        '[data-component="ProfileMenuReadingFluencyInfo"]'
       );
       expect(info?.querySelectorAll(':scope > div')).toHaveLength(1);
     });
 
     it('exposes the data-component attribute and forwards className', () => {
       const { container } = render(
-        <ProfileMenuPapoleInfo
+        <ProfileMenuReadingFluencyInfo
           name="Ana"
           email="ana@example.com"
           className="my-info"
         />
       );
       const info = container.querySelector(
-        '[data-component="ProfileMenuPapoleInfo"]'
+        '[data-component="ProfileMenuReadingFluencyInfo"]'
       );
       expect(info).toHaveClass('my-info');
     });
   });
 
-  describe('ProfileMenuPapoleFooter', () => {
+  describe('ProfileMenuReadingFluencyFooter', () => {
     it('renders the "Sair" button', () => {
       render(
         <DropdownMenu open>
-          <ProfileMenuPapoleTrigger />
+          <ProfileMenuReadingFluencyTrigger />
           <DropdownMenuContent variant="papole">
-            <ProfileMenuPapoleFooter />
+            <ProfileMenuReadingFluencyFooter />
           </DropdownMenuContent>
         </DropdownMenu>
       );
 
-      expect(
-        screen.getByRole('button', { name: 'Sair' })
-      ).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument();
     });
 
     it('calls onClick and closes the menu', async () => {
       const handleClick = jest.fn();
       render(
         <DropdownMenu>
-          <ProfileMenuPapoleTrigger />
+          <ProfileMenuReadingFluencyTrigger />
           <DropdownMenuContent variant="papole">
-            <ProfileMenuPapoleFooter onClick={handleClick} />
+            <ProfileMenuReadingFluencyFooter onClick={handleClick} />
           </DropdownMenuContent>
         </DropdownMenu>
       );
@@ -1596,9 +1597,9 @@ describe('ProfileMenuPapole components', () => {
       const handleClick = jest.fn();
       render(
         <DropdownMenu open>
-          <ProfileMenuPapoleTrigger />
+          <ProfileMenuReadingFluencyTrigger />
           <DropdownMenuContent variant="papole">
-            <ProfileMenuPapoleFooter disabled onClick={handleClick} />
+            <ProfileMenuReadingFluencyFooter disabled onClick={handleClick} />
           </DropdownMenuContent>
         </DropdownMenu>
       );
@@ -1612,9 +1613,9 @@ describe('ProfileMenuPapole components', () => {
     it('applies a custom className', () => {
       render(
         <DropdownMenu open>
-          <ProfileMenuPapoleTrigger />
+          <ProfileMenuReadingFluencyTrigger />
           <DropdownMenuContent variant="papole">
-            <ProfileMenuPapoleFooter className="my-footer" />
+            <ProfileMenuReadingFluencyFooter className="my-footer" />
           </DropdownMenuContent>
         </DropdownMenu>
       );

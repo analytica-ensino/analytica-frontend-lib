@@ -17,7 +17,7 @@ import {
   CardTest,
   CardSimulationHistory,
   CardEssayHistory,
-  CardPapole,
+  CardReadingFluency,
   EssayStatus,
   EssayReviewStatus,
   type EssayHistoryData,
@@ -3852,32 +3852,34 @@ describe('CardEssayHistory', () => {
   });
 });
 
-describe('CardPapole', () => {
+describe('CardReadingFluency', () => {
   describe('default (new) state', () => {
-    it('renders the papolê bird image with the default alt/label', () => {
-      render(<CardPapole />);
-      const image = screen.getByAltText('Papolê');
+    it('renders the reading fluency bird image with the default alt/label', () => {
+      render(<CardReadingFluency />);
+      const image = screen.getByAltText('Reading Fluency');
       expect(image).toBeInTheDocument();
       // Static asset imports resolve to the jest file stub.
       expect(image.getAttribute('src')).toBe('test-file-stub');
     });
 
     it('renders the "NOVA ATIVIDADE!" badge', () => {
-      render(<CardPapole />);
+      render(<CardReadingFluency />);
       expect(screen.getByText('NOVA ATIVIDADE!')).toBeInTheDocument();
       expect(screen.queryByText('EM BREVE')).not.toBeInTheDocument();
-      expect(screen.queryByTestId('papole-check')).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId('reading-fluency-check')
+      ).not.toBeInTheDocument();
     });
 
     it('applies the default background color', () => {
-      render(<CardPapole data-testid="card-papole" />);
+      render(<CardReadingFluency data-testid="card-papole" />);
       expect(screen.getByTestId('card-papole')).toHaveStyle({
         backgroundColor: '#a3d9b1',
       });
     });
 
     it('is not interactive without an onClick handler', () => {
-      render(<CardPapole data-testid="card-papole" />);
+      render(<CardReadingFluency data-testid="card-papole" />);
       const card = screen.getByTestId('card-papole');
       expect(card).not.toHaveAttribute('role', 'button');
       expect(card).not.toHaveAttribute('tabindex');
@@ -3885,7 +3887,12 @@ describe('CardPapole', () => {
     });
 
     it('forwards custom className and props to the root element', () => {
-      render(<CardPapole className="custom-class" data-testid="card-papole" />);
+      render(
+        <CardReadingFluency
+          className="custom-class"
+          data-testid="card-papole"
+        />
+      );
       const card = screen.getByTestId('card-papole');
       expect(card.className).toContain('custom-class');
       expect(card.className).toContain('rounded-2xl');
@@ -3894,21 +3901,21 @@ describe('CardPapole', () => {
 
   describe('custom props', () => {
     it('overrides the image via the "image" prop', () => {
-      render(<CardPapole image="https://cdn.example.com/bird.png" />);
-      expect(screen.getByAltText('Papolê').getAttribute('src')).toBe(
+      render(<CardReadingFluency image="https://cdn.example.com/bird.png" />);
+      expect(screen.getByAltText('Reading Fluency').getAttribute('src')).toBe(
         'https://cdn.example.com/bird.png'
       );
     });
 
     it('uses the "label" prop as the image alt text', () => {
-      render(<CardPapole label="Atividade de matemática" />);
+      render(<CardReadingFluency label="Atividade de matemática" />);
       expect(
         screen.getByAltText('Atividade de matemática')
       ).toBeInTheDocument();
     });
 
     it('applies a custom background color', () => {
-      render(<CardPapole color="#ff0000" data-testid="card-papole" />);
+      render(<CardReadingFluency color="#ff0000" data-testid="card-papole" />);
       expect(screen.getByTestId('card-papole')).toHaveStyle({
         backgroundColor: '#ff0000',
       });
@@ -3918,7 +3925,9 @@ describe('CardPapole', () => {
   describe('interactivity (new state)', () => {
     it('becomes a button and activates onClick on click', () => {
       const handleClick = jest.fn();
-      render(<CardPapole onClick={handleClick} data-testid="card-papole" />);
+      render(
+        <CardReadingFluency onClick={handleClick} data-testid="card-papole" />
+      );
 
       const card = screen.getByTestId('card-papole');
       expect(card).toHaveAttribute('role', 'button');
@@ -3931,7 +3940,9 @@ describe('CardPapole', () => {
 
     it('activates onClick via Enter and Space', () => {
       const handleClick = jest.fn();
-      render(<CardPapole onClick={handleClick} data-testid="card-papole" />);
+      render(
+        <CardReadingFluency onClick={handleClick} data-testid="card-papole" />
+      );
 
       const card = screen.getByTestId('card-papole');
       fireEvent.keyDown(card, { key: 'Enter' });
@@ -3942,7 +3953,10 @@ describe('CardPapole', () => {
     it('forwards the onKeyDown handler', () => {
       const handleKeyDown = jest.fn();
       render(
-        <CardPapole onKeyDown={handleKeyDown} data-testid="card-papole" />
+        <CardReadingFluency
+          onKeyDown={handleKeyDown}
+          data-testid="card-papole"
+        />
       );
 
       fireEvent.keyDown(screen.getByTestId('card-papole'), { key: 'Tab' });
@@ -3952,8 +3966,8 @@ describe('CardPapole', () => {
 
   describe('done state', () => {
     it('renders the check icon and no badges', () => {
-      render(<CardPapole state="done" />);
-      expect(screen.getByTestId('papole-check')).toBeInTheDocument();
+      render(<CardReadingFluency state="done" />);
+      expect(screen.getByTestId('reading-fluency-check')).toBeInTheDocument();
       expect(screen.queryByText('NOVA ATIVIDADE!')).not.toBeInTheDocument();
       expect(screen.queryByText('EM BREVE')).not.toBeInTheDocument();
     });
@@ -3961,7 +3975,11 @@ describe('CardPapole', () => {
     it('stays interactive when an onClick is provided', () => {
       const handleClick = jest.fn();
       render(
-        <CardPapole state="done" onClick={handleClick} data-testid="card-papole" />
+        <CardReadingFluency
+          state="done"
+          onClick={handleClick}
+          data-testid="card-papole"
+        />
       );
 
       const card = screen.getByTestId('card-papole');
@@ -3973,14 +3991,18 @@ describe('CardPapole', () => {
 
   describe('coming-soon state', () => {
     it('renders the "EM BREVE" badge and no check icon', () => {
-      render(<CardPapole state="coming-soon" />);
+      render(<CardReadingFluency state="coming-soon" />);
       expect(screen.getByText('EM BREVE')).toBeInTheDocument();
       expect(screen.queryByText('NOVA ATIVIDADE!')).not.toBeInTheDocument();
-      expect(screen.queryByTestId('papole-check')).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId('reading-fluency-check')
+      ).not.toBeInTheDocument();
     });
 
     it('applies disabled visuals and blocks pointer events', () => {
-      render(<CardPapole state="coming-soon" data-testid="card-papole" />);
+      render(
+        <CardReadingFluency state="coming-soon" data-testid="card-papole" />
+      );
       const card = screen.getByTestId('card-papole');
       expect(card.className).toContain('pointer-events-none');
       expect(card.className).toContain('border-dashed');
@@ -3989,14 +4011,16 @@ describe('CardPapole', () => {
     });
 
     it('dims the image', () => {
-      render(<CardPapole state="coming-soon" />);
-      expect(screen.getByAltText('Papolê').className).toContain('opacity-40');
+      render(<CardReadingFluency state="coming-soon" />);
+      expect(screen.getByAltText('Reading Fluency').className).toContain(
+        'opacity-40'
+      );
     });
 
     it('is not interactive, even with an onClick handler', () => {
       const handleClick = jest.fn();
       render(
-        <CardPapole
+        <CardReadingFluency
           state="coming-soon"
           onClick={handleClick}
           data-testid="card-papole"

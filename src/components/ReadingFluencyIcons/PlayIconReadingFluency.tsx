@@ -1,11 +1,11 @@
 import type { FC } from 'react';
-import type { PapoleIconProps } from './types';
+import type { ReadingFluencyIconProps } from './types';
 
 /**
- * Reproduzir (triângulo dourado com contorno creme) — tema Papolê. Cores fixas
+ * Reproduzir (triângulo dourado com contorno creme) — tema Reading Fluency. Cores fixas
  * da arte (`#F9CB3B` + `#FDEFC4`). `aria-hidden`; quem usa em botão dá o rótulo.
  */
-export const PlayIconPapole: FC<PapoleIconProps> = ({
+export const PlayIconReadingFluency: FC<ReadingFluencyIconProps> = ({
   size = 30,
   className,
 }) => (
@@ -26,4 +26,4 @@ export const PlayIconPapole: FC<PapoleIconProps> = ({
     />
   </svg>
 );
-PlayIconPapole.displayName = 'PlayIconPapole';
+PlayIconReadingFluency.displayName = 'PlayIconReadingFluency';

@@ -1,25 +1,33 @@
 import type { Story } from '@ladle/react';
 import {
-  MicIconPapole,
-  MicOffIconPapole,
-  StopIconPapole,
-  PlayIconPapole,
-  PauseIconPapole,
+  MicIconReadingFluency,
+  MicOffIconReadingFluency,
+  StopIconReadingFluency,
+  PlayIconReadingFluency,
+  PauseIconReadingFluency,
 } from '.';
 
 const items = [
-  { name: 'MicIconPapole', Icon: MicIconPapole, dark: true },
-  { name: 'MicOffIconPapole', Icon: MicOffIconPapole, dark: true },
-  { name: 'StopIconPapole', Icon: StopIconPapole, dark: true },
-  { name: 'PlayIconPapole', Icon: PlayIconPapole, dark: false },
-  { name: 'PauseIconPapole', Icon: PauseIconPapole, dark: false },
+  { name: 'MicIconReadingFluency', Icon: MicIconReadingFluency, dark: true },
+  {
+    name: 'MicOffIconReadingFluency',
+    Icon: MicOffIconReadingFluency,
+    dark: true,
+  },
+  { name: 'StopIconReadingFluency', Icon: StopIconReadingFluency, dark: true },
+  { name: 'PlayIconReadingFluency', Icon: PlayIconReadingFluency, dark: false },
+  {
+    name: 'PauseIconReadingFluency',
+    Icon: PauseIconReadingFluency,
+    dark: false,
+  },
 ] as const;
 
-export const AllPapoleIcons: Story = () => (
+export const AllReadingFluencyIcons: Story = () => (
   <div data-theme="papole-light" className="flex flex-col gap-6 p-8">
     <p className="text-sm text-text-700">
-      Ícones do tema Papolê. Marrom (mic/stop) sobre fundo dourado; dourado
-      (play/pause) sobre fundo verde.
+      Ícones do tema Reading Fluency. Marrom (mic/stop) sobre fundo dourado;
+      dourado (play/pause) sobre fundo verde.
     </p>
 
     <div className="flex flex-wrap gap-6">
@@ -42,7 +50,7 @@ export const AllPapoleIcons: Story = () => (
     <div className="flex items-end gap-6 rounded-2xl bg-secondary-500 p-6">
       {[16, 24, 30, 48].map((size) => (
         <div key={size} className="flex flex-col items-center gap-2">
-          <PlayIconPapole size={size} />
+          <PlayIconReadingFluency size={size} />
           <span className="text-xs text-primary-100">{size}px</span>
         </div>
       ))}

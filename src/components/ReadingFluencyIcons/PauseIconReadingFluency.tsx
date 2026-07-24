@@ -1,17 +1,17 @@
 import { useId, type FC } from 'react';
-import type { PapoleIconProps } from './types';
+import type { ReadingFluencyIconProps } from './types';
 
 /**
- * Pausar (duas barras douradas com contorno creme) — tema Papolê. Cores fixas da
+ * Pausar (duas barras douradas com contorno creme) — tema Reading Fluency. Cores fixas da
  * arte (`#F9CB3B` + `#FDEFC4`). O contorno usa um `mask` com id único (via
  * `useId`) pra não colidir entre instâncias. `aria-hidden`; rótulo vem de quem usa.
  */
-export const PauseIconPapole: FC<PapoleIconProps> = ({
+export const PauseIconReadingFluency: FC<ReadingFluencyIconProps> = ({
   size = 30,
   className,
 }) => {
   // id único (sem ":") pra o `mask` não colidir entre instâncias.
-  const maskId = `papole-pause-mask-${useId().replaceAll(':', '')}`;
+  const maskId = `reading-fluency-pause-mask-${useId().replaceAll(':', '')}`;
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -52,4 +52,4 @@ export const PauseIconPapole: FC<PapoleIconProps> = ({
     </svg>
   );
 };
-PauseIconPapole.displayName = 'PauseIconPapole';
+PauseIconReadingFluency.displayName = 'PauseIconReadingFluency';

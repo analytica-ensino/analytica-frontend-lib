@@ -1,15 +1,15 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Modal, {
-  MicPermissionModalPapole,
-  MicOffModalPapole,
-  AudioPlaybackModalPapole,
-  SuccessModalPapole,
+  MicPermissionModalReadingFluency,
+  MicOffModalReadingFluency,
+  AudioPlaybackModalReadingFluency,
+  SuccessModalReadingFluency,
 } from './Modal';
 import { useMicrophonePermission } from '../../hooks/useMicrophonePermission';
 import * as videoUtils from './utils/videoUtils';
 
-// MicPermissionModalPapole reads the microphone permission via this hook; mock it
+// MicPermissionModalReadingFluency reads the microphone permission via this hook; mock it
 // so we control `shouldAsk` (managed-mode visibility) and `requestPermission`.
 jest.mock('../../hooks/useMicrophonePermission');
 const mockUseMicrophonePermission = useMicrophonePermission as jest.Mock;
@@ -511,10 +511,10 @@ describe('Modal', () => {
 });
 
 // ======================================================================
-// MicPermissionModalPapole
+// MicPermissionModalReadingFluency
 // ======================================================================
 
-describe('MicPermissionModalPapole', () => {
+describe('MicPermissionModalReadingFluency', () => {
   let requestPermission: jest.Mock;
   let originalOverflow: string;
 
@@ -535,7 +535,7 @@ describe('MicPermissionModalPapole', () => {
 
   describe('managed mode (no isOpen)', () => {
     it('opens on its own when the mic still needs to be asked', () => {
-      render(<MicPermissionModalPapole />);
+      render(<MicPermissionModalReadingFluency />);
       expect(
         screen.getByText('Por que pedimos acesso ao microfone')
       ).toBeInTheDocument();
@@ -550,7 +550,7 @@ describe('MicPermissionModalPapole', () => {
         shouldAsk: false,
         requestPermission,
       });
-      render(<MicPermissionModalPapole />);
+      render(<MicPermissionModalReadingFluency />);
       expect(
         screen.queryByText('Por que pedimos acesso ao microfone')
       ).not.toBeInTheDocument();
@@ -558,7 +558,7 @@ describe('MicPermissionModalPapole', () => {
 
     it('requests permission and reports the result via onEnable', async () => {
       const onEnable = jest.fn();
-      render(<MicPermissionModalPapole onEnable={onEnable} />);
+      render(<MicPermissionModalReadingFluency onEnable={onEnable} />);
 
       fireEvent.click(
         screen.getByRole('button', { name: 'Habilitar permissões' })
@@ -572,7 +572,9 @@ describe('MicPermissionModalPapole', () => {
 
     it('dismisses on "Configurar depois" and calls onConfigureLater', () => {
       const onConfigureLater = jest.fn();
-      render(<MicPermissionModalPapole onConfigureLater={onConfigureLater} />);
+      render(
+        <MicPermissionModalReadingFluency onConfigureLater={onConfigureLater} />
+      );
 
       fireEvent.click(
         screen.getByRole('button', { name: 'Configurar depois' })
@@ -585,7 +587,7 @@ describe('MicPermissionModalPapole', () => {
     });
 
     it('dismisses when the close button is clicked', () => {
-      render(<MicPermissionModalPapole />);
+      render(<MicPermissionModalReadingFluency />);
       fireEvent.click(screen.getByRole('button', { name: 'Fechar' }));
       expect(
         screen.queryByText('Por que pedimos acesso ao microfone')
@@ -593,7 +595,7 @@ describe('MicPermissionModalPapole', () => {
     });
 
     it('dismisses on Escape', () => {
-      render(<MicPermissionModalPapole />);
+      render(<MicPermissionModalReadingFluency />);
       fireEvent.keyDown(document, { key: 'Escape' });
       expect(
         screen.queryByText('Por que pedimos acesso ao microfone')
@@ -602,7 +604,7 @@ describe('MicPermissionModalPapole', () => {
 
     it('calls onLearnMore when the "Saiba mais" bar is clicked', () => {
       const onLearnMore = jest.fn();
-      render(<MicPermissionModalPapole onLearnMore={onLearnMore} />);
+      render(<MicPermissionModalReadingFluency onLearnMore={onLearnMore} />);
       fireEvent.click(
         screen.getByText('Saiba mais sobre como cuidamos dos dados')
       );
@@ -616,14 +618,14 @@ describe('MicPermissionModalPapole', () => {
         shouldAsk: false,
         requestPermission,
       });
-      render(<MicPermissionModalPapole isOpen />);
+      render(<MicPermissionModalReadingFluency isOpen />);
       expect(
         screen.getByText('Por que pedimos acesso ao microfone')
       ).toBeInTheDocument();
     });
 
     it('does not render when isOpen is false', () => {
-      render(<MicPermissionModalPapole isOpen={false} />);
+      render(<MicPermissionModalReadingFluency isOpen={false} />);
       expect(
         screen.queryByText('Por que pedimos acesso ao microfone')
       ).not.toBeInTheDocument();
@@ -631,7 +633,7 @@ describe('MicPermissionModalPapole', () => {
 
     it('calls onClose (not internal dismiss) on the close button', () => {
       const onClose = jest.fn();
-      render(<MicPermissionModalPapole isOpen onClose={onClose} />);
+      render(<MicPermissionModalReadingFluency isOpen onClose={onClose} />);
       fireEvent.click(screen.getByRole('button', { name: 'Fechar' }));
       expect(onClose).toHaveBeenCalledTimes(1);
       // Still open: the parent owns visibility.
@@ -642,7 +644,7 @@ describe('MicPermissionModalPapole', () => {
 
     it('calls onClose on Escape', () => {
       const onClose = jest.fn();
-      render(<MicPermissionModalPapole isOpen onClose={onClose} />);
+      render(<MicPermissionModalReadingFluency isOpen onClose={onClose} />);
       fireEvent.keyDown(document, { key: 'Escape' });
       expect(onClose).toHaveBeenCalledTimes(1);
     });
@@ -650,7 +652,10 @@ describe('MicPermissionModalPapole', () => {
     it('"Configurar depois" calls onConfigureLater without internally dismissing', () => {
       const onConfigureLater = jest.fn();
       render(
-        <MicPermissionModalPapole isOpen onConfigureLater={onConfigureLater} />
+        <MicPermissionModalReadingFluency
+          isOpen
+          onConfigureLater={onConfigureLater}
+        />
       );
       fireEvent.click(
         screen.getByRole('button', { name: 'Configurar depois' })
@@ -665,7 +670,7 @@ describe('MicPermissionModalPapole', () => {
     it('does not close on Escape when closeOnEscape is false', () => {
       const onClose = jest.fn();
       render(
-        <MicPermissionModalPapole
+        <MicPermissionModalReadingFluency
           isOpen
           onClose={onClose}
           closeOnEscape={false}
@@ -678,7 +683,7 @@ describe('MicPermissionModalPapole', () => {
 
   it('renders a custom title and description', () => {
     render(
-      <MicPermissionModalPapole
+      <MicPermissionModalReadingFluency
         isOpen
         title="Título custom"
         description={<p>Descrição custom</p>}
@@ -690,10 +695,10 @@ describe('MicPermissionModalPapole', () => {
 });
 
 // ======================================================================
-// MicOffModalPapole
+// MicOffModalReadingFluency
 // ======================================================================
 
-describe('MicOffModalPapole', () => {
+describe('MicOffModalReadingFluency', () => {
   const defaultProps = { isOpen: true, onClose: jest.fn() };
   let originalOverflow: string;
 
@@ -707,7 +712,7 @@ describe('MicOffModalPapole', () => {
   });
 
   it('renders the default title and actions when open', () => {
-    render(<MicOffModalPapole {...defaultProps} />);
+    render(<MicOffModalReadingFluency {...defaultProps} />);
     expect(
       screen.getByText('Parece que o microfone está desligado')
     ).toBeInTheDocument();
@@ -720,7 +725,7 @@ describe('MicOffModalPapole', () => {
   });
 
   it('does not render when closed', () => {
-    render(<MicOffModalPapole {...defaultProps} isOpen={false} />);
+    render(<MicOffModalReadingFluency {...defaultProps} isOpen={false} />);
     expect(
       screen.queryByText('Parece que o microfone está desligado')
     ).not.toBeInTheDocument();
@@ -730,7 +735,7 @@ describe('MicOffModalPapole', () => {
     const onRetry = jest.fn();
     const onAskAdult = jest.fn();
     render(
-      <MicOffModalPapole
+      <MicOffModalReadingFluency
         {...defaultProps}
         onRetry={onRetry}
         onAskAdult={onAskAdult}
@@ -748,7 +753,7 @@ describe('MicOffModalPapole', () => {
 
   it('calls onClose on the close button and on Escape', () => {
     const onClose = jest.fn();
-    render(<MicOffModalPapole {...defaultProps} onClose={onClose} />);
+    render(<MicOffModalReadingFluency {...defaultProps} onClose={onClose} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Fechar' }));
     fireEvent.keyDown(document, { key: 'Escape' });
@@ -759,7 +764,7 @@ describe('MicOffModalPapole', () => {
   it('does not close on Escape when closeOnEscape is false', () => {
     const onClose = jest.fn();
     render(
-      <MicOffModalPapole
+      <MicOffModalReadingFluency
         {...defaultProps}
         onClose={onClose}
         closeOnEscape={false}
@@ -770,16 +775,16 @@ describe('MicOffModalPapole', () => {
   });
 
   it('renders a custom title', () => {
-    render(<MicOffModalPapole {...defaultProps} title="Sem áudio" />);
+    render(<MicOffModalReadingFluency {...defaultProps} title="Sem áudio" />);
     expect(screen.getByText('Sem áudio')).toBeInTheDocument();
   });
 });
 
 // ======================================================================
-// AudioPlaybackModalPapole
+// AudioPlaybackModalReadingFluency
 // ======================================================================
 
-describe('AudioPlaybackModalPapole', () => {
+describe('AudioPlaybackModalReadingFluency', () => {
   const defaultProps = {
     isOpen: true,
     onClose: jest.fn(),
@@ -839,7 +844,11 @@ describe('AudioPlaybackModalPapole', () => {
 
   afterEach(() => {
     document.body.style.overflow = originalOverflow;
-    Object.defineProperty(HTMLMediaElement.prototype, 'play', descriptors.play!);
+    Object.defineProperty(
+      HTMLMediaElement.prototype,
+      'play',
+      descriptors.play!
+    );
     Object.defineProperty(
       HTMLMediaElement.prototype,
       'pause',
@@ -861,11 +870,12 @@ describe('AudioPlaybackModalPapole', () => {
     }
   });
 
-  const getAudio = () =>
-    document.querySelector('audio') as HTMLAudioElement;
+  const getAudio = () => document.querySelector('audio') as HTMLAudioElement;
 
   it('renders the decorative waveform, player and body actions', () => {
-    const { container } = render(<AudioPlaybackModalPapole {...defaultProps} />);
+    const { container } = render(
+      <AudioPlaybackModalReadingFluency {...defaultProps} />
+    );
 
     // 19 decorative waveform bars.
     const waveform = container.querySelector('[aria-hidden="true"]');
@@ -882,14 +892,18 @@ describe('AudioPlaybackModalPapole', () => {
   });
 
   it('does not render when closed', () => {
-    render(<AudioPlaybackModalPapole {...defaultProps} isOpen={false} />);
+    render(
+      <AudioPlaybackModalReadingFluency {...defaultProps} isOpen={false} />
+    );
     expect(
       screen.queryByRole('button', { name: 'Reproduzir' })
     ).not.toBeInTheDocument();
   });
 
   it('disables the play button without a src', () => {
-    render(<AudioPlaybackModalPapole {...defaultProps} src={undefined} />);
+    render(
+      <AudioPlaybackModalReadingFluency {...defaultProps} src={undefined} />
+    );
     expect(screen.getByRole('button', { name: 'Reproduzir' })).toBeDisabled();
   });
 
@@ -906,7 +920,11 @@ describe('AudioPlaybackModalPapole', () => {
     try {
       const blob = new Blob(['audio'], { type: 'audio/webm' });
       const { unmount } = render(
-        <AudioPlaybackModalPapole isOpen onClose={jest.fn()} src={blob} />
+        <AudioPlaybackModalReadingFluency
+          isOpen
+          onClose={jest.fn()}
+          src={blob}
+        />
       );
 
       expect(createObjectURL).toHaveBeenCalledWith(blob);
@@ -922,7 +940,7 @@ describe('AudioPlaybackModalPapole', () => {
   });
 
   it('toggles play/pause and updates the aria-label', async () => {
-    render(<AudioPlaybackModalPapole {...defaultProps} />);
+    render(<AudioPlaybackModalReadingFluency {...defaultProps} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Reproduzir' }));
     expect(playMock).toHaveBeenCalledTimes(1);
@@ -937,7 +955,7 @@ describe('AudioPlaybackModalPapole', () => {
 
   it('keeps the play label when play() rejects (e.g. invalid source)', async () => {
     playMock.mockRejectedValueOnce(new Error('no supported source'));
-    render(<AudioPlaybackModalPapole {...defaultProps} />);
+    render(<AudioPlaybackModalReadingFluency {...defaultProps} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Reproduzir' }));
     expect(playMock).toHaveBeenCalledTimes(1);
@@ -952,7 +970,7 @@ describe('AudioPlaybackModalPapole', () => {
   });
 
   it('updates the displayed time on timeupdate', () => {
-    render(<AudioPlaybackModalPapole {...defaultProps} />);
+    render(<AudioPlaybackModalReadingFluency {...defaultProps} />);
 
     currentTimeValue = 65; // 00:01:05
     fireEvent.timeUpdate(getAudio());
@@ -961,7 +979,9 @@ describe('AudioPlaybackModalPapole', () => {
   });
 
   it('seeks and updates the progress after metadata loads', () => {
-    const { container } = render(<AudioPlaybackModalPapole {...defaultProps} />);
+    const { container } = render(
+      <AudioPlaybackModalReadingFluency {...defaultProps} />
+    );
 
     durationValue = 100;
     fireEvent.loadedMetadata(getAudio());
@@ -983,7 +1003,7 @@ describe('AudioPlaybackModalPapole', () => {
   });
 
   it('resets playing state and time when the audio ends', () => {
-    render(<AudioPlaybackModalPapole {...defaultProps} />);
+    render(<AudioPlaybackModalReadingFluency {...defaultProps} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Reproduzir' }));
     currentTimeValue = 30;
@@ -1003,7 +1023,7 @@ describe('AudioPlaybackModalPapole', () => {
     const onRetry = jest.fn();
     const onClose = jest.fn();
     render(
-      <AudioPlaybackModalPapole
+      <AudioPlaybackModalReadingFluency
         {...defaultProps}
         onConfirm={onConfirm}
         onRetry={onRetry}
@@ -1023,10 +1043,10 @@ describe('AudioPlaybackModalPapole', () => {
 });
 
 // ======================================================================
-// SuccessModalPapole
+// SuccessModalReadingFluency
 // ======================================================================
 
-describe('SuccessModalPapole', () => {
+describe('SuccessModalReadingFluency', () => {
   const defaultProps = { isOpen: true, onClose: jest.fn() };
   let originalOverflow: string;
 
@@ -1040,20 +1060,20 @@ describe('SuccessModalPapole', () => {
   });
 
   it('renders the default title, description and celebration image', () => {
-    render(<SuccessModalPapole {...defaultProps} />);
+    render(<SuccessModalReadingFluency {...defaultProps} />);
     expect(screen.getByText('Incrível!')).toBeInTheDocument();
     expect(screen.getByText('Você leu muito bem!')).toBeInTheDocument();
-    expect(screen.getByAltText('Papolê')).toBeInTheDocument();
+    expect(screen.getByAltText('Reading Fluency')).toBeInTheDocument();
   });
 
   it('does not render when closed', () => {
-    render(<SuccessModalPapole {...defaultProps} isOpen={false} />);
+    render(<SuccessModalReadingFluency {...defaultProps} isOpen={false} />);
     expect(screen.queryByText('Incrível!')).not.toBeInTheDocument();
   });
 
   it('calls onClose on the close button and on Escape', () => {
     const onClose = jest.fn();
-    render(<SuccessModalPapole {...defaultProps} onClose={onClose} />);
+    render(<SuccessModalReadingFluency {...defaultProps} onClose={onClose} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Fechar' }));
     fireEvent.keyDown(document, { key: 'Escape' });
@@ -1064,7 +1084,7 @@ describe('SuccessModalPapole', () => {
   it('does not close on Escape when closeOnEscape is false', () => {
     const onClose = jest.fn();
     render(
-      <SuccessModalPapole
+      <SuccessModalReadingFluency
         {...defaultProps}
         onClose={onClose}
         closeOnEscape={false}
@@ -1076,7 +1096,7 @@ describe('SuccessModalPapole', () => {
 
   it('renders custom title and description', () => {
     render(
-      <SuccessModalPapole
+      <SuccessModalReadingFluency
         {...defaultProps}
         title="Muito bem!"
         description="Continue assim!"

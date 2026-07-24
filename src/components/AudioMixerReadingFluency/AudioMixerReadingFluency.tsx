@@ -14,7 +14,7 @@ import { useAudioSpectrum } from '../../hooks/useAudioSpectrum';
 export type AudioMixerStatus = 'playing' | 'paused' | 'stopped';
 
 /** Métodos imperativos expostos via `ref` — pra um botão externo dirigir o player. */
-export interface AudioMixerPapoleHandle {
+export interface AudioMixerReadingFluencyHandle {
   /** Toca / continua de onde parou. */
   play: () => void;
   /** Pausa mantendo a posição. */
@@ -23,7 +23,7 @@ export interface AudioMixerPapoleHandle {
   stop: () => void;
 }
 
-export interface AudioMixerPapoleProps {
+export interface AudioMixerReadingFluencyProps {
   /** URL (ou blob URL) do áudio. */
   src?: string;
   /**
@@ -84,7 +84,7 @@ const buildRestBars = (count: number): { id: string; height: number }[] =>
   });
 
 /**
- * Equalizador/"mixer" Papolê: barras verdes que **reagem a um áudio** (via `src`
+ * Equalizador/"mixer" Reading Fluency: barras verdes que **reagem a um áudio** (via `src`
  * ou `file`) enquanto ele toca, com um tempo `HH:MM:SS` opcional (`showTime`) que
  * sobe conforme o áudio anda.
  *
@@ -96,9 +96,9 @@ const buildRestBars = (count: number): { id: string; height: number }[] =>
  * fica mudo ao passar pelo analyser — prefira `file`/blob (same-origin) ou
  * `crossOrigin="anonymous"` + servidor com CORS.
  */
-export const AudioMixerPapole = forwardRef<
-  AudioMixerPapoleHandle,
-  AudioMixerPapoleProps
+export const AudioMixerReadingFluency = forwardRef<
+  AudioMixerReadingFluencyHandle,
+  AudioMixerReadingFluencyProps
 >(
   (
     {
@@ -273,4 +273,4 @@ export const AudioMixerPapole = forwardRef<
     );
   }
 );
-AudioMixerPapole.displayName = 'AudioMixerPapole';
+AudioMixerReadingFluency.displayName = 'AudioMixerReadingFluency';

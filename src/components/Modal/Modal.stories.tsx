@@ -1,12 +1,12 @@
 import type { Story } from '@ladle/react';
 import { useState } from 'react';
 import Modal, {
-  MicPermissionModalPapole,
-  MicOffModalPapole,
-  AudioPlaybackModalPapole,
-  SuccessModalPapole,
+  MicPermissionModalReadingFluency,
+  MicOffModalReadingFluency,
+  AudioPlaybackModalReadingFluency,
+  SuccessModalReadingFluency,
 } from './Modal';
-import Button, { ButtonPapole } from '../Button/Button';
+import Button, { ButtonReadingFluency } from '../Button/Button';
 import mockContentImage from '../../assets/img/mock-content.png';
 
 // Imagem "do cliente" (data URI, sem depender de rede) pra demonstrar o override
@@ -278,7 +278,7 @@ export const ActivityModalNoAction: Story = () => {
   );
 };
 
-export const MicPermissionPapole: Story = () => {
+export const MicPermissionReadingFluency: Story = () => {
   const [open, setOpen] = useState(false);
 
   return (
@@ -286,9 +286,11 @@ export const MicPermissionPapole: Story = () => {
       data-theme="papole-light"
       className="flex min-h-[420px] items-center justify-center bg-secondary-700 p-6"
     >
-      <ButtonPapole onClick={() => setOpen(true)}>Abrir modal</ButtonPapole>
+      <ButtonReadingFluency onClick={() => setOpen(true)}>
+        Abrir modal
+      </ButtonReadingFluency>
 
-      <MicPermissionModalPapole
+      <MicPermissionModalReadingFluency
         isOpen={open}
         onClose={() => setOpen(false)}
         onEnable={(granted) => {
@@ -312,7 +314,7 @@ export const MicPermissionPapole: Story = () => {
  * nesta sessão (recarregar a página volta a pedir). Se o mic já estiver
  * concedido no seu navegador, ele não abre.
  */
-export const MicPermissionPapoleManaged: Story = () => (
+export const MicPermissionReadingFluencyManaged: Story = () => (
   <div
     data-theme="papole-light"
     className="flex min-h-[420px] items-center justify-center bg-secondary-700 p-6"
@@ -320,14 +322,14 @@ export const MicPermissionPapoleManaged: Story = () => (
     <p className="text-center text-sm text-text-100">
       Abre automaticamente se o microfone não estiver concedido.
     </p>
-    <MicPermissionModalPapole
+    <MicPermissionModalReadingFluency
       onEnable={(granted) => console.log('concedido?', granted)}
       onLearnMore={() => console.log('saiba mais')}
     />
   </div>
 );
 
-export const MicOffPapole: Story = () => {
+export const MicOffReadingFluency: Story = () => {
   const [open, setOpen] = useState(false);
 
   return (
@@ -335,9 +337,11 @@ export const MicOffPapole: Story = () => {
       data-theme="papole-light"
       className="flex min-h-[420px] items-center justify-center bg-secondary-700 p-6"
     >
-      <ButtonPapole onClick={() => setOpen(true)}>Abrir modal</ButtonPapole>
+      <ButtonReadingFluency onClick={() => setOpen(true)}>
+        Abrir modal
+      </ButtonReadingFluency>
 
-      <MicOffModalPapole
+      <MicOffModalReadingFluency
         isOpen={open}
         onClose={() => setOpen(false)}
         onRetry={() => {
@@ -350,7 +354,7 @@ export const MicOffPapole: Story = () => {
   );
 };
 
-export const AudioPlaybackPapole: Story = () => {
+export const AudioPlaybackReadingFluency: Story = () => {
   const [open, setOpen] = useState(false);
 
   return (
@@ -358,9 +362,11 @@ export const AudioPlaybackPapole: Story = () => {
       data-theme="papole-light"
       className="flex min-h-[420px] items-center justify-center bg-secondary-700 p-6"
     >
-      <ButtonPapole onClick={() => setOpen(true)}>Abrir modal</ButtonPapole>
+      <ButtonReadingFluency onClick={() => setOpen(true)}>
+        Abrir modal
+      </ButtonReadingFluency>
 
-      <AudioPlaybackModalPapole
+      <AudioPlaybackModalReadingFluency
         isOpen={open}
         onClose={() => setOpen(false)}
         src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
@@ -377,7 +383,7 @@ export const AudioPlaybackPapole: Story = () => {
   );
 };
 
-export const SuccessPapole: Story = () => {
+export const SuccessReadingFluency: Story = () => {
   const [open, setOpen] = useState(true);
 
   return (
@@ -385,9 +391,14 @@ export const SuccessPapole: Story = () => {
       data-theme="papole-light"
       className="flex min-h-[420px] items-center justify-center bg-secondary-700 p-6"
     >
-      <ButtonPapole onClick={() => setOpen(true)}>Abrir modal</ButtonPapole>
+      <ButtonReadingFluency onClick={() => setOpen(true)}>
+        Abrir modal
+      </ButtonReadingFluency>
 
-      <SuccessModalPapole isOpen={open} onClose={() => setOpen(false)} />
+      <SuccessModalReadingFluency
+        isOpen={open}
+        onClose={() => setOpen(false)}
+      />
     </div>
   );
 };
@@ -395,9 +406,9 @@ export const SuccessPapole: Story = () => {
 /**
  * Override da imagem via `imageSrc`: quando o passarinho empacotado na lib não
  * resolve no bundle do consumidor, ele passa a própria URL. Aqui usamos um data
- * URI de exemplo no lugar do `papole.png` padrão.
+ * URI de exemplo no lugar do `readingFluencyBird.png` padrão.
  */
-export const MicPermissionPapoleComImagemDoCliente: Story = () => {
+export const MicPermissionReadingFluencyComImagemDoCliente: Story = () => {
   const [open, setOpen] = useState(true);
 
   return (
@@ -405,9 +416,11 @@ export const MicPermissionPapoleComImagemDoCliente: Story = () => {
       data-theme="papole-light"
       className="flex min-h-[420px] items-center justify-center bg-secondary-700 p-6"
     >
-      <ButtonPapole onClick={() => setOpen(true)}>Abrir modal</ButtonPapole>
+      <ButtonReadingFluency onClick={() => setOpen(true)}>
+        Abrir modal
+      </ButtonReadingFluency>
 
-      <MicPermissionModalPapole
+      <MicPermissionModalReadingFluency
         isOpen={open}
         onClose={() => setOpen(false)}
         imageSrc={clientImage}
@@ -423,7 +436,7 @@ export const MicPermissionPapoleComImagemDoCliente: Story = () => {
  * Override da imagem via `imageSrc`: substitui o gif de comemoração empacotado
  * (`celebration.gif`) por uma imagem fornecida pelo cliente (data URI de exemplo).
  */
-export const SuccessPapoleComImagemDoCliente: Story = () => {
+export const SuccessReadingFluencyComImagemDoCliente: Story = () => {
   const [open, setOpen] = useState(true);
 
   return (
@@ -431,9 +444,11 @@ export const SuccessPapoleComImagemDoCliente: Story = () => {
       data-theme="papole-light"
       className="flex min-h-[420px] items-center justify-center bg-secondary-700 p-6"
     >
-      <ButtonPapole onClick={() => setOpen(true)}>Abrir modal</ButtonPapole>
+      <ButtonReadingFluency onClick={() => setOpen(true)}>
+        Abrir modal
+      </ButtonReadingFluency>
 
-      <SuccessModalPapole
+      <SuccessModalReadingFluency
         isOpen={open}
         onClose={() => setOpen(false)}
         imageSrc={clientImage}

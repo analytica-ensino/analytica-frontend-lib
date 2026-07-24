@@ -155,11 +155,11 @@ Button.displayName = 'Button';
 export default Button;
 
 // ======================================================================
-// ButtonPapole — botão da variante Papolê (variantes: solid, outline, link)
+// ButtonReadingFluency — botão da variante Reading Fluency (variantes: solid, outline, link)
 // ======================================================================
 
 /**
- * Classes por variante do botão Papolê — todos os estados numa única string, no
+ * Classes por variante do botão Reading Fluency — todos os estados numa única string, no
  * mesmo formato do `VARIANT_ACTION_CLASSES` do `Button`. As duas sombras (aresta
  * "3D" + ambiente) vão como propriedade arbitrária (`[box-shadow:...]`) pra
  * poderem variar por estado — no `outline` a aresta cai de 4px→2px no pressed.
@@ -181,7 +181,7 @@ const PAPOLE_VARIANT_CLASSES = {
 } as const;
 
 /**
- * Classes por tamanho do botão Papolê — padding (px = 2 × py), gap, radius e o
+ * Classes por tamanho do botão Reading Fluency — padding (px = 2 × py), gap, radius e o
  * tamanho do texto e do ícone. `xl` = texto 20px / ícone 24px; `medium` = texto
  * 16px / ícone 20px; `small` = texto 14px / ícone 16px. Os valores de `medium` e
  * `small` foram assumidos seguindo a progressão — confirmar com a arte.
@@ -202,7 +202,7 @@ const PAPOLE_SIZE_CLASSES = {
 const PAPOLE_ICON_CIRCLE_CLASSES =
   'inline-flex items-center justify-center size-[30px] rounded-full bg-error-500 border-[3px] border-primary-200 text-primary-200 [&_svg]:size-[10px] [box-shadow:0px_2px_8px_0px_#0000001a,0px_2px_8px_0px_#00000033]';
 
-type ButtonPapoleProps = {
+type ButtonReadingFluencyProps = {
   /** Conteúdo do botão: texto nas variantes de texto; o ícone na variante `icon`. */
   children: ReactNode;
   /** Ícone à esquerda do texto (tamanho conforme `size`). Ignorado no `icon`. */
@@ -216,14 +216,17 @@ type ButtonPapoleProps = {
 } & ButtonHTMLAttributes<HTMLButtonElement>;
 
 /**
- * Botão da variante Papolê. `variant` seleciona o estilo
+ * Botão da variante Reading Fluency. `variant` seleciona o estilo
  * (`solid` | `outline` | `outline-inverse` | `link` | `icon`) e `size` o tamanho
  * (`xl` | `medium` | `small`; ignorado no `icon`).
  *
  * Estados via pseudo-classes (hover / focus-visible / active) — ver
  * `PAPOLE_VARIANT_CLASSES`. As cores seguem os tokens do tema ativo.
  */
-const ButtonPapole = forwardRef<HTMLButtonElement, ButtonPapoleProps>(
+const ButtonReadingFluency = forwardRef<
+  HTMLButtonElement,
+  ButtonReadingFluencyProps
+>(
   (
     {
       children,
@@ -276,7 +279,7 @@ const ButtonPapole = forwardRef<HTMLButtonElement, ButtonPapoleProps>(
   }
 );
 
-ButtonPapole.displayName = 'ButtonPapole';
+ButtonReadingFluency.displayName = 'ButtonReadingFluency';
 
-export { ButtonPapole };
-export type { ButtonPapoleProps };
+export { ButtonReadingFluency };
+export type { ButtonReadingFluencyProps };

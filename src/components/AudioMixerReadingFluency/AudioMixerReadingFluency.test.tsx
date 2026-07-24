@@ -1,10 +1,16 @@
 import { createRef } from 'react';
-import { render, screen, cleanup, fireEvent, act } from '@testing-library/react';
+import {
+  render,
+  screen,
+  cleanup,
+  fireEvent,
+  act,
+} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import {
-  AudioMixerPapole,
-  type AudioMixerPapoleHandle,
-} from './AudioMixerPapole';
+  AudioMixerReadingFluency,
+  type AudioMixerReadingFluencyHandle,
+} from './AudioMixerReadingFluency';
 import { useAudioSpectrum } from '../../hooks/useAudioSpectrum';
 import { formatTimeSpent } from '../../utils/utils';
 
@@ -83,23 +89,25 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
-describe('AudioMixerPapole', () => {
+describe('AudioMixerReadingFluency', () => {
   describe('rendering', () => {
     it('renders the default number of bars (13)', () => {
-      const { container } = render(<AudioMixerPapole src="audio.mp3" />);
+      const { container } = render(
+        <AudioMixerReadingFluency src="audio.mp3" />
+      );
       expect(getBars(container)).toHaveLength(13);
     });
 
     it('renders a custom number of bars', () => {
       const { container } = render(
-        <AudioMixerPapole src="audio.mp3" barCount={7} />
+        <AudioMixerReadingFluency src="audio.mp3" barCount={7} />
       );
       expect(getBars(container)).toHaveLength(7);
     });
 
     it('centers the single bar when barCount is 1', () => {
       const { container } = render(
-        <AudioMixerPapole src="audio.mp3" barCount={1} />
+        <AudioMixerReadingFluency src="audio.mp3" barCount={1} />
       );
       const bars = getBars(container);
       expect(bars).toHaveLength(1);
@@ -108,7 +116,9 @@ describe('AudioMixerPapole', () => {
     });
 
     it('builds a symmetric rest wave (taller in the middle)', () => {
-      const { container } = render(<AudioMixerPapole src="audio.mp3" />);
+      const { container } = render(
+        <AudioMixerReadingFluency src="audio.mp3" />
+      );
       const bars = getBars(container);
       // t=0 → 14px on the edges, t=0.5 → 40px in the middle bar.
       expect(bars[0].style.height).toBe('14px');
@@ -117,24 +127,28 @@ describe('AudioMixerPapole', () => {
 
     it('applies extra className to the container', () => {
       const { container } = render(
-        <AudioMixerPapole src="audio.mp3" className="my-class" />
+        <AudioMixerReadingFluency src="audio.mp3" className="my-class" />
       );
       expect(container.firstChild).toHaveClass('my-class');
     });
 
     it('does not render the time by default', () => {
-      render(<AudioMixerPapole src="audio.mp3" />);
+      render(<AudioMixerReadingFluency src="audio.mp3" />);
       expect(screen.queryByText(formatTimeSpent(0))).not.toBeInTheDocument();
     });
 
     it('renders the time (00:00:00) when showTime is set', () => {
-      render(<AudioMixerPapole src="audio.mp3" showTime />);
+      render(<AudioMixerReadingFluency src="audio.mp3" showTime />);
       expect(screen.getByText('00:00:00')).toBeInTheDocument();
     });
 
     it('reflects src, loop and crossOrigin on the audio element', () => {
       const { container } = render(
-        <AudioMixerPapole src="audio.mp3" loop crossOrigin="anonymous" />
+        <AudioMixerReadingFluency
+          src="audio.mp3"
+          loop
+          crossOrigin="anonymous"
+        />
       );
       const audio = getAudio(container);
       expect(audio.getAttribute('src')).toBe('audio.mp3');
@@ -146,7 +160,7 @@ describe('AudioMixerPapole', () => {
   describe('useAudioSpectrum wiring', () => {
     it('passes the current playing state and barCount', () => {
       const { container } = render(
-        <AudioMixerPapole src="audio.mp3" barCount={9} />
+        <AudioMixerReadingFluency src="audio.mp3" barCount={9} />
       );
 
       expect(mockUseAudioSpectrum).toHaveBeenLastCalledWith(
@@ -165,7 +179,9 @@ describe('AudioMixerPapole', () => {
     });
 
     it('writes spectrum values to the bar heights via onFrame', () => {
-      const { container } = render(<AudioMixerPapole src="audio.mp3" />);
+      const { container } = render(
+        <AudioMixerReadingFluency src="audio.mp3" />
+      );
       // Play so the rest-height effect stops overwriting the bars.
       fireEvent.play(getAudio(container));
 
@@ -185,7 +201,9 @@ describe('AudioMixerPapole', () => {
     });
 
     it('restores the rest heights when playback stops', () => {
-      const { container } = render(<AudioMixerPapole src="audio.mp3" />);
+      const { container } = render(
+        <AudioMixerReadingFluency src="audio.mp3" />
+      );
       fireEvent.play(getAudio(container));
 
       act(() => {
@@ -202,8 +220,8 @@ describe('AudioMixerPapole', () => {
 
   describe('imperative ref', () => {
     it('play() plays the audio', () => {
-      const ref = createRef<AudioMixerPapoleHandle>();
-      render(<AudioMixerPapole ref={ref} src="audio.mp3" />);
+      const ref = createRef<AudioMixerReadingFluencyHandle>();
+      render(<AudioMixerReadingFluency ref={ref} src="audio.mp3" />);
 
       act(() => ref.current?.play());
 
@@ -211,8 +229,8 @@ describe('AudioMixerPapole', () => {
     });
 
     it('pause() pauses the audio', () => {
-      const ref = createRef<AudioMixerPapoleHandle>();
-      render(<AudioMixerPapole ref={ref} src="audio.mp3" />);
+      const ref = createRef<AudioMixerReadingFluencyHandle>();
+      render(<AudioMixerReadingFluency ref={ref} src="audio.mp3" />);
 
       act(() => ref.current?.pause());
 
@@ -220,9 +238,9 @@ describe('AudioMixerPapole', () => {
     });
 
     it('stop() pauses, rewinds to 0 and resets the displayed time', () => {
-      const ref = createRef<AudioMixerPapoleHandle>();
+      const ref = createRef<AudioMixerReadingFluencyHandle>();
       const { container } = render(
-        <AudioMixerPapole ref={ref} src="audio.mp3" showTime />
+        <AudioMixerReadingFluency ref={ref} src="audio.mp3" showTime />
       );
 
       // Advance the displayed time first.
@@ -240,42 +258,42 @@ describe('AudioMixerPapole', () => {
 
   describe('declarative status control', () => {
     it('plays when status is "playing"', () => {
-      render(<AudioMixerPapole src="audio.mp3" status="playing" />);
+      render(<AudioMixerReadingFluency src="audio.mp3" status="playing" />);
       expect(playMock).toHaveBeenCalledTimes(1);
     });
 
     it('pauses when status is "paused"', () => {
-      render(<AudioMixerPapole src="audio.mp3" status="paused" />);
+      render(<AudioMixerReadingFluency src="audio.mp3" status="paused" />);
       expect(pauseMock).toHaveBeenCalledTimes(1);
       expect(playMock).not.toHaveBeenCalled();
     });
 
     it('stops (pause + rewind) when status is "stopped"', () => {
       currentTimeValue = 30;
-      render(<AudioMixerPapole src="audio.mp3" status="stopped" />);
+      render(<AudioMixerReadingFluency src="audio.mp3" status="stopped" />);
       expect(pauseMock).toHaveBeenCalledTimes(1);
       expect(currentTimeValue).toBe(0);
     });
 
     it('reacts to status transitions across re-renders', () => {
       const { rerender } = render(
-        <AudioMixerPapole src="audio.mp3" status="playing" />
+        <AudioMixerReadingFluency src="audio.mp3" status="playing" />
       );
       expect(playMock).toHaveBeenCalledTimes(1);
 
-      rerender(<AudioMixerPapole src="audio.mp3" status="paused" />);
+      rerender(<AudioMixerReadingFluency src="audio.mp3" status="paused" />);
       expect(pauseMock).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('autoPlay', () => {
     it('tries to play on mount when uncontrolled', () => {
-      render(<AudioMixerPapole src="audio.mp3" autoPlay />);
+      render(<AudioMixerReadingFluency src="audio.mp3" autoPlay />);
       expect(playMock).toHaveBeenCalledTimes(1);
     });
 
     it('retries on the first user gesture when autoplay is blocked', () => {
-      render(<AudioMixerPapole src="audio.mp3" autoPlay />);
+      render(<AudioMixerReadingFluency src="audio.mp3" autoPlay />);
       expect(playMock).toHaveBeenCalledTimes(1);
 
       act(() => {
@@ -292,14 +310,14 @@ describe('AudioMixerPapole', () => {
 
     it('is ignored while status is controlled', () => {
       render(
-        <AudioMixerPapole src="audio.mp3" autoPlay status="paused" />
+        <AudioMixerReadingFluency src="audio.mp3" autoPlay status="paused" />
       );
       expect(playMock).not.toHaveBeenCalled();
       expect(pauseMock).toHaveBeenCalled();
     });
 
     it('does not autoplay without a source', () => {
-      render(<AudioMixerPapole autoPlay />);
+      render(<AudioMixerReadingFluency autoPlay />);
       expect(playMock).not.toHaveBeenCalled();
     });
   });
@@ -308,7 +326,10 @@ describe('AudioMixerPapole', () => {
     it('reports playing=true on play', () => {
       const onPlayingChange = jest.fn();
       const { container } = render(
-        <AudioMixerPapole src="audio.mp3" onPlayingChange={onPlayingChange} />
+        <AudioMixerReadingFluency
+          src="audio.mp3"
+          onPlayingChange={onPlayingChange}
+        />
       );
 
       fireEvent.play(getAudio(container));
@@ -319,7 +340,10 @@ describe('AudioMixerPapole', () => {
     it('reports playing=false on pause', () => {
       const onPlayingChange = jest.fn();
       const { container } = render(
-        <AudioMixerPapole src="audio.mp3" onPlayingChange={onPlayingChange} />
+        <AudioMixerReadingFluency
+          src="audio.mp3"
+          onPlayingChange={onPlayingChange}
+        />
       );
 
       fireEvent.pause(getAudio(container));
@@ -331,7 +355,7 @@ describe('AudioMixerPapole', () => {
       const onPlayingChange = jest.fn();
       const onEnded = jest.fn();
       const { container } = render(
-        <AudioMixerPapole
+        <AudioMixerReadingFluency
           src="audio.mp3"
           showTime
           onPlayingChange={onPlayingChange}
@@ -353,7 +377,7 @@ describe('AudioMixerPapole', () => {
 
     it('updates the displayed time on timeupdate when showTime is set', () => {
       const { container } = render(
-        <AudioMixerPapole src="audio.mp3" showTime />
+        <AudioMixerReadingFluency src="audio.mp3" showTime />
       );
 
       currentTimeValue = 3661; // 01:01:01
@@ -366,15 +390,17 @@ describe('AudioMixerPapole', () => {
   describe('file source', () => {
     it('creates a same-origin object URL and uses it as src', () => {
       const file = new Blob(['audio-bytes'], { type: 'audio/webm' });
-      const { container } = render(<AudioMixerPapole file={file} />);
+      const { container } = render(<AudioMixerReadingFluency file={file} />);
 
       expect(createObjectURLMock).toHaveBeenCalledWith(file);
-      expect(getAudio(container).getAttribute('src')).toBe('blob:mock-audio-url');
+      expect(getAudio(container).getAttribute('src')).toBe(
+        'blob:mock-audio-url'
+      );
     });
 
     it('revokes the object URL on unmount', () => {
       const file = new Blob(['audio-bytes'], { type: 'audio/webm' });
-      const { unmount } = render(<AudioMixerPapole file={file} />);
+      const { unmount } = render(<AudioMixerReadingFluency file={file} />);
 
       unmount();
 

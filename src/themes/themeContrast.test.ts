@@ -11,7 +11,7 @@ import { join } from 'path';
  * dois modos, inclusive nos temas em que o dark inverte o header (paraiba,
  * analytica) e nos que o mantêm escuro (parana, papole).
  *
- * Este teste existe porque a tabela original do tema Papolê definia o passo 0
+ * Este teste existe porque a tabela original do tema Reading Fluency definia o passo 0
  * do dark mais escuro que o próprio 800, o que zerava o contraste (1.27:1) e
  * fazia sumir todo o conteúdo da barra.
  */

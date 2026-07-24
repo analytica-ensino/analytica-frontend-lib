@@ -22,10 +22,10 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { create, StoreApi, useStore } from 'zustand';
-import Button, { ButtonPapole } from '../Button/Button';
+import Button, { ButtonReadingFluency } from '../Button/Button';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
-import papoleBird from '../../assets/img/papole.png';
+import readingFluencyBird from '../../assets/img/readingFluencyBird.png';
 import Modal from '../Modal/Modal';
 import { ThemeToggle } from '../ThemeToggle/ThemeToggle';
 import type { ThemeMode } from '@/hooks/useTheme';
@@ -102,8 +102,8 @@ const injectStore = (
         'ProfileMenuHeader',
         'ProfileMenuFooter',
         'ProfileToggleTheme',
-        'ProfileMenuPapoleTrigger',
-        'ProfileMenuPapoleFooter',
+        'ProfileMenuReadingFluencyTrigger',
+        'ProfileMenuReadingFluencyFooter',
       ];
 
       let newProps: Partial<{
@@ -876,12 +876,12 @@ const ProfileMenuFooter = ({
 ProfileMenuFooter.displayName = 'ProfileMenuFooter';
 
 // ======================================================================
-// Componentes do ProfileMenu Papolê (usados com variant="papole")
+// Componentes do ProfileMenu Reading Fluency (usados com variant="papole")
 // ======================================================================
 
-// Trigger de perfil Papolê: ícone circular de 42px. Mostra a foto do usuário
+// Trigger de perfil Reading Fluency: ícone circular de 42px. Mostra a foto do usuário
 // (`photoUrl`) e cai no passarinho quando não houver.
-const ProfileMenuPapoleTrigger = forwardRef<
+const ProfileMenuReadingFluencyTrigger = forwardRef<
   HTMLButtonElement,
   ButtonHTMLAttributes<HTMLButtonElement> & {
     photoUrl?: string | null;
@@ -910,18 +910,19 @@ const ProfileMenuPapoleTrigger = forwardRef<
       {...props}
     >
       <img
-        src={photoUrl ?? papoleBird}
+        src={photoUrl ?? readingFluencyBird}
         alt="Foto de perfil"
         className="w-full h-full object-cover"
       />
     </button>
   );
 });
-ProfileMenuPapoleTrigger.displayName = 'ProfileMenuPapoleTrigger';
+ProfileMenuReadingFluencyTrigger.displayName =
+  'ProfileMenuReadingFluencyTrigger';
 
 // Card de informações do aluno (fundo secondary-600). Dois blocos texto1/texto2:
 // nome/email (sempre) e escola/turma (quando houver).
-const ProfileMenuPapoleInfo = forwardRef<
+const ProfileMenuReadingFluencyInfo = forwardRef<
   HTMLDivElement,
   HTMLAttributes<HTMLDivElement> & {
     name: string;
@@ -950,7 +951,7 @@ const ProfileMenuPapoleInfo = forwardRef<
     return (
       <div
         ref={ref}
-        data-component="ProfileMenuPapoleInfo"
+        data-component="ProfileMenuReadingFluencyInfo"
         className={cn(
           'font-quicksand flex flex-col gap-4 rounded-[20px] bg-secondary-600 p-4',
           className
@@ -982,11 +983,11 @@ const ProfileMenuPapoleInfo = forwardRef<
     );
   }
 );
-ProfileMenuPapoleInfo.displayName = 'ProfileMenuPapoleInfo';
+ProfileMenuReadingFluencyInfo.displayName = 'ProfileMenuReadingFluencyInfo';
 
-// Rodapé Papolê: botão "Sair" (ButtonPapole outline md). Fecha o menu e repassa
+// Rodapé Reading Fluency: botão "Sair" (ButtonReadingFluency outline md). Fecha o menu e repassa
 // o onClick (logout).
-const ProfileMenuPapoleFooter = ({
+const ProfileMenuReadingFluencyFooter = ({
   className,
   disabled = false,
   onClick,
@@ -1000,7 +1001,7 @@ const ProfileMenuPapoleFooter = ({
   const setOpen = useStore(store, (s) => s.setOpen);
 
   return (
-    <ButtonPapole
+    <ButtonReadingFluency
       variant="outline-inverse"
       size="medium"
       className={cn('w-full', className)}
@@ -1012,10 +1013,10 @@ const ProfileMenuPapoleFooter = ({
       {...props}
     >
       Sair
-    </ButtonPapole>
+    </ButtonReadingFluency>
   );
 };
-ProfileMenuPapoleFooter.displayName = 'ProfileMenuPapoleFooter';
+ProfileMenuReadingFluencyFooter.displayName = 'ProfileMenuReadingFluencyFooter';
 
 // Exportações
 export default DropdownMenu;
@@ -1035,8 +1036,8 @@ export {
   ProfileToggleTheme,
   ProfileMenuInfo,
 
-  // Componentes do ProfileMenu Papolê
-  ProfileMenuPapoleTrigger,
-  ProfileMenuPapoleInfo,
-  ProfileMenuPapoleFooter,
+  // Componentes do ProfileMenu Reading Fluency
+  ProfileMenuReadingFluencyTrigger,
+  ProfileMenuReadingFluencyInfo,
+  ProfileMenuReadingFluencyFooter,
 };

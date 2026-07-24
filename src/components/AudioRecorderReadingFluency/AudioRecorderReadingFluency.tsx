@@ -9,18 +9,21 @@ import {
 } from 'react';
 import { cn, formatTimeSpent } from '../../utils/utils';
 import { useStreamSpectrum } from '../../hooks/useStreamSpectrum';
-import { ButtonPapole } from '../Button/Button';
-import { MicIconPapole, StopIconPapole } from '../PapoleIcons';
+import { ButtonReadingFluency } from '../Button/Button';
+import {
+  MicIconReadingFluency,
+  StopIconReadingFluency,
+} from '../ReadingFluencyIcons';
 
 /** Métodos imperativos expostos via `ref` — pra dirigir a gravação externamente. */
-export interface AudioRecorderPapoleHandle {
+export interface AudioRecorderReadingFluencyHandle {
   /** Pede o microfone e começa a gravar (resolve quando o mic é concedido). */
   start: () => Promise<void>;
   /** Para de gravar, desliga o mic e emite o áudio via `onRecordingComplete`. */
   stop: () => void;
 }
 
-export interface AudioRecorderPapoleProps {
+export interface AudioRecorderReadingFluencyProps {
   /** Número de barras do equalizador. Default: 13. */
   barCount?: number;
   /** Mostra o tempo decorrido (`HH:MM:SS`) enquanto grava. */
@@ -66,19 +69,19 @@ const buildRestBars = (count: number): { id: string; height: number }[] =>
   });
 
 /**
- * Gravador Papolê: as mesmas barras verdes do `AudioMixerPapole`, mas reagindo
- * **ao microfone ao vivo** (não a um áudio pronto). Um `ButtonPapole` alterna
+ * Gravador Reading Fluency: as mesmas barras verdes do `AudioMixerReadingFluency`, mas reagindo
+ * **ao microfone ao vivo** (não a um áudio pronto). Um `ButtonReadingFluency` alterna
  * entre "Gravar" e "Parar"; enquanto grava, as barras acompanham a fala e (com
  * `showTime`) o tempo sobe. Ao parar, o áudio capturado volta em
- * `onRecordingComplete(blob, url)` — pronto pra tocar no `AudioPlaybackModalPapole`.
+ * `onRecordingComplete(blob, url)` — pronto pra tocar no `AudioPlaybackModalReadingFluency`.
  *
  * Também dá pra dirigir por um botão externo via `ref` (`start()`/`stop()`) +
  * `hideButton`. Usa `getUserMedia` (permissão do navegador) e Web Audio pra
  * visualização — o analyser não é roteado pro alto-falante (sem eco do mic).
  */
-export const AudioRecorderPapole = forwardRef<
-  AudioRecorderPapoleHandle,
-  AudioRecorderPapoleProps
+export const AudioRecorderReadingFluency = forwardRef<
+  AudioRecorderReadingFluencyHandle,
+  AudioRecorderReadingFluencyProps
 >(
   (
     {
@@ -259,18 +262,20 @@ export const AudioRecorderPapole = forwardRef<
         )}
 
         {!hideButton && (
-          <ButtonPapole
+          <ButtonReadingFluency
             type="button"
             size="medium"
             onClick={toggle}
             aria-pressed={recording}
-            iconLeft={recording ? <StopIconPapole /> : <MicIconPapole />}
+            iconLeft={
+              recording ? <StopIconReadingFluency /> : <MicIconReadingFluency />
+            }
           >
             {recording ? stopLabel : startLabel}
-          </ButtonPapole>
+          </ButtonReadingFluency>
         )}
       </div>
     );
   }
 );
-AudioRecorderPapole.displayName = 'AudioRecorderPapole';
+AudioRecorderReadingFluency.displayName = 'AudioRecorderReadingFluency';

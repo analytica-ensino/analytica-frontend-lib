@@ -27,7 +27,7 @@ import { XCircleIcon } from '@phosphor-icons/react/dist/csr/XCircle';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
 import IconRender from '../IconRender/IconRender';
-import papoleBird from '../../assets/img/papole.png';
+import readingFluencyBird from '../../assets/img/readingFluencyBird.png';
 
 // Componente base reutilizável para todos os cards
 interface CardBaseProps extends HTMLAttributes<HTMLDivElement> {
@@ -1875,29 +1875,29 @@ const CardEssayHistory = forwardRef<HTMLDivElement, CardEssayHistoryProps>(
 );
 
 // ======================================================================
-// CardPapole — card de atividade da variante Papolê
+// CardReadingFluency — card de atividade da variante Reading Fluency
 // ======================================================================
 
-type CardPapoleState = 'new' | 'coming-soon' | 'done';
+type CardReadingFluencyState = 'new' | 'coming-soon' | 'done';
 
-interface CardPapoleProps extends HTMLAttributes<HTMLDivElement> {
+interface CardReadingFluencyProps extends HTMLAttributes<HTMLDivElement> {
   /**
    * Estado do card:
    * - `new`: nova atividade (badge "NOVA ATIVIDADE!", clicável)
    * - `coming-soon`: em breve (opaco/desativado, borda tracejada, badge "EM BREVE")
    * - `done`: atividade concluída (check no canto, clicável)
    */
-  state?: CardPapoleState;
+  state?: CardReadingFluencyState;
   /** Cor de fundo do card em hex (vinda do backend, igual aos subjects). */
   color?: string;
-  /** Sobrescreve a imagem do passarinho (default: asset padrão do Papolê). */
+  /** Sobrescreve a imagem do passarinho (default: asset padrão do Reading Fluency). */
   image?: string;
   /** Texto alternativo/aria da imagem. */
   label?: string;
 }
 
 /**
- * Badge dos cards Papolê. Dimensões e tipografia fixas da arte: 117×23,
+ * Badge dos cards Reading Fluency. Dimensões e tipografia fixas da arte: 117×23,
  * radius 8px, px 8 / py 4, gap 8, texto Quicksand 700/12px. A cor de fundo
  * (preto com opacidade) varia por estado: 70% em "nova atividade", 30% em
  * "em breve".
@@ -1905,13 +1905,13 @@ interface CardPapoleProps extends HTMLAttributes<HTMLDivElement> {
 const PAPOLE_BADGE_CLASSES =
   'flex items-center justify-center gap-2 w-[117px] h-[23px] rounded-lg px-2 py-1 text-[12px] font-bold text-white whitespace-nowrap';
 
-const CardPapole = forwardRef<HTMLDivElement, CardPapoleProps>(
+const CardReadingFluency = forwardRef<HTMLDivElement, CardReadingFluencyProps>(
   (
     {
       state = 'new',
       color = '#a3d9b1',
       image,
-      label = 'Papolê',
+      label = 'Reading Fluency',
       className,
       onClick,
       onKeyDown,
@@ -1951,7 +1951,7 @@ const CardPapole = forwardRef<HTMLDivElement, CardPapoleProps>(
         {...props}
       >
         <img
-          src={image ?? papoleBird}
+          src={image ?? readingFluencyBird}
           alt={label}
           draggable={false}
           className={cn(
@@ -1965,7 +1965,7 @@ const CardPapole = forwardRef<HTMLDivElement, CardPapoleProps>(
             weight="fill"
             size={28}
             className="absolute top-3 right-3 text-background drop-shadow-sm"
-            data-testid="papole-check"
+            data-testid="reading-fluency-check"
           />
         )}
 
@@ -2012,7 +2012,7 @@ export {
   CardTest,
   CardSimulationHistory,
   CardEssayHistory,
-  CardPapole,
+  CardReadingFluency,
 };
 
-export type { CardPapoleProps, CardPapoleState };
+export type { CardReadingFluencyProps, CardReadingFluencyState };

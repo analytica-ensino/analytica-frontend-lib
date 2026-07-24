@@ -1,7 +1,7 @@
-export { MicIconPapole } from './MicIconPapole';
-export { MicOffIconPapole } from './MicOffIconPapole';
-export { StopIconPapole } from './StopIconPapole';
-export { PlayIconPapole } from './PlayIconPapole';
-export { PauseIconPapole } from './PauseIconPapole';
-export { VoiceIconPapole } from './VoiceIconPapole';
-export type { PapoleIconProps } from './types';
+export { MicIconReadingFluency } from './MicIconReadingFluency';
+export { MicOffIconReadingFluency } from './MicOffIconReadingFluency';
+export { StopIconReadingFluency } from './StopIconReadingFluency';
+export { PlayIconReadingFluency } from './PlayIconReadingFluency';
+export { PauseIconReadingFluency } from './PauseIconReadingFluency';
+export { VoiceIconReadingFluency } from './VoiceIconReadingFluency';
+export type { ReadingFluencyIconProps } from './types';

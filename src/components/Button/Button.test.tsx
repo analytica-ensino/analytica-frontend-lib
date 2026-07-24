@@ -2,7 +2,7 @@ import { render, fireEvent } from '@testing-library/react';
 import { screen } from '@testing-library/dom';
 import '@testing-library/jest-dom';
 import { createRef } from 'react';
-import Button, { ButtonPapole } from './Button';
+import Button, { ButtonReadingFluency } from './Button';
 
 describe('Button', () => {
   it('renders the button with children text', () => {
@@ -364,38 +364,56 @@ describe('Button', () => {
   });
 });
 
-describe('ButtonPapole', () => {
+describe('ButtonReadingFluency', () => {
   it('renders the button with children text', () => {
-    render(<ButtonPapole>Continuar</ButtonPapole>);
+    render(<ButtonReadingFluency>Continuar</ButtonReadingFluency>);
     expect(screen.getByRole('button')).toHaveTextContent('Continuar');
   });
 
-  it('defaults to the solid variant, xl size and the Papolê base classes', () => {
-    render(<ButtonPapole>Test</ButtonPapole>);
+  it('defaults to the solid variant, xl size and the Reading Fluency base classes', () => {
+    render(<ButtonReadingFluency>Test</ButtonReadingFluency>);
     const button = screen.getByRole('button');
     // base
     expect(button).toHaveClass('font-quicksand', 'font-bold', 'uppercase');
     // solid variant
-    expect(button).toHaveClass('bg-primary-500', 'border-primary-200', 'text-primary-900');
+    expect(button).toHaveClass(
+      'bg-primary-500',
+      'border-primary-200',
+      'text-primary-900'
+    );
     // xl size
     expect(button).toHaveClass('rounded-[20px]', 'text-[20px]', 'px-8', 'py-4');
   });
 
   describe('variant classes', () => {
     it('applies outline variant classes', () => {
-      render(<ButtonPapole variant="outline">Test</ButtonPapole>);
+      render(
+        <ButtonReadingFluency variant="outline">Test</ButtonReadingFluency>
+      );
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('bg-transparent', 'border-4', 'text-primary-900');
+      expect(button).toHaveClass(
+        'bg-transparent',
+        'border-4',
+        'text-primary-900'
+      );
     });
 
     it('applies outline-inverse variant classes (light text)', () => {
-      render(<ButtonPapole variant="outline-inverse">Test</ButtonPapole>);
+      render(
+        <ButtonReadingFluency variant="outline-inverse">
+          Test
+        </ButtonReadingFluency>
+      );
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('bg-transparent', 'border-4', 'text-primary-100');
+      expect(button).toHaveClass(
+        'bg-transparent',
+        'border-4',
+        'text-primary-100'
+      );
     });
 
     it('applies link variant classes (transparent base border, no layout shift on focus)', () => {
-      render(<ButtonPapole variant="link">Test</ButtonPapole>);
+      render(<ButtonReadingFluency variant="link">Test</ButtonReadingFluency>);
       const button = screen.getByRole('button');
       expect(button).toHaveClass(
         'bg-transparent',
@@ -408,13 +426,13 @@ describe('ButtonPapole', () => {
 
   describe('size classes', () => {
     it('applies medium size classes', () => {
-      render(<ButtonPapole size="medium">Test</ButtonPapole>);
+      render(<ButtonReadingFluency size="medium">Test</ButtonReadingFluency>);
       const button = screen.getByRole('button');
       expect(button).toHaveClass('rounded-2xl', 'text-[16px]', 'px-8', 'py-4');
     });
 
     it('applies small size classes', () => {
-      render(<ButtonPapole size="small">Test</ButtonPapole>);
+      render(<ButtonReadingFluency size="small">Test</ButtonReadingFluency>);
       const button = screen.getByRole('button');
       expect(button).toHaveClass('rounded-xl', 'text-[14px]', 'px-6', 'py-3');
     });
@@ -423,9 +441,9 @@ describe('ButtonPapole', () => {
   describe('iconLeft', () => {
     it('renders iconLeft in text variants', () => {
       render(
-        <ButtonPapole iconLeft={<svg data-testid="left-icon" />}>
+        <ButtonReadingFluency iconLeft={<svg data-testid="left-icon" />}>
           Test
-        </ButtonPapole>
+        </ButtonReadingFluency>
       );
       expect(screen.getByTestId('left-icon')).toBeInTheDocument();
     });
@@ -434,9 +452,9 @@ describe('ButtonPapole', () => {
   describe('icon variant', () => {
     it('renders a 42px target wrapping the icon circle', () => {
       render(
-        <ButtonPapole variant="icon" aria-label="Fechar">
+        <ButtonReadingFluency variant="icon" aria-label="Fechar">
           <svg data-testid="icon" />
-        </ButtonPapole>
+        </ButtonReadingFluency>
       );
 
       const button = screen.getByRole('button', { name: 'Fechar' });
@@ -454,9 +472,12 @@ describe('ButtonPapole', () => {
 
     it('ignores iconLeft in the icon variant', () => {
       render(
-        <ButtonPapole variant="icon" iconLeft={<svg data-testid="left-icon" />}>
+        <ButtonReadingFluency
+          variant="icon"
+          iconLeft={<svg data-testid="left-icon" />}
+        >
           <svg data-testid="icon" />
-        </ButtonPapole>
+        </ButtonReadingFluency>
       );
       expect(screen.queryByTestId('left-icon')).not.toBeInTheDocument();
       expect(screen.getByTestId('icon')).toBeInTheDocument();
@@ -465,39 +486,46 @@ describe('ButtonPapole', () => {
 
   describe('behavior', () => {
     it('defaults to type="button"', () => {
-      render(<ButtonPapole>Test</ButtonPapole>);
+      render(<ButtonReadingFluency>Test</ButtonReadingFluency>);
       expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
     });
 
     it('respects a custom type', () => {
-      render(<ButtonPapole type="submit">Test</ButtonPapole>);
+      render(<ButtonReadingFluency type="submit">Test</ButtonReadingFluency>);
       expect(screen.getByRole('button')).toHaveAttribute('type', 'submit');
     });
 
     it('applies a custom className', () => {
-      render(<ButtonPapole className="my-class">Test</ButtonPapole>);
+      render(
+        <ButtonReadingFluency className="my-class">Test</ButtonReadingFluency>
+      );
       expect(screen.getByRole('button')).toHaveClass('my-class');
     });
 
     it('forwards arbitrary props', () => {
       render(
-        <ButtonPapole data-testid="papole-btn" aria-label="Continuar">
+        <ButtonReadingFluency
+          data-testid="reading-fluency-btn"
+          aria-label="Continuar"
+        >
           Test
-        </ButtonPapole>
+        </ButtonReadingFluency>
       );
-      const button = screen.getByTestId('papole-btn');
+      const button = screen.getByTestId('reading-fluency-btn');
       expect(button).toHaveAttribute('aria-label', 'Continuar');
     });
 
     it('forwards the ref to the button element', () => {
       const ref = createRef<HTMLButtonElement>();
-      render(<ButtonPapole ref={ref}>Test</ButtonPapole>);
+      render(<ButtonReadingFluency ref={ref}>Test</ButtonReadingFluency>);
       expect(ref.current).toBeInstanceOf(HTMLButtonElement);
     });
 
     it('fires onClick when clicked', () => {
       const handleClick = jest.fn();
-      render(<ButtonPapole onClick={handleClick}>Test</ButtonPapole>);
+      render(
+        <ButtonReadingFluency onClick={handleClick}>Test</ButtonReadingFluency>
+      );
       fireEvent.click(screen.getByRole('button'));
       expect(handleClick).toHaveBeenCalledTimes(1);
     });
@@ -505,9 +533,9 @@ describe('ButtonPapole', () => {
     it('does not fire onClick when disabled', () => {
       const handleClick = jest.fn();
       render(
-        <ButtonPapole disabled onClick={handleClick}>
+        <ButtonReadingFluency disabled onClick={handleClick}>
           Test
-        </ButtonPapole>
+        </ButtonReadingFluency>
       );
       const button = screen.getByRole('button');
       expect(button).toBeDisabled();
@@ -519,14 +547,14 @@ describe('ButtonPapole', () => {
     it('disables the icon variant too', () => {
       const handleClick = jest.fn();
       render(
-        <ButtonPapole
+        <ButtonReadingFluency
           variant="icon"
           disabled
           aria-label="Fechar"
           onClick={handleClick}
         >
           <svg data-testid="icon" />
-        </ButtonPapole>
+        </ButtonReadingFluency>
       );
       const button = screen.getByRole('button', { name: 'Fechar' });
       expect(button).toBeDisabled();

@@ -2,7 +2,7 @@ import type { Story } from '@ladle/react';
 import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
 import { SignInIcon } from '@phosphor-icons/react/dist/csr/SignIn';
 import { XIcon } from '@phosphor-icons/react/dist/csr/X';
-import Button, { ButtonPapole } from './Button';
+import Button, { ButtonReadingFluency } from './Button';
 
 const sizes = [
   'extra-small',
@@ -158,41 +158,44 @@ export const Disabled: Story = () => (
 );
 
 /**
- * ButtonPapole — variante default (solid) do botão do Papolê.
- * Renderizado sob o tema papolê; os estados hover/pressed/foco são
+ * ButtonReadingFluency — variante default (solid) do botão do Reading Fluency.
+ * Renderizado sob o tema reading fluency; os estados hover/pressed/foco são
  * interativos (passe o mouse, clique e segure, ou use Tab).
  */
-export const ButtonPapoleShowcase: Story = () => (
+export const ButtonReadingFluencyShowcase: Story = () => (
   <div
     data-theme="papole-light"
     className="flex flex-col gap-8 p-8 bg-background"
   >
     <p className="text-sm text-text-700">
       Interaja para ver os estados (hover / pressed / foco via Tab). Cada
-      variante segue os tokens do tema papolê.
+      variante segue os tokens do tema reading fluency.
     </p>
 
     <div className="flex flex-col gap-3">
       <p className="text-sm font-bold uppercase text-text-900">Solid</p>
       <div className="flex flex-wrap items-center gap-6">
-        <ButtonPapole>Entrar</ButtonPapole>
-        <ButtonPapole iconLeft={<SignInIcon weight="bold" />}>
+        <ButtonReadingFluency>Entrar</ButtonReadingFluency>
+        <ButtonReadingFluency iconLeft={<SignInIcon weight="bold" />}>
           Entrar
-        </ButtonPapole>
-        <ButtonPapole disabled>Entrar</ButtonPapole>
+        </ButtonReadingFluency>
+        <ButtonReadingFluency disabled>Entrar</ButtonReadingFluency>
       </div>
     </div>
 
     <div className="flex flex-col gap-3">
       <p className="text-sm font-bold uppercase text-text-900">Outline</p>
       <div className="flex flex-wrap items-center gap-6">
-        <ButtonPapole variant="outline">Entrar</ButtonPapole>
-        <ButtonPapole variant="outline" iconLeft={<SignInIcon weight="bold" />}>
+        <ButtonReadingFluency variant="outline">Entrar</ButtonReadingFluency>
+        <ButtonReadingFluency
+          variant="outline"
+          iconLeft={<SignInIcon weight="bold" />}
+        >
           Entrar
-        </ButtonPapole>
-        <ButtonPapole variant="outline" disabled>
+        </ButtonReadingFluency>
+        <ButtonReadingFluency variant="outline" disabled>
           Entrar
-        </ButtonPapole>
+        </ButtonReadingFluency>
       </div>
     </div>
 
@@ -201,29 +204,34 @@ export const ButtonPapoleShowcase: Story = () => (
         Outline-inverse (fundo escuro)
       </p>
       <div className="flex flex-wrap items-center gap-6 rounded-xl bg-secondary-500 p-6">
-        <ButtonPapole variant="outline-inverse">Sair</ButtonPapole>
-        <ButtonPapole
+        <ButtonReadingFluency variant="outline-inverse">
+          Sair
+        </ButtonReadingFluency>
+        <ButtonReadingFluency
           variant="outline-inverse"
           iconLeft={<SignInIcon weight="bold" />}
         >
           Sair
-        </ButtonPapole>
-        <ButtonPapole variant="outline-inverse" disabled>
+        </ButtonReadingFluency>
+        <ButtonReadingFluency variant="outline-inverse" disabled>
           Sair
-        </ButtonPapole>
+        </ButtonReadingFluency>
       </div>
     </div>
 
     <div className="flex flex-col gap-3">
       <p className="text-sm font-bold uppercase text-text-900">Link</p>
       <div className="flex flex-wrap items-center gap-6">
-        <ButtonPapole variant="link">Entrar</ButtonPapole>
-        <ButtonPapole variant="link" iconLeft={<SignInIcon weight="bold" />}>
+        <ButtonReadingFluency variant="link">Entrar</ButtonReadingFluency>
+        <ButtonReadingFluency
+          variant="link"
+          iconLeft={<SignInIcon weight="bold" />}
+        >
           Entrar
-        </ButtonPapole>
-        <ButtonPapole variant="link" disabled>
+        </ButtonReadingFluency>
+        <ButtonReadingFluency variant="link" disabled>
           Entrar
-        </ButtonPapole>
+        </ButtonReadingFluency>
       </div>
     </div>
 
@@ -232,27 +240,33 @@ export const ButtonPapoleShowcase: Story = () => (
         Tamanhos (xl / medium / small)
       </p>
       <div className="flex flex-wrap items-center gap-6">
-        <ButtonPapole size="xl" iconLeft={<SignInIcon weight="bold" />}>
+        <ButtonReadingFluency size="xl" iconLeft={<SignInIcon weight="bold" />}>
           Entrar
-        </ButtonPapole>
-        <ButtonPapole size="medium" iconLeft={<SignInIcon weight="bold" />}>
+        </ButtonReadingFluency>
+        <ButtonReadingFluency
+          size="medium"
+          iconLeft={<SignInIcon weight="bold" />}
+        >
           Entrar
-        </ButtonPapole>
-        <ButtonPapole size="small" iconLeft={<SignInIcon weight="bold" />}>
+        </ButtonReadingFluency>
+        <ButtonReadingFluency
+          size="small"
+          iconLeft={<SignInIcon weight="bold" />}
+        >
           Entrar
-        </ButtonPapole>
+        </ButtonReadingFluency>
       </div>
     </div>
 
     <div className="flex flex-col gap-3">
       <p className="text-sm font-bold uppercase text-text-900">Ícone</p>
       <div className="flex flex-wrap items-center gap-6">
-        <ButtonPapole variant="icon" aria-label="Fechar">
+        <ButtonReadingFluency variant="icon" aria-label="Fechar">
           <XIcon weight="bold" />
-        </ButtonPapole>
-        <ButtonPapole variant="icon" aria-label="Fechar" disabled>
+        </ButtonReadingFluency>
+        <ButtonReadingFluency variant="icon" aria-label="Fechar" disabled>
           <XIcon weight="bold" />
-        </ButtonPapole>
+        </ButtonReadingFluency>
       </div>
     </div>
   </div>

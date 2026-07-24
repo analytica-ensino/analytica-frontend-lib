@@ -2,32 +2,52 @@ import { render } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import type { FC } from 'react';
 import {
-  MicIconPapole,
-  MicOffIconPapole,
-  StopIconPapole,
-  PlayIconPapole,
-  PauseIconPapole,
+  MicIconReadingFluency,
+  MicOffIconReadingFluency,
+  StopIconReadingFluency,
+  PlayIconReadingFluency,
+  PauseIconReadingFluency,
 } from './index';
-import type { PapoleIconProps } from './types';
+import type { ReadingFluencyIconProps } from './types';
 
 const getSvg = (container: HTMLElement): SVGSVGElement =>
   container.querySelector('svg') as SVGSVGElement;
 
 /**
- * Every Papolê icon shares the same contract (PapoleIconProps): a single
+ * Every Reading Fluency icon shares the same contract (ReadingFluencyIconProps): a single
  * decorative `<svg>` that maps `size` → width/height and forwards `className`.
  * Only the native default size differs.
  */
 const ICONS: Array<{
   name: string;
-  Icon: FC<PapoleIconProps>;
+  Icon: FC<ReadingFluencyIconProps>;
   defaultSize: number;
 }> = [
-  { name: 'MicIconPapole', Icon: MicIconPapole, defaultSize: 24 },
-  { name: 'MicOffIconPapole', Icon: MicOffIconPapole, defaultSize: 24 },
-  { name: 'StopIconPapole', Icon: StopIconPapole, defaultSize: 24 },
-  { name: 'PlayIconPapole', Icon: PlayIconPapole, defaultSize: 30 },
-  { name: 'PauseIconPapole', Icon: PauseIconPapole, defaultSize: 30 },
+  {
+    name: 'MicIconReadingFluency',
+    Icon: MicIconReadingFluency,
+    defaultSize: 24,
+  },
+  {
+    name: 'MicOffIconReadingFluency',
+    Icon: MicOffIconReadingFluency,
+    defaultSize: 24,
+  },
+  {
+    name: 'StopIconReadingFluency',
+    Icon: StopIconReadingFluency,
+    defaultSize: 24,
+  },
+  {
+    name: 'PlayIconReadingFluency',
+    Icon: PlayIconReadingFluency,
+    defaultSize: 30,
+  },
+  {
+    name: 'PauseIconReadingFluency',
+    Icon: PauseIconReadingFluency,
+    defaultSize: 30,
+  },
 ];
 
 describe.each(ICONS)('$name', ({ name, Icon, defaultSize }) => {
@@ -65,9 +85,9 @@ describe.each(ICONS)('$name', ({ name, Icon, defaultSize }) => {
   });
 });
 
-describe('PauseIconPapole mask ids', () => {
+describe('PauseIconReadingFluency mask ids', () => {
   it('references its mask via a colon-free unique id', () => {
-    const { container } = render(<PauseIconPapole />);
+    const { container } = render(<PauseIconReadingFluency />);
 
     const mask = container.querySelector('mask') as SVGMaskElement;
     const maskId = mask.getAttribute('id') as string;
@@ -83,8 +103,8 @@ describe('PauseIconPapole mask ids', () => {
   it('gives each instance a distinct mask id (no collision)', () => {
     const { container } = render(
       <div>
-        <PauseIconPapole />
-        <PauseIconPapole />
+        <PauseIconReadingFluency />
+        <PauseIconReadingFluency />
       </div>
     );
 

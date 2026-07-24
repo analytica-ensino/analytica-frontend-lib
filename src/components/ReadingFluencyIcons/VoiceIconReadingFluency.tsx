@@ -1,14 +1,17 @@
 import type { FC } from 'react';
-import type { PapoleIconProps } from './types';
+import type { ReadingFluencyIconProps } from './types';
 
 /**
- * Ícone de voz — passarinho Papolê + ondas sonoras (ilustração multicolor, cores
+ * Ícone de voz — passarinho Reading Fluency + ondas sonoras (ilustração multicolor, cores
  * fixas da arte). viewBox nativo 61×50 (não é quadrado): `size` define a LARGURA
  * e a altura sai proporcional; sem `size`, usa o tamanho nativo. Prefira dimensionar
  * por `className` (ex.: `h-full w-full`) — o viewBox preserva a proporção.
  * `aria-hidden` por ser decorativo; quem usa em botão deve prover o rótulo.
  */
-export const VoiceIconPapole: FC<PapoleIconProps> = ({ size, className }) => (
+export const VoiceIconReadingFluency: FC<ReadingFluencyIconProps> = ({
+  size,
+  className,
+}) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={size ?? 61}
@@ -80,4 +83,4 @@ export const VoiceIconPapole: FC<PapoleIconProps> = ({ size, className }) => (
     />
   </svg>
 );
-VoiceIconPapole.displayName = 'VoiceIconPapole';
+VoiceIconReadingFluency.displayName = 'VoiceIconReadingFluency';

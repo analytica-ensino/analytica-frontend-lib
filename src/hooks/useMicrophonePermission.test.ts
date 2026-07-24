@@ -187,7 +187,9 @@ describe('useMicrophonePermission', () => {
     it('reacts to permission changes via onchange', async () => {
       const permissionStatus = createPermissionStatus('prompt');
       setMediaDevices({ getUserMedia: jest.fn() });
-      setPermissions({ query: jest.fn(() => Promise.resolve(permissionStatus)) });
+      setPermissions({
+        query: jest.fn(() => Promise.resolve(permissionStatus)),
+      });
 
       const { result } = renderHook(() => useMicrophonePermission());
 
@@ -258,7 +260,9 @@ describe('useMicrophonePermission', () => {
     it('clears the onchange handler on unmount', async () => {
       const permissionStatus = createPermissionStatus('granted');
       setMediaDevices({ getUserMedia: jest.fn() });
-      setPermissions({ query: jest.fn(() => Promise.resolve(permissionStatus)) });
+      setPermissions({
+        query: jest.fn(() => Promise.resolve(permissionStatus)),
+      });
 
       const { result, unmount } = renderHook(() => useMicrophonePermission());
 
