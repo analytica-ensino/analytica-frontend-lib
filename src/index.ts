@@ -847,6 +847,8 @@ export type {
   AudioRecorderPapoleProps,
   AudioRecorderPapoleHandle,
 } from './components/AudioRecorderPapole/AudioRecorderPapole';
+export { IconButtonPapole } from './components/IconButtonPapole/IconButtonPapole';
+export type { IconButtonPapoleProps } from './components/IconButtonPapole/IconButtonPapole';
 export { ReadAloudPromptPapole } from './components/ReadAloudPromptPapole/ReadAloudPromptPapole';
 export type { ReadAloudPromptPapoleProps } from './components/ReadAloudPromptPapole/ReadAloudPromptPapole';
 export {
@@ -855,6 +857,7 @@ export {
   StopIconPapole,
   PlayIconPapole,
   PauseIconPapole,
+  VoiceIconPapole,
 } from './components/PapoleIcons';
 export type { PapoleIconProps } from './components/PapoleIcons';
 export { useDraftAutoSave } from './hooks/useDraftAutoSave';
