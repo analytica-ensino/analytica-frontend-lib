@@ -14,6 +14,7 @@ import {
   MicIconReadingFluency,
   StopIconReadingFluency,
 } from '../ReadingFluencyIcons';
+import Text from '../Text/Text';
 
 /** Métodos imperativos expostos via `ref` — pra dirigir a gravação externamente. */
 export interface AudioRecorderReadingFluencyHandle {
@@ -256,9 +257,9 @@ export const AudioRecorderReadingFluency = forwardRef<
         </div>
 
         {showTime && (
-          <span className="text-[16px] font-medium tabular-nums text-text-900">
+          <Text className="text-[16px] font-medium tabular-nums text-text-900">
             {formatTimeSpent(elapsed)}
-          </span>
+          </Text>
         )}
 
         {!hideButton && (

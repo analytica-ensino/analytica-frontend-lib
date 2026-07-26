@@ -6,6 +6,7 @@ import {
   type AudioMixerStatus,
 } from './AudioMixerReadingFluency';
 import { ButtonReadingFluency } from '../Button/Button';
+import Text from '../Text/Text';
 
 // Áudio SAME-ORIGIN embutido (data URI WAV) só pra demo: um áudio externo sem
 // CORS ficaria mudo ao passar pelo Web Audio. Aqui toca e as barras reagem.
@@ -134,9 +135,9 @@ export const AudioMixerControlled: Story = () => {
         </ButtonReadingFluency>
       </div>
 
-      <p className="text-xs text-text-700">
+      <Text size='xs' className="text-text-700">
         status atual: <strong>{status}</strong>
-      </p>
+      </Text>
     </div>
   );
 };

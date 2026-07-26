@@ -1,5 +1,6 @@
 import motionBird from '../../assets/gifs/motionMouthAndEyes.gif';
 import { cn } from '../../utils/utils';
+import Text from '../Text/Text';
 
 export interface ReadAloudPromptReadingFluencyProps {
   /** Texto a ser lido em voz alta (renderizado em MAIÚSCULAS). */
@@ -60,12 +61,12 @@ export const ReadAloudPromptReadingFluency = ({
         />
       )}
 
-      <span className="text-[14px] font-semibold uppercase text-text-700">
+      <Text size='sm' className="font-semibold uppercase text-text-700">
         {label}
-      </span>
+      </Text>
 
-      <div className="flex flex-col gap-2 rounded-[12px] border border-secondary-500 p-4">
-        <p className="text-[24px] font-bold uppercase text-text-900">{text}</p>
+      <div className="flex flex-col gap-2 rounded-xl border border-secondary-500 p-4">
+        <Text size='2xl' className="font-bold uppercase text-text-900">{text}</Text>
       </div>
     </div>
   </div>

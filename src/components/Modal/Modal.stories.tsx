@@ -8,6 +8,7 @@ import Modal, {
 } from './Modal';
 import Button, { ButtonReadingFluency } from '../Button/Button';
 import mockContentImage from '../../assets/img/mock-content.png';
+import Text from '../Text/Text';
 
 // Imagem "do cliente" (data URI, sem depender de rede) pra demonstrar o override
 // via `imageSrc` — quando o asset empacotado da lib não resolve no bundle, o
@@ -319,9 +320,9 @@ export const MicPermissionReadingFluencyManaged: Story = () => (
     data-theme="papole-light"
     className="flex min-h-[420px] items-center justify-center bg-secondary-700 p-6"
   >
-    <p className="text-center text-sm text-text-100">
+    <Text size='sm' className="text-center text-text-100">
       Abre automaticamente se o microfone não estiver concedido.
-    </p>
+    </Text>
     <MicPermissionModalReadingFluency
       onEnable={(granted) => console.log('concedido?', granted)}
       onLearnMore={() => console.log('saiba mais')}

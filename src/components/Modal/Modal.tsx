@@ -26,6 +26,7 @@ import {
   getYouTubeVideoId,
   getYouTubeEmbedUrl,
 } from './utils/videoUtils';
+import Text from '../Text/Text';
 
 /**
  * Lookup table for size classes
@@ -199,18 +200,19 @@ const Modal = ({
             )}
 
             {/* Título */}
-            <h2
+            <Text
               id={titleId}
-              className="text-lg font-semibold text-text-950 text-center"
+              size='lg'
+              className="font-semibold text-text-950 text-center"
             >
               {title}
-            </h2>
+            </Text>
 
             {/* Descrição */}
             {description && (
-              <p className="text-sm font-normal text-text-400 text-center max-w-md leading-[21px]">
+              <Text size='sm' className="text-text-400 text-center max-w-md leading-[21px]">
                 {description}
-              </p>
+              </Text>
             )}
 
             {/* Ação: Botão ou Vídeo Embedado */}
@@ -445,9 +447,9 @@ const MicPermissionModalReadingFluency = ({
 
         {/* Corpo (padding 24) */}
         <div className="flex flex-col items-center gap-4 bg-background p-6 text-center">
-          <h2 id={titleId} className="text-[18px] font-bold text-secondary-900">
+          <Text size='lg' id={titleId} className="font-bold text-secondary-900">
             {title}
-          </h2>
+          </Text>
 
           <div className="flex flex-col gap-3 text-[14px] font-medium text-text-600">
             {description ?? (

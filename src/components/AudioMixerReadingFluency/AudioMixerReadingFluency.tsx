@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { cn, formatTimeSpent } from '../../utils/utils';
 import { useAudioSpectrum } from '../../hooks/useAudioSpectrum';
+import Text from '../Text/Text';
 
 /** Estado de reprodução do mixer. */
 export type AudioMixerStatus = 'playing' | 'paused' | 'stopped';
@@ -265,9 +266,9 @@ export const AudioMixerReadingFluency = forwardRef<
         </div>
 
         {showTime && (
-          <span className="text-[16px] font-medium tabular-nums text-text-900">
+          <Text className="text-[16px] font-medium tabular-nums text-text-900">
             {formatTimeSpent(currentTime)}
-          </span>
+          </Text>
         )}
       </div>
     );
