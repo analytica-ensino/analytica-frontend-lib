@@ -454,14 +454,14 @@ const MicPermissionModalReadingFluency = ({
           <div className="flex flex-col gap-3 text-[14px] font-medium text-text-600">
             {description ?? (
               <>
-                <p>
+                <Text size='sm'>
                   Usamos o microfone para gravar a leitura da criança e avaliar
                   sua fluência leitora ao longo do tempo.
-                </p>
-                <p>
+                </Text>
+                <Text size='sm'>
                   As gravações ficam armazenadas com segurança e são usadas
                   apenas para esse fim.
-                </p>
+                </Text>
               </>
             )}
           </div>
@@ -484,15 +484,16 @@ const MicPermissionModalReadingFluency = ({
           </ButtonReadingFluency>
 
           {/* Barra "Saiba mais": botão arredondado, inset pelo padding do corpo */}
-          <button
+          <Button
             type="button"
             onClick={onLearnMore}
+            variant='raw'
             className="w-full cursor-pointer rounded-xl bg-secondary-100 px-4 py-4 text-center"
           >
             <span className="text-[14px] font-medium text-secondary-700 underline">
               Saiba mais sobre como cuidamos dos dados
             </span>
-          </button>
+          </Button>
         </div>
       </dialog>
     </div>
@@ -576,12 +577,13 @@ const MicOffModalReadingFluency = ({
 
         {/* Corpo (padding 24) */}
         <div className="flex flex-col items-center gap-4 bg-background p-6 text-center">
-          <h2
+          <Text
             id={titleId}
-            className="text-[18px] font-bold uppercase text-secondary-900"
+            size='lg'
+            className="font-bold uppercase text-secondary-900"
           >
             {title}
-          </h2>
+          </Text>
 
           <ButtonReadingFluency
             variant="solid"
@@ -784,11 +786,12 @@ const AudioPlaybackModalReadingFluency = ({
               <track kind="captions" />
             </audio>
 
-            <button
+            <Button
               type="button"
               onClick={togglePlay}
               disabled={!resolvedSrc}
               aria-label={isPlaying ? 'Pausar' : 'Reproduzir'}
+              variant='raw'
               className="flex flex-shrink-0 items-center justify-center disabled:cursor-not-allowed disabled:opacity-40"
             >
               {isPlaying ? (
@@ -796,19 +799,20 @@ const AudioPlaybackModalReadingFluency = ({
               ) : (
                 <PlayIconReadingFluency size={36} />
               )}
-            </button>
+            </Button>
 
-            <button
+            <Button
               type="button"
               onClick={handleSeek}
               aria-label="Barra de progresso"
+              variant='raw'
               className="h-2 flex-1 overflow-hidden rounded-full bg-background"
             >
               <span
                 className="block h-full rounded-full bg-primary-500 transition-[width] duration-100"
                 style={{ width: `${progress}%` }}
               />
-            </button>
+            </Button>
 
             <span className="flex-shrink-0 text-sm font-medium text-primary">
               {formatPlaybackTime(currentTime)}
@@ -911,15 +915,16 @@ const SuccessModalReadingFluency = ({
           />
 
           <div className="flex flex-col items-center gap-1">
-            <h2
+            <Text
               id={titleId}
-              className="text-[32px] font-bold uppercase text-secondary-900"
+              size='3xl'
+              className="font-bold uppercase text-secondary-900"
             >
               {title}
-            </h2>
-            <p className="text-[14px] font-semibold uppercase tracking-wide text-text-500">
+            </Text>
+            <Text size='sm' className="font-semibold uppercase tracking-wide text-text-500">
               {description}
-            </p>
+            </Text>
           </div>
         </div>
       </dialog>

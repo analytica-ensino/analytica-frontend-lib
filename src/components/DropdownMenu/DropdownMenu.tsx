@@ -968,9 +968,9 @@ const ProfileMenuReadingFluencyInfo = forwardRef<
         {hasSchoolBlock && (
           <div className="flex flex-col">
             {schoolName && (
-              <p className="text-[16px] font-bold text-text-100 truncate">
+              <Text size='md' className="font-bold text-text-100 truncate">
                 {schoolName}
-              </p>
+              </Text>
             )}
             {(classYearName || schoolYearName) && (
               <Text size='sm' className="font-medium text-secondary-300 truncate">
