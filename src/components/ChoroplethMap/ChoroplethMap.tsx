@@ -120,16 +120,40 @@ const getColorClass = (
   return colorClasses[0];
 };
 
+/** Work budget per slice before yielding the main thread back to the browser. */
+const NRE_UNION_SLICE_MS = 8;
+
+/**
+ * Yield control to the browser so it can paint and handle input between slices
+ * of a long computation. MessageChannel avoids the ~4ms clamp of setTimeout(0).
+ */
+const yieldToMain = (): Promise<void> =>
+  new Promise((resolve) => {
+    const channel = new MessageChannel();
+    channel.port1.onmessage = () => resolve();
+    channel.port2.postMessage(undefined);
+  });
+
 /**
  * Compute NRE boundary polygons by merging city polygons that share the same
- * group (the NRE). Grouping uses `groupName` (the NRE label); when a region has
- * no `groupName`, it falls back to its own `name` so it forms its own group.
+ * group (the NRE) — WITHOUT blocking the main thread. Grouping uses `groupName`
+ * (the NRE label); when a region has no `groupName`, it falls back to its own
+ * `name` so it forms its own group.
+ *
+ * Merging hundreds of municipal polygons with `union` is heavy (seconds), so the
+ * work is sliced: after ~`NRE_UNION_SLICE_MS` of merging it yields to the
+ * browser, keeping the page responsive while the outlines fill in a beat after
+ * the cities. Resolves to `null` when `isCancelled` flips (the geometry changed
+ * mid-flight), so a stale result is never applied.
+ *
  * @param data - Array of region data with individual city GeoJSON features
- * @returns Array of GeoJSON features representing NRE boundaries
+ * @param isCancelled - Polled between slices; return true to abort
+ * @returns NRE boundary features, or null if cancelled
  */
-const computeNREBoundaries = (
-  data: RegionData[]
-): Feature<Polygon | MultiPolygon>[] => {
+const computeNREBoundariesAsync = async (
+  data: RegionData[],
+  isCancelled: () => boolean
+): Promise<Feature<Polygon | MultiPolygon>[] | null> => {
   const groups = new Map<string, RegionData[]>();
   data.forEach((region) => {
     const groupKey = region.groupName ?? region.name;
@@ -139,7 +163,9 @@ const computeNREBoundaries = (
   });
 
   const boundaries: Feature<Polygon | MultiPolygon>[] = [];
-  groups.forEach((regions) => {
+  let sliceStart = performance.now();
+
+  for (const regions of groups.values()) {
     let merged: Feature<Polygon | MultiPolygon> | null = null;
     for (const region of regions) {
       if (region.geoJson.type !== 'Feature') continue;
@@ -153,9 +179,15 @@ const computeNREBoundaries = (
       } else {
         merged = feature;
       }
+
+      if (performance.now() - sliceStart > NRE_UNION_SLICE_MS) {
+        await yieldToMain();
+        if (isCancelled()) return null;
+        sliceStart = performance.now();
+      }
     }
     if (merged) boundaries.push(merged);
-  });
+  }
 
   return boundaries;
 };
@@ -347,6 +379,18 @@ const ChoroplethMap = ({
   );
   const stableData = useMemo(() => data, [dataSignature]);
 
+  // The NRE outlines depend only on which municipality belongs to which NRE and
+  // on the polygons themselves — never on the access metrics. Give the expensive
+  // union its own geometry-only signature so it doesn't recompute on every
+  // period/filter change (those keep the same polygons and only recolor them),
+  // which otherwise blocks the main thread for seconds. Recomputes only when the
+  // set of regions or their grouping actually changes.
+  const geometrySignature = useMemo(
+    () => data.map((d) => `${d.id}:${d.groupName ?? d.name}`).join('|'),
+    [data]
+  );
+  const stableGeometryData = useMemo(() => data, [geometrySignature]);
+
   const colorClasses = useMemo(() => getColorClasses(), [isDark]);
 
   const mapOptions: google.maps.MapOptions = useMemo(() => {
@@ -436,10 +480,31 @@ const ChoroplethMap = ({
     setMap(null);
   }, []);
 
-  const nreBoundaries = useMemo(
-    () => computeNREBoundaries(stableData),
-    [stableData]
-  );
+  // NRE outlines are computed off the critical path: merging the municipal
+  // polygons is heavy, so it runs in yielding slices and lands in state when
+  // ready. The cities paint immediately; the outlines follow a beat later,
+  // without ever freezing the page. Keyed on geometry only (stableGeometryData),
+  // so period/filter changes never re-run it, and stale runs are cancelled.
+  const [nreBoundaries, setNreBoundaries] = useState<
+    Feature<Polygon | MultiPolygon>[]
+  >([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    computeNREBoundariesAsync(stableGeometryData, () => cancelled).then(
+      (result) => {
+        if (cancelled || !result) return;
+        // Skip the state update (and re-render) when the outlines stay empty —
+        // e.g. an empty dataset — so nothing downstream churns needlessly.
+        setNreBoundaries((prev) =>
+          prev.length === 0 && result.length === 0 ? prev : result
+        );
+      }
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [stableGeometryData]);
 
   /**
    * Add GeoJSON data to map with animations
@@ -452,18 +517,11 @@ const ChoroplethMap = ({
       '--color-map-unmanaged-region',
       '#e0e0e0'
     );
-    const strokeNreColor = getCssVar('--color-map-stroke-nre', '#ffffff');
 
     // Clear existing data
     map.data.forEach((feature) => {
       map.data.remove(feature);
     });
-
-    // Clear existing NRE boundary layer
-    if (nreBoundaryLayerRef.current) {
-      nreBoundaryLayerRef.current.setMap(null);
-      nreBoundaryLayerRef.current = null;
-    }
 
     // Add each region's GeoJSON
     stableData.forEach((region) => {
@@ -503,20 +561,6 @@ const ChoroplethMap = ({
     map.data.setStyle(
       createStyleFunction(0, colorClasses, strokeCityColor, unmanagedFillColor)
     );
-
-    // Add NRE boundary overlay
-    const nreLayer = new google.maps.Data();
-    nreBoundaries.forEach((boundary) => {
-      nreLayer.addGeoJson(boundary);
-    });
-    nreLayer.setStyle({
-      fillOpacity: 0,
-      strokeColor: strokeNreColor,
-      strokeWeight: 1,
-      clickable: false,
-    });
-    nreLayer.setMap(map);
-    nreBoundaryLayerRef.current = nreLayer;
 
     // Animate fade-in from 0 to TARGET_OPACITY
     const startTime = performance.now();
@@ -723,16 +767,48 @@ const ChoroplethMap = ({
       hoverAnimationsRef.current.forEach((id) => cancelAnimationFrame(id));
       hoverAnimationsRef.current.clear();
       if (revertTimeout) clearTimeout(revertTimeout);
-      if (nreBoundaryLayerRef.current) {
-        nreBoundaryLayerRef.current.setMap(null);
-        nreBoundaryLayerRef.current = null;
-      }
       google.maps.event.removeListener(mouseoverListener);
       google.maps.event.removeListener(mouseoutListener);
       google.maps.event.removeListener(mousemoveListener);
       google.maps.event.removeListener(clickListener);
     };
-  }, [map, stableData, colorClasses, nreBoundaries]);
+  }, [map, stableData, colorClasses]);
+
+  // Draw the NRE outline overlay on its own layer, independent of the city
+  // features. It lives on a separate google.maps.Data instance, so recoloring
+  // the cities (period/filter change) never touches it, and it (re)appears
+  // when the async boundary computation lands or the theme changes.
+  useEffect(() => {
+    if (!map) return;
+
+    if (nreBoundaryLayerRef.current) {
+      nreBoundaryLayerRef.current.setMap(null);
+      nreBoundaryLayerRef.current = null;
+    }
+
+    if (!nreBoundaries.length) return;
+
+    const strokeNreColor = getCssVar('--color-map-stroke-nre', '#ffffff');
+    const nreLayer = new google.maps.Data();
+    nreBoundaries.forEach((boundary) => {
+      nreLayer.addGeoJson(boundary);
+    });
+    nreLayer.setStyle({
+      fillOpacity: 0,
+      strokeColor: strokeNreColor,
+      strokeWeight: 1,
+      clickable: false,
+    });
+    nreLayer.setMap(map);
+    nreBoundaryLayerRef.current = nreLayer;
+
+    return () => {
+      if (nreBoundaryLayerRef.current) {
+        nreBoundaryLayerRef.current.setMap(null);
+        nreBoundaryLayerRef.current = null;
+      }
+    };
+  }, [map, nreBoundaries, isDark]);
 
   /**
    * Apply visibility filter based on active legend classes

@@ -511,6 +511,99 @@ describe('ChoroplethMap color classification', () => {
   });
 });
 
+describe('ChoroplethMap NRE boundary memoization', () => {
+  const mockApiKey = 'test-api-key';
+  // The turf union mock stands in for the (expensive) boundary computation, so
+  // its call count tells us whether the outlines were recomputed.
+  const unionMock = require('@turf/union').default as jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockForEach.mockReset();
+    rafCallbacks = new Map();
+    mockAddGeoJson.mockReturnValue([{ setProperty: jest.fn() }]);
+  });
+
+  const city = (id: string, groupName: string, value: number): RegionData => ({
+    id,
+    name: id,
+    groupName,
+    value,
+    accessCount: 100,
+    geoJson: {
+      type: 'Feature',
+      properties: {},
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [-49, -25],
+            [-48, -25],
+            [-48, -26],
+            [-49, -25],
+          ],
+        ],
+      },
+    },
+  });
+
+  it('does not recompute the NRE outlines when only the access metrics change', async () => {
+    // Two cities in one NRE, so the first render merges them at least once.
+    const { rerender } = render(
+      <ChoroplethMap
+        data={[city('c1', 'NRE 1', 0.3), city('c2', 'NRE 1', 0.3)]}
+        apiKey={mockApiKey}
+      />
+    );
+    // Flush the async boundary computation's state update.
+    await act(async () => {});
+
+    const callsAfterFirstRender = unionMock.mock.calls.length;
+    expect(callsAfterFirstRender).toBeGreaterThan(0);
+
+    // Same polygons and grouping, new metrics — as when the period/filter changes.
+    rerender(
+      <ChoroplethMap
+        data={[city('c1', 'NRE 1', 0.9), city('c2', 'NRE 1', 0.9)]}
+        apiKey={mockApiKey}
+      />
+    );
+    await act(async () => {});
+
+    expect(unionMock.mock.calls.length).toBe(callsAfterFirstRender);
+  });
+
+  it('recomputes the NRE outlines when the grouping changes', async () => {
+    const { rerender } = render(
+      <ChoroplethMap
+        data={[
+          city('c1', 'NRE 1', 0.3),
+          city('c2', 'NRE 1', 0.3),
+          city('c3', 'NRE 1', 0.3),
+        ]}
+        apiKey={mockApiKey}
+      />
+    );
+    await act(async () => {});
+    const callsBefore = unionMock.mock.calls.length;
+
+    // A city moves to another NRE — the outlines must be recomputed.
+    rerender(
+      <ChoroplethMap
+        data={[
+          city('c1', 'NRE 1', 0.3),
+          city('c2', 'NRE 1', 0.3),
+          city('c3', 'NRE 2', 0.3),
+        ]}
+        apiKey={mockApiKey}
+      />
+    );
+    await act(async () => {});
+
+    expect(unionMock.mock.calls.length).toBeGreaterThan(callsBefore);
+  });
+});
+
 describe('ChoroplethMap static map and styling', () => {
   const mockApiKey = 'test-api-key';
 
