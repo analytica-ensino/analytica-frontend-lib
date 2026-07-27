@@ -101,12 +101,15 @@ const ColumnFilterMenu = ({
          * events through the component tree, not the DOM tree, so a click on an
          * item would otherwise reach whatever wraps this header. (The trigger
          * guards its own click; this covers the items.)
+         *
+         * The height is left to the menu: a fixed `max-h` here ignored the
+         * viewport, so a filter near the footer opened past the bottom of the
+         * screen with its last option unreachable.
          */}
         <DropdownMenuContent
           portal
           triggerRef={triggerRef}
           align="start"
-          className="max-h-80 overflow-y-auto"
           onClick={(event) => event.stopPropagation()}
         >
           {searchable && (

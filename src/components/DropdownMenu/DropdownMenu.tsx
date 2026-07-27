@@ -68,10 +68,132 @@ const PORTAL_STYLE_KEYS = [
   'left',
   'right',
   'transform',
+  'maxHeight',
 ] as const;
 
 const isSamePortalStyle = (a: CSSProperties, b: CSSProperties): boolean =>
   PORTAL_STYLE_KEYS.every((key) => a[key] === b[key]);
+
+/** Tallest a portaled menu gets when there is room for it. */
+const DEFAULT_PORTAL_MAX_HEIGHT = 320;
+
+/** Breathing room between the menu and the edge of the viewport. */
+const VIEWPORT_MARGIN = 8;
+
+/**
+ * Never shrink a menu below this, however cramped the trigger is: a 20px-tall
+ * scroller is worse than one that overhangs a little.
+ */
+const MIN_PORTAL_MAX_HEIGHT = 120;
+
+type PortalSide = 'top' | 'right' | 'bottom' | 'left';
+type PortalAlign = 'start' | 'center' | 'end';
+
+interface PortalPlacement {
+  side: PortalSide;
+  align: PortalAlign;
+  sideOffset: number;
+  maxHeight: number;
+}
+
+/**
+ * Height cap for a portaled menu, given the room it has.
+ *
+ * The minimum is a floor on the *viewport-derived* room only — it keeps a menu
+ * squeezed against an edge from collapsing into a sliver. A caller that asks
+ * for a shorter menu than the minimum still gets what it asked for: its value
+ * is the ceiling, never something to be raised.
+ *
+ * @param available - Room in px between the trigger and the viewport edge
+ * @param maxHeight - Tallest the caller allows the menu to be
+ * @returns The `max-height` to apply, in px
+ */
+const clampMenuHeight = (available: number, maxHeight: number): number =>
+  Math.min(maxHeight, Math.max(available, MIN_PORTAL_MAX_HEIGHT));
+
+/**
+ * Horizontal edge the menu lines up with, for the `top`/`bottom` sides.
+ *
+ * @param rect - Trigger bounding rect
+ * @param align - Requested alignment
+ * @returns The horizontal part of the portal style
+ */
+const alignPortalStyle = (rect: DOMRect, align: PortalAlign): CSSProperties => {
+  if (align === 'end') return { right: window.innerWidth - rect.right };
+  if (align === 'center') {
+    return {
+      left: rect.left + rect.width / 2,
+      transform: 'translateX(-50%)',
+    };
+  }
+  return { left: rect.left };
+};
+
+/**
+ * Place a menu above or below its trigger, sized to the room that exists.
+ *
+ * A portaled menu is `position: fixed`, so whatever falls past the edge of the
+ * viewport can never be scrolled to. The menu therefore takes the space it
+ * actually has and scrolls inside it, and turns over to the other side when
+ * clamping alone would still leave it overhanging.
+ *
+ * The flip threshold is the minimum height rather than the maximum: turning
+ * over as soon as the menu could not open at full height would send it over the
+ * content on any trigger past the middle of the screen, which reads as a
+ * glitch. `side="top"` always opens above — the caller asked for it.
+ *
+ * @param rect - Trigger bounding rect
+ * @param placement - Requested side/alignment, offset and height ceiling
+ * @returns Style for a fixed menu anchored to the trigger's top or bottom edge
+ */
+const verticalPortalStyle = (
+  rect: DOMRect,
+  { side, align, sideOffset, maxHeight }: PortalPlacement
+): CSSProperties => {
+  const spaceBelow =
+    window.innerHeight - rect.bottom - sideOffset - VIEWPORT_MARGIN;
+  const spaceAbove = rect.top - sideOffset - VIEWPORT_MARGIN;
+  const openAbove =
+    side === 'top' ||
+    (spaceBelow < Math.min(maxHeight, MIN_PORTAL_MAX_HEIGHT) &&
+      spaceAbove > spaceBelow);
+
+  return {
+    maxHeight: clampMenuHeight(openAbove ? spaceAbove : spaceBelow, maxHeight),
+    overflowY: 'auto',
+    ...(openAbove
+      ? { bottom: window.innerHeight - rect.top + sideOffset }
+      : { top: rect.bottom + sideOffset }),
+    ...alignPortalStyle(rect, align),
+  };
+};
+
+/**
+ * Place a menu beside its trigger, sized to the room below the trigger's top.
+ *
+ * Anchored by the edge that faces the trigger: a `left` for `side="left"` would
+ * grow the menu back over the trigger it was meant to sit outside of. It runs
+ * downwards from the trigger's top, so it needs the same clamping as a menu
+ * opening below — without it a long list disappears past the viewport bottom.
+ *
+ * @param rect - Trigger bounding rect
+ * @param placement - Requested side, offset and height ceiling
+ * @returns Style for a fixed menu anchored to the trigger's left or right edge
+ */
+const horizontalPortalStyle = (
+  rect: DOMRect,
+  { side, sideOffset, maxHeight }: PortalPlacement
+): CSSProperties => ({
+  top: rect.top,
+  maxHeight: clampMenuHeight(
+    window.innerHeight - rect.top - VIEWPORT_MARGIN,
+    maxHeight
+  ),
+  overflowY: 'auto',
+  ...(side === 'left'
+    ? { right: window.innerWidth - rect.left + sideOffset }
+    : { left: rect.right + sideOffset }),
+});
 
 const injectStore = (
   children: ReactNode,
@@ -322,6 +444,11 @@ const DropdownMenuContent = forwardRef<
     store?: DropdownStoreApi;
     portal?: boolean;
     triggerRef?: RefObject<HTMLElement | null>;
+    /**
+     * Tallest the menu gets, in px, when the viewport allows it. Portaled menus
+     * only — it is capped by the space actually available around the trigger.
+     */
+    maxHeight?: number;
   }
 >(
   (
@@ -335,6 +462,7 @@ const DropdownMenuContent = forwardRef<
       store: externalStore,
       portal = false,
       triggerRef,
+      maxHeight = DEFAULT_PORTAL_MAX_HEIGHT,
       ...props
     },
     ref
@@ -358,38 +486,14 @@ const DropdownMenuContent = forwardRef<
       if (!portal || !triggerRef?.current) return;
 
       const rect = triggerRef.current.getBoundingClientRect();
-      const style: CSSProperties = {};
-
-      // Each side anchors the menu by the edge that faces the trigger. Placing a
-      // `top`/`left` for the `top`/`left` sides would grow the menu back over
-      // the trigger instead of away from it.
-      if (side === 'left' || side === 'right') {
-        style.top = rect.top;
-
-        if (side === 'left') {
-          style.right = window.innerWidth - rect.left + sideOffset;
-        } else {
-          style.left = rect.right + sideOffset;
-        }
-      } else {
-        if (side === 'top') {
-          style.bottom = window.innerHeight - rect.top + sideOffset;
-        } else {
-          style.top = rect.bottom + sideOffset;
-        }
-
-        if (align === 'end') {
-          style.right = window.innerWidth - rect.right;
-        } else if (align === 'center') {
-          style.left = rect.left + rect.width / 2;
-          style.transform = 'translateX(-50%)';
-        } else {
-          style.left = rect.left;
-        }
-      }
+      const placement = { side, align, sideOffset, maxHeight };
+      const style =
+        side === 'left' || side === 'right'
+          ? horizontalPortalStyle(rect, placement)
+          : verticalPortalStyle(rect, placement);
 
       setPortalStyle((prev) => (isSamePortalStyle(prev, style) ? prev : style));
-    }, [portal, triggerRef, align, side, sideOffset]);
+    }, [portal, triggerRef, align, side, sideOffset, maxHeight]);
 
     useLayoutEffect(() => {
       if (open) updatePortalPosition();

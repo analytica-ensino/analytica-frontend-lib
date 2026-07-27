@@ -261,6 +261,11 @@ describe('DropdownMenuContent direction and positioning', () => {
     const TestPortalDropdown = ({
       align = 'start' as 'start' | 'center' | 'end',
       side = 'bottom' as 'top' | 'bottom' | 'left' | 'right',
+      maxHeight,
+    }: {
+      align?: 'start' | 'center' | 'end';
+      side?: 'top' | 'bottom' | 'left' | 'right';
+      maxHeight?: number;
     }) => {
       const triggerRef = React.useRef<HTMLButtonElement>(null);
       return (
@@ -271,6 +276,7 @@ describe('DropdownMenuContent direction and positioning', () => {
             triggerRef={triggerRef}
             align={align}
             side={side}
+            maxHeight={maxHeight}
           >
             <DropdownMenuItem>Item 1</DropdownMenuItem>
           </DropdownMenuContent>
@@ -369,6 +375,107 @@ describe('DropdownMenuContent direction and positioning', () => {
       const menu = screen.getByRole('menu');
       expect(menu.style.left).toBe(`${TRIGGER_RECT.right + 4}px`);
       expect(menu.style.top).toBe(`${TRIGGER_RECT.top}px`);
+    });
+
+    // A portaled menu is position:fixed, so whatever falls past the bottom of
+    // the viewport can never be scrolled to — the tail of the list is simply
+    // unreachable. It has to be given the room that actually exists.
+    describe('fitting the viewport', () => {
+      /** Places the trigger somewhere else for a single test. */
+      const placeTrigger = (top: number, height = 30) =>
+        rectSpy.mockReturnValue({
+          ...TRIGGER_RECT,
+          top,
+          bottom: top + height,
+          y: top,
+          height,
+        } as DOMRect);
+
+      it('opens at its full height when there is room, and scrolls', () => {
+        render(<TestPortalDropdown />);
+
+        const menu = screen.getByRole('menu');
+        expect(menu.style.maxHeight).toBe('320px');
+        expect(menu.style.overflowY).toBe('auto');
+      });
+
+      it('honours a caller-supplied maximum height', () => {
+        render(<TestPortalDropdown maxHeight={200} />);
+
+        expect(screen.getByRole('menu').style.maxHeight).toBe('200px');
+      });
+
+      // The minimum floors the room the viewport offers, not the caller's
+      // ceiling: asking for 80px must not be raised to 120px.
+      it('honours a maximum height below the minimum', () => {
+        render(<TestPortalDropdown maxHeight={80} />);
+
+        expect(screen.getByRole('menu').style.maxHeight).toBe('80px');
+      });
+
+      it('honours a maximum height below the minimum when cramped too', () => {
+        placeTrigger(700);
+        render(<TestPortalDropdown maxHeight={80} />);
+
+        expect(screen.getByRole('menu').style.maxHeight).toBe('80px');
+      });
+
+      it('shrinks to the space below the trigger', () => {
+        // 800 - 600 bottom - 4 offset - 8 margin = 188px of room.
+        placeTrigger(570);
+        render(<TestPortalDropdown />);
+
+        const menu = screen.getByRole('menu');
+        expect(menu.style.maxHeight).toBe('188px');
+        expect(menu.style.top).toBe('604px');
+      });
+
+      it('flips above the trigger when the space below is too tight', () => {
+        // 58px below, 688px above — clamping alone would leave it overhanging.
+        placeTrigger(700);
+        render(<TestPortalDropdown />);
+
+        const menu = screen.getByRole('menu');
+        expect(menu.style.bottom).toBe(`${VIEWPORT.height - 700 + 4}px`);
+        expect(menu.style.top).toBe('');
+        expect(menu.style.maxHeight).toBe('320px');
+      });
+
+      it('never shrinks below a usable height', () => {
+        // Cramped on both sides: 88px above, 58px below.
+        window.innerHeight = 200;
+        placeTrigger(100);
+        render(<TestPortalDropdown />);
+
+        expect(screen.getByRole('menu').style.maxHeight).toBe('120px');
+      });
+
+      // A side menu runs downwards from the trigger's top, so it overflows the
+      // bottom of the screen just as a menu opening below would.
+      it.each([['left'], ['right']] as const)(
+        'clamps a side="%s" menu to the room under the trigger',
+        (side) => {
+          // 800 - 570 top - 8 margin = 222px of room.
+          placeTrigger(570);
+          render(<TestPortalDropdown side={side} />);
+
+          const menu = screen.getByRole('menu');
+          expect(menu.style.maxHeight).toBe('222px');
+          expect(menu.style.overflowY).toBe('auto');
+          expect(menu.style.top).toBe('570px');
+        }
+      );
+
+      it('keeps a side menu anchored by the edge facing the trigger', () => {
+        placeTrigger(570);
+        render(<TestPortalDropdown side="left" />);
+
+        const menu = screen.getByRole('menu');
+        expect(menu.style.right).toBe(
+          `${VIEWPORT.width - TRIGGER_RECT.left + 4}px`
+        );
+        expect(menu.style.left).toBe('');
+      });
     });
 
     it('does not close when clicking inside portal content', async () => {
