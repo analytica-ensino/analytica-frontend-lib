@@ -61,12 +61,14 @@ export const ReadAloudPromptReadingFluency = ({
         />
       )}
 
-      <Text size='sm' className="font-semibold uppercase text-text-700">
+      <Text size="sm" className="font-semibold uppercase text-text-700">
         {label}
       </Text>
 
       <div className="flex flex-col gap-2 rounded-xl border border-secondary-500 p-4">
-        <Text size='2xl' className="font-bold uppercase text-text-900">{text}</Text>
+        <Text size="2xl" className="font-bold uppercase text-text-900">
+          {text}
+        </Text>
       </div>
     </div>
   </div>
