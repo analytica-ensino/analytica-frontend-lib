@@ -19,6 +19,9 @@ import DropdownMenu, {
   DropdownMenuItem,
   MenuLabel,
   DropdownMenuSeparator,
+  ProfileMenuReadingFluencyTrigger,
+  ProfileMenuReadingFluencyInfo,
+  ProfileMenuReadingFluencyFooter,
 } from './DropdownMenu';
 import React from 'react';
 import type { ThemeMode } from '@/hooks/useTheme';
@@ -1492,5 +1495,240 @@ describe('useDropdownMenuStore', () => {
     );
 
     jest.restoreAllMocks();
+  });
+});
+
+// ======================================================================
+// ProfileMenu Reading Fluency (variant="papole")
+// ======================================================================
+
+describe('ProfileMenuReadingFluency components', () => {
+  describe('ProfileMenuReadingFluencyTrigger', () => {
+    it('renders a profile button with the reading fluency bird by default', () => {
+      render(
+        <DropdownMenu>
+          <ProfileMenuReadingFluencyTrigger />
+          <DropdownMenuContent variant="papole">Content</DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      const trigger = screen.getByRole('button', {
+        name: 'Abrir menu de perfil',
+      });
+      expect(trigger).toBeInTheDocument();
+      const img = screen.getByAltText('Foto de perfil');
+      expect(img.getAttribute('src')).toBe('test-file-stub');
+    });
+
+    it('uses the provided photoUrl when present', () => {
+      render(
+        <DropdownMenu>
+          <ProfileMenuReadingFluencyTrigger photoUrl="https://cdn.example.com/me.png" />
+          <DropdownMenuContent variant="papole">Content</DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      expect(screen.getByAltText('Foto de perfil').getAttribute('src')).toBe(
+        'https://cdn.example.com/me.png'
+      );
+    });
+
+    it('toggles the menu open/closed on click', async () => {
+      render(
+        <DropdownMenu>
+          <ProfileMenuReadingFluencyTrigger />
+          <DropdownMenuContent variant="papole">Content</DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      const trigger = screen.getByRole('button', {
+        name: 'Abrir menu de perfil',
+      });
+      expect(trigger).toHaveAttribute('aria-expanded', 'false');
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+
+      fireEvent.click(trigger);
+      expect(trigger).toHaveAttribute('aria-expanded', 'true');
+      expect(screen.getByRole('menu')).toBeInTheDocument();
+
+      fireEvent.click(trigger);
+      expect(trigger).toHaveAttribute('aria-expanded', 'false');
+      await waitFor(() =>
+        expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+      );
+    });
+
+    it('applies a custom className', () => {
+      render(
+        <DropdownMenu>
+          <ProfileMenuReadingFluencyTrigger className="my-trigger" />
+          <DropdownMenuContent variant="papole">Content</DropdownMenuContent>
+        </DropdownMenu>
+      );
+      expect(
+        screen.getByRole('button', { name: 'Abrir menu de perfil' })
+      ).toHaveClass('my-trigger');
+    });
+  });
+
+  describe('DropdownMenuContent papole variant', () => {
+    it('applies the reading fluency chrome classes', () => {
+      render(
+        <DropdownMenu open>
+          <ProfileMenuReadingFluencyTrigger />
+          <DropdownMenuContent variant="papole">Content</DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      const menu = screen.getByRole('menu');
+      expect(menu.className).toContain('bg-secondary-500');
+      expect(menu.className).toContain('rounded-[20px]');
+    });
+  });
+
+  describe('ProfileMenuReadingFluencyInfo', () => {
+    it('always renders name and email', () => {
+      render(
+        <ProfileMenuReadingFluencyInfo
+          name="Ana Silva"
+          email="ana@example.com"
+        />
+      );
+      expect(screen.getByText('Ana Silva')).toBeInTheDocument();
+      expect(screen.getByText('ana@example.com')).toBeInTheDocument();
+    });
+
+    it('renders the school block joining class and school year with a bullet', () => {
+      render(
+        <ProfileMenuReadingFluencyInfo
+          name="Ana"
+          email="ana@example.com"
+          schoolName="Escola Modelo"
+          classYearName="Turma A"
+          schoolYearName="9º ano"
+        />
+      );
+      expect(screen.getByText('Escola Modelo')).toBeInTheDocument();
+      expect(screen.getByText('Turma A • 9º ano')).toBeInTheDocument();
+    });
+
+    it('renders only the school name when no class/year is provided', () => {
+      render(
+        <ProfileMenuReadingFluencyInfo
+          name="Ana"
+          email="ana@example.com"
+          schoolName="Escola Modelo"
+        />
+      );
+      expect(screen.getByText('Escola Modelo')).toBeInTheDocument();
+      expect(screen.queryByText(/•/)).not.toBeInTheDocument();
+    });
+
+    it('renders a single school-year value without a separator', () => {
+      render(
+        <ProfileMenuReadingFluencyInfo
+          name="Ana"
+          email="ana@example.com"
+          classYearName="Turma A"
+        />
+      );
+      expect(screen.getByText('Turma A')).toBeInTheDocument();
+      expect(screen.queryByText(/•/)).not.toBeInTheDocument();
+    });
+
+    it('omits the school block when no school data is provided', () => {
+      const { container } = render(
+        <ProfileMenuReadingFluencyInfo name="Ana" email="ana@example.com" />
+      );
+      // Only the name/email block — a single inner flex-col column.
+      const info = container.querySelector(
+        '[data-component="ProfileMenuReadingFluencyInfo"]'
+      );
+      expect(info?.querySelectorAll(':scope > div')).toHaveLength(1);
+    });
+
+    it('exposes the data-component attribute and forwards className', () => {
+      const { container } = render(
+        <ProfileMenuReadingFluencyInfo
+          name="Ana"
+          email="ana@example.com"
+          className="my-info"
+        />
+      );
+      const info = container.querySelector(
+        '[data-component="ProfileMenuReadingFluencyInfo"]'
+      );
+      expect(info).toHaveClass('my-info');
+    });
+  });
+
+  describe('ProfileMenuReadingFluencyFooter', () => {
+    it('renders the "Sair" button', () => {
+      render(
+        <DropdownMenu open>
+          <ProfileMenuReadingFluencyTrigger />
+          <DropdownMenuContent variant="papole">
+            <ProfileMenuReadingFluencyFooter />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument();
+    });
+
+    it('calls onClick and closes the menu', async () => {
+      const handleClick = jest.fn();
+      render(
+        <DropdownMenu>
+          <ProfileMenuReadingFluencyTrigger />
+          <DropdownMenuContent variant="papole">
+            <ProfileMenuReadingFluencyFooter onClick={handleClick} />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Abrir menu de perfil' })
+      );
+      expect(screen.getByRole('menu')).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Sair' }));
+
+      expect(handleClick).toHaveBeenCalledTimes(1);
+      await waitFor(() =>
+        expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+      );
+    });
+
+    it('is disabled and does not fire onClick when disabled', () => {
+      const handleClick = jest.fn();
+      render(
+        <DropdownMenu open>
+          <ProfileMenuReadingFluencyTrigger />
+          <DropdownMenuContent variant="papole">
+            <ProfileMenuReadingFluencyFooter disabled onClick={handleClick} />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      const button = screen.getByRole('button', { name: 'Sair' });
+      expect(button).toBeDisabled();
+      fireEvent.click(button);
+      expect(handleClick).not.toHaveBeenCalled();
+    });
+
+    it('applies a custom className', () => {
+      render(
+        <DropdownMenu open>
+          <ProfileMenuReadingFluencyTrigger />
+          <DropdownMenuContent variant="papole">
+            <ProfileMenuReadingFluencyFooter className="my-footer" />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+      expect(screen.getByRole('button', { name: 'Sair' })).toHaveClass(
+        'my-footer'
+      );
+    });
   });
 });

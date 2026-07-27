@@ -11,6 +11,8 @@ export type { PageContainerProps } from './components/PageContainer/PageContaine
 // Basic Components
 export { default as Text } from './components/Text/Text';
 export { default as Button } from './components/Button/Button';
+export { ButtonReadingFluency } from './components/Button/Button';
+export type { ButtonReadingFluencyProps } from './components/Button/Button';
 export { default as Badge } from './components/Badge/Badge';
 export { default as Alert } from './components/Alert/Alert';
 export { default as LatexRenderer } from './components/LatexRenderer/LatexRenderer';
@@ -133,6 +135,21 @@ export { default as Calendar } from './components/Calendar/Calendar';
 export { DateTimeInput } from './components/DateTimeInput';
 export type { DateTimeInputProps } from './components/DateTimeInput';
 export { default as Modal } from './components/Modal/Modal';
+export { MicPermissionModalReadingFluency } from './components/Modal/Modal';
+export type { MicPermissionModalReadingFluencyProps } from './components/Modal/Modal';
+export { MicOffModalReadingFluency } from './components/Modal/Modal';
+export type { MicOffModalReadingFluencyProps } from './components/Modal/Modal';
+export { AudioPlaybackModalReadingFluency } from './components/Modal/Modal';
+export type { AudioPlaybackModalReadingFluencyProps } from './components/Modal/Modal';
+export { SuccessModalReadingFluency } from './components/Modal/Modal';
+export type { SuccessModalReadingFluencyProps } from './components/Modal/Modal';
+export { useMicrophonePermission } from './hooks/useMicrophonePermission';
+export type {
+  MicrophonePermissionStatus,
+  UseMicrophonePermissionReturn,
+} from './hooks/useMicrophonePermission';
+export { useAudioSpectrum } from './hooks/useAudioSpectrum';
+export type { UseAudioSpectrumOptions } from './hooks/useAudioSpectrum';
 export { default as CorrectActivityModal } from './components/CorrectActivityModal/CorrectActivityModal';
 export type { CorrectActivityModalProps } from './components/CorrectActivityModal/CorrectActivityModal';
 export {
@@ -323,6 +340,9 @@ export {
   MenuLabel,
   DropdownMenuSeparator,
   ProfileToggleTheme,
+  ProfileMenuReadingFluencyTrigger,
+  ProfileMenuReadingFluencyInfo,
+  ProfileMenuReadingFluencyFooter,
 } from './components/DropdownMenu/DropdownMenu';
 
 export {
@@ -661,12 +681,15 @@ export {
   CardSimulationHistory,
   CardAudio,
   CardEssayHistory,
+  CardReadingFluency,
   EssayStatus,
   EssayReviewStatus,
 } from './components/Card/Card';
 export type {
   EssayHistoryItem,
   EssayHistoryData,
+  CardReadingFluencyProps,
+  CardReadingFluencyState,
 } from './components/Card/Card';
 export { StatisticsCard } from './components/StatisticsCard/StatisticsCard';
 export {
@@ -831,6 +854,30 @@ export { BrandingLogo } from './components/BrandingLogo/BrandingLogo';
 export type { BrandingLogoProps } from './components/BrandingLogo/BrandingLogo';
 export { UserIcon } from './components/UserIcon/UserIcon';
 export type { UserIconProps } from './components/UserIcon/UserIcon';
+export { AudioMixerReadingFluency } from './components/AudioMixerReadingFluency/AudioMixerReadingFluency';
+export type {
+  AudioMixerReadingFluencyProps,
+  AudioMixerReadingFluencyHandle,
+  AudioMixerStatus,
+} from './components/AudioMixerReadingFluency/AudioMixerReadingFluency';
+export { AudioRecorderReadingFluency } from './components/AudioRecorderReadingFluency/AudioRecorderReadingFluency';
+export type {
+  AudioRecorderReadingFluencyProps,
+  AudioRecorderReadingFluencyHandle,
+} from './components/AudioRecorderReadingFluency/AudioRecorderReadingFluency';
+export { IconButtonReadingFluency } from './components/IconButtonReadingFluency/IconButtonReadingFluency';
+export type { IconButtonReadingFluencyProps } from './components/IconButtonReadingFluency/IconButtonReadingFluency';
+export { ReadAloudPromptReadingFluency } from './components/ReadAloudPromptReadingFluency/ReadAloudPromptReadingFluency';
+export type { ReadAloudPromptReadingFluencyProps } from './components/ReadAloudPromptReadingFluency/ReadAloudPromptReadingFluency';
+export {
+  MicIconReadingFluency,
+  MicOffIconReadingFluency,
+  StopIconReadingFluency,
+  PlayIconReadingFluency,
+  PauseIconReadingFluency,
+  VoiceIconReadingFluency,
+} from './components/ReadingFluencyIcons';
+export type { ReadingFluencyIconProps } from './components/ReadingFluencyIcons';
 export { useDraftAutoSave } from './hooks/useDraftAutoSave';
 export type {
   ApiClient as DraftApiClientAdapter,

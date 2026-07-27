@@ -1,6 +1,8 @@
 import type { Story } from '@ladle/react';
 import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
-import Button from './Button';
+import { SignInIcon } from '@phosphor-icons/react/dist/csr/SignIn';
+import { XIcon } from '@phosphor-icons/react/dist/csr/X';
+import Button, { ButtonReadingFluency } from './Button';
 
 const sizes = [
   'extra-small',
@@ -152,5 +154,120 @@ export const Disabled: Story = () => (
         Desabilitado
       </Button>
     ))}
+  </div>
+);
+
+/**
+ * ButtonReadingFluency — variante default (solid) do botão do Reading Fluency.
+ * Renderizado sob o tema reading fluency; os estados hover/pressed/foco são
+ * interativos (passe o mouse, clique e segure, ou use Tab).
+ */
+export const ButtonReadingFluencyShowcase: Story = () => (
+  <div
+    data-theme="papole-light"
+    className="flex flex-col gap-8 p-8 bg-background"
+  >
+    <p className="text-sm text-text-700">
+      Interaja para ver os estados (hover / pressed / foco via Tab). Cada
+      variante segue os tokens do tema reading fluency.
+    </p>
+
+    <div className="flex flex-col gap-3">
+      <p className="text-sm font-bold uppercase text-text-900">Solid</p>
+      <div className="flex flex-wrap items-center gap-6">
+        <ButtonReadingFluency>Entrar</ButtonReadingFluency>
+        <ButtonReadingFluency iconLeft={<SignInIcon weight="bold" />}>
+          Entrar
+        </ButtonReadingFluency>
+        <ButtonReadingFluency disabled>Entrar</ButtonReadingFluency>
+      </div>
+    </div>
+
+    <div className="flex flex-col gap-3">
+      <p className="text-sm font-bold uppercase text-text-900">Outline</p>
+      <div className="flex flex-wrap items-center gap-6">
+        <ButtonReadingFluency variant="outline">Entrar</ButtonReadingFluency>
+        <ButtonReadingFluency
+          variant="outline"
+          iconLeft={<SignInIcon weight="bold" />}
+        >
+          Entrar
+        </ButtonReadingFluency>
+        <ButtonReadingFluency variant="outline" disabled>
+          Entrar
+        </ButtonReadingFluency>
+      </div>
+    </div>
+
+    <div className="flex flex-col gap-3">
+      <p className="text-sm font-bold uppercase text-text-900">
+        Outline-inverse (fundo escuro)
+      </p>
+      <div className="flex flex-wrap items-center gap-6 rounded-xl bg-secondary-500 p-6">
+        <ButtonReadingFluency variant="outline-inverse">
+          Sair
+        </ButtonReadingFluency>
+        <ButtonReadingFluency
+          variant="outline-inverse"
+          iconLeft={<SignInIcon weight="bold" />}
+        >
+          Sair
+        </ButtonReadingFluency>
+        <ButtonReadingFluency variant="outline-inverse" disabled>
+          Sair
+        </ButtonReadingFluency>
+      </div>
+    </div>
+
+    <div className="flex flex-col gap-3">
+      <p className="text-sm font-bold uppercase text-text-900">Link</p>
+      <div className="flex flex-wrap items-center gap-6">
+        <ButtonReadingFluency variant="link">Entrar</ButtonReadingFluency>
+        <ButtonReadingFluency
+          variant="link"
+          iconLeft={<SignInIcon weight="bold" />}
+        >
+          Entrar
+        </ButtonReadingFluency>
+        <ButtonReadingFluency variant="link" disabled>
+          Entrar
+        </ButtonReadingFluency>
+      </div>
+    </div>
+
+    <div className="flex flex-col gap-3">
+      <p className="text-sm font-bold uppercase text-text-900">
+        Tamanhos (xl / medium / small)
+      </p>
+      <div className="flex flex-wrap items-center gap-6">
+        <ButtonReadingFluency size="xl" iconLeft={<SignInIcon weight="bold" />}>
+          Entrar
+        </ButtonReadingFluency>
+        <ButtonReadingFluency
+          size="medium"
+          iconLeft={<SignInIcon weight="bold" />}
+        >
+          Entrar
+        </ButtonReadingFluency>
+        <ButtonReadingFluency
+          size="small"
+          iconLeft={<SignInIcon weight="bold" />}
+        >
+          Entrar
+        </ButtonReadingFluency>
+      </div>
+    </div>
+
+    <div className="flex flex-col gap-3">
+      <p className="text-sm font-bold uppercase text-text-900">Ícone</p>
+      <div className="flex flex-wrap items-center gap-6">
+        <ButtonReadingFluency variant="icon" aria-label="Fechar">
+          <XIcon weight="bold" />
+        </ButtonReadingFluency>
+        <ButtonReadingFluency variant="icon" aria-label="Fechar" disabled>
+          <XIcon weight="bold" />
+        </ButtonReadingFluency>
+      </div>
+    </div>
   </div>
 );

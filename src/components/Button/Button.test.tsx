@@ -1,7 +1,8 @@
-import { render } from '@testing-library/react';
+import { render, fireEvent } from '@testing-library/react';
 import { screen } from '@testing-library/dom';
 import '@testing-library/jest-dom';
-import Button from './Button';
+import { createRef } from 'react';
+import Button, { ButtonReadingFluency } from './Button';
 
 describe('Button', () => {
   it('renders the button with children text', () => {
@@ -359,6 +360,206 @@ describe('Button', () => {
       expect(button).toHaveClass('text-sm');
       expect(button).toHaveClass('px-4');
       expect(button).toHaveClass('py-2.5');
+    });
+  });
+});
+
+describe('ButtonReadingFluency', () => {
+  it('renders the button with children text', () => {
+    render(<ButtonReadingFluency>Continuar</ButtonReadingFluency>);
+    expect(screen.getByRole('button')).toHaveTextContent('Continuar');
+  });
+
+  it('defaults to the solid variant, xl size and the Reading Fluency base classes', () => {
+    render(<ButtonReadingFluency>Test</ButtonReadingFluency>);
+    const button = screen.getByRole('button');
+    // base
+    expect(button).toHaveClass('font-quicksand', 'font-bold', 'uppercase');
+    // solid variant
+    expect(button).toHaveClass(
+      'bg-primary-500',
+      'border-primary-200',
+      'text-primary-900'
+    );
+    // xl size
+    expect(button).toHaveClass('rounded-[20px]', 'text-[20px]', 'px-8', 'py-4');
+  });
+
+  describe('variant classes', () => {
+    it('applies outline variant classes', () => {
+      render(
+        <ButtonReadingFluency variant="outline">Test</ButtonReadingFluency>
+      );
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass(
+        'bg-transparent',
+        'border-4',
+        'text-primary-900'
+      );
+    });
+
+    it('applies outline-inverse variant classes (light text)', () => {
+      render(
+        <ButtonReadingFluency variant="outline-inverse">
+          Test
+        </ButtonReadingFluency>
+      );
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass(
+        'bg-transparent',
+        'border-4',
+        'text-primary-100'
+      );
+    });
+
+    it('applies link variant classes (transparent base border, no layout shift on focus)', () => {
+      render(<ButtonReadingFluency variant="link">Test</ButtonReadingFluency>);
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass(
+        'bg-transparent',
+        'text-primary-900',
+        'border-4',
+        'border-transparent'
+      );
+    });
+  });
+
+  describe('size classes', () => {
+    it('applies medium size classes', () => {
+      render(<ButtonReadingFluency size="medium">Test</ButtonReadingFluency>);
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass('rounded-2xl', 'text-[16px]', 'px-8', 'py-4');
+    });
+
+    it('applies small size classes', () => {
+      render(<ButtonReadingFluency size="small">Test</ButtonReadingFluency>);
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass('rounded-xl', 'text-[14px]', 'px-6', 'py-3');
+    });
+  });
+
+  describe('iconLeft', () => {
+    it('renders iconLeft in text variants', () => {
+      render(
+        <ButtonReadingFluency iconLeft={<svg data-testid="left-icon" />}>
+          Test
+        </ButtonReadingFluency>
+      );
+      expect(screen.getByTestId('left-icon')).toBeInTheDocument();
+    });
+  });
+
+  describe('icon variant', () => {
+    it('renders a 42px target wrapping the icon circle', () => {
+      render(
+        <ButtonReadingFluency variant="icon" aria-label="Fechar">
+          <svg data-testid="icon" />
+        </ButtonReadingFluency>
+      );
+
+      const button = screen.getByRole('button', { name: 'Fechar' });
+      expect(button).toHaveClass('size-[42px]');
+
+      // The child icon sits inside the visible circle span.
+      const circle = button.querySelector('span');
+      expect(circle).toHaveClass('bg-error-500', 'rounded-full');
+      expect(circle).toContainElement(screen.getByTestId('icon'));
+
+      // Text-variant size/variant classes are not applied to the icon button.
+      expect(button).not.toHaveClass('font-quicksand');
+      expect(button).not.toHaveClass('rounded-[20px]');
+    });
+
+    it('ignores iconLeft in the icon variant', () => {
+      render(
+        <ButtonReadingFluency
+          variant="icon"
+          iconLeft={<svg data-testid="left-icon" />}
+        >
+          <svg data-testid="icon" />
+        </ButtonReadingFluency>
+      );
+      expect(screen.queryByTestId('left-icon')).not.toBeInTheDocument();
+      expect(screen.getByTestId('icon')).toBeInTheDocument();
+    });
+  });
+
+  describe('behavior', () => {
+    it('defaults to type="button"', () => {
+      render(<ButtonReadingFluency>Test</ButtonReadingFluency>);
+      expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
+    });
+
+    it('respects a custom type', () => {
+      render(<ButtonReadingFluency type="submit">Test</ButtonReadingFluency>);
+      expect(screen.getByRole('button')).toHaveAttribute('type', 'submit');
+    });
+
+    it('applies a custom className', () => {
+      render(
+        <ButtonReadingFluency className="my-class">Test</ButtonReadingFluency>
+      );
+      expect(screen.getByRole('button')).toHaveClass('my-class');
+    });
+
+    it('forwards arbitrary props', () => {
+      render(
+        <ButtonReadingFluency
+          data-testid="reading-fluency-btn"
+          aria-label="Continuar"
+        >
+          Test
+        </ButtonReadingFluency>
+      );
+      const button = screen.getByTestId('reading-fluency-btn');
+      expect(button).toHaveAttribute('aria-label', 'Continuar');
+    });
+
+    it('forwards the ref to the button element', () => {
+      const ref = createRef<HTMLButtonElement>();
+      render(<ButtonReadingFluency ref={ref}>Test</ButtonReadingFluency>);
+      expect(ref.current).toBeInstanceOf(HTMLButtonElement);
+    });
+
+    it('fires onClick when clicked', () => {
+      const handleClick = jest.fn();
+      render(
+        <ButtonReadingFluency onClick={handleClick}>Test</ButtonReadingFluency>
+      );
+      fireEvent.click(screen.getByRole('button'));
+      expect(handleClick).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not fire onClick when disabled', () => {
+      const handleClick = jest.fn();
+      render(
+        <ButtonReadingFluency disabled onClick={handleClick}>
+          Test
+        </ButtonReadingFluency>
+      );
+      const button = screen.getByRole('button');
+      expect(button).toBeDisabled();
+      expect(button).toHaveClass('disabled:opacity-40');
+      fireEvent.click(button);
+      expect(handleClick).not.toHaveBeenCalled();
+    });
+
+    it('disables the icon variant too', () => {
+      const handleClick = jest.fn();
+      render(
+        <ButtonReadingFluency
+          variant="icon"
+          disabled
+          aria-label="Fechar"
+          onClick={handleClick}
+        >
+          <svg data-testid="icon" />
+        </ButtonReadingFluency>
+      );
+      const button = screen.getByRole('button', { name: 'Fechar' });
+      expect(button).toBeDisabled();
+      fireEvent.click(button);
+      expect(handleClick).not.toHaveBeenCalled();
     });
   });
 });
