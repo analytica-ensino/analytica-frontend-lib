@@ -12,13 +12,16 @@
  * como o modal renderiza a imagem com `object-contain`).
  */
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 252 172" fill="none" role="img" aria-label="Imagem padrão">
-  <circle cx="126" cy="86" r="60" fill="#DCFCE7"/>
-  <circle cx="126" cy="86" r="44" fill="#22C55E"/>
-  <path d="M104 88 L120 104 L150 72" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M60 40 l4 10 l10 4 l-10 4 l-4 10 l-4 -10 l-10 -4 l10 -4 z" fill="#FACC15"/>
-  <path d="M196 44 l3 7 l7 3 l-7 3 l-3 7 l-3 -7 l-7 -3 l7 -3 z" fill="#86EFAC"/>
-  <path d="M188 122 l3 7 l7 3 l-7 3 l-3 7 l-3 -7 l-7 -3 l7 -3 z" fill="#FACC15"/>
-  <circle cx="70" cy="120" r="5" fill="#86EFAC"/>
+  <defs>
+    <clipPath id="rf-frame"><rect x="46" y="26" width="160" height="120" rx="16"/></clipPath>
+  </defs>
+  <rect x="46" y="26" width="160" height="120" rx="16" fill="#F0FDF4"/>
+  <g clip-path="url(#rf-frame)">
+    <circle cx="86" cy="64" r="13" fill="#FACC15"/>
+    <path d="M46 146 L100 94 L128 120 L150 104 L206 146 Z" fill="#4ADE80"/>
+    <path d="M118 146 L164 108 L206 146 Z" fill="#22C55E"/>
+  </g>
+  <rect x="46" y="26" width="160" height="120" rx="16" fill="none" stroke="#86EFAC" stroke-width="3"/>
 </svg>`;
 
 /** Data URI (image/svg+xml) pronto para usar em `<img src>`. */

@@ -1,4 +1,4 @@
-import motionBird from '../../assets/gifs/motionMouthAndEyes.gif';
+import { readingFluencyFallback } from '../../assets/fallbacks/readingFluencyFallback';
 import { cn } from '../../utils/utils';
 import Text from '../Text/Text';
 
@@ -10,8 +10,9 @@ export interface ReadAloudPromptReadingFluencyProps {
   /** Classes extras no container. */
   className?: string;
   /**
-   * Fonte da imagem do passarinho. Default: o gif Reading Fluency empacotado na lib.
-   * Passe uma URL pelo cliente caso o asset da lib não seja resolvido no bundle.
+   * Fonte da imagem do passarinho. Default: a imagem de fallback genérica
+   * empacotada na lib. Passe uma URL pelo cliente (ex.: a imagem configurada pela
+   * instituição via `useReadingFluencyAsset({ asset: 'readAloud' })`) para sobrescrever.
    */
   imageSrc?: string;
   /**
@@ -35,7 +36,7 @@ export const ReadAloudPromptReadingFluency = ({
   text,
   label = 'Leia em voz alta:',
   className,
-  imageSrc = motionBird,
+  imageSrc = readingFluencyFallback,
   showBalloon = true,
 }: ReadAloudPromptReadingFluencyProps) => (
   <div className={cn('font-quicksand flex items-center gap-6', className)}>

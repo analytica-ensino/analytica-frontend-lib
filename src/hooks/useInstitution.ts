@@ -16,6 +16,9 @@ export interface InstitutionData {
   favicon: string | null;
   loginImage: string | null;
   readingFluencySuccessImage: string | null;
+  readingFluencyReadAloudImage: string | null;
+  readingFluencySplashImage: string | null;
+  readingFluencyEyesImage: string | null;
   theme: string | null;
   city: string | null;
   state: string | null;
