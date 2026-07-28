@@ -229,6 +229,42 @@ describe('ChoroplethMap', () => {
     expect(screen.getByText('Sem acesso (0%)')).toBeInTheDocument();
   });
 
+  it('renders custom legend labels when legendLabels is provided', () => {
+    render(
+      <ChoroplethMap
+        data={[]}
+        apiKey={mockApiKey}
+        legendLabels={{
+          highlight: 'Destaque (75% realizaram)',
+          aboveAverage: 'Acima da média (50 até 74% realizaram)',
+          belowAverage: 'Abaixo da média (25 até 49% realizaram)',
+          attention: 'Ponto de atenção (Abaixo de 25% realizaram)',
+          none: 'Ninguém realizou (0%)',
+        }}
+      />
+    );
+
+    expect(screen.getByText('Destaque (75% realizaram)')).toBeInTheDocument();
+    expect(screen.getByText('Ninguém realizou (0%)')).toBeInTheDocument();
+    expect(
+      screen.queryByText('Destaque (75% com acesso)')
+    ).not.toBeInTheDocument();
+  });
+
+  it('merges partial legendLabels over the defaults', () => {
+    render(
+      <ChoroplethMap
+        data={[]}
+        apiKey={mockApiKey}
+        legendLabels={{ none: 'Sem desempenho (0%)' }}
+      />
+    );
+
+    expect(screen.getByText('Sem desempenho (0%)')).toBeInTheDocument();
+    // Untouched bands keep the default access wording.
+    expect(screen.getByText('Destaque (75% com acesso)')).toBeInTheDocument();
+  });
+
   it('shows loading skeleton when loading is true', () => {
     render(<ChoroplethMap data={[]} apiKey={mockApiKey} loading={true} />);
 
@@ -327,6 +363,35 @@ describe('ChoroplethMap', () => {
     await waitFor(() => {
       expect(mockAddGeoJson).toHaveBeenCalledTimes(mockRegionData.length);
     });
+  });
+
+  it('does not redraw the map when legendLabels is a new object with the same content', async () => {
+    // The labels reach `colorClasses`, which drives the effect that re-adds
+    // every polygon and replays the fade-in. Consumers pass object literals, so
+    // matching by reference would redraw the whole map on every parent render.
+    const { rerender } = render(
+      <ChoroplethMap
+        data={mockRegionData}
+        apiKey={mockApiKey}
+        legendLabels={{ none: 'Ninguém realizou (0%)' }}
+        breakdownLabels={{ withAccess: 'realizaram' }}
+      />
+    );
+
+    await waitFor(() => {
+      expect(mockAddGeoJson).toHaveBeenCalledTimes(mockRegionData.length);
+    });
+
+    rerender(
+      <ChoroplethMap
+        data={mockRegionData}
+        apiKey={mockApiKey}
+        legendLabels={{ none: 'Ninguém realizou (0%)' }}
+        breakdownLabels={{ withAccess: 'realizaram' }}
+      />
+    );
+
+    expect(mockAddGeoJson).toHaveBeenCalledTimes(mockRegionData.length);
   });
 
   it('sets up mouse event listeners', async () => {
@@ -997,6 +1062,67 @@ describe('ChoroplethMap animations', () => {
     ).toBeInTheDocument();
     // Falls back away from the single-count label
     expect(screen.queryByText(/Acessos: 200/)).not.toBeInTheDocument();
+  });
+
+  it('shows custom breakdown wording when breakdownLabels is provided', async () => {
+    await renderAndHoverRegion({
+      activeProfile: 'teachers',
+      breakdownLabels: {
+        withAccess: 'realizaram',
+        withoutAccess: 'não realizaram',
+      },
+      data: [
+        {
+          id: 'r1',
+          name: 'NRE Test',
+          value: 0.5,
+          accessCount: 200,
+          accessBreakdown: {
+            students: { withAccess: 300, withoutAccess: 1000 },
+            teachers: { withAccess: 40, withoutAccess: 5 },
+            managers: { withAccess: 2, withoutAccess: 8 },
+          },
+          geoJson: {
+            type: 'Feature',
+            properties: {},
+            geometry: { type: 'Polygon', coordinates: [[]] },
+          },
+        },
+      ],
+    });
+
+    expect(
+      screen.getByText(/Professores\(as\): 40 realizaram, 5 não realizaram/)
+    ).toBeInTheDocument();
+  });
+
+  it('keeps the default breakdown wording when only one side is overridden', async () => {
+    await renderAndHoverRegion({
+      activeProfile: 'teachers',
+      breakdownLabels: { withAccess: 'acessaram' },
+      data: [
+        {
+          id: 'r1',
+          name: 'NRE Test',
+          value: 0.5,
+          accessCount: 200,
+          accessBreakdown: {
+            students: { withAccess: 300, withoutAccess: 1000 },
+            teachers: { withAccess: 40, withoutAccess: 5 },
+            managers: { withAccess: 2, withoutAccess: 8 },
+          },
+          geoJson: {
+            type: 'Feature',
+            properties: {},
+            geometry: { type: 'Polygon', coordinates: [[]] },
+          },
+        },
+      ],
+    });
+
+    expect(
+      screen.getByText(/Professores\(as\): 40 acessaram, 5 sem acessos/)
+    ).toBeInTheDocument();
   });
 
   it('shows only the selected profile line when activeProfile is set', async () => {
