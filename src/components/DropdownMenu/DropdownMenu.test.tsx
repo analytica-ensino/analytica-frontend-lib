@@ -1731,4 +1731,35 @@ describe('ProfileMenuReadingFluency components', () => {
       );
     });
   });
+
+  describe('DropdownMenuTrigger asChild', () => {
+    it('renders the child as the trigger without a wrapping button and merges the toggle', () => {
+      const childClick = jest.fn();
+      render(
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild className="extra-class">
+            <button data-testid="as-child-trigger" onClick={childClick}>
+              Abrir
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem>Item</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      const trigger = screen.getByTestId('as-child-trigger');
+      // The child button is the trigger — never nested inside another button.
+      expect(document.querySelector('button button')).toBeNull();
+      expect(trigger).toHaveClass('extra-class');
+      expect(trigger).toHaveAttribute('aria-expanded', 'false');
+
+      fireEvent.click(trigger);
+
+      // The child's own handler still runs, and the menu toggles open.
+      expect(childClick).toHaveBeenCalledTimes(1);
+      expect(trigger).toHaveAttribute('aria-expanded', 'true');
+      expect(screen.getByRole('menu')).toBeInTheDocument();
+    });
+  });
 });

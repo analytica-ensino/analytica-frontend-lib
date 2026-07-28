@@ -17,6 +17,7 @@ import {
   cloneElement,
   ReactElement,
   useState,
+  Ref,
   RefObject,
   CSSProperties,
 } from 'react';
@@ -196,6 +197,25 @@ const horizontalPortalStyle = (
     : { left: rect.right + sideOffset }),
 });
 
+/**
+ * Merge two refs into one. Returns the single ref when only one is set (no
+ * callback churn), or `undefined` when neither is — so a cloned child without a
+ * ref stays refless.
+ */
+const mergeRefs = <T,>(
+  a: Ref<T> | undefined,
+  b: Ref<T> | undefined
+): Ref<T> | undefined => {
+  if (!a) return b;
+  if (!b) return a;
+  return (node: T | null) => {
+    for (const r of [a, b]) {
+      if (typeof r === 'function') r(node);
+      else (r as RefObject<T | null>).current = node;
+    }
+  };
+};
+
 const injectStore = (
   children: ReactNode,
   store: DropdownStoreApi
@@ -368,33 +388,76 @@ const DropdownMenuTrigger = forwardRef<
   ButtonHTMLAttributes<HTMLButtonElement> & {
     disabled?: boolean;
     store?: DropdownStoreApi;
+    /**
+     * Render the single child as the trigger instead of wrapping it in a
+     * `<button>`. Use when the child is itself a button/interactive element, so
+     * the trigger doesn't nest one button inside another (invalid HTML). The
+     * child keeps its own props; the toggle behaviour and `aria-expanded` are
+     * merged in.
+     */
+    asChild?: boolean;
   }
->(({ className, children, onClick, store: externalStore, ...props }, ref) => {
-  const store = useDropdownStore(externalStore);
+>(
+  (
+    { className, children, onClick, store: externalStore, asChild, ...props },
+    ref
+  ) => {
+    const store = useDropdownStore(externalStore);
 
-  const open = useStore(store, (s) => s.open);
-  const toggleOpen = () => store.setState({ open: !open });
+    const open = useStore(store, (s) => s.open);
+    const toggleOpen = () => store.setState({ open: !open });
 
-  return (
-    <button
-      ref={ref}
-      type="button"
-      onClick={(e) => {
-        e.stopPropagation();
-        toggleOpen();
-        onClick?.(e);
-      }}
-      aria-expanded={open}
-      className={cn(
-        'appearance-none bg-transparent border-none p-0',
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </button>
-  );
-});
+    const handleTriggerClick = (e: MouseEvent<HTMLElement>) => {
+      e.stopPropagation();
+      toggleOpen();
+      onClick?.(e as MouseEvent<HTMLButtonElement>);
+    };
+
+    // `injectStore` re-wraps children through Children.map, so `children` may be
+    // a single-element array rather than a bare element — unwrap it here.
+    const asChildElement = asChild
+      ? (Children.toArray(children).find(isValidElement) as
+          | ReactElement<{
+              className?: string;
+              onClick?: (e: MouseEvent<HTMLElement>) => void;
+              ref?: Ref<HTMLElement>;
+            }>
+          | undefined)
+      : undefined;
+
+    if (asChildElement) {
+      const child = asChildElement;
+      return cloneElement(child, {
+        ...props,
+        ref: mergeRefs(ref, child.props.ref),
+        className: cn(child.props.className, className),
+        'aria-expanded': open,
+        onClick: (e: MouseEvent<HTMLElement>) => {
+          // Keep the child's own handler, then run the trigger's toggle — same
+          // order as the previous nested-button version.
+          child.props.onClick?.(e);
+          handleTriggerClick(e);
+        },
+      } as Partial<HTMLAttributes<HTMLElement>> & { store?: DropdownStoreApi });
+    }
+
+    return (
+      <button
+        ref={ref}
+        type="button"
+        onClick={handleTriggerClick}
+        aria-expanded={open}
+        className={cn(
+          'appearance-none bg-transparent border-none p-0',
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </button>
+    );
+  }
+);
 DropdownMenuTrigger.displayName = 'DropdownMenuTrigger';
 
 const ITEM_SIZE_CLASSES = {

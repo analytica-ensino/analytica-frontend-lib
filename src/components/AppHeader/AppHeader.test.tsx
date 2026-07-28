@@ -82,9 +82,10 @@ describe('AppHeader', () => {
 
   it('does not render calendar trigger when showCalendar is false', () => {
     render(<AppHeader {...baseProps()} />);
-    // Each icon trigger contributes 2 buttons (DropdownMenuTrigger > IconButton).
-    // Without calendar: notification + profile = 4 buttons total.
-    expect(screen.getAllByRole('button')).toHaveLength(4);
+    // Each icon trigger renders a single button (asChild merges the trigger
+    // into its IconButton — no nested <button>).
+    // Without calendar: notification + profile = 2 buttons total.
+    expect(screen.getAllByRole('button')).toHaveLength(2);
   });
 
   it('renders calendar trigger when showCalendar is true', () => {
@@ -96,8 +97,9 @@ describe('AppHeader', () => {
         })}
       />
     );
-    // Calendar + notification + profile = 6 buttons total (2 per icon).
-    expect(screen.getAllByRole('button')).toHaveLength(6);
+    // One button per icon trigger (asChild — no nested <button>).
+    // Calendar + notification + profile = 3 buttons total.
+    expect(screen.getAllByRole('button')).toHaveLength(3);
   });
 
   it('wraps the calendar in an lg:hidden container (visible only below 1024px)', () => {

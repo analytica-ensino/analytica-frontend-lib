@@ -414,6 +414,29 @@ describe('useRecommendedLessonsPage', () => {
     expect(response).toEqual(validRecommendedClassModelsResponse);
   });
 
+  it('fetchRecommendedClassModels: does not throw when the response has no drafts', async () => {
+    // A malformed/empty response must degrade gracefully, not throw
+    // "drafts is not iterable".
+    const responseWithoutDrafts = {
+      message: 'Success',
+      data: { total: 0 },
+    } as unknown as RecommendedClassModelsApiResponse;
+    (mockApi.get as jest.Mock).mockResolvedValueOnce({
+      data: responseWithoutDrafts,
+    });
+
+    const { result } = setupHook();
+    let response: RecommendedClassModelsApiResponse | undefined;
+
+    await act(async () => {
+      response = await result.current.historyProps.fetchRecommendedClassModels(
+        {}
+      );
+    });
+
+    expect(response).toEqual(responseWithoutDrafts);
+  });
+
   it('fetchRecommendedClassModels: should extract subjects and update userFilterData', async () => {
     const responseWithSubject: RecommendedClassModelsApiResponse = {
       message: 'Success',

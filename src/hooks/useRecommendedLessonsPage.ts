@@ -392,10 +392,10 @@ const extractMapsFromItems = (
  * Extract unique subjects from draft/model items for filter population
  */
 const extractSubjectsFromDraftItems = (
-  drafts: RecommendedClassModelResponse[]
+  drafts: RecommendedClassModelResponse[] | undefined | null
 ): Array<{ id: string; name: string }> => {
   const subjectMap = new Map<string, string>();
-  for (const draft of drafts) {
+  for (const draft of drafts ?? []) {
     if (draft.subject?.id && draft.subject?.name) {
       subjectMap.set(draft.subject.id, draft.subject.name);
     }
