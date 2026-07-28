@@ -201,7 +201,11 @@ export type {
   ColorClass,
   AccessBreakdown,
   AccessBreakdownEntry,
+  ChoroplethTier,
+  ChoroplethLegendLabels,
+  ChoroplethBreakdownLabels,
 } from './components/ChoroplethMap/ChoroplethMap.types';
+export { CHOROPLETH_TIER } from './components/ChoroplethMap/ChoroplethMap.types';
 
 // Map Data Hook
 export { createUseMapData } from './hooks/useMapData';

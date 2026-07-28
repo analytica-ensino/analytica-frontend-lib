@@ -60,6 +60,44 @@ export interface RegionData {
 }
 
 /**
+ * Colour bands of the choropleth legend, best to worst.
+ */
+export const CHOROPLETH_TIER = {
+  HIGHLIGHT: 'highlight',
+  ABOVE_AVERAGE: 'aboveAverage',
+  BELOW_AVERAGE: 'belowAverage',
+  ATTENTION: 'attention',
+  NONE: 'none',
+} as const;
+
+export type ChoroplethTier =
+  (typeof CHOROPLETH_TIER)[keyof typeof CHOROPLETH_TIER];
+
+/**
+ * Legend caption of each colour band.
+ *
+ * The map is reused across surfaces that measure different things — people with
+ * access, people who completed an activity, answer accuracy — so the wording of
+ * the bands belongs to the caller. The thresholds never move: only the sentence
+ * describing them does.
+ */
+export type ChoroplethLegendLabels = Record<ChoroplethTier, string>;
+
+/**
+ * Wording of the two sides of the tooltip breakdown.
+ *
+ * Rendered as `<profile>: <n> <withAccess>, <m> <withoutAccess>` — for the
+ * access map "com acesso" / "sem acessos", for the activities map "realizaram"
+ * / "não realizaram".
+ */
+export interface ChoroplethBreakdownLabels {
+  /** Phrase for the people who performed the action */
+  withAccess: string;
+  /** Phrase for the people who did not */
+  withoutAccess: string;
+}
+
+/**
  * Legend item interface for choropleth map
  */
 export interface LegendItem {
@@ -115,6 +153,17 @@ export interface ChoroplethMapProps {
    * schools map, which aggregates all three profile groups).
    */
   activeProfile?: keyof AccessBreakdown;
+  /**
+   * Wording of the legend bands. Partial: whatever is omitted keeps the default
+   * access phrasing. Pass a stable reference (a module constant or a memo) —
+   * a fresh object literal on every render redraws the whole map.
+   */
+  legendLabels?: Partial<ChoroplethLegendLabels>;
+  /**
+   * Wording of the tooltip breakdown. Partial, same stability caveat as
+   * `legendLabels`.
+   */
+  breakdownLabels?: Partial<ChoroplethBreakdownLabels>;
   /** Optional additional CSS classes */
   className?: string;
 }

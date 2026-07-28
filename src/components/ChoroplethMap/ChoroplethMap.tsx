@@ -9,6 +9,8 @@ import Text from '../Text/Text';
 import Alert from '../Alert/Alert';
 import type {
   AccessBreakdown,
+  ChoroplethBreakdownLabels,
+  ChoroplethLegendLabels,
   ChoroplethMapProps,
   ColorClass,
   RegionData,
@@ -61,44 +63,70 @@ const getCssVar = (name: string, fallback = ''): string => {
 };
 
 /**
+ * Legend wording of the access map, kept as the default so every consumer that
+ * predates the `legendLabels` prop renders exactly as before.
+ */
+const DEFAULT_LEGEND_LABELS: ChoroplethLegendLabels = {
+  highlight: 'Destaque (75% com acesso)',
+  aboveAverage: 'Acima da média (50 até 74% com acesso)',
+  belowAverage: 'Abaixo da média (25 até 49% com acesso)',
+  attention: 'Ponto de atenção (Abaixo de 25% com acesso)',
+  none: 'Sem acesso (0%)',
+};
+
+/**
+ * Tooltip wording of the access map — the default, for the same reason.
+ */
+const DEFAULT_BREAKDOWN_LABELS: ChoroplethBreakdownLabels = {
+  withAccess: 'com acesso',
+  withoutAccess: 'sem acessos',
+};
+
+/**
  * Build color classes from CSS variables
+ *
+ * The thresholds are fixed — only the captions vary by surface. Consumers
+ * mirror these same cuts elsewhere (spreadsheet exports, status badges), so
+ * moving a boundary here would silently fork them.
+ *
+ * @param labels - Caption of each band
  * @returns Color class array for the choropleth map
  */
-const getColorClasses = (): ColorClass[] => [
+const getColorClasses = (labels: ChoroplethLegendLabels): ColorClass[] => [
   {
     min: 0.75,
     max: 1.01,
     fillColor: getCssVar('--color-map-highlight', '#66b584'),
     strokeColor: getCssVar('--color-map-highlight', '#66b584'),
-    label: 'Destaque (75% com acesso)',
+    label: labels.highlight,
   },
   {
     min: 0.5,
     max: 0.75,
     fillColor: getCssVar('--color-map-above-avg', '#f8cc2e'),
     strokeColor: getCssVar('--color-map-above-avg', '#f8cc2e'),
-    label: 'Acima da média (50 até 74% com acesso)',
+    label: labels.aboveAverage,
   },
   {
     min: 0.25,
     max: 0.5,
     fillColor: getCssVar('--color-map-below-avg', '#fb954b'),
     strokeColor: getCssVar('--color-map-below-avg', '#fb954b'),
-    label: 'Abaixo da média (25 até 49% com acesso)',
+    label: labels.belowAverage,
   },
   {
     min: 0.01,
     max: 0.25,
     fillColor: getCssVar('--color-map-attention', '#b91c1c'),
     strokeColor: getCssVar('--color-map-attention', '#b91c1c'),
-    label: 'Ponto de atenção (Abaixo de 25% com acesso)',
+    label: labels.attention,
   },
   {
     min: -0.01,
     max: 0.01,
     fillColor: getCssVar('--color-map-no-access', '#2f2f2f'),
     strokeColor: getCssVar('--color-map-no-access', '#2f2f2f'),
-    label: 'Sem acesso (0%)',
+    label: labels.none,
   },
 ];
 
@@ -270,6 +298,8 @@ const ChoroplethMap = ({
   headerAction,
   infoText,
   activeProfile,
+  legendLabels,
+  breakdownLabels,
   className,
 }: ChoroplethMapProps) => {
   const mapId = GOOGLE_MAPS_LOADER_ID;
@@ -319,7 +349,58 @@ const ChoroplethMap = ({
   );
   const stableGeometryData = useMemo(() => data, [geometrySignature]);
 
-  const colorClasses = useMemo(() => getColorClasses(), [isDark]);
+  // Label overrides are matched by content, not by reference: `colorClasses`
+  // feeds the effect that re-adds the GeoJSON and replays the fade-in, so an
+  // inline object literal from the consumer would redraw the whole map on every
+  // render.
+  //
+  // The dependencies are the individual captions rather than a serialization of
+  // the object: `JSON.stringify` preserves insertion order, so `{none, highlight}`
+  // and `{highlight, none}` would hash differently and redraw the map for a
+  // change that never happened.
+  const {
+    highlight: legendHighlight = DEFAULT_LEGEND_LABELS.highlight,
+    aboveAverage: legendAboveAverage = DEFAULT_LEGEND_LABELS.aboveAverage,
+    belowAverage: legendBelowAverage = DEFAULT_LEGEND_LABELS.belowAverage,
+    attention: legendAttention = DEFAULT_LEGEND_LABELS.attention,
+    none: legendNone = DEFAULT_LEGEND_LABELS.none,
+  } = legendLabels ?? {};
+
+  const mergedLegendLabels = useMemo(
+    () => ({
+      highlight: legendHighlight,
+      aboveAverage: legendAboveAverage,
+      belowAverage: legendBelowAverage,
+      attention: legendAttention,
+      none: legendNone,
+    }),
+    [
+      legendHighlight,
+      legendAboveAverage,
+      legendBelowAverage,
+      legendAttention,
+      legendNone,
+    ]
+  );
+
+  const {
+    withAccess: breakdownWithAccess = DEFAULT_BREAKDOWN_LABELS.withAccess,
+    withoutAccess:
+      breakdownWithoutAccess = DEFAULT_BREAKDOWN_LABELS.withoutAccess,
+  } = breakdownLabels ?? {};
+
+  const mergedBreakdownLabels = useMemo(
+    () => ({
+      withAccess: breakdownWithAccess,
+      withoutAccess: breakdownWithoutAccess,
+    }),
+    [breakdownWithAccess, breakdownWithoutAccess]
+  );
+
+  const colorClasses = useMemo(
+    () => getColorClasses(mergedLegendLabels),
+    [isDark, mergedLegendLabels]
+  );
 
   const mapOptions: google.maps.MapOptions = useMemo(() => {
     const bgColor = getCssVar('--color-background-50', '#F6F6F6');
@@ -883,9 +964,10 @@ const ChoroplethMap = ({
                       return (
                         <Text key={line.key} size="md" color="text-text-50">
                           {line.label}:{' '}
-                          {entry.withAccess.toLocaleString('pt-BR')} com acesso,{' '}
-                          {entry.withoutAccess.toLocaleString('pt-BR')} sem
-                          acessos
+                          {entry.withAccess.toLocaleString('pt-BR')}{' '}
+                          {mergedBreakdownLabels.withAccess},{' '}
+                          {entry.withoutAccess.toLocaleString('pt-BR')}{' '}
+                          {mergedBreakdownLabels.withoutAccess}
                         </Text>
                       );
                     })}
