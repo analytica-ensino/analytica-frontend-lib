@@ -1761,5 +1761,55 @@ describe('ProfileMenuReadingFluency components', () => {
       expect(trigger).toHaveAttribute('aria-expanded', 'true');
       expect(screen.getByRole('menu')).toBeInTheDocument();
     });
+
+    it('merges the trigger ref with the child ref and toggles a child without its own onClick', () => {
+      const triggerRef = jest.fn(); // callback ref -> covers the function branch of mergeRefs
+      const childRef = React.createRef<HTMLButtonElement>(); // object ref -> covers the else branch
+
+      render(
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild ref={triggerRef}>
+            <button data-testid="as-child-ref-trigger" ref={childRef}>
+              Abrir
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem>Item</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      const trigger = screen.getByTestId('as-child-ref-trigger');
+      // mergeRefs fans the single node out to both refs: the trigger's
+      // forwarded callback ref and the child's own object ref.
+      expect(triggerRef).toHaveBeenCalledWith(trigger);
+      expect(childRef.current).toBe(trigger);
+
+      // The child has no onClick of its own, so clicking runs only the
+      // trigger's toggle (covers the `child.props.onClick?.` short-circuit).
+      fireEvent.click(trigger);
+      expect(trigger).toHaveAttribute('aria-expanded', 'true');
+      expect(screen.getByRole('menu')).toBeInTheDocument();
+    });
+
+    it('applies only the trigger ref when the child has no ref of its own', () => {
+      const triggerRef = React.createRef<HTMLButtonElement>();
+
+      render(
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild ref={triggerRef}>
+            <button data-testid="as-child-only-trigger-ref">Abrir</button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem>Item</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      // The child has no ref, so mergeRefs returns the trigger ref unchanged.
+      expect(triggerRef.current).toBe(
+        screen.getByTestId('as-child-only-trigger-ref')
+      );
+    });
   });
 });
