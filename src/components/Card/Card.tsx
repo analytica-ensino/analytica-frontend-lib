@@ -1894,6 +1894,8 @@ interface CardReadingFluencyProps extends HTMLAttributes<HTMLDivElement> {
   image?: string;
   /** Texto alternativo/aria da imagem. */
   label?: string;
+  /** Título exibido abaixo do card (bold, xs, text-100). Omitido quando vazio. */
+  title?: string;
 }
 
 /**
@@ -1912,6 +1914,7 @@ const CardReadingFluency = forwardRef<HTMLDivElement, CardReadingFluencyProps>(
       color = '#a3d9b1',
       image,
       label = 'Reading Fluency',
+      title,
       className,
       onClick,
       onKeyDown,
@@ -1933,62 +1936,75 @@ const CardReadingFluency = forwardRef<HTMLDivElement, CardReadingFluencyProps>(
     };
 
     return (
-      <div
-        ref={ref}
-        className={cn(
-          'relative flex items-center justify-center w-[240px] h-[182px] rounded-2xl px-[82px] py-[28px] font-quicksand',
-          isClickable && 'cursor-pointer',
-          isComingSoon &&
-            'pointer-events-none border-2 border-dashed border-border-300',
-          className
-        )}
-        style={{ backgroundColor: color }}
-        onClick={isInteractive ? onClick : undefined}
-        onKeyDown={handleKeyDown}
-        tabIndex={isClickable ? 0 : undefined}
-        role={isClickable ? 'button' : undefined}
-        aria-disabled={isComingSoon ? true : undefined}
-        {...props}
-      >
-        <img
-          src={image ?? readingFluencyBird}
-          alt={label}
-          draggable={false}
+      <div className="flex flex-col items-center gap-3">
+        <div
+          ref={ref}
           className={cn(
-            'w-full h-auto select-none',
-            isComingSoon && 'opacity-40'
+            'relative flex items-center justify-center w-[240px] h-[182px] rounded-2xl px-[82px] py-[28px] font-quicksand',
+            isClickable && 'cursor-pointer',
+            isComingSoon &&
+              'pointer-events-none border-2 border-dashed border-border-300',
+            className
           )}
-        />
-
-        {isDone && (
-          <CheckCircleIcon
-            weight="fill"
-            size={28}
-            className="absolute top-3 right-3 text-background drop-shadow-sm"
-            data-testid="reading-fluency-check"
+          style={{ backgroundColor: color }}
+          onClick={isInteractive ? onClick : undefined}
+          onKeyDown={handleKeyDown}
+          tabIndex={isClickable ? 0 : undefined}
+          role={isClickable ? 'button' : undefined}
+          aria-disabled={isComingSoon ? true : undefined}
+          {...props}
+        >
+          <img
+            src={image ?? readingFluencyBird}
+            alt={label}
+            draggable={false}
+            className={cn(
+              'w-full h-auto select-none',
+              isComingSoon && 'opacity-40'
+            )}
           />
-        )}
 
-        {state === 'new' && (
-          <span
-            className={cn(
-              'absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/70',
-              PAPOLE_BADGE_CLASSES
-            )}
-          >
-            NOVA ATIVIDADE!
-          </span>
-        )}
+          {isDone && (
+            <CheckCircleIcon
+              weight="fill"
+              size={28}
+              className="absolute top-3 right-3 text-background drop-shadow-sm"
+              data-testid="reading-fluency-check"
+            />
+          )}
 
-        {isComingSoon && (
-          <span
-            className={cn(
-              'absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/30',
-              PAPOLE_BADGE_CLASSES
-            )}
+          {state === 'new' && (
+            <span
+              className={cn(
+                'absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/70',
+                PAPOLE_BADGE_CLASSES
+              )}
+            >
+              NOVA ATIVIDADE!
+            </span>
+          )}
+
+          {isComingSoon && (
+            <span
+              className={cn(
+                'absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/30',
+                PAPOLE_BADGE_CLASSES
+              )}
+            >
+              EM BREVE
+            </span>
+          )}
+        </div>
+
+        {title && (
+          <Text
+            size="xs"
+            weight="bold"
+            color="text-text-100"
+            className="w-60 text-center font-quicksand uppercase"
           >
-            EM BREVE
-          </span>
+            {title}
+          </Text>
         )}
       </div>
     );
