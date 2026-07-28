@@ -91,6 +91,7 @@ export const CalendarCard = ({
     <DropdownMenu open={effectiveOpen} onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger
         className={`text-primary cursor-pointer ${className ?? ''}`}
+        asChild
       >
         <IconButton active={effectiveOpen} icon={triggerIcon} />
       </DropdownMenuTrigger>

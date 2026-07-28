@@ -713,7 +713,7 @@ export const ActivityFiltersPopover = ({
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger>
+      <DropdownMenuTrigger asChild>
         <Button variant="outline">{triggerLabel}</Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent

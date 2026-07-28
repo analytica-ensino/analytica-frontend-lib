@@ -1330,6 +1330,26 @@ describe('NotificationCard', () => {
       expect(onToggleActive).toHaveBeenCalledTimes(1);
     });
 
+    it('renders the desktop trigger as a single button (no nested button)', () => {
+      const mockProps = {
+        variant: 'center' as const,
+        isActive: false,
+        onToggleActive: jest.fn(),
+        unreadCount: 3,
+        groupedNotifications: [],
+        onFetchNotifications: jest.fn(),
+      };
+
+      const { container } = render(<LegacyNotificationCard {...mockProps} />);
+
+      // A button must never wrap another button (invalid HTML → hydration error).
+      expect(container.querySelector('button button')).toBeNull();
+      // The trigger is still a labelled button wired for the dropdown.
+      expect(screen.getByLabelText('Botão de ação')).toHaveAttribute(
+        'aria-expanded'
+      );
+    });
+
     it('renders notification center button in mobile mode', () => {
       mockUseMobile.mockReturnValue(
         makeUseMobileMock({

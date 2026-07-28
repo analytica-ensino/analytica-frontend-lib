@@ -330,7 +330,10 @@ export const AppHeader = ({
                 );
               }}
             >
-              <DropdownMenuTrigger className="text-primary cursor-pointer">
+              <DropdownMenuTrigger
+                className="text-primary cursor-pointer"
+                asChild
+              >
                 <IconButton
                   active={activeStates.profile}
                   onClick={() => toggleActive('profile')}

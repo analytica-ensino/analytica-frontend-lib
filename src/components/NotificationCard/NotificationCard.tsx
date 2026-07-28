@@ -825,7 +825,7 @@ const NotificationCenter = ({
           ? { open: isActive, onOpenChange: handleOpenChange }
           : { onOpenChange: handleOpenChange })}
       >
-        <DropdownMenuTrigger className="text-primary cursor-pointer">
+        <DropdownMenuTrigger className="text-primary cursor-pointer" asChild>
           <IconButton
             active={isActive}
             onClick={handleDesktopClick}
