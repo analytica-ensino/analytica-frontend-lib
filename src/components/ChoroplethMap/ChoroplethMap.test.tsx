@@ -394,6 +394,38 @@ describe('ChoroplethMap', () => {
     expect(mockAddGeoJson).toHaveBeenCalledTimes(mockRegionData.length);
   });
 
+  it('does not redraw the map when legendLabels declares the same captions in another key order', async () => {
+    // Serializing the object would hash these two as different values, since
+    // JSON.stringify preserves insertion order.
+    const { rerender } = render(
+      <ChoroplethMap
+        data={mockRegionData}
+        apiKey={mockApiKey}
+        legendLabels={{
+          highlight: 'Destaque (75% realizaram)',
+          none: 'Ninguém realizou (0%)',
+        }}
+      />
+    );
+
+    await waitFor(() => {
+      expect(mockAddGeoJson).toHaveBeenCalledTimes(mockRegionData.length);
+    });
+
+    rerender(
+      <ChoroplethMap
+        data={mockRegionData}
+        apiKey={mockApiKey}
+        legendLabels={{
+          none: 'Ninguém realizou (0%)',
+          highlight: 'Destaque (75% realizaram)',
+        }}
+      />
+    );
+
+    expect(mockAddGeoJson).toHaveBeenCalledTimes(mockRegionData.length);
+  });
+
   it('sets up mouse event listeners', async () => {
     render(<ChoroplethMap data={mockRegionData} apiKey={mockApiKey} />);
 

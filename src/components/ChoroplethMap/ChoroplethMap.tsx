@@ -352,23 +352,49 @@ const ChoroplethMap = ({
   // Label overrides are matched by content, not by reference: `colorClasses`
   // feeds the effect that re-adds the GeoJSON and replays the fade-in, so an
   // inline object literal from the consumer would redraw the whole map on every
-  // render. Same trick as `dataSignature` above.
-  const legendSignature = useMemo(
-    () => JSON.stringify(legendLabels ?? {}),
-    [legendLabels]
-  );
+  // render.
+  //
+  // The dependencies are the individual captions rather than a serialization of
+  // the object: `JSON.stringify` preserves insertion order, so `{none, highlight}`
+  // and `{highlight, none}` would hash differently and redraw the map for a
+  // change that never happened.
+  const {
+    highlight: legendHighlight = DEFAULT_LEGEND_LABELS.highlight,
+    aboveAverage: legendAboveAverage = DEFAULT_LEGEND_LABELS.aboveAverage,
+    belowAverage: legendBelowAverage = DEFAULT_LEGEND_LABELS.belowAverage,
+    attention: legendAttention = DEFAULT_LEGEND_LABELS.attention,
+    none: legendNone = DEFAULT_LEGEND_LABELS.none,
+  } = legendLabels ?? {};
+
   const mergedLegendLabels = useMemo(
-    () => ({ ...DEFAULT_LEGEND_LABELS, ...legendLabels }),
-    [legendSignature]
+    () => ({
+      highlight: legendHighlight,
+      aboveAverage: legendAboveAverage,
+      belowAverage: legendBelowAverage,
+      attention: legendAttention,
+      none: legendNone,
+    }),
+    [
+      legendHighlight,
+      legendAboveAverage,
+      legendBelowAverage,
+      legendAttention,
+      legendNone,
+    ]
   );
 
-  const breakdownSignature = useMemo(
-    () => JSON.stringify(breakdownLabels ?? {}),
-    [breakdownLabels]
-  );
+  const {
+    withAccess: breakdownWithAccess = DEFAULT_BREAKDOWN_LABELS.withAccess,
+    withoutAccess:
+      breakdownWithoutAccess = DEFAULT_BREAKDOWN_LABELS.withoutAccess,
+  } = breakdownLabels ?? {};
+
   const mergedBreakdownLabels = useMemo(
-    () => ({ ...DEFAULT_BREAKDOWN_LABELS, ...breakdownLabels }),
-    [breakdownSignature]
+    () => ({
+      withAccess: breakdownWithAccess,
+      withoutAccess: breakdownWithoutAccess,
+    }),
+    [breakdownWithAccess, breakdownWithoutAccess]
   );
 
   const colorClasses = useMemo(
