@@ -5,6 +5,21 @@ import {
   isLessonExpired,
 } from './lessonAvailabilityUtils';
 
+const PT_BR_MONTHS = [
+  'janeiro',
+  'fevereiro',
+  'março',
+  'abril',
+  'maio',
+  'junho',
+  'julho',
+  'agosto',
+  'setembro',
+  'outubro',
+  'novembro',
+  'dezembro',
+];
+
 describe('lessonAvailabilityUtils', () => {
   beforeEach(() => {
     // Mock current date to 2024-06-15T12:00:00Z
@@ -83,6 +98,27 @@ describe('lessonAvailabilityUtils', () => {
       const result = checkLessonAvailability(null, '2024-01-01T00:00:00Z');
 
       expect(result.status).toBe(LESSON_AVAILABILITY.EXPIRADA);
+    });
+
+    it('should format the start date with the local time for display', () => {
+      // 17:30Z is 14:30 in UTC-3. Expectation is derived from native local
+      // getters so the assertion holds in any TZ.
+      const iso = '2024-07-15T17:30:00Z';
+      const local = new Date(iso);
+      const expected =
+        `${local.getDate()} de ${PT_BR_MONTHS[local.getMonth()]} de ` +
+        `${local.getFullYear()} às ${String(local.getHours()).padStart(2, '0')}:` +
+        `${String(local.getMinutes()).padStart(2, '0')}`;
+
+      const result = checkLessonAvailability(iso, null);
+
+      expect(result.formattedStartDateTime).toBe(expected);
+    });
+
+    it('should return null formattedStartDateTime when start date is null', () => {
+      const result = checkLessonAvailability(null, '2024-12-31T23:59:59Z');
+
+      expect(result.formattedStartDateTime).toBeNull();
     });
 
     it('should parse dates correctly', () => {
