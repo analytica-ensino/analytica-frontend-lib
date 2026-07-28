@@ -419,16 +419,20 @@ const ChoroplethMap = ({
 
   useEffect(() => {
     let cancelled = false;
-    computeNREBoundariesAsync(stableGeometryData, () => cancelled).then(
-      (result) => {
+    computeNREBoundariesAsync(stableGeometryData, () => cancelled)
+      .then((result) => {
         if (cancelled || !result) return;
         // Skip the state update (and re-render) when the outlines stay empty —
         // e.g. an empty dataset — so nothing downstream churns needlessly.
         setNreBoundaries((prev) =>
           prev.length === 0 && result.length === 0 ? prev : result
         );
-      }
-    );
+      })
+      .catch((error) => {
+        // `union` can throw on malformed/self-intersecting polygons. Degrade to
+        // no outlines rather than leaving the promise rejection unhandled.
+        console.error('Failed to compute NRE boundaries:', error);
+      });
     return () => {
       cancelled = true;
     };

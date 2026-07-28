@@ -570,7 +570,7 @@ describe('ChoroplethMap NRE boundary memoization', () => {
     );
     await act(async () => {});
 
-    expect(unionMock.mock.calls.length).toBe(callsAfterFirstRender);
+    expect(unionMock.mock.calls).toHaveLength(callsAfterFirstRender);
   });
 
   it('recomputes the NRE outlines when the grouping changes', async () => {
@@ -601,6 +601,31 @@ describe('ChoroplethMap NRE boundary memoization', () => {
     await act(async () => {});
 
     expect(unionMock.mock.calls.length).toBeGreaterThan(callsBefore);
+  });
+
+  it('degrades and logs when the boundary computation throws', async () => {
+    const consoleError = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+    // union throws on a malformed polygon — the whole computation rejects.
+    unionMock.mockImplementationOnce(() => {
+      throw new Error('self-intersecting polygon');
+    });
+
+    render(
+      <ChoroplethMap
+        data={[city('c1', 'NRE 1', 0.3), city('c2', 'NRE 1', 0.3)]}
+        apiKey={mockApiKey}
+      />
+    );
+    await act(async () => {});
+
+    expect(consoleError).toHaveBeenCalled();
+    const [message, error] = consoleError.mock.calls[0];
+    expect(message).toBe('Failed to compute NRE boundaries:');
+    expect(error).toBeInstanceOf(Error);
+
+    consoleError.mockRestore();
   });
 });
 
