@@ -320,7 +320,7 @@ export const MicPermissionReadingFluencyManaged: Story = () => (
     data-theme="papole-light"
     className="flex min-h-[420px] items-center justify-center bg-secondary-700 p-6"
   >
-    <Text size='sm' className="text-center text-text-100">
+    <Text size="sm" className="text-center text-text-100">
       Abre automaticamente se o microfone não estiver concedido.
     </Text>
     <MicPermissionModalReadingFluency

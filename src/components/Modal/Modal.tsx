@@ -202,7 +202,7 @@ const Modal = ({
             {/* Título */}
             <Text
               id={titleId}
-              size='lg'
+              size="lg"
               className="font-semibold text-text-950 text-center"
             >
               {title}
@@ -210,7 +210,10 @@ const Modal = ({
 
             {/* Descrição */}
             {description && (
-              <Text size='sm' className="text-text-400 text-center max-w-md leading-[21px]">
+              <Text
+                size="sm"
+                className="text-text-400 text-center max-w-md leading-[21px]"
+              >
                 {description}
               </Text>
             )}
@@ -447,18 +450,18 @@ const MicPermissionModalReadingFluency = ({
 
         {/* Corpo (padding 24) */}
         <div className="flex flex-col items-center gap-4 bg-background p-6 text-center">
-          <Text size='lg' id={titleId} className="font-bold text-secondary-900">
+          <Text size="lg" id={titleId} className="font-bold text-secondary-900">
             {title}
           </Text>
 
           <div className="flex flex-col gap-3 text-[14px] font-medium text-text-600">
             {description ?? (
               <>
-                <Text size='sm'>
+                <Text size="sm">
                   Usamos o microfone para gravar a leitura da criança e avaliar
                   sua fluência leitora ao longo do tempo.
                 </Text>
-                <Text size='sm'>
+                <Text size="sm">
                   As gravações ficam armazenadas com segurança e são usadas
                   apenas para esse fim.
                 </Text>
@@ -487,7 +490,7 @@ const MicPermissionModalReadingFluency = ({
           <Button
             type="button"
             onClick={onLearnMore}
-            variant='raw'
+            variant="raw"
             className="w-full cursor-pointer rounded-xl bg-secondary-100 px-4 py-4 text-center"
           >
             <span className="text-[14px] font-medium text-secondary-700 underline">
@@ -579,7 +582,7 @@ const MicOffModalReadingFluency = ({
         <div className="flex flex-col items-center gap-4 bg-background p-6 text-center">
           <Text
             id={titleId}
-            size='lg'
+            size="lg"
             className="font-bold uppercase text-secondary-900"
           >
             {title}
@@ -791,7 +794,7 @@ const AudioPlaybackModalReadingFluency = ({
               onClick={togglePlay}
               disabled={!resolvedSrc}
               aria-label={isPlaying ? 'Pausar' : 'Reproduzir'}
-              variant='raw'
+              variant="raw"
               className="flex flex-shrink-0 items-center justify-center disabled:cursor-not-allowed disabled:opacity-40"
             >
               {isPlaying ? (
@@ -805,7 +808,7 @@ const AudioPlaybackModalReadingFluency = ({
               type="button"
               onClick={handleSeek}
               aria-label="Barra de progresso"
-              variant='raw'
+              variant="raw"
               className="h-2 flex-1 overflow-hidden rounded-full bg-background"
             >
               <span
@@ -917,12 +920,15 @@ const SuccessModalReadingFluency = ({
           <div className="flex flex-col items-center gap-1">
             <Text
               id={titleId}
-              size='3xl'
+              size="3xl"
               className="font-bold uppercase text-secondary-900"
             >
               {title}
             </Text>
-            <Text size='sm' className="font-semibold uppercase tracking-wide text-text-500">
+            <Text
+              size="sm"
+              className="font-semibold uppercase tracking-wide text-text-500"
+            >
               {description}
             </Text>
           </div>

@@ -1063,8 +1063,10 @@ const ProfileMenuReadingFluencyInfo = forwardRef<
         {...props}
       >
         <div className="flex flex-col">
-          <Text size='md' className="font-bold text-text-100 truncate">{name}</Text>
-          <Text size='sm' className="font-medium text-secondary-300 truncate">
+          <Text size="md" className="font-bold text-text-100 truncate">
+            {name}
+          </Text>
+          <Text size="sm" className="font-medium text-secondary-300 truncate">
             {email}
           </Text>
         </div>
@@ -1072,12 +1074,15 @@ const ProfileMenuReadingFluencyInfo = forwardRef<
         {hasSchoolBlock && (
           <div className="flex flex-col">
             {schoolName && (
-              <Text size='md' className="font-bold text-text-100 truncate">
+              <Text size="md" className="font-bold text-text-100 truncate">
                 {schoolName}
               </Text>
             )}
             {(classYearName || schoolYearName) && (
-              <Text size='sm' className="font-medium text-secondary-300 truncate">
+              <Text
+                size="sm"
+                className="font-medium text-secondary-300 truncate"
+              >
                 {[classYearName, schoolYearName].filter(Boolean).join(' • ')}
               </Text>
             )}

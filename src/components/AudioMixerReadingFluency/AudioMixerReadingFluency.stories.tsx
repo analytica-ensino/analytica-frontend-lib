@@ -135,7 +135,7 @@ export const AudioMixerControlled: Story = () => {
         </ButtonReadingFluency>
       </div>
 
-      <Text size='xs' className="text-text-700">
+      <Text size="xs" className="text-text-700">
         status atual: <strong>{status}</strong>
       </Text>
     </div>
