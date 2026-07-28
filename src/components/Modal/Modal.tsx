@@ -17,7 +17,7 @@ import {
 import { cn } from '../../utils/utils';
 import Button, { ButtonReadingFluency } from '../Button/Button';
 import readingFluencyBird from '../../assets/img/readingFluencyBird.png';
-import readingFluencyCelebration from '../../assets/gifs/celebration.gif';
+import { readingFluencyFallback } from '../../assets/fallbacks/readingFluencyFallback';
 import { useMicrophonePermission } from '../../hooks/useMicrophonePermission';
 import { useEscapeToClose } from '../../hooks/useEscapeToClose';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
@@ -864,8 +864,9 @@ type SuccessModalReadingFluencyProps = {
   /** Fecha ao pressionar Esc (default: true). */
   closeOnEscape?: boolean;
   /**
-   * Fonte da imagem de comemoração. Default: o gif Reading Fluency empacotado na lib.
-   * Passe uma URL pelo cliente caso o asset da lib não seja resolvido no bundle.
+   * Fonte da imagem de comemoração. Default: a imagem de fallback genérica
+   * empacotada na lib. Passe uma URL pelo cliente (ex.: a imagem configurada pela
+   * instituição via `useReadingFluencyAsset`) para sobrescrever.
    */
   imageSrc?: string;
 };
@@ -882,7 +883,7 @@ const SuccessModalReadingFluency = ({
   title = 'Incrível!',
   description = 'Você leu muito bem!',
   closeOnEscape = true,
-  imageSrc = readingFluencyCelebration,
+  imageSrc = readingFluencyFallback,
 }: SuccessModalReadingFluencyProps) => {
   const titleId = useId();
 
