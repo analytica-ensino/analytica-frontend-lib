@@ -850,6 +850,8 @@ export type {
   BrandingLogoVariant,
   UseBrandingLogoOptions,
 } from './hooks/useBrandingLogo';
+export { useReadingFluencyAsset } from './hooks/useReadingFluencyAsset';
+export type { UseReadingFluencyAssetOptions } from './hooks/useReadingFluencyAsset';
 export { BrandingLogo } from './components/BrandingLogo/BrandingLogo';
 export type { BrandingLogoProps } from './components/BrandingLogo/BrandingLogo';
 export { UserIcon } from './components/UserIcon/UserIcon';
