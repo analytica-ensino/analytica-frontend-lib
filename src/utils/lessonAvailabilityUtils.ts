@@ -3,12 +3,27 @@
  * Helper functions for checking recommended lesson availability based on dates
  */
 
+import dayjs from 'dayjs';
+import 'dayjs/locale/pt-br';
 import {
   LESSON_AVAILABILITY,
   type LessonAvailability,
   type LessonAvailabilityResult,
 } from '../types/lessonAvailability';
 import { formatDateToBrazilian } from './activityDetailsUtils';
+
+/**
+ * Format a lesson date including its time, in LOCAL time.
+ *
+ * Lesson start/final dates are full timestamps — a teacher can schedule a
+ * lesson to open at 14:30. Showing only the day (see formatDateToBrazilian,
+ * which also formats in UTC) makes a lesson that opens later today look like
+ * it should already be available.
+ * @param dateString - ISO date string
+ * @returns Formatted date string "D de MMMM de YYYY às HH:mm"
+ */
+const formatLessonDateTime = (dateString: string): string =>
+  dayjs(dateString).locale('pt-br').format('D [de] MMMM [de] YYYY [às] HH:mm');
 
 /**
  * Check if a date string represents a date in the past
@@ -64,6 +79,7 @@ export const checkLessonAvailability = (
     startDate: start,
     endDate: end,
     formattedStartDate: startDate ? formatDateToBrazilian(startDate) : null,
+    formattedStartDateTime: startDate ? formatLessonDateTime(startDate) : null,
     formattedEndDate: finalDate ? formatDateToBrazilian(finalDate) : null,
   };
 };

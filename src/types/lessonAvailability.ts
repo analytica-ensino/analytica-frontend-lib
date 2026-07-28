@@ -31,6 +31,13 @@ export interface LessonAvailabilityResult {
   endDate: Date | null;
   /** Formatted start date string for display (DD/MM/YYYY) */
   formattedStartDate: string | null;
+  /**
+   * Formatted start date string including the local time
+   * (D de MMMM de YYYY às HH:mm). Prefer this over `formattedStartDate` when
+   * telling the student when a lesson becomes available — lessons can start at
+   * any time of day, and the date alone reads as "available now".
+   */
+  formattedStartDateTime: string | null;
   /** Formatted end date string for display (DD/MM/YYYY) */
   formattedEndDate: string | null;
 }
