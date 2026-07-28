@@ -90,8 +90,7 @@ export default defineConfig({
     'hooks/useMobile/index': 'src/hooks/useMobile.ts',
     'hooks/useTheme/index': 'src/hooks/useTheme.ts',
     'hooks/useBrandingLogo/index': 'src/hooks/useBrandingLogo.ts',
-    'hooks/useReadingFluencyAsset/index':
-      'src/hooks/useReadingFluencyAsset.ts',
+    'hooks/useReadingFluencyAsset/index': 'src/hooks/useReadingFluencyAsset.ts',
     'BrandingLogo/index': 'src/components/BrandingLogo/BrandingLogo.tsx',
     'UserIcon/index': 'src/components/UserIcon/UserIcon.tsx',
     'BreadcrumbMenu/index': 'src/components/BreadcrumbMenu/BreadcrumbMenu.tsx',
@@ -253,54 +252,82 @@ export default defineConfig({
     // ============================================================
 
     // === migration: Components ===
-    'AccessReportModal/index': 'src/components/AccessReportModal/AccessReportModal.tsx', // AccessReportModal, AccessReportProfessionalData, AccessReportStudentData
-    'Accordation/AccordionGroup/index': 'src/components/Accordation/AccordionGroup.tsx', // AccordionGroup
+    'AccessReportModal/index':
+      'src/components/AccessReportModal/AccessReportModal.tsx', // AccessReportModal, AccessReportProfessionalData, AccessReportStudentData
+    'Accordation/AccordionGroup/index':
+      'src/components/Accordation/AccordionGroup.tsx', // AccordionGroup
     'ActivityCreate/index': 'src/components/ActivityCreate/ActivityCreate.tsx', // CreateActivity
-    'ActivityCreate/ActivityCreate.types/index': 'src/components/ActivityCreate/ActivityCreate.types.ts', // ActivityType
+    'ActivityCreate/ActivityCreate.types/index':
+      'src/components/ActivityCreate/ActivityCreate.types.ts', // ActivityType
     'AlertManager/types/index': 'src/components/AlertManager/types.ts', // AlertData, AlertsConfig
-    'AlertManager/useAlertForm/index': 'src/components/AlertManager/useAlertForm.ts', // useAlertFormStore
+    'AlertManager/useAlertForm/index':
+      'src/components/AlertManager/useAlertForm.ts', // useAlertFormStore
     'Chat/index': 'src/components/Chat/Chat.tsx', // Chat
     'CheckBoxGroup/index': 'src/components/CheckBoxGroup/CheckBoxGroup.tsx', // CategoryConfig, CheckboxGroup
-    'ChoroplethMap/ChoroplethMap.types/index': 'src/components/ChoroplethMap/ChoroplethMap.types.ts', // RegionData
+    'ChoroplethMap/ChoroplethMap.types/index':
+      'src/components/ChoroplethMap/ChoroplethMap.types.ts', // RegionData
     'ColorPicker/index': 'src/components/ColorPicker/ColorPicker.tsx', // ColorPicker
-    'ComparatorChart/ComparatorView/index': 'src/components/ComparatorChart/ComparatorView.tsx', // ComparatorView
-    'ExamDetailsLayout/ExamDetailsPage/index': 'src/components/ExamDetailsLayout/ExamDetailsPage.tsx', // ExamDetailsPage
+    'ComparatorChart/ComparatorView/index':
+      'src/components/ComparatorChart/ComparatorView.tsx', // ComparatorView
+    'ExamDetailsLayout/ExamDetailsPage/index':
+      'src/components/ExamDetailsLayout/ExamDetailsPage.tsx', // ExamDetailsPage
     'ExamPageLayout/index': 'src/components/ExamPageLayout/ExamPageLayout.tsx', // ExamPageLayout, ExamTab
-    'ExamPageLayout/GabaritoCard/index': 'src/components/ExamPageLayout/GabaritoCard.tsx', // PageContainer
-    'ExamPageLayout/examsTableConfig/index': 'src/components/ExamPageLayout/examsTableConfig.tsx', // examsTableColumns
+    'ExamPageLayout/GabaritoCard/index':
+      'src/components/ExamPageLayout/GabaritoCard.tsx', // PageContainer
+    'ExamPageLayout/examsTableConfig/index':
+      'src/components/ExamPageLayout/examsTableConfig.tsx', // examsTableColumns
     'FileDropzone/index': 'src/components/FileDropzone/FileDropzone.tsx', // FileDropzone
     'Filter/useTableFilter/index': 'src/components/Filter/useTableFilter.ts', // FilterConfig, useTableFilter
     'Forum/index': 'src/components/Forum/Forum.tsx', // Forum
     'ImageUpload/index': 'src/components/ImageUpload/ImageUpload.tsx', // ImageUpload
     'MaskedInput/index': 'src/components/MaskedInput/MaskedInput.tsx', // MaskedInput
     'ModuleProtectedRoute/index': 'src/components/ModuleProtectedRoute.tsx', // ModuleProtectedRoute
-    'PerformanceQuestionsData/index': 'src/components/PerformanceQuestionsData/PerformanceQuestionsData.tsx', // ContentVariantData, PerformanceQuestionsData, PerformanceQuestionsVariant, QuestionsVariantData
-    'PerformanceRanking/index': 'src/components/PerformanceRanking/PerformanceRanking.tsx', // GroupedBy, PerformanceRanking, PerformanceRankingData, PerformanceRankingItem
-    'PerformanceReport/index': 'src/components/PerformanceReport/PerformanceReport.tsx', // PerformanceCardData, PerformanceDefaultData, PerformanceReport, PerformanceReportTab, PerformanceStudentData
-    'PerformanceReportModal/index': 'src/components/PerformanceReportModal/PerformanceReportModal.tsx', // PerformanceReportModal, UserPerformanceProfessionalData, UserPerformanceStudentData
+    'PerformanceQuestionsData/index':
+      'src/components/PerformanceQuestionsData/PerformanceQuestionsData.tsx', // ContentVariantData, PerformanceQuestionsData, PerformanceQuestionsVariant, QuestionsVariantData
+    'PerformanceRanking/index':
+      'src/components/PerformanceRanking/PerformanceRanking.tsx', // GroupedBy, PerformanceRanking, PerformanceRankingData, PerformanceRankingItem
+    'PerformanceReport/index':
+      'src/components/PerformanceReport/PerformanceReport.tsx', // PerformanceCardData, PerformanceDefaultData, PerformanceReport, PerformanceReportTab, PerformanceStudentData
+    'PerformanceReportModal/index':
+      'src/components/PerformanceReportModal/PerformanceReportModal.tsx', // PerformanceReportModal, UserPerformanceProfessionalData, UserPerformanceStudentData
     'PeriodSelector/index': 'src/components/PeriodSelector/PeriodSelector.tsx', // PeriodSelector
     'Quiz/Quiz.types/index': 'src/components/Quiz/Quiz.types.ts', // QuizVariant
     'Quiz/QuizResult/index': 'src/components/Quiz/QuizResult.tsx', // QuizHeaderResult, QuizListResult, QuizListResultByMateria, QuizResultHeaderTitle, QuizResultPerformance, QuizResultTitle
-    'Quiz/TeacherFeedbackSection/index': 'src/components/Quiz/TeacherFeedbackSection.tsx', // TeacherFeedbackSection
-    'RecommendedLessonCreate/index': 'src/components/RecommendedLessonCreate/RecommendedLessonCreate.tsx', // RecommendedLessonCreate
-    'RecommendedLessonDetails/index': 'src/components/RecommendedLessonDetails/RecommendedLessonDetails.tsx', // RecommendedLessonDetails
-    'RecommendedLessonDetails/types/index': 'src/components/RecommendedLessonDetails/types.ts', // StudentPerformanceData
-    'RestrictedAccess/index': 'src/components/RestrictedAccess/RestrictedAccess.tsx', // RestrictedAccess
+    'Quiz/TeacherFeedbackSection/index':
+      'src/components/Quiz/TeacherFeedbackSection.tsx', // TeacherFeedbackSection
+    'RecommendedLessonCreate/index':
+      'src/components/RecommendedLessonCreate/RecommendedLessonCreate.tsx', // RecommendedLessonCreate
+    'RecommendedLessonDetails/index':
+      'src/components/RecommendedLessonDetails/RecommendedLessonDetails.tsx', // RecommendedLessonDetails
+    'RecommendedLessonDetails/types/index':
+      'src/components/RecommendedLessonDetails/types.ts', // StudentPerformanceData
+    'RestrictedAccess/index':
+      'src/components/RestrictedAccess/RestrictedAccess.tsx', // RestrictedAccess
     'SearchSelect/index': 'src/components/SearchSelect/SearchSelect.tsx', // SearchSelect, SearchSelectOption, SearchSelectPagination
-    'SendLessonModal/index': 'src/components/SendLessonModal/SendLessonModal.tsx', // SendLessonModal
-    'SimulatedPerformance/SimulatedPerformanceView/index': 'src/components/SimulatedPerformance/SimulatedPerformanceView.tsx', // SimulatedPerformanceView
-    'SimulatedPerformance/constants/index': 'src/components/SimulatedPerformance/constants.ts', // SCORE_TYPE_OPTIONS
-    'SimulatedPerformance/useSimulatedPerformance/index': 'src/components/SimulatedPerformance/useSimulatedPerformance.tsx', // useSimulatedPerformance
-    'StudentLessonProgressModal/types/index': 'src/components/StudentLessonProgressModal/types.ts', // StudentLessonProgressData
-    'StudentPerformanceDetailsModal/types/index': 'src/components/StudentPerformanceDetailsModal/types.ts', // StudentPerformanceDetailsData
+    'SendLessonModal/index':
+      'src/components/SendLessonModal/SendLessonModal.tsx', // SendLessonModal
+    'SimulatedPerformance/SimulatedPerformanceView/index':
+      'src/components/SimulatedPerformance/SimulatedPerformanceView.tsx', // SimulatedPerformanceView
+    'SimulatedPerformance/constants/index':
+      'src/components/SimulatedPerformance/constants.ts', // SCORE_TYPE_OPTIONS
+    'SimulatedPerformance/useSimulatedPerformance/index':
+      'src/components/SimulatedPerformance/useSimulatedPerformance.tsx', // useSimulatedPerformance
+    'StudentLessonProgressModal/types/index':
+      'src/components/StudentLessonProgressModal/types.ts', // StudentLessonProgressData
+    'StudentPerformanceDetailsModal/types/index':
+      'src/components/StudentPerformanceDetailsModal/types.ts', // StudentPerformanceDetailsData
     'TimeChart/index': 'src/components/TimeChart/TimeChart.tsx', // DEFAULT_CATEGORIES, STUDENT_CATEGORIES, TimeChart, TimeChartData
     'TimeReport/index': 'src/components/TimeReport/TimeReport.tsx', // TimeReport, TimeReportData, TimeReportTab, formatHoursToTime, formatVariation, getTrendDirection
     'ToggleSwitch/index': 'src/components/ToggleSwitch/ToggleSwitch.tsx', // ToggleSwitch
-    'TokenValidation/index': 'src/components/TokenValidation/TokenValidation.tsx', // TokenValidation
+    'TokenValidation/index':
+      'src/components/TokenValidation/TokenValidation.tsx', // TokenValidation
     'TypeSelector/index': 'src/components/TypeSelector/TypeSelector.tsx', // TypeSelector
-    'TypeSelector/TypeSelector.types/index': 'src/components/TypeSelector/TypeSelector.types.ts', // ActivityCategory, TypeRoutes, createActivityCategoryConfig
-    'UnifiedDraftModelPage/index': 'src/components/UnifiedDraftModelPage/UnifiedDraftModelPage.tsx', // UnifiedDraftModelPage
-    'UnifiedHistoryPage/index': 'src/components/UnifiedHistoryPage/UnifiedHistoryPage.tsx', // UnifiedHistoryPage
+    'TypeSelector/TypeSelector.types/index':
+      'src/components/TypeSelector/TypeSelector.types.ts', // ActivityCategory, TypeRoutes, createActivityCategoryConfig
+    'UnifiedDraftModelPage/index':
+      'src/components/UnifiedDraftModelPage/UnifiedDraftModelPage.tsx', // UnifiedDraftModelPage
+    'UnifiedHistoryPage/index':
+      'src/components/UnifiedHistoryPage/UnifiedHistoryPage.tsx', // UnifiedHistoryPage
 
     // === migration: Hooks ===
     'hooks/useActivityDrafts/index': 'src/hooks/useActivityDrafts.ts', // createUseActivityDrafts
@@ -346,10 +373,12 @@ export default defineConfig({
     'utils/htmlLineBreaks/index': 'src/utils/htmlLineBreaks.ts', // normalizeLineBreaksInHtml
     'utils/domainUtils/index': 'src/utils/domainUtils.ts', // resolveRootHostname, extractSubdomainSlug, buildLoginUrlWithReturnTo
     'utils/examFilterHelpers/index': 'src/utils/examFilterHelpers.ts', // EXAM_STATUS_OPTIONS
-    'utils/lessonAvailabilityUtils/index': 'src/utils/lessonAvailabilityUtils.ts', // checkLessonAvailability
+    'utils/lessonAvailabilityUtils/index':
+      'src/utils/lessonAvailabilityUtils.ts', // checkLessonAvailability
     'utils/renderSubjectCell/index': 'src/utils/renderSubjectCell.tsx', // renderSubjectCell
     'utils/renderTextCell/index': 'src/utils/renderTextCell.tsx', // renderTextCell
-    'utils/studentActivityCorrection_types/index': 'src/utils/studentActivityCorrection/types.ts', // StudentActivityCorrectionData
+    'utils/studentActivityCorrection_types/index':
+      'src/utils/studentActivityCorrection/types.ts', // StudentActivityCorrectionData
     'utils/subjectMappers/index': 'src/utils/subjectMappers.ts', // mapSubjectNameToEnum
 
     // Styles
