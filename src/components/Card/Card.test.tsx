@@ -3922,6 +3922,53 @@ describe('CardReadingFluency', () => {
     });
   });
 
+  describe('caption (activityTitle) vs native title attribute', () => {
+    it('renders the "activityTitle" as the caption below the card', () => {
+      render(
+        <CardReadingFluency
+          activityTitle="A Ilha Misteriosa"
+          data-testid="card-papole"
+        />
+      );
+      expect(screen.getByText('A Ilha Misteriosa')).toBeInTheDocument();
+      // A legenda é renderizada como irmã do card no container externo.
+      const card = screen.getByTestId('card-papole');
+      expect(card.parentElement?.children).toHaveLength(2);
+    });
+
+    it('omits the caption when "activityTitle" is not provided', () => {
+      render(<CardReadingFluency data-testid="card-papole" />);
+      const card = screen.getByTestId('card-papole');
+      // Sem legenda: o container externo tem apenas o card.
+      expect(card.parentElement?.children).toHaveLength(1);
+    });
+
+    it('forwards the native "title" attribute (tooltip) to the root and does not render it as a caption', () => {
+      render(
+        <CardReadingFluency title="Dica nativa" data-testid="card-papole" />
+      );
+      const card = screen.getByTestId('card-papole');
+      expect(card).toHaveAttribute('title', 'Dica nativa');
+      // O title nativo não vira texto visível (legenda).
+      expect(screen.queryByText('Dica nativa')).not.toBeInTheDocument();
+      expect(card.parentElement?.children).toHaveLength(1);
+    });
+
+    it('keeps the caption (activityTitle) and the native title (tooltip) independent', () => {
+      render(
+        <CardReadingFluency
+          activityTitle="Legenda"
+          title="Dica nativa"
+          data-testid="card-papole"
+        />
+      );
+      const card = screen.getByTestId('card-papole');
+      expect(card).toHaveAttribute('title', 'Dica nativa');
+      expect(screen.getByText('Legenda')).toBeInTheDocument();
+      expect(screen.queryByText('Dica nativa')).not.toBeInTheDocument();
+    });
+  });
+
   describe('interactivity (new state)', () => {
     it('becomes a button and activates onClick on click', () => {
       const handleClick = jest.fn();
