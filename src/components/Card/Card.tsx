@@ -1894,8 +1894,12 @@ interface CardReadingFluencyProps extends HTMLAttributes<HTMLDivElement> {
   image?: string;
   /** Texto alternativo/aria da imagem. */
   label?: string;
-  /** Título exibido abaixo do card (bold, xs, text-100). Omitido quando vazio. */
-  title?: string;
+  /**
+   * Legenda exibida abaixo do card (bold, xs, text-100). Omitida quando vazia.
+   * Nome distinto de `title` para não colidir com o atributo HTML nativo
+   * `title` (tooltip), que segue repassável via `...props`.
+   */
+  activityTitle?: string;
 }
 
 /**
@@ -1914,7 +1918,7 @@ const CardReadingFluency = forwardRef<HTMLDivElement, CardReadingFluencyProps>(
       color = '#a3d9b1',
       image,
       label = 'Reading Fluency',
-      title,
+      activityTitle,
       className,
       onClick,
       onKeyDown,
@@ -1996,14 +2000,14 @@ const CardReadingFluency = forwardRef<HTMLDivElement, CardReadingFluencyProps>(
           )}
         </div>
 
-        {title && (
+        {activityTitle && (
           <Text
             size="xs"
             weight="bold"
             color="text-text-100"
             className="w-60 text-center font-quicksand uppercase"
           >
-            {title}
+            {activityTitle}
           </Text>
         )}
       </div>
