@@ -124,7 +124,9 @@ export const looksLikeMath = (str: string): boolean => {
   if (LATEX_COMMAND_PATTERN.test(str)) return true;
   const words = str.match(/[a-zA-Z]{3,}/g);
   if (!words) return true;
-  const proseThreshold = /\d+[.,]\d/.test(str) ? 1 : 2;
+  // A single digit before the separator is enough to spot a decimal; `\d+`
+  // here only added super-linear backtracking on long digit runs.
+  const proseThreshold = /\d[.,]\d/.test(str) ? 1 : 2;
   return words.length < proseThreshold;
 };
 
@@ -162,14 +164,47 @@ const indexOfUnescaped = (
   return -1;
 };
 
+/** Reads a `$$...$$` region starting at `index`, or `null` if there is none. */
+const matchBlockMath = (
+  source: string,
+  index: number
+): DollarMathMatch | null => {
+  const close = indexOfUnescaped(source, '$$', index + 2);
+  if (close === -1) return null;
+
+  const latex = source.slice(index + 2, close);
+  if (!latex.trim()) return null;
+
+  return { start: index, end: close + 2, latex, display: true };
+};
+
+/**
+ * Reads a `$...$` region starting at `index`, or `null` when there is no
+ * closing delimiter or the pair is a currency/prose false positive.
+ */
+const matchInlineMath = (
+  source: string,
+  index: number
+): DollarMathMatch | null => {
+  const close = indexOfUnescaped(source, '$', index + 1);
+  if (close === -1) return null;
+
+  const latex = source.slice(index + 1, close);
+  if (!latex.trim()) return null;
+  if (isCurrencyDollar(source, index, latex)) return null;
+  if (!looksLikeMath(latex)) return null;
+
+  return { start: index, end: close + 1, latex, display: false };
+};
+
 /**
  * Scans `source` left to right and returns every dollar-delimited math region.
  *
  * `$$...$$` is always tested before `$...$`, which is what the old single regex
  * got wrong: it matched the inner `$x$` of `$$x$$` and left orphan dollars
- * behind. A rejected candidate (currency or prose) only advances the cursor by
- * one character, so a real formula later in the same sentence is still found —
- * consuming the whole rejected span would swallow it.
+ * behind. A rejected candidate (currency or prose) only advances the cursor
+ * past its opening delimiter, so a real formula later in the same sentence is
+ * still found — consuming the whole rejected span would swallow it.
  */
 export const findDollarMath = (source: string): DollarMathMatch[] => {
   const matches: DollarMathMatch[] = [];
@@ -186,31 +221,16 @@ export const findDollarMath = (source: string): DollarMathMatch[] => {
       continue;
     }
 
-    if (source.startsWith('$$', index)) {
-      const close = indexOfUnescaped(source, '$$', index + 2);
-      const latex = close === -1 ? '' : source.slice(index + 2, close);
-      if (close !== -1 && latex.trim()) {
-        matches.push({ start: index, end: close + 2, latex, display: true });
-        index = close + 2;
-      } else {
-        index += 2;
-      }
-      continue;
-    }
+    const isBlock = source.startsWith('$$', index);
+    const match = isBlock
+      ? matchBlockMath(source, index)
+      : matchInlineMath(source, index);
 
-    const close = indexOfUnescaped(source, '$', index + 1);
-    if (close === -1) break;
-
-    const latex = source.slice(index + 1, close);
-    if (
-      latex.trim() &&
-      !isCurrencyDollar(source, index, latex) &&
-      looksLikeMath(latex)
-    ) {
-      matches.push({ start: index, end: close + 1, latex, display: false });
-      index = close + 1;
+    if (match) {
+      matches.push(match);
+      index = match.end;
     } else {
-      index += 1;
+      index += isBlock ? 2 : 1;
     }
   }
 

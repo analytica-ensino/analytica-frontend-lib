@@ -3,6 +3,7 @@
  */
 
 import {
+  MATH_SPAN_TYPE,
   createLatexEnvPattern,
   createMathSpanPattern,
   readMathSpanAttributes,
@@ -527,7 +528,7 @@ export const containsMath = (content: string): boolean => {
   const patterns = [
     /\$\$[\s\S]+?\$\$/, // Display mode $$...$$
     /(?<!\\)\$[\s\S]+?\$/, // Inline mode $...$
-    /<span[^>]*data-type="math-inline"/, // Editor spans (current format)
+    new RegExp(String.raw`<span[^>]*data-type="${MATH_SPAN_TYPE}"`), // Editor spans (current format)
     /<span[^>]*class="math-formula"/, // Editor spans
     /<span[^>]*class="math-expression"/, // Legacy spans
     /<latex>|&lt;latex&gt;/, // LaTeX tags

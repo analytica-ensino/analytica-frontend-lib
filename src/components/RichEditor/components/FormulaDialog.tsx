@@ -380,11 +380,10 @@ export function FormulaDialog({
                 Fórmula em bloco
               </Text>
               <Text size="xs" className="text-text-400">
-                Ocupa uma linha própria e fica centralizada, equivalente a{' '}
+                Ocupa uma linha própria e fica centralizada — o mesmo que{' '}
                 <code className="bg-background-200 px-1 rounded">
                   $$fórmula$$
                 </code>
-                .
               </Text>
             </div>
           </div>

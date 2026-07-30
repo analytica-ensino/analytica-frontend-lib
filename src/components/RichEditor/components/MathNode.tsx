@@ -44,7 +44,10 @@ function MathNodeView({ node, editor, getPos }: MathNodeViewProps) {
         displayMode: display,
       });
     } catch {
-      return `<span class="text-error-600">${latex}</span>`;
+      // `latex` comes from the `data-latex` of pasted/persisted spans and is
+      // about to reach dangerouslySetInnerHTML, so it must be escaped — unlike
+      // the KaTeX output above, which is markup KaTeX generates itself.
+      return `<span class="text-error-600">${escapeHtmlText(latex)}</span>`;
     }
   }, [latex, display]);
 
@@ -224,7 +227,10 @@ export const MathNode = Node.create({
             if (!clipboard || clipboard.getData('text/html')) return false;
 
             const text = clipboard.getData('text/plain');
-            if (!text || !(text.includes('$') || text.includes('\\begin{'))) {
+            if (
+              !text ||
+              !(text.includes('$') || text.includes(String.raw`\begin{`))
+            ) {
               return false;
             }
 

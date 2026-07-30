@@ -184,6 +184,14 @@ describe('findDollarMath', () => {
     expect(findDollarMath('a $$   $$ b')).toEqual([]);
   });
 
+  it('ignora $...$ com conteúdo em branco', () => {
+    expect(findDollarMath('a $   $ b')).toEqual([]);
+  });
+
+  it('ignora prosa entre cifrões', () => {
+    expect(findDollarMath('comprou $valor muito alto$ reais')).toEqual([]);
+  });
+
   it('encontra várias fórmulas na mesma frase', () => {
     const matches = findDollarMath('Área: $A = \\pi r^2$ e $$V = h$$');
     expect(matches.map((m) => m.display)).toEqual([false, true]);
