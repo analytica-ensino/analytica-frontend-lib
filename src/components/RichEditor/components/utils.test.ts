@@ -95,6 +95,13 @@ describe('unprocessLatexInHtml', () => {
     expect(unprocessLatexInHtml(input)).toBe(expected);
   });
 
+  it('deve reemitir $$...$$ para fórmula em bloco', () => {
+    const input =
+      '<span data-type="math-inline" data-display-mode="true" data-latex="\\frac{a}{b}"></span>';
+
+    expect(unprocessLatexInHtml(input)).toBe('$$\\frac{a}{b}$$');
+  });
+
   it('deve ser inverso de processLatexInHtml', () => {
     const original = 'Fórmula: $a^2 + b^2 = c^2$ aqui';
     const processed = processLatexInHtml(original);

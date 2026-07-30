@@ -2,6 +2,21 @@
  * Utilities for processing HTML content with LaTeX math expressions
  */
 
+import {
+  createLatexEnvPattern,
+  createMathSpanPattern,
+  readMathSpanAttributes,
+  replaceDollarMath,
+} from '../../utils/latexMath';
+
+/**
+ * Re-exported under its historical name: this is a public entry point of the
+ * package and several consumers/tests import `looksLikeLatex` directly. The
+ * implementation now lives in `utils/latexMath` so the RichEditor applies the
+ * exact same heuristic when deciding what to turn into a math node.
+ */
+export { looksLikeMath as looksLikeLatex } from '../../utils/latexMath';
+
 export interface MathPart {
   type: 'text' | 'math' | 'block-math';
   content: string;
@@ -35,28 +50,6 @@ export const cleanLatex = (str: string): string => {
     .replaceAll(/&amp;gt;|&gt;/gi, String.raw`\gt `)
     .replaceAll(/&amp;amp;|&amp;/gi, '&')
     .trim();
-};
-
-/**
- * Heuristic that flags a string as "likely real LaTeX math" vs prose.
- * Used to reject `$...$` blocks that wrap regular text \u2014 typically
- * happens when authors type `$` as a currency symbol and the renderer
- * pairs unrelated occurrences as math delimiters, sending Portuguese
- * prose to KaTeX (which then renders each letter as a math variable).
- *
- * Approach:
- * - Backslash commands / sub-super / grouping braces \u2192 definitely math.
- * - Otherwise, treat it as PROSE only when it contains 2+ real words
- *   (runs of 3+ letters). A sentence like "15,00 pelo custo fixo" has
- *   many such words; genuine math \u2014 `x = 1`, `a + b`, `1 < 2`, `f0`,
- *   even a lone `abc` \u2014 does not. This keeps normal spaced equations
- *   rendering while still rejecting currency-`$` prose.
- */
-export const looksLikeLatex = (str: string): boolean => {
-  if (/[\\^_{}]/.test(str)) return true;
-  const words = str.match(/[a-zA-Z]{3,}/g);
-  if (words && words.length >= 2) return false;
-  return true;
 };
 
 /**
@@ -382,6 +375,23 @@ export const processHtmlWithMath = (htmlContent: string): MathPart[] => {
   // Generate unique sentinel per call to avoid collision with content
   const sentinel = `__MATH_${generateSecureRandomId()}_`;
 
+  // Step 0: Handle the canonical span the RichEditor persists today.
+  // It carries no text content and no class, so without this branch the span
+  // survives sanitization, every part comes back as `text`, and the formula is
+  // injected as an empty element — i.e. it silently disappears for the student.
+  const mathSpanPattern = createMathSpanPattern();
+  processedContent = processedContent.replaceAll(mathSpanPattern, (match) => {
+    const { latex, display } = readMathSpanAttributes(match);
+    if (!latex.trim()) return '';
+    const placeholder = `${sentinel}${parts.length}__`;
+    parts.push({
+      type: display ? 'block-math' : 'math',
+      content: match,
+      latex: cleanLatex(latex),
+    });
+    return placeholder;
+  });
+
   // Step 1: Handle math-formula spans (from the editor)
   const mathFormulaPattern =
     /<span[^>]*class="math-formula"[^>]*data-latex="([^"]*)"[^>]*>[\s\S]*?<\/span>/g;
@@ -415,34 +425,19 @@ export const processHtmlWithMath = (htmlContent: string): MathPart[] => {
     }
   );
 
-  // Step 3: Handle raw $$...$$ expressions (display mode) - BEFORE single $
-  const doubleDollarPattern = /(?<!\\)\$\$([\s\S]+?)\$\$/g;
-  processedContent = processedContent.replaceAll(
-    doubleDollarPattern,
-    (match, latex) => {
+  // Step 3: Handle raw `$$...$$` (display) and `$...$` (inline) in a single
+  // left-to-right scan. Splitting them across two regex passes used to break
+  // `$$x$$`, whose inner `$x$` was claimed by the single-dollar pass first.
+  // The scanner also drops currency pairings (`R$1,00 ... R$0,50`) without
+  // consuming the rest of the sentence, so a real formula that follows a price
+  // is still found.
+  processedContent = replaceDollarMath(
+    processedContent,
+    ({ latex, display }) => {
       const placeholder = `${sentinel}${parts.length}__`;
       parts.push({
-        type: 'block-math',
-        content: match,
-        latex: cleanLatex(latex),
-      });
-      return placeholder;
-    }
-  );
-
-  // Step 4: Handle single $...$ expressions for inline math.
-  // Skip matches whose content doesn't look like LaTeX — those are usually
-  // currency `$` symbols pairing up across prose (e.g. `R$ 15,00 ... R$ 42,00`)
-  // and sending Portuguese text to KaTeX produces gibberish output.
-  const singleDollarPattern = /(?<!\\)\$([\s\S]+?)\$/g;
-  processedContent = processedContent.replaceAll(
-    singleDollarPattern,
-    (match, latex) => {
-      if (!looksLikeLatex(latex)) return match;
-      const placeholder = `${sentinel}${parts.length}__`;
-      parts.push({
-        type: 'math',
-        content: match,
+        type: display ? 'block-math' : 'math',
+        content: display ? `$$${latex}$$` : `$${latex}$`,
         latex: cleanLatex(latex),
       });
       return placeholder;
@@ -466,7 +461,7 @@ export const processHtmlWithMath = (htmlContent: string): MathPart[] => {
   );
 
   // Step 6: Handle standalone LaTeX environments (align, equation, pmatrix, etc.)
-  const latexEnvPattern = /\\begin\{([^}]+)\}([\s\S]*?)\\end\{\1\}/g;
+  const latexEnvPattern = createLatexEnvPattern();
   processedContent = processedContent.replaceAll(latexEnvPattern, (match) => {
     const placeholder = `${sentinel}${parts.length}__`;
     parts.push({
@@ -532,6 +527,7 @@ export const containsMath = (content: string): boolean => {
   const patterns = [
     /\$\$[\s\S]+?\$\$/, // Display mode $$...$$
     /(?<!\\)\$[\s\S]+?\$/, // Inline mode $...$
+    /<span[^>]*data-type="math-inline"/, // Editor spans (current format)
     /<span[^>]*class="math-formula"/, // Editor spans
     /<span[^>]*class="math-expression"/, // Legacy spans
     /<latex>|&lt;latex&gt;/, // LaTeX tags
@@ -548,6 +544,9 @@ export const stripHtml = (htmlContent: string): string => {
   if (!htmlContent) return '';
 
   let content = htmlContent;
+
+  // Remove the editor's math spans (the LaTeX lives in the data attribute)
+  content = content.replaceAll(createMathSpanPattern(), '');
 
   // Remove math-formula spans (keep nothing as the LaTeX is in data attribute)
   content = content.replaceAll(

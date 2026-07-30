@@ -371,6 +371,7 @@ export default defineConfig({
     'utils/calendarActivityUtils/index': 'src/utils/calendarActivityUtils.ts', // filterActivitiesFromDate, getActivityDateKey, getCalendarActivityStatus
     'utils/chatUtils/index': 'src/utils/chatUtils.ts', // getChatUserInfo, getChatWsUrl
     'utils/htmlLineBreaks/index': 'src/utils/htmlLineBreaks.ts', // normalizeLineBreaksInHtml
+    'utils/latexMath/index': 'src/utils/latexMath.ts', // buildMathSpan, findDollarMath, isCurrencyDollar, looksLikeMath, replaceDollarMath
     'utils/domainUtils/index': 'src/utils/domainUtils.ts', // resolveRootHostname, extractSubdomainSlug, buildLoginUrlWithReturnTo
     'utils/examFilterHelpers/index': 'src/utils/examFilterHelpers.ts', // EXAM_STATUS_OPTIONS
     'utils/lessonAvailabilityUtils/index':

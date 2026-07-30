@@ -488,6 +488,90 @@ describe('utils', () => {
       });
     });
 
+    describe('processHtmlWithMath — spans do editor (data-type="math-inline")', () => {
+      // Este é o formato que o RichEditor grava. Sem um branch para ele, o span
+      // sobrevivia à sanitização, todas as partes voltavam como `text` e a
+      // fórmula era injetada como elemento vazio — sumia para o aluno.
+      it('renderiza o span math-inline como matemática inline', () => {
+        const parts = processHtmlWithMath(
+          '<p>Para cada número real <span data-type="math-inline" data-latex="x \\neq 0"></span>, definimos</p>'
+        );
+        const mathParts = parts.filter((p) => p.type === 'math');
+        expect(mathParts).toHaveLength(1);
+        expect(mathParts[0].latex).toBe('x \\neq 0');
+      });
+
+      it('respeita data-display-mode como matemática em bloco', () => {
+        const parts = processHtmlWithMath(
+          '<span data-type="math-inline" data-display-mode="true" data-latex="\\frac{a}{b}"></span>'
+        );
+        expect(parts.filter((p) => p.type === 'block-math')).toHaveLength(1);
+      });
+
+      it('não depende da ordem dos atributos emitida pelo TipTap', () => {
+        const parts = processHtmlWithMath(
+          '<span class="inline-math" data-latex="x^2" data-type="math-inline"></span>'
+        );
+        expect(parts.filter((p) => p.type === 'math')[0].latex).toBe('x^2');
+      });
+
+      it('descarta o span quando o latex está vazio', () => {
+        const parts = processHtmlWithMath(
+          'antes <span data-type="math-inline" data-latex=""></span> depois'
+        );
+        expect(parts.every((p) => p.type === 'text')).toBe(true);
+        expect(parts.map((p) => p.content).join('')).toBe('antes  depois');
+      });
+
+      it('decodifica o & de alinhamento vindo do atributo escapado', () => {
+        const parts = processHtmlWithMath(
+          '<span data-type="math-inline" data-latex="\\begin{pmatrix} a &amp; b \\end{pmatrix}"></span>'
+        );
+        expect(parts[0].latex).toContain('a & b');
+      });
+
+      it('containsMath reconhece o span do editor', () => {
+        expect(
+          containsMath('<span data-type="math-inline" data-latex="x^2"></span>')
+        ).toBe(true);
+      });
+
+      it('stripHtml remove o span do editor', () => {
+        expect(
+          stripHtml(
+            'texto <span data-type="math-inline" data-latex="x^2"></span> fim'
+          )
+        ).toBe('texto  fim');
+      });
+    });
+
+    describe('processHtmlWithMath — $$ e valores monetários', () => {
+      it('trata $$...$$ como bloco sem quebrar o par interno', () => {
+        const parts = processHtmlWithMath('resultado $$x^2$$ fim');
+        const blockParts = parts.filter((p) => p.type === 'block-math');
+        expect(blockParts).toHaveLength(1);
+        expect(blockParts[0].latex).toBe('x^2');
+        // O par interno `$x^2$` não pode ser reivindicado como inline.
+        expect(parts.filter((p) => p.type === 'math')).toHaveLength(0);
+      });
+
+      it('NÃO transforma R$1,00 e de R$0,50 em fórmula', () => {
+        // Problema relatado: renderizava `R 1,00edeR 0,50`.
+        const input =
+          'Guardava moedas de R$1,00 e de R$0,50. Total de R$370,00.';
+        const parts = processHtmlWithMath(input);
+        expect(parts.every((p) => p.type === 'text')).toBe(true);
+        expect(parts.map((p) => p.content).join('')).toBe(input);
+      });
+
+      it('ainda encontra a fórmula que vem depois de um preço', () => {
+        const parts = processHtmlWithMath('custou R$50,00 e vale $x^2$ pontos');
+        const mathParts = parts.filter((p) => p.type === 'math');
+        expect(mathParts).toHaveLength(1);
+        expect(mathParts[0].latex).toBe('x^2');
+      });
+    });
+
     describe('processHtmlWithMath — katex-error recovery', () => {
       it('should recover LaTeX from a katex-error wrapper title', () => {
         const persisted =
