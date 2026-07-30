@@ -528,7 +528,7 @@ export const containsMath = (content: string): boolean => {
   const patterns = [
     /\$\$[\s\S]+?\$\$/, // Display mode $$...$$
     /(?<!\\)\$[\s\S]+?\$/, // Inline mode $...$
-    new RegExp(String.raw`<span[^>]*data-type="${MATH_SPAN_TYPE}"`), // Editor spans (current format)
+    new RegExp(`<span[^>]*data-type="${MATH_SPAN_TYPE}"`), // Editor spans (current format)
     /<span[^>]*class="math-formula"/, // Editor spans
     /<span[^>]*class="math-expression"/, // Legacy spans
     /<latex>|&lt;latex&gt;/, // LaTeX tags
