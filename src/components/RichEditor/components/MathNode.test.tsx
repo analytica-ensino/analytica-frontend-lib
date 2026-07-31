@@ -1,6 +1,8 @@
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent } from '@testing-library/react';
 import type { ReactElement } from 'react';
+import type { InputRule } from '@tiptap/core';
+import type { Plugin } from '@tiptap/pm/state';
 import { MathNode } from './MathNode';
 
 // Mock katex
@@ -44,6 +46,15 @@ const getConfigMethod = <T,>(
     options: {},
     storage: {},
     parent: undefined,
+    // `addInputRules` closes over `this.type` to build the node it inserts;
+    // echoing the attrs back lets the assertions inspect what would be created.
+    type: {
+      create: (attrs: Record<string, unknown>) => ({
+        type: 'mathInline',
+        attrs,
+      }),
+    },
+    editor: { commands: { insertContent: jest.fn() } },
   });
 };
 
@@ -78,6 +89,14 @@ describe('MathNode Extension', () => {
       expect(attributes).toHaveProperty('latex');
       expect(attributes?.latex.default).toBe('');
     });
+
+    it('deve definir atributo display com valor padrão false', () => {
+      const attributes = getConfigMethod(MathNode.config.addAttributes) as
+        | { display: { default: boolean } }
+        | undefined;
+      expect(attributes).toHaveProperty('display');
+      expect(attributes?.display.default).toBe(false);
+    });
   });
 
   describe('parseHTML', () => {
@@ -96,7 +115,21 @@ describe('MathNode Extension', () => {
       } as unknown as HTMLElement;
 
       const result = getAttrs?.(mockDom);
-      expect(result).toEqual({ latex: 'x^2 + y^2' });
+      expect(result).toEqual({ latex: 'x^2 + y^2', display: false });
+    });
+
+    it('deve extrair display do atributo data-display-mode', () => {
+      const parseRules = getConfigMethod(MathNode.config.parseHTML);
+      const getAttrs = parseRules?.[0].getAttrs;
+
+      const mockDom = {
+        dataset: { latex: '\\frac{a}{b}', displayMode: 'true' },
+      } as unknown as HTMLElement;
+
+      expect(getAttrs?.(mockDom)).toEqual({
+        latex: '\\frac{a}{b}',
+        display: true,
+      });
     });
 
     it('deve usar string vazia quando data-latex está ausente', () => {
@@ -109,7 +142,7 @@ describe('MathNode Extension', () => {
       const mockDom = { dataset: {} } as unknown as HTMLElement;
 
       const result = getAttrs?.(mockDom);
-      expect(result).toEqual({ latex: '' });
+      expect(result).toEqual({ latex: '', display: false });
     });
   });
 
@@ -156,12 +189,117 @@ describe('MathNode Extension', () => {
         },
       ]);
     });
+
+    it('deve emitir data-display-mode apenas para fórmula em bloco', () => {
+      const renderHTML = MathNode.config.renderHTML;
+      const mockNode = { attrs: { latex: '\\frac{a}{b}', display: true } };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = (renderHTML as any)?.call(
+        { name: 'mathInline', options: {}, storage: {} },
+        { node: mockNode, HTMLAttributes: {} }
+      );
+
+      expect(result).toEqual([
+        'span',
+        {
+          'data-type': 'math-inline',
+          'data-display-mode': 'true',
+          'data-latex': '\\frac{a}{b}',
+        },
+      ]);
+    });
   });
 
   describe('addInputRules', () => {
-    it('deve retornar array vazio (input rules desabilitadas)', () => {
-      const inputRules = getConfigMethod(MathNode.config.addInputRules);
-      expect(inputRules).toEqual([]);
+    // The old implementation returned [], leaving the Space shortcut as the
+    // only trigger — which is why authors had to type a space after the closing
+    // `$` and why `$$...$$` never converted at all.
+    const getInputRules = () =>
+      getConfigMethod(MathNode.config.addInputRules) as InputRule[];
+
+    /** Drives one input rule the way TipTap's `run()` does. */
+    const applyRule = (rule: InputRule, textBefore: string) => {
+      const match = rule.find as RegExp;
+      const found = match.exec(textBefore);
+      if (!found) return null;
+
+      const replaceRangeWith = jest.fn();
+      const state = {
+        tr: { replaceRangeWith },
+        doc: {
+          textBetween: (from: number, to: number) => textBefore.slice(from, to),
+        },
+      };
+      const range = {
+        from: textBefore.length - found[0].length,
+        to: textBefore.length,
+      };
+
+      rule.handler({ state, range, match: found } as never);
+      return replaceRangeWith;
+    };
+
+    it('deve registrar a regra de bloco antes da regra inline', () => {
+      const rules = getInputRules();
+      expect(rules).toHaveLength(2);
+      expect((rules[0].find as RegExp).source).toContain('\\$\\$');
+    });
+
+    it('não converte quando o conteúdo entre $ está vazio', () => {
+      const rules = getInputRules();
+      expect(applyRule(rules[1], 'texto $   $')).not.toHaveBeenCalled();
+    });
+
+    it('converte $x^2$ assim que o cifrão final é digitado, sem espaço', () => {
+      // Este é o Problema 2/3: antes só o atalho de Espaço convertia, então uma
+      // fórmula no fim da frase (ou colada) ficava como texto cru.
+      const rules = getInputRules();
+      const replaceRangeWith = applyRule(rules[1], 'o valor de $x^2$');
+
+      expect(replaceRangeWith).toHaveBeenCalledWith(11, 16, {
+        type: 'mathInline',
+        attrs: { latex: 'x^2', display: false },
+      });
+    });
+
+    it('converte $$...$$ em fórmula de bloco', () => {
+      const rules = getInputRules();
+      const replaceRangeWith = applyRule(
+        rules[0],
+        'resultado $$\\frac{a}{b}$$'
+      );
+
+      expect(replaceRangeWith).toHaveBeenCalledWith(
+        expect.any(Number),
+        expect.any(Number),
+        { type: 'mathInline', attrs: { latex: '\\frac{a}{b}', display: true } }
+      );
+    });
+
+    it('a regra inline não reivindica o par interno de $$...$$', () => {
+      const rules = getInputRules();
+      expect(applyRule(rules[1], 'resultado $$\\frac{a}{b}$$')).toBeNull();
+    });
+
+    it('não converte valores monetários em fórmula', () => {
+      // Problema relatado: "moedas de R$1,00 e de R$0,50" virava
+      // `R 1,00edeR 0,50` porque os dois cifrões fechavam um par válido.
+      const rules = getInputRules();
+      const replaceRangeWith = applyRule(
+        rules[1],
+        'Guardava moedas de R$1,00 e de R$'
+      );
+      expect(replaceRangeWith).not.toHaveBeenCalled();
+    });
+
+    it('não converte prosa entre cifrões', () => {
+      const rules = getInputRules();
+      const replaceRangeWith = applyRule(
+        rules[1],
+        'comprou $valor muito alto$'
+      );
+      expect(replaceRangeWith).not.toHaveBeenCalled();
     });
   });
 
@@ -179,92 +317,79 @@ describe('MathNode Extension', () => {
     });
 
     describe('Space shortcut', () => {
-      it('deve retornar false quando não há padrão $...$ antes do cursor', () => {
-        const shortcuts = getConfigMethod(MathNode.config.addKeyboardShortcuts);
-        const spaceHandler = shortcuts?.Space;
-
-        const mockEditor = {
-          state: {
-            selection: {
-              $from: {
-                parent: {
-                  textBetween: jest.fn(() => 'texto normal sem formula'),
-                },
-                parentOffset: 25,
-                pos: 25,
-              },
-            },
-          },
-          chain: jest.fn(() => ({
-            deleteRange: jest.fn().mockReturnThis(),
-            insertContent: jest.fn().mockReturnThis(),
-            run: jest.fn(),
-          })),
-        };
-
-        const result = spaceHandler?.({ editor: mockEditor } as never);
-        expect(result).toBe(false);
-      });
-
-      it('deve converter $latex$ para math node quando Space é pressionado', () => {
-        const shortcuts = getConfigMethod(MathNode.config.addKeyboardShortcuts);
-        const spaceHandler = shortcuts?.Space;
-
-        const mockChain = {
+      /**
+       * Builds an editor mock whose document is exactly `textBefore`, so the
+       * currency guard can read the characters preceding the opening `$`.
+       */
+      const setupSpace = (textBefore: string) => {
+        const chain = {
           deleteRange: jest.fn().mockReturnThis(),
           insertContent: jest.fn().mockReturnThis(),
           run: jest.fn(),
         };
-
-        const mockEditor = {
+        const editor = {
           state: {
+            doc: {
+              textBetween: (from: number, to: number) =>
+                textBefore.slice(from, to),
+            },
             selection: {
               $from: {
-                parent: {
-                  textBetween: jest.fn(() => 'texto $x^2$'),
-                },
-                parentOffset: 11,
-                pos: 11,
+                parent: { textBetween: jest.fn(() => textBefore) },
+                parentOffset: textBefore.length,
+                pos: textBefore.length,
               },
             },
           },
-          chain: jest.fn(() => mockChain),
+          chain: jest.fn(() => chain),
         };
 
-        const result = spaceHandler?.({ editor: mockEditor } as never);
+        const shortcuts = getConfigMethod(MathNode.config.addKeyboardShortcuts);
+        const result = shortcuts?.Space?.({ editor } as never);
+        return { result, chain, editor };
+      };
+
+      it('deve retornar false quando não há padrão $...$ antes do cursor', () => {
+        const { result } = setupSpace('texto normal sem formula');
+        expect(result).toBe(false);
+      });
+
+      it('deve converter $latex$ para math node quando Space é pressionado', () => {
+        const { result, chain, editor } = setupSpace('texto $x^2$');
 
         expect(result).toBe(true);
-        expect(mockEditor.chain).toHaveBeenCalled();
-        expect(mockChain.deleteRange).toHaveBeenCalled();
-        expect(mockChain.insertContent).toHaveBeenCalledWith([
-          { type: 'mathInline', attrs: { latex: 'x^2' } },
+        expect(editor.chain).toHaveBeenCalled();
+        expect(chain.deleteRange).toHaveBeenCalled();
+        expect(chain.insertContent).toHaveBeenCalledWith([
+          { type: 'mathInline', attrs: { latex: 'x^2', display: false } },
           { type: 'text', text: ' ' },
         ]);
-        expect(mockChain.run).toHaveBeenCalled();
+        expect(chain.run).toHaveBeenCalled();
+      });
+
+      it('deve converter $$latex$$ em fórmula de bloco', () => {
+        const { result, chain } = setupSpace('texto $$\\frac{a}{b}$$');
+
+        expect(result).toBe(true);
+        expect(chain.insertContent).toHaveBeenCalledWith([
+          {
+            type: 'mathInline',
+            attrs: { latex: '\\frac{a}{b}', display: true },
+          },
+          { type: 'text', text: ' ' },
+        ]);
+      });
+
+      it('não converte valores monetários quando Space é pressionado', () => {
+        const { result, editor } = setupSpace('moedas de R$1,00 e de R$');
+        expect(result).toBe(false);
+        expect(editor.chain).not.toHaveBeenCalled();
       });
 
       it('deve retornar false quando $...$ está vazio', () => {
-        const shortcuts = getConfigMethod(MathNode.config.addKeyboardShortcuts);
-        const spaceHandler = shortcuts?.Space;
-
-        const mockEditor = {
-          state: {
-            selection: {
-              $from: {
-                parent: {
-                  textBetween: jest.fn(() => 'texto $   $'),
-                },
-                parentOffset: 11,
-                pos: 11,
-              },
-            },
-          },
-          chain: jest.fn(),
-        };
-
-        const result = spaceHandler?.({ editor: mockEditor } as never);
+        const { result, editor } = setupSpace('texto $   $');
         expect(result).toBe(false);
-        expect(mockEditor.chain).not.toHaveBeenCalled();
+        expect(editor.chain).not.toHaveBeenCalled();
       });
     });
 
@@ -345,6 +470,34 @@ describe('MathNode Extension', () => {
         expect(mockChain.insertContent).toHaveBeenCalledWith('$a^2');
         expect(mockChain.run).toHaveBeenCalled();
       });
+
+      it('devolve fórmula de bloco com delimitador duplo', () => {
+        const shortcuts = getConfigMethod(MathNode.config.addKeyboardShortcuts);
+        const mockChain = {
+          deleteRange: jest.fn().mockReturnThis(),
+          insertContent: jest.fn().mockReturnThis(),
+          run: jest.fn(),
+        };
+        const mockEditor = {
+          state: {
+            selection: {
+              $from: {
+                nodeBefore: {
+                  type: { name: 'mathInline' },
+                  attrs: { latex: '\\frac{a}{b}', display: true },
+                  nodeSize: 1,
+                },
+                pos: 10,
+              },
+            },
+          },
+          chain: jest.fn(() => mockChain),
+        };
+
+        shortcuts?.Backspace?.({ editor: mockEditor } as never);
+
+        expect(mockChain.insertContent).toHaveBeenCalledWith('$$\\frac{a}{b}');
+      });
     });
   });
 
@@ -407,10 +560,12 @@ describe('MathNodeView click handling', () => {
     // the component as undefined (a default would silently substitute it).
     latex,
     docSize = 100,
+    display = false,
   }: {
     pos: number | undefined;
     latex?: unknown;
     docSize?: number;
+    display?: boolean;
   }) => {
     const setTextSelection = jest.fn();
     const run = jest.fn();
@@ -425,7 +580,7 @@ describe('MathNodeView click handling', () => {
       commands: { setTextSelection },
       state: { doc: { content: { size: docSize } } },
     };
-    const node = { attrs: { latex }, nodeSize: 1 };
+    const node = { attrs: { latex, display }, nodeSize: 1 };
 
     const NodeView = getNodeView();
     render(<NodeView node={node} editor={editor} getPos={() => pos} />);
@@ -482,12 +637,153 @@ describe('MathNodeView click handling', () => {
     expect(setTextSelection).toHaveBeenCalledWith(10);
   });
 
+  it('reinsere fórmula de bloco com delimitador duplo ao clicar', () => {
+    const { setTextSelection } = setup({
+      pos: 3,
+      latex: 'x^2',
+      display: true,
+    });
+
+    fireEvent.click(screen.getByTestId('node-view-wrapper'));
+
+    // pos + latex.length + '$$'.length
+    expect(setTextSelection).toHaveBeenCalledWith(8);
+  });
+
+  it('renderiza fórmula de bloco em displayMode', () => {
+    const NodeView = getNodeView();
+    render(
+      <NodeView
+        node={{ attrs: { latex: '\\frac{a}{b}', display: true }, nodeSize: 1 }}
+        editor={{}}
+        getPos={() => 0}
+      />
+    );
+
+    expect(mockRenderToString).toHaveBeenCalledWith('\\frac{a}{b}', {
+      throwOnError: false,
+      displayMode: true,
+    });
+  });
+
+  it('exibe o latex cru quando o katex lança', () => {
+    const NodeView = getNodeView();
+    render(
+      <NodeView
+        node={{ attrs: { latex: 'error-latex' }, nodeSize: 1 }}
+        editor={{}}
+        getPos={() => 0}
+      />
+    );
+
+    expect(screen.getByTestId('node-view-wrapper')).toHaveTextContent(
+      'error-latex'
+    );
+  });
+
   it('posiciona o cursor no fim do texto inserido no caso normal', () => {
     const { setTextSelection } = setup({ pos: 3, latex: 'x^2', docSize: 100 });
 
     fireEvent.click(screen.getByTestId('node-view-wrapper'));
 
     expect(setTextSelection).toHaveBeenCalledWith(7); // 3 + 3 + 1
+  });
+});
+
+describe('MathNode paste handling', () => {
+  // Input rules only fire while typing, so before this plugin a formula copied
+  // from a document or from the KaTeX playground landed as raw text (Problema 3).
+  const setupPastePlugin = () => {
+    const insertContent = jest.fn();
+    const plugins = (
+      MathNode.config.addProseMirrorPlugins as unknown as (
+        this: unknown
+      ) => Plugin[]
+    ).call({
+      name: 'mathInline',
+      options: {},
+      storage: {},
+      editor: { commands: { insertContent } },
+    });
+
+    // ProseMirror types these props with a `this: Plugin` context that the
+    // tests do not need to reproduce.
+    const props = plugins[0].props as {
+      transformPastedHTML?: (html: string) => string;
+      handlePaste?: (view: unknown, event: ClipboardEvent) => boolean;
+    };
+
+    return { props, insertContent };
+  };
+
+  const clipboardEvent = (data: Record<string, string>) =>
+    ({
+      clipboardData: { getData: (type: string) => data[type] ?? '' },
+    }) as unknown as ClipboardEvent;
+
+  it('converte LaTeX em HTML colado', () => {
+    const { props } = setupPastePlugin();
+    const result = props?.transformPastedHTML?.('<p>o valor de $x^2$ aqui</p>');
+
+    expect(result).toContain('data-type="math-inline"');
+    expect(result).toContain('data-latex="x^2"');
+  });
+
+  it('converte texto puro colado e insere como HTML', () => {
+    const { props, insertContent } = setupPastePlugin();
+    const handled = props?.handlePaste?.(
+      null,
+      clipboardEvent({
+        'text/plain': 'A matriz $\\begin{pmatrix} a & b \\end{pmatrix}$',
+      })
+    );
+
+    expect(handled).toBe(true);
+    expect(insertContent).toHaveBeenCalledWith(
+      expect.stringContaining('data-type="math-inline"')
+    );
+  });
+
+  it('deixa o ProseMirror tratar quando o clipboard já traz HTML', () => {
+    const { props, insertContent } = setupPastePlugin();
+    const handled = props?.handlePaste?.(
+      null,
+      clipboardEvent({ 'text/html': '<p>$x^2$</p>', 'text/plain': '$x^2$' })
+    );
+
+    expect(handled).toBe(false);
+    expect(insertContent).not.toHaveBeenCalled();
+  });
+
+  it('ignora texto colado sem LaTeX', () => {
+    const { props, insertContent } = setupPastePlugin();
+    const handled = props?.handlePaste?.(
+      null,
+      clipboardEvent({ 'text/plain': 'apenas texto comum' })
+    );
+
+    expect(handled).toBe(false);
+    expect(insertContent).not.toHaveBeenCalled();
+  });
+
+  it('ignora valores monetários colados', () => {
+    const { props, insertContent } = setupPastePlugin();
+    const handled = props?.handlePaste?.(
+      null,
+      clipboardEvent({ 'text/plain': 'moedas de R$1,00 e de R$0,50' })
+    );
+
+    expect(handled).toBe(false);
+    expect(insertContent).not.toHaveBeenCalled();
+  });
+
+  it('ignora colagem sem clipboardData', () => {
+    const { props } = setupPastePlugin();
+    const handled = props?.handlePaste?.(null, {
+      clipboardData: null,
+    } as unknown as ClipboardEvent);
+
+    expect(handled).toBe(false);
   });
 });
 

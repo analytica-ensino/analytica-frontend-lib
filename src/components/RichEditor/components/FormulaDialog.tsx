@@ -5,6 +5,7 @@ import Menu, { MenuContent, MenuItem } from '../../Menu/Menu';
 import Modal from '../../Modal/Modal';
 import Text from '../../Text/Text';
 import TextArea from '../../TextArea/TextArea';
+import ToggleSwitch from '../../ToggleSwitch/ToggleSwitch';
 import { SparkleIcon } from '@phosphor-icons/react/dist/csr/Sparkle';
 import { useMobile } from '../../../hooks/useMobile';
 import katex from 'katex';
@@ -13,7 +14,11 @@ import 'katex/dist/katex.min.css';
 interface FormulaDialogProps {
   readonly open: boolean;
   readonly onClose: () => void;
-  readonly onInsert: (latex: string) => void;
+  /**
+   * @param latex - the LaTeX source to insert
+   * @param display - `true` inserts centered display math on its own line
+   */
+  readonly onInsert: (latex: string, display: boolean) => void;
   /**
    * Optional callback to generate LaTeX using AI
    * If provided, the AI generation feature will be enabled
@@ -156,6 +161,7 @@ export function FormulaDialog({
   const { isTablet } = useMobile();
   const [category, setCategory] = useState<FormulaCategory>('matematica');
   const [latex, setLatex] = useState('');
+  const [display, setDisplay] = useState(false);
   const [preview, setPreview] = useState('');
   const [error, setError] = useState('');
   const [aiDescription, setAiDescription] = useState('');
@@ -169,9 +175,11 @@ export function FormulaDialog({
       return;
     }
     try {
+      // Same displayMode the editor and the student view will use, so the
+      // preview is a faithful WYSIWYG of the inserted formula.
       const rendered = katex.renderToString(latex, {
         throwOnError: true,
-        displayMode: false,
+        displayMode: display,
       });
       setPreview(rendered);
       setError('');
@@ -179,11 +187,11 @@ export function FormulaDialog({
       setError('Fórmula inválida');
       setPreview('');
     }
-  }, [latex]);
+  }, [latex, display]);
 
   const handleInsert = () => {
     if (!latex.trim() || error) return;
-    onInsert(latex);
+    onInsert(latex, display);
     resetState();
   };
 
@@ -194,6 +202,7 @@ export function FormulaDialog({
 
   const resetState = () => {
     setLatex('');
+    setDisplay(false);
     setError('');
     setPreview('');
     setAiDescription('');
@@ -356,6 +365,27 @@ export function FormulaDialog({
               Use sintaxe LaTeX:{' '}
               {String.raw`\sqrt{}, \frac{}{}, ^{}, _{}, \pi, \alpha`}, etc.
             </Text>
+          </div>
+
+          {/* Display mode */}
+          <div className="flex items-start gap-3 mb-4">
+            <ToggleSwitch
+              checked={display}
+              onChange={() => setDisplay((current) => !current)}
+              size="small"
+              aria-label="Fórmula em bloco"
+            />
+            <div>
+              <Text weight="medium" className="text-xs text-text-600">
+                Fórmula em bloco
+              </Text>
+              <Text size="xs" className="text-text-400">
+                Ocupa uma linha própria e fica centralizada — o mesmo que{' '}
+                <code className="bg-background-200 px-1 rounded">
+                  $$fórmula$$
+                </code>
+              </Text>
+            </div>
           </div>
 
           {/* Divider */}

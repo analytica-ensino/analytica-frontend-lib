@@ -223,7 +223,26 @@ describe('FormulaDialog', () => {
 
       fireEvent.click(screen.getByRole('button', { name: 'Inserir fórmula' }));
 
-      expect(onInsert).toHaveBeenCalledWith('x^2');
+      expect(onInsert).toHaveBeenCalledWith('x^2', false);
+    });
+
+    it('deve chamar onInsert com display=true quando "Fórmula em bloco" está ligado', async () => {
+      const onInsert = jest.fn();
+      render(<FormulaDialog {...defaultProps} onInsert={onInsert} />);
+
+      const input = screen.getByPlaceholderText(/Ex: \\sqrt\{x\^2 \+ y\^2\}/);
+      fireEvent.change(input, { target: { value: '\\frac{a}{b}' } });
+      fireEvent.click(screen.getByLabelText('Fórmula em bloco'));
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole('button', { name: 'Inserir fórmula' })
+        ).toBeEnabled();
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: 'Inserir fórmula' }));
+
+      expect(onInsert).toHaveBeenCalledWith('\\frac{a}{b}', true);
     });
 
     it('deve desabilitar botão Inserir quando input está vazio', () => {
@@ -587,7 +606,7 @@ describe('FormulaDialog', () => {
 
       fireEvent.click(screen.getByRole('button', { name: 'Inserir fórmula' }));
 
-      expect(onInsert).toHaveBeenCalledWith(String.raw`E = mc^2`);
+      expect(onInsert).toHaveBeenCalledWith(String.raw`E = mc^2`, false);
     });
 
     it('should trim description before calling onGenerateWithAI', async () => {

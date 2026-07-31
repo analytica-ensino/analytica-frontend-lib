@@ -123,14 +123,14 @@ export function RichEditor({
     }
   }, [content, editor]);
 
-  const insertFormula = (latex: string) => {
+  const insertFormula = (latex: string, display: boolean) => {
     if (!latex || !editor) return;
     editor
       .chain()
       .focus()
       .insertContent({
         type: 'mathInline',
-        attrs: { latex },
+        attrs: { latex, display },
       })
       .run();
     setFormulaOpen(false);
@@ -349,7 +349,10 @@ export function RichEditor({
         <Text size="xs" color="text-text-400">
           Dica: use{' '}
           <code className="bg-background-200 px-1 rounded">$fórmula$</code> para
-          inserir LaTeX inline diretamente.
+          LaTeX inline e{' '}
+          <code className="bg-background-200 px-1 rounded">$$fórmula$$</code>{' '}
+          para fórmula em bloco. A conversão acontece assim que você fecha os
+          cifrões.
         </Text>
       </div>
 
