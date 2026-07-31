@@ -107,7 +107,13 @@ export async function fetchStudentsByFilters(
       }),
   });
 
-  return response.data.data.students || [];
+  // Só aluno ativo pode receber atividade/aula recomendada/aviso, então um aluno
+  // desativado não deve sequer aparecer na lista de destinatários. O teste é
+  // `!== false` (e não `=== true`) para que uma resposta sem o campo não esconda
+  // a turma inteira: apenas quem o backend afirma estar inativo é removido.
+  return (response.data.data.students || []).filter(
+    (student) => student.active !== false
+  );
 }
 
 /**
