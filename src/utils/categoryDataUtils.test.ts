@@ -214,6 +214,79 @@ describe('categoryDataUtils', () => {
 
       expect(result).toEqual([]);
     });
+
+    it('should drop inactive students from the result', async () => {
+      const activeStudent: Student = {
+        id: 'student-1',
+        name: 'Ativa',
+        email: 'ativa@example.com',
+        active: true,
+        createdAt: '2024-01-01',
+        updatedAt: '2024-01-01',
+        userInstitutionId: 'ui-1',
+        institutionId: 'inst-1',
+        profileId: 'profile-1',
+        school: { id: 'school-1', name: 'School 1' },
+        schoolYear: { id: 'year-1', name: '2024' },
+        class: { id: 'class-1', name: 'Class A' },
+      };
+      const inactiveStudent: Student = {
+        ...activeStudent,
+        id: 'student-2',
+        name: 'Inativo',
+        email: 'inativo@example.com',
+        active: false,
+        userInstitutionId: 'ui-2',
+      };
+
+      const apiClient = createMockApiClient({
+        post: jest.fn().mockResolvedValue({
+          data: {
+            message: 'Success',
+            data: { students: [activeStudent, inactiveStudent] },
+          },
+        }),
+      });
+
+      const result = await fetchStudentsByFilters(apiClient, {
+        classIds: ['class-1'],
+      });
+
+      expect(result).toEqual([activeStudent]);
+    });
+
+    it('should keep students whose active flag is missing', async () => {
+      // A response without the field must not hide the whole class: only an
+      // explicit `active: false` removes a student.
+      const studentWithoutFlag: Student = {
+        id: 'student-1',
+        name: 'Sem flag',
+        email: 'semflag@example.com',
+        createdAt: '2024-01-01',
+        updatedAt: '2024-01-01',
+        userInstitutionId: 'ui-1',
+        institutionId: 'inst-1',
+        profileId: 'profile-1',
+        school: { id: 'school-1', name: 'School 1' },
+        schoolYear: { id: 'year-1', name: '2024' },
+        class: { id: 'class-1', name: 'Class A' },
+      };
+
+      const apiClient = createMockApiClient({
+        post: jest.fn().mockResolvedValue({
+          data: {
+            message: 'Success',
+            data: { students: [studentWithoutFlag] },
+          },
+        }),
+      });
+
+      const result = await fetchStudentsByFilters(apiClient, {
+        classIds: ['class-1'],
+      });
+
+      expect(result).toEqual([studentWithoutFlag]);
+    });
   });
 
   describe('loadCategoriesData', () => {
