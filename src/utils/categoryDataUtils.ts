@@ -34,7 +34,12 @@ export interface Student {
   id: string;
   email: string;
   name: string;
-  active: boolean;
+  /**
+   * Opcional porque a resposta de `/students/filters` nem sempre traz o campo
+   * (deploy antigo, projeção parcial). Quem consome deve tratar a ausência como
+   * "não se sabe" — veja o `!== false` em `fetchStudentsByFilters`.
+   */
+  active?: boolean;
   createdAt: string;
   updatedAt: string;
   userInstitutionId: string;

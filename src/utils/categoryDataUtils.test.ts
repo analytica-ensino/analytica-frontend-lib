@@ -258,7 +258,7 @@ describe('categoryDataUtils', () => {
     it('should keep students whose active flag is missing', async () => {
       // A response without the field must not hide the whole class: only an
       // explicit `active: false` removes a student.
-      const studentWithoutFlag = {
+      const studentWithoutFlag: Student = {
         id: 'student-1',
         name: 'Sem flag',
         email: 'semflag@example.com',
@@ -270,7 +270,7 @@ describe('categoryDataUtils', () => {
         school: { id: 'school-1', name: 'School 1' },
         schoolYear: { id: 'year-1', name: '2024' },
         class: { id: 'class-1', name: 'Class A' },
-      } as unknown as Student;
+      };
 
       const apiClient = createMockApiClient({
         post: jest.fn().mockResolvedValue({

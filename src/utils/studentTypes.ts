@@ -6,7 +6,12 @@ export interface StudentWithNestedData {
   id: string;
   email: string;
   name: string;
-  active: boolean;
+  /**
+   * Opcional pelo mesmo motivo do `Student` em `categoryDataUtils`: a resposta
+   * de `/students/filters` nem sempre traz o campo, e os dois tipos descrevem o
+   * mesmo payload — se um exigir e o outro não, deixam de ser atribuíveis.
+   */
+  active?: boolean;
   createdAt: string;
   updatedAt: string;
   userInstitutionId: string;
