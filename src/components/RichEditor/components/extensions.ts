@@ -57,16 +57,18 @@ const ResizableImage = Image.extend({
     return (props) => {
       const nodeView = parentNodeView(props);
       const container = nodeView.dom;
-      if (!(container instanceof HTMLElement)) return nodeView;
 
-      // The upstream node view hides the container until `load` fires. An
-      // expired storage URL therefore leaves an invisible, unselectable node —
-      // worse than the browser's broken-image icon. Reveal it on failure.
-      const image = container.querySelector('img');
-      image?.addEventListener('error', () => {
-        container.style.visibility = '';
-        container.style.pointerEvents = '';
-      });
+      if (container instanceof HTMLElement) {
+        // The upstream node view hides the container until `load` fires. An
+        // expired storage URL therefore leaves an invisible, unselectable node —
+        // worse than the browser's broken-image icon. Reveal it on failure.
+        const image = container.querySelector('img');
+        image?.addEventListener('error', () => {
+          container.style.visibility = '';
+          container.style.pointerEvents = '';
+        });
+      }
+
       return nodeView;
     };
   },

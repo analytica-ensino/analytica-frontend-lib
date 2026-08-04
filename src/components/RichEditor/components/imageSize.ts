@@ -79,7 +79,7 @@ export const measureNaturalWidth = (
   src: string,
   timeoutMs: number = MEASURE_TIMEOUT_MS
 ): Promise<number | null> => {
-  if (!src || typeof globalThis.Image === 'undefined') {
+  if (!src || globalThis.Image === undefined) {
     return Promise.resolve(null);
   }
 
