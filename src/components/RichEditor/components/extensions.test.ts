@@ -1,6 +1,7 @@
-import { generateHTML, generateJSON } from '@tiptap/core';
+import { generateHTML, generateJSON, Node } from '@tiptap/core';
 import { createRichEditorExtensions } from './extensions';
 import { normalizeLineBreaksInHtml, processLatexInHtml } from './utils';
+import { MIN_IMAGE_HEIGHT, MIN_IMAGE_WIDTH } from './imageSize';
 
 /**
  * These tests exercise the real Tiptap schema (not a mock) because the bug they
@@ -144,6 +145,77 @@ describe('createRichEditorExtensions', () => {
       expect(html).toContain('<ul>');
       expect(html).toContain('um');
       expect(html).toContain('dois');
+    });
+  });
+});
+
+describe('configuração de redimensionamento da imagem', () => {
+  const imageExtension = extensions.find(
+    (extension) => extension.name === 'image'
+  ) as Node;
+
+  it('deve habilitar as alças de redimensionamento', () => {
+    const { resize } = imageExtension.options;
+
+    expect(resize).toEqual({
+      enabled: true,
+      directions: ['top-left', 'top-right', 'bottom-left', 'bottom-right'],
+      minWidth: MIN_IMAGE_WIDTH,
+      minHeight: MIN_IMAGE_HEIGHT,
+      alwaysPreserveAspectRatio: true,
+    });
+  });
+
+  it('deve travar a proporção e recusar base64', () => {
+    expect(imageExtension.options.allowBase64).toBe(false);
+    expect(imageExtension.options.inline).toBe(false);
+  });
+
+  describe('node view tolerante a imagem quebrada', () => {
+    /**
+     * Invokes the extension's addNodeView with a controlled parent, since a
+     * real editor view cannot be instantiated under jsdom.
+     * @param parentNodeView - Stand-in for the upstream resizable node view
+     * @returns Whatever the extension's node view factory produced
+     */
+    const buildNodeView = (parentNodeView: unknown) => {
+      const factory = imageExtension.config.addNodeView?.call({
+        parent: () => parentNodeView,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return factory ? (factory as any)({}) : null;
+    };
+
+    it('não deve montar node view quando o pai não existe', () => {
+      expect(buildNodeView(undefined)).toBeNull();
+    });
+
+    it('deve devolver o node view do pai quando o dom não é um elemento', () => {
+      const parentResult = { dom: document.createTextNode('x') };
+
+      expect(buildNodeView(() => parentResult)).toBe(parentResult);
+    });
+
+    it('deve revelar o container quando a imagem falha ao carregar', () => {
+      const container = document.createElement('div');
+      const image = document.createElement('img');
+      container.appendChild(image);
+      // Estado inicial do node view do Tiptap: escondido até o load.
+      container.style.visibility = 'hidden';
+      container.style.pointerEvents = 'none';
+
+      buildNodeView(() => ({ dom: container }));
+      image.dispatchEvent(new Event('error'));
+
+      expect(container.style.visibility).toBe('');
+      expect(container.style.pointerEvents).toBe('');
+    });
+
+    it('não deve quebrar quando o container não tem imagem', () => {
+      const container = document.createElement('div');
+
+      expect(() => buildNodeView(() => ({ dom: container }))).not.toThrow();
     });
   });
 });

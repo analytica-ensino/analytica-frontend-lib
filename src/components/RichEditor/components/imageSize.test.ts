@@ -191,6 +191,18 @@ describe('measureNaturalWidth', () => {
     await expect(promise).resolves.toBeNull();
   });
 
+  it('deve ignorar um segundo disparo do mesmo handler', async () => {
+    stubImage(1600);
+    const promise = measureNaturalWidth('https://cdn.exemplo.com/foto.png');
+
+    // Guarda a referência: o primeiro disparo zera `onload` na instância.
+    const loadHandler = instances[0].onload;
+    loadHandler?.();
+    loadHandler?.();
+
+    await expect(promise).resolves.toBe(1600);
+  });
+
   it('deve resolver null quando o src é vazio', async () => {
     stubImage(1600);
 
