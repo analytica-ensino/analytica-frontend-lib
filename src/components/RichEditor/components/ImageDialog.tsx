@@ -6,6 +6,7 @@ import Modal from '../../Modal/Modal';
 import Text from '../../Text/Text';
 import { LinkIcon } from '@phosphor-icons/react/dist/csr/Link';
 import { UploadSimpleIcon } from '@phosphor-icons/react/dist/csr/UploadSimple';
+import { DEFAULT_MAX_INSERT_WIDTH, measureNaturalWidth } from './imageSize';
 
 /**
  * Matches the 5MB cap enforced by the backend pre-signed URL schema.
@@ -18,7 +19,7 @@ type InputMode = 'file' | 'url';
 interface ImageDialogProps {
   readonly open: boolean;
   readonly onClose: () => void;
-  readonly onInsert: (src: string, alt: string) => void;
+  readonly onInsert: (src: string, alt: string, width?: number) => void;
   /**
    * Optional callback to upload an image file and get back its public URL.
    * If provided, the file upload tab is enabled; otherwise only URL input is
@@ -42,9 +43,17 @@ export function ImageDialog({
   const [url, setUrl] = useState('');
   const [alt, setAlt] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  /**
+   * True while the image is being measured. The URL branch has no upload to
+   * wait on, so without this the confirm button would stay enabled during the
+   * measurement and a second click would insert the same image twice.
+   */
+  const [isMeasuring, setIsMeasuring] = useState(false);
   const [error, setError] = useState('');
   /** Bumped on close so a resolving upload can tell it has been superseded. */
   const uploadTokenRef = useRef(0);
+
+  const isBusy = isUploading || isMeasuring;
 
   const resetState = () => {
     setInputMode(onUploadImage ? 'file' : 'url');
@@ -52,6 +61,7 @@ export function ImageDialog({
     setUrl('');
     setAlt('');
     setIsUploading(false);
+    setIsMeasuring(false);
     setError('');
   };
 
@@ -84,11 +94,46 @@ export function ImageDialog({
     setError('');
   };
 
+  /**
+   * Resolves the width to insert with. Exam board images are uploaded at their
+   * original scan resolution, so anything wider than the default cap is clamped
+   * up front. Images already within the cap get no width attribute at all,
+   * leaving existing content untouched.
+   * @param src - Public URL of the image about to be inserted
+   * @returns The width in pixels, or undefined when no clamping is needed
+   */
+  const resolveInsertWidth = async (
+    src: string
+  ): Promise<number | undefined> => {
+    const naturalWidth = await measureNaturalWidth(src);
+    return naturalWidth && naturalWidth > DEFAULT_MAX_INSERT_WIDTH
+      ? DEFAULT_MAX_INSERT_WIDTH
+      : undefined;
+  };
+
+  /** Inserts an image already available at `src`, measuring it first. */
+  const insertMeasured = async (src: string) => {
+    const token = uploadTokenRef.current;
+    const width = await resolveInsertWidth(src);
+    if (token !== uploadTokenRef.current) return;
+    onInsert(src, alt.trim(), width);
+    resetState();
+  };
+
   const handleInsert = async () => {
     if (inputMode === 'url') {
-      if (!url.trim()) return;
-      onInsert(url.trim(), alt.trim());
-      resetState();
+      const trimmedUrl = url.trim();
+      if (!trimmedUrl) return;
+
+      // Marked busy before the first await so the confirm button is disabled
+      // while measuring — otherwise a second click would insert the same image
+      // twice, since the URL branch has no upload to keep it disabled.
+      setIsMeasuring(true);
+      try {
+        await insertMeasured(trimmedUrl);
+      } finally {
+        setIsMeasuring(false);
+      }
       return;
     }
 
@@ -103,8 +148,7 @@ export function ImageDialog({
       // which would break as soon as the page unloads.
       const uploadedUrl = await onUploadImage(file);
       if (token !== uploadTokenRef.current) return;
-      onInsert(uploadedUrl, alt.trim());
-      resetState();
+      await insertMeasured(uploadedUrl);
     } catch (err) {
       if (token !== uploadTokenRef.current) return;
       setError(err instanceof Error ? err.message : 'Erro ao enviar a imagem.');
@@ -134,7 +178,7 @@ export function ImageDialog({
             variant="solid"
             action="primary"
             onClick={handleInsert}
-            disabled={!canInsert || isUploading}
+            disabled={!canInsert || isBusy}
           >
             {isUploading ? 'Enviando...' : 'Inserir imagem'}
           </Button>

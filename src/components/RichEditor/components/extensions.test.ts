@@ -1,6 +1,7 @@
-import { generateHTML, generateJSON } from '@tiptap/core';
+import { generateHTML, generateJSON, Node } from '@tiptap/core';
 import { createRichEditorExtensions } from './extensions';
 import { normalizeLineBreaksInHtml, processLatexInHtml } from './utils';
+import { MIN_IMAGE_HEIGHT, MIN_IMAGE_WIDTH } from './imageSize';
 
 /**
  * These tests exercise the real Tiptap schema (not a mock) because the bug they
@@ -50,6 +51,78 @@ describe('createRichEditorExtensions', () => {
     });
   });
 
+  describe('largura das imagens', () => {
+    it('deve preservar a largura definida pelo autor', () => {
+      const html = roundTrip(
+        '<img src="https://cdn.exemplo.com/foto.png" width="400">'
+      );
+
+      expect(html).toContain('width="400"');
+    });
+
+    it('deve normalizar largura com unidade px para um número', () => {
+      const html = roundTrip(
+        '<img src="https://cdn.exemplo.com/foto.png" width="400px">'
+      );
+
+      // O node view concatena "px" no valor guardado, então "400px" viraria
+      // "400pxpx" se o atributo entrasse cru no schema.
+      expect(html).toContain('width="400"');
+      expect(html).not.toContain('400px');
+    });
+
+    it('deve descartar largura percentual sem perder a imagem', () => {
+      const html = roundTrip(
+        '<img src="https://cdn.exemplo.com/foto.png" width="50%">'
+      );
+
+      expect(html).toContain('https://cdn.exemplo.com/foto.png');
+      expect(html).not.toContain('width=');
+    });
+
+    it('deve ler a largura do style inline quando não há atributo', () => {
+      const html = roundTrip(
+        '<img src="https://cdn.exemplo.com/foto.png" style="width: 320px">'
+      );
+
+      expect(html).toContain('width="320"');
+    });
+
+    it('não deve emitir altura mesmo quando o HTML de origem tem height', () => {
+      const html = roundTrip(
+        '<img src="https://cdn.exemplo.com/foto.png" width="400" height="300">'
+      );
+
+      expect(html).toContain('width="400"');
+      expect(html).not.toContain('height=');
+    });
+
+    it('não deve inventar largura em imagem que não tem nenhuma', () => {
+      const html = roundTrip('<img src="https://cdn.exemplo.com/foto.png">');
+
+      expect(html).not.toContain('width=');
+    });
+
+    it('deve estabilizar a largura após dois salvamentos', () => {
+      const afterFirstSave = roundTrip(
+        '<img src="https://cdn.exemplo.com/foto.png" width="400">'
+      );
+      const afterSecondSave = roundTrip(afterFirstSave);
+
+      expect(afterSecondSave).toEqual(afterFirstSave);
+    });
+
+    it('deve manter fórmula LaTeX adjacente à imagem redimensionada', () => {
+      const html = roundTrip(
+        '<p>Considere <span data-type="math-inline" data-latex="x^2"></span>:</p>' +
+          '<img src="https://cdn.exemplo.com/foto.png" width="400">'
+      );
+
+      expect(html).toContain('data-latex="x^2"');
+      expect(html).toContain('width="400"');
+    });
+  });
+
   describe('formatações existentes', () => {
     it('deve preservar formatações de texto ao carregar HTML', () => {
       const html = roundTrip(
@@ -72,6 +145,77 @@ describe('createRichEditorExtensions', () => {
       expect(html).toContain('<ul>');
       expect(html).toContain('um');
       expect(html).toContain('dois');
+    });
+  });
+});
+
+describe('configuração de redimensionamento da imagem', () => {
+  const imageExtension = extensions.find(
+    (extension) => extension.name === 'image'
+  ) as Node;
+
+  it('deve habilitar as alças de redimensionamento', () => {
+    const { resize } = imageExtension.options;
+
+    expect(resize).toEqual({
+      enabled: true,
+      directions: ['top-left', 'top-right', 'bottom-left', 'bottom-right'],
+      minWidth: MIN_IMAGE_WIDTH,
+      minHeight: MIN_IMAGE_HEIGHT,
+      alwaysPreserveAspectRatio: true,
+    });
+  });
+
+  it('deve travar a proporção e recusar base64', () => {
+    expect(imageExtension.options.allowBase64).toBe(false);
+    expect(imageExtension.options.inline).toBe(false);
+  });
+
+  describe('node view tolerante a imagem quebrada', () => {
+    /**
+     * Invokes the extension's addNodeView with a controlled parent, since a
+     * real editor view cannot be instantiated under jsdom.
+     * @param parentNodeView - Stand-in for the upstream resizable node view
+     * @returns Whatever the extension's node view factory produced
+     */
+    const buildNodeView = (parentNodeView: unknown) => {
+      const factory = imageExtension.config.addNodeView?.call({
+        parent: () => parentNodeView,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return factory ? (factory as any)({}) : null;
+    };
+
+    it('não deve montar node view quando o pai não existe', () => {
+      expect(buildNodeView(undefined)).toBeNull();
+    });
+
+    it('deve devolver o node view do pai quando o dom não é um elemento', () => {
+      const parentResult = { dom: document.createTextNode('x') };
+
+      expect(buildNodeView(() => parentResult)).toBe(parentResult);
+    });
+
+    it('deve revelar o container quando a imagem falha ao carregar', () => {
+      const container = document.createElement('div');
+      const image = document.createElement('img');
+      container.appendChild(image);
+      // Estado inicial do node view do Tiptap: escondido até o load.
+      container.style.visibility = 'hidden';
+      container.style.pointerEvents = 'none';
+
+      buildNodeView(() => ({ dom: container }));
+      image.dispatchEvent(new Event('error'));
+
+      expect(container.style.visibility).toBe('');
+      expect(container.style.pointerEvents).toBe('');
+    });
+
+    it('não deve quebrar quando o container não tem imagem', () => {
+      const container = document.createElement('div');
+
+      expect(() => buildNodeView(() => ({ dom: container }))).not.toThrow();
     });
   });
 });

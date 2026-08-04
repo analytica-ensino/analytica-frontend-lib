@@ -1,0 +1,106 @@
+/*
+ * RichEditor — imagens redimensionáveis.
+ *
+ * O ResizableNodeView do Tiptap monta as alças como `div`s sem nenhum estilo
+ * (0x0, sem fundo, invisíveis), então este arquivo é obrigatório pro recurso
+ * existir na tela. É também aqui que a imagem passa a caber no editor: a lib
+ * não usa o plugin de tipografia do Tailwind, então as classes `prose`
+ * aplicadas em `editorProps` são inertes e nada limita a largura.
+ *
+ * Importado por `src/styles.css` (que todo consumidor carrega). CSS sidecar
+ * por componente não é entregue automaticamente — mesmo motivo do
+ * `AccessibilityWidget/accessibility.css`.
+ */
+
+[data-analytica-rich-editor] .ProseMirror img {
+  max-width: 100%;
+  /*
+   * !important porque o node view escreve `style.height` em px durante o
+   * arraste. Se a imagem for arrastada além da largura do editor, `max-width`
+   * corta a largura mas a altura inline continuaria valendo — a figura ficaria
+   * esticada, inclusive na proporção que o node view mede e commita depois.
+   */
+  height: auto !important;
+  border-radius: 0.375rem;
+}
+
+[data-analytica-rich-editor] .ProseMirror [data-resize-container] {
+  max-width: 100%;
+  margin: 0.5rem 0;
+}
+
+[data-analytica-rich-editor] .ProseMirror [data-resize-wrapper] {
+  max-width: 100%;
+  line-height: 0;
+}
+
+[data-analytica-rich-editor]
+  .ProseMirror
+  [data-resize-container].ProseMirror-selectednode
+  [data-resize-wrapper] {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+  border-radius: 0.375rem;
+}
+
+[data-analytica-rich-editor] .ProseMirror [data-resize-handle] {
+  width: 0.75rem;
+  height: 0.75rem;
+  /*
+   * Margem uniforme centraliza cada alça no seu canto: as bordas opostas ficam
+   * em `auto` e não deslocam elementos posicionados de forma absoluta.
+   */
+  margin: -0.375rem;
+  border-radius: 9999px;
+  border: 2px solid var(--color-background-0);
+  background-color: var(--color-primary-500);
+  opacity: 0;
+  transition: opacity 120ms ease-in-out;
+  /* O nó de imagem é draggable: sem isto a alça dispara um drag HTML5. */
+  -webkit-user-drag: none;
+  user-select: none;
+  touch-action: none;
+  z-index: 1;
+}
+
+/* Área de toque maior que o alvo visual. */
+[data-analytica-rich-editor] .ProseMirror [data-resize-handle]::after {
+  content: '';
+  position: absolute;
+  inset: -0.5rem;
+}
+
+[data-analytica-rich-editor]
+  .ProseMirror
+  [data-resize-container]:hover
+  [data-resize-handle],
+[data-analytica-rich-editor]
+  .ProseMirror
+  [data-resize-container].ProseMirror-selectednode
+  [data-resize-handle],
+[data-analytica-rich-editor]
+  .ProseMirror
+  [data-resize-container][data-resize-state='true']
+  [data-resize-handle] {
+  opacity: 1;
+}
+
+[data-analytica-rich-editor] .ProseMirror [data-resize-handle='top-left'],
+[data-analytica-rich-editor] .ProseMirror [data-resize-handle='bottom-right'] {
+  cursor: nwse-resize;
+}
+
+[data-analytica-rich-editor] .ProseMirror [data-resize-handle='top-right'],
+[data-analytica-rich-editor] .ProseMirror [data-resize-handle='bottom-left'] {
+  cursor: nesw-resize;
+}
+
+/* Sem hover não há como descobrir as alças: deixa sempre visíveis e maiores. */
+@media (hover: none) {
+  [data-analytica-rich-editor] .ProseMirror [data-resize-handle] {
+    opacity: 1;
+    width: 1rem;
+    height: 1rem;
+    margin: -0.5rem;
+  }
+}

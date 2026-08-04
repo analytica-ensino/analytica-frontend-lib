@@ -136,9 +136,13 @@ export function RichEditor({
     setFormulaOpen(false);
   };
 
-  const insertImage = (src: string, alt: string) => {
+  const insertImage = (src: string, alt: string, width?: number) => {
     if (!src || !editor) return;
-    editor.chain().focus().setImage({ src, alt }).run();
+    editor
+      .chain()
+      .focus()
+      .setImage({ src, alt, ...(width ? { width } : {}) })
+      .run();
     setImageOpen(false);
   };
 
@@ -154,8 +158,14 @@ export function RichEditor({
 
   if (!editor) return null;
 
+  // `data-analytica-rich-editor` scopes the image resize handle styles shipped
+  // in the library's global stylesheet, so they cannot leak into another Tiptap
+  // instance living in the consumer app.
   return (
-    <div className="border border-border-200 rounded-xl overflow-hidden bg-background-0">
+    <div
+      data-analytica-rich-editor
+      className="border border-border-200 rounded-xl overflow-hidden bg-background-0"
+    >
       {/* Toolbar */}
       <div className="flex items-center gap-0.5 border-b border-border-200 bg-background-50 px-2 py-1.5 flex-wrap">
         {/* Headings */}

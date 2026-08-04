@@ -416,6 +416,10 @@ export default defineConfig({
     '@tiptap/extension-superscript',
     '@tiptap/extension-link',
     '@tiptap/extension-placeholder',
+    // Must stay external like the rest: it pulls ResizableNodeView from
+    // @tiptap/core, and bundling it would pair a vendored copy with whatever
+    // core the consumer resolves.
+    '@tiptap/extension-image',
     'xlsx',
   ],
   target: 'es2022',
