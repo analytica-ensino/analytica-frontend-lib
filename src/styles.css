@@ -39,6 +39,13 @@
  */
 @import './components/AccessibilityWidget/accessibility.css';
 
+/*
+ * Alças de redimensionamento das imagens do RichEditor. Pelo mesmo motivo do
+ * arquivo acima: o consumidor só importa `analytica-frontend-lib/styles.css`,
+ * então CSS sidecar por componente não chegaria até ele.
+ */
+@import './components/RichEditor/richEditor.css';
+
 /* Safelist compacto para todas as cores do tema */
 @source inline("{bg,text,border}-{primary,secondary,tertiary,text,background,border,success,error,warning,info}-{50,{100..900..100},950}");
 

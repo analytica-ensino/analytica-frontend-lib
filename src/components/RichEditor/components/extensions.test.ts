@@ -50,6 +50,78 @@ describe('createRichEditorExtensions', () => {
     });
   });
 
+  describe('largura das imagens', () => {
+    it('deve preservar a largura definida pelo autor', () => {
+      const html = roundTrip(
+        '<img src="https://cdn.exemplo.com/foto.png" width="400">'
+      );
+
+      expect(html).toContain('width="400"');
+    });
+
+    it('deve normalizar largura com unidade px para um número', () => {
+      const html = roundTrip(
+        '<img src="https://cdn.exemplo.com/foto.png" width="400px">'
+      );
+
+      // O node view concatena "px" no valor guardado, então "400px" viraria
+      // "400pxpx" se o atributo entrasse cru no schema.
+      expect(html).toContain('width="400"');
+      expect(html).not.toContain('400px');
+    });
+
+    it('deve descartar largura percentual sem perder a imagem', () => {
+      const html = roundTrip(
+        '<img src="https://cdn.exemplo.com/foto.png" width="50%">'
+      );
+
+      expect(html).toContain('https://cdn.exemplo.com/foto.png');
+      expect(html).not.toContain('width=');
+    });
+
+    it('deve ler a largura do style inline quando não há atributo', () => {
+      const html = roundTrip(
+        '<img src="https://cdn.exemplo.com/foto.png" style="width: 320px">'
+      );
+
+      expect(html).toContain('width="320"');
+    });
+
+    it('não deve emitir altura mesmo quando o HTML de origem tem height', () => {
+      const html = roundTrip(
+        '<img src="https://cdn.exemplo.com/foto.png" width="400" height="300">'
+      );
+
+      expect(html).toContain('width="400"');
+      expect(html).not.toContain('height=');
+    });
+
+    it('não deve inventar largura em imagem que não tem nenhuma', () => {
+      const html = roundTrip('<img src="https://cdn.exemplo.com/foto.png">');
+
+      expect(html).not.toContain('width=');
+    });
+
+    it('deve estabilizar a largura após dois salvamentos', () => {
+      const afterFirstSave = roundTrip(
+        '<img src="https://cdn.exemplo.com/foto.png" width="400">'
+      );
+      const afterSecondSave = roundTrip(afterFirstSave);
+
+      expect(afterSecondSave).toEqual(afterFirstSave);
+    });
+
+    it('deve manter fórmula LaTeX adjacente à imagem redimensionada', () => {
+      const html = roundTrip(
+        '<p>Considere <span data-type="math-inline" data-latex="x^2"></span>:</p>' +
+          '<img src="https://cdn.exemplo.com/foto.png" width="400">'
+      );
+
+      expect(html).toContain('data-latex="x^2"');
+      expect(html).toContain('width="400"');
+    });
+  });
+
   describe('formatações existentes', () => {
     it('deve preservar formatações de texto ao carregar HTML', () => {
       const html = roundTrip(

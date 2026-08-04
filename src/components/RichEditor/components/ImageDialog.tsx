@@ -6,6 +6,7 @@ import Modal from '../../Modal/Modal';
 import Text from '../../Text/Text';
 import { LinkIcon } from '@phosphor-icons/react/dist/csr/Link';
 import { UploadSimpleIcon } from '@phosphor-icons/react/dist/csr/UploadSimple';
+import { DEFAULT_MAX_INSERT_WIDTH, measureNaturalWidth } from './imageSize';
 
 /**
  * Matches the 5MB cap enforced by the backend pre-signed URL schema.
@@ -18,7 +19,7 @@ type InputMode = 'file' | 'url';
 interface ImageDialogProps {
   readonly open: boolean;
   readonly onClose: () => void;
-  readonly onInsert: (src: string, alt: string) => void;
+  readonly onInsert: (src: string, alt: string, width?: number) => void;
   /**
    * Optional callback to upload an image file and get back its public URL.
    * If provided, the file upload tab is enabled; otherwise only URL input is
@@ -84,10 +85,31 @@ export function ImageDialog({
     setError('');
   };
 
+  /**
+   * Resolves the width to insert with. Exam board images are uploaded at their
+   * original scan resolution, so anything wider than the default cap is clamped
+   * up front. Images already within the cap get no width attribute at all,
+   * leaving existing content untouched.
+   * @param src - Public URL of the image about to be inserted
+   * @returns The width in pixels, or undefined when no clamping is needed
+   */
+  const resolveInsertWidth = async (
+    src: string
+  ): Promise<number | undefined> => {
+    const naturalWidth = await measureNaturalWidth(src);
+    return naturalWidth && naturalWidth > DEFAULT_MAX_INSERT_WIDTH
+      ? DEFAULT_MAX_INSERT_WIDTH
+      : undefined;
+  };
+
   const handleInsert = async () => {
     if (inputMode === 'url') {
-      if (!url.trim()) return;
-      onInsert(url.trim(), alt.trim());
+      const trimmedUrl = url.trim();
+      if (!trimmedUrl) return;
+      const token = uploadTokenRef.current;
+      const width = await resolveInsertWidth(trimmedUrl);
+      if (token !== uploadTokenRef.current) return;
+      onInsert(trimmedUrl, alt.trim(), width);
       resetState();
       return;
     }
@@ -103,7 +125,9 @@ export function ImageDialog({
       // which would break as soon as the page unloads.
       const uploadedUrl = await onUploadImage(file);
       if (token !== uploadTokenRef.current) return;
-      onInsert(uploadedUrl, alt.trim());
+      const width = await resolveInsertWidth(uploadedUrl);
+      if (token !== uploadTokenRef.current) return;
+      onInsert(uploadedUrl, alt.trim(), width);
       resetState();
     } catch (err) {
       if (token !== uploadTokenRef.current) return;

@@ -22,6 +22,37 @@ const imageFile = (name = 'foto.png', size = 1024) => {
   return file;
 };
 
+/**
+ * jsdom never loads images, so the natural-width measurement would sit on its
+ * timeout in every test. This stub decides the outcome synchronously when the
+ * dialog assigns `src`.
+ */
+let stubbedNaturalWidth: number | null = null;
+const originalImage = globalThis.Image;
+
+beforeEach(() => {
+  stubbedNaturalWidth = null;
+  class FakeImage {
+    naturalWidth = 0;
+    onload: (() => void) | null = null;
+    onerror: (() => void) | null = null;
+
+    set src(_value: string) {
+      if (stubbedNaturalWidth === null) {
+        this.onerror?.();
+        return;
+      }
+      this.naturalWidth = stubbedNaturalWidth;
+      this.onload?.();
+    }
+  }
+  globalThis.Image = FakeImage as unknown as typeof globalThis.Image;
+});
+
+afterEach(() => {
+  globalThis.Image = originalImage;
+});
+
 describe('ImageDialog', () => {
   it('deve expor o limite de 5MB alinhado ao backend', () => {
     expect(MAX_IMAGE_SIZE).toBe(5 * 1024 * 1024);
@@ -35,7 +66,7 @@ describe('ImageDialog', () => {
       expect(screen.queryByText('Enviar arquivo')).not.toBeInTheDocument();
     });
 
-    it('deve inserir a URL digitada', () => {
+    it('deve inserir a URL digitada', async () => {
       const { onInsert } = setup();
 
       fireEvent.change(
@@ -44,9 +75,12 @@ describe('ImageDialog', () => {
       );
       fireEvent.click(screen.getByRole('button', { name: 'Inserir imagem' }));
 
-      expect(onInsert).toHaveBeenCalledWith(
-        'https://cdn.exemplo.com/foto.png',
-        ''
+      await waitFor(() =>
+        expect(onInsert).toHaveBeenCalledWith(
+          'https://cdn.exemplo.com/foto.png',
+          '',
+          undefined
+        )
       );
     });
 
@@ -77,10 +111,83 @@ describe('ImageDialog', () => {
       await waitFor(() =>
         expect(onInsert).toHaveBeenCalledWith(
           'https://cdn.exemplo.com/enviada.png',
-          ''
+          '',
+          undefined
         )
       );
       expect(onUploadImage).toHaveBeenCalledTimes(1);
+    });
+
+    it('deve limitar a largura na inserção quando a imagem é maior que o padrão', async () => {
+      stubbedNaturalWidth = 1600;
+      const onUploadImage = jest
+        .fn()
+        .mockResolvedValue('https://cdn.exemplo.com/enem.png');
+      const { onInsert } = setup({ onUploadImage });
+
+      selectFile(imageFile());
+      await waitFor(() =>
+        expect(
+          screen.getByRole('button', { name: 'Inserir imagem' })
+        ).toBeEnabled()
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Inserir imagem' }));
+
+      await waitFor(() =>
+        expect(onInsert).toHaveBeenCalledWith(
+          'https://cdn.exemplo.com/enem.png',
+          '',
+          640
+        )
+      );
+    });
+
+    it('não deve definir largura quando a imagem já cabe no padrão', async () => {
+      stubbedNaturalWidth = 320;
+      const onUploadImage = jest
+        .fn()
+        .mockResolvedValue('https://cdn.exemplo.com/pequena.png');
+      const { onInsert } = setup({ onUploadImage });
+
+      selectFile(imageFile());
+      await waitFor(() =>
+        expect(
+          screen.getByRole('button', { name: 'Inserir imagem' })
+        ).toBeEnabled()
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Inserir imagem' }));
+
+      await waitFor(() =>
+        expect(onInsert).toHaveBeenCalledWith(
+          'https://cdn.exemplo.com/pequena.png',
+          '',
+          undefined
+        )
+      );
+    });
+
+    it('deve inserir sem largura quando a medição falha', async () => {
+      // stubbedNaturalWidth continua null: a imagem dispara onerror.
+      const onUploadImage = jest
+        .fn()
+        .mockResolvedValue('https://cdn.exemplo.com/inacessivel.png');
+      const { onInsert } = setup({ onUploadImage });
+
+      selectFile(imageFile());
+      await waitFor(() =>
+        expect(
+          screen.getByRole('button', { name: 'Inserir imagem' })
+        ).toBeEnabled()
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Inserir imagem' }));
+
+      await waitFor(() =>
+        expect(onInsert).toHaveBeenCalledWith(
+          'https://cdn.exemplo.com/inacessivel.png',
+          '',
+          undefined
+        )
+      );
     });
 
     it('deve exibir erro e não inserir quando o upload falha', async () => {
@@ -113,7 +220,7 @@ describe('ImageDialog', () => {
       expect(onUploadImage).not.toHaveBeenCalled();
     });
 
-    it('deve permitir alternar para o modo URL', () => {
+    it('deve permitir alternar para o modo URL', async () => {
       const onUploadImage = jest.fn();
       const { onInsert } = setup({ onUploadImage });
 
@@ -124,9 +231,12 @@ describe('ImageDialog', () => {
       );
       fireEvent.click(screen.getByRole('button', { name: 'Inserir imagem' }));
 
-      expect(onInsert).toHaveBeenCalledWith(
-        'https://cdn.exemplo.com/url.png',
-        ''
+      await waitFor(() =>
+        expect(onInsert).toHaveBeenCalledWith(
+          'https://cdn.exemplo.com/url.png',
+          '',
+          undefined
+        )
       );
       expect(onUploadImage).not.toHaveBeenCalled();
     });
@@ -152,7 +262,8 @@ describe('ImageDialog', () => {
       await waitFor(() =>
         expect(onInsert).toHaveBeenCalledWith(
           'https://cdn.exemplo.com/enviada.png',
-          'Gráfico de barras'
+          'Gráfico de barras',
+          undefined
         )
       );
     });

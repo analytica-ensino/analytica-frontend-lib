@@ -41,6 +41,13 @@ interface MockChainResult {
   run: jest.Mock;
 }
 
+/**
+ * Every chained call returns a brand new mock, so the per-instance `setImage`
+ * spy is unreachable from a test. This shared spy records the arguments the
+ * editor was actually asked to insert.
+ */
+const setImageSpy = jest.fn();
+
 const createMockChain = (): MockChainResult => ({
   focus: jest.fn(() => createMockChain()),
   toggleBold: jest.fn(() => createMockChain()),
@@ -59,7 +66,10 @@ const createMockChain = (): MockChainResult => ({
   extendMarkRange: jest.fn(() => createMockChain()),
   setLink: jest.fn(() => createMockChain()),
   unsetLink: jest.fn(() => createMockChain()),
-  setImage: jest.fn(() => createMockChain()),
+  setImage: jest.fn((options: Record<string, unknown>) => {
+    setImageSpy(options);
+    return createMockChain();
+  }),
   insertContent: jest.fn(() => createMockChain()),
   setContent: jest.fn(() => createMockChain()),
   run: jest.fn(),
@@ -444,11 +454,40 @@ describe('RichEditor', () => {
 });
 
 describe('Imagem', () => {
+  /**
+   * The dialog measures the image before inserting it, and jsdom never loads
+   * one. This stub settles the measurement synchronously so the tests do not
+   * wait on the internal timeout.
+   */
+  let stubbedNaturalWidth: number | null = null;
+  const originalImage = globalThis.Image;
+
   beforeEach(() => {
     jest.clearAllMocks();
     // An earlier test sets useEditor to null to cover the "no editor" branch,
     // and mockReturnValue survives clearAllMocks.
     (useEditor as jest.Mock).mockReturnValue(mockEditor);
+
+    stubbedNaturalWidth = null;
+    class FakeImage {
+      naturalWidth = 0;
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+
+      set src(_value: string) {
+        if (stubbedNaturalWidth === null) {
+          this.onerror?.();
+          return;
+        }
+        this.naturalWidth = stubbedNaturalWidth;
+        this.onload?.();
+      }
+    }
+    globalThis.Image = FakeImage as unknown as typeof globalThis.Image;
+  });
+
+  afterEach(() => {
+    globalThis.Image = originalImage;
   });
 
   it('deve abrir o ImageDialog ao clicar no botão de imagem', () => {
@@ -472,13 +511,15 @@ describe('Imagem', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('deve inserir a imagem no editor ao confirmar uma URL', () => {
-    render(<RichEditor />);
-
+  /**
+   * Fills the dialog with a URL and confirms it.
+   * @param url - Image URL to type into the dialog
+   */
+  const insertUrl = (url: string) => {
     fireEvent.click(screen.getByTitle('Inserir imagem'));
     fireEvent.change(
       screen.getByPlaceholderText('https://exemplo.com/imagem.png'),
-      { target: { value: 'https://cdn.exemplo.com/a.png' } }
+      { target: { value: url } }
     );
     // The toolbar button carries the same accessible name, so scope the query
     // to the dialog.
@@ -487,11 +528,46 @@ describe('Imagem', () => {
         name: 'Inserir imagem',
       })
     );
+  };
 
-    expect(mockEditor.chain).toHaveBeenCalled();
+  it('deve inserir a imagem no editor ao confirmar uma URL', async () => {
+    render(<RichEditor />);
+
+    insertUrl('https://cdn.exemplo.com/a.png');
+
+    await waitFor(() => expect(mockEditor.chain).toHaveBeenCalled());
     expect(
       screen.queryByRole('heading', { name: 'Inserir imagem' })
     ).not.toBeInTheDocument();
+  });
+
+  it('deve inserir sem largura quando a imagem já cabe no padrão', async () => {
+    stubbedNaturalWidth = 320;
+    render(<RichEditor />);
+
+    insertUrl('https://cdn.exemplo.com/pequena.png');
+
+    await waitFor(() =>
+      expect(setImageSpy).toHaveBeenCalledWith({
+        src: 'https://cdn.exemplo.com/pequena.png',
+        alt: '',
+      })
+    );
+  });
+
+  it('deve inserir com largura limitada quando a imagem é muito grande', async () => {
+    stubbedNaturalWidth = 1600;
+    render(<RichEditor />);
+
+    insertUrl('https://cdn.exemplo.com/enem.png');
+
+    await waitFor(() =>
+      expect(setImageSpy).toHaveBeenCalledWith({
+        src: 'https://cdn.exemplo.com/enem.png',
+        alt: '',
+        width: 640,
+      })
+    );
   });
 });
 
