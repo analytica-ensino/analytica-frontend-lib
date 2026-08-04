@@ -1,11 +1,7 @@
 import { useEffect, useMemo } from 'react';
-import {
-  useThemeStore,
-  ThemeMode,
-  LockableThemeMode,
-} from '../store/themeStore';
+import { useThemeStore } from '../store/themeStore';
 
-export type { ThemeMode, LockableThemeMode };
+export type { ThemeMode, LockableThemeMode } from '../store/themeStore';
 
 /**
  * Hook para gerenciar temas e branding institucional
