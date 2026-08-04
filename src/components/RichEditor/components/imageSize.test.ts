@@ -51,6 +51,11 @@ describe('parseImageWidth', () => {
     expect(parseImageWidth(imageWith({ width: '-100' }))).toBeNull();
   });
 
+  it('deve recusar largura que arredonda para zero', () => {
+    // `width="0"` deixaria a imagem invisível.
+    expect(parseImageWidth(imageWith({ width: '0.4px' }))).toBeNull();
+  });
+
   it('deve recusar valor inválido', () => {
     expect(parseImageWidth(imageWith({ width: 'auto' }))).toBeNull();
   });
@@ -77,6 +82,25 @@ describe('parseImageWidth', () => {
 
   it('deve ignorar largura percentual no style inline', () => {
     expect(parseImageWidth(imageWith({ style: 'width: 50%' }))).toBeNull();
+  });
+
+  it('deve respeitar a última declaração de width repetida no style', () => {
+    // O CSS aplica `50%`; ler a primeira ocorrência daria 320 e divergiria
+    // do que o navegador renderiza.
+    expect(
+      parseImageWidth(imageWith({ style: 'width: 320px; width: 50%' }))
+    ).toBeNull();
+  });
+
+  it('deve usar a última declaração válida de width no style', () => {
+    expect(
+      parseImageWidth(imageWith({ style: 'width: 50%; width: 320px' }))
+    ).toBe(320);
+  });
+
+  it('deve ignorar declaração de width malformada no style', () => {
+    expect(parseImageWidth(imageWith({ style: 'width: ;' }))).toBeNull();
+    expect(parseImageWidth(imageWith({ style: 'width: abc' }))).toBeNull();
   });
 
   it('deve priorizar o atributo width sobre o style inline', () => {

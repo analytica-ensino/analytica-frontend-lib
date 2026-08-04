@@ -377,6 +377,32 @@ describe('ImageDialog', () => {
       expect(onInsert).not.toHaveBeenCalled();
     });
 
+    it('não deve inserir duas vezes ao confirmar a URL durante a medição', async () => {
+      deferImageLoad = true;
+      stubbedNaturalWidth = 1600;
+      const { onInsert } = setup();
+
+      fireEvent.change(
+        screen.getByPlaceholderText('https://exemplo.com/imagem.png'),
+        { target: { value: 'https://cdn.exemplo.com/lenta.png' } }
+      );
+      const confirmar = screen.getByRole('button', { name: 'Inserir imagem' });
+      // O botão fica desabilitado durante a medição, então cliques repetidos
+      // não podem inserir a mesma imagem de novo.
+      fireEvent.click(confirmar);
+      fireEvent.click(confirmar);
+      expect(confirmar).toBeDisabled();
+      fireEvent.click(confirmar);
+
+      settlePendingImages();
+      await waitFor(() => expect(onInsert).toHaveBeenCalledTimes(1));
+      expect(onInsert).toHaveBeenCalledWith(
+        'https://cdn.exemplo.com/lenta.png',
+        '',
+        640
+      );
+    });
+
     it('não deve inserir a URL se o diálogo for fechado durante a medição', async () => {
       deferImageLoad = true;
       stubbedNaturalWidth = 1600;

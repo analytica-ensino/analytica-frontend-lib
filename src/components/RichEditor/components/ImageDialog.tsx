@@ -43,9 +43,17 @@ export function ImageDialog({
   const [url, setUrl] = useState('');
   const [alt, setAlt] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  /**
+   * True while the image is being measured. The URL branch has no upload to
+   * wait on, so without this the confirm button would stay enabled during the
+   * measurement and a second click would insert the same image twice.
+   */
+  const [isMeasuring, setIsMeasuring] = useState(false);
   const [error, setError] = useState('');
   /** Bumped on close so a resolving upload can tell it has been superseded. */
   const uploadTokenRef = useRef(0);
+
+  const isBusy = isUploading || isMeasuring;
 
   const resetState = () => {
     setInputMode(onUploadImage ? 'file' : 'url');
@@ -53,6 +61,7 @@ export function ImageDialog({
     setUrl('');
     setAlt('');
     setIsUploading(false);
+    setIsMeasuring(false);
     setError('');
   };
 
@@ -102,15 +111,29 @@ export function ImageDialog({
       : undefined;
   };
 
+  /** Inserts an image already available at `src`, measuring it first. */
+  const insertMeasured = async (src: string) => {
+    const token = uploadTokenRef.current;
+    const width = await resolveInsertWidth(src);
+    if (token !== uploadTokenRef.current) return;
+    onInsert(src, alt.trim(), width);
+    resetState();
+  };
+
   const handleInsert = async () => {
     if (inputMode === 'url') {
       const trimmedUrl = url.trim();
       if (!trimmedUrl) return;
-      const token = uploadTokenRef.current;
-      const width = await resolveInsertWidth(trimmedUrl);
-      if (token !== uploadTokenRef.current) return;
-      onInsert(trimmedUrl, alt.trim(), width);
-      resetState();
+
+      // Marked busy before the first await so the confirm button is disabled
+      // while measuring — otherwise a second click would insert the same image
+      // twice, since the URL branch has no upload to keep it disabled.
+      setIsMeasuring(true);
+      try {
+        await insertMeasured(trimmedUrl);
+      } finally {
+        setIsMeasuring(false);
+      }
       return;
     }
 
@@ -125,10 +148,7 @@ export function ImageDialog({
       // which would break as soon as the page unloads.
       const uploadedUrl = await onUploadImage(file);
       if (token !== uploadTokenRef.current) return;
-      const width = await resolveInsertWidth(uploadedUrl);
-      if (token !== uploadTokenRef.current) return;
-      onInsert(uploadedUrl, alt.trim(), width);
-      resetState();
+      await insertMeasured(uploadedUrl);
     } catch (err) {
       if (token !== uploadTokenRef.current) return;
       setError(err instanceof Error ? err.message : 'Erro ao enviar a imagem.');
@@ -158,7 +178,7 @@ export function ImageDialog({
             variant="solid"
             action="primary"
             onClick={handleInsert}
-            disabled={!canInsert || isUploading}
+            disabled={!canInsert || isBusy}
           >
             {isUploading ? 'Enviando...' : 'Inserir imagem'}
           </Button>

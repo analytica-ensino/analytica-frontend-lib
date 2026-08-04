@@ -25,9 +25,6 @@ export const DEFAULT_MAX_INSERT_WIDTH = 640;
 /** Milliseconds to wait for an image to load before giving up on measuring it. */
 const MEASURE_TIMEOUT_MS = 3000;
 
-/** Matches a pixel width in an inline style, e.g. `width: 320px`. */
-const STYLE_WIDTH_PATTERN = /(?:^|;)\s*width\s*:\s*(\d+(?:\.\d+)?)px/i;
-
 /**
  * Converts a raw width value into a usable number of pixels.
  * Percentages and other units are rejected: the resizable node view appends
@@ -43,10 +40,10 @@ const toPixelWidth = (value: string | null): number | null => {
   const match = /^(\d+(?:\.\d+)?)(px)?$/i.exec(trimmed);
   if (!match) return null;
 
-  const parsed = Number.parseFloat(match[1]);
-  if (!Number.isFinite(parsed) || parsed <= 0) return null;
-
-  return Math.round(parsed);
+  // Rounding is checked instead of the parsed value: `0.4px` is positive but
+  // rounds to zero, and a `width="0"` would make the image vanish.
+  const rounded = Math.round(Number.parseFloat(match[1]));
+  return rounded > 0 ? rounded : null;
 };
 
 /**
@@ -60,11 +57,10 @@ export const parseImageWidth = (element: HTMLElement): number | null => {
   const fromAttribute = toPixelWidth(element.getAttribute('width'));
   if (fromAttribute !== null) return fromAttribute;
 
-  const inlineStyle = element.getAttribute('style');
-  if (!inlineStyle) return null;
-
-  const styleMatch = STYLE_WIDTH_PATTERN.exec(inlineStyle);
-  return styleMatch ? toPixelWidth(styleMatch[1]) : null;
+  // `element.style.width` is the declaration the browser actually applies, so a
+  // duplicated `width: 320px; width: 50%` resolves to `50%` and is rejected —
+  // matching the source instead of the first value that happens to parse.
+  return toPixelWidth(element.style.width);
 };
 
 /**
