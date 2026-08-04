@@ -4,6 +4,8 @@ import { themeCookieStorage } from './themeStorage';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
+export type LockableThemeMode = Exclude<ThemeMode, 'system'>;
+
 /**
  * Theme store state interface
  */
@@ -25,7 +27,7 @@ export interface ThemeState {
    * (fica de fora do `partialize`): a preferência do usuário continua no cookie
    * e volta a valer sozinha quando a trava sai.
    */
-  lockedMode: ThemeMode | null;
+  lockedMode: LockableThemeMode | null;
   /**
    * `true` quando o tema aplicado não tem variante dark (ver
    * `LIGHT_ONLY_THEMES`). Quem renderiza seletor de tema deve escondê-lo — não
@@ -54,7 +56,7 @@ export interface ThemeActions {
    * Trava o tema num modo, ignorando o `themeMode` do usuário até ser liberado
    * com `lockTheme(null)`. Idempotente.
    */
-  lockTheme: (mode: ThemeMode | null) => void;
+  lockTheme: (mode: LockableThemeMode | null) => void;
   /**
    * Troca o tema recebido da instituição pelo tema próprio deste app, quando
    * houver (ver `APP_THEME_MAP`). Chamar no boot, ANTES do primeiro render —
@@ -230,7 +232,7 @@ export const useThemeStore = create<ThemeStore>()(
           applyTheme(mode);
         },
 
-        lockTheme: (mode: ThemeMode | null) => {
+        lockTheme: (mode: LockableThemeMode | null) => {
           const { lockedMode, themeMode, applyTheme } = get();
           if (lockedMode === mode) return;
 

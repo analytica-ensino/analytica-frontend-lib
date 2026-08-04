@@ -109,3 +109,22 @@ describe('contrato de contraste dos temas', () => {
     }
   );
 });
+
+/*
+ * As Scent colors precisam viver no @theme do tokens.css, não dentro de um
+ * `[data-theme=…]`. É o @theme que gera os utilitários (`bg-scent-1`) e que faz
+ * `var(--color-scent-N)` resolver em qualquer tema. Declaradas só num tema, o
+ * utilitário não existe e o `var()` vira transparente nos demais — que é como
+ * elas entraram, e o card de atividade da Fluência Leitora ficava sem fundo
+ * fora do tema do aluno.
+ */
+describe('scent colors', () => {
+  it.each([1, 2, 3, 4])(
+    '--color-scent-%i é declarada no tokens.css',
+    (index) => {
+      expect(readToken(TOKENS_FILE, `--color-scent-${index}`)).toMatch(
+        /^#[0-9a-fA-F]{3,8}$/
+      );
+    }
+  );
+});

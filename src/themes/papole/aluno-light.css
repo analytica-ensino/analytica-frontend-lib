@@ -23,7 +23,8 @@
    *
    * Grupos herdados de propósito dos defaults de ../tokens.css (a designer não
    * os definiu): tertiary, border, success, warning, info, indicator,
-   * subject/exam, question-type, map e sombras.
+   * subject/exam, question-type, map e sombras. As Scent colors, que a designer
+   * definiu, também moram lá — ver o comentário no fim deste arquivo.
    */
   [data-theme='papole-aluno-light'] {
     color-scheme: light;
@@ -103,12 +104,12 @@
     --color-text-950: #171610;
 
     /*
-     * Scent colors — grupo novo, exclusivo deste tema. Quatro cores chapadas,
-     * sem rampa, como vieram do Figma (nomes e valores da designer).
+     * Scent colors (cards de atividade da Fluência Leitora) NÃO são declaradas
+     * aqui: elas vivem no @theme de ../tokens.css, com os valores desta arte.
+     * É de lá que saem os utilitários `bg-scent-N` e a garantia de que
+     * `var(--color-scent-N)` resolve mesmo fora deste tema — um card renderizado
+     * sob outro tema ficaria sem fundo. Sobrescrever aqui só faria sentido se
+     * outra instituição pedisse cores próprias para esses cards.
      */
-    --color-scent-1: #8c8cec;
-    --color-scent-2: #a4d6a3;
-    --color-scent-3: #ef99a4;
-    --color-scent-4: #326fc3;
   }
 }
