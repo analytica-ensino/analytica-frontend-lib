@@ -1915,7 +1915,9 @@ const CardReadingFluency = forwardRef<HTMLDivElement, CardReadingFluencyProps>(
   (
     {
       state = 'new',
-      color = '#a3d9b1',
+      // Scent color 2 (verde) do tema do aluno. Era o hex #a3d9b1 cravado, que
+      // deixava o default do componente fora do tema.
+      color = 'var(--color-scent-2)',
       image,
       label = 'Reading Fluency',
       activityTitle,

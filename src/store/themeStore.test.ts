@@ -97,7 +97,12 @@ describe('themeStore', () => {
     globalThis.localStorage.removeItem('theme-store');
 
     // Clear Zustand store
-    useThemeStore.setState({ themeMode: 'system', isDark: false });
+    useThemeStore.setState({
+      themeMode: 'system',
+      isDark: false,
+      lockedMode: null,
+      lightOnly: false,
+    });
   });
 
   afterEach(() => {
@@ -233,6 +238,185 @@ describe('themeStore', () => {
         'data-theme',
         'enem-parana-light'
       );
+    });
+  });
+
+  describe('setAppTheme', () => {
+    it('should swap the institution theme for the app theme', () => {
+      mockDataset.theme = 'papole-light';
+      mockDataset.originalTheme = 'papole-light';
+
+      const { setAppTheme } = useThemeStore.getState();
+
+      setAppTheme('aluno');
+
+      expect(mockDataset.originalTheme).toBe('papole-aluno-light');
+      expect(mockDataset.theme).toBe('papole-aluno-light');
+    });
+
+    it('should read the received theme from data-theme on boot', () => {
+      // No boot o index.html só tem `data-theme`; o original ainda não existe.
+      mockDataset.theme = 'papole-light';
+      delete mockDataset.originalTheme;
+
+      const { setAppTheme } = useThemeStore.getState();
+
+      setAppTheme('aluno');
+
+      expect(mockDataset.originalTheme).toBe('papole-aluno-light');
+    });
+
+    it('should leave institutions without an app theme untouched', () => {
+      mockDataset.theme = 'enem-parana-light';
+      mockDataset.originalTheme = 'enem-parana-light';
+
+      const { setAppTheme } = useThemeStore.getState();
+
+      setAppTheme('aluno');
+
+      expect(mockDataset.originalTheme).toBe('enem-parana-light');
+      expect(mockDataset.theme).toBe('enem-parana-light');
+    });
+
+    it('should leave other apps untouched', () => {
+      mockDataset.theme = 'papole-light';
+      mockDataset.originalTheme = 'papole-light';
+
+      const { setAppTheme } = useThemeStore.getState();
+
+      setAppTheme('professor');
+
+      expect(mockDataset.originalTheme).toBe('papole-light');
+    });
+
+    it('should flag the app theme as light-only', () => {
+      mockDataset.theme = 'papole-light';
+      mockDataset.originalTheme = 'papole-light';
+
+      const { setAppTheme } = useThemeStore.getState();
+
+      setAppTheme('aluno');
+
+      expect(useThemeStore.getState().lightOnly).toBe(true);
+    });
+  });
+
+  describe('light-only themes', () => {
+    beforeEach(() => {
+      mockDataset.theme = 'papole-aluno-light';
+      mockDataset.originalTheme = 'papole-aluno-light';
+    });
+
+    it('should stay light when dark is requested', () => {
+      const { setTheme } = useThemeStore.getState();
+
+      setTheme('dark');
+
+      // Sem isso cairia no fallback `base-dark`, que é o dark neutro azulado.
+      expect(mockDataset.theme).toBe('papole-aluno-light');
+      expect(useThemeStore.getState().isDark).toBe(false);
+    });
+
+    it('should stay light when the system prefers dark', () => {
+      mockMediaQueryList.matches = true;
+
+      const { setTheme } = useThemeStore.getState();
+
+      setTheme('system');
+
+      expect(mockDataset.theme).toBe('papole-aluno-light');
+      expect(useThemeStore.getState().isDark).toBe(false);
+    });
+  });
+
+  describe('lockTheme', () => {
+    it('should force the locked mode over the user themeMode', () => {
+      const { setTheme, lockTheme } = useThemeStore.getState();
+
+      setTheme('dark');
+      lockTheme('light');
+
+      expect(useThemeStore.getState().lockedMode).toBe('light');
+      expect(useThemeStore.getState().isDark).toBe(false);
+      expect(mockDocumentElement.setAttribute).toHaveBeenLastCalledWith(
+        'data-theme',
+        'enem-parana-light'
+      );
+    });
+
+    it('should keep the user preference untouched while locked', () => {
+      const { setTheme, lockTheme } = useThemeStore.getState();
+
+      setTheme('dark');
+      lockTheme('light');
+
+      // O usuário escolheu dark; a trava só se sobrepõe na renderização.
+      expect(useThemeStore.getState().themeMode).toBe('dark');
+    });
+
+    it('should restore the user preference when released', () => {
+      const { setTheme, lockTheme } = useThemeStore.getState();
+
+      setTheme('dark');
+      lockTheme('light');
+      lockTheme(null);
+
+      expect(useThemeStore.getState().lockedMode).toBeNull();
+      expect(useThemeStore.getState().isDark).toBe(true);
+      expect(mockDocumentElement.setAttribute).toHaveBeenLastCalledWith(
+        'data-theme',
+        'enem-parana-dark'
+      );
+    });
+
+    it('should ignore setTheme changes on the DOM while locked', () => {
+      const { lockTheme, setTheme } = useThemeStore.getState();
+
+      lockTheme('light');
+      mockSetAttribute.mockClear();
+      setTheme('dark');
+
+      expect(useThemeStore.getState().themeMode).toBe('dark');
+      expect(useThemeStore.getState().isDark).toBe(false);
+      expect(mockDocumentElement.setAttribute).toHaveBeenCalledWith(
+        'data-theme',
+        'enem-parana-light'
+      );
+    });
+
+    it('should ignore system theme changes while locked', () => {
+      const { lockTheme, handleSystemThemeChange } = useThemeStore.getState();
+
+      lockTheme('light');
+      mockSetAttribute.mockClear();
+      mockMediaQueryList.matches = true;
+      handleSystemThemeChange();
+
+      expect(useThemeStore.getState().isDark).toBe(false);
+      expect(mockDocumentElement.setAttribute).not.toHaveBeenCalled();
+    });
+
+    it('should be idempotent', () => {
+      const { lockTheme } = useThemeStore.getState();
+
+      lockTheme('light');
+      mockSetAttribute.mockClear();
+      lockTheme('light');
+
+      expect(mockDocumentElement.setAttribute).not.toHaveBeenCalled();
+    });
+
+    it('should not persist the lock', () => {
+      const { lockTheme } = useThemeStore.getState();
+
+      lockTheme('light');
+
+      // A trava é decisão de runtime (feature flag), não preferência do
+      // usuário — e o cookie é compartilhado entre login e todos os apps.
+      expect(document.cookie).not.toContain('lockedMode');
+      expect(
+        globalThis.localStorage.getItem('theme-store') ?? ''
+      ).not.toContain('lockedMode');
     });
   });
 

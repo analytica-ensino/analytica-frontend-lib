@@ -6,8 +6,10 @@ import type { ThemeMode } from '@/hooks/useTheme';
 const mockUseTheme = {
   themeMode: 'system' as ThemeMode,
   isDark: false,
+  isThemeLocked: false,
   setTheme: jest.fn(),
   toggleTheme: jest.fn(),
+  lockTheme: jest.fn(),
 };
 
 jest.mock('@/hooks/useTheme', () => ({
@@ -45,6 +47,20 @@ describe('ThemeToggle', () => {
     jest.clearAllMocks();
     mockUseTheme.themeMode = 'system';
     mockUseTheme.isDark = false;
+    mockUseTheme.isThemeLocked = false;
+  });
+
+  describe('Theme locked by the product', () => {
+    it('renders nothing when the theme is locked', () => {
+      mockUseTheme.isThemeLocked = true;
+
+      const { container } = render(<ThemeToggle />);
+
+      // Um seletor visível não mudaria nada e ainda marcaria como selecionado
+      // um modo diferente do que está na tela.
+      expect(container).toBeEmptyDOMElement();
+      expect(screen.queryByTestId('theme-escuro')).not.toBeInTheDocument();
+    });
   });
 
   describe('Default variant', () => {

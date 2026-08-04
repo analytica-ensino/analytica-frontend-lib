@@ -3874,7 +3874,7 @@ describe('CardReadingFluency', () => {
     it('applies the default background color', () => {
       render(<CardReadingFluency data-testid="card-papole" />);
       expect(screen.getByTestId('card-papole')).toHaveStyle({
-        backgroundColor: '#a3d9b1',
+        backgroundColor: 'var(--color-scent-2)',
       });
     });
 

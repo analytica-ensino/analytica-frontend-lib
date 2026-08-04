@@ -28,6 +28,7 @@
 @import './themes/analytica/dark.css';
 @import './themes/papole/light.css';
 @import './themes/papole/dark.css';
+@import './themes/papole/aluno-light.css';
 
 /*
  * Regras globais do AccessibilityWidget (classes em <html> para
@@ -54,6 +55,7 @@
 
 /* Safelist para cores customizadas */
 @source inline("{bg,text,border}-{exam-1,exam-2,exam-3,exam-4}");
+@source inline("{bg,text,border}-{scent-1,scent-2,scent-3,scent-4}");
 @source inline("{bg,text,border}-{subject-1,subject-2,subject-3,subject-4,subject-5,subject-6,subject-7,subject-8,subject-9,subject-10,subject-11,subject-12,subject-13,subject-14,subject-15,subject-16}");
 @source inline("{bg,text,border}-{typography-1,typography-2}");
 
