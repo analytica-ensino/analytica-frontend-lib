@@ -4,6 +4,8 @@ import { themeCookieStorage } from './themeStorage';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
+export type LockableThemeMode = Exclude<ThemeMode, 'system'>;
+
 /**
  * Theme store state interface
  */
@@ -16,6 +18,22 @@ export interface ThemeState {
    * Whether the current theme is dark
    */
   isDark: boolean;
+  /**
+   * Modo imposto pelo produto, que se sobrepõe ao `themeMode` sem sobrescrevê-lo.
+   * `null` = sem trava (o usuário manda).
+   *
+   * Existe para variantes cujo visual só foi desenhado em um dos modos — hoje a
+   * Fluência Leitora, que tem arte própria só em light. NÃO é persistido
+   * (fica de fora do `partialize`): a preferência do usuário continua no cookie
+   * e volta a valer sozinha quando a trava sai.
+   */
+  lockedMode: LockableThemeMode | null;
+  /**
+   * `true` quando o tema aplicado não tem variante dark (ver
+   * `LIGHT_ONLY_THEMES`). Quem renderiza seletor de tema deve escondê-lo — não
+   * há escolha a oferecer.
+   */
+  lightOnly: boolean;
 }
 
 /**
@@ -34,6 +52,17 @@ export interface ThemeActions {
    * Set a specific theme mode
    */
   setTheme: (mode: ThemeMode) => void;
+  /**
+   * Trava o tema num modo, ignorando o `themeMode` do usuário até ser liberado
+   * com `lockTheme(null)`. Idempotente.
+   */
+  lockTheme: (mode: LockableThemeMode | null) => void;
+  /**
+   * Troca o tema recebido da instituição pelo tema próprio deste app, quando
+   * houver (ver `APP_THEME_MAP`). Chamar no boot, ANTES do primeiro render —
+   * senão a tela pisca com a paleta da instituição antes de trocar.
+   */
+  setAppTheme: (app: string) => void;
   /**
    * Set the white-label theme from institution branding
    */
@@ -67,25 +96,56 @@ const DARK_THEME_MAP: Record<string, string> = {
 };
 
 /**
+ * Temas que existem SÓ em light — a arte não tem versão escura e não é pra ter.
+ * Sem isso o modo dark cairia no fallback `base-dark`, que é o dark neutro
+ * (azulado) e não tem nada a ver com a paleta do produto.
+ */
+const LIGHT_ONLY_THEMES = new Set<string>(['papole-aluno-light']);
+
+/**
+ * Mapa de app → (tema da instituição → tema daquele app).
+ *
+ * A entrega injeta UMA string de tema por instituição no `<!--THEME_COLOR-->`
+ * de todos os apps. Quando um produto tem arte própria — o aluno do Papolê, que
+ * é a Fluência Leitora e tem um Figma inteiro separado — o app troca o tema
+ * recebido pelo seu no boot, via `setAppTheme`.
+ *
+ * Instituição sem entrada aqui não muda nada: continua com o tema recebido.
+ */
+const APP_THEME_MAP: Record<string, Record<string, string>> = {
+  aluno: {
+    'papole-light': 'papole-aluno-light',
+  },
+};
+
+/**
  * Resolve o seletor CSS dark concreto com base no tema institucional (light)
- * salvo em `data-original-theme`. Fallback: 'base-dark', que também responde
- * ao seletor legado [data-theme='dark'] preservando compat com apps antigos.
+ * salvo em `data-original-theme`. Temas light-only devolvem eles mesmos.
+ * Fallback: 'base-dark', que também responde ao seletor legado
+ * [data-theme='dark'] preservando compat com apps antigos.
  */
 const resolveDarkTheme = (originalTheme: string | undefined): string => {
   if (!originalTheme) return 'base-dark';
+  if (LIGHT_ONLY_THEMES.has(originalTheme)) return originalTheme;
   return DARK_THEME_MAP[originalTheme] ?? 'base-dark';
 };
 
 /**
- * Apply theme to DOM based on mode
+ * Apply theme to DOM based on mode.
+ *
+ * Devolve `isDark` já resolvido: num tema light-only o dark não acontece, então
+ * `isDark` é falso mesmo com o modo em 'dark'. Isso importa porque componentes
+ * trocam imagem e cor de matéria por esse booleano — se ele mentir, a tela sai
+ * clara com asset escuro em cima.
  */
 const applyThemeToDOM = (mode: ThemeMode): boolean => {
   const htmlElement = document.documentElement;
   const originalTheme = htmlElement.dataset.originalTheme;
 
   if (mode === 'dark') {
-    htmlElement.dataset.theme = resolveDarkTheme(originalTheme);
-    return true;
+    const darkTheme = resolveDarkTheme(originalTheme);
+    htmlElement.dataset.theme = darkTheme;
+    return darkTheme !== originalTheme;
   } else if (mode === 'light') {
     if (originalTheme) {
       htmlElement.dataset.theme = originalTheme;
@@ -96,8 +156,9 @@ const applyThemeToDOM = (mode: ThemeMode): boolean => {
       '(prefers-color-scheme: dark)'
     ).matches;
     if (isSystemDark) {
-      htmlElement.dataset.theme = resolveDarkTheme(originalTheme);
-      return true;
+      const darkTheme = resolveDarkTheme(originalTheme);
+      htmlElement.dataset.theme = darkTheme;
+      return darkTheme !== originalTheme;
     } else if (originalTheme) {
       htmlElement.dataset.theme = originalTheme;
       return false;
@@ -130,11 +191,22 @@ export const useThemeStore = create<ThemeStore>()(
         // Initial state
         themeMode: 'system',
         isDark: false,
+        lockedMode: null,
+        lightOnly: false,
 
         // Actions
         applyTheme: (mode: ThemeMode) => {
-          const isDark = applyThemeToDOM(mode);
-          set({ isDark });
+          // A trava vence o modo pedido: é o produto dizendo que aquela tela só
+          // existe num dos modos. O `themeMode` continua intacto no store.
+          const { lockedMode } = get();
+          const isDark = applyThemeToDOM(lockedMode ?? mode);
+          const originalTheme = document.documentElement.dataset.originalTheme;
+          set({
+            isDark,
+            lightOnly: originalTheme
+              ? LIGHT_ONLY_THEMES.has(originalTheme)
+              : false,
+          });
         },
 
         toggleTheme: () => {
@@ -158,6 +230,34 @@ export const useThemeStore = create<ThemeStore>()(
           const { applyTheme } = get();
           set({ themeMode: mode });
           applyTheme(mode);
+        },
+
+        lockTheme: (mode: LockableThemeMode | null) => {
+          const { lockedMode, themeMode, applyTheme } = get();
+          if (lockedMode === mode) return;
+
+          set({ lockedMode: mode });
+          // Reaplica: com trava vai para `mode`; ao liberar, volta para a
+          // preferência do usuário que estava guardada em `themeMode`.
+          applyTheme(themeMode);
+        },
+
+        setAppTheme: (app: string) => {
+          const htmlElement = document.documentElement;
+          // No boot o `data-original-theme` ainda não existe — o tema que a
+          // entrega injetou está no `data-theme` do index.html.
+          const received =
+            htmlElement.dataset.originalTheme ?? htmlElement.dataset.theme;
+          const appTheme = received
+            ? APP_THEME_MAP[app]?.[received]
+            : undefined;
+
+          // Instituição sem tema próprio para este app: nada a fazer.
+          if (!appTheme) return;
+
+          htmlElement.dataset.originalTheme = appTheme;
+          htmlElement.dataset.theme = appTheme;
+          get().applyTheme(get().themeMode);
         },
 
         setWhiteLabelTheme: (theme: string | null) => {
@@ -203,7 +303,9 @@ export const useThemeStore = create<ThemeStore>()(
         },
 
         handleSystemThemeChange: () => {
-          const { themeMode, applyTheme } = get();
+          const { themeMode, applyTheme, lockedMode } = get();
+          // Com trava, o SO não manda: a tela fica no modo imposto.
+          if (lockedMode) return;
           // Only respond to system changes when in system mode
           if (themeMode === 'system') {
             applyTheme('system');
@@ -216,7 +318,9 @@ export const useThemeStore = create<ThemeStore>()(
         storage: createJSONStorage(() => themeCookieStorage),
         partialize: (state) => ({
           themeMode: state.themeMode,
-        }), // Só persiste o themeMode, não o isDark
+        }), // Só persiste o themeMode — nem o isDark, nem o lockedMode. A trava
+        // é decisão de runtime do produto (feature flag), não preferência do
+        // usuário, e o cookie é compartilhado entre login e todos os apps.
       }
     ),
     {

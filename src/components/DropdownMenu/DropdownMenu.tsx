@@ -908,7 +908,7 @@ const ProfileToggleTheme = ({
   store: externalStore,
   ...props
 }: HTMLAttributes<HTMLDivElement> & { store?: DropdownStoreApi }) => {
-  const { themeMode, setTheme } = useTheme();
+  const { themeMode, setTheme, isThemeLocked } = useTheme();
   const [modalThemeToggle, setModalThemeToggle] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<ThemeMode>(themeMode);
 
@@ -934,6 +934,10 @@ const ProfileToggleTheme = ({
     setModalThemeToggle(false);
     setOpen(false); // Close dropdown after canceling
   };
+
+  // Tema travado pelo produto (ex.: Fluência Leitora): esconde a entrada do
+  // menu inteira. Deixá-la visível daria um modal que salva e não muda nada.
+  if (isThemeLocked) return null;
 
   return (
     <>

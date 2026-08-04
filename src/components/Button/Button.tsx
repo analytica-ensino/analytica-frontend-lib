@@ -165,18 +165,27 @@ export default Button;
  * poderem variar por estado — no `outline` a aresta cai de 4px→2px no pressed.
  * O `link` é só texto (sem sombra/borda); apenas o foco adiciona a borda
  * `secondary-600`. `disabled` não veio na arte (padrão mínimo da lib).
+ *
+ * A aresta do `outline` era o hex #F9CB3B cravado, que é exatamente o
+ * `primary-500` do tema do aluno — virou token, então acompanha o tema em vez
+ * de ficar dourada sobre um botão de outra cor.
+ *
+ * O #D4A82E do `solid` continua literal: é um tom de bisel da arte, não bate
+ * com nenhum passo da rampa (o vizinho mais próximo, `primary-700` #C29506, é
+ * visivelmente mais escuro e saturado). Trocar mudaria o desenho do botão, então
+ * fica para a designer decidir se vira token ou se o valor é outro.
  */
 const PAPOLE_VARIANT_CLASSES = {
   solid:
     'bg-primary-500 border-4 border-primary-200 text-primary-900 hover:bg-primary-600 focus-visible:outline-none focus-visible:border-secondary-600 active:bg-primary-700 active:border-2 active:text-primary-100 disabled:opacity-40 disabled:cursor-not-allowed [box-shadow:0px_4px_0px_0px_#D4A82E,0px_0px_4px_0px_#00000021]',
   outline:
-    'bg-transparent border-4 border-primary-200 text-primary-900 hover:bg-primary-100 focus-visible:outline-none focus-visible:border-secondary-600 active:bg-primary-200 active:border-2 active:border-primary-700 disabled:opacity-40 disabled:cursor-not-allowed [box-shadow:0px_4px_0px_0px_#F9CB3B,0px_0px_4px_0px_#00000021] active:[box-shadow:0px_2px_0px_0px_#F9CB3B,0px_0px_4px_0px_#00000021]',
+    'bg-transparent border-4 border-primary-200 text-primary-900 hover:bg-primary-100 focus-visible:outline-none focus-visible:border-secondary-600 active:bg-primary-200 active:border-2 active:border-primary-700 disabled:opacity-40 disabled:cursor-not-allowed [box-shadow:0px_4px_0px_0px_var(--color-primary-500),0px_0px_4px_0px_#00000021] active:[box-shadow:0px_2px_0px_0px_var(--color-primary-500),0px_0px_4px_0px_#00000021]',
   // Inverso do outline p/ fundo escuro (ex.: SAIR no menu de perfil): texto
   // claro (primary-100) por cima; no hover/pressed preenche dourado e escurece o
   // texto p/ manter contraste; foco com borda clara (secondary-300). Valores por
   // estado são uma proposta coerente — ajustar na story se necessário.
   'outline-inverse':
-    'bg-transparent border-4 border-primary-200 text-primary-100 hover:bg-primary-100 hover:text-primary-900 focus-visible:outline-none focus-visible:border-secondary-300 active:bg-primary-200 active:text-primary-900 active:border-2 active:border-primary-700 disabled:opacity-40 disabled:cursor-not-allowed [box-shadow:0px_4px_0px_0px_#F9CB3B,0px_0px_4px_0px_#00000021] active:[box-shadow:0px_2px_0px_0px_#F9CB3B,0px_0px_4px_0px_#00000021]',
+    'bg-transparent border-4 border-primary-200 text-primary-100 hover:bg-primary-100 hover:text-primary-900 focus-visible:outline-none focus-visible:border-secondary-300 active:bg-primary-200 active:text-primary-900 active:border-2 active:border-primary-700 disabled:opacity-40 disabled:cursor-not-allowed [box-shadow:0px_4px_0px_0px_var(--color-primary-500),0px_0px_4px_0px_#00000021] active:[box-shadow:0px_2px_0px_0px_var(--color-primary-500),0px_0px_4px_0px_#00000021]',
   link: 'bg-transparent border-4 border-transparent text-primary-900 hover:text-primary-700 focus-visible:outline-none focus-visible:border-secondary-600 active:text-primary-800 disabled:opacity-40 disabled:cursor-not-allowed',
 } as const;
 

@@ -325,7 +325,12 @@ export type { BaseApiClient } from './types/api';
 
 // Theme Store
 export { useThemeStore } from './store/themeStore';
-export type { ThemeStore, ThemeState, ThemeActions } from './store/themeStore';
+export type {
+  ThemeStore,
+  ThemeState,
+  ThemeActions,
+  LockableThemeMode,
+} from './store/themeStore';
 
 // Storage Keys
 export { KEYS, FEATURE_FLAGS_KEYS } from './utils/keys';

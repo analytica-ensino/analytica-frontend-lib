@@ -30,8 +30,10 @@ import type { ThemeMode } from '@/hooks/useTheme';
 const mockUseTheme = {
   themeMode: 'system' as ThemeMode,
   isDark: false,
+  isThemeLocked: false,
   setTheme: jest.fn(),
   toggleTheme: jest.fn(),
+  lockTheme: jest.fn(),
 };
 
 jest.mock('@/hooks/useTheme', () => ({
@@ -1280,6 +1282,25 @@ describe('ProfileToggleTheme component', () => {
     jest.clearAllMocks();
     mockUseTheme.themeMode = 'system';
     mockUseTheme.isDark = false;
+    mockUseTheme.isThemeLocked = false;
+  });
+
+  it('hides the appearance entry when the theme is locked', () => {
+    mockUseTheme.isThemeLocked = true;
+
+    render(
+      <DropdownMenu>
+        <ProfileMenuTrigger />
+        <DropdownMenuContent variant="profile">
+          <ProfileToggleTheme />
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+
+    fireEvent.click(screen.getByRole('button'));
+
+    // Deixar a entrada visível daria um modal que salva e não muda nada.
+    expect(screen.queryByText('Aparência')).not.toBeInTheDocument();
   });
 
   it('renders ProfileToggleTheme with correct content', () => {

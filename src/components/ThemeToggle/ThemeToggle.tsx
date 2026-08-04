@@ -14,7 +14,7 @@ export const ThemeToggle = ({
   variant = 'default',
   onToggle,
 }: ThemeToggleProps) => {
-  const { themeMode, setTheme } = useTheme();
+  const { themeMode, setTheme, isThemeLocked } = useTheme();
   const [tempTheme, setTempTheme] = useState<ThemeMode>(themeMode);
 
   // Update temp theme when themeMode changes externally
@@ -66,6 +66,11 @@ export const ThemeToggle = ({
   };
 
   const currentTheme = variant === 'with-save' ? tempTheme : themeMode;
+
+  // Tema travado pelo produto: não há escolha a oferecer. Renderizar os botões
+  // mostraria um seletor que não muda nada — e ainda marcaria como selecionado
+  // um modo que não é o que está na tela.
+  if (isThemeLocked) return null;
 
   return (
     <div className="flex flex-row gap-2 sm:gap-4 py-2">

@@ -74,7 +74,12 @@ describe('useTheme', () => {
     });
 
     // Reset Zustand store to initial state
-    useThemeStore.setState({ themeMode: 'system', isDark: false });
+    useThemeStore.setState({
+      themeMode: 'system',
+      isDark: false,
+      lockedMode: null,
+      lightOnly: false,
+    });
   });
 
   afterEach(() => {
@@ -204,6 +209,66 @@ describe('useTheme', () => {
 
       // Should call setAttribute when system theme changes
       expect(mockSetAttribute).toHaveBeenCalled();
+    });
+  });
+
+  describe('lockTheme', () => {
+    it('should expose isThemeLocked reflecting the store', () => {
+      const { result } = renderHook(() => useTheme());
+
+      expect(result.current.isThemeLocked).toBe(false);
+
+      act(() => {
+        result.current.lockTheme('light');
+      });
+
+      expect(result.current.isThemeLocked).toBe(true);
+
+      act(() => {
+        result.current.lockTheme(null);
+      });
+
+      expect(result.current.isThemeLocked).toBe(false);
+    });
+
+    it('should force light while keeping the user preference on dark', () => {
+      mockDataset.theme = 'enem-parana-light';
+      mockDataset.originalTheme = 'enem-parana-light';
+
+      const { result } = renderHook(() => useTheme());
+
+      act(() => {
+        result.current.setTheme('dark');
+        result.current.lockTheme('light');
+      });
+
+      expect(result.current.isDark).toBe(false);
+      expect(result.current.themeMode).toBe('dark');
+      expect(mockSetAttribute).toHaveBeenLastCalledWith(
+        'data-theme',
+        'enem-parana-light'
+      );
+    });
+  });
+
+  describe('setAppTheme', () => {
+    it('should apply the app theme and report it as locked', () => {
+      mockDataset.theme = 'papole-light';
+      mockDataset.originalTheme = 'papole-light';
+
+      const { result } = renderHook(() => useTheme());
+
+      act(() => {
+        result.current.setAppTheme('aluno');
+      });
+
+      // Tema light-only: não há escolha a oferecer, o seletor some.
+      expect(result.current.isThemeLocked).toBe(true);
+      expect(result.current.isDark).toBe(false);
+      expect(mockSetAttribute).toHaveBeenCalledWith(
+        'data-theme',
+        'papole-aluno-light'
+      );
     });
   });
 

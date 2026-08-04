@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
-import { useThemeStore, ThemeMode } from '../store/themeStore';
+import { useThemeStore } from '../store/themeStore';
 
-export type { ThemeMode };
+export type { ThemeMode, LockableThemeMode } from '../store/themeStore';
 
 /**
  * Hook para gerenciar temas e branding institucional
@@ -13,8 +13,12 @@ export const useTheme = () => {
   const {
     themeMode,
     isDark,
+    lockedMode,
+    lightOnly,
     toggleTheme,
     setTheme,
+    lockTheme,
+    setAppTheme,
     initializeTheme,
     handleSystemThemeChange,
   } = useThemeStore();
@@ -77,6 +81,23 @@ export const useTheme = () => {
     isDark,
     toggleTheme,
     setTheme,
+    /**
+     * Trava o tema num modo (ex.: `lockTheme('light')` na Fluência Leitora) ou
+     * libera com `lockTheme(null)`. Não sobrescreve a preferência do usuário.
+     */
+    lockTheme,
+    /**
+     * Troca o tema da instituição pelo tema próprio deste app, quando houver.
+     * Chamar no boot, antes do primeiro render.
+     */
+    setAppTheme,
+    /**
+     * `true` quando não há escolha de tema a oferecer: ou o produto está
+     * impondo um modo (`lockTheme`), ou o tema não tem variante dark. Quem
+     * renderiza seletor de tema deve esconder o controle — senão o usuário
+     * escolhe e nada acontece.
+     */
+    isThemeLocked: lockedMode !== null || lightOnly,
     branding,
   };
 };

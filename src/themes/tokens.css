@@ -186,6 +186,20 @@
   --color-typography-1: #b00c9e;
   --color-typography-2: #745a07;
 
+  /*
+   * Scent Colors — quatro cores chapadas (sem rampa) que pintam os cards de
+   * atividade da Fluência Leitora. Vieram do Figma do aluno do Papolê, mas ficam
+   * aqui no @theme, como `subject-*` e `exam-*`: é o @theme que gera os
+   * utilitários (`bg-scent-1` e afins) e que garante que `var(--color-scent-N)`
+   * resolva em QUALQUER tema. Declaradas só dentro de um `[data-theme=…]`, elas
+   * não geravam utilitário nenhum e o `var()` caía em transparente fora do tema
+   * do aluno. Um tema pode sobrescrevê-las como faz com os subjects.
+   */
+  --color-scent-1: #8c8cec;
+  --color-scent-2: #a4d6a3;
+  --color-scent-3: #ef99a4;
+  --color-scent-4: #326fc3;
+
   /* Question Type Colors */
   --color-question-type-multiple-choice: #6B21A8;
   --color-question-type-fill-blank: #0D4E6E;

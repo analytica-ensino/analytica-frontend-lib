@@ -60,8 +60,20 @@ const themeDirs = readdirSync(THEMES_DIR, { withFileTypes: true })
   .filter((entry) => entry.isDirectory())
   .map((entry) => entry.name);
 
+/*
+ * Um caso por ARQUIVO de tema, não por par light/dark fixo: além de
+ * `light.css`/`dark.css`, um tema pode ter variantes próprias de um app — o
+ * `papole/aluno-light.css` é o tema da Fluência Leitora. Enumerar os arquivos
+ * faz variante nova entrar no teste sozinha.
+ */
 const cases = themeDirs.flatMap((theme) =>
-  (['light', 'dark'] as const).map((mode) => ({ theme, mode }))
+  readdirSync(join(THEMES_DIR, theme))
+    .filter((entry) => entry.endsWith('.css'))
+    .map((entry) => ({
+      theme,
+      mode: entry.replace(/\.css$/, ''),
+      file: join(THEMES_DIR, theme, entry),
+    }))
 );
 
 describe('contrato de contraste dos temas', () => {
@@ -71,10 +83,7 @@ describe('contrato de contraste dos temas', () => {
 
   it.each(cases)(
     '$theme/$mode: --color-primary contrasta com --color-primary-800',
-    ({ theme, mode }) => {
-      const file = join(THEMES_DIR, theme, `${mode}.css`);
-      if (!existsSync(file)) return;
-
+    ({ theme, mode, file }) => {
       // Quando o tema não declara o token, ele herda o default do tokens.css.
       const foreground =
         readToken(file, '--color-primary') ??
@@ -97,6 +106,25 @@ describe('contrato de contraste dos temas', () => {
         ratio: +ratio.toFixed(2),
       }).toMatchObject({ theme, mode });
       expect(ratio).toBeGreaterThanOrEqual(4.5);
+    }
+  );
+});
+
+/*
+ * As Scent colors precisam viver no @theme do tokens.css, não dentro de um
+ * `[data-theme=…]`. É o @theme que gera os utilitários (`bg-scent-1`) e que faz
+ * `var(--color-scent-N)` resolver em qualquer tema. Declaradas só num tema, o
+ * utilitário não existe e o `var()` vira transparente nos demais — que é como
+ * elas entraram, e o card de atividade da Fluência Leitora ficava sem fundo
+ * fora do tema do aluno.
+ */
+describe('scent colors', () => {
+  it.each([1, 2, 3, 4])(
+    '--color-scent-%i é declarada no tokens.css',
+    (index) => {
+      expect(readToken(TOKENS_FILE, `--color-scent-${index}`)).toMatch(
+        /^#[0-9a-fA-F]{3,8}$/
+      );
     }
   );
 });
