@@ -1944,7 +1944,10 @@ const CardReadingFluency = forwardRef<HTMLDivElement, CardReadingFluencyProps>(
         <div
           ref={ref}
           className={cn(
-            'relative flex items-center justify-center w-[240px] h-[182px] rounded-2xl px-[82px] py-[28px] font-quicksand',
+            'relative flex items-center justify-center w-[240px] h-[182px] rounded-2xl font-quicksand overflow-hidden',
+            // Uma capa do banco preenche o card inteiro (full-bleed), então sem
+            // padding. O asset padrão (passarinho) segue centralizado com respiro.
+            image ? '' : 'px-[82px] py-[28px]',
             isClickable && 'cursor-pointer',
             isComingSoon &&
               'pointer-events-none border-2 border-dashed border-border-300',
@@ -1963,7 +1966,12 @@ const CardReadingFluency = forwardRef<HTMLDivElement, CardReadingFluencyProps>(
             alt={label}
             draggable={false}
             className={cn(
-              'w-full h-auto select-none',
+              // Capa do banco de imagens: ocupa exatamente o tamanho do card
+              // (240×182), recortando o excesso sem distorcer. O passarinho
+              // padrão continua no tamanho original, centralizado.
+              image
+                ? 'absolute inset-0 w-full h-full object-cover select-none'
+                : 'w-full h-auto select-none',
               isComingSoon && 'opacity-40'
             )}
           />
