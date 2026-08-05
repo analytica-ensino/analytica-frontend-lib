@@ -5,7 +5,11 @@ import {
   type CSSProperties,
   type RefObject,
 } from 'react';
-import { DROPDOWN_GAP, DROPDOWN_MAX_HEIGHT } from './constants';
+import {
+  DROPDOWN_GAP,
+  DROPDOWN_MAX_HEIGHT,
+  DROPDOWN_MIN_HEIGHT,
+} from './constants';
 
 interface UseDropdownPositionParams {
   open: boolean;
@@ -60,6 +64,10 @@ export function useDropdownPosition({
 /**
  * Turns a trigger rect into fixed-position styles, flipping the dropdown above
  * the trigger when the space below is too tight and the space above is larger.
+ *
+ * The available space is clamped to `DROPDOWN_MIN_HEIGHT`: a trigger scrolled
+ * past either viewport edge yields a negative measurement, which would produce
+ * an invalid `maxHeight` and collapse the dropdown.
  */
 function buildDropdownStyles(triggerRect: DOMRect | null): CSSProperties {
   if (!triggerRect) return {};
@@ -79,7 +87,13 @@ function buildDropdownStyles(triggerRect: DOMRect | null): CSSProperties {
     left: triggerRect.left,
     width: triggerRect.width,
     zIndex: 9999,
-    maxHeight: Math.min(availableSpace, DROPDOWN_MAX_HEIGHT),
+    maxHeight: clampDropdownHeight(availableSpace),
     ...placement,
   };
+}
+
+/** Keeps the dropdown between a usable floor and its documented ceiling. */
+function clampDropdownHeight(availableSpace: number): number {
+  const usableSpace = Math.max(availableSpace, DROPDOWN_MIN_HEIGHT);
+  return Math.min(usableSpace, DROPDOWN_MAX_HEIGHT);
 }

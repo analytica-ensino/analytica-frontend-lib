@@ -69,7 +69,11 @@ interface OptionRowProps {
 }
 
 /**
- * One selectable row.
+ * One selectable row of the ARIA combobox listbox.
+ *
+ * A native `option` is not usable here: it renders no checkbox and accepts no
+ * arbitrary markup, and it only lives inside `select`/`datalist`, which this
+ * pattern deliberately replaces.
  *
  * The checkbox is purely presentational: the row owns the interaction, so
  * letting the checkbox handle its own would toggle the value twice.
@@ -97,7 +101,7 @@ function OptionRow({
   };
 
   return (
-    <div
+    <div // NOSONAR — ARIA combobox pattern, no native tag fits (see JSDoc)
       id={optionId}
       data-option
       role="option"

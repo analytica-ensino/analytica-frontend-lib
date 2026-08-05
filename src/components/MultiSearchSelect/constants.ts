@@ -36,5 +36,12 @@ export const OPEN_KEYS = ['Enter', ' ', 'ArrowDown'];
 /** Matches the dropdown's `max-h`, used to decide whether it flips above. */
 export const DROPDOWN_MAX_HEIGHT = 300;
 
+/**
+ * Floor for the dropdown height, enough for the search field plus a couple of
+ * rows. Guards against a trigger scrolled past a viewport edge, where the
+ * measured space turns negative.
+ */
+export const DROPDOWN_MIN_HEIGHT = 120;
+
 /** Distance between the trigger and the dropdown. */
 export const DROPDOWN_GAP = 4;

@@ -55,6 +55,20 @@ describe('MultiSearchSelect', () => {
       expect(screen.getByText('Turmas')).toBeInTheDocument();
     });
 
+    it('names the trigger after the label', () => {
+      setup();
+      expect(
+        screen.getByRole('combobox', { name: 'Turmas' })
+      ).toBeInTheDocument();
+    });
+
+    it('omits aria-labelledby when there is no label', () => {
+      setup({ label: undefined });
+      expect(screen.getByRole('combobox')).not.toHaveAttribute(
+        'aria-labelledby'
+      );
+    });
+
     it('renders one chip per selected value', () => {
       setup({ values: ['c-1', 'c-2'] });
 
@@ -540,6 +554,32 @@ describe('MultiSearchSelect', () => {
       const panel = screen.getByRole('listbox').parentElement as HTMLElement;
       expect(panel.style.bottom).toBe('104px');
       expect(panel.style.top).toBe('');
+    });
+
+    it.each([
+      ['scrolled past the bottom edge', { top: 900, bottom: 932 }],
+      ['scrolled past the top edge', { top: -200, bottom: -168 }],
+    ])('keeps a usable height when the trigger is %s', (_label, rect) => {
+      window.innerHeight = 800;
+      stubTriggerRect(rect);
+      setup();
+      openPanel();
+
+      const panel = screen.getByRole('listbox').parentElement as HTMLElement;
+      const maxHeight = Number.parseInt(panel.style.maxHeight, 10);
+
+      expect(maxHeight).toBeGreaterThan(0);
+      expect(maxHeight).toBeLessThanOrEqual(300);
+    });
+
+    it('caps the height at the documented maximum when there is plenty of room', () => {
+      window.innerHeight = 2000;
+      stubTriggerRect({ top: 100, bottom: 132 });
+      setup();
+      openPanel();
+
+      const panel = screen.getByRole('listbox').parentElement as HTMLElement;
+      expect(panel.style.maxHeight).toBe('300px');
     });
 
     it('keeps the panel glued to the trigger on scroll', () => {

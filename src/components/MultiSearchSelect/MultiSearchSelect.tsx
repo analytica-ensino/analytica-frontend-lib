@@ -34,6 +34,11 @@ import type { MultiSearchSelectOption, MultiSearchSelectProps } from './types';
  * Filtering is local, so there is no async search or pagination — pass an
  * already loaded option list.
  *
+ * Follows the W3C ARIA combobox pattern (`combobox` -> `listbox` -> `option`),
+ * the same one `SearchSelect` uses. No native element covers it: `select
+ * multiple` and `datalist` support neither removable chips, nor an inline
+ * search field, nor a checkbox per row.
+ *
  * @example
  * ```tsx
  * <MultiSearchSelect
@@ -79,6 +84,7 @@ export function MultiSearchSelect({
   const listboxId = `${selectId}-listbox`;
   const helperId = `${selectId}-helper`;
   const errorId = `${selectId}-error`;
+  const labelId = `${selectId}-label`;
 
   const { triggerRect, measureTrigger, dropdownStyles } = useDropdownPosition({
     open,
@@ -279,7 +285,7 @@ export function MultiSearchSelect({
         />
       </div>
 
-      <div
+      <div // NOSONAR — ARIA combobox pattern, no native tag fits (see JSDoc)
         ref={listRef}
         id={listboxId}
         role="listbox"
@@ -307,6 +313,7 @@ export function MultiSearchSelect({
     <div className={cn('w-full', className)}>
       {label && (
         <label
+          id={labelId}
           htmlFor={selectId}
           className={cn(
             'block font-bold text-text-900 mb-1.5',
@@ -317,6 +324,11 @@ export function MultiSearchSelect({
         </label>
       )}
 
+      {/*
+        `htmlFor` alone would not name this trigger: a `label` only associates
+        with labelable elements, which a `div` is not. `aria-labelledby` is what
+        gives it an accessible name.
+      */}
       <div
         ref={triggerRef}
         id={selectId}
@@ -325,6 +337,7 @@ export function MultiSearchSelect({
         aria-expanded={open}
         aria-haspopup="listbox"
         aria-controls={open ? listboxId : undefined}
+        aria-labelledby={label ? labelId : undefined}
         aria-invalid={!!errorMessage}
         aria-describedby={describedById}
         aria-disabled={!interactive}
