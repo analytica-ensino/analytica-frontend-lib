@@ -636,6 +636,15 @@ export type {
   SearchSelectPagination,
 } from './components/SearchSelect/SearchSelect';
 
+// MultiSearchSelect Component (SearchSelect for picking several values)
+export { default as MultiSearchSelect } from './components/MultiSearchSelect/MultiSearchSelect';
+export type {
+  MultiSearchSelectProps,
+  MultiSearchSelectOption,
+  MultiSearchSelectSize,
+  MultiSearchSelectVariant,
+} from './components/MultiSearchSelect/MultiSearchSelect';
+
 // TypeSelector Component (Activity/Exam type switcher)
 export {
   TypeSelector,

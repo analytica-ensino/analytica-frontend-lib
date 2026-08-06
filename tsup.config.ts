@@ -303,6 +303,8 @@ export default defineConfig({
       'src/components/RecommendedLessonDetails/types.ts', // StudentPerformanceData
     'RestrictedAccess/index':
       'src/components/RestrictedAccess/RestrictedAccess.tsx', // RestrictedAccess
+    'MultiSearchSelect/index':
+      'src/components/MultiSearchSelect/MultiSearchSelect.tsx', // MultiSearchSelect, MultiSearchSelectOption, MultiSearchSelectProps
     'SearchSelect/index': 'src/components/SearchSelect/SearchSelect.tsx', // SearchSelect, SearchSelectOption, SearchSelectPagination
     'SendLessonModal/index':
       'src/components/SendLessonModal/SendLessonModal.tsx', // SendLessonModal
