@@ -24,6 +24,16 @@ export const VARIANT_CLASSES: Record<MultiSearchSelectVariant, string> = {
   rounded: 'border-2 rounded-full focus:border-primary-950',
 };
 
+/** `Text` size that matches the trigger font for each select size. */
+export const TRIGGER_TEXT_SIZES: Record<
+  MultiSearchSelectSize,
+  'sm' | 'md' | 'lg'
+> = {
+  small: 'sm',
+  medium: 'md',
+  large: 'lg',
+};
+
 export const LABEL_SIZE_CLASSES: Record<MultiSearchSelectSize, string> = {
   small: 'text-sm',
   medium: 'text-md',

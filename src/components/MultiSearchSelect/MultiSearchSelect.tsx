@@ -362,6 +362,7 @@ export function MultiSearchSelect({
             loadingText={loadingText}
             disabled={disabled}
             maxVisibleChips={maxVisibleChips}
+            size={size}
             onRemove={removeValue}
           />
         </div>

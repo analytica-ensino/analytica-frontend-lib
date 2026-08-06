@@ -43,14 +43,29 @@ export function useDropdownPosition({
     setTriggerRect(triggerRef.current.getBoundingClientRect());
   }, [triggerRef]);
 
+  /**
+   * Scroll is listened to in the capture phase, so every nested scroll
+   * container feeds this handler. Measuring once per frame is enough to keep
+   * the panel glued to the trigger and avoids a layout read per event.
+   */
   useEffect(() => {
     if (!open) return;
 
-    const handleUpdate = () => measureTrigger();
+    let frame = 0;
+
+    const handleUpdate = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        measureTrigger();
+      });
+    };
+
     window.addEventListener('scroll', handleUpdate, true);
     window.addEventListener('resize', handleUpdate);
 
     return () => {
+      if (frame) cancelAnimationFrame(frame);
       window.removeEventListener('scroll', handleUpdate, true);
       window.removeEventListener('resize', handleUpdate);
     };

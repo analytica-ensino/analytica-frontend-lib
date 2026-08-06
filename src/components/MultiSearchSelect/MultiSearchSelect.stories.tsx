@@ -1,6 +1,7 @@
 import type { Story } from '@ladle/react';
 import { useState } from 'react';
 import { MultiSearchSelect } from './MultiSearchSelect';
+import Text from '../Text/Text';
 import type { MultiSearchSelectOption } from './MultiSearchSelect';
 
 const sizes = ['small', 'medium', 'large'] as const;
@@ -35,9 +36,9 @@ export const Default: Story = () => {
         placeholder="Selecione as turmas"
         searchPlaceholder="Buscar turma..."
       />
-      <p className="mt-4 text-sm text-text-500">
+      <Text size="sm" className="mt-4 text-text-500">
         Selecionadas: {values.length ? values.join(', ') : 'nenhuma'}
-      </p>
+      </Text>
     </div>
   );
 };

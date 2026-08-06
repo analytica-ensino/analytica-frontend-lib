@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent, within, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { ComponentProps } from 'react';
 import { MultiSearchSelect } from './MultiSearchSelect';
@@ -9,7 +9,7 @@ jest.mock('react', () => ({
   useId: () => 'test-id',
 }));
 
-// JSDOM implements neither of these, and the component relies on both
+// JSDOM does not implement scrollIntoView, and the component calls it
 Element.prototype.scrollIntoView = jest.fn();
 
 const OPTIONS: MultiSearchSelectOption[] = [
@@ -530,8 +530,13 @@ describe('MultiSearchSelect', () => {
         } as DOMRect);
     };
 
+    const originalInnerHeight = window.innerHeight;
+
+    // A plain assignment to window.innerHeight outlives restoreAllMocks, so it
+    // is put back by hand to keep the rest of the suite order-independent.
     afterEach(() => {
       jest.restoreAllMocks();
+      window.innerHeight = originalInnerHeight;
     });
 
     it('opens below the trigger when there is room', () => {
@@ -582,17 +587,51 @@ describe('MultiSearchSelect', () => {
       expect(panel.style.maxHeight).toBe('300px');
     });
 
-    it('keeps the panel glued to the trigger on scroll', () => {
+    /** Repositioning is throttled to one measurement per animation frame. */
+    const scrollAndFlushFrame = async (times = 1) => {
+      await act(async () => {
+        for (let i = 0; i < times; i++) fireEvent.scroll(window);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+      });
+    };
+
+    it('keeps the panel glued to the trigger on scroll', async () => {
       window.innerHeight = 800;
       stubTriggerRect({ top: 100, bottom: 132 });
       setup();
       openPanel();
 
       stubTriggerRect({ top: 60, bottom: 92 });
-      fireEvent.scroll(window);
+      await scrollAndFlushFrame();
 
       const panel = screen.getByRole('listbox').parentElement as HTMLElement;
       expect(panel.style.top).toBe('96px');
+    });
+
+    it('measures the trigger once per frame when scroll events pile up', async () => {
+      window.innerHeight = 800;
+      stubTriggerRect({ top: 100, bottom: 132 });
+      setup();
+      openPanel();
+
+      const measure = HTMLElement.prototype.getBoundingClientRect as jest.Mock;
+      measure.mockClear();
+      await scrollAndFlushFrame(3);
+
+      expect(measure).toHaveBeenCalledTimes(1);
+    });
+
+    it('drops a scheduled reposition when the panel closes', () => {
+      window.innerHeight = 800;
+      stubTriggerRect({ top: 100, bottom: 132 });
+      setup();
+      openPanel();
+
+      const cancelFrame = jest.spyOn(window, 'cancelAnimationFrame');
+      fireEvent.scroll(window);
+      fireEvent.keyDown(screen.getByRole('listbox'), { key: 'Escape' });
+
+      expect(cancelFrame).toHaveBeenCalled();
     });
   });
 
