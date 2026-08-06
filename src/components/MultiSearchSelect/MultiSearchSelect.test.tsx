@@ -1,4 +1,10 @@
-import { render, screen, fireEvent, within, act } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  within,
+  waitFor,
+} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { ComponentProps } from 'react';
 import { MultiSearchSelect } from './MultiSearchSelect';
@@ -588,11 +594,8 @@ describe('MultiSearchSelect', () => {
     });
 
     /** Repositioning is throttled to one measurement per animation frame. */
-    const scrollAndFlushFrame = async (times = 1) => {
-      await act(async () => {
-        for (let i = 0; i < times; i++) fireEvent.scroll(window);
-        await new Promise((resolve) => requestAnimationFrame(resolve));
-      });
+    const scroll = (times = 1) => {
+      for (let i = 0; i < times; i++) fireEvent.scroll(window);
     };
 
     it('keeps the panel glued to the trigger on scroll', async () => {
@@ -602,10 +605,10 @@ describe('MultiSearchSelect', () => {
       openPanel();
 
       stubTriggerRect({ top: 60, bottom: 92 });
-      await scrollAndFlushFrame();
+      scroll();
 
       const panel = screen.getByRole('listbox').parentElement as HTMLElement;
-      expect(panel.style.top).toBe('96px');
+      await waitFor(() => expect(panel.style.top).toBe('96px'));
     });
 
     it('measures the trigger once per frame when scroll events pile up', async () => {
@@ -616,9 +619,9 @@ describe('MultiSearchSelect', () => {
 
       const measure = HTMLElement.prototype.getBoundingClientRect as jest.Mock;
       measure.mockClear();
-      await scrollAndFlushFrame(3);
+      scroll(3);
 
-      expect(measure).toHaveBeenCalledTimes(1);
+      await waitFor(() => expect(measure).toHaveBeenCalledTimes(1));
     });
 
     it('drops a scheduled reposition when the panel closes', () => {
