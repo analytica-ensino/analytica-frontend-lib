@@ -350,11 +350,17 @@ const VideoPlayer = ({
     'idle' | 'validating' | 'valid' | 'invalid'
   >('idle');
 
-  // Reset completion flag when changing videos
+  // Reset completion flag when changing videos.
+  //
+  // `storageKey` is part of the identity here because two different items can
+  // legitimately share the same `src` (for example, two lessons built from the
+  // same recording). Keying the reset on `src` alone left `hasCompleted` set
+  // when the consumer swapped to such an item, and `onVideoComplete` never
+  // fired again for it.
   useEffect(() => {
     setHasCompleted(false);
     setHasStarted(false);
-  }, [src]);
+  }, [src, storageKey]);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const lastSaveTimeRef = useRef(0);

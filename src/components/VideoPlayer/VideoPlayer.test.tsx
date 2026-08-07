@@ -1183,6 +1183,53 @@ describe('VideoPlayer', () => {
 
       expect(mockOnVideoComplete).toHaveBeenCalledTimes(1);
     });
+
+    it('should rearm completion when storageKey changes while src stays the same', () => {
+      const mockOnVideoComplete = jest.fn();
+      const { container, rerender } = render(
+        <VideoPlayer
+          {...defaultProps}
+          storageKey="lesson-1"
+          onVideoComplete={mockOnVideoComplete}
+        />
+      );
+
+      const completeVideo = () => {
+        const video = container.querySelector('video')!;
+
+        Object.defineProperty(video, 'duration', {
+          configurable: true,
+          value: 100,
+        });
+
+        fireEvent.loadedMetadata(video);
+
+        // Writable: changing storageKey re-runs the resume effect, which
+        // assigns currentTime
+        Object.defineProperty(video, 'currentTime', {
+          configurable: true,
+          writable: true,
+          value: 96,
+        });
+
+        fireEvent.timeUpdate(video);
+      };
+
+      completeVideo();
+      expect(mockOnVideoComplete).toHaveBeenCalledTimes(1);
+
+      // Two lessons can share the same recording; only storageKey tells them apart
+      rerender(
+        <VideoPlayer
+          {...defaultProps}
+          storageKey="lesson-2"
+          onVideoComplete={mockOnVideoComplete}
+        />
+      );
+
+      completeVideo();
+      expect(mockOnVideoComplete).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('Metadata handling', () => {
