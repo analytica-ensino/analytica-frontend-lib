@@ -208,6 +208,12 @@ const RecommendedLessonDetails = ({
 
   const breadcrumbItems = breadcrumbs || defaultBreadcrumbs;
 
+  /**
+   * A recommended class may be composed only of lessons (no activities).
+   * In that case there is nothing to correct, so the action must be hidden.
+   */
+  const hasActivities = (data?.details.activities?.length ?? 0) > 0;
+
   // Transform API students to display format
   const displayStudents = useMemo(() => {
     if (!data?.details.students) return [];
@@ -271,7 +277,9 @@ const RecommendedLessonDetails = ({
         {/* Students table */}
         <StudentsTable
           students={displayStudents}
-          onCorrectActivity={apiClient ? handleCorrectActivity : undefined}
+          onCorrectActivity={
+            apiClient && hasActivities ? handleCorrectActivity : undefined
+          }
           labels={labels}
         />
       </div>

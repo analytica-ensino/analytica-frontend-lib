@@ -656,4 +656,64 @@ describe('RecommendedLessonDetails', () => {
       expect(screen.getAllByText('CONCLUÍDO').length).toBeGreaterThanOrEqual(1);
     });
   });
+
+  describe('Corrigir atividade action', () => {
+    const mockApiClient = {
+      get: jest.fn(),
+      post: jest.fn(),
+      patch: jest.fn(),
+      delete: jest.fn(),
+    };
+
+    it('should render the action for every student when the recommended class has activities', () => {
+      const dataWithActivities: LessonDetailsData = {
+        ...mockLessonData,
+        details: {
+          ...mockLessonData.details,
+          activities: [{ id: 'activity-1', title: 'Atividade 1' }],
+        },
+      };
+
+      render(
+        <RecommendedLessonDetails
+          data={dataWithActivities}
+          apiClient={mockApiClient}
+          mapSubjectNameToEnum={mockMapSubjectNameToEnum}
+        />
+      );
+
+      expect(screen.getAllByText('Corrigir atividade')).toHaveLength(
+        mockLessonData.details.students.length
+      );
+    });
+
+    it('should not render the action when the recommended class has no activities', () => {
+      const dataWithEmptyActivities: LessonDetailsData = {
+        ...mockLessonData,
+        details: { ...mockLessonData.details, activities: [] },
+      };
+
+      render(
+        <RecommendedLessonDetails
+          data={dataWithEmptyActivities}
+          apiClient={mockApiClient}
+          mapSubjectNameToEnum={mockMapSubjectNameToEnum}
+        />
+      );
+
+      expect(screen.queryByText('Corrigir atividade')).not.toBeInTheDocument();
+    });
+
+    it('should not render the action when activities is missing from the details payload', () => {
+      render(
+        <RecommendedLessonDetails
+          data={mockLessonData}
+          apiClient={mockApiClient}
+          mapSubjectNameToEnum={mockMapSubjectNameToEnum}
+        />
+      );
+
+      expect(screen.queryByText('Corrigir atividade')).not.toBeInTheDocument();
+    });
+  });
 });
