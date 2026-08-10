@@ -637,6 +637,41 @@ describe('useTableFilter', () => {
         []
       );
     });
+
+    it('should keep a selection restored from the URL while the options are still loading', () => {
+      globalThis.location.href = 'http://localhost/?filter_escola=2';
+      globalThis.location.search = '?filter_escola=2';
+
+      // First render happens before the async options arrive, so every category
+      // starts with an empty item list.
+      const emptyConfigs: FilterConfig[] = [
+        {
+          ...mockInitialConfigs[0],
+          categories: [
+            { ...mockInitialConfigs[0].categories[0], itens: [] },
+            { ...mockInitialConfigs[0].categories[1], itens: [] },
+          ],
+        },
+        mockInitialConfigs[1],
+      ];
+
+      const { result, rerender } = renderHook(
+        ({ configs }) => useTableFilter(configs, { syncWithUrl: true }),
+        { initialProps: { configs: emptyConfigs } }
+      );
+
+      expect(result.current.filterConfigs[0].categories[0].selectedIds).toEqual(
+        ['2']
+      );
+
+      // Options arrive on a later render and the selection must survive.
+      rerender({ configs: mockInitialConfigs });
+
+      expect(result.current.filterConfigs[0].categories[0].selectedIds).toEqual(
+        ['2']
+      );
+      expect(result.current.activeFilters.escola).toEqual(['2']);
+    });
   });
 
   describe('popstate event', () => {

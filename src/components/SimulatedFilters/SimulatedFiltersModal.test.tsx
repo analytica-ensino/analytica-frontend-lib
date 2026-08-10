@@ -53,7 +53,11 @@ jest.mock('../CheckBoxGroup/CheckBoxGroup', () => ({
     categories,
     onCategoriesChange,
   }: {
-    categories: Array<{ key: string; selectedIds?: string[] }>;
+    categories: Array<{
+      key: string;
+      selectedIds?: string[];
+      dependsOn?: string[];
+    }>;
     onCategoriesChange: (
       categories: Array<{ key: string; selectedIds?: string[] }>
     ) => void;
@@ -62,6 +66,11 @@ jest.mock('../CheckBoxGroup/CheckBoxGroup', () => ({
       <span data-testid="categories-selected">
         {categories
           .map((cat) => `${cat.key}:${(cat.selectedIds ?? []).join(',')}`)
+          .join('|')}
+      </span>
+      <span data-testid="categories-depends">
+        {categories
+          .map((cat) => `${cat.key}:${(cat.dependsOn ?? []).join(',')}`)
           .join('|')}
       </span>
       <button
@@ -178,6 +187,31 @@ describe('SimulatedFiltersModal', () => {
     expect(screen.getByTestId('modal-title')).toHaveTextContent('Filtros');
     expect(screen.getByText('Limpar filtros')).toBeInTheDocument();
     expect(screen.getByText('Aplicar')).toBeInTheDocument();
+  });
+
+  it('leaves grade and class selectable without a parent selection', () => {
+    // Two schools means nothing is auto-selected, so a cascade requirement on
+    // "Série"/"Turma" would leave them disabled and the teacher would apply the
+    // filter with no class at all - which the backend reads as "every class".
+    mockUserAccessState.schools = [
+      { id: 'school-1', name: 'Escola FGB' },
+      { id: 'school-2', name: 'Escola IF' },
+    ];
+
+    render(
+      <SimulatedFiltersModal
+        isOpen
+        onClose={onClose}
+        onApply={onApply}
+        api={api}
+      />
+    );
+
+    // Anchored: a string argument would match a substring, so reintroducing a
+    // dependency on any category would still pass.
+    expect(screen.getByTestId('categories-depends')).toHaveTextContent(
+      /^school:\|schoolYear:\|class:$/
+    );
   });
 
   it('renders loading state when academic filters are loading', () => {
