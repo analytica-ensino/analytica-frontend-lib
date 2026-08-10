@@ -29,6 +29,9 @@ export interface UseModulesReturn {
   hasDashboard: boolean;
   hasLessons: boolean;
 
+  /** Printed kits: granted by a commercial plan, so it defaults to false. */
+  hasPrintedKits: boolean;
+
   // Tutorial menu link (true only when enabled AND tutorialUrl is non-empty)
   hasTutorial: boolean;
   tutorialUrl: string;
@@ -122,6 +125,9 @@ export const useModules = (): UseModulesReturn => {
     hasPerformance: modules.performance ?? true,
     hasDashboard: modules.dashboard ?? true,
     hasLessons: modules.lessons ?? true,
+
+    // Not `?? true`: this one is only ever granted, never inherited.
+    hasPrintedKits: modules.printedKits ?? false,
 
     // Tutorial: only show the menu link when enabled AND a url is configured
     hasTutorial: (modules.tutorial ?? false) && tutorialUrl.length > 0,
