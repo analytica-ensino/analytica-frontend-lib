@@ -138,9 +138,10 @@ const isStaleRequest = (requestId: number): boolean =>
  */
 const withRetry = async <T>(
   requestId: number,
-  attemptFn: () => Promise<T>
+  attemptFn: () => Promise<T>,
+  maxRetries: number = MAX_RETRIES
 ): Promise<T | null> => {
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
     if (attempt > 0) {
       await delay(INITIAL_RETRY_DELAY * Math.pow(2, attempt - 1));
     }
@@ -201,21 +202,26 @@ const fetchInstitutionModules = async (
   institutionId: string,
   api: AxiosInstance,
   requestId: number,
-  profileType?: string
+  profileType?: string,
+  maxRetries: number = MAX_RETRIES
 ): Promise<FetchedModules | null> =>
-  withRetry(requestId, async () => {
-    // Use the new profile-specific endpoint if profileType is provided
-    const endpoint = profileType
-      ? `/featureFlags/institution/${institutionId}/page/MODULES/profile/${profileType}`
-      : `/featureFlags/institution/${institutionId}/page/MODULES`;
+  withRetry(
+    requestId,
+    async () => {
+      // Use the new profile-specific endpoint if profileType is provided
+      const endpoint = profileType
+        ? `/featureFlags/institution/${institutionId}/page/MODULES/profile/${profileType}`
+        : `/featureFlags/institution/${institutionId}/page/MODULES`;
 
-    const response = await api.get<ModulesFeatureFlagResponse>(endpoint);
+      const response = await api.get<ModulesFeatureFlagResponse>(endpoint);
 
-    return {
-      version: response.data?.data?.featureFlags?.version ?? {},
-      plan: null,
-    };
-  });
+      return {
+        version: response.data?.data?.featureFlags?.version ?? {},
+        plan: null,
+      };
+    },
+    maxRetries
+  );
 
 /**
  * Zustand store for managing modules visibility with persistence
@@ -274,12 +280,18 @@ export const useModulesStore = create<ModulesState>()(
         const result = authenticated
           ? ((await fetchMyModules(api, requestId)) ??
             // Degrade to the previous behaviour rather than to an empty app when
-            // the authenticated call cannot be reached.
+            // the authenticated call cannot be reached — but with a single attempt.
+            // The retries belong to `/me/modules`, which is the call that gives the
+            // right answer; spending a second full backoff cycle here would double
+            // the time gated routes stay blank, and `ModuleProtectedRoute` renders
+            // nothing while `loading`. If the authenticated call is simply absent,
+            // one request settles it; if the network is down, repeating it is waste.
             (await fetchInstitutionModules(
               institutionId,
               api,
               requestId,
-              profileType
+              profileType,
+              0
             )))
           : await fetchInstitutionModules(
               institutionId,

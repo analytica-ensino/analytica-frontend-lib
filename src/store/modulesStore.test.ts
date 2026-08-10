@@ -1448,6 +1448,28 @@ describe('ModulesStore', () => {
       expect(useModulesStore.getState().modules.essay).toBe(false);
     }, 20000);
 
+    it('should not spend a second retry cycle on the fallback', async () => {
+      // `ModuleProtectedRoute` renders nothing while `loading`, so the time both calls take
+      // is the time every gated route stays blank on a cold start. The retries belong to
+      // `/me/modules`; the fallback gets one shot.
+      const calls: string[] = [];
+      mockApi.get.mockImplementation((url: string) => {
+        calls.push(url);
+        return Promise.reject(new Error('network down'));
+      });
+
+      await useModulesStore
+        .getState()
+        .fetchModules(
+          institutionId,
+          mockApi as unknown as AxiosInstance,
+          'STUDENT'
+        );
+
+      expect(calls.filter((url) => url === '/me/modules')).toHaveLength(4);
+      expect(calls.filter((url) => url !== '/me/modules')).toHaveLength(1);
+    }, 30000);
+
     it('should revalidate cached modules instead of skipping the request', async () => {
       withCachedModules();
       mockApi.get.mockResolvedValue({
