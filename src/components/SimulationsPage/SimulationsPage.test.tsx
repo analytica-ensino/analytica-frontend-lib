@@ -117,7 +117,9 @@ describe('SimulationsPage', () => {
         ([url]: [string]) => url.endsWith('/students')
       );
       const lastCall = studentsCalls.at(-1);
-      expect(lastCall?.[1]?.params?.classIds).toEqual(['c1']);
+      // CSV, not an array: axios turns arrays into `classIds[]=…`, a key the
+      // backend schema ignores, which silently disables the filter.
+      expect(lastCall?.[1]?.params?.classIds).toBe('c1');
     });
   });
 });

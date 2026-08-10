@@ -137,10 +137,15 @@ export function SimulatedFiltersModal({
           itens: schools,
           selectedIds: autoSelectedSchoolIds,
         },
+        // Neither category declares `dependsOn`: requiring the parent selection
+        // would leave "Série" and "Turma" disabled for a teacher with more than
+        // one school (nothing is auto-selected then), and applying without
+        // reaching the class means "no class filter", which the backend reads
+        // as "every class I teach". `filteredBy` still narrows the lists once a
+        // parent is picked.
         {
           key: 'schoolYear',
           label: 'Série',
-          dependsOn: ['school'],
           filteredBy: [{ key: 'school', internalField: 'schoolId' }],
           itens: schoolYears,
           selectedIds: initialFilters?.schoolYearIds || [],
@@ -148,7 +153,6 @@ export function SimulatedFiltersModal({
         {
           key: 'class',
           label: 'Turma',
-          dependsOn: ['school', 'schoolYear'],
           filteredBy: [
             { key: 'school', internalField: 'schoolId' },
             { key: 'schoolYear', internalField: 'schoolYearId' },
