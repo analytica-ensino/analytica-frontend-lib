@@ -160,7 +160,38 @@ const createTableColumns = (
   onCorrectActivity: (studentId: string) => void,
   isPresencial: boolean
 ): ColumnConfig<ActivityStudentTableItem>[] => {
-  const columns: ColumnConfig<ActivityStudentTableItem>[] = [
+  /** Delivery of the essay sheet, which only the printed booklet carries. */
+  const essayColumns: ColumnConfig<ActivityStudentTableItem>[] = [
+    {
+      key: 'essayStatus',
+      label: 'Status redação',
+      sortable: false,
+      render: renderDeliveryBadge,
+    },
+    {
+      key: 'essayReceivedAt',
+      label: 'Redação recebida em',
+      sortable: true,
+      render: renderDateCell,
+    },
+  ];
+
+  /** Time spent answering, meaningless for a booklet done on paper. */
+  const timeSpentColumn: ColumnConfig<ActivityStudentTableItem> = {
+    key: 'timeSpent',
+    label: 'Duração',
+    sortable: false,
+    render: (value: unknown) =>
+      Number(value) > 0 ? (
+        <Text className="text-sm text-text-700">
+          {formatTimeSpent(Number(value))}
+        </Text>
+      ) : (
+        <Text className="text-sm text-text-400">-</Text>
+      ),
+  };
+
+  return [
     {
       key: 'studentName',
       label: isPresencial ? 'Estudante' : 'Aluno',
@@ -220,119 +251,80 @@ const createTableColumns = (
       sortable: true,
       render: renderDateCell,
     },
-  ];
-
-  // The printed exam carries an essay sheet, delivered independently of the
-  // answer sheet — hence its own status and date.
-  if (isPresencial) {
-    columns.push(
-      {
-        key: 'essayStatus',
-        label: 'Status redação',
-        sortable: false,
-        render: renderDeliveryBadge,
-      },
-      {
-        key: 'essayReceivedAt',
-        label: 'Redação recebida em',
-        sortable: true,
-        render: renderDateCell,
-      }
-    );
-  }
-
-  // "Duração" column is hidden in presencial mode
-  if (!isPresencial) {
-    columns.push({
-      key: 'timeSpent',
-      label: 'Duração',
-      sortable: false,
+    ...(isPresencial ? essayColumns : [timeSpentColumn]),
+    {
+      key: 'score',
+      label: 'Nota',
+      sortable: true,
       render: (value: unknown) =>
-        Number(value) > 0 ? (
-          <Text className="text-sm text-text-700">
-            {formatTimeSpent(Number(value))}
-          </Text>
-        ) : (
+        value === null ? (
           <Text className="text-sm text-text-400">-</Text>
+        ) : (
+          <Text className="text-sm font-semibold text-text-950">
+            {Number(value).toFixed(1)}
+          </Text>
         ),
-    });
-  }
-
-  columns.push({
-    key: 'score',
-    label: 'Nota',
-    sortable: true,
-    render: (value: unknown) =>
-      value === null ? (
-        <Text className="text-sm text-text-400">-</Text>
-      ) : (
-        <Text className="text-sm font-semibold text-text-950">
-          {Number(value).toFixed(1)}
-        </Text>
-      ),
-  });
-
-  columns.push({
-    key: 'actions',
-    label: 'Resultado',
-    sortable: false,
-    render: (_value: unknown, row: ActivityStudentTableItem) => {
-      // Presencial mode: show "Ver respostas" — disabled until answer sheet is received
-      if (isPresencial) {
-        const hasResponse =
-          row.status === STUDENT_ACTIVITY_STATUS.ANSWER_SHEET_RECEIVED ||
-          row.status === STUDENT_ACTIVITY_STATUS.AGUARDANDO_CORRECAO ||
-          row.status === STUDENT_ACTIVITY_STATUS.CONCLUIDO;
-        return (
-          <Button
-            variant="link"
-            size="small"
-            onClick={
-              hasResponse ? () => onCorrectActivity(row.studentId) : undefined
-            }
-            disabled={!hasResponse}
-            className="text-xs"
-          >
-            Ver respostas
-          </Button>
-        );
-      }
-
-      // Normal mode
-      if (row.status === STUDENT_ACTIVITY_STATUS.AGUARDANDO_CORRECAO) {
-        return (
-          <Button
-            variant="outline"
-            size="small"
-            onClick={() => onCorrectActivity(row.studentId)}
-            className="text-xs"
-          >
-            Corrigir atividade
-          </Button>
-        );
-      }
-
-      if (
-        row.status === STUDENT_ACTIVITY_STATUS.CONCLUIDO ||
-        row.status === STUDENT_ACTIVITY_STATUS.NAO_ENTREGUE
-      ) {
-        return (
-          <Button
-            variant="link"
-            size="small"
-            onClick={() => onCorrectActivity(row.studentId)}
-            className="text-xs"
-          >
-            Ver detalhes
-          </Button>
-        );
-      }
-
-      return null;
     },
-  });
+    {
+      key: 'actions',
+      label: 'Resultado',
+      sortable: false,
+      render: (_value: unknown, row: ActivityStudentTableItem) => {
+        // Presencial mode: show "Ver respostas" — disabled until answer sheet is received
+        if (isPresencial) {
+          const hasResponse =
+            row.status === STUDENT_ACTIVITY_STATUS.ANSWER_SHEET_RECEIVED ||
+            row.status === STUDENT_ACTIVITY_STATUS.AGUARDANDO_CORRECAO ||
+            row.status === STUDENT_ACTIVITY_STATUS.CONCLUIDO;
+          return (
+            <Button
+              variant="link"
+              size="small"
+              onClick={
+                hasResponse ? () => onCorrectActivity(row.studentId) : undefined
+              }
+              disabled={!hasResponse}
+              className="text-xs"
+            >
+              Ver respostas
+            </Button>
+          );
+        }
 
-  return columns;
+        // Normal mode
+        if (row.status === STUDENT_ACTIVITY_STATUS.AGUARDANDO_CORRECAO) {
+          return (
+            <Button
+              variant="outline"
+              size="small"
+              onClick={() => onCorrectActivity(row.studentId)}
+              className="text-xs"
+            >
+              Corrigir atividade
+            </Button>
+          );
+        }
+
+        if (
+          row.status === STUDENT_ACTIVITY_STATUS.CONCLUIDO ||
+          row.status === STUDENT_ACTIVITY_STATUS.NAO_ENTREGUE
+        ) {
+          return (
+            <Button
+              variant="link"
+              size="small"
+              onClick={() => onCorrectActivity(row.studentId)}
+              className="text-xs"
+            >
+              Ver detalhes
+            </Button>
+          );
+        }
+
+        return null;
+      },
+    },
+  ];
 };
 
 /**
