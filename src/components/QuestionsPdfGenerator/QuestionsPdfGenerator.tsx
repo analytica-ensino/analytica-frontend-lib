@@ -492,10 +492,9 @@ export const useQuestionsPdfPrint = (
         throw new Error('Elemento de PDF não encontrado no DOM');
       }
 
-      // Resolved before opening the window on purpose: an await after
-      // window.open() leaves a blank popup on screen while the data loads.
-      const extraPagesHtml = getExtraPagesHtml ? await getExtraPagesHtml() : '';
-
+      // Opened before any await: window.open() outside the user-activation
+      // window is what popup blockers reject. The extra pages are fetched after,
+      // and written into this already-open window.
       const printWindow = window.open('', '_blank');
       if (!printWindow) {
         throw new Error(
@@ -503,6 +502,17 @@ export const useQuestionsPdfPrint = (
         );
       }
       printWindow.opener = null;
+
+      let extraPagesHtml = '';
+      if (getExtraPagesHtml) {
+        try {
+          extraPagesHtml = await getExtraPagesHtml();
+        } catch (error) {
+          // Leaving a blank popup behind is worse than not printing at all.
+          printWindow.close();
+          throw error;
+        }
+      }
 
       const contentHTML = contentRef.current.innerHTML + extraPagesHtml;
       const styles = collectRelevantStyles();

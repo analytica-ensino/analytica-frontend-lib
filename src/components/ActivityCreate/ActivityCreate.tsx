@@ -206,6 +206,9 @@ const CreateActivity = ({
   );
   const [essayTheme, setEssayTheme] = useState<EssayTheme | null>(null);
 
+  /** The questions builder is hidden only while the essay tab is open. */
+  const showQuestionsTab = !showEssayTab || activeTab === 'questions';
+
   // Estados internos
   const [activity, setActivity] = useState<ActivityData | null>(null);
   const [preFilters, setPreFilters] = useState<ActivityPreFiltersInput | null>(
@@ -1206,57 +1209,60 @@ const CreateActivity = ({
       )}
 
       {/* Main Content */}
-      {showEssayTab && activeTab === 'essay' ? (
+      {showEssayTab && activeTab === 'essay' && (
         <EssayThemePicker
           apiClient={apiClient}
           selectedTheme={essayTheme}
           onSelectTheme={setEssayTheme}
           onRemoveTheme={() => setEssayTheme(null)}
         />
-      ) : isSmallScreen ? (
-        <SmallScreenLayout
-          apiClient={apiClient}
-          institutionId={institutionId}
-          isDark={isDark}
-          selectedView={selectedView}
-          onViewChange={setSelectedView}
-          initialFiltersData={initialFiltersData}
-          onFiltersChange={handleFiltersChange}
-          onApplyFilters={handleApplyFilters}
-          onClearFilters={handleClearFilters}
-          onAddQuestion={handleAddQuestion}
-          addedQuestionIds={addedQuestionIds}
-          enableExamMode={enableExamMode || isInPersonExam}
-          isInPersonExam={isInPersonExam}
-          loadingInitialQuestions={loadingInitialQuestions}
-          questions={questions}
-          onRemoveAll={handleRemoveAll}
-          onRemoveQuestion={handleRemoveQuestion}
-          onReorder={handleReorder}
-          filtersKey={filtersKey}
-        />
-      ) : (
-        <DesktopLayout
-          apiClient={apiClient}
-          institutionId={institutionId}
-          isDark={isDark}
-          initialFiltersData={initialFiltersData}
-          draftFilters={draftFilters}
-          onFiltersChange={handleFiltersChange}
-          onApplyFilters={handleApplyFilters}
-          onClearFilters={handleClearFilters}
-          onAddQuestion={handleAddQuestion}
-          addedQuestionIds={addedQuestionIds}
-          enableExamMode={enableExamMode || isInPersonExam}
-          isInPersonExam={isInPersonExam}
-          loadingInitialQuestions={loadingInitialQuestions}
-          questions={questions}
-          onRemoveAll={handleRemoveAll}
-          onRemoveQuestion={handleRemoveQuestion}
-          onReorder={handleReorder}
-          filtersKey={filtersKey}
-        />
       )}
+
+      {showQuestionsTab &&
+        (isSmallScreen ? (
+          <SmallScreenLayout
+            apiClient={apiClient}
+            institutionId={institutionId}
+            isDark={isDark}
+            selectedView={selectedView}
+            onViewChange={setSelectedView}
+            initialFiltersData={initialFiltersData}
+            onFiltersChange={handleFiltersChange}
+            onApplyFilters={handleApplyFilters}
+            onClearFilters={handleClearFilters}
+            onAddQuestion={handleAddQuestion}
+            addedQuestionIds={addedQuestionIds}
+            enableExamMode={enableExamMode || isInPersonExam}
+            isInPersonExam={isInPersonExam}
+            loadingInitialQuestions={loadingInitialQuestions}
+            questions={questions}
+            onRemoveAll={handleRemoveAll}
+            onRemoveQuestion={handleRemoveQuestion}
+            onReorder={handleReorder}
+            filtersKey={filtersKey}
+          />
+        ) : (
+          <DesktopLayout
+            apiClient={apiClient}
+            institutionId={institutionId}
+            isDark={isDark}
+            initialFiltersData={initialFiltersData}
+            draftFilters={draftFilters}
+            onFiltersChange={handleFiltersChange}
+            onApplyFilters={handleApplyFilters}
+            onClearFilters={handleClearFilters}
+            onAddQuestion={handleAddQuestion}
+            addedQuestionIds={addedQuestionIds}
+            enableExamMode={enableExamMode || isInPersonExam}
+            isInPersonExam={isInPersonExam}
+            loadingInitialQuestions={loadingInitialQuestions}
+            questions={questions}
+            onRemoveAll={handleRemoveAll}
+            onRemoveQuestion={handleRemoveQuestion}
+            onReorder={handleReorder}
+            filtersKey={filtersKey}
+          />
+        ))}
 
       {/* Save Activity Model Modal */}
       <SaveActivityModelModal

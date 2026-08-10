@@ -67,6 +67,17 @@ describe('EssayThemePicker', () => {
     ).toBeInTheDocument();
   });
 
+  it('reads the bank immediately on mount, without waiting for the debounce', async () => {
+    const get = jest.fn().mockResolvedValue(themesResponse([theme()]));
+    render(<EssayThemePicker {...defaultProps} apiClient={makeApi(get)} />);
+
+    // No timer advanced: the empty state must never flash before the request.
+    expect(get).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText('Nenhum tema encontrado.')).toBeNull();
+
+    await flushDebounce();
+  });
+
   it('shows the total returned by the API', async () => {
     const get = jest.fn().mockResolvedValue(themesResponse([theme()], 4));
     render(<EssayThemePicker {...defaultProps} apiClient={makeApi(get)} />);

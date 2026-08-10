@@ -2,6 +2,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
@@ -106,8 +107,18 @@ export const EssayThemePicker = ({
   const { themes, loading, error, pagination, fetchThemes } = useEssayThemes();
 
   const [search, setSearch] = useState('');
+  const hasLoadedRef = useRef(false);
 
   useEffect(() => {
+    // The debounce protects the search box, not the first paint: waiting for it
+    // on mount would show "Nenhum tema encontrado" before the request even
+    // starts.
+    if (!hasLoadedRef.current) {
+      hasLoadedRef.current = true;
+      fetchThemes({ page: 1, limit: THEMES_PAGE_SIZE, search });
+      return;
+    }
+
     const timer = setTimeout(() => {
       fetchThemes({ page: 1, limit: THEMES_PAGE_SIZE, search });
     }, SEARCH_DEBOUNCE_MS);

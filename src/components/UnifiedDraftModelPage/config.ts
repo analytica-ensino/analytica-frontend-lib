@@ -36,130 +36,110 @@ type CategoryConfig = {
 };
 
 /**
+ * Build the drafts/models pair for one category.
+ *
+ * The three categories differ only in wording, tab enum and test ids, so they
+ * are generated from those differences instead of being copied.
+ *
+ * @param options - The parts that actually vary between categories
+ * @returns Config for both the drafts and the models page
+ */
+const createCategoryConfig = ({
+  tabs,
+  pluralNoun,
+  createButton,
+  draftHint,
+  modelHint,
+  testIdPrefix,
+  onCreatePropName,
+}: {
+  tabs: { drafts: string; models: string };
+  /** Plural noun used in the page titles, e.g. "atividades" */
+  pluralNoun: string;
+  createButton: string;
+  /** Sentence shown on the empty drafts page */
+  draftHint: string;
+  /** Sentence shown on the empty models page */
+  modelHint: string;
+  testIdPrefix: string;
+  onCreatePropName: 'onCreateActivity' | 'onCreateExam';
+}): CategoryConfig => ({
+  drafts: {
+    activeTab: tabs.drafts,
+    pageTitle: `Rascunhos de ${pluralNoun}`,
+    emptyTitle: 'Você ainda não tem rascunhos',
+    emptyDescription: draftHint,
+    buttonText: createButton,
+    itemLabel: 'rascunhos',
+    searchPlaceholder: 'Buscar rascunho',
+    dialogTitle: 'Excluir rascunho',
+    editUrlType: 'rascunho',
+    errorLogLabel: 'rascunho',
+    currentTab: 'drafts',
+    dataKey: 'drafts',
+    fetchKey: 'fetchDrafts',
+    deleteKey: 'deleteDraft',
+    testId: `${testIdPrefix}-drafts-page`,
+    onCreatePropName,
+  },
+  models: {
+    activeTab: tabs.models,
+    pageTitle: `Modelos de ${pluralNoun}`,
+    emptyTitle: 'Você ainda não tem modelos salvos',
+    emptyDescription: modelHint,
+    buttonText: createButton,
+    itemLabel: 'modelos',
+    searchPlaceholder: 'Buscar modelo',
+    dialogTitle: 'Excluir modelo',
+    editUrlType: 'modelo',
+    errorLogLabel: 'modelo',
+    currentTab: 'models',
+    dataKey: 'models',
+    fetchKey: 'fetchModels',
+    deleteKey: 'deleteModel',
+    testId: `${testIdPrefix}-models-page`,
+    onCreatePropName,
+  },
+});
+
+/**
  * Configuration for drafts vs models by activity category
  */
 export const PAGE_CONFIG: Record<ExtendedActivityCategory, CategoryConfig> = {
-  ATIVIDADE: {
-    drafts: {
-      activeTab: ActivityTab.DRAFTS,
-      pageTitle: 'Rascunhos de atividades',
-      emptyTitle: 'Você ainda não tem rascunhos',
-      emptyDescription:
-        'Comece a criar uma atividade e salve como rascunho para continuar depois!',
-      buttonText: 'Criar atividade',
-      itemLabel: 'rascunhos',
-      searchPlaceholder: 'Buscar rascunho',
-      dialogTitle: 'Excluir rascunho',
-      editUrlType: 'rascunho' as const,
-      errorLogLabel: 'rascunho',
-      currentTab: 'drafts' as const,
-      dataKey: 'drafts' as const,
-      fetchKey: 'fetchDrafts' as const,
-      deleteKey: 'deleteDraft' as const,
-      testId: 'activity-drafts-page',
-      onCreatePropName: 'onCreateActivity' as const,
-    },
-    models: {
-      activeTab: ActivityTab.MODELS,
-      pageTitle: 'Modelos de atividades',
-      emptyTitle: 'Você ainda não tem modelos salvos',
-      emptyDescription:
-        'Salve uma atividade como modelo para reutilizá-la facilmente no futuro!',
-      buttonText: 'Criar atividade',
-      itemLabel: 'modelos',
-      searchPlaceholder: 'Buscar modelo',
-      dialogTitle: 'Excluir modelo',
-      editUrlType: 'modelo' as const,
-      errorLogLabel: 'modelo',
-      currentTab: 'models' as const,
-      dataKey: 'models' as const,
-      fetchKey: 'fetchModels' as const,
-      deleteKey: 'deleteModel' as const,
-      testId: 'activity-models-page',
-      onCreatePropName: 'onCreateActivity' as const,
-    },
-  },
-  PROVA: {
-    drafts: {
-      activeTab: ExamTab.DRAFTS,
-      pageTitle: 'Rascunhos de provas',
-      emptyTitle: 'Você ainda não tem rascunhos',
-      emptyDescription:
-        'Comece a criar uma prova e salve como rascunho para continuar depois!',
-      buttonText: 'Criar prova',
-      itemLabel: 'rascunhos',
-      searchPlaceholder: 'Buscar rascunho',
-      dialogTitle: 'Excluir rascunho',
-      editUrlType: 'rascunho' as const,
-      errorLogLabel: 'rascunho',
-      currentTab: 'drafts' as const,
-      dataKey: 'drafts' as const,
-      fetchKey: 'fetchDrafts' as const,
-      deleteKey: 'deleteDraft' as const,
-      testId: 'exam-drafts-page',
-      onCreatePropName: 'onCreateExam' as const,
-    },
-    models: {
-      activeTab: ExamTab.MODELS,
-      pageTitle: 'Modelos de provas',
-      emptyTitle: 'Você ainda não tem modelos salvos',
-      emptyDescription:
-        'Salve uma prova como modelo para reutilizá-la facilmente no futuro!',
-      buttonText: 'Criar prova',
-      itemLabel: 'modelos',
-      searchPlaceholder: 'Buscar modelo',
-      dialogTitle: 'Excluir modelo',
-      editUrlType: 'modelo' as const,
-      errorLogLabel: 'modelo',
-      currentTab: 'models' as const,
-      dataKey: 'models' as const,
-      fetchKey: 'fetchModels' as const,
-      deleteKey: 'deleteModel' as const,
-      testId: 'exam-models-page',
-      onCreatePropName: 'onCreateExam' as const,
-    },
-  },
-  PRESENCIAL: {
-    drafts: {
-      activeTab: ActivityTab.DRAFTS,
-      pageTitle: 'Rascunhos de atividades',
-      emptyTitle: 'Você ainda não tem rascunhos',
-      emptyDescription:
-        'Comece a criar uma atividade presencial e salve como rascunho para continuar depois!',
-      buttonText: 'Criar atividade',
-      itemLabel: 'rascunhos',
-      searchPlaceholder: 'Buscar rascunho',
-      dialogTitle: 'Excluir rascunho',
-      editUrlType: 'rascunho' as const,
-      errorLogLabel: 'rascunho',
-      currentTab: 'drafts' as const,
-      dataKey: 'drafts' as const,
-      fetchKey: 'fetchDrafts' as const,
-      deleteKey: 'deleteDraft' as const,
-      testId: 'presencial-activity-drafts-page',
-      onCreatePropName: 'onCreateActivity' as const,
-    },
-    models: {
-      activeTab: ActivityTab.MODELS,
-      pageTitle: 'Modelos de atividades',
-      emptyTitle: 'Você ainda não tem modelos salvos',
-      emptyDescription:
-        'Salve uma atividade presencial como modelo para reutilizá-la facilmente no futuro!',
-      buttonText: 'Criar atividade',
-      itemLabel: 'modelos',
-      searchPlaceholder: 'Buscar modelo',
-      dialogTitle: 'Excluir modelo',
-      editUrlType: 'modelo' as const,
-      errorLogLabel: 'modelo',
-      currentTab: 'models' as const,
-      dataKey: 'models' as const,
-      fetchKey: 'fetchModels' as const,
-      deleteKey: 'deleteModel' as const,
-      testId: 'presencial-activity-models-page',
-      onCreatePropName: 'onCreateActivity' as const,
-    },
-  },
-} as const;
+  ATIVIDADE: createCategoryConfig({
+    tabs: { drafts: ActivityTab.DRAFTS, models: ActivityTab.MODELS },
+    pluralNoun: 'atividades',
+    createButton: 'Criar atividade',
+    draftHint:
+      'Comece a criar uma atividade e salve como rascunho para continuar depois!',
+    modelHint:
+      'Salve uma atividade como modelo para reutilizá-la facilmente no futuro!',
+    testIdPrefix: 'activity',
+    onCreatePropName: 'onCreateActivity',
+  }),
+  PROVA: createCategoryConfig({
+    tabs: { drafts: ExamTab.DRAFTS, models: ExamTab.MODELS },
+    pluralNoun: 'provas',
+    createButton: 'Criar prova',
+    draftHint:
+      'Comece a criar uma prova e salve como rascunho para continuar depois!',
+    modelHint:
+      'Salve uma prova como modelo para reutilizá-la facilmente no futuro!',
+    testIdPrefix: 'exam',
+    onCreatePropName: 'onCreateExam',
+  }),
+  PRESENCIAL: createCategoryConfig({
+    tabs: { drafts: ActivityTab.DRAFTS, models: ActivityTab.MODELS },
+    pluralNoun: 'atividades',
+    createButton: 'Criar atividade',
+    draftHint:
+      'Comece a criar uma atividade presencial e salve como rascunho para continuar depois!',
+    modelHint:
+      'Salve uma atividade presencial como modelo para reutilizá-la facilmente no futuro!',
+    testIdPrefix: 'presencial-activity',
+    onCreatePropName: 'onCreateActivity',
+  }),
+};
 
 /**
  * Get page layout component based on activity category

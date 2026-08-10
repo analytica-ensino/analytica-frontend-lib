@@ -29,6 +29,37 @@ export const getActivityStatusBadgeAction = (
 };
 
 /**
+ * Render the activity status as a badge.
+ *
+ * An unrecognised status keeps its own text and falls back to the neutral
+ * action, so an API value this build does not know about is never dressed up as
+ * an active activity.
+ *
+ * @param value - Raw status coming from the API
+ * @returns Badge element
+ */
+export const renderActivityStatusBadge = (value: unknown) => {
+  const status = typeof value === 'string' ? value : '';
+  const isKnown = Object.values(ActivityDisplayStatus).includes(
+    value as ActivityDisplayStatus
+  );
+
+  return (
+    <Badge
+      variant="solid"
+      action={
+        isKnown
+          ? getActivityStatusBadgeAction(value as ActivityDisplayStatus)
+          : ActivityBadgeActionType.INFO
+      }
+      size="small"
+    >
+      {status}
+    </Badge>
+  );
+};
+
+/**
  * Column configuration for activities table
  *
  * Columns:
@@ -94,26 +125,7 @@ export const activitiesTableColumns: ColumnConfig<ActivityTableItem>[] = [
     key: 'status',
     label: 'Status',
     sortable: true,
-    render: (value: unknown) => {
-      const status = typeof value === 'string' ? value : '';
-      // Validate status is a valid ActivityDisplayStatus enum value
-      const validStatuses = Object.values(ActivityDisplayStatus);
-      const validatedStatus = validStatuses.includes(
-        value as ActivityDisplayStatus
-      )
-        ? (value as ActivityDisplayStatus)
-        : ActivityDisplayStatus.ATIVA; // Default fallback
-
-      return (
-        <Badge
-          variant="solid"
-          action={getActivityStatusBadgeAction(validatedStatus)}
-          size="small"
-        >
-          {status}
-        </Badge>
-      );
-    },
+    render: renderActivityStatusBadge,
   },
   {
     key: 'completionPercentage',

@@ -92,6 +92,39 @@ describe('useEssayThemes', () => {
     });
   });
 
+  it('drops a slower earlier response so it cannot overwrite the newer list', async () => {
+    let resolveFirst: (value: unknown) => void = () => {};
+    const first = new Promise((resolve) => {
+      resolveFirst = resolve;
+    });
+    const second = {
+      data: {
+        message: 'ok',
+        data: {
+          themes: [{ ...themesResponse.data.data.themes[0], id: 'theme-2' }],
+          pagination: { page: 1, limit: 20, total: 1, totalPages: 1 },
+        },
+      },
+    };
+
+    const get = jest
+      .fn()
+      .mockReturnValueOnce(first)
+      .mockResolvedValueOnce(second);
+    const useEssayThemes = createUseEssayThemes(makeApi(get));
+    const { result } = renderHook(() => useEssayThemes());
+
+    await act(async () => {
+      const stale = result.current.fetchThemes({ search: 'a' });
+      await result.current.fetchThemes({ search: 'ab' });
+      resolveFirst(themesResponse);
+      await stale;
+    });
+
+    // The newer search wins even though the older request resolved last.
+    expect(result.current.themes[0].id).toBe('theme-2');
+  });
+
   it('surfaces an error message when the request fails', async () => {
     const get = jest.fn().mockRejectedValue(new Error('403'));
     const useEssayThemes = createUseEssayThemes(makeApi(get));

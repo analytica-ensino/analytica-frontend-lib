@@ -42,15 +42,18 @@ describe('presencialActivitiesTableConfig', () => {
       ).toBeInTheDocument();
     });
 
-    it('should fall back to ATIVA when the status is not a known value', () => {
+    it('should keep an unknown status neutral instead of styling it as active', () => {
       const statusColumn = presencialActivitiesTableColumns[1];
 
       const { container } = render(
         <>{statusColumn.render?.('SOMETHING_ELSE', row, 0)}</>
       );
 
-      // Unknown values still render, but are styled as ATIVA.
       expect(container).toHaveTextContent('SOMETHING_ELSE');
+      // Neutral (info) styling, not the warning used by ATIVA.
+      expect(container.querySelector('div')?.className).not.toContain(
+        'warning'
+      );
     });
 
     it('should render an empty string when the status is not a string', () => {

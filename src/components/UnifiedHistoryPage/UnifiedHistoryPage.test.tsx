@@ -816,26 +816,14 @@ describe('UnifiedHistoryPage', () => {
       expect(lastCall.initialFilters).toEqual(expect.any(Array));
     });
 
-    it('navigates to the presencial details route on row click', () => {
+    it.each([
+      ['Click Row', '/atividades-presenciais/detalhes/1'],
+      ['Go to Drafts', '/atividades-presenciais/rascunhos'],
+      ['Create Activity', '/criar-atividade-presencial'],
+    ])('navigates to the presencial route on "%s"', (action, expectedUrl) => {
       render(<UnifiedHistoryPage {...presencialProps()} />);
-      fireEvent.click(screen.getByText('Click Row'));
-      expect(mockNavigate).toHaveBeenCalledWith(
-        '/atividades-presenciais/detalhes/1'
-      );
-    });
-
-    it('navigates to the presencial drafts route on tab change', () => {
-      render(<UnifiedHistoryPage {...presencialProps()} />);
-      fireEvent.click(screen.getByText('Go to Drafts'));
-      expect(mockNavigate).toHaveBeenCalledWith(
-        '/atividades-presenciais/rascunhos'
-      );
-    });
-
-    it('navigates to the presencial create route', () => {
-      render(<UnifiedHistoryPage {...presencialProps()} />);
-      fireEvent.click(screen.getByText('Create Activity'));
-      expect(mockNavigate).toHaveBeenCalledWith('/criar-atividade-presencial');
+      fireEvent.click(screen.getByText(action));
+      expect(mockNavigate).toHaveBeenCalledWith(expectedUrl);
     });
 
     it('enables the owner-only actions column, same as regular activities', () => {

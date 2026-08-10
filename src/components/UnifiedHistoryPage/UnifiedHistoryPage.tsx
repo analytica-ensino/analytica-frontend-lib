@@ -13,6 +13,7 @@ import { EditActivityModal } from './EditActivityModal';
 import useToastStore from '../Toast/utils/ToastStore';
 import TypeSelector from '../TypeSelector/TypeSelector';
 import { createActivityCategoryConfig } from '../TypeSelector/TypeSelector.types';
+import type { TypeRoutes } from '../TypeSelector/TypeSelector.types';
 import type { FilterConfig } from '../Filter';
 import type { TableParams, ColumnConfig } from '../TableProvider/TableProvider';
 import type {
@@ -313,13 +314,9 @@ export const UnifiedHistoryPage = ({
     [routes]
   );
 
-  /**
-   * Routes for the active category. Optional categories (PRESENCIAL) only exist
-   * in `routes` when the app configured them — and an app never renders this
-   * page for a category it did not configure, so the fallback is unreachable in
-   * practice and exists only to keep the type total.
-   */
-  const currentRoutes = routes[activityCategory] ?? routes.ATIVIDADE;
+  // Guaranteed by the props type: a PRESENCIAL page can only be rendered with
+  // PRESENCIAL routes, so there is no fallback to another category's URLs.
+  const currentRoutes = routes[activityCategory] as TypeRoutes;
 
   /**
    * Handle tab change

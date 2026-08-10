@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import type { BaseApiClient } from '../types/api';
 import type {
   EssayTheme,
@@ -46,6 +46,12 @@ const useEssayThemesImpl = (apiClient: BaseApiClient): UseEssayThemesReturn => {
   });
 
   /**
+   * Sequence of the latest request. A slower earlier response must not
+   * overwrite a newer list — the search box can fire overlapping requests.
+   */
+  const requestIdRef = useRef(0);
+
+  /**
    * Fetch the essay theme bank. The endpoint only ever returns active themes,
    * so a theme retired after being picked stays on the activity but stops
    * showing up here.
@@ -54,6 +60,7 @@ const useEssayThemesImpl = (apiClient: BaseApiClient): UseEssayThemesReturn => {
    */
   const fetchThemes = useCallback(
     async (filters: EssayThemeFilters = {}) => {
+      const requestId = ++requestIdRef.current;
       setState((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
@@ -68,6 +75,8 @@ const useEssayThemesImpl = (apiClient: BaseApiClient): UseEssayThemesReturn => {
           { params }
         );
 
+        if (requestId !== requestIdRef.current) return;
+
         setState({
           themes: response.data.data.themes,
           loading: false,
@@ -75,6 +84,8 @@ const useEssayThemesImpl = (apiClient: BaseApiClient): UseEssayThemesReturn => {
           pagination: response.data.data.pagination,
         });
       } catch (error) {
+        if (requestId !== requestIdRef.current) return;
+
         console.error('Erro ao carregar temas de redação:', error);
         setState((prev) => ({
           ...prev,

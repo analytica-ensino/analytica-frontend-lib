@@ -1,9 +1,7 @@
-import Badge from '../Badge/Badge';
 import { renderTextCell } from '../../utils/renderTextCell';
 import type { ColumnConfig } from '../TableProvider/TableProvider';
 import type { ActivityTableItem } from '../../types/activitiesHistory';
-import { ActivityDisplayStatus } from '../../types/activitiesHistory';
-import { getActivityStatusBadgeAction } from './activitiesTableConfig';
+import { renderActivityStatusBadge } from './activitiesTableConfig';
 
 /**
  * Column configuration for the in-person (presencial) activities table.
@@ -32,25 +30,7 @@ export const presencialActivitiesTableColumns: ColumnConfig<ActivityTableItem>[]
       key: 'status',
       label: 'Status',
       sortable: true,
-      render: (value: unknown) => {
-        const status = typeof value === 'string' ? value : '';
-        const validStatuses = Object.values(ActivityDisplayStatus);
-        const validatedStatus = validStatuses.includes(
-          value as ActivityDisplayStatus
-        )
-          ? (value as ActivityDisplayStatus)
-          : ActivityDisplayStatus.ATIVA; // Default fallback
-
-        return (
-          <Badge
-            variant="solid"
-            action={getActivityStatusBadgeAction(validatedStatus)}
-            size="small"
-          >
-            {status}
-          </Badge>
-        );
-      },
+      render: renderActivityStatusBadge,
     },
     {
       key: 'createdAt',

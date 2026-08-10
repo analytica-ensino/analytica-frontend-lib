@@ -2525,35 +2525,18 @@ describe('ActivityDetails', () => {
       mockFetchActivityDetails.mockResolvedValue(mockActivityDataPresencial);
     });
 
-    it('should show "Gabarito recebido em" column instead of "Respondido em"', async () => {
-      render(<ActivityDetails {...defaultProps} />);
+    it.each(['Respondido em', 'Duração', 'Baixar gabarito'])(
+      'should not show "%s" in presencial mode',
+      async (label) => {
+        render(<ActivityDetails {...defaultProps} />);
 
-      await waitFor(() => {
-        expect(screen.getByText('Gabarito recebido em')).toBeInTheDocument();
-      });
+        await waitFor(() => {
+          expect(screen.getByText('Gabarito recebido em')).toBeInTheDocument();
+        });
 
-      expect(screen.queryByText('Respondido em')).not.toBeInTheDocument();
-    });
-
-    it('should not show "Duração" column in presencial mode', async () => {
-      render(<ActivityDetails {...defaultProps} />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Gabarito recebido em')).toBeInTheDocument();
-      });
-
-      expect(screen.queryByText('Duração')).not.toBeInTheDocument();
-    });
-
-    it('should drop the per-student "Baixar gabarito" column', async () => {
-      render(<ActivityDetails {...defaultProps} />);
-
-      await waitFor(() => {
-        expect(screen.getByText('Gabarito recebido em')).toBeInTheDocument();
-      });
-
-      expect(screen.queryByText('Baixar gabarito')).not.toBeInTheDocument();
-    });
+        expect(screen.queryByText(label)).not.toBeInTheDocument();
+      }
+    );
 
     it('should show the creation date instead of the academic breakdown', async () => {
       render(<ActivityDetails {...defaultProps} />);

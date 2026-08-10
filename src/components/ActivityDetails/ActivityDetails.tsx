@@ -191,10 +191,17 @@ const createTableColumns = (
       render: (value: unknown) => {
         const status = value as StudentActivityStatus;
         if (isPresencial) {
+          // Only the states that imply a sheet in hand count as received —
+          // NAO_ENTREGUE must not be dressed up as delivered.
+          const received =
+            status === STUDENT_ACTIVITY_STATUS.ANSWER_SHEET_RECEIVED ||
+            status === STUDENT_ACTIVITY_STATUS.AGUARDANDO_CORRECAO ||
+            status === STUDENT_ACTIVITY_STATUS.CONCLUIDO;
+
           return renderDeliveryBadge(
-            status === STUDENT_ACTIVITY_STATUS.AWAITING_ANSWER_SHEET
-              ? PRESENCIAL_DELIVERY_STATUS.AWAITING
-              : PRESENCIAL_DELIVERY_STATUS.RECEIVED
+            received
+              ? PRESENCIAL_DELIVERY_STATUS.RECEIVED
+              : PRESENCIAL_DELIVERY_STATUS.AWAITING
           );
         }
         const config = getStatusBadgeConfig(status);

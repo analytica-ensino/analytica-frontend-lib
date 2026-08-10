@@ -7,6 +7,7 @@ import EmptyState from '../EmptyState/EmptyState';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import TypeSelector from '../TypeSelector/TypeSelector';
 import { createActivityCategoryConfig } from '../TypeSelector/TypeSelector.types';
+import type { TypeRoutes } from '../TypeSelector/TypeSelector.types';
 import type { ActivityModelTableItem } from '../../types/activitiesHistory';
 import { useActivityDraftModelPage } from '../../hooks/useActivityDraftModelPage';
 import { ActivityTab } from '../ActivityPageLayout/ActivityPageLayout';
@@ -35,13 +36,9 @@ export const UnifiedDraftModelPage = ({
   const config = PAGE_CONFIG[activityCategory][type];
   const PageLayout = getPageLayout(activityCategory);
 
-  /**
-   * Routes for the active category. Optional categories (PRESENCIAL) only exist
-   * in `routes` when the app configured them — and an app never renders this
-   * page for a category it did not configure, so the fallback is unreachable in
-   * practice and exists only to keep the type total.
-   */
-  const currentRoutes = routes[activityCategory] ?? routes.ATIVIDADE;
+  // Guaranteed by the props type: a PRESENCIAL page can only be rendered with
+  // PRESENCIAL routes, so there is no fallback to another category's URLs.
+  const currentRoutes = routes[activityCategory] as TypeRoutes;
 
   /**
    * TypeSelector config with proper labels, routes, and status options

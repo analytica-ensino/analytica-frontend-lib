@@ -1,6 +1,7 @@
 import type {
-  ExtendedActivityCategory,
+  ActivityCategory,
   ActivityRoutesInput,
+  TypeRoutes,
 } from '../TypeSelector/TypeSelector.types';
 import type { ActivityTableItem } from '../../types/activitiesHistory';
 import type { ExamTableItem } from '../../types/examsHistory';
@@ -36,9 +37,7 @@ export interface ApiFilterOptions {
 /**
  * Props for UnifiedHistoryPage component
  */
-export interface UnifiedHistoryPageProps {
-  /** Activity category: ATIVIDADE, PROVA or PRESENCIAL */
-  activityCategory: ExtendedActivityCategory;
+interface UnifiedHistoryPageBaseProps {
   /** Data to display in table */
   data: ActivityTableItem[] | ExamTableItem[];
   /** Loading state */
@@ -60,11 +59,6 @@ export interface UnifiedHistoryPageProps {
   /** Include creator type filter (for managers/gestors) */
   includeCreatorFilter?: boolean;
   /**
-   * Routes configuration. ATIVIDADE and PROVA are required; passing PRESENCIAL
-   * is what adds it to the type selector.
-   */
-  routes: ActivityRoutesInput;
-  /**
    * Logged user id. When provided together with `apiClient` (and category is
    * ATIVIDADE or PRESENCIAL), enables the owner-only delete/edit actions on
    * activities created by this user (row.creatorId === currentUserId).
@@ -76,3 +70,26 @@ export interface UnifiedHistoryPageProps {
    */
   apiClient?: BaseApiClient;
 }
+
+/**
+ * Props for UnifiedHistoryPage.
+ *
+ * Discriminated by category so a PRESENCIAL page cannot be rendered without its
+ * routes: without them, tab, create and row navigation would silently fall back
+ * to the ATIVIDADE URLs.
+ */
+export type UnifiedHistoryPageProps = UnifiedHistoryPageBaseProps &
+  (
+    | {
+        activityCategory: ActivityCategory;
+        /**
+         * Routes configuration. ATIVIDADE and PROVA are required; passing
+         * PRESENCIAL is what adds it to the type selector.
+         */
+        routes: ActivityRoutesInput;
+      }
+    | {
+        activityCategory: 'PRESENCIAL';
+        routes: ActivityRoutesInput & { PRESENCIAL: TypeRoutes };
+      }
+  );
