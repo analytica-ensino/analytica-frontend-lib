@@ -1,5 +1,6 @@
 import type { AxiosInstance } from 'axios';
 import { useModulesStore } from './modulesStore';
+import { useAuthStore } from './authStore';
 import { KEYS } from '../utils/keys';
 import {
   DEFAULT_MODULES,
@@ -1330,6 +1331,201 @@ describe('ModulesStore', () => {
       }
 
       expect(callback).not.toBeNull();
+    });
+  });
+
+  describe('fetchModules with an authenticated session', () => {
+    const mockApi: MockApi = { get: jest.fn() };
+    const institutionId = 'test-institution';
+
+    /** Make useAuthStore report a session whose token the api instance can send. */
+    const withSession = (): void => {
+      (useAuthStore.getState as jest.Mock).mockReturnValue({
+        sessionInfo: {
+          institutionId: 'test-institution-id',
+          profileName: 'STUDENT',
+        },
+        selectedProfile: { name: 'STUDENT' },
+        tokens: { token: 'a-token' },
+      });
+    };
+
+    /** Cache a previous answer in localStorage, as a warm boot would have. */
+    const withCachedModules = (): void => {
+      localStorageMock.setItem(
+        KEYS.MODULES_STORAGE,
+        JSON.stringify({
+          state: {
+            modules: { ...DEFAULT_MODULES, essay: true },
+            ownerInstitutionId: institutionId,
+            ownerProfileType: 'STUDENT',
+          },
+        })
+      );
+    };
+
+    beforeEach(() => {
+      mockApi.get.mockReset();
+      withSession();
+    });
+
+    it('should ask /me/modules instead of the public institution flag', async () => {
+      mockApi.get.mockResolvedValue({
+        data: { data: { modules: { essay: false }, plan: null } },
+      });
+
+      await useModulesStore
+        .getState()
+        .fetchModules(
+          institutionId,
+          mockApi as unknown as AxiosInstance,
+          'STUDENT'
+        );
+
+      expect(mockApi.get).toHaveBeenCalledWith('/me/modules');
+      expect(useModulesStore.getState().modules.essay).toBe(false);
+    });
+
+    it('should store the plan the modules came from', async () => {
+      mockApi.get.mockResolvedValue({
+        data: {
+          data: {
+            modules: { essay: true, simulator: true },
+            plan: { code: 'B', name: 'Plano B' },
+          },
+        },
+      });
+
+      await useModulesStore
+        .getState()
+        .fetchModules(
+          institutionId,
+          mockApi as unknown as AxiosInstance,
+          'STUDENT'
+        );
+
+      expect(useModulesStore.getState().plan).toEqual({
+        code: 'B',
+        name: 'Plano B',
+      });
+    });
+
+    it('should leave plan null outside B2C', async () => {
+      mockApi.get.mockResolvedValue({
+        data: { data: { modules: { essay: true }, plan: null } },
+      });
+
+      await useModulesStore
+        .getState()
+        .fetchModules(
+          institutionId,
+          mockApi as unknown as AxiosInstance,
+          'STUDENT'
+        );
+
+      expect(useModulesStore.getState().plan).toBeNull();
+    });
+
+    it('should fall back to the public flag when /me/modules cannot be reached', async () => {
+      mockApi.get.mockImplementation((url: string) => {
+        if (url === '/me/modules') return Promise.reject(new Error('401'));
+        return Promise.resolve({
+          data: { data: { featureFlags: { version: { essay: false } } } },
+        });
+      });
+
+      await useModulesStore
+        .getState()
+        .fetchModules(
+          institutionId,
+          mockApi as unknown as AxiosInstance,
+          'STUDENT'
+        );
+
+      expect(mockApi.get).toHaveBeenCalledWith(
+        `/featureFlags/institution/${institutionId}/page/MODULES/profile/STUDENT`
+      );
+      expect(useModulesStore.getState().modules.essay).toBe(false);
+    }, 20000);
+
+    it('should revalidate cached modules instead of skipping the request', async () => {
+      withCachedModules();
+      mockApi.get.mockResolvedValue({
+        data: { data: { modules: { essay: false }, plan: null } },
+      });
+
+      await useModulesStore
+        .getState()
+        .fetchModules(
+          institutionId,
+          mockApi as unknown as AxiosInstance,
+          'STUDENT'
+        );
+
+      // A plan change happens server-side, so a cached value must still be checked.
+      expect(mockApi.get).toHaveBeenCalledWith('/me/modules');
+      expect(useModulesStore.getState().modules.essay).toBe(false);
+    });
+
+    it('should not raise loading while revalidating a cached value', async () => {
+      withCachedModules();
+      const loadingSeen: boolean[] = [];
+      const unsubscribe = useModulesStore.subscribe((state) =>
+        loadingSeen.push(state.loading)
+      );
+      mockApi.get.mockResolvedValue({
+        data: { data: { modules: { essay: false }, plan: null } },
+      });
+
+      await useModulesStore
+        .getState()
+        .fetchModules(
+          institutionId,
+          mockApi as unknown as AxiosInstance,
+          'STUDENT'
+        );
+      unsubscribe();
+
+      // ModuleProtectedRoute renders nothing while loading; a warm boot must not
+      // blank every gated route for the length of a request.
+      expect(loadingSeen).not.toContain(true);
+    });
+
+    it('should keep the cached modules when every attempt fails', async () => {
+      withCachedModules();
+      useModulesStore.setState({
+        modules: { ...DEFAULT_MODULES, essay: false },
+      });
+      mockApi.get.mockRejectedValue(new Error('network down'));
+
+      await useModulesStore
+        .getState()
+        .fetchModules(
+          institutionId,
+          mockApi as unknown as AxiosInstance,
+          'STUDENT'
+        );
+
+      expect(useModulesStore.getState().modules.essay).toBe(false);
+      expect(useModulesStore.getState().loading).toBe(false);
+    }, 30000);
+
+    it('should not request anything when cached and unauthenticated', async () => {
+      withCachedModules();
+      (useAuthStore.getState as jest.Mock).mockReturnValue({
+        sessionInfo: { institutionId: 'test-institution-id' },
+        tokens: null,
+      });
+
+      await useModulesStore
+        .getState()
+        .fetchModules(
+          institutionId,
+          mockApi as unknown as AxiosInstance,
+          'STUDENT'
+        );
+
+      expect(mockApi.get).not.toHaveBeenCalled();
     });
   });
 });

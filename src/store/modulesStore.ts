@@ -17,11 +17,21 @@ const defaultModules = DEFAULT_MODULES;
 /**
  * Interface defining the modules state
  */
+export interface ActivePlan {
+  code: string;
+  name: string;
+}
+
 export interface ModulesState {
   modules: ModulesConfig;
   loading: boolean;
   ownerInstitutionId: string | null;
   ownerProfileType: string | null;
+  /**
+   * Commercial plan the modules came from, or `null` when they came from the
+   * institution (every non-B2C tenant) or when nothing has been fetched yet.
+   */
+  plan: ActivePlan | null;
 
   /**
    * Fetch modules configuration from the API
@@ -51,6 +61,24 @@ interface ModulesFeatureFlagResponse {
       isProfileSpecific?: boolean;
     };
   } | null;
+}
+
+/**
+ * API response of `GET /me/modules` — the authenticated, per-user answer.
+ */
+interface MyModulesResponse {
+  data: {
+    modules: Partial<ModulesConfig>;
+    plan: ActivePlan | null;
+  } | null;
+}
+
+/**
+ * What a fetch attempt produced. `plan` is only ever non-null for a B2C tenant.
+ */
+interface FetchedModules {
+  version: Partial<ModulesConfig>;
+  plan: ActivePlan | null;
 }
 
 // Guard against stale async responses
@@ -105,15 +133,13 @@ const isStaleRequest = (requestId: number): boolean =>
   requestId !== latestRequestId;
 
 /**
- * Attempt to fetch modules from API with retry logic
- * Returns the modules config on success, null on failure
+ * Run `attempt` with exponential backoff, aborting as soon as a newer request
+ * supersedes this one. Returns null when every attempt failed.
  */
-const fetchWithRetry = async (
-  institutionId: string,
-  api: AxiosInstance,
+const withRetry = async <T>(
   requestId: number,
-  profileType?: string
-): Promise<Partial<ModulesConfig> | null> => {
+  attemptFn: () => Promise<T>
+): Promise<T | null> => {
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     if (attempt > 0) {
       await delay(INITIAL_RETRY_DELAY * Math.pow(2, attempt - 1));
@@ -122,24 +148,74 @@ const fetchWithRetry = async (
     if (isStaleRequest(requestId)) return null;
 
     try {
-      // Use the new profile-specific endpoint if profileType is provided
-      const endpoint = profileType
-        ? `/featureFlags/institution/${institutionId}/page/MODULES/profile/${profileType}`
-        : `/featureFlags/institution/${institutionId}/page/MODULES`;
-
-      const response = await api.get<ModulesFeatureFlagResponse>(endpoint);
+      const result = await attemptFn();
 
       if (isStaleRequest(requestId)) return null;
 
-      return response.data?.data?.featureFlags?.version ?? {};
+      return result;
     } catch {
       // Continue to next retry attempt
     }
   }
 
-  console.warn('[modulesStore] Failed to fetch modules after retries');
   return null;
 };
+
+/**
+ * Whether there is a session whose token the API instance can send.
+ *
+ * `/me/modules` is authenticated; without a token it would only ever answer 401,
+ * so the public per-institution endpoint stays the pre-login path.
+ */
+const hasSession = (): boolean =>
+  Boolean(useAuthStore.getState().tokens?.token);
+
+/**
+ * Fetch the effective modules of the authenticated user.
+ *
+ * This is the only call that knows about commercial plans: in a B2C institution
+ * it answers with the active plan's modules, and outside B2C it answers with the
+ * institution's modules unchanged — which is why it replaces the public endpoint
+ * for every product, not just the B2C one.
+ */
+const fetchMyModules = async (
+  api: AxiosInstance,
+  requestId: number
+): Promise<FetchedModules | null> =>
+  withRetry(requestId, async () => {
+    const response = await api.get<MyModulesResponse>('/me/modules');
+
+    return {
+      version: response.data?.data?.modules ?? {},
+      plan: response.data?.data?.plan ?? null,
+    };
+  });
+
+/**
+ * Fetch the institution's MODULES feature flag — the anonymous answer.
+ *
+ * Used before login, and as the fallback when `/me/modules` cannot be reached,
+ * so a failure there degrades to the previous behaviour instead of an empty app.
+ */
+const fetchInstitutionModules = async (
+  institutionId: string,
+  api: AxiosInstance,
+  requestId: number,
+  profileType?: string
+): Promise<FetchedModules | null> =>
+  withRetry(requestId, async () => {
+    // Use the new profile-specific endpoint if profileType is provided
+    const endpoint = profileType
+      ? `/featureFlags/institution/${institutionId}/page/MODULES/profile/${profileType}`
+      : `/featureFlags/institution/${institutionId}/page/MODULES`;
+
+    const response = await api.get<ModulesFeatureFlagResponse>(endpoint);
+
+    return {
+      version: response.data?.data?.featureFlags?.version ?? {},
+      plan: null,
+    };
+  });
 
 /**
  * Zustand store for managing modules visibility with persistence
@@ -153,13 +229,25 @@ export const useModulesStore = create<ModulesState>()(
       loading: false,
       ownerInstitutionId: null,
       ownerProfileType: null,
+      plan: null,
 
       /**
-       * Fetch modules configuration from the API
-       * Only fetches if:
-       * 1. No modules data exists in localStorage for this profile
-       * 2. User made a new login (data cleared by auth subscriber)
-       * Implements retry with exponential backoff on failure
+       * Fetch the modules configuration from the API.
+       *
+       * Picks the endpoint by session, not by tenant: with a session it asks
+       * `/me/modules`, which resolves the commercial plan when the institution is
+       * B2C and returns the institution's own modules otherwise. Without a session
+       * — the login screen — it falls back to the public per-institution flag.
+       * Branching on "is this tenant B2C?" instead would leave the authenticated
+       * path unexercised everywhere else, so it would rot.
+       *
+       * Caching is stale-while-revalidate. A cached value is served immediately and
+       * still revalidated in the background whenever there is a session, because
+       * modules can now change server-side (a plan upgrade) with nothing on the
+       * client to signal it — no cache key the client builds can detect that. The
+       * background pass deliberately leaves `loading` alone: `ModuleProtectedRoute`
+       * renders nothing while loading, so raising it on a warm boot would blank
+       * every gated route for the length of a request.
        *
        * @param institutionId - The institution UUID
        * @param api - Axios instance for API calls
@@ -170,30 +258,57 @@ export const useModulesStore = create<ModulesState>()(
         api: AxiosInstance,
         profileType?: string
       ): Promise<void> => {
-        if (hasCachedModules(profileType)) return;
+        const authenticated = hasSession();
+        const cached = hasCachedModules(profileType);
+
+        // Nothing to revalidate before login: the public flag is the only answer
+        // available, and it is what the cache already holds.
+        if (cached && !authenticated) return;
 
         const requestId = ++latestRequestId;
-        set({ loading: true });
 
-        const version = await fetchWithRetry(
-          institutionId,
-          api,
-          requestId,
-          profileType
-        );
+        if (!cached) {
+          set({ loading: true });
+        }
+
+        const result = authenticated
+          ? ((await fetchMyModules(api, requestId)) ??
+            // Degrade to the previous behaviour rather than to an empty app when
+            // the authenticated call cannot be reached.
+            (await fetchInstitutionModules(
+              institutionId,
+              api,
+              requestId,
+              profileType
+            )))
+          : await fetchInstitutionModules(
+              institutionId,
+              api,
+              requestId,
+              profileType
+            );
 
         if (isStaleRequest(requestId)) return;
 
-        if (version === null) {
-          set({ modules: defaultModules, loading: false });
-        } else {
-          set({
-            modules: mergeModulesConfig(version),
-            ownerInstitutionId: institutionId,
-            ownerProfileType: profileType ?? null,
-            loading: false,
-          });
+        if (result === null) {
+          console.warn('[modulesStore] Failed to fetch modules after retries');
+          // Keep whatever is already cached; only a cold start falls back to the
+          // permissive defaults, which is the pre-existing behaviour.
+          set(
+            cached
+              ? { loading: false }
+              : { modules: defaultModules, loading: false }
+          );
+          return;
         }
+
+        set({
+          modules: mergeModulesConfig(result.version),
+          plan: result.plan,
+          ownerInstitutionId: institutionId,
+          ownerProfileType: profileType ?? null,
+          loading: false,
+        });
       },
 
       /**
@@ -207,6 +322,7 @@ export const useModulesStore = create<ModulesState>()(
           loading: false,
           ownerInstitutionId: null,
           ownerProfileType: null,
+          plan: null,
         });
       },
     }),
@@ -217,6 +333,7 @@ export const useModulesStore = create<ModulesState>()(
         modules: state.modules,
         ownerInstitutionId: state.ownerInstitutionId,
         ownerProfileType: state.ownerProfileType,
+        plan: state.plan,
       }),
       onRehydrateStorage: () => (rehydrated) => {
         if (!rehydrated) return;
