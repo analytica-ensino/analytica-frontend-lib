@@ -41,6 +41,50 @@ describe('createUseSimulations', () => {
     expect(page.total).toBe(1);
   });
 
+  it('fetchStudents sends classIds as CSV, never as an array', async () => {
+    const api = makeApi();
+    api.get.mockResolvedValue({
+      data: {
+        message: 'ok',
+        data: {
+          students: { data: [], page: 1, limit: 20, total: 0 },
+        },
+      },
+    });
+    const { result } = renderHook(() => createUseSimulations(api)());
+
+    await result.current.fetchStudents({ classIds: ['c1', 'c2'] });
+
+    const params = api.get.mock.calls[0][1]?.params as {
+      classIds?: unknown;
+    };
+    // An array here would be serialized by axios as `classIds[]=c1&classIds[]=c2`,
+    // a key the backend query schema does not declare, so the class filter would
+    // be dropped and every class of the teacher returned instead.
+    expect(Array.isArray(params.classIds)).toBe(false);
+    expect(params.classIds).toBe('c1,c2');
+  });
+
+  it('fetchStudents omits classIds when nothing is selected', async () => {
+    const api = makeApi();
+    api.get.mockResolvedValue({
+      data: {
+        message: 'ok',
+        data: {
+          students: { data: [], page: 1, limit: 20, total: 0 },
+        },
+      },
+    });
+    const { result } = renderHook(() => createUseSimulations(api)());
+
+    await result.current.fetchStudents({ classIds: [] });
+
+    const params = api.get.mock.calls[0][1]?.params as {
+      classIds?: unknown;
+    };
+    expect(params.classIds).toBeUndefined();
+  });
+
   it('fetchStudentSimulations calls the per-student endpoint', async () => {
     const api = makeApi();
     api.get.mockResolvedValue({

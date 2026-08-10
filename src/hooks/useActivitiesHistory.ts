@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import dayjs from 'dayjs';
 import type { BaseApiClient } from '../types/api';
 import { mapApiStatusToDisplay } from '../types/common';
+import { toCsv } from '../utils/queryParams';
 import type {
   ActivityHistoryResponse,
   ActivityTableItem,
@@ -110,18 +111,6 @@ export const transformActivityToTableItem = (
 export const extractActivityFilterOptions = (
   activities: ActivityHistoryResponse[]
 ): ActivityApiFilterOptions => extractBreakdownFilterOptions(activities);
-
-/**
- * Join an array of selected ids into the backend's comma-separated convention
- * (e.g. `schoolIds=a,b,c`). Returns undefined for empty / non-array input so the
- * query param is omitted entirely.
- */
-const toCsv = (value: unknown): string | undefined => {
-  if (Array.isArray(value) && value.length > 0) {
-    return value.map(String).join(',');
-  }
-  return undefined;
-};
 
 /**
  * Collapse a single-select filter (emitted as an array by TableProvider) to its

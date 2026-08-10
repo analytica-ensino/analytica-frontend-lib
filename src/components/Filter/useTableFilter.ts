@@ -29,6 +29,14 @@ const mergeConfigsWithSelections = (
       }
 
       if (prevCat?.key === newCat.key && prevCat?.selectedIds?.length) {
+        // An empty item list means the options have not been fetched yet, not
+        // that every selected id became invalid. Dropping the selection here
+        // would permanently discard filters restored from the URL, since the
+        // options only arrive on a later render.
+        if (newItems.length === 0) {
+          return { ...newCat, selectedIds: prevCat.selectedIds };
+        }
+
         const availableIds = new Set(newItems.map((item) => item.id));
         const selectedIds = prevCat.selectedIds.filter((id) =>
           availableIds.has(id)

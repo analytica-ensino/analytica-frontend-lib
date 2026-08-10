@@ -12,6 +12,7 @@ import type {
   NoteResponse,
   NoteData,
 } from '../types/simulations';
+import { toCsv } from '../utils/queryParams';
 
 const BASE_URL = '/performance/simulations';
 
@@ -66,7 +67,10 @@ export const createUseSimulations =
         const { page = 1, limit = 20, search, classIds } = filters;
         const response = await apiClient.get<SimulationsStudentsResponse>(
           `${BASE_URL}/students`,
-          { params: { page, limit, search, classIds } }
+          // classIds goes as CSV, never as a raw array: axios would serialize
+          // it as `classIds[]=…`, a key the backend schema does not know, so
+          // the class filter would be silently dropped.
+          { params: { page, limit, search, classIds: toCsv(classIds) } }
         );
         return response.data.data.students;
       },

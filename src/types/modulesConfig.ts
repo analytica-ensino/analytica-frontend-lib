@@ -126,6 +126,13 @@ export interface ModulesConfig {
   dashboard: boolean;
   lessons: boolean;
 
+  /**
+   * Printed kits — an entitlement of the top commercial plan, with no screen of
+   * its own yet. Unlike every other key it defaults to `false`: it is granted by
+   * a plan, never inherited from a permissive institution default.
+   */
+  printedKits: boolean;
+
   // Tutorial menu link (off by default; also needs a non-empty tutorialUrl)
   tutorial: boolean;
   tutorialUrl: string;
@@ -173,6 +180,9 @@ export const DEFAULT_MODULES: ModulesConfig = {
   performance: true,
   dashboard: true,
   lessons: true,
+
+  // Granted by a commercial plan only — see the interface
+  printedKits: false,
 
   // Tutorial off by default (opt-in per institution, requires a url)
   tutorial: false,
