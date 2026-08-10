@@ -70,8 +70,15 @@ export function createUserStore(config: CreateUserStoreConfig) {
    * Get current user data from the backend
    */
   const getMyData = async (): Promise<MyDataResponse> => {
-    const response = await apiClient.get<MyDataResponse>('/auth/me');
-    return response.data;
+    // The endpoint answers `{ message, data }`; keeping the envelope would put
+    // every field one level deeper than the type promises, so consumers would
+    // silently read `undefined` — including `user.id`, which namespaces the
+    // cache and would leave it permanently invalid.
+    const response = await apiClient.get<{
+      message: string;
+      data: MyDataResponse;
+    }>('/auth/me');
+    return response.data.data;
   };
 
   /**

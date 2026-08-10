@@ -78,14 +78,27 @@ export interface Class {
 }
 
 /**
- * User institution relationship
+ * School group (NRE) information
+ */
+export interface SchoolGroup {
+  id: string;
+  name: string;
+  code: string | null;
+}
+
+/**
+ * User institution relationship (one enrollment row).
+ *
+ * Every nested entity is nullable: a GENERAL_MANAGER has no school, a teacher
+ * bound to a school but not to a class has no class, and so on.
  */
 export interface UserInstitution {
   profile: Profile;
-  institution: Institution;
-  school: School;
-  schoolYear: SchoolYear;
-  class: Class;
+  institution: Institution | null;
+  school: School | null;
+  schoolGroup: SchoolGroup | null;
+  schoolYear: SchoolYear | null;
+  class: Class | null;
 }
 
 /**
@@ -105,12 +118,71 @@ export interface SubTeacherTopicClass {
 }
 
 /**
- * Complete user data response from GET /auth/me endpoint
+ * Identity carried by GET /auth/me. Narrower than {@link User}: the endpoint
+ * only returns what is needed to render the logged-in user.
+ */
+export interface AccessUser {
+  id: string;
+  name: string;
+  email: string;
+  urlProfilePicture: string | null;
+}
+
+/**
+ * Institution the user may read
+ */
+export interface AccessInstitution {
+  id: string;
+  name: string;
+}
+
+/**
+ * School the user may read
+ */
+export interface AccessSchool {
+  id: string;
+  name: string;
+  institutionId: string;
+}
+
+/**
+ * School year the user may read
+ */
+export interface AccessSchoolYear {
+  id: string;
+  name: string;
+  schoolId: string;
+  school: School;
+}
+
+/**
+ * Class the user may read
+ */
+export interface AccessClass {
+  id: string;
+  name: string;
+  shift: string;
+  schoolId: string;
+  schoolYearId: string;
+  school: School;
+  schoolYear: SchoolYear;
+}
+
+/**
+ * Payload of GET /auth/me, already unwrapped from the `{ message, data }`
+ * envelope by the user store.
+ *
+ * The flat lists (`institutions` / `schools` / `schoolYears` / `classes`)
+ * answer "what may I read" and are the right source for access filters. The
+ * `userInstitutions` rows answer "how am I enrolled" and keep the
+ * school -> grade -> class relation of each enrollment.
  */
 export interface MyDataResponse {
-  message: string;
-  user: User;
-  userInfos: UserInfos;
+  user: AccessUser;
+  institutions: AccessInstitution[];
+  schools: AccessSchool[];
+  schoolYears: AccessSchoolYear[];
+  classes: AccessClass[];
   userInstitutions: UserInstitution[];
   subTeacherTopicClasses: SubTeacherTopicClass[];
 }

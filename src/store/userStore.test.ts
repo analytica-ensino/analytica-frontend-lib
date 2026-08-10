@@ -24,35 +24,33 @@ Object.defineProperty(window, 'localStorage', {
 
 describe('createUserStore', () => {
   const mockUserData: MyDataResponse = {
-    message: 'Success',
     user: {
       id: 'user-1',
       email: 'test@example.com',
       name: 'Test User',
-      active: true,
-      createdAt: '2023-01-01T00:00:00Z',
-      updatedAt: '2023-01-01T00:00:00Z',
-    },
-    userInfos: {
-      id: '1',
-      userId: 'user-1',
       urlProfilePicture: null,
-      genre: null,
-      facebook: null,
-      instagram: null,
-      studentNumber: null,
-      street: null,
-      streetNumber: null,
-      neighborhood: null,
-      complement: null,
-      city: null,
-      state: null,
-      zipCode: null,
-      timeSpent: 0,
-      lastInteraction: '2023-01-01T00:00:00Z',
-      createdAt: '2023-01-01T00:00:00Z',
-      updatedAt: '2023-01-01T00:00:00Z',
     },
+    institutions: [{ id: '1', name: 'Test Institution' }],
+    schools: [{ id: '1', name: 'Test School', institutionId: '1' }],
+    schoolYears: [
+      {
+        id: '1',
+        name: '2023',
+        schoolId: '1',
+        school: { id: '1', name: 'Test School' },
+      },
+    ],
+    classes: [
+      {
+        id: '1',
+        name: '3A',
+        shift: 'MANHA',
+        schoolId: '1',
+        schoolYearId: '1',
+        school: { id: '1', name: 'Test School' },
+        schoolYear: { id: '1', name: '2023' },
+      },
+    ],
     userInstitutions: [
       {
         profile: {
@@ -63,6 +61,7 @@ describe('createUserStore', () => {
         },
         institution: { id: '1', name: 'Test School', type: 'school' },
         school: { id: '1', name: 'Test School' },
+        schoolGroup: null,
         schoolYear: { id: '1', name: '2023' },
         class: { id: '1', name: '3A' },
       },
@@ -72,7 +71,6 @@ describe('createUserStore', () => {
 
   const mockUserData2: MyDataResponse = {
     ...mockUserData,
-    message: 'Success User 2',
     user: {
       ...mockUserData.user,
       id: 'user-2',
@@ -80,6 +78,14 @@ describe('createUserStore', () => {
       name: 'User Two',
     },
   };
+
+  /**
+   * Wrap a payload the way GET /auth/me does: `{ message, data }` inside the
+   * axios response body. The store is responsible for unwrapping it.
+   */
+  const authMeResponse = (payload: MyDataResponse) => ({
+    data: { message: 'Dados de acesso obtidos com sucesso', data: payload },
+  });
 
   let mockApiClient: UserStoreApiClient;
 
@@ -136,9 +142,9 @@ describe('createUserStore', () => {
 
   describe('fetchUserData', () => {
     it('should fetch user data successfully', async () => {
-      (mockApiClient.get as jest.Mock).mockResolvedValueOnce({
-        data: mockUserData,
-      });
+      (mockApiClient.get as jest.Mock).mockResolvedValueOnce(
+        authMeResponse(mockUserData)
+      );
 
       const useUserStore = createUserStore({ apiClient: mockApiClient });
 
@@ -152,11 +158,32 @@ describe('createUserStore', () => {
       expect(useUserStore.getState().lastFetched).toBeGreaterThan(0);
     });
 
+    it('should unwrap the response envelope instead of storing it', async () => {
+      (mockApiClient.get as jest.Mock).mockResolvedValueOnce(
+        authMeResponse(mockUserData)
+      );
+
+      const useUserStore = createUserStore({ apiClient: mockApiClient });
+
+      await useUserStore.getState().fetchUserData();
+
+      const stored = useUserStore.getState().data as unknown as Record<
+        string,
+        unknown
+      >;
+      // Storing `{ message, data }` would push every field one level deeper and
+      // make the whole payload read as undefined for consumers.
+      expect(stored.data).toBeUndefined();
+      expect(stored.message).toBeUndefined();
+      expect(useUserStore.getState().data?.classes).toHaveLength(1);
+      expect(useUserStore.getState().data?.userInstitutions).toHaveLength(1);
+    });
+
     it('should set loading state during fetch', async () => {
       (mockApiClient.get as jest.Mock).mockImplementation(
         () =>
           new Promise((resolve) =>
-            setTimeout(() => resolve({ data: mockUserData }), 100)
+            setTimeout(() => resolve(authMeResponse(mockUserData)), 100)
           )
       );
 
@@ -204,9 +231,9 @@ describe('createUserStore', () => {
     });
 
     it('should use cache when valid', async () => {
-      (mockApiClient.get as jest.Mock).mockResolvedValueOnce({
-        data: mockUserData,
-      });
+      (mockApiClient.get as jest.Mock).mockResolvedValueOnce(
+        authMeResponse(mockUserData)
+      );
 
       const useUserStore = createUserStore({ apiClient: mockApiClient });
 
@@ -220,9 +247,9 @@ describe('createUserStore', () => {
     });
 
     it('should ignore cache when force = true', async () => {
-      (mockApiClient.get as jest.Mock).mockResolvedValue({
-        data: mockUserData,
-      });
+      (mockApiClient.get as jest.Mock).mockResolvedValue(
+        authMeResponse(mockUserData)
+      );
 
       const useUserStore = createUserStore({ apiClient: mockApiClient });
 
@@ -236,9 +263,9 @@ describe('createUserStore', () => {
     });
 
     it('should ignore cache when expired (default TTL)', async () => {
-      (mockApiClient.get as jest.Mock).mockResolvedValue({
-        data: mockUserData,
-      });
+      (mockApiClient.get as jest.Mock).mockResolvedValue(
+        authMeResponse(mockUserData)
+      );
 
       const useUserStore = createUserStore({ apiClient: mockApiClient });
 
@@ -255,9 +282,9 @@ describe('createUserStore', () => {
     });
 
     it('should respect custom cacheTTL', async () => {
-      (mockApiClient.get as jest.Mock).mockResolvedValue({
-        data: mockUserData,
-      });
+      (mockApiClient.get as jest.Mock).mockResolvedValue(
+        authMeResponse(mockUserData)
+      );
 
       // Custom TTL of 1 minute
       const useUserStore = createUserStore({
@@ -288,7 +315,7 @@ describe('createUserStore', () => {
       (mockApiClient.get as jest.Mock).mockImplementation(
         () =>
           new Promise((resolve) =>
-            setTimeout(() => resolve({ data: mockUserData }), 100)
+            setTimeout(() => resolve(authMeResponse(mockUserData)), 100)
           )
       );
 
@@ -314,8 +341,8 @@ describe('createUserStore', () => {
       });
 
       (mockApiClient.get as jest.Mock)
-        .mockResolvedValueOnce({ data: mockUserData })
-        .mockResolvedValueOnce({ data: mockUserData2 });
+        .mockResolvedValueOnce(authMeResponse(mockUserData))
+        .mockResolvedValueOnce(authMeResponse(mockUserData2));
 
       const useUserStore = createUserStore({ apiClient: mockApiClient });
 
@@ -341,9 +368,9 @@ describe('createUserStore', () => {
         user: { id: 'user-1' },
       });
 
-      (mockApiClient.get as jest.Mock).mockResolvedValueOnce({
-        data: mockUserData,
-      });
+      (mockApiClient.get as jest.Mock).mockResolvedValueOnce(
+        authMeResponse(mockUserData)
+      );
 
       const useUserStore = createUserStore({ apiClient: mockApiClient });
 
@@ -361,9 +388,9 @@ describe('createUserStore', () => {
         user: { id: 'user-1' },
       });
 
-      (mockApiClient.get as jest.Mock).mockResolvedValue({
-        data: mockUserData,
-      });
+      (mockApiClient.get as jest.Mock).mockResolvedValue(
+        authMeResponse(mockUserData)
+      );
 
       const useUserStore = createUserStore({ apiClient: mockApiClient });
 
@@ -385,8 +412,8 @@ describe('createUserStore', () => {
       });
 
       (mockApiClient.get as jest.Mock)
-        .mockResolvedValueOnce({ data: mockUserData })
-        .mockResolvedValueOnce({ data: mockUserData2 });
+        .mockResolvedValueOnce(authMeResponse(mockUserData))
+        .mockResolvedValueOnce(authMeResponse(mockUserData2));
 
       const useUserStore = createUserStore({ apiClient: mockApiClient });
 
@@ -407,9 +434,9 @@ describe('createUserStore', () => {
 
   describe('clearUserData', () => {
     it('should clear all user data including cachedUserId', async () => {
-      (mockApiClient.get as jest.Mock).mockResolvedValueOnce({
-        data: mockUserData,
-      });
+      (mockApiClient.get as jest.Mock).mockResolvedValueOnce(
+        authMeResponse(mockUserData)
+      );
 
       const useUserStore = createUserStore({ apiClient: mockApiClient });
 
@@ -457,9 +484,9 @@ describe('createUserStore', () => {
 
   describe('Cache validation', () => {
     it('should consider cache invalid when lastFetched is null', async () => {
-      (mockApiClient.get as jest.Mock).mockResolvedValueOnce({
-        data: mockUserData,
-      });
+      (mockApiClient.get as jest.Mock).mockResolvedValueOnce(
+        authMeResponse(mockUserData)
+      );
 
       const useUserStore = createUserStore({ apiClient: mockApiClient });
 
@@ -473,9 +500,9 @@ describe('createUserStore', () => {
     });
 
     it('should consider cache valid within TTL', async () => {
-      (mockApiClient.get as jest.Mock).mockResolvedValueOnce({
-        data: mockUserData,
-      });
+      (mockApiClient.get as jest.Mock).mockResolvedValueOnce(
+        authMeResponse(mockUserData)
+      );
 
       const useUserStore = createUserStore({ apiClient: mockApiClient });
 
@@ -495,13 +522,11 @@ describe('createUserStore', () => {
   describe('Factory isolation', () => {
     it('should create independent store instances', async () => {
       const mockApiClient1: UserStoreApiClient = {
-        get: jest.fn().mockResolvedValue({ data: mockUserData }),
+        get: jest.fn().mockResolvedValue(authMeResponse(mockUserData)),
       };
 
       const mockApiClient2: UserStoreApiClient = {
-        get: jest.fn().mockResolvedValue({
-          data: { ...mockUserData, message: 'Different' },
-        }),
+        get: jest.fn().mockResolvedValue(authMeResponse(mockUserData2)),
       };
 
       const useUserStore1 = createUserStore({
@@ -517,22 +542,22 @@ describe('createUserStore', () => {
       await useUserStore1.getState().fetchUserData();
       await useUserStore2.getState().fetchUserData();
 
-      expect(useUserStore1.getState().data?.message).toBe('Success');
-      expect(useUserStore2.getState().data?.message).toBe('Different');
+      expect(useUserStore1.getState().data?.user.id).toBe('user-1');
+      expect(useUserStore2.getState().data?.user.id).toBe('user-2');
 
       // Clear one store should not affect the other
       useUserStore1.getState().clearUserData();
 
       expect(useUserStore1.getState().data).toBeNull();
-      expect(useUserStore2.getState().data?.message).toBe('Different');
+      expect(useUserStore2.getState().data?.user.id).toBe('user-2');
     });
   });
 
   describe('Integration', () => {
     it('should execute complete flow: fetch -> clear', async () => {
-      (mockApiClient.get as jest.Mock).mockResolvedValueOnce({
-        data: mockUserData,
-      });
+      (mockApiClient.get as jest.Mock).mockResolvedValueOnce(
+        authMeResponse(mockUserData)
+      );
 
       const useUserStore = createUserStore({ apiClient: mockApiClient });
 
