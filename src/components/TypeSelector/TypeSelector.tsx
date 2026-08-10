@@ -7,9 +7,9 @@ import Select, {
   SelectItem,
 } from '../Select/Select';
 import {
-  type ActivityCategory,
+  type ExtendedActivityCategory,
+  type ActivityCategoryConfig,
   type ActiveTab,
-  type TypeConfig,
   getTabPath,
 } from './TypeSelector.types';
 import { useModules } from '../../hooks/useModules';
@@ -20,22 +20,23 @@ import { ExamActivityCategory } from '../../types/examDrafts';
  */
 export interface TypeSelectorProps {
   /** Current activity type selected */
-  value: ActivityCategory;
+  value: ExtendedActivityCategory;
   /** Current active tab (to preserve when switching types) */
   currentTab: ActiveTab;
   /** Configuration for activity types (routes and labels) */
-  config: Record<ActivityCategory, TypeConfig>;
+  config: ActivityCategoryConfig;
   /**
    * Optional filter to include only specific categories.
    * If not provided, automatically calculated based on hasExams flag from useModules.
    * Only use this prop for special cases where you need to override the default behavior.
    */
-  allowedCategories?: ActivityCategory[];
+  allowedCategories?: ExtendedActivityCategory[];
 }
 
 /**
- * Type selector dropdown for switching between Atividades and Provas
- * Navigates to the corresponding route while preserving the current tab
+ * Type selector dropdown for switching between Atividades, Provas and
+ * Presenciais. Navigates to the corresponding route while preserving the
+ * current tab.
  */
 export const TypeSelector = ({
   value,
@@ -54,29 +55,38 @@ export const TypeSelector = ({
     }
 
     // Otherwise, calculate based on hasExams flag
-    const categories: ActivityCategory[] = [ExamActivityCategory.ATIVIDADE];
+    const categories: ExtendedActivityCategory[] = [
+      ExamActivityCategory.ATIVIDADE,
+    ];
     if (hasExams) {
       categories.push(ExamActivityCategory.PROVA);
     }
+    // Optional categories are opt-in: the app enables them by passing routes.
+    if (config.PRESENCIAL) {
+      categories.push('PRESENCIAL');
+    }
     return categories;
-  }, [hasExams, allowedCategoriesProp]);
+  }, [hasExams, allowedCategoriesProp, config]);
 
   const handleTypeChange = useCallback(
     (newType: string) => {
       if (newType === value) return;
 
-      const typeConfig = config[newType as ActivityCategory];
+      const typeConfig = config[newType as ExtendedActivityCategory];
+      if (!typeConfig) return;
       const tabPath = getTabPath(currentTab);
       navigate(`${typeConfig.routes.base}${tabPath}`);
     },
     [value, currentTab, navigate, config]
   );
 
-  const selectItems = allowedCategories.map((category) => (
-    <SelectItem key={category} value={category}>
-      {config[category].labels.selectorLabel}
-    </SelectItem>
-  ));
+  const selectItems = allowedCategories
+    .filter((category) => !!config[category])
+    .map((category) => (
+      <SelectItem key={category} value={category}>
+        {config[category]!.labels.selectorLabel}
+      </SelectItem>
+    ));
 
   return (
     <Select value={value} onValueChange={handleTypeChange} size="small">

@@ -71,6 +71,12 @@ export interface ActivityHistoryResponse {
   title: string;
   startDate: string | null;
   finalDate: string | null;
+  /** Creation timestamp returned by GET /activities/history */
+  createdAt?: string | null;
+  /** false = in-person booklet, true = answered in the app */
+  isDigital?: boolean;
+  /** Whether the activity requires an essay (its `essayThemeId` is set) */
+  hasEssay?: boolean;
   status: GenericApiStatus;
   completionPercentage: number;
   subject: ActivitySubject | null;
@@ -97,6 +103,8 @@ export interface ActivityTableItem extends Record<string, unknown> {
   class: string;
   status: GenericDisplayStatus;
   completionPercentage: number;
+  /** Creation date (DD/MM), shown by the presencial activities table */
+  createdAt?: string;
 }
 
 /**

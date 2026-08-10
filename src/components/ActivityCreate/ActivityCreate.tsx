@@ -35,6 +35,11 @@ import type {
 } from './ActivityCreate.types';
 import { ActivityType } from './ActivityCreate.types';
 import type { CreateActivityPayload } from '../../types/sendActivity';
+import type { EssayTheme } from '../../types/essayThemes';
+import { EssayThemePicker } from '../EssayThemePicker/EssayThemePicker';
+import Menu, { MenuContent, MenuItem } from '../Menu/Menu';
+import { ArticleIcon } from '@phosphor-icons/react/dist/csr/Article';
+import { TextAlignLeftIcon } from '@phosphor-icons/react/dist/csr/TextAlignLeft';
 import {
   convertFiltersToBackendFormat,
   generateTitle,
@@ -95,6 +100,7 @@ const CreateActivity = ({
   isInPersonExam = false,
   basePath = '/criar-atividade',
   activityCategory = 'ATIVIDADE',
+  enableEssayTab = false,
 }: {
   apiClient: BaseApiClient;
   institutionId: string;
@@ -113,6 +119,15 @@ const CreateActivity = ({
   basePath?: string;
   /** Activity category: 'ATIVIDADE' or 'PROVA' - sent in draft payloads */
   activityCategory?: 'ATIVIDADE' | 'PROVA';
+  /**
+   * Show the "Redação" tab, where the teacher attaches an essay theme to an
+   * in-person booklet. Only meaningful together with `isInPersonExam`.
+   *
+   * Off by default on purpose: `activity_drafts` cannot store the chosen theme
+   * yet, so with autosave on the teacher would lose the pick on reload. Flip it
+   * once the draft carries `essayThemeId`.
+   */
+  enableEssayTab?: boolean;
 }) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -180,6 +195,16 @@ const CreateActivity = ({
   const [selectedView, setSelectedView] = useState<'questions' | 'preview'>(
     'questions'
   );
+
+  /**
+   * Builder tab. The essay tab only exists for the in-person booklet, which is
+   * the only activity the backend accepts a theme on.
+   */
+  const showEssayTab = isInPersonExam && enableEssayTab;
+  const [activeTab, setActiveTab] = useState<'questions' | 'essay'>(
+    'questions'
+  );
+  const [essayTheme, setEssayTheme] = useState<EssayTheme | null>(null);
 
   // Estados internos
   const [activity, setActivity] = useState<ActivityData | null>(null);
@@ -1040,7 +1065,8 @@ const CreateActivity = ({
           questions.map((q) => q.id),
           startDateTime,
           finalDateTime,
-          activityCategory
+          activityCategory,
+          essayTheme?.id ?? null
         );
 
         // Create activity/exam
@@ -1100,7 +1126,16 @@ const CreateActivity = ({
         setIsSendingActivity(false);
       }
     },
-    [activity, appliedFilters, questions, apiClient, addToast, activityEndpoint]
+    [
+      activity,
+      appliedFilters,
+      questions,
+      apiClient,
+      addToast,
+      activityEndpoint,
+      activityCategory,
+      essayTheme?.id,
+    ]
   );
 
   const addedQuestionIds = useMemo(
@@ -1134,8 +1169,51 @@ const CreateActivity = ({
         enableExamMode={enableExamMode || isInPersonExam}
       />
 
+      {/* Builder tabs — in-person booklets also carry an essay theme */}
+      {showEssayTab && (
+        <div className="flex-shrink-0 border-b border-border-100 mb-4">
+          {/* The menu2 variant makes both the list and its items `w-full`, so
+              the underline would span half the page. Shrink-wrapping from the
+              outside keeps each tab as wide as its label, while the divider
+              above still runs the full width. */}
+          <div className="w-fit">
+            <Menu
+              defaultValue="questions"
+              value={activeTab}
+              onValueChange={(value) =>
+                setActiveTab(value as 'questions' | 'essay')
+              }
+              variant="menu2"
+              className="bg-transparent shadow-none px-0"
+            >
+              <MenuContent variant="menu2">
+                <MenuItem
+                  value="questions"
+                  variant="menu2"
+                  data-testid="tab-questions"
+                >
+                  <ArticleIcon size={18} aria-hidden />
+                  Questões
+                </MenuItem>
+                <MenuItem value="essay" variant="menu2" data-testid="tab-essay">
+                  <TextAlignLeftIcon size={18} aria-hidden />
+                  Redação
+                </MenuItem>
+              </MenuContent>
+            </Menu>
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
-      {isSmallScreen ? (
+      {showEssayTab && activeTab === 'essay' ? (
+        <EssayThemePicker
+          apiClient={apiClient}
+          selectedTheme={essayTheme}
+          onSelectTheme={setEssayTheme}
+          onRemoveTheme={() => setEssayTheme(null)}
+        />
+      ) : isSmallScreen ? (
         <SmallScreenLayout
           apiClient={apiClient}
           institutionId={institutionId}

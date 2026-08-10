@@ -1,6 +1,6 @@
 import type {
-  ActivityCategory,
-  TypeRoutes,
+  ExtendedActivityCategory,
+  ActivityRoutesInput,
 } from '../TypeSelector/TypeSelector.types';
 import type { ActivityModelTableItem } from '../../types/activitiesHistory';
 import type { PaginationData } from '../../types/pagination';
@@ -20,8 +20,8 @@ export interface UserData {
 export interface UnifiedDraftModelPageProps {
   /** Type of page: drafts or models */
   type: 'drafts' | 'models';
-  /** Activity category: ATIVIDADE or PROVA */
-  activityCategory: ActivityCategory;
+  /** Activity category: ATIVIDADE, PROVA or PRESENCIAL */
+  activityCategory: ExtendedActivityCategory;
   /** Data to display in table */
   data: ActivityModelTableItem[];
   /** Loading state */
@@ -47,6 +47,9 @@ export interface UnifiedDraftModelPageProps {
   activityImage?: string;
   /** Image for no search results */
   noSearchImage?: string;
-  /** Routes configuration for both ATIVIDADE and PROVA */
-  routes: Record<ActivityCategory, TypeRoutes>;
+  /**
+   * Routes configuration. ATIVIDADE and PROVA are required; passing PRESENCIAL
+   * is what adds it to the type selector.
+   */
+  routes: ActivityRoutesInput;
 }

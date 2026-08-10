@@ -63,10 +63,19 @@ export const UnifiedHistoryPage = ({
 
   /**
    * Whether the owner-only delete action is enabled. Requires an api client and
-   * the logged user id, and only applies to activities (not exams).
+   * the logged user id, and only applies to activities (not exams). Presencial
+   * activities are activities too — same DELETE /activities/:id.
    */
   const deleteEnabled =
-    activityCategory === 'ATIVIDADE' && !!apiClient && !!currentUserId;
+    (activityCategory === 'ATIVIDADE' || activityCategory === 'PRESENCIAL') &&
+    !!apiClient &&
+    !!currentUserId;
+
+  /**
+   * Presencial activities have no school/class/subject breakdown to filter by,
+   * so the filter chips are dropped and only the search box remains.
+   */
+  const filtersEnabled = activityCategory !== 'PRESENCIAL';
 
   /** Activity currently pending deletion confirmation (drives the AlertDialog) */
   const [activityToDelete, setActivityToDelete] = useState<{
@@ -94,95 +103,101 @@ export const UnifiedHistoryPage = ({
   );
 
   /**
-   * Build filter configuration merging userData and API-sourced options
+   * Build filter configuration merging userData and API-sourced options.
+   * Returns undefined when the category has no filters (presencial), which is
+   * what BasePageLayout reads to hide the filter chips.
    */
   const initialFilterConfigs = useMemo(
-    (): FilterConfig[] => [
-      // Add creator type filter only for managers
-      ...(includeCreatorFilter
-        ? [
+    (): FilterConfig[] | undefined =>
+      !filtersEnabled
+        ? undefined
+        : [
+            // Add creator type filter only for managers
+            ...(includeCreatorFilter
+              ? [
+                  {
+                    key: 'creator',
+                    label: 'CRIADO POR',
+                    categories: [
+                      {
+                        key: 'creatorType',
+                        label: 'Criador',
+                        selectedIds: [],
+                        itens: CREATOR_TYPE_OPTIONS,
+                      },
+                    ],
+                  },
+                ]
+              : []),
+            // Status filter
             {
-              key: 'creator',
-              label: 'CRIADO POR',
+              key: 'status',
+              label: 'STATUS',
               categories: [
                 {
-                  key: 'creatorType',
-                  label: 'Criador',
+                  key: 'status',
+                  label: config.statusLabel,
                   selectedIds: [],
-                  itens: CREATOR_TYPE_OPTIONS,
+                  itens: config.statusOptions,
                 },
               ],
             },
-          ]
-        : []),
-      // Status filter
-      {
-        key: 'status',
-        label: 'STATUS',
-        categories: [
-          {
-            key: 'status',
-            label: config.statusLabel,
-            selectedIds: [],
-            itens: config.statusOptions,
-          },
-        ],
-      },
-      // Academic data filters
-      {
-        key: 'academic',
-        label: 'DADOS ACADÊMICOS',
-        categories: [
-          {
-            key: 'school',
-            label: 'Escola',
-            selectedIds: [],
-            itens: mergeFilterOptions(
-              userFilterOptions.schools,
-              apiFilterOptions.schools
-            ),
-          },
-          {
-            key: 'schoolYear',
-            label: 'Ano',
-            selectedIds: [],
-            itens: mergeFilterOptions(
-              userFilterOptions.schoolYears,
-              apiFilterOptions.schoolYears
-            ),
-          },
-          {
-            key: 'class',
-            label: 'Turma',
-            selectedIds: [],
-            itens: mergeFilterOptions(
-              userFilterOptions.classes,
-              apiFilterOptions.classes
-            ),
-          },
-        ],
-      },
-      // Content filters
-      {
-        key: 'content',
-        label: 'CONTEÚDO',
-        categories: [
-          {
-            key: 'subject',
-            label: 'Matéria',
-            selectedIds: [],
-            itens: mergeFilterOptions(
-              userFilterOptions.subjects,
-              apiFilterOptions.subjects
-            ),
-          },
-        ],
-      },
-    ],
+            // Academic data filters
+            {
+              key: 'academic',
+              label: 'DADOS ACADÊMICOS',
+              categories: [
+                {
+                  key: 'school',
+                  label: 'Escola',
+                  selectedIds: [],
+                  itens: mergeFilterOptions(
+                    userFilterOptions.schools,
+                    apiFilterOptions.schools
+                  ),
+                },
+                {
+                  key: 'schoolYear',
+                  label: 'Ano',
+                  selectedIds: [],
+                  itens: mergeFilterOptions(
+                    userFilterOptions.schoolYears,
+                    apiFilterOptions.schoolYears
+                  ),
+                },
+                {
+                  key: 'class',
+                  label: 'Turma',
+                  selectedIds: [],
+                  itens: mergeFilterOptions(
+                    userFilterOptions.classes,
+                    apiFilterOptions.classes
+                  ),
+                },
+              ],
+            },
+            // Content filters
+            {
+              key: 'content',
+              label: 'CONTEÚDO',
+              categories: [
+                {
+                  key: 'subject',
+                  label: 'Matéria',
+                  selectedIds: [],
+                  itens: mergeFilterOptions(
+                    userFilterOptions.subjects,
+                    apiFilterOptions.subjects
+                  ),
+                },
+              ],
+            },
+          ],
     [
       apiFilterOptions,
       config.statusOptions,
       config.statusLabel,
+      filtersEnabled,
       includeCreatorFilter,
       userFilterOptions,
     ]
@@ -299,11 +314,18 @@ export const UnifiedHistoryPage = ({
   );
 
   /**
+   * Routes for the active category. Optional categories (PRESENCIAL) only exist
+   * in `routes` when the app configured them — and an app never renders this
+   * page for a category it did not configure, so the fallback is unreachable in
+   * practice and exists only to keep the type total.
+   */
+  const currentRoutes = routes[activityCategory] ?? routes.ATIVIDADE;
+
+  /**
    * Handle tab change
    */
   const handleTabChange = useCallback(
     (tab: string) => {
-      const currentRoutes = routes[activityCategory];
       switch (tab) {
         case config.tabs.DRAFTS:
           navigate(`${currentRoutes.base}/rascunhos`);
@@ -315,24 +337,24 @@ export const UnifiedHistoryPage = ({
           navigate(currentRoutes.base);
       }
     },
-    [navigate, config, routes, activityCategory]
+    [navigate, config, currentRoutes]
   );
 
   /**
    * Handle create button click
    */
   const handleCreate = useCallback(() => {
-    navigate(routes[activityCategory].create);
-  }, [navigate, routes, activityCategory]);
+    navigate(currentRoutes.create);
+  }, [navigate, currentRoutes]);
 
   /**
    * Handle row click
    */
   const handleRowClick = useCallback(
     (row: ActivityTableItem | ExamTableItem) => {
-      navigate(routes[activityCategory].details(row.id));
+      navigate(currentRoutes.details(row.id));
     },
-    [navigate, routes, activityCategory]
+    [navigate, currentRoutes]
   );
 
   // Build layout props dynamically

@@ -4,9 +4,9 @@ import {
   createActivityCategoryConfig,
   ATIVIDADE_LABELS,
   PROVA_LABELS,
+  PRESENCIAL_LABELS,
   DEFAULT_STATUS_OPTIONS,
-  type TypeRoutes,
-  type ActivityCategory,
+  type ActivityRoutesInput,
 } from './TypeSelector.types';
 
 describe('TypeSelector.types', () => {
@@ -68,7 +68,7 @@ describe('TypeSelector.types', () => {
   });
 
   describe('createActivityCategoryConfig', () => {
-    const mockRoutes: Record<ActivityCategory, TypeRoutes> = {
+    const mockRoutes: ActivityRoutesInput = {
       ATIVIDADE: {
         base: '/atividades',
         create: '/criar-atividade',
@@ -140,6 +140,52 @@ describe('TypeSelector.types', () => {
         '/criar-atividade?id=789'
       );
       expect(config.PROVA.routes.editModel('abc')).toBe('/criar-prova?id=abc');
+    });
+
+    it('should omit PRESENCIAL when no routes are provided for it', () => {
+      const config = createActivityCategoryConfig(mockRoutes);
+
+      expect(config.PRESENCIAL).toBeUndefined();
+    });
+
+    it('should create config with PRESENCIAL labels and routes when provided', () => {
+      const presencialRoutes = {
+        base: '/atividades-presenciais',
+        create: '/criar-atividade-presencial',
+        details: (id: string) => `/atividades-presenciais/${id}`,
+        editDraft: (id: string) => `/criar-atividade-presencial?id=${id}`,
+        editModel: (id: string) => `/criar-atividade-presencial?id=${id}`,
+      };
+      const config = createActivityCategoryConfig({
+        ...mockRoutes,
+        PRESENCIAL: presencialRoutes,
+      });
+
+      expect(config.PRESENCIAL?.labels).toBe(PRESENCIAL_LABELS);
+      expect(config.PRESENCIAL?.routes).toBe(presencialRoutes);
+      expect(config.PRESENCIAL?.statusOptions).toBe(
+        DEFAULT_STATUS_OPTIONS.PRESENCIAL
+      );
+      expect(config.PRESENCIAL?.routes.details('123')).toBe(
+        '/atividades-presenciais/123'
+      );
+    });
+  });
+
+  describe('PRESENCIAL_LABELS', () => {
+    it('should label the selector as Presenciais', () => {
+      expect(PRESENCIAL_LABELS.selectorLabel).toBe('Presenciais');
+    });
+
+    it('should reuse the activity page titles, since the selector disambiguates', () => {
+      expect(PRESENCIAL_LABELS.pageTitle.history).toBe(
+        'Histórico de atividades'
+      );
+      expect(PRESENCIAL_LABELS.pageTitle.drafts).toBe(
+        'Rascunhos de atividades'
+      );
+      expect(PRESENCIAL_LABELS.pageTitle.models).toBe('Modelos de atividades');
+      expect(PRESENCIAL_LABELS.createButton).toBe('Criar atividade');
     });
   });
 

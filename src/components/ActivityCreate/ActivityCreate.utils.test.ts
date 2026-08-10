@@ -876,5 +876,50 @@ describe('ActivityCreate.utils', () => {
         expect(payload.isDigital).toBe(expectedIsDigital);
       }
     );
+
+    const buildWithTheme = (
+      subtype: ActivitySubtype,
+      mode: ActivityMode | undefined,
+      essayThemeId: string | null
+    ) =>
+      buildSendActivityPayload(
+        { ...baseFormData, subtype, mode },
+        'subject-1',
+        ['q-1'],
+        '2026-01-01T08:00:00.000Z',
+        '2026-01-02T18:00:00.000Z',
+        'PROVA',
+        essayThemeId
+      );
+
+    it('should send the essay theme on an in-person exam', () => {
+      const payload = buildWithTheme(
+        ActivitySubtype.PROVA,
+        ActivityMode.PRESENCIAL,
+        'theme-1'
+      );
+
+      expect(payload.essayThemeId).toBe('theme-1');
+    });
+
+    it('should omit the essay theme on a digital activity, which the backend rejects', () => {
+      const payload = buildWithTheme(
+        ActivitySubtype.PROVA,
+        ActivityMode.ONLINE,
+        'theme-1'
+      );
+
+      expect(payload).not.toHaveProperty('essayThemeId');
+    });
+
+    it('should omit the essay theme when none was picked', () => {
+      const payload = buildWithTheme(
+        ActivitySubtype.PROVA,
+        ActivityMode.PRESENCIAL,
+        null
+      );
+
+      expect(payload).not.toHaveProperty('essayThemeId');
+    });
   });
 });

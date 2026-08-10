@@ -7,7 +7,7 @@ import type {
 } from '../types/activitiesHistory';
 import type { ColumnConfig } from '../components/TableProvider/TableProvider';
 import type {
-  ActivityCategory,
+  ExtendedActivityCategory,
   TypeRoutes,
 } from '../components/TypeSelector/TypeSelector.types';
 import { createExamDraftsModelsTableColumns } from '../components/ExamPageLayout/examDraftsModelsTableConfig';
@@ -22,8 +22,8 @@ import { createDraftsModelsFiltersConfig } from '../utils/draftModelFilterHelper
  * Configuration options for the useActivityDraftModelPage hook
  */
 export interface UseActivityDraftModelPageOptions {
-  /** Activity category (ATIVIDADE or PROVA) */
-  activityCategory: ActivityCategory;
+  /** Activity category (ATIVIDADE, PROVA or PRESENCIAL) */
+  activityCategory: ExtendedActivityCategory;
   /** Function to fetch data with the given filters */
   fetchFn: (params: {
     page?: number;

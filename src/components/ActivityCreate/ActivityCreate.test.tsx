@@ -189,6 +189,11 @@ jest.mock('../ActivityFilters/ActivityFilters', () => ({
 }));
 
 jest.mock('../Menu/Menu', () => {
+  // The real Menu owns selection: items carry a value and the Menu emits
+  // onValueChange. The mock keeps the last handler so a MenuItem click can
+  // drive it, which is what the tab tests exercise.
+  let latestOnValueChange: ((value: string) => void) | undefined;
+
   return {
     __esModule: true,
     default: ({
@@ -196,22 +201,26 @@ jest.mock('../Menu/Menu', () => {
       defaultValue,
       value,
       variant,
+      onValueChange,
     }: {
       children: React.ReactNode;
       defaultValue: string;
       value?: string;
       onValueChange?: (value: string) => void;
       variant?: string;
-    }) => (
-      <div
-        data-testid="menu"
-        data-variant={variant}
-        data-value={value || defaultValue}
-        data-default-value={defaultValue}
-      >
-        {children}
-      </div>
-    ),
+    }) => {
+      latestOnValueChange = onValueChange;
+      return (
+        <div
+          data-testid="menu"
+          data-variant={variant}
+          data-value={value || defaultValue}
+          data-default-value={defaultValue}
+        >
+          {children}
+        </div>
+      );
+    },
     MenuContent: ({
       children,
       variant,
@@ -238,13 +247,41 @@ jest.mock('../Menu/Menu', () => {
         type="button"
         data-testid={`menu-item-${value}`}
         data-variant={variant}
-        onClick={onClick}
+        onClick={() => {
+          onClick?.();
+          latestOnValueChange?.(value);
+        }}
       >
         {children}
       </button>
     ),
   };
 });
+
+jest.mock('../EssayThemePicker/EssayThemePicker', () => ({
+  EssayThemePicker: ({
+    selectedTheme,
+    onSelectTheme,
+    onRemoveTheme,
+  }: {
+    selectedTheme: { id: string; title: string } | null;
+    onSelectTheme: (theme: { id: string; title: string }) => void;
+    onRemoveTheme: () => void;
+  }) => (
+    <div data-testid="essay-theme-picker">
+      <span data-testid="selected-theme">{selectedTheme?.id ?? 'none'}</span>
+      <button
+        type="button"
+        onClick={() => onSelectTheme({ id: 'theme-1', title: 'Tema 1' })}
+      >
+        pick-theme
+      </button>
+      <button type="button" onClick={onRemoveTheme}>
+        clear-theme
+      </button>
+    </div>
+  ),
+}));
 
 jest.mock('../ActivityPreview/ActivityPreview', () => ({
   ActivityPreview: ({
@@ -5252,6 +5289,75 @@ describe('CreateActivity', () => {
       await waitFor(() => {
         expect(screen.getByTestId('students-count')).toHaveTextContent('2');
       });
+    });
+  });
+
+  describe('Essay tab', () => {
+    it('does not show the tabs on a regular activity', () => {
+      render(<CreateActivity {...defaultProps} enableEssayTab />);
+
+      expect(screen.queryByTestId('menu-item-essay')).not.toBeInTheDocument();
+    });
+
+    it('does not show the tabs on an in-person exam while the flag is off', () => {
+      render(<CreateActivity {...defaultProps} isInPersonExam />);
+
+      expect(screen.queryByTestId('menu-item-essay')).not.toBeInTheDocument();
+    });
+
+    it('shows both tabs on an in-person exam with the flag on', () => {
+      render(
+        <CreateActivity {...defaultProps} isInPersonExam enableEssayTab />
+      );
+
+      expect(screen.getByTestId('menu-item-questions')).toBeInTheDocument();
+      expect(screen.getByTestId('menu-item-essay')).toBeInTheDocument();
+      expect(screen.getByText('Redação')).toBeInTheDocument();
+    });
+
+    it('opens the theme picker on the essay tab and goes back to the questions', () => {
+      render(
+        <CreateActivity {...defaultProps} isInPersonExam enableEssayTab />
+      );
+
+      expect(
+        screen.queryByTestId('essay-theme-picker')
+      ).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByTestId('menu-item-essay'));
+      expect(screen.getByTestId('essay-theme-picker')).toBeInTheDocument();
+
+      fireEvent.click(screen.getByTestId('menu-item-questions'));
+      expect(
+        screen.queryByTestId('essay-theme-picker')
+      ).not.toBeInTheDocument();
+    });
+
+    it('keeps the picked theme while switching tabs', () => {
+      render(
+        <CreateActivity {...defaultProps} isInPersonExam enableEssayTab />
+      );
+
+      fireEvent.click(screen.getByTestId('menu-item-essay'));
+      fireEvent.click(screen.getByText('pick-theme'));
+      expect(screen.getByTestId('selected-theme')).toHaveTextContent('theme-1');
+
+      fireEvent.click(screen.getByTestId('menu-item-questions'));
+      fireEvent.click(screen.getByTestId('menu-item-essay'));
+
+      expect(screen.getByTestId('selected-theme')).toHaveTextContent('theme-1');
+    });
+
+    it('detaches the theme', () => {
+      render(
+        <CreateActivity {...defaultProps} isInPersonExam enableEssayTab />
+      );
+
+      fireEvent.click(screen.getByTestId('menu-item-essay'));
+      fireEvent.click(screen.getByText('pick-theme'));
+      fireEvent.click(screen.getByText('clear-theme'));
+
+      expect(screen.getByTestId('selected-theme')).toHaveTextContent('none');
     });
   });
 });

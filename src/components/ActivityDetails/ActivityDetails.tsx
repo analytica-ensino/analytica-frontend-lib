@@ -30,6 +30,7 @@ import type {
 } from '../../utils/studentActivityCorrection';
 import { convertApiResponseToCorrectionData } from '../../utils/studentActivityCorrection';
 import {
+  PRESENCIAL_DELIVERY_STATUS,
   STUDENT_ACTIVITY_STATUS,
   type ActivityDetailsData,
   type ActivityStudentTableItem,
@@ -70,32 +71,99 @@ export interface ActivityDetailsProps {
   /** Function to map subject name to SubjectEnum */
   mapSubjectNameToEnum?: (subjectName: string) => SubjectEnum | null;
   /**
-   * Callback for downloading the answer sheet for a student.
-   * Presencial mode is determined by `activity.isDigital === false && activity.subtype === ActivitySubtype.PROVA`,
-   * not by the presence of this callback. When the activity is presencial:
-   * - Hides the "Duração" column
-   * - Renames "Respondido em" → "Gabarito recebido em"
-   * - Shows a "Gabarito" column (before "Resultado"); button is disabled when callback is absent
+   * Extra pages appended to the printed exam, resolved when "Baixar prova" is
+   * clicked. The lib renders the questions; the app supplies whatever else goes
+   * in the same document — for an in-person exam, the essay sheet and every
+   * student's answer sheet, which need app-side data (QR codes, institution
+   * domain) the lib does not have.
+   *
+   * Only used in presencial mode, which is determined by
+   * `activity.isDigital === false && activity.subtype === ActivitySubtype.PROVA`.
+   * In that mode the screen also:
+   * - drops the "Duração" column and the activity's academic metadata;
+   * - renames "Respondido em" → "Gabarito recebido em";
+   * - adds "Status redação" / "Redação recebida em";
+   * - shows only the three question-statistics cards.
    */
-  onDownloadAnswerSheet?: (studentId: string) => void;
+  getExamExtraPagesHtml?: () => Promise<string>;
 }
+
+/**
+ * Render a delivery-state badge for a physical sheet (answers or essay).
+ *
+ * @param status - Delivery state, or null/undefined when unknown
+ * @returns Badge element, or a dash when there is nothing to show
+ */
+const renderDeliveryBadge = (status: unknown) => {
+  if (
+    status !== PRESENCIAL_DELIVERY_STATUS.AWAITING &&
+    status !== PRESENCIAL_DELIVERY_STATUS.RECEIVED
+  ) {
+    return <Text className="text-sm text-text-400">-</Text>;
+  }
+
+  const received = status === PRESENCIAL_DELIVERY_STATUS.RECEIVED;
+  return (
+    <Badge
+      className={
+        received
+          ? 'bg-emerald-50 text-emerald-800 text-xs px-2 py-1'
+          : 'bg-sky-50 text-sky-700 text-xs px-2 py-1'
+      }
+    >
+      {status}
+    </Badge>
+  );
+};
+
+/**
+ * Render a date cell, falling back to a dash when the date is absent.
+ *
+ * @param value - ISO date string, or anything else when absent
+ * @returns Text element with the Brazilian-formatted date
+ */
+const renderDateCell = (value: unknown) => {
+  if (!value || typeof value !== 'string') {
+    return <Text className="text-sm text-text-400">-</Text>;
+  }
+  return (
+    <Text className="text-sm text-text-700">
+      {formatDateToBrazilian(value)}
+    </Text>
+  );
+};
+
+/**
+ * Tailwind column count for the statistics grid.
+ *
+ * @param isMobile - Whether the viewport is mobile
+ * @param isPresencial - Whether the activity is an in-person exam (3 cards)
+ * @returns Tailwind grid-cols class
+ */
+export const getStatsGridColsClass = (
+  isMobile: boolean,
+  isPresencial: boolean
+): string => {
+  if (isMobile) {
+    return isPresencial ? 'grid-cols-1' : 'grid-cols-2';
+  }
+  return isPresencial ? 'grid-cols-3' : 'grid-cols-5';
+};
 
 /**
  * Create table columns configuration
  * @param onCorrectActivity - Callback for correction action
  * @param isPresencial - Whether the activity is in presencial mode (drives column visibility)
- * @param onDownloadAnswerSheet - Optional callback for answer sheet download button in presencial mode
  * @returns Column configuration array
  */
 const createTableColumns = (
   onCorrectActivity: (studentId: string) => void,
-  isPresencial: boolean,
-  onDownloadAnswerSheet?: (studentId: string) => void
+  isPresencial: boolean
 ): ColumnConfig<ActivityStudentTableItem>[] => {
   const columns: ColumnConfig<ActivityStudentTableItem>[] = [
     {
       key: 'studentName',
-      label: 'Aluno',
+      label: isPresencial ? 'Estudante' : 'Aluno',
       sortable: true,
       className: 'max-w-[220px]',
       render: (value: unknown) => {
@@ -116,10 +184,19 @@ const createTableColumns = (
     },
     {
       key: 'status',
-      label: 'Status',
+      // The column header already says "gabarito", so the badge only carries
+      // the delivery state — matching the essay column right next to it.
+      label: isPresencial ? 'Status gabarito' : 'Status',
       sortable: false,
       render: (value: unknown) => {
         const status = value as StudentActivityStatus;
+        if (isPresencial) {
+          return renderDeliveryBadge(
+            status === STUDENT_ACTIVITY_STATUS.AWAITING_ANSWER_SHEET
+              ? PRESENCIAL_DELIVERY_STATUS.AWAITING
+              : PRESENCIAL_DELIVERY_STATUS.RECEIVED
+          );
+        }
         const config = getStatusBadgeConfig(status);
         return (
           <Badge
@@ -134,18 +211,28 @@ const createTableColumns = (
       key: 'answeredAt',
       label: isPresencial ? 'Gabarito recebido em' : 'Respondido em',
       sortable: true,
-      render: (value: unknown) => {
-        if (!value || typeof value !== 'string') {
-          return <Text className="text-sm text-text-400">-</Text>;
-        }
-        return (
-          <Text className="text-sm text-text-700">
-            {formatDateToBrazilian(value)}
-          </Text>
-        );
-      },
+      render: renderDateCell,
     },
   ];
+
+  // The printed exam carries an essay sheet, delivered independently of the
+  // answer sheet — hence its own status and date.
+  if (isPresencial) {
+    columns.push(
+      {
+        key: 'essayStatus',
+        label: 'Status redação',
+        sortable: false,
+        render: renderDeliveryBadge,
+      },
+      {
+        key: 'essayReceivedAt',
+        label: 'Redação recebida em',
+        sortable: true,
+        render: renderDateCell,
+      }
+    );
+  }
 
   // "Duração" column is hidden in presencial mode
   if (!isPresencial) {
@@ -177,26 +264,6 @@ const createTableColumns = (
         </Text>
       ),
   });
-
-  // "Gabarito" column is always shown in presencial mode; button disabled when callback is absent
-  if (isPresencial) {
-    columns.push({
-      key: 'answerSheet',
-      label: 'Gabarito',
-      sortable: false,
-      render: (_value: unknown, row: ActivityStudentTableItem) => (
-        <Button
-          variant="outline"
-          size="small"
-          onClick={() => onDownloadAnswerSheet?.(row.studentId)}
-          disabled={!onDownloadAnswerSheet}
-          className="text-xs"
-        >
-          Baixar gabarito
-        </Button>
-      ),
-    });
-  }
 
   columns.push({
     key: 'actions',
@@ -400,10 +467,9 @@ export const ActivityDetails = ({
   onBack,
   emptyStateImage,
   mapSubjectNameToEnum,
-  onDownloadAnswerSheet,
+  getExamExtraPagesHtml,
 }: ActivityDetailsProps) => {
   const { isMobile } = useMobile();
-  const statsGridColsClass = isMobile ? 'grid-cols-2' : 'grid-cols-5';
 
   // Pagination and sorting state
   const [page, setPage] = useState(1);
@@ -637,6 +703,12 @@ export const ActivityDetails = ({
     data?.activity?.subtype === ActivitySubtype.PROVA;
 
   /**
+   * Statistics grid: five cards normally, only the three question cards in
+   * presencial mode.
+   */
+  const statsGridColsClass = getStatsGridColsClass(isMobile, isPresencial);
+
+  /**
    * Convert student data to table format.
    * Presencial status remapping happens here so all consumers (modal logic,
    * view-only check, column render) see a consistent value.
@@ -661,6 +733,8 @@ export const ActivityDetails = ({
         answeredAt: student.answeredAt,
         timeSpent: student.timeSpent,
         score: student.score,
+        essayStatus: student.essayStatus,
+        essayReceivedAt: student.essayReceivedAt,
       };
     });
   }, [data?.students, isPresencial]);
@@ -669,13 +743,8 @@ export const ActivityDetails = ({
    * Table columns configuration
    */
   const columns = useMemo(
-    () =>
-      createTableColumns(
-        handleCorrectActivity,
-        isPresencial,
-        onDownloadAnswerSheet
-      ),
-    [handleCorrectActivity, isPresencial, onDownloadAnswerSheet]
+    () => createTableColumns(handleCorrectActivity, isPresencial),
+    [handleCorrectActivity, isPresencial]
   );
 
   /**
@@ -706,7 +775,12 @@ export const ActivityDetails = ({
   /**
    * Use PDF print hook
    */
-  const { contentRef, handlePrint } = useQuestionsPdfPrint(orderedQuestions);
+  const { contentRef, handlePrint } = useQuestionsPdfPrint(
+    orderedQuestions,
+    undefined,
+    undefined,
+    isPresencial ? getExamExtraPagesHtml : undefined
+  );
 
   /**
    * Extract questions from API response
@@ -1051,8 +1125,15 @@ export const ActivityDetails = ({
 
   return (
     <div className="flex flex-col w-full h-auto relative justify-center items-center mb-5 overflow-hidden">
-      {/* Main container */}
-      <div className="flex flex-col w-full h-full max-w-[1150px] mx-auto z-10 lg:px-0 px-4 pt-4 gap-4">
+      {/* Main container. Presencial gets the wider canvas the listing pages
+          already use: its results table carries two extra columns and the
+          "Ver respostas" action would otherwise start off-screen. */}
+      <div
+        className={cn(
+          'flex flex-col w-full h-full mx-auto z-10 lg:px-0 px-4 pt-4 gap-4',
+          isPresencial ? 'max-w-[1350px]' : 'max-w-[1150px]'
+        )}
+      >
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 py-4">
           <button
@@ -1067,8 +1148,36 @@ export const ActivityDetails = ({
           </Text>
         </div>
 
+        {/* Activity header card — presencial: title, creation date and the
+            printable package download. There is no school/class/subject line
+            because an in-person exam is not tied to that breakdown. */}
+        {data.activity && isPresencial && (
+          <div className="bg-background rounded-xl p-4 flex justify-between items-center gap-4">
+            <div className="flex flex-col gap-1">
+              <Text className="text-2xl font-bold text-text-950">
+                {data.activity.title}
+              </Text>
+              <Text className="text-sm text-text-500">
+                Criada em{' '}
+                {data.activity.createdAt
+                  ? formatActivityDateToBrazilian(data.activity.createdAt)
+                  : '00/00/0000'}
+              </Text>
+            </div>
+            <Button
+              size="small"
+              onClick={handleDownloadPdf}
+              disabled={isLoadingQuestions}
+              iconLeft={<DownloadSimpleIcon size={16} />}
+              className="bg-primary-950 text-text gap-2 shrink-0"
+            >
+              Baixar prova
+            </Button>
+          </div>
+        )}
+
         {/* Activity header card */}
-        {data.activity && (
+        {data.activity && !isPresencial && (
           <div className="bg-background rounded-xl p-4 flex flex-col gap-2">
             <div className="flex justify-between items-start">
               <div className="flex flex-col gap-2">
@@ -1163,54 +1272,69 @@ export const ActivityDetails = ({
           </div>
         )}
 
+        {/* Section title, presencial only: the cards below are about the exam
+            as a whole, not about any single student. */}
+        {isPresencial && (
+          <Text className="text-lg font-bold text-text-950">
+            Resultados da atividade
+          </Text>
+        )}
+
         {/* Statistics cards */}
         <div className={cn('grid gap-5', statsGridColsClass)}>
-          {/* Completion percentage */}
-          <div className="border border-border-50 rounded-xl py-4 px-0 flex flex-col items-center justify-center gap-2 bg-primary-50">
-            <div className="relative w-[90px] h-[90px]">
-              <svg className="w-full h-full transform -rotate-90">
-                <circle
-                  cx="45"
-                  cy="45"
-                  r="40"
-                  stroke="var(--color-primary-100)"
-                  strokeWidth="8"
-                  fill="none"
-                />
-                <circle
-                  cx="45"
-                  cy="45"
-                  r="40"
-                  stroke="var(--color-primary-700)"
-                  strokeWidth="8"
-                  fill="none"
-                  strokeDasharray={`${(data.generalStats.completionPercentage / 100) * 251.2} 251.2`}
-                  strokeLinecap="round"
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <Text className="text-xl font-medium text-primary-600">
-                  {Math.round(data.generalStats.completionPercentage)}%
+          {/* Completion percentage and average score are dropped in presencial
+              mode: the exam is graded off the scanned sheets, so what the
+              teacher acts on is the per-question breakdown below. */}
+          {!isPresencial && (
+            <>
+              {/* Completion percentage */}
+              <div className="border border-border-50 rounded-xl py-4 px-0 flex flex-col items-center justify-center gap-2 bg-primary-50">
+                <div className="relative w-[90px] h-[90px]">
+                  <svg className="w-full h-full transform -rotate-90">
+                    <circle
+                      cx="45"
+                      cy="45"
+                      r="40"
+                      stroke="var(--color-primary-100)"
+                      strokeWidth="8"
+                      fill="none"
+                    />
+                    <circle
+                      cx="45"
+                      cy="45"
+                      r="40"
+                      stroke="var(--color-primary-700)"
+                      strokeWidth="8"
+                      fill="none"
+                      strokeDasharray={`${(data.generalStats.completionPercentage / 100) * 251.2} 251.2`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <Text className="text-xl font-medium text-primary-600">
+                      {Math.round(data.generalStats.completionPercentage)}%
+                    </Text>
+                    <Text className="text-2xs font-bold text-text-600 uppercase">
+                      Concluído
+                    </Text>
+                  </div>
+                </div>
+              </div>
+
+              {/* Average score */}
+              <div className="border border-border-50 rounded-xl py-4 px-3 flex flex-col items-center justify-center gap-1 bg-warning-background">
+                <div className="w-[30px] h-[30px] rounded-2xl flex items-center justify-center bg-warning-300">
+                  <StarIcon size={16} className="text-white" weight="regular" />
+                </div>
+                <Text className="text-2xs font-bold uppercase text-center text-warning-600">
+                  {getAverageScoreLabel(data.pagination.total)}
                 </Text>
-                <Text className="text-2xs font-bold text-text-600 uppercase">
-                  Concluído
+                <Text className="text-xl font-bold text-warning-600">
+                  {data.generalStats.averageScore.toFixed(1)}
                 </Text>
               </div>
-            </div>
-          </div>
-
-          {/* Average score */}
-          <div className="border border-border-50 rounded-xl py-4 px-3 flex flex-col items-center justify-center gap-1 bg-warning-background">
-            <div className="w-[30px] h-[30px] rounded-2xl flex items-center justify-center bg-warning-300">
-              <StarIcon size={16} className="text-white" weight="regular" />
-            </div>
-            <Text className="text-2xs font-bold uppercase text-center text-warning-600">
-              {getAverageScoreLabel(data.pagination.total)}
-            </Text>
-            <Text className="text-xl font-bold text-warning-600">
-              {data.generalStats.averageScore.toFixed(1)}
-            </Text>
-          </div>
+            </>
+          )}
 
           {/* Most correct questions */}
           <div className="border border-border-50 rounded-xl py-2 px-3 flex flex-col items-center justify-center gap-1 bg-success-200">
@@ -1270,6 +1394,12 @@ export const ActivityDetails = ({
             />
             <Text className="text-error-700 text-sm">{correctionError}</Text>
           </div>
+        )}
+
+        {/* Section title, presencial only: separates the per-student results
+            from the exam-wide cards above. */}
+        {isPresencial && (
+          <Text className="text-lg font-bold text-text-950">Resultados</Text>
         )}
 
         {/* Students table */}

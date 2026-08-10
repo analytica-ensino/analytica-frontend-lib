@@ -172,6 +172,7 @@ export default defineConfig({
     // ActivitiesHistory
     'ActivitiesHistory/index': 'src/components/ActivitiesHistory/index.ts',
     'hooks/useActivitiesHistory/index': 'src/hooks/useActivitiesHistory.ts',
+    'hooks/useEssayThemes/index': 'src/hooks/useEssayThemes.ts', // createUseEssayThemes
     'hooks/useActivityModels/index': 'src/hooks/useActivityModels.ts',
     'types/activitiesHistory/index': 'src/types/activitiesHistory.ts',
 
@@ -257,6 +258,8 @@ export default defineConfig({
     'Accordation/AccordionGroup/index':
       'src/components/Accordation/AccordionGroup.tsx', // AccordionGroup
     'ActivityCreate/index': 'src/components/ActivityCreate/ActivityCreate.tsx', // CreateActivity
+    'EssayThemePicker/index':
+      'src/components/EssayThemePicker/EssayThemePicker.tsx', // EssayThemePicker
     'ActivityCreate/ActivityCreate.types/index':
       'src/components/ActivityCreate/ActivityCreate.types.ts', // ActivityType
     'AlertManager/types/index': 'src/components/AlertManager/types.ts', // AlertData, AlertsConfig
@@ -354,6 +357,7 @@ export default defineConfig({
     'enums/Quiz/index': 'src/enums/Quiz.ts', // TrueFalseEnum
 
     // === migration: Types ===
+    'types/essayThemes/index': 'src/types/essayThemes.ts', // EssayTheme, EssayThemesApiResponse
     'types/activityDetails/index': 'src/types/activityDetails.ts', // ACTIVITY_AVAILABILITY, ActivityAvailability, STUDENT_ACTIVITY_STATUS, StudentActivityStatus
     'types/activityFilters/index': 'src/types/activityFilters.ts', // ActivityFiltersData
     'types/api/index': 'src/types/api.ts', // BaseApiClient

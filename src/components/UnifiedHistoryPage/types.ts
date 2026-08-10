@@ -1,6 +1,6 @@
 import type {
-  ActivityCategory,
-  TypeRoutes,
+  ExtendedActivityCategory,
+  ActivityRoutesInput,
 } from '../TypeSelector/TypeSelector.types';
 import type { ActivityTableItem } from '../../types/activitiesHistory';
 import type { ExamTableItem } from '../../types/examsHistory';
@@ -37,8 +37,8 @@ export interface ApiFilterOptions {
  * Props for UnifiedHistoryPage component
  */
 export interface UnifiedHistoryPageProps {
-  /** Activity category: ATIVIDADE or PROVA */
-  activityCategory: ActivityCategory;
+  /** Activity category: ATIVIDADE, PROVA or PRESENCIAL */
+  activityCategory: ExtendedActivityCategory;
   /** Data to display in table */
   data: ActivityTableItem[] | ExamTableItem[];
   /** Loading state */
@@ -59,12 +59,15 @@ export interface UnifiedHistoryPageProps {
   noSearchImage?: string;
   /** Include creator type filter (for managers/gestors) */
   includeCreatorFilter?: boolean;
-  /** Routes configuration for both ATIVIDADE and PROVA */
-  routes: Record<ActivityCategory, TypeRoutes>;
+  /**
+   * Routes configuration. ATIVIDADE and PROVA are required; passing PRESENCIAL
+   * is what adds it to the type selector.
+   */
+  routes: ActivityRoutesInput;
   /**
    * Logged user id. When provided together with `apiClient` (and category is
-   * ATIVIDADE), enables the owner-only delete action on activities created by
-   * this user (row.creatorId === currentUserId).
+   * ATIVIDADE or PRESENCIAL), enables the owner-only delete/edit actions on
+   * activities created by this user (row.creatorId === currentUserId).
    */
   currentUserId?: string | null;
   /**

@@ -3,7 +3,7 @@ import {
   ActivityTab,
 } from '../ActivityPageLayout/ActivityPageLayout';
 import { ExamPageLayout, ExamTab } from '../ExamPageLayout/ExamPageLayout';
-import type { ActivityCategory } from '../TypeSelector/TypeSelector.types';
+import type { ExtendedActivityCategory } from '../TypeSelector/TypeSelector.types';
 
 /**
  * Page config type for drafts or models
@@ -38,7 +38,7 @@ type CategoryConfig = {
 /**
  * Configuration for drafts vs models by activity category
  */
-export const PAGE_CONFIG: Record<ActivityCategory, CategoryConfig> = {
+export const PAGE_CONFIG: Record<ExtendedActivityCategory, CategoryConfig> = {
   ATIVIDADE: {
     drafts: {
       activeTab: ActivityTab.DRAFTS,
@@ -119,11 +119,51 @@ export const PAGE_CONFIG: Record<ActivityCategory, CategoryConfig> = {
       onCreatePropName: 'onCreateExam' as const,
     },
   },
+  PRESENCIAL: {
+    drafts: {
+      activeTab: ActivityTab.DRAFTS,
+      pageTitle: 'Rascunhos de atividades',
+      emptyTitle: 'Você ainda não tem rascunhos',
+      emptyDescription:
+        'Comece a criar uma atividade presencial e salve como rascunho para continuar depois!',
+      buttonText: 'Criar atividade',
+      itemLabel: 'rascunhos',
+      searchPlaceholder: 'Buscar rascunho',
+      dialogTitle: 'Excluir rascunho',
+      editUrlType: 'rascunho' as const,
+      errorLogLabel: 'rascunho',
+      currentTab: 'drafts' as const,
+      dataKey: 'drafts' as const,
+      fetchKey: 'fetchDrafts' as const,
+      deleteKey: 'deleteDraft' as const,
+      testId: 'presencial-activity-drafts-page',
+      onCreatePropName: 'onCreateActivity' as const,
+    },
+    models: {
+      activeTab: ActivityTab.MODELS,
+      pageTitle: 'Modelos de atividades',
+      emptyTitle: 'Você ainda não tem modelos salvos',
+      emptyDescription:
+        'Salve uma atividade presencial como modelo para reutilizá-la facilmente no futuro!',
+      buttonText: 'Criar atividade',
+      itemLabel: 'modelos',
+      searchPlaceholder: 'Buscar modelo',
+      dialogTitle: 'Excluir modelo',
+      editUrlType: 'modelo' as const,
+      errorLogLabel: 'modelo',
+      currentTab: 'models' as const,
+      dataKey: 'models' as const,
+      fetchKey: 'fetchModels' as const,
+      deleteKey: 'deleteModel' as const,
+      testId: 'presencial-activity-models-page',
+      onCreatePropName: 'onCreateActivity' as const,
+    },
+  },
 } as const;
 
 /**
  * Get page layout component based on activity category
  */
-export const getPageLayout = (activityCategory: ActivityCategory) => {
+export const getPageLayout = (activityCategory: ExtendedActivityCategory) => {
   return activityCategory === 'PROVA' ? ExamPageLayout : ActivityPageLayout;
 };

@@ -88,6 +88,9 @@ export const transformActivityToTableItem = (
     deadline: activity.finalDate
       ? dayjs(activity.finalDate).format('DD/MM')
       : '-',
+    createdAt: activity.createdAt
+      ? dayjs(activity.createdAt).format('DD/MM')
+      : '-',
     creator: activity.creator?.name?.trim() ? activity.creator.name : '-',
     creatorId: activity.creator?.id ?? null,
     title: activity.title,

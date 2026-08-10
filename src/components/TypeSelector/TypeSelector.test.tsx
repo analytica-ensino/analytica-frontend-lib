@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TypeSelector } from './TypeSelector';
-import type { ActivityCategory, TypeConfig } from './TypeSelector.types';
+import type { ActivityCategoryConfig } from './TypeSelector.types';
 import { ReactNode } from 'react';
 
 // Mock react-router-dom
@@ -35,6 +35,12 @@ jest.mock('../Select/Select', () => ({
       >
         Change to ATIVIDADE
       </button>
+      <button
+        data-testid="change-to-presencial"
+        onClick={() => onValueChange('PRESENCIAL')}
+      >
+        Change to PRESENCIAL
+      </button>
     </div>
   ),
   SelectTrigger: ({ children }: { children: ReactNode }) => (
@@ -54,7 +60,7 @@ jest.mock('../Select/Select', () => ({
 }));
 
 describe('TypeSelector', () => {
-  const mockConfig: Record<ActivityCategory, TypeConfig> = {
+  const mockConfig: ActivityCategoryConfig = {
     ATIVIDADE: {
       labels: {
         pageTitle: {
@@ -285,6 +291,111 @@ describe('TypeSelector', () => {
       );
 
       expect(screen.getByTestId('select-item-PROVA')).toBeInTheDocument();
+    });
+  });
+
+  describe('PRESENCIAL category', () => {
+    const presencialConfig: ActivityCategoryConfig = {
+      ...mockConfig,
+      PRESENCIAL: {
+        labels: {
+          ...mockConfig.ATIVIDADE.labels,
+          selectorLabel: 'Presenciais',
+        },
+        routes: {
+          base: '/atividades-presenciais',
+          create: '/criar-atividade-presencial',
+          details: (id: string) => `/atividades-presenciais/${id}`,
+          editDraft: (id: string) => `/criar-atividade-presencial?id=${id}`,
+          editModel: (id: string) => `/criar-atividade-presencial?id=${id}`,
+        },
+        statusOptions: [{ id: 'active', name: 'Ativa' }],
+      },
+    };
+
+    it('should not offer PRESENCIAL when the config omits it', () => {
+      render(
+        <TypeSelector
+          value="ATIVIDADE"
+          currentTab="history"
+          config={mockConfig}
+        />
+      );
+
+      expect(screen.queryByTestId('select-item-PRESENCIAL')).toBeNull();
+      expect(screen.queryByText('Presenciais')).toBeNull();
+    });
+
+    it('should offer PRESENCIAL when the config provides it', () => {
+      render(
+        <TypeSelector
+          value="ATIVIDADE"
+          currentTab="history"
+          config={presencialConfig}
+        />
+      );
+
+      expect(screen.getByTestId('select-item-PRESENCIAL')).toBeInTheDocument();
+      expect(screen.getByText('Presenciais')).toBeInTheDocument();
+    });
+
+    it('should navigate to the PRESENCIAL base route preserving the history tab', () => {
+      render(
+        <TypeSelector
+          value="ATIVIDADE"
+          currentTab="history"
+          config={presencialConfig}
+        />
+      );
+
+      fireEvent.click(screen.getByTestId('change-to-presencial'));
+
+      expect(mockNavigate).toHaveBeenCalledWith('/atividades-presenciais');
+    });
+
+    it('should navigate to the PRESENCIAL models route preserving the models tab', () => {
+      render(
+        <TypeSelector
+          value="ATIVIDADE"
+          currentTab="models"
+          config={presencialConfig}
+        />
+      );
+
+      fireEvent.click(screen.getByTestId('change-to-presencial'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        '/atividades-presenciais/modelos'
+      );
+    });
+
+    it('should honour an explicit allowedCategories over the config-derived list', () => {
+      render(
+        <TypeSelector
+          value="ATIVIDADE"
+          currentTab="history"
+          config={presencialConfig}
+          allowedCategories={['ATIVIDADE']}
+        />
+      );
+
+      expect(screen.getByTestId('select-item-ATIVIDADE')).toBeInTheDocument();
+      expect(screen.queryByTestId('select-item-PROVA')).toBeNull();
+      expect(screen.queryByTestId('select-item-PRESENCIAL')).toBeNull();
+    });
+
+    it('should not navigate when the selected category is missing from the config', () => {
+      render(
+        <TypeSelector
+          value="ATIVIDADE"
+          currentTab="history"
+          config={mockConfig}
+        />
+      );
+
+      fireEvent.click(screen.getByTestId('change-to-presencial'));
+
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 });

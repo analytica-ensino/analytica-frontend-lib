@@ -1,7 +1,10 @@
 import type { HTMLAttributes, ReactNode, Ref } from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { STUDENT_ACTIVITY_STATUS } from '../../types/activityDetails';
+import {
+  PRESENCIAL_DELIVERY_STATUS,
+  STUDENT_ACTIVITY_STATUS,
+} from '../../types/activityDetails';
 import {
   getStatusBadgeConfig,
   formatTimeSpent,
@@ -91,15 +94,6 @@ jest.mock('../TableProvider/TableProvider', () => ({
       return <div data-testid="table-provider">{emptyState.component}</div>;
     }
 
-    // Find column renderers
-    const actionsColumn = headers?.find((h) => h.key === 'actions');
-    const studentNameColumn = headers?.find((h) => h.key === 'studentName');
-    const statusColumn = headers?.find((h) => h.key === 'status');
-    const answeredAtColumn = headers?.find((h) => h.key === 'answeredAt');
-    const timeSpentColumn = headers?.find((h) => h.key === 'timeSpent');
-    const scoreColumn = headers?.find((h) => h.key === 'score');
-    const answerSheetColumn = headers?.find((h) => h.key === 'answerSheet');
-
     return (
       <div data-testid="table-provider">
         {children({
@@ -115,52 +109,17 @@ jest.mock('../TableProvider/TableProvider', () => ({
                 </tr>
               </thead>
               <tbody>
-                {(
-                  data as {
-                    studentName: string;
-                    status: string;
-                    studentId: string;
-                    answeredAt: string | null;
-                    timeSpent: number;
-                    score: number | null;
-                  }[]
-                ).map((item) => (
-                  <tr key={item.studentId}>
-                    <td>
-                      {studentNameColumn?.render
-                        ? studentNameColumn.render(item.studentName, item)
-                        : item.studentName}
-                    </td>
-                    <td>
-                      {statusColumn?.render
-                        ? statusColumn.render(item.status, item)
-                        : item.status}
-                    </td>
-                    <td>
-                      {answeredAtColumn?.render
-                        ? answeredAtColumn.render(item.answeredAt, item)
-                        : null}
-                    </td>
-                    <td>
-                      {timeSpentColumn?.render
-                        ? timeSpentColumn.render(item.timeSpent, item)
-                        : null}
-                    </td>
-                    <td>
-                      {scoreColumn?.render
-                        ? scoreColumn.render(item.score, item)
-                        : null}
-                    </td>
-                    <td>
-                      {answerSheetColumn?.render
-                        ? answerSheetColumn.render(null, item)
-                        : null}
-                    </td>
-                    <td>
-                      {actionsColumn?.render
-                        ? actionsColumn.render(null, item)
-                        : null}
-                    </td>
+                {/* Render every configured column through its own renderer, so
+                    the mock stays faithful as columns come and go. */}
+                {(data as Record<string, unknown>[]).map((item) => (
+                  <tr key={String(item.studentId)}>
+                    {headers?.map((h) => (
+                      <td key={h.key}>
+                        {h.render
+                          ? h.render(item[h.key], item)
+                          : String(item[h.key] ?? '')}
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
@@ -396,7 +355,7 @@ jest.mock('../Toast/utils/ToastStore', () => ({
 }));
 
 // Import after mocks
-import { ActivityDetails } from './ActivityDetails';
+import { ActivityDetails, getStatsGridColsClass } from './ActivityDetails';
 import type { ActivityDetailsProps } from './ActivityDetails';
 import { useActivityDetails } from '../../hooks/useActivityDetails';
 import type { BaseApiClient } from '../../types/api';
@@ -2523,6 +2482,7 @@ describe('ActivityDetails', () => {
         title: 'Prova Presencial',
         startDate: '2024-03-01',
         finalDate: '2024-03-10',
+        createdAt: '2024-02-20T10:00:00Z',
         schoolName: 'Escola Teste',
         year: '2024',
         subjectName: 'Matemática',
@@ -2538,6 +2498,8 @@ describe('ActivityDetails', () => {
           timeSpent: 0,
           score: null,
           status: STUDENT_ACTIVITY_STATUS.ANSWER_SHEET_RECEIVED,
+          essayStatus: PRESENCIAL_DELIVERY_STATUS.RECEIVED,
+          essayReceivedAt: '2024-03-05T09:00:00Z',
         },
         {
           studentId: 'student-p2',
@@ -2546,11 +2508,17 @@ describe('ActivityDetails', () => {
           timeSpent: 0,
           score: null,
           status: STUDENT_ACTIVITY_STATUS.AWAITING_ANSWER_SHEET,
+          essayStatus: PRESENCIAL_DELIVERY_STATUS.AWAITING,
+          essayReceivedAt: null,
         },
       ],
       pagination: { total: 2, page: 1, limit: 10, totalPages: 1 },
       generalStats: { averageScore: 0, completionPercentage: 50 },
-      questionStats: { mostCorrect: [], mostIncorrect: [], notAnswered: [] },
+      questionStats: {
+        mostCorrect: [1, 2],
+        mostIncorrect: [3],
+        notAnswered: [],
+      },
     };
 
     beforeEach(() => {
@@ -2577,54 +2545,151 @@ describe('ActivityDetails', () => {
       expect(screen.queryByText('Duração')).not.toBeInTheDocument();
     });
 
-    it('should show "Baixar gabarito" button in presencial mode', async () => {
-      const mockOnDownloadAnswerSheet = jest.fn();
-      render(
-        <ActivityDetails
-          {...defaultProps}
-          onDownloadAnswerSheet={mockOnDownloadAnswerSheet}
-        />
-      );
-
-      await waitFor(() => {
-        const baixarButtons = screen.getAllByText('Baixar gabarito');
-        expect(baixarButtons.length).toBeGreaterThan(0);
-      });
-    });
-
-    it('should call onDownloadAnswerSheet with studentId when "Baixar gabarito" is clicked', async () => {
-      const mockOnDownloadAnswerSheet = jest.fn();
-      render(
-        <ActivityDetails
-          {...defaultProps}
-          onDownloadAnswerSheet={mockOnDownloadAnswerSheet}
-        />
-      );
-
-      await waitFor(() => {
-        expect(screen.getAllByText('Baixar gabarito').length).toBeGreaterThan(
-          0
-        );
-      });
-
-      fireEvent.click(screen.getAllByText('Baixar gabarito')[0]);
-
-      expect(mockOnDownloadAnswerSheet).toHaveBeenCalledWith('student-p1');
-    });
-
-    it('should render disabled "Baixar gabarito" button when onDownloadAnswerSheet is not provided', async () => {
+    it('should drop the per-student "Baixar gabarito" column', async () => {
       render(<ActivityDetails {...defaultProps} />);
 
       await waitFor(() => {
-        expect(screen.getAllByText('Baixar gabarito').length).toBeGreaterThan(
-          0
-        );
+        expect(screen.getByText('Gabarito recebido em')).toBeInTheDocument();
       });
 
-      const baixarButtons = screen.getAllByText('Baixar gabarito');
-      baixarButtons.forEach((btn) => {
-        expect(btn.closest('button')).toBeDisabled();
+      expect(screen.queryByText('Baixar gabarito')).not.toBeInTheDocument();
+    });
+
+    it('should show the creation date instead of the academic breakdown', async () => {
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText(/Criada em/)).toBeInTheDocument();
       });
+
+      expect(screen.queryByText('Escola Teste')).not.toBeInTheDocument();
+      expect(screen.queryByText('9º Ano B')).not.toBeInTheDocument();
+      expect(screen.queryByText(/Prazo final/)).not.toBeInTheDocument();
+    });
+
+    it('should show a single "Baixar prova" action', async () => {
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Baixar prova')).toBeInTheDocument();
+      });
+
+      expect(screen.queryByText('Ver Atividade')).not.toBeInTheDocument();
+      expect(screen.queryByText('Baixar Atividade')).not.toBeInTheDocument();
+    });
+
+    it('should append the app-provided pages to the printed exam', async () => {
+      const getExamExtraPagesHtml = jest
+        .fn()
+        .mockResolvedValue('<div>folha de redação</div>');
+      render(
+        <ActivityDetails
+          {...defaultProps}
+          getExamExtraPagesHtml={getExamExtraPagesHtml}
+        />
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Baixar prova')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Baixar prova'));
+
+      // The lib prints the questions; these pages ride along in the same
+      // document, which is what makes the download the full printable package.
+      expect(useQuestionsPdfPrint).toHaveBeenCalledWith(
+        expect.anything(),
+        undefined,
+        undefined,
+        getExamExtraPagesHtml
+      );
+    });
+
+    it('should not append extra pages outside presencial mode', async () => {
+      const getExamExtraPagesHtml = jest.fn().mockResolvedValue('<div/>');
+      mockFetchActivityDetails.mockResolvedValue(mockActivityData);
+
+      render(
+        <ActivityDetails
+          {...defaultProps}
+          getExamExtraPagesHtml={getExamExtraPagesHtml}
+        />
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Baixar Atividade')).toBeInTheDocument();
+      });
+
+      expect(useQuestionsPdfPrint).toHaveBeenCalledWith(
+        expect.anything(),
+        undefined,
+        undefined,
+        undefined
+      );
+    });
+
+    it('should show the essay delivery columns', async () => {
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Status redação')).toBeInTheDocument();
+      });
+
+      expect(screen.getByText('Redação recebida em')).toBeInTheDocument();
+      expect(screen.getByText('Status gabarito')).toBeInTheDocument();
+      expect(screen.getByText('Estudante')).toBeInTheDocument();
+    });
+
+    it('should label delivery badges as Aguardando / Recebido', async () => {
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Status redação')).toBeInTheDocument();
+      });
+
+      // One student delivered both sheets, the other delivered neither.
+      expect(screen.getAllByText('RECEBIDO')).toHaveLength(2);
+      expect(screen.getAllByText('AGUARDANDO')).toHaveLength(2);
+    });
+
+    it('should show only the three question cards', async () => {
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Resultados da atividade')).toBeInTheDocument();
+      });
+
+      expect(screen.getByText('Questões com mais acertos')).toBeInTheDocument();
+      expect(screen.getByText('Questões com mais erros')).toBeInTheDocument();
+      expect(screen.getByText('Questões não respondidas')).toBeInTheDocument();
+      expect(screen.queryByText('Concluído')).not.toBeInTheDocument();
+      expect(screen.queryByText('Média da Turma')).not.toBeInTheDocument();
+    });
+
+    it('should title the students table as "Resultados"', async () => {
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Resultados')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('getStatsGridColsClass', () => {
+    it('uses five columns on desktop outside presencial mode', () => {
+      expect(getStatsGridColsClass(false, false)).toBe('grid-cols-5');
+    });
+
+    it('uses three columns on desktop in presencial mode', () => {
+      expect(getStatsGridColsClass(false, true)).toBe('grid-cols-3');
+    });
+
+    it('collapses to two columns on mobile outside presencial mode', () => {
+      expect(getStatsGridColsClass(true, false)).toBe('grid-cols-2');
+    });
+
+    it('collapses to a single column on mobile in presencial mode', () => {
+      expect(getStatsGridColsClass(true, true)).toBe('grid-cols-1');
     });
   });
 });

@@ -479,17 +479,22 @@ const setupPrintWindowHandler = (printWindow: Window): void => {
 export const useQuestionsPdfPrint = (
   questions: PreviewQuestion[],
   onPrint?: () => void,
-  onPrintError?: (error: Error) => void
+  onPrintError?: (error: Error) => void,
+  getExtraPagesHtml?: () => Promise<string>
 ) => {
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const handlePrint = useCallback(() => {
+  const handlePrint = useCallback(async () => {
     try {
       onPrint?.();
 
       if (!contentRef.current) {
         throw new Error('Elemento de PDF não encontrado no DOM');
       }
+
+      // Resolved before opening the window on purpose: an await after
+      // window.open() leaves a blank popup on screen while the data loads.
+      const extraPagesHtml = getExtraPagesHtml ? await getExtraPagesHtml() : '';
 
       const printWindow = window.open('', '_blank');
       if (!printWindow) {
@@ -499,7 +504,7 @@ export const useQuestionsPdfPrint = (
       }
       printWindow.opener = null;
 
-      const contentHTML = contentRef.current.innerHTML;
+      const contentHTML = contentRef.current.innerHTML + extraPagesHtml;
       const styles = collectRelevantStyles();
       const htmlContent = generatePrintHTML(contentHTML, styles);
 
@@ -515,7 +520,7 @@ export const useQuestionsPdfPrint = (
       onPrintError?.(errorObj);
       console.error('Erro ao gerar PDF:', errorObj);
     }
-  }, [onPrint, onPrintError]);
+  }, [onPrint, onPrintError, getExtraPagesHtml]);
 
   return {
     contentRef,
