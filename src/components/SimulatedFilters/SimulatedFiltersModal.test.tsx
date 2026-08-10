@@ -207,8 +207,10 @@ describe('SimulatedFiltersModal', () => {
       />
     );
 
+    // Anchored: a string argument would match a substring, so reintroducing a
+    // dependency on any category would still pass.
     expect(screen.getByTestId('categories-depends')).toHaveTextContent(
-      'school:|schoolYear:|class:'
+      /^school:\|schoolYear:\|class:$/
     );
   });
 
