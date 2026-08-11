@@ -208,6 +208,133 @@ describe('useActivityDetails', () => {
       });
     });
 
+    describe('presencial essays', () => {
+      const presencialQuiz = {
+        message: 'Success',
+        data: {
+          ...mockActivityMetadata,
+          type: 'ATIVIDADE',
+          isDigital: false,
+          essayThemeId: 'theme-1',
+        },
+      } as QuizResponse;
+
+      const twoStudents = {
+        message: 'Success',
+        data: {
+          ...mockDetailsApiResponse.data,
+          students: [
+            mockStudents[0],
+            {
+              ...mockStudents[0],
+              studentId: 'student-2',
+              studentName: 'Maria Souza',
+            },
+          ],
+        },
+      };
+
+      it('reads the essays of the activity and marks who delivered', async () => {
+        (mockApiClient.get as jest.Mock)
+          .mockResolvedValueOnce({ data: twoStudents })
+          .mockResolvedValueOnce({ data: presencialQuiz })
+          .mockResolvedValueOnce({
+            data: {
+              data: {
+                essays: [
+                  {
+                    student: { id: 'student-1' },
+                    submittedAt: '2024-01-16T10:30:00Z',
+                  },
+                ],
+              },
+            },
+          });
+
+        const { result } = renderHook(() => useActivityDetails(mockApiClient));
+        const details =
+          await result.current.fetchActivityDetails('activity-123');
+
+        expect(mockApiClient.get).toHaveBeenCalledWith('/essays/review', {
+          params: { activityId: 'activity-123', limit: 100 },
+        });
+        expect(details.students[0]).toMatchObject({
+          studentId: 'student-1',
+          essayStatus: 'RECEBIDO',
+          essayReceivedAt: '2024-01-16T10:30:00Z',
+        });
+        // No row in the essay listing means the sheet has not arrived.
+        expect(details.students[1]).toMatchObject({
+          studentId: 'student-2',
+          essayStatus: 'AGUARDANDO',
+          essayReceivedAt: null,
+        });
+      });
+
+      it('does not read essays when the activity requires none', async () => {
+        (mockApiClient.get as jest.Mock)
+          .mockResolvedValueOnce({ data: mockDetailsApiResponse })
+          .mockResolvedValueOnce({
+            data: {
+              message: 'Success',
+              data: { ...mockActivityMetadata, isDigital: false },
+            },
+          });
+
+        const { result } = renderHook(() => useActivityDetails(mockApiClient));
+        await result.current.fetchActivityDetails('activity-123');
+
+        expect(mockApiClient.get).not.toHaveBeenCalledWith(
+          '/essays/review',
+          expect.anything()
+        );
+      });
+
+      it('does not read essays for a digital activity', async () => {
+        (mockApiClient.get as jest.Mock)
+          .mockResolvedValueOnce({ data: mockDetailsApiResponse })
+          .mockResolvedValueOnce({
+            data: {
+              message: 'Success',
+              data: {
+                ...mockActivityMetadata,
+                isDigital: true,
+                essayThemeId: 'theme-1',
+              },
+            },
+          });
+
+        const { result } = renderHook(() => useActivityDetails(mockApiClient));
+        await result.current.fetchActivityDetails('activity-123');
+
+        expect(mockApiClient.get).not.toHaveBeenCalledWith(
+          '/essays/review',
+          expect.anything()
+        );
+      });
+
+      it('still renders the results when the essay listing fails', async () => {
+        const consoleErrorSpy = jest
+          .spyOn(console, 'error')
+          .mockImplementation(() => {});
+
+        (mockApiClient.get as jest.Mock)
+          .mockResolvedValueOnce({ data: mockDetailsApiResponse })
+          .mockResolvedValueOnce({ data: presencialQuiz })
+          .mockRejectedValueOnce(new Error('500'));
+
+        const { result } = renderHook(() => useActivityDetails(mockApiClient));
+        const details =
+          await result.current.fetchActivityDetails('activity-123');
+
+        expect(details.students[0]).toMatchObject({
+          essayStatus: 'AGUARDANDO',
+          essayReceivedAt: null,
+        });
+        consoleErrorSpy.mockRestore();
+      });
+    });
+
     it('should handle details fetch failure', async () => {
       const consoleErrorSpy = jest
         .spyOn(console, 'error')

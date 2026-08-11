@@ -413,8 +413,14 @@ export function buildSendActivityPayload(
   questionIds: string[],
   startDateTime: string,
   finalDateTime: string | null,
-  activityType?: 'ATIVIDADE' | 'PROVA'
+  activityType?: 'ATIVIDADE' | 'PROVA',
+  essayThemeId?: string | null
 ): CreateActivityPayload {
+  const isDigital =
+    formData.subtype === ActivitySubtype.PROVA
+      ? formData.mode !== ActivityMode.PRESENCIAL
+      : true;
+
   return {
     title: formData.title,
     subjectId,
@@ -425,10 +431,10 @@ export function buildSendActivityPayload(
     startDate: startDateTime,
     finalDate: finalDateTime,
     canRetry: formData.canRetry,
-    isDigital:
-      formData.subtype === ActivitySubtype.PROVA
-        ? formData.mode !== ActivityMode.PRESENCIAL
-        : true,
+    isDigital,
+    // The backend rejects a theme on a digital activity, so it only rides along
+    // on the in-person booklet that actually carries the essay sheet.
+    ...(!isDigital && essayThemeId ? { essayThemeId } : {}),
   };
 }
 

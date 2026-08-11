@@ -1,5 +1,6 @@
 import type {
   ActivityCategory,
+  ActivityRoutesInput,
   TypeRoutes,
 } from '../TypeSelector/TypeSelector.types';
 import type { ActivityModelTableItem } from '../../types/activitiesHistory';
@@ -17,11 +18,9 @@ export interface UserData {
 /**
  * Props for UnifiedDraftModelPage component
  */
-export interface UnifiedDraftModelPageProps {
+interface UnifiedDraftModelPageBaseProps {
   /** Type of page: drafts or models */
   type: 'drafts' | 'models';
-  /** Activity category: ATIVIDADE or PROVA */
-  activityCategory: ActivityCategory;
   /** Data to display in table */
   data: ActivityModelTableItem[];
   /** Loading state */
@@ -47,6 +46,27 @@ export interface UnifiedDraftModelPageProps {
   activityImage?: string;
   /** Image for no search results */
   noSearchImage?: string;
-  /** Routes configuration for both ATIVIDADE and PROVA */
-  routes: Record<ActivityCategory, TypeRoutes>;
 }
+
+/**
+ * Props for UnifiedDraftModelPage.
+ *
+ * Discriminated by category so a PRESENCIAL page cannot be rendered without its
+ * routes: without them, tab, create and row navigation would silently fall back
+ * to the ATIVIDADE URLs.
+ */
+export type UnifiedDraftModelPageProps = UnifiedDraftModelPageBaseProps &
+  (
+    | {
+        activityCategory: ActivityCategory;
+        /**
+         * Routes configuration. ATIVIDADE and PROVA are required; passing
+         * PRESENCIAL is what adds it to the type selector.
+         */
+        routes: ActivityRoutesInput;
+      }
+    | {
+        activityCategory: 'PRESENCIAL';
+        routes: ActivityRoutesInput & { PRESENCIAL: TypeRoutes };
+      }
+  );

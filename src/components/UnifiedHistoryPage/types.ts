@@ -1,5 +1,6 @@
 import type {
   ActivityCategory,
+  ActivityRoutesInput,
   TypeRoutes,
 } from '../TypeSelector/TypeSelector.types';
 import type { ActivityTableItem } from '../../types/activitiesHistory';
@@ -36,9 +37,7 @@ export interface ApiFilterOptions {
 /**
  * Props for UnifiedHistoryPage component
  */
-export interface UnifiedHistoryPageProps {
-  /** Activity category: ATIVIDADE or PROVA */
-  activityCategory: ActivityCategory;
+interface UnifiedHistoryPageBaseProps {
   /** Data to display in table */
   data: ActivityTableItem[] | ExamTableItem[];
   /** Loading state */
@@ -59,12 +58,10 @@ export interface UnifiedHistoryPageProps {
   noSearchImage?: string;
   /** Include creator type filter (for managers/gestors) */
   includeCreatorFilter?: boolean;
-  /** Routes configuration for both ATIVIDADE and PROVA */
-  routes: Record<ActivityCategory, TypeRoutes>;
   /**
    * Logged user id. When provided together with `apiClient` (and category is
-   * ATIVIDADE), enables the owner-only delete action on activities created by
-   * this user (row.creatorId === currentUserId).
+   * ATIVIDADE or PRESENCIAL), enables the owner-only delete/edit actions on
+   * activities created by this user (row.creatorId === currentUserId).
    */
   currentUserId?: string | null;
   /**
@@ -73,3 +70,26 @@ export interface UnifiedHistoryPageProps {
    */
   apiClient?: BaseApiClient;
 }
+
+/**
+ * Props for UnifiedHistoryPage.
+ *
+ * Discriminated by category so a PRESENCIAL page cannot be rendered without its
+ * routes: without them, tab, create and row navigation would silently fall back
+ * to the ATIVIDADE URLs.
+ */
+export type UnifiedHistoryPageProps = UnifiedHistoryPageBaseProps &
+  (
+    | {
+        activityCategory: ActivityCategory;
+        /**
+         * Routes configuration. ATIVIDADE and PROVA are required; passing
+         * PRESENCIAL is what adds it to the type selector.
+         */
+        routes: ActivityRoutesInput;
+      }
+    | {
+        activityCategory: 'PRESENCIAL';
+        routes: ActivityRoutesInput & { PRESENCIAL: TypeRoutes };
+      }
+  );

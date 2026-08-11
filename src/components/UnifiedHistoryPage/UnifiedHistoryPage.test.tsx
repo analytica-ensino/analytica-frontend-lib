@@ -200,6 +200,30 @@ jest.mock('./config', () => {
           MODELS: 'modelos',
         },
       },
+      PRESENCIAL: {
+        PageLayout: MockActivityLayout,
+        pageTitle: 'Histórico de atividades',
+        activeTab: 'historico',
+        testId: 'presencial-activities-history-page',
+        itemLabel: 'atividades',
+        searchPlaceholder: 'Buscar atividade',
+        statusLabel: 'Status da Atividade',
+        statusOptions: [
+          { id: 'ATIVA', name: 'Ativa' },
+          { id: 'CONCLUIDA', name: 'Concluída' },
+          { id: 'VENCIDA', name: 'Vencida' },
+        ],
+        tableColumns: [],
+        emptyTitle: 'Nenhuma atividade presencial por aqui',
+        emptyDescription: 'Crie sua primeira atividade presencial',
+        buttonText: 'Criar atividade',
+        onCreatePropName: 'onCreateActivity',
+        tabs: {
+          HISTORY: 'historico',
+          DRAFTS: 'rascunhos',
+          MODELS: 'modelos',
+        },
+      },
     },
   };
 });
@@ -754,6 +778,65 @@ describe('UnifiedHistoryPage', () => {
       } finally {
         cfg.PAGE_CONFIG.ATIVIDADE.tableColumns = original;
       }
+    });
+  });
+
+  describe('PRESENCIAL category', () => {
+    const presencialRoutes = {
+      ...mockRoutes,
+      PRESENCIAL: {
+        base: '/atividades-presenciais',
+        create: '/criar-atividade-presencial',
+        details: (id: string) => `/atividades-presenciais/detalhes/${id}`,
+        editDraft: (id: string) => `/criar-atividade-presencial?id=${id}`,
+        editModel: (id: string) => `/criar-atividade-presencial?id=${id}`,
+      },
+    };
+
+    const presencialProps = (): UnifiedHistoryPageProps => ({
+      ...baseProps,
+      activityCategory: 'PRESENCIAL',
+      routes: presencialRoutes,
+    });
+
+    it('renders the activity layout', () => {
+      render(<UnifiedHistoryPage {...presencialProps()} />);
+      expect(screen.getByTestId('activity-page-layout')).toBeInTheDocument();
+    });
+
+    it('passes no filters, so only the search box remains', () => {
+      render(<UnifiedHistoryPage {...presencialProps()} />);
+      const lastCall = getMockPageLayout().mock.calls.at(-1)?.[0];
+      expect(lastCall.initialFilters).toBeUndefined();
+    });
+
+    it('still builds filters for the other categories', () => {
+      render(<UnifiedHistoryPage {...baseProps} />);
+      const lastCall = getMockPageLayout().mock.calls.at(-1)?.[0];
+      expect(lastCall.initialFilters).toEqual(expect.any(Array));
+    });
+
+    it.each([
+      ['Click Row', '/atividades-presenciais/detalhes/1'],
+      ['Go to Drafts', '/atividades-presenciais/rascunhos'],
+      ['Create Activity', '/criar-atividade-presencial'],
+    ])('navigates to the presencial route on "%s"', (action, expectedUrl) => {
+      render(<UnifiedHistoryPage {...presencialProps()} />);
+      fireEvent.click(screen.getByText(action));
+      expect(mockNavigate).toHaveBeenCalledWith(expectedUrl);
+    });
+
+    it('enables the owner-only actions column, same as regular activities', () => {
+      render(
+        <UnifiedHistoryPage
+          {...presencialProps()}
+          currentUserId="user-1"
+          apiClient={{ delete: jest.fn() } as unknown as BaseApiClient}
+        />
+      );
+      expect(screen.getByTestId('has-actions-column')).toHaveTextContent(
+        'true'
+      );
     });
   });
 });

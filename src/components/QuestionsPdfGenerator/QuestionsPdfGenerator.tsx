@@ -479,11 +479,12 @@ const setupPrintWindowHandler = (printWindow: Window): void => {
 export const useQuestionsPdfPrint = (
   questions: PreviewQuestion[],
   onPrint?: () => void,
-  onPrintError?: (error: Error) => void
+  onPrintError?: (error: Error) => void,
+  getExtraPagesHtml?: () => Promise<string>
 ) => {
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const handlePrint = useCallback(() => {
+  const handlePrint = useCallback(async () => {
     try {
       onPrint?.();
 
@@ -491,6 +492,9 @@ export const useQuestionsPdfPrint = (
         throw new Error('Elemento de PDF não encontrado no DOM');
       }
 
+      // Opened before any await: window.open() outside the user-activation
+      // window is what popup blockers reject. The extra pages are fetched after,
+      // and written into this already-open window.
       const printWindow = window.open('', '_blank');
       if (!printWindow) {
         throw new Error(
@@ -499,7 +503,18 @@ export const useQuestionsPdfPrint = (
       }
       printWindow.opener = null;
 
-      const contentHTML = contentRef.current.innerHTML;
+      let extraPagesHtml = '';
+      if (getExtraPagesHtml) {
+        try {
+          extraPagesHtml = await getExtraPagesHtml();
+        } catch (error) {
+          // Leaving a blank popup behind is worse than not printing at all.
+          printWindow.close();
+          throw error;
+        }
+      }
+
+      const contentHTML = contentRef.current.innerHTML + extraPagesHtml;
       const styles = collectRelevantStyles();
       const htmlContent = generatePrintHTML(contentHTML, styles);
 
@@ -515,7 +530,7 @@ export const useQuestionsPdfPrint = (
       onPrintError?.(errorObj);
       console.error('Erro ao gerar PDF:', errorObj);
     }
-  }, [onPrint, onPrintError]);
+  }, [onPrint, onPrintError, getExtraPagesHtml]);
 
   return {
     contentRef,

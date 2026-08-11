@@ -6,8 +6,9 @@ import { ExamPageLayout, ExamTab } from '../ExamPageLayout/ExamPageLayout';
 import { ACTIVITY_FILTER_STATUS_OPTIONS } from '../../types/activitiesHistory';
 import { EXAM_STATUS_OPTIONS } from '../../utils/examFilterHelpers';
 import { activitiesTableColumns } from '../ActivityPageLayout/activitiesTableConfig';
+import { presencialActivitiesTableColumns } from '../ActivityPageLayout/presencialActivitiesTableConfig';
 import { examsTableColumns } from '../ExamPageLayout/examsTableConfig';
-import type { ActivityCategory } from '../TypeSelector/TypeSelector.types';
+import type { ExtendedActivityCategory } from '../TypeSelector/TypeSelector.types';
 import type { ColumnConfig } from '../TableProvider/TableProvider';
 import type { ActivityTableItem } from '../../types/activitiesHistory';
 import type { ExamTableItem } from '../../types/examsHistory';
@@ -41,7 +42,7 @@ export interface PageConfig {
 /**
  * Configuration for activities vs exams
  */
-export const PAGE_CONFIG: Record<ActivityCategory, PageConfig> = {
+export const PAGE_CONFIG: Record<ExtendedActivityCategory, PageConfig> = {
   ATIVIDADE: {
     PageLayout: ActivityPageLayout,
     activeTab: ActivityTab.HISTORY,
@@ -83,5 +84,26 @@ export const PAGE_CONFIG: Record<ActivityCategory, PageConfig> = {
       MODELS: ExamTab.MODELS,
     },
     onCreatePropName: 'onCreateExam' as const,
+  },
+  PRESENCIAL: {
+    PageLayout: ActivityPageLayout,
+    activeTab: ActivityTab.HISTORY,
+    pageTitle: 'Histórico de atividades',
+    emptyTitle: 'Nenhuma atividade presencial por aqui',
+    emptyDescription:
+      'Crie uma nova atividade presencial e acompanhe o desempenho dos alunos!',
+    buttonText: 'Criar atividade',
+    itemLabel: 'atividades',
+    searchPlaceholder: 'Buscar atividade',
+    testId: 'presencial-activities-history-page',
+    statusOptions: ACTIVITY_FILTER_STATUS_OPTIONS,
+    statusLabel: 'Status da Atividade',
+    tableColumns: presencialActivitiesTableColumns,
+    tabs: {
+      HISTORY: ActivityTab.HISTORY,
+      DRAFTS: ActivityTab.DRAFTS,
+      MODELS: ActivityTab.MODELS,
+    },
+    onCreatePropName: 'onCreateActivity' as const,
   },
 } as const;

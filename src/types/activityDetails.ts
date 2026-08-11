@@ -23,6 +23,20 @@ export type StudentActivityStatus =
   (typeof STUDENT_ACTIVITY_STATUS)[keyof typeof STUDENT_ACTIVITY_STATUS];
 
 /**
+ * Delivery state of a physical sheet handed back by the student in an in-person
+ * exam. Kept apart from `STUDENT_ACTIVITY_STATUS` because it answers a narrower
+ * question — "did this sheet arrive?" — and applies to each sheet (answers,
+ * essay) on its own.
+ */
+export const PRESENCIAL_DELIVERY_STATUS = {
+  AWAITING: 'AGUARDANDO',
+  RECEIVED: 'RECEBIDO',
+} as const;
+
+export type PresencialDeliveryStatus =
+  (typeof PRESENCIAL_DELIVERY_STATUS)[keyof typeof PRESENCIAL_DELIVERY_STATUS];
+
+/**
  * Zod schema for student activity status
  */
 export const studentActivityStatusSchema = z.enum([
@@ -44,6 +58,14 @@ export interface ActivityStudentData {
   timeSpent: number;
   score: number | null;
   status: StudentActivityStatus;
+  /**
+   * Delivery state of the essay sheet. In-person exams are printed with an
+   * essay sheet attached, which the teacher scans along with the answer sheet —
+   * so it is delivered (or not) independently of the answers.
+   */
+  essayStatus?: PresencialDeliveryStatus | null;
+  /** When the essay sheet was received */
+  essayReceivedAt?: string | null;
 }
 
 /**
@@ -84,6 +106,13 @@ export interface ActivityMetadata {
   type?: string;
   subtype?: string;
   isDigital?: boolean | null;
+  /**
+   * Essay theme required by the activity; null when it requires no essay.
+   * Only ever set on in-person exams.
+   */
+  essayThemeId?: string | null;
+  /** Creation timestamp returned by GET /activities/:id/quiz */
+  createdAt?: string | null;
   startDate: string | null;
   finalDate: string | null;
   schoolName: string;
@@ -125,6 +154,10 @@ export interface ActivityStudentTableItem extends Record<string, unknown> {
   answeredAt: string | null;
   timeSpent: number;
   score: number | null;
+  /** Essay sheet delivery state (in-person exams only) */
+  essayStatus?: PresencialDeliveryStatus | null;
+  /** When the essay sheet was received (in-person exams only) */
+  essayReceivedAt?: string | null;
 }
 
 /**

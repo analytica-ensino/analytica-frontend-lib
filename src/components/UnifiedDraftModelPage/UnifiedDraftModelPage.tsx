@@ -7,6 +7,7 @@ import EmptyState from '../EmptyState/EmptyState';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import TypeSelector from '../TypeSelector/TypeSelector';
 import { createActivityCategoryConfig } from '../TypeSelector/TypeSelector.types';
+import type { TypeRoutes } from '../TypeSelector/TypeSelector.types';
 import type { ActivityModelTableItem } from '../../types/activitiesHistory';
 import { useActivityDraftModelPage } from '../../hooks/useActivityDraftModelPage';
 import { ActivityTab } from '../ActivityPageLayout/ActivityPageLayout';
@@ -34,6 +35,10 @@ export const UnifiedDraftModelPage = ({
   const navigate = useNavigate();
   const config = PAGE_CONFIG[activityCategory][type];
   const PageLayout = getPageLayout(activityCategory);
+
+  // Guaranteed by the props type: a PRESENCIAL page can only be rendered with
+  // PRESENCIAL routes, so there is no fallback to another category's URLs.
+  const currentRoutes = routes[activityCategory] as TypeRoutes;
 
   /**
    * TypeSelector config with proper labels, routes, and status options
@@ -78,7 +83,7 @@ export const UnifiedDraftModelPage = ({
     openSendModal: onSend || (() => {}),
     editUrlType: config.editUrlType,
     errorLogLabel: config.errorLogLabel,
-    routes: routes[activityCategory],
+    routes: currentRoutes,
   });
 
   // Wrap hook's handleConfirmDelete to close dialog on success
@@ -96,7 +101,6 @@ export const UnifiedDraftModelPage = ({
    */
   const handleTabChange = useCallback(
     (tab: string) => {
-      const currentRoutes = routes[activityCategory];
       switch (tab) {
         case ActivityTab.HISTORY:
         case ExamTab.HISTORY:
@@ -116,7 +120,7 @@ export const UnifiedDraftModelPage = ({
           );
       }
     },
-    [navigate, routes, type, activityCategory]
+    [navigate, currentRoutes, type]
   );
 
   // Build layout props dynamically

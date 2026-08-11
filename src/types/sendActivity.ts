@@ -52,6 +52,11 @@ export interface CreateActivityPayload {
   startDate: string;
   finalDate: string | null;
   canRetry: boolean;
+  /**
+   * Essay theme required by the activity. The backend only accepts it when
+   * `isDigital` is false — an essay is handed in on paper with the booklet.
+   */
+  essayThemeId?: string | null;
 }
 
 /**

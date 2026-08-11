@@ -2,9 +2,28 @@ import { ACTIVITY_FILTER_STATUS_OPTIONS } from '../../types/activitiesHistory';
 import { EXAM_STATUS_OPTIONS } from '../../utils/examFilterHelpers';
 
 /**
- * Activity type enum
+ * Activity type enum.
+ *
+ * Deliberately still the two original categories: consumer apps key their own
+ * records by this type (`Record<ActivityCategory, TypeRoutes>`), so widening it
+ * would break their type-check on the next release. Optional categories live in
+ * `OptionalActivityCategory` and the full set in `ExtendedActivityCategory`.
  */
 export type ActivityCategory = 'ATIVIDADE' | 'PROVA';
+
+/**
+ * Categories a consumer opts into by providing routes for them. Omitting one
+ * simply keeps it out of the selector.
+ */
+export type OptionalActivityCategory = 'PRESENCIAL';
+
+/**
+ * Every category the selector can display: the two required ones plus whatever
+ * the app opted into.
+ */
+export type ExtendedActivityCategory =
+  | ActivityCategory
+  | OptionalActivityCategory;
 
 /**
  * Active tab type for activity pages
@@ -47,6 +66,21 @@ export interface TypeConfig {
   routes: TypeRoutes;
   statusOptions: Array<{ id: string; name: string }>;
 }
+
+/**
+ * Routes an app provides for the activity categories it supports. The two core
+ * categories are required; optional ones (e.g. PRESENCIAL) are what enables
+ * them in the selector.
+ */
+export type ActivityRoutesInput = Record<ActivityCategory, TypeRoutes> &
+  Partial<Record<OptionalActivityCategory, TypeRoutes>>;
+
+/**
+ * Resolved configuration keyed by category. Mirrors ActivityRoutesInput: the
+ * optional categories are only present when routes were provided for them.
+ */
+export type ActivityCategoryConfig = Record<ActivityCategory, TypeConfig> &
+  Partial<Record<OptionalActivityCategory, TypeConfig>>;
 
 /**
  * Default labels for ATIVIDADE type
@@ -109,14 +143,48 @@ export const PROVA_LABELS: TypeLabels = {
 };
 
 /**
+ * Default labels for PRESENCIAL type (in-person activities).
+ *
+ * Page titles intentionally match ATIVIDADE_LABELS: the type selector sits next
+ * to the title and already tells the two apart.
+ */
+export const PRESENCIAL_LABELS: TypeLabels = {
+  pageTitle: {
+    history: 'Histórico de atividades',
+    drafts: 'Rascunhos de atividades',
+    models: 'Modelos de atividades',
+  },
+  createButton: 'Criar atividade',
+  selectorLabel: 'Presenciais',
+  itemLabel: {
+    history: 'atividades',
+    drafts: 'rascunhos',
+    models: 'modelos',
+  },
+  searchPlaceholder: {
+    history: 'Buscar atividade',
+    drafts: 'Buscar rascunho',
+    models: 'Buscar modelo',
+  },
+  emptyState: {
+    title: 'Nenhuma atividade presencial por aqui',
+    description:
+      'Crie uma nova atividade presencial e acompanhe o desempenho dos seus alunos!',
+    buttonText: 'Criar atividade',
+  },
+  statusLabel: 'Status da Atividade',
+};
+
+/**
  * Default status options by type
  */
 export const DEFAULT_STATUS_OPTIONS: Record<
-  ActivityCategory,
+  ExtendedActivityCategory,
   Array<{ id: string; name: string }>
 > = {
   ATIVIDADE: ACTIVITY_FILTER_STATUS_OPTIONS,
   PROVA: EXAM_STATUS_OPTIONS,
+  PRESENCIAL: ACTIVITY_FILTER_STATUS_OPTIONS,
 };
 
 /**
@@ -145,11 +213,14 @@ export const getTabFromPath = (pathname: string): ActiveTab => {
 };
 
 /**
- * Create activity type config with custom routes
+ * Create activity type config with custom routes.
+ *
+ * Optional categories (PRESENCIAL) are only included when the caller provided
+ * routes for them — that is how an app opts into showing them in the selector.
  */
 export const createActivityCategoryConfig = (
-  routes: Record<ActivityCategory, TypeRoutes>
-): Record<ActivityCategory, TypeConfig> => ({
+  routes: ActivityRoutesInput
+): ActivityCategoryConfig => ({
   ATIVIDADE: {
     labels: ATIVIDADE_LABELS,
     routes: routes.ATIVIDADE,
@@ -160,4 +231,13 @@ export const createActivityCategoryConfig = (
     routes: routes.PROVA,
     statusOptions: DEFAULT_STATUS_OPTIONS.PROVA,
   },
+  ...(routes.PRESENCIAL
+    ? {
+        PRESENCIAL: {
+          labels: PRESENCIAL_LABELS,
+          routes: routes.PRESENCIAL,
+          statusOptions: DEFAULT_STATUS_OPTIONS.PRESENCIAL,
+        },
+      }
+    : {}),
 });

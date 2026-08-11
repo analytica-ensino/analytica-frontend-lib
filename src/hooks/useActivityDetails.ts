@@ -11,6 +11,55 @@ import type {
   QuestionsAnswersByStudentResponse,
   SaveQuestionCorrectionPayload,
 } from '../utils/studentActivityCorrection';
+import { PRESENCIAL_DELIVERY_STATUS } from '../types/activityDetails';
+
+/** Page size used to read every essay of one activity in a single request. */
+const ESSAYS_PAGE_LIMIT = 100;
+
+/**
+ * Response of `GET /essays/review`, narrowed to what the delivery columns need.
+ */
+interface ActivityEssaysResponse {
+  data: {
+    essays: Array<{
+      student: { id: string };
+      submittedAt: string | null;
+    }>;
+  };
+}
+
+/**
+ * Read the essays handed in for one activity, keyed by student.
+ *
+ * A student with no row here simply has not handed the sheet in yet, so a
+ * failure to read is treated the same as "nothing delivered" — the screen still
+ * renders the rest of the results.
+ *
+ * @param apiClient - API client instance
+ * @param activityId - Activity whose essays are being read
+ * @returns Map of studentId to the essay delivery info
+ */
+const fetchActivityEssays = async (
+  apiClient: BaseApiClient,
+  activityId: string
+): Promise<Map<string, { submittedAt: string | null }>> => {
+  try {
+    const response = await apiClient.get<ActivityEssaysResponse>(
+      '/essays/review',
+      { params: { activityId, limit: ESSAYS_PAGE_LIMIT } }
+    );
+
+    return new Map(
+      response.data.data.essays.map((essay) => [
+        essay.student.id,
+        { submittedAt: essay.submittedAt },
+      ])
+    );
+  } catch (error) {
+    console.error('Erro ao carregar redações da atividade:', error);
+    return new Map();
+  }
+};
 
 /**
  * Hook return type for activity details
@@ -147,9 +196,31 @@ export const useActivityDetails = (
         apiClient.get<QuizResponse>(`/activities/${id}/quiz`).catch(() => null),
       ]);
 
+      const activity = quizResponse?.data?.data;
+      const details = detailsResponse.data.data;
+
+      // An in-person exam is printed with an essay sheet, delivered apart from
+      // the answer sheet. `/activities/:id/details` knows nothing about essays,
+      // so the delivery state comes from the essay listing of this activity.
+      if (!activity?.essayThemeId || activity.isDigital !== false) {
+        return { ...details, activity };
+      }
+
+      const essaysByStudent = await fetchActivityEssays(apiClient, id);
+
       return {
-        ...detailsResponse.data.data,
-        activity: quizResponse?.data?.data,
+        ...details,
+        activity,
+        students: details.students.map((student) => {
+          const essay = essaysByStudent.get(student.studentId);
+          return {
+            ...student,
+            essayStatus: essay
+              ? PRESENCIAL_DELIVERY_STATUS.RECEIVED
+              : PRESENCIAL_DELIVERY_STATUS.AWAITING,
+            essayReceivedAt: essay?.submittedAt ?? null,
+          };
+        }),
       };
     },
     [apiClient]
