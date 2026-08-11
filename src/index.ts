@@ -1,3 +1,6 @@
+// Ambient module augmentations (axios request flags this library sets)
+import './types/axiosConfig';
+
 // Complete bundle index - includes all components
 // Individual imports still recommended for better tree-shaking
 

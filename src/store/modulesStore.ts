@@ -84,6 +84,47 @@ interface FetchedModules {
 // Guard against stale async responses
 let latestRequestId = 0;
 
+/**
+ * What identifies one fetch, so repeats can be recognised.
+ *
+ * Keyed rather than global on purpose: switching institution mid-flight must still fetch the
+ * new one, or the store would keep serving the previous tenant's modules.
+ */
+const fetchKey = (institutionId: string, profileType?: string): string =>
+  `${institutionId}|${profileType ?? ''}`;
+
+// Every fetch currently running. `useAppContent` re-runs its effect whenever the api instance
+// identity changes, and a consumer that rebuilds that instance per render would otherwise start
+// an identical fetch on every render — each one setting state, causing the next render. Before
+// stale-while-revalidate the cache short-circuit hid this; now it does not.
+//
+// A set rather than a single key: with only the last one remembered, an A → B → A sequence lets
+// the second A through while the first is still in flight, which is exactly the alternating
+// pattern a render loop produces.
+const inFlightKeys = new Set<string>();
+
+// When each key last revalidated. Serving from cache and revalidating is cheap, but not free:
+// without a floor, a re-rendering consumer turns it into a request stream that never lets the
+// page go idle — which is exactly how this surfaced, as E2E suites timing out on networkidle.
+const lastRevalidationByKey = new Map<string, number>();
+
+// Shortest gap between two background revalidations of the same key. Long enough that a render
+// loop cannot become traffic, short enough that a plan change lands on the next navigation.
+const REVALIDATE_INTERVAL_MS = 30_000;
+
+/**
+ * Clear the in-flight and throttle guards.
+ *
+ * They are module-level because they must survive component remounts — that is the whole
+ * point. Nothing in the app needs to reset them outside an institution or profile change,
+ * which `clearModules` already covers; this exists so a test file does not inherit the timing
+ * of the test before it.
+ */
+export const resetModulesFetchGuards = (): void => {
+  inFlightKeys.clear();
+  lastRevalidationByKey.clear();
+};
+
 // Retry configuration
 const MAX_RETRIES = 3;
 const INITIAL_RETRY_DELAY = 1000; // 1 second
@@ -184,7 +225,13 @@ const fetchMyModules = async (
   requestId: number
 ): Promise<FetchedModules | null> =>
   withRetry(requestId, async () => {
-    const response = await api.get<MyModulesResponse>('/me/modules');
+    const response = await api.get<MyModulesResponse>('/me/modules', {
+      // A 401 here means "no authenticated answer for the modules", not "the session died".
+      // Without this the app boots, asks for its modules, gets a 401 and the interceptor
+      // sends it to the login screen — which boots the app, which asks again. That loop is
+      // real: it took a backoffice E2E run to 42 full page loads in 8 seconds.
+      skipSessionExpiry: true,
+    });
 
     return {
       version: response.data?.data?.modules ?? {},
@@ -271,56 +318,80 @@ export const useModulesStore = create<ModulesState>()(
         // available, and it is what the cache already holds.
         if (cached && !authenticated) return;
 
+        const key = fetchKey(institutionId, profileType);
+
+        // Never the same fetch twice at once. This is what keeps a consumer whose effect
+        // re-runs on every render from turning revalidation into an unbounded stream. A
+        // different institution or profile is a different key and still goes through.
+        if (inFlightKeys.has(key)) return;
+
+        // A cached value is already on screen, so its revalidation can wait. A cold start
+        // cannot: there is nothing to render until it answers.
+        const lastRevalidation = lastRevalidationByKey.get(key) ?? 0;
+        if (cached && Date.now() - lastRevalidation < REVALIDATE_INTERVAL_MS) {
+          return;
+        }
+
         const requestId = ++latestRequestId;
+        inFlightKeys.add(key);
 
         if (!cached) {
           set({ loading: true });
         }
 
-        const result = authenticated
-          ? ((await fetchMyModules(api, requestId)) ??
-            // Degrade to the previous behaviour rather than to an empty app when
-            // the authenticated call cannot be reached — but with a single attempt.
-            // The retries belong to `/me/modules`, which is the call that gives the
-            // right answer; spending a second full backoff cycle here would double
-            // the time gated routes stay blank, and `ModuleProtectedRoute` renders
-            // nothing while `loading`. If the authenticated call is simply absent,
-            // one request settles it; if the network is down, repeating it is waste.
-            (await fetchInstitutionModules(
-              institutionId,
-              api,
-              requestId,
-              profileType,
-              0
-            )))
-          : await fetchInstitutionModules(
-              institutionId,
-              api,
-              requestId,
-              profileType
+        try {
+          const result = authenticated
+            ? ((await fetchMyModules(api, requestId)) ??
+              // Degrade to the previous behaviour rather than to an empty app when
+              // the authenticated call cannot be reached — but with a single attempt.
+              // The retries belong to `/me/modules`, which is the call that gives the
+              // right answer; spending a second full backoff cycle here would double
+              // the time gated routes stay blank, and `ModuleProtectedRoute` renders
+              // nothing while `loading`. If the authenticated call is simply absent,
+              // one request settles it; if the network is down, repeating it is waste.
+              (await fetchInstitutionModules(
+                institutionId,
+                api,
+                requestId,
+                profileType,
+                0
+              )))
+            : await fetchInstitutionModules(
+                institutionId,
+                api,
+                requestId,
+                profileType
+              );
+
+          if (isStaleRequest(requestId)) return;
+
+          if (result === null) {
+            console.warn(
+              '[modulesStore] Failed to fetch modules after retries'
             );
+            // Keep whatever is already cached; only a cold start falls back to the
+            // permissive defaults, which is the pre-existing behaviour.
+            set(
+              cached
+                ? { loading: false }
+                : { modules: defaultModules, loading: false }
+            );
+            return;
+          }
 
-        if (isStaleRequest(requestId)) return;
-
-        if (result === null) {
-          console.warn('[modulesStore] Failed to fetch modules after retries');
-          // Keep whatever is already cached; only a cold start falls back to the
-          // permissive defaults, which is the pre-existing behaviour.
-          set(
-            cached
-              ? { loading: false }
-              : { modules: defaultModules, loading: false }
-          );
-          return;
+          set({
+            modules: mergeModulesConfig(result.version),
+            plan: result.plan,
+            ownerInstitutionId: institutionId,
+            ownerProfileType: profileType ?? null,
+            loading: false,
+          });
+        } finally {
+          // In a finally: an early return on a stale request must not leave the key stuck in
+          // the set, or it would never be fetched again for the life of the page.
+          inFlightKeys.delete(key);
+          lastRevalidationByKey.set(key, Date.now());
         }
-
-        set({
-          modules: mergeModulesConfig(result.version),
-          plan: result.plan,
-          ownerInstitutionId: institutionId,
-          ownerProfileType: profileType ?? null,
-          loading: false,
-        });
       },
 
       /**
@@ -329,6 +400,10 @@ export const useModulesStore = create<ModulesState>()(
        */
       clearModules: (): void => {
         latestRequestId++;
+        // The institution or profile changed: the next fetch is for different data and must
+        // not be held back by the previous one's throttle.
+        inFlightKeys.clear();
+        lastRevalidationByKey.clear();
         set({
           modules: defaultModules,
           loading: false,
