@@ -1,5 +1,5 @@
 import type { AxiosInstance } from 'axios';
-import { useModulesStore } from './modulesStore';
+import { useModulesStore, resetModulesFetchGuards } from './modulesStore';
 import { useAuthStore } from './authStore';
 import { KEYS } from '../utils/keys';
 import {
@@ -72,6 +72,7 @@ describe('ModulesStore', () => {
     });
     localStorageMock.clear();
     jest.clearAllMocks();
+    resetModulesFetchGuards();
   });
 
   describe('initial state', () => {
@@ -1367,6 +1368,7 @@ describe('ModulesStore', () => {
     beforeEach(() => {
       mockApi.get.mockReset();
       withSession();
+      resetModulesFetchGuards();
     });
 
     it('should ask /me/modules instead of the public institution flag', async () => {
@@ -1382,7 +1384,9 @@ describe('ModulesStore', () => {
           'STUDENT'
         );
 
-      expect(mockApi.get).toHaveBeenCalledWith('/me/modules');
+      expect(mockApi.get).toHaveBeenCalledWith('/me/modules', {
+        skipSessionExpiry: true,
+      });
       expect(useModulesStore.getState().modules.essay).toBe(false);
     });
 
@@ -1448,6 +1452,61 @@ describe('ModulesStore', () => {
       expect(useModulesStore.getState().modules.essay).toBe(false);
     }, 20000);
 
+    it('should not start the same fetch twice at once', async () => {
+      // A consumer whose effect re-runs on every render would otherwise turn revalidation
+      // into an unbounded request stream — which is how this surfaced, as E2E suites timing
+      // out because the page never went idle.
+      withCachedModules();
+      mockApi.get.mockResolvedValue({
+        data: { data: { modules: {}, plan: null } },
+      });
+
+      const api = mockApi as unknown as AxiosInstance;
+      await Promise.all([
+        useModulesStore.getState().fetchModules(institutionId, api, 'STUDENT'),
+        useModulesStore.getState().fetchModules(institutionId, api, 'STUDENT'),
+        useModulesStore.getState().fetchModules(institutionId, api, 'STUDENT'),
+      ]);
+
+      expect(mockApi.get).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throttle a repeated revalidation of the same key', async () => {
+      withCachedModules();
+      mockApi.get.mockResolvedValue({
+        data: { data: { modules: {}, plan: null } },
+      });
+
+      const api = mockApi as unknown as AxiosInstance;
+      await useModulesStore
+        .getState()
+        .fetchModules(institutionId, api, 'STUDENT');
+      await useModulesStore
+        .getState()
+        .fetchModules(institutionId, api, 'STUDENT');
+
+      expect(mockApi.get).toHaveBeenCalledTimes(1);
+    });
+
+    it('should still fetch when the institution changes mid-session', async () => {
+      // The guard is keyed, not global: blocking a different tenant would leave the previous
+      // institution's modules on screen.
+      withCachedModules();
+      mockApi.get.mockResolvedValue({
+        data: { data: { modules: {}, plan: null } },
+      });
+
+      const api = mockApi as unknown as AxiosInstance;
+      await useModulesStore
+        .getState()
+        .fetchModules(institutionId, api, 'STUDENT');
+      await useModulesStore
+        .getState()
+        .fetchModules('outra-instituicao', api, 'STUDENT');
+
+      expect(mockApi.get).toHaveBeenCalledTimes(2);
+    });
+
     it('should not spend a second retry cycle on the fallback', async () => {
       // `ModuleProtectedRoute` renders nothing while `loading`, so the time both calls take
       // is the time every gated route stays blank on a cold start. The retries belong to
@@ -1485,7 +1544,9 @@ describe('ModulesStore', () => {
         );
 
       // A plan change happens server-side, so a cached value must still be checked.
-      expect(mockApi.get).toHaveBeenCalledWith('/me/modules');
+      expect(mockApi.get).toHaveBeenCalledWith('/me/modules', {
+        skipSessionExpiry: true,
+      });
       expect(useModulesStore.getState().modules.essay).toBe(false);
     });
 
