@@ -93,11 +93,15 @@ let latestRequestId = 0;
 const fetchKey = (institutionId: string, profileType?: string): string =>
   `${institutionId}|${profileType ?? ''}`;
 
-// The fetch currently running, if any. `useAppContent` re-runs its effect whenever the api
-// instance identity changes, and a consumer that rebuilds that instance per render would
-// otherwise start an identical fetch on every render — each one setting state, causing the
-// next render. Before stale-while-revalidate the cache short-circuit hid this; now it does not.
-let inFlightKey: string | null = null;
+// Every fetch currently running. `useAppContent` re-runs its effect whenever the api instance
+// identity changes, and a consumer that rebuilds that instance per render would otherwise start
+// an identical fetch on every render — each one setting state, causing the next render. Before
+// stale-while-revalidate the cache short-circuit hid this; now it does not.
+//
+// A set rather than a single key: with only the last one remembered, an A → B → A sequence lets
+// the second A through while the first is still in flight, which is exactly the alternating
+// pattern a render loop produces.
+const inFlightKeys = new Set<string>();
 
 // When each key last revalidated. Serving from cache and revalidating is cheap, but not free:
 // without a floor, a re-rendering consumer turns it into a request stream that never lets the
@@ -117,7 +121,7 @@ const REVALIDATE_INTERVAL_MS = 30_000;
  * of the test before it.
  */
 export const resetModulesFetchGuards = (): void => {
-  inFlightKey = null;
+  inFlightKeys.clear();
   lastRevalidationByKey.clear();
 };
 
@@ -319,7 +323,7 @@ export const useModulesStore = create<ModulesState>()(
         // Never the same fetch twice at once. This is what keeps a consumer whose effect
         // re-runs on every render from turning revalidation into an unbounded stream. A
         // different institution or profile is a different key and still goes through.
-        if (inFlightKey === key) return;
+        if (inFlightKeys.has(key)) return;
 
         // A cached value is already on screen, so its revalidation can wait. A cold start
         // cannot: there is nothing to render until it answers.
@@ -329,7 +333,7 @@ export const useModulesStore = create<ModulesState>()(
         }
 
         const requestId = ++latestRequestId;
-        inFlightKey = key;
+        inFlightKeys.add(key);
 
         if (!cached) {
           set({ loading: true });
@@ -383,9 +387,9 @@ export const useModulesStore = create<ModulesState>()(
             loading: false,
           });
         } finally {
-          // In a finally: an early return on a stale request must not leave the guard stuck,
-          // or this key would never be fetched again for the life of the page.
-          if (inFlightKey === key) inFlightKey = null;
+          // In a finally: an early return on a stale request must not leave the key stuck in
+          // the set, or it would never be fetched again for the life of the page.
+          inFlightKeys.delete(key);
           lastRevalidationByKey.set(key, Date.now());
         }
       },
@@ -398,7 +402,7 @@ export const useModulesStore = create<ModulesState>()(
         latestRequestId++;
         // The institution or profile changed: the next fetch is for different data and must
         // not be held back by the previous one's throttle.
-        inFlightKey = null;
+        inFlightKeys.clear();
         lastRevalidationByKey.clear();
         set({
           modules: defaultModules,

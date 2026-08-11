@@ -1,4 +1,8 @@
-import 'axios';
+// `export {}` makes this a module, which is what turns the block below into an augmentation of
+// axios rather than a redeclaration of it. A bare `import 'axios'` would do the same, but it is
+// a side-effect import: it survives compilation and pulls axios into the runtime bundle for
+// nothing.
+export {};
 
 /**
  * Request-scoped flags this library sets and consumer apps honour in their axios interceptors.

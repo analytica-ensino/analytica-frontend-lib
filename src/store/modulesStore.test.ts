@@ -1471,6 +1471,36 @@ describe('ModulesStore', () => {
       expect(mockApi.get).toHaveBeenCalledTimes(1);
     });
 
+    it('should still block a repeat while another institution is in flight', async () => {
+      // A → B → A. With only the last key remembered, B would overwrite A and the second A
+      // would slip through while the first is still running — the alternating shape a render
+      // loop produces.
+      withCachedModules();
+
+      const resolvers: Array<() => void> = [];
+      mockApi.get.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolvers.push(() =>
+              resolve({ data: { data: { modules: {}, plan: null } } })
+            );
+          })
+      );
+
+      const api = mockApi as unknown as AxiosInstance;
+      const pending = [
+        useModulesStore.getState().fetchModules('inst-a', api, 'STUDENT'),
+        useModulesStore.getState().fetchModules('inst-b', api, 'STUDENT'),
+        useModulesStore.getState().fetchModules('inst-a', api, 'STUDENT'),
+      ];
+
+      // Two distinct keys started; the repeated A did not.
+      expect(mockApi.get).toHaveBeenCalledTimes(2);
+
+      resolvers.forEach((resolve) => resolve());
+      await Promise.all(pending);
+    });
+
     it('should throttle a repeated revalidation of the same key', async () => {
       withCachedModules();
       mockApi.get.mockResolvedValue({
