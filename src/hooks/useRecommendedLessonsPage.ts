@@ -46,17 +46,17 @@ export interface RecommendedLessonsApiClient {
  * User institution data structure
  */
 export interface UserInstitution {
-  school: { id: string; name: string };
-  schoolYear: { id: string; name: string };
-  class: { id: string; name: string };
+  school?: { id: string; name: string } | null;
+  schoolYear?: { id: string; name: string } | null;
+  class?: { id: string; name: string } | null;
 }
 
 /**
  * Subject teacher class data structure
  */
 export interface SubTeacherTopicClass {
-  subject: { id: string; name: string };
-  class: { id: string; name: string };
+  subject?: { id: string; name: string } | null;
+  class?: { id: string; name: string } | null;
 }
 
 /**

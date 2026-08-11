@@ -2,20 +2,22 @@ import type { ActivityFilterOption } from '../types/activitiesHistory';
 
 /**
  * Generic user institution data structure
- * Matches the structure from GET /user/me endpoint
+ *
+ * Matches one enrollment row of GET /auth/me. Every nested entity may be null:
+ * a manager has no class, an institution-wide profile has no school, and so on.
  */
 export interface UserInstitutionData {
-  school?: { id: string; name: string };
-  schoolYear?: { id: string; name: string };
-  class?: { id: string; name: string };
+  school?: { id: string; name: string } | null;
+  schoolYear?: { id: string; name: string } | null;
+  class?: { id: string; name: string } | null;
 }
 
 /**
  * Generic subject teacher topic class structure
  */
 export interface SubTeacherTopicClassData {
-  subject?: { id: string; name: string };
-  class?: { id: string; name: string };
+  subject?: { id: string; name: string } | null;
+  class?: { id: string; name: string } | null;
 }
 
 /**

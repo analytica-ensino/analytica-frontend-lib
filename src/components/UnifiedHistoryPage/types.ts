@@ -14,13 +14,13 @@ import type { BaseApiClient } from '../../types/api';
  */
 export interface UserData {
   userInstitutions?: Array<{
-    school?: { id: string; name: string };
-    schoolYear?: { id: string; name: string };
-    class?: { id: string; name: string };
+    school?: { id: string; name: string } | null;
+    schoolYear?: { id: string; name: string } | null;
+    class?: { id: string; name: string } | null;
   }>;
   subTeacherTopicClasses?: Array<{
-    subject?: { id: string; name: string };
-    class?: { id: string; name: string };
+    subject?: { id: string; name: string } | null;
+    class?: { id: string; name: string } | null;
   }>;
 }
 
