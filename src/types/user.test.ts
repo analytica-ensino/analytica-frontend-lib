@@ -181,13 +181,33 @@ describe('User Types', () => {
         },
         institution: { id: '1', name: 'School', type: 'school' },
         school: { id: '1', name: 'School' },
+        schoolGroup: null,
         schoolYear: { id: '1', name: '2023' },
         class: { id: '1', name: '3A' },
       };
 
       expect(userInstitution.profile.name).toBe('Student');
-      expect(userInstitution.school.name).toBe('School');
-      expect(userInstitution.class.name).toBe('3A');
+      expect(userInstitution.school?.name).toBe('School');
+      expect(userInstitution.class?.name).toBe('3A');
+    });
+
+    it('should accept an enrollment with no school, group, grade or class', () => {
+      const userInstitution: UserInstitution = {
+        profile: {
+          id: '1',
+          name: 'General Manager',
+          description: 'General Manager',
+          position: 1,
+        },
+        institution: { id: '1', name: 'School', type: 'school' },
+        school: null,
+        schoolGroup: null,
+        schoolYear: null,
+        class: null,
+      };
+
+      expect(userInstitution.school).toBeNull();
+      expect(userInstitution.class).toBeNull();
     });
   });
 
@@ -204,43 +224,41 @@ describe('User Types', () => {
   });
 
   describe('MyDataResponse', () => {
-    it('should accept valid my data response object', () => {
+    it('should accept the unwrapped GET /auth/me payload', () => {
       const response: MyDataResponse = {
-        message: 'Success',
         user: {
           id: '1',
           email: 'test@example.com',
           name: 'Test User',
-          active: true,
-          createdAt: '2023-01-01T00:00:00Z',
-          updatedAt: '2023-01-01T00:00:00Z',
-        },
-        userInfos: {
-          id: '1',
-          userId: '1',
           urlProfilePicture: null,
-          genre: null,
-          facebook: null,
-          instagram: null,
-          studentNumber: null,
-          street: null,
-          streetNumber: null,
-          neighborhood: null,
-          complement: null,
-          city: null,
-          state: null,
-          zipCode: null,
-          timeSpent: 0,
-          lastInteraction: '2023-01-01T00:00:00Z',
-          createdAt: '2023-01-01T00:00:00Z',
-          updatedAt: '2023-01-01T00:00:00Z',
         },
+        institutions: [{ id: 'inst-1', name: 'Institution' }],
+        schools: [{ id: 'school-1', name: 'School', institutionId: 'inst-1' }],
+        schoolYears: [
+          {
+            id: 'year-1',
+            name: '2023',
+            schoolId: 'school-1',
+            school: { id: 'school-1', name: 'School' },
+          },
+        ],
+        classes: [
+          {
+            id: 'class-1',
+            name: '3A',
+            shift: 'MANHA',
+            schoolId: 'school-1',
+            schoolYearId: 'year-1',
+            school: { id: 'school-1', name: 'School' },
+            schoolYear: { id: 'year-1', name: '2023' },
+          },
+        ],
         userInstitutions: [],
         subTeacherTopicClasses: [],
       };
 
-      expect(response.message).toBe('Success');
       expect(response.user.name).toBe('Test User');
+      expect(response.classes[0].name).toBe('3A');
       expect(response.userInstitutions).toEqual([]);
     });
   });
