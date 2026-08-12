@@ -909,7 +909,9 @@ describe('CorrectActivityModal', () => {
   });
 
   describe('Edge cases', () => {
-    it('should handle empty questions list', () => {
+    // Reachable with nothing answered: an in-person exam whose essay arrived
+    // before the answer sheet was scanned, or an activity never handed in.
+    it('should explain an empty questions list instead of showing nothing', () => {
       const dataWithNoQuestions = { ...mockData, questions: [] };
       render(
         <CorrectActivityModal {...defaultProps} data={dataWithNoQuestions} />
@@ -917,6 +919,19 @@ describe('CorrectActivityModal', () => {
 
       expect(screen.getByText('Respostas')).toBeInTheDocument();
       expect(screen.queryByText('Questão 1')).not.toBeInTheDocument();
+      expect(
+        screen.getByText(
+          'Nenhuma resposta deste estudante foi recebida até agora.'
+        )
+      ).toBeInTheDocument();
+    });
+
+    it('should not show the empty explanation when there are answers', () => {
+      render(<CorrectActivityModal {...defaultProps} />);
+
+      expect(
+        screen.queryByText(/Nenhuma resposta deste estudante/)
+      ).not.toBeInTheDocument();
     });
 
     it('should handle student name with special character', () => {

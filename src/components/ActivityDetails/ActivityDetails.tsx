@@ -154,11 +154,13 @@ export const getStatsGridColsClass = (
  * Create table columns configuration
  * @param onCorrectActivity - Callback for correction action
  * @param isPresencial - Whether the activity is in presencial mode (drives column visibility)
+ * @param requiresEssay - Whether the printed exam carries an essay sheet
  * @returns Column configuration array
  */
 const createTableColumns = (
   onCorrectActivity: (studentId: string) => void,
-  isPresencial: boolean
+  isPresencial: boolean,
+  requiresEssay: boolean
 ): ColumnConfig<ActivityStudentTableItem>[] => {
   /** Delivery of the essay sheet, which only the printed booklet carries. */
   const essayColumns: ColumnConfig<ActivityStudentTableItem>[] = [
@@ -171,7 +173,8 @@ const createTableColumns = (
     {
       key: 'essayReceivedAt',
       label: 'Redação recebida em',
-      sortable: true,
+      // `/exams/:id/results` sorts by name, score or answeredAt only.
+      sortable: false,
       render: renderDateCell,
     },
   ];
@@ -189,6 +192,16 @@ const createTableColumns = (
       ) : (
         <Text className="text-sm text-text-400">-</Text>
       ),
+  };
+
+  /**
+   * What sits between "recebido em" and "Nota": the essay delivery on a
+   * printed exam that carries one, the time spent on a digital one. An
+   * in-person exam without an essay theme has nothing to show there.
+   */
+  const middleColumns = (): ColumnConfig<ActivityStudentTableItem>[] => {
+    if (!isPresencial) return [timeSpentColumn];
+    return requiresEssay ? essayColumns : [];
   };
 
   return [
@@ -219,20 +232,13 @@ const createTableColumns = (
       // the delivery state — matching the essay column right next to it.
       label: isPresencial ? 'Status gabarito' : 'Status',
       sortable: false,
-      render: (value: unknown) => {
+      render: (value: unknown, row: ActivityStudentTableItem) => {
         const status = value as StudentActivityStatus;
         if (isPresencial) {
-          // Only the states that imply a sheet in hand count as received —
-          // NAO_ENTREGUE must not be dressed up as delivered.
-          const received =
-            status === STUDENT_ACTIVITY_STATUS.ANSWER_SHEET_RECEIVED ||
-            status === STUDENT_ACTIVITY_STATUS.AGUARDANDO_CORRECAO ||
-            status === STUDENT_ACTIVITY_STATUS.CONCLUIDO;
-
+          // Stated by the results endpoint, not inferred: the sheet either came
+          // back or it did not.
           return renderDeliveryBadge(
-            received
-              ? PRESENCIAL_DELIVERY_STATUS.RECEIVED
-              : PRESENCIAL_DELIVERY_STATUS.AWAITING
+            row.answerSheetStatus ?? PRESENCIAL_DELIVERY_STATUS.AWAITING
           );
         }
         const config = getStatusBadgeConfig(status);
@@ -251,13 +257,14 @@ const createTableColumns = (
       sortable: true,
       render: renderDateCell,
     },
-    ...(isPresencial ? essayColumns : [timeSpentColumn]),
+    ...middleColumns(),
     {
       key: 'score',
       label: 'Nota',
       sortable: true,
+      // A grade of 0 is a real grade: only a missing one prints a dash.
       render: (value: unknown) =>
-        value === null ? (
+        value == null ? (
           <Text className="text-sm text-text-400">-</Text>
         ) : (
           <Text className="text-sm font-semibold text-text-950">
@@ -270,12 +277,12 @@ const createTableColumns = (
       label: 'Resultado',
       sortable: false,
       render: (_value: unknown, row: ActivityStudentTableItem) => {
-        // Presencial mode: show "Ver respostas" — disabled until answer sheet is received
+        // Presencial mode: "Ver respostas" opens whatever came back, so one
+        // delivered sheet — gabarito or redação — is enough to enable it.
         if (isPresencial) {
           const hasResponse =
-            row.status === STUDENT_ACTIVITY_STATUS.ANSWER_SHEET_RECEIVED ||
-            row.status === STUDENT_ACTIVITY_STATUS.AGUARDANDO_CORRECAO ||
-            row.status === STUDENT_ACTIVITY_STATUS.CONCLUIDO;
+            row.answerSheetStatus === PRESENCIAL_DELIVERY_STATUS.RECEIVED ||
+            row.essayStatus === PRESENCIAL_DELIVERY_STATUS.RECEIVED;
           return (
             <Button
               variant="link"
@@ -709,41 +716,39 @@ export const ActivityDetails = ({
 
   /**
    * Convert student data to table format.
-   * Presencial status remapping happens here so all consumers (modal logic,
-   * view-only check, column render) see a consistent value.
+   *
+   * In presencial mode the rows are read through `answerSheetStatus` and
+   * `essayStatus`, which the results endpoint states outright — `status` is
+   * only consulted by the digital layout.
    */
   const tableData: ActivityStudentTableItem[] = useMemo(() => {
     if (!data?.students) return [];
 
-    return data.students.map((student) => {
-      let status = student.status;
-      if (isPresencial) {
-        if (status === STUDENT_ACTIVITY_STATUS.AGUARDANDO_RESPOSTA) {
-          status = STUDENT_ACTIVITY_STATUS.AWAITING_ANSWER_SHEET;
-        } else if (status === STUDENT_ACTIVITY_STATUS.AGUARDANDO_CORRECAO) {
-          status = STUDENT_ACTIVITY_STATUS.ANSWER_SHEET_RECEIVED;
-        }
-      }
-      return {
-        id: student.studentId,
-        studentId: student.studentId,
-        studentName: student.studentName,
-        status,
-        answeredAt: student.answeredAt,
-        timeSpent: student.timeSpent,
-        score: student.score,
-        essayStatus: student.essayStatus,
-        essayReceivedAt: student.essayReceivedAt,
-      };
-    });
-  }, [data?.students, isPresencial]);
+    return data.students.map((student) => ({
+      id: student.studentId,
+      studentId: student.studentId,
+      studentName: student.studentName,
+      status: student.status,
+      answeredAt: student.answeredAt,
+      timeSpent: student.timeSpent,
+      score: student.score,
+      essayStatus: student.essayStatus,
+      essayReceivedAt: student.essayReceivedAt,
+      answerSheetStatus: student.answerSheetStatus,
+    }));
+  }, [data?.students]);
 
   /**
    * Table columns configuration
    */
   const columns = useMemo(
-    () => createTableColumns(handleCorrectActivity, isPresencial),
-    [handleCorrectActivity, isPresencial]
+    () =>
+      createTableColumns(
+        handleCorrectActivity,
+        isPresencial,
+        data?.requiresEssay ?? false
+      ),
+    [handleCorrectActivity, isPresencial, data?.requiresEssay]
   );
 
   /**

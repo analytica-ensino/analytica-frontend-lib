@@ -2490,6 +2490,7 @@ describe('ActivityDetails', () => {
         subtype: 'PROVA',
         isDigital: false,
       },
+      requiresEssay: true,
       students: [
         {
           studentId: 'student-p1',
@@ -2498,6 +2499,7 @@ describe('ActivityDetails', () => {
           timeSpent: 0,
           score: null,
           status: STUDENT_ACTIVITY_STATUS.ANSWER_SHEET_RECEIVED,
+          answerSheetStatus: PRESENCIAL_DELIVERY_STATUS.RECEIVED,
           essayStatus: PRESENCIAL_DELIVERY_STATUS.RECEIVED,
           essayReceivedAt: '2024-03-05T09:00:00Z',
         },
@@ -2508,6 +2510,7 @@ describe('ActivityDetails', () => {
           timeSpent: 0,
           score: null,
           status: STUDENT_ACTIVITY_STATUS.AWAITING_ANSWER_SHEET,
+          answerSheetStatus: PRESENCIAL_DELIVERY_STATUS.AWAITING,
           essayStatus: PRESENCIAL_DELIVERY_STATUS.AWAITING,
           essayReceivedAt: null,
         },
@@ -2622,6 +2625,73 @@ describe('ActivityDetails', () => {
       expect(screen.getByText('Status gabarito')).toBeInTheDocument();
       expect(screen.getByText('Estudante')).toBeInTheDocument();
     });
+
+    // An exam printed without an essay sheet has nothing to wait for, so the
+    // two redação columns are dropped instead of showing empty cells.
+    it('should drop the essay columns when the exam requires no essay', async () => {
+      mockFetchActivityDetails.mockResolvedValue({
+        ...mockActivityDataPresencial,
+        requiresEssay: false,
+      });
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Gabarito recebido em')).toBeInTheDocument();
+      });
+
+      expect(screen.queryByText('Status redação')).not.toBeInTheDocument();
+      expect(screen.queryByText('Redação recebida em')).not.toBeInTheDocument();
+    });
+
+    // One delivered sheet is enough to have something to show, so the action
+    // only stays disabled while both are still out.
+    it.each([
+      [
+        'the answer sheet arrived',
+        {
+          answerSheetStatus: PRESENCIAL_DELIVERY_STATUS.RECEIVED,
+          essayStatus: PRESENCIAL_DELIVERY_STATUS.AWAITING,
+        },
+        false,
+      ],
+      [
+        'only the essay arrived',
+        {
+          answerSheetStatus: PRESENCIAL_DELIVERY_STATUS.AWAITING,
+          essayStatus: PRESENCIAL_DELIVERY_STATUS.RECEIVED,
+        },
+        false,
+      ],
+      [
+        'nothing arrived',
+        {
+          answerSheetStatus: PRESENCIAL_DELIVERY_STATUS.AWAITING,
+          essayStatus: PRESENCIAL_DELIVERY_STATUS.AWAITING,
+        },
+        true,
+      ],
+    ])(
+      'should enable "Ver respostas" when %s',
+      async (_label, delivery, expectedDisabled) => {
+        mockFetchActivityDetails.mockResolvedValue({
+          ...mockActivityDataPresencial,
+          students: [
+            { ...mockActivityDataPresencial.students[0], ...delivery },
+          ],
+        });
+
+        render(<ActivityDetails {...defaultProps} />);
+
+        await waitFor(() => {
+          expect(screen.getByText('Ver respostas')).toBeInTheDocument();
+        });
+
+        expect(
+          screen.getByText('Ver respostas').closest('button')
+        ).toHaveProperty('disabled', expectedDisabled);
+      }
+    );
 
     it('should label delivery badges as Aguardando / Recebido', async () => {
       render(<ActivityDetails {...defaultProps} />);

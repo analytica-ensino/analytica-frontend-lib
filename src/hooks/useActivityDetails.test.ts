@@ -208,89 +208,150 @@ describe('useActivityDetails', () => {
       });
     });
 
-    describe('presencial essays', () => {
+    describe('presencial results', () => {
       const presencialQuiz = {
         message: 'Success',
         data: {
           ...mockActivityMetadata,
           type: 'ATIVIDADE',
+          subtype: 'PROVA',
           isDigital: false,
           essayThemeId: 'theme-1',
         },
       } as QuizResponse;
 
-      const twoStudents = {
+      /** One sheet in hand, one still out. */
+      const examResults = {
         message: 'Success',
         data: {
-          ...mockDetailsApiResponse.data,
+          requiresEssay: true,
           students: [
-            mockStudents[0],
             {
-              ...mockStudents[0],
+              studentId: 'student-1',
+              studentName: 'João Silva',
+              answerSheetStatus: 'RECEBIDO',
+              answerSheetReceivedAt: '2024-01-16T10:30:00Z',
+              essayStatus: 'RECEBIDO',
+              essayReceivedAt: '2024-01-16T11:00:00Z',
+              score: 8.5,
+              essayScore: 920,
+            },
+            {
               studentId: 'student-2',
               studentName: 'Maria Souza',
+              answerSheetStatus: 'AGUARDANDO',
+              answerSheetReceivedAt: null,
+              essayStatus: 'AGUARDANDO',
+              essayReceivedAt: null,
+              score: null,
+              essayScore: null,
             },
           ],
+          pagination: {
+            total: 2,
+            page: 1,
+            limit: 10,
+            totalPages: 1,
+            hasNext: false,
+            hasPrev: false,
+          },
+          generalStats: { averageScore: 8.5, completionPercentage: 50 },
+          questionStats: {
+            mostCorrect: [1, 2],
+            mostIncorrect: [3],
+            notAnswered: [4],
+          },
         },
       };
 
-      it('reads the essays of the activity and marks who delivered', async () => {
+      const mockPresencial = () =>
         (mockApiClient.get as jest.Mock)
-          .mockResolvedValueOnce({ data: twoStudents })
+          .mockResolvedValueOnce({ data: mockDetailsApiResponse })
           .mockResolvedValueOnce({ data: presencialQuiz })
-          .mockResolvedValueOnce({
-            data: {
-              data: {
-                essays: [
-                  {
-                    student: { id: 'student-1' },
-                    submittedAt: '2024-01-16T10:30:00Z',
-                  },
-                ],
-              },
-            },
-          });
+          .mockResolvedValueOnce({ data: examResults });
+
+      it('reads the results of the exam instead of the activity details', async () => {
+        mockPresencial();
 
         const { result } = renderHook(() => useActivityDetails(mockApiClient));
         const details =
           await result.current.fetchActivityDetails('activity-123');
 
-        expect(mockApiClient.get).toHaveBeenCalledWith('/essays/review', {
-          params: { activityId: 'activity-123', limit: 100 },
-        });
+        expect(mockApiClient.get).toHaveBeenCalledWith(
+          '/exams/activity-123/results',
+          { params: {} }
+        );
+        expect(details.requiresEssay).toBe(true);
+        expect(details.pagination.total).toBe(2);
+        expect(details.questionStats.mostIncorrect).toEqual([3]);
+      });
+
+      it('carries the delivery of both sheets, with their dates and grades', async () => {
+        mockPresencial();
+
+        const { result } = renderHook(() => useActivityDetails(mockApiClient));
+        const details =
+          await result.current.fetchActivityDetails('activity-123');
+
         expect(details.students[0]).toMatchObject({
           studentId: 'student-1',
+          answerSheetStatus: 'RECEBIDO',
+          // The "Gabarito recebido em" column reads `answeredAt`.
+          answeredAt: '2024-01-16T10:30:00Z',
           essayStatus: 'RECEBIDO',
-          essayReceivedAt: '2024-01-16T10:30:00Z',
+          essayReceivedAt: '2024-01-16T11:00:00Z',
+          score: 8.5,
+          essayScore: 920,
         });
-        // No row in the essay listing means the sheet has not arrived.
         expect(details.students[1]).toMatchObject({
           studentId: 'student-2',
+          answerSheetStatus: 'AGUARDANDO',
+          answeredAt: null,
           essayStatus: 'AGUARDANDO',
           essayReceivedAt: null,
+          score: null,
+          essayScore: null,
         });
       });
 
-      it('does not read essays when the activity requires none', async () => {
-        (mockApiClient.get as jest.Mock)
-          .mockResolvedValueOnce({ data: mockDetailsApiResponse })
-          .mockResolvedValueOnce({
-            data: {
-              message: 'Success',
-              data: { ...mockActivityMetadata, isDigital: false },
-            },
-          });
+      // A received sheet stays awaiting correction — the gabarito flow never
+      // writes `graded_at` — and that is what opens the correction modal.
+      it('states the status the correction modal still reads', async () => {
+        mockPresencial();
 
         const { result } = renderHook(() => useActivityDetails(mockApiClient));
-        await result.current.fetchActivityDetails('activity-123');
+        const details =
+          await result.current.fetchActivityDetails('activity-123');
 
-        expect(mockApiClient.get).not.toHaveBeenCalledWith(
-          '/essays/review',
-          expect.anything()
+        expect(details.students[0].status).toBe(
+          STUDENT_ACTIVITY_STATUS.AGUARDANDO_CORRECAO
+        );
+        expect(details.students[1].status).toBe(
+          STUDENT_ACTIVITY_STATUS.AGUARDANDO_RESPOSTA
         );
       });
 
-      it('does not read essays for a digital activity', async () => {
+      it('forwards pagination and sorting to the results route', async () => {
+        mockPresencial();
+
+        const { result } = renderHook(() => useActivityDetails(mockApiClient));
+        await result.current.fetchActivityDetails('activity-123', {
+          page: 2,
+          limit: 25,
+          sortBy: 'score',
+          sortOrder: 'desc',
+        });
+
+        expect(mockApiClient.get).toHaveBeenCalledWith(
+          '/exams/activity-123/results',
+          { params: { page: 2, limit: 25, sortBy: 'score', sortOrder: 'desc' } }
+        );
+      });
+
+      it.each([
+        ['a digital exam', { isDigital: true, subtype: 'PROVA' }],
+        ['an in-person activity that is not an exam', { isDigital: false }],
+      ])('does not read the exam results for %s', async (_label, overrides) => {
         (mockApiClient.get as jest.Mock)
           .mockResolvedValueOnce({ data: mockDetailsApiResponse })
           .mockResolvedValueOnce({
@@ -298,8 +359,8 @@ describe('useActivityDetails', () => {
               message: 'Success',
               data: {
                 ...mockActivityMetadata,
-                isDigital: true,
                 essayThemeId: 'theme-1',
+                ...overrides,
               },
             },
           });
@@ -308,30 +369,24 @@ describe('useActivityDetails', () => {
         await result.current.fetchActivityDetails('activity-123');
 
         expect(mockApiClient.get).not.toHaveBeenCalledWith(
-          '/essays/review',
+          '/exams/activity-123/results',
           expect.anything()
         );
       });
 
-      it('still renders the results when the essay listing fails', async () => {
-        const consoleErrorSpy = jest
-          .spyOn(console, 'error')
-          .mockImplementation(() => {});
-
+      // The results route is the only source for this screen: falling back to
+      // the details response would show delivery states nobody reported.
+      it('propagates a failure of the results route', async () => {
         (mockApiClient.get as jest.Mock)
           .mockResolvedValueOnce({ data: mockDetailsApiResponse })
           .mockResolvedValueOnce({ data: presencialQuiz })
           .mockRejectedValueOnce(new Error('500'));
 
         const { result } = renderHook(() => useActivityDetails(mockApiClient));
-        const details =
-          await result.current.fetchActivityDetails('activity-123');
 
-        expect(details.students[0]).toMatchObject({
-          essayStatus: 'AGUARDANDO',
-          essayReceivedAt: null,
-        });
-        consoleErrorSpy.mockRestore();
+        await expect(
+          result.current.fetchActivityDetails('activity-123')
+        ).rejects.toThrow('500');
       });
     });
 
