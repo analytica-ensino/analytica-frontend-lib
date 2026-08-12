@@ -66,6 +66,17 @@ export interface ActivityStudentData {
   essayStatus?: PresencialDeliveryStatus | null;
   /** When the essay sheet was received */
   essayReceivedAt?: string | null;
+  /**
+   * Delivery state of the answer sheet, as stated by `GET /exams/:id/results`.
+   * In-person exams only; `status` carries the equivalent value for the
+   * consumers that predate this field.
+   */
+  answerSheetStatus?: PresencialDeliveryStatus | null;
+  /**
+   * Essay grade, 0-1000. A different scale from `score` (0-10) — the two are
+   * never summed or averaged together.
+   */
+  essayScore?: number | null;
 }
 
 /**
@@ -130,6 +141,13 @@ export interface ActivityDetailsData {
   pagination: Pagination;
   generalStats: GeneralStats;
   questionStats: QuestionStats;
+  /**
+   * Whether the exam was printed with an essay sheet, from
+   * `GET /exams/:id/results`. Drives the redação columns: an exam without a
+   * theme has no essay to wait for, so the columns are dropped instead of
+   * showing two empty cells per student.
+   */
+  requiresEssay?: boolean;
 }
 
 /**
@@ -158,6 +176,8 @@ export interface ActivityStudentTableItem extends Record<string, unknown> {
   essayStatus?: PresencialDeliveryStatus | null;
   /** When the essay sheet was received (in-person exams only) */
   essayReceivedAt?: string | null;
+  /** Answer sheet delivery state (in-person exams only) */
+  answerSheetStatus?: PresencialDeliveryStatus | null;
 }
 
 /**

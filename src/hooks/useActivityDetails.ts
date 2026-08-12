@@ -6,59 +6,112 @@ import type {
   ActivityDetailsApiResponse,
   QuizResponse,
   PresignedUrlResponse,
+  PresencialDeliveryStatus,
+  Pagination,
+  GeneralStats,
+  QuestionStats,
+  StudentActivityStatus,
 } from '../types/activityDetails';
 import type {
   QuestionsAnswersByStudentResponse,
   SaveQuestionCorrectionPayload,
 } from '../utils/studentActivityCorrection';
-import { PRESENCIAL_DELIVERY_STATUS } from '../types/activityDetails';
-
-/** Page size used to read every essay of one activity in a single request. */
-const ESSAYS_PAGE_LIMIT = 100;
+import {
+  PRESENCIAL_DELIVERY_STATUS,
+  STUDENT_ACTIVITY_STATUS,
+} from '../types/activityDetails';
+import { ActivitySubtype } from '../components/SendActivityModal/types';
 
 /**
- * Response of `GET /essays/review`, narrowed to what the delivery columns need.
+ * Response of `GET /exams/:id/results`.
+ *
+ * The in-person results table is served by its own endpoint: the delivery of
+ * each physical artifact has no column in the database, so the backend derives
+ * it (answer sheet: QR token consumed; essay: `submitted_at` written) and
+ * states it here plainly.
  */
-interface ActivityEssaysResponse {
+interface ExamResultsResponse {
   data: {
-    essays: Array<{
-      student: { id: string };
-      submittedAt: string | null;
+    requiresEssay: boolean;
+    students: Array<{
+      studentId: string;
+      studentName: string;
+      answerSheetStatus: PresencialDeliveryStatus;
+      answerSheetReceivedAt: string | null;
+      essayStatus: PresencialDeliveryStatus;
+      essayReceivedAt: string | null;
+      score: number | null;
+      essayScore: number | null;
     }>;
+    pagination: Pagination;
+    generalStats: GeneralStats;
+    questionStats: QuestionStats;
   };
 }
 
 /**
- * Read the essays handed in for one activity, keyed by student.
+ * The status `/activities/:id/details` would report for the same row.
  *
- * A student with no row here simply has not handed the sheet in yet, so a
- * failure to read is treated the same as "nothing delivered" — the screen still
- * renders the rest of the results.
+ * The results endpoint has no `status` field, but the correction modal and the
+ * row remapping still read one. The gabarito flow never writes `graded_at`, so
+ * a received sheet stays awaiting correction — which is exactly what lets the
+ * teacher open the modal to grade it.
+ *
+ * @param answerSheetStatus - Delivery state of the answer sheet
+ * @returns The equivalent student activity status
+ */
+const toStudentActivityStatus = (
+  answerSheetStatus: PresencialDeliveryStatus
+): StudentActivityStatus =>
+  answerSheetStatus === PRESENCIAL_DELIVERY_STATUS.RECEIVED
+    ? STUDENT_ACTIVITY_STATUS.AGUARDANDO_CORRECAO
+    : STUDENT_ACTIVITY_STATUS.AGUARDANDO_RESPOSTA;
+
+/**
+ * Read the results table of an in-person exam.
+ *
+ * Replaces `/activities/:id/details` entirely for these exams: it is the only
+ * source that knows whether each printed sheet came back, and when.
  *
  * @param apiClient - API client instance
- * @param activityId - Activity whose essays are being read
- * @returns Map of studentId to the essay delivery info
+ * @param activityId - Exam whose results are being read
+ * @param queryParams - Pagination and sorting, same names as the details route
+ * @returns Activity details data, minus the activity metadata
  */
-const fetchActivityEssays = async (
+const fetchExamResults = async (
   apiClient: BaseApiClient,
-  activityId: string
-): Promise<Map<string, { submittedAt: string | null }>> => {
-  try {
-    const response = await apiClient.get<ActivityEssaysResponse>(
-      '/essays/review',
-      { params: { activityId, limit: ESSAYS_PAGE_LIMIT } }
-    );
+  activityId: string,
+  queryParams: Record<string, unknown>
+): Promise<Omit<ActivityDetailsData, 'activity'>> => {
+  const response = await apiClient.get<ExamResultsResponse>(
+    `/exams/${activityId}/results`,
+    { params: queryParams }
+  );
 
-    return new Map(
-      response.data.data.essays.map((essay) => [
-        essay.student.id,
-        { submittedAt: essay.submittedAt },
-      ])
-    );
-  } catch (error) {
-    console.error('Erro ao carregar redações da atividade:', error);
-    return new Map();
-  }
+  const { requiresEssay, students, pagination, generalStats, questionStats } =
+    response.data.data;
+
+  return {
+    requiresEssay,
+    pagination,
+    generalStats,
+    questionStats,
+    students: students.map((student) => ({
+      studentId: student.studentId,
+      studentName: student.studentName,
+      status: toStudentActivityStatus(student.answerSheetStatus),
+      answerSheetStatus: student.answerSheetStatus,
+      // The column reads `answeredAt`; for a printed exam what it shows is the
+      // moment the answer sheet was scanned.
+      answeredAt: student.answerSheetReceivedAt,
+      // Nothing to measure: the booklet is answered on paper.
+      timeSpent: 0,
+      score: student.score,
+      essayStatus: student.essayStatus,
+      essayReceivedAt: student.essayReceivedAt,
+      essayScore: student.essayScore,
+    })),
+  };
 };
 
 /**
@@ -199,28 +252,21 @@ export const useActivityDetails = (
       const activity = quizResponse?.data?.data;
       const details = detailsResponse.data.data;
 
-      // An in-person exam is printed with an essay sheet, delivered apart from
-      // the answer sheet. `/activities/:id/details` knows nothing about essays,
-      // so the delivery state comes from the essay listing of this activity.
-      if (!activity?.essayThemeId || activity.isDigital !== false) {
+      // An in-person exam is answered on paper, so its table is about which
+      // printed sheets came back — something `/activities/:id/details` cannot
+      // know. `/exams/:id/results` owns that screen, and replaces the details
+      // response entirely for these exams.
+      const isPresencialExam =
+        activity?.isDigital === false &&
+        activity?.subtype === ActivitySubtype.PROVA;
+
+      if (!isPresencialExam) {
         return { ...details, activity };
       }
 
-      const essaysByStudent = await fetchActivityEssays(apiClient, id);
-
       return {
-        ...details,
+        ...(await fetchExamResults(apiClient, id, queryParams)),
         activity,
-        students: details.students.map((student) => {
-          const essay = essaysByStudent.get(student.studentId);
-          return {
-            ...student,
-            essayStatus: essay
-              ? PRESENCIAL_DELIVERY_STATUS.RECEIVED
-              : PRESENCIAL_DELIVERY_STATUS.AWAITING,
-            essayReceivedAt: essay?.submittedAt ?? null,
-          };
-        }),
       };
     },
     [apiClient]
