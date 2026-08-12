@@ -828,6 +828,14 @@ const CorrectActivityModal = ({
         {/* Questions List */}
         <div className="space-y-2">
           <Text className="text-sm font-bold text-text-950">Respostas</Text>
+          {/* A student can reach this modal with nothing answered: an in-person
+              exam whose essay arrived before the answer sheet was scanned, or a
+              digital activity never handed in. Saying so beats an empty list. */}
+          {data.questions?.length === 0 && (
+            <Text className="text-sm text-text-600">
+              Nenhuma resposta deste estudante foi recebida até agora.
+            </Text>
+          )}
           <AccordionGroup type="multiple" className="space-y-2">
             {data.questions?.map((questionData) => {
               // Check if we have a local correction for essay questions
