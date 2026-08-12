@@ -30,6 +30,12 @@ describe('buildAnswerSheetHtml', () => {
     ['the student name', 'Maria Silva'],
     ['the activity title', 'Prova de Matemática'],
     ['the QR code as the img src', `src="${QR_URL}"`],
+    ['the CARTÃO-RESPOSTA header', 'CARTÃO-RESPOSTA'],
+    ['the filled bubble of the example answer', 'background:#000000'],
+    [
+      'a document title built from the student name',
+      '<title>cartao_resposta_Maria Silva</title>',
+    ],
   ])('includes %s', (_label, expected) => {
     const html = buildAnswerSheetHtml(makeData(), QR_URL);
 
@@ -99,30 +105,12 @@ describe('buildAnswerSheetHtml', () => {
     expect(cellsWithBorder).toBe(40);
   });
 
-  it('renders CARTÃO-RESPOSTA header', () => {
-    const html = buildAnswerSheetHtml(makeData(), QR_URL);
-    expect(html).toContain('CARTÃO-RESPOSTA');
-  });
-
   it('renders exemplo section with 3 example rows', () => {
     const html = buildAnswerSheetHtml(makeData(), QR_URL);
 
     expect(html).toContain('Resposta da questão X = A');
     expect(html).toContain('Resposta da questão X = B');
     expect(html).toContain('Resposta da questão X = C');
-  });
-
-  it('exemplo bubbles have filled (black) background for the correct answer', () => {
-    const html = buildAnswerSheetHtml(makeData(), QR_URL);
-
-    // First example: answer='A', so 'A' bubble should have background:#000000
-    expect(html).toContain('background:#000000');
-  });
-
-  it('sets document title from student name', () => {
-    const html = buildAnswerSheetHtml(makeData(), QR_URL);
-
-    expect(html).toContain('<title>cartao_resposta_Maria Silva</title>');
   });
 
   it('handles totalQuestoes=1 — only first cell has content, rest are placeholders', () => {
