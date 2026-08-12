@@ -2103,6 +2103,23 @@ export type {
 } from './types/examsHistory';
 
 export { ExamDraftType, ExamActivityCategory } from './types/examDrafts';
+export {
+  ContentVariant,
+  CONTENT_VARIANTS,
+  toContentVariant,
+} from './types/contentVariant';
+export type {
+  AnswerSheetStudentData,
+  ExamAnswerSheetsResponse,
+} from './types/answerSheet';
+export { escapeHtml } from './utils/escapeHtml';
+export { buildEssaySheetPage } from './utils/essaySheetHtml';
+export {
+  buildAnswerSheetPage,
+  buildAnswerSheetHtml,
+  buildPrintableDocument,
+} from './utils/answerSheetHtml';
+export { buildExamPackagePages } from './utils/examPackagePages';
 export type {
   ExamDraftFilters,
   ExamModelResponse,

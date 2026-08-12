@@ -3,10 +3,12 @@ import {
   getTabFromPath,
   createActivityCategoryConfig,
   ATIVIDADE_LABELS,
+  ActivityCategoryValue,
   PROVA_LABELS,
   PRESENCIAL_LABELS,
   DEFAULT_STATUS_OPTIONS,
   type ActivityRoutesInput,
+  type ExtendedActivityCategory,
 } from './TypeSelector.types';
 
 describe('TypeSelector.types', () => {
@@ -247,6 +249,24 @@ describe('TypeSelector.types', () => {
         expect(option).toHaveProperty('id');
         expect(option).toHaveProperty('name');
       });
+    });
+  });
+
+  describe('ActivityCategoryValue', () => {
+    it('carries the three categories the selector can show', () => {
+      expect(Object.values(ActivityCategoryValue)).toEqual([
+        'ATIVIDADE',
+        'PROVA',
+        'PRESENCIAL',
+      ]);
+    });
+
+    it('is assignable to the string-union props, so both spellings work', () => {
+      const fromEnum: ExtendedActivityCategory =
+        ActivityCategoryValue.PRESENCIAL;
+      const fromLiteral: ExtendedActivityCategory = 'PRESENCIAL';
+
+      expect(fromEnum).toBe(fromLiteral);
     });
   });
 });
