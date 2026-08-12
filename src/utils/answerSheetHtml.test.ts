@@ -26,80 +26,56 @@ describe('buildAnswerSheetHtml', () => {
     expect(html).toContain('</html>');
   });
 
-  it('includes student name in the document', () => {
+  it.each([
+    ['the student name', 'Maria Silva'],
+    ['the activity title', 'Prova de Matemática'],
+    ['the QR code as the img src', `src="${QR_URL}"`],
+  ])('includes %s', (_label, expected) => {
     const html = buildAnswerSheetHtml(makeData(), QR_URL);
 
-    expect(html).toContain('Maria Silva');
+    expect(html).toContain(expected);
   });
 
-  it('includes activity title in the document', () => {
-    const html = buildAnswerSheetHtml(makeData(), QR_URL);
+  // A missing class must still print the labelled field, so the teacher can
+  // fill it by hand.
+  it.each([
+    ['a value', '2º B', '2º B'],
+    ['null', null, 'ESCOLA E TURMA:'],
+    ['undefined', undefined, 'ESCOLA E TURMA:'],
+  ])(
+    'renders the school class field when it is %s',
+    (_label, schoolClass, expected) => {
+      const html = buildAnswerSheetHtml(
+        makeData({ schoolClass: schoolClass as string | null | undefined }),
+        QR_URL
+      );
 
-    expect(html).toContain('Prova de Matemática');
-  });
+      expect(html).toContain(expected);
+    }
+  );
 
-  it('includes the QR code data URL as img src', () => {
-    const html = buildAnswerSheetHtml(makeData(), QR_URL);
-
-    expect(html).toContain(`src="${QR_URL}"`);
-  });
-
-  it('renders schoolClass value when provided', () => {
+  // The grid always draws 50 cells: the ones past the question count become
+  // placeholders instead of bubbles.
+  it.each([
+    ['fills every cell', 50, '>50<', '—'],
+    ['places the last bubble at the question count', 25, '>25<', '>26<'],
+  ])('%s for totalQuestoes=%s', (_label, totalQuestoes, present, absent) => {
     const html = buildAnswerSheetHtml(
-      makeData({ schoolClass: '2º B' }),
+      makeData({ activity: { id: 'act-1', title: 'T', totalQuestoes } }),
       QR_URL
     );
 
-    expect(html).toContain('2º B');
+    expect(html).toContain(present);
+    expect(html).not.toContain(absent);
   });
 
-  it('renders empty string for schoolClass when null', () => {
-    const html = buildAnswerSheetHtml(makeData({ schoolClass: null }), QR_URL);
-    // schoolClass ?? '' results in empty string — no exception thrown
-    expect(html).toContain('ESCOLA E TURMA:');
-  });
-
-  it('renders empty string for schoolClass when undefined', () => {
-    const html = buildAnswerSheetHtml(
-      makeData({ schoolClass: undefined }),
-      QR_URL
-    );
-    expect(html).toContain('ESCOLA E TURMA:');
-  });
-
-  it('generates 50 question bubbles for totalQuestoes=50 (full grid)', () => {
-    const html = buildAnswerSheetHtml(
-      makeData({ activity: { id: 'act-1', title: 'T', totalQuestoes: 50 } }),
-      QR_URL
-    );
-
-    // Each active question cell has a number span with the question number
-    // Question 50 should appear
-    expect(html).toContain('>50<');
-    // Placeholder dashes should not appear (all 50 questions are filled)
-    expect(html).not.toContain('—');
-  });
-
-  it('generates placeholder for cells beyond totalQuestoes', () => {
+  it('turns the cells beyond the question count into placeholders', () => {
     const html = buildAnswerSheetHtml(
       makeData({ activity: { id: 'act-1', title: 'T', totalQuestoes: 25 } }),
       QR_URL
     );
 
-    // Question 25 should be a real bubble
-    expect(html).toContain('>25<');
-    // Questions after 25 (up to 50) should be placeholders
     expect(html).toContain('—');
-  });
-
-  it('does not render a bubble for question 26 when totalQuestoes=25', () => {
-    const html = buildAnswerSheetHtml(
-      makeData({ activity: { id: 'act-1', title: 'T', totalQuestoes: 25 } }),
-      QR_URL
-    );
-
-    // Question 26 should NOT appear as a numbered cell
-    expect(html).not.toContain('>26<');
   });
 
   it('last grid row has no bottom border', () => {
