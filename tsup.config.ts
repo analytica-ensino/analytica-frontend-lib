@@ -357,6 +357,7 @@ export default defineConfig({
     'enums/Quiz/index': 'src/enums/Quiz.ts', // TrueFalseEnum
 
     // === migration: Types ===
+    'types/contentVariant/index': 'src/types/contentVariant.ts', // ContentVariant, toContentVariant
     'types/essayThemes/index': 'src/types/essayThemes.ts', // EssayTheme, EssayThemesApiResponse
     'types/activityDetails/index': 'src/types/activityDetails.ts', // ACTIVITY_AVAILABILITY, ActivityAvailability, STUDENT_ACTIVITY_STATUS, StudentActivityStatus
     'types/activityFilters/index': 'src/types/activityFilters.ts', // ActivityFiltersData
@@ -386,6 +387,7 @@ export default defineConfig({
     'utils/renderTextCell/index': 'src/utils/renderTextCell.tsx', // renderTextCell
     'utils/studentActivityCorrection_types/index':
       'src/utils/studentActivityCorrection/types.ts', // StudentActivityCorrectionData
+    'utils/essaySheetHtml/index': 'src/utils/essaySheetHtml.ts', // buildEssaySheetPage
     'utils/subjectMappers/index': 'src/utils/subjectMappers.ts', // mapSubjectNameToEnum
 
     // Styles

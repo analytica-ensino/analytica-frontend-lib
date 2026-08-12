@@ -26,6 +26,24 @@ export type ExtendedActivityCategory =
   | OptionalActivityCategory;
 
 /**
+ * Runtime values of the activity categories, for apps to compare and switch on
+ * instead of repeating string literals.
+ *
+ * Kept apart from `ExamActivityCategory`, which mirrors the backend's
+ * `ACTIVITY_CATEGORY` (PROVA/ATIVIDADE only): `PRESENCIAL` is a front-end
+ * category — on the backend it is a PROVA with `isDigital: false`.
+ *
+ * The props above stay string unions on purpose, so `activityCategory="PROVA"`
+ * keeps working; a string-enum member is assignable to its literal type, so
+ * both spellings are accepted.
+ */
+export enum ActivityCategoryValue {
+  ATIVIDADE = 'ATIVIDADE',
+  PROVA = 'PROVA',
+  PRESENCIAL = 'PRESENCIAL',
+}
+
+/**
  * Active tab type for activity pages
  */
 export type ActiveTab = 'history' | 'drafts' | 'models';
