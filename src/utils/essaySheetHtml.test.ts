@@ -35,4 +35,33 @@ describe('buildEssaySheetPage', () => {
     expect(html).not.toContain('<!DOCTYPE');
     expect(html).not.toContain('<body');
   });
+
+  it('keeps the page inside A4 by sizing the border box', () => {
+    const html = buildEssaySheetPage('Prova 1');
+
+    // The fragment is appended to documents that may carry no CSS reset, so the
+    // padding and border must count inside the 210mm/297mm.
+    expect(html).toContain('box-sizing:border-box');
+  });
+
+  it.each([
+    ['a script tag', '<script>alert(1)</script>'],
+    ['an event handler', '<img src=x onerror="alert(1)">'],
+    ['quotes and ampersands', `Prova "A" & 'B'`],
+  ])('escapes %s in the exam title', (_label, payload) => {
+    const html = buildEssaySheetPage(payload);
+
+    // The payload survives as inert text, never as markup: no unescaped
+    // angle bracket or quote from it reaches the document.
+    expect(html).not.toContain(payload);
+    expect(html).not.toContain('<script');
+    expect(html).not.toContain('<img');
+  });
+
+  it('escapes the student name', () => {
+    const html = buildEssaySheetPage('Prova 1', '<b>Ana</b>');
+
+    expect(html).toContain('&lt;b&gt;Ana&lt;/b&gt;');
+    expect(html).not.toContain('<b>Ana</b>');
+  });
 });
