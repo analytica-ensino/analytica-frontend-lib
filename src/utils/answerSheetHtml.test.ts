@@ -17,6 +17,25 @@ const makeData = (
 
 const QR_URL = 'data:image/png;base64,abc123';
 
+/**
+ * The answer grid alone: everything between the column headers and the QR code.
+ *
+ * The page is full of flex boxes — the header, the exemplo section, the bubble
+ * wrapper inside every cell. Asserting on the whole document would count those
+ * too, so the grid is sliced out before any border assertion.
+ */
+const gridSection = (html: string) =>
+  html.slice(
+    html.lastIndexOf('Questão / Resposta</div>'),
+    html.indexOf('<img src=')
+  );
+
+/** The opening tag of each of the 10 grid rows, in order. */
+const gridRowTags = (html: string) =>
+  gridSection(html).match(
+    /<div style="display:flex;(?:border-bottom:[^"]*)?">/g
+  ) ?? [];
+
 describe('buildAnswerSheetHtml', () => {
   it('returns a complete HTML document string', () => {
     const html = buildAnswerSheetHtml(makeData(), QR_URL);
@@ -84,25 +103,23 @@ describe('buildAnswerSheetHtml', () => {
     expect(html).toContain('—');
   });
 
-  it('last grid row has no bottom border', () => {
-    const html = buildAnswerSheetHtml(makeData(), QR_URL);
+  // The grid is closed by the box around it, so the separators go *between*
+  // the rows and between the columns — never on the last of either.
+  it('separates the rows with a bottom border, except the last one', () => {
+    const rows = gridRowTags(buildAnswerSheetHtml(makeData(), QR_URL));
 
-    const rows = html.split('<div style="display:flex;');
-    const lastGridRow = rows[rows.length - 2]; // second to last split is last row
-    expect(lastGridRow).not.toContain('border-bottom');
+    expect(rows).toHaveLength(10);
+    expect(rows.filter((tag) => tag.includes('border-bottom'))).toHaveLength(9);
+    expect(rows[rows.length - 1]).not.toContain('border-bottom');
   });
 
-  it('last column in each row has no right border', () => {
-    const html = buildAnswerSheetHtml(makeData(), QR_URL);
+  it('separates the columns with a right border, except the last one', () => {
+    const grid = gridSection(buildAnswerSheetHtml(makeData(), QR_URL));
 
-    // Last column cells have no cellBorderRight — verify last cell div in first row
-    // All cells have flex:1 and padding, last cell does NOT have border-right
-    // Check that not every cell div has border-right (some should be missing it)
-    const cellsWithBorder = (
-      html.match(/border-right: 1px solid #9ca3af/g) || []
-    ).length;
-    // 10 rows × 4 non-last columns = 40 cells with right border
-    expect(cellsWithBorder).toBe(40);
+    // 10 rows × 4 non-last columns
+    expect(grid.match(/border-right: 1px solid #9ca3af/g) ?? []).toHaveLength(
+      40
+    );
   });
 
   it('renders exemplo section with 3 example rows', () => {
@@ -158,6 +175,18 @@ describe('buildAnswerSheetHtml', () => {
       );
 
       expect(html).not.toContain('<i>3A</i>');
+    });
+
+    // The QR data URL is built by the caller; a quote in it would close the
+    // `src` attribute and let the rest of the value become markup.
+    it('escapes the QR code data URL', () => {
+      const html = buildAnswerSheetPage(
+        withText('Prova 1', 'Ana'),
+        'x" onerror="alert(1)'
+      );
+
+      expect(html).not.toContain('onerror="alert(1)"');
+      expect(html).toContain('src="x&quot; onerror=&quot;alert(1)"');
     });
 
     it('escapes the document title', () => {

@@ -186,7 +186,7 @@ export function buildAnswerSheetPage(
       ${gridRows}
     </div>
 
-    <img src="${qrCodeDataUrl}" alt="QR Code" style="width:200px;height:200px;position:absolute;bottom:20px;right:20px;" />
+    <img src="${escapeHtml(qrCodeDataUrl)}" alt="QR Code" style="width:200px;height:200px;position:absolute;bottom:20px;right:20px;" />
   </div>`;
 }
 
