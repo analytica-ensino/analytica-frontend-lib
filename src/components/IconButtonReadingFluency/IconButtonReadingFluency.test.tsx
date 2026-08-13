@@ -49,7 +49,11 @@ describe('IconButtonReadingFluency', () => {
     const button = screen.getByRole('button', { name: 'Falar' });
 
     expect(button).toHaveClass('px-4', 'h-[70px]', 'w-auto');
-    expect(button).not.toHaveClass('p-4');
+    // Uma asserção por classe: `not.toHaveClass('a', 'b')` passaria se só uma
+    // delas estivesse presente, e qualquer padding vertical espreme o ícone.
+    for (const verticalPadding of ['p-4', 'py-4', 'pt-4', 'pb-4']) {
+      expect(button).not.toHaveClass(verticalPadding);
+    }
   });
 
   it('renders the label with the art typography and color', () => {
@@ -69,6 +73,13 @@ describe('IconButtonReadingFluency', () => {
       'leading-[25px]',
       'text-secondary-700'
     );
+  });
+
+  it('uses the visible label as the accessible name when there is no aria-label', () => {
+    render(<IconButtonReadingFluency label="Ouvir" />);
+
+    const button = screen.getByRole('button', { name: 'Ouvir' });
+    expect(button).toContainElement(screen.getByText('Ouvir'));
   });
 
   it('renders no label element when the prop is omitted', () => {
