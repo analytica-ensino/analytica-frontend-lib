@@ -35,6 +35,61 @@ describe('IconButtonReadingFluency', () => {
     );
   });
 
+  it('sizes the default icon as in the art (61×50) instead of stretching it', () => {
+    render(<IconButtonReadingFluency aria-label="Falar" />);
+
+    const icon = screen
+      .getByRole('button', { name: 'Falar' })
+      .querySelector('svg[viewBox="0 0 61 50"]');
+    expect(icon).toHaveClass('h-[50px]', 'w-[61px]', 'shrink-0');
+  });
+
+  it('keeps the padding horizontal only, so the icon is not squeezed', () => {
+    render(<IconButtonReadingFluency aria-label="Falar" />);
+    const button = screen.getByRole('button', { name: 'Falar' });
+
+    expect(button).toHaveClass('px-4', 'h-[70px]', 'w-auto');
+    expect(button).not.toHaveClass('p-4');
+  });
+
+  it('renders the label with the art typography and color', () => {
+    render(
+      <IconButtonReadingFluency aria-label="Ouvir narração" label="Ouvir" />
+    );
+
+    // O rótulo visível não substitui o aria-label, que segue mais descritivo.
+    const button = screen.getByRole('button', { name: 'Ouvir narração' });
+    const label = screen.getByText('Ouvir');
+    expect(button).toContainElement(label);
+    expect(label).toHaveClass(
+      'font-quicksand',
+      'text-[20px]',
+      'font-bold',
+      'uppercase',
+      'leading-[25px]',
+      'text-secondary-700'
+    );
+  });
+
+  it('renders no label element when the prop is omitted', () => {
+    render(<IconButtonReadingFluency aria-label="Falar" />);
+
+    expect(
+      screen.getByRole('button', { name: 'Falar' }).querySelector('span')
+    ).toBeNull();
+  });
+
+  it('renders both a custom icon and a label', () => {
+    render(
+      <IconButtonReadingFluency aria-label="Custom" label="Ouvir">
+        <svg data-testid="custom-icon" />
+      </IconButtonReadingFluency>
+    );
+
+    expect(screen.getByTestId('custom-icon')).toBeInTheDocument();
+    expect(screen.getByText('Ouvir')).toBeInTheDocument();
+  });
+
   it('renders a custom icon via children instead of the default', () => {
     render(
       <IconButtonReadingFluency aria-label="Custom">
