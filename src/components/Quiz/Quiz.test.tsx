@@ -714,6 +714,62 @@ describe('Quiz', () => {
       expect(screen.queryByText('Deseja sair?')).not.toBeInTheDocument();
     });
 
+    describe('Timer slot', () => {
+      const mockStoreWithTimer = (
+        timeElapsed: number,
+        isTimeExceeded: boolean
+      ) => {
+        mockUseQuizStore.mockReturnValue({
+          currentQuestionIndex: 0,
+          getTotalQuestions: mockGetTotalQuestions,
+          getQuizTitle: mockGetQuizTitle,
+          timeElapsed,
+          formatTime: mockFormatTime,
+          isStarted: true,
+          timeLimit: null,
+          getRemainingTime: jest.fn().mockReturnValue(null),
+          isTimeExceeded: jest.fn().mockReturnValue(isTimeExceeded),
+        });
+      };
+
+      it('should not render the timer by default', () => {
+        mockStoreWithTimer(4271, false);
+
+        render(<QuizTitle />);
+
+        // Consumers that never asked for a stopwatch (professor, backoffice)
+        // must keep the header they had.
+        expect(screen.queryByRole('timer')).not.toBeInTheDocument();
+      });
+
+      it('should render the timer when showTimer is set', () => {
+        mockStoreWithTimer(4271, false);
+
+        render(<QuizTitle showTimer />);
+
+        expect(screen.getByRole('timer')).toBeInTheDocument();
+        expect(screen.getByText('01:11:11')).toBeInTheDocument();
+      });
+
+      it('should render the timer beside the title, not replacing it', () => {
+        mockStoreWithTimer(60, false);
+
+        render(<QuizTitle showTimer />);
+
+        expect(screen.getByText('Quiz de Matemática')).toBeInTheDocument();
+        expect(screen.getByText('1 de 10')).toBeInTheDocument();
+        expect(screen.getByText('00:01:00')).toBeInTheDocument();
+      });
+
+      it('should render the exceeded timer in red', () => {
+        mockStoreWithTimer(5 * 3600 + 754, true);
+
+        render(<QuizTitle showTimer />);
+
+        expect(screen.getByRole('timer').className).toContain('text-error-600');
+      });
+    });
+
     describe('Exit Confirmation Modal', () => {
       const mockHistoryBack = jest.fn();
 

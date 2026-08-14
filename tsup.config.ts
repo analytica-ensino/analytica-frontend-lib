@@ -299,6 +299,7 @@ export default defineConfig({
     'Quiz/QuizResult/index': 'src/components/Quiz/QuizResult.tsx', // QuizHeaderResult, QuizListResult, QuizListResultByMateria, QuizResultHeaderTitle, QuizResultPerformance, QuizResultTitle
     'Quiz/TeacherFeedbackSection/index':
       'src/components/Quiz/TeacherFeedbackSection.tsx', // TeacherFeedbackSection
+    'QuizTimer/index': 'src/components/QuizTimer/QuizTimer.tsx', // QuizTimer
     'RecommendedLessonCreate/index':
       'src/components/RecommendedLessonCreate/RecommendedLessonCreate.tsx', // RecommendedLessonCreate
     'RecommendedLessonDetails/index':

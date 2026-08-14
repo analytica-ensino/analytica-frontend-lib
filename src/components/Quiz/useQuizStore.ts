@@ -321,6 +321,9 @@ export interface QuizState {
   dissertativeCharLimit?: number;
   timeLimit: number | null;
   onTimeUp: (() => void) | null;
+  timeWarningThreshold: number | null;
+  onTimeWarning: (() => void) | null;
+  hasTimeWarningFired: boolean;
   // Actions
   setQuiz: (quiz: QuizInterface) => void;
   setQuestionResult: (questionResult: QuestionResult) => void;
@@ -341,7 +344,7 @@ export interface QuizState {
   skipQuestion: () => void;
   skipCurrentQuestionIfUnanswered: () => void;
   addUserAnswer: (questionId: string, answerId?: string) => void;
-  startQuiz: () => void;
+  startQuiz: (options?: { initialElapsedSeconds?: number }) => void;
   finishQuiz: () => void;
   resetQuiz: () => void;
 
@@ -352,6 +355,11 @@ export interface QuizState {
   setTimeLimit: (seconds: number | null) => void;
   setOnTimeUp: (callback: (() => void) | null) => void;
   getRemainingTime: () => number | null;
+  setTimeWarning: (
+    seconds: number | null,
+    callback?: (() => void) | null
+  ) => void;
+  isTimeExceeded: () => boolean;
 
   // Minute Callback
   setMinuteCallback: (callback: (() => void) | null) => void;
@@ -460,11 +468,34 @@ export const useQuizStore = create<QuizState>()(
             timerBaseElapsed + Math.floor((now - timerStartedAt) / 1000)
           );
           set({ timeElapsed: elapsed });
-          checkTimeLimit(elapsed);
+          checkTimeThresholds(elapsed);
         }
       };
 
-      const checkTimeLimit = (elapsed: number) => {
+      /**
+       * Soft threshold: notifies once and lets the clock keep running.
+       *
+       * Deliberately separate from `timeLimit` below, which is a hard stop that
+       * submits the quiz. A progressive exam timer needs the opposite — the
+       * student is told they went over the expected duration and carries on.
+       */
+      const checkTimeWarning = (elapsed: number) => {
+        const { timeWarningThreshold, hasTimeWarningFired, onTimeWarning } =
+          get();
+
+        if (
+          timeWarningThreshold !== null &&
+          elapsed >= timeWarningThreshold &&
+          !hasTimeWarningFired
+        ) {
+          set({ hasTimeWarningFired: true });
+          onTimeWarning?.();
+        }
+      };
+
+      const checkTimeThresholds = (elapsed: number) => {
+        checkTimeWarning(elapsed);
+
         const { timeLimit, isFinished, onTimeUp } = get();
         if (timeLimit !== null && elapsed >= timeLimit && !isFinished) {
           get().finishQuiz();
@@ -493,7 +524,7 @@ export const useQuizStore = create<QuizState>()(
             timerBaseElapsed + Math.floor((now - timerStartedAt) / 1000)
           );
           set({ timeElapsed: elapsed });
-          checkTimeLimit(elapsed);
+          checkTimeThresholds(elapsed);
         }, 1000);
       };
 
@@ -562,6 +593,9 @@ export const useQuizStore = create<QuizState>()(
         dissertativeCharLimit: undefined,
         timeLimit: null,
         onTimeUp: null,
+        timeWarningThreshold: null,
+        onTimeWarning: null,
+        hasTimeWarningFired: false,
         questionsResult: null,
         currentQuestionResult: null,
         draftApiClient: null,
@@ -995,10 +1029,16 @@ export const useQuizStore = create<QuizState>()(
           }
         },
 
-        startQuiz: () => {
-          set({ isStarted: true, timeElapsed: 0 });
+        startQuiz: (options) => {
+          // `initialElapsedSeconds` seeds the stopwatch when resuming an exam
+          // the student had already started, so the count picks up from the
+          // second it stopped at instead of restarting. startTimer() reads
+          // timeElapsed as its base, so setting it here is enough.
+          const initialElapsedSeconds = options?.initialElapsedSeconds ?? 0;
+          set({ isStarted: true, timeElapsed: initialElapsedSeconds });
           startTimer();
           startMinuteCallback();
+          checkTimeWarning(initialElapsedSeconds);
         },
 
         finishQuiz: () => {
@@ -1024,6 +1064,9 @@ export const useQuizStore = create<QuizState>()(
             dissertativeCharLimit: undefined,
             timeLimit: null,
             onTimeUp: null,
+            timeWarningThreshold: null,
+            onTimeWarning: null,
+            hasTimeWarningFired: false,
             questionsResult: null,
             currentQuestionResult: null,
             // Note: draftApiClient is NOT reset here - it's managed by useDraftAutoSave hook
@@ -1040,7 +1083,7 @@ export const useQuizStore = create<QuizState>()(
             timerStartedAt = Date.now();
           }
           set({ timeElapsed: time });
-          checkTimeLimit(time);
+          checkTimeThresholds(time);
         },
         startTimer,
         stopTimer,
@@ -1050,6 +1093,19 @@ export const useQuizStore = create<QuizState>()(
           const { timeLimit, timeElapsed } = get();
           if (timeLimit === null) return null;
           return Math.max(0, timeLimit - timeElapsed);
+        },
+        setTimeWarning: (seconds, callback) =>
+          set({
+            timeWarningThreshold: seconds,
+            onTimeWarning: callback ?? null,
+            // A new threshold is a new warning: rearm it, otherwise raising the
+            // limit mid-exam would leave the student without the notice.
+            hasTimeWarningFired: false,
+          }),
+        isTimeExceeded: () => {
+          const { timeWarningThreshold, timeElapsed } = get();
+          if (timeWarningThreshold === null) return false;
+          return timeElapsed >= timeWarningThreshold;
         },
 
         // Minute Callback
