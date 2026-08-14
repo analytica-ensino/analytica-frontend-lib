@@ -272,8 +272,17 @@ const calculateAnswerStatistics = (
 
 const QuizResultPerformance = forwardRef<
   HTMLDivElement,
-  { showDetails?: boolean }
->(({ showDetails = true, ...props }, ref) => {
+  {
+    showDetails?: boolean;
+    /**
+     * Tempo gasto, dentro do anel. Segue `showDetails` por padrão; existe
+     * separado porque uma prova feita no papel tem o desempenho por
+     * dificuldade, mas não tem cronômetro — qualquer número ali seria
+     * inventado.
+     */
+    showTimeSpent?: boolean;
+  }
+>(({ showDetails = true, showTimeSpent = showDetails, ...props }, ref) => {
   const {
     getTotalQuestions,
     formatTime,
@@ -323,7 +332,7 @@ const QuizResultPerformance = forwardRef<
         />
 
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          {showDetails && (
+          {showTimeSpent && (
             <div className="flex items-center gap-1 mb-1">
               <ClockIcon size={12} weight="regular" className="text-text-800" />
               <span className="text-2xs font-medium text-text-800">

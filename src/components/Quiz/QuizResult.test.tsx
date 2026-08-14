@@ -1681,6 +1681,36 @@ describe('Quiz', () => {
         expect(container).toHaveClass('justify-between');
       });
 
+      // Prova de papel: tem desempenho por dificuldade, mas não tem
+      // cronômetro — qualquer tempo ali seria inventado.
+      it('should keep the difficulty bars while hiding the time', () => {
+        mockGetTotalQuestions.mockReturnValue(4);
+        mockGetQuestionResult.mockReturnValue({
+          answers: [
+            {
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            },
+            {
+              answerStatus: ANSWER_STATUS.RESPOSTA_INCORRETA,
+              difficultyLevel: QUESTION_DIFFICULTY.MEDIO,
+            },
+          ],
+        });
+        mockGetQuestionResultStatistics.mockReturnValue({
+          correctAnswers: 1,
+          timeSpent: 150,
+        });
+        mockFormatTime.mockReturnValue('02:30');
+
+        render(<QuizResultPerformance showDetails showTimeSpent={false} />);
+
+        expect(screen.queryByText('02:30')).not.toBeInTheDocument();
+        expect(mockFormatTime).not.toHaveBeenCalled();
+        expect(screen.getByText('Fáceis')).toBeInTheDocument();
+        expect(screen.getByText('Médias')).toBeInTheDocument();
+      });
+
       it('should hide details when showDetails is set to false', () => {
         mockGetTotalQuestions.mockReturnValue(4);
         mockGetQuestionResult.mockReturnValue({
