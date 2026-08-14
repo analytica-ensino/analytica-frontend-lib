@@ -470,6 +470,31 @@ describe('ButtonReadingFluency', () => {
       expect(button).not.toHaveClass('rounded-[20px]');
     });
 
+    it('styles the circle with the art values (glyph, size and Drop Shadow/200)', () => {
+      render(
+        <ButtonReadingFluency variant="icon" aria-label="Fechar">
+          <svg data-testid="icon" />
+        </ButtonReadingFluency>
+      );
+
+      const circle = screen
+        .getByRole('button', { name: 'Fechar' })
+        .querySelector('span');
+
+      expect(circle).toHaveClass(
+        'size-[30px]',
+        'border-[3px]',
+        'border-primary-200',
+        // Glyph is #FBF0CE, one step lighter than the primary-200 border.
+        'text-[#FBF0CE]',
+        // 14px = 33.33% of the 42px target, as in the art.
+        '[&_svg]:size-[14px]'
+      );
+      expect(circle?.className).toContain(
+        '[filter:drop-shadow(0px_1px_4px_#0c0c0d1a)_drop-shadow(0px_1px_4px_#0c0c0d0d)]'
+      );
+    });
+
     it('ignores iconLeft in the icon variant', () => {
       render(
         <ButtonReadingFluency
