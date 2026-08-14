@@ -60,10 +60,18 @@ describe('AnswerKeyModal', () => {
     expect(screen.getByText('2')).toBeInTheDocument();
   });
 
-  // O veredito por questão é o que o aluno confere contra o papel.
+  // Cada estado tem o seu veredito: colapsar tudo que não é correto em
+  // "incorreta" esconderia a bolha que a leitura óptica não reconheceu, que é
+  // o que o aluno abre este modal para descobrir.
   it.each([
     ['correta', ANSWER_STATUS.RESPOSTA_CORRETA, 'Questão 1: correta'],
     ['incorreta', ANSWER_STATUS.RESPOSTA_INCORRETA, 'Questão 1: incorreta'],
+    ['em branco', ANSWER_STATUS.NAO_RESPONDIDO, 'Questão 1: em branco'],
+    [
+      'pendente',
+      ANSWER_STATUS.PENDENTE_AVALIACAO,
+      'Questão 1: aguardando correção',
+    ],
   ])('marks a question as %s', (_label, status, expectedLabel) => {
     render(
       <AnswerKeyModal
@@ -104,6 +112,24 @@ describe('AnswerKeyModal', () => {
     expect(screen.getByText('A').className).not.toContain(tone);
   });
 
+  // Nem em branco nem pendente podem ser pintados de errado: nenhum dos dois
+  // é um erro do aluno.
+  it.each([
+    ['blank', ANSWER_STATUS.NAO_RESPONDIDO],
+    ['pending', ANSWER_STATUS.PENDENTE_AVALIACAO],
+  ])('never paints a %s answer as wrong', (_label, status) => {
+    render(
+      <AnswerKeyModal
+        answers={[makeAnswer('q1', 2, status)]}
+        onClose={jest.fn()}
+      />
+    );
+
+    expect(screen.getByText('C').className).not.toContain('bg-error-200');
+    expect(screen.getByText('C').className).not.toContain('bg-success-200');
+    expect(screen.queryByLabelText('Questão 1: incorreta')).toBeNull();
+  });
+
   // Questão em branco: nenhuma bolha preenchida, e a linha segue aparecendo.
   it('leaves every bubble empty when nothing was marked', () => {
     render(
@@ -119,5 +145,18 @@ describe('AnswerKeyModal', () => {
       );
       expect(screen.getByText(letter).className).not.toContain('bg-error-200');
     }
+  });
+
+  // `answerStatus` chega como string do backend: um valor fora do enum não
+  // pode virar "incorreta" nem quebrar a linha.
+  it('falls back to the blank presentation for an unknown status', () => {
+    render(
+      <AnswerKeyModal
+        answers={[makeAnswer('q1', 1, 'ALGO_NOVO' as ANSWER_STATUS)]}
+        onClose={jest.fn()}
+      />
+    );
+
+    expect(screen.getByLabelText('Questão 1: em branco')).toBeInTheDocument();
   });
 });

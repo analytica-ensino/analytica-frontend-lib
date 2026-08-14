@@ -3,6 +3,8 @@ import Text from '../Text/Text';
 import { ANSWER_STATUS, type QuestionResult } from '../Quiz/useQuizStore';
 import { CheckCircleIcon } from '@phosphor-icons/react/dist/csr/CheckCircle';
 import { XCircleIcon } from '@phosphor-icons/react/dist/csr/XCircle';
+import { MinusCircleIcon } from '@phosphor-icons/react/dist/csr/MinusCircle';
+import { ClockIcon } from '@phosphor-icons/react/dist/csr/Clock';
 
 type Answer = QuestionResult['answers'][number];
 
@@ -14,6 +16,52 @@ export interface AnswerKeyModalProps {
 
 /** Letras das alternativas, na ordem em que as opções foram cadastradas. */
 const LETTERS = ['A', 'B', 'C', 'D', 'E'];
+
+/**
+ * Como cada estado da correção se apresenta na linha.
+ *
+ * O `Record` sobre o enum é proposital: um estado novo em `ANSWER_STATUS` vira
+ * erro de compilação aqui, em vez de cair silenciosamente num "incorreta".
+ *
+ * Em branco tem tratamento próprio, e não vermelho, porque numa prova de papel
+ * ele é o sintoma de uma bolha que a leitura óptica não reconheceu — é
+ * justamente o que o aluno abre este modal para descobrir.
+ */
+const STATUS_PRESENTATION: Record<
+  ANSWER_STATUS,
+  {
+    label: string;
+    Icon: typeof CheckCircleIcon;
+    iconClass: string;
+    /** Cor da bolha marcada; vazia quando o estado não julga a resposta. */
+    bubbleClass: string;
+  }
+> = {
+  [ANSWER_STATUS.RESPOSTA_CORRETA]: {
+    label: 'correta',
+    Icon: CheckCircleIcon,
+    iconClass: 'text-success-600',
+    bubbleClass: 'bg-success-200 border-success-300 text-text-900',
+  },
+  [ANSWER_STATUS.RESPOSTA_INCORRETA]: {
+    label: 'incorreta',
+    Icon: XCircleIcon,
+    iconClass: 'text-error-600',
+    bubbleClass: 'bg-error-200 border-error-300 text-text-900',
+  },
+  [ANSWER_STATUS.NAO_RESPONDIDO]: {
+    label: 'em branco',
+    Icon: MinusCircleIcon,
+    iconClass: 'text-text-400',
+    bubbleClass: 'bg-background-100 border-border-300 text-text-900',
+  },
+  [ANSWER_STATUS.PENDENTE_AVALIACAO]: {
+    label: 'aguardando correção',
+    Icon: ClockIcon,
+    iconClass: 'text-info-600',
+    bubbleClass: 'bg-info-background border-info-300 text-text-900',
+  },
+};
 
 /**
  * Posição da alternativa que o aluno marcou.
@@ -45,7 +93,10 @@ const AnswerRow = ({
   sequence: number;
 }) => {
   const marked = selectedIndex(answer);
-  const isCorrect = answer.answerStatus === ANSWER_STATUS.RESPOSTA_CORRETA;
+  const presentation =
+    STATUS_PRESENTATION[answer.answerStatus] ??
+    STATUS_PRESENTATION[ANSWER_STATUS.NAO_RESPONDIDO];
+  const { Icon } = presentation;
 
   return (
     <li className="flex items-center gap-3 border border-border-100 rounded-lg px-3 py-2">
@@ -56,12 +107,9 @@ const AnswerRow = ({
       <span className="flex items-center gap-1 flex-1">
         {LETTERS.map((letter, index) => {
           const isMarked = index === marked;
-          let tone = 'border-border-200 text-text-600';
-          if (isMarked) {
-            tone = isCorrect
-              ? 'bg-success-200 border-success-300 text-text-900'
-              : 'bg-error-200 border-error-300 text-text-900';
-          }
+          const tone = isMarked
+            ? presentation.bubbleClass
+            : 'border-border-200 text-text-600';
           return (
             <span
               key={letter}
@@ -74,19 +122,11 @@ const AnswerRow = ({
         })}
       </span>
 
-      {isCorrect ? (
-        <CheckCircleIcon
-          size={18}
-          className="text-success-600 shrink-0"
-          aria-label={`Questão ${sequence}: correta`}
-        />
-      ) : (
-        <XCircleIcon
-          size={18}
-          className="text-error-600 shrink-0"
-          aria-label={`Questão ${sequence}: incorreta`}
-        />
-      )}
+      <Icon
+        size={18}
+        className={`${presentation.iconClass} shrink-0`}
+        aria-label={`Questão ${sequence}: ${presentation.label}`}
+      />
     </li>
   );
 };

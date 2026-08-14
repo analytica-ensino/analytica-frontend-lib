@@ -580,6 +580,10 @@ describe('ActivityDetails', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // O ref é um objeto de módulo, e o React o zera ao desmontar o conteúdo
+    // dublado. Sem devolver um nó vivo aqui, um teste deixa o ref nulo para o
+    // próximo e o efeito de impressão desiste — a origem da intermitência.
+    mockContentRef.current = document.createElement('div');
     mockFetchActivityDetails.mockResolvedValue(mockActivityData);
     // Convert mockCorrectionData to API format
     const apiResponse: QuestionsAnswersByStudentResponse = {
@@ -2247,12 +2251,15 @@ describe('ActivityDetails', () => {
         expect(mockApiClient.get).toHaveBeenCalled();
       });
 
-      // handlePrint should eventually be called when questions are loaded and shouldPrint is true
+      // handlePrint é disparado por uma cadeia de macrotasks (fetch → estado →
+      // efeito → setTimeout). Com a suíte inteira em paralelo, 2s chegam a
+      // estourar por contenção de CPU; o orçamento maior não afrouxa o que se
+      // exige aqui, que continua sendo a chamada acontecer.
       await waitFor(
         () => {
           expect(mockHandlePrint).toHaveBeenCalled();
         },
-        { timeout: 2000 }
+        { timeout: 10000 }
       );
 
       // Verify that handlePrint was called (meaning shouldPrint was true and conditions were met)
