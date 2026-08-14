@@ -12,6 +12,7 @@ import {
   useEffect,
 } from 'react';
 import Button from '../Button/Button';
+import IconButton from '../IconButton/IconButton';
 import Badge from '../Badge/Badge';
 import ProgressBar from '../ProgressBar/ProgressBar';
 import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
@@ -23,6 +24,7 @@ import { PlayIcon } from '@phosphor-icons/react/dist/csr/Play';
 import { SpeakerHighIcon } from '@phosphor-icons/react/dist/csr/SpeakerHigh';
 import { SpeakerLowIcon } from '@phosphor-icons/react/dist/csr/SpeakerLow';
 import { SpeakerSimpleXIcon } from '@phosphor-icons/react/dist/csr/SpeakerSimpleX';
+import { TrashIcon } from '@phosphor-icons/react/dist/csr/Trash';
 import { XCircleIcon } from '@phosphor-icons/react/dist/csr/XCircle';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
@@ -1530,6 +1532,12 @@ interface SimulationItem {
     label: string;
     action: 'success' | 'warning' | 'info' | 'error';
   };
+  /**
+   * True when the current user authored this simulation and may remove it.
+   * Only then is the delete action rendered — a simulation assigned by a
+   * teacher never gets one.
+   */
+  canDelete?: boolean;
 }
 
 interface SimulationHistoryData {
@@ -1540,6 +1548,12 @@ interface SimulationHistoryData {
 interface CardSimulationHistoryProps extends HTMLAttributes<HTMLDivElement> {
   data: SimulationHistoryData[];
   onSimulationClick?: (simulation: SimulationItem) => void;
+  /**
+   * Called when the delete action is triggered for a simulation. The action is
+   * only rendered for items flagged with `canDelete`. Confirmation is the
+   * caller's responsibility.
+   */
+  onDeleteClick?: (simulation: SimulationItem) => void;
 }
 
 const SIMULATION_TYPE_STYLES = {
@@ -1568,7 +1582,7 @@ const SIMULATION_TYPE_STYLES = {
 const CardSimulationHistory = forwardRef<
   HTMLDivElement,
   CardSimulationHistoryProps
->(({ data, onSimulationClick, className, ...props }, ref) => {
+>(({ data, onSimulationClick, onDeleteClick, className, ...props }, ref) => {
   return (
     <div
       ref={ref}
@@ -1646,11 +1660,28 @@ const CardSimulationHistory = forwardRef<
                           </div>
                         </div>
 
-                        <CaretRightIcon
-                          size={24}
-                          className="text-text-800 flex-shrink-0"
-                          data-testid="caret-icon"
-                        />
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          {simulation.canDelete && onDeleteClick && (
+                            <IconButton
+                              size="sm"
+                              icon={<TrashIcon size={20} />}
+                              aria-label={`Excluir simulado ${simulation.title}`}
+                              data-testid={`delete-simulation-${simulation.id}`}
+                              // The whole CardBase is clickable, so the click
+                              // must not bubble up into onSimulationClick.
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                onDeleteClick(simulation);
+                              }}
+                            />
+                          )}
+
+                          <CaretRightIcon
+                            size={24}
+                            className="text-text-800"
+                            data-testid="caret-icon"
+                          />
+                        </div>
                       </div>
                     </CardBase>
                   );
