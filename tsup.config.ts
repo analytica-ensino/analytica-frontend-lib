@@ -29,6 +29,7 @@ export default defineConfig({
     'Avatar/index': 'src/components/Avatar/Avatar.tsx',
     'LoadingModal/index': 'src/components/LoadingModal/loadingModal.tsx',
     'ProgressCircle/index': 'src/components/ProgressCircle/ProgressCircle.tsx',
+    'AnswerKeyModal/index': 'src/components/AnswerKeyModal/AnswerKeyModal.tsx',
     'ProgressModal/index': 'src/components/ProgressModal/ProgressModal.tsx',
     'ScoreCircle/index': 'src/components/ScoreCircle/ScoreCircle.tsx',
     'ImagePreviewCard/index':

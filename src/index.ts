@@ -177,6 +177,8 @@ export type {
 
 export { AlertDialog } from './components/AlertDialog/AlertDialog';
 export { default as LoadingModal } from './components/LoadingModal/loadingModal';
+export { default as AnswerKeyModal } from './components/AnswerKeyModal/AnswerKeyModal';
+export type { AnswerKeyModalProps } from './components/AnswerKeyModal/AnswerKeyModal';
 export { default as ProgressModal } from './components/ProgressModal/ProgressModal';
 export type { ProgressModalProps } from './components/ProgressModal/ProgressModal';
 export { default as ScoreCircle } from './components/ScoreCircle/ScoreCircle';
