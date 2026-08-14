@@ -256,7 +256,7 @@ const ButtonReadingFluency = forwardRef<
     ref
   ) => {
     // Variante ícone: alvo clicável 42×42 envolvendo o círculo visível de 30px.
-    // `children` é o ícone (dimensionado a 10px pela classe do círculo).
+    // `children` é o ícone (dimensionado a 14px pela classe do círculo).
     if (variant === 'icon') {
       return (
         <button
