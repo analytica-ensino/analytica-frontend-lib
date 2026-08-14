@@ -203,13 +203,19 @@ const PAPOLE_SIZE_CLASSES = {
 
 /**
  * Círculo visível da variante `icon` (30px). A arte usa fundo `error-500`, borda
- * 3px `primary-200` e ícone `primary-200` (10px). A sombra é a tradução das vars
- * `--sds-*` do Figma para valores concretos: `0 2px 8px` com preto 10% + 20%.
- * Só o `default` veio na spec (hover/pressed/focus pendentes); os tamanhos
- * (círculo 30px, ícone 10px) foram os que você passou — confirmar se necessário.
+ * 3px `primary-200` e o glifo em `#FBF0CE` a 14px (33,33% do alvo de 42px).
+ *
+ * O `#FBF0CE` fica literal porque não existe passo na rampa: é mais claro que o
+ * `primary-200` (#FDEFC4) da borda e mais escuro que o `primary-100` (#FEF8E6) —
+ * mesmo caso do bisel `#D4A82E` do `solid`. Trocar por token mudaria o desenho,
+ * então fica para a designer decidir se vira token.
+ *
+ * A sombra é a "Drop Shadow/200" da arte, aplicada como `filter` (e não
+ * `box-shadow`) porque acompanha o recorte do círculo. Só o `default` veio na
+ * spec — hover/pressed/focus seguem pendentes.
  */
 const PAPOLE_ICON_CIRCLE_CLASSES =
-  'inline-flex items-center justify-center size-[30px] rounded-full bg-error-500 border-[3px] border-primary-200 text-primary-200 [&_svg]:size-[10px] [box-shadow:0px_2px_8px_0px_#0000001a,0px_2px_8px_0px_#00000033]';
+  'inline-flex items-center justify-center size-[30px] rounded-full bg-error-500 border-[3px] border-primary-200 text-[#FBF0CE] [&_svg]:size-[14px] [filter:drop-shadow(0px_1px_4px_#0c0c0d1a)_drop-shadow(0px_1px_4px_#0c0c0d0d)]';
 
 type ButtonReadingFluencyProps = {
   /** Conteúdo do botão: texto nas variantes de texto; o ícone na variante `icon`. */
