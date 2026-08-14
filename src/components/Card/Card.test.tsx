@@ -3401,6 +3401,65 @@ describe('CardSimulationHistory', () => {
     });
   });
 
+  it('should not render the delete action when no simulation is deletable', () => {
+    render(<CardSimulationHistory {...baseProps} onDeleteClick={jest.fn()} />);
+
+    expect(screen.queryByTestId('delete-simulation-1')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('delete-simulation-2')).not.toBeInTheDocument();
+  });
+
+  it('should not render the delete action when onDeleteClick is missing', () => {
+    const data = [
+      {
+        date: '12 Fev',
+        simulations: [{ ...mockData[0].simulations[0], canDelete: true }],
+      },
+    ];
+    render(<CardSimulationHistory data={data} />);
+
+    expect(screen.queryByTestId('delete-simulation-1')).not.toBeInTheDocument();
+  });
+
+  it('should render the delete action only for simulations flagged canDelete', () => {
+    const data = [
+      {
+        date: '12 Fev',
+        simulations: [
+          { ...mockData[0].simulations[0], canDelete: true },
+          { ...mockData[0].simulations[1], canDelete: false },
+        ],
+      },
+    ];
+    render(<CardSimulationHistory data={data} onDeleteClick={jest.fn()} />);
+
+    expect(screen.getByTestId('delete-simulation-1')).toBeInTheDocument();
+    expect(screen.queryByTestId('delete-simulation-2')).not.toBeInTheDocument();
+    expect(
+      screen.getByLabelText('Excluir simulado Simulado Enem #42')
+    ).toBeInTheDocument();
+  });
+
+  it('should call onDeleteClick without navigating when the delete action is clicked', () => {
+    const onDeleteClick = jest.fn();
+    const onSimulationClick = jest.fn();
+    const deletable = { ...mockData[0].simulations[0], canDelete: true };
+    const data = [{ date: '12 Fev', simulations: [deletable] }];
+
+    render(
+      <CardSimulationHistory
+        data={data}
+        onDeleteClick={onDeleteClick}
+        onSimulationClick={onSimulationClick}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('delete-simulation-1'));
+
+    expect(onDeleteClick).toHaveBeenCalledWith(deletable);
+    // stopPropagation must keep the surrounding card click from firing
+    expect(onSimulationClick).not.toHaveBeenCalled();
+  });
+
   it('should apply correct background colors for simulation types', () => {
     render(<CardSimulationHistory {...baseProps} />);
 
