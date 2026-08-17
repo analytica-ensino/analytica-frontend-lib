@@ -80,8 +80,10 @@ import {
   SmallScreenLayout,
   DesktopLayout,
 } from './components/ActivityCreateContent';
-import { loadCategoriesData } from '../../utils/categoryDataUtils';
-import { PRINTED_KITS_MODULE } from '../../utils/categoryDataUtils';
+import {
+  loadCategoriesData,
+  PRINTED_KITS_MODULE,
+} from '../../utils/categoryDataUtils';
 import { useDynamicStudentFetching } from '../../utils/useDynamicStudentFetching';
 
 /**
