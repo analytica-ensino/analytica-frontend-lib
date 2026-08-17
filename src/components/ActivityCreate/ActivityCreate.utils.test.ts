@@ -928,10 +928,23 @@ describe('ActivityCreate.utils', () => {
   // final o app do aluno não teria o que mostrar em "Andamento da atividade",
   // e o envio das fotos nunca fecharia.
   describe('buildFinalDateTime', () => {
-    // O horário local vira UTC, então 23:59 em BRT cai no dia seguinte.
+    // A data digitada é local, e o mesmo instante vira um UTC diferente
+    // conforme o fuso da máquina (BRT aqui, UTC no CI). Por isso a asserção
+    // lê o ISO de volta em hora local, em vez de fixar a string.
+    const expectLocalDateTime = (iso: string | null, expected: string) => {
+      expect(iso).toMatch(/Z$/);
+      const parsed = new Date(iso as string);
+      const pad = (value: number) => String(value).padStart(2, '0');
+      const local =
+        `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}` +
+        `T${pad(parsed.getHours())}:${pad(parsed.getMinutes())}`;
+      expect(local).toBe(expected);
+    };
+
     it('keeps the deadline of a printed exam', () => {
-      expect(buildFinalDateTime('2026-09-18', '23:59', true, true)).toBe(
-        '2026-09-19T02:59:00.000Z'
+      expectLocalDateTime(
+        buildFinalDateTime('2026-09-18', '23:59', true, true),
+        '2026-09-18T23:59'
       );
     });
 
@@ -940,8 +953,9 @@ describe('ActivityCreate.utils', () => {
     });
 
     it('keeps the deadline of a regular activity', () => {
-      expect(buildFinalDateTime('2026-09-18', '23:59', false)).toBe(
-        '2026-09-19T02:59:00.000Z'
+      expectLocalDateTime(
+        buildFinalDateTime('2026-09-18', '23:59', false),
+        '2026-09-18T23:59'
       );
     });
   });
