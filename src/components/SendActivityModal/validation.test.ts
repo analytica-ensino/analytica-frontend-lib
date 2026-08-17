@@ -134,6 +134,41 @@ describe('validation', () => {
   });
 
   describe('validateDeadlineStep', () => {
+    // A prova impressa é respondida em casa ao longo de um período: ela precisa
+    // do intervalo inteiro, mesmo sendo prova. A digital, aplicada num dia, não.
+    it('should require both dates for a printed exam', () => {
+      const errors = validateDeadlineStep(
+        { startDate: '2026-02-01', startTime: '08:00' },
+        { enableExamMode: true, isInPersonExam: true }
+      );
+
+      expect(errors.finalDate).toBeDefined();
+    });
+
+    it('should require only the exam date for a digital exam', () => {
+      const errors = validateDeadlineStep(
+        { startDate: '2026-02-01', startTime: '08:00' },
+        { enableExamMode: true }
+      );
+
+      expect(errors.finalDate).toBeUndefined();
+      expect(errors.startDate).toBeUndefined();
+    });
+
+    it('should accept a printed exam with the full range', () => {
+      const errors = validateDeadlineStep(
+        {
+          startDate: '2026-02-01',
+          startTime: '08:00',
+          finalDate: '2026-02-20',
+          finalTime: '23:59',
+        },
+        { enableExamMode: true, isInPersonExam: true }
+      );
+
+      expect(errors).toEqual({});
+    });
+
     it('should return error when startDate is missing', () => {
       const data: Partial<SendActivityFormData> = {};
       const errors = validateDeadlineStep(data);
