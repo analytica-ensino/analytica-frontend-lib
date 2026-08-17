@@ -1,5 +1,10 @@
 import { CSSProperties, forwardRef, memo, ReactNode, Ref } from 'react';
 import 'katex/dist/katex.min.css';
+import parse, {
+  DOMNode,
+  Element,
+  HTMLReactParserOptions,
+} from 'html-react-parser';
 import { KatexMath } from './KatexMath';
 import { cn } from '../../utils/utils';
 import { normalizeLineBreaksInHtml } from '../../utils/htmlLineBreaks';
@@ -128,55 +133,55 @@ const HtmlMathRenderer = forwardRef<HTMLElement, HtmlMathRendererProps>(
         );
       }
 
-      // Generate stable keys based on content
-      const getPartKey = (part: (typeof parts)[0], idx: number) => {
-        const contentHash = (part.latex || part.content).slice(0, 20);
-        return `${part.type}-${idx}-${contentHash}`;
+      // Rebuild the document with inert placeholders where the math was, then
+      // parse it ONCE.
+      //
+      // Rendering each part in its own `dangerouslySetInnerHTML` span (what this
+      // used to do) cuts block tags in half: a statement like
+      // `<p>Ao final da rodada <math/>, qual é…</p>` splits into a text part
+      // ending with an unclosed `<p>` and another starting with a stray `</p>`.
+      // The browser closes the dangling `<p>`, which is display:block, and the
+      // paragraph breaks right before the formula. Re-emitting the text parts
+      // verbatim and concatenating them restores the original markup, so the
+      // paragraph survives as a single element.
+      const withPlaceholders = parts
+        .map((part, index) =>
+          part.type === 'text'
+            ? part.content
+            : `<span data-math-id="${index}"></span>`
+        )
+        .join('');
+
+      const options: HTMLReactParserOptions = {
+        replace: (domNode: DOMNode) => {
+          if (
+            !(domNode instanceof Element) ||
+            domNode.name !== 'span' ||
+            !domNode.attribs['data-math-id']
+          ) {
+            return;
+          }
+
+          const part = parts[Number(domNode.attribs['data-math-id'])];
+          if (!part?.latex) return <></>;
+
+          const math = (
+            <KatexMath
+              math={part.latex}
+              displayMode={part.type === 'block-math' && !inline}
+              renderError={() => errorRenderer(part.latex!)}
+            />
+          );
+
+          // In inline mode block math stays inline: a <div> would be invalid
+          // inside the phrasing content this renderer is nested in.
+          if (part.type !== 'block-math' || inline) return math;
+
+          return <div className="my-2.5 text-center">{math}</div>;
+        },
       };
 
-      return (
-        <>
-          {parts.map((part, index) => {
-            const key = getPartKey(part, index);
-            if (part.type === 'math' && part.latex) {
-              return (
-                <KatexMath
-                  key={key}
-                  math={part.latex}
-                  renderError={() => errorRenderer(part.latex!)}
-                />
-              );
-            } else if (part.type === 'block-math' && part.latex) {
-              // When inline mode, render inline to avoid block-level elements inside span
-              if (inline) {
-                return (
-                  <KatexMath
-                    key={key}
-                    math={part.latex}
-                    renderError={() => errorRenderer(part.latex!)}
-                  />
-                );
-              }
-              return (
-                <div key={key} className="my-2.5 text-center">
-                  <KatexMath
-                    math={part.latex}
-                    displayMode
-                    renderError={() => errorRenderer(part.latex!)}
-                  />
-                </div>
-              );
-            } else {
-              return (
-                <span
-                  key={key}
-                  dangerouslySetInnerHTML={{ __html: part.content }}
-                />
-              );
-            }
-          })}
-        </>
-      );
+      return <>{parse(withPlaceholders, options)}</>;
     };
 
     const sharedClassName = cn(

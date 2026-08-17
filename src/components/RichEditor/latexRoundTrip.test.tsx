@@ -130,6 +130,14 @@ describe('LaTeX round-trip: editor → HTML salvo → visão do estudante', () =
     expect(screen.getByTestId('student')).toHaveTextContent(
       'Assinale o que for correto.'
     );
+
+    // O parágrafo não pode ser fatiado pela fórmula: texto antes e depois têm
+    // que continuar no mesmo <p>, senão o aluno vê uma quebra de linha que o
+    // autor não escreveu.
+    const paragraphs = screen.getByTestId('student').querySelectorAll('p');
+    expect(paragraphs).toHaveLength(1);
+    expect(paragraphs[0]).toHaveTextContent('Para cada número real');
+    expect(paragraphs[0]).toHaveTextContent('Assinale o que for correto.');
   });
 
   it('mantém $$...$$ como bloco dos dois lados', () => {
