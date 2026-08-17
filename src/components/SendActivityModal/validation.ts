@@ -178,16 +178,19 @@ export function validateRecipientStep(
  * @param data - Partial form data
  * @param options - Validation options
  * @param options.enableExamMode - When true, only validates startDate (exam date)
+ * @param options.isInPersonExam - Printed exam: needs the full date range even
+ * though it is an exam, because the student answers it at home over a period
+ * and the deadline is what closes the submission
  * @returns StepErrors object with any validation errors
  */
 export function validateDeadlineStep(
   data: Partial<SendActivityFormData>,
-  options?: { enableExamMode?: boolean }
+  options?: { enableExamMode?: boolean; isInPersonExam?: boolean }
 ): StepErrors {
   const errors: StepErrors = {};
 
-  // In exam mode, only validate startDate (exam date)
-  if (options?.enableExamMode) {
+  // Digital exam: a single date, the day it is applied.
+  if (options?.enableExamMode && !options?.isInPersonExam) {
     if (!data.startDate) {
       errors.startDate = ERROR_MESSAGES.START_DATE_REQUIRED;
     }
@@ -237,7 +240,7 @@ export function validateDeadlineStep(
 export function validateStep(
   step: number,
   data: Partial<SendActivityFormData>,
-  options?: { enableExamMode?: boolean }
+  options?: { enableExamMode?: boolean; isInPersonExam?: boolean }
 ): StepErrors {
   switch (step) {
     case 1:
@@ -261,7 +264,7 @@ export function validateStep(
 export function isStepValid(
   step: number,
   data: Partial<SendActivityFormData>,
-  options?: { enableExamMode?: boolean }
+  options?: { enableExamMode?: boolean; isInPersonExam?: boolean }
 ): boolean {
   const errors = validateStep(step, data, options);
   return Object.keys(errors).length === 0;

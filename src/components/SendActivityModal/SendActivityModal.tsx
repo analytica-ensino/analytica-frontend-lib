@@ -259,7 +259,10 @@ const SendActivityModal = ({
    */
   const handleSubmit = useCallback(async () => {
     // For in-person exams, always validate as exam mode since mode is auto-set
-    const isValid = store.validateAllSteps(enableExamMode || isInPersonExam);
+    const isValid = store.validateAllSteps(
+      enableExamMode || isInPersonExam,
+      isInPersonExam
+    );
     if (!isValid) return;
 
     try {
@@ -492,8 +495,10 @@ const SendActivityModal = ({
           />
         );
       case 3:
-        // Exam mode: simplified deadline with only exam date
-        if (isExamMode) {
+        // Prova digital: uma data só, o dia da aplicação. A impressa não —
+        // o aluno responde em casa ao longo de um período, e é o prazo final
+        // que fecha o envio das fotos.
+        if (isExamMode && !isInPersonExam) {
           return renderExamDeadlineStep();
         }
         // Activity mode: full deadline with start/end dates and retry option
@@ -530,7 +535,7 @@ const SendActivityModal = ({
       isLoading={isLoading}
       onCancel={handleCancel}
       onPreviousStep={store.previousStep}
-      onNextStep={() => store.nextStep(isExamMode)}
+      onNextStep={() => store.nextStep(isExamMode, isInPersonExam)}
       onSubmit={handleSubmit}
       entityName={entityName}
     />

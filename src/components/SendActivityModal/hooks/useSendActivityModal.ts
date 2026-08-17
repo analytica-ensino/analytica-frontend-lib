@@ -19,7 +19,7 @@ export interface SendActivityModalStore {
   /** Go to a specific step */
   goToStep: (step: number) => void;
   /** Go to next step (validates current step first) */
-  nextStep: (enableExamMode: boolean) => boolean;
+  nextStep: (enableExamMode: boolean, isInPersonExam?: boolean) => boolean;
   /** Go to previous step */
   previousStep: () => void;
 
@@ -28,9 +28,15 @@ export interface SendActivityModalStore {
   /** Set errors */
   setErrors: (errors: StepErrors) => void;
   /** Validate current step */
-  validateCurrentStep: (enableExamMode: boolean) => boolean;
+  validateCurrentStep: (
+    enableExamMode: boolean,
+    isInPersonExam?: boolean
+  ) => boolean;
   /** Validate all steps */
-  validateAllSteps: (enableExamMode: boolean) => boolean;
+  validateAllSteps: (
+    enableExamMode: boolean,
+    isInPersonExam?: boolean
+  ) => boolean;
 
   /** Categories state managed by CheckboxGroup */
   categories: CategoryConfig[];
@@ -72,9 +78,9 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
       }
     },
 
-    nextStep: (enableExamMode: boolean) => {
+    nextStep: (enableExamMode: boolean, isInPersonExam = false) => {
       const state = get();
-      const isValid = state.validateCurrentStep(enableExamMode);
+      const isValid = state.validateCurrentStep(enableExamMode, isInPersonExam);
 
       if (isValid && state.currentStep < 3) {
         set((prev) => ({
@@ -101,7 +107,7 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
       set({ errors });
     },
 
-    validateCurrentStep: (enableExamMode: boolean) => {
+    validateCurrentStep: (enableExamMode: boolean, isInPersonExam = false) => {
       const state = get();
       // For step 2, extract students from categories to ensure auto-selection is considered
       let formDataToValidate = state.formData;
@@ -111,7 +117,7 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
         formDataToValidate = { ...state.formData, students };
         updatedFormData = formDataToValidate;
       }
-      const options = { enableExamMode };
+      const options = { enableExamMode, isInPersonExam };
       const errors = validateStep(
         state.currentStep,
         formDataToValidate,
@@ -121,7 +127,7 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
       return Object.keys(errors).length === 0;
     },
 
-    validateAllSteps: (enableExamMode: boolean) => {
+    validateAllSteps: (enableExamMode: boolean, isInPersonExam = false) => {
       const state = get();
       // Extract students from categories for step 2 validation
       let formDataForStep2 = state.formData;
@@ -129,7 +135,7 @@ export const useSendActivityModalStore = create<SendActivityModalStore>(
         const students = extractStudentsFromCategories(state.categories);
         formDataForStep2 = { ...state.formData, students };
       }
-      const options = { enableExamMode };
+      const options = { enableExamMode, isInPersonExam };
       const errors1 = validateStep(1, state.formData, options);
       const errors2 = validateStep(2, formDataForStep2);
       const errors3 = validateStep(3, state.formData, options);
