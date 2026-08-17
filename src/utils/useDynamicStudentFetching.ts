@@ -22,6 +22,12 @@ export type FetchClassesByFiltersFunction = (
 
 export interface UseDynamicStudentFetchingOptions {
   apiClient?: BaseApiClient;
+  /**
+   * Módulos que o aluno precisa ter para aparecer na lista —
+   * `['printedKits']` numa atividade presencial, que é entregue em papel e só
+   * faz sentido para quem tem direito ao kit impresso.
+   */
+  requiredModules?: string[];
   fetchStudentsByFilters?: FetchStudentsByFiltersFunction;
   fetchClassesByFilters?: FetchClassesByFiltersFunction;
   onError?: (error: Error) => void;
@@ -211,6 +217,7 @@ export function useDynamicStudentFetching(
 } {
   const {
     apiClient,
+    requiredModules,
     fetchStudentsByFilters: customFetchStudents,
     fetchClassesByFilters: fetchClasses = defaultFetchClassesByFilters,
     onError,
@@ -246,8 +253,12 @@ export function useDynamicStudentFetching(
       schoolYearIds:
         selectedSchoolYearIds.length > 0 ? selectedSchoolYearIds : undefined,
       classIds: selectedClassIds.length > 0 ? selectedClassIds : undefined,
+      modules:
+        requiredModules && requiredModules.length > 0
+          ? requiredModules
+          : undefined,
     }),
-    []
+    [requiredModules]
   );
 
   /**

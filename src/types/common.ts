@@ -11,6 +11,11 @@ export enum GenericApiStatus {
   A_VENCER = 'A_VENCER',
   VENCIDA = 'VENCIDA',
   CONCLUIDA = 'CONCLUIDA',
+  /**
+   * Prova com data de início no futuro. Chega aqui porque a atividade
+   * presencial é uma prova, e prova tem esse estado a mais no backend.
+   */
+  AGENDADA = 'AGENDADA',
 }
 
 /**
@@ -21,6 +26,7 @@ export enum GenericDisplayStatus {
   ATIVA = 'ATIVA',
   VENCIDA = 'VENCIDA',
   CONCLUIDA = 'CONCLUÍDA',
+  AGENDADA = 'AGENDADA',
 }
 
 /**
@@ -46,6 +52,7 @@ export const getStatusBadgeAction = (
     [GenericDisplayStatus.CONCLUIDA]: BadgeActionType.SUCCESS,
     [GenericDisplayStatus.ATIVA]: BadgeActionType.WARNING,
     [GenericDisplayStatus.VENCIDA]: BadgeActionType.ERROR,
+    [GenericDisplayStatus.AGENDADA]: BadgeActionType.INFO,
   };
   return actionMap[status] ?? BadgeActionType.WARNING;
 };
@@ -62,8 +69,11 @@ export const mapApiStatusToDisplay = (
     [GenericApiStatus.A_VENCER]: GenericDisplayStatus.ATIVA,
     [GenericApiStatus.VENCIDA]: GenericDisplayStatus.VENCIDA,
     [GenericApiStatus.CONCLUIDA]: GenericDisplayStatus.CONCLUIDA,
+    [GenericApiStatus.AGENDADA]: GenericDisplayStatus.AGENDADA,
   };
-  return statusMap[apiStatus];
+  // Um status que este mapa não conhece não pode virar badge vazio: a coluna
+  // imprime o valor cru, então o rótulo sumiria da tela sem erro nenhum.
+  return statusMap[apiStatus] ?? GenericDisplayStatus.ATIVA;
 };
 
 /**

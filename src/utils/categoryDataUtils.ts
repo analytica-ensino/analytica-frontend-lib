@@ -75,12 +75,31 @@ export interface Student {
  * });
  * ```
  */
+/**
+ * Módulo que dá direito ao kit impresso.
+ *
+ * É o que separa quem pode receber uma atividade presencial: o aluno recebe a
+ * prova em papel pelos Correios, e mandá-la a quem não tem o módulo gera custo
+ * e confusão para o professor.
+ */
+export const PRINTED_KITS_MODULE = 'printedKits';
+
 export async function fetchStudentsByFilters(
   apiClient: BaseApiClient,
   filters: {
     schoolIds?: string[];
     schoolYearIds?: string[];
     classIds?: string[];
+    /**
+     * Mantém só quem tem todos esses módulos — `['printedKits']` ao escolher
+     * quem pode receber uma atividade presencial.
+     *
+     * O filtro é por módulo e nunca por código de plano: `plans.code` só é
+     * único dentro de uma instituição, então a letra não significa nada entre
+     * clientes. O módulo também cobre instituição que não vende plano, onde
+     * ele vem da flag `MODULES`.
+     */
+    modules?: string[];
   }
 ): Promise<Student[]> {
   // Only make request if at least one filter is provided
@@ -109,6 +128,10 @@ export async function fetchStudentsByFilters(
     ...(filters.classIds &&
       filters.classIds.length > 0 && {
         classIds: filters.classIds,
+      }),
+    ...(filters.modules &&
+      filters.modules.length > 0 && {
+        modules: filters.modules,
       }),
   });
 

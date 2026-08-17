@@ -1,4 +1,5 @@
 import {
+  buildFinalDateTime,
   convertFiltersToBackendFormat,
   convertBackendFiltersToActivityFiltersData,
   getSubjectName,
@@ -920,6 +921,42 @@ describe('ActivityCreate.utils', () => {
       );
 
       expect(payload).not.toHaveProperty('essayThemeId');
+    });
+  });
+
+  // A prova impressa é respondida em casa ao longo de um período: sem prazo
+  // final o app do aluno não teria o que mostrar em "Andamento da atividade",
+  // e o envio das fotos nunca fecharia.
+  describe('buildFinalDateTime', () => {
+    // A data digitada é local, e o mesmo instante vira um UTC diferente
+    // conforme o fuso da máquina (BRT aqui, UTC no CI). Por isso a asserção
+    // lê o ISO de volta em hora local, em vez de fixar a string.
+    const expectLocalDateTime = (iso: string | null, expected: string) => {
+      expect(iso).toMatch(/Z$/);
+      const parsed = new Date(iso as string);
+      const pad = (value: number) => String(value).padStart(2, '0');
+      const local =
+        `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}` +
+        `T${pad(parsed.getHours())}:${pad(parsed.getMinutes())}`;
+      expect(local).toBe(expected);
+    };
+
+    it('keeps the deadline of a printed exam', () => {
+      expectLocalDateTime(
+        buildFinalDateTime('2026-09-18', '23:59', true, true),
+        '2026-09-18T23:59'
+      );
+    });
+
+    it('drops the deadline of a digital exam, applied on a single day', () => {
+      expect(buildFinalDateTime('2026-09-18', '23:59', true, false)).toBeNull();
+    });
+
+    it('keeps the deadline of a regular activity', () => {
+      expectLocalDateTime(
+        buildFinalDateTime('2026-09-18', '23:59', false),
+        '2026-09-18T23:59'
+      );
     });
   });
 });

@@ -46,6 +46,36 @@ describe('categoryDataUtils', () => {
       expect(apiClient.post).not.toHaveBeenCalled();
     });
 
+    // A prova impressa vai pelos Correios: mandá-la a quem não tem o módulo
+    // gera custo e engano do professor. O filtro é por módulo e não por código
+    // de plano, porque `plans.code` só é único dentro de uma instituição.
+    it('should forward the required modules to the API', async () => {
+      const apiClient = createMockApiClient({
+        post: jest.fn().mockResolvedValue({ data: { data: { students: [] } } }),
+      });
+
+      await fetchStudentsByFilters(apiClient, {
+        classIds: ['class-1'],
+        modules: ['printedKits'],
+      });
+
+      expect(apiClient.post).toHaveBeenCalledWith(
+        '/students/filters',
+        expect.objectContaining({ modules: ['printedKits'] })
+      );
+    });
+
+    it('should omit modules when none are required', async () => {
+      const apiClient = createMockApiClient({
+        post: jest.fn().mockResolvedValue({ data: { data: { students: [] } } }),
+      });
+
+      await fetchStudentsByFilters(apiClient, { classIds: ['class-1'] });
+
+      const body = (apiClient.post as jest.Mock).mock.calls[0][1];
+      expect(body).not.toHaveProperty('modules');
+    });
+
     it('should fetch students with schoolIds only', async () => {
       const mockStudents: Student[] = [
         {
