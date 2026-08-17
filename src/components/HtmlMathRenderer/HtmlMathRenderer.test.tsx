@@ -11,19 +11,25 @@ import {
 
 // Mock KatexMath (which calls katex directly) to avoid actual LaTeX rendering
 // in tests and keep deterministic test ids for inline vs block math.
+// `ERR` stands in for LaTeX that KaTeX cannot parse, so the renderError
+// callback the component wires up is actually exercised.
 jest.mock('./KatexMath', () => ({
   KatexMath: ({
     math,
     displayMode,
+    renderError,
   }: {
     math: string;
     displayMode?: boolean;
-  }) =>
-    displayMode ? (
+    renderError?: () => React.ReactNode;
+  }) => {
+    if (math === 'ERR') return <>{renderError?.()}</>;
+    return displayMode ? (
       <div data-testid="block-math">{math}</div>
     ) : (
       <span data-testid="inline-math">{math}</span>
-    ),
+    );
+  },
 }));
 
 describe('HtmlMathRenderer', () => {
@@ -163,16 +169,46 @@ describe('HtmlMathRenderer', () => {
         <span data-testid="custom-error">Error: {latex}</span>
       );
 
-      // Note: This test verifies the prop is passed correctly
-      // Actual error rendering depends on react-katex behavior
       render(
         <HtmlMathRenderer
-          content="$x^2$"
+          content='<p>vale <span data-type="math-inline" data-latex="ERR"></span> aqui</p>'
           renderMathError={customError}
           testId="renderer"
         />
       );
-      expect(screen.getByTestId('renderer')).toBeInTheDocument();
+
+      expect(screen.getByTestId('custom-error')).toHaveTextContent(
+        'Error: ERR'
+      );
+    });
+
+    it('should fall back to the default error renderer', () => {
+      render(
+        <HtmlMathRenderer
+          content='<span data-type="math-inline" data-latex="ERR"></span>'
+          testId="renderer"
+        />
+      );
+
+      expect(screen.getByTestId('renderer')).toHaveTextContent(
+        'Math Error: ERR'
+      );
+    });
+
+    it('descarta o placeholder quando a parte não tem latex', () => {
+      // `math-expression` legado com `data-math` em branco produz uma parte de
+      // math sem LaTeX; o placeholder tem que sumir em vez de virar span vazio.
+      render(
+        <HtmlMathRenderer
+          content='<p>antes <span class="math-expression" data-math="  "></span> depois</p>'
+          testId="renderer"
+        />
+      );
+
+      const renderer = screen.getByTestId('renderer');
+      expect(renderer).toHaveTextContent('antes');
+      expect(renderer).toHaveTextContent('depois');
+      expect(renderer.querySelectorAll('p')).toHaveLength(1);
     });
   });
 });
@@ -675,6 +711,120 @@ describe('utils', () => {
         const renderer = screen.getByTestId('renderer');
         expect(renderer.tagName).toBe('SPAN');
         expect(renderer).toHaveTextContent('R$ 99,00');
+      });
+
+      it('mantém o parágrafo inteiro quando há fórmula no meio', () => {
+        // Regressão: cada parte era renderizada num `dangerouslySetInnerHTML`
+        // próprio, então o `<p>` era cortado ao meio. O browser fechava o
+        // pedaço aberto, virava bloco, e o enunciado quebrava a linha logo
+        // antes da fórmula (questão 019faf88 — "Ao final da rodada n, qual é…").
+        render(
+          <HtmlMathRenderer
+            content='<p>completando a rodada.</p><p>Ao final da rodada <span data-type="math-inline" data-latex="n"></span>, qual é a expressão algébrica?</p>'
+            testId="renderer"
+          />
+        );
+
+        const paragraphs = screen.getByTestId('renderer').querySelectorAll('p');
+        expect(paragraphs).toHaveLength(2);
+
+        // O texto antes e o texto depois da fórmula têm que estar no MESMO <p>.
+        const withMath = paragraphs[1];
+        expect(withMath).toHaveTextContent('Ao final da rodada');
+        expect(withMath).toHaveTextContent('qual é a expressão algébrica?');
+        expect(
+          withMath.querySelector('[data-testid="inline-math"]')
+        ).not.toBeNull();
+      });
+
+      it('não sequestra span data-math-id vindo do conteúdo do autor', () => {
+        // `data-math-id` é adivinhável e o LatexRenderer, nesta mesma lib, emite
+        // exatamente esse atributo. Sem o marcador de instância, um span do
+        // autor seria trocado por uma fórmula alheia — perdendo o conteúdo dele
+        // e duplicando a fórmula.
+        render(
+          <HtmlMathRenderer
+            content={
+              '<p><span data-math-id="0">conteúdo do autor</span> e ' +
+              '<span data-type="math-inline" data-latex="x^2"></span></p>'
+            }
+            testId="renderer"
+          />
+        );
+
+        const renderer = screen.getByTestId('renderer');
+        expect(renderer).toHaveTextContent('conteúdo do autor');
+        // A fórmula real aparece uma única vez.
+        expect(screen.getAllByTestId('inline-math')).toHaveLength(1);
+        expect(screen.getByTestId('inline-math')).toHaveTextContent('x^2');
+      });
+
+      it('não cria parágrafo vazio a partir da tag de fechamento órfã', () => {
+        render(
+          <HtmlMathRenderer
+            content='<p>antes <span data-type="math-inline" data-latex="x^2"></span> depois</p>'
+            testId="renderer"
+          />
+        );
+
+        const paragraphs = [
+          ...screen.getByTestId('renderer').querySelectorAll('p'),
+        ];
+        expect(paragraphs).toHaveLength(1);
+        expect(paragraphs.filter((p) => !p.textContent?.trim())).toHaveLength(
+          0
+        );
+      });
+
+      it('preserva imagem, tabela e formatação ao redor da fórmula', () => {
+        // Guarda contra perda de fidelidade ao trocar innerHTML por parser.
+        render(
+          <HtmlMathRenderer
+            content={
+              '<p><b>Negrito</b> e <i>itálico</i></p>' +
+              '<img src="https://exemplo.com/a.png" alt="figura" />' +
+              '<table><tbody><tr><td>célula</td></tr></tbody></table>' +
+              '<p>fórmula <span data-type="math-inline" data-latex="x^2"></span></p>'
+            }
+            testId="renderer"
+          />
+        );
+
+        const renderer = screen.getByTestId('renderer');
+        expect(renderer.querySelector('b')).toHaveTextContent('Negrito');
+        expect(renderer.querySelector('i')).toHaveTextContent('itálico');
+        expect(renderer.querySelector('img')).toHaveAttribute('alt', 'figura');
+        expect(renderer.querySelector('td')).toHaveTextContent('célula');
+        expect(screen.getByTestId('inline-math')).toHaveTextContent('x^2');
+      });
+
+      it('mantém $$...$$ como bloco centralizado', () => {
+        // Aqui a quebra de linha é desejada — o bloco ocupa a linha inteira.
+        render(
+          <HtmlMathRenderer
+            content="resultado: $$\\frac{a}{b}$$ final"
+            testId="renderer"
+          />
+        );
+
+        expect(screen.getByTestId('block-math')).toBeInTheDocument();
+        expect(
+          screen.getByTestId('renderer').querySelector('.my-2\\.5.text-center')
+        ).not.toBeNull();
+      });
+
+      it('renderiza fórmula de bloco inline quando a prop inline está ligada', () => {
+        render(
+          <HtmlMathRenderer
+            content="valor $$\\frac{a}{b}$$ aqui"
+            inline
+            testId="renderer"
+          />
+        );
+
+        // Sem <div> de bloco: seria conteúdo inválido dentro de phrasing content.
+        expect(screen.getByTestId('renderer').querySelector('div')).toBeNull();
+        expect(screen.getByTestId('inline-math')).toBeInTheDocument();
       });
 
       it('should render block math recovered alongside text', () => {
