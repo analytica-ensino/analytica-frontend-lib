@@ -399,9 +399,13 @@ export function buildISODateTime(date: string, time: string): string {
 export function buildFinalDateTime(
   finalDate: string,
   finalTime: string,
-  isExamMode: boolean
+  isExamMode: boolean,
+  isInPersonExam = false
 ): string | null {
-  if (isExamMode) {
+  // A prova digital é aplicada num dia só: não tem prazo final a gravar. A
+  // impressa tem — o aluno responde em casa ao longo de um período, e é esse
+  // prazo que fecha o envio das fotos e alimenta o "Andamento da atividade".
+  if (isExamMode && !isInPersonExam) {
     return null;
   }
   return buildISODateTime(finalDate, finalTime);

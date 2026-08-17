@@ -1,4 +1,5 @@
 import {
+  buildFinalDateTime,
   convertFiltersToBackendFormat,
   convertBackendFiltersToActivityFiltersData,
   getSubjectName,
@@ -920,6 +921,28 @@ describe('ActivityCreate.utils', () => {
       );
 
       expect(payload).not.toHaveProperty('essayThemeId');
+    });
+  });
+
+  // A prova impressa é respondida em casa ao longo de um período: sem prazo
+  // final o app do aluno não teria o que mostrar em "Andamento da atividade",
+  // e o envio das fotos nunca fecharia.
+  describe('buildFinalDateTime', () => {
+    // O horário local vira UTC, então 23:59 em BRT cai no dia seguinte.
+    it('keeps the deadline of a printed exam', () => {
+      expect(buildFinalDateTime('2026-09-18', '23:59', true, true)).toBe(
+        '2026-09-19T02:59:00.000Z'
+      );
+    });
+
+    it('drops the deadline of a digital exam, applied on a single day', () => {
+      expect(buildFinalDateTime('2026-09-18', '23:59', true, false)).toBeNull();
+    });
+
+    it('keeps the deadline of a regular activity', () => {
+      expect(buildFinalDateTime('2026-09-18', '23:59', false)).toBe(
+        '2026-09-19T02:59:00.000Z'
+      );
     });
   });
 });

@@ -24,6 +24,7 @@ export const getActivityStatusBadgeAction = (
     [ActivityDisplayStatus.CONCLUIDA]: ActivityBadgeActionType.SUCCESS,
     [ActivityDisplayStatus.ATIVA]: ActivityBadgeActionType.WARNING,
     [ActivityDisplayStatus.VENCIDA]: ActivityBadgeActionType.ERROR,
+    [ActivityDisplayStatus.AGENDADA]: ActivityBadgeActionType.INFO,
   };
   return actionMap[status] || ActivityBadgeActionType.INFO;
 };

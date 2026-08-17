@@ -57,7 +57,7 @@ function toISODateTime(date: string, time: string): string {
 export function useSendActivity(
   config: UseSendActivityConfig
 ): UseSendActivityReturn {
-  const { api, onSuccess, onError } = config;
+  const { api, onSuccess, onError, requiredModules } = config;
 
   const [isOpen, setIsOpen] = useState(false);
   const [selectedModel, setSelectedModel] = useState<ActivityModelItem | null>(
@@ -125,7 +125,10 @@ export function useSendActivity(
    * school/série/turma selections change, mirroring the activity creation flow.
    */
   const { handleCategoriesChange: onCategoriesChange } =
-    useDynamicStudentFetching(setCategories, { apiClient: api });
+    useDynamicStudentFetching(setCategories, {
+      apiClient: api,
+      requiredModules,
+    });
 
   /**
    * Handle form submission

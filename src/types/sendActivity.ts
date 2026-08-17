@@ -98,6 +98,11 @@ export interface UseSendActivityConfig {
    * @param message - Error message
    */
   onError?: (message: string) => void;
+  /**
+   * Módulos que o aluno precisa ter para aparecer entre os destinatários.
+   * Passe `['printedKits']` quando a atividade for presencial.
+   */
+  requiredModules?: string[];
 }
 
 /**

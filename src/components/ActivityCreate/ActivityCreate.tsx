@@ -81,6 +81,7 @@ import {
   DesktopLayout,
 } from './components/ActivityCreateContent';
 import { loadCategoriesData } from '../../utils/categoryDataUtils';
+import { PRINTED_KITS_MODULE } from '../../utils/categoryDataUtils';
 import { useDynamicStudentFetching } from '../../utils/useDynamicStudentFetching';
 
 /**
@@ -1003,6 +1004,8 @@ const CreateActivity = ({
    * Handle categories change and fetch students dynamically
    */
   const { handleCategoriesChange } = useDynamicStudentFetching(setCategories, {
+    // Prova impressa: só quem tem direito ao kit pode recebê-la.
+    requiredModules: isInPersonExam ? [PRINTED_KITS_MODULE] : undefined,
     apiClient,
   });
 
@@ -1059,7 +1062,8 @@ const CreateActivity = ({
         const finalDateTime = buildFinalDateTime(
           formData.finalDate,
           formData.finalTime,
-          enableExamMode || isInPersonExam
+          enableExamMode || isInPersonExam,
+          isInPersonExam
         );
 
         const activityPayload = buildSendActivityPayload(
