@@ -195,12 +195,14 @@ const QuizTitle = forwardRef<
         <div className="flex flex-row items-center gap-4">
           {showTimer && <QuizTimer />}
           <span className="flex flex-col gap-2 text-center">
-            <p className="text-text-950 font-bold text-md">{quizTitle}</p>
-            <p className="text-text-600 text-xs">
+            <Text size="md" weight="bold" color="text-text-950">
+              {quizTitle}
+            </Text>
+            <Text size="xs" color="text-text-600">
               {totalQuestions > 0
                 ? `${currentQuestionIndex + 1} de ${totalQuestions}`
                 : '0 de 0'}
-            </p>
+            </Text>
           </span>
         </div>
       </div>

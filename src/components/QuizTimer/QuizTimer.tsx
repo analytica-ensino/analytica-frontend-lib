@@ -3,6 +3,7 @@ import { forwardRef } from 'react';
 import { useQuizStore } from '../Quiz/useQuizStore';
 import { formatTimeSpent } from '../../utils/activityDetailsUtils';
 import { cn } from '../../utils/utils';
+import Text from '../Text/Text';
 
 export interface QuizTimerProps {
   className?: string;
@@ -36,7 +37,9 @@ const QuizTimer = forwardRef<HTMLDivElement, QuizTimerProps>(
         {...props}
       >
         <ClockIcon size={16} weight={exceeded ? 'fill' : 'regular'} />
-        <span className="text-sm font-medium">{formatted}</span>
+        <Text as="span" size="sm" weight="medium" color="">
+          {formatted}
+        </Text>
       </div>
     );
   }
