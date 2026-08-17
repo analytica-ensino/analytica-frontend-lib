@@ -737,6 +737,28 @@ describe('utils', () => {
         ).not.toBeNull();
       });
 
+      it('não sequestra span data-math-id vindo do conteúdo do autor', () => {
+        // `data-math-id` é adivinhável e o LatexRenderer, nesta mesma lib, emite
+        // exatamente esse atributo. Sem o marcador de instância, um span do
+        // autor seria trocado por uma fórmula alheia — perdendo o conteúdo dele
+        // e duplicando a fórmula.
+        render(
+          <HtmlMathRenderer
+            content={
+              '<p><span data-math-id="0">conteúdo do autor</span> e ' +
+              '<span data-type="math-inline" data-latex="x^2"></span></p>'
+            }
+            testId="renderer"
+          />
+        );
+
+        const renderer = screen.getByTestId('renderer');
+        expect(renderer).toHaveTextContent('conteúdo do autor');
+        // A fórmula real aparece uma única vez.
+        expect(screen.getAllByTestId('inline-math')).toHaveLength(1);
+        expect(screen.getByTestId('inline-math')).toHaveTextContent('x^2');
+      });
+
       it('não cria parágrafo vazio a partir da tag de fechamento órfã', () => {
         render(
           <HtmlMathRenderer

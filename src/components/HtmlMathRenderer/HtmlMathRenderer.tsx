@@ -1,4 +1,4 @@
-import { CSSProperties, forwardRef, memo, ReactNode, Ref } from 'react';
+import { CSSProperties, forwardRef, memo, ReactNode, Ref, useId } from 'react';
 import 'katex/dist/katex.min.css';
 import parse, {
   DOMNode,
@@ -13,7 +13,65 @@ import {
   isLikelyMarkdown,
   processHtmlWithMath,
   sanitizeHtmlForDisplay,
+  type MathPart,
 } from './utils';
+
+/**
+ * Attribute that ties a placeholder span to the renderer instance that emitted
+ * it. `data-math-id` alone is guessable, and `LatexRenderer` in this same
+ * library emits exactly that attribute — without the owner check, a span coming
+ * from the author's own content could be swapped for an unrelated formula.
+ */
+const MATH_OWNER_ATTR = 'data-math-owner';
+
+/**
+ * Builds the `html-react-parser` callback that swaps placeholder spans for
+ * KaTeX components.
+ *
+ * Kept at module level so the parent does not declare a new component on every
+ * render.
+ * @param config - the parts to resolve, the owning instance id, whether the
+ * renderer is in inline mode, and the error renderer to use
+ * @returns A `replace` callback for `HTMLReactParserOptions`
+ */
+const createMathReplacer = ({
+  parts,
+  owner,
+  inline,
+  errorRenderer,
+}: {
+  parts: MathPart[];
+  owner: string;
+  inline: boolean;
+  errorRenderer: (latex: string) => ReactNode;
+}) => {
+  return (domNode: DOMNode) => {
+    if (
+      !(domNode instanceof Element) ||
+      domNode.name !== 'span' ||
+      domNode.attribs[MATH_OWNER_ATTR] !== owner
+    ) {
+      return;
+    }
+
+    const part = parts[Number(domNode.attribs['data-math-id'])];
+    if (!part?.latex) return <></>;
+
+    const math = (
+      <KatexMath
+        math={part.latex}
+        displayMode={part.type === 'block-math' && !inline}
+        renderError={() => errorRenderer(part.latex!)}
+      />
+    );
+
+    // In inline mode block math stays inline: a <div> would be invalid
+    // inside the phrasing content this renderer is nested in.
+    if (part.type !== 'block-math' || inline) return math;
+
+    return <div className="my-2.5 text-center">{math}</div>;
+  };
+};
 
 export interface HtmlMathRendererProps {
   /** HTML content to render, may contain LaTeX math expressions */
@@ -63,6 +121,9 @@ const HtmlMathRenderer = forwardRef<HTMLElement, HtmlMathRendererProps>(
     },
     ref
   ) => {
+    // Declared before the early return below so the hook order stays stable.
+    const mathOwner = useId();
+
     // AI-generated questions/resolutions arrive as Markdown + LaTeX. The HTML
     // pipeline below would render their `**`/`####`/`*` tokens literally and
     // collapse line breaks, so route that content to the Markdown renderer.
@@ -148,37 +209,17 @@ const HtmlMathRenderer = forwardRef<HTMLElement, HtmlMathRendererProps>(
         .map((part, index) =>
           part.type === 'text'
             ? part.content
-            : `<span data-math-id="${index}"></span>`
+            : `<span ${MATH_OWNER_ATTR}="${mathOwner}" data-math-id="${index}"></span>`
         )
         .join('');
 
       const options: HTMLReactParserOptions = {
-        replace: (domNode: DOMNode) => {
-          if (
-            !(domNode instanceof Element) ||
-            domNode.name !== 'span' ||
-            !domNode.attribs['data-math-id']
-          ) {
-            return;
-          }
-
-          const part = parts[Number(domNode.attribs['data-math-id'])];
-          if (!part?.latex) return <></>;
-
-          const math = (
-            <KatexMath
-              math={part.latex}
-              displayMode={part.type === 'block-math' && !inline}
-              renderError={() => errorRenderer(part.latex!)}
-            />
-          );
-
-          // In inline mode block math stays inline: a <div> would be invalid
-          // inside the phrasing content this renderer is nested in.
-          if (part.type !== 'block-math' || inline) return math;
-
-          return <div className="my-2.5 text-center">{math}</div>;
-        },
+        replace: createMathReplacer({
+          parts,
+          owner: mathOwner,
+          inline,
+          errorRenderer,
+        }),
       };
 
       return <>{parse(withPlaceholders, options)}</>;
