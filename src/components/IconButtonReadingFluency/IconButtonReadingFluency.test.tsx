@@ -77,9 +77,16 @@ describe('IconButtonReadingFluency', () => {
       'leading-[25px]'
     );
     // Sem cor própria: é isso que deixa o rótulo herdar o `hover:`/`active:` do
-    // botão. Uma asserção por classe — `not.toHaveClass('a', 'b')` passaria se só
-    // uma delas estivesse presente.
-    for (const ownColor of ['text-secondary-700', 'text-secondary-100']) {
+    // botão. As variantes entram na lista porque uma cor de estado no próprio
+    // rótulo quebra o mesmo contrato — e passariam despercebidas se só a cor
+    // base fosse checada. Uma asserção por classe — `not.toHaveClass('a', 'b')`
+    // passaria se só uma delas estivesse presente.
+    for (const ownColor of [
+      'text-secondary-700',
+      'text-secondary-100',
+      'hover:text-secondary-100',
+      'active:text-secondary-100',
+    ]) {
       expect(label).not.toHaveClass(ownColor);
     }
   });
