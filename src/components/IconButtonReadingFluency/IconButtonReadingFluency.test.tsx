@@ -25,7 +25,11 @@ describe('IconButtonReadingFluency', () => {
       'rounded-[20px]',
       'hover:bg-secondary-500',
       'active:bg-secondary-600',
-      'focus-visible:border-secondary-600'
+      'focus-visible:border-secondary-600',
+      // A cor do rótulo mora aqui, não no <span>, para acompanhar o estado.
+      'text-secondary-700',
+      'hover:text-secondary-100',
+      'active:text-secondary-100'
     );
     expect(button.className).toContain(
       '[box-shadow:0px_4px_0px_0px_#30A34D,0px_0px_4px_0px_#00000021]'
@@ -56,7 +60,7 @@ describe('IconButtonReadingFluency', () => {
     }
   });
 
-  it('renders the label with the art typography and color', () => {
+  it('renders the label with the art typography and no color of its own', () => {
     render(
       <IconButtonReadingFluency aria-label="Ouvir narração" label="Ouvir" />
     );
@@ -70,9 +74,21 @@ describe('IconButtonReadingFluency', () => {
       'text-[20px]',
       'font-bold',
       'uppercase',
-      'leading-[25px]',
-      'text-secondary-700'
+      'leading-[25px]'
     );
+    // Sem cor própria: é isso que deixa o rótulo herdar o `hover:`/`active:` do
+    // botão. As variantes entram na lista porque uma cor de estado no próprio
+    // rótulo quebra o mesmo contrato — e passariam despercebidas se só a cor
+    // base fosse checada. Uma asserção por classe — `not.toHaveClass('a', 'b')`
+    // passaria se só uma delas estivesse presente.
+    for (const ownColor of [
+      'text-secondary-700',
+      'text-secondary-100',
+      'hover:text-secondary-100',
+      'active:text-secondary-100',
+    ]) {
+      expect(label).not.toHaveClass(ownColor);
+    }
   });
 
   it('uses the visible label as the accessible name when there is no aria-label', () => {
