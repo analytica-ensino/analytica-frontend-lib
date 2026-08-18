@@ -24,10 +24,14 @@ export interface IconButtonReadingFluencyProps extends ButtonHTMLAttributes<HTML
  * 4px→2px no pressed** (mesmo mecanismo dos botões Reading Fluency). A largura
  * acompanha o conteúdo: só o ícone (~101px) ou ícone + `label` (~171px com
  * "OUVIR"). Estados via pseudo-classes:
- * - **default**: `secondary-400` + borda `secondary-200`;
- * - **hover**: `secondary-500`;
- * - **pressed** (`active`): `secondary-600` + aresta 2px;
- * - **focus** (`focus-visible`): borda `secondary-600` (sem mudar o fundo).
+ * - **default**: `secondary-400` + borda `secondary-200`, rótulo `secondary-700`;
+ * - **hover**: `secondary-500`, rótulo `secondary-100`;
+ * - **pressed** (`active`): `secondary-600` + aresta 2px, rótulo `secondary-100`;
+ * - **focus** (`focus-visible`): borda `secondary-600` (sem mudar fundo nem rótulo).
+ *
+ * A cor do rótulo fica no `<button>` e o `<span>` a **herda** — mesmo mecanismo do
+ * `ButtonReadingFluency`. Cor própria no filho venceria a herdada e travaria o
+ * rótulo no default, então `LABEL_CLASSES` carrega só tipografia.
  *
  * Sem `label` o botão é só ícone — aí **passe `aria-label`** descrevendo a ação
  * (o ícone é decorativo).
@@ -38,17 +42,20 @@ export interface IconButtonReadingFluencyProps extends ButtonHTMLAttributes<HTML
  */
 const BASE_CLASSES =
   'inline-flex h-[70px] w-auto cursor-pointer items-center justify-center gap-2 rounded-[20px] border-4 px-4 ' +
-  'bg-secondary-400 border-secondary-200 ' +
-  'hover:bg-secondary-500 ' +
+  'bg-secondary-400 border-secondary-200 text-secondary-700 ' +
+  'hover:bg-secondary-500 hover:text-secondary-100 ' +
   'focus-visible:outline-none focus-visible:border-secondary-600 ' +
-  'active:bg-secondary-600 ' +
+  'active:bg-secondary-600 active:text-secondary-100 ' +
   'disabled:opacity-40 disabled:cursor-not-allowed ' +
   '[box-shadow:0px_4px_0px_0px_#30A34D,0px_0px_4px_0px_#00000021] ' +
   'active:[box-shadow:0px_2px_0px_0px_#30A34D,0px_0px_4px_0px_#00000021]';
 
-/** Tipografia do rótulo — "Bold/Upper/Bold 20" da arte, em `secondary-700`. */
+/**
+ * Tipografia do rótulo — "Bold/Upper/Bold 20" da arte. **Sem cor**: ela vem do
+ * botão, que é quem conhece o estado (hover/pressed).
+ */
 const LABEL_CLASSES =
-  'font-quicksand text-[20px] font-bold uppercase leading-[25px] text-secondary-700';
+  'font-quicksand text-[20px] font-bold uppercase leading-[25px]';
 
 export const IconButtonReadingFluency = forwardRef<
   HTMLButtonElement,
