@@ -37,6 +37,7 @@ import { CardStatus } from '../Card/Card';
 import Text from '../Text/Text';
 import HtmlMathRenderer from '../HtmlMathRenderer/HtmlMathRenderer';
 import { formatExamInfo } from './Quiz.utils';
+import QuizTimer from '../QuizTimer/QuizTimer';
 
 // Função para obter configuração do tipo de quiz
 export const getQuizTypeConfig = (type: QUIZ_TYPE) => {
@@ -135,8 +136,8 @@ const Quiz = forwardRef<
 
 const QuizTitle = forwardRef<
   HTMLDivElement,
-  { className?: string; onBack?: () => void }
->(({ className, onBack, ...props }, ref) => {
+  { className?: string; onBack?: () => void; showTimer?: boolean }
+>(({ className, onBack, showTimer = false, ...props }, ref) => {
   const {
     quiz,
     currentQuestionIndex,
@@ -191,14 +192,19 @@ const QuizTitle = forwardRef<
           aria-label="Voltar"
           onClick={handleBackClick}
         />
-        <span className="flex flex-col gap-2 text-center">
-          <p className="text-text-950 font-bold text-md">{quizTitle}</p>
-          <p className="text-text-600 text-xs">
-            {totalQuestions > 0
-              ? `${currentQuestionIndex + 1} de ${totalQuestions}`
-              : '0 de 0'}
-          </p>
-        </span>
+        <div className="flex flex-row items-center gap-4">
+          {showTimer && <QuizTimer />}
+          <span className="flex flex-col gap-2 text-center">
+            <Text size="md" weight="bold" color="text-text-950">
+              {quizTitle}
+            </Text>
+            <Text size="xs" color="text-text-600">
+              {totalQuestions > 0
+                ? `${currentQuestionIndex + 1} de ${totalQuestions}`
+                : '0 de 0'}
+            </Text>
+          </span>
+        </div>
       </div>
 
       <AlertDialog

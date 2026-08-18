@@ -823,6 +823,8 @@ export { TeacherFeedbackSection } from './components/Quiz/TeacherFeedbackSection
 export type { TeacherFeedbackSectionProps } from './components/Quiz/TeacherFeedbackSection';
 export { useQuizStore } from './components/Quiz/useQuizStore';
 export { formatExamInfo } from './components/Quiz/Quiz.utils';
+export { default as QuizTimer } from './components/QuizTimer/QuizTimer';
+export type { QuizTimerProps } from './components/QuizTimer/QuizTimer';
 
 // Quiz Types and Enums
 export {

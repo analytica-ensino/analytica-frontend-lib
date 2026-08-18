@@ -1022,6 +1022,198 @@ describe('useQuizStore', () => {
     });
   });
 
+  describe('Timer resume and warning threshold', () => {
+    beforeEach(() => {
+      jest.clearAllTimers();
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('should seed the stopwatch when resuming an exam', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.startQuiz({ initialElapsedSeconds: 4271 });
+      });
+
+      expect(result.current.timeElapsed).toBe(4271);
+    });
+
+    it('should keep counting from the seeded value', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.startQuiz({ initialElapsedSeconds: 100 });
+        jest.advanceTimersByTime(3000);
+      });
+
+      expect(result.current.timeElapsed).toBe(103);
+    });
+
+    it('should start from zero when no seed is given', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.startQuiz();
+      });
+
+      expect(result.current.timeElapsed).toBe(0);
+    });
+
+    it('should fire the warning once when the threshold is passed', () => {
+      const onTimeWarning = jest.fn();
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setTimeWarning(5, onTimeWarning);
+        result.current.startQuiz();
+        jest.advanceTimersByTime(10000);
+      });
+
+      expect(onTimeWarning).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not finish the quiz when the warning threshold is passed', () => {
+      const onTimeWarning = jest.fn();
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setTimeWarning(5, onTimeWarning);
+        result.current.startQuiz();
+        jest.advanceTimersByTime(10000);
+      });
+
+      // Going over the expected duration is reported, never enforced: the
+      // student must be able to carry on answering.
+      expect(result.current.isFinished).toBe(false);
+      expect(result.current.timeElapsed).toBe(10);
+    });
+
+    it('should keep counting past the threshold', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setTimeWarning(5);
+        result.current.startQuiz();
+        jest.advanceTimersByTime(30000);
+      });
+
+      expect(result.current.timeElapsed).toBe(30);
+    });
+
+    it('should not fire the warning before the threshold', () => {
+      const onTimeWarning = jest.fn();
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setTimeWarning(60, onTimeWarning);
+        result.current.startQuiz();
+        jest.advanceTimersByTime(5000);
+      });
+
+      expect(onTimeWarning).not.toHaveBeenCalled();
+    });
+
+    it('should fire the warning on resume when the seed is already past it', () => {
+      const onTimeWarning = jest.fn();
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setTimeWarning(60, onTimeWarning);
+        result.current.startQuiz({ initialElapsedSeconds: 300 });
+      });
+
+      expect(onTimeWarning).toHaveBeenCalledTimes(1);
+      expect(result.current.isFinished).toBe(false);
+    });
+
+    it('should not fire the warning when no threshold is configured', () => {
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.startQuiz();
+        jest.advanceTimersByTime(10000);
+      });
+
+      expect(result.current.hasTimeWarningFired).toBe(false);
+    });
+
+    it('should still finish the quiz when a hard timeLimit is reached', () => {
+      const onTimeUp = jest.fn();
+      const onTimeWarning = jest.fn();
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setTimeWarning(2, onTimeWarning);
+        result.current.setTimeLimit(5);
+        result.current.setOnTimeUp(onTimeUp);
+        result.current.startQuiz();
+        jest.advanceTimersByTime(10000);
+      });
+
+      expect(onTimeWarning).toHaveBeenCalledTimes(1);
+      expect(onTimeUp).toHaveBeenCalledTimes(1);
+      expect(result.current.isFinished).toBe(true);
+    });
+
+    it('should rearm the warning when a new threshold is set', () => {
+      const onTimeWarning = jest.fn();
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setTimeWarning(5, onTimeWarning);
+        result.current.startQuiz();
+        jest.advanceTimersByTime(10000);
+      });
+
+      act(() => {
+        result.current.setTimeWarning(20, onTimeWarning);
+        jest.advanceTimersByTime(15000);
+      });
+
+      expect(onTimeWarning).toHaveBeenCalledTimes(2);
+    });
+
+    it('should report whether the threshold was exceeded', () => {
+      const { result } = renderQuizStoreHook();
+
+      expect(result.current.isTimeExceeded()).toBe(false);
+
+      act(() => {
+        result.current.setTimeWarning(60);
+        result.current.updateTime(59);
+      });
+
+      expect(result.current.isTimeExceeded()).toBe(false);
+
+      act(() => {
+        result.current.updateTime(60);
+      });
+
+      expect(result.current.isTimeExceeded()).toBe(true);
+    });
+
+    it('should clear the warning state on reset', () => {
+      const onTimeWarning = jest.fn();
+      const { result } = renderQuizStoreHook();
+
+      act(() => {
+        result.current.setTimeWarning(5, onTimeWarning);
+        result.current.startQuiz();
+        jest.advanceTimersByTime(10000);
+        result.current.resetQuiz();
+      });
+
+      expect(result.current.timeWarningThreshold).toBeNull();
+      expect(result.current.onTimeWarning).toBeNull();
+      expect(result.current.hasTimeWarningFired).toBe(false);
+      expect(result.current.isTimeExceeded()).toBe(false);
+    });
+  });
+
   describe('Getters', () => {
     beforeEach(() => {
       act(() => {
