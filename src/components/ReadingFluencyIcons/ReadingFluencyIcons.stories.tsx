@@ -5,6 +5,7 @@ import {
   StopIconReadingFluency,
   PlayIconReadingFluency,
   PauseIconReadingFluency,
+  CloseIconReadingFluency,
 } from '.';
 
 const items = [
@@ -19,6 +20,11 @@ const items = [
   {
     name: 'PauseIconReadingFluency',
     Icon: PauseIconReadingFluency,
+    dark: false,
+  },
+  {
+    name: 'CloseIconReadingFluency',
+    Icon: CloseIconReadingFluency,
     dark: false,
   },
 ] as const;

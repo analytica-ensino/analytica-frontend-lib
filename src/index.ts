@@ -894,6 +894,8 @@ export type {
 } from './components/AudioRecorderReadingFluency/AudioRecorderReadingFluency';
 export { IconButtonReadingFluency } from './components/IconButtonReadingFluency/IconButtonReadingFluency';
 export type { IconButtonReadingFluencyProps } from './components/IconButtonReadingFluency/IconButtonReadingFluency';
+export { CloseButtonReadingFluency } from './components/CloseButtonReadingFluency/CloseButtonReadingFluency';
+export type { CloseButtonReadingFluencyProps } from './components/CloseButtonReadingFluency/CloseButtonReadingFluency';
 export { ReadAloudPromptReadingFluency } from './components/ReadAloudPromptReadingFluency/ReadAloudPromptReadingFluency';
 export type { ReadAloudPromptReadingFluencyProps } from './components/ReadAloudPromptReadingFluency/ReadAloudPromptReadingFluency';
 export {
@@ -903,6 +905,7 @@ export {
   PlayIconReadingFluency,
   PauseIconReadingFluency,
   VoiceIconReadingFluency,
+  CloseIconReadingFluency,
 } from './components/ReadingFluencyIcons';
 export type { ReadingFluencyIconProps } from './components/ReadingFluencyIcons';
 export { useDraftAutoSave } from './hooks/useDraftAutoSave';

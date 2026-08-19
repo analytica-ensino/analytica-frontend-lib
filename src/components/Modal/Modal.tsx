@@ -16,6 +16,7 @@ import {
 } from '../ReadingFluencyIcons';
 import { cn } from '../../utils/utils';
 import Button, { ButtonReadingFluency } from '../Button/Button';
+import { CloseButtonReadingFluency } from '../CloseButtonReadingFluency/CloseButtonReadingFluency';
 import readingFluencyBird from '../../assets/img/readingFluencyBird.png';
 import { readingFluencyFallback } from '../../assets/fallbacks/readingFluencyFallback';
 import { useMicrophonePermission } from '../../hooks/useMicrophonePermission';
@@ -427,13 +428,7 @@ const MicPermissionModalReadingFluency = ({
         {/* Header verde */}
         <div className="relative flex items-center justify-center gap-3 bg-secondary-500 px-6 pt-8 pb-10">
           <span className="absolute right-4 top-4">
-            <ButtonReadingFluency
-              variant="icon"
-              aria-label="Fechar"
-              onClick={handleClose}
-            >
-              <XIcon weight="bold" />
-            </ButtonReadingFluency>
+            <CloseButtonReadingFluency onClick={handleClose} />
           </span>
 
           <img
@@ -564,13 +559,7 @@ const MicOffModalReadingFluency = ({
         {/* Header verde */}
         <div className="relative flex items-center justify-center bg-secondary-500 px-6 pt-10 pb-10">
           <span className="absolute right-4 top-4">
-            <ButtonReadingFluency
-              variant="icon"
-              aria-label="Fechar"
-              onClick={onClose}
-            >
-              <XIcon weight="bold" />
-            </ButtonReadingFluency>
+            <CloseButtonReadingFluency onClick={onClose} />
           </span>
 
           <span className="flex size-20 items-center justify-center rounded-full bg-background shadow-hard-shadow-2">
@@ -746,13 +735,7 @@ const AudioPlaybackModalReadingFluency = ({
         {/* Header verde: waveform + player */}
         <div className="relative flex flex-col gap-5 bg-secondary-500 px-6 pt-8 pb-6">
           <span className="absolute right-4 top-4">
-            <ButtonReadingFluency
-              variant="icon"
-              aria-label="Fechar"
-              onClick={onClose}
-            >
-              <XIcon weight="bold" />
-            </ButtonReadingFluency>
+            <CloseButtonReadingFluency onClick={onClose} />
           </span>
 
           {/* Waveform (decorativa) */}
@@ -902,13 +885,7 @@ const SuccessModalReadingFluency = ({
       >
         <div className="relative flex flex-col items-center gap-4 p-8 text-center">
           <span className="absolute right-4 top-4">
-            <ButtonReadingFluency
-              variant="icon"
-              aria-label="Fechar"
-              onClick={onClose}
-            >
-              <XIcon weight="bold" />
-            </ButtonReadingFluency>
+            <CloseButtonReadingFluency onClick={onClose} />
           </span>
 
           <img
