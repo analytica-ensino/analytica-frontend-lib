@@ -7,6 +7,7 @@ import {
   StopIconReadingFluency,
   PlayIconReadingFluency,
   PauseIconReadingFluency,
+  CloseIconReadingFluency,
 } from './index';
 import type { ReadingFluencyIconProps } from './types';
 
@@ -47,6 +48,11 @@ const ICONS: Array<{
     name: 'PauseIconReadingFluency',
     Icon: PauseIconReadingFluency,
     defaultSize: 30,
+  },
+  {
+    name: 'CloseIconReadingFluency',
+    Icon: CloseIconReadingFluency,
+    defaultSize: 37,
   },
 ];
 
@@ -110,6 +116,36 @@ describe('PauseIconReadingFluency mask ids', () => {
 
     const ids = Array.from(container.querySelectorAll('mask')).map((mask) =>
       mask.getAttribute('id')
+    );
+
+    expect(ids).toHaveLength(2);
+    expect(ids[0]).not.toBe(ids[1]);
+  });
+});
+
+describe('CloseIconReadingFluency shadow filter ids', () => {
+  it('references its drop-shadow filter via a colon-free unique id', () => {
+    const { container } = render(<CloseIconReadingFluency />);
+
+    const filter = container.querySelector('filter') as SVGFilterElement;
+    const filterId = filter.getAttribute('id') as string;
+
+    expect(filterId).not.toContain(':');
+
+    const group = container.querySelector('g[filter]') as SVGGElement;
+    expect(group.getAttribute('filter')).toBe(`url(#${filterId})`);
+  });
+
+  it('gives each instance a distinct filter id (no collision)', () => {
+    const { container } = render(
+      <div>
+        <CloseIconReadingFluency />
+        <CloseIconReadingFluency />
+      </div>
+    );
+
+    const ids = Array.from(container.querySelectorAll('filter')).map((filter) =>
+      filter.getAttribute('id')
     );
 
     expect(ids).toHaveLength(2);
