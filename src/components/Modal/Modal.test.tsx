@@ -878,7 +878,9 @@ describe('AudioPlaybackModalReadingFluency', () => {
     );
 
     // 19 decorative waveform bars.
-    const waveform = container.querySelector('[aria-hidden="true"]');
+    // `div[...]` e não `[...]`: o ícone do botão de fechar também é
+    // aria-hidden e vem antes no DOM.
+    const waveform = container.querySelector('div[aria-hidden="true"]');
     expect(waveform?.children).toHaveLength(19);
 
     expect(

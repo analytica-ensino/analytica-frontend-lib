@@ -13,7 +13,7 @@ export const PlayIconReadingFluency: FC<ReadingFluencyIconProps> = ({
     xmlns="http://www.w3.org/2000/svg"
     width={size}
     height={size}
-    viewBox="0 0 30 30"
+    viewBox="0.5 0.5 29 29"
     fill="none"
     className={className}
     aria-hidden="true"
@@ -23,6 +23,8 @@ export const PlayIconReadingFluency: FC<ReadingFluencyIconProps> = ({
       fill="#F9CB3B"
       stroke="#FDEFC4"
       strokeWidth={4}
+      strokeLinejoin="round"
+      strokeLinecap="round"
     />
   </svg>
 );
