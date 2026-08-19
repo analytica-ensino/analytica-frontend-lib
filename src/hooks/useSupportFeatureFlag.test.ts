@@ -251,4 +251,70 @@ describe('useSupportFeatureFlag', () => {
       );
     });
   });
+  describe('zendeskKey', () => {
+    const flagWith = (version: Record<string, unknown>) => ({
+      data: {
+        featureFlags: {
+          institutionId: 'institution-123',
+          page: 'SUPPORT',
+          version,
+        },
+      },
+    });
+
+    it('deve expor a key do Web Widget vinda da flag', async () => {
+      const apiClient = createMockApiClient(
+        flagWith({
+          supportType: SupportType.ZENDESK,
+          zendeskKey: '23d34b27-650e-4fcb-b934-96f8d38b823b',
+        })
+      );
+
+      const { result } = renderHook(() => useSupportFeatureFlag({ apiClient }));
+
+      await waitFor(() => {
+        expect(result.current.zendeskKey).toBe(
+          '23d34b27-650e-4fcb-b934-96f8d38b823b'
+        );
+      });
+      expect(result.current.isZendesk).toBe(true);
+    });
+
+    it('deve ficar undefined quando a instituição usa Zendesk sem key configurada', async () => {
+      const apiClient = createMockApiClient(
+        flagWith({ supportType: SupportType.ZENDESK })
+      );
+
+      const { result } = renderHook(() => useSupportFeatureFlag({ apiClient }));
+
+      await waitFor(() => {
+        expect(result.current.isZendesk).toBe(true);
+      });
+      expect(result.current.zendeskKey).toBeUndefined();
+    });
+
+    it('deve tratar key vazia como ausente', async () => {
+      const apiClient = createMockApiClient(
+        flagWith({ supportType: SupportType.ZENDESK, zendeskKey: '' })
+      );
+
+      const { result } = renderHook(() => useSupportFeatureFlag({ apiClient }));
+
+      await waitFor(() => {
+        expect(result.current.isZendesk).toBe(true);
+      });
+      expect(result.current.zendeskKey).toBeUndefined();
+    });
+
+    it('deve ficar undefined quando o fetch falha', async () => {
+      const apiClient = createMockApiClient(undefined, true);
+
+      const { result } = renderHook(() => useSupportFeatureFlag({ apiClient }));
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+      expect(result.current.zendeskKey).toBeUndefined();
+    });
+  });
 });

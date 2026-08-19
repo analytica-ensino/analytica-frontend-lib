@@ -1136,6 +1136,7 @@ export type {
   SubmitSupportAnswerResponse,
   SupportApiClient,
   SupportFeatureFlags,
+  SupportZendeskKeys,
 } from './types/support';
 
 // Zendesk Widget Component

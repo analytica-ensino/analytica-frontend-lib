@@ -15,6 +15,12 @@ export interface UseSupportFeatureFlagReturn {
   loading: boolean;
   isZendesk: boolean;
   isNative: boolean;
+  /**
+   * Key do Web Widget do Zendesk da instituição. `undefined` enquanto a flag
+   * carrega, quando o suporte é NATIVE, ou quando a instituição usa Zendesk
+   * mas ainda não teve a key preenchida no backoffice.
+   */
+  zendeskKey: string | undefined;
   openZendeskChat: () => void;
 }
 
@@ -24,6 +30,7 @@ export const useSupportFeatureFlag = (
   const [supportType, setSupportType] = useState<SupportType>(
     SupportType.NATIVE
   );
+  const [zendeskKey, setZendeskKey] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const { institutionId } = useAppStore();
 
@@ -39,12 +46,14 @@ export const useSupportFeatureFlag = (
           data: { featureFlags: SupportFeatureFlags };
         }>(`/featureFlags/institution/${institutionId}/page/SUPPORT`);
 
-        const type = response?.data?.featureFlags?.version?.supportType;
-        if (type) {
-          setSupportType(type);
+        const version = response?.data?.featureFlags?.version;
+        if (version?.supportType) {
+          setSupportType(version.supportType);
         }
+        setZendeskKey(version?.zendeskKey || undefined);
       } catch {
         setSupportType(SupportType.NATIVE);
+        setZendeskKey(undefined);
       } finally {
         setLoading(false);
       }
@@ -71,6 +80,7 @@ export const useSupportFeatureFlag = (
     loading,
     isZendesk: supportType === SupportType.ZENDESK,
     isNative: supportType === SupportType.NATIVE,
+    zendeskKey,
     openZendeskChat,
   };
 };

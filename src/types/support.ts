@@ -191,10 +191,29 @@ export enum SupportType {
   ZENDESK = 'ZENDESK',
 }
 
+/**
+ * Chaves do Zendesk por instituição, guardadas na `version` da flag SUPPORT.
+ *
+ * São três porque o Zendesk emite uma chave por canal, e web e mobile não
+ * compartilham canal: `zendeskKey` é o Web Widget (UUID) e as duas
+ * `zendeskChannelKey*` são o SDK mobile (blob base64, um por plataforma). Os
+ * fronts web só usam a primeira; as outras existem no tipo porque a mesma
+ * flag alimenta o app.
+ *
+ * Todas são opcionais: a flag pode estar em NATIVE, ou em ZENDESK com a chave
+ * ainda não preenchida no backoffice. Sem chave o widget não carrega — não há
+ * fallback para uma conta global.
+ */
+export interface SupportZendeskKeys {
+  zendeskKey?: string;
+  zendeskChannelKeyIos?: string;
+  zendeskChannelKeyAndroid?: string;
+}
+
 export interface SupportFeatureFlags {
   institutionId: string;
   page: string;
   version: {
     supportType: SupportType;
-  };
+  } & SupportZendeskKeys;
 }
