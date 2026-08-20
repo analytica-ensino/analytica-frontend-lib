@@ -1515,4 +1515,47 @@ describe('SendActivityModal', () => {
       expect(screen.queryByText('Permitir refazer?')).not.toBeInTheDocument();
     });
   });
+  describe('recipientWarning', () => {
+    const WARNING =
+      'ATENÇÃO! Alguns estudantes podem estar matriculados em duas turmas (FGB e IF). Confira para qual turma deseja enviar.';
+
+    const goToRecipientStep = () => {
+      fireEvent.click(screen.getByText('Tarefa'));
+      fireEvent.change(
+        screen.getByPlaceholderText('Digite o título da atividade'),
+        { target: { value: 'Minha Atividade' } }
+      );
+      fireEvent.click(screen.getByText('Próximo'));
+    };
+
+    it('should render the warning on the recipient step when provided', () => {
+      render(
+        <SendActivityModal {...defaultProps} recipientWarning={WARNING} />
+      );
+
+      goToRecipientStep();
+
+      expect(screen.getByText(WARNING)).toBeInTheDocument();
+    });
+
+    it('should not render any warning on the recipient step when omitted', () => {
+      const { container } = render(<SendActivityModal {...defaultProps} />);
+
+      goToRecipientStep();
+
+      expect(container.querySelector('.alert-wrapper')).toBeNull();
+    });
+
+    it('should keep the warning out of the activity step', () => {
+      render(
+        <SendActivityModal {...defaultProps} recipientWarning={WARNING} />
+      );
+
+      // Step 1 — the warning belongs to the recipient step only
+      expect(screen.queryByText(WARNING)).not.toBeInTheDocument();
+
+      goToRecipientStep();
+      expect(screen.getByText(WARNING)).toBeInTheDocument();
+    });
+  });
 });

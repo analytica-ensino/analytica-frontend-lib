@@ -53,6 +53,12 @@ export interface SendLessonModalProps {
    *  Caller decides based on whether the selected model has any
    *  activity drafts attached. Defaults to false (no radio shown). */
   hasAttachedActivities?: boolean;
+  /**
+   * Aviso por instituição exibido no passo Destinatário (ex.: estudantes
+   * matriculados em mais de uma turma). O texto chega pronto do app, que o lê
+   * de uma feature flag — vazio/ausente => nenhum alerta é renderizado.
+   */
+  recipientWarning?: string;
 }
 
 /**

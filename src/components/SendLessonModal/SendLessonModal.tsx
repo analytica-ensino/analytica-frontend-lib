@@ -54,6 +54,7 @@ const SendLessonModal = ({
   onError,
   modalTitle: modalTitleProp,
   hasAttachedActivities = false,
+  recipientWarning,
 }: SendLessonModalProps) => {
   const store = useSendLessonModalStore();
   const reset = useSendLessonModalStore((state) => state.reset);
@@ -257,6 +258,7 @@ const SendLessonModal = ({
             categories={categoriesToRender}
             onCategoriesChange={handleCategoriesChange}
             entityNameWithArticle={ENTITY_NAME_WITH_ARTICLE}
+            warningMessage={recipientWarning}
             studentsError={store.errors.students}
           />
         );

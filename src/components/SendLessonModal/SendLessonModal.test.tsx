@@ -878,4 +878,31 @@ describe('SendLessonModal', () => {
       expect(studentsCategory).toBeDefined();
     });
   });
+  describe('recipientWarning', () => {
+    const WARNING =
+      'ATENÇÃO! Alguns estudantes podem estar matriculados em duas turmas (FGB e IF). Confira para qual turma deseja enviar.';
+
+    const goToRecipientStep = () => {
+      fireEvent.change(screen.getByPlaceholderText('Digite o título da aula'), {
+        target: { value: 'Aula de Matemática' },
+      });
+      fireEvent.click(screen.getByText('Próximo'));
+    };
+
+    it('should render the warning on the recipient step when provided', () => {
+      render(<SendLessonModal {...defaultProps} recipientWarning={WARNING} />);
+
+      goToRecipientStep();
+
+      expect(screen.getByText(WARNING)).toBeInTheDocument();
+    });
+
+    it('should not render any warning on the recipient step when omitted', () => {
+      const { container } = render(<SendLessonModal {...defaultProps} />);
+
+      goToRecipientStep();
+
+      expect(container.querySelector('.alert-wrapper')).toBeNull();
+    });
+  });
 });
