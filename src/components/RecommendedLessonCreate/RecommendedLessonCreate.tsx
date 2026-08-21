@@ -67,6 +67,7 @@ const RecommendedLessonCreate = ({
   preFilters: preFiltersProp,
   onRedirectToActivity,
   onCreateNewActivity,
+  recipientWarning,
 }: {
   apiClient: BaseApiClient;
   institutionId: string;
@@ -78,6 +79,13 @@ const RecommendedLessonCreate = ({
   onSaveModel?: (response: RecommendedLessonDraftResponse) => void;
   /** Pre-filters to apply when creating a new recommended lesson */
   preFilters?: RecommendedLessonPreFiltersInput | null;
+  /**
+   * Aviso por instituição exibido no passo Destinatário da modal de envio.
+   * O texto chega pronto do app, que o lê de uma feature flag — vazio/ausente
+   * => nenhum alerta.
+   */
+  recipientWarning?: string;
+
   onRedirectToActivity?: ({
     activityId,
     activityType,
@@ -1478,6 +1486,7 @@ const RecommendedLessonCreate = ({
         hasAttachedActivities={
           (recommendedLesson?.activityDraftIds?.length ?? 0) > 0
         }
+        recipientWarning={recipientWarning}
         onError={(error) => {
           console.error('Error sending lesson:', error);
           const errorMessage =

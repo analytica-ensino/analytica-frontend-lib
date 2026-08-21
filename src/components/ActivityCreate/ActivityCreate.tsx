@@ -104,6 +104,7 @@ const CreateActivity = ({
   basePath = '/criar-atividade',
   activityCategory = 'ATIVIDADE',
   enableEssayTab = false,
+  recipientWarning,
 }: {
   apiClient: BaseApiClient;
   institutionId: string;
@@ -122,6 +123,13 @@ const CreateActivity = ({
   basePath?: string;
   /** Activity category: 'ATIVIDADE' or 'PROVA' - sent in draft payloads */
   activityCategory?: 'ATIVIDADE' | 'PROVA';
+  /**
+   * Aviso por instituição exibido no passo Destinatário da modal de envio.
+   * O texto chega pronto do app, que o lê de uma feature flag — vazio/ausente
+   * => nenhum alerta.
+   */
+  recipientWarning?: string;
+
   /**
    * Show the "Redação" tab, where the teacher attaches an essay theme to an
    * in-person booklet. Only meaningful together with `isInPersonExam`.
@@ -1288,6 +1296,7 @@ const CreateActivity = ({
         isLoading={isSendingActivity}
         enableExamMode={enableExamMode || isInPersonExam}
         isInPersonExam={isInPersonExam}
+        recipientWarning={recipientWarning}
         onError={(error) => {
           console.error('Erro ao enviar atividade:', error);
           const errorMessage =
