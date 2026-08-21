@@ -990,12 +990,10 @@ describe('RecommendedLessonCreate', () => {
     };
 
     const openSendModal = async () => {
-      await act(async () => {
-        fireEvent.click(screen.getByTestId('add-lesson-btn'));
-      });
-      await act(async () => {
-        fireEvent.click(screen.getByTestId('send-lesson-btn'));
-      });
+      // fireEvent já envolve o update em act(); o waitFor abaixo é quem espera
+      // a modal montar depois das requisições de destinatários.
+      fireEvent.click(screen.getByTestId('add-lesson-btn'));
+      fireEvent.click(screen.getByTestId('send-lesson-btn'));
       await waitFor(() => {
         expect(screen.getByTestId('send-lesson-modal')).toBeInTheDocument();
       });
