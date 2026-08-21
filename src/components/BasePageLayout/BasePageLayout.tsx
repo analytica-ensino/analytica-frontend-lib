@@ -98,24 +98,6 @@ export function BasePageLayout<T extends Record<string, unknown>>({
   const { isMobile } = useMobile();
 
   /**
-   * Compute a stable key for TableProvider based on filter options availability.
-   * Forces remount when userData loads and filter options become available,
-   * ensuring TableProvider initializes with correct filter data.
-   */
-  const tableKey = useMemo(() => {
-    const totalOptions = Array.isArray(initialFilters)
-      ? initialFilters
-          .flatMap((group) => group.categories)
-          .reduce(
-            (sum, cat: FilterConfig['categories'][number]) =>
-              sum + (cat.itens?.length ?? 0),
-            0
-          )
-      : 0;
-    return `filters-${totalOptions}`;
-  }, [initialFilters]);
-
-  /**
    * Whether filters should be enabled — only when at least one filter has options.
    */
   const enableFilters = useMemo(
@@ -205,8 +187,11 @@ export function BasePageLayout<T extends Record<string, unknown>>({
             </div>
           ) : (
             <div className="w-full">
+              {/* No `key` here on purpose: remounting on filter-option changes
+                  would discard the table's own state (items per page, current
+                  page, search, sorting). Late-arriving options are absorbed by
+                  useTableFilter's merge effect, no remount needed. */}
               <TableProvider
-                key={tableKey}
                 data={data}
                 headers={headers}
                 loading={loading}

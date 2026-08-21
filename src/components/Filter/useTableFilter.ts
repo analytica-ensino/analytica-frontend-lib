@@ -9,11 +9,24 @@ export type FilterConfig = {
 };
 
 /**
+ * Read the ids selected for a category from the current URL.
+ * @param categoryKey - Key of the filter category
+ * @returns Selected ids, or an empty array when the URL carries none
+ */
+const readSelectionFromUrl = (categoryKey: string): string[] => {
+  if (globalThis.window === undefined) return [];
+  const params = new URLSearchParams(globalThis.window.location.search);
+  const urlValue = params.get(`filter_${categoryKey}`);
+  return urlValue ? urlValue.split(',').filter(Boolean) : [];
+};
+
+/**
  * Merge new filter configs with previous state, preserving user selections
  */
 const mergeConfigsWithSelections = (
   newConfigs: FilterConfig[],
-  prevConfigs: FilterConfig[]
+  prevConfigs: FilterConfig[],
+  syncWithUrl: boolean
 ): FilterConfig[] => {
   let changed = false;
 
@@ -26,6 +39,17 @@ const mergeConfigsWithSelections = (
 
       if (prevItems.length !== newItems.length) {
         changed = true;
+      }
+
+      // A category that did not exist on the previous render never went through
+      // the URL restore done at mount. Without this, a filter carried in the URL
+      // is silently dropped for consumers whose categories load asynchronously.
+      if (!prevCat && syncWithUrl) {
+        const urlSelectedIds = readSelectionFromUrl(newCat.key);
+        if (urlSelectedIds.length > 0) {
+          changed = true;
+          return { ...newCat, selectedIds: urlSelectedIds };
+        }
       }
 
       if (prevCat?.key === newCat.key && prevCat?.selectedIds?.length) {
@@ -231,9 +255,9 @@ export const useTableFilter = (
   // Sync filter configs when initialConfigs items change (e.g., async data loaded)
   useEffect(() => {
     setFilterConfigs((prev) =>
-      mergeConfigsWithSelections(initialConfigs, prev)
+      mergeConfigsWithSelections(initialConfigs, prev, syncWithUrl)
     );
-  }, [initialConfigs]);
+  }, [initialConfigs, syncWithUrl]);
 
   // Sync with URL on mount and when URL changes externally
   useEffect(() => {

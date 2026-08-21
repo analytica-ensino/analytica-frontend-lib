@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { FilterConfig } from '../components/Filter';
 import type {
@@ -17,6 +17,36 @@ import {
   type UserFilterSourceData,
 } from '../utils/filterHelpers';
 import { createDraftsModelsFiltersConfig } from '../utils/draftModelFilterHelpers';
+
+/**
+ * Params emitted by the table when search, pagination or filters change.
+ * The Filter component emits each active filter under its category key
+ * (`subject`) as the list of selected ids, so the subject arrives as
+ * `subject: string[]` and is normalized to `subjectId` before fetching.
+ */
+export interface DraftModelTableParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  /** Selected subject ids coming from the Filter component */
+  subject?: string[];
+  /** Subject id already resolved (direct callers) */
+  subjectId?: string;
+}
+
+/**
+ * Extract the subject id the API expects from the table params.
+ * @param params - Params emitted by the table
+ * @returns The selected subject id, or undefined when no subject is selected
+ */
+const getSubjectIdFromParams = (
+  params: DraftModelTableParams
+): string | undefined => {
+  if (Array.isArray(params.subject) && params.subject.length > 0) {
+    return params.subject[0];
+  }
+  return params.subjectId;
+};
 
 /**
  * Configuration options for the useActivityDraftModelPage hook
@@ -60,12 +90,7 @@ export interface UseActivityDraftModelPageReturn {
   handleDelete: (row: ActivityModelTableItem) => void;
   handleEdit: (row: ActivityModelTableItem) => void;
   handleConfirmDelete: () => Promise<boolean>;
-  handleParamsChange: (params: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    subjectId?: string;
-  }) => void;
+  handleParamsChange: (params: DraftModelTableParams) => void;
   handleCreateActivity: () => void;
   handleRowClick: (row: ActivityModelTableItem) => void;
 }
@@ -194,17 +219,12 @@ export const useActivityDraftModelPage = ({
    * Handle table params change
    */
   const handleParamsChange = useCallback(
-    (params: {
-      page?: number;
-      limit?: number;
-      search?: string;
-      subjectId?: string;
-    }) => {
+    (params: DraftModelTableParams) => {
       const filters = {
         page: params.page || 1,
         limit: params.limit || 10,
         search: params.search,
-        subjectId: params.subjectId,
+        subjectId: getSubjectIdFromParams(params),
       };
       setCurrentParams(filters);
       fetchFn(filters);
@@ -212,12 +232,11 @@ export const useActivityDraftModelPage = ({
     [fetchFn]
   );
 
-  /**
-   * Fetch initial data on component mount
-   */
-  useEffect(() => {
-    fetchFn({ page: 1, limit: 10 });
-  }, [fetchFn]);
+  // No fetch-on-mount here: the table emits its initial params as soon as it
+  // mounts, and they reach fetchFn through handleParamsChange. Fetching here
+  // too would double every page's first request — and, because it hardcodes
+  // `limit: 10`, would undo the user's items-per-page choice whenever fetchFn
+  // changed identity.
 
   /**
    * Handle create activity button click
