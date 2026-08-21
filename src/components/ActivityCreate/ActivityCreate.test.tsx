@@ -464,6 +464,7 @@ jest.mock('../SendActivityModal/SendActivityModal', () => ({
     categories,
     isLoading,
     onError,
+    recipientWarning,
   }: {
     isOpen: boolean;
     onClose: () => void;
@@ -472,9 +473,13 @@ jest.mock('../SendActivityModal/SendActivityModal', () => ({
     categories?: unknown[];
     isLoading: boolean;
     onError?: (error: unknown) => void;
+    recipientWarning?: string;
   }) =>
     isOpen ? (
       <div data-testid="send-activity-modal">
+        <span data-testid="modal-recipient-warning">
+          {recipientWarning ?? ''}
+        </span>
         <button data-testid="modal-close" onClick={onClose}>
           Close
         </button>
@@ -1973,6 +1978,58 @@ describe('CreateActivity', () => {
       await waitFor(() => {
         expect(screen.getByTestId('send-activity-modal')).toBeInTheDocument();
       });
+    });
+
+    /** A modal só abre depois que as listas de destinatários resolvem. */
+    const mockRecipientEndpoints = () => {
+      mockApiClient.get = jest.fn((url: string) => {
+        if (url === '/school')
+          return Promise.resolve({ data: { data: { schools: [] } } } as never);
+        if (url === '/schoolYear')
+          return Promise.resolve({
+            data: { data: { schoolYears: [] } },
+          } as never);
+        if (url === '/classes')
+          return Promise.resolve({ data: { data: { classes: [] } } } as never);
+        return Promise.reject(new Error('Unknown endpoint'));
+      }) as typeof mockApiClient.get;
+    };
+
+    it('forwards recipientWarning to the send modal', async () => {
+      mockRecipientEndpoints();
+
+      render(
+        <CreateActivity
+          {...defaultProps}
+          recipientWarning="ATENÇÃO! Alguns estudantes podem estar matriculados em duas turmas (FGB e IF). Confira para qual turma deseja enviar."
+        />
+      );
+
+      fireEvent.click(screen.getByTestId('add-question'));
+      fireEvent.click(screen.getByText('Enviar atividade'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('send-activity-modal')).toBeInTheDocument();
+      });
+      expect(screen.getByTestId('modal-recipient-warning')).toHaveTextContent(
+        'ATENÇÃO! Alguns estudantes podem estar matriculados em duas turmas (FGB e IF). Confira para qual turma deseja enviar.'
+      );
+    });
+
+    it('forwards no warning when recipientWarning is omitted', async () => {
+      mockRecipientEndpoints();
+
+      render(<CreateActivity {...defaultProps} />);
+
+      fireEvent.click(screen.getByTestId('add-question'));
+      fireEvent.click(screen.getByText('Enviar atividade'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('send-activity-modal')).toBeInTheDocument();
+      });
+      expect(screen.getByTestId('modal-recipient-warning')).toHaveTextContent(
+        ''
+      );
     });
 
     it('should disable send button when no questions', () => {

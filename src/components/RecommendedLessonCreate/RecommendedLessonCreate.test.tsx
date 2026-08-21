@@ -107,15 +107,20 @@ jest.mock('../..', () => ({
     onSubmit,
     onCategoriesChange,
     categories,
+    recipientWarning,
   }: {
     isOpen: boolean;
     onClose: () => void;
     onSubmit: (data: unknown) => void;
     onCategoriesChange?: (categories: unknown[]) => void;
     categories?: unknown[];
+    recipientWarning?: string;
   }) =>
     isOpen ? (
       <div data-testid="send-lesson-modal">
+        <span data-testid="lesson-recipient-warning">
+          {recipientWarning ?? ''}
+        </span>
         <button data-testid="close-send-modal" onClick={onClose}>
           Close
         </button>
@@ -951,6 +956,78 @@ describe('RecommendedLessonCreate', () => {
       await waitFor(() => {
         expect(screen.getByTestId('send-lesson-modal')).toBeInTheDocument();
       });
+    });
+
+    /** Mocks tudo que a modal de envio precisa para abrir. */
+    const mockRecipientEndpoints = () => {
+      (mockApiClient.get as jest.Mock).mockImplementation((url: string) => {
+        if (url === 'knowledge/subjects') {
+          return Promise.resolve({
+            data: { data: { subjects: [{ id: 'subject-1', name: 'Math' }] } },
+          });
+        }
+        if (url === '/school') {
+          return Promise.resolve({ data: { data: { schools: [] } } });
+        }
+        if (url === '/schoolYear') {
+          return Promise.resolve({ data: { data: { schoolYears: [] } } });
+        }
+        if (url === '/classes') {
+          return Promise.resolve({ data: { data: { classes: [] } } });
+        }
+        if (url.startsWith('/students')) {
+          return Promise.resolve({
+            data: {
+              data: {
+                students: [],
+                pagination: { page: 1, limit: 100, total: 0, totalPages: 1 },
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
+    };
+
+    const openSendModal = async () => {
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('add-lesson-btn'));
+      });
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('send-lesson-btn'));
+      });
+      await waitFor(() => {
+        expect(screen.getByTestId('send-lesson-modal')).toBeInTheDocument();
+      });
+    };
+
+    it('forwards recipientWarning to the send modal', async () => {
+      mockRecipientEndpoints();
+
+      await renderWithDesktopLayout(
+        <RecommendedLessonCreate
+          {...defaultProps}
+          recipientWarning="ATENÇÃO! Alguns estudantes podem estar matriculados em duas turmas (FGB e IF). Confira para qual turma deseja enviar."
+        />
+      );
+      await openSendModal();
+
+      expect(screen.getByTestId('lesson-recipient-warning')).toHaveTextContent(
+        'ATENÇÃO! Alguns estudantes podem estar matriculados em duas turmas (FGB e IF). Confira para qual turma deseja enviar.'
+      );
+    });
+
+    it('forwards no warning when recipientWarning is omitted', async () => {
+      mockRecipientEndpoints();
+
+      await renderWithDesktopLayout(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+      await openSendModal();
+
+      expect(screen.getByTestId('lesson-recipient-warning')).toHaveTextContent(
+        ''
+      );
     });
 
     it('should close send modal when close button is clicked', async () => {
