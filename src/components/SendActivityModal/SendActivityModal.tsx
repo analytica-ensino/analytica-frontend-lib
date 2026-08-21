@@ -70,6 +70,7 @@ const SendActivityModal = ({
   initialData,
   enableExamMode = false,
   isInPersonExam = false,
+  recipientWarning,
 }: SendActivityModalProps) => {
   const store = useSendActivityModalStore();
   const reset = useSendActivityModalStore((state) => state.reset);
@@ -491,6 +492,7 @@ const SendActivityModal = ({
             categories={categoriesToRender}
             onCategoriesChange={handleCategoriesChange}
             entityNameWithArticle={entityNameWithArticle}
+            warningMessage={recipientWarning}
             studentsError={store.errors.students}
           />
         );

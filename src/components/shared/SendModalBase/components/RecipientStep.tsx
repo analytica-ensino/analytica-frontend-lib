@@ -1,6 +1,7 @@
 import { useMemo, type FC } from 'react';
 import { cn } from '../../../../utils/utils';
 import Text from '../../../Text/Text';
+import Alert from '../../../Alert/Alert';
 import { CheckboxGroup } from '../../../CheckBoxGroup/CheckBoxGroup';
 import { SendModalError } from './SendModalError';
 import type { CategoryConfig, CategoriesChangeHandler } from '../types';
@@ -15,6 +16,13 @@ export interface RecipientStepProps {
   onCategoriesChange: CategoriesChangeHandler;
   /** Entity name with article for the question text (e.g., "a aula", "a atividade") */
   entityNameWithArticle: string;
+  /**
+   * Aviso exibido acima da lista de destinatários. O texto vem inteiro do
+   * caller (tipicamente uma feature flag por instituição), porque o que
+   * precisa ser avisado muda de tenant para tenant. Vazio/ausente => sem
+   * alerta.
+   */
+  warningMessage?: string;
   /** Error message for students validation */
   studentsError?: string;
   /** Optional test ID prefix */
@@ -29,6 +37,7 @@ export const RecipientStep: FC<RecipientStepProps> = ({
   categories,
   onCategoriesChange,
   entityNameWithArticle,
+  warningMessage,
   studentsError,
   testIdPrefix,
 }) => {
@@ -57,6 +66,18 @@ export const RecipientStep: FC<RecipientStepProps> = ({
       >
         Para quem você vai enviar {entityNameWithArticle}?
       </Text>
+
+      {warningMessage?.trim() && (
+        <Alert
+          variant="solid"
+          action="warning"
+          description={warningMessage}
+          className="w-full flex-shrink-0"
+          data-testid={
+            testIdPrefix ? `${testIdPrefix}-recipient-warning` : undefined
+          }
+        />
+      )}
 
       <div
         className={cn(

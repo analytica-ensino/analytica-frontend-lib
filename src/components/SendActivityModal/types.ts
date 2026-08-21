@@ -108,6 +108,12 @@ export interface SendActivityModalProps {
   enableExamMode?: boolean;
   /** Force in-person exam mode: auto-selects PROVA subtype and PRESENCIAL mode */
   isInPersonExam?: boolean;
+  /**
+   * Aviso por instituição exibido no passo Destinatário (ex.: estudantes
+   * matriculados em mais de uma turma). O texto chega pronto do app, que o lê
+   * de uma feature flag — vazio/ausente => nenhum alerta é renderizado.
+   */
+  recipientWarning?: string;
 }
 
 /**

@@ -155,6 +155,73 @@ describe('RecipientStep', () => {
     expect(turma?.searchable).toBeFalsy();
   });
 
+  describe('warningMessage', () => {
+    const WARNING =
+      'ATENÇÃO! Alguns estudantes podem estar matriculados em duas turmas (FGB e IF). Confira para qual turma deseja enviar.';
+
+    it('renders the warning alert with the exact text it receives', () => {
+      render(<RecipientStep {...defaultProps} warningMessage={WARNING} />);
+
+      expect(screen.getByText(WARNING)).toBeInTheDocument();
+    });
+
+    it('renders any text, not just the Enem Paraná message', () => {
+      render(<RecipientStep {...defaultProps} warningMessage="Outro aviso." />);
+
+      expect(screen.getByText('Outro aviso.')).toBeInTheDocument();
+    });
+
+    it('renders no alert when warningMessage is omitted', () => {
+      const { container } = render(<RecipientStep {...defaultProps} />);
+
+      expect(container.querySelector('.alert-wrapper')).toBeNull();
+    });
+
+    it('renders no alert when warningMessage is an empty string', () => {
+      const { container } = render(
+        <RecipientStep {...defaultProps} warningMessage="" />
+      );
+
+      expect(container.querySelector('.alert-wrapper')).toBeNull();
+    });
+
+    it('renders no alert when warningMessage is only whitespace', () => {
+      const { container } = render(
+        <RecipientStep {...defaultProps} warningMessage="   " />
+      );
+
+      expect(container.querySelector('.alert-wrapper')).toBeNull();
+    });
+
+    it('places the alert between the question and the recipients list', () => {
+      const { container } = render(
+        <RecipientStep {...defaultProps} warningMessage={WARNING} />
+      );
+
+      const alert = container.querySelector('.alert-wrapper') as HTMLElement;
+      const question = screen.getByText('Para quem você vai enviar a aula?');
+      const list = screen.getByTestId('scroll-container');
+
+      // Node.DOCUMENT_POSITION_FOLLOWING === 4
+      expect(question.compareDocumentPosition(alert) & 4).toBeTruthy();
+      expect(alert.compareDocumentPosition(list) & 4).toBeTruthy();
+    });
+
+    it('exposes a testid for the alert when testIdPrefix is provided', () => {
+      render(
+        <RecipientStep
+          {...defaultProps}
+          warningMessage={WARNING}
+          testIdPrefix="send-activity"
+        />
+      );
+
+      expect(
+        screen.getByTestId('send-activity-recipient-warning')
+      ).toBeInTheDocument();
+    });
+  });
+
   it('does not mutate the original categories prop', () => {
     const categories: CategoryConfig[] = [
       { key: 'students', label: 'Estudantes', itens: [{ id: '1', name: 'A' }] },
