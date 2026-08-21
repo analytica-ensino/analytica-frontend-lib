@@ -151,10 +151,10 @@ describe('BasePageLayout - table state survives new filter options', () => {
     expect(screen.getByText('Biologia')).toBeInTheDocument();
   });
 
-  it('keeps a single-option category auto-selected across re-renders', async () => {
-    // A category with exactly one visible option is auto-selected by
-    // CheckBoxGroup. That selection used to be wiped by the remount; now it
-    // must survive — including a re-render carrying fresh data.
+  it('keeps a selection in a single-option category across re-renders', async () => {
+    // Opening the modal must not select anything on the user's behalf, but the
+    // selection the user does make used to be wiped by the remount; now it must
+    // survive — including a re-render carrying fresh data.
     const onParamsChange = jest.fn();
     const { rerender } = render(
       <BasePageLayout
@@ -163,6 +163,14 @@ describe('BasePageLayout - table state survives new filter options', () => {
     );
 
     fireEvent.click(screen.getByText('Filtros'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Matéria')).toBeInTheDocument();
+    });
+    expect(lastParams(onParamsChange).subject).toBeUndefined();
+
+    fireEvent.click(screen.getByText('Matéria'));
+    fireEvent.click(screen.getByLabelText('Biologia'));
 
     await waitFor(() => {
       expect(lastParams(onParamsChange).subject).toEqual(['s0']);

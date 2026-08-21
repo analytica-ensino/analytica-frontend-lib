@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import type { CategoryConfig } from '../CheckBoxGroup/CheckBoxGroup';
-import { calculateFormattedItemsForAutoSelection } from '../CheckBoxGroup/CheckBoxGroup.helpers';
 
 export type FilterConfig = {
   key: string;
@@ -161,31 +160,16 @@ export const useTableFilter = (
 
   const hasActiveFilters = Object.keys(activeFilters).length > 0;
 
-  // Count only filters that were manually selected by the user,
-  // excluding categories that were auto-selected because they have only 1 available item
+  // Count every category holding a selection. Single-option categories used to
+  // be excluded here because the CheckboxGroup auto-selected them; the filter
+  // modal now disables that, so any selection is a deliberate user choice and
+  // must show up in the badge.
   const activeFiltersCount = useMemo(() => {
     const allCategories = filterConfigs.flatMap((config) => config.categories);
 
-    let count = 0;
-    for (const category of allCategories) {
-      if (!category.selectedIds || category.selectedIds.length === 0) continue;
-
-      const availableItems = calculateFormattedItemsForAutoSelection(
-        category,
-        allCategories
-      );
-
-      const isAutoSelected =
-        availableItems.length === 1 &&
-        category.selectedIds.length === 1 &&
-        category.selectedIds[0] === availableItems[0]?.id;
-
-      if (!isAutoSelected) {
-        count++;
-      }
-    }
-
-    return count;
+    return allCategories.filter(
+      (category) => category.selectedIds && category.selectedIds.length > 0
+    ).length;
   }, [filterConfigs]);
 
   /**
