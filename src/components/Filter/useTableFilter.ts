@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import type { CategoryConfig } from '../CheckBoxGroup/CheckBoxGroup';
-import { calculateFormattedItemsForAutoSelection } from '../CheckBoxGroup/CheckBoxGroup.helpers';
 
 export type FilterConfig = {
   key: string;
@@ -9,11 +8,24 @@ export type FilterConfig = {
 };
 
 /**
+ * Read the ids selected for a category from the current URL.
+ * @param categoryKey - Key of the filter category
+ * @returns Selected ids, or an empty array when the URL carries none
+ */
+const readSelectionFromUrl = (categoryKey: string): string[] => {
+  if (globalThis.window === undefined) return [];
+  const params = new URLSearchParams(globalThis.window.location.search);
+  const urlValue = params.get(`filter_${categoryKey}`);
+  return urlValue ? urlValue.split(',').filter(Boolean) : [];
+};
+
+/**
  * Merge new filter configs with previous state, preserving user selections
  */
 const mergeConfigsWithSelections = (
   newConfigs: FilterConfig[],
-  prevConfigs: FilterConfig[]
+  prevConfigs: FilterConfig[],
+  syncWithUrl: boolean
 ): FilterConfig[] => {
   let changed = false;
 
@@ -26,6 +38,17 @@ const mergeConfigsWithSelections = (
 
       if (prevItems.length !== newItems.length) {
         changed = true;
+      }
+
+      // A category that did not exist on the previous render never went through
+      // the URL restore done at mount. Without this, a filter carried in the URL
+      // is silently dropped for consumers whose categories load asynchronously.
+      if (!prevCat && syncWithUrl) {
+        const urlSelectedIds = readSelectionFromUrl(newCat.key);
+        if (urlSelectedIds.length > 0) {
+          changed = true;
+          return { ...newCat, selectedIds: urlSelectedIds };
+        }
       }
 
       if (prevCat?.key === newCat.key && prevCat?.selectedIds?.length) {
@@ -137,31 +160,16 @@ export const useTableFilter = (
 
   const hasActiveFilters = Object.keys(activeFilters).length > 0;
 
-  // Count only filters that were manually selected by the user,
-  // excluding categories that were auto-selected because they have only 1 available item
+  // Count every category holding a selection. Single-option categories used to
+  // be excluded here because the CheckboxGroup auto-selected them; the filter
+  // modal now disables that, so any selection is a deliberate user choice and
+  // must show up in the badge.
   const activeFiltersCount = useMemo(() => {
     const allCategories = filterConfigs.flatMap((config) => config.categories);
 
-    let count = 0;
-    for (const category of allCategories) {
-      if (!category.selectedIds || category.selectedIds.length === 0) continue;
-
-      const availableItems = calculateFormattedItemsForAutoSelection(
-        category,
-        allCategories
-      );
-
-      const isAutoSelected =
-        availableItems.length === 1 &&
-        category.selectedIds.length === 1 &&
-        category.selectedIds[0] === availableItems[0]?.id;
-
-      if (!isAutoSelected) {
-        count++;
-      }
-    }
-
-    return count;
+    return allCategories.filter(
+      (category) => category.selectedIds && category.selectedIds.length > 0
+    ).length;
   }, [filterConfigs]);
 
   /**
@@ -231,9 +239,9 @@ export const useTableFilter = (
   // Sync filter configs when initialConfigs items change (e.g., async data loaded)
   useEffect(() => {
     setFilterConfigs((prev) =>
-      mergeConfigsWithSelections(initialConfigs, prev)
+      mergeConfigsWithSelections(initialConfigs, prev, syncWithUrl)
     );
-  }, [initialConfigs]);
+  }, [initialConfigs, syncWithUrl]);
 
   // Sync with URL on mount and when URL changes externally
   useEffect(() => {

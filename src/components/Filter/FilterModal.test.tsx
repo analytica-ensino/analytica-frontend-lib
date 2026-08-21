@@ -35,11 +35,22 @@ jest.mock('../CheckBoxGroup/CheckBoxGroup', () => ({
   CheckboxGroup: ({
     categories,
     onCategoriesChange,
+    compactSingleItem,
+    showSingleItem,
+    disableAutoSelection,
   }: {
     categories: { key: string; label: string }[];
     onCategoriesChange: (categories: { key: string; label: string }[]) => void;
+    compactSingleItem?: boolean;
+    showSingleItem?: boolean;
+    disableAutoSelection?: boolean;
   }) => (
-    <div data-testid="checkbox-group">
+    <div
+      data-testid="checkbox-group"
+      data-compact={compactSingleItem ? 'true' : 'false'}
+      data-show-single={showSingleItem ? 'true' : 'false'}
+      data-disable-auto={disableAutoSelection ? 'true' : 'false'}
+    >
       {categories.map((cat) => (
         <div key={cat.key} data-testid={`category-${cat.key}`}>
           {cat.label}
@@ -462,6 +473,43 @@ describe('FilterModal', () => {
       const contentSection = screen.getByText('Conteúdo').parentElement;
       const svg = contentSection?.querySelector('svg');
       expect(svg).toBeInTheDocument();
+    });
+  });
+  describe('CheckboxGroup configuration', () => {
+    it('renders every category with a usable checkbox and no auto-selection', () => {
+      render(
+        <FilterModal
+          isOpen={true}
+          onClose={mockOnClose}
+          filterConfigs={mockFilterConfigs}
+          onFiltersChange={mockOnFiltersChange}
+          onApply={mockOnApply}
+          onClear={mockOnClear}
+        />
+      );
+
+      // A filter must never collapse a single-option category into the compact
+      // read-only row, nor check it on the user's behalf.
+      for (const group of screen.getAllByTestId('checkbox-group')) {
+        expect(group).toHaveAttribute('data-compact', 'false');
+        expect(group).toHaveAttribute('data-show-single', 'true');
+        expect(group).toHaveAttribute('data-disable-auto', 'true');
+      }
+    });
+
+    it('does not report any selection on mount', () => {
+      render(
+        <FilterModal
+          isOpen={true}
+          onClose={mockOnClose}
+          filterConfigs={mockFilterConfigs}
+          onFiltersChange={mockOnFiltersChange}
+          onApply={mockOnApply}
+          onClear={mockOnClear}
+        />
+      );
+
+      expect(mockOnFiltersChange).not.toHaveBeenCalled();
     });
   });
 });

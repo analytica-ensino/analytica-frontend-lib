@@ -212,6 +212,15 @@ export const FilterModal = ({
               onCategoriesChange={(updatedCategories) =>
                 handleCategoryChange(index, updatedCategories)
               }
+              // A filter modal must never hide a checkbox nor check an option
+              // on its own: the absence of a selection is the "no filter =
+              // everything" the API expects, and an auto-selected option cannot
+              // be cleared by the user. `showSingleItem` is required alongside
+              // `compactSingleItem={false}`, otherwise a category holding a
+              // single option disappears from the modal entirely.
+              compactSingleItem={false}
+              showSingleItem
+              disableAutoSelection
             />
           </div>
         ))}

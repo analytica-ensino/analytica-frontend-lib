@@ -263,6 +263,13 @@ export function SimulatedFiltersModal({
           <CheckboxGroup
             categories={categories}
             onCategoriesChange={handleCategoriesChange}
+            // Same rule as FilterModal: every option needs a usable checkbox
+            // and nothing may be checked automatically. The single-school
+            // pre-selection this modal does want comes from
+            // `getAutoSelectedSchoolIds`, not from the CheckboxGroup.
+            compactSingleItem={false}
+            showSingleItem
+            disableAutoSelection
           />
         )}
 

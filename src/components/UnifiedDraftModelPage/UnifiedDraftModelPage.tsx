@@ -8,8 +8,8 @@ import { AlertDialog } from '../AlertDialog/AlertDialog';
 import TypeSelector from '../TypeSelector/TypeSelector';
 import { createActivityCategoryConfig } from '../TypeSelector/TypeSelector.types';
 import type { TypeRoutes } from '../TypeSelector/TypeSelector.types';
-import type { ActivityModelTableItem } from '../../types/activitiesHistory';
 import { useActivityDraftModelPage } from '../../hooks/useActivityDraftModelPage';
+import { useAccumulatedSubjectOptions } from '../../hooks/useAccumulatedSubjectOptions';
 import { ActivityTab } from '../ActivityPageLayout/ActivityPageLayout';
 import { ExamTab } from '../ExamPageLayout/ExamPageLayout';
 
@@ -48,20 +48,9 @@ export const UnifiedDraftModelPage = ({
     [routes]
   );
 
-  // Extract subject options from fetched data
-  const apiSubjectOptions = useMemo(
-    () =>
-      data
-        .filter(
-          (item: ActivityModelTableItem) =>
-            item.subjectId && item.subject?.name && item.subject.name !== '-'
-        )
-        .map((item: ActivityModelTableItem) => ({
-          id: item.subjectId!,
-          name: item.subject!.name,
-        })),
-    [data]
-  );
+  // Subject options discovered in the fetched rows, accumulated across pages so
+  // the filter list never shrinks as the user navigates or filters.
+  const apiSubjectOptions = useAccumulatedSubjectOptions(data);
 
   // Use shared hook for state and handlers
   const {
