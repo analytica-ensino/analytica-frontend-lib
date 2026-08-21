@@ -452,7 +452,7 @@ describe('useTableFilter', () => {
   });
 
   describe('activeFiltersCount', () => {
-    it('should not count auto-selected categories with only one available item', () => {
+    it('should count single-option categories the user selected', () => {
       const singleItemConfigs: FilterConfig[] = [
         {
           key: 'academic',
@@ -482,9 +482,9 @@ describe('useTableFilter', () => {
 
       const { result } = renderHook(() => useTableFilter(singleItemConfigs));
 
-      // Both categories have only 1 item and it's selected (auto-selection)
-      expect(result.current.activeFiltersCount).toBe(0);
-      // But activeFilters should still include them for API params
+      // The filter modal no longer auto-selects single-option categories, so
+      // both selections are deliberate and must be counted in the badge.
+      expect(result.current.activeFiltersCount).toBe(2);
       expect(result.current.activeFilters).toEqual({
         escola: ['1'],
         materia: ['1'],
@@ -513,7 +513,7 @@ describe('useTableFilter', () => {
       expect(result.current.activeFiltersCount).toBe(1);
     });
 
-    it('should not count a dependent category auto-selected after filtering leaves one item', () => {
+    it('should count a dependent category left with a single filtered item', () => {
       const configs: FilterConfig[] = [
         {
           key: 'academic',
@@ -546,9 +546,9 @@ describe('useTableFilter', () => {
 
       const { result } = renderHook(() => useTableFilter(configs));
 
-      // Escola has 2 items, user selected 1 → counts (manual)
-      // Serie: after filtering by escola=2, only Série 3 remains → auto-selected → should NOT count
-      expect(result.current.activeFiltersCount).toBe(1);
+      // Both hold a selection: escola (1 of 2) and serie (the only item left
+      // after filtering by escola=2). Neither is auto-selected any more.
+      expect(result.current.activeFiltersCount).toBe(2);
     });
 
     it('should return 0 when no filters are active', () => {

@@ -1823,4 +1823,72 @@ describe('CheckboxGroup', () => {
       expect(screen.getByText('0 de 1 selecionados')).toBeInTheDocument();
     });
   });
+  describe('filter-modal preset (single option must stay selectable)', () => {
+    const singleOptionCategory: CategoryConfig[] = [
+      {
+        key: 'schoolYear',
+        label: '2ª série do Ensino Médio',
+        itens: [{ id: 'class-a', name: 'A (Manhã)' }],
+        selectedIds: [],
+      },
+    ];
+
+    it('renders a checkbox instead of the compact read-only row', () => {
+      render(
+        <CheckboxGroup
+          categories={singleOptionCategory}
+          onCategoriesChange={jest.fn()}
+          compactSingleItem={false}
+          showSingleItem
+          disableAutoSelection
+        />
+      );
+
+      expect(screen.getByTestId('accordion-trigger')).toBeInTheDocument();
+      expect(screen.getByText('2ª série do Ensino Médio')).toBeInTheDocument();
+      expect(screen.getAllByTestId('checkbox').length).toBeGreaterThan(0);
+    });
+
+    it('does not auto-select the only option on mount', () => {
+      const onCategoriesChange = jest.fn();
+
+      render(
+        <CheckboxGroup
+          categories={singleOptionCategory}
+          onCategoriesChange={onCategoriesChange}
+          compactSingleItem={false}
+          showSingleItem
+          disableAutoSelection
+        />
+      );
+
+      expect(onCategoriesChange).not.toHaveBeenCalled();
+    });
+
+    it('reports an empty selection when the only option is unchecked', async () => {
+      const user = userEvent.setup();
+      const onCategoriesChange = jest.fn();
+      const preSelected: CategoryConfig[] = [
+        { ...singleOptionCategory[0], selectedIds: ['class-a'] },
+      ];
+
+      render(
+        <CheckboxGroup
+          categories={preSelected}
+          onCategoriesChange={onCategoriesChange}
+          compactSingleItem={false}
+          showSingleItem
+          disableAutoSelection
+        />
+      );
+
+      await user.click(screen.getByTestId('accordion-trigger'));
+      const itemCheckbox = screen.getAllByTestId('checkbox').at(-1)!;
+      await user.click(itemCheckbox);
+
+      expect(onCategoriesChange).toHaveBeenCalledWith([
+        expect.objectContaining({ key: 'schoolYear', selectedIds: [] }),
+      ]);
+    });
+  });
 });
