@@ -86,10 +86,12 @@ describe('useActivityDraftModelPage', () => {
     expect(result.current.handleRowClick).toBeDefined();
   });
 
-  it('should call fetchFn on mount', () => {
+  it('should not fetch on mount — the table emits the initial params', () => {
+    // Fetching here as well would double the first request of every page, and
+    // the hardcoded limit would override the user's items-per-page choice.
     renderHook(() => useActivityDraftModelPage(baseOptions));
 
-    expect(mockFetchFn).toHaveBeenCalledWith({ page: 1, limit: 10 });
+    expect(mockFetchFn).not.toHaveBeenCalled();
   });
 
   it('should merge userData subjects with apiSubjectOptions', () => {
@@ -357,6 +359,50 @@ describe('useActivityDraftModelPage', () => {
         limit: 10,
         search: undefined,
         subjectId: 'sub-123',
+      });
+    });
+
+    it('should map the subject filter emitted by the table into subjectId', () => {
+      const { result } = renderHook(() =>
+        useActivityDraftModelPage(baseOptions)
+      );
+
+      act(() => {
+        // TableProvider emits filters under the Filter category key ("subject")
+        // as an array of selected ids, not as `subjectId`.
+        result.current.handleParamsChange({
+          page: 1,
+          limit: 10,
+          subject: ['sub-123'],
+        });
+      });
+
+      expect(mockFetchFn).toHaveBeenCalledWith({
+        page: 1,
+        limit: 10,
+        search: undefined,
+        subjectId: 'sub-123',
+      });
+    });
+
+    it('should not send subjectId when the subject filter is cleared', () => {
+      const { result } = renderHook(() =>
+        useActivityDraftModelPage(baseOptions)
+      );
+
+      act(() => {
+        result.current.handleParamsChange({
+          page: 1,
+          limit: 10,
+          subject: [],
+        });
+      });
+
+      expect(mockFetchFn).toHaveBeenCalledWith({
+        page: 1,
+        limit: 10,
+        search: undefined,
+        subjectId: undefined,
       });
     });
 

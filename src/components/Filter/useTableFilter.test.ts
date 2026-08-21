@@ -672,6 +672,27 @@ describe('useTableFilter', () => {
       );
       expect(result.current.activeFilters.escola).toEqual(['2']);
     });
+
+    it('should restore the URL selection for a category that only appears after mount', () => {
+      globalThis.location.href = 'http://localhost/?filter_materia=2';
+      globalThis.location.search = '?filter_materia=2';
+
+      // The whole "content" group is missing on the first render — the consumer
+      // only knows about it once its data loads.
+      const { result, rerender } = renderHook(
+        ({ configs }) => useTableFilter(configs, { syncWithUrl: true }),
+        { initialProps: { configs: [mockInitialConfigs[0]] } }
+      );
+
+      expect(result.current.activeFilters.materia).toBeUndefined();
+
+      rerender({ configs: mockInitialConfigs });
+
+      expect(result.current.filterConfigs[1].categories[0].selectedIds).toEqual(
+        ['2']
+      );
+      expect(result.current.activeFilters.materia).toEqual(['2']);
+    });
   });
 
   describe('popstate event', () => {
