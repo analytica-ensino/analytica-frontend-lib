@@ -360,6 +360,43 @@ describe('useModules', () => {
       expect(result.current.simulations.enem).toBe('ENABLED');
       expect(result.current.simulations.simuladao).toBe('ENABLED');
     });
+
+    it('should expose the institution-configured provaQuestions', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {
+          ...defaultModules,
+          simulations: { ...fullSimulations, provaQuestions: 24 },
+        },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.provaQuestions).toBe(24);
+    });
+
+    it.each([
+      ['missing', undefined],
+      ['blank', ''],
+      ['zero', 0],
+      ['negative', -3],
+      ['fractional', 12.5],
+    ])(
+      'should fall back to 10 when provaQuestions is %s',
+      (_l, provaQuestions) => {
+        mockUseModulesStore.mockReturnValue({
+          modules: {
+            ...defaultModules,
+            simulations: { ...fullSimulations, provaQuestions },
+          },
+          loading: false,
+        });
+
+        const { result } = renderHook(() => useModules());
+
+        expect(result.current.provaQuestions).toBe(10);
+      }
+    );
   });
 
   describe('performanceGraphs config (lines 125-132)', () => {

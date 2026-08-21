@@ -1,6 +1,7 @@
 import { useModulesStore } from '../store/modulesStore';
 import {
   DEFAULT_SIMULATIONS,
+  DEFAULT_PROVA_QUESTIONS,
   DEFAULT_PERFORMANCE_GRAPHS,
   DEFAULT_REPORTS,
   DEFAULT_SIMULATED_SCORE,
@@ -44,7 +45,10 @@ export interface UseModulesReturn {
   hasExams: boolean;
 
   // Simulations
+  /** Whether the Simulados module is enabled (master toggle). */
   hasSimulations: boolean;
+  /** How many questions a generated PROVA has (default 10). */
+  provaQuestions: number;
   simulations: SimulationsConfig;
 
   // Performance graphs
@@ -145,6 +149,14 @@ export const useModules = (): UseModulesReturn => {
     // Simulations
     hasSimulations: simulations.enabled,
     simulations,
+    // Number of questions a generated PROVA has. Anything that is not a
+    // positive integer (unset, blank from the backoffice form) reads as the
+    // default 10 — mirrors `resolveProvaQuestionsQuantity` on the backend.
+    provaQuestions:
+      Number.isInteger(simulations.provaQuestions) &&
+      simulations.provaQuestions > 0
+        ? simulations.provaQuestions
+        : DEFAULT_PROVA_QUESTIONS,
 
     // Performance graphs
     hasPerformanceAulas: performanceGraphs.aulas ?? true,

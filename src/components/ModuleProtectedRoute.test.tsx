@@ -62,6 +62,7 @@ const createMockModulesReturn = (
   hasExams: true,
   hasSimulations: true,
   simulations: DEFAULT_SIMULATIONS,
+  provaQuestions: DEFAULT_SIMULATIONS.provaQuestions,
   hasPerformanceAulas: true,
   hasPerformanceAcessos: true,
   hasPerformanceSimulados: true,

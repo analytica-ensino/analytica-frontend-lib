@@ -17,6 +17,11 @@ export interface SimulationsConfig {
   prova: FeatureVisibility;
   simuladao: FeatureVisibility;
   vestibular: FeatureVisibility;
+  /**
+   * How many questions a PROVA is generated with. Configuration, not
+   * visibility — an institution that leaves it unset keeps the default 10.
+   */
+  provaQuestions: number;
 }
 
 /**
@@ -54,12 +59,15 @@ export interface SimulatedScoreConfig {
 /**
  * Default simulados configuration - module on, all types enabled
  */
+export const DEFAULT_PROVA_QUESTIONS = 10;
+
 export const DEFAULT_SIMULATIONS: SimulationsConfig = {
   enabled: true,
   enem: 'ENABLED',
   prova: 'ENABLED',
   simuladao: 'ENABLED',
   vestibular: 'ENABLED',
+  provaQuestions: DEFAULT_PROVA_QUESTIONS,
 };
 
 /**
