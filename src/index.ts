@@ -1903,6 +1903,13 @@ export type {
   DownloadFormat,
 } from './components/DownloadModal/DownloadModal';
 
+// ReportDetailModal Component
+export { ReportDetailModal } from './components/ReportDetailModal';
+export type {
+  ReportDetailModalProps,
+  ReportDetailModalSize,
+} from './components/ReportDetailModal';
+
 // PrintableUsersTable Component
 export { default as PrintableUsersTable } from './components/PrintableUsersTable/PrintableUsersTable';
 export type { PrintableUsersTableProps } from './components/PrintableUsersTable/PrintableUsersTable';
@@ -1920,9 +1927,13 @@ export {
 // Report Export Utils
 export { downloadExcel } from './utils/exportExcel';
 export { printAsPdf } from './utils/exportPdf';
+export { fetchAllPages } from './utils/fetchAllPages';
+export { useReportPrint } from './hooks/useReportPrint';
 
 // Report Export Types
 export type { ExcelCell, SheetConfig } from './utils/exportExcel';
+export type { PageRequest } from './utils/fetchAllPages';
+export type { ReportPrintOptions } from './hooks/useReportPrint';
 
 // SimulatedPerformance Component
 export {

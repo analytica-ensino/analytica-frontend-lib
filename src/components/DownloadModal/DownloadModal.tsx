@@ -24,7 +24,12 @@ export interface DownloadModalProps {
   readonly isDownloading: boolean;
   readonly error: string | null;
   readonly onDownloadPdf: () => void;
-  readonly onDownloadExcel: () => void;
+  /**
+   * Excel generation. Optional: when it is not supplied the Excel card is not
+   * rendered at all and the modal offers PDF only, so no caller can select a
+   * format that has nothing behind it.
+   */
+  readonly onDownloadExcel?: () => void;
 }
 
 /**
@@ -70,7 +75,7 @@ const DownloadModal = ({
     } else if (selectedFormat === DOWNLOAD_FORMAT.EXCEL) {
       // Excel generation is async. The useEffect above auto-closes the modal
       // once `isDownloading` transitions back to false and there is no error.
-      onDownloadExcel();
+      onDownloadExcel?.();
     }
   }, [selectedFormat, onDownloadPdf, onDownloadExcel, handleClose]);
 
@@ -136,17 +141,19 @@ const DownloadModal = ({
               <FilePdfIcon size={24} className="text-text-700" />
             </Button>
 
-            <Button
-              data-testid="download-excel-option"
-              aria-label="Excel"
-              aria-pressed={selectedFormat === DOWNLOAD_FORMAT.EXCEL}
-              variant="outline"
-              action="secondary"
-              className={`${cardBase} ${selectedFormat === DOWNLOAD_FORMAT.EXCEL ? cardSelected : cardDefault}`}
-              onClick={() => setSelectedFormat(DOWNLOAD_FORMAT.EXCEL)}
-            >
-              <FileXlsIcon size={24} className="text-text-700" />
-            </Button>
+            {onDownloadExcel && (
+              <Button
+                data-testid="download-excel-option"
+                aria-label="Excel"
+                aria-pressed={selectedFormat === DOWNLOAD_FORMAT.EXCEL}
+                variant="outline"
+                action="secondary"
+                className={`${cardBase} ${selectedFormat === DOWNLOAD_FORMAT.EXCEL ? cardSelected : cardDefault}`}
+                onClick={() => setSelectedFormat(DOWNLOAD_FORMAT.EXCEL)}
+              >
+                <FileXlsIcon size={24} className="text-text-700" />
+              </Button>
+            )}
           </div>
         )}
       </div>

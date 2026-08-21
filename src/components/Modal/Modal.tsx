@@ -179,6 +179,8 @@ const Modal = ({
             {!hideCloseButton && (
               <button
                 onClick={onClose}
+                // Ver a nota sobre `data-print-hide` na montagem default abaixo.
+                data-print-hide
                 className="p-1 text-text-500 hover:text-text-700 hover:bg-background-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-indicator-info focus:ring-offset-2"
                 aria-label="Fechar modal"
               >
@@ -286,6 +288,24 @@ const Modal = ({
           {!hideCloseButton && (
             <button
               onClick={onClose}
+              /*
+               * O X não sai no PDF. Quando este modal é a região de impressão
+               * (`js-print-region` + `body.printing-modal`), o print.css revela
+               * o <dialog> INTEIRO — o botão mora dentro dele e nada mais o
+               * esconderia.
+               *
+               * Exceção deliberada ao contrato do print.css, que manda pôr
+               * `data-print-hide` no CONTAINER e não no botão: aqui o container
+               * é o header, e ele carrega o <h2> do título, que É conteúdo do
+               * relatório. Marcá-lo apagaria o título junto. A razão do contrato
+               * — colapsar o espaçamento do flex — não se aplica: o header usa
+               * `justify-between`, sem `gap`, então o título simplesmente ocupa
+               * a linha sozinho.
+               *
+               * Inerte fora de `@media print`, e só surte efeito em quem importa
+               * `analytica-frontend-lib/print.css`.
+               */
+              data-print-hide
               className="p-1 text-text-500 hover:text-text-700 hover:bg-background-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-indicator-info focus:ring-offset-2"
               aria-label="Fechar modal"
             >
