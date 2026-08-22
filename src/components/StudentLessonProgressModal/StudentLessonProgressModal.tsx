@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import {
   MagnifyingGlassIcon,
   XCircleIcon,
@@ -6,7 +6,7 @@ import {
   SealWarningIcon,
 } from '@phosphor-icons/react';
 import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
-import Modal from '../Modal/Modal';
+import ReportDetailModal from '../ReportDetailModal/ReportDetailModal';
 import Text from '../Text/Text';
 import ProgressBar from '../ProgressBar/ProgressBar';
 import ProgressCircle from '../ProgressCircle/ProgressCircle';
@@ -25,7 +25,33 @@ import type {
   ContentProgressItem,
 } from './types';
 import { DEFAULT_LESSON_PROGRESS_LABELS } from './types';
+import { downloadExcel } from '../../utils/exportExcel';
+import { formatDateForFileName } from '../../utils/exportFormat';
+import { hasContentData, roundProgress } from './lessonProgress';
+import { buildStudentLessonProgressSheets } from './exportSheets';
 import { cn } from '../../utils/utils';
+
+/**
+ * Prefixo do arquivo exportado, em PDF e em XLSX. Recebe a data do dia.
+ *
+ * Sem o nome do estudante de propósito: ele traz acentos, espaços e às vezes
+ * pontuação, e um nome de arquivo pede transliteração — que não existe nesta
+ * lib e que não vale a pena inventar aqui.
+ */
+const EXPORT_FILE_PREFIX = 'conclusao-aulas';
+
+/**
+ * Teto de altura do modal.
+ *
+ * Vem do `contentClassName="max-h-[80vh]"` que este componente passava ao
+ * `Modal` base; o `ReportDetailModal` não repassa `contentClassName`, então o
+ * limite migrou para o `<dialog>` pela prop `className`, onde vence o
+ * `max-h-[calc(100dvh-2rem)]` padrão no tailwind-merge (pinado em teste). A
+ * rolagem interna continua vindo do `Modal`, que já põe `overflow-y-auto` na
+ * área de conteúdo (`Modal.tsx:321`) — por isso o `overflow-y-auto` que estava
+ * no `contentClassName` não precisou de novo lugar.
+ */
+const MODAL_HEIGHT_CLASS = 'max-h-[80vh]';
 
 /**
  * Content item accordion (deepest level - individual lessons)
@@ -37,7 +63,10 @@ const ContentAccordionItem = ({
   item: ContentProgressItem;
   noDataMessage: string;
 }) => {
-  const hasNoData = item.progress === 0 && !item.isCompleted;
+  // `hasContentData` e `roundProgress` vivem em `./lessonProgress` para que a
+  // aba "Conclusão das aulas" da planilha decida e arredonde pelas mesmas
+  // regras desta linha, em vez de manter uma segunda cópia que pode divergir.
+  const hasNoData = !hasContentData(item);
 
   return (
     <div className="flex items-center justify-between p-4 border-t border-border-50">
@@ -54,7 +83,7 @@ const ContentAccordionItem = ({
           weight="medium"
           className="text-text-500 whitespace-nowrap"
         >
-          {Math.round(item.progress)}%
+          {roundProgress(item.progress)}%
         </Text>
       )}
     </div>
@@ -100,7 +129,7 @@ const SubtopicAccordionItem = ({
               weight="medium"
               className="text-text-500 whitespace-nowrap"
             >
-              {Math.round(item.progress)}%
+              {roundProgress(item.progress)}%
             </Text>
           )}
         </div>
@@ -190,7 +219,7 @@ const TopicAccordionItem = ({
                 weight="medium"
                 className="text-text-950 whitespace-nowrap"
               >
-                {Math.round(item.progress)}%
+                {roundProgress(item.progress)}%
               </Text>
             </div>
           )}
@@ -392,6 +421,21 @@ const renderModalContent = (
  * - Completion rate circle
  * - Best result and biggest difficulty highlight cards
  * - Expandable nested list of lesson progress by topic
+ *
+ * Exportável: monta sobre o `ReportDetailModal`, então traz o botão "Baixar
+ * relatório" com PDF (impressão só deste modal) e XLSX. As duas saídas usam o
+ * dado que chega por `data` — nada é buscado aqui — e a planilha espelha os
+ * blocos acima aba a aba (veja `exportSheets.ts`).
+ *
+ * ESTADOS DE CARREGANDO E ERRO: o botão continua lá, porque é o
+ * `ReportDetailModal` que o desenha e ele não tem como escondê-lo. O PDF sai
+ * com o que estiver na tela (o skeleton ou a mensagem de erro) e o XLSX sai com
+ * as duas abas só de cabeçalho, já que `data` é `null` — nenhum dos dois
+ * estoura. Sem dado, sem carregamento e sem erro o componente inteiro devolve
+ * `null`, e aí não há botão nenhum.
+ *
+ * O consumidor precisa importar `analytica-frontend-lib/print.css`: sem as
+ * regras `@media print` o PDF sai com a página inteira em vez do modal.
  */
 export const StudentLessonProgressModal = ({
   isOpen,
@@ -406,6 +450,12 @@ export const StudentLessonProgressModal = ({
     [customLabels]
   );
 
+  const fileName = `${EXPORT_FILE_PREFIX}-${formatDateForFileName(new Date())}`;
+
+  const handleDownloadExcel = useCallback(() => {
+    downloadExcel(fileName, buildStudentLessonProgressSheets(data, labels));
+  }, [fileName, data, labels]);
+
   const content = renderModalContent(loading, error, data, labels);
 
   if (!content) {
@@ -413,15 +463,21 @@ export const StudentLessonProgressModal = ({
   }
 
   return (
-    <Modal
+    <ReportDetailModal
       isOpen={isOpen}
       onClose={onClose}
       title={labels.title}
       size="lg"
-      contentClassName="max-h-[80vh] overflow-y-auto"
+      className={MODAL_HEIGHT_CLASS}
+      // Só `fileName`: o PDF é a impressão deste modal, e o `ReportDetailModal`
+      // já a faz. Ligar `onDownloadPdf` a um `useReportPrint` local somaria uma
+      // segunda impressão — o callback SUBSTITUI a embutida, então o usuário
+      // veria dois diálogos.
+      fileName={fileName}
+      onDownloadExcel={handleDownloadExcel}
     >
       {content}
-    </Modal>
+    </ReportDetailModal>
   );
 };
 
