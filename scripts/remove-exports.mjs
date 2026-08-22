@@ -19,10 +19,19 @@ async function removeExports() {
   // Read current package.json
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
 
-  // Keep only styles export (no main bundle export)
-  const baseExports = {
-    "./styles.css": packageJson.exports["./styles.css"]
-  };
+  // Keep every static stylesheet export (no main bundle export).
+  //
+  // These are declared by hand in package.json: `add-exports.mjs` derives the
+  // map from the tsup entries and skips anything that is not `.ts`/`.tsx`, so
+  // it cannot recreate a `.css` subpath. Resetting to a hardcoded list would
+  // drop any stylesheet added later — the first publish would ship it, this
+  // cleanup would erase the line from the repo, and the NEXT publish would go
+  // out without it, breaking every consumer that imports it.
+  const baseExports = Object.fromEntries(
+    Object.entries(packageJson.exports).filter(([subpath]) =>
+      subpath.endsWith('.css')
+    )
+  );
 
   // Count removed exports
   const totalExports = Object.keys(packageJson.exports).length;
