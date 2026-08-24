@@ -90,7 +90,10 @@ export async function fetchAllPages<T>(
   // the rest is missing. Throwing turns the worst outcome this helper can
   // produce into the most visible one.
   if (!Number.isFinite(first.totalPages)) {
-    throw new Error('fetchAllPages: endpoint did not report totalPages');
+    // `TypeError` and not `Error`: the guard is a type/value check, and the
+    // specific class lets a caller distinguish a malformed payload from the
+    // network failures the fetch callback itself may reject with.
+    throw new TypeError('fetchAllPages: endpoint did not report totalPages');
   }
 
   // One page and no pages both stop here. `slice()` because every path must

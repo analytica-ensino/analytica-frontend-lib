@@ -447,9 +447,11 @@ describe('EssayCompetenceDetailsModal', () => {
      */
     const chooseFormatAndConfirm = async (format: 'PDF' | 'Excel') => {
       fireEvent.click(screen.getByRole('button', { name: format }));
-      await act(async () => {
-        fireEvent.click(screen.getByRole('button', { name: 'Baixar' }));
-      });
+      fireEvent.click(screen.getByRole('button', { name: 'Baixar' }));
+      // O `fireEvent` já roda dentro de um `act` do Testing Library; este aqui
+      // existe só para drenar o que o clique disparou de assíncrono — o caminho
+      // Excel aguarda a varredura de páginas antes de montar a planilha.
+      await act(async () => {});
     };
 
     /**

@@ -58,11 +58,11 @@ const PRINT_HIDE_SELECTOR = '[data-print-hide]';
  * Sem isto a falha diz "esperava 1, recebeu 0" e não diz QUAL controle ficou sem
  * marca — que é justamente a informação que o achado precisa carregar.
  */
-function describeControl(control: Element): string {
+function describeControl(control: HTMLElement): string {
   const tag = control.tagName.toLowerCase();
   const label =
     control.getAttribute('aria-label') ??
-    control.getAttribute('data-testid') ??
+    control.dataset.testid ??
     control.textContent?.trim();
 
   return label ? `<${tag}> "${label}"` : `<${tag}>`;
@@ -94,7 +94,7 @@ export interface PrintedControlsDeclaration {
 }
 
 /**
- * Exige que TODO controle dentro da região impressa esteja sob `data-print-hide`
+ * Exige que cada controle dentro da região impressa esteja sob `data-print-hide`
  * — salvo os que a chamada declarar explicitamente como impressos.
  *
  * @param expectedHiddenCount - Quantos controles a região deve ter sob
@@ -134,8 +134,11 @@ export function expectPrintRegionControlsHidden(
   // este teste continuaria verde.
   expect(region).not.toBeNull();
 
+  // `HTMLElement` e não `Element`: todo seletor de `CONTROL_SELECTOR` é HTML
+  // (button, a, input, select, textarea), e é o que dá acesso a `dataset` em
+  // `describeControl`.
   const controls = Array.from(
-    (region as Element).querySelectorAll(CONTROL_SELECTOR)
+    (region as Element).querySelectorAll<HTMLElement>(CONTROL_SELECTOR)
   );
 
   const hidden = controls.filter(
