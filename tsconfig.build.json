@@ -9,5 +9,12 @@
     "rootDir": "src"
   },
   "include": ["src/**/*", "global.d.ts"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.test.tsx", "**/*.stories.tsx"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.stories.tsx",
+    "src/testing/**"
+  ]
 }
