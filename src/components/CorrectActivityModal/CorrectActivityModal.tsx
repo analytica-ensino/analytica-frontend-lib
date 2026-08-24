@@ -613,23 +613,28 @@ const CorrectActivityModal = ({
               );
             }}
             placeholder="Escreva uma observação sobre a resposta do aluno"
-            rows={4}
+            rows={3}
             size="medium"
           />
         </div>
 
-        {/* Save button */}
-        <Button
-          size="small"
-          onClick={() => handleSaveEssayCorrection(questionData.questionNumber)}
-          disabled={
-            correction.isCorrect === null ||
-            correction.isSaving ||
-            !onQuestionCorrectionSubmit
-          }
-        >
-          {correction.isSaving ? 'Salvando...' : 'Salvar'}
-        </Button>
+        {/* Save button — one save for the grade and the observation together */}
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="medium"
+            onClick={() =>
+              handleSaveEssayCorrection(questionData.questionNumber)
+            }
+            disabled={
+              correction.isCorrect === null ||
+              correction.isSaving ||
+              !onQuestionCorrectionSubmit
+            }
+          >
+            {correction.isSaving ? 'Salvando...' : 'Salvar'}
+          </Button>
+        </div>
       </>
     );
   };

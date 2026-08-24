@@ -730,7 +730,7 @@ describe('questionRenderer', () => {
       ).toBeInTheDocument();
     });
 
-    it('should display teacher feedback when answer is incorrect', () => {
+    it('should not echo the teacher observation, whatever the answer status', () => {
       const result = createQuestionResult(
         'a1',
         'q1',
@@ -743,10 +743,17 @@ describe('questionRenderer', () => {
 
       render(renderQuestionDissertative({ result }));
 
-      expect(screen.getByText('Observação do professor:')).toBeInTheDocument();
+      // The observation lives in the editable textarea of the correction block.
+      // The read-only echo here duplicated it, and only ever appeared on wrong
+      // answers — so an observation on a correct answer silently vanished.
       expect(
-        screen.getByText('Você precisa explicar melhor o processo')
-      ).toBeInTheDocument();
+        screen.queryByText('Observação do professor:')
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Você precisa explicar melhor o processo')
+      ).not.toBeInTheDocument();
+      // The student's answer is still rendered.
+      expect(screen.getByText('Resposta do aluno')).toBeInTheDocument();
     });
 
     it('should not display feedback when answer is correct', () => {

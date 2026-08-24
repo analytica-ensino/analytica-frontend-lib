@@ -40,13 +40,15 @@ const detailPayload = {
   data: {
     simulationId: 'sim-1',
     title: 'Simulado 1',
-    counts: { correct: 8, incorrect: 7, blank: 4 },
+    counts: { correct: 8, incorrect: 7, blank: 4, pending: 0 },
     questions: [
       {
         questionId: 'q1',
         statement: 'Um carro inicia do repouso...',
         status: 'INCORRECT',
+        questionType: 'ALTERNATIVA',
         selectedOptionId: 'opt-b',
+        answer: null,
         teacherComment: null,
         options: [
           {
@@ -552,6 +554,116 @@ describe('SimulationsDetailModal', () => {
 
     expect(
       await screen.findByDisplayValue('Comentário anterior')
+    ).toBeInTheDocument();
+  });
+
+  it('renders the written answer for an essay question, not an empty Alternativas box', async () => {
+    const api = {
+      get: jest.fn((url: string) => {
+        if (url.endsWith('/note')) {
+          return Promise.resolve({ data: { message: 'ok', data: null } });
+        }
+        if (/\/students\/[^/]+\/[^/]+$/.test(url)) {
+          return Promise.resolve({
+            data: {
+              ...detailPayload,
+              data: {
+                ...detailPayload.data,
+                counts: { correct: 0, incorrect: 0, blank: 0, pending: 1 },
+                questions: [
+                  {
+                    questionId: 'q-essay',
+                    statement: 'Explique a fotossíntese.',
+                    questionType: 'DISSERTATIVA',
+                    status: 'PENDING',
+                    selectedOptionId: null,
+                    answer: 'A fotossíntese ocorre nos cloroplastos.',
+                    options: [],
+                    teacherComment: null,
+                  },
+                ],
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: listPayload });
+      }),
+      post: jest.fn(),
+      patch: jest.fn(),
+      delete: jest.fn(),
+    } as unknown as BaseApiClient;
+
+    render(
+      <SimulationsDetailModal
+        api={api}
+        isOpen
+        onClose={jest.fn()}
+        student={student}
+      />
+    );
+    fireEvent.click(await screen.findByText('Simulado 1'));
+
+    // Answered essays used to be reported as "Em branco".
+    expect(await screen.findByText('Pendente')).toBeInTheDocument();
+    expect(screen.getByText('Nº de questões pendentes')).toBeInTheDocument();
+
+    fireEvent.click(await screen.findByText('Questão 1'));
+
+    expect(await screen.findByText('Resposta do aluno')).toBeInTheDocument();
+    expect(screen.queryByText('Alternativas')).not.toBeInTheDocument();
+    expect(
+      screen.getByText('A fotossíntese ocorre nos cloroplastos.')
+    ).toBeInTheDocument();
+  });
+
+  it('renders an empty state for an essay the student did not answer', async () => {
+    const api = {
+      get: jest.fn((url: string) => {
+        if (url.endsWith('/note')) {
+          return Promise.resolve({ data: { message: 'ok', data: null } });
+        }
+        if (/\/students\/[^/]+\/[^/]+$/.test(url)) {
+          return Promise.resolve({
+            data: {
+              ...detailPayload,
+              data: {
+                ...detailPayload.data,
+                questions: [
+                  {
+                    questionId: 'q-essay',
+                    statement: 'Explique a fotossíntese.',
+                    questionType: 'DISSERTATIVA',
+                    status: 'BLANK',
+                    selectedOptionId: null,
+                    answer: null,
+                    options: [],
+                    teacherComment: null,
+                  },
+                ],
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: listPayload });
+      }),
+      post: jest.fn(),
+      patch: jest.fn(),
+      delete: jest.fn(),
+    } as unknown as BaseApiClient;
+
+    render(
+      <SimulationsDetailModal
+        api={api}
+        isOpen
+        onClose={jest.fn()}
+        student={student}
+      />
+    );
+    fireEvent.click(await screen.findByText('Simulado 1'));
+    fireEvent.click(await screen.findByText('Questão 1'));
+
+    expect(
+      await screen.findByText('Nenhuma resposta fornecida')
     ).toBeInTheDocument();
   });
 });

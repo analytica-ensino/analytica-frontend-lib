@@ -70,7 +70,12 @@ export interface SimulationsListFilters {
 
 // ---------------------------------------------------------------------------
 
-export type SimulationQuestionStatus = 'CORRECT' | 'INCORRECT' | 'BLANK';
+export type SimulationQuestionStatus =
+  | 'CORRECT'
+  | 'INCORRECT'
+  | 'BLANK'
+  /** Answered essay nobody graded yet — not the same thing as unanswered. */
+  | 'PENDING';
 
 export interface SimulationDetailOption {
   id: string;
@@ -82,8 +87,12 @@ export interface SimulationDetailOption {
 export interface SimulationDetailQuestion {
   questionId: string;
   statement: string;
+  /** Decides how the answer is rendered: alternatives vs. the written text. */
+  questionType: string;
   status: SimulationQuestionStatus;
   selectedOptionId: string | null;
+  /** Free-text answer, for essay questions. Null on objective ones. */
+  answer: string | null;
   options: SimulationDetailOption[];
   /**
    * Teacher's comment on this specific question, shown to the student in their
@@ -95,7 +104,12 @@ export interface SimulationDetailQuestion {
 export interface SimulationDetailData {
   simulationId: string;
   title: string;
-  counts: { correct: number; incorrect: number; blank: number };
+  counts: {
+    correct: number;
+    incorrect: number;
+    blank: number;
+    pending: number;
+  };
   questions: SimulationDetailQuestion[];
 }
 

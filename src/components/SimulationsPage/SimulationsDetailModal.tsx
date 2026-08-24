@@ -11,6 +11,7 @@ import { QuestionCommentField } from '../shared/QuestionCommentField';
 import { AlternativesList } from '../Alternative/Alternative';
 import { HtmlMathRenderer } from '../HtmlMathRenderer';
 import { OptionStatus } from '../../enums/Options';
+import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import {
   getQuestionStatusBadgeConfig,
   QUESTION_STATUS,
@@ -55,6 +56,7 @@ const QUESTION_STATUS_MAP: Record<
   CORRECT: QUESTION_STATUS.CORRETA,
   INCORRECT: QUESTION_STATUS.INCORRETA,
   BLANK: QUESTION_STATUS.EM_BRANCO,
+  PENDING: QUESTION_STATUS.PENDENTE,
 };
 
 // ---------------------------------------------------------------------------
@@ -86,6 +88,11 @@ function QuestionItem({
     return { label: option.option, value: option.id, status };
   });
 
+  // An essay has no alternatives to show — it has the text the student wrote.
+  // Rendering the "Alternativas" accordion for it produced an empty box and hid
+  // the answer entirely, leaving the teacher to comment on nothing.
+  const isEssay = question.questionType === QUESTION_TYPE.DISSERTATIVA;
+
   return (
     <CardAccordation
       value={question.questionId}
@@ -113,23 +120,38 @@ function QuestionItem({
           className="text-sm text-text-800"
         />
         <CardAccordation
-          value={`${question.questionId}-options`}
+          value={`${question.questionId}-answer`}
           trigger={
             <div className="flex-1 py-2">
               <Text size="sm" weight="medium" className="text-text-950">
-                Alternativas
+                {isEssay ? 'Resposta do aluno' : 'Alternativas'}
               </Text>
             </div>
           }
           contentClassName="px-3 pb-3"
         >
-          <AlternativesList
-            mode="readonly"
-            layout="compact"
-            name={`question-${question.questionId}`}
-            alternatives={alternatives}
-            selectedValue={question.selectedOptionId ?? ''}
-          />
+          {isEssay ? (
+            <div className="rounded-lg border border-border-100 bg-background-50 p-3">
+              {question.answer ? (
+                <HtmlMathRenderer
+                  content={question.answer}
+                  className="text-sm text-text-800"
+                />
+              ) : (
+                <Text size="sm" className="text-text-600">
+                  Nenhuma resposta fornecida
+                </Text>
+              )}
+            </div>
+          ) : (
+            <AlternativesList
+              mode="readonly"
+              layout="compact"
+              name={`question-${question.questionId}`}
+              alternatives={alternatives}
+              selectedValue={question.selectedOptionId ?? ''}
+            />
+          )}
         </CardAccordation>
         <QuestionCommentField
           value={question.teacherComment ?? ''}
@@ -306,6 +328,15 @@ function SimulationItem({
               variant="blank"
               className="flex-1"
             />
+            {/* Essays awaiting grading used to be counted as blank. */}
+            {detail.data.counts.pending > 0 && (
+              <StatCard
+                label="Nº de questões pendentes"
+                value={detail.data.counts.pending}
+                variant="pending"
+                className="flex-1"
+              />
+            )}
           </div>
 
           <NoteRow

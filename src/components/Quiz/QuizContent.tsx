@@ -512,18 +512,9 @@ const QuizDissertative = ({ paddingBottom }: QuizVariantInterface) => {
         </div>
       </QuizContainer>
 
-      {variant === QuizVariant.RESULT &&
-        currentQuestionResult?.teacherFeedback && (
-          <>
-            <QuizSubTitle subTitle="Observação do professor" />
-
-            <QuizContainer className={cn('', paddingBottom)}>
-              <p className="text-text-600 text-md whitespace-pre-wrap">
-                {currentQuestionResult?.teacherFeedback}
-              </p>
-            </QuizContainer>
-          </>
-        )}
+      {/* The teacher's comment is rendered by `TeacherQuestionComment`, mounted
+          once in `QuizContent` for every question type. This block used to
+          duplicate it here, so an essay showed the same text twice. */}
     </>
   );
 };

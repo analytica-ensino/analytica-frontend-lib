@@ -1252,7 +1252,7 @@ describe('QuizContent', () => {
       expect(screen.queryByTestId('quiz-textarea')).not.toBeInTheDocument();
     });
 
-    it('should show teacher observation when teacherFeedback exists in result mode', () => {
+    it('should not duplicate the teacher comment in result mode', () => {
       const mockQuestion = {
         id: 'question-1',
         statement: 'Test question',
@@ -1278,13 +1278,18 @@ describe('QuizContent', () => {
 
       render(<QuizDissertative />);
 
-      expect(screen.getByText('Observação do professor')).toBeInTheDocument();
+      // The comment belongs to `TeacherQuestionComment`, mounted once for every
+      // question type. Rendering it here too showed the student the same text
+      // twice, so this component must stay out of it.
       expect(
-        screen.getByText(/Lorem ipsum dolor sit amet/)
-      ).toBeInTheDocument();
+        screen.queryByText('Observação do professor')
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/Lorem ipsum dolor sit amet/)
+      ).not.toBeInTheDocument();
     });
 
-    it('should show teacher observation for correct answers when teacherFeedback exists', () => {
+    it('should not duplicate the teacher comment for correct answers', () => {
       const mockQuestion = {
         id: 'question-1',
         statement: 'Test question',
@@ -1310,10 +1315,12 @@ describe('QuizContent', () => {
 
       render(<QuizDissertative />);
 
-      expect(screen.getByText('Observação do professor')).toBeInTheDocument();
       expect(
-        screen.getByText(/Parabéns pelo excelente trabalho!/)
-      ).toBeInTheDocument();
+        screen.queryByText('Observação do professor')
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/Parabéns pelo excelente trabalho!/)
+      ).not.toBeInTheDocument();
     });
 
     it('should not show teacher observation when teacherFeedback is undefined', () => {
