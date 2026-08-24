@@ -1,10 +1,14 @@
-import { useMemo, type ReactNode } from 'react';
+import { useCallback, useMemo, type ReactNode } from 'react';
 import { UserIcon, TrophyIcon, XCircleIcon } from '@phosphor-icons/react';
-import Modal from '../Modal/Modal';
+import ReportDetailModal from '../ReportDetailModal/ReportDetailModal';
 import Text from '../Text/Text';
 import Badge from '../Badge/Badge';
 import ProgressBar from '../ProgressBar/ProgressBar';
 import { CardAccordation } from '../Accordation/Accordation';
+import { downloadExcel } from '../../utils/exportExcel';
+import { formatDateForFileName } from '../../utils/exportFormat';
+import { formatProgressText, hasActivityData } from './activityProgress';
+import { buildStudentPerformanceSheets } from './exportSheets';
 import type {
   StudentPerformanceDetailsModalProps,
   StudentPerformanceDetailsData,
@@ -13,6 +17,27 @@ import type {
 } from './types';
 import { DEFAULT_PERFORMANCE_DETAILS_LABELS } from './types';
 import { MetricBox } from '../shared/MetricBox';
+
+/**
+ * Prefixo do arquivo exportado, em PDF e em XLSX. Recebe a data do dia.
+ *
+ * Sem o nome do estudante de propósito: ele traz acentos, espaços e às vezes
+ * pontuação, e um nome de arquivo pede transliteração — que não existe nesta
+ * lib e que não vale a pena inventar aqui.
+ */
+const EXPORT_FILE_PREFIX = 'desempenho-estudante';
+
+/**
+ * Teto de altura do modal.
+ *
+ * Vem do `contentClassName="max-h-[80vh]"` que este componente passava ao
+ * `Modal` base; o `ReportDetailModal` não repassa `contentClassName`, então o
+ * limite migrou para o `<dialog>` pela prop `className`, onde vence o
+ * `max-h-[calc(100dvh-2rem)]` padrão no tailwind-merge (pinado em teste). A
+ * rolagem interna continua vindo do `Modal`, que já põe `overflow-y-auto` na
+ * área de conteúdo.
+ */
+const MODAL_HEIGHT_CLASS = 'max-h-[80vh]';
 
 /**
  * Performance stat card with colored header and white footer
@@ -132,26 +157,16 @@ interface ActivityCardProps {
   activityDetailsUnavailable: string;
 }
 
-/**
- * Format activity progress text by replacing placeholders
- */
-const formatProgressText = (
-  template: string,
-  correct: number,
-  total: number
-): string => {
-  return template
-    .replace('{correct}', String(correct))
-    .replace('{total}', String(total));
-};
-
 const ActivityAccordionCard = ({
   activity,
   noDataMessage,
   activityProgressText,
   activityDetailsUnavailable,
 }: ActivityCardProps) => {
-  const hasData = !activity.hasNoData && activity.totalCount > 0;
+  // `hasActivityData` e `formatProgressText` vivem em `./activityProgress` para
+  // que a aba "Desempenho atividades" da planilha decida e formate pelas mesmas
+  // regras deste card, em vez de manter uma segunda cópia que pode divergir.
+  const hasData = hasActivityData(activity);
   const progressPercentage = hasData
     ? Math.min(
         100,
@@ -374,6 +389,14 @@ const renderModalContent = (
  * - Five metric cards (activities, questions, access, time, last login)
  * - Expandable list of activity progress
  *
+ * Exportável: monta sobre o `ReportDetailModal`, então traz o botão "Baixar
+ * relatório" com PDF (impressão só deste modal) e XLSX. As duas saídas usam o
+ * dado que chega por `data` — nada é buscado aqui — e a planilha espelha os
+ * blocos acima aba a aba (veja `exportSheets.ts`).
+ *
+ * O consumidor precisa importar `analytica-frontend-lib/print.css`: sem as
+ * regras `@media print` o PDF sai com a página inteira em vez do modal.
+ *
  * @example
  * ```tsx
  * <StudentPerformanceDetailsModal
@@ -410,20 +433,32 @@ export const StudentPerformanceDetailsModal = ({
     [customLabels]
   );
 
+  const fileName = `${EXPORT_FILE_PREFIX}-${formatDateForFileName(new Date())}`;
+
+  const handleDownloadExcel = useCallback(() => {
+    downloadExcel(fileName, buildStudentPerformanceSheets(data, labels));
+  }, [fileName, data, labels]);
+
   if (!data && !loading && !error) {
     return null;
   }
 
   return (
-    <Modal
+    <ReportDetailModal
       isOpen={isOpen}
       onClose={onClose}
       title={labels.title}
       size="lg"
-      contentClassName="max-h-[80vh] overflow-y-auto"
+      className={MODAL_HEIGHT_CLASS}
+      // Só `fileName`: o PDF é a impressão deste modal, e o
+      // `ReportDetailModal` já a faz. Ligar `onDownloadPdf` a um
+      // `useReportPrint` local somaria uma segunda impressão — o callback
+      // SUBSTITUI a embutida, então o usuário veria dois diálogos.
+      fileName={fileName}
+      onDownloadExcel={handleDownloadExcel}
     >
       {renderModalContent(loading, error, data, labels)}
-    </Modal>
+    </ReportDetailModal>
   );
 };
 

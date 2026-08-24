@@ -1,11 +1,19 @@
 import { useState, useCallback } from 'react';
 import type { BaseApiClient } from '../../types/api';
+import {
+  COMPETENCE_DETAILS_ENDPOINT,
+  buildCompetenceDetailsBody,
+} from './competenceDetailsRequest';
 import type {
   EssayCompetenceDetailsData,
   EssayCompetenceDetailsParams,
   EssayCompetenceDetailsApiResponse,
   UseEssayCompetenceDetailsReturn,
 } from './types';
+
+/** Página e tamanho de página quando o chamador não os informa. */
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 20;
 
 /**
  * Hook for fetching essay competence details
@@ -39,18 +47,11 @@ export function useEssayCompetenceDetails(
         setError(null);
 
         const response = await api.post<EssayCompetenceDetailsApiResponse>(
-          '/performance/simulated/essays/competence-details',
-          {
-            competenceNumber: params.competenceNumber,
-            period: params.period,
-            schoolIds: params.schoolIds ?? [],
-            schoolYearIds: params.schoolYearIds ?? [],
-            classIds: params.classIds ?? [],
-            page: params.page ?? 1,
-            limit: params.limit ?? 20,
-            orderBy: params.orderBy ?? 'averageScore',
-            order: params.order ?? 'desc',
-          }
+          COMPETENCE_DETAILS_ENDPOINT,
+          buildCompetenceDetailsBody(params, {
+            page: params.page ?? DEFAULT_PAGE,
+            limit: params.limit ?? DEFAULT_LIMIT,
+          })
         );
 
         setData(response.data.data);

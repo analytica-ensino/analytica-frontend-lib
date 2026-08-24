@@ -1,32 +1,19 @@
 import { useState, useCallback, useRef } from 'react';
 import type { BaseApiClient } from '../../types/api';
+import {
+  buildContentDetailsBody,
+  buildContentDetailsEndpoint,
+} from './contentDetailsRequest';
 import type {
   ContentDetailsData,
   ContentDetailsParams,
   ContentDetailsApiResponse,
   UseSimulatedContentDetailsReturn,
-  ActivityFilters,
 } from './types';
 
-/**
- * Build the API endpoint with activity filters as query params
- */
-function buildEndpoint(activityFilters: ActivityFilters): string {
-  const params = new URLSearchParams();
-
-  activityFilters.types?.forEach((t) => params.append('types', t));
-  activityFilters.subtypes?.forEach((s) => params.append('subtypes', s));
-  activityFilters.statuses?.forEach((s) => params.append('statuses', s));
-
-  const queryString = params.toString();
-  const endpoint = '/performance/simulated/activities/content-details';
-
-  if (!queryString) {
-    return endpoint;
-  }
-
-  return `${endpoint}?${queryString}`;
-}
+/** Página e tamanho de página quando o chamador não os informa. */
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 20;
 
 /**
  * Hook for fetching content details in simulated exams
@@ -63,20 +50,15 @@ export function useSimulatedContentDetails(
           setError(null);
         }
 
-        const endpoint = buildEndpoint(params.activityFilters);
+        const endpoint = buildContentDetailsEndpoint(params.activityFilters);
 
-        const response = await api.post<ContentDetailsApiResponse>(endpoint, {
-          contentId: params.contentId,
-          period: params.period,
-          schoolIds: params.schoolIds,
-          schoolYearIds: params.schoolYearIds,
-          classIds: params.classIds,
-          studentsIds: params.studentsIds,
-          page: params.page ?? 1,
-          limit: params.limit ?? 20,
-          orderBy: params.orderBy,
-          order: params.order,
-        });
+        const response = await api.post<ContentDetailsApiResponse>(
+          endpoint,
+          buildContentDetailsBody(params, {
+            page: params.page ?? DEFAULT_PAGE,
+            limit: params.limit ?? DEFAULT_LIMIT,
+          })
+        );
 
         if (currentRequestVersion === requestVersionRef.current) {
           setData(response.data.data);

@@ -93,6 +93,37 @@ describe('Modal', () => {
     expect(screen.queryByLabelText('Fechar modal')).not.toBeInTheDocument();
   });
 
+  describe('data-print-hide no botão de fechar', () => {
+    // Quando o modal é a região de impressão (`js-print-region`), o print.css
+    // revela o <dialog> inteiro — sem este marcador o X sai dentro do PDF.
+    it('marca o botão de fechar da montagem default', () => {
+      render(<Modal {...defaultProps} />);
+
+      expect(screen.getByLabelText('Fechar modal')).toHaveAttribute(
+        'data-print-hide'
+      );
+    });
+
+    it('marca o botão de fechar da montagem activity', () => {
+      render(<Modal {...defaultProps} variant="activity" />);
+
+      expect(screen.getByLabelText('Fechar modal')).toHaveAttribute(
+        'data-print-hide'
+      );
+    });
+
+    it('não marca o título nem o header: eles são conteúdo do relatório', () => {
+      render(<Modal {...defaultProps} />);
+
+      const title = screen.getByText('Test Modal');
+      expect(title).not.toHaveAttribute('data-print-hide');
+      // O header é o container do X, mas carrega o <h2>. Marcá-lo apagaria o
+      // título no PDF — é por isso que o atributo vai no botão, exceção
+      // deliberada ao "container, não botão" do contrato.
+      expect(title.parentElement).not.toHaveAttribute('data-print-hide');
+    });
+  });
+
   it('deve aplicar classes CSS personalizadas', () => {
     render(<Modal {...defaultProps} className="custom-class" />);
 

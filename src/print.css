@@ -1,0 +1,312 @@
+/*
+ * CSS de impressão compartilhado.
+ *
+ * O "PDF" dos relatórios é a própria página impressa: `useReportPrint` chama
+ * `globalThis.print()` e o que sai no papel é exatamente o que estas regras
+ * deixarem passar. Sem elas o PDF sai com header, menu, botões e widgets
+ * flutuantes por cima do relatório.
+ *
+ * ESCOPO: só entra aqui o que está acoplado ao DOM QUE ESTA LIB RENDERIZA
+ * (AppLayout, AppHeader, Modal, AccessibilityWidget, tabelas). Regras
+ * escopadas por `data-testid` de tela, ajuste de largura/fonte de uma tabela
+ * específica e `break-inside` seletivo de card ficam no `global.css` do app —
+ * só o app sabe quais são os seus blocos.
+ *
+ * Uso no consumidor (depois de `analytica-frontend-lib/styles.css`):
+ *   import 'analytica-frontend-lib/print.css';
+ *
+ * Não dá para testar isto automaticamente: nenhum runner de teste pagina
+ * conteúdo nem aplica `@media print`. A verificação é o print preview do
+ * Chrome, feita à mão.
+ */
+
+@media print {
+  /* Margem sim, tamanho/orientação não: quem escolhe retrato ou paisagem é o
+     usuário no diálogo de impressão, e o layout precisa refluir para a escolha
+     dele. Fixar `size` aqui sobrescreveria essa escolha. */
+  @page {
+    margin: 10mm;
+  }
+
+  html,
+  body {
+    width: auto !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    overflow: visible !important;
+  }
+
+  /*
+    Reset bruto das travas de layout. Sem ele o relatório sai recortado em uma
+    única tela, porque o app é construído para caber na viewport. As três travas,
+    conferidas no fonte da lib:
+      1. `max-w-[1000px]` no container interno do PageContainer
+         (PageContainer.tsx) corta o conteúdo quando a área imprimível é mais
+         larga que isso — e o AppLayout repassa esse limite ao menu e ao
+         conteúdo via `menuMaxWidth`/`contentMaxWidth`;
+      2. `md:h-[100dvh] md:overflow-hidden` na raiz do AppLayout mais
+         `md:[height:calc(100dvh-120px)] md:overflow-auto` no wrapper de
+         conteúdo (AppLayout.tsx) prendem tudo a uma altura de viewport com
+         rolagem interna — o que não rola não é impresso, e a quebra em várias
+         páginas nunca acontece;
+      3. `overflow-hidden`/`overflow-x-auto` em wrappers de tabela e de card
+         escondem o que passa da caixa.
+    Um seletor cirúrgico por classe do Tailwind quebraria a cada refactor da
+    lib; aqui a força bruta é a opção estável. */
+  html *,
+  body * {
+    max-width: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  /*
+    `w-screen` na raiz do AppLayout (AppLayout.tsx) resolve para a largura da
+    TELA na impressão do Chrome, não a da página, deixando o layout mais largo
+    que o papel; e o par `min-h-[100dvh]` / `md:h-[100dvh]` reserva uma altura
+    de viewport inteira, o que costuma render uma folha em branco antes do
+    relatório.
+
+    `body > div` entra junto porque o elemento de montagem do app (`#root` ou
+    equivalente) fica entre o <body> e o AppLayout e herda `height: 100%` na
+    maioria dos apps. É um seletor posicional, herdado das duas implementações
+    originais, e não corresponde a nenhum componente desta lib. */
+  body > div,
+  [data-component='AppLayout'],
+  [data-component='AppLayout'] > div {
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* O fundo do app (`bg-secondary-50` na raiz do AppLayout) sangraria em todas
+     as folhas, gastando tinta sem informar nada. Os cards não dependem desse
+     contraste para se delimitar: cada um tem borda própria. */
+  [data-component='AppLayout'] {
+    background: white !important;
+  }
+
+  /*
+    Navegação do app. Dois alvos, os dois conferidos no fonte:
+    - `[data-component='AppHeader']`: o <header> do AppHeader (AppHeader.tsx),
+      passado ao AppLayout pela prop `header`;
+    - o menu de abas, que o AppLayout renderiza como um <div> irmão do header
+      com `shadow-soft-shadow-1` (AppLayout.tsx) — não como <nav>/<header>.
+      A classe é o único ponto de corte estável que ele oferece hoje. */
+  [data-component='AppHeader'],
+  [data-component='AppLayout'] > div.shadow-soft-shadow-1 {
+    display: none !important;
+  }
+
+  /*
+    CONTRATO: `data-print-hide` marca controle de tela que não é conteúdo do
+    relatório — barra de ações ("Filtros", "Comparador", "Baixar relatório"),
+    campo de busca, paginação, botão de fechar. Ponha o atributo no CONTAINER,
+    não em cada botão, para o espaçamento do flex ir junto.
+
+    Por que um marcador explícito e não uma heurística: o gestor escondia
+    `button:not([aria-pressed])`, o que é cego demais — no professor apagaria o
+    Select de visão (o Select da lib é um <button>) e as abas de período, que
+    são justamente o que DOCUMENTA qual recorte gerou aquele PDF. Não existe
+    traço estrutural que separe "botão de controle" de "botão que é conteúdo";
+    quem sabe é a tela. Com este atributo os dois apps passam a usar o mesmo
+    marcador em vez de cada um manter sua heurística local.
+
+    O professor já usa exatamente este atributo na barra de ações dele; a regra
+    aqui só o torna parte da lib, sem escopo de `data-testid`. */
+  [data-print-hide] {
+    display: none !important;
+  }
+
+  /*
+    Modais abertos. Eles PODEM estar no DOM na hora da foto: o handler chama
+    `print()` de forma síncrona e só depois fecha o modal, e o React só faz
+    flush do state depois que o handler retorna.
+
+    `display: none` e não `visibility: hidden`, de propósito e por dois motivos:
+    o overlay do Modal da lib é um `fixed inset-0 ... bg-black/60`
+    (Modal.tsx), que o Chrome imprimiria como um retângulo preto na primeira
+    página; e conteúdo apenas invisível continua ocupando altura, empurrando o
+    relatório para baixo (tipicamente uma folha em branco na frente).
+
+    Depende de `:has()`: o overlay é um <div> sem classe/atributo próprio de
+    identificação, e é ele — não o <dialog> — que carrega o fundo escuro e o
+    `position: fixed`. Sem `:has()` não há como alcançá-lo a partir do
+    <dialog>. O <dialog> da lib sempre tem `aria-modal="true"` e o atributo
+    `open` (Modal.tsx). */
+  div:has(> dialog[aria-modal='true']) {
+    display: none !important;
+  }
+
+  /*
+    Widgets flutuantes que apareceriam sobrepostos ao relatório. Nenhum deles é
+    conteúdo do relatório: são recursos de acessibilidade e conteúdo de
+    terceiro.
+
+    - `.a11y-widget-shield` é a classe-marcador que a lib põe em todas as peças
+      do AccessibilityWidget: o botão do FAB de acessibilidade
+      (AccessibilityFab.tsx), o botão do FAB de Libras (LibrasFab.tsx), o
+      painel de opções (AccessibilityPanel.tsx) e as faixas do ReadingAid
+      (ReadingAid.tsx) — que são `fixed` e `bg-black/90`, ou seja,
+      escureceriam a folha inteira.
+    - `div:has(> .a11y-widget-shield)` alcança o wrapper posicionado de cada
+      FAB: os dois usam `Tooltip` com `className="fixed z-40 ..."`, e o
+      Tooltip, com o `usePortal` padrão (false), renderiza um <div> tendo o
+      botão marcado como filho DIRETO (Tooltip.tsx). Sem essa regra o botão
+      sumiria mas o wrapper `fixed` continuaria no fluxo, ainda contendo o
+      balão do tooltip — um <div role="tooltip"> `absolute opacity-0 invisible`
+      (Tooltip.tsx) que só aparece no hover. Ou seja: não sobraria caixa
+      visível no papel, mas sobraria um wrapper posicionado. A regra o remove
+      de vez; o ganho prático é pequeno.
+    - `#a11y-vlibras-wrapper`: DOM de terceiro do VLibras. O `VLibrasLoader` da
+      lib cria esse wrapper por `document.createElement` e o pendura no <body>
+      (VLibrasLoader.tsx) — fica fora do #root, e o resto do plugin é
+      descendente dele. `[vw-plugin-wrapper]` é o atributo que o próprio
+      loader marca no wrapper interno do plugin, e entra como reserva caso o
+      VLibras remonte o painel em outro ponto da árvore.
+      O `!important` importa aqui: ao desativar Libras a lib apenas OCULTA o
+      wrapper com `display` inline em vez de removê-lo, então a regra precisa
+      vencer o estilo inline nos dois estados.
+    - `body > div > [role='alert']`: os toasts. O Toast da lib é `fixed` e tem
+      `role="alert"` (Toast.tsx), mas quem decide ONDE montá-lo é o app — este
+      seletor é posicional (um container de toasts irmão do #root) e foi
+      herdado das duas implementações originais, não verificado componente a
+      componente.
+    - `body > iframe`: o widget do Zendesk. A lib injeta o <script> do snippet
+      direto no <body> (ZendeskWidget.tsx, useZendesk.ts); é o snippet, código
+      de terceiro, que cria o launcher como <iframe> no nível do <body>.
+      Premissa herdada do comportamento observado do Zendesk, não medida aqui.
+      Sendo iframe de outra origem, só o CSS deste lado o alcança. */
+  .a11y-widget-shield,
+  div:has(> .a11y-widget-shield),
+  #a11y-vlibras-wrapper,
+  [vw-plugin-wrapper],
+  body > div > [role='alert'],
+  body > iframe {
+    display: none !important;
+  }
+
+  /* Quando uma tabela atravessa a quebra de página: repetir o cabeçalho em cada
+     folha e nunca partir uma linha ao meio. Vale para QUALQUER tabela impressa
+     — não há motivo para uma tabela de relatório querer o contrário, e escopar
+     por `data-testid` de tela só faria a regra faltar na próxima tela. */
+  thead {
+    display: table-header-group;
+  }
+
+  tr {
+    break-inside: avoid;
+  }
+
+  /* Por padrão o browser descarta cores de fundo na impressão para poupar
+     tinta. Aqui elas carregam informação — badges de status, barras e círculos
+     de progresso e os cards de destaque viram manchas indistinguíveis em
+     escala de cinza. */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /*
+    ---------------------------------------------------------------------------
+    Impressão de UM modal isolado: `body.printing-modal`.
+
+    Ativado por `useReportPrint({ bodyClass: 'printing-modal' })`, que põe a
+    classe no <body> pela duração da impressão. O app marca o modal que deve
+    sair no papel com a classe `js-print-region` no <dialog>.
+
+    Onde a marca cabe: só no `Modal` BASE, cujas variantes `activity` e default
+    (Modal.tsx:172 e :276) montam o <dialog> com `cn(..., className)`. As
+    variantes especializadas (Modal.tsx:422, :553, :729, :880) têm `className`
+    HARDCODED no <dialog> e não têm como receber a marca — um modal desses não
+    pode ser a região de impressão sem alteração na lib.
+
+    A ideia: em vez de listar as telas, seguir o CAMINHO até o dialog marcado.
+    Todo ancestral do dialog fica visível; todo irmão desse caminho some.
+
+    INERTNESS — a propriedade que sustenta o design, e a armadilha que ela
+    esconde. `:not(:has(X))` é verdadeiro para TODO elemento quando não existe
+    nenhum X na árvore: sem `X`, `:has(X)` não casa com ninguém, logo o `:not`
+    casa com todo mundo. Uma regra como `body.printing-modal > *:not(:has(X))`
+    portanto NÃO é inerte na ausência de X — ela esconde todo filho do <body>,
+    inclusive o #root, e o papel sai EM BRANCO. Esse caminho é real: basta
+    chamar `useReportPrint({ bodyClass: 'printing-modal' })` com o modal já
+    fechado, ou a classe `js-print-region` não chegar ao <dialog>.
+
+    Por isso toda regra deste bloco precisa ser guardada por um `:has()`
+    POSITIVO, que só casa quando o dialog existe de fato. As quatro regras
+    abaixo satisfazem isso:
+      1. ancestrais    — lidera com `:has(dialog.js-print-region)`;
+      2. fora da rota  — o ramo do <body> precisou do âncora explícito
+                         `body.printing-modal:has(dialog.js-print-region)`;
+                         o ramo dos ancestrais já lidera com `:has()` positivo;
+      3. overlay       — `div:has(> dialog.js-print-region)`;
+      4. o dialog      — seletor de classe simples.
+    Sem dialog marcado, nenhuma delas casa e a impressão degrada para o
+    relatório de página inteira, que é o comportamento desejado.
+
+    Aqui também é `display: none` e não `visibility: hidden`, pelo mesmo motivo
+    de antes: o conteúdo escondido não pode continuar ocupando altura, senão
+    empurra o modal para baixo e a primeira folha sai em branco.
+    --------------------------------------------------------------------------- */
+
+  /* Os ancestrais do dialog viram blocos simples: sem flex/grid centralizando
+     ou esticando, e sem `min-height` reservando altura de tela.
+     `:has(dialog.js-print-region)` NÃO casa com o próprio <dialog> (nada
+     contém a si mesmo), então o conteúdo interno do modal mantém os displays
+     que o Tailwind lhe deu. */
+  body.printing-modal :has(dialog.js-print-region) {
+    display: block !important;
+    min-height: 0 !important;
+  }
+
+  /* Tudo que está FORA do caminho até o dialog some. Duas partes:
+     - a primeira linha: os irmãos do #root no nível do <body> — portais de
+       Select/DropdownMenu/SearchSelect/Tooltip (que a lib monta com
+       `createPortal(..., document.body)`), o wrapper do VLibras e o iframe do
+       Zendesk. O `:has()` no PRÓPRIO <body> é o guarda de inertness descrito
+       acima: sem ele, e sem dialog marcado, `:not(:has(...))` casaria com todo
+       filho do <body> — inclusive o #root — e a folha sairia em branco;
+     - a segunda linha: para cada ancestral do dialog, os filhos que não levam
+       ao dialog. O `:not(dialog.js-print-region)` protege o próprio dialog,
+       que é filho do overlay. Esta já lidera com `:has()` positivo, então não
+       precisa do âncora — se nenhum elemento contém o dialog, o combinador
+       descendente não produz nada para o `> *` filtrar.
+     Os descendentes do dialog nunca são atingidos: o pai deles é o dialog (ou
+     algo dentro dele), e nada disso casa com `:has(dialog.js-print-region)`. */
+  body.printing-modal:has(dialog.js-print-region)
+    > *:not(:has(dialog.js-print-region)),
+  body.printing-modal
+    :has(dialog.js-print-region)
+    > *:not(:has(dialog.js-print-region)):not(dialog.js-print-region) {
+    display: none !important;
+  }
+
+  /* O overlay do modal escolhido precisa voltar a aparecer (a regra genérica
+     acima escondeu todo `div:has(> dialog[aria-modal='true'])`) e deixar de ser
+     uma camada `fixed` escura: `position: static` faz o modal FLUIR na página,
+     podendo quebrar em várias folhas, e `background: none` mata o `bg-black/60`
+     que sairia como retângulo preto.
+     Especificidade: `body` + `.printing-modal` + `div` + o argumento
+     `dialog.js-print-region` do `:has()` dá (0,2,3), contra (0,1,2) da regra
+     genérica `div:has(> dialog[aria-modal='true'])` — ganha. O `display:
+     block` já vem da regra de ancestrais logo acima. */
+  body.printing-modal div:has(> dialog.js-print-region) {
+    position: static !important;
+    background: none !important;
+  }
+
+  /* O <dialog> em si: tirar o posicionamento e a moldura de janela flutuante,
+     para ele ocupar a largura da folha como um bloco comum de documento.
+     `max-width` não aparece aqui porque o reset `html *, body *` no topo já
+     zerou o `max-w-*` do Modal. */
+  body.printing-modal dialog.js-print-region {
+    position: static !important;
+    box-shadow: none !important;
+    border: none !important;
+    width: 100% !important;
+  }
+}
