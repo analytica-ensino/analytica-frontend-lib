@@ -49,6 +49,10 @@ const detailPayload = {
         questionType: 'ALTERNATIVA',
         selectedOptionId: 'opt-b',
         answer: null,
+        additionalContent: null,
+        imageAnswer: null,
+        correctPoint: null,
+        imageTolerance: null,
         teacherComment: null,
         options: [
           {
@@ -749,5 +753,71 @@ describe('SimulationsDetailModal', () => {
     expect(
       screen.getByText('Não respondida | Resposta correta: V')
     ).toBeInTheDocument();
+  });
+
+  it('renders the image, the answer area and the student click for an image question', async () => {
+    const api = {
+      get: jest.fn((url: string) => {
+        if (url.endsWith('/note')) {
+          return Promise.resolve({ data: { message: 'ok', data: null } });
+        }
+        if (/\/students\/[^/]+\/[^/]+$/.test(url)) {
+          return Promise.resolve({
+            data: {
+              ...detailPayload,
+              data: {
+                ...detailPayload.data,
+                questions: [
+                  {
+                    questionId: 'q-img',
+                    statement: 'Clique na área correta.',
+                    questionType: 'IMAGEM',
+                    status: 'CORRECT',
+                    selectedOptionId: null,
+                    answer: '{"coordinateX":52,"coordinateY":28}',
+                    additionalContent: 'https://cdn.example.com/mapa.png',
+                    imageAnswer: { coordinateX: 52, coordinateY: 28 },
+                    correctPoint: { x: 50, y: 30 },
+                    imageTolerance: 10,
+                    options: [],
+                    teacherComment: null,
+                  },
+                ],
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: listPayload });
+      }),
+      post: jest.fn(),
+      patch: jest.fn(),
+      delete: jest.fn(),
+    } as unknown as BaseApiClient;
+
+    render(
+      <SimulationsDetailModal
+        api={api}
+        isOpen
+        onClose={jest.fn()}
+        student={student}
+      />
+    );
+    fireEvent.click(await screen.findByText('Simulado 1'));
+    fireEvent.click(await screen.findByText('Questão 1'));
+
+    // The alternatives branch used to render the answer key's raw JSON as an
+    // option label, painted green, with no sign of the student's click.
+    fireEvent.click(await screen.findByText('Imagem'));
+    expect(screen.queryByText('Alternativas')).not.toBeInTheDocument();
+    expect(screen.queryByText('{"x":50,"y":30}')).not.toBeInTheDocument();
+
+    expect(
+      screen.getByAltText(/Questão de imagem com área correta/)
+    ).toHaveAttribute('src', 'https://cdn.example.com/mapa.png');
+    expect(screen.getByTestId('image-student-point')).toHaveStyle({
+      left: '52%',
+      top: '28%',
+    });
+    expect(screen.getByText('Resposta correta')).toBeInTheDocument();
   });
 });

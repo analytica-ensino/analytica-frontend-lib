@@ -480,6 +480,7 @@ const CorrectActivityModal = ({
         break;
       case QUESTION_TYPE.IMAGEM:
         content = renderQuestionImage({
+          question,
           result,
         });
         break;

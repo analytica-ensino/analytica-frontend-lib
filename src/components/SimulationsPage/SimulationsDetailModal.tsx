@@ -12,6 +12,8 @@ import {
   TrueFalseStatementList,
   type TrueFalseStatement,
 } from '../shared/TrueFalseStatementList';
+import { ImageAnswerView } from '../shared/ImageAnswerView';
+import { DEFAULT_IMAGE_TOLERANCE } from '../../utils/image/imageAnswer.utils';
 import { AlternativesList } from '../Alternative/Alternative';
 import { HtmlMathRenderer } from '../HtmlMathRenderer';
 import { OptionStatus } from '../../enums/Options';
@@ -71,6 +73,9 @@ function getAnswerAccordionTitle(questionType: string): string {
   if (questionType === QUESTION_TYPE.VERDADEIRO_FALSO) {
     return 'Afirmações';
   }
+  if (questionType === QUESTION_TYPE.IMAGEM) {
+    return 'Imagem';
+  }
   return 'Alternativas';
 }
 
@@ -122,10 +127,33 @@ function QuestionItem({
     })
   );
 
+  // IMAGEM has no alternatives either: the answer is a point on an image. The
+  // alternatives branch rendered the answer key's raw JSON as an option label,
+  // painted green, and never showed where the student clicked.
+  const isImage = question.questionType === QUESTION_TYPE.IMAGEM;
+
   /**
    * Render the student's answer, shaped by the question type.
    */
   const renderAnswerArea = () => {
+    if (isImage) {
+      return (
+        <ImageAnswerView
+          imageUrl={question.additionalContent ?? ''}
+          correctPoint={question.correctPoint}
+          studentPoint={
+            question.imageAnswer
+              ? {
+                  x: question.imageAnswer.coordinateX,
+                  y: question.imageAnswer.coordinateY,
+                }
+              : null
+          }
+          toleranceRadius={question.imageTolerance ?? DEFAULT_IMAGE_TOLERANCE}
+        />
+      );
+    }
+
     if (isEssay) {
       return (
         <div className="rounded-lg border border-border-100 bg-background-50 p-3">

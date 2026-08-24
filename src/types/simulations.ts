@@ -99,8 +99,23 @@ export interface SimulationDetailQuestion {
   questionType: string;
   status: SimulationQuestionStatus;
   selectedOptionId: string | null;
-  /** Free-text answer, for essay questions. Null on objective ones. */
+  /**
+   * The raw `answer` column. Free text for essay questions; for the other types
+   * it holds encoded data already decoded into the fields below, which clients
+   * should read instead of parsing this.
+   */
   answer: string | null;
+  /** IMAGEM only: URL of the image the student had to click on. */
+  additionalContent: string | null;
+  /** IMAGEM only: where the student clicked, in image percentage points. */
+  imageAnswer: { coordinateX: number; coordinateY: number } | null;
+  /** IMAGEM only: the answer key point, in image percentage points. */
+  correctPoint: { x: number; y: number } | null;
+  /**
+   * IMAGEM only: radius within which a click counts as correct, in the same
+   * percentage space. Sent so the drawn circle matches the grade.
+   */
+  imageTolerance: number | null;
   options: SimulationDetailOption[];
   /**
    * Teacher's comment on this specific question, shown to the student in their

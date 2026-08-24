@@ -827,6 +827,16 @@ export type { TeacherFeedbackSectionProps } from './components/Quiz/TeacherFeedb
 export { TeacherQuestionComment } from './components/Quiz/TeacherQuestionComment';
 export type { TeacherQuestionCommentProps } from './components/Quiz/TeacherQuestionComment';
 export { QuestionCommentField } from './components/shared/QuestionCommentField';
+export { ImageAnswerView } from './components/shared/ImageAnswerView';
+export type {
+  ImageAnswerViewProps,
+  ImagePoint,
+} from './components/shared/ImageAnswerView';
+export { TrueFalseStatementList } from './components/shared/TrueFalseStatementList';
+export type {
+  TrueFalseStatementListProps,
+  TrueFalseStatement,
+} from './components/shared/TrueFalseStatementList';
 export type { QuestionCommentFieldProps } from './components/shared/QuestionCommentField';
 export { useQuizStore } from './components/Quiz/useQuizStore';
 export { formatExamInfo } from './components/Quiz/Quiz.utils';
