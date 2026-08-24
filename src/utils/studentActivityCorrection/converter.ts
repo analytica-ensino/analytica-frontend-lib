@@ -4,7 +4,7 @@ import type {
   QuestionsAnswersByStudentResponse,
   StudentActivityCorrectionData,
   CorrectionQuestionData,
-  EssayQuestionCorrection,
+  QuestionCorrection,
 } from './types';
 import { getIsCorrect } from './utils';
 
@@ -59,21 +59,24 @@ const buildQuestionFromAnswer = (
 };
 
 /**
- * Build correction data for essay questions
+ * Build correction data for a question
+ *
+ * Built for every question type, not just DISSERTATIVA: a teacher can comment on
+ * any question. `isCorrect` stays null outside DISSERTATIVA because objective
+ * questions are graded automatically and must not be re-graded by hand.
+ *
  * @param answer - Answer data from QuestionResult
- * @returns EssayQuestionCorrection if question is DISSERTATIVA, undefined otherwise
+ * @returns QuestionCorrection with the teacher's grade and/or comment
  */
-const buildEssayCorrection = (
+const buildQuestionCorrection = (
   answer: QuestionsAnswersByStudentResponse['data']['answers'][number]
-): EssayQuestionCorrection | undefined => {
-  if (answer.questionType === QUESTION_TYPE.DISSERTATIVA) {
-    return {
-      isCorrect: getIsCorrect(answer.answerStatus),
-      teacherFeedback: answer.teacherFeedback || '',
-    };
-  }
-  return undefined;
-};
+): QuestionCorrection => ({
+  isCorrect:
+    answer.questionType === QUESTION_TYPE.DISSERTATIVA
+      ? getIsCorrect(answer.answerStatus)
+      : null,
+  teacherFeedback: answer.teacherFeedback || '',
+});
 
 /**
  * Convert a single answer to CorrectionQuestionData format
@@ -86,7 +89,7 @@ const convertAnswerToQuestionData = (
   index: number
 ): CorrectionQuestionData => {
   const question = buildQuestionFromAnswer(answer);
-  const correction = buildEssayCorrection(answer);
+  const correction = buildQuestionCorrection(answer);
 
   return {
     question,

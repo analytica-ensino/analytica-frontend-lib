@@ -2112,4 +2112,175 @@ describe('CorrectActivityModal', () => {
       expect(clickSpy).toHaveBeenCalled();
     });
   });
+
+  describe('Teacher comment on objective questions', () => {
+    const commentPlaceholder = 'Escreva um comentário sobre esta questão';
+
+    /**
+     * Open the accordion of the first question so its content is rendered.
+     */
+    const openFirstQuestion = () => {
+      const trigger = screen.getAllByText('Questão 1')[0].closest('button');
+      fireEvent.click(trigger!);
+    };
+
+    it('should not render the comment field without onQuestionCommentSubmit', () => {
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={mockDataWithAlternatives}
+        />
+      );
+
+      openFirstQuestion();
+
+      expect(
+        screen.queryByPlaceholderText(commentPlaceholder)
+      ).not.toBeInTheDocument();
+    });
+
+    it('should render the comment field on an objective question', () => {
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={mockDataWithAlternatives}
+          onQuestionCommentSubmit={jest.fn()}
+        />
+      );
+
+      openFirstQuestion();
+
+      expect(
+        screen.getAllByText('Comentário para o estudante')[0]
+      ).toBeInTheDocument();
+      // No manual grading on objective questions.
+      expect(
+        screen.queryByText('Resposta está correta?')
+      ).not.toBeInTheDocument();
+    });
+
+    it('should prefill the comment already saved for the question', () => {
+      const dataWithComment = {
+        ...mockDataWithAlternatives,
+        questions: mockDataWithAlternatives.questions.map((question, index) =>
+          index === 0
+            ? {
+                ...question,
+                correction: {
+                  isCorrect: null,
+                  teacherFeedback: 'Atenção ao enunciado.',
+                },
+              }
+            : question
+        ),
+      };
+
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={dataWithComment}
+          onQuestionCommentSubmit={jest.fn()}
+        />
+      );
+
+      openFirstQuestion();
+
+      expect(
+        screen.getByDisplayValue('Atenção ao enunciado.')
+      ).toBeInTheDocument();
+    });
+
+    it('should submit the comment with the question id and toast on success', async () => {
+      const onQuestionCommentSubmit = jest.fn().mockResolvedValue(undefined);
+
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={mockDataWithAlternatives}
+          onQuestionCommentSubmit={onQuestionCommentSubmit}
+        />
+      );
+
+      openFirstQuestion();
+
+      const textarea = screen.getAllByPlaceholderText(commentPlaceholder)[0];
+      fireEvent.change(textarea, { target: { value: 'Revise a soma.' } });
+      fireEvent.click(screen.getAllByText('Salvar')[0]);
+
+      await waitFor(() =>
+        expect(onQuestionCommentSubmit).toHaveBeenCalledWith('student-456', {
+          questionId: 'q1',
+          teacherFeedback: 'Revise a soma.',
+        })
+      );
+      await waitFor(() =>
+        expect(mockAddToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            title: 'Comentário salvo',
+            action: 'success',
+          })
+        )
+      );
+    });
+
+    it('should keep the question status badge unchanged after commenting', async () => {
+      const onQuestionCommentSubmit = jest.fn().mockResolvedValue(undefined);
+
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={mockDataWithAlternatives}
+          onQuestionCommentSubmit={onQuestionCommentSubmit}
+        />
+      );
+
+      openFirstQuestion();
+
+      const textarea = screen.getAllByPlaceholderText(commentPlaceholder)[0];
+      fireEvent.change(textarea, { target: { value: 'Comentário' } });
+      fireEvent.click(screen.getAllByText('Salvar')[0]);
+
+      await waitFor(() => expect(onQuestionCommentSubmit).toHaveBeenCalled());
+      // A comment is not a grade: question 1 was answered correctly and stays so.
+      expect(screen.getAllByText('Correta').length).toBeGreaterThan(0);
+    });
+
+    it('should toast a warning when saving the comment fails', async () => {
+      const consoleSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      const onQuestionCommentSubmit = jest
+        .fn()
+        .mockRejectedValue(new Error('network'));
+
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={mockDataWithAlternatives}
+          onQuestionCommentSubmit={onQuestionCommentSubmit}
+        />
+      );
+
+      openFirstQuestion();
+
+      const textarea = screen.getAllByPlaceholderText(commentPlaceholder)[0];
+      fireEvent.change(textarea, { target: { value: 'Comentário' } });
+      fireEvent.click(screen.getAllByText('Salvar')[0]);
+
+      await waitFor(() =>
+        expect(mockAddToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            title: 'Erro ao salvar comentário',
+            action: 'warning',
+          })
+        )
+      );
+      // Rethrown, so the field keeps the draft and shows its own error.
+      expect(
+        await screen.findByText('Erro ao salvar o comentário. Tente novamente.')
+      ).toBeInTheDocument();
+
+      consoleSpy.mockRestore();
+    });
+  });
 });

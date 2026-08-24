@@ -5,11 +5,14 @@ import type {
 import type { QuestionStatus } from './constants';
 
 /**
- * Correction data for essay questions (dissertativas)
- * Used for teacher evaluation of essay answers
+ * Teacher's correction data for a single question
+ *
+ * `isCorrect` only carries a value for essay questions (dissertativas), which
+ * the teacher grades by hand. Objective questions are graded automatically, so
+ * it stays `null` there and only `teacherFeedback` is editable.
  */
-export interface EssayQuestionCorrection {
-  /** Whether the answer is correct (true/false/null for not evaluated) */
+export interface QuestionCorrection {
+  /** Whether the answer is correct (true/false/null when not manually graded) */
   isCorrect: boolean | null;
   /** Teacher observation/feedback */
   teacherFeedback: string;
@@ -26,8 +29,8 @@ export interface CorrectionQuestionData {
   result: QuestionResult['answers'][number];
   /** Question number in the activity (1-indexed) */
   questionNumber: number;
-  /** Correction data for essay questions (only for DISSERTATIVA type) */
-  correction?: EssayQuestionCorrection;
+  /** Teacher's correction data (grading for DISSERTATIVA, comment for any type) */
+  correction?: QuestionCorrection;
 }
 
 /**
@@ -81,6 +84,20 @@ export interface SaveQuestionCorrectionPayload extends Record<string, unknown> {
   score?: number | null;
   /** Teacher observation/feedback */
   teacherFeedback?: string | null;
+}
+
+/**
+ * Payload for saving a teacher comment on a single question
+ *
+ * Unlike {@link SaveQuestionCorrectionPayload}, this carries no grading: it is
+ * valid on objective questions, whose status is computed automatically and must
+ * not change when a teacher writes a note. An empty string clears the comment.
+ */
+export interface SaveQuestionCommentPayload extends Record<string, unknown> {
+  /** Question ID from Question interface */
+  questionId: string;
+  /** Teacher comment shown to the student beside this question */
+  teacherFeedback: string;
 }
 
 /**

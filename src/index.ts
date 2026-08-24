@@ -162,6 +162,9 @@ export type {
   StudentQuestion,
   StudentActivityCorrectionData,
   QuestionsAnswersByStudentResponse,
+  QuestionCorrection,
+  SaveQuestionCorrectionPayload,
+  SaveQuestionCommentPayload,
 } from './utils/studentActivityCorrection';
 
 // FileAttachment Component
@@ -821,6 +824,10 @@ export {
 } from './components/Quiz/QuizResult';
 export { TeacherFeedbackSection } from './components/Quiz/TeacherFeedbackSection';
 export type { TeacherFeedbackSectionProps } from './components/Quiz/TeacherFeedbackSection';
+export { TeacherQuestionComment } from './components/Quiz/TeacherQuestionComment';
+export type { TeacherQuestionCommentProps } from './components/Quiz/TeacherQuestionComment';
+export { QuestionCommentField } from './components/shared/QuestionCommentField';
+export type { QuestionCommentFieldProps } from './components/shared/QuestionCommentField';
 export { useQuizStore } from './components/Quiz/useQuizStore';
 export { formatExamInfo } from './components/Quiz/Quiz.utils';
 export { default as QuizTimer } from './components/QuizTimer/QuizTimer';

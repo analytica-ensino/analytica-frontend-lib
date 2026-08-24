@@ -85,6 +85,11 @@ export interface SimulationDetailQuestion {
   status: SimulationQuestionStatus;
   selectedOptionId: string | null;
   options: SimulationDetailOption[];
+  /**
+   * Teacher's comment on this specific question, shown to the student in their
+   * result review. Distinct from the simulation-wide note in `NoteData`.
+   */
+  teacherComment: string | null;
 }
 
 export interface SimulationDetailData {
@@ -112,4 +117,15 @@ export interface NoteData {
 export interface NoteResponse {
   message: string;
   data: NoteData | null;
+}
+
+/** Teacher comment saved on one question of a student's simulation */
+export interface QuestionCommentData {
+  questionId: string;
+  teacherComment: string | null;
+}
+
+export interface QuestionCommentResponse {
+  message: string;
+  data: QuestionCommentData | null;
 }

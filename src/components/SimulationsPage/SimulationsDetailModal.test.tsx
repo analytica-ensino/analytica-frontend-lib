@@ -47,6 +47,7 @@ const detailPayload = {
         statement: 'Um carro inicia do repouso...',
         status: 'INCORRECT',
         selectedOptionId: 'opt-b',
+        teacherComment: null,
         options: [
           {
             id: 'opt-a',
@@ -459,5 +460,98 @@ describe('SimulationsDetailModal', () => {
     await waitFor(() =>
       expect(container.querySelector('.katex')).toBeInTheDocument()
     );
+  });
+
+  it('saves a teacher comment on a question', async () => {
+    const post = jest.fn(() =>
+      Promise.resolve({
+        data: {
+          message: 'ok',
+          data: { questionId: 'q1', teacherComment: 'Revise a cinemática.' },
+        },
+      })
+    );
+    render(
+      <SimulationsDetailModal
+        api={makeApi(post)}
+        isOpen
+        onClose={jest.fn()}
+        student={student}
+      />
+    );
+    fireEvent.click(await screen.findByText('Simulado 1'));
+    fireEvent.click(await screen.findByText('Questão 1'));
+
+    const textarea = await screen.findByPlaceholderText(
+      'Escreva um comentário sobre esta questão'
+    );
+    fireEvent.change(textarea, {
+      target: { value: 'Revise a cinemática.' },
+    });
+
+    const saveButtons = await screen.findAllByRole('button', {
+      name: 'Salvar',
+    });
+    fireEvent.click(saveButtons[saveButtons.length - 1]);
+
+    await waitFor(() =>
+      expect(post).toHaveBeenCalledWith(
+        '/performance/simulations/students/ui-1/sim-1/questions/q1/comment',
+        { comment: 'Revise a cinemática.' }
+      )
+    );
+
+    // The saved value is folded back into the loaded detail, so Save goes
+    // disabled again without a refetch.
+    await waitFor(() =>
+      expect(
+        screen.getByDisplayValue('Revise a cinemática.')
+      ).toBeInTheDocument()
+    );
+  });
+
+  it('prefills a comment already saved on the question', async () => {
+    const api = {
+      get: jest.fn((url: string) => {
+        if (url.endsWith('/note')) {
+          return Promise.resolve({ data: { message: 'ok', data: null } });
+        }
+        if (/\/students\/[^/]+\/[^/]+$/.test(url)) {
+          return Promise.resolve({
+            data: {
+              ...detailPayload,
+              data: {
+                ...detailPayload.data,
+                questions: [
+                  {
+                    ...detailPayload.data.questions[0],
+                    teacherComment: 'Comentário anterior',
+                  },
+                ],
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: listPayload });
+      }),
+      post: jest.fn(),
+      patch: jest.fn(),
+      delete: jest.fn(),
+    } as unknown as BaseApiClient;
+
+    render(
+      <SimulationsDetailModal
+        api={api}
+        isOpen
+        onClose={jest.fn()}
+        student={student}
+      />
+    );
+    fireEvent.click(await screen.findByText('Simulado 1'));
+    fireEvent.click(await screen.findByText('Questão 1'));
+
+    expect(
+      await screen.findByDisplayValue('Comentário anterior')
+    ).toBeInTheDocument();
   });
 });

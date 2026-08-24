@@ -97,7 +97,7 @@ describe('studentActivityCorrectionConverter', () => {
             }),
             result: answer,
             questionNumber: 1,
-            correction: undefined,
+            correction: { isCorrect: null, teacherFeedback: '' },
           },
         ],
         observation: undefined,
@@ -189,7 +189,30 @@ describe('studentActivityCorrectionConverter', () => {
       });
     });
 
-    it('should not create correction data for non-essay questions', () => {
+    it('should keep the teacher comment on non-essay questions without grading them', () => {
+      const answer = createMockAnswer({
+        questionType: QUESTION_TYPE.ALTERNATIVA,
+        answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+        teacherFeedback: 'Atenção ao enunciado.',
+      });
+
+      const apiResponse = createMockApiResponse([answer]);
+
+      const result = convertApiResponseToCorrectionData(
+        apiResponse,
+        'student-123',
+        'John Doe'
+      );
+
+      // Objective questions are graded automatically, so isCorrect stays null —
+      // but the comment must survive, it is what the teacher wrote.
+      expect(result.questions[0].correction).toEqual({
+        isCorrect: null,
+        teacherFeedback: 'Atenção ao enunciado.',
+      });
+    });
+
+    it('should return an empty comment for a non-essay question with no feedback', () => {
       const answer = createMockAnswer({
         questionType: QUESTION_TYPE.ALTERNATIVA,
         answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
@@ -203,7 +226,10 @@ describe('studentActivityCorrectionConverter', () => {
         'John Doe'
       );
 
-      expect(result.questions[0].correction).toBeUndefined();
+      expect(result.questions[0].correction).toEqual({
+        isCorrect: null,
+        teacherFeedback: '',
+      });
     });
 
     it('should set isCorrect to true for correct essay answers', () => {

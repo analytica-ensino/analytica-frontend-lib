@@ -7,6 +7,7 @@ import TextArea from '../TextArea/TextArea';
 import { CardAccordation } from '../Accordation';
 import { SkeletonCard } from '../Skeleton/Skeleton';
 import { StatCard } from '../shared/StatCard';
+import { QuestionCommentField } from '../shared/QuestionCommentField';
 import { AlternativesList } from '../Alternative/Alternative';
 import { HtmlMathRenderer } from '../HtmlMathRenderer';
 import { OptionStatus } from '../../enums/Options';
@@ -63,9 +64,11 @@ const QUESTION_STATUS_MAP: Record<
 function QuestionItem({
   question,
   index,
+  onSaveComment,
 }: {
   readonly question: SimulationDetailQuestion;
   readonly index: number;
+  readonly onSaveComment: (comment: string) => Promise<void>;
 }) {
   const badge = getQuestionStatusBadgeConfig(
     QUESTION_STATUS_MAP[question.status]
@@ -128,6 +131,10 @@ function QuestionItem({
             selectedValue={question.selectedOptionId ?? ''}
           />
         </CardAccordation>
+        <QuestionCommentField
+          value={question.teacherComment ?? ''}
+          onSave={onSaveComment}
+        />
       </div>
     </CardAccordation>
   );
@@ -242,6 +249,7 @@ function SimulationItem({
   detail,
   note,
   onSaveNote,
+  onSaveQuestionComment,
 }: {
   readonly simulation: StudentSimulationItem;
   readonly index: number;
@@ -250,6 +258,10 @@ function SimulationItem({
   readonly detail: DetailState | undefined;
   readonly note: NoteState | undefined;
   readonly onSaveNote: (text: string) => Promise<void>;
+  readonly onSaveQuestionComment: (
+    questionId: string,
+    comment: string
+  ) => Promise<void>;
 }) {
   return (
     <CardAccordation
@@ -311,6 +323,9 @@ function SimulationItem({
                 key={question.questionId}
                 question={question}
                 index={qIndex}
+                onSaveComment={(comment) =>
+                  onSaveQuestionComment(question.questionId, comment)
+                }
               />
             ))}
           </div>
@@ -342,6 +357,7 @@ export function SimulationsDetailModal({
     fetchSimulationDetail,
     fetchNote,
     saveNote,
+    saveQuestionComment,
   } = useSimulations();
 
   const [list, setList] = useState<SimulationsListData | null>(null);
@@ -480,6 +496,43 @@ export function SimulationsDetailModal({
     [student, saveNote, isStaleResponse]
   );
 
+  /**
+   * Save a comment on one question and reflect it in the loaded detail, so the
+   * field's saved value matches what the server now holds without a refetch.
+   */
+  const makeSaveQuestionComment = useCallback(
+    (simulationId: string) => async (questionId: string, comment: string) => {
+      if (!student) return;
+      const requestEpoch = requestEpochRef.current;
+      const saved = await saveQuestionComment(
+        student.userInstitutionId,
+        simulationId,
+        questionId,
+        comment
+      );
+      if (isStaleResponse(requestEpoch)) return;
+      setDetails((prev) => {
+        const current = prev[simulationId];
+        if (!current?.data) return prev;
+        return {
+          ...prev,
+          [simulationId]: {
+            ...current,
+            data: {
+              ...current.data,
+              questions: current.data.questions.map((question) =>
+                question.questionId === questionId
+                  ? { ...question, teacherComment: saved?.teacherComment ?? '' }
+                  : question
+              ),
+            },
+          },
+        };
+      });
+    },
+    [student, saveQuestionComment, isStaleResponse]
+  );
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Simulados" size="xl">
       {student && (
@@ -524,6 +577,7 @@ export function SimulationsDetailModal({
                   detail={details[simulation.id]}
                   note={notes[simulation.id]}
                   onSaveNote={makeSaveNote(simulation.id)}
+                  onSaveQuestionComment={makeSaveQuestionComment(simulation.id)}
                 />
               ))}
             </div>
