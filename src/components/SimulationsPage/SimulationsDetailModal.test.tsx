@@ -56,12 +56,14 @@ const detailPayload = {
             option: '25 metros',
             isCorrect: true,
             isSelected: false,
+            selectedValue: null,
           },
           {
             id: 'opt-b',
             option: '40 metros',
             isCorrect: false,
             isSelected: true,
+            selectedValue: null,
           },
         ],
       },
@@ -664,6 +666,88 @@ describe('SimulationsDetailModal', () => {
 
     expect(
       await screen.findByText('Nenhuma resposta fornecida')
+    ).toBeInTheDocument();
+  });
+
+  it('renders true/false statements with the student marks, not the answer key', async () => {
+    const api = {
+      get: jest.fn((url: string) => {
+        if (url.endsWith('/note')) {
+          return Promise.resolve({ data: { message: 'ok', data: null } });
+        }
+        if (/\/students\/[^/]+\/[^/]+$/.test(url)) {
+          return Promise.resolve({
+            data: {
+              ...detailPayload,
+              data: {
+                ...detailPayload.data,
+                questions: [
+                  {
+                    questionId: 'q-tf',
+                    statement: 'Julgue as afirmações.',
+                    questionType: 'VERDADEIRO_FALSO',
+                    status: 'INCORRECT',
+                    selectedOptionId: null,
+                    answer: '{"opt-t1":"V","opt-t2":"V"}',
+                    options: [
+                      {
+                        id: 'opt-t1',
+                        option: 'Afirmação certa',
+                        isCorrect: true,
+                        isSelected: false,
+                        selectedValue: 'V',
+                      },
+                      {
+                        id: 'opt-t2',
+                        option: 'Afirmação errada',
+                        isCorrect: false,
+                        isSelected: false,
+                        selectedValue: 'V',
+                      },
+                      {
+                        id: 'opt-t3',
+                        option: 'Afirmação em branco',
+                        isCorrect: true,
+                        isSelected: false,
+                        selectedValue: null,
+                      },
+                    ],
+                    teacherComment: null,
+                  },
+                ],
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: listPayload });
+      }),
+      post: jest.fn(),
+      patch: jest.fn(),
+      delete: jest.fn(),
+    } as unknown as BaseApiClient;
+
+    render(
+      <SimulationsDetailModal
+        api={api}
+        isOpen
+        onClose={jest.fn()}
+        student={student}
+      />
+    );
+    fireEvent.click(await screen.findByText('Simulado 1'));
+    fireEvent.click(await screen.findByText('Questão 1'));
+
+    // Statements, not "Alternativas" — true/false never writes option_id, so the
+    // alternatives branch showed no mark at all.
+    expect(await screen.findByText('Afirmações')).toBeInTheDocument();
+    expect(screen.queryByText('Alternativas')).not.toBeInTheDocument();
+
+    const marks = await screen.findAllByText('Resposta selecionada: V');
+    expect(marks).toHaveLength(2);
+    // Only the wrong one reveals the answer key.
+    expect(screen.getByText('| Resposta correta: F')).toBeInTheDocument();
+    expect(
+      screen.getByText('Não respondida | Resposta correta: V')
     ).toBeInTheDocument();
   });
 });

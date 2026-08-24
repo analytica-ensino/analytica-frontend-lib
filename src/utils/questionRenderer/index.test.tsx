@@ -698,6 +698,74 @@ describe('questionRenderer', () => {
       expect(screen.getByText('A Lua é feita de queijo')).toBeInTheDocument();
       expect(screen.getByText('A água é líquida')).toBeInTheDocument();
     });
+
+    it('should render nothing when the question has no statements', () => {
+      const question = createQuestion(
+        'q1',
+        'Marque V ou F',
+        QUESTION_TYPE.VERDADEIRO_FALSO
+      );
+      const result = createQuestionResult(
+        'a1',
+        'q1',
+        ANSWER_STATUS.RESPOSTA_CORRETA
+      );
+
+      const { container } = render(
+        renderQuestionTrueOrFalse({ question, result })
+      );
+
+      expect(container.querySelectorAll('section')).toHaveLength(0);
+    });
+
+    it('should tolerate a question whose options are missing at runtime', () => {
+      // `Question.options` is required by the type, but this renderer is fed
+      // straight from API payloads — the guard keeps a malformed one from
+      // throwing inside the modal.
+      const question = {
+        ...createQuestion(
+          'q1',
+          'Marque V ou F',
+          QUESTION_TYPE.VERDADEIRO_FALSO
+        ),
+        options: undefined,
+      } as unknown as Question;
+      const result = createQuestionResult(
+        'a1',
+        'q1',
+        ANSWER_STATUS.RESPOSTA_CORRETA
+      );
+
+      const { container } = render(
+        renderQuestionTrueOrFalse({ question, result })
+      );
+
+      expect(container.querySelectorAll('section')).toHaveLength(0);
+    });
+
+    it('should hide correctness when the answer key is missing from the result', () => {
+      const question = createQuestion(
+        'q1',
+        'Marque V ou F',
+        QUESTION_TYPE.VERDADEIRO_FALSO,
+        [{ id: 'opt1', option: 'O Brasil é um país' }]
+      );
+      // No `options` on the result — nothing to compare the mark against.
+      const result = createQuestionResult(
+        'a1',
+        'q1',
+        ANSWER_STATUS.RESPOSTA_CORRETA,
+        null,
+        [{ optionId: 'opt1' }]
+      );
+
+      render(renderQuestionTrueOrFalse({ question, result }));
+
+      expect(screen.getByText('O Brasil é um país')).toBeInTheDocument();
+      expect(
+        screen.queryByText(/Resposta selecionada:/)
+      ).not.toBeInTheDocument();
+    });
   });
 
   describe('renderQuestionDissertative', () => {

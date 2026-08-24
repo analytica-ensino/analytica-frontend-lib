@@ -8,6 +8,10 @@ import { CardAccordation } from '../Accordation';
 import { SkeletonCard } from '../Skeleton/Skeleton';
 import { StatCard } from '../shared/StatCard';
 import { QuestionCommentField } from '../shared/QuestionCommentField';
+import {
+  TrueFalseStatementList,
+  type TrueFalseStatement,
+} from '../shared/TrueFalseStatementList';
 import { AlternativesList } from '../Alternative/Alternative';
 import { HtmlMathRenderer } from '../HtmlMathRenderer';
 import { OptionStatus } from '../../enums/Options';
@@ -59,6 +63,17 @@ const QUESTION_STATUS_MAP: Record<
   PENDING: QUESTION_STATUS.PENDENTE,
 };
 
+/** Label of the inner accordion holding the student's answer. */
+function getAnswerAccordionTitle(questionType: string): string {
+  if (questionType === QUESTION_TYPE.DISSERTATIVA) {
+    return 'Resposta do aluno';
+  }
+  if (questionType === QUESTION_TYPE.VERDADEIRO_FALSO) {
+    return 'Afirmações';
+  }
+  return 'Alternativas';
+}
+
 // ---------------------------------------------------------------------------
 // Level 2 — Question (reuses the shared alternatives renderer + status badge)
 // ---------------------------------------------------------------------------
@@ -93,6 +108,56 @@ function QuestionItem({
   // the answer entirely, leaving the teacher to comment on nothing.
   const isEssay = question.questionType === QUESTION_TYPE.DISSERTATIVA;
 
+  // True/false never writes `option_id`, so `isSelected` is always false and the
+  // student's marks live in each option's `selectedValue`. Sending it through
+  // the alternatives branch showed the answer key as if it were the student's
+  // answer, and no mark at all.
+  const isTrueFalse = question.questionType === QUESTION_TYPE.VERDADEIRO_FALSO;
+  const trueFalseStatements: TrueFalseStatement[] = question.options.map(
+    (option) => ({
+      id: option.id,
+      statement: option.option,
+      studentMark: option.selectedValue ?? null,
+      isTrue: option.isCorrect,
+    })
+  );
+
+  /**
+   * Render the student's answer, shaped by the question type.
+   */
+  const renderAnswerArea = () => {
+    if (isEssay) {
+      return (
+        <div className="rounded-lg border border-border-100 bg-background-50 p-3">
+          {question.answer ? (
+            <HtmlMathRenderer
+              content={question.answer}
+              className="text-sm text-text-800"
+            />
+          ) : (
+            <Text size="sm" className="text-text-600">
+              Nenhuma resposta fornecida
+            </Text>
+          )}
+        </div>
+      );
+    }
+
+    if (isTrueFalse) {
+      return <TrueFalseStatementList statements={trueFalseStatements} />;
+    }
+
+    return (
+      <AlternativesList
+        mode="readonly"
+        layout="compact"
+        name={`question-${question.questionId}`}
+        alternatives={alternatives}
+        selectedValue={question.selectedOptionId ?? ''}
+      />
+    );
+  };
+
   return (
     <CardAccordation
       value={question.questionId}
@@ -124,34 +189,13 @@ function QuestionItem({
           trigger={
             <div className="flex-1 py-2">
               <Text size="sm" weight="medium" className="text-text-950">
-                {isEssay ? 'Resposta do aluno' : 'Alternativas'}
+                {getAnswerAccordionTitle(question.questionType)}
               </Text>
             </div>
           }
           contentClassName="px-3 pb-3"
         >
-          {isEssay ? (
-            <div className="rounded-lg border border-border-100 bg-background-50 p-3">
-              {question.answer ? (
-                <HtmlMathRenderer
-                  content={question.answer}
-                  className="text-sm text-text-800"
-                />
-              ) : (
-                <Text size="sm" className="text-text-600">
-                  Nenhuma resposta fornecida
-                </Text>
-              )}
-            </div>
-          ) : (
-            <AlternativesList
-              mode="readonly"
-              layout="compact"
-              name={`question-${question.questionId}`}
-              alternatives={alternatives}
-              selectedValue={question.selectedOptionId ?? ''}
-            />
-          )}
+          {renderAnswerArea()}
         </CardAccordation>
         <QuestionCommentField
           value={question.teacherComment ?? ''}

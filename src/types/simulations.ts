@@ -1,3 +1,4 @@
+import type { TrueFalseEnum } from '../enums/Quiz';
 /**
  * Types for the teacher-facing Simulations feature.
  * Mirror the backend responses served under /performance/simulations.
@@ -82,6 +83,13 @@ export interface SimulationDetailOption {
   option: string;
   isCorrect: boolean;
   isSelected: boolean;
+  /**
+   * VERDADEIRO_FALSO only: what the student marked on this statement. Those
+   * questions never write `option_id`, so `isSelected` is always false for them
+   * and this is the only field carrying the answer. Null on other types and on
+   * statements left blank.
+   */
+  selectedValue: TrueFalseEnum | null;
 }
 
 export interface SimulationDetailQuestion {
