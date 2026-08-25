@@ -70,11 +70,9 @@ describe('QuestionCommentField', () => {
     await user.type(screen.getByRole('textbox'), 'Tentativa');
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
 
-    await waitFor(() =>
-      expect(
-        screen.getByText('Erro ao salvar o comentário. Tente novamente.')
-      ).toBeInTheDocument()
-    );
+    expect(
+      await screen.findByText('Erro ao salvar o comentário. Tente novamente.')
+    ).toBeInTheDocument();
     expect(screen.getByDisplayValue('Tentativa')).toBeInTheDocument();
   });
 
@@ -98,9 +96,9 @@ describe('QuestionCommentField', () => {
     ).toBeDisabled();
 
     resolveSave?.();
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Salvar' })).toBeInTheDocument()
-    );
+    expect(
+      await screen.findByRole('button', { name: 'Salvar' })
+    ).toBeInTheDocument();
   });
 
   it('should follow the persisted value when it changes', () => {
@@ -113,5 +111,47 @@ describe('QuestionCommentField', () => {
     rerender(<QuestionCommentField value="Segundo" onSave={jest.fn()} />);
 
     expect(screen.getByDisplayValue('Segundo')).toBeInTheDocument();
+  });
+
+  it('should not discard edits made while a save was in flight', async () => {
+    // The textarea stays editable during a save, so the teacher can keep typing
+    // between clicking Save and the parent echoing the saved comment back. That
+    // echo used to overwrite the newer text.
+    const user = userEvent.setup();
+    let resolveSave: (() => void) | undefined;
+    const onSave = jest.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveSave = resolve;
+        })
+    );
+
+    const { rerender } = render(
+      <QuestionCommentField value="" onSave={onSave} />
+    );
+
+    await user.type(screen.getByRole('textbox'), 'A');
+    await user.click(screen.getByRole('button', { name: 'Salvar' }));
+
+    await user.type(screen.getByRole('textbox'), 'B');
+
+    resolveSave?.();
+    // The parent now reports 'A' as persisted, while the draft already says 'AB'.
+    rerender(<QuestionCommentField value="A" onSave={onSave} />);
+
+    expect(await screen.findByDisplayValue('AB')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Salvar' })).toBeEnabled();
+  });
+
+  it('should adopt a new persisted value when the draft is untouched', () => {
+    const { rerender } = render(
+      <QuestionCommentField value="Original" onSave={jest.fn()} />
+    );
+
+    // Nothing was typed, so there is nothing to protect — a refetch or a switch
+    // to another student must be reflected.
+    rerender(<QuestionCommentField value="Do servidor" onSave={jest.fn()} />);
+
+    expect(screen.getByDisplayValue('Do servidor')).toBeInTheDocument();
   });
 });

@@ -29,7 +29,7 @@ const describePoint = (point: ImagePoint): string =>
 
 /** Euclidean distance between two points in the 0-100 space. */
 const distanceBetween = (a: ImagePoint, b: ImagePoint): number =>
-  Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
+  Math.hypot(a.x - b.x, a.y - b.y);
 
 /**
  * Read-only view of an image question: the image, the answer key area and where

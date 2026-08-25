@@ -511,11 +511,9 @@ describe('SimulationsDetailModal', () => {
 
     // The saved value is folded back into the loaded detail, so Save goes
     // disabled again without a refetch.
-    await waitFor(() =>
-      expect(
-        screen.getByDisplayValue('Revise a cinemática.')
-      ).toBeInTheDocument()
-    );
+    expect(
+      await screen.findByDisplayValue('Revise a cinemática.')
+    ).toBeInTheDocument();
   });
 
   it('prefills a comment already saved on the question', async () => {

@@ -2012,6 +2012,8 @@ export type {
   SimulationDetailResponse,
   NoteData,
   NoteResponse,
+  QuestionCommentData,
+  QuestionCommentResponse,
 } from './types/simulations';
 
 // ComparatorChart Components

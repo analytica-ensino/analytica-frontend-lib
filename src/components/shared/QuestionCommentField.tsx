@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
 import TextArea from '../TextArea/TextArea';
@@ -51,10 +51,21 @@ export function QuestionCommentField({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // What we last knew to be persisted. Compared against the draft to tell an
+  // untouched field from one carrying edits that must not be thrown away.
+  const persistedRef = useRef(value);
+
   // Follow the persisted value when it changes underneath (a refetch, or the
-  // modal being reopened on a different student).
+  // modal being reopened on a different student) — but only into a draft the
+  // teacher has not edited since. The textarea stays editable while a save is
+  // in flight, so a plain `setDraft(value)` here discarded whatever was typed
+  // between clicking Save and the parent echoing the saved comment back.
   useEffect(() => {
-    setDraft(value);
+    if (value === persistedRef.current) return;
+
+    const previouslyPersisted = persistedRef.current;
+    persistedRef.current = value;
+    setDraft((current) => (current === previouslyPersisted ? value : current));
     setError(null);
   }, [value]);
 

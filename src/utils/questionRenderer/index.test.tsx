@@ -500,6 +500,60 @@ describe('questionRenderer', () => {
       expect(screen.getByText('O Brasil é um país')).toBeInTheDocument();
     });
 
+    it('should treat a selection without a mark as unanswered', () => {
+      // `isCorrect` is optional on `selectedOptions`. Reading a missing mark as
+      // `false` showed "Resposta selecionada: F" on a statement the student
+      // never answered.
+      const question = createQuestion(
+        'q1',
+        'Marque V ou F',
+        QUESTION_TYPE.VERDADEIRO_FALSO,
+        [{ id: 'opt1', option: 'O Brasil é um país' }],
+        []
+      );
+      const result = createQuestionResult(
+        'a1',
+        'q1',
+        ANSWER_STATUS.RESPOSTA_INCORRETA,
+        null,
+        [{ optionId: 'opt1' }],
+        [{ id: 'opt1', option: 'O Brasil é um país', isCorrect: true }]
+      );
+
+      render(renderQuestionTrueOrFalse({ question, result }));
+
+      expect(
+        screen.getByText('Não respondida | Resposta correta: V')
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText(/Resposta selecionada/)
+      ).not.toBeInTheDocument();
+    });
+
+    it('should read an explicit false mark as F', () => {
+      // In `selectedOptions`, `isCorrect` is what the student marked, not
+      // whether they got it right: false means they answered F.
+      const question = createQuestion(
+        'q1',
+        'Marque V ou F',
+        QUESTION_TYPE.VERDADEIRO_FALSO,
+        [{ id: 'opt1', option: 'A Lua é feita de queijo' }],
+        []
+      );
+      const result = createQuestionResult(
+        'a1',
+        'q1',
+        ANSWER_STATUS.RESPOSTA_CORRETA,
+        null,
+        [{ optionId: 'opt1', isCorrect: false }],
+        [{ id: 'opt1', option: 'A Lua é feita de queijo', isCorrect: false }]
+      );
+
+      render(renderQuestionTrueOrFalse({ question, result }));
+
+      expect(screen.getByText('Resposta selecionada: F')).toBeInTheDocument();
+    });
+
     it('should show selected and correct answer', () => {
       const question = createQuestion(
         'q1',

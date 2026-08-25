@@ -145,6 +145,17 @@ const CorrectActivityModal = ({
   >({});
 
   /**
+   * Comments persisted during this session, keyed by question number.
+   *
+   * `data` is a snapshot the caller refetches on its own schedule, so without
+   * this the field kept comparing the draft against the comment as it was when
+   * the modal opened — and Save stayed enabled on a comment already saved.
+   */
+  const [savedComments, setSavedComments] = useState<Record<number, string>>(
+    {}
+  );
+
+  /**
    * Reset state when modal opens or student changes
    * Load existing observation and attachment if available
    */
@@ -154,6 +165,7 @@ const CorrectActivityModal = ({
       setIsObservationExpanded(false);
       setAttachedFiles([]);
       setSavedFiles([]);
+      setSavedComments({});
       setExistingAttachment(data?.attachment ?? null);
 
       // Load existing observation/attachment if available
@@ -354,6 +366,8 @@ const CorrectActivityModal = ({
           teacherFeedback: comment,
         });
 
+        setSavedComments((prev) => ({ ...prev, [questionNumber]: comment }));
+
         addToast({
           title: 'Comentário salvo',
           description: `O comentário da questão ${questionNumber} foi salvo com sucesso.`,
@@ -509,6 +523,20 @@ const CorrectActivityModal = ({
     const showCommentField =
       questionType !== QUESTION_TYPE.DISSERTATIVA && !!onQuestionCommentSubmit;
 
+    const savedComment =
+      savedComments[questionData.questionNumber] ??
+      questionData.correction?.teacherFeedback ??
+      '';
+
+    // A view-only caller (the exam details screen passes neither callback) gets
+    // no editor at all, and the essay renderer no longer echoes the comment on
+    // its own. Without this the teacher's note would simply disappear there.
+    const hasEditor =
+      questionType === QUESTION_TYPE.DISSERTATIVA
+        ? !!onQuestionCorrectionSubmit
+        : showCommentField;
+    const showReadOnlyComment = !hasEditor && savedComment !== '';
+
     return (
       <CardAccordation
         value={`accordion-${questionData.questionNumber}`}
@@ -525,11 +553,24 @@ const CorrectActivityModal = ({
         {showCommentField && (
           <div className="border-t border-border-100 pt-4 mt-4">
             <QuestionCommentField
-              value={questionData.correction?.teacherFeedback ?? ''}
+              value={savedComment}
               onSave={(comment) =>
                 handleSaveQuestionComment(questionData.questionNumber, comment)
               }
             />
+          </div>
+        )}
+        {showReadOnlyComment && (
+          <div className="border-t border-border-100 pt-4 mt-4 space-y-2">
+            <Text size="xs" weight="normal" color="text-text-500">
+              Comentário do professor:
+            </Text>
+            <div className="p-3 bg-background-50 rounded-lg border border-border-100">
+              <HtmlMathRenderer
+                content={savedComment}
+                className="text-sm text-text-700"
+              />
+            </div>
           </div>
         )}
       </CardAccordation>

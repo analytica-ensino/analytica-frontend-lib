@@ -2190,6 +2190,85 @@ describe('CorrectActivityModal', () => {
       ).toBeInTheDocument();
     });
 
+    it('should show the saved comment read-only when there is no editor', async () => {
+      // The exam details screen mounts this modal with neither callback. The
+      // essay renderer no longer echoes the comment on its own, so without this
+      // fallback the teacher's note was invisible there.
+      const dataWithComment = {
+        ...mockDataWithAlternatives,
+        questions: mockDataWithAlternatives.questions.map((question, index) =>
+          index === 0
+            ? {
+                ...question,
+                correction: {
+                  isCorrect: null,
+                  teacherFeedback: 'Atenção ao enunciado.',
+                },
+              }
+            : question
+        ),
+      };
+
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={dataWithComment}
+          isViewOnly={true}
+        />
+      );
+
+      openFirstQuestion();
+
+      expect(
+        await screen.findByText('Comentário do professor:')
+      ).toBeInTheDocument();
+      expect(screen.getByText('Atenção ao enunciado.')).toBeInTheDocument();
+      // Read-only: no textarea, no Save.
+      expect(
+        screen.queryByDisplayValue('Atenção ao enunciado.')
+      ).not.toBeInTheDocument();
+    });
+
+    it('should not show an empty read-only block when there is no comment', () => {
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={mockDataWithAlternatives}
+          isViewOnly={true}
+        />
+      );
+
+      openFirstQuestion();
+
+      expect(
+        screen.queryByText('Comentário do professor:')
+      ).not.toBeInTheDocument();
+    });
+
+    it('should stop offering to save a comment it has just saved', async () => {
+      const onQuestionCommentSubmit = jest.fn().mockResolvedValue(undefined);
+
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={mockDataWithAlternatives}
+          onQuestionCommentSubmit={onQuestionCommentSubmit}
+        />
+      );
+
+      openFirstQuestion();
+
+      const textarea = screen.getAllByPlaceholderText(commentPlaceholder)[0];
+      fireEvent.change(textarea, { target: { value: 'Comentário novo' } });
+
+      const saveButton = screen.getAllByText('Salvar')[0].closest('button')!;
+      fireEvent.click(saveButton);
+
+      // `data` is a snapshot the caller refetches on its own schedule, so the
+      // modal has to remember what it saved or Save stays enabled forever.
+      await waitFor(() => expect(saveButton).toBeDisabled());
+    });
+
     it('should submit the comment with the question id and toast on success', async () => {
       const onQuestionCommentSubmit = jest.fn().mockResolvedValue(undefined);
 

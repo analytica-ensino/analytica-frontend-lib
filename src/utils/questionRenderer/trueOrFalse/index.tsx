@@ -31,8 +31,10 @@ export const renderQuestionTrueOrFalse = ({
     );
     const answerKeyOption = result?.options?.find((op) => op.id === option.id);
 
+    // `isCorrect` is optional on `selectedOptions`, and an entry that carries no
+    // mark means the statement was left blank — not that the student marked F.
     let studentMark: TrueFalseEnum | null = null;
-    if (studentSelection !== undefined) {
+    if (typeof studentSelection?.isCorrect === 'boolean') {
       studentMark = studentSelection.isCorrect
         ? TrueFalseEnum.VERDADEIRO
         : TrueFalseEnum.FALSO;
