@@ -34,6 +34,12 @@ import Badge from '../Badge/Badge';
 import { CheckCircleIcon } from '@phosphor-icons/react/dist/csr/CheckCircle';
 import { XCircleIcon } from '@phosphor-icons/react/dist/csr/XCircle';
 import ImageQuestion from '../../assets/img/mock-image-question.png';
+import { ImageAnswerView } from '../shared/ImageAnswerView';
+import {
+  DEFAULT_IMAGE_TOLERANCE,
+  parseImageCorrectPoint,
+  parseImageStudentPoint,
+} from '../../utils/image/imageAnswer.utils';
 import Text from '../Text/Text';
 import { HtmlMathRenderer } from '../HtmlMathRenderer';
 export const getStatusBadge = (status?: OptionStatus) => {
@@ -512,18 +518,9 @@ const QuizDissertative = ({ paddingBottom }: QuizVariantInterface) => {
         </div>
       </QuizContainer>
 
-      {variant === QuizVariant.RESULT &&
-        currentQuestionResult?.teacherFeedback && (
-          <>
-            <QuizSubTitle subTitle="Observação do professor" />
-
-            <QuizContainer className={cn('', paddingBottom)}>
-              <p className="text-text-600 text-md whitespace-pre-wrap">
-                {currentQuestionResult?.teacherFeedback}
-              </p>
-            </QuizContainer>
-          </>
-        )}
+      {/* The teacher's comment is rendered by `TeacherQuestionComment`, mounted
+          once in `QuizContent` for every question type. This block used to
+          duplicate it here, so an essay showed the same text twice. */}
     </>
   );
 };
@@ -1481,6 +1478,27 @@ const QuizImageQuestion = ({ paddingBottom }: QuizVariantInterface) => {
     return 'bg-success-600/70 border-white';
   };
 
+  // In review the question is read, not answered: the shared view draws the
+  // image, the answer area and the student's click with the very tolerance the
+  // backend graded with. This screen used to draw its own circle with a radius
+  // of its own, so the drawing could disagree with the score.
+  if (variant === QuizVariant.RESULT) {
+    return (
+      <QuizContainer className={cn('', paddingBottom)}>
+        <div data-testid="quiz-image-container" className="p-3">
+          <ImageAnswerView
+            imageUrl={imageUrl}
+            correctPoint={parseImageCorrectPoint(currentQuestion?.options)}
+            studentPoint={parseImageStudentPoint(currentQuestionResult)}
+            toleranceRadius={
+              currentQuestionResult?.imageTolerance ?? DEFAULT_IMAGE_TOLERANCE
+            }
+          />
+        </div>
+      </QuizContainer>
+    );
+  }
+
   return (
     <>
       <QuizSubTitle subTitle="Clique na área correta" />
@@ -1490,32 +1508,6 @@ const QuizImageQuestion = ({ paddingBottom }: QuizVariantInterface) => {
           data-testid="quiz-image-container"
           className="space-y-6 p-3 relative inline-block"
         >
-          {variant == 'result' && (
-            <div
-              data-testid="quiz-legend"
-              className="flex items-center gap-4 text-xs"
-            >
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-indicator-primary/70 border border-[#F8CC2E]"></div>
-                <span className="text-text-600 font-medium text-sm">
-                  Área correta
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-success-600/70 border border-white"></div>
-                <span className="text-text-600 font-medium text-sm">
-                  Resposta correta
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-indicator-error/70 border border-white"></div>
-                <span className="text-text-600 font-medium text-sm">
-                  Resposta incorreta
-                </span>
-              </div>
-            </div>
-          )}
-
           <button
             data-testid="quiz-image-button"
             type="button"
@@ -1535,22 +1527,6 @@ const QuizImageQuestion = ({ paddingBottom }: QuizVariantInterface) => {
               alt="Question"
               className="w-full h-auto rounded-md"
             />
-
-            {/* Correct answer circle - only show in result variant */}
-            {variant === QuizVariant.RESULT && (
-              <div
-                data-testid="quiz-correct-circle"
-                className="absolute rounded-full bg-indicator-primary/70 border-4 border-[#F8CC2E] pointer-events-none"
-                style={{
-                  minWidth: '50px',
-                  maxWidth: '160px',
-                  width: '15%',
-                  aspectRatio: '1 / 1',
-                  left: `calc(${correctPositionRelative.x * 100}% - 7.5%)`,
-                  top: `calc(${correctPositionRelative.y * 100}% - 15%)`,
-                }}
-              />
-            )}
 
             {/* User's answer circle */}
             {clickPositionRelative && (

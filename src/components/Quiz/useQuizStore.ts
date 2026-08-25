@@ -172,6 +172,14 @@ export interface QuestionResult {
       } | null;
     }[];
     teacherFeedback: string | null;
+    /** IMAGEM only: where the student clicked, in image percentage points. */
+    imageAnswer?: { coordinateX: number; coordinateY: number } | null;
+    /**
+     * IMAGEM only: radius within which a click counts as correct, in the same
+     * percentage space. Sent by the backend so the drawn target circle matches
+     * the grade instead of each client inventing its own.
+     */
+    imageTolerance?: number | null;
     attachment: string | null;
     score: number | null;
     gradedAt: string | null;

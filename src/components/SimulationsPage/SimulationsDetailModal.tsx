@@ -7,9 +7,17 @@ import TextArea from '../TextArea/TextArea';
 import { CardAccordation } from '../Accordation';
 import { SkeletonCard } from '../Skeleton/Skeleton';
 import { StatCard } from '../shared/StatCard';
+import { QuestionCommentField } from '../shared/QuestionCommentField';
+import {
+  TrueFalseStatementList,
+  type TrueFalseStatement,
+} from '../shared/TrueFalseStatementList';
+import { ImageAnswerView } from '../shared/ImageAnswerView';
+import { DEFAULT_IMAGE_TOLERANCE } from '../../utils/image/imageAnswer.utils';
 import { AlternativesList } from '../Alternative/Alternative';
 import { HtmlMathRenderer } from '../HtmlMathRenderer';
 import { OptionStatus } from '../../enums/Options';
+import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import {
   getQuestionStatusBadgeConfig,
   QUESTION_STATUS,
@@ -55,7 +63,22 @@ const QUESTION_STATUS_MAP: Record<
   CORRECT: QUESTION_STATUS.CORRETA,
   INCORRECT: QUESTION_STATUS.INCORRETA,
   BLANK: QUESTION_STATUS.EM_BRANCO,
+  PENDING: QUESTION_STATUS.PENDENTE,
 };
+
+/** Label of the inner accordion holding the student's answer. */
+function getAnswerAccordionTitle(questionType: string): string {
+  if (questionType === QUESTION_TYPE.DISSERTATIVA) {
+    return 'Resposta do aluno';
+  }
+  if (questionType === QUESTION_TYPE.VERDADEIRO_FALSO) {
+    return 'Afirmações';
+  }
+  if (questionType === QUESTION_TYPE.IMAGEM) {
+    return 'Imagem';
+  }
+  return 'Alternativas';
+}
 
 // ---------------------------------------------------------------------------
 // Level 2 — Question (reuses the shared alternatives renderer + status badge)
@@ -64,9 +87,11 @@ const QUESTION_STATUS_MAP: Record<
 function QuestionItem({
   question,
   index,
+  onSaveComment,
 }: {
   readonly question: SimulationDetailQuestion;
   readonly index: number;
+  readonly onSaveComment: (comment: string) => Promise<void>;
 }) {
   const badge = getQuestionStatusBadgeConfig(
     QUESTION_STATUS_MAP[question.status]
@@ -95,6 +120,84 @@ function QuestionItem({
     return { label: option.option, value: option.id, status };
   });
 
+  // An essay has no alternatives to show — it has the text the student wrote.
+  // Rendering the "Alternativas" accordion for it produced an empty box and hid
+  // the answer entirely, leaving the teacher to comment on nothing.
+  const isEssay = question.questionType === QUESTION_TYPE.DISSERTATIVA;
+
+  // True/false never writes `option_id`, so `isSelected` is always false and the
+  // student's marks live in each option's `selectedValue`. Sending it through
+  // the alternatives branch showed the answer key as if it were the student's
+  // answer, and no mark at all.
+  const isTrueFalse = question.questionType === QUESTION_TYPE.VERDADEIRO_FALSO;
+  const trueFalseStatements: TrueFalseStatement[] = question.options.map(
+    (option) => ({
+      id: option.id,
+      statement: option.option,
+      studentMark: option.selectedValue ?? null,
+      isTrue: option.isCorrect,
+    })
+  );
+
+  // IMAGEM has no alternatives either: the answer is a point on an image. The
+  // alternatives branch rendered the answer key's raw JSON as an option label,
+  // painted green, and never showed where the student clicked.
+  const isImage = question.questionType === QUESTION_TYPE.IMAGEM;
+
+  /**
+   * Render the student's answer, shaped by the question type.
+   */
+  const renderAnswerArea = () => {
+    if (isImage) {
+      return (
+        <ImageAnswerView
+          imageUrl={question.additionalContent ?? ''}
+          correctPoint={question.correctPoint}
+          studentPoint={
+            question.imageAnswer
+              ? {
+                  x: question.imageAnswer.coordinateX,
+                  y: question.imageAnswer.coordinateY,
+                }
+              : null
+          }
+          toleranceRadius={question.imageTolerance ?? DEFAULT_IMAGE_TOLERANCE}
+        />
+      );
+    }
+
+    if (isEssay) {
+      return (
+        <div className="rounded-lg border border-border-100 bg-background-50 p-3">
+          {question.answer ? (
+            <HtmlMathRenderer
+              content={question.answer}
+              className="text-sm text-text-800"
+            />
+          ) : (
+            <Text size="sm" className="text-text-600">
+              Nenhuma resposta fornecida
+            </Text>
+          )}
+        </div>
+      );
+    }
+
+    if (isTrueFalse) {
+      return <TrueFalseStatementList statements={trueFalseStatements} />;
+    }
+
+    return (
+      <AlternativesList
+        mode="readonly"
+        layout="compact"
+        name={`question-${question.questionId}`}
+        alternatives={alternatives}
+        selectedValue={question.selectedOptionId ?? ''}
+      />
+    );
+  };
+
   return (
     <CardAccordation
       value={question.questionId}
@@ -122,24 +225,22 @@ function QuestionItem({
           className="text-sm text-text-800"
         />
         <CardAccordation
-          value={`${question.questionId}-options`}
+          value={`${question.questionId}-answer`}
           trigger={
             <div className="flex-1 py-2">
               <Text size="sm" weight="medium" className="text-text-950">
-                Alternativas
+                {getAnswerAccordionTitle(question.questionType)}
               </Text>
             </div>
           }
           contentClassName="px-3 pb-3"
         >
-          <AlternativesList
-            mode="readonly"
-            layout="compact"
-            name={`question-${question.questionId}`}
-            alternatives={alternatives}
-            selectedValue={question.selectedOptionId ?? ''}
-          />
+          {renderAnswerArea()}
         </CardAccordation>
+        <QuestionCommentField
+          value={question.teacherComment ?? ''}
+          onSave={onSaveComment}
+        />
       </div>
     </CardAccordation>
   );
@@ -254,6 +355,7 @@ function SimulationItem({
   detail,
   note,
   onSaveNote,
+  onSaveQuestionComment,
 }: {
   readonly simulation: StudentSimulationItem;
   readonly index: number;
@@ -262,6 +364,10 @@ function SimulationItem({
   readonly detail: DetailState | undefined;
   readonly note: NoteState | undefined;
   readonly onSaveNote: (text: string) => Promise<void>;
+  readonly onSaveQuestionComment: (
+    questionId: string,
+    comment: string
+  ) => Promise<void>;
 }) {
   return (
     <CardAccordation
@@ -306,6 +412,15 @@ function SimulationItem({
               variant="blank"
               className="flex-1"
             />
+            {/* Essays awaiting grading used to be counted as blank. */}
+            {detail.data.counts.pending > 0 && (
+              <StatCard
+                label="Nº de questões pendentes"
+                value={detail.data.counts.pending}
+                variant="pending"
+                className="flex-1"
+              />
+            )}
           </div>
 
           <NoteRow
@@ -323,6 +438,9 @@ function SimulationItem({
                 key={question.questionId}
                 question={question}
                 index={qIndex}
+                onSaveComment={(comment) =>
+                  onSaveQuestionComment(question.questionId, comment)
+                }
               />
             ))}
           </div>
@@ -354,6 +472,7 @@ export function SimulationsDetailModal({
     fetchSimulationDetail,
     fetchNote,
     saveNote,
+    saveQuestionComment,
   } = useSimulations();
 
   const [list, setList] = useState<SimulationsListData | null>(null);
@@ -492,6 +611,43 @@ export function SimulationsDetailModal({
     [student, saveNote, isStaleResponse]
   );
 
+  /**
+   * Save a comment on one question and reflect it in the loaded detail, so the
+   * field's saved value matches what the server now holds without a refetch.
+   */
+  const makeSaveQuestionComment = useCallback(
+    (simulationId: string) => async (questionId: string, comment: string) => {
+      if (!student) return;
+      const requestEpoch = requestEpochRef.current;
+      const saved = await saveQuestionComment(
+        student.userInstitutionId,
+        simulationId,
+        questionId,
+        comment
+      );
+      if (isStaleResponse(requestEpoch)) return;
+      setDetails((prev) => {
+        const current = prev[simulationId];
+        if (!current?.data) return prev;
+        return {
+          ...prev,
+          [simulationId]: {
+            ...current,
+            data: {
+              ...current.data,
+              questions: current.data.questions.map((question) =>
+                question.questionId === questionId
+                  ? { ...question, teacherComment: saved?.teacherComment ?? '' }
+                  : question
+              ),
+            },
+          },
+        };
+      });
+    },
+    [student, saveQuestionComment, isStaleResponse]
+  );
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Simulados" size="xl">
       {student && (
@@ -528,7 +684,11 @@ export function SimulationsDetailModal({
             <div className="flex flex-col gap-3">
               {list.simulations.data.map((simulation, index) => (
                 <SimulationItem
-                  key={simulation.id}
+                  // Keyed by the student too: the comment fields below keep a
+                  // dirty draft through a `value` change so an in-flight save
+                  // cannot discard it, and a note written for one student must
+                  // never survive into another. Remounting resets it for free.
+                  key={`${student?.userInstitutionId}-${simulation.id}`}
                   simulation={simulation}
                   index={index}
                   expanded={expandedId === simulation.id}
@@ -536,6 +696,7 @@ export function SimulationsDetailModal({
                   detail={details[simulation.id]}
                   note={notes[simulation.id]}
                   onSaveNote={makeSaveNote(simulation.id)}
+                  onSaveQuestionComment={makeSaveQuestionComment(simulation.id)}
                 />
               ))}
             </div>

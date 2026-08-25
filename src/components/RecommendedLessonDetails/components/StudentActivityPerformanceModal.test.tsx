@@ -622,6 +622,264 @@ describe('StudentActivityPerformanceModal', () => {
     });
   });
 
+  // Objective questions used to show nothing at all here: the gate only let the
+  // essay branch through, so the teacher could read the answer but had no way to
+  // comment on it.
+  describe('Teacher comment on non-essay questions', () => {
+    /** Open the multiple-choice question's accordion. */
+    const openObjectiveQuestion = () => {
+      fireEvent.click(screen.getByText('Atividade 1').closest('button')!);
+      fireEvent.click(screen.getByText('Questão 1').closest('button')!);
+    };
+
+    // The accordion keeps every question's content mounted, so the split is
+    // asserted by counting: the fixture has exactly one objective question and
+    // one essay, and each must get one branch and not the other.
+    it('should give the comment field to the objective question and the grading fields to the essay', () => {
+      render(
+        <StudentActivityPerformanceModal
+          isOpen={true}
+          onClose={jest.fn()}
+          data={mockPerformanceData}
+          apiClient={mockApiClient}
+        />
+      );
+
+      openObjectiveQuestion();
+
+      expect(screen.getAllByText('Comentário para o estudante')).toHaveLength(
+        1
+      );
+      expect(screen.getAllByText('Resposta está correta?')).toHaveLength(1);
+    });
+
+    it('should not show the comment field without an apiClient', () => {
+      render(
+        <StudentActivityPerformanceModal
+          isOpen={true}
+          onClose={jest.fn()}
+          data={mockPerformanceData}
+        />
+      );
+
+      openObjectiveQuestion();
+
+      expect(
+        screen.queryByText('Comentário para o estudante')
+      ).not.toBeInTheDocument();
+    });
+
+    it('should save through the feedback endpoint, not the correction one', async () => {
+      // The correction endpoint is dissertativa-only and overwrites
+      // answer_status; an objective question is graded automatically and its
+      // status must not move because a teacher wrote a note.
+      (mockApiClient.patch as jest.Mock).mockResolvedValue({});
+
+      render(
+        <StudentActivityPerformanceModal
+          isOpen={true}
+          onClose={jest.fn()}
+          data={mockPerformanceData}
+          apiClient={mockApiClient}
+        />
+      );
+
+      openObjectiveQuestion();
+
+      fireEvent.change(
+        screen.getByPlaceholderText('Escreva um comentário sobre esta questão'),
+        { target: { value: 'Revise o conceito de capital.' } }
+      );
+      fireEvent.click(screen.getByText('Salvar'));
+
+      await waitFor(() => {
+        expect(mockApiClient.patch).toHaveBeenCalledWith(
+          '/questions/activity-1/question-1/students/user-1/feedback',
+          { teacherFeedback: 'Revise o conceito de capital.' }
+        );
+      });
+      expect(mockApiClient.post).not.toHaveBeenCalled();
+    });
+
+    it('should keep the saved comment so Save stops offering to resave it', async () => {
+      (mockApiClient.patch as jest.Mock).mockResolvedValue({});
+
+      render(
+        <StudentActivityPerformanceModal
+          isOpen={true}
+          onClose={jest.fn()}
+          data={mockPerformanceData}
+          apiClient={mockApiClient}
+        />
+      );
+
+      openObjectiveQuestion();
+
+      fireEvent.change(
+        screen.getByPlaceholderText('Escreva um comentário sobre esta questão'),
+        { target: { value: 'Bom raciocínio.' } }
+      );
+      fireEvent.click(screen.getByText('Salvar'));
+
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith(
+          expect.objectContaining({ title: 'Comentário salvo' })
+        );
+      });
+      await waitFor(() => {
+        expect(screen.getByText('Salvar').closest('button')).toBeDisabled();
+      });
+    });
+
+    it('should send an empty string to clear the comment', async () => {
+      (mockApiClient.patch as jest.Mock).mockResolvedValue({});
+
+      const dataWithComment = {
+        ...mockPerformanceData,
+        activities: [
+          {
+            ...mockPerformanceData.activities[0],
+            questions: [
+              {
+                ...mockPerformanceData.activities[0].questions[0],
+                teacherFeedback: 'Comentário antigo',
+              },
+              mockPerformanceData.activities[0].questions[1],
+            ],
+          },
+        ],
+      };
+
+      render(
+        <StudentActivityPerformanceModal
+          isOpen={true}
+          onClose={jest.fn()}
+          data={dataWithComment}
+          apiClient={mockApiClient}
+        />
+      );
+
+      openObjectiveQuestion();
+
+      const textarea = screen.getByDisplayValue('Comentário antigo');
+      fireEvent.change(textarea, { target: { value: '' } });
+      fireEvent.click(screen.getByText('Salvar'));
+
+      await waitFor(() => {
+        expect(mockApiClient.patch).toHaveBeenCalledWith(
+          '/questions/activity-1/question-1/students/user-1/feedback',
+          { teacherFeedback: '' }
+        );
+      });
+    });
+
+    it('should keep the draft and show an error when saving fails', async () => {
+      (mockApiClient.patch as jest.Mock).mockRejectedValue(
+        new Error('Network down')
+      );
+
+      render(
+        <StudentActivityPerformanceModal
+          isOpen={true}
+          onClose={jest.fn()}
+          data={mockPerformanceData}
+          apiClient={mockApiClient}
+        />
+      );
+
+      openObjectiveQuestion();
+
+      const textarea = screen.getByPlaceholderText(
+        'Escreva um comentário sobre esta questão'
+      );
+      fireEvent.change(textarea, {
+        target: { value: 'Texto que não pode sumir' },
+      });
+      fireEvent.click(screen.getByText('Salvar'));
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Erro ao salvar o comentário. Tente novamente.')
+        ).toBeInTheDocument();
+      });
+      expect(textarea).toHaveValue('Texto que não pode sumir');
+    });
+  });
+
+  describe('Edge cases', () => {
+    it('should render nothing when there is no data, no loading and no error', () => {
+      const { container } = render(
+        <StudentActivityPerformanceModal
+          isOpen={true}
+          onClose={jest.fn()}
+          data={null}
+        />
+      );
+
+      expect(container).not.toHaveTextContent('João Silva');
+    });
+
+    it('should clear the corrections when the modal is closed', () => {
+      const onClose = jest.fn();
+      render(
+        <StudentActivityPerformanceModal
+          isOpen={true}
+          onClose={onClose}
+          data={mockPerformanceData}
+          apiClient={mockApiClient}
+        />
+      );
+
+      fireEvent.click(screen.getByLabelText('Fechar modal'));
+
+      expect(onClose).toHaveBeenCalled();
+    });
+
+    it('should key a question by activity and question id when it has no answer id', async () => {
+      // Questions never answered come back without an `answerId`, so the state
+      // key falls back to the pair — without it every such question would share
+      // the key '' and overwrite each other's comment.
+      (mockApiClient.patch as jest.Mock).mockResolvedValue({});
+
+      const dataWithoutAnswerId = {
+        ...mockPerformanceData,
+        activities: [
+          {
+            ...mockPerformanceData.activities[0],
+            questions: [
+              {
+                ...mockPerformanceData.activities[0].questions[0],
+                answerId: '',
+              },
+            ],
+          },
+        ],
+      };
+
+      render(
+        <StudentActivityPerformanceModal
+          isOpen={true}
+          onClose={jest.fn()}
+          data={dataWithoutAnswerId}
+          apiClient={mockApiClient}
+        />
+      );
+
+      fireEvent.click(screen.getByText('Atividade 1').closest('button')!);
+      fireEvent.click(screen.getByText('Questão 1').closest('button')!);
+
+      fireEvent.change(
+        screen.getByPlaceholderText('Escreva um comentário sobre esta questão'),
+        { target: { value: 'Sem answerId' } }
+      );
+      fireEvent.click(screen.getByText('Salvar'));
+
+      await waitFor(() => {
+        expect(screen.getByText('Salvar').closest('button')).toBeDisabled();
+      });
+    });
+  });
+
   describe('Lessons Section', () => {
     it('should render lessons with progress bars', () => {
       render(

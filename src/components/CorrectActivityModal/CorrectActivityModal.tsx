@@ -19,11 +19,13 @@ import { CardAccordation, AccordionGroup } from '../Accordation';
 import { generateFileId } from '../FileAttachment/FileAttachment';
 import type { AttachedFile } from '../FileAttachment/FileAttachment';
 import { StatCard } from '../shared/StatCard';
+import { QuestionCommentField } from '../shared/QuestionCommentField';
 import { cn } from '../../utils/utils';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import {
   type StudentActivityCorrectionData,
   type SaveQuestionCorrectionPayload,
+  type SaveQuestionCommentPayload,
   getQuestionStatusBadgeConfig,
   getQuestionStatusFromData,
   QUESTION_STATUS,
@@ -64,6 +66,14 @@ export interface CorrectActivityModalProps {
     studentId: string,
     payload: SaveQuestionCorrectionPayload
   ) => Promise<void>;
+  /**
+   * Callback when a teacher comment is saved on a non-essay question.
+   * Omit it to hide the comment field entirely.
+   */
+  onQuestionCommentSubmit?: (
+    studentId: string,
+    payload: SaveQuestionCommentPayload
+  ) => Promise<void>;
   /** URL of the scanned answer sheet image (for exam mode) */
   answerSheetImageUrl?: string | null;
   /** Callback when "Ver gabarito escaneado" button is clicked */
@@ -103,6 +113,7 @@ const CorrectActivityModal = ({
   isViewOnly = false,
   onObservationSubmit,
   onQuestionCorrectionSubmit,
+  onQuestionCommentSubmit,
   answerSheetImageUrl,
   onViewScannedAnswerSheet,
 }: CorrectActivityModalProps) => {
@@ -120,8 +131,8 @@ const CorrectActivityModal = ({
   // Toast store for notifications
   const addToast = useToastStore((state) => state.addToast);
 
-  // State for essay question corrections
-  const [essayCorrections, setEssayCorrections] = useState<
+  /** Essay grading input (grade + observation), keyed by question number. */
+  const [questionCorrections, setQuestionCorrections] = useState<
     Record<
       number,
       {
@@ -134,6 +145,17 @@ const CorrectActivityModal = ({
   >({});
 
   /**
+   * Comments persisted during this session, keyed by question number.
+   *
+   * `data` is a snapshot the caller refetches on its own schedule, so without
+   * this the field kept comparing the draft against the comment as it was when
+   * the modal opened — and Save stayed enabled on a comment already saved.
+   */
+  const [savedComments, setSavedComments] = useState<Record<number, string>>(
+    {}
+  );
+
+  /**
    * Reset state when modal opens or student changes
    * Load existing observation and attachment if available
    */
@@ -143,6 +165,7 @@ const CorrectActivityModal = ({
       setIsObservationExpanded(false);
       setAttachedFiles([]);
       setSavedFiles([]);
+      setSavedComments({});
       setExistingAttachment(data?.attachment ?? null);
 
       // Load existing observation/attachment if available
@@ -154,7 +177,8 @@ const CorrectActivityModal = ({
         setSavedObservation('');
       }
 
-      // Initialize essay corrections from data
+      // Essay grading state only. Comments on objective questions live inside
+      // QuestionCommentField, which owns its own draft.
       const initialCorrections: Record<
         number,
         {
@@ -174,7 +198,7 @@ const CorrectActivityModal = ({
           };
         }
       });
-      setEssayCorrections(initialCorrections);
+      setQuestionCorrections(initialCorrections);
     }
   }, [
     isOpen,
@@ -252,12 +276,12 @@ const CorrectActivityModal = ({
     async (questionNumber: number) => {
       if (!data?.studentId || !onQuestionCorrectionSubmit) return;
 
-      const correction = essayCorrections[questionNumber];
+      const correction = questionCorrections[questionNumber];
       if (correction?.isCorrect == null) {
         return;
       }
 
-      setEssayCorrections((prev) => ({
+      setQuestionCorrections((prev) => ({
         ...prev,
         [questionNumber]: { ...prev[questionNumber], isSaving: true },
       }));
@@ -279,7 +303,7 @@ const CorrectActivityModal = ({
         });
 
         // Mark as saved and show success toast
-        setEssayCorrections((prev) => ({
+        setQuestionCorrections((prev) => ({
           ...prev,
           [questionNumber]: {
             ...prev[questionNumber],
@@ -298,7 +322,7 @@ const CorrectActivityModal = ({
       } catch (error) {
         console.error('Erro ao salvar correção da questão:', error);
 
-        setEssayCorrections((prev) => ({
+        setQuestionCorrections((prev) => ({
           ...prev,
           [questionNumber]: { ...prev[questionNumber], isSaving: false },
         }));
@@ -315,10 +339,57 @@ const CorrectActivityModal = ({
     [
       data?.studentId,
       data?.questions,
-      essayCorrections,
+      questionCorrections,
       onQuestionCorrectionSubmit,
       addToast,
     ]
+  );
+
+  /**
+   * Handle saving a teacher comment on a non-essay question
+   *
+   * Objective questions are graded automatically, so this saves the comment
+   * alone — it never touches the question's status badge.
+   */
+  const handleSaveQuestionComment = useCallback(
+    async (questionNumber: number, comment: string) => {
+      if (!data?.studentId || !onQuestionCommentSubmit) return;
+
+      const questionData = data.questions.find(
+        (q) => q.questionNumber === questionNumber
+      );
+      if (!questionData) return;
+
+      try {
+        await onQuestionCommentSubmit(data.studentId, {
+          questionId: questionData.question.id,
+          teacherFeedback: comment,
+        });
+
+        setSavedComments((prev) => ({ ...prev, [questionNumber]: comment }));
+
+        addToast({
+          title: 'Comentário salvo',
+          description: `O comentário da questão ${questionNumber} foi salvo com sucesso.`,
+          variant: 'solid',
+          action: 'success',
+          position: 'top-right',
+        });
+      } catch (error) {
+        console.error('Erro ao salvar comentário da questão:', error);
+
+        addToast({
+          title: 'Erro ao salvar comentário',
+          description: 'Não foi possível salvar o comentário. Tente novamente.',
+          variant: 'solid',
+          action: 'warning',
+          position: 'top-right',
+        });
+        // Rethrow so the field keeps the draft and shows its inline error.
+        throw error;
+      }
+    },
+    [data?.studentId, data?.questions, onQuestionCommentSubmit, addToast]
   );
 
   /**
@@ -333,7 +404,7 @@ const CorrectActivityModal = ({
         | (typeof EssayCorrectionField)['TeacherFeedback'],
       value: boolean | string
     ) => {
-      setEssayCorrections((prev) => ({
+      setQuestionCorrections((prev) => ({
         ...prev,
         [questionNumber]: {
           ...prev[questionNumber],
@@ -423,11 +494,15 @@ const CorrectActivityModal = ({
         break;
       case QUESTION_TYPE.IMAGEM:
         content = renderQuestionImage({
+          question,
           result,
         });
         break;
       case QUESTION_TYPE.RELACIONAR:
-        content = renderQuestionConnectDots({ paddingBottom: '' });
+        content = renderQuestionConnectDots({
+          question,
+          result,
+        });
         break;
       default:
         // Fallback: try to render based on options presence
@@ -443,6 +518,25 @@ const CorrectActivityModal = ({
         }
     }
 
+    // Essay questions already got their field inside the DISSERTATIVA case,
+    // bundled with the grade. Every other type gets the comment on its own.
+    const showCommentField =
+      questionType !== QUESTION_TYPE.DISSERTATIVA && !!onQuestionCommentSubmit;
+
+    const savedComment =
+      savedComments[questionData.questionNumber] ??
+      questionData.correction?.teacherFeedback ??
+      '';
+
+    // A view-only caller (the exam details screen passes neither callback) gets
+    // no editor at all, and the essay renderer no longer echoes the comment on
+    // its own. Without this the teacher's note would simply disappear there.
+    const hasEditor =
+      questionType === QUESTION_TYPE.DISSERTATIVA
+        ? !!onQuestionCorrectionSubmit
+        : showCommentField;
+    const showReadOnlyComment = !hasEditor && savedComment !== '';
+
     return (
       <CardAccordation
         value={`accordion-${questionData.questionNumber}`}
@@ -456,6 +550,34 @@ const CorrectActivityModal = ({
         }
       >
         {content}
+        {showCommentField && (
+          <div className="border-t border-border-100 pt-4 mt-4">
+            {/* Keyed by the record it edits. The field deliberately keeps a
+                dirty draft through a `value` change so an in-flight save cannot
+                discard it — but a draft written for one student must never
+                survive into another, and remounting resets it for free. */}
+            <QuestionCommentField
+              key={`${data?.studentId}-${questionData.question.id}`}
+              value={savedComment}
+              onSave={(comment) =>
+                handleSaveQuestionComment(questionData.questionNumber, comment)
+              }
+            />
+          </div>
+        )}
+        {showReadOnlyComment && (
+          <div className="border-t border-border-100 pt-4 mt-4 space-y-2">
+            <Text size="xs" weight="normal" color="text-text-500">
+              Comentário do professor:
+            </Text>
+            <div className="p-3 bg-background-50 rounded-lg border border-border-100">
+              <HtmlMathRenderer
+                content={savedComment}
+                className="text-sm text-text-700"
+              />
+            </div>
+          </div>
+        )}
       </CardAccordation>
     );
   };
@@ -466,7 +588,7 @@ const CorrectActivityModal = ({
   const renderEssayCorrectionFields = (
     questionData: StudentActivityCorrectionData['questions'][number]
   ) => {
-    const correction = essayCorrections[questionData.questionNumber] || {
+    const correction = questionCorrections[questionData.questionNumber] || {
       isCorrect: null,
       teacherFeedback: '',
       isSaving: false,
@@ -541,23 +663,28 @@ const CorrectActivityModal = ({
               );
             }}
             placeholder="Escreva uma observação sobre a resposta do aluno"
-            rows={4}
+            rows={3}
             size="medium"
           />
         </div>
 
-        {/* Save button */}
-        <Button
-          size="small"
-          onClick={() => handleSaveEssayCorrection(questionData.questionNumber)}
-          disabled={
-            correction.isCorrect === null ||
-            correction.isSaving ||
-            !onQuestionCorrectionSubmit
-          }
-        >
-          {correction.isSaving ? 'Salvando...' : 'Salvar'}
-        </Button>
+        {/* Save button — one save for the grade and the observation together */}
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="medium"
+            onClick={() =>
+              handleSaveEssayCorrection(questionData.questionNumber)
+            }
+            disabled={
+              correction.isCorrect === null ||
+              correction.isSaving ||
+              !onQuestionCorrectionSubmit
+            }
+          >
+            {correction.isSaving ? 'Salvando...' : 'Salvar'}
+          </Button>
+        </div>
       </>
     );
   };
@@ -840,7 +967,7 @@ const CorrectActivityModal = ({
             {data.questions?.map((questionData) => {
               // Check if we have a local correction for essay questions
               const localCorrection =
-                essayCorrections[questionData.questionNumber];
+                questionCorrections[questionData.questionNumber];
               const isEssayWithLocalCorrection =
                 questionData.question.questionType ===
                   QUESTION_TYPE.DISSERTATIVA &&

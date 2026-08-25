@@ -983,6 +983,57 @@ describe('useActivityDetails', () => {
     });
   });
 
+  describe('submitQuestionComment', () => {
+    it('should PATCH the question feedback endpoint with only the comment', async () => {
+      (mockApiClient.patch as jest.Mock).mockResolvedValueOnce({});
+
+      const { result } = renderHook(() => useActivityDetails(mockApiClient));
+
+      await result.current.submitQuestionComment('activity-123', 'student-1', {
+        questionId: 'question-1',
+        teacherFeedback: 'Revise a soma.',
+      });
+
+      // Deliberately NOT the correction endpoint: that one rewrites
+      // answerStatus, which objective questions must keep.
+      expect(mockApiClient.patch).toHaveBeenCalledWith(
+        '/questions/activity-123/question-1/students/student-1/feedback',
+        { teacherFeedback: 'Revise a soma.' }
+      );
+    });
+
+    it('should send an empty comment to clear it', async () => {
+      (mockApiClient.patch as jest.Mock).mockResolvedValueOnce({});
+
+      const { result } = renderHook(() => useActivityDetails(mockApiClient));
+
+      await result.current.submitQuestionComment('activity-123', 'student-1', {
+        questionId: 'question-1',
+        teacherFeedback: '',
+      });
+
+      expect(mockApiClient.patch).toHaveBeenCalledWith(
+        '/questions/activity-123/question-1/students/student-1/feedback',
+        { teacherFeedback: '' }
+      );
+    });
+
+    it('should propagate a failure', async () => {
+      (mockApiClient.patch as jest.Mock).mockRejectedValueOnce(
+        new Error('Failed to submit comment')
+      );
+
+      const { result } = renderHook(() => useActivityDetails(mockApiClient));
+
+      await expect(
+        result.current.submitQuestionComment('activity-123', 'student-1', {
+          questionId: 'question-1',
+          teacherFeedback: 'Revise a soma.',
+        })
+      ).rejects.toThrow('Failed to submit comment');
+    });
+  });
+
   describe('Hook memoization', () => {
     it('should return stable function references', () => {
       const { result, rerender } = renderHook(() =>
