@@ -485,7 +485,10 @@ const CorrectActivityModal = ({
         });
         break;
       case QUESTION_TYPE.RELACIONAR:
-        content = renderQuestionConnectDots({ paddingBottom: '' });
+        content = renderQuestionConnectDots({
+          question,
+          result,
+        });
         break;
       default:
         // Fallback: try to render based on options presence

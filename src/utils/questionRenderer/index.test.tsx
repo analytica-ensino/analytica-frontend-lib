@@ -27,7 +27,12 @@ const createQuestion = (
   id: string,
   statement: string,
   questionType: QUESTION_TYPE,
-  options?: Array<{ id: string; option: string }>,
+  options?: Array<{
+    id: string;
+    option: string;
+    /** RELACIONAR only: the value this item pairs with */
+    correctValue?: string | null;
+  }>,
   correctOptionIds?: string[],
   additionalContent?: string | null
 ): Question => {
@@ -1368,31 +1373,289 @@ describe('questionRenderer', () => {
     });
   });
 
+  // These used to assert the words "não implementado" and a `paddingBottom`
+  // prop: the renderer was a placeholder that ignored `question` and `result`,
+  // so the teacher saw no answer to comment on. The tests below pin the real
+  // contract instead.
   describe('renderQuestionConnectDots', () => {
-    it('should render not implemented message', () => {
-      render(renderQuestionConnectDots({}));
+    const connectDotsQuestion = (
+      options: Array<{
+        id: string;
+        option: string;
+        correctValue?: string | null;
+      }>
+    ) =>
+      createQuestion(
+        'q1',
+        'Relacione os animais',
+        QUESTION_TYPE.RELACIONAR,
+        options
+      );
 
+    const connectDotsResult = (
+      matchingAnswers?: Array<{ optionId: string; selectedValue: string }>,
+      answer: string | null = null,
+      answerStatus: ANSWER_STATUS = ANSWER_STATUS.RESPOSTA_CORRETA
+    ) => ({
+      ...createQuestionResult('a1', 'q1', answerStatus, answer),
+      matchingAnswers,
+    });
+
+    const twoPairs = [
+      { id: 'opt1', option: 'Gato', correctValue: 'Mamífero' },
+      { id: 'opt2', option: 'Cobra', correctValue: 'Réptil' },
+    ];
+
+    it('should show the value the student matched to each item', () => {
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion(twoPairs),
+          result: connectDotsResult([
+            { optionId: 'opt1', selectedValue: 'Mamífero' },
+            { optionId: 'opt2', selectedValue: 'Réptil' },
+          ]),
+        })
+      );
+
+      expect(screen.getByText('a) Gato')).toBeInTheDocument();
+      expect(screen.getByText('b) Cobra')).toBeInTheDocument();
       expect(
-        screen.getByText('Tipo de questão: Ligar Pontos')
+        screen.getByText('Resposta selecionada: Mamífero')
       ).toBeInTheDocument();
       expect(
-        screen.getByText('Tipo de questão: Ligar Pontos (não implementado)')
+        screen.getByText('Resposta selecionada: Réptil')
       ).toBeInTheDocument();
     });
 
-    it('should render with custom paddingBottom', () => {
-      render(renderQuestionConnectDots({ paddingBottom: 'pb-10' }));
+    it('should reveal the answer key only on the pairs the student missed', () => {
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion(twoPairs),
+          result: connectDotsResult([
+            { optionId: 'opt1', selectedValue: 'Mamífero' },
+            { optionId: 'opt2', selectedValue: 'Anfíbio' },
+          ]),
+        })
+      );
 
       expect(
-        screen.getByText('Tipo de questão: Ligar Pontos')
+        screen.getByText('| Resposta correta: Réptil')
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText('| Resposta correta: Mamífero')
+      ).not.toBeInTheDocument();
+    });
+
+    it('should mark a pair left blank as unanswered', () => {
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion(twoPairs),
+          result: connectDotsResult([
+            { optionId: 'opt1', selectedValue: 'Mamífero' },
+          ]),
+        })
+      );
+
+      expect(
+        screen.getByText('Não respondida | Resposta correta: Réptil')
       ).toBeInTheDocument();
     });
 
-    it('should render without paddingBottom', () => {
-      render(renderQuestionConnectDots({}));
+    it('should grade the way the backend does, ignoring case and padding', () => {
+      // `evaluateMatchingAnswers` compares with trim().toLowerCase(), so this
+      // pair is correct — comparing raw strings would paint it red.
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion([twoPairs[0]]),
+          result: connectDotsResult([
+            { optionId: 'opt1', selectedValue: '  MAMÍFERO ' },
+          ]),
+        })
+      );
 
       expect(
-        screen.getByText('Tipo de questão: Ligar Pontos')
+        screen.queryByText('| Resposta correta: Mamífero')
+      ).not.toBeInTheDocument();
+    });
+
+    it('should read the legacy answer array when matchingAnswers is absent', () => {
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion([twoPairs[0]]),
+          result: connectDotsResult(
+            undefined,
+            JSON.stringify([{ optionId: 'opt1', selectedValue: 'Mamífero' }])
+          ),
+        })
+      );
+
+      expect(
+        screen.getByText('Resposta selecionada: Mamífero')
+      ).toBeInTheDocument();
+    });
+
+    it('should read the legacy answer map when matchingAnswers is absent', () => {
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion([twoPairs[0]]),
+          result: connectDotsResult(
+            undefined,
+            JSON.stringify({ opt1: 'Mamífero' })
+          ),
+        })
+      );
+
+      expect(
+        screen.getByText('Resposta selecionada: Mamífero')
+      ).toBeInTheDocument();
+    });
+
+    it('should treat a malformed answer as nothing answered', () => {
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion([twoPairs[0]]),
+          result: connectDotsResult(undefined, 'not json'),
+        })
+      );
+
+      expect(
+        screen.getByText('Não respondida | Resposta correta: Mamífero')
+      ).toBeInTheDocument();
+    });
+
+    it('should ignore legacy entries that are not strings', () => {
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion([twoPairs[0]]),
+          result: connectDotsResult(
+            undefined,
+            JSON.stringify([{ optionId: 'opt1', selectedValue: 42 }, null])
+          ),
+        })
+      );
+
+      expect(
+        screen.getByText('Não respondida | Resposta correta: Mamífero')
+      ).toBeInTheDocument();
+    });
+
+    it('should ignore legacy map values that are not strings', () => {
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion([twoPairs[0]]),
+          result: connectDotsResult(undefined, JSON.stringify({ opt1: 42 })),
+        })
+      );
+
+      expect(
+        screen.getByText('Não respondida | Resposta correta: Mamífero')
+      ).toBeInTheDocument();
+    });
+
+    it('should hide correctness on a pair with no answer key', () => {
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion([{ id: 'opt1', option: 'Gato' }]),
+          result: connectDotsResult([
+            { optionId: 'opt1', selectedValue: 'Mamífero' },
+          ]),
+        })
+      );
+
+      expect(screen.getByText('a) Gato')).toBeInTheDocument();
+      expect(
+        screen.queryByText('Resposta selecionada: Mamífero')
+      ).not.toBeInTheDocument();
+    });
+
+    it('should hide correctness while the answer is pending', () => {
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion(twoPairs),
+          result: connectDotsResult(
+            [{ optionId: 'opt1', selectedValue: 'Mamífero' }],
+            null,
+            ANSWER_STATUS.PENDENTE_AVALIACAO
+          ),
+        })
+      );
+
+      expect(
+        screen.queryByText('Resposta selecionada: Mamífero')
+      ).not.toBeInTheDocument();
+    });
+
+    it('should strip HTML from the selected value and the answer key', () => {
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion([
+            { id: 'opt1', option: 'Gato', correctValue: '<p>Mamífero</p>' },
+          ]),
+          result: connectDotsResult([
+            { optionId: 'opt1', selectedValue: '<p>Anfíbio</p>' },
+          ]),
+        })
+      );
+
+      expect(
+        screen.getByText('Resposta selecionada: Anfíbio')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('| Resposta correta: Mamífero')
+      ).toBeInTheDocument();
+    });
+
+    it('should say so when the question carries no pairs', () => {
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion([]),
+          result: connectDotsResult(),
+        })
+      );
+
+      expect(
+        screen.getByText('Nenhuma opção de relacionamento disponível')
+      ).toBeInTheDocument();
+    });
+
+    it('should survive a question that carries no options array at all', () => {
+      const question = {
+        ...connectDotsQuestion([]),
+        options: undefined,
+      } as unknown as Question;
+
+      render(
+        renderQuestionConnectDots({ question, result: connectDotsResult() })
+      );
+
+      expect(
+        screen.getByText('Nenhuma opção de relacionamento disponível')
+      ).toBeInTheDocument();
+    });
+
+    it('should fall back to the index when an option has no id', () => {
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion([
+            { id: '', option: 'Gato', correctValue: 'Mamífero' },
+          ]),
+          result: connectDotsResult(),
+        })
+      );
+
+      expect(screen.getByText('a) Gato')).toBeInTheDocument();
+    });
+
+    it('should treat a literal null answer as nothing answered', () => {
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion([twoPairs[0]]),
+          result: connectDotsResult(undefined, 'null'),
+        })
+      );
+
+      expect(
+        screen.getByText('Não respondida | Resposta correta: Mamífero')
       ).toBeInTheDocument();
     });
   });
@@ -1549,21 +1812,25 @@ describe('questionRenderer', () => {
         'q1',
         'Ligue os pontos',
         QUESTION_TYPE.RELACIONAR,
-        [],
+        [{ id: 'opt1', option: 'Gato', correctValue: 'Mamífero' }],
         []
       );
-      const result = createQuestionResult(
-        'a1',
-        'q1',
-        ANSWER_STATUS.RESPOSTA_CORRETA,
-        null
-      );
+      const result = {
+        ...createQuestionResult(
+          'a1',
+          'q1',
+          ANSWER_STATUS.RESPOSTA_CORRETA,
+          null
+        ),
+        matchingAnswers: [{ optionId: 'opt1', selectedValue: 'Mamífero' }],
+      };
 
       const { container } = render(<>{renderQuestion({ question, result })}</>);
 
       expect(container).toBeInTheDocument();
+      expect(screen.getByText('a) Gato')).toBeInTheDocument();
       expect(
-        screen.getByText('Tipo de questão: Ligar Pontos')
+        screen.getByText('Resposta selecionada: Mamífero')
       ).toBeInTheDocument();
     });
 

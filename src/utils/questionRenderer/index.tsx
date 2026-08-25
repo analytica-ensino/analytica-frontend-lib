@@ -68,12 +68,11 @@ export const renderQuestion = (props: QuestionRendererProps): ReactNode => {
         question: props.question,
         result: props.result,
       });
-    case QUESTION_TYPE.RELACIONAR:
-      return renderQuestionConnectDots({ paddingBottom: '' });
     case QUESTION_TYPE.ALTERNATIVA:
     case QUESTION_TYPE.MULTIPLA_ESCOLHA:
     case QUESTION_TYPE.VERDADEIRO_FALSO:
     case QUESTION_TYPE.PREENCHER_LACUNAS:
+    case QUESTION_TYPE.RELACIONAR:
       return renderer(props);
     default:
       return null;
