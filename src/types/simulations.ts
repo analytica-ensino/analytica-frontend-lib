@@ -82,6 +82,10 @@ export interface SimulationDetailOption {
 export interface SimulationDetailQuestion {
   questionId: string;
   statement: string;
+  /** Subject from the knowledge matrix; null when the question has none mapped. */
+  subject: string | null;
+  /** Time spent on the question, in seconds. 0 means "not measured". */
+  timeSpent: number;
   status: SimulationQuestionStatus;
   selectedOptionId: string | null;
   options: SimulationDetailOption[];
