@@ -24,8 +24,10 @@ import {
   type Alternative,
 } from '../../Alternative/Alternative';
 import { OptionStatus } from '../../../enums/Options';
+import { QUESTION_TYPE } from '../../Quiz/useQuizStore';
 import useToastStore from '../../Toast/utils/ToastStore';
 import { StatCard } from '../../shared/StatCard';
+import { QuestionCommentField } from '../../shared/QuestionCommentField';
 import type { BaseApiClient } from '../../../types/api';
 import type {
   StudentActivityPerformanceData,
@@ -411,6 +413,50 @@ export const StudentActivityPerformanceModal = ({
     [apiClient, data, essayCorrections, addToast]
   );
 
+  /**
+   * Save the teacher comment on a question that is not an essay
+   *
+   * Uses the question-feedback endpoint rather than the correction one the essay
+   * branch calls: that endpoint is dissertativa-only on the backend and
+   * overwrites `answer_status`, which must not move because a teacher wrote a
+   * note on a question graded automatically. An empty string clears the comment.
+   *
+   * Errors are deliberately left to propagate — `QuestionCommentField` catches
+   * them and keeps the draft so the teacher does not lose what they wrote.
+   *
+   * @param question - Question being commented on
+   * @param comment - Comment text, empty to clear it
+   */
+  const handleSaveQuestionComment = useCallback(
+    async (question: LessonQuestion, comment: string) => {
+      if (!apiClient || !data) return;
+
+      await apiClient.patch(
+        `/questions/${question.activityId}/${question.id}/students/${data.userId}/feedback`,
+        { teacherFeedback: comment }
+      );
+
+      // Keep the saved value in state so the field stops offering to save what
+      // is already persisted, and a reopen shows the comment.
+      setEssayCorrections((prev) => ({
+        ...prev,
+        [getQuestionKey(question)]: {
+          ...prev[getQuestionKey(question)],
+          teacherFeedback: comment,
+        },
+      }));
+
+      addToast({
+        title: 'Comentário salvo',
+        description: 'O comentário da questão foi salvo com sucesso.',
+        variant: 'solid',
+        action: 'success',
+        position: 'top-right',
+      });
+    },
+    [apiClient, data, addToast]
+  );
+
   // Reset corrections when modal closes
   const handleClose = useCallback(() => {
     setEssayCorrections({});
@@ -589,10 +635,26 @@ export const StudentActivityPerformanceModal = ({
             </CardAccordation>
           )}
 
-          {/* Correction fields (only for essay questions) */}
+          {/* Essay questions are the only ones graded by hand, so there the
+              comment stays bundled with the grade. Every other type gets the
+              standard comment field on its own — the same split the
+              CorrectActivityModal makes. */}
           {apiClient &&
-            question.questionType === 'DISSERTATIVA' &&
+            question.questionType === QUESTION_TYPE.DISSERTATIVA &&
             renderCorrectionFields(question)}
+          {apiClient &&
+            question.questionType !== QUESTION_TYPE.DISSERTATIVA && (
+              <QuestionCommentField
+                value={
+                  essayCorrections[getQuestionKey(question)]?.teacherFeedback ??
+                  question.teacherFeedback ??
+                  ''
+                }
+                onSave={(comment) =>
+                  handleSaveQuestionComment(question, comment)
+                }
+              />
+            )}
         </div>
       </CardAccordation>
     );
