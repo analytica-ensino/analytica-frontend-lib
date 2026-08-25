@@ -2190,6 +2190,39 @@ describe('CorrectActivityModal', () => {
       ).toBeInTheDocument();
     });
 
+    it('should not carry a dirty draft over to another student', () => {
+      // The field keeps edits through a `value` change so an in-flight save
+      // cannot discard them. That must not extend across students: a note
+      // written for one and never saved cannot end up saved on another.
+      const { rerender } = render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={mockDataWithAlternatives}
+          onQuestionCommentSubmit={jest.fn()}
+        />
+      );
+
+      openFirstQuestion();
+
+      fireEvent.change(screen.getAllByPlaceholderText(commentPlaceholder)[0], {
+        target: { value: 'Rascunho do aluno anterior' },
+      });
+
+      rerender(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={{ ...mockDataWithAlternatives, studentId: 'student-999' }}
+          onQuestionCommentSubmit={jest.fn()}
+        />
+      );
+
+      openFirstQuestion();
+
+      expect(
+        screen.queryByDisplayValue('Rascunho do aluno anterior')
+      ).not.toBeInTheDocument();
+    });
+
     it('should show the saved comment read-only when there is no editor', async () => {
       // The exam details screen mounts this modal with neither callback. The
       // essay renderer no longer echoes the comment on its own, so without this

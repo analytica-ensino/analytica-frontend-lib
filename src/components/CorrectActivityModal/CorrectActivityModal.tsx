@@ -552,7 +552,12 @@ const CorrectActivityModal = ({
         {content}
         {showCommentField && (
           <div className="border-t border-border-100 pt-4 mt-4">
+            {/* Keyed by the record it edits. The field deliberately keeps a
+                dirty draft through a `value` change so an in-flight save cannot
+                discard it — but a draft written for one student must never
+                survive into another, and remounting resets it for free. */}
             <QuestionCommentField
+              key={`${data?.studentId}-${questionData.question.id}`}
               value={savedComment}
               onSave={(comment) =>
                 handleSaveQuestionComment(questionData.questionNumber, comment)

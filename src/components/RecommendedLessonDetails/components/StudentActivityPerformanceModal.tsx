@@ -645,6 +645,9 @@ export const StudentActivityPerformanceModal = ({
           {apiClient &&
             question.questionType !== QUESTION_TYPE.DISSERTATIVA && (
               <QuestionCommentField
+                // Keyed by the record it edits, so a draft written for one
+                // student can never survive into another.
+                key={`${data?.userId}-${getQuestionKey(question)}`}
                 value={
                   essayCorrections[getQuestionKey(question)]?.teacherFeedback ??
                   question.teacherFeedback ??

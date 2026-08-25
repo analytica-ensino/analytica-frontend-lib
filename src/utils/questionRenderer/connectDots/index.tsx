@@ -39,38 +39,48 @@ const normalizeValue = (value: string): string => value.trim().toLowerCase();
  * @param answer - Raw `answer` value from the student's submission
  * @returns Map of option id to the value the student picked
  */
-const parseLegacyAnswer = (answer: string | null): Map<string, string> => {
+const collectFromArray = (entries: unknown[]): Map<string, string> => {
   const picks = new Map<string, string>();
-  if (!answer) return picks;
+
+  for (const entry of entries) {
+    const { optionId, selectedValue } = (entry ?? {}) as {
+      optionId?: unknown;
+      selectedValue?: unknown;
+    };
+    if (typeof optionId === 'string' && typeof selectedValue === 'string') {
+      picks.set(optionId, selectedValue);
+    }
+  }
+
+  return picks;
+};
+
+const collectFromMap = (entries: object): Map<string, string> => {
+  const picks = new Map<string, string>();
+
+  for (const [optionId, selectedValue] of Object.entries(entries)) {
+    if (typeof selectedValue === 'string') {
+      picks.set(optionId, selectedValue);
+    }
+  }
+
+  return picks;
+};
+
+const parseLegacyAnswer = (answer: string | null): Map<string, string> => {
+  if (!answer) return new Map();
 
   try {
     const parsed: unknown = JSON.parse(answer);
 
-    if (Array.isArray(parsed)) {
-      for (const entry of parsed) {
-        const { optionId, selectedValue } = (entry ?? {}) as {
-          optionId?: unknown;
-          selectedValue?: unknown;
-        };
-        if (typeof optionId === 'string' && typeof selectedValue === 'string') {
-          picks.set(optionId, selectedValue);
-        }
-      }
-      return picks;
-    }
-
-    if (parsed !== null && typeof parsed === 'object') {
-      for (const [optionId, selectedValue] of Object.entries(parsed)) {
-        if (typeof selectedValue === 'string') {
-          picks.set(optionId, selectedValue);
-        }
-      }
-    }
+    if (Array.isArray(parsed)) return collectFromArray(parsed);
+    if (parsed !== null && typeof parsed === 'object')
+      return collectFromMap(parsed);
   } catch {
     // Malformed JSON means the answer is unreadable, not that the screen fails.
   }
 
-  return picks;
+  return new Map();
 };
 
 /**

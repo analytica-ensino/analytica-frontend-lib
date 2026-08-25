@@ -684,7 +684,11 @@ export function SimulationsDetailModal({
             <div className="flex flex-col gap-3">
               {list.simulations.data.map((simulation, index) => (
                 <SimulationItem
-                  key={simulation.id}
+                  // Keyed by the student too: the comment fields below keep a
+                  // dirty draft through a `value` change so an in-flight save
+                  // cannot discard it, and a note written for one student must
+                  // never survive into another. Remounting resets it for free.
+                  key={`${student?.userInstitutionId}-${simulation.id}`}
                   simulation={simulation}
                   index={index}
                   expanded={expandedId === simulation.id}
