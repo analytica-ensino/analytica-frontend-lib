@@ -820,4 +820,234 @@ describe('SimulationsDetailModal', () => {
     });
     expect(screen.getByText('Resposta correta')).toBeInTheDocument();
   });
+
+  describe('question label (subject + duration)', () => {
+    /** A minimal answered-blank question; the label never depends on status. */
+    const blankQuestion = {
+      status: 'BLANK' as const,
+      selectedOptionId: null,
+      options: [],
+    };
+
+    /**
+     * Build an api client whose detail endpoint serves `questions`, reusing the
+     * same url routing as `makeApi` so only the detail payload varies.
+     */
+    function makeApiWithQuestions(
+      questions: Record<string, unknown>[]
+    ): BaseApiClient {
+      const detail = {
+        message: 'ok',
+        data: {
+          simulationId: 'sim-1',
+          title: 'Simulado 1',
+          counts: { correct: 0, incorrect: 0, blank: questions.length },
+          questions,
+        },
+      };
+
+      return {
+        get: jest.fn((url: string) => {
+          if (url.endsWith('/note')) {
+            return Promise.resolve({ data: { message: 'ok', data: null } });
+          }
+          if (/\/students\/[^/]+\/[^/]+$/.test(url)) {
+            return Promise.resolve({ data: detail });
+          }
+          return Promise.resolve({ data: listPayload });
+        }),
+        post: jest.fn(),
+        patch: jest.fn(),
+        delete: jest.fn(),
+      } as unknown as BaseApiClient;
+    }
+
+    /** Render the modal and expand the simulation so the questions show up. */
+    async function renderExpanded(questions: Record<string, unknown>[]) {
+      const result = render(
+        <SimulationsDetailModal
+          api={makeApiWithQuestions(questions)}
+          isOpen
+          onClose={jest.fn()}
+          student={student}
+        />
+      );
+      fireEvent.click(await screen.findByText('Simulado 1'));
+      // findByText, not waitFor + getByText: the detail loads lazily, and the
+      // find* query is the one meant for content that is not there yet.
+      await screen.findByText('Respostas');
+      return result;
+    }
+
+    it('joins subject and duration when both are present', async () => {
+      await renderExpanded([
+        {
+          ...blankQuestion,
+          questionId: 'q1',
+          statement: 'Q1',
+          subject: 'Biologia',
+          timeSpent: 40,
+        },
+      ]);
+
+      expect(
+        screen.getByText('Questão 1 - Biologia - 40"')
+      ).toBeInTheDocument();
+    });
+
+    it('keeps the subject when the time was never measured', async () => {
+      await renderExpanded([
+        {
+          ...blankQuestion,
+          questionId: 'q1',
+          statement: 'Q1',
+          subject: 'Matemática',
+          timeSpent: 0,
+        },
+      ]);
+
+      expect(screen.getByText('Questão 1 - Matemática')).toBeInTheDocument();
+    });
+
+    it('keeps the duration when the question has no subject mapped', async () => {
+      await renderExpanded([
+        {
+          ...blankQuestion,
+          questionId: 'q1',
+          statement: 'Q1',
+          subject: null,
+          timeSpent: 40,
+        },
+      ]);
+
+      expect(screen.getByText('Questão 1 - 40"')).toBeInTheDocument();
+    });
+
+    it('falls back to the bare question number when both are missing', async () => {
+      await renderExpanded([
+        {
+          ...blankQuestion,
+          questionId: 'q1',
+          statement: 'Q1',
+          subject: null,
+          timeSpent: 0,
+        },
+      ]);
+
+      expect(screen.getByText('Questão 1')).toBeInTheDocument();
+    });
+
+    it('tolerates a payload that predates the fields entirely', async () => {
+      await renderExpanded([
+        { ...blankQuestion, questionId: 'q1', statement: 'Q1' },
+      ]);
+
+      expect(screen.getByText('Questão 1')).toBeInTheDocument();
+    });
+
+    it('formats a minutes-and-seconds duration the way the card specifies', async () => {
+      await renderExpanded([
+        {
+          ...blankQuestion,
+          questionId: 'q1',
+          statement: 'Q1',
+          subject: 'Língua Portuguesa',
+          timeSpent: 150,
+        },
+      ]);
+
+      expect(
+        screen.getByText('Questão 1 - Língua Portuguesa - 2\'30"')
+      ).toBeInTheDocument();
+    });
+
+    it('formats an hour-long duration with an hour unit', async () => {
+      await renderExpanded([
+        {
+          ...blankQuestion,
+          questionId: 'q1',
+          statement: 'Q1',
+          subject: 'Redação',
+          timeSpent: 3930,
+        },
+      ]);
+
+      expect(
+        screen.getByText('Questão 1 - Redação - 1h05\'30"')
+      ).toBeInTheDocument();
+    });
+
+    it('numbers questions by their position, independently of the fields', async () => {
+      await renderExpanded([
+        {
+          ...blankQuestion,
+          questionId: 'q1',
+          statement: 'Q1',
+          subject: null,
+          timeSpent: 0,
+        },
+        {
+          ...blankQuestion,
+          questionId: 'q2',
+          statement: 'Q2',
+          subject: 'Biologia',
+          timeSpent: 40,
+        },
+        {
+          ...blankQuestion,
+          questionId: 'q3',
+          statement: 'Q3',
+          subject: 'História',
+          timeSpent: 150,
+        },
+      ]);
+
+      expect(screen.getByText('Questão 1')).toBeInTheDocument();
+      expect(
+        screen.getByText('Questão 2 - Biologia - 40"')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('Questão 3 - História - 2\'30"')
+      ).toBeInTheDocument();
+    });
+
+    it('still renders the status badge next to a long label', async () => {
+      await renderExpanded([
+        {
+          ...blankQuestion,
+          status: 'CORRECT' as const,
+          questionId: 'q1',
+          statement: 'Q1',
+          subject: 'Língua Portuguesa e suas Tecnologias',
+          timeSpent: 3930,
+        },
+      ]);
+
+      expect(
+        screen.getByText(
+          'Questão 1 - Língua Portuguesa e suas Tecnologias - 1h05\'30"'
+        )
+      ).toBeInTheDocument();
+      expect(screen.getByText('Correta')).toBeInTheDocument();
+    });
+
+    it('keeps the question expandable when the label carries extra segments', async () => {
+      await renderExpanded([
+        {
+          ...blankQuestion,
+          questionId: 'q1',
+          statement: 'Enunciado da questão 1',
+          subject: 'Biologia',
+          timeSpent: 40,
+        },
+      ]);
+
+      fireEvent.click(screen.getByText('Questão 1 - Biologia - 40"'));
+
+      expect(
+        await screen.findByText('Enunciado da questão 1')
+      ).toBeInTheDocument();
+      expect(screen.getByText('Alternativas')).toBeInTheDocument();
+    });
+  });
 });

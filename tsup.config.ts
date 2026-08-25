@@ -195,6 +195,9 @@ export default defineConfig({
     // DownloadModal
     'DownloadModal/index': 'src/components/DownloadModal/DownloadModal.tsx',
 
+    // ReportDetailModal
+    'ReportDetailModal/index': 'src/components/ReportDetailModal/index.ts',
+
     // PrintableUsersTable
     'PrintableUsersTable/index':
       'src/components/PrintableUsersTable/PrintableUsersTable.tsx',
@@ -209,6 +212,9 @@ export default defineConfig({
     // Report Export
     'utils/exportExcel/index': 'src/utils/exportExcel.ts',
     'utils/exportPdf/index': 'src/utils/exportPdf.ts',
+    'utils/exportFormat/index': 'src/utils/exportFormat.ts',
+    'utils/fetchAllPages/index': 'src/utils/fetchAllPages.ts',
+    'hooks/useReportPrint/index': 'src/hooks/useReportPrint.ts',
 
     // Chatbot (student AI assistant)
     'Chatbot/index': 'src/components/Chatbot/Chatbot.tsx',
@@ -400,6 +406,11 @@ export default defineConfig({
 
     // Styles
     styles: 'src/styles.css',
+    // Regras `@media print` compartilhadas (importadas à parte pelos apps que
+    // exportam relatório em PDF). CSS não passa pelo `add-exports.mjs` — o
+    // script só processa entradas .ts/.tsx — então o export correspondente é
+    // estático no package.json, igual ao de styles.css.
+    print: 'src/print.css',
   },
   format: ['esm', 'cjs'],
   outDir: 'dist',

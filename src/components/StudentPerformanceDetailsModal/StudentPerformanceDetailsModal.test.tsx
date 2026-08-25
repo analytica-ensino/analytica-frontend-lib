@@ -1,6 +1,20 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import { printAsPdf } from '../../utils/exportPdf';
+import { downloadExcel } from '../../utils/exportExcel';
 import { StudentPerformanceDetailsModal } from './StudentPerformanceDetailsModal';
+import { expectPrintRegionControlsHidden } from '../../testing/printRegionInvariant';
 import type { StudentPerformanceDetailsData, ActivityProgress } from './types';
+
+// `printAsPdf` é `globalThis.print()`, que o jsdom não implementa; `downloadExcel`
+// escreve um arquivo em disco. Tudo o mais — Modal, ReportDetailModal,
+// DownloadModal, useReportPrint e os builders de aba — roda de verdade.
+jest.mock('../../utils/exportPdf', () => ({ printAsPdf: jest.fn() }));
+jest.mock('../../utils/exportExcel', () => ({ downloadExcel: jest.fn() }));
+
+const printAsPdfMock = printAsPdf as jest.MockedFunction<typeof printAsPdf>;
+const downloadExcelMock = downloadExcel as jest.MockedFunction<
+  typeof downloadExcel
+>;
 
 /**
  * Mock activity data with progress
@@ -466,6 +480,211 @@ describe('StudentPerformanceDetailsModal', () => {
       expect(
         screen.getByText('Detalhes da atividade não disponíveis.')
       ).toBeInTheDocument();
+    });
+  });
+
+  describe('Exportação', () => {
+    /** Título que a aba carrega antes de qualquer impressão. */
+    const APP_TITLE = 'Analytica';
+
+    /** Data fixa, para o nome do arquivo ser um literal e não um cálculo. */
+    const FIXED_NOW = new Date(2026, 7, 20, 10, 30);
+
+    /** Nome esperado do arquivo, sem extensão, nos dois formatos. */
+    const EXPECTED_FILE_NAME = 'desempenho-estudante-20-08-2026';
+
+    /** Abre o seletor de formato pelo botão "Baixar relatório". */
+    const openFormatChooser = () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Baixar relatório' }));
+    };
+
+    /** Escolhe um formato e confirma no rodapé do seletor. */
+    const chooseFormatAndConfirm = (format: 'PDF' | 'Excel') => {
+      fireEvent.click(screen.getByRole('button', { name: format }));
+      fireEvent.click(screen.getByRole('button', { name: 'Baixar' }));
+    };
+
+    /**
+     * Fotografa `<body>` e `document.title` DE DENTRO do `printAsPdf`.
+     *
+     * É o único instante em que a marca de impressão e o nome do arquivo
+     * existem: o `useReportPrint` desfaz os dois no `afterprint`.
+     */
+    const captureDuringPrint = () => {
+      const captured: { bodyClasses: string; title: string }[] = [];
+      printAsPdfMock.mockImplementation(() => {
+        captured.push({
+          bodyClasses: document.body.className,
+          title: document.title,
+        });
+      });
+      return captured;
+    };
+
+    beforeEach(() => {
+      jest.useFakeTimers({ now: FIXED_NOW });
+      document.body.className = '';
+      document.title = APP_TITLE;
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('oferece PDF e Excel no seletor de formato', () => {
+      render(<StudentPerformanceDetailsModal {...defaultProps} />);
+
+      expect(
+        screen.queryByText('Como deseja baixar o relatório?')
+      ).not.toBeInTheDocument();
+
+      openFormatChooser();
+
+      expect(screen.getByRole('button', { name: 'PDF' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Excel' })).toBeInTheDocument();
+    });
+
+    it('imprime o modal no caminho PDF, com o nome do arquivo do dia, e NÃO gera Excel', () => {
+      const snapshots = captureDuringPrint();
+
+      render(<StudentPerformanceDetailsModal {...defaultProps} />);
+
+      openFormatChooser();
+      chooseFormatAndConfirm('PDF');
+
+      expect(printAsPdfMock).toHaveBeenCalledTimes(1);
+      // Um único diálogo: o componente imprime, e não há hook local somando
+      // uma segunda impressão.
+      expect(snapshots).toEqual([
+        { bodyClasses: 'printing-modal', title: EXPECTED_FILE_NAME },
+      ]);
+      // Asserção negativa cruzada: `onDownloadPdf` e `onDownloadExcel` têm a
+      // mesma assinatura, e trocá-las passaria pelo tsc.
+      expect(downloadExcelMock).not.toHaveBeenCalled();
+    });
+
+    it('gera a planilha no caminho Excel e NÃO imprime', () => {
+      render(<StudentPerformanceDetailsModal {...defaultProps} />);
+
+      openFormatChooser();
+      chooseFormatAndConfirm('Excel');
+
+      expect(downloadExcelMock).toHaveBeenCalledTimes(1);
+      expect(downloadExcelMock).toHaveBeenCalledWith(
+        EXPECTED_FILE_NAME,
+        expect.any(Array)
+      );
+      // O par negativo do teste acima.
+      expect(printAsPdfMock).not.toHaveBeenCalled();
+      expect(document.body).not.toHaveClass('printing-modal');
+      expect(document.title).toBe(APP_TITLE);
+    });
+
+    it('a planilha leva as abas da tela, com o conteúdo que o modal desenha', () => {
+      render(<StudentPerformanceDetailsModal {...defaultProps} />);
+
+      openFormatChooser();
+      chooseFormatAndConfirm('Excel');
+
+      const [, sheets] = downloadExcelMock.mock.calls[0];
+
+      expect(sheets.map((sheet) => sheet.name)).toEqual([
+        'Desempenho do estudante',
+        'Desempenho atividades',
+      ]);
+      expect(sheets[0].rows).toContainEqual(['Estudante', 'Fernanda Rocha']);
+      expect(sheets[1]).toEqual({
+        name: 'Desempenho atividades',
+        headers: ['Atividade', 'Progresso', 'Descrição'],
+        rows: [
+          [
+            'Atividade de Biologia',
+            '30 de 50 corretas',
+            'Descrição da atividade de biologia sobre fotossíntese.',
+          ],
+          [
+            'Atividade de Química',
+            'Sem dados ainda! A atividade ainda não foi feita.',
+            'Descrição da atividade de química.',
+          ],
+        ],
+      });
+    });
+
+    it('a planilha usa os rótulos customizados que a tela recebeu', () => {
+      render(
+        <StudentPerformanceDetailsModal
+          {...defaultProps}
+          labels={{ gradeLabel: 'PONTUAÇÃO' }}
+        />
+      );
+
+      openFormatChooser();
+      chooseFormatAndConfirm('Excel');
+
+      const [, sheets] = downloadExcelMock.mock.calls[0];
+      expect(sheets[0].rows).toContainEqual(['PONTUAÇÃO', 9]);
+    });
+
+    it('sem dado carregado, a planilha sai com as abas vazias e sem estourar', () => {
+      render(
+        <StudentPerformanceDetailsModal
+          isOpen
+          onClose={jest.fn()}
+          data={null}
+          loading
+        />
+      );
+
+      openFormatChooser();
+      chooseFormatAndConfirm('Excel');
+
+      const [, sheets] = downloadExcelMock.mock.calls[0];
+      expect(sheets.map((sheet) => sheet.name)).toEqual([
+        'Desempenho do estudante',
+        'Desempenho atividades',
+      ]);
+      expect(sheets.map((sheet) => sheet.rows)).toEqual([[], []]);
+    });
+
+    it('marca o <dialog> como região de impressão e preserva largura e altura', () => {
+      render(<StudentPerformanceDetailsModal {...defaultProps} />);
+
+      const dialog = document.querySelector('dialog.js-print-region');
+
+      expect(dialog).not.toBeNull();
+      // Largura do `size="lg"` que o modal já usava.
+      expect(dialog).toHaveClass('max-w-[640px]');
+      // Altura equivalente ao `contentClassName="max-h-[80vh]"` de antes, agora
+      // no <dialog>: precisa VENCER o teto padrão do Modal.
+      expect(dialog).toHaveClass('max-h-[80vh]');
+      expect(dialog).not.toHaveClass('max-h-[calc(100dvh-2rem)]');
+    });
+
+    it('esconde o botão de download do papel, sem marcar o conteúdo', () => {
+      render(<StudentPerformanceDetailsModal {...defaultProps} />);
+
+      const button = screen.getByTestId('report-detail-download-btn');
+
+      expect(button.parentElement).toHaveAttribute('data-print-hide');
+      expect(screen.getByText('Fernanda Rocha')).not.toHaveAttribute(
+        'data-print-hide'
+      );
+    });
+
+    it('nenhum controle dentro da região impressa fica sem data-print-hide', () => {
+      render(<StudentPerformanceDetailsModal {...defaultProps} />);
+
+      // Escondidos: o "X" de fechar, do `Modal` base, e o "Baixar relatório",
+      // do `ReportDetailModal`. Este modal não navega, não busca e não pagina.
+      //
+      // Impressos: os dois cabeçalhos de `CardAccordation`, um por atividade. O
+      // texto DELES é o nome da atividade e o placar, então eles são conteúdo do
+      // relatório — escondê-los apagaria a lista de atividades do PDF.
+      expectPrintRegionControlsHidden(2, {
+        selector: '[aria-expanded]',
+        count: 2,
+      });
     });
   });
 });

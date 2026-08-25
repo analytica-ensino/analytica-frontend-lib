@@ -24,6 +24,7 @@ import {
   type QuestionStatus,
 } from '../../utils/studentActivityCorrection';
 import { cn } from '../../utils/utils';
+import { formatQuestionDuration } from '../../utils/questionDuration';
 import type { BaseApiClient } from '../../types/api';
 import { createUseSimulations } from '../../hooks/useSimulations';
 import type {
@@ -95,6 +96,17 @@ function QuestionItem({
   const badge = getQuestionStatusBadgeConfig(
     QUESTION_STATUS_MAP[question.status]
   );
+
+  // Subject and duration only join the label when they exist: a question with
+  // no subject in the knowledge matrix and a simulation answered before
+  // per-question telemetry both fall back to a plain "Questão N".
+  const label = [
+    `Questão ${index + 1}`,
+    question.subject,
+    formatQuestionDuration(question.timeSpent),
+  ]
+    .filter(Boolean)
+    .join(' - ');
 
   const alternatives = question.options.map((option) => {
     let status: OptionStatus;
@@ -191,12 +203,12 @@ function QuestionItem({
       value={question.questionId}
       trigger={
         <div className="flex flex-1 items-center justify-between gap-3 py-3">
-          <Text size="sm" weight="bold" className="text-text-950">
-            Questão {index + 1}
+          <Text size="sm" weight="bold" className="min-w-0 text-text-950">
+            {label}
           </Text>
           <span
             className={cn(
-              'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
+              'inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-medium',
               badge.bgColor,
               badge.textColor
             )}
