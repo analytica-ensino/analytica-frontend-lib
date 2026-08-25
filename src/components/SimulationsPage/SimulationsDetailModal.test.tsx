@@ -513,9 +513,9 @@ describe('SimulationsDetailModal', () => {
         />
       );
       fireEvent.click(await screen.findByText('Simulado 1'));
-      await waitFor(() =>
-        expect(screen.getByText('Respostas')).toBeInTheDocument()
-      );
+      // findByText, not waitFor + getByText: the detail loads lazily, and the
+      // find* query is the one meant for content that is not there yet.
+      await screen.findByText('Respostas');
       return result;
     }
 
