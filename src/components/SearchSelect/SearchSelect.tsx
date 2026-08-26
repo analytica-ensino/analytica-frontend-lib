@@ -18,6 +18,7 @@ import { cn } from '../../utils/utils';
 import Input from '../Input/Input';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
+import { useDebounce } from '../../hooks/useDebounce';
 
 // ============================================================================
 // Types
@@ -106,26 +107,6 @@ const VARIANT_CLASSES = {
   underlined: 'border-b-2 focus:border-primary-950',
   rounded: 'border-2 rounded-full focus:border-primary-950',
 } as const;
-
-// ============================================================================
-// Hook: useDebounce
-// ============================================================================
-
-function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-
-  return debouncedValue;
-}
 
 // ============================================================================
 // Component

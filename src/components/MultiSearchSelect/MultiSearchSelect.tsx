@@ -24,6 +24,7 @@ import {
 import { OptionList } from './OptionList';
 import { TriggerContent } from './TriggerContent';
 import { useDropdownPosition } from './useDropdownPosition';
+import { useDebounce } from '../../hooks/useDebounce';
 import type { MultiSearchSelectOption, MultiSearchSelectProps } from './types';
 
 /**
@@ -31,8 +32,10 @@ import type { MultiSearchSelectOption, MultiSearchSelectProps } from './types';
  * values at once. Same sizing, borders, portalled dropdown and keyboard model,
  * with removable chips in the trigger and a checkbox per option.
  *
- * Filtering is local, so there is no async search or pagination — pass an
- * already loaded option list.
+ * Filtering is local by default — pass an already loaded option list. For a
+ * source too large to load at once, supply `onSearch` + `pagination` +
+ * `onLoadMore` and set `filterLocally={false}`: the query then round-trips to
+ * the server and the list grows by infinite scroll, exactly like `SearchSelect`.
  *
  * Follows the W3C ARIA combobox pattern (`combobox` -> `listbox` -> `option`),
  * the same one `SearchSelect` uses. No native element covers it: `select
@@ -69,6 +72,12 @@ export function MultiSearchSelect({
   className,
   id,
   maxVisibleChips = 3,
+  onSearch,
+  searchDebounce = 300,
+  pagination,
+  onLoadMore,
+  loadingMore = false,
+  filterLocally = true,
 }: Readonly<MultiSearchSelectProps>) {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -78,6 +87,7 @@ export function MultiSearchSelect({
   const contentRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const isFetchingMoreRef = useRef(false);
 
   const generatedId = useId();
   const selectId = id ?? `multi-search-select-${generatedId}`;
@@ -91,10 +101,45 @@ export function MultiSearchSelect({
     triggerRef,
   });
 
+  const debouncedSearch = useDebounce(searchQuery, searchDebounce);
+
+  useEffect(() => {
+    if (onSearch) onSearch(debouncedSearch);
+  }, [debouncedSearch, onSearch]);
+
   const filteredOptions = useMemo(
-    () => filterOptions(options, searchQuery),
-    [options, searchQuery]
+    () => (filterLocally ? filterOptions(options, searchQuery) : options),
+    [options, searchQuery, filterLocally]
   );
+
+  // Reset the in-flight guard once the caller reports the page landed.
+  useEffect(() => {
+    if (!loadingMore) isFetchingMoreRef.current = false;
+  }, [loadingMore]);
+
+  const handleScroll = useCallback(() => {
+    if (
+      !listRef.current ||
+      !pagination?.hasNext ||
+      loadingMore ||
+      isFetchingMoreRef.current ||
+      !onLoadMore
+    )
+      return;
+
+    const { scrollTop, scrollHeight, clientHeight } = listRef.current;
+    const scrollThreshold = 50;
+    if (scrollHeight - scrollTop - clientHeight >= scrollThreshold) return;
+
+    isFetchingMoreRef.current = true;
+    const result = onLoadMore();
+    // A promise resolves the guard itself; a void return leans on `loadingMore`.
+    if (result && typeof result.then === 'function') {
+      result.finally(() => {
+        isFetchingMoreRef.current = false;
+      });
+    }
+  }, [pagination?.hasNext, loadingMore, onLoadMore]);
 
   const selectedOptions = useMemo(
     () => resolveSelectedOptions(values, options, unknownValueLabel),
@@ -293,6 +338,7 @@ export function MultiSearchSelect({
         aria-label={label ?? 'Opções'}
         tabIndex={-1}
         onKeyDown={handleEscape}
+        onScroll={handleScroll}
         className="flex-1 overflow-y-auto"
       >
         <OptionList
@@ -304,6 +350,9 @@ export function MultiSearchSelect({
           loadingText={loadingText}
           emptyText={emptyText}
           onToggle={toggleValue}
+          loadingMore={loadingMore}
+          pagination={pagination}
+          localFilterActive={filterLocally && searchQuery !== ''}
         />
       </div>
     </div>
@@ -541,6 +590,7 @@ function useScrollHighlightIntoView(
 
 export type {
   MultiSearchSelectOption,
+  MultiSearchSelectPagination,
   MultiSearchSelectProps,
   MultiSearchSelectSize,
   MultiSearchSelectVariant,

@@ -3,7 +3,10 @@ import Text from '../Text/Text';
 import CheckBox from '../CheckBox/CheckBox';
 import { cn } from '../../utils/utils';
 import { SpinnerGapIcon } from '@phosphor-icons/react/dist/csr/SpinnerGap';
-import type { MultiSearchSelectOption } from './types';
+import type {
+  MultiSearchSelectOption,
+  MultiSearchSelectPagination,
+} from './types';
 
 interface OptionListProps {
   options: MultiSearchSelectOption[];
@@ -14,6 +17,12 @@ interface OptionListProps {
   loadingText: string;
   emptyText: string;
   onToggle: (value: string) => void;
+  /** True while the next page is in flight; renders a footer spinner. */
+  loadingMore?: boolean;
+  /** Page state of the option source; renders a "N de M" footer. */
+  pagination?: MultiSearchSelectPagination;
+  /** True while a local filter is narrowing the list, which hides the footer. */
+  localFilterActive?: boolean;
 }
 
 /**
@@ -28,6 +37,9 @@ export function OptionList({
   loadingText,
   emptyText,
   onToggle,
+  loadingMore = false,
+  pagination,
+  localFilterActive = false,
 }: Readonly<OptionListProps>) {
   if (loading) {
     return (
@@ -48,16 +60,46 @@ export function OptionList({
     );
   }
 
-  return options.map((option, index) => (
-    <OptionRow
-      key={option.value}
-      option={option}
-      optionId={`${listboxId}-option-${index}`}
-      selected={selectedValues.includes(option.value)}
-      highlighted={index === highlightedIndex}
-      onToggle={onToggle}
-    />
-  ));
+  // The "N de M" footer counts the loaded options against the server total, so
+  // it is meaningless while a local filter is showing a subset of them.
+  const showPaginationFooter =
+    Boolean(pagination) &&
+    !loadingMore &&
+    (pagination?.total ?? 0) > 0 &&
+    !localFilterActive;
+
+  return (
+    <>
+      {options.map((option, index) => (
+        <OptionRow
+          key={option.value}
+          option={option}
+          optionId={`${listboxId}-option-${index}`}
+          selected={selectedValues.includes(option.value)}
+          highlighted={index === highlightedIndex}
+          onToggle={onToggle}
+        />
+      ))}
+
+      {loadingMore && (
+        <div className="flex items-center justify-center gap-2 p-3 text-text-500 border-t border-border-100">
+          <SpinnerGapIcon size={16} className="animate-spin" />
+          <Text size="xs" className="text-text-500">
+            Carregando mais...
+          </Text>
+        </div>
+      )}
+
+      {showPaginationFooter && (
+        <Text
+          size="xs"
+          className="px-3 py-2 text-text-400 border-t border-border-100 text-center"
+        >
+          {options.length} de {pagination?.total} itens
+        </Text>
+      )}
+    </>
+  );
 }
 
 interface OptionRowProps {

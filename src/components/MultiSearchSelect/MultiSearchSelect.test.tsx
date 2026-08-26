@@ -1,4 +1,5 @@
 import {
+  act,
   render,
   screen,
   fireEvent,
@@ -684,6 +685,194 @@ describe('MultiSearchSelect', () => {
         'id',
         'turmas-select'
       );
+    });
+  });
+
+  describe('server-side search and pagination', () => {
+    const PAGE_1: MultiSearchSelectOption[] = Array.from(
+      { length: 10 },
+      (_, i) => ({ value: `p-${i}`, label: `A${i} - TURMA` })
+    );
+
+    it('calls onSearch with the debounced query', async () => {
+      jest.useFakeTimers();
+      const onSearch = jest.fn();
+      setup({ onSearch, searchDebounce: 300, filterLocally: false });
+
+      // Fires once on mount with the empty query (the initial load).
+      expect(onSearch).toHaveBeenCalledWith('');
+      onSearch.mockClear();
+
+      openPanel();
+      fireEvent.change(searchField(), { target: { value: 'EJA' } });
+
+      // Nothing yet: the debounce has not elapsed.
+      expect(onSearch).not.toHaveBeenCalled();
+
+      // act() so React flushes the state update the debounce timer schedules.
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+      expect(onSearch).toHaveBeenCalledWith('EJA');
+      jest.useRealTimers();
+    });
+
+    it('does not filter locally when filterLocally is false', () => {
+      // The server already narrowed the list; filtering again would hide rows
+      // it deliberately returned.
+      setup({ filterLocally: false, onSearch: jest.fn() });
+      openPanel();
+
+      fireEvent.change(searchField(), { target: { value: 'zzz-no-match' } });
+
+      expect(screen.getAllByRole('option')).toHaveLength(OPTIONS.length);
+    });
+
+    it('still filters locally by default', () => {
+      setup();
+      openPanel();
+
+      fireEvent.change(searchField(), { target: { value: 'NEM' } });
+
+      expect(screen.getAllByRole('option')).toHaveLength(1);
+    });
+
+    it('renders the "N de M" footer from pagination', () => {
+      setup({
+        options: PAGE_1,
+        filterLocally: false,
+        pagination: { page: 1, totalPages: 3, hasNext: true, total: 24 },
+      });
+      openPanel();
+
+      expect(screen.getByText('10 de 24 itens')).toBeInTheDocument();
+    });
+
+    it('hides the footer while a local filter is narrowing the list', () => {
+      setup({
+        options: PAGE_1,
+        pagination: { page: 1, totalPages: 3, hasNext: true, total: 24 },
+      });
+      openPanel();
+      fireEvent.change(searchField(), { target: { value: 'A1' } });
+
+      expect(screen.queryByText(/de 24 itens/)).not.toBeInTheDocument();
+    });
+
+    it('calls onLoadMore when the list is scrolled near the bottom', () => {
+      const onLoadMore = jest.fn();
+      setup({
+        options: PAGE_1,
+        filterLocally: false,
+        pagination: { page: 1, totalPages: 3, hasNext: true, total: 24 },
+        onLoadMore,
+      });
+      openPanel();
+
+      const listbox = screen.getByRole('listbox');
+      Object.defineProperty(listbox, 'scrollHeight', {
+        value: 500,
+        configurable: true,
+      });
+      Object.defineProperty(listbox, 'clientHeight', {
+        value: 200,
+        configurable: true,
+      });
+      Object.defineProperty(listbox, 'scrollTop', {
+        value: 290,
+        configurable: true,
+      });
+
+      fireEvent.scroll(listbox);
+
+      expect(onLoadMore).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call onLoadMore when there is no next page', () => {
+      const onLoadMore = jest.fn();
+      setup({
+        options: PAGE_1,
+        filterLocally: false,
+        pagination: { page: 3, totalPages: 3, hasNext: false, total: 24 },
+        onLoadMore,
+      });
+      openPanel();
+
+      const listbox = screen.getByRole('listbox');
+      Object.defineProperty(listbox, 'scrollHeight', {
+        value: 500,
+        configurable: true,
+      });
+      Object.defineProperty(listbox, 'clientHeight', {
+        value: 200,
+        configurable: true,
+      });
+      Object.defineProperty(listbox, 'scrollTop', {
+        value: 290,
+        configurable: true,
+      });
+
+      fireEvent.scroll(listbox);
+
+      expect(onLoadMore).not.toHaveBeenCalled();
+    });
+
+    it('does not fire a second onLoadMore while one is in flight', () => {
+      const onLoadMore = jest.fn();
+      setup({
+        options: PAGE_1,
+        filterLocally: false,
+        pagination: { page: 1, totalPages: 3, hasNext: true, total: 24 },
+        onLoadMore,
+      });
+      openPanel();
+
+      const listbox = screen.getByRole('listbox');
+      Object.defineProperty(listbox, 'scrollHeight', {
+        value: 500,
+        configurable: true,
+      });
+      Object.defineProperty(listbox, 'clientHeight', {
+        value: 200,
+        configurable: true,
+      });
+      Object.defineProperty(listbox, 'scrollTop', {
+        value: 290,
+        configurable: true,
+      });
+
+      fireEvent.scroll(listbox);
+      fireEvent.scroll(listbox);
+
+      expect(onLoadMore).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows the loading-more indicator', () => {
+      setup({
+        options: PAGE_1,
+        filterLocally: false,
+        loadingMore: true,
+        pagination: { page: 1, totalPages: 3, hasNext: true, total: 24 },
+      });
+      openPanel();
+
+      expect(screen.getByText('Carregando mais...')).toBeInTheDocument();
+      // The footer and the spinner are mutually exclusive.
+      expect(screen.queryByText('10 de 24 itens')).not.toBeInTheDocument();
+    });
+
+    it('keeps a selected value labelled even when it is not on the loaded page', () => {
+      // This is what stops a real class from rendering as "Turma removida"
+      // while its page has not been fetched.
+      setup({
+        options: PAGE_1,
+        values: ['not-on-this-page'],
+        filterLocally: false,
+        unknownValueLabel: 'Turma removida',
+        pagination: { page: 1, totalPages: 3, hasNext: true, total: 24 },
+      });
+
+      expect(screen.getByText('Turma removida')).toBeInTheDocument();
     });
   });
 });

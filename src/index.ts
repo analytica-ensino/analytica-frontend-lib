@@ -646,6 +646,7 @@ export { default as MultiSearchSelect } from './components/MultiSearchSelect/Mul
 export type {
   MultiSearchSelectProps,
   MultiSearchSelectOption,
+  MultiSearchSelectPagination,
   MultiSearchSelectSize,
   MultiSearchSelectVariant,
 } from './components/MultiSearchSelect/MultiSearchSelect';
