@@ -294,10 +294,17 @@ export interface SaveDraftPayload {
  * Pass this to the store to enable auto-save functionality
  */
 export interface DraftApiClient {
+  /**
+   * Persists the draft.
+   *
+   * `activityGone` reports that the activity no longer exists — the backend
+   * answers 404 for it. The store uses that to stop autosaving instead of
+   * retrying a request that can never succeed.
+   */
   saveDraft: (
     activityId: string,
     payload: SaveDraftPayload
-  ) => Promise<{ success: boolean }>;
+  ) => Promise<{ success: boolean; activityGone?: boolean }>;
   loadDraft: (activityId: string) => Promise<{
     hasDraft: boolean;
     answers: DraftAnswerItem[];
@@ -427,6 +434,14 @@ export interface QuizState {
   // Internal refs for draft management (not exposed, but tracked in state for reactivity)
   lastSavedDraftPayload: string;
   isSavingDraft: boolean;
+  /**
+   * Set once the backend reports the activity no longer exists. Autosave stops
+   * for the rest of the session: `lastSavedDraftPayload` only advances on
+   * success, so without this every question navigation and every
+   * `visibilitychange` resends the same doomed payload — one student produced
+   * 160 such requests in a day.
+   */
+  isDraftUnavailable: boolean;
 
   // Activity-level teacher feedback (general observation)
   activityFeedback: {
@@ -601,6 +616,7 @@ export const useQuizStore = create<QuizState>()(
         draftApiClient: null,
         lastSavedDraftPayload: '',
         isSavingDraft: false,
+        isDraftUnavailable: false,
         activityFeedback: null,
         // Setters
         setQuiz: (quiz) => set({ quiz }),
@@ -623,10 +639,14 @@ export const useQuizStore = create<QuizState>()(
             prepareDraftPayload,
             lastSavedDraftPayload,
             isSavingDraft,
+            isDraftUnavailable,
           } = get();
 
           // Skip if no API client configured or no quiz
           if (!draftApiClient || !quiz) return;
+
+          // The activity is gone; there is nothing to save into.
+          if (isDraftUnavailable) return;
 
           // Skip if already saving
           if (isSavingDraft) return;
@@ -642,7 +662,13 @@ export const useQuizStore = create<QuizState>()(
 
           try {
             set({ isSavingDraft: true });
-            await draftApiClient.saveDraft(quiz.id, payload);
+            const result = await draftApiClient.saveDraft(quiz.id, payload);
+
+            if (result?.activityGone) {
+              set({ isDraftUnavailable: true });
+              return;
+            }
+
             set({ lastSavedDraftPayload: payloadString });
           } catch (error) {
             // Silent fail - don't interrupt user experience
@@ -1072,6 +1098,10 @@ export const useQuizStore = create<QuizState>()(
             // Note: draftApiClient is NOT reset here - it's managed by useDraftAutoSave hook
             lastSavedDraftPayload: '',
             isSavingDraft: false,
+            // Scoped to the activity that was open: the next quiz has its own
+            // existence, so leaving this set would silently disable autosave
+            // for it too.
+            isDraftUnavailable: false,
             activityFeedback: null,
           });
         },

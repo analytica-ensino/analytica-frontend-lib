@@ -6940,6 +6940,76 @@ describe('useQuizStore', () => {
         );
       });
 
+      it('should stop autosaving once the activity is reported gone', async () => {
+        // The backend answers 404 when the activity was deleted mid-session.
+        // `lastSavedDraftPayload` only advances on success, so without this the
+        // dedup guard never trips and every navigation resends the same doomed
+        // payload — one student produced 160 such requests in a single day.
+        const goneClient = {
+          saveDraft: jest
+            .fn()
+            .mockResolvedValue({ success: false, activityGone: true }),
+          loadDraft: jest.fn().mockResolvedValue(null),
+        };
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setQuiz(mockAtividade);
+          result.current.setUserId('test-user');
+          result.current.setDraftApiClient(goneClient);
+          result.current.selectAnswer('q1', 'opt1');
+        });
+
+        await act(async () => {
+          await result.current.saveDraft();
+        });
+
+        expect(goneClient.saveDraft).toHaveBeenCalledTimes(1);
+        expect(result.current.isDraftUnavailable).toBe(true);
+
+        // A different answer would normally pass the dedup guard and save again.
+        act(() => {
+          result.current.selectAnswer('q1', 'opt2');
+        });
+        await act(async () => {
+          await result.current.saveDraft();
+        });
+
+        expect(goneClient.saveDraft).toHaveBeenCalledTimes(1);
+      });
+
+      it('should keep retrying after a transient failure', async () => {
+        // Only a missing activity stops the autosave. A network blip or a 500
+        // must stay retryable, or a student loses the rest of the session.
+        const flakyClient = {
+          saveDraft: jest.fn().mockRejectedValue(new Error('rede caiu')),
+          loadDraft: jest.fn().mockResolvedValue(null),
+        };
+        const { result } = renderQuizStoreHook();
+
+        act(() => {
+          result.current.setQuiz(mockAtividade);
+          result.current.setUserId('test-user');
+          result.current.setDraftApiClient(flakyClient);
+          result.current.selectAnswer('q1', 'opt1');
+        });
+
+        await act(async () => {
+          await result.current.saveDraft();
+        });
+
+        expect(result.current.isDraftUnavailable).toBe(false);
+
+        act(() => {
+          result.current.selectAnswer('q1', 'opt2');
+        });
+        await act(async () => {
+          await result.current.saveDraft();
+        });
+
+        expect(flakyClient.saveDraft).toHaveBeenCalledTimes(2);
+      });
+
       it('should not save the same payload twice', async () => {
         const { result } = renderQuizStoreHook();
 

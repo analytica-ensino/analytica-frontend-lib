@@ -217,6 +217,46 @@ describe('useDraftAutoSave', () => {
       );
     });
 
+    it('should report activityGone on a 404 instead of throwing', async () => {
+      // 404 means the activity was deleted while the student had it open. The
+      // store uses this signal to stop autosaving; without it the same payload
+      // is resent on every navigation, since dedup only advances on success.
+      let capturedClient: DraftApiClient | null = null;
+      mockSetDraftApiClient.mockImplementation((client) => {
+        capturedClient = client;
+      });
+      (mockApiClient.post as jest.Mock).mockRejectedValueOnce({
+        response: { status: 404 },
+      });
+
+      renderHook(() =>
+        useDraftAutoSave({ apiClient: mockApiClient, enabled: true })
+      );
+
+      await expect(
+        capturedClient!.saveDraft('activity-123', { answers: [] })
+      ).resolves.toEqual({ success: false, activityGone: true });
+    });
+
+    it('should rethrow anything that is not a 404', async () => {
+      // A 500 or a network blip is transient and must stay retryable.
+      let capturedClient: DraftApiClient | null = null;
+      mockSetDraftApiClient.mockImplementation((client) => {
+        capturedClient = client;
+      });
+      (mockApiClient.post as jest.Mock).mockRejectedValueOnce({
+        response: { status: 500 },
+      });
+
+      renderHook(() =>
+        useDraftAutoSave({ apiClient: mockApiClient, enabled: true })
+      );
+
+      await expect(
+        capturedClient!.saveDraft('activity-123', { answers: [] })
+      ).rejects.toEqual({ response: { status: 500 } });
+    });
+
     it('should create loadDraft method that calls apiClient.get', async () => {
       let capturedClient: DraftApiClient | null = null;
 

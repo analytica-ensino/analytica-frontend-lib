@@ -56,8 +56,20 @@ export function useDraftAutoSave({
     () => ({
       saveDraft: async (activityId: string, payload: SaveDraftPayload) => {
         const url = endpoint.replace('{activityId}', activityId);
-        await apiClient.post(url, payload);
-        return { success: true };
+
+        try {
+          await apiClient.post(url, payload);
+          return { success: true };
+        } catch (error) {
+          // 404 means the activity was deleted while the student still had it
+          // open — a regenerated questionnaire drops the old one. Retrying can
+          // never succeed, so tell the store to stop instead of letting every
+          // navigation resend the same payload.
+          if (isActivityGone(error)) {
+            return { success: false, activityGone: true };
+          }
+          throw error;
+        }
       },
       loadDraft: async (activityId: string) => {
         const url = endpoint.replace('{activityId}', activityId);
@@ -103,4 +115,20 @@ export function useDraftAutoSave({
     return () =>
       document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [enabled, saveDraft]);
+}
+
+/**
+ * Whether a failed draft save means the activity itself is gone
+ *
+ * The backend answers 404 once the activity no longer exists. Anything else —
+ * a network blip, a 500 — is transient and must stay retryable, so only this
+ * one status stops the autosave.
+ *
+ * @param error - Rejection from the API client
+ * @returns True when the server reported the activity as missing
+ */
+function isActivityGone(error: unknown): boolean {
+  const status = (error as { response?: { status?: number } })?.response
+    ?.status;
+  return status === 404;
 }
