@@ -1620,6 +1620,57 @@ describe('Quiz', () => {
       ).toBeInTheDocument();
     });
 
+    // QuizFooter is `position: fixed`, so it overlaps the content instead of
+    // taking space. Without room reserved here the last alternative renders
+    // underneath the bar — and no assertion in this suite would notice.
+    describe('room for the fixed footer', () => {
+      const mockQuestion = {
+        id: 'question-1',
+        questionType: QUESTION_TYPE.ALTERNATIVA,
+        options: [{ id: 'opt1', option: 'Option A' }],
+      };
+
+      const renderAtWidth = (width: number) => {
+        const original = window.innerWidth;
+        Object.defineProperty(window, 'innerWidth', {
+          writable: true,
+          configurable: true,
+          value: width,
+        });
+        mockGetCurrentQuestion.mockReturnValue(mockQuestion);
+        const result = render(<QuizContent />);
+        Object.defineProperty(window, 'innerWidth', {
+          writable: true,
+          configurable: true,
+          value: original,
+        });
+        return result;
+      };
+
+      it('should reserve space below the content on a wide screen', () => {
+        const { container } = renderAtWidth(1200);
+
+        expect(container.querySelector('.pb-24')).toBeInTheDocument();
+      });
+
+      it('should reserve more space on a phone, where the bar stacks', () => {
+        const { container } = renderAtWidth(375);
+
+        expect(container.querySelector('.pb-32')).toBeInTheDocument();
+      });
+
+      it('should let the caller override the reserved space', () => {
+        mockGetCurrentQuestion.mockReturnValue(mockQuestion);
+
+        const { container } = render(
+          <QuizContent paddingBottom="pb-[150px]" />
+        );
+
+        expect(container.querySelector('.pb-\\[150px\\]')).toBeInTheDocument();
+        expect(container.querySelector('.pb-24')).not.toBeInTheDocument();
+      });
+    });
+
     it('should show error message when question type is not supported', () => {
       const mockQuestion = {
         id: 'question-1',

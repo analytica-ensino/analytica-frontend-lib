@@ -254,7 +254,14 @@ const QuizHeader = () => {
 
 const QuizContent = ({ paddingBottom }: { paddingBottom?: string }) => {
   const { getCurrentQuestion } = useQuizStore();
+  const { isMobile } = useMobile();
   const currentQuestion = getCurrentQuestion();
+
+  // `QuizFooter` is `position: fixed`, so it sits on top of the content instead
+  // of taking space in the flow — without room reserved here, the last
+  // alternative ends up underneath it and unreadable. The bar is taller on a
+  // phone, where its controls stack into two rows.
+  const contentPaddingBottom = paddingBottom ?? (isMobile ? 'pb-32' : 'pb-24');
   const questionComponents: Record<
     string,
     ComponentType<QuizVariantInterface>
@@ -283,7 +290,7 @@ const QuizContent = ({ paddingBottom }: { paddingBottom?: string }) => {
   // The teacher's comment is no longer echoed here: in the result variant it
   // lives behind the "Ver comentário" button in the footer, so it is not shown
   // twice on the same screen.
-  return <QuestionComponent paddingBottom={paddingBottom} />;
+  return <QuestionComponent paddingBottom={contentPaddingBottom} />;
 };
 
 interface QuizVariantInterface {
