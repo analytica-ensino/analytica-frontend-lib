@@ -72,25 +72,30 @@ textarea {
   outline: none !important;
 }
 
-/* Estado normal - sobrescreve classes internas quando não focado */
-textarea:not(:focus) {
+/* Estado normal - sobrescreve classes internas quando não focado.
+   Um textarea somente-leitura entra aqui mesmo focado: ele continua focável de
+   propósito, para o texto poder ser selecionado e copiado, mas não deve acender
+   a borda como se a edição estivesse liberada. */
+textarea:not(:focus),
+textarea[readonly] {
   border-width: 1px !important;
   border-color: var(--color-border-300) !important;
 }
 
 /* Estado focado - mantém o comportamento padrão da lib */
-textarea:focus {
+textarea:focus:not([readonly]) {
   border-width: 2px !important;
   border-color: var(--color-primary-950) !important;
 }
 
 /* Especificidade adicional para garantir que funcione em todos os contextos */
-div textarea:not(:focus) {
+div textarea:not(:focus),
+div textarea[readonly] {
   border-width: 1px !important;
   border-color: var(--color-border-300) !important;
 }
 
-div textarea:focus {
+div textarea:focus:not([readonly]) {
   border-width: 2px !important;
   border-color: var(--color-primary-950) !important;
 }

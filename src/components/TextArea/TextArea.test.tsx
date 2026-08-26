@@ -483,6 +483,39 @@ describe('TextArea', () => {
       // Should maintain focused state for any content
       expect(textarea).toHaveClass('border-2', 'border-primary-950');
     });
+
+    // A read-only textarea stays focusable so its text can be selected and
+    // copied, but lighting up the border on click promises an edit that is not
+    // available.
+    it('does not light up the border when a read-only textarea is clicked', async () => {
+      const user = userEvent.setup();
+      render(<TextArea defaultValue="Comentário salvo" readOnly />);
+      const textarea = screen.getByRole('textbox');
+
+      expect(textarea).toHaveClass('border-border-300', 'cursor-default');
+
+      await user.click(textarea);
+
+      expect(textarea).not.toHaveClass('border-primary-950');
+      expect(textarea).toHaveClass('border-border-300');
+    });
+
+    it('keeps the text selectable while read-only', () => {
+      render(<TextArea defaultValue="Comentário salvo" readOnly />);
+      const textarea = screen.getByRole('textbox');
+
+      // `readOnly`, not `disabled`: a disabled field cannot be selected or read
+      // by assistive tech the same way.
+      expect(textarea).toHaveAttribute('readonly');
+      expect(textarea).not.toBeDisabled();
+    });
+
+    it('still shows the disabled state when both are set', () => {
+      render(<TextArea defaultValue="x" readOnly disabled />);
+      const textarea = screen.getByRole('textbox');
+
+      expect(textarea).toHaveClass('cursor-not-allowed');
+    });
   });
 
   describe('Character Count Functionality', () => {
