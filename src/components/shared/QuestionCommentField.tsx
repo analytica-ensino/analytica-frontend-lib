@@ -64,8 +64,16 @@ export function QuestionCommentField({
   // stays editable while a save is in flight, so the teacher can type past the
   // save. Locking on the echo alone would shut the field on text that is not
   // saved yet, forcing another click on Editar to submit it.
+  //
+  // `!saving` covers the same rule for the teacher who did NOT type past the
+  // save. Every consumer updates `value` inside the promise this field awaits,
+  // so the echo arrives while the save is still in flight; with `draft` and
+  // `value` equal by then, the remaining conditions all hold and the field shut
+  // itself mid-save, swapping "Salvando..." for "Editar". Gating on the save
+  // settling makes that structural, rather than leaving it to the order two
+  // state updates happen to land in.
   const [isEditing, setIsEditing] = useState(false);
-  const isLocked = value !== '' && !isEditing && draft === value;
+  const isLocked = value !== '' && !isEditing && draft === value && !saving;
 
   // What we last knew to be persisted. Compared against the draft to tell an
   // untouched field from one carrying edits that must not be thrown away.

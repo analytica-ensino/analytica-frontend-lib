@@ -288,5 +288,43 @@ describe('QuestionCommentField', () => {
       expect(screen.getByRole('textbox')).not.toHaveAttribute('readonly');
       expect(screen.getByRole('button', { name: 'Salvar' })).toBeEnabled();
     });
+
+    it('should stay unlocked while the save that produced the value is still in flight', async () => {
+      // Every consumer updates `value` inside the promise this field awaits, so
+      // the echo lands while `saving` is still true. The teacher who did not
+      // type past the save has `draft === value` at that point, and locking on
+      // it swapped "Salvando..." for "Editar" and shut a field whose save had
+      // not settled — against the rule that the field stays editable in flight.
+      const user = userEvent.setup();
+      let resolveSave: (() => void) | undefined;
+      const onSave = jest.fn(
+        () =>
+          new Promise<void>((resolve) => {
+            resolveSave = resolve;
+          })
+      );
+
+      const { rerender } = render(
+        <QuestionCommentField value="" onSave={onSave} />
+      );
+
+      await user.type(screen.getByRole('textbox'), 'A');
+      await user.click(screen.getByRole('button', { name: 'Salvar' }));
+
+      // The parent echoes the saved comment back before `onSave` resolves.
+      rerender(<QuestionCommentField value="A" onSave={onSave} />);
+
+      expect(
+        await screen.findByRole('button', { name: 'Salvando...' })
+      ).toBeDisabled();
+      expect(screen.getByRole('textbox')).not.toHaveAttribute('readonly');
+
+      // Once the save settles it locks as usual — the delay is the whole fix.
+      resolveSave?.();
+      expect(
+        await screen.findByRole('button', { name: 'Editar' })
+      ).toBeInTheDocument();
+      expect(screen.getByRole('textbox')).toHaveAttribute('readonly');
+    });
   });
 });
