@@ -27,7 +27,12 @@ const createQuestion = (
   id: string,
   statement: string,
   questionType: QUESTION_TYPE,
-  options?: Array<{ id: string; option: string }>,
+  options?: Array<{
+    id: string;
+    option: string;
+    /** RELACIONAR only: the value this item pairs with */
+    correctValue?: string | null;
+  }>,
   correctOptionIds?: string[],
   additionalContent?: string | null
 ): Question => {
@@ -495,6 +500,60 @@ describe('questionRenderer', () => {
       expect(screen.getByText('O Brasil é um país')).toBeInTheDocument();
     });
 
+    it('should treat a selection without a mark as unanswered', () => {
+      // `isCorrect` is optional on `selectedOptions`. Reading a missing mark as
+      // `false` showed "Resposta selecionada: F" on a statement the student
+      // never answered.
+      const question = createQuestion(
+        'q1',
+        'Marque V ou F',
+        QUESTION_TYPE.VERDADEIRO_FALSO,
+        [{ id: 'opt1', option: 'O Brasil é um país' }],
+        []
+      );
+      const result = createQuestionResult(
+        'a1',
+        'q1',
+        ANSWER_STATUS.RESPOSTA_INCORRETA,
+        null,
+        [{ optionId: 'opt1' }],
+        [{ id: 'opt1', option: 'O Brasil é um país', isCorrect: true }]
+      );
+
+      render(renderQuestionTrueOrFalse({ question, result }));
+
+      expect(
+        screen.getByText('Não respondida | Resposta correta: V')
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText(/Resposta selecionada/)
+      ).not.toBeInTheDocument();
+    });
+
+    it('should read an explicit false mark as F', () => {
+      // In `selectedOptions`, `isCorrect` is what the student marked, not
+      // whether they got it right: false means they answered F.
+      const question = createQuestion(
+        'q1',
+        'Marque V ou F',
+        QUESTION_TYPE.VERDADEIRO_FALSO,
+        [{ id: 'opt1', option: 'A Lua é feita de queijo' }],
+        []
+      );
+      const result = createQuestionResult(
+        'a1',
+        'q1',
+        ANSWER_STATUS.RESPOSTA_CORRETA,
+        null,
+        [{ optionId: 'opt1', isCorrect: false }],
+        [{ id: 'opt1', option: 'A Lua é feita de queijo', isCorrect: false }]
+      );
+
+      render(renderQuestionTrueOrFalse({ question, result }));
+
+      expect(screen.getByText('Resposta selecionada: F')).toBeInTheDocument();
+    });
+
     it('should show selected and correct answer', () => {
       const question = createQuestion(
         'q1',
@@ -698,6 +757,74 @@ describe('questionRenderer', () => {
       expect(screen.getByText('A Lua é feita de queijo')).toBeInTheDocument();
       expect(screen.getByText('A água é líquida')).toBeInTheDocument();
     });
+
+    it('should render nothing when the question has no statements', () => {
+      const question = createQuestion(
+        'q1',
+        'Marque V ou F',
+        QUESTION_TYPE.VERDADEIRO_FALSO
+      );
+      const result = createQuestionResult(
+        'a1',
+        'q1',
+        ANSWER_STATUS.RESPOSTA_CORRETA
+      );
+
+      const { container } = render(
+        renderQuestionTrueOrFalse({ question, result })
+      );
+
+      expect(container.querySelectorAll('section')).toHaveLength(0);
+    });
+
+    it('should tolerate a question whose options are missing at runtime', () => {
+      // `Question.options` is required by the type, but this renderer is fed
+      // straight from API payloads — the guard keeps a malformed one from
+      // throwing inside the modal.
+      const question = {
+        ...createQuestion(
+          'q1',
+          'Marque V ou F',
+          QUESTION_TYPE.VERDADEIRO_FALSO
+        ),
+        options: undefined,
+      } as unknown as Question;
+      const result = createQuestionResult(
+        'a1',
+        'q1',
+        ANSWER_STATUS.RESPOSTA_CORRETA
+      );
+
+      const { container } = render(
+        renderQuestionTrueOrFalse({ question, result })
+      );
+
+      expect(container.querySelectorAll('section')).toHaveLength(0);
+    });
+
+    it('should hide correctness when the answer key is missing from the result', () => {
+      const question = createQuestion(
+        'q1',
+        'Marque V ou F',
+        QUESTION_TYPE.VERDADEIRO_FALSO,
+        [{ id: 'opt1', option: 'O Brasil é um país' }]
+      );
+      // No `options` on the result — nothing to compare the mark against.
+      const result = createQuestionResult(
+        'a1',
+        'q1',
+        ANSWER_STATUS.RESPOSTA_CORRETA,
+        null,
+        [{ optionId: 'opt1' }]
+      );
+
+      render(renderQuestionTrueOrFalse({ question, result }));
+
+      expect(screen.getByText('O Brasil é um país')).toBeInTheDocument();
+      expect(
+        screen.queryByText(/Resposta selecionada:/)
+      ).not.toBeInTheDocument();
+    });
   });
 
   describe('renderQuestionDissertative', () => {
@@ -730,7 +857,7 @@ describe('questionRenderer', () => {
       ).toBeInTheDocument();
     });
 
-    it('should display teacher feedback when answer is incorrect', () => {
+    it('should not echo the teacher observation, whatever the answer status', () => {
       const result = createQuestionResult(
         'a1',
         'q1',
@@ -743,10 +870,17 @@ describe('questionRenderer', () => {
 
       render(renderQuestionDissertative({ result }));
 
-      expect(screen.getByText('Observação do professor:')).toBeInTheDocument();
+      // The observation lives in the editable textarea of the correction block.
+      // The read-only echo here duplicated it, and only ever appeared on wrong
+      // answers — so an observation on a correct answer silently vanished.
       expect(
-        screen.getByText('Você precisa explicar melhor o processo')
-      ).toBeInTheDocument();
+        screen.queryByText('Observação do professor:')
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Você precisa explicar melhor o processo')
+      ).not.toBeInTheDocument();
+      // The student's answer is still rendered.
+      expect(screen.getByText('Resposta do aluno')).toBeInTheDocument();
     });
 
     it('should not display feedback when answer is correct', () => {
@@ -1138,174 +1272,444 @@ describe('questionRenderer', () => {
   });
 
   describe('renderQuestionImage', () => {
-    it('should render image question', () => {
-      const result = createQuestionResult(
-        'a1',
-        'q1',
-        ANSWER_STATUS.RESPOSTA_CORRETA,
-        JSON.stringify({ x: 0.48, y: 0.45 })
+    const imageQuestion = createQuestion(
+      'q1',
+      'Clique na área correta',
+      QUESTION_TYPE.IMAGEM,
+      [{ id: 'opt1', option: JSON.stringify({ x: 50, y: 30 }) }],
+      [],
+      'https://cdn.example.com/mapa.png'
+    );
+
+    /**
+     * Build a result carrying the student's click, in the structured shape the
+     * backend sends.
+     */
+    const resultWithClick = (
+      answerStatus: ANSWER_STATUS,
+      point: { coordinateX: number; coordinateY: number } | null
+    ) => ({
+      ...createQuestionResult('a1', 'q1', answerStatus, null),
+      imageAnswer: point,
+      imageTolerance: 10,
+    });
+
+    it('should render the question image, not a placeholder', () => {
+      render(
+        renderQuestionImage({
+          question: imageQuestion,
+          result: resultWithClick(ANSWER_STATUS.RESPOSTA_CORRETA, {
+            coordinateX: 52,
+            coordinateY: 28,
+          }),
+        })
       );
 
-      const { container } = render(renderQuestionImage({ result }));
+      // The renderer used to draw a bundled mock image for every question.
+      expect(screen.getByRole('img')).toHaveAttribute(
+        'src',
+        'https://cdn.example.com/mapa.png'
+      );
+    });
 
-      expect(container).toBeInTheDocument();
+    it('should place the answer area at the point from the question', () => {
+      const { container } = render(
+        renderQuestionImage({
+          question: imageQuestion,
+          result: resultWithClick(ANSWER_STATUS.NAO_RESPONDIDO, null),
+        })
+      );
+
+      // The area used to be hardcoded at 48%/45% regardless of the question.
+      const area = container.querySelector(
+        '[data-testid="image-correct-area"]'
+      );
+      expect(area).toHaveStyle({ left: '50%', top: '30%' });
       expect(screen.getByText('Área correta')).toBeInTheDocument();
     });
 
-    it('should display correct answer legend when there is user answer', () => {
-      const result = createQuestionResult(
-        'a1',
-        'q1',
-        ANSWER_STATUS.RESPOSTA_CORRETA,
-        JSON.stringify({ x: 0.48, y: 0.45 })
+    it('should render the student click and call it correct within tolerance', () => {
+      const { container } = render(
+        renderQuestionImage({
+          question: imageQuestion,
+          result: resultWithClick(ANSWER_STATUS.RESPOSTA_CORRETA, {
+            coordinateX: 52,
+            coordinateY: 28,
+          }),
+        })
       );
 
-      render(renderQuestionImage({ result }));
-
+      const point = container.querySelector(
+        '[data-testid="image-student-point"]'
+      );
+      expect(point).toHaveStyle({ left: '52%', top: '28%' });
       expect(screen.getByText('Resposta correta')).toBeInTheDocument();
-      expect(screen.getByText('Resposta incorreta')).toBeInTheDocument();
+      expect(screen.queryByText('Resposta incorreta')).not.toBeInTheDocument();
     });
 
-    it('should display only correct area when there is no user answer', () => {
-      const result = createQuestionResult(
-        'a1',
-        'q1',
-        ANSWER_STATUS.NAO_RESPONDIDO,
-        null
+    it('should call a click outside the tolerance incorrect', () => {
+      render(
+        renderQuestionImage({
+          question: imageQuestion,
+          result: resultWithClick(ANSWER_STATUS.RESPOSTA_INCORRETA, {
+            coordinateX: 80,
+            coordinateY: 80,
+          }),
+        })
       );
 
-      render(renderQuestionImage({ result }));
+      expect(screen.getByText('Resposta incorreta')).toBeInTheDocument();
+      expect(screen.queryByText('Resposta correta')).not.toBeInTheDocument();
+    });
+
+    it('should show no verdict legend when the student did not answer', () => {
+      render(
+        renderQuestionImage({
+          question: imageQuestion,
+          result: resultWithClick(ANSWER_STATUS.NAO_RESPONDIDO, null),
+        })
+      );
 
       expect(screen.getByText('Área correta')).toBeInTheDocument();
       expect(screen.queryByText('Resposta correta')).not.toBeInTheDocument();
       expect(screen.queryByText('Resposta incorreta')).not.toBeInTheDocument();
     });
 
-    it('should calculate correctly when answer is within radius', () => {
-      // Posição muito próxima da correta (dentro do raio de 0.1)
-      const result = createQuestionResult(
-        'a1',
-        'q1',
-        ANSWER_STATUS.RESPOSTA_CORRETA,
-        JSON.stringify({ x: 0.49, y: 0.46 })
+    it('should fall back to the raw answer for older payloads', () => {
+      const { container } = render(
+        renderQuestionImage({
+          question: imageQuestion,
+          result: {
+            ...createQuestionResult(
+              'a1',
+              'q1',
+              ANSWER_STATUS.RESPOSTA_CORRETA,
+              JSON.stringify({ x: 52, y: 28 })
+            ),
+            imageTolerance: 10,
+          },
+        })
       );
 
-      render(renderQuestionImage({ result }));
-
-      expect(screen.getByText('Resposta correta')).toBeInTheDocument();
+      expect(
+        container.querySelector('[data-testid="image-student-point"]')
+      ).toHaveStyle({ left: '52%', top: '28%' });
     });
 
-    it('should calculate correctly when answer is outside radius', () => {
-      // Posição muito distante da correta (fora do raio de 0.1)
-      const result = createQuestionResult(
-        'a1',
-        'q1',
-        ANSWER_STATUS.RESPOSTA_INCORRETA,
-        JSON.stringify({ x: 0.8, y: 0.8 })
+    it('should degrade gracefully when the payload is malformed', () => {
+      const { container } = render(
+        renderQuestionImage({
+          question: createQuestion(
+            'q1',
+            'Clique na área correta',
+            QUESTION_TYPE.IMAGEM,
+            [{ id: 'opt1', option: 'not json' }]
+          ),
+          result: createQuestionResult(
+            'a1',
+            'q1',
+            ANSWER_STATUS.NAO_RESPONDIDO,
+            'invalid json'
+          ),
+        })
       );
 
-      render(renderQuestionImage({ result }));
-
-      expect(screen.getByText('Resposta incorreta')).toBeInTheDocument();
-    });
-
-    it('should handle error when parsing JSON', () => {
-      const result = createQuestionResult(
-        'a1',
-        'q1',
-        ANSWER_STATUS.NAO_RESPONDIDO,
-        'invalid json'
-      );
-
-      render(renderQuestionImage({ result }));
-
-      expect(screen.getByText('Área correta')).toBeInTheDocument();
-      expect(screen.queryByText('Resposta correta')).not.toBeInTheDocument();
-    });
-
-    it('should handle answer being an object directly', () => {
-      const result = createQuestionResult(
-        'a1',
-        'q1',
-        ANSWER_STATUS.RESPOSTA_CORRETA,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        { x: 0.48, y: 0.45 } as any
-      );
-
-      render(renderQuestionImage({ result }));
-
-      expect(screen.getByText('Resposta correta')).toBeInTheDocument();
-    });
-
-    it('should handle answer without x and y properties', () => {
-      const result = createQuestionResult(
-        'a1',
-        'q1',
-        ANSWER_STATUS.NAO_RESPONDIDO,
-        JSON.stringify({ invalid: 'data' })
-      );
-
-      render(renderQuestionImage({ result }));
-
-      expect(screen.getByText('Área correta')).toBeInTheDocument();
-      expect(screen.queryByText('Resposta correta')).not.toBeInTheDocument();
-    });
-
-    it('should display green circle when answer is correct', () => {
-      const result = createQuestionResult(
-        'a1',
-        'q1',
-        ANSWER_STATUS.RESPOSTA_CORRETA,
-        JSON.stringify({ x: 0.48, y: 0.45 })
-      );
-
-      const { container } = render(renderQuestionImage({ result }));
-
-      // Verifica que o componente foi renderizado
-      expect(container).toBeInTheDocument();
-      expect(screen.getByText('Resposta correta')).toBeInTheDocument();
-    });
-
-    it('should display red circle when answer is incorrect', () => {
-      const result = createQuestionResult(
-        'a1',
-        'q1',
-        ANSWER_STATUS.RESPOSTA_INCORRETA,
-        JSON.stringify({ x: 0.8, y: 0.8 })
-      );
-
-      const { container } = render(renderQuestionImage({ result }));
-
-      expect(container).toBeInTheDocument();
-      expect(screen.getByText('Resposta incorreta')).toBeInTheDocument();
+      expect(
+        container.querySelector('[data-testid="image-correct-area"]')
+      ).not.toBeInTheDocument();
+      expect(
+        container.querySelector('[data-testid="image-student-point"]')
+      ).not.toBeInTheDocument();
+      // No image URL either — say so instead of rendering a broken <img>.
+      expect(
+        screen.getByText('Imagem da questão indisponível')
+      ).toBeInTheDocument();
     });
   });
 
+  // These used to assert the words "não implementado" and a `paddingBottom`
+  // prop: the renderer was a placeholder that ignored `question` and `result`,
+  // so the teacher saw no answer to comment on. The tests below pin the real
+  // contract instead.
   describe('renderQuestionConnectDots', () => {
-    it('should render not implemented message', () => {
-      render(renderQuestionConnectDots({}));
+    const connectDotsQuestion = (
+      options: Array<{
+        id: string;
+        option: string;
+        correctValue?: string | null;
+      }>
+    ) =>
+      createQuestion(
+        'q1',
+        'Relacione os animais',
+        QUESTION_TYPE.RELACIONAR,
+        options
+      );
 
+    const connectDotsResult = (
+      matchingAnswers?: Array<{ optionId: string; selectedValue: string }>,
+      answer: string | null = null,
+      answerStatus: ANSWER_STATUS = ANSWER_STATUS.RESPOSTA_CORRETA
+    ) => ({
+      ...createQuestionResult('a1', 'q1', answerStatus, answer),
+      matchingAnswers,
+    });
+
+    const twoPairs = [
+      { id: 'opt1', option: 'Gato', correctValue: 'Mamífero' },
+      { id: 'opt2', option: 'Cobra', correctValue: 'Réptil' },
+    ];
+
+    it('should show the value the student matched to each item', () => {
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion(twoPairs),
+          result: connectDotsResult([
+            { optionId: 'opt1', selectedValue: 'Mamífero' },
+            { optionId: 'opt2', selectedValue: 'Réptil' },
+          ]),
+        })
+      );
+
+      expect(screen.getByText('a) Gato')).toBeInTheDocument();
+      expect(screen.getByText('b) Cobra')).toBeInTheDocument();
       expect(
-        screen.getByText('Tipo de questão: Ligar Pontos')
+        screen.getByText('Resposta selecionada: Mamífero')
       ).toBeInTheDocument();
       expect(
-        screen.getByText('Tipo de questão: Ligar Pontos (não implementado)')
+        screen.getByText('Resposta selecionada: Réptil')
       ).toBeInTheDocument();
     });
 
-    it('should render with custom paddingBottom', () => {
-      render(renderQuestionConnectDots({ paddingBottom: 'pb-10' }));
+    it('should reveal the answer key only on the pairs the student missed', () => {
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion(twoPairs),
+          result: connectDotsResult([
+            { optionId: 'opt1', selectedValue: 'Mamífero' },
+            { optionId: 'opt2', selectedValue: 'Anfíbio' },
+          ]),
+        })
+      );
 
       expect(
-        screen.getByText('Tipo de questão: Ligar Pontos')
+        screen.getByText('| Resposta correta: Réptil')
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText('| Resposta correta: Mamífero')
+      ).not.toBeInTheDocument();
+    });
+
+    it('should mark a pair left blank as unanswered', () => {
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion(twoPairs),
+          result: connectDotsResult([
+            { optionId: 'opt1', selectedValue: 'Mamífero' },
+          ]),
+        })
+      );
+
+      expect(
+        screen.getByText('Não respondida | Resposta correta: Réptil')
       ).toBeInTheDocument();
     });
 
-    it('should render without paddingBottom', () => {
-      render(renderQuestionConnectDots({}));
+    it('should grade the way the backend does, ignoring case and padding', () => {
+      // `evaluateMatchingAnswers` compares with trim().toLowerCase(), so this
+      // pair is correct — comparing raw strings would paint it red.
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion([twoPairs[0]]),
+          result: connectDotsResult([
+            { optionId: 'opt1', selectedValue: '  MAMÍFERO ' },
+          ]),
+        })
+      );
 
       expect(
-        screen.getByText('Tipo de questão: Ligar Pontos')
+        screen.queryByText('| Resposta correta: Mamífero')
+      ).not.toBeInTheDocument();
+    });
+
+    it('should read the legacy answer array when matchingAnswers is absent', () => {
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion([twoPairs[0]]),
+          result: connectDotsResult(
+            undefined,
+            JSON.stringify([{ optionId: 'opt1', selectedValue: 'Mamífero' }])
+          ),
+        })
+      );
+
+      expect(
+        screen.getByText('Resposta selecionada: Mamífero')
+      ).toBeInTheDocument();
+    });
+
+    it('should read the legacy answer map when matchingAnswers is absent', () => {
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion([twoPairs[0]]),
+          result: connectDotsResult(
+            undefined,
+            JSON.stringify({ opt1: 'Mamífero' })
+          ),
+        })
+      );
+
+      expect(
+        screen.getByText('Resposta selecionada: Mamífero')
+      ).toBeInTheDocument();
+    });
+
+    it('should treat a malformed answer as nothing answered', () => {
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion([twoPairs[0]]),
+          result: connectDotsResult(undefined, 'not json'),
+        })
+      );
+
+      expect(
+        screen.getByText('Não respondida | Resposta correta: Mamífero')
+      ).toBeInTheDocument();
+    });
+
+    it('should ignore legacy entries that are not strings', () => {
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion([twoPairs[0]]),
+          result: connectDotsResult(
+            undefined,
+            JSON.stringify([{ optionId: 'opt1', selectedValue: 42 }, null])
+          ),
+        })
+      );
+
+      expect(
+        screen.getByText('Não respondida | Resposta correta: Mamífero')
+      ).toBeInTheDocument();
+    });
+
+    it('should ignore legacy map values that are not strings', () => {
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion([twoPairs[0]]),
+          result: connectDotsResult(undefined, JSON.stringify({ opt1: 42 })),
+        })
+      );
+
+      expect(
+        screen.getByText('Não respondida | Resposta correta: Mamífero')
+      ).toBeInTheDocument();
+    });
+
+    it('should hide correctness on a pair with no answer key', () => {
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion([{ id: 'opt1', option: 'Gato' }]),
+          result: connectDotsResult([
+            { optionId: 'opt1', selectedValue: 'Mamífero' },
+          ]),
+        })
+      );
+
+      expect(screen.getByText('a) Gato')).toBeInTheDocument();
+      expect(
+        screen.queryByText('Resposta selecionada: Mamífero')
+      ).not.toBeInTheDocument();
+    });
+
+    it('should hide correctness while the answer is pending', () => {
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion(twoPairs),
+          result: connectDotsResult(
+            [{ optionId: 'opt1', selectedValue: 'Mamífero' }],
+            null,
+            ANSWER_STATUS.PENDENTE_AVALIACAO
+          ),
+        })
+      );
+
+      expect(
+        screen.queryByText('Resposta selecionada: Mamífero')
+      ).not.toBeInTheDocument();
+    });
+
+    it('should strip HTML from the selected value and the answer key', () => {
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion([
+            { id: 'opt1', option: 'Gato', correctValue: '<p>Mamífero</p>' },
+          ]),
+          result: connectDotsResult([
+            { optionId: 'opt1', selectedValue: '<p>Anfíbio</p>' },
+          ]),
+        })
+      );
+
+      expect(
+        screen.getByText('Resposta selecionada: Anfíbio')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('| Resposta correta: Mamífero')
+      ).toBeInTheDocument();
+    });
+
+    it('should say so when the question carries no pairs', () => {
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion([]),
+          result: connectDotsResult(),
+        })
+      );
+
+      expect(
+        screen.getByText('Nenhuma opção de relacionamento disponível')
+      ).toBeInTheDocument();
+    });
+
+    it('should survive a question that carries no options array at all', () => {
+      const question = {
+        ...connectDotsQuestion([]),
+        options: undefined,
+      } as unknown as Question;
+
+      render(
+        renderQuestionConnectDots({ question, result: connectDotsResult() })
+      );
+
+      expect(
+        screen.getByText('Nenhuma opção de relacionamento disponível')
+      ).toBeInTheDocument();
+    });
+
+    it('should fall back to the index when an option has no id', () => {
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion([
+            { id: '', option: 'Gato', correctValue: 'Mamífero' },
+          ]),
+          result: connectDotsResult(),
+        })
+      );
+
+      expect(screen.getByText('a) Gato')).toBeInTheDocument();
+    });
+
+    it('should treat a literal null answer as nothing answered', () => {
+      render(
+        renderQuestionConnectDots({
+          question: connectDotsQuestion([twoPairs[0]]),
+          result: connectDotsResult(undefined, 'null'),
+        })
+      );
+
+      expect(
+        screen.getByText('Não respondida | Resposta correta: Mamífero')
       ).toBeInTheDocument();
     });
   });
@@ -1462,21 +1866,25 @@ describe('questionRenderer', () => {
         'q1',
         'Ligue os pontos',
         QUESTION_TYPE.RELACIONAR,
-        [],
+        [{ id: 'opt1', option: 'Gato', correctValue: 'Mamífero' }],
         []
       );
-      const result = createQuestionResult(
-        'a1',
-        'q1',
-        ANSWER_STATUS.RESPOSTA_CORRETA,
-        null
-      );
+      const result = {
+        ...createQuestionResult(
+          'a1',
+          'q1',
+          ANSWER_STATUS.RESPOSTA_CORRETA,
+          null
+        ),
+        matchingAnswers: [{ optionId: 'opt1', selectedValue: 'Mamífero' }],
+      };
 
       const { container } = render(<>{renderQuestion({ question, result })}</>);
 
       expect(container).toBeInTheDocument();
+      expect(screen.getByText('a) Gato')).toBeInTheDocument();
       expect(
-        screen.getByText('Tipo de questão: Ligar Pontos')
+        screen.getByText('Resposta selecionada: Mamífero')
       ).toBeInTheDocument();
     });
 

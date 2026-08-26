@@ -64,13 +64,15 @@ export const renderQuestion = (props: QuestionRendererProps): ReactNode => {
     case QUESTION_TYPE.DISSERTATIVA:
       return renderQuestionDissertative({ result: props.result });
     case QUESTION_TYPE.IMAGEM:
-      return renderQuestionImage({ result: props.result });
-    case QUESTION_TYPE.RELACIONAR:
-      return renderQuestionConnectDots({ paddingBottom: '' });
+      return renderQuestionImage({
+        question: props.question,
+        result: props.result,
+      });
     case QUESTION_TYPE.ALTERNATIVA:
     case QUESTION_TYPE.MULTIPLA_ESCOLHA:
     case QUESTION_TYPE.VERDADEIRO_FALSO:
     case QUESTION_TYPE.PREENCHER_LACUNAS:
+    case QUESTION_TYPE.RELACIONAR:
       return renderer(props);
     default:
       return null;

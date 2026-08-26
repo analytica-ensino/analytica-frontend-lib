@@ -1252,7 +1252,7 @@ describe('QuizContent', () => {
       expect(screen.queryByTestId('quiz-textarea')).not.toBeInTheDocument();
     });
 
-    it('should show teacher observation when teacherFeedback exists in result mode', () => {
+    it('should not duplicate the teacher comment in result mode', () => {
       const mockQuestion = {
         id: 'question-1',
         statement: 'Test question',
@@ -1278,13 +1278,18 @@ describe('QuizContent', () => {
 
       render(<QuizDissertative />);
 
-      expect(screen.getByText('Observação do professor')).toBeInTheDocument();
+      // The comment belongs to `TeacherQuestionComment`, mounted once for every
+      // question type. Rendering it here too showed the student the same text
+      // twice, so this component must stay out of it.
       expect(
-        screen.getByText(/Lorem ipsum dolor sit amet/)
-      ).toBeInTheDocument();
+        screen.queryByText('Observação do professor')
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/Lorem ipsum dolor sit amet/)
+      ).not.toBeInTheDocument();
     });
 
-    it('should show teacher observation for correct answers when teacherFeedback exists', () => {
+    it('should not duplicate the teacher comment for correct answers', () => {
       const mockQuestion = {
         id: 'question-1',
         statement: 'Test question',
@@ -1310,10 +1315,12 @@ describe('QuizContent', () => {
 
       render(<QuizDissertative />);
 
-      expect(screen.getByText('Observação do professor')).toBeInTheDocument();
       expect(
-        screen.getByText(/Parabéns pelo excelente trabalho!/)
-      ).toBeInTheDocument();
+        screen.queryByText('Observação do professor')
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/Parabéns pelo excelente trabalho!/)
+      ).not.toBeInTheDocument();
     });
 
     it('should not show teacher observation when teacherFeedback is undefined', () => {
@@ -2463,728 +2470,220 @@ describe('QuizContent', () => {
   });
 
   describe('QuizImageQuestion Component', () => {
-    const defaultMockQuestion = {
+    const imageQuestion = {
       id: 'image-q1',
-      additionalContent: '',
-      options: [],
+      additionalContent: 'https://cdn.example.com/mapa.png',
+      options: [{ id: 'opt1', option: JSON.stringify({ x: 50, y: 30 }) }],
+    };
+
+    /**
+     * Point the mocked store at a variant, with an optional stored result.
+     */
+    const setupStore = (
+      variant: string,
+      questionResult: unknown = null,
+      question: unknown = imageQuestion
+    ) => {
+      mockUseQuizStore.mockReturnValue({
+        variant,
+        getCurrentQuestion: () => question,
+        getCurrentAnswer: () => null,
+        selectDissertativeAnswer: jest.fn(),
+        getQuestionResultByQuestionId: () => questionResult,
+      } as unknown as ReturnType<typeof useQuizStore>);
     };
 
     beforeEach(() => {
-      mockUseQuizStore.mockReturnValue({
-        variant: 'default',
-        getCurrentQuestion: () => defaultMockQuestion,
-        getCurrentAnswer: () => null,
-        selectDissertativeAnswer: jest.fn(),
-        getQuestionResultByQuestionId: () => null,
-      } as unknown as ReturnType<typeof useQuizStore>);
+      setupStore('default');
     });
 
-    it('should render image question correctly', () => {
-      render(<QuizImageQuestion paddingBottom="pb-4" />);
+    describe('answering', () => {
+      it('should render the interactive image', () => {
+        render(<QuizImageQuestion paddingBottom="pb-4" />);
 
-      expect(screen.getByText('Clique na área correta')).toBeInTheDocument();
-      expect(screen.getByTestId('quiz-image-container')).toBeInTheDocument();
-      expect(screen.getByTestId('quiz-image-button')).toBeInTheDocument();
-      expect(screen.getByTestId('quiz-image')).toBeInTheDocument();
-    });
-
-    it('should have correct image attributes', () => {
-      render(<QuizImageQuestion />);
-
-      const image = screen.getByTestId('quiz-image');
-      expect(image).toHaveAttribute('src', 'test-file-stub');
-      expect(image).toHaveAttribute('alt', 'Question');
-      expect(image).toHaveClass('w-full', 'h-auto', 'rounded-md');
-    });
-
-    it('should have interactive button with correct attributes', () => {
-      render(<QuizImageQuestion />);
-
-      const button = screen.getByTestId('quiz-image-button');
-      expect(button).toHaveAttribute('type', 'button');
-      expect(button).toHaveAttribute('aria-label', 'Área da imagem interativa');
-      expect(button).toHaveClass(
-        'relative',
-        'cursor-pointer',
-        'w-full',
-        'h-full'
-      );
-    });
-
-    it('should not show legend in default variant', () => {
-      render(<QuizImageQuestion />);
-
-      expect(screen.queryByTestId('quiz-legend')).not.toBeInTheDocument();
-      expect(screen.queryByText('Área correta')).not.toBeInTheDocument();
-    });
-
-    it('should not show correct circle in default variant', () => {
-      render(<QuizImageQuestion />);
-
-      expect(
-        screen.queryByTestId('quiz-correct-circle')
-      ).not.toBeInTheDocument();
-    });
-
-    it('should show legend in result variant', () => {
-      mockUseQuizStore.mockReturnValue({
-        variant: QuizVariant.RESULT,
-        getCurrentQuestion: () => ({
-          ...defaultMockQuestion,
-          options: [{ id: 'opt-1', option: '{"x": 50, "y": 50}' }],
-        }),
-        getCurrentAnswer: () => null,
-        selectDissertativeAnswer: jest.fn(),
-        getQuestionResultByQuestionId: () => ({ answer: '{"x": 60, "y": 60}' }),
-      } as unknown as ReturnType<typeof useQuizStore>);
-
-      render(<QuizImageQuestion />);
-
-      expect(screen.getByTestId('quiz-legend')).toBeInTheDocument();
-      expect(screen.getByText('Área correta')).toBeInTheDocument();
-      expect(screen.getByText('Resposta correta')).toBeInTheDocument();
-      expect(screen.getByText('Resposta incorreta')).toBeInTheDocument();
-    });
-
-    it('should show correct circle in result variant', () => {
-      mockUseQuizStore.mockReturnValue({
-        variant: QuizVariant.RESULT,
-        getCurrentQuestion: () => ({
-          ...defaultMockQuestion,
-          options: [{ id: 'opt-1', option: '{"x": 50, "y": 50}' }],
-        }),
-        getCurrentAnswer: () => null,
-        selectDissertativeAnswer: jest.fn(),
-        getQuestionResultByQuestionId: () => ({ answer: '{"x": 60, "y": 60}' }),
-      } as unknown as ReturnType<typeof useQuizStore>);
-
-      render(<QuizImageQuestion />);
-
-      expect(screen.getByTestId('quiz-correct-circle')).toBeInTheDocument();
-
-      const correctCircle = screen.getByTestId('quiz-correct-circle');
-      expect(correctCircle).toHaveClass(
-        'absolute',
-        'rounded-full',
-        'bg-indicator-primary/70'
-      );
-    });
-
-    it('should show user circle in result variant with mock position', () => {
-      mockUseQuizStore.mockReturnValue({
-        variant: QuizVariant.RESULT,
-        getCurrentQuestion: () => ({
-          ...defaultMockQuestion,
-          options: [{ id: 'opt-1', option: '{"x": 50, "y": 50}' }],
-        }),
-        getCurrentAnswer: () => null,
-        selectDissertativeAnswer: jest.fn(),
-        getQuestionResultByQuestionId: () => ({ answer: '{"x": 72, "y": 35}' }),
-      } as unknown as ReturnType<typeof useQuizStore>);
-
-      render(<QuizImageQuestion />);
-
-      expect(screen.getByTestId('quiz-user-circle')).toBeInTheDocument();
-
-      const userCircle = screen.getByTestId('quiz-user-circle');
-      expect(userCircle).toHaveClass('absolute', 'rounded-full', 'border-4');
-    });
-
-    it('should handle click events in default variant', () => {
-      render(<QuizImageQuestion />);
-
-      const button = screen.getByTestId('quiz-image-button');
-
-      // Mock getBoundingClientRect
-      const mockGetBoundingClientRect = jest.fn(() => ({
-        left: 0,
-        top: 0,
-        width: 400,
-        height: 300,
-        x: 0,
-        y: 0,
-        right: 400,
-        bottom: 300,
-        toJSON: jest.fn(),
-      }));
-      button.getBoundingClientRect = mockGetBoundingClientRect;
-
-      // Use act to wrap state updates
-      act(() => {
-        button.click();
+        expect(screen.getByText('Clique na área correta')).toBeInTheDocument();
+        expect(screen.getByTestId('quiz-image-container')).toBeInTheDocument();
+        expect(screen.getByTestId('quiz-image-button')).toBeInTheDocument();
+        expect(screen.getByTestId('quiz-image')).toHaveAttribute(
+          'src',
+          'https://cdn.example.com/mapa.png'
+        );
       });
 
-      // After click, should show user circle
-      expect(screen.getByTestId('quiz-user-circle')).toBeInTheDocument();
-    });
-
-    it('should not handle click events in result variant', () => {
-      mockUseQuizStore.mockReturnValue({
-        variant: QuizVariant.RESULT,
-        getCurrentQuestion: () => ({
-          ...defaultMockQuestion,
-          options: [{ id: 'opt-1', option: '{"x": 50, "y": 50}' }],
-        }),
-        getCurrentAnswer: () => null,
-        selectDissertativeAnswer: jest.fn(),
-        getQuestionResultByQuestionId: () => ({ answer: '{"x": 72, "y": 35}' }),
-      } as unknown as ReturnType<typeof useQuizStore>);
-
-      render(<QuizImageQuestion />);
-
-      const button = screen.getByTestId('quiz-image-button');
-
-      // Mock getBoundingClientRect
-      const mockGetBoundingClientRect = jest.fn(() => ({
-        left: 0,
-        top: 0,
-        width: 400,
-        height: 300,
-        x: 0,
-        y: 0,
-        right: 400,
-        bottom: 300,
-        toJSON: jest.fn(),
-      }));
-      button.getBoundingClientRect = mockGetBoundingClientRect;
-
-      // Create a click event
-      const clickEvent = new MouseEvent('click', {
-        clientX: 200,
-        clientY: 150,
-        bubbles: true,
-      });
-
-      button.dispatchEvent(clickEvent);
-
-      // Should still show user circle from mock data, but position shouldn't change
-      const userCircle = screen.getByTestId('quiz-user-circle');
-      expect(userCircle).toBeInTheDocument();
-    });
-
-    it('should handle keyboard events (Enter and Space)', () => {
-      render(<QuizImageQuestion />);
-
-      const button = screen.getByTestId('quiz-image-button');
-
-      // Test Enter key
-      act(() => {
-        const enterEvent = new KeyboardEvent('keydown', {
-          key: 'Enter',
-          bubbles: true,
+      it('should fall back to the bundled image when the question has none', () => {
+        setupStore('default', null, {
+          ...imageQuestion,
+          additionalContent: '',
         });
-        button.dispatchEvent(enterEvent);
+
+        render(<QuizImageQuestion />);
+
+        expect(screen.getByTestId('quiz-image')).toHaveAttribute(
+          'src',
+          'test-file-stub'
+        );
       });
 
-      // Should show user circle at center position (0.5, 0.5)
-      expect(screen.getByTestId('quiz-user-circle')).toBeInTheDocument();
+      it('should expose the image as an interactive button', () => {
+        render(<QuizImageQuestion />);
 
-      // Test Space key
-      act(() => {
-        const spaceEvent = new KeyboardEvent('keydown', {
-          key: ' ',
-          bubbles: true,
+        const button = screen.getByTestId('quiz-image-button');
+        expect(button).toHaveAttribute('type', 'button');
+        expect(button).toHaveAttribute(
+          'aria-label',
+          'Área da imagem interativa'
+        );
+      });
+
+      it('should not reveal the answer key while answering', () => {
+        render(<QuizImageQuestion />);
+
+        expect(screen.queryByText('Área correta')).not.toBeInTheDocument();
+        expect(
+          screen.queryByTestId('image-correct-area')
+        ).not.toBeInTheDocument();
+      });
+
+      it('should mark where the student clicks', () => {
+        const selectDissertativeAnswer = jest.fn();
+        mockUseQuizStore.mockReturnValue({
+          variant: 'default',
+          getCurrentQuestion: () => imageQuestion,
+          getCurrentAnswer: () => null,
+          selectDissertativeAnswer,
+          getQuestionResultByQuestionId: () => null,
+        } as unknown as ReturnType<typeof useQuizStore>);
+
+        render(<QuizImageQuestion />);
+        const button = screen.getByTestId('quiz-image-button');
+        jest.spyOn(button, 'getBoundingClientRect').mockReturnValue({
+          left: 0,
+          top: 0,
+          width: 200,
+          height: 100,
+        } as DOMRect);
+
+        fireEvent.click(button, { clientX: 100, clientY: 30 });
+
+        expect(selectDissertativeAnswer).toHaveBeenCalledWith(
+          'image-q1',
+          JSON.stringify({ x: 50, y: 30 })
+        );
+        expect(screen.getByTestId('quiz-user-circle')).toBeInTheDocument();
+      });
+    });
+
+    describe('reviewing the result', () => {
+      it('should draw the answer key at the question point', () => {
+        setupStore('result', {
+          imageAnswer: null,
+          imageTolerance: 10,
+          answer: null,
         });
-        button.dispatchEvent(spaceEvent);
-      });
 
-      // Should still have user circle
-      expect(screen.getByTestId('quiz-user-circle')).toBeInTheDocument();
-    });
+        render(<QuizImageQuestion />);
 
-    it('should not handle keyboard events in result variant', () => {
-      mockUseQuizStore.mockReturnValue({
-        variant: QuizVariant.RESULT,
-        getCurrentQuestion: () => ({
-          ...defaultMockQuestion,
-          options: [{ id: 'opt-1', option: '{"x": 50, "y": 50}' }],
-        }),
-        getCurrentAnswer: () => null,
-        selectDissertativeAnswer: jest.fn(),
-        getQuestionResultByQuestionId: () => ({ answer: '{"x": 72, "y": 35}' }),
-      } as unknown as ReturnType<typeof useQuizStore>);
-
-      render(<QuizImageQuestion />);
-
-      const button = screen.getByTestId('quiz-image-button');
-
-      // User circle should be from mock data initially
-      expect(screen.getByTestId('quiz-user-circle')).toBeInTheDocument();
-
-      // Test keyboard event - should not change anything
-      const enterEvent = new KeyboardEvent('keydown', {
-        key: 'Enter',
-        bubbles: true,
-      });
-      button.dispatchEvent(enterEvent);
-
-      // Should still have user circle (from mock data)
-      expect(screen.getByTestId('quiz-user-circle')).toBeInTheDocument();
-    });
-
-    it('should apply paddingBottom correctly', () => {
-      const { container } = render(<QuizImageQuestion paddingBottom="pb-8" />);
-
-      const quizContainer = container.querySelector('.bg-background');
-      expect(quizContainer).toHaveClass('pb-8');
-    });
-
-    it('should have correct subtitle', () => {
-      render(<QuizImageQuestion />);
-
-      expect(screen.getByText('Clique na área correta')).toBeInTheDocument();
-
-      // Check subtitle structure
-      const subtitle = screen.getByText('Clique na área correta');
-      expect(subtitle).toHaveClass('font-bold', 'text-lg', 'text-text-950');
-    });
-
-    it('should have correct container structure', () => {
-      render(<QuizImageQuestion />);
-
-      const container = screen.getByTestId('quiz-image-container');
-      expect(container).toHaveClass(
-        'space-y-6',
-        'p-3',
-        'relative',
-        'inline-block'
-      );
-
-      // Should be inside QuizContainer
-      const quizContainer = container.closest('.bg-background');
-      expect(quizContainer).toBeInTheDocument();
-    });
-
-    it('should handle variant switching correctly', () => {
-      const { rerender } = render(<QuizImageQuestion />);
-
-      // Initially in default variant - no legend
-      expect(screen.queryByTestId('quiz-legend')).not.toBeInTheDocument();
-      expect(
-        screen.queryByTestId('quiz-correct-circle')
-      ).not.toBeInTheDocument();
-
-      // Switch to result variant
-      mockUseQuizStore.mockReturnValue({
-        variant: QuizVariant.RESULT,
-        getCurrentQuestion: () => ({
-          ...defaultMockQuestion,
-          options: [{ id: 'opt-1', option: '{"x": 50, "y": 50}' }],
-        }),
-        getCurrentAnswer: () => null,
-        selectDissertativeAnswer: jest.fn(),
-        getQuestionResultByQuestionId: () => ({ answer: '{"x": 72, "y": 35}' }),
-      } as unknown as ReturnType<typeof useQuizStore>);
-
-      rerender(<QuizImageQuestion />);
-
-      // Should now show legend and correct circle
-      expect(screen.getByTestId('quiz-legend')).toBeInTheDocument();
-      expect(screen.getByTestId('quiz-correct-circle')).toBeInTheDocument();
-    });
-
-    it('should calculate correct position and radius correctly', () => {
-      mockUseQuizStore.mockReturnValue({
-        variant: QuizVariant.RESULT,
-        getCurrentQuestion: () => ({
-          ...defaultMockQuestion,
-          options: [{ id: 'opt-1', option: '{"x": 48, "y": 45}' }],
-        }),
-        getCurrentAnswer: () => null,
-        selectDissertativeAnswer: jest.fn(),
-        getQuestionResultByQuestionId: () => ({ answer: '{"x": 72, "y": 35}' }),
-      } as unknown as ReturnType<typeof useQuizStore>);
-
-      render(<QuizImageQuestion />);
-
-      const correctCircle = screen.getByTestId('quiz-correct-circle');
-
-      // Should have correct positioning styles - only test the width since other styles are inline
-      expect(correctCircle).toHaveStyle({
-        width: '15%',
-      });
-
-      // Verify the positioning classes are applied
-      expect(correctCircle).toHaveClass(
-        'absolute',
-        'rounded-full',
-        'bg-indicator-primary/70'
-      );
-    });
-
-    it('should have correct user circle styling based on correctness', () => {
-      mockUseQuizStore.mockReturnValue({
-        variant: QuizVariant.RESULT,
-        getCurrentQuestion: () => ({
-          ...defaultMockQuestion,
-          options: [{ id: 'opt-1', option: '{"x": 48, "y": 45}' }],
-        }),
-        getCurrentAnswer: () => null,
-        selectDissertativeAnswer: jest.fn(),
-        getQuestionResultByQuestionId: () => ({ answer: '{"x": 72, "y": 35}' }),
-      } as unknown as ReturnType<typeof useQuizStore>);
-
-      render(<QuizImageQuestion />);
-
-      const userCircle = screen.getByTestId('quiz-user-circle');
-
-      // The mock position (0.72, 0.35) should be outside the correct area
-      // So it should have error styling
-      expect(userCircle).toHaveClass('bg-indicator-error/70', 'border-white');
-    });
-
-    it('should show correct user circle styling when answer is correct', () => {
-      // We need to test when the user clicks in the correct area
-      render(<QuizImageQuestion />);
-
-      const button = screen.getByTestId('quiz-image-button');
-
-      // Mock getBoundingClientRect
-      const mockGetBoundingClientRect = jest.fn(() => ({
-        left: 0,
-        top: 0,
-        width: 400,
-        height: 300,
-        x: 0,
-        y: 0,
-        right: 400,
-        bottom: 300,
-        toJSON: jest.fn(),
-      }));
-      button.getBoundingClientRect = mockGetBoundingClientRect;
-
-      // Use act to wrap the click event
-      act(() => {
-        const clickEvent = new MouseEvent('click', {
-          clientX: 192, // Near the correct position (0.48, 0.45) -> (192, 135) in a 400x300 image
-          clientY: 135,
-          bubbles: true,
+        // No longer an interactive button: in review the question is read.
+        expect(
+          screen.queryByTestId('quiz-image-button')
+        ).not.toBeInTheDocument();
+        expect(screen.getByTestId('image-correct-area')).toHaveStyle({
+          left: '50%',
+          top: '30%',
         });
-        button.dispatchEvent(clickEvent);
+        expect(screen.getByText('Área correta')).toBeInTheDocument();
       });
 
-      // Should show user circle
-      const userCircle = screen.getByTestId('quiz-user-circle');
-      expect(userCircle).toBeInTheDocument();
-
-      // In default mode, should have primary styling
-      expect(userCircle).toHaveClass(
-        'bg-indicator-primary/70',
-        'border-[#F8CC2E]'
-      );
-    });
-
-    it('should handle edge cases for coordinate conversion', () => {
-      render(<QuizImageQuestion />);
-
-      const button = screen.getByTestId('quiz-image-button');
-
-      // Mock getBoundingClientRect with very small dimensions
-      const mockGetBoundingClientRect = jest.fn(() => ({
-        left: 0,
-        top: 0,
-        width: 0.001,
-        height: 0.001,
-        x: 0,
-        y: 0,
-        right: 0.001,
-        bottom: 0.001,
-        toJSON: jest.fn(),
-      }));
-      button.getBoundingClientRect = mockGetBoundingClientRect;
-
-      // Use act to wrap the click event
-      act(() => {
-        const clickEvent = new MouseEvent('click', {
-          clientX: 10,
-          clientY: 10,
-          bubbles: true,
+      it('should show the student their own click', () => {
+        setupStore('result', {
+          imageAnswer: { coordinateX: 52, coordinateY: 28 },
+          imageTolerance: 10,
+          answer: null,
         });
-        button.dispatchEvent(clickEvent);
+
+        render(<QuizImageQuestion />);
+
+        // The coordinate travels in `imageAnswer`; this screen used to read
+        // `answer`, which is null for image questions, so the student never saw
+        // where they had clicked.
+        expect(screen.getByTestId('image-student-point')).toHaveStyle({
+          left: '52%',
+          top: '28%',
+        });
+        expect(screen.getByText('Resposta correta')).toBeInTheDocument();
       });
 
-      // Should still work and show user circle
-      expect(screen.getByTestId('quiz-user-circle')).toBeInTheDocument();
-    });
+      it('should call a click outside the tolerance incorrect', () => {
+        setupStore('result', {
+          imageAnswer: { coordinateX: 80, coordinateY: 80 },
+          imageTolerance: 10,
+          answer: null,
+        });
 
-    it('should use default styling when variant is neither default nor result', () => {
-      // Test the default case in getUserCircleColorClasses
-      mockUseQuizStore.mockReturnValue({
-        variant: 'unknown-variant', // Neither 'default' nor 'result'
-        getCurrentQuestion: () => defaultMockQuestion,
-        getCurrentAnswer: () => null,
-        selectDissertativeAnswer: jest.fn(),
-        getQuestionResultByQuestionId: () => null,
-      } as unknown as ReturnType<typeof useQuizStore>);
+        render(<QuizImageQuestion />);
 
-      render(<QuizImageQuestion />);
-
-      // Click to create a user circle
-      const imageButton = screen.getByTestId('quiz-image-button');
-
-      act(() => {
-        imageButton.click();
+        expect(screen.getByText('Resposta incorreta')).toBeInTheDocument();
+        expect(screen.queryByText('Resposta correta')).not.toBeInTheDocument();
       });
 
-      const userCircle = screen.getByTestId('quiz-user-circle');
+      it('should size the target circle by the grading tolerance', () => {
+        setupStore('result', {
+          imageAnswer: null,
+          imageTolerance: 5,
+          answer: null,
+        });
 
-      // Should use the default case styling: 'bg-success-600/70 border-white'
-      expect(userCircle).toHaveClass('bg-success-600/70', 'border-white');
-    });
+        render(<QuizImageQuestion />);
 
-    it('should display image from additionalContent when available', () => {
-      const mockQuestion = {
-        id: 'image-question-1',
-        additionalContent: 'https://example.com/test-image.jpg',
-        options: [{ id: 'opt-1', option: '{"x": 50, "y": 50}' }],
-      };
-
-      mockUseQuizStore.mockReturnValue({
-        variant: 'default',
-        getCurrentQuestion: () => mockQuestion,
-        getCurrentAnswer: () => null,
-        selectDissertativeAnswer: jest.fn(),
-        getQuestionResultByQuestionId: () => null,
-      } as unknown as ReturnType<typeof useQuizStore>);
-
-      render(<QuizImageQuestion />);
-
-      const image = screen.getByTestId('quiz-image');
-      expect(image).toHaveAttribute(
-        'src',
-        'https://example.com/test-image.jpg'
-      );
-    });
-
-    it('should parse correct coordinates from options', () => {
-      const mockQuestion = {
-        id: 'image-question-1',
-        additionalContent: 'https://example.com/test-image.jpg',
-        options: [{ id: 'opt-1', option: '{"x": 75, "y": 25}' }],
-      };
-
-      mockUseQuizStore.mockReturnValue({
-        variant: QuizVariant.RESULT,
-        getCurrentQuestion: () => mockQuestion,
-        getCurrentAnswer: () => null,
-        selectDissertativeAnswer: jest.fn(),
-        getQuestionResultByQuestionId: () => ({
-          answer: '{"x": 70, "y": 30}',
-        }),
-      } as unknown as ReturnType<typeof useQuizStore>);
-
-      render(<QuizImageQuestion />);
-
-      const correctCircle = screen.getByTestId('quiz-correct-circle');
-      // Correct position at 75% x, 25% y
-      expect(correctCircle).toHaveStyle({
-        left: 'calc(75% - 7.5%)',
-        top: 'calc(25% - 15%)',
-      });
-    });
-
-    it('should call selectDissertativeAnswer when image is clicked', () => {
-      const mockSelectDissertativeAnswer = jest.fn();
-      const mockQuestion = {
-        id: 'image-question-1',
-        additionalContent: 'https://example.com/test-image.jpg',
-        options: [{ id: 'opt-1', option: '{"x": 50, "y": 50}' }],
-      };
-
-      mockUseQuizStore.mockReturnValue({
-        variant: 'default',
-        getCurrentQuestion: () => mockQuestion,
-        getCurrentAnswer: () => null,
-        selectDissertativeAnswer: mockSelectDissertativeAnswer,
-        getQuestionResultByQuestionId: () => null,
-      } as unknown as ReturnType<typeof useQuizStore>);
-
-      render(<QuizImageQuestion />);
-
-      const button = screen.getByTestId('quiz-image-button');
-
-      const mockGetBoundingClientRect = jest.fn(() => ({
-        left: 0,
-        top: 0,
-        width: 100,
-        height: 100,
-        right: 100,
-        bottom: 100,
-        x: 0,
-        y: 0,
-        toJSON: () => {},
-      }));
-      button.getBoundingClientRect =
-        mockGetBoundingClientRect as unknown as () => DOMRect;
-
-      act(() => {
-        fireEvent.click(button, { clientX: 60, clientY: 40 });
+        // Diameter is twice the tolerance, so the circle IS the pass mark.
+        expect(screen.getByTestId('image-correct-area')).toHaveStyle({
+          width: '10%',
+        });
       });
 
-      expect(mockSelectDissertativeAnswer).toHaveBeenCalledWith(
-        'image-question-1',
-        '{"x":60,"y":40}'
-      );
-    });
+      it('should accept the legacy answer shape', () => {
+        setupStore('result', {
+          imageAnswer: null,
+          imageTolerance: 10,
+          answer: JSON.stringify({ x: 52, y: 28 }),
+        });
 
-    it('should display stored user answer from currentAnswer', () => {
-      const mockQuestion = {
-        id: 'image-question-1',
-        additionalContent: 'https://example.com/test-image.jpg',
-        options: [{ id: 'opt-1', option: '{"x": 50, "y": 50}' }],
-      };
+        render(<QuizImageQuestion />);
 
-      mockUseQuizStore.mockReturnValue({
-        variant: 'default',
-        getCurrentQuestion: () => mockQuestion,
-        getCurrentAnswer: () => ({
-          answer: '{"x": 30, "y": 70}',
-        }),
-        selectDissertativeAnswer: jest.fn(),
-        getQuestionResultByQuestionId: () => null,
-      } as unknown as ReturnType<typeof useQuizStore>);
-
-      render(<QuizImageQuestion />);
-
-      const userCircle = screen.getByTestId('quiz-user-circle');
-      // User answer at 30% x, 70% y
-      expect(userCircle).toHaveStyle({
-        left: 'calc(30% - 2.5%)',
-        top: 'calc(70% - 2.5%)',
-      });
-    });
-
-    it('should use default center coordinates when options are empty', () => {
-      const mockQuestion = {
-        id: 'image-question-1',
-        additionalContent: 'https://example.com/test-image.jpg',
-        options: [],
-      };
-
-      mockUseQuizStore.mockReturnValue({
-        variant: QuizVariant.RESULT,
-        getCurrentQuestion: () => mockQuestion,
-        getCurrentAnswer: () => null,
-        selectDissertativeAnswer: jest.fn(),
-        getQuestionResultByQuestionId: () => ({
-          answer: '{"x": 50, "y": 50}',
-        }),
-      } as unknown as ReturnType<typeof useQuizStore>);
-
-      render(<QuizImageQuestion />);
-
-      const correctCircle = screen.getByTestId('quiz-correct-circle');
-      // Default center position at 50%, 50%
-      expect(correctCircle).toHaveStyle({
-        left: 'calc(50% - 7.5%)',
-        top: 'calc(50% - 15%)',
-      });
-    });
-
-    it('should use default center coordinates when options JSON is invalid', () => {
-      const mockQuestion = {
-        id: 'image-question-1',
-        additionalContent: 'https://example.com/test-image.jpg',
-        options: [{ id: 'opt-1', option: 'invalid-json' }],
-      };
-
-      mockUseQuizStore.mockReturnValue({
-        variant: QuizVariant.RESULT,
-        getCurrentQuestion: () => mockQuestion,
-        getCurrentAnswer: () => null,
-        selectDissertativeAnswer: jest.fn(),
-        getQuestionResultByQuestionId: () => ({
-          answer: '{"x": 50, "y": 50}',
-        }),
-      } as unknown as ReturnType<typeof useQuizStore>);
-
-      render(<QuizImageQuestion />);
-
-      const correctCircle = screen.getByTestId('quiz-correct-circle');
-      // Default center position at 50%, 50%
-      expect(correctCircle).toHaveStyle({
-        left: 'calc(50% - 7.5%)',
-        top: 'calc(50% - 15%)',
-      });
-    });
-
-    it('should display user answer from questionResult in result variant', () => {
-      const mockQuestion = {
-        id: 'image-question-1',
-        additionalContent: 'https://example.com/test-image.jpg',
-        options: [{ id: 'opt-1', option: '{"x": 50, "y": 50}' }],
-      };
-
-      mockUseQuizStore.mockReturnValue({
-        variant: QuizVariant.RESULT,
-        getCurrentQuestion: () => mockQuestion,
-        getCurrentAnswer: () => null,
-        selectDissertativeAnswer: jest.fn(),
-        getQuestionResultByQuestionId: () => ({
-          answer: '{"x": 80, "y": 20}',
-        }),
-      } as unknown as ReturnType<typeof useQuizStore>);
-
-      render(<QuizImageQuestion />);
-
-      const userCircle = screen.getByTestId('quiz-user-circle');
-      // User answer at 80% x, 20% y from question result
-      expect(userCircle).toHaveStyle({
-        left: 'calc(80% - 2.5%)',
-        top: 'calc(20% - 2.5%)',
-      });
-    });
-
-    it('should call selectDissertativeAnswer with center position on keyboard activation', () => {
-      const mockSelectDissertativeAnswer = jest.fn();
-      const mockQuestion = {
-        id: 'image-question-1',
-        additionalContent: 'https://example.com/test-image.jpg',
-        options: [{ id: 'opt-1', option: '{"x": 50, "y": 50}' }],
-      };
-
-      mockUseQuizStore.mockReturnValue({
-        variant: 'default',
-        getCurrentQuestion: () => mockQuestion,
-        getCurrentAnswer: () => null,
-        selectDissertativeAnswer: mockSelectDissertativeAnswer,
-        getQuestionResultByQuestionId: () => null,
-      } as unknown as ReturnType<typeof useQuizStore>);
-
-      render(<QuizImageQuestion />);
-
-      const button = screen.getByTestId('quiz-image-button');
-
-      act(() => {
-        fireEvent.keyDown(button, { key: 'Enter' });
+        expect(screen.getByTestId('image-student-point')).toHaveStyle({
+          left: '52%',
+          top: '28%',
+        });
       });
 
-      expect(mockSelectDissertativeAnswer).toHaveBeenCalledWith(
-        'image-question-1',
-        '{"x":50,"y":50}'
-      );
-    });
+      it('should hide the answer key when the question has none', () => {
+        setupStore(
+          'result',
+          { imageAnswer: null, imageTolerance: 10, answer: null },
+          { ...imageQuestion, options: [] }
+        );
 
-    it('should fallback to mock image when additionalContent is empty', () => {
-      const mockQuestion = {
-        id: 'image-question-1',
-        additionalContent: '',
-        options: [],
-      };
+        render(<QuizImageQuestion />);
 
-      mockUseQuizStore.mockReturnValue({
-        variant: 'default',
-        getCurrentQuestion: () => mockQuestion,
-        getCurrentAnswer: () => null,
-        selectDissertativeAnswer: jest.fn(),
-        getQuestionResultByQuestionId: () => null,
-      } as unknown as ReturnType<typeof useQuizStore>);
+        expect(
+          screen.queryByTestId('image-correct-area')
+        ).not.toBeInTheDocument();
+        expect(screen.queryByText('Área correta')).not.toBeInTheDocument();
+      });
 
-      render(<QuizImageQuestion />);
+      it('should say so when the question has no image', () => {
+        setupStore(
+          'result',
+          { imageAnswer: null, imageTolerance: 10, answer: null },
+          { ...imageQuestion, additionalContent: '' }
+        );
 
-      const image = screen.getByTestId('quiz-image');
-      // Should fallback to the mock image stub
-      expect(image).toHaveAttribute('src', 'test-file-stub');
+        render(<QuizImageQuestion />);
+
+        expect(
+          screen.getByText('Imagem da questão indisponível')
+        ).toBeInTheDocument();
+      });
     });
   });
 });

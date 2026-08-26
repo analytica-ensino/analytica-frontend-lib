@@ -2,6 +2,7 @@ import { StarIcon } from '@phosphor-icons/react/dist/csr/Star';
 import { MedalIcon } from '@phosphor-icons/react/dist/csr/Medal';
 import { WarningCircleIcon } from '@phosphor-icons/react/dist/csr/WarningCircle';
 import { InfoIcon } from '@phosphor-icons/react/dist/csr/Info';
+import { ClockIcon } from '@phosphor-icons/react/dist/csr/Clock';
 import type { Icon } from '@phosphor-icons/react';
 import Text from '../../Text/Text';
 import { cn } from '../../../utils/utils';
@@ -9,7 +10,13 @@ import { cn } from '../../../utils/utils';
 /**
  * Available variants for the StatCard component
  */
-export type StatVariant = 'score' | 'correct' | 'incorrect' | 'blank';
+export type StatVariant =
+  | 'score'
+  | 'correct'
+  | 'incorrect'
+  | 'blank'
+  /** Answered but awaiting the teacher's grade — distinct from blank. */
+  | 'pending';
 
 /**
  * Configuration for each stat card variant
@@ -51,6 +58,15 @@ export const variantConfig: Record<
     iconBg: 'bg-indicator-info',
     iconColor: 'text-white',
     IconComponent: InfoIcon,
+  },
+  // Same warning palette as the "Pendente" question badge, so the two read as
+  // the same state.
+  pending: {
+    bg: 'bg-warning-background',
+    text: 'text-warning-700',
+    iconBg: 'bg-warning-300',
+    iconColor: 'text-white',
+    IconComponent: ClockIcon,
   },
 };
 

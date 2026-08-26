@@ -27,6 +27,7 @@ import type { ColumnConfig, TableParams } from '../TableProvider/TableProvider';
 import type {
   StudentActivityCorrectionData,
   SaveQuestionCorrectionPayload,
+  SaveQuestionCommentPayload,
 } from '../../utils/studentActivityCorrection';
 import { convertApiResponseToCorrectionData } from '../../utils/studentActivityCorrection';
 import {
@@ -526,6 +527,7 @@ export const ActivityDetails = ({
     safeFetchStudentFeedback,
     submitObservation,
     submitQuestionCorrection,
+    submitQuestionComment,
   } = useActivityDetails(apiClient);
 
   // Use questions list hook for fetching questions by IDs
@@ -702,6 +704,24 @@ export const ActivityDetails = ({
       }
     },
     [activityId, submitQuestionCorrection]
+  );
+
+  /**
+   * Handle question comment submit
+   * @param studentId - Student ID from modal
+   * @param payload - Question comment payload
+   */
+  const handleQuestionCommentSubmit = useCallback(
+    async (studentId: string, payload: SaveQuestionCommentPayload) => {
+      if (!activityId || !studentId) return;
+      try {
+        await submitQuestionComment(activityId, studentId, payload);
+      } catch (err) {
+        console.error('Failed to submit question comment:', err);
+        throw err;
+      }
+    },
+    [activityId, submitQuestionComment]
   );
 
   const isPresencial =
@@ -1451,6 +1471,7 @@ export const ActivityDetails = ({
         isViewOnly={isViewOnlyModal}
         onObservationSubmit={handleObservationSubmit}
         onQuestionCorrectionSubmit={handleQuestionCorrectionSubmit}
+        onQuestionCommentSubmit={handleQuestionCommentSubmit}
       />
 
       {/* Ver atividade (read-only questions with answer key + resolution) */}

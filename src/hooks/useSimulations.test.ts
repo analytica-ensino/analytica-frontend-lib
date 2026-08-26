@@ -178,4 +178,41 @@ describe('createUseSimulations', () => {
     );
     expect(data?.note).toBe('Boa');
   });
+
+  it('saveQuestionComment posts the comment for one question', async () => {
+    const api = makeApi();
+    api.post.mockResolvedValue({
+      data: {
+        message: 'ok',
+        data: { questionId: 'q-1', teacherComment: 'Revise a soma.' },
+      },
+    });
+    const { result } = renderHook(() => createUseSimulations(api)());
+
+    const data = await result.current.saveQuestionComment(
+      'ui-1',
+      'sim-1',
+      'q-1',
+      'Revise a soma.'
+    );
+
+    expect(api.post).toHaveBeenCalledWith(
+      '/performance/simulations/students/ui-1/sim-1/questions/q-1/comment',
+      { comment: 'Revise a soma.' }
+    );
+    expect(data?.teacherComment).toBe('Revise a soma.');
+  });
+
+  it('saveQuestionComment encodes path segments', async () => {
+    const api = makeApi();
+    api.post.mockResolvedValue({ data: { message: 'ok', data: null } });
+    const { result } = renderHook(() => createUseSimulations(api)());
+
+    await result.current.saveQuestionComment('ui/1', 'sim 1', 'q#1', '');
+
+    expect(api.post).toHaveBeenCalledWith(
+      '/performance/simulations/students/ui%2F1/sim%201/questions/q%231/comment',
+      { comment: '' }
+    );
+  });
 });

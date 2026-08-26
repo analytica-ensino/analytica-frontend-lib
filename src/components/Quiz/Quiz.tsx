@@ -37,6 +37,7 @@ import { CardStatus } from '../Card/Card';
 import Text from '../Text/Text';
 import HtmlMathRenderer from '../HtmlMathRenderer/HtmlMathRenderer';
 import { formatExamInfo } from './Quiz.utils';
+import { TeacherQuestionComment } from './TeacherQuestionComment';
 import QuizTimer from '../QuizTimer/QuizTimer';
 
 // Função para obter configuração do tipo de quiz
@@ -271,12 +272,20 @@ const QuizContent = ({ paddingBottom }: { paddingBottom?: string }) => {
     ? questionComponents[currentQuestion.questionType]
     : null;
 
-  return QuestionComponent ? (
-    <QuestionComponent paddingBottom={paddingBottom} />
-  ) : (
-    <Text size="md" weight="medium" className="text-text-950 text-md">
-      Tipo de questão não suportado
-    </Text>
+  if (!QuestionComponent) {
+    return (
+      <Text size="md" weight="medium" className="text-text-950 text-md">
+        Tipo de questão não suportado
+      </Text>
+    );
+  }
+
+  return (
+    <>
+      <QuestionComponent paddingBottom={paddingBottom} />
+      {/* Only renders in the result variant, and only when a comment exists. */}
+      <TeacherQuestionComment />
+    </>
   );
 };
 

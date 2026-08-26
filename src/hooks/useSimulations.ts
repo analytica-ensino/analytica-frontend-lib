@@ -11,6 +11,8 @@ import type {
   SimulationDetailData,
   NoteResponse,
   NoteData,
+  QuestionCommentResponse,
+  QuestionCommentData,
 } from '../types/simulations';
 import { toCsv } from '../utils/queryParams';
 
@@ -47,6 +49,16 @@ export interface UseSimulationsReturn {
     simulationId: string,
     note: string
   ) => Promise<NoteData | null>;
+  /**
+   * Save the teacher comment on a single question of a student's simulation.
+   * An empty string clears it.
+   */
+  saveQuestionComment: (
+    userInstitutionId: string,
+    simulationId: string,
+    questionId: string,
+    comment: string
+  ) => Promise<QuestionCommentData | null>;
 }
 
 /**
@@ -133,6 +145,22 @@ export const createUseSimulations =
       []
     );
 
+    const saveQuestionComment = useCallback(
+      async (
+        userInstitutionId: string,
+        simulationId: string,
+        questionId: string,
+        comment: string
+      ): Promise<QuestionCommentData | null> => {
+        const response = await apiClient.post<QuestionCommentResponse>(
+          `${BASE_URL}/students/${segment(userInstitutionId)}/${segment(simulationId)}/questions/${segment(questionId)}/comment`,
+          { comment }
+        );
+        return response.data.data;
+      },
+      []
+    );
+
     return useMemo(
       () => ({
         fetchStudents,
@@ -140,6 +168,7 @@ export const createUseSimulations =
         fetchSimulationDetail,
         fetchNote,
         saveNote,
+        saveQuestionComment,
       }),
       [
         fetchStudents,
@@ -147,6 +176,7 @@ export const createUseSimulations =
         fetchSimulationDetail,
         fetchNote,
         saveNote,
+        saveQuestionComment,
       ]
     );
   };

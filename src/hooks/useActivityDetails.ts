@@ -15,6 +15,7 @@ import type {
 import type {
   QuestionsAnswersByStudentResponse,
   SaveQuestionCorrectionPayload,
+  SaveQuestionCommentPayload,
 } from '../utils/studentActivityCorrection';
 import {
   PRESENCIAL_DELIVERY_STATUS,
@@ -188,6 +189,17 @@ export interface UseActivityDetailsReturn {
     activityId: string,
     studentId: string,
     payload: SaveQuestionCorrectionPayload
+  ) => Promise<void>;
+  /**
+   * Save the teacher comment on a single question of a student activity
+   * @param activityId - Activity ID
+   * @param studentId - Student ID
+   * @param payload - Question comment payload (empty text clears the comment)
+   */
+  submitQuestionComment: (
+    activityId: string,
+    studentId: string,
+    payload: SaveQuestionCommentPayload
   ) => Promise<void>;
 }
 
@@ -406,6 +418,32 @@ export const useActivityDetails = (
     [apiClient]
   );
 
+  /**
+   * Save the teacher comment on a single question of a student activity
+   *
+   * Uses the question-feedback endpoint rather than the correction one: this
+   * writes only the comment and leaves `answerStatus` alone, which is what
+   * objective questions need. PATCH is a create-or-update on the same answer
+   * row, and an empty string clears the comment.
+   *
+   * @param activityId - Activity ID
+   * @param studentId - Student ID
+   * @param payload - Question comment payload
+   */
+  const submitQuestionComment = useCallback(
+    async (
+      activityId: string,
+      studentId: string,
+      payload: SaveQuestionCommentPayload
+    ): Promise<void> => {
+      await apiClient.patch(
+        `/questions/${activityId}/${payload.questionId}/students/${studentId}/feedback`,
+        { teacherFeedback: payload.teacherFeedback }
+      );
+    },
+    [apiClient]
+  );
+
   return {
     fetchActivityDetails,
     fetchStudentCorrection,
@@ -413,5 +451,6 @@ export const useActivityDetails = (
     safeFetchStudentFeedback,
     submitObservation,
     submitQuestionCorrection,
+    submitQuestionComment,
   };
 };

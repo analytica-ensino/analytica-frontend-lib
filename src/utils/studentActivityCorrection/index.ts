@@ -12,11 +12,12 @@ export { QUESTION_STATUS, type QuestionStatus } from './constants';
 
 // Export types
 export type {
-  EssayQuestionCorrection,
+  QuestionCorrection,
   CorrectionQuestionData,
   StudentQuestion,
   StudentActivityCorrectionData,
   SaveQuestionCorrectionPayload,
+  SaveQuestionCommentPayload,
   QuestionsAnswersByStudentResponse,
 } from './types';
 

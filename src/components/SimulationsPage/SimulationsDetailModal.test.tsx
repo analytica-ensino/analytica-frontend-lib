@@ -40,25 +40,34 @@ const detailPayload = {
   data: {
     simulationId: 'sim-1',
     title: 'Simulado 1',
-    counts: { correct: 8, incorrect: 7, blank: 4 },
+    counts: { correct: 8, incorrect: 7, blank: 4, pending: 0 },
     questions: [
       {
         questionId: 'q1',
         statement: 'Um carro inicia do repouso...',
         status: 'INCORRECT',
+        questionType: 'ALTERNATIVA',
         selectedOptionId: 'opt-b',
+        answer: null,
+        additionalContent: null,
+        imageAnswer: null,
+        correctPoint: null,
+        imageTolerance: null,
+        teacherComment: null,
         options: [
           {
             id: 'opt-a',
             option: '25 metros',
             isCorrect: true,
             isSelected: false,
+            selectedValue: null,
           },
           {
             id: 'opt-b',
             option: '40 metros',
             isCorrect: false,
             isSelected: true,
+            selectedValue: null,
           },
         ],
       },
@@ -459,6 +468,355 @@ describe('SimulationsDetailModal', () => {
     await waitFor(() =>
       expect(container.querySelector('.katex')).toBeInTheDocument()
     );
+  });
+
+  it('saves a teacher comment on a question', async () => {
+    const post = jest.fn(() =>
+      Promise.resolve({
+        data: {
+          message: 'ok',
+          data: { questionId: 'q1', teacherComment: 'Revise a cinemática.' },
+        },
+      })
+    );
+    render(
+      <SimulationsDetailModal
+        api={makeApi(post)}
+        isOpen
+        onClose={jest.fn()}
+        student={student}
+      />
+    );
+    fireEvent.click(await screen.findByText('Simulado 1'));
+    fireEvent.click(await screen.findByText('Questão 1'));
+
+    const textarea = await screen.findByPlaceholderText(
+      'Escreva um comentário sobre esta questão'
+    );
+    fireEvent.change(textarea, {
+      target: { value: 'Revise a cinemática.' },
+    });
+
+    const saveButtons = await screen.findAllByRole('button', {
+      name: 'Salvar',
+    });
+    fireEvent.click(saveButtons[saveButtons.length - 1]);
+
+    await waitFor(() =>
+      expect(post).toHaveBeenCalledWith(
+        '/performance/simulations/students/ui-1/sim-1/questions/q1/comment',
+        { comment: 'Revise a cinemática.' }
+      )
+    );
+
+    // The saved value is folded back into the loaded detail, so Save goes
+    // disabled again without a refetch.
+    expect(
+      await screen.findByDisplayValue('Revise a cinemática.')
+    ).toBeInTheDocument();
+  });
+
+  it('prefills a comment already saved on the question', async () => {
+    const api = {
+      get: jest.fn((url: string) => {
+        if (url.endsWith('/note')) {
+          return Promise.resolve({ data: { message: 'ok', data: null } });
+        }
+        if (/\/students\/[^/]+\/[^/]+$/.test(url)) {
+          return Promise.resolve({
+            data: {
+              ...detailPayload,
+              data: {
+                ...detailPayload.data,
+                questions: [
+                  {
+                    ...detailPayload.data.questions[0],
+                    teacherComment: 'Comentário anterior',
+                  },
+                ],
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: listPayload });
+      }),
+      post: jest.fn(),
+      patch: jest.fn(),
+      delete: jest.fn(),
+    } as unknown as BaseApiClient;
+
+    render(
+      <SimulationsDetailModal
+        api={api}
+        isOpen
+        onClose={jest.fn()}
+        student={student}
+      />
+    );
+    fireEvent.click(await screen.findByText('Simulado 1'));
+    fireEvent.click(await screen.findByText('Questão 1'));
+
+    expect(
+      await screen.findByDisplayValue('Comentário anterior')
+    ).toBeInTheDocument();
+  });
+
+  it('renders the written answer for an essay question, not an empty Alternativas box', async () => {
+    const api = {
+      get: jest.fn((url: string) => {
+        if (url.endsWith('/note')) {
+          return Promise.resolve({ data: { message: 'ok', data: null } });
+        }
+        if (/\/students\/[^/]+\/[^/]+$/.test(url)) {
+          return Promise.resolve({
+            data: {
+              ...detailPayload,
+              data: {
+                ...detailPayload.data,
+                counts: { correct: 0, incorrect: 0, blank: 0, pending: 1 },
+                questions: [
+                  {
+                    questionId: 'q-essay',
+                    statement: 'Explique a fotossíntese.',
+                    questionType: 'DISSERTATIVA',
+                    status: 'PENDING',
+                    selectedOptionId: null,
+                    answer: 'A fotossíntese ocorre nos cloroplastos.',
+                    options: [],
+                    teacherComment: null,
+                  },
+                ],
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: listPayload });
+      }),
+      post: jest.fn(),
+      patch: jest.fn(),
+      delete: jest.fn(),
+    } as unknown as BaseApiClient;
+
+    render(
+      <SimulationsDetailModal
+        api={api}
+        isOpen
+        onClose={jest.fn()}
+        student={student}
+      />
+    );
+    fireEvent.click(await screen.findByText('Simulado 1'));
+
+    // Answered essays used to be reported as "Em branco".
+    expect(await screen.findByText('Pendente')).toBeInTheDocument();
+    expect(screen.getByText('Nº de questões pendentes')).toBeInTheDocument();
+
+    fireEvent.click(await screen.findByText('Questão 1'));
+
+    expect(await screen.findByText('Resposta do aluno')).toBeInTheDocument();
+    expect(screen.queryByText('Alternativas')).not.toBeInTheDocument();
+    expect(
+      screen.getByText('A fotossíntese ocorre nos cloroplastos.')
+    ).toBeInTheDocument();
+  });
+
+  it('renders an empty state for an essay the student did not answer', async () => {
+    const api = {
+      get: jest.fn((url: string) => {
+        if (url.endsWith('/note')) {
+          return Promise.resolve({ data: { message: 'ok', data: null } });
+        }
+        if (/\/students\/[^/]+\/[^/]+$/.test(url)) {
+          return Promise.resolve({
+            data: {
+              ...detailPayload,
+              data: {
+                ...detailPayload.data,
+                questions: [
+                  {
+                    questionId: 'q-essay',
+                    statement: 'Explique a fotossíntese.',
+                    questionType: 'DISSERTATIVA',
+                    status: 'BLANK',
+                    selectedOptionId: null,
+                    answer: null,
+                    options: [],
+                    teacherComment: null,
+                  },
+                ],
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: listPayload });
+      }),
+      post: jest.fn(),
+      patch: jest.fn(),
+      delete: jest.fn(),
+    } as unknown as BaseApiClient;
+
+    render(
+      <SimulationsDetailModal
+        api={api}
+        isOpen
+        onClose={jest.fn()}
+        student={student}
+      />
+    );
+    fireEvent.click(await screen.findByText('Simulado 1'));
+    fireEvent.click(await screen.findByText('Questão 1'));
+
+    expect(
+      await screen.findByText('Nenhuma resposta fornecida')
+    ).toBeInTheDocument();
+  });
+
+  it('renders true/false statements with the student marks, not the answer key', async () => {
+    const api = {
+      get: jest.fn((url: string) => {
+        if (url.endsWith('/note')) {
+          return Promise.resolve({ data: { message: 'ok', data: null } });
+        }
+        if (/\/students\/[^/]+\/[^/]+$/.test(url)) {
+          return Promise.resolve({
+            data: {
+              ...detailPayload,
+              data: {
+                ...detailPayload.data,
+                questions: [
+                  {
+                    questionId: 'q-tf',
+                    statement: 'Julgue as afirmações.',
+                    questionType: 'VERDADEIRO_FALSO',
+                    status: 'INCORRECT',
+                    selectedOptionId: null,
+                    answer: '{"opt-t1":"V","opt-t2":"V"}',
+                    options: [
+                      {
+                        id: 'opt-t1',
+                        option: 'Afirmação certa',
+                        isCorrect: true,
+                        isSelected: false,
+                        selectedValue: 'V',
+                      },
+                      {
+                        id: 'opt-t2',
+                        option: 'Afirmação errada',
+                        isCorrect: false,
+                        isSelected: false,
+                        selectedValue: 'V',
+                      },
+                      {
+                        id: 'opt-t3',
+                        option: 'Afirmação em branco',
+                        isCorrect: true,
+                        isSelected: false,
+                        selectedValue: null,
+                      },
+                    ],
+                    teacherComment: null,
+                  },
+                ],
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: listPayload });
+      }),
+      post: jest.fn(),
+      patch: jest.fn(),
+      delete: jest.fn(),
+    } as unknown as BaseApiClient;
+
+    render(
+      <SimulationsDetailModal
+        api={api}
+        isOpen
+        onClose={jest.fn()}
+        student={student}
+      />
+    );
+    fireEvent.click(await screen.findByText('Simulado 1'));
+    fireEvent.click(await screen.findByText('Questão 1'));
+
+    // Statements, not "Alternativas" — true/false never writes option_id, so the
+    // alternatives branch showed no mark at all.
+    expect(await screen.findByText('Afirmações')).toBeInTheDocument();
+    expect(screen.queryByText('Alternativas')).not.toBeInTheDocument();
+
+    const marks = await screen.findAllByText('Resposta selecionada: V');
+    expect(marks).toHaveLength(2);
+    // Only the wrong one reveals the answer key.
+    expect(screen.getByText('| Resposta correta: F')).toBeInTheDocument();
+    expect(
+      screen.getByText('Não respondida | Resposta correta: V')
+    ).toBeInTheDocument();
+  });
+
+  it('renders the image, the answer area and the student click for an image question', async () => {
+    const api = {
+      get: jest.fn((url: string) => {
+        if (url.endsWith('/note')) {
+          return Promise.resolve({ data: { message: 'ok', data: null } });
+        }
+        if (/\/students\/[^/]+\/[^/]+$/.test(url)) {
+          return Promise.resolve({
+            data: {
+              ...detailPayload,
+              data: {
+                ...detailPayload.data,
+                questions: [
+                  {
+                    questionId: 'q-img',
+                    statement: 'Clique na área correta.',
+                    questionType: 'IMAGEM',
+                    status: 'CORRECT',
+                    selectedOptionId: null,
+                    answer: '{"coordinateX":52,"coordinateY":28}',
+                    additionalContent: 'https://cdn.example.com/mapa.png',
+                    imageAnswer: { coordinateX: 52, coordinateY: 28 },
+                    correctPoint: { x: 50, y: 30 },
+                    imageTolerance: 10,
+                    options: [],
+                    teacherComment: null,
+                  },
+                ],
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: listPayload });
+      }),
+      post: jest.fn(),
+      patch: jest.fn(),
+      delete: jest.fn(),
+    } as unknown as BaseApiClient;
+
+    render(
+      <SimulationsDetailModal
+        api={api}
+        isOpen
+        onClose={jest.fn()}
+        student={student}
+      />
+    );
+    fireEvent.click(await screen.findByText('Simulado 1'));
+    fireEvent.click(await screen.findByText('Questão 1'));
+
+    // The alternatives branch used to render the answer key's raw JSON as an
+    // option label, painted green, with no sign of the student's click.
+    fireEvent.click(await screen.findByText('Imagem'));
+    expect(screen.queryByText('Alternativas')).not.toBeInTheDocument();
+    expect(screen.queryByText('{"x":50,"y":30}')).not.toBeInTheDocument();
+
+    expect(
+      screen.getByAltText(/Questão de imagem com área correta/)
+    ).toHaveAttribute('src', 'https://cdn.example.com/mapa.png');
+    expect(screen.getByTestId('image-student-point')).toHaveStyle({
+      left: '52%',
+      top: '28%',
+    });
+    expect(screen.getByText('Resposta correta')).toBeInTheDocument();
   });
 
   describe('question label (subject + duration)', () => {
