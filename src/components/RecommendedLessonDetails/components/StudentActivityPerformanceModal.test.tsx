@@ -701,7 +701,7 @@ describe('StudentActivityPerformanceModal', () => {
       expect(mockApiClient.post).not.toHaveBeenCalled();
     });
 
-    it('should keep the saved comment so Save stops offering to resave it', async () => {
+    it('should keep the saved comment so the field locks behind Editar', async () => {
       (mockApiClient.patch as jest.Mock).mockResolvedValue({});
 
       render(
@@ -726,9 +726,9 @@ describe('StudentActivityPerformanceModal', () => {
           expect.objectContaining({ title: 'Comentário salvo' })
         );
       });
-      await waitFor(() => {
-        expect(screen.getByText('Salvar').closest('button')).toBeDisabled();
-      });
+      // The modal remembers what it saved, so the comment now counts as
+      // persisted and the field closes behind Editar.
+      expect(await screen.findByText('Editar')).toBeInTheDocument();
     });
 
     it('should send an empty string to clear the comment', async () => {
@@ -760,6 +760,9 @@ describe('StudentActivityPerformanceModal', () => {
       );
 
       openObjectiveQuestion();
+
+      // The comment is already saved, so it opens locked.
+      fireEvent.click(screen.getByText('Editar'));
 
       const textarea = screen.getByDisplayValue('Comentário antigo');
       fireEvent.change(textarea, { target: { value: '' } });
@@ -874,9 +877,9 @@ describe('StudentActivityPerformanceModal', () => {
       );
       fireEvent.click(screen.getByText('Salvar'));
 
-      await waitFor(() => {
-        expect(screen.getByText('Salvar').closest('button')).toBeDisabled();
-      });
+      // The save landed under the fallback key, so the comment counts as
+      // persisted and the field locks.
+      expect(await screen.findByText('Editar')).toBeInTheDocument();
     });
   });
 

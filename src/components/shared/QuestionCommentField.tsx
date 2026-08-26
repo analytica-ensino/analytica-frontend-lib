@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { PencilSimpleIcon } from '@phosphor-icons/react/dist/csr/PencilSimple';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
 import TextArea from '../TextArea/TextArea';
@@ -29,6 +30,11 @@ export interface QuestionCommentFieldProps {
  * mistake — so Save is gated on the draft differing from what is saved, not on
  * the draft being non-empty.
  *
+ * A comment that already exists opens read-only behind an "Editar" button, so
+ * changing one takes a deliberate click. Clearing a comment therefore returns
+ * the field to its blank, directly editable state: there is nothing left to
+ * edit, only a new note to write.
+ *
  * @param props - Component props
  * @returns JSX element
  *
@@ -51,6 +57,16 @@ export function QuestionCommentField({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // A comment already written opens locked, so it takes a deliberate click to
+  // change it.
+  //
+  // `draft === value` is part of the condition, not a redundancy: the textarea
+  // stays editable while a save is in flight, so the teacher can type past the
+  // save. Locking on the echo alone would shut the field on text that is not
+  // saved yet, forcing another click on Editar to submit it.
+  const [isEditing, setIsEditing] = useState(false);
+  const isLocked = value !== '' && !isEditing && draft === value;
+
   // What we last knew to be persisted. Compared against the draft to tell an
   // untouched field from one carrying edits that must not be thrown away.
   const persistedRef = useRef(value);
@@ -67,6 +83,9 @@ export function QuestionCommentField({
     persistedRef.current = value;
     setDraft((current) => (current === previouslyPersisted ? value : current));
     setError(null);
+    // A new record arrived under the same mounted field: it must open locked
+    // again, like any comment the teacher has not chosen to edit yet.
+    setIsEditing(false);
   }, [value]);
 
   const handleSave = async () => {
@@ -74,8 +93,13 @@ export function QuestionCommentField({
     setError(null);
     try {
       await onSave(draft);
+      // Back to read-only, now showing what was just saved. Clearing the
+      // comment lands on `value === ''`, which reads as "nothing to edit" and
+      // leaves the field open — the teacher is writing a new one from scratch.
+      setIsEditing(false);
     } catch {
-      // Keep the draft so the teacher does not lose what they wrote.
+      // Keep the draft AND the unlocked field so the teacher does not lose what
+      // they wrote and can retry without an extra click.
       setError('Erro ao salvar o comentário. Tente novamente.');
     } finally {
       setSaving(false);
@@ -93,6 +117,9 @@ export function QuestionCommentField({
         placeholder={placeholder}
         rows={rows}
         size="medium"
+        // `readOnly`, not `disabled`: a locked comment still has to be
+        // selectable so the teacher can read and copy it.
+        readOnly={isLocked}
       />
       {error && (
         <Text size="sm" className="text-error-600">
@@ -100,14 +127,25 @@ export function QuestionCommentField({
         </Text>
       )}
       <div className="flex justify-end">
-        <Button
-          variant="solid"
-          size="small"
-          onClick={handleSave}
-          disabled={saving || draft === value}
-        >
-          {saving ? 'Salvando...' : 'Salvar'}
-        </Button>
+        {isLocked ? (
+          <Button
+            variant="outline"
+            size="medium"
+            iconLeft={<PencilSimpleIcon size={18} />}
+            onClick={() => setIsEditing(true)}
+          >
+            Editar
+          </Button>
+        ) : (
+          <Button
+            variant="outline"
+            size="medium"
+            onClick={handleSave}
+            disabled={saving || draft === value}
+          >
+            {saving ? 'Salvando...' : 'Salvar'}
+          </Button>
+        )}
       </div>
     </div>
   );

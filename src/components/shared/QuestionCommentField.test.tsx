@@ -31,8 +31,12 @@ describe('QuestionCommentField', () => {
     expect(textarea).toHaveAttribute('rows', '7');
   });
 
-  it('should disable Save while the draft matches the saved value', () => {
+  it('should disable Save while the draft matches the saved value', async () => {
+    const user = userEvent.setup();
     render(<QuestionCommentField value="Revise a soma." onSave={jest.fn()} />);
+
+    // A saved comment opens locked, so the rule only applies once unlocked.
+    await user.click(screen.getByRole('button', { name: 'Editar' }));
 
     expect(screen.getByRole('button', { name: 'Salvar' })).toBeDisabled();
   });
@@ -55,6 +59,7 @@ describe('QuestionCommentField', () => {
 
     render(<QuestionCommentField value="Comentário antigo" onSave={onSave} />);
 
+    await user.click(screen.getByRole('button', { name: 'Editar' }));
     await user.clear(screen.getByRole('textbox'));
     await user.click(screen.getByRole('button', { name: 'Salvar' }));
 
@@ -153,5 +158,135 @@ describe('QuestionCommentField', () => {
     rerender(<QuestionCommentField value="Do servidor" onSave={jest.fn()} />);
 
     expect(screen.getByDisplayValue('Do servidor')).toBeInTheDocument();
+  });
+
+  // A comment already written takes a deliberate click to change, so it cannot
+  // be altered by someone typing into the wrong field.
+  describe('locked state', () => {
+    it('should open a saved comment read-only behind Editar', () => {
+      render(
+        <QuestionCommentField value="Revise a soma." onSave={jest.fn()} />
+      );
+
+      expect(screen.getByRole('textbox')).toHaveAttribute('readonly');
+      expect(screen.getByRole('button', { name: 'Editar' })).toBeEnabled();
+      expect(
+        screen.queryByRole('button', { name: 'Salvar' })
+      ).not.toBeInTheDocument();
+    });
+
+    it('should open an empty comment directly editable', () => {
+      render(<QuestionCommentField value="" onSave={jest.fn()} />);
+
+      expect(screen.getByRole('textbox')).not.toHaveAttribute('readonly');
+      expect(
+        screen.getByRole('button', { name: 'Salvar' })
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: 'Editar' })
+      ).not.toBeInTheDocument();
+    });
+
+    it('should unlock the textarea when Editar is clicked', async () => {
+      const user = userEvent.setup();
+      render(
+        <QuestionCommentField value="Revise a soma." onSave={jest.fn()} />
+      );
+
+      await user.click(screen.getByRole('button', { name: 'Editar' }));
+
+      expect(screen.getByRole('textbox')).not.toHaveAttribute('readonly');
+      expect(
+        screen.getByRole('button', { name: 'Salvar' })
+      ).toBeInTheDocument();
+    });
+
+    it('should lock again once the edit is saved', async () => {
+      const user = userEvent.setup();
+      const onSave = jest.fn().mockResolvedValue(undefined);
+
+      const { rerender } = render(
+        <QuestionCommentField value="Antigo" onSave={onSave} />
+      );
+
+      await user.click(screen.getByRole('button', { name: 'Editar' }));
+      await user.type(screen.getByRole('textbox'), ' e novo');
+      await user.click(screen.getByRole('button', { name: 'Salvar' }));
+
+      // The parent echoes the saved comment back, as the consumers do.
+      rerender(<QuestionCommentField value="Antigo e novo" onSave={onSave} />);
+
+      expect(
+        await screen.findByRole('button', { name: 'Editar' })
+      ).toBeInTheDocument();
+      expect(screen.getByRole('textbox')).toHaveAttribute('readonly');
+    });
+
+    it('should stay editable after clearing the comment', async () => {
+      const user = userEvent.setup();
+      const onSave = jest.fn().mockResolvedValue(undefined);
+
+      const { rerender } = render(
+        <QuestionCommentField value="Antigo" onSave={onSave} />
+      );
+
+      await user.click(screen.getByRole('button', { name: 'Editar' }));
+      await user.clear(screen.getByRole('textbox'));
+      await user.click(screen.getByRole('button', { name: 'Salvar' }));
+
+      rerender(<QuestionCommentField value="" onSave={onSave} />);
+
+      // Nothing left to edit — the teacher is writing a new note from scratch.
+      expect(screen.getByRole('textbox')).not.toHaveAttribute('readonly');
+      expect(
+        screen.getByRole('button', { name: 'Salvar' })
+      ).toBeInTheDocument();
+    });
+
+    it('should stay unlocked when the save fails, keeping the draft', async () => {
+      const user = userEvent.setup();
+      const onSave = jest.fn().mockRejectedValue(new Error('rede'));
+
+      render(<QuestionCommentField value="Antigo" onSave={onSave} />);
+
+      await user.click(screen.getByRole('button', { name: 'Editar' }));
+      await user.type(screen.getByRole('textbox'), ' editado');
+      await user.click(screen.getByRole('button', { name: 'Salvar' }));
+
+      expect(
+        await screen.findByText('Erro ao salvar o comentário. Tente novamente.')
+      ).toBeInTheDocument();
+      // Retrying must not cost another click on Editar.
+      expect(screen.getByRole('textbox')).not.toHaveAttribute('readonly');
+      expect(screen.getByDisplayValue('Antigo editado')).toBeInTheDocument();
+    });
+
+    it('should not lock over text typed while a save was in flight', async () => {
+      const user = userEvent.setup();
+      let resolveSave: (() => void) | undefined;
+      const onSave = jest.fn(
+        () =>
+          new Promise<void>((resolve) => {
+            resolveSave = resolve;
+          })
+      );
+
+      const { rerender } = render(
+        <QuestionCommentField value="" onSave={onSave} />
+      );
+
+      await user.type(screen.getByRole('textbox'), 'A');
+      await user.click(screen.getByRole('button', { name: 'Salvar' }));
+      await user.type(screen.getByRole('textbox'), 'B');
+
+      resolveSave?.();
+      rerender(<QuestionCommentField value="A" onSave={onSave} />);
+
+      // 'AB' is not saved yet, so shutting the field here would hide unsaved
+      // text behind an extra click.
+      expect(await screen.findByDisplayValue('AB')).toBeInTheDocument();
+      expect(screen.getByRole('textbox')).not.toHaveAttribute('readonly');
+      expect(screen.getByRole('button', { name: 'Salvar' })).toBeEnabled();
+    });
   });
 });
