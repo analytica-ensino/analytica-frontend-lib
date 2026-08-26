@@ -131,10 +131,22 @@ jobs:
                 ]
               }]
             }')
-          curl -sS -H "Content-Type: application/json" \
+          # Discord responde 204 sem corpo quando aceita a mensagem. Sem -w o
+          # curl fica mudo tanto no sucesso quanto num 4xx (webhook apagado,
+          # canal removido, URL errada), e a notificação some sem deixar rastro
+          # no log. Logamos o status e anotamos o run quando não for 2xx, sem
+          # derrubar o job (o publish em si já deu certo).
+          RESPONSE_BODY="$RUNNER_TEMP/discord-response.txt"
+          HTTP_CODE=$(curl -sS -o "$RESPONSE_BODY" -w "%{http_code}" \
+            -H "Content-Type: application/json" \
             -X POST \
             -d "$PAYLOAD" \
-            "$DISCORD_WEBHOOK_URL"
+            "$DISCORD_WEBHOOK_URL") || HTTP_CODE="000"
+          echo "Discord respondeu HTTP $HTTP_CODE"
+          cat "$RESPONSE_BODY"
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            echo "::error::Discord recusou a notificacao (HTTP $HTTP_CODE)"
+          fi
 
       - name: Notify Discord on success
         if: success()
@@ -170,7 +182,19 @@ jobs:
                 ]
               }]
             }')
-          curl -sS -H "Content-Type: application/json" \
+          # Discord responde 204 sem corpo quando aceita a mensagem. Sem -w o
+          # curl fica mudo tanto no sucesso quanto num 4xx (webhook apagado,
+          # canal removido, URL errada), e a notificação some sem deixar rastro
+          # no log. Logamos o status e anotamos o run quando não for 2xx, sem
+          # derrubar o job (o publish em si já deu certo).
+          RESPONSE_BODY="$RUNNER_TEMP/discord-response.txt"
+          HTTP_CODE=$(curl -sS -o "$RESPONSE_BODY" -w "%{http_code}" \
+            -H "Content-Type: application/json" \
             -X POST \
             -d "$PAYLOAD" \
-            "$DISCORD_WEBHOOK_URL"
+            "$DISCORD_WEBHOOK_URL") || HTTP_CODE="000"
+          echo "Discord respondeu HTTP $HTTP_CODE"
+          cat "$RESPONSE_BODY"
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            echo "::error::Discord recusou a notificacao (HTTP $HTTP_CODE)"
+          fi
