@@ -2536,6 +2536,46 @@ describe('Quiz', () => {
           ).toBeEnabled();
         });
 
+        // Four controls do not fit on one line on a phone, so the actions and
+        // the pagination stack into two centred rows.
+        it('should stack the bar and centre the pagination on a phone', () => {
+          const originalInnerWidth = window.innerWidth;
+          Object.defineProperty(window, 'innerWidth', {
+            writable: true,
+            configurable: true,
+            value: 375,
+          });
+
+          mockGetQuestionResultByQuestionId.mockReturnValue({
+            teacherFeedback: 'Revise a soma.',
+          });
+
+          try {
+            render(<QuizFooter />);
+
+            const pagination = screen
+              .getByLabelText('Questão anterior')
+              .closest('div');
+            expect(pagination).toHaveClass('justify-center');
+            expect(pagination).not.toHaveClass('flex-1');
+          } finally {
+            Object.defineProperty(window, 'innerWidth', {
+              writable: true,
+              configurable: true,
+              value: originalInnerWidth,
+            });
+          }
+        });
+
+        it('should keep the pagination at the far end on a wide screen', () => {
+          render(<QuizFooter />);
+
+          const pagination = screen
+            .getByLabelText('Questão anterior')
+            .closest('div');
+          expect(pagination).toHaveClass('flex-1', 'justify-end');
+        });
+
         it('should navigate between questions', () => {
           mockGetTotalQuestions.mockReturnValue(3);
           mockUseQuizStore.mockReturnValue({

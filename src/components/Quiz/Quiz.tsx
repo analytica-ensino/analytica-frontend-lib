@@ -38,6 +38,7 @@ import Text from '../Text/Text';
 import HtmlMathRenderer from '../HtmlMathRenderer/HtmlMathRenderer';
 import { formatExamInfo } from './Quiz.utils';
 import QuizTimer from '../QuizTimer/QuizTimer';
+import { useMobile } from '../../hooks/useMobile';
 
 // Função para obter configuração do tipo de quiz
 export const getQuizTypeConfig = (type: QUIZ_TYPE) => {
@@ -495,6 +496,10 @@ const QuizFooter = forwardRef<
       getQuestionResultByQuestionId,
     } = useQuizStore();
 
+    // The review bar carries four controls. Below ~500px they no longer fit on
+    // one line, so the actions and the pagination stack into two centred rows.
+    const { isMobile } = useMobile();
+
     const totalQuestions = getTotalQuestions();
     const isFirstQuestion = currentQuestionIndex === 0;
     const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
@@ -669,30 +674,48 @@ const QuizFooter = forwardRef<
               )}
             </>
           ) : (
-            <div className="flex flex-row items-center gap-2 w-full">
-              {currentQuestion?.solutionExplanation && (
-                <Button
-                  variant="solid"
-                  action="primary"
-                  size="large"
-                  onClick={() => openModal('modalResolution')}
-                >
-                  Ver resolução
-                </Button>
+            <div
+              className={cn(
+                'flex w-full items-center gap-2',
+                isMobile ? 'flex-col py-2' : 'flex-row'
               )}
-              {teacherComment && (
-                <Button
-                  variant="outline"
-                  action="primary"
-                  size="large"
-                  onClick={() => openModal('modalTeacherComment')}
-                >
-                  Ver comentário
-                </Button>
-              )}
-              {/* Pagination is pushed to the far end of the bar, away from the
-                  actions that act on the question being read. */}
-              <div className="flex flex-1 flex-row items-center justify-end gap-2">
+            >
+              <div
+                className={cn(
+                  'flex flex-row items-center gap-2',
+                  isMobile && 'justify-center'
+                )}
+              >
+                {currentQuestion?.solutionExplanation && (
+                  <Button
+                    variant="solid"
+                    action="primary"
+                    size="large"
+                    onClick={() => openModal('modalResolution')}
+                  >
+                    Ver resolução
+                  </Button>
+                )}
+                {teacherComment && (
+                  <Button
+                    variant="outline"
+                    action="primary"
+                    size="large"
+                    onClick={() => openModal('modalTeacherComment')}
+                  >
+                    Ver comentário
+                  </Button>
+                )}
+              </div>
+              {/* On a wide bar the pagination sits at the far end, away from the
+                  actions that act on the question being read; stacked, it is
+                  centred under them. */}
+              <div
+                className={cn(
+                  'flex flex-row items-center gap-2',
+                  isMobile ? 'justify-center' : 'flex-1 justify-end'
+                )}
+              >
                 <Button
                   variant="outline"
                   action="primary"
