@@ -2213,6 +2213,7 @@ describe('Quiz', () => {
     const mockGetQuestionStatusFromUserAnswers = jest.fn();
     const mockGetTotalQuestions = jest.fn();
     const mockGetQuestionResultStatistics = jest.fn();
+    const mockGetQuestionResultByQuestionId = jest.fn();
     const mockGetQuestionsGroupedBySubject = jest.fn();
     const mockGoToQuestion = jest.fn();
     const mockGetQuestionIndex = jest.fn();
@@ -2239,6 +2240,7 @@ describe('Quiz', () => {
       getQuestionsGroupedBySubject: mockGetQuestionsGroupedBySubject,
       goToQuestion: mockGoToQuestion,
       getQuestionIndex: mockGetQuestionIndex,
+      getQuestionResultByQuestionId: mockGetQuestionResultByQuestionId,
     };
 
     beforeEach(() => {
@@ -2445,6 +2447,113 @@ describe('Quiz', () => {
         expect(screen.queryByText('Pular')).not.toBeInTheDocument();
       });
 
+      // The teacher's comment used to sit inline under the alternatives. It now
+      // lives behind this button so the same text is not on screen twice.
+      describe('teacher comment', () => {
+        it('should show the button when the question carries a comment', () => {
+          mockGetQuestionResultByQuestionId.mockReturnValue({
+            teacherFeedback: 'Revise o conceito de função.',
+          });
+
+          render(<QuizFooter />);
+
+          const button = screen.getByText('Ver comentário');
+          expect(button).toBeInTheDocument();
+          // Outline, against the solid "Ver resolução" beside it.
+          expect(button).toHaveAttribute('data-variant', 'outline');
+        });
+
+        it('should hide the button when the question has no comment', () => {
+          mockGetQuestionResultByQuestionId.mockReturnValue({
+            teacherFeedback: null,
+          });
+
+          render(<QuizFooter />);
+
+          expect(screen.queryByText('Ver comentário')).not.toBeInTheDocument();
+        });
+
+        it('should hide the button when there is no result for the question', () => {
+          mockGetQuestionResultByQuestionId.mockReturnValue(undefined);
+
+          render(<QuizFooter />);
+
+          expect(screen.queryByText('Ver comentário')).not.toBeInTheDocument();
+        });
+
+        it('should open a modal with the comment as plain text', async () => {
+          mockGetQuestionResultByQuestionId.mockReturnValue({
+            teacherFeedback: 'Primeira linha\nSegunda linha',
+          });
+
+          render(<QuizFooter />);
+
+          clickElement(screen.getByText('Ver comentário'));
+
+          // Line breaks the teacher typed are preserved, and the text is not
+          // run through the HTML/LaTeX renderer.
+          expect(
+            await screen.findByText('Primeira linha Segunda linha', {
+              exact: false,
+            })
+          ).toBeInTheDocument();
+        });
+      });
+
+      describe('pagination', () => {
+        it('should disable going back on the first question', () => {
+          mockUseQuizStore.mockReturnValue({
+            ...defaultStoreState,
+            variant: QuizVariant.RESULT,
+            currentQuestionIndex: 0,
+          });
+
+          render(<QuizFooter />);
+
+          expect(
+            screen.getByLabelText('Questão anterior').closest('button')
+          ).toBeDisabled();
+          expect(
+            screen.getByLabelText('Próxima questão').closest('button')
+          ).toBeEnabled();
+        });
+
+        it('should disable going forward on the last question', () => {
+          mockGetTotalQuestions.mockReturnValue(3);
+          mockUseQuizStore.mockReturnValue({
+            ...defaultStoreState,
+            variant: QuizVariant.RESULT,
+            currentQuestionIndex: 2,
+          });
+
+          render(<QuizFooter />);
+
+          expect(
+            screen.getByLabelText('Próxima questão').closest('button')
+          ).toBeDisabled();
+          expect(
+            screen.getByLabelText('Questão anterior').closest('button')
+          ).toBeEnabled();
+        });
+
+        it('should navigate between questions', () => {
+          mockGetTotalQuestions.mockReturnValue(3);
+          mockUseQuizStore.mockReturnValue({
+            ...defaultStoreState,
+            variant: QuizVariant.RESULT,
+            currentQuestionIndex: 1,
+          });
+
+          render(<QuizFooter />);
+
+          clickElement(screen.getByLabelText('Próxima questão'));
+          expect(mockGoToNextQuestion).toHaveBeenCalled();
+
+          clickElement(screen.getByLabelText('Questão anterior'));
+          expect(mockGoToPreviousQuestion).toHaveBeenCalled();
+        });
+      });
+
       it('should open resolution modal when button is clicked', async () => {
         mockGetCurrentQuestion.mockReturnValue({
           id: 'question-1',
@@ -2495,13 +2604,14 @@ describe('Quiz', () => {
           </Quiz>
         );
 
-        // Should have one "Ver resolução" button with link variant
+        // Should have one "Ver resolução" button
         const resolutionButtons = screen.getAllByText('Ver resolução');
         expect(resolutionButtons).toHaveLength(1);
 
-        // The button should be a link variant
+        // Solid: it is the primary action of the review bar, paired with the
+        // outline "Ver comentário" beside it.
         const button = resolutionButtons[0];
-        expect(button).toHaveAttribute('data-variant', 'link');
+        expect(button).toHaveAttribute('data-variant', 'solid');
       });
 
       it('should render resolution button when quiz can retry', () => {
@@ -2527,7 +2637,7 @@ describe('Quiz', () => {
         // Should have the resolution button
         const resolutionButton = screen.getByText('Ver resolução');
         expect(resolutionButton).toBeInTheDocument();
-        expect(resolutionButton).toHaveAttribute('data-variant', 'link');
+        expect(resolutionButton).toHaveAttribute('data-variant', 'solid');
       });
 
       it('should show "Ver resolução" button when quiz cannot retry', () => {
@@ -2545,9 +2655,8 @@ describe('Quiz', () => {
         const resolutionButtons = screen.getAllByText('Ver resolução');
         expect(resolutionButtons).toHaveLength(1);
 
-        // The button should be a link variant
         const button = resolutionButtons[0];
-        expect(button).toHaveAttribute('data-variant', 'link');
+        expect(button).toHaveAttribute('data-variant', 'solid');
       });
     });
 
