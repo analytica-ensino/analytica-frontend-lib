@@ -73,13 +73,21 @@ export const DEFAULT_ACTIVITY_FILTER_OPTIONS: ActivityApiFilterOptions = {
 };
 
 /**
+ * Structural read of an activity's subjects, including the legacy single value
+ */
+interface ActivitySubjectSource {
+  subjects?: { name: string }[];
+  subject?: { name: string } | null;
+}
+
+/**
  * Read the subject names of an activity, falling back to the legacy `subject`
  *
  * @param activity - Activity from API response
  * @returns Subject names in display order; empty when the activity has none
  */
 export const extractSubjectNames = (
-  activity: ActivityHistoryResponse
+  activity: ActivitySubjectSource
 ): string[] => {
   if (activity.subjects?.length) {
     return activity.subjects.map((subject) => subject.name);

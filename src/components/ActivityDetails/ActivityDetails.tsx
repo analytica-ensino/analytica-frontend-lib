@@ -464,6 +464,25 @@ const getAverageScoreLabel = (totalStudents: number): string =>
   totalStudents === 1 ? 'Nota do Aluno' : 'Média da Turma';
 
 /**
+ * Structural read of the activity subjects, including the legacy single name
+ */
+interface ActivitySubjectSource {
+  subjects?: string[];
+  subjectName?: string;
+}
+
+/**
+ * Read the subject names of an activity, falling back to the legacy name
+ *
+ * @param activity - Activity metadata from the quiz endpoint
+ * @returns Subject names in display order; empty when the activity has none
+ */
+const readActivitySubjectNames = (
+  activity: ActivitySubjectSource | undefined
+): string[] =>
+  activity?.subjects ?? (activity?.subjectName ? [activity.subjectName] : []);
+
+/**
  * ActivityDetails component
  * Displays detailed information about an activity including statistics and student progress
  */
@@ -1064,9 +1083,7 @@ export const ActivityDetails = ({
     }
   };
 
-  const activitySubjects: string[] =
-    data?.activity?.subjects ??
-    (data?.activity?.subjectName ? [data.activity.subjectName] : []);
+  const activitySubjects = readActivitySubjectNames(data?.activity);
 
   // Loading state
   if (loading && !data) {

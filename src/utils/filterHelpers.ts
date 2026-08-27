@@ -254,7 +254,7 @@ interface BreakdownLike {
  * Matches both ActivityHistoryResponse and ExamHistoryResponse.
  */
 interface BreakdownHistoryItem {
-  /** @deprecated Single stamped subject; `subjects` supersedes it. */
+  /** Legacy single stamped subject, read only when `subjects` is absent. */
   subject?: EntityRefLike | null;
   /** Every subject the item covers. Present on the activities history. */
   subjects?: EntityRefLike[] | null;
