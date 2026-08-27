@@ -42,6 +42,25 @@ const createMockQuestion = (
   };
 };
 
+const createMockQuestionWithSubject = (
+  id: string,
+  subjectId: string,
+  subjectName: string
+): QuestionActivity =>
+  createMockQuestion({
+    id,
+    knowledgeMatrix: [
+      {
+        subject: {
+          id: subjectId,
+          name: subjectName,
+          color: '#000000',
+          icon: 'Book',
+        },
+      },
+    ],
+  });
+
 // Mock console methods to avoid noise in tests
 const mockConsoleLog = jest.spyOn(console, 'log').mockImplementation(() => {});
 const mockConsoleError = jest
@@ -334,6 +353,31 @@ jest.mock('../ActivityListQuestions/ActivityListQuestions', () => ({
         onClick={() => onAddQuestion(createMockQuestion())}
       >
         Add Question
+      </button>
+      {/*
+        Questions that carry a knowledge matrix, which is where the activity's
+        subject is derived from. `add-question` above has none, so it exercises
+        the "no subject anywhere" path.
+      */}
+      <button
+        data-testid="add-question-bio"
+        onClick={() =>
+          onAddQuestion(
+            createMockQuestionWithSubject('q-bio', 'subject-bio', 'Biologia')
+          )
+        }
+      >
+        Add Biologia Question
+      </button>
+      <button
+        data-testid="add-question-fis"
+        onClick={() =>
+          onAddQuestion(
+            createMockQuestionWithSubject('q-fis', 'subject-fis', 'Física')
+          )
+        }
+      >
+        Add Física Question
       </button>
       <div data-testid="added-ids">{addedQuestionIds.join(',')}</div>
     </div>
@@ -2239,7 +2283,7 @@ describe('CreateActivity', () => {
       });
     });
 
-    it('should show error when subjectId is missing on send', async () => {
+    it('should send without subjectId when the questions mix subjects', async () => {
       mockAppliedFilters = null;
       mockApiClient.get = jest.fn().mockImplementation((url: string) => {
         if (url === '/school') {
@@ -2272,11 +2316,14 @@ describe('CreateActivity', () => {
         }
         return Promise.resolve({ data: { data: {} } });
       });
-      mockApiClient.post = jest.fn();
+      mockApiClient.post = jest.fn().mockResolvedValue({
+        data: { data: { id: 'activity-123' } },
+      });
 
       render(<CreateActivity {...defaultProps} />);
 
-      fireEvent.click(screen.getByTestId('add-question'));
+      fireEvent.click(screen.getByTestId('add-question-bio'));
+      fireEvent.click(screen.getByTestId('add-question-fis'));
       fireEvent.click(screen.getByText('Enviar atividade'));
 
       await waitFor(() => {
@@ -2286,16 +2333,16 @@ describe('CreateActivity', () => {
       fireEvent.click(screen.getByTestId('modal-submit'));
 
       await waitFor(() => {
-        expect(mockAddToast).toHaveBeenCalledWith({
-          title: 'Erro ao enviar atividade',
-          description: 'Subject ID não encontrado',
-          variant: 'solid',
-          action: 'warning',
-          position: 'top-right',
-        });
+        expect(mockApiClient.post).toHaveBeenCalledWith(
+          '/activities',
+          expect.objectContaining({ questionIds: ['q-bio', 'q-fis'] })
+        );
       });
 
-      expect(mockApiClient.post).not.toHaveBeenCalled();
+      const payload = (mockApiClient.post as jest.Mock).mock.calls.find(
+        ([url]) => url === '/activities'
+      )![1];
+      expect('subjectId' in payload).toBe(false);
     });
 
     it('should handle missing activity id response', async () => {
@@ -2460,7 +2507,7 @@ describe('CreateActivity', () => {
 
       render(<CreateActivity {...defaultProps} />);
 
-      fireEvent.click(screen.getByTestId('add-question'));
+      fireEvent.click(screen.getByTestId('add-question-bio'));
 
       fireEvent.click(screen.getByText('Enviar atividade'));
 
@@ -2474,8 +2521,8 @@ describe('CreateActivity', () => {
         expect(mockApiClient.post).toHaveBeenCalledWith(
           '/activities',
           expect.objectContaining({
-            subjectId: 'subject1',
-            questionIds: ['q1'],
+            subjectId: 'subject-bio',
+            questionIds: ['q-bio'],
           })
         );
         expect(mockApiClient.post).toHaveBeenCalledWith(
@@ -2839,7 +2886,7 @@ describe('CreateActivity', () => {
         <CreateActivity {...defaultProps} onCreateActivity={onCreateActivity} />
       );
 
-      fireEvent.click(screen.getByTestId('add-question'));
+      fireEvent.click(screen.getByTestId('add-question-bio'));
 
       fireEvent.click(screen.getByText('Enviar atividade'));
 
@@ -2855,8 +2902,8 @@ describe('CreateActivity', () => {
           'activity-456',
           expect.objectContaining({
             title: expect.any(String),
-            subjectId: 'subject1',
-            questionIds: ['q1'],
+            subjectId: 'subject-bio',
+            questionIds: ['q-bio'],
             subtype: expect.any(String),
             notification: expect.any(String),
             startDate: expect.any(String),

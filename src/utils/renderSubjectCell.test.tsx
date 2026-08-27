@@ -49,4 +49,39 @@ describe('renderSubjectCell', () => {
       expect(screen.getByTestId('subject-icon')).toBeInTheDocument();
     });
   });
+
+  describe('when given a list of subjects', () => {
+    it('should render each subject', () => {
+      render(
+        <>{renderSubjectCell(['Biologia', 'Física'], undefined, false)}</>
+      );
+      expect(screen.getByText('Biologia')).toBeInTheDocument();
+      expect(screen.getByText('Física')).toBeInTheDocument();
+    });
+
+    it('should collapse the overflow into a +N badge', () => {
+      render(
+        <>
+          {renderSubjectCell(
+            ['Biologia', 'Física', 'História'],
+            undefined,
+            false
+          )}
+        </>
+      );
+      expect(screen.queryByText('História')).not.toBeInTheDocument();
+      expect(screen.getByText('+1')).toBeInTheDocument();
+    });
+
+    it('should return null for an empty list when showEmptyDash is false', () => {
+      expect(renderSubjectCell([], undefined, false)).toBeNull();
+    });
+
+    it('should return a dash for an empty list when showEmptyDash is true', () => {
+      const { container } = render(
+        <>{renderSubjectCell([], undefined, true)}</>
+      );
+      expect(container.textContent).toBe('-');
+    });
+  });
 });

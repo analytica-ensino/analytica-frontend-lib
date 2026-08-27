@@ -238,6 +238,8 @@ export type {
   SubjectData,
   IconProps as SubjectIconProps,
 } from './components/SubjectInfo/SubjectInfo';
+export { SubjectBadgeList } from './components/SubjectBadgeList/SubjectBadgeList';
+export type { SubjectBadgeListProps } from './components/SubjectBadgeList/SubjectBadgeList';
 
 // Notification Store
 export {

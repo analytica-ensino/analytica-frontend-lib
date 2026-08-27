@@ -20,6 +20,8 @@ export default defineConfig({
     'Input/index': 'src/components/Input/Input.tsx',
     'LatexRenderer/index': 'src/components/LatexRenderer/LatexRenderer.tsx',
     'SubjectInfo/index': 'src/components/SubjectInfo/SubjectInfo.tsx',
+    'SubjectBadgeList/index':
+      'src/components/SubjectBadgeList/SubjectBadgeList.tsx',
     'NavButton/index': 'src/components/NavButton/NavButton.tsx',
     'Search/index': 'src/components/Search/Search.tsx',
     'ProgressBar/index': 'src/components/ProgressBar/ProgressBar.tsx',

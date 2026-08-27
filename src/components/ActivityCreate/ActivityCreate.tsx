@@ -59,6 +59,7 @@ import {
   buildLessonDraftUpdatePayload,
   formatNavigatePath,
   getSubjectIdOrThrow,
+  resolveActivitySubjectId,
   extractActivityIdFromResponse,
   validateSendActivityResponses,
   formatErrorMessage,
@@ -1060,9 +1061,9 @@ const CreateActivity = ({
     async (formData: SendActivityFormData) => {
       setIsSendingActivity(true);
       try {
-        const subjectId = getSubjectIdOrThrow(
-          activity?.subjectId,
-          appliedFilters?.subjectIds
+        const subjectId = resolveActivitySubjectId(
+          questions,
+          activity?.subjectId
         );
 
         const startDateTime = buildISODateTime(

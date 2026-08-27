@@ -93,7 +93,7 @@ const mockActivities: ActivityTableItem[] = [
     creator: 'Teacher',
     school: 'School 1',
     year: '2024',
-    subject: 'Math',
+    subject: ['Math'],
     class: '1A',
     status: GenericDisplayStatus.ATIVA,
     completionPercentage: 50,

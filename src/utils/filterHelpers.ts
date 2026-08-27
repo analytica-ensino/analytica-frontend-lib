@@ -254,7 +254,10 @@ interface BreakdownLike {
  * Matches both ActivityHistoryResponse and ExamHistoryResponse.
  */
 interface BreakdownHistoryItem {
+  /** @deprecated Single stamped subject; `subjects` supersedes it. */
   subject?: EntityRefLike | null;
+  /** Every subject the item covers. Present on the activities history. */
+  subjects?: EntityRefLike[] | null;
   breakdown?: BreakdownLike[];
 }
 
@@ -299,7 +302,11 @@ export const extractBreakdownFilterOptions = (
   };
 
   for (const item of items) {
-    setIfPresent(subjectsMap, item.subject);
+    if (item.subjects?.length) {
+      item.subjects.forEach((subject) => setIfPresent(subjectsMap, subject));
+    } else {
+      setIfPresent(subjectsMap, item.subject);
+    }
     item.breakdown?.forEach((b) => {
       setIfPresent(schoolsMap, b.school);
       setIfPresent(classesMap, b.class);

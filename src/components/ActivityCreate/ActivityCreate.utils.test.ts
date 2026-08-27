@@ -9,6 +9,7 @@ import {
   getTypeFromUrl,
   getTypeFromUrlString,
   buildSendActivityPayload,
+  resolveActivitySubjectId,
   type KnowledgeArea,
 } from './ActivityCreate.utils';
 import { loadCategoriesData, formatTime } from '@/utils/categoryDataUtils';
@@ -893,6 +894,33 @@ describe('ActivityCreate.utils', () => {
         essayThemeId
       );
 
+    it('should send subjectId when the activity has a single subject', () => {
+      const payload = buildSendActivityPayload(
+        baseFormData,
+        'subject-1',
+        ['q-1'],
+        '2026-01-01T08:00:00.000Z',
+        '2026-01-02T18:00:00.000Z',
+        'ATIVIDADE'
+      );
+
+      expect(payload.subjectId).toBe('subject-1');
+    });
+
+    it('should omit subjectId entirely when there is no single subject', () => {
+      const payload = buildSendActivityPayload(
+        baseFormData,
+        undefined,
+        ['q-1', 'q-2'],
+        '2026-01-01T08:00:00.000Z',
+        '2026-01-02T18:00:00.000Z',
+        'ATIVIDADE'
+      );
+
+      expect(payload.subjectId).toBeUndefined();
+      expect('subjectId' in payload).toBe(false);
+    });
+
     it('should send the essay theme on an in-person exam', () => {
       const payload = buildWithTheme(
         ActivitySubtype.PROVA,
@@ -957,6 +985,64 @@ describe('ActivityCreate.utils', () => {
         buildFinalDateTime('2026-09-18', '23:59', false),
         '2026-09-18T23:59'
       );
+    });
+  });
+
+  describe('resolveActivitySubjectId', () => {
+    it('should return the subject when every question shares it', () => {
+      expect(
+        resolveActivitySubjectId([
+          { subjectIds: ['bio'] },
+          { subjectIds: ['bio'] },
+        ])
+      ).toBe('bio');
+    });
+
+    it('should return undefined when the questions mix subjects', () => {
+      expect(
+        resolveActivitySubjectId([
+          { subjectIds: ['bio'] },
+          { subjectIds: ['fis'] },
+          { subjectIds: ['his'] },
+        ])
+      ).toBeUndefined();
+    });
+
+    it('should return undefined when one question spans two subjects', () => {
+      expect(
+        resolveActivitySubjectId([{ subjectIds: ['bio', 'qui'] }])
+      ).toBeUndefined();
+    });
+
+    it('should ignore questions without a subject', () => {
+      expect(resolveActivitySubjectId([{ subjectIds: ['bio'] }, {}])).toBe(
+        'bio'
+      );
+    });
+
+    it('should treat an empty subject list as no subject', () => {
+      expect(
+        resolveActivitySubjectId([{ subjectIds: [] }], 'draft-subject')
+      ).toBe('draft-subject');
+    });
+
+    it('should fall back to the draft subject when no question carries one', () => {
+      expect(resolveActivitySubjectId([{}, {}], 'draft-subject')).toBe(
+        'draft-subject'
+      );
+    });
+
+    it('should return undefined when there is no question and no draft subject', () => {
+      expect(resolveActivitySubjectId([])).toBeUndefined();
+    });
+
+    it('should not fall back to the draft subject when the questions disagree', () => {
+      expect(
+        resolveActivitySubjectId(
+          [{ subjectIds: ['bio'] }, { subjectIds: ['fis'] }],
+          'draft-subject'
+        )
+      ).toBeUndefined();
     });
   });
 });

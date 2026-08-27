@@ -86,8 +86,8 @@ describe('activitiesTableConfig', () => {
       const subjectColumn = activitiesTableColumns[5];
       expect(subjectColumn.key).toBe('subject');
       expect(subjectColumn.label).toBe('Matéria');
-      expect(subjectColumn.sortable).toBe(true);
-      expect(subjectColumn.className).toBe('max-w-[140px]');
+      expect(subjectColumn.sortable).toBe(false);
+      expect(subjectColumn.className).toBe('max-w-[220px]');
       expect(subjectColumn.render).toBeDefined();
     });
 

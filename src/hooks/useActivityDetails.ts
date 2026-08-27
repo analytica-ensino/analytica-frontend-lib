@@ -5,6 +5,7 @@ import type {
   ActivityDetailsQueryParams,
   ActivityDetailsApiResponse,
   QuizResponse,
+  ActivityMetadata,
   PresignedUrlResponse,
   PresencialDeliveryStatus,
   Pagination,
@@ -226,6 +227,30 @@ const buildQueryParams = (
  * }
  * ```
  */
+/**
+ * Attach the subjects an activity covers, derived from its questions
+ *
+ * @param activity - Activity metadata from the quiz endpoint
+ * @returns The same metadata with `subjects` filled in, or undefined
+ */
+export const withDerivedSubjects = (
+  activity: ActivityMetadata | undefined
+): ActivityMetadata | undefined => {
+  if (!activity) return activity;
+
+  const names = new Set<string>();
+  for (const question of activity.questions ?? []) {
+    for (const matrix of question.knowledgeMatrix ?? []) {
+      if (matrix.subject?.name) names.add(matrix.subject.name);
+    }
+  }
+
+  return {
+    ...activity,
+    subjects: [...names].sort((a, b) => a.localeCompare(b, 'pt-BR')),
+  };
+};
+
 export const useActivityDetails = (
   apiClient: BaseApiClient
 ): UseActivityDetailsReturn => {
@@ -249,7 +274,7 @@ export const useActivityDetails = (
         apiClient.get<QuizResponse>(`/activities/${id}/quiz`).catch(() => null),
       ]);
 
-      const activity = quizResponse?.data?.data;
+      const activity = withDerivedSubjects(quizResponse?.data?.data);
       const details = detailsResponse.data.data;
 
       // An in-person exam is answered on paper, so its table is about which

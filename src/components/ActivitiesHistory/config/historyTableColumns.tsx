@@ -57,11 +57,11 @@ export const createHistoryTableColumns = (
   {
     key: 'subject',
     label: 'Matéria',
-    sortable: true,
-    className: 'max-w-[140px]',
+    sortable: false,
+    className: 'max-w-[220px]',
     render: (value: unknown) => {
-      const subjectName = typeof value === 'string' ? value : '';
-      return renderSubjectCell(subjectName, mapSubjectNameToEnum, false);
+      const subjects = Array.isArray(value) ? (value as string[]) : [];
+      return renderSubjectCell(subjects, mapSubjectNameToEnum, true);
     },
   },
   {

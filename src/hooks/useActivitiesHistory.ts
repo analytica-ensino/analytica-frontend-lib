@@ -73,6 +73,22 @@ export const DEFAULT_ACTIVITY_FILTER_OPTIONS: ActivityApiFilterOptions = {
 };
 
 /**
+ * Read the subject names of an activity, falling back to the legacy `subject`
+ *
+ * @param activity - Activity from API response
+ * @returns Subject names in display order; empty when the activity has none
+ */
+export const extractSubjectNames = (
+  activity: ActivityHistoryResponse
+): string[] => {
+  if (activity.subjects?.length) {
+    return activity.subjects.map((subject) => subject.name);
+  }
+
+  return activity.subject?.name ? [activity.subject.name] : [];
+};
+
+/**
  * Transform API response to table item format
  * @param activity - Activity from API response
  * @returns Formatted activity for table display
@@ -97,7 +113,7 @@ export const transformActivityToTableItem = (
     title: activity.title,
     school: firstBreakdown?.school?.name ?? '-',
     year: firstBreakdown?.schoolYear?.name ?? '-',
-    subject: activity.subject?.name ?? '-',
+    subject: extractSubjectNames(activity),
     class: firstBreakdown?.class?.name ?? '-',
     status: mapApiStatusToDisplay(activity.status),
     completionPercentage: activity.completionPercentage,
@@ -195,13 +211,12 @@ export const buildActivityHistoryQueryParams = (
     assignIf(params, 'classId', toSingle(filters.classId));
   }
 
-  // Single-select filters (subject also honors the legacy singular key).
+  assignIf(params, 'subjectIds', toCsv(filters.subject));
+  if (!params.subjectIds) {
+    assignIf(params, 'subjectId', toSingle(filters.subjectId));
+  }
+
   assignIf(params, 'status', toSingle(filters.status));
-  assignIf(
-    params,
-    'subjectId',
-    toSingle(filters.subject) ?? toSingle(filters.subjectId)
-  );
   assignIf(params, 'creatorType', toSingle(filters.creatorType));
 
   return params;

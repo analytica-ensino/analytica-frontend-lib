@@ -43,7 +43,8 @@ export interface SendActivityCategoriesData {
  */
 export interface CreateActivityPayload {
   title: string;
-  subjectId: string | null;
+  /** Only sent when every selected question resolves to the same subject */
+  subjectId?: string | null;
   questionIds: string[];
   subtype: string;
   type?: 'ATIVIDADE' | 'PROVA';

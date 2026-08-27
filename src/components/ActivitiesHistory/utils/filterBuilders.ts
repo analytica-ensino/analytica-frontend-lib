@@ -44,9 +44,8 @@ export const buildHistoryFiltersFromParams = (
     filters.schoolId = params.school[0];
   }
 
-  // Subject filter
   if (Array.isArray(params.subject) && params.subject.length > 0) {
-    filters.subjectId = params.subject[0];
+    filters.subject = params.subject;
   }
 
   return filters;

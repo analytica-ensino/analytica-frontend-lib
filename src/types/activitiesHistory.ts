@@ -79,7 +79,10 @@ export interface ActivityHistoryResponse {
   hasEssay?: boolean;
   status: GenericApiStatus;
   completionPercentage: number;
+  /** @deprecated Mirrors the stamped `subjectId` column; use `subjects` */
   subject: ActivitySubject | null;
+  /** Every subject the activity covers, derived from its questions */
+  subjects?: ActivitySubject[];
   creator: EntityRef | null;
   totalStudents?: number;
   answeredStudents?: number;
@@ -99,7 +102,8 @@ export interface ActivityTableItem extends Record<string, unknown> {
   title: string;
   school: string;
   year: string;
-  subject: string;
+  /** Subject names covered by the activity, already sorted */
+  subject: string[];
   class: string;
   status: GenericDisplayStatus;
   completionPercentage: number;

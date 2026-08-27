@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react';
-import { useActivityDetails } from './useActivityDetails';
+import { useActivityDetails, withDerivedSubjects } from './useActivityDetails';
 import type { BaseApiClient } from '../types/api';
 import type {
   ActivityDetailsData,
@@ -159,7 +159,7 @@ describe('useActivityDetails', () => {
       );
       expect(activityDetails).toEqual({
         ...mockDetailsApiResponse.data,
-        activity: mockQuizResponse.data,
+        activity: { ...mockQuizResponse.data, subjects: [] },
       });
     });
 
@@ -1041,5 +1041,80 @@ describe('useActivityDetails', () => {
 
       expect(result.current.fetchActivityDetails).not.toBe(firstRender);
     });
+  });
+});
+
+describe('withDerivedSubjects', () => {
+  const activity = (questions: unknown[]) =>
+    ({
+      id: 'act-1',
+      title: 'Atividade',
+      startDate: null,
+      finalDate: null,
+      schoolName: 'Escola',
+      year: '2026',
+      className: 'A',
+      questions,
+    }) as never;
+
+  it('should return undefined for a missing activity', () => {
+    expect(withDerivedSubjects(undefined)).toBeUndefined();
+  });
+
+  it('should return an empty list when the activity has no questions', () => {
+    expect(withDerivedSubjects(activity([]))?.subjects).toEqual([]);
+  });
+
+  it('should collect the distinct subjects of the questions, sorted', () => {
+    const result = withDerivedSubjects(
+      activity([
+        { knowledgeMatrix: [{ subject: { id: 'f', name: 'Física' } }] },
+        { knowledgeMatrix: [{ subject: { id: 'b', name: 'Biologia' } }] },
+        { knowledgeMatrix: [{ subject: { id: 'b', name: 'Biologia' } }] },
+      ])
+    );
+
+    expect(result?.subjects).toEqual(['Biologia', 'Física']);
+  });
+
+  it('should read every entry of a question knowledge matrix', () => {
+    const result = withDerivedSubjects(
+      activity([
+        {
+          knowledgeMatrix: [
+            { subject: { id: 'b', name: 'Biologia' } },
+            { subject: { id: 'q', name: 'Química' } },
+          ],
+        },
+      ])
+    );
+
+    expect(result?.subjects).toEqual(['Biologia', 'Química']);
+  });
+
+  it('should skip questions without a knowledge matrix', () => {
+    const result = withDerivedSubjects(
+      activity([
+        {},
+        { knowledgeMatrix: [] },
+        { knowledgeMatrix: [{ subject: null }] },
+        { knowledgeMatrix: [{ subject: { id: 'b', name: 'Biologia' } }] },
+      ])
+    );
+
+    expect(result?.subjects).toEqual(['Biologia']);
+  });
+
+  it('should sort using the pt-BR collation', () => {
+    const result = withDerivedSubjects(
+      activity([
+        { knowledgeMatrix: [{ subject: { id: 'e', name: 'Espanhol' } }] },
+        {
+          knowledgeMatrix: [{ subject: { id: 'ef', name: 'Educação Física' } }],
+        },
+      ])
+    );
+
+    expect(result?.subjects).toEqual(['Educação Física', 'Espanhol']);
   });
 });

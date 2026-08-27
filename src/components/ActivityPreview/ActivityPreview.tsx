@@ -14,6 +14,8 @@ import Activities from '../../assets/icons/Activities';
 
 type PreviewQuestion = {
   id: string;
+  /** Every subject the question is placed under on the knowledge matrix */
+  subjectIds?: string[];
   subjectName?: string;
   subjectColor?: string;
   iconName?: string;

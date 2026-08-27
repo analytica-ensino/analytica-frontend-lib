@@ -344,9 +344,14 @@ export function getTypeFromUrlString(type: string | undefined): ActivityType {
  * ```
  */
 export function convertQuestionToPreview(question: Question): PreviewQuestion {
+  const subjectIds = question.knowledgeMatrix
+    ?.map((matrix) => matrix.subject?.id)
+    .filter((id): id is string => Boolean(id));
+
   const subjectInfo =
     question.knowledgeMatrix && question.knowledgeMatrix.length > 0
       ? {
+          subjectIds: subjectIds?.length ? subjectIds : undefined,
           subjectName: question.knowledgeMatrix[0].subject?.name || undefined,
           subjectColor: question.knowledgeMatrix[0].subject?.color || undefined,
           iconName: question.knowledgeMatrix[0].subject?.icon || undefined,
@@ -413,7 +418,7 @@ export function buildFinalDateTime(
 
 export function buildSendActivityPayload(
   formData: SendActivityFormData,
-  subjectId: string,
+  subjectId: string | undefined,
   questionIds: string[],
   startDateTime: string,
   finalDateTime: string | null,
@@ -427,7 +432,7 @@ export function buildSendActivityPayload(
 
   return {
     title: formData.title,
-    subjectId,
+    ...(subjectId ? { subjectId } : {}),
     questionIds,
     subtype: formData.subtype,
     type: activityType,
@@ -751,6 +756,41 @@ export function getSubjectIdOrThrow(
     throw new Error('Subject ID não encontrado');
   }
   return subjectId;
+}
+
+/**
+ * Resolve the subject to stamp on the activity being sent
+ *
+ * Returns a value only when every selected question resolves to the same
+ * subject; otherwise the field is omitted and the backend derives the set.
+ *
+ * @param questions - Questions currently in the activity
+ * @param activitySubjectId - Subject id of the draft this activity came from
+ * @returns The single subject id, or undefined when the activity mixes subjects
+ *
+ * @example
+ * ```typescript
+ * resolveActivitySubjectId([{ subjectIds: ['bio'] }]);               // 'bio'
+ * resolveActivitySubjectId([
+ *   { subjectIds: ['bio'] },
+ *   { subjectIds: ['fis'] },
+ * ]);                                                                // undefined
+ * resolveActivitySubjectId([{ subjectIds: ['bio', 'qui'] }]);        // undefined
+ * ```
+ */
+export function resolveActivitySubjectId(
+  questions: { subjectIds?: string[] }[],
+  activitySubjectId?: string
+): string | undefined {
+  const subjectIds = new Set(
+    questions.flatMap((question) => question.subjectIds ?? [])
+  );
+
+  if (subjectIds.size === 1) {
+    return [...subjectIds][0];
+  }
+
+  return subjectIds.size === 0 ? activitySubjectId : undefined;
 }
 
 /**

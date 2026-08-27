@@ -74,7 +74,7 @@ describe('useActivitiesHistory', () => {
       expect(result.creator).toBe('Prof. Maria');
       expect(result.school).toBe('Escola Exemplo');
       expect(result.year).toBe('2024');
-      expect(result.subject).toBe('Matemática');
+      expect(result.subject).toEqual(['Matemática']);
       expect(result.class).toBe('Turma A');
       expect(result.completionPercentage).toBe(75);
       expect(result.status).toBe(ActivityDisplayStatus.ATIVA);
@@ -124,14 +124,33 @@ describe('useActivitiesHistory', () => {
       expect(result.class).toBe('-');
     });
 
-    it('should use "-" when subject is null', () => {
+    it('should return an empty list when the activity has no subject', () => {
       const activity: ActivityHistoryResponse = {
         ...baseActivity,
         subject: null,
       };
 
       const result = transformActivityToTableItem(activity);
-      expect(result.subject).toBe('-');
+      expect(result.subject).toEqual([]);
+    });
+
+    it('should list every subject the backend derived from the questions', () => {
+      const activity: ActivityHistoryResponse = {
+        ...baseActivity,
+        subject: { id: 'subj-red', name: 'Redação', areaKnowledgeId: 'area-1' },
+        subjects: [
+          { id: 'subj-bio', name: 'Biologia', areaKnowledgeId: 'area-2' },
+          { id: 'subj-fis', name: 'Física', areaKnowledgeId: 'area-2' },
+        ],
+      };
+
+      const result = transformActivityToTableItem(activity);
+      expect(result.subject).toEqual(['Biologia', 'Física']);
+    });
+
+    it('should fall back to the singular subject when subjects is absent', () => {
+      const result = transformActivityToTableItem(baseActivity);
+      expect(result.subject).toEqual(['Matemática']);
     });
 
     it('should use "-" when breakdown school is null', () => {
@@ -569,13 +588,25 @@ describe('buildActivityHistoryQueryParams', () => {
   it('collapses single-select filters to the first value', () => {
     const params = buildActivityHistoryQueryParams({
       status: ['A_VENCER', 'VENCIDA'],
-      subject: ['subj-1', 'subj-2'],
       creatorType: ['own'],
     });
     expect(params.status).toBe('A_VENCER');
-    expect(params.subjectId).toBe('subj-1');
     expect(params.creatorType).toBe('own');
+  });
+
+  it('maps subject[] to subjectIds (CSV) instead of collapsing it', () => {
+    const params = buildActivityHistoryQueryParams({
+      subject: ['subj-1', 'subj-2'],
+    });
+    expect(params.subjectIds).toBe('subj-1,subj-2');
+    expect(params.subjectId).toBeUndefined();
     expect(params.subject).toBeUndefined();
+  });
+
+  it('falls back to the legacy subjectId when the multi-select is absent', () => {
+    const params = buildActivityHistoryQueryParams({ subjectId: 'subj-1' });
+    expect(params.subjectId).toBe('subj-1');
+    expect(params.subjectIds).toBeUndefined();
   });
 
   it('forwards pagination, search and sorting untouched', () => {
@@ -628,7 +659,8 @@ describe('buildActivityHistoryQueryParams', () => {
       subject: ['a'],
       subjectId: 'b',
     });
-    expect(params.subjectId).toBe('a');
+    expect(params.subjectIds).toBe('a');
+    expect(params.subjectId).toBeUndefined();
   });
 
   it('prefers raw school[] over legacy schoolId', () => {

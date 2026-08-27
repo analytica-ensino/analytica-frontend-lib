@@ -19,7 +19,7 @@ import {
 } from '../Skeleton/Skeleton';
 import { TableProvider } from '../TableProvider/TableProvider';
 import CorrectActivityModal from '../CorrectActivityModal/CorrectActivityModal';
-import { getSubjectInfo, type SubjectData } from '../SubjectInfo/SubjectInfo';
+import { SubjectBadgeList } from '../SubjectBadgeList/SubjectBadgeList';
 import { useMobile } from '../../hooks/useMobile';
 import { cn } from '../../utils/utils';
 import { SubjectEnum } from '../../enums/SubjectEnum';
@@ -1064,16 +1064,9 @@ export const ActivityDetails = ({
     }
   };
 
-  /**
-   * Get subject info for icon display
-   */
-  const subjectEnum =
-    data?.activity?.subjectName && mapSubjectNameToEnum
-      ? mapSubjectNameToEnum(data.activity.subjectName)
-      : null;
-  const subjectInfo: SubjectData | null = subjectEnum
-    ? getSubjectInfo(subjectEnum)
-    : null;
+  const activitySubjects: string[] =
+    data?.activity?.subjects ??
+    (data?.activity?.subjectName ? [data.activity.subjectName] : []);
 
   // Loading state
   if (loading && !data) {
@@ -1211,25 +1204,11 @@ export const ActivityDetails = ({
                     {data.activity.year}
                   </Text>
                   <span className="w-1 h-1 rounded-full bg-text-500" />
-                  {subjectInfo ? (
-                    <div className="flex items-center gap-1">
-                      <span
-                        className={cn(
-                          'w-[21px] h-[21px] flex items-center justify-center rounded-sm text-text-950 shrink-0',
-                          subjectInfo.colorClass
-                        )}
-                      >
-                        {subjectInfo.icon}
-                      </span>
-                      <Text className="text-sm text-text-500">
-                        {data.activity.subjectName}
-                      </Text>
-                    </div>
-                  ) : (
-                    <Text className="text-sm text-text-500">
-                      {data.activity.subjectName}
-                    </Text>
-                  )}
+                  <SubjectBadgeList
+                    subjects={activitySubjects}
+                    mapSubjectNameToEnum={mapSubjectNameToEnum}
+                    maxVisible={3}
+                  />
                   <span className="w-1 h-1 rounded-full bg-text-500" />
                   <Text className="text-sm text-text-500">
                     {data.activity.className}

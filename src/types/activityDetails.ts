@@ -4,6 +4,7 @@
  */
 
 import { z } from 'zod';
+import type { Question } from './questions';
 
 /**
  * Student activity status enum
@@ -128,7 +129,12 @@ export interface ActivityMetadata {
   finalDate: string | null;
   schoolName: string;
   year: string;
-  subjectName: string;
+  /** @deprecated Never returned by the API; use `subjects` */
+  subjectName?: string;
+  /** Subject names the activity covers, derived from `questions` */
+  subjects?: string[];
+  /** Questions returned by GET /activities/:id/quiz */
+  questions?: Question[];
   className: string;
 }
 

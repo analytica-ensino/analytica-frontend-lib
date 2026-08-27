@@ -85,7 +85,7 @@ describe('historyTableColumns', () => {
       const column = columns[6];
       expect(column.key).toBe('subject');
       expect(column.label).toBe('Matéria');
-      expect(column.sortable).toBe(true);
+      expect(column.sortable).toBe(false);
     });
 
     it('should define class column correctly', () => {

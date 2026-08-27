@@ -107,12 +107,13 @@ export const activitiesTableColumns: ColumnConfig<ActivityTableItem>[] = [
   {
     key: 'subject',
     label: 'Matéria',
-    sortable: true,
-    className: 'max-w-[140px]',
+    sortable: false,
+    className: 'max-w-[220px]',
     render: (value: unknown) =>
       renderSubjectCell(
-        typeof value === 'string' ? value : '-',
-        mapSubjectNameToEnum
+        Array.isArray(value) ? (value as string[]) : [],
+        mapSubjectNameToEnum,
+        true
       ),
   },
   {
