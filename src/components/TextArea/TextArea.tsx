@@ -22,7 +22,13 @@ type TextAreaSize = 'small' | 'medium' | 'large' | 'extraLarge';
 /**
  * TextArea visual state
  */
-type TextAreaState = 'default' | 'hovered' | 'focused' | 'invalid' | 'disabled';
+type TextAreaState =
+  | 'default'
+  | 'hovered'
+  | 'focused'
+  | 'invalid'
+  | 'disabled'
+  | 'read-only';
 
 /**
  * Size configurations with exact pixel specifications
@@ -80,6 +86,16 @@ const STATE_CLASSES = {
     base: 'border-border-300 bg-background text-text-600 cursor-not-allowed opacity-40',
     hover: '',
     focus: '',
+  },
+  // A read-only textarea is still focusable — the text has to stay selectable
+  // so it can be read and copied — but it must not offer the affordances of an
+  // editable one. No hover highlight, and `focus:outline-none` plus an empty
+  // focus border so clicking it does not light up the field as if typing were
+  // about to happen. Mirrors the `read-only` state Input already has.
+  'read-only': {
+    base: 'border-border-300 bg-background text-text-600 cursor-default',
+    hover: '',
+    focus: 'focus:outline-none',
   },
 } as const;
 
@@ -201,14 +217,22 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
       props.onBlur?.(event);
     };
 
-    // Determine current state based on props and focus
-    let currentState = disabled ? 'disabled' : state;
+    // Determine current state based on props and focus. `readOnly` arrives
+    // through the native props spread, and outranks the caller's `state` for
+    // the same reason `disabled` does: it describes what the field can do.
+    const resolveBaseState = (): TextAreaState => {
+      if (disabled) return 'disabled';
+      if (props.readOnly) return 'read-only';
+      return state;
+    };
+    let currentState: TextAreaState = resolveBaseState();
 
     // Override state based on focus
     if (
       isFocused &&
       currentState !== 'invalid' &&
-      currentState !== 'disabled'
+      currentState !== 'disabled' &&
+      currentState !== 'read-only'
     ) {
       currentState = 'focused';
     }

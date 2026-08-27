@@ -37,8 +37,8 @@ import { CardStatus } from '../Card/Card';
 import Text from '../Text/Text';
 import HtmlMathRenderer from '../HtmlMathRenderer/HtmlMathRenderer';
 import { formatExamInfo } from './Quiz.utils';
-import { TeacherQuestionComment } from './TeacherQuestionComment';
 import QuizTimer from '../QuizTimer/QuizTimer';
+import { useMobile } from '../../hooks/useMobile';
 
 // Função para obter configuração do tipo de quiz
 export const getQuizTypeConfig = (type: QUIZ_TYPE) => {
@@ -254,7 +254,14 @@ const QuizHeader = () => {
 
 const QuizContent = ({ paddingBottom }: { paddingBottom?: string }) => {
   const { getCurrentQuestion } = useQuizStore();
+  const { isMobile } = useMobile();
   const currentQuestion = getCurrentQuestion();
+
+  // `QuizFooter` is `position: fixed`, so it sits on top of the content instead
+  // of taking space in the flow — without room reserved here, the last
+  // alternative ends up underneath it and unreadable. The bar is taller on a
+  // phone, where its controls stack into two rows.
+  const contentPaddingBottom = paddingBottom ?? (isMobile ? 'pb-32' : 'pb-24');
   const questionComponents: Record<
     string,
     ComponentType<QuizVariantInterface>
@@ -280,13 +287,10 @@ const QuizContent = ({ paddingBottom }: { paddingBottom?: string }) => {
     );
   }
 
-  return (
-    <>
-      <QuestionComponent paddingBottom={paddingBottom} />
-      {/* Only renders in the result variant, and only when a comment exists. */}
-      <TeacherQuestionComment />
-    </>
-  );
+  // The teacher's comment is no longer echoed here: in the result variant it
+  // lives behind the "Ver comentário" button in the footer, so it is not shown
+  // twice on the same screen.
+  return <QuestionComponent paddingBottom={contentPaddingBottom} />;
 };
 
 interface QuizVariantInterface {
@@ -496,13 +500,21 @@ const QuizFooter = forwardRef<
       getQuestionStatusFromUserAnswers,
       variant,
       getQuestionResultStatistics,
+      getQuestionResultByQuestionId,
     } = useQuizStore();
+
+    // The review bar carries four controls. Below ~500px they no longer fit on
+    // one line, so the actions and the pagination stack into two centred rows.
+    const { isMobile } = useMobile();
 
     const totalQuestions = getTotalQuestions();
     const isFirstQuestion = currentQuestionIndex === 0;
     const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
     const currentAnswer = getCurrentAnswer();
     const currentQuestion = getCurrentQuestion();
+    const teacherComment = currentQuestion
+      ? getQuestionResultByQuestionId(currentQuestion.id)?.teacherFeedback
+      : null;
     const isCurrentQuestionSkipped = currentQuestion
       ? getQuestionStatusFromUserAnswers(currentQuestion.id) === 'skipped'
       : false;
@@ -669,18 +681,70 @@ const QuizFooter = forwardRef<
               )}
             </>
           ) : (
-            currentQuestion?.solutionExplanation && (
-              <div className="flex flex-row items-center justify-center w-full">
+            <div
+              className={cn(
+                'flex w-full items-center gap-2',
+                isMobile ? 'flex-col py-2' : 'flex-row'
+              )}
+            >
+              <div
+                className={cn(
+                  'flex flex-row items-center gap-2',
+                  isMobile && 'justify-center'
+                )}
+              >
+                {currentQuestion?.solutionExplanation && (
+                  <Button
+                    variant="solid"
+                    action="primary"
+                    size="large"
+                    onClick={() => openModal('modalResolution')}
+                  >
+                    Ver resolução
+                  </Button>
+                )}
+                {teacherComment && (
+                  <Button
+                    variant="outline"
+                    action="primary"
+                    size="large"
+                    onClick={() => openModal('modalTeacherComment')}
+                  >
+                    Ver comentário
+                  </Button>
+                )}
+              </div>
+              {/* On a wide bar the pagination sits at the far end, away from the
+                  actions that act on the question being read; stacked, it is
+                  centred under them. */}
+              <div
+                className={cn(
+                  'flex flex-row items-center gap-2',
+                  isMobile ? 'justify-center' : 'flex-1 justify-end'
+                )}
+              >
                 <Button
-                  variant="link"
+                  variant="outline"
                   action="primary"
                   size="medium"
-                  onClick={() => openModal('modalResolution')}
+                  aria-label="Questão anterior"
+                  disabled={isFirstQuestion}
+                  onClick={goToPreviousQuestion}
                 >
-                  Ver resolução
+                  <CaretLeftIcon size={18} />
+                </Button>
+                <Button
+                  variant="outline"
+                  action="primary"
+                  size="medium"
+                  aria-label="Próxima questão"
+                  disabled={isLastQuestion}
+                  onClick={goToNextQuestion}
+                >
+                  <CaretRightIcon size={18} />
                 </Button>
               </div>
-            )
+            </div>
           )}
         </footer>
 
@@ -773,6 +837,23 @@ const QuizFooter = forwardRef<
             content={currentQuestion?.solutionExplanation || ''}
             className="text-text-950 text-base"
           />
+        </Modal>
+
+        <Modal
+          isOpen={isModalOpen('modalTeacherComment')}
+          onClose={closeModal}
+          title="Comentário do professor"
+          size={'lg'}
+        >
+          {/* Plain text on purpose: the teacher writes this in a bare textarea,
+              so running it through the HTML/LaTeX renderer would change what
+              they typed. `whitespace-pre-wrap` keeps their line breaks. */}
+          <Text
+            size="md"
+            className="text-text-950 whitespace-pre-wrap break-words"
+          >
+            {teacherComment}
+          </Text>
         </Modal>
 
         <QuizResultModal
