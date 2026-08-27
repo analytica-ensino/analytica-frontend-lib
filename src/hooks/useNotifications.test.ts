@@ -107,6 +107,26 @@ describe('useNotifications', () => {
       expect(window.location.href).toBe('/plano/consultar');
     });
 
+    it('should navigate to the simulation result when entityType is SIMULATION', () => {
+      const { result } = renderHook(() => useNotifications());
+
+      act(() => {
+        result.current.handleNavigate('SIMULATION', 'sim-1');
+      });
+
+      expect(window.location.href).toBe('/simulados/sim-1/resultado');
+    });
+
+    it('should accept the backend lowercase simulation entity type', () => {
+      const { result } = renderHook(() => useNotifications());
+
+      act(() => {
+        result.current.handleNavigate('simulation', 'sim-2');
+      });
+
+      expect(window.location.href).toBe('/simulados/sim-2/resultado');
+    });
+
     it('should handle lowercase entity types', () => {
       const { result } = renderHook(() => useNotifications());
 
@@ -196,6 +216,15 @@ describe('useNotifications', () => {
 
       const label = result.current.getActionLabel('recommendedClass');
       expect(label).toBe('Ver meta');
+    });
+
+    it('should return correct label for SIMULATION', () => {
+      const { result } = renderHook(() => useNotifications());
+
+      // Without a label the card renders no action button at all, so a missing
+      // case here would silently hide the button for the whole type.
+      expect(result.current.getActionLabel('SIMULATION')).toBe('Ver simulado');
+      expect(result.current.getActionLabel('simulation')).toBe('Ver simulado');
     });
 
     it('should handle lowercase entity types', () => {

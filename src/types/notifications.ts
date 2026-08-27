@@ -12,7 +12,8 @@ export type NotificationType =
   | 'TRAIL'
   | 'GENERAL'
   | 'ANNOUNCEMENT'
-  | 'RECOMMENDEDCLASS';
+  | 'RECOMMENDEDCLASS'
+  | 'SIMULATION';
 
 /**
  * Entity type for navigation
@@ -21,6 +22,12 @@ export enum NotificationEntityType {
   ACTIVITY = 'ACTIVITY',
   TRAIL = 'TRAIL',
   RECOMMENDEDCLASS = 'RECOMMENDEDCLASS',
+  /**
+   * A simulation is an activity row on the backend, but it opens the simulation
+   * result screen rather than the activity flow, so it needs its own type here:
+   * navigation is decided from `entityType` alone.
+   */
+  SIMULATION = 'SIMULATION',
 }
 
 /**

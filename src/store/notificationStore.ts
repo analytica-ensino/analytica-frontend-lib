@@ -104,6 +104,10 @@ const mapBackendNotification = (
         type = 'RECOMMENDEDCLASS';
         entityType = NotificationEntityType.RECOMMENDEDCLASS;
         break;
+      case NotificationEntityType.SIMULATION:
+        type = 'SIMULATION';
+        entityType = NotificationEntityType.SIMULATION;
+        break;
       default:
         break;
     }

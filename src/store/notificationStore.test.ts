@@ -1011,6 +1011,54 @@ describe('Internal Helper Functions', () => {
       });
     });
 
+    it('should map the backend lowercase simulation entity type', async () => {
+      const mockResponse: BackendNotificationsResponse = {
+        notifications: [
+          {
+            id: '1',
+            senderUserInstitutionId: null,
+            receiverUserInstitutionId: 'user-1',
+            title: 'Nova observação no simulado',
+            description: 'Seu professor deixou uma observação.',
+            // The backend stores it lowercase; anything this switch does not
+            // recognise is flattened to GENERAL with a null entityType, which
+            // is what used to make the type invisible to navigation.
+            entityType: 'simulation',
+            entityId: 'sim-1',
+            read: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            sender: null,
+            activity: {
+              id: 'sim-1',
+              title: 'Simulado ENEM',
+              type: 'SIMULADO',
+            },
+            recommendedClass: null,
+          },
+        ],
+        pagination: { page: 1, limit: 10, total: 1, totalPages: 1 },
+      };
+
+      const mockApiClient: NotificationApiClient = {
+        get: jest.fn().mockResolvedValue({ data: mockResponse }),
+        patch: jest.fn(),
+        delete: jest.fn(),
+      };
+
+      const useStore = createNotificationStore(mockApiClient);
+      const { result } = renderHook(() => useStore());
+
+      await act(async () => {
+        await result.current.fetchNotifications();
+      });
+
+      const notification = result.current.notifications[0];
+      expect(notification.type).toBe('SIMULATION');
+      expect(notification.entityType).toBe(NotificationEntityType.SIMULATION);
+      expect(notification.entityId).toBe('sim-1');
+    });
+
     it('should handle lowercase entity types correctly', async () => {
       const mockResponse: BackendNotificationsResponse = {
         notifications: [
