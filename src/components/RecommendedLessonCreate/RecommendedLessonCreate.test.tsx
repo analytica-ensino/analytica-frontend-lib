@@ -880,26 +880,22 @@ describe('RecommendedLessonCreate', () => {
       mockAppliedFilters = { subjectIds: ['subject-1'] };
     });
 
-    const addLesson = async (testId = 'add-lesson-btn') => {
-      await act(async () => {
-        fireEvent.click(screen.getByTestId(testId));
-      });
-    };
+    const addLesson = (testId = 'add-lesson-btn') =>
+      fireEvent.click(screen.getByTestId(testId));
 
-    const requestSubjectChange = async () => {
-      await act(async () => {
-        fireEvent.click(screen.getByTestId('request-subject-change'));
-      });
-    };
+    const requestSubjectChange = () =>
+      fireEvent.click(screen.getByTestId('request-subject-change'));
 
     it('allows the switch without asking when the preview is empty', async () => {
       await renderWithDesktopLayout(
         <RecommendedLessonCreate {...defaultProps} />
       );
 
-      await requestSubjectChange();
+      requestSubjectChange();
 
-      expect(mockSubjectChangeSettled).toHaveBeenCalledWith(true);
+      await waitFor(() => {
+        expect(mockSubjectChangeSettled).toHaveBeenCalledWith(true);
+      });
       expect(
         screen.queryByTestId('subject-switch-dialog')
       ).not.toBeInTheDocument();
@@ -910,11 +906,13 @@ describe('RecommendedLessonCreate', () => {
         <RecommendedLessonCreate {...defaultProps} />
       );
 
-      await addLesson();
-      await addLesson('add-lesson-2-btn');
-      await requestSubjectChange();
+      addLesson();
+      addLesson('add-lesson-2-btn');
+      requestSubjectChange();
 
-      expect(screen.getByTestId('subject-switch-dialog')).toBeInTheDocument();
+      expect(
+        await screen.findByTestId('subject-switch-dialog')
+      ).toBeInTheDocument();
       expect(
         screen.getByText(
           'A prévia tem 2 aulas de Math. Trocar de componente curricular para Portuguese vai remover todas.'
@@ -927,11 +925,11 @@ describe('RecommendedLessonCreate', () => {
         <RecommendedLessonCreate {...defaultProps} />
       );
 
-      await addLesson();
-      await requestSubjectChange();
+      addLesson();
+      requestSubjectChange();
 
       expect(
-        screen.getByText(
+        await screen.findByText(
           'A prévia tem 1 aula de Math. Trocar de componente curricular para Portuguese vai remover ela.'
         )
       ).toBeInTheDocument();
@@ -950,11 +948,11 @@ describe('RecommendedLessonCreate', () => {
         <RecommendedLessonCreate {...defaultProps} />
       );
 
-      await addLesson();
-      await requestSubjectChange();
+      addLesson();
+      requestSubjectChange();
 
       expect(
-        screen.getByText(
+        await screen.findByText(
           'A prévia tem 1 aula. Trocar de componente curricular vai remover ela.'
         )
       ).toBeInTheDocument();
@@ -965,13 +963,13 @@ describe('RecommendedLessonCreate', () => {
         <RecommendedLessonCreate {...defaultProps} />
       );
 
-      await addLesson();
-      await requestSubjectChange();
-      await act(async () => {
-        fireEvent.click(screen.getByTestId('subject-switch-confirm'));
-      });
+      addLesson();
+      requestSubjectChange();
+      fireEvent.click(await screen.findByTestId('subject-switch-confirm'));
 
-      expect(mockSubjectChangeSettled).toHaveBeenCalledWith(true);
+      await waitFor(() => {
+        expect(mockSubjectChangeSettled).toHaveBeenCalledWith(true);
+      });
       expect(screen.getByTestId('lessons-count')).toHaveTextContent('0');
     });
 
@@ -980,13 +978,13 @@ describe('RecommendedLessonCreate', () => {
         <RecommendedLessonCreate {...defaultProps} />
       );
 
-      await addLesson();
-      await requestSubjectChange();
-      await act(async () => {
-        fireEvent.click(screen.getByTestId('subject-switch-cancel'));
-      });
+      addLesson();
+      requestSubjectChange();
+      fireEvent.click(await screen.findByTestId('subject-switch-cancel'));
 
-      expect(mockSubjectChangeSettled).toHaveBeenCalledWith(false);
+      await waitFor(() => {
+        expect(mockSubjectChangeSettled).toHaveBeenCalledWith(false);
+      });
       expect(screen.getByTestId('lessons-count')).toHaveTextContent('1');
     });
 
@@ -995,27 +993,26 @@ describe('RecommendedLessonCreate', () => {
         <RecommendedLessonCreate {...defaultProps} />
       );
 
-      await addLesson();
+      addLesson();
       mockClearFilters.mockClear();
 
-      await act(async () => {
-        fireEvent.click(screen.getByText('Limpar filtros'));
-      });
-      await act(async () => {
-        fireEvent.click(screen.getByTestId('subject-switch-cancel'));
-      });
+      fireEvent.click(screen.getByText('Limpar filtros'));
+      fireEvent.click(await screen.findByTestId('subject-switch-cancel'));
 
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId('subject-switch-dialog')
+        ).not.toBeInTheDocument();
+      });
       expect(mockClearFilters).not.toHaveBeenCalled();
       expect(screen.getByTestId('lessons-count')).toHaveTextContent('1');
 
-      await act(async () => {
-        fireEvent.click(screen.getByText('Limpar filtros'));
-      });
-      await act(async () => {
-        fireEvent.click(screen.getByTestId('subject-switch-confirm'));
-      });
+      fireEvent.click(screen.getByText('Limpar filtros'));
+      fireEvent.click(await screen.findByTestId('subject-switch-confirm'));
 
-      expect(mockClearFilters).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(mockClearFilters).toHaveBeenCalledTimes(1);
+      });
       expect(screen.getByTestId('lessons-count')).toHaveTextContent('0');
     });
   });
@@ -1065,18 +1062,19 @@ describe('RecommendedLessonCreate', () => {
 
       // Re-running the effect with the same subjects must not nag the user
       // again — a fresh preFilters identity is enough to re-trigger it.
-      await act(async () => {
-        rerender(
-          <RecommendedLessonCreate
-            {...defaultProps}
-            preFilters={{
-              subjects: ['subject-1', 'subject-2'],
-              topics: [],
-              subtopics: [],
-              contents: [],
-            }}
-          />
-        );
+      rerender(
+        <RecommendedLessonCreate
+          {...defaultProps}
+          preFilters={{
+            subjects: ['subject-1', 'subject-2'],
+            topics: [],
+            subtopics: [],
+            contents: [],
+          }}
+        />
+      );
+      await waitFor(() => {
+        expect(screen.getByTestId('lesson-filters')).toBeInTheDocument();
       });
 
       const warnings = mockAddToast.mock.calls.filter(
@@ -2351,11 +2349,11 @@ describe('RecommendedLessonCreate', () => {
         <RecommendedLessonCreate {...defaultProps} />
       );
 
-      await act(async () => {
-        fireEvent.click(screen.getByTestId('request-subject-change'));
-      });
+      fireEvent.click(screen.getByTestId('request-subject-change'));
 
-      expect(mockSubjectChangeSettled).toHaveBeenCalledWith(true);
+      await waitFor(() => {
+        expect(mockSubjectChangeSettled).toHaveBeenCalledWith(true);
+      });
     });
 
     it('should show filters view by default on small screen', async () => {
@@ -3830,15 +3828,11 @@ describe('RecommendedLessonCreate', () => {
         .spyOn(console, 'error')
         .mockImplementation(() => {});
 
-      await act(async () => {
-        render(<RecommendedLessonCreate {...defaultProps} />);
-      });
+      render(<RecommendedLessonCreate {...defaultProps} />);
 
       // First, add a lesson so the send button is enabled
       const addLessonBtn = screen.getByTestId('add-lesson-btn');
-      await act(async () => {
-        fireEvent.click(addLessonBtn);
-      });
+      fireEvent.click(addLessonBtn);
 
       // Wait for auto-save
       await act(async () => {
@@ -3847,9 +3841,7 @@ describe('RecommendedLessonCreate', () => {
 
       // Open send modal
       const sendLessonBtn = screen.getByTestId('send-lesson-btn');
-      await act(async () => {
-        fireEvent.click(sendLessonBtn);
-      });
+      fireEvent.click(sendLessonBtn);
 
       await waitFor(() => {
         expect(screen.getByTestId('send-lesson-modal')).toBeInTheDocument();
@@ -3857,9 +3849,7 @@ describe('RecommendedLessonCreate', () => {
 
       // Trigger categories change
       const triggerBtn = screen.getByTestId('trigger-categories-change');
-      await act(async () => {
-        fireEvent.click(triggerBtn);
-      });
+      fireEvent.click(triggerBtn);
 
       // Wait for error to be logged
       await waitFor(() => {
@@ -3952,15 +3942,11 @@ describe('RecommendedLessonCreate', () => {
         return Promise.resolve({ data: { data: {} } });
       });
 
-      await act(async () => {
-        render(<RecommendedLessonCreate {...defaultProps} />);
-      });
+      render(<RecommendedLessonCreate {...defaultProps} />);
 
       // First, add a lesson so the send button is enabled
       const addLessonBtn = screen.getByTestId('add-lesson-btn');
-      await act(async () => {
-        fireEvent.click(addLessonBtn);
-      });
+      fireEvent.click(addLessonBtn);
 
       // Wait for auto-save
       await act(async () => {
@@ -3969,9 +3955,7 @@ describe('RecommendedLessonCreate', () => {
 
       // Open send modal
       const sendLessonBtn = screen.getByTestId('send-lesson-btn');
-      await act(async () => {
-        fireEvent.click(sendLessonBtn);
-      });
+      fireEvent.click(sendLessonBtn);
 
       await waitFor(() => {
         expect(screen.getByTestId('send-lesson-modal')).toBeInTheDocument();
@@ -3979,9 +3963,7 @@ describe('RecommendedLessonCreate', () => {
 
       // Trigger categories change first time
       const triggerBtn = screen.getByTestId('trigger-categories-change');
-      await act(async () => {
-        fireEvent.click(triggerBtn);
-      });
+      fireEvent.click(triggerBtn);
 
       // Wait for first call
       await waitFor(() => {

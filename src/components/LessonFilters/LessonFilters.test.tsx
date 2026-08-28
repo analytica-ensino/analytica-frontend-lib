@@ -214,13 +214,7 @@ jest.mock('../../components/CheckBoxGroup/CheckBoxGroup', () => ({
 }));
 
 import React from 'react';
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-  act,
-} from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { LessonFilters } from './LessonFilters';
 import type { LessonFiltersData } from '../../types/lessonFilters';
 
@@ -668,9 +662,9 @@ describe('LessonFilters', () => {
       );
       expect(onBeforeSubjectChange).toHaveBeenCalledTimes(1);
 
-      await act(async () => {
-        fireEvent.click(screen.getByTestId('repick-selected-subject'));
-      });
+      // The gate would be invoked synchronously, so a second call would already
+      // be recorded by now.
+      fireEvent.click(screen.getByTestId('repick-selected-subject'));
 
       // Nothing changes, so there is nothing to confirm.
       expect(onBeforeSubjectChange).toHaveBeenCalledTimes(1);

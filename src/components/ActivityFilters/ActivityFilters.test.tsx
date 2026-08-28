@@ -118,7 +118,6 @@ import {
   fireEvent,
   waitFor,
   within,
-  act,
 } from '@testing-library/react';
 import { ActivityFilters, ActivityFiltersPopover } from './ActivityFilters';
 import { QUESTION_TYPE } from '../../components/Quiz/useQuizStore';
@@ -537,9 +536,9 @@ describe('ActivityFilters', () => {
       );
       expect(onBeforeSubjectChange).toHaveBeenCalledTimes(1);
 
+      // The gate would be invoked synchronously, so a second call would already
+      // be recorded by now.
       pickSubject('Matemática');
-      // Flush the async gate so a second call would have been recorded.
-      await act(async () => {});
 
       // Nothing changes, so there is nothing to confirm.
       expect(onBeforeSubjectChange).toHaveBeenCalledTimes(1);
