@@ -17,6 +17,7 @@ import type {
   Notification,
   NotificationGroup,
   NotificationEntityType,
+  NotificationEntityStatus,
 } from '../../types/notifications';
 import { formatTimeAgo } from '../../store/notificationStore';
 import mockContentImage from '../../assets/img/mock-content.png';
@@ -132,7 +133,8 @@ interface NotificationListMode extends BaseNotificationProps {
    */
   onNavigateById?: (
     entityType?: NotificationEntityType,
-    entityId?: string
+    entityId?: string,
+    entityStatus?: NotificationEntityStatus | null
   ) => void;
   /**
    * Callback when user clicks on a global notification
@@ -203,7 +205,8 @@ interface NotificationCenterMode extends BaseNotificationProps {
    */
   onNavigateById?: (
     entityType?: NotificationEntityType,
-    entityId?: string
+    entityId?: string,
+    entityStatus?: NotificationEntityStatus | null
   ) => void;
   /**
    * Function to get action label for a notification
@@ -249,7 +252,8 @@ export interface LegacyNotificationCardProps extends BaseNotificationProps {
   onDeleteById?: (id: string) => void;
   onNavigateById?: (
     entityType?: NotificationEntityType,
-    entityId?: string
+    entityId?: string,
+    entityStatus?: NotificationEntityStatus | null
   ) => void;
   onGlobalNotificationClick?: (notification: Notification) => void;
   getActionLabel?: (entityType?: NotificationEntityType) => string | undefined;
@@ -474,7 +478,8 @@ const NotificationList = ({
   onDeleteById?: (id: string) => void;
   onNavigateById?: (
     entityType?: NotificationEntityType,
-    entityId?: string
+    entityId?: string,
+    entityStatus?: NotificationEntityStatus | null
   ) => void;
   onGlobalNotificationClick?: (notification: Notification) => void;
   getActionLabel?: (entityType?: NotificationEntityType) => string | undefined;
@@ -577,7 +582,8 @@ const NotificationList = ({
               navigationHandler = () =>
                 onNavigateById(
                   notification.entityType ?? undefined,
-                  notification.entityId ?? undefined
+                  notification.entityId ?? undefined,
+                  notification.entityStatus
                 );
             }
 

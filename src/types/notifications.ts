@@ -31,6 +31,19 @@ export enum NotificationEntityType {
 }
 
 /**
+ * Lifecycle status of the entity a notification points at, as derived by the
+ * backend for this receiver.
+ *
+ * It is what tells a finished activity from a pending one, and therefore where
+ * the notification should take the student — the result screen or the quiz.
+ */
+export enum NotificationEntityStatus {
+  A_VENCER = 'A_VENCER',
+  VENCIDA = 'VENCIDA',
+  CONCLUIDA = 'CONCLUIDA',
+}
+
+/**
  * Notification interface
  */
 export interface Notification {
@@ -77,6 +90,10 @@ export interface Notification {
   /**
    * Sender information (optional)
    */
+  /**
+   * Lifecycle status of the entity for this receiver (optional)
+   */
+  entityStatus?: NotificationEntityStatus | null;
   sender?: {
     id: string;
     user: {
@@ -113,6 +130,7 @@ export interface BackendNotification {
   description: string;
   entityType: string | null;
   entityId: string | null;
+  entityStatus?: string | null;
   actionLink?: string | null;
   linkImg?: string | null;
   read: boolean;

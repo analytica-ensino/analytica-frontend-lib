@@ -1011,6 +1011,85 @@ describe('Internal Helper Functions', () => {
       });
     });
 
+    it('should keep entityStatus so consumers can route a finished activity', async () => {
+      const mockResponse: BackendNotificationsResponse = {
+        notifications: [
+          {
+            id: '1',
+            senderUserInstitutionId: null,
+            receiverUserInstitutionId: 'user-1',
+            title: 'Questão corrigida',
+            description: 'Seu professor corrigiu uma questão.',
+            entityType: NotificationEntityType.ACTIVITY,
+            entityId: 'activity-1',
+            // Derived by the backend for this receiver; the web used to drop it,
+            // which is why it had to re-fetch the activity to learn the status.
+            entityStatus: 'CONCLUIDA',
+            read: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            sender: null,
+            activity: { id: 'activity-1', title: 'Prova', type: 'ATIVIDADE' },
+            recommendedClass: null,
+          },
+        ],
+        pagination: { page: 1, limit: 10, total: 1, totalPages: 1 },
+      };
+
+      const mockApiClient: NotificationApiClient = {
+        get: jest.fn().mockResolvedValue({ data: mockResponse }),
+        patch: jest.fn(),
+        delete: jest.fn(),
+      };
+
+      const useStore = createNotificationStore(mockApiClient);
+      const { result } = renderHook(() => useStore());
+
+      await act(async () => {
+        await result.current.fetchNotifications();
+      });
+
+      expect(result.current.notifications[0].entityStatus).toBe('CONCLUIDA');
+    });
+
+    it('should map entityStatus to null when the backend omits it', async () => {
+      const mockResponse: BackendNotificationsResponse = {
+        notifications: [
+          {
+            id: '1',
+            senderUserInstitutionId: null,
+            receiverUserInstitutionId: 'user-1',
+            title: 'Aviso',
+            description: 'Sem entidade',
+            entityType: null,
+            entityId: null,
+            read: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            sender: null,
+            activity: null,
+            recommendedClass: null,
+          },
+        ],
+        pagination: { page: 1, limit: 10, total: 1, totalPages: 1 },
+      };
+
+      const mockApiClient: NotificationApiClient = {
+        get: jest.fn().mockResolvedValue({ data: mockResponse }),
+        patch: jest.fn(),
+        delete: jest.fn(),
+      };
+
+      const useStore = createNotificationStore(mockApiClient);
+      const { result } = renderHook(() => useStore());
+
+      await act(async () => {
+        await result.current.fetchNotifications();
+      });
+
+      expect(result.current.notifications[0].entityStatus).toBeNull();
+    });
+
     it('should map the backend lowercase simulation entity type', async () => {
       const mockResponse: BackendNotificationsResponse = {
         notifications: [
