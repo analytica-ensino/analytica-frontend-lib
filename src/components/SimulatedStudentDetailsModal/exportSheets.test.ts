@@ -362,7 +362,11 @@ describe('buildSimulatedStudentDetailsSheets', () => {
       expect(sheets.map((sheet) => sheet.rows)).toEqual([[], []]);
       // Cabeçalho continua, senão a aba abre sem dizer o que era para ter ali.
       expect(sheets[0].headers).toEqual(['Indicador', 'Valor']);
-      expect(sheets[1].headers).toEqual(['Componente curricular', 'Questões', 'Acertos (%)']);
+      expect(sheets[1].headers).toEqual([
+        'Componente curricular',
+        'Questões',
+        'Acertos (%)',
+      ]);
     });
 
     it('data null com matéria selecionada não inventa linha de resumo', () => {

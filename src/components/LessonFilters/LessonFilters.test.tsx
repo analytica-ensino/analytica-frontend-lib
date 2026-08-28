@@ -160,7 +160,9 @@ jest.mock('../../components/ActivityFilters/components', () => ({
       {!knowledgeStructure.loading &&
         knowledgeCategories.length === 0 &&
         knowledgeStructure.topics.length === 0 && (
-          <div>Nenhum tema disponível para os componentes curriculares selecionados</div>
+          <div>
+            Nenhum tema disponível para os componentes curriculares selecionados
+          </div>
         )}
     </div>
   ),
@@ -357,7 +359,9 @@ describe('LessonFilters', () => {
     renderComponent();
 
     expect(
-      screen.getByText('Nenhum tema disponível para os componentes curriculares selecionados')
+      screen.getByText(
+        'Nenhum tema disponível para os componentes curriculares selecionados'
+      )
     ).toBeInTheDocument();
   });
 
@@ -455,7 +459,9 @@ describe('LessonFilters', () => {
 
     renderComponent();
 
-    expect(screen.getByText('Carregando componentes curriculares...')).toBeInTheDocument();
+    expect(
+      screen.getByText('Carregando componentes curriculares...')
+    ).toBeInTheDocument();
   });
 
   it('renders error state for subjects', () => {
@@ -465,7 +471,9 @@ describe('LessonFilters', () => {
 
     renderComponent();
 
-    expect(screen.getByText('Erro ao carregar componentes curriculares')).toBeInTheDocument();
+    expect(
+      screen.getByText('Erro ao carregar componentes curriculares')
+    ).toBeInTheDocument();
   });
 
   it('renders loading state for knowledge structure', async () => {

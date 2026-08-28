@@ -149,7 +149,9 @@ describe('SubjectsFilter', () => {
     it('renders loading message when loading is true', () => {
       render(<SubjectsFilter {...defaultProps} loading={true} />);
 
-      expect(screen.getByText('Carregando componentes curriculares...')).toBeInTheDocument();
+      expect(
+        screen.getByText('Carregando componentes curriculares...')
+      ).toBeInTheDocument();
     });
 
     it('does not render knowledge areas when loading', () => {
@@ -477,7 +479,9 @@ describe('SubjectsFilter', () => {
         <SubjectsFilter {...defaultProps} loading={true} />
       );
 
-      expect(screen.getByText('Carregando componentes curriculares...')).toBeInTheDocument();
+      expect(
+        screen.getByText('Carregando componentes curriculares...')
+      ).toBeInTheDocument();
       expect(screen.queryByText('Matemática')).not.toBeInTheDocument();
 
       rerender(<SubjectsFilter {...defaultProps} loading={false} />);
@@ -519,7 +523,9 @@ describe('SubjectsFilter', () => {
       const checkboxes = screen.getAllByRole('checkbox');
       // 3 subjects + "Todos os componentes curriculares"
       expect(checkboxes).toHaveLength(mockKnowledgeAreas.length + 1);
-      expect(screen.getByText('Todos os componentes curriculares')).toBeInTheDocument();
+      expect(
+        screen.getByText('Todos os componentes curriculares')
+      ).toBeInTheDocument();
       expect(screen.getByText('Matemática')).toBeInTheDocument();
     });
 
@@ -561,7 +567,9 @@ describe('SubjectsFilter', () => {
 
     it('does not render the "Todos os componentes curriculares" card without showAllSubjectsOption', () => {
       render(<SubjectsFilter {...multiProps} showAllSubjectsOption={false} />);
-      expect(screen.queryByText('Todos os componentes curriculares')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Todos os componentes curriculares')
+      ).not.toBeInTheDocument();
       expect(screen.getAllByRole('checkbox')).toHaveLength(
         mockKnowledgeAreas.length
       );

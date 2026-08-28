@@ -438,7 +438,9 @@ const QuizListResult = forwardRef<
 
   return (
     <section ref={ref} className={className} {...props}>
-      <p className="pt-6 pb-4 text-text-950 font-bold text-lg">Componentes curriculares</p>
+      <p className="pt-6 pb-4 text-text-950 font-bold text-lg">
+        Componentes curriculares
+      </p>
 
       <ul className="flex flex-col gap-2">
         {subjectsStats.map((subject) => (

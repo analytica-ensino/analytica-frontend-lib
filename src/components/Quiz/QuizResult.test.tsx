@@ -2813,7 +2813,9 @@ describe('Quiz', () => {
         );
 
         // Should show "Sem componente curricular" as fallback title
-        expect(screen.getByText('Sem componente curricular')).toBeInTheDocument();
+        expect(
+          screen.getByText('Sem componente curricular')
+        ).toBeInTheDocument();
 
         // Should still render the section title
         expect(screen.getByText('Resultado das questões')).toBeInTheDocument();

@@ -395,7 +395,10 @@ describe('SimulatedStudentDetailsModal', () => {
         'Desempenho por habilidade',
       ]);
       // A matéria do título do modal abre o resumo.
-      expect(sheets[0].rows[0]).toEqual(['Componente curricular', 'Matematica']);
+      expect(sheets[0].rows[0]).toEqual([
+        'Componente curricular',
+        'Matematica',
+      ]);
       expect(sheets[1]).toEqual({
         name: 'Desempenho por habilidade',
         headers: [
