@@ -147,7 +147,7 @@ export function SimulatedStudentDetailsModal({
         onClick={handleBack}
         variant="raw"
         className="p-1 hover:bg-background-100 rounded-md transition-colors"
-        aria-label="Voltar para lista de matérias"
+        aria-label="Voltar para lista de componentes curriculares"
         data-print-hide
       >
         <ArrowLeftIcon size={20} className="text-text-600" />
@@ -183,7 +183,7 @@ export function SimulatedStudentDetailsModal({
 
       return (
         <Text size="sm" className="text-text-500 text-center py-4">
-          Nenhuma matéria encontrada
+          Nenhum componente curricular encontrado
         </Text>
       );
     }

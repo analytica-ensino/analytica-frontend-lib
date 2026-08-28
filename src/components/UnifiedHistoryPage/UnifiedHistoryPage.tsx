@@ -184,7 +184,7 @@ export const UnifiedHistoryPage = ({
               categories: [
                 {
                   key: 'subject',
-                  label: 'Matéria',
+                  label: 'Componente curricular',
                   selectedIds: [],
                   itens: mergeFilterOptions(
                     userFilterOptions.subjects,

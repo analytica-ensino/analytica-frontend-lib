@@ -84,7 +84,7 @@ describe('historyTableColumns', () => {
       const columns = createHistoryTableColumns(undefined);
       const column = columns[6];
       expect(column.key).toBe('subject');
-      expect(column.label).toBe('Matéria');
+      expect(column.label).toBe('Componente curricular');
       expect(column.sortable).toBe(true);
     });
 

@@ -1938,7 +1938,7 @@ describe('Quiz', () => {
 
       render(<QuizListResult />);
 
-      expect(screen.getByText('Matérias')).toBeInTheDocument();
+      expect(screen.getByText('Componentes curriculares')).toBeInTheDocument();
       expect(screen.getByTestId('card-results')).toBeInTheDocument();
       expect(screen.getByTestId('card-results-header')).toHaveTextContent(
         'Matemática'
@@ -2052,7 +2052,7 @@ describe('Quiz', () => {
 
       render(<QuizListResult />);
 
-      expect(screen.getByText('Matérias')).toBeInTheDocument();
+      expect(screen.getByText('Componentes curriculares')).toBeInTheDocument();
       expect(screen.queryByTestId('card-results')).not.toBeInTheDocument();
     });
 
@@ -2209,7 +2209,7 @@ describe('Quiz', () => {
       expect(listItem).toBeInTheDocument();
     });
 
-    it('should use fallback "Sem matéria" when subject.name is null (line 30)', () => {
+    it('should use fallback "Sem componente curricular" when subject.name is null (line 30)', () => {
       const mockQuestions = [
         {
           id: '1',
@@ -2236,7 +2236,7 @@ describe('Quiz', () => {
       render(<QuizListResult />);
 
       // Verificar se o fallback foi usado
-      expect(screen.getByText('Sem matéria')).toBeInTheDocument();
+      expect(screen.getByText('Sem componente curricular')).toBeInTheDocument();
     });
   });
 
@@ -2803,7 +2803,7 @@ describe('Quiz', () => {
         expect(cardStatuses[3]).toHaveAttribute('data-status', 'pending');
       });
 
-      it('should show "Sem matéria" as title when subject is "all" and no questions exist', () => {
+      it('should show "Sem componente curricular" as title when subject is "all" and no questions exist', () => {
         const mockGroupedQuestions = {};
 
         mockGetQuestionsGroupedBySubject.mockReturnValue(mockGroupedQuestions);
@@ -2812,8 +2812,8 @@ describe('Quiz', () => {
           <QuizListResultByMateria subject="all" onQuestionClick={jest.fn()} />
         );
 
-        // Should show "Sem matéria" as fallback title
-        expect(screen.getByText('Sem matéria')).toBeInTheDocument();
+        // Should show "Sem componente curricular" as fallback title
+        expect(screen.getByText('Sem componente curricular')).toBeInTheDocument();
 
         // Should still render the section title
         expect(screen.getByText('Resultado das questões')).toBeInTheDocument();
@@ -2823,7 +2823,7 @@ describe('Quiz', () => {
         expect(cardStatuses).toHaveLength(0);
       });
 
-      it('should show "Sem matéria" as title when subject is "all" but answeredQuestions is empty', () => {
+      it('should show "Sem componente curricular" as title when subject is "all" but answeredQuestions is empty', () => {
         const mockGroupedQuestions = {
           'subject-1': [
             {

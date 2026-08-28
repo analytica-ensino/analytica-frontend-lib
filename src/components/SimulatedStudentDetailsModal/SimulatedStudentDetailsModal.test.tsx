@@ -192,7 +192,7 @@ describe('SimulatedStudentDetailsModal', () => {
       subjectId: 'subject-1',
     });
     expect(
-      screen.getByLabelText('Voltar para lista de matérias')
+      screen.getByLabelText('Voltar para lista de componentes curriculares')
     ).toBeInTheDocument();
   });
 
@@ -366,7 +366,7 @@ describe('SimulatedStudentDetailsModal', () => {
 
       expect(sheets.map((sheet) => sheet.name)).toEqual([
         'Resumo do estudante',
-        'Desempenho por matéria',
+        'Desempenho por componente',
       ]);
       expect(sheets[0].rows).toEqual([
         ['Estudante', 'Maria Silva'],
@@ -376,8 +376,8 @@ describe('SimulatedStudentDetailsModal', () => {
         ['Desempenho', 'Acima da média'],
       ]);
       expect(sheets[1]).toEqual({
-        name: 'Desempenho por matéria',
-        headers: ['Matéria', 'Questões', 'Acertos (%)'],
+        name: 'Desempenho por componente',
+        headers: ['Componente curricular', 'Questões', 'Acertos (%)'],
         rows: [['Matematica', 12, 75]],
       });
     });
@@ -395,7 +395,7 @@ describe('SimulatedStudentDetailsModal', () => {
         'Desempenho por habilidade',
       ]);
       // A matéria do título do modal abre o resumo.
-      expect(sheets[0].rows[0]).toEqual(['Matéria', 'Matematica']);
+      expect(sheets[0].rows[0]).toEqual(['Componente curricular', 'Matematica']);
       expect(sheets[1]).toEqual({
         name: 'Desempenho por habilidade',
         headers: [
@@ -410,7 +410,7 @@ describe('SimulatedStudentDetailsModal', () => {
       // A lista de matérias do nível 1 não viaja junto: ela já não está na tela
       // nem em memória.
       expect(sheets.map((sheet) => sheet.name)).not.toContain(
-        'Desempenho por matéria'
+        'Desempenho por componente'
       );
     });
 
@@ -426,7 +426,7 @@ describe('SimulatedStudentDetailsModal', () => {
 
       expect(sheets.map((sheet) => sheet.name)).toEqual([
         'Resumo do estudante',
-        'Desempenho por matéria',
+        'Desempenho por componente',
       ]);
       expect(sheets.map((sheet) => sheet.rows)).toEqual([[], []]);
     });
@@ -450,7 +450,7 @@ describe('SimulatedStudentDetailsModal', () => {
         screen.getByTestId('report-detail-download-btn').parentElement
       ).toHaveAttribute('data-print-hide');
       expect(
-        screen.getByLabelText('Voltar para lista de matérias')
+        screen.getByLabelText('Voltar para lista de componentes curriculares')
       ).toHaveAttribute('data-print-hide');
       // O nome da matéria ao lado do botão de voltar é conteúdo, e sai no papel.
       expect(screen.getByText('Matematica')).not.toHaveAttribute(

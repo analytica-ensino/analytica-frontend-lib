@@ -149,7 +149,7 @@ describe('SubjectsFilter', () => {
     it('renders loading message when loading is true', () => {
       render(<SubjectsFilter {...defaultProps} loading={true} />);
 
-      expect(screen.getByText('Carregando matérias...')).toBeInTheDocument();
+      expect(screen.getByText('Carregando componentes curriculares...')).toBeInTheDocument();
     });
 
     it('does not render knowledge areas when loading', () => {
@@ -163,7 +163,7 @@ describe('SubjectsFilter', () => {
 
   describe('Error state', () => {
     it('renders error message when error is provided', () => {
-      const errorMessage = 'Erro ao carregar matérias';
+      const errorMessage = 'Erro ao carregar componentes curriculares';
       render(<SubjectsFilter {...defaultProps} error={errorMessage} />);
 
       expect(screen.getByText(errorMessage)).toBeInTheDocument();
@@ -335,7 +335,7 @@ describe('SubjectsFilter', () => {
       );
 
       expect(
-        screen.queryByText('Carregando matérias...')
+        screen.queryByText('Carregando componentes curriculares...')
       ).not.toBeInTheDocument();
       expect(screen.getByText('Matemática')).toBeInTheDocument();
     });
@@ -477,13 +477,13 @@ describe('SubjectsFilter', () => {
         <SubjectsFilter {...defaultProps} loading={true} />
       );
 
-      expect(screen.getByText('Carregando matérias...')).toBeInTheDocument();
+      expect(screen.getByText('Carregando componentes curriculares...')).toBeInTheDocument();
       expect(screen.queryByText('Matemática')).not.toBeInTheDocument();
 
       rerender(<SubjectsFilter {...defaultProps} loading={false} />);
 
       expect(
-        screen.queryByText('Carregando matérias...')
+        screen.queryByText('Carregando componentes curriculares...')
       ).not.toBeInTheDocument();
       expect(screen.getByText('Matemática')).toBeInTheDocument();
     });
@@ -514,12 +514,12 @@ describe('SubjectsFilter', () => {
       onToggleAllSubjects: jest.fn(),
     };
 
-    it('renders a checkbox per subject plus the "Todas as matérias" card', () => {
+    it('renders a checkbox per subject plus the "Todos os componentes curriculares" card', () => {
       render(<SubjectsFilter {...multiProps} />);
       const checkboxes = screen.getAllByRole('checkbox');
-      // 3 subjects + "Todas as matérias"
+      // 3 subjects + "Todos os componentes curriculares"
       expect(checkboxes).toHaveLength(mockKnowledgeAreas.length + 1);
-      expect(screen.getByText('Todas as matérias')).toBeInTheDocument();
+      expect(screen.getByText('Todos os componentes curriculares')).toBeInTheDocument();
       expect(screen.getByText('Matemática')).toBeInTheDocument();
     });
 
@@ -537,20 +537,20 @@ describe('SubjectsFilter', () => {
       expect(multiProps.onToggleSubject).toHaveBeenCalledWith('physics-1');
     });
 
-    it('calls onToggleAllSubjects when "Todas as matérias" is clicked', () => {
+    it('calls onToggleAllSubjects when "Todos os componentes curriculares" is clicked', () => {
       const { container } = render(<SubjectsFilter {...multiProps} />);
       fireEvent.click(container.querySelector('#subject-all')!);
       expect(multiProps.onToggleAllSubjects).toHaveBeenCalled();
     });
 
-    it('checks "Todas as matérias" when allSubjectsSelected is true', () => {
+    it('checks "Todos os componentes curriculares" when allSubjectsSelected is true', () => {
       const { container } = render(
         <SubjectsFilter {...multiProps} allSubjectsSelected={true} />
       );
       expect(container.querySelector('#subject-all')).toBeChecked();
     });
 
-    it('marks "Todas as matérias" indeterminate on a partial selection', () => {
+    it('marks "Todos os componentes curriculares" indeterminate on a partial selection', () => {
       const { container } = render(
         <SubjectsFilter {...multiProps} selectedSubjectIds={['math-1']} />
       );
@@ -559,9 +559,9 @@ describe('SubjectsFilter', () => {
       expect(allCheckbox).toHaveAttribute('data-indeterminate', 'true');
     });
 
-    it('does not render the "Todas as matérias" card without showAllSubjectsOption', () => {
+    it('does not render the "Todos os componentes curriculares" card without showAllSubjectsOption', () => {
       render(<SubjectsFilter {...multiProps} showAllSubjectsOption={false} />);
-      expect(screen.queryByText('Todas as matérias')).not.toBeInTheDocument();
+      expect(screen.queryByText('Todos os componentes curriculares')).not.toBeInTheDocument();
       expect(screen.getAllByRole('checkbox')).toHaveLength(
         mockKnowledgeAreas.length
       );

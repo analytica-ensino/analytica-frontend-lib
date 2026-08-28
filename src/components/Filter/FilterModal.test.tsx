@@ -120,7 +120,7 @@ const mockFilterConfigs: FilterConfig[] = [
     categories: [
       {
         key: 'materia',
-        label: 'Matéria',
+        label: 'Componente curricular',
         selectedIds: [],
         itens: [
           { id: '1', name: 'Matemática' },

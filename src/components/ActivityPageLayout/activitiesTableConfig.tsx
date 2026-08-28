@@ -106,7 +106,7 @@ export const activitiesTableColumns: ColumnConfig<ActivityTableItem>[] = [
   },
   {
     key: 'subject',
-    label: 'Matéria',
+    label: 'Componente curricular',
     sortable: true,
     className: 'max-w-[140px]',
     render: (value: unknown) =>

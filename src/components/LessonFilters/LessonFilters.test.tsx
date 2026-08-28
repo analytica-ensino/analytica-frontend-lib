@@ -103,7 +103,7 @@ jest.mock('../../components/ActivityFilters/components', () => ({
     error?: string | null;
   }) => (
     <div data-testid="subjects-filter">
-      {loading && <div>Carregando matérias...</div>}
+      {loading && <div>Carregando componentes curriculares...</div>}
       {error && <div>{error}</div>}
       {knowledgeAreas.map((area) => (
         <label key={area.id}>
@@ -160,7 +160,7 @@ jest.mock('../../components/ActivityFilters/components', () => ({
       {!knowledgeStructure.loading &&
         knowledgeCategories.length === 0 &&
         knowledgeStructure.topics.length === 0 && (
-          <div>Nenhum tema disponível para as matérias selecionadas</div>
+          <div>Nenhum tema disponível para os componentes curriculares selecionados</div>
         )}
     </div>
   ),
@@ -331,7 +331,7 @@ describe('LessonFilters', () => {
   it('renders subjects filter', () => {
     renderComponent();
 
-    expect(screen.getByText('Matéria')).toBeInTheDocument();
+    expect(screen.getByText('Componente curricular')).toBeInTheDocument();
     expect(screen.getByText('Matemática')).toBeInTheDocument();
     expect(screen.getByText('Português')).toBeInTheDocument();
   });
@@ -357,7 +357,7 @@ describe('LessonFilters', () => {
     renderComponent();
 
     expect(
-      screen.getByText('Nenhum tema disponível para as matérias selecionadas')
+      screen.getByText('Nenhum tema disponível para os componentes curriculares selecionados')
     ).toBeInTheDocument();
   });
 
@@ -455,17 +455,17 @@ describe('LessonFilters', () => {
 
     renderComponent();
 
-    expect(screen.getByText('Carregando matérias...')).toBeInTheDocument();
+    expect(screen.getByText('Carregando componentes curriculares...')).toBeInTheDocument();
   });
 
   it('renders error state for subjects', () => {
     mockUseActivityFiltersDataReturn = buildMockReturn({
-      subjectsError: 'Erro ao carregar matérias',
+      subjectsError: 'Erro ao carregar componentes curriculares',
     } as unknown as typeof baseState);
 
     renderComponent();
 
-    expect(screen.getByText('Erro ao carregar matérias')).toBeInTheDocument();
+    expect(screen.getByText('Erro ao carregar componentes curriculares')).toBeInTheDocument();
   });
 
   it('renders loading state for knowledge structure', async () => {

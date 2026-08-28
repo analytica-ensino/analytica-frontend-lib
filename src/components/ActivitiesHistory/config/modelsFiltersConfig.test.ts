@@ -16,7 +16,7 @@ describe('modelsFiltersConfig', () => {
       expect(contentFilter.label).toBe('CONTEÚDO');
       expect(contentFilter.categories).toHaveLength(1);
       expect(contentFilter.categories[0].key).toBe('subject');
-      expect(contentFilter.categories[0].label).toBe('Matéria');
+      expect(contentFilter.categories[0].label).toBe('Componente curricular');
       expect(contentFilter.categories[0].selectedIds).toEqual([]);
     });
 

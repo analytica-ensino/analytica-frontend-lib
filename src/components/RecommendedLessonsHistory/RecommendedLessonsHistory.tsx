@@ -293,7 +293,7 @@ const createRecommendedClassFiltersConfig = (
     categories: [
       {
         key: 'subject',
-        label: 'Matéria',
+        label: 'Componente curricular',
         selectedIds: [],
         itens: getSubjectOptions(userData),
       },
@@ -354,7 +354,7 @@ const createTableColumns = (
   },
   {
     key: 'subject',
-    label: 'Matéria',
+    label: 'Componente curricular',
     sortable: true,
     className: 'max-w-[140px]',
     render: (value: unknown) => {

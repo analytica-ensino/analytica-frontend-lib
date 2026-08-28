@@ -53,7 +53,7 @@ export const createExamDraftsModelsFiltersConfig = (
     categories: [
       {
         key: EXAM_FILTER_CATEGORY.SUBJECT,
-        label: 'Matéria',
+        label: 'Componente curricular',
         selectedIds: [],
         itens: subjectOptions,
       },
@@ -126,7 +126,7 @@ export const createExamHistoryFiltersConfig = (options: {
     categories: [
       {
         key: EXAM_FILTER_CATEGORY.SUBJECT,
-        label: 'Matéria',
+        label: 'Componente curricular',
         selectedIds: [],
         itens: options.subjects ?? [],
       },

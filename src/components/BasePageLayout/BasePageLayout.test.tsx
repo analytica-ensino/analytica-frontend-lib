@@ -29,7 +29,7 @@ const filtersWith = (names: string[]): FilterConfig[] => [
     categories: [
       {
         key: 'subject',
-        label: 'Matéria',
+        label: 'Componente curricular',
         selectedIds: [],
         itens: names.map((name, index) => ({ id: `s${index}`, name })),
       },
@@ -165,11 +165,11 @@ describe('BasePageLayout - table state survives new filter options', () => {
     fireEvent.click(screen.getByText('Filtros'));
 
     await waitFor(() => {
-      expect(screen.getByText('Matéria')).toBeInTheDocument();
+      expect(screen.getByText('Componente curricular')).toBeInTheDocument();
     });
     expect(lastParams(onParamsChange).subject).toBeUndefined();
 
-    fireEvent.click(screen.getByText('Matéria'));
+    fireEvent.click(screen.getByText('Componente curricular'));
     fireEvent.click(screen.getByLabelText('Biologia'));
 
     await waitFor(() => {

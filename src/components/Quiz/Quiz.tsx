@@ -369,7 +369,7 @@ const QuizQuestionList = ({
               </div>
               <p className="text-text-800 font-bold text-lg">
                 {questions?.[0]?.knowledgeMatrix?.[0]?.subject?.name ??
-                  'Sem matéria'}
+                  'Sem componente curricular'}
               </p>
             </span>
 

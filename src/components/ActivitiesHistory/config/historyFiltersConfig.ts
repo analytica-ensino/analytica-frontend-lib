@@ -41,7 +41,7 @@ export const createHistoryFiltersConfig = (
     categories: [
       {
         key: 'subject',
-        label: 'Matéria',
+        label: 'Componente curricular',
         selectedIds: [],
         itens: getSubjectOptions(userData),
       },

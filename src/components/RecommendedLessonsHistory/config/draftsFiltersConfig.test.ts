@@ -20,7 +20,7 @@ describe('draftsFiltersConfig', () => {
       expect(result[0].label).toBe('CONTEÚDO');
       expect(result[0].categories).toHaveLength(1);
       expect(result[0].categories[0].key).toBe('subject');
-      expect(result[0].categories[0].label).toBe('Matéria');
+      expect(result[0].categories[0].label).toBe('Componente curricular');
       expect(result[0].categories[0].selectedIds).toEqual([]);
       expect(result[0].categories[0].itens).toHaveLength(2);
     });

@@ -99,7 +99,7 @@ describe('buildSimulatedStudentDetailsSheets', () => {
 
       expect(sheets.map((sheet) => sheet.name)).toEqual([
         'Resumo do estudante',
-        'Desempenho por matéria',
+        'Desempenho por componente',
       ]);
     });
 
@@ -184,14 +184,14 @@ describe('buildSimulatedStudentDetailsSheets', () => {
         'Matemática'
       );
 
-      expect(summary.rows[0]).toEqual(['Matéria', 'Matemática']);
+      expect(summary.rows[0]).toEqual(['Componente curricular', 'Matemática']);
       expect(summary.rows).toHaveLength(6);
     });
 
     it('não inventa a linha da matéria no nível 1', () => {
       const [summary] = buildSimulatedStudentDetailsSheets(subjectsData, null);
 
-      expect(flatten(summary)).not.toContain('Matéria');
+      expect(flatten(summary)).not.toContain('Componente curricular');
       expect(summary.rows).toHaveLength(5);
     });
 
@@ -236,8 +236,8 @@ describe('buildSimulatedStudentDetailsSheets', () => {
       );
 
       expect(subjects).toEqual({
-        name: 'Desempenho por matéria',
-        headers: ['Matéria', 'Questões', 'Acertos (%)'],
+        name: 'Desempenho por componente',
+        headers: ['Componente curricular', 'Questões', 'Acertos (%)'],
         rows: [
           // 74.6 arredondado, como o "75%" ao lado da barra.
           ['Matemática', 12, 75],
@@ -278,8 +278,8 @@ describe('buildSimulatedStudentDetailsSheets', () => {
       );
 
       expect(subjects).toEqual({
-        name: 'Desempenho por matéria',
-        headers: ['Matéria', 'Questões', 'Acertos (%)'],
+        name: 'Desempenho por componente',
+        headers: ['Componente curricular', 'Questões', 'Acertos (%)'],
         rows: [],
       });
     });
@@ -357,12 +357,12 @@ describe('buildSimulatedStudentDetailsSheets', () => {
       expect(sheets.map((sheet) => sheet.name)).toEqual([
         'Resumo do estudante',
         // Sem dado o modal está no nível em que abre, o das matérias.
-        'Desempenho por matéria',
+        'Desempenho por componente',
       ]);
       expect(sheets.map((sheet) => sheet.rows)).toEqual([[], []]);
       // Cabeçalho continua, senão a aba abre sem dizer o que era para ter ali.
       expect(sheets[0].headers).toEqual(['Indicador', 'Valor']);
-      expect(sheets[1].headers).toEqual(['Matéria', 'Questões', 'Acertos (%)']);
+      expect(sheets[1].headers).toEqual(['Componente curricular', 'Questões', 'Acertos (%)']);
     });
 
     it('data null com matéria selecionada não inventa linha de resumo', () => {

@@ -71,7 +71,7 @@ const SUMMARY_HEADERS = ['Indicador', 'Valor'];
  */
 const CONTENT_ROW_LABEL = 'Competência';
 const BNCC_ROW_LABEL = 'Código BNCC';
-const SUBJECT_ROW_LABEL = 'Matéria';
+const SUBJECT_ROW_LABEL = 'Componente curricular';
 const QUESTIONS_ROW_LABEL = 'Questões';
 const STUDENTS_ROW_LABEL = 'Alunos';
 const ABOVE_AVERAGE_ROW_LABEL = 'Acima da média';

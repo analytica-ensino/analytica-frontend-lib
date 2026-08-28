@@ -161,7 +161,7 @@ export const LessonFilters = ({
           <div>
             <div className="flex flex-row justify-between items-center mb-3">
               <Text size="sm" weight="bold">
-                Matéria
+                Componente curricular
               </Text>
             </div>
             <SubjectsFilter

@@ -66,7 +66,7 @@ export const SubjectsFilter = ({
   if (loading) {
     return (
       <Text size="sm" className="text-text-600">
-        Carregando matérias...
+        Carregando componentes curriculares...
       </Text>
     );
   }
@@ -126,7 +126,7 @@ export const SubjectsFilter = ({
                 color="text-text-600"
                 wrapperClassName="flex-1"
               >
-                Todas as matérias
+                Todos os componentes curriculares
               </TruncatedText>
             </label>
           </div>
@@ -169,7 +169,7 @@ export const SubjectsFilter = ({
                 color="text-text-600"
                 wrapperClassName="flex-1"
               >
-                Sem matéria
+                Sem componente curricular
               </TruncatedText>
             </div>
           }

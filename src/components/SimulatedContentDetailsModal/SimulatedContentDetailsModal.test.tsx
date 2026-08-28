@@ -385,7 +385,7 @@ describe('SimulatedContentDetailsModal', () => {
       expect(sheets[0].rows).toEqual([
         ['Competência', 'Leitura e interpretação'],
         ['Código BNCC', 'BNCC-001'],
-        ['Matéria', 'Linguagens'],
+        ['Componente curricular', 'Linguagens'],
         ['Questões', 18],
         ['Alunos', 12],
         ['Acima da média', 4],

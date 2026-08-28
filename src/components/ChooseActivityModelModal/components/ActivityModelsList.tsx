@@ -54,7 +54,7 @@ export const ActivityModelsList = ({
     return columnsWithoutSubject.concat([
       {
         key: 'subject',
-        label: 'Matéria',
+        label: 'Componente curricular',
         sortable: true,
         className: 'max-w-[160px]',
         render: (value: unknown) => {

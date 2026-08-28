@@ -44,7 +44,7 @@ export const KnowledgeStructureFilter = ({
         knowledgeCategories.length === 0 &&
         knowledgeStructure.topics.length === 0 && (
           <Text size="sm" className="text-text-600">
-            Nenhum tema disponível para as matérias selecionadas
+            Nenhum tema disponível para os componentes curriculares selecionados
           </Text>
         )}
     </div>

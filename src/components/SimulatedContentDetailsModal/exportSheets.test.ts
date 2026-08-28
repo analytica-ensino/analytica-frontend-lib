@@ -85,7 +85,7 @@ describe('exportSheets do SimulatedContentDetailsModal', () => {
         rows: [
           ['Competência', 'Leitura e interpretação'],
           ['Código BNCC', 'EM13LP01'],
-          ['Matéria', 'Linguagens'],
+          ['Componente curricular', 'Linguagens'],
           ['Questões', 18],
           ['Alunos', 12],
           ['Acima da média', 4],
@@ -112,7 +112,7 @@ describe('exportSheets do SimulatedContentDetailsModal', () => {
 
       expect(sheet.rows.map(([label]) => label)).not.toContain('Código BNCC');
       expect(sheet.rows[0]).toEqual(['Competência', 'Leitura e interpretação']);
-      expect(sheet.rows[1]).toEqual(['Matéria', 'Linguagens']);
+      expect(sheet.rows[1]).toEqual(['Componente curricular', 'Linguagens']);
     });
 
     it('sai só com cabeçalho quando não há dado carregado', () => {

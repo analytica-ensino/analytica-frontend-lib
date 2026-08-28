@@ -424,7 +424,7 @@ const QuizListResult = forwardRef<
         subject: {
           name:
             questions?.[0]?.knowledgeMatrix?.[0]?.subject?.name ??
-            'Sem matéria',
+            'Sem componente curricular',
           id: subjectId,
           color: questions?.[0]?.knowledgeMatrix?.[0]?.subject?.color ?? '',
           icon: questions?.[0]?.knowledgeMatrix?.[0]?.subject?.icon ?? '',
@@ -438,7 +438,7 @@ const QuizListResult = forwardRef<
 
   return (
     <section ref={ref} className={className} {...props}>
-      <p className="pt-6 pb-4 text-text-950 font-bold text-lg">Matérias</p>
+      <p className="pt-6 pb-4 text-text-950 font-bold text-lg">Componentes curriculares</p>
 
       <ul className="flex flex-col gap-2">
         {subjectsStats.map((subject) => (
@@ -492,7 +492,7 @@ const QuizListResultByMateria = ({
         <p className="text-text-950 font-bold text-2xl">
           {subjectName ||
             formattedQuestions?.[0]?.knowledgeMatrix?.[0]?.subject?.name ||
-            'Sem matéria'}
+            'Sem componente curricular'}
         </p>
       </div>
 

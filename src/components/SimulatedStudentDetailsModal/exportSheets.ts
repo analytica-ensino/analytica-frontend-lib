@@ -72,8 +72,15 @@ import {
  */
 export const SUMMARY_SHEET_NAME = 'Resumo do estudante';
 
-/** Nome da aba do nível 1: 22 caracteres. */
-export const SUBJECTS_SHEET_NAME = 'Desempenho por matéria';
+/**
+ * Nome da aba do nível 1: 25 caracteres.
+ *
+ * "componente" sozinho, e não "componente curricular" como no resto da tela:
+ * o nome por extenso daria 36 caracteres e estouraria o limite de 31 do Excel,
+ * acima do qual o arquivo INTEIRO não abre. O cabeçalho da coluna dentro da
+ * aba (`SUBJECTS_HEADERS`) continua com o termo completo.
+ */
+export const SUBJECTS_SHEET_NAME = 'Desempenho por componente';
 
 /**
  * Nome da aba do nível 2: 25 caracteres.
@@ -99,7 +106,7 @@ const SUMMARY_HEADERS = ['Indicador', 'Valor'];
  * `{school} - {class}`, porque duas colunas filtram do outro lado e o traço não
  * carrega informação.
  */
-const SUBJECT_ROW_LABEL = 'Matéria';
+const SUBJECT_ROW_LABEL = 'Componente curricular';
 const STUDENT_ROW_LABEL = 'Estudante';
 const SCHOOL_ROW_LABEL = 'Escola';
 const CLASS_ROW_LABEL = 'Turma';
@@ -110,7 +117,7 @@ const PERFORMANCE_ROW_LABEL = 'Desempenho';
  * Colunas do nível 1, na ordem em que o `SubjectItem` as desenha: nome,
  * contagem de questões, barra de percentual.
  */
-const SUBJECTS_HEADERS = ['Matéria', 'Questões', 'Acertos (%)'];
+const SUBJECTS_HEADERS = ['Componente curricular', 'Questões', 'Acertos (%)'];
 
 /**
  * Colunas do nível 2, na ordem em que o `ContentItem` as desenha: nome, código

@@ -37,7 +37,7 @@ const mockInitialConfigs: FilterConfig[] = [
     categories: [
       {
         key: 'materia',
-        label: 'Matéria',
+        label: 'Componente curricular',
         selectedIds: [],
         itens: [
           { id: '1', name: 'Matemática' },
@@ -472,7 +472,7 @@ describe('useTableFilter', () => {
           categories: [
             {
               key: 'materia',
-              label: 'Matéria',
+              label: 'Componente curricular',
               selectedIds: ['1'],
               itens: [{ id: '1', name: 'Matemática' }],
             },

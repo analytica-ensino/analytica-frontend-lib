@@ -85,7 +85,7 @@ describe('activitiesTableConfig', () => {
     it('should have subject column with correct config', () => {
       const subjectColumn = activitiesTableColumns[5];
       expect(subjectColumn.key).toBe('subject');
-      expect(subjectColumn.label).toBe('Matéria');
+      expect(subjectColumn.label).toBe('Componente curricular');
       expect(subjectColumn.sortable).toBe(true);
       expect(subjectColumn.className).toBe('max-w-[140px]');
       expect(subjectColumn.render).toBeDefined();

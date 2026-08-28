@@ -138,7 +138,7 @@ jest.mock('../../shared/ModelsTabBase/createModelsTableColumnsBase', () => ({
   createModelsTableColumnsBase: jest.fn(() => [
     { key: 'title', label: 'Título', sortable: true },
     { key: 'savedAt', label: 'Salvo em', sortable: true },
-    { key: 'subject', label: 'Matéria', sortable: true },
+    { key: 'subject', label: 'Componente curricular', sortable: true },
     { key: 'actions', label: 'Ações' },
   ]),
 }));

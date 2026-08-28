@@ -275,7 +275,7 @@ export function generateTitle(
  * @returns Title string for a multi-subject draft
  */
 export function generateMultiSubjectTitle(type: ActivityType): string {
-  return `${getActivityTypeLabel(type)} - Diversas matérias`;
+  return `${getActivityTypeLabel(type)} - Diversos componentes curriculares`;
 }
 
 /**

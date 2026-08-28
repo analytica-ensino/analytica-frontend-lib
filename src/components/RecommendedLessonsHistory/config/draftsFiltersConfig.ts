@@ -34,7 +34,7 @@ export const createRecommendedClassDraftsFiltersConfig = (
     categories: [
       {
         key: 'subject',
-        label: 'Matéria',
+        label: 'Componente curricular',
         selectedIds: [],
         itens: getSubjectOptions(userData),
       },

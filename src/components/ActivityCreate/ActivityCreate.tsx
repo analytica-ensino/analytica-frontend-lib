@@ -262,7 +262,7 @@ const CreateActivity = ({
   const handleApplyFilters = useCallback(() => {
     if (!hasRequiredSubjectIds(draftFilters?.subjectIds)) {
       addToast({
-        title: 'Selecione ao menos uma matéria para pesquisar',
+        title: 'Selecione ao menos um componente curricular para pesquisar',
         action: 'warning',
         position: 'top-right',
       });
@@ -1025,7 +1025,7 @@ const CreateActivity = ({
   const handleOpenSendModal = useCallback(async () => {
     if (!hasRequiredSubjectIds(draftFilters?.subjectIds)) {
       addToast({
-        title: 'Selecione ao menos uma matéria para pesquisar',
+        title: 'Selecione ao menos um componente curricular para pesquisar',
         action: 'warning',
         position: 'top-right',
       });

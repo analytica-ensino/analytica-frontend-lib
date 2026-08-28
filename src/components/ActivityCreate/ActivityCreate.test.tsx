@@ -1105,7 +1105,7 @@ describe('CreateActivity', () => {
       fireEvent.click(filterButton);
 
       expect(mockAddToast).toHaveBeenCalledWith({
-        title: 'Selecione ao menos uma matéria para pesquisar',
+        title: 'Selecione ao menos um componente curricular para pesquisar',
         action: 'warning',
         position: 'top-right',
       });
@@ -2062,7 +2062,7 @@ describe('CreateActivity', () => {
       // Should show toast warning
       await waitFor(() => {
         expect(mockAddToast).toHaveBeenCalledWith({
-          title: 'Selecione ao menos uma matéria para pesquisar',
+          title: 'Selecione ao menos um componente curricular para pesquisar',
           action: 'warning',
           position: 'top-right',
         });

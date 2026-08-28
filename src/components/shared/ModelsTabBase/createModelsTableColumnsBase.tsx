@@ -81,7 +81,7 @@ export const createModelsTableColumnsBase = <T extends BaseModelItem>(
   },
   {
     key: 'subject',
-    label: 'Matéria',
+    label: 'Componente curricular',
     sortable: true,
     className: 'max-w-[160px]',
     render: (value: unknown) => {
