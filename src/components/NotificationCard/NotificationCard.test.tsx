@@ -5,6 +5,7 @@ import NotificationCard, {
 } from './NotificationCard';
 import {
   NotificationEntityType,
+  NotificationEntityStatus,
   Notification,
 } from '../../types/notifications';
 import { DeviceType, useMobile } from '../../hooks/useMobile';
@@ -486,7 +487,43 @@ describe('NotificationCard', () => {
 
       expect(onNavigateById).toHaveBeenCalledWith(
         NotificationEntityType.ACTIVITY,
-        'act-1'
+        'act-1',
+        undefined
+      );
+    });
+
+    it('passes entityStatus through so the consumer can pick the screen', () => {
+      const onNavigateById = jest.fn();
+
+      render(
+        <NotificationCard
+          mode="list"
+          groupedNotifications={[
+            {
+              label: 'Hoje',
+              notifications: [
+                {
+                  ...mockNotifications[0],
+                  entityStatus: NotificationEntityStatus.CONCLUIDA,
+                },
+              ],
+            },
+          ]}
+          onMarkAsReadById={jest.fn()}
+          onDeleteById={jest.fn()}
+          onNavigateById={onNavigateById}
+          getActionLabel={() => 'Ver atividade'}
+        />
+      );
+
+      fireEvent.click(screen.getByText('Ver atividade'));
+
+      // Without this the consumer has to re-fetch the activity just to learn
+      // whether it is already finished.
+      expect(onNavigateById).toHaveBeenCalledWith(
+        NotificationEntityType.ACTIVITY,
+        'act-1',
+        NotificationEntityStatus.CONCLUIDA
       );
     });
 
@@ -1926,10 +1963,11 @@ describe('NotificationCard', () => {
       expect(actionButton).toBeInTheDocument();
       fireEvent.click(actionButton);
 
-      // Should call navigation with entityType and entityId
+      // Should call navigation with entityType, entityId and entityStatus
       expect(onNavigateById).toHaveBeenCalledWith(
         NotificationEntityType.ACTIVITY,
-        'activity-1'
+        'activity-1',
+        undefined
       );
     });
 
@@ -2024,7 +2062,8 @@ describe('NotificationCard', () => {
       // Verify that the navigation callback was executed
       expect(onNavigateById).toHaveBeenCalledWith(
         NotificationEntityType.ACTIVITY,
-        'activity-desktop-1'
+        'activity-desktop-1',
+        undefined
       );
 
       // onToggleActive should NOT be called during navigation (dropdown closes naturally)

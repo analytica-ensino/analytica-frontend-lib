@@ -60,6 +60,11 @@ export const createUseNotifications = (apiClient: NotificationApiClient) => {
               // Navigate to list since front-web detail page requires navigation state
               globalThis.location.href = `/plano/consultar`;
               break;
+            case NotificationEntityType.SIMULATION:
+              if (entityId) {
+                globalThis.location.href = `/simulados/${entityId}/resultado`;
+              }
+              break;
             default:
               break;
           }
@@ -85,6 +90,8 @@ export const createUseNotifications = (apiClient: NotificationApiClient) => {
             return 'Ver atividade';
           case NotificationEntityType.RECOMMENDEDCLASS:
             return 'Ver meta';
+          case NotificationEntityType.SIMULATION:
+            return 'Ver simulado';
           default:
             return undefined;
         }

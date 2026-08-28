@@ -7,6 +7,7 @@ import {
   BackendNotificationsResponse,
   BackendNotification,
   NotificationEntityType,
+  NotificationEntityStatus,
   NotificationType,
   NotificationApiClient,
 } from '../types/notifications';
@@ -104,6 +105,10 @@ const mapBackendNotification = (
         type = 'RECOMMENDEDCLASS';
         entityType = NotificationEntityType.RECOMMENDEDCLASS;
         break;
+      case NotificationEntityType.SIMULATION:
+        type = 'SIMULATION';
+        entityType = NotificationEntityType.SIMULATION;
+        break;
       default:
         break;
     }
@@ -118,6 +123,11 @@ const mapBackendNotification = (
     createdAt: new Date(backendNotification.createdAt),
     entityType,
     entityId: backendNotification.entityId,
+    // Kept from the payload: it is what lets a consumer send a finished
+    // activity to its result screen instead of to the quiz.
+    entityStatus:
+      (backendNotification.entityStatus as NotificationEntityStatus | null) ??
+      null,
     sender: backendNotification.sender,
     activity: backendNotification.activity,
     recommendedClass: backendNotification.recommendedClass,

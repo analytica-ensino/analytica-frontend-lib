@@ -24,7 +24,10 @@ import Text from '../Text/Text';
 import { UserIcon } from '../UserIcon/UserIcon';
 import { useMobile } from '../../hooks/useMobile';
 import { syncDropdownState } from '../../utils/dropdown';
-import { NotificationEntityType } from '../../types/notifications';
+import {
+  NotificationEntityType,
+  NotificationEntityStatus,
+} from '../../types/notifications';
 
 /**
  * Subset of session info consumed by the application header.
@@ -114,7 +117,8 @@ export interface AppHeaderProps {
   /** Callback fired when the user clicks on a notification with entity info. */
   onNavigateByNotification?: (
     entityType?: NotificationEntityType,
-    entityId?: string
+    entityId?: string,
+    entityStatus?: NotificationEntityStatus | null
   ) => void;
   /**
    * Tailwind class overriding the default `max-w-[1000px]` of the header
@@ -308,9 +312,13 @@ export const AppHeader = ({
               onRetry={notifications.refreshNotifications}
               onMarkAsReadById={notifications.markAsRead}
               onDeleteById={notifications.deleteNotification}
-              onNavigateById={(entityType, entityId) => {
+              onNavigateById={(entityType, entityId, entityStatus) => {
                 if (entityType && entityId) {
-                  onNavigateByNotification?.(entityType, entityId);
+                  onNavigateByNotification?.(
+                    entityType,
+                    entityId,
+                    entityStatus
+                  );
                 }
               }}
               getActionLabel={notifications.getActionLabel}
