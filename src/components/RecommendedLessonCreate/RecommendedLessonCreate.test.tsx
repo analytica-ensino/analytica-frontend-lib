@@ -41,6 +41,8 @@ jest.mock('../../store/lessonFiltersStore', () => ({
 
 // Mock useToastStore
 const mockAddToast = jest.fn();
+/** Receives what the onBeforeSubjectChange gate resolved to. */
+const mockSubjectChangeSettled = jest.fn();
 jest.mock('../..', () => ({
   Button: ({
     children,
@@ -336,10 +338,24 @@ jest.mock('../Menu/Menu', () => ({
 jest.mock('../LessonFilters/LessonFilters', () => ({
   LessonFilters: ({
     onFiltersChange,
+    onBeforeSubjectChange,
   }: {
     onFiltersChange: (filters: unknown) => void;
+    onBeforeSubjectChange?: (
+      nextSubjectId: string | null
+    ) => boolean | Promise<boolean>;
   }) => (
     <div data-testid="lesson-filters">
+      <button
+        data-testid="request-subject-change"
+        onClick={() =>
+          Promise.resolve(onBeforeSubjectChange?.('subject-2')).then(
+            mockSubjectChangeSettled
+          )
+        }
+      >
+        Request Subject Change
+      </button>
       <button
         data-testid="apply-filter-trigger"
         onClick={() =>
@@ -856,6 +872,241 @@ describe('RecommendedLessonCreate', () => {
       });
 
       expect(screen.getByTestId('lessons-count')).toHaveTextContent('0');
+    });
+  });
+
+  describe('subject switch confirmation', () => {
+    beforeEach(() => {
+      mockAppliedFilters = { subjectIds: ['subject-1'] };
+    });
+
+    const addLesson = async (testId = 'add-lesson-btn') => {
+      await act(async () => {
+        fireEvent.click(screen.getByTestId(testId));
+      });
+    };
+
+    const requestSubjectChange = async () => {
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('request-subject-change'));
+      });
+    };
+
+    it('allows the switch without asking when the preview is empty', async () => {
+      await renderWithDesktopLayout(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      await requestSubjectChange();
+
+      expect(mockSubjectChangeSettled).toHaveBeenCalledWith(true);
+      expect(
+        screen.queryByTestId('subject-switch-dialog')
+      ).not.toBeInTheDocument();
+    });
+
+    it('names both components and pluralizes the lesson count', async () => {
+      await renderWithDesktopLayout(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      await addLesson();
+      await addLesson('add-lesson-2-btn');
+      await requestSubjectChange();
+
+      expect(screen.getByTestId('subject-switch-dialog')).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          'A prévia tem 2 aulas de Math. Trocar de componente curricular para Portuguese vai remover todas.'
+        )
+      ).toBeInTheDocument();
+    });
+
+    it('uses the singular copy for a single lesson', async () => {
+      await renderWithDesktopLayout(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      await addLesson();
+      await requestSubjectChange();
+
+      expect(
+        screen.getByText(
+          'A prévia tem 1 aula de Math. Trocar de componente curricular para Portuguese vai remover ela.'
+        )
+      ).toBeInTheDocument();
+    });
+
+    it('omits the names when the components are unknown', async () => {
+      mockAppliedFilters = { subjectIds: ['ghost'] };
+      (mockApiClient.get as jest.Mock).mockImplementation((url: string) => {
+        if (url === 'knowledge/subjects') {
+          return Promise.resolve({ data: { data: { subjects: [] } } });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
+
+      await renderWithDesktopLayout(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      await addLesson();
+      await requestSubjectChange();
+
+      expect(
+        screen.getByText(
+          'A prévia tem 1 aula. Trocar de componente curricular vai remover ela.'
+        )
+      ).toBeInTheDocument();
+    });
+
+    it('clears the preview and allows the switch on confirm', async () => {
+      await renderWithDesktopLayout(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      await addLesson();
+      await requestSubjectChange();
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('subject-switch-confirm'));
+      });
+
+      expect(mockSubjectChangeSettled).toHaveBeenCalledWith(true);
+      expect(screen.getByTestId('lessons-count')).toHaveTextContent('0');
+    });
+
+    it('keeps the preview and refuses the switch on cancel', async () => {
+      await renderWithDesktopLayout(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      await addLesson();
+      await requestSubjectChange();
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('subject-switch-cancel'));
+      });
+
+      expect(mockSubjectChangeSettled).toHaveBeenCalledWith(false);
+      expect(screen.getByTestId('lessons-count')).toHaveTextContent('1');
+    });
+
+    it('runs the confirmation for "Limpar filtros" as well', async () => {
+      await renderWithDesktopLayout(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      await addLesson();
+      mockClearFilters.mockClear();
+
+      await act(async () => {
+        fireEvent.click(screen.getByText('Limpar filtros'));
+      });
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('subject-switch-cancel'));
+      });
+
+      expect(mockClearFilters).not.toHaveBeenCalled();
+      expect(screen.getByTestId('lessons-count')).toHaveTextContent('1');
+
+      await act(async () => {
+        fireEvent.click(screen.getByText('Limpar filtros'));
+      });
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('subject-switch-confirm'));
+      });
+
+      expect(mockClearFilters).toHaveBeenCalledTimes(1);
+      expect(screen.getByTestId('lessons-count')).toHaveTextContent('0');
+    });
+  });
+
+  describe('legacy multi-subject drafts', () => {
+    const renderWithDraftFilters = async (subjects: string[]) => {
+      (mockApiClient.get as jest.Mock).mockImplementation((url: string) => {
+        if (url === 'knowledge/subjects') {
+          return Promise.resolve({
+            data: {
+              data: {
+                subjects: [
+                  { id: 'subject-1', name: 'Math' },
+                  { id: 'subject-2', name: 'Portuguese' },
+                ],
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
+
+      return renderWithDesktopLayout(
+        <RecommendedLessonCreate
+          {...defaultProps}
+          preFilters={{ subjects, topics: [], subtopics: [], contents: [] }}
+        />
+      );
+    };
+
+    it('warns once that only the first component was kept', async () => {
+      const { rerender } = await renderWithDraftFilters([
+        'subject-1',
+        'subject-2',
+      ]);
+
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            title: 'Este rascunho tinha mais de um componente curricular',
+            description:
+              'Mantivemos apenas Math. Uma aula recomendada só pode ter aulas de um componente curricular.',
+            action: 'warning',
+          })
+        );
+      });
+
+      // Re-running the effect with the same subjects must not nag the user
+      // again — a fresh preFilters identity is enough to re-trigger it.
+      await act(async () => {
+        rerender(
+          <RecommendedLessonCreate
+            {...defaultProps}
+            preFilters={{
+              subjects: ['subject-1', 'subject-2'],
+              topics: [],
+              subtopics: [],
+              contents: [],
+            }}
+          />
+        );
+      });
+
+      const warnings = mockAddToast.mock.calls.filter(
+        ([toast]) =>
+          toast.title === 'Este rascunho tinha mais de um componente curricular'
+      );
+      expect(warnings).toHaveLength(1);
+    });
+
+    it('falls back to "a primeira" when the component is unknown', async () => {
+      await renderWithDraftFilters(['ghost-1', 'ghost-2']);
+
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            description:
+              'Mantivemos apenas a primeira. Uma aula recomendada só pode ter aulas de um componente curricular.',
+          })
+        );
+      });
+    });
+
+    it('does not warn for a single-subject draft', async () => {
+      await renderWithDraftFilters(['subject-1']);
+
+      expect(mockAddToast).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Este rascunho tinha mais de um componente curricular',
+        })
+      );
     });
   });
 
@@ -2093,6 +2344,18 @@ describe('RecommendedLessonCreate', () => {
       );
 
       expect(screen.getByTestId('menu-overflow-wrapper')).toBeInTheDocument();
+    });
+
+    it('wires the subject switch gate on small screen too', async () => {
+      await renderWithSmallScreen(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('request-subject-change'));
+      });
+
+      expect(mockSubjectChangeSettled).toHaveBeenCalledWith(true);
     });
 
     it('should show filters view by default on small screen', async () => {

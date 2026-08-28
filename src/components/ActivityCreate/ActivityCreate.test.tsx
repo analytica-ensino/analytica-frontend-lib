@@ -97,16 +97,30 @@ jest.mock('../ActivityFilters/ActivityFilters', () => ({
     apiClient: _apiClient,
     institutionId: _institutionId,
     initialFilters,
+    onBeforeSubjectChange,
   }: {
     onFiltersChange?: (filters: ActivityFiltersData) => void;
     apiClient: BaseApiClient;
     institutionId: string;
     initialFilters?: ActivityFiltersData | null;
+    onBeforeSubjectChange?: (
+      nextSubjectId: string | null
+    ) => boolean | Promise<boolean>;
   }) => (
     <div
       data-testid="activity-filters"
       data-initial-filters={JSON.stringify(initialFilters || {})}
     >
+      <button
+        data-testid="request-subject-change"
+        onClick={() =>
+          Promise.resolve(onBeforeSubjectChange?.('subject2')).then(
+            mockSubjectChangeSettled
+          )
+        }
+      >
+        Request Subject Change
+      </button>
       <button
         data-testid="trigger-filters-change"
         onClick={() =>
@@ -148,6 +162,7 @@ jest.mock('../ActivityFilters/ActivityFilters', () => ({
     apiClient: _apiClient,
     institutionId: _institutionId,
     triggerLabel,
+    onBeforeSubjectChange,
   }: {
     onFiltersChange?: (filters: ActivityFiltersData) => void;
     onApplyFilters?: () => void;
@@ -155,9 +170,22 @@ jest.mock('../ActivityFilters/ActivityFilters', () => ({
     apiClient: BaseApiClient;
     institutionId: string;
     triggerLabel?: string;
+    onBeforeSubjectChange?: (
+      nextSubjectId: string | null
+    ) => boolean | Promise<boolean>;
   }) => (
     <div data-testid="activity-filters-popover">
       <button data-testid="filters-popover-trigger">{triggerLabel}</button>
+      <button
+        data-testid="request-subject-change-popover"
+        onClick={() =>
+          Promise.resolve(onBeforeSubjectChange?.('subject2')).then(
+            mockSubjectChangeSettled
+          )
+        }
+      >
+        Request Subject Change
+      </button>
       <button
         data-testid="trigger-filters-change-popover"
         onClick={() =>
@@ -334,6 +362,12 @@ jest.mock('../ActivityListQuestions/ActivityListQuestions', () => ({
         onClick={() => onAddQuestion(createMockQuestion())}
       >
         Add Question
+      </button>
+      <button
+        data-testid="add-question-2"
+        onClick={() => onAddQuestion(createMockQuestion({ id: 'q2' }))}
+      >
+        Add Second Question
       </button>
       <div data-testid="added-ids">{addedQuestionIds.join(',')}</div>
     </div>
@@ -679,6 +713,8 @@ const mockSetDraftFilters = jest.fn();
 const mockClearFilters = jest.fn();
 const mockLoadKnowledgeAreas = jest.fn();
 const mockAddToast = jest.fn();
+/** Receives what the onBeforeSubjectChange gate resolved to. */
+const mockSubjectChangeSettled = jest.fn();
 
 let mockDraftFilters: ActivityFiltersData | null = null;
 let mockAppliedFilters: ActivityFiltersData | null = null;
@@ -1245,6 +1281,291 @@ describe('CreateActivity', () => {
       fireEvent.click(screen.getByTestId('add-question'));
 
       expect(screen.getByTestId('added-ids')).toHaveTextContent('q1');
+    });
+  });
+
+  describe('Subject switch confirmation', () => {
+    beforeEach(() => {
+      mockAppliedFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['subject1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+    });
+
+    it('allows the switch without asking when the preview is empty', async () => {
+      render(<CreateActivity {...defaultProps} />);
+
+      fireEvent.click(screen.getByTestId('request-subject-change'));
+
+      await waitFor(() => {
+        expect(mockSubjectChangeSettled).toHaveBeenCalledWith(true);
+      });
+      expect(
+        screen.queryByTestId('alert-dialog-overlay')
+      ).not.toBeInTheDocument();
+    });
+
+    it('names both components and pluralizes the question count', async () => {
+      render(<CreateActivity {...defaultProps} />);
+
+      fireEvent.click(screen.getByTestId('add-question'));
+      fireEvent.click(screen.getByTestId('add-question-2'));
+      fireEvent.click(screen.getByTestId('request-subject-change'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('alert-dialog-overlay')).toBeInTheDocument();
+      });
+      expect(
+        screen.getByText(
+          'A prévia tem 2 questões de Matemática. Trocar de componente curricular para Português vai remover todas.'
+        )
+      ).toBeInTheDocument();
+    });
+
+    it('uses the singular copy for a single question', async () => {
+      render(<CreateActivity {...defaultProps} />);
+
+      fireEvent.click(screen.getByTestId('add-question'));
+      fireEvent.click(screen.getByTestId('request-subject-change'));
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            'A prévia tem 1 questão de Matemática. Trocar de componente curricular para Português vai remover ela.'
+          )
+        ).toBeInTheDocument();
+      });
+    });
+
+    it('omits the names when the components are unknown', async () => {
+      mockAppliedFilters = {
+        types: [],
+        bankIds: [],
+        yearIds: [],
+        subjectIds: ['unknown-subject'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+      const originalAreas = mockUseActivityFiltersDataReturn.knowledgeAreas;
+      mockUseActivityFiltersDataReturn.knowledgeAreas = [];
+
+      render(<CreateActivity {...defaultProps} />);
+
+      fireEvent.click(screen.getByTestId('add-question'));
+      fireEvent.click(screen.getByTestId('request-subject-change'));
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            'A prévia tem 1 questão. Trocar de componente curricular vai remover ela.'
+          )
+        ).toBeInTheDocument();
+      });
+
+      mockUseActivityFiltersDataReturn.knowledgeAreas = originalAreas;
+    });
+
+    it('clears the preview and allows the switch on confirm', async () => {
+      render(<CreateActivity {...defaultProps} />);
+
+      fireEvent.click(screen.getByTestId('add-question'));
+      fireEvent.click(screen.getByTestId('request-subject-change'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('alert-dialog-overlay')).toBeInTheDocument();
+      });
+      fireEvent.click(screen.getByText('Remover e trocar'));
+
+      await waitFor(() => {
+        expect(mockSubjectChangeSettled).toHaveBeenCalledWith(true);
+      });
+      expect(screen.getByTestId('questions-count')).toHaveTextContent('0');
+      expect(
+        screen.queryByTestId('alert-dialog-overlay')
+      ).not.toBeInTheDocument();
+    });
+
+    it('keeps the preview and refuses the switch on cancel', async () => {
+      render(<CreateActivity {...defaultProps} />);
+
+      fireEvent.click(screen.getByTestId('add-question'));
+      fireEvent.click(screen.getByTestId('request-subject-change'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('alert-dialog-overlay')).toBeInTheDocument();
+      });
+      fireEvent.click(screen.getByText('Cancelar'));
+
+      await waitFor(() => {
+        expect(mockSubjectChangeSettled).toHaveBeenCalledWith(false);
+      });
+      expect(screen.getByTestId('questions-count')).toHaveTextContent('1');
+    });
+
+    it('runs the confirmation for "Limpar filtros" as well', async () => {
+      render(<CreateActivity {...defaultProps} />);
+
+      fireEvent.click(screen.getByTestId('add-question'));
+      mockClearFilters.mockClear();
+      fireEvent.click(screen.getByText('Limpar filtros'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('alert-dialog-overlay')).toBeInTheDocument();
+      });
+      fireEvent.click(screen.getByText('Cancelar'));
+
+      // Refused: the filters (and the subject) stay untouched.
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId('alert-dialog-overlay')
+        ).not.toBeInTheDocument();
+      });
+      expect(mockClearFilters).not.toHaveBeenCalled();
+      expect(screen.getByTestId('questions-count')).toHaveTextContent('1');
+
+      fireEvent.click(screen.getByText('Limpar filtros'));
+      await waitFor(() => {
+        expect(screen.getByTestId('alert-dialog-overlay')).toBeInTheDocument();
+      });
+      fireEvent.click(screen.getByText('Remover e trocar'));
+
+      await waitFor(() => {
+        expect(mockClearFilters).toHaveBeenCalledTimes(1);
+      });
+      expect(screen.getByTestId('questions-count')).toHaveTextContent('0');
+    });
+
+    it('runs the gate from the small screen layout too', async () => {
+      Object.defineProperty(globalThis, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 800,
+      });
+
+      render(<CreateActivity {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('request-subject-change-popover')
+        ).toBeInTheDocument();
+      });
+      fireEvent.click(screen.getByTestId('request-subject-change-popover'));
+
+      await waitFor(() => {
+        expect(mockSubjectChangeSettled).toHaveBeenCalledWith(true);
+      });
+
+      Object.defineProperty(globalThis, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 1920,
+      });
+    });
+  });
+
+  describe('Legacy multi-subject drafts', () => {
+    it('warns once that only the first component was kept', async () => {
+      mockParams.id = 'draft-multi';
+      mockApiClient.get = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            id: 'draft-multi',
+            type: ActivityType.RASCUNHO,
+            title: 'Rascunho',
+            subjectId: 'subject1',
+            questionIds: [],
+            filters: { subjects: ['subject1', 'subject2'] },
+          },
+        },
+      });
+
+      const { rerender } = render(<CreateActivity {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            title: 'Este rascunho tinha mais de um componente curricular',
+            description:
+              'Mantivemos apenas Matemática. Uma atividade só pode ter questões de um componente curricular.',
+            action: 'warning',
+          })
+        );
+      });
+
+      // Re-running the effect with the same subjects must not nag the user
+      // again — a new knowledgeAreas identity is enough to re-trigger it.
+      mockUseActivityFiltersDataReturn.knowledgeAreas = [
+        ...mockUseActivityFiltersDataReturn.knowledgeAreas,
+      ];
+      rerender(<CreateActivity {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('activity-filters')).toBeInTheDocument();
+      });
+      const warnings = mockAddToast.mock.calls.filter(
+        ([toast]) =>
+          toast.title === 'Este rascunho tinha mais de um componente curricular'
+      );
+      expect(warnings).toHaveLength(1);
+    });
+
+    it('falls back to "a primeira" when the component is unknown', async () => {
+      mockParams.id = 'draft-multi-unknown';
+      mockApiClient.get = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            id: 'draft-multi-unknown',
+            type: ActivityType.RASCUNHO,
+            title: 'Rascunho',
+            questionIds: [],
+            filters: { subjects: ['ghost-1', 'ghost-2'] },
+          },
+        },
+      });
+
+      render(<CreateActivity {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            description:
+              'Mantivemos apenas a primeira. Uma atividade só pode ter questões de um componente curricular.',
+          })
+        );
+      });
+    });
+
+    it('does not warn for a single-subject draft', async () => {
+      mockParams.id = 'draft-single';
+      mockApiClient.get = jest.fn().mockResolvedValue({
+        data: {
+          data: {
+            id: 'draft-single',
+            type: ActivityType.RASCUNHO,
+            title: 'Rascunho',
+            subjectId: 'subject1',
+            questionIds: [],
+            filters: { subjects: ['subject1'] },
+          },
+        },
+      });
+
+      render(<CreateActivity {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('activity-filters')).toBeInTheDocument();
+      });
+      expect(mockAddToast).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Este rascunho tinha mais de um componente curricular',
+        })
+      );
     });
   });
 

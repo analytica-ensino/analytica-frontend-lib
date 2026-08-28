@@ -105,6 +105,14 @@ jest.mock('../../components/ActivityFilters/components', () => ({
     <div data-testid="subjects-filter">
       {loading && <div>Carregando componentes curriculares...</div>}
       {error && <div>{error}</div>}
+      {/* Re-picking the selected subject: a controlled radio won't fire
+          onChange when it is already checked, so expose it explicitly. */}
+      <button
+        data-testid="repick-selected-subject"
+        onClick={() => selectedSubject && onSubjectChange(selectedSubject)}
+      >
+        Repick
+      </button>
       {knowledgeAreas.map((area) => (
         <label key={area.id}>
           <input
@@ -206,7 +214,13 @@ jest.mock('../../components/CheckBoxGroup/CheckBoxGroup', () => ({
 }));
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from '@testing-library/react';
 import { LessonFilters } from './LessonFilters';
 import type { LessonFiltersData } from '../../types/lessonFilters';
 
@@ -641,6 +655,26 @@ describe('LessonFilters', () => {
       expect(mockOnFiltersChange).not.toHaveBeenCalledWith(
         expect.objectContaining({ subjectIds: ['subject1'] })
       );
+    });
+
+    it('skips the gate when the same subject is picked again', async () => {
+      const onBeforeSubjectChange = jest.fn().mockResolvedValue(true);
+      renderComponent({ onBeforeSubjectChange });
+
+      fireEvent.click(screen.getByLabelText(/Matemática/i));
+      // Wait for the pick to actually land before re-picking it.
+      await waitFor(() =>
+        expect(screen.getByText('Limpar')).toBeInTheDocument()
+      );
+      expect(onBeforeSubjectChange).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('repick-selected-subject'));
+      });
+
+      // Nothing changes, so there is nothing to confirm.
+      expect(onBeforeSubjectChange).toHaveBeenCalledTimes(1);
+      expect(screen.getByText('Limpar')).toBeInTheDocument();
     });
 
     it('applies the change when the gate allows it', async () => {

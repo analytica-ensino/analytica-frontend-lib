@@ -118,6 +118,7 @@ import {
   fireEvent,
   waitFor,
   within,
+  act,
 } from '@testing-library/react';
 import { ActivityFilters, ActivityFiltersPopover } from './ActivityFilters';
 import { QUESTION_TYPE } from '../../components/Quiz/useQuizStore';
@@ -523,6 +524,25 @@ describe('ActivityFilters', () => {
       expect(onFiltersChange).not.toHaveBeenCalledWith(
         expect.objectContaining({ subjectIds: ['subject1'] })
       );
+    });
+
+    it('skips the gate when the same subject is picked again', async () => {
+      const onBeforeSubjectChange = jest.fn().mockResolvedValue(true);
+      renderComponent({ onBeforeSubjectChange });
+
+      pickSubject('Matemática');
+      // Wait for the pick to actually land before re-picking it.
+      await waitFor(() =>
+        expect(screen.getByText('Limpar')).toBeInTheDocument()
+      );
+      expect(onBeforeSubjectChange).toHaveBeenCalledTimes(1);
+
+      pickSubject('Matemática');
+      // Flush the async gate so a second call would have been recorded.
+      await act(async () => {});
+
+      // Nothing changes, so there is nothing to confirm.
+      expect(onBeforeSubjectChange).toHaveBeenCalledTimes(1);
     });
 
     it('applies the change when the gate allows it', async () => {
