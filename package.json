@@ -18,8 +18,8 @@
     "./print.css": "./dist/print.css"
   },
   "scripts": {
-    "lint": "npx eslint \"{src,app}/**/*.{js,jsx,ts,tsx}\"",
-    "lint:fix": "npx eslint \"{src,app}/**/*.{js,jsx,ts,tsx}\" --fix",
+    "lint": "npx eslint \"{src,app}/**/*.{js,jsx,ts,tsx}\" --fix",
+    "lint:ci": "npx eslint \"{src,app}/**/*.{js,jsx,ts,tsx}\"",
     "typecheck": "npx tsc --noEmit",
     "prepare": "husky install",
     "test": "jest --coverage",
