@@ -1359,7 +1359,7 @@ describe('CreateActivity', () => {
       });
     });
 
-    it('omits subjectId when multiple subjects are selected', async () => {
+    it('keeps the first subject of a legacy multi-subject draft', async () => {
       mockAppliedFilters = {
         types: [],
         bankIds: [],
@@ -1405,10 +1405,10 @@ describe('CreateActivity', () => {
       const draftCall = (mockApiClient.post as jest.Mock).mock.calls.find(
         (call) => call[0] === '/activity-drafts'
       );
-      // Multi-subject drafts must not send a single subjectId (backend would
-      // reject questions from other subjects), but keep every subject in filters.
-      expect(draftCall?.[1]).toHaveProperty('subjectId', undefined);
-      expect(draftCall?.[1].filters.subjects).toEqual(['subject1', 'subject2']);
+      // An activity is bound to one subject; a legacy draft that carries more
+      // falls back to the first one instead of saving without a subject.
+      expect(draftCall?.[1]).toHaveProperty('subjectId', 'subject1');
+      expect(draftCall?.[1].title).toBe('Rascunho - Matemática');
     });
 
     it('should update existing draft when draftId exists in URL', async () => {

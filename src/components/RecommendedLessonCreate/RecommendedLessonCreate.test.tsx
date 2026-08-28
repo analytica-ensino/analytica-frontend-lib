@@ -71,6 +71,35 @@ jest.mock('../..', () => ({
     <div data-testid="skeleton-text" data-lines={lines} data-width={width} />
   ),
   Divider: () => <hr data-testid="divider" />,
+  AlertDialog: ({
+    isOpen,
+    title,
+    description,
+    cancelButtonLabel,
+    submitButtonLabel,
+    onCancel,
+    onSubmit,
+  }: {
+    isOpen: boolean;
+    title: string;
+    description: string;
+    cancelButtonLabel?: string;
+    submitButtonLabel?: string;
+    onCancel?: () => void;
+    onSubmit?: () => void;
+  }) =>
+    isOpen ? (
+      <div data-testid="subject-switch-dialog">
+        <h2>{title}</h2>
+        <p>{description}</p>
+        <button data-testid="subject-switch-cancel" onClick={onCancel}>
+          {cancelButtonLabel}
+        </button>
+        <button data-testid="subject-switch-confirm" onClick={onSubmit}>
+          {submitButtonLabel}
+        </button>
+      </div>
+    ) : null,
   CategoryConfig: {},
   useToastStore: (selector: (state: { addToast: jest.Mock }) => unknown) =>
     selector({ addToast: mockAddToast }),

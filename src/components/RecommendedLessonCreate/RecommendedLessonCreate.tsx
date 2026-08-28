@@ -9,6 +9,7 @@ import {
   SendLessonModal,
   SaveActivityModelModal,
   Divider,
+  AlertDialog,
 } from '../..';
 import type { ActivityModelTableItem } from '../../types/activitiesHistory';
 import { ActivityType } from '../ActivityCreate/ActivityCreate.types';
@@ -18,6 +19,7 @@ import type { LessonFiltersData } from '../../types/lessonFilters';
 import type { Lesson } from '../../types/lessons';
 import type { SendLessonFormData } from '../SendLessonModal';
 import { LessonFilters } from '../LessonFilters/LessonFilters';
+import { useSubjectSwitchConfirm } from '../ActivityFilters/utils';
 import {
   LessonBank,
   type LessonFilters as LessonBankFilters,
@@ -185,11 +187,47 @@ const RecommendedLessonCreate = ({
     });
   }, [applyFilters, addToast]);
 
-  const handleClearFilters = useCallback(() => {
+  /**
+   * Handle removing all lessons
+   */
+  const handleRemoveAll = useCallback(() => {
+    setLessons([]);
+  }, []);
+
+  const getSubjectName = useCallback(
+    (subjectId: string | null | undefined) =>
+      knowledgeAreas.find((area) => area.id === subjectId)?.name ?? null,
+    [knowledgeAreas]
+  );
+
+  // A recommended class holds lessons from a single subject, so swapping the
+  // subject has to discard whatever is already in the preview.
+  const { requestSubjectChange, alertDialogProps } = useSubjectSwitchConfirm({
+    itemCount: lessons.length,
+    onConfirmClear: handleRemoveAll,
+    buildDescription: (nextSubjectId) => {
+      const currentName = getSubjectName(appliedFilters?.subjectIds?.[0]);
+      const nextName = getSubjectName(nextSubjectId);
+      const countLabel =
+        lessons.length === 1 ? '1 aula' : `${lessons.length} aulas`;
+      const from = currentName ? ` de ${currentName}` : '';
+      const to = nextName ? ` para ${nextName}` : '';
+
+      return `A prévia tem ${countLabel}${from}. Trocar de componente curricular${to} vai remover ${lessons.length === 1 ? 'ela' : 'todas'}.`;
+    },
+  });
+
+  const handleClearFilters = useCallback(async () => {
+    // Clearing the filters wipes the subject too, so it goes through the same
+    // confirmation as picking a different one.
+    if (!(await requestSubjectChange(null))) {
+      return;
+    }
+
     clearFilters();
     // Force re-render of LessonFilters component by changing key
     setFiltersKey((prev) => prev + 1);
-  }, [clearFilters]);
+  }, [clearFilters, requestSubjectChange]);
 
   /**
    * Handle back button click - resets everything before calling onBack
@@ -442,6 +480,33 @@ const RecommendedLessonCreate = ({
   useEffect(() => {
     hasAppliedInitialFiltersRef.current = false;
   }, [recommendedLesson?.id, recommendedLesson?.filters, resolvedPreFilters]);
+
+  /**
+   * Drafts and models saved before the single-subject rule can carry several
+   * subjects. LessonFilters keeps the first one — tell the user about it.
+   */
+  const warnedMultiSubjectRef = useRef<string | null>(null);
+  useEffect(() => {
+    const subjectIds = initialFiltersData?.subjectIds ?? [];
+    if (subjectIds.length < 2 || knowledgeAreas.length === 0) {
+      return;
+    }
+
+    const key = subjectIds.join(',');
+    if (warnedMultiSubjectRef.current === key) {
+      return;
+    }
+    warnedMultiSubjectRef.current = key;
+
+    const keptName = getSubjectName(subjectIds[0]);
+    addToast({
+      title: 'Este rascunho tinha mais de um componente curricular',
+      description: `Mantivemos apenas ${keptName ?? 'a primeira'}. Uma aula recomendada só pode ter aulas de um componente curricular.`,
+      variant: 'solid',
+      action: 'warning',
+      position: 'top-right',
+    });
+  }, [initialFiltersData, knowledgeAreas, getSubjectName, addToast]);
 
   /**
    * Update preFilters when prop changes
@@ -1035,13 +1100,6 @@ const RecommendedLessonCreate = ({
   }, []);
 
   /**
-   * Handle removing all lessons
-   */
-  const handleRemoveAll = useCallback(() => {
-    setLessons([]);
-  }, []);
-
-  /**
    * Handle removing a single lesson
    */
   const handleRemoveLesson = useCallback((lessonId: string) => {
@@ -1322,6 +1380,7 @@ const RecommendedLessonCreate = ({
                     initialFilters={initialFiltersData || undefined}
                     onClearFilters={handleClearFilters}
                     onApplyFilters={handleApplyFilters}
+                    onBeforeSubjectChange={requestSubjectChange}
                   />
                 </div>
                 <div className="flex-shrink-0 grid grid-cols-2 gap-2">
@@ -1401,6 +1460,7 @@ const RecommendedLessonCreate = ({
                 initialFilters={initialFiltersData || undefined}
                 onClearFilters={handleClearFilters}
                 onApplyFilters={handleApplyFilters}
+                onBeforeSubjectChange={requestSubjectChange}
               />
             </div>
             <div className="flex-shrink-0 grid grid-cols-2 gap-2">
@@ -1466,6 +1526,9 @@ const RecommendedLessonCreate = ({
           </div>
         </div>
       )}
+
+      {/* Confirmação ao trocar de componente curricular com aulas na prévia */}
+      <AlertDialog {...alertDialogProps} />
 
       {/* Save Lesson Model Modal */}
       <SaveActivityModelModal

@@ -112,7 +112,13 @@ jest.mock('../../components/Support', () => ({}));
 jest.mock('../../assets/img/suporthistory.png', () => 'supporthistory.png');
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import { ActivityFilters, ActivityFiltersPopover } from './ActivityFilters';
 import { QUESTION_TYPE } from '../../components/Quiz/useQuizStore';
 import type { BaseApiClient } from '../../types/api';
@@ -228,6 +234,12 @@ const renderComponent = (
     />
   );
 
+/** Opens the subjects dropdown and clicks the option with the given name. */
+const pickSubject = (name: string) => {
+  fireEvent.click(screen.getByTestId('subjects-filter-trigger'));
+  fireEvent.click(within(screen.getByRole('menu')).getByText(name));
+};
+
 // Always restore the real getSelectedIdsFromCategories after each test so the
 // per-test override below never leaks into other suites.
 afterEach(() => {
@@ -253,7 +265,9 @@ describe('ActivityFilters', () => {
 
     expect(screen.getByText('Banca 1')).toBeInTheDocument();
     expect(screen.getByText('Banca 2')).toBeInTheDocument();
-    // Subjects appear twice (label + tooltip content) — use getAllByText
+
+    // Subjects live inside a single-select dropdown, closed by default.
+    fireEvent.click(screen.getByTestId('subjects-filter-trigger'));
     expect(screen.getAllByText('Matemática').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Português').length).toBeGreaterThan(0);
   });
@@ -404,6 +418,147 @@ describe('ActivityFilters', () => {
 
     expect(onClearFilters).toHaveBeenCalledTimes(1);
     expect(onApplyFilters).toHaveBeenCalledTimes(1);
+  });
+
+  describe('Single subject selection', () => {
+    it('emits the picked subject as a single-item list', async () => {
+      const onFiltersChange = jest.fn();
+      renderComponent({ onFiltersChange });
+
+      pickSubject('Matemática');
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({ subjectIds: ['subject1'] })
+        );
+      });
+    });
+
+    it('replaces the selection instead of accumulating', async () => {
+      const onFiltersChange = jest.fn();
+      renderComponent({ onFiltersChange });
+
+      pickSubject('Matemática');
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({ subjectIds: ['subject1'] })
+        );
+      });
+
+      pickSubject('Português');
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({ subjectIds: ['subject2'] })
+        );
+      });
+    });
+
+    it('only shows tema/subtema/assunto once a subject is selected', async () => {
+      renderComponent();
+
+      expect(
+        screen.queryByText('Tema, Subtema e Assunto')
+      ).not.toBeInTheDocument();
+
+      pickSubject('Matemática');
+
+      await waitFor(() => {
+        expect(screen.getByText('Tema, Subtema e Assunto')).toBeInTheDocument();
+      });
+    });
+
+    it('clears the subject through the "Limpar" button', async () => {
+      const onFiltersChange = jest.fn();
+      renderComponent({ onFiltersChange });
+
+      pickSubject('Matemática');
+      await waitFor(() =>
+        expect(screen.getByText('Limpar')).toBeInTheDocument()
+      );
+
+      fireEvent.click(screen.getByText('Limpar'));
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({ subjectIds: [] })
+        );
+      });
+      expect(screen.queryByText('Limpar')).not.toBeInTheDocument();
+    });
+
+    it('keeps only the first subject of a legacy multi-subject draft', async () => {
+      const onFiltersChange = jest.fn();
+      renderComponent({
+        onFiltersChange,
+        initialFilters: {
+          types: [],
+          bankIds: [],
+          yearIds: [],
+          subjectIds: ['subject1', 'subject2'],
+          topicIds: [],
+          subtopicIds: [],
+          contentIds: [],
+        },
+      });
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({ subjectIds: ['subject1'] })
+        );
+      });
+    });
+  });
+
+  describe('onBeforeSubjectChange gate', () => {
+    it('aborts the change when the gate refuses', async () => {
+      const onFiltersChange = jest.fn();
+      const onBeforeSubjectChange = jest.fn().mockResolvedValue(false);
+      renderComponent({ onFiltersChange, onBeforeSubjectChange });
+
+      pickSubject('Matemática');
+
+      await waitFor(() => {
+        expect(onBeforeSubjectChange).toHaveBeenCalledWith('subject1');
+      });
+      expect(onFiltersChange).not.toHaveBeenCalledWith(
+        expect.objectContaining({ subjectIds: ['subject1'] })
+      );
+    });
+
+    it('applies the change when the gate allows it', async () => {
+      const onFiltersChange = jest.fn();
+      const onBeforeSubjectChange = jest.fn().mockResolvedValue(true);
+      renderComponent({ onFiltersChange, onBeforeSubjectChange });
+
+      pickSubject('Matemática');
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({ subjectIds: ['subject1'] })
+        );
+      });
+    });
+
+    it('runs the gate for the "Limpar" button too', async () => {
+      const onBeforeSubjectChange = jest
+        .fn()
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
+      renderComponent({ onBeforeSubjectChange });
+
+      pickSubject('Matemática');
+      await waitFor(() =>
+        expect(screen.getByText('Limpar')).toBeInTheDocument()
+      );
+
+      fireEvent.click(screen.getByText('Limpar'));
+
+      await waitFor(() => {
+        expect(onBeforeSubjectChange).toHaveBeenLastCalledWith(null);
+      });
+      // Refused, so the subject stays selected.
+      expect(screen.getByText('Limpar')).toBeInTheDocument();
+    });
   });
 
   describe('Initial bank and year filters', () => {

@@ -13,6 +13,7 @@ import {
   Modal,
   Text,
   QUESTION_TYPE,
+  AlertDialog,
 } from '../..';
 import type {
   ActivityFiltersData,
@@ -43,7 +44,6 @@ import { TextAlignLeftIcon } from '@phosphor-icons/react/dist/csr/TextAlignLeft'
 import {
   convertFiltersToBackendFormat,
   generateTitle,
-  generateMultiSubjectTitle,
   convertQuestionToPreview,
   getTypeFromUrl,
   getTypeFromUrlString,
@@ -74,6 +74,7 @@ import {
   shouldUseCustomAddActivityCallback,
   shouldAddActivityToLessonDraft,
 } from './ActivityCreate.utils';
+import { useSubjectSwitchConfirm } from '../ActivityFilters/utils';
 import { ActivityCreateSkeleton } from './components/ActivityCreateSkeleton';
 import { ActivityCreateHeader } from './components/ActivityCreateHeader';
 import {
@@ -339,13 +340,76 @@ const CreateActivity = ({
   );
 
   /**
+   * Handle removing all questions
+   */
+  const handleRemoveAll = useCallback(() => {
+    setQuestions([]);
+  }, []);
+
+  const getSubjectName = useCallback(
+    (subjectId: string | null | undefined) =>
+      knowledgeAreas.find((area) => area.id === subjectId)?.name ?? null,
+    [knowledgeAreas]
+  );
+
+  // An activity holds questions from a single subject, so swapping the subject
+  // has to discard whatever is already in the preview.
+  const { requestSubjectChange, alertDialogProps } = useSubjectSwitchConfirm({
+    itemCount: questions.length,
+    onConfirmClear: handleRemoveAll,
+    buildDescription: (nextSubjectId) => {
+      const currentName = getSubjectName(appliedFilters?.subjectIds?.[0]);
+      const nextName = getSubjectName(nextSubjectId);
+      const countLabel =
+        questions.length === 1 ? '1 questão' : `${questions.length} questões`;
+      const from = currentName ? ` de ${currentName}` : '';
+      const to = nextName ? ` para ${nextName}` : '';
+
+      return `A prévia tem ${countLabel}${from}. Trocar de componente curricular${to} vai remover ${questions.length === 1 ? 'ela' : 'todas'}.`;
+    },
+  });
+
+  /**
    * Handle clear filters button click - clears all filters and forces re-render
    */
-  const handleClearFilters = useCallback(() => {
+  const handleClearFilters = useCallback(async () => {
+    // Clearing the filters wipes the subject too, so it goes through the same
+    // confirmation as picking a different one.
+    if (!(await requestSubjectChange(null))) {
+      return;
+    }
+
     clearFilters();
     // Force re-render of ActivityFilters component by changing key
     setFiltersKey((prev) => prev + 1);
-  }, [clearFilters]);
+  }, [clearFilters, requestSubjectChange]);
+
+  /**
+   * Drafts and models saved before the single-subject rule can carry several
+   * subjects. ActivityFilters keeps the first one — tell the user about it.
+   */
+  const warnedMultiSubjectRef = useRef<string | null>(null);
+  useEffect(() => {
+    const subjectIds = initialFiltersData?.subjectIds ?? [];
+    if (subjectIds.length < 2 || knowledgeAreas.length === 0) {
+      return;
+    }
+
+    const key = subjectIds.join(',');
+    if (warnedMultiSubjectRef.current === key) {
+      return;
+    }
+    warnedMultiSubjectRef.current = key;
+
+    const keptName = getSubjectName(subjectIds[0]);
+    addToast({
+      title: 'Este rascunho tinha mais de um componente curricular',
+      description: `Mantivemos apenas ${keptName ?? 'a primeira'}. Uma atividade só pode ter questões de um componente curricular.`,
+      variant: 'solid',
+      action: 'warning',
+      position: 'top-right',
+    });
+  }, [initialFiltersData, knowledgeAreas, getSubjectName, addToast]);
 
   useEffect(() => {
     hasAppliedInitialFiltersRef.current = false;
@@ -444,20 +508,11 @@ const CreateActivity = ({
    * @returns Draft payload object
    */
   const createDraftPayload = useCallback(() => {
-    const subjectIds = appliedFilters?.subjectIds ?? [];
-    const firstSubjectId = subjectIds[0];
-    if (!firstSubjectId) {
+    const subjectId = appliedFilters?.subjectIds?.[0];
+    if (!subjectId) {
       throw new Error('Subject ID não encontrado');
     }
-    // A draft is bound to at most one subject. When several are selected we
-    // omit subjectId: the backend only enforces "all questions belong to the
-    // draft's subject" when subjectId is present, so omitting it lets a
-    // multi-subject draft save (filters.subjects still carries every subject).
-    const subjectId = subjectIds.length === 1 ? firstSubjectId : undefined;
-    const title =
-      subjectIds.length === 1
-        ? generateTitle(activityType, firstSubjectId, knowledgeAreas)
-        : generateMultiSubjectTitle(activityType);
+    const title = generateTitle(activityType, subjectId, knowledgeAreas);
     const filters = convertFiltersToBackendFormat(appliedFilters);
     const questionIds = questions.map((q) => q.id);
 
@@ -955,13 +1010,6 @@ const CreateActivity = ({
   }, []);
 
   /**
-   * Handle removing all questions
-   */
-  const handleRemoveAll = useCallback(() => {
-    setQuestions([]);
-  }, []);
-
-  /**
    * Handle removing a single question
    */
   const handleRemoveQuestion = useCallback((questionId: string) => {
@@ -1060,6 +1108,8 @@ const CreateActivity = ({
     async (formData: SendActivityFormData) => {
       setIsSendingActivity(true);
       try {
+        // The builder only lets questions from one subject into the preview, so
+        // the selected subject is authoritative for the activity being created.
         const subjectId = getSubjectIdOrThrow(
           activity?.subjectId,
           appliedFilters?.subjectIds
@@ -1254,6 +1304,7 @@ const CreateActivity = ({
             onRemoveQuestion={handleRemoveQuestion}
             onReorder={handleReorder}
             filtersKey={filtersKey}
+            onBeforeSubjectChange={requestSubjectChange}
           />
         ) : (
           <DesktopLayout
@@ -1275,8 +1326,12 @@ const CreateActivity = ({
             onRemoveQuestion={handleRemoveQuestion}
             onReorder={handleReorder}
             filtersKey={filtersKey}
+            onBeforeSubjectChange={requestSubjectChange}
           />
         ))}
+
+      {/* Confirmação ao trocar de componente curricular com questões na prévia */}
+      <AlertDialog {...alertDialogProps} />
 
       {/* Save Activity Model Modal */}
       <SaveActivityModelModal

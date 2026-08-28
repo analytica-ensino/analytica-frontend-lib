@@ -566,29 +566,119 @@ describe('LessonFilters', () => {
     expect(screen.getByText('Filtro de aulas')).toBeInTheDocument();
   });
 
-  it('toggles subject selection', async () => {
+  it('replaces the subject instead of accumulating', async () => {
     const mockOnFiltersChange = jest.fn();
     renderComponent({ onFiltersChange: mockOnFiltersChange });
 
-    const mathRadio = screen.getByLabelText(/Matemática/i);
-    fireEvent.click(mathRadio);
+    fireEvent.click(screen.getByLabelText(/Matemática/i));
 
     await waitFor(() => {
-      expect(mockOnFiltersChange).toHaveBeenCalledWith(
+      expect(mockOnFiltersChange).toHaveBeenLastCalledWith(
         expect.objectContaining({
           subjectIds: ['subject1'],
         })
       );
     });
 
-    fireEvent.click(mathRadio);
+    fireEvent.click(screen.getByLabelText(/Português/i));
 
     await waitFor(() => {
-      expect(mockOnFiltersChange).toHaveBeenCalledWith(
+      expect(mockOnFiltersChange).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          subjectIds: [],
+          subjectIds: ['subject2'],
         })
       );
+    });
+  });
+
+  describe('Clearing the subject', () => {
+    it('only shows the "Limpar" button once a subject is selected', async () => {
+      renderComponent();
+
+      expect(screen.queryByText('Limpar')).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByLabelText(/Matemática/i));
+
+      await waitFor(() => {
+        expect(screen.getByText('Limpar')).toBeInTheDocument();
+      });
+    });
+
+    it('clears the selected subject', async () => {
+      const mockOnFiltersChange = jest.fn();
+      renderComponent({ onFiltersChange: mockOnFiltersChange });
+
+      fireEvent.click(screen.getByLabelText(/Matemática/i));
+      await waitFor(() =>
+        expect(screen.getByText('Limpar')).toBeInTheDocument()
+      );
+
+      fireEvent.click(screen.getByText('Limpar'));
+
+      await waitFor(() => {
+        expect(mockOnFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({ subjectIds: [] })
+        );
+      });
+      expect(screen.queryByText('Limpar')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('onBeforeSubjectChange gate', () => {
+    it('aborts the change when the gate refuses', async () => {
+      const mockOnFiltersChange = jest.fn();
+      const onBeforeSubjectChange = jest.fn().mockResolvedValue(false);
+      renderComponent({
+        onFiltersChange: mockOnFiltersChange,
+        onBeforeSubjectChange,
+      });
+
+      fireEvent.click(screen.getByLabelText(/Matemática/i));
+
+      await waitFor(() => {
+        expect(onBeforeSubjectChange).toHaveBeenCalledWith('subject1');
+      });
+      expect(mockOnFiltersChange).not.toHaveBeenCalledWith(
+        expect.objectContaining({ subjectIds: ['subject1'] })
+      );
+    });
+
+    it('applies the change when the gate allows it', async () => {
+      const mockOnFiltersChange = jest.fn();
+      const onBeforeSubjectChange = jest.fn().mockResolvedValue(true);
+      renderComponent({
+        onFiltersChange: mockOnFiltersChange,
+        onBeforeSubjectChange,
+      });
+
+      fireEvent.click(screen.getByLabelText(/Matemática/i));
+
+      await waitFor(() => {
+        expect(mockOnFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({ subjectIds: ['subject1'] })
+        );
+      });
+    });
+
+    it('runs the gate for the "Limpar" button too', async () => {
+      const onBeforeSubjectChange = jest
+        .fn()
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
+      renderComponent({ onBeforeSubjectChange });
+
+      fireEvent.click(screen.getByLabelText(/Matemática/i));
+      await waitFor(() =>
+        expect(screen.getByText('Limpar')).toBeInTheDocument()
+      );
+
+      fireEvent.click(screen.getByText('Limpar'));
+
+      await waitFor(() => {
+        expect(onBeforeSubjectChange).toHaveBeenLastCalledWith(null);
+      });
+      // Refused, so the subject stays selected.
+      expect(screen.getByText('Limpar')).toBeInTheDocument();
     });
   });
 

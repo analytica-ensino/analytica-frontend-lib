@@ -1,6 +1,10 @@
+import { useEffect, useRef, useState } from 'react';
 import {
-  Radio,
-  CheckBox,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
   IconRender,
   Text,
   TruncatedText,
@@ -8,41 +12,33 @@ import {
   getSubjectColorWithOpacity,
 } from '../../..';
 import type { KnowledgeArea } from '../../../types/activityFilters';
-import { ProhibitIcon } from '@phosphor-icons/react/dist/csr/Prohibit';
-import { GridFourIcon } from '@phosphor-icons/react/dist/csr/GridFour';
 
 export interface SubjectsFilterProps {
   knowledgeAreas: KnowledgeArea[];
-  /** Single-select value (used when `multiple` is false) */
+  /** Currently selected subject id, or null when none is selected */
   selectedSubject?: string | null;
-  /** Single-select handler (used when `multiple` is false) */
-  onSubjectChange?: (subjectId: string) => void;
+  /**
+   * Called when the user picks a subject.
+   *
+   * May be async, and may veto the pick (e.g. after asking the user to confirm
+   * discarding the preview) by returning `false` — the dropdown then re-syncs
+   * with `selectedSubject` so the trigger never shows a subject that was never
+   * applied. Any other return value means the pick went through.
+   */
+  onSubjectChange?: (
+    subjectId: string
+  ) => void | boolean | Promise<void | boolean>;
   loading?: boolean;
   error?: string | null;
-  /** Show "Sem matéria" option to filter questions without subject */
-  showNoSubjectOption?: boolean;
-  /** Value to use for "Sem matéria" option */
-  noSubjectValue?: string;
-  /** Enable multi-select: renders CheckBoxes instead of Radios */
-  multiple?: boolean;
-  /** Selected subject ids (used when `multiple` is true) */
-  selectedSubjectIds?: string[];
-  /** Toggle handler for a single subject (used when `multiple` is true) */
-  onToggleSubject?: (subjectId: string) => void;
-  /** Show the "Todas as matérias" select-all card (multi-select only) */
-  showAllSubjectsOption?: boolean;
-  /** Whether every subject is currently selected */
-  allSubjectsSelected?: boolean;
-  /** Toggle handler for the "Todas as matérias" select-all card */
-  onToggleAllSubjects?: () => void;
+  /** Placeholder shown while no subject is selected */
+  placeholder?: string;
 }
 
 /**
- * SubjectsFilter component for selecting subjects/knowledge areas.
+ * SubjectsFilter component for selecting a single subject/knowledge area.
  *
- * Defaults to single-select (Radio). Pass `multiple` to render a multi-select
- * grid (CheckBox per subject) with an optional "Todas as matérias" select-all
- * card, keeping the same visual card style as the subjects.
+ * An activity or recommended class is bound to exactly one subject, so this is
+ * a single-select dropdown — there is no multi-select mode.
  * @param props - Component props
  * @returns JSX element
  */
@@ -52,16 +48,33 @@ export const SubjectsFilter = ({
   onSubjectChange,
   loading = false,
   error = null,
-  showNoSubjectOption = false,
-  noSubjectValue = '__NO_SUBJECT__',
-  multiple = false,
-  selectedSubjectIds = [],
-  onToggleSubject,
-  showAllSubjectsOption = false,
-  allSubjectsSelected = false,
-  onToggleAllSubjects,
+  placeholder = 'Selecione um componente curricular',
 }: SubjectsFilterProps) => {
   const { isDark } = useTheme();
+
+  // Select captures its onValueChange once (the internal store is created on
+  // first render), so read the latest handler through a ref.
+  const onSubjectChangeRef = useRef(onSubjectChange);
+  useEffect(() => {
+    onSubjectChangeRef.current = onSubjectChange;
+  }, [onSubjectChange]);
+
+  // Select applies the pick to its own state right away. When the parent vetoes
+  // it, remounting is how we re-derive that state from `selectedSubject`.
+  const [selectKey, setSelectKey] = useState(0);
+
+  const handleValueChange = async (subjectId: string) => {
+    let applied: void | boolean = false;
+    try {
+      applied = await onSubjectChangeRef.current?.(subjectId);
+    } catch (error) {
+      console.error('Erro ao trocar de componente curricular:', error);
+    }
+
+    if (applied === false) {
+      setSelectKey((prev) => prev + 1);
+    }
+  };
 
   if (loading) {
     return (
@@ -79,8 +92,8 @@ export const SubjectsFilter = ({
     );
   }
 
-  // Colored icon chip + name — shared by the Radio and CheckBox renderings so
-  // both selection modes look identical.
+  // Colored icon chip + name — used both for the dropdown items and, via the
+  // resolved label, for the trigger.
   const renderSubjectLabel = (area: KnowledgeArea) => (
     <div className="flex items-center gap-2 w-full min-w-0">
       <span
@@ -101,89 +114,23 @@ export const SubjectsFilter = ({
     </div>
   );
 
-  if (multiple) {
-    const someSelected = selectedSubjectIds.length > 0;
-    return (
-      <div className="grid grid-cols-3 gap-3">
-        {showAllSubjectsOption && (
-          <div className="flex items-center gap-2 min-w-0">
-            <CheckBox
-              id="subject-all"
-              checked={allSubjectsSelected}
-              indeterminate={!allSubjectsSelected && someSelected}
-              onChange={() => onToggleAllSubjects?.()}
-            />
-            <label
-              htmlFor="subject-all"
-              className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer select-none"
-            >
-              <span className="size-4 rounded-sm flex items-center justify-center shrink-0 text-text-600 bg-background-100">
-                <GridFourIcon size={14} weight="bold" />
-              </span>
-              <TruncatedText
-                size="sm"
-                weight="normal"
-                color="text-text-600"
-                wrapperClassName="flex-1"
-              >
-                Todos os componentes curriculares
-              </TruncatedText>
-            </label>
-          </div>
-        )}
-        {knowledgeAreas.map((area: KnowledgeArea) => (
-          <div key={area.id} className="flex items-center gap-2 min-w-0">
-            <CheckBox
-              id={`subject-${area.id}`}
-              checked={selectedSubjectIds.includes(area.id)}
-              onChange={() => onToggleSubject?.(area.id)}
-            />
-            <label
-              htmlFor={`subject-${area.id}`}
-              className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer select-none"
-            >
-              {renderSubjectLabel(area)}
-            </label>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
   return (
-    <div className="grid grid-cols-3 gap-3">
-      {showNoSubjectOption && (
-        <Radio
-          key={noSubjectValue}
-          value={noSubjectValue}
-          checked={selectedSubject === noSubjectValue}
-          onChange={() => onSubjectChange?.(noSubjectValue)}
-          label={
-            <div className="flex items-center gap-2 w-full min-w-0">
-              <span className="size-4 rounded-sm flex items-center justify-center shrink-0 text-text-600 bg-background-100">
-                <ProhibitIcon size={14} weight="bold" />
-              </span>
-              <TruncatedText
-                size="sm"
-                weight="normal"
-                color="text-text-600"
-                wrapperClassName="flex-1"
-              >
-                Sem componente curricular
-              </TruncatedText>
-            </div>
-          }
-        />
-      )}
-      {knowledgeAreas.map((area: KnowledgeArea) => (
-        <Radio
-          key={area.id}
-          value={area.id}
-          checked={selectedSubject === area.id}
-          onChange={() => onSubjectChange?.(area.id)}
-          label={renderSubjectLabel(area)}
-        />
-      ))}
-    </div>
+    <Select
+      key={selectKey}
+      value={selectedSubject ?? ''}
+      onValueChange={handleValueChange}
+      size="medium"
+    >
+      <SelectTrigger data-testid="subjects-filter-trigger">
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent>
+        {knowledgeAreas.map((area: KnowledgeArea) => (
+          <SelectItem key={area.id} value={area.id}>
+            {renderSubjectLabel(area)}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 };

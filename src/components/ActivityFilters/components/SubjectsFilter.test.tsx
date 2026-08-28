@@ -1,63 +1,22 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import type { KnowledgeArea } from '../../../types/activityFilters';
 
-// Mock the barrel export that SubjectsFilter imports from
+// Mock the barrel export that SubjectsFilter imports from. The Select compound
+// is the component under test as far as behaviour goes, so it comes from the
+// real module — only the leaf presentational pieces are stubbed.
 jest.mock('../../..', () => {
-  jest.requireActual('react');
+  const actualSelect = jest.requireActual('../../Select/Select');
 
   return {
-    Radio: ({
-      value,
-      checked,
-      onChange,
-      label,
-    }: {
-      value: string;
-      checked: boolean;
-      onChange: () => void;
-      label: React.ReactNode;
-    }) => (
-      <label>
-        <input
-          type="radio"
-          value={value}
-          checked={checked}
-          onChange={onChange}
-          className="sr-only"
-        />
-        {label}
-      </label>
-    ),
-    CheckBox: ({
-      id,
-      checked,
-      indeterminate,
-      onChange,
-    }: {
-      id?: string;
-      checked: boolean;
-      indeterminate?: boolean;
-      onChange: () => void;
-    }) => (
-      <input
-        type="checkbox"
-        id={id}
-        checked={checked}
-        data-indeterminate={indeterminate ? 'true' : 'false'}
-        onChange={onChange}
-      />
-    ),
-    IconRender: ({
-      iconName,
-      size,
-    }: {
-      iconName: string;
-      size: number;
-      color: string;
-    }) => (
+    Select: actualSelect.default,
+    SelectTrigger: actualSelect.SelectTrigger,
+    SelectValue: actualSelect.SelectValue,
+    SelectContent: actualSelect.SelectContent,
+    SelectItem: actualSelect.SelectItem,
+    IconRender: ({ iconName, size }: { iconName: string; size: number }) => (
       <span data-testid={`icon-${iconName}`} data-size={size}>
         {iconName}
       </span>
@@ -75,18 +34,8 @@ jest.mock('../../..', () => {
         {children}
       </span>
     ),
-    TruncatedText: ({
-      children,
-      size,
-      className,
-    }: {
-      children: React.ReactNode;
-      size?: string;
-      className?: string;
-    }) => (
-      <span data-testid="truncated-text" data-size={size} className={className}>
-        {children}
-      </span>
+    TruncatedText: ({ children }: { children: React.ReactNode }) => (
+      <span data-testid="truncated-text">{children}</span>
     ),
     useTheme: () => ({ isDark: false }),
     getSubjectColorWithOpacity: (color: string) => `${color}20`,
@@ -109,470 +58,250 @@ describe('SubjectsFilter', () => {
     onSubjectChange: jest.fn(),
   };
 
+  const getTrigger = () => screen.getByTestId('subjects-filter-trigger');
+
+  const openDropdown = async (user: ReturnType<typeof userEvent.setup>) => {
+    await user.click(getTrigger());
+    return screen.getByRole('menu');
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('Basic rendering', () => {
-    it('renders all knowledge areas as radio buttons', () => {
+  describe('Trigger', () => {
+    it('shows the placeholder when no subject is selected', () => {
       render(<SubjectsFilter {...defaultProps} />);
 
-      expect(screen.getByText('Matemática')).toBeInTheDocument();
-      expect(screen.getByText('Física')).toBeInTheDocument();
-      expect(screen.getByText('Química')).toBeInTheDocument();
+      expect(getTrigger()).toHaveTextContent(
+        'Selecione um componente curricular'
+      );
     });
 
-    it('renders in a 3-column grid layout', () => {
-      const { container } = render(<SubjectsFilter {...defaultProps} />);
+    it('accepts a custom placeholder', () => {
+      render(<SubjectsFilter {...defaultProps} placeholder="Escolha aí" />);
 
-      const gridContainer = container.querySelector('.grid.grid-cols-3.gap-3');
-      expect(gridContainer).toBeInTheDocument();
+      expect(getTrigger()).toHaveTextContent('Escolha aí');
     });
 
-    it('renders with empty knowledge areas array', () => {
-      render(<SubjectsFilter {...defaultProps} knowledgeAreas={[]} />);
+    it('shows the selected subject name', async () => {
+      render(<SubjectsFilter {...defaultProps} selectedSubject="physics-1" />);
 
-      const radios = screen.queryAllByRole('radio', { hidden: true });
-      expect(radios).toHaveLength(0);
-    });
-
-    it('renders subject icons', () => {
-      const { container } = render(<SubjectsFilter {...defaultProps} />);
-
-      // Check for icon containers (they have specific styling)
-      const iconContainers = container.querySelectorAll('.size-4.rounded-sm');
-      expect(iconContainers).toHaveLength(3);
-    });
-  });
-
-  describe('Loading state', () => {
-    it('renders loading message when loading is true', () => {
-      render(<SubjectsFilter {...defaultProps} loading={true} />);
-
-      expect(
-        screen.getByText('Carregando componentes curriculares...')
-      ).toBeInTheDocument();
-    });
-
-    it('does not render knowledge areas when loading', () => {
-      render(<SubjectsFilter {...defaultProps} loading={true} />);
-
-      expect(screen.queryByText('Matemática')).not.toBeInTheDocument();
-      expect(screen.queryByText('Física')).not.toBeInTheDocument();
-      expect(screen.queryByText('Química')).not.toBeInTheDocument();
-    });
-  });
-
-  describe('Error state', () => {
-    it('renders error message when error is provided', () => {
-      const errorMessage = 'Erro ao carregar componentes curriculares';
-      render(<SubjectsFilter {...defaultProps} error={errorMessage} />);
-
-      expect(screen.getByText(errorMessage)).toBeInTheDocument();
-    });
-
-    it('does not render knowledge areas when error exists', () => {
-      render(<SubjectsFilter {...defaultProps} error="Some error" />);
-
-      expect(screen.queryByText('Matemática')).not.toBeInTheDocument();
-      expect(screen.queryByText('Física')).not.toBeInTheDocument();
-      expect(screen.queryByText('Química')).not.toBeInTheDocument();
-    });
-
-    it('renders error with custom error message', () => {
-      const customError = 'Falha na conexão com o servidor';
-      render(<SubjectsFilter {...defaultProps} error={customError} />);
-
-      expect(screen.getByText(customError)).toBeInTheDocument();
-    });
-  });
-
-  describe('Selection state', () => {
-    it('renders with no selection when selectedSubject is null', () => {
-      render(<SubjectsFilter {...defaultProps} selectedSubject={null} />);
-
-      const radios = screen.getAllByRole('radio', { hidden: true });
-      radios.forEach((radio) => {
-        expect(radio).not.toBeChecked();
+      await waitFor(() => {
+        expect(getTrigger()).toHaveTextContent('Física');
       });
     });
 
-    it('marks correct radio as checked when selectedSubject is set', () => {
-      render(<SubjectsFilter {...defaultProps} selectedSubject="math-1" />);
-
-      const radios = screen.getAllByRole('radio', { hidden: true });
-
-      // Find the radio with value "math-1"
-      const mathRadio = radios.find(
-        (radio) => (radio as HTMLInputElement).value === 'math-1'
-      );
-      expect(mathRadio).toBeChecked();
-
-      // Other radios should not be checked
-      const otherRadios = radios.filter(
-        (radio) => (radio as HTMLInputElement).value !== 'math-1'
-      );
-      otherRadios.forEach((radio) => {
-        expect(radio).not.toBeChecked();
-      });
-    });
-
-    it('updates selection when different subject is selected', () => {
+    it('falls back to the placeholder when the selection is cleared', async () => {
       const { rerender } = render(
-        <SubjectsFilter {...defaultProps} selectedSubject="math-1" />
-      );
-
-      let radios = screen.getAllByRole('radio', { hidden: true });
-      let mathRadio = radios.find(
-        (radio) => (radio as HTMLInputElement).value === 'math-1'
-      );
-      expect(mathRadio).toBeChecked();
-
-      rerender(
         <SubjectsFilter {...defaultProps} selectedSubject="physics-1" />
       );
+      await waitFor(() => expect(getTrigger()).toHaveTextContent('Física'));
 
-      radios = screen.getAllByRole('radio', { hidden: true });
-      const physicsRadio = radios.find(
-        (radio) => (radio as HTMLInputElement).value === 'physics-1'
-      );
-      expect(physicsRadio).toBeChecked();
+      rerender(<SubjectsFilter {...defaultProps} selectedSubject={null} />);
 
-      mathRadio = radios.find(
-        (radio) => (radio as HTMLInputElement).value === 'math-1'
-      );
-      expect(mathRadio).not.toBeChecked();
-    });
-  });
-
-  describe('User interactions', () => {
-    it('calls onSubjectChange when a subject is clicked', async () => {
-      const onSubjectChange = jest.fn();
-      const user = userEvent.setup();
-
-      render(
-        <SubjectsFilter {...defaultProps} onSubjectChange={onSubjectChange} />
-      );
-
-      const mathLabel = screen.getByText('Matemática');
-      await user.click(mathLabel);
-
-      expect(onSubjectChange).toHaveBeenCalledWith('math-1');
-    });
-
-    it('calls onSubjectChange with correct id for each subject', async () => {
-      const onSubjectChange = jest.fn();
-      const user = userEvent.setup();
-
-      render(
-        <SubjectsFilter {...defaultProps} onSubjectChange={onSubjectChange} />
-      );
-
-      // Click Physics
-      await user.click(screen.getByText('Física'));
-      expect(onSubjectChange).toHaveBeenLastCalledWith('physics-1');
-
-      // Click Chemistry
-      await user.click(screen.getByText('Química'));
-      expect(onSubjectChange).toHaveBeenLastCalledWith('chemistry-1');
-
-      // Click Math
-      await user.click(screen.getByText('Matemática'));
-      expect(onSubjectChange).toHaveBeenLastCalledWith('math-1');
-
-      expect(onSubjectChange).toHaveBeenCalledTimes(3);
-    });
-
-    it('calls onSubjectChange when clicking directly on radio input', () => {
-      const onSubjectChange = jest.fn();
-
-      render(
-        <SubjectsFilter {...defaultProps} onSubjectChange={onSubjectChange} />
-      );
-
-      const radios = screen.getAllByRole('radio', { hidden: true });
-      const mathRadio = radios.find(
-        (radio) => (radio as HTMLInputElement).value === 'math-1'
-      );
-
-      expect(mathRadio).toBeDefined();
-      fireEvent.click(mathRadio as HTMLElement);
-
-      expect(onSubjectChange).toHaveBeenCalledWith('math-1');
-    });
-  });
-
-  describe('Subject styling', () => {
-    it('applies background color with opacity to icon container', () => {
-      const { container } = render(<SubjectsFilter {...defaultProps} />);
-
-      const iconContainers = container.querySelectorAll('.size-4.rounded-sm');
-
-      // Each icon container should have inline style with backgroundColor
-      iconContainers.forEach((iconContainer) => {
-        expect(iconContainer).toHaveStyle({
-          backgroundColor: expect.any(String),
-        });
+      await waitFor(() => {
+        expect(getTrigger()).toHaveTextContent(
+          'Selecione um componente curricular'
+        );
       });
     });
 
-    it('renders subject name through TruncatedText', () => {
-      const { container } = render(<SubjectsFilter {...defaultProps} />);
+    it('starts closed — no options are rendered', () => {
+      render(<SubjectsFilter {...defaultProps} />);
 
-      const truncatedTexts = container.querySelectorAll(
-        '[data-testid="truncated-text"]'
-      );
-      expect(truncatedTexts).toHaveLength(3);
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
     });
   });
 
-  describe('Default props', () => {
-    it('defaults loading to false', () => {
+  describe('Options', () => {
+    it('lists every knowledge area once opened', async () => {
+      const user = userEvent.setup();
+      render(<SubjectsFilter {...defaultProps} />);
+
+      const menu = await openDropdown(user);
+
+      expect(within(menu).getByText('Matemática')).toBeInTheDocument();
+      expect(within(menu).getByText('Física')).toBeInTheDocument();
+      expect(within(menu).getByText('Química')).toBeInTheDocument();
+      expect(within(menu).getAllByRole('menuitem')).toHaveLength(3);
+    });
+
+    it('renders each subject icon', async () => {
+      const user = userEvent.setup();
+      render(<SubjectsFilter {...defaultProps} />);
+
+      await openDropdown(user);
+
+      expect(screen.getByTestId('icon-Calculator')).toBeInTheDocument();
+      expect(screen.getByTestId('icon-Atom')).toBeInTheDocument();
+      expect(screen.getByTestId('icon-Flask')).toBeInTheDocument();
+    });
+
+    it('falls back to the BookOpen icon when a subject has none', async () => {
+      const user = userEvent.setup();
       render(
         <SubjectsFilter
-          knowledgeAreas={mockKnowledgeAreas}
-          selectedSubject={null}
-          onSubjectChange={jest.fn()}
+          {...defaultProps}
+          knowledgeAreas={[
+            { id: 'no-icon', name: 'Sem ícone', color: '#000000' },
+          ]}
         />
       );
 
-      expect(
-        screen.queryByText('Carregando componentes curriculares...')
-      ).not.toBeInTheDocument();
-      expect(screen.getByText('Matemática')).toBeInTheDocument();
-    });
+      await openDropdown(user);
 
-    it('defaults error to null', () => {
-      render(
-        <SubjectsFilter
-          knowledgeAreas={mockKnowledgeAreas}
-          selectedSubject={null}
-          onSubjectChange={jest.fn()}
-        />
-      );
-
-      expect(screen.getByText('Matemática')).toBeInTheDocument();
-    });
-  });
-
-  describe('Knowledge area without icon', () => {
-    it('renders default BookOpen icon when icon is not provided', () => {
-      const areasWithoutIcon: KnowledgeArea[] = [
-        { id: 'test-1', name: 'Test Subject', color: '#000000' },
-      ];
-
-      render(
-        <SubjectsFilter {...defaultProps} knowledgeAreas={areasWithoutIcon} />
-      );
-
-      expect(screen.getByText('Test Subject')).toBeInTheDocument();
-      // Should render default BookOpen icon
       expect(screen.getByTestId('icon-BookOpen')).toBeInTheDocument();
     });
 
-    it('renders provided icon when available', () => {
-      const areasWithIcon: KnowledgeArea[] = [
-        { id: 'test-1', name: 'Test Subject', color: '#000000', icon: 'Star' },
-      ];
+    it('renders no options when there are no knowledge areas', async () => {
+      const user = userEvent.setup();
+      render(<SubjectsFilter {...defaultProps} knowledgeAreas={[]} />);
 
-      render(
-        <SubjectsFilter {...defaultProps} knowledgeAreas={areasWithIcon} />
-      );
+      const menu = await openDropdown(user);
 
-      expect(screen.getByText('Test Subject')).toBeInTheDocument();
-      expect(screen.getByTestId('icon-Star')).toBeInTheDocument();
+      expect(within(menu).queryAllByRole('menuitem')).toHaveLength(0);
     });
   });
 
-  describe('Multiple subjects', () => {
-    it('renders many subjects correctly', () => {
-      const manySubjects: KnowledgeArea[] = Array.from(
-        { length: 9 },
-        (_, i) => ({
-          id: `subject-${i + 1}`,
-          name: `Subject ${i + 1}`,
-          color: `#${String(i).padStart(6, '0')}`,
-          icon: 'Book',
-        })
-      );
-
+  describe('Selection', () => {
+    it('calls onSubjectChange with the picked subject id', async () => {
+      const user = userEvent.setup();
+      const onSubjectChange = jest.fn();
       render(
-        <SubjectsFilter {...defaultProps} knowledgeAreas={manySubjects} />
+        <SubjectsFilter
+          {...defaultProps}
+          onSubjectChange={onSubjectChange}
+          selectedSubject="math-1"
+        />
       );
 
-      manySubjects.forEach((subject) => {
-        expect(screen.getByText(subject.name)).toBeInTheDocument();
+      const menu = await openDropdown(user);
+      await user.click(within(menu).getByText('Química'));
+
+      expect(onSubjectChange).toHaveBeenCalledTimes(1);
+      expect(onSubjectChange).toHaveBeenCalledWith('chemistry-1');
+    });
+
+    it('closes the dropdown after picking', async () => {
+      const user = userEvent.setup();
+      render(<SubjectsFilter {...defaultProps} />);
+
+      const menu = await openDropdown(user);
+      await user.click(within(menu).getByText('Física'));
+
+      await waitFor(() => {
+        expect(screen.queryByRole('menu')).not.toBeInTheDocument();
       });
     });
-  });
 
-  describe('Accessibility', () => {
-    it('renders radio inputs for each knowledge area', () => {
-      render(<SubjectsFilter {...defaultProps} />);
-
-      const radios = screen.getAllByRole('radio', { hidden: true });
-      expect(radios).toHaveLength(3);
-    });
-
-    it('associates labels with radio inputs', () => {
-      render(<SubjectsFilter {...defaultProps} />);
-
-      // Each subject name should be clickable and toggle its radio
-      const mathLabel = screen.getByText('Matemática');
-      expect(mathLabel).toBeInTheDocument();
-    });
-  });
-
-  describe('Edge cases', () => {
-    it('handles subject with very long name', () => {
-      const longNameAreas: KnowledgeArea[] = [
-        {
-          id: 'long-1',
-          name: 'Esta é uma matéria com um nome extremamente longo para testar truncamento',
-          color: '#FF0000',
-          icon: 'Book',
-        },
-      ];
-
-      render(
-        <SubjectsFilter {...defaultProps} knowledgeAreas={longNameAreas} />
-      );
-
-      expect(
-        screen.getByText(
-          'Esta é uma matéria com um nome extremamente longo para testar truncamento'
-        )
-      ).toBeInTheDocument();
-    });
-
-    it('handles subject with special characters in name', () => {
-      const specialCharsAreas: KnowledgeArea[] = [
-        {
-          id: 'special-1',
-          name: 'Ciências & Tecnologia (C&T)',
-          color: '#FF0000',
-          icon: 'Book',
-        },
-      ];
-
-      render(
-        <SubjectsFilter {...defaultProps} knowledgeAreas={specialCharsAreas} />
-      );
-
-      expect(
-        screen.getByText('Ciências & Tecnologia (C&T)')
-      ).toBeInTheDocument();
-    });
-
-    it('handles re-render with same props without issues', () => {
-      const { rerender } = render(<SubjectsFilter {...defaultProps} />);
-
-      expect(screen.getByText('Matemática')).toBeInTheDocument();
-
-      rerender(<SubjectsFilter {...defaultProps} />);
-
-      expect(screen.getByText('Matemática')).toBeInTheDocument();
-    });
-
-    it('handles switching from loading to loaded state', () => {
+    it('uses the latest onSubjectChange handler', async () => {
+      const user = userEvent.setup();
+      const first = jest.fn();
+      const second = jest.fn();
       const { rerender } = render(
-        <SubjectsFilter {...defaultProps} loading={true} />
+        <SubjectsFilter {...defaultProps} onSubjectChange={first} />
       );
+
+      rerender(<SubjectsFilter {...defaultProps} onSubjectChange={second} />);
+
+      const menu = await openDropdown(user);
+      await user.click(within(menu).getByText('Física'));
+
+      expect(first).not.toHaveBeenCalled();
+      expect(second).toHaveBeenCalledWith('physics-1');
+    });
+
+    it('reverts the trigger when the parent vetoes the change', async () => {
+      const user = userEvent.setup();
+      // A vetoing parent returns false and never updates `selectedSubject`.
+      const onSubjectChange = jest.fn().mockResolvedValue(false);
+      render(
+        <SubjectsFilter
+          {...defaultProps}
+          selectedSubject="math-1"
+          onSubjectChange={onSubjectChange}
+        />
+      );
+      await waitFor(() => expect(getTrigger()).toHaveTextContent('Matemática'));
+
+      const menu = await openDropdown(user);
+      await user.click(within(menu).getByText('Física'));
+
+      expect(onSubjectChange).toHaveBeenCalledWith('physics-1');
+      await waitFor(() => {
+        expect(getTrigger()).toHaveTextContent('Matemática');
+      });
+      expect(getTrigger()).not.toHaveTextContent('Física');
+    });
+
+    it('keeps the pick when the handler throws is reported and rolled back', async () => {
+      const user = userEvent.setup();
+      const consoleError = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      const onSubjectChange = jest.fn().mockRejectedValue(new Error('boom'));
+      render(
+        <SubjectsFilter
+          {...defaultProps}
+          selectedSubject="math-1"
+          onSubjectChange={onSubjectChange}
+        />
+      );
+
+      const menu = await openDropdown(user);
+      await user.click(within(menu).getByText('Física'));
+
+      await waitFor(() => {
+        expect(getTrigger()).toHaveTextContent('Matemática');
+      });
+      expect(consoleError).toHaveBeenCalled();
+      consoleError.mockRestore();
+    });
+  });
+
+  describe('Loading and error states', () => {
+    it('renders the loading message instead of the dropdown', () => {
+      render(<SubjectsFilter {...defaultProps} loading />);
 
       expect(
         screen.getByText('Carregando componentes curriculares...')
       ).toBeInTheDocument();
-      expect(screen.queryByText('Matemática')).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId('subjects-filter-trigger')
+      ).not.toBeInTheDocument();
+    });
+
+    it('renders the error message instead of the dropdown', () => {
+      render(<SubjectsFilter {...defaultProps} error="Erro ao carregar" />);
+
+      expect(screen.getByText('Erro ao carregar')).toBeInTheDocument();
+      expect(
+        screen.queryByTestId('subjects-filter-trigger')
+      ).not.toBeInTheDocument();
+    });
+
+    it('prefers the loading state over the error state', () => {
+      render(<SubjectsFilter {...defaultProps} loading error="Erro" />);
+
+      expect(
+        screen.getByText('Carregando componentes curriculares...')
+      ).toBeInTheDocument();
+      expect(screen.queryByText('Erro')).not.toBeInTheDocument();
+    });
+
+    it('shows the dropdown once loading finishes', () => {
+      const { rerender } = render(<SubjectsFilter {...defaultProps} loading />);
+      expect(
+        screen.getByText('Carregando componentes curriculares...')
+      ).toBeInTheDocument();
 
       rerender(<SubjectsFilter {...defaultProps} loading={false} />);
 
+      expect(getTrigger()).toBeInTheDocument();
       expect(
         screen.queryByText('Carregando componentes curriculares...')
       ).not.toBeInTheDocument();
-      expect(screen.getByText('Matemática')).toBeInTheDocument();
-    });
-
-    it('handles switching from error to success state', () => {
-      const { rerender } = render(
-        <SubjectsFilter {...defaultProps} error="Error message" />
-      );
-
-      expect(screen.getByText('Error message')).toBeInTheDocument();
-      expect(screen.queryByText('Matemática')).not.toBeInTheDocument();
-
-      rerender(<SubjectsFilter {...defaultProps} error={null} />);
-
-      expect(screen.queryByText('Error message')).not.toBeInTheDocument();
-      expect(screen.getByText('Matemática')).toBeInTheDocument();
-    });
-  });
-
-  describe('Multi-select mode', () => {
-    const multiProps = {
-      knowledgeAreas: mockKnowledgeAreas,
-      multiple: true as const,
-      selectedSubjectIds: [] as string[],
-      onToggleSubject: jest.fn(),
-      showAllSubjectsOption: true as const,
-      allSubjectsSelected: false,
-      onToggleAllSubjects: jest.fn(),
-    };
-
-    it('renders a checkbox per subject plus the "Todos os componentes curriculares" card', () => {
-      render(<SubjectsFilter {...multiProps} />);
-      const checkboxes = screen.getAllByRole('checkbox');
-      // 3 subjects + "Todos os componentes curriculares"
-      expect(checkboxes).toHaveLength(mockKnowledgeAreas.length + 1);
-      expect(
-        screen.getByText('Todos os componentes curriculares')
-      ).toBeInTheDocument();
-      expect(screen.getByText('Matemática')).toBeInTheDocument();
-    });
-
-    it('marks only the selected subjects as checked', () => {
-      const { container } = render(
-        <SubjectsFilter {...multiProps} selectedSubjectIds={['math-1']} />
-      );
-      expect(container.querySelector('#subject-math-1')).toBeChecked();
-      expect(container.querySelector('#subject-physics-1')).not.toBeChecked();
-    });
-
-    it('calls onToggleSubject when a subject is clicked', () => {
-      const { container } = render(<SubjectsFilter {...multiProps} />);
-      fireEvent.click(container.querySelector('#subject-physics-1')!);
-      expect(multiProps.onToggleSubject).toHaveBeenCalledWith('physics-1');
-    });
-
-    it('calls onToggleAllSubjects when "Todos os componentes curriculares" is clicked', () => {
-      const { container } = render(<SubjectsFilter {...multiProps} />);
-      fireEvent.click(container.querySelector('#subject-all')!);
-      expect(multiProps.onToggleAllSubjects).toHaveBeenCalled();
-    });
-
-    it('checks "Todos os componentes curriculares" when allSubjectsSelected is true', () => {
-      const { container } = render(
-        <SubjectsFilter {...multiProps} allSubjectsSelected={true} />
-      );
-      expect(container.querySelector('#subject-all')).toBeChecked();
-    });
-
-    it('marks "Todos os componentes curriculares" indeterminate on a partial selection', () => {
-      const { container } = render(
-        <SubjectsFilter {...multiProps} selectedSubjectIds={['math-1']} />
-      );
-      const allCheckbox = container.querySelector('#subject-all')!;
-      expect(allCheckbox).not.toBeChecked();
-      expect(allCheckbox).toHaveAttribute('data-indeterminate', 'true');
-    });
-
-    it('does not render the "Todos os componentes curriculares" card without showAllSubjectsOption', () => {
-      render(<SubjectsFilter {...multiProps} showAllSubjectsOption={false} />);
-      expect(
-        screen.queryByText('Todos os componentes curriculares')
-      ).not.toBeInTheDocument();
-      expect(screen.getAllByRole('checkbox')).toHaveLength(
-        mockKnowledgeAreas.length
-      );
     });
   });
 });
