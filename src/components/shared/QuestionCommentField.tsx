@@ -128,6 +128,10 @@ export function QuestionCommentField({
         // `readOnly`, not `disabled`: a locked comment still has to be
         // selectable so the teacher can read and copy it.
         readOnly={isLocked}
+        // A saved comment reads as text, not as a field waiting for input — the
+        // border comes back with "Editar". Keeps the border *width* from the
+        // base classes so nothing shifts when it does.
+        className={isLocked ? 'border-transparent' : undefined}
       />
       {error && (
         <Text size="sm" className="text-error-600">

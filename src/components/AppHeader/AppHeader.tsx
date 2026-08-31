@@ -118,7 +118,8 @@ export interface AppHeaderProps {
   onNavigateByNotification?: (
     entityType?: NotificationEntityType,
     entityId?: string,
-    entityStatus?: NotificationEntityStatus | null
+    entityStatus?: NotificationEntityStatus | null,
+    questionId?: string | null
   ) => void;
   /**
    * Tailwind class overriding the default `max-w-[1000px]` of the header
@@ -312,12 +313,18 @@ export const AppHeader = ({
               onRetry={notifications.refreshNotifications}
               onMarkAsReadById={notifications.markAsRead}
               onDeleteById={notifications.deleteNotification}
-              onNavigateById={(entityType, entityId, entityStatus) => {
+              onNavigateById={(
+                entityType,
+                entityId,
+                entityStatus,
+                questionId
+              ) => {
                 if (entityType && entityId) {
                   onNavigateByNotification?.(
                     entityType,
                     entityId,
-                    entityStatus
+                    entityStatus,
+                    questionId
                   );
                 }
               }}

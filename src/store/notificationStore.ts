@@ -128,6 +128,9 @@ const mapBackendNotification = (
     entityStatus:
       (backendNotification.entityStatus as NotificationEntityStatus | null) ??
       null,
+    // Ditto for the question: without it the consumer can only open the result
+    // list and leave the student hunting for the commented question.
+    questionId: backendNotification.questionId ?? null,
     sender: backendNotification.sender,
     activity: backendNotification.activity,
     recommendedClass: backendNotification.recommendedClass,

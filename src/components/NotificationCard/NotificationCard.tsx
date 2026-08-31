@@ -134,7 +134,8 @@ interface NotificationListMode extends BaseNotificationProps {
   onNavigateById?: (
     entityType?: NotificationEntityType,
     entityId?: string,
-    entityStatus?: NotificationEntityStatus | null
+    entityStatus?: NotificationEntityStatus | null,
+    questionId?: string | null
   ) => void;
   /**
    * Callback when user clicks on a global notification
@@ -206,7 +207,8 @@ interface NotificationCenterMode extends BaseNotificationProps {
   onNavigateById?: (
     entityType?: NotificationEntityType,
     entityId?: string,
-    entityStatus?: NotificationEntityStatus | null
+    entityStatus?: NotificationEntityStatus | null,
+    questionId?: string | null
   ) => void;
   /**
    * Function to get action label for a notification
@@ -253,7 +255,8 @@ export interface LegacyNotificationCardProps extends BaseNotificationProps {
   onNavigateById?: (
     entityType?: NotificationEntityType,
     entityId?: string,
-    entityStatus?: NotificationEntityStatus | null
+    entityStatus?: NotificationEntityStatus | null,
+    questionId?: string | null
   ) => void;
   onGlobalNotificationClick?: (notification: Notification) => void;
   getActionLabel?: (entityType?: NotificationEntityType) => string | undefined;
@@ -479,7 +482,8 @@ const NotificationList = ({
   onNavigateById?: (
     entityType?: NotificationEntityType,
     entityId?: string,
-    entityStatus?: NotificationEntityStatus | null
+    entityStatus?: NotificationEntityStatus | null,
+    questionId?: string | null
   ) => void;
   onGlobalNotificationClick?: (notification: Notification) => void;
   getActionLabel?: (entityType?: NotificationEntityType) => string | undefined;
@@ -583,7 +587,8 @@ const NotificationList = ({
                 onNavigateById(
                   notification.entityType ?? undefined,
                   notification.entityId ?? undefined,
-                  notification.entityStatus
+                  notification.entityStatus,
+                  notification.questionId
                 );
             }
 
@@ -782,9 +787,12 @@ const NotificationCenter = ({
                 onRetry={onRetry}
                 onMarkAsReadById={onMarkAsReadById}
                 onDeleteById={onDeleteById}
-                onNavigateById={(entityType, entityId) => {
+                // Variadic on purpose: written out by hand, this forwarding
+                // silently dropped `entityStatus` — and would drop the next
+                // argument too.
+                onNavigateById={(...args) => {
                   setIsModalOpen(false);
-                  onNavigateById?.(entityType, entityId);
+                  onNavigateById?.(...args);
                 }}
                 onGlobalNotificationClick={(notification) => {
                   setIsModalOpen(false);
