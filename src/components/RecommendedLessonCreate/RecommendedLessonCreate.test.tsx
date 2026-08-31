@@ -41,6 +41,8 @@ jest.mock('../../store/lessonFiltersStore', () => ({
 
 // Mock useToastStore
 const mockAddToast = jest.fn();
+/** Receives what the onBeforeSubjectChange gate resolved to. */
+const mockSubjectChangeSettled = jest.fn();
 jest.mock('../..', () => ({
   Button: ({
     children,
@@ -71,6 +73,35 @@ jest.mock('../..', () => ({
     <div data-testid="skeleton-text" data-lines={lines} data-width={width} />
   ),
   Divider: () => <hr data-testid="divider" />,
+  AlertDialog: ({
+    isOpen,
+    title,
+    description,
+    cancelButtonLabel,
+    submitButtonLabel,
+    onCancel,
+    onSubmit,
+  }: {
+    isOpen: boolean;
+    title: string;
+    description: string;
+    cancelButtonLabel?: string;
+    submitButtonLabel?: string;
+    onCancel?: () => void;
+    onSubmit?: () => void;
+  }) =>
+    isOpen ? (
+      <div data-testid="subject-switch-dialog">
+        <h2>{title}</h2>
+        <p>{description}</p>
+        <button data-testid="subject-switch-cancel" onClick={onCancel}>
+          {cancelButtonLabel}
+        </button>
+        <button data-testid="subject-switch-confirm" onClick={onSubmit}>
+          {submitButtonLabel}
+        </button>
+      </div>
+    ) : null,
   CategoryConfig: {},
   useToastStore: (selector: (state: { addToast: jest.Mock }) => unknown) =>
     selector({ addToast: mockAddToast }),
@@ -307,10 +338,24 @@ jest.mock('../Menu/Menu', () => ({
 jest.mock('../LessonFilters/LessonFilters', () => ({
   LessonFilters: ({
     onFiltersChange,
+    onBeforeSubjectChange,
   }: {
     onFiltersChange: (filters: unknown) => void;
+    onBeforeSubjectChange?: (
+      nextSubjectId: string | null
+    ) => boolean | Promise<boolean>;
   }) => (
     <div data-testid="lesson-filters">
+      <button
+        data-testid="request-subject-change"
+        onClick={() =>
+          Promise.resolve(onBeforeSubjectChange?.('subject-2')).then(
+            mockSubjectChangeSettled
+          )
+        }
+      >
+        Request Subject Change
+      </button>
       <button
         data-testid="apply-filter-trigger"
         onClick={() =>
@@ -827,6 +872,239 @@ describe('RecommendedLessonCreate', () => {
       });
 
       expect(screen.getByTestId('lessons-count')).toHaveTextContent('0');
+    });
+  });
+
+  describe('subject switch confirmation', () => {
+    beforeEach(() => {
+      mockAppliedFilters = { subjectIds: ['subject-1'] };
+    });
+
+    const addLesson = (testId = 'add-lesson-btn') =>
+      fireEvent.click(screen.getByTestId(testId));
+
+    const requestSubjectChange = () =>
+      fireEvent.click(screen.getByTestId('request-subject-change'));
+
+    it('allows the switch without asking when the preview is empty', async () => {
+      await renderWithDesktopLayout(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      requestSubjectChange();
+
+      await waitFor(() => {
+        expect(mockSubjectChangeSettled).toHaveBeenCalledWith(true);
+      });
+      expect(
+        screen.queryByTestId('subject-switch-dialog')
+      ).not.toBeInTheDocument();
+    });
+
+    it('names both components and pluralizes the lesson count', async () => {
+      await renderWithDesktopLayout(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      addLesson();
+      addLesson('add-lesson-2-btn');
+      requestSubjectChange();
+
+      expect(
+        await screen.findByTestId('subject-switch-dialog')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          'A prévia tem 2 aulas de Math. Trocar de componente curricular para Portuguese vai remover todas.'
+        )
+      ).toBeInTheDocument();
+    });
+
+    it('uses the singular copy for a single lesson', async () => {
+      await renderWithDesktopLayout(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      addLesson();
+      requestSubjectChange();
+
+      expect(
+        await screen.findByText(
+          'A prévia tem 1 aula de Math. Trocar de componente curricular para Portuguese vai remover ela.'
+        )
+      ).toBeInTheDocument();
+    });
+
+    it('omits the names when the components are unknown', async () => {
+      mockAppliedFilters = { subjectIds: ['ghost'] };
+      (mockApiClient.get as jest.Mock).mockImplementation((url: string) => {
+        if (url === 'knowledge/subjects') {
+          return Promise.resolve({ data: { data: { subjects: [] } } });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
+
+      await renderWithDesktopLayout(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      addLesson();
+      requestSubjectChange();
+
+      expect(
+        await screen.findByText(
+          'A prévia tem 1 aula. Trocar de componente curricular vai remover ela.'
+        )
+      ).toBeInTheDocument();
+    });
+
+    it('clears the preview and allows the switch on confirm', async () => {
+      await renderWithDesktopLayout(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      addLesson();
+      requestSubjectChange();
+      fireEvent.click(await screen.findByTestId('subject-switch-confirm'));
+
+      await waitFor(() => {
+        expect(mockSubjectChangeSettled).toHaveBeenCalledWith(true);
+      });
+      expect(screen.getByTestId('lessons-count')).toHaveTextContent('0');
+    });
+
+    it('keeps the preview and refuses the switch on cancel', async () => {
+      await renderWithDesktopLayout(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      addLesson();
+      requestSubjectChange();
+      fireEvent.click(await screen.findByTestId('subject-switch-cancel'));
+
+      await waitFor(() => {
+        expect(mockSubjectChangeSettled).toHaveBeenCalledWith(false);
+      });
+      expect(screen.getByTestId('lessons-count')).toHaveTextContent('1');
+    });
+
+    it('runs the confirmation for "Limpar filtros" as well', async () => {
+      await renderWithDesktopLayout(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      addLesson();
+      mockClearFilters.mockClear();
+
+      fireEvent.click(screen.getByText('Limpar filtros'));
+      fireEvent.click(await screen.findByTestId('subject-switch-cancel'));
+
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId('subject-switch-dialog')
+        ).not.toBeInTheDocument();
+      });
+      expect(mockClearFilters).not.toHaveBeenCalled();
+      expect(screen.getByTestId('lessons-count')).toHaveTextContent('1');
+
+      fireEvent.click(screen.getByText('Limpar filtros'));
+      fireEvent.click(await screen.findByTestId('subject-switch-confirm'));
+
+      await waitFor(() => {
+        expect(mockClearFilters).toHaveBeenCalledTimes(1);
+      });
+      expect(screen.getByTestId('lessons-count')).toHaveTextContent('0');
+    });
+  });
+
+  describe('legacy multi-subject drafts', () => {
+    const renderWithDraftFilters = async (subjects: string[]) => {
+      (mockApiClient.get as jest.Mock).mockImplementation((url: string) => {
+        if (url === 'knowledge/subjects') {
+          return Promise.resolve({
+            data: {
+              data: {
+                subjects: [
+                  { id: 'subject-1', name: 'Math' },
+                  { id: 'subject-2', name: 'Portuguese' },
+                ],
+              },
+            },
+          });
+        }
+        return Promise.resolve({ data: { data: {} } });
+      });
+
+      return renderWithDesktopLayout(
+        <RecommendedLessonCreate
+          {...defaultProps}
+          preFilters={{ subjects, topics: [], subtopics: [], contents: [] }}
+        />
+      );
+    };
+
+    it('warns once that only the first component was kept', async () => {
+      const { rerender } = await renderWithDraftFilters([
+        'subject-1',
+        'subject-2',
+      ]);
+
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            title: 'Este rascunho tinha mais de um componente curricular',
+            description:
+              'Mantivemos apenas Math. Uma aula recomendada só pode ter aulas de um componente curricular.',
+            action: 'warning',
+          })
+        );
+      });
+
+      // Re-running the effect with the same subjects must not nag the user
+      // again — a fresh preFilters identity is enough to re-trigger it.
+      rerender(
+        <RecommendedLessonCreate
+          {...defaultProps}
+          preFilters={{
+            subjects: ['subject-1', 'subject-2'],
+            topics: [],
+            subtopics: [],
+            contents: [],
+          }}
+        />
+      );
+      await waitFor(() => {
+        expect(screen.getByTestId('lesson-filters')).toBeInTheDocument();
+      });
+
+      const warnings = mockAddToast.mock.calls.filter(
+        ([toast]) =>
+          toast.title === 'Este rascunho tinha mais de um componente curricular'
+      );
+      expect(warnings).toHaveLength(1);
+    });
+
+    it('falls back to "a primeira" when the component is unknown', async () => {
+      await renderWithDraftFilters(['ghost-1', 'ghost-2']);
+
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            description:
+              'Mantivemos apenas a primeira. Uma aula recomendada só pode ter aulas de um componente curricular.',
+          })
+        );
+      });
+    });
+
+    it('does not warn for a single-subject draft', async () => {
+      await renderWithDraftFilters(['subject-1']);
+
+      expect(mockAddToast).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Este rascunho tinha mais de um componente curricular',
+        })
+      );
     });
   });
 
@@ -2064,6 +2342,18 @@ describe('RecommendedLessonCreate', () => {
       );
 
       expect(screen.getByTestId('menu-overflow-wrapper')).toBeInTheDocument();
+    });
+
+    it('wires the subject switch gate on small screen too', async () => {
+      await renderWithSmallScreen(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      fireEvent.click(screen.getByTestId('request-subject-change'));
+
+      await waitFor(() => {
+        expect(mockSubjectChangeSettled).toHaveBeenCalledWith(true);
+      });
     });
 
     it('should show filters view by default on small screen', async () => {
@@ -3538,15 +3828,11 @@ describe('RecommendedLessonCreate', () => {
         .spyOn(console, 'error')
         .mockImplementation(() => {});
 
-      await act(async () => {
-        render(<RecommendedLessonCreate {...defaultProps} />);
-      });
+      render(<RecommendedLessonCreate {...defaultProps} />);
 
       // First, add a lesson so the send button is enabled
       const addLessonBtn = screen.getByTestId('add-lesson-btn');
-      await act(async () => {
-        fireEvent.click(addLessonBtn);
-      });
+      fireEvent.click(addLessonBtn);
 
       // Wait for auto-save
       await act(async () => {
@@ -3555,9 +3841,7 @@ describe('RecommendedLessonCreate', () => {
 
       // Open send modal
       const sendLessonBtn = screen.getByTestId('send-lesson-btn');
-      await act(async () => {
-        fireEvent.click(sendLessonBtn);
-      });
+      fireEvent.click(sendLessonBtn);
 
       await waitFor(() => {
         expect(screen.getByTestId('send-lesson-modal')).toBeInTheDocument();
@@ -3565,9 +3849,7 @@ describe('RecommendedLessonCreate', () => {
 
       // Trigger categories change
       const triggerBtn = screen.getByTestId('trigger-categories-change');
-      await act(async () => {
-        fireEvent.click(triggerBtn);
-      });
+      fireEvent.click(triggerBtn);
 
       // Wait for error to be logged
       await waitFor(() => {
@@ -3660,15 +3942,11 @@ describe('RecommendedLessonCreate', () => {
         return Promise.resolve({ data: { data: {} } });
       });
 
-      await act(async () => {
-        render(<RecommendedLessonCreate {...defaultProps} />);
-      });
+      render(<RecommendedLessonCreate {...defaultProps} />);
 
       // First, add a lesson so the send button is enabled
       const addLessonBtn = screen.getByTestId('add-lesson-btn');
-      await act(async () => {
-        fireEvent.click(addLessonBtn);
-      });
+      fireEvent.click(addLessonBtn);
 
       // Wait for auto-save
       await act(async () => {
@@ -3677,9 +3955,7 @@ describe('RecommendedLessonCreate', () => {
 
       // Open send modal
       const sendLessonBtn = screen.getByTestId('send-lesson-btn');
-      await act(async () => {
-        fireEvent.click(sendLessonBtn);
-      });
+      fireEvent.click(sendLessonBtn);
 
       await waitFor(() => {
         expect(screen.getByTestId('send-lesson-modal')).toBeInTheDocument();
@@ -3687,9 +3963,7 @@ describe('RecommendedLessonCreate', () => {
 
       // Trigger categories change first time
       const triggerBtn = screen.getByTestId('trigger-categories-change');
-      await act(async () => {
-        fireEvent.click(triggerBtn);
-      });
+      fireEvent.click(triggerBtn);
 
       // Wait for first call
       await waitFor(() => {

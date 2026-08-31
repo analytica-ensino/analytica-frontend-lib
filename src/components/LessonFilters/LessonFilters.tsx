@@ -1,12 +1,10 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Text from '../Text/Text';
+import Button from '../Button/Button';
 import type { BaseApiClient } from '../../types/api';
 import { createUseActivityFiltersData } from '../../hooks/useActivityFiltersData';
 import type { LessonFiltersData } from '../../types/lessonFilters';
-import {
-  getSelectedIdsFromCategories,
-  toggleSingleValue,
-} from '../../utils/activityFilters';
+import { getSelectedIdsFromCategories } from '../../utils/activityFilters';
 import { areLessonFiltersEqual } from '../../utils/lessonFilters';
 import {
   SubjectsFilter,
@@ -26,6 +24,14 @@ export interface LessonFiltersProps {
   initialFilters?: LessonFiltersData | null;
   onClearFilters?: () => void;
   onApplyFilters?: () => void;
+  /**
+   * Gate run before a subject change is applied. Return (or resolve) `false` to
+   * veto it — used to ask the user to confirm discarding the preview, since a
+   * recommended class can only hold lessons from a single subject.
+   */
+  onBeforeSubjectChange?: (
+    nextSubjectId: string | null
+  ) => boolean | Promise<boolean>;
 }
 
 /**
@@ -40,6 +46,7 @@ export const LessonFilters = ({
   initialFilters = null,
   onClearFilters,
   onApplyFilters,
+  onBeforeSubjectChange,
 }: LessonFiltersProps) => {
   const useActivityFiltersData = createUseActivityFiltersData(apiClient);
 
@@ -87,6 +94,8 @@ export const LessonFilters = ({
       return;
     }
 
+    // Drafts saved before the single-subject rule may carry several ids; keep
+    // the first one. RecommendedLessonCreate warns the user when that happens.
     if (initialFilters.subjectIds && initialFilters.subjectIds.length > 0) {
       setSelectedSubject(initialFilters.subjectIds[0]);
     }
@@ -100,8 +109,23 @@ export const LessonFilters = ({
     }
   }, [loadKnowledgeAreas, institutionId]);
 
-  const handleSubjectChange = (subjectId: string) => {
-    setSelectedSubject(toggleSingleValue(selectedSubject, subjectId));
+  /**
+   * @returns whether the change was applied — SubjectsFilter needs to know so it
+   * can roll its own state back when the gate refuses.
+   */
+  const handleSubjectChange = async (
+    subjectId: string | null
+  ): Promise<boolean> => {
+    if (subjectId === selectedSubject) {
+      return true;
+    }
+
+    if (onBeforeSubjectChange && !(await onBeforeSubjectChange(subjectId))) {
+      return false;
+    }
+
+    setSelectedSubject(subjectId);
+    return true;
   };
 
   const selectedSubjects = useMemo(
@@ -163,6 +187,16 @@ export const LessonFilters = ({
               <Text size="sm" weight="bold">
                 Componente curricular
               </Text>
+              {selectedSubject !== null && (
+                <Button
+                  type="button"
+                  variant="link"
+                  onClick={() => handleSubjectChange(null)}
+                  size="small"
+                >
+                  Limpar
+                </Button>
+              )}
             </div>
             <SubjectsFilter
               knowledgeAreas={knowledgeAreas}
