@@ -1090,6 +1090,84 @@ describe('Internal Helper Functions', () => {
       expect(result.current.notifications[0].entityStatus).toBeNull();
     });
 
+    it('should keep questionId so the consumer can open the commented question', async () => {
+      const mockResponse: BackendNotificationsResponse = {
+        notifications: [
+          {
+            id: '1',
+            senderUserInstitutionId: null,
+            receiverUserInstitutionId: 'user-1',
+            title: 'Novo comentário no simulado',
+            description: 'Seu professor comentou uma questão.',
+            entityType: 'simulation',
+            entityId: 'sim-1',
+            questionId: 'question-7',
+            read: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            sender: null,
+            activity: null,
+            recommendedClass: null,
+          },
+        ],
+        pagination: { page: 1, limit: 10, total: 1, totalPages: 1 },
+      };
+
+      const mockApiClient: NotificationApiClient = {
+        get: jest.fn().mockResolvedValue({ data: mockResponse }),
+        patch: jest.fn(),
+        delete: jest.fn(),
+      };
+
+      const useStore = createNotificationStore(mockApiClient);
+      const { result } = renderHook(() => useStore());
+
+      await act(async () => {
+        await result.current.fetchNotifications();
+      });
+
+      // The mapper is a whitelist: a field it does not list is dropped.
+      expect(result.current.notifications[0].questionId).toBe('question-7');
+    });
+
+    it('should map questionId to null when the notification is about the whole entity', async () => {
+      const mockResponse: BackendNotificationsResponse = {
+        notifications: [
+          {
+            id: '1',
+            senderUserInstitutionId: null,
+            receiverUserInstitutionId: 'user-1',
+            title: 'Nova observação no simulado',
+            description: 'Seu professor deixou uma observação.',
+            entityType: 'simulation',
+            entityId: 'sim-1',
+            read: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            sender: null,
+            activity: null,
+            recommendedClass: null,
+          },
+        ],
+        pagination: { page: 1, limit: 10, total: 1, totalPages: 1 },
+      };
+
+      const mockApiClient: NotificationApiClient = {
+        get: jest.fn().mockResolvedValue({ data: mockResponse }),
+        patch: jest.fn(),
+        delete: jest.fn(),
+      };
+
+      const useStore = createNotificationStore(mockApiClient);
+      const { result } = renderHook(() => useStore());
+
+      await act(async () => {
+        await result.current.fetchNotifications();
+      });
+
+      expect(result.current.notifications[0].questionId).toBeNull();
+    });
+
     it('should map the backend lowercase simulation entity type', async () => {
       const mockResponse: BackendNotificationsResponse = {
         notifications: [

@@ -488,6 +488,7 @@ describe('NotificationCard', () => {
       expect(onNavigateById).toHaveBeenCalledWith(
         NotificationEntityType.ACTIVITY,
         'act-1',
+        undefined,
         undefined
       );
     });
@@ -523,7 +524,39 @@ describe('NotificationCard', () => {
       expect(onNavigateById).toHaveBeenCalledWith(
         NotificationEntityType.ACTIVITY,
         'act-1',
-        NotificationEntityStatus.CONCLUIDA
+        NotificationEntityStatus.CONCLUIDA,
+        undefined
+      );
+    });
+
+    it('passes questionId through so the consumer can open the question', () => {
+      const onNavigateById = jest.fn();
+
+      render(
+        <NotificationCard
+          mode="list"
+          groupedNotifications={[
+            {
+              label: 'Hoje',
+              notifications: [
+                { ...mockNotifications[0], questionId: 'question-7' },
+              ],
+            },
+          ]}
+          onMarkAsReadById={jest.fn()}
+          onDeleteById={jest.fn()}
+          onNavigateById={onNavigateById}
+          getActionLabel={() => 'Ver atividade'}
+        />
+      );
+
+      fireEvent.click(screen.getByText('Ver atividade'));
+
+      expect(onNavigateById).toHaveBeenCalledWith(
+        NotificationEntityType.ACTIVITY,
+        'act-1',
+        undefined,
+        'question-7'
       );
     });
 
@@ -1778,10 +1811,13 @@ describe('NotificationCard', () => {
       const actionButton = screen.getByText('Ver atividade');
       fireEvent.click(actionButton);
 
-      // Should call navigation
+      // Four arguments now: the modal forwards variadically, so the mobile
+      // centre no longer drops entityStatus (and won't drop the next one).
       expect(onNavigateById).toHaveBeenCalledWith(
         NotificationEntityType.ACTIVITY,
-        'activity-1'
+        'activity-1',
+        undefined,
+        undefined
       );
 
       // Modal should be closed (navigation closes modal)
@@ -1963,11 +1999,61 @@ describe('NotificationCard', () => {
       expect(actionButton).toBeInTheDocument();
       fireEvent.click(actionButton);
 
-      // Should call navigation with entityType, entityId and entityStatus
+      // Should forward every argument, entityStatus and questionId included
       expect(onNavigateById).toHaveBeenCalledWith(
         NotificationEntityType.ACTIVITY,
         'activity-1',
+        undefined,
         undefined
+      );
+    });
+
+    it('forwards entityStatus and questionId from the notification centre', () => {
+      // Regression: this forwarding used to be written as `(entityType,
+      // entityId) => …`, so a finished activity opened through the centre
+      // reached the consumer without its status and went to the quiz instead of
+      // the result — and a commented question was unreachable.
+      const onNavigateById = jest.fn();
+
+      render(
+        <NotificationCard
+          mode="center"
+          isActive={true}
+          groupedNotifications={[
+            {
+              label: 'Hoje',
+              notifications: [
+                {
+                  id: '1',
+                  title: 'Questão corrigida',
+                  message: 'Seu professor corrigiu uma questão.',
+                  type: 'ACTIVITY' as const,
+                  isRead: false,
+                  createdAt: new Date(),
+                  entityType: NotificationEntityType.ACTIVITY,
+                  entityId: 'activity-9',
+                  entityStatus: NotificationEntityStatus.CONCLUIDA,
+                  questionId: 'question-7',
+                  sender: null,
+                  activity: null,
+                  recommendedClass: null,
+                } as Notification,
+              ],
+            },
+          ]}
+          onNavigateById={onNavigateById}
+          getActionLabel={() => 'Ver atividade'}
+        />
+      );
+
+      fireEvent.click(screen.getByLabelText('Botão de ação'));
+      fireEvent.click(screen.getByText('Ver atividade'));
+
+      expect(onNavigateById).toHaveBeenCalledWith(
+        NotificationEntityType.ACTIVITY,
+        'activity-9',
+        NotificationEntityStatus.CONCLUIDA,
+        'question-7'
       );
     });
 
@@ -2063,6 +2149,7 @@ describe('NotificationCard', () => {
       expect(onNavigateById).toHaveBeenCalledWith(
         NotificationEntityType.ACTIVITY,
         'activity-desktop-1',
+        undefined,
         undefined
       );
 

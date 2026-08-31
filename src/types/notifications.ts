@@ -94,6 +94,12 @@ export interface Notification {
    * Lifecycle status of the entity for this receiver (optional)
    */
   entityStatus?: NotificationEntityStatus | null;
+  /**
+   * Question this notification is about, when it points at one (a teacher
+   * comment on a single question). Null means the entity as a whole — the
+   * simulation observation, or an activity that was corrected.
+   */
+  questionId?: string | null;
   sender?: {
     id: string;
     user: {
@@ -131,6 +137,7 @@ export interface BackendNotification {
   entityType: string | null;
   entityId: string | null;
   entityStatus?: string | null;
+  questionId?: string | null;
   actionLink?: string | null;
   linkImg?: string | null;
   read: boolean;

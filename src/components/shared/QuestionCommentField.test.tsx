@@ -175,6 +175,37 @@ describe('QuestionCommentField', () => {
       ).not.toBeInTheDocument();
     });
 
+    it('should hide the border while the comment is saved', () => {
+      // QA: a saved comment must read as text, not as a field waiting for
+      // input. The border is what made it look editable.
+      render(
+        <QuestionCommentField value="Revise a soma." onSave={jest.fn()} />
+      );
+
+      // Important variant: `border-transparent` alone would leave the outcome
+      // to twMerge and to which stylesheet the consuming app loads last.
+      expect(screen.getByRole('textbox')).toHaveClass('border-transparent!');
+    });
+
+    it('should bring the border back when Editar is clicked', async () => {
+      const user = userEvent.setup();
+      render(
+        <QuestionCommentField value="Revise a soma." onSave={jest.fn()} />
+      );
+
+      await user.click(screen.getByRole('button', { name: 'Editar' }));
+
+      const textarea = screen.getByRole('textbox');
+      expect(textarea).not.toHaveClass('border-transparent!');
+      expect(textarea).toHaveClass('border-border-300');
+    });
+
+    it('should show the border on a comment that was never written', () => {
+      render(<QuestionCommentField value="" onSave={jest.fn()} />);
+
+      expect(screen.getByRole('textbox')).not.toHaveClass('border-transparent');
+    });
+
     it('should open an empty comment directly editable', () => {
       render(<QuestionCommentField value="" onSave={jest.fn()} />);
 
