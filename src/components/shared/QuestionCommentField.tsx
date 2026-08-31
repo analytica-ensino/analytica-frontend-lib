@@ -131,7 +131,14 @@ export function QuestionCommentField({
         // A saved comment reads as text, not as a field waiting for input — the
         // border comes back with "Editar". Keeps the border *width* from the
         // base classes so nothing shifts when it does.
-        className={isLocked ? 'border-transparent' : undefined}
+        //
+        // Important (the trailing `!`, which is v4 syntax) on purpose: without
+        // it this only wins because twMerge drops the read-only state's
+        // `border-border-300`, and because of where each stylesheet lands in the
+        // cascade. The library's CSS is loaded after the consuming app's, so a
+        // colour utility from either side can outrank the other. `!important`
+        // takes both of those out of the equation.
+        className={isLocked ? 'border-transparent!' : undefined}
       />
       {error && (
         <Text size="sm" className="text-error-600">

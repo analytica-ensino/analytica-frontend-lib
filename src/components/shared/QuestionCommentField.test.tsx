@@ -182,7 +182,9 @@ describe('QuestionCommentField', () => {
         <QuestionCommentField value="Revise a soma." onSave={jest.fn()} />
       );
 
-      expect(screen.getByRole('textbox')).toHaveClass('border-transparent');
+      // Important variant: `border-transparent` alone would leave the outcome
+      // to twMerge and to which stylesheet the consuming app loads last.
+      expect(screen.getByRole('textbox')).toHaveClass('border-transparent!');
     });
 
     it('should bring the border back when Editar is clicked', async () => {
@@ -194,7 +196,7 @@ describe('QuestionCommentField', () => {
       await user.click(screen.getByRole('button', { name: 'Editar' }));
 
       const textarea = screen.getByRole('textbox');
-      expect(textarea).not.toHaveClass('border-transparent');
+      expect(textarea).not.toHaveClass('border-transparent!');
       expect(textarea).toHaveClass('border-border-300');
     });
 
