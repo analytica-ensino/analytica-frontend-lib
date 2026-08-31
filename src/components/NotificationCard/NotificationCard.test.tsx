@@ -1158,6 +1158,70 @@ describe('NotificationCard', () => {
 
       openSpy.mockRestore();
     });
+
+    /**
+     * O center não delega os modais ao NotificationList: ele monta os seus, um
+     * para desktop e outro para mobile. Cada um precisa do próprio teste, senão
+     * o `onActionClick` desses dois fica sem cobertura mesmo com o de list mode
+     * passando.
+     */
+    it.each([
+      ['desktop', false],
+      ['mobile', true],
+    ])(
+      'marks as read from the modal action in center mode (%s)',
+      (_label, isMobile) => {
+        mockUseMobile.mockReturnValue(makeUseMobileMock({ isMobile }));
+
+        const onMarkAsReadById = jest.fn();
+        const openSpy = jest
+          .spyOn(window, 'open')
+          .mockImplementation(() => null);
+
+        renderCenter(globalNotification, onMarkAsReadById);
+
+        fireEvent.click(screen.getByLabelText('Botão de ação'));
+        fireEvent.click(screen.getByText('Ver mais'));
+        onMarkAsReadById.mockClear();
+
+        const modalAction = within(screen.getByRole('dialog')).getByRole(
+          'button',
+          { name: 'Ver mais' }
+        );
+        fireEvent.click(modalAction);
+
+        expect(onMarkAsReadById).toHaveBeenCalledWith('notif-1');
+        expect(openSpy).toHaveBeenCalledWith(
+          'https://example.com',
+          '_blank',
+          'noopener,noreferrer'
+        );
+
+        openSpy.mockRestore();
+      }
+    );
+
+    it('does not mark again from the modal action when already read', () => {
+      const onMarkAsReadById = jest.fn();
+      const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+
+      renderCenter({ ...globalNotification, isRead: true }, onMarkAsReadById);
+
+      fireEvent.click(screen.getByLabelText('Botão de ação'));
+      fireEvent.click(screen.getByText('Ver mais'));
+
+      const modalAction = within(screen.getByRole('dialog')).getByRole(
+        'button',
+        { name: 'Ver mais' }
+      );
+      fireEvent.click(modalAction);
+
+      expect(onMarkAsReadById).not.toHaveBeenCalled();
+      // O link continua abrindo: marcar como lido é efeito colateral, não gate.
+      expect(openSpy).toHaveBeenCalled();
+
+      openSpy.mockRestore();
+    });
   });
 
   describe('NotificationEmpty component', () => {
