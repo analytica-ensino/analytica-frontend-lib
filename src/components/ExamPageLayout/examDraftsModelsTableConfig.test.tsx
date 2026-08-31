@@ -73,7 +73,7 @@ describe('examDraftsModelsTableConfig', () => {
       const subjectColumn = columns.find((col) => col.key === 'subject');
 
       expect(subjectColumn).toBeDefined();
-      expect(subjectColumn?.label).toBe('Disciplina');
+      expect(subjectColumn?.label).toBe('Componente curricular');
       expect(subjectColumn?.sortable).toBe(true);
     });
 

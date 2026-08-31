@@ -75,7 +75,9 @@ export function useSimulatedSubjects(
         });
       } catch (err) {
         const errorMessage =
-          err instanceof Error ? err.message : 'Erro ao carregar disciplinas';
+          err instanceof Error
+            ? err.message
+            : 'Erro ao carregar componentes curriculares';
 
         console.error('Error fetching simulated subjects:', err);
 

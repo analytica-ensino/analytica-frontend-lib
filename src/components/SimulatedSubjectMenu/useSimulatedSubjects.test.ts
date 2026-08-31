@@ -95,7 +95,9 @@ describe('useSimulatedSubjects', () => {
       await result.current.fetchSubjects();
     });
 
-    expect(result.current.error).toBe('Erro ao carregar disciplinas');
+    expect(result.current.error).toBe(
+      'Erro ao carregar componentes curriculares'
+    );
     expect(result.current.subjects).toEqual([]);
     expect(result.current.loading).toBe(false);
   });

@@ -51,6 +51,6 @@ export interface SimulatedSubjectMenuProps {
   readonly onSubjectChange: (subjectId: string | null) => void;
   /** External loading state */
   readonly loading?: boolean;
-  /** Label text (default: "Disciplina") */
+  /** Label text (default: "Componente curricular") */
   readonly label?: string;
 }

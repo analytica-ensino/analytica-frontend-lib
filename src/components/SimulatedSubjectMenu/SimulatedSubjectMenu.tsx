@@ -34,7 +34,7 @@ export function SimulatedSubjectMenu({
   selectedSubjectId,
   onSubjectChange,
   loading: externalLoading = false,
-  label = 'Disciplina',
+  label = 'Componente curricular',
 }: SimulatedSubjectMenuProps) {
   const {
     subjects,

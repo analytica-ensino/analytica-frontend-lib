@@ -48,7 +48,7 @@ export const createExamDraftsModelsTableColumns = (
   },
   {
     key: 'subject',
-    label: 'Disciplina',
+    label: 'Componente curricular',
     sortable: true,
     className: 'max-w-[200px]',
     render: (value: unknown) => {

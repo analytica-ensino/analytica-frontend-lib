@@ -56,7 +56,7 @@ export const ActivityModelsList = ({
         key: 'subject',
         label: 'Componente curricular',
         sortable: true,
-        className: 'max-w-[160px]',
+        className: 'max-w-[200px]',
         render: (value: unknown) => {
           const subject = value as SubjectData | null;
           if (!subject) {

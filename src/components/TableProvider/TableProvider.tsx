@@ -62,7 +62,15 @@ export interface ColumnConfig<T = Record<string, unknown>> {
   render?: (value: unknown, row: T, index: number) => ReactNode;
   /** Column width */
   width?: string;
-  /** Additional CSS classes */
+  /**
+   * Classes extras, aplicadas à célula do corpo E ao cabeçalho.
+   *
+   * Um `max-w-*` aqui existe para truncar o conteúdo da célula, mas o
+   * cabeçalho tem `whitespace-nowrap` e não trunca: se o rótulo for mais largo
+   * que esse teto, ele vaza por cima da coluna seguinte. Por isso o `<th>`
+   * recebe `min-w-fit`, que em CSS vence o `max-width` — a coluna nunca fica
+   * mais estreita que o próprio título.
+   */
   className?: string;
   /** Text alignment */
   align?: 'left' | 'center' | 'right';
@@ -677,7 +685,7 @@ export function TableProvider<T extends Record<string, unknown>>({
                       />
                     )
                   }
-                  className={header.className}
+                  className={cn('min-w-fit', header.className)}
                   style={header.width ? { width: header.width } : undefined}
                 >
                   {header.label}

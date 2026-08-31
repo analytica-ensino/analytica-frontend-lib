@@ -87,7 +87,7 @@ describe('activitiesTableConfig', () => {
       expect(subjectColumn.key).toBe('subject');
       expect(subjectColumn.label).toBe('Componente curricular');
       expect(subjectColumn.sortable).toBe(true);
-      expect(subjectColumn.className).toBe('max-w-[140px]');
+      expect(subjectColumn.className).toBe('max-w-[200px]');
       expect(subjectColumn.render).toBeDefined();
     });
 

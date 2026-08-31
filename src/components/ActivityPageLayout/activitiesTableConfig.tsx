@@ -108,7 +108,7 @@ export const activitiesTableColumns: ColumnConfig<ActivityTableItem>[] = [
     key: 'subject',
     label: 'Componente curricular',
     sortable: true,
-    className: 'max-w-[140px]',
+    className: 'max-w-[200px]',
     render: (value: unknown) =>
       renderSubjectCell(
         typeof value === 'string' ? value : '-',

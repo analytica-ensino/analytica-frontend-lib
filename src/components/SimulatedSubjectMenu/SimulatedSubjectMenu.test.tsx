@@ -110,7 +110,7 @@ describe('SimulatedSubjectMenu', () => {
       />
     );
 
-    expect(screen.getByText('Disciplina')).toBeInTheDocument();
+    expect(screen.getByText('Componente curricular')).toBeInTheDocument();
     expect(screen.getByText('Todos')).toBeInTheDocument();
     expect(screen.getByText('Matematica')).toBeInTheDocument();
   });
