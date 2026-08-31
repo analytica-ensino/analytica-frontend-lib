@@ -80,6 +80,14 @@ type ModalProps = {
   actionLink?: string;
   /** Action button label for activity variant */
   actionLabel?: string;
+  /**
+   * Called when the action button is clicked, before the link opens.
+   *
+   * Lets the caller record the click — the notification center uses it to mark a
+   * notice as read when the reader follows its "Ver mais" link. Optional and
+   * side-effect free when omitted: the link still opens either way.
+   */
+  onActionClick?: () => void;
 };
 
 /**
@@ -132,6 +140,7 @@ const Modal = ({
   imageAlt,
   actionLink,
   actionLabel,
+  onActionClick,
   contentClassName = '',
 }: ModalProps) => {
   const titleId = useId();
@@ -159,6 +168,7 @@ const Modal = ({
 
   // Handle action link click
   const handleActionClick = () => {
+    onActionClick?.();
     if (actionLink) {
       window.open(normalizeUrl(actionLink), '_blank', 'noopener,noreferrer');
     }

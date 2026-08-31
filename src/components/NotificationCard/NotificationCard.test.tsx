@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import NotificationCard, {
   NotificationGroup,
   LegacyNotificationCard,
@@ -990,6 +990,173 @@ describe('NotificationCard', () => {
 
       // Modal should be closed
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+  });
+
+  /**
+   * Regression suite for the bug where a student could open every notice and
+   * still show up as "Pendente" on the teacher's screen: opening a notification
+   * never called `PATCH /notifications/:id`, so the only way to be counted as a
+   * reader was the "Marcar como lida" item in the kebab menu.
+   */
+  describe('marks a notification as read when it is opened', () => {
+    const globalNotification: Notification = {
+      id: 'notif-1',
+      title: 'Aviso programado',
+      message: 'Conteúdo do aviso',
+      isRead: false,
+      createdAt: new Date(),
+      type: 'ANNOUNCEMENT',
+      entityType: null,
+      entityId: null,
+      actionLink: 'https://example.com',
+      activity: null,
+      recommendedClass: null,
+    };
+
+    const renderCenter = (
+      notification: Notification,
+      onMarkAsReadById: jest.Mock
+    ) =>
+      render(
+        <NotificationCard
+          mode="center"
+          isActive={false}
+          unreadCount={1}
+          groupedNotifications={[
+            { label: 'Test Group', notifications: [notification] },
+          ]}
+          onToggleActive={jest.fn()}
+          onMarkAsReadById={onMarkAsReadById}
+          onDeleteById={jest.fn()}
+          onNavigateById={jest.fn()}
+          getActionLabel={() => 'Ver mais'}
+        />
+      );
+
+    it('marks as read and opens the modal when "Ver mais" is clicked in center mode', () => {
+      const onMarkAsReadById = jest.fn();
+      renderCenter(globalNotification, onMarkAsReadById);
+
+      fireEvent.click(screen.getByLabelText('Botão de ação'));
+      fireEvent.click(screen.getByText('Ver mais'));
+
+      expect(onMarkAsReadById).toHaveBeenCalledWith('notif-1');
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+
+    it('does not mark an already-read notification again', () => {
+      const onMarkAsReadById = jest.fn();
+      renderCenter({ ...globalNotification, isRead: true }, onMarkAsReadById);
+
+      fireEvent.click(screen.getByLabelText('Botão de ação'));
+      fireEvent.click(screen.getByText('Ver mais'));
+
+      expect(onMarkAsReadById).not.toHaveBeenCalled();
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+
+    it('marks as read in list mode too', () => {
+      const onMarkAsReadById = jest.fn();
+
+      render(
+        <NotificationCard
+          mode="list"
+          groupedNotifications={[
+            { label: 'Test Group', notifications: [globalNotification] },
+          ]}
+          onMarkAsReadById={onMarkAsReadById}
+          onDeleteById={jest.fn()}
+          getActionLabel={() => 'Ver mais'}
+        />
+      );
+
+      fireEvent.click(screen.getByText('Ver mais'));
+
+      expect(onMarkAsReadById).toHaveBeenCalledWith('notif-1');
+    });
+
+    it('marks as read when navigating to an entity notification', () => {
+      const onMarkAsReadById = jest.fn();
+      const onNavigateById = jest.fn();
+
+      render(
+        <NotificationCard
+          mode="list"
+          groupedNotifications={[
+            {
+              label: 'Test Group',
+              notifications: [
+                {
+                  ...globalNotification,
+                  id: 'notif-2',
+                  type: 'ACTIVITY',
+                  entityType: NotificationEntityType.ACTIVITY,
+                  entityId: 'activity-9',
+                },
+              ],
+            },
+          ]}
+          onMarkAsReadById={onMarkAsReadById}
+          onDeleteById={jest.fn()}
+          onNavigateById={onNavigateById}
+          getActionLabel={() => 'Ver atividade'}
+        />
+      );
+
+      fireEvent.click(screen.getByText('Ver atividade'));
+
+      expect(onMarkAsReadById).toHaveBeenCalledWith('notif-2');
+      // `entityStatus` e `questionId` seguem repassados: marcar como lido não
+      // pode encurtar a assinatura que o consumidor usa para rotear.
+      expect(onNavigateById).toHaveBeenCalledWith(
+        NotificationEntityType.ACTIVITY,
+        'activity-9',
+        undefined,
+        undefined
+      );
+    });
+
+    /**
+     * The modal's own "Ver mais" (the one that follows `actionLink`) is a second
+     * entry point. It is redundant once the card already marked the notice on
+     * open, but it is the only one left when a consumer injects its own
+     * `onGlobalNotificationClick` that skips the card handler.
+     */
+    it('marks as read when the action link inside the modal is followed', () => {
+      const onMarkAsReadById = jest.fn();
+      const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+
+      render(
+        <NotificationCard
+          mode="list"
+          groupedNotifications={[
+            { label: 'Test Group', notifications: [globalNotification] },
+          ]}
+          onMarkAsReadById={onMarkAsReadById}
+          onDeleteById={jest.fn()}
+          getActionLabel={() => 'Ver mais'}
+        />
+      );
+
+      // Open the modal from the card, then click the action button inside it.
+      fireEvent.click(screen.getByText('Ver mais'));
+      onMarkAsReadById.mockClear();
+
+      const dialog = screen.getByRole('dialog');
+      const modalAction = within(dialog).getByRole('button', {
+        name: 'Ver mais',
+      });
+      fireEvent.click(modalAction);
+
+      expect(onMarkAsReadById).toHaveBeenCalledWith('notif-1');
+      expect(openSpy).toHaveBeenCalledWith(
+        'https://example.com',
+        '_blank',
+        'noopener,noreferrer'
+      );
+
+      openSpy.mockRestore();
     });
   });
 

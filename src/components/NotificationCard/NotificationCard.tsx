@@ -509,6 +509,27 @@ const NotificationList = ({
       });
     }
   };
+
+  /**
+   * Opening a notification is what "viewed" means to the sender, so it has to
+   * mark it read. Every entry point funnels through here — the card's "Ver mais"
+   * button and the whole card body, in list mode and inside the notification
+   * center alike — because the center renders this same list internally and
+   * cannot inject its own handler.
+   *
+   * Without this, the only path that ever reached `PATCH /notifications/:id` was
+   * the "Marcar como lida" item in the kebab menu, so a student could read every
+   * notice and still show up as "Pendente" on the teacher's screen.
+   */
+  const markAsReadThen = (
+    notification: Notification,
+    open: (notification: Notification) => void
+  ) => {
+    if (!notification.isRead) {
+      onMarkAsReadById?.(notification.id);
+    }
+    open(notification);
+  };
   // Error state
   if (error) {
     return (
@@ -577,18 +598,20 @@ const NotificationList = ({
             let navigationHandler: (() => void) | undefined;
             if (isGlobalNotification) {
               navigationHandler = () =>
-                handleGlobalNotificationClick(notification);
+                markAsReadThen(notification, handleGlobalNotificationClick);
             } else if (
               notification.entityType &&
               notification.entityId &&
               onNavigateById
             ) {
               navigationHandler = () =>
-                onNavigateById(
-                  notification.entityType ?? undefined,
-                  notification.entityId ?? undefined,
-                  notification.entityStatus,
-                  notification.questionId
+                markAsReadThen(notification, (opened) =>
+                  onNavigateById(
+                    opened.entityType ?? undefined,
+                    opened.entityId ?? undefined,
+                    opened.entityStatus,
+                    opened.questionId
+                  )
                 );
             }
 
@@ -642,6 +665,12 @@ const NotificationList = ({
           globalNotificationModal.notification?.actionLink || undefined
         }
         actionLabel="Ver mais"
+        onActionClick={() => {
+          const opened = globalNotificationModal.notification;
+          if (opened && !opened.isRead) {
+            onMarkAsReadById?.(opened.id);
+          }
+        }}
         size="lg"
       />
     </div>
@@ -826,6 +855,12 @@ const NotificationCenter = ({
             globalNotificationModal.notification?.actionLink || undefined
           }
           actionLabel="Ver mais"
+          onActionClick={() => {
+            const opened = globalNotificationModal.notification;
+            if (opened && !opened.isRead) {
+              onMarkAsReadById?.(opened.id);
+            }
+          }}
           size="lg"
         />
       </>
@@ -923,6 +958,12 @@ const NotificationCenter = ({
           globalNotificationModal.notification?.actionLink || undefined
         }
         actionLabel="Ver mais"
+        onActionClick={() => {
+          const opened = globalNotificationModal.notification;
+          if (opened && !opened.isRead) {
+            onMarkAsReadById?.(opened.id);
+          }
+        }}
         size="lg"
       />
     </>
