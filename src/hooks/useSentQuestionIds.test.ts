@@ -103,4 +103,24 @@ describe('useSentQuestionIds', () => {
 
     expect(result.current.size).toBe(0);
   });
+
+  it('should keep using the client captured at mount when the prop changes', async () => {
+    const initialGet = jest.fn().mockResolvedValue({
+      data: { message: 'ok', data: { questionIds: ['question-1'] } },
+    });
+    const laterGet = jest.fn();
+
+    const { result, rerender } = renderHook(
+      ({ client }) => useSentQuestionIds(client),
+      { initialProps: { client: createApiClient(initialGet) } }
+    );
+
+    await waitFor(() => expect(result.current.size).toBe(1));
+
+    rerender({ client: createApiClient(laterGet) });
+
+    expect(initialGet).toHaveBeenCalledTimes(1);
+    expect(laterGet).not.toHaveBeenCalled();
+    expect(result.current.has('question-1')).toBe(true);
+  });
 });

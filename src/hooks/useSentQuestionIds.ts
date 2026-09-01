@@ -31,8 +31,10 @@ export const useSentQuestionIds = (apiClient: BaseApiClient): Set<string> => {
   const [sentQuestionIds, setSentQuestionIds] = useState<Set<string>>(
     () => new Set()
   );
+  // Pinned at mount and deliberately never refreshed: the effect below runs
+  // once, so a later client would never be read anyway — and reassigning during
+  // render would let a discarded render leak an uncommitted client into the ref.
   const apiClientRef = useRef(apiClient);
-  apiClientRef.current = apiClient;
 
   useEffect(() => {
     let isActive = true;
