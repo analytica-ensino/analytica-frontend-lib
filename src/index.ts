@@ -37,6 +37,11 @@ export {
   reflowDisplayMath,
 } from './components/MarkdownMathRenderer';
 export type { MarkdownMathRendererProps } from './components/MarkdownMathRenderer';
+export { default as DragHandleButton } from './components/DragHandleButton/DragHandleButton';
+export type {
+  DragHandleButtonProps,
+  DragMoveDirection,
+} from './components/DragHandleButton/DragHandleButton';
 export { default as IconButton } from './components/IconButton/IconButton';
 export { Tooltip } from './components/Tooltip/Tooltip';
 export type { TooltipProps } from './components/Tooltip/Tooltip';

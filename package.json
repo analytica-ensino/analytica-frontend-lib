@@ -1882,6 +1882,13 @@
       "import": "./dist/hooks/useAnnouncements/index.mjs",
       "require": "./dist/hooks/useAnnouncements/index.js",
       "default": "./dist/hooks/useAnnouncements/index.mjs"
+    },
+    "./drag-handle-button": {
+      "types": "./dist/DragHandleButton/index.d.ts",
+      "module": "./dist/DragHandleButton/index.mjs",
+      "import": "./dist/DragHandleButton/index.mjs",
+      "require": "./dist/DragHandleButton/index.js",
+      "default": "./dist/DragHandleButton/index.mjs"
     }
   },
   "scripts": {

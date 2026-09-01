@@ -13,6 +13,8 @@ export default defineConfig({
     'Chips/index': 'src/components/Chips/Chips.tsx',
     'Divider/index': 'src/components/Divider/Divider.tsx',
     'DropdownMenu/index': 'src/components/DropdownMenu/DropdownMenu.tsx',
+    'DragHandleButton/index':
+      'src/components/DragHandleButton/DragHandleButton.tsx',
     'IconButton/index': 'src/components/IconButton/IconButton.tsx',
     'IconRoundedButton/index':
       'src/components/IconRoundedButton/IconRoundedButton.tsx',
