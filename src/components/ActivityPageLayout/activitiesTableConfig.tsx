@@ -69,10 +69,19 @@ export const renderActivityStatusBadge = (value: unknown) => {
  * - title: Titulo
  * - school: Escola
  * - year: Ano
- * - subject: Materia
+ * - subject: Componente curricular
  * - class: Turma
  * - status: Status (Concluída, Ativa, Vencida)
  * - completionPercentage: Conclusao
+ *
+ * Sobre os `max-w-*`: com a coluna de ações (Excluir/Editar) que a
+ * UnifiedHistoryPage injeta, são 11 colunas dentro de um container de ~1300px
+ * (BasePageLayout `max-w-[1350px]` menos o `p-6` do TableProvider). Os tetos
+ * abaixo foram medidos no navegador para a tabela caber sem rolagem horizontal
+ * a partir de 1280px de viewport — os professores precisavam arrastar a barra
+ * para alcançar o botão de editar e mudar prazos. Todas essas colunas usam
+ * `renderTextCell`/`renderSubjectCell`, então o texto completo continua
+ * acessível no tooltip.
  */
 export const activitiesTableColumns: ColumnConfig<ActivityTableItem>[] = [
   {
@@ -89,26 +98,34 @@ export const activitiesTableColumns: ColumnConfig<ActivityTableItem>[] = [
     key: 'title',
     label: 'Título',
     sortable: true,
-    className: 'max-w-[200px]',
+    className: 'max-w-[180px]',
     render: renderTextCell,
   },
   {
     key: 'school',
     label: 'Escola',
     sortable: true,
-    className: 'max-w-[150px]',
+    className: 'max-w-[120px]',
     render: renderTextCell,
   },
   {
     key: 'year',
     label: 'Ano',
     sortable: true,
+    // O nome vem cru da API ("3ª série do ensino médio") e o <td> é
+    // whitespace-nowrap, então sem teto a coluna sozinha empurrava a tabela
+    // para fora do container. 100px é o menor teto que ainda deixa ler
+    // "3ª série…"; abaixo disso o corte cai no meio de "série".
+    className: 'max-w-[100px]',
+    render: renderTextCell,
   },
   {
     key: 'subject',
-    label: 'Componente curricular',
+    // "Componente" e não "Componente curricular": o <th> recebe `min-w-fit`,
+    // que vence o max-width, então o rótulo é o piso de largura da coluna.
+    label: 'Componente',
     sortable: true,
-    className: 'max-w-[200px]',
+    className: 'max-w-[140px]',
     render: (value: unknown) =>
       renderSubjectCell(
         typeof value === 'string' ? value : '-',
@@ -119,7 +136,7 @@ export const activitiesTableColumns: ColumnConfig<ActivityTableItem>[] = [
     key: 'class',
     label: 'Turma',
     sortable: true,
-    className: 'max-w-[120px]',
+    className: 'max-w-[100px]',
     render: renderTextCell,
   },
   {

@@ -248,7 +248,7 @@ describe('Table Components', () => {
         </Table>
       );
       expect(screen.getByTestId('head')).toHaveClass('h-10');
-      expect(screen.getByTestId('head')).toHaveClass('px-6');
+      expect(screen.getByTestId('head')).toHaveClass('px-4');
       expect(screen.getByTestId('head')).toHaveClass('py-3.5');
       expect(screen.getByTestId('head')).toHaveClass('text-left');
       expect(screen.getByTestId('head')).toHaveClass('align-middle');
@@ -492,7 +492,7 @@ describe('Table Components', () => {
         </Table>
       );
       expect(screen.getByTestId('cell')).toHaveClass('p-2');
-      expect(screen.getByTestId('cell')).toHaveClass('px-6');
+      expect(screen.getByTestId('cell')).toHaveClass('px-4');
       expect(screen.getByTestId('cell')).toHaveClass('py-3.5');
       expect(screen.getByTestId('cell')).toHaveClass('align-middle');
       expect(screen.getByTestId('cell')).toHaveClass('text-base');
