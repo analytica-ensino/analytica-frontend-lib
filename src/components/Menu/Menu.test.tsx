@@ -117,6 +117,58 @@ describe('Menu Component', () => {
     });
   });
 
+  describe('Callback Identity', () => {
+    const tree = (handler: (value: string) => void) => (
+      <Menu defaultValue="home" onValueChange={handler}>
+        <MenuItem value="home">Home</MenuItem>
+        <MenuItem value="dashboard">Dashboard</MenuItem>
+      </Menu>
+    );
+
+    it('calls the handler of the latest render, not the one captured on mount', () => {
+      const first = jest.fn();
+      const second = jest.fn();
+
+      const { rerender } = render(tree(first));
+      rerender(tree(second));
+
+      fireEvent.click(screen.getByText('Dashboard'));
+
+      expect(second).toHaveBeenCalledWith('dashboard');
+      expect(first).not.toHaveBeenCalled();
+    });
+
+    it('resolves a value that only exists in a later render', () => {
+      // The shape this actually breaks in the wild: a consumer whose handler looks
+      // the clicked value up in state. A handler frozen on mount searches the list
+      // as it was back then, so an item added afterwards is never resolved and the
+      // click silently does nothing — the tab highlights while the panel below
+      // keeps rendering the previous selection.
+      const resolved: string[] = [];
+      const menu = (items: string[]) => (
+        <Menu
+          defaultValue="home"
+          onValueChange={(value) => {
+            if (items.includes(value)) resolved.push(value);
+          }}
+        >
+          {items.map((item) => (
+            <MenuItem key={item} value={item}>
+              {item}
+            </MenuItem>
+          ))}
+        </Menu>
+      );
+
+      const { rerender } = render(menu(['home']));
+      rerender(menu(['home', 'reports']));
+
+      fireEvent.click(screen.getByText('reports'));
+
+      expect(resolved).toEqual(['reports']);
+    });
+  });
+
   describe('Breadcrumb Variant', () => {
     it('renders items with data-variant', () => {
       render(

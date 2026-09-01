@@ -188,6 +188,21 @@ const Select = ({
   storeRef.current ??= createSelectStore(onValueChange);
   const store = storeRef.current;
 
+  // The store is created once and `SelectItem` reads `onValueChange` back out of
+  // it, so without this the consumer's handler stays pinned to its first render:
+  // one that closes over state changing afterwards keeps running against the
+  // state of that first render, forever. Syncing through the store (rather than
+  // recreating it) is how `disabled` is already kept current elsewhere in the
+  // lib, and it leaves `createSelectStore`'s signature — which is exported —
+  // untouched.
+  //
+  // This does not make a prop change fire the callback: only `SelectItem`'s
+  // click handler ever calls it, and the controlled-value effect below goes
+  // through `setValue`, which is silent.
+  useEffect(() => {
+    store.setState({ onValueChange });
+  }, [onValueChange, store]);
+
   const selectRef = useRef<HTMLDivElement>(null);
   const { open, setOpen, setValue, selectedLabel } = useStore(store, (s) => s);
 

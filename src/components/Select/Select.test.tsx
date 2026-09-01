@@ -453,6 +453,33 @@ describe('Select component', () => {
     expect(trigger).toHaveClass('h-9', 'px-3', 'py-2');
   });
 
+  it('should call the onValueChange of the latest render, not the one captured on mount', async () => {
+    const first = jest.fn();
+    const second = jest.fn();
+    const tree = (handler: (value: string) => void) => (
+      <Select onValueChange={handler}>
+        <SelectTrigger>
+          <SelectValue placeholder="Select an option" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="option1">Option 1</SelectItem>
+          <SelectItem value="option2">Option 2</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    const { rerender } = render(tree(first));
+    rerender(tree(second));
+
+    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByText('Option 2'));
+
+    // A handler that closes over state changing after mount — the reason this
+    // matters — would otherwise keep running against the state of the first render.
+    expect(second).toHaveBeenCalledWith('option2');
+    expect(first).not.toHaveBeenCalled();
+  });
+
   it('should call onValueChange only when user selects item, not on re-render', () => {
     const mockOnValueChange = jest.fn();
 
