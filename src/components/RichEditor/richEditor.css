@@ -104,3 +104,67 @@
     margin: -0.5rem;
   }
 }
+
+/*
+ * RichEditor — tabelas.
+ *
+ * Mesmo motivo das imagens: sem o plugin de tipografia do Tailwind, as classes
+ * `prose` do editor são inertes e uma `<table>` cairia no default do navegador
+ * (sem borda nenhuma). Os valores abaixo espelham o que o HtmlMathRenderer
+ * aplica na visualização do estudante, para que o autor edite exatamente o que
+ * o aluno vai ver.
+ */
+[data-analytica-rich-editor] .ProseMirror table {
+  border-collapse: collapse;
+  table-layout: auto;
+  width: 100%;
+  margin: 0.625rem 0;
+}
+
+[data-analytica-rich-editor] .ProseMirror table td,
+[data-analytica-rich-editor] .ProseMirror table th {
+  border: 1px solid var(--color-border-200);
+  padding: 0.5rem;
+  min-width: 50px;
+  vertical-align: top;
+  /* Ancora a sobreposição de `.selectedCell`, que é posicionada em absoluto. */
+  position: relative;
+}
+
+[data-analytica-rich-editor] .ProseMirror table th {
+  background-color: var(--color-background-50);
+  font-weight: 600;
+  text-align: left;
+}
+
+[data-analytica-rich-editor] .ProseMirror table tr:nth-child(even) td {
+  background-color: color-mix(
+    in srgb,
+    var(--color-background-50) 50%,
+    transparent
+  );
+}
+
+/* Célula contém parágrafos: sem isto cada linha ganha a margem de bloco. */
+[data-analytica-rich-editor] .ProseMirror table td > p,
+[data-analytica-rich-editor] .ProseMirror table th > p {
+  margin: 0;
+}
+
+/*
+ * A seleção de células do prosemirror-tables só marca a classe `.selectedCell`;
+ * sem esta regra o autor arrasta por várias células sem nenhum retorno visual.
+ * Vai numa camada sobreposta porque `background` na célula seria apagado pela
+ * regra de zebra acima.
+ */
+[data-analytica-rich-editor] .ProseMirror table .selectedCell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: color-mix(
+    in srgb,
+    var(--color-primary-500) 20%,
+    transparent
+  );
+  pointer-events: none;
+}

@@ -147,6 +147,65 @@ describe('createRichEditorExtensions', () => {
       expect(html).toContain('dois');
     });
   });
+
+  describe('tabelas', () => {
+    // Recorte do enunciado que expôs o bug: sem os nós de tabela no schema o
+    // editor devolvia `<p>AutoescolaAula teóricaI10II30</p>` — e o próximo
+    // salvamento gravava esse texto corrido por cima da tabela original.
+    const enunciadoComTabela =
+      '<table><thead><tr><th>Autoescola</th><th>Aula teórica</th></tr></thead>' +
+      '<tbody><tr><td>I</td><td>10</td></tr><tr><td>II</td><td>30</td></tr></tbody></table>';
+
+    it('deve preservar a tabela ao carregar HTML existente', () => {
+      const html = roundTrip(enunciadoComTabela);
+
+      expect(html).toContain('<table');
+      expect(html).toContain('<tr>');
+      expect(html).toContain('Autoescola');
+      expect(html).toContain('10');
+    });
+
+    it('não deve achatar as células em um parágrafo único', () => {
+      const html = roundTrip(enunciadoComTabela);
+
+      expect(html).not.toContain('AutoescolaAula teórica');
+    });
+
+    it('deve manter as células de cabeçalho como th', () => {
+      const html = roundTrip(enunciadoComTabela);
+
+      expect(html).toContain('<th');
+      expect(html).toContain('<td');
+    });
+
+    it('deve preservar colspan e rowspan', () => {
+      const html = roundTrip(
+        '<table><tbody><tr><td colspan="2" rowspan="3">mesclada</td></tr>' +
+          '<tr><td>a</td><td>b</td></tr></tbody></table>'
+      );
+
+      expect(html).toContain('colspan="2"');
+      expect(html).toContain('rowspan="3"');
+    });
+
+    it('deve preservar fórmula LaTeX dentro de uma célula', () => {
+      const html = roundTrip(
+        '<table><tbody><tr><td>' +
+          '<span data-type="math-inline" data-latex="x^2"></span>' +
+          '</td></tr></tbody></table>'
+      );
+
+      expect(html).toContain('data-latex="x^2"');
+      expect(html).toContain('<table');
+    });
+
+    it('deve estabilizar a tabela após dois salvamentos', () => {
+      const afterFirstSave = roundTrip(enunciadoComTabela);
+      const afterSecondSave = roundTrip(afterFirstSave);
+
+      expect(afterSecondSave).toEqual(afterFirstSave);
+    });
+  });
 });
 
 describe('configuração de redimensionamento da imagem', () => {

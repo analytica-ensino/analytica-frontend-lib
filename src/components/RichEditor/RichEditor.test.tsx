@@ -38,6 +38,15 @@ interface MockChainResult {
   setImage: jest.Mock;
   insertContent: jest.Mock;
   setContent: jest.Mock;
+  insertTable: jest.Mock;
+  addRowBefore: jest.Mock;
+  addRowAfter: jest.Mock;
+  addColumnBefore: jest.Mock;
+  addColumnAfter: jest.Mock;
+  toggleHeaderRow: jest.Mock;
+  deleteRow: jest.Mock;
+  deleteColumn: jest.Mock;
+  deleteTable: jest.Mock;
   run: jest.Mock;
 }
 
@@ -47,6 +56,20 @@ interface MockChainResult {
  * editor was actually asked to insert.
  */
 const setImageSpy = jest.fn();
+
+/**
+ * Same problem as `setImageSpy`, for the table commands: the chain hands back a
+ * fresh mock on every hop, so the assertions read the command name (and any
+ * argument) from this shared recorder instead.
+ */
+const tableCommandSpy = jest.fn();
+
+const recordTableCommand =
+  (name: string) =>
+  (...args: unknown[]) => {
+    tableCommandSpy(name, ...args);
+    return createMockChain();
+  };
 
 const createMockChain = (): MockChainResult => ({
   focus: jest.fn(() => createMockChain()),
@@ -72,6 +95,15 @@ const createMockChain = (): MockChainResult => ({
   }),
   insertContent: jest.fn(() => createMockChain()),
   setContent: jest.fn(() => createMockChain()),
+  insertTable: jest.fn(recordTableCommand('insertTable')),
+  addRowBefore: jest.fn(recordTableCommand('addRowBefore')),
+  addRowAfter: jest.fn(recordTableCommand('addRowAfter')),
+  addColumnBefore: jest.fn(recordTableCommand('addColumnBefore')),
+  addColumnAfter: jest.fn(recordTableCommand('addColumnAfter')),
+  toggleHeaderRow: jest.fn(recordTableCommand('toggleHeaderRow')),
+  deleteRow: jest.fn(recordTableCommand('deleteRow')),
+  deleteColumn: jest.fn(recordTableCommand('deleteColumn')),
+  deleteTable: jest.fn(recordTableCommand('deleteTable')),
   run: jest.fn(),
 });
 
@@ -91,6 +123,18 @@ const mockEditor = {
 
 jest.mock('@tiptap/react', () => ({
   useEditor: jest.fn(() => mockEditor),
+  // Roda o seletor de verdade contra o editor mockado: assim `mockEditor
+  // .isActive` continua sendo o que os testes controlam para ligar/desligar os
+  // estados da toolbar, sem precisar simular transações.
+  useEditorState: jest.fn(
+    ({
+      editor,
+      selector,
+    }: {
+      editor: unknown;
+      selector: (snapshot: { editor: unknown }) => unknown;
+    }) => (editor ? selector({ editor }) : null)
+  ),
   EditorContent: jest.fn(({ editor }) => (
     <div data-testid="editor-content">
       {editor ? 'Editor loaded' : 'No editor'}
@@ -633,5 +677,73 @@ describe('Sincronização de conteúdo', () => {
     rerender(<RichEditor content="<p>Igual</p>" />);
 
     expect(mockEditor.commands.setContent).not.toHaveBeenCalled();
+  });
+});
+
+describe('Tabela', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useEditor as jest.Mock).mockReturnValue(mockEditor);
+    mockEditor.isActive.mockReturnValue(false);
+  });
+
+  it('deve inserir uma tabela 3x3 com cabeçalho', () => {
+    render(<RichEditor />);
+
+    fireEvent.click(screen.getByTitle('Inserir tabela'));
+
+    expect(tableCommandSpy).toHaveBeenCalledWith('insertTable', {
+      rows: 3,
+      cols: 3,
+      withHeaderRow: true,
+    });
+  });
+
+  it('não deve mostrar as ações de linha/coluna fora de uma tabela', () => {
+    render(<RichEditor />);
+
+    expect(screen.queryByTestId('table-toolbar')).not.toBeInTheDocument();
+  });
+
+  describe('com o cursor dentro da tabela', () => {
+    beforeEach(() => {
+      mockEditor.isActive.mockImplementation((name) => name === 'table');
+    });
+
+    it('deve mostrar a barra de ações da tabela', () => {
+      render(<RichEditor />);
+
+      expect(screen.getByTestId('table-toolbar')).toBeInTheDocument();
+    });
+
+    it.each([
+      ['Linha acima', 'addRowBefore'],
+      ['Linha abaixo', 'addRowAfter'],
+      ['Coluna à esquerda', 'addColumnBefore'],
+      ['Coluna à direita', 'addColumnAfter'],
+      ['Cabeçalho', 'toggleHeaderRow'],
+      ['Excluir linha', 'deleteRow'],
+      ['Excluir coluna', 'deleteColumn'],
+      ['Excluir tabela', 'deleteTable'],
+    ])('deve chamar %s -> %s', (label, command) => {
+      render(<RichEditor />);
+
+      fireEvent.click(
+        within(screen.getByTestId('table-toolbar')).getByTitle(label)
+      );
+
+      expect(tableCommandSpy).toHaveBeenCalledWith(command);
+    });
+
+    it('deve destacar as ações destrutivas', () => {
+      render(<RichEditor />);
+
+      const toolbar = within(screen.getByTestId('table-toolbar'));
+
+      expect(toolbar.getByTitle('Excluir tabela')).toHaveClass(
+        'text-error-600'
+      );
+      expect(toolbar.getByTitle('Linha abaixo')).toHaveClass('text-text-700');
+    });
   });
 });

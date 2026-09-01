@@ -454,6 +454,7 @@ export default defineConfig({
     // @tiptap/core, and bundling it would pair a vendored copy with whatever
     // core the consumer resolves.
     '@tiptap/extension-image',
+    '@tiptap/extension-table',
     'xlsx',
   ],
   target: 'es2022',

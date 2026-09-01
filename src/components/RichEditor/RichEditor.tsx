@@ -73,6 +73,7 @@ const TIPTAP_DEPENDENCIES = [
   '@tiptap/extension-link',
   '@tiptap/extension-placeholder',
   '@tiptap/extension-image',
+  '@tiptap/extension-table',
 ];
 
 function MissingDependenciesError({ error }: { readonly error: Error }) {
