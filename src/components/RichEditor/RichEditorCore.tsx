@@ -71,7 +71,7 @@ interface TableActionBtnProps {
 /**
  * Ação da barra de tabela. Leva rótulo escrito, e não só ícone: "linha acima"
  * e "coluna à esquerda" são indistinguíveis em 16px para quem não usa o editor
- * todo dia, e esta barra só aparece de vez em quando — há espaço de sobra.
+ * com frequência, e esta barra só aparece de vez em quando — há espaço de sobra.
  */
 const TableActionBtn = ({
   onClick,
