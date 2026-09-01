@@ -416,6 +416,41 @@ describe('Modal', () => {
       expect(document.querySelector('iframe')).not.toBeInTheDocument();
     });
 
+    // Usado pelo centro de notificações para marcar um aviso como lido quando o
+    // leitor segue o link — sem isso não há gancho nenhum nesse clique.
+    it('deve chamar onActionClick e ainda abrir o link', () => {
+      jest.spyOn(videoUtils, 'isYouTubeUrl').mockReturnValue(false);
+
+      const windowOpenSpy = jest.spyOn(window, 'open').mockImplementation();
+      const onActionClick = jest.fn();
+
+      render(<Modal {...activityProps} onActionClick={onActionClick} />);
+
+      fireEvent.click(screen.getByText('Iniciar'));
+
+      expect(onActionClick).toHaveBeenCalledTimes(1);
+      expect(windowOpenSpy).toHaveBeenCalledWith(
+        'https://example.com',
+        '_blank',
+        'noopener,noreferrer'
+      );
+
+      windowOpenSpy.mockRestore();
+    });
+
+    it('não deve quebrar quando onActionClick não é fornecido', () => {
+      jest.spyOn(videoUtils, 'isYouTubeUrl').mockReturnValue(false);
+
+      const windowOpenSpy = jest.spyOn(window, 'open').mockImplementation();
+
+      render(<Modal {...activityProps} />);
+
+      expect(() => fireEvent.click(screen.getByText('Iniciar'))).not.toThrow();
+      expect(windowOpenSpy).toHaveBeenCalled();
+
+      windowOpenSpy.mockRestore();
+    });
+
     it('não deve renderizar imagem quando image é undefined', () => {
       render(<Modal {...activityProps} image={undefined} />);
 

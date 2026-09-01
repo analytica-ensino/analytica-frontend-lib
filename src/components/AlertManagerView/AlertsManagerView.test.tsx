@@ -643,6 +643,61 @@ describe('AlertsManagerView', () => {
       expect(screen.queryByText('Recipient 21')).not.toBeInTheDocument();
     });
 
+    /**
+     * O professor pagina no servidor: `recipients` já vem com apenas os itens da
+     * página pedida. Fatiar de novo aplicaria um índice global sobre um array do
+     * tamanho de uma página — na página 2, `slice(10, 20)` sobre 10 itens devolve
+     * `[]` e a tabela de Visualizado/Pendente ficava vazia da página 2 em diante,
+     * mesmo com a API respondendo corretamente.
+     */
+    it('should render the server-provided page as-is when paginated externally', () => {
+      const secondPage: AlertViewData = {
+        ...mockAlertData,
+        recipients: Array.from({ length: 10 }, (_, i) => ({
+          id: `${i + 11}`,
+          name: `Recipient ${i + 11}`,
+          status: 'viewed' as const,
+        })),
+      };
+
+      render(
+        <AlertsManagerView
+          alertData={secondPage}
+          isOpen={true}
+          currentPage={2}
+          totalPages={3}
+          onPageChange={jest.fn()}
+        />
+      );
+
+      expect(screen.getByText('Recipient 11')).toBeInTheDocument();
+      expect(screen.getByText('Recipient 20')).toBeInTheDocument();
+    });
+
+    it('should keep client-side slicing when no external pagination is provided', () => {
+      const manyRecipients: AlertViewData = {
+        ...mockAlertData,
+        recipients: Array.from({ length: 25 }, (_, i) => ({
+          id: `${i + 1}`,
+          name: `Recipient ${i + 1}`,
+          status: 'viewed' as const,
+        })),
+      };
+
+      render(
+        <AlertsManagerView
+          alertData={manyRecipients}
+          isOpen={true}
+          currentPage={2}
+          totalPages={3}
+        />
+      );
+
+      // Sem `onPageChange` o componente continua fatiando localmente.
+      expect(screen.getByText('Recipient 11')).toBeInTheDocument();
+      expect(screen.queryByText('Recipient 1')).not.toBeInTheDocument();
+    });
+
     it('should clamp currentPage to valid range', () => {
       const manyRecipients: AlertViewData = {
         ...mockAlertData,

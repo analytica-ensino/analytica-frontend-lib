@@ -78,6 +78,12 @@ export interface AppHeaderNotifications {
   deleteNotification: (id: string) => void;
   fetchNotifications: () => void;
   fetchUnreadCount?: () => void;
+  /**
+   * Optional bulk action. When provided, the "Marcar todas como lidas" button
+   * renders in the notification center; when omitted, it stays hidden, which is
+   * the behaviour every consumer had before this prop existed.
+   */
+  markAllAsRead?: () => void;
   getActionLabel: (entityType?: NotificationEntityType) => string | undefined;
 }
 
@@ -312,6 +318,7 @@ export const AppHeader = ({
               error={notifications.error}
               onRetry={notifications.refreshNotifications}
               onMarkAsReadById={notifications.markAsRead}
+              onMarkAllAsRead={notifications.markAllAsRead}
               onDeleteById={notifications.deleteNotification}
               onNavigateById={(
                 entityType,

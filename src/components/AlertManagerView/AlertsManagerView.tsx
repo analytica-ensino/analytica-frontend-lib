@@ -62,10 +62,24 @@ export const AlertsManagerView = ({
   // Clamp currentPage to valid range
   const effectiveCurrentPage = Math.min(totalPages, Math.max(1, currentPage));
 
-  // Slice recipients based on effective page
+  /**
+   * Quando o consumidor informa `totalPages` e `onPageChange`, ele já buscou a
+   * página no servidor e `recipients` contém apenas os itens dela. Fatiar de novo
+   * usaria um índice de página global sobre um array de tamanho de página: na
+   * página 2, `slice(10, 20)` sobre 10 itens devolve `[]` e a tabela de
+   * Visualizado/Pendente fica vazia da página 2 em diante.
+   *
+   * Sem essas props o componente continua no modo client-side, recebendo a lista
+   * inteira e fatiando — que é como as stories e os testes o usam.
+   */
+  const isServerPaginated =
+    externalTotalPages !== undefined && onPageChange !== undefined;
+
   const startIndex = (effectiveCurrentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedRecipients = alertData.recipients.slice(startIndex, endIndex);
+  const paginatedRecipients = isServerPaginated
+    ? alertData.recipients
+    : alertData.recipients.slice(startIndex, endIndex);
 
   const handleClose = () => {
     onClose?.();

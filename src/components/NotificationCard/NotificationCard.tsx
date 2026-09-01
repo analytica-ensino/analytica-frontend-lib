@@ -347,6 +347,70 @@ const NotificationHeader = ({
 };
 
 /**
+ * Marks a notification as read, if it is not already.
+ *
+ * Opening a notification is what "viewed" means to the sender, so every entry
+ * point funnels through here: the card body and its "Ver mais" button, and the
+ * action button inside the notification modal — in list mode and in the
+ * notification center, mobile and desktop alike.
+ *
+ * Without this, the only path that ever reached `PATCH /notifications/:id` was
+ * the "Marcar como lida" item in the kebab menu, so a student could read every
+ * notice and still show up as "Pendente" on the teacher's screen.
+ *
+ * Lives at module level because the center renders its own modals rather than
+ * delegating to `NotificationList`, and three copies of this guard is exactly
+ * the kind of duplication that drifts apart.
+ */
+const markNotificationAsRead = (
+  notification: Notification | null | undefined,
+  onMarkAsReadById?: (id: string) => void
+) => {
+  if (notification && !notification.isRead) {
+    onMarkAsReadById?.(notification.id);
+  }
+};
+
+/**
+ * Modal that shows the full content of a notice (a notification with no entity
+ * behind it).
+ *
+ * Rendered in three places — list mode, and the center's mobile and desktop
+ * branches — which used to carry three near-identical copies of the same twenty
+ * lines of `<Modal>` wiring. Keeping them apart meant every change to the notice
+ * modal had to be made three times, and Sonar counted the block as duplicated.
+ *
+ * Closing is the caller's business (each owns its own state), so `onClose` stays
+ * a prop; everything else is derived from the notification itself.
+ */
+const GlobalNotificationModal = ({
+  notification,
+  isOpen,
+  onClose,
+  onMarkAsReadById,
+  emptyStateImage,
+}: {
+  notification: Notification | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onMarkAsReadById?: (id: string) => void;
+  emptyStateImage?: string;
+}) => (
+  <Modal
+    isOpen={isOpen}
+    onClose={onClose}
+    title={notification?.title || ''}
+    variant="activity"
+    description={notification?.message || ''}
+    image={notification?.linkImg || emptyStateImage || mockContentImage}
+    actionLink={notification?.actionLink || undefined}
+    actionLabel="Ver mais"
+    onActionClick={() => markNotificationAsRead(notification, onMarkAsReadById)}
+    size="lg"
+  />
+);
+
+/**
  * Single notification card component
  */
 const SingleNotificationCard = ({
@@ -509,6 +573,14 @@ const NotificationList = ({
       });
     }
   };
+
+  const markAsReadThen = (
+    notification: Notification,
+    open: (notification: Notification) => void
+  ) => {
+    markNotificationAsRead(notification, onMarkAsReadById);
+    open(notification);
+  };
   // Error state
   if (error) {
     return (
@@ -577,18 +649,20 @@ const NotificationList = ({
             let navigationHandler: (() => void) | undefined;
             if (isGlobalNotification) {
               navigationHandler = () =>
-                handleGlobalNotificationClick(notification);
+                markAsReadThen(notification, handleGlobalNotificationClick);
             } else if (
               notification.entityType &&
               notification.entityId &&
               onNavigateById
             ) {
               navigationHandler = () =>
-                onNavigateById(
-                  notification.entityType ?? undefined,
-                  notification.entityId ?? undefined,
-                  notification.entityStatus,
-                  notification.questionId
+                markAsReadThen(notification, (opened) =>
+                  onNavigateById(
+                    opened.entityType ?? undefined,
+                    opened.entityId ?? undefined,
+                    opened.entityStatus,
+                    opened.questionId
+                  )
                 );
             }
 
@@ -625,24 +699,14 @@ const NotificationList = ({
       ))}
 
       {/* Global notification modal for list mode */}
-      <Modal
+      <GlobalNotificationModal
+        notification={globalNotificationModal.notification}
         isOpen={globalNotificationModal.isOpen}
         onClose={() =>
           setGlobalNotificationModal({ isOpen: false, notification: null })
         }
-        title={globalNotificationModal.notification?.title || ''}
-        description={globalNotificationModal.notification?.message || ''}
-        variant="activity"
-        image={
-          globalNotificationModal.notification?.linkImg ||
-          emptyStateImage ||
-          mockContentImage
-        }
-        actionLink={
-          globalNotificationModal.notification?.actionLink || undefined
-        }
-        actionLabel="Ver mais"
-        size="lg"
+        onMarkAsReadById={onMarkAsReadById}
+        emptyStateImage={emptyStateImage}
       />
     </div>
   );
@@ -809,24 +873,14 @@ const NotificationCenter = ({
           </div>
         </Modal>
         {/* Global Notification Modal (mobile) */}
-        <Modal
+        <GlobalNotificationModal
+          notification={globalNotificationModal.notification}
           isOpen={globalNotificationModal.isOpen}
           onClose={() =>
             setGlobalNotificationModal({ isOpen: false, notification: null })
           }
-          title={globalNotificationModal.notification?.title || ''}
-          variant="activity"
-          description={globalNotificationModal.notification?.message}
-          image={
-            globalNotificationModal.notification?.linkImg ||
-            emptyStateImage ||
-            mockContentImage
-          }
-          actionLink={
-            globalNotificationModal.notification?.actionLink || undefined
-          }
-          actionLabel="Ver mais"
-          size="lg"
+          onMarkAsReadById={onMarkAsReadById}
+          emptyStateImage={emptyStateImage}
         />
       </>
     );
@@ -906,24 +960,14 @@ const NotificationCenter = ({
       </DropdownMenu>
 
       {/* Global Notification Modal */}
-      <Modal
+      <GlobalNotificationModal
+        notification={globalNotificationModal.notification}
         isOpen={globalNotificationModal.isOpen}
         onClose={() =>
           setGlobalNotificationModal({ isOpen: false, notification: null })
         }
-        title={globalNotificationModal.notification?.title || ''}
-        variant="activity"
-        description={globalNotificationModal.notification?.message}
-        image={
-          globalNotificationModal.notification?.linkImg ||
-          emptyStateImage ||
-          mockContentImage
-        }
-        actionLink={
-          globalNotificationModal.notification?.actionLink || undefined
-        }
-        actionLabel="Ver mais"
-        size="lg"
+        onMarkAsReadById={onMarkAsReadById}
+        emptyStateImage={emptyStateImage}
       />
     </>
   );
