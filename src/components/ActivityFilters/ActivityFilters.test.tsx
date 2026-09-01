@@ -112,13 +112,7 @@ jest.mock('../../components/Support', () => ({}));
 jest.mock('../../assets/img/suporthistory.png', () => 'supporthistory.png');
 
 import React from 'react';
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-  within,
-} from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ActivityFilters, ActivityFiltersPopover } from './ActivityFilters';
 import { QUESTION_TYPE } from '../../components/Quiz/useQuizStore';
 import type { BaseApiClient } from '../../types/api';
@@ -234,10 +228,9 @@ const renderComponent = (
     />
   );
 
-/** Opens the subjects dropdown and clicks the option with the given name. */
+/** Clicks the radio of the subject with the given name. */
 const pickSubject = (name: string) => {
-  fireEvent.click(screen.getByTestId('subjects-filter-trigger'));
-  fireEvent.click(within(screen.getByRole('menu')).getByText(name));
+  fireEvent.click(screen.getByText(name));
 };
 
 // Always restore the real getSelectedIdsFromCategories after each test so the
@@ -266,8 +259,6 @@ describe('ActivityFilters', () => {
     expect(screen.getByText('Banca 1')).toBeInTheDocument();
     expect(screen.getByText('Banca 2')).toBeInTheDocument();
 
-    // Subjects live inside a single-select dropdown, closed by default.
-    fireEvent.click(screen.getByTestId('subjects-filter-trigger'));
     expect(screen.getAllByText('Matemática').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Português').length).toBeGreaterThan(0);
   });
