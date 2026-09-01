@@ -1136,4 +1136,26 @@ describe('ActivityCardQuestionBanks', () => {
       );
     });
   });
+
+  describe('alreadySent tag', () => {
+    it('should not render the "Já enviada" badge by default', () => {
+      render(<ActivityCardQuestionBanks {...defaultProps} />);
+
+      expect(screen.queryByText('Já enviada')).not.toBeInTheDocument();
+    });
+
+    it('should render the "Já enviada" badge when alreadySent is true', () => {
+      render(<ActivityCardQuestionBanks {...defaultProps} alreadySent />);
+
+      expect(screen.getByText('Já enviada')).toBeInTheDocument();
+    });
+
+    it('should not render the "Já enviada" badge when alreadySent is false', () => {
+      render(
+        <ActivityCardQuestionBanks {...defaultProps} alreadySent={false} />
+      );
+
+      expect(screen.queryByText('Já enviada')).not.toBeInTheDocument();
+    });
+  });
 });

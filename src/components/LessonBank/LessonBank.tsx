@@ -1,6 +1,13 @@
 import { BookIcon } from '@phosphor-icons/react/dist/csr/Book';
 import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
-import { Button, Text, SkeletonText, BaseApiClient, EmptyState } from '../..';
+import {
+  Badge,
+  Button,
+  Text,
+  SkeletonText,
+  BaseApiClient,
+  EmptyState,
+} from '../..';
 import type { Lesson } from '../../types/lessons';
 import { useLessonBank, type LessonFilters } from './hooks/useLessonBank';
 import Video from '../../assets/icons/subjects/Video';
@@ -8,6 +15,7 @@ import { LessonWatchModal } from '../shared/LessonWatchModal';
 import { ToastNotification } from '../shared/ToastNotification/ToastNotification';
 import { useToastNotification } from '../shared/ToastNotification/useToastNotification';
 import Activities from '../../assets/icons/Activities';
+import { useSentLessonIds } from '../../hooks/useSentLessonIds';
 
 interface LessonBankProps {
   apiClient: BaseApiClient;
@@ -44,6 +52,7 @@ export const LessonBank = ({
 }: LessonBankProps) => {
   // Toast notifications
   const { toastState, showSuccess, hideToast } = useToastNotification();
+  const sentLessonIds = useSentLessonIds(apiClient);
 
   const {
     loading,
@@ -135,12 +144,20 @@ export const LessonBank = ({
             key={lesson.id}
             className="flex flex-col gap-3 p-4 border border-border-200 rounded-lg bg-background"
           >
-            <Text size="md" weight="medium" className="text-text-950">
-              {lesson.content?.name ||
-                lesson.videoTitle ||
-                lesson.title ||
-                'Aula sem título'}
-            </Text>
+            <div className="flex flex-row items-center gap-2">
+              <Text size="md" weight="medium" className="text-text-950">
+                {lesson.content?.name ||
+                  lesson.videoTitle ||
+                  lesson.title ||
+                  'Aula sem título'}
+              </Text>
+
+              {sentLessonIds.has(lesson.id) && (
+                <Badge variant="solid" action="info" size="small">
+                  Já enviada
+                </Badge>
+              )}
+            </div>
 
             <div className="flex gap-2">
               <Button

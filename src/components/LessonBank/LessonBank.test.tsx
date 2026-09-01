@@ -970,4 +970,73 @@ describe('LessonBank', () => {
       });
     });
   });
+
+  describe('Já enviada tag', () => {
+    /**
+     * Builds a client whose GET answers the sent-lesson-ids endpoint with the
+     * given ids, keeping the POST /lesson/list behaviour of the shared factory.
+     */
+    const createApiClientWithSentLessons = (lessonIds: string[]) => {
+      const apiClient = createMockApiClient();
+      apiClient.get = jest.fn().mockResolvedValue({
+        data: {
+          message: 'Aulas já enviadas obtidas com sucesso',
+          data: { lessonIds },
+        },
+      });
+      return apiClient;
+    };
+
+    it('should tag only the lessons already sent by the user', async () => {
+      const apiClient = createApiClientWithSentLessons(['lesson-1']);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
+
+      await waitFor(() => {
+        expect(screen.getAllByText('Já enviada')).toHaveLength(1);
+      });
+
+      expect(apiClient.get).toHaveBeenCalledWith(
+        '/recommended-class/my-sent-lesson-ids'
+      );
+    });
+
+    it('should tag every lesson returned by the endpoint', async () => {
+      const apiClient = createApiClientWithSentLessons([
+        'lesson-1',
+        'lesson-3',
+      ]);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
+
+      await waitFor(() => {
+        expect(screen.getAllByText('Já enviada')).toHaveLength(2);
+      });
+    });
+
+    it('should render no tag when the endpoint returns no lesson', async () => {
+      const apiClient = createApiClientWithSentLessons([]);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Introdução à Álgebra Linear')
+        ).toBeInTheDocument();
+      });
+
+      expect(screen.queryByText('Já enviada')).not.toBeInTheDocument();
+    });
+
+    it('should render no tag when the endpoint fails', async () => {
+      const apiClient = createMockApiClient();
+      apiClient.get = jest.fn().mockRejectedValue(new Error('Network error'));
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Introdução à Álgebra Linear')
+        ).toBeInTheDocument();
+      });
+
+      expect(screen.queryByText('Já enviada')).not.toBeInTheDocument();
+    });
+  });
 });
