@@ -109,6 +109,15 @@ export function SimulationsPage({ api, noSearchImage }: SimulationsPageProps) {
         ),
       },
       {
+        key: 'schoolYear',
+        label: 'Ano letivo',
+        render: (_value, row) => (
+          <Text size="sm" className="text-text-900">
+            {row.schoolYear ?? '-'}
+          </Text>
+        ),
+      },
+      {
         key: 'simulationsCount',
         label: 'Simulados',
         render: (_value, row) => (

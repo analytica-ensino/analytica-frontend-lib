@@ -9,6 +9,13 @@ export interface SimulationsStudentItem {
   userInstitutionId: string;
   name: string;
   class: string | null;
+  /**
+   * Nome do ano letivo da turma ("3ª série do ensino médio"), nulo quando o
+   * estudante não tem turma. Opcional porque uma versão anterior da API não
+   * devolvia o campo — um app apontando para um backend antigo não deve
+   * quebrar de tipo.
+   */
+  schoolYear?: string | null;
   simulationsCount: number;
   // Index signature required by TableProvider's generic constraint.
   [key: string]: unknown;
