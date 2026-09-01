@@ -36,23 +36,30 @@ interface MenuStore {
    * `/atividades`).
    */
   syncValue: (value: string) => void;
-  onValueChange?: (value: string) => void;
 }
 
 type MenuStoreApi = StoreApi<MenuStore>;
 
+/**
+ * The store is created once per Menu and never recreated, so it takes a *getter*
+ * rather than the callback itself. Closing over `onValueChange` directly would
+ * pin the consumer's handler to its first render: a handler that resolves the
+ * clicked value against state — which item does this id belong to? — would keep
+ * searching the state as it was at mount, and any value that appeared later
+ * would never resolve. The click then highlights the item while the consumer
+ * never learns about it.
+ */
 const createMenuStore = (
-  onValueChange?: (value: string) => void
+  getOnValueChange: () => ((value: string) => void) | undefined
 ): MenuStoreApi =>
   create<MenuStore>((set) => ({
     value: '',
     setValue: (value) => {
       set({ value });
-      onValueChange?.(value);
+      getOnValueChange()?.(value);
     },
     syncValue: (value) =>
       set((state) => (state.value === value ? state : { value })),
-    onValueChange,
   }));
 
 export const useMenuStore = (externalStore?: MenuStoreApi) => {
@@ -97,8 +104,17 @@ const Menu = forwardRef<HTMLDivElement, MenuProps>(
     },
     ref
   ) => {
+    // Kept in a ref so the store, which outlives every render, always reaches the
+    // current handler. Written in an effect rather than during render: a render
+    // React throws away must not leave its callback behind, and a click can only
+    // follow a commit, so the ref is current by the time `setValue` reads it.
+    const onValueChangeRef = useRef(onValueChange);
+    useEffect(() => {
+      onValueChangeRef.current = onValueChange;
+    }, [onValueChange]);
+
     const storeRef = useRef<MenuStoreApi>(null);
-    storeRef.current ??= createMenuStore(onValueChange);
+    storeRef.current ??= createMenuStore(() => onValueChangeRef.current);
     const store = storeRef.current;
     const { syncValue } = useStore(store, (s) => s);
 
