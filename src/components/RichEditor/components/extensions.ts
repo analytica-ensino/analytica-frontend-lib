@@ -9,6 +9,7 @@ import Superscript from '@tiptap/extension-superscript';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import Image from '@tiptap/extension-image';
+import { TableKit } from '@tiptap/extension-table';
 import { MathNode } from './MathNode';
 import {
   MIN_IMAGE_HEIGHT,
@@ -106,6 +107,17 @@ export function createRichEditorExtensions(placeholder: string) {
         minHeight: MIN_IMAGE_HEIGHT,
         alwaysPreserveAspectRatio: true,
       },
+    }),
+    // Registering these nodes is what makes a table survive at all: without
+    // them the schema has no match for `<table>`, so every cell collapsed into
+    // a single run-on paragraph — and the next save persisted that flattened
+    // text over the original table. The toolbar commands (insert, add/remove
+    // row and column) come from the same kit.
+    TableKit.configure({
+      // Resizing is off on purpose: dragging a column persists a `colwidth`
+      // measured against the editor viewport, and the student's viewport is a
+      // different width. Column layout stays with the display stylesheet.
+      table: { resizable: false },
     }),
     MathNode,
   ];

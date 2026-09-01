@@ -1948,6 +1948,7 @@
     "@tiptap/extension-placeholder": "^3.0.0",
     "@tiptap/extension-subscript": "^3.0.0",
     "@tiptap/extension-superscript": "^3.0.0",
+    "@tiptap/extension-table": "^3.24.0",
     "@tiptap/extension-text-align": "^3.0.0",
     "@tiptap/extension-text-style": "^3.0.0",
     "@tiptap/extension-underline": "^3.0.0",
@@ -1988,6 +1989,9 @@
       "optional": true
     },
     "@tiptap/extension-superscript": {
+      "optional": true
+    },
+    "@tiptap/extension-table": {
       "optional": true
     },
     "@tiptap/extension-text-align": {
@@ -2051,6 +2055,7 @@
     "@tiptap/extension-placeholder": "^3.24.0",
     "@tiptap/extension-subscript": "^3.24.0",
     "@tiptap/extension-superscript": "^3.24.0",
+    "@tiptap/extension-table": "3.24.0",
     "@tiptap/extension-text-align": "^3.24.0",
     "@tiptap/extension-text-style": "^3.24.0",
     "@tiptap/extension-underline": "^3.24.0",

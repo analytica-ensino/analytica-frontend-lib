@@ -798,6 +798,34 @@ describe('utils', () => {
         expect(screen.getByTestId('inline-math')).toHaveTextContent('x^2');
       });
 
+      it('renderiza a tabela no formato que o RichEditor salva', () => {
+        // Saída literal do round-trip do schema do Tiptap: colgroup, colspan e
+        // parágrafos dentro das células. É o que passa a ser persistido depois
+        // que os nós de tabela entraram no editor.
+        render(
+          <HtmlMathRenderer
+            content={
+              '<table style="min-width: 50px;">' +
+              '<colgroup><col style="min-width: 25px;"><col style="min-width: 25px;"></colgroup>' +
+              '<tbody>' +
+              '<tr><th colspan="1" rowspan="1"><p>Autoescola</p></th><th colspan="1" rowspan="1"><p>Aluguel</p></th></tr>' +
+              '<tr><td colspan="1" rowspan="1"><p>I</p></td><td colspan="1" rowspan="1"><p>400</p></td></tr>' +
+              '</tbody></table>'
+            }
+            testId="renderer"
+          />
+        );
+
+        const renderer = screen.getByTestId('renderer');
+        expect(renderer.querySelectorAll('th')).toHaveLength(2);
+        expect(renderer.querySelectorAll('td')).toHaveLength(2);
+        expect(renderer.querySelectorAll('tr')).toHaveLength(2);
+        expect(renderer.querySelector('th')).toHaveTextContent('Autoescola');
+        // O bug original não deixava sobrar nenhuma célula: tudo virava um
+        // parágrafo só, então a ausência de <p> solto na raiz é o sinal.
+        expect(renderer.querySelectorAll(':scope > p')).toHaveLength(0);
+      });
+
       it('mantém $$...$$ como bloco centralizado', () => {
         // Aqui a quebra de linha é desejada — o bloco ocupa a linha inteira.
         render(

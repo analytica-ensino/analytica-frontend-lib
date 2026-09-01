@@ -1,4 +1,4 @@
-import { EditorContent, useEditor } from '@tiptap/react';
+import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
 import { createRichEditorExtensions } from './components/extensions';
 import {
   normalizeLineBreaksInHtml,
@@ -24,6 +24,14 @@ import { TextHTwoIcon } from '@phosphor-icons/react/dist/csr/TextHTwo';
 import { TextHThreeIcon } from '@phosphor-icons/react/dist/csr/TextHThree';
 import { MathOperationsIcon } from '@phosphor-icons/react/dist/csr/MathOperations';
 import { ImageIcon } from '@phosphor-icons/react/dist/csr/Image';
+import { TableIcon } from '@phosphor-icons/react/dist/csr/Table';
+import { RowsPlusTopIcon } from '@phosphor-icons/react/dist/csr/RowsPlusTop';
+import { RowsPlusBottomIcon } from '@phosphor-icons/react/dist/csr/RowsPlusBottom';
+import { ColumnsPlusLeftIcon } from '@phosphor-icons/react/dist/csr/ColumnsPlusLeft';
+import { ColumnsPlusRightIcon } from '@phosphor-icons/react/dist/csr/ColumnsPlusRight';
+import { RowsIcon } from '@phosphor-icons/react/dist/csr/Rows';
+import { ColumnsIcon } from '@phosphor-icons/react/dist/csr/Columns';
+import { TrashIcon } from '@phosphor-icons/react/dist/csr/Trash';
 import { useState, useRef, useEffect, ReactNode } from 'react';
 import { FormulaDialog } from './components/FormulaDialog';
 import { ImageDialog } from './components/ImageDialog';
@@ -52,6 +60,41 @@ const ToolbarBtn = ({ onClick, active, title, children }: ToolbarBtnProps) => (
 );
 
 const Divider = () => <div className="w-px h-5 bg-border-200 mx-0.5" />;
+
+interface TableActionBtnProps {
+  onClick: () => void;
+  label: string;
+  danger?: boolean;
+  children: ReactNode;
+}
+
+/**
+ * Ação da barra de tabela. Leva rótulo escrito, e não só ícone: "linha acima"
+ * e "coluna à esquerda" são indistinguíveis em 16px para quem não usa o editor
+ * com frequência, e esta barra só aparece de vez em quando — há espaço de sobra.
+ */
+const TableActionBtn = ({
+  onClick,
+  label,
+  danger,
+  children,
+}: TableActionBtnProps) => (
+  <Button
+    type="button"
+    onClick={onClick}
+    title={label}
+    size="small"
+    className={`bg-transparent border-transparent h-7 px-2 flex items-center gap-1 rounded text-xs whitespace-nowrap hover:bg-background-100 ${
+      danger ? 'text-error-600' : 'text-text-700'
+    }`}
+  >
+    {children}
+    {label}
+  </Button>
+);
+
+/** Tabela padrão de quem está montando um enunciado: cabeçalho + 2 linhas. */
+const NEW_TABLE = { rows: 3, cols: 3, withHeaderRow: true };
 
 /**
  * Prepares stored content for the TipTap parser. Line breaks are restored first
@@ -113,6 +156,42 @@ export function RichEditor({
     },
   });
 
+  /**
+   * Estado reativo da toolbar.
+   *
+   * No Tiptap 3 o `useEditor` deixou de re-renderizar a cada transação, então
+   * ler `editor.isActive(...)` direto no corpo do componente devolve o valor
+   * congelado do último render: os botões não acendiam ao mover o cursor e a
+   * barra de tabela nunca apareceria ao entrar numa célula. `useEditorState`
+   * assina as transações e só re-renderiza quando um destes flags muda — bem
+   * mais barato que re-renderizar a toolbar inteira a cada tecla digitada.
+   */
+  const toolbar = useEditorState({
+    editor,
+    selector: ({ editor }) => ({
+      heading1: editor.isActive('heading', { level: 1 }),
+      heading2: editor.isActive('heading', { level: 2 }),
+      heading3: editor.isActive('heading', { level: 3 }),
+      bold: editor.isActive('bold'),
+      italic: editor.isActive('italic'),
+      underline: editor.isActive('underline'),
+      strike: editor.isActive('strike'),
+      subscript: editor.isActive('subscript'),
+      superscript: editor.isActive('superscript'),
+      code: editor.isActive('code'),
+      alignLeft: editor.isActive({ textAlign: 'left' }),
+      alignCenter: editor.isActive({ textAlign: 'center' }),
+      alignRight: editor.isActive({ textAlign: 'right' }),
+      alignJustify: editor.isActive({ textAlign: 'justify' }),
+      bulletList: editor.isActive('bulletList'),
+      orderedList: editor.isActive('orderedList'),
+      blockquote: editor.isActive('blockquote'),
+      link: editor.isActive('link'),
+      image: editor.isActive('image'),
+      table: editor.isActive('table'),
+    }),
+  });
+
   // Update editor content when prop changes externally (e.g., from loadQuestion)
   useEffect(() => {
     if (editor && content !== undefined && content !== lastContentRef.current) {
@@ -156,7 +235,8 @@ export function RichEditor({
     editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
   };
 
-  if (!editor) return null;
+  // `toolbar` só é nulo junto com o editor, mas o TypeScript não sabe disso.
+  if (!editor || !toolbar) return null;
 
   // `data-analytica-rich-editor` scopes the image resize handle styles shipped
   // in the library's global stylesheet, so they cannot leak into another Tiptap
@@ -173,7 +253,7 @@ export function RichEditor({
           onClick={() =>
             editor.chain().focus().toggleHeading({ level: 1 }).run()
           }
-          active={editor.isActive('heading', { level: 1 })}
+          active={toolbar.heading1}
           title="Título 1"
         >
           <TextHOneIcon size={16} weight="bold" />
@@ -182,7 +262,7 @@ export function RichEditor({
           onClick={() =>
             editor.chain().focus().toggleHeading({ level: 2 }).run()
           }
-          active={editor.isActive('heading', { level: 2 })}
+          active={toolbar.heading2}
           title="Título 2"
         >
           <TextHTwoIcon size={16} weight="bold" />
@@ -191,7 +271,7 @@ export function RichEditor({
           onClick={() =>
             editor.chain().focus().toggleHeading({ level: 3 }).run()
           }
-          active={editor.isActive('heading', { level: 3 })}
+          active={toolbar.heading3}
           title="Título 3"
         >
           <TextHThreeIcon size={16} weight="bold" />
@@ -202,35 +282,35 @@ export function RichEditor({
         {/* Text formatting */}
         <ToolbarBtn
           onClick={() => editor.chain().focus().toggleBold().run()}
-          active={editor.isActive('bold')}
+          active={toolbar.bold}
           title="Negrito (Ctrl+B)"
         >
           <TextBolderIcon size={16} weight="bold" />
         </ToolbarBtn>
         <ToolbarBtn
           onClick={() => editor.chain().focus().toggleItalic().run()}
-          active={editor.isActive('italic')}
+          active={toolbar.italic}
           title="Itálico (Ctrl+I)"
         >
           <TextItalicIcon size={16} />
         </ToolbarBtn>
         <ToolbarBtn
           onClick={() => editor.chain().focus().toggleUnderline().run()}
-          active={editor.isActive('underline')}
+          active={toolbar.underline}
           title="Sublinhado (Ctrl+U)"
         >
           <TextUnderlineIcon size={16} />
         </ToolbarBtn>
         <ToolbarBtn
           onClick={() => editor.chain().focus().toggleStrike().run()}
-          active={editor.isActive('strike')}
+          active={toolbar.strike}
           title="Tachado"
         >
           <TextStrikethroughIcon size={16} />
         </ToolbarBtn>
         <ToolbarBtn
           onClick={() => editor.chain().focus().toggleSubscript().run()}
-          active={editor.isActive('subscript')}
+          active={toolbar.subscript}
           title="Subscrito"
         >
           <span className="text-xs font-medium">
@@ -239,7 +319,7 @@ export function RichEditor({
         </ToolbarBtn>
         <ToolbarBtn
           onClick={() => editor.chain().focus().toggleSuperscript().run()}
-          active={editor.isActive('superscript')}
+          active={toolbar.superscript}
           title="Sobrescrito"
         >
           <span className="text-xs font-medium">
@@ -248,7 +328,7 @@ export function RichEditor({
         </ToolbarBtn>
         <ToolbarBtn
           onClick={() => editor.chain().focus().toggleCode().run()}
-          active={editor.isActive('code')}
+          active={toolbar.code}
           title="Código inline"
         >
           <CodeIcon size={16} />
@@ -259,28 +339,28 @@ export function RichEditor({
         {/* Alignment */}
         <ToolbarBtn
           onClick={() => editor.chain().focus().setTextAlign('left').run()}
-          active={editor.isActive({ textAlign: 'left' })}
+          active={toolbar.alignLeft}
           title="Alinhar à esquerda"
         >
           <TextAlignLeftIcon size={16} />
         </ToolbarBtn>
         <ToolbarBtn
           onClick={() => editor.chain().focus().setTextAlign('center').run()}
-          active={editor.isActive({ textAlign: 'center' })}
+          active={toolbar.alignCenter}
           title="Centralizar"
         >
           <TextAlignCenterIcon size={16} />
         </ToolbarBtn>
         <ToolbarBtn
           onClick={() => editor.chain().focus().setTextAlign('right').run()}
-          active={editor.isActive({ textAlign: 'right' })}
+          active={toolbar.alignRight}
           title="Alinhar à direita"
         >
           <TextAlignRightIcon size={16} />
         </ToolbarBtn>
         <ToolbarBtn
           onClick={() => editor.chain().focus().setTextAlign('justify').run()}
-          active={editor.isActive({ textAlign: 'justify' })}
+          active={toolbar.alignJustify}
           title="Justificar"
         >
           <TextAlignJustifyIcon size={16} />
@@ -291,21 +371,21 @@ export function RichEditor({
         {/* Lists */}
         <ToolbarBtn
           onClick={() => editor.chain().focus().toggleBulletList().run()}
-          active={editor.isActive('bulletList')}
+          active={toolbar.bulletList}
           title="Lista com marcadores"
         >
           <ListBulletsIcon size={16} />
         </ToolbarBtn>
         <ToolbarBtn
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          active={editor.isActive('orderedList')}
+          active={toolbar.orderedList}
           title="Lista numerada"
         >
           <ListNumbersIcon size={16} />
         </ToolbarBtn>
         <ToolbarBtn
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          active={editor.isActive('blockquote')}
+          active={toolbar.blockquote}
           title="Citação"
         >
           <QuotesIcon size={16} />
@@ -323,7 +403,7 @@ export function RichEditor({
         {/* Link */}
         <ToolbarBtn
           onClick={setLink}
-          active={editor.isActive('link')}
+          active={toolbar.link}
           title="Inserir link"
         >
           <LinkIcon size={16} />
@@ -332,10 +412,19 @@ export function RichEditor({
         {/* Image */}
         <ToolbarBtn
           onClick={() => setImageOpen(true)}
-          active={editor.isActive('image')}
+          active={toolbar.image}
           title="Inserir imagem"
         >
           <ImageIcon size={16} />
+        </ToolbarBtn>
+
+        {/* Table */}
+        <ToolbarBtn
+          onClick={() => editor.chain().focus().insertTable(NEW_TABLE).run()}
+          active={toolbar.table}
+          title="Inserir tabela"
+        >
+          <TableIcon size={16} />
         </ToolbarBtn>
 
         {/* Formula */}
@@ -350,6 +439,76 @@ export function RichEditor({
           LaTeX
         </Button>
       </div>
+
+      {/*
+        Ações de linha/coluna só existem quando o cursor está dentro de uma
+        tabela, então ficam numa barra própria em vez de ocuparem a toolbar
+        principal — que já quebra em duas linhas no tablet.
+      */}
+      {toolbar.table && (
+        <div
+          data-testid="table-toolbar"
+          className="flex items-center gap-0.5 border-b border-border-200 bg-background-50 px-2 py-1.5 flex-wrap"
+        >
+          <TableActionBtn
+            onClick={() => editor.chain().focus().addRowBefore().run()}
+            label="Linha acima"
+          >
+            <RowsPlusTopIcon size={16} />
+          </TableActionBtn>
+          <TableActionBtn
+            onClick={() => editor.chain().focus().addRowAfter().run()}
+            label="Linha abaixo"
+          >
+            <RowsPlusBottomIcon size={16} />
+          </TableActionBtn>
+          <TableActionBtn
+            onClick={() => editor.chain().focus().addColumnBefore().run()}
+            label="Coluna à esquerda"
+          >
+            <ColumnsPlusLeftIcon size={16} />
+          </TableActionBtn>
+          <TableActionBtn
+            onClick={() => editor.chain().focus().addColumnAfter().run()}
+            label="Coluna à direita"
+          >
+            <ColumnsPlusRightIcon size={16} />
+          </TableActionBtn>
+
+          <Divider />
+
+          <TableActionBtn
+            onClick={() => editor.chain().focus().toggleHeaderRow().run()}
+            label="Cabeçalho"
+          >
+            <TableIcon size={16} />
+          </TableActionBtn>
+
+          <Divider />
+
+          <TableActionBtn
+            onClick={() => editor.chain().focus().deleteRow().run()}
+            label="Excluir linha"
+            danger
+          >
+            <RowsIcon size={16} />
+          </TableActionBtn>
+          <TableActionBtn
+            onClick={() => editor.chain().focus().deleteColumn().run()}
+            label="Excluir coluna"
+            danger
+          >
+            <ColumnsIcon size={16} />
+          </TableActionBtn>
+          <TableActionBtn
+            onClick={() => editor.chain().focus().deleteTable().run()}
+            label="Excluir tabela"
+            danger
+          >
+            <TrashIcon size={16} />
+          </TableActionBtn>
+        </div>
+      )}
 
       {/* Editor */}
       <EditorContent editor={editor} />
