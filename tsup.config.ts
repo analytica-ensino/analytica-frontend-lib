@@ -66,6 +66,10 @@ export default defineConfig({
     'Skeleton/index': 'src/components/Skeleton/Skeleton.tsx',
     'NotificationCard/index':
       'src/components/NotificationCard/NotificationCard.tsx',
+    'AnnouncementModal/index':
+      'src/components/AnnouncementModal/AnnouncementModal.tsx',
+    'AnnouncementsGate/index':
+      'src/components/AnnouncementModal/AnnouncementsGate.tsx',
     'CalendarCard/index': 'src/components/CalendarCard/CalendarCard.tsx',
     'NotFound/index': 'src/components/NotFound/NotFound.tsx',
     'NoSearchResult/index': 'src/components/NoSearchResult/NoSearchResult.tsx',
@@ -357,6 +361,7 @@ export default defineConfig({
     'hooks/useModules/index': 'src/hooks/useModules.ts', // useModules
     'hooks/useNotificationStore/index': 'src/hooks/useNotificationStore.ts', // createUseNotificationStore
     'hooks/useNotifications/index': 'src/hooks/useNotifications.ts', // createNotificationsHook
+    'hooks/useAnnouncements/index': 'src/hooks/useAnnouncements.ts', // createUseAnnouncements
     'hooks/useQuestionsData/index': 'src/hooks/useQuestionsData.ts', // QuestionsDataApiResponse, QuestionsDataFilters, createUseQuestionsData
     'hooks/useStudentsHighlight/index': 'src/hooks/useStudentsHighlight.ts', // PERIOD_TABS, StudentsHighlightApiResponse, StudentsHighlightFilters, StudentsHighlightPeriod, StudentsHighlightType, createUseStudentsHighlight
 

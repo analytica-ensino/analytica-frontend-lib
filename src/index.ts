@@ -269,6 +269,28 @@ export type {
   NotificationStore,
 } from './store/notificationStore';
 
+// Global announcements (login modal) — distinct from the bell-icon notifications
+export { default as AnnouncementModal } from './components/AnnouncementModal/AnnouncementModal';
+export { AnnouncementMessage } from './components/AnnouncementModal/AnnouncementModal';
+export type { AnnouncementModalProps } from './components/AnnouncementModal/AnnouncementModal';
+export { default as AnnouncementsGate } from './components/AnnouncementModal/AnnouncementsGate';
+export type { AnnouncementsGateProps } from './components/AnnouncementModal/AnnouncementsGate';
+export { createUseAnnouncements } from './hooks/useAnnouncements';
+export type { UseAnnouncementsReturn } from './hooks/useAnnouncements';
+export {
+  getSeenAnnouncementIds,
+  markAnnouncementSeen,
+  pruneSeenAnnouncementIds,
+  splitTextWithLinks,
+  SEEN_ANNOUNCEMENTS_STORAGE_PREFIX,
+} from './utils/announcements';
+export type {
+  Announcement,
+  ActiveAnnouncementsResponse,
+  AnnouncementsApiClient,
+  AnnouncementTextPart,
+} from './types/announcements';
+
 // Activity Filters Data Hook (consolidated hook for all filter data)
 export {
   createUseActivityFiltersData,

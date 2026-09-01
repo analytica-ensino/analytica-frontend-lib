@@ -1861,6 +1861,27 @@
       "import": "./dist/utils/subjectMappers/index.mjs",
       "require": "./dist/utils/subjectMappers/index.js",
       "default": "./dist/utils/subjectMappers/index.mjs"
+    },
+    "./announcement-modal": {
+      "types": "./dist/AnnouncementModal/index.d.ts",
+      "module": "./dist/AnnouncementModal/index.mjs",
+      "import": "./dist/AnnouncementModal/index.mjs",
+      "require": "./dist/AnnouncementModal/index.js",
+      "default": "./dist/AnnouncementModal/index.mjs"
+    },
+    "./announcements-gate": {
+      "types": "./dist/AnnouncementsGate/index.d.ts",
+      "module": "./dist/AnnouncementsGate/index.mjs",
+      "import": "./dist/AnnouncementsGate/index.mjs",
+      "require": "./dist/AnnouncementsGate/index.js",
+      "default": "./dist/AnnouncementsGate/index.mjs"
+    },
+    "./hooks/useannouncements": {
+      "types": "./dist/hooks/useAnnouncements/index.d.ts",
+      "module": "./dist/hooks/useAnnouncements/index.mjs",
+      "import": "./dist/hooks/useAnnouncements/index.mjs",
+      "require": "./dist/hooks/useAnnouncements/index.js",
+      "default": "./dist/hooks/useAnnouncements/index.mjs"
     }
   },
   "scripts": {
