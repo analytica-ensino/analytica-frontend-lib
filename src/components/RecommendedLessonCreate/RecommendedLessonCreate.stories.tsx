@@ -903,8 +903,8 @@ LoadingState.storyName = 'Loading State (Skeleton)';
 
 export const WithTruncatedSubjects: Story = () => {
   // Mock API client that returns long subject names to demonstrate the
-  // truncation + tooltip behavior in the SubjectsFilter dropdown. Open the
-  // "Matéria" select and hover an option to see the full name in the tooltip.
+  // truncation + tooltip behavior in the SubjectsFilter (3-column grid).
+  // Hover over each radio label to see the full name in the tooltip.
   const truncatedSubjectsApiClient = {
     ...mockApiClient,
     get: async (url: string) => {

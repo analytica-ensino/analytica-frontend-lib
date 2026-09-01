@@ -1,10 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
 import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
+  Radio,
   IconRender,
   Text,
   TruncatedText,
@@ -20,25 +15,23 @@ export interface SubjectsFilterProps {
   /**
    * Called when the user picks a subject.
    *
-   * May be async, and may veto the pick (e.g. after asking the user to confirm
-   * discarding the preview) by returning `false` — the dropdown then re-syncs
-   * with `selectedSubject` so the trigger never shows a subject that was never
-   * applied. Any other return value means the pick went through.
+   * May be async and may veto the pick (e.g. after asking the user to confirm
+   * discarding the preview). No rollback is needed here: the selection is
+   * controlled by `selectedSubject`, so a vetoed pick simply never arrives.
    */
   onSubjectChange?: (
     subjectId: string
   ) => void | boolean | Promise<void | boolean>;
   loading?: boolean;
   error?: string | null;
-  /** Placeholder shown while no subject is selected */
-  placeholder?: string;
 }
 
 /**
  * SubjectsFilter component for selecting a single subject/knowledge area.
  *
- * An activity or recommended class is bound to exactly one subject, so this is
- * a single-select dropdown — there is no multi-select mode.
+ * An activity or recommended class is bound to exactly one subject, so the grid
+ * uses Radios — there is no multi-select mode and no "todos os componentes
+ * curriculares" card.
  * @param props - Component props
  * @returns JSX element
  */
@@ -48,32 +41,15 @@ export const SubjectsFilter = ({
   onSubjectChange,
   loading = false,
   error = null,
-  placeholder = 'Selecione um componente curricular',
 }: SubjectsFilterProps) => {
   const { isDark } = useTheme();
 
-  // Select captures its onValueChange once (the internal store is created on
-  // first render), so read the latest handler through a ref.
-  const onSubjectChangeRef = useRef(onSubjectChange);
-  useEffect(() => {
-    onSubjectChangeRef.current = onSubjectChange;
-  }, [onSubjectChange]);
-
-  // Select applies the pick to its own state right away. When the parent vetoes
-  // it, remounting is how we re-derive that state from `selectedSubject`.
-  const [selectKey, setSelectKey] = useState(0);
-
-  const handleValueChange = async (subjectId: string) => {
-    let applied: void | boolean = false;
-    try {
-      applied = await onSubjectChangeRef.current?.(subjectId);
-    } catch (error) {
-      console.error('Erro ao trocar de componente curricular:', error);
-    }
-
-    if (applied === false) {
-      setSelectKey((prev) => prev + 1);
-    }
+  // O handler do pai é assíncrono (abre o diálogo de confirmação), então uma
+  // rejeição viraria unhandled rejection se não fosse capturada aqui.
+  const handleSubjectChange = (subjectId: string) => {
+    Promise.resolve(onSubjectChange?.(subjectId)).catch((err) => {
+      console.error('Erro ao trocar de componente curricular:', err);
+    });
   };
 
   if (loading) {
@@ -92,8 +68,7 @@ export const SubjectsFilter = ({
     );
   }
 
-  // Colored icon chip + name — used both for the dropdown items and, via the
-  // resolved label, for the trigger.
+  // Colored icon chip + name.
   const renderSubjectLabel = (area: KnowledgeArea) => (
     <div className="flex items-center gap-2 w-full min-w-0">
       <span
@@ -115,22 +90,16 @@ export const SubjectsFilter = ({
   );
 
   return (
-    <Select
-      key={selectKey}
-      value={selectedSubject ?? ''}
-      onValueChange={handleValueChange}
-      size="medium"
-    >
-      <SelectTrigger data-testid="subjects-filter-trigger">
-        <SelectValue placeholder={placeholder} />
-      </SelectTrigger>
-      <SelectContent>
-        {knowledgeAreas.map((area: KnowledgeArea) => (
-          <SelectItem key={area.id} value={area.id}>
-            {renderSubjectLabel(area)}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <div className="grid grid-cols-3 gap-3">
+      {knowledgeAreas.map((area: KnowledgeArea) => (
+        <Radio
+          key={area.id}
+          value={area.id}
+          checked={selectedSubject === area.id}
+          onChange={() => handleSubjectChange(area.id)}
+          label={renderSubjectLabel(area)}
+        />
+      ))}
+    </div>
   );
 };

@@ -1,46 +1,59 @@
 import React from 'react';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import type { KnowledgeArea } from '../../../types/activityFilters';
 
-// Mock the barrel export that SubjectsFilter imports from. The Select compound
-// is the component under test as far as behaviour goes, so it comes from the
-// real module — only the leaf presentational pieces are stubbed.
-jest.mock('../../..', () => {
-  const actualSelect = jest.requireActual('../../Select/Select');
-
-  return {
-    Select: actualSelect.default,
-    SelectTrigger: actualSelect.SelectTrigger,
-    SelectValue: actualSelect.SelectValue,
-    SelectContent: actualSelect.SelectContent,
-    SelectItem: actualSelect.SelectItem,
-    IconRender: ({ iconName, size }: { iconName: string; size: number }) => (
-      <span data-testid={`icon-${iconName}`} data-size={size}>
-        {iconName}
-      </span>
-    ),
-    Text: ({
-      children,
-      size,
-      className,
-    }: {
-      children: React.ReactNode;
-      size: string;
-      className: string;
-    }) => (
-      <span data-size={size} className={className}>
-        {children}
-      </span>
-    ),
-    TruncatedText: ({ children }: { children: React.ReactNode }) => (
-      <span data-testid="truncated-text">{children}</span>
-    ),
-    useTheme: () => ({ isDark: false }),
-    getSubjectColorWithOpacity: (color: string) => `${color}20`,
-  };
-});
+// Mock the barrel export that SubjectsFilter imports from. Only the leaf
+// presentational pieces are stubbed — the selection behaviour under test lives
+// in SubjectsFilter itself.
+jest.mock('../../..', () => ({
+  Radio: ({
+    value,
+    checked,
+    onChange,
+    label,
+  }: {
+    value: string;
+    checked: boolean;
+    onChange: () => void;
+    label: React.ReactNode;
+  }) => (
+    <label>
+      <input
+        type="radio"
+        value={value}
+        checked={checked}
+        onChange={onChange}
+        className="sr-only"
+      />
+      {label}
+    </label>
+  ),
+  IconRender: ({ iconName, size }: { iconName: string; size: number }) => (
+    <span data-testid={`icon-${iconName}`} data-size={size}>
+      {iconName}
+    </span>
+  ),
+  Text: ({
+    children,
+    size,
+    className,
+  }: {
+    children: React.ReactNode;
+    size: string;
+    className: string;
+  }) => (
+    <span data-size={size} className={className}>
+      {children}
+    </span>
+  ),
+  TruncatedText: ({ children }: { children: React.ReactNode }) => (
+    <span data-testid="truncated-text">{children}</span>
+  ),
+  useTheme: () => ({ isDark: false }),
+  getSubjectColorWithOpacity: (color: string) => `${color}20`,
+}));
 
 // Import after mocks
 import { SubjectsFilter } from './SubjectsFilter';
@@ -58,163 +71,148 @@ describe('SubjectsFilter', () => {
     onSubjectChange: jest.fn(),
   };
 
-  const getTrigger = () => screen.getByTestId('subjects-filter-trigger');
+  const getRadios = () =>
+    screen.getAllByRole('radio', { hidden: true }) as HTMLInputElement[];
 
-  const openDropdown = async (user: ReturnType<typeof userEvent.setup>) => {
-    await user.click(getTrigger());
-    return screen.getByRole('menu');
-  };
+  const getRadio = (id: string) =>
+    getRadios().find((radio) => radio.value === id);
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('Trigger', () => {
-    it('shows the placeholder when no subject is selected', () => {
+  describe('Rendering', () => {
+    it('renders one radio per knowledge area', () => {
       render(<SubjectsFilter {...defaultProps} />);
 
-      expect(getTrigger()).toHaveTextContent(
-        'Selecione um componente curricular'
-      );
+      expect(getRadios()).toHaveLength(3);
+      expect(screen.getByText('Matemática')).toBeInTheDocument();
+      expect(screen.getByText('Física')).toBeInTheDocument();
+      expect(screen.getByText('Química')).toBeInTheDocument();
     });
 
-    it('accepts a custom placeholder', () => {
-      render(<SubjectsFilter {...defaultProps} placeholder="Escolha aí" />);
+    it('renders in a 3-column grid', () => {
+      const { container } = render(<SubjectsFilter {...defaultProps} />);
 
-      expect(getTrigger()).toHaveTextContent('Escolha aí');
+      expect(
+        container.querySelector('.grid.grid-cols-3.gap-3')
+      ).toBeInTheDocument();
     });
 
-    it('shows the selected subject name', async () => {
-      render(<SubjectsFilter {...defaultProps} selectedSubject="physics-1" />);
-
-      await waitFor(() => {
-        expect(getTrigger()).toHaveTextContent('Física');
-      });
-    });
-
-    it('falls back to the placeholder when the selection is cleared', async () => {
-      const { rerender } = render(
-        <SubjectsFilter {...defaultProps} selectedSubject="physics-1" />
-      );
-      await waitFor(() => expect(getTrigger()).toHaveTextContent('Física'));
-
-      rerender(<SubjectsFilter {...defaultProps} selectedSubject={null} />);
-
-      await waitFor(() => {
-        expect(getTrigger()).toHaveTextContent(
-          'Selecione um componente curricular'
-        );
-      });
-    });
-
-    it('starts closed — no options are rendered', () => {
+    it('does not render a select-all option', () => {
       render(<SubjectsFilter {...defaultProps} />);
 
-      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
-    });
-  });
-
-  describe('Options', () => {
-    it('lists every knowledge area once opened', async () => {
-      const user = userEvent.setup();
-      render(<SubjectsFilter {...defaultProps} />);
-
-      const menu = await openDropdown(user);
-
-      expect(within(menu).getByText('Matemática')).toBeInTheDocument();
-      expect(within(menu).getByText('Física')).toBeInTheDocument();
-      expect(within(menu).getByText('Química')).toBeInTheDocument();
-      expect(within(menu).getAllByRole('menuitem')).toHaveLength(3);
+      expect(
+        screen.queryByText('Todos os componentes curriculares')
+      ).not.toBeInTheDocument();
+      expect(screen.queryAllByRole('checkbox')).toHaveLength(0);
     });
 
-    it('renders each subject icon', async () => {
-      const user = userEvent.setup();
+    it('renders each subject icon', () => {
       render(<SubjectsFilter {...defaultProps} />);
-
-      await openDropdown(user);
 
       expect(screen.getByTestId('icon-Calculator')).toBeInTheDocument();
       expect(screen.getByTestId('icon-Atom')).toBeInTheDocument();
       expect(screen.getByTestId('icon-Flask')).toBeInTheDocument();
     });
 
-    it('falls back to the BookOpen icon when a subject has none', async () => {
-      const user = userEvent.setup();
+    it('falls back to the BookOpen icon when a subject has none', () => {
       render(
         <SubjectsFilter
           {...defaultProps}
-          knowledgeAreas={[
-            { id: 'no-icon', name: 'Sem ícone', color: '#000000' },
-          ]}
+          knowledgeAreas={[{ id: 'no-icon', name: 'Sem ícone', color: '#000' }]}
         />
       );
-
-      await openDropdown(user);
 
       expect(screen.getByTestId('icon-BookOpen')).toBeInTheDocument();
     });
 
-    it('renders no options when there are no knowledge areas', async () => {
-      const user = userEvent.setup();
+    it('paints the icon chip with the subject color', () => {
+      const { container } = render(<SubjectsFilter {...defaultProps} />);
+
+      const chips = container.querySelectorAll('.size-4.rounded-sm');
+      expect(chips).toHaveLength(3);
+      expect(chips[0]).toHaveStyle({ backgroundColor: '#FF573320' });
+    });
+
+    it('renders nothing when there are no knowledge areas', () => {
       render(<SubjectsFilter {...defaultProps} knowledgeAreas={[]} />);
 
-      const menu = await openDropdown(user);
-
-      expect(within(menu).queryAllByRole('menuitem')).toHaveLength(0);
+      expect(screen.queryAllByRole('radio', { hidden: true })).toHaveLength(0);
     });
   });
 
-  describe('Selection', () => {
-    it('calls onSubjectChange with the picked subject id', async () => {
-      const user = userEvent.setup();
-      const onSubjectChange = jest.fn();
-      render(
-        <SubjectsFilter
-          {...defaultProps}
-          onSubjectChange={onSubjectChange}
-          selectedSubject="math-1"
-        />
+  describe('Selection state', () => {
+    it('leaves every radio unchecked when nothing is selected', () => {
+      render(<SubjectsFilter {...defaultProps} selectedSubject={null} />);
+
+      getRadios().forEach((radio) => expect(radio).not.toBeChecked());
+    });
+
+    it('checks only the selected subject', () => {
+      render(<SubjectsFilter {...defaultProps} selectedSubject="math-1" />);
+
+      expect(getRadio('math-1')).toBeChecked();
+      expect(getRadio('physics-1')).not.toBeChecked();
+      expect(getRadio('chemistry-1')).not.toBeChecked();
+    });
+
+    it('moves the check when the parent changes the selection', () => {
+      const { rerender } = render(
+        <SubjectsFilter {...defaultProps} selectedSubject="math-1" />
+      );
+      expect(getRadio('math-1')).toBeChecked();
+
+      rerender(
+        <SubjectsFilter {...defaultProps} selectedSubject="physics-1" />
       );
 
-      const menu = await openDropdown(user);
-      await user.click(within(menu).getByText('Química'));
+      expect(getRadio('physics-1')).toBeChecked();
+      expect(getRadio('math-1')).not.toBeChecked();
+    });
+  });
+
+  describe('User interactions', () => {
+    it('calls onSubjectChange with the picked subject id', async () => {
+      const onSubjectChange = jest.fn();
+      const user = userEvent.setup();
+      render(
+        <SubjectsFilter {...defaultProps} onSubjectChange={onSubjectChange} />
+      );
+
+      await user.click(screen.getByText('Matemática'));
 
       expect(onSubjectChange).toHaveBeenCalledTimes(1);
-      expect(onSubjectChange).toHaveBeenCalledWith('chemistry-1');
+      expect(onSubjectChange).toHaveBeenCalledWith('math-1');
     });
 
-    it('closes the dropdown after picking', async () => {
+    it('reports the id of whichever subject was clicked', async () => {
+      const onSubjectChange = jest.fn();
       const user = userEvent.setup();
-      render(<SubjectsFilter {...defaultProps} />);
-
-      const menu = await openDropdown(user);
-      await user.click(within(menu).getByText('Física'));
-
-      await waitFor(() => {
-        expect(screen.queryByRole('menu')).not.toBeInTheDocument();
-      });
-    });
-
-    it('uses the latest onSubjectChange handler', async () => {
-      const user = userEvent.setup();
-      const first = jest.fn();
-      const second = jest.fn();
-      const { rerender } = render(
-        <SubjectsFilter {...defaultProps} onSubjectChange={first} />
+      render(
+        <SubjectsFilter {...defaultProps} onSubjectChange={onSubjectChange} />
       );
 
-      rerender(<SubjectsFilter {...defaultProps} onSubjectChange={second} />);
+      await user.click(screen.getByText('Física'));
+      expect(onSubjectChange).toHaveBeenLastCalledWith('physics-1');
 
-      const menu = await openDropdown(user);
-      await user.click(within(menu).getByText('Física'));
-
-      expect(first).not.toHaveBeenCalled();
-      expect(second).toHaveBeenCalledWith('physics-1');
+      await user.click(screen.getByText('Química'));
+      expect(onSubjectChange).toHaveBeenLastCalledWith('chemistry-1');
     });
 
-    it('reverts the trigger when the parent vetoes the change', async () => {
-      const user = userEvent.setup();
-      // A vetoing parent returns false and never updates `selectedSubject`.
+    it('fires when the radio input itself is clicked', () => {
+      const onSubjectChange = jest.fn();
+      render(
+        <SubjectsFilter {...defaultProps} onSubjectChange={onSubjectChange} />
+      );
+
+      fireEvent.click(getRadio('math-1') as HTMLInputElement);
+
+      expect(onSubjectChange).toHaveBeenCalledWith('math-1');
+    });
+
+    it('keeps the previous subject checked when the parent vetoes the pick', async () => {
+      // A vetoing parent resolves false and never updates `selectedSubject`.
       const onSubjectChange = jest.fn().mockResolvedValue(false);
       render(
         <SubjectsFilter
@@ -223,20 +221,15 @@ describe('SubjectsFilter', () => {
           onSubjectChange={onSubjectChange}
         />
       );
-      await waitFor(() => expect(getTrigger()).toHaveTextContent('Matemática'));
 
-      const menu = await openDropdown(user);
-      await user.click(within(menu).getByText('Física'));
+      fireEvent.click(getRadio('physics-1') as HTMLInputElement);
 
       expect(onSubjectChange).toHaveBeenCalledWith('physics-1');
-      await waitFor(() => {
-        expect(getTrigger()).toHaveTextContent('Matemática');
-      });
-      expect(getTrigger()).not.toHaveTextContent('Física');
+      await waitFor(() => expect(getRadio('math-1')).toBeChecked());
+      expect(getRadio('physics-1')).not.toBeChecked();
     });
 
-    it('keeps the pick when the handler throws is reported and rolled back', async () => {
-      const user = userEvent.setup();
+    it('logs instead of leaving an unhandled rejection when the handler throws', async () => {
       const consoleError = jest
         .spyOn(console, 'error')
         .mockImplementation(() => {});
@@ -249,36 +242,44 @@ describe('SubjectsFilter', () => {
         />
       );
 
-      const menu = await openDropdown(user);
-      await user.click(within(menu).getByText('Física'));
+      fireEvent.click(getRadio('physics-1') as HTMLInputElement);
 
-      await waitFor(() => {
-        expect(getTrigger()).toHaveTextContent('Matemática');
-      });
-      expect(consoleError).toHaveBeenCalled();
+      await waitFor(() => expect(consoleError).toHaveBeenCalled());
+      expect(consoleError.mock.calls[0][0]).toBe(
+        'Erro ao trocar de componente curricular:'
+      );
       consoleError.mockRestore();
+    });
+
+    it('does not blow up without an onSubjectChange handler', () => {
+      render(
+        <SubjectsFilter
+          knowledgeAreas={mockKnowledgeAreas}
+          selectedSubject={null}
+        />
+      );
+
+      expect(() =>
+        fireEvent.click(getRadio('math-1') as HTMLInputElement)
+      ).not.toThrow();
     });
   });
 
   describe('Loading and error states', () => {
-    it('renders the loading message instead of the dropdown', () => {
+    it('renders the loading message instead of the grid', () => {
       render(<SubjectsFilter {...defaultProps} loading />);
 
       expect(
         screen.getByText('Carregando componentes curriculares...')
       ).toBeInTheDocument();
-      expect(
-        screen.queryByTestId('subjects-filter-trigger')
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText('Matemática')).not.toBeInTheDocument();
     });
 
-    it('renders the error message instead of the dropdown', () => {
+    it('renders the error message instead of the grid', () => {
       render(<SubjectsFilter {...defaultProps} error="Erro ao carregar" />);
 
       expect(screen.getByText('Erro ao carregar')).toBeInTheDocument();
-      expect(
-        screen.queryByTestId('subjects-filter-trigger')
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText('Matemática')).not.toBeInTheDocument();
     });
 
     it('prefers the loading state over the error state', () => {
@@ -290,18 +291,41 @@ describe('SubjectsFilter', () => {
       expect(screen.queryByText('Erro')).not.toBeInTheDocument();
     });
 
-    it('shows the dropdown once loading finishes', () => {
+    it('shows the grid once loading finishes', () => {
       const { rerender } = render(<SubjectsFilter {...defaultProps} loading />);
-      expect(
-        screen.getByText('Carregando componentes curriculares...')
-      ).toBeInTheDocument();
 
       rerender(<SubjectsFilter {...defaultProps} loading={false} />);
 
-      expect(getTrigger()).toBeInTheDocument();
+      expect(screen.getByText('Matemática')).toBeInTheDocument();
       expect(
         screen.queryByText('Carregando componentes curriculares...')
       ).not.toBeInTheDocument();
+    });
+
+    it('shows the grid once the error clears', () => {
+      const { rerender } = render(
+        <SubjectsFilter {...defaultProps} error="Erro ao carregar" />
+      );
+
+      rerender(<SubjectsFilter {...defaultProps} error={null} />);
+
+      expect(screen.queryByText('Erro ao carregar')).not.toBeInTheDocument();
+      expect(screen.getByText('Matemática')).toBeInTheDocument();
+    });
+
+    it('defaults loading and error to a rendered grid', () => {
+      render(
+        <SubjectsFilter
+          knowledgeAreas={mockKnowledgeAreas}
+          selectedSubject={null}
+          onSubjectChange={jest.fn()}
+        />
+      );
+
+      expect(
+        screen.queryByText('Carregando componentes curriculares...')
+      ).not.toBeInTheDocument();
+      expect(screen.getByText('Matemática')).toBeInTheDocument();
     });
   });
 });
