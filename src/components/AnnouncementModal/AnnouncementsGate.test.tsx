@@ -1,4 +1,10 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import {
+  render,
+  screen,
+  waitFor,
+  fireEvent,
+  act,
+} from '@testing-library/react';
 import AnnouncementsGate from './AnnouncementsGate';
 import {
   getSeenAnnouncementIds,
@@ -161,6 +167,52 @@ describe('AnnouncementsGate', () => {
     rerender(<AnnouncementsGate apiClient={apiClient} userId={USER_ID} />);
 
     expect(apiClient.get).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores the previous user response when it resolves last', async () => {
+    // Two logins racing in the same tab: A's request is still in flight when B
+    // signs in, and A's response lands afterwards. Applying it would hand B the
+    // announcements of A's institution and profile.
+    const deferred: Array<{
+      resolve: (announcements: Announcement[]) => void;
+    }> = [];
+
+    const apiClient = {
+      get: jest.fn().mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            deferred.push({
+              resolve: (announcements) =>
+                resolve({ data: { message: 'ok', data: { announcements } } }),
+            });
+          })
+      ),
+    };
+
+    const { rerender } = render(
+      <AnnouncementsGate apiClient={apiClient} userId={USER_ID} />
+    );
+    await waitFor(() => expect(deferred).toHaveLength(1));
+
+    rerender(<AnnouncementsGate apiClient={apiClient} userId="user-2" />);
+    await waitFor(() => expect(deferred).toHaveLength(2));
+
+    // B answers first, then A's slower response arrives.
+    await act(async () => {
+      deferred[1].resolve([
+        buildAnnouncement({ id: 'ann-do-b', title: 'Comunicado do B' }),
+      ]);
+    });
+    await act(async () => {
+      deferred[0].resolve([
+        buildAnnouncement({ id: 'ann-do-a', title: 'Comunicado do A' }),
+      ]);
+    });
+
+    expect(screen.getByText('Comunicado do B')).toBeInTheDocument();
+    expect(screen.queryByText('Comunicado do A')).not.toBeInTheDocument();
+    // A's ids must not be written under B either
+    expect(getSeenAnnouncementIds('user-2')).toEqual([]);
   });
 
   it('refetches when a different user logs in', async () => {

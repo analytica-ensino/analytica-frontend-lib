@@ -59,8 +59,19 @@ export const createUseAnnouncements = (apiClient: AnnouncementsApiClient) => {
      */
     const fetchedForUserRef = useRef<string | null>(null);
 
+    /**
+     * Sequence of the latest request. Signing out and back in as someone else
+     * fires a second fetch while the first is still in flight; without this the
+     * slower response would win and hand the new user announcements scoped to
+     * the previous user's institution and profile.
+     */
+    const requestIdRef = useRef(0);
+
     const fetchAnnouncements = useCallback(
       async (currentUserId: string) => {
+        const requestId = requestIdRef.current + 1;
+        requestIdRef.current = requestId;
+
         // Drop the previous user's queue up front: signing in as someone else in
         // the same tab would otherwise flash their announcement until the new
         // response lands.
@@ -71,6 +82,10 @@ export const createUseAnnouncements = (apiClient: AnnouncementsApiClient) => {
           const response = await apiClient.get<ActiveAnnouncementsResponse>(
             ACTIVE_ANNOUNCEMENTS_URL
           );
+
+          // A response that lost the race belongs to a user who is no longer
+          // logged in — it must not touch the state or their stored ids.
+          if (requestIdRef.current !== requestId) return;
 
           const announcements = response?.data?.data?.announcements ?? [];
           const activeIds = announcements.map(
@@ -89,9 +104,15 @@ export const createUseAnnouncements = (apiClient: AnnouncementsApiClient) => {
           );
         } catch {
           // A failed fetch must never block the app the user just logged into.
-          setPending([]);
+          if (requestIdRef.current === requestId) {
+            setPending([]);
+          }
         } finally {
-          setLoading(false);
+          // `finally` runs even for the stale-response early return above, so
+          // the loading flag has to be guarded too.
+          if (requestIdRef.current === requestId) {
+            setLoading(false);
+          }
         }
       },
       [apiClient]
