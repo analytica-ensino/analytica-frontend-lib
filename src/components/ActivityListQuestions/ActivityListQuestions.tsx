@@ -22,6 +22,7 @@ import { convertActivityFiltersToQuestionsFilter } from '../../utils/questionFil
 import { mapQuestionTypeToEnumRequired } from '../../utils/questionTypeUtils';
 import { areFiltersEqual } from '../../utils/activityFilters';
 import { normalizeText, highlightSearchTerm } from '../../utils/stringUtils';
+import { useSentQuestionIds } from '../../hooks/useSentQuestionIds';
 import Activities from '../../assets/icons/Activities';
 
 interface ActivityListQuestionsProps {
@@ -46,6 +47,7 @@ export const ActivityListQuestions = ({
   enableExamMode = false,
 }: ActivityListQuestionsProps) => {
   const { isDark } = useTheme();
+  const sentQuestionIds = useSentQuestionIds(apiClient);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [questionCount, setQuestionCount] = useState<number>(1);
   const [searchTerm, setSearchTerm] = useState('');
@@ -558,6 +560,7 @@ export const ActivityListQuestions = ({
                   : question.statement
               }
               additionalContent={question.additionalContent}
+              alreadySent={sentQuestionIds.has(question.id)}
               onAddToActivity={() => {
                 if (onAddQuestion) {
                   onAddQuestion(question);

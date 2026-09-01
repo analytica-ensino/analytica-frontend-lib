@@ -1,4 +1,5 @@
 import {
+  Badge,
   Button,
   getSubjectColorWithOpacity,
   IconRender,
@@ -46,6 +47,8 @@ interface ActivityCardQuestionBanksProps {
   additionalContent?: string | null;
   /** Enable exam mode - changes text labels from 'atividade' to 'prova' */
   enableExamMode?: boolean;
+  /** Whether the logged user already sent this question to their students */
+  alreadySent?: boolean;
 }
 
 export const ActivityCardQuestionBanks = ({
@@ -61,6 +64,7 @@ export const ActivityCardQuestionBanks = ({
   statement,
   additionalContent,
   enableExamMode = false,
+  alreadySent = false,
 }: ActivityCardQuestionBanksProps = {}) => {
   // Transform question options into Alternative format for teacher view
   const alternatives = useMemo(() => {
@@ -321,6 +325,14 @@ export const ActivityCardQuestionBanks = ({
         {(bank || year) && (
           <div className="py-1 px-2 flex flex-row items-center gap-1">
             <Text size="sm">{[bank, year].filter(Boolean).join(' - ')}</Text>
+          </div>
+        )}
+
+        {alreadySent && (
+          <div className="py-1 flex flex-row items-center">
+            <Badge variant="solid" action="info" size="small">
+              Já enviada
+            </Badge>
           </div>
         )}
       </section>

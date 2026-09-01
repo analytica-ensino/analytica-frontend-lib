@@ -123,6 +123,7 @@ jest.mock('../ActivityCardQuestionBanks/ActivityCardQuestionBanks', () => ({
     subjectColor,
     isDark,
     iconName,
+    alreadySent,
   }: {
     question?: unknown;
     questionType: QUESTION_TYPE;
@@ -132,6 +133,7 @@ jest.mock('../ActivityCardQuestionBanks/ActivityCardQuestionBanks', () => ({
     subjectColor: string;
     isDark: boolean;
     iconName: string;
+    alreadySent?: boolean;
   }) => (
     <div
       data-testid="activity-card-question-banks"
@@ -141,6 +143,7 @@ jest.mock('../ActivityCardQuestionBanks/ActivityCardQuestionBanks', () => ({
       data-subject-color={subjectColor}
       data-is-dark={isDark}
       data-icon-name={iconName}
+      data-already-sent={String(Boolean(alreadySent))}
     >
       <button data-testid="add-to-activity-button" onClick={onAddToActivity}>
         Adicionar à atividade
@@ -338,6 +341,7 @@ jest.mock('../../components/Search/Search', () => ({
 
 describe('ActivityListQuestions', () => {
   const mockApiClient = {
+    get: jest.fn(),
     post: jest.fn(),
   } as unknown as BaseApiClient;
 
@@ -2223,6 +2227,65 @@ describe('ActivityListQuestions', () => {
         expect.any(Function)
       );
       removeEventListenerSpy.mockRestore();
+    });
+  });
+
+  describe('Já enviada tag', () => {
+    /**
+     * Builds a client whose GET answers the sent-question-ids endpoint with the
+     * given ids; the questions themselves come from the mocked list hook.
+     */
+    const createApiClientWithSentQuestions = (questionIds: string[]) =>
+      ({
+        get: jest.fn().mockResolvedValue({
+          data: {
+            message: 'Questões já enviadas obtidas com sucesso',
+            data: { questionIds },
+          },
+        }),
+        post: jest.fn(),
+      }) as unknown as BaseApiClient;
+
+    it('should flag only the questions already sent by the user', async () => {
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [mockQuestion, { ...mockQuestion, id: 'question-2' }],
+        loading: false,
+      });
+
+      const apiClient = createApiClientWithSentQuestions(['question-2']);
+
+      render(<ActivityListQuestions {...defaultProps} apiClient={apiClient} />);
+
+      await waitFor(() => {
+        const cards = screen.getAllByTestId('activity-card-question-banks');
+        expect(cards[1]).toHaveAttribute('data-already-sent', 'true');
+      });
+
+      const cards = screen.getAllByTestId('activity-card-question-banks');
+      expect(cards[0]).toHaveAttribute('data-already-sent', 'false');
+      expect(apiClient.get).toHaveBeenCalledWith(
+        '/activities/my-sent-question-ids'
+      );
+    });
+
+    it('should flag no question when the endpoint fails', async () => {
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [mockQuestion],
+        loading: false,
+      });
+
+      const apiClient = {
+        get: jest.fn().mockRejectedValue(new Error('Network error')),
+        post: jest.fn(),
+      } as unknown as BaseApiClient;
+
+      render(<ActivityListQuestions {...defaultProps} apiClient={apiClient} />);
+
+      await waitFor(() => expect(apiClient.get).toHaveBeenCalledTimes(1));
+
+      expect(
+        screen.getByTestId('activity-card-question-banks')
+      ).toHaveAttribute('data-already-sent', 'false');
     });
   });
 });
