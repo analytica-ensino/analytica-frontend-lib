@@ -1808,6 +1808,16 @@ describe('ActivityDetails', () => {
       );
     });
 
+    // O download dispara `apiClient.get` sem que o teste espere a cadeia
+    // terminar; o unmount do RTL não cancela nada. A chamada atrasada caía no
+    // `mockApiClient.get` já trocado pelo teste seguinte e consumia o
+    // `mockResolvedValueOnce` dele — o teste real recebia `undefined`, entrava
+    // no caminho de erro e `handlePrint` nunca acontecia. Um tick de macrotask
+    // aqui drena o que ficou em voo enquanto o mock ainda é o deste teste.
+    afterEach(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
     it('should render PDF content component', async () => {
       render(<ActivityDetails {...defaultProps} />);
 
@@ -2229,7 +2239,10 @@ describe('ActivityDetails', () => {
         ]),
       ];
 
-      mockApiClient.get = jest.fn().mockResolvedValueOnce({
+      // Sem `Once`: o que importa aqui é o endpoint devolver questões, não
+      // quantas vezes ele é chamado. Uma resposta de uso único deixa o teste
+      // refém da ordem das chamadas.
+      mockApiClient.get = jest.fn().mockResolvedValue({
         data: {
           data: {
             questions: mockQuestions,
@@ -2252,14 +2265,13 @@ describe('ActivityDetails', () => {
       });
 
       // handlePrint é disparado por uma cadeia de macrotasks (fetch → estado →
-      // efeito → setTimeout). Com a suíte inteira em paralelo, 2s chegam a
-      // estourar por contenção de CPU; o orçamento maior não afrouxa o que se
-      // exige aqui, que continua sendo a chamada acontecer.
+      // efeito → setTimeout), da ordem de dezenas de ms; a folga é só para
+      // contenção de CPU com a suíte inteira em paralelo.
       await waitFor(
         () => {
           expect(mockHandlePrint).toHaveBeenCalled();
         },
-        { timeout: 10000 }
+        { timeout: 2000 }
       );
 
       // Verify that handlePrint was called (meaning shouldPrint was true and conditions were met)
