@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import {
   activitiesTableColumns,
   getActivityStatusBadgeAction,
@@ -62,7 +62,7 @@ describe('activitiesTableConfig', () => {
       expect(titleColumn.key).toBe('title');
       expect(titleColumn.label).toBe('Título');
       expect(titleColumn.sortable).toBe(true);
-      expect(titleColumn.className).toBe('max-w-[200px]');
+      expect(titleColumn.className).toBe('max-w-[180px]');
       expect(titleColumn.render).toBeDefined();
     });
 
@@ -71,7 +71,7 @@ describe('activitiesTableConfig', () => {
       expect(schoolColumn.key).toBe('school');
       expect(schoolColumn.label).toBe('Escola');
       expect(schoolColumn.sortable).toBe(true);
-      expect(schoolColumn.className).toBe('max-w-[150px]');
+      expect(schoolColumn.className).toBe('max-w-[120px]');
       expect(schoolColumn.render).toBeDefined();
     });
 
@@ -80,14 +80,16 @@ describe('activitiesTableConfig', () => {
       expect(yearColumn.key).toBe('year');
       expect(yearColumn.label).toBe('Ano');
       expect(yearColumn.sortable).toBe(true);
+      expect(yearColumn.className).toBe('max-w-[100px]');
+      expect(yearColumn.render).toBeDefined();
     });
 
     it('should have subject column with correct config', () => {
       const subjectColumn = activitiesTableColumns[5];
       expect(subjectColumn.key).toBe('subject');
-      expect(subjectColumn.label).toBe('Componente curricular');
+      expect(subjectColumn.label).toBe('Componente');
       expect(subjectColumn.sortable).toBe(true);
-      expect(subjectColumn.className).toBe('max-w-[200px]');
+      expect(subjectColumn.className).toBe('max-w-[140px]');
       expect(subjectColumn.render).toBeDefined();
     });
 
@@ -233,6 +235,34 @@ describe('activitiesTableConfig', () => {
       it('should handle non-string value', () => {
         const { container } = render(
           <>{subjectColumn.render?.(null, {} as ActivityTableItem, 0)}</>
+        );
+        expect(container).toBeInTheDocument();
+      });
+    });
+
+    describe('year column render', () => {
+      const yearColumn = activitiesTableColumns[4];
+
+      it('should render the full school year name, truncated by CSS', () => {
+        render(
+          <>
+            {yearColumn.render?.(
+              '3ª série do ensino médio',
+              {} as ActivityTableItem,
+              0
+            )}
+          </>
+        );
+        // O texto completo continua no DOM (o corte é só visual, via `truncate`),
+        // que é o que alimenta o tooltip do TruncatedText no hover.
+        expect(
+          screen.getByText('3ª série do ensino médio')
+        ).toBeInTheDocument();
+      });
+
+      it('should handle non-string value', () => {
+        const { container } = render(
+          <>{yearColumn.render?.(null, {} as ActivityTableItem, 0)}</>
         );
         expect(container).toBeInTheDocument();
       });

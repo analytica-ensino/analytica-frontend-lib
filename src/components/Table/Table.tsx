@@ -659,7 +659,7 @@ const TableHead = forwardRef<HTMLTableCellElement, TableHeadProps>(
       <th
         ref={ref}
         className={cn(
-          'h-10 px-6 py-3.5 text-left align-middle font-bold text-base text-text-800 tracking-[0.2px] leading-none [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] whitespace-nowrap',
+          'h-10 px-4 py-3.5 text-left align-middle font-bold text-base text-text-800 tracking-[0.2px] leading-none [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] whitespace-nowrap',
           sortable && 'cursor-pointer select-none hover:bg-muted/30',
           className
         )}
@@ -707,7 +707,7 @@ const TableCell = forwardRef<
   <td
     ref={ref}
     className={cn(
-      'p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-base font-normal text-text-800 leading-[150%] tracking-normal px-6 py-3.5 whitespace-nowrap',
+      'p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-base font-normal text-text-800 leading-[150%] tracking-normal px-4 py-3.5 whitespace-nowrap',
       className
     )}
     {...props}
