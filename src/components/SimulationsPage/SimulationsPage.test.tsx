@@ -12,12 +12,21 @@ const studentsPayload = {
           userInstitutionId: 'ui-1',
           name: 'Ana Costa',
           class: 'A',
+          schoolYear: '3ª série do ensino médio',
           simulationsCount: 40,
+        },
+        {
+          studentId: 's2',
+          userInstitutionId: 'ui-2',
+          name: 'Bruno Lima',
+          class: null,
+          schoolYear: null,
+          simulationsCount: 0,
         },
       ],
       page: 1,
       limit: 10,
-      total: 1,
+      total: 2,
     },
   },
 };
@@ -80,11 +89,28 @@ describe('SimulationsPage', () => {
     expect(screen.getByText('40')).toBeInTheDocument();
   });
 
+  it('shows the school year column, falling back to "-" without a class', async () => {
+    render(<SimulationsPage api={makeApi()} />);
+
+    await screen.findByText('Ana Costa');
+
+    expect(screen.getByText('Ano letivo')).toBeInTheDocument();
+    expect(screen.getByText('3ª série do ensino médio')).toBeInTheDocument();
+
+    // Bruno não tem turma, então a API devolve schoolYear nulo: a célula do ano
+    // letivo e a da turma caem no traço.
+    const dashes = screen.getAllByText('-');
+    expect(dashes).toHaveLength(2);
+  });
+
   it('opens the detail modal when clicking "Ver simulados"', async () => {
     render(<SimulationsPage api={makeApi()} />);
 
-    const button = await screen.findByRole('button', { name: 'Ver simulados' });
-    fireEvent.click(button);
+    // Uma linha por estudante, então há um botão por linha: o da Ana é o primeiro.
+    const buttons = await screen.findAllByRole('button', {
+      name: 'Ver simulados',
+    });
+    fireEvent.click(buttons[0]);
 
     await waitFor(() =>
       expect(screen.getByText('40 simulados respondidos')).toBeInTheDocument()
