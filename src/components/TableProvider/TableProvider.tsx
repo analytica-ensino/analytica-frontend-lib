@@ -63,13 +63,8 @@ export interface ColumnConfig<T = Record<string, unknown>> {
   /** Column width */
   width?: string;
   /**
-   * Classes extras, aplicadas à célula do corpo E ao cabeçalho.
-   *
-   * Um `max-w-*` aqui existe para truncar o conteúdo da célula, mas o
-   * cabeçalho tem `whitespace-nowrap` e não trunca: se o rótulo for mais largo
-   * que esse teto, ele vaza por cima da coluna seguinte. Por isso o `<th>`
-   * recebe `min-w-fit`, que em CSS vence o `max-width` — a coluna nunca fica
-   * mais estreita que o próprio título.
+   * Classes extras. Vão inteiras para a célula do corpo; o cabeçalho recebe
+   * tudo menos o `max-w-*` (ver `semTetoDeLargura`).
    */
   className?: string;
   /** Text alignment */
@@ -83,6 +78,28 @@ export interface ColumnConfig<T = Record<string, unknown>> {
  * column clickable, since most tables here are paginated server-side and a
  * client-side sort would only reorder the page you're looking at.
  */
+/**
+ * Tira o `max-w-*` das classes antes de aplicá-las ao `<th>`.
+ *
+ * Esse teto existe para truncar o conteúdo da CÉLULA. No cabeçalho ele só
+ * atrapalha: o `<th>` tem `whitespace-nowrap` e não trunca, então um rótulo
+ * mais largo que o teto transborda e pinta por cima da coluna seguinte — foi o
+ * que aconteceu quando "Matéria" virou "Componente curricular".
+ *
+ * Não adianta compensar com `min-w-fit`, `min-w-max` ou `w-max`: medido no
+ * Chrome, o algoritmo de table-layout automático ignora `min-width` e `width`
+ * na célula, e só o `max-width` influencia a largura da coluna. A única saída é
+ * o cabeçalho não receber teto nenhum e deixar a coluna crescer até o título.
+ */
+export const semTetoDeLargura = (classes?: string): string | undefined => {
+  if (!classes) return classes;
+  const semTeto = classes
+    .replace(/\bmax-w-(\[[^\]]*\]|[\w./-]+)/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return semTeto || undefined;
+};
+
 export function isColumnSortable<T>(
   header: ColumnConfig<T>,
   enableTableSort: boolean,
@@ -685,7 +702,7 @@ export function TableProvider<T extends Record<string, unknown>>({
                       />
                     )
                   }
-                  className={cn('min-w-fit', header.className)}
+                  className={semTetoDeLargura(header.className)}
                   style={header.width ? { width: header.width } : undefined}
                 >
                   {header.label}

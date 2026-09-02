@@ -83,7 +83,7 @@ export const createModelsTableColumnsBase = <T extends BaseModelItem>(
     key: 'subject',
     label: 'Componente curricular',
     sortable: true,
-    className: 'max-w-[160px]',
+    className: 'max-w-[200px]',
     render: (value: unknown) => {
       const subjectName = typeof value === 'string' ? value : '';
       return renderSubjectCell(subjectName, mapSubjectNameToEnum, true);

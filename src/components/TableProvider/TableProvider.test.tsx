@@ -3,6 +3,7 @@ import '@testing-library/jest-dom';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
+  semTetoDeLargura,
   TableProvider,
   type ColumnConfig,
   type TableComponents,
@@ -1672,5 +1673,46 @@ describe('TableProvider', () => {
       expect(screen.getByPlaceholderText('Buscar...')).toBeInTheDocument();
       expect(screen.getByText('Filtros')).toBeInTheDocument();
     });
+  });
+});
+
+describe('semTetoDeLargura', () => {
+  /**
+   * O `max-w-*` da coluna trunca a célula do corpo, mas no cabeçalho ele faz o
+   * rótulo transbordar por cima da coluna seguinte — `whitespace-nowrap` não
+   * trunca. Compensar com min-width/width não resolve: o table-layout
+   * automático ignora os dois na célula.
+   */
+  it('tira o teto de largura, arbitrário ou nomeado, e preserva o resto', () => {
+    expect(semTetoDeLargura('max-w-[140px] truncate')).toBe('truncate');
+    expect(semTetoDeLargura('truncate max-w-xs font-bold')).toBe(
+      'truncate font-bold'
+    );
+  });
+
+  it('devolve undefined quando só havia o teto, para não deixar classe vazia', () => {
+    expect(semTetoDeLargura('max-w-[200px]')).toBeUndefined();
+  });
+
+  it('não mexe em classes sem teto nem em ausência de classe', () => {
+    expect(semTetoDeLargura('w-12 text-center')).toBe('w-12 text-center');
+    expect(semTetoDeLargura(undefined)).toBeUndefined();
+  });
+
+  it('não deixa o cabeçalho herdar o teto da coluna', () => {
+    render(
+      <TableProvider
+        data={[{ id: '1', subject: 'Educação Física' }]}
+        headers={[
+          {
+            key: 'subject',
+            label: 'Componente curricular',
+            className: 'max-w-[140px]',
+          },
+        ]}
+      />
+    );
+    const th = screen.getByText('Componente curricular').closest('th');
+    expect(th?.className).not.toContain('max-w-');
   });
 });

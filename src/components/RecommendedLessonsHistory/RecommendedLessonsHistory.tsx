@@ -356,7 +356,7 @@ const createTableColumns = (
     key: 'subject',
     label: 'Componente curricular',
     sortable: true,
-    className: 'max-w-[140px]',
+    className: 'max-w-[200px]',
     render: (value: unknown) => {
       const subjectName = typeof value === 'string' ? value : '';
       const subjectEnum = mapSubjectNameToEnum?.(subjectName);
