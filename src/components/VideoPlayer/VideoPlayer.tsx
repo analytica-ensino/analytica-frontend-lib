@@ -19,6 +19,10 @@ import { cn } from '../../utils/utils';
 import IconButton from '../IconButton/IconButton';
 import Text from '../Text/Text';
 import { useMobile } from '../../hooks/useMobile';
+import {
+  UNMUTE_FALLBACK_VOLUME,
+  useMediaVolumePreference,
+} from '../../store/mediaPreferencesStore';
 import DownloadButton, {
   DownloadContent,
 } from '../DownloadButton/DownloadButton';
@@ -340,8 +344,11 @@ const VideoPlayer = ({
   const [hasStarted, setHasStarted] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [isMuted, setIsMuted] = useState(false);
-  const [volume, setVolume] = useState(1);
+  // Volume e mudo vivem em um store persistido (não em estado local): o valor
+  // escolhido pelo usuário precisa sobreviver à troca de vídeo/aula e valer
+  // para qualquer player montado depois — inclusive o podcast —, em vez de
+  // voltar a 100% a cada mídia.
+  const { volume, isMuted, setVolume, setIsMuted } = useMediaVolumePreference();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [hasCompleted, setHasCompleted] = useState(false);
@@ -475,15 +482,41 @@ const VideoPlayer = ({
   }, [isFullscreen, clearControlsTimeout, isUserInteracting]);
 
   /**
-   * Initialize video element properties
+   * Apply the saved volume/mute preference to the video element.
+   *
+   * `src` is a dependency so a newly loaded video also starts at the volume the
+   * user last chose, including when the consumer swaps the source in place
+   * instead of remounting the player.
    */
   useEffect(() => {
-    // Set initial volume
     if (videoRef.current) {
       videoRef.current.volume = volume;
       videoRef.current.muted = isMuted;
     }
-  }, [volume, isMuted]);
+  }, [volume, isMuted, src]);
+
+  /**
+   * Keep the preference in sync with volume changes we did not originate
+   * (native fullscreen controls on iOS, media keys, browser-level volume).
+   *
+   * Registered after the effect above so the browser's own restore, which
+   * happens while the element is created, cannot overwrite the stored value.
+   */
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const onVolumeChange = () => {
+      setVolume(video.volume);
+      setIsMuted(video.muted || video.volume === 0);
+    };
+
+    video.addEventListener('volumechange', onVolumeChange);
+
+    return () => {
+      video.removeEventListener('volumechange', onVolumeChange);
+    };
+  }, [setVolume, setIsMuted]);
 
   /**
    * Synchronize isPlaying state with media events
@@ -715,7 +748,7 @@ const VideoPlayer = ({
         setIsMuted(false);
       }
     },
-    [isMuted]
+    [isMuted, setVolume, setIsMuted]
   );
 
   /**
@@ -727,7 +760,7 @@ const VideoPlayer = ({
 
     if (isMuted) {
       // Unmute: restore volume or set to 50% if it was 0
-      const restoreVolume = volume > 0 ? volume : 0.5;
+      const restoreVolume = volume > 0 ? volume : UNMUTE_FALLBACK_VOLUME;
       video.volume = restoreVolume;
       video.muted = false;
       setVolume(restoreVolume);
@@ -737,7 +770,7 @@ const VideoPlayer = ({
       video.muted = true;
       setIsMuted(true);
     }
-  }, [isMuted, volume]);
+  }, [isMuted, volume, setVolume, setIsMuted]);
 
   /**
    * Handle video seek

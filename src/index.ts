@@ -986,6 +986,14 @@ export { useQuestionFiltersStore } from './store/questionFiltersStore';
 export type { QuestionFiltersState } from './store/questionFiltersStore';
 export { useLessonFiltersStore } from './store/lessonFiltersStore';
 export type { LessonFiltersState } from './store/lessonFiltersStore';
+
+export {
+  useMediaPreferencesStore,
+  useMediaVolumePreference,
+  DEFAULT_MEDIA_VOLUME,
+  UNMUTE_FALLBACK_VOLUME,
+} from './store/mediaPreferencesStore';
+export type { MediaPreferencesState } from './store/mediaPreferencesStore';
 export { useModulesStore } from './store/modulesStore';
 export type { ModulesState } from './store/modulesStore';
 export {

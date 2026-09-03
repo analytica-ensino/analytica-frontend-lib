@@ -35,9 +35,15 @@ describe('keys', () => {
       expect(KEYS.MODULES_STORAGE).toBe('@modules-storage:analytica:v1');
     });
 
+    it('should have MEDIA_PREFERENCES_STORAGE key', () => {
+      expect(KEYS.MEDIA_PREFERENCES_STORAGE).toBe(
+        '@media-preferences:analytica:v1'
+      );
+    });
+
     it('should have correct number of keys', () => {
       const keys = Object.keys(KEYS);
-      expect(keys).toHaveLength(4);
+      expect(keys).toHaveLength(5);
     });
 
     it('should have string values', () => {

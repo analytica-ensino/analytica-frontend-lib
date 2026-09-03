@@ -28,6 +28,7 @@ import { TrashIcon } from '@phosphor-icons/react/dist/csr/Trash';
 import { XCircleIcon } from '@phosphor-icons/react/dist/csr/XCircle';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
+import { useMediaVolumePreference } from '../../store/mediaPreferencesStore';
 import IconRender from '../IconRender/IconRender';
 import readingFluencyBird from '../../assets/img/readingFluencyBird.png';
 
@@ -940,7 +941,10 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
-    const [volume, setVolume] = useState(1);
+    // Mesmo store da videoaula: o volume escolhido em qualquer player vale
+    // para o próximo, em vez de o podcast recomeçar sempre em 100%.
+    const { volume, isMuted, setVolume, setIsMuted } =
+      useMediaVolumePreference();
     const [showVolumeControl, setShowVolumeControl] = useState(false);
     const [showSpeedMenu, setShowSpeedMenu] = useState(false);
     const [playbackRate, setPlaybackRate] = useState(1);
@@ -1000,12 +1004,21 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
       }
     };
 
-    const handleVolumeChange = (e: ChangeEvent<HTMLInputElement>) => {
-      const newVolume = parseFloat(e.target.value);
+    // O card tem um único controle de áudio, então o mudo herdado da videoaula
+    // aparece aqui como volume zero — em vez de um slider em 70% sem som.
+    const displayVolume = isMuted ? 0 : volume;
+
+    /**
+     * Salva o volume escolhido. Como o slider é o único controle de áudio do
+     * card, zerá-lo é o gesto de mudo, e sair do zero desfaz o mudo herdado.
+     */
+    const applyVolume = (newVolume: number) => {
       setVolume(newVolume);
-      if (audioRef.current) {
-        audioRef.current.volume = newVolume;
-      }
+      setIsMuted(newVolume === 0);
+    };
+
+    const handleVolumeChange = (e: ChangeEvent<HTMLInputElement>) => {
+      applyVolume(parseFloat(e.target.value));
     };
 
     const toggleVolumeControl = () => {
@@ -1027,14 +1040,24 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
     };
 
     const getVolumeIcon = () => {
-      if (volume === 0) {
+      if (displayVolume === 0) {
         return <SpeakerSimpleXIcon size={24} />;
       }
-      if (volume < 0.5) {
+      if (displayVolume < 0.5) {
         return <SpeakerLowIcon size={24} />;
       }
       return <SpeakerHighIcon size={24} />;
     };
+
+    // Aplica a preferência ao elemento no mount, ao trocar de faixa e quando
+    // outro player altera o volume. Sem isso o `<audio>` sempre nasceria em 100%.
+    useEffect(() => {
+      const audio = audioRef.current;
+      if (!audio) return;
+
+      audio.volume = volume;
+      audio.muted = isMuted;
+    }, [volume, isMuted, src]);
 
     useEffect(() => {
       const handleClickOutside = (event: Event) => {
@@ -1185,33 +1208,27 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
                 min="0"
                 max="1"
                 step="0.1"
-                value={volume}
+                value={displayVolume}
                 onChange={handleVolumeChange}
                 onKeyDown={(e) => {
                   if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
                     e.preventDefault();
-                    const newVolume = Math.min(
-                      1,
-                      Math.round((volume + 0.1) * 10) / 10
+                    applyVolume(
+                      Math.min(1, Math.round((displayVolume + 0.1) * 10) / 10)
                     );
-                    setVolume(newVolume);
-                    if (audioRef.current) audioRef.current.volume = newVolume;
                   } else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') {
                     e.preventDefault();
-                    const newVolume = Math.max(
-                      0,
-                      Math.round((volume - 0.1) * 10) / 10
+                    applyVolume(
+                      Math.max(0, Math.round((displayVolume - 0.1) * 10) / 10)
                     );
-                    setVolume(newVolume);
-                    if (audioRef.current) audioRef.current.volume = newVolume;
                   }
                 }}
                 className="w-20 h-2 bg-border-100 rounded-lg appearance-none cursor-pointer"
                 style={{
-                  background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${volume * 100}%, #e5e7eb ${volume * 100}%, #e5e7eb 100%)`,
+                  background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${displayVolume * 100}%, #e5e7eb ${displayVolume * 100}%, #e5e7eb 100%)`,
                 }}
                 aria-label="Volume"
-                aria-valuenow={Math.round(volume * 100)}
+                aria-valuenow={Math.round(displayVolume * 100)}
                 aria-valuemin={0}
                 aria-valuemax={100}
               />
