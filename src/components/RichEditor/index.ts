@@ -10,5 +10,6 @@
 
 export { RichEditor } from './RichEditor';
 export { FormulaDialog } from './components/FormulaDialog';
-export { ImageDialog, MAX_IMAGE_SIZE } from './components/ImageDialog';
+export { ImageDialog } from './components/ImageDialog';
+export { MAX_IMAGE_SIZE } from './components/imageSize';
 export { processLatexInHtml, unprocessLatexInHtml } from './components/utils';

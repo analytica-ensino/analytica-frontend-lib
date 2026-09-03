@@ -6,13 +6,7 @@ import Modal from '../../Modal/Modal';
 import Text from '../../Text/Text';
 import { LinkIcon } from '@phosphor-icons/react/dist/csr/Link';
 import { UploadSimpleIcon } from '@phosphor-icons/react/dist/csr/UploadSimple';
-import { DEFAULT_MAX_INSERT_WIDTH, measureNaturalWidth } from './imageSize';
-
-/**
- * Matches the 5MB cap enforced by the backend pre-signed URL schema.
- * Keeping it here avoids the client accepting files the server will reject.
- */
-export const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+import { MAX_IMAGE_SIZE, resolveInsertWidth } from './imageSize';
 
 type InputMode = 'file' | 'url';
 
@@ -92,23 +86,6 @@ export function ImageDialog({
   const switchMode = (mode: InputMode) => {
     setInputMode(mode);
     setError('');
-  };
-
-  /**
-   * Resolves the width to insert with. Exam board images are uploaded at their
-   * original scan resolution, so anything wider than the default cap is clamped
-   * up front. Images already within the cap get no width attribute at all,
-   * leaving existing content untouched.
-   * @param src - Public URL of the image about to be inserted
-   * @returns The width in pixels, or undefined when no clamping is needed
-   */
-  const resolveInsertWidth = async (
-    src: string
-  ): Promise<number | undefined> => {
-    const naturalWidth = await measureNaturalWidth(src);
-    return naturalWidth && naturalWidth > DEFAULT_MAX_INSERT_WIDTH
-      ? DEFAULT_MAX_INSERT_WIDTH
-      : undefined;
   };
 
   /** Inserts an image already available at `src`, measuring it first. */

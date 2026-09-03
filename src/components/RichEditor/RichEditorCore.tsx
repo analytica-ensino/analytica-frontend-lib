@@ -35,6 +35,8 @@ import { TrashIcon } from '@phosphor-icons/react/dist/csr/Trash';
 import { useState, useRef, useEffect, ReactNode } from 'react';
 import { FormulaDialog } from './components/FormulaDialog';
 import { ImageDialog } from './components/ImageDialog';
+import { createPastedImageHandler } from './components/pastedImage';
+import { resolveInsertWidth } from './components/imageSize';
 import Button from '../Button/Button';
 import Text from '../Text/Text';
 
@@ -103,6 +105,12 @@ const NEW_TABLE = { rows: 3, cols: 3, withHeaderRow: true };
 const prepareContent = (content?: string) =>
   processLatexInHtml(normalizeLineBreaksInHtml(content || ''));
 
+/** Shown when a pasted image is bigger than the storage backend accepts. */
+const OVERSIZED_PASTE_MESSAGE = 'A imagem deve ter no máximo 5MB.';
+
+/** Shown when the upload rejects with something that is not an `Error`. */
+const GENERIC_PASTE_ERROR = 'Erro ao enviar a imagem.';
+
 interface RichEditorProps {
   readonly content?: string;
   readonly onChange?: (data: { json: object; html: string }) => void;
@@ -122,6 +130,13 @@ interface RichEditorProps {
    * @returns Promise resolving to the public URL of the uploaded image
    */
   readonly onUploadImage?: (file: File) => Promise<string>;
+  /**
+   * Enables pasting an image straight from the clipboard (Ctrl+V), uploading it
+   * through `onUploadImage` and inserting the resulting URL. Off by default and
+   * ignored without `onUploadImage`, since there would be nowhere to put the
+   * file — the editor schema rejects base64 sources.
+   */
+  readonly allowImagePaste?: boolean;
 }
 
 export function RichEditor({
@@ -130,10 +145,24 @@ export function RichEditor({
   placeholder = 'Digite aqui...',
   onGenerateLatexWithAI,
   onUploadImage,
+  allowImagePaste = false,
 }: RichEditorProps) {
   const [formulaOpen, setFormulaOpen] = useState(false);
   const [imageOpen, setImageOpen] = useState(false);
+  const [isPastingImage, setIsPastingImage] = useState(false);
+  const [pasteError, setPasteError] = useState('');
   const lastContentRef = useRef(content);
+  /**
+   * `editorProps` is captured once, when `useEditor` runs, so a handler reading
+   * the props directly would keep serving the first render's values. The editor
+   * calls through this ref, which the effect below repoints whenever the paste
+   * configuration changes.
+   */
+  const pasteHandlerRef = useRef<(event: ClipboardEvent) => boolean>(
+    () => false
+  );
+  /** Bumped on unmount so an upload still in flight knows not to insert. */
+  const pasteTokenRef = useRef(0);
 
   const editor = useEditor({
     extensions: createRichEditorExtensions(placeholder),
@@ -153,6 +182,7 @@ export function RichEditor({
         class:
           'min-h-[120px] outline-none prose prose-sm max-w-none px-4 py-3 focus:outline-none',
       },
+      handlePaste: (_view, event) => pasteHandlerRef.current(event),
     },
   });
 
@@ -215,15 +245,74 @@ export function RichEditor({
     setFormulaOpen(false);
   };
 
-  const insertImage = (src: string, alt: string, width?: number) => {
+  const applyImage = (src: string, alt: string, width?: number) => {
     if (!src || !editor) return;
     editor
       .chain()
       .focus()
       .setImage({ src, alt, ...(width ? { width } : {}) })
       .run();
+  };
+
+  const insertImage = (src: string, alt: string, width?: number) => {
+    applyImage(src, alt, width);
     setImageOpen(false);
   };
+
+  /**
+   * Uploads the images taken from the clipboard and inserts them in order.
+   *
+   * The upload has to finish before anything reaches the document: a `blob:`
+   * source would survive into the saved HTML and break as soon as the page
+   * unloads, and base64 is rejected by the schema.
+   * @param files - Images already named and within the size limit
+   * @param upload - The consumer's upload callback
+   */
+  const uploadPastedImages = async (
+    files: File[],
+    upload: (file: File) => Promise<string>
+  ) => {
+    const token = pasteTokenRef.current;
+    setPasteError('');
+    setIsPastingImage(true);
+
+    try {
+      for (const file of files) {
+        const src = await upload(file);
+        const width = await resolveInsertWidth(src);
+        // The editor may be gone by now — the user can navigate away mid-upload.
+        if (token !== pasteTokenRef.current) return;
+        applyImage(src, '', width);
+      }
+    } catch (error) {
+      if (token !== pasteTokenRef.current) return;
+      setPasteError(
+        error instanceof Error ? error.message : GENERIC_PASTE_ERROR
+      );
+    } finally {
+      setIsPastingImage(false);
+    }
+  };
+
+  useEffect(() => {
+    pasteHandlerRef.current = createPastedImageHandler({
+      enabled: allowImagePaste,
+      upload: onUploadImage,
+      onImages: uploadPastedImages,
+      onOversized: () => setPasteError(OVERSIZED_PASTE_MESSAGE),
+    });
+    // `uploadPastedImages` is rebuilt on every render and is deliberately left
+    // out of the dependencies: it only closes over the editor instance and the
+    // state setters, all stable once mounted.
+  }, [allowImagePaste, onUploadImage, editor]);
+
+  useEffect(() => {
+    // Invalidates uploads still in flight, so a late resolution cannot insert
+    // into an editor that no longer exists.
+    return () => {
+      pasteTokenRef.current += 1;
+    };
+  }, []);
 
   const setLink = () => {
     const url = globalThis.window.prompt('URL do link:');
@@ -513,8 +602,18 @@ export function RichEditor({
       {/* Editor */}
       <EditorContent editor={editor} />
 
-      {/* Dica */}
+      {/* Estado do envio de imagem colada e dica de LaTeX */}
       <div className="border-t border-border-200 px-4 py-2 bg-background-50">
+        {isPastingImage && (
+          <Text size="xs" color="text-text-600" className="block mb-1">
+            Enviando imagem...
+          </Text>
+        )}
+        {pasteError && (
+          <Text size="xs" color="text-error-600" className="block mb-1">
+            {pasteError}
+          </Text>
+        )}
         <Text size="xs" color="text-text-400">
           Dica: use{' '}
           <code className="bg-background-200 px-1 rounded">$fórmula$</code> para
