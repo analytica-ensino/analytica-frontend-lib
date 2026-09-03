@@ -1889,6 +1889,13 @@
       "import": "./dist/DragHandleButton/index.mjs",
       "require": "./dist/DragHandleButton/index.js",
       "default": "./dist/DragHandleButton/index.mjs"
+    },
+    "./store/mediapreferencesstore": {
+      "types": "./dist/store/mediaPreferencesStore/index.d.ts",
+      "module": "./dist/store/mediaPreferencesStore/index.mjs",
+      "import": "./dist/store/mediaPreferencesStore/index.mjs",
+      "require": "./dist/store/mediaPreferencesStore/index.js",
+      "default": "./dist/store/mediaPreferencesStore/index.mjs"
     }
   },
   "scripts": {

@@ -2,6 +2,10 @@ import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import VideoPlayer from './VideoPlayer';
+import {
+  DEFAULT_MEDIA_VOLUME,
+  useMediaPreferencesStore,
+} from '../../store/mediaPreferencesStore';
 
 // Constants matching VideoPlayer implementation
 const CONTROLS_HIDE_TIMEOUT = 3000; // 3 seconds for normal control hiding
@@ -145,6 +149,13 @@ const localStorageMock = {
 beforeEach(() => {
   jest.clearAllMocks();
   setupMediaSpies();
+
+  // Volume/mudo agora vivem em um store persistido compartilhado: sem reset,
+  // o valor escolhido em um teste vazaria para os seguintes.
+  useMediaPreferencesStore.setState({
+    volume: DEFAULT_MEDIA_VOLUME,
+    isMuted: false,
+  });
 
   // Setup localStorage mock
   Object.defineProperty(window, 'localStorage', {
@@ -405,6 +416,97 @@ describe('VideoPlayer', () => {
       fireEvent.change(volumeSlider, { target: { value: '50' } });
 
       expect(video.muted).toBeDefined();
+    });
+  });
+
+  describe('Volume preference across videos', () => {
+    const VOLUME_SLIDER = 'input[type="range"][aria-label="Volume control"]';
+
+    const getSlider = (container: HTMLElement) =>
+      container.querySelector(VOLUME_SLIDER) as HTMLInputElement;
+
+    it('should apply the last chosen volume to the next video', () => {
+      const first = render(<VideoPlayer {...defaultProps} />);
+      fireEvent.change(getSlider(first.container), { target: { value: '30' } });
+      expect(useMediaPreferencesStore.getState().volume).toBeCloseTo(0.3);
+      first.unmount();
+
+      const second = render(<VideoPlayer src="https://example.com/next.mp4" />);
+
+      expect(getSlider(second.container).value).toBe('30');
+    });
+
+    it('should keep the muted state on the next video', () => {
+      const first = render(<VideoPlayer {...defaultProps} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Mute' }));
+      expect(useMediaPreferencesStore.getState().isMuted).toBe(true);
+      first.unmount();
+
+      render(<VideoPlayer src="https://example.com/next.mp4" />);
+
+      expect(
+        screen.getByRole('button', { name: 'Unmute' })
+      ).toBeInTheDocument();
+    });
+
+    it('should start from a preference restored from a previous session', () => {
+      // A gravação em localStorage é coberta em mediaPreferencesStore.test.ts;
+      // aqui interessa o player já nascer com o valor reidratado.
+      useMediaPreferencesStore.setState({ volume: 0.1, isMuted: false });
+      const volumeSetSpy = jest.spyOn(
+        HTMLMediaElement.prototype,
+        'volume',
+        'set'
+      );
+
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+
+      expect(getSlider(container).value).toBe('10');
+      expect(volumeSetSpy).toHaveBeenCalledWith(0.1);
+    });
+
+    it('should re-apply the volume when the source changes in place', () => {
+      const volumeSetSpy = jest.spyOn(
+        HTMLMediaElement.prototype,
+        'volume',
+        'set'
+      );
+      const { container, rerender } = render(<VideoPlayer {...defaultProps} />);
+      fireEvent.change(getSlider(container), { target: { value: '20' } });
+      volumeSetSpy.mockClear();
+
+      rerender(<VideoPlayer src="https://example.com/next.mp4" />);
+
+      expect(volumeSetSpy).toHaveBeenCalledWith(0.2);
+    });
+
+    it('should adopt volume changes made outside the custom controls', () => {
+      jest
+        .spyOn(HTMLMediaElement.prototype, 'volume', 'get')
+        .mockReturnValue(0.25);
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video')!;
+
+      act(() => {
+        video.dispatchEvent(new Event('volumechange'));
+      });
+
+      expect(useMediaPreferencesStore.getState().volume).toBeCloseTo(0.25);
+      expect(getSlider(container).value).toBe('25');
+    });
+
+    it('should treat an external volume of 0 as muted', () => {
+      jest
+        .spyOn(HTMLMediaElement.prototype, 'volume', 'get')
+        .mockReturnValue(0);
+      const { container } = render(<VideoPlayer {...defaultProps} />);
+      const video = container.querySelector('video')!;
+
+      act(() => {
+        video.dispatchEvent(new Event('volumechange'));
+      });
+
+      expect(useMediaPreferencesStore.getState().isMuted).toBe(true);
     });
   });
 

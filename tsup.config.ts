@@ -242,6 +242,7 @@ export default defineConfig({
     'store/userStore/index': 'src/store/userStore.ts',
     'store/notificationStore/index': 'src/store/notificationStore.ts',
     'store/themeStore/index': 'src/store/themeStore.ts',
+    'store/mediaPreferencesStore/index': 'src/store/mediaPreferencesStore.ts',
 
     // Enums / shared types consumed directly by the apps
     'enums/SubjectEnum/index': 'src/enums/SubjectEnum.ts',

@@ -22,6 +22,10 @@ import {
   EssayReviewStatus,
   type EssayHistoryData,
 } from './Card';
+import {
+  DEFAULT_MEDIA_VOLUME,
+  useMediaPreferencesStore,
+} from '../../store/mediaPreferencesStore';
 import { ChartBarIcon } from '@phosphor-icons/react/dist/csr/ChartBar';
 import { GearIcon } from '@phosphor-icons/react/dist/csr/Gear';
 import { StarIcon } from '@phosphor-icons/react/dist/csr/Star';
@@ -1286,6 +1290,13 @@ describe('CardAudio', () => {
   };
 
   beforeEach(() => {
+    // O volume vive num store persistido compartilhado com a videoaula: sem
+    // reset, o valor escolhido em um teste vazaria para os seguintes.
+    useMediaPreferencesStore.setState({
+      volume: DEFAULT_MEDIA_VOLUME,
+      isMuted: false,
+    });
+
     // Mock do HTMLAudioElement
     Object.defineProperty(window, 'HTMLAudioElement', {
       writable: true,
@@ -1501,6 +1512,83 @@ describe('CardAudio', () => {
     // Test high volume (volume >= 0.5)
     fireEvent.change(volumeSlider, { target: { value: '0.8' } });
     expect(volumeButton).toBeInTheDocument();
+  });
+
+  describe('shared volume preference', () => {
+    const openVolumeSlider = () => {
+      fireEvent.click(
+        screen.getByRole('button', { name: /controle de volume/i })
+      );
+      return screen.getByRole('slider');
+    };
+
+    it('should start the audio at the volume saved by another player', () => {
+      useMediaPreferencesStore.setState({ volume: 0.3, isMuted: false });
+
+      render(<CardAudio {...baseProps} />);
+
+      const audio = screen.getByTestId('audio-element') as HTMLAudioElement;
+      expect(audio.volume).toBeCloseTo(0.3);
+      expect(audio.muted).toBe(false);
+      expect(openVolumeSlider()).toHaveValue('0.3');
+    });
+
+    it('should save the chosen volume for the next media', () => {
+      render(<CardAudio {...baseProps} />);
+
+      fireEvent.change(openVolumeSlider(), { target: { value: '0.4' } });
+
+      expect(useMediaPreferencesStore.getState().volume).toBeCloseTo(0.4);
+      expect(useMediaPreferencesStore.getState().isMuted).toBe(false);
+    });
+
+    it('should treat dragging the slider to zero as muting', () => {
+      render(<CardAudio {...baseProps} />);
+
+      fireEvent.change(openVolumeSlider(), { target: { value: '0' } });
+
+      expect(useMediaPreferencesStore.getState().isMuted).toBe(true);
+      expect(
+        (screen.getByTestId('audio-element') as HTMLAudioElement).muted
+      ).toBe(true);
+    });
+
+    it('should show an inherited mute as zero volume', () => {
+      useMediaPreferencesStore.setState({ volume: 0.7, isMuted: true });
+
+      render(<CardAudio {...baseProps} />);
+
+      const audio = screen.getByTestId('audio-element') as HTMLAudioElement;
+      expect(audio.muted).toBe(true);
+      expect(openVolumeSlider()).toHaveValue('0');
+    });
+
+    it('should clear an inherited mute when the slider leaves zero', () => {
+      useMediaPreferencesStore.setState({ volume: 0.7, isMuted: true });
+      render(<CardAudio {...baseProps} />);
+
+      fireEvent.change(openVolumeSlider(), { target: { value: '0.6' } });
+
+      expect(useMediaPreferencesStore.getState()).toMatchObject({
+        volume: 0.6,
+        isMuted: false,
+      });
+      expect(
+        (screen.getByTestId('audio-element') as HTMLAudioElement).muted
+      ).toBe(false);
+    });
+
+    it.each([
+      ['ArrowUp', 0.4],
+      ['ArrowDown', 0.2],
+    ])('should adjust the shared volume with %s', (key, expected) => {
+      useMediaPreferencesStore.setState({ volume: 0.3, isMuted: false });
+      render(<CardAudio {...baseProps} />);
+
+      fireEvent.keyDown(openVolumeSlider(), { key });
+
+      expect(useMediaPreferencesStore.getState().volume).toBeCloseTo(expected);
+    });
   });
 
   it('should format time correctly', () => {

@@ -28,4 +28,10 @@ export enum KEYS {
    * Key for the Zustand persist storage for modules feature flags.
    */
   MODULES_STORAGE = '@modules-storage:analytica:v1',
+
+  /**
+   * Key for the Zustand persist storage for media player preferences
+   * (volume/mute), shared by the video and podcast players.
+   */
+  MEDIA_PREFERENCES_STORAGE = '@media-preferences:analytica:v1',
 }
