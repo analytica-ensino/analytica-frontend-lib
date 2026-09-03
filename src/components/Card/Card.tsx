@@ -1018,7 +1018,7 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
     };
 
     const handleVolumeChange = (e: ChangeEvent<HTMLInputElement>) => {
-      applyVolume(parseFloat(e.target.value));
+      applyVolume(Number.parseFloat(e.target.value));
     };
 
     const toggleVolumeControl = () => {
