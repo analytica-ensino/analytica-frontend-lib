@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { ImageDialog, MAX_IMAGE_SIZE } from './ImageDialog';
+import { ImageDialog } from './ImageDialog';
+import { MAX_IMAGE_SIZE } from './imageSize';
 
 const setup = (props: Partial<Parameters<typeof ImageDialog>[0]> = {}) => {
   const onInsert = jest.fn();

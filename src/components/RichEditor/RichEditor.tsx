@@ -26,6 +26,13 @@ interface RichEditorProps {
    * @returns Promise resolving to the public URL of the uploaded image
    */
   readonly onUploadImage?: (file: File) => Promise<string>;
+  /**
+   * Enables pasting an image straight from the clipboard (Ctrl+V), uploading it
+   * through `onUploadImage` and inserting the resulting URL. Off by default and
+   * ignored without `onUploadImage`, since there would be nowhere to put the
+   * file — the editor schema rejects base64 sources.
+   */
+  readonly allowImagePaste?: boolean;
 }
 
 interface ErrorBoundaryState {

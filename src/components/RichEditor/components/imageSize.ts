@@ -5,6 +5,13 @@
  * numbers, so they live here instead of being duplicated on each side.
  */
 
+/**
+ * Largest file the editor accepts, in bytes.
+ * Matches the 5MB cap enforced by the backend pre-signed URL schema, so the
+ * client never accepts a file the server will reject.
+ */
+export const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+
 /** Smallest width a resize handle may produce, in pixels. */
 export const MIN_IMAGE_WIDTH = 48;
 
@@ -98,4 +105,21 @@ export const measureNaturalWidth = (
     image.onerror = () => finish(null);
     image.src = src;
   });
+};
+
+/**
+ * Resolves the width an image should be inserted with.
+ * Exam board images are uploaded at their original scan resolution, so anything
+ * wider than the cap is clamped up front. Images already within the cap get no
+ * width attribute at all, leaving existing content untouched.
+ * @param src - Public URL of the image about to be inserted
+ * @returns The width in pixels, or undefined when no clamping is needed
+ */
+export const resolveInsertWidth = async (
+  src: string
+): Promise<number | undefined> => {
+  const naturalWidth = await measureNaturalWidth(src);
+  return naturalWidth && naturalWidth > DEFAULT_MAX_INSERT_WIDTH
+    ? DEFAULT_MAX_INSERT_WIDTH
+    : undefined;
 };

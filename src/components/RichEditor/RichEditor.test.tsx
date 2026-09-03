@@ -1,4 +1,5 @@
 import {
+  act,
   render,
   screen,
   fireEvent,
@@ -7,6 +8,7 @@ import {
 } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { RichEditor } from './RichEditorCore';
+import { MAX_IMAGE_SIZE } from './components/imageSize';
 import { useEditor } from '@tiptap/react';
 
 // Mock katex
@@ -745,5 +747,296 @@ describe('Tabela', () => {
       );
       expect(toolbar.getByTitle('Linha abaixo')).toHaveClass('text-text-700');
     });
+  });
+});
+
+describe('Colar imagem', () => {
+  /** Same synchronous measurement stub used by the image dialog tests. */
+  let stubbedNaturalWidth: number | null = null;
+  const originalImage = globalThis.Image;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useEditor as jest.Mock).mockReturnValue(mockEditor);
+
+    stubbedNaturalWidth = 320;
+    class FakeImage {
+      naturalWidth = 0;
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+
+      set src(_value: string) {
+        if (stubbedNaturalWidth === null) {
+          this.onerror?.();
+          return;
+        }
+        this.naturalWidth = stubbedNaturalWidth;
+        this.onload?.();
+      }
+    }
+    globalThis.Image = FakeImage as unknown as typeof globalThis.Image;
+  });
+
+  afterEach(() => {
+    globalThis.Image = originalImage;
+  });
+
+  const imageFile = (name = 'image.png', size = 1024) => {
+    const file = new File(['x'], name, { type: 'image/png' });
+    Object.defineProperty(file, 'size', { value: size });
+    return file;
+  };
+
+  /**
+   * Fires the paste handler the editor was configured with.
+   *
+   * The handler is not reachable through the DOM — the mocked `EditorContent`
+   * renders a plain div — so it is read from the options given to `useEditor`.
+   * `act` is not redundant here: no Testing Library API is being called, so
+   * nothing else would flush the state update the handler schedules.
+   * @param files - Files the clipboard should carry
+   */
+  const pasteFiles = (files: File[], html = '') => {
+    const { editorProps } = (useEditor as jest.Mock).mock.calls.at(-1)![0] as {
+      editorProps: {
+        handlePaste: (view: unknown, event: ClipboardEvent) => boolean;
+      };
+    };
+    const preventDefault = jest.fn();
+    const event = {
+      clipboardData: {
+        files,
+        getData: (type: string) => (type === 'text/html' ? html : ''),
+      },
+      preventDefault,
+    } as unknown as ClipboardEvent;
+
+    let handled = false;
+    act(() => {
+      handled = editorProps.handlePaste({}, event);
+    });
+
+    return { handled, preventDefault };
+  };
+
+  it('não deve interceptar a colagem quando a prop está desligada', () => {
+    const onUploadImage = jest.fn();
+    render(<RichEditor onUploadImage={onUploadImage} />);
+
+    const { handled, preventDefault } = pasteFiles([imageFile()]);
+
+    expect(handled).toBe(false);
+    expect(preventDefault).not.toHaveBeenCalled();
+    expect(onUploadImage).not.toHaveBeenCalled();
+  });
+
+  it('não deve interceptar a colagem quando não há upload configurado', () => {
+    render(<RichEditor allowImagePaste />);
+
+    expect(pasteFiles([imageFile()]).handled).toBe(false);
+  });
+
+  it('não deve interceptar a colagem sem imagem no clipboard', () => {
+    const onUploadImage = jest.fn();
+    render(<RichEditor allowImagePaste onUploadImage={onUploadImage} />);
+
+    const texto = new File(['a,b'], 'notas.csv', { type: 'text/csv' });
+
+    expect(pasteFiles([texto]).handled).toBe(false);
+    expect(onUploadImage).not.toHaveBeenCalled();
+  });
+
+  it('não deve interceptar quando o clipboard traz markup sem imagem', () => {
+    // Copiar um intervalo do Excel ou do Sheets põe a tabela em HTML e uma
+    // imagem renderizada dela no clipboard: assumir a imagem transformaria a
+    // tabela colável numa figura.
+    const onUploadImage = jest.fn();
+    render(<RichEditor allowImagePaste onUploadImage={onUploadImage} />);
+
+    const { handled } = pasteFiles(
+      [imageFile()],
+      '<table><tr><td>Nota</td></tr></table>'
+    );
+
+    expect(handled).toBe(false);
+    expect(onUploadImage).not.toHaveBeenCalled();
+  });
+
+  it('deve enviar a imagem quando o markup do clipboard também é uma imagem', async () => {
+    // Copiar uma figura do Word manda `<img src="file:///...">`, que sozinho
+    // resultaria numa imagem quebrada — o arquivo é a fonte boa.
+    const onUploadImage = jest
+      .fn()
+      .mockResolvedValue('https://cdn.exemplo.com/print.png');
+    render(<RichEditor allowImagePaste onUploadImage={onUploadImage} />);
+
+    const { handled } = pasteFiles(
+      [imageFile()],
+      '<img src="file:///tmp/imagem.png">'
+    );
+
+    expect(handled).toBe(true);
+    await waitFor(() => expect(onUploadImage).toHaveBeenCalled());
+  });
+
+  it('deve enviar a imagem colada e inseri-la no editor', async () => {
+    const onUploadImage = jest
+      .fn()
+      .mockResolvedValue('https://cdn.exemplo.com/print.png');
+    render(<RichEditor allowImagePaste onUploadImage={onUploadImage} />);
+
+    const file = imageFile();
+    const { handled, preventDefault } = pasteFiles([file]);
+
+    expect(handled).toBe(true);
+    expect(preventDefault).toHaveBeenCalled();
+    await waitFor(() =>
+      expect(setImageSpy).toHaveBeenCalledWith({
+        src: 'https://cdn.exemplo.com/print.png',
+        alt: '',
+      })
+    );
+    expect(onUploadImage).toHaveBeenCalledWith(file);
+  });
+
+  it('deve limitar a largura da imagem colada quando ela é muito grande', async () => {
+    stubbedNaturalWidth = 1600;
+    const onUploadImage = jest
+      .fn()
+      .mockResolvedValue('https://cdn.exemplo.com/print.png');
+    render(<RichEditor allowImagePaste onUploadImage={onUploadImage} />);
+
+    pasteFiles([imageFile()]);
+
+    await waitFor(() =>
+      expect(setImageSpy).toHaveBeenCalledWith({
+        src: 'https://cdn.exemplo.com/print.png',
+        alt: '',
+        width: 640,
+      })
+    );
+  });
+
+  it('deve nomear a imagem colada que chega sem nome', async () => {
+    const onUploadImage = jest
+      .fn()
+      .mockResolvedValue('https://cdn.exemplo.com/print.png');
+    render(<RichEditor allowImagePaste onUploadImage={onUploadImage} />);
+
+    pasteFiles([imageFile('')]);
+
+    await waitFor(() => expect(onUploadImage).toHaveBeenCalled());
+    expect(onUploadImage.mock.calls[0][0].name).toBe('imagem-colada.png');
+  });
+
+  it('deve enviar todas as imagens do clipboard', async () => {
+    const onUploadImage = jest
+      .fn()
+      .mockResolvedValue('https://cdn.exemplo.com/print.png');
+    render(<RichEditor allowImagePaste onUploadImage={onUploadImage} />);
+
+    pasteFiles([imageFile('a.png'), imageFile('b.png')]);
+
+    await waitFor(() => expect(setImageSpy).toHaveBeenCalledTimes(2));
+  });
+
+  it('deve avisar enquanto a imagem colada está sendo enviada', async () => {
+    let resolveUpload: (url: string) => void = () => {};
+    const onUploadImage = jest.fn(
+      () =>
+        new Promise<string>((resolve) => {
+          resolveUpload = resolve;
+        })
+    );
+    render(<RichEditor allowImagePaste onUploadImage={onUploadImage} />);
+
+    pasteFiles([imageFile()]);
+
+    expect(screen.getByText('Enviando imagem...')).toBeInTheDocument();
+
+    await act(async () => {
+      resolveUpload('https://cdn.exemplo.com/print.png');
+    });
+
+    await waitFor(() =>
+      expect(screen.queryByText('Enviando imagem...')).not.toBeInTheDocument()
+    );
+  });
+
+  it('deve mostrar o erro quando o envio da imagem colada falha', async () => {
+    const onUploadImage = jest
+      .fn()
+      .mockRejectedValue(new Error('Falha no storage'));
+    render(<RichEditor allowImagePaste onUploadImage={onUploadImage} />);
+
+    pasteFiles([imageFile()]);
+
+    expect(await screen.findByText('Falha no storage')).toBeInTheDocument();
+    expect(setImageSpy).not.toHaveBeenCalled();
+  });
+
+  it('deve mostrar uma mensagem genérica quando a falha não é um Error', async () => {
+    const onUploadImage = jest.fn().mockRejectedValue('quebrou');
+    render(<RichEditor allowImagePaste onUploadImage={onUploadImage} />);
+
+    pasteFiles([imageFile()]);
+
+    expect(
+      await screen.findByText('Erro ao enviar a imagem.')
+    ).toBeInTheDocument();
+  });
+
+  it('deve recusar imagem colada acima do limite de tamanho', async () => {
+    const onUploadImage = jest.fn();
+    render(<RichEditor allowImagePaste onUploadImage={onUploadImage} />);
+
+    const { handled } = pasteFiles([
+      imageFile('grande.png', MAX_IMAGE_SIZE + 1),
+    ]);
+
+    expect(handled).toBe(true);
+    expect(
+      await screen.findByText('A imagem deve ter no máximo 5MB.')
+    ).toBeInTheDocument();
+    expect(onUploadImage).not.toHaveBeenCalled();
+  });
+
+  it('deve limpar o erro anterior ao colar de novo', async () => {
+    const onUploadImage = jest
+      .fn()
+      .mockRejectedValueOnce(new Error('Falha no storage'))
+      .mockResolvedValue('https://cdn.exemplo.com/print.png');
+    render(<RichEditor allowImagePaste onUploadImage={onUploadImage} />);
+
+    pasteFiles([imageFile()]);
+    expect(await screen.findByText('Falha no storage')).toBeInTheDocument();
+
+    pasteFiles([imageFile()]);
+
+    await waitFor(() =>
+      expect(screen.queryByText('Falha no storage')).not.toBeInTheDocument()
+    );
+  });
+
+  it('não deve inserir a imagem quando o editor é desmontado durante o envio', async () => {
+    let resolveUpload: (url: string) => void = () => {};
+    const onUploadImage = jest.fn(
+      () =>
+        new Promise<string>((resolve) => {
+          resolveUpload = resolve;
+        })
+    );
+    const { unmount } = render(
+      <RichEditor allowImagePaste onUploadImage={onUploadImage} />
+    );
+
+    pasteFiles([imageFile()]);
+    unmount();
+
+    await act(async () => {
+      resolveUpload('https://cdn.exemplo.com/print.png');
+    });
+
+    expect(setImageSpy).not.toHaveBeenCalled();
   });
 });

@@ -4,6 +4,7 @@ import {
   MIN_IMAGE_WIDTH,
   measureNaturalWidth,
   parseImageWidth,
+  resolveInsertWidth,
 } from './imageSize';
 
 const imageWith = (attributes: Record<string, string>): HTMLElement => {
@@ -241,5 +242,60 @@ describe('measureNaturalWidth', () => {
     await expect(
       measureNaturalWidth('https://cdn.exemplo.com/foto.png')
     ).resolves.toBeNull();
+  });
+});
+
+describe('resolveInsertWidth', () => {
+  const originalImage = globalThis.Image;
+
+  /**
+   * Fake image that settles as soon as `src` is assigned, so the resolution can
+   * be awaited without driving the load handlers by hand.
+   * @param naturalWidth - Width the fake image reports, or null to fail loading
+   */
+  const stubLoadedImage = (naturalWidth: number | null) => {
+    class FakeImage {
+      naturalWidth = 0;
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+
+      set src(_value: string) {
+        if (naturalWidth === null) {
+          this.onerror?.();
+          return;
+        }
+        this.naturalWidth = naturalWidth;
+        this.onload?.();
+      }
+    }
+    globalThis.Image = FakeImage as unknown as typeof globalThis.Image;
+  };
+
+  afterEach(() => {
+    globalThis.Image = originalImage;
+  });
+
+  it('deve limitar imagens mais largas que o padrão', async () => {
+    stubLoadedImage(1600);
+
+    await expect(
+      resolveInsertWidth('https://cdn.exemplo.com/enem.png')
+    ).resolves.toBe(DEFAULT_MAX_INSERT_WIDTH);
+  });
+
+  it('não deve definir largura para imagens dentro do limite', async () => {
+    stubLoadedImage(320);
+
+    await expect(
+      resolveInsertWidth('https://cdn.exemplo.com/pequena.png')
+    ).resolves.toBeUndefined();
+  });
+
+  it('não deve definir largura quando a medição falha', async () => {
+    stubLoadedImage(null);
+
+    await expect(
+      resolveInsertWidth('https://cdn.exemplo.com/quebrada.png')
+    ).resolves.toBeUndefined();
   });
 });
