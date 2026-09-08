@@ -320,7 +320,7 @@ describe('useActivityDraftModelPage', () => {
         page: 2,
         limit: 20,
         search: 'test',
-        subjectId: undefined,
+        subjectIds: undefined,
       });
     });
 
@@ -337,32 +337,11 @@ describe('useActivityDraftModelPage', () => {
         page: 1,
         limit: 10,
         search: undefined,
-        subjectId: undefined,
+        subjectIds: undefined,
       });
     });
 
-    it('should include subjectId in params when provided', () => {
-      const { result } = renderHook(() =>
-        useActivityDraftModelPage(baseOptions)
-      );
-
-      act(() => {
-        result.current.handleParamsChange({
-          page: 1,
-          limit: 10,
-          subjectId: 'sub-123',
-        });
-      });
-
-      expect(mockFetchFn).toHaveBeenCalledWith({
-        page: 1,
-        limit: 10,
-        search: undefined,
-        subjectId: 'sub-123',
-      });
-    });
-
-    it('should map the subject filter emitted by the table into subjectId', () => {
+    it('should map the subject filter emitted by the table into subjectIds', () => {
       const { result } = renderHook(() =>
         useActivityDraftModelPage(baseOptions)
       );
@@ -381,11 +360,32 @@ describe('useActivityDraftModelPage', () => {
         page: 1,
         limit: 10,
         search: undefined,
-        subjectId: 'sub-123',
+        subjectIds: 'sub-123',
       });
     });
 
-    it('should not send subjectId when the subject filter is cleared', () => {
+    it('should keep every subject when several are selected', () => {
+      const { result } = renderHook(() =>
+        useActivityDraftModelPage(baseOptions)
+      );
+
+      act(() => {
+        result.current.handleParamsChange({
+          page: 1,
+          limit: 10,
+          subject: ['sub-123', 'sub-456'],
+        });
+      });
+
+      expect(mockFetchFn).toHaveBeenCalledWith({
+        page: 1,
+        limit: 10,
+        search: undefined,
+        subjectIds: 'sub-123,sub-456',
+      });
+    });
+
+    it('should not send a subject filter when the selection is cleared', () => {
       const { result } = renderHook(() =>
         useActivityDraftModelPage(baseOptions)
       );
@@ -402,11 +402,11 @@ describe('useActivityDraftModelPage', () => {
         page: 1,
         limit: 10,
         search: undefined,
-        subjectId: undefined,
+        subjectIds: undefined,
       });
     });
 
-    it('should preserve subjectId when changing other params', () => {
+    it('should preserve the subject filter when changing other params', () => {
       const { result } = renderHook(() =>
         useActivityDraftModelPage(baseOptions)
       );
@@ -415,7 +415,7 @@ describe('useActivityDraftModelPage', () => {
         result.current.handleParamsChange({
           page: 1,
           limit: 10,
-          subjectId: 'math-101',
+          subject: ['math-101'],
         });
       });
 
@@ -430,7 +430,7 @@ describe('useActivityDraftModelPage', () => {
         page: 2,
         limit: 10,
         search: 'algebra',
-        subjectId: undefined,
+        subjectIds: undefined,
       });
     });
   });

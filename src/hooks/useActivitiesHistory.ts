@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import dayjs from 'dayjs';
 import type { BaseApiClient } from '../types/api';
 import { mapApiStatusToDisplay } from '../types/common';
@@ -115,6 +115,9 @@ export const extractActivityFilterOptions = (
 /**
  * Collapse a single-select filter (emitted as an array by TableProvider) to its
  * first value. Also tolerates a bare string. Returns undefined when empty.
+ *
+ * Only for filters the backend genuinely reads as a single value — using it on
+ * a multi-select silently drops every id but the first.
  */
 const toSingle = (value: unknown): string | undefined => {
   if (Array.isArray(value)) {
@@ -124,6 +127,18 @@ const toSingle = (value: unknown): string | undefined => {
     return value;
   }
   return undefined;
+};
+
+/**
+ * Resolve a two-option toggle (`creatorType`: mine / teachers) into the single
+ * value the backend reads. Picking both options is the same as not filtering at
+ * all, so the param is omitted rather than collapsed to the first choice.
+ */
+const toExclusiveChoice = (value: unknown): string | undefined => {
+  if (Array.isArray(value)) {
+    return value.length === 1 ? String(value[0]) : undefined;
+  }
+  return toSingle(value);
 };
 
 /**
@@ -157,10 +172,10 @@ const PASSTHROUGH_KEYS = [
 /**
  * Build the `/activities/history` query params from the raw TableProvider filter
  * keys. TableProvider emits UI-category keys (`subject`, `school`, `class`,
- * `schoolYear`, `status`, `creatorType`) as arrays; the backend expects a
- * different, mostly single-value contract. This adapter renames each key and
- * collapses/serializes to what the backend actually reads. Mirrors
- * `buildFiltersFromParams` in RecommendedLessonsHistory.
+ * `schoolYear`, `status`, `creatorType`) as arrays; the backend reads them under
+ * different, comma-separated names. This adapter renames and serializes each key
+ * to what the backend actually reads. Mirrors `buildFiltersFromParams` in
+ * RecommendedLessonsHistory.
  *
  * @param filters - Raw table params (arrays under UI keys) plus page/limit/search/sort
  * @param activityCategory - Optional value forwarded as the `type` param
@@ -183,26 +198,37 @@ export const buildActivityHistoryQueryParams = (
     }
   }
 
-  // Multi-select filters serialized as comma-separated ids. School and class each
-  // fall back to their legacy singular key when the raw multi-select key is absent.
-  assignIf(params, 'schoolIds', toCsv(filters.school));
-  assignIf(params, 'classIds', toCsv(filters.class));
-  assignIf(params, 'schoolYearIds', toCsv(filters.schoolYear));
-  if (!params.schoolIds) {
-    assignIf(params, 'schoolId', toSingle(filters.schoolId));
-  }
-  if (!params.classIds) {
-    assignIf(params, 'classId', toSingle(filters.classId));
-  }
-
-  // Single-select filters (subject also honors the legacy singular key).
-  assignIf(params, 'status', toSingle(filters.status));
+  // Every category in the filter modal is multi-select, so each one goes out as
+  // a comma-separated list — the only contract the endpoint has. Collapsing a
+  // selection to its first id is what made "Filosofia + Matemática" answer with
+  // Filosofia alone.
+  //
+  // A single value a direct caller may still pass (`subjectId`, `status`, …) is
+  // folded into the same list, so it reaches the backend under the plural key
+  // instead of one it no longer reads.
   assignIf(
     params,
-    'subjectId',
-    toSingle(filters.subject) ?? toSingle(filters.subjectId)
+    'schoolIds',
+    toCsv(filters.school) ?? toSingle(filters.schoolId)
   );
-  assignIf(params, 'creatorType', toSingle(filters.creatorType));
+  assignIf(
+    params,
+    'classIds',
+    toCsv(filters.class) ?? toSingle(filters.classId)
+  );
+  assignIf(params, 'schoolYearIds', toCsv(filters.schoolYear));
+  assignIf(
+    params,
+    'subjectIds',
+    toCsv(filters.subject) ?? toSingle(filters.subjectId)
+  );
+  assignIf(
+    params,
+    'statuses',
+    toCsv(filters.status) ?? toSingle(filters.status)
+  );
+
+  assignIf(params, 'creatorType', toExclusiveChoice(filters.creatorType));
 
   return params;
 };
@@ -222,8 +248,17 @@ const useActivitiesHistoryImpl = (
     apiFilterOptions: DEFAULT_ACTIVITY_FILTER_OPTIONS,
   });
 
+  /**
+   * Sequence number of the newest fetch. The filter modal refetches on every
+   * checkbox, so several requests are in flight at once and the network is free
+   * to answer them out of order — without this, a slower earlier response would
+   * overwrite the list the user is actually looking at.
+   */
+  const requestIdRef = useRef(0);
+
   const fetchActivities = useCallback(
     async (filters?: ActivityHistoryFilters) => {
+      const requestId = ++requestIdRef.current;
       setState((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
@@ -237,6 +272,11 @@ const useActivitiesHistoryImpl = (
         );
 
         const { data } = response.data;
+
+        if (requestId !== requestIdRef.current) {
+          // A newer fetch has already been issued: this answer is stale.
+          return;
+        }
 
         const tableItems = data.activities.map(transformActivityToTableItem);
         const extracted = extractActivityFilterOptions(data.activities);
@@ -267,6 +307,9 @@ const useActivitiesHistoryImpl = (
         }));
       } catch (error) {
         console.error('Erro ao carregar histórico:', error);
+        if (requestId !== requestIdRef.current) {
+          return;
+        }
         setState((prev) => ({
           ...prev,
           loading: false,

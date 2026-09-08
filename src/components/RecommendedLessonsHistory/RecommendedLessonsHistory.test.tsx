@@ -1112,7 +1112,7 @@ describe('RecommendedLessonsHistory', () => {
         expect(mockFetchRecommendedClassHistory).toHaveBeenCalledWith({
           page: 1,
           limit: 10,
-          status: 'EM_ANDAMENTO',
+          statuses: ['EM_ANDAMENTO'],
         });
       });
     });
@@ -1136,7 +1136,7 @@ describe('RecommendedLessonsHistory', () => {
         expect(mockFetchRecommendedClassHistory).toHaveBeenCalledWith({
           page: 1,
           limit: 10,
-          schoolId: 'school-1',
+          schoolIds: ['school-1'],
         });
       });
     });
@@ -1184,7 +1184,7 @@ describe('RecommendedLessonsHistory', () => {
         expect(mockFetchRecommendedClassHistory).toHaveBeenCalledWith({
           page: 1,
           limit: 10,
-          classId: 'class-1',
+          classIds: ['class-1'],
         });
       });
     });
@@ -1232,7 +1232,103 @@ describe('RecommendedLessonsHistory', () => {
         expect(mockFetchRecommendedClassHistory).toHaveBeenCalledWith({
           page: 1,
           limit: 10,
-          subjectId: 'subject-1',
+          subjectIds: ['subject-1'],
+        });
+      });
+    });
+
+    it('should keep every selected subject, not just the first', async () => {
+      render(<RecommendedLessonsHistory {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(capturedOnParamsChange).toBeDefined();
+      });
+
+      mockFetchRecommendedClassHistory.mockClear();
+
+      capturedOnParamsChange?.({
+        page: 1,
+        limit: 10,
+        subject: ['subject-1', 'subject-2'],
+      });
+
+      await waitFor(() => {
+        expect(mockFetchRecommendedClassHistory).toHaveBeenCalledWith({
+          page: 1,
+          limit: 10,
+          subjectIds: ['subject-1', 'subject-2'],
+        });
+      });
+    });
+
+    it('should keep every selected status, not just the first', async () => {
+      render(<RecommendedLessonsHistory {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(capturedOnParamsChange).toBeDefined();
+      });
+
+      mockFetchRecommendedClassHistory.mockClear();
+
+      capturedOnParamsChange?.({
+        page: 1,
+        limit: 10,
+        status: ['A_VENCER', 'VENCIDA'],
+      });
+
+      await waitFor(() => {
+        expect(mockFetchRecommendedClassHistory).toHaveBeenCalledWith({
+          page: 1,
+          limit: 10,
+          statuses: ['A_VENCER', 'VENCIDA'],
+        });
+      });
+    });
+
+    it('should send creatorType when a single option is picked', async () => {
+      render(<RecommendedLessonsHistory {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(capturedOnParamsChange).toBeDefined();
+      });
+
+      mockFetchRecommendedClassHistory.mockClear();
+
+      capturedOnParamsChange?.({
+        page: 1,
+        limit: 10,
+        creatorType: ['own'],
+      });
+
+      await waitFor(() => {
+        expect(mockFetchRecommendedClassHistory).toHaveBeenCalledWith({
+          page: 1,
+          limit: 10,
+          creatorType: 'own',
+        });
+      });
+    });
+
+    it('should drop creatorType when both options are picked', async () => {
+      render(<RecommendedLessonsHistory {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(capturedOnParamsChange).toBeDefined();
+      });
+
+      mockFetchRecommendedClassHistory.mockClear();
+
+      capturedOnParamsChange?.({
+        page: 1,
+        limit: 10,
+        creatorType: ['own', 'teachers'],
+      });
+
+      // Both options selected is the same as no filter at all.
+      await waitFor(() => {
+        expect(mockFetchRecommendedClassHistory).toHaveBeenCalledWith({
+          page: 1,
+          limit: 10,
         });
       });
     });
@@ -1280,7 +1376,7 @@ describe('RecommendedLessonsHistory', () => {
         expect(mockFetchRecommendedClassHistory).toHaveBeenCalledWith({
           page: 1,
           limit: 10,
-          schoolYearId: 'year-1',
+          schoolYearIds: ['year-1'],
         });
       });
     });

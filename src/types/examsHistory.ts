@@ -153,14 +153,24 @@ export interface ExamsHistoryApiResponse {
 export interface ExamHistoryFilters {
   page?: number;
   limit?: number;
-  status?: ExamStatus;
   search?: string;
   startDate?: string;
+  sortBy?: 'startDate' | 'title' | 'completionPercentage' | 'createdAt';
+  sortOrder?: 'asc' | 'desc';
+
+  // Raw TableProvider filter keys (arrays of selected ids/values).
+  // Remapped to the backend contract by buildActivityHistoryQueryParams.
+  status?: ExamStatus | string[];
+  subject?: string[];
+  school?: string[];
+  class?: string[];
+  schoolYear?: string[];
+
+  // Legacy single-value fields, consumed by buildActivityHistoryQueryParams
+  // as fallbacks when the raw multi-select keys above are absent.
   subjectId?: string;
   schoolId?: string;
   classId?: string;
-  sortBy?: 'startDate' | 'title' | 'completionPercentage' | 'createdAt';
-  sortOrder?: 'asc' | 'desc';
 }
 
 /**

@@ -22,7 +22,7 @@ import { createDraftsModelsFiltersConfig } from '../utils/draftModelFilterHelper
  * Params emitted by the table when search, pagination or filters change.
  * The Filter component emits each active filter under its category key
  * (`subject`) as the list of selected ids, so the subject arrives as
- * `subject: string[]` and is normalized to `subjectId` before fetching.
+ * `subject: string[]` and is serialized to `subjectIds` before fetching.
  */
 export interface DraftModelTableParams {
   page?: number;
@@ -30,22 +30,37 @@ export interface DraftModelTableParams {
   search?: string;
   /** Selected subject ids coming from the Filter component */
   subject?: string[];
-  /** Subject id already resolved (direct callers) */
-  subjectId?: string;
 }
 
 /**
- * Extract the subject id the API expects from the table params.
- * @param params - Params emitted by the table
- * @returns The selected subject id, or undefined when no subject is selected
+ * Filters handed to `fetchFn`, already in the shape `/activity-drafts` reads.
  */
-const getSubjectIdFromParams = (
+export interface DraftModelFetchFilters {
+  page?: number;
+  limit?: number;
+  search?: string;
+  /**
+   * Selected subjects, comma-separated (`'id-a,id-b'`) — the wire format the
+   * endpoint parses, and its only subject filter.
+   */
+  subjectIds?: string;
+}
+
+/**
+ * Serialize the selected subjects into the comma-separated `subjectIds` the API
+ * reads. Every selected id goes out: keeping only the first is what made a
+ * two-subject selection answer with one subject.
+ *
+ * @param params - Params emitted by the table
+ * @returns The selected subject ids, or undefined when none is selected
+ */
+const getSubjectIdsFromParams = (
   params: DraftModelTableParams
 ): string | undefined => {
   if (Array.isArray(params.subject) && params.subject.length > 0) {
-    return params.subject[0];
+    return params.subject.join(',');
   }
-  return params.subjectId;
+  return undefined;
 };
 
 /**
@@ -55,12 +70,7 @@ export interface UseActivityDraftModelPageOptions {
   /** Activity category (ATIVIDADE, PROVA or PRESENCIAL) */
   activityCategory: ExtendedActivityCategory;
   /** Function to fetch data with the given filters */
-  fetchFn: (params: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    subjectId?: string;
-  }) => Promise<void> | void;
+  fetchFn: (params: DraftModelFetchFilters) => Promise<void> | void;
   /** Function to delete an item by id */
   deleteFn: (id: string) => Promise<void> | Promise<boolean>;
   /** User data for filter options */
@@ -118,12 +128,7 @@ export const useActivityDraftModelPage = ({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [itemToDeleteId, setItemToDeleteId] = useState<string | null>(null);
   const [itemToDeleteTitle, setItemToDeleteTitle] = useState<string>('');
-  const [currentParams, setCurrentParams] = useState<{
-    page?: number;
-    limit?: number;
-    search?: string;
-    subjectId?: string;
-  }>({
+  const [currentParams, setCurrentParams] = useState<DraftModelFetchFilters>({
     page: 1,
     limit: 10,
   });
@@ -220,11 +225,11 @@ export const useActivityDraftModelPage = ({
    */
   const handleParamsChange = useCallback(
     (params: DraftModelTableParams) => {
-      const filters = {
+      const filters: DraftModelFetchFilters = {
         page: params.page || 1,
         limit: params.limit || 10,
         search: params.search,
-        subjectId: getSubjectIdFromParams(params),
+        subjectIds: getSubjectIdsFromParams(params),
       };
       setCurrentParams(filters);
       fetchFn(filters);

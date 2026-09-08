@@ -493,6 +493,66 @@ describe('useActivitiesHistory', () => {
       expect(result.current.activities).toHaveLength(1);
     });
 
+    it('should send every selected subject to the API', async () => {
+      mockApiClient.get.mockResolvedValueOnce({ data: validApiResponse });
+
+      const useActivitiesHistory = createUseActivitiesHistory(mockApiClient, {
+        activityCategory: 'ATIVIDADE',
+      });
+      const { result } = renderHook(() => useActivitiesHistory());
+
+      await act(async () => {
+        await result.current.fetchActivities({
+          subject: ['subj-1', 'subj-2'],
+        });
+      });
+
+      expect(mockApiClient.get).toHaveBeenCalledWith('/activities/history', {
+        params: {
+          type: 'ATIVIDADE',
+          subjectIds: 'subj-1,subj-2',
+        },
+      });
+    });
+
+    it('should keep answering with the newest request when responses race', async () => {
+      let resolveFirst: (value: unknown) => void = () => {};
+      const firstResponse = new Promise((resolve) => {
+        resolveFirst = resolve;
+      });
+      const newerResponse: ActivitiesHistoryApiResponse = {
+        ...validApiResponse,
+        data: {
+          ...validApiResponse.data,
+          activities: validApiResponse.data.activities.map((activity) => ({
+            ...activity,
+            title: 'Newer Activity',
+          })),
+        },
+      };
+
+      mockApiClient.get
+        .mockReturnValueOnce(firstResponse as never)
+        .mockResolvedValueOnce({ data: newerResponse });
+
+      const useActivitiesHistory = createUseActivitiesHistory(mockApiClient);
+      const { result } = renderHook(() => useActivitiesHistory());
+
+      await act(async () => {
+        // Each checkbox in the filter modal fires its own fetch, so a slower
+        // earlier request can land after the one the user is waiting on.
+        const stale = result.current.fetchActivities({ subject: ['subj-1'] });
+        await result.current.fetchActivities({
+          subject: ['subj-1', 'subj-2'],
+        });
+        resolveFirst({ data: validApiResponse });
+        await stale;
+      });
+
+      expect(result.current.activities).toHaveLength(1);
+      expect(result.current.activities[0].title).toBe('Newer Activity');
+    });
+
     it('should pass activityCategory to API params', async () => {
       mockApiClient.get.mockResolvedValueOnce({ data: validApiResponse });
 
@@ -566,16 +626,33 @@ describe('buildActivityHistoryQueryParams', () => {
     expect(params.schoolYearIds).toBe('y1');
   });
 
-  it('collapses single-select filters to the first value', () => {
+  it('maps subject[] to subjectIds keeping every selected id (CSV)', () => {
+    const params = buildActivityHistoryQueryParams({
+      subject: ['subj-1', 'subj-2'],
+    });
+    expect(params.subjectIds).toBe('subj-1,subj-2');
+    expect(params.subject).toBeUndefined();
+    expect(params.subjectId).toBeUndefined();
+  });
+
+  it('maps status[] to statuses keeping every selected value (CSV)', () => {
     const params = buildActivityHistoryQueryParams({
       status: ['A_VENCER', 'VENCIDA'],
-      subject: ['subj-1', 'subj-2'],
-      creatorType: ['own'],
     });
-    expect(params.status).toBe('A_VENCER');
-    expect(params.subjectId).toBe('subj-1');
+    expect(params.statuses).toBe('A_VENCER,VENCIDA');
+    expect(params.status).toBeUndefined();
+  });
+
+  it('sends creatorType when a single option is picked', () => {
+    const params = buildActivityHistoryQueryParams({ creatorType: ['own'] });
     expect(params.creatorType).toBe('own');
-    expect(params.subject).toBeUndefined();
+  });
+
+  it('omits creatorType when both options are picked (same as no filter)', () => {
+    const params = buildActivityHistoryQueryParams({
+      creatorType: ['own', 'teachers'],
+    });
+    expect(params.creatorType).toBeUndefined();
   });
 
   it('forwards pagination, search and sorting untouched', () => {
@@ -602,25 +679,30 @@ describe('buildActivityHistoryQueryParams', () => {
       subject: [],
     });
     expect(params.schoolIds).toBeUndefined();
+    expect(params.statuses).toBeUndefined();
     expect(params.status).toBeUndefined();
+    expect(params.subjectIds).toBeUndefined();
     expect(params.subjectId).toBeUndefined();
   });
 
-  it('honors legacy singular subjectId as a fallback', () => {
+  it('folds a legacy singular subjectId into subjectIds', () => {
+    // The endpoint dropped the singular keys, so a value a direct caller still
+    // passes has to travel under the plural one or it filters nothing.
     const params = buildActivityHistoryQueryParams({ subjectId: 'subj-1' });
-    expect(params.subjectId).toBe('subj-1');
+    expect(params.subjectIds).toBe('subj-1');
+    expect(params).not.toHaveProperty('subjectId');
   });
 
-  it('honors legacy singular schoolId as a fallback', () => {
+  it('folds a legacy singular schoolId into schoolIds', () => {
     const params = buildActivityHistoryQueryParams({ schoolId: 'school-1' });
-    expect(params.schoolId).toBe('school-1');
-    expect(params.schoolIds).toBeUndefined();
+    expect(params.schoolIds).toBe('school-1');
+    expect(params).not.toHaveProperty('schoolId');
   });
 
-  it('honors legacy singular classId as a fallback', () => {
+  it('folds a legacy singular classId into classIds', () => {
     const params = buildActivityHistoryQueryParams({ classId: 'class-1' });
-    expect(params.classId).toBe('class-1');
-    expect(params.classIds).toBeUndefined();
+    expect(params.classIds).toBe('class-1');
+    expect(params).not.toHaveProperty('classId');
   });
 
   it('prefers raw subject[] over legacy subjectId', () => {
@@ -628,7 +710,13 @@ describe('buildActivityHistoryQueryParams', () => {
       subject: ['a'],
       subjectId: 'b',
     });
-    expect(params.subjectId).toBe('a');
+    expect(params.subjectIds).toBe('a');
+  });
+
+  it('folds a legacy singular status string into statuses', () => {
+    const params = buildActivityHistoryQueryParams({ status: 'A_VENCER' });
+    expect(params.statuses).toBe('A_VENCER');
+    expect(params).not.toHaveProperty('status');
   });
 
   it('prefers raw school[] over legacy schoolId', () => {
@@ -650,9 +738,9 @@ describe('buildActivityHistoryQueryParams', () => {
   });
 
   it('accepts a bare-string status', () => {
-    expect(buildActivityHistoryQueryParams({ status: 'A_VENCER' }).status).toBe(
-      'A_VENCER'
-    );
+    expect(
+      buildActivityHistoryQueryParams({ status: 'A_VENCER' }).statuses
+    ).toBe('A_VENCER');
   });
 
   it('forwards startDate and finalDate', () => {
