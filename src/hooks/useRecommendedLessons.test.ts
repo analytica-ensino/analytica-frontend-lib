@@ -470,12 +470,14 @@ describe('useRecommendedLessons', () => {
     });
 
     it('should keep answering with the newest request when responses race', async () => {
-      let resolveFirst: (value: RecommendedClassHistoryApiResponse) => void =
-        () => {};
-      const firstResponse =
-        new Promise<RecommendedClassHistoryApiResponse>((resolve) => {
+      let resolveFirst: (
+        value: RecommendedClassHistoryApiResponse
+      ) => void = () => {};
+      const firstResponse = new Promise<RecommendedClassHistoryApiResponse>(
+        (resolve) => {
           resolveFirst = resolve;
-        });
+        }
+      );
 
       const newerResponse: RecommendedClassHistoryApiResponse = {
         ...validApiResponse,
