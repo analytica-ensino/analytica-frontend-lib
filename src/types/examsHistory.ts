@@ -159,15 +159,27 @@ export interface ExamsHistoryApiResponse {
 export interface ExamHistoryFilters {
   page?: number;
   limit?: number;
-  status?: ExamStatus;
   search?: string;
   startDate?: string;
-  /** An exam matches when it covers any of these subjects. */
-  subjectIds?: string[];
-  schoolId?: string;
-  classId?: string;
   sortBy?: 'startDate' | 'title' | 'completionPercentage' | 'createdAt';
   sortOrder?: 'asc' | 'desc';
+
+  // Raw TableProvider filter keys (arrays of selected ids/values).
+  // Remapped to the backend contract by buildActivityHistoryBody.
+  status?: ExamStatus | string[];
+  subject?: string[];
+  school?: string[];
+  class?: string[];
+  schoolYear?: string[];
+
+  /** An exam matches when it covers any of these subjects. */
+  subjectIds?: string[];
+
+  // Legacy single-value fields, consumed by buildActivityHistoryBody as
+  // fallbacks when the raw multi-select keys above are absent.
+  subjectId?: string;
+  schoolId?: string;
+  classId?: string;
 }
 
 /**

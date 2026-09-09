@@ -511,6 +511,64 @@ describe('useActivitiesHistory', () => {
       expect(result.current.activities).toHaveLength(1);
     });
 
+    it('should send every selected subject to the API', async () => {
+      mockApiClient.post.mockResolvedValueOnce({ data: validApiResponse });
+
+      const useActivitiesHistory = createUseActivitiesHistory(mockApiClient, {
+        activityCategory: 'ATIVIDADE',
+      });
+      const { result } = renderHook(() => useActivitiesHistory());
+
+      await act(async () => {
+        await result.current.fetchActivities({
+          subject: ['subj-1', 'subj-2'],
+        });
+      });
+
+      expect(mockApiClient.post).toHaveBeenCalledWith('/activities/history', {
+        type: 'ATIVIDADE',
+        subjectIds: ['subj-1', 'subj-2'],
+      });
+    });
+
+    it('should keep answering with the newest request when responses race', async () => {
+      let resolveFirst: (value: unknown) => void = () => {};
+      const firstResponse = new Promise((resolve) => {
+        resolveFirst = resolve;
+      });
+      const newerResponse: ActivitiesHistoryApiResponse = {
+        ...validApiResponse,
+        data: {
+          ...validApiResponse.data,
+          activities: validApiResponse.data.activities.map((activity) => ({
+            ...activity,
+            title: 'Newer Activity',
+          })),
+        },
+      };
+
+      mockApiClient.post
+        .mockReturnValueOnce(firstResponse as never)
+        .mockResolvedValueOnce({ data: newerResponse });
+
+      const useActivitiesHistory = createUseActivitiesHistory(mockApiClient);
+      const { result } = renderHook(() => useActivitiesHistory());
+
+      await act(async () => {
+        // Each checkbox in the filter modal fires its own fetch, so a slower
+        // earlier request can land after the one the user is waiting on.
+        const stale = result.current.fetchActivities({ subject: ['subj-1'] });
+        await result.current.fetchActivities({
+          subject: ['subj-1', 'subj-2'],
+        });
+        resolveFirst({ data: validApiResponse });
+        await stale;
+      });
+
+      expect(result.current.activities).toHaveLength(1);
+      expect(result.current.activities[0].title).toBe('Newer Activity');
+    });
+
     it('should pass activityCategory to API params', async () => {
       mockApiClient.post.mockResolvedValueOnce({ data: validApiResponse });
 
@@ -602,6 +660,13 @@ describe('buildActivityHistoryBody', () => {
     expect(body.creatorType).toBe('own');
   });
 
+  it('omits creatorType when both options are picked (same as no filter)', () => {
+    const body = buildActivityHistoryBody({
+      creatorType: ['own', 'teachers'],
+    });
+    expect(body.creatorType).toBeUndefined();
+  });
+
   it('forwards pagination, search and sorting untouched', () => {
     const body = buildActivityHistoryBody({
       page: 2,
@@ -633,6 +698,14 @@ describe('buildActivityHistoryBody', () => {
   it('accepts subjectIds passed directly', () => {
     const body = buildActivityHistoryBody({ subjectIds: ['subj-1'] });
     expect(body.subjectIds).toEqual(['subj-1']);
+  });
+
+  it('folds a legacy singular subjectId into subjectIds', () => {
+    // The endpoint dropped the singular subject key, so a value a direct caller
+    // still passes has to travel under the plural one or it filters nothing.
+    const body = buildActivityHistoryBody({ subjectId: 'subj-1' });
+    expect(body.subjectIds).toEqual(['subj-1']);
+    expect(body).not.toHaveProperty('subjectId');
   });
 
   it('honors singular schoolId as a fallback', () => {
@@ -668,5 +741,20 @@ describe('buildActivityHistoryBody', () => {
     expect(buildActivityHistoryBody(undefined, 'PROVA')).toEqual({
       type: 'PROVA',
     });
+  });
+
+  it('accepts a bare-string status', () => {
+    expect(buildActivityHistoryBody({ status: 'A_VENCER' }).status).toBe(
+      'A_VENCER'
+    );
+  });
+
+  it('forwards startDate and finalDate', () => {
+    const body = buildActivityHistoryBody({
+      startDate: '01/01/2026',
+      finalDate: '31/01/2026',
+    });
+    expect(body.startDate).toBe('01/01/2026');
+    expect(body.finalDate).toBe('31/01/2026');
   });
 });

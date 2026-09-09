@@ -77,7 +77,7 @@ describe('UnifiedDraftModelPage - subject filter', () => {
     globalThis.window.history.replaceState({}, '', '/');
   });
 
-  it('sends the subject selected in the URL as subjectId to the fetch function', async () => {
+  it('sends the subject selected in the URL as subjectIds to the fetch function', async () => {
     globalThis.window.history.replaceState(
       {},
       '',
@@ -89,7 +89,7 @@ describe('UnifiedDraftModelPage - subject filter', () => {
 
     await waitFor(() => {
       expect(onParamsChange).toHaveBeenCalledWith(
-        expect.objectContaining({ subjectId: SUBJECT_ID })
+        expect.objectContaining({ subjectIds: SUBJECT_ID })
       );
     });
   });

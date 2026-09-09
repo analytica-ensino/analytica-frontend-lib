@@ -140,6 +140,52 @@ describe('subjectMappers', () => {
       });
     });
 
+    describe('canonical backend names', () => {
+      it('should map "Língua Portuguesa" to SubjectEnum.PORTUGUES', () => {
+        expect(mapSubjectNameToEnum('Língua Portuguesa')).toBe(
+          SubjectEnum.PORTUGUES
+        );
+        expect(mapSubjectNameToEnum('LÍNGUA PORTUGUESA')).toBe(
+          SubjectEnum.PORTUGUES
+        );
+        expect(mapSubjectNameToEnum('  Língua Portuguesa ')).toBe(
+          SubjectEnum.PORTUGUES
+        );
+      });
+
+      it('should map "Língua Inglesa" to SubjectEnum.INGLES', () => {
+        expect(mapSubjectNameToEnum('Língua Inglesa')).toBe(SubjectEnum.INGLES);
+      });
+
+      it('should map "Língua Espanhola" to SubjectEnum.ESPANHOL', () => {
+        expect(mapSubjectNameToEnum('Língua Espanhola')).toBe(
+          SubjectEnum.ESPANHOL
+        );
+      });
+
+      it('should map "Matemática Avançada" to SubjectEnum.MATEMATICA', () => {
+        expect(mapSubjectNameToEnum('Matemática Avançada')).toBe(
+          SubjectEnum.MATEMATICA
+        );
+      });
+    });
+
+    describe('accent-insensitive matching', () => {
+      it('should map names typed without diacritics', () => {
+        expect(mapSubjectNameToEnum('Matematica')).toBe(SubjectEnum.MATEMATICA);
+        expect(mapSubjectNameToEnum('Historia')).toBe(SubjectEnum.HISTORIA);
+        expect(mapSubjectNameToEnum('Portugues')).toBe(SubjectEnum.PORTUGUES);
+        expect(mapSubjectNameToEnum('Lingua Portuguesa')).toBe(
+          SubjectEnum.PORTUGUES
+        );
+        expect(mapSubjectNameToEnum('Educacao Fisica')).toBe(
+          SubjectEnum.EDUCACAO_FISICA
+        );
+        expect(mapSubjectNameToEnum('Quimica')).toBe(SubjectEnum.QUIMICA);
+        expect(mapSubjectNameToEnum('Redacao')).toBe(SubjectEnum.REDACAO);
+      });
+    });
+
     describe('unmapped subjects', () => {
       it('should return null for unknown subject', () => {
         expect(mapSubjectNameToEnum('Música')).toBeNull();

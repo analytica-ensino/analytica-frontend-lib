@@ -1,33 +1,41 @@
 import { SubjectEnum } from '../enums/SubjectEnum';
 import type { SubjectData as DraftSubject } from '../types/activitiesHistory';
+import { normalizeText } from './stringUtils';
 
 /**
- * Mapping from Portuguese subject names to SubjectEnum values
- * Used to convert backend subject names to frontend enum values
+ * Mapping from normalized (lowercase, accent-stripped) subject names to SubjectEnum values.
+ * Keys must be written WITHOUT diacritics because lookups go through `normalizeText`.
+ * Includes the canonical backend names (e.g. "Língua Portuguesa") alongside the short forms.
  */
 const SUBJECT_NAME_MAPPING: Record<string, SubjectEnum> = {
-  matemática: SubjectEnum.MATEMATICA,
-  português: SubjectEnum.PORTUGUES,
-  ciências: SubjectEnum.BIOLOGIA,
-  história: SubjectEnum.HISTORIA,
+  matematica: SubjectEnum.MATEMATICA,
+  'matematica avancada': SubjectEnum.MATEMATICA,
+  portugues: SubjectEnum.PORTUGUES,
+  'lingua portuguesa': SubjectEnum.PORTUGUES,
+  ciencias: SubjectEnum.BIOLOGIA,
+  historia: SubjectEnum.HISTORIA,
   geografia: SubjectEnum.GEOGRAFIA,
-  inglês: SubjectEnum.INGLES,
-  'educação física': SubjectEnum.EDUCACAO_FISICA,
+  ingles: SubjectEnum.INGLES,
+  'lingua inglesa': SubjectEnum.INGLES,
+  'educacao fisica': SubjectEnum.EDUCACAO_FISICA,
   artes: SubjectEnum.ARTES,
   tecnologia: SubjectEnum.TRILHAS,
-  física: SubjectEnum.FISICA,
+  fisica: SubjectEnum.FISICA,
   literatura: SubjectEnum.LITERATURA,
   biologia: SubjectEnum.BIOLOGIA,
-  química: SubjectEnum.QUIMICA,
+  quimica: SubjectEnum.QUIMICA,
   filosofia: SubjectEnum.FILOSOFIA,
   espanhol: SubjectEnum.ESPANHOL,
-  redação: SubjectEnum.REDACAO,
+  'lingua espanhola': SubjectEnum.ESPANHOL,
+  redacao: SubjectEnum.REDACAO,
   sociologia: SubjectEnum.SOCIOLOGIA,
   trilhas: SubjectEnum.TRILHAS,
 };
 
 /**
- * Maps backend subject names to SubjectEnum values
+ * Maps backend subject names to SubjectEnum values.
+ * Matching is case- and accent-insensitive and accepts both the short names
+ * ("Português") and the canonical backend names ("Língua Portuguesa").
  * @param subjectName - The subject name from the backend
  * @returns The corresponding SubjectEnum value or null if no mapping exists
  *
@@ -36,6 +44,9 @@ const SUBJECT_NAME_MAPPING: Record<string, SubjectEnum> = {
  * const subjectEnum = mapSubjectNameToEnum('Matemática');
  * // Returns: SubjectEnum.MATEMATICA
  *
+ * const portuguese = mapSubjectNameToEnum('Língua Portuguesa');
+ * // Returns: SubjectEnum.PORTUGUES
+ *
  * const unknown = mapSubjectNameToEnum('Unknown Subject');
  * // Returns: null
  * ```
@@ -43,7 +54,7 @@ const SUBJECT_NAME_MAPPING: Record<string, SubjectEnum> = {
 export const mapSubjectNameToEnum = (
   subjectName: string
 ): SubjectEnum | null => {
-  const normalized = subjectName.trim().toLowerCase();
+  const normalized = normalizeText(subjectName.trim());
   return SUBJECT_NAME_MAPPING[normalized] || null;
 };
 

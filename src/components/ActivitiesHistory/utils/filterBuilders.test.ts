@@ -52,7 +52,7 @@ describe('filterBuilders', () => {
       expect(result).toEqual({
         page: 1,
         limit: 10,
-        status: GenericApiStatus.A_VENCER,
+        status: [GenericApiStatus.A_VENCER],
       });
     });
 
@@ -67,7 +67,7 @@ describe('filterBuilders', () => {
       expect(result).toEqual({
         page: 1,
         limit: 10,
-        schoolId: 'school-123',
+        school: ['school-123'],
       });
     });
 
@@ -82,7 +82,7 @@ describe('filterBuilders', () => {
       expect(result).toEqual({
         page: 1,
         limit: 10,
-        subjectIds: ['subject-456'],
+        subject: ['subject-456'],
       });
     });
 
@@ -101,9 +101,9 @@ describe('filterBuilders', () => {
         page: 2,
         limit: 20,
         search: 'atividade',
-        status: GenericApiStatus.VENCIDA,
-        schoolId: 'school-abc',
-        subjectIds: ['subject-xyz'],
+        status: [GenericApiStatus.VENCIDA],
+        school: ['school-abc'],
+        subject: ['subject-xyz'],
       });
     });
 
@@ -120,7 +120,7 @@ describe('filterBuilders', () => {
       expect(result).toEqual({ page: 1, limit: 10 });
     });
 
-    it('should ignore invalid status values', () => {
+    it('should drop invalid status values', () => {
       const params: TableParams = {
         page: 1,
         limit: 10,
@@ -128,11 +128,21 @@ describe('filterBuilders', () => {
       };
       const result = buildHistoryFiltersFromParams(params);
 
-      expect(result).toEqual({ page: 1, limit: 10 });
-      expect(result.status).toBeUndefined();
+      expect(result.status).toEqual([]);
     });
 
-    it('keeps every selected subject but still collapses the single-select filters', () => {
+    it('should keep the valid status values and drop the invalid ones', () => {
+      const params: TableParams = {
+        page: 1,
+        limit: 10,
+        status: ['INVALID_STATUS', GenericApiStatus.VENCIDA],
+      };
+      const result = buildHistoryFiltersFromParams(params);
+
+      expect(result.status).toEqual([GenericApiStatus.VENCIDA]);
+    });
+
+    it('should keep every value when multiple values are provided', () => {
       const params: TableParams = {
         page: 1,
         limit: 10,
@@ -142,9 +152,12 @@ describe('filterBuilders', () => {
       };
       const result = buildHistoryFiltersFromParams(params);
 
-      expect(result.status).toBe(GenericApiStatus.A_VENCER);
-      expect(result.schoolId).toBe('school-1');
-      expect(result.subjectIds).toEqual(['subject-1', 'subject-2']);
+      expect(result.status).toEqual([
+        GenericApiStatus.A_VENCER,
+        GenericApiStatus.VENCIDA,
+      ]);
+      expect(result.school).toEqual(['school-1', 'school-2']);
+      expect(result.subject).toEqual(['subject-1', 'subject-2']);
     });
   });
 
@@ -178,7 +191,7 @@ describe('filterBuilders', () => {
       expect(result).toEqual({
         page: 1,
         limit: 10,
-        subjectId: 'subject-789',
+        subjectIds: 'subject-789',
       });
     });
 
@@ -195,7 +208,7 @@ describe('filterBuilders', () => {
         page: 3,
         limit: 50,
         search: 'prova',
-        subjectId: 'math-subject',
+        subjectIds: 'math-subject',
       });
     });
 
@@ -210,7 +223,7 @@ describe('filterBuilders', () => {
       expect(result).toEqual({ page: 1, limit: 10 });
     });
 
-    it('should use only the first subject when multiple values are provided', () => {
+    it('should keep every subject when multiple values are provided', () => {
       const params: TableParams = {
         page: 1,
         limit: 10,
@@ -218,7 +231,7 @@ describe('filterBuilders', () => {
       };
       const result = buildModelsFiltersFromParams(params);
 
-      expect(result.subjectId).toBe('subject-1');
+      expect(result.subjectIds).toBe('subject-1,subject-2,subject-3');
     });
   });
 });

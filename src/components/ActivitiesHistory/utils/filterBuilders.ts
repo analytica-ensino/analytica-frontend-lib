@@ -30,24 +30,22 @@ export const buildHistoryFiltersFromParams = (
     filters.search = params.search;
   }
 
-  // Status filter (single selection) - with runtime validation
-  if (
-    Array.isArray(params.status) &&
-    params.status.length > 0 &&
-    isValidApiStatus(params.status[0])
-  ) {
-    filters.status = params.status[0];
+  // Multi-select filters are forwarded as the raw id lists the modal produced:
+  // buildActivityHistoryBody renames them to the keys the endpoint reads.
+  // Keeping only `params.x[0]` here is what made a two-subject selection answer
+  // with one subject.
+  if (Array.isArray(params.status) && params.status.length > 0) {
+    filters.status = params.status.filter(isValidApiStatus);
   }
 
-  // School filter
   if (Array.isArray(params.school) && params.school.length > 0) {
-    filters.schoolId = params.school[0];
+    filters.school = params.school;
   }
 
   // Subject filter. An activity matches when it covers any of the selected
   // subjects, so the whole selection travels — not just its first entry.
   if (Array.isArray(params.subject) && params.subject.length > 0) {
-    filters.subjectIds = params.subject;
+    filters.subject = params.subject;
   }
 
   return filters;
@@ -70,9 +68,10 @@ export const buildModelsFiltersFromParams = (
     filters.search = params.search;
   }
 
-  // Subject filter
+  // Every selected subject goes out, comma-separated — the wire format
+  // `/activity-drafts` parses.
   if (Array.isArray(params.subject) && params.subject.length > 0) {
-    filters.subjectId = params.subject[0];
+    filters.subjectIds = params.subject.join(',');
   }
 
   return filters;

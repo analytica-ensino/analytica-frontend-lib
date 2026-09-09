@@ -145,21 +145,22 @@ export interface RecommendedClassHistoryApiResponse {
 export interface RecommendedClassHistoryFilters {
   page?: number;
   limit?: number;
-  status?: GenericApiStatus;
   search?: string;
   startDate?: string;
   finalDate?: string;
-  subjectId?: string;
-  schoolId?: string;
-  schoolIds?: string[];
-  schoolYearId?: string;
-  schoolYearIds?: string[];
-  classId?: string;
-  classIds?: string[];
-  studentIds?: string[];
   creatorType?: string;
   sortBy?: 'createdAt' | 'finalDate' | 'title' | 'completionPercentage';
   sortOrder?: 'asc' | 'desc';
+
+  // Multi-select filters, as emitted by the filter modal. Every filter on this
+  // page is multi-select, so each one is a list — the endpoint has no singular
+  // counterpart to fall back to.
+  statuses?: GenericApiStatus[];
+  subjectIds?: string[];
+  schoolIds?: string[];
+  schoolYearIds?: string[];
+  classIds?: string[];
+  studentIds?: string[];
 }
 
 /**
@@ -588,7 +589,8 @@ export interface RecommendedClassModelFilters {
   page?: number;
   limit?: number;
   search?: string;
-  subjectId?: string;
+  /** Selected subjects — the endpoint's only subject filter */
+  subjectIds?: string[];
   type?: RecommendedClassDraftType;
 }
 

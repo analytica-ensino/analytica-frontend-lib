@@ -900,6 +900,100 @@ describe('useExamsHistory', () => {
       expect(result.current.apiFilterOptions.subjects).toHaveLength(2);
     });
 
+    it('should send every selected subject under subjectIds', async () => {
+      const mockApiClient = createMockApiClient();
+      mockApiClient.post.mockResolvedValueOnce(validExamsResponse);
+
+      const useExamsHistory = createUseExamsHistory(mockApiClient);
+      const { result } = renderHook(() => useExamsHistory());
+
+      await act(async () => {
+        await result.current.fetchExams({
+          page: 1,
+          limit: 10,
+          subject: ['subj-1', 'subj-2'],
+        });
+      });
+
+      // Forwarding the raw `subject` key would send a name the endpoint does not
+      // read: every exam filter silently did nothing before this.
+      expect(mockApiClient.post).toHaveBeenCalledWith('/activities/history', {
+        type: 'PROVA',
+        page: 1,
+        limit: 10,
+        subjectIds: ['subj-1', 'subj-2'],
+      });
+    });
+
+    it('should map the remaining table filter keys to the backend contract', async () => {
+      const mockApiClient = createMockApiClient();
+      mockApiClient.post.mockResolvedValueOnce(validExamsResponse);
+
+      const useExamsHistory = createUseExamsHistory(mockApiClient);
+      const { result } = renderHook(() => useExamsHistory());
+
+      await act(async () => {
+        await result.current.fetchExams({
+          school: ['school-1'],
+          class: ['class-1', 'class-2'],
+          schoolYear: ['year-1'],
+          status: ['AGENDADA', 'FINALIZADA'],
+        });
+      });
+
+      // The institutional filters travel as arrays; `status` collapses to a
+      // single value because that is the only shape the endpoint accepts.
+      expect(mockApiClient.post).toHaveBeenCalledWith('/activities/history', {
+        type: 'PROVA',
+        schoolIds: ['school-1'],
+        classIds: ['class-1', 'class-2'],
+        schoolYearIds: ['year-1'],
+        status: 'AGENDADA',
+      });
+    });
+
+    it('should keep answering with the newest request when responses race', async () => {
+      const mockApiClient = createMockApiClient();
+
+      let resolveFirst: (value: { data: unknown }) => void = () => {};
+      const firstResponse = new Promise<{ data: unknown }>((resolve) => {
+        resolveFirst = resolve;
+      });
+      const secondExam = {
+        ...validExamsResponse,
+        data: {
+          data: {
+            ...validExamsResponse.data.data,
+            activities: validExamsResponse.data.data.activities.map(
+              (exam: ExamHistoryResponse) => ({
+                ...exam,
+                id: 'newer-exam',
+                title: 'Newer Exam',
+              })
+            ),
+          },
+        },
+      };
+
+      mockApiClient.post
+        .mockReturnValueOnce(firstResponse)
+        .mockResolvedValueOnce(secondExam);
+
+      const useExamsHistory = createUseExamsHistory(mockApiClient);
+      const { result } = renderHook(() => useExamsHistory());
+
+      await act(async () => {
+        const stale = result.current.fetchExams({ subject: ['subj-1'] });
+        await result.current.fetchExams({ subject: ['subj-1', 'subj-2'] });
+        resolveFirst(validExamsResponse);
+        await stale;
+      });
+
+      // The slower first request must not overwrite the list the user asked for.
+      expect(result.current.exams).toHaveLength(1);
+      expect(result.current.exams[0].title).toBe('Newer Exam');
+    });
+
     it('should filter out null and undefined values from params', async () => {
       const mockApiClient = createMockApiClient();
       mockApiClient.post.mockResolvedValueOnce(validExamsResponse);

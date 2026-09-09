@@ -145,13 +145,18 @@ export interface RecommendedLessonsHistoryProps {
 }
 
 /**
- * Extract filter value from params for single/multiple selection
+ * Read a filter category as the list of selected ids.
+ *
+ * Every category in the filter modal is multi-select, so each one travels as a
+ * list: collapsing it to `param[0]` is what made a two-subject selection answer
+ * with a single subject.
+ *
+ * @param param - Raw value emitted by TableProvider under the category key
+ * @returns The selected ids, or undefined when nothing is selected
  */
-const extractFilterValue = (
-  param: unknown
-): { single?: string; multiple?: string[] } => {
-  if (!Array.isArray(param) || param.length === 0) return {};
-  return param.length === 1 ? { single: param[0] } : { multiple: param };
+const selectedIds = (param: unknown): string[] | undefined => {
+  if (!Array.isArray(param) || param.length === 0) return undefined;
+  return param as string[];
 };
 
 /**
@@ -169,40 +174,32 @@ const buildFiltersFromParams = (
     filters.search = params.search;
   }
 
-  // Status filter (single selection)
-  if (Array.isArray(params.status) && params.status.length > 0) {
-    filters.status = params.status[0] as RecommendedClassApiStatus;
-  }
+  const statuses = selectedIds(params.status);
+  if (statuses) filters.statuses = statuses as RecommendedClassApiStatus[];
 
-  // School filter
-  const schoolFilter = extractFilterValue(params.school);
-  if (schoolFilter.single) filters.schoolId = schoolFilter.single;
-  if (schoolFilter.multiple) filters.schoolIds = schoolFilter.multiple;
+  const schools = selectedIds(params.school);
+  if (schools) filters.schoolIds = schools;
 
-  // School year filter
-  const schoolYearFilter = extractFilterValue(params.schoolYear);
-  if (schoolYearFilter.single) filters.schoolYearId = schoolYearFilter.single;
-  if (schoolYearFilter.multiple)
-    filters.schoolYearIds = schoolYearFilter.multiple;
+  const schoolYears = selectedIds(params.schoolYear);
+  if (schoolYears) filters.schoolYearIds = schoolYears;
 
-  // Class filter
-  const classFilter = extractFilterValue(params.class);
-  if (classFilter.single) filters.classId = classFilter.single;
-  if (classFilter.multiple) filters.classIds = classFilter.multiple;
+  const classes = selectedIds(params.class);
+  if (classes) filters.classIds = classes;
 
-  // Subject filter (single selection)
-  if (Array.isArray(params.subject) && params.subject.length > 0) {
-    filters.subjectId = params.subject[0];
-  }
+  const subjects = selectedIds(params.subject);
+  if (subjects) filters.subjectIds = subjects;
 
   // Start date filter
   if (params.startDate && typeof params.startDate === 'string') {
     filters.startDate = params.startDate;
   }
 
-  // Creator type filter (single selection)
-  if (Array.isArray(params.creatorType) && params.creatorType.length > 0) {
-    filters.creatorType = params.creatorType[0];
+  // `creatorType` is a two-option toggle (mine / teachers): picking both is the
+  // same as not filtering, so the param is dropped instead of collapsed to the
+  // first choice.
+  const creatorTypes = selectedIds(params.creatorType);
+  if (creatorTypes?.length === 1) {
+    filters.creatorType = creatorTypes[0];
   }
 
   return filters;

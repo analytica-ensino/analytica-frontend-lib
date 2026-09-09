@@ -33,7 +33,7 @@ describe('filterBuilders', () => {
       });
     });
 
-    it('should include subjectId when subject array is provided', () => {
+    it('should include subjectIds when subject array is provided', () => {
       const params: TableParams = {
         page: 1,
         limit: 10,
@@ -45,11 +45,11 @@ describe('filterBuilders', () => {
       expect(result).toEqual({
         page: 1,
         limit: 10,
-        subjectId: 'subject-123',
+        subjectIds: ['subject-123'],
       });
     });
 
-    it('should use first subject when multiple are provided', () => {
+    it('should keep every subject when multiple are provided', () => {
       const params: TableParams = {
         page: 1,
         limit: 10,
@@ -58,10 +58,14 @@ describe('filterBuilders', () => {
 
       const result = buildRecommendedClassModelsFiltersFromParams(params);
 
-      expect(result.subjectId).toBe('subject-1');
+      expect(result.subjectIds).toEqual([
+        'subject-1',
+        'subject-2',
+        'subject-3',
+      ]);
     });
 
-    it('should not include subjectId when subject is empty array', () => {
+    it('should not include subjectIds when subject is empty array', () => {
       const params: TableParams = {
         page: 1,
         limit: 10,
@@ -70,10 +74,10 @@ describe('filterBuilders', () => {
 
       const result = buildRecommendedClassModelsFiltersFromParams(params);
 
-      expect(result.subjectId).toBeUndefined();
+      expect(result.subjectIds).toBeUndefined();
     });
 
-    it('should not include subjectId when subject is undefined', () => {
+    it('should not include subjectIds when subject is undefined', () => {
       const params: TableParams = {
         page: 1,
         limit: 10,
@@ -82,7 +86,7 @@ describe('filterBuilders', () => {
 
       const result = buildRecommendedClassModelsFiltersFromParams(params);
 
-      expect(result.subjectId).toBeUndefined();
+      expect(result.subjectIds).toBeUndefined();
     });
 
     it('should not include search when empty string', () => {
@@ -111,7 +115,7 @@ describe('filterBuilders', () => {
         page: 3,
         limit: 25,
         search: 'aula de matemática',
-        subjectId: 'math-uuid',
+        subjectIds: ['math-uuid'],
       });
     });
 
@@ -124,7 +128,7 @@ describe('filterBuilders', () => {
 
       const result = buildRecommendedClassModelsFiltersFromParams(params);
 
-      expect(result.subjectId).toBeUndefined();
+      expect(result.subjectIds).toBeUndefined();
     });
   });
 });

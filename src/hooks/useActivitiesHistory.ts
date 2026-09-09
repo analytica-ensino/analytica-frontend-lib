@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import dayjs from 'dayjs';
 import type { BaseApiClient } from '../types/api';
 import { mapApiStatusToDisplay } from '../types/common';
@@ -114,6 +114,9 @@ export const extractActivityFilterOptions = (
 /**
  * Collapse a single-select filter (emitted as an array by TableProvider) to its
  * first value. Also tolerates a bare string. Returns undefined when empty.
+ *
+ * Only for filters the backend genuinely reads as a single value — using it on
+ * a multi-select silently drops every id but the first.
  */
 const toSingle = (value: unknown): string | undefined => {
   if (Array.isArray(value)) {
@@ -156,6 +159,18 @@ const assignArrayIf = (
   if (value) {
     body[key] = value;
   }
+};
+
+/**
+ * Resolve a two-option toggle (`creatorType`: mine / teachers) into the single
+ * value the backend reads. Picking both options is the same as not filtering at
+ * all, so the param is omitted rather than collapsed to the first choice.
+ */
+const toExclusiveChoice = (value: unknown): string | undefined => {
+  if (Array.isArray(value)) {
+    return value.length === 1 ? String(value[0]) : undefined;
+  }
+  return toSingle(value);
 };
 
 /**
@@ -221,15 +236,18 @@ export const buildActivityHistoryBody = (
     }
   }
 
-  // Multi-select filters. School and class each fall back to their singular key
-  // when the raw multi-select key is absent.
+  // Multi-select filters. Each one also folds in the legacy singular key a
+  // direct caller may still pass, so the selection reaches the backend under the
+  // plural name it actually reads.
   assignArrayIf(body, 'schoolIds', toIdArray(filters.school));
   assignArrayIf(body, 'classIds', toIdArray(filters.class));
   assignArrayIf(body, 'schoolYearIds', toIdArray(filters.schoolYear));
   assignArrayIf(
     body,
     'subjectIds',
-    toIdArray(filters.subject) ?? toIdArray(filters.subjectIds)
+    toIdArray(filters.subject) ??
+      toIdArray(filters.subjectIds) ??
+      toIdArray(filters.subjectId)
   );
   if (!body.schoolIds) {
     assignIf(body, 'schoolId', toSingle(filters.schoolId));
@@ -238,9 +256,11 @@ export const buildActivityHistoryBody = (
     assignIf(body, 'classId', toSingle(filters.classId));
   }
 
-  // Single-select filters.
+  // Single-select filters. `status` stays singular because that is all
+  // POST /activities/history accepts — it reads `status`, never `statuses`.
   assignIf(body, 'status', toSingle(filters.status));
-  assignIf(body, 'creatorType', toSingle(filters.creatorType));
+  // Both creator options selected means "no filter", not "the first one".
+  assignIf(body, 'creatorType', toExclusiveChoice(filters.creatorType));
 
   return body;
 };
@@ -260,8 +280,17 @@ const useActivitiesHistoryImpl = (
     apiFilterOptions: DEFAULT_ACTIVITY_FILTER_OPTIONS,
   });
 
+  /**
+   * Sequence number of the newest fetch. The filter modal refetches on every
+   * checkbox, so several requests are in flight at once and the network is free
+   * to answer them out of order — without this, a slower earlier response would
+   * overwrite the list the user is actually looking at.
+   */
+  const requestIdRef = useRef(0);
+
   const fetchActivities = useCallback(
     async (filters?: ActivityHistoryFilters) => {
+      const requestId = ++requestIdRef.current;
       setState((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
@@ -275,6 +304,11 @@ const useActivitiesHistoryImpl = (
         );
 
         const { data } = response.data;
+
+        if (requestId !== requestIdRef.current) {
+          // A newer fetch has already been issued: this answer is stale.
+          return;
+        }
 
         const tableItems = data.activities.map(transformActivityToTableItem);
         const extracted = extractActivityFilterOptions(data.activities);
@@ -305,6 +339,9 @@ const useActivitiesHistoryImpl = (
         }));
       } catch (error) {
         console.error('Erro ao carregar histórico:', error);
+        if (requestId !== requestIdRef.current) {
+          return;
+        }
         setState((prev) => ({
           ...prev,
           loading: false,
