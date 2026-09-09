@@ -301,6 +301,57 @@ describe('studentActivityCorrectionConverter', () => {
       expect(result.score).toBeNull();
     });
 
+    describe('stored grade override', () => {
+      it('should prefer the stored grade over the recomputed percentage', () => {
+        const answer = createMockAnswer();
+        // The endpoint reports 100 (percentage); the table holds 10.0 (grade).
+        const apiResponse = createMockApiResponse([answer], { score: 100 });
+
+        const result = convertApiResponseToCorrectionData(
+          apiResponse,
+          'student-123',
+          'John Doe',
+          undefined,
+          undefined,
+          10
+        );
+
+        expect(result.score).toBe(10);
+      });
+
+      it('should keep an explicit null grade as "no grade yet"', () => {
+        const answer = createMockAnswer();
+        const apiResponse = createMockApiResponse([answer], { score: 0 });
+
+        const result = convertApiResponseToCorrectionData(
+          apiResponse,
+          'student-123',
+          'John Doe',
+          undefined,
+          undefined,
+          null
+        );
+
+        expect(result.score).toBeNull();
+      });
+
+      it('should fall back to statistics.score when no grade is given', () => {
+        const answer = createMockAnswer();
+        const apiResponse = createMockApiResponse([answer], { score: 75 });
+
+        const result = convertApiResponseToCorrectionData(
+          apiResponse,
+          'student-123',
+          'John Doe',
+          undefined,
+          undefined,
+          undefined
+        );
+
+        expect(result.score).toBe(75);
+      });
+    });
+
     it('should build Question object with correct structure', () => {
       const answer = createMockAnswer({
         questionId: 'q1',

@@ -102,11 +102,19 @@ const convertAnswerToQuestionData = (
 /**
  * Convert QuestionResult from API to StudentActivityCorrectionData
  * This function transforms the API response into the format expected by CorrectActivityModal
+ *
+ * `statistics.score` from the answers endpoint is a 0-100 percentage recomputed
+ * from the per-question rows, while the students table shows the stored 0-10
+ * grade. Callers that already hold the stored grade pass it as `score` so the
+ * modal and the table never disagree; `null` is an explicit "no grade yet".
+ *
  * @param apiResponse - API response with answers and statistics
  * @param studentId - Student ID
  * @param studentName - Student name
  * @param observation - Optional teacher observation
  * @param attachment - Optional attachment URL
+ * @param score - Optional stored grade (0-10) that takes precedence over
+ * `statistics.score`; `null` means the student has no grade yet
  * @returns StudentActivityCorrectionData formatted for the modal
  */
 export const convertApiResponseToCorrectionData = (
@@ -114,7 +122,8 @@ export const convertApiResponseToCorrectionData = (
   studentId: string,
   studentName: string,
   observation?: string,
-  attachment?: string
+  attachment?: string,
+  score?: number | null
 ): StudentActivityCorrectionData => {
   const { answers, statistics } = apiResponse.data;
 
@@ -131,7 +140,7 @@ export const convertApiResponseToCorrectionData = (
   return {
     studentId,
     studentName,
-    score: statistics.score ?? null,
+    score: score === undefined ? (statistics.score ?? null) : score,
     correctCount,
     incorrectCount,
     blankCount,
