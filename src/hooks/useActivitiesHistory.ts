@@ -215,6 +215,10 @@ const PASSTHROUGH_KEYS = [
  * and it matches when it covers any of the selected ones. The old builder
  * collapsed the selection to its first id, silently dropping the rest.
  *
+ * There is no singular counterpart left on the endpoint — `status`, `subjectId`,
+ * `schoolId` and `classId` are gone from its schema — so a singular key a direct
+ * caller still passes is folded into the matching plural instead of forwarded.
+ *
  * @param filters - Raw table params (arrays under UI keys) plus page/limit/search/sort
  * @param activityCategory - Optional value forwarded as the `type` field
  */
@@ -236,11 +240,20 @@ export const buildActivityHistoryBody = (
     }
   }
 
-  // Multi-select filters. Each one also folds in the legacy singular key a
-  // direct caller may still pass, so the selection reaches the backend under the
-  // plural name it actually reads.
-  assignArrayIf(body, 'schoolIds', toIdArray(filters.school));
-  assignArrayIf(body, 'classIds', toIdArray(filters.class));
+  // Every filter in the modal is multi-select, and the endpoint has no singular
+  // counterpart to any of them. A legacy singular key a direct caller may still
+  // pass is folded into its plural, otherwise it would reach a name the backend
+  // no longer reads and filter nothing.
+  assignArrayIf(
+    body,
+    'schoolIds',
+    toIdArray(filters.school) ?? toIdArray(filters.schoolId)
+  );
+  assignArrayIf(
+    body,
+    'classIds',
+    toIdArray(filters.class) ?? toIdArray(filters.classId)
+  );
   assignArrayIf(body, 'schoolYearIds', toIdArray(filters.schoolYear));
   assignArrayIf(
     body,
@@ -249,16 +262,8 @@ export const buildActivityHistoryBody = (
       toIdArray(filters.subjectIds) ??
       toIdArray(filters.subjectId)
   );
-  if (!body.schoolIds) {
-    assignIf(body, 'schoolId', toSingle(filters.schoolId));
-  }
-  if (!body.classIds) {
-    assignIf(body, 'classId', toSingle(filters.classId));
-  }
+  assignArrayIf(body, 'statuses', toIdArray(filters.status));
 
-  // Single-select filters. `status` stays singular because that is all
-  // POST /activities/history accepts — it reads `status`, never `statuses`.
-  assignIf(body, 'status', toSingle(filters.status));
   // Both creator options selected means "no filter", not "the first one".
   assignIf(body, 'creatorType', toExclusiveChoice(filters.creatorType));
 

@@ -941,14 +941,14 @@ describe('useExamsHistory', () => {
         });
       });
 
-      // The institutional filters travel as arrays; `status` collapses to a
-      // single value because that is the only shape the endpoint accepts.
+      // Every filter travels as an array: the endpoint dropped the singular
+      // contract, so a collapsed value would reach a key it no longer reads.
       expect(mockApiClient.post).toHaveBeenCalledWith('/activities/history', {
         type: 'PROVA',
         schoolIds: ['school-1'],
         classIds: ['class-1', 'class-2'],
         schoolYearIds: ['year-1'],
-        status: 'AGENDADA',
+        statuses: ['AGENDADA', 'FINALIZADA'],
       });
     });
 

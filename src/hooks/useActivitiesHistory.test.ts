@@ -651,12 +651,13 @@ describe('buildActivityHistoryBody', () => {
     expect(body.subject).toBeUndefined();
   });
 
-  it('still collapses the genuinely single-select filters', () => {
+  it('keeps every selected status instead of collapsing to the first', () => {
     const body = buildActivityHistoryBody({
       status: ['A_VENCER', 'VENCIDA'],
       creatorType: ['own'],
     });
-    expect(body.status).toBe('A_VENCER');
+    expect(body.statuses).toEqual(['A_VENCER', 'VENCIDA']);
+    expect(body.status).toBeUndefined();
     expect(body.creatorType).toBe('own');
   });
 
@@ -708,16 +709,16 @@ describe('buildActivityHistoryBody', () => {
     expect(body).not.toHaveProperty('subjectId');
   });
 
-  it('honors singular schoolId as a fallback', () => {
+  it('folds a legacy singular schoolId into schoolIds', () => {
     const body = buildActivityHistoryBody({ schoolId: 'school-1' });
-    expect(body.schoolId).toBe('school-1');
-    expect(body.schoolIds).toBeUndefined();
+    expect(body.schoolIds).toEqual(['school-1']);
+    expect(body).not.toHaveProperty('schoolId');
   });
 
-  it('honors singular classId as a fallback', () => {
+  it('folds a legacy singular classId into classIds', () => {
     const body = buildActivityHistoryBody({ classId: 'class-1' });
-    expect(body.classId).toBe('class-1');
-    expect(body.classIds).toBeUndefined();
+    expect(body.classIds).toEqual(['class-1']);
+    expect(body).not.toHaveProperty('classId');
   });
 
   it('prefers raw subject[] over subjectIds', () => {
@@ -744,9 +745,9 @@ describe('buildActivityHistoryBody', () => {
   });
 
   it('accepts a bare-string status', () => {
-    expect(buildActivityHistoryBody({ status: 'A_VENCER' }).status).toBe(
-      'A_VENCER'
-    );
+    expect(buildActivityHistoryBody({ status: 'A_VENCER' }).statuses).toEqual([
+      'A_VENCER',
+    ]);
   });
 
   it('forwards startDate and finalDate', () => {
