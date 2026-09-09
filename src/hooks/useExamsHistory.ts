@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import dayjs from 'dayjs';
 import type { BaseApiClient } from '../types/api';
 import { mapExamStatusToDisplay } from '../types/examsHistory';
@@ -11,6 +11,7 @@ import type {
   ExamApiFilterOptions,
 } from '../types/examsHistory';
 import { createFetchErrorHandler } from '../utils/hookErrorHandler';
+import { buildActivityHistoryQueryParams } from './useActivitiesHistory';
 import {
   mergeFilterOptions,
   extractBreakdownFilterOptions,
@@ -96,24 +97,21 @@ export const extractExamFilterOptions = (
 ): ExamApiFilterOptions => extractBreakdownFilterOptions(exams);
 
 /**
- * Build query params from filters
- * Always includes type=PROVA to filter for exams
+ * Build query params from filters, always including type=PROVA.
+ *
+ * Exams answer from the same `/activities/history` endpoint, so they share the
+ * activities adapter. Forwarding the raw TableProvider keys instead — `subject`,
+ * `school`, `class`, `schoolYear` — sent names that are not part of the endpoint
+ * contract at all, so the backend dropped them and every exam filter silently
+ * answered as if nothing had been selected.
  */
 const buildQueryParams = (
   filters?: ExamHistoryFilters
-): Record<string, unknown> => {
-  // Always include type=PROVA for exam filtering
-  if (!filters) return { type: 'PROVA' };
-
-  const params: Record<string, unknown> = { type: 'PROVA' };
-  for (const key in filters) {
-    const value = filters[key as keyof ExamHistoryFilters];
-    if (value !== undefined && value !== null) {
-      params[key] = value;
-    }
-  }
-  return params;
-};
+): Record<string, unknown> =>
+  buildActivityHistoryQueryParams(
+    filters as Record<string, unknown> | undefined,
+    'PROVA'
+  );
 
 /**
  * Hook implementation
@@ -130,11 +128,20 @@ const useExamsHistoryImpl = (
   });
 
   /**
+   * Sequence number of the newest fetch. The filter modal refetches on every
+   * checkbox, so several requests are in flight at once and the network is free
+   * to answer them out of order — without this, a slower earlier response would
+   * overwrite the list the user is actually looking at.
+   */
+  const requestIdRef = useRef(0);
+
+  /**
    * Fetch exams history from API
    * @param filters - Optional filters for pagination, search, sorting, etc.
    */
   const fetchExams = useCallback(
     async (filters?: ExamHistoryFilters) => {
+      const requestId = ++requestIdRef.current;
       setState((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
@@ -144,6 +151,11 @@ const useExamsHistoryImpl = (
           '/activities/history',
           { params }
         );
+
+        if (requestId !== requestIdRef.current) {
+          // A newer fetch has already been issued: this answer is stale.
+          return;
+        }
 
         const { data } = response.data;
 
@@ -182,6 +194,9 @@ const useExamsHistoryImpl = (
         }));
       } catch (error) {
         const errorMessage = handleExamFetchError(error);
+        if (requestId !== requestIdRef.current) {
+          return;
+        }
         setState((prev) => ({
           ...prev,
           loading: false,

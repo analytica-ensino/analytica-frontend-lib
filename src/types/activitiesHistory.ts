@@ -229,7 +229,11 @@ export interface ActivityModelFilters {
   page?: number;
   limit?: number;
   search?: string;
-  subjectId?: string;
+  /**
+   * Selected subjects, comma-separated (`'id-a,id-b'`) — the wire format
+   * `/activity-drafts` parses, and its only subject filter.
+   */
+  subjectIds?: string;
   type?: ActivityDraftType;
 }
 

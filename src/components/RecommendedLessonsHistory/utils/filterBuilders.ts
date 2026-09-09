@@ -19,9 +19,11 @@ export const buildRecommendedClassModelsFiltersFromParams = (
     filters.search = params.search;
   }
 
-  // Subject filter (single selection)
+  // Subject filter: every selected id goes out. The category is multi-select,
+  // so keeping only the first is what made a two-subject selection answer with
+  // a single subject.
   if (Array.isArray(params.subject) && params.subject.length > 0) {
-    filters.subjectId = params.subject[0];
+    filters.subjectIds = params.subject as string[];
   }
 
   return filters;

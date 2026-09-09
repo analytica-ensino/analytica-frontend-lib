@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { z } from 'zod';
 import dayjs from 'dayjs';
 import { RecommendedClassDisplayStatus } from '../types/recommendedLessons';
@@ -207,11 +207,20 @@ export const createUseRecommendedLessonsHistory = (
     });
 
     /**
+     * Sequence number of the newest fetch. The filter modal refetches on every
+     * checkbox, so several requests are in flight at once and the network is
+     * free to answer them out of order — without this, a slower earlier
+     * response would overwrite the list the user is actually looking at.
+     */
+    const requestIdRef = useRef(0);
+
+    /**
      * Fetch recommendedClass history from API
      * @param filters - Optional filters for pagination, search, sorting, etc.
      */
     const fetchRecommendedClass = useCallback(
       async (filters?: RecommendedClassHistoryFilters) => {
+        const requestId = ++requestIdRef.current;
         setState((prev) => ({ ...prev, loading: true, error: null }));
 
         try {
@@ -221,6 +230,11 @@ export const createUseRecommendedLessonsHistory = (
           // Validate response with Zod
           const validatedData =
             recommendedClassHistoryApiResponseSchema.parse(responseData);
+
+          if (requestId !== requestIdRef.current) {
+            // A newer fetch has already been issued: this answer is stale.
+            return;
+          }
 
           // Transform recommendedClass to table format
           const tableItems = validatedData.data.recommendedClass.map(
@@ -247,6 +261,9 @@ export const createUseRecommendedLessonsHistory = (
           });
         } catch (error) {
           const errorMessage = handleRecommendedClassFetchError(error);
+          if (requestId !== requestIdRef.current) {
+            return;
+          }
           setState((prev) => ({
             ...prev,
             loading: false,

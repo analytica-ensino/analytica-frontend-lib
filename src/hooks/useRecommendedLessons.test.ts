@@ -469,6 +469,60 @@ describe('useRecommendedLessons', () => {
       expect(result.current.fetchRecommendedClass).toBeInstanceOf(Function);
     });
 
+    it('should keep answering with the newest request when responses race', async () => {
+      let resolveFirst: (
+        value: RecommendedClassHistoryApiResponse
+      ) => void = () => {};
+      const firstResponse = new Promise<RecommendedClassHistoryApiResponse>(
+        (resolve) => {
+          resolveFirst = resolve;
+        }
+      );
+
+      const newerResponse: RecommendedClassHistoryApiResponse = {
+        ...validApiResponse,
+        data: {
+          ...validApiResponse.data,
+          recommendedClass: validApiResponse.data.recommendedClass.map(
+            (item) => ({
+              ...item,
+              recommendedClass: {
+                ...item.recommendedClass,
+                title: 'Newer RecommendedClass',
+              },
+            })
+          ),
+        },
+      };
+
+      mockFetchRecommendedClassHistory
+        .mockReturnValueOnce(firstResponse)
+        .mockResolvedValueOnce(newerResponse);
+
+      const useRecommendedClassHistory = createUseRecommendedLessonsHistory(
+        mockFetchRecommendedClassHistory
+      );
+      const { result } = renderHook(() => useRecommendedClassHistory());
+
+      await act(async () => {
+        // Each checkbox in the filter modal fires its own fetch, so a slower
+        // earlier request can land after the one the user is waiting on.
+        const stale = result.current.fetchRecommendedClass({
+          subjectIds: ['subject-1'],
+        });
+        await result.current.fetchRecommendedClass({
+          subjectIds: ['subject-1', 'subject-2'],
+        });
+        resolveFirst(validApiResponse);
+        await stale;
+      });
+
+      expect(result.current.recommendedClass).toHaveLength(1);
+      expect(result.current.recommendedClass[0].title).toBe(
+        'Newer RecommendedClass'
+      );
+    });
+
     it('should fetch recommendedClass successfully', async () => {
       mockFetchRecommendedClassHistory.mockResolvedValueOnce(validApiResponse);
 

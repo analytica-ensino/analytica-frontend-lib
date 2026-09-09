@@ -392,6 +392,73 @@ describe('useRecommendedLessonsPage', () => {
     });
   });
 
+  it('fetchRecommendedClassHistory: should send multi-select filters comma-separated', async () => {
+    (mockApi.get as jest.Mock).mockResolvedValueOnce({
+      data: validRecommendedClassHistoryResponse,
+    });
+
+    const { result } = setupHook();
+    await act(async () => {
+      await result.current.historyProps.fetchRecommendedClassHistory({
+        page: 1,
+        subjectIds: ['subject-1', 'subject-2'],
+        schoolIds: ['school-1', 'school-2'],
+        schoolYearIds: ['year-1'],
+      });
+    });
+
+    // The arrays used to be dropped here entirely, so selecting more than one
+    // school or year silently filtered nothing.
+    expect(mockApi.get).toHaveBeenCalledWith('/recommended-class/history', {
+      params: {
+        page: 1,
+        subjectIds: 'subject-1,subject-2',
+        schoolIds: 'school-1,school-2',
+        schoolYearIds: 'year-1',
+      },
+    });
+  });
+
+  it('fetchRecommendedClassHistory: should omit empty filter arrays', async () => {
+    (mockApi.get as jest.Mock).mockResolvedValueOnce({
+      data: validRecommendedClassHistoryResponse,
+    });
+
+    const { result } = setupHook();
+    await act(async () => {
+      await result.current.historyProps.fetchRecommendedClassHistory({
+        page: 1,
+        subjectIds: [],
+      });
+    });
+
+    expect(mockApi.get).toHaveBeenCalledWith('/recommended-class/history', {
+      params: { page: 1 },
+    });
+  });
+
+  it('fetchRecommendedClassModels: should send every selected subject', async () => {
+    (mockApi.get as jest.Mock).mockResolvedValueOnce({
+      data: validRecommendedClassModelsResponse,
+    });
+
+    const { result } = setupHook();
+    await act(async () => {
+      await result.current.historyProps.fetchRecommendedClassModels?.({
+        page: 1,
+        subjectIds: ['subject-1', 'subject-2'],
+      });
+    });
+
+    expect(mockApi.get).toHaveBeenCalledWith('/recommended-class/drafts', {
+      params: {
+        page: 1,
+        type: 'MODELO',
+        subjectIds: 'subject-1,subject-2',
+      },
+    });
+  });
+
   // fetchRecommendedClassModels tests
   it('fetchRecommendedClassModels: should fetch with MODELO type', async () => {
     (mockApi.get as jest.Mock).mockResolvedValueOnce({

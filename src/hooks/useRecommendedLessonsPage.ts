@@ -27,6 +27,7 @@ import type { FilterConfig } from '../components/Filter';
 import { SubjectEnum } from '../enums/SubjectEnum';
 import type { BaseApiClient } from '../types/api';
 import { loadCategoriesData } from '../utils/categoryDataUtils';
+import { toCsv } from '../utils/queryParams';
 import { useDynamicStudentFetching } from '../utils/useDynamicStudentFetching';
 
 /**
@@ -193,7 +194,12 @@ export interface UseRecommendedLessonsPageReturn {
 }
 
 /**
- * Build query parameters from filter object
+ * Build query parameters from filter object.
+ *
+ * Multi-select filters arrive as arrays and go out comma-separated, which is
+ * what the endpoint parses. Dropping them — as this builder used to, by only
+ * copying primitives — is why selecting more than one school, year or class
+ * silently filtered nothing at all.
  */
 const buildQueryParams = (
   filters?: Record<string, unknown>
@@ -203,14 +209,22 @@ const buildQueryParams = (
   const params: Record<string, unknown> = {};
   for (const key in filters) {
     const value = filters[key];
-    if (value !== undefined && value !== null) {
-      if (
-        typeof value === 'string' ||
-        typeof value === 'number' ||
-        typeof value === 'boolean'
-      ) {
-        params[key] = value;
+    if (value === undefined || value === null) {
+      continue;
+    }
+    if (Array.isArray(value)) {
+      const csv = toCsv(value);
+      if (csv) {
+        params[key] = csv;
       }
+      continue;
+    }
+    if (
+      typeof value === 'string' ||
+      typeof value === 'number' ||
+      typeof value === 'boolean'
+    ) {
+      params[key] = value;
     }
   }
   return params;
