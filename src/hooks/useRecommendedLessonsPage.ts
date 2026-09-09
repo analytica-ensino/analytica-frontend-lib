@@ -28,6 +28,7 @@ import { SubjectEnum } from '../enums/SubjectEnum';
 import type { BaseApiClient } from '../types/api';
 import { loadCategoriesData } from '../utils/categoryDataUtils';
 import { toCsv } from '../utils/queryParams';
+import { resolveDraftSubjects } from '../utils/subjectMappers';
 import { useDynamicStudentFetching } from '../utils/useDynamicStudentFetching';
 
 /**
@@ -414,16 +415,13 @@ const extractSubjectsFromDraftItems = (
 ): Array<{ id: string; name: string }> => {
   const subjectMap = new Map<string, string>();
   for (const draft of drafts ?? []) {
-    // Every subject the draft's lessons cover becomes a filter option. The
-    // singular `subject` is the deprecated fallback for a payload that predates
-    // the list.
-    for (const subject of draft.subjects ?? []) {
+    // Every subject the draft's lessons cover becomes a filter option, not just
+    // a primary one. `resolveDraftSubjects` owns the fallback to the deprecated
+    // singular field, so the shape of an older payload is handled in one place.
+    for (const subject of resolveDraftSubjects(draft)) {
       if (subject.id && subject.name) {
         subjectMap.set(subject.id, subject.name);
       }
-    }
-    if (!draft.subjects?.length && draft.subject?.id && draft.subject?.name) {
-      subjectMap.set(draft.subject.id, draft.subject.name);
     }
   }
   return Array.from(subjectMap.entries()).map(([id, name]) => ({ id, name }));

@@ -2150,29 +2150,18 @@ describe('RecommendedLessonCreate', () => {
       return result!;
     };
 
-    it('should show menu on small screen', async () => {
+    // Same render, same assertion, only the element changes — a table instead
+    // of a copy per element. The filters appear because that is the default
+    // view on small screen; nothing is clicked to get there.
+    it.each([
+      ['the overflow menu', 'menu-overflow-wrapper'],
+      ['the filters view, which is the default', 'lesson-filters'],
+    ])('should show %s on small screen', async (_description, testId) => {
       await renderWithSmallScreen(
         <RecommendedLessonCreate {...defaultProps} />
       );
 
-      expect(screen.getByTestId('menu-overflow-wrapper')).toBeInTheDocument();
-    });
-
-    it('renders the lesson filters on small screen too', async () => {
-      await renderWithSmallScreen(
-        <RecommendedLessonCreate {...defaultProps} />
-      );
-
-      expect(screen.getByTestId('lesson-filters')).toBeInTheDocument();
-    });
-
-    it('should show filters view by default on small screen', async () => {
-      await renderWithSmallScreen(
-        <RecommendedLessonCreate {...defaultProps} />
-      );
-
-      // By default should show filters view
-      expect(screen.getByTestId('lesson-filters')).toBeInTheDocument();
+      expect(screen.getByTestId(testId)).toBeInTheDocument();
     });
 
     it('should have menu items for switching views (filters, lessons, preview)', async () => {

@@ -15,11 +15,11 @@ import type {
  * Based on /recommended-class/history endpoint
  */
 const recommendedClassSubjectSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   name: z.string(),
   color: z.string(),
   icon: z.string(),
-  areaKnowledgeId: z.string().uuid(),
+  areaKnowledgeId: z.uuid(),
 });
 
 const recommendedClassCreatorSchema = z
