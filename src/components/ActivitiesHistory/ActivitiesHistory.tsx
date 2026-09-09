@@ -61,7 +61,11 @@ export interface ActivitiesHistoryProps {
   emptyStateImage?: string;
   /** Image for no search results */
   noSearchImage?: string;
-  /** Function to map subject name to SubjectEnum */
+  /**
+   * @deprecated Ignored. The backend now sends each subject with its own colour
+   * and icon, so the name no longer has to be mapped to a hardcoded enum. Kept
+   * in the props so consumers that still pass it keep compiling.
+   */
   mapSubjectNameToEnum?: (subjectName: string) => SubjectEnum | null;
   /** User data for populating filter options */
   userFilterData?: ActivityUserFilterData;
@@ -95,7 +99,6 @@ export const ActivitiesHistory = ({
   onEditModel,
   emptyStateImage,
   noSearchImage,
-  mapSubjectNameToEnum,
   userFilterData,
   subjectsMap,
 }: ActivitiesHistoryProps) => {
@@ -173,7 +176,6 @@ export const ActivitiesHistory = ({
               onRowClick={onRowClick}
               emptyStateImage={emptyStateImage}
               noSearchImage={noSearchImage}
-              mapSubjectNameToEnum={mapSubjectNameToEnum}
               userFilterData={userFilterData}
             />
           )}
@@ -189,7 +191,6 @@ export const ActivitiesHistory = ({
               onEditModel={onEditModel}
               emptyStateImage={emptyStateImage}
               noSearchImage={noSearchImage}
-              mapSubjectNameToEnum={mapSubjectNameToEnum}
               userFilterData={userFilterData}
               subjectsMap={subjectsMap}
             />

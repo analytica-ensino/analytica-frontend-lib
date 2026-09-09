@@ -4,7 +4,10 @@ import Button from '../Button/Button';
 import type { BaseApiClient } from '../../types/api';
 import { createUseActivityFiltersData } from '../../hooks/useActivityFiltersData';
 import type { LessonFiltersData } from '../../types/lessonFilters';
-import { getSelectedIdsFromCategories } from '../../utils/activityFilters';
+import {
+  getSelectedIdsFromCategories,
+  toggleArrayItem,
+} from '../../utils/activityFilters';
 import { areLessonFiltersEqual } from '../../utils/lessonFilters';
 import {
   SubjectsFilter,
@@ -24,14 +27,6 @@ export interface LessonFiltersProps {
   initialFilters?: LessonFiltersData | null;
   onClearFilters?: () => void;
   onApplyFilters?: () => void;
-  /**
-   * Gate run before a subject change is applied. Return (or resolve) `false` to
-   * veto it — used to ask the user to confirm discarding the preview, since a
-   * recommended class can only hold lessons from a single subject.
-   */
-  onBeforeSubjectChange?: (
-    nextSubjectId: string | null
-  ) => boolean | Promise<boolean>;
 }
 
 /**
@@ -46,11 +41,12 @@ export const LessonFilters = ({
   initialFilters = null,
   onClearFilters,
   onApplyFilters,
-  onBeforeSubjectChange,
 }: LessonFiltersProps) => {
   const useActivityFiltersData = createUseActivityFiltersData(apiClient);
 
-  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
+  // A recommended class may span several subjects — the backend derives them
+  // from the subjects of its lessons and activities.
+  const [selectedSubjectIds, setSelectedSubjectIds] = useState<string[]>([]);
 
   const {
     knowledgeAreas,
@@ -64,7 +60,9 @@ export const LessonFilters = ({
     loadSubtopics,
     loadContents,
   } = useActivityFiltersData({
-    selectedSubjects: selectedSubject ? [selectedSubject] : [],
+    // Tema/subtema/assunto hang off a single subject's knowledge tree, so the
+    // structure is only loaded while exactly one subject is selected.
+    selectedSubjects: selectedSubjectIds.length === 1 ? selectedSubjectIds : [],
     institutionId,
   });
 
@@ -94,10 +92,8 @@ export const LessonFilters = ({
       return;
     }
 
-    // Drafts saved before the single-subject rule may carry several ids; keep
-    // the first one. RecommendedLessonCreate warns the user when that happens.
     if (initialFilters.subjectIds && initialFilters.subjectIds.length > 0) {
-      setSelectedSubject(initialFilters.subjectIds[0]);
+      setSelectedSubjectIds(initialFilters.subjectIds);
     }
 
     hasAppliedBasicInitialFiltersRef.current = true;
@@ -109,29 +105,24 @@ export const LessonFilters = ({
     }
   }, [loadKnowledgeAreas, institutionId]);
 
-  /**
-   * @returns whether the change was applied — SubjectsFilter needs to know so it
-   * can roll its own state back when the gate refuses.
-   */
-  const handleSubjectChange = async (
-    subjectId: string | null
-  ): Promise<boolean> => {
-    if (subjectId === selectedSubject) {
-      return true;
-    }
+  // Whether every available subject is currently selected — drives the
+  // "Todos os componentes curriculares" card's checked state.
+  const allSubjectsSelected = useMemo(
+    () =>
+      knowledgeAreas.length > 0 &&
+      knowledgeAreas.every((area) => selectedSubjectIds.includes(area.id)),
+    [knowledgeAreas, selectedSubjectIds]
+  );
 
-    if (onBeforeSubjectChange && !(await onBeforeSubjectChange(subjectId))) {
-      return false;
-    }
-
-    setSelectedSubject(subjectId);
-    return true;
+  const handleToggleSubject = (subjectId: string) => {
+    setSelectedSubjectIds((prev) => toggleArrayItem(prev, subjectId));
   };
 
-  const selectedSubjects = useMemo(
-    () => (selectedSubject ? [selectedSubject] : []),
-    [selectedSubject]
-  );
+  const handleToggleAllSubjects = () => {
+    setSelectedSubjectIds(
+      allSubjectsSelected ? [] : knowledgeAreas.map((area) => area.id)
+    );
+  };
 
   const getSelectedKnowledgeIds = useCallback(() => {
     return getSelectedIdsFromCategories(knowledgeCategories, {
@@ -151,7 +142,7 @@ export const LessonFilters = ({
   useEffect(() => {
     const knowledgeIds = getSelectedKnowledgeIds();
     const filters: LessonFiltersData = {
-      subjectIds: selectedSubjects,
+      subjectIds: selectedSubjectIds,
       topicIds: knowledgeIds.topicIds,
       subtopicIds: knowledgeIds.subtopicIds,
       contentIds: knowledgeIds.contentIds,
@@ -161,7 +152,7 @@ export const LessonFilters = ({
       prevFiltersRef.current = filters;
       onFiltersChangeRef.current(filters);
     }
-  }, [selectedSubjects, knowledgeCategories, getSelectedKnowledgeIds]);
+  }, [selectedSubjectIds, knowledgeCategories, getSelectedKnowledgeIds]);
 
   const containerClassName =
     variant === 'popover'
@@ -187,11 +178,11 @@ export const LessonFilters = ({
               <Text size="sm" weight="bold">
                 Componente curricular
               </Text>
-              {selectedSubject !== null && (
+              {selectedSubjectIds.length > 0 && (
                 <Button
                   type="button"
                   variant="link"
-                  onClick={() => handleSubjectChange(null)}
+                  onClick={() => setSelectedSubjectIds([])}
                   size="small"
                 >
                   Limpar
@@ -200,8 +191,11 @@ export const LessonFilters = ({
             </div>
             <SubjectsFilter
               knowledgeAreas={knowledgeAreas}
-              selectedSubject={selectedSubject}
-              onSubjectChange={handleSubjectChange}
+              selectedSubjectIds={selectedSubjectIds}
+              onToggleSubject={handleToggleSubject}
+              showAllSubjectsOption
+              allSubjectsSelected={allSubjectsSelected}
+              onToggleAllSubjects={handleToggleAllSubjects}
               loading={loadingSubjects}
               error={subjectsError}
             />

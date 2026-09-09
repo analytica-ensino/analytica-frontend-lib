@@ -377,8 +377,12 @@ const extractMapsFromItems = (
   const schoolYearMap = new Map<string, string>();
 
   for (const item of items) {
-    if (item.subject?.id && item.subject?.name) {
-      subjectMap.set(item.subject.id, item.subject.name);
+    // Every subject the class covers becomes a filter option, not just a
+    // primary one.
+    for (const subject of item.subjects ?? []) {
+      if (subject.id && subject.name) {
+        subjectMap.set(subject.id, subject.name);
+      }
     }
     for (const b of item.breakdown) {
       collectBreakdownData(b, schoolMap, classMap, schoolYearMap);
@@ -396,7 +400,15 @@ const extractSubjectsFromDraftItems = (
 ): Array<{ id: string; name: string }> => {
   const subjectMap = new Map<string, string>();
   for (const draft of drafts ?? []) {
-    if (draft.subject?.id && draft.subject?.name) {
+    // Every subject the draft's lessons cover becomes a filter option. The
+    // singular `subject` is the deprecated fallback for a payload that predates
+    // the list.
+    for (const subject of draft.subjects ?? []) {
+      if (subject.id && subject.name) {
+        subjectMap.set(subject.id, subject.name);
+      }
+    }
+    if (!draft.subjects?.length && draft.subject?.id && draft.subject?.name) {
       subjectMap.set(draft.subject.id, draft.subject.name);
     }
   }

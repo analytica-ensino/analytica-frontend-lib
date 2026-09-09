@@ -9,6 +9,7 @@ import {
   BadgeActionType,
   getStatusBadgeAction,
 } from './common';
+import type { SubjectData } from './activitiesHistory';
 
 /**
  * Recommended Class status from backend API
@@ -29,11 +30,17 @@ export { GenericDisplayStatus as RecommendedClassDisplayStatus } from './common'
 export { BadgeActionType as RecommendedClassBadgeActionType } from './common';
 
 /**
- * Subject info from API response
+ * Subject info from API response.
+ *
+ * Same shape as `ActivitySubject` in the activities feature, so a subject is
+ * rendered the same way wherever it appears.
  */
 export interface RecommendedClassSubject {
   id: string;
   name: string;
+  color: string;
+  icon: string;
+  areaKnowledgeId: string;
 }
 
 /**
@@ -94,7 +101,8 @@ export interface UpdateRecommendedClassData {
  */
 export interface RecommendedClassHistoryItem {
   recommendedClass: RecommendedClassData;
-  subject: RecommendedClassSubject | null;
+  /** Every subject the lessons and activities of this class cover. */
+  subjects: RecommendedClassSubject[];
   creator: RecommendedClassCreator | null;
   stats: RecommendedClassStats;
   breakdown: RecommendedClassBreakdown[];
@@ -113,7 +121,8 @@ export interface RecommendedClassTableItem extends Record<string, unknown> {
   title: string;
   school: string;
   year: string;
-  subject: string;
+  /** Subjects rendered in the "Componente curricular" column; may be empty. */
+  subjects: RecommendedClassSubject[];
   class: string;
   status: GenericDisplayStatus;
   completionPercentage: number;
@@ -519,7 +528,13 @@ export interface RecommendedClassModelResponse {
   description: string | null;
   creatorUserInstitutionId: string;
   subjectId: string | null;
+  /** @deprecated Use `subjects`; carries its first entry, or null. */
   subject?: { id: string; name: string } | null;
+  /**
+   * Every subject the draft's lessons and activity drafts cover. Optional
+   * because the backend's create and update handlers do not resolve it.
+   */
+  subjects?: RecommendedClassSubject[];
   startDate: string | null;
   finalDate: string | null;
   createdAt: string;
@@ -544,7 +559,12 @@ export interface RecommendedClassModelTableItem extends Record<
   id: string;
   title: string;
   savedAt: string;
-  subject: string;
+  /**
+   * Subjects rendered in the "Componente curricular" column; may be empty.
+   * The render shape rather than the API shape — a draft's subject may have
+   * been resolved from a name-only fallback, with no `areaKnowledgeId`.
+   */
+  subjects: SubjectData[];
   subjectId: string | null;
   /** Number of activity drafts attached to this model. */
   activityDraftsCount?: number;

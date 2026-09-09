@@ -13,7 +13,6 @@ import type {
   RecommendedClassModelsApiResponse,
   RecommendedClassUserFilterData,
 } from '../../../types/recommendedLessons';
-import type { SubjectEnum } from '../../../enums/SubjectEnum';
 
 /**
  * Configuration for recommendedClass models tab
@@ -59,7 +58,6 @@ export interface RecommendedClassModelsTabProps {
   /** Image for no search results */
   noSearchImage?: string;
   /** Function to map subject name to SubjectEnum */
-  mapSubjectNameToEnum?: (subjectName: string) => SubjectEnum | null;
   /** User data for populating filter options */
   userFilterData?: RecommendedClassUserFilterData;
   /**
@@ -83,7 +81,6 @@ export const RecommendedClassModelsTab = ({
   onEditModel,
   emptyStateImage,
   noSearchImage,
-  mapSubjectNameToEnum,
   userFilterData,
   subjectsMap,
 }: RecommendedClassModelsTabProps) => (
@@ -100,13 +97,11 @@ export const RecommendedClassModelsTab = ({
     onEditModel={onEditModel}
     emptyStateImage={emptyStateImage}
     noSearchImage={noSearchImage}
-    mapSubjectNameToEnum={mapSubjectNameToEnum}
     userFilterData={userFilterData}
     subjectsMap={subjectsMap}
     config={RECOMMENDED_CLASS_MODELS_CONFIG}
     createTableColumns={(mapSubject, send, edit, del) =>
       createModelsTableColumnsBase(
-        mapSubject,
         send,
         edit,
         del,

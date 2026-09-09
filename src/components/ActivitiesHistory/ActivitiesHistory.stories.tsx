@@ -59,11 +59,15 @@ const mockActivitiesResponse: ActivitiesHistoryApiResponse = {
         finalDate: '2024-12-15',
         status: ActivityApiStatus.A_VENCER,
         completionPercentage: 75,
-        subject: {
-          id: MOCK_UUIDS.subjects.math,
-          name: 'Matemática',
-          areaKnowledgeId: 'area-exatas',
-        },
+        subjects: [
+          {
+            id: MOCK_UUIDS.subjects.math,
+            name: 'Matemática',
+            areaKnowledgeId: 'area-exatas',
+            color: '#C62828',
+            icon: 'MathOperations',
+          },
+        ],
         creator: { id: MOCK_UUIDS.users.user1, name: 'Prof. Carlos' },
         breakdown: [
           {
@@ -86,11 +90,15 @@ const mockActivitiesResponse: ActivitiesHistoryApiResponse = {
         finalDate: '2024-11-30',
         status: ActivityApiStatus.VENCIDA,
         completionPercentage: 45,
-        subject: {
-          id: MOCK_UUIDS.subjects.portuguese,
-          name: 'Português',
-          areaKnowledgeId: 'area-humanas',
-        },
+        subjects: [
+          {
+            id: MOCK_UUIDS.subjects.portuguese,
+            name: 'Português',
+            areaKnowledgeId: 'area-humanas',
+            color: '#C62828',
+            icon: 'MathOperations',
+          },
+        ],
         creator: { id: MOCK_UUIDS.users.user1, name: 'Prof. Carlos' },
         breakdown: [
           {
@@ -113,11 +121,15 @@ const mockActivitiesResponse: ActivitiesHistoryApiResponse = {
         finalDate: '2024-10-01',
         status: ActivityApiStatus.CONCLUIDA,
         completionPercentage: 100,
-        subject: {
-          id: MOCK_UUIDS.subjects.physics,
-          name: 'Física',
-          areaKnowledgeId: 'area-exatas',
-        },
+        subjects: [
+          {
+            id: MOCK_UUIDS.subjects.physics,
+            name: 'Física',
+            areaKnowledgeId: 'area-exatas',
+            color: '#C62828',
+            icon: 'MathOperations',
+          },
+        ],
         creator: { id: MOCK_UUIDS.users.user1, name: 'Prof. Carlos' },
         breakdown: [
           {
@@ -140,11 +152,15 @@ const mockActivitiesResponse: ActivitiesHistoryApiResponse = {
         finalDate: '2024-12-20',
         status: ActivityApiStatus.A_VENCER,
         completionPercentage: 30,
-        subject: {
-          id: MOCK_UUIDS.subjects.history,
-          name: 'História',
-          areaKnowledgeId: 'area-humanas',
-        },
+        subjects: [
+          {
+            id: MOCK_UUIDS.subjects.history,
+            name: 'História',
+            areaKnowledgeId: 'area-humanas',
+            color: '#C62828',
+            icon: 'MathOperations',
+          },
+        ],
         creator: { id: MOCK_UUIDS.users.user1, name: 'Prof. Carlos' },
         breakdown: [
           {

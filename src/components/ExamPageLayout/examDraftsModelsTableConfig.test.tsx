@@ -6,18 +6,6 @@ import {
 import type { ActivityModelTableItem } from '../../types/activitiesHistory';
 import { ActivityType } from '../../components/ActivityCreate/ActivityCreate.types';
 
-// Mock the renderSubjectCell utility
-jest.mock('../../utils/renderSubjectCell', () => ({
-  renderSubjectCell: (value: string) => (
-    <span data-testid="subject">{value}</span>
-  ),
-}));
-
-// Mock the mapSubjectNameToEnum utility
-jest.mock('../../utils/subjectMappers', () => ({
-  mapSubjectNameToEnum: jest.fn((name: string) => name),
-}));
-
 describe('examDraftsModelsTableConfig', () => {
   const mockCallbacks: ExamTableCallbacks = {
     onSend: jest.fn(),
@@ -29,12 +17,14 @@ describe('examDraftsModelsTableConfig', () => {
     id: '123',
     title: 'Test Exam',
     savedAt: '01/01/2024',
-    subject: {
-      id: 'math-1',
-      name: 'Matemática',
-      icon: 'Calculator',
-      color: '#FF0000',
-    },
+    subjects: [
+      {
+        id: 'math-1',
+        name: 'Matemática',
+        icon: 'Calculator',
+        color: '#FF0000',
+      },
+    ],
     type: ActivityType.MODELO,
     subjectId: 'math-1',
   };
@@ -70,11 +60,12 @@ describe('examDraftsModelsTableConfig', () => {
 
     it('should have subject column with correct configuration', () => {
       const columns = createExamDraftsModelsTableColumns(mockCallbacks);
-      const subjectColumn = columns.find((col) => col.key === 'subject');
+      const subjectColumn = columns.find((col) => col.key === 'subjects');
 
       expect(subjectColumn).toBeDefined();
       expect(subjectColumn?.label).toBe('Componente curricular');
-      expect(subjectColumn?.sortable).toBe(true);
+      // Uma lista de matérias não tem ordenação com significado.
+      expect(subjectColumn?.sortable).toBe(false);
     });
 
     it('should have actions column with correct configuration', () => {
@@ -87,48 +78,42 @@ describe('examDraftsModelsTableConfig', () => {
     });
   });
 
-  describe('subject column render', () => {
-    it('should render subject name from object format', () => {
-      const columns = createExamDraftsModelsTableColumns(mockCallbacks);
-      const subjectColumn = columns.find((col) => col.key === 'subject');
-      const subjectValue = { name: 'Matemática' };
-
-      const { container } = render(
-        <>{subjectColumn?.render?.(subjectValue, mockRow, 0)}</>
+  describe('subjects column render', () => {
+    const subjectsColumn = () =>
+      createExamDraftsModelsTableColumns(mockCallbacks).find(
+        (col) => col.key === 'subjects'
       );
 
-      expect(container.textContent).toContain('Matemática');
+    it('renders one icon per subject the draft covers', () => {
+      const subjects = [
+        {
+          id: '1',
+          name: 'Matemática',
+          color: '#C62828',
+          icon: 'MathOperations',
+        },
+        { id: '2', name: 'Física', color: '#1565C0', icon: 'Atom' },
+      ];
+
+      render(<>{subjectsColumn()?.render?.(subjects, mockRow, 0)}</>);
+
+      expect(screen.getByLabelText('Matemática')).toBeInTheDocument();
+      expect(screen.getByLabelText('Física')).toBeInTheDocument();
     });
 
-    it('should render dash for null subject', () => {
-      const columns = createExamDraftsModelsTableColumns(mockCallbacks);
-      const subjectColumn = columns.find((col) => col.key === 'subject');
-
+    it('renders a dash when the draft covers no subject', () => {
       const { container } = render(
-        <>{subjectColumn?.render?.(null, mockRow, 0)}</>
+        <>{subjectsColumn()?.render?.([], mockRow, 0)}</>
       );
 
       expect(container.textContent).toContain('-');
     });
 
-    it('should render string subject value', () => {
-      const columns = createExamDraftsModelsTableColumns(mockCallbacks);
-      const subjectColumn = columns.find((col) => col.key === 'subject');
-
+    it('renders a dash when the value is not a list', () => {
+      // ColumnConfig.render is typed `unknown`; a row from an older payload
+      // must degrade rather than throw.
       const { container } = render(
-        <>{subjectColumn?.render?.('Física', mockRow, 0)}</>
-      );
-
-      expect(container.textContent).toContain('Física');
-    });
-
-    it('should handle object without name property', () => {
-      const columns = createExamDraftsModelsTableColumns(mockCallbacks);
-      const subjectColumn = columns.find((col) => col.key === 'subject');
-      const invalidValue = { id: '123' };
-
-      const { container } = render(
-        <>{subjectColumn?.render?.(invalidValue, mockRow, 0)}</>
+        <>{subjectsColumn()?.render?.(null, mockRow, 0)}</>
       );
 
       expect(container.textContent).toContain('-');

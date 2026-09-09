@@ -15,15 +15,15 @@ const extractSubjectOptions = (
 ): ActivityFilterOption[] => {
   const subjects = new Map<string, ActivityFilterOption>();
 
+  // A row carries every subject its questions cover, so each one becomes an
+  // option — keying off the row's legacy primary `subjectId` would hide the rest.
+  // `?? []` because ActivityModelTableItem carries an index signature, so rows
+  // reach here through `as` casts that TypeScript cannot vouch for.
   for (const item of data) {
-    const name = item.subject?.name;
-    if (
-      item.subjectId &&
-      name &&
-      name !== '-' &&
-      !subjects.has(item.subjectId)
-    ) {
-      subjects.set(item.subjectId, { id: item.subjectId, name });
+    for (const subject of item.subjects ?? []) {
+      if (subject.id && subject.name && subject.name !== '-') {
+        subjects.set(subject.id, { id: subject.id, name: subject.name });
+      }
     }
   }
 

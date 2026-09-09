@@ -4,12 +4,12 @@ import { createHistoryTableColumns } from './historyTableColumns';
 describe('historyTableColumns', () => {
   describe('createHistoryTableColumns', () => {
     it('should have 11 columns defined', () => {
-      const columns = createHistoryTableColumns(undefined);
+      const columns = createHistoryTableColumns();
       expect(columns).toHaveLength(11);
     });
 
     it('should define startDate column correctly', () => {
-      const columns = createHistoryTableColumns(undefined);
+      const columns = createHistoryTableColumns();
       const column = columns[0];
       expect(column.key).toBe('startDate');
       expect(column.label).toBe('Início');
@@ -17,7 +17,7 @@ describe('historyTableColumns', () => {
     });
 
     it('should define deadline column correctly', () => {
-      const columns = createHistoryTableColumns(undefined);
+      const columns = createHistoryTableColumns();
       const column = columns[1];
       expect(column.key).toBe('deadline');
       expect(column.label).toBe('Prazo');
@@ -25,7 +25,7 @@ describe('historyTableColumns', () => {
     });
 
     it('should define creator column correctly', () => {
-      const columns = createHistoryTableColumns(undefined);
+      const columns = createHistoryTableColumns();
       const column = columns[2];
       expect(column.key).toBe('creator');
       expect(column.label).toBe('Autor');
@@ -34,7 +34,7 @@ describe('historyTableColumns', () => {
     });
 
     it('should render creator column with name and tooltip', () => {
-      const columns = createHistoryTableColumns(undefined);
+      const columns = createHistoryTableColumns();
       const column = columns[2];
       const { container } = render(
         <>{column.render?.('Prof. Maria', {} as never, 0)}</>
@@ -46,7 +46,7 @@ describe('historyTableColumns', () => {
     });
 
     it('should render creator column with empty string for non-string value', () => {
-      const columns = createHistoryTableColumns(undefined);
+      const columns = createHistoryTableColumns();
       const column = columns[2];
       const { container } = render(
         <>{column.render?.(null, {} as never, 0)}</>
@@ -57,7 +57,7 @@ describe('historyTableColumns', () => {
     });
 
     it('should define title column correctly', () => {
-      const columns = createHistoryTableColumns(undefined);
+      const columns = createHistoryTableColumns();
       const column = columns[3];
       expect(column.key).toBe('title');
       expect(column.label).toBe('Título');
@@ -65,7 +65,7 @@ describe('historyTableColumns', () => {
     });
 
     it('should define school column correctly', () => {
-      const columns = createHistoryTableColumns(undefined);
+      const columns = createHistoryTableColumns();
       const column = columns[4];
       expect(column.key).toBe('school');
       expect(column.label).toBe('Escola');
@@ -73,7 +73,7 @@ describe('historyTableColumns', () => {
     });
 
     it('should define year column correctly', () => {
-      const columns = createHistoryTableColumns(undefined);
+      const columns = createHistoryTableColumns();
       const column = columns[5];
       expect(column.key).toBe('year');
       expect(column.label).toBe('Ano');
@@ -81,15 +81,16 @@ describe('historyTableColumns', () => {
     });
 
     it('should define subject column correctly', () => {
-      const columns = createHistoryTableColumns(undefined);
+      const columns = createHistoryTableColumns();
       const column = columns[6];
-      expect(column.key).toBe('subject');
+      expect(column.key).toBe('subjects');
       expect(column.label).toBe('Componente curricular');
-      expect(column.sortable).toBe(true);
+      // Uma lista de matérias não tem ordenação com significado.
+      expect(column.sortable).toBe(false);
     });
 
     it('should define class column correctly', () => {
-      const columns = createHistoryTableColumns(undefined);
+      const columns = createHistoryTableColumns();
       const column = columns[7];
       expect(column.key).toBe('class');
       expect(column.label).toBe('Turma');
@@ -97,7 +98,7 @@ describe('historyTableColumns', () => {
     });
 
     it('should define status column correctly', () => {
-      const columns = createHistoryTableColumns(undefined);
+      const columns = createHistoryTableColumns();
       const column = columns[8];
       expect(column.key).toBe('status');
       expect(column.label).toBe('Status');
@@ -105,7 +106,7 @@ describe('historyTableColumns', () => {
     });
 
     it('should define completionPercentage column correctly', () => {
-      const columns = createHistoryTableColumns(undefined);
+      const columns = createHistoryTableColumns();
       const column = columns[9];
       expect(column.key).toBe('completionPercentage');
       expect(column.label).toBe('Conclusão');
@@ -113,7 +114,7 @@ describe('historyTableColumns', () => {
     });
 
     it('should define navigation column correctly', () => {
-      const columns = createHistoryTableColumns(undefined);
+      const columns = createHistoryTableColumns();
       const column = columns[10];
       expect(column.key).toBe('navigation');
       expect(column.label).toBe('');

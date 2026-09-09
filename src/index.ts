@@ -246,6 +246,11 @@ export type {
   SubjectData,
   IconProps as SubjectIconProps,
 } from './components/SubjectInfo/SubjectInfo';
+export { SubjectIcons } from './components/SubjectIcons/SubjectIcons';
+export type {
+  SubjectIconsProps,
+  SubjectIconsItem,
+} from './components/SubjectIcons/SubjectIcons';
 
 // Notification Store
 export {

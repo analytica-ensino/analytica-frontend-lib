@@ -4,17 +4,6 @@ import {
   type BaseModelItem,
   type ModelsColumnsConfig,
 } from './createModelsTableColumnsBase';
-import { SubjectEnum } from '../../../enums/SubjectEnum';
-
-// Mock renderSubjectCell
-jest.mock('../../../utils/renderSubjectCell', () => ({
-  renderSubjectCell: jest.fn(
-    (subjectName: string, _map: unknown, showEmptyDash: boolean) => {
-      if (!subjectName && showEmptyDash) return <span>-</span>;
-      return <span>{subjectName || '-'}</span>;
-    }
-  ),
-}));
 
 /**
  * Test model item
@@ -26,7 +15,9 @@ interface TestModelItem extends BaseModelItem {
 const mockModel: TestModelItem = {
   id: '1',
   title: 'Test Model',
-  subject: 'Mathematics',
+  subjects: [
+    { id: 'subject-1', name: 'Mathematics', color: '#C62828', icon: 'Atom' },
+  ],
   savedAt: '01/01/2024',
   subjectId: 'subject-1',
 };
@@ -44,7 +35,6 @@ describe('createModelsTableColumnsBase', () => {
       const columns = createModelsTableColumnsBase<TestModelItem>(
         undefined,
         undefined,
-        undefined,
         jest.fn(),
         defaultConfig
       );
@@ -55,17 +45,15 @@ describe('createModelsTableColumnsBase', () => {
       const columns = createModelsTableColumnsBase<TestModelItem>(
         undefined,
         undefined,
-        undefined,
         jest.fn(),
         defaultConfig
       );
       const keys = columns.map((col) => col.key);
-      expect(keys).toEqual(['title', 'savedAt', 'subject', 'actions']);
+      expect(keys).toEqual(['title', 'savedAt', 'subjects', 'actions']);
     });
 
     it('should have correct sortable settings', () => {
       const columns = createModelsTableColumnsBase<TestModelItem>(
-        undefined,
         undefined,
         undefined,
         jest.fn(),
@@ -73,7 +61,7 @@ describe('createModelsTableColumnsBase', () => {
       );
       expect(columns[0].sortable).toBe(true); // title
       expect(columns[1].sortable).toBe(true); // savedAt
-      expect(columns[2].sortable).toBe(true); // subject
+      expect(columns[2].sortable).toBe(false); // subjects: lista, sem ordenação
       expect(columns[3].sortable).toBe(false); // actions
     });
   });
@@ -81,7 +69,6 @@ describe('createModelsTableColumnsBase', () => {
   describe('title column', () => {
     it('should render title text', () => {
       const columns = createModelsTableColumnsBase<TestModelItem>(
-        undefined,
         undefined,
         undefined,
         jest.fn(),
@@ -98,7 +85,6 @@ describe('createModelsTableColumnsBase', () => {
 
     it('should handle empty title', () => {
       const columns = createModelsTableColumnsBase<TestModelItem>(
-        undefined,
         undefined,
         undefined,
         jest.fn(),
@@ -118,7 +104,6 @@ describe('createModelsTableColumnsBase', () => {
       const columns = createModelsTableColumnsBase<TestModelItem>(
         undefined,
         undefined,
-        undefined,
         jest.fn(),
         defaultConfig
       );
@@ -133,32 +118,29 @@ describe('createModelsTableColumnsBase', () => {
     });
   });
 
-  describe('subject column', () => {
-    it('should render subject name', () => {
-      const columns = createModelsTableColumnsBase<TestModelItem>(
-        undefined,
+  describe('subjects column', () => {
+    const subjectsColumn = () =>
+      createModelsTableColumnsBase<TestModelItem>(
         undefined,
         undefined,
         jest.fn(),
         defaultConfig
+      )[2];
+
+    it('renders one icon per subject', () => {
+      render(
+        <>{subjectsColumn().render?.(mockModel.subjects, mockModel, 0)}</>
       );
-      const subjectColumn = columns[2];
-      render(<>{subjectColumn.render?.(mockModel.subject, mockModel, 0)}</>);
-      expect(screen.getByText('Mathematics')).toBeInTheDocument();
+
+      expect(screen.getByLabelText('Mathematics')).toBeInTheDocument();
     });
 
-    it('should call mapSubjectNameToEnum when provided', () => {
-      const mapFn = jest.fn().mockReturnValue(SubjectEnum.MATEMATICA);
-      const columns = createModelsTableColumnsBase<TestModelItem>(
-        mapFn,
-        undefined,
-        undefined,
-        jest.fn(),
-        defaultConfig
+    it('renders a dash when the model covers no subject', () => {
+      const { container } = render(
+        <>{subjectsColumn().render?.([], mockModel, 0)}</>
       );
-      const subjectColumn = columns[2];
-      render(<>{subjectColumn.render?.(mockModel.subject, mockModel, 0)}</>);
-      expect(mapFn).not.toHaveBeenCalled(); // renderSubjectCell handles this
+
+      expect(container.textContent).toContain('-');
     });
   });
 
@@ -166,7 +148,6 @@ describe('createModelsTableColumnsBase', () => {
     it('should render send button when onSend is provided', () => {
       const onSend = jest.fn();
       const columns = createModelsTableColumnsBase<TestModelItem>(
-        undefined,
         onSend,
         undefined,
         jest.fn(),
@@ -184,7 +165,6 @@ describe('createModelsTableColumnsBase', () => {
       const columns = createModelsTableColumnsBase<TestModelItem>(
         undefined,
         undefined,
-        undefined,
         jest.fn(),
         defaultConfig
       );
@@ -196,7 +176,6 @@ describe('createModelsTableColumnsBase', () => {
     it('should render edit button when onEdit is provided', () => {
       const onEdit = jest.fn();
       const columns = createModelsTableColumnsBase<TestModelItem>(
-        undefined,
         undefined,
         onEdit,
         jest.fn(),
@@ -211,7 +190,6 @@ describe('createModelsTableColumnsBase', () => {
 
     it('should not render edit button when onEdit is not provided', () => {
       const columns = createModelsTableColumnsBase<TestModelItem>(
-        undefined,
         undefined,
         undefined,
         jest.fn(),
@@ -229,7 +207,6 @@ describe('createModelsTableColumnsBase', () => {
       const columns = createModelsTableColumnsBase<TestModelItem>(
         undefined,
         undefined,
-        undefined,
         onDelete,
         defaultConfig
       );
@@ -243,7 +220,6 @@ describe('createModelsTableColumnsBase', () => {
     it('should call onSend when send button is clicked', () => {
       const onSend = jest.fn();
       const columns = createModelsTableColumnsBase<TestModelItem>(
-        undefined,
         onSend,
         undefined,
         jest.fn(),
@@ -258,7 +234,6 @@ describe('createModelsTableColumnsBase', () => {
     it('should call onEdit when edit button is clicked', () => {
       const onEdit = jest.fn();
       const columns = createModelsTableColumnsBase<TestModelItem>(
-        undefined,
         undefined,
         onEdit,
         jest.fn(),
@@ -275,7 +250,6 @@ describe('createModelsTableColumnsBase', () => {
       const columns = createModelsTableColumnsBase<TestModelItem>(
         undefined,
         undefined,
-        undefined,
         onDelete,
         defaultConfig
       );
@@ -290,7 +264,6 @@ describe('createModelsTableColumnsBase', () => {
       const onEdit = jest.fn();
       const onDelete = jest.fn();
       const columns = createModelsTableColumnsBase<TestModelItem>(
-        undefined,
         onSend,
         onEdit,
         onDelete,
@@ -325,7 +298,6 @@ describe('createModelsTableColumnsBase', () => {
         editButtonAriaLabel: 'Editar modelo',
       };
       const columns = createModelsTableColumnsBase<TestModelItem>(
-        undefined,
         jest.fn(),
         jest.fn(),
         jest.fn(),

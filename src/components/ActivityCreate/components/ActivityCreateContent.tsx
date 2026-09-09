@@ -59,9 +59,6 @@ interface SmallScreenLayoutProps {
   onRemoveQuestion: (questionId: string) => void;
   onReorder: (questions: PreviewQuestion[]) => void;
   filtersKey?: number;
-  onBeforeSubjectChange?: (
-    nextSubjectId: string | null
-  ) => boolean | Promise<boolean>;
 }
 
 /**
@@ -87,7 +84,6 @@ export const SmallScreenLayout = ({
   onRemoveQuestion,
   onReorder,
   filtersKey = 0,
-  onBeforeSubjectChange,
 }: SmallScreenLayoutProps) => (
   <div className="flex flex-col w-full flex-1 overflow-hidden gap-5 min-h-0">
     {/* Filters and Menu Row */}
@@ -101,7 +97,6 @@ export const SmallScreenLayout = ({
         triggerLabel="Filtro de questões"
         onApplyFilters={onApplyFilters}
         onClearFilters={onClearFilters}
-        onBeforeSubjectChange={onBeforeSubjectChange}
         allowedQuestionTypes={
           isInPersonExam ? [QUESTION_TYPE.ALTERNATIVA] : undefined
         }
@@ -177,9 +172,6 @@ interface DesktopLayoutProps {
   onRemoveQuestion: (questionId: string) => void;
   onReorder: (questions: PreviewQuestion[]) => void;
   filtersKey?: number;
-  onBeforeSubjectChange?: (
-    nextSubjectId: string | null
-  ) => boolean | Promise<boolean>;
 }
 
 /**
@@ -204,7 +196,6 @@ export const DesktopLayout = ({
   onRemoveQuestion,
   onReorder,
   filtersKey = 0,
-  onBeforeSubjectChange,
 }: DesktopLayoutProps) => (
   <div className="flex flex-row w-full flex-1 overflow-hidden gap-5 min-h-0">
     {/* First Column - Filters */}
@@ -225,7 +216,6 @@ export const DesktopLayout = ({
           variant={'default'}
           onFiltersChange={onFiltersChange}
           initialFilters={initialFiltersData || undefined}
-          onBeforeSubjectChange={onBeforeSubjectChange}
           allowedQuestionTypes={
             isInPersonExam ? [QUESTION_TYPE.ALTERNATIVA] : undefined
           }

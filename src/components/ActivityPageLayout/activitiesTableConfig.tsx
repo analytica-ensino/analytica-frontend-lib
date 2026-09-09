@@ -1,8 +1,7 @@
 import Badge from '../Badge/Badge';
 import ProgressBar from '../ProgressBar/ProgressBar';
 import { renderTextCell } from '../../utils/renderTextCell';
-import { renderSubjectCell } from '../../utils/renderSubjectCell';
-import { mapSubjectNameToEnum } from '../../utils/subjectMappers';
+import { renderSubjectsCell } from '../../utils/renderSubjectCell';
 import type { ColumnConfig } from '../TableProvider/TableProvider';
 import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
 import type { ActivityTableItem } from '../../types/activitiesHistory';
@@ -80,7 +79,7 @@ export const renderActivityStatusBadge = (value: unknown) => {
  * abaixo foram medidos no navegador para a tabela caber sem rolagem horizontal
  * a partir de 1280px de viewport — os professores precisavam arrastar a barra
  * para alcançar o botão de editar e mudar prazos. Todas essas colunas usam
- * `renderTextCell`/`renderSubjectCell`, então o texto completo continua
+ * `renderTextCell`/`renderSubjectsCell`, então o texto completo continua
  * acessível no tooltip.
  */
 export const activitiesTableColumns: ColumnConfig<ActivityTableItem>[] = [
@@ -120,17 +119,15 @@ export const activitiesTableColumns: ColumnConfig<ActivityTableItem>[] = [
     render: renderTextCell,
   },
   {
-    key: 'subject',
+    key: 'subjects',
     // "Componente" e não "Componente curricular": o <th> recebe `min-w-fit`,
     // que vence o max-width, então o rótulo é o piso de largura da coluna.
     label: 'Componente',
-    sortable: true,
+    // Uma atividade cobre várias matérias; ordenar por uma lista de objetos não
+    // significa nada, e `sortBy` não aceita este campo no backend.
+    sortable: false,
     className: 'max-w-[140px]',
-    render: (value: unknown) =>
-      renderSubjectCell(
-        typeof value === 'string' ? value : '-',
-        mapSubjectNameToEnum
-      ),
+    render: renderSubjectsCell,
   },
   {
     key: 'class',

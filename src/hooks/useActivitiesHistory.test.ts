@@ -3,7 +3,7 @@ import {
   createUseActivitiesHistory,
   createActivitiesHistoryHook,
   transformActivityToTableItem,
-  buildActivityHistoryQueryParams,
+  buildActivityHistoryBody,
   DEFAULT_ACTIVITIES_PAGINATION,
 } from './useActivitiesHistory';
 import {
@@ -46,11 +46,15 @@ describe('useActivitiesHistory', () => {
       finalDate: '2024-12-31',
       status: ActivityApiStatus.A_VENCER,
       completionPercentage: 75,
-      subject: {
-        id: 'subject-1',
-        name: 'Matemática',
-        areaKnowledgeId: 'area-1',
-      },
+      subjects: [
+        {
+          id: 'subject-1',
+          name: 'Matemática',
+          color: '#C62828',
+          icon: 'MathOperations',
+          areaKnowledgeId: 'area-1',
+        },
+      ],
       creator: { id: 'creator-1', name: 'Prof. Maria' },
       breakdown: [
         {
@@ -74,7 +78,15 @@ describe('useActivitiesHistory', () => {
       expect(result.creator).toBe('Prof. Maria');
       expect(result.school).toBe('Escola Exemplo');
       expect(result.year).toBe('2024');
-      expect(result.subject).toBe('Matemática');
+      expect(result.subjects).toEqual([
+        {
+          id: 'subject-1',
+          name: 'Matemática',
+          color: '#C62828',
+          icon: 'MathOperations',
+          areaKnowledgeId: 'area-1',
+        },
+      ]);
       expect(result.class).toBe('Turma A');
       expect(result.completionPercentage).toBe(75);
       expect(result.status).toBe(ActivityDisplayStatus.ATIVA);
@@ -124,14 +136,14 @@ describe('useActivitiesHistory', () => {
       expect(result.class).toBe('-');
     });
 
-    it('should use "-" when subject is null', () => {
+    it('should use an empty list when the activity covers no subject', () => {
       const activity: ActivityHistoryResponse = {
         ...baseActivity,
-        subject: null,
+        subjects: [],
       };
 
       const result = transformActivityToTableItem(activity);
-      expect(result.subject).toBe('-');
+      expect(result.subjects).toEqual([]);
     });
 
     it('should use "-" when breakdown school is null', () => {
@@ -316,11 +328,15 @@ describe('useActivitiesHistory', () => {
             finalDate: '2024-12-31',
             status: ActivityApiStatus.A_VENCER,
             completionPercentage: 75,
-            subject: {
-              id: '123e4567-e89b-12d3-a456-426614174001',
-              name: 'Matemática',
-              areaKnowledgeId: 'area-1',
-            },
+            subjects: [
+              {
+                id: '123e4567-e89b-12d3-a456-426614174001',
+                name: 'Matemática',
+                color: '#C62828',
+                icon: 'MathOperations',
+                areaKnowledgeId: '123e4567-e89b-12d3-a456-4266141740aa',
+              },
+            ],
             creator: { id: 'creator-1', name: 'Prof. Maria' },
             breakdown: [
               {
@@ -362,7 +378,7 @@ describe('useActivitiesHistory', () => {
     });
 
     it('should fetch activities successfully', async () => {
-      mockApiClient.get.mockResolvedValueOnce({ data: validApiResponse });
+      mockApiClient.post.mockResolvedValueOnce({ data: validApiResponse });
 
       const useActivitiesHistory = createUseActivitiesHistory(mockApiClient, {
         activityCategory: 'ATIVIDADE',
@@ -373,13 +389,14 @@ describe('useActivitiesHistory', () => {
         await result.current.fetchActivities({ page: 1, limit: 10 });
       });
 
-      expect(mockApiClient.get).toHaveBeenCalledWith('/activities/history', {
-        params: expect.objectContaining({
+      expect(mockApiClient.post).toHaveBeenCalledWith(
+        '/activities/history',
+        expect.objectContaining({
           page: 1,
           limit: 10,
           type: 'ATIVIDADE',
-        }),
-      });
+        })
+      );
       expect(result.current.activities).toHaveLength(1);
       expect(result.current.activities[0].title).toBe('Test Activity');
       expect(result.current.loading).toBe(false);
@@ -402,7 +419,7 @@ describe('useActivitiesHistory', () => {
         }
       );
 
-      mockApiClient.get.mockReturnValueOnce(promise);
+      mockApiClient.post.mockReturnValueOnce(promise);
 
       const useActivitiesHistory = createUseActivitiesHistory(mockApiClient);
       const { result } = renderHook(() => useActivitiesHistory());
@@ -428,7 +445,7 @@ describe('useActivitiesHistory', () => {
         .spyOn(console, 'error')
         .mockImplementation(() => {});
 
-      mockApiClient.get.mockRejectedValueOnce(new Error('Network error'));
+      mockApiClient.post.mockRejectedValueOnce(new Error('Network error'));
 
       const useActivitiesHistory = createUseActivitiesHistory(mockApiClient);
       const { result } = renderHook(() => useActivitiesHistory());
@@ -451,7 +468,7 @@ describe('useActivitiesHistory', () => {
         .spyOn(console, 'error')
         .mockImplementation(() => {});
 
-      mockApiClient.get.mockRejectedValueOnce(new Error('Network error'));
+      mockApiClient.post.mockRejectedValueOnce(new Error('Network error'));
 
       const useActivitiesHistory = createUseActivitiesHistory(mockApiClient);
       const { result } = renderHook(() => useActivitiesHistory());
@@ -466,7 +483,7 @@ describe('useActivitiesHistory', () => {
       );
 
       // Second fetch - should clear error
-      mockApiClient.get.mockResolvedValueOnce({ data: validApiResponse });
+      mockApiClient.post.mockResolvedValueOnce({ data: validApiResponse });
 
       await act(async () => {
         await result.current.fetchActivities();
@@ -478,7 +495,7 @@ describe('useActivitiesHistory', () => {
     });
 
     it('should fetch activities without filters', async () => {
-      mockApiClient.get.mockResolvedValueOnce({ data: validApiResponse });
+      mockApiClient.post.mockResolvedValueOnce({ data: validApiResponse });
 
       const useActivitiesHistory = createUseActivitiesHistory(mockApiClient);
       const { result } = renderHook(() => useActivitiesHistory());
@@ -487,14 +504,15 @@ describe('useActivitiesHistory', () => {
         await result.current.fetchActivities();
       });
 
-      expect(mockApiClient.get).toHaveBeenCalledWith('/activities/history', {
-        params: {},
-      });
+      expect(mockApiClient.post).toHaveBeenCalledWith(
+        '/activities/history',
+        {}
+      );
       expect(result.current.activities).toHaveLength(1);
     });
 
     it('should pass activityCategory to API params', async () => {
-      mockApiClient.get.mockResolvedValueOnce({ data: validApiResponse });
+      mockApiClient.post.mockResolvedValueOnce({ data: validApiResponse });
 
       const useActivitiesHistory = createUseActivitiesHistory(mockApiClient, {
         activityCategory: 'PROVA',
@@ -505,11 +523,12 @@ describe('useActivitiesHistory', () => {
         await result.current.fetchActivities({ page: 1, limit: 10 });
       });
 
-      expect(mockApiClient.get).toHaveBeenCalledWith('/activities/history', {
-        params: expect.objectContaining({
+      expect(mockApiClient.post).toHaveBeenCalledWith(
+        '/activities/history',
+        expect.objectContaining({
           type: 'PROVA',
-        }),
-      });
+        })
+      );
     });
   });
 
@@ -543,50 +562,55 @@ describe('useActivitiesHistory', () => {
   });
 });
 
-describe('buildActivityHistoryQueryParams', () => {
+describe('buildActivityHistoryBody', () => {
   it('adds type from activityCategory', () => {
-    const params = buildActivityHistoryQueryParams({}, 'ATIVIDADE');
-    expect(params.type).toBe('ATIVIDADE');
+    const body = buildActivityHistoryBody({}, 'ATIVIDADE');
+    expect(body.type).toBe('ATIVIDADE');
   });
 
-  it('maps school[] to comma-separated schoolIds', () => {
-    const params = buildActivityHistoryQueryParams({
+  it('maps school[] to a schoolIds array', () => {
+    const body = buildActivityHistoryBody({
       school: ['school-1', 'school-2'],
     });
-    expect(params.schoolIds).toBe('school-1,school-2');
-    expect(params.school).toBeUndefined();
+    expect(body.schoolIds).toEqual(['school-1', 'school-2']);
+    expect(body.school).toBeUndefined();
   });
 
-  it('maps class[] to classIds and schoolYear[] to schoolYearIds (CSV)', () => {
-    const params = buildActivityHistoryQueryParams({
+  it('maps class[] to classIds and schoolYear[] to schoolYearIds', () => {
+    const body = buildActivityHistoryBody({
       class: ['c1', 'c2'],
       schoolYear: ['y1'],
     });
-    expect(params.classIds).toBe('c1,c2');
-    expect(params.schoolYearIds).toBe('y1');
+    expect(body.classIds).toEqual(['c1', 'c2']);
+    expect(body.schoolYearIds).toEqual(['y1']);
   });
 
-  it('collapses single-select filters to the first value', () => {
-    const params = buildActivityHistoryQueryParams({
-      status: ['A_VENCER', 'VENCIDA'],
+  it('keeps every selected subject instead of collapsing to the first', () => {
+    const body = buildActivityHistoryBody({
       subject: ['subj-1', 'subj-2'],
+    });
+    expect(body.subjectIds).toEqual(['subj-1', 'subj-2']);
+    expect(body.subject).toBeUndefined();
+  });
+
+  it('still collapses the genuinely single-select filters', () => {
+    const body = buildActivityHistoryBody({
+      status: ['A_VENCER', 'VENCIDA'],
       creatorType: ['own'],
     });
-    expect(params.status).toBe('A_VENCER');
-    expect(params.subjectId).toBe('subj-1');
-    expect(params.creatorType).toBe('own');
-    expect(params.subject).toBeUndefined();
+    expect(body.status).toBe('A_VENCER');
+    expect(body.creatorType).toBe('own');
   });
 
   it('forwards pagination, search and sorting untouched', () => {
-    const params = buildActivityHistoryQueryParams({
+    const body = buildActivityHistoryBody({
       page: 2,
       limit: 20,
       search: 'prova',
       sortBy: 'finalDate',
       sortOrder: 'asc',
     });
-    expect(params).toMatchObject({
+    expect(body).toMatchObject({
       page: 2,
       limit: 20,
       search: 'prova',
@@ -595,72 +619,54 @@ describe('buildActivityHistoryQueryParams', () => {
     });
   });
 
-  it('omits empty filter arrays', () => {
-    const params = buildActivityHistoryQueryParams({
+  it('omits empty filter arrays rather than sending [], which matches nothing', () => {
+    const body = buildActivityHistoryBody({
       school: [],
       status: [],
       subject: [],
     });
-    expect(params.schoolIds).toBeUndefined();
-    expect(params.status).toBeUndefined();
-    expect(params.subjectId).toBeUndefined();
+    expect(body.schoolIds).toBeUndefined();
+    expect(body.status).toBeUndefined();
+    expect(body.subjectIds).toBeUndefined();
   });
 
-  it('honors legacy singular subjectId as a fallback', () => {
-    const params = buildActivityHistoryQueryParams({ subjectId: 'subj-1' });
-    expect(params.subjectId).toBe('subj-1');
+  it('accepts subjectIds passed directly', () => {
+    const body = buildActivityHistoryBody({ subjectIds: ['subj-1'] });
+    expect(body.subjectIds).toEqual(['subj-1']);
   });
 
-  it('honors legacy singular schoolId as a fallback', () => {
-    const params = buildActivityHistoryQueryParams({ schoolId: 'school-1' });
-    expect(params.schoolId).toBe('school-1');
-    expect(params.schoolIds).toBeUndefined();
+  it('honors singular schoolId as a fallback', () => {
+    const body = buildActivityHistoryBody({ schoolId: 'school-1' });
+    expect(body.schoolId).toBe('school-1');
+    expect(body.schoolIds).toBeUndefined();
   });
 
-  it('honors legacy singular classId as a fallback', () => {
-    const params = buildActivityHistoryQueryParams({ classId: 'class-1' });
-    expect(params.classId).toBe('class-1');
-    expect(params.classIds).toBeUndefined();
+  it('honors singular classId as a fallback', () => {
+    const body = buildActivityHistoryBody({ classId: 'class-1' });
+    expect(body.classId).toBe('class-1');
+    expect(body.classIds).toBeUndefined();
   });
 
-  it('prefers raw subject[] over legacy subjectId', () => {
-    const params = buildActivityHistoryQueryParams({
+  it('prefers raw subject[] over subjectIds', () => {
+    const body = buildActivityHistoryBody({
       subject: ['a'],
-      subjectId: 'b',
+      subjectIds: ['b'],
     });
-    expect(params.subjectId).toBe('a');
+    expect(body.subjectIds).toEqual(['a']);
   });
 
-  it('prefers raw school[] over legacy schoolId', () => {
-    const params = buildActivityHistoryQueryParams({
+  it('prefers raw school[] over singular schoolId', () => {
+    const body = buildActivityHistoryBody({
       school: ['a', 'b'],
       schoolId: 'c',
     });
-    expect(params.schoolIds).toBe('a,b');
-    expect(params.schoolId).toBeUndefined();
+    expect(body.schoolIds).toEqual(['a', 'b']);
+    expect(body.schoolId).toBeUndefined();
   });
 
-  it('prefers raw class[] over legacy classId', () => {
-    const params = buildActivityHistoryQueryParams({
-      class: ['a', 'b'],
-      classId: 'c',
+  it('returns only the type when there are no filters at all', () => {
+    expect(buildActivityHistoryBody(undefined, 'PROVA')).toEqual({
+      type: 'PROVA',
     });
-    expect(params.classIds).toBe('a,b');
-    expect(params.classId).toBeUndefined();
-  });
-
-  it('accepts a bare-string status', () => {
-    expect(buildActivityHistoryQueryParams({ status: 'A_VENCER' }).status).toBe(
-      'A_VENCER'
-    );
-  });
-
-  it('forwards startDate and finalDate', () => {
-    const params = buildActivityHistoryQueryParams({
-      startDate: '01/01/2026',
-      finalDate: '31/01/2026',
-    });
-    expect(params.startDate).toBe('01/01/2026');
-    expect(params.finalDate).toBe('31/01/2026');
   });
 });

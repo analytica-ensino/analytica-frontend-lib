@@ -82,7 +82,7 @@ describe('filterBuilders', () => {
       expect(result).toEqual({
         page: 1,
         limit: 10,
-        subjectId: 'subject-456',
+        subjectIds: ['subject-456'],
       });
     });
 
@@ -103,7 +103,7 @@ describe('filterBuilders', () => {
         search: 'atividade',
         status: GenericApiStatus.VENCIDA,
         schoolId: 'school-abc',
-        subjectId: 'subject-xyz',
+        subjectIds: ['subject-xyz'],
       });
     });
 
@@ -132,7 +132,7 @@ describe('filterBuilders', () => {
       expect(result.status).toBeUndefined();
     });
 
-    it('should use only the first value when multiple values are provided', () => {
+    it('keeps every selected subject but still collapses the single-select filters', () => {
       const params: TableParams = {
         page: 1,
         limit: 10,
@@ -144,7 +144,7 @@ describe('filterBuilders', () => {
 
       expect(result.status).toBe(GenericApiStatus.A_VENCER);
       expect(result.schoolId).toBe('school-1');
-      expect(result.subjectId).toBe('subject-1');
+      expect(result.subjectIds).toEqual(['subject-1', 'subject-2']);
     });
   });
 

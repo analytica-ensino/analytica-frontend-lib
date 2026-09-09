@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import type { KnowledgeArea } from '../../../types/activityFilters';
@@ -8,27 +8,24 @@ import type { KnowledgeArea } from '../../../types/activityFilters';
 // presentational pieces are stubbed — the selection behaviour under test lives
 // in SubjectsFilter itself.
 jest.mock('../../..', () => ({
-  Radio: ({
-    value,
+  CheckBox: ({
+    id,
     checked,
+    indeterminate,
     onChange,
-    label,
   }: {
-    value: string;
+    id: string;
     checked: boolean;
+    indeterminate?: boolean;
     onChange: () => void;
-    label: React.ReactNode;
   }) => (
-    <label>
-      <input
-        type="radio"
-        value={value}
-        checked={checked}
-        onChange={onChange}
-        className="sr-only"
-      />
-      {label}
-    </label>
+    <input
+      type="checkbox"
+      id={id}
+      checked={checked}
+      onChange={onChange}
+      data-indeterminate={indeterminate ? 'true' : 'false'}
+    />
   ),
   IconRender: ({ iconName, size }: { iconName: string; size: number }) => (
     <span data-testid={`icon-${iconName}`} data-size={size}>
@@ -55,6 +52,10 @@ jest.mock('../../..', () => ({
   getSubjectColorWithOpacity: (color: string) => `${color}20`,
 }));
 
+jest.mock('@phosphor-icons/react/dist/csr/GridFour', () => ({
+  GridFourIcon: () => <span data-testid="icon-GridFour" />,
+}));
+
 // Import after mocks
 import { SubjectsFilter } from './SubjectsFilter';
 
@@ -67,25 +68,25 @@ describe('SubjectsFilter', () => {
 
   const defaultProps = {
     knowledgeAreas: mockKnowledgeAreas,
-    selectedSubject: null,
-    onSubjectChange: jest.fn(),
+    selectedSubjectIds: [],
+    onToggleSubject: jest.fn(),
   };
 
-  const getRadios = () =>
-    screen.getAllByRole('radio', { hidden: true }) as HTMLInputElement[];
+  const getSubjectCheckBox = (id: string) =>
+    document.getElementById(`subject-${id}`) as HTMLInputElement;
 
-  const getRadio = (id: string) =>
-    getRadios().find((radio) => radio.value === id);
+  const getAllCheckBox = () =>
+    document.getElementById('subject-all') as HTMLInputElement;
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe('Rendering', () => {
-    it('renders one radio per knowledge area', () => {
+    it('renders one checkbox per knowledge area', () => {
       render(<SubjectsFilter {...defaultProps} />);
 
-      expect(getRadios()).toHaveLength(3);
+      expect(screen.getAllByRole('checkbox')).toHaveLength(3);
       expect(screen.getByText('Matemática')).toBeInTheDocument();
       expect(screen.getByText('Física')).toBeInTheDocument();
       expect(screen.getByText('Química')).toBeInTheDocument();
@@ -97,15 +98,6 @@ describe('SubjectsFilter', () => {
       expect(
         container.querySelector('.grid.grid-cols-3.gap-3')
       ).toBeInTheDocument();
-    });
-
-    it('does not render a select-all option', () => {
-      render(<SubjectsFilter {...defaultProps} />);
-
-      expect(
-        screen.queryByText('Todos os componentes curriculares')
-      ).not.toBeInTheDocument();
-      expect(screen.queryAllByRole('checkbox')).toHaveLength(0);
     });
 
     it('renders each subject icon', () => {
@@ -138,130 +130,185 @@ describe('SubjectsFilter', () => {
     it('renders nothing when there are no knowledge areas', () => {
       render(<SubjectsFilter {...defaultProps} knowledgeAreas={[]} />);
 
-      expect(screen.queryAllByRole('radio', { hidden: true })).toHaveLength(0);
+      expect(screen.queryAllByRole('checkbox')).toHaveLength(0);
     });
   });
 
   describe('Selection state', () => {
-    it('leaves every radio unchecked when nothing is selected', () => {
-      render(<SubjectsFilter {...defaultProps} selectedSubject={null} />);
+    it('leaves every checkbox unchecked when nothing is selected', () => {
+      render(<SubjectsFilter {...defaultProps} selectedSubjectIds={[]} />);
 
-      getRadios().forEach((radio) => expect(radio).not.toBeChecked());
+      screen
+        .getAllByRole('checkbox')
+        .forEach((box) => expect(box).not.toBeChecked());
     });
 
-    it('checks only the selected subject', () => {
-      render(<SubjectsFilter {...defaultProps} selectedSubject="math-1" />);
-
-      expect(getRadio('math-1')).toBeChecked();
-      expect(getRadio('physics-1')).not.toBeChecked();
-      expect(getRadio('chemistry-1')).not.toBeChecked();
-    });
-
-    it('moves the check when the parent changes the selection', () => {
-      const { rerender } = render(
-        <SubjectsFilter {...defaultProps} selectedSubject="math-1" />
+    it('checks every selected subject at once', () => {
+      render(
+        <SubjectsFilter
+          {...defaultProps}
+          selectedSubjectIds={['math-1', 'physics-1']}
+        />
       );
-      expect(getRadio('math-1')).toBeChecked();
+
+      expect(getSubjectCheckBox('math-1')).toBeChecked();
+      expect(getSubjectCheckBox('physics-1')).toBeChecked();
+      expect(getSubjectCheckBox('chemistry-1')).not.toBeChecked();
+    });
+
+    it('follows the selection when the parent changes it', () => {
+      const { rerender } = render(
+        <SubjectsFilter {...defaultProps} selectedSubjectIds={['math-1']} />
+      );
+      expect(getSubjectCheckBox('math-1')).toBeChecked();
 
       rerender(
-        <SubjectsFilter {...defaultProps} selectedSubject="physics-1" />
+        <SubjectsFilter
+          {...defaultProps}
+          selectedSubjectIds={['physics-1', 'chemistry-1']}
+        />
       );
 
-      expect(getRadio('physics-1')).toBeChecked();
-      expect(getRadio('math-1')).not.toBeChecked();
+      expect(getSubjectCheckBox('math-1')).not.toBeChecked();
+      expect(getSubjectCheckBox('physics-1')).toBeChecked();
+      expect(getSubjectCheckBox('chemistry-1')).toBeChecked();
+    });
+  });
+
+  describe('Select-all card', () => {
+    it('is hidden unless asked for', () => {
+      render(<SubjectsFilter {...defaultProps} />);
+
+      expect(
+        screen.queryByText('Todos os componentes curriculares')
+      ).not.toBeInTheDocument();
+    });
+
+    it('renders alongside the subjects when asked for', () => {
+      render(<SubjectsFilter {...defaultProps} showAllSubjectsOption />);
+
+      expect(
+        screen.getByText('Todos os componentes curriculares')
+      ).toBeInTheDocument();
+      expect(screen.getAllByRole('checkbox')).toHaveLength(4);
+    });
+
+    it('is checked when every subject is selected', () => {
+      render(
+        <SubjectsFilter
+          {...defaultProps}
+          showAllSubjectsOption
+          allSubjectsSelected
+          selectedSubjectIds={['math-1', 'physics-1', 'chemistry-1']}
+        />
+      );
+
+      expect(getAllCheckBox()).toBeChecked();
+      expect(getAllCheckBox()).toHaveAttribute('data-indeterminate', 'false');
+    });
+
+    it('is indeterminate when only some subjects are selected', () => {
+      render(
+        <SubjectsFilter
+          {...defaultProps}
+          showAllSubjectsOption
+          selectedSubjectIds={['math-1']}
+        />
+      );
+
+      expect(getAllCheckBox()).not.toBeChecked();
+      expect(getAllCheckBox()).toHaveAttribute('data-indeterminate', 'true');
+    });
+
+    it('is neither checked nor indeterminate when nothing is selected', () => {
+      render(
+        <SubjectsFilter
+          {...defaultProps}
+          showAllSubjectsOption
+          selectedSubjectIds={[]}
+        />
+      );
+
+      expect(getAllCheckBox()).not.toBeChecked();
+      expect(getAllCheckBox()).toHaveAttribute('data-indeterminate', 'false');
+    });
+
+    it('calls onToggleAllSubjects when clicked', () => {
+      const onToggleAllSubjects = jest.fn();
+      render(
+        <SubjectsFilter
+          {...defaultProps}
+          showAllSubjectsOption
+          onToggleAllSubjects={onToggleAllSubjects}
+        />
+      );
+
+      fireEvent.click(getAllCheckBox());
+
+      expect(onToggleAllSubjects).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not blow up without an onToggleAllSubjects handler', () => {
+      render(<SubjectsFilter {...defaultProps} showAllSubjectsOption />);
+
+      expect(() => fireEvent.click(getAllCheckBox())).not.toThrow();
     });
   });
 
   describe('User interactions', () => {
-    it('calls onSubjectChange with the picked subject id', async () => {
-      const onSubjectChange = jest.fn();
+    it('calls onToggleSubject with the picked subject id', async () => {
+      const onToggleSubject = jest.fn();
       const user = userEvent.setup();
       render(
-        <SubjectsFilter {...defaultProps} onSubjectChange={onSubjectChange} />
+        <SubjectsFilter {...defaultProps} onToggleSubject={onToggleSubject} />
       );
 
       await user.click(screen.getByText('Matemática'));
 
-      expect(onSubjectChange).toHaveBeenCalledTimes(1);
-      expect(onSubjectChange).toHaveBeenCalledWith('math-1');
+      expect(onToggleSubject).toHaveBeenCalledTimes(1);
+      expect(onToggleSubject).toHaveBeenCalledWith('math-1');
     });
 
     it('reports the id of whichever subject was clicked', async () => {
-      const onSubjectChange = jest.fn();
+      const onToggleSubject = jest.fn();
       const user = userEvent.setup();
       render(
-        <SubjectsFilter {...defaultProps} onSubjectChange={onSubjectChange} />
+        <SubjectsFilter {...defaultProps} onToggleSubject={onToggleSubject} />
       );
 
       await user.click(screen.getByText('Física'));
-      expect(onSubjectChange).toHaveBeenLastCalledWith('physics-1');
+      expect(onToggleSubject).toHaveBeenLastCalledWith('physics-1');
 
       await user.click(screen.getByText('Química'));
-      expect(onSubjectChange).toHaveBeenLastCalledWith('chemistry-1');
+      expect(onToggleSubject).toHaveBeenLastCalledWith('chemistry-1');
     });
 
-    it('fires when the radio input itself is clicked', () => {
-      const onSubjectChange = jest.fn();
-      render(
-        <SubjectsFilter {...defaultProps} onSubjectChange={onSubjectChange} />
-      );
-
-      fireEvent.click(getRadio('math-1') as HTMLInputElement);
-
-      expect(onSubjectChange).toHaveBeenCalledWith('math-1');
-    });
-
-    it('keeps the previous subject checked when the parent vetoes the pick', async () => {
-      // A vetoing parent resolves false and never updates `selectedSubject`.
-      const onSubjectChange = jest.fn().mockResolvedValue(false);
+    // Unlike the radio it replaced, a checked checkbox still reports the click —
+    // that is what lets the user drop one subject out of a multi selection.
+    it('still reports a click on an already selected subject', () => {
+      const onToggleSubject = jest.fn();
       render(
         <SubjectsFilter
           {...defaultProps}
-          selectedSubject="math-1"
-          onSubjectChange={onSubjectChange}
+          selectedSubjectIds={['math-1']}
+          onToggleSubject={onToggleSubject}
         />
       );
 
-      fireEvent.click(getRadio('physics-1') as HTMLInputElement);
+      fireEvent.click(getSubjectCheckBox('math-1'));
 
-      expect(onSubjectChange).toHaveBeenCalledWith('physics-1');
-      await waitFor(() => expect(getRadio('math-1')).toBeChecked());
-      expect(getRadio('physics-1')).not.toBeChecked();
+      expect(onToggleSubject).toHaveBeenCalledWith('math-1');
     });
 
-    it('logs instead of leaving an unhandled rejection when the handler throws', async () => {
-      const consoleError = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
-      const onSubjectChange = jest.fn().mockRejectedValue(new Error('boom'));
-      render(
-        <SubjectsFilter
-          {...defaultProps}
-          selectedSubject="math-1"
-          onSubjectChange={onSubjectChange}
-        />
-      );
-
-      fireEvent.click(getRadio('physics-1') as HTMLInputElement);
-
-      await waitFor(() => expect(consoleError).toHaveBeenCalled());
-      expect(consoleError.mock.calls[0][0]).toBe(
-        'Erro ao trocar de componente curricular:'
-      );
-      consoleError.mockRestore();
-    });
-
-    it('does not blow up without an onSubjectChange handler', () => {
+    it('does not blow up without an onToggleSubject handler', () => {
       render(
         <SubjectsFilter
           knowledgeAreas={mockKnowledgeAreas}
-          selectedSubject={null}
+          selectedSubjectIds={[]}
         />
       );
 
-      expect(() =>
-        fireEvent.click(getRadio('math-1') as HTMLInputElement)
-      ).not.toThrow();
+      expect(() => fireEvent.click(getSubjectCheckBox('math-1'))).not.toThrow();
     });
   });
 
@@ -317,8 +364,8 @@ describe('SubjectsFilter', () => {
       render(
         <SubjectsFilter
           knowledgeAreas={mockKnowledgeAreas}
-          selectedSubject={null}
-          onSubjectChange={jest.fn()}
+          selectedSubjectIds={[]}
+          onToggleSubject={jest.fn()}
         />
       );
 

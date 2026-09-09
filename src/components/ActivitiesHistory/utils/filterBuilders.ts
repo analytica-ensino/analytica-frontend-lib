@@ -44,9 +44,10 @@ export const buildHistoryFiltersFromParams = (
     filters.schoolId = params.school[0];
   }
 
-  // Subject filter
+  // Subject filter. An activity matches when it covers any of the selected
+  // subjects, so the whole selection travels — not just its first entry.
   if (Array.isArray(params.subject) && params.subject.length > 0) {
-    filters.subjectId = params.subject[0];
+    filters.subjectIds = params.subject;
   }
 
   return filters;

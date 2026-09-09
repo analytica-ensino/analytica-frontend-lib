@@ -45,9 +45,13 @@ export enum ActivityDraftType {
 type EntityRef = { id: string; name: string };
 
 /**
- * Subject object from backend API response
+ * Subject object from backend API response.
+ *
+ * Extends {@link SubjectData} because the backend now returns `color` and
+ * `icon` on every activity-facing subject payload: an activity covers several
+ * subjects and they are rendered as a row of icons, not as names.
  */
-export interface ActivitySubject extends EntityRef {
+export interface ActivitySubject extends SubjectData {
   areaKnowledgeId: string;
 }
 
@@ -79,7 +83,13 @@ export interface ActivityHistoryResponse {
   hasEssay?: boolean;
   status: GenericApiStatus;
   completionPercentage: number;
-  subject: ActivitySubject | null;
+  /**
+   * Every subject the activity covers, ordered by name. Derived by the backend
+   * from the knowledge matrix of the activity's questions, so it never diverges
+   * from the actual content. Empty for an activity whose questions carry no
+   * subject.
+   */
+  subjects: ActivitySubject[];
   creator: EntityRef | null;
   totalStudents?: number;
   answeredStudents?: number;
@@ -99,7 +109,12 @@ export interface ActivityTableItem extends Record<string, unknown> {
   title: string;
   school: string;
   year: string;
-  subject: string;
+  /**
+   * Subjects rendered in the "Componente curricular" column. Carries the whole
+   * objects rather than a joined name because the cell renders one icon per
+   * subject, and the icon needs the backend's `color` and `icon`.
+   */
+  subjects: ActivitySubject[];
   class: string;
   status: GenericDisplayStatus;
   completionPercentage: number;
@@ -129,7 +144,11 @@ export interface ActivitiesHistoryApiResponse {
 }
 
 /**
- * Activity history filters for API query parameters
+ * Activity history filters, sent in the body of `POST /activities/history`.
+ *
+ * A body rather than a querystring because most of these filters are lists:
+ * comma-separated query params cap out on URL length and cannot tell an empty
+ * list from an absent one.
  */
 export interface ActivityHistoryFilters {
   page?: number;
@@ -145,7 +164,7 @@ export interface ActivityHistoryFilters {
   sortOrder?: 'asc' | 'desc';
 
   // Raw TableProvider filter keys (arrays of selected ids/values).
-  // Remapped to the backend contract by buildActivityHistoryQueryParams.
+  // Remapped to the backend contract by buildActivityHistoryBody.
   status?: string[] | GenericApiStatus;
   subject?: string[];
   school?: string[];
@@ -153,13 +172,18 @@ export interface ActivityHistoryFilters {
   schoolYear?: string[];
   creatorType?: string[];
 
-  // Legacy single-value fields, consumed by buildActivityHistoryQueryParams
-  // as fallbacks when the raw multi-select keys above are absent.
+  // Single-value fields, consumed by buildActivityHistoryBody as fallbacks
+  // when the raw multi-select keys above are absent.
   startDate?: string;
   finalDate?: string;
-  subjectId?: string;
   schoolId?: string;
   classId?: string;
+
+  /**
+   * Subjects to filter by. An activity matches when it covers any of them.
+   * Also accepted directly, bypassing the raw `subject` key above.
+   */
+  subjectIds?: string[];
 }
 
 /**
@@ -193,7 +217,16 @@ export interface ActivityModelResponse {
   title: string | null;
   creatorUserInstitutionId: string | null;
   subjectId: string | null;
+  /** @deprecated Use `subjects`; carries its first entry, or null. */
   subject?: SubjectData | null;
+  /**
+   * Every subject the draft's selected questions cover — the subjects the
+   * activity will have once published, not the search filter in `filters`.
+   *
+   * Optional because the backend's create and update handlers reuse this
+   * payload and do not pay for the extra lookup; only the two GETs populate it.
+   */
+  subjects?: SubjectData[];
   filters: ActivityDraftFilters | null;
   createdAt: string;
   updatedAt: string;
@@ -207,7 +240,8 @@ export interface ActivityModelTableItem extends Record<string, unknown> {
   type: ActivityType;
   title: string;
   savedAt: string;
-  subject: SubjectData | null;
+  /** Subjects rendered in the "Componente curricular" column; may be empty. */
+  subjects: SubjectData[];
   subjectId: string | null;
 }
 

@@ -19,7 +19,6 @@ import type {
   ActivitiesHistoryApiResponse,
   ActivityUserFilterData,
 } from '../../../types/activitiesHistory';
-import type { SubjectEnum } from '../../../enums/SubjectEnum';
 
 /**
  * Props for the HistoryTab component
@@ -38,7 +37,6 @@ export interface HistoryTabProps {
   /** Image for no search results */
   noSearchImage?: string;
   /** Function to map subject name to SubjectEnum */
-  mapSubjectNameToEnum?: (subjectName: string) => SubjectEnum | null;
   /** User data for populating filter options */
   userFilterData?: ActivityUserFilterData;
 }
@@ -53,26 +51,26 @@ export const HistoryTab = ({
   onRowClick,
   emptyStateImage,
   noSearchImage,
-  mapSubjectNameToEnum,
   userFilterData,
 }: HistoryTabProps) => {
   // Use ref to keep stable reference to fetch function
   const fetchActivitiesHistoryRef = useRef(fetchActivitiesHistory);
   fetchActivitiesHistoryRef.current = fetchActivitiesHistory;
 
-  // Create an API client adapter that wraps the fetch function
+  // Create an API client adapter that wraps the fetch function.
+  // The history endpoint is a POST whose filters travel in the body, so the
+  // adapter forwards the body — not a querystring — to the consumer's fetcher.
   const apiClientAdapter = useMemo(
     () => ({
-      get: async <T,>(
-        _url: string,
-        options?: { params?: Record<string, unknown> }
-      ) => {
-        const result = await fetchActivitiesHistoryRef.current(options?.params);
+      post: async <T,>(_url: string, data?: object) => {
+        const result = await fetchActivitiesHistoryRef.current(
+          data as Record<string, unknown>
+        );
         return { data: result as T };
       },
       // Methods not used by this component but required by BaseApiClient
-      post: async <T,>(): Promise<{ data: T }> => {
-        throw new Error('post not implemented in HistoryTab adapter');
+      get: async <T,>(): Promise<{ data: T }> => {
+        throw new Error('get not implemented in HistoryTab adapter');
       },
       patch: async <T,>(): Promise<{ data: T }> => {
         throw new Error('patch not implemented in HistoryTab adapter');
@@ -105,10 +103,7 @@ export const HistoryTab = ({
     [userFilterData]
   );
 
-  const historyTableColumns = useMemo(
-    () => createHistoryTableColumns(mapSubjectNameToEnum),
-    [mapSubjectNameToEnum]
-  );
+  const historyTableColumns = useMemo(() => createHistoryTableColumns(), []);
 
   /**
    * Handle table params change

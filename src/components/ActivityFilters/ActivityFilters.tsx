@@ -248,14 +248,6 @@ export interface ActivityFiltersProps {
   allowedQuestionTypes?: QUESTION_TYPE[];
   onClearFilters?: () => void;
   onApplyFilters?: () => void;
-  /**
-   * Gate run before a subject change is applied. Return (or resolve) `false` to
-   * veto it — used to ask the user to confirm discarding the preview, since an
-   * activity can only hold questions from a single subject.
-   */
-  onBeforeSubjectChange?: (
-    nextSubjectId: string | null
-  ) => boolean | Promise<boolean>;
 }
 
 /**
@@ -271,18 +263,15 @@ export const ActivityFilters = ({
   allowedQuestionTypes,
   onClearFilters,
   onApplyFilters,
-  onBeforeSubjectChange,
 }: ActivityFiltersProps) => {
   const useActivityFiltersData = createUseActivityFiltersData(apiClient);
 
   const [selectedQuestionTypes, setSelectedQuestionTypes] = useState<
     QUESTION_TYPE[]
   >([]);
-  // An activity is bound to exactly one subject (enforced by the backend), so
-  // this is a single value, not a list.
-  const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(
-    null
-  );
+  // An activity may span several subjects — the backend derives them from the
+  // subjects of the selected questions.
+  const [selectedSubjectIds, setSelectedSubjectIds] = useState<string[]>([]);
 
   const {
     banks,
@@ -305,7 +294,9 @@ export const ActivityFilters = ({
     loadingQuestionTypes,
     questionTypesError,
   } = useActivityFiltersData({
-    selectedSubjects: selectedSubjectId ? [selectedSubjectId] : [],
+    // Tema/subtema/assunto only make sense for a single subject, so only load
+    // the knowledge structure when exactly one subject is selected.
+    selectedSubjects: selectedSubjectIds.length === 1 ? selectedSubjectIds : [],
     institutionId,
   });
 
@@ -378,27 +369,24 @@ export const ActivityFilters = ({
     bankCategoriesRef.current = bankCategories;
   }, [bankCategories]);
 
+  // Whether every available subject is currently selected — drives the
+  // "Todos os componentes curriculares" card's checked state.
+  const allSubjectsSelected =
+    knowledgeAreas.length > 0 &&
+    knowledgeAreas.every((area) => selectedSubjectIds.includes(area.id));
+
   const toggleQuestionType = (questionType: QUESTION_TYPE) => {
     setSelectedQuestionTypes((prev) => toggleArrayItem(prev, questionType));
   };
 
-  /**
-   * @returns whether the change was applied — SubjectsFilter needs to know so it
-   * can roll its own state back when the gate refuses.
-   */
-  const handleSubjectChange = async (
-    subjectId: string | null
-  ): Promise<boolean> => {
-    if (subjectId === selectedSubjectId) {
-      return true;
-    }
+  const handleToggleSubject = (subjectId: string) => {
+    setSelectedSubjectIds((prev) => toggleArrayItem(prev, subjectId));
+  };
 
-    if (onBeforeSubjectChange && !(await onBeforeSubjectChange(subjectId))) {
-      return false;
-    }
-
-    setSelectedSubjectId(subjectId);
-    return true;
+  const handleToggleAllSubjects = () => {
+    setSelectedSubjectIds(
+      allSubjectsSelected ? [] : knowledgeAreas.map((area) => area.id)
+    );
   };
 
   const handleBankCategoriesChange = (updatedCategories: CategoryConfig[]) => {
@@ -450,10 +438,8 @@ export const ActivityFilters = ({
       setSelectedQuestionTypes(initialFilters.types);
     }
 
-    // Drafts saved before the single-subject rule may carry several ids; keep
-    // the first one. ActivityCreate warns the user when that happens.
     if (initialFilters.subjectIds && initialFilters.subjectIds.length > 0) {
-      setSelectedSubjectId(initialFilters.subjectIds[0]);
+      setSelectedSubjectIds(initialFilters.subjectIds);
     }
 
     hasAppliedBasicInitialFiltersRef.current = true;
@@ -558,9 +544,9 @@ export const ActivityFilters = ({
   useEffect(() => {
     const knowledgeIds = getSelectedKnowledgeIds();
     const bankIds = getSelectedBankIds();
-    // Tema/subtema/assunto hang off the selected subject; with none selected the
-    // knowledge selection is irrelevant and must not be sent.
-    const hasSubject = selectedSubjectId !== null;
+    // Tema/subtema/assunto only apply to a single subject; with 0 or 2+ (or
+    // "Todos") the knowledge selection is irrelevant and must not be sent.
+    const isSingleSubject = selectedSubjectIds.length === 1;
     const selectedBankIds = bankIds.bankIds || [];
     const selectedYearIds = bankIds.yearIds || [];
     const filters: ActivityFiltersData = {
@@ -575,10 +561,10 @@ export const ActivityFilters = ({
         selectedBankIds,
         selectedYearIds
       ),
-      subjectIds: selectedSubjectId ? [selectedSubjectId] : [],
-      topicIds: hasSubject ? knowledgeIds.topicIds : [],
-      subtopicIds: hasSubject ? knowledgeIds.subtopicIds : [],
-      contentIds: hasSubject ? knowledgeIds.contentIds : [],
+      subjectIds: selectedSubjectIds,
+      topicIds: isSingleSubject ? knowledgeIds.topicIds : [],
+      subtopicIds: isSingleSubject ? knowledgeIds.subtopicIds : [],
+      contentIds: isSingleSubject ? knowledgeIds.contentIds : [],
     };
 
     if (!areFiltersEqual(prevFiltersRef.current, filters)) {
@@ -587,7 +573,7 @@ export const ActivityFilters = ({
     }
   }, [
     selectedQuestionTypes,
-    selectedSubjectId,
+    selectedSubjectIds,
     knowledgeCategories,
     bankCategories,
     bankYears,
@@ -657,11 +643,11 @@ export const ActivityFilters = ({
               <Text size="sm" weight="bold">
                 Componente curricular
               </Text>
-              {selectedSubjectId !== null && (
+              {selectedSubjectIds.length > 0 && (
                 <Button
                   type="button"
                   variant="link"
-                  onClick={() => handleSubjectChange(null)}
+                  onClick={() => setSelectedSubjectIds([])}
                   size="small"
                 >
                   Limpar
@@ -670,14 +656,17 @@ export const ActivityFilters = ({
             </div>
             <SubjectsFilter
               knowledgeAreas={knowledgeAreas}
-              selectedSubject={selectedSubjectId}
-              onSubjectChange={handleSubjectChange}
+              selectedSubjectIds={selectedSubjectIds}
+              onToggleSubject={handleToggleSubject}
+              showAllSubjectsOption
+              allSubjectsSelected={allSubjectsSelected}
+              onToggleAllSubjects={handleToggleAllSubjects}
               loading={loadingSubjects}
               error={subjectsError}
             />
           </div>
 
-          {selectedSubjectId !== null && (
+          {selectedSubjectIds.length === 1 && (
             <KnowledgeStructureFilter
               knowledgeStructure={knowledgeStructure}
               knowledgeCategories={knowledgeCategories}

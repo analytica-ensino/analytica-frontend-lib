@@ -96,23 +96,27 @@ export const extractExamFilterOptions = (
 ): ExamApiFilterOptions => extractBreakdownFilterOptions(exams);
 
 /**
- * Build query params from filters
- * Always includes type=PROVA to filter for exams
+ * Build the `POST /activities/history` request body from exam filters.
+ * Always includes type=PROVA to filter for exams.
+ *
+ * A JSON body rather than a querystring, so `subjectIds` travels as a real
+ * array. As a querystring it used to be bracket-serialized
+ * (`subjectIds[]=a&subjectIds[]=b`), which the backend dropped silently.
  */
-const buildQueryParams = (
+export const buildExamHistoryBody = (
   filters?: ExamHistoryFilters
 ): Record<string, unknown> => {
   // Always include type=PROVA for exam filtering
   if (!filters) return { type: 'PROVA' };
 
-  const params: Record<string, unknown> = { type: 'PROVA' };
+  const body: Record<string, unknown> = { type: 'PROVA' };
   for (const key in filters) {
     const value = filters[key as keyof ExamHistoryFilters];
     if (value !== undefined && value !== null) {
-      params[key] = value;
+      body[key] = value;
     }
   }
-  return params;
+  return body;
 };
 
 /**
@@ -138,11 +142,11 @@ const useExamsHistoryImpl = (
       setState((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
-        const params = buildQueryParams(filters);
+        const body = buildExamHistoryBody(filters);
         // Use activities/history endpoint with type=PROVA
-        const response = await apiClient.get<ExamsHistoryApiResponse>(
+        const response = await apiClient.post<ExamsHistoryApiResponse>(
           '/activities/history',
-          { params }
+          body
         );
 
         const { data } = response.data;

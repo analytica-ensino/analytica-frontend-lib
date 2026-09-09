@@ -14,12 +14,13 @@ import type {
  * Zod schema for recommendedClass history API response validation
  * Based on /recommended-class/history endpoint
  */
-const recommendedClassSubjectSchema = z
-  .object({
-    id: z.string().uuid(),
-    name: z.string(),
-  })
-  .nullable();
+const recommendedClassSubjectSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  color: z.string(),
+  icon: z.string(),
+  areaKnowledgeId: z.string().uuid(),
+});
 
 const recommendedClassCreatorSchema = z
   .object({
@@ -55,7 +56,8 @@ const recommendedClassDataSchema = z.object({
 
 const recommendedClassHistoryItemSchema = z.object({
   recommendedClass: recommendedClassDataSchema,
-  subject: recommendedClassSubjectSchema,
+  // Every subject the class's lessons and activities cover.
+  subjects: z.array(recommendedClassSubjectSchema),
   creator: recommendedClassCreatorSchema,
   stats: recommendedClassStatsSchema,
   breakdown: z.array(recommendedClassBreakdownSchema),
@@ -143,7 +145,7 @@ export const transformRecommendedClassToTableItem = (
     year: '-', // API doesn't provide year directly
     creator: item.creator?.name || '-',
     creatorId: item.creator?.id ?? null,
-    subject: item.subject?.name || '-',
+    subjects: item.subjects ?? [],
     class: classDisplay,
     status: determineRecommendedClassStatus(
       item.recommendedClass.finalDate,

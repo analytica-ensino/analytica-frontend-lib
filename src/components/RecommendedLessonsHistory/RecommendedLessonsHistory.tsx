@@ -13,11 +13,10 @@ import EmptyState from '../EmptyState/EmptyState';
 import { Menu, MenuItem, MenuContent } from '../Menu/Menu';
 import { TableProvider } from '../TableProvider/TableProvider';
 import ProgressBar from '../ProgressBar/ProgressBar';
-import { getSubjectInfo } from '../SubjectInfo/SubjectInfo';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import useToastStore from '../Toast/utils/ToastStore';
 import { EditRecommendedLessonModal } from './EditRecommendedLessonModal';
-import { cn } from '../../utils/utils';
+import { renderSubjectsCell } from '../../utils/renderSubjectCell';
 import { SubjectEnum } from '../../enums/SubjectEnum';
 import type { ColumnConfig, TableParams } from '../TableProvider/TableProvider';
 import type { FilterConfig } from '../Filter';
@@ -78,7 +77,11 @@ export interface RecommendedLessonsHistoryProps {
   emptyStateImage?: string;
   /** Image for no search results */
   noSearchImage?: string;
-  /** Function to map subject name to SubjectEnum */
+  /**
+   * @deprecated Ignored. The backend now sends each subject with its own colour
+   * and icon, so the name no longer has to be mapped to a hardcoded enum. Kept
+   * in the props so consumers that still pass it keep compiling.
+   */
   mapSubjectNameToEnum?: (subjectName: string) => SubjectEnum | null;
   /** User data for populating filter options */
   userFilterData?: RecommendedClassUserFilterData;
@@ -317,7 +320,6 @@ const createRecommendedClassFiltersConfig = (
  * Create table columns configuration
  */
 const createTableColumns = (
-  mapSubjectNameToEnum: ((name: string) => SubjectEnum | null) | undefined,
   onDelete: ((row: RecommendedClassTableItem) => void) | undefined,
   onEdit: ((row: RecommendedClassTableItem) => void) | undefined,
   currentUserId?: string
@@ -353,34 +355,12 @@ const createTableColumns = (
     },
   },
   {
-    key: 'subject',
+    key: 'subjects',
     label: 'Componente curricular',
-    sortable: true,
+    // Ordenar por uma lista de matérias não significa nada.
+    sortable: false,
     className: 'max-w-[200px]',
-    render: (value: unknown) => {
-      const subjectName = typeof value === 'string' ? value : '';
-      const subjectEnum = mapSubjectNameToEnum?.(subjectName);
-
-      if (!subjectEnum) {
-        return <TruncatedText size="sm">{subjectName}</TruncatedText>;
-      }
-
-      const subjectInfo = getSubjectInfo(subjectEnum);
-
-      return (
-        <div className="flex items-center gap-2 min-w-0">
-          <span
-            className={cn(
-              'w-[21px] h-[21px] flex items-center justify-center rounded-sm text-text-950 shrink-0',
-              subjectInfo.colorClass
-            )}
-          >
-            {subjectInfo.icon}
-          </span>
-          <TruncatedText size="sm">{subjectName}</TruncatedText>
-        </div>
-      );
-    },
+    render: renderSubjectsCell,
   },
   {
     key: 'class',
@@ -510,7 +490,6 @@ export const RecommendedLessonsHistory = ({
   fetchRecommendedClassById,
   emptyStateImage,
   noSearchImage,
-  mapSubjectNameToEnum,
   userFilterData,
   title = 'Histórico de aulas recomendadas',
   createButtonText = 'Criar aula',
@@ -671,13 +650,11 @@ export const RecommendedLessonsHistory = ({
   const tableColumns = useMemo(
     () =>
       createTableColumns(
-        mapSubjectNameToEnum,
         deleteEnabled ? handleOpenDelete : undefined,
         editEnabled ? handleOpenEdit : undefined,
         currentUserId
       ),
     [
-      mapSubjectNameToEnum,
       deleteEnabled,
       editEnabled,
       handleOpenDelete,
@@ -907,7 +884,6 @@ export const RecommendedLessonsHistory = ({
                 onEditDraft={onEditDraft}
                 emptyStateImage={emptyStateImage}
                 noSearchImage={noSearchImage}
-                mapSubjectNameToEnum={mapSubjectNameToEnum}
                 userFilterData={userFilterData}
                 subjectsMap={subjectsMap}
               />
@@ -925,7 +901,6 @@ export const RecommendedLessonsHistory = ({
                 onEditModel={onEditModel}
                 emptyStateImage={emptyStateImage}
                 noSearchImage={noSearchImage}
-                mapSubjectNameToEnum={mapSubjectNameToEnum}
                 userFilterData={userFilterData}
                 subjectsMap={subjectsMap}
               />

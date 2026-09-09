@@ -228,9 +228,14 @@ const renderComponent = (
     />
   );
 
-/** Clicks the radio of the subject with the given name. */
-const pickSubject = (name: string) => {
-  fireEvent.click(screen.getByText(name));
+/** Clicks the checkbox of the subject with the given id. */
+const toggleSubject = (id: string) => {
+  fireEvent.click(document.getElementById(`subject-${id}`) as HTMLInputElement);
+};
+
+/** Clicks the "Todos os componentes curriculares" card. */
+const toggleAllSubjects = () => {
+  fireEvent.click(document.getElementById('subject-all') as HTMLInputElement);
 };
 
 // Always restore the real getSelectedIdsFromCategories after each test so the
@@ -411,12 +416,12 @@ describe('ActivityFilters', () => {
     expect(onApplyFilters).toHaveBeenCalledTimes(1);
   });
 
-  describe('Single subject selection', () => {
-    it('emits the picked subject as a single-item list', async () => {
+  describe('Multi subject selection', () => {
+    it('emits the picked subject in the list', async () => {
       const onFiltersChange = jest.fn();
       renderComponent({ onFiltersChange });
 
-      pickSubject('Matemática');
+      toggleSubject('subject1');
 
       await waitFor(() => {
         expect(onFiltersChange).toHaveBeenLastCalledWith(
@@ -425,18 +430,34 @@ describe('ActivityFilters', () => {
       });
     });
 
-    it('replaces the selection instead of accumulating', async () => {
+    it('accumulates subjects instead of replacing the selection', async () => {
       const onFiltersChange = jest.fn();
       renderComponent({ onFiltersChange });
 
-      pickSubject('Matemática');
+      toggleSubject('subject1');
+      toggleSubject('subject2');
+
       await waitFor(() => {
         expect(onFiltersChange).toHaveBeenLastCalledWith(
-          expect.objectContaining({ subjectIds: ['subject1'] })
+          expect.objectContaining({ subjectIds: ['subject1', 'subject2'] })
+        );
+      });
+    });
+
+    it('drops a subject when it is unchecked again', async () => {
+      const onFiltersChange = jest.fn();
+      renderComponent({ onFiltersChange });
+
+      toggleSubject('subject1');
+      toggleSubject('subject2');
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({ subjectIds: ['subject1', 'subject2'] })
         );
       });
 
-      pickSubject('Português');
+      toggleSubject('subject1');
+
       await waitFor(() => {
         expect(onFiltersChange).toHaveBeenLastCalledWith(
           expect.objectContaining({ subjectIds: ['subject2'] })
@@ -444,25 +465,63 @@ describe('ActivityFilters', () => {
       });
     });
 
-    it('only shows tema/subtema/assunto once a subject is selected', async () => {
+    // Tema/subtema/assunto hang off one subject's knowledge tree, so they only
+    // make sense while exactly one is picked.
+    it('shows tema/subtema/assunto only while exactly one subject is selected', async () => {
       renderComponent();
 
       expect(
         screen.queryByText('Tema, Subtema e Assunto')
       ).not.toBeInTheDocument();
 
-      pickSubject('Matemática');
-
+      toggleSubject('subject1');
       await waitFor(() => {
         expect(screen.getByText('Tema, Subtema e Assunto')).toBeInTheDocument();
       });
+
+      toggleSubject('subject2');
+      await waitFor(() => {
+        expect(
+          screen.queryByText('Tema, Subtema e Assunto')
+        ).not.toBeInTheDocument();
+      });
     });
 
-    it('clears the subject through the "Limpar" button', async () => {
+    it('drops the knowledge selection while several subjects are picked', async () => {
+      const onFiltersChange = jest.fn();
+      renderComponent({
+        onFiltersChange,
+        initialFilters: {
+          types: [],
+          bankIds: [],
+          yearIds: [],
+          subjectIds: ['subject1'],
+          topicIds: ['topic-2'],
+          subtopicIds: ['sub-2'],
+          contentIds: ['content-2'],
+        },
+      });
+
+      toggleSubject('subject2');
+
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            subjectIds: ['subject1', 'subject2'],
+            topicIds: [],
+            subtopicIds: [],
+            contentIds: [],
+          })
+        );
+      });
+    });
+
+    it('clears every subject through the "Limpar" button', async () => {
       const onFiltersChange = jest.fn();
       renderComponent({ onFiltersChange });
 
-      pickSubject('Matemática');
+      toggleSubject('subject1');
+      toggleSubject('subject2');
       await waitFor(() =>
         expect(screen.getByText('Limpar')).toBeInTheDocument()
       );
@@ -477,7 +536,7 @@ describe('ActivityFilters', () => {
       expect(screen.queryByText('Limpar')).not.toBeInTheDocument();
     });
 
-    it('keeps only the first subject of a legacy multi-subject draft', async () => {
+    it('restores every subject of a multi-subject draft', async () => {
       const onFiltersChange = jest.fn();
       renderComponent({
         onFiltersChange,
@@ -494,80 +553,44 @@ describe('ActivityFilters', () => {
 
       await waitFor(() => {
         expect(onFiltersChange).toHaveBeenLastCalledWith(
-          expect.objectContaining({ subjectIds: ['subject1'] })
+          expect.objectContaining({ subjectIds: ['subject1', 'subject2'] })
         );
       });
     });
   });
 
-  describe('onBeforeSubjectChange gate', () => {
-    it('aborts the change when the gate refuses', async () => {
+  describe('Select-all subjects card', () => {
+    it('selects every available subject', async () => {
       const onFiltersChange = jest.fn();
-      const onBeforeSubjectChange = jest.fn().mockResolvedValue(false);
-      renderComponent({ onFiltersChange, onBeforeSubjectChange });
+      renderComponent({ onFiltersChange });
 
-      pickSubject('Matemática');
-
-      await waitFor(() => {
-        expect(onBeforeSubjectChange).toHaveBeenCalledWith('subject1');
-      });
-      expect(onFiltersChange).not.toHaveBeenCalledWith(
-        expect.objectContaining({ subjectIds: ['subject1'] })
-      );
-    });
-
-    it('skips the gate when the same subject is picked again', async () => {
-      const onBeforeSubjectChange = jest.fn().mockResolvedValue(true);
-      renderComponent({ onBeforeSubjectChange });
-
-      pickSubject('Matemática');
-      // Wait for the pick to actually land before re-picking it.
-      await waitFor(() =>
-        expect(screen.getByText('Limpar')).toBeInTheDocument()
-      );
-      expect(onBeforeSubjectChange).toHaveBeenCalledTimes(1);
-
-      // The gate would be invoked synchronously, so a second call would already
-      // be recorded by now.
-      pickSubject('Matemática');
-
-      // Nothing changes, so there is nothing to confirm.
-      expect(onBeforeSubjectChange).toHaveBeenCalledTimes(1);
-    });
-
-    it('applies the change when the gate allows it', async () => {
-      const onFiltersChange = jest.fn();
-      const onBeforeSubjectChange = jest.fn().mockResolvedValue(true);
-      renderComponent({ onFiltersChange, onBeforeSubjectChange });
-
-      pickSubject('Matemática');
+      toggleAllSubjects();
 
       await waitFor(() => {
         expect(onFiltersChange).toHaveBeenLastCalledWith(
-          expect.objectContaining({ subjectIds: ['subject1'] })
+          expect.objectContaining({ subjectIds: ['subject1', 'subject2'] })
         );
       });
     });
 
-    it('runs the gate for the "Limpar" button too', async () => {
-      const onBeforeSubjectChange = jest
-        .fn()
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(false);
-      renderComponent({ onBeforeSubjectChange });
+    it('deselects everything when all subjects are already selected', async () => {
+      const onFiltersChange = jest.fn();
+      renderComponent({ onFiltersChange });
 
-      pickSubject('Matemática');
-      await waitFor(() =>
-        expect(screen.getByText('Limpar')).toBeInTheDocument()
-      );
+      toggleAllSubjects();
+      await waitFor(() => {
+        expect(onFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({ subjectIds: ['subject1', 'subject2'] })
+        );
+      });
 
-      fireEvent.click(screen.getByText('Limpar'));
+      toggleAllSubjects();
 
       await waitFor(() => {
-        expect(onBeforeSubjectChange).toHaveBeenLastCalledWith(null);
+        expect(onFiltersChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({ subjectIds: [] })
+        );
       });
-      // Refused, so the subject stays selected.
-      expect(screen.getByText('Limpar')).toBeInTheDocument();
     });
   });
 

@@ -254,7 +254,12 @@ interface BreakdownLike {
  * Matches both ActivityHistoryResponse and ExamHistoryResponse.
  */
 interface BreakdownHistoryItem {
-  subject?: EntityRefLike | null;
+  /**
+   * Every subject the item covers. Plural because an activity now spans as many
+   * subjects as its questions do — reading only a primary subject here left the
+   * "Componente curricular" dropdown missing most of its options.
+   */
+  subjects?: (EntityRefLike | null)[];
   breakdown?: BreakdownLike[];
 }
 
@@ -299,7 +304,7 @@ export const extractBreakdownFilterOptions = (
   };
 
   for (const item of items) {
-    setIfPresent(subjectsMap, item.subject);
+    item.subjects?.forEach((subject) => setIfPresent(subjectsMap, subject));
     item.breakdown?.forEach((b) => {
       setIfPresent(schoolsMap, b.school);
       setIfPresent(classesMap, b.class);

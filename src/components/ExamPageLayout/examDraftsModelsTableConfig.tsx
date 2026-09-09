@@ -2,8 +2,7 @@ import type { MouseEvent } from 'react';
 import Button from '../Button/Button';
 import IconButton from '../IconButton/IconButton';
 import { renderTextCell } from '../../utils/renderTextCell';
-import { renderSubjectCell } from '../../utils/renderSubjectCell';
-import { mapSubjectNameToEnum } from '../../utils/subjectMappers';
+import { renderSubjectsCell } from '../../utils/renderSubjectCell';
 import type { ColumnConfig } from '../TableProvider/TableProvider';
 import { PaperPlaneTiltIcon } from '@phosphor-icons/react/dist/csr/PaperPlaneTilt';
 import { TrashIcon } from '@phosphor-icons/react/dist/csr/Trash';
@@ -47,21 +46,12 @@ export const createExamDraftsModelsTableColumns = (
     sortable: true,
   },
   {
-    key: 'subject',
+    key: 'subjects',
     label: 'Componente curricular',
-    sortable: true,
+    // Ordenar por uma lista de matérias não significa nada.
+    sortable: false,
     className: 'max-w-[200px]',
-    render: (value: unknown) => {
-      // Handle both object format (SubjectData) and string format
-      if (value && typeof value === 'object' && 'name' in value) {
-        const subjectData = value as { name: string };
-        return renderSubjectCell(subjectData.name || '-', mapSubjectNameToEnum);
-      }
-      return renderSubjectCell(
-        typeof value === 'string' ? value : '-',
-        mapSubjectNameToEnum
-      );
-    },
+    render: renderSubjectsCell,
   },
   {
     key: 'actions',

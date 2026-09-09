@@ -86,9 +86,10 @@ describe('activitiesTableConfig', () => {
 
     it('should have subject column with correct config', () => {
       const subjectColumn = activitiesTableColumns[5];
-      expect(subjectColumn.key).toBe('subject');
+      expect(subjectColumn.key).toBe('subjects');
       expect(subjectColumn.label).toBe('Componente');
-      expect(subjectColumn.sortable).toBe(true);
+      // Uma lista de matérias não tem ordenação com significado.
+      expect(subjectColumn.sortable).toBe(false);
       expect(subjectColumn.className).toBe('max-w-[140px]');
       expect(subjectColumn.render).toBeDefined();
     });

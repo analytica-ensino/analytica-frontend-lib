@@ -268,6 +268,54 @@ export function generateTitle(
 }
 
 /**
+ * Builds a draft title when the selection spans several subjects and no single
+ * subject name applies.
+ *
+ * @param type - Activity type used for the label prefix
+ * @returns Title string for a multi-subject draft
+ *
+ * @example
+ * ```ts
+ * generateMultiSubjectTitle(ActivityType.RASCUNHO);
+ * // Returns: 'Rascunho - Diversos componentes curriculares'
+ * ```
+ */
+export function generateMultiSubjectTitle(type: ActivityType): string {
+  return `${getActivityTypeLabel(type)} - Diversos componentes curriculares`;
+}
+
+/**
+ * Resolves the legacy single `subjectId` to send with an activity.
+ *
+ * The backend derives an activity's real subjects from the subjects of its
+ * questions, so this field is only the legacy "primary subject" fallback and is
+ * optional. It is therefore sent only when it is unambiguous: the subject the
+ * activity already carries, or the one selected subject when exactly one is
+ * filtered. With several filtered, electing one of them would be arbitrary —
+ * the junction table already has the right answer.
+ *
+ * @param activitySubjectId - Subject already stored on the activity/draft
+ * @param subjectIds - Subjects currently selected in the filters
+ * @returns The subject id to send, or null to omit it
+ *
+ * @example
+ * ```ts
+ * resolveActivitySubjectId(undefined, ['bio']);        // 'bio'
+ * resolveActivitySubjectId(undefined, ['bio', 'fis']); // null
+ * ```
+ */
+export function resolveActivitySubjectId(
+  activitySubjectId: string | undefined,
+  subjectIds: string[] | undefined
+): string | null {
+  if (activitySubjectId) {
+    return activitySubjectId;
+  }
+
+  return subjectIds?.length === 1 ? subjectIds[0] : null;
+}
+
+/**
  * Converte ActivityType para o formato usado na URL
  *
  * @param type - ActivityType enum value
@@ -402,7 +450,7 @@ export function buildFinalDateTime(
 
 export function buildSendActivityPayload(
   formData: SendActivityFormData,
-  subjectId: string,
+  subjectId: string | null,
   questionIds: string[],
   startDateTime: string,
   finalDateTime: string | null,
@@ -416,7 +464,10 @@ export function buildSendActivityPayload(
 
   return {
     title: formData.title,
-    subjectId,
+    // The legacy primary subject is `.optional()` on the backend, which accepts
+    // an absent key but rejects an explicit null — so it is omitted when the
+    // selection spans several subjects and none is authoritative.
+    ...(subjectId ? { subjectId } : {}),
     questionIds,
     subtype: formData.subtype,
     type: activityType,
@@ -725,24 +776,6 @@ export function formatNavigatePath(path: string): string {
 }
 
 /**
- * Get subject ID from activity or applied filters
- *
- * @param activitySubjectId - Subject ID from activity
- * @param appliedFiltersSubjectIds - Subject IDs from applied filters
- * @returns Subject ID or throws error if not found
- */
-export function getSubjectIdOrThrow(
-  activitySubjectId: string | undefined,
-  appliedFiltersSubjectIds: string[] | undefined
-): string {
-  const subjectId = activitySubjectId || appliedFiltersSubjectIds?.[0];
-  if (!subjectId) {
-    throw new Error('Subject ID não encontrado');
-  }
-  return subjectId;
-}
-
-/**
  * Activity create response data structure
  */
 interface ActivityCreateResponseData {
@@ -909,14 +942,17 @@ export function buildPayloadWithTypeOverride<
   basePayload: T,
   typeOverride: ActivityType,
   customTitle: string | undefined,
-  subjectId: string,
+  subjectId: string | null,
   knowledgeAreas: KnowledgeArea[]
 ): T {
   const trimmedCustomTitle = customTitle?.trim();
+  const generatedTitle = subjectId
+    ? generateTitle(typeOverride, subjectId, knowledgeAreas)
+    : generateMultiSubjectTitle(typeOverride);
   const title =
     trimmedCustomTitle && trimmedCustomTitle.length > 0
       ? trimmedCustomTitle
-      : generateTitle(typeOverride, subjectId, knowledgeAreas);
+      : generatedTitle;
 
   return {
     ...basePayload,

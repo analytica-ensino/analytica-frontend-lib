@@ -57,11 +57,15 @@ describe('useExamsHistory', () => {
       completionPercentage: 75,
       questionCount: 20,
       createdAt: '2024-06-01T10:00:00.000Z',
-      subject: {
-        id: 'subject-1',
-        name: 'Mathematics',
-        areaKnowledgeId: 'area-1',
-      },
+      subjects: [
+        {
+          id: 'subject-1',
+          name: 'Mathematics',
+          areaKnowledgeId: 'area-1',
+          color: '#1565C0',
+          icon: 'Atom',
+        },
+      ],
       creator: { id: 'creator-1', name: 'Prof. Maria' },
       totalStudents: 30,
       answeredStudents: 25,
@@ -238,7 +242,15 @@ describe('useExamsHistory', () => {
           completionPercentage: 75,
           questionCount: 20,
           createdAt: '2024-06-01',
-          subject: { id: 'subject-1', name: 'Math', areaKnowledgeId: 'area-1' },
+          subjects: [
+            {
+              id: 'subject-1',
+              name: 'Math',
+              areaKnowledgeId: 'area-1',
+              color: '#1565C0',
+              icon: 'Atom',
+            },
+          ],
           creator: null,
           breakdown: [
             {
@@ -275,7 +287,15 @@ describe('useExamsHistory', () => {
           completionPercentage: 75,
           questionCount: 20,
           createdAt: '2024-06-01',
-          subject: { id: 'subject-1', name: 'Math', areaKnowledgeId: 'area-1' },
+          subjects: [
+            {
+              id: 'subject-1',
+              name: 'Math',
+              areaKnowledgeId: 'area-1',
+              color: '#1565C0',
+              icon: 'Atom',
+            },
+          ],
           creator: null,
           breakdown: [
             {
@@ -296,7 +316,15 @@ describe('useExamsHistory', () => {
           completionPercentage: 80,
           questionCount: 25,
           createdAt: '2024-06-02',
-          subject: { id: 'subject-1', name: 'Math', areaKnowledgeId: 'area-1' },
+          subjects: [
+            {
+              id: 'subject-1',
+              name: 'Math',
+              areaKnowledgeId: 'area-1',
+              color: '#1565C0',
+              icon: 'Atom',
+            },
+          ],
           creator: null,
           breakdown: [
             {
@@ -327,11 +355,15 @@ describe('useExamsHistory', () => {
           completionPercentage: 75,
           questionCount: 20,
           createdAt: '2024-06-01',
-          subject: {
-            id: 'subject-2',
-            name: 'Zology',
-            areaKnowledgeId: 'area-1',
-          },
+          subjects: [
+            {
+              id: 'subject-2',
+              name: 'Zology',
+              areaKnowledgeId: 'area-1',
+              color: '#1565C0',
+              icon: 'Atom',
+            },
+          ],
           creator: null,
           breakdown: [
             {
@@ -352,11 +384,15 @@ describe('useExamsHistory', () => {
           completionPercentage: 80,
           questionCount: 25,
           createdAt: '2024-06-02',
-          subject: {
-            id: 'subject-1',
-            name: 'Arithmetic',
-            areaKnowledgeId: 'area-1',
-          },
+          subjects: [
+            {
+              id: 'subject-1',
+              name: 'Arithmetic',
+              areaKnowledgeId: 'area-1',
+              color: '#1565C0',
+              icon: 'Atom',
+            },
+          ],
           creator: null,
           breakdown: [
             {
@@ -389,7 +425,7 @@ describe('useExamsHistory', () => {
           completionPercentage: 75,
           questionCount: 20,
           createdAt: '2024-06-01',
-          subject: null,
+          subjects: [],
           creator: null,
           breakdown: [],
         },
@@ -410,7 +446,7 @@ describe('useExamsHistory', () => {
           completionPercentage: 75,
           questionCount: 20,
           createdAt: '2024-06-01',
-          subject: null,
+          subjects: [],
           creator: null,
           breakdown: [],
         },
@@ -433,7 +469,7 @@ describe('useExamsHistory', () => {
           completionPercentage: 75,
           questionCount: 20,
           createdAt: '2024-06-01',
-          subject: null,
+          subjects: [],
           creator: null,
           breakdown: undefined,
         },
@@ -455,7 +491,7 @@ describe('useExamsHistory', () => {
           completionPercentage: 75,
           questionCount: 20,
           createdAt: '2024-06-01',
-          subject: null,
+          subjects: [],
           creator: null,
           breakdown: [
             {
@@ -562,11 +598,15 @@ describe('useExamsHistory', () => {
               completionPercentage: 75,
               questionCount: 20,
               createdAt: '2024-06-01T10:00:00.000Z',
-              subject: {
-                id: '123e4567-e89b-12d3-a456-426614174001',
-                name: 'Mathematics',
-                areaKnowledgeId: '123e4567-e89b-12d3-a456-426614174002',
-              },
+              subjects: [
+                {
+                  id: '123e4567-e89b-12d3-a456-426614174001',
+                  name: 'Mathematics',
+                  areaKnowledgeId: '123e4567-e89b-12d3-a456-426614174002',
+                  color: '#1565C0',
+                  icon: 'Atom',
+                },
+              ],
               creator: { id: 'creator-1', name: 'Prof. Maria' },
               breakdown: [
                 {
@@ -611,7 +651,7 @@ describe('useExamsHistory', () => {
 
     it('should fetch exams successfully', async () => {
       const mockApiClient = createMockApiClient();
-      mockApiClient.get.mockResolvedValueOnce(validExamsResponse);
+      mockApiClient.post.mockResolvedValueOnce(validExamsResponse);
 
       const useExamsHistory = createUseExamsHistory(mockApiClient);
       const { result } = renderHook(() => useExamsHistory());
@@ -620,8 +660,10 @@ describe('useExamsHistory', () => {
         await result.current.fetchExams({ page: 1, limit: 10 });
       });
 
-      expect(mockApiClient.get).toHaveBeenCalledWith('/activities/history', {
-        params: { type: 'PROVA', page: 1, limit: 10 },
+      expect(mockApiClient.post).toHaveBeenCalledWith('/activities/history', {
+        type: 'PROVA',
+        page: 1,
+        limit: 10,
       });
       expect(result.current.exams).toHaveLength(1);
       expect(result.current.exams[0].title).toBe('Math Exam');
@@ -637,7 +679,7 @@ describe('useExamsHistory', () => {
 
     it('should fetch exams without filters', async () => {
       const mockApiClient = createMockApiClient();
-      mockApiClient.get.mockResolvedValueOnce(validExamsResponse);
+      mockApiClient.post.mockResolvedValueOnce(validExamsResponse);
 
       const useExamsHistory = createUseExamsHistory(mockApiClient);
       const { result } = renderHook(() => useExamsHistory());
@@ -646,8 +688,8 @@ describe('useExamsHistory', () => {
         await result.current.fetchExams();
       });
 
-      expect(mockApiClient.get).toHaveBeenCalledWith('/activities/history', {
-        params: { type: 'PROVA' },
+      expect(mockApiClient.post).toHaveBeenCalledWith('/activities/history', {
+        type: 'PROVA',
       });
     });
 
@@ -659,7 +701,7 @@ describe('useExamsHistory', () => {
         resolvePromise = resolve;
       });
 
-      mockApiClient.get.mockReturnValueOnce(promise as never);
+      mockApiClient.post.mockReturnValueOnce(promise as never);
 
       const useExamsHistory = createUseExamsHistory(mockApiClient);
       const { result } = renderHook(() => useExamsHistory());
@@ -683,7 +725,7 @@ describe('useExamsHistory', () => {
     it('should handle fetch error', async () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       const mockApiClient = createMockApiClient();
-      mockApiClient.get.mockRejectedValueOnce(new Error('Network error'));
+      mockApiClient.post.mockRejectedValueOnce(new Error('Network error'));
 
       const useExamsHistory = createUseExamsHistory(mockApiClient);
       const { result } = renderHook(() => useExamsHistory());
@@ -713,7 +755,7 @@ describe('useExamsHistory', () => {
         },
       };
 
-      mockApiClient.get.mockResolvedValueOnce(invalidResponse);
+      mockApiClient.post.mockResolvedValueOnce(invalidResponse);
 
       const useExamsHistory = createUseExamsHistory(mockApiClient);
       const { result } = renderHook(() => useExamsHistory());
@@ -730,7 +772,7 @@ describe('useExamsHistory', () => {
 
     it('should extract and merge filter options from response', async () => {
       const mockApiClient = createMockApiClient();
-      mockApiClient.get.mockResolvedValueOnce(validExamsResponse);
+      mockApiClient.post.mockResolvedValueOnce(validExamsResponse);
 
       const useExamsHistory = createUseExamsHistory(mockApiClient);
       const { result } = renderHook(() => useExamsHistory());
@@ -767,11 +809,15 @@ describe('useExamsHistory', () => {
                 completionPercentage: 75,
                 questionCount: 20,
                 createdAt: '2024-06-01T10:00:00.000Z',
-                subject: {
-                  id: '123e4567-e89b-12d3-a456-426614174001',
-                  name: 'Mathematics',
-                  areaKnowledgeId: '123e4567-e89b-12d3-a456-426614174002',
-                },
+                subjects: [
+                  {
+                    id: '123e4567-e89b-12d3-a456-426614174001',
+                    name: 'Mathematics',
+                    areaKnowledgeId: '123e4567-e89b-12d3-a456-426614174002',
+                    color: '#1565C0',
+                    icon: 'Atom',
+                  },
+                ],
                 creator: null,
                 breakdown: [
                   {
@@ -803,11 +849,15 @@ describe('useExamsHistory', () => {
                 completionPercentage: 80,
                 questionCount: 25,
                 createdAt: '2024-06-02T10:00:00.000Z',
-                subject: {
-                  id: '123e4567-e89b-12d3-a456-426614174004',
-                  name: 'Physics',
-                  areaKnowledgeId: '123e4567-e89b-12d3-a456-426614174005',
-                },
+                subjects: [
+                  {
+                    id: '123e4567-e89b-12d3-a456-426614174004',
+                    name: 'Physics',
+                    areaKnowledgeId: '123e4567-e89b-12d3-a456-426614174005',
+                    color: '#1565C0',
+                    icon: 'Atom',
+                  },
+                ],
                 creator: null,
                 breakdown: [
                   {
@@ -826,7 +876,7 @@ describe('useExamsHistory', () => {
         },
       };
 
-      mockApiClient.get
+      mockApiClient.post
         .mockResolvedValueOnce(firstResponse)
         .mockResolvedValueOnce(secondResponse);
 
@@ -852,7 +902,7 @@ describe('useExamsHistory', () => {
 
     it('should filter out null and undefined values from params', async () => {
       const mockApiClient = createMockApiClient();
-      mockApiClient.get.mockResolvedValueOnce(validExamsResponse);
+      mockApiClient.post.mockResolvedValueOnce(validExamsResponse);
 
       const useExamsHistory = createUseExamsHistory(mockApiClient);
       const { result } = renderHook(() => useExamsHistory());
@@ -865,11 +915,9 @@ describe('useExamsHistory', () => {
         });
       });
 
-      expect(mockApiClient.get).toHaveBeenCalledWith('/activities/history', {
-        params: {
-          type: 'PROVA',
-          page: 1,
-        },
+      expect(mockApiClient.post).toHaveBeenCalledWith('/activities/history', {
+        type: 'PROVA',
+        page: 1,
       });
     });
   });

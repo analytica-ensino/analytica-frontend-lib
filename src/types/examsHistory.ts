@@ -70,9 +70,14 @@ export interface ExamApiFilterOptions {
 type EntityRef = { id: string; name: string };
 
 /**
- * Subject object from backend API response
+ * Subject object from backend API response.
+ *
+ * Same shape as `ActivitySubject` — exams are activities of type PROVA and come
+ * from the same endpoint, so `color` and `icon` arrive here too.
  */
 export interface ExamSubject extends EntityRef {
+  color: string;
+  icon: string;
   areaKnowledgeId: string;
 }
 
@@ -99,7 +104,8 @@ export interface ExamHistoryResponse {
   completionPercentage: number;
   questionCount: number;
   createdAt: string;
-  subject: ExamSubject | null;
+  /** Every subject the exam covers, ordered by name. */
+  subjects: ExamSubject[];
   creator: EntityRef | null;
   totalStudents?: number;
   answeredStudents?: number;
@@ -156,7 +162,8 @@ export interface ExamHistoryFilters {
   status?: ExamStatus;
   search?: string;
   startDate?: string;
-  subjectId?: string;
+  /** An exam matches when it covers any of these subjects. */
+  subjectIds?: string[];
   schoolId?: string;
   classId?: string;
   sortBy?: 'startDate' | 'title' | 'completionPercentage' | 'createdAt';

@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import type { BaseApiClient } from '../types/api';
 import { ActivityDraftType } from '../types/activitiesHistory';
 import { ActivityType } from '../components/ActivityCreate/ActivityCreate.types';
+import { resolveDraftSubjects } from '../utils/subjectMappers';
 import type {
   ActivityModelResponse,
   ActivityModelTableItem,
@@ -60,20 +61,7 @@ export const transformModelToTableItem = (
   model: ActivityModelResponse,
   subjectsMap?: Map<string, string>
 ): ActivityModelTableItem => {
-  // Use subject from API response if available
-  // If not available and subjectsMap is provided, create a basic subject object
-  let subject = model.subject;
-  if (!subject && model.subjectId && subjectsMap) {
-    const subjectName = subjectsMap.get(model.subjectId);
-    if (subjectName) {
-      subject = {
-        id: model.subjectId,
-        name: subjectName,
-        icon: 'BookOpen',
-        color: '#6B7280',
-      };
-    }
-  }
+  const subjects = resolveDraftSubjects(model, subjectsMap);
 
   // Map ActivityDraftType to ActivityType
   const activityType =
@@ -86,7 +74,7 @@ export const transformModelToTableItem = (
     type: activityType,
     title: model.title || 'Sem título',
     savedAt: dayjs(model.createdAt).format('DD/MM/YYYY'),
-    subject: subject || null,
+    subjects,
     subjectId: model.subjectId,
   };
 };

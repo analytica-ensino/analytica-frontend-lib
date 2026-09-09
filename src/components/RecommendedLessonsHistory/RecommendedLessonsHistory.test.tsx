@@ -20,7 +20,10 @@ jest.mock('dayjs', () => {
 });
 
 // Mock utils
+// Spread the real module: SubjectIcons pulls getSubjectColorWithOpacity from
+// here, and an explicit-only mock would hand it `undefined`.
 jest.mock('../../utils/utils', () => ({
+  ...jest.requireActual('../../utils/utils'),
   cn: (...inputs: (string | undefined)[]) => inputs.filter(Boolean).join(' '),
 }));
 
@@ -222,7 +225,7 @@ jest.mock('../TableProvider/TableProvider', () => {
         title?: string;
         school?: string;
         class?: string;
-        subject?: string;
+        subjects?: unknown;
         status?: string;
         completionPercentage?: number;
       }>;
@@ -257,7 +260,7 @@ jest.mock('../TableProvider/TableProvider', () => {
       const actionsColumn = headers?.find((h) => h.key === 'actions');
       const titleColumn = headers?.find((h) => h.key === 'title');
       const schoolColumn = headers?.find((h) => h.key === 'school');
-      const subjectColumn = headers?.find((h) => h.key === 'subject');
+      const subjectColumn = headers?.find((h) => h.key === 'subjects');
       const statusColumn = headers?.find((h) => h.key === 'status');
       const completionColumn = headers?.find(
         (h) => h.key === 'completionPercentage'
@@ -294,8 +297,8 @@ jest.mock('../TableProvider/TableProvider', () => {
                       <td>{row.class}</td>
                       <td data-testid="subject-cell">
                         {subjectColumn?.render
-                          ? subjectColumn.render(row.subject, row)
-                          : row.subject}
+                          ? subjectColumn.render(row.subjects, row)
+                          : null}
                       </td>
                       <td data-testid="status-cell">
                         {statusColumn?.render
@@ -434,10 +437,15 @@ describe('RecommendedLessonsHistory', () => {
             progress: 50,
             totalLessons: 10,
           },
-          subject: {
-            id: '123e4567-e89b-12d3-a456-426614174001',
-            name: 'Matemática',
-          },
+          subjects: [
+            {
+              id: '123e4567-e89b-12d3-a456-426614174001',
+              name: 'Matemática',
+              color: '#C62828',
+              icon: 'MathOperations',
+              areaKnowledgeId: '123e4567-e89b-12d3-a456-4266141740aa',
+            },
+          ],
           creator: {
             id: '123e4567-e89b-12d3-a456-426614174002',
             name: 'Professor João',
@@ -848,7 +856,7 @@ describe('RecommendedLessonsHistory', () => {
                 progress: 50,
                 totalLessons: 10,
               },
-              subject: null,
+              subjects: [],
               creator: null,
               stats: {
                 totalStudents: 60,
@@ -912,24 +920,17 @@ describe('RecommendedLessonsHistory', () => {
       });
     });
 
-    it('should render subject column without icon when mapSubjectNameToEnum returns null', async () => {
-      const mapSubjectNameToEnum = jest.fn().mockReturnValue(null);
-
-      render(
-        <RecommendedLessonsHistory
-          {...defaultProps}
-          mapSubjectNameToEnum={mapSubjectNameToEnum}
-        />
-      );
+    it('renders one icon per subject the class covers', async () => {
+      render(<RecommendedLessonsHistory {...defaultProps} />);
 
       await waitFor(() => {
-        const subjectCell = screen.getByTestId('subject-cell');
-        expect(subjectCell).toBeInTheDocument();
-        expect(mapSubjectNameToEnum).toHaveBeenCalledWith('Matemática');
+        expect(screen.getByTestId('subject-cell')).toBeInTheDocument();
       });
+      // The icon comes from the subject's own `icon`/`color`, no enum mapping.
+      expect(screen.getByLabelText('Matemática')).toBeInTheDocument();
     });
 
-    it('should render subject column with icon when mapSubjectNameToEnum returns value', async () => {
+    it('ignores a mapSubjectNameToEnum still passed by an older consumer', async () => {
       const mapSubjectNameToEnum = jest.fn().mockReturnValue('MATEMATICA');
 
       render(
@@ -940,10 +941,9 @@ describe('RecommendedLessonsHistory', () => {
       );
 
       await waitFor(() => {
-        const subjectCell = screen.getByTestId('subject-cell');
-        expect(subjectCell).toBeInTheDocument();
-        expect(screen.getByTestId('subject-icon')).toBeInTheDocument();
+        expect(screen.getByTestId('subject-cell')).toBeInTheDocument();
       });
+      expect(mapSubjectNameToEnum).not.toHaveBeenCalled();
     });
 
     it('should render status column with badge', async () => {
@@ -1037,17 +1037,17 @@ describe('RecommendedLessonsHistory', () => {
       expect(result).toBeDefined();
     });
 
-    it('should handle non-string values in subject column', async () => {
+    it('should handle non-array values in subjects column', async () => {
       render(<RecommendedLessonsHistory {...defaultProps} />);
 
       await waitFor(() => {
         expect(capturedHeaders).toBeDefined();
       });
 
-      const subjectColumn = capturedHeaders?.find((h) => h.key === 'subject');
+      const subjectColumn = capturedHeaders?.find((h) => h.key === 'subjects');
       expect(subjectColumn?.render).toBeDefined();
 
-      // Test with non-string value (number)
+      // ColumnConfig.render is typed `unknown`; a stray value must not throw.
       const result = subjectColumn?.render?.(123, {});
       expect(result).toBeDefined();
     });
@@ -1509,10 +1509,15 @@ describe('RecommendedLessonsHistory', () => {
               progress: 50,
               totalLessons: 10,
             },
-            subject: {
-              id: '123e4567-e89b-12d3-a456-426614174001',
-              name: 'Matemática',
-            },
+            subjects: [
+              {
+                id: '123e4567-e89b-12d3-a456-426614174001',
+                name: 'Matemática',
+                color: '#C62828',
+                icon: 'MathOperations',
+                areaKnowledgeId: '123e4567-e89b-12d3-a456-4266141740aa',
+              },
+            ],
             creator,
             stats: {
               totalStudents: 30,
