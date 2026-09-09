@@ -24,7 +24,6 @@ import type {
   CategoryConfig,
 } from '../components/SendLessonModal/types';
 import type { FilterConfig } from '../components/Filter';
-import { SubjectEnum } from '../enums/SubjectEnum';
 import type { BaseApiClient } from '../types/api';
 import { loadCategoriesData } from '../utils/categoryDataUtils';
 import { toCsv } from '../utils/queryParams';
@@ -126,8 +125,6 @@ export interface UseRecommendedLessonsPageConfig {
   emptyStateImage: string;
   /** Image for no search results */
   noSearchImage: string;
-  /** Function to map subject name to SubjectEnum */
-  mapSubjectNameToEnum: (subjectName: string) => SubjectEnum | null;
   /** Extra filter categories to inject (e.g., creatorType for gestors) */
   extraFilterCategories?: FilterConfig[];
 }
@@ -164,7 +161,6 @@ export interface UseRecommendedLessonsPageReturn {
     onEditDraft: (draft: RecommendedClassModelTableItem) => void;
     emptyStateImage: string;
     noSearchImage: string;
-    mapSubjectNameToEnum: (subjectName: string) => SubjectEnum | null;
     userFilterData: {
       schools: Array<{ id: string; name: string }>;
       classes: Array<{ id: string; name: string }>;
@@ -335,7 +331,6 @@ const getSchoolYearOptions = (
  *   },
  *   emptyStateImage,
  *   noSearchImage,
- *   mapSubjectNameToEnum,
  * });
  *
  * // In your component
@@ -517,7 +512,6 @@ export const createUseRecommendedLessonsPage = (
     texts,
     emptyStateImage,
     noSearchImage,
-    mapSubjectNameToEnum,
     extraFilterCategories,
   } = config;
 
@@ -886,7 +880,6 @@ export const createUseRecommendedLessonsPage = (
         onEditDraft: handleEditModel,
         emptyStateImage,
         noSearchImage,
-        mapSubjectNameToEnum,
         userFilterData,
         subjectsMap,
         title: texts.title,

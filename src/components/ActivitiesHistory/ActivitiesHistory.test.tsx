@@ -453,19 +453,6 @@ describe('ActivitiesHistory', () => {
         expect(screen.getByTestId('activities-history')).toBeInTheDocument();
       });
     });
-
-    it('should render without mapSubjectNameToEnum', async () => {
-      const propsWithoutMap = {
-        ...defaultProps,
-        mapSubjectNameToEnum: undefined,
-      };
-
-      render(<ActivitiesHistory {...propsWithoutMap} />);
-
-      await waitFor(() => {
-        expect(screen.getByTestId('activities-history')).toBeInTheDocument();
-      });
-    });
   });
 
   describe('Empty states', () => {
@@ -508,38 +495,6 @@ describe('ActivitiesHistory', () => {
         expect(
           screen.getByText('Crie modelos para agilizar suas atividades')
         ).toBeInTheDocument();
-      });
-    });
-  });
-
-  describe('Subject rendering with mapSubjectNameToEnum', () => {
-    it('should render subject with icon when mapSubjectNameToEnum is provided', async () => {
-      const mockMapSubjectNameToEnum = jest.fn().mockReturnValue('MATEMATICA');
-
-      render(
-        <ActivitiesHistory
-          {...defaultProps}
-          mapSubjectNameToEnum={mockMapSubjectNameToEnum}
-        />
-      );
-
-      await waitFor(() => {
-        expect(screen.getByTestId('activities-history')).toBeInTheDocument();
-      });
-    });
-
-    it('should render subject without icon when mapSubjectNameToEnum returns undefined', async () => {
-      const mockMapSubjectNameToEnum = jest.fn().mockReturnValue(undefined);
-
-      render(
-        <ActivitiesHistory
-          {...defaultProps}
-          mapSubjectNameToEnum={mockMapSubjectNameToEnum}
-        />
-      );
-
-      await waitFor(() => {
-        expect(screen.getByTestId('activities-history')).toBeInTheDocument();
       });
     });
   });

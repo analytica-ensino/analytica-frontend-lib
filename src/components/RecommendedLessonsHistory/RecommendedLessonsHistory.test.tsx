@@ -789,25 +789,6 @@ describe('RecommendedLessonsHistory', () => {
     });
   });
 
-  describe('Subject Mapping', () => {
-    it('should accept mapSubjectNameToEnum prop', async () => {
-      const mapSubjectNameToEnum = jest.fn().mockReturnValue(null);
-
-      render(
-        <RecommendedLessonsHistory
-          {...defaultProps}
-          mapSubjectNameToEnum={mapSubjectNameToEnum}
-        />
-      );
-
-      await waitFor(() => {
-        expect(
-          screen.getByTestId('recommended-class-history')
-        ).toBeInTheDocument();
-      });
-    });
-  });
-
   describe('Custom Props', () => {
     it('should accept emptyStateImage prop', async () => {
       mockFetchRecommendedClassHistory.mockResolvedValue(emptyApiResponse);
@@ -928,22 +909,6 @@ describe('RecommendedLessonsHistory', () => {
       });
       // The icon comes from the subject's own `icon`/`color`, no enum mapping.
       expect(screen.getByLabelText('Matemática')).toBeInTheDocument();
-    });
-
-    it('ignores a mapSubjectNameToEnum still passed by an older consumer', async () => {
-      const mapSubjectNameToEnum = jest.fn().mockReturnValue('MATEMATICA');
-
-      render(
-        <RecommendedLessonsHistory
-          {...defaultProps}
-          mapSubjectNameToEnum={mapSubjectNameToEnum}
-        />
-      );
-
-      await waitFor(() => {
-        expect(screen.getByTestId('subject-cell')).toBeInTheDocument();
-      });
-      expect(mapSubjectNameToEnum).not.toHaveBeenCalled();
     });
 
     it('should render status column with badge', async () => {

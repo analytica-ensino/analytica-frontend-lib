@@ -4,7 +4,6 @@ import { Menu, MenuItem, MenuContent } from '../Menu/Menu';
 import { HistoryTab } from './tabs/HistoryTab';
 import { ModelsTab } from './tabs/ModelsTab';
 import { DraftsTab } from './tabs/DraftsTab';
-import type { SubjectEnum } from '../../enums/SubjectEnum';
 import type {
   ActivityTableItem,
   ActivityHistoryFilters,
@@ -61,12 +60,6 @@ export interface ActivitiesHistoryProps {
   emptyStateImage?: string;
   /** Image for no search results */
   noSearchImage?: string;
-  /**
-   * @deprecated Ignored. The backend now sends each subject with its own colour
-   * and icon, so the name no longer has to be mapped to a hardcoded enum. Kept
-   * in the props so consumers that still pass it keep compiling.
-   */
-  mapSubjectNameToEnum?: (subjectName: string) => SubjectEnum | null;
   /** User data for populating filter options */
   userFilterData?: ActivityUserFilterData;
   /**

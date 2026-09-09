@@ -326,7 +326,7 @@ describe('ModelsTabBase', () => {
       TestFilters,
       TestApiResponse,
       unknown
-    >['createTableColumns'] = (_map, _send, _edit, onDelete) => [
+    >['createTableColumns'] = (_send, _edit, onDelete) => [
       {
         key: 'actions',
         label: '',
@@ -451,7 +451,6 @@ describe('ModelsTabBase', () => {
       });
       render(<ModelsTabBase {...props} />);
       expect(createTableColumns).toHaveBeenCalledWith(
-        undefined, // mapSubjectNameToEnum
         onSend,
         undefined, // onEditModel
         expect.any(Function) // handleDeleteClick
@@ -467,23 +466,19 @@ describe('ModelsTabBase', () => {
       });
       render(<ModelsTabBase {...props} />);
       expect(createTableColumns).toHaveBeenCalledWith(
-        undefined, // mapSubjectNameToEnum
         undefined, // onSend
         onEditModel,
         expect.any(Function) // handleDeleteClick
       );
     });
 
-    it('should pass mapSubjectNameToEnum to createTableColumns when provided', () => {
-      const mapFn = jest.fn();
+    it('should build the columns with no callbacks when none is provided', () => {
       const createTableColumns = jest.fn(() => mockColumns);
       const props = createDefaultProps({
-        mapSubjectNameToEnum: mapFn,
         createTableColumns,
       });
       render(<ModelsTabBase {...props} />);
       expect(createTableColumns).toHaveBeenCalledWith(
-        mapFn,
         undefined, // onSend
         undefined, // onEditModel
         expect.any(Function) // handleDeleteClick

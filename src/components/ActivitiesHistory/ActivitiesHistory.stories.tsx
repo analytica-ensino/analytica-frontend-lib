@@ -11,7 +11,6 @@ import type {
   ActivityModelsApiResponse,
   ActivityUserFilterData,
 } from '../../types/activitiesHistory';
-import { SubjectEnum } from '../../enums/SubjectEnum';
 
 /**
  * Valid UUIDs for mock data
@@ -247,22 +246,6 @@ const mockUserFilterData: ActivityUserFilterData = {
 };
 
 /**
- * Map subject name to enum
- */
-const mapSubjectNameToEnum = (name: string): SubjectEnum | null => {
-  const subjectMap: Record<string, SubjectEnum> = {
-    Matemática: SubjectEnum.MATEMATICA,
-    Português: SubjectEnum.PORTUGUES,
-    Física: SubjectEnum.FISICA,
-    História: SubjectEnum.HISTORIA,
-    Biologia: SubjectEnum.BIOLOGIA,
-    Química: SubjectEnum.QUIMICA,
-    Geografia: SubjectEnum.GEOGRAFIA,
-  };
-  return subjectMap[name] ?? null;
-};
-
-/**
  * Default component for stories
  */
 const ActivitiesHistoryStory = (
@@ -323,7 +306,6 @@ const ActivitiesHistoryStory = (
         onRowClick={(row) => console.log('Row clicked:', row)}
         onSendActivity={(model) => console.log('Send activity:', model)}
         onEditModel={(model) => console.log('Edit model:', model)}
-        mapSubjectNameToEnum={mapSubjectNameToEnum}
         userFilterData={mockUserFilterData}
         subjectsMap={subjectsMap}
         {...rest}

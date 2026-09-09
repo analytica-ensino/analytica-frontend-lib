@@ -100,7 +100,7 @@ export const ModelsTab = ({
     userFilterData={userFilterData}
     subjectsMap={subjectsMap}
     config={ACTIVITY_MODELS_CONFIG}
-    createTableColumns={(mapSubject, send, edit, del) =>
+    createTableColumns={(send, edit, del) =>
       createModelsTableColumnsBase(send, edit, del, ACTIVITY_COLUMNS_CONFIG)
     }
     createFiltersConfig={createModelsFiltersConfig}

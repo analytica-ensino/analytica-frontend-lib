@@ -100,7 +100,7 @@ export const RecommendedClassDraftsTab = ({
     userFilterData={userFilterData}
     subjectsMap={subjectsMap}
     config={RECOMMENDED_CLASS_DRAFTS_CONFIG}
-    createTableColumns={(mapSubject, send, edit, del) =>
+    createTableColumns={(send, edit, del) =>
       createModelsTableColumnsBase(
         send,
         edit,

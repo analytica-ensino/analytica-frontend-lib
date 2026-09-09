@@ -17,7 +17,6 @@ import { AlertDialog } from '../AlertDialog/AlertDialog';
 import useToastStore from '../Toast/utils/ToastStore';
 import { EditRecommendedLessonModal } from './EditRecommendedLessonModal';
 import { renderSubjectsCell } from '../../utils/renderSubjectCell';
-import { SubjectEnum } from '../../enums/SubjectEnum';
 import type { ColumnConfig, TableParams } from '../TableProvider/TableProvider';
 import type { FilterConfig } from '../Filter';
 import {
@@ -77,12 +76,6 @@ export interface RecommendedLessonsHistoryProps {
   emptyStateImage?: string;
   /** Image for no search results */
   noSearchImage?: string;
-  /**
-   * @deprecated Ignored. The backend now sends each subject with its own colour
-   * and icon, so the name no longer has to be mapped to a hardcoded enum. Kept
-   * in the props so consumers that still pass it keep compiling.
-   */
-  mapSubjectNameToEnum?: (subjectName: string) => SubjectEnum | null;
   /** User data for populating filter options */
   userFilterData?: RecommendedClassUserFilterData;
   /** Page title */

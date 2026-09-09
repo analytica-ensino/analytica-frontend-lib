@@ -9,7 +9,6 @@ import type {
   RecommendedClassModelsApiResponse,
 } from '../../types/recommendedLessons';
 import { RecommendedClassDraftType } from '../../types/recommendedLessons';
-import { SubjectEnum } from '../../enums/SubjectEnum';
 
 /**
  * Mock UUIDs for models data
@@ -384,20 +383,6 @@ const mockUserFilterData = {
 };
 
 /**
- * Map subject name to enum for icon display
- */
-const mapSubjectNameToEnum = (subjectName: string): SubjectEnum | null => {
-  const mapping: Record<string, SubjectEnum> = {
-    Matemática: SubjectEnum.MATEMATICA,
-    Física: SubjectEnum.FISICA,
-    Química: SubjectEnum.QUIMICA,
-    Português: SubjectEnum.PORTUGUES,
-    Biologia: SubjectEnum.BIOLOGIA,
-  };
-  return mapping[subjectName] || null;
-};
-
-/**
  * Default props for stories
  */
 const defaultProps: RecommendedLessonsHistoryProps = {
@@ -423,7 +408,6 @@ const defaultProps: RecommendedLessonsHistoryProps = {
       totalLessons: 0,
     };
   },
-  mapSubjectNameToEnum,
   userFilterData: mockUserFilterData,
   // Model props - enables Models tab in all stories
   fetchRecommendedClassModels: async () => {
@@ -506,19 +490,6 @@ export const CustomTitle: Story = () => (
 );
 CustomTitle.meta = {
   name: 'Custom Title',
-};
-
-/**
- * Without subject icons - shows the component without subject enum mapping
- */
-export const WithoutSubjectIcons: Story = () => (
-  <RecommendedLessonsHistory
-    {...defaultProps}
-    mapSubjectNameToEnum={undefined}
-  />
-);
-WithoutSubjectIcons.meta = {
-  name: 'Without Subject Icons',
 };
 
 /**

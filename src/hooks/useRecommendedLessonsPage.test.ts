@@ -19,7 +19,6 @@ import type {
   RecommendedClassModelTableItem,
 } from '../types/recommendedLessons';
 import type { SendLessonFormData } from '../components/SendLessonModal/types';
-import { SubjectEnum } from '../enums/SubjectEnum';
 import { loadCategoriesData } from '../utils/categoryDataUtils';
 
 // Recipients are loaded from the API (same flow as lesson creation); mock the
@@ -128,14 +127,6 @@ describe('useRecommendedLessonsPage', () => {
     searchPlaceholder: 'Search lesson',
   };
 
-  const mockMapSubjectNameToEnum = jest.fn(
-    (subjectName: string): SubjectEnum | null => {
-      if (subjectName === 'Mathematics') return SubjectEnum.MATEMATICA;
-      if (subjectName === 'Portuguese') return SubjectEnum.PORTUGUES;
-      return null;
-    }
-  );
-
   const createConfig = (
     overrides?: Partial<UseRecommendedLessonsPageConfig>
   ): UseRecommendedLessonsPageConfig => ({
@@ -145,7 +136,6 @@ describe('useRecommendedLessonsPage', () => {
     paths: mockPaths,
     endpoints: mockEndpoints,
     texts: mockTexts,
-    mapSubjectNameToEnum: mockMapSubjectNameToEnum,
     emptyStateImage: '/empty.png',
     noSearchImage: '/no-search.png',
     ...overrides,
@@ -290,7 +280,6 @@ describe('useRecommendedLessonsPage', () => {
     expect(historyProps.onSendLesson).toBeInstanceOf(Function);
     expect(historyProps.emptyStateImage).toBe('/empty.png');
     expect(historyProps.noSearchImage).toBe('/no-search.png');
-    expect(historyProps.mapSubjectNameToEnum).toBe(mockMapSubjectNameToEnum);
     expect(historyProps.title).toBe('Recommended Lessons History');
     expect(historyProps.createButtonText).toBe('Create Lesson');
     expect(historyProps.searchPlaceholder).toBe('Search lesson');
