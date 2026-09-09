@@ -55,7 +55,14 @@ describe('useRecommendedClassModels', () => {
       expect(result.id).toBe('123e4567-e89b-12d3-a456-426614174000');
       expect(result.title).toBe('Test Model');
       expect(result.savedAt).toBe('01/06/2024');
-      expect(result.subject).toBe('Matemática');
+      expect(result.subjects).toEqual([
+        {
+          id: '123e4567-e89b-12d3-a456-426614174002',
+          name: 'Matemática',
+          icon: 'BookOpen',
+          color: '#6B7280',
+        },
+      ]);
       expect(result.subjectId).toBe('123e4567-e89b-12d3-a456-426614174002');
     });
 
@@ -95,7 +102,7 @@ describe('useRecommendedClassModels', () => {
         model,
         subjectsMap
       );
-      expect(result.subject).toBe('');
+      expect(result.subjects).toEqual([]);
       expect(result.subjectId).toBeNull();
     });
 
@@ -109,7 +116,7 @@ describe('useRecommendedClassModels', () => {
         model,
         subjectsMap
       );
-      expect(result.subject).toBe('');
+      expect(result.subjects).toEqual([]);
     });
 
     it('should handle undefined subjectsMap', () => {
@@ -117,7 +124,7 @@ describe('useRecommendedClassModels', () => {
         baseModel,
         undefined
       );
-      expect(result.subject).toBe('');
+      expect(result.subjects).toEqual([]);
     });
 
     it('should handle empty subjectsMap', () => {
@@ -125,7 +132,7 @@ describe('useRecommendedClassModels', () => {
         baseModel,
         new Map()
       );
-      expect(result.subject).toBe('');
+      expect(result.subjects).toEqual([]);
     });
 
     it('should format date correctly', () => {
@@ -397,7 +404,14 @@ describe('useRecommendedClassModels', () => {
       expect(mockApiClient.get).toHaveBeenCalled();
       expect(result.current.models).toHaveLength(1);
       expect(result.current.models[0].title).toBe('Test Model');
-      expect(result.current.models[0].subject).toBe('Matemática');
+      expect(result.current.models[0].subjects).toEqual([
+        {
+          id: '123e4567-e89b-12d3-a456-426614174002',
+          name: 'Matemática',
+          icon: 'BookOpen',
+          color: '#6B7280',
+        },
+      ]);
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
     });

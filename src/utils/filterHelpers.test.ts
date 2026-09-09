@@ -494,7 +494,7 @@ describe('filterHelpers', () => {
     it('should extract subject, school, class and schoolYear from a single item', () => {
       const result = extractBreakdownFilterOptions([
         {
-          subject: { id: 'sub-1', name: 'Matemática' },
+          subjects: [{ id: 'sub-1', name: 'Matemática' }],
           breakdown: [
             {
               school: { id: 'sch-1', name: 'Escola A' },
@@ -514,7 +514,7 @@ describe('filterHelpers', () => {
     it('should deduplicate entries by id across multiple items', () => {
       const result = extractBreakdownFilterOptions([
         {
-          subject: { id: 'sub-1', name: 'Matemática' },
+          subjects: [{ id: 'sub-1', name: 'Matemática' }],
           breakdown: [
             {
               school: { id: 'sch-1', name: 'Escola A' },
@@ -524,7 +524,7 @@ describe('filterHelpers', () => {
           ],
         },
         {
-          subject: { id: 'sub-1', name: 'Matemática' },
+          subjects: [{ id: 'sub-1', name: 'Matemática' }],
           breakdown: [
             {
               school: { id: 'sch-1', name: 'Escola A' },
@@ -542,7 +542,7 @@ describe('filterHelpers', () => {
     it('should aggregate breakdown entries across multiple items', () => {
       const result = extractBreakdownFilterOptions([
         {
-          subject: { id: 'sub-1', name: 'Matemática' },
+          subjects: [{ id: 'sub-1', name: 'Matemática' }],
           breakdown: [
             {
               school: { id: 'sch-1', name: 'Escola A' },
@@ -552,7 +552,7 @@ describe('filterHelpers', () => {
           ],
         },
         {
-          subject: { id: 'sub-2', name: 'Português' },
+          subjects: [{ id: 'sub-2', name: 'Português' }],
           breakdown: [
             {
               school: { id: 'sch-2', name: 'Escola B' },
@@ -570,7 +570,7 @@ describe('filterHelpers', () => {
     it('should aggregate multiple breakdowns within a single item', () => {
       const result = extractBreakdownFilterOptions([
         {
-          subject: { id: 'sub-1', name: 'Matemática' },
+          subjects: [{ id: 'sub-1', name: 'Matemática' }],
           breakdown: [
             {
               school: { id: 'sch-1', name: 'Escola A' },
@@ -594,7 +594,7 @@ describe('filterHelpers', () => {
     it('should sort results by name in pt-BR locale', () => {
       const result = extractBreakdownFilterOptions([
         {
-          subject: { id: 'sub-2', name: 'Português' },
+          subjects: [{ id: 'sub-2', name: 'Português' }],
           breakdown: [
             {
               school: { id: 'sch-2', name: 'Zebra School' },
@@ -604,7 +604,7 @@ describe('filterHelpers', () => {
           ],
         },
         {
-          subject: { id: 'sub-1', name: 'Matemática' },
+          subjects: [{ id: 'sub-1', name: 'Matemática' }],
           breakdown: [
             {
               school: { id: 'sch-1', name: 'Alpha School' },
@@ -624,7 +624,7 @@ describe('filterHelpers', () => {
     it('should use "-" fallback — subject null is ignored', () => {
       const result = extractBreakdownFilterOptions([
         {
-          subject: null,
+          subjects: [],
           breakdown: [
             {
               school: { id: 'sch-1', name: 'Escola A' },
@@ -641,7 +641,7 @@ describe('filterHelpers', () => {
 
     it('should ignore breakdown when absent', () => {
       const result = extractBreakdownFilterOptions([
-        { subject: { id: 'sub-1', name: 'Matemática' } },
+        { subjects: [{ id: 'sub-1', name: 'Matemática' }] },
       ]);
 
       expect(result.subjects).toHaveLength(1);
@@ -652,7 +652,7 @@ describe('filterHelpers', () => {
 
     it('should ignore breakdown when empty array', () => {
       const result = extractBreakdownFilterOptions([
-        { subject: { id: 'sub-1', name: 'Matemática' }, breakdown: [] },
+        { subjects: [{ id: 'sub-1', name: 'Matemática' }], breakdown: [] },
       ]);
 
       expect(result.subjects).toHaveLength(1);
@@ -662,7 +662,7 @@ describe('filterHelpers', () => {
     it('should ignore null school/class/schoolYear within a breakdown entry', () => {
       const result = extractBreakdownFilterOptions([
         {
-          subject: { id: 'sub-1', name: 'Matemática' },
+          subjects: [{ id: 'sub-1', name: 'Matemática' }],
           breakdown: [{ school: null, schoolYear: null, class: null }],
         },
       ]);

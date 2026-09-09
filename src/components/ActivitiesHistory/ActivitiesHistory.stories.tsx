@@ -11,7 +11,6 @@ import type {
   ActivityModelsApiResponse,
   ActivityUserFilterData,
 } from '../../types/activitiesHistory';
-import { SubjectEnum } from '../../enums/SubjectEnum';
 
 /**
  * Valid UUIDs for mock data
@@ -59,11 +58,15 @@ const mockActivitiesResponse: ActivitiesHistoryApiResponse = {
         finalDate: '2024-12-15',
         status: ActivityApiStatus.A_VENCER,
         completionPercentage: 75,
-        subject: {
-          id: MOCK_UUIDS.subjects.math,
-          name: 'Matemática',
-          areaKnowledgeId: 'area-exatas',
-        },
+        subjects: [
+          {
+            id: MOCK_UUIDS.subjects.math,
+            name: 'Matemática',
+            areaKnowledgeId: 'area-exatas',
+            color: '#C62828',
+            icon: 'MathOperations',
+          },
+        ],
         creator: { id: MOCK_UUIDS.users.user1, name: 'Prof. Carlos' },
         breakdown: [
           {
@@ -86,11 +89,15 @@ const mockActivitiesResponse: ActivitiesHistoryApiResponse = {
         finalDate: '2024-11-30',
         status: ActivityApiStatus.VENCIDA,
         completionPercentage: 45,
-        subject: {
-          id: MOCK_UUIDS.subjects.portuguese,
-          name: 'Português',
-          areaKnowledgeId: 'area-humanas',
-        },
+        subjects: [
+          {
+            id: MOCK_UUIDS.subjects.portuguese,
+            name: 'Português',
+            areaKnowledgeId: 'area-humanas',
+            color: '#C62828',
+            icon: 'MathOperations',
+          },
+        ],
         creator: { id: MOCK_UUIDS.users.user1, name: 'Prof. Carlos' },
         breakdown: [
           {
@@ -113,11 +120,15 @@ const mockActivitiesResponse: ActivitiesHistoryApiResponse = {
         finalDate: '2024-10-01',
         status: ActivityApiStatus.CONCLUIDA,
         completionPercentage: 100,
-        subject: {
-          id: MOCK_UUIDS.subjects.physics,
-          name: 'Física',
-          areaKnowledgeId: 'area-exatas',
-        },
+        subjects: [
+          {
+            id: MOCK_UUIDS.subjects.physics,
+            name: 'Física',
+            areaKnowledgeId: 'area-exatas',
+            color: '#C62828',
+            icon: 'MathOperations',
+          },
+        ],
         creator: { id: MOCK_UUIDS.users.user1, name: 'Prof. Carlos' },
         breakdown: [
           {
@@ -140,11 +151,15 @@ const mockActivitiesResponse: ActivitiesHistoryApiResponse = {
         finalDate: '2024-12-20',
         status: ActivityApiStatus.A_VENCER,
         completionPercentage: 30,
-        subject: {
-          id: MOCK_UUIDS.subjects.history,
-          name: 'História',
-          areaKnowledgeId: 'area-humanas',
-        },
+        subjects: [
+          {
+            id: MOCK_UUIDS.subjects.history,
+            name: 'História',
+            areaKnowledgeId: 'area-humanas',
+            color: '#C62828',
+            icon: 'MathOperations',
+          },
+        ],
         creator: { id: MOCK_UUIDS.users.user1, name: 'Prof. Carlos' },
         breakdown: [
           {
@@ -231,22 +246,6 @@ const mockUserFilterData: ActivityUserFilterData = {
 };
 
 /**
- * Map subject name to enum
- */
-const mapSubjectNameToEnum = (name: string): SubjectEnum | null => {
-  const subjectMap: Record<string, SubjectEnum> = {
-    Matemática: SubjectEnum.MATEMATICA,
-    Português: SubjectEnum.PORTUGUES,
-    Física: SubjectEnum.FISICA,
-    História: SubjectEnum.HISTORIA,
-    Biologia: SubjectEnum.BIOLOGIA,
-    Química: SubjectEnum.QUIMICA,
-    Geografia: SubjectEnum.GEOGRAFIA,
-  };
-  return subjectMap[name] ?? null;
-};
-
-/**
  * Default component for stories
  */
 const ActivitiesHistoryStory = (
@@ -307,7 +306,6 @@ const ActivitiesHistoryStory = (
         onRowClick={(row) => console.log('Row clicked:', row)}
         onSendActivity={(model) => console.log('Send activity:', model)}
         onEditModel={(model) => console.log('Edit model:', model)}
-        mapSubjectNameToEnum={mapSubjectNameToEnum}
         userFilterData={mockUserFilterData}
         subjectsMap={subjectsMap}
         {...rest}

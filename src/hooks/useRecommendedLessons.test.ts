@@ -69,10 +69,15 @@ describe('useRecommendedLessons', () => {
         progress: 50,
         totalLessons: 10,
       },
-      subject: {
-        id: 'subject-1',
-        name: 'Matemática',
-      },
+      subjects: [
+        {
+          id: 'subject-1',
+          name: 'Matemática',
+          color: '#C62828',
+          icon: 'MathOperations',
+          areaKnowledgeId: '123e4567-e89b-12d3-a456-4266141740aa',
+        },
+      ],
       creator: {
         id: 'creator-1',
         name: 'Professor João',
@@ -104,7 +109,8 @@ describe('useRecommendedLessons', () => {
       expect(result.startDate).toBe('01/06');
       expect(result.deadline).toBe('31/12');
       expect(result.school).toBe('Escola Exemplo');
-      expect(result.subject).toBe('Matemática');
+      expect(result.subjects).toHaveLength(1);
+      expect(result.subjects[0].name).toBe('Matemática');
       expect(result.class).toBe('Turma A');
       expect(result.completionPercentage).toBe(50);
       expect(result.status).toBe(RecommendedClassDisplayStatus.ATIVA);
@@ -156,14 +162,14 @@ describe('useRecommendedLessons', () => {
       expect(result.deadline).toBe('-');
     });
 
-    it('should handle null subject', () => {
+    it('should handle an item with no subject', () => {
       const item: RecommendedClassHistoryItem = {
         ...baseRecommendedClassHistoryItem,
-        subject: null,
+        subjects: [],
       };
 
       const result = transformRecommendedClassToTableItem(item);
-      expect(result.subject).toBe('-');
+      expect(result.subjects).toEqual([]);
     });
 
     it('should show class count when multiple breakdowns exist', () => {
@@ -281,10 +287,15 @@ describe('useRecommendedLessons', () => {
                 progress: 50,
                 totalLessons: 10,
               },
-              subject: {
-                id: '123e4567-e89b-12d3-a456-426614174001',
-                name: 'Math',
-              },
+              subjects: [
+                {
+                  id: '123e4567-e89b-12d3-a456-426614174001',
+                  name: 'Math',
+                  color: '#C62828',
+                  icon: 'MathOperations',
+                  areaKnowledgeId: '123e4567-e89b-12d3-a456-4266141740aa',
+                },
+              ],
               creator: {
                 id: '123e4567-e89b-12d3-a456-426614174002',
                 name: 'John',
@@ -315,7 +326,7 @@ describe('useRecommendedLessons', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should validate response with null subject and creator', () => {
+    it('should validate response with no subjects and a null creator', () => {
       const responseWithNulls = {
         message: 'Success',
         data: {
@@ -330,7 +341,7 @@ describe('useRecommendedLessons', () => {
                 progress: 0,
                 totalLessons: 5,
               },
-              subject: null,
+              subjects: [],
               creator: null,
               stats: {
                 totalStudents: 20,
@@ -364,7 +375,7 @@ describe('useRecommendedLessons', () => {
                 progress: 0,
                 totalLessons: 5,
               },
-              subject: null,
+              subjects: [],
               creator: null,
               stats: {
                 totalStudents: 20,
@@ -418,10 +429,15 @@ describe('useRecommendedLessons', () => {
               progress: 50,
               totalLessons: 10,
             },
-            subject: {
-              id: '123e4567-e89b-12d3-a456-426614174001',
-              name: 'Matemática',
-            },
+            subjects: [
+              {
+                id: '123e4567-e89b-12d3-a456-426614174001',
+                name: 'Matemática',
+                color: '#C62828',
+                icon: 'MathOperations',
+                areaKnowledgeId: '123e4567-e89b-12d3-a456-4266141740aa',
+              },
+            ],
             creator: {
               id: '123e4567-e89b-12d3-a456-426614174002',
               name: 'Professor',

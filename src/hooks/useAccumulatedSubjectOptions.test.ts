@@ -13,9 +13,9 @@ const row = (
     title: `Modelo ${id}`,
     savedAt: '14/08/2026',
     type: ActivityType.MODELO,
-    subject: subjectName
-      ? { id: subjectId!, name: subjectName, icon: 'BookOpen', color: '#000' }
-      : null,
+    subjects: subjectName
+      ? [{ id: subjectId!, name: subjectName, icon: 'BookOpen', color: '#000' }]
+      : [],
     subjectId,
   }) as ActivityModelTableItem;
 

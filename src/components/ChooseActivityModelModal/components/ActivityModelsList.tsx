@@ -1,10 +1,7 @@
 import { useMemo } from 'react';
-import { TableProvider, IconRender, Text, TruncatedText } from '../../../index';
+import { TableProvider } from '../../../index';
 import { createModelsTableColumnsBase } from '../../shared/ModelsTabBase/createModelsTableColumnsBase';
-import type {
-  ActivityModelTableItem,
-  SubjectData,
-} from '../../../types/activitiesHistory';
+import type { ActivityModelTableItem } from '../../../types/activitiesHistory';
 import type {
   TableParams,
   ColumnConfig,
@@ -34,7 +31,6 @@ export const ActivityModelsList = ({
   // Create table columns without actions column
   const tableColumns = useMemo<ColumnConfig<ActivityModelTableItem>[]>(() => {
     const baseColumns = createModelsTableColumnsBase<ActivityModelTableItem>(
-      undefined, // No subject mapping needed
       undefined, // No send button
       undefined, // No edit button
       () => {}, // No delete button
@@ -46,45 +42,9 @@ export const ActivityModelsList = ({
       }
     );
 
-    // Replace subject column to handle SubjectData object
-    const columnsWithoutSubject = baseColumns.filter(
-      (col) => col.key !== 'actions' && col.key !== 'subject'
-    );
-
-    return columnsWithoutSubject.concat([
-      {
-        key: 'subject',
-        label: 'Componente curricular',
-        sortable: true,
-        className: 'max-w-[200px]',
-        render: (value: unknown) => {
-          const subject = value as SubjectData | null;
-          if (!subject) {
-            return (
-              <Text size="sm" color="text-text-400">
-                -
-              </Text>
-            );
-          }
-
-          return (
-            <div className="flex items-center gap-2 min-w-0">
-              <span
-                className="w-[21px] h-[21px] flex items-center justify-center rounded-sm text-text-950 shrink-0"
-                style={{ backgroundColor: subject.color }}
-              >
-                <IconRender
-                  iconName={subject.icon}
-                  size={17}
-                  color="currentColor"
-                />
-              </span>
-              <TruncatedText size="sm">{subject.name}</TruncatedText>
-            </div>
-          );
-        },
-      },
-    ]);
+    // The base subject column already renders the backend's colour and icon,
+    // so this list only has to drop the actions column.
+    return baseColumns.filter((col) => col.key !== 'actions');
   }, []);
 
   return (

@@ -224,12 +224,14 @@ describe('UnifiedDraftModelPage', () => {
       title: 'Test Activity 1',
       savedAt: '2024-01-01',
       type: ActivityType.ATIVIDADE,
-      subject: {
-        id: 'sub-1',
-        name: 'Matemática',
-        icon: 'math',
-        color: 'blue',
-      },
+      subjects: [
+        {
+          id: 'sub-1',
+          name: 'Matemática',
+          icon: 'math',
+          color: 'blue',
+        },
+      ],
       subjectId: 'sub-1',
     },
     {
@@ -237,12 +239,14 @@ describe('UnifiedDraftModelPage', () => {
       title: 'Test Activity 2',
       savedAt: '2024-01-02',
       type: ActivityType.ATIVIDADE,
-      subject: {
-        id: 'sub-2',
-        name: 'Português',
-        icon: 'language',
-        color: 'green',
-      },
+      subjects: [
+        {
+          id: 'sub-2',
+          name: 'Português',
+          icon: 'language',
+          color: 'green',
+        },
+      ],
       subjectId: 'sub-2',
     },
   ];
@@ -336,7 +340,7 @@ describe('UnifiedDraftModelPage', () => {
           title: 'No Subject',
           savedAt: '2024-01-03',
           type: ActivityType.ATIVIDADE,
-          subject: { id: 'none', name: '-', icon: 'none', color: 'gray' },
+          subjects: [{ id: 'none', name: '-', icon: 'none', color: 'gray' }],
           subjectId: null,
         },
       ];
@@ -451,7 +455,7 @@ describe('UnifiedDraftModelPage', () => {
           title: 'No Subject ID',
           savedAt: '2024-01-03',
           type: ActivityType.ATIVIDADE,
-          subject: { id: '', name: 'Test', icon: 'test', color: 'blue' },
+          subjects: [{ id: '', name: 'Test', icon: 'test', color: 'blue' }],
           subjectId: null,
         },
       ];
@@ -470,7 +474,7 @@ describe('UnifiedDraftModelPage', () => {
           title: 'Dash Subject',
           savedAt: '2024-01-03',
           type: ActivityType.ATIVIDADE,
-          subject: { id: 'sub-3', name: '-', icon: 'none', color: 'gray' },
+          subjects: [{ id: 'sub-3', name: '-', icon: 'none', color: 'gray' }],
           subjectId: 'sub-3',
         },
       ];

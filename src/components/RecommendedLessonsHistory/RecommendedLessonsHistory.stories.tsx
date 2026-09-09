@@ -9,7 +9,6 @@ import type {
   RecommendedClassModelsApiResponse,
 } from '../../types/recommendedLessons';
 import { RecommendedClassDraftType } from '../../types/recommendedLessons';
-import { SubjectEnum } from '../../enums/SubjectEnum';
 
 /**
  * Mock UUIDs for models data
@@ -145,10 +144,15 @@ const mockRecommendedClassHistoryData: RecommendedClassHistoryApiResponse = {
           progress: 75,
           totalLessons: 8,
         },
-        subject: {
-          id: '550e8400-e29b-41d4-a716-446655440010',
-          name: 'Matemática',
-        },
+        subjects: [
+          {
+            id: '550e8400-e29b-41d4-a716-446655440010',
+            name: 'Matemática',
+            color: '#C62828',
+            icon: 'MathOperations',
+            areaKnowledgeId: '123e4567-e89b-12d3-a456-4266141740aa',
+          },
+        ],
         creator: {
           id: '550e8400-e29b-41d4-a716-446655440020',
           name: 'Prof. João Silva',
@@ -179,10 +183,15 @@ const mockRecommendedClassHistoryData: RecommendedClassHistoryApiResponse = {
           progress: 100,
           totalLessons: 6,
         },
-        subject: {
-          id: '550e8400-e29b-41d4-a716-446655440011',
-          name: 'Física',
-        },
+        subjects: [
+          {
+            id: '550e8400-e29b-41d4-a716-446655440011',
+            name: 'Física',
+            color: '#C62828',
+            icon: 'MathOperations',
+            areaKnowledgeId: '123e4567-e89b-12d3-a456-4266141740aa',
+          },
+        ],
         creator: {
           id: '550e8400-e29b-41d4-a716-446655440021',
           name: 'Prof. Maria Santos',
@@ -213,10 +222,15 @@ const mockRecommendedClassHistoryData: RecommendedClassHistoryApiResponse = {
           progress: 45,
           totalLessons: 10,
         },
-        subject: {
-          id: '550e8400-e29b-41d4-a716-446655440012',
-          name: 'Química',
-        },
+        subjects: [
+          {
+            id: '550e8400-e29b-41d4-a716-446655440012',
+            name: 'Química',
+            color: '#C62828',
+            icon: 'MathOperations',
+            areaKnowledgeId: '123e4567-e89b-12d3-a456-4266141740aa',
+          },
+        ],
         creator: {
           id: '550e8400-e29b-41d4-a716-446655440022',
           name: 'Prof. Carlos Lima',
@@ -247,10 +261,15 @@ const mockRecommendedClassHistoryData: RecommendedClassHistoryApiResponse = {
           progress: 25,
           totalLessons: 12,
         },
-        subject: {
-          id: '550e8400-e29b-41d4-a716-446655440013',
-          name: 'Português',
-        },
+        subjects: [
+          {
+            id: '550e8400-e29b-41d4-a716-446655440013',
+            name: 'Português',
+            color: '#C62828',
+            icon: 'MathOperations',
+            areaKnowledgeId: '123e4567-e89b-12d3-a456-4266141740aa',
+          },
+        ],
         creator: {
           id: '550e8400-e29b-41d4-a716-446655440023',
           name: 'Prof. Ana Costa',
@@ -289,10 +308,15 @@ const mockRecommendedClassHistoryData: RecommendedClassHistoryApiResponse = {
           progress: 60,
           totalLessons: 8,
         },
-        subject: {
-          id: '550e8400-e29b-41d4-a716-446655440014',
-          name: 'Biologia',
-        },
+        subjects: [
+          {
+            id: '550e8400-e29b-41d4-a716-446655440014',
+            name: 'Biologia',
+            color: '#C62828',
+            icon: 'MathOperations',
+            areaKnowledgeId: '123e4567-e89b-12d3-a456-4266141740aa',
+          },
+        ],
         creator: {
           id: '550e8400-e29b-41d4-a716-446655440024',
           name: 'Prof. Roberto Ferreira',
@@ -359,20 +383,6 @@ const mockUserFilterData = {
 };
 
 /**
- * Map subject name to enum for icon display
- */
-const mapSubjectNameToEnum = (subjectName: string): SubjectEnum | null => {
-  const mapping: Record<string, SubjectEnum> = {
-    Matemática: SubjectEnum.MATEMATICA,
-    Física: SubjectEnum.FISICA,
-    Química: SubjectEnum.QUIMICA,
-    Português: SubjectEnum.PORTUGUES,
-    Biologia: SubjectEnum.BIOLOGIA,
-  };
-  return mapping[subjectName] || null;
-};
-
-/**
  * Default props for stories
  */
 const defaultProps: RecommendedLessonsHistoryProps = {
@@ -398,7 +408,6 @@ const defaultProps: RecommendedLessonsHistoryProps = {
       totalLessons: 0,
     };
   },
-  mapSubjectNameToEnum,
   userFilterData: mockUserFilterData,
   // Model props - enables Models tab in all stories
   fetchRecommendedClassModels: async () => {
@@ -484,19 +493,6 @@ CustomTitle.meta = {
 };
 
 /**
- * Without subject icons - shows the component without subject enum mapping
- */
-export const WithoutSubjectIcons: Story = () => (
-  <RecommendedLessonsHistory
-    {...defaultProps}
-    mapSubjectNameToEnum={undefined}
-  />
-);
-WithoutSubjectIcons.meta = {
-  name: 'Without Subject Icons',
-};
-
-/**
  * Many recommendedClass - shows the component with pagination
  */
 export const ManyRecommendedClass: Story = () => {
@@ -521,10 +517,15 @@ export const ManyRecommendedClass: Story = () => {
         progress: Math.floor(Math.random() * 100),
         totalLessons: Math.floor(Math.random() * 10) + 5,
       },
-      subject: {
-        id: `550e8400-e29b-41d4-a716-4466554401${String(i % 5).padStart(2, '0')}`,
-        name: subjects[i % subjects.length],
-      },
+      subjects: [
+        {
+          id: `550e8400-e29b-41d4-a716-4466554401${String(i % 5).padStart(2, '0')}`,
+          name: subjects[i % subjects.length],
+          color: '#C62828',
+          icon: 'MathOperations',
+          areaKnowledgeId: 'area-exatas',
+        },
+      ],
       creator: {
         id: `550e8400-e29b-41d4-a716-4466554402${String(i % 3).padStart(2, '0')}`,
         name: `Professor ${i + 1}`,
@@ -585,10 +586,15 @@ export const MultipleClasses: Story = () => {
             progress: 60,
             totalLessons: 10,
           },
-          subject: {
-            id: '550e8400-e29b-41d4-a716-446655440010',
-            name: 'Matemática',
-          },
+          subjects: [
+            {
+              id: '550e8400-e29b-41d4-a716-446655440010',
+              name: 'Matemática',
+              color: '#C62828',
+              icon: 'MathOperations',
+              areaKnowledgeId: '123e4567-e89b-12d3-a456-4266141740aa',
+            },
+          ],
           creator: {
             id: '550e8400-e29b-41d4-a716-446655440020',
             name: 'Prof. João Silva',
@@ -696,10 +702,15 @@ export const AllStatuses: Story = () => {
             progress: 50,
             totalLessons: 8,
           },
-          subject: {
-            id: '550e8400-e29b-41d4-a716-446655440010',
-            name: 'Matemática',
-          },
+          subjects: [
+            {
+              id: '550e8400-e29b-41d4-a716-446655440010',
+              name: 'Matemática',
+              color: '#C62828',
+              icon: 'MathOperations',
+              areaKnowledgeId: '123e4567-e89b-12d3-a456-4266141740aa',
+            },
+          ],
           creator: null,
           stats: {
             totalStudents: 30,
@@ -727,10 +738,15 @@ export const AllStatuses: Story = () => {
             progress: 100,
             totalLessons: 10,
           },
-          subject: {
-            id: '550e8400-e29b-41d4-a716-446655440011',
-            name: 'Física',
-          },
+          subjects: [
+            {
+              id: '550e8400-e29b-41d4-a716-446655440011',
+              name: 'Física',
+              color: '#C62828',
+              icon: 'MathOperations',
+              areaKnowledgeId: '123e4567-e89b-12d3-a456-4266141740aa',
+            },
+          ],
           creator: null,
           stats: {
             totalStudents: 25,
@@ -758,10 +774,15 @@ export const AllStatuses: Story = () => {
             progress: 30,
             totalLessons: 12,
           },
-          subject: {
-            id: '550e8400-e29b-41d4-a716-446655440012',
-            name: 'Química',
-          },
+          subjects: [
+            {
+              id: '550e8400-e29b-41d4-a716-446655440012',
+              name: 'Química',
+              color: '#C62828',
+              icon: 'MathOperations',
+              areaKnowledgeId: '123e4567-e89b-12d3-a456-4266141740aa',
+            },
+          ],
           creator: null,
           stats: {
             totalStudents: 35,

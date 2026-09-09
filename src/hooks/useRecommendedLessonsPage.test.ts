@@ -19,7 +19,6 @@ import type {
   RecommendedClassModelTableItem,
 } from '../types/recommendedLessons';
 import type { SendLessonFormData } from '../components/SendLessonModal/types';
-import { SubjectEnum } from '../enums/SubjectEnum';
 import { loadCategoriesData } from '../utils/categoryDataUtils';
 
 // Recipients are loaded from the API (same flow as lesson creation); mock the
@@ -128,14 +127,6 @@ describe('useRecommendedLessonsPage', () => {
     searchPlaceholder: 'Search lesson',
   };
 
-  const mockMapSubjectNameToEnum = jest.fn(
-    (subjectName: string): SubjectEnum | null => {
-      if (subjectName === 'Mathematics') return SubjectEnum.MATEMATICA;
-      if (subjectName === 'Portuguese') return SubjectEnum.PORTUGUES;
-      return null;
-    }
-  );
-
   const createConfig = (
     overrides?: Partial<UseRecommendedLessonsPageConfig>
   ): UseRecommendedLessonsPageConfig => ({
@@ -147,7 +138,6 @@ describe('useRecommendedLessonsPage', () => {
     texts: mockTexts,
     emptyStateImage: '/empty.png',
     noSearchImage: '/no-search.png',
-    mapSubjectNameToEnum: mockMapSubjectNameToEnum,
     ...overrides,
   });
 
@@ -166,7 +156,15 @@ describe('useRecommendedLessonsPage', () => {
               progress: 50,
               totalLessons: 10,
             },
-            subject: { id: 'subject-1', name: 'Mathematics' },
+            subjects: [
+              {
+                id: 'subject-1',
+                name: 'Mathematics',
+                color: '#C62828',
+                icon: 'MathOperations',
+                areaKnowledgeId: 'area-1',
+              },
+            ],
             creator: { id: 'creator-1', name: 'Teacher' },
             stats: {
               totalStudents: 30,
@@ -215,7 +213,14 @@ describe('useRecommendedLessonsPage', () => {
     id: 'model-123',
     title: 'Test Model',
     savedAt: '01/06/2024',
-    subject: 'Mathematics',
+    subjects: [
+      {
+        id: 'sub-1',
+        name: 'Matemática',
+        color: '#C62828',
+        icon: 'MathOperations',
+      },
+    ],
     subjectId: 'subject-1',
   };
 
@@ -275,7 +280,6 @@ describe('useRecommendedLessonsPage', () => {
     expect(historyProps.onSendLesson).toBeInstanceOf(Function);
     expect(historyProps.emptyStateImage).toBe('/empty.png');
     expect(historyProps.noSearchImage).toBe('/no-search.png');
-    expect(historyProps.mapSubjectNameToEnum).toBe(mockMapSubjectNameToEnum);
     expect(historyProps.title).toBe('Recommended Lessons History');
     expect(historyProps.createButtonText).toBe('Create Lesson');
     expect(historyProps.searchPlaceholder).toBe('Search lesson');
@@ -516,7 +520,15 @@ describe('useRecommendedLessonsPage', () => {
             description: null,
             creatorUserInstitutionId: '123e4567-e89b-12d3-a456-426614174002',
             subjectId: 'subject-3',
-            subject: { id: 'subject-3', name: 'Science' },
+            subjects: [
+              {
+                id: 'subject-3',
+                name: 'Science',
+                color: '#C62828',
+                icon: 'MathOperations',
+                areaKnowledgeId: 'area-1',
+              },
+            ],
             startDate: null,
             finalDate: null,
             createdAt: '2024-06-01T10:00:00Z',
@@ -596,7 +608,15 @@ describe('useRecommendedLessonsPage', () => {
             description: null,
             creatorUserInstitutionId: '123e4567-e89b-12d3-a456-426614174002',
             subjectId: 'subject-4',
-            subject: { id: 'subject-4', name: 'History' },
+            subjects: [
+              {
+                id: 'subject-4',
+                name: 'History',
+                color: '#C62828',
+                icon: 'MathOperations',
+                areaKnowledgeId: 'area-1',
+              },
+            ],
             startDate: null,
             finalDate: null,
             createdAt: '2024-06-01T10:00:00Z',
@@ -694,7 +714,15 @@ describe('useRecommendedLessonsPage', () => {
       title: 'Test RecommendedClass',
       school: 'School One',
       year: '-',
-      subject: 'Mathematics',
+      subjects: [
+        {
+          id: 'sub-1',
+          name: 'Matemática',
+          color: '#C62828',
+          icon: 'MathOperations',
+          areaKnowledgeId: 'area-1',
+        },
+      ],
       class: 'Class A',
       status: RecommendedClassDisplayStatus.ATIVA,
       completionPercentage: 50,
@@ -1050,7 +1078,15 @@ describe('useRecommendedLessonsPage', () => {
               progress: 0,
               totalLessons: 1,
             },
-            subject: { id: 'subject-3', name: 'Science' },
+            subjects: [
+              {
+                id: 'subject-3',
+                name: 'Science',
+                color: '#C62828',
+                icon: 'MathOperations',
+                areaKnowledgeId: 'area-1',
+              },
+            ],
             creator: null,
             stats: {
               totalStudents: 10,

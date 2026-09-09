@@ -93,7 +93,15 @@ const mockActivities: ActivityTableItem[] = [
     creator: 'Teacher',
     school: 'School 1',
     year: '2024',
-    subject: 'Math',
+    subjects: [
+      {
+        id: 'sub-1',
+        name: 'Matemática',
+        color: '#C62828',
+        icon: 'MathOperations',
+        areaKnowledgeId: '123e4567-e89b-12d3-a456-4266141740aa',
+      },
+    ],
     class: '1A',
     status: GenericDisplayStatus.ATIVA,
     completionPercentage: 50,
@@ -278,12 +286,9 @@ describe('HistoryTab', () => {
       expect(screen.getByTestId('table-provider')).toBeInTheDocument();
     });
 
-    it('should pass mapSubjectNameToEnum to table columns', () => {
+    it('should build the table with a subjects column', () => {
       mockUseActivitiesHistory.activities = mockActivities;
-      const mapFn = jest.fn();
-      const props = createDefaultProps({
-        mapSubjectNameToEnum: mapFn,
-      });
+      const props = createDefaultProps({});
       render(<HistoryTab {...props} />);
       expect(screen.getByTestId('table-provider')).toBeInTheDocument();
     });

@@ -70,7 +70,6 @@ export interface ActivityResponse {
   startDate: string | null;
   finalDate: string | null;
   canRetry: boolean;
-  subjectId: string | null;
   createdAt: string;
   updatedAt: string;
 }

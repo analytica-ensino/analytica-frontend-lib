@@ -11,7 +11,7 @@ import type {
   ExamApiFilterOptions,
 } from '../types/examsHistory';
 import { createFetchErrorHandler } from '../utils/hookErrorHandler';
-import { buildActivityHistoryQueryParams } from './useActivitiesHistory';
+import { buildActivityHistoryBody } from './useActivitiesHistory';
 import {
   mergeFilterOptions,
   extractBreakdownFilterOptions,
@@ -97,18 +97,23 @@ export const extractExamFilterOptions = (
 ): ExamApiFilterOptions => extractBreakdownFilterOptions(exams);
 
 /**
- * Build query params from filters, always including type=PROVA.
+ * Build the `POST /activities/history` request body from exam filters.
+ * Always includes type=PROVA to filter for exams.
  *
  * Exams answer from the same `/activities/history` endpoint, so they share the
- * activities adapter. Forwarding the raw TableProvider keys instead — `subject`,
- * `school`, `class`, `schoolYear` — sent names that are not part of the endpoint
- * contract at all, so the backend dropped them and every exam filter silently
- * answered as if nothing had been selected.
+ * activities adapter. Copying the filters over verbatim instead forwarded the
+ * raw TableProvider keys — `subject`, `school`, `class`, `schoolYear` — which
+ * are not part of the endpoint contract at all, so the backend dropped them and
+ * every exam filter silently answered as if nothing had been selected.
+ *
+ * A JSON body rather than a querystring, so `subjectIds` travels as a real
+ * array. As a querystring it used to be bracket-serialized
+ * (`subjectIds[]=a&subjectIds[]=b`), which the backend dropped just as silently.
  */
-const buildQueryParams = (
+export const buildExamHistoryBody = (
   filters?: ExamHistoryFilters
 ): Record<string, unknown> =>
-  buildActivityHistoryQueryParams(
+  buildActivityHistoryBody(
     filters as Record<string, unknown> | undefined,
     'PROVA'
   );
@@ -145,11 +150,11 @@ const useExamsHistoryImpl = (
       setState((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
-        const params = buildQueryParams(filters);
+        const body = buildExamHistoryBody(filters);
         // Use activities/history endpoint with type=PROVA
-        const response = await apiClient.get<ExamsHistoryApiResponse>(
+        const response = await apiClient.post<ExamsHistoryApiResponse>(
           '/activities/history',
-          { params }
+          body
         );
 
         if (requestId !== requestIdRef.current) {

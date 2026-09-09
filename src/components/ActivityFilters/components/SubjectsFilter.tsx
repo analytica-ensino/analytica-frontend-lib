@@ -1,5 +1,5 @@
 import {
-  Radio,
+  CheckBox,
   IconRender,
   Text,
   TruncatedText,
@@ -7,50 +7,89 @@ import {
   getSubjectColorWithOpacity,
 } from '../../..';
 import type { KnowledgeArea } from '../../../types/activityFilters';
+import { GridFourIcon } from '@phosphor-icons/react/dist/csr/GridFour';
 
 export interface SubjectsFilterProps {
   knowledgeAreas: KnowledgeArea[];
-  /** Currently selected subject id, or null when none is selected */
-  selectedSubject?: string | null;
-  /**
-   * Called when the user picks a subject.
-   *
-   * May be async and may veto the pick (e.g. after asking the user to confirm
-   * discarding the preview). No rollback is needed here: the selection is
-   * controlled by `selectedSubject`, so a vetoed pick simply never arrives.
-   */
-  onSubjectChange?: (
-    subjectId: string
-  ) => void | boolean | Promise<void | boolean>;
+  /** Currently selected subject ids */
+  selectedSubjectIds?: string[];
+  /** Called when the user checks or unchecks one subject */
+  onToggleSubject?: (subjectId: string) => void;
+  /** Show the "Todos os componentes curriculares" select-all card */
+  showAllSubjectsOption?: boolean;
+  /** Whether every available subject is currently selected */
+  allSubjectsSelected?: boolean;
+  /** Called when the user clicks the select-all card */
+  onToggleAllSubjects?: () => void;
   loading?: boolean;
   error?: string | null;
 }
 
+interface SelectAllCardProps {
+  checked: boolean;
+  indeterminate: boolean;
+  onToggle?: () => void;
+}
+
 /**
- * SubjectsFilter component for selecting a single subject/knowledge area.
+ * The "Todos os componentes curriculares" card.
  *
- * An activity or recommended class is bound to exactly one subject, so the grid
- * uses Radios — there is no multi-select mode and no "todos os componentes
- * curriculares" card.
+ * Extracted rather than inlined in the grid so the JSX below stays within the
+ * nesting depth Sonar allows (S2004).
+ * @param props - Component props
+ * @returns JSX element
+ */
+const SelectAllCard = ({
+  checked,
+  indeterminate,
+  onToggle,
+}: SelectAllCardProps) => (
+  <div className="flex items-center gap-2 min-w-0">
+    <CheckBox
+      id="subject-all"
+      checked={checked}
+      indeterminate={indeterminate}
+      onChange={() => onToggle?.()}
+    />
+    <label
+      htmlFor="subject-all"
+      className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer select-none"
+    >
+      <span className="size-4 rounded-sm flex items-center justify-center shrink-0 text-text-600 bg-background-100">
+        <GridFourIcon size={14} weight="bold" />
+      </span>
+      <TruncatedText
+        size="sm"
+        weight="normal"
+        color="text-text-600"
+        wrapperClassName="flex-1"
+      >
+        Todos os componentes curriculares
+      </TruncatedText>
+    </label>
+  </div>
+);
+
+/**
+ * SubjectsFilter component for selecting subjects/knowledge areas.
+ *
+ * An activity or recommended class may span several subjects — the backend
+ * derives them from the subjects of the selected questions — so the grid is
+ * multi-select, with an optional "todos os componentes curriculares" card.
  * @param props - Component props
  * @returns JSX element
  */
 export const SubjectsFilter = ({
   knowledgeAreas,
-  selectedSubject = null,
-  onSubjectChange,
+  selectedSubjectIds = [],
+  onToggleSubject,
+  showAllSubjectsOption = false,
+  allSubjectsSelected = false,
+  onToggleAllSubjects,
   loading = false,
   error = null,
 }: SubjectsFilterProps) => {
   const { isDark } = useTheme();
-
-  // O handler do pai é assíncrono (abre o diálogo de confirmação), então uma
-  // rejeição viraria unhandled rejection se não fosse capturada aqui.
-  const handleSubjectChange = (subjectId: string) => {
-    Promise.resolve(onSubjectChange?.(subjectId)).catch((err) => {
-      console.error('Erro ao trocar de componente curricular:', err);
-    });
-  };
 
   if (loading) {
     return (
@@ -89,16 +128,31 @@ export const SubjectsFilter = ({
     </div>
   );
 
+  const someSelected = selectedSubjectIds.length > 0;
+
   return (
     <div className="grid grid-cols-3 gap-3">
-      {knowledgeAreas.map((area: KnowledgeArea) => (
-        <Radio
-          key={area.id}
-          value={area.id}
-          checked={selectedSubject === area.id}
-          onChange={() => handleSubjectChange(area.id)}
-          label={renderSubjectLabel(area)}
+      {showAllSubjectsOption && (
+        <SelectAllCard
+          checked={allSubjectsSelected}
+          indeterminate={!allSubjectsSelected && someSelected}
+          onToggle={onToggleAllSubjects}
         />
+      )}
+      {knowledgeAreas.map((area: KnowledgeArea) => (
+        <div key={area.id} className="flex items-center gap-2 min-w-0">
+          <CheckBox
+            id={`subject-${area.id}`}
+            checked={selectedSubjectIds.includes(area.id)}
+            onChange={() => onToggleSubject?.(area.id)}
+          />
+          <label
+            htmlFor={`subject-${area.id}`}
+            className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer select-none"
+          >
+            {renderSubjectLabel(area)}
+          </label>
+        </div>
       ))}
     </div>
   );

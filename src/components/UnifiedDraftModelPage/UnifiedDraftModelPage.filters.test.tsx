@@ -25,12 +25,14 @@ const createRow = (
   title: 'Modelo - Biologia',
   savedAt: '14/08/2026',
   type: ActivityType.MODELO,
-  subject: {
-    id: SUBJECT_ID,
-    name: 'Biologia',
-    icon: 'BookOpen',
-    color: '#6B7280',
-  },
+  subjects: [
+    {
+      id: SUBJECT_ID,
+      name: 'Biologia',
+      icon: 'BookOpen',
+      color: '#6B7280',
+    },
+  ],
   subjectId: SUBJECT_ID,
   ...overrides,
 });
@@ -136,12 +138,14 @@ describe('UnifiedDraftModelPage - items per page', () => {
           createRow({
             id: '2',
             subjectId: 'other-subject',
-            subject: {
-              id: 'other-subject',
-              name: 'História',
-              icon: 'BookOpen',
-              color: '#6B7280',
-            },
+            subjects: [
+              {
+                id: 'other-subject',
+                name: 'História',
+                icon: 'BookOpen',
+                color: '#6B7280',
+              },
+            ],
           }),
         ])}
       />

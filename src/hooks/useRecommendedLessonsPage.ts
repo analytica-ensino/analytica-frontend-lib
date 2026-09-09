@@ -24,10 +24,10 @@ import type {
   CategoryConfig,
 } from '../components/SendLessonModal/types';
 import type { FilterConfig } from '../components/Filter';
-import { SubjectEnum } from '../enums/SubjectEnum';
 import type { BaseApiClient } from '../types/api';
 import { loadCategoriesData } from '../utils/categoryDataUtils';
 import { toCsv } from '../utils/queryParams';
+import { resolveDraftSubjects } from '../utils/subjectMappers';
 import { useDynamicStudentFetching } from '../utils/useDynamicStudentFetching';
 
 /**
@@ -125,8 +125,6 @@ export interface UseRecommendedLessonsPageConfig {
   emptyStateImage: string;
   /** Image for no search results */
   noSearchImage: string;
-  /** Function to map subject name to SubjectEnum */
-  mapSubjectNameToEnum: (subjectName: string) => SubjectEnum | null;
   /** Extra filter categories to inject (e.g., creatorType for gestors) */
   extraFilterCategories?: FilterConfig[];
 }
@@ -163,7 +161,6 @@ export interface UseRecommendedLessonsPageReturn {
     onEditDraft: (draft: RecommendedClassModelTableItem) => void;
     emptyStateImage: string;
     noSearchImage: string;
-    mapSubjectNameToEnum: (subjectName: string) => SubjectEnum | null;
     userFilterData: {
       schools: Array<{ id: string; name: string }>;
       classes: Array<{ id: string; name: string }>;
@@ -334,7 +331,6 @@ const getSchoolYearOptions = (
  *   },
  *   emptyStateImage,
  *   noSearchImage,
- *   mapSubjectNameToEnum,
  * });
  *
  * // In your component
@@ -391,8 +387,12 @@ const extractMapsFromItems = (
   const schoolYearMap = new Map<string, string>();
 
   for (const item of items) {
-    if (item.subject?.id && item.subject?.name) {
-      subjectMap.set(item.subject.id, item.subject.name);
+    // Every subject the class covers becomes a filter option, not just a
+    // primary one.
+    for (const subject of item.subjects ?? []) {
+      if (subject.id && subject.name) {
+        subjectMap.set(subject.id, subject.name);
+      }
     }
     for (const b of item.breakdown) {
       collectBreakdownData(b, schoolMap, classMap, schoolYearMap);
@@ -410,8 +410,13 @@ const extractSubjectsFromDraftItems = (
 ): Array<{ id: string; name: string }> => {
   const subjectMap = new Map<string, string>();
   for (const draft of drafts ?? []) {
-    if (draft.subject?.id && draft.subject?.name) {
-      subjectMap.set(draft.subject.id, draft.subject.name);
+    // Every subject the draft's lessons cover becomes a filter option, not just
+    // a primary one. `resolveDraftSubjects` owns the fallback to the deprecated
+    // singular field, so the shape of an older payload is handled in one place.
+    for (const subject of resolveDraftSubjects(draft)) {
+      if (subject.id && subject.name) {
+        subjectMap.set(subject.id, subject.name);
+      }
     }
   }
   return Array.from(subjectMap.entries()).map(([id, name]) => ({ id, name }));
@@ -507,7 +512,6 @@ export const createUseRecommendedLessonsPage = (
     texts,
     emptyStateImage,
     noSearchImage,
-    mapSubjectNameToEnum,
     extraFilterCategories,
   } = config;
 
@@ -876,7 +880,6 @@ export const createUseRecommendedLessonsPage = (
         onEditDraft: handleEditModel,
         emptyStateImage,
         noSearchImage,
-        mapSubjectNameToEnum,
         userFilterData,
         subjectsMap,
         title: texts.title,

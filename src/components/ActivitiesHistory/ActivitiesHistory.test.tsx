@@ -87,11 +87,15 @@ describe('ActivitiesHistory', () => {
           finalDate: '2024-12-31',
           status: ActivityApiStatus.A_VENCER,
           completionPercentage: 75,
-          subject: {
-            id: '123e4567-e89b-12d3-a456-426614174001',
-            name: 'Matemática',
-            areaKnowledgeId: 'area-1',
-          },
+          subjects: [
+            {
+              id: '123e4567-e89b-12d3-a456-426614174001',
+              name: 'Matemática',
+              color: '#C62828',
+              icon: 'MathOperations',
+              areaKnowledgeId: 'area-1',
+            },
+          ],
           creator: { id: 'creator-1', name: 'Prof. Maria' },
           breakdown: [
             {
@@ -373,7 +377,15 @@ describe('ActivitiesHistory', () => {
               finalDate: '2024-12-31',
               status: ActivityApiStatus.A_VENCER,
               completionPercentage: 50,
-              subject: { id: 'sub-1', name: 'Math', areaKnowledgeId: 'area-1' },
+              subjects: [
+                {
+                  id: 'sub-1',
+                  name: 'Math',
+                  color: '#C62828',
+                  icon: 'Atom',
+                  areaKnowledgeId: 'area-1',
+                },
+              ],
               creator: null,
               breakdown: [
                 {
@@ -441,19 +453,6 @@ describe('ActivitiesHistory', () => {
         expect(screen.getByTestId('activities-history')).toBeInTheDocument();
       });
     });
-
-    it('should render without mapSubjectNameToEnum', async () => {
-      const propsWithoutMap = {
-        ...defaultProps,
-        mapSubjectNameToEnum: undefined,
-      };
-
-      render(<ActivitiesHistory {...propsWithoutMap} />);
-
-      await waitFor(() => {
-        expect(screen.getByTestId('activities-history')).toBeInTheDocument();
-      });
-    });
   });
 
   describe('Empty states', () => {
@@ -496,38 +495,6 @@ describe('ActivitiesHistory', () => {
         expect(
           screen.getByText('Crie modelos para agilizar suas atividades')
         ).toBeInTheDocument();
-      });
-    });
-  });
-
-  describe('Subject rendering with mapSubjectNameToEnum', () => {
-    it('should render subject with icon when mapSubjectNameToEnum is provided', async () => {
-      const mockMapSubjectNameToEnum = jest.fn().mockReturnValue('MATEMATICA');
-
-      render(
-        <ActivitiesHistory
-          {...defaultProps}
-          mapSubjectNameToEnum={mockMapSubjectNameToEnum}
-        />
-      );
-
-      await waitFor(() => {
-        expect(screen.getByTestId('activities-history')).toBeInTheDocument();
-      });
-    });
-
-    it('should render subject without icon when mapSubjectNameToEnum returns undefined', async () => {
-      const mockMapSubjectNameToEnum = jest.fn().mockReturnValue(undefined);
-
-      render(
-        <ActivitiesHistory
-          {...defaultProps}
-          mapSubjectNameToEnum={mockMapSubjectNameToEnum}
-        />
-      );
-
-      await waitFor(() => {
-        expect(screen.getByTestId('activities-history')).toBeInTheDocument();
       });
     });
   });

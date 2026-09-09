@@ -12,7 +12,6 @@ import type {
   ColumnConfig,
 } from '../../TableProvider/TableProvider';
 import type { FilterConfig } from '../../Filter';
-import type { SubjectEnum } from '../../../enums/SubjectEnum';
 import type { BaseModelItem } from './createModelsTableColumnsBase';
 import type { BaseApiClient } from '../../../types/api';
 
@@ -72,8 +71,6 @@ export interface ModelsTabBaseProps<
   emptyStateImage?: string;
   /** Image for no search results */
   noSearchImage?: string;
-  /** Function to map subject name to SubjectEnum */
-  mapSubjectNameToEnum?: (subjectName: string) => SubjectEnum | null;
   /** User data for populating filter options */
   userFilterData?: TUserFilterData;
   /**
@@ -86,7 +83,6 @@ export interface ModelsTabBaseProps<
   config: ModelsTabConfig;
   /** Function to create table columns */
   createTableColumns: (
-    mapSubjectNameToEnum: ((name: string) => SubjectEnum | null) | undefined,
     onSend: ((model: T) => void) | undefined,
     onEdit: ((model: T) => void) | undefined,
     onDelete: (model: T) => void
@@ -116,7 +112,6 @@ export const ModelsTabBase = <
   onEditModel,
   emptyStateImage,
   noSearchImage,
-  mapSubjectNameToEnum,
   userFilterData,
   subjectsMap,
   config,
@@ -206,20 +201,8 @@ export const ModelsTabBase = <
   }, []);
 
   const modelsTableColumns = useMemo(
-    () =>
-      createTableColumns(
-        mapSubjectNameToEnum,
-        onSend,
-        onEditModel,
-        handleDeleteClick
-      ),
-    [
-      createTableColumns,
-      mapSubjectNameToEnum,
-      onSend,
-      onEditModel,
-      handleDeleteClick,
-    ]
+    () => createTableColumns(onSend, onEditModel, handleDeleteClick),
+    [createTableColumns, onSend, onEditModel, handleDeleteClick]
   );
 
   /**

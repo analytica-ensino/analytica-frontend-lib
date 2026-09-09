@@ -42,8 +42,8 @@ describe('useRecommendedLessonDetails', () => {
               subject: {
                 id: 'subject-1',
                 name: 'Matemática',
-                color: '#4CAF50',
-                icon: 'math',
+                color: '#C62828',
+                icon: 'MathOperations',
               },
             },
           },
@@ -108,10 +108,15 @@ describe('useRecommendedLessonDetails', () => {
             progress: 50,
             totalLessons: 10,
           },
-          subject: {
-            id: 'subject-1',
-            name: 'Matemática',
-          },
+          subjects: [
+            {
+              id: 'subject-1',
+              name: 'Matemática',
+              color: '#C62828',
+              icon: 'MathOperations',
+              areaKnowledgeId: '123e4567-e89b-12d3-a456-4266141740aa',
+            },
+          ],
           creator: {
             id: 'creator-1',
             name: 'Professor João',

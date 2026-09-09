@@ -31,9 +31,9 @@ export const buildHistoryFiltersFromParams = (
   }
 
   // Multi-select filters are forwarded as the raw id lists the modal produced:
-  // buildActivityHistoryQueryParams serializes them into the comma-separated
-  // keys the endpoint reads. Keeping only `params.x[0]` here is what made a
-  // two-subject selection answer with one subject.
+  // buildActivityHistoryBody renames them to the keys the endpoint reads.
+  // Keeping only `params.x[0]` here is what made a two-subject selection answer
+  // with one subject.
   if (Array.isArray(params.status) && params.status.length > 0) {
     filters.status = params.status.filter(isValidApiStatus);
   }
@@ -42,6 +42,8 @@ export const buildHistoryFiltersFromParams = (
     filters.school = params.school;
   }
 
+  // Subject filter. An activity matches when it covers any of the selected
+  // subjects, so the whole selection travels — not just its first entry.
   if (Array.isArray(params.subject) && params.subject.length > 0) {
     filters.subject = params.subject;
   }

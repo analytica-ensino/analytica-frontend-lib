@@ -4,7 +4,6 @@ import { Menu, MenuItem, MenuContent } from '../Menu/Menu';
 import { HistoryTab } from './tabs/HistoryTab';
 import { ModelsTab } from './tabs/ModelsTab';
 import { DraftsTab } from './tabs/DraftsTab';
-import type { SubjectEnum } from '../../enums/SubjectEnum';
 import type {
   ActivityTableItem,
   ActivityHistoryFilters,
@@ -61,8 +60,6 @@ export interface ActivitiesHistoryProps {
   emptyStateImage?: string;
   /** Image for no search results */
   noSearchImage?: string;
-  /** Function to map subject name to SubjectEnum */
-  mapSubjectNameToEnum?: (subjectName: string) => SubjectEnum | null;
   /** User data for populating filter options */
   userFilterData?: ActivityUserFilterData;
   /**
@@ -95,7 +92,6 @@ export const ActivitiesHistory = ({
   onEditModel,
   emptyStateImage,
   noSearchImage,
-  mapSubjectNameToEnum,
   userFilterData,
   subjectsMap,
 }: ActivitiesHistoryProps) => {
@@ -173,7 +169,6 @@ export const ActivitiesHistory = ({
               onRowClick={onRowClick}
               emptyStateImage={emptyStateImage}
               noSearchImage={noSearchImage}
-              mapSubjectNameToEnum={mapSubjectNameToEnum}
               userFilterData={userFilterData}
             />
           )}
@@ -189,7 +184,6 @@ export const ActivitiesHistory = ({
               onEditModel={onEditModel}
               emptyStateImage={emptyStateImage}
               noSearchImage={noSearchImage}
-              mapSubjectNameToEnum={mapSubjectNameToEnum}
               userFilterData={userFilterData}
               subjectsMap={subjectsMap}
             />

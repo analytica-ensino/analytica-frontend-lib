@@ -9,12 +9,14 @@ const mockModels: ActivityModelTableItem[] = [
     type: ActivityType.MODELO,
     title: 'Explorando a Fotossíntese: Atividade Prática de Campo',
     savedAt: '01/01/2024',
-    subject: {
-      id: 'bio-1',
-      name: 'Biologia',
-      icon: 'Microscope',
-      color: '#E8F5E9',
-    },
+    subjects: [
+      {
+        id: 'bio-1',
+        name: 'Biologia',
+        icon: 'Microscope',
+        color: '#E8F5E9',
+      },
+    ],
     subjectId: 'bio-1',
   },
   {
@@ -22,12 +24,14 @@ const mockModels: ActivityModelTableItem[] = [
     type: ActivityType.MODELO,
     title: 'Estudo dos Ecossistemas: Criando um Terrário',
     savedAt: '02/01/2024',
-    subject: {
-      id: 'bio-1',
-      name: 'Biologia',
-      icon: 'Microscope',
-      color: '#E8F5E9',
-    },
+    subjects: [
+      {
+        id: 'bio-1',
+        name: 'Biologia',
+        icon: 'Microscope',
+        color: '#E8F5E9',
+      },
+    ],
     subjectId: 'bio-1',
   },
   {
@@ -35,12 +39,14 @@ const mockModels: ActivityModelTableItem[] = [
     type: ActivityType.MODELO,
     title: 'Análise de pinturas: Observação ao Microscópio',
     savedAt: '03/01/2024',
-    subject: {
-      id: 'art-1',
-      name: 'Artes',
-      icon: 'Palette',
-      color: '#FCE4EC',
-    },
+    subjects: [
+      {
+        id: 'art-1',
+        name: 'Artes',
+        icon: 'Palette',
+        color: '#FCE4EC',
+      },
+    ],
     subjectId: 'art-1',
   },
 ];

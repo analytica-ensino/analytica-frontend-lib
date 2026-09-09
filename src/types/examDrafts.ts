@@ -5,6 +5,8 @@
  * Uses /activity-drafts endpoint with activityType=PROVA to filter for exam drafts.
  */
 
+import type { SubjectData } from './activitiesHistory';
+
 /**
  * Exam draft type enum (matches backend ACTIVITY_DRAFT_TYPE)
  */
@@ -43,7 +45,13 @@ export interface ExamModelResponse {
   title: string | null;
   creatorUserInstitutionId: string | null;
   subjectId: string | null;
+  /** @deprecated Use `subjects`; carries its first entry, or null. */
   subject?: { id: string; name: string } | null;
+  /**
+   * Every subject the draft's selected questions cover. Optional because the
+   * backend's create and update handlers do not resolve it.
+   */
+  subjects?: SubjectData[];
   filters: ExamDraftFilters | null;
   createdAt: string;
   updatedAt: string;
@@ -56,7 +64,8 @@ export interface ExamModelTableItem extends Record<string, unknown> {
   id: string;
   title: string;
   savedAt: string;
-  subject: string;
+  /** Subjects rendered in the "Componente curricular" column; may be empty. */
+  subjects: SubjectData[];
   subjectId: string | null;
 }
 

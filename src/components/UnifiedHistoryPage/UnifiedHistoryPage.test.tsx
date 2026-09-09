@@ -250,7 +250,15 @@ describe('UnifiedHistoryPage', () => {
       creator: 'Prof. Maria',
       school: 'Escola A',
       year: '2024',
-      subject: 'Matemática',
+      subjects: [
+        {
+          id: 'sub-1',
+          name: 'Matemática',
+          color: '#C62828',
+          icon: 'MathOperations',
+          areaKnowledgeId: 'area-1',
+        },
+      ],
       class: 'Turma A',
       status: ActivityDisplayStatus.ATIVA,
       completionPercentage: 75,
@@ -263,7 +271,15 @@ describe('UnifiedHistoryPage', () => {
       creator: 'Prof. João',
       school: 'Escola B',
       year: '2024',
-      subject: 'Português',
+      subjects: [
+        {
+          id: 'sub-1',
+          name: 'Matemática',
+          color: '#C62828',
+          icon: 'MathOperations',
+          areaKnowledgeId: 'area-1',
+        },
+      ],
       class: 'Turma B',
       status: ActivityDisplayStatus.CONCLUIDA,
       completionPercentage: 100,

@@ -13,7 +13,6 @@ import type {
   ActivityModelsApiResponse,
   ActivityUserFilterData,
 } from '../../../types/activitiesHistory';
-import type { SubjectEnum } from '../../../enums/SubjectEnum';
 
 /**
  * Configuration for activity models tab
@@ -59,7 +58,6 @@ export interface ModelsTabProps {
   /** Image for no search results */
   noSearchImage?: string;
   /** Function to map subject name to SubjectEnum */
-  mapSubjectNameToEnum?: (subjectName: string) => SubjectEnum | null;
   /** User data for populating filter options */
   userFilterData?: ActivityUserFilterData;
   /**
@@ -83,7 +81,6 @@ export const ModelsTab = ({
   onEditModel,
   emptyStateImage,
   noSearchImage,
-  mapSubjectNameToEnum,
   userFilterData,
   subjectsMap,
 }: ModelsTabProps) => (
@@ -100,18 +97,11 @@ export const ModelsTab = ({
     onEditModel={onEditModel}
     emptyStateImage={emptyStateImage}
     noSearchImage={noSearchImage}
-    mapSubjectNameToEnum={mapSubjectNameToEnum}
     userFilterData={userFilterData}
     subjectsMap={subjectsMap}
     config={ACTIVITY_MODELS_CONFIG}
-    createTableColumns={(mapSubject, send, edit, del) =>
-      createModelsTableColumnsBase(
-        mapSubject,
-        send,
-        edit,
-        del,
-        ACTIVITY_COLUMNS_CONFIG
-      )
+    createTableColumns={(send, edit, del) =>
+      createModelsTableColumnsBase(send, edit, del, ACTIVITY_COLUMNS_CONFIG)
     }
     createFiltersConfig={createModelsFiltersConfig}
     buildFiltersFromParams={buildModelsFiltersFromParams}

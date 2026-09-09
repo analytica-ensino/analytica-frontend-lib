@@ -14,6 +14,7 @@ import { ActivityDraftType } from '../../types/activitiesHistory';
 import type { ActivityData } from '../ActivityCreate/ActivityCreate.types';
 import { ActivityType } from '../ActivityCreate/ActivityCreate.types';
 import type { TableParams } from '../TableProvider/TableProvider';
+import { resolveDraftSubjects } from '../../utils/subjectMappers';
 
 /**
  * Map ActivityDraftType to ActivityType
@@ -41,13 +42,18 @@ const mapDraftTypeToActivityType = (
 const transformActivityModelToTableItem = (
   model: ActivityModelResponse
 ): ActivityModelTableItem => {
+  const subjects = resolveDraftSubjects(model);
+
   return {
     id: model.id,
     type: mapDraftTypeToActivityType(model.type),
     title: model.title || 'Sem título',
     savedAt: dayjs(model.createdAt).format('DD/MM/YYYY'),
-    subject: model.subject || null,
-    subjectId: model.subject?.id ?? model.subjectId,
+    subjects,
+    // Quem consome o modelo escolhido ainda espera um id só. Vem do primeiro
+    // componente resolvido, que é o mesmo valor que o `subject` depreciado
+    // carregava — sem ler o campo depreciado para chegar nele.
+    subjectId: subjects[0]?.id ?? model.subjectId,
   };
 };
 

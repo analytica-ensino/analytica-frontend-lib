@@ -31,12 +31,14 @@ describe('useActivityDraftModelPage', () => {
     title: 'Test Activity',
     savedAt: '2024-01-01',
     type: ActivityType.ATIVIDADE,
-    subject: {
-      id: 'sub-1',
-      name: 'Matemática',
-      icon: 'math',
-      color: 'blue',
-    },
+    subjects: [
+      {
+        id: 'sub-1',
+        name: 'Matemática',
+        color: '#C62828',
+        icon: 'MathOperations',
+      },
+    ],
     subjectId: 'sub-1',
     ...overrides,
   });

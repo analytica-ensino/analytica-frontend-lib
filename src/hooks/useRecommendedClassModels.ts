@@ -10,6 +10,7 @@ import type {
   RecommendedClassModelPagination,
 } from '../types/recommendedLessons';
 import { createFetchErrorHandler } from '../utils/hookErrorHandler';
+import { resolveDraftSubjects } from '../utils/subjectMappers';
 import type { BaseApiClient } from '../types/api';
 
 /**
@@ -23,6 +24,19 @@ const recommendedClassModelResponseSchema = z.object({
   creatorUserInstitutionId: z.string().uuid(),
   subjectId: z.string().uuid().nullable(),
   subject: z.object({ id: z.string(), name: z.string() }).nullable().optional(),
+  // Every subject the draft's lessons and activity drafts cover. Optional
+  // because the backend's create and update handlers do not resolve it.
+  subjects: z
+    .array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        color: z.string(),
+        icon: z.string(),
+        areaKnowledgeId: z.string(),
+      })
+    )
+    .optional(),
   startDate: z.string().nullable(),
   finalDate: z.string().nullable(),
   createdAt: z.string(),
@@ -95,15 +109,11 @@ export const transformRecommendedClassModelToTableItem = (
   model: RecommendedClassModelResponse,
   subjectsMap?: Map<string, string>
 ): RecommendedClassModelTableItem => {
-  const subjectName =
-    model.subject?.name ||
-    (model.subjectId ? subjectsMap?.get(model.subjectId) || '' : '');
-
   return {
     id: model.id,
     title: model.title || 'Sem título',
     savedAt: dayjs(model.createdAt).format('DD/MM/YYYY'),
-    subject: subjectName,
+    subjects: resolveDraftSubjects(model, subjectsMap),
     subjectId: model.subjectId,
     activityDraftsCount: model.activityDrafts?.length ?? 0,
   };

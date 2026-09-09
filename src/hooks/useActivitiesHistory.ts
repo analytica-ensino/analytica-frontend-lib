@@ -2,7 +2,6 @@ import { useState, useCallback, useRef } from 'react';
 import dayjs from 'dayjs';
 import type { BaseApiClient } from '../types/api';
 import { mapApiStatusToDisplay } from '../types/common';
-import { toCsv } from '../utils/queryParams';
 import type {
   ActivityHistoryResponse,
   ActivityTableItem,
@@ -97,7 +96,7 @@ export const transformActivityToTableItem = (
     title: activity.title,
     school: firstBreakdown?.school?.name ?? '-',
     year: firstBreakdown?.schoolYear?.name ?? '-',
-    subject: activity.subject?.name ?? '-',
+    subjects: activity.subjects ?? [],
     class: firstBreakdown?.class?.name ?? '-',
     status: mapApiStatusToDisplay(activity.status),
     completionPercentage: activity.completionPercentage,
@@ -127,6 +126,39 @@ const toSingle = (value: unknown): string | undefined => {
     return value;
   }
   return undefined;
+};
+
+/**
+ * Normalize a multi-select filter to a real array of ids.
+ *
+ * The body is JSON, so a list travels as a list — no comma-separated string and
+ * no `toCsv`. A bare string is tolerated because some callers still pass the
+ * legacy singular key. Returns undefined when there is nothing to send, so the
+ * key is omitted rather than sent as an empty array (which the backend would
+ * read as "match nothing").
+ */
+const toIdArray = (value: unknown): string[] | undefined => {
+  if (Array.isArray(value)) {
+    const ids = value.filter(Boolean).map(String);
+    return ids.length > 0 ? ids : undefined;
+  }
+  if (typeof value === 'string' && value.length > 0) {
+    return [value];
+  }
+  return undefined;
+};
+
+/**
+ * Assign a resolved array value onto the body only when it is present.
+ */
+const assignArrayIf = (
+  body: Record<string, unknown>,
+  key: string,
+  value: string[] | undefined
+): void => {
+  if (value) {
+    body[key] = value;
+  }
 };
 
 /**
@@ -170,67 +202,72 @@ const PASSTHROUGH_KEYS = [
 ] as const;
 
 /**
- * Build the `/activities/history` query params from the raw TableProvider filter
- * keys. TableProvider emits UI-category keys (`subject`, `school`, `class`,
- * `schoolYear`, `status`, `creatorType`) as arrays; the backend reads them under
- * different, comma-separated names. This adapter renames and serializes each key
- * to what the backend actually reads. Mirrors `buildFiltersFromParams` in
- * RecommendedLessonsHistory.
+ * Build the `POST /activities/history` request body from the raw TableProvider
+ * filter keys.
+ *
+ * TableProvider emits UI-category keys (`subject`, `school`, `class`,
+ * `schoolYear`, `status`, `creatorType`) as arrays; this adapter renames each
+ * one to the backend contract. The endpoint takes a JSON body rather than a
+ * querystring, so the list filters travel as real arrays — the previous
+ * comma-separated encoding is gone.
+ *
+ * `subjectIds` in particular is now a list: an activity covers several subjects,
+ * and it matches when it covers any of the selected ones. The old builder
+ * collapsed the selection to its first id, silently dropping the rest.
+ *
+ * There is no singular counterpart left on the endpoint — `status`, `subjectId`,
+ * `schoolId` and `classId` are gone from its schema — so a singular key a direct
+ * caller still passes is folded into the matching plural instead of forwarded.
  *
  * @param filters - Raw table params (arrays under UI keys) plus page/limit/search/sort
- * @param activityCategory - Optional value forwarded as the `type` param
+ * @param activityCategory - Optional value forwarded as the `type` field
  */
-export const buildActivityHistoryQueryParams = (
+export const buildActivityHistoryBody = (
   filters?: Record<string, unknown>,
   activityCategory?: string
 ): Record<string, unknown> => {
-  const params: Record<string, unknown> = {};
-  assignIf(params, 'type', activityCategory);
+  const body: Record<string, unknown> = {};
+  assignIf(body, 'type', activityCategory);
 
   if (!filters) {
-    return params;
+    return body;
   }
 
   for (const key of PASSTHROUGH_KEYS) {
     const value = filters[key];
     if (value !== undefined && value !== null && value !== '') {
-      params[key] = value;
+      body[key] = value;
     }
   }
 
-  // Every category in the filter modal is multi-select, so each one goes out as
-  // a comma-separated list — the only contract the endpoint has. Collapsing a
-  // selection to its first id is what made "Filosofia + Matemática" answer with
-  // Filosofia alone.
-  //
-  // A single value a direct caller may still pass (`subjectId`, `status`, …) is
-  // folded into the same list, so it reaches the backend under the plural key
-  // instead of one it no longer reads.
-  assignIf(
-    params,
+  // Every filter in the modal is multi-select, and the endpoint has no singular
+  // counterpart to any of them. A legacy singular key a direct caller may still
+  // pass is folded into its plural, otherwise it would reach a name the backend
+  // no longer reads and filter nothing.
+  assignArrayIf(
+    body,
     'schoolIds',
-    toCsv(filters.school) ?? toSingle(filters.schoolId)
+    toIdArray(filters.school) ?? toIdArray(filters.schoolId)
   );
-  assignIf(
-    params,
+  assignArrayIf(
+    body,
     'classIds',
-    toCsv(filters.class) ?? toSingle(filters.classId)
+    toIdArray(filters.class) ?? toIdArray(filters.classId)
   );
-  assignIf(params, 'schoolYearIds', toCsv(filters.schoolYear));
-  assignIf(
-    params,
+  assignArrayIf(body, 'schoolYearIds', toIdArray(filters.schoolYear));
+  assignArrayIf(
+    body,
     'subjectIds',
-    toCsv(filters.subject) ?? toSingle(filters.subjectId)
+    toIdArray(filters.subject) ??
+      toIdArray(filters.subjectIds) ??
+      toIdArray(filters.subjectId)
   );
-  assignIf(
-    params,
-    'statuses',
-    toCsv(filters.status) ?? toSingle(filters.status)
-  );
+  assignArrayIf(body, 'statuses', toIdArray(filters.status));
 
-  assignIf(params, 'creatorType', toExclusiveChoice(filters.creatorType));
+  // Both creator options selected means "no filter", not "the first one".
+  assignIf(body, 'creatorType', toExclusiveChoice(filters.creatorType));
 
-  return params;
+  return body;
 };
 
 /**
@@ -262,13 +299,13 @@ const useActivitiesHistoryImpl = (
       setState((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
-        const params = buildActivityHistoryQueryParams(
+        const body = buildActivityHistoryBody(
           filters as Record<string, unknown>,
           options?.activityCategory
         );
-        const response = await apiClient.get<ActivitiesHistoryApiResponse>(
+        const response = await apiClient.post<ActivitiesHistoryApiResponse>(
           '/activities/history',
-          { params }
+          body
         );
 
         const { data } = response.data;

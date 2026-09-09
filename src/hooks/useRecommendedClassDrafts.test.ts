@@ -156,7 +156,14 @@ describe('useRecommendedClassDrafts', () => {
       expect(mockApiClient.get).toHaveBeenCalled();
       expect(result.current.models).toHaveLength(1);
       expect(result.current.models[0].title).toBe('Test Draft');
-      expect(result.current.models[0].subject).toBe('Matemática');
+      expect(result.current.models[0].subjects).toEqual([
+        {
+          id: '123e4567-e89b-12d3-a456-426614174002',
+          name: 'Matemática',
+          icon: 'BookOpen',
+          color: '#6B7280',
+        },
+      ]);
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
     });

@@ -5,9 +5,9 @@ import { PaperPlaneTiltIcon } from '@phosphor-icons/react/dist/csr/PaperPlaneTil
 import { TruncatedText } from '../../TruncatedText/TruncatedText';
 import Button from '../../Button/Button';
 import IconButton from '../../IconButton/IconButton';
-import { renderSubjectCell } from '../../../utils/renderSubjectCell';
+import { renderSubjectsCell } from '../../../utils/renderSubjectCell';
 import type { ColumnConfig } from '../../TableProvider/TableProvider';
-import type { SubjectEnum } from '../../../enums/SubjectEnum';
+import type { SubjectData } from '../../../types/activitiesHistory';
 
 /**
  * Base model item interface - all model types must extend this.
@@ -16,18 +16,12 @@ import type { SubjectEnum } from '../../../enums/SubjectEnum';
 export interface BaseModelItem {
   id: string;
   title: string;
-  subject?:
-    | string
-    | {
-        id: string;
-        subjectName?: string;
-        subjectIcon?: string;
-        subjectColor?: string;
-        name?: string;
-        icon?: string;
-        color?: string;
-      }
-    | null;
+  /**
+   * Every subject the model covers. The union of loose shapes this used to
+   * accept is gone: the backend now sends a uniform subject object with a
+   * `color` and an `icon`, and the cell renders one icon per subject.
+   */
+  subjects?: SubjectData[];
   savedAt?: string;
   [key: string]: unknown;
 }
@@ -49,7 +43,6 @@ export interface ModelsColumnsConfig {
 /**
  * Creates base table columns configuration for models.
  * Can be used by both RecommendedClassModels and ActivityModels with type-safe generics.
- * @param mapSubjectNameToEnum - Optional function to map subject names to enum values
  * @param onSend - Callback when send button is clicked
  * @param onEdit - Callback when edit button is clicked
  * @param onDelete - Callback when delete button is clicked
@@ -57,7 +50,6 @@ export interface ModelsColumnsConfig {
  * @returns Array of column configurations for the models table
  */
 export const createModelsTableColumnsBase = <T extends BaseModelItem>(
-  mapSubjectNameToEnum: ((name: string) => SubjectEnum | null) | undefined,
   onSend: ((model: T) => void) | undefined,
   onEdit: ((model: T) => void) | undefined,
   onDelete: (model: T) => void,
@@ -80,14 +72,12 @@ export const createModelsTableColumnsBase = <T extends BaseModelItem>(
     className: 'w-[120px]',
   },
   {
-    key: 'subject',
+    key: 'subjects',
     label: 'Componente curricular',
-    sortable: true,
+    // Ordenar por uma lista de matérias não significa nada.
+    sortable: false,
     className: 'max-w-[200px]',
-    render: (value: unknown) => {
-      const subjectName = typeof value === 'string' ? value : '';
-      return renderSubjectCell(subjectName, mapSubjectNameToEnum, true);
-    },
+    render: renderSubjectsCell,
   },
   {
     key: 'actions',

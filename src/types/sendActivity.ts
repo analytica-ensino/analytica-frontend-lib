@@ -43,7 +43,13 @@ export interface SendActivityCategoriesData {
  */
 export interface CreateActivityPayload {
   title: string;
-  subjectId: string | null;
+  /**
+   * Legacy "primary subject". The backend derives an activity's real subjects
+   * from the subjects of its questions, so this is optional and only sent when
+   * unambiguous. It is absent rather than null because the backend schema marks
+   * it `.optional()`, which rejects an explicit null.
+   */
+  subjectId?: string;
   questionIds: string[];
   subtype: string;
   type?: 'ATIVIDADE' | 'PROVA';

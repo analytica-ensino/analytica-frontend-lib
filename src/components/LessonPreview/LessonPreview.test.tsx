@@ -225,7 +225,7 @@ jest.mock('../ChooseActivityModelModal', () => ({
               type: ActivityType.MODELO,
               title: 'Test Model',
               savedAt: '2024-01-01',
-              subject: null,
+              subjects: [],
               subjectId: null,
             })
           }
@@ -536,7 +536,7 @@ describe('LessonPreview', () => {
         type: ActivityType.MODELO,
         title: 'Test Model',
         savedAt: '2024-01-01',
-        subject: null,
+        subjects: [],
         subjectId: null,
       });
     });
@@ -626,7 +626,7 @@ describe('LessonPreview', () => {
         type: ActivityType.MODELO,
         title: 'Test Model',
         savedAt: '2024-01-01',
-        subject: null,
+        subjects: [],
         subjectId: null,
       });
     });

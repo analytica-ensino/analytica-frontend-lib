@@ -4,7 +4,10 @@ import {
   convertBackendFiltersToActivityFiltersData,
   getSubjectName,
   getActivityTypeLabel,
+  buildPayloadWithTypeOverride,
   generateTitle,
+  generateMultiSubjectTitle,
+  resolveActivitySubjectId,
   convertQuestionToPreview,
   getTypeFromUrl,
   getTypeFromUrlString,
@@ -409,6 +412,109 @@ describe('ActivityCreate.utils', () => {
       );
 
       expect(result).toBe('Rascunho');
+    });
+  });
+
+  describe('generateMultiSubjectTitle', () => {
+    it('should label a draft covering several subjects', () => {
+      const result = generateMultiSubjectTitle(ActivityType.RASCUNHO);
+
+      expect(result).toBe('Rascunho - Diversos componentes curriculares');
+    });
+
+    it('should use the MODELO label', () => {
+      const result = generateMultiSubjectTitle(ActivityType.MODELO);
+
+      expect(result).toBe('Modelo - Diversos componentes curriculares');
+    });
+
+    it('should use the ATIVIDADE label', () => {
+      const result = generateMultiSubjectTitle(ActivityType.ATIVIDADE);
+
+      expect(result).toBe('Atividade - Diversos componentes curriculares');
+    });
+  });
+
+  describe('buildPayloadWithTypeOverride', () => {
+    const mockKnowledgeAreas: KnowledgeArea[] = [
+      { id: 'math', name: 'Matemática' },
+    ];
+    const basePayload = { type: ActivityType.RASCUNHO, title: 'Rascunho' };
+
+    it('should prefer a non-empty custom title', () => {
+      const result = buildPayloadWithTypeOverride(
+        basePayload,
+        ActivityType.MODELO,
+        '  Meu modelo  ',
+        'math',
+        mockKnowledgeAreas
+      );
+
+      expect(result).toEqual({
+        type: ActivityType.MODELO,
+        title: 'Meu modelo',
+      });
+    });
+
+    it('should name the payload after the single subject', () => {
+      const result = buildPayloadWithTypeOverride(
+        basePayload,
+        ActivityType.MODELO,
+        undefined,
+        'math',
+        mockKnowledgeAreas
+      );
+
+      expect(result.title).toBe('Modelo - Matemática');
+    });
+
+    it('should fall back to the multi-subject title when no subject applies', () => {
+      const result = buildPayloadWithTypeOverride(
+        basePayload,
+        ActivityType.MODELO,
+        undefined,
+        null,
+        mockKnowledgeAreas
+      );
+
+      expect(result.title).toBe('Modelo - Diversos componentes curriculares');
+    });
+  });
+
+  describe('resolveActivitySubjectId', () => {
+    it('should keep the subject the activity already carries', () => {
+      const result = resolveActivitySubjectId('subject-saved', ['subject-new']);
+
+      expect(result).toBe('subject-saved');
+    });
+
+    it('should use the selected subject when exactly one is filtered', () => {
+      const result = resolveActivitySubjectId(undefined, ['subject-bio']);
+
+      expect(result).toBe('subject-bio');
+    });
+
+    // The backend derives the real subjects from the questions, so electing one
+    // of several as "the" subject would be arbitrary and wrong.
+    it('should return null when several subjects are filtered', () => {
+      const result = resolveActivitySubjectId(undefined, [
+        'subject-bio',
+        'subject-fis',
+      ]);
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null when no subject is filtered', () => {
+      const result = resolveActivitySubjectId(undefined, []);
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null when the filter list is absent', () => {
+      const result = resolveActivitySubjectId(undefined, undefined);
+
+      expect(result).toBeNull();
     });
   });
 
@@ -921,6 +1027,34 @@ describe('ActivityCreate.utils', () => {
       );
 
       expect(payload).not.toHaveProperty('essayThemeId');
+    });
+
+    it('should carry the subject when one was resolved', () => {
+      const payload = buildSendActivityPayload(
+        baseFormData,
+        'subject-1',
+        ['q-1'],
+        '2026-01-01T08:00:00.000Z',
+        '2026-01-02T18:00:00.000Z',
+        'ATIVIDADE'
+      );
+
+      expect(payload.subjectId).toBe('subject-1');
+    });
+
+    // The activity body schema marks subjectId `.optional()`, which accepts an
+    // absent key but rejects an explicit null.
+    it('should omit the subject entirely when none was resolved', () => {
+      const payload = buildSendActivityPayload(
+        baseFormData,
+        null,
+        ['q-1'],
+        '2026-01-01T08:00:00.000Z',
+        '2026-01-02T18:00:00.000Z',
+        'ATIVIDADE'
+      );
+
+      expect(payload).not.toHaveProperty('subjectId');
     });
   });
 
