@@ -177,7 +177,12 @@ jest.mock('../CorrectActivityModal/CorrectActivityModal', () => ({
   }: {
     isOpen: boolean;
     onClose: () => void;
-    data?: { studentId?: string; observation?: string; attachment?: string };
+    data?: {
+      studentId?: string;
+      observation?: string;
+      attachment?: string;
+      score?: number | null;
+    };
     isViewOnly?: boolean;
     onObservationSubmit?: (
       studentId: string,
@@ -193,6 +198,9 @@ jest.mock('../CorrectActivityModal/CorrectActivityModal', () => ({
     isOpen ? (
       <div data-testid="correct-activity-modal">
         <button onClick={onClose}>Fechar</button>
+        {data && 'score' in data && (
+          <span data-testid="modal-score">{String(data.score)}</span>
+        )}
         {data?.observation && (
           <span data-testid="modal-observation">{data.observation}</span>
         )}
@@ -930,6 +938,52 @@ describe('ActivityDetails', () => {
 
       await waitFor(() => {
         expect(mockFetchStudentCorrection).toHaveBeenCalled();
+      });
+    });
+
+    it('should show the table grade in the modal, not the recomputed percentage', async () => {
+      // The answers endpoint reports a 0-100 percentage; the row holds the
+      // stored 0-10 grade the table already displays (student-1: 8.5).
+      mockFetchStudentCorrection.mockResolvedValue({
+        data: {
+          answers: [],
+          statistics: {
+            totalAnswered: 0,
+            correctAnswers: 0,
+            incorrectAnswers: 0,
+            pendingAnswers: 0,
+            score: 85,
+            timeSpent: 0,
+          },
+        },
+      });
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getAllByText('Ver detalhes').length).toBeGreaterThan(0);
+      });
+
+      fireEvent.click(screen.getAllByText('Ver detalhes')[0]);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('modal-score')).toHaveTextContent('8.5');
+      });
+    });
+
+    it('should show no grade in the modal when the row has none yet', async () => {
+      // student-2 is awaiting correction and has score: null in the table even
+      // though the endpoint would recompute 0.
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByText('Corrigir atividade'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('modal-score')).toHaveTextContent('null');
       });
     });
   });

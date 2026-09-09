@@ -604,13 +604,16 @@ export const ActivityDetails = ({
           safeFetchStudentFeedback(activityId, studentId),
         ]);
 
-        // Convert API response to StudentActivityCorrectionData format
+        // Convert API response to StudentActivityCorrectionData format. The
+        // modal shows the same stored grade the table row already carries
+        // (0-10), not the 0-100 percentage the answers endpoint recomputes.
         const correction = convertApiResponseToCorrectionData(
           apiResponse,
           studentId,
           student.studentName || 'Aluno',
           feedbackResponse?.teacherFeedback ?? undefined,
-          feedbackResponse?.attachment ?? undefined
+          feedbackResponse?.attachment ?? undefined,
+          student.score
         );
         setCorrectionData(correction);
         setIsModalOpen(true);
