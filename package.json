@@ -364,6 +364,13 @@
       "require": "./dist/ProficiencyChart/index.js",
       "default": "./dist/ProficiencyChart/index.mjs"
     },
+    "./performance-distribution-chart": {
+      "types": "./dist/PerformanceDistributionChart/index.d.ts",
+      "module": "./dist/PerformanceDistributionChart/index.mjs",
+      "import": "./dist/PerformanceDistributionChart/index.mjs",
+      "require": "./dist/PerformanceDistributionChart/index.js",
+      "default": "./dist/PerformanceDistributionChart/index.mjs"
+    },
     "./calendar": {
       "types": "./dist/Calendar/index.d.ts",
       "module": "./dist/Calendar/index.mjs",

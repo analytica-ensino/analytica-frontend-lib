@@ -64,6 +64,8 @@ export default defineConfig({
       'src/components/VerticalBarChart/VerticalBarChart.tsx',
     'ProficiencyChart/index':
       'src/components/ProficiencyChart/ProficiencyChart.tsx',
+    'PerformanceDistributionChart/index':
+      'src/components/PerformanceDistributionChart/PerformanceDistributionChart.tsx',
     'Calendar/index': 'src/components/Calendar/Calendar.tsx',
     'Stepper/index': 'src/components/Stepper/Stepper.tsx',
     'Skeleton/index': 'src/components/Skeleton/Skeleton.tsx',
