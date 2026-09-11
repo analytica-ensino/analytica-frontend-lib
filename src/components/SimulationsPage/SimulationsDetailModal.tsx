@@ -84,15 +84,29 @@ function getAnswerAccordionTitle(questionType: string): string {
 // Level 2 — Question (reuses the shared alternatives renderer + status badge)
 // ---------------------------------------------------------------------------
 
-function QuestionItem({
+export interface SimulationQuestionItemProps {
+  readonly question: SimulationDetailQuestion;
+  /** Zero-based position in the simulation; shown as "Questão N". */
+  readonly index: number;
+  /** Persist the teacher comment on this question; an empty string clears it. */
+  readonly onSaveComment: (comment: string) => Promise<void>;
+}
+
+/**
+ * One question of a student's simulation: an accordion with the status badge
+ * in its header and, inside, the statement, the student's answer (alternatives,
+ * true/false marks, essay text or image click, by question type) and the
+ * teacher comment field.
+ *
+ * Exported so consumers that list a student's simulations in their own layout
+ * (the Desempenho report of the teacher app) render questions exactly as the
+ * Simulados page does.
+ */
+export function SimulationQuestionItem({
   question,
   index,
   onSaveComment,
-}: {
-  readonly question: SimulationDetailQuestion;
-  readonly index: number;
-  readonly onSaveComment: (comment: string) => Promise<void>;
-}) {
+}: SimulationQuestionItemProps) {
   const badge = getQuestionStatusBadgeConfig(
     QUESTION_STATUS_MAP[question.status]
   );
@@ -250,15 +264,25 @@ function QuestionItem({
 // Note ("Observação")
 // ---------------------------------------------------------------------------
 
-function NoteRow({
+export interface SimulationNoteRowProps {
+  /** Current observation, null when the teacher never wrote one. */
+  readonly note: NoteData | null;
+  readonly loading: boolean;
+  /** Persist the observation text (already trimmed and non-empty). */
+  readonly onSave: (text: string) => Promise<void>;
+}
+
+/**
+ * The simulation-wide teacher observation: a row with the saved text and an
+ * "Incluir"/"Editar" button that swaps into a textarea with Cancelar/Salvar.
+ *
+ * Exported for the same reason as {@link SimulationQuestionItem}.
+ */
+export function SimulationNoteRow({
   note,
   loading,
   onSave,
-}: {
-  readonly note: NoteData | null;
-  readonly loading: boolean;
-  readonly onSave: (text: string) => Promise<void>;
-}) {
+}: SimulationNoteRowProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const [saving, setSaving] = useState(false);
@@ -423,7 +447,7 @@ function SimulationItem({
             )}
           </div>
 
-          <NoteRow
+          <SimulationNoteRow
             note={note?.data ?? null}
             loading={note?.loading ?? false}
             onSave={onSaveNote}
@@ -434,7 +458,7 @@ function SimulationItem({
               Respostas
             </Text>
             {detail.data.questions.map((question, qIndex) => (
-              <QuestionItem
+              <SimulationQuestionItem
                 key={question.questionId}
                 question={question}
                 index={qIndex}
