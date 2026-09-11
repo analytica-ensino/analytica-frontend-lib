@@ -1096,6 +1096,120 @@ describe('ChoroplethMap animations', () => {
     expect(screen.queryByText(/Acessos: 200/)).not.toBeInTheDocument();
   });
 
+  it('splits the population the colour was decided from', async () => {
+    await renderAndHoverRegion({
+      breakdownLabels: {
+        withAccess: 'fizeram simulados',
+        withoutAccess: 'não fizeram simulados',
+      },
+      data: [
+        {
+          id: 'r1',
+          name: 'Curitiba',
+          value: 0.86,
+          accessCount: 5200,
+          participation: { withAction: 121, total: 141 },
+          geoJson: {
+            type: 'Feature',
+            properties: {},
+            geometry: { type: 'Polygon', coordinates: [[]] },
+          },
+        },
+      ],
+    });
+
+    // 20 is 141 - 121: the other side of the very population behind the colour
+    expect(
+      screen.getByText('121 fizeram simulados / 20 não fizeram simulados')
+    ).toBeInTheDocument();
+  });
+
+  it('prefers the participation split over the access breakdown', async () => {
+    await renderAndHoverRegion({
+      breakdownLabels: {
+        withAccess: 'fizeram simulados',
+        withoutAccess: 'não fizeram simulados',
+      },
+      data: [
+        {
+          id: 'r1',
+          name: 'Curitiba',
+          value: 0.4,
+          accessCount: 200,
+          participation: { withAction: 40, total: 100 },
+          accessBreakdown: {
+            students: { withAccess: 300, withoutAccess: 1000 },
+            teachers: { withAccess: 40, withoutAccess: 5 },
+            managers: { withAccess: 2, withoutAccess: 8 },
+          },
+          geoJson: {
+            type: 'Feature',
+            properties: {},
+            geometry: { type: 'Polygon', coordinates: [[]] },
+          },
+        },
+      ],
+    });
+
+    expect(
+      screen.getByText('40 fizeram simulados / 60 não fizeram simulados')
+    ).toBeInTheDocument();
+    // The profile lines and the bare count both step aside
+    expect(screen.queryByText(/Estudantes: 300/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Acessos: 200/)).not.toBeInTheDocument();
+  });
+
+  it('keeps the default access wording when no labels are given', async () => {
+    await renderAndHoverRegion({
+      data: [
+        {
+          id: 'r1',
+          name: 'Curitiba',
+          value: 0,
+          accessCount: 0,
+          participation: { withAction: 0, total: 4100 },
+          geoJson: {
+            type: 'Feature',
+            properties: {},
+            geometry: { type: 'Polygon', coordinates: [[]] },
+          },
+        },
+      ],
+    });
+
+    expect(
+      screen.getByText('0 com acesso / 4.100 sem acessos')
+    ).toBeInTheDocument();
+  });
+
+  it('never reports more people than the region has', async () => {
+    await renderAndHoverRegion({
+      breakdownLabels: {
+        withAccess: 'fizeram simulados',
+        withoutAccess: 'não fizeram simulados',
+      },
+      data: [
+        {
+          id: 'r1',
+          name: 'Curitiba',
+          value: 1,
+          // Numerator above the denominator would otherwise print "-1"
+          accessCount: 12,
+          participation: { withAction: 11, total: 10 },
+          geoJson: {
+            type: 'Feature',
+            properties: {},
+            geometry: { type: 'Polygon', coordinates: [[]] },
+          },
+        },
+      ],
+    });
+
+    expect(
+      screen.getByText('11 fizeram simulados / 0 não fizeram simulados')
+    ).toBeInTheDocument();
+  });
+
   it('shows custom breakdown wording when breakdownLabels is provided', async () => {
     await renderAndHoverRegion({
       activeProfile: 'teachers',

@@ -207,6 +207,72 @@ const defaultCenter = {
 };
 
 /**
+ * Body of the region tooltip.
+ *
+ * Three shapes, in order of how specific they are: the participation split when
+ * the region carries the parts of its rate, the per-profile access breakdown
+ * when it carries one, and the bare count otherwise.
+ *
+ * @param region - Region under the cursor
+ * @param activeProfile - Profile whose breakdown line to show, if only one
+ * @param breakdownLabels - Wording of both sides of a split
+ * @param countLabel - Caption of the bare count
+ * @returns Tooltip detail lines
+ */
+const RegionTooltipDetails = ({
+  region,
+  activeProfile,
+  breakdownLabels,
+  countLabel,
+}: {
+  region: RegionData;
+  activeProfile?: keyof AccessBreakdown;
+  breakdownLabels: ChoroplethBreakdownLabels;
+  countLabel: string;
+}) => {
+  if (region.participation) {
+    const { withAction, total } = region.participation;
+    // The people left over are the other side of the same population the colour
+    // was decided from — never a second query that could disagree with it.
+    const withoutAction = Math.max(0, total - withAction);
+    const line =
+      `${withAction.toLocaleString('pt-BR')} ${breakdownLabels.withAccess} / ` +
+      `${withoutAction.toLocaleString('pt-BR')} ${breakdownLabels.withoutAccess}`;
+    return (
+      <Text size="md" color="text-text-50">
+        {line}
+      </Text>
+    );
+  }
+
+  if (region.accessBreakdown) {
+    return (
+      <div className="flex flex-col gap-1">
+        {TOOLTIP_PROFILE_LINES.filter(
+          (line) => !activeProfile || line.key === activeProfile
+        ).map((line) => {
+          const entry = region.accessBreakdown![line.key];
+          return (
+            <Text key={line.key} size="md" color="text-text-50">
+              {line.label}: {entry.withAccess.toLocaleString('pt-BR')}{' '}
+              {breakdownLabels.withAccess},{' '}
+              {entry.withoutAccess.toLocaleString('pt-BR')}{' '}
+              {breakdownLabels.withoutAccess}
+            </Text>
+          );
+        })}
+      </div>
+    );
+  }
+
+  return (
+    <Text size="md" color="text-text-50">
+      {countLabel}: {region.accessCount.toLocaleString('pt-BR')}
+    </Text>
+  );
+};
+
+/**
  * Legend Item component for the map
  * @param color - Fill color of the legend circle
  * @param label - Text label for the legend item
@@ -328,9 +394,12 @@ const ChoroplethMap = ({
           const breakdown = b
             ? `${b.students.withAccess}/${b.students.withoutAccess}/${b.teachers.withAccess}/${b.teachers.withoutAccess}/${b.managers.withAccess}/${b.managers.withoutAccess}`
             : '';
+          const participation = d.participation
+            ? `${d.participation.withAction}/${d.participation.total}`
+            : '';
           return `${d.id}:${d.value}:${d.name}:${d.groupName ?? ''}:${d.accessCount}:${
             d.isManagedRegion === false ? 0 : 1
-          }:${breakdown}`;
+          }:${breakdown}:${participation}`;
         })
         .join('|'),
     [data]
@@ -955,29 +1024,12 @@ const ChoroplethMap = ({
             {hoveredRegion.isManagedRegion !== false && (
               <>
                 <div className="h-px self-stretch bg-border-200" />
-                {hoveredRegion.accessBreakdown ? (
-                  <div className="flex flex-col gap-1">
-                    {TOOLTIP_PROFILE_LINES.filter(
-                      (line) => !activeProfile || line.key === activeProfile
-                    ).map((line) => {
-                      const entry = hoveredRegion.accessBreakdown![line.key];
-                      return (
-                        <Text key={line.key} size="md" color="text-text-50">
-                          {line.label}:{' '}
-                          {entry.withAccess.toLocaleString('pt-BR')}{' '}
-                          {mergedBreakdownLabels.withAccess},{' '}
-                          {entry.withoutAccess.toLocaleString('pt-BR')}{' '}
-                          {mergedBreakdownLabels.withoutAccess}
-                        </Text>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <Text size="md" color="text-text-50">
-                    {countLabel}:{' '}
-                    {hoveredRegion.accessCount.toLocaleString('pt-BR')}
-                  </Text>
-                )}
+                <RegionTooltipDetails
+                  region={hoveredRegion}
+                  activeProfile={activeProfile}
+                  breakdownLabels={mergedBreakdownLabels}
+                  countLabel={countLabel}
+                />
               </>
             )}
           </div>

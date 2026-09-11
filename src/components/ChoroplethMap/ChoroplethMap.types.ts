@@ -57,6 +57,26 @@ export interface RegionData {
    * of the single `countLabel` count.
    */
   accessBreakdown?: AccessBreakdown;
+  /**
+   * Parts of the rate the region is coloured by, for the tooltip. When present,
+   * the tooltip splits the population the way the colour was decided —
+   * "121 fizeram simulados / 20 não fizeram simulados" — instead of showing the
+   * access breakdown, which counts something else entirely.
+   */
+  participation?: RegionParticipation;
+}
+
+/**
+ * Numerator and denominator of a region's rate.
+ *
+ * The percentage is not carried here: it is `value`, the same field the map
+ * colours by, so the tooltip cannot drift from the polygon under the cursor.
+ */
+export interface RegionParticipation {
+  /** People who performed the action (e.g. took at least one simulado) */
+  withAction: number;
+  /** People the rate is measured against (e.g. enrolled students) */
+  total: number;
 }
 
 /**
@@ -88,7 +108,8 @@ export type ChoroplethLegendLabels = Record<ChoroplethTier, string>;
  *
  * Rendered as `<profile>: <n> <withAccess>, <m> <withoutAccess>` — for the
  * access map "com acesso" / "sem acessos", for the activities map "realizaram"
- * / "não realizaram".
+ * / "não realizaram". A region carrying `participation` uses the same two
+ * phrases for its own split, without the profile prefix.
  */
 export interface ChoroplethBreakdownLabels {
   /** Phrase for the people who performed the action */

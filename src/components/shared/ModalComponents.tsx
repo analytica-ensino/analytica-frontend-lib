@@ -1,5 +1,6 @@
 import { type ReactNode } from 'react';
-import { UserIcon, XCircleIcon } from '@phosphor-icons/react';
+import { UserIcon } from '@phosphor-icons/react/dist/csr/User';
+import { XCircleIcon } from '@phosphor-icons/react/dist/csr/XCircle';
 import Text from '../Text/Text';
 
 /**
