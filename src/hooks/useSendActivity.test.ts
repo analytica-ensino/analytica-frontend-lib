@@ -12,6 +12,14 @@ import {
 } from '../components/SendActivityModal/types';
 import type { SendActivityFormData } from '../components/SendActivityModal/types';
 
+const mockAddToast = jest.fn();
+
+jest.mock('../components/Toast/utils/ToastStore', () => ({
+  __esModule: true,
+  default: (selector: (state: unknown) => unknown) =>
+    selector({ toasts: [], addToast: mockAddToast, removeToast: jest.fn() }),
+}));
+
 /**
  * Helper function to compute expected ISO datetime using real dayjs
  * This mirrors the toISODateTime function in useSendActivity
@@ -630,6 +638,8 @@ describe('useSendActivity', () => {
 
       expect(config.onError).toHaveBeenCalledWith('Erro ao enviar atividade');
       expect(result.current.isLoading).toBe(false);
+      // Quem passa o callback fica no controle do feedback — nada de toast duplo.
+      expect(mockAddToast).not.toHaveBeenCalled();
     });
 
     it('should handle error without onError callback', async () => {
@@ -659,6 +669,13 @@ describe('useSendActivity', () => {
       });
 
       expect(result.current.isLoading).toBe(false);
+      // Sem callback, o toast é o único feedback — antes o envio falhava calado.
+      expect(mockAddToast).toHaveBeenCalledWith({
+        title: 'Erro ao enviar atividade',
+        variant: 'solid',
+        action: 'warning',
+        position: 'top-right',
+      });
     });
 
     it('should handle success without onSuccess callback', async () => {
@@ -677,6 +694,42 @@ describe('useSendActivity', () => {
 
       expect(result.current.isOpen).toBe(false);
       expect(result.current.isLoading).toBe(false);
+      expect(mockAddToast).toHaveBeenCalledWith({
+        title: `Atividade enviada para ${mockFormData.students.length} aluno(s)`,
+        variant: 'solid',
+        action: 'success',
+        position: 'top-right',
+      });
+    });
+
+    it('should not send to students when the create response has no id', async () => {
+      const defaultMockApi = createMockApiClient();
+      const mockApi = createMockApiClient();
+      mockApi.post = jest.fn((url: string) => {
+        if (url === '/activities') {
+          return Promise.resolve({ data: { data: {} } });
+        }
+        return defaultMockApi.post(url);
+      });
+
+      const config = createMockConfig({ api: mockApi });
+      const { result } = renderHook(() => useSendActivity(config));
+
+      await act(async () => {
+        result.current.openModal(mockModel);
+      });
+
+      await act(async () => {
+        await result.current.handleSubmit(mockFormData);
+      });
+
+      // Sem id não dá para vincular ninguém; postar mesmo assim deixaria uma
+      // atividade órfã, invisível no histórico.
+      expect(mockApi.post).not.toHaveBeenCalledWith(
+        '/activities/send-to-students',
+        expect.anything()
+      );
+      expect(config.onError).toHaveBeenCalledWith('Erro ao enviar atividade');
     });
 
     it('should set isLoading to true during submission', async () => {
