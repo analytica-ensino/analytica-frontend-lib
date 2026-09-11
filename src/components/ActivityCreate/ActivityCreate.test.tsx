@@ -863,6 +863,80 @@ jest.mock('../..', () => {
   };
 });
 
+/**
+ * GETs que a modal de envio dispara ao abrir (escolas, anos, turmas e alunos).
+ * Extraído para fora dos testes porque o `mockImplementation` inline empilha
+ * níveis de aninhamento que o Sonar reporta.
+ */
+const createSendModalGetMock = () =>
+  jest.fn().mockImplementation((url: string) => {
+    if (url === '/school') {
+      return Promise.resolve({ data: { data: { schools: [] } } });
+    }
+    if (url === '/schoolYear') {
+      return Promise.resolve({ data: { data: { schoolYears: [] } } });
+    }
+    if (url === '/classes') {
+      return Promise.resolve({ data: { data: { classes: [] } } });
+    }
+    if (url.startsWith('/students')) {
+      return Promise.resolve({
+        data: {
+          data: {
+            students: [],
+            pagination: { page: 1, limit: 100, total: 0, totalPages: 1 },
+          },
+        },
+      });
+    }
+    return Promise.resolve({ data: { data: {} } });
+  });
+
+const CREATE_ACTIVITY_RESPONSE = {
+  data: {
+    message: 'Activity created successfully',
+    data: { id: 'activity-456' },
+  },
+};
+
+const SEND_TO_STUDENTS_RESPONSE = {
+  data: {
+    message: 'Activity sent to students successfully',
+    data: { success: true },
+  },
+};
+
+/**
+ * POST mock do fluxo de envio. `sendToStudents` recebe a resposta (ou rejeição)
+ * daquele passo, que é o que cada teste de ordenação precisa controlar.
+ */
+const createSendActivityPostMock = (
+  sendToStudents: () => Promise<unknown>,
+  onCall?: (url: string) => void
+) =>
+  jest.fn().mockImplementation((url: string) => {
+    onCall?.(url);
+    if (url === '/activities') {
+      return Promise.resolve(CREATE_ACTIVITY_RESPONSE);
+    }
+    if (url === '/activities/send-to-students') {
+      return sendToStudents();
+    }
+    return Promise.resolve({ data: {} });
+  });
+
+/** Abre a modal de envio e submete — os quatro passos repetidos em todo teste. */
+const submitSendActivityModal = async () => {
+  fireEvent.click(screen.getByTestId('add-question'));
+  fireEvent.click(screen.getByText('Enviar atividade'));
+
+  await waitFor(() => {
+    expect(screen.getByTestId('send-activity-modal')).toBeInTheDocument();
+  });
+
+  fireEvent.click(screen.getByTestId('modal-submit'));
+};
+
 describe('CreateActivity', () => {
   // Mock window.innerWidth for responsive tests
   const originalInnerWidth = globalThis.innerWidth;
@@ -2948,6 +3022,97 @@ describe('CreateActivity', () => {
           })
         );
       });
+    });
+
+    it('should only call onCreateActivity after send-to-students settles', async () => {
+      // O consumidor navega para o histórico dentro deste callback. Se ele for
+      // chamado com o send-to-students ainda em voo, o histórico monta antes de
+      // a atividade ter alunos vinculados e volta sem ela.
+      const onCreateActivity = jest.fn();
+      let resolveSendToStudents!: (value: unknown) => void;
+      const sendToStudentsPromise = new Promise((resolve) => {
+        resolveSendToStudents = resolve;
+      });
+
+      mockApiClient.get = createSendModalGetMock();
+      mockApiClient.post = createSendActivityPostMock(
+        () => sendToStudentsPromise
+      );
+
+      render(
+        <CreateActivity {...defaultProps} onCreateActivity={onCreateActivity} />
+      );
+
+      await submitSendActivityModal();
+
+      await waitFor(() => {
+        expect(mockApiClient.post).toHaveBeenCalledWith(
+          '/activities/send-to-students',
+          expect.any(Object)
+        );
+      });
+      expect(onCreateActivity).not.toHaveBeenCalled();
+
+      // Resolver antes do fim do teste não é opcional: uma chamada em voo
+      // sobrevive ao unmount e contamina o mock do teste seguinte.
+      resolveSendToStudents(SEND_TO_STUDENTS_RESPONSE);
+
+      await waitFor(() => {
+        expect(onCreateActivity).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('should keep the create then send-to-students then callback order', async () => {
+      const callOrder: string[] = [];
+      const onCreateActivity = jest.fn(() => {
+        callOrder.push('onCreateActivity');
+      });
+
+      mockApiClient.get = createSendModalGetMock();
+      mockApiClient.post = createSendActivityPostMock(
+        () => Promise.resolve(SEND_TO_STUDENTS_RESPONSE),
+        (url) => callOrder.push(url)
+      );
+
+      render(
+        <CreateActivity {...defaultProps} onCreateActivity={onCreateActivity} />
+      );
+
+      await submitSendActivityModal();
+
+      await waitFor(() => {
+        expect(callOrder).toEqual([
+          '/activities',
+          '/activities/send-to-students',
+          'onCreateActivity',
+        ]);
+      });
+    });
+
+    it('should not call onCreateActivity when send-to-students fails', async () => {
+      const onCreateActivity = jest.fn();
+
+      mockApiClient.get = createSendModalGetMock();
+      mockApiClient.post = createSendActivityPostMock(() =>
+        Promise.reject(new Error('Send failed'))
+      );
+
+      render(
+        <CreateActivity {...defaultProps} onCreateActivity={onCreateActivity} />
+      );
+
+      await submitSendActivityModal();
+
+      await waitFor(() => {
+        expect(mockAddToast).toHaveBeenCalledWith({
+          title: 'Erro ao enviar atividade',
+          description: 'Send failed',
+          variant: 'solid',
+          action: 'warning',
+          position: 'top-right',
+        });
+      });
+      expect(onCreateActivity).not.toHaveBeenCalled();
     });
 
     it('should not call onCreateActivity if not provided', async () => {

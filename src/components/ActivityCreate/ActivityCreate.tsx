@@ -1093,10 +1093,6 @@ const CreateActivity = ({
           createActivityResponse
         );
 
-        if (onCreateActivity) {
-          onCreateActivity(activityId, activityPayload);
-        }
-
         // Send activity to students
         const sendToStudentsPayload = {
           activityId,
@@ -1122,6 +1118,14 @@ const CreateActivity = ({
           action: 'success',
           position: 'top-right',
         });
+
+        // Só aqui o consumidor é avisado — ele navega para o histórico a partir
+        // deste callback. Antes do send-to-students a atividade existe mas ainda
+        // não tem vínculo com alunos, e a consulta do histórico só enxerga
+        // atividade já vinculada: a listagem montaria vazia e o backend guardaria
+        // esse vazio em cache. O send-to-students invalida esse cache antes de
+        // responder, então a partir daqui a leitura é consistente.
+        onCreateActivity?.(activityId, activityPayload);
       } catch (error) {
         console.error('Erro ao enviar atividade:', error);
         addToast({
@@ -1148,6 +1152,9 @@ const CreateActivity = ({
       activityEndpoint,
       activityCategory,
       essayTheme?.id,
+      onCreateActivity,
+      enableExamMode,
+      isInPersonExam,
     ]
   );
 
