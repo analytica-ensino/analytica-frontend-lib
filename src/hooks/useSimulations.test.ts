@@ -163,20 +163,92 @@ describe('createUseSimulations', () => {
     expect(data?.note).toBe('Boa');
   });
 
-  it('saveNote posts the note', async () => {
+  it('saveNote posts the note with its attachment URL (null when none)', async () => {
     const api = makeApi();
     api.post.mockResolvedValue({
-      data: { message: 'ok', data: { id: 'n1', note: 'Boa' } },
+      data: {
+        message: 'ok',
+        data: { id: 'n1', note: 'Boa', attachment: null },
+      },
     });
     const { result } = renderHook(() => createUseSimulations(api)());
 
-    const data = await result.current.saveNote('ui-1', 'sim-1', 'Boa');
+    const data = await result.current.saveNote('ui-1', 'sim-1', 'Boa', null);
 
     expect(api.post).toHaveBeenCalledWith(
       '/performance/simulations/students/ui-1/sim-1/note',
-      { note: 'Boa' }
+      { note: 'Boa', attachment: null }
     );
     expect(data?.note).toBe('Boa');
+
+    await result.current.saveNote(
+      'ui-1',
+      'sim-1',
+      'Boa',
+      'https://cdn.example.com/notes/plano.png'
+    );
+    expect(api.post).toHaveBeenLastCalledWith(
+      '/performance/simulations/students/ui-1/sim-1/note',
+      { note: 'Boa', attachment: 'https://cdn.example.com/notes/plano.png' }
+    );
+  });
+
+  describe('uploadNoteAttachment', () => {
+    const originalFetch = globalThis.fetch;
+
+    afterEach(() => {
+      globalThis.fetch = originalFetch;
+    });
+
+    it('asks for a pre-signed URL, PUTs the bytes there and returns the public URL', async () => {
+      const api = makeApi();
+      api.post.mockResolvedValue({
+        data: {
+          data: {
+            signedUrl: 'https://storage.example.com/signed',
+            publicUrl: 'https://cdn.example.com/notes/plano.png',
+          },
+        },
+      });
+      const fetchMock = jest.fn(() => Promise.resolve({ ok: true }));
+      globalThis.fetch = fetchMock as unknown as typeof fetch;
+      const file = new File(['png'], 'plano.png', { type: 'image/png' });
+      const { result } = renderHook(() => createUseSimulations(api)());
+
+      const url = await result.current.uploadNoteAttachment(file);
+
+      expect(api.post).toHaveBeenCalledWith('/user/get-pre-signed-url', {
+        fileName: 'plano.png',
+        mimeType: 'image/png',
+        fileSize: file.size,
+      });
+      expect(fetchMock).toHaveBeenCalledWith(
+        'https://storage.example.com/signed',
+        { method: 'PUT', body: file, headers: { 'Content-Type': 'image/png' } }
+      );
+      expect(url).toBe('https://cdn.example.com/notes/plano.png');
+    });
+
+    it('throws when storage refuses the upload', async () => {
+      const api = makeApi();
+      api.post.mockResolvedValue({
+        data: {
+          data: {
+            signedUrl: 'https://storage.example.com/signed',
+            publicUrl: 'https://cdn.example.com/notes/plano.png',
+          },
+        },
+      });
+      globalThis.fetch = jest.fn(() =>
+        Promise.resolve({ ok: false })
+      ) as unknown as typeof fetch;
+      const file = new File(['png'], 'plano.png', { type: 'image/png' });
+      const { result } = renderHook(() => createUseSimulations(api)());
+
+      await expect(result.current.uploadNoteAttachment(file)).rejects.toThrow(
+        'Falha ao fazer upload do arquivo'
+      );
+    });
   });
 
   it('saveQuestionComment posts the comment for one question', async () => {

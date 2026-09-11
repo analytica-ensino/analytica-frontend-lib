@@ -1,12 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { UserCircleIcon } from '@phosphor-icons/react/dist/csr/UserCircle';
+import type { ChangeEvent, ReactNode } from 'react';
+import { ExamIcon } from '@phosphor-icons/react/dist/csr/Exam';
+import { CheckCircleIcon } from '@phosphor-icons/react/dist/csr/CheckCircle';
+import { XCircleIcon } from '@phosphor-icons/react/dist/csr/XCircle';
+import { MinusCircleIcon } from '@phosphor-icons/react/dist/csr/MinusCircle';
+import { PaperclipIcon } from '@phosphor-icons/react/dist/csr/Paperclip';
+import { XIcon } from '@phosphor-icons/react/dist/csr/X';
 import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
 import TextArea from '../TextArea/TextArea';
+import ProgressBar from '../ProgressBar/ProgressBar';
+import { UserIcon } from '../UserIcon/UserIcon';
 import { CardAccordation } from '../Accordation';
 import { SkeletonCard } from '../Skeleton/Skeleton';
-import { StatCard } from '../shared/StatCard';
 import { QuestionCommentField } from '../shared/QuestionCommentField';
 import {
   TrueFalseStatementList,
@@ -25,12 +32,17 @@ import {
 } from '../../utils/studentActivityCorrection';
 import { cn } from '../../utils/utils';
 import { formatQuestionDuration } from '../../utils/questionDuration';
+import {
+  formatDateToBrazilian,
+  formatTimeSpent,
+} from '../../utils/activityDetailsUtils';
 import type { BaseApiClient } from '../../types/api';
 import { createUseSimulations } from '../../hooks/useSimulations';
 import type {
   SimulationsListData,
   SimulationDetailData,
   SimulationDetailQuestion,
+  StudentSimulationContent,
   StudentSimulationItem,
   NoteData,
 } from '../../types/simulations';
@@ -65,6 +77,16 @@ const QUESTION_STATUS_MAP: Record<
   BLANK: QUESTION_STATUS.EM_BRANCO,
   PENDING: QUESTION_STATUS.PENDENTE,
 };
+
+/**
+ * Format a 0-100 score as a 0-10 grade with one decimal, pt-BR ("7,1").
+ */
+function formatScoreOutOfTen(percentage: number): string {
+  return (percentage / 10).toLocaleString('pt-BR', {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
+}
 
 /** Label of the inner accordion holding the student's answer. */
 function getAnswerAccordionTitle(questionType: string): string {
@@ -268,13 +290,88 @@ export interface SimulationNoteRowProps {
   /** Current observation, null when the teacher never wrote one. */
   readonly note: NoteData | null;
   readonly loading: boolean;
-  /** Persist the observation text (already trimmed and non-empty). */
-  readonly onSave: (text: string) => Promise<void>;
+  /**
+   * Persist the observation. `text` is already trimmed and non-empty; `file`
+   * is a newly chosen attachment still to be uploaded (null when none), and
+   * `existingAttachment` is the URL of the saved file the teacher kept — null
+   * when there was none, when it was removed, or when a new file replaces it.
+   */
+  readonly onSave: (
+    text: string,
+    file: File | null,
+    existingAttachment: string | null
+  ) => Promise<void>;
 }
 
 /**
- * The simulation-wide teacher observation: a row with the saved text and an
- * "Incluir"/"Editar" button that swaps into a textarea with Cancelar/Salvar.
+ * Human label of an attachment URL: its file name, or a generic word when the
+ * URL carries none.
+ */
+function getAttachmentLabel(url: string): string {
+  const lastSegment = url.split('?')[0].split('/').pop() ?? '';
+  try {
+    return decodeURIComponent(lastSegment) || 'Anexo';
+  } catch {
+    return lastSegment || 'Anexo';
+  }
+}
+
+/**
+ * Grey pill naming an attached file. Links to the file when `href` is given
+ * and offers a remove button when `onRemove` is given — the same chip the
+ * activity correction modal uses for its observation attachment.
+ */
+function AttachmentChip({
+  label,
+  href,
+  onRemove,
+}: {
+  readonly label: string;
+  readonly href?: string;
+  readonly onRemove?: () => void;
+}) {
+  const content = (
+    <>
+      <PaperclipIcon size={18} className="shrink-0 text-text-800" />
+      <span className="truncate text-md font-medium text-text-800">
+        {label}
+      </span>
+    </>
+  );
+
+  return (
+    <div className="flex h-10 min-w-0 max-w-[220px] items-center gap-2 rounded-full bg-secondary-500 px-5">
+      {href ? (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex min-w-0 items-center gap-2 hover:underline"
+        >
+          {content}
+        </a>
+      ) : (
+        content
+      )}
+      {onRemove && (
+        <button
+          type="button"
+          onClick={onRemove}
+          className="shrink-0 text-text-700 hover:text-text-950"
+          aria-label={`Remover ${label}`}
+        >
+          <XIcon size={18} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+/**
+ * The simulation-wide teacher observation: a row with the saved text, the
+ * attached file (if any) and an "Incluir"/"Editar" button that swaps into a
+ * textarea with "Anexar" and "Salvar" — the same flow as the observation of
+ * the activity correction modal.
  *
  * Exported for the same reason as {@link SimulationQuestionItem}.
  */
@@ -287,11 +384,27 @@ export function SimulationNoteRow({
   const [draft, setDraft] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** File chosen in this editing session, not uploaded yet. */
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  /** Saved attachment the teacher is keeping; null once removed. */
+  const [keptAttachment, setKeptAttachment] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const savedAttachment = note?.attachment ?? null;
 
   const startEditing = () => {
     setDraft(note?.note ?? '');
+    setPendingFile(null);
+    setKeptAttachment(savedAttachment);
     setError(null);
     setEditing(true);
+  };
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    if (file) setPendingFile(file);
+    // Reset so the same file can be picked again after being removed.
+    event.target.value = '';
   };
 
   const handleSave = async () => {
@@ -299,7 +412,11 @@ export function SimulationNoteRow({
     setSaving(true);
     setError(null);
     try {
-      await onSave(draft.trim());
+      await onSave(
+        draft.trim(),
+        pendingFile,
+        pendingFile ? null : keptAttachment
+      );
       setEditing(false);
     } catch {
       // Keep the editing UI open (draft preserved) and surface the failure.
@@ -309,13 +426,49 @@ export function SimulationNoteRow({
     }
   };
 
+  /** Left side of the footer: the chosen/kept file, or the "Anexar" button. */
+  const renderAttachmentControl = () => {
+    if (pendingFile) {
+      return (
+        <AttachmentChip
+          label={pendingFile.name}
+          onRemove={() => setPendingFile(null)}
+        />
+      );
+    }
+    if (keptAttachment) {
+      return (
+        <AttachmentChip
+          label={getAttachmentLabel(keptAttachment)}
+          href={keptAttachment}
+          onRemove={() => setKeptAttachment(null)}
+        />
+      );
+    }
+    return (
+      <Button
+        type="button"
+        variant="outline"
+        size="medium"
+        onClick={() => fileInputRef.current?.click()}
+        className="flex items-center gap-2"
+      >
+        <PaperclipIcon size={18} />
+        Anexar
+      </Button>
+    );
+  };
+
   if (loading) {
     return <SkeletonCard className="h-14" />;
   }
 
   if (editing) {
     return (
-      <div className="flex flex-col gap-2 rounded-xl border border-border-200 p-3">
+      <div className="flex flex-col gap-4 rounded-lg border border-border-200 bg-background p-4">
+        <Text size="md" weight="bold" className="text-text-950">
+          Observação
+        </Text>
         <TextArea
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
@@ -327,17 +480,21 @@ export function SimulationNoteRow({
             {error}
           </Text>
         )}
-        <div className="flex justify-end gap-2">
+        {/* Only images: the pre-signed upload endpoint accepts nothing else. */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          className="hidden"
+          accept="image/*"
+          onChange={handleFileChange}
+          aria-label="Selecionar arquivo"
+        />
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+          {renderAttachmentControl()}
           <Button
-            variant="outline"
-            size="small"
-            onClick={() => setEditing(false)}
-          >
-            Cancelar
-          </Button>
-          <Button
+            type="button"
             variant="solid"
-            size="small"
+            size="medium"
             onClick={handleSave}
             disabled={saving || !draft.trim()}
           >
@@ -349,9 +506,9 @@ export function SimulationNoteRow({
   }
 
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-border-200 p-3">
-      <div className="flex min-w-0 flex-col">
-        <Text size="sm" weight="bold" className="text-text-950">
+    <div className="flex items-center justify-between gap-2 rounded-lg border border-border-200 bg-background p-4">
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <Text size="md" weight="bold" className="text-text-950">
           Observação
         </Text>
         {note?.note && (
@@ -360,16 +517,374 @@ export function SimulationNoteRow({
           </Text>
         )}
       </div>
-      <Button variant="solid" size="small" onClick={startEditing}>
-        {note?.note ? 'Editar' : 'Incluir'}
-      </Button>
+      <div className="flex shrink-0 items-center gap-2">
+        {savedAttachment && (
+          <AttachmentChip
+            label={getAttachmentLabel(savedAttachment)}
+            href={savedAttachment}
+          />
+        )}
+        <Button
+          type="button"
+          variant="solid"
+          size="medium"
+          onClick={startEditing}
+        >
+          {note?.note ? 'Editar' : 'Incluir'}
+        </Button>
+      </div>
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
+// Summary blocks — header, "Dados de simulados", stat and subtema cards
+// ---------------------------------------------------------------------------
+
+/** Section heading, "Dados de simulados" and its siblings (14px bold). */
+function SectionTitle({ children }: { readonly children: ReactNode }) {
+  return (
+    <Text as="h3" size="sm" weight="bold" className="text-text-950">
+      {children}
+    </Text>
+  );
+}
+
+/**
+ * White card with a centred uppercase label and the value in a rectangular
+ * info badge: the "Dados de simulados" pair.
+ */
+function DataCard({
+  label,
+  value,
+}: {
+  readonly label: string;
+  readonly value: string;
+}) {
+  return (
+    <div className="flex flex-1 flex-col items-center gap-2 rounded-xl border border-border-50 bg-background px-3 py-4">
+      <Text
+        size="2xs"
+        weight="medium"
+        className="text-center uppercase text-text-800"
+      >
+        {label}
+      </Text>
+      <span className="rounded-sm bg-info-background px-2 py-1 text-sm text-info-800">
+        {value}
+      </span>
+    </div>
+  );
+}
+
+/** Tone of a coloured stat card; each maps to one token family. */
+type StatTone = 'grade' | 'correct' | 'incorrect' | 'blank';
+
+const STAT_TONE_CLASSES: Record<
+  StatTone,
+  { card: string; circle: string; icon: string; value: string }
+> = {
+  grade: {
+    card: 'bg-warning-background',
+    circle: 'bg-warning-300',
+    icon: 'text-text',
+    value: 'text-warning-600',
+  },
+  correct: {
+    card: 'bg-success-200',
+    circle: 'bg-indicator-positive',
+    icon: 'text-text-950',
+    value: 'text-success-700',
+  },
+  incorrect: {
+    card: 'bg-error-100',
+    circle: 'bg-error-500',
+    icon: 'text-text',
+    value: 'text-error-700',
+  },
+  blank: {
+    card: 'bg-info-background',
+    circle: 'bg-info-500',
+    icon: 'text-text',
+    value: 'text-info-700',
+  },
+};
+
+/**
+ * Coloured stat card, laid out as a centred column: icon in a circle, tiny
+ * uppercase label and the large value.
+ */
+function SimulationStatCard({
+  tone,
+  icon,
+  label,
+  value,
+}: {
+  readonly tone: StatTone;
+  readonly icon: ReactNode;
+  readonly label: string;
+  readonly value: string;
+}) {
+  const classes = STAT_TONE_CLASSES[tone];
+  return (
+    <div
+      className={cn(
+        'flex flex-1 flex-col items-center gap-1 rounded-xl border border-border-50 px-3 py-4',
+        classes.card
+      )}
+    >
+      <span
+        className={cn(
+          'flex size-8 shrink-0 items-center justify-center rounded-full',
+          classes.circle,
+          classes.icon
+        )}
+      >
+        {icon}
+      </span>
+      <Text
+        as="span"
+        weight="bold"
+        className="text-center text-[8px] leading-3 uppercase text-text-800"
+      >
+        {label}
+      </Text>
+      <Text
+        size="xl"
+        weight="bold"
+        className={cn('text-center', classes.value)}
+      >
+        {value}
+      </Text>
+    </div>
+  );
+}
+
+/**
+ * The four cards of one simulado: grade, correct, incorrect and blank. The
+ * grade card is skipped when the backend did not send a score, so an older
+ * API still renders the three counts it always had.
+ */
+function SimulationStatCards({
+  score,
+  correct,
+  incorrect,
+  blank,
+}: {
+  readonly score: number | undefined;
+  readonly correct: number;
+  readonly incorrect: number;
+  readonly blank: number;
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+      {score !== undefined && (
+        <SimulationStatCard
+          tone="grade"
+          icon={<ExamIcon size={16} weight="bold" />}
+          label="Nota média"
+          value={formatScoreOutOfTen(score)}
+        />
+      )}
+      <SimulationStatCard
+        tone="correct"
+        icon={<CheckCircleIcon size={16} weight="bold" />}
+        label="Nº de questões corretas"
+        value={String(correct)}
+      />
+      <SimulationStatCard
+        tone="incorrect"
+        icon={<XCircleIcon size={16} weight="bold" />}
+        label="Nº de questões incorretas"
+        value={String(incorrect)}
+      />
+      <SimulationStatCard
+        tone="blank"
+        icon={<MinusCircleIcon size={16} weight="bold" />}
+        label="Nº de questões em branco"
+        value={String(blank)}
+      />
+    </div>
+  );
+}
+
+/** One subtema card: centred coloured label over the content name. */
+function ContentCard({
+  label,
+  labelClassName,
+  content,
+}: {
+  readonly label: string;
+  readonly labelClassName: string;
+  readonly content: StudentSimulationContent | null;
+}) {
+  return (
+    <div className="flex flex-1 flex-col items-center gap-2 rounded-xl border border-border-50 bg-background p-4">
+      <Text
+        size="2xs"
+        weight="medium"
+        className={cn('text-center uppercase', labelClassName)}
+      >
+        {label}
+      </Text>
+      <Text size="md" className="text-center text-text-950">
+        {content?.contentName ?? '—'}
+      </Text>
+    </div>
+  );
+}
+
+/** Best/worst subtema pair; "—" when the simulado has no answered content. */
+function ContentCards({
+  best,
+  worst,
+}: {
+  readonly best: StudentSimulationContent | null;
+  readonly worst: StudentSimulationContent | null;
+}) {
+  return (
+    <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+      <ContentCard
+        label="Subtema com melhor resultado"
+        labelClassName="text-success-300"
+        content={best}
+      />
+      <ContentCard
+        label="Subtema com maior dificuldade"
+        labelClassName="text-error-300"
+        content={worst}
+      />
+    </div>
+  );
+}
+
+/**
+ * Header: avatar, name and "Escola • Turma • Ano". The names come from the
+ * list response; until it arrives only the name the caller already has shows.
+ */
+function StudentHeader({
+  name,
+  student,
+}: {
+  readonly name: string;
+  readonly student: SimulationsListData['student'] | null;
+}) {
+  const location = [
+    student?.school,
+    student?.class,
+    student?.schoolYear,
+  ].filter((part): part is string => Boolean(part));
+
+  return (
+    <div className="flex flex-col gap-2 border-b border-border-200 pb-4">
+      <div className="flex items-center gap-2">
+        <UserIcon size={24} className="shrink-0" />
+        <Text size="md" className="min-w-0 flex-1 truncate text-text-950">
+          {name}
+        </Text>
+      </div>
+      {location.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          {location.map((part, index) => (
+            <span key={part} className="flex items-center gap-2">
+              {index > 0 && (
+                <span
+                  aria-hidden="true"
+                  className="size-1 rounded-full bg-border-600"
+                />
+              )}
+              <Text size="xs" className="text-text-600">
+                {part}
+              </Text>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * "Duração · Nota · Feito em" line of a simulado card. Each segment only joins
+ * when its field came in the payload, so an older backend shows a shorter line
+ * instead of "undefined".
+ */
+function buildSimulationMeta(simulation: StudentSimulationItem): string {
+  const parts: string[] = [];
+  if (simulation.timeSpentSeconds !== undefined) {
+    parts.push(`Duração: ${formatTimeSpent(simulation.timeSpentSeconds)}`);
+  }
+  if (simulation.score !== undefined) {
+    parts.push(`Nota: ${formatScoreOutOfTen(simulation.score)}`);
+  }
+  if (simulation.answeredAt) {
+    parts.push(`Feito em: ${formatDateToBrazilian(simulation.answeredAt)}`);
+  }
+  return parts.join(' · ');
+}
+
+// ---------------------------------------------------------------------------
 // Level 1 — Simulation
 // ---------------------------------------------------------------------------
+
+/**
+ * Observation and question list of one simulado, loaded when its card is
+ * first expanded.
+ */
+function SimulationAnswers({
+  detail,
+  note,
+  onSaveNote,
+  onSaveQuestionComment,
+}: {
+  readonly detail: DetailState | undefined;
+  readonly note: NoteState | undefined;
+  readonly onSaveNote: SimulationNoteRowProps['onSave'];
+  readonly onSaveQuestionComment: (
+    questionId: string,
+    comment: string
+  ) => Promise<void>;
+}) {
+  if (!detail || detail.loading) {
+    return <SkeletonCard className="h-40" />;
+  }
+
+  if (detail.error) {
+    return (
+      <Text size="sm" className="text-error-600">
+        {detail.error}
+      </Text>
+    );
+  }
+
+  if (!detail.data) return null;
+
+  return (
+    <>
+      <SimulationNoteRow
+        note={note?.data ?? null}
+        loading={note?.loading ?? false}
+        onSave={onSaveNote}
+      />
+
+      <div className="flex flex-col gap-2 pt-2">
+        <Text as="h4" size="lg" weight="bold" className="text-text-950">
+          Respostas
+        </Text>
+        {detail.data.questions.map((question, qIndex) => (
+          <SimulationQuestionItem
+            key={question.questionId}
+            question={question}
+            index={qIndex}
+            onSaveComment={(comment) =>
+              onSaveQuestionComment(question.questionId, comment)
+            }
+          />
+        ))}
+      </div>
+    </>
+  );
+}
 
 function SimulationItem({
   simulation,
@@ -387,88 +902,78 @@ function SimulationItem({
   readonly onToggle: () => void;
   readonly detail: DetailState | undefined;
   readonly note: NoteState | undefined;
-  readonly onSaveNote: (text: string) => Promise<void>;
+  readonly onSaveNote: SimulationNoteRowProps['onSave'];
   readonly onSaveQuestionComment: (
     questionId: string,
     comment: string
   ) => Promise<void>;
 }) {
+  const title = simulation.title?.trim()
+    ? simulation.title.trim()
+    : `Simulado ${index + 1}`;
+  const meta = buildSimulationMeta(simulation);
+
   return (
     <CardAccordation
       value={simulation.id}
       expanded={expanded}
       onToggleExpanded={onToggle}
+      triggerClassName="p-4"
+      contentClassName="flex flex-col gap-4 pt-0"
       trigger={
-        <div className="flex-1 py-4">
-          <Text weight="bold" className="text-text-950">
-            {simulation.title?.trim()
-              ? simulation.title.trim()
-              : `Simulado ${index + 1}`}
-          </Text>
-        </div>
-      }
-      contentClassName="px-3 pb-4"
-    >
-      {detail?.loading && <SkeletonCard className="h-40" />}
-      {detail?.error && (
-        <Text size="sm" className="text-error-600">
-          {detail.error}
-        </Text>
-      )}
-      {detail?.data && (
-        <div className="flex flex-col gap-4">
-          <div className="flex gap-3">
-            <StatCard
-              label="Nº de questões corretas"
-              value={detail.data.counts.correct}
-              variant="correct"
-              className="flex-1"
-            />
-            <StatCard
-              label="Nº de questões incorretas"
-              value={detail.data.counts.incorrect}
-              variant="incorrect"
-              className="flex-1"
-            />
-            <StatCard
-              label="Nº de questões em branco"
-              value={detail.data.counts.blank}
-              variant="blank"
-              className="flex-1"
-            />
-            {/* Essays awaiting grading used to be counted as blank. */}
-            {detail.data.counts.pending > 0 && (
-              <StatCard
-                label="Nº de questões pendentes"
-                value={detail.data.counts.pending}
-                variant="pending"
-                className="flex-1"
-              />
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <div className="flex items-center justify-between gap-3">
+            <Text size="lg" weight="bold" className="min-w-0 text-text-950">
+              {title}
+            </Text>
+            {meta && (
+              <Text
+                size="xs"
+                weight="semibold"
+                className="shrink-0 text-text-600"
+              >
+                {meta}
+              </Text>
             )}
           </div>
-
-          <SimulationNoteRow
-            note={note?.data ?? null}
-            loading={note?.loading ?? false}
-            onSave={onSaveNote}
-          />
-
-          <div className="flex flex-col gap-2">
-            <Text weight="bold" className="text-text-950">
-              Respostas
+          <div className="flex items-center gap-2">
+            <ProgressBar
+              value={simulation.correctCount}
+              max={simulation.totalQuestions}
+              variant="green"
+              size="small"
+              className="flex-1"
+            />
+            <Text size="xs" weight="medium" className="shrink-0 text-text-950">
+              {`${simulation.correctCount} de ${simulation.totalQuestions} corretas`}
             </Text>
-            {detail.data.questions.map((question, qIndex) => (
-              <SimulationQuestionItem
-                key={question.questionId}
-                question={question}
-                index={qIndex}
-                onSaveComment={(comment) =>
-                  onSaveQuestionComment(question.questionId, comment)
-                }
-              />
-            ))}
           </div>
         </div>
+      }
+    >
+      <SimulationStatCards
+        score={simulation.score}
+        correct={simulation.correctCount}
+        incorrect={simulation.incorrectCount}
+        blank={simulation.blankCount}
+      />
+      {/* Essays awaiting grading used to be counted as blank. */}
+      {detail?.data && detail.data.counts.pending > 0 && (
+        <Text size="sm" className="text-text-600">
+          {`${detail.data.counts.pending} ${detail.data.counts.pending === 1 ? 'questão dissertativa aguarda' : 'questões dissertativas aguardam'} correção`}
+        </Text>
+      )}
+      <ContentCards
+        best={simulation.bestContent ?? null}
+        worst={simulation.worstContent ?? null}
+      />
+      {expanded && (
+        <SimulationAnswers
+          detail={detail}
+          note={note}
+          onSaveNote={onSaveNote}
+          onSaveQuestionComment={onSaveQuestionComment}
+        />
       )}
     </CardAccordation>
   );
@@ -495,6 +1000,7 @@ export function SimulationsDetailModal({
     fetchStudentSimulations,
     fetchSimulationDetail,
     fetchNote,
+    uploadNoteAttachment,
     saveNote,
     saveQuestionComment,
   } = useSimulations();
@@ -617,22 +1123,35 @@ export function SimulationsDetailModal({
     ]
   );
 
+  /**
+   * Save the observation of one simulado, uploading a newly chosen file first
+   * so only its public URL travels with the note.
+   */
   const makeSaveNote = useCallback(
-    (simulationId: string) => async (text: string) => {
-      if (!student) return;
-      const requestEpoch = requestEpochRef.current;
-      const saved = await saveNote(
-        student.userInstitutionId,
-        simulationId,
-        text
-      );
-      if (isStaleResponse(requestEpoch)) return;
-      setNotes((prev) => ({
-        ...prev,
-        [simulationId]: { loading: false, data: saved },
-      }));
-    },
-    [student, saveNote, isStaleResponse]
+    (simulationId: string) =>
+      async (
+        text: string,
+        file: File | null,
+        existingAttachment: string | null
+      ) => {
+        if (!student) return;
+        const requestEpoch = requestEpochRef.current;
+        const attachment = file
+          ? await uploadNoteAttachment(file)
+          : existingAttachment;
+        const saved = await saveNote(
+          student.userInstitutionId,
+          simulationId,
+          text,
+          attachment
+        );
+        if (isStaleResponse(requestEpoch)) return;
+        setNotes((prev) => ({
+          ...prev,
+          [simulationId]: { loading: false, data: saved },
+        }));
+      },
+    [student, uploadNoteAttachment, saveNote, isStaleResponse]
   );
 
   /**
@@ -675,55 +1194,73 @@ export function SimulationsDetailModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Simulados" size="xl">
       {student && (
-        <div className="flex max-h-[70vh] flex-col gap-4 overflow-y-auto pr-1">
-          <div className="flex items-center justify-between gap-3">
-            <span className="flex items-center gap-2">
-              <UserCircleIcon
-                size={24}
-                weight="fill"
-                className="text-info-700"
-              />
-              <Text weight="bold" className="text-text-950">
-                {student.name}
-              </Text>
-            </span>
-            <Text size="sm" className="text-info-700">
-              {list?.student.simulationsAnswered ?? 0} simulados respondidos
-            </Text>
-          </div>
+        <div className="flex max-h-[70vh] flex-col gap-6 overflow-y-auto pr-1">
+          <StudentHeader name={student.name} student={list?.student ?? null} />
 
-          {listLoading && <SkeletonCard className="h-20" />}
+          {listLoading && (
+            <>
+              <SkeletonCard className="h-20" />
+              <SkeletonCard className="h-40" />
+            </>
+          )}
           {listError && (
             <Text size="sm" className="text-error-600">
               {listError}
             </Text>
           )}
-          {list?.simulations.data.length === 0 && !listLoading && (
-            <Text size="sm" className="text-text-600">
-              Este estudante ainda não respondeu nenhum simulado.
-            </Text>
+
+          {list && (
+            <section className="flex flex-col gap-3">
+              <SectionTitle>Dados de simulados</SectionTitle>
+              <div className="flex flex-col gap-2 md:flex-row">
+                <DataCard
+                  label="Simulados realizados"
+                  value={String(list.student.simulationsAnswered)}
+                />
+                {list.student.totalTimeSeconds !== undefined && (
+                  <DataCard
+                    label="Tempo total"
+                    value={formatTimeSpent(list.student.totalTimeSeconds)}
+                  />
+                )}
+              </div>
+            </section>
           )}
 
           {list && (
-            <div className="flex flex-col gap-3">
-              {list.simulations.data.map((simulation, index) => (
-                <SimulationItem
-                  // Keyed by the student too: the comment fields below keep a
-                  // dirty draft through a `value` change so an in-flight save
-                  // cannot discard it, and a note written for one student must
-                  // never survive into another. Remounting resets it for free.
-                  key={`${student?.userInstitutionId}-${simulation.id}`}
-                  simulation={simulation}
-                  index={index}
-                  expanded={expandedId === simulation.id}
-                  onToggle={() => handleToggle(simulation.id)}
-                  detail={details[simulation.id]}
-                  note={notes[simulation.id]}
-                  onSaveNote={makeSaveNote(simulation.id)}
-                  onSaveQuestionComment={makeSaveQuestionComment(simulation.id)}
-                />
-              ))}
-            </div>
+            <section className="flex flex-col gap-3">
+              <SectionTitle>Simulados realizados</SectionTitle>
+              {list.simulations.data.length === 0 ? (
+                <div className="flex items-center justify-center rounded-xl border border-border-50 bg-background p-6">
+                  <Text size="sm" className="text-text-600">
+                    Este estudante ainda não respondeu nenhum simulado.
+                  </Text>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {list.simulations.data.map((simulation, index) => (
+                    <SimulationItem
+                      // Keyed by the student too: the comment fields below keep
+                      // a dirty draft through a `value` change so an in-flight
+                      // save cannot discard it, and a note written for one
+                      // student must never survive into another. Remounting
+                      // resets it for free.
+                      key={`${student.userInstitutionId}-${simulation.id}`}
+                      simulation={simulation}
+                      index={index}
+                      expanded={expandedId === simulation.id}
+                      onToggle={() => handleToggle(simulation.id)}
+                      detail={details[simulation.id]}
+                      note={notes[simulation.id]}
+                      onSaveNote={makeSaveNote(simulation.id)}
+                      onSaveQuestionComment={makeSaveQuestionComment(
+                        simulation.id
+                      )}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
           )}
         </div>
       )}
