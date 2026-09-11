@@ -55,7 +55,13 @@ export const LegendItem = ({
 );
 
 /**
- * Individual vertical bar component
+ * Individual vertical bar component.
+ *
+ * Hovering anywhere in the column — not only on the bar itself — reveals the
+ * value, so a short bar is as reachable as a tall one. Same tooltip styling and
+ * mount-on-hover behaviour as `VerticalBarChart`: rendering it permanently and
+ * hiding it with opacity would leave the number in the DOM, where it collides
+ * with the identical Y-axis tick for both screen readers and text queries.
  */
 export const DataBar = ({
   label,
@@ -72,13 +78,28 @@ export const DataBar = ({
 }) => {
   const percentage = maxValue === 0 ? 0 : (value / maxValue) * 100;
   const barHeight = (percentage / 100) * chartHeight;
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div className="flex flex-col items-center gap-2 flex-1">
       <div
-        className="w-full flex items-end justify-center"
+        className="relative w-full flex items-end justify-center"
         style={{ height: chartHeight }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
+        {/* Sits just above the bar's top edge so it never covers the value it
+            describes; `pointer-events-none` keeps it from stealing the hover. */}
+        {isHovered && (
+          <div
+            role="tooltip"
+            className="pointer-events-none absolute left-1/2 -translate-x-1/2 px-2 py-1 bg-text-950 text-white text-xs rounded shadow-lg whitespace-nowrap z-10"
+            style={{ bottom: `${barHeight + 8}px` }}
+          >
+            {value.toLocaleString('pt-BR')}
+            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-text-950" />
+          </div>
+        )}
         <div
           className={cn(
             'w-16 rounded-lg transition-all duration-300',

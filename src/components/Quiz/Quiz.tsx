@@ -12,7 +12,14 @@ import {
   useState,
   ComponentType,
 } from 'react';
-import { useQuizStore, QUESTION_TYPE, QUIZ_TYPE } from './useQuizStore';
+import {
+  useQuizStore,
+  QUESTION_TYPE,
+  QUIZ_TYPE,
+  AI_CORRECTION_STATUS,
+  CORRECTION_SOURCE,
+} from './useQuizStore';
+import CorrectionSourceTag from './CorrectionSourceTag';
 import { QuizVariant } from './Quiz.types';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import Modal from '../Modal/Modal';
@@ -457,6 +464,30 @@ const QuizResultModal = ({
   </Modal>
 );
 
+/**
+ * Title for the per-question feedback modal, phrased for whoever wrote it.
+ *
+ * Calling an AI correction "Comentário do professor" would be a lie the tag
+ * inside the modal immediately contradicts, so both are derived from the same
+ * `correctionSource`.
+ *
+ * @param correctionSource - Who produced the correction on display
+ * @returns The modal title
+ */
+const getCorrectionModalTitle = (
+  correctionSource?: CORRECTION_SOURCE | null
+): string => {
+  if (correctionSource === CORRECTION_SOURCE.IA) {
+    return 'Correção por IA';
+  }
+
+  if (correctionSource === CORRECTION_SOURCE.IA_PROFESSOR) {
+    return 'Correção revisada pelo professor';
+  }
+
+  return 'Comentário do professor';
+};
+
 const QuizFooter = forwardRef<
   HTMLDivElement,
   {
@@ -512,9 +543,20 @@ const QuizFooter = forwardRef<
     const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
     const currentAnswer = getCurrentAnswer();
     const currentQuestion = getCurrentQuestion();
-    const teacherComment = currentQuestion
-      ? getQuestionResultByQuestionId(currentQuestion.id)?.teacherFeedback
+    const currentQuestionResult = currentQuestion
+      ? getQuestionResultByQuestionId(currentQuestion.id)
       : null;
+    // A dissertativa pode ter sido corrigida pela IA. O texto do professor
+    // vence quando existe; senão vale o da IA. Os dois nunca se misturam — o
+    // backend os guarda em colunas separadas justamente para que a revisão do
+    // professor não apague o veredito original — e a tag diz qual está na tela.
+    const teacherComment =
+      currentQuestionResult?.teacherFeedback ||
+      currentQuestionResult?.aiFeedback ||
+      null;
+    const aiCorrectionStatus = currentQuestionResult?.aiCorrectionStatus;
+    const correctionSource = currentQuestionResult?.correctionSource;
+    const isAiCorrecting = aiCorrectionStatus === AI_CORRECTION_STATUS.PENDING;
     const isCurrentQuestionSkipped = currentQuestion
       ? getQuestionStatusFromUserAnswers(currentQuestion.id) === 'skipped'
       : false;
@@ -710,8 +752,19 @@ const QuizFooter = forwardRef<
                     size="large"
                     onClick={() => openModal('modalTeacherComment')}
                   >
-                    Ver comentário
+                    {correctionSource === CORRECTION_SOURCE.IA
+                      ? 'Ver correção da IA'
+                      : 'Ver comentário'}
                   </Button>
+                )}
+                {/* Sem comentário ainda, mas a IA está corrigindo: o aluno acaba
+                    de entregar e chegou aqui antes do feedback existir. Dizer
+                    que está a caminho é melhor do que não mostrar nada. */}
+                {!teacherComment && isAiCorrecting && (
+                  <CorrectionSourceTag
+                    aiCorrectionStatus={aiCorrectionStatus}
+                    className="self-center"
+                  />
                 )}
               </div>
               {/* On a wide bar the pagination sits at the far end, away from the
@@ -842,12 +895,22 @@ const QuizFooter = forwardRef<
         <Modal
           isOpen={isModalOpen('modalTeacherComment')}
           onClose={closeModal}
-          title="Comentário do professor"
+          title={getCorrectionModalTitle(correctionSource)}
           size={'lg'}
         >
+          {/* A tag fica dentro do modal, junto do texto: é ela que diz se o que
+              está sendo lido saiu da IA, do professor, ou da IA revisada por
+              ele. Sem isso o título sozinho teria que carregar essa informação
+              em toda variação. */}
+          <CorrectionSourceTag
+            correctionSource={correctionSource}
+            aiCorrectionStatus={aiCorrectionStatus}
+            className="mb-3"
+          />
           {/* Plain text on purpose: the teacher writes this in a bare textarea,
               so running it through the HTML/LaTeX renderer would change what
-              they typed. `whitespace-pre-wrap` keeps their line breaks. */}
+              they typed. `whitespace-pre-wrap` keeps their line breaks. The AI
+              feedback is plain text for the same reason. */}
           <Text
             size="md"
             className="text-text-950 whitespace-pre-wrap break-words"

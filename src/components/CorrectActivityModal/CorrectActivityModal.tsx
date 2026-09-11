@@ -21,7 +21,12 @@ import type { AttachedFile } from '../FileAttachment/FileAttachment';
 import { StatCard } from '../shared/StatCard';
 import { QuestionCommentField } from '../shared/QuestionCommentField';
 import { cn } from '../../utils/utils';
-import { QUESTION_TYPE } from '../Quiz/useQuizStore';
+import {
+  AI_CORRECTION_STATUS,
+  CORRECTION_SOURCE,
+  QUESTION_TYPE,
+} from '../Quiz/useQuizStore';
+import CorrectionSourceTag from '../Quiz/CorrectionSourceTag';
 import {
   type StudentActivityCorrectionData,
   type SaveQuestionCorrectionPayload,
@@ -192,7 +197,15 @@ const CorrectActivityModal = ({
         if (questionData.question.questionType === QUESTION_TYPE.DISSERTATIVA) {
           initialCorrections[questionData.questionNumber] = {
             isCorrect: questionData.correction?.isCorrect ?? null,
-            teacherFeedback: questionData.correction?.teacherFeedback || '',
+            // Falls back to the AI's text so the teacher reviews a correction
+            // instead of writing one from scratch. The two are separate fields
+            // on the answer and stay separate on the server — saving here writes
+            // only the teacher's copy, which is what turns the tag into
+            // "IA + professor" while the original AI text remains readable.
+            teacherFeedback:
+              questionData.correction?.teacherFeedback ||
+              questionData.correction?.aiFeedback ||
+              '',
             isSaving: false,
             isSaved: questionData.correction?.isCorrect != null,
           };
@@ -603,8 +616,37 @@ const CorrectActivityModal = ({
       radioValue = 'false';
     }
 
+    const aiCorrectionStatus = questionData.correction?.aiCorrectionStatus;
+    const correctionSource = questionData.correction?.correctionSource;
+    const isAiCorrecting = aiCorrectionStatus === AI_CORRECTION_STATUS.PENDING;
+
     return (
       <>
+        {/* Who corrected this answer, and whether the AI is still working on it */}
+        {(correctionSource || isAiCorrecting) && (
+          <div className="flex flex-wrap items-center gap-2">
+            <CorrectionSourceTag
+              correctionSource={correctionSource}
+              aiCorrectionStatus={aiCorrectionStatus}
+            />
+            {correctionSource === CORRECTION_SOURCE.IA && (
+              // The teacher is about to overwrite a correction the student may
+              // already have read. Saying so is the difference between reviewing
+              // and silently replacing.
+              <Text className="text-xs text-text-600">
+                Revise o veredito e a observação abaixo — salvar marca esta
+                correção como revisada por você.
+              </Text>
+            )}
+            {isAiCorrecting && (
+              <Text className="text-xs text-text-600">
+                A IA ainda está corrigindo. Corrigir agora substitui o resultado
+                dela.
+              </Text>
+            )}
+          </div>
+        )}
+
         {/* Is correct radio group */}
         <div className="space-y-2">
           <Text className="text-sm font-semibold text-text-950">
@@ -992,19 +1034,33 @@ const CorrectActivityModal = ({
                   value={`question-${questionData.questionNumber}`}
                   className="bg-background rounded-xl"
                   trigger={
-                    <div className="flex items-center justify-between w-full py-3 pr-2">
+                    <div className="flex items-center justify-between gap-2 w-full py-3 pr-2">
                       <Text className="text-base font-bold text-text-950">
                         Questão {questionData.questionNumber}
                       </Text>
-                      <Badge
-                        className={cn(
-                          'text-xs px-2 py-1',
-                          badgeConfig.bgColor,
-                          badgeConfig.textColor
-                        )}
-                      >
-                        {badgeConfig.label}
-                      </Badge>
+                      <div className="flex items-center gap-2 flex-wrap justify-end">
+                        {/* Quem corrigiu, visível com o acordeão fechado: é o
+                            que permite varrer a lista e achar as questões que a
+                            IA corrigiu e ninguém revisou ainda, sem abrir uma
+                            por uma. */}
+                        <CorrectionSourceTag
+                          correctionSource={
+                            questionData.correction?.correctionSource
+                          }
+                          aiCorrectionStatus={
+                            questionData.correction?.aiCorrectionStatus
+                          }
+                        />
+                        <Badge
+                          className={cn(
+                            'text-xs px-2 py-1',
+                            badgeConfig.bgColor,
+                            badgeConfig.textColor
+                          )}
+                        >
+                          {badgeConfig.label}
+                        </Badge>
+                      </div>
                     </div>
                   }
                 >
