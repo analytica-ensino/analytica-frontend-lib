@@ -97,7 +97,14 @@ describe('studentActivityCorrectionConverter', () => {
             }),
             result: answer,
             questionNumber: 1,
-            correction: { isCorrect: null, teacherFeedback: '' },
+            correction: {
+              isCorrect: null,
+              teacherFeedback: '',
+              aiFeedback: null,
+              aiIsCorrect: null,
+              aiCorrectionStatus: null,
+              correctionSource: null,
+            },
           },
         ],
         observation: undefined,
@@ -186,6 +193,10 @@ describe('studentActivityCorrectionConverter', () => {
       expect(result.questions[0].correction).toEqual({
         isCorrect: null,
         teacherFeedback: 'Good explanation',
+        aiFeedback: null,
+        aiIsCorrect: null,
+        aiCorrectionStatus: null,
+        correctionSource: null,
       });
     });
 
@@ -209,6 +220,10 @@ describe('studentActivityCorrectionConverter', () => {
       expect(result.questions[0].correction).toEqual({
         isCorrect: null,
         teacherFeedback: 'Atenção ao enunciado.',
+        aiFeedback: null,
+        aiIsCorrect: null,
+        aiCorrectionStatus: null,
+        correctionSource: null,
       });
     });
 
@@ -229,6 +244,10 @@ describe('studentActivityCorrectionConverter', () => {
       expect(result.questions[0].correction).toEqual({
         isCorrect: null,
         teacherFeedback: '',
+        aiFeedback: null,
+        aiIsCorrect: null,
+        aiCorrectionStatus: null,
+        correctionSource: null,
       });
     });
 

@@ -6,6 +6,16 @@ import { QuizVariant } from './Quiz.types';
 
 jest.mock('./useQuizStore', () => ({
   useQuizStore: jest.fn(),
+  CORRECTION_SOURCE: {
+    IA: 'IA',
+    IA_PROFESSOR: 'IA_PROFESSOR',
+    PROFESSOR: 'PROFESSOR',
+  },
+  AI_CORRECTION_STATUS: {
+    PENDING: 'PENDING',
+    DONE: 'DONE',
+    FAILED: 'FAILED',
+  },
 }));
 
 const mockUseQuizStore = useQuizStore as jest.MockedFunction<
