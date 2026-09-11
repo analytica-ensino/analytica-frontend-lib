@@ -27,6 +27,7 @@ import {
   QUESTION_TYPE,
 } from '../Quiz/useQuizStore';
 import CorrectionSourceTag from '../Quiz/CorrectionSourceTag';
+import { resolveCorrectionText } from '../Quiz/correction.utils';
 import {
   type StudentActivityCorrectionData,
   type SaveQuestionCorrectionPayload,
@@ -197,15 +198,14 @@ const CorrectActivityModal = ({
         if (questionData.question.questionType === QUESTION_TYPE.DISSERTATIVA) {
           initialCorrections[questionData.questionNumber] = {
             isCorrect: questionData.correction?.isCorrect ?? null,
-            // Falls back to the AI's text so the teacher reviews a correction
+            // Opens on the AI's text so the teacher reviews a correction
             // instead of writing one from scratch. The two are separate fields
             // on the answer and stay separate on the server — saving here writes
             // only the teacher's copy, which is what turns the tag into
             // "IA + professor" while the original AI text remains readable.
-            teacherFeedback:
-              questionData.correction?.teacherFeedback ||
-              questionData.correction?.aiFeedback ||
-              '',
+            teacherFeedback: resolveCorrectionText({
+              ...questionData.correction,
+            }),
             isSaving: false,
             isSaved: questionData.correction?.isCorrect != null,
           };

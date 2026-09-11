@@ -7,6 +7,7 @@ import {
 } from './useQuizStore';
 import { QuizVariant } from './Quiz.types';
 import CorrectionSourceTag from './CorrectionSourceTag';
+import { resolveCorrectionText } from './correction.utils';
 
 export interface TeacherQuestionCommentProps {
   readonly className?: string;
@@ -89,7 +90,11 @@ export const TeacherQuestionComment = ({
   const { teacherFeedback, aiFeedback, aiCorrectionStatus, correctionSource } =
     result;
 
-  const comment = teacherFeedback || aiFeedback;
+  const comment = resolveCorrectionText({
+    teacherFeedback,
+    aiFeedback,
+    correctionSource,
+  });
   const isCorrecting = aiCorrectionStatus === AI_CORRECTION_STATUS.PENDING;
 
   if (!comment && !isCorrecting) {

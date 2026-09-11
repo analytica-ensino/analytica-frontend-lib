@@ -20,6 +20,7 @@ import {
   CORRECTION_SOURCE,
 } from './useQuizStore';
 import CorrectionSourceTag from './CorrectionSourceTag';
+import { resolveCorrectionText } from './correction.utils';
 import { QuizVariant } from './Quiz.types';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import Modal from '../Modal/Modal';
@@ -487,7 +488,7 @@ const useCurrentCorrection = () => {
     : null;
 
   return {
-    comment: result?.teacherFeedback || result?.aiFeedback || null,
+    comment: resolveCorrectionText({ ...result }),
     correctionSource: result?.correctionSource,
     aiCorrectionStatus: result?.aiCorrectionStatus,
   };
