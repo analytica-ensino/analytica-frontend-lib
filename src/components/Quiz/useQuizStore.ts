@@ -107,6 +107,37 @@ export enum ANSWER_STATUS {
   NAO_RESPONDIDO = 'NAO_RESPONDIDO',
 }
 
+/**
+ * Who produced the correction stored on a dissertative answer.
+ *
+ * Drives the tag shown next to the feedback. `IA_PROFESSOR` is not a third kind
+ * of correction — it is an AI correction a teacher has since reviewed.
+ */
+export enum CORRECTION_SOURCE {
+  /** Corrected by the AI, not yet reviewed by a teacher. */
+  IA = 'IA',
+  /** Corrected by the AI and afterwards reviewed by a teacher. */
+  IA_PROFESSOR = 'IA_PROFESSOR',
+  /** Corrected by a teacher, with no AI involvement. */
+  PROFESSOR = 'PROFESSOR',
+}
+
+/**
+ * Lifecycle of the asynchronous AI correction of a dissertative answer.
+ *
+ * `null` on an answer means the AI was never in play for it — the institution
+ * has the feature off — which reads differently from `FAILED`: the first waits
+ * on a teacher, the second fell back to waiting on one.
+ */
+export enum AI_CORRECTION_STATUS {
+  /** Submitted; the AI correction is still running. */
+  PENDING = 'PENDING',
+  /** The AI returned a verdict. */
+  DONE = 'DONE',
+  /** The AI call failed; the answer awaits manual correction. */
+  FAILED = 'FAILED',
+}
+
 export enum SUBTYPE_ENUM {
   PROVA = 'PROVA',
   ENEM_PROVA_1 = 'ENEM_PROVA_1',
@@ -172,6 +203,19 @@ export interface QuestionResult {
       } | null;
     }[];
     teacherFeedback: string | null;
+    /**
+     * DISSERTATIVA only: what the AI wrote, kept apart from `teacherFeedback`
+     * so a teacher's review never destroys the original verdict. The feedback
+     * to render is `teacherFeedback ?? aiFeedback`; `correctionSource` says
+     * which of the two produced it.
+     */
+    aiFeedback?: string | null;
+    /** DISSERTATIVA only: the AI's original verdict, before any teacher review. */
+    aiIsCorrect?: boolean | null;
+    /** DISSERTATIVA only: whether the AI correction is running, done or failed. */
+    aiCorrectionStatus?: AI_CORRECTION_STATUS | null;
+    /** DISSERTATIVA only: drives the correction tag. */
+    correctionSource?: CORRECTION_SOURCE | null;
     /** IMAGEM only: where the student clicked, in image percentage points. */
     imageAnswer?: { coordinateX: number; coordinateY: number } | null;
     /**

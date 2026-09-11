@@ -65,6 +65,11 @@ const buildQuestionFromAnswer = (
  * any question. `isCorrect` stays null outside DISSERTATIVA because objective
  * questions are graded automatically and must not be re-graded by hand.
  *
+ * The AI fields are carried through untouched rather than folded into
+ * `teacherFeedback`. The modal needs both to do its job: the AI's text to
+ * prefill the field the teacher edits, and the source to decide which tag to
+ * show and whether saving turns an `IA` correction into an `IA + PROFESSOR` one.
+ *
  * @param answer - Answer data from QuestionResult
  * @returns QuestionCorrection with the teacher's grade and/or comment
  */
@@ -76,6 +81,10 @@ const buildQuestionCorrection = (
       ? getIsCorrect(answer.answerStatus)
       : null,
   teacherFeedback: answer.teacherFeedback || '',
+  aiFeedback: answer.aiFeedback ?? null,
+  aiIsCorrect: answer.aiIsCorrect ?? null,
+  aiCorrectionStatus: answer.aiCorrectionStatus ?? null,
+  correctionSource: answer.correctionSource ?? null,
 });
 
 /**

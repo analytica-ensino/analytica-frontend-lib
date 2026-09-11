@@ -153,6 +153,17 @@ export interface ModulesConfig {
    */
   readingFluency: boolean;
 
+  /**
+   * AI correction of dissertative answers.
+   *
+   * When `true`, an answered DISSERTATIVA is corrected by the AI as soon as the
+   * student submits — verdict plus feedback — and the teacher's role becomes
+   * reviewing that correction instead of producing it. When `false`, every
+   * dissertativa waits for a teacher, which is the behaviour that predates the
+   * feature.
+   */
+  aiDissertativeCorrection: boolean;
+
   // Nested configurations
   exams: boolean;
   simulations: SimulationsConfig;
@@ -198,6 +209,9 @@ export const DEFAULT_MODULES: ModulesConfig = {
 
   // Reading-fluency mode off by default (opt-in per institution)
   readingFluency: false,
+
+  // AI correction of dissertativas off by default (opt-in per institution)
+  aiDissertativeCorrection: false,
 
   // Nested configurations
   exams: DEFAULT_EXAMS,

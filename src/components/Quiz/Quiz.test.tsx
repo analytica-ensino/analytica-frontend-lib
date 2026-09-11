@@ -372,6 +372,16 @@ jest.mock('../Modal/Modal', () => {
 // Mock do useQuizStore
 jest.mock('./useQuizStore', () => ({
   useQuizStore: jest.fn(),
+  CORRECTION_SOURCE: {
+    IA: 'IA',
+    IA_PROFESSOR: 'IA_PROFESSOR',
+    PROFESSOR: 'PROFESSOR',
+  },
+  AI_CORRECTION_STATUS: {
+    PENDING: 'PENDING',
+    DONE: 'DONE',
+    FAILED: 'FAILED',
+  },
   ANSWER_STATUS: {
     RESPOSTA_CORRETA: 'RESPOSTA_CORRETA',
     RESPOSTA_INCORRETA: 'RESPOSTA_INCORRETA',

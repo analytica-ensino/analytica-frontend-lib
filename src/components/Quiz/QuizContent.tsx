@@ -12,6 +12,7 @@ import {
 } from 'react';
 import { ANSWER_STATUS, useQuizStore } from './useQuizStore';
 import { QuizVariant } from './Quiz.types';
+import CorrectionSourceTag from './CorrectionSourceTag';
 import { TrueFalseEnum } from '../../enums/Quiz';
 import {
   prependLetterToHtml,
@@ -491,7 +492,19 @@ const QuizDissertative = ({ paddingBottom }: QuizVariantInterface) => {
       : currentAnswer?.answer) || '';
   return (
     <>
-      <QuizSubTitle subTitle="Resposta" />
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <QuizSubTitle subTitle="Resposta" />
+        {/* Quem corrigiu esta dissertativa. Fica aqui, ao lado da resposta, e
+            não só dentro do modal de feedback: o aluno tem que saber que a
+            correção veio da IA sem precisar abrir nada. Só aparece no
+            resultado — durante a prova não há correção nenhuma. */}
+        {variant === QuizVariant.RESULT && (
+          <CorrectionSourceTag
+            correctionSource={currentQuestionResult?.correctionSource}
+            aiCorrectionStatus={currentQuestionResult?.aiCorrectionStatus}
+          />
+        )}
+      </div>
 
       <QuizContainer className={cn(variant != 'result' && paddingBottom)}>
         <div className="space-y-4 max-h-[600px] overflow-y-auto">

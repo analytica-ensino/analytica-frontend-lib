@@ -1,4 +1,6 @@
 import type {
+  AI_CORRECTION_STATUS,
+  CORRECTION_SOURCE,
   Question,
   QuestionResult,
 } from '../../components/Quiz/useQuizStore';
@@ -8,14 +10,27 @@ import type { QuestionStatus } from './constants';
  * Teacher's correction data for a single question
  *
  * `isCorrect` only carries a value for essay questions (dissertativas), which
- * the teacher grades by hand. Objective questions are graded automatically, so
- * it stays `null` there and only `teacherFeedback` is editable.
+ * are not graded by the automatic logic. Objective questions are graded
+ * automatically, so it stays `null` there and only `teacherFeedback` is editable.
+ *
+ * On a dissertativa the AI may have graded it first. When it has, the modal
+ * opens on the AI's verdict and text — the teacher reviews rather than starts
+ * from a blank field — while `aiFeedback` keeps the original around so the
+ * review is an edit and not an erasure.
  */
 export interface QuestionCorrection {
-  /** Whether the answer is correct (true/false/null when not manually graded) */
+  /** Whether the answer is correct (true/false/null when not graded at all) */
   isCorrect: boolean | null;
-  /** Teacher observation/feedback */
+  /** Teacher observation/feedback (empty when only the AI has corrected) */
   teacherFeedback: string;
+  /** What the AI wrote, when it corrected this answer */
+  aiFeedback?: string | null;
+  /** The AI's original verdict, before any teacher review */
+  aiIsCorrect?: boolean | null;
+  /** Whether the AI correction is running, done or failed */
+  aiCorrectionStatus?: AI_CORRECTION_STATUS | null;
+  /** Who produced the correction currently stored — drives the tag */
+  correctionSource?: CORRECTION_SOURCE | null;
 }
 
 /**

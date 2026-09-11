@@ -12,7 +12,15 @@ import {
   useState,
   ComponentType,
 } from 'react';
-import { useQuizStore, QUESTION_TYPE, QUIZ_TYPE } from './useQuizStore';
+import {
+  useQuizStore,
+  QUESTION_TYPE,
+  QUIZ_TYPE,
+  AI_CORRECTION_STATUS,
+  CORRECTION_SOURCE,
+} from './useQuizStore';
+import CorrectionSourceTag from './CorrectionSourceTag';
+import { resolveCorrectionText } from './correction.utils';
 import { QuizVariant } from './Quiz.types';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import Modal from '../Modal/Modal';
@@ -457,6 +465,127 @@ const QuizResultModal = ({
   </Modal>
 );
 
+/**
+ * Correction of the question currently on screen, resolved once.
+ *
+ * A dissertativa may have been graded by the AI. The teacher's text wins when it
+ * exists, the AI's stands otherwise; the two are never merged — the backend
+ * keeps them in separate columns precisely so a review does not destroy the
+ * original verdict — and `correctionSource` says which one is on screen.
+ *
+ * It lives here, and not inline in `QuizFooter`, because both the footer (for
+ * the modal body and title) and `QuizReviewActions` (for the buttons) need the
+ * same four values, and deriving them twice would be two chances to disagree.
+ *
+ * @returns The effective comment plus the fields the tag and the title read
+ */
+const useCurrentCorrection = () => {
+  const { getCurrentQuestion, getQuestionResultByQuestionId } = useQuizStore();
+
+  const currentQuestion = getCurrentQuestion();
+  const result = currentQuestion
+    ? getQuestionResultByQuestionId(currentQuestion.id)
+    : null;
+
+  return {
+    comment: resolveCorrectionText({ ...result }),
+    correctionSource: result?.correctionSource,
+    aiCorrectionStatus: result?.aiCorrectionStatus,
+  };
+};
+
+/**
+ * Title for the per-question feedback modal, phrased for whoever wrote it.
+ *
+ * Calling an AI correction "Comentário do professor" would be a lie the tag
+ * inside the modal immediately contradicts, so both are derived from the same
+ * `correctionSource`.
+ *
+ * @param correctionSource - Who produced the correction on display
+ * @returns The modal title
+ */
+const getCorrectionModalTitle = (
+  correctionSource?: CORRECTION_SOURCE | null
+): string => {
+  if (correctionSource === CORRECTION_SOURCE.IA) {
+    return 'Correção por IA';
+  }
+
+  if (correctionSource === CORRECTION_SOURCE.IA_PROFESSOR) {
+    return 'Correção revisada pelo professor';
+  }
+
+  return 'Comentário do professor';
+};
+
+/**
+ * The review bar's question-scoped actions: see the resolution, see the correction.
+ *
+ * Split out of `QuizFooter` because the two bars do different jobs — the
+ * `default` one navigates between questions, this one reads a question already
+ * graded — and because the four conditions the correction needs pushed the
+ * footer past the cognitive-complexity limit while sitting in the middle of
+ * unrelated navigation markup.
+ *
+ * @param props - Callbacks that open the footer's modals
+ * @returns JSX element
+ */
+const QuizReviewActions = ({
+  onOpenResolution,
+  onOpenComment,
+  className,
+}: {
+  onOpenResolution: () => void;
+  onOpenComment: () => void;
+  readonly className?: string;
+}) => {
+  const { getCurrentQuestion } = useQuizStore();
+  const { comment, correctionSource, aiCorrectionStatus } =
+    useCurrentCorrection();
+
+  const currentQuestion = getCurrentQuestion();
+  const hasResolution = Boolean(currentQuestion?.solutionExplanation);
+  const isAiCorrecting = aiCorrectionStatus === AI_CORRECTION_STATUS.PENDING;
+  const commentLabel =
+    correctionSource === CORRECTION_SOURCE.IA
+      ? 'Ver correção da IA'
+      : 'Ver comentário';
+
+  return (
+    <div className={className}>
+      {hasResolution && (
+        <Button
+          variant="solid"
+          action="primary"
+          size="large"
+          onClick={onOpenResolution}
+        >
+          Ver resolução
+        </Button>
+      )}
+      {comment && (
+        <Button
+          variant="outline"
+          action="primary"
+          size="large"
+          onClick={onOpenComment}
+        >
+          {commentLabel}
+        </Button>
+      )}
+      {/* Sem comentário ainda, mas a IA está corrigindo: o aluno acaba de
+          entregar e chegou aqui antes do feedback existir. Dizer que está a
+          caminho é melhor do que não mostrar nada. */}
+      {!comment && isAiCorrecting && (
+        <CorrectionSourceTag
+          aiCorrectionStatus={aiCorrectionStatus}
+          className="self-center"
+        />
+      )}
+    </div>
+  );
+};
+
 const QuizFooter = forwardRef<
   HTMLDivElement,
   {
@@ -500,7 +629,6 @@ const QuizFooter = forwardRef<
       getQuestionStatusFromUserAnswers,
       variant,
       getQuestionResultStatistics,
-      getQuestionResultByQuestionId,
     } = useQuizStore();
 
     // The review bar carries four controls. Below ~500px they no longer fit on
@@ -512,9 +640,11 @@ const QuizFooter = forwardRef<
     const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
     const currentAnswer = getCurrentAnswer();
     const currentQuestion = getCurrentQuestion();
-    const teacherComment = currentQuestion
-      ? getQuestionResultByQuestionId(currentQuestion.id)?.teacherFeedback
-      : null;
+    const {
+      comment: teacherComment,
+      correctionSource,
+      aiCorrectionStatus,
+    } = useCurrentCorrection();
     const isCurrentQuestionSkipped = currentQuestion
       ? getQuestionStatusFromUserAnswers(currentQuestion.id) === 'skipped'
       : false;
@@ -687,33 +817,14 @@ const QuizFooter = forwardRef<
                 isMobile ? 'flex-col py-2' : 'flex-row'
               )}
             >
-              <div
+              <QuizReviewActions
                 className={cn(
                   'flex flex-row items-center gap-2',
                   isMobile && 'justify-center'
                 )}
-              >
-                {currentQuestion?.solutionExplanation && (
-                  <Button
-                    variant="solid"
-                    action="primary"
-                    size="large"
-                    onClick={() => openModal('modalResolution')}
-                  >
-                    Ver resolução
-                  </Button>
-                )}
-                {teacherComment && (
-                  <Button
-                    variant="outline"
-                    action="primary"
-                    size="large"
-                    onClick={() => openModal('modalTeacherComment')}
-                  >
-                    Ver comentário
-                  </Button>
-                )}
-              </div>
+                onOpenResolution={() => openModal('modalResolution')}
+                onOpenComment={() => openModal('modalTeacherComment')}
+              />
               {/* On a wide bar the pagination sits at the far end, away from the
                   actions that act on the question being read; stacked, it is
                   centred under them. */}
@@ -842,12 +953,22 @@ const QuizFooter = forwardRef<
         <Modal
           isOpen={isModalOpen('modalTeacherComment')}
           onClose={closeModal}
-          title="Comentário do professor"
+          title={getCorrectionModalTitle(correctionSource)}
           size={'lg'}
         >
+          {/* A tag fica dentro do modal, junto do texto: é ela que diz se o que
+              está sendo lido saiu da IA, do professor, ou da IA revisada por
+              ele. Sem isso o título sozinho teria que carregar essa informação
+              em toda variação. */}
+          <CorrectionSourceTag
+            correctionSource={correctionSource}
+            aiCorrectionStatus={aiCorrectionStatus}
+            className="mb-3"
+          />
           {/* Plain text on purpose: the teacher writes this in a bare textarea,
               so running it through the HTML/LaTeX renderer would change what
-              they typed. `whitespace-pre-wrap` keeps their line breaks. */}
+              they typed. `whitespace-pre-wrap` keeps their line breaks. The AI
+              feedback is plain text for the same reason. */}
           <Text
             size="md"
             className="text-text-950 whitespace-pre-wrap break-words"
