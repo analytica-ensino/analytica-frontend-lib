@@ -282,6 +282,43 @@ export const CustomTitle: Story = () => (
 );
 
 /**
+ * Participation map (Simulados): hover a municipality to read its split —
+ * "121 fizeram simulados / 20 não fizeram simulados".
+ */
+export const ParticipationTooltip: Story = () => {
+  const participationData = mockRegionData.map((region) => ({
+    ...region,
+    participation: {
+      withAction: Math.round(region.value * 4100),
+      total: 4100,
+    },
+  }));
+
+  return (
+    <div className="p-4 bg-gray-100 min-h-screen">
+      <ChoroplethMap
+        data={participationData}
+        apiKey={apiKey}
+        title="Simulados realizados por estudantes por cidade"
+        bounds={mockBounds}
+        legendLabels={{
+          highlight: 'Destaque (75% fizeram simulados)',
+          aboveAverage: 'Acima da média (50 até 74% fizeram simulados)',
+          belowAverage: 'Abaixo da média (25 até 49% fizeram simulados)',
+          attention: 'Ponto de atenção (Abaixo de 25% fizeram simulados)',
+          none: 'Sem fazer simulados (0%)',
+        }}
+        breakdownLabels={{
+          withAccess: 'fizeram simulados',
+          withoutAccess: 'não fizeram simulados',
+        }}
+        infoText="Dados do mapa somam, por cidade, os simulados realizados por estudantes."
+      />
+    </div>
+  );
+};
+
+/**
  * All regions with high performance (Destaque)
  */
 export const AllHighPerformance: Story = () => {

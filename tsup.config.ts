@@ -60,6 +60,10 @@ export default defineConfig({
     'StudentRanking/index': 'src/components/StudentRanking/StudentRanking.tsx',
     'QuestionsData/index': 'src/components/QuestionsData/QuestionsData.tsx',
     'SimpleBarChart/index': 'src/components/SimpleBarChart/SimpleBarChart.tsx',
+    // Report-modal building blocks, shared with the apps so a modal assembled
+    // in gestor looks like the ones that live here.
+    'MetricBox/index': 'src/components/shared/MetricBox.tsx',
+    'ModalComponents/index': 'src/components/shared/ModalComponents.tsx',
     'VerticalBarChart/index':
       'src/components/VerticalBarChart/VerticalBarChart.tsx',
     'ProficiencyChart/index':
