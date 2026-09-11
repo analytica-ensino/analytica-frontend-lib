@@ -327,6 +327,24 @@ export const AppHeader = ({
                 questionId
               ) => {
                 if (entityType && entityId) {
+                  // Fecha o painel antes de navegar. Sem isso, quando o destino
+                  // é a própria página em que o usuário já está (ex.: ele
+                  // termina a atividade, cai no resultado, abre o sino e clica
+                  // em "Ver resultado" da notificação dessa mesma atividade),
+                  // o navigate para a rota atual não muda nada na tela, o
+                  // painel segue aberto e ele clica de novo — rage click
+                  // FRONTEND-ALUNO-WEB-F3, 91 ocorrências / 36 usuários em seis
+                  // semanas. Fechar o painel é o feedback visível que faltava,
+                  // e vale para qualquer destino.
+                  //
+                  // É um setState em handler de clique, não em render/efeito:
+                  // não reabre o loop do PR #435. E o onOpenChange que o
+                  // DropdownMenu dispara ao fechar vira no-op no
+                  // syncDropdownState, porque isActive já estará false.
+                  setActiveStates((prev) => ({
+                    ...prev,
+                    notifications: false,
+                  }));
                   onNavigateByNotification?.(
                     entityType,
                     entityId,

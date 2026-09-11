@@ -1,7 +1,11 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { AppHeader, AppHeaderProps } from './AppHeader';
 import { DeviceType, useMobile } from '../../hooks/useMobile';
+import {
+  NotificationEntityStatus,
+  NotificationEntityType,
+} from '../../types/notifications';
 
 jest.mock(
   '../../assets/img/no-notification-result.png',
@@ -197,6 +201,83 @@ describe('AppHeader', () => {
     expect(logo).toHaveClass('h-10');
     const section = logo.parentElement?.querySelector('section');
     expect(section).toHaveClass('gap-3');
+  });
+
+  describe('notification action', () => {
+    const notificacaoDeAtividadeConcluida = () => {
+      const notifications = makeNotifications();
+      notifications.groupedNotifications = [
+        {
+          label: 'Hoje',
+          notifications: [
+            {
+              id: 'n-1',
+              title: 'Atividade corrigida',
+              message: 'O resultado já está disponível',
+              type: 'ACTIVITY' as const,
+              isRead: false,
+              createdAt: new Date(),
+              entityType: NotificationEntityType.ACTIVITY,
+              entityId: 'act-1',
+              entityStatus: NotificationEntityStatus.CONCLUIDA,
+            },
+          ],
+        },
+      ];
+      notifications.getActionLabel = jest.fn(() => 'Ver resultado');
+      return notifications;
+    };
+
+    it('fecha o painel ao acionar a navegação da notificação', async () => {
+      // Sem fechar, quando o destino é a própria página em que o usuário já
+      // está, o navigate não muda nada visível, o painel segue aberto e ele
+      // clica de novo — rage click FRONTEND-ALUNO-WEB-F3 (36 usuários).
+      const onNavigateByNotification = jest.fn();
+      render(
+        <AppHeader
+          {...baseProps({
+            notifications: notificacaoDeAtividadeConcluida(),
+            onNavigateByNotification,
+          })}
+        />
+      );
+
+      fireEvent.click(screen.getAllByRole('button')[0]); // abre o sino
+      const acao = screen.getByText('Ver resultado');
+      expect(acao).toBeInTheDocument();
+
+      fireEvent.click(acao);
+
+      expect(onNavigateByNotification).toHaveBeenCalledWith(
+        NotificationEntityType.ACTIVITY,
+        'act-1',
+        NotificationEntityStatus.CONCLUIDA,
+        undefined
+      );
+      // O conteúdo do menu segue montado por 200ms para o fade-out.
+      await waitFor(() =>
+        expect(screen.queryByText('Ver resultado')).not.toBeInTheDocument()
+      );
+    });
+
+    it('reabre o painel normalmente depois de fechado pela ação', async () => {
+      // Garante que o fechamento não deixa o estado do toggle preso.
+      render(
+        <AppHeader
+          {...baseProps({ notifications: notificacaoDeAtividadeConcluida() })}
+        />
+      );
+      const sino = screen.getAllByRole('button')[0];
+
+      fireEvent.click(sino);
+      fireEvent.click(screen.getByText('Ver resultado'));
+      await waitFor(() =>
+        expect(screen.queryByText('Ver resultado')).not.toBeInTheDocument()
+      );
+
+      fireEvent.click(sino);
+      expect(screen.getByText('Ver resultado')).toBeInTheDocument();
+    });
   });
 
   it('uses default empty-state texts for notifications when not overridden', () => {
