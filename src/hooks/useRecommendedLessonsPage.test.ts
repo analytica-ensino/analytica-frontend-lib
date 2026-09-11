@@ -37,6 +37,14 @@ jest.mock('../utils/useDynamicStudentFetching', () => ({
   }),
 }));
 
+const mockAddToast = jest.fn();
+
+jest.mock('../components/Toast/utils/ToastStore', () => ({
+  __esModule: true,
+  default: (selector: (state: unknown) => unknown) =>
+    selector({ toasts: [], addToast: mockAddToast, removeToast: jest.fn() }),
+}));
+
 const mockLoadCategoriesData = loadCategoriesData as jest.Mock;
 
 const mockSendCategories = [
@@ -914,6 +922,13 @@ describe('useRecommendedLessonsPage', () => {
       notification: 'Test notification',
     });
     expect(result.current.modalProps.isOpen).toBe(false);
+    expect(mockAddToast).toHaveBeenCalledWith({
+      title: 'Aula enviada com sucesso!',
+      description: 'Alunos afetados: 1',
+      variant: 'solid',
+      action: 'success',
+      position: 'top-right',
+    });
   });
 
   it('modalProps: should set loading state during submission', async () => {
@@ -981,6 +996,35 @@ describe('useRecommendedLessonsPage', () => {
     }
 
     expect(result.current.modalProps.isLoading).toBe(false);
+  });
+
+  it('modalProps: should toast and keep the modal open when the submit fails', async () => {
+    (mockApi.get as jest.Mock).mockResolvedValueOnce({
+      data: { data: { title: 'Test Model', lessons: [], activityDrafts: [] } },
+    });
+    (mockApi.post as jest.Mock).mockRejectedValueOnce(
+      new Error('Network error')
+    );
+
+    const { result } = setupHook();
+
+    await act(async () => {
+      await result.current.historyProps.onSendLesson(testModel);
+    });
+
+    await act(async () => {
+      await result.current.modalProps.onSubmit(testFormData);
+    });
+
+    // A modal segue aberta para o professor tentar de novo sem refazer os passos.
+    expect(result.current.modalProps.isOpen).toBe(true);
+    expect(mockAddToast).toHaveBeenCalledWith({
+      title: 'Erro ao enviar aula',
+      description: 'Network error',
+      variant: 'solid',
+      action: 'warning',
+      position: 'top-right',
+    });
   });
 
   it('navigate: should expose navigate function from config', () => {

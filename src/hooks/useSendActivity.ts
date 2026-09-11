@@ -21,6 +21,9 @@ import type {
 } from '../types/sendActivity';
 import { loadCategoriesData } from '../utils/categoryDataUtils';
 import { useDynamicStudentFetching } from '../utils/useDynamicStudentFetching';
+// Import direto, e não pelo barrel `../index`, para não criar ciclo entre o
+// hook e o índice público da lib.
+import useToastStore from '../components/Toast/utils/ToastStore';
 
 /**
  * Convert date and time to ISO datetime string
@@ -66,6 +69,34 @@ export function useSendActivity(
   const [categories, setCategories] = useState<CategoryConfig[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(false);
+
+  const addToast = useToastStore((state) => state.addToast);
+
+  /**
+   * Feedback do envio. Os consumidores montam este hook sem `onSuccess`/`onError`
+   * (useDraftModelPage, no professor e no gestor), e sem esse fallback o envio a
+   * partir de um modelo não dava sinal nenhum — nem de sucesso, nem de falha.
+   * Quem passa os callbacks continua no controle e não recebe toast duplicado.
+   */
+  const notify = useCallback(
+    (
+      callback: ((message: string) => void) | undefined,
+      message: string,
+      action: 'success' | 'warning'
+    ) => {
+      if (callback) {
+        callback(message);
+        return;
+      }
+      addToast({
+        title: message,
+        variant: 'solid',
+        action,
+        position: 'top-right',
+      });
+    },
+    [addToast]
+  );
 
   const categoriesLoadedRef = useRef(false);
 
@@ -176,23 +207,35 @@ export function useSendActivity(
           }
         );
 
+        // Sem id não dá para vincular os alunos. Postar `activityId: undefined`
+        // faria o backend recusar e deixaria para trás uma atividade sem alunos
+        // — que a consulta do histórico não enxerga.
+        const activityId = createResponse?.data?.data?.id;
+        if (!activityId) {
+          throw new Error('ID da atividade não retornado pela API');
+        }
+
         // 3. Send to students
         await api.post('/activities/send-to-students', {
-          activityId: createResponse.data.data.id,
+          activityId,
           students: data.students,
         });
 
-        onSuccess?.(`Atividade enviada para ${data.students.length} aluno(s)`);
+        notify(
+          onSuccess,
+          `Atividade enviada para ${data.students.length} aluno(s)`,
+          'success'
+        );
 
         closeModal();
       } catch (error) {
         console.error('Error sending activity:', error);
-        onError?.('Erro ao enviar atividade');
+        notify(onError, 'Erro ao enviar atividade', 'warning');
       } finally {
         setIsLoading(false);
       }
     },
-    [selectedModel, api, onSuccess, onError, closeModal]
+    [selectedModel, api, onSuccess, onError, closeModal, notify]
   );
 
   return {

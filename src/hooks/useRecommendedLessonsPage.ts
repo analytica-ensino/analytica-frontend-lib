@@ -29,6 +29,9 @@ import { loadCategoriesData } from '../utils/categoryDataUtils';
 import { toCsv } from '../utils/queryParams';
 import { resolveDraftSubjects } from '../utils/subjectMappers';
 import { useDynamicStudentFetching } from '../utils/useDynamicStudentFetching';
+// Import direto, e não pelo barrel `../index`, para não criar ciclo entre o
+// hook e o índice público da lib.
+import useToastStore from '../components/Toast/utils/ToastStore';
 
 /**
  * API client interface
@@ -540,6 +543,8 @@ export const createUseRecommendedLessonsPage = (
       CategoryConfig[]
     >([]);
 
+    const addToast = useToastStore((state) => state.addToast);
+
     // Build user filter data: merge userData with historyFilterData (union, dedupe by id)
     const userFilterData = useMemo(() => {
       const baseSchools = getSchoolOptions(userData);
@@ -832,6 +837,32 @@ export const createUseRecommendedLessonsPage = (
 
           setSendModalOpen(false);
           setSelectedModel(null);
+
+          // Não há lista para recarregar aqui: o histórico é outra aba, e tanto
+          // a troca de aba quanto a troca de rota remontam a tabela, que refaz a
+          // consulta. O POST já resolveu quando isso acontece.
+          addToast({
+            title: 'Aula enviada com sucesso!',
+            description: `Alunos afetados: ${formData.students.length}`,
+            variant: 'solid',
+            action: 'success',
+            position: 'top-right',
+          });
+        } catch (error) {
+          // A modal fica aberta de propósito: o professor corrige e tenta de
+          // novo sem refazer os passos anteriores. O SendLessonModal engole a
+          // rejeição num console.error, então o toast é o único feedback.
+          console.error('Erro ao enviar aula:', error);
+          addToast({
+            title: 'Erro ao enviar aula',
+            description:
+              error instanceof Error
+                ? error.message
+                : 'Ocorreu um erro ao enviar a aula. Tente novamente.',
+            variant: 'solid',
+            action: 'warning',
+            position: 'top-right',
+          });
         } finally {
           setSendModalLoading(false);
         }
@@ -841,6 +872,7 @@ export const createUseRecommendedLessonsPage = (
         endpoints.recommendedClassDrafts,
         endpoints.submitRecommendedClass,
         selectedModel,
+        addToast,
       ]
     );
 
