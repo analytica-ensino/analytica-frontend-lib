@@ -113,8 +113,10 @@ describe('SimulationsPage', () => {
     fireEvent.click(buttons[0]);
 
     await waitFor(() =>
-      expect(screen.getByText('40 simulados respondidos')).toBeInTheDocument()
+      expect(screen.getByText('Dados de simulados')).toBeInTheDocument()
     );
+    // Card label and list section title share the text.
+    expect(screen.getAllByText('Simulados realizados')).toHaveLength(2);
   });
 
   it('lists the manager classes inside the filter modal', async () => {

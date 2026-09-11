@@ -1,4 +1,12 @@
 export { SimulationsPage } from './SimulationsPage';
 export type { SimulationsPageProps } from './SimulationsPage';
-export { SimulationsDetailModal } from './SimulationsDetailModal';
-export type { SimulationsDetailModalProps } from './SimulationsDetailModal';
+export {
+  SimulationsDetailModal,
+  SimulationQuestionItem,
+  SimulationNoteRow,
+} from './SimulationsDetailModal';
+export type {
+  SimulationsDetailModalProps,
+  SimulationQuestionItemProps,
+  SimulationNoteRowProps,
+} from './SimulationsDetailModal';

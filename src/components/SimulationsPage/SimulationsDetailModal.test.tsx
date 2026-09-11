@@ -14,7 +14,11 @@ const listPayload = {
     student: {
       userInstitutionId: 'ui-1',
       name: 'Ana Costa',
+      school: 'Escola Estadual A',
+      class: '3º A',
+      schoolYear: '3ª série do ensino médio',
       simulationsAnswered: 40,
+      totalTimeSeconds: 5400,
     },
     simulations: {
       data: [
@@ -26,6 +30,23 @@ const listPayload = {
           blankCount: 4,
           totalQuestions: 19,
           createdAt: null,
+          score: 42.1,
+          timeSpentSeconds: 3725,
+          answeredAt: '2024-03-05T12:00:00.000Z',
+          bestContent: {
+            contentId: 'c-1',
+            contentName: 'Cinemática',
+            correct: 3,
+            totalQuestions: 4,
+            correctPercentage: 75,
+          },
+          worstContent: {
+            contentId: 'c-2',
+            contentName: 'Óptica',
+            correct: 1,
+            totalQuestions: 4,
+            correctPercentage: 25,
+          },
         },
       ],
       page: 1,
@@ -111,9 +132,150 @@ describe('SimulationsDetailModal', () => {
       />
     );
     await waitFor(() =>
-      expect(screen.getByText('40 simulados respondidos')).toBeInTheDocument()
+      expect(screen.getByText('Dados de simulados')).toBeInTheDocument()
     );
+    // Header: name plus "Escola • Turma • Ano".
+    expect(screen.getByText('Ana Costa')).toBeInTheDocument();
+    expect(screen.getByText('Escola Estadual A')).toBeInTheDocument();
+    expect(screen.getByText('3º A')).toBeInTheDocument();
+    expect(screen.getByText('3ª série do ensino médio')).toBeInTheDocument();
+    // "Dados de simulados": count and total time as hh:mm:ss. The label is
+    // also the title of the list section below, hence two matches.
+    expect(screen.getAllByText('Simulados realizados')).toHaveLength(2);
+    expect(screen.getByText('40')).toBeInTheDocument();
+    expect(screen.getByText('Tempo total')).toBeInTheDocument();
+    expect(screen.getByText('01:30:00')).toBeInTheDocument();
+    // Each card: title, "Duração · Nota · Feito em" and the hit count.
     expect(screen.getByText('Simulado 1')).toBeInTheDocument();
+    expect(
+      screen.getByText('Duração: 01:02:05 · Nota: 4,2 · Feito em: 05/03/2024')
+    ).toBeInTheDocument();
+    expect(screen.getByText('8 de 19 corretas')).toBeInTheDocument();
+  });
+
+  it('shows the grade, the counts and the subtemas of a simulado when expanded', async () => {
+    render(
+      <SimulationsDetailModal
+        api={makeApi()}
+        isOpen
+        onClose={jest.fn()}
+        student={student}
+      />
+    );
+    fireEvent.click(await screen.findByText('Simulado 1'));
+
+    await waitFor(() =>
+      expect(screen.getByText('Respostas')).toBeInTheDocument()
+    );
+    expect(screen.getByText('Nota média')).toBeInTheDocument();
+    expect(screen.getByText('4,2')).toBeInTheDocument();
+    expect(
+      screen.getByText('Subtema com melhor resultado')
+    ).toBeInTheDocument();
+    expect(screen.getByText('Cinemática')).toBeInTheDocument();
+    expect(
+      screen.getByText('Subtema com maior dificuldade')
+    ).toBeInTheDocument();
+    expect(screen.getByText('Óptica')).toBeInTheDocument();
+    expect(screen.getByText('Observação')).toBeInTheDocument();
+  });
+
+  it('tolerates a list payload that predates the score, duration and subtema fields', async () => {
+    const legacyPayload = {
+      message: 'ok',
+      data: {
+        student: {
+          userInstitutionId: 'ui-1',
+          name: 'Ana Costa',
+          simulationsAnswered: 1,
+        },
+        simulations: {
+          data: [
+            {
+              id: 'sim-1',
+              title: 'Simulado 1',
+              correctCount: 8,
+              incorrectCount: 7,
+              blankCount: 4,
+              totalQuestions: 19,
+              createdAt: null,
+            },
+          ],
+          page: 1,
+          limit: 20,
+          total: 1,
+        },
+      },
+    };
+    const api = {
+      get: jest.fn((url: string) => {
+        if (url.endsWith('/note')) {
+          return Promise.resolve({ data: { message: 'ok', data: null } });
+        }
+        if (/\/students\/[^/]+\/[^/]+$/.test(url)) {
+          return Promise.resolve({ data: detailPayload });
+        }
+        return Promise.resolve({ data: legacyPayload });
+      }),
+      post: jest.fn(),
+      patch: jest.fn(),
+      delete: jest.fn(),
+    } as unknown as BaseApiClient;
+
+    render(
+      <SimulationsDetailModal
+        api={api}
+        isOpen
+        onClose={jest.fn()}
+        student={student}
+      />
+    );
+    fireEvent.click(await screen.findByText('Simulado 1'));
+
+    await waitFor(() =>
+      expect(screen.getByText('Respostas')).toBeInTheDocument()
+    );
+    // No meta line, no "Tempo total" card, no grade card, dashes for subtemas.
+    expect(screen.queryByText(/Duração:/)).not.toBeInTheDocument();
+    expect(screen.queryByText('Tempo total')).not.toBeInTheDocument();
+    expect(screen.queryByText('Nota média')).not.toBeInTheDocument();
+    expect(screen.getByText('Nº de questões corretas')).toBeInTheDocument();
+    expect(screen.getAllByText('—')).toHaveLength(2);
+  });
+
+  it('shows an empty state when the student answered no simulado', async () => {
+    const emptyPayload = {
+      message: 'ok',
+      data: {
+        student: {
+          ...listPayload.data.student,
+          simulationsAnswered: 0,
+          totalTimeSeconds: 0,
+        },
+        simulations: { data: [], page: 1, limit: 20, total: 0 },
+      },
+    };
+    const api = {
+      get: jest.fn(() => Promise.resolve({ data: emptyPayload })),
+      post: jest.fn(),
+      patch: jest.fn(),
+      delete: jest.fn(),
+    } as unknown as BaseApiClient;
+
+    render(
+      <SimulationsDetailModal
+        api={api}
+        isOpen
+        onClose={jest.fn()}
+        student={student}
+      />
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByText('Este estudante ainda não respondeu nenhum simulado.')
+      ).toBeInTheDocument()
+    );
   });
 
   it('lazily loads detail with stat cards and question status when expanded', async () => {
@@ -182,7 +344,152 @@ describe('SimulationsDetailModal', () => {
     await waitFor(() =>
       expect(post).toHaveBeenCalledWith(
         '/performance/simulations/students/ui-1/sim-1/note',
-        { note: 'Boa evolução' }
+        { note: 'Boa evolução', attachment: null }
+      )
+    );
+  });
+
+  it('uploads an attached image and saves its URL with the note', async () => {
+    const post = jest.fn((url: string) => {
+      if (url === '/user/get-pre-signed-url') {
+        return Promise.resolve({
+          data: {
+            data: {
+              signedUrl: 'https://storage.example.com/signed',
+              publicUrl: 'https://cdn.example.com/notes/plano.png',
+            },
+          },
+        });
+      }
+      return Promise.resolve({
+        data: {
+          message: 'ok',
+          data: {
+            id: 'n1',
+            note: 'Segue o plano',
+            attachment: 'https://cdn.example.com/notes/plano.png',
+          },
+        },
+      });
+    });
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = jest.fn(() =>
+      Promise.resolve({ ok: true })
+    ) as unknown as typeof fetch;
+
+    try {
+      render(
+        <SimulationsDetailModal
+          api={makeApi(post)}
+          isOpen
+          onClose={jest.fn()}
+          student={student}
+        />
+      );
+      fireEvent.click(await screen.findByText('Simulado 1'));
+      fireEvent.click(await screen.findByRole('button', { name: 'Incluir' }));
+
+      const textarea = await screen.findByPlaceholderText(
+        'Escreva uma observação para este simulado'
+      );
+      fireEvent.change(textarea, { target: { value: 'Segue o plano' } });
+
+      // Picking a file swaps the "Anexar" button for a chip with its name.
+      const file = new File(['png'], 'plano.png', { type: 'image/png' });
+      fireEvent.change(screen.getByLabelText('Selecionar arquivo'), {
+        target: { files: [file] },
+      });
+      expect(screen.getByText('plano.png')).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: 'Anexar' })
+      ).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
+
+      await waitFor(() =>
+        expect(post).toHaveBeenCalledWith(
+          '/performance/simulations/students/ui-1/sim-1/note',
+          {
+            note: 'Segue o plano',
+            attachment: 'https://cdn.example.com/notes/plano.png',
+          }
+        )
+      );
+      expect(post).toHaveBeenCalledWith('/user/get-pre-signed-url', {
+        fileName: 'plano.png',
+        mimeType: 'image/png',
+        fileSize: file.size,
+      });
+      // Collapsed again: the saved note shows the attachment chip and "Editar".
+      expect(
+        await screen.findByRole('button', { name: 'Editar' })
+      ).toBeInTheDocument();
+      expect(screen.getByText('plano.png')).toBeInTheDocument();
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it('shows the saved attachment as a link and lets the teacher remove it', async () => {
+    const post = jest.fn(() =>
+      Promise.resolve({
+        data: {
+          message: 'ok',
+          data: { id: 'n1', note: 'Boa evolução', attachment: null },
+        },
+      })
+    );
+    const api = {
+      ...makeApi(post),
+      get: jest.fn((url: string) => {
+        if (url.endsWith('/note')) {
+          return Promise.resolve({
+            data: {
+              message: 'ok',
+              data: {
+                id: 'n1',
+                note: 'Boa evolução',
+                attachment: 'https://cdn.example.com/notes/plano%20A.png',
+              },
+            },
+          });
+        }
+        if (/\/students\/[^/]+\/[^/]+$/.test(url)) {
+          return Promise.resolve({ data: detailPayload });
+        }
+        return Promise.resolve({ data: listPayload });
+      }),
+    } as unknown as BaseApiClient;
+
+    render(
+      <SimulationsDetailModal
+        api={api}
+        isOpen
+        onClose={jest.fn()}
+        student={student}
+      />
+    );
+    fireEvent.click(await screen.findByText('Simulado 1'));
+
+    // Collapsed: file name decoded from the URL, linking to the file.
+    const link = await screen.findByRole('link', { name: /plano A\.png/ });
+    expect(link).toHaveAttribute(
+      'href',
+      'https://cdn.example.com/notes/plano%20A.png'
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Editar' }));
+    // Removing the kept file brings the "Anexar" button back and saves null.
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Remover plano A.png' })
+    );
+    expect(screen.getByRole('button', { name: 'Anexar' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
+
+    await waitFor(() =>
+      expect(post).toHaveBeenCalledWith(
+        '/performance/simulations/students/ui-1/sim-1/note',
+        { note: 'Boa evolução', attachment: null }
       )
     );
   });
@@ -609,7 +916,9 @@ describe('SimulationsDetailModal', () => {
 
     // Answered essays used to be reported as "Em branco".
     expect(await screen.findByText('Pendente')).toBeInTheDocument();
-    expect(screen.getByText('Nº de questões pendentes')).toBeInTheDocument();
+    expect(
+      screen.getByText('1 questão dissertativa aguarda correção')
+    ).toBeInTheDocument();
 
     fireEvent.click(await screen.findByText('Questão 1'));
 

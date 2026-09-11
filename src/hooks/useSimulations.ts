@@ -14,6 +14,7 @@ import type {
   QuestionCommentResponse,
   QuestionCommentData,
 } from '../types/simulations';
+import type { PresignedUrlResponse } from '../types/activityDetails';
 import { toCsv } from '../utils/queryParams';
 
 const BASE_URL = '/performance/simulations';
@@ -44,10 +45,24 @@ export interface UseSimulationsReturn {
     userInstitutionId: string,
     simulationId: string
   ) => Promise<NoteData | null>;
+  /**
+   * Upload a file to attach to a note and return its public URL.
+   *
+   * Same pre-signed flow the activity feedback attachment uses: the backend
+   * hands out a signed PUT URL, the bytes go straight to storage, and only the
+   * resulting public URL is sent back with the note.
+   */
+  uploadNoteAttachment: (file: File) => Promise<string>;
+  /**
+   * Create or replace the observation. `attachment` is the public URL of an
+   * uploaded file, or null to save the note without one (removing a file
+   * attached earlier).
+   */
   saveNote: (
     userInstitutionId: string,
     simulationId: string,
-    note: string
+    note: string,
+    attachment: string | null
   ) => Promise<NoteData | null>;
   /**
    * Save the teacher comment on a single question of a student's simulation.
@@ -130,15 +145,38 @@ export const createUseSimulations =
       []
     );
 
+    const uploadNoteAttachment = useCallback(
+      async (file: File): Promise<string> => {
+        const presigned = await apiClient.post<PresignedUrlResponse>(
+          '/user/get-pre-signed-url',
+          { fileName: file.name, mimeType: file.type, fileSize: file.size }
+        );
+        const { signedUrl, publicUrl } = presigned.data.data;
+
+        const upload = await fetch(signedUrl, {
+          method: 'PUT',
+          body: file,
+          headers: { 'Content-Type': file.type },
+        });
+        if (!upload.ok) {
+          throw new Error('Falha ao fazer upload do arquivo');
+        }
+
+        return publicUrl;
+      },
+      []
+    );
+
     const saveNote = useCallback(
       async (
         userInstitutionId: string,
         simulationId: string,
-        note: string
+        note: string,
+        attachment: string | null
       ): Promise<NoteData | null> => {
         const response = await apiClient.post<NoteResponse>(
           `${BASE_URL}/students/${segment(userInstitutionId)}/${segment(simulationId)}/note`,
-          { note }
+          { note, attachment }
         );
         return response.data.data;
       },
@@ -167,6 +205,7 @@ export const createUseSimulations =
         fetchStudentSimulations,
         fetchSimulationDetail,
         fetchNote,
+        uploadNoteAttachment,
         saveNote,
         saveQuestionComment,
       }),
@@ -175,6 +214,7 @@ export const createUseSimulations =
         fetchStudentSimulations,
         fetchSimulationDetail,
         fetchNote,
+        uploadNoteAttachment,
         saveNote,
         saveQuestionComment,
       ]
