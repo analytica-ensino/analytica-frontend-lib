@@ -77,6 +77,9 @@ export const ActivityListQuestions = ({
   const cachedFilters = useQuestionFiltersStore(
     (state: QuestionFiltersState) => state.cachedFilters
   );
+  const cachedInstitutionId = useQuestionFiltersStore(
+    (state: QuestionFiltersState) => state.cachedInstitutionId
+  );
   const setCachedQuestions = useQuestionFiltersStore(
     (state: QuestionFiltersState) => state.setCachedQuestions
   );
@@ -124,10 +127,13 @@ export const ActivityListQuestions = ({
    * Check if we already have a valid cache result for current filters
    * This is true even if the result is empty (0 questions)
    */
+  // The institution is part of the cache identity: the same filters scoped
+  // to another institution are a different list.
   const hasValidCacheResult = useMemo(() => {
     if (!appliedFilters || !cachedFilters) return false;
+    if ((institutionId ?? null) !== cachedInstitutionId) return false;
     return areFiltersEqual(appliedFilters, cachedFilters);
-  }, [appliedFilters, cachedFilters]); // cachedPagination removed: only used as null guard, cachedFilters already guards
+  }, [appliedFilters, cachedFilters, institutionId, cachedInstitutionId]); // cachedPagination removed: only used as null guard, cachedFilters already guards
 
   /**
    * Check if cached questions match current filters AND have data
@@ -305,10 +311,21 @@ export const ActivityListQuestions = ({
 
   useEffect(() => {
     if (appliedFilters && pagination) {
-      setCachedQuestions(allQuestions, pagination, appliedFilters);
+      setCachedQuestions(
+        allQuestions,
+        pagination,
+        appliedFilters,
+        institutionId
+      );
       lastLoadedPageRef.current = pagination.page;
     }
-  }, [allQuestions, pagination, appliedFilters, setCachedQuestions]);
+  }, [
+    allQuestions,
+    pagination,
+    appliedFilters,
+    institutionId,
+    setCachedQuestions,
+  ]);
 
   /**
    * Update lastLoadedPageRef when pagination page changes (confirms successful load)

@@ -132,14 +132,16 @@ const EnemClassroomStartModal = ({
   const [language, setLanguage] = useState<EnemClassroomLanguage | null>(null);
   const [answers, setAnswers] = useState<Record<string, SurveyAnswerDraft>>({});
 
-  // Every opening starts from the introduction with nothing filled in.
+  // Every opening starts from the introduction with nothing filled in — and
+  // so does a different exam handed in while the modal is open, whose steps
+  // and questions are not the ones the answers were given to.
   useEffect(() => {
     if (isOpen) {
       setStep(INTRO_STEP);
       setLanguage(null);
       setAnswers({});
     }
-  }, [isOpen]);
+  }, [isOpen, exam.id]);
 
   const stepperSteps = useMemo(
     () => [
@@ -294,6 +296,7 @@ const EnemClassroomStartModal = ({
             <div className="pl-8">
               <Input
                 variant="rounded"
+                aria-label={question.inputLabel}
                 placeholder={question.inputPlaceholder}
                 value={draft.text}
                 maxLength={255}
