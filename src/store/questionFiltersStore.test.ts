@@ -102,6 +102,19 @@ describe('questionFiltersStore', () => {
     expect(state.cachedQuestions).toEqual([]);
     expect(state.cachedPagination).toEqual(mockPagination);
     expect(state.cachedFilters).toEqual(sampleFilters);
+    expect(state.cachedInstitutionId).toBeNull();
+  });
+
+  it('should remember the institution the cache was scoped to', () => {
+    const { setCachedQuestions } = useQuestionFiltersStore.getState();
+    setCachedQuestions([], null, sampleFilters, 'inst-1');
+
+    expect(useQuestionFiltersStore.getState().cachedInstitutionId).toBe(
+      'inst-1'
+    );
+
+    setCachedQuestions([], null, sampleFilters);
+    expect(useQuestionFiltersStore.getState().cachedInstitutionId).toBeNull();
   });
 
   it('should clear cached questions', () => {
@@ -118,6 +131,7 @@ describe('questionFiltersStore', () => {
       cachedQuestions: [],
       cachedPagination: mockPagination,
       cachedFilters: sampleFilters,
+      cachedInstitutionId: 'inst-1',
     });
 
     const { clearCachedQuestions } = useQuestionFiltersStore.getState();
@@ -127,5 +141,6 @@ describe('questionFiltersStore', () => {
     expect(state.cachedQuestions).toEqual([]);
     expect(state.cachedPagination).toBeNull();
     expect(state.cachedFilters).toBeNull();
+    expect(state.cachedInstitutionId).toBeNull();
   });
 });

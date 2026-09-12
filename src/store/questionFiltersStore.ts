@@ -14,10 +14,13 @@ export interface QuestionFiltersState {
   cachedQuestions: Question[];
   cachedPagination: Pagination | null;
   cachedFilters: ActivityFiltersData | null;
+  /** Institution the cached questions were scoped to, when any. */
+  cachedInstitutionId: string | null;
   setCachedQuestions: (
     questions: Question[],
     pagination: Pagination | null,
-    filters: ActivityFiltersData | null
+    filters: ActivityFiltersData | null,
+    institutionId?: string | null
   ) => void;
   clearCachedQuestions: () => void;
 }
@@ -46,6 +49,7 @@ export const useQuestionFiltersStore = create<QuestionFiltersState>((set) => ({
       cachedQuestions: [],
       cachedPagination: null,
       cachedFilters: null,
+      cachedInstitutionId: null,
     });
   },
 
@@ -53,11 +57,13 @@ export const useQuestionFiltersStore = create<QuestionFiltersState>((set) => ({
   cachedQuestions: [],
   cachedPagination: null,
   cachedFilters: null,
-  setCachedQuestions: (questions, pagination, filters) => {
+  cachedInstitutionId: null,
+  setCachedQuestions: (questions, pagination, filters, institutionId) => {
     set({
       cachedQuestions: questions,
       cachedPagination: pagination,
       cachedFilters: filters,
+      cachedInstitutionId: institutionId ?? null,
     });
   },
   clearCachedQuestions: () => {
@@ -65,6 +71,7 @@ export const useQuestionFiltersStore = create<QuestionFiltersState>((set) => ({
       cachedQuestions: [],
       cachedPagination: null,
       cachedFilters: null,
+      cachedInstitutionId: null,
     });
   },
 }));

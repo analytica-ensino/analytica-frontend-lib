@@ -3045,6 +3045,37 @@ describe('Quiz', () => {
         expect(screen.getByText('Ir para simulados')).toBeInTheDocument();
         expect(screen.getByText('Detalhar resultado')).toBeInTheDocument();
       });
+
+      it('should show the completion override instead of the score when provided', async () => {
+        const mockOnConfirm = jest.fn();
+        const mockHandleFinish = jest.fn();
+
+        render(
+          <QuizFooter
+            handleFinishSimulated={mockHandleFinish}
+            completionOverride={{
+              title: 'Prova enviada!',
+              description: 'Aguarde os resultados.',
+              buttonLabel: 'Voltar para o painel',
+              onConfirm: mockOnConfirm,
+            }}
+          />
+        );
+
+        await clickElementAsync(screen.getByText('Finalizar'));
+
+        expect(mockHandleFinish).toHaveBeenCalled();
+        expect(screen.getByText('Prova enviada!')).toBeInTheDocument();
+        expect(screen.getByText('Aguarde os resultados.')).toBeInTheDocument();
+        // No score, no result details: the exam is graded later.
+        expect(screen.queryByText(/Você acertou/)).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('Detalhar resultado')
+        ).not.toBeInTheDocument();
+
+        screen.getByTestId('quiz-completion-override-confirm').click();
+        expect(mockOnConfirm).toHaveBeenCalled();
+      });
     });
 
     describe('Navigation modal filter', () => {

@@ -62,6 +62,7 @@ let mockStoreState = {
   cachedQuestions: [] as unknown[],
   cachedPagination: null as unknown,
   cachedFilters: null as unknown,
+  cachedInstitutionId: null as string | null,
   setCachedQuestions: mockSetCachedQuestions,
   clearCachedQuestions: mockClearCachedQuestions,
 };
@@ -397,6 +398,7 @@ describe('ActivityListQuestions', () => {
     mockStoreState.cachedQuestions = [];
     mockStoreState.cachedPagination = null;
     mockStoreState.cachedFilters = null;
+    mockStoreState.cachedInstitutionId = null;
     Object.assign(mockUseQuestionsListReturn, {
       questions: [],
       pagination: null,
@@ -831,6 +833,102 @@ describe('ActivityListQuestions', () => {
         );
       });
     });
+
+    it('should scope the request to the institution when one is given', async () => {
+      const filters = {
+        types: [QUESTION_TYPE.ALTERNATIVA],
+        bankIds: [],
+        yearIds: [],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      mockAppliedFilters.mockReturnValue(filters);
+      mockStoreState.cachedFilters = null;
+
+      render(
+        <ActivityListQuestions {...defaultProps} institutionId="inst-1" />
+      );
+
+      await waitFor(() => {
+        expect(mockFetchQuestions).toHaveBeenCalledWith(
+          expect.objectContaining({ institutionId: ['inst-1'] }),
+          false
+        );
+      });
+    });
+
+    it('should refetch when the cache belongs to another institution', async () => {
+      const filters = {
+        types: [QUESTION_TYPE.ALTERNATIVA],
+        bankIds: [],
+        yearIds: [],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      mockAppliedFilters.mockReturnValue(filters);
+      mockStoreState.cachedFilters = filters;
+      mockStoreState.cachedInstitutionId = 'inst-1';
+      mockStoreState.cachedQuestions = [mockQuestion];
+      mockStoreState.cachedPagination = {
+        page: 1,
+        limit: 10,
+        total: 1,
+        totalPages: 1,
+        hasNext: false,
+        hasPrev: false,
+      };
+
+      render(
+        <ActivityListQuestions {...defaultProps} institutionId="inst-2" />
+      );
+
+      await waitFor(() => {
+        expect(mockFetchQuestions).toHaveBeenCalledWith(
+          expect.objectContaining({ institutionId: ['inst-2'] }),
+          false
+        );
+      });
+    });
+
+    it('should serve the cache when it belongs to the same institution', async () => {
+      const filters = {
+        types: [QUESTION_TYPE.ALTERNATIVA],
+        bankIds: [],
+        yearIds: [],
+        knowledgeIds: [],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      };
+
+      mockAppliedFilters.mockReturnValue(filters);
+      mockStoreState.cachedFilters = filters;
+      mockStoreState.cachedInstitutionId = 'inst-1';
+      mockStoreState.cachedQuestions = [mockQuestion];
+      mockStoreState.cachedPagination = {
+        page: 1,
+        limit: 10,
+        total: 1,
+        totalPages: 1,
+        hasNext: false,
+        hasPrev: false,
+      };
+
+      render(
+        <ActivityListQuestions {...defaultProps} institutionId="inst-1" />
+      );
+
+      expect(
+        await screen.findByTestId('activity-card-question-banks')
+      ).toBeInTheDocument();
+      expect(mockFetchQuestions).not.toHaveBeenCalled();
+    });
   });
 
   describe('Cache Integration', () => {
@@ -955,7 +1053,8 @@ describe('ActivityListQuestions', () => {
         expect(mockSetCachedQuestions).toHaveBeenCalledWith(
           [mockQuestion],
           mockPagination,
-          filters
+          filters,
+          undefined
         );
       });
     });
@@ -1736,7 +1835,8 @@ describe('ActivityListQuestions', () => {
         expect(mockSetCachedQuestions).toHaveBeenCalledWith(
           [],
           mockPagination,
-          filters
+          filters,
+          undefined
         );
       });
     });

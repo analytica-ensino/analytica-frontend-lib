@@ -41,6 +41,9 @@ export interface UseModulesReturn {
   // fluency-only experience). Off by default.
   hasReadingFluency: boolean;
 
+  // In-classroom ENEM simulation (institution-wide). Off by default.
+  hasEnemClassroom: boolean;
+
   // Exams
   hasExams: boolean;
 
@@ -139,6 +142,9 @@ export const useModules = (): UseModulesReturn => {
 
     // Reading-fluency mode (opt-in per institution, defaults off)
     hasReadingFluency: modules.readingFluency ?? false,
+
+    // In-classroom ENEM simulation (opt-in per institution, defaults off)
+    hasEnemClassroom: modules.enemClassroom ?? false,
 
     // Exams (simple boolean, with backwards compatibility for old object format)
     hasExams:

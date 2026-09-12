@@ -59,6 +59,12 @@ interface SmallScreenLayoutProps {
   onRemoveQuestion: (questionId: string) => void;
   onReorder: (questions: PreviewQuestion[]) => void;
   filtersKey?: number;
+  /**
+   * Scopes the question bank to one institution. Only needed by a SUPER_ADMIN
+   * (no institution in the session) building an exam for a given institution;
+   * see `ActivityListQuestions.institutionId`.
+   */
+  questionsInstitutionId?: string;
 }
 
 /**
@@ -84,6 +90,7 @@ export const SmallScreenLayout = ({
   onRemoveQuestion,
   onReorder,
   filtersKey = 0,
+  questionsInstitutionId,
 }: SmallScreenLayoutProps) => (
   <div className="flex flex-col w-full flex-1 overflow-hidden gap-5 min-h-0">
     {/* Filters and Menu Row */}
@@ -131,6 +138,7 @@ export const SmallScreenLayout = ({
             onAddQuestion={onAddQuestion}
             addedQuestionIds={addedQuestionIds}
             enableExamMode={enableExamMode}
+            institutionId={questionsInstitutionId}
           />
         </div>
       ) : (
@@ -172,6 +180,8 @@ interface DesktopLayoutProps {
   onRemoveQuestion: (questionId: string) => void;
   onReorder: (questions: PreviewQuestion[]) => void;
   filtersKey?: number;
+  /** See `SmallScreenLayoutProps.questionsInstitutionId`. */
+  questionsInstitutionId?: string;
 }
 
 /**
@@ -196,6 +206,7 @@ export const DesktopLayout = ({
   onRemoveQuestion,
   onReorder,
   filtersKey = 0,
+  questionsInstitutionId,
 }: DesktopLayoutProps) => (
   <div className="flex flex-row w-full flex-1 overflow-hidden gap-5 min-h-0">
     {/* First Column - Filters */}
@@ -246,6 +257,7 @@ export const DesktopLayout = ({
           onAddQuestion={onAddQuestion}
           addedQuestionIds={addedQuestionIds}
           enableExamMode={enableExamMode}
+          institutionId={questionsInstitutionId}
         />
       </div>
     </div>

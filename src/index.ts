@@ -838,6 +838,7 @@ export {
   QuizQuestionList,
   QuizFooter,
 } from './components/Quiz/Quiz';
+export type { QuizCompletionOverride } from './components/Quiz/Quiz';
 export {
   getStatusBadge,
   QuizImageQuestion,
@@ -2304,3 +2305,23 @@ export type {
   ExamStudentsTableProps,
   ExamDetailsPageProps,
 } from './components/ExamDetailsLayout';
+
+// EnemClassroomStartModal Component (in-classroom ENEM simulation)
+export { default as EnemClassroomStartModal } from './components/EnemClassroomStartModal/EnemClassroomStartModal';
+export type { EnemClassroomStartModalProps } from './components/EnemClassroomStartModal/EnemClassroomStartModal';
+export {
+  ENEM_CLASSROOM_LANGUAGE,
+  ENEM_CLASSROOM_LANGUAGE_LABELS,
+  ENEM_CLASSROOM_PARTICIPATION_STATUS,
+} from './types/enemClassroom';
+export type {
+  EnemClassroomLanguage,
+  EnemClassroomParticipationStatus,
+  EnemClassroomSurveyQuestion,
+  EnemClassroomExam,
+  EnemClassroomSurveyAnswer,
+  EnemClassroomParticipation,
+  EnemClassroomCurrentResponse,
+  EnemClassroomStartPayload,
+  EnemClassroomStartResponse,
+} from './types/enemClassroom';

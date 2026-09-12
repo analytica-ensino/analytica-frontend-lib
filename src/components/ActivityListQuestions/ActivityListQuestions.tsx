@@ -19,6 +19,8 @@ import {
   type QuestionActivity as Question,
 } from '../..';
 import { convertActivityFiltersToQuestionsFilter } from '../../utils/questionFiltersConverter';
+import type { ActivityFiltersData } from '../../types/activityFilters';
+import type { QuestionsFilterBody } from '../../types/questions';
 import { mapQuestionTypeToEnumRequired } from '../../utils/questionTypeUtils';
 import { areFiltersEqual } from '../../utils/activityFilters';
 import { normalizeText, highlightSearchTerm } from '../../utils/stringUtils';
@@ -32,6 +34,15 @@ interface ActivityListQuestionsProps {
   className?: string;
   /** Enable exam mode - changes text labels from 'atividade' to 'prova' */
   enableExamMode?: boolean;
+  /**
+   * Restricts the bank to the questions linked to this institution.
+   *
+   * Teachers and managers never need it: the backend already scopes the list
+   * by the institution in their session. A SUPER_ADMIN has no institution and
+   * sees every question, so a backoffice screen building an exam for one
+   * institution passes the target here.
+   */
+  institutionId?: string;
 }
 
 /**
@@ -45,6 +56,7 @@ export const ActivityListQuestions = ({
   addedQuestionIds = [],
   className,
   enableExamMode = false,
+  institutionId,
 }: ActivityListQuestionsProps) => {
   const { isDark } = useTheme();
   const sentQuestionIds = useSentQuestionIds(apiClient);
@@ -64,6 +76,9 @@ export const ActivityListQuestions = ({
   );
   const cachedFilters = useQuestionFiltersStore(
     (state: QuestionFiltersState) => state.cachedFilters
+  );
+  const cachedInstitutionId = useQuestionFiltersStore(
+    (state: QuestionFiltersState) => state.cachedInstitutionId
   );
   const setCachedQuestions = useQuestionFiltersStore(
     (state: QuestionFiltersState) => state.setCachedQuestions
@@ -97,13 +112,28 @@ export const ActivityListQuestions = ({
   } = useQuestionsList();
 
   /**
+   * Applied filters in the shape `/questions/list` expects, plus the
+   * institution scope when one was given.
+   */
+  const toApiFilters = useCallback(
+    (filters: ActivityFiltersData): QuestionsFilterBody => ({
+      ...convertActivityFiltersToQuestionsFilter(filters),
+      ...(institutionId && { institutionId: [institutionId] }),
+    }),
+    [institutionId]
+  );
+
+  /**
    * Check if we already have a valid cache result for current filters
    * This is true even if the result is empty (0 questions)
    */
+  // The institution is part of the cache identity: the same filters scoped
+  // to another institution are a different list.
   const hasValidCacheResult = useMemo(() => {
     if (!appliedFilters || !cachedFilters) return false;
+    if ((institutionId ?? null) !== cachedInstitutionId) return false;
     return areFiltersEqual(appliedFilters, cachedFilters);
-  }, [appliedFilters, cachedFilters]); // cachedPagination removed: only used as null guard, cachedFilters already guards
+  }, [appliedFilters, cachedFilters, institutionId, cachedInstitutionId]); // cachedPagination removed: only used as null guard, cachedFilters already guards
 
   /**
    * Check if cached questions match current filters AND have data
@@ -260,7 +290,7 @@ export const ActivityListQuestions = ({
       }
 
       const apiFilters = {
-        ...convertActivityFiltersToQuestionsFilter(appliedFilters),
+        ...toApiFilters(appliedFilters),
         ...(addedQuestionIdsRef.current.length > 0 && {
           selectedQuestionsIds: addedQuestionIdsRef.current,
         }),
@@ -276,14 +306,26 @@ export const ActivityListQuestions = ({
     reset,
     hasValidCacheResult,
     clearCachedQuestions,
+    toApiFilters,
   ]); // cachedPagination intentionally excluded: it changes every page load and would wipe searchTerm on each scroll
 
   useEffect(() => {
     if (appliedFilters && pagination) {
-      setCachedQuestions(allQuestions, pagination, appliedFilters);
+      setCachedQuestions(
+        allQuestions,
+        pagination,
+        appliedFilters,
+        institutionId
+      );
       lastLoadedPageRef.current = pagination.page;
     }
-  }, [allQuestions, pagination, appliedFilters, setCachedQuestions]);
+  }, [
+    allQuestions,
+    pagination,
+    appliedFilters,
+    institutionId,
+    setCachedQuestions,
+  ]);
 
   /**
    * Update lastLoadedPageRef when pagination page changes (confirms successful load)
@@ -321,7 +363,7 @@ export const ActivityListQuestions = ({
 
       try {
         const apiFilters = appliedFilters
-          ? convertActivityFiltersToQuestionsFilter(appliedFilters)
+          ? toApiFilters(appliedFilters)
           : undefined;
 
         const totalPages = pag?.totalPages ?? 1;
@@ -343,7 +385,7 @@ export const ActivityListQuestions = ({
       prefetchDoneRef.current = false;
       setIsPrefetchingAll(false);
     };
-  }, [searchTerm, appliedFilters, fetchQuestions]); // effectivePagination intentionally excluded: read via ref to avoid cancelling the loop on each page load
+  }, [searchTerm, appliedFilters, fetchQuestions, toApiFilters]); // effectivePagination intentionally excluded: read via ref to avoid cancelling the loop on each page load
 
   /**
    * Calculate progressive scroll threshold based on current page
@@ -389,7 +431,7 @@ export const ActivityListQuestions = ({
         lastLoadedPageRef.current < nextPage
       ) {
         const apiFilters = appliedFilters
-          ? convertActivityFiltersToQuestionsFilter(appliedFilters)
+          ? toApiFilters(appliedFilters)
           : undefined;
         loadMore(apiFilters, effectivePagination ?? undefined);
       }
@@ -400,7 +442,14 @@ export const ActivityListQuestions = ({
     return () => {
       container.removeEventListener('scroll', handleScroll);
     };
-  }, [loading, loadingMore, effectivePagination, loadMore, appliedFilters]);
+  }, [
+    loading,
+    loadingMore,
+    effectivePagination,
+    loadMore,
+    appliedFilters,
+    toApiFilters,
+  ]);
 
   const totalQuestions = effectivePagination?.total || 0;
   const displayedCount = searchTerm
@@ -428,9 +477,7 @@ export const ActivityListQuestions = ({
 
     try {
       // Get current filters or empty filters
-      const baseFilters = appliedFilters
-        ? convertActivityFiltersToQuestionsFilter(appliedFilters)
-        : {};
+      const baseFilters = appliedFilters ? toApiFilters(appliedFilters) : {};
 
       // Fetch random questions excluding already added ones
       const randomQuestions = await fetchRandomQuestions(questionCount, {

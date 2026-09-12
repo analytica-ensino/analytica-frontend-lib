@@ -586,6 +586,21 @@ const QuizReviewActions = ({
   );
 };
 
+/**
+ * What the completion modal shows instead of the score.
+ *
+ * Some exams are not corrected on the spot — the in-classroom ENEM simulation
+ * is graded later — so telling the student how many they got right would be
+ * wrong. With this set, finishing opens a modal with only this content and
+ * one button.
+ */
+export interface QuizCompletionOverride {
+  title: ReactNode;
+  description: ReactNode;
+  buttonLabel: string;
+  onConfirm: () => void;
+}
+
 const QuizFooter = forwardRef<
   HTMLDivElement,
   {
@@ -598,6 +613,8 @@ const QuizFooter = forwardRef<
     onTryLater?: () => void;
     resultImageComponent?: ReactNode;
     resultIncorrectImageComponent?: ReactNode;
+    /** Replaces the score modal; see `QuizCompletionOverride`. */
+    completionOverride?: QuizCompletionOverride;
   }
 >(
   (
@@ -611,6 +628,7 @@ const QuizFooter = forwardRef<
       onTryLater,
       resultImageComponent,
       resultIncorrectImageComponent,
+      completionOverride,
       ...props
     },
     ref
@@ -674,6 +692,11 @@ const QuizFooter = forwardRef<
     const submitAndOpenResultModal = async () => {
       if (handleFinishSimulated) {
         await Promise.resolve(handleFinishSimulated());
+      }
+
+      if (completionOverride) {
+        openModal('modalCompletionOverride');
+        return;
       }
 
       const latestStats = getQuestionResultStatistics();
@@ -902,6 +925,31 @@ const QuizFooter = forwardRef<
             </div>
           }
         />
+
+        {completionOverride && (
+          <QuizResultModal
+            isOpen={isModalOpen('modalCompletionOverride')}
+            onClose={closeModal}
+            image={resultImageComponent}
+            title={completionOverride.title}
+            description={
+              <Text as="p" size="sm" color="text-text-500">
+                {completionOverride.description}
+              </Text>
+            }
+            footer={
+              <div className="px-6 flex flex-row items-center w-full">
+                <Button
+                  className="w-full"
+                  onClick={completionOverride.onConfirm}
+                  data-testid="quiz-completion-override-confirm"
+                >
+                  {completionOverride.buttonLabel}
+                </Button>
+              </div>
+            }
+          />
+        )}
 
         <Modal
           isOpen={isModalOpen('modalNavigate')}

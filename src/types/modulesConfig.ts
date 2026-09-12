@@ -164,6 +164,14 @@ export interface ModulesConfig {
    */
   aiDissertativeCorrection: boolean;
 
+  /**
+   * ENEM simulation taken in the classroom (opt-in per institution, off by
+   * default). When `true`, the student panel shows the exam card whenever the
+   * backoffice has an active exam for the institution. Consumed via
+   * `useModules().hasEnemClassroom`.
+   */
+  enemClassroom: boolean;
+
   // Nested configurations
   exams: boolean;
   simulations: SimulationsConfig;
@@ -212,6 +220,9 @@ export const DEFAULT_MODULES: ModulesConfig = {
 
   // AI correction of dissertativas off by default (opt-in per institution)
   aiDissertativeCorrection: false,
+
+  // In-classroom ENEM simulation off by default (opt-in per institution)
+  enemClassroom: false,
 
   // Nested configurations
   exams: DEFAULT_EXAMS,

@@ -281,6 +281,15 @@ export default defineConfig({
       'src/components/EssayThemePicker/EssayThemePicker.tsx', // EssayThemePicker
     'ActivityCreate/ActivityCreate.types/index':
       'src/components/ActivityCreate/ActivityCreate.types.ts', // ActivityType
+    'ActivityCreate/ActivityCreateContent/index':
+      'src/components/ActivityCreate/components/ActivityCreateContent.tsx', // DesktopLayout, SmallScreenLayout
+    'EnemClassroomStartModal/index':
+      'src/components/EnemClassroomStartModal/EnemClassroomStartModal.tsx', // EnemClassroomStartModal
+    'ActivityCreate/ActivityCreate.utils/index':
+      'src/components/ActivityCreate/ActivityCreate.utils.ts', // convertQuestionToPreview
+    'store/questionFiltersStore/index': 'src/store/questionFiltersStore.ts', // useQuestionFiltersStore
+    'hooks/useScreen/index': 'src/hooks/useScreen.ts', // useTabletScreen
+    'types/enemClassroom/index': 'src/types/enemClassroom.ts', // ENEM_CLASSROOM_LANGUAGE, EnemClassroomExam
     'AlertManager/types/index': 'src/components/AlertManager/types.ts', // AlertData, AlertsConfig
     'AlertManager/useAlertForm/index':
       'src/components/AlertManager/useAlertForm.ts', // useAlertFormStore
