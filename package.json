@@ -1896,6 +1896,69 @@
       "import": "./dist/store/mediaPreferencesStore/index.mjs",
       "require": "./dist/store/mediaPreferencesStore/index.js",
       "default": "./dist/store/mediaPreferencesStore/index.mjs"
+    },
+    "./subject-icons": {
+      "types": "./dist/SubjectIcons/index.d.ts",
+      "module": "./dist/SubjectIcons/index.mjs",
+      "import": "./dist/SubjectIcons/index.mjs",
+      "require": "./dist/SubjectIcons/index.js",
+      "default": "./dist/SubjectIcons/index.mjs"
+    },
+    "./metric-box": {
+      "types": "./dist/MetricBox/index.d.ts",
+      "module": "./dist/MetricBox/index.mjs",
+      "import": "./dist/MetricBox/index.mjs",
+      "require": "./dist/MetricBox/index.js",
+      "default": "./dist/MetricBox/index.mjs"
+    },
+    "./modal-components": {
+      "types": "./dist/ModalComponents/index.d.ts",
+      "module": "./dist/ModalComponents/index.mjs",
+      "import": "./dist/ModalComponents/index.mjs",
+      "require": "./dist/ModalComponents/index.js",
+      "default": "./dist/ModalComponents/index.mjs"
+    },
+    "./activity-create/activitycreatecontent": {
+      "types": "./dist/ActivityCreate/ActivityCreateContent/index.d.ts",
+      "module": "./dist/ActivityCreate/ActivityCreateContent/index.mjs",
+      "import": "./dist/ActivityCreate/ActivityCreateContent/index.mjs",
+      "require": "./dist/ActivityCreate/ActivityCreateContent/index.js",
+      "default": "./dist/ActivityCreate/ActivityCreateContent/index.mjs"
+    },
+    "./enem-classroom-start-modal": {
+      "types": "./dist/EnemClassroomStartModal/index.d.ts",
+      "module": "./dist/EnemClassroomStartModal/index.mjs",
+      "import": "./dist/EnemClassroomStartModal/index.mjs",
+      "require": "./dist/EnemClassroomStartModal/index.js",
+      "default": "./dist/EnemClassroomStartModal/index.mjs"
+    },
+    "./types/enemclassroom": {
+      "types": "./dist/types/enemClassroom/index.d.ts",
+      "module": "./dist/types/enemClassroom/index.mjs",
+      "import": "./dist/types/enemClassroom/index.mjs",
+      "require": "./dist/types/enemClassroom/index.js",
+      "default": "./dist/types/enemClassroom/index.mjs"
+    },
+    "./activity-create/activitycreate.utils": {
+      "types": "./dist/ActivityCreate/ActivityCreate.utils/index.d.ts",
+      "module": "./dist/ActivityCreate/ActivityCreate.utils/index.mjs",
+      "import": "./dist/ActivityCreate/ActivityCreate.utils/index.mjs",
+      "require": "./dist/ActivityCreate/ActivityCreate.utils/index.js",
+      "default": "./dist/ActivityCreate/ActivityCreate.utils/index.mjs"
+    },
+    "./store/questionfiltersstore": {
+      "types": "./dist/store/questionFiltersStore/index.d.ts",
+      "module": "./dist/store/questionFiltersStore/index.mjs",
+      "import": "./dist/store/questionFiltersStore/index.mjs",
+      "require": "./dist/store/questionFiltersStore/index.js",
+      "default": "./dist/store/questionFiltersStore/index.mjs"
+    },
+    "./hooks/usescreen": {
+      "types": "./dist/hooks/useScreen/index.d.ts",
+      "module": "./dist/hooks/useScreen/index.mjs",
+      "import": "./dist/hooks/useScreen/index.mjs",
+      "require": "./dist/hooks/useScreen/index.js",
+      "default": "./dist/hooks/useScreen/index.mjs"
     }
   },
   "scripts": {

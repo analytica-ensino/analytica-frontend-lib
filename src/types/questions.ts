@@ -72,6 +72,8 @@ export interface QuestionsFilterBody {
   randomQuestions?: number;
   /** Filter for questions without any subject association */
   noSubject?: boolean;
+  /** Only questions linked to these institutions (SUPER_ADMIN scope) */
+  institutionId?: string[];
   [key: string]: unknown;
 }
 

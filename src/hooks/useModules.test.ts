@@ -856,4 +856,39 @@ describe('useModules', () => {
       expect(result.current.hasReadingFluency).toBe(false);
     });
   });
+
+  describe('in-classroom ENEM simulation', () => {
+    it('hasEnemClassroom is false by default (opt-in per institution)', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: defaultModules,
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasEnemClassroom).toBe(false);
+    });
+
+    it('hasEnemClassroom is true when enabled', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: { ...defaultModules, enemClassroom: true },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasEnemClassroom).toBe(true);
+    });
+
+    it('hasEnemClassroom defaults to false when the field is missing', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {}, // no enemClassroom key (old persisted state)
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasEnemClassroom).toBe(false);
+    });
+  });
 });
