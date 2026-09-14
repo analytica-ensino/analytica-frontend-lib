@@ -304,6 +304,9 @@ const EnemClassroomStartModal = ({
         <VideoPlayer
           src={exam.videoUrl}
           title={exam.title}
+          // O desenho mostra só o vídeo: o nome da prova já está no título do
+          // modal. O `title` fica para rotular o player nos leitores de tela.
+          hideHeader
           className="w-full rounded-xl overflow-hidden"
           autoSave={false}
         />
