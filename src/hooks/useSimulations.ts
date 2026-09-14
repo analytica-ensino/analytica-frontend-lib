@@ -101,7 +101,7 @@ export const createUseSimulations =
         );
         return response.data.data.students;
       },
-      []
+      [apiClient]
     );
 
     const fetchStudentSimulations = useCallback(
@@ -116,7 +116,7 @@ export const createUseSimulations =
         );
         return response.data.data;
       },
-      []
+      [apiClient]
     );
 
     const fetchSimulationDetail = useCallback(
@@ -129,7 +129,7 @@ export const createUseSimulations =
         );
         return response.data.data;
       },
-      []
+      [apiClient]
     );
 
     const fetchNote = useCallback(
@@ -142,7 +142,7 @@ export const createUseSimulations =
         );
         return response.data.data;
       },
-      []
+      [apiClient]
     );
 
     const uploadNoteAttachment = useCallback(
@@ -164,7 +164,7 @@ export const createUseSimulations =
 
         return publicUrl;
       },
-      []
+      [apiClient]
     );
 
     const saveNote = useCallback(
@@ -180,7 +180,7 @@ export const createUseSimulations =
         );
         return response.data.data;
       },
-      []
+      [apiClient]
     );
 
     const saveQuestionComment = useCallback(
@@ -196,7 +196,7 @@ export const createUseSimulations =
         );
         return response.data.data;
       },
-      []
+      [apiClient]
     );
 
     return useMemo(

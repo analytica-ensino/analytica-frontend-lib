@@ -1,17 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { ChangeEvent, ReactNode } from 'react';
-import { ExamIcon } from '@phosphor-icons/react/dist/csr/Exam';
-import { CheckCircleIcon } from '@phosphor-icons/react/dist/csr/CheckCircle';
-import { XCircleIcon } from '@phosphor-icons/react/dist/csr/XCircle';
-import { MinusCircleIcon } from '@phosphor-icons/react/dist/csr/MinusCircle';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { ChangeEvent } from 'react';
 import { PaperclipIcon } from '@phosphor-icons/react/dist/csr/Paperclip';
 import { XIcon } from '@phosphor-icons/react/dist/csr/X';
 import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
 import TextArea from '../TextArea/TextArea';
-import ProgressBar from '../ProgressBar/ProgressBar';
-import { UserIcon } from '../UserIcon/UserIcon';
 import { CardAccordation } from '../Accordation';
 import { SkeletonCard } from '../Skeleton/Skeleton';
 import { QuestionCommentField } from '../shared/QuestionCommentField';
@@ -30,20 +24,29 @@ import {
   QUESTION_STATUS,
   type QuestionStatus,
 } from '../../utils/studentActivityCorrection';
+import {
+  buildSimulationMeta,
+  ContentCards,
+  DataCard,
+  SectionTitle,
+  SimulationCardShell,
+  SimulationStatCards,
+  StudentSummaryHeader,
+} from '../shared/SimulationSummaryCards';
 import { cn } from '../../utils/utils';
 import { formatQuestionDuration } from '../../utils/questionDuration';
-import {
-  formatDateToBrazilian,
-  formatTimeSpent,
-} from '../../utils/activityDetailsUtils';
-import { formatScoreOutOfTen } from '../../utils/simulatedScore';
+import { formatTimeSpent } from '../../utils/activityDetailsUtils';
 import type { BaseApiClient } from '../../types/api';
 import { createUseSimulations } from '../../hooks/useSimulations';
+import {
+  useSimulationCardDetails,
+  type SimulationCardHandlers,
+  type SimulationDetailState,
+  type SimulationNoteState,
+} from '../../hooks/useSimulationCardDetails';
 import type {
   SimulationsListData,
-  SimulationDetailData,
   SimulationDetailQuestion,
-  StudentSimulationContent,
   StudentSimulationItem,
   NoteData,
 } from '../../types/simulations';
@@ -55,17 +58,6 @@ export interface SimulationsDetailModalProps {
   readonly onClose: () => void;
   /** The student whose simulations are shown (null closes the modal) */
   readonly student: { userInstitutionId: string; name: string } | null;
-}
-
-interface DetailState {
-  loading: boolean;
-  error: string | null;
-  data: SimulationDetailData | null;
-}
-
-interface NoteState {
-  loading: boolean;
-  data: NoteData | null;
 }
 
 /** Map the simulation question status to the shared correction status. */
@@ -282,6 +274,14 @@ export interface SimulationNoteRowProps {
   readonly note: NoteData | null;
   readonly loading: boolean;
   /**
+   * Message of a failed load. While it is set the row offers a retry instead
+   * of the editor: writing over a note that could not be read would replace
+   * it, and this save has no version to protect it.
+   */
+  readonly loadError?: string | null;
+  /** Load the observation again; required whenever `loadError` can be set. */
+  readonly onRetry?: () => void;
+  /**
    * Persist the observation. `text` is already trimmed and non-empty; `file`
    * is a newly chosen attachment still to be uploaded (null when none), and
    * `existingAttachment` is the URL of the saved file the teacher kept — null
@@ -369,6 +369,8 @@ function AttachmentChip({
 export function SimulationNoteRow({
   note,
   loading,
+  loadError,
+  onRetry,
   onSave,
 }: SimulationNoteRowProps) {
   const [editing, setEditing] = useState(false);
@@ -454,6 +456,32 @@ export function SimulationNoteRow({
     return <SkeletonCard className="h-14" />;
   }
 
+  if (loadError) {
+    return (
+      <div className="flex items-center justify-between gap-2 rounded-lg border border-border-200 bg-background p-4">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <Text size="md" weight="bold" className="text-text-950">
+            Observação
+          </Text>
+          <Text size="sm" className="text-error-600">
+            {loadError}
+          </Text>
+        </div>
+        {onRetry && (
+          <Button
+            type="button"
+            variant="outline"
+            size="medium"
+            onClick={onRetry}
+            className="shrink-0"
+          >
+            Tentar novamente
+          </Button>
+        )}
+      </div>
+    );
+  }
+
   if (editing) {
     return (
       <div className="flex flex-col gap-4 rounded-lg border border-border-200 bg-background p-4">
@@ -529,292 +557,6 @@ export function SimulationNoteRow({
 }
 
 // ---------------------------------------------------------------------------
-// Summary blocks — header, "Dados de simulados", stat and subtema cards
-// ---------------------------------------------------------------------------
-
-/** Section heading, "Dados de simulados" and its siblings (14px bold). */
-function SectionTitle({ children }: { readonly children: ReactNode }) {
-  return (
-    <Text as="h3" size="sm" weight="bold" className="text-text-950">
-      {children}
-    </Text>
-  );
-}
-
-/**
- * White card with a centred uppercase label and the value in a rectangular
- * info badge: the "Dados de simulados" pair.
- */
-function DataCard({
-  label,
-  value,
-}: {
-  readonly label: string;
-  readonly value: string;
-}) {
-  return (
-    <div className="flex flex-1 flex-col items-center gap-2 rounded-xl border border-border-50 bg-background px-3 py-4">
-      <Text
-        size="2xs"
-        weight="medium"
-        className="text-center uppercase text-text-800"
-      >
-        {label}
-      </Text>
-      <span className="rounded-sm bg-info-background px-2 py-1 text-sm text-info-800">
-        {value}
-      </span>
-    </div>
-  );
-}
-
-/** Tone of a coloured stat card; each maps to one token family. */
-type StatTone = 'grade' | 'correct' | 'incorrect' | 'blank';
-
-const STAT_TONE_CLASSES: Record<
-  StatTone,
-  { card: string; circle: string; icon: string; value: string }
-> = {
-  grade: {
-    card: 'bg-warning-background',
-    circle: 'bg-warning-300',
-    icon: 'text-text',
-    value: 'text-warning-600',
-  },
-  correct: {
-    card: 'bg-success-200',
-    circle: 'bg-indicator-positive',
-    icon: 'text-text-950',
-    value: 'text-success-700',
-  },
-  incorrect: {
-    card: 'bg-error-100',
-    circle: 'bg-error-500',
-    icon: 'text-text',
-    value: 'text-error-700',
-  },
-  blank: {
-    card: 'bg-info-background',
-    circle: 'bg-info-500',
-    icon: 'text-text',
-    value: 'text-info-700',
-  },
-};
-
-/**
- * Coloured stat card, laid out as a centred column: icon in a circle, tiny
- * uppercase label and the large value.
- */
-function SimulationStatCard({
-  tone,
-  icon,
-  label,
-  value,
-}: {
-  readonly tone: StatTone;
-  readonly icon: ReactNode;
-  readonly label: string;
-  readonly value: string;
-}) {
-  const classes = STAT_TONE_CLASSES[tone];
-  return (
-    <div
-      className={cn(
-        'flex flex-1 flex-col items-center gap-1 rounded-xl border border-border-50 px-3 py-4',
-        classes.card
-      )}
-    >
-      <span
-        className={cn(
-          'flex size-8 shrink-0 items-center justify-center rounded-full',
-          classes.circle,
-          classes.icon
-        )}
-      >
-        {icon}
-      </span>
-      <Text
-        as="span"
-        weight="bold"
-        className="text-center text-[8px] leading-3 uppercase text-text-800"
-      >
-        {label}
-      </Text>
-      <Text
-        size="xl"
-        weight="bold"
-        className={cn('text-center', classes.value)}
-      >
-        {value}
-      </Text>
-    </div>
-  );
-}
-
-/**
- * The four cards of one simulado: grade, correct, incorrect and blank. The
- * grade card is skipped when the backend did not send a score, so an older
- * API still renders the three counts it always had.
- */
-function SimulationStatCards({
-  score,
-  correct,
-  incorrect,
-  blank,
-}: {
-  readonly score: number | undefined;
-  readonly correct: number;
-  readonly incorrect: number;
-  readonly blank: number;
-}) {
-  return (
-    <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-      {score !== undefined && (
-        <SimulationStatCard
-          tone="grade"
-          icon={<ExamIcon size={16} weight="bold" />}
-          label="Nota média"
-          value={formatScoreOutOfTen(score)}
-        />
-      )}
-      <SimulationStatCard
-        tone="correct"
-        icon={<CheckCircleIcon size={16} weight="bold" />}
-        label="Nº de questões corretas"
-        value={String(correct)}
-      />
-      <SimulationStatCard
-        tone="incorrect"
-        icon={<XCircleIcon size={16} weight="bold" />}
-        label="Nº de questões incorretas"
-        value={String(incorrect)}
-      />
-      <SimulationStatCard
-        tone="blank"
-        icon={<MinusCircleIcon size={16} weight="bold" />}
-        label="Nº de questões em branco"
-        value={String(blank)}
-      />
-    </div>
-  );
-}
-
-/** One subtema card: centred coloured label over the content name. */
-function ContentCard({
-  label,
-  labelClassName,
-  content,
-}: {
-  readonly label: string;
-  readonly labelClassName: string;
-  readonly content: StudentSimulationContent | null;
-}) {
-  return (
-    <div className="flex flex-1 flex-col items-center gap-2 rounded-xl border border-border-50 bg-background p-4">
-      <Text
-        size="2xs"
-        weight="medium"
-        className={cn('text-center uppercase', labelClassName)}
-      >
-        {label}
-      </Text>
-      <Text size="md" className="text-center text-text-950">
-        {content?.contentName ?? '—'}
-      </Text>
-    </div>
-  );
-}
-
-/** Best/worst subtema pair; "—" when the simulado has no answered content. */
-function ContentCards({
-  best,
-  worst,
-}: {
-  readonly best: StudentSimulationContent | null;
-  readonly worst: StudentSimulationContent | null;
-}) {
-  return (
-    <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-      <ContentCard
-        label="Subtema com melhor resultado"
-        labelClassName="text-success-300"
-        content={best}
-      />
-      <ContentCard
-        label="Subtema com maior dificuldade"
-        labelClassName="text-error-300"
-        content={worst}
-      />
-    </div>
-  );
-}
-
-/**
- * Header: avatar, name and "Escola • Turma • Ano". The names come from the
- * list response; until it arrives only the name the caller already has shows.
- */
-function StudentHeader({
-  name,
-  student,
-}: {
-  readonly name: string;
-  readonly student: SimulationsListData['student'] | null;
-}) {
-  const location = [
-    student?.school,
-    student?.class,
-    student?.schoolYear,
-  ].filter((part): part is string => Boolean(part));
-
-  return (
-    <div className="flex flex-col gap-2 border-b border-border-200 pb-4">
-      <div className="flex items-center gap-2">
-        <UserIcon size={24} className="shrink-0" />
-        <Text size="md" className="min-w-0 flex-1 truncate text-text-950">
-          {name}
-        </Text>
-      </div>
-      {location.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2">
-          {location.map((part, index) => (
-            <span key={part} className="flex items-center gap-2">
-              {index > 0 && (
-                <span
-                  aria-hidden="true"
-                  className="size-1 rounded-full bg-border-600"
-                />
-              )}
-              <Text size="xs" className="text-text-600">
-                {part}
-              </Text>
-            </span>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/**
- * "Duração · Nota · Feito em" line of a simulado card. Each segment only joins
- * when its field came in the payload, so an older backend shows a shorter line
- * instead of "undefined".
- */
-function buildSimulationMeta(simulation: StudentSimulationItem): string {
-  const parts: string[] = [];
-  if (simulation.timeSpentSeconds !== undefined) {
-    parts.push(`Duração: ${formatTimeSpent(simulation.timeSpentSeconds)}`);
-  }
-  if (simulation.score !== undefined) {
-    parts.push(`Nota: ${formatScoreOutOfTen(simulation.score)}`);
-  }
-  if (simulation.answeredAt) {
-    parts.push(`Feito em: ${formatDateToBrazilian(simulation.answeredAt)}`);
-  }
-  return parts.join(' · ');
-}
-
-// ---------------------------------------------------------------------------
 // Level 1 — Simulation
 // ---------------------------------------------------------------------------
 
@@ -822,14 +564,17 @@ function buildSimulationMeta(simulation: StudentSimulationItem): string {
  * Observation and question list of one simulado, loaded when its card is
  * first expanded.
  */
-function SimulationAnswers({
+export function SimulationAnswers({
   detail,
   note,
+  onRetryNote,
   onSaveNote,
   onSaveQuestionComment,
 }: {
-  readonly detail: DetailState | undefined;
-  readonly note: NoteState | undefined;
+  readonly detail: SimulationDetailState | undefined;
+  readonly note: SimulationNoteState | undefined;
+  /** Load the observation again after a failed request */
+  readonly onRetryNote: () => void;
   readonly onSaveNote: SimulationNoteRowProps['onSave'];
   readonly onSaveQuestionComment: (
     questionId: string,
@@ -855,6 +600,8 @@ function SimulationAnswers({
       <SimulationNoteRow
         note={note?.data ?? null}
         loading={note?.loading ?? false}
+        loadError={note?.error ?? null}
+        onRetry={onRetryNote}
         onSave={onSaveNote}
       />
 
@@ -884,20 +631,14 @@ function SimulationItem({
   onToggle,
   detail,
   note,
+  onRetryNote,
   onSaveNote,
   onSaveQuestionComment,
-}: {
+}: SimulationCardHandlers & {
   readonly simulation: StudentSimulationItem;
   readonly index: number;
   readonly expanded: boolean;
   readonly onToggle: () => void;
-  readonly detail: DetailState | undefined;
-  readonly note: NoteState | undefined;
-  readonly onSaveNote: SimulationNoteRowProps['onSave'];
-  readonly onSaveQuestionComment: (
-    questionId: string,
-    comment: string
-  ) => Promise<void>;
 }) {
   const title = simulation.title?.trim()
     ? simulation.title.trim()
@@ -905,42 +646,14 @@ function SimulationItem({
   const meta = buildSimulationMeta(simulation);
 
   return (
-    <CardAccordation
+    <SimulationCardShell
       value={simulation.id}
+      title={title}
+      meta={meta}
+      correct={simulation.correctCount}
+      totalQuestions={simulation.totalQuestions}
       expanded={expanded}
-      onToggleExpanded={onToggle}
-      triggerClassName="p-4"
-      contentClassName="flex flex-col gap-4 pt-0"
-      trigger={
-        <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <div className="flex items-center justify-between gap-3">
-            <Text size="lg" weight="bold" className="min-w-0 text-text-950">
-              {title}
-            </Text>
-            {meta && (
-              <Text
-                size="xs"
-                weight="semibold"
-                className="shrink-0 text-text-600"
-              >
-                {meta}
-              </Text>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            <ProgressBar
-              value={simulation.correctCount}
-              max={simulation.totalQuestions}
-              variant="green"
-              size="small"
-              className="flex-1"
-            />
-            <Text size="xs" weight="medium" className="shrink-0 text-text-950">
-              {`${simulation.correctCount} de ${simulation.totalQuestions} corretas`}
-            </Text>
-          </div>
-        </div>
-      }
+      onToggle={onToggle}
     >
       <SimulationStatCards
         score={simulation.score}
@@ -962,11 +675,12 @@ function SimulationItem({
         <SimulationAnswers
           detail={detail}
           note={note}
+          onRetryNote={onRetryNote}
           onSaveNote={onSaveNote}
           onSaveQuestionComment={onSaveQuestionComment}
         />
       )}
-    </CardAccordation>
+    </SimulationCardShell>
   );
 }
 
@@ -987,50 +701,30 @@ export function SimulationsDetailModal({
   student,
 }: SimulationsDetailModalProps) {
   const useSimulations = useMemo(() => createUseSimulations(api), [api]);
-  const {
-    fetchStudentSimulations,
-    fetchSimulationDetail,
-    fetchNote,
-    uploadNoteAttachment,
-    saveNote,
-    saveQuestionComment,
-  } = useSimulations();
+  const { fetchStudentSimulations } = useSimulations();
 
   const [list, setList] = useState<SimulationsListData | null>(null);
   const [listLoading, setListLoading] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [details, setDetails] = useState<Record<string, DetailState>>({});
-  const [notes, setNotes] = useState<Record<string, NoteState>>({});
 
-  // Guards async state updates against the modal unmounting mid-request.
-  const mountedRef = useRef(true);
-  useEffect(() => {
-    mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
-
-  // Bumped on every new session (open / student change) so in-flight responses
-  // from a previous student are ignored instead of writing into the new one.
-  const requestEpochRef = useRef(0);
-  useEffect(() => {
-    requestEpochRef.current += 1;
-  }, [isOpen, student?.userInstitutionId]);
-
-  const isStaleResponse = useCallback(
-    (epoch: number) => !mountedRef.current || requestEpochRef.current !== epoch,
-    []
-  );
+  const {
+    expandedId,
+    details,
+    notes,
+    toggle,
+    retryNote,
+    makeSaveNote,
+    makeSaveQuestionComment,
+  } = useSimulationCardDetails({
+    api,
+    userInstitutionId: student?.userInstitutionId ?? null,
+    isOpen,
+  });
 
   useEffect(() => {
     if (!isOpen || !student) return;
 
     setList(null);
-    setExpandedId(null);
-    setDetails({});
-    setNotes({});
     setListLoading(true);
     setListError(null);
 
@@ -1051,142 +745,18 @@ export function SimulationsDetailModal({
     };
   }, [isOpen, student, fetchStudentSimulations]);
 
-  const handleToggle = useCallback(
-    (simulationId: string) => {
-      if (!student) return;
-      const requestEpoch = requestEpochRef.current;
-      const next = expandedId === simulationId ? null : simulationId;
-      setExpandedId(next);
-
-      if (next && !details[simulationId]) {
-        setDetails((prev) => ({
-          ...prev,
-          [simulationId]: { loading: true, error: null, data: null },
-        }));
-        fetchSimulationDetail(student.userInstitutionId, simulationId)
-          .then((data) => {
-            if (isStaleResponse(requestEpoch)) return;
-            setDetails((prev) => ({
-              ...prev,
-              [simulationId]: { loading: false, error: null, data },
-            }));
-          })
-          .catch(() => {
-            if (isStaleResponse(requestEpoch)) return;
-            setDetails((prev) => ({
-              ...prev,
-              [simulationId]: {
-                loading: false,
-                error: 'Erro ao carregar o simulado',
-                data: null,
-              },
-            }));
-          });
-
-        setNotes((prev) => ({
-          ...prev,
-          [simulationId]: { loading: true, data: null },
-        }));
-        fetchNote(student.userInstitutionId, simulationId)
-          .then((data) => {
-            if (isStaleResponse(requestEpoch)) return;
-            setNotes((prev) => ({
-              ...prev,
-              [simulationId]: { loading: false, data },
-            }));
-          })
-          .catch(() => {
-            if (isStaleResponse(requestEpoch)) return;
-            setNotes((prev) => ({
-              ...prev,
-              [simulationId]: { loading: false, data: null },
-            }));
-          });
-      }
-    },
-    [
-      student,
-      expandedId,
-      details,
-      fetchSimulationDetail,
-      fetchNote,
-      isStaleResponse,
-    ]
-  );
-
-  /**
-   * Save the observation of one simulado, uploading a newly chosen file first
-   * so only its public URL travels with the note.
-   */
-  const makeSaveNote = useCallback(
-    (simulationId: string) =>
-      async (
-        text: string,
-        file: File | null,
-        existingAttachment: string | null
-      ) => {
-        if (!student) return;
-        const requestEpoch = requestEpochRef.current;
-        const attachment = file
-          ? await uploadNoteAttachment(file)
-          : existingAttachment;
-        const saved = await saveNote(
-          student.userInstitutionId,
-          simulationId,
-          text,
-          attachment
-        );
-        if (isStaleResponse(requestEpoch)) return;
-        setNotes((prev) => ({
-          ...prev,
-          [simulationId]: { loading: false, data: saved },
-        }));
-      },
-    [student, uploadNoteAttachment, saveNote, isStaleResponse]
-  );
-
-  /**
-   * Save a comment on one question and reflect it in the loaded detail, so the
-   * field's saved value matches what the server now holds without a refetch.
-   */
-  const makeSaveQuestionComment = useCallback(
-    (simulationId: string) => async (questionId: string, comment: string) => {
-      if (!student) return;
-      const requestEpoch = requestEpochRef.current;
-      const saved = await saveQuestionComment(
-        student.userInstitutionId,
-        simulationId,
-        questionId,
-        comment
-      );
-      if (isStaleResponse(requestEpoch)) return;
-      setDetails((prev) => {
-        const current = prev[simulationId];
-        if (!current?.data) return prev;
-        return {
-          ...prev,
-          [simulationId]: {
-            ...current,
-            data: {
-              ...current.data,
-              questions: current.data.questions.map((question) =>
-                question.questionId === questionId
-                  ? { ...question, teacherComment: saved?.teacherComment ?? '' }
-                  : question
-              ),
-            },
-          },
-        };
-      });
-    },
-    [student, saveQuestionComment, isStaleResponse]
-  );
-
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Simulados" size="xl">
       {student && (
         <div className="flex max-h-[70vh] flex-col gap-6 overflow-y-auto pr-1">
-          <StudentHeader name={student.name} student={list?.student ?? null} />
+          <StudentSummaryHeader
+            name={student.name}
+            location={[
+              list?.student.school,
+              list?.student.class,
+              list?.student.schoolYear,
+            ]}
+          />
 
           {listLoading && (
             <>
@@ -1240,9 +810,10 @@ export function SimulationsDetailModal({
                       simulation={simulation}
                       index={index}
                       expanded={expandedId === simulation.id}
-                      onToggle={() => handleToggle(simulation.id)}
+                      onToggle={() => toggle(simulation.id)}
                       detail={details[simulation.id]}
                       note={notes[simulation.id]}
+                      onRetryNote={() => retryNote(simulation.id)}
                       onSaveNote={makeSaveNote(simulation.id)}
                       onSaveQuestionComment={makeSaveQuestionComment(
                         simulation.id
