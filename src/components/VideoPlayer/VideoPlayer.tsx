@@ -46,6 +46,12 @@ interface VideoPlayerProps {
   title?: string;
   /** Video subtitle/description */
   subtitle?: string;
+  /**
+   * Hides the header bar that carries the title and subtitle, for designs
+   * where the video sits under a heading of its own. The title is still used
+   * to label the player for screen readers.
+   */
+  hideHeader?: boolean;
   /** Initial playback time in seconds */
   initialTime?: number;
   /** Callback fired when video time updates (seconds) */
@@ -324,6 +330,7 @@ const VideoPlayer = ({
   subtitles,
   title,
   subtitle: subtitleText,
+  hideHeader = false,
   initialTime = 0,
   onTimeUpdate,
   onProgress,
@@ -1159,7 +1166,7 @@ const VideoPlayer = ({
   return (
     <div className={cn('flex flex-col', className)}>
       {/* Integrated Header */}
-      {(title || subtitleText) && (
+      {!hideHeader && (title || subtitleText) && (
         <div className="bg-subject-1 px-8 py-4 flex items-end justify-between min-h-20">
           <div className="flex flex-col gap-1">
             {title && (
