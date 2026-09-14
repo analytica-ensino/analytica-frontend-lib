@@ -176,7 +176,7 @@ describe('SimulatedStudentSimulationsModal', () => {
     expect(screen.getByText('Desempenho geral')).toBeInTheDocument();
     // 73.7% of 10, one decimal.
     expect(screen.getAllByText('7,4').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Nº de questões corretas').length).toBe(2);
+    expect(screen.getAllByText('Nº de questões corretas')).toHaveLength(2);
     // The overall card and the simulado's own card both show 14 correct.
     expect(screen.getAllByText('14')).toHaveLength(2);
 
