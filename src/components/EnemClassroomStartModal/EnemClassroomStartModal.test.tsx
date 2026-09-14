@@ -128,10 +128,7 @@ describe('EnemClassroomStartModal', () => {
     expect(
       screen.getByText('Você já tem o curso que quer fazer em mente?')
     ).toBeInTheDocument();
-    expect(screen.getByTestId('enem-classroom-next')).toBeDisabled();
-
-    // Choosing "yes" opens the field, but an empty field is not an answer.
-    fireEvent.click(screen.getByTestId('enem-classroom-survey-text'));
+    // The field is there from the start; empty, it is not an answer.
     expect(screen.getByTestId('enem-classroom-next')).toBeDisabled();
 
     fireEvent.change(screen.getByPlaceholderText('Escreva o curso'), {
@@ -147,12 +144,80 @@ describe('EnemClassroomStartModal', () => {
     expect(screen.getByTestId('enem-classroom-next')).toBeEnabled();
   });
 
+  it('lets the field and the skip box disable each other', () => {
+    setup();
+    goToLanguageStep();
+    pickLanguage('espanhol');
+    next();
+
+    const field = screen.getByPlaceholderText('Escreva o curso');
+    const skip = screen.getByTestId('enem-classroom-survey-skip');
+
+    // Nothing answered: both live, and the step is held.
+    expect(field).toBeEnabled();
+    expect(skip).toBeEnabled();
+    expect(screen.getByTestId('enem-classroom-next')).toBeDisabled();
+
+    // Typing a course locks the skip box and releases the step.
+    fireEvent.change(field, { target: { value: 'Biologia' } });
+    expect(skip).toBeDisabled();
+    expect(screen.getByTestId('enem-classroom-next')).toBeEnabled();
+
+    // Clearing it hands the skip box back and holds the step again.
+    fireEvent.change(field, { target: { value: '' } });
+    expect(skip).toBeEnabled();
+    expect(screen.getByTestId('enem-classroom-next')).toBeDisabled();
+
+    // Ticking skip locks the field and releases the step.
+    fireEvent.click(skip);
+    expect(field).toBeDisabled();
+    expect(screen.getByTestId('enem-classroom-next')).toBeEnabled();
+
+    fireEvent.click(skip);
+    expect(field).toBeEnabled();
+    expect(screen.getByTestId('enem-classroom-next')).toBeDisabled();
+  });
+
+  // Both survey steps carry an illustration, keyed by position. That the two
+  // images differ cannot be asserted here: moduleNameMapper stubs every image
+  // import with the same string, so the srcs are identical under jest.
+  it('illustrates every survey step', () => {
+    setup();
+    goToLanguageStep();
+    pickLanguage('espanhol');
+    next();
+
+    expect(
+      screen.getByTestId('enem-classroom-survey-illustration')
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId('enem-classroom-survey-skip'));
+    next();
+
+    expect(
+      screen.getByTestId('enem-classroom-survey-illustration')
+    ).toBeInTheDocument();
+  });
+
+  it('whitespace alone is not an answer', () => {
+    setup();
+    goToLanguageStep();
+    pickLanguage('espanhol');
+    next();
+
+    fireEvent.change(screen.getByPlaceholderText('Escreva o curso'), {
+      target: { value: '   ' },
+    });
+
+    expect(screen.getByTestId('enem-classroom-next')).toBeDisabled();
+    expect(screen.getByTestId('enem-classroom-survey-skip')).toBeEnabled();
+  });
+
   it('summarises the answers and starts with the trimmed payload', () => {
     const { onStart } = setup();
     goToLanguageStep();
     pickLanguage('espanhol');
     next();
-    fireEvent.click(screen.getByTestId('enem-classroom-survey-text'));
     fireEvent.change(screen.getByPlaceholderText('Escreva o curso'), {
       target: { value: '  Biologia ' },
     });
