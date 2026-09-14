@@ -13,8 +13,9 @@ import { cn } from './utils';
  * Render the "Componente curricular" cell of a table row.
  *
  * An activity covers several subjects, and several names do not fit the column
- * — so the cell is a row of subject icons, which the backend now describes with
- * a `color` and an `icon` on every subject.
+ * — so from two subjects on the cell is a row of subject icons, which the
+ * backend describes with a `color` and an `icon` on every subject. A lone
+ * subject is spelled out by name next to its chip.
  *
  * Tolerates a non-array value because `ColumnConfig.render` is typed `unknown`:
  * a row that predates the field renders as empty rather than throwing.

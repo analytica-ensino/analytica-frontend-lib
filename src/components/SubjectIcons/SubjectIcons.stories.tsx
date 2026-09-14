@@ -9,6 +9,13 @@ const SUBJECTS: SubjectIconsItem[] = [
   { id: '5', name: 'História', color: '#EF6C00', icon: 'BookOpen' },
 ];
 
+const LONG_NAME_SUBJECT: SubjectIconsItem = {
+  id: '6',
+  name: 'Língua Portuguesa',
+  color: '#00796B',
+  icon: 'BookOpen',
+};
+
 /**
  * Every count the "Componente curricular" column has to survive, inside a cell
  * of the real width so the overflow behaviour is visible.
@@ -17,8 +24,9 @@ export const AllSubjectIcons: Story = () => (
   <div className="flex flex-col gap-8 p-8">
     <h2 className="font-bold text-3xl text-text-900">SubjectIcons</h2>
     <p className="text-text-700">
-      Um ícone por componente curricular. Acima de <code>maxVisible</code> o
-      excedente vira <code>+N</code>; os nomes completos ficam no tooltip.
+      Um único componente curricular aparece com o nome ao lado do ícone. De
+      dois em diante só os ícones cabem: acima de <code>maxVisible</code> o
+      excedente vira <code>+N</code> e os nomes completos ficam no tooltip.
     </p>
 
     <section>
@@ -41,6 +49,13 @@ export const AllSubjectIcons: Story = () => (
               </td>
             </tr>
           ))}
+          {/* O nome mais longo do catálogo: é ele que decide se a coluna de
+              140px aguenta o caso de um componente só. */}
+          <tr className="border-t border-border-200">
+            <td className="p-2 max-w-[140px] whitespace-nowrap">
+              <SubjectIcons subjects={[LONG_NAME_SUBJECT]} />
+            </td>
+          </tr>
         </tbody>
       </table>
     </section>

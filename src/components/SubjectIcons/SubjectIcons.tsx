@@ -2,6 +2,7 @@ import type { JSX } from 'react';
 import { IconRender } from '../IconRender/IconRender';
 import Text from '../Text/Text';
 import { Tooltip } from '../Tooltip/Tooltip';
+import { TruncatedText } from '../TruncatedText/TruncatedText';
 import { useTheme } from '../../hooks/useTheme';
 import { getSubjectColorWithOpacity } from '../../utils/utils';
 
@@ -38,15 +39,47 @@ export interface SubjectIconsProps {
 const FALLBACK_ICON = 'BookOpen';
 
 /**
+ * Colored square carrying a subject's icon.
+ *
+ * @param subject - Subject to draw
+ * @param isDark - Whether the dark theme is active, which shifts the chip color
+ * @returns The chip element
+ */
+const SubjectChip = ({
+  subject,
+  isDark,
+}: {
+  subject: SubjectIconsItem;
+  isDark: boolean;
+}): JSX.Element => (
+  <span
+    aria-label={subject.name}
+    className="w-[21px] h-[21px] flex items-center justify-center rounded-sm text-text-950 shrink-0"
+    style={{
+      backgroundColor: getSubjectColorWithOpacity(subject.color, isDark),
+    }}
+  >
+    <IconRender
+      iconName={subject.icon || FALLBACK_ICON}
+      size={14}
+      color="currentColor"
+    />
+  </span>
+);
+
+/**
  * Row of subject icons for a table cell.
  *
  * An activity covers several subjects now, and several names do not fit a table
- * cell — so the subjects are drawn as their colored icons, which is what
- * identifies them at that size. The full list of names lives in the tooltip.
+ * cell — so from two subjects on they are drawn as their colored icons, which is
+ * what identifies them at that size, and the full list of names lives in the
+ * tooltip. A single subject does fit, and its name identifies it far better than
+ * the icon alone, so it is spelled out next to the chip.
  *
  * @example
  * ```tsx
  * <SubjectIcons subjects={activity.subjects} />
+ * // 1 subject  -> chip + "Biologia"
  * // 5 subjects -> 3 icons + "+2", tooltip lists all 5 names
  * ```
  */
@@ -69,6 +102,19 @@ export const SubjectIcons = ({
     );
   }
 
+  if (subjects.length === 1) {
+    const [subject] = subjects;
+    return (
+      <div
+        className={className ?? 'flex items-center gap-2 min-w-0'}
+        data-testid="subject-icons"
+      >
+        <SubjectChip subject={subject} isDark={isDark} />
+        <TruncatedText size="sm">{subject.name}</TruncatedText>
+      </div>
+    );
+  }
+
   const visible = subjects.slice(0, maxVisible);
   const hiddenCount = subjects.length - visible.length;
 
@@ -82,23 +128,7 @@ export const SubjectIcons = ({
         data-testid="subject-icons"
       >
         {visible.map((subject) => (
-          <span
-            key={subject.id}
-            aria-label={subject.name}
-            className="w-[21px] h-[21px] flex items-center justify-center rounded-sm text-text-950 shrink-0"
-            style={{
-              backgroundColor: getSubjectColorWithOpacity(
-                subject.color,
-                isDark
-              ),
-            }}
-          >
-            <IconRender
-              iconName={subject.icon || FALLBACK_ICON}
-              size={14}
-              color="currentColor"
-            />
-          </span>
+          <SubjectChip key={subject.id} subject={subject} isDark={isDark} />
         ))}
         {hiddenCount > 0 && (
           <Text size="sm" color="text-text-600" className="shrink-0">
