@@ -36,6 +36,7 @@ import {
   formatDateToBrazilian,
   formatTimeSpent,
 } from '../../utils/activityDetailsUtils';
+import { formatScoreOutOfTen } from '../../utils/simulatedScore';
 import type { BaseApiClient } from '../../types/api';
 import { createUseSimulations } from '../../hooks/useSimulations';
 import type {
@@ -77,16 +78,6 @@ const QUESTION_STATUS_MAP: Record<
   BLANK: QUESTION_STATUS.EM_BRANCO,
   PENDING: QUESTION_STATUS.PENDENTE,
 };
-
-/**
- * Format a 0-100 score as a 0-10 grade with one decimal, pt-BR ("7,1").
- */
-function formatScoreOutOfTen(percentage: number): string {
-  return (percentage / 10).toLocaleString('pt-BR', {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-  });
-}
 
 /** Label of the inner accordion holding the student's answer. */
 function getAnswerAccordionTitle(questionType: string): string {
