@@ -478,5 +478,9 @@ export default defineConfig({
   loader: {
     '.png': 'dataurl',
     '.gif': 'dataurl',
+    // `global.d.ts` já declarava `*.svg`, mas sem loader o build quebrava em
+    // qualquer import. Ilustrações vetoriais entram por aqui em vez de virar
+    // PNG (que borra em retina) ou 60 paths inline num .tsx.
+    '.svg': 'dataurl',
   },
 });
