@@ -189,8 +189,14 @@ const QuizTitle = forwardRef<
     <>
       <div
         ref={ref}
+        /*
+         * Três colunas em vez de `justify-between`: as laterais são `1fr`
+         * iguais, então o título fica centralizado na tela mesmo com o voltar
+         * e o cronômetro tendo larguras diferentes. Com flex ele era empurrado
+         * para a direita junto do cronômetro.
+         */
         className={cn(
-          'flex flex-row justify-between items-center relative p-2',
+          'grid grid-cols-[1fr_auto_1fr] items-center gap-2 relative p-2',
           className
         )}
         {...props}
@@ -200,20 +206,19 @@ const QuizTitle = forwardRef<
           size="md"
           aria-label="Voltar"
           onClick={handleBackClick}
+          className="justify-self-start"
         />
-        <div className="flex flex-row items-center gap-4">
-          {showTimer && <QuizTimer />}
-          <span className="flex flex-col gap-2 text-center">
-            <Text size="md" weight="bold" color="text-text-950">
-              {quizTitle}
-            </Text>
-            <Text size="xs" color="text-text-600">
-              {totalQuestions > 0
-                ? `${currentQuestionIndex + 1} de ${totalQuestions}`
-                : '0 de 0'}
-            </Text>
-          </span>
-        </div>
+        <span className="flex flex-col gap-2 text-center">
+          <Text size="md" weight="bold" color="text-text-950">
+            {quizTitle}
+          </Text>
+          <Text size="xs" color="text-text-600">
+            {totalQuestions > 0
+              ? `${currentQuestionIndex + 1} de ${totalQuestions}`
+              : '0 de 0'}
+          </Text>
+        </span>
+        <div className="justify-self-end">{showTimer && <QuizTimer />}</div>
       </div>
 
       <AlertDialog

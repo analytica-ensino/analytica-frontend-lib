@@ -60,8 +60,8 @@ describe('QuizTimer', () => {
 
     render(<QuizTimer />);
 
-    expect(screen.getByRole('timer').className).toContain('text-text-600');
-    expect(screen.getByRole('timer').className).not.toContain('text-error-600');
+    expect(screen.getByRole('timer').className).toContain('text-info-800');
+    expect(screen.getByRole('timer').className).not.toContain('text-error-700');
   });
 
   it('turns red and keeps counting once the threshold is passed', () => {
@@ -73,7 +73,7 @@ describe('QuizTimer', () => {
     render(<QuizTimer />);
 
     const timer = screen.getByRole('timer');
-    expect(timer.className).toContain('text-error-600');
+    expect(timer.className).toContain('text-error-700');
     // The count continues past the threshold rather than freezing on it.
     expect(screen.getByText('05:12:34')).toBeInTheDocument();
     expect(timer).toHaveAttribute(
@@ -89,7 +89,7 @@ describe('QuizTimer', () => {
 
     render(<QuizTimer />);
 
-    expect(screen.getByRole('timer').className).not.toContain('text-error-600');
+    expect(screen.getByRole('timer').className).not.toContain('text-error-700');
   });
 
   it('applies a custom className', () => {
