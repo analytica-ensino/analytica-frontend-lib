@@ -33,12 +33,31 @@ describe('SubjectIcons', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it('renders a single subject without a counter', () => {
+  it('spells out the name of a lone subject, without a counter', () => {
     render(<SubjectIcons subjects={SUBJECTS.slice(0, 1)} />);
 
     const row = screen.getByTestId('subject-icons');
     expect(within(row).getByLabelText('Biologia')).toBeInTheDocument();
+    expect(within(row).getByText('Biologia')).toBeInTheDocument();
     expect(within(row).queryByText(/^\+/)).not.toBeInTheDocument();
+  });
+
+  it('spells out a lone subject regardless of maxVisible', () => {
+    render(<SubjectIcons subjects={SUBJECTS.slice(0, 1)} maxVisible={1} />);
+
+    const row = screen.getByTestId('subject-icons');
+    expect(within(row).getByText('Biologia')).toBeInTheDocument();
+    expect(within(row).queryByText(/^\+/)).not.toBeInTheDocument();
+  });
+
+  it('drops the names once there is more than one subject', () => {
+    render(<SubjectIcons subjects={SUBJECTS.slice(0, 2)} />);
+
+    const row = screen.getByTestId('subject-icons');
+    expect(within(row).getByLabelText('Biologia')).toBeInTheDocument();
+    expect(within(row).getByLabelText('Física')).toBeInTheDocument();
+    expect(within(row).queryByText('Biologia')).not.toBeInTheDocument();
+    expect(within(row).queryByText('Física')).not.toBeInTheDocument();
   });
 
   it('renders every subject when the count is within maxVisible', () => {
