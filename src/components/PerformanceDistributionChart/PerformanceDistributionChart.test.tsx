@@ -75,7 +75,7 @@ describe('PerformanceDistributionChart', () => {
       render(<PerformanceDistributionChart counters={createMockCounters()} />);
 
       expect(
-        screen.getByText('Proficiência por quantidade de estudante')
+        screen.getByText('Desempenho por quantidade de estudante')
       ).toBeInTheDocument();
     });
 
@@ -92,26 +92,40 @@ describe('PerformanceDistributionChart', () => {
       ).toBeInTheDocument();
     });
 
-    it('renders all legend items', () => {
+    it('renders all legend items, best band first', () => {
       render(<PerformanceDistributionChart counters={createMockCounters()} />);
 
-      expect(screen.getByText('Ponto de atenção')).toBeInTheDocument();
-      expect(screen.getByText('Abaixo da média')).toBeInTheDocument();
-      expect(screen.getByText('Acima da média')).toBeInTheDocument();
-      expect(screen.getByText('Destaque da turma')).toBeInTheDocument();
+      const labels = [
+        'Destaque',
+        'Acima da média',
+        'Abaixo da média',
+        'Ponto de atenção',
+      ];
+      for (const label of labels) {
+        expect(screen.getByText(label)).toBeInTheDocument();
+      }
+      expect(screen.queryByText('Destaque da turma')).not.toBeInTheDocument();
+
+      // Legend order matches the design: top-down from Destaque
+      const positions = labels.map((label) =>
+        Array.from(document.body.querySelectorAll('*')).indexOf(
+          screen.getByText(label)
+        )
+      );
+      expect([...positions].sort((a, b) => a - b)).toEqual(positions);
     });
 
-    it('renders correct student counts', () => {
+    it('renders student counts with a rounded percentage', () => {
       render(<PerformanceDistributionChart counters={createMockCounters()} />);
 
       // Total is 55 students
-      expect(screen.getByText(/5 alunos \(9\.1%\)/)).toBeInTheDocument(); // attentionPoint
-      expect(screen.getByText(/15 alunos \(27\.3%\)/)).toBeInTheDocument(); // belowAverage
-      expect(screen.getByText(/25 alunos \(45\.5%\)/)).toBeInTheDocument(); // aboveAverage
-      expect(screen.getByText(/10 alunos \(18\.2%\)/)).toBeInTheDocument(); // highlight
+      expect(screen.getByText('10 estudantes (18%)')).toBeInTheDocument(); // highlight
+      expect(screen.getByText('25 estudantes (45%)')).toBeInTheDocument(); // aboveAverage
+      expect(screen.getByText('15 estudantes (27%)')).toBeInTheDocument(); // belowAverage
+      expect(screen.getByText('5 estudantes (9%)')).toBeInTheDocument(); // attentionPoint
     });
 
-    it('renders singular "aluno" for count of 1', () => {
+    it('renders singular "estudante" for count of 1', () => {
       const counters: SimulatedPerformanceCounters = {
         highlight: 1,
         aboveAverage: 0,
@@ -121,13 +135,40 @@ describe('PerformanceDistributionChart', () => {
 
       render(<PerformanceDistributionChart counters={counters} />);
 
-      expect(screen.getByText(/1 aluno \(100\.0%\)/)).toBeInTheDocument();
+      expect(screen.getByText('1 estudante (100%)')).toBeInTheDocument();
+      expect(screen.getByText('1 estudante')).toBeInTheDocument();
     });
 
-    it('renders total count', () => {
+    it('renders the total row with the label and the count apart', () => {
       render(<PerformanceDistributionChart counters={createMockCounters()} />);
 
-      expect(screen.getByText('Total: 55 alunos')).toBeInTheDocument();
+      expect(screen.getByText('Total')).toBeInTheDocument();
+      expect(screen.getByText('55 estudantes')).toBeInTheDocument();
+    });
+
+    // Greys and divider of the design: counts in text-600, divider in border-200
+    it('uses the design greys for counts and the divider', () => {
+      render(<PerformanceDistributionChart counters={createMockCounters()} />);
+
+      expect(screen.getByText('10 estudantes (18%)')).toHaveClass(
+        'text-text-600'
+      );
+      expect(screen.getByText('55 estudantes')).toHaveClass('text-text-600');
+      expect(screen.getByText('Total')).toHaveClass('text-text-950');
+
+      const totalRow = screen.getByTestId('performance-distribution-total');
+      expect(totalRow).toHaveClass('border-t', 'border-border-200', 'pt-4');
+    });
+
+    // Legend and pie split the card in two halves; the pie sits centred in
+    // the right one.
+    it('gives the pie the right half of the card', () => {
+      render(<PerformanceDistributionChart counters={createMockCounters()} />);
+
+      const pieColumn = screen.getByTestId('performance-distribution-pie');
+      expect(pieColumn).toHaveClass('basis-1/2', 'justify-center');
+      expect(pieColumn.querySelector('svg')).not.toBeNull();
+      expect(pieColumn.previousElementSibling).toHaveClass('basis-1/2');
     });
 
     it('renders custom totalStudents when provided', () => {
@@ -138,7 +179,7 @@ describe('PerformanceDistributionChart', () => {
         />
       );
 
-      expect(screen.getByText('Total: 100 alunos')).toBeInTheDocument();
+      expect(screen.getByText('100 estudantes')).toBeInTheDocument();
     });
 
     it('renders SVG pie chart', () => {
@@ -170,7 +211,7 @@ describe('PerformanceDistributionChart', () => {
       expect(screen.getByText('Ponto de atenção')).toBeInTheDocument();
       expect(screen.getByText('Abaixo da média')).toBeInTheDocument();
       expect(screen.getByText('Acima da média')).toBeInTheDocument();
-      expect(screen.getByText('Destaque da turma')).toBeInTheDocument();
+      expect(screen.getByText('Destaque')).toBeInTheDocument();
     });
   });
 
@@ -234,8 +275,32 @@ describe('PerformanceDistributionChart', () => {
     it('handles undefined counters gracefully', () => {
       render(<PerformanceDistributionChart counters={undefined} />);
 
-      // Should show empty legend items
-      expect(screen.getByText('Total: 0 alunos')).toBeInTheDocument();
+      // No legend rows, but the total row still reads zero
+      expect(screen.getByText('Total')).toBeInTheDocument();
+      expect(screen.getByText('0 estudantes')).toBeInTheDocument();
     });
+  });
+});
+
+describe('PerformanceDistributionChart colours', () => {
+  // The four bands share the semantic `map-*` tokens with the choropleth map,
+  // and the legend dot and the pie slice must derive from the same class.
+  it('paints legend dots and pie slices with the map band tokens', () => {
+    const { container } = render(
+      <PerformanceDistributionChart counters={createMockCounters()} />
+    );
+
+    const expected = [
+      ['Destaque', 'bg-map-highlight', 'var(--color-map-highlight)'],
+      ['Acima da média', 'bg-map-above-avg', 'var(--color-map-above-avg)'],
+      ['Abaixo da média', 'bg-map-below-avg', 'var(--color-map-below-avg)'],
+      ['Ponto de atenção', 'bg-map-attention', 'var(--color-map-attention)'],
+    ] as const;
+
+    for (const [label, dotClass, fill] of expected) {
+      const legendRow = screen.getByText(label).closest('div')?.parentElement;
+      expect(legendRow?.querySelector(`.${dotClass}`)).not.toBeNull();
+      expect(container.querySelector(`path[fill="${fill}"]`)).not.toBeNull();
+    }
   });
 });

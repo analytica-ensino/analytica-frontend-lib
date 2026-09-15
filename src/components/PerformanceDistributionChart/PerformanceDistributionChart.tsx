@@ -13,7 +13,7 @@ import type {
 // ============================================================================
 
 /** SVG viewBox size in pixels */
-const CHART_SIZE = 180;
+const CHART_SIZE = 160;
 
 /** Minimum percentage threshold to display label inside slice */
 const MIN_PERCENTAGE_FOR_LABEL = 8;
@@ -40,36 +40,44 @@ function buildSlices(counters: SimulatedPerformanceCounters): SliceData[] {
 
   if (total === 0) return [];
 
+  // Best band first, as the legend and the pie read top-down / clockwise
   return [
     {
-      key: 'attentionPoint',
-      label: 'Ponto de atenção',
-      value: counters.attentionPoint,
-      percentage: (counters.attentionPoint / total) * 100,
-      colorClass: 'bg-error-600',
-    },
-    {
-      key: 'belowAverage',
-      label: 'Abaixo da média',
-      value: counters.belowAverage,
-      percentage: (counters.belowAverage / total) * 100,
-      colorClass: 'bg-warning-400',
+      key: 'highlight',
+      label: 'Destaque',
+      value: counters.highlight,
+      percentage: (counters.highlight / total) * 100,
+      colorClass: 'bg-map-highlight',
     },
     {
       key: 'aboveAverage',
       label: 'Acima da média',
       value: counters.aboveAverage,
       percentage: (counters.aboveAverage / total) * 100,
-      colorClass: 'bg-success-400',
+      colorClass: 'bg-map-above-avg',
     },
     {
-      key: 'highlight',
-      label: 'Destaque da turma',
-      value: counters.highlight,
-      percentage: (counters.highlight / total) * 100,
-      colorClass: 'bg-success-700',
+      key: 'belowAverage',
+      label: 'Abaixo da média',
+      value: counters.belowAverage,
+      percentage: (counters.belowAverage / total) * 100,
+      colorClass: 'bg-map-below-avg',
+    },
+    {
+      key: 'attentionPoint',
+      label: 'Ponto de atenção',
+      value: counters.attentionPoint,
+      percentage: (counters.attentionPoint / total) * 100,
+      colorClass: 'bg-map-attention',
     },
   ];
+}
+
+/**
+ * "1 estudante" / "4 estudantes"
+ */
+function formatStudents(count: number): string {
+  return `${count} ${count === 1 ? 'estudante' : 'estudantes'}`;
 }
 
 /**
@@ -91,7 +99,7 @@ export function PerformanceDistributionChart({
   counters,
   totalStudents,
   loading = false,
-  title = 'Proficiência por quantidade de estudante',
+  title = 'Desempenho por quantidade de estudante',
 }: PerformanceDistributionChartProps) {
   const [hoveredSlice, setHoveredSlice] = useState<string | null>(null);
 
@@ -110,48 +118,60 @@ export function PerformanceDistributionChart({
 
   return (
     <div className="bg-background border border-border-50 rounded-xl p-5">
-      <Text as="h3" size="md" weight="semibold" className="text-text-950 mb-4">
+      <Text as="h3" size="lg" weight="bold" className="text-text-950 mb-4">
         {title}
       </Text>
 
-      <div className="flex items-center justify-between gap-6">
-        {/* Legend */}
-        <div className="flex flex-col gap-3">
+      {/* Two halves: legend bottom-aligned on the left, pie centred on the right */}
+      <div className="flex items-stretch gap-2">
+        {/* Legend: one row per band, count right-aligned; total underneath */}
+        <div className="flex basis-1/2 min-w-0 flex-col justify-end gap-4">
           {slices.map((slice) => (
             <div
               key={slice.key}
-              className={`flex items-center gap-3 transition-opacity ${
+              className={`flex items-center justify-between gap-3 transition-opacity ${
                 hoveredSlice && hoveredSlice !== slice.key ? 'opacity-50' : ''
               }`}
               onMouseEnter={() => setHoveredSlice(slice.key)}
               onMouseLeave={() => setHoveredSlice(null)}
             >
-              <span
-                className={`w-3 h-3 rounded-full ${slice.colorClass} shrink-0`}
-              />
-              <div className="flex flex-col">
+              <div className="flex items-center gap-2 min-w-0">
+                <span
+                  className={`w-2 h-2 rounded-full ${slice.colorClass} shrink-0`}
+                />
                 <Text size="sm" weight="medium" className="text-text-950">
                   {slice.label}
                 </Text>
-                <Text size="xs" className="text-text-500">
-                  {slice.value} {slice.value === 1 ? 'aluno' : 'alunos'} (
-                  {slice.percentage.toFixed(1)}%)
-                </Text>
               </div>
+              <Text
+                size="sm"
+                weight="medium"
+                className="text-text-600 shrink-0"
+              >
+                {formatStudents(slice.value)} ({Math.round(slice.percentage)}%)
+              </Text>
             </div>
           ))}
 
           {/* Total */}
-          <div className="pt-2 border-t border-border-100">
-            <Text size="sm" weight="semibold" className="text-text-950">
-              Total: {totalStudents ?? total}{' '}
-              {(totalStudents ?? total) === 1 ? 'aluno' : 'alunos'}
+          <div
+            data-testid="performance-distribution-total"
+            className="pt-4 border-t border-border-200 flex items-center justify-between gap-3"
+          >
+            <Text size="sm" weight="medium" className="text-text-950">
+              Total
+            </Text>
+            <Text size="sm" weight="medium" className="text-text-600">
+              {formatStudents(totalStudents ?? total)}
             </Text>
           </div>
         </div>
 
-        {/* Pie Chart */}
-        <div className="shrink-0">
+        {/* Pie Chart, centred in the right half */}
+        <div
+          data-testid="performance-distribution-pie"
+          className="flex basis-1/2 min-w-0 items-center justify-center"
+        >
           <SimplePieChart
             slices={pieSlices}
             size={CHART_SIZE}
@@ -159,7 +179,7 @@ export function PerformanceDistributionChart({
             minPercentageForLabel={MIN_PERCENTAGE_FOR_LABEL}
             labelRadiusRatio={LABEL_RADIUS_RATIO}
             labelColor="white"
-            labelFontWeight={600}
+            labelFontWeight={500}
             labelTextShadow="0 1px 2px rgba(0,0,0,0.3)"
             hoverOpacity={HOVER_OPACITY}
             hoveredSlice={hoveredSlice}

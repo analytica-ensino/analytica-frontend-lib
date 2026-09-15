@@ -85,6 +85,37 @@ describe('StudentRanking', () => {
         expect(screen.getByText('40%')).toBeInTheDocument();
       });
 
+      it('hides the percentage badge when showPercentage is false', () => {
+        render(
+          <StudentRanking
+            highlightStudents={mockHighlightStudents}
+            attentionStudents={mockAttentionStudents}
+            showPercentage={false}
+          />
+        );
+
+        // Names and positions stay; only the badge on the right goes.
+        expect(screen.getByText('Valentina Ribeiro')).toBeInTheDocument();
+        expect(screen.getByText('Ricardo Silva')).toBeInTheDocument();
+        expect(screen.queryByText('100%')).not.toBeInTheDocument();
+        expect(screen.queryByText('80%')).not.toBeInTheDocument();
+        expect(screen.queryByLabelText(/Desempenho/)).not.toBeInTheDocument();
+      });
+
+      it('hides the percentage badge of a single RankingCard too', () => {
+        render(
+          <RankingCard
+            title="Estudantes em destaque"
+            variant="highlight"
+            students={mockHighlightStudents}
+            showPercentage={false}
+          />
+        );
+
+        expect(screen.getByText('Lucas Almeida')).toBeInTheDocument();
+        expect(screen.queryByText('100%')).not.toBeInTheDocument();
+      });
+
       it('should render position badges', () => {
         const { container } = render(
           <StudentRanking

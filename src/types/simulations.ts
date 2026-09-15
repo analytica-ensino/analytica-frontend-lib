@@ -42,6 +42,16 @@ export interface SimulationsStudentsFilters {
 
 // ---------------------------------------------------------------------------
 
+/** Hit rate of one subtema (content) inside a student's simulado */
+export interface StudentSimulationContent {
+  contentId: string;
+  contentName: string;
+  correct: number;
+  totalQuestions: number;
+  /** 0-100, one decimal */
+  correctPercentage: number;
+}
+
 export interface StudentSimulationItem {
   id: string;
   title: string;
@@ -50,6 +60,20 @@ export interface StudentSimulationItem {
   blankCount: number;
   totalQuestions: number;
   createdAt: string | null;
+  /**
+   * Score in 0-100; 0 while the simulado has no grade. Optional, like the
+   * fields below, because an older backend does not send them — the modal
+   * then hides the parts it cannot fill instead of breaking.
+   */
+  score?: number;
+  /** Duration in seconds; 0 when never measured */
+  timeSpentSeconds?: number;
+  /** ISO date of the submission; null while in progress */
+  answeredAt?: string | null;
+  /** Subtema with the best hit rate in this simulado; null without answers */
+  bestContent?: StudentSimulationContent | null;
+  /** Subtema with the worst hit rate in this simulado; null without answers */
+  worstContent?: StudentSimulationContent | null;
 }
 
 export interface SimulationsListData {
@@ -57,6 +81,12 @@ export interface SimulationsListData {
     userInstitutionId: string;
     name: string;
     simulationsAnswered: number;
+    /** Enrollment names for the header; optional for an older backend */
+    school?: string | null;
+    class?: string | null;
+    schoolYear?: string | null;
+    /** Seconds spent across every simulado of the student, not only the page */
+    totalTimeSeconds?: number;
   };
   simulations: {
     data: StudentSimulationItem[];
@@ -159,6 +189,11 @@ export interface NoteData {
   activityId: string;
   studentUserInstitutionId: string;
   note: string;
+  /**
+   * Public URL of the file the teacher attached to the note; null without
+   * one. Optional because an older backend does not send the field.
+   */
+  attachment?: string | null;
   updatedAt: string;
 }
 

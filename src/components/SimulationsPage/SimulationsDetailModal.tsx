@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { UserCircleIcon } from '@phosphor-icons/react/dist/csr/UserCircle';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { ChangeEvent } from 'react';
+import { PaperclipIcon } from '@phosphor-icons/react/dist/csr/Paperclip';
+import { XIcon } from '@phosphor-icons/react/dist/csr/X';
 import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
 import TextArea from '../TextArea/TextArea';
 import { CardAccordation } from '../Accordation';
 import { SkeletonCard } from '../Skeleton/Skeleton';
-import { StatCard } from '../shared/StatCard';
 import { QuestionCommentField } from '../shared/QuestionCommentField';
 import {
   TrueFalseStatementList,
@@ -23,13 +24,28 @@ import {
   QUESTION_STATUS,
   type QuestionStatus,
 } from '../../utils/studentActivityCorrection';
+import {
+  buildSimulationMeta,
+  ContentCards,
+  DataCard,
+  SectionTitle,
+  SimulationCardShell,
+  SimulationStatCards,
+  StudentSummaryHeader,
+} from '../shared/SimulationSummaryCards';
 import { cn } from '../../utils/utils';
 import { formatQuestionDuration } from '../../utils/questionDuration';
+import { formatTimeSpent } from '../../utils/activityDetailsUtils';
 import type { BaseApiClient } from '../../types/api';
 import { createUseSimulations } from '../../hooks/useSimulations';
+import {
+  useSimulationCardDetails,
+  type SimulationCardHandlers,
+  type SimulationDetailState,
+  type SimulationNoteState,
+} from '../../hooks/useSimulationCardDetails';
 import type {
   SimulationsListData,
-  SimulationDetailData,
   SimulationDetailQuestion,
   StudentSimulationItem,
   NoteData,
@@ -42,17 +58,6 @@ export interface SimulationsDetailModalProps {
   readonly onClose: () => void;
   /** The student whose simulations are shown (null closes the modal) */
   readonly student: { userInstitutionId: string; name: string } | null;
-}
-
-interface DetailState {
-  loading: boolean;
-  error: string | null;
-  data: SimulationDetailData | null;
-}
-
-interface NoteState {
-  loading: boolean;
-  data: NoteData | null;
 }
 
 /** Map the simulation question status to the shared correction status. */
@@ -84,15 +89,29 @@ function getAnswerAccordionTitle(questionType: string): string {
 // Level 2 — Question (reuses the shared alternatives renderer + status badge)
 // ---------------------------------------------------------------------------
 
-function QuestionItem({
+export interface SimulationQuestionItemProps {
+  readonly question: SimulationDetailQuestion;
+  /** Zero-based position in the simulation; shown as "Questão N". */
+  readonly index: number;
+  /** Persist the teacher comment on this question; an empty string clears it. */
+  readonly onSaveComment: (comment: string) => Promise<void>;
+}
+
+/**
+ * One question of a student's simulation: an accordion with the status badge
+ * in its header and, inside, the statement, the student's answer (alternatives,
+ * true/false marks, essay text or image click, by question type) and the
+ * teacher comment field.
+ *
+ * Exported so consumers that list a student's simulations in their own layout
+ * (the Desempenho report of the teacher app) render questions exactly as the
+ * Simulados page does.
+ */
+export function SimulationQuestionItem({
   question,
   index,
   onSaveComment,
-}: {
-  readonly question: SimulationDetailQuestion;
-  readonly index: number;
-  readonly onSaveComment: (comment: string) => Promise<void>;
-}) {
+}: SimulationQuestionItemProps) {
   const badge = getQuestionStatusBadgeConfig(
     QUESTION_STATUS_MAP[question.status]
   );
@@ -250,24 +269,135 @@ function QuestionItem({
 // Note ("Observação")
 // ---------------------------------------------------------------------------
 
-function NoteRow({
-  note,
-  loading,
-  onSave,
-}: {
+export interface SimulationNoteRowProps {
+  /** Current observation, null when the teacher never wrote one. */
   readonly note: NoteData | null;
   readonly loading: boolean;
-  readonly onSave: (text: string) => Promise<void>;
+  /**
+   * Message of a failed load. While it is set the row offers a retry instead
+   * of the editor: writing over a note that could not be read would replace
+   * it, and this save has no version to protect it.
+   */
+  readonly loadError?: string | null;
+  /** Load the observation again; required whenever `loadError` can be set. */
+  readonly onRetry?: () => void;
+  /**
+   * Persist the observation. `text` is already trimmed and non-empty; `file`
+   * is a newly chosen attachment still to be uploaded (null when none), and
+   * `existingAttachment` is the URL of the saved file the teacher kept — null
+   * when there was none, when it was removed, or when a new file replaces it.
+   */
+  readonly onSave: (
+    text: string,
+    file: File | null,
+    existingAttachment: string | null
+  ) => Promise<void>;
+}
+
+/**
+ * Human label of an attachment URL: its file name, or a generic word when the
+ * URL carries none.
+ */
+function getAttachmentLabel(url: string): string {
+  const lastSegment = url.split('?')[0].split('/').pop() ?? '';
+  try {
+    return decodeURIComponent(lastSegment) || 'Anexo';
+  } catch {
+    return lastSegment || 'Anexo';
+  }
+}
+
+/**
+ * Grey pill naming an attached file. Links to the file when `href` is given
+ * and offers a remove button when `onRemove` is given — the same chip the
+ * activity correction modal uses for its observation attachment.
+ */
+function AttachmentChip({
+  label,
+  href,
+  onRemove,
+}: {
+  readonly label: string;
+  readonly href?: string;
+  readonly onRemove?: () => void;
 }) {
+  const content = (
+    <>
+      <PaperclipIcon size={18} className="shrink-0 text-text-800" />
+      <span className="truncate text-md font-medium text-text-800">
+        {label}
+      </span>
+    </>
+  );
+
+  return (
+    <div className="flex h-10 min-w-0 max-w-[220px] items-center gap-2 rounded-full bg-secondary-500 px-5">
+      {href ? (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex min-w-0 items-center gap-2 hover:underline"
+        >
+          {content}
+        </a>
+      ) : (
+        content
+      )}
+      {onRemove && (
+        <button
+          type="button"
+          onClick={onRemove}
+          className="shrink-0 text-text-700 hover:text-text-950"
+          aria-label={`Remover ${label}`}
+        >
+          <XIcon size={18} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+/**
+ * The simulation-wide teacher observation: a row with the saved text, the
+ * attached file (if any) and an "Incluir"/"Editar" button that swaps into a
+ * textarea with "Anexar" and "Salvar" — the same flow as the observation of
+ * the activity correction modal.
+ *
+ * Exported for the same reason as {@link SimulationQuestionItem}.
+ */
+export function SimulationNoteRow({
+  note,
+  loading,
+  loadError,
+  onRetry,
+  onSave,
+}: SimulationNoteRowProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** File chosen in this editing session, not uploaded yet. */
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  /** Saved attachment the teacher is keeping; null once removed. */
+  const [keptAttachment, setKeptAttachment] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const savedAttachment = note?.attachment ?? null;
 
   const startEditing = () => {
     setDraft(note?.note ?? '');
+    setPendingFile(null);
+    setKeptAttachment(savedAttachment);
     setError(null);
     setEditing(true);
+  };
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    if (file) setPendingFile(file);
+    // Reset so the same file can be picked again after being removed.
+    event.target.value = '';
   };
 
   const handleSave = async () => {
@@ -275,7 +405,11 @@ function NoteRow({
     setSaving(true);
     setError(null);
     try {
-      await onSave(draft.trim());
+      await onSave(
+        draft.trim(),
+        pendingFile,
+        pendingFile ? null : keptAttachment
+      );
       setEditing(false);
     } catch {
       // Keep the editing UI open (draft preserved) and surface the failure.
@@ -285,13 +419,75 @@ function NoteRow({
     }
   };
 
+  /** Left side of the footer: the chosen/kept file, or the "Anexar" button. */
+  const renderAttachmentControl = () => {
+    if (pendingFile) {
+      return (
+        <AttachmentChip
+          label={pendingFile.name}
+          onRemove={() => setPendingFile(null)}
+        />
+      );
+    }
+    if (keptAttachment) {
+      return (
+        <AttachmentChip
+          label={getAttachmentLabel(keptAttachment)}
+          href={keptAttachment}
+          onRemove={() => setKeptAttachment(null)}
+        />
+      );
+    }
+    return (
+      <Button
+        type="button"
+        variant="outline"
+        size="medium"
+        onClick={() => fileInputRef.current?.click()}
+        className="flex items-center gap-2"
+      >
+        <PaperclipIcon size={18} />
+        Anexar
+      </Button>
+    );
+  };
+
   if (loading) {
     return <SkeletonCard className="h-14" />;
   }
 
+  if (loadError) {
+    return (
+      <div className="flex items-center justify-between gap-2 rounded-lg border border-border-200 bg-background p-4">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <Text size="md" weight="bold" className="text-text-950">
+            Observação
+          </Text>
+          <Text size="sm" className="text-error-600">
+            {loadError}
+          </Text>
+        </div>
+        {onRetry && (
+          <Button
+            type="button"
+            variant="outline"
+            size="medium"
+            onClick={onRetry}
+            className="shrink-0"
+          >
+            Tentar novamente
+          </Button>
+        )}
+      </div>
+    );
+  }
+
   if (editing) {
     return (
-      <div className="flex flex-col gap-2 rounded-xl border border-border-200 p-3">
+      <div className="flex flex-col gap-4 rounded-lg border border-border-200 bg-background p-4">
+        <Text size="md" weight="bold" className="text-text-950">
+          Observação
+        </Text>
         <TextArea
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
@@ -303,17 +499,21 @@ function NoteRow({
             {error}
           </Text>
         )}
-        <div className="flex justify-end gap-2">
+        {/* Only images: the pre-signed upload endpoint accepts nothing else. */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          className="hidden"
+          accept="image/*"
+          onChange={handleFileChange}
+          aria-label="Selecionar arquivo"
+        />
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+          {renderAttachmentControl()}
           <Button
-            variant="outline"
-            size="small"
-            onClick={() => setEditing(false)}
-          >
-            Cancelar
-          </Button>
-          <Button
+            type="button"
             variant="solid"
-            size="small"
+            size="medium"
             onClick={handleSave}
             disabled={saving || !draft.trim()}
           >
@@ -325,9 +525,9 @@ function NoteRow({
   }
 
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-border-200 p-3">
-      <div className="flex min-w-0 flex-col">
-        <Text size="sm" weight="bold" className="text-text-950">
+    <div className="flex items-center justify-between gap-2 rounded-lg border border-border-200 bg-background p-4">
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <Text size="md" weight="bold" className="text-text-950">
           Observação
         </Text>
         {note?.note && (
@@ -336,9 +536,22 @@ function NoteRow({
           </Text>
         )}
       </div>
-      <Button variant="solid" size="small" onClick={startEditing}>
-        {note?.note ? 'Editar' : 'Incluir'}
-      </Button>
+      <div className="flex shrink-0 items-center gap-2">
+        {savedAttachment && (
+          <AttachmentChip
+            label={getAttachmentLabel(savedAttachment)}
+            href={savedAttachment}
+          />
+        )}
+        <Button
+          type="button"
+          variant="solid"
+          size="medium"
+          onClick={startEditing}
+        >
+          {note?.note ? 'Editar' : 'Incluir'}
+        </Button>
+      </div>
     </div>
   );
 }
@@ -347,6 +560,70 @@ function NoteRow({
 // Level 1 — Simulation
 // ---------------------------------------------------------------------------
 
+/**
+ * Observation and question list of one simulado, loaded when its card is
+ * first expanded.
+ */
+export function SimulationAnswers({
+  detail,
+  note,
+  onRetryNote,
+  onSaveNote,
+  onSaveQuestionComment,
+}: {
+  readonly detail: SimulationDetailState | undefined;
+  readonly note: SimulationNoteState | undefined;
+  /** Load the observation again after a failed request */
+  readonly onRetryNote: () => void;
+  readonly onSaveNote: SimulationNoteRowProps['onSave'];
+  readonly onSaveQuestionComment: (
+    questionId: string,
+    comment: string
+  ) => Promise<void>;
+}) {
+  if (!detail || detail.loading) {
+    return <SkeletonCard className="h-40" />;
+  }
+
+  if (detail.error) {
+    return (
+      <Text size="sm" className="text-error-600">
+        {detail.error}
+      </Text>
+    );
+  }
+
+  if (!detail.data) return null;
+
+  return (
+    <>
+      <SimulationNoteRow
+        note={note?.data ?? null}
+        loading={note?.loading ?? false}
+        loadError={note?.error ?? null}
+        onRetry={onRetryNote}
+        onSave={onSaveNote}
+      />
+
+      <div className="flex flex-col gap-2 pt-2">
+        <Text as="h4" size="lg" weight="bold" className="text-text-950">
+          Respostas
+        </Text>
+        {detail.data.questions.map((question, qIndex) => (
+          <SimulationQuestionItem
+            key={question.questionId}
+            question={question}
+            index={qIndex}
+            onSaveComment={(comment) =>
+              onSaveQuestionComment(question.questionId, comment)
+            }
+          />
+        ))}
+      </div>
+    </>
+  );
+}
+
 function SimulationItem({
   simulation,
   index,
@@ -354,99 +631,56 @@ function SimulationItem({
   onToggle,
   detail,
   note,
+  onRetryNote,
   onSaveNote,
   onSaveQuestionComment,
-}: {
+}: SimulationCardHandlers & {
   readonly simulation: StudentSimulationItem;
   readonly index: number;
   readonly expanded: boolean;
   readonly onToggle: () => void;
-  readonly detail: DetailState | undefined;
-  readonly note: NoteState | undefined;
-  readonly onSaveNote: (text: string) => Promise<void>;
-  readonly onSaveQuestionComment: (
-    questionId: string,
-    comment: string
-  ) => Promise<void>;
 }) {
+  const title = simulation.title?.trim()
+    ? simulation.title.trim()
+    : `Simulado ${index + 1}`;
+  const meta = buildSimulationMeta(simulation);
+
   return (
-    <CardAccordation
+    <SimulationCardShell
       value={simulation.id}
+      title={title}
+      meta={meta}
+      correct={simulation.correctCount}
+      totalQuestions={simulation.totalQuestions}
       expanded={expanded}
-      onToggleExpanded={onToggle}
-      trigger={
-        <div className="flex-1 py-4">
-          <Text weight="bold" className="text-text-950">
-            {simulation.title?.trim()
-              ? simulation.title.trim()
-              : `Simulado ${index + 1}`}
-          </Text>
-        </div>
-      }
-      contentClassName="px-3 pb-4"
+      onToggle={onToggle}
     >
-      {detail?.loading && <SkeletonCard className="h-40" />}
-      {detail?.error && (
-        <Text size="sm" className="text-error-600">
-          {detail.error}
+      <SimulationStatCards
+        score={simulation.score}
+        correct={simulation.correctCount}
+        incorrect={simulation.incorrectCount}
+        blank={simulation.blankCount}
+      />
+      {/* Essays awaiting grading used to be counted as blank. */}
+      {detail?.data && detail.data.counts.pending > 0 && (
+        <Text size="sm" className="text-text-600">
+          {`${detail.data.counts.pending} ${detail.data.counts.pending === 1 ? 'questão dissertativa aguarda' : 'questões dissertativas aguardam'} correção`}
         </Text>
       )}
-      {detail?.data && (
-        <div className="flex flex-col gap-4">
-          <div className="flex gap-3">
-            <StatCard
-              label="Nº de questões corretas"
-              value={detail.data.counts.correct}
-              variant="correct"
-              className="flex-1"
-            />
-            <StatCard
-              label="Nº de questões incorretas"
-              value={detail.data.counts.incorrect}
-              variant="incorrect"
-              className="flex-1"
-            />
-            <StatCard
-              label="Nº de questões em branco"
-              value={detail.data.counts.blank}
-              variant="blank"
-              className="flex-1"
-            />
-            {/* Essays awaiting grading used to be counted as blank. */}
-            {detail.data.counts.pending > 0 && (
-              <StatCard
-                label="Nº de questões pendentes"
-                value={detail.data.counts.pending}
-                variant="pending"
-                className="flex-1"
-              />
-            )}
-          </div>
-
-          <NoteRow
-            note={note?.data ?? null}
-            loading={note?.loading ?? false}
-            onSave={onSaveNote}
-          />
-
-          <div className="flex flex-col gap-2">
-            <Text weight="bold" className="text-text-950">
-              Respostas
-            </Text>
-            {detail.data.questions.map((question, qIndex) => (
-              <QuestionItem
-                key={question.questionId}
-                question={question}
-                index={qIndex}
-                onSaveComment={(comment) =>
-                  onSaveQuestionComment(question.questionId, comment)
-                }
-              />
-            ))}
-          </div>
-        </div>
+      <ContentCards
+        best={simulation.bestContent ?? null}
+        worst={simulation.worstContent ?? null}
+      />
+      {expanded && (
+        <SimulationAnswers
+          detail={detail}
+          note={note}
+          onRetryNote={onRetryNote}
+          onSaveNote={onSaveNote}
+          onSaveQuestionComment={onSaveQuestionComment}
+        />
       )}
-    </CardAccordation>
+    </SimulationCardShell>
   );
 }
 
@@ -467,49 +701,30 @@ export function SimulationsDetailModal({
   student,
 }: SimulationsDetailModalProps) {
   const useSimulations = useMemo(() => createUseSimulations(api), [api]);
-  const {
-    fetchStudentSimulations,
-    fetchSimulationDetail,
-    fetchNote,
-    saveNote,
-    saveQuestionComment,
-  } = useSimulations();
+  const { fetchStudentSimulations } = useSimulations();
 
   const [list, setList] = useState<SimulationsListData | null>(null);
   const [listLoading, setListLoading] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [details, setDetails] = useState<Record<string, DetailState>>({});
-  const [notes, setNotes] = useState<Record<string, NoteState>>({});
 
-  // Guards async state updates against the modal unmounting mid-request.
-  const mountedRef = useRef(true);
-  useEffect(() => {
-    mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
-
-  // Bumped on every new session (open / student change) so in-flight responses
-  // from a previous student are ignored instead of writing into the new one.
-  const requestEpochRef = useRef(0);
-  useEffect(() => {
-    requestEpochRef.current += 1;
-  }, [isOpen, student?.userInstitutionId]);
-
-  const isStaleResponse = useCallback(
-    (epoch: number) => !mountedRef.current || requestEpochRef.current !== epoch,
-    []
-  );
+  const {
+    expandedId,
+    details,
+    notes,
+    toggle,
+    retryNote,
+    makeSaveNote,
+    makeSaveQuestionComment,
+  } = useSimulationCardDetails({
+    api,
+    userInstitutionId: student?.userInstitutionId ?? null,
+    isOpen,
+  });
 
   useEffect(() => {
     if (!isOpen || !student) return;
 
     setList(null);
-    setExpandedId(null);
-    setDetails({});
-    setNotes({});
     setListLoading(true);
     setListError(null);
 
@@ -530,176 +745,84 @@ export function SimulationsDetailModal({
     };
   }, [isOpen, student, fetchStudentSimulations]);
 
-  const handleToggle = useCallback(
-    (simulationId: string) => {
-      if (!student) return;
-      const requestEpoch = requestEpochRef.current;
-      const next = expandedId === simulationId ? null : simulationId;
-      setExpandedId(next);
-
-      if (next && !details[simulationId]) {
-        setDetails((prev) => ({
-          ...prev,
-          [simulationId]: { loading: true, error: null, data: null },
-        }));
-        fetchSimulationDetail(student.userInstitutionId, simulationId)
-          .then((data) => {
-            if (isStaleResponse(requestEpoch)) return;
-            setDetails((prev) => ({
-              ...prev,
-              [simulationId]: { loading: false, error: null, data },
-            }));
-          })
-          .catch(() => {
-            if (isStaleResponse(requestEpoch)) return;
-            setDetails((prev) => ({
-              ...prev,
-              [simulationId]: {
-                loading: false,
-                error: 'Erro ao carregar o simulado',
-                data: null,
-              },
-            }));
-          });
-
-        setNotes((prev) => ({
-          ...prev,
-          [simulationId]: { loading: true, data: null },
-        }));
-        fetchNote(student.userInstitutionId, simulationId)
-          .then((data) => {
-            if (isStaleResponse(requestEpoch)) return;
-            setNotes((prev) => ({
-              ...prev,
-              [simulationId]: { loading: false, data },
-            }));
-          })
-          .catch(() => {
-            if (isStaleResponse(requestEpoch)) return;
-            setNotes((prev) => ({
-              ...prev,
-              [simulationId]: { loading: false, data: null },
-            }));
-          });
-      }
-    },
-    [
-      student,
-      expandedId,
-      details,
-      fetchSimulationDetail,
-      fetchNote,
-      isStaleResponse,
-    ]
-  );
-
-  const makeSaveNote = useCallback(
-    (simulationId: string) => async (text: string) => {
-      if (!student) return;
-      const requestEpoch = requestEpochRef.current;
-      const saved = await saveNote(
-        student.userInstitutionId,
-        simulationId,
-        text
-      );
-      if (isStaleResponse(requestEpoch)) return;
-      setNotes((prev) => ({
-        ...prev,
-        [simulationId]: { loading: false, data: saved },
-      }));
-    },
-    [student, saveNote, isStaleResponse]
-  );
-
-  /**
-   * Save a comment on one question and reflect it in the loaded detail, so the
-   * field's saved value matches what the server now holds without a refetch.
-   */
-  const makeSaveQuestionComment = useCallback(
-    (simulationId: string) => async (questionId: string, comment: string) => {
-      if (!student) return;
-      const requestEpoch = requestEpochRef.current;
-      const saved = await saveQuestionComment(
-        student.userInstitutionId,
-        simulationId,
-        questionId,
-        comment
-      );
-      if (isStaleResponse(requestEpoch)) return;
-      setDetails((prev) => {
-        const current = prev[simulationId];
-        if (!current?.data) return prev;
-        return {
-          ...prev,
-          [simulationId]: {
-            ...current,
-            data: {
-              ...current.data,
-              questions: current.data.questions.map((question) =>
-                question.questionId === questionId
-                  ? { ...question, teacherComment: saved?.teacherComment ?? '' }
-                  : question
-              ),
-            },
-          },
-        };
-      });
-    },
-    [student, saveQuestionComment, isStaleResponse]
-  );
-
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Simulados" size="xl">
       {student && (
-        <div className="flex max-h-[70vh] flex-col gap-4 overflow-y-auto pr-1">
-          <div className="flex items-center justify-between gap-3">
-            <span className="flex items-center gap-2">
-              <UserCircleIcon
-                size={24}
-                weight="fill"
-                className="text-info-700"
-              />
-              <Text weight="bold" className="text-text-950">
-                {student.name}
-              </Text>
-            </span>
-            <Text size="sm" className="text-info-700">
-              {list?.student.simulationsAnswered ?? 0} simulados respondidos
-            </Text>
-          </div>
+        <div className="flex max-h-[70vh] flex-col gap-6 overflow-y-auto pr-1">
+          <StudentSummaryHeader
+            name={student.name}
+            location={[
+              list?.student.school,
+              list?.student.class,
+              list?.student.schoolYear,
+            ]}
+          />
 
-          {listLoading && <SkeletonCard className="h-20" />}
+          {listLoading && (
+            <>
+              <SkeletonCard className="h-20" />
+              <SkeletonCard className="h-40" />
+            </>
+          )}
           {listError && (
             <Text size="sm" className="text-error-600">
               {listError}
             </Text>
           )}
-          {list?.simulations.data.length === 0 && !listLoading && (
-            <Text size="sm" className="text-text-600">
-              Este estudante ainda não respondeu nenhum simulado.
-            </Text>
+
+          {list && (
+            <section className="flex flex-col gap-3">
+              <SectionTitle>Dados de simulados</SectionTitle>
+              <div className="flex flex-col gap-2 md:flex-row">
+                <DataCard
+                  label="Simulados realizados"
+                  value={String(list.student.simulationsAnswered)}
+                />
+                {list.student.totalTimeSeconds !== undefined && (
+                  <DataCard
+                    label="Tempo total"
+                    value={formatTimeSpent(list.student.totalTimeSeconds)}
+                  />
+                )}
+              </div>
+            </section>
           )}
 
           {list && (
-            <div className="flex flex-col gap-3">
-              {list.simulations.data.map((simulation, index) => (
-                <SimulationItem
-                  // Keyed by the student too: the comment fields below keep a
-                  // dirty draft through a `value` change so an in-flight save
-                  // cannot discard it, and a note written for one student must
-                  // never survive into another. Remounting resets it for free.
-                  key={`${student?.userInstitutionId}-${simulation.id}`}
-                  simulation={simulation}
-                  index={index}
-                  expanded={expandedId === simulation.id}
-                  onToggle={() => handleToggle(simulation.id)}
-                  detail={details[simulation.id]}
-                  note={notes[simulation.id]}
-                  onSaveNote={makeSaveNote(simulation.id)}
-                  onSaveQuestionComment={makeSaveQuestionComment(simulation.id)}
-                />
-              ))}
-            </div>
+            <section className="flex flex-col gap-3">
+              <SectionTitle>Simulados realizados</SectionTitle>
+              {list.simulations.data.length === 0 ? (
+                <div className="flex items-center justify-center rounded-xl border border-border-50 bg-background p-6">
+                  <Text size="sm" className="text-text-600">
+                    Este estudante ainda não respondeu nenhum simulado.
+                  </Text>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {list.simulations.data.map((simulation, index) => (
+                    <SimulationItem
+                      // Keyed by the student too: the comment fields below keep
+                      // a dirty draft through a `value` change so an in-flight
+                      // save cannot discard it, and a note written for one
+                      // student must never survive into another. Remounting
+                      // resets it for free.
+                      key={`${student.userInstitutionId}-${simulation.id}`}
+                      simulation={simulation}
+                      index={index}
+                      expanded={expandedId === simulation.id}
+                      onToggle={() => toggle(simulation.id)}
+                      detail={details[simulation.id]}
+                      note={notes[simulation.id]}
+                      onRetryNote={() => retryNote(simulation.id)}
+                      onSaveNote={makeSaveNote(simulation.id)}
+                      onSaveQuestionComment={makeSaveQuestionComment(
+                        simulation.id
+                      )}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
           )}
         </div>
       )}

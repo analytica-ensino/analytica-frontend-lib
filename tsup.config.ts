@@ -68,6 +68,8 @@ export default defineConfig({
       'src/components/VerticalBarChart/VerticalBarChart.tsx',
     'ProficiencyChart/index':
       'src/components/ProficiencyChart/ProficiencyChart.tsx',
+    'PerformanceDistributionChart/index':
+      'src/components/PerformanceDistributionChart/PerformanceDistributionChart.tsx',
     'Calendar/index': 'src/components/Calendar/Calendar.tsx',
     'Stepper/index': 'src/components/Stepper/Stepper.tsx',
     'Skeleton/index': 'src/components/Skeleton/Skeleton.tsx',
@@ -178,6 +180,14 @@ export default defineConfig({
 
     // Simulations (teacher-facing list + nested detail modal)
     'SimulationsPage/index': 'src/components/SimulationsPage/index.ts',
+    'SimulatedStudentSimulationsModal/index':
+      'src/components/SimulatedStudentSimulationsModal/index.ts',
+    // Consumed by the gestor's report modals, which already import
+    // `analytica-frontend-lib/metric-box` and `/modal-components`.
+    'MetricBox/index': 'src/components/shared/MetricBox.tsx',
+    'ModalComponents/index': 'src/components/shared/ModalComponents.tsx',
+    'SimulatedQuestionsChart/index':
+      'src/components/SimulatedQuestionsChart/index.ts',
     'hooks/useSimulations/index': 'src/hooks/useSimulations.ts',
     'types/simulations/index': 'src/types/simulations.ts',
 

@@ -33,9 +33,11 @@ export type StudentRankingItem = Pick<
 const StudentCard = ({
   student,
   variant,
+  showPercentage,
 }: {
   student: StudentRankingItem;
   variant: RankingVariant;
+  showPercentage: boolean;
 }) => {
   const TrendIcon = variant === 'highlight' ? TrendUpIcon : TrendDownIcon;
   const backgroundClass = getPositionBackgroundClass(variant, student.position);
@@ -70,18 +72,20 @@ const StudentCard = ({
       </Text>
 
       {/* Percentage badge */}
-      <Text
-        size="xs"
-        weight="bold"
-        aria-label={`Desempenho ${student.percentage}%`}
-        className={cn(
-          'flex flex-row items-center h-[22px] px-2 gap-1 rounded text-text',
-          PERCENTAGE_BADGE_CLASSES[variant]
-        )}
-      >
-        <TrendIcon size={16} weight="bold" aria-hidden="true" />
-        {student.percentage}%
-      </Text>
+      {showPercentage && (
+        <Text
+          size="xs"
+          weight="bold"
+          aria-label={`Desempenho ${student.percentage}%`}
+          className={cn(
+            'flex flex-row items-center h-[22px] px-2 gap-1 rounded text-text',
+            PERCENTAGE_BADGE_CLASSES[variant]
+          )}
+        >
+          <TrendIcon size={16} weight="bold" aria-hidden="true" />
+          {student.percentage}%
+        </Text>
+      )}
     </div>
   );
 };
@@ -96,6 +100,14 @@ export interface RankingCardProps extends HTMLAttributes<HTMLDivElement> {
   variant: RankingVariant;
   /** List of students to display */
   students: StudentRankingItem[];
+  /**
+   * Show the percentage badge on the right of each row. Defaults to true.
+   *
+   * A report whose ranking is not about a percentage — the simulados cut lists
+   * students by their band, not by a hit rate — turns it off rather than
+   * printing a number the card's title does not promise.
+   */
+  showPercentage?: boolean;
 }
 
 /**
@@ -105,6 +117,7 @@ export const RankingCard = ({
   title,
   variant,
   students,
+  showPercentage = true,
   className,
   ...props
 }: RankingCardProps) => (
@@ -117,6 +130,7 @@ export const RankingCard = ({
         key={`${v}-${index}-${student.position}`}
         student={student}
         variant={v}
+        showPercentage={showPercentage}
       />
     )}
     className={className}
@@ -136,6 +150,8 @@ export interface StudentRankingProps extends HTMLAttributes<HTMLDivElement> {
   highlightStudents: StudentRankingItem[];
   /** List of students needing attention (lowest performing) */
   attentionStudents: StudentRankingItem[];
+  /** Show the percentage badge on each row. Defaults to true. */
+  showPercentage?: boolean;
 }
 
 /**
@@ -165,6 +181,7 @@ export const StudentRanking = ({
   attentionTitle = 'Estudantes precisando de atenção',
   highlightStudents,
   attentionStudents,
+  showPercentage = true,
   className,
   ...props
 }: StudentRankingProps) => {
@@ -174,11 +191,13 @@ export const StudentRanking = ({
         title={highlightTitle}
         variant="highlight"
         students={highlightStudents}
+        showPercentage={showPercentage}
       />
       <RankingCard
         title={attentionTitle}
         variant="attention"
         students={attentionStudents}
+        showPercentage={showPercentage}
       />
     </RankingLayout>
   );
