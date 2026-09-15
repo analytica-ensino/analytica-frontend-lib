@@ -30,8 +30,11 @@ const QuizTimer = forwardRef<HTMLDivElement, QuizTimerProps>(
         aria-live="off"
         aria-label={`Tempo de prova: ${formatted}${exceeded ? ' — tempo excedido' : ''}`}
         className={cn(
-          'flex flex-row items-center gap-1 tabular-nums',
-          exceeded ? 'text-error-600' : 'text-text-600',
+          'inline-flex flex-row items-center gap-1 tabular-nums',
+          'rounded-md border px-2 py-1',
+          exceeded
+            ? 'bg-error-background border-error-300 text-error-700'
+            : 'bg-info border-info-300 text-info-800',
           className
         )}
         {...props}

@@ -645,10 +645,10 @@ describe('Quiz', () => {
       const titleElement = container.firstChild as HTMLElement;
 
       expect(titleElement).toHaveClass(
-        'flex',
-        'flex-row',
-        'justify-between',
+        'grid',
+        'grid-cols-[1fr_auto_1fr]',
         'items-center',
+        'gap-2',
         'relative',
         'p-2'
       );
@@ -776,7 +776,7 @@ describe('Quiz', () => {
 
         render(<QuizTitle showTimer />);
 
-        expect(screen.getByRole('timer').className).toContain('text-error-600');
+        expect(screen.getByRole('timer').className).toContain('text-error-700');
       });
     });
 
