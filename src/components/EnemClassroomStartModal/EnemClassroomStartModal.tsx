@@ -170,10 +170,16 @@ const SummaryRow = ({ label, value }: { label: string; value: string }) => (
   </div>
 );
 
-/** Index of the two fixed steps; survey questions follow from index 2. */
+/** The introduction is always first; the first choice comes right after it. */
 const INTRO_STEP = 0;
-const LANGUAGE_STEP = 1;
-const FIRST_SURVEY_STEP = 2;
+const FIRST_CHOICE_STEP = 1;
+
+/** One screen of the flow. Which ones exist depends on the exam. */
+type FlowStep =
+  | { kind: 'intro' }
+  | { kind: 'language' }
+  | { kind: 'survey'; question: EnemClassroomSurveyQuestion; index: number }
+  | { kind: 'summary' };
 
 export interface EnemClassroomStartModalProps {
   isOpen: boolean;
@@ -202,10 +208,11 @@ const describeSurveyAnswer = (
 /**
  * Start flow of the in-classroom ENEM simulation.
  *
- * Steps, in order: introduction (video + warnings), foreign language, one
- * step per survey question, and a summary the student confirms before the
- * exam opens. The stepper only lists the steps that carry a choice; the
- * summary is a screen of its own, as in the design.
+ * Steps, in order: introduction (video + warnings), foreign language — only
+ * when the exam offers the choice —, one step per survey question, and a
+ * summary the student confirms before the exam opens. The stepper only lists
+ * the steps that carry a choice; the summary is a screen of its own, as in
+ * the design.
  *
  * Presentational: it collects the choices and hands them to `onStart`; the
  * caller talks to the API.
@@ -231,7 +238,22 @@ const EnemClassroomStartModal = ({
     () => [...exam.surveyQuestions].sort((a, b) => a.position - b.position),
     [exam.surveyQuestions]
   );
-  const summaryStep = FIRST_SURVEY_STEP + surveyQuestions.length;
+  // The screens this exam has: no language step on an exam without the
+  // choice, so the student goes from the warnings straight to the survey.
+  const steps = useMemo<FlowStep[]>(
+    () => [
+      { kind: 'intro' },
+      ...(exam.languageChoice ? [{ kind: 'language' } as const] : []),
+      ...surveyQuestions.map((question, index) => ({
+        kind: 'survey' as const,
+        question,
+        index,
+      })),
+      { kind: 'summary' },
+    ],
+    [exam.languageChoice, surveyQuestions]
+  );
+  const summaryStep = steps.length - 1;
 
   const [step, setStep] = useState(INTRO_STEP);
   const [language, setLanguage] = useState<EnemClassroomLanguage | null>(null);
@@ -249,29 +271,39 @@ const EnemClassroomStartModal = ({
   }, [isOpen, exam.id]);
 
   const stepperSteps = useMemo(
-    () => [
-      { id: 'intro', label: 'Introdução', state: 'pending' as const },
-      {
-        id: 'language',
-        label: 'Língua estrangeira',
-        state: 'pending' as const,
-      },
-      ...surveyQuestions.map((question) => ({
-        id: question.id,
-        label: question.stepLabel,
-        state: 'pending' as const,
-      })),
-    ],
-    [surveyQuestions]
+    () =>
+      steps
+        .filter((flowStep) => flowStep.kind !== 'summary')
+        .map((flowStep) => {
+          if (flowStep.kind === 'intro') {
+            return {
+              id: 'intro',
+              label: 'Introdução',
+              state: 'pending' as const,
+            };
+          }
+          if (flowStep.kind === 'language') {
+            return {
+              id: 'language',
+              label: 'Língua estrangeira',
+              state: 'pending' as const,
+            };
+          }
+          return {
+            id: flowStep.question.id,
+            label: flowStep.question.stepLabel,
+            state: 'pending' as const,
+          };
+        }),
+    [steps]
   );
 
+  const currentStep = steps[step] ?? steps[INTRO_STEP];
   const currentQuestion =
-    step >= FIRST_SURVEY_STEP && step < summaryStep
-      ? surveyQuestions[step - FIRST_SURVEY_STEP]
-      : null;
+    currentStep.kind === 'survey' ? currentStep.question : null;
 
   const canGoNext =
-    step === LANGUAGE_STEP
+    currentStep.kind === 'language'
       ? language !== null
       : currentQuestion !== null &&
         isSurveyAnswerComplete(answers[currentQuestion.id]);
@@ -287,16 +319,17 @@ const EnemClassroomStartModal = ({
   );
 
   const handleStart = useCallback(() => {
-    if (!language) return;
+    // The language is only a choice on an exam that offers one.
+    if (exam.languageChoice && !language) return;
     onStart({
-      language,
+      language: exam.languageChoice ? language : null,
       surveyAnswers: surveyQuestions.map((question) => {
         const draft = answers[question.id];
         const text = draft && !draft.skipped ? draft.text.trim() : '';
         return { questionId: question.id, answer: text || null };
       }),
     });
-  }, [language, surveyQuestions, answers, onStart]);
+  }, [exam.languageChoice, language, surveyQuestions, answers, onStart]);
 
   const renderIntroStep = () => (
     <div className="flex flex-col gap-6" data-testid="enem-classroom-intro">
@@ -344,7 +377,7 @@ const EnemClassroomStartModal = ({
         variant="solid"
         action="primary"
         className={cn('w-full', GRADIENT_CTA_CLASSES)}
-        onClick={() => setStep(LANGUAGE_STEP)}
+        onClick={() => setStep(FIRST_CHOICE_STEP)}
         data-testid="enem-classroom-intro-continue"
       >
         Estou em sala. Quero começar!
@@ -476,10 +509,12 @@ const EnemClassroomStartModal = ({
           Suas respostas
         </Text>
         <dl className="flex flex-col gap-2">
-          <SummaryRow
-            label="Idioma"
-            value={language ? ENEM_CLASSROOM_LANGUAGE_LABELS[language] : '—'}
-          />
+          {exam.languageChoice && (
+            <SummaryRow
+              label="Idioma"
+              value={language ? ENEM_CLASSROOM_LANGUAGE_LABELS[language] : '—'}
+            />
+          )}
           {surveyQuestions.map((question) => (
             <SummaryRow
               key={question.id}
@@ -494,7 +529,7 @@ const EnemClassroomStartModal = ({
           action="primary"
           className="self-center"
           disabled={isStarting}
-          onClick={() => setStep(LANGUAGE_STEP)}
+          onClick={() => setStep(FIRST_CHOICE_STEP)}
           data-testid="enem-classroom-review"
         >
           Revisar minhas respostas
@@ -516,14 +551,14 @@ const EnemClassroomStartModal = ({
   );
 
   const renderStepContent = () => {
-    if (step === INTRO_STEP) return renderIntroStep();
-    if (step === LANGUAGE_STEP) return renderLanguageStep();
-    if (currentQuestion)
-      return renderSurveyStep(currentQuestion, step - FIRST_SURVEY_STEP);
+    if (currentStep.kind === 'intro') return renderIntroStep();
+    if (currentStep.kind === 'language') return renderLanguageStep();
+    if (currentStep.kind === 'survey')
+      return renderSurveyStep(currentStep.question, currentStep.index);
     return renderSummaryStep();
   };
 
-  const showNavigation = step >= LANGUAGE_STEP && step < summaryStep;
+  const showNavigation = step >= FIRST_CHOICE_STEP && step < summaryStep;
   const showStepper = step < summaryStep;
 
   const footer = showNavigation ? (

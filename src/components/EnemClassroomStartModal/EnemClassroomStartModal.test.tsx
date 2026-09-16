@@ -14,6 +14,7 @@ const exam: EnemClassroomExam = {
   title: 'Simulado ENEM 2026',
   videoUrl: 'https://cdn.example.com/intro.mp4',
   durationMinutes: 300,
+  languageChoice: true,
   surveyQuestions: [
     {
       id: 'q-university',
@@ -236,6 +237,46 @@ describe('EnemClassroomStartModal', () => {
       language: 'ESPANHOL',
       surveyAnswers: [
         { questionId: 'q-course', answer: 'Biologia' },
+        { questionId: 'q-university', answer: null },
+      ],
+    });
+  });
+
+  it('skips the language step on an exam without the choice and starts with no language', () => {
+    const { onStart } = setup({ exam: { ...exam, languageChoice: false } });
+
+    // The stepper lists only the introduction and the survey.
+    expect(screen.queryByText('Língua estrangeira')).not.toBeInTheDocument();
+    expect(screen.getByText('Curso')).toBeInTheDocument();
+
+    goToLanguageStep();
+
+    // Straight to the first survey question, with the navigation.
+    expect(
+      screen.queryByTestId('enem-classroom-language')
+    ).not.toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Escreva o curso')).toBeInTheDocument();
+    expect(screen.getByTestId('enem-classroom-next')).toBeDisabled();
+
+    fireEvent.click(screen.getByTestId('enem-classroom-survey-skip'));
+    next();
+    fireEvent.click(screen.getByTestId('enem-classroom-survey-skip'));
+    next();
+
+    expect(screen.getByText('Boa sorte!')).toBeInTheDocument();
+    expect(screen.queryByText('Idioma')).not.toBeInTheDocument();
+
+    // Review lands on the first survey question, since there is no language step.
+    fireEvent.click(screen.getByTestId('enem-classroom-review'));
+    expect(screen.getByPlaceholderText('Escreva o curso')).toBeInTheDocument();
+    next();
+    next();
+
+    fireEvent.click(screen.getByTestId('enem-classroom-start'));
+    expect(onStart).toHaveBeenCalledWith({
+      language: null,
+      surveyAnswers: [
+        { questionId: 'q-course', answer: null },
         { questionId: 'q-university', answer: null },
       ],
     });

@@ -63,6 +63,12 @@ export interface EnemClassroomExam {
   videoUrl: string | null;
   /** How long the student has once they start. */
   durationMinutes: number;
+  /**
+   * Whether the student picks English or Spanish before starting (ENEM's
+   * day 1). Off, the exam has no foreign-language block and the choice step
+   * is not shown (day 2).
+   */
+  languageChoice: boolean;
   surveyQuestions: EnemClassroomSurveyQuestion[];
 }
 
@@ -98,7 +104,8 @@ export interface EnemClassroomCurrentResponse {
 
 /** `POST /enem-classroom/exams/:id/start` body */
 export interface EnemClassroomStartPayload {
-  language: EnemClassroomLanguage;
+  /** Null when the exam offers no language choice. */
+  language: EnemClassroomLanguage | null;
   surveyAnswers: EnemClassroomSurveyAnswer[];
 }
 
