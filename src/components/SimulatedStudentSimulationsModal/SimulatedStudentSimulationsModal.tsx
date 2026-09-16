@@ -85,6 +85,8 @@ export interface SimulatedStudentSimulationsModalLabels {
   readonly lastLogin: string;
   /** Shown inside the card of an assigned activity not answered yet */
   readonly pendingMessage: string;
+  /** Placeholder of the observation editor of an expanded card */
+  readonly notePlaceholder: string;
 }
 
 /** The simulado wording, applied when the caller names nothing. */
@@ -99,6 +101,7 @@ export const DEFAULT_SIMULATED_STUDENT_SIMULATIONS_LABELS: SimulatedStudentSimul
     timeOnline: 'Tempo total online',
     lastLogin: 'Último login',
     pendingMessage: 'Sem dados ainda! A atividade ainda não foi feita.',
+    notePlaceholder: 'Escreva uma observação para este simulado',
   };
 
 /** "dd/mm/aaaa • HH:mmh" of the last login, or a dash when there was none. */
@@ -165,6 +168,7 @@ function SimulationCard({
   simulation,
   expanded,
   showAnswers,
+  notePlaceholder,
   onToggle,
   detail,
   note,
@@ -176,6 +180,8 @@ function SimulationCard({
   readonly expanded: boolean;
   /** Whether the expanded card lists the questions and the observation */
   readonly showAnswers: boolean;
+  /** Placeholder of the observation editor */
+  readonly notePlaceholder: string;
   readonly onToggle: () => void;
 }) {
   return (
@@ -203,6 +209,7 @@ function SimulationCard({
           detail={detail}
           note={note}
           onRetryNote={onRetryNote}
+          notePlaceholder={notePlaceholder}
           onSaveNote={onSaveNote}
           onSaveQuestionComment={onSaveQuestionComment}
         />
@@ -248,13 +255,24 @@ export interface SimulatedStudentSimulationsModalProps {
   readonly labels?: Partial<SimulatedStudentSimulationsModalLabels>;
   /**
    * Whether an expanded card loads and lists its questions and observation.
-   * Off for lists whose items are not simulados: the detail endpoint answers
-   * only for those, so the card shows its stat and content cards alone.
-   * Default true.
+   * Off for lists of a type the detail endpoint does not serve (it answers
+   * for simulados and activities), so the card shows its stat and content
+   * cards alone. Default true.
    */
   readonly detailsEnabled?: boolean;
   /** Where the band badge sits in the header. Default `start`. */
   readonly badgePlacement?: 'start' | 'end';
+  /**
+   * Whether to render the logins section from `data.access`. Off by default:
+   * the endpoint answers it for every caller, but only the Atividades
+   * ranking modal shows it. Default false.
+   */
+  readonly showAccess?: boolean;
+  /**
+   * Whether to list the assignments of `data.pending` after the answered
+   * ones. Off by default, for the same reason. Default false.
+   */
+  readonly showPending?: boolean;
 }
 
 export function SimulatedStudentSimulationsModal({
@@ -268,6 +286,8 @@ export function SimulatedStudentSimulationsModal({
   labels,
   detailsEnabled = true,
   badgePlacement = 'start',
+  showAccess = false,
+  showPending = false,
 }: SimulatedStudentSimulationsModalProps) {
   const copy = { ...DEFAULT_SIMULATED_STUDENT_SIMULATIONS_LABELS, ...labels };
   const {
@@ -297,7 +317,7 @@ export function SimulatedStudentSimulationsModal({
       </div>
     );
   } else if (data) {
-    const pending = data.pending ?? [];
+    const pending = showPending ? (data.pending ?? []) : [];
     content = (
       <div className="flex flex-col gap-6">
         <StudentSummaryHeader
@@ -311,7 +331,9 @@ export function SimulatedStudentSimulationsModal({
           badgePlacement={badgePlacement}
         />
 
-        {data.access && <AccessSection access={data.access} labels={copy} />}
+        {showAccess && data.access && (
+          <AccessSection access={data.access} labels={copy} />
+        )}
 
         <section className="flex flex-col gap-3">
           <SectionTitle>{copy.dataSection}</SectionTitle>
@@ -367,6 +389,7 @@ export function SimulatedStudentSimulationsModal({
                   simulation={simulation}
                   expanded={expandedId === simulation.activityId}
                   showAnswers={detailsEnabled}
+                  notePlaceholder={copy.notePlaceholder}
                   onToggle={() => toggle(simulation.activityId)}
                   detail={details[simulation.activityId]}
                   note={notes[simulation.activityId]}

@@ -57,10 +57,10 @@ export interface UseSimulationCardDetailsParams {
    * Whether expanding a card loads its questions and observation.
    *
    * Those two come from `/performance/simulations/students/...`, which the
-   * backend answers only for activities of type SIMULADO. A modal listing
-   * other activity types (the teacher's Atividades report) still expands its
-   * cards — the stat and content cards travel with the list — but must not ask
-   * for a detail that would 404. Default true.
+   * backend answers for simulados and activities but not for every activity
+   * type. A modal listing a type it does not serve still expands its cards —
+   * the stat and content cards travel with the list — but must not ask for a
+   * detail that would 404. Default true.
    */
   readonly enabled?: boolean;
 }
@@ -170,7 +170,7 @@ export function useSimulationCardDetails({
             ...previous,
             [simulationId]: {
               loading: false,
-              error: 'Erro ao carregar o simulado',
+              error: 'Erro ao carregar as respostas',
               data: null,
             },
           }));
