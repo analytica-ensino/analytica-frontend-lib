@@ -176,22 +176,32 @@ function SimulationStatCard({
   );
 }
 
+/** What a stat or subtema card shows when there is nothing to measure yet. */
+export const EMPTY_STAT_VALUE = '—';
+
 /**
  * The four cards of a cut: grade, correct, incorrect and blank. The grade card
  * is skipped when no score was sent, so an older API still renders the three
- * counts it always had.
+ * counts it always had. With `empty`, every card shows a dash instead of its
+ * number: a student who answered nothing has no average, and "0 corretas"
+ * would read as a result rather than as the absence of one.
  */
 export function SimulationStatCards({
   score,
   correct,
   incorrect,
   blank,
+  empty = false,
 }: {
   readonly score: number | undefined;
   readonly correct: number;
   readonly incorrect: number;
   readonly blank: number;
+  /** Render dashes in place of the numbers */
+  readonly empty?: boolean;
 }) {
+  const show = (value: string) => (empty ? EMPTY_STAT_VALUE : value);
+
   return (
     <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
       {score !== undefined && (
@@ -199,26 +209,26 @@ export function SimulationStatCards({
           tone="grade"
           icon={<ExamIcon size={16} weight="bold" />}
           label="Nota média"
-          value={formatScoreOutOfTen(score)}
+          value={show(formatScoreOutOfTen(score))}
         />
       )}
       <SimulationStatCard
         tone="correct"
         icon={<CheckCircleIcon size={16} weight="bold" />}
         label="Nº de questões corretas"
-        value={String(correct)}
+        value={show(String(correct))}
       />
       <SimulationStatCard
         tone="incorrect"
         icon={<XCircleIcon size={16} weight="bold" />}
         label="Nº de questões incorretas"
-        value={String(incorrect)}
+        value={show(String(incorrect))}
       />
       <SimulationStatCard
         tone="blank"
         icon={<MinusCircleIcon size={16} weight="bold" />}
         label="Nº de questões em branco"
-        value={String(blank)}
+        value={show(String(blank))}
       />
     </div>
   );
@@ -244,7 +254,7 @@ function ContentCard({
         {label}
       </Text>
       <Text size="md" className="text-center text-text-950">
-        {content?.contentName ?? '—'}
+        {content?.contentName ?? EMPTY_STAT_VALUE}
       </Text>
     </div>
   );

@@ -6,6 +6,7 @@ export {
 export type {
   SimulatedStudentSimulationsModalProps,
   SimulatedStudentSimulationsModalLabels,
+  SimulatedStudentSimulationsEmptyState,
 } from './SimulatedStudentSimulationsModal';
 export {
   SIMULATED_SIMULATIONS_TAG_CONFIG,

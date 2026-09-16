@@ -104,9 +104,51 @@ export const DEFAULT_SIMULATED_STUDENT_SIMULATIONS_LABELS: SimulatedStudentSimul
     notePlaceholder: 'Escreva uma observação para este simulado',
   };
 
-/** "dd/mm/aaaa • HH:mmh" of the last login, or a dash when there was none. */
+/** A count as the design writes it: at least two digits, so 6 reads "06". */
+function formatCount(value: number): string {
+  return String(value).padStart(2, '0');
+}
+
+/**
+ * "dd/mm/aaaa • HH:mmh" of the last login. A student who never logged in
+ * gets the zeroed date the design uses as its placeholder, not a dash.
+ */
 function formatLastAccess(lastAccess: string | null): string {
-  return lastAccess ? dayjs(lastAccess).format('DD/MM/YYYY • HH:mm[h]') : '—';
+  return lastAccess
+    ? dayjs(lastAccess).format('DD/MM/YYYY • HH:mm[h]')
+    : '00/00/0000 • 00:00h';
+}
+
+/** What the list shows when there is nothing to list, answered or pending. */
+export interface SimulatedStudentSimulationsEmptyState {
+  /** Illustration above the title; omitted, only the text is shown */
+  readonly image?: string;
+  readonly title: string;
+  readonly description: string;
+}
+
+/**
+ * Empty list with an illustration: the teacher has not assigned anything to
+ * this student yet, so there is nothing to answer, let alone to show.
+ */
+function ListEmptyState({
+  image,
+  title,
+  description,
+}: SimulatedStudentSimulationsEmptyState) {
+  return (
+    <div className="flex min-h-[250px] flex-col items-center justify-center gap-4 rounded-xl border border-border-50 bg-background p-6">
+      {image && <img src={image} alt="" className="h-20 w-auto" />}
+      <div className="flex flex-col items-center gap-1">
+        <Text size="lg" weight="bold" className="text-center text-text-950">
+          {title}
+        </Text>
+        <Text size="xs" className="text-center text-text-500">
+          {description}
+        </Text>
+      </div>
+    </div>
+  );
 }
 
 /** The logins section: how often, for how long and when last. */
@@ -123,7 +165,7 @@ function AccessSection({
       <div className="flex flex-col gap-2 md:flex-row">
         <DataCard
           label={labels.accessCount}
-          value={String(access.accessCount).padStart(2, '0')}
+          value={formatCount(access.accessCount)}
         />
         <DataCard
           label={labels.timeOnline}
@@ -273,6 +315,12 @@ export interface SimulatedStudentSimulationsModalProps {
    * ones. Off by default, for the same reason. Default false.
    */
   readonly showPending?: boolean;
+  /**
+   * Illustrated empty state of the list, shown when the student has nothing
+   * answered and nothing pending. Omitted, the list shows `labels.empty`
+   * as a single line.
+   */
+  readonly emptyState?: SimulatedStudentSimulationsEmptyState;
 }
 
 export function SimulatedStudentSimulationsModal({
@@ -288,6 +336,7 @@ export function SimulatedStudentSimulationsModal({
   badgePlacement = 'start',
   showAccess = false,
   showPending = false,
+  emptyState,
 }: SimulatedStudentSimulationsModalProps) {
   const copy = { ...DEFAULT_SIMULATED_STUDENT_SIMULATIONS_LABELS, ...labels };
   const {
@@ -318,6 +367,10 @@ export function SimulatedStudentSimulationsModal({
     );
   } else if (data) {
     const pending = showPending ? (data.pending ?? []) : [];
+    // Nothing answered in the period: the totals are all zero and the
+    // average is meaningless, so the cards show placeholders, not results.
+    const hasAnswers = data.simulations.length > 0;
+    const listIsEmpty = !hasAnswers && pending.length === 0;
     content = (
       <div className="flex flex-col gap-6">
         <StudentSummaryHeader
@@ -340,7 +393,11 @@ export function SimulatedStudentSimulationsModal({
           <div className="flex flex-col gap-2 md:flex-row">
             <DataCard
               label={copy.completedCount}
-              value={String(data.totals.simulationsCount)}
+              value={
+                hasAnswers
+                  ? String(data.totals.simulationsCount)
+                  : formatCount(0)
+              }
             />
             {copy.questionsAnswered && (
               <DataCard
@@ -366,19 +423,22 @@ export function SimulatedStudentSimulationsModal({
             correct={data.totals.correct}
             incorrect={data.totals.incorrect}
             blank={data.totals.blank}
+            empty={!hasAnswers}
           />
           <ContentCards best={data.bestContent} worst={data.worstContent} />
         </section>
 
         <section className="flex flex-col gap-3">
           <SectionTitle>{copy.listTitle}</SectionTitle>
-          {data.simulations.length === 0 && pending.length === 0 ? (
+          {listIsEmpty && emptyState && <ListEmptyState {...emptyState} />}
+          {listIsEmpty && !emptyState && (
             <div className="flex items-center justify-center rounded-xl border border-border-50 bg-background p-6">
               <Text size="sm" className="text-text-500">
                 {copy.empty}
               </Text>
             </div>
-          ) : (
+          )}
+          {!listIsEmpty && (
             <div className="flex flex-col gap-2">
               {data.simulations.map((simulation) => (
                 <SimulationCard
