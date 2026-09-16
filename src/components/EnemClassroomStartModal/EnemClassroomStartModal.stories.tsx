@@ -15,6 +15,7 @@ const exam: EnemClassroomExam = {
     'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
   durationMinutes: 300,
   languageChoice: true,
+  bannerText: 'Sua prova está liberada. Toque para começar.',
   surveyQuestions: [
     {
       id: 'q-course',
