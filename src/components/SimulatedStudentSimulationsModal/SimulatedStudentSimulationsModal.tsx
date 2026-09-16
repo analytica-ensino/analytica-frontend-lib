@@ -52,10 +52,39 @@ export function PerformanceBadge({
   );
 }
 
+/**
+ * The copy that names what the list holds.
+ *
+ * The modal was written for simulados and its defaults say so; the teacher's
+ * Atividades report lists activities through the same endpoint and hands over
+ * its own wording. Only these four strings differ between the two — the
+ * "Tempo total" and "Desempenho geral" blocks read the same either way.
+ */
+export interface SimulatedStudentSimulationsModalLabels {
+  /** Title of the first section, e.g. "Dados de simulados" */
+  readonly dataSection: string;
+  /** Label of the count card, e.g. "Simulados realizados" */
+  readonly completedCount: string;
+  /** Title of the list section, e.g. "Simulados realizados" */
+  readonly listTitle: string;
+  /** Shown when the list is empty, e.g. "Nenhum simulado no período" */
+  readonly empty: string;
+}
+
+/** The simulado wording, applied when the caller names nothing. */
+export const DEFAULT_SIMULATED_STUDENT_SIMULATIONS_LABELS: SimulatedStudentSimulationsModalLabels =
+  {
+    dataSection: 'Dados de simulados',
+    completedCount: 'Simulados realizados',
+    listTitle: 'Simulados realizados',
+    empty: 'Nenhum simulado no período',
+  };
+
 /** One expandable simulado of the "Simulados realizados" list. */
 function SimulationCard({
   simulation,
   expanded,
+  showAnswers,
   onToggle,
   detail,
   note,
@@ -65,6 +94,8 @@ function SimulationCard({
 }: SimulationCardHandlers & {
   readonly simulation: StudentSimulationItem;
   readonly expanded: boolean;
+  /** Whether the expanded card lists the questions and the observation */
+  readonly showAnswers: boolean;
   readonly onToggle: () => void;
 }) {
   return (
@@ -87,7 +118,7 @@ function SimulationCard({
         best={simulation.bestContent}
         worst={simulation.worstContent}
       />
-      {expanded && (
+      {expanded && showAnswers && (
         <SimulationAnswers
           detail={detail}
           note={note}
@@ -133,6 +164,15 @@ export interface SimulatedStudentSimulationsModalProps {
   readonly data: StudentSimulationsData | null;
   readonly loading: boolean;
   readonly error: string | null;
+  /** Wording of the list; whatever is omitted keeps the simulado copy */
+  readonly labels?: Partial<SimulatedStudentSimulationsModalLabels>;
+  /**
+   * Whether an expanded card loads and lists its questions and observation.
+   * Off for lists whose items are not simulados: the detail endpoint answers
+   * only for those, so the card shows its stat and content cards alone.
+   * Default true.
+   */
+  readonly detailsEnabled?: boolean;
 }
 
 export function SimulatedStudentSimulationsModal({
@@ -143,7 +183,10 @@ export function SimulatedStudentSimulationsModal({
   data,
   loading,
   error,
+  labels,
+  detailsEnabled = true,
 }: SimulatedStudentSimulationsModalProps) {
+  const copy = { ...DEFAULT_SIMULATED_STUDENT_SIMULATIONS_LABELS, ...labels };
   const {
     expandedId,
     details,
@@ -156,6 +199,7 @@ export function SimulatedStudentSimulationsModal({
     api,
     userInstitutionId: data?.student.userInstitutionId ?? null,
     isOpen,
+    enabled: detailsEnabled,
   });
 
   let content: ReactNode = null;
@@ -183,10 +227,10 @@ export function SimulatedStudentSimulationsModal({
         />
 
         <section className="flex flex-col gap-3">
-          <SectionTitle>Dados de simulados</SectionTitle>
+          <SectionTitle>{copy.dataSection}</SectionTitle>
           <div className="flex flex-col gap-2 md:flex-row">
             <DataCard
-              label="Simulados realizados"
+              label={copy.completedCount}
               value={String(data.totals.simulationsCount)}
             />
             <DataCard
@@ -208,11 +252,11 @@ export function SimulatedStudentSimulationsModal({
         </section>
 
         <section className="flex flex-col gap-3">
-          <SectionTitle>Simulados realizados</SectionTitle>
+          <SectionTitle>{copy.listTitle}</SectionTitle>
           {data.simulations.length === 0 ? (
             <div className="flex items-center justify-center rounded-xl border border-border-50 bg-background p-6">
               <Text size="sm" className="text-text-500">
-                Nenhum simulado no período
+                {copy.empty}
               </Text>
             </div>
           ) : (
@@ -225,6 +269,7 @@ export function SimulatedStudentSimulationsModal({
                   key={`${data.student.userInstitutionId}-${simulation.activityId}`}
                   simulation={simulation}
                   expanded={expandedId === simulation.activityId}
+                  showAnswers={detailsEnabled}
                   onToggle={() => toggle(simulation.activityId)}
                   detail={details[simulation.activityId]}
                   note={notes[simulation.activityId]}

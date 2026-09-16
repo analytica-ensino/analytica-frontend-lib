@@ -53,6 +53,16 @@ export interface UseSimulationCardDetailsParams {
   readonly userInstitutionId: string | null;
   /** Whether the modal is open; reopening starts a fresh session */
   readonly isOpen: boolean;
+  /**
+   * Whether expanding a card loads its questions and observation.
+   *
+   * Those two come from `/performance/simulations/students/...`, which the
+   * backend answers only for activities of type SIMULADO. A modal listing
+   * other activity types (the teacher's Atividades report) still expands its
+   * cards — the stat and content cards travel with the list — but must not ask
+   * for a detail that would 404. Default true.
+   */
+  readonly enabled?: boolean;
 }
 
 export interface UseSimulationCardDetailsReturn {
@@ -97,6 +107,7 @@ export function useSimulationCardDetails({
   api,
   userInstitutionId,
   isOpen,
+  enabled = true,
 }: UseSimulationCardDetailsParams): UseSimulationCardDetailsReturn {
   const useSimulations = useMemo(() => createUseSimulations(api), [api]);
   const {
@@ -203,14 +214,24 @@ export function useSimulationCardDetails({
       if (!userInstitutionId) return;
       const next = expandedId === simulationId ? null : simulationId;
       setExpandedId(next);
-      if (!next) return;
+      // Collapsing loads nothing; so does a list whose items have no detail
+      // endpoint behind them (see `enabled`).
+      if (!next || !enabled) return;
 
       // The two requests are guarded separately: a loaded detail must not stop
       // the observation from being fetched, and the other way around.
       if (!details[simulationId]) loadDetail(userInstitutionId, simulationId);
       if (!notes[simulationId]) loadNote(userInstitutionId, simulationId);
     },
-    [userInstitutionId, expandedId, details, notes, loadDetail, loadNote]
+    [
+      userInstitutionId,
+      enabled,
+      expandedId,
+      details,
+      notes,
+      loadDetail,
+      loadNote,
+    ]
   );
 
   const retryNote = useCallback(
