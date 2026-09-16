@@ -5,7 +5,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
-import { SimulatedQuestionsChart } from './SimulatedQuestionsChart';
+import { QuestionsPerformanceCard } from './QuestionsPerformanceCard';
 
 const data = {
   totalAnswered: 20,
@@ -16,11 +16,11 @@ const data = {
 
 const bar = (key: string) => screen.getByTestId(`questions-bar-${key}`);
 
-describe('SimulatedQuestionsChart', () => {
+describe('QuestionsPerformanceCard', () => {
   // The card reads left to right: bars first, then the legend cards with the
   // long labels and each metric's share of the total.
   it('renders the legend after the bars, with the long labels', () => {
-    render(<SimulatedQuestionsChart data={data} />);
+    render(<QuestionsPerformanceCard data={data} />);
 
     const legend = screen.getByTestId('questions-legend');
     for (const label of [
@@ -38,7 +38,7 @@ describe('SimulatedQuestionsChart', () => {
   });
 
   it('labels the first bar "Total"', () => {
-    render(<SimulatedQuestionsChart data={data} />);
+    render(<QuestionsPerformanceCard data={data} />);
 
     expect(screen.getByText('Total')).toBeInTheDocument();
     expect(screen.queryByText('Respondidas')).not.toBeInTheDocument();
@@ -46,14 +46,14 @@ describe('SimulatedQuestionsChart', () => {
   });
 
   it('paints the blank bar with the design grey', () => {
-    render(<SimulatedQuestionsChart data={data} />);
+    render(<QuestionsPerformanceCard data={data} />);
 
     expect(bar('emBranco').className).toContain('bg-background-200');
     expect(bar('total').className).toContain('bg-info-600');
   });
 
   it('draws one bar per metric, scaled to the Y axis', () => {
-    render(<SimulatedQuestionsChart data={data} />);
+    render(<QuestionsPerformanceCard data={data} />);
 
     // 20 answered rounds the axis up to 20, so the total bar fills the 235px
     // plot area and the others take their share of it.
@@ -65,7 +65,7 @@ describe('SimulatedQuestionsChart', () => {
   // The whole reason this chart exists instead of the lib's: the published
   // QuestionsData shows the number nowhere, on hover or otherwise.
   it('reveals the value on hover and hides it again', () => {
-    render(<SimulatedQuestionsChart data={data} />);
+    render(<QuestionsPerformanceCard data={data} />);
 
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
 
@@ -79,7 +79,7 @@ describe('SimulatedQuestionsChart', () => {
   });
 
   it('shows the value of whichever bar is hovered', () => {
-    render(<SimulatedQuestionsChart data={data} />);
+    render(<QuestionsPerformanceCard data={data} />);
 
     fireEvent.mouseEnter(bar('incorretas').parentElement as HTMLElement);
 
@@ -88,7 +88,7 @@ describe('SimulatedQuestionsChart', () => {
 
   // Same dimming rule as the "Simulados realizados por período" chart.
   it('dims the bars that are not hovered', () => {
-    render(<SimulatedQuestionsChart data={data} />);
+    render(<QuestionsPerformanceCard data={data} />);
 
     expect(bar('total').style.opacity).toBe('1');
 
@@ -101,7 +101,7 @@ describe('SimulatedQuestionsChart', () => {
   // A zero bar has no height, so a tooltip would float at the chart floor
   // pointing at nothing.
   it('does not offer a tooltip for a metric with no questions', () => {
-    render(<SimulatedQuestionsChart data={data} />);
+    render(<QuestionsPerformanceCard data={data} />);
 
     fireEvent.mouseEnter(bar('emBranco').parentElement as HTMLElement);
 
@@ -110,7 +110,7 @@ describe('SimulatedQuestionsChart', () => {
 
   it('keeps an empty chart from dividing by zero', () => {
     render(
-      <SimulatedQuestionsChart
+      <QuestionsPerformanceCard
         data={{
           totalAnswered: 0,
           correctAnswers: 0,
@@ -124,40 +124,43 @@ describe('SimulatedQuestionsChart', () => {
   });
 });
 
-/** One subtema row of the contents-performance payload. */
-const content = (
+/**
+ * One subtema row of the subtopics-performance payload.
+ *
+ * The endpoint counts the blanks instead of leaving them to be derived, and
+ * the hit rate is over the total — blanks included — so the card never
+ * recomputes either.
+ */
+const subtopic = (
   id: string,
   name: string,
   correct: number,
   incorrect: number,
-  topic: { id: string; name: string } | null = { id: 't-1', name: 'Mecânica' }
+  blank = 1,
+  topic = { id: 't-1', name: 'Mecânica' }
 ) => ({
-  contentId: id,
-  contentName: name,
-  bnccCode: null,
-  subject: { id: 's-1', name: 'Física' },
+  subtopicId: id,
+  subtopicName: name,
   topic,
-  simulatedExamsCount: 1,
-  questionsCount: correct + incorrect + 1,
-  studentsCount: 3,
-  performance: {
-    correct,
-    incorrect,
-    correctPercentage: Math.round((correct / (correct + incorrect + 1)) * 100),
-  },
+  total: correct + incorrect + blank,
+  correct,
+  incorrect,
+  blank,
+  correctPercentage:
+    Math.round((correct / (correct + incorrect + blank)) * 1000) / 10,
 });
 
-const contents = [
-  content('c-1', 'Cinemática', 8, 1),
-  content('c-2', 'Dinâmica', 6, 3),
-  content('c-3', 'Óptica', 4, 5),
-  content('c-4', 'Ondas', 2, 7),
-  content('c-5', 'Termologia', 1, 8, { id: 't-2', name: 'Termodinâmica' }),
+const subtopics = [
+  subtopic('c-1', 'Cinemática', 8, 1),
+  subtopic('c-2', 'Dinâmica', 6, 3),
+  subtopic('c-3', 'Óptica', 4, 5),
+  subtopic('c-4', 'Ondas', 2, 7),
+  subtopic('c-5', 'Termologia', 1, 8, 1, { id: 't-2', name: 'Termodinâmica' }),
 ];
 
-describe('SimulatedQuestionsChart — subtemas', () => {
+describe('QuestionsPerformanceCard — subtemas', () => {
   it('hides the subtema table while no componente curricular is selected', () => {
-    render(<SimulatedQuestionsChart data={data} />);
+    render(<QuestionsPerformanceCard data={data} />);
 
     expect(
       screen.queryByText('Desempenho por subtema')
@@ -165,7 +168,7 @@ describe('SimulatedQuestionsChart — subtemas', () => {
   });
 
   it('lists the subtemas of the selected subject with their counts', () => {
-    render(<SimulatedQuestionsChart data={data} contents={contents} />);
+    render(<QuestionsPerformanceCard data={data} subtopics={subtopics} />);
 
     expect(screen.getByText('Desempenho por subtema')).toBeInTheDocument();
     expect(screen.getByText('5 subtemas totais')).toBeInTheDocument();
@@ -177,7 +180,7 @@ describe('SimulatedQuestionsChart — subtemas', () => {
   });
 
   it('collapses to four rows behind "Mostrar todos"', () => {
-    render(<SimulatedQuestionsChart data={data} contents={contents} />);
+    render(<QuestionsPerformanceCard data={data} subtopics={subtopics} />);
 
     const toggle = screen.getByRole('button', {
       name: /Mostrar todos os 5 subtemas/,
@@ -194,7 +197,7 @@ describe('SimulatedQuestionsChart — subtemas', () => {
 
   it('offers no toggle when the subject has four subtemas or fewer', () => {
     render(
-      <SimulatedQuestionsChart data={data} contents={contents.slice(0, 3)} />
+      <QuestionsPerformanceCard data={data} subtopics={subtopics.slice(0, 3)} />
     );
 
     expect(screen.queryByText(/Mostrar todos/)).not.toBeInTheDocument();
@@ -202,7 +205,7 @@ describe('SimulatedQuestionsChart — subtemas', () => {
   });
 
   it('filters the subtemas by the search term', async () => {
-    render(<SimulatedQuestionsChart data={data} contents={contents} />);
+    render(<QuestionsPerformanceCard data={data} subtopics={subtopics} />);
 
     fireEvent.change(screen.getByPlaceholderText('Buscar subtema'), {
       target: { value: 'Óptica' },
@@ -216,7 +219,7 @@ describe('SimulatedQuestionsChart — subtemas', () => {
   });
 
   it('matches a subtema regardless of case', async () => {
-    render(<SimulatedQuestionsChart data={data} contents={contents} />);
+    render(<QuestionsPerformanceCard data={data} subtopics={subtopics} />);
 
     fireEvent.change(screen.getByPlaceholderText('Buscar subtema'), {
       target: { value: 'ONDAS' },
@@ -230,7 +233,7 @@ describe('SimulatedQuestionsChart — subtemas', () => {
 
   it('shows a skeleton while the subtemas are loading', () => {
     render(
-      <SimulatedQuestionsChart data={data} contents={[]} contentsLoading />
+      <QuestionsPerformanceCard data={data} subtopics={[]} subtopicsLoading />
     );
 
     expect(
@@ -241,10 +244,10 @@ describe('SimulatedQuestionsChart — subtemas', () => {
 
   it('shows the subtema error instead of the table', () => {
     render(
-      <SimulatedQuestionsChart
+      <QuestionsPerformanceCard
         data={data}
-        contents={[]}
-        contentsError="Erro ao carregar os subtemas"
+        subtopics={[]}
+        subtopicsError="Erro ao carregar os subtemas"
       />
     );
 
@@ -257,25 +260,52 @@ describe('SimulatedQuestionsChart — subtemas', () => {
   });
 
   it('offers a tema select listing each tema of the subject', () => {
-    render(<SimulatedQuestionsChart data={data} contents={contents} />);
+    render(<QuestionsPerformanceCard data={data} subtopics={subtopics} />);
 
     expect(screen.getByText('Todos os temas')).toBeInTheDocument();
   });
 
-  it('offers no tema select when no subtema carries a tema', () => {
-    render(
-      <SimulatedQuestionsChart
-        data={data}
-        contents={[content('c-9', 'Avulso', 3, 2, null)]}
-      />
-    );
+  it('offers no tema select when the subject has no subtema with data', () => {
+    render(<QuestionsPerformanceCard data={data} subtopics={[]} />);
 
     expect(screen.queryByText('Todos os temas')).not.toBeInTheDocument();
   });
 
+  // The bars have no tema cut of their own, so picking one has to re-add the
+  // rows it leaves — and the counts only add up because the endpoint sends the
+  // blanks instead of leaving them to be derived.
+  it('recomputes the bars from the subtemas of the selected tema', () => {
+    render(<QuestionsPerformanceCard data={data} subtopics={subtopics} />);
+
+    fireEvent.click(screen.getByText('Todos os temas'));
+    fireEvent.click(screen.getByText('Termodinâmica'));
+
+    // Termologia alone: 1 correct, 8 incorrect, 1 blank.
+    expect(bar('total')).toHaveAttribute('aria-label', 'Total: 10');
+    expect(screen.getByText('Termologia')).toBeInTheDocument();
+    expect(screen.queryByText('Ondas')).not.toBeInTheDocument();
+  });
+
+  // The mock renames the card once a componente curricular narrows it: the
+  // numbers stop being the report's totals and become that subject's.
+  it('names the card "Dados gerais de questões" while no subject is selected', () => {
+    render(<QuestionsPerformanceCard data={data} />);
+
+    expect(screen.getByText('Dados gerais de questões')).toBeInTheDocument();
+  });
+
+  it('drops the "gerais" once a subject is selected', () => {
+    render(<QuestionsPerformanceCard data={data} subtopics={subtopics} />);
+
+    expect(screen.getByText('Dados de questões')).toBeInTheDocument();
+    expect(
+      screen.queryByText('Dados gerais de questões')
+    ).not.toBeInTheDocument();
+  });
+
   it('accepts a custom card title', () => {
     render(
-      <SimulatedQuestionsChart data={data} title="Questões do simulado" />
+      <QuestionsPerformanceCard data={data} title="Questões do simulado" />
     );
 
     expect(screen.getByText('Questões do simulado')).toBeInTheDocument();
