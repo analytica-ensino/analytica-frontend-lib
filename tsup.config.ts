@@ -23,6 +23,8 @@ export default defineConfig({
     'LatexRenderer/index': 'src/components/LatexRenderer/LatexRenderer.tsx',
     'SubjectInfo/index': 'src/components/SubjectInfo/SubjectInfo.tsx',
     'SubjectIcons/index': 'src/components/SubjectIcons/SubjectIcons.tsx',
+    'SubjectMenuOverflow/index':
+      'src/components/SubjectMenuOverflow/index.ts',
     'NavButton/index': 'src/components/NavButton/NavButton.tsx',
     'Search/index': 'src/components/Search/Search.tsx',
     'ProgressBar/index': 'src/components/ProgressBar/ProgressBar.tsx',
@@ -186,8 +188,8 @@ export default defineConfig({
     // `analytica-frontend-lib/metric-box` and `/modal-components`.
     'MetricBox/index': 'src/components/shared/MetricBox.tsx',
     'ModalComponents/index': 'src/components/shared/ModalComponents.tsx',
-    'SimulatedQuestionsChart/index':
-      'src/components/SimulatedQuestionsChart/index.ts',
+    'QuestionsPerformanceCard/index':
+      'src/components/QuestionsPerformanceCard/index.ts',
     'hooks/useSimulations/index': 'src/hooks/useSimulations.ts',
     'types/simulations/index': 'src/types/simulations.ts',
 

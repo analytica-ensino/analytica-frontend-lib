@@ -16,7 +16,7 @@ import { TableProvider } from '../TableProvider/TableProvider';
 import type { ColumnConfig } from '../TableProvider/TableProvider';
 import { calculateYAxisTicks } from '../shared/ChartComponents';
 import { cn } from '../../utils/utils';
-import type { ActivitiesQuestionsData, SimulatedContentItem } from './types';
+import type { ActivitiesQuestionsData, SubtopicPerformanceItem } from './types';
 
 /**
  * The four bars, in the order, colours and wording of the design: `label`
@@ -236,7 +236,7 @@ function QuestionsBars({
 // ---------------------------------------------------------------------------
 
 /** Row shape of the subtema table; `rowId` is what `rowKey` addresses. */
-interface ContentRow {
+interface SubtopicRow {
   rowId: string;
   name: string;
   total: number;
@@ -248,7 +248,7 @@ interface ContentRow {
   [key: string]: unknown;
 }
 
-type ContentSortKey = 'name' | 'correct' | 'incorrect' | 'blank' | 'rate';
+type SubtopicSortKey = 'name' | 'correct' | 'incorrect' | 'blank' | 'rate';
 
 /** Taxa de acerto cell: the rate over a green bar. */
 function RateCell({ rate }: { readonly rate: number }) {
@@ -262,7 +262,7 @@ function RateCell({ rate }: { readonly rate: number }) {
   );
 }
 
-const CONTENT_COLUMNS: ColumnConfig<ContentRow>[] = [
+const SUBTOPIC_COLUMNS: ColumnConfig<SubtopicRow>[] = [
   {
     key: 'name',
     label: 'Subtema',
@@ -277,30 +277,34 @@ const CONTENT_COLUMNS: ColumnConfig<ContentRow>[] = [
     key: 'rate',
     label: 'Taxa de acerto',
     sortable: true,
-    render: (_value: unknown, row: ContentRow) => <RateCell rate={row.rate} />,
+    render: (_value: unknown, row: SubtopicRow) => <RateCell rate={row.rate} />,
   },
 ];
 
-/** Map a content onto a table row. Blanks are the answers neither hit nor missed. */
-function toContentRow(content: SimulatedContentItem): ContentRow {
-  const { correct, incorrect, correctPercentage } = content.performance;
+/**
+ * Map a subtema onto a table row.
+ *
+ * Every number arrives ready: the endpoint counts the blanks by answer status
+ * and computes the rate over the total, so nothing is derived here.
+ */
+function toSubtopicRow(subtopic: SubtopicPerformanceItem): SubtopicRow {
   return {
-    rowId: content.contentId,
-    name: content.contentName,
-    total: content.questionsCount,
-    correct,
-    incorrect,
-    blank: Math.max(content.questionsCount - correct - incorrect, 0),
-    rate: correctPercentage,
+    rowId: subtopic.subtopicId,
+    name: subtopic.subtopicName,
+    total: subtopic.total,
+    correct: subtopic.correct,
+    incorrect: subtopic.incorrect,
+    blank: subtopic.blank,
+    rate: subtopic.correctPercentage,
   };
 }
 
 /** Sort rows by one column, names in pt-BR order. */
 function sortRows(
-  rows: ContentRow[],
-  key: ContentSortKey,
+  rows: SubtopicRow[],
+  key: SubtopicSortKey,
   order: 'asc' | 'desc'
-): ContentRow[] {
+): SubtopicRow[] {
   const direction = order === 'asc' ? 1 : -1;
   return [...rows].sort((a, b) => {
     const result =
@@ -315,31 +319,31 @@ function sortRows(
  * "Desempenho por subtema": the subtemas of the selected subject (and tema),
  * searchable and sortable, collapsed to four rows behind "Mostrar todos".
  */
-function ContentsTable({
-  contents,
+function SubtopicsTable({
+  subtopics,
   loading,
   error,
 }: {
-  readonly contents: SimulatedContentItem[];
+  readonly subtopics: SubtopicPerformanceItem[];
   readonly loading: boolean;
   readonly error: string | null;
 }) {
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<{
-    key: ContentSortKey;
+    key: SubtopicSortKey;
     order: 'asc' | 'desc';
   }>({ key: 'rate', order: 'asc' });
   const [expanded, setExpanded] = useState(false);
 
   const rows = useMemo(() => {
     const term = search.trim().toLocaleLowerCase('pt-BR');
-    const matching = contents
-      .map(toContentRow)
+    const matching = subtopics
+      .map(toSubtopicRow)
       .filter(
         (row) => !term || row.name.toLocaleLowerCase('pt-BR').includes(term)
       );
     return sortRows(matching, sort.key, sort.order);
-  }, [contents, search, sort]);
+  }, [subtopics, search, sort]);
 
   const visibleRows = expanded ? rows : rows.slice(0, COLLAPSED_ROWS);
   const hasMore = rows.length > COLLAPSED_ROWS;
@@ -349,7 +353,7 @@ function ContentsTable({
   // not only to the four rows on screen.
   const handleParamsChange = (params: Record<string, unknown>) => {
     setSearch((params.search as string) ?? '');
-    const sortBy = params.sortBy as ContentSortKey | undefined;
+    const sortBy = params.sortBy as SubtopicSortKey | undefined;
     if (sortBy) {
       setSort({
         key: sortBy,
@@ -372,9 +376,9 @@ function ContentsTable({
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <TableProvider<ContentRow>
+      <TableProvider<SubtopicRow>
         data={visibleRows}
-        headers={CONTENT_COLUMNS}
+        headers={SUBTOPIC_COLUMNS}
         rowKey="rowId"
         enableSearch
         enableTableSort
@@ -392,7 +396,7 @@ function ContentsTable({
               size="small"
               className="self-start uppercase"
             >
-              {`${contents.length} subtemas totais`}
+              {`${subtopics.length} subtemas totais`}
             </Badge>
           </div>
         }
@@ -433,50 +437,59 @@ function ContentsTable({
  * frozen screen. The hover tooltip follows `VerticalBarChart` so the two charts
  * of the report behave alike.
  */
-export interface SimulatedQuestionsChartProps {
+export interface QuestionsPerformanceCardProps {
   readonly data: ActivitiesQuestionsData;
   /** Subtemas of the selected subject; null while "Todos" is selected. */
-  readonly contents?: SimulatedContentItem[] | null;
-  readonly contentsLoading?: boolean;
-  readonly contentsError?: string | null;
-  /** Card heading; defaults to "Dados gerais de questões". */
+  readonly subtopics?: SubtopicPerformanceItem[] | null;
+  readonly subtopicsLoading?: boolean;
+  readonly subtopicsError?: string | null;
+  /**
+   * Card heading. Left out, it follows the cut on screen: "Dados gerais de
+   * questões" for the whole report, "Dados de questões" once a componente
+   * curricular narrows it — the numbers stop being the report's totals and
+   * become that subject's.
+   */
   readonly title?: string;
 }
 
-export function SimulatedQuestionsChart({
+export function QuestionsPerformanceCard({
   data,
-  contents = null,
-  contentsLoading = false,
-  contentsError = null,
-  title = 'Dados gerais de questões',
-}: SimulatedQuestionsChartProps) {
+  subtopics = null,
+  subtopicsLoading = false,
+  subtopicsError = null,
+  title,
+}: QuestionsPerformanceCardProps) {
   const [topicId, setTopicId] = useState(ALL_TOPICS);
 
-  const subjectSelected = contents !== null;
+  const subjectSelected = subtopics !== null;
+
+  const cardTitle =
+    title ??
+    (subjectSelected ? 'Dados de questões' : 'Dados gerais de questões');
 
   const topics = useMemo(() => {
     const byId = new Map<string, string>();
-    for (const content of contents ?? []) {
-      if (content.topic) byId.set(content.topic.id, content.topic.name);
+    for (const subtopic of subtopics ?? []) {
+      byId.set(subtopic.topic.id, subtopic.topic.name);
     }
     return [...byId.entries()]
       .map(([id, name]) => ({ id, name }))
       .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
-  }, [contents]);
+  }, [subtopics]);
 
   // A tema that vanished with a new subject falls back to "all" on read.
   const activeTopicId = topics.some((topic) => topic.id === topicId)
     ? topicId
     : ALL_TOPICS;
 
-  const filteredContents = useMemo(
+  const filteredSubtopics = useMemo(
     () =>
       activeTopicId === ALL_TOPICS
-        ? (contents ?? [])
-        : (contents ?? []).filter(
-            (content) => content.topic?.id === activeTopicId
+        ? (subtopics ?? [])
+        : (subtopics ?? []).filter(
+            (subtopic) => subtopic.topic.id === activeTopicId
           ),
-    [contents, activeTopicId]
+    [subtopics, activeTopicId]
   );
 
   const values = useMemo<Record<BarKey, number>>(() => {
@@ -488,8 +501,8 @@ export function SimulatedQuestionsChart({
         emBranco: data.blankAnswers,
       };
     }
-    const rows = filteredContents.map(toContentRow);
-    const sum = (pick: (row: ContentRow) => number) =>
+    const rows = filteredSubtopics.map(toSubtopicRow);
+    const sum = (pick: (row: SubtopicRow) => number) =>
       rows.reduce((acc, row) => acc + pick(row), 0);
     return {
       total: sum((row) => row.total),
@@ -497,13 +510,13 @@ export function SimulatedQuestionsChart({
       incorretas: sum((row) => row.incorrect),
       emBranco: sum((row) => row.blank),
     };
-  }, [data, filteredContents, activeTopicId]);
+  }, [data, filteredSubtopics, activeTopicId]);
 
   return (
     <div className="flex flex-col gap-4 rounded-xl border border-border-50 bg-background p-5">
       <div className="flex flex-row flex-wrap items-center justify-between gap-4">
         <Text as="h3" size="lg" weight="bold" className="text-text-950">
-          {title}
+          {cardTitle}
         </Text>
         {subjectSelected && topics.length > 0 && (
           <Select
@@ -531,10 +544,10 @@ export function SimulatedQuestionsChart({
       {subjectSelected && (
         <>
           <div aria-hidden="true" className="h-px w-full bg-border-200" />
-          <ContentsTable
-            contents={filteredContents}
-            loading={contentsLoading}
-            error={contentsError}
+          <SubtopicsTable
+            subtopics={filteredSubtopics}
+            loading={subtopicsLoading}
+            error={subtopicsError}
           />
         </>
       )}
