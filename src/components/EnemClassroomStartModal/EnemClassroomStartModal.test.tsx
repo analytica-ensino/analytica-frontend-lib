@@ -15,6 +15,7 @@ const exam: EnemClassroomExam = {
   videoUrl: 'https://cdn.example.com/intro.mp4',
   durationMinutes: 300,
   languageChoice: true,
+  bannerText: 'Sua prova está liberada. Toque para começar.',
   surveyQuestions: [
     {
       id: 'q-university',

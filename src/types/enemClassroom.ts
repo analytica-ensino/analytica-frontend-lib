@@ -69,6 +69,8 @@ export interface EnemClassroomExam {
    * is not shown (day 2).
    */
   languageChoice: boolean;
+  /** What the panel card says while the exam waits to be started; written by the backoffice. */
+  bannerText: string;
   surveyQuestions: EnemClassroomSurveyQuestion[];
 }
 
