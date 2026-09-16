@@ -356,10 +356,16 @@ export function StudentSummaryHeader({
   name,
   location,
   badge,
+  badgePlacement = 'start',
 }: {
   readonly name: string;
   readonly location: readonly (string | null | undefined)[];
   readonly badge?: ReactNode;
+  /**
+   * Where the badge sits: right after the name (`start`) or pushed to the
+   * far end of the row (`end`), as the Atividades student modal draws it.
+   */
+  readonly badgePlacement?: 'start' | 'end';
 }) {
   const parts = location.filter((part): part is string => Boolean(part));
 
@@ -367,10 +373,20 @@ export function StudentSummaryHeader({
     <div className="flex flex-col gap-2 border-b border-border-200 pb-4">
       <div className="flex items-center gap-2">
         <UserIcon size={24} className="shrink-0" />
-        <Text size="md" className="min-w-0 flex-1 truncate text-text-950">
+        <Text
+          size="md"
+          className={cn(
+            'min-w-0 truncate text-text-950',
+            badgePlacement === 'start' && 'flex-1'
+          )}
+        >
           {name}
         </Text>
-        {badge}
+        {badge && badgePlacement === 'end' ? (
+          <span className="ml-auto shrink-0">{badge}</span>
+        ) : (
+          badge
+        )}
       </div>
       {parts.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">

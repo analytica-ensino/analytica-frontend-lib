@@ -107,4 +107,30 @@ export interface StudentSimulationsData {
   bestContent: StudentContentHitRate | null;
   worstContent: StudentContentHitRate | null;
   simulations: StudentSimulationItem[];
+  /**
+   * Activities assigned in the period the student has not answered yet.
+   * Listed after the answered ones; absent (or empty) lists nothing extra.
+   */
+  pending?: StudentPendingActivity[];
+  /**
+   * The student's logins in the period. Rendered as its own section when
+   * present; the Simulados report leaves it out.
+   */
+  access?: StudentAccessSummary;
+}
+
+/** One activity assigned to the student and still unanswered. */
+export interface StudentPendingActivity {
+  activityId: string;
+  title: string;
+  subtype: string | null;
+}
+
+/** How present the student was in the period. */
+export interface StudentAccessSummary {
+  accessCount: number;
+  /** Minutes across activities and lessons, as the access report counts. */
+  totalTimeMinutes: number;
+  /** ISO string of the last login, null when the student never logged in. */
+  lastAccess: string | null;
 }

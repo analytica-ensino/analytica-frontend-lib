@@ -10,7 +10,9 @@ export type {
 export {
   SIMULATED_SIMULATIONS_TAG_CONFIG,
   type SimulatedPerformanceTag,
+  type StudentAccessSummary,
   type StudentContentHitRate,
+  type StudentPendingActivity,
   type StudentSimulationItem,
   type StudentSimulationsData,
 } from './types';

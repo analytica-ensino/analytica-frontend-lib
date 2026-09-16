@@ -19,9 +19,12 @@ import {
 } from '../../hooks/useSimulationCardDetails';
 import type { BaseApiClient } from '../../types/api';
 import { formatTimeSpent } from '../../utils/activityDetailsUtils';
+import dayjs from 'dayjs';
 import {
   SIMULATED_SIMULATIONS_TAG_CONFIG,
   type SimulatedPerformanceTag,
+  type StudentAccessSummary,
+  type StudentPendingActivity,
   type StudentSimulationItem,
   type StudentSimulationsData,
 } from './types';
@@ -65,10 +68,23 @@ export interface SimulatedStudentSimulationsModalLabels {
   readonly dataSection: string;
   /** Label of the count card, e.g. "Simulados realizados" */
   readonly completedCount: string;
+  /**
+   * Label of a third card of the data section, with the questions the
+   * student answered (correct + incorrect + blank). Left out, the card is
+   * not rendered — the Simulados report does not show it.
+   */
+  readonly questionsAnswered?: string;
   /** Title of the list section, e.g. "Simulados realizados" */
   readonly listTitle: string;
   /** Shown when the list is empty, e.g. "Nenhum simulado no período" */
   readonly empty: string;
+  /** Title of the logins section, rendered when `data.access` is present */
+  readonly accessSection: string;
+  readonly accessCount: string;
+  readonly timeOnline: string;
+  readonly lastLogin: string;
+  /** Shown inside the card of an assigned activity not answered yet */
+  readonly pendingMessage: string;
 }
 
 /** The simulado wording, applied when the caller names nothing. */
@@ -78,7 +94,71 @@ export const DEFAULT_SIMULATED_STUDENT_SIMULATIONS_LABELS: SimulatedStudentSimul
     completedCount: 'Simulados realizados',
     listTitle: 'Simulados realizados',
     empty: 'Nenhum simulado no período',
+    accessSection: 'Dados de acesso',
+    accessCount: 'Quantidade de acessos',
+    timeOnline: 'Tempo total online',
+    lastLogin: 'Último login',
+    pendingMessage: 'Sem dados ainda! A atividade ainda não foi feita.',
   };
+
+/** "dd/mm/aaaa • HH:mmh" of the last login, or a dash when there was none. */
+function formatLastAccess(lastAccess: string | null): string {
+  return lastAccess ? dayjs(lastAccess).format('DD/MM/YYYY • HH:mm[h]') : '—';
+}
+
+/** The logins section: how often, for how long and when last. */
+function AccessSection({
+  access,
+  labels,
+}: {
+  readonly access: StudentAccessSummary;
+  readonly labels: SimulatedStudentSimulationsModalLabels;
+}) {
+  return (
+    <section className="flex flex-col gap-3">
+      <SectionTitle>{labels.accessSection}</SectionTitle>
+      <div className="flex flex-col gap-2 md:flex-row">
+        <DataCard
+          label={labels.accessCount}
+          value={String(access.accessCount).padStart(2, '0')}
+        />
+        <DataCard
+          label={labels.timeOnline}
+          value={formatTimeSpent(access.totalTimeMinutes * 60)}
+        />
+        <DataCard
+          label={labels.lastLogin}
+          value={formatLastAccess(access.lastAccess)}
+        />
+      </div>
+    </section>
+  );
+}
+
+/**
+ * One assigned activity the student has not answered yet.
+ *
+ * Same frame as the answered cards, but nothing to expand: there is no score,
+ * no answers and no date, only the title and the reason the card is empty.
+ */
+function PendingCard({
+  activity,
+  message,
+}: {
+  readonly activity: StudentPendingActivity;
+  readonly message: string;
+}) {
+  return (
+    <div className="flex flex-col gap-2 rounded-xl border border-border-200 bg-background p-4">
+      <Text size="lg" weight="bold" className="text-text-950">
+        {activity.title}
+      </Text>
+      <Text size="xs" className="text-text-500">
+        {message}
+      </Text>
+    </div>
+  );
+}
 
 /** One expandable simulado of the "Simulados realizados" list. */
 function SimulationCard({
@@ -173,6 +253,8 @@ export interface SimulatedStudentSimulationsModalProps {
    * Default true.
    */
   readonly detailsEnabled?: boolean;
+  /** Where the band badge sits in the header. Default `start`. */
+  readonly badgePlacement?: 'start' | 'end';
 }
 
 export function SimulatedStudentSimulationsModal({
@@ -185,6 +267,7 @@ export function SimulatedStudentSimulationsModal({
   error,
   labels,
   detailsEnabled = true,
+  badgePlacement = 'start',
 }: SimulatedStudentSimulationsModalProps) {
   const copy = { ...DEFAULT_SIMULATED_STUDENT_SIMULATIONS_LABELS, ...labels };
   const {
@@ -214,6 +297,7 @@ export function SimulatedStudentSimulationsModal({
       </div>
     );
   } else if (data) {
+    const pending = data.pending ?? [];
     content = (
       <div className="flex flex-col gap-6">
         <StudentSummaryHeader
@@ -224,7 +308,10 @@ export function SimulatedStudentSimulationsModal({
             data.student.schoolYear,
           ]}
           badge={<PerformanceBadge tag={data.student.performance} />}
+          badgePlacement={badgePlacement}
         />
+
+        {data.access && <AccessSection access={data.access} labels={copy} />}
 
         <section className="flex flex-col gap-3">
           <SectionTitle>{copy.dataSection}</SectionTitle>
@@ -233,6 +320,16 @@ export function SimulatedStudentSimulationsModal({
               label={copy.completedCount}
               value={String(data.totals.simulationsCount)}
             />
+            {copy.questionsAnswered && (
+              <DataCard
+                label={copy.questionsAnswered}
+                value={String(
+                  data.totals.correct +
+                    data.totals.incorrect +
+                    data.totals.blank
+                )}
+              />
+            )}
             <DataCard
               label="Tempo total"
               value={formatTimeSpent(data.totals.totalTimeSeconds)}
@@ -253,7 +350,7 @@ export function SimulatedStudentSimulationsModal({
 
         <section className="flex flex-col gap-3">
           <SectionTitle>{copy.listTitle}</SectionTitle>
-          {data.simulations.length === 0 ? (
+          {data.simulations.length === 0 && pending.length === 0 ? (
             <div className="flex items-center justify-center rounded-xl border border-border-50 bg-background p-6">
               <Text size="sm" className="text-text-500">
                 {copy.empty}
@@ -278,6 +375,13 @@ export function SimulatedStudentSimulationsModal({
                   onSaveQuestionComment={makeSaveQuestionComment(
                     simulation.activityId
                   )}
+                />
+              ))}
+              {pending.map((activity) => (
+                <PendingCard
+                  key={`${data.student.userInstitutionId}-pending-${activity.activityId}`}
+                  activity={activity}
+                  message={copy.pendingMessage}
                 />
               ))}
             </div>
