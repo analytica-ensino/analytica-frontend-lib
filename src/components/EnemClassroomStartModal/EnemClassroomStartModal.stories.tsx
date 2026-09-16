@@ -14,6 +14,7 @@ const exam: EnemClassroomExam = {
   videoUrl:
     'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
   durationMinutes: 300,
+  languageChoice: true,
   surveyQuestions: [
     {
       id: 'q-course',
@@ -74,6 +75,28 @@ export const Basic: Story = () => {
 /**
  * Exam without an introduction video: the first step shows only the warnings.
  */
+export const WithoutLanguageChoice: Story = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="flex flex-col gap-4 p-4">
+      <Text size="sm" color="text-text-700">
+        Prova sem língua estrangeira (dia 2 do ENEM): o passo de idioma não
+        aparece.
+      </Text>
+      <Button onClick={() => setIsOpen(true)}>Abrir</Button>
+
+      <EnemClassroomStartModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        exam={{ ...exam, languageChoice: false }}
+        onStart={() => setIsOpen(false)}
+        isStarting={false}
+      />
+    </div>
+  );
+};
+
 export const WithoutVideo: Story = () => {
   const [isOpen, setIsOpen] = useState(false);
 
