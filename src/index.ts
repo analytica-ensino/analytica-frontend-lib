@@ -1266,6 +1266,60 @@ export type {
   StepConfig as SendLessonStepConfig,
 } from './components/SendLessonModal';
 
+// Lessons catalogue (subjects -> topics -> lesson page)
+export {
+  LessonsCatalogPage,
+  LessonTopicsPage,
+  LessonViewPage,
+  LessonResultsSection,
+} from './components/LessonsCatalog';
+export type {
+  LessonsCatalogPageProps,
+  LessonTopicsPageProps,
+  LessonViewPageProps,
+  LessonResultsSectionProps,
+} from './components/LessonsCatalog';
+export { createUseClassesCatalog } from './hooks/useClassesCatalog';
+export {
+  createUseClassTopics,
+  transformTopicsResponse,
+} from './hooks/useClassTopics';
+export {
+  createUseClassLessons,
+  fetchLessonById,
+} from './hooks/useClassLessons';
+export {
+  createUseLessonSearch,
+  MIN_SEARCH_LENGTH,
+  SEARCH_DEBOUNCE_MS,
+} from './hooks/useLessonSearch';
+export { createUseLessonProgressTracker } from './hooks/useLessonProgressTracker';
+export { createUseLessonTelemetry } from './hooks/useLessonTelemetry';
+export { useLessonsStore } from './store/lessonsStore';
+export {
+  mapApiLessonToLessonDetails,
+  DEFAULT_PODCAST_TITLE,
+} from './utils/lessonsCatalog';
+// `KnowledgeArea` and `LessonProgress` are already taken in this barrel by the
+// activity-filters and recommended-lesson-details types, so the catalogue's
+// versions are re-exported under prefixed names. The unprefixed names remain
+// available from the `./types/lessonscatalog` subpath.
+export type {
+  LessonsMode,
+  LessonsCatalogRoutes,
+  LessonsCatalogNavigationState,
+  KnowledgeArea as LessonsCatalogKnowledgeArea,
+  SubjectWithProgress,
+  SubjectProgress,
+  Topic as LessonsCatalogTopic,
+  TopicCategory,
+  ClassTopicsData,
+  LessonDetails,
+  LessonProgress as CatalogLessonProgress,
+  ApiLessonData,
+  LessonSearchResultItem,
+} from './types/lessonsCatalog';
+
 // Recommended Lessons / RecommendedClass History Component
 export {
   RecommendedLessonsHistory,

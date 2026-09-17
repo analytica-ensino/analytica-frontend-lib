@@ -423,6 +423,26 @@ describe('CardQuestions', () => {
     expect(container.className).toContain('custom-class');
   });
 
+  it('should enable the action button by default', () => {
+    render(<CardQuestions {...baseProps} />);
+
+    expect(screen.getByRole('button', { name: /Responder/i })).toBeEnabled();
+  });
+
+  it('should disable the action button when disabled is true', () => {
+    const handleClick = jest.fn();
+    render(
+      <CardQuestions {...baseProps} disabled onClickButton={handleClick} />
+    );
+
+    const button = screen.getByRole('button', { name: /Responder/i });
+    expect(button).toBeDisabled();
+
+    // The questionnaire stays visible, but must not be answerable.
+    fireEvent.click(button);
+    expect(handleClick).not.toHaveBeenCalled();
+  });
+
   it('should render correct badge action based on state', () => {
     const { rerender } = render(<CardQuestions {...baseProps} />);
 
@@ -499,6 +519,37 @@ describe('CardProgress', () => {
   it('should not render dates or progress bar if not provided', () => {
     render(<CardProgress {...baseProps} direction="horizontal" />);
     expect(screen.queryByText('Início')).not.toBeInTheDocument();
+  });
+
+  it('should hide the progress bar and percentage when showProgress is false', () => {
+    render(
+      <CardProgress
+        {...baseProps}
+        direction="horizontal"
+        showProgress={false}
+      />
+    );
+
+    // Without this the bar would render at 0%, which reads as "nothing done"
+    // instead of "progress does not apply to this viewer".
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    expect(screen.queryByText('0%')).not.toBeInTheDocument();
+    expect(screen.getByText('Progresso do Projeto')).toBeInTheDocument();
+  });
+
+  it('should keep dates visible when progress is hidden', () => {
+    render(
+      <CardProgress
+        {...baseProps}
+        direction="horizontal"
+        initialDate="01 Jan 2025"
+        endDate="31 Jan 2025"
+        showProgress={false}
+      />
+    );
+
+    expect(screen.getByText('01 Jan 2025')).toBeInTheDocument();
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
   });
 
   it('should apply custom className and forward props', () => {
@@ -647,6 +698,36 @@ describe('CardTopic', () => {
   it('should forward extra HTML attributes', () => {
     render(<CardTopic {...baseProps} data-testid="topic-container" />);
     expect(screen.getByTestId('topic-container')).toBeInTheDocument();
+  });
+
+  it('should render the progress bar by default', () => {
+    render(<CardTopic {...baseProps} />);
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+  });
+
+  it('should hide the progress bar when showProgress is false', () => {
+    render(<CardTopic {...baseProps} progress={75} showProgress={false} />);
+
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    expect(screen.getByText('Tópico de Teste')).toBeInTheDocument();
+  });
+
+  it('should hide the percentage along with the bar', () => {
+    render(
+      <CardTopic
+        {...baseProps}
+        progress={75}
+        showPercentage
+        showProgress={false}
+      />
+    );
+
+    expect(screen.queryByText('75%')).not.toBeInTheDocument();
+  });
+
+  it('should default progress to 0 when omitted', () => {
+    render(<CardTopic header="Sem progresso" showPercentage />);
+    expect(screen.getByText('0%')).toBeInTheDocument();
   });
 });
 

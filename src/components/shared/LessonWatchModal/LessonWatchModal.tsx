@@ -1,15 +1,12 @@
 import React, { type RefObject } from 'react';
-import {
-  Button,
-  Modal,
-  Text,
-  VideoPlayer,
-  Alert,
-  CardAudio,
-  Whiteboard,
-} from '../../../index';
+import { Button, Modal, Text, Alert } from '../../../index';
 import type { Lesson } from '../../../types/lessons';
 import type { WhiteboardImage } from '../../Whiteboard/Whiteboard';
+import {
+  LessonVideoSection,
+  LessonPodcastSection,
+  LessonBoardImagesSection,
+} from '../LessonMediaSections';
 
 export interface LessonWatchModalProps {
   isOpen: boolean;
@@ -41,86 +38,17 @@ export interface LessonWatchModalProps {
   title?: string;
 }
 
-type PodcastSectionProps = Pick<
-  LessonWatchModalProps,
-  'getPodcastData' | 'onPodcastEnded'
-> & { lesson: Lesson };
-
-type BoardImagesSectionProps = Pick<
-  LessonWatchModalProps,
-  'getBoardImages' | 'getBoardImageRef'
-> & { lesson: Lesson };
-
 type VideoSectionProps = Omit<
   LessonWatchModalProps,
   'isOpen' | 'onClose' | 'selectedLesson' | 'footer' | 'title'
 > & { lesson: Lesson };
 
 /**
- * Renders podcast section if available
- */
-const PodcastSection = ({
-  lesson,
-  getPodcastData,
-  onPodcastEnded,
-}: PodcastSectionProps) => {
-  const podcastData = getPodcastData(lesson);
-  if (!podcastData.src) {
-    return null;
-  }
-  return (
-    <div className="w-full">
-      <Text size="md" weight="bold" className="pb-2">
-        {podcastData.title}
-      </Text>
-      <CardAudio
-        src={podcastData.src}
-        title={podcastData.title}
-        onEnded={onPodcastEnded}
-      />
-    </div>
-  );
-};
-
-/**
- * Renders board images section if available
- */
-const BoardImagesSection = ({
-  lesson,
-  getBoardImages,
-  getBoardImageRef,
-}: BoardImagesSectionProps) => {
-  const boardImages: WhiteboardImage[] = getBoardImages(lesson);
-  if (boardImages.length === 0) {
-    return null;
-  }
-  return (
-    <div className="w-full">
-      <Text size="md" weight="bold" className="pb-2">
-        Quadros da aula
-      </Text>
-      <div className="flex flex-wrap items-center justify-center gap-4">
-        {boardImages.map((image: WhiteboardImage, index: number) => (
-          <div
-            key={image.id || `board-image-${index}`}
-            ref={getBoardImageRef(index, boardImages.length)}
-            className="flex flex-row rounded-xl bg-background-50"
-          >
-            <Whiteboard
-              images={[image]}
-              showDownload={true}
-              imagesPerRow={2}
-              className="gap-4 w-full items-center border-border-50"
-            />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-/**
- * Renders video section with player, podcast, and board images
+ * Renders video section with player, podcast, and board images.
+ *
+ * Resolves the lesson-shaped accessors into plain data and hands it to the
+ * shared LessonMediaSections, so the modal and the lesson page render the same
+ * player, podcast and whiteboards.
  */
 const VideoSection = ({
   lesson,
@@ -134,31 +62,17 @@ const VideoSection = ({
   getBoardImages,
   getBoardImageRef,
 }: VideoSectionProps) => {
-  const videoData = getVideoData(lesson);
-  if (!videoData.src) {
-    return (
-      <div className="px-6 py-6 flex flex-col gap-4">
-        <Text size="md" className="text-text-600">
-          Vídeo não disponível para esta aula.
-        </Text>
-      </div>
-    );
-  }
+  const boardImages: WhiteboardImage[] = getBoardImages(lesson);
 
   return (
-    <>
-      <VideoPlayer
-        src={videoData.src}
-        poster={videoData.poster}
-        subtitles={videoData.subtitles}
-        onTimeUpdate={handleVideoTimeUpdate}
-        onVideoComplete={handleVideoCompleteCallback}
-        initialTime={getInitialTimestampValue(lesson.id)}
-        className="w-full h-full object-cover rounded-b-xl"
-        autoSave={true}
-        storageKey={`lesson-${lesson.id}`}
-        userId={userId}
-      />
+    <LessonVideoSection
+      video={getVideoData(lesson)}
+      initialTime={getInitialTimestampValue(lesson.id)}
+      onTimeUpdate={handleVideoTimeUpdate}
+      onVideoComplete={handleVideoCompleteCallback}
+      storageKey={`lesson-${lesson.id}`}
+      userId={userId}
+    >
       <div className="flex flex-col gap-4">
         <Alert
           action="info"
@@ -166,18 +80,16 @@ const VideoSection = ({
           description="Cada aula inclui questionários automáticos para o aluno praticar o conteúdo."
           className="w-full"
         />
-        <PodcastSection
-          lesson={lesson}
-          getPodcastData={getPodcastData}
-          onPodcastEnded={onPodcastEnded}
+        <LessonPodcastSection
+          podcast={getPodcastData(lesson)}
+          onEnded={onPodcastEnded}
         />
-        <BoardImagesSection
-          lesson={lesson}
-          getBoardImages={getBoardImages}
-          getBoardImageRef={getBoardImageRef}
+        <LessonBoardImagesSection
+          images={boardImages}
+          getImageRef={getBoardImageRef}
         />
       </div>
-    </>
+    </LessonVideoSection>
   );
 };
 
