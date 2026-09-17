@@ -5,6 +5,17 @@ import {
 } from './Quiz.types';
 import { TrueFalseEnum } from '../../enums/Quiz';
 import { OptionStatus } from '../../enums/Options';
+import { QUIZ_TYPE, type QuizInterface } from './useQuizStore';
+
+/**
+ * Whether the banca/year line goes on the questions of a quiz: always on a
+ * SIMULADO, and on any quiz that asks for it (`showExamInfo`).
+ * @param quiz - The quiz, or null before one is loaded
+ * @returns true when the exam info is shown
+ */
+export const shouldShowExamInfo = (
+  quiz: Pick<QuizInterface, 'type' | 'showExamInfo'> | null
+): boolean => quiz?.type === QUIZ_TYPE.SIMULADO || quiz?.showExamInfo === true;
 
 /**
  * Helper function to format exam info (bank - year)

@@ -16,7 +16,7 @@ import { cn, getSubjectColorWithOpacity } from '../../utils/utils';
 import Badge from '../Badge/Badge';
 import { useTheme } from '../../hooks/useTheme';
 import Button from '../Button/Button';
-import { formatExamInfo } from './Quiz.utils';
+import { formatExamInfo, shouldShowExamInfo } from './Quiz.utils';
 
 const QuizBadge = ({
   subtype,
@@ -480,8 +480,7 @@ const QuizListResultByMateria = ({
     useQuizStore();
   const groupedQuestions = getQuestionsGroupedBySubject();
 
-  // Only show exam info (banca/year) for SIMULADO type
-  const shouldShowExamInfo = quiz?.type === QUIZ_TYPE.SIMULADO;
+  const showExamInfo = shouldShowExamInfo(quiz);
 
   const answeredQuestions = groupedQuestions[subject] || [];
   const formattedQuestions =
@@ -514,7 +513,7 @@ const QuizListResultByMateria = ({
             const examBoard =
               'examBoard' in question ? question.examBoard : null;
             const examYear = 'examYear' in question ? question.examYear : null;
-            const examInfo = shouldShowExamInfo
+            const examInfo = showExamInfo
               ? formatExamInfo(examBoard, examYear)
               : '';
             const questionTitle = `Questão ${questionIndex.toString().padStart(2, '0')}`;

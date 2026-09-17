@@ -3,8 +3,10 @@ import {
   prependLetterToHtml,
   getTrueOrFalseOptionState,
   formatExamInfo,
+  shouldShowExamInfo,
 } from './Quiz.utils';
 import { QuizVariant } from './Quiz.types';
+import { QUIZ_TYPE } from './useQuizStore';
 import { TrueFalseEnum } from '../../enums/Quiz';
 import type { QuestionAnswerResult } from './Quiz.types';
 
@@ -288,6 +290,26 @@ describe('getTrueOrFalseOptionState', () => {
       expect(state.studentMarkedTrue).toBe(false);
       expect(state.studentAnswer).toBe(TrueFalseEnum.FALSO);
     });
+  });
+});
+
+describe('shouldShowExamInfo', () => {
+  it('shows the exam info on a SIMULADO', () => {
+    expect(shouldShowExamInfo({ type: QUIZ_TYPE.SIMULADO })).toBe(true);
+  });
+
+  it('shows it on any quiz that asks for it', () => {
+    expect(
+      shouldShowExamInfo({ type: QUIZ_TYPE.ATIVIDADE, showExamInfo: true })
+    ).toBe(true);
+  });
+
+  it('hides it otherwise, including before a quiz is loaded', () => {
+    expect(shouldShowExamInfo({ type: QUIZ_TYPE.ATIVIDADE })).toBe(false);
+    expect(
+      shouldShowExamInfo({ type: QUIZ_TYPE.QUESTIONARIO, showExamInfo: false })
+    ).toBe(false);
+    expect(shouldShowExamInfo(null)).toBe(false);
   });
 });
 

@@ -1,6 +1,9 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import EnemClassroomStartModal from './EnemClassroomStartModal';
-import type { EnemClassroomExam } from '../../types/enemClassroom';
+import {
+  ENEM_CLASSROOM_DEFAULT_STUDENT_TEXTS,
+  type EnemClassroomExam,
+} from '../../types/enemClassroom';
 
 jest.mock('../VideoPlayer/VideoPlayer', () => ({
   __esModule: true,
@@ -15,7 +18,7 @@ const exam: EnemClassroomExam = {
   videoUrl: 'https://cdn.example.com/intro.mp4',
   durationMinutes: 300,
   languageChoice: true,
-  bannerText: 'Sua prova está liberada. Toque para começar.',
+  studentTexts: ENEM_CLASSROOM_DEFAULT_STUDENT_TEXTS,
   surveyQuestions: [
     {
       id: 'q-university',
@@ -67,17 +70,22 @@ describe('EnemClassroomStartModal', () => {
   it('does not render when closed', () => {
     setup({ isOpen: false });
 
-    expect(
-      screen.queryByText('Simulação do ENEM em sala de aula!')
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText('Simulado ENEM 2026')).not.toBeInTheDocument();
   });
 
-  it('opens on the introduction with the video and the three warnings', () => {
+  it('opens on the introduction with the exam title, the video and the three warnings', () => {
     setup();
 
+    expect(screen.getByText('Simulado ENEM 2026')).toBeInTheDocument();
+    expect(
+      screen.getByTestId('enem-classroom-intro-video-text')
+    ).toHaveTextContent('Assista às orientações.');
     expect(screen.getByTestId('video-player')).toHaveTextContent(
       'Video: https://cdn.example.com/intro.mp4'
     );
+    expect(
+      screen.getByText('Ei, lê isso antes de começar!')
+    ).toBeInTheDocument();
     expect(screen.getByText('Só vale em sala de aula')).toBeInTheDocument();
     expect(screen.getByText('O cronômetro liga na hora')).toBeInTheDocument();
     expect(screen.getByText('Não tem como desfazer')).toBeInTheDocument();
@@ -85,11 +93,47 @@ describe('EnemClassroomStartModal', () => {
     expect(screen.queryByTestId('enem-classroom-next')).not.toBeInTheDocument();
   });
 
-  it('shows the warnings without a player when the exam has no video', () => {
+  it('shows the warnings without a player, nor its text, when the exam has no video', () => {
     setup({ exam: { ...exam, videoUrl: null } });
 
     expect(screen.queryByTestId('video-player')).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId('enem-classroom-intro-video-text')
+    ).not.toBeInTheDocument();
     expect(screen.getByText('Só vale em sala de aula')).toBeInTheDocument();
+  });
+
+  it('shows the texts the backoffice wrote for the introduction', () => {
+    setup({
+      exam: {
+        ...exam,
+        studentTexts: {
+          ...ENEM_CLASSROOM_DEFAULT_STUDENT_TEXTS,
+          introVideoText: 'Veja o recado da direção.',
+          introHeading:
+            'Atenção, estudante da 3ª série! Leia antes de começar!',
+          introWarningTitle: 'Nada de fazer em casa!',
+          introWarningText:
+            'Esse simulado é presencial no colégio, com seu professor, na data da sua turma!',
+        },
+      },
+    });
+
+    expect(screen.getByText('Veja o recado da direção.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Atenção, estudante da 3ª série! Leia antes de começar!')
+    ).toBeInTheDocument();
+    expect(screen.getByText('Nada de fazer em casa!')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Esse simulado é presencial no colégio, com seu professor, na data da sua turma!'
+      )
+    ).toBeInTheDocument();
+    // The other two warnings are not the backoffice's to change.
+    expect(screen.getByText('O cronômetro liga na hora')).toBeInTheDocument();
+    expect(
+      screen.queryByText('Só vale em sala de aula')
+    ).not.toBeInTheDocument();
   });
 
   it('lists the survey questions in the stepper by position', () => {
