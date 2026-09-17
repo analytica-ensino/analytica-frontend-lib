@@ -48,13 +48,16 @@ export interface TopicProgressItem {
 export interface StudentLessonProgressData {
   /** Student name */
   name: string;
-  /** Overall completion rate percentage (0-100) */
+  /** Overall completion rate percentage (0-100), over every subject */
   overallCompletionRate: number;
   /** Topic with best result */
   bestResult: string | null;
   /** Topic with biggest difficulty */
   biggestDifficulty: string | null;
-  /** Lesson progress items by topic */
+  /**
+   * Topics of every subject the progress was requested for, in trail order
+   * (subject, then topic), so the topics of one subject stay together.
+   */
   lessonProgress: TopicProgressItem[];
 }
 

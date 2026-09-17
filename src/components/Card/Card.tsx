@@ -142,6 +142,8 @@ interface CardActivitiesResultsProps extends HTMLAttributes<HTMLDivElement> {
   description?: string;
   extended?: boolean;
   action?: 'warning' | 'success' | 'error' | 'info';
+  /** Extra classes of the value line, e.g. a larger size */
+  subTitleClassName?: string;
 }
 
 const ACTION_CARD_CLASSES = {
@@ -186,6 +188,7 @@ const CardActivitiesResults = forwardRef<
       action = 'success',
       description,
       className,
+      subTitleClassName,
       ...props
     },
     ref
@@ -199,7 +202,10 @@ const CardActivitiesResults = forwardRef<
       <div
         ref={ref}
         className={cn(
-          'w-full flex flex-col rounded-xl',
+          // `min-w-0` lets the card shrink inside a grid/flex track, so the
+          // truncated texts below get a width to truncate against instead of
+          // stretching the card past its column.
+          'w-full min-w-0 flex flex-col rounded-xl',
           extended && 'border border-border-50 bg-background',
           className
         )}
@@ -224,13 +230,17 @@ const CardActivitiesResults = forwardRef<
           <Text
             size="2xs"
             weight="medium"
-            className="text-text-800 uppercase truncate"
+            className="max-w-full text-center text-text-800 uppercase truncate"
           >
             {title}
           </Text>
 
           <p
-            className={cn('text-lg font-bold truncate', actionSubTitleClasses)}
+            className={cn(
+              'max-w-full text-center text-lg font-bold truncate',
+              actionSubTitleClasses,
+              subTitleClassName
+            )}
           >
             {subTitle}
           </p>
