@@ -164,6 +164,46 @@ const MonthYearPicker = ({
 );
 
 /**
+ * Sufixo do rótulo do dia, um por status de atividade. Acompanha o indicador
+ * colorido: mesma informação para quem enxerga o dia pintado e para quem só
+ * ouve o botão.
+ */
+const ACTIVITY_LABELS: Record<ActivityStatus, string> = {
+  overdue: 'com atividade atrasada',
+  'near-deadline': 'com atividade a vencer',
+  'in-deadline': 'com atividade',
+};
+
+/**
+ * Nome acessível do botão de um dia.
+ *
+ * Sem isto o botão anunciava só a data, e a única pista de que o dia tem prazo
+ * era a cor do indicador — invisível para quem usa leitor de tela. O sufixo de
+ * atividade só entra quando o calendário de fato pinta os dias
+ * (`announcesActivities`): num seletor de data comum, dizer "sem atividade" em
+ * cada um dos trinta dias seria ruído sobre algo que a tela nem mostra.
+ *
+ * O status vem da primeira atividade do dia, a mesma que decide a cor — o dia
+ * fica com uma voz só, em vez de o texto contar uma história e o indicador
+ * outra.
+ */
+const getDayLabel = (day: CalendarDay, announcesActivities: boolean) => {
+  const date = `Dia ${day.date.getDate()} de ${MONTH_NAMES[day.date.getMonth()]}`;
+
+  if (!announcesActivities) {
+    return date;
+  }
+
+  const status = day.activities?.[0]?.status;
+
+  if (!status) {
+    return `${date}, sem atividade`;
+  }
+
+  return `${date}, ${ACTIVITY_LABELS[status] ?? ACTIVITY_LABELS['in-deadline']}`;
+};
+
+/**
  * Helper function to get day styles based on variant and conditions
  */
 const getDayStyles = (
@@ -226,6 +266,9 @@ const Calendar = ({
 }: CalendarProps) => {
   const [currentDate, setCurrentDate] = useState(selectedDate || new Date());
   const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
+  // Mesma condição que liga o indicador colorido em `getDayStyles`: o rótulo
+  // do dia só fala de atividade quando o calendário também as mostra.
+  const announcesActivities = variant === 'navigation' && showActivities;
   const monthPickerRef = useRef<HTMLDivElement>(null);
   const monthPickerContainerRef = useRef<HTMLDivElement>(null);
 
@@ -503,7 +546,7 @@ const Calendar = ({
                     ${textStyle}
                   `}
                   onClick={() => handleDateSelect(day)}
-                  aria-label={`${day.date.getDate()} de ${MONTH_NAMES[day.date.getMonth()]}`}
+                  aria-label={getDayLabel(day, announcesActivities)}
                   aria-current={day.isToday ? 'date' : undefined}
                   tabIndex={0}
                 >
@@ -650,7 +693,7 @@ const Calendar = ({
                   ${textStyle}
                 `}
                 onClick={() => handleDateSelect(day)}
-                aria-label={`${day.date.getDate()} de ${MONTH_NAMES[day.date.getMonth()]}`}
+                aria-label={getDayLabel(day, announcesActivities)}
                 aria-current={day.isToday ? 'date' : undefined}
                 tabIndex={0}
               >
