@@ -87,14 +87,17 @@ const CARD_CLASSES =
  * Gradiente da identidade da simulação em sala de aula — os mesmos tons do
  * card do painel do aluno. Não sai dos tokens de tema porque é a marca da
  * prova, não a da instituição.
- */
-/*
- * Gradiente literal, e não `bg-gradient-to-r from-… to-…`: o Tailwind v4
- * interpola `in oklab`, o que muda os tons do meio em relação ao sRGB do CSS
- * que veio do design.
+ *
+ * Literal, e não `bg-gradient-to-r from-… to-…`: o Tailwind v4 interpola
+ * `in oklab`, o que muda os tons do meio em relação ao sRGB do design.
+ *
+ * `border-0` porque o `solid/primary` do Button traz `border-primary-950`, que
+ * o gradiente não cobre — ele só troca o fundo. Zerar a largura, em vez de
+ * pintar a borda de transparente, também neutraliza as cores de hover e
+ * active, que voltariam a aparecer.
  */
 const GRADIENT_CTA_CLASSES =
-  'bg-[linear-gradient(270deg,#B21FF6_0%,#F95493_100%)] hover:opacity-90 transition-opacity';
+  'bg-[linear-gradient(270deg,#B21FF6_0%,#F95493_100%)] border-0 hover:opacity-90 transition-opacity';
 
 /**
  * One selectable option: a card carrying an optional icon and a label.
@@ -301,6 +304,12 @@ const EnemClassroomStartModal = ({
   );
 
   const currentStep = steps[step] ?? steps[INTRO_STEP];
+  /**
+   * Só o passo da introdução, e só quando há vídeo, prende o player no topo e
+   * rola o conteúdo abaixo dele. Nos outros passos a rolagem segue sendo a do
+   * Modal — tirá-la de lá sempre cortaria as perguntas em tela baixa.
+   */
+  const hasPinnedVideo = currentStep.kind === 'intro' && Boolean(exam.videoUrl);
   const currentQuestion =
     currentStep.kind === 'survey' ? currentStep.question : null;
 
@@ -334,7 +343,10 @@ const EnemClassroomStartModal = ({
   }, [exam.languageChoice, language, surveyQuestions, answers, onStart]);
 
   const renderIntroStep = () => (
-    <div className="flex flex-col gap-6" data-testid="enem-classroom-intro">
+    <div
+      className="flex flex-col gap-6 min-h-0"
+      data-testid="enem-classroom-intro"
+    >
       {exam.videoUrl && (
         <Text
           size="md"
@@ -352,12 +364,22 @@ const EnemClassroomStartModal = ({
           // O desenho mostra só o vídeo: o nome da prova já está no título do
           // modal. O `title` fica para rotular o player nos leitores de tela.
           hideHeader
-          className="w-full rounded-xl overflow-hidden"
+          className="w-full rounded-xl overflow-hidden flex-none"
           autoSave={false}
         />
       )}
 
-      <div className="flex flex-col gap-4">
+      {/*
+       * Com vídeo, a rolagem é daqui para baixo: o player e o botão ficam
+       * parados e só os avisos correm entre eles. Rolando o modal inteiro o
+       * vídeo saía cortado pelo topo.
+       */}
+      <div
+        className={cn(
+          'flex flex-col gap-4',
+          hasPinnedVideo && 'flex-1 min-h-0 overflow-y-auto'
+        )}
+      >
         <Text size="lg" weight="bold" className="text-text-950">
           {exam.studentTexts.introHeading}
         </Text>
@@ -393,7 +415,7 @@ const EnemClassroomStartModal = ({
         size="large"
         variant="solid"
         action="primary"
-        className={cn('w-full', GRADIENT_CTA_CLASSES)}
+        className={cn('w-full flex-none', GRADIENT_CTA_CLASSES)}
         onClick={() => setStep(FIRST_CHOICE_STEP)}
         data-testid="enem-classroom-intro-continue"
       >
@@ -619,7 +641,11 @@ const EnemClassroomStartModal = ({
       }
       size="lg"
       footer={footer}
-      contentClassName="flex flex-col gap-6"
+      // Com o vídeo preso, quem rola é o bloco de avisos, não o Modal.
+      contentClassName={cn(
+        'flex flex-col gap-6',
+        hasPinnedVideo && 'overflow-hidden'
+      )}
     >
       {showStepper && (
         <Stepper steps={stepperSteps} currentStep={step} size="small" />
