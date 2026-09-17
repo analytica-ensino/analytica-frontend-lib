@@ -23,22 +23,24 @@ import {
   type EnemClassroomExam,
   type EnemClassroomLanguage,
   type EnemClassroomStartPayload,
+  type EnemClassroomStudentTexts,
   type EnemClassroomSurveyQuestion,
 } from '../../types/enemClassroom';
 
 /** Title shared by every step, as in the design. */
-export const ENEM_CLASSROOM_MODAL_TITLE = 'Simulação do ENEM em sala de aula!';
-
 /**
  * The three warnings of the introduction step. The exam only counts when
- * taken in class, so they are shown before anything else.
+ * taken in class, so they are shown before anything else. The first one is
+ * the backoffice's to write (`studentTexts`); the other two are fixed.
+ *
+ * @param texts - The exam's texts
+ * @returns The warnings in order
  */
-const INTRO_WARNINGS = [
+const buildIntroWarnings = (texts: EnemClassroomStudentTexts) => [
   {
     icon: warningClassroomIcon,
-    title: 'Só vale em sala de aula',
-    description:
-      'Essa simulação precisa ser feita com seu professor presente. Não vale fazer em casa!',
+    title: texts.introWarningTitle,
+    description: texts.introWarningText,
   },
   {
     icon: warningTimerIcon,
@@ -52,7 +54,7 @@ const INTRO_WARNINGS = [
     description:
       'Iniciar fora do horário estabelecido pelo seu professor em sala de aula pode atrapalhar seu resultado!',
   },
-] as const;
+];
 
 /** Flag shown next to each language, as in the design. */
 const LANGUAGE_FLAGS: Record<EnemClassroomLanguage, string> = {
@@ -334,6 +336,16 @@ const EnemClassroomStartModal = ({
   const renderIntroStep = () => (
     <div className="flex flex-col gap-6" data-testid="enem-classroom-intro">
       {exam.videoUrl && (
+        <Text
+          size="md"
+          weight="semibold"
+          className="text-text-950"
+          data-testid="enem-classroom-intro-video-text"
+        >
+          {exam.studentTexts.introVideoText}
+        </Text>
+      )}
+      {exam.videoUrl && (
         <VideoPlayer
           src={exam.videoUrl}
           title={exam.title}
@@ -347,29 +359,34 @@ const EnemClassroomStartModal = ({
 
       <div className="flex flex-col gap-4">
         <Text size="lg" weight="bold" className="text-text-950">
-          Ei, lê isso antes de começar!
+          {exam.studentTexts.introHeading}
         </Text>
-        {INTRO_WARNINGS.map(({ icon, title, description }) => (
-          <div
-            key={title}
-            className={cn(CARD_CLASSES, 'flex flex-row gap-4 items-start p-4')}
-          >
-            <img
-              src={icon}
-              alt=""
-              aria-hidden
-              className="flex-shrink-0 w-10 h-10"
-            />
-            <div className="flex flex-col gap-1">
-              <Text size="md" weight="bold" className="text-text-950">
-                {title}
-              </Text>
-              <Text size="sm" className="text-text-600">
-                {description}
-              </Text>
+        {buildIntroWarnings(exam.studentTexts).map(
+          ({ icon, title, description }) => (
+            <div
+              key={title}
+              className={cn(
+                CARD_CLASSES,
+                'flex flex-row gap-4 items-start p-4'
+              )}
+            >
+              <img
+                src={icon}
+                alt=""
+                aria-hidden
+                className="flex-shrink-0 w-10 h-10"
+              />
+              <div className="flex flex-col gap-1">
+                <Text size="md" weight="bold" className="text-text-950">
+                  {title}
+                </Text>
+                <Text size="sm" className="text-text-600">
+                  {description}
+                </Text>
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        )}
       </div>
 
       <Button
@@ -598,11 +615,7 @@ const EnemClassroomStartModal = ({
        * dialog sem nome acessível.
        */
       title={
-        showStepper ? (
-          ENEM_CLASSROOM_MODAL_TITLE
-        ) : (
-          <span className="sr-only">{ENEM_CLASSROOM_MODAL_TITLE}</span>
-        )
+        showStepper ? exam.title : <span className="sr-only">{exam.title}</span>
       }
       size="lg"
       footer={footer}

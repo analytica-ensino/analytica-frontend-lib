@@ -69,10 +69,50 @@ export interface EnemClassroomExam {
    * is not shown (day 2).
    */
   languageChoice: boolean;
-  /** What the panel card says while the exam waits to be started; written by the backoffice. */
-  bannerText: string;
+  /** The texts of the panel card and of the start modal, as the backoffice wrote them. */
+  studentTexts: EnemClassroomStudentTexts;
   surveyQuestions: EnemClassroomSurveyQuestion[];
 }
+
+/**
+ * Every text the student sees around the exam — the panel card and the
+ * introduction step of the start modal. The backoffice rewrites them per
+ * exam; the API always sends the full set.
+ */
+export interface EnemClassroomStudentTexts {
+  /** The card's first line. */
+  bannerTitle: string;
+  /** The card's second line; empty hides it. */
+  bannerSubtitle: string;
+  /** The card's body line. */
+  bannerText: string;
+  /** Bullet list under the body; empty hides it. */
+  bannerItems: string[];
+  /** The call to action on the card's right. */
+  bannerCta: string;
+  /** Above the introduction video; only shown when the exam has one. */
+  introVideoText: string;
+  /** The heading over the warnings of the introduction step. */
+  introHeading: string;
+  /** The first warning's title (the other two are fixed). */
+  introWarningTitle: string;
+  /** The first warning's description. */
+  introWarningText: string;
+}
+
+/** The texts the API sends unless the backoffice wrote others; stories and tests start from here. */
+export const ENEM_CLASSROOM_DEFAULT_STUDENT_TEXTS: EnemClassroomStudentTexts = {
+  bannerTitle: 'Simulação do ENEM em sala de aula!',
+  bannerSubtitle: '',
+  bannerText: 'Sua prova está liberada.',
+  bannerItems: [],
+  bannerCta: 'Toque para começar.',
+  introVideoText: 'Assista às orientações.',
+  introHeading: 'Ei, lê isso antes de começar!',
+  introWarningTitle: 'Só vale em sala de aula',
+  introWarningText:
+    'Essa simulação precisa ser feita com seu professor presente. Não vale fazer em casa!',
+};
 
 /** A survey answer; `null` means the student skipped the question. */
 export interface EnemClassroomSurveyAnswer {

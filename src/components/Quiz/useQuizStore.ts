@@ -297,6 +297,12 @@ export interface QuizInterface {
   createdAt: string | null;
   updatedAt: string | null;
   questions: Question[];
+  /**
+   * Shows the exam board and year on every question, as a SIMULADO does.
+   * For a quiz of another type that is made of exam questions — the ENEM
+   * in the classroom runs as an ATIVIDADE for its endpoints' sake.
+   */
+  showExamInfo?: boolean;
 }
 
 export interface UserAnswerItem {

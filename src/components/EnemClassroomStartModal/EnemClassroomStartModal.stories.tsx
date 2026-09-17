@@ -3,9 +3,10 @@ import { useState } from 'react';
 import EnemClassroomStartModal from './EnemClassroomStartModal';
 import Button from '../Button/Button';
 import Text from '../Text/Text';
-import type {
-  EnemClassroomExam,
-  EnemClassroomStartPayload,
+import {
+  ENEM_CLASSROOM_DEFAULT_STUDENT_TEXTS,
+  type EnemClassroomExam,
+  type EnemClassroomStartPayload,
 } from '../../types/enemClassroom';
 
 const exam: EnemClassroomExam = {
@@ -15,7 +16,7 @@ const exam: EnemClassroomExam = {
     'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
   durationMinutes: 300,
   languageChoice: true,
-  bannerText: 'Sua prova está liberada. Toque para começar.',
+  studentTexts: ENEM_CLASSROOM_DEFAULT_STUDENT_TEXTS,
   surveyQuestions: [
     {
       id: 'q-course',
