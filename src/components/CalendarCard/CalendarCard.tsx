@@ -73,6 +73,10 @@ export const CalendarCard = ({
         <IconButton
           active={effectiveOpen}
           onClick={() => handleOpenChange(!effectiveOpen)}
+          aria-label="Calendário de atividades"
+          // No mobile o calendário abre um Modal, não um DropdownMenu, então
+          // não há trigger para injetar o estado: ele é declarado aqui.
+          aria-expanded={effectiveOpen}
           icon={triggerIcon}
           className={className}
         />
@@ -93,7 +97,11 @@ export const CalendarCard = ({
         className={`text-primary cursor-pointer ${className ?? ''}`}
         asChild
       >
-        <IconButton active={effectiveOpen} icon={triggerIcon} />
+        <IconButton
+          active={effectiveOpen}
+          aria-label="Calendário de atividades"
+          icon={triggerIcon}
+        />
       </DropdownMenuTrigger>
       <DropdownMenuContent
         className="w-[320px] max-w-[calc(100vw-16px)] max-h-[80vh] overflow-y-auto"

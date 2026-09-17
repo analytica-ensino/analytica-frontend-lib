@@ -28,6 +28,24 @@ import mockContentImage from '../../assets/img/mock-content.png';
  */
 const DEFAULT_REFRESH_INTERVAL_MS = 3000;
 
+/**
+ * Nome acessível do sino.
+ *
+ * O botão era só um ícone com um `sr-only` dentro, e esse texto só existia
+ * quando havia não lidas: sem notificação nenhuma o botão ficava sem nome, e o
+ * leitor de tela anunciava apenas "botão". A contagem entra no próprio rótulo
+ * para que o estado seja dito junto com o nome, em vez de depender de um texto
+ * que aparece e some.
+ */
+const getNotificationsLabel = (unreadCount: number) => {
+  if (unreadCount <= 0) {
+    return 'Notificações, sem notificações';
+  }
+
+  const plural = unreadCount === 1 ? 'notificação' : 'notificações';
+  return `Notificações, ${unreadCount} ${plural}`;
+};
+
 // Extended notification item for component usage with time string
 export interface NotificationItem extends Omit<Notification, 'createdAt'> {
   time: string;
@@ -479,7 +497,7 @@ const SingleNotificationCard = ({
         <DropdownMenu>
           <DropdownMenuTrigger
             className="flex-shrink-0 inline-flex items-center justify-center font-medium bg-transparent text-text-950 cursor-pointer hover:bg-info-50 w-6 h-6 rounded-lg"
-            aria-label="Menu de ações"
+            aria-label="Mais opções"
           >
             <DotsThreeVerticalIcon size={24} />
           </DropdownMenuTrigger>
@@ -806,19 +824,16 @@ const NotificationCenter = ({
         <IconButton
           active={isModalOpen}
           onClick={handleMobileClick}
+          aria-label={getNotificationsLabel(unreadCount)}
+          // No mobile o sino abre um Modal, não um DropdownMenu, então não há
+          // trigger para injetar o estado: ele é declarado aqui.
+          aria-expanded={isModalOpen}
           icon={
-            <>
-              <Badge
-                variant="notification"
-                notificationActive={unreadCount > 0}
-                className="p-0"
-              />
-              {unreadCount > 0 && (
-                <Text as="span" className="sr-only">
-                  {unreadCount} notificações não lidas
-                </Text>
-              )}
-            </>
+            <Badge
+              variant="notification"
+              notificationActive={unreadCount > 0}
+              className="p-0"
+            />
           }
           className={className}
         />
@@ -897,19 +912,13 @@ const NotificationCenter = ({
           <IconButton
             active={isActive}
             onClick={handleDesktopClick}
+            aria-label={getNotificationsLabel(unreadCount)}
             icon={
-              <>
-                <Badge
-                  variant="notification"
-                  notificationActive={unreadCount > 0}
-                  className={cn('p-0', isActive && 'text-primary-950!')}
-                />
-                {unreadCount > 0 && (
-                  <Text as="span" className="sr-only">
-                    {unreadCount} notificações não lidas
-                  </Text>
-                )}
-              </>
+              <Badge
+                variant="notification"
+                notificationActive={unreadCount > 0}
+                className={cn('p-0', isActive && 'text-primary-950!')}
+              />
             }
             className={className}
           />
