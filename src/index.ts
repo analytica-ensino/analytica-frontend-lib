@@ -134,6 +134,8 @@ export { LevelBar } from './components/LevelBar/LevelBar';
 export type { LevelBarProps } from './components/LevelBar/LevelBar';
 export { Avatar } from './components/Avatar/Avatar';
 export type { AvatarProps } from './components/Avatar/Avatar';
+export { ReadOnlyField } from './components/ReadOnlyField/ReadOnlyField';
+export type { ReadOnlyFieldProps } from './components/ReadOnlyField/ReadOnlyField';
 export { default as ProgressCircle } from './components/ProgressCircle/ProgressCircle';
 export { default as Stepper } from './components/Stepper/Stepper';
 export { default as Calendar } from './components/Calendar/Calendar';
