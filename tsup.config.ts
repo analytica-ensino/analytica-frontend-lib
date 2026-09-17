@@ -424,6 +424,7 @@ export default defineConfig({
     'utils/chatUtils/index': 'src/utils/chatUtils.ts', // getChatUserInfo, getChatWsUrl
     'utils/htmlLineBreaks/index': 'src/utils/htmlLineBreaks.ts', // normalizeLineBreaksInHtml
     'utils/latexMath/index': 'src/utils/latexMath.ts', // buildMathSpan, findDollarMath, isCurrencyDollar, looksLikeMath, replaceDollarMath
+    'utils/profileImageA11y/index': 'src/utils/profileImageA11y.ts', // profileImageLabel
     'utils/domainUtils/index': 'src/utils/domainUtils.ts', // resolveRootHostname, extractSubdomainSlug, buildLoginUrlWithReturnTo
     'utils/examFilterHelpers/index': 'src/utils/examFilterHelpers.ts', // EXAM_STATUS_OPTIONS
     'utils/lessonAvailabilityUtils/index':

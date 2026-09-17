@@ -1084,6 +1084,8 @@ export {
 } from './utils/brazilianFormatters';
 export { BR_STATES_FULL, UF_LIST } from './utils/brazilianStates';
 export type { UF } from './utils/brazilianStates';
+export { profileImageLabel } from './utils/profileImageA11y';
+export type { ProfileImageLabelOptions } from './utils/profileImageA11y';
 export { default as MaskedInput } from './components/MaskedInput/MaskedInput';
 export type { MaskedInputProps } from './components/MaskedInput/MaskedInput';
 export { default as HierarchicalCheckboxGroup } from './components/HierarchicalCheckboxGroup/HierarchicalCheckboxGroup';

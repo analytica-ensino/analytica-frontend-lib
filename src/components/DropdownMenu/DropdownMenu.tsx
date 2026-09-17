@@ -26,6 +26,7 @@ import { create, StoreApi, useStore } from 'zustand';
 import Button, { ButtonReadingFluency } from '../Button/Button';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
+import { profileImageLabel } from '../../utils/profileImageA11y';
 import readingFluencyBird from '../../assets/img/readingFluencyBird.png';
 import Modal from '../Modal/Modal';
 import { ThemeToggle } from '../ThemeToggle/ThemeToggle';
@@ -819,6 +820,8 @@ const ProfileMenuHeader = forwardRef<
     store?: DropdownStoreApi;
   }
 >(({ className, name, email, photoUrl, store: _store, ...props }, ref) => {
+  const photoLabel = profileImageLabel({ src: photoUrl, name });
+
   return (
     <div
       ref={ref}
@@ -836,19 +839,12 @@ const ProfileMenuHeader = forwardRef<
         // ícone, porque o Phosphor transforma `alt` num <title>, que o
         // navegador também mostra como tooltip no hover: efeito visual que o
         // design não pediu. Com foto, quem nomeia é o `alt` da <img>.
-        //
-        // "Sem foto de perfil", e não o "Imagem de perfil sem imagem" do Figma:
-        // o leitor de tela já anuncia o papel ("imagem") depois do nome, então
-        // repetir a palavra no rótulo rende "imagem" três vezes na mesma frase.
-        // Fica também simétrico ao `alt` usado quando existe foto.
-        {...(photoUrl
-          ? {}
-          : { role: 'img', 'aria-label': 'Sem foto de perfil' })}
+        {...(photoUrl ? {} : { role: 'img', 'aria-label': photoLabel })}
       >
         {photoUrl ? (
           <img
             src={photoUrl}
-            alt="Foto de perfil"
+            alt={photoLabel}
             className="w-full h-full object-cover"
           />
         ) : (
