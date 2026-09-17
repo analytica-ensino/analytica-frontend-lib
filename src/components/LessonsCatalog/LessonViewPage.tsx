@@ -43,8 +43,8 @@ import { useLessonsStore } from '../../store/lessonsStore';
 import {
   LessonVideoSection,
   LessonPodcastSection,
+  LessonBoardImagesSection,
 } from '../shared/LessonMediaSections';
-import { Whiteboard } from '../../index';
 
 export interface LessonViewPageProps {
   /** API client used to load the subtopic's lessons and record progress. */
@@ -761,32 +761,10 @@ export function LessonViewPage({
           )}
         </div>
 
-        {lessonData.boardImages.length > 0 && (
-          <div className="w-full">
-            <Text size="md" weight="bold" className="text-text-950 pb-2">
-              Quadros da aula
-            </Text>
-            <div className="flex flex-col gap-4">
-              {lessonData.boardImages.map((image, index) => (
-                <button
-                  type="button"
-                  key={image.id ?? index}
-                  className="flex flex-row rounded-xl bg-background-50 cursor-pointer"
-                  onClick={() =>
-                    handleBoardImageClick(index, lessonData.boardImages.length)
-                  }
-                >
-                  <Whiteboard
-                    images={[image]}
-                    showDownload={true}
-                    imagesPerRow={2}
-                    className="gap-4 w-full items-center border-border-50"
-                  />
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        <LessonBoardImagesSection
+          images={lessonData.boardImages}
+          onImageClick={handleBoardImageClick}
+        />
       </div>
     </section>
   );

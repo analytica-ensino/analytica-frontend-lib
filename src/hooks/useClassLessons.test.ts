@@ -90,11 +90,11 @@ describe('createUseClassLessons', () => {
 
   it('drops a stale response when the subtopic changed mid-flight', async () => {
     const api = makeApi();
-    let resolveFirst: (value: unknown) => void = () => {};
+    let resolveFirst: (value: { data: unknown }) => void = () => {};
     api.get
       .mockImplementationOnce(
         () =>
-          new Promise((resolve) => {
+          new Promise<{ data: unknown }>((resolve) => {
             resolveFirst = resolve;
           })
       )

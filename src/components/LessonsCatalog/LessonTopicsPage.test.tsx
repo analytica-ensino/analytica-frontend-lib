@@ -190,7 +190,9 @@ describe('LessonTopicsPage', () => {
     renderPage(api, 'preview');
 
     // A teacher drilling into a subject they do not teach gets a 403.
-    expect(await screen.findByText('Erro ao carregar temas')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Erro ao carregar temas')
+    ).toBeInTheDocument();
     expect(
       screen.getByText('Usuário não possui acesso a este componente curricular')
     ).toBeInTheDocument();
@@ -200,7 +202,9 @@ describe('LessonTopicsPage', () => {
     const api = makeApi({ message: 'ok', data: [] });
     renderPage(api);
 
-    expect(await screen.findByText('Nenhum tema disponível')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Nenhum tema disponível')
+    ).toBeInTheDocument();
   });
 
   it('filters the subtopics as the user types', async () => {

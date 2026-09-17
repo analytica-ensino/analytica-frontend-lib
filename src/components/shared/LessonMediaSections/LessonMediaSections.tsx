@@ -1,4 +1,4 @@
-import { type ReactNode, type RefObject } from 'react';
+import { Fragment, type ReactNode, type RefObject } from 'react';
 import { Text, VideoPlayer, CardAudio, Whiteboard } from '../../../index';
 import type { WhiteboardImage } from '../../Whiteboard/Whiteboard';
 
@@ -124,6 +124,12 @@ export interface LessonBoardImagesSectionProps {
     index: number,
     total: number
   ) => RefObject<HTMLDivElement | null> | null;
+  /**
+   * Called with the board's position when it is clicked. Students use it to
+   * mark the first and last boards as viewed (two of the progress criteria);
+   * omit it to render the boards as plain, non-interactive blocks.
+   */
+  onImageClick?: (index: number, total: number) => void;
   title?: string;
 }
 
@@ -133,11 +139,14 @@ export interface LessonBoardImagesSectionProps {
 export const LessonBoardImagesSection = ({
   images,
   getImageRef,
+  onImageClick,
   title = 'Quadros da aula',
 }: LessonBoardImagesSectionProps) => {
   if (!images || images.length === 0) {
     return null;
   }
+
+  const total = images.length;
 
   return (
     <div className="w-full">
@@ -145,20 +154,38 @@ export const LessonBoardImagesSection = ({
         {title}
       </Text>
       <div className="flex flex-wrap items-center justify-center gap-4">
-        {images.map((image: WhiteboardImage, index: number) => (
-          <div
-            key={image.id || `board-image-${index}`}
-            ref={getImageRef?.(index, images.length)}
-            className="flex flex-row rounded-xl bg-background-50"
-          >
-            <Whiteboard
-              images={[image]}
-              showDownload={true}
-              imagesPerRow={2}
-              className="gap-4 w-full items-center border-border-50"
-            />
-          </div>
-        ))}
+        {images.map((image: WhiteboardImage, index: number) => {
+          const board = (
+            <div
+              ref={getImageRef?.(index, total)}
+              className="flex flex-row rounded-xl bg-background-50"
+            >
+              <Whiteboard
+                images={[image]}
+                showDownload={true}
+                imagesPerRow={2}
+                className="gap-4 w-full items-center border-border-50"
+              />
+            </div>
+          );
+
+          const key = image.id || `board-image-${index}`;
+
+          // A real button rather than a role/tabIndex pair, so keyboard
+          // activation comes for free.
+          return onImageClick ? (
+            <button
+              type="button"
+              key={key}
+              className="cursor-pointer"
+              onClick={() => onImageClick(index, total)}
+            >
+              {board}
+            </button>
+          ) : (
+            <Fragment key={key}>{board}</Fragment>
+          );
+        })}
       </div>
     </div>
   );

@@ -194,6 +194,8 @@ export default defineConfig({
     // Lessons catalogue (subjects -> topics -> lesson page), shared by the
     // student portal and the teacher/manager preview.
     'LessonsCatalog/index': 'src/components/LessonsCatalog/index.ts',
+    'LessonMediaSections/index':
+      'src/components/shared/LessonMediaSections/index.ts',
     'hooks/useClassesCatalog/index': 'src/hooks/useClassesCatalog.ts',
     'hooks/useClassTopics/index': 'src/hooks/useClassTopics.ts',
     'hooks/useClassLessons/index': 'src/hooks/useClassLessons.ts',

@@ -56,7 +56,9 @@ const AREAS_WITH_PROGRESS: KnowledgeArea[] = [
 const AREAS_WITHOUT_PROGRESS: KnowledgeArea[] = AREAS_WITH_PROGRESS.map(
   (area) => ({
     ...area,
-    subjects: area.subjects.map(({ progress: _progress, ...subject }) => subject),
+    subjects: area.subjects.map(
+      ({ progress: _progress, ...subject }) => subject
+    ),
   })
 );
 

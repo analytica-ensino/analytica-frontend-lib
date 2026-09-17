@@ -80,9 +80,7 @@ function renderPage(
       <Routes>
         <Route
           path="/aulas"
-          element={
-            <LessonsCatalogPage api={api} routes={ROUTES} mode={mode} />
-          }
+          element={<LessonsCatalogPage api={api} routes={ROUTES} mode={mode} />}
         />
         <Route path="/aulas/:subjectId/topicos" element={<LocationProbe />} />
       </Routes>
@@ -156,7 +154,9 @@ describe('LessonsCatalogPage', () => {
     api.get.mockRejectedValue(new Error('403'));
     renderPage(api);
 
-    expect(await screen.findByText('Erro ao carregar aulas')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Erro ao carregar aulas')
+    ).toBeInTheDocument();
     expect(screen.getByText('403')).toBeInTheDocument();
 
     api.get.mockResolvedValue({ data: { message: 'ok', data: AREAS } });

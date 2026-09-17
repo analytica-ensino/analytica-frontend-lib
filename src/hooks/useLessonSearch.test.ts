@@ -137,11 +137,11 @@ describe('createUseLessonSearch', () => {
 
   it('discards a slow response that a newer search superseded', async () => {
     const api = makeApi();
-    let resolveFirst: (value: unknown) => void = () => {};
+    let resolveFirst: (value: { data: unknown }) => void = () => {};
     api.get
       .mockImplementationOnce(
         () =>
-          new Promise((resolve) => {
+          new Promise<{ data: unknown }>((resolve) => {
             resolveFirst = resolve;
           })
       )

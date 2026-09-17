@@ -1279,6 +1279,18 @@ export type {
   LessonViewPageProps,
   LessonResultsSectionProps,
 } from './components/LessonsCatalog';
+export {
+  LessonVideoSection,
+  LessonPodcastSection,
+  LessonBoardImagesSection,
+} from './components/shared/LessonMediaSections';
+export type {
+  LessonVideoData,
+  LessonPodcastData,
+  LessonVideoSectionProps,
+  LessonPodcastSectionProps,
+  LessonBoardImagesSectionProps,
+} from './components/shared/LessonMediaSections';
 export { createUseClassesCatalog } from './hooks/useClassesCatalog';
 export {
   createUseClassTopics,

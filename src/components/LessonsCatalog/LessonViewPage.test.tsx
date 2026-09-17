@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom';
@@ -33,7 +34,7 @@ jest.mock('../shared/LessonMediaSections', () => {
         >
           player
         </button>
-        {props.children as React.ReactNode}
+        {props.children as ReactNode}
       </>
     ),
   };
@@ -201,14 +202,18 @@ describe('LessonViewPage', () => {
     api.get.mockRejectedValue(new Error('500'));
     renderPage(api);
 
-    expect(await screen.findByText('Erro ao carregar lições')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Erro ao carregar lições')
+    ).toBeInTheDocument();
   });
 
   it('shows the empty state when the subtopic has no lessons', async () => {
     const api = makeApi([]);
     renderPage(api);
 
-    expect(await screen.findByText('Nenhuma lição disponível')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Nenhuma lição disponível')
+    ).toBeInTheDocument();
   });
 
   describe('student mode', () => {
@@ -386,10 +391,9 @@ describe('LessonViewPage', () => {
       await screen.findByTestId('video-player');
       await waitFor(() => expect(api.patch).toHaveBeenCalled());
 
-      expect(api.patch).not.toHaveBeenCalledWith(
-        '/lesson/lesson-1/progress',
-        { allQuestionsAnswered: true }
-      );
+      expect(api.patch).not.toHaveBeenCalledWith('/lesson/lesson-1/progress', {
+        allQuestionsAnswered: true,
+      });
     });
   });
 
