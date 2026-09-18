@@ -3,6 +3,7 @@ import type { BaseApiClient } from '../types/api';
 import type {
   ApiLessonData,
   LessonDetails,
+  LessonProgress,
   LessonsApiResponse,
   LessonsBySubtopicResponse,
   LessonsMode,
@@ -30,6 +31,50 @@ function simpleThrottle<T extends (...args: never[]) => unknown>(
       func(...args);
     }
   };
+}
+
+/**
+ * Mirror the progress the backend reported into the store.
+ *
+ * @param lessons - Lessons just loaded for the subtopic
+ * @param updateLessonProgress - Store action that records one lesson's progress
+ */
+function seedProgressFromLessons(
+  lessons: LessonDetails[],
+  updateLessonProgress: (lessonId: string, progress: LessonProgress) => void
+): void {
+  for (const lesson of lessons) {
+    if (lesson.progress) {
+      updateLessonProgress(lesson.id, lesson.progress);
+    }
+  }
+}
+
+/**
+ * Decide which lesson becomes the current one after a successful fetch.
+ *
+ * Reads the current lesson FRESH from the store via getState(): the value
+ * captured by the hook's closure is frozen at its first render and goes stale
+ * after navigating between topics. The stale value used to send us into the
+ * "keep current" branch, where it failed to find a match in the new topic and
+ * selected nothing, leaving lessons loaded but no current lesson ("Nenhuma
+ * lição disponível").
+ *
+ * Falls back to the first lesson whenever the previous selection is not part of
+ * this topic, so a successful fetch always selects something.
+ *
+ * @param sortedLessons - Lessons of the topic, in display order
+ * @returns The lesson to select, or null when the topic has none
+ */
+function pickCurrentLesson(
+  sortedLessons: LessonDetails[]
+): LessonDetails | null {
+  const existing = useLessonsStore.getState().currentLesson;
+  const matched = existing
+    ? sortedLessons.find((lesson) => lesson.id === existing.id)
+    : undefined;
+
+  return matched ?? sortedLessons[0] ?? null;
 }
 
 export interface UseClassLessonsReturn {
@@ -189,30 +234,10 @@ export const createUseClassLessons =
           // Seed the store with the progress the backend reported. In preview
           // mode there is none, so nothing is seeded.
           if (!isPreview) {
-            for (const lesson of sortedLessons) {
-              if (lesson.progress) {
-                updateLessonProgress(lesson.id, lesson.progress);
-              }
-            }
+            seedProgressFromLessons(sortedLessons, updateLessonProgress);
           }
 
-          // Decide which lesson becomes the current one. Read the current lesson
-          // FRESH from the store via getState() — the `currentLesson` captured by
-          // this callback's closure is frozen at the hook's first render and goes
-          // stale after navigating between topics. The stale value used to send us
-          // into the "keep current" branch where it failed to find a match in the
-          // new topic and selected nothing, leaving lessons loaded but no current
-          // lesson ("Nenhuma lição disponível").
-          const existingCurrentLesson =
-            useLessonsStore.getState().currentLesson;
-          const matchedLesson = existingCurrentLesson
-            ? sortedLessons.find(
-                (lesson) => lesson.id === existingCurrentLesson.id
-              )
-            : undefined;
-          // Fall back to the first lesson whenever the previous selection isn't
-          // part of this topic, so a successful fetch always selects something.
-          const nextCurrentLesson = matchedLesson ?? sortedLessons[0] ?? null;
+          const nextCurrentLesson = pickCurrentLesson(sortedLessons);
           if (nextCurrentLesson) {
             setCurrentLesson(nextCurrentLesson);
           }
