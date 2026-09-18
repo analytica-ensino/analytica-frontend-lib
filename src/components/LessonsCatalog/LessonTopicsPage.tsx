@@ -83,6 +83,7 @@ export function LessonTopicsPage({
   const {
     results: lessonResults,
     loading: lessonsLoading,
+    error: lessonsError,
     search: searchLessons,
     clear: clearLessonSearch,
   } = useLessonSearch(subjectId);
@@ -251,7 +252,8 @@ export function LessonTopicsPage({
   const renderSearchResults = () => {
     const hasTopicMatches = filteredCategories.length > 0;
     const hasLessonMatches = lessonResults.length > 0;
-    const isEmpty = !hasTopicMatches && !hasLessonMatches && !lessonsLoading;
+    const isEmpty =
+      !hasTopicMatches && !hasLessonMatches && !lessonsLoading && !lessonsError;
 
     if (isEmpty) {
       return (
@@ -292,6 +294,8 @@ export function LessonTopicsPage({
           lessons={lessonResults}
           loading={lessonsLoading}
           routes={routes}
+          error={lessonsError}
+          onRetry={() => searchLessons(searchTerm)}
         />
       </div>
     );

@@ -89,6 +89,7 @@ export function LessonsCatalogPage({
   const {
     results: lessonResults,
     loading: lessonsLoading,
+    error: lessonsError,
     search: searchLessons,
     clear: clearLessonSearch,
   } = useLessonSearch();
@@ -213,7 +214,11 @@ export function LessonsCatalogPage({
   const renderSearchResults = () => {
     const hasSubjectMatches = filteredAreas.length > 0;
     const hasLessonMatches = lessonResults.length > 0;
-    const isEmpty = !hasSubjectMatches && !hasLessonMatches && !lessonsLoading;
+    const isEmpty =
+      !hasSubjectMatches &&
+      !hasLessonMatches &&
+      !lessonsLoading &&
+      !lessonsError;
 
     if (isEmpty) {
       return (
@@ -254,6 +259,8 @@ export function LessonsCatalogPage({
           lessons={lessonResults}
           loading={lessonsLoading}
           routes={routes}
+          error={lessonsError}
+          onRetry={() => searchLessons(searchTerm)}
         />
       </div>
     );

@@ -234,6 +234,32 @@ describe('LessonsCatalogPage', () => {
     ).toBeInTheDocument();
   });
 
+  it('shows a failed lesson search as an error, not as "no results"', async () => {
+    const api = makeApi();
+    api.get.mockImplementation((url: string) => {
+      if (url === '/knowledge') {
+        return Promise.resolve({ data: { message: 'ok', data: AREAS } });
+      }
+      return Promise.reject({
+        response: { data: { message: 'Erro ao buscar aulas' } },
+      });
+    });
+    renderPage(api, 'preview');
+    await screen.findByText('Biologia');
+
+    fireEvent.change(
+      screen.getByPlaceholderText('Buscar componente curricular ou aula'),
+      { target: { value: 'termo inexistente' } }
+    );
+
+    expect(
+      await screen.findByTestId('lesson-search-error')
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText('Nenhum resultado encontrado')
+    ).not.toBeInTheDocument();
+  });
+
   it('restores the full list when the search is cleared', async () => {
     const api = makeApi();
     renderPage(api, 'preview');

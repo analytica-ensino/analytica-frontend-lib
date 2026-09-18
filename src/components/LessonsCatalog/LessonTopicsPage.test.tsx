@@ -249,4 +249,33 @@ describe('LessonTopicsPage', () => {
     await waitFor(() => expect(screen.getByText('Temas')).toBeInTheDocument());
     expect(screen.queryByText('MRU')).not.toBeInTheDocument();
   });
+
+  it('shows a failed lesson search as an error, not as "no results"', async () => {
+    const api = makeApi();
+    api.get.mockImplementation((url: string) => {
+      if (url.startsWith('/knowledge/by-subject')) {
+        return Promise.resolve({ data: TOPICS });
+      }
+      return Promise.reject({
+        response: { data: { message: 'Erro ao buscar aulas' } },
+      });
+    });
+    renderPage(api, 'preview');
+
+    await screen.findByText('MRU');
+    // A term no subtopic matches, so the whole results view hangs on the
+    // server-side search.
+    fireEvent.change(screen.getByPlaceholderText('Buscar tema ou aula'), {
+      target: { value: 'zzz' },
+    });
+
+    expect(
+      await screen.findByTestId('lesson-search-error')
+    ).toBeInTheDocument();
+    // The empty state would read as "your keyword is wrong" and send the
+    // viewer off rephrasing a search that never reached the backend.
+    expect(
+      screen.queryByText('Nenhum resultado encontrado')
+    ).not.toBeInTheDocument();
+  });
 });
