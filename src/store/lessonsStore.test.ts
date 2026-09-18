@@ -1,4 +1,5 @@
 import { useLessonsStore } from './lessonsStore';
+import { KEYS } from '../utils/keys';
 import type { LessonDetails } from '../types/lessonsCatalog';
 
 function lesson(
@@ -98,6 +99,19 @@ describe('useLessonsStore', () => {
   it('keeps the last watched timestamp per lesson', () => {
     useLessonsStore.getState().updateTimestamp('a', 120);
     expect(useLessonsStore.getState().lastWatchedTimestamps.a).toBe(120);
+  });
+
+  it('persists the resume position across a reload', () => {
+    useLessonsStore.getState().updateTimestamp('a', 120);
+
+    // The page feeds this to the player as `initialTime`, and the player takes
+    // any finite value >= 0 as authoritative. Dropping it from the persisted
+    // slice means a literal 0 after a reload, which shadows the player's own
+    // saved position and restarts the lesson from the beginning.
+    const persisted = JSON.parse(
+      localStorage.getItem(KEYS.LESSONS_STORAGE) ?? '{}'
+    );
+    expect(persisted.state.lastWatchedTimestamps).toEqual({ a: 120 });
   });
 
   describe('sequence navigation', () => {

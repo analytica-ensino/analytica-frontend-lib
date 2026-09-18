@@ -250,7 +250,12 @@ export const useLessonsStore = create<LessonsState>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         lessonsProgress: state.lessonsProgress,
-        // lastWatchedTimestamps removed from persist to improve performance
+        // Resume position, one number per lesson. It has to survive a reload:
+        // the page feeds it to the player as `initialTime`, and the player
+        // treats any finite value >= 0 as authoritative — so an empty map
+        // means a literal 0 that shadows the player's own saved position and
+        // restarts every lesson from the beginning.
+        lastWatchedTimestamps: state.lastWatchedTimestamps,
         currentTopicId: state.currentTopicId,
         ownerUserId: state.ownerUserId,
       }),
