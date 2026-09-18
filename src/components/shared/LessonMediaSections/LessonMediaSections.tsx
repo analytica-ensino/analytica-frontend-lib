@@ -157,25 +157,25 @@ export const LessonBoardImagesSection = ({
       </Text>
       <div className="flex flex-wrap items-center justify-center gap-4">
         {images.map((image: WhiteboardImage, index: number) => (
-          // Whiteboard renders its own buttons (zoom, download), so this
-          // container must not be a button itself: nesting them is invalid
-          // HTML and leaves the inner controls unreachable. It does not need
-          // to be one either — activating those buttons, by mouse or by
-          // keyboard, fires a click that bubbles up to this handler.
+          // Pure layout container. The interactive element is Whiteboard's own
+          // button, which reports activation through `onImageActivate` — so
+          // there is no wrapper control here to nest buttons inside, and no
+          // handler on a non-interactive element to give a role and key
+          // handling to. Keyboard, mouse and touch all come from that button.
           <div
             key={image.id || `board-image-${index}`}
             ref={getImageRef?.(index, total)}
-            className={`flex flex-row rounded-xl bg-background-50${
-              onImageClick ? ' cursor-pointer' : ''
-            }`}
-            onClick={
-              onImageClick ? () => onImageClick(image, index, total) : undefined
-            }
+            className="flex flex-row rounded-xl bg-background-50"
           >
             <Whiteboard
               images={[image]}
               showDownload={true}
               imagesPerRow={2}
+              onImageActivate={
+                onImageClick
+                  ? () => onImageClick(image, index, total)
+                  : undefined
+              }
               className="gap-4 w-full items-center border-border-50"
             />
           </div>

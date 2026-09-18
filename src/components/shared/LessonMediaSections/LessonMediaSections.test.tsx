@@ -1,5 +1,6 @@
 import { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import {
   LessonVideoSection,
@@ -213,6 +214,36 @@ describe('LessonBoardImagesSection', () => {
       expect(
         screen.getByRole('button', { name: 'Download Quadro final' })
       ).toBeInTheDocument();
+    });
+
+    it('should be triggered from the keyboard', async () => {
+      const user = userEvent.setup();
+      const onImageClick = jest.fn();
+      render(
+        <LessonBoardImagesSection images={images} onImageClick={onImageClick} />
+      );
+
+      // Activation lives on Whiteboard's own button, so Tab reaches it and
+      // Enter fires it — no role, tabIndex or key handler of our own.
+      await user.tab();
+      await user.keyboard('{Enter}');
+
+      expect(onImageClick).toHaveBeenCalledWith(images[0], 0, 2);
+    });
+
+    it('should put no extra focus stop around the board', async () => {
+      const user = userEvent.setup();
+      render(
+        <LessonBoardImagesSection images={images} onImageClick={jest.fn()} />
+      );
+
+      // A wrapper with role+tabIndex would make this first stop the container
+      // rather than the control inside it.
+      await user.tab();
+
+      expect(document.activeElement).toHaveAccessibleName(
+        'Ampliar Quadro inicial'
+      );
     });
   });
 });
