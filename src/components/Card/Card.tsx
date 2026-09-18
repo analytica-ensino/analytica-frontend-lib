@@ -215,7 +215,10 @@ const CardActivitiesResults = forwardRef<
           className={cn(
             'flex flex-col gap-1 items-center justify-center p-4',
             actionCardClasses,
-            extended ? 'rounded-t-xl' : 'rounded-xl'
+            // Without a description below, the coloured block is the whole
+            // card: let it fill the height a stretching grid/flex track gives
+            // the wrapper, so siblings in the same row end up the same height.
+            extended ? 'rounded-t-xl' : 'flex-1 rounded-xl'
           )}
         >
           <span
