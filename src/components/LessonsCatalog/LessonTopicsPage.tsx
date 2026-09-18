@@ -181,11 +181,12 @@ export function LessonTopicsPage({
   const renderTopicCard = (topic: Topic) => {
     const completedLessons = topic.completedLessons || 0;
     const totalLessons = topic.totalLessons || 0;
+    const lessonsLabel = totalLessons === 1 ? 'aula' : 'aulas';
     // A preview viewer completes nothing, so "0 de 12" would read as a stalled
     // student rather than as a catalogue entry. Show the size instead.
     const counterText = showProgress
       ? `${completedLessons} de ${totalLessons}`
-      : `${totalLessons} ${totalLessons === 1 ? 'aula' : 'aulas'}`;
+      : `${totalLessons} ${lessonsLabel}`;
 
     return (
       <CardProgress

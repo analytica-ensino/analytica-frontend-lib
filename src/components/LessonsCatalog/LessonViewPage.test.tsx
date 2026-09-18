@@ -478,7 +478,7 @@ describe('LessonViewPage', () => {
       fireEvent.click(await screen.findByTestId('video-player'));
 
       await waitFor(() =>
-        expect(useLessonsStore.getState().lessons.length).toBe(1)
+        expect(useLessonsStore.getState().lessons).toHaveLength(1)
       );
       expect(useLessonsStore.getState().lessonsProgress).toEqual({});
     });
