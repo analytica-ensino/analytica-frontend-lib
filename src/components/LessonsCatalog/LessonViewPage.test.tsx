@@ -34,6 +34,15 @@ jest.mock('../shared/LessonMediaSections', () => {
         >
           player
         </button>
+        <button
+          type="button"
+          data-testid="video-time-update"
+          onClick={() =>
+            (props.onTimeUpdate as (s: number, d?: number) => void)?.(30, 600)
+          }
+        >
+          tick
+        </button>
         {props.children as ReactNode}
       </>
     ),
@@ -476,11 +485,48 @@ describe('LessonViewPage', () => {
       renderPage(api, { mode: 'preview' });
 
       fireEvent.click(await screen.findByTestId('video-player'));
+      fireEvent.click(screen.getByTestId('video-time-update'));
 
       await waitFor(() =>
         expect(useLessonsStore.getState().lessons).toHaveLength(1)
       );
       expect(useLessonsStore.getState().lessonsProgress).toEqual({});
+      // Not even the duration the player reported: the store entry it would
+      // create is persisted as progress the viewer does not own.
+      expect(useLessonsStore.getState().lessons[0].videoDuration).toBe(0);
+    });
+  });
+
+  describe('video duration', () => {
+    it('records watched seconds using the duration the player reports', async () => {
+      const api = makeApi();
+      renderPage(api, { mode: 'student' });
+
+      fireEvent.click(await screen.findByTestId('video-time-update'));
+
+      // The API never sends a duration — the mapper seeds it at 0 and the
+      // player is the only source. Gating this call on the stored value made
+      // it unreachable, so nothing was ever recorded.
+      await waitFor(() =>
+        expect(useLessonsStore.getState().lessonsProgress['lesson-1']).toEqual(
+          expect.objectContaining({
+            lessonId: 'lesson-1',
+            watchedSeconds: 30,
+            totalSeconds: 600,
+          })
+        )
+      );
+    });
+
+    it('learns the duration onto the lesson itself', async () => {
+      const api = makeApi();
+      renderPage(api, { mode: 'student' });
+
+      fireEvent.click(await screen.findByTestId('video-time-update'));
+
+      await waitFor(() =>
+        expect(useLessonsStore.getState().lessons[0].videoDuration).toBe(600)
+      );
     });
   });
 });

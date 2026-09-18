@@ -22,7 +22,8 @@ export interface LessonVideoSectionProps {
   video: LessonVideoData;
   /** Second to resume playback from. Ignored when `persistProgress` is false. */
   initialTime?: number;
-  onTimeUpdate?: (seconds: number) => void;
+  /** Receives the current second and the media duration once it is known. */
+  onTimeUpdate?: (seconds: number, duration?: number) => void;
   onVideoComplete?: () => void;
   /**
    * Saves and restores the playback position in localStorage, scoped by

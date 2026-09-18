@@ -258,13 +258,17 @@ export function LessonViewPage({
     [getDownloadContent, currentLesson]
   );
 
+  /**
+   * Forward the player's own duration, not the stored one. The backend leaves
+   * `videoDuration` at 0 until a playback reports it, so gating on the stored
+   * value suppressed the very call that would learn it — the lesson stayed at
+   * 0 forever and no watched seconds were ever recorded.
+   */
   const handleVideoTimeUpdate = useCallback(
-    (seconds: number) => {
-      if (currentLesson?.videoDuration && currentLesson.videoDuration > 0) {
-        originalHandleVideoTimeUpdate(seconds, currentLesson.videoDuration);
-      }
+    (seconds: number, duration?: number) => {
+      originalHandleVideoTimeUpdate(seconds, duration);
     },
-    [originalHandleVideoTimeUpdate, currentLesson]
+    [originalHandleVideoTimeUpdate]
   );
 
   const handleBoardImageClick = useCallback(
