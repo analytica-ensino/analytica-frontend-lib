@@ -55,7 +55,10 @@ describe('createUseClassLessons', () => {
   it('loads the subtopic lessons and selects the first one', async () => {
     const api = makeApi();
     api.get.mockResolvedValue({
-      data: { message: 'ok', data: [apiLesson(), apiLesson({ id: 'lesson-2' })] },
+      data: {
+        message: 'ok',
+        data: [apiLesson(), apiLesson({ id: 'lesson-2' })],
+      },
     });
     const { result } = renderHook(() => createUseClassLessons(api)());
 
@@ -154,7 +157,9 @@ describe('createUseClassLessons', () => {
       api.get.mockResolvedValue({
         data: { message: 'ok', data: [apiLesson()] },
       });
-      const { result } = renderHook(() => createUseClassLessons(api, 'student')());
+      const { result } = renderHook(() =>
+        createUseClassLessons(api, 'student')()
+      );
 
       await act(async () => {
         await result.current.fetchLessonsBySubtopic('subtopic-1');
@@ -168,7 +173,9 @@ describe('createUseClassLessons', () => {
 
     it('registers a completed download', async () => {
       const api = makeApi();
-      const { result } = renderHook(() => createUseClassLessons(api, 'student')());
+      const { result } = renderHook(() =>
+        createUseClassLessons(api, 'student')()
+      );
 
       await act(async () => {
         await result.current.registerLessonDownload('lesson-1');
@@ -181,7 +188,9 @@ describe('createUseClassLessons', () => {
 
     it('resumes from the stored timestamp', () => {
       const api = makeApi();
-      const { result } = renderHook(() => createUseClassLessons(api, 'student')());
+      const { result } = renderHook(() =>
+        createUseClassLessons(api, 'student')()
+      );
 
       act(() => {
         useLessonsStore.getState().updateTimestamp('lesson-1', 75);
@@ -219,7 +228,9 @@ describe('createUseClassLessons', () => {
           ],
         },
       });
-      const { result } = renderHook(() => createUseClassLessons(api, 'student')());
+      const { result } = renderHook(() =>
+        createUseClassLessons(api, 'student')()
+      );
 
       await act(async () => {
         await result.current.fetchLessonsBySubtopic('subtopic-1');
@@ -238,7 +249,9 @@ describe('createUseClassLessons', () => {
       api.get.mockResolvedValue({
         data: { message: 'ok', data: [apiLesson()] },
       });
-      const { result } = renderHook(() => createUseClassLessons(api, 'preview')());
+      const { result } = renderHook(() =>
+        createUseClassLessons(api, 'preview')()
+      );
 
       await act(async () => {
         await result.current.fetchLessonsBySubtopic('subtopic-1');
@@ -252,7 +265,9 @@ describe('createUseClassLessons', () => {
 
     it('never registers a download', async () => {
       const api = makeApi();
-      const { result } = renderHook(() => createUseClassLessons(api, 'preview')());
+      const { result } = renderHook(() =>
+        createUseClassLessons(api, 'preview')()
+      );
 
       await act(async () => {
         await result.current.registerLessonDownload('lesson-1');
@@ -263,7 +278,9 @@ describe('createUseClassLessons', () => {
 
     it('never resumes playback, even with a stored timestamp', () => {
       const api = makeApi();
-      const { result } = renderHook(() => createUseClassLessons(api, 'preview')());
+      const { result } = renderHook(() =>
+        createUseClassLessons(api, 'preview')()
+      );
 
       act(() => {
         useLessonsStore.getState().updateTimestamp('lesson-1', 75);
@@ -277,7 +294,9 @@ describe('createUseClassLessons', () => {
       api.get.mockResolvedValue({
         data: { message: 'ok', data: [apiLesson()] },
       });
-      const { result } = renderHook(() => createUseClassLessons(api, 'preview')());
+      const { result } = renderHook(() =>
+        createUseClassLessons(api, 'preview')()
+      );
 
       await act(async () => {
         await result.current.fetchLessonsBySubtopic('subtopic-1');

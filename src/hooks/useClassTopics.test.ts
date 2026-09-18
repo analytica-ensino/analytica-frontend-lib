@@ -141,7 +141,9 @@ describe('createUseClassTopics', () => {
     // A teacher drilling into a subject they do not teach gets a 403.
     api.get.mockRejectedValue({
       response: {
-        data: { message: 'Usuário não possui acesso a este componente curricular' },
+        data: {
+          message: 'Usuário não possui acesso a este componente curricular',
+        },
       },
     });
     const { result } = renderHook(() => createUseClassTopics(api)());

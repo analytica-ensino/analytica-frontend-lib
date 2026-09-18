@@ -1,7 +1,10 @@
 import { useLessonsStore } from './lessonsStore';
 import type { LessonDetails } from '../types/lessonsCatalog';
 
-function lesson(id: string, overrides: Partial<LessonDetails> = {}): LessonDetails {
+function lesson(
+  id: string,
+  overrides: Partial<LessonDetails> = {}
+): LessonDetails {
   return {
     id,
     title: `Aula ${id}`,

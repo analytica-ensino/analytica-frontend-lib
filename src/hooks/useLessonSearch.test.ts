@@ -180,7 +180,9 @@ describe('createUseLessonSearch', () => {
       jest.advanceTimersByTime(SEARCH_DEBOUNCE_MS);
     });
 
-    await waitFor(() => expect(result.current.error).toBe('Busca indisponível'));
+    await waitFor(() =>
+      expect(result.current.error).toBe('Busca indisponível')
+    );
     expect(result.current.results).toEqual([]);
   });
 

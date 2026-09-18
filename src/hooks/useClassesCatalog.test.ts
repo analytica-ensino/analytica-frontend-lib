@@ -60,7 +60,9 @@ describe('createUseClassesCatalog', () => {
     });
 
     // Teachers and managers get the matrix without any progress field.
-    expect(result.current.knowledgeAreas[0].subjects[1].progress).toBeUndefined();
+    expect(
+      result.current.knowledgeAreas[0].subjects[1].progress
+    ).toBeUndefined();
   });
 
   it('exposes the error message on failure', async () => {
