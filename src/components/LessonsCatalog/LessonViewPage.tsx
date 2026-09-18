@@ -173,8 +173,7 @@ export function LessonViewPage({
   } | null>(null);
 
   const progressTracker = useLessonProgressTracker();
-  const { lessonsProgress, markLessonComplete, updateTimestamp } =
-    useLessonsStore();
+  const { lessonsProgress, updateTimestamp } = useLessonsStore();
 
   // Refs to track if progress has been marked for each step
   const hasMarkedVideo = useRef(false);
@@ -323,17 +322,16 @@ export function LessonViewPage({
       return;
     }
 
+    // Only the timestamp is ours to write. Completion belongs to the backend,
+    // which consolidates every criterion the institution requires (boards,
+    // questionnaire, document) — finishing the video is one of them, not all
+    // of them. `markVideoComplete` already mirrored the consolidated result
+    // into the store; flagging the lesson complete here would overwrite it and
+    // show a lesson as done while criteria are still pending.
     if (currentLesson) {
-      markLessonComplete(currentLesson.id);
       updateTimestamp(currentLesson.id, currentLesson.videoDuration);
     }
-  }, [
-    activeLessonId,
-    progressTracker,
-    currentLesson,
-    markLessonComplete,
-    updateTimestamp,
-  ]);
+  }, [activeLessonId, progressTracker, currentLesson, updateTimestamp]);
 
   /**
    * Extract navigation data from API response when not available from

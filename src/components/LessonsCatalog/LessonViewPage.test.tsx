@@ -249,6 +249,53 @@ describe('LessonViewPage', () => {
       );
     });
 
+    it('leaves completion to the backend when criteria are still pending', async () => {
+      const api = makeApi();
+      // The institution requires more than the video; finishing it puts the
+      // lesson at 33%, not done.
+      api.patch.mockResolvedValue({
+        data: {
+          message: 'ok',
+          data: {
+            lessonId: 'lesson-1',
+            progress: 33,
+            lastInteraction: '2026-01-10T00:00:00.000Z',
+          },
+        },
+      });
+      renderPage(api, { mode: 'student' });
+
+      fireEvent.click(await screen.findByTestId('video-player'));
+
+      await waitFor(() =>
+        expect(
+          useLessonsStore.getState().lessonsProgress['lesson-1']
+            ?.progressPercentage
+        ).toBe(33)
+      );
+      // Flagging it complete here would overwrite the consolidated result and
+      // show a checkmark on a lesson with pending criteria.
+      expect(
+        useLessonsStore.getState().lessonsProgress['lesson-1'].completed
+      ).toBe(false);
+      expect(
+        useLessonsStore.getState().lessonsProgress['lesson-1'].completedAt
+      ).toBeUndefined();
+    });
+
+    it('records completion when the backend reports every criterion met', async () => {
+      const api = makeApi();
+      renderPage(api, { mode: 'student' });
+
+      fireEvent.click(await screen.findByTestId('video-player'));
+
+      await waitFor(() =>
+        expect(
+          useLessonsStore.getState().lessonsProgress['lesson-1']?.completed
+        ).toBe(true)
+      );
+    });
+
     it('lets the player save and restore the position', async () => {
       const api = makeApi();
       renderPage(api, { mode: 'student' });
