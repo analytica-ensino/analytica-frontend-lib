@@ -350,6 +350,51 @@ describe('LessonViewPage', () => {
       );
     });
 
+    it('marks a lone final board as final, not as initial', async () => {
+      const api = makeApi([
+        apiLesson({
+          urlInitialFrame: '',
+          urlFinalFrame: 'https://cdn.test/f.png',
+        }),
+      ]);
+      renderPage(api, { mode: 'student' });
+
+      // The only board sits at index 0, so identifying it by position marked
+      // the initial-frame criterion on a lesson that has no initial frame.
+      fireEvent.click(await screen.findByAltText('Quadro Final'));
+
+      await waitFor(() =>
+        expect(api.patch).toHaveBeenCalledWith('/lesson/lesson-1/progress', {
+          finalFrame: true,
+        })
+      );
+      expect(api.patch).not.toHaveBeenCalledWith('/lesson/lesson-1/progress', {
+        initialFrame: true,
+      });
+    });
+
+    it('marks a lone initial board as initial, not as final', async () => {
+      const api = makeApi([
+        apiLesson({
+          urlInitialFrame: 'https://cdn.test/i.png',
+          urlFinalFrame: '',
+        }),
+      ]);
+      renderPage(api, { mode: 'student' });
+
+      // The mirror case: index 0 is also `total - 1` when there is one board.
+      fireEvent.click(await screen.findByAltText('Quadro Inicial'));
+
+      await waitFor(() =>
+        expect(api.patch).toHaveBeenCalledWith('/lesson/lesson-1/progress', {
+          initialFrame: true,
+        })
+      );
+      expect(api.patch).not.toHaveBeenCalledWith('/lesson/lesson-1/progress', {
+        finalFrame: true,
+      });
+    });
+
     it('never marks a board in preview mode', async () => {
       const api = makeApi([
         apiLesson({ urlInitialFrame: 'https://cdn.test/i.png' }),

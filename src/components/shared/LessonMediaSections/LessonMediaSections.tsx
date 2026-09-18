@@ -126,11 +126,12 @@ export interface LessonBoardImagesSectionProps {
     total: number
   ) => RefObject<HTMLDivElement | null> | null;
   /**
-   * Called with the board's position when it is clicked. Students use it to
-   * mark the first and last boards as viewed (two of the progress criteria);
-   * omit it to render the boards as plain, non-interactive blocks.
+   * Called when a board is clicked. Receives the board itself first, because a
+   * lesson may carry only one of the two frames: its position says nothing
+   * about which frame it is, so consumers must identify it by its own data.
+   * Omit to render the boards as plain, non-interactive blocks.
    */
-  onImageClick?: (index: number, total: number) => void;
+  onImageClick?: (image: WhiteboardImage, index: number, total: number) => void;
   title?: string;
 }
 
@@ -179,7 +180,7 @@ export const LessonBoardImagesSection = ({
               type="button"
               key={key}
               className="cursor-pointer"
-              onClick={() => onImageClick(index, total)}
+              onClick={() => onImageClick(image, index, total)}
             >
               {board}
             </button>

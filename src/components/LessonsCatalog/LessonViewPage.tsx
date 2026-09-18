@@ -45,6 +45,7 @@ import {
   LessonPodcastSection,
   LessonBoardImagesSection,
 } from '../shared/LessonMediaSections';
+import type { WhiteboardImage } from '../Whiteboard/Whiteboard';
 
 export interface LessonViewPageProps {
   /** API client used to load the subtopic's lessons and record progress. */
@@ -271,12 +272,22 @@ export function LessonViewPage({
     [originalHandleVideoTimeUpdate]
   );
 
+  /**
+   * Identify the board by which frame it actually is, never by its position.
+   * The mapper only emits a board for a frame the lesson has, so a lesson with
+   * only a final frame renders it alone at index 0 — matching on position
+   * marked it as the initial frame and never marked the final one.
+   */
   const handleBoardImageClick = useCallback(
-    async (index: number, totalImages: number) => {
+    async (image: WhiteboardImage) => {
       if (!activeLessonId) return;
 
-      const isInitial = index === 0;
-      const isFinal = index === totalImages - 1;
+      const isInitial =
+        Boolean(currentLesson?.urlInitialFrame) &&
+        image.imageUrl === currentLesson?.urlInitialFrame;
+      const isFinal =
+        Boolean(currentLesson?.urlFinalFrame) &&
+        image.imageUrl === currentLesson?.urlFinalFrame;
 
       if (isInitial && !hasMarkedInitialFrame.current) {
         hasMarkedInitialFrame.current = true;
@@ -294,7 +305,7 @@ export function LessonViewPage({
         }
       }
     },
-    [activeLessonId, progressTracker]
+    [activeLessonId, progressTracker, currentLesson]
   );
 
   const handleVideoCompleteCallback = useCallback(async () => {
