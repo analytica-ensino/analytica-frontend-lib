@@ -176,22 +176,32 @@ function SimulationStatCard({
   );
 }
 
+/** What a stat or subtema card shows when there is nothing to measure yet. */
+export const EMPTY_STAT_VALUE = '—';
+
 /**
  * The four cards of a cut: grade, correct, incorrect and blank. The grade card
  * is skipped when no score was sent, so an older API still renders the three
- * counts it always had.
+ * counts it always had. With `empty`, every card shows a dash instead of its
+ * number: a student who answered nothing has no average, and "0 corretas"
+ * would read as a result rather than as the absence of one.
  */
 export function SimulationStatCards({
   score,
   correct,
   incorrect,
   blank,
+  empty = false,
 }: {
   readonly score: number | undefined;
   readonly correct: number;
   readonly incorrect: number;
   readonly blank: number;
+  /** Render dashes in place of the numbers */
+  readonly empty?: boolean;
 }) {
+  const show = (value: string) => (empty ? EMPTY_STAT_VALUE : value);
+
   return (
     <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
       {score !== undefined && (
@@ -199,26 +209,26 @@ export function SimulationStatCards({
           tone="grade"
           icon={<ExamIcon size={16} weight="bold" />}
           label="Nota média"
-          value={formatScoreOutOfTen(score)}
+          value={show(formatScoreOutOfTen(score))}
         />
       )}
       <SimulationStatCard
         tone="correct"
         icon={<CheckCircleIcon size={16} weight="bold" />}
         label="Nº de questões corretas"
-        value={String(correct)}
+        value={show(String(correct))}
       />
       <SimulationStatCard
         tone="incorrect"
         icon={<XCircleIcon size={16} weight="bold" />}
         label="Nº de questões incorretas"
-        value={String(incorrect)}
+        value={show(String(incorrect))}
       />
       <SimulationStatCard
         tone="blank"
         icon={<MinusCircleIcon size={16} weight="bold" />}
         label="Nº de questões em branco"
-        value={String(blank)}
+        value={show(String(blank))}
       />
     </div>
   );
@@ -244,7 +254,7 @@ function ContentCard({
         {label}
       </Text>
       <Text size="md" className="text-center text-text-950">
-        {content?.contentName ?? '—'}
+        {content?.contentName ?? EMPTY_STAT_VALUE}
       </Text>
     </div>
   );
@@ -356,10 +366,16 @@ export function StudentSummaryHeader({
   name,
   location,
   badge,
+  badgePlacement = 'start',
 }: {
   readonly name: string;
   readonly location: readonly (string | null | undefined)[];
   readonly badge?: ReactNode;
+  /**
+   * Where the badge sits: right after the name (`start`) or pushed to the
+   * far end of the row (`end`), as the Atividades student modal draws it.
+   */
+  readonly badgePlacement?: 'start' | 'end';
 }) {
   const parts = location.filter((part): part is string => Boolean(part));
 
@@ -367,10 +383,20 @@ export function StudentSummaryHeader({
     <div className="flex flex-col gap-2 border-b border-border-200 pb-4">
       <div className="flex items-center gap-2">
         <UserIcon size={24} className="shrink-0" />
-        <Text size="md" className="min-w-0 flex-1 truncate text-text-950">
+        <Text
+          size="md"
+          className={cn(
+            'min-w-0 truncate text-text-950',
+            badgePlacement === 'start' && 'flex-1'
+          )}
+        >
           {name}
         </Text>
-        {badge}
+        {badge && badgePlacement === 'end' ? (
+          <span className="ml-auto shrink-0">{badge}</span>
+        ) : (
+          badge
+        )}
       </div>
       {parts.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">

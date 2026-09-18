@@ -53,6 +53,16 @@ export interface UseSimulationCardDetailsParams {
   readonly userInstitutionId: string | null;
   /** Whether the modal is open; reopening starts a fresh session */
   readonly isOpen: boolean;
+  /**
+   * Whether expanding a card loads its questions and observation.
+   *
+   * Those two come from `/performance/simulations/students/...`, which the
+   * backend answers for simulados and activities but not for every activity
+   * type. A modal listing a type it does not serve still expands its cards —
+   * the stat and content cards travel with the list — but must not ask for a
+   * detail that would 404. Default true.
+   */
+  readonly enabled?: boolean;
 }
 
 export interface UseSimulationCardDetailsReturn {
@@ -97,6 +107,7 @@ export function useSimulationCardDetails({
   api,
   userInstitutionId,
   isOpen,
+  enabled = true,
 }: UseSimulationCardDetailsParams): UseSimulationCardDetailsReturn {
   const useSimulations = useMemo(() => createUseSimulations(api), [api]);
   const {
@@ -159,7 +170,7 @@ export function useSimulationCardDetails({
             ...previous,
             [simulationId]: {
               loading: false,
-              error: 'Erro ao carregar o simulado',
+              error: 'Erro ao carregar as respostas',
               data: null,
             },
           }));
@@ -203,15 +214,43 @@ export function useSimulationCardDetails({
       if (!userInstitutionId) return;
       const next = expandedId === simulationId ? null : simulationId;
       setExpandedId(next);
-      if (!next) return;
+      // Collapsing loads nothing; so does a list whose items have no detail
+      // endpoint behind them (see `enabled`).
+      if (!next || !enabled) return;
 
       // The two requests are guarded separately: a loaded detail must not stop
       // the observation from being fetched, and the other way around.
       if (!details[simulationId]) loadDetail(userInstitutionId, simulationId);
       if (!notes[simulationId]) loadNote(userInstitutionId, simulationId);
     },
-    [userInstitutionId, expandedId, details, notes, loadDetail, loadNote]
+    [
+      userInstitutionId,
+      enabled,
+      expandedId,
+      details,
+      notes,
+      loadDetail,
+      loadNote,
+    ]
   );
+
+  // `enabled` can turn on under an already expanded card — a caller that
+  // decides it from the list's kind may flip it without touching the card.
+  // `toggle` ran while disabled and loaded nothing, so this catches the open
+  // card up; the same guards keep it from repeating a request `toggle` made.
+  useEffect(() => {
+    if (!enabled || !expandedId || !userInstitutionId) return;
+    if (!details[expandedId]) loadDetail(userInstitutionId, expandedId);
+    if (!notes[expandedId]) loadNote(userInstitutionId, expandedId);
+  }, [
+    enabled,
+    expandedId,
+    userInstitutionId,
+    details,
+    notes,
+    loadDetail,
+    loadNote,
+  ]);
 
   const retryNote = useCallback(
     (simulationId: string) => {

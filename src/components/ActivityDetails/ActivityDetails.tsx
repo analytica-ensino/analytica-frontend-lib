@@ -313,10 +313,7 @@ const createTableColumns = (
           );
         }
 
-        if (
-          row.status === STUDENT_ACTIVITY_STATUS.CONCLUIDO ||
-          row.status === STUDENT_ACTIVITY_STATUS.NAO_ENTREGUE
-        ) {
+        if (row.status === STUDENT_ACTIVITY_STATUS.CONCLUIDO) {
           return (
             <Button
               variant="link"
@@ -325,6 +322,20 @@ const createTableColumns = (
               className="text-xs"
             >
               Ver detalhes
+            </Button>
+          );
+        }
+
+        // Not answered yet (deadline open) or never answered (deadline
+        // past): there is nothing to correct, so the button stays visible
+        // but disabled — the row reads as "correction not available".
+        if (
+          row.status === STUDENT_ACTIVITY_STATUS.AGUARDANDO_RESPOSTA ||
+          row.status === STUDENT_ACTIVITY_STATUS.NAO_ENTREGUE
+        ) {
+          return (
+            <Button variant="outline" size="small" disabled className="text-xs">
+              Corrigir atividade
             </Button>
           );
         }

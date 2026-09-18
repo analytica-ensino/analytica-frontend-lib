@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { StudentRanking, RankingCard } from './StudentRanking';
 
@@ -139,6 +139,50 @@ describe('StudentRanking', () => {
 
         const wrapper = container.firstChild as HTMLElement;
         expect(wrapper).toHaveClass('custom-class');
+      });
+    });
+
+    // A row is a button only when the consumer listens to it; the item and
+    // the card it sits in travel back, so the consumer can open that student.
+    describe('Click handling', () => {
+      it('renders static rows without a click handler', () => {
+        render(
+          <StudentRanking
+            highlightStudents={mockHighlightStudents}
+            attentionStudents={mockAttentionStudents}
+          />
+        );
+
+        expect(screen.queryAllByRole('button')).toHaveLength(0);
+      });
+
+      it('makes every row a button and reports the student and its card', () => {
+        const onStudentClick = jest.fn();
+        const highlightWithIds = mockHighlightStudents.map((student) => ({
+          ...student,
+          id: `ui-${student.position}`,
+        }));
+        render(
+          <StudentRanking
+            highlightStudents={highlightWithIds}
+            attentionStudents={mockAttentionStudents}
+            onStudentClick={onStudentClick}
+          />
+        );
+
+        expect(screen.getAllByRole('button')).toHaveLength(6);
+
+        fireEvent.click(screen.getByRole('button', { name: /Lucas Almeida/ }));
+        expect(onStudentClick).toHaveBeenCalledWith(
+          { position: 2, name: 'Lucas Almeida', percentage: 100, id: 'ui-2' },
+          'highlight'
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: /Juliana Santos/ }));
+        expect(onStudentClick).toHaveBeenLastCalledWith(
+          { position: 2, name: 'Juliana Santos', percentage: 50 },
+          'attention'
+        );
       });
     });
 

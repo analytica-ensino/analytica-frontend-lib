@@ -292,6 +292,8 @@ export interface SimulationNoteRowProps {
   readonly loadError?: string | null;
   /** Load the observation again; required whenever `loadError` can be set. */
   readonly onRetry?: () => void;
+  /** Placeholder of the editor; defaults to the simulado wording. */
+  readonly placeholder?: string;
   /**
    * Persist the observation. `text` is already trimmed and non-empty; `file`
    * is a newly chosen attachment still to be uploaded (null when none), and
@@ -382,6 +384,7 @@ export function SimulationNoteRow({
   loading,
   loadError,
   onRetry,
+  placeholder = 'Escreva uma observação para este simulado',
   onSave,
 }: SimulationNoteRowProps) {
   const [editing, setEditing] = useState(false);
@@ -502,7 +505,7 @@ export function SimulationNoteRow({
         <TextArea
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          placeholder="Escreva uma observação para este simulado"
+          placeholder={placeholder}
           rows={3}
         />
         {error && (
@@ -579,6 +582,7 @@ export function SimulationAnswers({
   detail,
   note,
   onRetryNote,
+  notePlaceholder,
   onSaveNote,
   onSaveQuestionComment,
 }: {
@@ -586,6 +590,8 @@ export function SimulationAnswers({
   readonly note: SimulationNoteState | undefined;
   /** Load the observation again after a failed request */
   readonly onRetryNote: () => void;
+  /** Placeholder of the observation editor; see `SimulationNoteRowProps` */
+  readonly notePlaceholder?: string;
   readonly onSaveNote: SimulationNoteRowProps['onSave'];
   readonly onSaveQuestionComment: (
     questionId: string,
@@ -613,6 +619,7 @@ export function SimulationAnswers({
         loading={note?.loading ?? false}
         loadError={note?.error ?? null}
         onRetry={onRetryNote}
+        placeholder={notePlaceholder}
         onSave={onSaveNote}
       />
 

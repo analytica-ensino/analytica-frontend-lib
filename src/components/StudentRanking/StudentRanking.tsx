@@ -25,27 +25,50 @@ export type StudentRankingVariant = RankingVariant;
 export type StudentRankingItem = Pick<
   StudentHighlightItem,
   'position' | 'name' | 'percentage'
->;
+> & {
+  /**
+   * Whatever identifies the student to the consumer (an enrollment id, say).
+   * Not rendered; it travels back through `onStudentClick`, so a ranking row
+   * can open that student's details.
+   */
+  id?: string;
+};
+
+/** Fired when a ranking row is clicked; the variant names which card it was. */
+export type StudentRankingClickHandler = (
+  student: StudentRankingItem,
+  variant: RankingVariant
+) => void;
 
 /**
  * Individual student card component
+ *
+ * Rendered as a button only when the row can be clicked, so a static ranking
+ * keeps its plain markup and a clickable one is reachable by keyboard.
  */
 const StudentCard = ({
   student,
   variant,
   showPercentage,
+  onClick,
 }: {
   student: StudentRankingItem;
   variant: RankingVariant;
   showPercentage: boolean;
+  onClick?: () => void;
 }) => {
   const TrendIcon = variant === 'highlight' ? TrendUpIcon : TrendDownIcon;
   const backgroundClass = getPositionBackgroundClass(variant, student.position);
+  const Row = onClick ? 'button' : 'div';
 
   return (
-    <div
+    <Row
+      type={onClick ? 'button' : undefined}
+      onClick={onClick}
       className={cn(
         'flex flex-row items-center w-full p-4 gap-2 rounded-xl',
+        onClick &&
+          'text-left cursor-pointer transition-[filter] hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
         backgroundClass
       )}
     >
@@ -86,7 +109,7 @@ const StudentCard = ({
           {student.percentage}%
         </Text>
       )}
-    </div>
+    </Row>
   );
 };
 
@@ -108,6 +131,8 @@ export interface RankingCardProps extends HTMLAttributes<HTMLDivElement> {
    * printing a number the card's title does not promise.
    */
   showPercentage?: boolean;
+  /** Makes every row clickable and reports which student was clicked. */
+  onStudentClick?: StudentRankingClickHandler;
 }
 
 /**
@@ -118,6 +143,7 @@ export const RankingCard = ({
   variant,
   students,
   showPercentage = true,
+  onStudentClick,
   className,
   ...props
 }: RankingCardProps) => (
@@ -131,6 +157,7 @@ export const RankingCard = ({
         student={student}
         variant={v}
         showPercentage={showPercentage}
+        onClick={onStudentClick ? () => onStudentClick(student, v) : undefined}
       />
     )}
     className={className}
@@ -152,6 +179,11 @@ export interface StudentRankingProps extends HTMLAttributes<HTMLDivElement> {
   attentionStudents: StudentRankingItem[];
   /** Show the percentage badge on each row. Defaults to true. */
   showPercentage?: boolean;
+  /**
+   * Makes every row of both cards clickable and reports which student was
+   * clicked, with the card it sits in. Left out, the rows stay static.
+   */
+  onStudentClick?: StudentRankingClickHandler;
 }
 
 /**
@@ -182,6 +214,7 @@ export const StudentRanking = ({
   highlightStudents,
   attentionStudents,
   showPercentage = true,
+  onStudentClick,
   className,
   ...props
 }: StudentRankingProps) => {
@@ -192,12 +225,14 @@ export const StudentRanking = ({
         variant="highlight"
         students={highlightStudents}
         showPercentage={showPercentage}
+        onStudentClick={onStudentClick}
       />
       <RankingCard
         title={attentionTitle}
         variant="attention"
         students={attentionStudents}
         showPercentage={showPercentage}
+        onStudentClick={onStudentClick}
       />
     </RankingLayout>
   );

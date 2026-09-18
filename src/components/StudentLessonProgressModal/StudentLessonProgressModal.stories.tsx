@@ -177,6 +177,32 @@ const mockPartialData: StudentLessonProgressData = {
 };
 
 /**
+ * Topics of several subjects in one list, as the report sends them when no
+ * subject is filtered (trail order keeps each subject's topics together)
+ */
+const mockMultipleSubjectsData: StudentLessonProgressData = {
+  name: 'Ana Beatriz',
+  overallCompletionRate: 62,
+  bestResult: 'Cinemática',
+  biggestDifficulty: 'Tabela periódica',
+  lessonProgress: [
+    ...mockCompleteData.lessonProgress.slice(0, 2),
+    {
+      topic: { id: 'c1', name: 'Tabela periódica' },
+      progress: 35,
+      status: 'in_progress',
+      subtopics: [],
+    },
+    {
+      topic: { id: 'c2', name: 'Ligações químicas' },
+      progress: 0,
+      status: 'no_data',
+      subtopics: [],
+    },
+  ],
+};
+
+/**
  * Showcase principal: todas as variações do modal
  */
 export const AllVariations: Story = () => {
@@ -269,6 +295,26 @@ export const NestedData: Story = () => {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         data={mockCompleteData}
+      />
+    </>
+  );
+};
+
+/**
+ * Modal with the topics of several subjects in one list
+ */
+export const MultipleSubjects: Story = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <>
+      <Button onClick={() => setIsOpen(true)}>
+        Abrir Modal - Várias matérias
+      </Button>
+      <StudentLessonProgressModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        data={mockMultipleSubjectsData}
       />
     </>
   );

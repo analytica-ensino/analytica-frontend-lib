@@ -1,32 +1,23 @@
 import type { ContentProgressItem } from './types';
 
 /**
- * Regras de leitura do acordeão, compartilhadas pela TELA e pela EXPORTAÇÃO.
- *
- * Moram aqui, e não dentro do componente, porque a planilha tem que dizer o
- * mesmo que a linha do acordeão: se as duas tivessem cópias da mesma condição,
- * um ajuste na tela sairia calado do arquivo exportado. Puras, sem React.
+ * Reading rules of the accordion rows. Pure, no React.
  */
 
 /**
- * Uma aula tem progresso a mostrar?
+ * Whether a lesson has progress to show.
  *
- * Regra do nível mais fundo do acordeão, e ela é DIFERENTE da dos dois níveis
- * acima: tópico e subtópico decidem por `status === 'no_data'`, enquanto
- * `ContentProgressItem` não tem `status` nenhum — só `progress` e `isCompleted`
- * — e a tela deduz o "sem dados" de progresso zero em aula não concluída.
- *
- * `isCompleted` entra na conta porque uma aula concluída com progresso 0 existe
- * no tipo, e para ela a tela mostra "0%", não a mensagem de sem-dados.
+ * The deepest level decides differently from the two above it: topic and
+ * subtopic carry a `status`, while `ContentProgressItem` only has `progress`
+ * and `isCompleted`, so "no data" is inferred from zero progress on a lesson
+ * not completed. `isCompleted` matters because a completed lesson with zero
+ * progress exists in the type, and for it the row shows "0%", not the
+ * no-data message.
  */
 export const hasContentData = (item: ContentProgressItem): boolean =>
   item.progress !== 0 || item.isCompleted;
 
 /**
- * Arredondamento do percentual, como todos os níveis do acordeão o desenham.
- *
- * A tela escreve `Math.round(progress)` seguido de "%", em três lugares; a
- * planilha grava o mesmo número em célula numérica, sem o sinal. Uma função só
- * para que os dois lados nunca arredondem diferente.
+ * Rounding of the percentage, as every level of the accordion draws it.
  */
 export const roundProgress = (progress: number): number => Math.round(progress);
