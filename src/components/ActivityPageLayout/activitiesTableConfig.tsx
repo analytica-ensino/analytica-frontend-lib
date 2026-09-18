@@ -83,15 +83,22 @@ export const renderActivityStatusBadge = (value: unknown) => {
  * acessível no tooltip.
  */
 export const activitiesTableColumns: ColumnConfig<ActivityTableItem>[] = [
+  // O backend do histórico (`GET /activities/history`) só ordena por
+  // `createdAt`, `finalDate`, `title` e `completionPercentage`; qualquer outro
+  // `sortBy` responde 400. Por isso as colunas de data apontam `sortKey` para
+  // o nome aceito e as colunas derivadas (escola, ano, turma, status) não
+  // são ordenáveis.
   {
     key: 'startDate',
     label: 'Início',
     sortable: true,
+    sortKey: 'createdAt',
   },
   {
     key: 'deadline',
     label: 'Prazo',
     sortable: true,
+    sortKey: 'finalDate',
   },
   {
     key: 'title',
@@ -103,14 +110,14 @@ export const activitiesTableColumns: ColumnConfig<ActivityTableItem>[] = [
   {
     key: 'school',
     label: 'Escola',
-    sortable: true,
+    sortable: false,
     className: 'max-w-[120px]',
     render: renderTextCell,
   },
   {
     key: 'year',
     label: 'Ano',
-    sortable: true,
+    sortable: false,
     // O nome vem cru da API ("3ª série do ensino médio") e o <td> é
     // whitespace-nowrap, então sem teto a coluna sozinha empurrava a tabela
     // para fora do container. 100px é o menor teto que ainda deixa ler
@@ -132,14 +139,14 @@ export const activitiesTableColumns: ColumnConfig<ActivityTableItem>[] = [
   {
     key: 'class',
     label: 'Turma',
-    sortable: true,
+    sortable: false,
     className: 'max-w-[100px]',
     render: renderTextCell,
   },
   {
     key: 'status',
     label: 'Status',
-    sortable: true,
+    sortable: false,
     render: renderActivityStatusBadge,
   },
   {
