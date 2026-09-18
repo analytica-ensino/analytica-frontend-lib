@@ -32,6 +32,7 @@ export default defineConfig({
     'RangeGauge/index': 'src/components/RangeGauge/RangeGauge.tsx',
     'LevelBar/index': 'src/components/LevelBar/LevelBar.tsx',
     'Avatar/index': 'src/components/Avatar/Avatar.tsx',
+    'ReadOnlyField/index': 'src/components/ReadOnlyField/ReadOnlyField.tsx',
     'LoadingModal/index': 'src/components/LoadingModal/loadingModal.tsx',
     'ProgressCircle/index': 'src/components/ProgressCircle/ProgressCircle.tsx',
     'AnswerKeyModal/index': 'src/components/AnswerKeyModal/AnswerKeyModal.tsx',
@@ -424,6 +425,7 @@ export default defineConfig({
     'utils/chatUtils/index': 'src/utils/chatUtils.ts', // getChatUserInfo, getChatWsUrl
     'utils/htmlLineBreaks/index': 'src/utils/htmlLineBreaks.ts', // normalizeLineBreaksInHtml
     'utils/latexMath/index': 'src/utils/latexMath.ts', // buildMathSpan, findDollarMath, isCurrencyDollar, looksLikeMath, replaceDollarMath
+    'utils/profileImageA11y/index': 'src/utils/profileImageA11y.ts', // profileImageLabel
     'utils/domainUtils/index': 'src/utils/domainUtils.ts', // resolveRootHostname, extractSubdomainSlug, buildLoginUrlWithReturnTo
     'utils/examFilterHelpers/index': 'src/utils/examFilterHelpers.ts', // EXAM_STATUS_OPTIONS
     'utils/lessonAvailabilityUtils/index':

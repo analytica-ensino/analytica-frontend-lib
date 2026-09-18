@@ -47,7 +47,9 @@ describe('CalendarCard', () => {
     it('renders the trigger button without opening any surface initially', () => {
       renderCalendarCard();
       // Trigger button exists
-      const trigger = screen.getByRole('button', { name: /botão de ação/i });
+      const trigger = screen.getByRole('button', {
+        name: 'Calendário de atividades',
+      });
       expect(trigger).toBeInTheDocument();
       // Content is not visible (dropdown closed by default)
       expect(screen.queryByTestId('calendar-content')).not.toBeInTheDocument();
@@ -154,5 +156,41 @@ describe('CalendarCard', () => {
       );
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
+  });
+
+  // O IconButton só tem ícone: sem rótulo próprio ele cai no padrão
+  // "Botão de ação", que não diz o que abre. O estado reduzido/expandido é
+  // igualmente exigido, e no mobile não há trigger de dropdown para injetá-lo.
+  describe('nome e estado do gatilho', () => {
+    it('names the desktop trigger and reports its collapsed state', () => {
+      renderCalendarCard();
+
+      expect(
+        screen.getByRole('button', { name: 'Calendário de atividades' })
+      ).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('reports the expanded state on desktop once open', () => {
+      renderCalendarCard({ isOpen: true });
+
+      expect(
+        screen.getByRole('button', { name: 'Calendário de atividades' })
+      ).toHaveAttribute('aria-expanded', 'true');
+    });
+
+    it.each([
+      ['collapsed', false, 'false'],
+      ['expanded', true, 'true'],
+    ])(
+      'names the mobile trigger and reports it %s',
+      (_case, isOpen, expected) => {
+        mockUseMobile.mockReturnValue(makeUseMobileMock({ isMobile: true }));
+        renderCalendarCard({ isOpen });
+
+        expect(
+          screen.getByRole('button', { name: 'Calendário de atividades' })
+        ).toHaveAttribute('aria-expanded', expected);
+      }
+    );
   });
 });

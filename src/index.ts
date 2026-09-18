@@ -134,6 +134,8 @@ export { LevelBar } from './components/LevelBar/LevelBar';
 export type { LevelBarProps } from './components/LevelBar/LevelBar';
 export { Avatar } from './components/Avatar/Avatar';
 export type { AvatarProps } from './components/Avatar/Avatar';
+export { ReadOnlyField } from './components/ReadOnlyField/ReadOnlyField';
+export type { ReadOnlyFieldProps } from './components/ReadOnlyField/ReadOnlyField';
 export { default as ProgressCircle } from './components/ProgressCircle/ProgressCircle';
 export { default as Stepper } from './components/Stepper/Stepper';
 export { default as Calendar } from './components/Calendar/Calendar';
@@ -1084,6 +1086,8 @@ export {
 } from './utils/brazilianFormatters';
 export { BR_STATES_FULL, UF_LIST } from './utils/brazilianStates';
 export type { UF } from './utils/brazilianStates';
+export { profileImageLabel } from './utils/profileImageA11y';
+export type { ProfileImageLabelOptions } from './utils/profileImageA11y';
 export { default as MaskedInput } from './components/MaskedInput/MaskedInput';
 export type { MaskedInputProps } from './components/MaskedInput/MaskedInput';
 export { default as HierarchicalCheckboxGroup } from './components/HierarchicalCheckboxGroup/HierarchicalCheckboxGroup';

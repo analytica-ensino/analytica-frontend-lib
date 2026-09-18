@@ -938,7 +938,9 @@ describe('ProfileMenu component', () => {
       const userIcon = header.querySelector('svg');
       expect(userIcon).toBeInTheDocument();
       // Verifica que não há imagem
-      expect(screen.queryByAltText('Foto de perfil')).not.toBeInTheDocument();
+      expect(
+        screen.queryByAltText('Imagem de perfil de Test User')
+      ).not.toBeInTheDocument();
     });
 
     it.each([[undefined], [null], ['']])(
@@ -959,7 +961,7 @@ describe('ProfileMenu component', () => {
         );
 
         const avatar = screen.getByRole('img', {
-          name: 'Sem foto de perfil',
+          name: 'Imagem de perfil, sem imagem',
         });
         // O <svg> do ícone fica escondido: sem isso ele entra na árvore como
         // uma segunda "imagem", sem nome, logo dentro da que acabou de ganhar um.
@@ -985,8 +987,27 @@ describe('ProfileMenu component', () => {
       );
 
       expect(
-        screen.queryByRole('img', { name: 'Sem foto de perfil' })
+        screen.queryByRole('img', { name: 'Imagem de perfil, sem imagem' })
       ).not.toBeInTheDocument();
+    });
+
+    it('names the photo after the person', () => {
+      render(
+        <DropdownMenu open>
+          <ProfileMenuTrigger />
+          <DropdownMenuContent>
+            <ProfileMenuHeader
+              email="test@test.com"
+              name="Test User"
+              photoUrl="https://example.com/photo.jpg"
+            />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      expect(
+        screen.getByRole('img', { name: 'Imagem de perfil de Test User' })
+      ).toBeInTheDocument();
     });
 
     it('renders profile image when photoUrl is provided', () => {
@@ -1004,7 +1025,7 @@ describe('ProfileMenu component', () => {
         </DropdownMenu>
       );
 
-      const img = screen.getByAltText('Foto de perfil');
+      const img = screen.getByAltText('Imagem de perfil de Test User');
       expect(img).toBeInTheDocument();
       expect(img).toHaveAttribute('src', photoUrl);
       expect(img).toHaveClass('w-full', 'h-full', 'object-cover');
@@ -1025,7 +1046,9 @@ describe('ProfileMenu component', () => {
         </DropdownMenu>
       );
 
-      expect(screen.queryByAltText('Foto de perfil')).not.toBeInTheDocument();
+      expect(
+        screen.queryByAltText('Imagem de perfil de Test User')
+      ).not.toBeInTheDocument();
       const header = screen.getByTestId('profile-header');
       const userIcon = header.querySelector('svg');
       expect(userIcon).toBeInTheDocument();
