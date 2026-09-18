@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import type { BaseApiClient } from '../types/api';
 import type {
   Topic,
@@ -108,6 +108,7 @@ export const createUseClassTopics =
     const [data, setData] = useState<ClassTopicsData | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const requestIdRef = useRef(0);
 
     const handleError = useCallback((error: unknown) => {
       let errorMessage = 'Erro ao carregar os temas';
@@ -128,6 +129,11 @@ export const createUseClassTopics =
 
     const fetchTopics = useCallback(
       async (subjectId: string) => {
+        // Claim this call as the active one. The page stays mounted while the
+        // subject changes, so a slower request for the previous subject could
+        // resolve last and paint its topics under the new subject.
+        const requestId = ++requestIdRef.current;
+
         setLoading(true);
         setError(null);
 
@@ -135,11 +141,22 @@ export const createUseClassTopics =
           const response = await apiClient.get<TopicsApiResponse>(
             `/knowledge/by-subject/${subjectId}`
           );
+          if (requestIdRef.current !== requestId) {
+            return;
+          }
           setData(transformTopicsResponse(response.data, subjectId));
         } catch (error) {
+          // Ignore errors from a request that is no longer the active one.
+          if (requestIdRef.current !== requestId) {
+            return;
+          }
           handleError(error);
         } finally {
-          setLoading(false);
+          // Only the active request controls the loading flag, so a superseded
+          // response can't clear it while the current fetch is still running.
+          if (requestIdRef.current === requestId) {
+            setLoading(false);
+          }
         }
       },
       [apiClient, handleError]

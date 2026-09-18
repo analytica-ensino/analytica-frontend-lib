@@ -92,6 +92,108 @@ describe('createUseLessonProgressTracker', () => {
       );
     });
 
+    describe('out-of-order responses', () => {
+      // Two criteria marked in a row have no ordering guarantee; the older
+      // answer must not roll the lesson back.
+      it('never lowers the stored percentage', async () => {
+        const api = makeApi();
+        api.patch
+          .mockResolvedValueOnce(progressResponse(100))
+          .mockResolvedValueOnce(progressResponse(66));
+        const { result } = renderHook(() =>
+          createUseLessonProgressTracker(api, 'student')()
+        );
+
+        await act(async () => {
+          await result.current.markFinalFrameViewed('lesson-1');
+        });
+        await act(async () => {
+          await result.current.markInitialFrameViewed('lesson-1');
+        });
+
+        const stored = useLessonsStore.getState().lessonsProgress['lesson-1'];
+        expect(stored.progressPercentage).toBe(100);
+        expect(stored.completed).toBe(true);
+        expect(stored.completedAt).toBe('2026-01-10T10:00:00.000Z');
+      });
+
+      it('still reports what the late request itself answered', async () => {
+        const api = makeApi();
+        api.patch
+          .mockResolvedValueOnce(progressResponse(100))
+          .mockResolvedValueOnce(progressResponse(66));
+        const { result } = renderHook(() =>
+          createUseLessonProgressTracker(api, 'student')()
+        );
+
+        await act(async () => {
+          await result.current.markFinalFrameViewed('lesson-1');
+        });
+
+        let returned: number | null = null;
+        await act(async () => {
+          returned = await result.current.markInitialFrameViewed('lesson-1');
+        });
+
+        // Callers only distinguish success from null; the clamp belongs to the
+        // store, not to the return value.
+        expect(returned).toBe(66);
+      });
+
+      it('keeps the first completion timestamp', async () => {
+        const api = makeApi();
+        api.patch
+          .mockResolvedValueOnce(progressResponse(100))
+          .mockResolvedValueOnce({
+            data: {
+              message: 'ok',
+              data: {
+                lessonId: 'lesson-1',
+                progress: 100,
+                lastInteraction: '2026-02-20T10:00:00.000Z',
+              },
+            },
+          });
+        const { result } = renderHook(() =>
+          createUseLessonProgressTracker(api, 'student')()
+        );
+
+        await act(async () => {
+          await result.current.markVideoComplete('lesson-1');
+        });
+        await act(async () => {
+          await result.current.markDocViewed('lesson-1');
+        });
+
+        // The lesson was completed once; a later interaction does not move it.
+        expect(
+          useLessonsStore.getState().lessonsProgress['lesson-1'].completedAt
+        ).toBe('2026-01-10T10:00:00.000Z');
+      });
+
+      it('still advances when the percentage grows', async () => {
+        const api = makeApi();
+        api.patch
+          .mockResolvedValueOnce(progressResponse(33))
+          .mockResolvedValueOnce(progressResponse(66));
+        const { result } = renderHook(() =>
+          createUseLessonProgressTracker(api, 'student')()
+        );
+
+        await act(async () => {
+          await result.current.markVideoComplete('lesson-1');
+        });
+        await act(async () => {
+          await result.current.markInitialFrameViewed('lesson-1');
+        });
+
+        expect(
+          useLessonsStore.getState().lessonsProgress['lesson-1']
+            .progressPercentage
+        ).toBe(66);
+      });
+    });
+
     it('returns null and exposes the error when the request fails', async () => {
       const api = makeApi();
       api.patch.mockRejectedValue(new Error('boom'));

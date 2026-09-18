@@ -143,14 +143,24 @@ export const createUseLessonProgressTracker =
               progressPercentage: 0,
             };
 
+            const nextProgress = Math.max(prev.progressPercentage, progress);
+            const isStale = progress < nextProgress;
+            const completed = prev.completed || nextProgress >= 100;
+
             updateLessonProgress(lessonId, {
               ...prev,
-              completed: progress >= 100,
-              lastWatchedAt: lastInteraction,
-              completedAt: progress >= 100 ? lastInteraction : undefined,
-              progressPercentage: progress,
+              completed,
+              // A stale response carries an older interaction time too.
+              lastWatchedAt: isStale ? prev.lastWatchedAt : lastInteraction,
+              // The moment of completion does not move once it happened.
+              completedAt: completed
+                ? (prev.completedAt ?? lastInteraction)
+                : undefined,
+              progressPercentage: nextProgress,
             });
 
+            // The raw answer for THIS request, not the clamped store value:
+            // callers use it to tell a successful mark from a failed one.
             return progress;
           }
 

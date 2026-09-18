@@ -168,6 +168,36 @@ describe('createUseLessonSearch', () => {
     expect(result.current.results.map((r) => r.lessonId)).toEqual(['newer']);
   });
 
+  it('discards a response that lands during the next debounce window', async () => {
+    const api = makeApi();
+    let resolveFirst: (value: { data: unknown }) => void = () => {};
+    api.get.mockImplementationOnce(
+      () =>
+        new Promise<{ data: unknown }>((resolve) => {
+          resolveFirst = resolve;
+        })
+    );
+
+    const { result } = renderHook(() => createUseLessonSearch(api)());
+
+    act(() => result.current.search('primeiro'));
+    act(() => {
+      jest.advanceTimersByTime(SEARCH_DEBOUNCE_MS);
+    });
+
+    // The user keeps typing: the new term is only queried 400ms from now, and
+    // the first request is still in flight for that whole window.
+    act(() => result.current.search('segundo'));
+
+    await act(async () => {
+      resolveFirst(searchResponse(['older']));
+    });
+
+    expect(result.current.results).toEqual([]);
+    // A search is still pending, so the spinner must not have been cleared.
+    expect(result.current.loading).toBe(true);
+  });
+
   it('surfaces the API message on failure', async () => {
     const api = makeApi();
     api.get.mockRejectedValue({

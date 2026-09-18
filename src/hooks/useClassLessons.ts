@@ -218,9 +218,13 @@ export const createUseClassLessons =
           }
 
           if (!response.data.data || !Array.isArray(response.data.data)) {
-            // Genuine empty result for this topic.
+            // Genuine empty result for this topic. Drop the selection too: the
+            // page keys its empty state on `currentLesson`, so leaving the
+            // previous topic's lesson here renders it as if it belonged to
+            // this one.
             setRawApiData([]);
             setLessons([]);
+            setCurrentLesson(null);
             return;
           }
 
@@ -242,10 +246,10 @@ export const createUseClassLessons =
             seedProgressFromLessons(sortedLessons, updateLessonProgress);
           }
 
-          const nextCurrentLesson = pickCurrentLesson(sortedLessons);
-          if (nextCurrentLesson) {
-            setCurrentLesson(nextCurrentLesson);
-          }
+          // Unconditional: `pickCurrentLesson` returns null to mean "nothing to
+          // select here", and that has to reach the store. Guarding on
+          // truthiness kept the previous topic's lesson selected.
+          setCurrentLesson(pickCurrentLesson(sortedLessons));
         } catch (err) {
           // Ignore errors from a request that is no longer the active one.
           if (requestIdRef.current !== requestId) {
@@ -316,7 +320,12 @@ export const createUseClassLessons =
         // that is owned by the backend and mirrored by the progress tracker.
         if (duration > 0) {
           const existingProgress = lessonsProgress[currentLesson.id];
+          // The store replaces the entry rather than merging it, so carry the
+          // previous one over first: rebuilding the object from scratch drops
+          // every field not listed below — `completedAt` among them, leaving a
+          // lesson flagged complete with no completion date.
           updateLessonProgress(currentLesson.id, {
+            ...existingProgress,
             lessonId: currentLesson.id,
             watchedSeconds: seconds,
             totalSeconds: duration,

@@ -118,6 +118,11 @@ export const createUseLessonSearch =
         }
 
         setHasSearched(true);
+        // Invalidate whatever is already in flight before waiting out the
+        // debounce. The user has moved on from that term, so its response must
+        // not publish results for a query no longer in the input — nor clear
+        // the spinner moments before the new request starts.
+        requestIdRef.current++;
         debounceRef.current = setTimeout(() => {
           runSearch(trimmed, subjectId ?? defaultSubjectId);
         }, SEARCH_DEBOUNCE_MS);

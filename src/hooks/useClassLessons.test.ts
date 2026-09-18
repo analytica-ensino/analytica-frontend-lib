@@ -262,6 +262,74 @@ describe('createUseClassLessons', () => {
     expect(result.current.error).toBeNull();
   });
 
+  describe('navigating to a topic with no lessons', () => {
+    // The page keys its empty state on `currentLesson`, so a selection left
+    // over from the previous topic renders that lesson as if it belonged to
+    // the new one.
+    it('clears the selection when the payload is an empty array', async () => {
+      const api = makeApi();
+      api.get
+        .mockResolvedValueOnce({
+          data: { message: 'ok', data: [apiLesson({ id: 'lesson-a' })] },
+        })
+        .mockResolvedValueOnce({ data: { message: 'ok', data: [] } });
+
+      const { result } = renderHook(() => createUseClassLessons(api)());
+
+      await act(async () => {
+        await result.current.fetchLessonsBySubtopic('subtopic-a');
+      });
+      expect(result.current.currentLesson?.id).toBe('lesson-a');
+
+      await act(async () => {
+        await result.current.fetchLessonsBySubtopic('subtopic-empty');
+      });
+
+      expect(result.current.currentLesson).toBeNull();
+      expect(result.current.lessons).toEqual([]);
+    });
+
+    it('clears the selection when the payload is not an array', async () => {
+      const api = makeApi();
+      api.get
+        .mockResolvedValueOnce({
+          data: { message: 'ok', data: [apiLesson({ id: 'lesson-a' })] },
+        })
+        .mockResolvedValueOnce({ data: { message: 'ok', data: null } });
+
+      const { result } = renderHook(() => createUseClassLessons(api)());
+
+      await act(async () => {
+        await result.current.fetchLessonsBySubtopic('subtopic-a');
+      });
+      expect(result.current.currentLesson?.id).toBe('lesson-a');
+
+      await act(async () => {
+        await result.current.fetchLessonsBySubtopic('subtopic-empty');
+      });
+
+      expect(result.current.currentLesson).toBeNull();
+    });
+
+    it('keeps the selection when the same lesson is still in the new list', async () => {
+      const api = makeApi();
+      api.get.mockResolvedValue({
+        data: { message: 'ok', data: [apiLesson({ id: 'lesson-a' })] },
+      });
+
+      const { result } = renderHook(() => createUseClassLessons(api)());
+
+      await act(async () => {
+        await result.current.fetchLessonsBySubtopic('subtopic-a');
+      });
+      await act(async () => {
+        await result.current.fetchLessonsBySubtopic('subtopic-a');
+      });
+
+      expect(result.current.currentLesson?.id).toBe('lesson-a');
+    });
+  });
+
   describe('student mode', () => {
     it('records the lesson as last viewed when selected', async () => {
       const api = makeApi();
@@ -469,6 +537,31 @@ describe('createUseClassLessons', () => {
         useLessonsStore.getState().lessonsProgress['lesson-1']
           .progressPercentage
       ).toBe(65);
+    });
+
+    it('keeps the completion date when a finished lesson is replayed', async () => {
+      const { hook } = await loadOne('student');
+
+      act(() => {
+        useLessonsStore.getState().updateLessonProgress('lesson-1', {
+          lessonId: 'lesson-1',
+          watchedSeconds: 600,
+          totalSeconds: 600,
+          completed: true,
+          completedAt: '2026-01-10T00:00:00.000Z',
+          progressPercentage: 100,
+        });
+      });
+      act(() => {
+        hook.result.current.handleVideoTimeUpdate(5, 600);
+      });
+
+      // The store replaces the entry instead of merging it, so rebuilding the
+      // object here used to drop every field it did not list.
+      const stored = useLessonsStore.getState().lessonsProgress['lesson-1'];
+      expect(stored.completedAt).toBe('2026-01-10T00:00:00.000Z');
+      expect(stored.completed).toBe(true);
+      expect(stored.watchedSeconds).toBe(5);
     });
 
     it('remembers nothing about playback in preview mode', async () => {

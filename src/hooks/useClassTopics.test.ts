@@ -136,6 +136,82 @@ describe('createUseClassTopics', () => {
     expect(result.current.loading).toBe(false);
   });
 
+  it('drops a stale response when the subject changed mid-flight', async () => {
+    const api = makeApi();
+    let resolveFirst: (value: { data: unknown }) => void = () => {};
+    api.get
+      .mockImplementationOnce(
+        () =>
+          new Promise<{ data: unknown }>((resolve) => {
+            resolveFirst = resolve;
+          })
+      )
+      .mockResolvedValueOnce({
+        data: {
+          message: 'ok',
+          data: [
+            {
+              id: 'subject-2',
+              name: 'Química',
+              color: '#0f0',
+              icon: 'Flask',
+              topics: [],
+            },
+          ],
+        },
+      });
+
+    const { result } = renderHook(() => createUseClassTopics(api)());
+
+    let firstCall: Promise<void>;
+    act(() => {
+      firstCall = result.current.fetchTopics('subject-1');
+    });
+    await act(async () => {
+      await result.current.fetchTopics('subject-2');
+    });
+
+    await act(async () => {
+      resolveFirst({ data: RESPONSE });
+      await firstCall!;
+    });
+
+    // The topic cards navigate with the subjectId from the URL, so painting the
+    // previous subject's topics here builds routes mixing two subjects.
+    expect(result.current.data?.subjectName).toBe('Química');
+  });
+
+  it('keeps loading while a newer request is in flight', async () => {
+    const api = makeApi();
+    let rejectFirst: (reason: Error) => void = () => {};
+    api.get
+      .mockImplementationOnce(
+        () =>
+          new Promise<{ data: unknown }>((_resolve, reject) => {
+            rejectFirst = reject;
+          })
+      )
+      .mockImplementationOnce(() => new Promise<{ data: unknown }>(() => {}));
+
+    const { result } = renderHook(() => createUseClassTopics(api)());
+
+    let firstCall: Promise<void>;
+    act(() => {
+      firstCall = result.current.fetchTopics('subject-1');
+    });
+    act(() => {
+      result.current.fetchTopics('subject-2');
+    });
+
+    await act(async () => {
+      rejectFirst(new Error('500'));
+      await firstCall!;
+    });
+
+    expect(result.current.loading).toBe(true);
+    expect(result.current.error).toBeNull();
+  });
+
   it('surfaces the API message when the subject is forbidden', async () => {
     const api = makeApi();
     // A teacher drilling into a subject they do not teach gets a 403.
