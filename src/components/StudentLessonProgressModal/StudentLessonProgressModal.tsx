@@ -34,6 +34,38 @@ import { cn } from '../../utils/utils';
 const HIGHLIGHT_VALUE_CLASS =
   'text-xl leading-6 whitespace-normal text-clip line-clamp-2';
 
+/**
+ * Body of an expandable row.
+ *
+ * Animates through `grid-template-rows` (0fr → 1fr), so the open height is the
+ * content's own — a `max-h` cap would clip a long list of lessons behind
+ * `overflow-hidden` with no way to reach the rest. While collapsed it is both
+ * hidden from assistive technology and `inert`: the subtopic buttons inside a
+ * topic stay mounted, and `aria-hidden` alone would leave them focusable.
+ */
+const Collapsible = ({
+  expanded,
+  testId,
+  children,
+}: {
+  expanded: boolean;
+  testId: string;
+  children: ReactNode;
+}) => (
+  <div
+    data-testid={testId}
+    data-expanded={expanded}
+    aria-hidden={!expanded}
+    inert={!expanded}
+    className={cn(
+      'grid transition-[grid-template-rows,opacity] duration-300 ease-in-out',
+      expanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+    )}
+  >
+    <div className="min-h-0 overflow-hidden">{children}</div>
+  </div>
+);
+
 /** Caret of an expandable row, turned down while it is open. */
 const Caret = ({ expanded }: { expanded: boolean }) => (
   <CaretRightIcon
@@ -127,13 +159,9 @@ const SubtopicCard = ({
       </button>
 
       {hasChildren && (
-        <div
-          data-testid={`accordion-content-subtopic-${item.subtopic.id}`}
-          data-expanded={isExpanded}
-          className={cn(
-            'overflow-hidden transition-all duration-300 ease-in-out',
-            isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
-          )}
+        <Collapsible
+          expanded={isExpanded}
+          testId={`accordion-content-subtopic-${item.subtopic.id}`}
         >
           {item.contents.map((content) => (
             <ContentRow
@@ -142,7 +170,7 @@ const SubtopicCard = ({
               noDataMessage={noDataMessage}
             />
           ))}
-        </div>
+        </Collapsible>
       )}
     </div>
   );
@@ -208,13 +236,9 @@ const TopicCard = ({
       </button>
 
       {hasChildren && (
-        <div
-          data-testid={`accordion-content-${item.topic.id}`}
-          data-expanded={isExpanded}
-          className={cn(
-            'overflow-hidden transition-all duration-300 ease-in-out',
-            isExpanded ? 'max-h-[4000px] opacity-100' : 'max-h-0 opacity-0'
-          )}
+        <Collapsible
+          expanded={isExpanded}
+          testId={`accordion-content-${item.topic.id}`}
         >
           <div className="flex flex-col gap-2 px-4 pb-4">
             {item.subtopics.map((subtopic) => (
@@ -225,7 +249,7 @@ const TopicCard = ({
               />
             ))}
           </div>
-        </div>
+        </Collapsible>
       )}
     </div>
   );

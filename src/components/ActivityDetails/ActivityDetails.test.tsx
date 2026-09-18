@@ -563,6 +563,16 @@ const mockCorrectionData: StudentActivityCorrectionData = {
  */
 const createPendingPromise = <T,>(): Promise<T> => new Promise<T>(() => {});
 
+/**
+ * The one "Corrigir atividade" a teacher can click: the button of a row
+ * awaiting correction. The rows not answered yet render the same label
+ * disabled, so a text query alone matches more than one.
+ */
+const getEnabledCorrectButton = () =>
+  screen
+    .queryAllByRole('button', { name: 'Corrigir atividade' })
+    .find((button) => !(button as HTMLButtonElement).disabled);
+
 describe('ActivityDetails', () => {
   const mockFetchActivityDetails = jest.fn();
   const mockFetchStudentCorrection = jest.fn();
@@ -908,14 +918,38 @@ describe('ActivityDetails', () => {
       expect(mockOnBack).toHaveBeenCalledTimes(1);
     });
 
+    // Awaiting response (deadline open) and not delivered (deadline past)
+    // have nothing to correct yet: the button stays, disabled, so the column
+    // reads the same on every row.
+    it('renders a disabled Corrigir atividade for rows without an answer', async () => {
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(
+          screen.getAllByRole('button', { name: 'Corrigir atividade' })
+        ).toHaveLength(3);
+      });
+
+      const buttons = screen.getAllByRole('button', {
+        name: 'Corrigir atividade',
+      }) as HTMLButtonElement[];
+      expect(buttons.filter((button) => button.disabled)).toHaveLength(2);
+      expect(buttons.filter((button) => !button.disabled)).toHaveLength(1);
+
+      for (const button of buttons.filter((b) => b.disabled)) {
+        fireEvent.click(button);
+      }
+      expect(mockFetchStudentCorrection).not.toHaveBeenCalled();
+    });
+
     it('should open modal when Corrigir atividade is clicked', async () => {
       render(<ActivityDetails {...defaultProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+        expect(getEnabledCorrectButton()).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByText('Corrigir atividade'));
+      fireEvent.click(getEnabledCorrectButton()!);
 
       await waitFor(() => {
         expect(mockFetchStudentCorrection).toHaveBeenCalledWith(
@@ -977,10 +1011,10 @@ describe('ActivityDetails', () => {
       render(<ActivityDetails {...defaultProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+        expect(getEnabledCorrectButton()).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByText('Corrigir atividade'));
+      fireEvent.click(getEnabledCorrectButton()!);
 
       await waitFor(() => {
         expect(screen.getByTestId('modal-score')).toHaveTextContent('null');
@@ -1371,10 +1405,10 @@ describe('ActivityDetails', () => {
       render(<ActivityDetails {...defaultProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+        expect(getEnabledCorrectButton()).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByText('Corrigir atividade'));
+      fireEvent.click(getEnabledCorrectButton()!);
 
       await waitFor(() => {
         expect(
@@ -1391,10 +1425,10 @@ describe('ActivityDetails', () => {
       render(<ActivityDetails {...defaultProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+        expect(getEnabledCorrectButton()).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByText('Corrigir atividade'));
+      fireEvent.click(getEnabledCorrectButton()!);
 
       await waitFor(() => {
         expect(consoleSpy).toHaveBeenCalled();
@@ -1411,10 +1445,10 @@ describe('ActivityDetails', () => {
       render(<ActivityDetails {...defaultProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+        expect(getEnabledCorrectButton()).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByText('Corrigir atividade'));
+      fireEvent.click(getEnabledCorrectButton()!);
 
       await waitFor(() => {
         expect(consoleSpy).toHaveBeenCalled();
@@ -1432,10 +1466,10 @@ describe('ActivityDetails', () => {
       render(<ActivityDetails {...defaultProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+        expect(getEnabledCorrectButton()).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByText('Corrigir atividade'));
+      fireEvent.click(getEnabledCorrectButton()!);
 
       await waitFor(() => {
         expect(screen.getByTestId('modal-observation')).toHaveTextContent(
@@ -1453,10 +1487,10 @@ describe('ActivityDetails', () => {
       render(<ActivityDetails {...defaultProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+        expect(getEnabledCorrectButton()).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByText('Corrigir atividade'));
+      fireEvent.click(getEnabledCorrectButton()!);
 
       await waitFor(() => {
         expect(
@@ -1484,10 +1518,10 @@ describe('ActivityDetails', () => {
       render(<ActivityDetails {...defaultProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+        expect(getEnabledCorrectButton()).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByText('Corrigir atividade'));
+      fireEvent.click(getEnabledCorrectButton()!);
 
       await waitFor(() => {
         expect(
@@ -1510,10 +1544,10 @@ describe('ActivityDetails', () => {
       render(<ActivityDetails {...defaultProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+        expect(getEnabledCorrectButton()).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByText('Corrigir atividade'));
+      fireEvent.click(getEnabledCorrectButton()!);
 
       await waitFor(() => {
         expect(
@@ -1538,10 +1572,10 @@ describe('ActivityDetails', () => {
       render(<ActivityDetails {...defaultProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+        expect(getEnabledCorrectButton()).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByText('Corrigir atividade'));
+      fireEvent.click(getEnabledCorrectButton()!);
 
       await waitFor(() => {
         expect(
@@ -1572,10 +1606,10 @@ describe('ActivityDetails', () => {
       render(<ActivityDetails {...defaultProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+        expect(getEnabledCorrectButton()).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByText('Corrigir atividade'));
+      fireEvent.click(getEnabledCorrectButton()!);
 
       await waitFor(() => {
         expect(
@@ -1599,10 +1633,10 @@ describe('ActivityDetails', () => {
       render(<ActivityDetails {...defaultProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+        expect(getEnabledCorrectButton()).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByText('Corrigir atividade'));
+      fireEvent.click(getEnabledCorrectButton()!);
 
       await waitFor(() => {
         expect(
@@ -1631,10 +1665,10 @@ describe('ActivityDetails', () => {
       render(<ActivityDetails {...defaultProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+        expect(getEnabledCorrectButton()).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByText('Corrigir atividade'));
+      fireEvent.click(getEnabledCorrectButton()!);
 
       await waitFor(() => {
         expect(
@@ -1666,10 +1700,10 @@ describe('ActivityDetails', () => {
       render(<ActivityDetails {...defaultProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+        expect(getEnabledCorrectButton()).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByText('Corrigir atividade'));
+      fireEvent.click(getEnabledCorrectButton()!);
 
       await waitFor(() => {
         expect(
@@ -1700,10 +1734,10 @@ describe('ActivityDetails', () => {
       render(<ActivityDetails {...defaultProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+        expect(getEnabledCorrectButton()).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByText('Corrigir atividade'));
+      fireEvent.click(getEnabledCorrectButton()!);
 
       await waitFor(() => {
         expect(
@@ -1729,10 +1763,10 @@ describe('ActivityDetails', () => {
       render(<ActivityDetails {...defaultProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+        expect(getEnabledCorrectButton()).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByText('Corrigir atividade'));
+      fireEvent.click(getEnabledCorrectButton()!);
 
       await waitFor(() => {
         expect(
@@ -2494,10 +2528,10 @@ describe('ActivityDetails', () => {
       render(<ActivityDetails {...defaultProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+        expect(getEnabledCorrectButton()).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByText('Corrigir atividade'));
+      fireEvent.click(getEnabledCorrectButton()!);
 
       await waitFor(() => {
         expect(
@@ -2524,10 +2558,10 @@ describe('ActivityDetails', () => {
       render(<ActivityDetails {...defaultProps} />);
 
       await waitFor(() => {
-        expect(screen.getByText('Corrigir atividade')).toBeInTheDocument();
+        expect(getEnabledCorrectButton()).toBeInTheDocument();
       });
 
-      fireEvent.click(screen.getByText('Corrigir atividade'));
+      fireEvent.click(getEnabledCorrectButton()!);
 
       await waitFor(() => {
         expect(

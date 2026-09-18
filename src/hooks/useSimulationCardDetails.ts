@@ -234,6 +234,24 @@ export function useSimulationCardDetails({
     ]
   );
 
+  // `enabled` can turn on under an already expanded card — a caller that
+  // decides it from the list's kind may flip it without touching the card.
+  // `toggle` ran while disabled and loaded nothing, so this catches the open
+  // card up; the same guards keep it from repeating a request `toggle` made.
+  useEffect(() => {
+    if (!enabled || !expandedId || !userInstitutionId) return;
+    if (!details[expandedId]) loadDetail(userInstitutionId, expandedId);
+    if (!notes[expandedId]) loadNote(userInstitutionId, expandedId);
+  }, [
+    enabled,
+    expandedId,
+    userInstitutionId,
+    details,
+    notes,
+    loadDetail,
+    loadNote,
+  ]);
+
   const retryNote = useCallback(
     (simulationId: string) => {
       if (!userInstitutionId) return;

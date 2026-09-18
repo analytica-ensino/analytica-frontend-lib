@@ -274,7 +274,7 @@ describe('SimulatedStudentSimulationsModal', () => {
 
     await waitFor(() =>
       expect(
-        screen.getByText('Erro ao carregar o simulado')
+        screen.getByText('Erro ao carregar as respostas')
       ).toBeInTheDocument()
     );
   });
@@ -514,6 +514,139 @@ describe('SimulatedStudentSimulationsModal', () => {
     // The late answer belongs to the previous student: nothing expands.
     await waitFor(() => expect(screen.getByText('Bruno')).toBeInTheDocument());
     expect(screen.queryByText('Respostas')).not.toBeInTheDocument();
+  });
+
+  // The ranking modal of the teacher's Atividades report: logins on top,
+  // assignments not answered yet at the end of the list, badge on the far end.
+  describe('access, pending and empty states', () => {
+    const access = {
+      accessCount: 6,
+      totalTimeMinutes: 95,
+      lastAccess: '2026-09-07T13:50:00',
+    };
+    const pending = [{ activityId: 'act-9', title: 'Lista 3', subtype: null }];
+
+    it('shows the logins block only when asked, with a zeroed date for no login', () => {
+      const { rerender } = render(
+        <SimulatedStudentSimulationsModal
+          api={makeApi()}
+          isOpen
+          onClose={jest.fn()}
+          title="Desempenho em 1 mês"
+          data={{ ...data, access }}
+          loading={false}
+          error={null}
+        />
+      );
+      expect(screen.queryByText('Dados de acesso')).not.toBeInTheDocument();
+
+      rerender(
+        <SimulatedStudentSimulationsModal
+          api={makeApi()}
+          isOpen
+          onClose={jest.fn()}
+          title="Desempenho em 1 mês"
+          data={{ ...data, access }}
+          loading={false}
+          error={null}
+          showAccess
+          badgePlacement="end"
+        />
+      );
+      expect(screen.getByText('Dados de acesso')).toBeInTheDocument();
+      expect(screen.getByText('06')).toBeInTheDocument();
+      expect(screen.getByText('01:35:00')).toBeInTheDocument();
+      expect(screen.getByText('07/09/2026 • 13:50h')).toBeInTheDocument();
+
+      rerender(
+        <SimulatedStudentSimulationsModal
+          api={makeApi()}
+          isOpen
+          onClose={jest.fn()}
+          title="Desempenho em 1 mês"
+          data={{ ...data, access: { ...access, lastAccess: null } }}
+          loading={false}
+          error={null}
+          showAccess
+        />
+      );
+      expect(screen.getByText('00/00/0000 • 00:00h')).toBeInTheDocument();
+    });
+
+    it('lists the pending assignments after the answered ones, with the pending copy', () => {
+      renderModal({
+        data: { ...data, pending },
+        showPending: true,
+        labels: {
+          questionsAnswered: 'Questões respondidas',
+          pendingMessage: 'Ainda não feita.',
+        },
+      });
+
+      expect(screen.getByText('Simulado ENEM')).toBeInTheDocument();
+      expect(screen.getByText('Lista 3')).toBeInTheDocument();
+      expect(screen.getByText('Ainda não feita.')).toBeInTheDocument();
+      // 14 correct + 4 incorrect + 1 blank
+      expect(screen.getByText('Questões respondidas')).toBeInTheDocument();
+      expect(screen.getByText('19')).toBeInTheDocument();
+    });
+
+    it('ignores the pending list unless asked to show it', () => {
+      renderModal({ data: { ...data, pending } });
+      expect(screen.queryByText('Lista 3')).not.toBeInTheDocument();
+    });
+
+    it('shows only pending cards, with zeroed counts, when nothing was answered yet', () => {
+      renderModal({
+        data: { ...data, simulations: [], pending },
+        showPending: true,
+      });
+
+      expect(screen.getByText('Lista 3')).toBeInTheDocument();
+      expect(screen.getByText('00')).toBeInTheDocument();
+      expect(
+        screen.queryByText('Nenhum simulado no período')
+      ).not.toBeInTheDocument();
+    });
+
+    it('draws the illustrated empty state when nothing was assigned', () => {
+      renderModal({
+        data: { ...data, simulations: [], pending: [] },
+        showPending: true,
+        emptyState: {
+          image: 'activity.png',
+          title: 'Sem atividades ainda',
+          description: 'Crie atividades para os alunos',
+        },
+      });
+
+      expect(screen.getByText('Sem atividades ainda')).toBeInTheDocument();
+      expect(
+        screen.getByText('Crie atividades para os alunos')
+      ).toBeInTheDocument();
+      expect(document.querySelector('img[src="activity.png"]')).not.toBeNull();
+      expect(
+        screen.queryByText('Nenhum simulado no período')
+      ).not.toBeInTheDocument();
+    });
+
+    it('falls back to the plain empty copy without an empty state', () => {
+      renderModal({ data: { ...data, simulations: [] } });
+      expect(
+        screen.getByText('Nenhum simulado no período')
+      ).toBeInTheDocument();
+    });
+
+    it('expands a card without asking for its answers when details are disabled', async () => {
+      const api = renderModal({ detailsEnabled: false });
+      fireEvent.click(screen.getByText('Simulado ENEM'));
+
+      await waitFor(() =>
+        expect(screen.getAllByText('Cinemática').length).toBeGreaterThan(0)
+      );
+      expect(screen.queryByText('Respostas')).not.toBeInTheDocument();
+      expect(api.get).not.toHaveBeenCalled();
+    });
   });
 });
 
