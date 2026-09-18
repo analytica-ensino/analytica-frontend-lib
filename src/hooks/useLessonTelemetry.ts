@@ -49,7 +49,7 @@ export const createUseLessonTelemetry =
         // Telemetry is best-effort: a failed ping must never surface to the
         // student or interrupt playback.
       }
-    }, [lessonId, isPreview]);
+    }, [apiClient, lessonId, isPreview]);
 
     const startTelemetryTracking = useCallback((): void => {
       if (isPreview || !lessonId || telemetryIntervalRef.current) return;

@@ -112,6 +112,23 @@ describe('createUseClassesCatalog', () => {
 
       expect(result.current.searchSubjects('   ')).toEqual([]);
     });
+
+    it('ignores whitespace around the term', async () => {
+      const api = makeApi();
+      api.get.mockResolvedValue({ data: { message: 'ok', data: AREAS } });
+      const { result } = renderHook(() => createUseClassesCatalog(api)());
+
+      await act(async () => {
+        await result.current.getKnowledgeAreas();
+      });
+
+      // A trailing space is long enough to enter search mode, so matching on
+      // the untrimmed term left the subjects section empty while the
+      // server-side lesson search (which trims) still returned hits.
+      expect(result.current.searchSubjects(' bio ').map((s) => s.id)).toEqual([
+        's-1',
+      ]);
+    });
   });
 
   it('clears the error and resets the state', async () => {

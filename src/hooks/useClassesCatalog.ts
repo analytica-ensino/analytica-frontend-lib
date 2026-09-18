@@ -80,7 +80,7 @@ export const createUseClassesCatalog =
       } catch (error) {
         handleError(error);
       }
-    }, [updateState, handleError]);
+    }, [apiClient, updateState, handleError]);
 
     /**
      * Filter the already-loaded subjects by name. Client-side on purpose: the
@@ -92,12 +92,12 @@ export const createUseClassesCatalog =
           return [];
         }
 
-        const lowercaseSearch = searchTerm.toLowerCase();
+        const normalizedSearch = searchTerm.toLowerCase().trim();
         const allSubjects: SubjectWithProgress[] = [];
 
         for (const area of state.knowledgeAreas) {
           for (const subject of area.subjects) {
-            if (subject.name.toLowerCase().includes(lowercaseSearch)) {
+            if (subject.name.toLowerCase().includes(normalizedSearch)) {
               allSubjects.push(subject);
             }
           }

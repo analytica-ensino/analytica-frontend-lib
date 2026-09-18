@@ -67,37 +67,40 @@ export const createUseLessonSearch =
       }
     }, []);
 
-    const runSearch = useCallback(async (query: string, subjectId?: string) => {
-      const requestId = ++requestIdRef.current;
-      setLoading(true);
-      setError(null);
-      try {
-        const params: LessonSearchQuery = { query };
-        if (subjectId) {
-          params.subjectId = subjectId;
+    const runSearch = useCallback(
+      async (query: string, subjectId?: string) => {
+        const requestId = ++requestIdRef.current;
+        setLoading(true);
+        setError(null);
+        try {
+          const params: LessonSearchQuery = { query };
+          if (subjectId) {
+            params.subjectId = subjectId;
+          }
+          const response = await apiClient.get<LessonSearchResponse>(
+            '/knowledge/search',
+            { params: params as unknown as Record<string, unknown> }
+          );
+          // Ignore if a newer request has been issued since this one started.
+          if (requestId !== requestIdRef.current) return;
+          setResults(response.data.data.lessons);
+        } catch (err) {
+          if (requestId !== requestIdRef.current) return;
+          const message =
+            err && typeof err === 'object' && 'response' in err
+              ? ((err as { response?: { data?: { message?: string } } })
+                  .response?.data?.message ?? 'Erro ao buscar aulas')
+              : 'Erro ao buscar aulas';
+          setError(message);
+          setResults([]);
+        } finally {
+          if (requestId === requestIdRef.current) {
+            setLoading(false);
+          }
         }
-        const response = await apiClient.get<LessonSearchResponse>(
-          '/knowledge/search',
-          { params: params as unknown as Record<string, unknown> }
-        );
-        // Ignore if a newer request has been issued since this one started.
-        if (requestId !== requestIdRef.current) return;
-        setResults(response.data.data.lessons);
-      } catch (err) {
-        if (requestId !== requestIdRef.current) return;
-        const message =
-          err && typeof err === 'object' && 'response' in err
-            ? ((err as { response?: { data?: { message?: string } } }).response
-                ?.data?.message ?? 'Erro ao buscar aulas')
-            : 'Erro ao buscar aulas';
-        setError(message);
-        setResults([]);
-      } finally {
-        if (requestId === requestIdRef.current) {
-          setLoading(false);
-        }
-      }
-    }, []);
+      },
+      [apiClient]
+    );
 
     const search = useCallback(
       (query: string, subjectId?: string) => {

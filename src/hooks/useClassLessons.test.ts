@@ -126,6 +126,117 @@ describe('createUseClassLessons', () => {
     expect(result.current.lessons.map((l) => l.id)).toEqual(['from-second']);
   });
 
+  it('drops a stale response after navigating back to the same subtopic', async () => {
+    const api = makeApi();
+    let resolveFirst: (value: { data: unknown }) => void = () => {};
+    api.get
+      .mockImplementationOnce(
+        () =>
+          new Promise<{ data: unknown }>((resolve) => {
+            resolveFirst = resolve;
+          })
+      )
+      .mockResolvedValueOnce({
+        data: { message: 'ok', data: [apiLesson({ id: 'from-b' })] },
+      })
+      .mockResolvedValueOnce({
+        data: { message: 'ok', data: [apiLesson({ id: 'from-a-second' })] },
+      });
+
+    const { result } = renderHook(() => createUseClassLessons(api)());
+
+    // A -> B -> A. Tracking staleness by subtopic id let A's first request
+    // pass the guard, because the id was 'subtopic-a' again by the time it
+    // resolved.
+    let firstCall: Promise<void>;
+    act(() => {
+      firstCall = result.current.fetchLessonsBySubtopic('subtopic-a');
+    });
+    await act(async () => {
+      await result.current.fetchLessonsBySubtopic('subtopic-b');
+    });
+    await act(async () => {
+      await result.current.fetchLessonsBySubtopic('subtopic-a');
+    });
+
+    await act(async () => {
+      resolveFirst({
+        data: { message: 'ok', data: [apiLesson({ id: 'from-a-first' })] },
+      });
+      await firstCall!;
+    });
+
+    expect(result.current.lessons.map((l) => l.id)).toEqual(['from-a-second']);
+  });
+
+  it('keeps loading while a newer request for the same subtopic is in flight', async () => {
+    const api = makeApi();
+    let rejectFirst: (reason: Error) => void = () => {};
+    api.get
+      .mockImplementationOnce(
+        () =>
+          new Promise<{ data: unknown }>((_resolve, reject) => {
+            rejectFirst = reject;
+          })
+      )
+      .mockImplementationOnce(() => new Promise<{ data: unknown }>(() => {}));
+
+    const { result } = renderHook(() => createUseClassLessons(api)());
+
+    let firstCall: Promise<void>;
+    act(() => {
+      firstCall = result.current.fetchLessonsBySubtopic('subtopic-a');
+    });
+    act(() => {
+      result.current.fetchLessonsBySubtopic('subtopic-a');
+    });
+
+    await act(async () => {
+      rejectFirst(new Error('500'));
+      await firstCall!;
+    });
+
+    // The superseded request must not clear the spinner or show an error over
+    // a request that is still running.
+    expect(result.current.loading).toBe(true);
+    expect(result.current.error).toBeNull();
+  });
+
+  it('lets an invalid id supersede a request already in flight', async () => {
+    const api = makeApi();
+    let resolveFirst: (value: { data: unknown }) => void = () => {};
+    api.get.mockImplementationOnce(
+      () =>
+        new Promise<{ data: unknown }>((resolve) => {
+          resolveFirst = resolve;
+        })
+    );
+
+    const { result } = renderHook(() => createUseClassLessons(api)());
+
+    let firstCall: Promise<void>;
+    act(() => {
+      firstCall = result.current.fetchLessonsBySubtopic('subtopic-a');
+    });
+    act(() => {
+      result.current.fetchLessonsBySubtopic('undefined');
+    });
+
+    await act(async () => {
+      resolveFirst({
+        data: { message: 'ok', data: [apiLesson({ id: 'from-a' })] },
+      });
+      await firstCall!;
+    });
+
+    // Navigating to a broken route is still a navigation: the older response
+    // must not paper over its error.
+    expect(result.current.error).toBe(
+      'Não foi possível identificar o tópico desta aula.'
+    );
+    expect(result.current.lessons).toEqual([]);
+  });
+
   it('surfaces a failed request', async () => {
     const api = makeApi();
     api.get.mockRejectedValue(new Error('500'));

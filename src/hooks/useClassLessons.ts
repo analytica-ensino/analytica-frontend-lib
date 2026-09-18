@@ -155,7 +155,10 @@ export const createUseClassLessons =
     // Tracks the in-flight subtopic request so stale/overlapping responses
     // (e.g. delayed by a 401 token refresh, or a quick topic change) are ignored
     // instead of clobbering the current lesson and leaving the page empty.
-    const activeSubtopicRef = useRef<string | null>(null);
+    // Monotonic request token. Keying staleness on the subtopic id instead
+    // breaks on A -> B -> A: the ref reads 'A' again, so A's first, obsolete
+    // request passes the guard and writes over the newer one.
+    const requestIdRef = useRef(0);
 
     const {
       currentLesson,
@@ -179,6 +182,11 @@ export const createUseClassLessons =
      */
     const fetchLessonsBySubtopic = useCallback(
       async (subtopicId: string): Promise<void> => {
+        // Claim this call as the active one before anything else, the invalid
+        // id below included: that branch is a navigation too, and whatever is
+        // in flight must not be allowed to overwrite its error afterwards.
+        const requestId = ++requestIdRef.current;
+
         // The id comes from `useParams`, i.e. from the URL, so the `string`
         // type guarantees nothing at runtime. When a route was built with a
         // missing id, the STRING 'undefined' arrived here, passed any
@@ -195,9 +203,6 @@ export const createUseClassLessons =
           return;
         }
 
-        // Mark this as the active request. Any response/error/finally below only
-        // takes effect if it is still the active one when it resolves.
-        activeSubtopicRef.current = subtopicId;
         setLoading(true);
         setError(null);
 
@@ -206,9 +211,9 @@ export const createUseClassLessons =
             `/lesson/by-subtopic/${subtopicId}`
           );
 
-          // Stale guard: a newer fetch started (topic changed) while we awaited.
-          // Drop this response so it can't overwrite the current topic's data.
-          if (activeSubtopicRef.current !== subtopicId) {
+          // Stale guard: a newer fetch started while we awaited. Drop this
+          // response so it can't overwrite the current topic's data.
+          if (requestIdRef.current !== requestId) {
             return;
           }
 
@@ -243,7 +248,7 @@ export const createUseClassLessons =
           }
         } catch (err) {
           // Ignore errors from a request that is no longer the active one.
-          if (activeSubtopicRef.current !== subtopicId) {
+          if (requestIdRef.current !== requestId) {
             return;
           }
           const errorMessage =
@@ -252,12 +257,12 @@ export const createUseClassLessons =
         } finally {
           // Only the active request controls the loading flag, so a stale
           // response can't flip it off while the current fetch is still running.
-          if (activeSubtopicRef.current === subtopicId) {
+          if (requestIdRef.current === requestId) {
             setLoading(false);
           }
         }
       },
-      [isPreview, setLessons, setCurrentLesson, updateLessonProgress]
+      [apiClient, isPreview, setLessons, setCurrentLesson, updateLessonProgress]
     );
 
     // Throttled timestamp update to prevent UI lag
@@ -283,7 +288,7 @@ export const createUseClassLessons =
           // block opening it.
         }
       },
-      [isPreview]
+      [apiClient, isPreview]
     );
 
     /**
@@ -377,7 +382,7 @@ export const createUseClassLessons =
           // Best-effort: the download already happened client-side.
         }
       },
-      [isPreview]
+      [apiClient, isPreview]
     );
 
     /**

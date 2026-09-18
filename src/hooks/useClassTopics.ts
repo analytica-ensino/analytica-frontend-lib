@@ -142,7 +142,7 @@ export const createUseClassTopics =
           setLoading(false);
         }
       },
-      [handleError]
+      [apiClient, handleError]
     );
 
     const searchTopics = useCallback(

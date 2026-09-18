@@ -166,7 +166,7 @@ export const createUseLessonProgressTracker =
           setLoading(false);
         }
       },
-      [isPreview, updateLessonProgress]
+      [apiClient, isPreview, updateLessonProgress]
     );
 
     const markVideoComplete = useCallback(

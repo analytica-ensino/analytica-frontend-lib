@@ -1,4 +1,4 @@
-import { Fragment, type ReactNode, type RefObject } from 'react';
+import { type ReactNode, type RefObject } from 'react';
 import { Text, VideoPlayer, CardAudio, Whiteboard } from '../../../index';
 import type { WhiteboardImage } from '../../Whiteboard/Whiteboard';
 
@@ -156,38 +156,30 @@ export const LessonBoardImagesSection = ({
         {title}
       </Text>
       <div className="flex flex-wrap items-center justify-center gap-4">
-        {images.map((image: WhiteboardImage, index: number) => {
-          const board = (
-            <div
-              ref={getImageRef?.(index, total)}
-              className="flex flex-row rounded-xl bg-background-50"
-            >
-              <Whiteboard
-                images={[image]}
-                showDownload={true}
-                imagesPerRow={2}
-                className="gap-4 w-full items-center border-border-50"
-              />
-            </div>
-          );
-
-          const key = image.id || `board-image-${index}`;
-
-          // A real button rather than a role/tabIndex pair, so keyboard
-          // activation comes for free.
-          return onImageClick ? (
-            <button
-              type="button"
-              key={key}
-              className="cursor-pointer"
-              onClick={() => onImageClick(image, index, total)}
-            >
-              {board}
-            </button>
-          ) : (
-            <Fragment key={key}>{board}</Fragment>
-          );
-        })}
+        {images.map((image: WhiteboardImage, index: number) => (
+          // Whiteboard renders its own buttons (zoom, download), so this
+          // container must not be a button itself: nesting them is invalid
+          // HTML and leaves the inner controls unreachable. It does not need
+          // to be one either — activating those buttons, by mouse or by
+          // keyboard, fires a click that bubbles up to this handler.
+          <div
+            key={image.id || `board-image-${index}`}
+            ref={getImageRef?.(index, total)}
+            className={`flex flex-row rounded-xl bg-background-50${
+              onImageClick ? ' cursor-pointer' : ''
+            }`}
+            onClick={
+              onImageClick ? () => onImageClick(image, index, total) : undefined
+            }
+          >
+            <Whiteboard
+              images={[image]}
+              showDownload={true}
+              imagesPerRow={2}
+              className="gap-4 w-full items-center border-border-50"
+            />
+          </div>
+        ))}
       </div>
     </div>
   );

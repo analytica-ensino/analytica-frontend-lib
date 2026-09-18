@@ -1,5 +1,5 @@
 import { createRef } from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import {
   LessonVideoSection,
@@ -181,5 +181,38 @@ describe('LessonBoardImagesSection', () => {
   it('should render without a ref factory', () => {
     render(<LessonBoardImagesSection images={images} />);
     expect(screen.getByText('Quadros da aula')).toBeInTheDocument();
+  });
+
+  describe('onImageClick', () => {
+    it('should report the board that was clicked, with its position', () => {
+      const onImageClick = jest.fn();
+      render(
+        <LessonBoardImagesSection images={images} onImageClick={onImageClick} />
+      );
+
+      fireEvent.click(screen.getByAltText('Quadro final'));
+
+      expect(onImageClick).toHaveBeenCalledWith(images[1], 1, 2);
+    });
+
+    it('should never nest a button inside another button', () => {
+      const { container } = render(
+        <LessonBoardImagesSection images={images} onImageClick={jest.fn()} />
+      );
+
+      // Whiteboard renders its own zoom and download buttons. Wrapping them in
+      // an outer button is invalid HTML and makes them unreachable.
+      expect(container.querySelector('button button')).toBeNull();
+    });
+
+    it('should keep the download control reachable', () => {
+      render(
+        <LessonBoardImagesSection images={images} onImageClick={jest.fn()} />
+      );
+
+      expect(
+        screen.getByRole('button', { name: 'Download Quadro final' })
+      ).toBeInTheDocument();
+    });
   });
 });
