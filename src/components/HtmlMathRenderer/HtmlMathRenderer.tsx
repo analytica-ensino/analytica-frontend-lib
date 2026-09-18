@@ -7,7 +7,10 @@ import parse, {
 } from 'html-react-parser';
 import { KatexMath } from './KatexMath';
 import { cn } from '../../utils/utils';
-import { normalizeLineBreaksInHtml } from '../../utils/htmlLineBreaks';
+import {
+  normalizeLineBreaksInHtml,
+  preserveEmptyParagraphs,
+} from '../../utils/htmlLineBreaks';
 import MarkdownMathRenderer from '../MarkdownMathRenderer/MarkdownMathRenderer';
 import {
   isLikelyMarkdown,
@@ -167,9 +170,9 @@ const HtmlMathRenderer = forwardRef<HTMLElement, HtmlMathRendererProps>(
       // in half across a math expression. <br> is inline and survives the split
       // intact — and `[&_p]:mb-0` below means paragraphs carry no spacing here
       // anyway, so there is nothing to gain from block elements.
-      const normalizedContent = normalizeLineBreaksInHtml(content, {
-        inline: true,
-      });
+      const normalizedContent = preserveEmptyParagraphs(
+        normalizeLineBreaksInHtml(content, { inline: true })
+      );
 
       const processedContent = sanitize
         ? sanitizeHtmlForDisplay(normalizedContent)

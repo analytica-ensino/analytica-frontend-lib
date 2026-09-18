@@ -1,4 +1,7 @@
-import { normalizeLineBreaksInHtml } from './htmlLineBreaks';
+import {
+  normalizeLineBreaksInHtml,
+  preserveEmptyParagraphs,
+} from './htmlLineBreaks';
 
 describe('normalizeLineBreaksInHtml', () => {
   describe('conteúdo sem quebras', () => {
@@ -124,5 +127,31 @@ describe('normalizeLineBreaksInHtml', () => {
         '<p>um</p>\n<p>dois</p>'
       );
     });
+  });
+});
+
+describe('preserveEmptyParagraphs', () => {
+  it('gives an empty paragraph a line break so it keeps its height', () => {
+    // The blank line the author left between the reference and the question.
+    expect(
+      preserveEmptyParagraphs(
+        '<p>Texto.<br><em>DONNE, J. (fragmento).</em></p><p></p><p>Nesse poema…</p>'
+      )
+    ).toBe(
+      '<p>Texto.<br><em>DONNE, J. (fragmento).</em></p><p><br></p><p>Nesse poema…</p>'
+    );
+  });
+
+  it('treats whitespace-only paragraphs as empty and keeps their attributes', () => {
+    expect(preserveEmptyParagraphs('<p>  </p><P class="x">\n</P>')).toBe(
+      '<p><br></p><p class="x"><br></p>'
+    );
+  });
+
+  it('leaves paragraphs with content, or already with a break, alone', () => {
+    const html = '<p>a</p><p><br></p><p>&nbsp;</p><p><img src="x"></p>';
+    expect(preserveEmptyParagraphs(html)).toBe(html);
+    expect(preserveEmptyParagraphs('sem parágrafo')).toBe('sem parágrafo');
+    expect(preserveEmptyParagraphs('')).toBe('');
   });
 });

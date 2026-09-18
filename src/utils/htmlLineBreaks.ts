@@ -65,3 +65,20 @@ export function normalizeLineBreaksInHtml(
     })
     .join('');
 }
+
+/** An empty paragraph, with or without whitespace inside. */
+const EMPTY_PARAGRAPH = /<p(\s[^>]*)?>\s*<\/p>/gi;
+
+/**
+ * Faz um parágrafo vazio ocupar uma linha, como no editor.
+ *
+ * O TipTap grava a linha em branco que o autor deixou entre a referência e o
+ * enunciado como `<p></p>` — e mostra a linha porque põe um `<br>` invisível
+ * dentro. Na renderização, um `<p>` sem conteúdo tem altura zero, então o
+ * espaço somia e os dois blocos ficavam colados. `<p><br></p>` é exatamente o
+ * que o editor desenha.
+ */
+export function preserveEmptyParagraphs(html: string): string {
+  if (!html?.includes('<p')) return html;
+  return html.replace(EMPTY_PARAGRAPH, '<p$1><br></p>');
+}
