@@ -1205,7 +1205,32 @@ describe('VideoPlayer', () => {
 
       fireEvent.timeUpdate(video);
 
-      expect(mockOnTimeUpdate).toHaveBeenCalledWith(10);
+      // Duration is still 0 before metadata loads.
+      expect(mockOnTimeUpdate).toHaveBeenCalledWith(10, 0);
+    });
+
+    it('should forward the duration to onTimeUpdate once metadata has loaded', () => {
+      const mockOnTimeUpdate = jest.fn();
+      const { container } = render(
+        <VideoPlayer {...defaultProps} onTimeUpdate={mockOnTimeUpdate} />
+      );
+
+      const video = container.querySelector('video')!;
+      Object.defineProperty(video, 'duration', {
+        configurable: true,
+        value: 100,
+      });
+      Object.defineProperty(video, 'currentTime', {
+        configurable: true,
+        value: 10,
+      });
+
+      fireEvent.loadedMetadata(video);
+      fireEvent.timeUpdate(video);
+
+      // The player is the only source of the duration: consumers that persist
+      // it have no other way to learn it.
+      expect(mockOnTimeUpdate).toHaveBeenCalledWith(10, 100);
     });
 
     it('should call onProgress callback', () => {

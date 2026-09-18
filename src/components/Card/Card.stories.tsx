@@ -1549,3 +1549,61 @@ export const CardReadingFluencyShowcase: Story = () => (
     </div>
   </div>
 );
+
+/**
+ * Side-by-side comparison of the progress-bearing cards in their student form
+ * (a real percentage) and in their preview form, where the viewer has no
+ * progress of their own and a bar pinned at 0% would misread as "nothing done".
+ */
+export const CardsWithoutProgressShowcase: Story = () => (
+  <div className="flex flex-col gap-8 p-6">
+    <div className="flex flex-col gap-3">
+      <p className="text-sm font-bold uppercase text-text-600">
+        CardProgress — aluno vs. preview
+      </p>
+      <div className="flex flex-col gap-4 max-w-md">
+        <CardProgress
+          header="Biologia"
+          icon={<BookIcon size={24} />}
+          progress={62}
+          showDates={false}
+        />
+        <CardProgress
+          header="Biologia"
+          icon={<BookIcon size={24} />}
+          showDates={false}
+          showProgress={false}
+        />
+      </div>
+    </div>
+
+    <div className="flex flex-col gap-3">
+      <p className="text-sm font-bold uppercase text-text-600">
+        CardTopic — aluno vs. preview
+      </p>
+      <div className="flex flex-col gap-4 max-w-md">
+        <CardTopic
+          header="Ciclo Menstrual"
+          subHead={['EM13CNT201']}
+          progress={40}
+          showPercentage
+        />
+        <CardTopic
+          header="Ciclo Menstrual"
+          subHead={['EM13CNT201']}
+          showProgress={false}
+        />
+      </div>
+    </div>
+
+    <div className="flex flex-col gap-3">
+      <p className="text-sm font-bold uppercase text-text-600">
+        CardQuestions — respondível vs. somente leitura
+      </p>
+      <div className="flex flex-col gap-4 max-w-md">
+        <CardQuestions header="Questionário da aula" />
+        <CardQuestions header="Questionário da aula" disabled />
+      </div>
+    </div>
+  </div>
+);

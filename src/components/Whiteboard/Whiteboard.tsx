@@ -27,6 +27,12 @@ export interface WhiteboardProps extends HTMLAttributes<HTMLDivElement> {
   className?: string;
   /** Callback when download button is clicked */
   onDownload?: (image: WhiteboardImage) => void;
+  /**
+   * Called when the user activates an image, in addition to the download.
+   * Lets a consumer observe the interaction (marking a board as viewed, say)
+   * without wrapping these buttons in an outer control of its own.
+   */
+  onImageActivate?: (image: WhiteboardImage) => void;
   /** Maximum number of images to display per row on desktop */
   imagesPerRow?: 2 | 3 | 4;
 }
@@ -41,6 +47,7 @@ const Whiteboard = ({
   showDownload = true,
   className,
   onDownload,
+  onImageActivate,
   imagesPerRow = 2,
   ...rest
 }: WhiteboardProps) => {
@@ -66,6 +73,19 @@ const Whiteboard = ({
       }
     },
     [onDownload]
+  );
+
+  /**
+   * Handle activation of an image: download it, then let the consumer observe
+   * the interaction. Both of the buttons below route through here, so keyboard
+   * activation is native and no wrapper control is needed.
+   */
+  const handleActivate = useCallback(
+    (image: WhiteboardImage) => {
+      handleDownload(image);
+      onImageActivate?.(image);
+    },
+    [handleDownload, onImageActivate]
   );
 
   /**
@@ -133,7 +153,7 @@ const Whiteboard = ({
               ) : (
                 <button
                   type="button"
-                  onClick={() => handleDownload(image)}
+                  onClick={() => handleActivate(image)}
                   className="absolute inset-0 w-full h-full cursor-pointer border-none p-0 bg-transparent"
                   aria-label={`Ampliar ${image.title || 'imagem'}`}
                 >
@@ -151,7 +171,7 @@ const Whiteboard = ({
             {showDownload && (
               <button
                 type="button"
-                onClick={() => handleDownload(image)}
+                onClick={() => handleActivate(image)}
                 className="cursor-pointer absolute bottom-3 right-3 flex items-center justify-center bg-black/20 backdrop-blur-sm rounded hover:bg-black/30 transition-colors duration-200 group/button w-6 h-6"
                 aria-label={`Download ${image.title || 'imagem'}`}
               >

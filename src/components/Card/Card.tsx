@@ -261,6 +261,13 @@ interface CardQuestionProps extends HTMLAttributes<HTMLDivElement> {
   state?: 'done' | 'undone' | 'pending';
   onClickButton?: (valueButton?: unknown) => void;
   valueButton?: unknown;
+  /**
+   * Disables the action button while still showing that the lesson has a
+   * questionnaire. Used when the viewer may see the content but must not
+   * answer it (e.g. a teacher previewing a lesson, where answering would
+   * create a questionnaire attempt tied to their own user).
+   */
+  disabled?: boolean;
 }
 
 const CardQuestions = forwardRef<HTMLDivElement, CardQuestionProps>(
@@ -271,6 +278,7 @@ const CardQuestions = forwardRef<HTMLDivElement, CardQuestionProps>(
       className,
       onClickButton,
       valueButton,
+      disabled = false,
       ...props
     },
     ref
@@ -323,6 +331,7 @@ const CardQuestions = forwardRef<HTMLDivElement, CardQuestionProps>(
           <Button
             size="extra-small"
             onClick={() => onClickButton?.(valueButton)}
+            disabled={disabled}
             className="min-w-fit"
           >
             {buttonLabel}
@@ -344,6 +353,14 @@ interface CardProgressProps extends HTMLAttributes<HTMLDivElement> {
   color?: string;
   progressVariant?: 'blue' | 'green';
   showDates?: boolean;
+  /**
+   * Renders the progress bar and its percentage. Set to `false` for audiences
+   * that have no progress of their own (e.g. a teacher previewing a lesson
+   * catalogue), where a bar stuck at 0% would read as "nothing done" rather
+   * than "not applicable". Only affects `direction="horizontal"`; the vertical
+   * layout never had a bar.
+   */
+  showProgress?: boolean;
 }
 
 const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
@@ -359,6 +376,7 @@ const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
       color = '#B7DFFF',
       progressVariant = 'blue',
       showDates = true,
+      showProgress = true,
       className,
       ...props
     },
@@ -384,24 +402,26 @@ const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
               )}
             </div>
           )}
-          <span className="grid grid-cols-[1fr_auto] items-center gap-2">
-            <ProgressBar
-              size="small"
-              value={progress}
-              variant={progressVariant}
-              data-testid="progress-bar"
-            />
+          {showProgress && (
+            <span className="grid grid-cols-[1fr_auto] items-center gap-2">
+              <ProgressBar
+                size="small"
+                value={progress}
+                variant={progressVariant}
+                data-testid="progress-bar"
+              />
 
-            <Text
-              size="xs"
-              weight="medium"
-              className={cn(
-                'text-text-950 leading-none tracking-normal text-center flex-none'
-              )}
-            >
-              {Math.round(progress)}%
-            </Text>
-          </span>
+              <Text
+                size="xs"
+                weight="medium"
+                className={cn(
+                  'text-text-950 leading-none tracking-normal text-center flex-none'
+                )}
+              >
+                {Math.round(progress)}%
+              </Text>
+            </span>
+          )}
         </>
       ),
       vertical: <p className="text-sm text-text-800">{subhead}</p>,
@@ -450,9 +470,16 @@ const CardProgress = forwardRef<HTMLDivElement, CardProgressProps>(
 interface CardTopicProps extends HTMLAttributes<HTMLDivElement> {
   header: string;
   subHead?: string[];
-  progress: number;
+  progress?: number;
   showPercentage?: boolean;
   progressVariant?: 'blue' | 'green';
+  /**
+   * Renders the progress bar. Set to `false` for audiences that have no
+   * progress of their own (e.g. a teacher previewing a lesson catalogue),
+   * where a bar stuck at 0% would read as "nothing done" rather than "not
+   * applicable".
+   */
+  showProgress?: boolean;
 }
 
 const CardTopic = forwardRef<HTMLDivElement, CardTopicProps>(
@@ -460,9 +487,10 @@ const CardTopic = forwardRef<HTMLDivElement, CardTopicProps>(
     {
       header,
       subHead,
-      progress,
+      progress = 0,
       showPercentage = false,
       progressVariant = 'blue',
+      showProgress = true,
       className = '',
       ...props
     },
@@ -491,25 +519,27 @@ const CardTopic = forwardRef<HTMLDivElement, CardTopicProps>(
 
         <p className="text-sm text-text-950 font-bold truncate">{header}</p>
 
-        <span className="grid grid-cols-[1fr_auto] items-center gap-2">
-          <ProgressBar
-            size="small"
-            value={progress}
-            variant={progressVariant}
-            data-testid="progress-bar"
-          />
-          {showPercentage && (
-            <Text
-              size="xs"
-              weight="medium"
-              className={cn(
-                'text-text-950 leading-none tracking-normal text-center flex-none'
-              )}
-            >
-              {Math.round(progress)}%
-            </Text>
-          )}
-        </span>
+        {showProgress && (
+          <span className="grid grid-cols-[1fr_auto] items-center gap-2">
+            <ProgressBar
+              size="small"
+              value={progress}
+              variant={progressVariant}
+              data-testid="progress-bar"
+            />
+            {showPercentage && (
+              <Text
+                size="xs"
+                weight="medium"
+                className={cn(
+                  'text-text-950 leading-none tracking-normal text-center flex-none'
+                )}
+              >
+                {Math.round(progress)}%
+              </Text>
+            )}
+          </span>
+        )}
       </CardBase>
     );
   }

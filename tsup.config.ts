@@ -194,6 +194,22 @@ export default defineConfig({
     'hooks/useSimulations/index': 'src/hooks/useSimulations.ts',
     'types/simulations/index': 'src/types/simulations.ts',
 
+    // Lessons catalogue (subjects -> topics -> lesson page), shared by the
+    // student portal and the teacher/manager preview.
+    'LessonsCatalog/index': 'src/components/LessonsCatalog/index.ts',
+    'LessonMediaSections/index':
+      'src/components/shared/LessonMediaSections/index.ts',
+    'hooks/useClassesCatalog/index': 'src/hooks/useClassesCatalog.ts',
+    'hooks/useClassTopics/index': 'src/hooks/useClassTopics.ts',
+    'hooks/useClassLessons/index': 'src/hooks/useClassLessons.ts',
+    'hooks/useLessonSearch/index': 'src/hooks/useLessonSearch.ts',
+    'hooks/useLessonProgressTracker/index':
+      'src/hooks/useLessonProgressTracker.ts',
+    'hooks/useLessonTelemetry/index': 'src/hooks/useLessonTelemetry.ts',
+    'store/lessonsStore/index': 'src/store/lessonsStore.ts',
+    'types/lessonsCatalog/index': 'src/types/lessonsCatalog.ts',
+    'utils/lessonsCatalog/index': 'src/utils/lessonsCatalog.ts',
+
     // ActivitiesHistory
     'ActivitiesHistory/index': 'src/components/ActivitiesHistory/index.ts',
     'hooks/useActivitiesHistory/index': 'src/hooks/useActivitiesHistory.ts',
