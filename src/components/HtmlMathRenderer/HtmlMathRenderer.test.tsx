@@ -52,6 +52,20 @@ describe('HtmlMathRenderer', () => {
       expect(screen.getByTestId('renderer')).toHaveClass('custom-class');
     });
 
+    it('keeps the blank line of an empty paragraph', () => {
+      // Stored by the editor as <p></p>; without a break it has no height and
+      // the reference and the question read as one block.
+      render(
+        <HtmlMathRenderer
+          content="<p><em>DONNE, J.</em></p><p></p><p>Nesse poema</p>"
+          testId="renderer"
+        />
+      );
+      const paragraphs = screen.getByTestId('renderer').querySelectorAll('p');
+      expect(paragraphs).toHaveLength(3);
+      expect(paragraphs[1].innerHTML).toBe('<br>');
+    });
+
     it('should render empty content without errors', () => {
       render(<HtmlMathRenderer content="" testId="renderer" />);
       expect(screen.getByTestId('renderer')).toBeInTheDocument();
