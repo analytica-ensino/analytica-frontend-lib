@@ -1966,6 +1966,97 @@
       "import": "./dist/hooks/useScreen/index.mjs",
       "require": "./dist/hooks/useScreen/index.js",
       "default": "./dist/hooks/useScreen/index.mjs"
+    },
+    "./simulated-student-simulations-modal": {
+      "types": "./dist/SimulatedStudentSimulationsModal/index.d.ts",
+      "module": "./dist/SimulatedStudentSimulationsModal/index.mjs",
+      "import": "./dist/SimulatedStudentSimulationsModal/index.mjs",
+      "require": "./dist/SimulatedStudentSimulationsModal/index.js",
+      "default": "./dist/SimulatedStudentSimulationsModal/index.mjs"
+    },
+    "./simulated-questions-chart": {
+      "types": "./dist/SimulatedQuestionsChart/index.d.ts",
+      "module": "./dist/SimulatedQuestionsChart/index.mjs",
+      "import": "./dist/SimulatedQuestionsChart/index.mjs",
+      "require": "./dist/SimulatedQuestionsChart/index.js",
+      "default": "./dist/SimulatedQuestionsChart/index.mjs"
+    },
+    "./lessons-catalog": {
+      "types": "./dist/LessonsCatalog/index.d.ts",
+      "module": "./dist/LessonsCatalog/index.mjs",
+      "import": "./dist/LessonsCatalog/index.mjs",
+      "require": "./dist/LessonsCatalog/index.js",
+      "default": "./dist/LessonsCatalog/index.mjs"
+    },
+    "./lesson-media-sections": {
+      "types": "./dist/LessonMediaSections/index.d.ts",
+      "module": "./dist/LessonMediaSections/index.mjs",
+      "import": "./dist/LessonMediaSections/index.mjs",
+      "require": "./dist/LessonMediaSections/index.js",
+      "default": "./dist/LessonMediaSections/index.mjs"
+    },
+    "./hooks/useclassescatalog": {
+      "types": "./dist/hooks/useClassesCatalog/index.d.ts",
+      "module": "./dist/hooks/useClassesCatalog/index.mjs",
+      "import": "./dist/hooks/useClassesCatalog/index.mjs",
+      "require": "./dist/hooks/useClassesCatalog/index.js",
+      "default": "./dist/hooks/useClassesCatalog/index.mjs"
+    },
+    "./hooks/useclasstopics": {
+      "types": "./dist/hooks/useClassTopics/index.d.ts",
+      "module": "./dist/hooks/useClassTopics/index.mjs",
+      "import": "./dist/hooks/useClassTopics/index.mjs",
+      "require": "./dist/hooks/useClassTopics/index.js",
+      "default": "./dist/hooks/useClassTopics/index.mjs"
+    },
+    "./hooks/useclasslessons": {
+      "types": "./dist/hooks/useClassLessons/index.d.ts",
+      "module": "./dist/hooks/useClassLessons/index.mjs",
+      "import": "./dist/hooks/useClassLessons/index.mjs",
+      "require": "./dist/hooks/useClassLessons/index.js",
+      "default": "./dist/hooks/useClassLessons/index.mjs"
+    },
+    "./hooks/uselessonsearch": {
+      "types": "./dist/hooks/useLessonSearch/index.d.ts",
+      "module": "./dist/hooks/useLessonSearch/index.mjs",
+      "import": "./dist/hooks/useLessonSearch/index.mjs",
+      "require": "./dist/hooks/useLessonSearch/index.js",
+      "default": "./dist/hooks/useLessonSearch/index.mjs"
+    },
+    "./hooks/uselessonprogresstracker": {
+      "types": "./dist/hooks/useLessonProgressTracker/index.d.ts",
+      "module": "./dist/hooks/useLessonProgressTracker/index.mjs",
+      "import": "./dist/hooks/useLessonProgressTracker/index.mjs",
+      "require": "./dist/hooks/useLessonProgressTracker/index.js",
+      "default": "./dist/hooks/useLessonProgressTracker/index.mjs"
+    },
+    "./hooks/uselessontelemetry": {
+      "types": "./dist/hooks/useLessonTelemetry/index.d.ts",
+      "module": "./dist/hooks/useLessonTelemetry/index.mjs",
+      "import": "./dist/hooks/useLessonTelemetry/index.mjs",
+      "require": "./dist/hooks/useLessonTelemetry/index.js",
+      "default": "./dist/hooks/useLessonTelemetry/index.mjs"
+    },
+    "./store/lessonsstore": {
+      "types": "./dist/store/lessonsStore/index.d.ts",
+      "module": "./dist/store/lessonsStore/index.mjs",
+      "import": "./dist/store/lessonsStore/index.mjs",
+      "require": "./dist/store/lessonsStore/index.js",
+      "default": "./dist/store/lessonsStore/index.mjs"
+    },
+    "./types/lessonscatalog": {
+      "types": "./dist/types/lessonsCatalog/index.d.ts",
+      "module": "./dist/types/lessonsCatalog/index.mjs",
+      "import": "./dist/types/lessonsCatalog/index.mjs",
+      "require": "./dist/types/lessonsCatalog/index.js",
+      "default": "./dist/types/lessonsCatalog/index.mjs"
+    },
+    "./utils/lessonscatalog": {
+      "types": "./dist/utils/lessonsCatalog/index.d.ts",
+      "module": "./dist/utils/lessonsCatalog/index.mjs",
+      "import": "./dist/utils/lessonsCatalog/index.mjs",
+      "require": "./dist/utils/lessonsCatalog/index.js",
+      "default": "./dist/utils/lessonsCatalog/index.mjs"
     }
   },
   "scripts": {
