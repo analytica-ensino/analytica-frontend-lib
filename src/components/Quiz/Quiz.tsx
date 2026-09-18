@@ -44,7 +44,7 @@ import {
 import { CardStatus } from '../Card/Card';
 import Text from '../Text/Text';
 import HtmlMathRenderer from '../HtmlMathRenderer/HtmlMathRenderer';
-import { formatExamInfo } from './Quiz.utils';
+import { formatExamInfo, shouldShowExamInfo } from './Quiz.utils';
 import QuizTimer from '../QuizTimer/QuizTimer';
 import { useMobile } from '../../hooks/useMobile';
 
@@ -248,9 +248,8 @@ const QuizHeader = () => {
     ? `Questão ${questionIndex.toString().padStart(2, '0')}`
     : 'Questão';
 
-  // Only show exam info (banca/year) for SIMULADO type
-  const shouldShowExamInfo = quiz?.type === QUIZ_TYPE.SIMULADO;
-  const examInfo = shouldShowExamInfo
+  const showExamInfo = shouldShowExamInfo(quiz);
+  const examInfo = showExamInfo
     ? formatExamInfo(currentQuestion?.examBoard, currentQuestion?.examYear)
     : '';
 
@@ -325,8 +324,7 @@ const QuizQuestionList = ({
     quiz,
   } = useQuizStore();
 
-  // Only show exam info (banca/year) for SIMULADO type
-  const shouldShowExamInfo = quiz?.type === QUIZ_TYPE.SIMULADO;
+  const showExamInfo = shouldShowExamInfo(quiz);
 
   const groupedQuestions = getQuestionsGroupedBySubject();
   const getQuestionStatus = (questionId: string) => {
@@ -390,7 +388,7 @@ const QuizQuestionList = ({
               {questions.map((question) => {
                 const status = getQuestionStatus(question.id);
                 const questionNumber = getQuestionIndex(question.id);
-                const examInfo = shouldShowExamInfo
+                const examInfo = showExamInfo
                   ? formatExamInfo(question.examBoard, question.examYear)
                   : '';
                 const questionTitle = `Questão ${questionNumber.toString().padStart(2, '0')}`;

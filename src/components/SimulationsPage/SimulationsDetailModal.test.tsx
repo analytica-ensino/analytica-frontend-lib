@@ -1128,7 +1128,7 @@ describe('SimulationsDetailModal', () => {
     expect(screen.getByText('Resposta correta')).toBeInTheDocument();
   });
 
-  describe('question label (subject + duration)', () => {
+  describe('question row (subject label + duration column)', () => {
     /** A minimal answered-blank question; the label never depends on status. */
     const blankQuestion = {
       status: 'BLANK' as const,
@@ -1186,7 +1186,7 @@ describe('SimulationsDetailModal', () => {
       return result;
     }
 
-    it('joins subject and duration when both are present', async () => {
+    it('names the subject in the label and shows the duration beside it', async () => {
       await renderExpanded([
         {
           ...blankQuestion,
@@ -1197,9 +1197,8 @@ describe('SimulationsDetailModal', () => {
         },
       ]);
 
-      expect(
-        screen.getByText('Questão 1 - Biologia - 40"')
-      ).toBeInTheDocument();
+      expect(screen.getByText('Questão 1 - Biologia')).toBeInTheDocument();
+      expect(screen.getByText('00:00:40')).toBeInTheDocument();
     });
 
     it('keeps the subject when the time was never measured', async () => {
@@ -1214,6 +1213,8 @@ describe('SimulationsDetailModal', () => {
       ]);
 
       expect(screen.getByText('Questão 1 - Matemática')).toBeInTheDocument();
+      // Not `00:00:00`: an unmeasured question must not read as an instant one.
+      expect(screen.queryByText('00:00:00')).not.toBeInTheDocument();
     });
 
     it('keeps the duration when the question has no subject mapped', async () => {
@@ -1227,7 +1228,8 @@ describe('SimulationsDetailModal', () => {
         },
       ]);
 
-      expect(screen.getByText('Questão 1 - 40"')).toBeInTheDocument();
+      expect(screen.getByText('Questão 1')).toBeInTheDocument();
+      expect(screen.getByText('00:00:40')).toBeInTheDocument();
     });
 
     it('falls back to the bare question number when both are missing', async () => {
@@ -1252,7 +1254,7 @@ describe('SimulationsDetailModal', () => {
       expect(screen.getByText('Questão 1')).toBeInTheDocument();
     });
 
-    it('formats a minutes-and-seconds duration the way the card specifies', async () => {
+    it('formats a minutes-and-seconds duration as a clock', async () => {
       await renderExpanded([
         {
           ...blankQuestion,
@@ -1264,11 +1266,12 @@ describe('SimulationsDetailModal', () => {
       ]);
 
       expect(
-        screen.getByText('Questão 1 - Língua Portuguesa - 2\'30"')
+        screen.getByText('Questão 1 - Língua Portuguesa')
       ).toBeInTheDocument();
+      expect(screen.getByText('00:02:30')).toBeInTheDocument();
     });
 
-    it('formats an hour-long duration with an hour unit', async () => {
+    it('fills the hour field on an hour-long duration', async () => {
       await renderExpanded([
         {
           ...blankQuestion,
@@ -1279,9 +1282,8 @@ describe('SimulationsDetailModal', () => {
         },
       ]);
 
-      expect(
-        screen.getByText('Questão 1 - Redação - 1h05\'30"')
-      ).toBeInTheDocument();
+      expect(screen.getByText('Questão 1 - Redação')).toBeInTheDocument();
+      expect(screen.getByText('01:05:30')).toBeInTheDocument();
     });
 
     it('numbers questions by their position, independently of the fields', async () => {
@@ -1310,15 +1312,13 @@ describe('SimulationsDetailModal', () => {
       ]);
 
       expect(screen.getByText('Questão 1')).toBeInTheDocument();
-      expect(
-        screen.getByText('Questão 2 - Biologia - 40"')
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText('Questão 3 - História - 2\'30"')
-      ).toBeInTheDocument();
+      expect(screen.getByText('Questão 2 - Biologia')).toBeInTheDocument();
+      expect(screen.getByText('00:00:40')).toBeInTheDocument();
+      expect(screen.getByText('Questão 3 - História')).toBeInTheDocument();
+      expect(screen.getByText('00:02:30')).toBeInTheDocument();
     });
 
-    it('still renders the status badge next to a long label', async () => {
+    it('still renders the duration and the status badge next to a long label', async () => {
       await renderExpanded([
         {
           ...blankQuestion,
@@ -1331,14 +1331,13 @@ describe('SimulationsDetailModal', () => {
       ]);
 
       expect(
-        screen.getByText(
-          'Questão 1 - Língua Portuguesa e suas Tecnologias - 1h05\'30"'
-        )
+        screen.getByText('Questão 1 - Língua Portuguesa e suas Tecnologias')
       ).toBeInTheDocument();
+      expect(screen.getByText('01:05:30')).toBeInTheDocument();
       expect(screen.getByText('Correta')).toBeInTheDocument();
     });
 
-    it('keeps the question expandable when the label carries extra segments', async () => {
+    it('keeps the question expandable when the label carries a subject', async () => {
       await renderExpanded([
         {
           ...blankQuestion,
@@ -1349,7 +1348,7 @@ describe('SimulationsDetailModal', () => {
         },
       ]);
 
-      fireEvent.click(screen.getByText('Questão 1 - Biologia - 40"'));
+      fireEvent.click(screen.getByText('Questão 1 - Biologia'));
 
       expect(
         await screen.findByText('Enunciado da questão 1')

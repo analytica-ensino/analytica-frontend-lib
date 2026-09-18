@@ -938,7 +938,76 @@ describe('ProfileMenu component', () => {
       const userIcon = header.querySelector('svg');
       expect(userIcon).toBeInTheDocument();
       // Verifica que não há imagem
-      expect(screen.queryByAltText('Foto de perfil')).not.toBeInTheDocument();
+      expect(
+        screen.queryByAltText('Imagem de perfil de Test User')
+      ).not.toBeInTheDocument();
+    });
+
+    it.each([[undefined], [null], ['']])(
+      'names the placeholder avatar when photoUrl is %p',
+      (photoUrl) => {
+        render(
+          <DropdownMenu open>
+            <ProfileMenuTrigger />
+            <DropdownMenuContent>
+              <ProfileMenuHeader
+                data-testid="profile-header"
+                email="test@test.com"
+                name="Test User"
+                photoUrl={photoUrl}
+              />
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+
+        const avatar = screen.getByRole('img', {
+          name: 'Imagem de perfil, sem imagem',
+        });
+        // O <svg> do ícone fica escondido: sem isso ele entra na árvore como
+        // uma segunda "imagem", sem nome, logo dentro da que acabou de ganhar um.
+        expect(avatar.querySelector('svg')).toHaveAttribute(
+          'aria-hidden',
+          'true'
+        );
+      }
+    );
+
+    it('does not name the wrapper when there is a real photo', () => {
+      render(
+        <DropdownMenu open>
+          <ProfileMenuTrigger />
+          <DropdownMenuContent>
+            <ProfileMenuHeader
+              email="test@test.com"
+              name="Test User"
+              photoUrl="https://example.com/photo.jpg"
+            />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      expect(
+        screen.queryByRole('img', { name: 'Imagem de perfil, sem imagem' })
+      ).not.toBeInTheDocument();
+    });
+
+    it('names the photo after the person', () => {
+      render(
+        <DropdownMenu open>
+          <ProfileMenuTrigger />
+          <DropdownMenuContent>
+            <ProfileMenuHeader
+              email="test@test.com"
+              name="Test User"
+              photoUrl="https://example.com/photo.jpg"
+            />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      expect(
+        screen.getByRole('img', { name: 'Imagem de perfil de Test User' })
+      ).toBeInTheDocument();
     });
 
     it('renders profile image when photoUrl is provided', () => {
@@ -956,7 +1025,7 @@ describe('ProfileMenu component', () => {
         </DropdownMenu>
       );
 
-      const img = screen.getByAltText('Foto de perfil');
+      const img = screen.getByAltText('Imagem de perfil de Test User');
       expect(img).toBeInTheDocument();
       expect(img).toHaveAttribute('src', photoUrl);
       expect(img).toHaveClass('w-full', 'h-full', 'object-cover');
@@ -977,7 +1046,9 @@ describe('ProfileMenu component', () => {
         </DropdownMenu>
       );
 
-      expect(screen.queryByAltText('Foto de perfil')).not.toBeInTheDocument();
+      expect(
+        screen.queryByAltText('Imagem de perfil de Test User')
+      ).not.toBeInTheDocument();
       const header = screen.getByTestId('profile-header');
       const userIcon = header.querySelector('svg');
       expect(userIcon).toBeInTheDocument();
@@ -1232,10 +1303,28 @@ describe('ProfileMenu component', () => {
         </DropdownMenu>
       );
 
-      const button = screen.getByRole('button', { name: 'Sair' });
+      // O rótulo visível segue "Sair" (decisão de design), mas o nome
+      // acessível é o completo — por isso a busca por role/name e a asserção
+      // de texto divergem de propósito aqui.
+      const button = screen.getByRole('button', { name: 'Sair do sistema' });
       expect(button).toBeInTheDocument();
       expect(button).toHaveTextContent('Sair');
       expect(button.querySelector('svg')).toBeInTheDocument();
+    });
+
+    it('lets the consumer override the accessible name', () => {
+      render(
+        <DropdownMenu open>
+          <ProfileMenuTrigger />
+          <DropdownMenuContent>
+            <ProfileMenuFooter aria-label="Encerrar sessão" />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      expect(
+        screen.getByRole('button', { name: 'Encerrar sessão' })
+      ).toBeInTheDocument();
     });
 
     it('', () => {
@@ -1694,7 +1783,9 @@ describe('ProfileMenuReadingFluency components', () => {
         </DropdownMenu>
       );
 
-      expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Sair do sistema' })
+      ).toBeInTheDocument();
     });
 
     it('calls onClick and closes the menu', async () => {
@@ -1713,7 +1804,7 @@ describe('ProfileMenuReadingFluency components', () => {
       );
       expect(screen.getByRole('menu')).toBeInTheDocument();
 
-      fireEvent.click(screen.getByRole('button', { name: 'Sair' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Sair do sistema' }));
 
       expect(handleClick).toHaveBeenCalledTimes(1);
       await waitFor(() =>
@@ -1732,7 +1823,7 @@ describe('ProfileMenuReadingFluency components', () => {
         </DropdownMenu>
       );
 
-      const button = screen.getByRole('button', { name: 'Sair' });
+      const button = screen.getByRole('button', { name: 'Sair do sistema' });
       expect(button).toBeDisabled();
       fireEvent.click(button);
       expect(handleClick).not.toHaveBeenCalled();
@@ -1747,9 +1838,9 @@ describe('ProfileMenuReadingFluency components', () => {
           </DropdownMenuContent>
         </DropdownMenu>
       );
-      expect(screen.getByRole('button', { name: 'Sair' })).toHaveClass(
-        'my-footer'
-      );
+      expect(
+        screen.getByRole('button', { name: 'Sair do sistema' })
+      ).toHaveClass('my-footer');
     });
   });
 
@@ -1831,6 +1922,54 @@ describe('ProfileMenuReadingFluency components', () => {
       expect(triggerRef.current).toBe(
         screen.getByTestId('as-child-only-trigger-ref')
       );
+    });
+  });
+
+  describe('DropdownMenuContent accessible name', () => {
+    it.each([['profile'], ['papole']] as const)(
+      'names the %s popup so it is not announced as an anonymous group',
+      (variant) => {
+        render(
+          <DropdownMenu open>
+            <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+            <DropdownMenuContent variant={variant}>
+              <DropdownMenuItem>Item</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+
+        expect(
+          screen.getByRole('menu', { name: 'Menu de perfil' })
+        ).toBeInTheDocument();
+      }
+    );
+
+    it('leaves the generic menu variant unnamed for the consumer to label', () => {
+      render(
+        <DropdownMenu open>
+          <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem>Item</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      expect(screen.getByRole('menu')).not.toHaveAttribute('aria-label');
+    });
+
+    it('lets the consumer override the popup name', () => {
+      render(
+        <DropdownMenu open>
+          <DropdownMenuTrigger>Toggle</DropdownMenuTrigger>
+          <DropdownMenuContent variant="profile" aria-label="Minha conta">
+            <DropdownMenuItem>Item</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+
+      expect(
+        screen.getByRole('menu', { name: 'Minha conta' })
+      ).toBeInTheDocument();
     });
   });
 });

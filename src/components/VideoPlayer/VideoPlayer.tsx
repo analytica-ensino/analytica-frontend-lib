@@ -54,8 +54,12 @@ interface VideoPlayerProps {
   hideHeader?: boolean;
   /** Initial playback time in seconds */
   initialTime?: number;
-  /** Callback fired when video time updates (seconds) */
-  onTimeUpdate?: (seconds: number) => void;
+  /**
+   * Callback fired when video time updates. Receives the current second and
+   * the media's duration, which is only known once metadata has loaded (0
+   * before that), so consumers that store it must treat it as optional.
+   */
+  onTimeUpdate?: (seconds: number, duration?: number) => void;
   /** Callback fired with progress percentage (0-100) */
   onProgress?: (progress: number) => void;
   /** Callback fired when video completes (>95% watched) */
@@ -894,7 +898,7 @@ const VideoPlayer = ({
     saveProgress(current);
 
     // Fire callbacks
-    onTimeUpdate?.(current);
+    onTimeUpdate?.(current, duration);
 
     if (duration > 0) {
       const progressPercent = (current / duration) * 100;

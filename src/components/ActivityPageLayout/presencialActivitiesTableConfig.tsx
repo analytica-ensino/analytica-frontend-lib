@@ -29,7 +29,9 @@ export const presencialActivitiesTableColumns: ColumnConfig<ActivityTableItem>[]
     {
       key: 'status',
       label: 'Status',
-      sortable: true,
+      // Status é derivado (não é coluna): `GET /activities/history` só
+      // ordena por createdAt/finalDate/title/completionPercentage.
+      sortable: false,
       render: renderActivityStatusBadge,
     },
     {

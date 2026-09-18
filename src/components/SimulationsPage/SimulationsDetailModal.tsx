@@ -116,16 +116,17 @@ export function SimulationQuestionItem({
     QUESTION_STATUS_MAP[question.status]
   );
 
-  // Subject and duration only join the label when they exist: a question with
-  // no subject in the knowledge matrix and a simulation answered before
-  // per-question telemetry both fall back to a plain "Questão N".
-  const label = [
-    `Questão ${index + 1}`,
-    question.subject,
-    formatQuestionDuration(question.timeSpent),
-  ]
+  // The subject only joins the label when the question has one mapped in the
+  // knowledge matrix; without it the row falls back to a plain "Questão N".
+  const label = [`Questão ${index + 1}`, question.subject]
     .filter(Boolean)
     .join(' - ');
+
+  // Time spent sits on the right, next to the badge, and not glued to the
+  // label: it is a measurement, read down the column against the other
+  // questions, not part of the question's name. Null when it was never
+  // measured, and then the row shows nothing rather than `00:00:00`.
+  const duration = formatQuestionDuration(question.timeSpent);
 
   const alternatives = question.options.map((option) => {
     let status: OptionStatus;
@@ -225,15 +226,25 @@ export function SimulationQuestionItem({
           <Text size="sm" weight="bold" className="min-w-0 text-text-950">
             {label}
           </Text>
-          <span
-            className={cn(
-              'inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-medium',
-              badge.bgColor,
-              badge.textColor
+          <div className="flex shrink-0 items-center gap-2">
+            {duration && (
+              <Text
+                size="xs"
+                className="whitespace-nowrap tabular-nums text-text-600"
+              >
+                {duration}
+              </Text>
             )}
-          >
-            {badge.label}
-          </span>
+            <span
+              className={cn(
+                'inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-medium',
+                badge.bgColor,
+                badge.textColor
+              )}
+            >
+              {badge.label}
+            </span>
+          </div>
         </div>
       }
       contentClassName="px-3 pb-3"

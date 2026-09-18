@@ -181,6 +181,36 @@ describe('Whiteboard Component', () => {
       expect(onDownloadMock).toHaveBeenCalledWith(mockImages[0]);
     });
 
+    it('should report activation without replacing the download', () => {
+      const onDownloadMock = jest.fn();
+      const onImageActivateMock = jest.fn();
+      render(
+        <Whiteboard
+          {...defaultProps}
+          onDownload={onDownloadMock}
+          onImageActivate={onImageActivateMock}
+        />
+      );
+
+      fireEvent.click(screen.getByAltText('Board 1'));
+
+      // Both run: `onImageActivate` observes the interaction, it does not
+      // take it over the way `onDownload` does.
+      expect(onDownloadMock).toHaveBeenCalledWith(mockImages[0]);
+      expect(onImageActivateMock).toHaveBeenCalledWith(mockImages[0]);
+    });
+
+    it('should report activation from the download button too', () => {
+      const onImageActivateMock = jest.fn();
+      render(
+        <Whiteboard {...defaultProps} onImageActivate={onImageActivateMock} />
+      );
+
+      fireEvent.click(screen.getAllByLabelText(/Download/)[1]);
+
+      expect(onImageActivateMock).toHaveBeenCalledWith(mockImages[1]);
+    });
+
     it('should handle multiple download clicks', () => {
       const onDownloadMock = jest.fn();
       render(<Whiteboard {...defaultProps} onDownload={onDownloadMock} />);

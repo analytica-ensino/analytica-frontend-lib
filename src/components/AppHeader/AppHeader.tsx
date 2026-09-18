@@ -376,6 +376,9 @@ export const AppHeader = ({
               >
                 <IconButton
                   active={activeStates.profile}
+                  // O IconButton só tem ícone: sem rótulo próprio ele cai no
+                  // padrão "Botão de ação", que não diz o que abre.
+                  aria-label="Perfil do usuário"
                   onClick={() => toggleActive('profile')}
                   icon={
                     <UserIcon

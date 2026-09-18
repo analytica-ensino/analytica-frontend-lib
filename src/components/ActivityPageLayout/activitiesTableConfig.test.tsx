@@ -48,6 +48,7 @@ describe('activitiesTableConfig', () => {
       expect(startDateColumn.key).toBe('startDate');
       expect(startDateColumn.label).toBe('Início');
       expect(startDateColumn.sortable).toBe(true);
+      expect(startDateColumn.sortKey).toBe('createdAt');
     });
 
     it('should have deadline column with correct config', () => {
@@ -55,6 +56,7 @@ describe('activitiesTableConfig', () => {
       expect(deadlineColumn.key).toBe('deadline');
       expect(deadlineColumn.label).toBe('Prazo');
       expect(deadlineColumn.sortable).toBe(true);
+      expect(deadlineColumn.sortKey).toBe('finalDate');
     });
 
     it('should have title column with correct config', () => {
@@ -70,7 +72,7 @@ describe('activitiesTableConfig', () => {
       const schoolColumn = activitiesTableColumns[3];
       expect(schoolColumn.key).toBe('school');
       expect(schoolColumn.label).toBe('Escola');
-      expect(schoolColumn.sortable).toBe(true);
+      expect(schoolColumn.sortable).toBe(false);
       expect(schoolColumn.className).toBe('max-w-[120px]');
       expect(schoolColumn.render).toBeDefined();
     });
@@ -79,7 +81,7 @@ describe('activitiesTableConfig', () => {
       const yearColumn = activitiesTableColumns[4];
       expect(yearColumn.key).toBe('year');
       expect(yearColumn.label).toBe('Ano');
-      expect(yearColumn.sortable).toBe(true);
+      expect(yearColumn.sortable).toBe(false);
       expect(yearColumn.className).toBe('max-w-[100px]');
       expect(yearColumn.render).toBeDefined();
     });
@@ -98,14 +100,14 @@ describe('activitiesTableConfig', () => {
       const classColumn = activitiesTableColumns[6];
       expect(classColumn.key).toBe('class');
       expect(classColumn.label).toBe('Turma');
-      expect(classColumn.sortable).toBe(true);
+      expect(classColumn.sortable).toBe(false);
     });
 
     it('should have status column with correct config', () => {
       const statusColumn = activitiesTableColumns[7];
       expect(statusColumn.key).toBe('status');
       expect(statusColumn.label).toBe('Status');
-      expect(statusColumn.sortable).toBe(true);
+      expect(statusColumn.sortable).toBe(false);
       expect(statusColumn.render).toBeDefined();
     });
 

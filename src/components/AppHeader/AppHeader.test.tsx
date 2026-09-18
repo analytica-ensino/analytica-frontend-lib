@@ -84,6 +84,35 @@ describe('AppHeader', () => {
     expect(screen.getAllByRole('button').length).toBeGreaterThanOrEqual(2);
   });
 
+  it('names the profile trigger instead of leaving the IconButton default', () => {
+    // Sem rótulo próprio o IconButton cai no genérico "Botão de ação", que não
+    // diz o que o botão abre para quem navega só pelo leitor de tela.
+    render(<AppHeader {...baseProps()} />);
+    expect(
+      screen.getByRole('button', { name: 'Perfil do usuário' })
+    ).toBeInTheDocument();
+  });
+
+  // "Reduzido / Expandido" é exigido junto com o rótulo: sem isso o leitor de
+  // tela não diz se o menu já está aberto.
+  it('reports the collapsed state of the profile trigger', () => {
+    render(<AppHeader {...baseProps()} />);
+
+    expect(
+      screen.getByRole('button', { name: 'Perfil do usuário' })
+    ).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('reports the expanded state after opening the profile menu', () => {
+    render(<AppHeader {...baseProps()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Perfil do usuário' }));
+
+    expect(
+      screen.getByRole('button', { name: 'Perfil do usuário' })
+    ).toHaveAttribute('aria-expanded', 'true');
+  });
+
   it('does not render calendar trigger when showCalendar is false', () => {
     render(<AppHeader {...baseProps()} />);
     // Each icon trigger renders a single button (asChild merges the trigger

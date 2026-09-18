@@ -94,17 +94,27 @@ describe('NotificationCard', () => {
   it('opens dropdown menu when three dots button is clicked', () => {
     render(<NotificationCard {...defaultProps} />);
 
-    const menuButton = screen.getByLabelText('Menu de ações');
+    const menuButton = screen.getByLabelText('Mais opções');
     fireEvent.click(menuButton);
 
     expect(screen.getByText('Marcar como lida')).toBeInTheDocument();
     expect(screen.getByText('Deletar')).toBeInTheDocument();
   });
 
+  it('reports the collapsed and expanded state of the three dots button', () => {
+    render(<NotificationCard {...defaultProps} />);
+
+    const menuButton = screen.getByRole('button', { name: 'Mais opções' });
+    expect(menuButton).toHaveAttribute('aria-expanded', 'false');
+
+    fireEvent.click(menuButton);
+    expect(menuButton).toHaveAttribute('aria-expanded', 'true');
+  });
+
   it('calls onMarkAsRead when "Marcar como lida" is clicked and notification is unread', () => {
     render(<NotificationCard {...defaultProps} isRead={false} />);
 
-    const menuButton = screen.getByLabelText('Menu de ações');
+    const menuButton = screen.getByLabelText('Mais opções');
     fireEvent.click(menuButton);
 
     const markAsReadButton = screen.getByText('Marcar como lida');
@@ -116,7 +126,7 @@ describe('NotificationCard', () => {
   it('does not show "Marcar como lida" option when notification is already read', () => {
     render(<NotificationCard {...defaultProps} isRead={true} />);
 
-    const menuButton = screen.getByLabelText('Menu de ações');
+    const menuButton = screen.getByLabelText('Mais opções');
     fireEvent.click(menuButton);
 
     expect(screen.queryByText('Marcar como lida')).not.toBeInTheDocument();
@@ -126,7 +136,7 @@ describe('NotificationCard', () => {
   it('calls onDelete when "Deletar" is clicked', () => {
     render(<NotificationCard {...defaultProps} />);
 
-    const menuButton = screen.getByLabelText('Menu de ações');
+    const menuButton = screen.getByLabelText('Mais opções');
     fireEvent.click(menuButton);
 
     const deleteButton = screen.getByText('Deletar');
@@ -185,7 +195,7 @@ describe('NotificationCard', () => {
       </button>
     );
 
-    const menuButton = screen.getByLabelText('Menu de ações');
+    const menuButton = screen.getByLabelText('Mais opções');
     fireEvent.click(menuButton);
 
     const deleteButton = screen.getByText('Deletar');
@@ -241,7 +251,7 @@ describe('NotificationCard', () => {
     const title = screen.getByRole('heading', { level: 3 });
     expect(title).toHaveTextContent('Test Title');
 
-    const menuButton = screen.getByLabelText('Menu de ações');
+    const menuButton = screen.getByLabelText('Mais opções');
     expect(menuButton).toBeInTheDocument();
   });
 
@@ -433,7 +443,7 @@ describe('NotificationCard', () => {
         />
       );
 
-      const menuButtons = screen.getAllByLabelText('Menu de ações');
+      const menuButtons = screen.getAllByLabelText('Mais opções');
       fireEvent.click(menuButtons[0]);
 
       const markAsReadButton = screen.getByText('Marcar como lida');
@@ -454,7 +464,7 @@ describe('NotificationCard', () => {
         />
       );
 
-      const menuButtons = screen.getAllByLabelText('Menu de ações');
+      const menuButtons = screen.getAllByLabelText('Mais opções');
       fireEvent.click(menuButtons[0]);
 
       const deleteButton = screen.getByText('Deletar');
@@ -927,7 +937,7 @@ describe('NotificationCard', () => {
       );
 
       // Click to open dropdown - use aria-label to be more specific
-      const notificationButton = screen.getByLabelText('Botão de ação');
+      const notificationButton = screen.getByLabelText(/^Notificações,/);
       fireEvent.click(notificationButton);
 
       // Find and click the "Ver mais" button
@@ -973,7 +983,7 @@ describe('NotificationCard', () => {
       );
 
       // Open dropdown
-      const notificationButton = screen.getByLabelText('Botão de ação');
+      const notificationButton = screen.getByLabelText(/^Notificações,/);
       fireEvent.click(notificationButton);
 
       // Click "Ver mais" to trigger lines 715-716
@@ -1038,7 +1048,7 @@ describe('NotificationCard', () => {
       const onMarkAsReadById = jest.fn();
       renderCenter(globalNotification, onMarkAsReadById);
 
-      fireEvent.click(screen.getByLabelText('Botão de ação'));
+      fireEvent.click(screen.getByLabelText(/^Notificações,/));
       fireEvent.click(screen.getByText('Ver mais'));
 
       expect(onMarkAsReadById).toHaveBeenCalledWith('notif-1');
@@ -1049,7 +1059,7 @@ describe('NotificationCard', () => {
       const onMarkAsReadById = jest.fn();
       renderCenter({ ...globalNotification, isRead: true }, onMarkAsReadById);
 
-      fireEvent.click(screen.getByLabelText('Botão de ação'));
+      fireEvent.click(screen.getByLabelText(/^Notificações,/));
       fireEvent.click(screen.getByText('Ver mais'));
 
       expect(onMarkAsReadById).not.toHaveBeenCalled();
@@ -1180,7 +1190,7 @@ describe('NotificationCard', () => {
 
         renderCenter(globalNotification, onMarkAsReadById);
 
-        fireEvent.click(screen.getByLabelText('Botão de ação'));
+        fireEvent.click(screen.getByLabelText(/^Notificações,/));
         fireEvent.click(screen.getByText('Ver mais'));
         onMarkAsReadById.mockClear();
 
@@ -1207,7 +1217,7 @@ describe('NotificationCard', () => {
 
       renderCenter({ ...globalNotification, isRead: true }, onMarkAsReadById);
 
-      fireEvent.click(screen.getByLabelText('Botão de ação'));
+      fireEvent.click(screen.getByLabelText(/^Notificações,/));
       fireEvent.click(screen.getByText('Ver mais'));
 
       const modalAction = within(screen.getByRole('dialog')).getByRole(
@@ -1574,7 +1584,7 @@ describe('NotificationCard', () => {
       render(<LegacyNotificationCard {...mockProps} />);
 
       // Should render notification center button with accessible label
-      expect(screen.getByLabelText('Botão de ação')).toBeInTheDocument();
+      expect(screen.getByLabelText(/^Notificações,/)).toBeInTheDocument();
     });
 
     it('renders notification center in mobile mode when variant is center', () => {
@@ -1607,7 +1617,7 @@ describe('NotificationCard', () => {
       render(<LegacyNotificationCard {...mockProps} />);
 
       // Should render notification center button with accessible label
-      expect(screen.getByLabelText('Botão de ação')).toBeInTheDocument();
+      expect(screen.getByLabelText(/^Notificações,/)).toBeInTheDocument();
     });
 
     it('calls onToggleActive when notification center button is clicked in desktop mode', () => {
@@ -1625,7 +1635,7 @@ describe('NotificationCard', () => {
 
       render(<LegacyNotificationCard {...mockProps} />);
 
-      const iconButton = screen.getByLabelText('Botão de ação');
+      const iconButton = screen.getByLabelText(/^Notificações,/);
       fireEvent.click(iconButton);
 
       expect(onToggleActive).toHaveBeenCalledTimes(1);
@@ -1646,7 +1656,7 @@ describe('NotificationCard', () => {
       // A button must never wrap another button (invalid HTML → hydration error).
       expect(container.querySelector('button button')).toBeNull();
       // The trigger is still a labelled button wired for the dropdown.
-      expect(screen.getByLabelText('Botão de ação')).toHaveAttribute(
+      expect(screen.getByLabelText(/^Notificações,/)).toHaveAttribute(
         'aria-expanded'
       );
     });
@@ -1681,7 +1691,7 @@ describe('NotificationCard', () => {
 
       render(<LegacyNotificationCard {...mockProps} />);
 
-      const iconButton = screen.getByLabelText('Botão de ação');
+      const iconButton = screen.getByLabelText(/^Notificações,/);
       expect(iconButton).toBeInTheDocument();
 
       fireEvent.click(iconButton);
@@ -1836,9 +1846,9 @@ describe('NotificationCard', () => {
         />
       );
 
-      const srText = screen.getByText('5 notificações não lidas');
-      expect(srText).toBeInTheDocument();
-      expect(srText).toHaveClass('sr-only');
+      expect(
+        screen.getByRole('button', { name: 'Notificações, 5 notificações' })
+      ).toBeInTheDocument();
 
       const decorativeDot = document.querySelector(
         '[data-testid="notification-dot"]'
@@ -1858,8 +1868,8 @@ describe('NotificationCard', () => {
       );
 
       expect(
-        screen.queryByText(/notificações não lidas/)
-      ).not.toBeInTheDocument();
+        screen.getByRole('button', { name: 'Notificações, sem notificações' })
+      ).toBeInTheDocument();
     });
 
     it('renders aria-hidden decorative dot and sr-only count text in mobile mode', () => {
@@ -1888,9 +1898,9 @@ describe('NotificationCard', () => {
         />
       );
 
-      const srText = screen.getByText('3 notificações não lidas');
-      expect(srText).toBeInTheDocument();
-      expect(srText).toHaveClass('sr-only');
+      expect(
+        screen.getByRole('button', { name: 'Notificações, 3 notificações' })
+      ).toBeInTheDocument();
 
       const decorativeDot = document.querySelector(
         '[data-testid="notification-dot"]'
@@ -1922,8 +1932,48 @@ describe('NotificationCard', () => {
       );
 
       expect(
-        screen.queryByText(/notificações não lidas/)
-      ).not.toBeInTheDocument();
+        screen.getByRole('button', { name: 'Notificações, sem notificações' })
+      ).toBeInTheDocument();
+    });
+  });
+
+  // O sino era um IconButton sem rótulo: o nome vinha de um sr-only que só
+  // existia quando havia não lidas, então sem notificação nenhuma o botão era
+  // anunciado apenas como "Botão de ação". Nome e contagem agora vivem no
+  // próprio rótulo, que existe em qualquer estado.
+  describe('nome e estado do sino', () => {
+    const renderBell = (unreadCount: number, isActive = false) =>
+      render(
+        <NotificationCard
+          mode="center"
+          isActive={isActive}
+          unreadCount={unreadCount}
+          groupedNotifications={[]}
+        />
+      );
+
+    it.each([
+      [0, 'Notificações, sem notificações'],
+      [1, 'Notificações, 1 notificação'],
+      [2, 'Notificações, 2 notificações'],
+    ])('names the bell with %p unread', (unreadCount, expected) => {
+      renderBell(unreadCount);
+
+      expect(
+        screen.getByRole('button', { name: expected })
+      ).toBeInTheDocument();
+    });
+
+    it.each([
+      ['collapsed', false, 'false'],
+      ['expanded', true, 'true'],
+    ])('reports the bell as %s', (_case, isActive, expected) => {
+      renderBell(0, isActive as boolean);
+
+      expect(screen.getByLabelText(/^Notificações,/)).toHaveAttribute(
+        'aria-expanded',
+        expected
+      );
     });
   });
 
@@ -2277,7 +2327,7 @@ describe('NotificationCard', () => {
         />
       );
 
-      fireEvent.click(screen.getByLabelText('Botão de ação'));
+      fireEvent.click(screen.getByLabelText(/^Notificações,/));
       fireEvent.click(screen.getByText('Ver atividade'));
 
       expect(onNavigateById).toHaveBeenCalledWith(
@@ -2366,7 +2416,7 @@ describe('NotificationCard', () => {
       );
 
       // First, click the dropdown trigger to open it if not already open
-      const dropdownTrigger = screen.getByLabelText('Botão de ação');
+      const dropdownTrigger = screen.getByLabelText(/^Notificações,/);
       fireEvent.click(dropdownTrigger);
 
       // Clear the mock to only count the navigation click
@@ -2410,7 +2460,7 @@ describe('NotificationCard', () => {
       );
 
       // Find the desktop notification button
-      const desktopButton = screen.getByLabelText('Botão de ação');
+      const desktopButton = screen.getByLabelText(/^Notificações,/);
       fireEvent.click(desktopButton);
 
       // Should call onToggleActive
@@ -2443,7 +2493,7 @@ describe('NotificationCard', () => {
       );
 
       // Simulate dropdown closing via outside click
-      const dropdownTrigger = screen.getByLabelText('Botão de ação');
+      const dropdownTrigger = screen.getByLabelText(/^Notificações,/);
 
       // Trigger onOpenChange with false (simulating dropdown close)
       fireEvent.click(dropdownTrigger);
@@ -2512,7 +2562,7 @@ describe('NotificationCard', () => {
       );
 
       // When no onOpenChange is provided, onToggleActive should still work for close
-      const dropdownTrigger = screen.getByLabelText('Botão de ação');
+      const dropdownTrigger = screen.getByLabelText(/^Notificações,/);
       fireEvent.click(dropdownTrigger);
 
       // Should call onToggleActive in uncontrolled mode
@@ -2552,7 +2602,7 @@ describe('NotificationCard', () => {
       render(<LegacyNotificationCard {...mockProps} />);
 
       // Should render the notification center dropdown trigger
-      expect(screen.getByLabelText('Botão de ação')).toBeInTheDocument();
+      expect(screen.getByLabelText(/^Notificações,/)).toBeInTheDocument();
     });
 
     it('renders list mode when list props are provided', () => {

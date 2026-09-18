@@ -32,6 +32,7 @@ export default defineConfig({
     'RangeGauge/index': 'src/components/RangeGauge/RangeGauge.tsx',
     'LevelBar/index': 'src/components/LevelBar/LevelBar.tsx',
     'Avatar/index': 'src/components/Avatar/Avatar.tsx',
+    'ReadOnlyField/index': 'src/components/ReadOnlyField/ReadOnlyField.tsx',
     'LoadingModal/index': 'src/components/LoadingModal/loadingModal.tsx',
     'ProgressCircle/index': 'src/components/ProgressCircle/ProgressCircle.tsx',
     'AnswerKeyModal/index': 'src/components/AnswerKeyModal/AnswerKeyModal.tsx',
@@ -192,6 +193,22 @@ export default defineConfig({
       'src/components/QuestionsPerformanceCard/index.ts',
     'hooks/useSimulations/index': 'src/hooks/useSimulations.ts',
     'types/simulations/index': 'src/types/simulations.ts',
+
+    // Lessons catalogue (subjects -> topics -> lesson page), shared by the
+    // student portal and the teacher/manager preview.
+    'LessonsCatalog/index': 'src/components/LessonsCatalog/index.ts',
+    'LessonMediaSections/index':
+      'src/components/shared/LessonMediaSections/index.ts',
+    'hooks/useClassesCatalog/index': 'src/hooks/useClassesCatalog.ts',
+    'hooks/useClassTopics/index': 'src/hooks/useClassTopics.ts',
+    'hooks/useClassLessons/index': 'src/hooks/useClassLessons.ts',
+    'hooks/useLessonSearch/index': 'src/hooks/useLessonSearch.ts',
+    'hooks/useLessonProgressTracker/index':
+      'src/hooks/useLessonProgressTracker.ts',
+    'hooks/useLessonTelemetry/index': 'src/hooks/useLessonTelemetry.ts',
+    'store/lessonsStore/index': 'src/store/lessonsStore.ts',
+    'types/lessonsCatalog/index': 'src/types/lessonsCatalog.ts',
+    'utils/lessonsCatalog/index': 'src/utils/lessonsCatalog.ts',
 
     // ActivitiesHistory
     'ActivitiesHistory/index': 'src/components/ActivitiesHistory/index.ts',
@@ -424,6 +441,7 @@ export default defineConfig({
     'utils/chatUtils/index': 'src/utils/chatUtils.ts', // getChatUserInfo, getChatWsUrl
     'utils/htmlLineBreaks/index': 'src/utils/htmlLineBreaks.ts', // normalizeLineBreaksInHtml
     'utils/latexMath/index': 'src/utils/latexMath.ts', // buildMathSpan, findDollarMath, isCurrencyDollar, looksLikeMath, replaceDollarMath
+    'utils/profileImageA11y/index': 'src/utils/profileImageA11y.ts', // profileImageLabel
     'utils/domainUtils/index': 'src/utils/domainUtils.ts', // resolveRootHostname, extractSubdomainSlug, buildLoginUrlWithReturnTo
     'utils/examFilterHelpers/index': 'src/utils/examFilterHelpers.ts', // EXAM_STATUS_OPTIONS
     'utils/lessonAvailabilityUtils/index':

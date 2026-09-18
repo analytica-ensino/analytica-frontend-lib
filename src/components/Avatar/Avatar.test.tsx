@@ -6,28 +6,61 @@ describe('Avatar', () => {
     render(<Avatar src="https://x/photo.png" name="Ana Clara" />);
     const img = screen.getByRole('img');
     expect(img).toHaveAttribute('src', 'https://x/photo.png');
-    expect(img).toHaveAttribute('alt', 'Ana Clara');
+    expect(img).toHaveAttribute('alt', 'Imagem de perfil de Ana Clara');
   });
 
-  it('prefers an explicit alt over the name', () => {
+  it('names the picture generically when there is no name', () => {
+    render(<Avatar src="https://x/photo.png" />);
+    expect(screen.getByRole('img')).toHaveAttribute('alt', 'Imagem de perfil');
+  });
+
+  it('prefers an explicit alt over the default label', () => {
     render(<Avatar src="https://x/p.png" name="Ana" alt="Foto da Ana" />);
     expect(screen.getByRole('img')).toHaveAttribute('alt', 'Foto da Ana');
   });
 
   it('falls back to the placeholder when there is no src', () => {
     const { container } = render(<Avatar name="Ana" />);
-    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(container.querySelector('img')).not.toBeInTheDocument();
     expect(container.querySelector('svg')).toBeInTheDocument();
   });
 
-  // NOTE: without a name/alt the picture is decorative (`alt=""`), so it has
-  // role `presentation` — query the element itself instead of by role.
+  it('announces the empty state on the wrapper when there is no src', () => {
+    render(<Avatar name="Ana" />);
+    expect(
+      screen.getByRole('img', { name: 'Imagem de perfil, sem imagem' })
+    ).toHaveAttribute('data-component', 'Avatar');
+  });
+
+  it('stays decorative when an empty alt is given', () => {
+    render(<Avatar name="Ana" alt="" />);
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+  });
+
+  it('lets the consumer override the fallback label', () => {
+    render(<Avatar name="Ana" aria-label="Avatar da turma" />);
+    expect(screen.getByRole('img')).toHaveAccessibleName('Avatar da turma');
+  });
+
   it('falls back to the placeholder when the picture fails to load', () => {
     const { container } = render(<Avatar src="https://x/broken.png" />);
     fireEvent.error(container.querySelector('img') as HTMLImageElement);
 
     expect(container.querySelector('img')).not.toBeInTheDocument();
     expect(container.querySelector('svg')).toBeInTheDocument();
+  });
+
+  // A broken URL shows the placeholder, so the announced state has to follow
+  // the rendered fallback rather than the presence of `src`.
+  it('announces the empty state when the picture fails to load', () => {
+    const { container } = render(
+      <Avatar src="https://x/broken.png" name="Ana" />
+    );
+    fireEvent.error(container.querySelector('img') as HTMLImageElement);
+
+    expect(
+      screen.getByRole('img', { name: 'Imagem de perfil, sem imagem' })
+    ).toBeInTheDocument();
   });
 
   it('retries when the src changes after a failure', () => {

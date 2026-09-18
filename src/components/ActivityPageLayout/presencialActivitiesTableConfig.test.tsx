@@ -30,6 +30,12 @@ describe('presencialActivitiesTableConfig', () => {
       expect(createdAtColumn.sortable).toBe(true);
     });
 
+    it('should not sort by status (backend rejects it)', () => {
+      const statusColumn = presencialActivitiesTableColumns[1];
+
+      expect(statusColumn.sortable).toBe(false);
+    });
+
     it('should render the status as a badge', () => {
       const statusColumn = presencialActivitiesTableColumns[1];
 

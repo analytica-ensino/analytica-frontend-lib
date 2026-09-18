@@ -532,4 +532,73 @@ describe('Calendar', () => {
       expect(header).toHaveClass('relative', 'z-20');
     });
   });
+
+  describe('Rótulo do dia', () => {
+    // A cor do dia é a única pista de que há prazo ali, e ela não chega a quem
+    // usa leitor de tela. O rótulo do botão passa a dizer o mesmo que o
+    // indicador colorido.
+    const JANUARY_2025 = new Date(2025, 0, 1);
+
+    const renderMonth = (
+      activities: Record<string, CalendarActivity[]>,
+      props: Partial<{
+        variant: 'navigation' | 'selection';
+        showActivities: boolean;
+      }> = {}
+    ) =>
+      render(
+        <Calendar
+          variant="navigation"
+          selectedDate={JANUARY_2025}
+          activities={activities}
+          showActivities
+          {...props}
+        />
+      );
+
+    it.each<[ActivityStatus, string]>([
+      ['overdue', 'Dia 3 de Janeiro, com atividade atrasada'],
+      ['near-deadline', 'Dia 3 de Janeiro, com atividade a vencer'],
+      ['in-deadline', 'Dia 3 de Janeiro, com atividade'],
+    ])('announces a %s activity on the day button', (status, expected) => {
+      renderMonth({ '2025-01-03': [{ id: '1', status, title: 'Tarefa' }] });
+
+      expect(screen.getByLabelText(expected)).toBeInTheDocument();
+    });
+
+    it('announces a day without activities', () => {
+      renderMonth({ '2025-01-03': [{ id: '1', status: 'overdue' }] });
+
+      expect(
+        screen.getByLabelText('Dia 4 de Janeiro, sem atividade')
+      ).toBeInTheDocument();
+    });
+
+    // O indicador colorido usa a primeira atividade do dia; o rótulo segue a
+    // mesma, para o dia não contar duas histórias.
+    it('follows the same activity that colors the day', () => {
+      renderMonth({
+        '2025-01-03': [
+          { id: '1', status: 'overdue' },
+          { id: '2', status: 'in-deadline' },
+        ],
+      });
+
+      expect(
+        screen.getByLabelText('Dia 3 de Janeiro, com atividade atrasada')
+      ).toBeInTheDocument();
+    });
+
+    it.each([
+      ['selection variant', { variant: 'selection' as const }],
+      ['showActivities off', { showActivities: false }],
+    ])('says nothing about activities with %s', (_case, props) => {
+      renderMonth({ '2025-01-03': [{ id: '1', status: 'overdue' }] }, props);
+
+      expect(screen.getByLabelText('Dia 3 de Janeiro')).toBeInTheDocument();
+      expect(
+        screen.queryByLabelText(/sem atividade|com atividade/)
+      ).not.toBeInTheDocument();
+    });
+  });
 });

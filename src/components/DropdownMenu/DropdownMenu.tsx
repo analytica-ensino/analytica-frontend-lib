@@ -26,6 +26,7 @@ import { create, StoreApi, useStore } from 'zustand';
 import Button, { ButtonReadingFluency } from '../Button/Button';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
+import { profileImageLabel } from '../../utils/profileImageA11y';
 import readingFluencyBird from '../../assets/img/readingFluencyBird.png';
 import Modal from '../Modal/Modal';
 import { ThemeToggle } from '../ThemeToggle/ThemeToggle';
@@ -490,6 +491,22 @@ const MENUCONTENT_VARIANT_CLASSES = {
     'flex flex-col gap-4 bg-secondary-500 rounded-[20px] pt-6 px-6 pb-8 [box-shadow:0px_8px_8px_-2px_#0000001a,0px_8px_8px_-2px_#00000033]',
 };
 
+/**
+ * Um popup sem nome é anunciado como "grupo" pelo leitor de tela — genérico
+ * demais para quem entra nele sem enxergar a tela. As duas variantes de perfil
+ * são sempre o mesmo menu, então o nome cabe aqui. A variante `menu` aparece em
+ * contextos diversos (filtros, ações de tabela) e o nome é do consumidor: um
+ * rótulo fixo seria errado na maioria dos usos.
+ */
+const MENUCONTENT_VARIANT_LABELS: Record<
+  keyof typeof MENUCONTENT_VARIANT_CLASSES,
+  string | undefined
+> = {
+  menu: undefined,
+  profile: 'Menu de perfil',
+  papole: 'Menu de perfil',
+};
+
 const MenuLabel = forwardRef<
   HTMLDivElement,
   HTMLAttributes<HTMLDivElement> & {
@@ -608,6 +625,9 @@ const DropdownMenuContent = forwardRef<
       <div
         ref={portal ? contentRef : ref}
         role="menu"
+        // Antes de `{...props}`: é só o padrão da variante, o consumidor
+        // sobrescreve passando o próprio aria-label.
+        aria-label={MENUCONTENT_VARIANT_LABELS[variant]}
         data-dropdown-content="true"
         data-open={open}
         className={`
@@ -800,6 +820,8 @@ const ProfileMenuHeader = forwardRef<
     store?: DropdownStoreApi;
   }
 >(({ className, name, email, photoUrl, store: _store, ...props }, ref) => {
+  const photoLabel = profileImageLabel({ src: photoUrl, name });
+
   return (
     <div
       ref={ref}
@@ -810,15 +832,23 @@ const ProfileMenuHeader = forwardRef<
       )}
       {...props}
     >
-      <span className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
+      <span
+        className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0"
+        // Sem foto o avatar é um <svg> genérico, que o leitor de tela anunciava
+        // apenas como "imagem". O nome vai no wrapper — e não no `alt` do
+        // ícone, porque o Phosphor transforma `alt` num <title>, que o
+        // navegador também mostra como tooltip no hover: efeito visual que o
+        // design não pediu. Com foto, quem nomeia é o `alt` da <img>.
+        {...(photoUrl ? {} : { role: 'img', 'aria-label': photoLabel })}
+      >
         {photoUrl ? (
           <img
             src={photoUrl}
-            alt="Foto de perfil"
+            alt={photoLabel}
             className="w-full h-full object-cover"
           />
         ) : (
-          <UserIcon size={34} className="text-primary-800" />
+          <UserIcon size={34} className="text-primary-800" aria-hidden />
         )}
       </span>
       <div className="flex flex-col min-w-0">
@@ -1031,6 +1061,13 @@ const ProfileMenuFooter = ({
       variant="outline"
       className={cn('w-full', className)}
       disabled={disabled}
+      // O texto visível continua "Sair" (Figma), mas fora do contexto do menu
+      // de perfil — no rotor do leitor de tela, no controle por voz — "Sair"
+      // sozinho não diz de onde. O nome acessível contém o rótulo visível,
+      // como exige o WCAG 2.5.3 (Label in Name), então quem fala "clicar em
+      // Sair" continua acertando o botão. Antes de `{...props}` de propósito:
+      // o consumidor ainda pode trocar o nome passando o próprio aria-label.
+      aria-label="Sair do sistema"
       onClick={(e) => {
         setOpen(false);
         onClick?.(e);
@@ -1182,6 +1219,9 @@ const ProfileMenuReadingFluencyFooter = ({
       size="medium"
       className={cn('w-full', className)}
       disabled={disabled}
+      // Mesmo rótulo acessível do ProfileMenuFooter — é o mesmo "Sair" do
+      // mesmo aluno, só na skin de fluência leitora.
+      aria-label="Sair do sistema"
       onClick={(e) => {
         setOpen(false);
         onClick?.(e);

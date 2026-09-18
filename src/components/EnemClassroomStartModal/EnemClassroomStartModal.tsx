@@ -23,22 +23,24 @@ import {
   type EnemClassroomExam,
   type EnemClassroomLanguage,
   type EnemClassroomStartPayload,
+  type EnemClassroomStudentTexts,
   type EnemClassroomSurveyQuestion,
 } from '../../types/enemClassroom';
 
 /** Title shared by every step, as in the design. */
-export const ENEM_CLASSROOM_MODAL_TITLE = 'Simulação do ENEM em sala de aula!';
-
 /**
  * The three warnings of the introduction step. The exam only counts when
- * taken in class, so they are shown before anything else.
+ * taken in class, so they are shown before anything else. The first one is
+ * the backoffice's to write (`studentTexts`); the other two are fixed.
+ *
+ * @param texts - The exam's texts
+ * @returns The warnings in order
  */
-const INTRO_WARNINGS = [
+const buildIntroWarnings = (texts: EnemClassroomStudentTexts) => [
   {
     icon: warningClassroomIcon,
-    title: 'Só vale em sala de aula',
-    description:
-      'Essa simulação precisa ser feita com seu professor presente. Não vale fazer em casa!',
+    title: texts.introWarningTitle,
+    description: texts.introWarningText,
   },
   {
     icon: warningTimerIcon,
@@ -52,7 +54,7 @@ const INTRO_WARNINGS = [
     description:
       'Iniciar fora do horário estabelecido pelo seu professor em sala de aula pode atrapalhar seu resultado!',
   },
-] as const;
+];
 
 /** Flag shown next to each language, as in the design. */
 const LANGUAGE_FLAGS: Record<EnemClassroomLanguage, string> = {
@@ -85,14 +87,17 @@ const CARD_CLASSES =
  * Gradiente da identidade da simulação em sala de aula — os mesmos tons do
  * card do painel do aluno. Não sai dos tokens de tema porque é a marca da
  * prova, não a da instituição.
- */
-/*
- * Gradiente literal, e não `bg-gradient-to-r from-… to-…`: o Tailwind v4
- * interpola `in oklab`, o que muda os tons do meio em relação ao sRGB do CSS
- * que veio do design.
+ *
+ * Literal, e não `bg-gradient-to-r from-… to-…`: o Tailwind v4 interpola
+ * `in oklab`, o que muda os tons do meio em relação ao sRGB do design.
+ *
+ * `border-0` porque o `solid/primary` do Button traz `border-primary-950`, que
+ * o gradiente não cobre — ele só troca o fundo. Zerar a largura, em vez de
+ * pintar a borda de transparente, também neutraliza as cores de hover e
+ * active, que voltariam a aparecer.
  */
 const GRADIENT_CTA_CLASSES =
-  'bg-[linear-gradient(270deg,#B21FF6_0%,#F95493_100%)] hover:opacity-90 transition-opacity';
+  'bg-[linear-gradient(270deg,#B21FF6_0%,#F95493_100%)] border-0 hover:opacity-90 transition-opacity';
 
 /**
  * One selectable option: a card carrying an optional icon and a label.
@@ -334,6 +339,16 @@ const EnemClassroomStartModal = ({
   const renderIntroStep = () => (
     <div className="flex flex-col gap-6" data-testid="enem-classroom-intro">
       {exam.videoUrl && (
+        <Text
+          size="md"
+          weight="semibold"
+          className="text-text-950"
+          data-testid="enem-classroom-intro-video-text"
+        >
+          {exam.studentTexts.introVideoText}
+        </Text>
+      )}
+      {exam.videoUrl && (
         <VideoPlayer
           src={exam.videoUrl}
           title={exam.title}
@@ -347,41 +362,35 @@ const EnemClassroomStartModal = ({
 
       <div className="flex flex-col gap-4">
         <Text size="lg" weight="bold" className="text-text-950">
-          Ei, lê isso antes de começar!
+          {exam.studentTexts.introHeading}
         </Text>
-        {INTRO_WARNINGS.map(({ icon, title, description }) => (
-          <div
-            key={title}
-            className={cn(CARD_CLASSES, 'flex flex-row gap-4 items-start p-4')}
-          >
-            <img
-              src={icon}
-              alt=""
-              aria-hidden
-              className="flex-shrink-0 w-10 h-10"
-            />
-            <div className="flex flex-col gap-1">
-              <Text size="md" weight="bold" className="text-text-950">
-                {title}
-              </Text>
-              <Text size="sm" className="text-text-600">
-                {description}
-              </Text>
+        {buildIntroWarnings(exam.studentTexts).map(
+          ({ icon, title, description }) => (
+            <div
+              key={title}
+              className={cn(
+                CARD_CLASSES,
+                'flex flex-row gap-4 items-start p-4'
+              )}
+            >
+              <img
+                src={icon}
+                alt=""
+                aria-hidden
+                className="flex-shrink-0 w-10 h-10"
+              />
+              <div className="flex flex-col gap-1">
+                <Text size="md" weight="bold" className="text-text-950">
+                  {title}
+                </Text>
+                <Text size="sm" className="text-text-600">
+                  {description}
+                </Text>
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        )}
       </div>
-
-      <Button
-        size="large"
-        variant="solid"
-        action="primary"
-        className={cn('w-full', GRADIENT_CTA_CLASSES)}
-        onClick={() => setStep(FIRST_CHOICE_STEP)}
-        data-testid="enem-classroom-intro-continue"
-      >
-        Estou em sala. Quero começar!
-      </Button>
     </div>
   );
 
@@ -535,18 +544,6 @@ const EnemClassroomStartModal = ({
           Revisar minhas respostas
         </Button>
       </div>
-
-      <Button
-        size="large"
-        variant="solid"
-        action="primary"
-        className={cn('w-full', GRADIENT_CTA_CLASSES)}
-        disabled={isStarting}
-        onClick={handleStart}
-        data-testid="enem-classroom-start"
-      >
-        Iniciar a prova!
-      </Button>
     </div>
   );
 
@@ -561,31 +558,75 @@ const EnemClassroomStartModal = ({
   const showNavigation = step >= FIRST_CHOICE_STEP && step < summaryStep;
   const showStepper = step < summaryStep;
 
-  const footer = showNavigation ? (
-    <div className="flex flex-row justify-end gap-2 w-full">
-      <Button
-        size="medium"
-        variant="outline"
-        action="primary"
-        iconLeft={<CaretLeftIcon size={16} aria-hidden />}
-        onClick={() => setStep((current) => current - 1)}
-        data-testid="enem-classroom-previous"
-      >
-        Anterior
-      </Button>
-      <Button
-        size="medium"
-        variant="solid"
-        action="primary"
-        iconRight={<CaretRightIcon size={16} aria-hidden />}
-        disabled={!canGoNext}
-        onClick={() => setStep((current) => current + 1)}
-        data-testid="enem-classroom-next"
-      >
-        Próximo
-      </Button>
-    </div>
-  ) : undefined;
+  /*
+   * O rodapé do Modal não rola, e é lá que o desenho quer o botão: na
+   * introdução ele leva o CTA; nos passos de escolha, a navegação.
+   */
+  /**
+   * O rodapé do Modal não rola, e é onde o desenho quer o botão de cada passo:
+   * o CTA na introdução, a navegação nos passos de escolha e o de iniciar no
+   * resumo. O "Revisar minhas respostas" fica de fora de propósito — ele mora
+   * dentro do card de respostas.
+   * @returns O rodapé do passo atual, ou nada quando ele não tem botão
+   */
+  const renderFooter = () => {
+    if (currentStep.kind === 'intro') {
+      return (
+        <Button
+          size="large"
+          variant="solid"
+          action="primary"
+          className={cn('w-full', GRADIENT_CTA_CLASSES)}
+          onClick={() => setStep(FIRST_CHOICE_STEP)}
+          data-testid="enem-classroom-intro-continue"
+        >
+          Estou em sala. Quero começar!
+        </Button>
+      );
+    }
+
+    if (currentStep.kind === 'summary') {
+      return (
+        <Button
+          size="large"
+          variant="solid"
+          action="primary"
+          className={cn('w-full', GRADIENT_CTA_CLASSES)}
+          disabled={isStarting}
+          onClick={handleStart}
+          data-testid="enem-classroom-start"
+        >
+          Iniciar a prova!
+        </Button>
+      );
+    }
+
+    return showNavigation ? (
+      <div className="flex flex-row justify-end gap-2 w-full">
+        <Button
+          size="medium"
+          variant="outline"
+          action="primary"
+          iconLeft={<CaretLeftIcon size={16} aria-hidden />}
+          onClick={() => setStep((current) => current - 1)}
+          data-testid="enem-classroom-previous"
+        >
+          Anterior
+        </Button>
+        <Button
+          size="medium"
+          variant="solid"
+          action="primary"
+          iconRight={<CaretRightIcon size={16} aria-hidden />}
+          disabled={!canGoNext}
+          onClick={() => setStep((current) => current + 1)}
+          data-testid="enem-classroom-next"
+        >
+          Próximo
+        </Button>
+      </div>
+    ) : undefined;
+  };
 
   return (
     <Modal
@@ -598,20 +639,29 @@ const EnemClassroomStartModal = ({
        * dialog sem nome acessível.
        */
       title={
-        showStepper ? (
-          ENEM_CLASSROOM_MODAL_TITLE
-        ) : (
-          <span className="sr-only">{ENEM_CLASSROOM_MODAL_TITLE}</span>
-        )
+        showStepper ? exam.title : <span className="sr-only">{exam.title}</span>
       }
       size="lg"
-      footer={footer}
-      contentClassName="flex flex-col gap-6"
+      footer={renderFooter()}
+      /*
+       * A rolagem sai do Modal e vai para o miolo: título e stepper ficam
+       * parados em cima, o rodapé embaixo, e só o conteúdo entre eles corre.
+       */
+      contentClassName="flex flex-col overflow-hidden"
     >
-      {showStepper && (
-        <Stepper steps={stepperSteps} currentStep={step} size="small" />
-      )}
-      {renderStepContent()}
+      <div className="flex flex-col gap-6 flex-1 min-h-0">
+        {showStepper && (
+          <Stepper
+            steps={stepperSteps}
+            currentStep={step}
+            size="small"
+            className="flex-none"
+          />
+        )}
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          {renderStepContent()}
+        </div>
+      </div>
     </Modal>
   );
 };
