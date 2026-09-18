@@ -304,12 +304,6 @@ const EnemClassroomStartModal = ({
   );
 
   const currentStep = steps[step] ?? steps[INTRO_STEP];
-  /**
-   * Só o passo da introdução, e só quando há vídeo, prende o player no topo e
-   * rola o conteúdo abaixo dele. Nos outros passos a rolagem segue sendo a do
-   * Modal — tirá-la de lá sempre cortaria as perguntas em tela baixa.
-   */
-  const hasPinnedVideo = currentStep.kind === 'intro' && Boolean(exam.videoUrl);
   const currentQuestion =
     currentStep.kind === 'survey' ? currentStep.question : null;
 
@@ -343,10 +337,7 @@ const EnemClassroomStartModal = ({
   }, [exam.languageChoice, language, surveyQuestions, answers, onStart]);
 
   const renderIntroStep = () => (
-    <div
-      className="flex flex-col gap-6 min-h-0"
-      data-testid="enem-classroom-intro"
-    >
+    <div className="flex flex-col gap-6" data-testid="enem-classroom-intro">
       {exam.videoUrl && (
         <Text
           size="md"
@@ -364,22 +355,12 @@ const EnemClassroomStartModal = ({
           // O desenho mostra só o vídeo: o nome da prova já está no título do
           // modal. O `title` fica para rotular o player nos leitores de tela.
           hideHeader
-          className="w-full rounded-xl overflow-hidden flex-none"
+          className="w-full rounded-xl overflow-hidden"
           autoSave={false}
         />
       )}
 
-      {/*
-       * Com vídeo, a rolagem é daqui para baixo: o player e o botão ficam
-       * parados e só os avisos correm entre eles. Rolando o modal inteiro o
-       * vídeo saía cortado pelo topo.
-       */}
-      <div
-        className={cn(
-          'flex flex-col gap-4',
-          hasPinnedVideo && 'flex-1 min-h-0 overflow-y-auto'
-        )}
-      >
+      <div className="flex flex-col gap-4">
         <Text size="lg" weight="bold" className="text-text-950">
           {exam.studentTexts.introHeading}
         </Text>
@@ -410,17 +391,6 @@ const EnemClassroomStartModal = ({
           )
         )}
       </div>
-
-      <Button
-        size="large"
-        variant="solid"
-        action="primary"
-        className={cn('w-full flex-none', GRADIENT_CTA_CLASSES)}
-        onClick={() => setStep(FIRST_CHOICE_STEP)}
-        data-testid="enem-classroom-intro-continue"
-      >
-        Estou em sala. Quero começar!
-      </Button>
     </div>
   );
 
@@ -574,18 +544,6 @@ const EnemClassroomStartModal = ({
           Revisar minhas respostas
         </Button>
       </div>
-
-      <Button
-        size="large"
-        variant="solid"
-        action="primary"
-        className={cn('w-full', GRADIENT_CTA_CLASSES)}
-        disabled={isStarting}
-        onClick={handleStart}
-        data-testid="enem-classroom-start"
-      >
-        Iniciar a prova!
-      </Button>
     </div>
   );
 
@@ -600,31 +558,75 @@ const EnemClassroomStartModal = ({
   const showNavigation = step >= FIRST_CHOICE_STEP && step < summaryStep;
   const showStepper = step < summaryStep;
 
-  const footer = showNavigation ? (
-    <div className="flex flex-row justify-end gap-2 w-full">
-      <Button
-        size="medium"
-        variant="outline"
-        action="primary"
-        iconLeft={<CaretLeftIcon size={16} aria-hidden />}
-        onClick={() => setStep((current) => current - 1)}
-        data-testid="enem-classroom-previous"
-      >
-        Anterior
-      </Button>
-      <Button
-        size="medium"
-        variant="solid"
-        action="primary"
-        iconRight={<CaretRightIcon size={16} aria-hidden />}
-        disabled={!canGoNext}
-        onClick={() => setStep((current) => current + 1)}
-        data-testid="enem-classroom-next"
-      >
-        Próximo
-      </Button>
-    </div>
-  ) : undefined;
+  /*
+   * O rodapé do Modal não rola, e é lá que o desenho quer o botão: na
+   * introdução ele leva o CTA; nos passos de escolha, a navegação.
+   */
+  /**
+   * O rodapé do Modal não rola, e é onde o desenho quer o botão de cada passo:
+   * o CTA na introdução, a navegação nos passos de escolha e o de iniciar no
+   * resumo. O "Revisar minhas respostas" fica de fora de propósito — ele mora
+   * dentro do card de respostas.
+   * @returns O rodapé do passo atual, ou nada quando ele não tem botão
+   */
+  const renderFooter = () => {
+    if (currentStep.kind === 'intro') {
+      return (
+        <Button
+          size="large"
+          variant="solid"
+          action="primary"
+          className={cn('w-full', GRADIENT_CTA_CLASSES)}
+          onClick={() => setStep(FIRST_CHOICE_STEP)}
+          data-testid="enem-classroom-intro-continue"
+        >
+          Estou em sala. Quero começar!
+        </Button>
+      );
+    }
+
+    if (currentStep.kind === 'summary') {
+      return (
+        <Button
+          size="large"
+          variant="solid"
+          action="primary"
+          className={cn('w-full', GRADIENT_CTA_CLASSES)}
+          disabled={isStarting}
+          onClick={handleStart}
+          data-testid="enem-classroom-start"
+        >
+          Iniciar a prova!
+        </Button>
+      );
+    }
+
+    return showNavigation ? (
+      <div className="flex flex-row justify-end gap-2 w-full">
+        <Button
+          size="medium"
+          variant="outline"
+          action="primary"
+          iconLeft={<CaretLeftIcon size={16} aria-hidden />}
+          onClick={() => setStep((current) => current - 1)}
+          data-testid="enem-classroom-previous"
+        >
+          Anterior
+        </Button>
+        <Button
+          size="medium"
+          variant="solid"
+          action="primary"
+          iconRight={<CaretRightIcon size={16} aria-hidden />}
+          disabled={!canGoNext}
+          onClick={() => setStep((current) => current + 1)}
+          data-testid="enem-classroom-next"
+        >
+          Próximo
+        </Button>
+      </div>
+    ) : undefined;
+  };
 
   return (
     <Modal
@@ -640,17 +642,26 @@ const EnemClassroomStartModal = ({
         showStepper ? exam.title : <span className="sr-only">{exam.title}</span>
       }
       size="lg"
-      footer={footer}
-      // Com o vídeo preso, quem rola é o bloco de avisos, não o Modal.
-      contentClassName={cn(
-        'flex flex-col gap-6',
-        hasPinnedVideo && 'overflow-hidden'
-      )}
+      footer={renderFooter()}
+      /*
+       * A rolagem sai do Modal e vai para o miolo: título e stepper ficam
+       * parados em cima, o rodapé embaixo, e só o conteúdo entre eles corre.
+       */
+      contentClassName="flex flex-col overflow-hidden"
     >
-      {showStepper && (
-        <Stepper steps={stepperSteps} currentStep={step} size="small" />
-      )}
-      {renderStepContent()}
+      <div className="flex flex-col gap-6 flex-1 min-h-0">
+        {showStepper && (
+          <Stepper
+            steps={stepperSteps}
+            currentStep={step}
+            size="small"
+            className="flex-none"
+          />
+        )}
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          {renderStepContent()}
+        </div>
+      </div>
     </Modal>
   );
 };
