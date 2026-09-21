@@ -2005,7 +2005,7 @@ describe('ActivityListQuestions', () => {
       });
     });
 
-    it('goes back to the unsearched list when the search is cleared', async () => {
+    it('refetches the unsearched first page when the search is cleared, even with the filters cached', async () => {
       renderWithFilters();
       search('Natureza');
       await waitFor(() => {
@@ -2020,10 +2020,35 @@ describe('ActivityListQuestions', () => {
 
       expect(screen.getByPlaceholderText('Buscar questão')).toHaveValue('');
       await waitFor(() => {
-        // The filters are cached, so clearing serves the cache: no request.
-        expect(mockFetchQuestions).not.toHaveBeenCalled();
+        expect(mockFetchQuestions).toHaveBeenCalledTimes(1);
       });
-      expect(screen.getByText('5 questões total')).toBeInTheDocument();
+      const [filtersSent, append] = mockFetchQuestions.mock.calls[0];
+      expect(filtersSent.search).toBeUndefined();
+      expect(append).toBe(false);
+    });
+
+    it('subtracts the questions already on the activity from the counter', () => {
+      mockAppliedFilters.mockReturnValue(filters);
+      mockStoreState.cachedFilters = filters;
+      jest.mocked(areFiltersEqual).mockReturnValue(true);
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [questionNatureza, questionMatematica],
+        pagination: { ...mockPagination, total: 3 },
+        loading: false,
+        loadingMore: false,
+      });
+
+      render(
+        <ActivityListQuestions
+          {...defaultProps}
+          addedQuestionIds={[questionNatureza.id]}
+        />
+      );
+
+      expect(
+        screen.getAllByTestId('activity-card-question-banks')
+      ).toHaveLength(1);
+      expect(screen.getByText('2 questões total')).toBeInTheDocument();
     });
 
     it('should show empty search message when the server finds nothing', async () => {

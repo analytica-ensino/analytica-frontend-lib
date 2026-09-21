@@ -147,7 +147,7 @@ export const ActivityListQuestions = ({
     return cachedQuestions.length > 0;
   }, [hasValidCacheResult, cachedQuestions]);
 
-  const questions = useMemo(() => {
+  const { questions, hiddenAddedCount } = useMemo(() => {
     let sourceQuestions: typeof allQuestions;
 
     const hasFreshData = !loading && pagination !== null;
@@ -174,9 +174,15 @@ export const ActivityListQuestions = ({
       sourceQuestions = allQuestions;
     }
 
-    return sourceQuestions.filter(
+    // Questions already on the activity are hidden here, after the fetch
+    // that counted them — so the counter subtracts them as well.
+    const visible = sourceQuestions.filter(
       (question) => !addedQuestionIds.includes(question.id)
     );
+    return {
+      questions: visible,
+      hiddenAddedCount: sourceQuestions.length - visible.length,
+    };
   }, [
     allQuestions,
     cachedQuestions,
@@ -258,6 +264,7 @@ export const ActivityListQuestions = ({
   const displayedQuestions = questions;
 
   const lastAppliedFiltersRef = useRef(appliedFilters);
+  const lastAppliedSearchRef = useRef(appliedSearch);
 
   /**
    * Initialize from cache if available and filters match
@@ -266,6 +273,11 @@ export const ActivityListQuestions = ({
   useEffect(() => {
     const filtersChanged = lastAppliedFiltersRef.current !== appliedFilters;
     lastAppliedFiltersRef.current = appliedFilters;
+    // Clearing a search must refetch: the hook still holds the results, and
+    // the store cache is only consulted when it has more rows than the hook.
+    const searchCleared =
+      Boolean(lastAppliedSearchRef.current) && !appliedSearch;
+    lastAppliedSearchRef.current = appliedSearch;
 
     if (filtersChanged) {
       // Reset page tracking and the search when filters change. Clearing an
@@ -294,7 +306,7 @@ export const ActivityListQuestions = ({
         return;
       }
 
-      if (hasValidCacheResult) {
+      if (hasValidCacheResult && !searchCleared) {
         // Update page ref to match cached pagination
         if (cachedPagination?.page) {
           lastLoadedPageRef.current = cachedPagination.page;
@@ -416,7 +428,10 @@ export const ActivityListQuestions = ({
     toApiFilters,
   ]);
 
-  const totalQuestions = effectivePagination?.total || 0;
+  const totalQuestions = Math.max(
+    (effectivePagination?.total || 0) - hiddenAddedCount,
+    0
+  );
   const uniqueQuestion = (count = totalQuestions) =>
     count === 1 ? 'questão' : 'questões';
 
