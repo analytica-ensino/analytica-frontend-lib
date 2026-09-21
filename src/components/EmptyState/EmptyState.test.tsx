@@ -1,9 +1,20 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import EmptyState from './EmptyState';
+import { useMobile } from '../../hooks/useMobile';
+
+jest.mock('../../hooks/useMobile', () => ({
+  useMobile: jest.fn(),
+}));
+
+const mockedUseMobile = useMobile as jest.Mock;
 
 describe('EmptyState', () => {
   const mockImage = '/test-image.png';
+
+  beforeEach(() => {
+    mockedUseMobile.mockReturnValue({ isMobile: false });
+  });
 
   describe('Basic Rendering', () => {
     it('should render with required props only', () => {
@@ -228,21 +239,31 @@ describe('EmptyState', () => {
         'max-h-[150px]'
       );
 
-      // Check that the image container has the max dimensions
+      // Check that the image container is fluid up to the max dimensions
       const imageContainer = img.parentElement;
-      expect(imageContainer).toHaveClass('max-w-[170px]', 'max-h-[150px]');
+      expect(imageContainer).toHaveClass(
+        'w-full',
+        'max-w-[170px]',
+        'max-h-[150px]'
+      );
     });
 
-    it('should render ReactNode image with fixed dimensions', () => {
+    it('should render ReactNode image scaled to the container width', () => {
       const CustomIcon = () => <svg data-testid="custom-icon">test</svg>;
       render(<EmptyState image={<CustomIcon />} />);
 
       const icon = screen.getByTestId('custom-icon');
       expect(icon).toBeInTheDocument();
 
-      // Check that the ReactNode container has fixed dimensions
+      // Check that the ReactNode container is fluid and scales the SVG
       const iconContainer = icon.parentElement;
-      expect(iconContainer).toHaveClass('w-[170px]', 'h-[150px]');
+      expect(iconContainer).toHaveClass(
+        'w-full',
+        'max-w-[170px]',
+        'h-[150px]',
+        '[&>svg]:max-w-full',
+        '[&>svg]:h-auto'
+      );
     });
 
     it('should render with minimum height for large variant', () => {
@@ -252,16 +273,44 @@ describe('EmptyState', () => {
 
       const mainContainer = container.firstChild;
       expect(mainContainer).toHaveClass('min-h-[705px]');
+      expect(mainContainer).not.toHaveClass('shrink-0');
     });
 
-    it('should render without minimum height for compact variant', () => {
+    it('should not shrink below content for compact variant', () => {
       const { container } = render(
         <EmptyState image={mockImage} size="compact" />
       );
 
       const mainContainer = container.firstChild;
-      expect(mainContainer).toHaveClass('min-h-0');
-      expect(mainContainer).not.toHaveClass('min-h-[705px]');
+      expect(mainContainer).toHaveClass('shrink-0');
+      expect(mainContainer).not.toHaveClass('min-h-[705px]', 'min-h-0');
+    });
+
+    it('should use default spacing on desktop', () => {
+      const { container } = render(<EmptyState image={mockImage} />);
+
+      const mainContainer = container.firstChild;
+      const textContainer = screen.getByText(
+        'Nenhum dado disponível'
+      ).parentElement;
+      expect(mainContainer).toHaveClass('p-6');
+      expect(mainContainer).not.toHaveClass('p-3');
+      expect(textContainer).toHaveClass('px-6');
+      expect(textContainer).not.toHaveClass('px-0');
+    });
+
+    it('should use tighter spacing on mobile', () => {
+      mockedUseMobile.mockReturnValue({ isMobile: true });
+      const { container } = render(<EmptyState image={mockImage} />);
+
+      const mainContainer = container.firstChild;
+      const textContainer = screen.getByText(
+        'Nenhum dado disponível'
+      ).parentElement;
+      expect(mainContainer).toHaveClass('p-3');
+      expect(mainContainer).not.toHaveClass('p-6');
+      expect(textContainer).toHaveClass('px-0');
+      expect(textContainer).not.toHaveClass('px-6');
     });
 
     it('should render with background and rounded corners', () => {
