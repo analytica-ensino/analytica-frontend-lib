@@ -23,7 +23,7 @@ import type { ActivityFiltersData } from '../../types/activityFilters';
 import type { QuestionsFilterBody } from '../../types/questions';
 import { mapQuestionTypeToEnumRequired } from '../../utils/questionTypeUtils';
 import { areFiltersEqual } from '../../utils/activityFilters';
-import { normalizeText, highlightSearchTerm } from '../../utils/stringUtils';
+import { highlightSearchTerm } from '../../utils/stringUtils';
 import { useSentQuestionIds } from '../../hooks/useSentQuestionIds';
 import Activities from '../../assets/icons/Activities';
 
@@ -62,9 +62,12 @@ export const ActivityListQuestions = ({
   const sentQuestionIds = useSentQuestionIds(apiClient);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [questionCount, setQuestionCount] = useState<number>(1);
+  // What the input shows (every keystroke) and what was sent to the server
+  // (the debounced value). The search runs on `/questions/list` (`search`,
+  // statement only): an in-memory search would need every page of the
+  // filter loaded first, which froze the page on large banks.
   const [searchTerm, setSearchTerm] = useState('');
-  const [isPrefetchingAll, setIsPrefetchingAll] = useState(false);
-  const prefetchDoneRef = useRef(false);
+  const [appliedSearch, setAppliedSearch] = useState('');
   const appliedFilters = useQuestionFiltersStore(
     (state: QuestionFiltersState) => state.appliedFilters
   );
@@ -149,7 +152,10 @@ export const ActivityListQuestions = ({
 
     const hasFreshData = !loading && pagination !== null;
 
-    if (hasFreshData) {
+    if (appliedSearch) {
+      // The cache holds the unsearched list; the hook holds the results.
+      sourceQuestions = allQuestions;
+    } else if (hasFreshData) {
       const shouldUseCacheForPagination =
         filtersMatchCache &&
         cachedQuestions.length > allQuestions.length &&
@@ -178,11 +184,15 @@ export const ActivityListQuestions = ({
     addedQuestionIds,
     loading,
     pagination,
+    appliedSearch,
   ]);
 
   // Use hook's pagination if it has more pages loaded, otherwise use cached
   // This ensures we track progress when loading more pages via infinite scroll
   const effectivePagination = useMemo(() => {
+    if (appliedSearch) {
+      return pagination;
+    }
     if (filtersMatchCache && pagination && cachedPagination) {
       // Only compare pages when cache is valid for current filters
       // Prefer hook's pagination if it has loaded more pages
@@ -194,12 +204,7 @@ export const ActivityListQuestions = ({
       return cachedPagination;
     }
     return pagination;
-  }, [pagination, cachedPagination, filtersMatchCache]);
-
-  const effectivePaginationRef = useRef(effectivePagination);
-  useEffect(() => {
-    effectivePaginationRef.current = effectivePagination;
-  }, [effectivePagination]);
+  }, [pagination, cachedPagination, filtersMatchCache, appliedSearch]);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lastLoadedPageRef = useRef<number>(1);
@@ -250,37 +255,45 @@ export const ActivityListQuestions = ({
     };
   };
 
-  /**
-   * Filtered questions based on in-memory search term
-   */
-  const displayedQuestions = useMemo(() => {
-    if (!searchTerm) return questions;
-    const term = normalizeText(searchTerm);
-    return questions.filter((q) => {
-      const subjectText = getSubjectInfo(q).content;
-      const bankName = q.questionBankYear?.questionBank?.name ?? '';
-      const year = String(q.questionBankYear?.year ?? '');
-      return (
-        normalizeText(subjectText).includes(term) ||
-        normalizeText(q.statement ?? '').includes(term) ||
-        normalizeText(bankName).includes(term) ||
-        normalizeText(year).includes(term)
-      );
-    });
-  }, [questions, searchTerm]);
+  const displayedQuestions = questions;
+
+  const lastAppliedFiltersRef = useRef(appliedFilters);
 
   /**
    * Initialize from cache if available and filters match
    * Only fetch if cache is invalid or filters changed
    */
   useEffect(() => {
-    // Reset page tracking when filters change
-    lastLoadedPageRef.current = 1;
-    // Reset search state when filters change
-    setSearchTerm('');
-    prefetchDoneRef.current = false;
+    const filtersChanged = lastAppliedFiltersRef.current !== appliedFilters;
+    lastAppliedFiltersRef.current = appliedFilters;
+
+    if (filtersChanged) {
+      // Reset page tracking and the search when filters change. Clearing an
+      // active search re-runs this effect without it, on the path below.
+      lastLoadedPageRef.current = 1;
+      setSearchTerm('');
+      if (appliedSearch) {
+        setAppliedSearch('');
+        return;
+      }
+    }
 
     if (appliedFilters) {
+      if (appliedSearch) {
+        // A search is never served from (or written to) the store cache.
+        fetchQuestions(
+          {
+            ...toApiFilters(appliedFilters),
+            search: appliedSearch,
+            ...(addedQuestionIdsRef.current.length > 0 && {
+              selectedQuestionsIds: addedQuestionIdsRef.current,
+            }),
+          },
+          false
+        );
+        return;
+      }
+
       if (hasValidCacheResult) {
         // Update page ref to match cached pagination
         if (cachedPagination?.page) {
@@ -302,6 +315,7 @@ export const ActivityListQuestions = ({
     }
   }, [
     appliedFilters,
+    appliedSearch,
     fetchQuestions,
     reset,
     hasValidCacheResult,
@@ -310,7 +324,7 @@ export const ActivityListQuestions = ({
   ]); // cachedPagination intentionally excluded: it changes every page load and would wipe searchTerm on each scroll
 
   useEffect(() => {
-    if (appliedFilters && pagination) {
+    if (appliedFilters && pagination && !appliedSearch) {
       setCachedQuestions(
         allQuestions,
         pagination,
@@ -323,6 +337,7 @@ export const ActivityListQuestions = ({
     allQuestions,
     pagination,
     appliedFilters,
+    appliedSearch,
     institutionId,
     setCachedQuestions,
   ]);
@@ -336,56 +351,6 @@ export const ActivityListQuestions = ({
       lastLoadedPageRef.current = effectivePagination.page;
     }
   }, [effectivePagination?.page]);
-
-  /**
-   * Pre-fetch all remaining pages when user starts typing a search term.
-   * Only triggers once per set of applied filters (tracked by prefetchDoneRef).
-   * If all pages are already loaded (single page), marks done immediately.
-   */
-  useEffect(() => {
-    if (!searchTerm || !appliedFilters || prefetchDoneRef.current) return;
-
-    const pag = effectivePaginationRef.current;
-    const total = pag?.total ?? 0;
-    const pageSize = pag?.pageSize ?? 10;
-
-    // Only prefetch if there are multiple pages
-    if (total <= pageSize || !pag?.hasNext) {
-      prefetchDoneRef.current = true;
-      return;
-    }
-
-    let cancelled = false;
-
-    const prefetchAll = async () => {
-      setIsPrefetchingAll(true);
-      prefetchDoneRef.current = true; // mark immediately to avoid re-entry
-
-      try {
-        const apiFilters = appliedFilters
-          ? toApiFilters(appliedFilters)
-          : undefined;
-
-        const totalPages = pag?.totalPages ?? 1;
-        const currentPage = pag?.page ?? 1;
-
-        for (let page = currentPage + 1; page <= totalPages; page++) {
-          if (cancelled) break;
-          await fetchQuestions({ ...apiFilters, page }, true);
-        }
-      } finally {
-        if (!cancelled) setIsPrefetchingAll(false);
-      }
-    };
-
-    prefetchAll();
-    return () => {
-      // Reset so a cancelled prefetch never freezes the UI or blocks the next search
-      cancelled = true;
-      prefetchDoneRef.current = false;
-      setIsPrefetchingAll(false);
-    };
-  }, [searchTerm, appliedFilters, fetchQuestions, toApiFilters]); // effectivePagination intentionally excluded: read via ref to avoid cancelling the loop on each page load
 
   /**
    * Calculate progressive scroll threshold based on current page
@@ -452,21 +417,14 @@ export const ActivityListQuestions = ({
   ]);
 
   const totalQuestions = effectivePagination?.total || 0;
-  const displayedCount = searchTerm
-    ? displayedQuestions.length
-    : totalQuestions;
-  const uniqueQuestion = (count = displayedCount) =>
+  const uniqueQuestion = (count = totalQuestions) =>
     count === 1 ? 'questão' : 'questões';
 
   const getStatusText = () => {
-    if (loading && !isPrefetchingAll && displayedQuestions.length === 0) {
-      return 'Carregando...';
+    if (loading && displayedQuestions.length === 0) {
+      return appliedSearch ? 'Buscando...' : 'Carregando...';
     }
-    if (isPrefetchingAll) {
-      const agreement = displayedCount === 1 ? 'encontrada' : 'encontradas';
-      return `Buscando... (${displayedCount} ${uniqueQuestion(displayedCount)} ${agreement})`;
-    }
-    return `${displayedCount} ${uniqueQuestion(displayedCount)} total`;
+    return `${totalQuestions} ${uniqueQuestion()} total`;
   };
 
   /**
@@ -513,20 +471,7 @@ export const ActivityListQuestions = ({
    * Renders the appropriate content based on loading, error, and questions state
    */
   const renderQuestionsContent = () => {
-    // During prefetch, if no matches found yet in loaded pages, show skeleton instead of blank
-    if (isPrefetchingAll && displayedQuestions.length === 0) {
-      return (
-        <div className="flex flex-col gap-2">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="p-4 border rounded">
-              <SkeletonText lines={2} />
-            </div>
-          ))}
-        </div>
-      );
-    }
-
-    if (loading && displayedQuestions.length === 0 && !searchTerm) {
+    if (loading && displayedQuestions.length === 0) {
       return (
         <div className="flex flex-col gap-2">
           {[1, 2, 3].map((i) => (
@@ -548,12 +493,12 @@ export const ActivityListQuestions = ({
       );
     }
 
-    if (displayedQuestions.length === 0 && !isPrefetchingAll) {
-      if (searchTerm) {
+    if (displayedQuestions.length === 0) {
+      if (appliedSearch) {
         return (
           <div className="flex items-center justify-center h-full">
             <Text size="md" className="text-text-600">
-              Nenhuma questão encontrada para &quot;{searchTerm}&quot;.
+              Nenhuma questão encontrada para &quot;{appliedSearch}&quot;.
             </Text>
           </div>
         );
@@ -602,8 +547,8 @@ export const ActivityListQuestions = ({
               bank={question.questionBankYear?.questionBank?.name}
               year={question.questionBankYear?.year}
               statement={
-                searchTerm
-                  ? highlightSearchTerm(question.statement ?? '', searchTerm)
+                appliedSearch
+                  ? highlightSearchTerm(question.statement ?? '', appliedSearch)
                   : question.statement
               }
               additionalContent={question.additionalContent}
@@ -646,8 +591,11 @@ export const ActivityListQuestions = ({
             <Search
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              onSearch={(val) => setSearchTerm(val)}
-              onClear={() => setSearchTerm('')}
+              onSearch={(val) => setAppliedSearch(val.trim())}
+              onClear={() => {
+                setSearchTerm('');
+                setAppliedSearch('');
+              }}
               options={[]}
               showDropdown={false}
               placeholder="Buscar questão"

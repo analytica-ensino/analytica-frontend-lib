@@ -1881,7 +1881,7 @@ describe('ActivityListQuestions', () => {
     });
   });
 
-  describe('In-memory search feature', () => {
+  describe('Server-side search', () => {
     const filters = {
       types: [QUESTION_TYPE.ALTERNATIVA],
       bankIds: [],
@@ -1905,36 +1905,12 @@ describe('ActivityListQuestions', () => {
       ...mockQuestion,
       id: 'question-natureza',
       statement: 'Questão sobre natureza',
-      knowledgeMatrix: [
-        {
-          subject: {
-            id: 'subject-natureza',
-            name: 'Natureza',
-            color: '#00AA00',
-            icon: 'Tree',
-          },
-          topic: null,
-          subtopic: null,
-        },
-      ],
     };
 
     const questionMatematica: Question = {
       ...mockQuestion,
       id: 'question-matematica',
       statement: 'Questão sobre matemática',
-      knowledgeMatrix: [
-        {
-          subject: {
-            id: 'subject-matematica',
-            name: 'Matemática',
-            color: '#FF0000',
-            icon: 'Calculator',
-          },
-          topic: null,
-          subtopic: null,
-        },
-      ],
     };
 
     const renderWithFilters = () => {
@@ -1950,6 +1926,14 @@ describe('ActivityListQuestions', () => {
       });
 
       return render(<ActivityListQuestions {...defaultProps} />);
+    };
+
+    /** Types into the box and fires the (debounced) onSearch the way the real Search does. */
+    const search = (value: string) => {
+      fireEvent.change(screen.getByPlaceholderText('Buscar questão'), {
+        target: { value },
+      });
+      fireEvent.click(screen.getByTestId('search-submit'));
     };
 
     it('should NOT show search input when appliedFilters is null', () => {
@@ -1968,78 +1952,110 @@ describe('ActivityListQuestions', () => {
       expect(screen.getByPlaceholderText('Buscar questão')).toBeInTheDocument();
     });
 
-    it('should filter questions by subject when typing a search term', () => {
+    it('asks the server for the term, trimmed, on top of the applied filters', async () => {
       renderWithFilters();
+      mockFetchQuestions.mockClear();
 
-      const searchInput = screen.getByPlaceholderText('Buscar questão');
-      fireEvent.change(searchInput, { target: { value: 'Natureza' } });
+      search('  Natureza ');
 
-      const cards = screen.getAllByTestId('activity-card-question-banks');
-      expect(cards).toHaveLength(1);
-      expect(cards[0]).toHaveAttribute('data-content', 'Natureza');
+      await waitFor(() => {
+        expect(mockFetchQuestions).toHaveBeenCalledWith(
+          expect.objectContaining({
+            search: 'Natureza',
+            types: [QUESTION_TYPE.ALTERNATIVA],
+          }),
+          false
+        );
+      });
+      // Never pre-fetches the other pages: the server did the filtering.
+      expect(mockFetchQuestions).not.toHaveBeenCalledWith(
+        expect.objectContaining({ page: 2 }),
+        true
+      );
     });
 
-    it('should show in-memory count in counter when searchTerm is active', () => {
+    it('does not filter the loaded list in memory while typing', () => {
       renderWithFilters();
 
-      const searchInput = screen.getByPlaceholderText('Buscar questão');
-      fireEvent.change(searchInput, { target: { value: 'Natureza' } });
+      fireEvent.change(screen.getByPlaceholderText('Buscar questão'), {
+        target: { value: 'Natureza' },
+      });
 
-      // 1 match → should show "1 questão total"
-      expect(screen.getByText('1 questão total')).toBeInTheDocument();
+      expect(
+        screen.getAllByTestId('activity-card-question-banks')
+      ).toHaveLength(2);
+      expect(mockFetchQuestions).not.toHaveBeenCalledWith(
+        expect.objectContaining({ search: 'Natureza' }),
+        false
+      );
     });
 
-    it('should restore server total in counter when search is cleared', () => {
+    it('shows the server total while a search is active', async () => {
+      const { rerender } = renderWithFilters();
+      search('Natureza');
+
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [questionNatureza],
+        pagination: { ...mockPagination, total: 1 },
+      });
+      rerender(<ActivityListQuestions {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('1 questão total')).toBeInTheDocument();
+      });
+    });
+
+    it('goes back to the unsearched list when the search is cleared', async () => {
       renderWithFilters();
+      search('Natureza');
+      await waitFor(() => {
+        expect(mockFetchQuestions).toHaveBeenCalledWith(
+          expect.objectContaining({ search: 'Natureza' }),
+          false
+        );
+      });
+      mockFetchQuestions.mockClear();
 
-      const searchInput = screen.getByPlaceholderText('Buscar questão');
-      fireEvent.change(searchInput, { target: { value: 'Natureza' } });
+      fireEvent.click(screen.getByTestId('search-clear'));
 
-      // Confirm filtered count is shown
-      expect(screen.getByText('1 questão total')).toBeInTheDocument();
-
-      // Clear the search
-      fireEvent.change(searchInput, { target: { value: '' } });
-
-      // Server total is 5
+      expect(screen.getByPlaceholderText('Buscar questão')).toHaveValue('');
+      await waitFor(() => {
+        // The filters are cached, so clearing serves the cache: no request.
+        expect(mockFetchQuestions).not.toHaveBeenCalled();
+      });
       expect(screen.getByText('5 questões total')).toBeInTheDocument();
     });
 
-    it('should show empty search message when no questions match the term', () => {
-      renderWithFilters();
+    it('should show empty search message when the server finds nothing', async () => {
+      const { rerender } = renderWithFilters();
+      search('xyznonexistent');
 
-      const searchInput = screen.getByPlaceholderText('Buscar questão');
-      fireEvent.change(searchInput, { target: { value: 'xyznonexistent' } });
+      Object.assign(mockUseQuestionsListReturn, {
+        questions: [],
+        pagination: { ...mockPagination, total: 0 },
+      });
+      rerender(<ActivityListQuestions {...defaultProps} />);
 
-      expect(
-        screen.getByText(/Nenhuma questão encontrada para/)
-      ).toBeInTheDocument();
+      await waitFor(() => {
+        expect(
+          screen.getByText(/Nenhuma questão encontrada para/)
+        ).toBeInTheDocument();
+      });
     });
 
-    it('should clear search term via onClear callback', () => {
+    it('does not write search results into the filters cache', async () => {
       renderWithFilters();
+      mockSetCachedQuestions.mockClear();
 
-      const searchInput = screen.getByPlaceholderText('Buscar questão');
-      fireEvent.change(searchInput, { target: { value: 'Natureza' } });
-      expect(searchInput).toHaveValue('Natureza');
+      search('Natureza');
 
-      const clearButton = screen.getByTestId('search-clear');
-      fireEvent.click(clearButton);
-
-      expect(searchInput).toHaveValue('');
-    });
-
-    it('should update search term via onSearch callback', () => {
-      renderWithFilters();
-
-      const searchInput = screen.getByPlaceholderText('Buscar questão');
-      fireEvent.change(searchInput, { target: { value: 'Natu' } });
-
-      const submitButton = screen.getByTestId('search-submit');
-      fireEvent.click(submitButton);
-
-      // onSearch fires with the current value; searchTerm stays the same
-      expect(searchInput).toHaveValue('Natu');
+      await waitFor(() => {
+        expect(mockFetchQuestions).toHaveBeenCalledWith(
+          expect.objectContaining({ search: 'Natureza' }),
+          false
+        );
+      });
+      expect(mockSetCachedQuestions).not.toHaveBeenCalled();
     });
 
     it('should reset search state when appliedFilters changes', async () => {
@@ -2144,90 +2160,6 @@ describe('ActivityListQuestions', () => {
         undefined,
         expect.objectContaining({ page: 9, hasNext: true })
       );
-    });
-  });
-
-  describe('Prefetch on multi-page search', () => {
-    const filters = {
-      types: [QUESTION_TYPE.ALTERNATIVA],
-      bankIds: [],
-      yearIds: [],
-      knowledgeIds: [],
-      topicIds: [],
-      subtopicIds: [],
-      contentIds: [],
-    };
-
-    const multiPagePagination = {
-      page: 1,
-      pageSize: 10,
-      total: 30,
-      totalPages: 3,
-      hasNext: true,
-      hasPrevious: false,
-    };
-
-    beforeEach(() => {
-      mockAppliedFilters.mockReturnValue(filters);
-      mockStoreState.cachedFilters = filters;
-      mockStoreState.cachedQuestions = [];
-      mockStoreState.cachedPagination = null;
-      jest.mocked(areFiltersEqual).mockReturnValue(true);
-
-      Object.assign(mockUseQuestionsListReturn, {
-        questions: [mockQuestion],
-        pagination: multiPagePagination,
-        loading: false,
-        loadingMore: false,
-      });
-    });
-
-    it('should prefetch remaining pages when search term is typed', async () => {
-      mockFetchQuestions.mockResolvedValue(undefined);
-
-      render(<ActivityListQuestions {...defaultProps} />);
-
-      const searchInput = screen.getByPlaceholderText('Buscar questão');
-      fireEvent.change(searchInput, { target: { value: 'teste' } });
-
-      await waitFor(() => {
-        expect(mockFetchQuestions).toHaveBeenCalledWith(
-          expect.objectContaining({ page: 2 }),
-          true
-        );
-        expect(mockFetchQuestions).toHaveBeenCalledWith(
-          expect.objectContaining({ page: 3 }),
-          true
-        );
-      });
-    });
-
-    it('should show "Buscando..." text while prefetch is in progress', async () => {
-      mockFetchQuestions.mockImplementation(() => new Promise(() => {}));
-
-      render(<ActivityListQuestions {...defaultProps} />);
-
-      const searchInput = screen.getByPlaceholderText('Buscar questão');
-      fireEvent.change(searchInput, { target: { value: 'Matemática' } });
-
-      await waitFor(() => {
-        expect(screen.getByText(/Buscando\.\.\./)).toBeInTheDocument();
-      });
-    });
-
-    it('should show skeleton while prefetching and no questions match search', async () => {
-      mockFetchQuestions.mockImplementation(() => new Promise(() => {}));
-
-      render(<ActivityListQuestions {...defaultProps} />);
-
-      const searchInput = screen.getByPlaceholderText('Buscar questão');
-      // 'historia' does not match mockQuestion (Matemática / Test question statement)
-      fireEvent.change(searchInput, { target: { value: 'historia' } });
-
-      await waitFor(() => {
-        const skeletons = screen.getAllByTestId('skeleton-text');
-        expect(skeletons.length).toBeGreaterThan(0);
-      });
     });
   });
 
