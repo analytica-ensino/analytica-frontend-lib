@@ -1,6 +1,7 @@
 import { type ReactNode } from 'react';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
+import { useMobile } from '../../hooks/useMobile';
 
 export interface EmptyStateProps {
   /**
@@ -88,6 +89,7 @@ const EmptyState = ({
   buttonAction = 'primary',
   size = 'large',
 }: EmptyStateProps) => {
+  const { isMobile } = useMobile();
   const displayTitle = title || 'Nenhum dado disponível';
   const displayDescription =
     description || 'Não há dados para exibir no momento.';
@@ -102,15 +104,22 @@ const EmptyState = ({
       ? 'text-text-600 text-sm font-normal text-center'
       : 'text-text-600 text-[18px] font-normal text-center';
 
-  const containerMinHeight = size === 'compact' ? 'min-h-0' : 'min-h-[705px]';
+  // Compact variant must never shrink below its content when rendered as a
+  // flex item inside a fixed-height column (e.g. LessonPreview/ActivityPreview
+  // with overflow-y-auto); otherwise the centered content overflows both ends.
+  const containerSizeClass = size === 'compact' ? 'shrink-0' : 'min-h-[705px]';
+
+  // Tighter spacing on mobile so the text column keeps a readable width
+  const containerPadding = isMobile ? 'p-3' : 'p-6';
+  const textPadding = isMobile ? 'px-0' : 'px-6';
 
   return (
     <div
-      className={`flex flex-col justify-center items-center gap-6 w-full ${containerMinHeight} bg-background rounded-xl p-6`}
+      className={`flex flex-col justify-center items-center gap-6 w-full ${containerSizeClass} bg-background rounded-xl ${containerPadding}`}
     >
       {/* Illustration */}
       {image && (
-        <div className="max-w-[170px] max-h-[150px] flex items-center justify-center">
+        <div className="w-full max-w-[170px] max-h-[150px] flex items-center justify-center">
           {typeof image === 'string' ? (
             <img
               src={image}
@@ -118,7 +127,7 @@ const EmptyState = ({
               className="w-full h-full max-w-[170px] max-h-[150px]"
             />
           ) : (
-            <div className="w-[170px] h-[150px] flex items-center justify-center">
+            <div className="w-full max-w-[170px] h-[150px] flex items-center justify-center [&>svg]:max-w-full [&>svg]:h-auto">
               {image}
             </div>
           )}
@@ -126,7 +135,9 @@ const EmptyState = ({
       )}
 
       {/* Text Content Container */}
-      <div className="flex flex-col items-center gap-4 w-full max-w-[600px] px-6">
+      <div
+        className={`flex flex-col items-center gap-4 w-full max-w-[600px] ${textPadding}`}
+      >
         {/* Title */}
         <Text as="h2" className={titleClassName}>
           {displayTitle}
