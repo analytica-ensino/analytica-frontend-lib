@@ -9,31 +9,43 @@ export const ActivityCreateSkeleton = () => {
   return (
     <div
       data-testid="create-activity-page"
-      className="flex flex-col w-full h-screen overflow-hidden p-5 bg-background"
+      className="flex flex-col w-full h-full overflow-hidden p-4 bg-background min-[1200px]:p-5"
     >
-      {/* Header Section Skeleton */}
-      <div className="w-full h-[80px] flex flex-row items-center justify-between px-6 gap-3 flex-shrink-0">
-        <section className="text-text-950">
-          <Skeleton variant="rectangular" width={32} height={32} />
-        </section>
-
-        <section className="flex flex-col gap-0.5 w-full">
-          <div className="flex flex-row items-center justify-between w-full text-text-950">
+      {/* Header Section Skeleton — mirrors ActivityCreateHeader's reflow */}
+      <section className="w-full flex flex-col gap-0.5 flex-shrink-0 min-[1200px]:h-[80px] min-[1200px]:justify-center min-[1200px]:px-4">
+        <div className="flex flex-col gap-2 min-[1200px]:flex-row min-[1200px]:items-center min-[1200px]:justify-between min-[1200px]:gap-3">
+          <div className="flex flex-row items-center gap-1 min-w-0">
+            <Skeleton variant="rectangular" width={32} height={32} />
             <SkeletonText width={180} height={24} />
-            <div className="flex flex-row gap-4 items-center">
+          </div>
+
+          <div className="flex flex-row flex-wrap items-center justify-end gap-2 min-[1200px]:flex-nowrap min-[1200px]:gap-4">
+            <div className="mr-auto min-[1200px]:mr-0">
               <SkeletonText width={150} height={16} />
+            </div>
+            {/* Grouped so the pair wraps as one unit, like the real buttons */}
+            <div className="flex flex-row items-center gap-2 min-[1200px]:gap-4">
               <Skeleton variant="rounded" width={120} height={32} />
               <Skeleton variant="rounded" width={140} height={32} />
             </div>
           </div>
-          <SkeletonText width={400} height={16} />
-        </section>
-      </div>
+        </div>
 
-      {/* Main Content with 3 columns - Skeleton */}
+        {/* Caps at the real description's width without overflowing a phone */}
+        <div className="w-full max-w-[400px]">
+          <SkeletonText width="100%" height={16} />
+        </div>
+      </section>
+
+      {/*
+        Main Content — three columns above 1200px, question list only below,
+        matching the SmallScreenLayout/DesktopLayout split the page itself makes.
+        Hiding by CSS is safe here (unlike the real body) because the skeleton
+        issues no requests and exposes no duplicate testids or controls.
+      */}
       <div className="flex flex-row w-full flex-1 overflow-hidden gap-5 min-h-0">
         {/* First Column - Filters Skeleton */}
-        <div className="flex flex-col gap-3 overflow-hidden h-full min-h-0 max-h-full relative w-[400px] flex-shrink-0 p-4 bg-background">
+        <div className="hidden min-[1200px]:flex flex-col gap-3 overflow-hidden h-full min-h-0 max-h-full relative w-[400px] flex-shrink-0 p-4 bg-background">
           <SkeletonText width={150} height={20} />
           <div className="flex flex-col gap-4 mt-4">
             <div className="flex flex-col gap-3">
@@ -100,7 +112,7 @@ export const ActivityCreateSkeleton = () => {
         </div>
 
         {/* Third Column - Activity Preview Skeleton */}
-        <div className="w-[470px] flex-shrink-0 overflow-hidden h-full min-h-0 p-4">
+        <div className="hidden min-[1200px]:block w-[470px] flex-shrink-0 overflow-hidden h-full min-h-0 p-4">
           <div className="flex flex-col gap-4 h-full">
             <div className="flex flex-col gap-2">
               <SkeletonText width={200} height={20} />

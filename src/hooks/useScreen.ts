@@ -119,7 +119,14 @@ export const useMobile = () => {
  * @returns true if the screen width is <= 1200px, false otherwise
  */
 export const useTabletScreen = () => {
-  const [isSmallScreen, setIsSmallScreen] = useState(false);
+  /*
+    Resolved synchronously on the first render. Starting at `false` meant the
+    first paint on a phone was always the desktop three-column layout, which
+    then jumped to the narrow one as soon as the effect ran.
+  */
+  const [isSmallScreen, setIsSmallScreen] = useState(
+    () => window.innerWidth <= SMALL_SCREEN_WIDTH
+  );
 
   useEffect(() => {
     const checkScreenSize = () => {

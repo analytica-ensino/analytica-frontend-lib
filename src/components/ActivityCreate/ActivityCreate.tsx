@@ -1171,7 +1171,7 @@ const CreateActivity = ({
   return (
     <div
       data-testid="create-activity-page"
-      className="flex flex-col w-full h-full overflow-hidden p-5 bg-background"
+      className="flex flex-col w-full h-full overflow-hidden p-4 bg-background min-[1200px]:p-5"
     >
       {/* Header Section */}
       <ActivityCreateHeader
