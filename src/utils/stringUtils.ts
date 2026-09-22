@@ -47,12 +47,119 @@ export function normalizeText(value: string): string {
   return value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 }
 
+/** Anything that is not a letter or a digit — the server folds these to spaces. */
+const NON_ALPHANUMERIC = /[^\p{L}\p{N}]/u;
+
+/**
+ * A text projected into the space the server matches in, plus the map back.
+ *
+ * `normalized[i]` came from `sourceIndex[i]` of the original string, so a match
+ * found in the normalized text can be sliced out of the original one — which is
+ * what keeps the accents and punctuation on screen while matching without them.
+ */
+type NormalizedProjection = {
+  normalized: string;
+  /** Original index each normalized character came from. */
+  sourceIndex: number[];
+  /** Index just past the original character each normalized char came from. */
+  sourceEnd: number[];
+};
+
+/**
+ * Project a string the way the server's `question_search_text` does: drop
+ * accents, lowercase, turn every non-alphanumeric character into a space and
+ * collapse runs of spaces.
+ *
+ * Iterates by code point rather than by UTF-16 index so surrogate pairs (emoji,
+ * some math symbols) are never split in half.
+ */
+function project(text: string): NormalizedProjection {
+  let normalized = '';
+  const sourceIndex: number[] = [];
+  const sourceEnd: number[] = [];
+  let cursor = 0;
+
+  for (const char of text) {
+    const start = cursor;
+    cursor += char.length;
+
+    if (NON_ALPHANUMERIC.test(char)) {
+      // Collapse: a space is only worth emitting after real content.
+      if (normalized.length > 0 && !normalized.endsWith(' ')) {
+        normalized += ' ';
+        sourceIndex.push(start);
+        sourceEnd.push(cursor);
+      }
+      continue;
+    }
+
+    // A single source character can normalize to more than one (and a
+    // combining mark to none), so every emitted character maps back on its own.
+    for (const normalizedChar of normalizeText(char)) {
+      normalized += normalizedChar;
+      sourceIndex.push(start);
+      sourceEnd.push(cursor);
+    }
+  }
+
+  return { normalized, sourceIndex, sourceEnd };
+}
+
+/** Ranges of the ORIGINAL text to highlight, in order and non-overlapping. */
+function findRanges(
+  projection: NormalizedProjection,
+  needles: string[]
+): Array<{ start: number; end: number }> {
+  const ranges: Array<{ start: number; end: number }> = [];
+
+  for (const needle of needles) {
+    let from = 0;
+    let at = projection.normalized.indexOf(needle, from);
+    while (at !== -1) {
+      ranges.push({
+        start: projection.sourceIndex[at],
+        end: projection.sourceEnd[at + needle.length - 1],
+      });
+      from = at + needle.length;
+      at = projection.normalized.indexOf(needle, from);
+    }
+  }
+
+  // Different needles can overlap (the tokens of a phrase against each other),
+  // and a fragment must not be built from overlapping slices. Longest-first on
+  // a tie keeps the wider match. Comparing against the last KEPT range, not the
+  // previous one in the array: a dropped range must not become the reference,
+  // or a third range nested inside the first would be let back in.
+  ranges.sort((a, b) => a.start - b.start || b.end - a.end);
+
+  const kept: Array<{ start: number; end: number }> = [];
+  for (const range of ranges) {
+    const last = kept[kept.length - 1];
+    if (!last || range.start >= last.end) kept.push(range);
+  }
+  return kept;
+}
+
 /**
  * Wrap every occurrence of a search term in a highlight `<span>` inside an HTML string.
  *
  * Traverses only text nodes so HTML tags, attributes, and entities are never touched.
- * Matching is case-insensitive and regex special characters in the term are escaped.
  * SSR-safe: returns the original HTML unchanged when running outside a browser context.
+ *
+ * Matching mirrors the server's `question_search_text`: accents, case,
+ * punctuation and repeated whitespace are all ignored, so the phrase the server
+ * matched is the phrase that lights up. Before this, matching was a plain
+ * case-insensitive regex — the server answered `"educacao"` with a question
+ * about `"educação"` and the frontend then highlighted nothing at all, leaving
+ * the person to guess why the result was in the list.
+ *
+ * The whole term is highlighted when it is present; otherwise each of its words
+ * is, which is what the results matched by scattered words need.
+ *
+ * Known limitation: a phrase split across tags (`<b>fotossíntese</b> é`) is not
+ * highlighted, because the walk works one text node at a time and the phrase
+ * exists in neither node alone. The server strips the tags before matching, so
+ * such a question can be a legitimate result with nothing lit up in it.
  *
  * @param html - The HTML string to annotate (e.g. a question statement)
  * @param term - The search term to highlight
@@ -63,6 +170,9 @@ export function normalizeText(value: string): string {
  * highlightSearchTerm('<p>Hello World</p>', 'world')
  * // '<p>Hello <span style="color:#2883D7;font-weight:600">World</span></p>'
  *
+ * highlightSearchTerm('<p>Educação básica</p>', 'educacao')
+ * // '<p><span style="color:#2883D7;font-weight:600">Educação</span> básica</p>'
+ *
  * highlightSearchTerm('<span class="katex">math</span>', 'katex')
  * // '<span class="katex">math</span>'  ← tag/attribute left intact
  */
@@ -70,30 +180,45 @@ export function highlightSearchTerm(html: string, term: string): string {
   if (!term || !html) return html;
   if (globalThis.window === undefined) return html;
 
-  const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
-  const matchRegex = new RegExp(escaped, 'gi');
+  const phrase = project(term).normalized.trim();
+  if (!phrase) return html;
+
+  const tokens = phrase.split(' ').filter(Boolean);
 
   const container = document.createElement('div');
   container.innerHTML = html;
 
   const highlightTextNode = (textNode: Text): void => {
     const text = textNode.data;
-    const matches = text.match(matchRegex);
-    if (!matches) return;
+    const projection = project(text);
 
-    const parts = text.split(matchRegex);
+    // The phrase as typed wins; the individual words are the fallback for the
+    // results the server matched with the words out of order.
+    let ranges = findRanges(projection, [phrase]);
+    if (ranges.length === 0 && tokens.length > 1) {
+      ranges = findRanges(projection, tokens);
+    }
+    if (ranges.length === 0) return;
+
     const fragment = document.createDocumentFragment();
+    let cursor = 0;
 
-    parts.forEach((part, i) => {
-      if (part) fragment.append(document.createTextNode(part));
-      if (i < matches.length) {
-        const span = document.createElement('span');
-        span.style.color = HIGHLIGHT_COLOR;
-        span.style.fontWeight = '600';
-        span.textContent = matches[i];
-        fragment.append(span);
+    for (const range of ranges) {
+      if (range.start > cursor) {
+        fragment.append(
+          document.createTextNode(text.slice(cursor, range.start))
+        );
       }
-    });
+      const span = document.createElement('span');
+      span.style.color = HIGHLIGHT_COLOR;
+      span.style.fontWeight = '600';
+      span.textContent = text.slice(range.start, range.end);
+      fragment.append(span);
+      cursor = range.end;
+    }
+    if (cursor < text.length) {
+      fragment.append(document.createTextNode(text.slice(cursor)));
+    }
 
     textNode.replaceWith(fragment);
   };

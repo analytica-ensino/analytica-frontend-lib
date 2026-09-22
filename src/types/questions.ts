@@ -60,6 +60,12 @@ export interface Pagination {
  * Questions filter body interface
  */
 export interface QuestionsFilterBody {
+  /**
+   * Free-text term matched against the question statement, server-side.
+   * The server ranks the results by how well they match it, so the order it
+   * returns is meaningful and must not be re-sorted on the client.
+   */
+  search?: string;
   questionType?: QUESTION_TYPE[];
   questionBankYearId?: string[];
   subjectId?: string[];
