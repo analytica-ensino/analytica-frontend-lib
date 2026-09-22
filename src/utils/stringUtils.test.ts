@@ -172,5 +172,65 @@ describe('stringUtils', () => {
     it('should return the original html when html is empty', () => {
       expect(highlightSearchTerm('', 'hello')).toBe('');
     });
+
+    it('should return the original html when the term is only punctuation', () => {
+      const input = '<p>Hello</p>';
+      expect(highlightSearchTerm(input, '...')).toBe(input);
+    });
+
+    // The server matches accent-insensitively (question_search_text). When the
+    // highlight did not, a result could come back with nothing lit up in it and
+    // no way to tell why it matched.
+    const countSpans = (html: string) => html.match(/<span/g)?.length ?? 0;
+
+    it('should match without accents and keep them on screen', () => {
+      const result = highlightSearchTerm('<p>Educação básica</p>', 'educacao');
+      expect(countSpans(result)).toBe(1);
+      expect(result).toContain('>Educação</span>');
+    });
+
+    it('should match an accented term against unaccented text', () => {
+      const result = highlightSearchTerm('<p>Educacao basica</p>', 'educação');
+      expect(countSpans(result)).toBe(1);
+      expect(result).toContain('>Educacao</span>');
+    });
+
+    it('should ignore punctuation between the words of the phrase', () => {
+      const result = highlightSearchTerm(
+        '<p>a fotossíntese, é um processo</p>',
+        'fotossintese e'
+      );
+      expect(countSpans(result)).toBe(1);
+      expect(result).toContain('>fotossíntese, é</span>');
+    });
+
+    it('should highlight each word when the phrase is out of order', () => {
+      // These are the results the server now returns via its token branch; with
+      // no fallback they would arrive with nothing highlighted.
+      const result = highlightSearchTerm(
+        '<p>A estufa tem efeito no cultivo</p>',
+        'efeito estufa'
+      );
+      expect(countSpans(result)).toBe(2);
+      expect(result).toContain('>estufa</span>');
+      expect(result).toContain('>efeito</span>');
+    });
+
+    it('should prefer the whole phrase over its separate words', () => {
+      const result = highlightSearchTerm(
+        '<p>o efeito estufa hoje</p>',
+        'efeito estufa'
+      );
+      expect(countSpans(result)).toBe(1);
+      expect(result).toContain('>efeito estufa</span>');
+    });
+
+    it('should not highlight a single word split across tags (known limit)', () => {
+      // The walk works one text node at a time and the word is in neither node
+      // alone. The server strips the tags before matching, so this question can
+      // legitimately be a result with nothing lit up.
+      const input = '<p>fotos<b>síntese</b></p>';
+      expect(highlightSearchTerm(input, 'fotossintese')).toBe(input);
+    });
   });
 });
