@@ -50,6 +50,9 @@ export function normalizeText(value: string): string {
 /** Anything that is not a letter or a digit — the server folds these to spaces. */
 const NON_ALPHANUMERIC = /[^\p{L}\p{N}]/u;
 
+/** A combining mark: the accent half of a decomposed (NFD) character. */
+const COMBINING_MARK = /\p{M}/u;
+
 /**
  * A text projected into the space the server matches in, plus the map back.
  *
@@ -83,6 +86,20 @@ function project(text: string): NormalizedProjection {
     const start = cursor;
     cursor += char.length;
 
+    // A decomposed accent (NFD: "c" + U+0327) has to vanish exactly as it does
+    // inside normalizeText, which strips marks after its own NFD pass. It is
+    // neither a letter nor a digit, so without this it would fall into the
+    // branch below and become a SEPARATOR: "Educação" written decomposed
+    // projected to "educac a o" while the precomposed form gave "educacao", and
+    // a search for "educacao" then matched one and not the other.
+    if (COMBINING_MARK.test(char)) {
+      // Absorb it into the base character's range so a match ending on an
+      // accented letter still slices the accent along with it, instead of
+      // leaving a stray mark just outside the highlight span.
+      if (sourceEnd.length > 0) sourceEnd[sourceEnd.length - 1] = cursor;
+      continue;
+    }
+
     if (NON_ALPHANUMERIC.test(char)) {
       // Collapse: a space is only worth emitting after real content.
       if (normalized.length > 0 && !normalized.endsWith(' ')) {
@@ -95,8 +112,15 @@ function project(text: string): NormalizedProjection {
 
     // A single source character can normalize to more than one (and a
     // combining mark to none), so every emitted character maps back on its own.
-    for (const normalizedChar of normalizeText(char)) {
-      normalized += normalizedChar;
+    //
+    // The map is indexed in UTF-16 code units, not code points, because that is
+    // what reads it: `findRanges` locates matches with `indexOf` and measures
+    // them with `needle.length`, both UTF-16. A non-BMP letter (𝐀, CJK ext B)
+    // is one code point but two units, so iterating it by code point would push
+    // one entry while `normalized` grew by two and shift every later index.
+    const projected = normalizeText(char);
+    normalized += projected;
+    for (let unit = 0; unit < projected.length; unit++) {
       sourceIndex.push(start);
       sourceEnd.push(cursor);
     }

@@ -225,6 +225,39 @@ describe('stringUtils', () => {
       expect(result).toContain('>efeito estufa</span>');
     });
 
+    it('should treat decomposed accents the same as precomposed ones', () => {
+      // NFD splits "ç" into "c" + U+0327. Those marks are neither letters nor
+      // digits, so they used to be folded into separator spaces: the statement
+      // projected to "educac a o" and the term to "educacao", and nothing matched.
+      const decomposed = 'Educação'.normalize('NFD');
+      const result = highlightSearchTerm(
+        `<p>${decomposed} básica</p>`,
+        'educacao'
+      );
+      expect(countSpans(result)).toBe(1);
+      // The accents ride along inside the span, not stranded just outside it.
+      expect(result).toContain(`>${decomposed}</span>`);
+    });
+
+    it('should match a decomposed term against precomposed text', () => {
+      const result = highlightSearchTerm(
+        '<p>Educação básica</p>',
+        'Educação'.normalize('NFD')
+      );
+      expect(countSpans(result)).toBe(1);
+      expect(result).toContain('>Educação</span>');
+    });
+
+    it('should stay aligned after a non-BMP letter', () => {
+      // 𝐀 (U+1D400) is one code point but two UTF-16 units, and it survives the
+      // alphanumeric filter because it is a letter. The offset map is read with
+      // indexOf/length, which are UTF-16, so mapping it as a single unit used to
+      // shift every later index and highlight "ducação" plus the tail.
+      const result = highlightSearchTerm('<p>𝐀 educação</p>', 'educacao');
+      expect(countSpans(result)).toBe(1);
+      expect(result).toContain('>educação</span>');
+    });
+
     it('should not highlight a single word split across tags (known limit)', () => {
       // The walk works one text node at a time and the word is in neither node
       // alone. The server strips the tags before matching, so this question can
