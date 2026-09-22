@@ -196,6 +196,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       required,
       id,
       type = 'text',
+      'aria-describedby': ariaDescribedBy,
       ...props
     },
     ref
@@ -221,6 +222,19 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     // Generate unique ID if not provided
     const generatedId = useId();
     const inputId = id ?? `input-${generatedId}`;
+    const helperTextId = `${inputId}-helper-text`;
+    const errorMessageId = `${inputId}-error-message`;
+
+    // Liga o input aos textos de apoio para que o leitor de tela os anuncie
+    // ao focar no campo, preservando um aria-describedby vindo do consumidor.
+    const describedBy =
+      [
+        ariaDescribedBy,
+        helperText ? helperTextId : null,
+        errorMessage ? errorMessageId : null,
+      ]
+        .filter(Boolean)
+        .join(' ') || undefined;
 
     // Handle password visibility toggle
     const togglePasswordVisibility = () => setShowPassword(!showPassword);
@@ -273,6 +287,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             readOnly={readOnly}
             required={required}
             aria-invalid={actualState === 'error' ? 'true' : undefined}
+            aria-describedby={describedBy}
             {...props}
           />
 
@@ -304,10 +319,18 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 
         {/* Helper Text or Error Message */}
         <div className="mt-1.5 gap-1.5">
-          {helperText && <p className="text-sm text-text-500">{helperText}</p>}
+          {helperText && (
+            <p id={helperTextId} className="text-sm text-text-500">
+              {helperText}
+            </p>
+          )}
           {errorMessage && (
-            <p className="flex gap-1 items-center text-sm text-indicator-error">
-              <WarningCircleIcon size={16} /> {errorMessage}
+            <p
+              id={errorMessageId}
+              role="alert"
+              className="flex gap-1 items-center text-sm text-indicator-error"
+            >
+              <WarningCircleIcon size={16} aria-hidden="true" /> {errorMessage}
             </p>
           )}
         </div>

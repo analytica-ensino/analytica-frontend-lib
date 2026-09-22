@@ -8,6 +8,7 @@ const mockBranding = {
   mainLogo: null as string | null,
   internalLogo: null as string | null,
   loginImage: null as string | null,
+  institutionName: null as string | null,
 };
 
 jest.mock('../../hooks/useTheme', () => ({
@@ -18,6 +19,7 @@ describe('BrandingLogo', () => {
   beforeEach(() => {
     mockBranding.mainLogo = null;
     mockBranding.internalLogo = null;
+    mockBranding.institutionName = null;
   });
 
   it('renders the internal branding logo by default', () => {
@@ -69,5 +71,57 @@ describe('BrandingLogo', () => {
     const img = screen.getByTestId('brand');
     expect(img).toHaveAttribute('alt', 'Custom alt');
     expect(img).toHaveClass('h-10', 'object-contain');
+  });
+
+  describe('texto alternativo', () => {
+    it('nomeia o logo com a instituição quando o white-label publica o nome', () => {
+      mockBranding.institutionName = 'Enem Paraná';
+
+      render(<BrandingLogo />);
+
+      expect(screen.getByRole('img')).toHaveAttribute(
+        'alt',
+        'Logo da Enem Paraná'
+      );
+    });
+
+    it('cai no rótulo genérico quando não há nome publicado', () => {
+      render(<BrandingLogo />);
+
+      expect(screen.getByRole('img')).toHaveAttribute(
+        'alt',
+        'Logo da Instituição'
+      );
+    });
+
+    it('ignora um nome em branco', () => {
+      mockBranding.institutionName = '   ';
+
+      render(<BrandingLogo />);
+
+      expect(screen.getByRole('img')).toHaveAttribute(
+        'alt',
+        'Logo da Instituição'
+      );
+    });
+
+    it('um alt do consumidor tem precedência sobre o nome da instituição', () => {
+      mockBranding.institutionName = 'Enem Paraná';
+
+      render(<BrandingLogo alt="Voltar para a home" />);
+
+      expect(screen.getByRole('img')).toHaveAttribute(
+        'alt',
+        'Voltar para a home'
+      );
+    });
+
+    it('respeita um alt vazio, que marca o logo como decorativo', () => {
+      mockBranding.institutionName = 'Enem Paraná';
+
+      render(<BrandingLogo alt="" data-testid="logo" />);
+
+      expect(screen.getByTestId('logo')).toHaveAttribute('alt', '');
+    });
   });
 });

@@ -32,7 +32,7 @@ describe('ConnectDots Component', () => {
       render(<ConnectDots options={mockOptions} />);
 
       // Should have select triggers (buttons) for each option
-      const buttons = screen.getAllByRole('button');
+      const buttons = screen.getAllByRole('combobox');
       expect(buttons).toHaveLength(4);
     });
 
@@ -40,7 +40,7 @@ describe('ConnectDots Component', () => {
       render(<ConnectDots options={[]} />);
 
       // Should render the container but with no items
-      expect(screen.queryByRole('button')).not.toBeInTheDocument();
+      expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
     });
   });
 
@@ -48,7 +48,7 @@ describe('ConnectDots Component', () => {
     it('shows select dropdowns for each option', () => {
       render(<ConnectDots options={mockOptions} mode="interactive" />);
 
-      const triggers = screen.getAllByRole('button');
+      const triggers = screen.getAllByRole('combobox');
       expect(triggers).toHaveLength(4);
     });
 
@@ -80,7 +80,7 @@ describe('ConnectDots Component', () => {
       );
 
       // Click on the first select trigger to open the dropdown
-      const triggers = screen.getAllByRole('button');
+      const triggers = screen.getAllByRole('combobox');
       fireEvent.click(triggers[0]);
 
       // Select an option
@@ -117,7 +117,7 @@ describe('ConnectDots Component', () => {
       render(<ConnectDots options={mockOptions} mode="interactive" />);
 
       // Open the first dropdown
-      const triggers = screen.getAllByRole('button');
+      const triggers = screen.getAllByRole('combobox');
       fireEvent.click(triggers[0]);
 
       // All correct values should be available
@@ -162,7 +162,7 @@ describe('ConnectDots Component', () => {
       render(<ConnectDots options={mockOptions} mode="readonly" />);
 
       // Should not have any buttons (select triggers)
-      expect(screen.queryByRole('button')).not.toBeInTheDocument();
+      expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
     });
   });
 
@@ -291,7 +291,7 @@ describe('ConnectDots Component', () => {
       );
 
       // Open the first dropdown
-      const triggers = screen.getAllByRole('button');
+      const triggers = screen.getAllByRole('combobox');
       fireEvent.click(triggers[0]);
 
       // Should only have 2 unique options (Value A and Value B)
@@ -349,7 +349,7 @@ describe('ConnectDots Component', () => {
       );
 
       // Interactive mode should have select triggers
-      expect(screen.getAllByRole('button')).toHaveLength(4);
+      expect(screen.getAllByRole('combobox')).toHaveLength(4);
 
       // Switch to result mode
       rerender(
@@ -361,7 +361,7 @@ describe('ConnectDots Component', () => {
       );
 
       // Result mode should show badges, not selects
-      expect(screen.queryAllByRole('button')).toHaveLength(0);
+      expect(screen.queryAllByRole('combobox')).toHaveLength(0);
     });
 
     it('correctly switches from interactive to readonly mode', () => {
@@ -370,13 +370,13 @@ describe('ConnectDots Component', () => {
       );
 
       // Interactive mode should have select triggers
-      expect(screen.getAllByRole('button')).toHaveLength(4);
+      expect(screen.getAllByRole('combobox')).toHaveLength(4);
 
       // Switch to readonly mode
       rerender(<ConnectDots options={mockOptions} mode="readonly" />);
 
       // Readonly mode should not have any buttons
-      expect(screen.queryByRole('button')).not.toBeInTheDocument();
+      expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
     });
   });
 
@@ -384,7 +384,7 @@ describe('ConnectDots Component', () => {
     it('select triggers are focusable in interactive mode', () => {
       render(<ConnectDots options={mockOptions} mode="interactive" />);
 
-      const triggers = screen.getAllByRole('button');
+      const triggers = screen.getAllByRole('combobox');
       triggers.forEach((trigger) => {
         expect(trigger).not.toHaveAttribute('tabindex', '-1');
       });

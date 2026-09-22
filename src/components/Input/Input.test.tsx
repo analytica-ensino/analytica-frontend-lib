@@ -504,10 +504,83 @@ describe('Input', () => {
       expect(input).not.toHaveAttribute('aria-invalid');
     });
 
-    it('associates error message with input', () => {
-      render(<Input errorMessage="Error message" />);
-      const errorText = screen.getByText('Error message');
-      expect(errorText).toBeInTheDocument();
+    it('associates error message with input via aria-describedby', () => {
+      render(<Input label="Email" errorMessage="Campo obrigatorio" />);
+      const input = screen.getByRole('textbox');
+      const errorText = screen.getByText('Campo obrigatorio');
+
+      expect(errorText.id).toBeTruthy();
+      expect(input.getAttribute('aria-describedby')).toContain(errorText.id);
+    });
+
+    it('announces the error message through a live region', () => {
+      render(<Input errorMessage="Campo obrigatorio" />);
+      expect(screen.getByRole('alert')).toHaveTextContent('Campo obrigatorio');
+    });
+
+    it('hides the decorative error icon from screen readers', () => {
+      const { container } = render(<Input errorMessage="Campo obrigatorio" />);
+      const icon = container.querySelector('svg[aria-hidden="true"]');
+      expect(icon).toBeInTheDocument();
+    });
+
+    it('associates helper text with input via aria-describedby', () => {
+      render(<Input helperText="Usaremos apenas para contato" />);
+      const input = screen.getByRole('textbox');
+      const helperText = screen.getByText('Usaremos apenas para contato');
+
+      expect(helperText.id).toBeTruthy();
+      expect(input.getAttribute('aria-describedby')).toContain(helperText.id);
+    });
+
+    it('describes the input with helper text and error message together', () => {
+      render(
+        <Input
+          helperText="Usaremos apenas para contato"
+          errorMessage="Campo obrigatorio"
+        />
+      );
+      const input = screen.getByRole('textbox');
+      const describedBy = input.getAttribute('aria-describedby') ?? '';
+
+      expect(describedBy.split(' ')).toEqual([
+        screen.getByText('Usaremos apenas para contato').id,
+        screen.getByText('Campo obrigatorio').id,
+      ]);
+    });
+
+    it('derives message ids from a custom input id', () => {
+      render(<Input id="email" errorMessage="Campo obrigatorio" />);
+      expect(screen.getByText('Campo obrigatorio')).toHaveAttribute(
+        'id',
+        'email-error-message'
+      );
+    });
+
+    it('keeps a consumer-provided aria-describedby', () => {
+      render(
+        <>
+          <span id="external-hint">Dica externa</span>
+          <Input
+            aria-describedby="external-hint"
+            errorMessage="Campo obrigatorio"
+          />
+        </>
+      );
+      const describedBy =
+        screen.getByRole('textbox').getAttribute('aria-describedby') ?? '';
+
+      expect(describedBy.split(' ')).toEqual([
+        'external-hint',
+        screen.getByText('Campo obrigatorio').id,
+      ]);
+    });
+
+    it('does not set aria-describedby without helper text or error', () => {
+      render(<Input />);
+      expect(screen.getByRole('textbox')).not.toHaveAttribute(
+        'aria-describedby'
+      );
     });
 
     it('has proper focus management', () => {

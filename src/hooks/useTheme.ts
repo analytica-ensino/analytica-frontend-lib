@@ -33,6 +33,7 @@ export const useTheme = () => {
         mainLogo: null,
         internalLogo: null,
         loginImage: null,
+        institutionName: null,
       };
     }
 
@@ -58,6 +59,15 @@ export const useTheme = () => {
       loginImage:
         document
           .querySelector('meta[name="login-image"]')
+          ?.getAttribute('content') ?? null,
+      /**
+       * Nome da instituição do white-label em texto. Serve pra dar nome
+       * acessível ao logo; quando a meta não existe, quem consome cai num
+       * rótulo genérico.
+       */
+      institutionName:
+        document
+          .querySelector('meta[name="institution-name"]')
           ?.getAttribute('content') ?? null,
     };
   }, []);

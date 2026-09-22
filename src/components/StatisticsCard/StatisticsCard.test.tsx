@@ -97,7 +97,7 @@ describe('StatisticsCard', () => {
         />
       );
 
-      const dropdown = screen.getByRole('button', {
+      const dropdown = screen.getByRole('combobox', {
         name: 'Filtro de período',
       });
       expect(dropdown).toBeInTheDocument();
@@ -107,7 +107,7 @@ describe('StatisticsCard', () => {
       render(<StatisticsCard {...defaultProps} />);
 
       expect(
-        screen.queryByRole('button', { name: /Selecione um período/i })
+        screen.queryByRole('combobox', { name: /Selecione um período/i })
       ).not.toBeInTheDocument();
     });
 
@@ -115,7 +115,7 @@ describe('StatisticsCard', () => {
       render(<StatisticsCard {...defaultProps} dropdownOptions={[]} />);
 
       expect(
-        screen.queryByRole('button', { name: /Selecione um período/i })
+        screen.queryByRole('combobox', { name: /Selecione um período/i })
       ).not.toBeInTheDocument();
     });
 
@@ -163,12 +163,12 @@ describe('StatisticsCard', () => {
         />
       );
 
-      const dropdownTrigger = screen.getByRole('button', {
+      const dropdownTrigger = screen.getByRole('combobox', {
         name: 'Filtro de período',
       });
       fireEvent.click(dropdownTrigger);
 
-      const option = screen.getByRole('menuitem', { name: /6 meses/i });
+      const option = screen.getByRole('option', { name: /6 meses/i });
       fireEvent.click(option);
 
       expect(handleChange).toHaveBeenCalledTimes(1);
@@ -190,7 +190,7 @@ describe('StatisticsCard', () => {
         />
       );
 
-      const dropdown = screen.getByRole('button', {
+      const dropdown = screen.getByRole('combobox', {
         name: 'Filtro de período',
       });
       expect(dropdown).toBeInTheDocument();
@@ -212,13 +212,13 @@ describe('StatisticsCard', () => {
         />
       );
 
-      const dropdownTrigger = screen.getByRole('button', {
+      const dropdownTrigger = screen.getByRole('combobox', {
         name: 'Filtro de período',
       });
       // Should not throw error when onChange is called without callback
       expect(() => {
         fireEvent.click(dropdownTrigger);
-        const option = screen.getByRole('menuitem', { name: /6 meses/i });
+        const option = screen.getByRole('option', { name: /6 meses/i });
         fireEvent.click(option);
       }).not.toThrow();
     });
@@ -291,7 +291,7 @@ describe('StatisticsCard', () => {
         />
       );
 
-      const dropdown = screen.getByRole('button', {
+      const dropdown = screen.getByRole('combobox', {
         name: 'Filtro de período',
       });
       expect(dropdown).toHaveAttribute('aria-label', 'Filtro de período');
@@ -313,7 +313,7 @@ describe('StatisticsCard', () => {
         />
       );
 
-      const dropdown = screen.getByRole('button', {
+      const dropdown = screen.getByRole('combobox', {
         name: 'Custom period filter',
       });
       expect(dropdown).toHaveAttribute('aria-label', 'Custom period filter');
@@ -517,7 +517,7 @@ describe('StatisticsCard', () => {
       );
 
       expect(screen.getByText('85%')).toBeInTheDocument();
-      const dropdown = screen.getByRole('button', {
+      const dropdown = screen.getByRole('combobox', {
         name: 'Filtro de período',
       });
       expect(dropdown).toBeInTheDocument();
@@ -630,7 +630,7 @@ describe('StatisticsCard', () => {
       const placeholders = screen.getAllByText('-');
       expect(placeholders).toHaveLength(4);
 
-      const dropdown = screen.getByRole('button', {
+      const dropdown = screen.getByRole('combobox', {
         name: 'Filtro de período',
       });
       expect(dropdown).toBeInTheDocument();
@@ -664,19 +664,19 @@ describe('StatisticsCard', () => {
       );
 
       // Open dropdown to see all options
-      const dropdownTrigger = screen.getByRole('button', {
+      const dropdownTrigger = screen.getByRole('combobox', {
         name: 'Filtro de período',
       });
       fireEvent.click(dropdownTrigger);
 
       expect(
-        screen.getByRole('menuitem', { name: /1 ano/i })
+        screen.getByRole('option', { name: /1 ano/i })
       ).toBeInTheDocument();
       expect(
-        screen.getByRole('menuitem', { name: /6 meses/i })
+        screen.getByRole('option', { name: /6 meses/i })
       ).toBeInTheDocument();
       expect(
-        screen.getByRole('menuitem', { name: /3 meses/i })
+        screen.getByRole('option', { name: /3 meses/i })
       ).toBeInTheDocument();
     });
 
