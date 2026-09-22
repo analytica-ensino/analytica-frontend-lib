@@ -80,7 +80,9 @@ export const useModalFocus = (
       }
 
       const first = focusables[0];
-      const last = focusables[focusables.length - 1];
+      // O guard de lista vazia acima garante que existe um último elemento;
+      // `.at()` só não consegue expressar isso no tipo.
+      const last = focusables.at(-1) as HTMLElement;
 
       if (event.shiftKey) {
         // O container entra no ciclo pra que voltar do topo caia no fim, em vez
