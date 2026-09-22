@@ -44,6 +44,11 @@ export interface UseModulesReturn {
   // In-classroom ENEM simulation (institution-wide). Off by default.
   hasEnemClassroom: boolean;
 
+  // AI correction of dissertative answers (institution-wide). Off by default:
+  // an institution that wants its teachers to be the only graders must be able
+  // to say so, and with it off the essays keep landing in the manual queue.
+  hasAiDissertativeCorrection: boolean;
+
   // Exams
   hasExams: boolean;
 
@@ -145,6 +150,10 @@ export const useModules = (): UseModulesReturn => {
 
     // In-classroom ENEM simulation (opt-in per institution, defaults off)
     hasEnemClassroom: modules.enemClassroom ?? false,
+
+    // AI correction of dissertative answers (opt-in per institution, defaults
+    // off — with it off only the teacher grades an essay)
+    hasAiDissertativeCorrection: modules.aiDissertativeCorrection ?? false,
 
     // Exams (simple boolean, with backwards compatibility for old object format)
     hasExams:

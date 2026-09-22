@@ -891,4 +891,40 @@ describe('useModules', () => {
       expect(result.current.hasEnemClassroom).toBe(false);
     });
   });
+  describe('AI correction of dissertative answers', () => {
+    it('hasAiDissertativeCorrection is false by default (opt-in per institution)', () => {
+      // With it off only the teacher grades an essay, which is what every
+      // institution had before the feature.
+      mockUseModulesStore.mockReturnValue({
+        modules: defaultModules,
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasAiDissertativeCorrection).toBe(false);
+    });
+
+    it('hasAiDissertativeCorrection is true when enabled', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: { ...defaultModules, aiDissertativeCorrection: true },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasAiDissertativeCorrection).toBe(true);
+    });
+
+    it('hasAiDissertativeCorrection defaults to false when the field is missing', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: {}, // no aiDissertativeCorrection key (old persisted state)
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasAiDissertativeCorrection).toBe(false);
+    });
+  });
 });

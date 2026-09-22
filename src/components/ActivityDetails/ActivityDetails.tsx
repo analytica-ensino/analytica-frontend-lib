@@ -716,8 +716,44 @@ export const ActivityDetails = ({
         console.error('Failed to submit question correction:', err);
         throw err;
       }
+
+      // Grading a dissertativa changes the student's grade on the server, and
+      // nothing else on this screen reloads: without this the table kept
+      // printing a dash and the modal kept hiding the grade card until a full
+      // page reload. Outside the try above on purpose — a refresh that fails
+      // must not be reported to the modal as a failed correction.
+      try {
+        const refreshed = await fetchActivityDetails(activityId, {
+          page,
+          limit,
+          sortBy,
+          sortOrder,
+        });
+        setData(refreshed);
+
+        const student = refreshed.students.find(
+          (candidate) => candidate.studentId === studentId
+        );
+
+        // Only the grade is carried over. Rebuilding the whole correction
+        // payload would swap the `questions` array the modal prefills from, and
+        // that resets every answer the teacher has typed and not yet saved.
+        setCorrectionData((prev) =>
+          prev && student ? { ...prev, score: student.score } : prev
+        );
+      } catch (err) {
+        console.error('Failed to refresh activity details:', err);
+      }
     },
-    [activityId, submitQuestionCorrection]
+    [
+      activityId,
+      submitQuestionCorrection,
+      fetchActivityDetails,
+      page,
+      limit,
+      sortBy,
+      sortOrder,
+    ]
   );
 
   /**

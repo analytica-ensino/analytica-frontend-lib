@@ -2580,6 +2580,111 @@ describe('ActivityDetails', () => {
 
       consoleSpy.mockRestore();
     });
+
+    // Grading an essay changes the grade on the server and nothing else on this
+    // screen reloads, so the table kept printing a dash and the modal kept
+    // hiding the grade card until a full page reload.
+    it('should reload the students and carry the new grade into the modal', async () => {
+      const gradedStudents = mockActivityData.students.map((student) =>
+        student.studentId === 'student-2' ? { ...student, score: 9 } : student
+      );
+      mockFetchActivityDetails.mockResolvedValue(mockActivityData);
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(getEnabledCorrectButton()).toBeInTheDocument();
+      });
+
+      fireEvent.click(getEnabledCorrectButton()!);
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('correct-activity-modal')
+        ).toBeInTheDocument();
+      });
+
+      mockFetchActivityDetails.mockResolvedValue({
+        ...mockActivityData,
+        students: gradedStudents,
+      });
+
+      fireEvent.click(screen.getByTestId('submit-question-correction'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('modal-score')).toHaveTextContent('9');
+      });
+    });
+
+    it('should log and keep the modal open when the reload fails', async () => {
+      // A refresh that fails must not be reported as a failed correction: the
+      // correction itself was saved.
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const reloadError = new Error('Reload failed');
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(getEnabledCorrectButton()).toBeInTheDocument();
+      });
+
+      fireEvent.click(getEnabledCorrectButton()!);
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('correct-activity-modal')
+        ).toBeInTheDocument();
+      });
+
+      mockFetchActivityDetails.mockRejectedValueOnce(reloadError);
+
+      fireEvent.click(screen.getByTestId('submit-question-correction'));
+
+      await waitFor(() => {
+        expect(consoleSpy).toHaveBeenCalledWith(
+          'Failed to refresh activity details:',
+          reloadError
+        );
+      });
+      expect(screen.getByTestId('correct-activity-modal')).toBeInTheDocument();
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should not reload when the correction itself failed', async () => {
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      mockSubmitQuestionCorrection.mockRejectedValueOnce(
+        new Error('Correction failed')
+      );
+
+      render(<ActivityDetails {...defaultProps} />);
+
+      await waitFor(() => {
+        expect(getEnabledCorrectButton()).toBeInTheDocument();
+      });
+
+      fireEvent.click(getEnabledCorrectButton()!);
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('correct-activity-modal')
+        ).toBeInTheDocument();
+      });
+
+      const callsBeforeSubmit = mockFetchActivityDetails.mock.calls.length;
+
+      fireEvent.click(screen.getByTestId('submit-question-correction'));
+
+      await waitFor(() => {
+        expect(consoleSpy).toHaveBeenCalledWith(
+          'Failed to submit question correction:',
+          expect.any(Error)
+        );
+      });
+      expect(mockFetchActivityDetails).toHaveBeenCalledTimes(callsBeforeSubmit);
+
+      consoleSpy.mockRestore();
+    });
   });
 
   describe('Presencial Mode', () => {

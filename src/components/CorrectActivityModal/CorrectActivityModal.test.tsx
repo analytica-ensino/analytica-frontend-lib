@@ -345,9 +345,7 @@ describe('CorrectActivityModal', () => {
         />
       );
 
-      expect(
-        screen.getByText('Colégio Estadual São José')
-      ).toBeInTheDocument();
+      expect(screen.getByText('Colégio Estadual São José')).toBeInTheDocument();
       expect(screen.getByText('Turma A')).toBeInTheDocument();
       expect(screen.getByText('2025')).toBeInTheDocument();
     });
@@ -390,6 +388,26 @@ describe('CorrectActivityModal', () => {
 
       expect(screen.queryByText('Nota média')).not.toBeInTheDocument();
       expect(screen.getByText('Nº de questões corretas')).toBeInTheDocument();
+    });
+
+    // A fixed four-column grid left an empty slot on the right whenever the
+    // grade card was dropped, so the row is sized for what it renders.
+    it('should spread the three remaining cards over the full width', () => {
+      const { container } = render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={{ ...mockData, score: null }}
+        />
+      );
+
+      expect(container.querySelector('.lg\\:grid-cols-3')).toBeInTheDocument();
+      expect(container.querySelector('.lg\\:grid-cols-4')).toBeNull();
+    });
+
+    it('should keep four columns when there is a grade to show', () => {
+      const { container } = render(<CorrectActivityModal {...defaultProps} />);
+
+      expect(container.querySelector('.lg\\:grid-cols-4')).toBeInTheDocument();
     });
 
     it('should display number of correct questions', () => {
