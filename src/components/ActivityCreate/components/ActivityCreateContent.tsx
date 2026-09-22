@@ -7,6 +7,7 @@ import {
   QUESTION_TYPE,
   Divider,
 } from '../../..';
+import { FunnelIcon } from '@phosphor-icons/react/dist/csr/Funnel';
 import Menu, { MenuContent, MenuItem } from '../../Menu/Menu';
 import { ActivityListQuestions } from '../../ActivityListQuestions/ActivityListQuestions';
 import type {
@@ -93,21 +94,34 @@ export const SmallScreenLayout = ({
   questionsInstitutionId,
 }: SmallScreenLayoutProps) => (
   <div className="flex flex-col w-full flex-1 overflow-hidden gap-5 min-h-0">
-    {/* Filters and Menu Row */}
-    <div className="flex flex-row items-center justify-between gap-4 flex-shrink-0">
-      <ActivityFiltersPopover
-        key={filtersKey}
-        apiClient={apiClient}
-        institutionId={institutionId}
-        onFiltersChange={onFiltersChange}
-        initialFilters={initialFiltersData || undefined}
-        triggerLabel="Filtro de questões"
-        onApplyFilters={onApplyFilters}
-        onClearFilters={onClearFilters}
-        allowedQuestionTypes={
-          isInPersonExam ? [QUESTION_TYPE.ALTERNATIVA] : undefined
-        }
-      />
+    {/*
+      Filters and Menu Row — the trigger and the tabs always share this line.
+      Neither shrinks; instead the trigger drops its label below 520px and
+      becomes the funnel icon alone, which is what buys back the room.
+    */}
+    <div className="flex flex-row items-center justify-between gap-2 flex-shrink-0 min-[520px]:gap-4">
+      <div className="flex-shrink-0">
+        <ActivityFiltersPopover
+          key={filtersKey}
+          apiClient={apiClient}
+          institutionId={institutionId}
+          onFiltersChange={onFiltersChange}
+          initialFilters={initialFiltersData || undefined}
+          triggerLabel="Filtro de questões"
+          triggerIcon={<FunnelIcon size={20} />}
+          collapseTriggerLabel
+          onApplyFilters={onApplyFilters}
+          onClearFilters={onClearFilters}
+          allowedQuestionTypes={
+            isInPersonExam ? [QUESTION_TYPE.ALTERNATIVA] : undefined
+          }
+        />
+      </div>
+      {/*
+        Must not shrink: the breadcrumb Menu applies `flex-wrap` to its own
+        items (Menu.tsx:170), so squeezing this box makes the two tabs stack
+        into a second line instead of the row staying intact.
+      */}
       <div className="flex-shrink-0">
         <Menu
           defaultValue="questions"

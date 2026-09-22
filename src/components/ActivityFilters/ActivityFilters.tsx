@@ -1,4 +1,11 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+  type ReactNode,
+} from 'react';
 import {
   Text,
   Chips,
@@ -692,6 +699,14 @@ export interface ActivityFiltersPopoverProps extends Omit<
 > {
   onFiltersChange: (filters: ActivityFiltersData) => void;
   triggerLabel?: string;
+  /** Rendered before the trigger label. Required for `collapseTriggerLabel`. */
+  triggerIcon?: ReactNode;
+  /**
+   * Hides the trigger label below 520px, leaving just the icon, so the trigger
+   * can share a row with other controls on a phone. `triggerLabel` stays as the
+   * button's accessible name.
+   */
+  collapseTriggerLabel?: boolean;
 }
 
 /**
@@ -701,6 +716,8 @@ export interface ActivityFiltersPopoverProps extends Omit<
 export const ActivityFiltersPopover = ({
   onFiltersChange,
   triggerLabel = 'Filtro de questões',
+  triggerIcon,
+  collapseTriggerLabel = false,
   initialFilters,
   ...activityFiltersProps
 }: ActivityFiltersPopoverProps) => {
@@ -715,7 +732,32 @@ export const ActivityFiltersPopover = ({
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline">{triggerLabel}</Button>
+        {/*
+          The icon lives in `children` rather than in `iconLeft` because
+          `iconLeft` adds an unconditional `mr-2`, which would leave a dangling
+          margin once the label is hidden.
+        */}
+        <Button
+          variant="outline"
+          aria-label={triggerLabel}
+          /*
+            Collapsed to the icon, the button's default `px-8` leaves ~40px of
+            dead padding around a 20px glyph — enough to push the tabs beside it
+            off a 360px screen. Restored at the width where the label returns.
+          */
+          className={collapseTriggerLabel ? 'px-4 min-[520px]:px-8' : undefined}
+        >
+          <span className="flex flex-row items-center gap-2">
+            {triggerIcon}
+            <span
+              className={
+                collapseTriggerLabel ? 'hidden min-[520px]:inline' : undefined
+              }
+            >
+              {triggerLabel}
+            </span>
+          </span>
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         className="w-[90vw] max-w-[400px] max-h-[calc(100vh-8rem)] overflow-y-auto p-0"

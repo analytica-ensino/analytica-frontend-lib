@@ -1,6 +1,7 @@
 import type { Story } from '@ladle/react';
 import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 import { CreateActivity } from './ActivityCreate';
+import { ActivityCreateSkeleton } from './components/ActivityCreateSkeleton';
 import type { BaseApiClient } from '../../types/api';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import type { Question } from '../../types/questions';
@@ -1256,3 +1257,69 @@ export const WithRecommendedLesson: Story = () => {
 
 WithRecommendedLesson.storyName =
   'With Recommended Lesson (from criar-aula-recomendada)';
+
+/**
+ * Responsive check. The page reflows at 1200px: above it the header is a single
+ * row and the body has three columns; below it the header stacks and the body
+ * becomes the question list with a filters popover.
+ *
+ * **Open this story with `&mode=preview` and resize the actual browser
+ * window.** Neither Ladle's `width` setting nor the normal UI view can be
+ * trusted here, because the body picks its layout from `window.innerWidth`
+ * while the CSS reflows against the box the story actually occupies — and in
+ * Ladle those two are never the same number:
+ *
+ * - Normal UI view: the sidebar takes ~414px, so at a 1300px window the story
+ *   pane is 886px. CSS gives you the narrow header, JS gives you the desktop
+ *   three-column body. Anything between 1200px and ~1615px shows this hybrid,
+ *   which exists nowhere in a real browser.
+ * - `width` setting: Ladle portals the story into the preview iframe from the
+ *   parent page, so `window` is the parent's. Pinning the iframe at 300px and
+ *   shrinking only the outer window switched the body; the iframe never did.
+ *
+ * In preview mode there is no sidebar and no iframe, so pane width equals
+ * window width and what you see is what a real browser does.
+ *
+ * Widths worth checking: 1440, 1199, 430 and 360.
+ */
+export const Responsive: Story = () => (
+  <div className="h-screen overflow-hidden">
+    <BrowserRouter>
+      <CreateActivity
+        apiClient={mockApiClientThreeTypes}
+        institutionId="institution-1"
+        isDark={false}
+      />
+    </BrowserRouter>
+  </div>
+);
+
+Responsive.storyName = 'Responsive - resize the browser window';
+
+/*
+  The skeleton only shows while the initial draft request is in flight, which
+  the other stories blow past. Rendering it directly is the only practical way
+  to see it — and it had the desktop's three columns hardcoded, so on a phone
+  the loading state was broken regardless of viewport.
+
+  These two may use Ladle's `width`, unlike the story above: the skeleton
+  reflows purely through CSS, and CSS does follow the preview iframe.
+*/
+export const SkeletonPhone: Story = () => (
+  <div className="h-screen overflow-hidden">
+    <ActivityCreateSkeleton />
+  </div>
+);
+
+SkeletonPhone.storyName = 'Responsive - Skeleton at 430px';
+SkeletonPhone.meta = { iframed: true, width: 430 };
+
+/** Same skeleton above the breakpoint: three columns. */
+export const SkeletonDesktop: Story = () => (
+  <div className="h-screen overflow-hidden">
+    <ActivityCreateSkeleton />
+  </div>
+);
+
+SkeletonDesktop.storyName = 'Responsive - Skeleton at 1440px';
+SkeletonDesktop.meta = { iframed: true, width: 1440 };

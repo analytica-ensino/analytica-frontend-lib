@@ -5,7 +5,16 @@ import {
   useScreenHeight,
   useFullScreenSize,
   useMobile,
+  useTabletScreen,
 } from '../../src/hooks/useScreen';
+
+const setInnerWidth = (value: number) => {
+  Object.defineProperty(window, 'innerWidth', {
+    writable: true,
+    configurable: true,
+    value,
+  });
+};
 
 describe('useScreen hooks', () => {
   let originalInnerWidth: number;
@@ -224,6 +233,96 @@ describe('useScreen hooks', () => {
           configurable: true,
           value: 1024,
         });
+        window.dispatchEvent(new Event('resize'));
+      });
+
+      expect(result.current).toBe(false);
+    });
+  });
+
+  describe('useTabletScreen', () => {
+    /*
+      Reads the value the hook returned on each render pass, not just the
+      settled one. The point of the synchronous initial state is that the very
+      first render is already correct — an assertion on `result.current` alone
+      would pass even if the value only landed after the effect.
+    */
+    const renderCapturingEveryPass = () => {
+      const passes: boolean[] = [];
+      const view = renderHook(() => {
+        const value = useTabletScreen();
+        passes.push(value);
+        return value;
+      });
+      return { ...view, passes };
+    };
+
+    it('should be true on the first render pass below the breakpoint', () => {
+      setInnerWidth(430);
+
+      const { passes, result } = renderCapturingEveryPass();
+
+      expect(passes[0]).toBe(true);
+      expect(result.current).toBe(true);
+    });
+
+    it('should be false on the first render pass above the breakpoint', () => {
+      setInnerWidth(1440);
+
+      const { passes, result } = renderCapturingEveryPass();
+
+      expect(passes[0]).toBe(false);
+      expect(result.current).toBe(false);
+    });
+
+    it('should treat exactly 1200px as a small screen', () => {
+      setInnerWidth(1200);
+
+      const { result } = renderHook(() => useTabletScreen());
+
+      expect(result.current).toBe(true);
+    });
+
+    it('should treat 1201px as a large screen', () => {
+      setInnerWidth(1201);
+
+      const { result } = renderHook(() => useTabletScreen());
+
+      expect(result.current).toBe(false);
+    });
+
+    it('should update when window resizes to a small screen', () => {
+      setInnerWidth(1440);
+      const { result } = renderHook(() => useTabletScreen());
+
+      act(() => {
+        setInnerWidth(900);
+        window.dispatchEvent(new Event('resize'));
+      });
+
+      expect(result.current).toBe(true);
+    });
+
+    it('should update when window resizes to a large screen', () => {
+      setInnerWidth(900);
+      const { result } = renderHook(() => useTabletScreen());
+
+      act(() => {
+        setInnerWidth(1440);
+        window.dispatchEvent(new Event('resize'));
+      });
+
+      expect(result.current).toBe(false);
+    });
+
+    it('should stop listening after unmount', () => {
+      setInnerWidth(1440);
+      const { result, unmount } = renderHook(() => useTabletScreen());
+
+      unmount();
+
+      act(() => {
+        setInnerWidth(430);
         window.dispatchEvent(new Event('resize'));
       });
 

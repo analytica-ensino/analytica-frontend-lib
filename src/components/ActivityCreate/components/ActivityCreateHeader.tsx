@@ -9,6 +9,23 @@ import { getActivityTypeLabel } from '../ActivityCreate.utils';
 import { formatTime } from '../../../utils/categoryDataUtils';
 
 /**
+ * Resolves the save-status label shown next to the action buttons.
+ *
+ * Extracted from the JSX because the three states (salvo / salvando / nenhum
+ * rascunho) would otherwise need a nested ternary, which the quality gate flags.
+ */
+const getSaveStatusLabel = (
+  activityTypeLabel: string,
+  lastSavedAt: Date | null,
+  isSaving: boolean
+) => {
+  if (lastSavedAt) {
+    return `${activityTypeLabel} salvo às ${formatTime(lastSavedAt)}`;
+  }
+  return isSaving ? 'Salvando...' : 'Nenhum rascunho salvo';
+};
+
+/**
  * Header component for ActivityCreate page
  * Displays title, save status, and action buttons
  *
@@ -63,34 +80,50 @@ export const ActivityCreateHeader = ({
       };
 
   return (
-    <div className="w-full h-[80px] flex flex-row items-center justify-between px-4 gap-3 flex-shrink-0">
-      <Button
-        onClick={onBack}
-        aria-label="Voltar"
-        type="button"
-        variant="link"
-        data-testid="back-button"
-        className="px-0"
-      >
-        <CaretLeftIcon size={32} />
-      </Button>
+    /*
+      Reflows at 1200px — the same width where the page body swaps between
+      SmallScreenLayout and DesktopLayout, so header and content turn together.
+      The 80px height only applies above that: below it the header must grow
+      with its content, otherwise the wrapped title/status/buttons overflow the
+      fixed box and land on top of the filters row underneath.
+    */
+    <section className="w-full flex flex-col gap-0.5 flex-shrink-0 min-[1200px]:h-[80px] min-[1200px]:justify-center min-[1200px]:px-4">
+      <div className="flex flex-col gap-2 text-text-950 min-[1200px]:flex-row min-[1200px]:items-center min-[1200px]:justify-between min-[1200px]:gap-3">
+        <div className="flex flex-row items-center gap-1 min-w-0">
+          <Button
+            onClick={onBack}
+            aria-label="Voltar"
+            type="button"
+            variant="link"
+            data-testid="back-button"
+            className="px-0"
+          >
+            <CaretLeftIcon size={32} />
+          </Button>
 
-      <section className="flex flex-col gap-0.5 w-full">
-        <div className="flex flex-row items-center justify-between w-full text-text-950">
           <Text size="lg" weight="bold">
             {activity ? labels.edit : labels.create}
           </Text>
+        </div>
 
-          <div className="flex flex-row gap-4 items-center">
-            {lastSavedAt ? (
-              <Text size="sm">
-                {activityTypeLabel} salvo às {formatTime(lastSavedAt)}
-              </Text>
-            ) : (
-              <Text size="sm">
-                {isSaving ? 'Salvando...' : 'Nenhum rascunho salvo'}
-              </Text>
-            )}
+        {/*
+          flex-wrap so the buttons drop to their own line, still right-aligned,
+          on the narrowest phones where they no longer fit beside the status
+          text. mr-auto pins the status left while they share a line; above
+          1200px it is dropped so the whole group sits on the right.
+        */}
+        <div className="flex flex-row flex-wrap items-center justify-end gap-2 min-[1200px]:flex-nowrap min-[1200px]:gap-4">
+          <Text size="sm" className="mr-auto min-[1200px]:mr-0">
+            {getSaveStatusLabel(activityTypeLabel, lastSavedAt, isSaving)}
+          </Text>
+
+          {/*
+            The buttons are their own flex row so they wrap as one unit. Left
+            as direct siblings of the status they wrap individually, and at
+            ~430px "Salvar modelo" and "Enviar atividade" end up stacked on
+            separate lines instead of staying side by side.
+          */}
+          <div className="flex flex-row items-center gap-2 min-[1200px]:gap-4">
             <Button
               size="small"
               variant="outline"
@@ -130,9 +163,9 @@ export const ActivityCreateHeader = ({
             )}
           </div>
         </div>
+      </div>
 
-        <Text size="sm">{labels.description}</Text>
-      </section>
-    </div>
+      <Text size="sm">{labels.description}</Text>
+    </section>
   );
 };
