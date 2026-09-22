@@ -574,6 +574,220 @@ describe('Modal', () => {
       expect(dialog).toHaveAttribute('aria-labelledby', h2Id as string);
     });
   });
+
+  describe('Gerenciamento de foco', () => {
+    it('leva o foco pro diálogo quando abre', () => {
+      const { container } = render(<Modal {...defaultProps} />);
+      const dialog = container.querySelector('dialog');
+
+      expect(dialog).toHaveAttribute('tabindex', '-1');
+      expect(dialog).toHaveFocus();
+    });
+
+    it('foca o diálogo, e não o botão de fechar, pra não engolir a mensagem', () => {
+      const { container } = render(<Modal {...defaultProps} />);
+
+      expect(
+        screen.getByRole('button', { name: 'Fechar modal' })
+      ).not.toHaveFocus();
+      expect(container.querySelector('dialog')).toHaveFocus();
+    });
+
+    it('leva o foco pro diálogo também na variante activity', () => {
+      const { container } = render(
+        <Modal {...defaultProps} variant="activity" />
+      );
+      expect(container.querySelector('dialog')).toHaveFocus();
+    });
+
+    it('não move o foco enquanto o modal está fechado', () => {
+      const trigger = document.createElement('button');
+      document.body.appendChild(trigger);
+      trigger.focus();
+
+      render(<Modal {...defaultProps} isOpen={false} />);
+
+      expect(trigger).toHaveFocus();
+      trigger.remove();
+    });
+
+    it('devolve o foco pra quem abriu o modal quando ele fecha', () => {
+      const trigger = document.createElement('button');
+      document.body.appendChild(trigger);
+      trigger.focus();
+
+      const { rerender, container } = render(<Modal {...defaultProps} />);
+      expect(container.querySelector('dialog')).toHaveFocus();
+
+      rerender(<Modal {...defaultProps} isOpen={false} />);
+      expect(trigger).toHaveFocus();
+
+      trigger.remove();
+    });
+
+    it('não quebra quando quem abriu o modal saiu da página', () => {
+      const trigger = document.createElement('button');
+      document.body.appendChild(trigger);
+      trigger.focus();
+
+      const { rerender } = render(<Modal {...defaultProps} />);
+      trigger.remove();
+
+      expect(() =>
+        rerender(<Modal {...defaultProps} isOpen={false} />)
+      ).not.toThrow();
+    });
+
+    it('prende o Tab: do último focusável volta pro primeiro', () => {
+      const { container } = render(
+        <Modal
+          {...defaultProps}
+          footer={<button type="button">Confirmar</button>}
+        />
+      );
+
+      const confirmar = screen.getByRole('button', { name: 'Confirmar' });
+      confirmar.focus();
+      fireEvent.keyDown(document, { key: 'Tab' });
+
+      expect(
+        screen.getByRole('button', { name: 'Fechar modal' })
+      ).toHaveFocus();
+      expect(container.querySelector('dialog')).toBeInTheDocument();
+    });
+
+    it('prende o Shift+Tab: do primeiro focusável volta pro último', () => {
+      render(
+        <Modal
+          {...defaultProps}
+          footer={<button type="button">Confirmar</button>}
+        />
+      );
+
+      screen.getByRole('button', { name: 'Fechar modal' }).focus();
+      fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
+
+      expect(screen.getByRole('button', { name: 'Confirmar' })).toHaveFocus();
+    });
+
+    it('Shift+Tab a partir do próprio diálogo cai no último focusável', () => {
+      render(
+        <Modal
+          {...defaultProps}
+          footer={<button type="button">Confirmar</button>}
+        />
+      );
+
+      fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
+
+      expect(screen.getByRole('button', { name: 'Confirmar' })).toHaveFocus();
+    });
+
+    it('mantém o foco no diálogo quando não há nada focusável dentro', () => {
+      const { container } = render(<Modal {...defaultProps} hideCloseButton />);
+      const dialog = container.querySelector('dialog');
+
+      fireEvent.keyDown(document, { key: 'Tab' });
+
+      expect(dialog).toHaveFocus();
+    });
+
+    it('ignora teclas que não são Tab', () => {
+      render(
+        <Modal
+          {...defaultProps}
+          footer={<button type="button">Confirmar</button>}
+        />
+      );
+
+      const confirmar = screen.getByRole('button', { name: 'Confirmar' });
+      confirmar.focus();
+      fireEvent.keyDown(document, { key: 'ArrowDown' });
+
+      expect(confirmar).toHaveFocus();
+    });
+
+    it('respeita um autoFocus no conteúdo e não rouba o foco dele', () => {
+      const { container } = render(
+        <Modal {...defaultProps}>
+          <input autoFocus aria-label="Nome" />
+        </Modal>
+      );
+
+      expect(screen.getByLabelText('Nome')).toHaveFocus();
+      expect(container.querySelector('dialog')).not.toHaveFocus();
+    });
+
+    it('mantém o trap de Tab mesmo quando o foco inicial veio do autoFocus', () => {
+      render(
+        <Modal
+          {...defaultProps}
+          footer={<button type="button">Confirmar</button>}
+        >
+          <input autoFocus aria-label="Nome" />
+        </Modal>
+      );
+
+      screen.getByRole('button', { name: 'Confirmar' }).focus();
+      fireEvent.keyDown(document, { key: 'Tab' });
+
+      expect(
+        screen.getByRole('button', { name: 'Fechar modal' })
+      ).toHaveFocus();
+    });
+
+    it('com dois modais irmãos abertos, só o que tem o foco prende o Tab', () => {
+      render(
+        <>
+          <Modal
+            isOpen
+            onClose={jest.fn()}
+            title="Lista"
+            footer={<button type="button">Ação da lista</button>}
+          >
+            conteúdo da lista
+          </Modal>
+          <Modal
+            isOpen
+            onClose={jest.fn()}
+            title="Detalhe"
+            hideCloseButton
+            footer={<button type="button">Ação do detalhe</button>}
+          >
+            conteúdo do detalhe
+          </Modal>
+        </>
+      );
+
+      const acaoDetalhe = screen.getByRole('button', {
+        name: 'Ação do detalhe',
+      });
+      acaoDetalhe.focus();
+      fireEvent.keyDown(document, { key: 'Tab' });
+
+      // Continua no modal de detalhe (unico focusavel dele), sem ser puxado
+      // pelo trap do modal de lista.
+      expect(acaoDetalhe).toHaveFocus();
+    });
+
+    it('não interfere quando o foco está fora do diálogo (portais)', () => {
+      const outside = document.createElement('button');
+      document.body.appendChild(outside);
+
+      render(
+        <Modal
+          {...defaultProps}
+          footer={<button type="button">Confirmar</button>}
+        />
+      );
+
+      outside.focus();
+      fireEvent.keyDown(document, { key: 'Tab' });
+
+      expect(outside).toHaveFocus();
+      outside.remove();
+    });
+  });
 });
 
 // ======================================================================

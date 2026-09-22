@@ -50,6 +50,16 @@ const PADDING_CLASSES = {
   'extra-large': 'px-5 py-4',
 } as const;
 
+/**
+ * Ids derivados do id do Select. O gatilho e o conteúdo são componentes
+ * separados e cada um só recebe `selectId`, então ambos chegam no mesmo id sem
+ * precisar de um prop a mais só pra isso.
+ */
+const getListboxId = (selectId?: string) =>
+  selectId ? `${selectId}-listbox` : undefined;
+const getLabelId = (selectId?: string) =>
+  selectId ? `${selectId}-label` : undefined;
+
 interface TriggerRect {
   top: number;
   left: number;
@@ -69,6 +79,13 @@ interface SelectStore {
   onValueChange?: (value: string) => void;
   triggerRect: TriggerRect | null;
   setTriggerRect: (rect: TriggerRect | null) => void;
+  /**
+   * O elemento do gatilho, pra devolver o foco depois que uma opção é escolhida.
+   * O `SelectItem` não recebe o `selectId`, então o store é o único caminho que
+   * ele tem até o gatilho.
+   */
+  triggerElement: HTMLButtonElement | null;
+  setTriggerElement: (element: HTMLButtonElement | null) => void;
 }
 
 type SelectStoreApi = StoreApi<SelectStore>;
@@ -86,6 +103,8 @@ export function createSelectStore(
     onValueChange,
     triggerRect: null,
     setTriggerRect: (rect) => set({ triggerRect: rect }),
+    triggerElement: null,
+    setTriggerElement: (element) => set({ triggerElement: element }),
   }));
 }
 
@@ -127,7 +146,8 @@ const injectStore = (
   children: ReactNode,
   store: SelectStoreApi,
   size: string,
-  selectId: string
+  selectId: string,
+  labelId?: string
 ): ReactNode => {
   return Children.map(children, (child) => {
     if (isValidElement(child)) {
@@ -136,6 +156,7 @@ const injectStore = (
         children?: ReactNode;
         size?: string;
         selectId?: string;
+        labelId?: string;
       }>;
 
       const newProps: Partial<{
@@ -143,18 +164,21 @@ const injectStore = (
         children: ReactNode;
         size: string;
         selectId: string;
+        labelId: string;
       }> = {
         store,
       };
 
-      // Pass size to SelectTrigger, selectId to both Trigger and Content
+      // Pass size to SelectTrigger, selectId/labelId to both Trigger and Content
       if (typedChild.type === SelectTrigger) {
         newProps.size = size;
         newProps.selectId = selectId;
+        newProps.labelId = labelId;
       }
 
       if (typedChild.type === SelectContent) {
         newProps.selectId = selectId;
+        newProps.labelId = labelId;
       }
 
       if (typedChild.props.children) {
@@ -162,7 +186,8 @@ const injectStore = (
           typedChild.props.children,
           store,
           size,
-          selectId
+          selectId,
+          labelId
         );
       }
 
@@ -251,7 +276,7 @@ const Select = ({
       const isInsideTrigger = selectRef.current?.contains(target);
       // CheckIcon if click is inside the portaled content (scoped to this Select instance)
       const portaledMenu = document.body.querySelector(
-        `[role="menu"][data-select-id="${selectId}"]`
+        `[role="listbox"][data-select-id="${selectId}"]`
       );
       const isInsidePortaledMenu = portaledMenu?.contains(target);
 
@@ -263,13 +288,30 @@ const Select = ({
     const handleArrowKeys = (event: globalThis.KeyboardEvent) => {
       // Find the portaled menu in the body (scoped to this Select instance)
       const selectContent = document.body.querySelector(
-        `[role="menu"][data-select-id="${selectId}"]`
+        `[role="listbox"][data-select-id="${selectId}"]`
       );
-      if (selectContent) {
+
+      // Escape fecha e devolve o foco, como manda o padrão de combobox. Sem
+      // isso quem navega por teclado só sai da listbox escolhendo algo.
+      if (selectContent && event.key === 'Escape') {
+        event.preventDefault();
+        setOpen(false);
+        store.getState().triggerElement?.focus();
+        return;
+      }
+
+      // Só as setas são interceptadas. Antes QUALQUER tecla caía aqui com
+      // `preventDefault`, o que prendia o Tab e o Escape na listbox e ainda
+      // roubava o foco no Enter — logo depois do item já ter devolvido o foco
+      // ao gatilho, o que deixava a escolha por teclado muda no leitor de tela.
+      if (
+        selectContent &&
+        (event.key === 'ArrowDown' || event.key === 'ArrowUp')
+      ) {
         event.preventDefault();
         const items = Array.from(
           selectContent.querySelectorAll(
-            '[role="menuitem"]:not([aria-disabled="true"])'
+            '[role="option"]:not([aria-disabled="true"])'
           )
         ).filter((el): el is HTMLElement => el instanceof HTMLElement);
 
@@ -298,7 +340,7 @@ const Select = ({
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleArrowKeys);
     };
-  }, [open, selectId, setOpen]);
+  }, [open, selectId, setOpen, store]);
 
   useEffect(() => {
     // Skip when the consumer isn't using controlled mode
@@ -318,6 +360,7 @@ const Select = ({
       {/* Label */}
       {label && (
         <label
+          id={getLabelId(selectId)}
           htmlFor={selectId}
           className={cn('block font-bold text-text-900 mb-1.5', sizeClasses)}
         >
@@ -327,7 +370,13 @@ const Select = ({
 
       {/* Select Container */}
       <div className={cn('relative w-full')} ref={selectRef}>
-        {injectStore(children, store, size, selectId)}
+        {injectStore(
+          children,
+          store,
+          size,
+          selectId,
+          label ? getLabelId(selectId) : undefined
+        )}
       </div>
 
       {/* Helper Text or Error Message */}
@@ -374,6 +423,7 @@ interface SelectTriggerProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   store?: SelectStoreApi;
   size?: 'small' | 'medium' | 'large' | 'extra-large';
   selectId?: string;
+  labelId?: string;
 }
 
 const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
@@ -386,6 +436,7 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
       disabled,
       size = 'medium',
       selectId,
+      labelId,
       type = 'button',
       ...props
     },
@@ -398,13 +449,14 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
     const setRefs = useCallback(
       (element: HTMLButtonElement | null) => {
         internalRef.current = element;
+        store.setState({ triggerElement: element });
         if (typeof ref === 'function') {
           ref(element);
         } else if (ref) {
           ref.current = element;
         }
       },
-      [ref]
+      [ref, store]
     );
 
     const updateTriggerRect = useCallback(() => {
@@ -469,9 +521,11 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
           className
         )}
         onClick={toggleOpen}
+        role="combobox"
+        aria-labelledby={labelId}
         aria-expanded={open}
         aria-haspopup="listbox"
-        aria-controls={open ? 'select-content' : undefined}
+        aria-controls={open ? getListboxId(selectId) : undefined}
         {...props}
       >
         {props.children}
@@ -545,6 +599,7 @@ interface SelectContentProps extends HTMLAttributes<HTMLDivElement> {
   side?: 'top' | 'right' | 'bottom' | 'left';
   store?: SelectStoreApi;
   selectId?: string;
+  labelId?: string;
 }
 
 const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
@@ -556,6 +611,7 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
       side = 'bottom',
       store: externalStore,
       selectId,
+      labelId,
       ...props
     },
     ref
@@ -597,7 +653,9 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
 
     const content = (
       <div
-        role="menu"
+        role="listbox"
+        id={getListboxId(selectId)}
+        aria-labelledby={labelId}
         ref={ref}
         data-select-id={selectId}
         style={getPositionStyles()}
@@ -655,6 +713,10 @@ const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
         setValue(value);
         setSelectedLabel(labelNode);
         setOpen(false);
+        // Escolher fecha a listbox e leva junto o elemento que tinha o foco. Sem
+        // devolver o foco ao gatilho ele cai no <body>: o leitor de tela não
+        // anuncia nada da escolha e o Tab seguinte recomeça do topo da página.
+        store.getState().triggerElement?.focus();
         onValueChange?.(value);
       }
       props.onClick?.(e as MouseEvent<HTMLDivElement>);
@@ -662,7 +724,8 @@ const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
 
     return (
       <div
-        role="menuitem"
+        role="option"
+        aria-selected={selectedValue === value}
         aria-disabled={disabled}
         ref={ref}
         className={`

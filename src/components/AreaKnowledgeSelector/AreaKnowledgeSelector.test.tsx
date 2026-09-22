@@ -77,12 +77,12 @@ describe('AreaKnowledgeSelector', () => {
 
     it('renders select trigger', () => {
       render(<AreaKnowledgeSelector {...defaultProps} />);
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByRole('combobox')).toBeInTheDocument();
     });
 
     it('shows "Todos" as default value when no area selected', () => {
       render(<AreaKnowledgeSelector {...defaultProps} />);
-      const trigger = screen.getByRole('button');
+      const trigger = screen.getByRole('combobox');
       // When selectedAreaId is null, effectiveValue is 'all', which shows "Todos"
       expect(trigger).toHaveTextContent('Todos');
     });
@@ -93,12 +93,12 @@ describe('AreaKnowledgeSelector', () => {
       const user = userEvent.setup();
       render(<AreaKnowledgeSelector {...defaultProps} />);
 
-      const trigger = screen.getByRole('button');
+      const trigger = screen.getByRole('combobox');
       await user.click(trigger);
 
       await waitFor(() => {
         // Verify dropdown menu is open
-        expect(screen.getByRole('menu')).toBeInTheDocument();
+        expect(screen.getByRole('listbox')).toBeInTheDocument();
         // "Todos" appears both in trigger (selected) and in dropdown menu
         const todosElements = screen.getAllByText('Todos');
         expect(todosElements).toHaveLength(2);
@@ -109,7 +109,7 @@ describe('AreaKnowledgeSelector', () => {
       const user = userEvent.setup();
       render(<AreaKnowledgeSelector {...defaultProps} />);
 
-      const trigger = screen.getByRole('button');
+      const trigger = screen.getByRole('combobox');
       await user.click(trigger);
 
       await waitFor(() => {
@@ -123,7 +123,7 @@ describe('AreaKnowledgeSelector', () => {
       const user = userEvent.setup();
       render(<AreaKnowledgeSelector {...defaultProps} />);
 
-      const trigger = screen.getByRole('button');
+      const trigger = screen.getByRole('combobox');
       await user.click(trigger);
 
       await waitFor(() => {
@@ -135,7 +135,7 @@ describe('AreaKnowledgeSelector', () => {
       const user = userEvent.setup();
       render(<AreaKnowledgeSelector {...defaultProps} includeEssay={false} />);
 
-      const trigger = screen.getByRole('button');
+      const trigger = screen.getByRole('combobox');
       await user.click(trigger);
 
       await waitFor(() => {
@@ -156,7 +156,7 @@ describe('AreaKnowledgeSelector', () => {
         />
       );
 
-      const trigger = screen.getByRole('button');
+      const trigger = screen.getByRole('combobox');
       await user.click(trigger);
 
       await waitFor(() => {
@@ -176,7 +176,7 @@ describe('AreaKnowledgeSelector', () => {
         <AreaKnowledgeSelector {...defaultProps} onAreaChange={onAreaChange} />
       );
 
-      const trigger = screen.getByRole('button');
+      const trigger = screen.getByRole('combobox');
       await user.click(trigger);
 
       await waitFor(() => {
@@ -196,7 +196,7 @@ describe('AreaKnowledgeSelector', () => {
         <AreaKnowledgeSelector {...defaultProps} onAreaChange={onAreaChange} />
       );
 
-      const trigger = screen.getByRole('button');
+      const trigger = screen.getByRole('combobox');
       await user.click(trigger);
 
       await waitFor(() => {
@@ -215,7 +215,7 @@ describe('AreaKnowledgeSelector', () => {
       );
 
       // Component renders with the correct value set internally
-      const trigger = screen.getByRole('button');
+      const trigger = screen.getByRole('combobox');
       expect(trigger).toBeInTheDocument();
     });
 
@@ -228,7 +228,7 @@ describe('AreaKnowledgeSelector', () => {
       );
 
       // Component renders with essay value set internally
-      const trigger = screen.getByRole('button');
+      const trigger = screen.getByRole('combobox');
       expect(trigger).toBeInTheDocument();
     });
   });
@@ -237,14 +237,14 @@ describe('AreaKnowledgeSelector', () => {
     it('applies opacity class when loading', () => {
       render(<AreaKnowledgeSelector {...defaultProps} loading={true} />);
 
-      const trigger = screen.getByRole('button');
+      const trigger = screen.getByRole('combobox');
       expect(trigger).toHaveClass('opacity-50');
     });
 
     it('does not apply opacity class when not loading', () => {
       render(<AreaKnowledgeSelector {...defaultProps} loading={false} />);
 
-      const trigger = screen.getByRole('button');
+      const trigger = screen.getByRole('combobox');
       expect(trigger).not.toHaveClass('opacity-50');
     });
   });
@@ -253,19 +253,19 @@ describe('AreaKnowledgeSelector', () => {
     it('renders with empty areas array', () => {
       render(<AreaKnowledgeSelector {...defaultProps} areas={[]} />);
 
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByRole('combobox')).toBeInTheDocument();
     });
 
     it('still shows "Todos" option with empty areas', async () => {
       const user = userEvent.setup();
       render(<AreaKnowledgeSelector {...defaultProps} areas={[]} />);
 
-      const trigger = screen.getByRole('button');
+      const trigger = screen.getByRole('combobox');
       await user.click(trigger);
 
       await waitFor(() => {
         // Verify dropdown menu is open
-        expect(screen.getByRole('menu')).toBeInTheDocument();
+        expect(screen.getByRole('listbox')).toBeInTheDocument();
         // "Todos" appears both in trigger (selected) and in dropdown menu
         const todosElements = screen.getAllByText('Todos');
         expect(todosElements).toHaveLength(2);
@@ -282,7 +282,7 @@ describe('AreaKnowledgeSelector', () => {
         />
       );
 
-      const trigger = screen.getByRole('button');
+      const trigger = screen.getByRole('combobox');
       await user.click(trigger);
 
       await waitFor(() => {
@@ -296,7 +296,7 @@ describe('AreaKnowledgeSelector', () => {
       const user = userEvent.setup();
       render(<AreaKnowledgeSelector {...defaultProps} />);
 
-      const trigger = screen.getByRole('button');
+      const trigger = screen.getByRole('combobox');
       await user.click(trigger);
 
       // Wait for dropdown to open
@@ -307,7 +307,7 @@ describe('AreaKnowledgeSelector', () => {
       // Color indicators should be rendered (we can't easily test exact colors,
       // but we can verify the structure exists)
       // Select uses menuitem role instead of option
-      const options = screen.getAllByRole('menuitem');
+      const options = screen.getAllByRole('option');
       expect(options.length).toBeGreaterThan(0);
     });
   });
@@ -315,14 +315,14 @@ describe('AreaKnowledgeSelector', () => {
   describe('Accessibility', () => {
     it('has accessible button role', () => {
       render(<AreaKnowledgeSelector {...defaultProps} />);
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByRole('combobox')).toBeInTheDocument();
     });
 
     it('can be navigated with keyboard', async () => {
       const user = userEvent.setup();
       render(<AreaKnowledgeSelector {...defaultProps} />);
 
-      const trigger = screen.getByRole('button');
+      const trigger = screen.getByRole('combobox');
       trigger.focus();
 
       // Open dropdown with Enter
@@ -330,7 +330,7 @@ describe('AreaKnowledgeSelector', () => {
 
       await waitFor(() => {
         // Verify dropdown menu is open
-        expect(screen.getByRole('menu')).toBeInTheDocument();
+        expect(screen.getByRole('listbox')).toBeInTheDocument();
         // "Todos" appears both in trigger (selected) and in dropdown menu
         const todosElements = screen.getAllByText('Todos');
         expect(todosElements).toHaveLength(2);
@@ -348,7 +348,7 @@ describe('AreaKnowledgeSelector', () => {
       );
 
       // Should render without crashing
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByRole('combobox')).toBeInTheDocument();
     });
 
     it('handles rapid selection changes', async () => {
@@ -358,7 +358,7 @@ describe('AreaKnowledgeSelector', () => {
         <AreaKnowledgeSelector {...defaultProps} onAreaChange={onAreaChange} />
       );
 
-      const trigger = screen.getByRole('button');
+      const trigger = screen.getByRole('combobox');
 
       // Multiple rapid interactions
       await user.click(trigger);
@@ -389,7 +389,7 @@ describe('AreaKnowledgeSelector', () => {
       const user = userEvent.setup();
       render(<AreaKnowledgeSelector {...defaultProps} areas={specialAreas} />);
 
-      const trigger = screen.getByRole('button');
+      const trigger = screen.getByRole('combobox');
       await user.click(trigger);
 
       await waitFor(() => {
@@ -410,7 +410,7 @@ describe('AreaKnowledgeSelector', () => {
         />
       );
 
-      const trigger = screen.getByRole('button');
+      const trigger = screen.getByRole('combobox');
       expect(trigger).not.toHaveClass('opacity-50');
     });
 
@@ -436,7 +436,7 @@ describe('AreaKnowledgeSelector', () => {
         />
       );
 
-      const trigger = screen.getByRole('button');
+      const trigger = screen.getByRole('combobox');
       await user.click(trigger);
 
       await waitFor(() => {

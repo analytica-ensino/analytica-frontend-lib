@@ -470,9 +470,9 @@ describe('Support', () => {
       await waitFor(() => {
         // Procurar pelo texto "Técnico" que aparece no dropdown (não o dos badges)
         const options = screen.getAllByText(/Técnico/);
-        // A opção do dropdown é a que está dentro de um menuitem (Select usa role="menuitem")
+        // A opção do dropdown é a que está dentro de um option (Select usa role="option")
         const dropdownOption = options.find(
-          (el) => el.closest('[role="menuitem"]') !== null
+          (el) => el.closest('[role="option"]') !== null
         );
         if (dropdownOption) {
           fireEvent.click(dropdownOption);

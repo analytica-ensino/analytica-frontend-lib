@@ -22,6 +22,7 @@ import { readingFluencyFallback } from '../../assets/fallbacks/readingFluencyFal
 import { useMicrophonePermission } from '../../hooks/useMicrophonePermission';
 import { useEscapeToClose } from '../../hooks/useEscapeToClose';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
+import { useModalFocus } from '../../hooks/useModalFocus';
 import {
   isYouTubeUrl,
   getYouTubeVideoId,
@@ -144,9 +145,11 @@ const Modal = ({
   contentClassName = '',
 }: ModalProps) => {
   const titleId = useId();
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEscapeToClose(isOpen && closeOnEscape, onClose);
   useBodyScrollLock(isOpen);
+  useModalFocus(isOpen, dialogRef);
 
   if (!isOpen) return null;
 
@@ -179,6 +182,8 @@ const Modal = ({
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs border-none p-0 m-0 w-full cursor-default">
         <dialog
+          ref={dialogRef}
+          tabIndex={-1}
           className={modalClasses}
           aria-labelledby={titleId}
           aria-modal="true"
@@ -285,6 +290,8 @@ const Modal = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs border-none p-0 m-0 w-full cursor-default">
       <dialog
+        ref={dialogRef}
+        tabIndex={-1}
         className={modalClasses}
         aria-labelledby={titleId}
         aria-modal="true"

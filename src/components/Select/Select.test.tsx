@@ -30,7 +30,7 @@ describe('Select component', () => {
 
   it('should render without errors', () => {
     setup();
-    expect(screen.getByRole('button')).toBeInTheDocument();
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
   });
 
   it('should render with label', () => {
@@ -106,7 +106,7 @@ describe('Select component', () => {
   it('should generate and use unique ID', () => {
     setup({ label: 'Test Label' });
     const label = screen.getByText('Test Label');
-    const button = screen.getByRole('button');
+    const button = screen.getByRole('combobox');
 
     const htmlFor = label.getAttribute('for');
     const buttonId = button.getAttribute('id');
@@ -118,7 +118,7 @@ describe('Select component', () => {
 
   it('should use provided ID', () => {
     setup({ id: 'custom-select-id', label: 'Test Label' });
-    const button = screen.getByRole('button');
+    const button = screen.getByRole('combobox');
     const label = screen.getByText('Test Label');
 
     expect(button).toHaveAttribute('id', 'custom-select-id');
@@ -127,7 +127,7 @@ describe('Select component', () => {
 
   it('should close when clicking outside', async () => {
     setup();
-    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByRole('combobox'));
     expect(screen.getByText('Option 1')).toBeInTheDocument();
 
     fireEvent.mouseDown(document.body);
@@ -136,7 +136,7 @@ describe('Select component', () => {
 
   it('should select an item and show correct label', async () => {
     setup();
-    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByRole('combobox'));
     await userEvent.click(screen.getByText('Option 2'));
     expect(screen.getByText('Option 2')).toBeInTheDocument();
   });
@@ -144,9 +144,9 @@ describe('Select component', () => {
   it('should not select a disabled item', async () => {
     setup();
     expect(screen.queryByDisplayValue('Option 3')).not.toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByRole('combobox'));
     await userEvent.click(screen.getByText('Option 3'));
-    const menuItem = screen.getByText('Option 3').closest('[role="menuitem"]');
+    const menuItem = screen.getByText('Option 3').closest('[role="option"]');
     expect(menuItem).toHaveClass('pointer-events-none');
     expect(screen.queryByDisplayValue('Option 3')).not.toBeInTheDocument();
   });
@@ -163,7 +163,7 @@ describe('Select component', () => {
         </SelectContent>
       </Select>
     );
-    const trigger = screen.getByRole('button');
+    const trigger = screen.getByRole('combobox');
     expect(trigger.className).toMatch(/border-indicator-error/);
   });
 
@@ -179,7 +179,7 @@ describe('Select component', () => {
         </SelectContent>
       </Select>
     );
-    const trigger = screen.getByRole('button');
+    const trigger = screen.getByRole('combobox');
     expect(trigger.className).toMatch(
       /cursor-not-allowed text-text-400 pointer-events-none opacity-50/
     );
@@ -199,7 +199,7 @@ describe('Select component', () => {
       </Select>
     );
 
-    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByRole('combobox'));
     await userEvent.click(screen.getByText('Option 2'));
 
     expect(onValueChange).toHaveBeenCalledWith('option2');
@@ -249,7 +249,7 @@ describe('Select component', () => {
       </Select>
     );
 
-    const trigger = screen.getByRole('button');
+    const trigger = screen.getByRole('combobox');
     expect(trigger.className).toMatch(/border-b/);
   });
 
@@ -265,8 +265,8 @@ describe('Select component', () => {
       </Select>
     );
 
-    await userEvent.click(screen.getByRole('button'));
-    const menu = screen.getByRole('menu');
+    await userEvent.click(screen.getByRole('combobox'));
+    const menu = screen.getByRole('listbox');
 
     // For side=top, should have top style and translateY(-100%) transform
     expect(menu.style.top).toBeTruthy();
@@ -307,7 +307,7 @@ describe('Select component', () => {
       </Select>
     );
 
-    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByRole('combobox'));
     await userEvent.click(screen.getByText('Option 1'));
 
     expect(customOnClick).toHaveBeenCalled();
@@ -355,8 +355,8 @@ describe('Select component', () => {
       </Select>
     );
 
-    await userEvent.click(screen.getByRole('button'));
-    const item = screen.getByText('Option 1').closest('[role="menuitem"]');
+    await userEvent.click(screen.getByRole('combobox'));
+    const item = screen.getByText('Option 1').closest('[role="option"]');
     expect(item).toHaveClass('custom-class');
   });
 
@@ -372,7 +372,7 @@ describe('Select component', () => {
       </Select>
     );
 
-    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByRole('combobox'));
     const content = screen.getByText('Option 1').closest('div')?.parentElement;
     expect(content).toHaveClass('custom-content-class');
   });
@@ -389,7 +389,7 @@ describe('Select component', () => {
       </Select>
     );
 
-    const trigger = screen.getByRole('button');
+    const trigger = screen.getByRole('combobox');
     expect(trigger).toHaveClass('custom-trigger-class');
   });
 
@@ -408,14 +408,14 @@ describe('Select component', () => {
       </Select>
     );
 
-    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByRole('combobox'));
 
     const disabledItem = screen
       .getByText('Disabled Option')
-      .closest('[role="menuitem"]');
+      .closest('[role="option"]');
     const enabledItem = screen
       .getByText('Enabled Option')
-      .closest('[role="menuitem"]');
+      .closest('[role="option"]');
 
     expect(disabledItem).toHaveAttribute('tabindex', '-1');
     expect(enabledItem).toHaveAttribute('tabindex', '0');
@@ -471,7 +471,7 @@ describe('Select component', () => {
     const { rerender } = render(tree(first));
     rerender(tree(second));
 
-    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByRole('combobox'));
     await userEvent.click(screen.getByText('Option 2'));
 
     // A handler that closes over state changing after mount — the reason this
@@ -529,7 +529,7 @@ describe('Select component', () => {
     expect(mockOnValueChange).not.toHaveBeenCalled();
 
     // Open select and click an item - this should call onValueChange
-    fireEvent.click(screen.getByRole('button'));
+    fireEvent.click(screen.getByRole('combobox'));
     fireEvent.click(screen.getByText('Option 2'));
 
     expect(mockOnValueChange).toHaveBeenCalledTimes(1);
@@ -552,8 +552,8 @@ describe('Select keyboard navigation', () => {
       </Select>
     );
 
-    await userEvent.click(screen.getByRole('button'));
-    const items = screen.getAllByRole('menuitem');
+    await userEvent.click(screen.getByRole('combobox'));
+    const items = screen.getAllByRole('option');
     items[0].focus();
 
     fireEvent.keyDown(document, { key: 'ArrowDown' });
@@ -580,8 +580,8 @@ describe('Select keyboard navigation', () => {
       </Select>
     );
 
-    await userEvent.click(screen.getByRole('button'));
-    const items = screen.getAllByRole('menuitem');
+    await userEvent.click(screen.getByRole('combobox'));
+    const items = screen.getAllByRole('option');
     items[0].focus();
 
     fireEvent.keyDown(document, { key: 'ArrowUp' });
@@ -607,11 +607,11 @@ describe('Select keyboard navigation', () => {
       </Select>
     );
 
-    await userEvent.click(screen.getByRole('button'));
-    expect(document.activeElement).not.toHaveAttribute('role', 'menuitem');
+    await userEvent.click(screen.getByRole('combobox'));
+    expect(document.activeElement).not.toHaveAttribute('role', 'option');
 
     fireEvent.keyDown(document, { key: 'ArrowDown' });
-    expect(screen.getAllByRole('menuitem')[0]).toHaveFocus();
+    expect(screen.getAllByRole('option')[0]).toHaveFocus();
   });
 
   it('starts from last item when no item is focused and ArrowUp is pressed', async () => {
@@ -627,11 +627,11 @@ describe('Select keyboard navigation', () => {
       </Select>
     );
 
-    await userEvent.click(screen.getByRole('button'));
-    expect(document.activeElement).not.toHaveAttribute('role', 'menuitem');
+    await userEvent.click(screen.getByRole('combobox'));
+    expect(document.activeElement).not.toHaveAttribute('role', 'option');
 
     fireEvent.keyDown(document, { key: 'ArrowUp' });
-    const items = screen.getAllByRole('menuitem');
+    const items = screen.getAllByRole('option');
     expect(items[items.length - 1]).toHaveFocus();
   });
 
@@ -648,8 +648,8 @@ describe('Select keyboard navigation', () => {
       </Select>
     );
 
-    await userEvent.click(screen.getByRole('button'));
-    const items = screen.getAllByRole('menuitem');
+    await userEvent.click(screen.getByRole('combobox'));
+    const items = screen.getAllByRole('option');
     items[0].focus();
 
     const spy = jest.spyOn(Event.prototype, 'preventDefault');
@@ -677,15 +677,15 @@ describe('Select event navigation', () => {
       </Select>
     );
 
-    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByRole('combobox'));
 
-    const items = screen.getAllByRole('menuitem');
+    const items = screen.getAllByRole('option');
     items[0].focus();
 
     fireEvent.keyDown(items[0], { key: 'Enter' });
 
     expect(onValueChange).toHaveBeenCalledWith('option1');
-    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
   });
 
   it('selects item when Space key is pressed', async () => {
@@ -702,15 +702,15 @@ describe('Select event navigation', () => {
       </Select>
     );
 
-    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByRole('combobox'));
 
-    const items = screen.getAllByRole('menuitem');
+    const items = screen.getAllByRole('option');
     items[1].focus();
 
     fireEvent.keyDown(items[1], { key: ' ' });
 
     expect(onValueChange).toHaveBeenCalledWith('option2');
-    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
   });
 });
 
@@ -846,7 +846,7 @@ describe('Select label finding behavior', () => {
     expect(screen.getByText('Selecione uma área')).toBeInTheDocument();
 
     // Open and select the item with JSX children
-    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByRole('combobox'));
     await userEvent.click(screen.getByText('Ciências Humanas'));
 
     // After selection, should show the JSX content in trigger
@@ -936,7 +936,7 @@ describe('SelectTrigger invalid + variant classes', () => {
 
   it('applies border-b-2 when invalid and variant is underlined', () => {
     setup('underlined');
-    const trigger = screen.getByRole('button');
+    const trigger = screen.getByRole('combobox');
     expect(trigger.className).toMatch(/border-b-2/);
     expect(trigger.className).toMatch(/border-indicator-error/);
     expect(trigger.className).toMatch(/text-text-600/);
@@ -944,7 +944,7 @@ describe('SelectTrigger invalid + variant classes', () => {
 
   it('applies border-2 when invalid and variant is outlined', () => {
     setup('outlined');
-    const trigger = screen.getByRole('button');
+    const trigger = screen.getByRole('combobox');
     expect(trigger.className).toMatch(/border-2/);
     expect(trigger.className).toMatch(/border-indicator-error/);
     expect(trigger.className).toMatch(/text-text-600/);
@@ -964,10 +964,10 @@ describe('SelectContent portal and fixed positioning', () => {
       </Select>
     );
 
-    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByRole('combobox'));
 
     // The menu should exist in document.body, not within the Select container
-    const menu = screen.getByRole('menu');
+    const menu = screen.getByRole('listbox');
     expect(menu).toBeInTheDocument();
 
     // The menu should NOT be a descendant of the Select container
@@ -989,9 +989,9 @@ describe('SelectContent portal and fixed positioning', () => {
       </Select>
     );
 
-    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByRole('combobox'));
 
-    const menu = screen.getByRole('menu');
+    const menu = screen.getByRole('listbox');
     expect(menu.style.position).toBe('fixed');
   });
 
@@ -1007,9 +1007,9 @@ describe('SelectContent portal and fixed positioning', () => {
       </Select>
     );
 
-    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByRole('combobox'));
 
-    const menu = screen.getByRole('menu');
+    const menu = screen.getByRole('listbox');
     expect(menu.style.zIndex).toBe('9999');
   });
 
@@ -1025,9 +1025,9 @@ describe('SelectContent portal and fixed positioning', () => {
       </Select>
     );
 
-    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByRole('combobox'));
 
-    const menu = screen.getByRole('menu');
+    const menu = screen.getByRole('listbox');
     // The menu should have fixed position and left style set
     expect(menu.style.position).toBe('fixed');
     expect(menu.style.left).toBeTruthy();
@@ -1045,9 +1045,9 @@ describe('SelectContent portal and fixed positioning', () => {
       </Select>
     );
 
-    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByRole('combobox'));
 
-    const menu = screen.getByRole('menu');
+    const menu = screen.getByRole('listbox');
     // For side=bottom, should have top style set (not bottom)
     expect(menu.style.top).toBeTruthy();
     expect(menu.style.bottom).toBeFalsy();
@@ -1065,9 +1065,9 @@ describe('SelectContent portal and fixed positioning', () => {
       </Select>
     );
 
-    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByRole('combobox'));
 
-    const menu = screen.getByRole('menu');
+    const menu = screen.getByRole('listbox');
     // For side=top, should have top style with translateY(-100%) transform
     expect(menu.style.top).toBeTruthy();
     expect(menu.style.transform).toBe('translateY(-100%)');
@@ -1085,9 +1085,9 @@ describe('SelectContent portal and fixed positioning', () => {
       </Select>
     );
 
-    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByRole('combobox'));
 
-    const menu = screen.getByRole('menu');
+    const menu = screen.getByRole('listbox');
     // For align=start, should have left style set
     expect(menu.style.left).toBeTruthy();
     expect(menu.style.right).toBeFalsy();
@@ -1105,9 +1105,9 @@ describe('SelectContent portal and fixed positioning', () => {
       </Select>
     );
 
-    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByRole('combobox'));
 
-    const menu = screen.getByRole('menu');
+    const menu = screen.getByRole('listbox');
     // For align=end, should have left style with translateX(-100%) transform
     expect(menu.style.left).toBeTruthy();
     expect(menu.style.transform).toBe('translateX(-100%)');
@@ -1125,9 +1125,9 @@ describe('SelectContent portal and fixed positioning', () => {
       </Select>
     );
 
-    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByRole('combobox'));
 
-    const menu = screen.getByRole('menu');
+    const menu = screen.getByRole('listbox');
     // For align=center, should have left and transform set
     expect(menu.style.left).toBeTruthy();
     expect(menu.style.transform).toBe('translateX(-50%)');
@@ -1149,7 +1149,7 @@ describe('SelectContent portal and fixed positioning', () => {
       </div>
     );
 
-    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByRole('combobox'));
 
     // All menu items should be visible despite overflow:hidden parent
     expect(screen.getByText('Option 1')).toBeVisible();
@@ -1170,14 +1170,14 @@ describe('SelectContent portal and fixed positioning', () => {
       </Select>
     );
 
-    await userEvent.click(screen.getByRole('button'));
-    expect(screen.getByRole('menu')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('combobox'));
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
 
     // Click on an item
     await userEvent.click(screen.getByText('Option 1'));
 
     // Menu should close
-    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
     expect(onValueChange).toHaveBeenCalledWith('option1');
   });
 
@@ -1193,15 +1193,15 @@ describe('SelectContent portal and fixed positioning', () => {
       </Select>
     );
 
-    await userEvent.click(screen.getByRole('button'));
-    const menu = screen.getByRole('menu');
+    await userEvent.click(screen.getByRole('combobox'));
+    const menu = screen.getByRole('listbox');
     expect(menu).toBeInTheDocument();
 
     // Click on the menu container (not an item)
     fireEvent.mouseDown(menu);
 
     // Menu should remain open
-    expect(screen.getByRole('menu')).toBeInTheDocument();
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
   });
 
   it('should store trigger rect when opening dropdown', async () => {
@@ -1219,12 +1219,12 @@ describe('SelectContent portal and fixed positioning', () => {
     );
 
     // Initially no trigger rect
-    const trigger = screen.getByRole('button');
+    const trigger = screen.getByRole('combobox');
 
     // After clicking, menu should be positioned
     await userEvent.click(trigger);
 
-    const menu = screen.getByRole('menu');
+    const menu = screen.getByRole('listbox');
     // Menu should have position styles set from trigger rect
     expect(menu.style.position).toBe('fixed');
     expect(menu.style.left).toBeTruthy();
@@ -1250,7 +1250,7 @@ describe('SelectItem selection behavior', () => {
     expect(screen.getByText('Option 1')).toBeInTheDocument();
 
     // Open select and click on the same option (Option 1)
-    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByRole('combobox'));
 
     // Use getAllByText to get all elements with "Option 1" and click the second one (menu item)
     const option1Elements = screen.getAllByText('Option 1');
@@ -1275,7 +1275,7 @@ describe('SelectItem selection behavior', () => {
     );
 
     // Open select and click on different option (Option 2)
-    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByRole('combobox'));
     await userEvent.click(screen.getByText('Option 2'));
 
     // Should call onValueChange with new value
@@ -1297,7 +1297,7 @@ describe('SelectItem selection behavior', () => {
     );
 
     // First, click on the same option (should keep selected)
-    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByRole('combobox'));
     const option1Elements = screen.getAllByText('Option 1');
     await userEvent.click(option1Elements[1]); // Index 1 is the menu item
     expect(onValueChange).toHaveBeenCalledWith('option1');
@@ -1306,7 +1306,7 @@ describe('SelectItem selection behavior', () => {
     onValueChange.mockClear();
 
     // Then select a different option
-    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByRole('combobox'));
     await userEvent.click(screen.getByText('Option 2'));
     expect(onValueChange).toHaveBeenCalledWith('option2');
   });
@@ -1346,31 +1346,31 @@ describe('Select controlled value sync', () => {
 
   it('should display the label matching the initial controlled value', () => {
     renderControlled('option2');
-    expect(screen.getByRole('button')).toHaveTextContent('Option 2');
+    expect(screen.getByRole('combobox')).toHaveTextContent('Option 2');
   });
 
   it('should update the displayed label when the controlled value changes', () => {
     const { rerender } = renderControlled('option1');
-    expect(screen.getByRole('button')).toHaveTextContent('Option 1');
+    expect(screen.getByRole('combobox')).toHaveTextContent('Option 1');
 
     rerenderControlled(rerender, 'option3');
-    expect(screen.getByRole('button')).toHaveTextContent('Option 3');
+    expect(screen.getByRole('combobox')).toHaveTextContent('Option 3');
   });
 
   it('should fall back to placeholder when controlled value becomes empty string', () => {
     const { rerender } = renderControlled('option2');
-    expect(screen.getByRole('button')).toHaveTextContent('Option 2');
+    expect(screen.getByRole('combobox')).toHaveTextContent('Option 2');
 
     rerenderControlled(rerender, '');
-    expect(screen.getByRole('button')).toHaveTextContent('Pick something');
+    expect(screen.getByRole('combobox')).toHaveTextContent('Pick something');
   });
 
   it('should fall back to placeholder when controlled value has no matching SelectItem', () => {
     const { rerender } = renderControlled('option1');
-    expect(screen.getByRole('button')).toHaveTextContent('Option 1');
+    expect(screen.getByRole('combobox')).toHaveTextContent('Option 1');
 
     rerenderControlled(rerender, 'value-with-no-matching-item');
-    expect(screen.getByRole('button')).toHaveTextContent('Pick something');
+    expect(screen.getByRole('combobox')).toHaveTextContent('Pick something');
   });
 
   it('should clear an internally selected label when parent resets value to empty', async () => {
@@ -1379,11 +1379,227 @@ describe('Select controlled value sync', () => {
     // resetField triggered by a sibling field changing).
     const { rerender } = renderControlled('option1');
 
-    await userEvent.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByRole('combobox'));
     await userEvent.click(screen.getByText('Option 2'));
-    expect(screen.getByRole('button')).toHaveTextContent('Option 2');
+    expect(screen.getByRole('combobox')).toHaveTextContent('Option 2');
 
     rerenderControlled(rerender, '');
-    expect(screen.getByRole('button')).toHaveTextContent('Pick something');
+    expect(screen.getByRole('combobox')).toHaveTextContent('Pick something');
+  });
+});
+
+describe('Select — semântica de combobox', () => {
+  const setupComLabel = () =>
+    render(
+      <Select label="Assunto">
+        <SelectTrigger variant="rounded">
+          <SelectValue placeholder="Selecionar" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="acesso">Acesso</SelectItem>
+          <SelectItem value="login">Login</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+  const setupSemLabel = () =>
+    render(
+      <Select>
+        <SelectTrigger>
+          <SelectValue placeholder="Selecionar" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="acesso">Acesso</SelectItem>
+          <SelectItem value="login" disabled>
+            Login
+          </SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+  it('o gatilho é um combobox, não um botão genérico', () => {
+    setupComLabel();
+    const trigger = screen.getByRole('combobox');
+
+    expect(trigger).toHaveAttribute('aria-haspopup', 'listbox');
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('o nome acessível do combobox vem do label', () => {
+    setupComLabel();
+    expect(
+      screen.getByRole('combobox', { name: 'Assunto' })
+    ).toBeInTheDocument();
+  });
+
+  it('o label é ligado por aria-labelledby, não só por htmlFor', () => {
+    setupComLabel();
+    const trigger = screen.getByRole('combobox');
+    const labelId = trigger.getAttribute('aria-labelledby');
+
+    expect(labelId).toBeTruthy();
+    expect(document.getElementById(labelId as string)).toHaveTextContent(
+      'Assunto'
+    );
+  });
+
+  it('sem label, não sobra um aria-labelledby apontando pro nada', () => {
+    setupSemLabel();
+    expect(screen.getByRole('combobox')).not.toHaveAttribute('aria-labelledby');
+  });
+
+  it('aria-controls aponta pro id real da listbox quando abre', async () => {
+    setupComLabel();
+    const trigger = screen.getByRole('combobox');
+
+    expect(trigger).not.toHaveAttribute('aria-controls');
+
+    await userEvent.click(trigger);
+
+    const controls = trigger.getAttribute('aria-controls');
+    expect(controls).toBeTruthy();
+    expect(screen.getByRole('listbox')).toHaveAttribute(
+      'id',
+      controls as string
+    );
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('a listbox carrega o mesmo label do campo', async () => {
+    setupComLabel();
+    await userEvent.click(screen.getByRole('combobox'));
+
+    expect(
+      screen.getByRole('listbox', { name: 'Assunto' })
+    ).toBeInTheDocument();
+  });
+
+  it('as opções são option e expõem aria-selected', async () => {
+    setupComLabel();
+    await userEvent.click(screen.getByRole('combobox'));
+
+    const opcoes = screen.getAllByRole('option');
+    expect(opcoes).toHaveLength(2);
+    opcoes.forEach((opcao) =>
+      expect(opcao).toHaveAttribute('aria-selected', 'false')
+    );
+  });
+
+  it('marca aria-selected na opção escolhida', async () => {
+    setupComLabel();
+    await userEvent.click(screen.getByRole('combobox'));
+    await userEvent.click(screen.getByRole('option', { name: 'Acesso' }));
+    await userEvent.click(screen.getByRole('combobox'));
+
+    expect(screen.getByRole('option', { name: 'Acesso' })).toHaveAttribute(
+      'aria-selected',
+      'true'
+    );
+    expect(screen.getByRole('option', { name: 'Login' })).toHaveAttribute(
+      'aria-selected',
+      'false'
+    );
+  });
+
+  it('o valor escolhido fica legível no próprio combobox', async () => {
+    setupComLabel();
+    const trigger = screen.getByRole('combobox');
+
+    expect(trigger).toHaveTextContent('Selecionar');
+
+    await userEvent.click(trigger);
+    await userEvent.click(screen.getByRole('option', { name: 'Acesso' }));
+
+    expect(screen.getByRole('combobox')).toHaveTextContent('Acesso');
+  });
+
+  it('devolve o foco pro combobox depois de escolher uma opção', async () => {
+    setupComLabel();
+    const trigger = screen.getByRole('combobox');
+
+    await userEvent.click(trigger);
+    const opcao = screen.getByRole('option', { name: 'Acesso' });
+    opcao.focus();
+    await userEvent.click(opcao);
+
+    // Sem isso o foco cai no <body> quando a listbox some: a escolha passa
+    // muda pro leitor de tela e o Tab seguinte recomeça do topo da página.
+    expect(screen.getByRole('combobox')).toHaveFocus();
+    expect(document.body).not.toHaveFocus();
+  });
+
+  it('o combobox que reassume o foco já anuncia o valor escolhido', async () => {
+    setupComLabel();
+
+    await userEvent.click(screen.getByRole('combobox'));
+    await userEvent.click(screen.getByRole('option', { name: 'Acesso' }));
+
+    const trigger = screen.getByRole('combobox', { name: 'Assunto' });
+    expect(trigger).toHaveFocus();
+    expect(trigger).toHaveTextContent('Acesso');
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('escolher pelo teclado também devolve o foco', async () => {
+    setupComLabel();
+
+    await userEvent.click(screen.getByRole('combobox'));
+    const opcao = screen.getByRole('option', { name: 'Acesso' });
+    opcao.focus();
+    fireEvent.keyDown(opcao, { key: 'Enter' });
+
+    expect(screen.getByRole('combobox')).toHaveFocus();
+  });
+
+  it('opção desabilitada não mexe no foco nem no valor', async () => {
+    setupSemLabel();
+    const trigger = screen.getByRole('combobox');
+
+    await userEvent.click(trigger);
+    const desabilitada = screen.getByRole('option', { name: 'Login' });
+    await userEvent.click(desabilitada);
+
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    expect(screen.getByRole('combobox')).toHaveTextContent('Selecionar');
+  });
+
+  it('Escape fecha a listbox e devolve o foco ao combobox', async () => {
+    setupComLabel();
+    const trigger = screen.getByRole('combobox');
+
+    await userEvent.click(trigger);
+    screen.getByRole('option', { name: 'Acesso' }).focus();
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(screen.getByRole('combobox')).toHaveFocus();
+  });
+
+  it('não sequestra teclas que não são seta com a listbox aberta', async () => {
+    setupComLabel();
+    await userEvent.click(screen.getByRole('combobox'));
+
+    const opcao = screen.getByRole('option', { name: 'Acesso' });
+    opcao.focus();
+
+    // `fireEvent` devolve false quando alguém chamou preventDefault. Antes,
+    // QUALQUER tecla era cancelada aqui, o que prendia o Tab na listbox.
+    expect(fireEvent.keyDown(document, { key: 'Tab' })).toBe(true);
+    expect(fireEvent.keyDown(document, { key: 'a' })).toBe(true);
+    expect(opcao).toHaveFocus();
+
+    // As setas continuam sendo tratadas.
+    expect(fireEvent.keyDown(document, { key: 'ArrowDown' })).toBe(false);
+  });
+
+  it('opção desabilitada segue marcada como aria-disabled', async () => {
+    setupSemLabel();
+    await userEvent.click(screen.getByRole('combobox'));
+
+    expect(screen.getByRole('option', { name: 'Login' })).toHaveAttribute(
+      'aria-disabled',
+      'true'
+    );
   });
 });
