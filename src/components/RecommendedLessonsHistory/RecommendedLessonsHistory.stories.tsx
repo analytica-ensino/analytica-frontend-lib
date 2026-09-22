@@ -13,23 +13,29 @@ import { RecommendedClassDraftType } from '../../types/recommendedLessons';
 /**
  * Mock UUIDs for models data
  */
+/*
+ * O schema valida com `z.uuid()`, que exige o nibble de versão entre 1 e 8 e o
+ * de variante em 8/9/a/b — só o UUID nulo e o máximo escapam. Repetir o mesmo
+ * dígito no valor inteiro reprova a validação e derruba a aba inteira no
+ * ErrorDisplay, então os mocks carregam `4` e `8` nas posições certas.
+ */
 const MOCK_UUIDS = {
   models: {
     model1: 'ffffffff-ffff-ffff-ffff-ffffffffffff',
-    model2: '00000000-0000-0000-0000-000000000001',
-    model3: '00000000-0000-0000-0000-000000000002',
-    model4: '00000000-0000-0000-0000-000000000003',
-    model5: '00000000-0000-0000-0000-000000000004',
+    model2: '11111111-1111-4111-8111-111111111111',
+    model3: '22222222-2222-4222-8222-222222222222',
+    model4: '33333333-3333-4333-8333-333333333333',
+    model5: '44444444-4444-4444-8444-444444444444',
   },
   subjects: {
-    math: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-    physics: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
-    chemistry: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
-    portuguese: 'dddddddd-dddd-dddd-dddd-dddddddddddd',
-    biology: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
+    math: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    physics: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+    chemistry: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+    portuguese: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+    biology: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
   },
   users: {
-    creator: '11111111-1111-1111-1111-111111111111',
+    creator: '99999999-9999-4999-8999-999999999999',
   },
 };
 
@@ -113,6 +119,23 @@ const mockRecommendedClassModelsResponse: RecommendedClassModelsApiResponse = {
       },
     ],
     total: 5,
+  },
+};
+
+/**
+ * Mock recommendedClass drafts data.
+ * Mesma resposta dos modelos com o tipo trocado — a aba Rascunhos consome o
+ * mesmo endpoint, filtrando por `type`.
+ */
+const mockRecommendedClassDraftsResponse: RecommendedClassModelsApiResponse = {
+  ...mockRecommendedClassModelsResponse,
+  data: {
+    ...mockRecommendedClassModelsResponse.data,
+    drafts: mockRecommendedClassModelsResponse.data.drafts.map((draft) => ({
+      ...draft,
+      type: RecommendedClassDraftType.RASCUNHO,
+      title: draft.title.replace('Modelo de Aula', 'Rascunho'),
+    })),
   },
 };
 
@@ -420,6 +443,15 @@ const defaultProps: RecommendedLessonsHistoryProps = {
   onCreateModel: () => console.log('Create model clicked'),
   onSendLesson: (model) => console.log('Send lesson:', model),
   onEditModel: (model) => console.log('Edit model:', model),
+  // Draft props - enables Drafts tab in all stories
+  fetchRecommendedClassDrafts: async () => {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    return mockRecommendedClassDraftsResponse;
+  },
+  deleteRecommendedClassDraft: async (id) => {
+    console.log('Delete draft:', id);
+  },
+  onEditDraft: (draft) => console.log('Edit draft:', draft),
   subjectsMap: mockSubjectsMap,
 };
 
@@ -835,6 +867,19 @@ export const ModelsTab: Story = () => (
 );
 ModelsTab.meta = {
   name: 'Models Tab',
+};
+
+/**
+ * Drafts tab - shows the component with drafts data
+ */
+export const DraftsTab: Story = () => (
+  <RecommendedLessonsHistory
+    {...defaultProps}
+    defaultTab={RecommendedClassPageTab.DRAFTS}
+  />
+);
+DraftsTab.meta = {
+  name: 'Drafts Tab',
 };
 
 /**
