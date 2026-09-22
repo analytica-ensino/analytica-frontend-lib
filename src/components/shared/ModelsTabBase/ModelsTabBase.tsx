@@ -7,6 +7,7 @@ import { TableProvider } from '../../TableProvider/TableProvider';
 import { AlertDialog } from '../../AlertDialog/AlertDialog';
 import Toaster, { useToast } from '../../Toast/utils/Toaster';
 import { ErrorDisplay } from '../../ActivitiesHistory/components/ErrorDisplay';
+import { TableHeaderRow } from '../TableHeaderRow';
 import type {
   TableParams,
   ColumnConfig,
@@ -306,19 +307,8 @@ export const ModelsTabBase = <
               };
               return (
                 <div className="space-y-4">
-                  {/*
-                   * Header row. Acima de 1024px: botão à esquerda, filtro e
-                   * busca agrupados à direita pelo `ml-auto`. Abaixo disso a
-                   * busca ganha a primeira linha inteira (`basis-full`) e o
-                   * `justify-between` joga botão e filtro para as pontas da
-                   * segunda. A linha inteira precisa de 791px para caber —
-                   * daí a quebra em `lg`.
-                   *
-                   * A ordem do DOM segue a visual do desktop; no responsivo
-                   * ela diverge da ordem visual de propósito, ver spec.
-                   */}
-                  <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="order-2 lg:order-1">
+                  <TableHeaderRow
+                    action={
                       <Button
                         variant="solid"
                         action="primary"
@@ -328,18 +318,10 @@ export const ModelsTabBase = <
                       >
                         Criar modelo
                       </Button>
-                    </div>
-                    {filters && (
-                      <div className="order-3 lg:order-2 lg:ml-auto">
-                        {filters}
-                      </div>
-                    )}
-                    {search && (
-                      <div className="order-1 basis-full lg:order-3 lg:basis-auto">
-                        {search}
-                      </div>
-                    )}
-                  </div>
+                    }
+                    filters={filters}
+                    search={search}
+                  />
                   {/* Table and pagination */}
                   <div className="bg-background rounded-xl p-6 space-y-4">
                     {table}

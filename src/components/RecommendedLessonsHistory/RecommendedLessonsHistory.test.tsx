@@ -216,6 +216,8 @@ jest.mock('../TableProvider/TableProvider', () => {
     }: {
       children: (props: {
         controls: ReactNode;
+        filters: ReactNode;
+        search: ReactNode;
         table: ReactNode;
         pagination: ReactNode;
       }) => ReactNode;
@@ -272,6 +274,12 @@ jest.mock('../TableProvider/TableProvider', () => {
           {children({
             controls: (
               <div data-testid="controls">
+                <input placeholder={searchPlaceholder} />
+              </div>
+            ),
+            filters: <div data-testid="filters">Filtros</div>,
+            search: (
+              <div data-testid="search">
                 <input placeholder={searchPlaceholder} />
               </div>
             ),
