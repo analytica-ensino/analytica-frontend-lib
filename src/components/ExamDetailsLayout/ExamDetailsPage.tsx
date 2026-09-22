@@ -550,6 +550,10 @@ export const ExamDetailsPage = ({
         isViewOnly={true}
         answerSheetImageUrl={answerSheetImageUrl}
         onViewScannedAnswerSheet={handleViewScannedAnswerSheet}
+        // Every student of an exam sits in the same school and class, so the
+        // exam itself names them.
+        schoolName={examData.school}
+        className={examData.className}
       />
     </div>
   );

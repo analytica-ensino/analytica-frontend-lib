@@ -333,10 +333,42 @@ describe('CorrectActivityModal', () => {
       expect(screen.getByText('João Silva')).toBeInTheDocument();
     });
 
-    it('should display avatar with name initial', () => {
+    // Where the student is; the correction payload carries only the name, so
+    // the activity hands these over.
+    it('should display the school, class and year it was given', () => {
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          schoolName="Colégio Estadual São José"
+          className="Turma A"
+          schoolYear="2025"
+        />
+      );
+
+      expect(
+        screen.getByText('Colégio Estadual São José')
+      ).toBeInTheDocument();
+      expect(screen.getByText('Turma A')).toBeInTheDocument();
+      expect(screen.getByText('2025')).toBeInTheDocument();
+    });
+
+    // The badge is derived from the grade: the endpoint sends no band.
+    it('should badge the student with the band of their grade', () => {
       render(<CorrectActivityModal {...defaultProps} />);
 
-      expect(screen.getByText('J')).toBeInTheDocument();
+      expect(screen.getByText('Acima da média')).toBeInTheDocument();
+    });
+
+    it('should show no badge while the activity has no grade', () => {
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={{ ...mockData, score: null }}
+        />
+      );
+
+      expect(screen.queryByText('Acima da média')).not.toBeInTheDocument();
+      expect(screen.queryByText('Destaque da turma')).not.toBeInTheDocument();
     });
   });
 
@@ -344,31 +376,56 @@ describe('CorrectActivityModal', () => {
     it('should display formatted score', () => {
       render(<CorrectActivityModal {...defaultProps} />);
 
-      expect(screen.getByText('8.5')).toBeInTheDocument();
-      expect(screen.getByText('Nota')).toBeInTheDocument();
+      expect(screen.getByText('Desempenho geral')).toBeInTheDocument();
+      expect(screen.getByText('8,5')).toBeInTheDocument();
+      expect(screen.getByText('Nota média')).toBeInTheDocument();
     });
 
-    it('should display "-" when score is null', () => {
+    // No grade, no grade card: the three counts are still worth reading.
+    it('should drop the grade card when score is null', () => {
       const dataWithNullScore = { ...mockData, score: null };
       render(
         <CorrectActivityModal {...defaultProps} data={dataWithNullScore} />
       );
 
-      expect(screen.getByText('-')).toBeInTheDocument();
+      expect(screen.queryByText('Nota média')).not.toBeInTheDocument();
+      expect(screen.getByText('Nº de questões corretas')).toBeInTheDocument();
     });
 
     it('should display number of correct questions', () => {
       render(<CorrectActivityModal {...defaultProps} />);
 
       expect(screen.getByText('5')).toBeInTheDocument();
-      expect(screen.getByText('N° de questões corretas')).toBeInTheDocument();
+      expect(screen.getByText('Nº de questões corretas')).toBeInTheDocument();
     });
 
     it('should display number of incorrect questions', () => {
       render(<CorrectActivityModal {...defaultProps} />);
 
       expect(screen.getByText('2')).toBeInTheDocument();
-      expect(screen.getByText('N° de questões incorretas')).toBeInTheDocument();
+      expect(screen.getByText('Nº de questões incorretas')).toBeInTheDocument();
+    });
+
+    // The blank count travelled in the payload long before it was drawn.
+    it('should display number of blank questions', () => {
+      render(<CorrectActivityModal {...defaultProps} />);
+
+      expect(screen.getByText('1')).toBeInTheDocument();
+      expect(screen.getByText('Nº de questões em branco')).toBeInTheDocument();
+    });
+
+    // Both cards are derived from the answers themselves; mockData answers one
+    // question of "Subtópico" right and one wrong, so it reads as a result.
+    it('should name the best and the worst subtema', () => {
+      render(<CorrectActivityModal {...defaultProps} />);
+
+      expect(
+        screen.getByText('Subtema com melhor resultado')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('Subtema com maior dificuldade')
+      ).toBeInTheDocument();
+      expect(screen.getByText('Subtópico')).toBeInTheDocument();
     });
   });
 
@@ -941,7 +998,6 @@ describe('CorrectActivityModal', () => {
       );
 
       expect(screen.getByText('José María')).toBeInTheDocument();
-      expect(screen.getByText('J')).toBeInTheDocument();
     });
 
     it('should format score with one decimal place', () => {
@@ -950,7 +1006,7 @@ describe('CorrectActivityModal', () => {
         <CorrectActivityModal {...defaultProps} data={dataWithIntegerScore} />
       );
 
-      expect(screen.getByText('10.0')).toBeInTheDocument();
+      expect(screen.getByText('10,0')).toBeInTheDocument();
     });
 
     it('should work without onObservationSubmit callback', () => {

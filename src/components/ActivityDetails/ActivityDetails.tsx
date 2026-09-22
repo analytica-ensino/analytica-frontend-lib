@@ -1486,6 +1486,10 @@ export const ActivityDetails = ({
         onObservationSubmit={handleObservationSubmit}
         onQuestionCorrectionSubmit={handleQuestionCorrectionSubmit}
         onQuestionCommentSubmit={handleQuestionCommentSubmit}
+        // Where the student is; the correction payload carries only the name.
+        schoolName={data?.activity?.schoolName}
+        className={data?.activity?.className}
+        schoolYear={data?.activity?.year}
       />
 
       {/* Ver atividade (read-only questions with answer key + resolution) */}

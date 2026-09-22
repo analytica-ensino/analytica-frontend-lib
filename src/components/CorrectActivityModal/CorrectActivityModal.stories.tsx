@@ -777,6 +777,9 @@ const ModalWrapper = ({
         isViewOnly={isViewOnly}
         onObservationSubmit={handleObservationSubmit}
         onQuestionCorrectionSubmit={handleQuestionCorrectionSubmit}
+        schoolName="Colégio Estadual São José"
+        className="Turma A"
+        schoolYear="2025"
       />
     </div>
   );
