@@ -34,6 +34,7 @@ import {
   PRESENCIAL_DELIVERY_STATUS,
   STUDENT_ACTIVITY_STATUS,
   type ActivityDetailsData,
+  type ActivityStudentData,
   type ActivityStudentTableItem,
   type StudentActivityStatus,
 } from '../../types/activityDetails';
@@ -597,6 +598,41 @@ export const ActivityDetails = ({
   }, [activityId, page, limit, sortBy, sortOrder, fetchActivityDetails]);
 
   /**
+   * Load a student's correction payload and hand it to the modal
+   *
+   * Used both when the modal opens and after a correction is saved, so the
+   * summary above the questions — grade, counts, badge and subtemas — is always
+   * built from the same source as the questions themselves.
+   *
+   * @param student - The student row, which carries the stored grade
+   */
+  const loadStudentCorrection = useCallback(
+    async (student: ActivityStudentData) => {
+      if (!activityId) return;
+
+      const [apiResponse, feedbackResponse] = await Promise.all([
+        fetchStudentCorrection(activityId, student.studentId),
+        safeFetchStudentFeedback(activityId, student.studentId),
+      ]);
+
+      // Convert API response to StudentActivityCorrectionData format. The
+      // modal shows the same stored grade the table row already carries
+      // (0-10), not the 0-100 percentage the answers endpoint recomputes.
+      setCorrectionData(
+        convertApiResponseToCorrectionData(
+          apiResponse,
+          student.studentId,
+          student.studentName || 'Aluno',
+          feedbackResponse?.teacherFeedback ?? undefined,
+          feedbackResponse?.attachment ?? undefined,
+          student.score
+        )
+      );
+    },
+    [activityId, fetchStudentCorrection, safeFetchStudentFeedback]
+  );
+
+  /**
    * Handle correct activity button click
    */
   const handleCorrectActivity = useCallback(
@@ -610,23 +646,7 @@ export const ActivityDetails = ({
 
       setCorrectionError(null);
       try {
-        const [apiResponse, feedbackResponse] = await Promise.all([
-          fetchStudentCorrection(activityId, studentId),
-          safeFetchStudentFeedback(activityId, studentId),
-        ]);
-
-        // Convert API response to StudentActivityCorrectionData format. The
-        // modal shows the same stored grade the table row already carries
-        // (0-10), not the 0-100 percentage the answers endpoint recomputes.
-        const correction = convertApiResponseToCorrectionData(
-          apiResponse,
-          studentId,
-          student.studentName || 'Aluno',
-          feedbackResponse?.teacherFeedback ?? undefined,
-          feedbackResponse?.attachment ?? undefined,
-          student.score
-        );
-        setCorrectionData(correction);
+        await loadStudentCorrection(student);
         setIsModalOpen(true);
       } catch (err) {
         console.error('Failed to fetch student correction:', err);
@@ -637,12 +657,7 @@ export const ActivityDetails = ({
         );
       }
     },
-    [
-      data?.students,
-      activityId,
-      fetchStudentCorrection,
-      safeFetchStudentFeedback,
-    ]
+    [data?.students, activityId, loadStudentCorrection]
   );
 
   /**
@@ -716,8 +731,46 @@ export const ActivityDetails = ({
         console.error('Failed to submit question correction:', err);
         throw err;
       }
+
+      // Grading a dissertativa changes the student's grade and the verdict on
+      // the answer, and nothing else on this screen reloads: without this the
+      // table kept printing a dash while the modal's summary — grade, counts,
+      // badge and subtemas — stayed on the pre-save numbers until a full page
+      // reload. Reloading the row first, then the correction, keeps the two
+      // readings of the grade in agreement.
+      //
+      // Outside the try above on purpose: a refresh that fails must not be
+      // reported to the modal as a failed correction.
+      try {
+        const refreshed = await fetchActivityDetails(activityId, {
+          page,
+          limit,
+          sortBy,
+          sortOrder,
+        });
+        setData(refreshed);
+
+        const student = refreshed.students.find(
+          (candidate) => candidate.studentId === studentId
+        );
+
+        if (student) {
+          await loadStudentCorrection(student);
+        }
+      } catch (err) {
+        console.error('Failed to refresh activity details:', err);
+      }
     },
-    [activityId, submitQuestionCorrection]
+    [
+      activityId,
+      submitQuestionCorrection,
+      fetchActivityDetails,
+      loadStudentCorrection,
+      page,
+      limit,
+      sortBy,
+      sortOrder,
+    ]
   );
 
   /**
@@ -1486,6 +1539,10 @@ export const ActivityDetails = ({
         onObservationSubmit={handleObservationSubmit}
         onQuestionCorrectionSubmit={handleQuestionCorrectionSubmit}
         onQuestionCommentSubmit={handleQuestionCommentSubmit}
+        // Where the student is; the correction payload carries only the name.
+        schoolName={data?.activity?.schoolName}
+        className={data?.activity?.className}
+        schoolYear={data?.activity?.year}
       />
 
       {/* Ver atividade (read-only questions with answer key + resolution) */}

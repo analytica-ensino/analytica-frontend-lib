@@ -29,5 +29,9 @@ export {
   getQuestionStatusFromData,
 } from './utils';
 
+// Export the two cards the modal derives from the answers themselves
+export { findBestAndWorstSubtopics } from './subtopics';
+export { getCorrectionPerformanceTag } from './performanceTag';
+
 // Export converter
 export { convertApiResponseToCorrectionData } from './converter';

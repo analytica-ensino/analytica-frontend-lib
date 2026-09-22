@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { useModules } from './useModules';
-import { useModulesStore } from '../store/modulesStore';
+import { useModulesStore, type ModulesState } from '../store/modulesStore';
 
 // Mock the modulesStore (must also provide DEFAULT_SIMULATIONS and DEFAULT_PERFORMANCE_GRAPHS,
 // which useModules imports as defensive fallbacks for nested configs).
@@ -36,6 +36,14 @@ jest.mock('../store/modulesStore', () => ({
 const mockUseModulesStore = useModulesStore as jest.MockedFunction<
   typeof useModulesStore
 >;
+
+/**
+ * Modules as a state persisted before a flag existed hands them back: the key
+ * is simply absent, which is the case every `?? false` default is there for.
+ * Typed as the store's own shape so the fixture keeps the contract the hook
+ * reads it through.
+ */
+const legacyModules = {} as ModulesState['modules'];
 
 describe('useModules', () => {
   const defaultModules = {
@@ -436,7 +444,7 @@ describe('useModules', () => {
 
     it('should fall back to defaults when performanceGraphs is missing', () => {
       mockUseModulesStore.mockReturnValue({
-        modules: {}, // no performanceGraphs
+        modules: legacyModules, // no performanceGraphs
         loading: false,
       });
 
@@ -583,7 +591,7 @@ describe('useModules', () => {
 
     it('should fall back to defaults when both nested and flat are missing', () => {
       mockUseModulesStore.mockReturnValue({
-        modules: {}, // Empty modules
+        modules: legacyModules, // Empty modules
         loading: false,
       });
 
@@ -691,7 +699,7 @@ describe('useModules', () => {
 
     it('should use DEFAULT_SIMULATED_SCORE when both nested and flat are missing', () => {
       mockUseModulesStore.mockReturnValue({
-        modules: {}, // Empty modules
+        modules: legacyModules, // Empty modules
         loading: false,
       });
 
@@ -847,7 +855,7 @@ describe('useModules', () => {
 
     it('hasReadingFluency defaults to false when the field is missing', () => {
       mockUseModulesStore.mockReturnValue({
-        modules: {}, // no readingFluency key (old persisted state)
+        modules: legacyModules, // no readingFluency key (old persisted state)
         loading: false,
       });
 
@@ -882,13 +890,49 @@ describe('useModules', () => {
 
     it('hasEnemClassroom defaults to false when the field is missing', () => {
       mockUseModulesStore.mockReturnValue({
-        modules: {}, // no enemClassroom key (old persisted state)
+        modules: legacyModules, // no enemClassroom key (old persisted state)
         loading: false,
       });
 
       const { result } = renderHook(() => useModules());
 
       expect(result.current.hasEnemClassroom).toBe(false);
+    });
+  });
+  describe('AI correction of dissertative answers', () => {
+    it('hasAiDissertativeCorrection is false by default (opt-in per institution)', () => {
+      // With it off only the teacher grades an essay, which is what every
+      // institution had before the feature.
+      mockUseModulesStore.mockReturnValue({
+        modules: defaultModules,
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasAiDissertativeCorrection).toBe(false);
+    });
+
+    it('hasAiDissertativeCorrection is true when enabled', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: { ...defaultModules, aiDissertativeCorrection: true },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasAiDissertativeCorrection).toBe(true);
+    });
+
+    it('hasAiDissertativeCorrection defaults to false when the field is missing', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: legacyModules, // no aiDissertativeCorrection key (old persisted state)
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasAiDissertativeCorrection).toBe(false);
     });
   });
 });

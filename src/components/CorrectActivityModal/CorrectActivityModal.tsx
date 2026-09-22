@@ -9,6 +9,8 @@ import { PencilSimpleIcon } from '@phosphor-icons/react/dist/csr/PencilSimple';
 import { PaperclipIcon } from '@phosphor-icons/react/dist/csr/Paperclip';
 import { XIcon } from '@phosphor-icons/react/dist/csr/X';
 import { ImageIcon } from '@phosphor-icons/react/dist/csr/Image';
+import { CheckCircleIcon } from '@phosphor-icons/react/dist/csr/CheckCircle';
+import { XCircleIcon } from '@phosphor-icons/react/dist/csr/XCircle';
 import Modal from '../Modal/Modal';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
@@ -18,7 +20,13 @@ import TextArea from '../TextArea/TextArea';
 import { CardAccordation, AccordionGroup } from '../Accordation';
 import { generateFileId } from '../FileAttachment/FileAttachment';
 import type { AttachedFile } from '../FileAttachment/FileAttachment';
-import { StatCard } from '../shared/StatCard';
+import {
+  ContentCards,
+  SectionTitle,
+  SimulationStatCards,
+  StudentSummaryHeader,
+} from '../shared/SimulationSummaryCards';
+import { PerformanceBadge } from '../SimulatedStudentSimulationsModal/SimulatedStudentSimulationsModal';
 import { QuestionCommentField } from '../shared/QuestionCommentField';
 import { cn } from '../../utils/utils';
 import {
@@ -34,7 +42,10 @@ import {
   type SaveQuestionCommentPayload,
   getQuestionStatusBadgeConfig,
   getQuestionStatusFromData,
+  getCorrectionPerformanceTag,
+  findBestAndWorstSubtopics,
   QUESTION_STATUS,
+  type QuestionStatus,
 } from '../../utils/studentActivityCorrection';
 import {
   renderQuestionAlternative,
@@ -84,7 +95,28 @@ export interface CorrectActivityModalProps {
   answerSheetImageUrl?: string | null;
   /** Callback when "Ver gabarito escaneado" button is clicked */
   onViewScannedAnswerSheet?: () => void;
+  /**
+   * Where the student is, for the "Escola • Turma • Ano" line of the header.
+   *
+   * Not part of the correction payload — the activity the modal was opened
+   * from carries it. Each part is dropped when absent, so a caller that has
+   * none of them simply shows the student's name.
+   */
+  schoolName?: string | null;
+  className?: string | null;
+  schoolYear?: string | null;
 }
+
+/**
+ * Icon each status badge carries, as the design draws them.
+ *
+ * "Em branco" and "Pendente" have none: they say the question was not answered
+ * or not graded yet, and a mark would read as a verdict on the answer.
+ */
+const STATUS_BADGE_ICONS: Partial<Record<QuestionStatus, ReactNode>> = {
+  [QUESTION_STATUS.CORRETA]: <CheckCircleIcon size={14} weight="bold" />,
+  [QUESTION_STATUS.INCORRETA]: <XCircleIcon size={14} weight="bold" />,
+};
 
 /** Field names for essay correction state updates */
 const EssayCorrectionField = {
@@ -122,6 +154,9 @@ const CorrectActivityModal = ({
   onQuestionCommentSubmit,
   answerSheetImageUrl,
   onViewScannedAnswerSheet,
+  schoolName,
+  className,
+  schoolYear,
 }: CorrectActivityModalProps) => {
   const [observation, setObservation] = useState('');
   const [isObservationExpanded, setIsObservationExpanded] = useState(false);
@@ -162,11 +197,31 @@ const CorrectActivityModal = ({
   );
 
   /**
+   * What this effect last initialised from.
+   *
+   * Tells a reload of the already-open modal apart from a fresh open: only the
+   * former may keep the essay drafts, because only there do they belong to the
+   * student on screen.
+   */
+  const lastInitRef = useRef<{ wasOpen: boolean; studentId?: string }>({
+    wasOpen: false,
+  });
+
+  /**
    * Reset state when modal opens or student changes
    * Load existing observation and attachment if available
    */
   useEffect(() => {
+    if (!isOpen) {
+      lastInitRef.current = { wasOpen: false };
+    }
+
     if (isOpen) {
+      const isSameOpenSession =
+        lastInitRef.current.wasOpen &&
+        lastInitRef.current.studentId === data?.studentId;
+      lastInitRef.current = { wasOpen: true, studentId: data?.studentId };
+
       setObservation('');
       setIsObservationExpanded(false);
       setAttachedFiles([]);
@@ -211,7 +266,31 @@ const CorrectActivityModal = ({
           };
         }
       });
-      setQuestionCorrections(initialCorrections);
+      // Merge rather than replace, but only within one open session of the same
+      // student. Saving one essay reloads `data`, and this effect runs again
+      // with the server's version of every question — which would wipe what the
+      // teacher has typed into the other essays and not saved yet.
+      //
+      // Only a field the teacher actually touched and has not saved survives.
+      // An untouched one yields to the server, which is what lets the question
+      // just corrected show its new verdict, and what lets a correction that
+      // landed elsewhere (the AI finishing, another teacher) appear. A fresh
+      // open, or another student, starts from the server.
+      setQuestionCorrections((previous) =>
+        isSameOpenSession
+          ? Object.fromEntries(
+              Object.entries(initialCorrections).map(([key, fromServer]) => {
+                const draft = previous[Number(key)];
+                const isUnsavedDraft =
+                  draft &&
+                  !draft.isSaved &&
+                  (draft.teacherFeedback !== '' || draft.isCorrect !== null);
+
+                return [key, isUnsavedDraft ? draft : fromServer];
+              })
+            )
+          : initialCorrections
+      );
     }
   }, [
     isOpen,
@@ -553,7 +632,7 @@ const CorrectActivityModal = ({
     return (
       <CardAccordation
         value={`accordion-${questionData.questionNumber}`}
-        className="border border-border-100 rounded-lg"
+        className="border border-border-200 rounded-lg"
         trigger={
           <div className="py-3 pr-2 w-full">
             <Text className="text-sm font-bold text-text-950">
@@ -734,7 +813,12 @@ const CorrectActivityModal = ({
   if (!data) return null;
 
   const title = isViewOnly ? 'Detalhes da atividade' : 'Corrigir atividade';
-  const formattedScore = data.score == null ? '-' : data.score.toFixed(1);
+  // The band behind the header badge, derived from the stored grade: the
+  // correction endpoint sends no tag of its own.
+  const performanceTag = getCorrectionPerformanceTag(data.score);
+  // The two subtema cards, computed from the answers for the same reason.
+  const { best: bestSubtopic, worst: worstSubtopic } =
+    findBestAndWorstSubtopics(data.questions ?? []);
 
   /**
    * Render observation section based on current state
@@ -821,9 +905,11 @@ const CorrectActivityModal = ({
     // State: Saved
     if (isObservationSaved) {
       return (
-        <div className="bg-background border border-border-100 rounded-lg p-4 space-y-2">
+        <div className="bg-background border border-border-200 rounded-lg p-4 space-y-2">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <Text className="text-sm font-bold text-text-950">Observação</Text>
+            <Text size="md" weight="bold" className="text-text-950">
+              Observação
+            </Text>
             <div className="flex items-center gap-3">
               {/* Show newly attached file */}
               {savedFiles.length > 0 && (
@@ -878,8 +964,10 @@ const CorrectActivityModal = ({
     // State: Expanded
     if (isObservationExpanded) {
       return (
-        <div className="bg-background border border-border-100 rounded-lg p-4 space-y-3">
-          <Text className="text-sm font-bold text-text-950">Observação</Text>
+        <div className="bg-background border border-border-200 rounded-lg p-4 space-y-3">
+          <Text size="md" weight="bold" className="text-text-950">
+            Observação
+          </Text>
           <textarea
             value={observation}
             onChange={(e) => setObservation(e.target.value)}
@@ -932,8 +1020,10 @@ const CorrectActivityModal = ({
 
     // State: Closed (default)
     return (
-      <div className="bg-background border border-border-100 rounded-lg p-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-        <Text className="text-sm font-bold text-text-950">Observação</Text>
+      <div className="bg-background border border-border-200 rounded-lg p-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+        <Text size="md" weight="bold" className="text-text-950">
+          Observação
+        </Text>
         <Button type="button" size="small" onClick={handleOpenObservation}>
           Incluir
         </Button>
@@ -942,29 +1032,21 @@ const CorrectActivityModal = ({
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={title}
-      size="lg"
-      contentClassName="max-h-[80vh] overflow-y-auto"
-    >
-      <div className="space-y-6">
+    <Modal isOpen={isOpen} onClose={onClose} title={title} size="xl">
+      <div className="flex flex-col gap-6">
         {/* Student Info */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
-              <Text className="text-lg font-semibold text-primary-700">
-                {data.studentName?.charAt(0).toUpperCase() || '-'}
-              </Text>
-            </div>
-            <Text className="text-lg font-medium text-text-950">
-              {data.studentName || 'Aluno'}
-            </Text>
-          </div>
+        <StudentSummaryHeader
+          name={data.studentName || 'Aluno'}
+          location={[schoolName, className, schoolYear]}
+          badge={
+            performanceTag ? <PerformanceBadge tag={performanceTag} /> : null
+          }
+          badgePlacement="end"
+        />
 
-          {/* View scanned answer sheet button */}
-          {answerSheetImageUrl && onViewScannedAnswerSheet && (
+        {/* View scanned answer sheet button */}
+        {answerSheetImageUrl && onViewScannedAnswerSheet && (
+          <div className="flex justify-end">
             <Button
               variant="outline"
               size="small"
@@ -973,23 +1055,22 @@ const CorrectActivityModal = ({
               <ImageIcon size={18} className="mr-2" />
               Ver gabarito escaneado
             </Button>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-3 gap-4">
-          <StatCard label="Nota" value={formattedScore} variant="score" />
-          <StatCard
-            label="N° de questões corretas"
-            value={data.correctCount}
-            variant="correct"
+        <section className="flex flex-col gap-3">
+          <SectionTitle>Desempenho geral</SectionTitle>
+          <SimulationStatCards
+            // The cards read a 0-100 percentage and render it out of ten; the
+            // correction payload already carries the grade out of ten.
+            score={data.score == null ? undefined : data.score * 10}
+            correct={data.correctCount}
+            incorrect={data.incorrectCount}
+            blank={data.blankCount}
           />
-          <StatCard
-            label="N° de questões incorretas"
-            value={data.incorrectCount}
-            variant="incorrect"
-          />
-        </div>
+          <ContentCards best={bestSubtopic} worst={worstSubtopic} />
+        </section>
 
         {/* Observation Section */}
         {renderObservationSection()}
@@ -1017,25 +1098,26 @@ const CorrectActivityModal = ({
                 localCorrection?.isCorrect != null;
 
               // Use local correction status for essay questions, otherwise use original
-              let badgeConfig;
+              let status;
               if (isEssayWithLocalCorrection) {
-                const localStatus = localCorrection.isCorrect
+                status = localCorrection.isCorrect
                   ? QUESTION_STATUS.CORRETA
                   : QUESTION_STATUS.INCORRETA;
-                badgeConfig = getQuestionStatusBadgeConfig(localStatus);
               } else {
-                const status = getQuestionStatusFromData(questionData);
-                badgeConfig = getQuestionStatusBadgeConfig(status);
+                status = getQuestionStatusFromData(questionData);
               }
+              const badgeConfig = getQuestionStatusBadgeConfig(status);
+              const badgeIcon = STATUS_BADGE_ICONS[status];
 
               return (
                 <CardAccordation
                   key={questionData.questionNumber}
                   value={`question-${questionData.questionNumber}`}
-                  className="bg-background rounded-xl"
+                  className="bg-background border border-border-200 rounded-xl"
+                  triggerClassName="p-4"
                   trigger={
-                    <div className="flex items-center justify-between gap-2 w-full py-3 pr-2">
-                      <Text className="text-base font-bold text-text-950">
+                    <div className="flex items-center justify-between gap-2 w-full">
+                      <Text size="md" weight="bold" className="text-text-950">
                         Questão {questionData.questionNumber}
                       </Text>
                       <div className="flex items-center gap-2 flex-wrap justify-end">
@@ -1052,6 +1134,7 @@ const CorrectActivityModal = ({
                           }
                         />
                         <Badge
+                          iconLeft={badgeIcon}
                           className={cn(
                             'text-xs px-2 py-1',
                             badgeConfig.bgColor,

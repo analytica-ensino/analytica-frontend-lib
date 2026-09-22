@@ -333,10 +333,40 @@ describe('CorrectActivityModal', () => {
       expect(screen.getByText('João Silva')).toBeInTheDocument();
     });
 
-    it('should display avatar with name initial', () => {
+    // Where the student is; the correction payload carries only the name, so
+    // the activity hands these over.
+    it('should display the school, class and year it was given', () => {
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          schoolName="Colégio Estadual São José"
+          className="Turma A"
+          schoolYear="2025"
+        />
+      );
+
+      expect(screen.getByText('Colégio Estadual São José')).toBeInTheDocument();
+      expect(screen.getByText('Turma A')).toBeInTheDocument();
+      expect(screen.getByText('2025')).toBeInTheDocument();
+    });
+
+    // The badge is derived from the grade: the endpoint sends no band.
+    it('should badge the student with the band of their grade', () => {
       render(<CorrectActivityModal {...defaultProps} />);
 
-      expect(screen.getByText('J')).toBeInTheDocument();
+      expect(screen.getByText('Acima da média')).toBeInTheDocument();
+    });
+
+    it('should show no badge while the activity has no grade', () => {
+      render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={{ ...mockData, score: null }}
+        />
+      );
+
+      expect(screen.queryByText('Acima da média')).not.toBeInTheDocument();
+      expect(screen.queryByText('Destaque da turma')).not.toBeInTheDocument();
     });
   });
 
@@ -344,31 +374,66 @@ describe('CorrectActivityModal', () => {
     it('should display formatted score', () => {
       render(<CorrectActivityModal {...defaultProps} />);
 
-      expect(screen.getByText('8.5')).toBeInTheDocument();
-      expect(screen.getByText('Nota')).toBeInTheDocument();
+      expect(screen.getByText('Desempenho geral')).toBeInTheDocument();
+      expect(screen.getByText('8,5')).toBeInTheDocument();
+      expect(screen.getByText('Nota média')).toBeInTheDocument();
     });
 
-    it('should display "-" when score is null', () => {
+    // No grade, no grade card: the three counts are still worth reading.
+    it('should drop the grade card when score is null', () => {
       const dataWithNullScore = { ...mockData, score: null };
       render(
         <CorrectActivityModal {...defaultProps} data={dataWithNullScore} />
       );
 
-      expect(screen.getByText('-')).toBeInTheDocument();
+      expect(screen.queryByText('Nota média')).not.toBeInTheDocument();
+      expect(screen.getByText('Nº de questões corretas')).toBeInTheDocument();
     });
 
-    it('should display number of correct questions', () => {
-      render(<CorrectActivityModal {...defaultProps} />);
+    // A fixed four-column grid left an empty slot on the right whenever the
+    // grade card was dropped, so the row is sized for what it renders.
+    it('should spread the three remaining cards over the full width', () => {
+      const { container } = render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={{ ...mockData, score: null }}
+        />
+      );
 
-      expect(screen.getByText('5')).toBeInTheDocument();
-      expect(screen.getByText('N° de questões corretas')).toBeInTheDocument();
+      expect(container.querySelector('.lg\\:grid-cols-3')).toBeInTheDocument();
+      expect(container.querySelector('.lg\\:grid-cols-4')).toBeNull();
     });
 
-    it('should display number of incorrect questions', () => {
+    it('should keep four columns when there is a grade to show', () => {
+      const { container } = render(<CorrectActivityModal {...defaultProps} />);
+
+      expect(container.querySelector('.lg\\:grid-cols-4')).toBeInTheDocument();
+    });
+
+    // The blank count travelled in the payload long before it was drawn.
+    it.each([
+      ['Nº de questões corretas', '5'],
+      ['Nº de questões incorretas', '2'],
+      ['Nº de questões em branco', '1'],
+    ])('should display the card "%s" with its count', (label, count) => {
       render(<CorrectActivityModal {...defaultProps} />);
 
-      expect(screen.getByText('2')).toBeInTheDocument();
-      expect(screen.getByText('N° de questões incorretas')).toBeInTheDocument();
+      expect(screen.getByText(count)).toBeInTheDocument();
+      expect(screen.getByText(label)).toBeInTheDocument();
+    });
+
+    // Both cards are derived from the answers themselves; mockData answers one
+    // question of "Subtópico" right and one wrong, so it reads as a result.
+    it('should name the best and the worst subtema', () => {
+      render(<CorrectActivityModal {...defaultProps} />);
+
+      expect(
+        screen.getByText('Subtema com melhor resultado')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('Subtema com maior dificuldade')
+      ).toBeInTheDocument();
+      expect(screen.getByText('Subtópico')).toBeInTheDocument();
     });
   });
 
@@ -941,7 +1006,6 @@ describe('CorrectActivityModal', () => {
       );
 
       expect(screen.getByText('José María')).toBeInTheDocument();
-      expect(screen.getByText('J')).toBeInTheDocument();
     });
 
     it('should format score with one decimal place', () => {
@@ -950,7 +1014,7 @@ describe('CorrectActivityModal', () => {
         <CorrectActivityModal {...defaultProps} data={dataWithIntegerScore} />
       );
 
-      expect(screen.getByText('10.0')).toBeInTheDocument();
+      expect(screen.getByText('10,0')).toBeInTheDocument();
     });
 
     it('should work without onObservationSubmit callback', () => {
@@ -2110,6 +2174,192 @@ describe('CorrectActivityModal', () => {
       fireEvent.click(anexarButton);
 
       expect(clickSpy).toHaveBeenCalled();
+    });
+  });
+
+  // Saving one essay makes the caller reload `data`, so this effect runs again
+  // with the server's version of every question.
+  describe('Essay questions - reload while open', () => {
+    const twoEssaysData: StudentActivityCorrectionData = {
+      studentId: 'student-123',
+      studentName: 'João Silva',
+      score: null,
+      correctCount: 0,
+      incorrectCount: 0,
+      blankCount: 2,
+      questions: [1, 2].map((number) => ({
+        question: createQuestion(
+          `q${number}`,
+          `Questão dissertativa ${number}.`,
+          QUESTION_TYPE.DISSERTATIVA
+        ),
+        result: createQuestionResult(
+          `a${number}`,
+          `q${number}`,
+          ANSWER_STATUS.PENDENTE_AVALIACAO,
+          'Resposta do aluno',
+          [],
+          [],
+          null,
+          `Questão dissertativa ${number}.`,
+          QUESTION_TYPE.DISSERTATIVA
+        ),
+        questionNumber: number,
+      })),
+      observation: undefined,
+    };
+
+    const essayPlaceholder = 'Escreva uma observação sobre a resposta do aluno';
+
+    const openQuestion = (number: number) => {
+      const buttons = screen.getAllByText(`Questão ${number}`);
+      fireEvent.click(buttons[0].closest('button')!);
+    };
+
+    /**
+     * The essay field of one question. Both accordions render their textarea,
+     * so they are told apart by position rather than by placeholder.
+     */
+    const essayFieldOf = (number: number) =>
+      screen.getAllByPlaceholderText(essayPlaceholder)[number - 1];
+
+    it('should keep an unsaved draft when data is reloaded', () => {
+      const { rerender } = render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={twoEssaysData}
+          isViewOnly={false}
+          onQuestionCorrectionSubmit={jest.fn()}
+        />
+      );
+
+      openQuestion(2);
+      fireEvent.change(essayFieldOf(2), {
+        target: { value: 'Rascunho ainda não salvo' },
+      });
+
+      // The reload the caller performs after saving question 1: question 2 has
+      // no verdict on the server, and its draft must survive.
+      rerender(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={{ ...twoEssaysData, questions: [...twoEssaysData.questions] }}
+          isViewOnly={false}
+          onQuestionCorrectionSubmit={jest.fn()}
+        />
+      );
+
+      openQuestion(2);
+      expect(essayFieldOf(2)).toHaveValue('Rascunho ainda não salvo');
+    });
+
+    it('should adopt the server verdict for a question already corrected', () => {
+      const { rerender } = render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={twoEssaysData}
+          isViewOnly={false}
+          onQuestionCorrectionSubmit={jest.fn()}
+        />
+      );
+
+      const correctedFirstQuestion = {
+        ...twoEssaysData,
+        questions: twoEssaysData.questions.map((questionData) =>
+          questionData.questionNumber === 1
+            ? {
+                ...questionData,
+                correction: {
+                  isCorrect: true,
+                  teacherFeedback: 'Corrigida no servidor',
+                },
+              }
+            : questionData
+        ),
+      };
+
+      rerender(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={correctedFirstQuestion}
+          isViewOnly={false}
+          onQuestionCorrectionSubmit={jest.fn()}
+        />
+      );
+
+      openQuestion(1);
+      expect(essayFieldOf(1)).toHaveValue('Corrigida no servidor');
+    });
+
+    it('should start clean when another student is opened', () => {
+      // Drafts belong to the student on screen; carrying one over would put
+      // one student's text under another's answer.
+      const { rerender } = render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={twoEssaysData}
+          isViewOnly={false}
+          onQuestionCorrectionSubmit={jest.fn()}
+        />
+      );
+
+      openQuestion(1);
+      fireEvent.change(essayFieldOf(1), {
+        target: { value: 'Rascunho do João' },
+      });
+
+      rerender(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={{
+            ...twoEssaysData,
+            studentId: 'student-456',
+            studentName: 'Maria Santos',
+          }}
+          isViewOnly={false}
+          onQuestionCorrectionSubmit={jest.fn()}
+        />
+      );
+
+      openQuestion(1);
+      expect(essayFieldOf(1)).toHaveValue('');
+    });
+
+    it('should start clean when the modal is closed and opened again', () => {
+      const { rerender } = render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={twoEssaysData}
+          isViewOnly={false}
+          onQuestionCorrectionSubmit={jest.fn()}
+        />
+      );
+
+      openQuestion(1);
+      fireEvent.change(essayFieldOf(1), {
+        target: { value: 'Rascunho descartado ao fechar' },
+      });
+
+      rerender(
+        <CorrectActivityModal
+          {...defaultProps}
+          isOpen={false}
+          data={twoEssaysData}
+          isViewOnly={false}
+          onQuestionCorrectionSubmit={jest.fn()}
+        />
+      );
+      rerender(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={twoEssaysData}
+          isViewOnly={false}
+          onQuestionCorrectionSubmit={jest.fn()}
+        />
+      );
+
+      openQuestion(1);
+      expect(essayFieldOf(1)).toHaveValue('');
     });
   });
 

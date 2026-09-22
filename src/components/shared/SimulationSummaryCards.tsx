@@ -202,9 +202,19 @@ export function SimulationStatCards({
 }) {
   const show = (value: string) => (empty ? EMPTY_STAT_VALUE : value);
 
+  // The grade card is optional, so the row has to be sized for what it actually
+  // renders: a fixed four-column grid left an empty slot on the right whenever
+  // there was no score to show.
+  const hasScore = score !== undefined;
+
   return (
-    <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-      {score !== undefined && (
+    <div
+      className={cn(
+        'grid grid-cols-2 gap-2',
+        hasScore ? 'lg:grid-cols-4' : 'lg:grid-cols-3'
+      )}
+    >
+      {hasScore && (
         <SimulationStatCard
           tone="grade"
           icon={<ExamIcon size={16} weight="bold" />}

@@ -60,6 +60,7 @@ const createMockModulesReturn = (
   tutorialUrl: '',
   hasReadingFluency: false,
   hasEnemClassroom: false,
+  hasAiDissertativeCorrection: false,
   hasExams: true,
   hasSimulations: true,
   simulations: DEFAULT_SIMULATIONS,
