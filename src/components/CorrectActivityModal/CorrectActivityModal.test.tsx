@@ -410,26 +410,16 @@ describe('CorrectActivityModal', () => {
       expect(container.querySelector('.lg\\:grid-cols-4')).toBeInTheDocument();
     });
 
-    it('should display number of correct questions', () => {
-      render(<CorrectActivityModal {...defaultProps} />);
-
-      expect(screen.getByText('5')).toBeInTheDocument();
-      expect(screen.getByText('Nº de questões corretas')).toBeInTheDocument();
-    });
-
-    it('should display number of incorrect questions', () => {
-      render(<CorrectActivityModal {...defaultProps} />);
-
-      expect(screen.getByText('2')).toBeInTheDocument();
-      expect(screen.getByText('Nº de questões incorretas')).toBeInTheDocument();
-    });
-
     // The blank count travelled in the payload long before it was drawn.
-    it('should display number of blank questions', () => {
+    it.each([
+      ['Nº de questões corretas', '5'],
+      ['Nº de questões incorretas', '2'],
+      ['Nº de questões em branco', '1'],
+    ])('should display the card "%s" with its count', (label, count) => {
       render(<CorrectActivityModal {...defaultProps} />);
 
-      expect(screen.getByText('1')).toBeInTheDocument();
-      expect(screen.getByText('Nº de questões em branco')).toBeInTheDocument();
+      expect(screen.getByText(count)).toBeInTheDocument();
+      expect(screen.getByText(label)).toBeInTheDocument();
     });
 
     // Both cards are derived from the answers themselves; mockData answers one

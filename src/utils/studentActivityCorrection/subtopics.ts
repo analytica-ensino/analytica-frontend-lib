@@ -99,8 +99,13 @@ export function findBestAndWorstSubtopics(
       : { best: null, worst: summary };
   }
 
+  // The list is sorted by hit rate and has at least two entries by this point,
+  // so the ends of it are the two cards.
+  const [best] = ranked;
+  const [worst] = ranked.slice(-1);
+
   return {
-    best: { contentName: ranked[0].contentName },
-    worst: { contentName: ranked[ranked.length - 1].contentName },
+    best: { contentName: best.contentName },
+    worst: { contentName: worst.contentName },
   };
 }
