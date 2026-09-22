@@ -2614,6 +2614,9 @@ describe('ActivityDetails', () => {
       await waitFor(() => {
         expect(screen.getByTestId('modal-score')).toHaveTextContent('9');
       });
+      // The whole correction is rebuilt, not just the grade: the counts, the
+      // question verdicts and the subtema cards all come from the same reload.
+      expect(mockFetchStudentCorrection).toHaveBeenCalledTimes(2);
     });
 
     it('should log and keep the modal open when the reload fails', async () => {

@@ -197,11 +197,31 @@ const CorrectActivityModal = ({
   );
 
   /**
+   * What this effect last initialised from.
+   *
+   * Tells a reload of the already-open modal apart from a fresh open: only the
+   * former may keep the essay drafts, because only there do they belong to the
+   * student on screen.
+   */
+  const lastInitRef = useRef<{ wasOpen: boolean; studentId?: string }>({
+    wasOpen: false,
+  });
+
+  /**
    * Reset state when modal opens or student changes
    * Load existing observation and attachment if available
    */
   useEffect(() => {
+    if (!isOpen) {
+      lastInitRef.current = { wasOpen: false };
+    }
+
     if (isOpen) {
+      const isSameOpenSession =
+        lastInitRef.current.wasOpen &&
+        lastInitRef.current.studentId === data?.studentId;
+      lastInitRef.current = { wasOpen: true, studentId: data?.studentId };
+
       setObservation('');
       setIsObservationExpanded(false);
       setAttachedFiles([]);
@@ -246,7 +266,31 @@ const CorrectActivityModal = ({
           };
         }
       });
-      setQuestionCorrections(initialCorrections);
+      // Merge rather than replace, but only within one open session of the same
+      // student. Saving one essay reloads `data`, and this effect runs again
+      // with the server's version of every question — which would wipe what the
+      // teacher has typed into the other essays and not saved yet.
+      //
+      // Only a field the teacher actually touched and has not saved survives.
+      // An untouched one yields to the server, which is what lets the question
+      // just corrected show its new verdict, and what lets a correction that
+      // landed elsewhere (the AI finishing, another teacher) appear. A fresh
+      // open, or another student, starts from the server.
+      setQuestionCorrections((previous) =>
+        isSameOpenSession
+          ? Object.fromEntries(
+              Object.entries(initialCorrections).map(([key, fromServer]) => {
+                const draft = previous[Number(key)];
+                const isUnsavedDraft =
+                  draft &&
+                  !draft.isSaved &&
+                  (draft.teacherFeedback !== '' || draft.isCorrect !== null);
+
+                return [key, isUnsavedDraft ? draft : fromServer];
+              })
+            )
+          : initialCorrections
+      );
     }
   }, [
     isOpen,

@@ -2187,6 +2187,192 @@ describe('CorrectActivityModal', () => {
     });
   });
 
+  // Saving one essay makes the caller reload `data`, so this effect runs again
+  // with the server's version of every question.
+  describe('Essay questions - reload while open', () => {
+    const twoEssaysData: StudentActivityCorrectionData = {
+      studentId: 'student-123',
+      studentName: 'João Silva',
+      score: null,
+      correctCount: 0,
+      incorrectCount: 0,
+      blankCount: 2,
+      questions: [1, 2].map((number) => ({
+        question: createQuestion(
+          `q${number}`,
+          `Questão dissertativa ${number}.`,
+          QUESTION_TYPE.DISSERTATIVA
+        ),
+        result: createQuestionResult(
+          `a${number}`,
+          `q${number}`,
+          ANSWER_STATUS.PENDENTE_AVALIACAO,
+          'Resposta do aluno',
+          [],
+          [],
+          null,
+          `Questão dissertativa ${number}.`,
+          QUESTION_TYPE.DISSERTATIVA
+        ),
+        questionNumber: number,
+      })),
+      observation: undefined,
+    };
+
+    const essayPlaceholder = 'Escreva uma observação sobre a resposta do aluno';
+
+    const openQuestion = (number: number) => {
+      const buttons = screen.getAllByText(`Questão ${number}`);
+      fireEvent.click(buttons[0].closest('button')!);
+    };
+
+    /**
+     * The essay field of one question. Both accordions render their textarea,
+     * so they are told apart by position rather than by placeholder.
+     */
+    const essayFieldOf = (number: number) =>
+      screen.getAllByPlaceholderText(essayPlaceholder)[number - 1];
+
+    it('should keep an unsaved draft when data is reloaded', () => {
+      const { rerender } = render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={twoEssaysData}
+          isViewOnly={false}
+          onQuestionCorrectionSubmit={jest.fn()}
+        />
+      );
+
+      openQuestion(2);
+      fireEvent.change(essayFieldOf(2), {
+        target: { value: 'Rascunho ainda não salvo' },
+      });
+
+      // The reload the caller performs after saving question 1: question 2 has
+      // no verdict on the server, and its draft must survive.
+      rerender(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={{ ...twoEssaysData, questions: [...twoEssaysData.questions] }}
+          isViewOnly={false}
+          onQuestionCorrectionSubmit={jest.fn()}
+        />
+      );
+
+      openQuestion(2);
+      expect(essayFieldOf(2)).toHaveValue('Rascunho ainda não salvo');
+    });
+
+    it('should adopt the server verdict for a question already corrected', () => {
+      const { rerender } = render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={twoEssaysData}
+          isViewOnly={false}
+          onQuestionCorrectionSubmit={jest.fn()}
+        />
+      );
+
+      const correctedFirstQuestion = {
+        ...twoEssaysData,
+        questions: twoEssaysData.questions.map((questionData) =>
+          questionData.questionNumber === 1
+            ? {
+                ...questionData,
+                correction: {
+                  isCorrect: true,
+                  teacherFeedback: 'Corrigida no servidor',
+                },
+              }
+            : questionData
+        ),
+      };
+
+      rerender(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={correctedFirstQuestion}
+          isViewOnly={false}
+          onQuestionCorrectionSubmit={jest.fn()}
+        />
+      );
+
+      openQuestion(1);
+      expect(essayFieldOf(1)).toHaveValue('Corrigida no servidor');
+    });
+
+    it('should start clean when another student is opened', () => {
+      // Drafts belong to the student on screen; carrying one over would put
+      // one student's text under another's answer.
+      const { rerender } = render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={twoEssaysData}
+          isViewOnly={false}
+          onQuestionCorrectionSubmit={jest.fn()}
+        />
+      );
+
+      openQuestion(1);
+      fireEvent.change(essayFieldOf(1), {
+        target: { value: 'Rascunho do João' },
+      });
+
+      rerender(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={{
+            ...twoEssaysData,
+            studentId: 'student-456',
+            studentName: 'Maria Santos',
+          }}
+          isViewOnly={false}
+          onQuestionCorrectionSubmit={jest.fn()}
+        />
+      );
+
+      openQuestion(1);
+      expect(essayFieldOf(1)).toHaveValue('');
+    });
+
+    it('should start clean when the modal is closed and opened again', () => {
+      const { rerender } = render(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={twoEssaysData}
+          isViewOnly={false}
+          onQuestionCorrectionSubmit={jest.fn()}
+        />
+      );
+
+      openQuestion(1);
+      fireEvent.change(essayFieldOf(1), {
+        target: { value: 'Rascunho descartado ao fechar' },
+      });
+
+      rerender(
+        <CorrectActivityModal
+          {...defaultProps}
+          isOpen={false}
+          data={twoEssaysData}
+          isViewOnly={false}
+          onQuestionCorrectionSubmit={jest.fn()}
+        />
+      );
+      rerender(
+        <CorrectActivityModal
+          {...defaultProps}
+          data={twoEssaysData}
+          isViewOnly={false}
+          onQuestionCorrectionSubmit={jest.fn()}
+        />
+      );
+
+      openQuestion(1);
+      expect(essayFieldOf(1)).toHaveValue('');
+    });
+  });
+
   describe('Teacher comment on objective questions', () => {
     const commentPlaceholder = 'Escreva um comentário sobre esta questão';
 
