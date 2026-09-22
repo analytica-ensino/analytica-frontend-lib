@@ -294,28 +294,51 @@ export const ModelsTabBase = <
           >
             {(renderProps: unknown) => {
               const {
-                controls,
+                filters,
+                search,
                 table,
                 pagination: paginationComponent,
               } = renderProps as {
-                controls: ReactNode;
+                filters: ReactNode;
+                search: ReactNode;
                 table: ReactNode;
                 pagination: ReactNode;
               };
               return (
                 <div className="space-y-4">
-                  {/* Header row: Button on left, Controls on right */}
-                  <div className="flex items-center justify-between gap-4">
-                    <Button
-                      variant="solid"
-                      action="primary"
-                      size="medium"
-                      onClick={onCreateModel}
-                      iconLeft={<PlusIcon size={18} weight="bold" />}
-                    >
-                      Criar modelo
-                    </Button>
-                    {controls}
+                  {/*
+                   * Header row. Acima de 1024px: botão à esquerda, filtro e
+                   * busca agrupados à direita pelo `ml-auto`. Abaixo disso a
+                   * busca ganha a primeira linha inteira (`basis-full`) e o
+                   * `justify-between` joga botão e filtro para as pontas da
+                   * segunda. A linha inteira precisa de 791px para caber —
+                   * daí a quebra em `lg`.
+                   *
+                   * A ordem do DOM segue a visual do desktop; no responsivo
+                   * ela diverge da ordem visual de propósito, ver spec.
+                   */}
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div className="order-2 lg:order-1">
+                      <Button
+                        variant="solid"
+                        action="primary"
+                        size="medium"
+                        onClick={onCreateModel}
+                        iconLeft={<PlusIcon size={18} weight="bold" />}
+                      >
+                        Criar modelo
+                      </Button>
+                    </div>
+                    {filters && (
+                      <div className="order-3 lg:order-2 lg:ml-auto">
+                        {filters}
+                      </div>
+                    )}
+                    {search && (
+                      <div className="order-1 basis-full lg:order-3 lg:basis-auto">
+                        {search}
+                      </div>
+                    )}
                   </div>
                   {/* Table and pagination */}
                   <div className="bg-background rounded-xl p-6 space-y-4">

@@ -1,6 +1,6 @@
 import type { HTMLAttributes, InputHTMLAttributes, ReactNode } from 'react';
 import '@testing-library/jest-dom';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   semTetoDeLargura,
@@ -1247,6 +1247,85 @@ describe('TableProvider', () => {
       );
 
       expect(screen.getByPlaceholderText('Buscar...')).toBeInTheDocument();
+    });
+
+    it('should provide search and filters as separate slots', () => {
+      render(
+        <TableProvider
+          data={testData}
+          headers={testHeaders}
+          enableSearch={true}
+          enableFilters={true}
+        >
+          {({ filters, search, table }) => (
+            <div>
+              <div data-testid="slot-search">{search}</div>
+              <div data-testid="slot-filters">{filters}</div>
+              {table}
+            </div>
+          )}
+        </TableProvider>
+      );
+
+      // Cada slot sai sem o wrapper de `controls`, para que o consumidor
+      // posicione filtro e busca de forma independente.
+      expect(
+        within(screen.getByTestId('slot-search')).getByPlaceholderText(
+          'Buscar...'
+        )
+      ).toBeInTheDocument();
+      expect(
+        within(screen.getByTestId('slot-filters')).getByRole('button', {
+          name: /filtros/i,
+        })
+      ).toBeInTheDocument();
+    });
+
+    it('should still bundle search and filters inside controls', () => {
+      render(
+        <TableProvider
+          data={testData}
+          headers={testHeaders}
+          enableSearch={true}
+          enableFilters={true}
+        >
+          {({ controls, table }) => (
+            <div data-testid="slot-controls">
+              {controls}
+              {table}
+            </div>
+          )}
+        </TableProvider>
+      );
+
+      // Retrocompatibilidade: quem consome `controls` continua recebendo os
+      // dois juntos, com o mesmo DOM de antes.
+      const controlsSlot = screen.getByTestId('slot-controls');
+      expect(
+        within(controlsSlot).getByPlaceholderText('Buscar...')
+      ).toBeInTheDocument();
+      expect(
+        within(controlsSlot).getByRole('button', { name: /filtros/i })
+      ).toBeInTheDocument();
+    });
+
+    it('should provide null slots when search and filters are disabled', () => {
+      const renderProp = jest.fn(({ table }) => <div>{table}</div>);
+
+      render(
+        <TableProvider
+          data={testData}
+          headers={testHeaders}
+          enableSearch={false}
+          enableFilters={false}
+        >
+          {renderProp}
+        </TableProvider>
+      );
+
+      expect(renderProp).toHaveBeenCalledWith(
+        expect.objectContaining({ search: null, filters: null })
+      );
     });
 
     it('should provide pagination in render props when enabled', () => {
