@@ -266,16 +266,15 @@ describe('ModelsTabBase', () => {
     });
   });
 
-  describe('responsive header', () => {
+  describe('header', () => {
     afterEach(() => {
       mockTableProviderSlots.filters = true;
       mockTableProviderSlots.search = true;
     });
 
     /**
-     * Renderiza e devolve a linha do header com o slot do botão de criar —
-     * o elemento que carrega as classes de posicionamento é sempre o filho
-     * direto da linha, não o botão em si.
+     * Renderiza e devolve a linha do header — o TableHeaderRow — pelo caminho
+     * do slot do botão de criar, que é sempre um filho direto dela.
      */
     const renderHeaderRow = () => {
       const props = createDefaultProps();
@@ -286,54 +285,24 @@ describe('ModelsTabBase', () => {
       return { row: createSlot.parentElement as HTMLElement, createSlot };
     };
 
-    /**
-     * Idem, já com os slots de filtro e busca resolvidos.
-     */
-    const renderHeaderSlots = () => ({
-      ...renderHeaderRow(),
-      filtersSlot: screen.getByTestId('filters').parentElement as HTMLElement,
-      searchSlot: screen.getByTestId('search').parentElement as HTMLElement,
+    it('should hand the create button, filters and search to the header row', () => {
+      const { row, createSlot } = renderHeaderRow();
+
+      // O layout responsivo é do TableHeaderRow e está coberto lá; aqui só
+      // importa que os três slots cheguem a ele, na ordem certa.
+      expect([...row.children]).toEqual([
+        createSlot,
+        screen.getByTestId('filters').parentElement,
+        screen.getByTestId('search').parentElement,
+      ]);
     });
 
-    it('should render the three header slots as siblings of the header row', () => {
-      const { row, createSlot, filtersSlot, searchSlot } = renderHeaderSlots();
-
-      expect(row).toHaveClass('flex', 'flex-wrap', 'justify-between');
-      expect([...row.children]).toEqual([createSlot, filtersSlot, searchSlot]);
-    });
-
-    it('should keep the desktop DOM order: create button, filters, search', () => {
-      const { row } = renderHeaderSlots();
-
-      // A ordem de leitura acompanha o desktop; no responsivo quem reordena é
-      // a classe `order-*`, não o DOM.
-      expect(row.textContent).toBe('Criar modeloFiltrosSearch');
-    });
-
-    it('should stack the search on its own line below lg and inline it from lg up', () => {
-      const { searchSlot } = renderHeaderSlots();
-
-      expect(searchSlot).toHaveClass('order-1', 'basis-full');
-      expect(searchSlot).toHaveClass('lg:order-3', 'lg:basis-auto');
-    });
-
-    it('should place create button and filters at the row edges below lg', () => {
-      const { createSlot, filtersSlot } = renderHeaderSlots();
-
-      expect(createSlot).toHaveClass('order-2', 'lg:order-1');
-      // `ml-auto` só entra a partir de lg: é ele que agrupa filtro e busca à
-      // direita quando tudo volta para uma linha.
-      expect(filtersSlot).toHaveClass('order-3', 'lg:order-2', 'lg:ml-auto');
-    });
-
-    it('should not render empty slots when there is no search or filter', () => {
+    it('should render only the create button when there is no search or filter', () => {
       mockTableProviderSlots.filters = false;
       mockTableProviderSlots.search = false;
 
       const { row, createSlot } = renderHeaderRow();
 
-      // Sem busca e sem filtro o header não pode ganhar divs vazias: elas
-      // ocupariam as pontas do `justify-between` e deslocariam o botão.
       expect([...row.children]).toEqual([createSlot]);
     });
   });

@@ -34,29 +34,33 @@ describe('TableHeaderRow', () => {
     expect(row.children[0]).toBe(actionSlot);
   });
 
-  it('should keep the DOM order of the desktop layout: action, filters, search', () => {
+  it('should lay out action, filters and search in that order', () => {
     const { row } = renderHeader();
 
-    // No responsivo quem reordena é a classe `order-*`, não o DOM — a ordem de
-    // leitura e de foco continua a do desktop.
+    // Sem `order-*`: a ordem visual é a do DOM nos dois layouts, então leitura
+    // e foco acompanham o que se vê.
     expect(row.textContent).toBe('Criar modeloFiltros');
     expect(row.children[2].querySelector('input')).toBeInTheDocument();
   });
 
-  it('should give the search its own line below lg and inline it from lg up', () => {
+  it('should drop the search to its own line below lg and inline it from lg up', () => {
     const { row } = renderHeader();
 
-    expect(row.children[2]).toHaveClass('order-1', 'basis-full');
-    expect(row.children[2]).toHaveClass('lg:order-3', 'lg:basis-auto');
+    expect(row.children[2]).toHaveClass('basis-full', 'lg:basis-auto');
+    // A busca não carrega `order-*`: quem a desce é a quebra natural do
+    // `flex-wrap`, já que ela ocupa a linha inteira.
+    expect(row.children[2].className).not.toMatch(/(^|\s|:)order-/);
   });
 
-  it('should push action and filters to the row edges below lg', () => {
+  it('should keep action and filters at the row edges', () => {
     const { row, actionSlot } = renderHeader();
 
-    expect(actionSlot).toHaveClass('order-2', 'lg:order-1');
+    expect(actionSlot.className).not.toMatch(/(^|\s|:)order-/);
     // `ml-auto` só entra a partir de lg: é ele que reagrupa filtro e busca à
-    // direita quando tudo volta para uma linha.
-    expect(row.children[1]).toHaveClass('order-3', 'lg:order-2', 'lg:ml-auto');
+    // direita quando tudo volta para uma linha. Abaixo disso quem separa ação e
+    // filtro é o `justify-between`.
+    expect(row.children[1]).toHaveClass('lg:ml-auto');
+    expect(row.children[1].className).not.toMatch(/(^|\s)ml-auto/);
   });
 
   it('should render only the action when there is no search or filter', () => {

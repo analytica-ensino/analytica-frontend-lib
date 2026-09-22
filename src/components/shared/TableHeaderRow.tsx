@@ -18,15 +18,15 @@ export interface TableHeaderRowProps {
  *
  * Os três juntos precisam de 791px (163 + 16 + 108 + 16 + 488), e abaixo de `lg`
  * o PageContainer ainda consome 32px de `px-4`. Numa linha só, abaixo de ~823px
- * o rótulo do botão quebra em duas linhas e a busca colapsa. Por isso, abaixo de
- * `lg` a busca ocupa a primeira linha inteira (`basis-full`) e o
- * `justify-between` joga ação e filtro para as pontas da segunda. De `lg` para
- * cima, `ml-auto` reagrupa filtro e busca à direita e tudo volta a uma linha.
+ * o rótulo do botão quebra em duas linhas e a busca colapsa. Por isso a busca
+ * carrega `basis-full`: abaixo de `lg` ela desce sozinha para a segunda linha,
+ * enquanto o `justify-between` mantém ação e filtro nas pontas da primeira. De
+ * `lg` para cima, `basis-auto` a traz de volta e o `ml-auto` reagrupa filtro e
+ * busca à direita, tudo numa linha.
  *
- * A ordem do DOM acompanha a visual do desktop — ação, filtro, busca. No
- * responsivo ela diverge da ordem visual de propósito: inverter resolveria o
- * mobile e criaria o mesmo descompasso no desktop, onde navegação por teclado é
- * mais comum.
+ * O reflow é só a quebra natural do `flex-wrap`, sem `order`: a ordem do DOM
+ * bate com a ordem visual nos dois layouts, então leitura e foco acompanham o
+ * que se vê.
  *
  * Os slots são condicionais porque uma tabela pode vir sem busca ou sem filtro;
  * divs vazias ocupariam as pontas do `justify-between` e deslocariam a ação.
@@ -37,13 +37,9 @@ export const TableHeaderRow = ({
   search,
 }: TableHeaderRowProps) => (
   <div className="flex flex-wrap items-center justify-between gap-4">
-    <div className="order-2 lg:order-1">{action}</div>
-    {filters && <div className="order-3 lg:order-2 lg:ml-auto">{filters}</div>}
-    {search && (
-      <div className="order-1 basis-full lg:order-3 lg:basis-auto">
-        {search}
-      </div>
-    )}
+    <div>{action}</div>
+    {filters && <div className="lg:ml-auto">{filters}</div>}
+    {search && <div className="basis-full lg:basis-auto">{search}</div>}
   </div>
 );
 
