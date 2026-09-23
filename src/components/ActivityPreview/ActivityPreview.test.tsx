@@ -88,6 +88,47 @@ jest.mock('../ActivityCardQuestionPreview/ActivityCardQuestionPreview', () => ({
   ),
 }));
 
+/**
+ * jsdom has no layout, so the drop indicator geometry has to be stubbed:
+ * the list starts at y=0 and each card is 100px tall with a 10px gap.
+ */
+const stubListGeometry = () => {
+  const setRect = (element: Element, top: number, height: number) => {
+    element.getBoundingClientRect = () =>
+      ({
+        top,
+        height,
+        bottom: top + height,
+        left: 0,
+        right: 200,
+        width: 200,
+        x: 0,
+        y: top,
+        toJSON: () => ({}),
+      }) as DOMRect;
+  };
+
+  setRect(screen.getByTestId('questions-list'), 0, 210);
+  setRect(screen.getByLabelText('Mover questão First question'), 0, 100);
+  setRect(screen.getByLabelText('Mover questão Second question'), 110, 100);
+};
+
+/**
+ * jsdom has no DragEvent, so `clientY` passed through fireEvent's init is
+ * dropped. Define it on the event itself instead.
+ */
+const fireDragAt = (
+  type: 'dragOver' | 'drop',
+  element: Element,
+  dataTransfer: DataTransfer,
+  clientY: number
+) => {
+  const event = createEvent[type](element, { dataTransfer });
+  Object.defineProperty(event, 'clientY', { value: clientY });
+  fireEvent(element, event);
+  return event;
+};
+
 const createDataTransfer = (initialId?: string) => {
   const store = new Map<string, string>();
   if (initialId) store.set('text/plain', initialId);
@@ -165,9 +206,12 @@ describe('ActivityPreview', () => {
     const firstCard = screen.getByLabelText('Mover questão First question');
     const secondCard = screen.getByLabelText('Mover questão Second question');
 
+    stubListGeometry();
+
     fireEvent.dragStart(firstCard, { dataTransfer });
     expect(dataTransfer.setData).toHaveBeenCalledWith('text/plain', 'q1');
-    fireEvent.drop(secondCard, { dataTransfer });
+    fireDragAt('dragOver', secondCard, dataTransfer, 200);
+    fireDragAt('drop', secondCard, dataTransfer, 200);
 
     expect(getOrder()).toEqual(['q2', 'q1']);
     expect(onReorder).toHaveBeenCalledWith([
@@ -192,7 +236,25 @@ describe('ActivityPreview', () => {
     expect(dataTransfer.setDragImage).toHaveBeenCalledWith(preview, 8, 8);
   });
 
-  it('prevents default on drag over', () => {
+  it('prevents default on drag over while a reorder drag is active', () => {
+    const dataTransfer = createDataTransfer();
+    renderComponent();
+
+    const firstCard = screen.getByLabelText('Mover questão First question');
+    fireEvent.dragStart(firstCard, { dataTransfer });
+
+    const event = createEvent.dragOver(firstCard, {
+      dataTransfer,
+      clientY: 40,
+    });
+    event.preventDefault = jest.fn();
+
+    fireEvent(firstCard, event);
+
+    expect(event.preventDefault).toHaveBeenCalled();
+  });
+
+  it('ignores drag over when no reorder drag is active', () => {
     renderComponent();
 
     const firstCard = screen.getByLabelText('Mover questão First question');
@@ -201,7 +263,126 @@ describe('ActivityPreview', () => {
 
     fireEvent(firstCard, event);
 
-    expect(event.preventDefault).toHaveBeenCalled();
+    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('drop-placeholder')).not.toBeInTheDocument();
+  });
+
+  it('shows the drop placeholder at the position the card will land on', () => {
+    const dataTransfer = createDataTransfer();
+    renderComponent();
+
+    const firstCard = screen.getByLabelText('Mover questão First question');
+    stubListGeometry();
+
+    fireEvent.dragStart(firstCard, { dataTransfer });
+    expect(screen.queryByTestId('drop-placeholder')).not.toBeInTheDocument();
+
+    // Below the second card's midpoint (160) -> lands after it
+    fireDragAt('dragOver', firstCard, dataTransfer, 200);
+
+    const cards = screen.getAllByTestId('activity-card-preview');
+    const placeholder = screen.getByTestId('drop-placeholder');
+    expect(placeholder).toBeInTheDocument();
+    expect(
+      placeholder.compareDocumentPosition(cards[1]) &
+        Node.DOCUMENT_POSITION_PRECEDING
+    ).toBeTruthy();
+
+    fireEvent.dragEnd(firstCard);
+    expect(screen.queryByTestId('drop-placeholder')).not.toBeInTheDocument();
+  });
+
+  it('drops the card at the indicated position instead of the hovered card', () => {
+    const onReorder = jest.fn();
+    const dataTransfer = createDataTransfer();
+    renderComponent({ onReorder });
+
+    const firstCard = screen.getByLabelText('Mover questão First question');
+    stubListGeometry();
+
+    fireEvent.dragStart(firstCard, { dataTransfer });
+    fireDragAt('dragOver', firstCard, dataTransfer, 200);
+    fireDragAt('drop', firstCard, dataTransfer, 200);
+
+    expect(getOrder()).toEqual(['q2', 'q1']);
+    expect(onReorder).toHaveBeenCalledWith([
+      expect.objectContaining({ id: 'q2', position: 1 }),
+      expect.objectContaining({ id: 'q1', position: 2 }),
+    ]);
+  });
+
+  it('auto-scrolls the list while dragging towards its top edge', () => {
+    const frames: ((time: number) => void)[] = [];
+    const rafSpy = jest
+      .spyOn(globalThis, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        frames.push(callback);
+        return frames.length;
+      });
+    const cafSpy = jest
+      .spyOn(globalThis, 'cancelAnimationFrame')
+      .mockImplementation(() => undefined);
+
+    try {
+      const dataTransfer = createDataTransfer();
+      renderComponent();
+
+      const list = screen.getByTestId('questions-list');
+      const scroller = list.parentElement as HTMLElement;
+
+      // jsdom has no layout: make the panel a real scrolling box
+      scroller.style.overflowY = 'auto';
+      Object.defineProperty(scroller, 'scrollHeight', { value: 1000 });
+      Object.defineProperty(scroller, 'clientHeight', { value: 300 });
+      let scrollTop = 500;
+      Object.defineProperty(scroller, 'scrollTop', {
+        configurable: true,
+        get: () => scrollTop,
+        set: (value: number) => {
+          scrollTop = value;
+        },
+      });
+      scroller.getBoundingClientRect = () =>
+        ({ top: 0, bottom: 300, height: 300 }) as DOMRect;
+
+      stubListGeometry();
+
+      const firstCard = screen.getByLabelText('Mover questão First question');
+      fireEvent.dragStart(firstCard, { dataTransfer });
+
+      // Pointer near the top edge of the scroller
+      fireDragAt('dragOver', firstCard, dataTransfer, 8);
+
+      expect(frames).toHaveLength(1);
+      frames.shift()?.(0);
+      expect(scroller.scrollTop).toBeLessThan(500);
+
+      // Back to the middle: the auto-scroll stops
+      const before = scroller.scrollTop;
+      fireDragAt('dragOver', firstCard, dataTransfer, 150);
+      frames.shift()?.(0);
+      expect(scroller.scrollTop).toBe(before);
+    } finally {
+      rafSpy.mockRestore();
+      cafSpy.mockRestore();
+    }
+  });
+
+  it('does not reorder when the drop indicator points at the original slot', () => {
+    const onReorder = jest.fn();
+    const dataTransfer = createDataTransfer();
+    renderComponent({ onReorder });
+
+    const firstCard = screen.getByLabelText('Mover questão First question');
+    stubListGeometry();
+
+    fireEvent.dragStart(firstCard, { dataTransfer });
+    // Above the second card's midpoint (160) -> still the first slot
+    fireDragAt('dragOver', firstCard, dataTransfer, 140);
+    fireDragAt('drop', firstCard, dataTransfer, 140);
+
+    expect(getOrder()).toEqual(['q1', 'q2']);
+    expect(onReorder).not.toHaveBeenCalled();
   });
 
   it('does not reorder when dropping on the same item', () => {

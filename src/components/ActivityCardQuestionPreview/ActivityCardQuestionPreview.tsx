@@ -163,6 +163,7 @@ const QuestionActions = ({
     {onRemove && (
       <IconButton
         size="sm"
+        data-no-drag="true"
         icon={<TrashIcon size={16} />}
         aria-label={
           typeof position === 'number'

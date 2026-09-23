@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowDownIcon } from '@phosphor-icons/react/dist/csr/ArrowDown';
 import { FileIcon } from '@phosphor-icons/react/dist/csr/File';
 import { DownloadSimpleIcon } from '@phosphor-icons/react/dist/csr/DownloadSimple';
 import { TrashIcon } from '@phosphor-icons/react/dist/csr/Trash';
@@ -11,6 +12,20 @@ import {
   QuestionsPdfContent,
 } from '../QuestionsPdfGenerator';
 import Activities from '../../assets/icons/Activities';
+import { useReorderDragAndDrop } from './useReorderDragAndDrop';
+
+/** Slot that shows where the dragged question will land. */
+const DropPlaceholder = () => (
+  <div
+    data-testid="drop-placeholder"
+    className="rounded-lg border border-dashed border-primary-600 bg-primary-50 py-3 px-2 flex flex-row items-center justify-center gap-2 text-primary-950"
+  >
+    <ArrowDownIcon size={16} />
+    <Text size="sm" weight="medium" className="text-primary-950">
+      Soltar aqui
+    </Text>
+  </div>
+);
 
 type PreviewQuestion = {
   id: string;
@@ -109,20 +124,38 @@ export const ActivityPreview = ({
     }, 100);
   };
 
-  const handleReorder = (fromId: string, toId: string) => {
-    if (fromId === toId) return;
-    const current = [...orderedQuestions];
-    const fromIndex = current.findIndex((q) => q.id === fromId);
-    const toIndex = current.findIndex((q) => q.id === toId);
-    if (fromIndex === -1 || toIndex === -1) return;
+  /** Moves a question to its new final index and renumbers the list. */
+  const handleMove = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return;
+    if (fromIndex < 0 || fromIndex >= orderedQuestions.length) return;
+    if (toIndex < 0 || toIndex >= orderedQuestions.length) return;
 
-    const [moved] = current.splice(fromIndex, 1);
-    current.splice(toIndex, 0, moved);
-    const normalized = normalizeWithPositions(current);
+    const next = [...orderedQuestions];
+    const [moved] = next.splice(fromIndex, 1);
+    next.splice(toIndex, 0, moved);
+
+    const normalized = normalizeWithPositions(next);
     setOrderedQuestions(normalized);
     onReorder?.(normalized);
     onPositionsChange?.(normalized);
   };
+
+  const questionIds = useMemo(
+    () => orderedQuestions.map((question) => question.id),
+    [orderedQuestions]
+  );
+
+  const {
+    draggingId,
+    dropIndex,
+    listRef,
+    registerItem,
+    handlePointerDown,
+    handleDragStart,
+    handleDragOver,
+    handleDrop,
+    handleDragEnd,
+  } = useReorderDragAndDrop({ itemIds: questionIds, onMove: handleMove });
 
   return (
     <div
@@ -130,6 +163,10 @@ export const ActivityPreview = ({
         'w-full flex-shrink-0 p-4 rounded-lg bg-background flex flex-col gap-4',
         className
       )}
+      // The whole panel accepts the drop: while auto-scrolling, the pointer
+      // often sits over the header instead of the list itself
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
     >
       <section className="flex flex-row items-center gap-2 text-text-950">
         <FileIcon size={24} />
@@ -162,7 +199,11 @@ export const ActivityPreview = ({
           size="compact"
         />
       ) : (
-        <section className="flex flex-col gap-3">
+        <section
+          ref={listRef}
+          data-testid="questions-list"
+          className="flex flex-col gap-3"
+        >
           {orderedQuestions.map(
             (
               {
@@ -181,76 +222,66 @@ export const ActivityPreview = ({
               },
               index
             ) => (
-              <div
-                key={id}
-                draggable
-                data-draggable="true"
-                role="button"
-                tabIndex={0}
-                aria-label={`Mover questão ${statement ?? id}`}
-                onDragStart={(e) => {
-                  e.dataTransfer.setData('text/plain', id);
-                  if (e.currentTarget instanceof HTMLElement) {
-                    const preview = e.currentTarget.querySelector(
-                      '[data-drag-preview="true"]'
-                    );
-                    if (preview) {
-                      e.dataTransfer.setDragImage(preview, 8, 8);
-                    } else {
-                      e.dataTransfer.setDragImage(e.currentTarget, 8, 8);
+              <Fragment key={id}>
+                {dropIndex === index && <DropPlaceholder />}
+
+                <div
+                  ref={registerItem(id)}
+                  draggable
+                  data-draggable="true"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Mover questão ${statement ?? id}`}
+                  onMouseDown={handlePointerDown}
+                  onDragStart={handleDragStart(id)}
+                  onDragEnd={handleDragEnd}
+                  onKeyDown={(e) => {
+                    if (e.key === 'ArrowUp' && index > 0) {
+                      e.preventDefault();
+                      handleMove(index, index - 1);
+                    } else if (
+                      e.key === 'ArrowDown' &&
+                      index < orderedQuestions.length - 1
+                    ) {
+                      e.preventDefault();
+                      handleMove(index, index + 1);
+                    } else if (e.key === 'Enter' || e.key === ' ') {
+                      // Keyboard grab/drop noop; prevent scroll on space
+                      e.preventDefault();
                     }
-                  }
-                }}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                }}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  const fromId = e.dataTransfer.getData('text/plain');
-                  handleReorder(fromId, id);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'ArrowUp' && index > 0) {
-                    e.preventDefault();
-                    const targetId = orderedQuestions[index - 1].id;
-                    handleReorder(id, targetId);
-                  } else if (
-                    e.key === 'ArrowDown' &&
-                    index < orderedQuestions.length - 1
-                  ) {
-                    e.preventDefault();
-                    const targetId = orderedQuestions[index + 1].id;
-                    handleReorder(id, targetId);
-                  } else if (e.key === 'Enter' || e.key === ' ') {
-                    // Keyboard grab/drop noop; prevent scroll on space
-                    e.preventDefault();
-                  }
-                }}
-                className="rounded-lg"
-              >
-                <ActivityCardQuestionPreview
-                  subjectName={subjectName}
-                  subjectColor={subjectColor}
-                  iconName={iconName}
-                  isDark={isDark}
-                  bank={bank}
-                  year={year}
-                  questionType={questionType}
-                  questionTypeLabel={questionTypeLabel}
-                  statement={statement}
-                  defaultExpanded={false}
-                  question={question}
-                  solutionExplanation={solutionExplanation}
-                  value={id}
-                  position={position}
-                  showDragHandle
-                  onRemove={
-                    onRemoveQuestion ? () => onRemoveQuestion(id) : undefined
-                  }
-                />
-              </div>
+                  }}
+                  className={cn(
+                    'rounded-lg cursor-grab transition-shadow duration-150',
+                    'active:cursor-grabbing active:shadow-hard-shadow-2',
+                    draggingId === id && 'opacity-40 shadow-hard-shadow-2'
+                  )}
+                >
+                  <ActivityCardQuestionPreview
+                    subjectName={subjectName}
+                    subjectColor={subjectColor}
+                    iconName={iconName}
+                    isDark={isDark}
+                    bank={bank}
+                    year={year}
+                    questionType={questionType}
+                    questionTypeLabel={questionTypeLabel}
+                    statement={statement}
+                    defaultExpanded={false}
+                    question={question}
+                    solutionExplanation={solutionExplanation}
+                    value={id}
+                    position={position}
+                    showDragHandle
+                    onRemove={
+                      onRemoveQuestion ? () => onRemoveQuestion(id) : undefined
+                    }
+                  />
+                </div>
+              </Fragment>
             )
           )}
+
+          {dropIndex === orderedQuestions.length && <DropPlaceholder />}
         </section>
       )}
 
