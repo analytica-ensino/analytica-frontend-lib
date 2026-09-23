@@ -258,7 +258,7 @@ const ChartCard = ({
 } & HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      'flex flex-col p-5 bg-background border border-border-50 rounded-xl',
+      'flex flex-col min-w-0 p-5 bg-background border border-border-50 rounded-xl',
       contentGapClassName,
       className
     )}
@@ -293,17 +293,19 @@ const YAxis = ({
   chartHeight: number;
   unitSuffix: string;
 }) => (
+  // `shrink-0` keeps the scale readable while the plot area absorbs the
+  // shrinking; the smaller type/padding below `sm` buys room for the bars.
   <div
-    className="flex flex-col justify-between items-end pr-3"
+    className="flex flex-col justify-between items-end shrink-0 pr-2 sm:pr-3"
     style={{ height: chartHeight }}
     aria-hidden="true"
   >
     {ticks.map((tick, index) => (
       <Text
         key={`${tick}-${index}`}
-        size="md"
+        size="2xs"
         weight="normal"
-        className="text-text-700"
+        className="text-text-700 whitespace-nowrap sm:text-md"
       >
         {tick === 0 ? '0' : `${tick}${unitSuffix}`}
       </Text>
@@ -371,10 +373,10 @@ const StackedBar = ({
       content={tooltipContent ?? ''}
       disabled={!tooltipContent}
       position="top"
-      className="flex-1"
+      className="flex-1 min-w-0"
       contentClassName="whitespace-normal"
     >
-      <div className="flex flex-col items-center gap-2 w-full cursor-pointer group/bar">
+      <div className="flex flex-col items-center gap-2 w-full min-w-0 cursor-pointer group/bar">
         <div
           className="w-full flex flex-col-reverse items-center justify-start relative"
           style={{ height: chartHeight }}
@@ -396,7 +398,10 @@ const StackedBar = ({
                 key={cat.key}
                 data-testid={`bar-segment-${day.label}-${cat.key}`}
                 className={cn(
-                  'w-9',
+                  // Fluid width capped at the original 36px: the bar shrinks
+                  // with its column on narrow screens instead of forcing the
+                  // chart wider than the card.
+                  'w-full max-w-9',
                   cat.colorClass,
                   isFirst && 'rounded-b',
                   isLast && 'rounded-t',
@@ -412,9 +417,9 @@ const StackedBar = ({
           )}
         </div>
         <Text
-          size="md"
+          size="2xs"
           weight="normal"
-          className="text-text-700 text-center"
+          className="w-full text-text-700 text-center leading-tight break-words sm:text-md"
           data-testid={`day-label-${day.label}`}
         >
           {day.label}
@@ -684,25 +689,34 @@ export const TimeChart = ({
         categories={categories}
         contentGapClassName="gap-8"
       >
-        <div className="flex flex-row">
+        <div className="flex flex-row min-w-0">
           <YAxis
             ticks={yAxisTicks}
             chartHeight={chartHeight}
             unitSuffix={unitSuffix}
           />
-          <div className="w-4" />
-          <div className="flex-1 relative">
+          <div className="w-2 shrink-0 sm:w-4" />
+          <div className="flex-1 min-w-0 relative">
             <GridLines ticks={yAxisTicks} chartHeight={chartHeight} />
-            <div className="flex flex-row flex-1 gap-2 relative z-10">
+            <div className="flex flex-row flex-1 gap-1 sm:gap-2 relative z-10">
               {hoursByPeriod.map((day, index) => (
-                <StackedBar
+                // Equal-width column wrapper: keeps every bucket the same width
+                // even when a bar has no data (its Tooltip is disabled and would
+                // otherwise drop the flex-1 class, collapsing the column).
+                // `min-w-0` lets the columns shrink so 12 monthly buckets fit a
+                // phone screen instead of overflowing the card.
+                <div
                   key={`${day.label}-${index}`}
-                  day={day}
-                  categories={categories}
-                  maxValue={adjustedMax}
-                  chartHeight={chartHeight}
-                  unitSuffix={unitSuffix}
-                />
+                  className="flex-1 flex min-w-0"
+                >
+                  <StackedBar
+                    day={day}
+                    categories={categories}
+                    maxValue={adjustedMax}
+                    chartHeight={chartHeight}
+                    unitSuffix={unitSuffix}
+                  />
+                </div>
               ))}
             </div>
           </div>
