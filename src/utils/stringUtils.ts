@@ -119,12 +119,12 @@ function project(text: string): NormalizedProjection {
     // is one code point but two units, so iterating it by code point would push
     // one entry while `normalized` grew by two and shift every later index.
     //
-    // Hence the NOSONAR: the "prefer for-of" rule wants exactly the iteration
-    // that reintroduces that bug, and this loop reads no element anyway.
+    // So this counts units down rather than indexing: a plain `for-of` walks
+    // code points and would reintroduce that bug, and an ascending index over
+    // `.length` reads no element, which is all `prefer-for-of` asks about.
     const projected = normalizeText(char);
     normalized += projected;
-    for (let unit = 0; unit < projected.length; unit++) {
-      // NOSONAR
+    for (let unit = projected.length; unit > 0; unit--) {
       sourceIndex.push(start);
       sourceEnd.push(cursor);
     }
@@ -162,7 +162,7 @@ function findRanges(
 
   const kept: Array<{ start: number; end: number }> = [];
   for (const range of ranges) {
-    const last = kept[kept.length - 1];
+    const last = kept.at(-1);
     if (!last || range.start >= last.end) kept.push(range);
   }
   return kept;
