@@ -201,6 +201,14 @@ export interface NoSearchResultConfig {
 export interface TableComponents {
   /** Search and filter controls */
   controls: ReactNode;
+  /**
+   * Filter button sozinho, sem o wrapper de `controls`.
+   * Use quando o header precisa posicionar filtro e busca de forma
+   * independente — ex.: empilhar só a busca no responsivo.
+   */
+  filters: ReactNode;
+  /** Search field sozinho, sem o wrapper de `controls`. */
+  search: ReactNode;
   /** Table with data */
   table: ReactNode;
   /** Pagination controls */
@@ -602,43 +610,51 @@ export function TableProvider<T extends Record<string, unknown>>({
     };
   }, [emptyState, hasActiveColumnFilters, clearAllColumnFilters]);
 
-  // Extract components for render prop pattern
+  // Extract components for render prop pattern.
+  // Filtro e busca são montados separados para que um header custom possa
+  // posicionar cada um por conta própria; `controls` continua compondo os dois.
+  const filtersControl = enableFilters && (
+    <Button
+      variant="outline"
+      size="medium"
+      onClick={() => setIsFilterModalOpen(true)}
+    >
+      <FunnelIcon size={20} />
+      Filtros
+      {activeFiltersCount > 0 && (
+        <span className="ml-2 rounded-full bg-primary-500 px-2 py-0.5 text-xs text-white">
+          {activeFiltersCount}
+        </span>
+      )}
+    </Button>
+  );
+
+  const searchControl = enableSearch && (
+    <Search
+      value={inputValue}
+      onChange={handleInputChange}
+      onSearch={handleSearchChange}
+      onClear={() => {
+        setInputValue('');
+        handleSearchChange('');
+      }}
+      options={[]}
+      placeholder={searchPlaceholder}
+      debounceMs={300}
+    />
+  );
+
   const controls = (enableSearch || enableFilters) && (
     <div className="flex items-center gap-4">
       {/* Filter Button */}
-      {enableFilters && (
-        <Button
-          variant="outline"
-          size="medium"
-          onClick={() => setIsFilterModalOpen(true)}
-        >
-          <FunnelIcon size={20} />
-          Filtros
-          {activeFiltersCount > 0 && (
-            <span className="ml-2 rounded-full bg-primary-500 px-2 py-0.5 text-xs text-white">
-              {activeFiltersCount}
-            </span>
-          )}
-        </Button>
-      )}
+      {filtersControl}
 
       {/* Search */}
       {enableSearch && (
         <div
           className={cn('flex-1 flex justify-end', searchContainerClassName)}
         >
-          <Search
-            value={inputValue}
-            onChange={handleInputChange}
-            onSearch={handleSearchChange}
-            onClear={() => {
-              setInputValue('');
-              handleSearchChange('');
-            }}
-            options={[]}
-            placeholder={searchPlaceholder}
-            debounceMs={300}
-          />
+          {searchControl}
         </div>
       )}
     </div>
@@ -821,6 +837,8 @@ export function TableProvider<T extends Record<string, unknown>>({
       <>
         {children({
           controls: headerSection || controls || null,
+          filters: filtersControl || null,
+          search: searchControl || null,
           table,
           pagination,
         })}

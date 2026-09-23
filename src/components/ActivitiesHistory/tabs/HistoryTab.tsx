@@ -5,6 +5,7 @@ import Button from '../../Button/Button';
 import EmptyState from '../../EmptyState/EmptyState';
 import { TableProvider } from '../../TableProvider/TableProvider';
 import { ErrorDisplay } from '../components/ErrorDisplay';
+import { TableHeaderRow } from '../../shared/TableHeaderRow';
 import { createHistoryTableColumns } from '../config/historyTableColumns';
 import { createHistoryFiltersConfig } from '../config/historyFiltersConfig';
 import { buildHistoryFiltersFromParams } from '../utils/filterBuilders';
@@ -164,29 +165,33 @@ export const HistoryTab = ({
       >
         {(renderProps: unknown) => {
           const {
-            controls,
+            filters,
+            search,
             table,
             pagination: paginationComponent,
           } = renderProps as {
-            controls: ReactNode;
+            filters: ReactNode;
+            search: ReactNode;
             table: ReactNode;
             pagination: ReactNode;
           };
           return (
             <div className="space-y-4">
-              {/* Header row: Button on left, Controls on right */}
-              <div className="flex items-center justify-between gap-4">
-                <Button
-                  variant="solid"
-                  action="primary"
-                  size="medium"
-                  onClick={onCreateActivity}
-                  iconLeft={<PlusIcon size={18} weight="bold" />}
-                >
-                  Criar atividade
-                </Button>
-                {controls}
-              </div>
+              <TableHeaderRow
+                action={
+                  <Button
+                    variant="solid"
+                    action="primary"
+                    size="medium"
+                    onClick={onCreateActivity}
+                    iconLeft={<PlusIcon size={18} weight="bold" />}
+                  >
+                    Criar atividade
+                  </Button>
+                }
+                filters={filters}
+                search={search}
+              />
               {/* Table and pagination */}
               <div className="bg-background rounded-xl p-6 space-y-4">
                 {table}

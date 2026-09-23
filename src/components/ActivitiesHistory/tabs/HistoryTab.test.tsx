@@ -17,6 +17,8 @@ jest.mock('../../TableProvider/TableProvider', () => ({
   }: {
     children: (props: {
       controls: React.ReactNode;
+      filters: React.ReactNode;
+      search: React.ReactNode;
       table: React.ReactNode;
       pagination: React.ReactNode;
     }) => React.ReactNode;
@@ -34,6 +36,8 @@ jest.mock('../../TableProvider/TableProvider', () => ({
       <div data-testid="table-provider">
         {children({
           controls: <div data-testid="controls">Controls</div>,
+          filters: <div data-testid="filters">Filtros</div>,
+          search: <div data-testid="search">Search</div>,
           table: <div data-testid="table">Table</div>,
           pagination: <div data-testid="pagination">Pagination</div>,
         })}
@@ -204,11 +208,14 @@ describe('HistoryTab', () => {
       expect(screen.getByTestId('table-provider')).toBeInTheDocument();
     });
 
-    it('should render controls', () => {
+    it('should render filters and search as separate header slots', () => {
       mockUseActivitiesHistory.activities = mockActivities;
       const props = createDefaultProps();
       render(<HistoryTab {...props} />);
-      expect(screen.getByTestId('controls')).toBeInTheDocument();
+      // O header monta cada controle no seu slot para poder empilhar só a
+      // busca no responsivo; `controls` (os dois juntos) não é mais usado.
+      expect(screen.getByTestId('filters')).toBeInTheDocument();
+      expect(screen.getByTestId('search')).toBeInTheDocument();
     });
 
     it('should render table', () => {

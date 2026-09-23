@@ -7,6 +7,7 @@ import { TableProvider } from '../../TableProvider/TableProvider';
 import { AlertDialog } from '../../AlertDialog/AlertDialog';
 import Toaster, { useToast } from '../../Toast/utils/Toaster';
 import { ErrorDisplay } from '../../ActivitiesHistory/components/ErrorDisplay';
+import { TableHeaderRow } from '../TableHeaderRow';
 import type {
   TableParams,
   ColumnConfig,
@@ -294,29 +295,33 @@ export const ModelsTabBase = <
           >
             {(renderProps: unknown) => {
               const {
-                controls,
+                filters,
+                search,
                 table,
                 pagination: paginationComponent,
               } = renderProps as {
-                controls: ReactNode;
+                filters: ReactNode;
+                search: ReactNode;
                 table: ReactNode;
                 pagination: ReactNode;
               };
               return (
                 <div className="space-y-4">
-                  {/* Header row: Button on left, Controls on right */}
-                  <div className="flex items-center justify-between gap-4">
-                    <Button
-                      variant="solid"
-                      action="primary"
-                      size="medium"
-                      onClick={onCreateModel}
-                      iconLeft={<PlusIcon size={18} weight="bold" />}
-                    >
-                      Criar modelo
-                    </Button>
-                    {controls}
-                  </div>
+                  <TableHeaderRow
+                    action={
+                      <Button
+                        variant="solid"
+                        action="primary"
+                        size="medium"
+                        onClick={onCreateModel}
+                        iconLeft={<PlusIcon size={18} weight="bold" />}
+                      >
+                        Criar modelo
+                      </Button>
+                    }
+                    filters={filters}
+                    search={search}
+                  />
                   {/* Table and pagination */}
                   <div className="bg-background rounded-xl p-6 space-y-4">
                     {table}

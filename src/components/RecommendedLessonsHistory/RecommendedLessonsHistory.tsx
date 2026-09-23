@@ -12,6 +12,7 @@ import Badge from '../Badge/Badge';
 import EmptyState from '../EmptyState/EmptyState';
 import { Menu, MenuItem, MenuContent } from '../Menu/Menu';
 import { TableProvider } from '../TableProvider/TableProvider';
+import { TableHeaderRow } from '../shared/TableHeaderRow';
 import ProgressBar from '../ProgressBar/ProgressBar';
 import { AlertDialog } from '../AlertDialog/AlertDialog';
 import useToastStore from '../Toast/utils/ToastStore';
@@ -825,29 +826,33 @@ export const RecommendedLessonsHistory = ({
                   >
                     {(renderProps: unknown) => {
                       const {
-                        controls,
+                        filters,
+                        search,
                         table,
                         pagination: paginationComponent,
                       } = renderProps as {
-                        controls: ReactNode;
+                        filters: ReactNode;
+                        search: ReactNode;
                         table: ReactNode;
                         pagination: ReactNode;
                       };
                       return (
                         <div className="space-y-4">
-                          {/* Header row: Button on left, Controls on right */}
-                          <div className="flex items-center justify-between gap-4">
-                            <Button
-                              variant="solid"
-                              action="primary"
-                              size="medium"
-                              onClick={onCreateLesson}
-                              iconLeft={<PlusIcon size={18} weight="bold" />}
-                            >
-                              {createButtonText}
-                            </Button>
-                            {controls}
-                          </div>
+                          <TableHeaderRow
+                            action={
+                              <Button
+                                variant="solid"
+                                action="primary"
+                                size="medium"
+                                onClick={onCreateLesson}
+                                iconLeft={<PlusIcon size={18} weight="bold" />}
+                              >
+                                {createButtonText}
+                              </Button>
+                            }
+                            filters={filters}
+                            search={search}
+                          />
                           {/* Table and pagination */}
                           <div className="bg-background rounded-xl p-6 space-y-4">
                             {table}

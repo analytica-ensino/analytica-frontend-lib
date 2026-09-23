@@ -19,6 +19,13 @@ import type {
   ColumnConfig,
 } from '../../TableProvider/TableProvider';
 
+/**
+ * Liga/desliga os slots que o TableProvider entrega pelo render prop.
+ * Um TableProvider com `enableSearch`/`enableFilters` falsos devolve `null`
+ * nesses campos, e o header precisa aguentar isso.
+ */
+const mockTableProviderSlots = { filters: true, search: true };
+
 // Mock dependencies
 jest.mock('../../TableProvider/TableProvider', () => ({
   TableProvider: ({
@@ -29,6 +36,8 @@ jest.mock('../../TableProvider/TableProvider', () => ({
   }: {
     children: (props: {
       controls: React.ReactNode;
+      filters: React.ReactNode;
+      search: React.ReactNode;
       table: React.ReactNode;
       pagination: React.ReactNode;
     }) => React.ReactNode;
@@ -46,6 +55,12 @@ jest.mock('../../TableProvider/TableProvider', () => ({
       <div data-testid="table-provider">
         {children({
           controls: <div data-testid="controls">Controls</div>,
+          filters: mockTableProviderSlots.filters ? (
+            <div data-testid="filters">Filtros</div>
+          ) : null,
+          search: mockTableProviderSlots.search ? (
+            <div data-testid="search">Search</div>
+          ) : null,
           table: <div data-testid="table">Table</div>,
           pagination: <div data-testid="pagination">Pagination</div>,
         })}
@@ -248,6 +263,47 @@ describe('ModelsTabBase', () => {
       expect(
         screen.getByRole('button', { name: /criar modelo/i })
       ).toBeInTheDocument();
+    });
+  });
+
+  describe('header', () => {
+    afterEach(() => {
+      mockTableProviderSlots.filters = true;
+      mockTableProviderSlots.search = true;
+    });
+
+    /**
+     * Renderiza e devolve a linha do header — o TableHeaderRow — pelo caminho
+     * do slot do botão de criar, que é sempre um filho direto dela.
+     */
+    const renderHeaderRow = () => {
+      const props = createDefaultProps();
+      render(<ModelsTabBase {...props} />);
+      const createSlot = screen.getByRole('button', {
+        name: /criar modelo/i,
+      }).parentElement as HTMLElement;
+      return { row: createSlot.parentElement as HTMLElement, createSlot };
+    };
+
+    it('should hand the create button, filters and search to the header row', () => {
+      const { row, createSlot } = renderHeaderRow();
+
+      // O layout responsivo é do TableHeaderRow e está coberto lá; aqui só
+      // importa que os três slots cheguem a ele, na ordem certa.
+      expect([...row.children]).toEqual([
+        createSlot,
+        screen.getByTestId('filters').parentElement,
+        screen.getByTestId('search').parentElement,
+      ]);
+    });
+
+    it('should render only the create button when there is no search or filter', () => {
+      mockTableProviderSlots.filters = false;
+      mockTableProviderSlots.search = false;
+
+      const { row, createSlot } = renderHeaderRow();
+
+      expect([...row.children]).toEqual([createSlot]);
     });
   });
 
