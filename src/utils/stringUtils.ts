@@ -118,9 +118,12 @@ function project(text: string): NormalizedProjection {
     // them with `needle.length`, both UTF-16. A non-BMP letter (𝐀, CJK ext B)
     // is one code point but two units, so iterating it by code point would push
     // one entry while `normalized` grew by two and shift every later index.
+    //
+    // Hence the NOSONAR: the "prefer for-of" rule wants exactly the iteration
+    // that reintroduces that bug, and this loop reads no element anyway.
     const projected = normalizeText(char);
     normalized += projected;
-    for (let unit = 0; unit < projected.length; unit++) {
+    for (let unit = 0; unit < projected.length; unit++) { // NOSONAR
       sourceIndex.push(start);
       sourceEnd.push(cursor);
     }

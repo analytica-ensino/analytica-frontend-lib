@@ -337,3 +337,73 @@ export const MultipleQuestionsWithMath: Story = () => {
     </div>
   );
 };
+
+/**
+ * Card as used in the activity builder: order badge, drag handle and remove
+ * action on the header row, metadata tags that wrap instead of overflowing.
+ */
+export const WithHeaderActions: Story = () => {
+  const { isDark } = useTheme();
+
+  return (
+    <div className="p-6 flex flex-col gap-6">
+      <h2 className="font-bold text-2xl text-text-900">
+        Card com ações no cabeçalho
+      </h2>
+
+      <div className="flex flex-col gap-3 max-w-[440px]">
+        {[1, 2, 3].map((position) => (
+          <ActivityCardQuestionPreview
+            key={position}
+            subjectName="Biologia"
+            subjectColor="#10B981"
+            iconName="Leaf"
+            isDark={isDark}
+            bank="ANALYTICA"
+            year="2026"
+            questionType={QUESTION_TYPE.ALTERNATIVA}
+            statement="Um grupo de cientistas está estudando o comportamento de uma população de aves migratórias ao longo de cinco estações."
+            position={position}
+            value={`with-actions-${position}`}
+            showDragHandle
+            onRemove={() => alert(`Remover questão ${position}`)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Narrow containers from the Figma spec: the tags wrap line by line and the
+ * statement stays on a single truncated line.
+ */
+export const ResponsiveWidths: Story = () => {
+  const { isDark } = useTheme();
+
+  return (
+    <div className="p-6 flex flex-row items-start gap-6">
+      {[168, 265, 440].map((width) => (
+        <div key={width} className="flex flex-col gap-2">
+          <span className="text-text-700 text-sm">{width}px</span>
+          <div style={{ width }}>
+            <ActivityCardQuestionPreview
+              subjectName="Biologia"
+              subjectColor="#10B981"
+              iconName="Leaf"
+              isDark={isDark}
+              bank="ANALYTICA"
+              year="2026"
+              questionType={QUESTION_TYPE.ALTERNATIVA}
+              statement="Um grupo de cientistas está estudando o comportamento de uma população de aves migratórias."
+              position={1}
+              value={`responsive-${width}`}
+              showDragHandle
+              onRemove={() => undefined}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { FileIcon } from '@phosphor-icons/react/dist/csr/File';
 import { DownloadSimpleIcon } from '@phosphor-icons/react/dist/csr/DownloadSimple';
 import { TrashIcon } from '@phosphor-icons/react/dist/csr/Trash';
-import { Button, EmptyState, IconButton, Text } from '../../index';
+import { Button, EmptyState, Text } from '../../index';
 import { ActivityCardQuestionPreview } from '../ActivityCardQuestionPreview/ActivityCardQuestionPreview';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import { cn } from '../../utils/utils';
@@ -226,21 +226,8 @@ export const ActivityPreview = ({
                     e.preventDefault();
                   }
                 }}
-                className="rounded-lg border border-border-200 bg-background relative group"
+                className="rounded-lg"
               >
-                {onRemoveQuestion && (
-                  <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <IconButton
-                      size="sm"
-                      icon={<TrashIcon size={16} />}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onRemoveQuestion(id);
-                      }}
-                      aria-label={`Remover questão ${position ?? index + 1}`}
-                    />
-                  </div>
-                )}
                 <ActivityCardQuestionPreview
                   subjectName={subjectName}
                   subjectColor={subjectColor}
@@ -256,7 +243,11 @@ export const ActivityPreview = ({
                   solutionExplanation={solutionExplanation}
                   value={id}
                   position={position}
-                ></ActivityCardQuestionPreview>
+                  showDragHandle
+                  onRemove={
+                    onRemoveQuestion ? () => onRemoveQuestion(id) : undefined
+                  }
+                />
               </div>
             )
           )}
