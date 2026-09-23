@@ -224,6 +224,44 @@ describe('AppHeader', () => {
     expect(section).toHaveClass('gap-2');
   });
 
+  // Regression: at 320px the profile menu (min-width + p-6, anchored to the
+  // right of the trigger) overflowed the left edge of the viewport.
+  it('caps the profile menu to the viewport width when isMobile', () => {
+    mockUseMobile.mockReturnValue(
+      makeUseMobileMock({
+        isMobile: true,
+        isTablet: true,
+        isExtraSmallMobile: true,
+      })
+    );
+    const { container } = render(<AppHeader {...baseProps()} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Perfil do usuário' }));
+
+    const profileHeader = container.querySelector(
+      '[data-component="ProfileMenuHeader"]'
+    );
+    expect(profileHeader).toHaveClass('min-w-0');
+    expect(profileHeader).not.toHaveClass('min-w-[280px]');
+
+    const menu = profileHeader?.closest('[data-dropdown-content="true"]');
+    expect(menu).toHaveClass('w-[calc(100vw-2rem)]', 'max-w-[320px]');
+    expect(menu).not.toHaveClass('min-w-[320px]');
+  });
+
+  it('keeps the desktop profile menu width when not mobile', () => {
+    const { container } = render(<AppHeader {...baseProps()} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Perfil do usuário' }));
+
+    const profileHeader = container.querySelector(
+      '[data-component="ProfileMenuHeader"]'
+    );
+    expect(profileHeader).toHaveClass('min-w-[280px]');
+
+    const menu = profileHeader?.closest('[data-dropdown-content="true"]');
+    expect(menu).toHaveClass('min-w-[320px]');
+    expect(menu).not.toHaveClass('w-[calc(100vw-2rem)]');
+  });
+
   it('applies desktop spacing and larger logo when not mobile', () => {
     render(<AppHeader {...baseProps()} />);
     const logo = screen.getByAltText('Logo');
