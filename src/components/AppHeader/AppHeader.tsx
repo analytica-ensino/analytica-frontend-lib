@@ -238,11 +238,12 @@ export const AppHeader = ({
     if (isMobile) return mobile;
     return desktop;
   };
-  const profileDropdownWidth = pickResponsiveClass(
-    'min-w-[260px]',
-    'min-w-[280px]',
-    'min-w-[320px]'
-  );
+  // On mobile the menu is anchored to the right of the trigger, so a min-width
+  // alone lets it overflow the left edge of narrow viewports. Cap it to the
+  // viewport minus a 16px gutter on each side.
+  const profileDropdownWidth = isMobile
+    ? 'w-[calc(100vw-2rem)] max-w-[320px]'
+    : 'min-w-[320px]';
   const sectionGap = pickResponsiveClass('gap-1', 'gap-2', 'gap-3');
   const logoHeight = pickResponsiveClass('h-6', 'h-8', 'h-10');
   const tutorialPadding = pickResponsiveClass(
@@ -395,6 +396,7 @@ export const AppHeader = ({
                 align="end"
               >
                 <ProfileMenuHeader
+                  className={isMobile ? 'min-w-0' : undefined}
                   name={displayName}
                   email={displayEmail}
                   photoUrl={sessionInfo?.urlProfilePicture}
