@@ -173,6 +173,41 @@ describe('Calendar', () => {
     });
   });
 
+  describe('Densidade da variante selection', () => {
+    const selectedDate = new Date(2025, 0, 15);
+
+    it('should use comfortable spacing by default', () => {
+      const { container } = render(
+        <Calendar variant="selection" selectedDate={selectedDate} />
+      );
+
+      expect(container.firstChild).toHaveClass('p-4');
+      expect(screen.getByText('15')).toHaveClass('w-9', 'h-9', 'text-lg');
+    });
+
+    /**
+     * `compact` serve ao popover do `DateTimeInput`, onde a altura disponível é
+     * o que sobra entre o campo e a borda da tela. A coluna segue com 36px
+     * (`w-9`) de propósito: só a altura encolhe, senão o cabeçalho dos dias da
+     * semana fica espremido.
+     */
+    it('should shrink only the vertical rhythm when compact', () => {
+      const { container } = render(
+        <Calendar
+          variant="selection"
+          density="compact"
+          selectedDate={selectedDate}
+        />
+      );
+
+      expect(container.firstChild).toHaveClass('p-3');
+
+      const day = screen.getByText('15');
+      expect(day).toHaveClass('w-8', 'h-8', 'text-base');
+      expect(day.parentElement).toHaveClass('w-9');
+    });
+  });
+
   describe('Navigation variant', () => {
     it('should render navigation calendar correctly', () => {
       render(<Calendar variant="navigation" />);

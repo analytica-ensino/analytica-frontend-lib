@@ -39,11 +39,49 @@ export interface CalendarDay {
 export type CalendarVariant = 'navigation' | 'selection';
 
 /**
+ * Espaçamento do calendário na variante `selection`.
+ *
+ * `compact` existe para quem abre o calendário dentro de um popover ancorado,
+ * onde a altura disponível é o que sobra entre o campo e a borda da tela — não
+ * um número que o componente escolhe. Ver `DateTimeInput`.
+ */
+export type CalendarDensity = 'comfortable' | 'compact';
+
+/**
+ * Classes por densidade da variante `selection`. O cabeçalho fica de fora de
+ * propósito: encolher o mês/ano rende 6px e custa a legibilidade do único texto
+ * do calendário. A economia real está na grade, que se repete 42 vezes.
+ */
+const SELECTION_DENSITY: Record<
+  CalendarDensity,
+  { container: string; cell: string; day: string; spacer: string }
+> = {
+  comfortable: {
+    container: 'p-4',
+    cell: '',
+    day: 'w-9 h-9 text-lg',
+    spacer: 'w-10 h-10',
+  },
+  compact: {
+    // A coluna continua com 36px enquanto o botão cai para 32: a economia que
+    // interessa é vertical, e encolher a largura junto espremeria "SEG TER QUA"
+    // no cabeçalho. O botão segue quadrado para a seleção continuar um círculo,
+    // não uma elipse.
+    container: 'p-3',
+    cell: 'w-9',
+    day: 'w-8 h-8 text-base',
+    spacer: 'w-8 h-8',
+  },
+};
+
+/**
  * Calendar component props
  */
 export interface CalendarProps {
   /** Calendar variant - navigation (compact) or selection (full) */
   variant?: CalendarVariant;
+  /** Spacing of the `selection` variant. Defaults to `comfortable` */
+  density?: CalendarDensity;
   /** Currently selected date */
   selectedDate?: Date;
   /** Function called when a date is selected */
@@ -256,6 +294,7 @@ const getDayStyles = (
  */
 const Calendar = ({
   variant = 'selection',
+  density = 'comfortable',
   selectedDate,
   onDateSelect,
   onMonthChange,
@@ -561,8 +600,16 @@ const Calendar = ({
   }
 
   // Selection variant (full)
+  const spacing = SELECTION_DENSITY[density];
+
   return (
-    <div className={cn('bg-background rounded-xl p-4 relative', className)}>
+    <div
+      className={cn(
+        'bg-background rounded-xl relative',
+        spacing.container,
+        className
+      )}
+    >
       {loadingOverlay}
       {/* Full header — stacks above the loading overlay so month navigation
           stays clickable while loading. */}
@@ -663,9 +710,9 @@ const Calendar = ({
             return (
               <div
                 key={day.date.getTime()}
-                className="flex items-center justify-center"
+                className={cn('flex items-center justify-center', spacing.cell)}
               >
-                <div className="w-10 h-10"></div>
+                <div className={spacing.spacer}></div>
               </div>
             );
           }
@@ -679,13 +726,13 @@ const Calendar = ({
           return (
             <div
               key={day.date.getTime()}
-              className="flex items-center justify-center"
+              className={cn('flex items-center justify-center', spacing.cell)}
             >
               <button
                 className={`
-                  w-9 h-9
+                  ${spacing.day}
                   flex items-center justify-center
-                  text-lg font-normal
+                  font-normal
                   cursor-pointer
                   rounded-full
                   focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-offset-1

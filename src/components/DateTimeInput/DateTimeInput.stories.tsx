@@ -109,6 +109,37 @@ export const WithDefaultTime: Story = () => {
 };
 
 /**
+ * Pouco espaço abaixo do campo — o caso que motivou o rodapé ancorado.
+ *
+ * Reproduz o que acontece no passo "Prazo" do SendActivityModal numa janela
+ * baixa: o popover é `position: fixed` e só recebe a altura que sobra até a
+ * borda da tela, então o calendário rola. Encolha a janela até o campo ficar
+ * perto do rodapé — o bloco "Hora" continua visível, sem precisar rolar
+ * dentro do popover para descobrir que ele existe.
+ */
+export const LowViewport: Story = () => {
+  const [date, setDate] = useState('2026-09-23');
+  const [time, setTime] = useState('00:00');
+
+  return (
+    // 55% da altura acima do campo deixa abaixo dele menos do que os 363px que
+    // o popover pede, sem chegar ao ponto em que ele vira para cima.
+    <div className="h-[calc(100dvh-2rem)] pt-[55dvh]">
+      <div className="w-80">
+        <DateTimeInput
+          label="Iniciar em*"
+          date={date}
+          time={time}
+          onDateChange={setDate}
+          onTimeChange={setTime}
+          defaultTime="00:00"
+        />
+      </div>
+    </div>
+  );
+};
+
+/**
  * Date range example (two DateTimeInputs)
  */
 export const DateRange: Story = () => {
