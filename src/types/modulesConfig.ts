@@ -39,6 +39,22 @@ export interface PerformanceGraphsConfig {
 /**
  * Configuration for Reports
  */
+/**
+ * "Relatório Momento ENEM" — the one report type that is not a plain toggle.
+ *
+ * The report is always *about* specific in-classroom ENEM exams, so switching it on is not
+ * enough: `examIds` names which ones it covers. The backoffice only offers exams belonging
+ * to the institution being edited, and the backend refuses to store any other.
+ *
+ * `active: true` with an empty `examIds` is a report with nothing to show; the backoffice
+ * refuses to save that combination.
+ */
+export interface EnemMomentReportConfig {
+  active: boolean;
+  /** In-classroom ENEM exam IDs, in the order the backoffice arranged them. */
+  examIds: string[];
+}
+
 export interface ReportsConfig {
   simulatedReports: boolean; // Simulados Enem (existing)
   simulatedGenericReports: boolean; // Simulados (new version)
@@ -46,6 +62,7 @@ export interface ReportsConfig {
   questionnairesReports: boolean; // Questionários
   lessonsReports: boolean;
   essayReports: boolean;
+  enemMoment: EnemMomentReportConfig; // Relatório Momento ENEM
 }
 
 /**
@@ -90,6 +107,11 @@ export const DEFAULT_PERFORMANCE_GRAPHS: PerformanceGraphsConfig = {
 /**
  * Default reports configuration
  */
+export const DEFAULT_ENEM_MOMENT_REPORT: EnemMomentReportConfig = {
+  active: false,
+  examIds: [],
+};
+
 export const DEFAULT_REPORTS: ReportsConfig = {
   simulatedReports: true,
   simulatedGenericReports: false, // New reports default to disabled
@@ -97,6 +119,7 @@ export const DEFAULT_REPORTS: ReportsConfig = {
   questionnairesReports: false, // New reports default to disabled
   lessonsReports: true,
   essayReports: true,
+  enemMoment: DEFAULT_ENEM_MOMENT_REPORT, // New reports default to disabled
 };
 
 /**
@@ -260,7 +283,20 @@ export const mergeModulesConfig = (
       ...DEFAULT_PERFORMANCE_GRAPHS,
       ...v.performanceGraphs,
     },
-    reports: { ...DEFAULT_REPORTS, ...v.reports },
+    reports: {
+      ...DEFAULT_REPORTS,
+      ...v.reports,
+      // One level deeper than its siblings: enemMoment is an object, so a stored
+      // row carrying only `{ active: true }` would otherwise arrive without the
+      // `examIds` array every consumer iterates.
+      enemMoment: {
+        ...DEFAULT_ENEM_MOMENT_REPORT,
+        ...v.reports?.enemMoment,
+        examIds: v.reports?.enemMoment?.examIds
+          ? [...(v.reports.enemMoment.examIds as string[])]
+          : [],
+      },
+    },
     simulatedScore: { ...DEFAULT_SIMULATED_SCORE, ...v.simulatedScore },
   };
 };
