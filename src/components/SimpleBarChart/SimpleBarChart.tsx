@@ -50,16 +50,16 @@ const YAxis = ({
   chartHeight: number;
 }) => (
   <div
-    className="flex flex-col justify-between items-end pr-3"
+    className="flex flex-col justify-between items-end shrink-0 pr-2 sm:pr-3"
     style={{ height: chartHeight }}
     aria-hidden="true"
   >
     {ticks.map((tick, index) => (
       <Text
         key={`${tick}-${index}`}
-        size="xs"
+        size="2xs"
         weight="medium"
-        className="text-text-500"
+        className="text-text-500 whitespace-nowrap sm:text-xs"
       >
         {tick}
       </Text>
@@ -118,10 +118,10 @@ const Bar = ({
       content={tooltipContent ?? ''}
       disabled={!tooltipContent}
       position="top"
-      className="flex-1"
+      className="flex-1 min-w-0"
       contentClassName="whitespace-normal"
     >
-      <div className="flex flex-col items-center gap-2 w-full cursor-pointer group/bar">
+      <div className="flex flex-col items-center gap-2 w-full min-w-0 cursor-pointer group/bar">
         <div
           className="w-full flex flex-col-reverse items-center justify-start relative"
           style={{ height: chartHeight }}
@@ -129,7 +129,9 @@ const Bar = ({
           {barHeight > 0 && (
             <div
               data-testid={`bar-${item.label}`}
-              className={cn('w-8 rounded-md', barColor)}
+              // Fluid width capped at the original 32px so the bar shrinks with
+              // its column on narrow screens instead of spilling over it.
+              className={cn('w-full max-w-8 rounded-md', barColor)}
               style={{ height: `${barHeight}px` }}
               aria-label={`${item.label}: ${item.value}`}
             />
@@ -139,9 +141,9 @@ const Bar = ({
           )}
         </div>
         <Text
-          size="xs"
+          size="2xs"
           weight="medium"
-          className="text-text-600 text-center"
+          className="w-full text-text-600 text-center leading-tight break-words sm:text-xs"
           data-testid={`label-${item.label}`}
         >
           {item.label}
@@ -184,7 +186,7 @@ export const SimpleBarChart = ({
   return (
     <div
       className={cn(
-        'flex flex-col p-5 gap-4 bg-background border border-border-50 rounded-xl',
+        'flex flex-col min-w-0 p-5 gap-4 bg-background border border-border-50 rounded-xl',
         className
       )}
       aria-label={title}
@@ -198,12 +200,12 @@ export const SimpleBarChart = ({
       >
         {title}
       </Text>
-      <div className="flex flex-row">
+      <div className="flex flex-row min-w-0">
         <YAxis ticks={yAxisTicks} chartHeight={chartHeight} />
-        <div className="w-4" />
-        <div className="flex-1 relative">
+        <div className="w-2 shrink-0 sm:w-4" />
+        <div className="flex-1 min-w-0 relative">
           <GridLines ticks={yAxisTicks} chartHeight={chartHeight} />
-          <div className="flex flex-row flex-1 gap-2 relative z-10">
+          <div className="flex flex-row flex-1 gap-1 sm:gap-2 relative z-10">
             {data.map((item, index) => (
               // Equal-width column wrapper: keeps every bucket the same width even
               // when a bar's value is 0 (its Tooltip is disabled and would
