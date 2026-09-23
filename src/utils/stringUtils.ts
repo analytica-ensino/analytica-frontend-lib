@@ -123,7 +123,8 @@ function project(text: string): NormalizedProjection {
     // that reintroduces that bug, and this loop reads no element anyway.
     const projected = normalizeText(char);
     normalized += projected;
-    for (let unit = 0; unit < projected.length; unit++) { // NOSONAR
+    for (let unit = 0; unit < projected.length; unit++) {
+      // NOSONAR
       sourceIndex.push(start);
       sourceEnd.push(cursor);
     }
