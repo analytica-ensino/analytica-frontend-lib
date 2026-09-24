@@ -452,6 +452,9 @@ const Calendar = ({
     const newDate = new Date(year, month, 1);
     setCurrentDate(newDate);
     setIsMonthPickerOpen(false);
+    // The chosen month button unmounts with the picker; hand focus back to
+    // the trigger, as Escape does, so it doesn't fall out of the calendar
+    monthTriggerRef.current?.focus();
     onMonthChange?.(newDate);
   };
 

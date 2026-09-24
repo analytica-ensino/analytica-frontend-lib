@@ -1787,4 +1787,13 @@ describe('Select — anúncio no leitor de tela (foco, posição e estado)', () 
     const opcao = screen.getByRole('option', { name: 'Acesso' });
     expect(opcao.querySelector('[aria-hidden="true"] svg')).toBeInTheDocument();
   });
+
+  it('escolher com Espaço cancela a rolagem da página', async () => {
+    setup();
+    await userEvent.click(screen.getByRole('combobox'));
+    const opcao = screen.getByRole('option', { name: 'Acesso' });
+
+    expect(fireEvent.keyDown(opcao, { key: ' ' })).toBe(false);
+    expect(screen.getByRole('combobox')).toHaveTextContent('Acesso');
+  });
 });

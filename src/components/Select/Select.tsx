@@ -860,7 +860,11 @@ const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
         `}
         onClick={handleClick}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') handleClick(e);
+          if (e.key === 'Enter' || e.key === ' ') {
+            // Space would otherwise scroll the page once the option is chosen
+            e.preventDefault();
+            handleClick(e);
+          }
         }}
         tabIndex={disabled ? -1 : 0}
         {...props}

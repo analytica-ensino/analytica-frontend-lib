@@ -717,4 +717,13 @@ describe('Calendar — seletor de mês/ano acessível', () => {
     document.removeEventListener('keydown', outer, true);
     outside.remove();
   });
+
+  it('escolher um mês fecha o seletor e devolve o foco ao gatilho', () => {
+    const trigger = openPicker();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Maio' }));
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+  });
 });

@@ -60,6 +60,18 @@ describe('SearchSelect component', () => {
       );
     });
 
+    it('limpa o destaque quando a busca muda os resultados', () => {
+      setup({ value: 'option2' });
+      fireEvent.click(screen.getByRole('button'));
+      const search = screen.getByRole('combobox');
+      expect(search).toHaveAttribute('aria-expanded', 'true');
+      expect(search).toHaveAttribute('aria-activedescendant');
+
+      fireEvent.change(search, { target: { value: '3' } });
+
+      expect(search).not.toHaveAttribute('aria-activedescendant');
+    });
+
     it('sem label, a listbox se chama "Opções"', () => {
       setup();
       fireEvent.click(screen.getByRole('button'));

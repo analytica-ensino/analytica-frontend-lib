@@ -3805,6 +3805,16 @@ describe('VideoPlayer', () => {
       expect(screen.queryByRole('menu')).not.toBeInTheDocument();
     });
 
+    it('moves focus to the speed button before Tab continues', () => {
+      const button = openSpeedMenu();
+      screen.getByRole('menuitemradio', { name: '1x' }).focus();
+
+      expect(fireEvent.keyDown(screen.getByRole('menu'), { key: 'Tab' })).toBe(
+        true
+      );
+      expect(button).toHaveFocus();
+    });
+
     it('ignores other keys inside the menu', () => {
       openSpeedMenu();
 

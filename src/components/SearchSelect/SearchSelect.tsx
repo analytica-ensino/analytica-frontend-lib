@@ -545,6 +545,8 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
             ref={searchInputRef}
             type="text"
             role="combobox"
+            // Only rendered while the list is open
+            aria-expanded="true"
             aria-autocomplete="list"
             aria-controls={listboxId}
             aria-activedescendant={
@@ -553,7 +555,13 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
                 : undefined
             }
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              // The highlight is an index into the filtered list: once the
+              // results change it may point at another option, and Enter
+              // would pick that one without the user navigating to it
+              setHighlightedIndex(-1);
+            }}
             onKeyDown={handleKeyDown}
             placeholder={searchPlaceholder}
             size="small"

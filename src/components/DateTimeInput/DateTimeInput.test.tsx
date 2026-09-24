@@ -240,6 +240,135 @@ describe('DateTimeInput', () => {
   });
 
   describe('accessibility', () => {
+    const getCalendarButton = () =>
+      screen.getByRole('button', { name: 'Abrir calendário' });
+
+    it('offers a keyboard trigger tied to the dialog', () => {
+      render(<DateTimeInput {...defaultProps} />);
+      const button = getCalendarButton();
+
+      expect(button).toHaveAttribute('aria-haspopup', 'dialog');
+      expect(button).toHaveAttribute('aria-expanded', 'false');
+      expect(button).not.toHaveAttribute('aria-controls');
+
+      fireEvent.click(button);
+
+      expect(button).toHaveAttribute('aria-expanded', 'true');
+      expect(screen.getByRole('dialog')).toHaveAttribute(
+        'id',
+        button.getAttribute('aria-controls')
+      );
+    });
+
+    it('moves the focus into the dialog when opened from the button', async () => {
+      render(<DateTimeInput {...defaultProps} />);
+
+      fireEvent.click(getCalendarButton());
+
+      await waitFor(() =>
+        expect(
+          screen.getByRole('dialog', { name: 'Data de início' })
+        ).toHaveFocus()
+      );
+    });
+
+    it('keeps retrying for a few frames while the dialog mounts', () => {
+      const frames: Array<(time: number) => void> = [];
+      const rafSpy = jest
+        .spyOn(globalThis, 'requestAnimationFrame')
+        .mockImplementation((cb) => {
+          frames.push(cb);
+          return frames.length;
+        });
+      const cancelSpy = jest
+        .spyOn(globalThis, 'cancelAnimationFrame')
+        .mockImplementation(() => undefined);
+      const { unmount } = render(<DateTimeInput {...defaultProps} />);
+      fireEvent.click(getCalendarButton());
+      unmount();
+
+      // With the content gone every attempt re-schedules, up to the limit
+      for (let i = 0; i < 10 && frames.length > 0; i++) frames.shift()?.(0);
+
+      expect(frames).toHaveLength(0);
+      rafSpy.mockRestore();
+      cancelSpy.mockRestore();
+    });
+
+    it('closing with the button again does not move the focus', () => {
+      render(<DateTimeInput {...defaultProps} />);
+      const button = getCalendarButton();
+      fireEvent.click(button);
+      fireEvent.click(button);
+
+      expect(button).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('returns the focus to the calendar button when Escape closes the dialog', async () => {
+      render(<DateTimeInput {...defaultProps} />);
+      const button = getCalendarButton();
+      fireEvent.click(button);
+      const dialog = await screen.findByRole('dialog');
+      dialog.focus();
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      await waitFor(() => expect(button).toHaveFocus());
+    });
+
+    it('leaves the focus alone when a click outside closes the dialog', async () => {
+      render(
+        <>
+          <button type="button">fora</button>
+          <DateTimeInput {...defaultProps} />
+        </>
+      );
+      fireEvent.click(getCalendarButton());
+      await screen.findByRole('dialog');
+      const outside = screen.getByRole('button', { name: 'fora' });
+      outside.focus();
+
+      fireEvent.pointerDown(outside);
+
+      await waitFor(() =>
+        expect(getCalendarButton()).toHaveAttribute('aria-expanded', 'false')
+      );
+      expect(outside).toHaveFocus();
+    });
+
+    it('does not steal the focus on mount', () => {
+      render(
+        <>
+          <input aria-label="antes" />
+          <DateTimeInput {...defaultProps} />
+        </>
+      );
+      const before = screen.getByRole('textbox', { name: 'antes' });
+      before.focus();
+
+      expect(before).toHaveFocus();
+    });
+
+    it('stays closed after being disabled while open and enabled again', () => {
+      const { rerender } = render(<DateTimeInput {...defaultProps} />);
+      fireEvent.click(getCalendarButton());
+
+      rerender(<DateTimeInput {...defaultProps} disabled />);
+      rerender(<DateTimeInput {...defaultProps} />);
+
+      expect(getCalendarButton()).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('ignores the calendar button while disabled', () => {
+      render(<DateTimeInput {...defaultProps} disabled />);
+      const button = getCalendarButton();
+      expect(button).toBeDisabled();
+
+      fireEvent.click(button);
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
     it('opens the calendar as a named dialog without nesting the field in a button', async () => {
       render(<DateTimeInput {...defaultProps} />);
       const field = screen.getByLabelText('Data de início');

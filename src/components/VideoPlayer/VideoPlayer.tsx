@@ -306,6 +306,10 @@ const SpeedMenu = ({
       event.stopPropagation();
       closeAndReturnFocus();
     } else if (event.key === 'Tab') {
+      // Move focus to the button first, without preventDefault: the native
+      // Tab/Shift+Tab then continues from it instead of from the portaled
+      // menu at the end of <body>, which unmounts right after
+      buttonRef.current?.focus();
       onToggleMenu();
     }
   };

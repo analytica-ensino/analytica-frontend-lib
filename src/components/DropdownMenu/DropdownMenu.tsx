@@ -395,6 +395,17 @@ const DropdownMenu = ({
 
   const handleDownkey = (event: globalThis.KeyboardEvent) => {
     if (event.key === 'Escape') {
+      // A nested open combobox/listbox (Select, SearchSelect) closes first;
+      // this capture listener would otherwise close the whole menu before it
+      const target = event.target;
+      if (
+        target instanceof Element &&
+        target.closest(
+          '[role="combobox"][aria-expanded="true"], [role="listbox"]'
+        )
+      ) {
+        return;
+      }
       // preventDefault tells an enclosing Modal (useEscapeToClose) that this
       // Escape was already handled, so only the menu closes.
       event.preventDefault();

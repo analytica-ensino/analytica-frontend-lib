@@ -2108,6 +2108,40 @@ describe('DropdownMenu — acessibilidade de teclado e leitor de tela', () => {
     expect(trigger).toHaveFocus();
   });
 
+  it.each([
+    ['uma listbox aberta', '<div role="listbox"><button>opção</button></div>'],
+    [
+      'um combobox expandido',
+      '<button role="combobox" aria-expanded="true">campo</button>',
+    ],
+  ])('deixa %s tratar o Escape primeiro', (_case, html) => {
+    renderMenu();
+    const trigger = screen.getByRole('button', { name: 'Ações' });
+    fireEvent.click(trigger);
+    const nested = document.createElement('div');
+    nested.innerHTML = html;
+    screen.getByRole('menu').appendChild(nested);
+    const target = nested.querySelector('button') as HTMLElement;
+
+    expect(fireEvent.keyDown(target, { key: 'Escape' })).toBe(true);
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    nested.remove();
+  });
+
+  it('um combobox fechado dentro do menu não impede o Escape', () => {
+    renderMenu();
+    const trigger = screen.getByRole('button', { name: 'Ações' });
+    fireEvent.click(trigger);
+    const closed = document.createElement('button');
+    closed.setAttribute('role', 'combobox');
+    closed.setAttribute('aria-expanded', 'false');
+    screen.getByRole('menu').appendChild(closed);
+
+    fireEvent.keyDown(closed, { key: 'Escape' });
+
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  });
+
   it('Tab num item fecha o menu e segue a partir do gatilho', () => {
     renderMenu();
     const trigger = screen.getByRole('button', { name: 'Ações' });
