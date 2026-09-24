@@ -103,7 +103,11 @@ export const CalendarCard = ({
           icon={triggerIcon}
         />
       </DropdownMenuTrigger>
+      {/* A calendar is not a list of actions: as a `menu` without menu items
+          it was announced as an empty menu */}
       <DropdownMenuContent
+        role="dialog"
+        aria-label="Calendário de atividades"
         className="w-[320px] max-w-[calc(100vw-16px)] max-h-[80vh] overflow-y-auto"
         align="end"
         side="bottom"

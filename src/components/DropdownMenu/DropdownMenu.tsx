@@ -9,6 +9,7 @@ import {
   useEffect,
   useLayoutEffect,
   useRef,
+  useId,
   HTMLAttributes,
   MouseEvent,
   KeyboardEvent,
@@ -33,9 +34,23 @@ import { ThemeToggle } from '../ThemeToggle/ThemeToggle';
 import type { ThemeMode } from '@/hooks/useTheme';
 import { useTheme } from '../../hooks/useTheme';
 
+/** ARIA role of the popup; drives the trigger's `aria-haspopup`. */
+type DropdownPopupRole = 'menu' | 'dialog';
+
 interface DropdownStore {
   open: boolean;
   setOpen: (open: boolean) => void;
+  /** Trigger element, so Escape/selection can hand focus back to it. */
+  triggerElement: HTMLElement | null;
+  /** Id of the rendered popup, referenced by the trigger's `aria-controls`. */
+  popupId?: string;
+  popupRole: DropdownPopupRole;
+  /**
+   * Set when the user opens the menu through the trigger. Only then the focus
+   * moves into the popup — a menu opened programmatically (e.g. Search while
+   * typing) must not steal focus from where the user is.
+   */
+  focusOnOpen: boolean;
 }
 
 type DropdownStoreApi = StoreApi<DropdownStore>;
@@ -48,6 +63,10 @@ export function createDropdownStore(): DropdownStoreApi {
     // `useStore(store, (s) => s)` subscribers from re-rendering on no-op
     // syncs (e.g. the `useEffect [propOpen]` controlled-mode bridge).
     setOpen: (open) => set((state) => (state.open === open ? state : { open })),
+    triggerElement: null,
+    popupId: undefined,
+    popupRole: 'menu',
+    focusOnOpen: false,
   }));
 }
 
@@ -217,6 +236,46 @@ const mergeRefs = <T,>(
   };
 };
 
+/** Enabled menu items that can receive focus. */
+const ENABLED_MENUITEM_SELECTOR =
+  '[role^="menuitem"]:not([aria-disabled="true"])';
+
+const getEnabledMenuItems = (container: Element): HTMLElement[] =>
+  Array.from(container.querySelectorAll(ENABLED_MENUITEM_SELECTOR)).filter(
+    (el): el is HTMLElement => el instanceof HTMLElement
+  );
+
+/** Input types where the arrow keys already mean something to the field. */
+const TEXT_INPUT_TYPES = new Set(['text', 'search', 'email', 'tel', 'url']);
+
+/**
+ * Whether the focused element uses the arrow keys itself (textarea, rich text,
+ * time/number inputs...). Text-like inputs are excluded on purpose: ArrowDown
+ * from a search field is how the keyboard reaches the items below it.
+ */
+const fieldOwnsArrowKeys = (el: Element | null): boolean => {
+  if (!(el instanceof HTMLElement)) return false;
+  if (el.isContentEditable || el instanceof HTMLTextAreaElement) return true;
+  if (el instanceof HTMLInputElement) return !TEXT_INPUT_TYPES.has(el.type);
+  return false;
+};
+
+/**
+ * Ref callback that records the trigger element in the store. It ignores the
+ * `null` detach and re-attaching the same node: merged refs are recreated on
+ * every render, and writing the store on each detach/attach would re-render the
+ * menu in a loop.
+ */
+const useRegisterTrigger = (store: DropdownStoreApi) =>
+  useCallback(
+    (element: HTMLElement | null) => {
+      if (element && store.getState().triggerElement !== element) {
+        store.setState({ triggerElement: element });
+      }
+    },
+    [store]
+  );
+
 const injectStore = (
   children: ReactNode,
   store: DropdownStoreApi
@@ -291,49 +350,69 @@ const DropdownMenu = ({
 
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  const handleArrowDownOrArrowUp = (event: globalThis.KeyboardEvent) => {
+  const getOpenContent = () =>
     // A portaled content lives in document.body, outside menuRef — look it up
     // globally in that case. Only the open menu carries data-open="true"
     // (a closing one keeps rendering for the 200ms fade-out).
-    const menuContent =
-      menuRef.current?.querySelector('[role="menu"]') ??
-      document.querySelector(
-        '[data-dropdown-content="true"][data-open="true"]'
-      );
-    if (menuContent) {
-      event.preventDefault();
+    menuRef.current?.querySelector(
+      '[data-dropdown-content="true"][data-open="true"]'
+    ) ??
+    document.querySelector('[data-dropdown-content="true"][data-open="true"]');
 
-      const items = Array.from(
-        menuContent.querySelectorAll(
-          '[role="menuitem"]:not([aria-disabled="true"])'
-        )
-      ).filter((el): el is HTMLElement => el instanceof HTMLElement);
+  const handleNavigationKey = (event: globalThis.KeyboardEvent) => {
+    const menuContent = getOpenContent();
+    if (!menuContent) return;
 
-      if (items.length === 0) return;
+    const items = getEnabledMenuItems(menuContent);
+    // Nothing to navigate (calendar, form...): leave the keys to the content.
+    if (items.length === 0) return;
 
-      const focusedItem = document.activeElement as HTMLElement;
-      const currentIndex = items.indexOf(focusedItem);
+    const active = document.activeElement;
+    const currentIndex = items.indexOf(active as HTMLElement);
+    const isHomeOrEnd = event.key === 'Home' || event.key === 'End';
+    // Home/End only jump between items; in a field they move the caret.
+    if (isHomeOrEnd && currentIndex === -1) return;
+    if (fieldOwnsArrowKeys(active)) return;
 
-      let nextIndex;
-      if (event.key === 'ArrowDown') {
-        nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % items.length;
-      } else {
-        // ArrowUp
-        nextIndex =
-          currentIndex === -1
-            ? items.length - 1
-            : (currentIndex - 1 + items.length) % items.length;
-      }
+    event.preventDefault();
 
-      items[nextIndex]?.focus();
+    let nextIndex;
+    if (event.key === 'Home') {
+      nextIndex = 0;
+    } else if (event.key === 'End') {
+      nextIndex = items.length - 1;
+    } else if (event.key === 'ArrowDown') {
+      nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % items.length;
+    } else {
+      nextIndex =
+        currentIndex === -1
+          ? items.length - 1
+          : (currentIndex - 1 + items.length) % items.length;
     }
+
+    items[nextIndex]?.focus();
   };
 
   const handleDownkey = (event: globalThis.KeyboardEvent) => {
     if (event.key === 'Escape') {
+      // preventDefault tells an enclosing Modal (useEscapeToClose) that this
+      // Escape was already handled, so only the menu closes.
+      event.preventDefault();
       setOpen(false);
-    } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-      handleArrowDownOrArrowUp(event);
+      store.getState().triggerElement?.focus();
+    } else if (event.key === 'Tab') {
+      // Items use a roving tabindex, so Tab leaves the menu: close it and
+      // continue the tab sequence from the trigger.
+      const active = document.activeElement;
+      if (
+        active instanceof HTMLElement &&
+        active.matches('[role^="menuitem"]')
+      ) {
+        setOpen(false);
+        store.getState().triggerElement?.focus();
+      }
+    } else if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
+      handleNavigationKey(event);
     }
   };
 
@@ -357,12 +436,13 @@ const DropdownMenu = ({
   useEffect(() => {
     if (open) {
       document.addEventListener('pointerdown', handleClickOutside);
-      document.addEventListener('keydown', handleDownkey);
+      // Capture phase: runs before a Modal's Escape listener (bubble phase)
+      document.addEventListener('keydown', handleDownkey, true);
     }
 
     return () => {
       document.removeEventListener('pointerdown', handleClickOutside);
-      document.removeEventListener('keydown', handleDownkey);
+      document.removeEventListener('keydown', handleDownkey, true);
     };
   }, [open]);
 
@@ -406,7 +486,16 @@ const DropdownMenuTrigger = forwardRef<
     const store = useDropdownStore(externalStore);
 
     const open = useStore(store, (s) => s.open);
-    const toggleOpen = () => store.setState({ open: !open });
+    const popupId = useStore(store, (s) => s.popupId);
+    const popupRole = useStore(store, (s) => s.popupRole);
+    const toggleOpen = () =>
+      store.setState({ open: !open, focusOnOpen: !open });
+    const registerTrigger = useRegisterTrigger(store);
+    const popupAria = {
+      'aria-expanded': open,
+      'aria-haspopup': popupRole,
+      'aria-controls': open ? popupId : undefined,
+    } as const;
 
     const handleTriggerClick = (e: MouseEvent<HTMLElement>) => {
       e.stopPropagation();
@@ -430,9 +519,9 @@ const DropdownMenuTrigger = forwardRef<
       const child = asChildElement;
       return cloneElement(child, {
         ...props,
-        ref: mergeRefs(ref, child.props.ref),
+        ref: mergeRefs(mergeRefs(ref, child.props.ref), registerTrigger),
         className: cn(child.props.className, className),
-        'aria-expanded': open,
+        ...popupAria,
         onClick: (e: MouseEvent<HTMLElement>) => {
           // Keep the child's own handler, then run the trigger's toggle — same
           // order as the previous nested-button version.
@@ -444,10 +533,10 @@ const DropdownMenuTrigger = forwardRef<
 
     return (
       <button
-        ref={ref}
+        ref={mergeRefs<HTMLButtonElement>(ref, registerTrigger)}
         type="button"
         onClick={handleTriggerClick}
-        aria-expanded={open}
+        {...popupAria}
         className={cn(
           'appearance-none bg-transparent border-none p-0',
           className
@@ -539,6 +628,12 @@ const DropdownMenuContent = forwardRef<
      * only — it is capped by the space actually available around the trigger.
      */
     maxHeight?: number;
+    /**
+     * ARIA role of the popup. Use `dialog` when the content is not a list of
+     * actions (calendar, date/time picker): a `menu` without menu items is
+     * announced as an empty menu.
+     */
+    role?: DropdownPopupRole;
   }
 >(
   (
@@ -553,6 +648,8 @@ const DropdownMenuContent = forwardRef<
       portal = false,
       triggerRef,
       maxHeight = DEFAULT_PORTAL_MAX_HEIGHT,
+      role = 'menu',
+      id: idProp,
       ...props
     },
     ref
@@ -562,6 +659,28 @@ const DropdownMenuContent = forwardRef<
     const [isVisible, setIsVisible] = useState(open);
     const [portalStyle, setPortalStyle] = useState<CSSProperties>({});
     const contentRef = useRef<HTMLDivElement>(null);
+    const generatedId = useId();
+    const popupId = idProp ?? `dropdown-content-${generatedId}`;
+
+    // The trigger reads these to fill aria-controls / aria-haspopup
+    useEffect(() => {
+      store.setState({ popupId, popupRole: role });
+    }, [store, popupId, role]);
+
+    // Opening through the trigger moves the focus into the popup: the first
+    // enabled item or, with none (calendar, profile card), the popup itself.
+    // Without it a screen reader stays on the trigger and never reaches a
+    // portaled menu. The rAF waits for the content to mount/position.
+    useEffect(() => {
+      if (!open || !store.getState().focusOnOpen) return;
+      store.setState({ focusOnOpen: false });
+      const frame = requestAnimationFrame(() => {
+        const content = contentRef.current;
+        if (!content) return;
+        (getEnabledMenuItems(content)[0] ?? content).focus();
+      });
+      return () => cancelAnimationFrame(frame);
+    }, [open, store]);
 
     useEffect(() => {
       if (open) {
@@ -623,15 +742,19 @@ const DropdownMenuContent = forwardRef<
 
     const content = (
       <div
-        ref={portal ? contentRef : ref}
-        role="menu"
+        ref={mergeRefs<HTMLDivElement>(contentRef, ref)}
+        id={popupId}
+        role={role}
+        tabIndex={-1}
+        // While fading out the popup must not be read nor reachable by Tab
+        inert={!open}
         // Antes de `{...props}`: é só o padrão da variante, o consumidor
         // sobrescreve passando o próprio aria-label.
         aria-label={MENUCONTENT_VARIANT_LABELS[variant]}
         data-dropdown-content="true"
         data-open={open}
         className={`
-        z-50 min-w-[210px] overflow-hidden
+        z-50 min-w-[210px] overflow-hidden outline-none
         ${open ? 'animate-in fade-in-0 zoom-in-95' : 'animate-out fade-out-0 zoom-out-95'}
         ${getPositionClasses()}
         ${variantClasses}
@@ -716,6 +839,9 @@ const DropdownMenuItem = forwardRef<
       }
       if (!preventClose) {
         setOpen(false);
+        // The item unmounts with the menu; without handing focus back it
+        // falls to <body> and the screen reader announces nothing.
+        store.getState().triggerElement?.focus();
       }
     };
 
@@ -755,7 +881,8 @@ const DropdownMenuItem = forwardRef<
             handleClick(e);
           }
         }}
-        tabIndex={disabled ? -1 : 0}
+        // Roving tabindex: arrows move between items, Tab leaves the menu
+        tabIndex={-1}
         {...props}
       >
         {iconLeft}
@@ -786,11 +913,15 @@ const ProfileMenuTrigger = forwardRef<
 >(({ className, onClick, store: externalStore, ...props }, ref) => {
   const store = useDropdownStore(externalStore);
   const open = useStore(store, (s) => s.open);
-  const toggleOpen = () => store.setState({ open: !open });
+  const popupId = useStore(store, (s) => s.popupId);
+  const toggleOpen = () => store.setState({ open: !open, focusOnOpen: !open });
+  const registerTrigger = useRegisterTrigger(store);
 
   return (
     <button
-      ref={ref}
+      ref={mergeRefs<HTMLButtonElement>(ref, registerTrigger)}
+      type="button"
+      aria-label="Menu do perfil"
       className={cn(
         'rounded-lg size-10 bg-primary-50 flex items-center justify-center cursor-pointer',
         className
@@ -801,9 +932,14 @@ const ProfileMenuTrigger = forwardRef<
         onClick?.(e);
       }}
       aria-expanded={open}
+      aria-haspopup="menu"
+      aria-controls={open ? popupId : undefined}
       {...props}
     >
-      <span className="size-6 rounded-full bg-primary-100 flex items-center justify-center">
+      <span
+        aria-hidden="true"
+        className="size-6 rounded-full bg-primary-100 flex items-center justify-center"
+      >
         <UserIcon className="text-primary-950" size={18} />
       </span>
     </button>
@@ -1098,11 +1234,13 @@ const ProfileMenuReadingFluencyTrigger = forwardRef<
 >(({ className, onClick, photoUrl, store: externalStore, ...props }, ref) => {
   const store = useDropdownStore(externalStore);
   const open = useStore(store, (s) => s.open);
-  const toggleOpen = () => store.setState({ open: !open });
+  const popupId = useStore(store, (s) => s.popupId);
+  const toggleOpen = () => store.setState({ open: !open, focusOnOpen: !open });
+  const registerTrigger = useRegisterTrigger(store);
 
   return (
     <button
-      ref={ref}
+      ref={mergeRefs<HTMLButtonElement>(ref, registerTrigger)}
       type="button"
       className={cn(
         'size-[42px] rounded-full overflow-hidden cursor-pointer bg-secondary-600 flex items-center justify-center',
@@ -1114,12 +1252,15 @@ const ProfileMenuReadingFluencyTrigger = forwardRef<
         onClick?.(e);
       }}
       aria-expanded={open}
+      aria-haspopup="menu"
+      aria-controls={open ? popupId : undefined}
       aria-label="Abrir menu de perfil"
       {...props}
     >
+      {/* Decorative: the button's aria-label already names it */}
       <img
         src={photoUrl ?? readingFluencyBird}
-        alt="Foto de perfil"
+        alt=""
         className="w-full h-full object-cover"
       />
     </button>

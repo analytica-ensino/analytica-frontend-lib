@@ -59,6 +59,46 @@ const getListboxId = (selectId?: string) =>
   selectId ? `${selectId}-listbox` : undefined;
 const getLabelId = (selectId?: string) =>
   selectId ? `${selectId}-label` : undefined;
+const getValueId = (selectId?: string) =>
+  selectId ? `${selectId}-value` : undefined;
+
+/**
+ * Builds the trigger's `aria-labelledby` so screen readers announce the field
+ * name AND the current value ("Assunto Problemas de Acesso"). Without the value
+ * id the combobox is named only by its label, and without the label id a Select
+ * with no visible label is announced only by its value.
+ */
+const buildTriggerLabelledBy = ({
+  selectId,
+  labelId,
+  ariaLabel,
+  ariaLabelledBy,
+}: {
+  selectId?: string;
+  labelId?: string;
+  ariaLabel?: string;
+  ariaLabelledBy?: string;
+}): string | undefined => {
+  const valueId = getValueId(selectId);
+  let nameSource: string | undefined;
+  if (ariaLabelledBy) nameSource = ariaLabelledBy;
+  else if (labelId) nameSource = labelId;
+  // Self reference makes the trigger's own aria-label part of the name
+  else if (ariaLabel) nameSource = selectId;
+  const ids = [nameSource, valueId].filter(Boolean).join(' ');
+  return ids || undefined;
+};
+
+/** Selector for the options that can receive focus inside a listbox. */
+const ENABLED_OPTION_SELECTOR = '[role="option"]:not([aria-disabled="true"])';
+
+/**
+ * Collects the enabled options of the listbox rendered for `selectId`.
+ */
+const getEnabledOptions = (selectContent: Element): HTMLElement[] =>
+  Array.from(selectContent.querySelectorAll(ENABLED_OPTION_SELECTOR)).filter(
+    (el): el is HTMLElement => el instanceof HTMLElement
+  );
 
 interface TriggerRect {
   top: number;
@@ -181,6 +221,11 @@ const injectStore = (
         newProps.labelId = labelId;
       }
 
+      // SelectValue needs the id so the trigger can reference the value text
+      if (typedChild.type === SelectValue) {
+        newProps.selectId = selectId;
+      }
+
       if (typedChild.props.children) {
         newProps.children = injectStore(
           typedChild.props.children,
@@ -300,45 +345,71 @@ const Select = ({
         return;
       }
 
-      // Só as setas são interceptadas. Antes QUALQUER tecla caía aqui com
+      if (!selectContent) return;
+
+      // Tab fecha a lista e devolve o foco ao gatilho SEM preventDefault: o
+      // navegador segue o Tab a partir do gatilho. Sem isso o foco pularia da
+      // listbox (portalizada no fim do <body>) para fora da página.
+      if (event.key === 'Tab') {
+        setOpen(false);
+        store.getState().triggerElement?.focus();
+        return;
+      }
+
+      // Só setas/Home/End são interceptadas. Antes QUALQUER tecla caía aqui com
       // `preventDefault`, o que prendia o Tab e o Escape na listbox e ainda
       // roubava o foco no Enter — logo depois do item já ter devolvido o foco
       // ao gatilho, o que deixava a escolha por teclado muda no leitor de tela.
-      if (
-        selectContent &&
-        (event.key === 'ArrowDown' || event.key === 'ArrowUp')
-      ) {
-        event.preventDefault();
-        const items = Array.from(
-          selectContent.querySelectorAll(
-            '[role="option"]:not([aria-disabled="true"])'
-          )
-        ).filter((el): el is HTMLElement => el instanceof HTMLElement);
+      const navigationKeys = ['ArrowDown', 'ArrowUp', 'Home', 'End'];
+      if (!navigationKeys.includes(event.key)) return;
 
-        const focused = document.activeElement as HTMLElement;
-        const currentIndex = items.findIndex((item) => item === focused);
+      event.preventDefault();
+      const items = getEnabledOptions(selectContent);
+      const currentIndex = items.findIndex(
+        (item) => item === document.activeElement
+      );
 
-        let nextIndex: number;
-        if (event.key === 'ArrowDown') {
-          nextIndex =
-            currentIndex === -1 ? 0 : (currentIndex + 1) % items.length;
-        } else {
-          nextIndex =
-            currentIndex === -1
-              ? items.length - 1
-              : (currentIndex - 1 + items.length) % items.length;
-        }
-        items[nextIndex]?.focus();
+      let nextIndex: number;
+      if (event.key === 'Home') {
+        nextIndex = 0;
+      } else if (event.key === 'End') {
+        nextIndex = items.length - 1;
+      } else if (event.key === 'ArrowDown') {
+        nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % items.length;
+      } else {
+        nextIndex =
+          currentIndex === -1
+            ? items.length - 1
+            : (currentIndex - 1 + items.length) % items.length;
       }
+      items[nextIndex]?.focus();
     };
 
+    // Ao abrir, o foco entra na lista: na opção selecionada ou, sem valor, na
+    // primeira habilitada. A listbox é portalizada no fim do <body>, então sem
+    // isso o leitor de tela fica no gatilho e não anuncia opção, posição
+    // ("2 de 5") nem estado ("selecionado"). O rAF espera o portal montar.
+    let focusFrame: number | undefined;
     if (open) {
+      focusFrame = requestAnimationFrame(() => {
+        const selectContent = document.body.querySelector(
+          `[role="listbox"][data-select-id="${selectId}"]`
+        );
+        if (!selectContent) return;
+        const selected = selectContent.querySelector<HTMLElement>(
+          `${ENABLED_OPTION_SELECTOR}[aria-selected="true"]`
+        );
+        (selected ?? getEnabledOptions(selectContent)[0])?.focus();
+      });
       document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('keydown', handleArrowKeys);
+      // Capture phase: runs before a Modal's Escape listener (bubble phase),
+      // so the preventDefault below keeps the Modal open
+      document.addEventListener('keydown', handleArrowKeys, true);
     }
     return () => {
+      if (focusFrame !== undefined) cancelAnimationFrame(focusFrame);
       document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleArrowKeys);
+      document.removeEventListener('keydown', handleArrowKeys, true);
     };
   }, [open, selectId, setOpen, store]);
 
@@ -398,18 +469,24 @@ const SelectValue = ({
   placeholder,
   icon,
   store: externalStore,
+  selectId,
 }: {
   placeholder?: string;
   /** Optional leading icon rendered before the selected label/placeholder. */
   icon?: ReactNode;
   store?: SelectStoreApi;
+  /** Injected by Select; used to expose the value text to the trigger name. */
+  selectId?: string;
 }) => {
   const store = useSelectStore(externalStore);
 
   const selectedLabel = useStore(store, (s) => s.selectedLabel);
   const value = useStore(store, (s) => s.value);
   return (
-    <span className="text-inherit flex gap-2 items-center">
+    <span
+      id={getValueId(selectId)}
+      className="text-inherit flex gap-2 items-center"
+    >
       {icon}
       {selectedLabel || placeholder || value}
     </span>
@@ -438,6 +515,8 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
       selectId,
       labelId,
       type = 'button',
+      'aria-label': ariaLabel,
+      'aria-labelledby': ariaLabelledBy,
       ...props
     },
     ref
@@ -522,7 +601,13 @@ const SelectTrigger = forwardRef<HTMLButtonElement, SelectTriggerProps>(
         )}
         onClick={toggleOpen}
         role="combobox"
-        aria-labelledby={labelId}
+        aria-label={ariaLabel}
+        aria-labelledby={buildTriggerLabelledBy({
+          selectId,
+          labelId,
+          ariaLabel,
+          ariaLabelledBy,
+        })}
         aria-expanded={open}
         aria-haspopup="listbox"
         aria-controls={open ? getListboxId(selectId) : undefined}
@@ -591,6 +676,42 @@ function applyHorizontalPosition(
     styles.transform =
       side === 'left' ? 'translate(-100%, -100%)' : 'translateY(-100%)';
   }
+}
+
+/**
+ * Walks the listbox children and applies `aria-posinset`/`aria-setsize` to each
+ * SelectItem, so screen readers always announce the position ("2 de 5") even
+ * when items are wrapped in groups or fragments.
+ */
+function withOptionPositions(children: ReactNode): ReactNode {
+  let total = 0;
+  const count = (nodes: ReactNode) => {
+    Children.forEach(nodes, (child) => {
+      if (!isValidElement<{ children?: ReactNode }>(child)) return;
+      if (child.type === SelectItem) total++;
+      else count(child.props.children);
+    });
+  };
+  count(children);
+
+  let position = 0;
+  const apply = (nodes: ReactNode): ReactNode =>
+    Children.map(nodes, (child) => {
+      if (!isValidElement<{ children?: ReactNode }>(child)) return child;
+      if (child.type === SelectItem) {
+        position++;
+        return cloneElement(child as ReactElement<SelectItemProps>, {
+          'aria-posinset': position,
+          'aria-setsize': total,
+        });
+      }
+      if (!child.props.children) return child;
+      return cloneElement(child, {
+        children: apply(child.props.children),
+      });
+    });
+
+  return apply(children);
 }
 
 interface SelectContentProps extends HTMLAttributes<HTMLDivElement> {
@@ -665,7 +786,7 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
         )}
         {...props}
       >
-        {children}
+        {withOptionPositions(children)}
       </div>
     );
 
@@ -746,7 +867,10 @@ const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
         tabIndex={disabled ? -1 : 0}
         {...props}
       >
-        <span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
+        <span
+          aria-hidden="true"
+          className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center"
+        >
           {selectedValue === value && <CheckIcon className="" />}
         </span>
         {truncate ? (

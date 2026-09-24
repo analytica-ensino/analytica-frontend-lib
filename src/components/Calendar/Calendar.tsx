@@ -3,6 +3,7 @@ import {
   useMemo,
   useEffect,
   useRef,
+  useId,
   MouseEvent,
   RefObject,
 } from 'react';
@@ -135,6 +136,8 @@ const MONTH_NAMES = [
  */
 interface MonthYearPickerProps {
   monthPickerRef: RefObject<HTMLDivElement | null>;
+  /** Id referenced by the trigger's aria-controls */
+  id: string;
   availableYears: number[];
   currentDate: Date;
   onYearChange: (year: number) => void;
@@ -146,6 +149,7 @@ interface MonthYearPickerProps {
  */
 const MonthYearPicker = ({
   monthPickerRef,
+  id,
   availableYears,
   currentDate,
   onYearChange,
@@ -153,6 +157,9 @@ const MonthYearPicker = ({
 }: MonthYearPickerProps) => (
   <div
     ref={monthPickerRef}
+    id={id}
+    role="dialog"
+    aria-label="Selecionar mês e ano"
     className="absolute top-full left-0 z-50 mt-1 bg-background rounded-lg shadow-lg border border-border-200 p-4 min-w-[280px]"
   >
     <div className="mb-4">
@@ -161,6 +168,8 @@ const MonthYearPicker = ({
         {availableYears.map((year) => (
           <button
             key={year}
+            type="button"
+            aria-pressed={year === currentDate.getFullYear()}
             onClick={() => onYearChange(year)}
             className={`
               px-2 py-1 text-xs rounded text-center hover:bg-background-100 transition-colors
@@ -183,6 +192,10 @@ const MonthYearPicker = ({
         {MONTH_NAMES.map((month, index) => (
           <button
             key={month}
+            type="button"
+            // The visible text is abbreviated ("Jan"); read the full name
+            aria-label={month}
+            aria-pressed={index === currentDate.getMonth()}
             onClick={() => onMonthChange(index, currentDate.getFullYear())}
             className={`
               px-2 py-2 text-xs rounded text-center hover:bg-background-100 transition-colors
@@ -310,6 +323,37 @@ const Calendar = ({
   const announcesActivities = variant === 'navigation' && showActivities;
   const monthPickerRef = useRef<HTMLDivElement>(null);
   const monthPickerContainerRef = useRef<HTMLDivElement>(null);
+  const monthTriggerRef = useRef<HTMLButtonElement>(null);
+  const monthPickerId = `month-picker-${useId()}`;
+
+  // Keyboard support while the month picker is open: focus goes to the
+  // current month so the screen reader announces the choice, and Escape
+  // closes it. Capture phase + preventDefault keep an enclosing Modal open.
+  useEffect(() => {
+    if (!isMonthPickerOpen) return;
+
+    const frame = requestAnimationFrame(() => {
+      monthPickerRef.current
+        ?.querySelector<HTMLElement>('[aria-label][aria-pressed="true"]')
+        ?.focus();
+    });
+
+    const handleEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      // An outer popup (DropdownMenu) already handled it and is closing along
+      // with this calendar: only close, its trigger takes the focus.
+      const handledOutside = event.defaultPrevented;
+      event.preventDefault();
+      setIsMonthPickerOpen(false);
+      if (!handledOutside) monthTriggerRef.current?.focus();
+    };
+    document.addEventListener('keydown', handleEscape, true);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      document.removeEventListener('keydown', handleEscape, true);
+    };
+  }, [isMonthPickerOpen]);
 
   // Close month picker when clicking outside
   useEffect(() => {
@@ -454,7 +498,12 @@ const Calendar = ({
         <div className="flex items-center justify-between mb-4 px-6 relative z-20">
           <div className="relative" ref={monthPickerContainerRef}>
             <button
+              ref={monthTriggerRef}
+              type="button"
               onClick={toggleMonthPicker}
+              aria-expanded={isMonthPickerOpen}
+              aria-haspopup="dialog"
+              aria-controls={isMonthPickerOpen ? monthPickerId : undefined}
               className="flex items-center group gap-1 rounded transition-colors cursor-pointer"
             >
               <span className="text-sm font-medium text-text-600 group-hover:text-primary-950">
@@ -462,6 +511,7 @@ const Calendar = ({
                 {currentDate.getFullYear()}
               </span>
               <svg
+                aria-hidden="true"
                 className={`w-4 h-4 text-primary-950 transition-transform ${
                   isMonthPickerOpen ? 'rotate-180' : ''
                 }`}
@@ -480,6 +530,7 @@ const Calendar = ({
             {isMonthPickerOpen && (
               <MonthYearPicker
                 monthPickerRef={monthPickerRef}
+                id={monthPickerId}
                 availableYears={availableYears}
                 currentDate={currentDate}
                 onYearChange={handleYearChange}
@@ -616,13 +667,19 @@ const Calendar = ({
       <div className="flex items-center justify-between mb-3.5 relative z-20">
         <div className="relative" ref={monthPickerContainerRef}>
           <button
+            ref={monthTriggerRef}
+            type="button"
             onClick={toggleMonthPicker}
+            aria-expanded={isMonthPickerOpen}
+            aria-haspopup="dialog"
+            aria-controls={isMonthPickerOpen ? monthPickerId : undefined}
             className="flex items-center gap-2 hover:bg-background-100 rounded px-2 py-1 transition-colors"
           >
             <h2 className="text-lg font-semibold text-text-950">
               {MONTH_NAMES[currentDate.getMonth()]} {currentDate.getFullYear()}
             </h2>
             <svg
+              aria-hidden="true"
               className={`w-4 h-4 text-text-400 transition-transform ${
                 isMonthPickerOpen ? 'rotate-180' : ''
               }`}
@@ -641,6 +698,7 @@ const Calendar = ({
           {isMonthPickerOpen && (
             <MonthYearPicker
               monthPickerRef={monthPickerRef}
+              id={monthPickerId}
               availableYears={availableYears}
               currentDate={currentDate}
               onYearChange={handleYearChange}
