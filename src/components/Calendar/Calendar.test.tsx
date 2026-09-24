@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Calendar, {
   CalendarActivity,
@@ -635,5 +635,95 @@ describe('Calendar', () => {
         screen.queryByLabelText(/sem atividade|com atividade/)
       ).not.toBeInTheDocument();
     });
+  });
+});
+
+describe('Calendar — seletor de mês/ano acessível', () => {
+  const openPicker = (variant: 'selection' | 'navigation' = 'selection') => {
+    render(<Calendar variant={variant} selectedDate={new Date(2025, 2, 10)} />);
+    const trigger = screen.getByRole('button', { name: /Março 2025/ });
+    fireEvent.click(trigger);
+    return trigger;
+  };
+
+  it.each(['selection', 'navigation'] as const)(
+    'o gatilho (%s) anuncia o popup e aponta para ele',
+    (variant) => {
+      const trigger = openPicker(variant);
+
+      expect(trigger).toHaveAttribute('type', 'button');
+      expect(trigger).toHaveAttribute('aria-haspopup', 'dialog');
+      expect(trigger).toHaveAttribute('aria-expanded', 'true');
+      expect(
+        screen.getByRole('dialog', { name: 'Selecionar mês e ano' })
+      ).toHaveAttribute('id', trigger.getAttribute('aria-controls'));
+    }
+  );
+
+  it('marca o mês e o ano atuais e lê o nome completo do mês', () => {
+    openPicker();
+
+    expect(screen.getByRole('button', { name: 'Março' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+    expect(screen.getByRole('button', { name: 'Abril' })).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    );
+    expect(screen.getByRole('button', { name: '2025' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+  });
+
+  it('ao abrir, leva o foco ao mês atual', async () => {
+    openPicker();
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Março' })).toHaveFocus()
+    );
+  });
+
+  it('Escape fecha, devolve o foco e marca o evento como tratado', () => {
+    const trigger = openPicker();
+
+    expect(fireEvent.keyDown(document, { key: 'Escape' })).toBe(false);
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+  });
+
+  it('outras teclas não fecham o seletor', () => {
+    openPicker();
+
+    fireEvent.keyDown(document, { key: 'Enter' });
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('se um popup de fora já tratou o Escape, só fecha sem mexer no foco', () => {
+    const outer = (event: KeyboardEvent) => event.preventDefault();
+    document.addEventListener('keydown', outer, true);
+    const trigger = openPicker();
+    const outside = document.createElement('button');
+    document.body.appendChild(outside);
+    outside.focus();
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(trigger).not.toHaveFocus();
+    document.removeEventListener('keydown', outer, true);
+    outside.remove();
+  });
+
+  it('escolher um mês fecha o seletor e devolve o foco ao gatilho', () => {
+    const trigger = openPicker();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Maio' }));
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
   });
 });

@@ -39,6 +39,75 @@ describe('SearchSelect component', () => {
     jest.clearAllMocks();
   });
 
+  describe('Leitor de tela e Escape', () => {
+    it('ao abrir, destaca a opção selecionada (aria-activedescendant)', () => {
+      setup({ value: 'option2' });
+      fireEvent.click(screen.getByRole('button'));
+
+      const search = screen.getByRole('combobox');
+      expect(search).toHaveAttribute(
+        'aria-activedescendant',
+        screen.getByRole('option', { name: 'Option 2' }).id
+      );
+    });
+
+    it('ao abrir sem valor, não destaca nenhuma opção', () => {
+      setup();
+      fireEvent.click(screen.getByRole('button'));
+
+      expect(screen.getByRole('combobox')).not.toHaveAttribute(
+        'aria-activedescendant'
+      );
+    });
+
+    it('limpa o destaque quando a busca muda os resultados', () => {
+      setup({ value: 'option2' });
+      fireEvent.click(screen.getByRole('button'));
+      const search = screen.getByRole('combobox');
+      expect(search).toHaveAttribute('aria-expanded', 'true');
+      expect(search).toHaveAttribute('aria-activedescendant');
+
+      fireEvent.change(search, { target: { value: '3' } });
+
+      expect(search).not.toHaveAttribute('aria-activedescendant');
+    });
+
+    it('sem label, a listbox se chama "Opções"', () => {
+      setup();
+      fireEvent.click(screen.getByRole('button'));
+
+      expect(
+        screen.getByRole('listbox', { name: 'Opções' })
+      ).toBeInTheDocument();
+    });
+
+    it('Escape é marcado como tratado e não chega a outros listeners', () => {
+      const outside = jest.fn();
+      document.addEventListener('keydown', outside);
+      setup();
+      fireEvent.click(screen.getByRole('button'));
+
+      const notCanceled = fireEvent.keyDown(screen.getByRole('combobox'), {
+        key: 'Escape',
+      });
+
+      expect(notCanceled).toBe(false);
+      expect(outside).not.toHaveBeenCalled();
+      document.removeEventListener('keydown', outside);
+    });
+
+    it('o ícone de selecionado fica fora do nome da opção', () => {
+      setup({ value: 'option1' });
+      fireEvent.click(screen.getByRole('button'));
+
+      const option = screen.getByRole('option', { name: 'Option 1' });
+      expect(option.querySelector('svg')).toHaveAttribute(
+        'aria-hidden',
+        'true'
+      );
+    });
+  });
+
   describe('Basic rendering', () => {
     it('should render without errors', () => {
       setup();

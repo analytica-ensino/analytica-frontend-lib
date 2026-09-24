@@ -1626,8 +1626,10 @@ describe('ProfileMenuReadingFluency components', () => {
         name: 'Abrir menu de perfil',
       });
       expect(trigger).toBeInTheDocument();
-      const img = screen.getByAltText('Foto de perfil');
-      expect(img.getAttribute('src')).toBe('test-file-stub');
+      // Decorative image: the button's aria-label is the accessible name
+      const img = trigger.querySelector('img');
+      expect(img).toHaveAttribute('alt', '');
+      expect(img?.getAttribute('src')).toBe('test-file-stub');
     });
 
     it('uses the provided photoUrl when present', () => {
@@ -1638,7 +1640,10 @@ describe('ProfileMenuReadingFluency components', () => {
         </DropdownMenu>
       );
 
-      expect(screen.getByAltText('Foto de perfil').getAttribute('src')).toBe(
+      const trigger = screen.getByRole('button', {
+        name: 'Abrir menu de perfil',
+      });
+      expect(trigger.querySelector('img')?.getAttribute('src')).toBe(
         'https://cdn.example.com/me.png'
       );
     });
@@ -1971,5 +1976,417 @@ describe('ProfileMenuReadingFluency components', () => {
         screen.getByRole('menu', { name: 'Minha conta' })
       ).toBeInTheDocument();
     });
+  });
+});
+
+describe('DropdownMenu — acessibilidade de teclado e leitor de tela', () => {
+  const renderMenu = (
+    contentProps: Partial<React.ComponentProps<typeof DropdownMenuContent>> = {}
+  ) =>
+    render(
+      <DropdownMenu>
+        <DropdownMenuTrigger>Ações</DropdownMenuTrigger>
+        <DropdownMenuContent {...contentProps}>
+          <DropdownMenuItem>Editar</DropdownMenuItem>
+          <DropdownMenuItem disabled>Arquivar</DropdownMenuItem>
+          <DropdownMenuItem>Excluir</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+
+  it('o gatilho anuncia o tipo de popup e aponta para ele quando aberto', () => {
+    renderMenu();
+    const trigger = screen.getByRole('button', { name: 'Ações' });
+
+    expect(trigger).toHaveAttribute('aria-haspopup', 'menu');
+    expect(trigger).not.toHaveAttribute('aria-controls');
+
+    fireEvent.click(trigger);
+
+    expect(screen.getByRole('menu')).toHaveAttribute(
+      'id',
+      trigger.getAttribute('aria-controls')
+    );
+  });
+
+  it('usa o id do consumidor no popup quando informado', () => {
+    renderMenu({ id: 'meu-menu' });
+    const trigger = screen.getByRole('button', { name: 'Ações' });
+    fireEvent.click(trigger);
+
+    expect(trigger).toHaveAttribute('aria-controls', 'meu-menu');
+  });
+
+  it('ao abrir pelo gatilho, leva o foco ao primeiro item habilitado', async () => {
+    renderMenu();
+    fireEvent.click(screen.getByRole('button', { name: 'Ações' }));
+
+    await waitFor(() =>
+      expect(screen.getByRole('menuitem', { name: 'Editar' })).toHaveFocus()
+    );
+  });
+
+  it('sem itens, leva o foco ao próprio popup', async () => {
+    render(
+      <DropdownMenu>
+        <DropdownMenuTrigger>Calendário</DropdownMenuTrigger>
+        <DropdownMenuContent role="dialog" aria-label="Calendário">
+          <p>conteúdo</p>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+    const trigger = screen.getByRole('button', { name: 'Calendário' });
+    expect(trigger).toHaveAttribute('aria-haspopup', 'dialog');
+
+    fireEvent.click(trigger);
+
+    await waitFor(() =>
+      expect(screen.getByRole('dialog', { name: 'Calendário' })).toHaveFocus()
+    );
+  });
+
+  it('aberto programaticamente, não rouba o foco', async () => {
+    const { rerender } = render(
+      <>
+        <input aria-label="busca" />
+        <DropdownMenu open={false}>
+          <DropdownMenuContent>
+            <DropdownMenuItem>Resultado</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </>
+    );
+    const input = screen.getByRole('textbox', { name: 'busca' });
+    input.focus();
+
+    rerender(
+      <>
+        <input aria-label="busca" />
+        <DropdownMenu open>
+          <DropdownMenuContent>
+            <DropdownMenuItem>Resultado</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </>
+    );
+
+    await screen.findByRole('menuitem', { name: 'Resultado' });
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    expect(input).toHaveFocus();
+  });
+
+  it('não foca nada se o menu fechar antes do próximo frame', () => {
+    const cancelSpy = jest.spyOn(globalThis, 'cancelAnimationFrame');
+    renderMenu();
+    const trigger = screen.getByRole('button', { name: 'Ações' });
+
+    fireEvent.click(trigger);
+    fireEvent.click(trigger);
+
+    expect(cancelSpy).toHaveBeenCalled();
+    cancelSpy.mockRestore();
+  });
+
+  it('usa roving tabindex: nenhum item entra na ordem do Tab', () => {
+    renderMenu();
+    fireEvent.click(screen.getByRole('button', { name: 'Ações' }));
+
+    screen
+      .getAllByRole('menuitem')
+      .forEach((item) => expect(item).toHaveAttribute('tabindex', '-1'));
+  });
+
+  it('Escape fecha, devolve o foco ao gatilho e marca o evento como tratado', async () => {
+    renderMenu();
+    const trigger = screen.getByRole('button', { name: 'Ações' });
+    fireEvent.click(trigger);
+    screen.getByRole('menuitem', { name: 'Editar' }).focus();
+
+    expect(fireEvent.keyDown(document, { key: 'Escape' })).toBe(false);
+
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    expect(trigger).toHaveFocus();
+  });
+
+  it.each([
+    ['uma listbox aberta', '<div role="listbox"><button>opção</button></div>'],
+    [
+      'um combobox expandido',
+      '<button role="combobox" aria-expanded="true">campo</button>',
+    ],
+  ])('deixa %s tratar o Escape primeiro', (_case, html) => {
+    renderMenu();
+    const trigger = screen.getByRole('button', { name: 'Ações' });
+    fireEvent.click(trigger);
+    const nested = document.createElement('div');
+    nested.innerHTML = html;
+    screen.getByRole('menu').appendChild(nested);
+    const target = nested.querySelector('button') as HTMLElement;
+
+    expect(fireEvent.keyDown(target, { key: 'Escape' })).toBe(true);
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    nested.remove();
+  });
+
+  it('um combobox fechado dentro do menu não impede o Escape', () => {
+    renderMenu();
+    const trigger = screen.getByRole('button', { name: 'Ações' });
+    fireEvent.click(trigger);
+    const closed = document.createElement('button');
+    closed.setAttribute('role', 'combobox');
+    closed.setAttribute('aria-expanded', 'false');
+    screen.getByRole('menu').appendChild(closed);
+
+    fireEvent.keyDown(closed, { key: 'Escape' });
+
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('Tab num item fecha o menu e segue a partir do gatilho', () => {
+    renderMenu();
+    const trigger = screen.getByRole('button', { name: 'Ações' });
+    fireEvent.click(trigger);
+    screen.getByRole('menuitem', { name: 'Editar' }).focus();
+
+    expect(fireEvent.keyDown(document, { key: 'Tab' })).toBe(true);
+
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    expect(trigger).toHaveFocus();
+  });
+
+  it('Tab fora de um item não fecha o menu', () => {
+    render(
+      <DropdownMenu>
+        <DropdownMenuTrigger>Perfil</DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <button type="button">Sair</button>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+    const trigger = screen.getByRole('button', { name: 'Perfil' });
+    fireEvent.click(trigger);
+    screen.getByRole('button', { name: 'Sair' }).focus();
+
+    fireEvent.keyDown(document, { key: 'Tab' });
+
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('Home e End vão para o primeiro e o último item habilitado', () => {
+    renderMenu();
+    fireEvent.click(screen.getByRole('button', { name: 'Ações' }));
+    screen.getByRole('menuitem', { name: 'Editar' }).focus();
+
+    expect(fireEvent.keyDown(document, { key: 'End' })).toBe(false);
+    expect(screen.getByRole('menuitem', { name: 'Excluir' })).toHaveFocus();
+
+    fireEvent.keyDown(document, { key: 'Home' });
+    expect(screen.getByRole('menuitem', { name: 'Editar' })).toHaveFocus();
+  });
+
+  it('Home/End fora dos itens ficam com o campo (movem o cursor)', () => {
+    render(
+      <DropdownMenu>
+        <DropdownMenuTrigger>Filtro</DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <input aria-label="buscar" />
+          <DropdownMenuItem>Opção</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Filtro' }));
+    const input = screen.getByRole('textbox', { name: 'buscar' });
+    input.focus();
+
+    expect(fireEvent.keyDown(document, { key: 'Home' })).toBe(true);
+    expect(input).toHaveFocus();
+
+    // ArrowDown numa busca de texto desce para os itens
+    expect(fireEvent.keyDown(document, { key: 'ArrowDown' })).toBe(false);
+    expect(screen.getByRole('menuitem', { name: 'Opção' })).toHaveFocus();
+  });
+
+  it('não sequestra as setas de campos que já as usam (hora, textarea)', () => {
+    render(
+      <DropdownMenu>
+        <DropdownMenuTrigger>Data</DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <input type="time" aria-label="hora" />
+          <textarea aria-label="nota" />
+          <div contentEditable aria-label="rico" role="textbox" />
+          <DropdownMenuItem>Opção</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Data' }));
+
+    const time = screen.getByLabelText('hora');
+    time.focus();
+    expect(fireEvent.keyDown(document, { key: 'ArrowUp' })).toBe(true);
+
+    const textarea = screen.getByLabelText('nota');
+    textarea.focus();
+    expect(fireEvent.keyDown(document, { key: 'ArrowDown' })).toBe(true);
+
+    const rich = screen.getByLabelText('rico');
+    Object.defineProperty(rich, 'isContentEditable', { value: true });
+    rich.focus();
+    expect(fireEvent.keyDown(document, { key: 'ArrowDown' })).toBe(true);
+  });
+
+  it('não cancela as setas quando o popup não tem itens', () => {
+    render(
+      <DropdownMenu>
+        <DropdownMenuTrigger>Calendário</DropdownMenuTrigger>
+        <DropdownMenuContent role="dialog">
+          <button type="button">dia 1</button>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Calendário' }));
+
+    expect(fireEvent.keyDown(document, { key: 'ArrowDown' })).toBe(true);
+  });
+
+  it('escolher um item devolve o foco ao gatilho', () => {
+    renderMenu();
+    const trigger = screen.getByRole('button', { name: 'Ações' });
+    fireEvent.click(trigger);
+
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Excluir' }));
+
+    expect(trigger).toHaveFocus();
+  });
+
+  it('o popup que está saindo fica inerte', () => {
+    jest.useFakeTimers();
+    renderMenu();
+    const trigger = screen.getByRole('button', { name: 'Ações' });
+    fireEvent.click(trigger);
+    fireEvent.click(trigger);
+
+    const closing = document.querySelector('[data-dropdown-content="true"]');
+    expect(closing).toHaveAttribute('inert');
+    jest.useRealTimers();
+  });
+
+  it('o gatilho asChild registra o elemento e recebe o foco no Escape', () => {
+    render(
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button type="button">Mais</button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem>Item</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+    const trigger = screen.getByRole('button', { name: 'Mais' });
+    fireEvent.click(trigger);
+    expect(trigger).toHaveAttribute('aria-haspopup', 'menu');
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(trigger).toHaveFocus();
+  });
+
+  it('ProfileMenuTrigger tem nome, tipo e aponta para o menu', () => {
+    render(
+      <DropdownMenu>
+        <ProfileMenuTrigger />
+        <DropdownMenuContent variant="profile">
+          <DropdownMenuItem>Sair</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+    const trigger = screen.getByRole('button', { name: 'Menu do perfil' });
+    expect(trigger).toHaveAttribute('type', 'button');
+    expect(trigger).toHaveAttribute('aria-haspopup', 'menu');
+
+    fireEvent.click(trigger);
+    expect(trigger).toHaveAttribute(
+      'aria-controls',
+      screen.getByRole('menu').id
+    );
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(trigger).toHaveFocus();
+  });
+
+  it('navega com as setas num menu portalizado', () => {
+    const triggerRef = React.createRef<HTMLButtonElement>();
+    render(
+      <DropdownMenu>
+        <DropdownMenuTrigger ref={triggerRef}>Ações</DropdownMenuTrigger>
+        <DropdownMenuContent portal triggerRef={triggerRef}>
+          <DropdownMenuItem>Editar</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Ações' }));
+
+    expect(fireEvent.keyDown(document, { key: 'ArrowDown' })).toBe(false);
+    expect(screen.getByRole('menuitem', { name: 'Editar' })).toHaveFocus();
+  });
+
+  it('ignora as setas se nenhum popup aberto for encontrado', () => {
+    renderMenu();
+    fireEvent.click(screen.getByRole('button', { name: 'Ações' }));
+    screen.getByRole('menu').setAttribute('data-open', 'false');
+
+    expect(fireEvent.keyDown(document, { key: 'ArrowDown' })).toBe(true);
+  });
+
+  it('trata as setas mesmo sem elemento focado', () => {
+    renderMenu();
+    fireEvent.click(screen.getByRole('button', { name: 'Ações' }));
+    const spy = jest
+      .spyOn(document, 'activeElement', 'get')
+      .mockReturnValue(null);
+
+    expect(fireEvent.keyDown(document, { key: 'ArrowUp' })).toBe(false);
+    spy.mockRestore();
+  });
+
+  it('não quebra se o popup sumir antes do frame de foco', () => {
+    let frame: ((time: number) => void) | undefined;
+    const rafSpy = jest
+      .spyOn(globalThis, 'requestAnimationFrame')
+      .mockImplementation((cb) => {
+        frame = cb;
+        return 1;
+      });
+    const cancelSpy = jest
+      .spyOn(globalThis, 'cancelAnimationFrame')
+      .mockImplementation(() => undefined);
+    const { unmount } = renderMenu();
+    fireEvent.click(screen.getByRole('button', { name: 'Ações' }));
+    unmount();
+
+    expect(() => frame?.(0)).not.toThrow();
+    rafSpy.mockRestore();
+    cancelSpy.mockRestore();
+  });
+
+  it('ProfileMenuReadingFluencyTrigger aponta para o menu e recebe o foco de volta', () => {
+    render(
+      <DropdownMenu>
+        <ProfileMenuReadingFluencyTrigger />
+        <DropdownMenuContent variant="papole">
+          <DropdownMenuItem>Sair</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+    const trigger = screen.getByRole('button', {
+      name: 'Abrir menu de perfil',
+    });
+    expect(trigger).toHaveAttribute('aria-haspopup', 'menu');
+
+    fireEvent.click(trigger);
+    expect(trigger).toHaveAttribute(
+      'aria-controls',
+      screen.getByRole('menu').id
+    );
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(trigger).toHaveFocus();
   });
 });

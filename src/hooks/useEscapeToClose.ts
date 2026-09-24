@@ -14,7 +14,10 @@ export const useEscapeToClose = (enabled: boolean, onClose: () => void) => {
     if (!enabled) return;
 
     const handleEscape = (event: globalThis.KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
+      // A popup inside the overlay (Select, DropdownMenu...) that already
+      // handled this Escape marks it with preventDefault: only the popup
+      // closes, the overlay stays open.
+      if (event.key === 'Escape' && !event.defaultPrevented) onClose();
     };
 
     document.addEventListener('keydown', handleEscape);

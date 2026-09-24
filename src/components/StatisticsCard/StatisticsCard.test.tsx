@@ -98,7 +98,7 @@ describe('StatisticsCard', () => {
       );
 
       const dropdown = screen.getByRole('combobox', {
-        name: 'Filtro de período',
+        name: /^Filtro de período/,
       });
       expect(dropdown).toBeInTheDocument();
     });
@@ -164,7 +164,7 @@ describe('StatisticsCard', () => {
       );
 
       const dropdownTrigger = screen.getByRole('combobox', {
-        name: 'Filtro de período',
+        name: /^Filtro de período/,
       });
       fireEvent.click(dropdownTrigger);
 
@@ -191,7 +191,7 @@ describe('StatisticsCard', () => {
       );
 
       const dropdown = screen.getByRole('combobox', {
-        name: 'Filtro de período',
+        name: /^Filtro de período/,
       });
       expect(dropdown).toBeInTheDocument();
       expect(dropdown).toHaveTextContent('6 meses');
@@ -213,7 +213,7 @@ describe('StatisticsCard', () => {
       );
 
       const dropdownTrigger = screen.getByRole('combobox', {
-        name: 'Filtro de período',
+        name: /^Filtro de período/,
       });
       // Should not throw error when onChange is called without callback
       expect(() => {
@@ -291,8 +291,9 @@ describe('StatisticsCard', () => {
         />
       );
 
+      // The screen reader hears the field name followed by the current value
       const dropdown = screen.getByRole('combobox', {
-        name: 'Filtro de período',
+        name: 'Filtro de período 1 ano',
       });
       expect(dropdown).toHaveAttribute('aria-label', 'Filtro de período');
     });
@@ -314,7 +315,7 @@ describe('StatisticsCard', () => {
       );
 
       const dropdown = screen.getByRole('combobox', {
-        name: 'Custom period filter',
+        name: /^Custom period filter/,
       });
       expect(dropdown).toHaveAttribute('aria-label', 'Custom period filter');
     });
@@ -518,7 +519,7 @@ describe('StatisticsCard', () => {
 
       expect(screen.getByText('85%')).toBeInTheDocument();
       const dropdown = screen.getByRole('combobox', {
-        name: 'Filtro de período',
+        name: /^Filtro de período/,
       });
       expect(dropdown).toBeInTheDocument();
       expect(dropdown).toHaveTextContent('1 ano');
@@ -631,7 +632,7 @@ describe('StatisticsCard', () => {
       expect(placeholders).toHaveLength(4);
 
       const dropdown = screen.getByRole('combobox', {
-        name: 'Filtro de período',
+        name: /^Filtro de período/,
       });
       expect(dropdown).toBeInTheDocument();
     });
@@ -665,7 +666,7 @@ describe('StatisticsCard', () => {
 
       // Open dropdown to see all options
       const dropdownTrigger = screen.getByRole('combobox', {
-        name: 'Filtro de período',
+        name: /^Filtro de período/,
       });
       fireEvent.click(dropdownTrigger);
 
