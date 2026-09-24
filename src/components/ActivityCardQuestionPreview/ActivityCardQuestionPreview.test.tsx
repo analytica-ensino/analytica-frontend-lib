@@ -4,35 +4,6 @@ import { ActivityCardQuestionPreview } from './ActivityCardQuestionPreview';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import { questionTypeLabels } from '../../types/questionTypes';
 
-jest.mock('../Accordation/Accordation', () => {
-  return {
-    CardAccordation: ({
-      expanded,
-      onToggleExpanded,
-      trigger,
-      children,
-      ...rest
-    }: {
-      expanded?: boolean;
-      onToggleExpanded?: (value: boolean) => void;
-      trigger: React.ReactNode;
-      children: React.ReactNode;
-    }) => (
-      <div data-testid="card-accordation" data-expanded={expanded} {...rest}>
-        <div
-          data-testid="accordation-trigger"
-          onClick={() => onToggleExpanded?.(!expanded)}
-        >
-          {trigger}
-        </div>
-        {expanded ? (
-          <div data-testid="accordation-content">{children}</div>
-        ) : null}
-      </div>
-    ),
-  };
-});
-
 jest.mock('../../index', () => {
   return {
     IconRender: ({ iconName }: { iconName: string }) => (
@@ -113,7 +84,7 @@ describe('ActivityCardQuestionPreview', () => {
     expect(
       screen.getAllByText(questionTypeLabels[QUESTION_TYPE.ALTERNATIVA])[0]
     ).toBeInTheDocument();
-    expect(screen.getAllByText(`#${3}`)[0]).toBeInTheDocument();
+    expect(screen.getAllByText('3º')[0]).toBeInTheDocument();
     expect(screen.getAllByText(baseProps.statement)[0]).toBeInTheDocument();
     const positionContainer = screen
       .getAllByText(baseProps.subjectName)[0]
@@ -140,21 +111,87 @@ describe('ActivityCardQuestionPreview', () => {
     expect(screen.getAllByText('Tipo de questão')[0]).toBeInTheDocument();
   });
 
-  it('toggles expansion via trigger', () => {
+  it('toggles expansion when the card is clicked', () => {
     render(
       <ActivityCardQuestionPreview
         {...baseProps}
         questionType={QUESTION_TYPE.DISSERTATIVA}
         defaultExpanded={false}
+        position={1}
       />
     );
 
-    expect(screen.queryByTestId('accordation-content')).not.toBeInTheDocument();
+    const card = screen
+      .getAllByText(baseProps.subjectName)[0]
+      .closest('[data-position]') as HTMLElement;
+    const content = screen.getAllByTestId('question-preview-content')[0];
 
-    fireEvent.click(screen.getByTestId('accordation-trigger'));
+    expect(card).toHaveAttribute('aria-expanded', 'false');
+    expect(content).toHaveAttribute('aria-hidden', 'true');
 
-    expect(screen.getByTestId('accordation-content')).toBeInTheDocument();
-    expect(screen.getByText('Resposta do aluno')).toBeInTheDocument();
+    fireEvent.click(card);
+
+    expect(card).toHaveAttribute('aria-expanded', 'true');
+    expect(content).toHaveAttribute('aria-hidden', 'false');
+  });
+
+  it('toggles expansion via the caret button', () => {
+    render(
+      <ActivityCardQuestionPreview
+        {...baseProps}
+        questionType={QUESTION_TYPE.DISSERTATIVA}
+      />
+    );
+
+    fireEvent.click(screen.getAllByLabelText('Expandir questão')[0]);
+
+    expect(
+      screen.getAllByTestId('question-preview-content')[0]
+    ).toHaveAttribute('aria-hidden', 'false');
+    expect(screen.getAllByLabelText('Recolher questão')[0]).toBeInTheDocument();
+  });
+
+  it('renders the remove action only when onRemove is provided and does not toggle the card', () => {
+    const onRemove = jest.fn();
+
+    const { rerender } = render(
+      <ActivityCardQuestionPreview {...baseProps} position={2} />
+    );
+
+    expect(
+      screen.queryByLabelText('Remover questão 2')
+    ).not.toBeInTheDocument();
+
+    rerender(
+      <ActivityCardQuestionPreview
+        {...baseProps}
+        position={2}
+        onRemove={onRemove}
+      />
+    );
+
+    fireEvent.click(screen.getAllByLabelText('Remover questão 2')[0]);
+
+    expect(onRemove).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getAllByTestId('question-preview-content')[0]
+    ).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  it('renders the drag handle only when showDragHandle is set', () => {
+    const { container, rerender } = render(
+      <ActivityCardQuestionPreview {...baseProps} />
+    );
+
+    expect(
+      container.querySelector('[data-drag-handle="true"]')
+    ).not.toBeInTheDocument();
+
+    rerender(<ActivityCardQuestionPreview {...baseProps} showDragHandle />);
+
+    expect(
+      container.querySelector('[data-drag-handle="true"]')
+    ).toBeInTheDocument();
   });
 
   it('renders alternatives list with correct props', () => {

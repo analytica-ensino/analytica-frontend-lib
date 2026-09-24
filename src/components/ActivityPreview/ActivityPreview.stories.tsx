@@ -185,3 +185,45 @@ export const AllQuestionTypes: Story = () => {
     </div>
   );
 };
+
+/**
+ * Long list inside a fixed-height scroller — the scenario where the drop
+ * indicator and the drag auto-scroll matter.
+ */
+export const ScrollableReorder: Story = () => {
+  const { isDark } = useTheme();
+
+  const [questions, setQuestions] = useState<PreviewQuestion[]>(() =>
+    Array.from({ length: 12 }, (_, index) => ({
+      id: `q${index + 1}`,
+      subjectName: 'Biologia',
+      subjectColor: '#10B981',
+      iconName: 'Leaf',
+      bank: 'ANALYTICA',
+      year: '2026',
+      questionType: QUESTION_TYPE.ALTERNATIVA,
+      statement: `Questão ${index + 1} — um grupo de cientistas está estudando o comportamento de uma população de aves migratórias.`,
+    }))
+  );
+
+  const handleReorder = useCallback((ordered: PreviewQuestion[]) => {
+    setQuestions(ordered);
+  }, []);
+
+  return (
+    <div className="p-6">
+      <div className="w-[400px] h-[520px]">
+        <ActivityPreview
+          questions={questions}
+          isDark={isDark}
+          onReorder={handleReorder}
+          onRemoveQuestion={(id) =>
+            setQuestions((current) => current.filter((q) => q.id !== id))
+          }
+          onRemoveAll={() => setQuestions([])}
+          className="h-full overflow-y-auto"
+        />
+      </div>
+    </div>
+  );
+};
