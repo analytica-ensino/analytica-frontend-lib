@@ -566,6 +566,8 @@ export const ActivityCardQuestionPreview = ({
         <section
           id={contentId}
           aria-hidden={!isExpanded}
+          // Collapsed content stays in the DOM, so it must not be focusable
+          inert={!isExpanded}
           data-testid="question-preview-content"
           data-value={value}
           className={cn(
