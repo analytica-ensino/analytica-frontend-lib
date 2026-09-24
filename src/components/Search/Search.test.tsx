@@ -1108,3 +1108,156 @@ describe('Search Component', () => {
     });
   });
 });
+
+describe('Search - teclado e anúncio de resultados', () => {
+  const Controlado = ({ resultsCount }: { resultsCount?: number }) => {
+    const [value, setValue] = React.useState('');
+    return (
+      <Search
+        options={[]}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onClear={() => setValue('')}
+        resultsCount={resultsCount}
+      />
+    );
+  };
+
+  describe('Enter no botão de limpar', () => {
+    it('limpa o campo (o botão só tinha onMouseDown, morto no teclado)', async () => {
+      const user = userEvent.setup();
+      render(<Controlado />);
+
+      const input = screen.getByRole('textbox');
+      await user.type(input, 'teste');
+      expect(input).toHaveValue('teste');
+
+      await user.tab();
+      expect(screen.getByLabelText('Limpar busca')).toHaveFocus();
+
+      await user.keyboard('{Enter}');
+
+      expect(screen.getByRole('textbox')).toHaveValue('');
+    });
+
+    it('devolve o foco ao input, já que o botão desmonta ao limpar', async () => {
+      const user = userEvent.setup();
+      render(<Controlado />);
+
+      await user.type(screen.getByRole('textbox'), 'teste');
+      await user.tab();
+      await user.keyboard('{Enter}');
+
+      expect(screen.getByRole('textbox')).toHaveFocus();
+      expect(screen.queryByLabelText('Limpar busca')).not.toBeInTheDocument();
+    });
+
+    it('no mouse continua limpando uma única vez', async () => {
+      const user = userEvent.setup();
+      const handleClear = jest.fn();
+
+      render(<Search options={[]} value="Test" onClear={handleClear} />);
+      await user.click(screen.getByLabelText('Limpar busca'));
+
+      expect(handleClear).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('Enter na lupa foca o input', async () => {
+    const user = userEvent.setup();
+    render(<Controlado />);
+
+    await user.tab();
+    expect(screen.getByRole('textbox')).toHaveFocus();
+    await user.tab();
+    expect(screen.getByLabelText('Buscar')).toHaveFocus();
+
+    await user.keyboard('{Enter}');
+
+    expect(screen.getByRole('textbox')).toHaveFocus();
+  });
+
+  describe('anúncio ao confirmar a busca', () => {
+    it.each([
+      [0, 'Nenhum resultado encontrado'],
+      [1, '1 resultado encontrado'],
+      [3, '3 resultados encontrados'],
+    ])('com %i resultados anuncia "%s"', async (count, esperado) => {
+      const user = userEvent.setup();
+      render(<Controlado resultsCount={count} />);
+
+      await user.type(screen.getByRole('textbox'), 'algo{Enter}');
+
+      // O texto entra num tick separado, de propósito — ver `announce`.
+      await waitFor(() =>
+        expect(screen.getByRole('status')).toHaveTextContent(esperado)
+      );
+    });
+
+    it('a região live existe desde o início, vazia', () => {
+      render(<Controlado resultsCount={3} />);
+
+      // Leitor de tela só observa região que já estava no DOM; criá-la junto
+      // com o texto faria o anúncio se perder.
+      const status = screen.getByRole('status');
+      expect(status).toBeEmptyDOMElement();
+      expect(status).toHaveAttribute('aria-live', 'polite');
+      expect(status).toHaveAttribute('aria-atomic', 'true');
+    });
+
+    it('não anuncia nada sem resultsCount e sem options', async () => {
+      const user = userEvent.setup();
+      render(<Controlado />);
+
+      await user.type(screen.getByRole('textbox'), 'algo{Enter}');
+      await new Promise((resolve) => setTimeout(resolve, 250));
+
+      expect(screen.getByRole('status')).toBeEmptyDOMElement();
+    });
+
+    it('usa o filtro interno quando o componente recebe options', async () => {
+      const user = userEvent.setup();
+      render(
+        <Search
+          options={['Matemática', 'Matéria', 'Física']}
+          showDropdown={false}
+          value="mat"
+          onChange={() => {}}
+        />
+      );
+
+      // Com `options` preenchido o input assume role="combobox".
+      await user.type(screen.getByRole('combobox'), '{Enter}');
+
+      await waitFor(() =>
+        expect(screen.getByRole('status')).toHaveTextContent(
+          '2 resultados encontrados'
+        )
+      );
+    });
+
+    it('reanuncia quando o Enter se repete com a mesma contagem', async () => {
+      const user = userEvent.setup();
+      render(<Controlado resultsCount={2} />);
+
+      const input = screen.getByRole('textbox');
+      await user.type(input, 'algo{Enter}');
+      await waitFor(() =>
+        expect(screen.getByRole('status')).toHaveTextContent(
+          '2 resultados encontrados'
+        )
+      );
+
+      await user.type(input, '{Enter}');
+
+      // Limpa antes de repor: sem isso o texto seria idêntico, o nó não
+      // mudaria e a região live não dispararia de novo.
+      expect(screen.getByRole('status')).toBeEmptyDOMElement();
+      await waitFor(() =>
+        expect(screen.getByRole('status')).toHaveTextContent(
+          '2 resultados encontrados'
+        )
+      );
+    });
+  });
+});

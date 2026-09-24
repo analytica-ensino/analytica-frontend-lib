@@ -140,6 +140,27 @@ export function LessonsCatalogPage({
   }, [knowledgeAreas, searchTerm, searchSubjects]);
 
   /**
+   * Total que o `Search` anuncia ao confirmar a busca com Enter. Soma os dois
+   * lados que a tela mostra: componentes curriculares filtrados no cliente e
+   * aulas vindas do servidor.
+   *
+   * `undefined` sem busca ativa — aí não há o que confirmar, e o `Search` fica
+   * calado em vez de anunciar um total que ninguém pediu.
+   */
+  const searchResultsCount = useMemo((): number | undefined => {
+    if (!searchTerm.trim()) {
+      return undefined;
+    }
+
+    const subjects = filteredAreas.reduce(
+      (total, area) => total + area.subjects.length,
+      0
+    );
+
+    return subjects + lessonResults.length;
+  }, [searchTerm, filteredAreas, lessonResults]);
+
+  /**
    * Handle search input change. Filters subjects client-side (instant) and, once
    * the term reaches MIN_SEARCH_LENGTH, also queries lessons server-side
    * (debounced) so a single field searches both subjects and lessons.
@@ -383,6 +404,7 @@ export function LessonsCatalogPage({
             value={searchTerm}
             onChange={handleSearchChange}
             onSelect={handleSubjectSelect}
+            resultsCount={searchResultsCount}
             showDropdown={false}
             onClear={() => {
               setSearchTerm('');

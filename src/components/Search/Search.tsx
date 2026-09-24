@@ -38,6 +38,19 @@ type SearchProps = {
   noResultsText?: string;
   /** Debounce delay in ms for onSearch. Default 0 (no debounce). */
   debounceMs?: number;
+  /**
+   * Quantidade de resultados da busca **atual**. Quando informada, confirmar a
+   * busca com Enter anuncia o total num `role="status"` — sem isso o leitor de
+   * tela não diz se achou algo.
+   *
+   * Precisa acompanhar o que está digitado. Todos os consumidores filtram a
+   * cada tecla (e não só no Enter), então o valor já chega atualizado; um
+   * consumidor que só filtrasse no submit anunciaria a contagem anterior.
+   *
+   * Omitir mantém o comportamento antigo: o componente só anuncia por conta
+   * própria quando ele mesmo filtra, isto é, quando recebe `options`.
+   */
+  resultsCount?: number;
   /** Additional CSS classes to apply to the input */
   className?: string;
   /** Additional CSS classes to apply to the container */
@@ -57,6 +70,8 @@ type SearchProps = {
  * @param onSearch - Callback when search query changes
  * @param placeholder - Placeholder text for the input
  * @param noResultsText - Text to show when no results are found
+ * @param resultsCount - Total da busca atual; confirmar com Enter anuncia esse
+ *   total num `role="status"` ("3 resultados encontrados")
  * @param dropdownMaxHeight - Maximum height of dropdown in pixels
  * @param className - Additional CSS classes for the input
  * @param containerClassName - Additional CSS classes for the container
@@ -90,6 +105,17 @@ const filterOptions = (options: string[], query: string): string[] => {
   return options.filter((option) =>
     option.toLowerCase().includes(query.toLowerCase())
   );
+};
+
+/**
+ * Frase anunciada ao confirmar a busca. A cópia acompanha o resto da lib:
+ * `NoSearchResult` e o `noResultsText` padrão daqui usam o mesmo
+ * "Nenhum resultado encontrado".
+ */
+export const getResultsMessage = (count: number): string => {
+  if (count === 0) return 'Nenhum resultado encontrado';
+  if (count === 1) return '1 resultado encontrado';
+  return `${count} resultados encontrados`;
 };
 
 /**
@@ -144,10 +170,15 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       placeholder = 'Buscar...',
       onKeyDown: userOnKeyDown,
       debounceMs = 0,
+      resultsCount,
       ...props
     },
     ref
   ) => {
+    // Frase falada ao confirmar a busca.
+    const [announcement, setAnnouncement] = useState('');
+    const announceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
     // Dropdown state and logic
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [forceClose, setForceClose] = useState(false);
@@ -160,8 +191,30 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
     useEffect(() => {
       return () => {
         if (debounceTimer.current) clearTimeout(debounceTimer.current);
+        if (announceTimer.current) clearTimeout(announceTimer.current);
       };
     }, []);
+
+    /**
+     * Fala a frase na região live.
+     *
+     * Limpa e repõe o texto num tick separado, em vez de escrever direto. São
+     * dois motivos, e os dois aparecem só num leitor de tela de verdade:
+     *
+     * - O VoiceOver engole a atualização quando ela acontece no mesmo tick do
+     *   Enter, com o foco dentro do input — a fala da tecla ganha e a região
+     *   nunca é anunciada.
+     * - Região live só dispara quando o conteúdo MUDA. Sem o passo de limpeza,
+     *   confirmar duas vezes a mesma busca escreveria o mesmo texto e o leitor
+     *   ficaria mudo na segunda.
+     */
+    const announce = (message: string) => {
+      if (announceTimer.current) clearTimeout(announceTimer.current);
+      setAnnouncement('');
+      announceTimer.current = setTimeout(() => {
+        setAnnouncement(message);
+      }, 150);
+    };
 
     // Filter options based on input value
     const filteredOptions = useMemo(() => {
@@ -249,22 +302,29 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       } else {
         updateInputValue('', ref, onChange);
       }
+      // Limpar esconde o próprio botão (`showClearButton` passa a ser false) e
+      // ele desmonta. No teclado isso largaria o foco no <body>; no mouse é
+      // no-op, porque o `preventDefault` do mousedown já segurou o foco aqui.
+      inputElRef.current?.focus();
+    };
+
+    // O mousedown existe só para o input não perder o foco no clique. A ação
+    // fica no click — que é o que Enter e Espaço disparam num botão focado.
+    // Prender a ação ao mousedown deixava os dois botões mortos no teclado.
+    const preventFocusLoss = (e: MouseEvent) => {
+      e.preventDefault();
     };
 
     // Handle clear button click - mantém foco no input
     const handleClearClick = (e: MouseEvent) => {
-      e.preventDefault(); // Evita que o input perca foco
       e.stopPropagation(); // Para propagação do evento
       handleClear();
     };
 
     // Handle search icon click - focus on input
     const handleSearchIconClick = (e: MouseEvent) => {
-      e.preventDefault();
       e.stopPropagation();
-      setTimeout(() => {
-        inputElRef.current?.focus();
-      }, 0);
+      inputElRef.current?.focus();
     };
 
     // Handle input change
@@ -299,6 +359,15 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
           onSearch?.(String(value));
           setForceClose(true);
           setOpenAndNotify(false);
+
+          // Sem `resultsCount` e sem `options`, o componente não sabe quantos
+          // resultados existem — anunciar "Nenhum resultado" aí seria mentira.
+          const count =
+            resultsCount ??
+            (options.length > 0 ? filteredOptions.length : undefined);
+          if (count !== undefined) {
+            announce(getResultsMessage(count));
+          }
         }
       }
     };
@@ -320,6 +389,17 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
         ref={dropdownRef}
         className={`w-full max-w-lg md:w-[488px] ${containerClassName}`}
       >
+        {/* `aria-atomic` faz o leitor reler a frase inteira, e não só o
+            pedaço que mudou. */}
+        <span
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          className="sr-only"
+        >
+          {announcement}
+        </span>
+
         {/* Search Input Container */}
         <div className="relative flex items-center">
           {/* Search Input Field */}
@@ -357,7 +437,8 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
               <button
                 type="button"
                 className="p-0 border-0 bg-transparent cursor-pointer"
-                onMouseDown={handleClearClick}
+                onMouseDown={preventFocusLoss}
+                onClick={handleClearClick}
                 aria-label="Limpar busca"
               >
                 <span className="w-6 h-6 text-text-800 flex items-center justify-center hover:text-text-600 transition-colors">
@@ -373,7 +454,8 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
               <button
                 type="button"
                 className="p-0 border-0 bg-transparent cursor-pointer"
-                onMouseDown={handleSearchIconClick}
+                onMouseDown={preventFocusLoss}
+                onClick={handleSearchIconClick}
                 aria-label="Buscar"
               >
                 <span className="w-6 h-6 text-text-800 flex items-center justify-center hover:text-text-600 transition-colors">
