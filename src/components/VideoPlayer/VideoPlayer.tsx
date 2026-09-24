@@ -315,6 +315,8 @@ const SpeedMenu = ({
       ref={speedMenuRef}
       role="menu"
       aria-label="Playback speed"
+      // Focusable by script only: focus lives on the speeds (roving tabindex)
+      tabIndex={-1}
       onKeyDown={handleMenuKeyDown}
       className={
         isFullscreen

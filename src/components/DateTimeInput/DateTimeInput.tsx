@@ -148,15 +148,13 @@ const DateTimeInput = ({
           <button>, nesting two interactive controls (invalid, and read twice
           by screen readers). Keyboard users type the date straight into the
           field; the calendar popup is a pointer shortcut that opens without
-          taking the focus away from it. */}
-      <div
-        ref={triggerRef}
-        className={className}
-        onClick={() => {
-          if (!disabled) setIsCalendarOpen((open) => !open);
-        }}
-      >
+          taking the focus away from it. The click lives on the native input
+          (the icon ignores pointer events and the label forwards its click). */}
+      <div ref={triggerRef} className={className}>
         <Input
+          onClick={() => {
+            if (!disabled) setIsCalendarOpen((open) => !open);
+          }}
           label={label}
           type="datetime-local"
           placeholder="00/00/0000"

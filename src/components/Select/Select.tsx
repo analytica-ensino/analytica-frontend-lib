@@ -365,9 +365,7 @@ const Select = ({
 
       event.preventDefault();
       const items = getEnabledOptions(selectContent);
-      const currentIndex = items.findIndex(
-        (item) => item === document.activeElement
-      );
+      const currentIndex = items.indexOf(document.activeElement as HTMLElement);
 
       let nextIndex: number;
       if (event.key === 'Home') {

@@ -135,7 +135,7 @@ const MONTH_NAMES = [
  * Month/Year picker props
  */
 interface MonthYearPickerProps {
-  monthPickerRef: RefObject<HTMLDivElement | null>;
+  monthPickerRef: RefObject<HTMLDialogElement | null>;
   /** Id referenced by the trigger's aria-controls */
   id: string;
   availableYears: number[];
@@ -155,12 +155,14 @@ const MonthYearPicker = ({
   onYearChange,
   onMonthChange,
 }: MonthYearPickerProps) => (
-  <div
+  // Non-modal native <dialog> rendered open: m-0/right-auto/text-inherit undo
+  // the user-agent dialog styles (auto margins, full inline inset, black text)
+  <dialog
+    open
     ref={monthPickerRef}
     id={id}
-    role="dialog"
     aria-label="Selecionar mês e ano"
-    className="absolute top-full left-0 z-50 mt-1 bg-background rounded-lg shadow-lg border border-border-200 p-4 min-w-[280px]"
+    className="absolute top-full left-0 right-auto m-0 text-inherit z-50 mt-1 bg-background rounded-lg shadow-lg border border-border-200 p-4 min-w-[280px]"
   >
     <div className="mb-4">
       <h3 className="text-sm font-medium text-text-700 mb-2">Selecionar Ano</h3>
@@ -211,7 +213,7 @@ const MonthYearPicker = ({
         ))}
       </div>
     </div>
-  </div>
+  </dialog>
 );
 
 /**
@@ -321,7 +323,7 @@ const Calendar = ({
   // Mesma condição que liga o indicador colorido em `getDayStyles`: o rótulo
   // do dia só fala de atividade quando o calendário também as mostra.
   const announcesActivities = variant === 'navigation' && showActivities;
-  const monthPickerRef = useRef<HTMLDivElement>(null);
+  const monthPickerRef = useRef<HTMLDialogElement>(null);
   const monthPickerContainerRef = useRef<HTMLDivElement>(null);
   const monthTriggerRef = useRef<HTMLButtonElement>(null);
   const monthPickerId = `month-picker-${useId()}`;
