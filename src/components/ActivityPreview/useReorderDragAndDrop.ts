@@ -33,7 +33,7 @@ const findScrollableAncestor = (
 type DragGeometry = {
   /** Vertical middle of every item, relative to the list top at drag start. */
   midpoints: number[];
-  /** List top in viewport coordinates at drag start. */
+  /** List top in viewport coordinates at drag start, used as a fallback. */
   listTop: number;
   /** Scroll offset at drag start, so later scrolling can be compensated. */
   scrollTop: number;
@@ -149,9 +149,17 @@ export const useReorderDragAndDrop = ({
     const geometry = geometryRef.current;
     if (!geometry || !Number.isFinite(clientY)) return null;
 
+    // The live list top already accounts for every scroll that moved the list
+    // — the page, the nearest scroller or any container above it.
+    const list = listRef.current;
+    const listTop = list?.getBoundingClientRect().top ?? geometry.listTop;
+    // Unless the list is its own scroller: there the rect stays put while the
+    // items move, so that scrolling still has to be compensated by hand.
     const scrollDelta =
-      (geometry.scroller?.scrollTop ?? 0) - geometry.scrollTop;
-    const y = clientY - geometry.listTop + scrollDelta;
+      list && geometry.scroller === list
+        ? list.scrollTop - geometry.scrollTop
+        : 0;
+    const y = clientY - listTop + scrollDelta;
     const index = geometry.midpoints.findIndex((midpoint) => y < midpoint);
 
     return index === -1 ? geometry.midpoints.length : index;
