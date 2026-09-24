@@ -2,10 +2,12 @@ import {
   forwardRef,
   HTMLAttributes,
   useEffect,
+  useRef,
   MouseEvent,
   KeyboardEvent,
 } from 'react';
 import Button from '../Button/Button';
+import { useModalFocus } from '../../hooks/useModalFocus';
 import { cn } from '../../utils/utils';
 
 /**
@@ -74,6 +76,33 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
     },
     ref
   ) => {
+    const dialogRef = useRef<HTMLDivElement>(null);
+
+    /**
+     * Leva o foco pro diálogo ao abrir, prende o Tab lá dentro e devolve o foco
+     * a quem o abriu ao fechar. Sem isto o foco ficava no botão que está ATRÁS
+     * do backdrop: o leitor de tela seguia lendo a página de trás, sem nunca
+     * anunciar que um diálogo abriu, e o Tab passeava pelo conteúdo bloqueado.
+     *
+     * É o mesmo hook que o `Modal` usa — o `AlertDialog` é que tinha ficado de
+     * fora quando o foco foi resolvido lá.
+     */
+    useModalFocus(isOpen, dialogRef);
+
+    /**
+     * O nó é preciso aqui (para o foco) e também no `ref` do consumidor, que
+     * segue sendo encaminhado como antes.
+     */
+    const setDialogRef = (node: HTMLDivElement | null) => {
+      dialogRef.current = node;
+
+      if (typeof ref === 'function') {
+        ref(node);
+      } else if (ref) {
+        (ref as { current: HTMLDivElement | null }).current = node;
+      }
+    };
+
     // Handle escape key
     useEffect(() => {
       if (!isOpen || !closeOnEscape) return;
@@ -137,7 +166,16 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
           >
             {/* Alert Dialog Content */}
             <div
-              ref={ref}
+              ref={setDialogRef}
+              // `tabIndex={-1}` é requisito do `useModalFocus`: o foco inicial
+              // vai pro próprio diálogo, e não pro primeiro botão — assim o
+              // leitor anuncia título e descrição antes das ações, em vez de
+              // abrir já falando "Cancelar".
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="alert-dialog-title"
+              aria-describedby="alert-dialog-description"
+              tabIndex={-1}
               className={cn(
                 'bg-background border border-border-100 rounded-lg shadow-lg p-6 m-3',
                 sizeClasses,

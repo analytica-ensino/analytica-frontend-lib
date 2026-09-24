@@ -480,6 +480,81 @@ describe('AlertDialog', () => {
         'alert-dialog-description'
       );
     });
+
+    it('se anuncia como diálogo, com título e descrição ligados', () => {
+      render(
+        <AlertDialog {...defaultProps} isOpen={true} onChangeOpen={jest.fn()} />
+      );
+
+      const dialogo = screen.getByRole('dialog');
+      expect(dialogo).toHaveAttribute('aria-modal', 'true');
+      expect(dialogo).toHaveAccessibleName('Test Dialog');
+      expect(dialogo).toHaveAccessibleDescription('This is a test dialog');
+    });
+  });
+
+  describe('Foco', () => {
+    it('leva o foco pro diálogo ao abrir', () => {
+      const { rerender } = render(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={false}
+          onChangeOpen={jest.fn()}
+        />
+      );
+
+      rerender(
+        <AlertDialog {...defaultProps} isOpen={true} onChangeOpen={jest.fn()} />
+      );
+
+      // No próprio diálogo, e não no primeiro botão: assim o leitor anuncia
+      // título e descrição antes das ações.
+      expect(screen.getByRole('dialog')).toHaveFocus();
+    });
+
+    it('devolve o foco a quem abriu ao fechar', () => {
+      const gatilho = document.createElement('button');
+      document.body.appendChild(gatilho);
+      gatilho.focus();
+
+      const { rerender } = render(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={false}
+          onChangeOpen={jest.fn()}
+        />
+      );
+      rerender(
+        <AlertDialog {...defaultProps} isOpen={true} onChangeOpen={jest.fn()} />
+      );
+      expect(screen.getByRole('dialog')).toHaveFocus();
+
+      rerender(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={false}
+          onChangeOpen={jest.fn()}
+        />
+      );
+
+      expect(gatilho).toHaveFocus();
+      gatilho.remove();
+    });
+
+    it('prende o Tab dentro do diálogo', () => {
+      render(
+        <AlertDialog {...defaultProps} isOpen={true} onChangeOpen={jest.fn()} />
+      );
+
+      const submeter = screen.getByRole('button', { name: 'Confirm' });
+      submeter.focus();
+
+      // Do último focusável o Tab volta pro primeiro, em vez de escapar pro
+      // conteúdo que está visualmente bloqueado pelo backdrop.
+      fireEvent.keyDown(document, { key: 'Tab' });
+
+      expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus();
+    });
   });
 
   describe('Ref Forwarding', () => {
