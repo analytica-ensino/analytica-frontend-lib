@@ -1,9 +1,8 @@
-import { ChangeEvent, useId, useRef, useState } from 'react';
+import { ChangeEvent, useCallback, useId, useRef, useState } from 'react';
 import { CalendarBlankIcon } from '@phosphor-icons/react/dist/csr/CalendarBlank';
 import Input from '../Input/Input';
 import Calendar from '../Calendar/Calendar';
 import DropdownMenu, {
-  DropdownMenuTrigger,
   DropdownMenuContent,
 } from '../DropdownMenu/DropdownMenu';
 
@@ -75,7 +74,7 @@ const DateTimeInput = ({
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     date ? new Date(`${date}T12:00:00`) : undefined
   );
-  const triggerRef = useRef<HTMLButtonElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
   const generatedId = useId();
   const timeInputId = `datetime-time-${generatedId}`;
 
@@ -125,19 +124,37 @@ const DateTimeInput = ({
 
   const inputValue = date ? `${date}T${time || defaultTime}` : '';
 
+  /**
+   * Mirrors the menu state (outside click, Escape) back to the field. Stable
+   * on purpose: DropdownMenu re-notifies whenever this callback changes, and
+   * a new function per render would echo its stale state right after the
+   * field opens the calendar, closing it again in a loop.
+   */
+  const handleOpenChange = useCallback(
+    (open: boolean) => {
+      if (!disabled) {
+        setIsCalendarOpen(open);
+      }
+    },
+    [disabled]
+  );
+
   return (
     <DropdownMenu
       open={!disabled && isCalendarOpen}
-      onOpenChange={(open) => {
-        if (!disabled) {
-          setIsCalendarOpen(open);
-        }
-      }}
+      onOpenChange={handleOpenChange}
     >
-      <DropdownMenuTrigger
-        className={className}
+      {/* The field itself is the entry point. It used to sit inside a
+          <button>, nesting two interactive controls (invalid, and read twice
+          by screen readers). Keyboard users type the date straight into the
+          field; the calendar popup is a pointer shortcut that opens without
+          taking the focus away from it. */}
+      <div
         ref={triggerRef}
-        disabled={disabled}
+        className={className}
+        onClick={() => {
+          if (!disabled) setIsCalendarOpen((open) => !open);
+        }}
       >
         <Input
           label={label}
@@ -152,8 +169,10 @@ const DateTimeInput = ({
           iconRight={<CalendarBlankIcon size={14} />}
           className="[&::-webkit-calendar-picker-indicator]:hidden"
         />
-      </DropdownMenuTrigger>
+      </div>
       <DropdownMenuContent
+        role="dialog"
+        aria-label={label}
         align="start"
         className="p-0 z-[100]"
         portal

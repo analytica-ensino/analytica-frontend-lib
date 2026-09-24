@@ -1,5 +1,11 @@
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  act,
+  waitFor,
+} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import VideoPlayer from './VideoPlayer';
 import {
@@ -3729,6 +3735,90 @@ describe('VideoPlayer', () => {
       );
 
       removeEventListenerSpy.mockRestore();
+    });
+  });
+
+  describe('Speed menu keyboard and screen reader', () => {
+    const openSpeedMenu = () => {
+      render(<VideoPlayer {...defaultProps} />);
+      const button = screen.getByRole('button', { name: /playback speed/i });
+      fireEvent.click(button);
+      return button;
+    };
+
+    it('focuses the checked speed when the menu opens', async () => {
+      openSpeedMenu();
+
+      await waitFor(() =>
+        expect(screen.getByRole('menuitemradio', { name: '1x' })).toHaveFocus()
+      );
+    });
+
+    it('uses a roving tabindex on the speed options', () => {
+      openSpeedMenu();
+
+      screen
+        .getAllByRole('menuitemradio')
+        .forEach((item) => expect(item).toHaveAttribute('tabindex', '-1'));
+    });
+
+    it('moves between speeds with arrows, Home and End without reaching the player', () => {
+      openSpeedMenu();
+      const menu = screen.getByRole('menu');
+      screen.getByRole('menuitemradio', { name: '1x' }).focus();
+
+      expect(fireEvent.keyDown(menu, { key: 'ArrowDown' })).toBe(false);
+      expect(
+        screen.getByRole('menuitemradio', { name: '1.25x' })
+      ).toHaveFocus();
+
+      fireEvent.keyDown(menu, { key: 'ArrowUp' });
+      expect(screen.getByRole('menuitemradio', { name: '1x' })).toHaveFocus();
+
+      fireEvent.keyDown(menu, { key: 'End' });
+      expect(screen.getByRole('menuitemradio', { name: '2x' })).toHaveFocus();
+
+      fireEvent.keyDown(menu, { key: 'ArrowDown' });
+      expect(screen.getByRole('menuitemradio', { name: '0.5x' })).toHaveFocus();
+
+      fireEvent.keyDown(menu, { key: 'Home' });
+      expect(screen.getByRole('menuitemradio', { name: '0.5x' })).toHaveFocus();
+    });
+
+    it('closes with Escape and returns focus to the speed button', () => {
+      const button = openSpeedMenu();
+
+      const notCanceled = fireEvent.keyDown(screen.getByRole('menu'), {
+        key: 'Escape',
+      });
+
+      expect(notCanceled).toBe(false);
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+      expect(button).toHaveFocus();
+    });
+
+    it('closes when Tab leaves the menu', () => {
+      openSpeedMenu();
+
+      fireEvent.keyDown(screen.getByRole('menu'), { key: 'Tab' });
+
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    });
+
+    it('ignores other keys inside the menu', () => {
+      openSpeedMenu();
+
+      fireEvent.keyDown(screen.getByRole('menu'), { key: 'a' });
+
+      expect(screen.getByRole('menu')).toBeInTheDocument();
+    });
+
+    it('returns focus to the speed button after choosing a speed', () => {
+      const button = openSpeedMenu();
+
+      fireEvent.click(screen.getByRole('menuitemradio', { name: '1.5x' }));
+
+      expect(button).toHaveFocus();
     });
   });
 });
