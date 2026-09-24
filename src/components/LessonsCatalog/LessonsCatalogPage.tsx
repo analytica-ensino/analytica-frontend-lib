@@ -157,8 +157,11 @@ export function LessonsCatalogPage({
       0
     );
 
-    return subjects + lessonResults.length;
-  }, [searchTerm, filteredAreas, lessonResults]);
+    // Com a busca de aulas em voo, `lessonResults` ainda guarda o resultado do
+    // termo ANTERIOR e a seção mostra esqueletos no lugar dele. Somá-lo aqui
+    // anunciaria um total que não está na tela — e que é de outra busca.
+    return subjects + (lessonsLoading ? 0 : lessonResults.length);
+  }, [searchTerm, filteredAreas, lessonResults, lessonsLoading]);
 
   /**
    * Handle search input change. Filters subjects client-side (instant) and, once
