@@ -28,6 +28,16 @@ const AREAS: KnowledgeArea[] = [
   },
 ];
 
+const LESSON = {
+  lessonId: 'lesson-1',
+  videoTitle: 'Aula de DNA',
+  areaKnowledge: { id: 'area-1', name: 'Ciências' },
+  subject: { id: 's-1', name: 'Biologia', color: '#0f0', icon: 'Dna' },
+  topic: { id: 't-1', name: 'Genética' },
+  subtopic: { id: 'sub-1', name: 'DNA' },
+  content: { id: 'c-1', name: 'Estrutura do DNA', bnccCode: 'EM13CNT' },
+};
+
 /** Areas as the backend returns them for a teacher: no progress field. */
 const AREAS_WITHOUT_PROGRESS: KnowledgeArea[] = [
   {
@@ -217,6 +227,63 @@ describe('LessonsCatalogPage', () => {
     );
 
     expect(await screen.findByText('Estrutura do DNA')).toBeInTheDocument();
+  });
+
+  it('não conta as aulas do termo anterior enquanto a nova busca está em voo', async () => {
+    const lessonsPayload = (lessons: unknown[]) => ({
+      data: {
+        message: 'ok',
+        data: {
+          lessons,
+          pagination: {
+            page: 1,
+            limit: 20,
+            total: lessons.length,
+            totalPages: 1,
+            hasNext: false,
+            hasPrev: false,
+          },
+        },
+      },
+    });
+
+    const api = makeApi();
+    let searchCall = 0;
+    api.get.mockImplementation((url: string) => {
+      if (url === '/knowledge') {
+        return Promise.resolve({ data: { message: 'ok', data: AREAS } });
+      }
+      searchCall += 1;
+      // 1ª busca devolve uma aula; a 2ª fica pendurada, deixando o componente
+      // em loading com o resultado da anterior ainda em memória.
+      return searchCall === 1
+        ? Promise.resolve(lessonsPayload([LESSON]))
+        : new Promise(() => {});
+    });
+
+    renderPage(api, 'preview');
+    await screen.findByText('Biologia');
+
+    const input = screen.getByPlaceholderText(
+      'Buscar componente curricular ou aula'
+    );
+
+    fireEvent.change(input, { target: { value: 'Bio' } });
+    await screen.findByText('Estrutura do DNA');
+
+    fireEvent.change(input, { target: { value: 'Biol' } });
+    // Esqueletos no lugar das aulas = `lessonsLoading` true.
+    await screen.findAllByTestId('skeleton-lesson-card');
+
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    // Só o componente curricular ("Biologia"), sem a aula do termo anterior —
+    // que nesse instante nem está na tela. Sem o guard seriam 2.
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent(
+        '1 resultado encontrado'
+      )
+    );
   });
 
   it('shows the no-results state when nothing matches', async () => {
