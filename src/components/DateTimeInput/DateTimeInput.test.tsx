@@ -213,12 +213,53 @@ describe('DateTimeInput', () => {
     });
   });
 
+  describe('time footer layout', () => {
+    /**
+     * O rodapé fica fora do fluxo rolável do popover. O popover é fixed e só
+     * tem a altura que sobra entre o campo e a borda da janela, então em tela
+     * baixa ele rola — e antes a hora caía abaixo do corte. jsdom não calcula
+     * layout, então o que dá para garantir aqui é a regra que produz o
+     * comportamento; a altura em si foi medida no Ladle.
+     */
+    it('should keep the time footer out of the scrollable flow', () => {
+      render(<DateTimeInput {...defaultProps} testId="test" />);
+
+      fireEvent.click(screen.getByRole('button'));
+
+      const footer = screen.getByTestId('test-time').closest('div.sticky');
+      expect(footer).toHaveClass('sticky', 'bottom-0', 'bg-background');
+    });
+
+    it('should render the calendar in compact density', () => {
+      render(<DateTimeInput {...defaultProps} date="2025-01-01" />);
+
+      fireEvent.click(screen.getByRole('button'));
+
+      expect(screen.getByText('15')).toHaveClass('w-8', 'h-8');
+    });
+  });
+
   describe('accessibility', () => {
     it('should have proper input type', () => {
       render(<DateTimeInput {...defaultProps} testId="test" />);
 
       const input = screen.getByTestId('test-input');
       expect(input).toHaveAttribute('type', 'datetime-local');
+    });
+
+    /**
+     * O rótulo virou um `<label>` próprio para caber na mesma linha do campo,
+     * em vez da prop `label` do Input. A associação explícita é o que mantém o
+     * leitor de tela anunciando "Hora" ao focar no campo.
+     */
+    it('should associate the time label with the time input', () => {
+      render(<DateTimeInput {...defaultProps} testId="test" />);
+
+      fireEvent.click(screen.getByRole('button'));
+
+      expect(screen.getByLabelText('Hora')).toBe(
+        screen.getByTestId('test-time')
+      );
     });
   });
 });

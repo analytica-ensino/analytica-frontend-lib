@@ -109,6 +109,44 @@ export const WithDefaultTime: Story = () => {
 };
 
 /**
+ * Pouco espaço abaixo do campo — o caso que motivou o rodapé ancorado.
+ *
+ * Reproduz o que acontece no passo "Prazo" do SendActivityModal numa janela
+ * baixa: o popover é `position: fixed` e só recebe a altura que sobra até a
+ * borda da tela, então o calendário rola. O bloco "Hora" continua visível, sem
+ * precisar rolar dentro do popover para descobrir que ele existe.
+ *
+ * Veja em `?mode=preview`. No modo normal a barra de addons do Ladle flutua
+ * sobre os ~40px de baixo da janela — justamente onde este caso encosta — e
+ * tapa o rodapé do popover. É cromo da ferramenta, não do componente: no app
+ * não existe barra nenhuma ali.
+ */
+export const LowViewport: Story = () => {
+  const [date, setDate] = useState('2026-09-23');
+  const [time, setTime] = useState('00:00');
+
+  return (
+    // Ancorado por baixo, não por cima: quem dimensiona o popover é a folga
+    // entre o campo e a borda inferior da janela, então fixá-la em 300px faz a
+    // story mostrar sempre o mesmo caso — 300px para 363px de conteúdo, o
+    // calendário rola — em vez de variar com o tamanho da janela. Uma medida em
+    // `dvh` daria o caso extremo numa janela baixa e caso nenhum numa alta.
+    <div className="flex h-[calc(100dvh-2rem)] flex-col justify-end pb-[300px]">
+      <div className="w-80">
+        <DateTimeInput
+          label="Iniciar em*"
+          date={date}
+          time={time}
+          onDateChange={setDate}
+          onTimeChange={setTime}
+          defaultTime="00:00"
+        />
+      </div>
+    </div>
+  );
+};
+
+/**
  * Date range example (two DateTimeInputs)
  */
 export const DateRange: Story = () => {

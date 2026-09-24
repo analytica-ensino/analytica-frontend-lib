@@ -1,4 +1,4 @@
-import { ChangeEvent, useRef, useState } from 'react';
+import { ChangeEvent, useId, useRef, useState } from 'react';
 import { CalendarBlankIcon } from '@phosphor-icons/react/dist/csr/CalendarBlank';
 import Input from '../Input/Input';
 import Calendar from '../Calendar/Calendar';
@@ -33,6 +33,18 @@ export interface DateTimeInputProps {
 }
 
 /**
+ * Teto do popover, em px.
+ *
+ * O padrão do `DropdownMenu` são 320px, pensado para uma lista de opções que
+ * pode rolar à vontade. Aqui o conteúdo é um bloco só — calendário compacto
+ * (290px) mais o rodapé da hora (59px) — e 320px cortava justamente o rodapé,
+ * em qualquer tamanho de tela. Este valor deixa o calendário inteiro caber
+ * quando existe espaço; quando não existe, quem manda é a folga real entre o
+ * campo e a borda da janela, e o rodapé `sticky` garante a hora visível.
+ */
+const POPOVER_MAX_HEIGHT = 420;
+
+/**
  * Format Date object to YYYY-MM-DD string
  */
 const formatDateToInput = (dateObj: Date): string => {
@@ -64,6 +76,8 @@ const DateTimeInput = ({
     date ? new Date(`${date}T12:00:00`) : undefined
   );
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const generatedId = useId();
+  const timeInputId = `datetime-time-${generatedId}`;
 
   /**
    * Handle date selection from calendar
@@ -144,20 +158,37 @@ const DateTimeInput = ({
         className="p-0 z-[100]"
         portal
         triggerRef={triggerRef}
+        maxHeight={POPOVER_MAX_HEIGHT}
       >
         <Calendar
           variant="selection"
+          density="compact"
           selectedDate={selectedDate}
           onDateSelect={handleDateSelect}
           showActivities={false}
         />
-        <div className="p-3 border-t border-border-200">
+        {/* Rodapé da hora, ancorado no fim do popover.
+
+            O popover é `position: fixed` e só tem a altura que sobra entre o
+            campo e a borda da janela, então em tela baixa ele rola. Fora do
+            fluxo rolável, a hora continua à vista em qualquer altura — antes
+            ela caía abaixo do corte e o usuário precisava descobrir que dava
+            para rolar ali dentro. O `bg-background` é o que impede os dias de
+            aparecerem por baixo ao rolar. */}
+        <div className="sticky bottom-0 flex items-center justify-between gap-3 border-t border-border-200 bg-background px-3 py-2">
+          <label
+            htmlFor={timeInputId}
+            className="text-sm font-bold text-text-900"
+          >
+            {timeLabel}
+          </label>
           <Input
-            label={timeLabel}
+            id={timeInputId}
             type="time"
             value={time || defaultTime}
             onChange={handleTimeChange}
             variant="rounded"
+            containerClassName="w-32 shrink-0"
             data-testid={testId ? `${testId}-time` : undefined}
           />
         </div>
