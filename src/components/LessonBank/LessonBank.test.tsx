@@ -1093,6 +1093,39 @@ describe('LessonBank', () => {
       ).toBeDisabled();
     });
 
+    it('should stay enabled when every loaded lesson was added but more pages exist', async () => {
+      // 25 lessons -> the first page loads 20 and reports hasNext
+      const manyLessons: Lesson[] = Array.from({ length: 25 }, (_, i) => ({
+        id: `lesson-${i + 1}`,
+        title: `Aula ${i + 1}`,
+      }));
+      const apiClient = createMockApiClient(manyLessons);
+      render(
+        <LessonBank
+          apiClient={apiClient}
+          filters={defaultFilters}
+          addedLessonIds={manyLessons.slice(0, 20).map((l) => l.id)}
+        />
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('0 aulas total')).toBeInTheDocument();
+      });
+      expect(
+        screen.getByRole('button', { name: 'Adicionar automaticamente' })
+      ).not.toBeDisabled();
+    });
+
+    it('should be disabled while the lessons are loading', () => {
+      const apiClient = createMockApiClient(mockLessons, mockPagination, 1000);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
+
+      expect(screen.getByText('Carregando...')).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Adicionar automaticamente' })
+      ).toBeDisabled();
+    });
+
     it('should add the random lessons returned by the API', async () => {
       const apiClient = createRandomApiClient();
       const onAddLesson = jest.fn();

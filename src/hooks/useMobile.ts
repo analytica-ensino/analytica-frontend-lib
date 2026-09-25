@@ -44,12 +44,17 @@ export const getDeviceType = (): DeviceType => {
  * @returns object with isMobile, isTablet, isLargeTablet (width <= 1024px), responsive class functions and getDeviceType
  */
 export const useMobile = () => {
-  const [isMobile, setIsMobile] = useState(false);
-  const [isTablet, setIsTablet] = useState(false);
   /*
-    Resolved synchronously on the first render so layouts switching at this
-    breakpoint don't paint the wide version first and then jump.
+    Layout flags are resolved synchronously from the same width reading on the
+    first render, so layouts that combine them (e.g. mobile vs large tablet)
+    don't paint one version first and then jump once the effect runs.
   */
+  const [isMobile, setIsMobile] = useState(
+    () => getWindowWidth() < MOBILE_WIDTH
+  );
+  const [isTablet, setIsTablet] = useState(
+    () => getWindowWidth() < TABLET_WIDTH
+  );
   const [isLargeTablet, setIsLargeTablet] = useState(
     () => getWindowWidth() <= LARGE_TABLET_WIDTH
   );

@@ -336,10 +336,15 @@ jest.mock('../Menu/Menu', () => ({
 jest.mock('../LessonFilters/LessonFilters', () => ({
   LessonFilters: ({
     onFiltersChange,
+    initialFilters,
   }: {
     onFiltersChange: (filters: unknown) => void;
+    initialFilters?: unknown;
   }) => (
-    <div data-testid="lesson-filters">
+    <div
+      data-testid="lesson-filters"
+      data-has-initial-filters={initialFilters ? 'true' : 'false'}
+    >
       <button
         data-testid="apply-filter-trigger"
         onClick={() =>
@@ -926,6 +931,28 @@ describe('RecommendedLessonCreate', () => {
         screen.queryByTestId('subject-switch-dialog')
       ).not.toBeInTheDocument();
       expect(screen.getByTestId('lessons-count')).toHaveTextContent('1');
+    });
+
+    it('does not reseed cleared filters from the draft filters', async () => {
+      await renderWithDraftFilters(['subject-1']);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('lesson-filters')).toHaveAttribute(
+          'data-has-initial-filters',
+          'true'
+        );
+      });
+
+      fireEvent.click(screen.getByText('Limpar filtros'));
+
+      // The remounted filters must start empty instead of falling back to
+      // the draft's filters, or the next "Filtrar" would reapply them
+      await waitFor(() => {
+        expect(screen.getByTestId('lesson-filters')).toHaveAttribute(
+          'data-has-initial-filters',
+          'false'
+        );
+      });
     });
 
     it('does not warn about a draft covering several components', async () => {
@@ -3618,9 +3645,7 @@ describe('RecommendedLessonCreate', () => {
 
       // First, add a lesson so the send button is enabled
       const addLessonBtn = screen.getByTestId('add-lesson-btn');
-      await act(async () => {
-        fireEvent.click(addLessonBtn);
-      });
+      fireEvent.click(addLessonBtn);
 
       // Wait for auto-save
       await act(async () => {
@@ -3629,9 +3654,7 @@ describe('RecommendedLessonCreate', () => {
 
       // Open send modal
       const sendLessonBtn = screen.getByTestId('send-lesson-btn');
-      await act(async () => {
-        fireEvent.click(sendLessonBtn);
-      });
+      fireEvent.click(sendLessonBtn);
 
       await waitFor(() => {
         expect(screen.getByTestId('send-lesson-modal')).toBeInTheDocument();
@@ -3639,9 +3662,7 @@ describe('RecommendedLessonCreate', () => {
 
       // First trigger a categories change WITH classes selected to fetch students
       const triggerBtn = screen.getByTestId('trigger-categories-change');
-      await act(async () => {
-        fireEvent.click(triggerBtn);
-      });
+      fireEvent.click(triggerBtn);
 
       // Wait for students to be fetched
       await waitFor(() => {
@@ -3658,9 +3679,7 @@ describe('RecommendedLessonCreate', () => {
 
       // Now trigger empty class selection (no classes selected)
       const emptyClassBtn = screen.getByTestId('trigger-empty-class-selection');
-      await act(async () => {
-        fireEvent.click(emptyClassBtn);
-      });
+      fireEvent.click(emptyClassBtn);
 
       // Give time for any potential API calls
       await act(async () => {
@@ -3898,9 +3917,7 @@ describe('RecommendedLessonCreate', () => {
       ).length;
 
       // Trigger categories change again with same values - should not fetch again
-      await act(async () => {
-        fireEvent.click(triggerBtn);
-      });
+      fireEvent.click(triggerBtn);
 
       // Give some time for any potential additional calls
       await act(async () => {

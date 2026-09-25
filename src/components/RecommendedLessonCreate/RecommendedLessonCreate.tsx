@@ -165,6 +165,12 @@ const RecommendedLessonCreate = ({
   const [categories, setCategories] = useState<CategoryConfig[]>([]);
   const [isSendingLesson, setIsSendingLesson] = useState(false);
   const [filtersKey, setFiltersKey] = useState(0);
+  /*
+    Set once the user clears the filters, so the remounted filters don't fall
+    back to `initialFiltersData` (the draft's / pre-filters) and reapply what
+    was just cleared. Reset when the lesson or its initial filters change.
+  */
+  const [filtersCleared, setFiltersCleared] = useState(false);
   const hasFirstSaveBeenDone = useRef(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedFiltersRef = useRef<LessonFiltersData | null>(null);
@@ -204,6 +210,7 @@ const RecommendedLessonCreate = ({
 
   const handleClearFilters = useCallback(() => {
     clearFilters();
+    setFiltersCleared(true);
     // Force re-render of LessonFilters component by changing key
     setFiltersKey((prev) => prev + 1);
   }, [clearFilters]);
@@ -458,7 +465,13 @@ const RecommendedLessonCreate = ({
 
   useEffect(() => {
     hasAppliedInitialFiltersRef.current = false;
+    setFiltersCleared(false);
   }, [recommendedLesson?.id, recommendedLesson?.filters, resolvedPreFilters]);
+
+  // Initial filters handed to the filter components, unless the user cleared them
+  const filtersInitialData = filtersCleared
+    ? undefined
+    : initialFiltersData || undefined;
 
   /**
    * Update preFilters when prop changes
@@ -1333,7 +1346,7 @@ const RecommendedLessonCreate = ({
                 apiClient={apiClient}
                 institutionId={institutionId}
                 onFiltersChange={handleFiltersChange}
-                initialFilters={initialFiltersData || undefined}
+                initialFilters={filtersInitialData}
                 onClearFilters={handleClearFilters}
                 onApplyFilters={handleApplyFilters}
                 triggerIcon={<FadersHorizontalIcon size={16} />}
@@ -1439,7 +1452,7 @@ const RecommendedLessonCreate = ({
                     institutionId={institutionId}
                     variant={'default'}
                     onFiltersChange={handleFiltersChange}
-                    initialFilters={initialFiltersData || undefined}
+                    initialFilters={filtersInitialData}
                     onClearFilters={handleClearFilters}
                     onApplyFilters={handleApplyFilters}
                   />
@@ -1493,7 +1506,7 @@ const RecommendedLessonCreate = ({
               institutionId={institutionId}
               variant={'default'}
               onFiltersChange={handleFiltersChange}
-              initialFilters={initialFiltersData || undefined}
+              initialFilters={filtersInitialData}
               onClearFilters={handleClearFilters}
               onApplyFilters={handleApplyFilters}
             />

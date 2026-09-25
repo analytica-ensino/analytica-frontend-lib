@@ -319,7 +319,9 @@ export const LessonBank = ({
           <Button
             size="small"
             onClick={() => setIsAutoAddModalOpen(true)}
-            disabled={totalLessons === 0}
+            // totalLessons only counts the loaded page minus the added
+            // lessons; the server may still have more (random excludes added)
+            disabled={loading || (totalLessons === 0 && !pagination?.hasNext)}
             className="whitespace-nowrap"
           >
             Adicionar automaticamente

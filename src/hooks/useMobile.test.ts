@@ -80,6 +80,32 @@ describe('useMobile', () => {
       expect(result.current.isTablet).toBe(true);
     });
 
+    it('should resolve every flag on the very first render', () => {
+      mockInnerWidth(400);
+      const firstRender: Array<{
+        isMobile: boolean;
+        isTablet: boolean;
+        isLargeTablet: boolean;
+      }> = [];
+
+      renderHook(() => {
+        const result = useMobile();
+        firstRender.push({
+          isMobile: result.isMobile,
+          isTablet: result.isTablet,
+          isLargeTablet: result.isLargeTablet,
+        });
+        return result;
+      });
+
+      // No render with a stale `isMobile: false` before the effect runs
+      expect(firstRender[0]).toEqual({
+        isMobile: true,
+        isTablet: true,
+        isLargeTablet: true,
+      });
+    });
+
     it('should flag large tablet up to and including 1024px', () => {
       mockInnerWidth(1024);
 
