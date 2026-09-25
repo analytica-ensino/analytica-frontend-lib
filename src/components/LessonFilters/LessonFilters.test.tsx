@@ -98,6 +98,7 @@ jest.mock('../../components/ActivityFilters/components', () => ({
     onToggleAllSubjects,
     loading,
     error,
+    gridClassName,
   }: {
     knowledgeAreas: Array<{ id: string; name: string }>;
     selectedSubjectIds: string[];
@@ -107,8 +108,9 @@ jest.mock('../../components/ActivityFilters/components', () => ({
     onToggleAllSubjects?: () => void;
     loading?: boolean;
     error?: string | null;
+    gridClassName?: string;
   }) => (
-    <div data-testid="subjects-filter">
+    <div data-testid="subjects-filter" data-grid-class={gridClassName}>
       {loading && <div>Carregando componentes curriculares...</div>}
       {error && <div>{error}</div>}
       {showAllSubjectsOption && (
@@ -136,6 +138,7 @@ jest.mock('../../components/ActivityFilters/components', () => ({
     knowledgeStructure,
     knowledgeCategories,
     handleCategoriesChange,
+    showDivider,
   }: {
     knowledgeStructure: {
       loading: boolean;
@@ -151,8 +154,12 @@ jest.mock('../../components/ActivityFilters/components', () => ({
     handleCategoriesChange?: (
       updatedCategories: typeof knowledgeCategories
     ) => void;
+    showDivider?: boolean;
   }) => (
-    <div data-testid="knowledge-structure-filter">
+    <div
+      data-testid="knowledge-structure-filter"
+      data-show-divider={String(showDivider)}
+    >
       <div>Tema, Subtema e Assunto</div>
       {knowledgeStructure.loading && (
         <div>Carregando estrutura de conhecimento...</div>
@@ -184,11 +191,13 @@ jest.mock('../../components/ActivityFilters/components', () => ({
   FilterActions: ({
     onClearFilters,
     onApplyFilters,
+    showDivider,
   }: {
     onClearFilters?: () => void;
     onApplyFilters?: () => void;
+    showDivider?: boolean;
   }) => (
-    <div data-testid="filter-actions">
+    <div data-testid="filter-actions" data-show-divider={String(showDivider)}>
       {onClearFilters && (
         <button onClick={onClearFilters}>Limpar filtros</button>
       )}
@@ -220,9 +229,53 @@ jest.mock('../../components/CheckBoxGroup/CheckBoxGroup', () => ({
   ),
 }));
 
+jest.mock('../DropdownMenu/DropdownMenu', () => ({
+  __esModule: true,
+  default: ({
+    children,
+    open,
+    onOpenChange,
+  }: {
+    children: React.ReactNode;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+  }) => (
+    <div data-testid="dropdown-menu" data-open={String(open)}>
+      <button
+        data-testid="dropdown-toggle"
+        onClick={() => onOpenChange?.(!open)}
+      >
+        toggle
+      </button>
+      {children}
+    </div>
+  ),
+  DropdownMenuTrigger: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
+  DropdownMenuContent: ({
+    children,
+    portal,
+    maxHeight,
+  }: {
+    children: React.ReactNode;
+    portal?: boolean;
+    maxHeight?: number;
+  }) => (
+    <div
+      data-testid="dropdown-content"
+      data-portal={String(portal)}
+      data-max-height={maxHeight}
+    >
+      {children}
+    </div>
+  ),
+}));
+
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { LessonFilters } from './LessonFilters';
+import { LessonFilters, LessonFiltersPopover } from './LessonFilters';
+import { useLessonFiltersStore } from '../../store/lessonFiltersStore';
 import type { LessonFiltersData } from '../../types/lessonFilters';
 
 const mockLoadKnowledgeAreas = jest.fn();
@@ -572,7 +625,37 @@ describe('LessonFilters', () => {
   it('renders popover variant', () => {
     renderComponent({ variant: 'popover' });
 
-    expect(screen.queryByText('Filtro de aulas')).not.toBeInTheDocument();
+    // The popover heading only shows on narrow screens (<= 425px)
+    expect(screen.getByText('Filtro de aulas').closest('section')).toHaveClass(
+      'hidden',
+      'max-[426px]:flex'
+    );
+  });
+
+  it('drops the row and actions dividers in the popover', () => {
+    renderComponent({ variant: 'popover', onApplyFilters: jest.fn() });
+
+    expect(screen.getByTestId('knowledge-structure-filter')).toHaveAttribute(
+      'data-show-divider',
+      'false'
+    );
+    expect(screen.getByTestId('filter-actions')).toHaveAttribute(
+      'data-show-divider',
+      'false'
+    );
+  });
+
+  it('keeps the default 3-column subjects grid outside the popover', () => {
+    renderComponent();
+
+    expect(screen.getByTestId('knowledge-structure-filter')).toHaveAttribute(
+      'data-show-divider',
+      'true'
+    );
+
+    expect(screen.getByTestId('subjects-filter')).not.toHaveAttribute(
+      'data-grid-class'
+    );
   });
 
   it('renders default variant with title', () => {
@@ -740,5 +823,164 @@ describe('LessonFilters', () => {
     mockHandleCategoriesChange(updatedCategories);
 
     expect(mockHandleCategoriesChange).toHaveBeenCalled();
+  });
+});
+
+describe('LessonFiltersPopover', () => {
+  const renderPopover = (
+    props: Partial<React.ComponentProps<typeof LessonFiltersPopover>> = {}
+  ) =>
+    render(
+      <LessonFiltersPopover
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        apiClient={{} as any}
+        onFiltersChange={jest.fn()}
+        {...props}
+      />
+    );
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseActivityFiltersDataReturn = buildMockReturn();
+    useLessonFiltersStore.setState({
+      appliedFilters: null,
+      draftFilters: null,
+    });
+  });
+
+  it('renders the default trigger label as accessible name', () => {
+    renderPopover();
+
+    expect(
+      screen.getByRole('button', { name: 'Filtro de aulas' })
+    ).toBeInTheDocument();
+  });
+
+  it('renders the trigger icon and a collapsible label', () => {
+    renderPopover({
+      triggerIcon: <svg data-testid="trigger-icon" />,
+      collapseTriggerLabel: true,
+      triggerLabel: 'Filtros',
+    });
+
+    expect(screen.getByTestId('trigger-icon')).toBeInTheDocument();
+    const label = screen.getByText('Filtros');
+    expect(label).toHaveClass('hidden', 'min-[520px]:inline');
+    // Icon-only square trigger below 520px, label layout restored above it
+    expect(screen.getByRole('button', { name: 'Filtros' })).toHaveClass(
+      'size-9',
+      'min-[520px]:px-4'
+    );
+  });
+
+  it('keeps the label visible when not collapsible', () => {
+    renderPopover();
+
+    // [0] is the trigger label; [1] is the narrow-screen popover heading
+    expect(screen.getAllByText('Filtro de aulas')[0]).not.toHaveClass('hidden');
+  });
+
+  it('renders the popover variant of the filters', () => {
+    renderPopover();
+
+    expect(screen.getByTestId('dropdown-content')).toBeInTheDocument();
+    // Trigger label + popover heading; the default variant heading (no icon,
+    // shown at every width) is not rendered
+    expect(screen.getAllByText('Filtro de aulas')).toHaveLength(2);
+    expect(screen.getByTestId('filter-actions')).toBeInTheDocument();
+  });
+
+  it('portals the menu anchored to the trigger so it is sized to the viewport', () => {
+    renderPopover();
+
+    const content = screen.getByTestId('dropdown-content');
+    expect(content).toHaveAttribute('data-portal', 'true');
+    expect(content).toHaveAttribute('data-max-height', '720');
+  });
+
+  it('renders the heading shown only on narrow screens', () => {
+    renderPopover();
+
+    expect(screen.getByTestId('subjects-filter')).toHaveAttribute(
+      'data-grid-class',
+      'max-[426px]:grid-cols-2'
+    );
+
+    const heading = screen.getAllByText('Filtro de aulas')[1];
+    expect(heading.closest('section')).toHaveClass(
+      'hidden',
+      'max-[426px]:flex'
+    );
+  });
+
+  it('applies the filters and closes the popover', () => {
+    const onApplyFilters = jest.fn();
+    renderPopover({ onApplyFilters });
+
+    fireEvent.click(screen.getByTestId('dropdown-toggle'));
+    expect(screen.getByTestId('dropdown-menu')).toHaveAttribute(
+      'data-open',
+      'true'
+    );
+
+    fireEvent.click(screen.getByText('Filtrar'));
+
+    expect(onApplyFilters).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId('dropdown-menu')).toHaveAttribute(
+      'data-open',
+      'false'
+    );
+  });
+
+  it('closes on apply even without an onApplyFilters handler', () => {
+    renderPopover();
+
+    fireEvent.click(screen.getByTestId('dropdown-toggle'));
+    fireEvent.click(screen.getByText('Filtrar'));
+
+    expect(screen.getByTestId('dropdown-menu')).toHaveAttribute(
+      'data-open',
+      'false'
+    );
+  });
+
+  it('seeds the filters from the applied filters in the store', async () => {
+    useLessonFiltersStore.setState({
+      appliedFilters: {
+        subjectIds: ['subject2'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      },
+    });
+
+    renderPopover({
+      initialFilters: {
+        subjectIds: ['subject1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Português')).toBeChecked();
+    });
+    expect(screen.getByLabelText('Matemática')).not.toBeChecked();
+  });
+
+  it('falls back to initialFilters when nothing is applied', async () => {
+    renderPopover({
+      initialFilters: {
+        subjectIds: ['subject1'],
+        topicIds: [],
+        subtopicIds: [],
+        contentIds: [],
+      },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Matemática')).toBeChecked();
+    });
   });
 });

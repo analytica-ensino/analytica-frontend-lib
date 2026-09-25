@@ -16,6 +16,7 @@ const makeUseMobileMock = (
 ): ReturnType<typeof useMobile> => ({
   isMobile: false,
   isTablet: false,
+  isLargeTablet: false,
   isSmallMobile: false,
   isExtraSmallMobile: false,
   isUltraSmallMobile: false,

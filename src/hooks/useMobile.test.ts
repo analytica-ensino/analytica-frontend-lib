@@ -79,6 +79,62 @@ describe('useMobile', () => {
       expect(result.current.isMobile).toBe(true);
       expect(result.current.isTablet).toBe(true);
     });
+
+    it('should resolve every flag on the very first render', () => {
+      mockInnerWidth(400);
+      const firstRender: Array<{
+        isMobile: boolean;
+        isTablet: boolean;
+        isLargeTablet: boolean;
+      }> = [];
+
+      renderHook(() => {
+        const result = useMobile();
+        firstRender.push({
+          isMobile: result.isMobile,
+          isTablet: result.isTablet,
+          isLargeTablet: result.isLargeTablet,
+        });
+        return result;
+      });
+
+      // No render with a stale `isMobile: false` before the effect runs
+      expect(firstRender[0]).toEqual({
+        isMobile: true,
+        isTablet: true,
+        isLargeTablet: true,
+      });
+    });
+
+    it('should flag large tablet up to and including 1024px', () => {
+      mockInnerWidth(1024);
+
+      const { result } = renderHook(() => useMobile());
+
+      expect(result.current.isLargeTablet).toBe(true);
+      expect(result.current.isTablet).toBe(false);
+    });
+
+    it('should not flag large tablet above 1024px', () => {
+      mockInnerWidth(1025);
+
+      const { result } = renderHook(() => useMobile());
+
+      expect(result.current.isLargeTablet).toBe(false);
+    });
+
+    it('should update large tablet flag when window resizes', () => {
+      mockInnerWidth(1440);
+
+      const { result } = renderHook(() => useMobile());
+
+      expect(result.current.isLargeTablet).toBe(false);
+
+      mockInnerWidth(932);
+      triggerResize();
+
+      expect(result.current.isLargeTablet).toBe(true);
+    });
   });
 
   describe('getFormContainerClasses', () => {

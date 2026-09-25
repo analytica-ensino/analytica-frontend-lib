@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 const MOBILE_WIDTH = 500;
 // Tablet width in pixels
 const TABLET_WIDTH = 931;
+// Large tablet width in pixels (inclusive upper bound)
+const LARGE_TABLET_WIDTH = 1024;
 // Video responsive breakpoints
 const SMALL_MOBILE_WIDTH = 425;
 const EXTRA_SMALL_MOBILE_WIDTH = 375;
@@ -39,11 +41,23 @@ export const getDeviceType = (): DeviceType => {
 
 /**
  * Hook to detect screen size and get responsive classes
- * @returns object with isMobile, isTablet, responsive class functions and getDeviceType
+ * @returns object with isMobile, isTablet, isLargeTablet (width <= 1024px), responsive class functions and getDeviceType
  */
 export const useMobile = () => {
-  const [isMobile, setIsMobile] = useState(false);
-  const [isTablet, setIsTablet] = useState(false);
+  /*
+    Layout flags are resolved synchronously from the same width reading on the
+    first render, so layouts that combine them (e.g. mobile vs large tablet)
+    don't paint one version first and then jump once the effect runs.
+  */
+  const [isMobile, setIsMobile] = useState(
+    () => getWindowWidth() < MOBILE_WIDTH
+  );
+  const [isTablet, setIsTablet] = useState(
+    () => getWindowWidth() < TABLET_WIDTH
+  );
+  const [isLargeTablet, setIsLargeTablet] = useState(
+    () => getWindowWidth() <= LARGE_TABLET_WIDTH
+  );
   const [isSmallMobile, setIsSmallMobile] = useState(false);
   const [isExtraSmallMobile, setIsExtraSmallMobile] = useState(false);
   const [isUltraSmallMobile, setIsUltraSmallMobile] = useState(false);
@@ -54,6 +68,7 @@ export const useMobile = () => {
       const width = getWindowWidth();
       setIsMobile(width < MOBILE_WIDTH);
       setIsTablet(width < TABLET_WIDTH);
+      setIsLargeTablet(width <= LARGE_TABLET_WIDTH);
       setIsSmallMobile(width < SMALL_MOBILE_WIDTH);
       setIsExtraSmallMobile(width < EXTRA_SMALL_MOBILE_WIDTH);
       setIsUltraSmallMobile(width < ULTRA_SMALL_MOBILE_WIDTH);
@@ -119,6 +134,7 @@ export const useMobile = () => {
   return {
     isMobile,
     isTablet,
+    isLargeTablet,
     isSmallMobile,
     isExtraSmallMobile,
     isUltraSmallMobile,

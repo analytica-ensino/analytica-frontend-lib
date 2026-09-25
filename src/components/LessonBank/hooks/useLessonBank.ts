@@ -57,6 +57,7 @@ interface UseLessonBankReturn {
   handleAddToLesson: (lesson: Lesson) => void;
   handleAddToLessonFromModal: () => void;
   handleCloseModal: () => void;
+  fetchRandomLessons: (count: number) => Promise<Lesson[]>;
 
   // Data getters
   getVideoData: (lesson: Lesson | null) => {
@@ -223,6 +224,32 @@ export const useLessonBank = (
       }
     },
     [pagination, buildLessonRequestBody]
+  );
+
+  /**
+   * Fetch random lessons matching the current filters, excluding the ones
+   * already added. Errors are propagated so the caller can report them.
+   * @param count - Number of random lessons to fetch
+   * @returns Promise with the random lessons returned by the API
+   */
+  const fetchRandomLessons = useCallback(
+    async (count: number): Promise<Lesson[]> => {
+      const requestBody: Record<string, unknown> = {
+        ...buildFiltersBody(filtersRef.current),
+        randomLessons: count,
+      };
+      if (addedLessonIds.length > 0) {
+        requestBody.selectedLessonsIds = addedLessonIds;
+      }
+
+      const response = await apiClientRef.current.post<LessonsListResponse>(
+        '/lesson/list',
+        requestBody
+      );
+
+      return response.data.data.lessons;
+    },
+    [buildFiltersBody, addedLessonIds]
   );
 
   /**
@@ -559,6 +586,7 @@ export const useLessonBank = (
     handleAddToLesson,
     handleAddToLessonFromModal,
     handleCloseModal,
+    fetchRandomLessons,
 
     // Data getters
     getVideoData,

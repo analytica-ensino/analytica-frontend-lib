@@ -1,5 +1,6 @@
 import { RefObject, useEffect, useMemo, useRef, useState } from 'react';
 import { BookIcon } from '@phosphor-icons/react/dist/csr/Book';
+import { BookBookmarkIcon } from '@phosphor-icons/react/dist/csr/BookBookmark';
 import { TrashIcon } from '@phosphor-icons/react/dist/csr/Trash';
 import { PencilSimpleIcon } from '@phosphor-icons/react/dist/csr/PencilSimple';
 import { Button, Text, Divider, EmptyState } from '../../index';
@@ -85,6 +86,11 @@ interface LessonPreviewProps {
    * Initial selected activity (if any)
    */
   selectedActivity?: ActivityModelTableItem | null;
+  /**
+   * `default` keeps the plain column used by the wide layouts; `card` renders
+   * the white rounded card used by the compact (<= 1024px) layout.
+   */
+  variant?: 'default' | 'card';
 }
 
 export const LessonPreview = ({
@@ -106,7 +112,9 @@ export const LessonPreview = ({
   onEditActivity,
   onRemoveActivity,
   selectedActivity: initialSelectedActivity = null,
+  variant = 'default',
 }: LessonPreviewProps) => {
+  const isCard = variant === 'card';
   const onPositionsChangeRef = useRef(onPositionsChange);
   onPositionsChangeRef.current = onPositionsChange;
 
@@ -323,42 +331,69 @@ export const LessonPreview = ({
   return (
     <>
       <div
+        data-testid="lesson-preview-container"
+        data-variant={variant}
         className={cn(
-          'w-full flex-shrink-0 p-4 rounded-lg bg-background flex flex-col gap-4',
+          'w-full flex-shrink-0 bg-background flex flex-col',
+          isCard
+            ? 'px-7.5 max-[376px]:px-4 py-6 gap-6 rounded-xl'
+            : 'p-4 gap-4 rounded-lg',
           className
         )}
       >
-        <section className="flex flex-row items-center gap-2 text-text-950">
-          <BookIcon size={24} />
-          <Text size="lg" weight="bold">
-            {title}
-          </Text>
-        </section>
+        <div className="flex flex-col gap-4">
+          <section className="flex flex-row items-center gap-2 text-text-950">
+            {isCard ? <BookBookmarkIcon size={24} /> : <BookIcon size={24} />}
+            <Text size={isCard ? 'xl' : 'lg'} weight="bold">
+              {title}
+            </Text>
+          </section>
 
-        <section className="flex flex-row justify-between items-center">
-          <Text size="sm" className="text-text-800">
-            {totalLabel}
-          </Text>
-          {onRemoveAll && orderedLessons.length > 0 && (
-            <Button
-              size="small"
-              variant="link"
-              action="negative"
-              iconLeft={<TrashIcon size={16} />}
-              onClick={onRemoveAll}
+          <section className="flex flex-row flex-wrap justify-between items-center gap-4">
+            <Text
+              size="sm"
+              className={cn(
+                isCard
+                  ? 'text-text-700 bg-background-50 rounded-sm px-2 py-1 whitespace-nowrap'
+                  : 'text-text-800'
+              )}
             >
-              Remover tudo
-            </Button>
-          )}
-        </section>
+              {totalLabel}
+            </Text>
+            {/*
+              The card keeps "Remover tudo" on screen and just disables it
+              while the preview is empty, as the compact design shows.
+            */}
+            {onRemoveAll && (isCard || orderedLessons.length > 0) && (
+              <Button
+                size="small"
+                variant="link"
+                action="negative"
+                iconLeft={<TrashIcon size={16} />}
+                onClick={onRemoveAll}
+                disabled={orderedLessons.length === 0}
+                className="whitespace-nowrap"
+              >
+                Remover tudo
+              </Button>
+            )}
+          </section>
+        </div>
 
         {orderedLessons.length === 0 ? (
-          <EmptyState
-            image={<Activities />}
-            title="Nenhuma aula adicionada ainda"
-            description="Utilize a coluna ao lado para adicionar aulas à aula recomendada."
-            size="compact"
-          />
+          <div
+            className={cn(
+              isCard &&
+                'p-6 border border-dashed border-border-300 rounded-lg flex flex-col items-center'
+            )}
+          >
+            <EmptyState
+              image={<Activities />}
+              title="Nenhuma aula adicionada ainda"
+              description="Utilize a coluna ao lado para adicionar aulas à aula recomendada."
+              size="compact"
+            />
+          </div>
         ) : (
           <section className="flex flex-col gap-3">
             {orderedLessons.map(

@@ -5,6 +5,8 @@ export interface KnowledgeStructureFilterProps {
   knowledgeStructure: KnowledgeStructureState;
   knowledgeCategories: CategoryConfig[];
   handleCategoriesChange?: (updatedCategories: CategoryConfig[]) => void;
+  /** Show the dividers between Tema, Subtema and Assunto rows */
+  showDivider?: boolean;
 }
 
 /**
@@ -16,6 +18,7 @@ export const KnowledgeStructureFilter = ({
   knowledgeStructure,
   knowledgeCategories,
   handleCategoriesChange,
+  showDivider = true,
 }: KnowledgeStructureFilterProps) => {
   return (
     <div className="mt-4">
@@ -38,6 +41,7 @@ export const KnowledgeStructureFilter = ({
           onCategoriesChange={handleCategoriesChange}
           compactSingleItem={false}
           showSingleItem={true}
+          showDivider={showDivider}
         />
       )}
       {!knowledgeStructure.loading &&

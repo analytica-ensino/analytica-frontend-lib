@@ -1,6 +1,19 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+  type ReactNode,
+} from 'react';
+import { FadersHorizontalIcon } from '@phosphor-icons/react/dist/csr/FadersHorizontal';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
+import DropdownMenu, {
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '../DropdownMenu/DropdownMenu';
+import { useLessonFiltersStore } from '../../store/lessonFiltersStore';
 import type { BaseApiClient } from '../../types/api';
 import { createUseActivityFiltersData } from '../../hooks/useActivityFiltersData';
 import type { LessonFiltersData } from '../../types/lessonFilters';
@@ -159,7 +172,8 @@ export const LessonFilters = ({
       ? 'w-full bg-background'
       : 'w-[400px] flex-shrink-0 p-4 bg-background';
 
-  const contentClassName = variant === 'popover' ? 'p-4' : '';
+  const isPopover = variant === 'popover';
+  const contentClassName = isPopover ? 'p-4 max-[426px]:p-6' : '';
 
   return (
     <div className={containerClassName}>
@@ -172,6 +186,15 @@ export const LessonFilters = ({
       )}
 
       <div className={contentClassName}>
+        {/* Narrow popover (<= 425px) gets its own heading, as on the design */}
+        {isPopover && (
+          <section className="hidden max-[426px]:flex flex-row items-center gap-2 text-text-950 mb-4">
+            <FadersHorizontalIcon size={24} />
+            <Text size="xl" weight="bold">
+              Filtro de aulas
+            </Text>
+          </section>
+        )}
         <section className="flex flex-col gap-4">
           <div>
             <div className="flex flex-row justify-between items-center mb-3">
@@ -198,6 +221,7 @@ export const LessonFilters = ({
               onToggleAllSubjects={handleToggleAllSubjects}
               loading={loadingSubjects}
               error={subjectsError}
+              gridClassName={isPopover ? 'max-[426px]:grid-cols-2' : undefined}
             />
           </div>
 
@@ -205,16 +229,119 @@ export const LessonFilters = ({
             knowledgeStructure={knowledgeStructure}
             knowledgeCategories={knowledgeCategories}
             handleCategoriesChange={handleCategoriesChange}
+            showDivider={!isPopover}
           />
 
-          {variant === 'popover' && (
+          {isPopover && (
             <FilterActions
               onClearFilters={onClearFilters}
               onApplyFilters={onApplyFilters}
+              showDivider={false}
+              className="max-[426px]:px-0 max-[426px]:pt-0 max-[426px]:gap-4"
             />
           )}
         </section>
       </div>
     </div>
+  );
+};
+
+/** Tallest the filters popover gets when the viewport has room for it (px). */
+const LESSON_FILTERS_POPOVER_MAX_HEIGHT = 720;
+
+export interface LessonFiltersPopoverProps extends Omit<
+  LessonFiltersProps,
+  'variant'
+> {
+  triggerLabel?: string;
+  /** Rendered before the trigger label. Required for `collapseTriggerLabel`. */
+  triggerIcon?: ReactNode;
+  /**
+   * Hides the trigger label below 520px, leaving just the icon, so the trigger
+   * can share a row with other controls on a phone. `triggerLabel` stays as the
+   * button's accessible name.
+   */
+  collapseTriggerLabel?: boolean;
+}
+
+/**
+ * LessonFiltersPopover component
+ * Wraps LessonFilters in a DropdownMenu triggered by a Button. Closes itself
+ * once the filters are applied.
+ * @param props - Component props
+ * @returns Popover JSX element
+ */
+export const LessonFiltersPopover = ({
+  triggerLabel = 'Filtro de aulas',
+  triggerIcon,
+  collapseTriggerLabel = false,
+  initialFilters,
+  onApplyFilters,
+  ...lessonFiltersProps
+}: LessonFiltersPopoverProps) => {
+  const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const appliedFilters = useLessonFiltersStore((state) => state.appliedFilters);
+
+  // Use appliedFilters from store if available, otherwise fall back to initialFilters
+  const effectiveInitialFilters = appliedFilters ?? initialFilters;
+
+  const handleApplyFilters = () => {
+    onApplyFilters?.();
+    setOpen(false);
+  };
+
+  return (
+    <DropdownMenu open={open} onOpenChange={setOpen}>
+      <DropdownMenuTrigger asChild ref={triggerRef}>
+        {/*
+          The icon lives in `children` rather than in `iconLeft` because
+          `iconLeft` adds an unconditional `mr-2`, which would leave a dangling
+          margin once the label is hidden.
+        */}
+        <Button
+          variant="outline"
+          size="small"
+          aria-label={triggerLabel}
+          className={
+            collapseTriggerLabel
+              ? 'size-9 p-0 min-[520px]:size-auto min-[520px]:px-4 min-[520px]:py-2.5'
+              : undefined
+          }
+        >
+          <span className="flex flex-row items-center gap-2">
+            {triggerIcon}
+            <span
+              className={
+                collapseTriggerLabel ? 'hidden min-[520px]:inline' : undefined
+              }
+            >
+              {triggerLabel}
+            </span>
+          </span>
+        </Button>
+      </DropdownMenuTrigger>
+      {/*
+        Portaled (position: fixed) and sized by the menu itself from the room
+        left below the trigger: the page is `h-screen overflow-hidden`, so an
+        absolute menu past the viewport bottom was clipped with "Filtrar" out of
+        reach, and the header above the trigger changes height per breakpoint,
+        which rules out a fixed `max-h` calc.
+      */}
+      <DropdownMenuContent
+        portal
+        triggerRef={triggerRef}
+        maxHeight={LESSON_FILTERS_POPOVER_MAX_HEIGHT}
+        className="w-[calc(100vw-2.5rem)] max-w-[400px] !p-0 max-[426px]:rounded-xl max-[426px]:border-0 max-[426px]:shadow-soft-shadow-1"
+        align="start"
+      >
+        <LessonFilters
+          variant="popover"
+          {...lessonFiltersProps}
+          initialFilters={effectiveInitialFilters}
+          onApplyFilters={handleApplyFilters}
+        />
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };

@@ -16,6 +16,7 @@ jest.mock('../../index', () => ({
     onClick,
     size,
     className,
+    disabled,
     'aria-label': ariaLabel,
   }: {
     children?: React.ReactNode;
@@ -25,11 +26,13 @@ jest.mock('../../index', () => ({
     onClick?: (e: React.MouseEvent) => void;
     size?: string;
     className?: string;
+    disabled?: boolean;
     'aria-label'?: string;
   }) => (
     <button
       data-testid={`button-${ariaLabel || 'default'}`}
       onClick={onClick}
+      disabled={disabled}
       className={className}
       data-variant={variant}
       data-action={action}
@@ -1423,6 +1426,81 @@ describe('LessonPreview', () => {
       expect(screen.getByTestId('lesson-watch-modal')).toBeInTheDocument();
 
       getItemSpy.mockRestore();
+    });
+  });
+
+  describe('card variant', () => {
+    it('keeps the default layout when no variant is given', () => {
+      render(<LessonPreview {...defaultProps} />);
+
+      const container = screen.getByTestId('lesson-preview-container');
+      expect(container).toHaveAttribute('data-variant', 'default');
+      expect(container).toHaveClass('p-4', 'rounded-lg');
+    });
+
+    it('renders the card layout with a bigger title and a count chip', () => {
+      render(<LessonPreview {...defaultProps} variant="card" />);
+
+      const container = screen.getByTestId('lesson-preview-container');
+      expect(container).toHaveAttribute('data-variant', 'card');
+      expect(container).toHaveClass('px-7.5', 'py-6', 'rounded-xl');
+
+      const texts = screen.getAllByTestId('text');
+      expect(
+        texts.find((el) => el.textContent === 'Prévia das aulas')
+      ).toHaveAttribute('data-size', 'xl');
+      expect(
+        texts.find((el) => el.textContent?.includes('aulas adicionadas'))
+      ).toHaveClass('bg-background-50');
+    });
+
+    it('keeps "Remover tudo" visible but disabled while empty', () => {
+      render(
+        <LessonPreview
+          {...defaultProps}
+          lessons={[]}
+          onRemoveAll={jest.fn()}
+          variant="card"
+        />
+      );
+
+      expect(screen.getByText('Remover tudo').closest('button')).toBeDisabled();
+    });
+
+    it('enables "Remover tudo" when there are lessons', () => {
+      const onRemoveAll = jest.fn();
+      render(
+        <LessonPreview
+          {...defaultProps}
+          onRemoveAll={onRemoveAll}
+          variant="card"
+        />
+      );
+
+      const button = screen.getByText('Remover tudo').closest('button');
+      expect(button).not.toBeDisabled();
+      fireEvent.click(button!);
+      expect(onRemoveAll).toHaveBeenCalledTimes(1);
+    });
+
+    it('wraps the empty state in the dashed box', () => {
+      render(<LessonPreview {...defaultProps} lessons={[]} variant="card" />);
+
+      expect(
+        screen
+          .getByText('Nenhuma aula adicionada ainda')
+          .closest('.border-dashed')
+      ).toBeInTheDocument();
+    });
+
+    it('does not use the dashed box in the default layout', () => {
+      render(<LessonPreview {...defaultProps} lessons={[]} />);
+
+      expect(
+        screen
+          .getByText('Nenhuma aula adicionada ainda')
+          .closest('.border-dashed')
+      ).toBeNull();
     });
   });
 });

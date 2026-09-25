@@ -8,6 +8,7 @@ import {
 } from '../../..';
 import type { KnowledgeArea } from '../../../types/activityFilters';
 import { GridFourIcon } from '@phosphor-icons/react/dist/csr/GridFour';
+import { cn } from '../../../utils/utils';
 
 export interface SubjectsFilterProps {
   knowledgeAreas: KnowledgeArea[];
@@ -23,6 +24,8 @@ export interface SubjectsFilterProps {
   onToggleAllSubjects?: () => void;
   loading?: boolean;
   error?: string | null;
+  /** Extra classes for the subjects grid (e.g. fewer columns on narrow popovers) */
+  gridClassName?: string;
 }
 
 interface SelectAllCardProps {
@@ -88,6 +91,7 @@ export const SubjectsFilter = ({
   onToggleAllSubjects,
   loading = false,
   error = null,
+  gridClassName,
 }: SubjectsFilterProps) => {
   const { isDark } = useTheme();
 
@@ -131,7 +135,7 @@ export const SubjectsFilter = ({
   const someSelected = selectedSubjectIds.length > 0;
 
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div className={cn('grid grid-cols-3 gap-3', gridClassName)}>
       {showAllSubjectsOption && (
         <SelectAllCard
           checked={allSubjectsSelected}
