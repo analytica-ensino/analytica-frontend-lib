@@ -471,14 +471,48 @@ describe('AlertDialog', () => {
         <AlertDialog {...defaultProps} isOpen={true} onChangeOpen={jest.fn()} />
       );
 
-      expect(screen.getByText('Test Dialog')).toHaveAttribute(
-        'id',
-        'alert-dialog-title'
+      // O que importa é a LIGAÇÃO, não o valor do id: ele vem do `useId` e é
+      // por instância, justamente para dois diálogos não colidirem.
+      const dialogo = screen.getByRole('dialog');
+      const titulo = screen.getByText('Test Dialog');
+      const descricao = screen.getByText('This is a test dialog');
+
+      expect(titulo.id).toBeTruthy();
+      expect(descricao.id).toBeTruthy();
+      expect(dialogo).toHaveAttribute('aria-labelledby', titulo.id);
+      expect(dialogo).toHaveAttribute('aria-describedby', descricao.id);
+    });
+
+    it('dá ids próprios a cada diálogo, para não colidirem', () => {
+      render(
+        <>
+          <AlertDialog
+            {...defaultProps}
+            title="Primeiro"
+            description="Descrição do primeiro"
+            isOpen={true}
+            onChangeOpen={jest.fn()}
+          />
+          <AlertDialog
+            {...defaultProps}
+            title="Segundo"
+            description="Descrição do segundo"
+            isOpen={true}
+            onChangeOpen={jest.fn()}
+          />
+        </>
       );
-      expect(screen.getByText('This is a test dialog')).toHaveAttribute(
-        'id',
-        'alert-dialog-description'
+
+      const [primeiro, segundo] = screen.getAllByRole('dialog');
+
+      expect(primeiro.getAttribute('aria-labelledby')).not.toBe(
+        segundo.getAttribute('aria-labelledby')
       );
+      // Com ids fixos os dois apontariam para o mesmo nó e o leitor anunciaria
+      // "Primeiro" nos dois diálogos.
+      expect(primeiro).toHaveAccessibleName('Primeiro');
+      expect(segundo).toHaveAccessibleName('Segundo');
+      expect(segundo).toHaveAccessibleDescription('Descrição do segundo');
     });
 
     it('se anuncia como diálogo, com título e descrição ligados', () => {

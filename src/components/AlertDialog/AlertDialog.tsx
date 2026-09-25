@@ -2,6 +2,7 @@ import {
   forwardRef,
   HTMLAttributes,
   useEffect,
+  useId,
   useRef,
   MouseEvent,
   KeyboardEvent,
@@ -77,6 +78,15 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
     ref
   ) => {
     const dialogRef = useRef<HTMLDivElement>(null);
+
+    /**
+     * Ids por instância. Fixos, dois diálogos abertos ao mesmo tempo — ou um
+     * diálogo convivendo com qualquer outro elemento da página que use o mesmo
+     * id — fariam o `aria-labelledby` apontar para o nó errado, e o leitor de
+     * tela anunciaria o título do outro.
+     */
+    const titleId = useId();
+    const descriptionId = useId();
 
     /**
      * Leva o foco pro diálogo ao abrir, prende o Tab lá dentro e devolve o foco
@@ -173,8 +183,8 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
               // abrir já falando "Cancelar".
               role="dialog"
               aria-modal="true"
-              aria-labelledby="alert-dialog-title"
-              aria-describedby="alert-dialog-description"
+              aria-labelledby={titleId}
+              aria-describedby={descriptionId}
               tabIndex={-1}
               className={cn(
                 'bg-background border border-border-100 rounded-lg shadow-lg p-6 m-3',
@@ -184,15 +194,12 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
               {...props}
             >
               <h2
-                id="alert-dialog-title"
+                id={titleId}
                 className="pb-3 text-xl font-semibold text-text-950"
               >
                 {title}
               </h2>
-              <p
-                id="alert-dialog-description"
-                className="text-text-700 text-sm"
-              >
+              <p id={descriptionId} className="text-text-700 text-sm">
                 {description}
               </p>
 
