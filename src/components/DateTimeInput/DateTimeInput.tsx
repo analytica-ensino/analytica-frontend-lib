@@ -1,9 +1,15 @@
-import { ChangeEvent, useId, useRef, useState } from 'react';
+import {
+  ChangeEvent,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from 'react';
 import { CalendarBlankIcon } from '@phosphor-icons/react/dist/csr/CalendarBlank';
 import Input from '../Input/Input';
 import Calendar from '../Calendar/Calendar';
 import DropdownMenu, {
-  DropdownMenuTrigger,
   DropdownMenuContent,
 } from '../DropdownMenu/DropdownMenu';
 
@@ -75,9 +81,19 @@ const DateTimeInput = ({
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     date ? new Date(`${date}T12:00:00`) : undefined
   );
-  const triggerRef = useRef<HTMLButtonElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const calendarButtonRef = useRef<HTMLButtonElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const generatedId = useId();
   const timeInputId = `datetime-time-${generatedId}`;
+  const dialogId = `datetime-dialog-${generatedId}`;
+  const isOpen = !disabled && isCalendarOpen;
+  // Read by the stable handleOpenChange without recreating it
+  const isOpenRef = useRef(isOpen);
+  isOpenRef.current = isOpen;
+  // Set when the calendar button opens the dialog: keyboard users need the
+  // focus inside it to reach the days and the time field
+  const focusDialogOnOpenRef = useRef(false);
 
   /**
    * Handle date selection from calendar
@@ -125,21 +141,74 @@ const DateTimeInput = ({
 
   const inputValue = date ? `${date}T${time || defaultTime}` : '';
 
+  /**
+   * Mirrors the menu state (outside click, Escape) back to the field. Stable
+   * on purpose: DropdownMenu re-notifies whenever this callback changes, and
+   * a new function per render would echo its stale state right after the
+   * field opens the calendar, closing it again in a loop.
+   */
+  const handleOpenChange = useCallback(
+    (open: boolean) => {
+      // Closing is always mirrored: a calendar closed because the field got
+      // disabled must not reopen by itself once it is enabled again
+      if (!disabled || !open) {
+        setIsCalendarOpen(open);
+      }
+      if (open || !isOpenRef.current) return;
+      // Escape closes the dialog from inside it; the focused day/time control
+      // goes away with it, so hand the focus to the calendar button. A click
+      // outside already put the focus somewhere else and is left alone.
+      const active = document.activeElement;
+      const focusWasInDialog =
+        active === document.body ||
+        (active !== null && !!contentRef.current?.contains(active));
+      if (focusWasInDialog) calendarButtonRef.current?.focus();
+    },
+    [disabled]
+  );
+
+  /**
+   * Keyboard-operable trigger for the dialog (the field itself only opens it
+   * on pointer click, since keyboard users type the date into it). A
+   * disabled button never fires click, and `isOpen` also honours `disabled`.
+   */
+  const handleCalendarButtonClick = () => {
+    focusDialogOnOpenRef.current = !isCalendarOpen;
+    setIsCalendarOpen((open) => !open);
+  };
+
+  // Moves the focus into the dialog opened by the calendar button. The
+  // content mounts over a couple of renders (portal + fade), so retry for a
+  // few frames until it exists.
+  useEffect(() => {
+    if (!isOpen || !focusDialogOnOpenRef.current) return;
+    focusDialogOnOpenRef.current = false;
+    let frame = 0;
+    let attempts = 0;
+    const focusDialog = () => {
+      if (contentRef.current) {
+        contentRef.current.focus();
+      } else if (attempts++ < 5) {
+        frame = requestAnimationFrame(focusDialog);
+      }
+    };
+    frame = requestAnimationFrame(focusDialog);
+    return () => cancelAnimationFrame(frame);
+  }, [isOpen]);
+
   return (
-    <DropdownMenu
-      open={!disabled && isCalendarOpen}
-      onOpenChange={(open) => {
-        if (!disabled) {
-          setIsCalendarOpen(open);
-        }
-      }}
-    >
-      <DropdownMenuTrigger
-        className={className}
-        ref={triggerRef}
-        disabled={disabled}
-      >
+    <DropdownMenu open={isOpen} onOpenChange={handleOpenChange}>
+      {/* The field itself is the entry point. It used to sit inside a
+          <button>, nesting two interactive controls (invalid, and read twice
+          by screen readers). Keyboard users type the date straight into the
+          field, and the calendar icon is a real button that opens the dialog
+          from the keyboard too. A pointer click on the field also opens it,
+          without taking the focus away (the click lives on the native input:
+          the label forwards its click to it). */}
+      <div ref={triggerRef} className={className}>
         <Input
+          // A disabled input fires no click; `isOpen` honours `disabled` too
+          onClick={() => setIsCalendarOpen((open) => !open)}
           label={label}
           type="datetime-local"
           placeholder="00/00/0000"
@@ -149,11 +218,30 @@ const DateTimeInput = ({
           errorMessage={errorMessage}
           disabled={disabled}
           data-testid={testId ? `${testId}-input` : undefined}
-          iconRight={<CalendarBlankIcon size={14} />}
+          iconRight={
+            // The icon slot ignores pointer events; the button opts back in
+            <button
+              ref={calendarButtonRef}
+              type="button"
+              aria-label="Abrir calendário"
+              aria-haspopup="dialog"
+              aria-expanded={isOpen}
+              aria-controls={isOpen ? dialogId : undefined}
+              disabled={disabled}
+              onClick={handleCalendarButtonClick}
+              className="pointer-events-auto flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
+            >
+              <CalendarBlankIcon size={14} aria-hidden="true" />
+            </button>
+          }
           className="[&::-webkit-calendar-picker-indicator]:hidden"
         />
-      </DropdownMenuTrigger>
+      </div>
       <DropdownMenuContent
+        ref={contentRef}
+        id={dialogId}
+        role="dialog"
+        aria-label={label}
         align="start"
         className="p-0 z-[100]"
         portal

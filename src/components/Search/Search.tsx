@@ -17,6 +17,7 @@ import DropdownMenu, {
   DropdownMenuItem,
   createDropdownStore,
 } from '../DropdownMenu/DropdownMenu';
+import { cn } from '../../utils/utils';
 
 /**
  * Search component props interface
@@ -55,6 +56,16 @@ type SearchProps = {
   className?: string;
   /** Additional CSS classes to apply to the container */
   containerClassName?: string;
+  /**
+   * Entrega a decisão de largura para quem posiciona o campo: o container passa
+   * a ser só `w-full`, sem o teto de 488px.
+   *
+   * Existe porque a largura padrão é fixa (`md:w-[488px]`) e largura fixa não se
+   * sobrescreve de fora por CSS — um pai não tem como pedir "ocupe a linha
+   * inteira". Quem usa: linhas de header que já controlam a própria largura por
+   * breakpoint, como o `TableHeaderRow`.
+   */
+  fullWidth?: boolean;
   /** Callback when clear button is clicked */
   onClear?: () => void;
 } & Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'onSelect'>;
@@ -75,6 +86,8 @@ type SearchProps = {
  * @param dropdownMaxHeight - Maximum height of dropdown in pixels
  * @param className - Additional CSS classes for the input
  * @param containerClassName - Additional CSS classes for the container
+ * @param fullWidth - Container só `w-full`, sem o teto de 488px; a largura passa
+ *   a ser responsabilidade de quem posiciona o campo
  * @param props - All other standard input HTML attributes
  * @returns A styled search input with dropdown functionality
  *
@@ -161,6 +174,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       noResultsText = 'Nenhum resultado encontrado',
       className = '',
       containerClassName = '',
+      fullWidth = false,
       disabled,
       readOnly,
       id,
@@ -387,10 +401,16 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
     const showClearButton = hasValue && !disabled && !readOnly;
     const showSearchIcon = !hasValue && !disabled && !readOnly;
 
+    // `cn` em vez de concatenação no container: é o que permite a
+    // `containerClassName` vencer um conflito com a largura padrão — numa string
+    // crua quem ganha é a ordem do CSS gerado, não a ordem escrita.
     return (
       <div
         ref={dropdownRef}
-        className={`w-full max-w-lg md:w-[488px] ${containerClassName}`}
+        className={cn(
+          fullWidth ? 'w-full' : 'w-full max-w-lg md:w-[488px]',
+          containerClassName
+        )}
       >
         {/* `aria-atomic` faz o leitor reler a frase inteira, e não só o
             pedaço que mudou. */}

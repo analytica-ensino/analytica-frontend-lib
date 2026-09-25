@@ -128,10 +128,13 @@ export function BasePageLayout<T extends Record<string, unknown>>({
       {/* Background decoration */}
       <span className="absolute top-0 left-0 h-[150px] w-full z-0" />
 
-      {/* Main container */}
-      <div className="flex flex-col w-full h-full max-w-[1350px] mx-auto z-10 lg:px-0 px-4 pt-4 sm:pt-0">
-        {/* Header Section */}
-        <div className="flex flex-col sm:flex-row w-full mb-6 items-start sm:items-center sm:justify-between gap-0 sm:gap-4">
+      {/* Main container — sem `px-*`: o PageContainer que envolve a página já
+          aplica os 16px laterais abaixo de `lg`, e repeti-los aqui estreitava a
+          linha em 32px de cada lado. */}
+      <div className="flex flex-col w-full h-full max-w-[1350px] mx-auto z-10 pt-4 sm:pt-0">
+        {/* Header Section — empilha até `lg` para o título não brigar por espaço
+            com as abas entre 640px e 1024px, onde ele quebrava em duas linhas. */}
+        <div className="flex flex-col lg:flex-row w-full mb-6 items-start lg:items-center lg:justify-between gap-0 lg:gap-4">
           {/* Page Title + Optional Right Content */}
           <div
             className={`flex gap-3 ${
@@ -147,8 +150,12 @@ export function BasePageLayout<T extends Record<string, unknown>>({
             {headerRightContent}
           </div>
 
-          {/* Tabs Menu */}
-          <div className="shrink-0 lg:w-auto self-center sm:self-auto">
+          {/* Tabs Menu — empilhado, a linha das abas ocupa 100% e começa na
+              borda esquerda, alinhada com o título. Nada de `self-center`: era
+              ele que centralizava o grupo, porque sem largura o wrapper encolhia
+              para o tamanho do conteúdo. Os `<li>` do variant `menu2` já são
+              `w-full`, então dividem a linha em partes iguais. */}
+          <div className="w-full lg:w-auto lg:shrink-0">
             <Menu
               defaultValue={activeTab}
               value={activeTab}

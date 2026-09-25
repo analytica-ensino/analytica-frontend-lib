@@ -121,6 +121,44 @@ describe('Search Component', () => {
         .closest('div')?.parentElement;
       expect(container).toHaveClass('custom-container');
     });
+
+    it('should cap the container at 488px by default', () => {
+      render(<Search options={defaultOptions} />);
+
+      const container = screen
+        .getByRole('combobox')
+        .closest('div')?.parentElement;
+      expect(container).toHaveClass('w-full', 'max-w-lg', 'md:w-[488px]');
+    });
+
+    it('should drop the 488px cap when fullWidth is set', () => {
+      render(<Search options={defaultOptions} fullWidth />);
+
+      // Largura fixa não se sobrescreve de fora por CSS, então quem quer o campo
+      // ocupando a linha inteira precisa que o teto saia daqui — é o que a prop
+      // faz. Ver `TableHeaderRow`, que assume a largura no lugar do campo.
+      const container = screen
+        .getByRole('combobox')
+        .closest('div')?.parentElement;
+      expect(container).toHaveClass('w-full');
+      expect(container).not.toHaveClass('max-w-lg');
+      expect(container).not.toHaveClass('md:w-[488px]');
+    });
+
+    it('should let containerClassName override the default width', () => {
+      render(
+        <Search options={defaultOptions} containerClassName="max-w-none" />
+      );
+
+      // O container usa `cn` (tailwind-merge): numa concatenação crua o
+      // `max-w-lg` continuaria valendo, porque quem decide é a ordem do CSS
+      // gerado e não a ordem escrita.
+      const container = screen
+        .getByRole('combobox')
+        .closest('div')?.parentElement;
+      expect(container).toHaveClass('max-w-none');
+      expect(container).not.toHaveClass('max-w-lg');
+    });
   });
 
   describe('Input Behavior', () => {

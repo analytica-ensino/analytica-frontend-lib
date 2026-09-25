@@ -1,4 +1,10 @@
-import { render, screen, fireEvent, renderHook } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  renderHook,
+  waitFor,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Select, {
   SelectTrigger,
@@ -1425,27 +1431,67 @@ describe('Select — semântica de combobox', () => {
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
   });
 
-  it('o nome acessível do combobox vem do label', () => {
+  it('o nome acessível do combobox junta o label e o valor atual', () => {
     setupComLabel();
     expect(
-      screen.getByRole('combobox', { name: 'Assunto' })
+      screen.getByRole('combobox', { name: 'Assunto Selecionar' })
     ).toBeInTheDocument();
   });
 
-  it('o label é ligado por aria-labelledby, não só por htmlFor', () => {
+  it('o label e o valor são ligados por aria-labelledby', () => {
     setupComLabel();
     const trigger = screen.getByRole('combobox');
-    const labelId = trigger.getAttribute('aria-labelledby');
+    const [labelId, valueId] = (
+      trigger.getAttribute('aria-labelledby') as string
+    ).split(' ');
 
-    expect(labelId).toBeTruthy();
-    expect(document.getElementById(labelId as string)).toHaveTextContent(
-      'Assunto'
-    );
+    expect(document.getElementById(labelId)).toHaveTextContent('Assunto');
+    expect(document.getElementById(valueId)).toHaveTextContent('Selecionar');
   });
 
-  it('sem label, não sobra um aria-labelledby apontando pro nada', () => {
+  it('sem label, o aria-labelledby aponta só pro valor', () => {
     setupSemLabel();
-    expect(screen.getByRole('combobox')).not.toHaveAttribute('aria-labelledby');
+    const trigger = screen.getByRole('combobox');
+    const valueId = trigger.getAttribute('aria-labelledby') as string;
+
+    expect(valueId.split(' ')).toHaveLength(1);
+    expect(document.getElementById(valueId)).toHaveTextContent('Selecionar');
+  });
+
+  it('sem label, usa o aria-label do gatilho como nome do campo', () => {
+    render(
+      <Select>
+        <SelectTrigger aria-label="Período">
+          <SelectValue placeholder="1 mês" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="1m">1 mês</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+    const trigger = screen.getByRole('combobox', { name: 'Período 1 mês' });
+    expect(trigger).toHaveAttribute('aria-label', 'Período');
+  });
+
+  it('respeita um aria-labelledby do consumidor e acrescenta o valor', () => {
+    render(
+      <>
+        <span id="titulo-externo">Filtro externo</span>
+        <Select>
+          <SelectTrigger aria-labelledby="titulo-externo">
+            <SelectValue placeholder="Todos" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos</SelectItem>
+          </SelectContent>
+        </Select>
+      </>
+    );
+
+    expect(
+      screen.getByRole('combobox', { name: 'Filtro externo Todos' })
+    ).toBeInTheDocument();
   });
 
   it('aria-controls aponta pro id real da listbox quando abre', async () => {
@@ -1534,7 +1580,7 @@ describe('Select — semântica de combobox', () => {
     await userEvent.click(screen.getByRole('combobox'));
     await userEvent.click(screen.getByRole('option', { name: 'Acesso' }));
 
-    const trigger = screen.getByRole('combobox', { name: 'Assunto' });
+    const trigger = screen.getByRole('combobox', { name: 'Assunto Acesso' });
     expect(trigger).toHaveFocus();
     expect(trigger).toHaveTextContent('Acesso');
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
@@ -1576,7 +1622,7 @@ describe('Select — semântica de combobox', () => {
     expect(screen.getByRole('combobox')).toHaveFocus();
   });
 
-  it('não sequestra teclas que não são seta com a listbox aberta', async () => {
+  it('não sequestra teclas que não são de navegação com a listbox aberta', async () => {
     setupComLabel();
     await userEvent.click(screen.getByRole('combobox'));
 
@@ -1585,12 +1631,21 @@ describe('Select — semântica de combobox', () => {
 
     // `fireEvent` devolve false quando alguém chamou preventDefault. Antes,
     // QUALQUER tecla era cancelada aqui, o que prendia o Tab na listbox.
-    expect(fireEvent.keyDown(document, { key: 'Tab' })).toBe(true);
     expect(fireEvent.keyDown(document, { key: 'a' })).toBe(true);
     expect(opcao).toHaveFocus();
 
     // As setas continuam sendo tratadas.
     expect(fireEvent.keyDown(document, { key: 'ArrowDown' })).toBe(false);
+  });
+
+  it('Tab fecha a listbox e segue a partir do combobox, sem ser cancelado', async () => {
+    setupComLabel();
+    await userEvent.click(screen.getByRole('combobox'));
+    screen.getByRole('option', { name: 'Acesso' }).focus();
+
+    expect(fireEvent.keyDown(document, { key: 'Tab' })).toBe(true);
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(screen.getByRole('combobox')).toHaveFocus();
   });
 
   it('opção desabilitada segue marcada como aria-disabled', async () => {
@@ -1601,5 +1656,144 @@ describe('Select — semântica de combobox', () => {
       'aria-disabled',
       'true'
     );
+  });
+});
+
+describe('Select — anúncio no leitor de tela (foco, posição e estado)', () => {
+  const setup = (value?: string) =>
+    render(
+      <Select label="Assunto" value={value}>
+        <SelectTrigger>
+          <SelectValue placeholder="Selecionar" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="login" disabled>
+            Login
+          </SelectItem>
+          <SelectItem value="acesso">Acesso</SelectItem>
+          <SelectItem value="tecnico">Técnico</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+
+  it('ao abrir, leva o foco para a opção selecionada', async () => {
+    setup('tecnico');
+    await userEvent.click(screen.getByRole('combobox'));
+
+    await waitFor(() =>
+      expect(screen.getByRole('option', { name: 'Técnico' })).toHaveFocus()
+    );
+  });
+
+  it('ao abrir sem valor, leva o foco para a primeira opção habilitada', async () => {
+    setup();
+    await userEvent.click(screen.getByRole('combobox'));
+
+    await waitFor(() =>
+      expect(screen.getByRole('option', { name: 'Acesso' })).toHaveFocus()
+    );
+  });
+
+  it('não tenta focar nada se a listbox sumir antes do próximo frame', () => {
+    const rafSpy = jest
+      .spyOn(globalThis, 'requestAnimationFrame')
+      .mockImplementation(() => 1);
+    const cancelSpy = jest.spyOn(globalThis, 'cancelAnimationFrame');
+    setup();
+    const trigger = screen.getByRole('combobox');
+
+    fireEvent.click(trigger);
+    fireEvent.click(trigger);
+
+    expect(cancelSpy).toHaveBeenCalledWith(1);
+    rafSpy.mockRestore();
+    cancelSpy.mockRestore();
+  });
+
+  it('não quebra se a listbox não estiver no DOM quando o frame roda', () => {
+    let frame: ((time: number) => void) | undefined;
+    const rafSpy = jest
+      .spyOn(globalThis, 'requestAnimationFrame')
+      .mockImplementation((cb) => {
+        frame = cb;
+        return 1;
+      });
+    setup();
+    fireEvent.click(screen.getByRole('combobox'));
+    screen.getByRole('listbox').setAttribute('data-select-id', 'outro');
+
+    expect(() => frame?.(0)).not.toThrow();
+    rafSpy.mockRestore();
+  });
+
+  it('Home e End vão para a primeira e a última opção habilitada', async () => {
+    setup();
+    await userEvent.click(screen.getByRole('combobox'));
+
+    expect(fireEvent.keyDown(document, { key: 'End' })).toBe(false);
+    expect(screen.getByRole('option', { name: 'Técnico' })).toHaveFocus();
+
+    fireEvent.keyDown(document, { key: 'Home' });
+    expect(screen.getByRole('option', { name: 'Acesso' })).toHaveFocus();
+  });
+
+  it('expõe posição e total de cada opção', async () => {
+    setup();
+    await userEvent.click(screen.getByRole('combobox'));
+
+    const opcoes = screen.getAllByRole('option');
+    opcoes.forEach((opcao, index) => {
+      expect(opcao).toHaveAttribute('aria-posinset', String(index + 1));
+      expect(opcao).toHaveAttribute('aria-setsize', '3');
+    });
+  });
+
+  it('conta as opções dentro de agrupadores e ignora nós que não são opção', async () => {
+    render(
+      <Select>
+        <SelectTrigger>
+          <SelectValue placeholder="Selecionar" />
+        </SelectTrigger>
+        <SelectContent>
+          texto solto
+          <div>
+            <SelectItem value="a">A</SelectItem>
+            <span />
+          </div>
+          <SelectItem value="b">B</SelectItem>
+        </SelectContent>
+      </Select>
+    );
+    await userEvent.click(screen.getByRole('combobox'));
+
+    expect(screen.getByRole('option', { name: 'A' })).toHaveAttribute(
+      'aria-posinset',
+      '1'
+    );
+    expect(screen.getByRole('option', { name: 'B' })).toHaveAttribute(
+      'aria-posinset',
+      '2'
+    );
+    expect(screen.getByRole('option', { name: 'B' })).toHaveAttribute(
+      'aria-setsize',
+      '2'
+    );
+  });
+
+  it('o ícone de selecionado não entra no nome da opção', async () => {
+    setup('acesso');
+    await userEvent.click(screen.getByRole('combobox'));
+
+    const opcao = screen.getByRole('option', { name: 'Acesso' });
+    expect(opcao.querySelector('[aria-hidden="true"] svg')).toBeInTheDocument();
+  });
+
+  it('escolher com Espaço cancela a rolagem da página', async () => {
+    setup();
+    await userEvent.click(screen.getByRole('combobox'));
+    const opcao = screen.getByRole('option', { name: 'Acesso' });
+
+    expect(fireEvent.keyDown(opcao, { key: ' ' })).toBe(false);
+    expect(screen.getByRole('combobox')).toHaveTextContent('Acesso');
   });
 });

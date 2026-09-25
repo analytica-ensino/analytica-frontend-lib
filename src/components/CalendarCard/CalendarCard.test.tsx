@@ -62,6 +62,20 @@ describe('CalendarCard', () => {
       expect(screen.getByTestId('calendar-content')).toBeInTheDocument();
     });
 
+    it('announces the popup as a named dialog, not an empty menu', () => {
+      renderCalendarCard();
+      const trigger = screen.getByRole('button', {
+        name: 'Calendário de atividades',
+      });
+      fireEvent.click(trigger);
+
+      expect(trigger).toHaveAttribute('aria-haspopup', 'dialog');
+      expect(
+        screen.getByRole('dialog', { name: 'Calendário de atividades' })
+      ).toBeInTheDocument();
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    });
+
     it('respects the controlled isOpen prop', () => {
       const { rerender } = render(
         <CalendarCard

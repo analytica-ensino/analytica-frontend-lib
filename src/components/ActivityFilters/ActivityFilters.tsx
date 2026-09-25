@@ -702,9 +702,18 @@ export interface ActivityFiltersPopoverProps extends Omit<
   /** Rendered before the trigger label. Required for `collapseTriggerLabel`. */
   triggerIcon?: ReactNode;
   /**
-   * Hides the trigger label below 520px, leaving just the icon, so the trigger
-   * can share a row with other controls on a phone. `triggerLabel` stays as the
-   * button's accessible name.
+   * Esconde o rótulo do gatilho — deixando só o ícone — na faixa de 480px a
+   * 660px. `triggerLabel` segue como nome acessível do botão.
+   *
+   * A faixa é fechada dos dois lados porque é exatamente onde o gatilho disputa
+   * a linha com as abas ao lado, e os números são medidos: as abas pedem 385px
+   * e o gatilho com rótulo ocupa 227px, então a partir de 660px para baixo ele
+   * precisa sair da frente; colapsado cai para 54px e a linha cabe até 480px.
+   *
+   * Abaixo de 480px o rótulo volta: ali as abas já quebraram para a linha de
+   * baixo e o gatilho ficou sozinho na sua, com a largura toda à disposição —
+   * não há nada para economizar, e um botão só de ícone é mais difícil de
+   * reconhecer do que um com nome.
    */
   collapseTriggerLabel?: boolean;
 }
@@ -743,15 +752,30 @@ export const ActivityFiltersPopover = ({
           /*
             Collapsed to the icon, the button's default `px-8` leaves ~40px of
             dead padding around a 20px glyph — enough to push the tabs beside it
-            off a 360px screen. Restored at the width where the label returns.
+            off the line. Só apertado dentro da faixa: fora dela o rótulo está
+            visível e o padding do Button vale como em qualquer outro lugar.
+
+            `px-2.5` é o mesmo valor do `py-2.5` do Button, e é isso que deixa o
+            botão quadrado: sem igualar, sobravam 17px dos lados contra 11px em
+            cima e embaixo e ele virava uma pílula achatada ao lado das abas.
+            Casar os dois eixos vale mais que escolher um `px-*` qualquer —
+            `aspect-square` não serve aqui, porque a altura do Button vem do
+            conteúdo e não de uma classe fixa, então a razão acabaria encolhendo
+            a largura em vez de crescê-la.
           */
-          className={collapseTriggerLabel ? 'px-4 min-[520px]:px-8' : undefined}
+          className={
+            collapseTriggerLabel
+              ? 'min-[480px]:px-2.5 min-[660px]:px-8'
+              : undefined
+          }
         >
           <span className="flex flex-row items-center gap-2">
             {triggerIcon}
             <span
               className={
-                collapseTriggerLabel ? 'hidden min-[520px]:inline' : undefined
+                collapseTriggerLabel
+                  ? 'min-[480px]:hidden min-[660px]:inline'
+                  : undefined
               }
             >
               {triggerLabel}

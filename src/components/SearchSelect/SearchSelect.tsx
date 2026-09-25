@@ -204,10 +204,12 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
       if (newOpen) {
         updateTriggerRect();
         setSearchQuery('');
-        setHighlightedIndex(-1);
+        // Start on the current value, so the screen reader announces it (and
+        // its position) instead of an empty highlight
+        setHighlightedIndex(options.findIndex((opt) => opt.value === value));
       }
       setOpen(newOpen);
-    }, [disabled, loading, open, updateTriggerRect]);
+    }, [disabled, loading, open, updateTriggerRect, options, value]);
 
     // Handle option selection
     const handleSelect = useCallback(
@@ -319,7 +321,10 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
             }
             break;
           case 'Escape':
+            // preventDefault also tells an enclosing Modal the Escape was
+            // handled; stopPropagation keeps it from reaching other listeners
             e.preventDefault();
+            e.stopPropagation();
             setOpen(false);
             setSearchQuery('');
             triggerRef.current?.focus();
@@ -490,6 +495,7 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
                 </Text>
                 {isSelected && (
                   <CheckIcon
+                    aria-hidden="true"
                     size={16}
                     className="text-primary-700"
                     weight="bold"
@@ -539,6 +545,8 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
             ref={searchInputRef}
             type="text"
             role="combobox"
+            // Only rendered while the list is open
+            aria-expanded="true"
             aria-autocomplete="list"
             aria-controls={listboxId}
             aria-activedescendant={
@@ -547,7 +555,13 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
                 : undefined
             }
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              // The highlight is an index into the filtered list: once the
+              // results change it may point at another option, and Enter
+              // would pick that one without the user navigating to it
+              setHighlightedIndex(-1);
+            }}
             onKeyDown={handleKeyDown}
             placeholder={searchPlaceholder}
             size="small"
@@ -562,7 +576,7 @@ export const SearchSelect = forwardRef<HTMLButtonElement, SearchSelectProps>(
           ref={listRef}
           id={listboxId}
           role="listbox"
-          aria-label={label || 'Options'}
+          aria-label={label || 'Opções'}
           onScroll={handleScroll}
           className="flex-1 overflow-y-auto"
         >

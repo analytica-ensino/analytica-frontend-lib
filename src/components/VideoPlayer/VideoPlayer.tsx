@@ -259,11 +259,69 @@ const SpeedMenu = ({
     };
   }, [showSpeedMenu, onToggleMenu]);
 
+  // On open, focus goes to the checked speed so the screen reader announces
+  // the current choice. The timeout waits for the (possibly portaled) menu;
+  // not a rAF, which the player cannot rely on (see the init fallback below).
+  useEffect(() => {
+    if (!showSpeedMenu) return;
+    const timer = setTimeout(() => {
+      speedMenuRef.current
+        ?.querySelector<HTMLElement>('[aria-checked="true"]')
+        ?.focus();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [showSpeedMenu]);
+
+  /** Closes the menu and hands the focus back to the button that opened it. */
+  const closeAndReturnFocus = () => {
+    onToggleMenu();
+    buttonRef.current?.focus();
+  };
+
+  /**
+   * Menu keyboard: arrows/Home/End move between speeds (roving focus),
+   * Escape closes, Tab leaves. Handled keys stop here so they don't reach the
+   * player's own shortcuts; preventDefault on Escape keeps a Modal open.
+   */
+  const handleMenuKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const items = Array.from(
+      speedMenuRef.current?.querySelectorAll<HTMLElement>(
+        '[role="menuitemradio"]'
+      ) ?? []
+    );
+    const currentIndex = items.indexOf(document.activeElement as HTMLElement);
+    const nextIndexByKey: Record<string, number> = {
+      ArrowDown: (currentIndex + 1) % items.length,
+      ArrowUp: (currentIndex - 1 + items.length) % items.length,
+      Home: 0,
+      End: items.length - 1,
+    };
+
+    if (event.key in nextIndexByKey) {
+      event.preventDefault();
+      event.stopPropagation();
+      items[nextIndexByKey[event.key]]?.focus();
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      closeAndReturnFocus();
+    } else if (event.key === 'Tab') {
+      // Move focus to the button first, without preventDefault: the native
+      // Tab/Shift+Tab then continues from it instead of from the portaled
+      // menu at the end of <body>, which unmounts right after
+      buttonRef.current?.focus();
+      onToggleMenu();
+    }
+  };
+
   const menuContent = (
     <div
       ref={speedMenuRef}
       role="menu"
       aria-label="Playback speed"
+      // Focusable by script only: focus lives on the speeds (roving tabindex)
+      tabIndex={-1}
+      onKeyDown={handleMenuKeyDown}
       className={
         isFullscreen
           ? 'absolute bottom-12 right-0 bg-background border border-border-100 rounded-lg shadow-lg p-2 min-w-24 z-[9999]'
@@ -281,9 +339,15 @@ const SpeedMenu = ({
       {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
         <button
           key={speed}
+          type="button"
           role="menuitemradio"
           aria-checked={playbackRate === speed}
-          onClick={() => onSpeedChange(speed)}
+          // Roving tabindex: arrows move between speeds, Tab leaves the menu
+          tabIndex={-1}
+          onClick={() => {
+            onSpeedChange(speed);
+            buttonRef.current?.focus();
+          }}
           className={`block w-full text-left px-3 py-1 text-sm rounded hover:bg-border-50 transition-colors ${
             playbackRate === speed
               ? 'bg-primary-950 text-secondary-100 font-medium'
