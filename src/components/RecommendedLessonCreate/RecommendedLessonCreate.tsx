@@ -1279,35 +1279,42 @@ const RecommendedLessonCreate = ({
   // The compact layout has no "filters" tab; filters live in a popover there
   const compactView = selectedView === 'filters' ? 'lessons' : selectedView;
 
-  const previewContent = loadingInitialLessons ? (
-    <div className="flex flex-col gap-4 p-4">
-      <div className="flex flex-col gap-2">
-        <SkeletonText lines={1} width={200} />
-        <SkeletonText lines={1} width={150} />
+  /**
+   * Renders the lesson preview (or its loading skeleton)
+   * @param variant - `card` for the compact layout, `default` elsewhere
+   * @returns Preview JSX
+   */
+  const renderPreview = (variant: 'default' | 'card' = 'default') =>
+    loadingInitialLessons ? (
+      <div className="flex flex-col gap-4 p-4">
+        <div className="flex flex-col gap-2">
+          <SkeletonText lines={1} width={200} />
+          <SkeletonText lines={1} width={150} />
+        </div>
+        <div className="flex flex-col gap-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="p-4 border rounded">
+              <SkeletonText lines={2} />
+            </div>
+          ))}
+        </div>
       </div>
-      <div className="flex flex-col gap-2">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="p-4 border rounded">
-            <SkeletonText lines={2} />
-          </div>
-        ))}
-      </div>
-    </div>
-  ) : (
-    <LessonPreview
-      lessons={lessons}
-      onRemoveAll={handleRemoveAll}
-      onRemoveLesson={handleRemoveLesson}
-      onReorder={handleReorder}
-      apiClient={apiClient}
-      selectedActivity={selectedActivityForPreview}
-      onActivitySelected={handleActivitySelected}
-      onRemoveActivity={handleRemoveActivity}
-      onEditActivity={handleRedirectToActivity}
-      onCreateNewActivity={handleCreateNewActivity}
-      className="h-full overflow-y-auto"
-    />
-  );
+    ) : (
+      <LessonPreview
+        lessons={lessons}
+        onRemoveAll={handleRemoveAll}
+        onRemoveLesson={handleRemoveLesson}
+        onReorder={handleReorder}
+        apiClient={apiClient}
+        selectedActivity={selectedActivityForPreview}
+        onActivitySelected={handleActivitySelected}
+        onRemoveActivity={handleRemoveActivity}
+        onEditActivity={handleRedirectToActivity}
+        onCreateNewActivity={handleCreateNewActivity}
+        className="h-full overflow-y-auto"
+        variant={variant}
+      />
+    );
 
   /**
    * Renders the main content for the current screen size
@@ -1380,7 +1387,7 @@ const RecommendedLessonCreate = ({
                 data-testid="compact-preview-card"
                 className="w-full h-full overflow-hidden min-h-0 bg-background rounded-xl"
               >
-                {previewContent}
+                {renderPreview('card')}
               </div>
             )}
           </div>
@@ -1460,7 +1467,7 @@ const RecommendedLessonCreate = ({
             )}
             {selectedView === 'preview' && (
               <div className="w-full h-full overflow-hidden min-h-0">
-                {previewContent}
+                {renderPreview()}
               </div>
             )}
           </div>
@@ -1516,7 +1523,7 @@ const RecommendedLessonCreate = ({
 
         {/* Third Column - Lesson Preview */}
         <div className="w-[400px] flex-shrink-0 overflow-hidden h-full min-h-0">
-          {previewContent}
+          {renderPreview()}
         </div>
       </div>
     );

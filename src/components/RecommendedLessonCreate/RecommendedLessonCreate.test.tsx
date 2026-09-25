@@ -410,7 +410,9 @@ jest.mock('../LessonPreview/LessonPreview', () => ({
     onCreateNewActivity,
     onActivitySelected,
     onRemoveActivity,
+    variant,
   }: {
+    variant?: string;
     lessons: { id: string; title: string }[];
     onRemoveAll: () => void;
     onRemoveLesson: (id: string) => void;
@@ -420,7 +422,7 @@ jest.mock('../LessonPreview/LessonPreview', () => ({
     onActivitySelected?: (activity: { id: string; title: string }) => void;
     onRemoveActivity?: () => void;
   }) => (
-    <div data-testid="lesson-preview">
+    <div data-testid="lesson-preview" data-variant={variant}>
       <span data-testid="lessons-count">{lessons.length}</span>
       <button data-testid="remove-all-btn" onClick={onRemoveAll}>
         Remove All
@@ -2217,7 +2219,10 @@ describe('RecommendedLessonCreate', () => {
       });
 
       expect(screen.getByTestId('compact-preview-card')).toBeInTheDocument();
-      expect(screen.getByTestId('lesson-preview')).toBeInTheDocument();
+      expect(screen.getByTestId('lesson-preview')).toHaveAttribute(
+        'data-variant',
+        'card'
+      );
       expect(screen.queryByTestId('lesson-bank')).not.toBeInTheDocument();
 
       await act(async () => {
