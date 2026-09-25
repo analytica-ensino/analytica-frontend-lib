@@ -34,7 +34,7 @@ export const RecommendedLessonCreateHeader = ({
   onBack?: () => void;
 }) => {
   const typeLabel = getGoalDraftTypeLabel(draftType);
-  const { isMobile } = useMobile();
+  const { isMobile, isLargeTablet } = useMobile();
 
   const titleText = recommendedLesson
     ? 'Editar aula recomendada'
@@ -52,7 +52,7 @@ export const RecommendedLessonCreateHeader = ({
   const statusText = getStatusText();
 
   const subtitleText =
-    'Crie uma aula recomendada customizada adicionando aulas do banco de aulas.';
+    'Crie uma aula recomendada customizada adicionando aulas manualmente ou automaticamente.';
 
   const backButton = (
     <Button
@@ -61,8 +61,9 @@ export const RecommendedLessonCreateHeader = ({
       type="button"
       variant="link"
       data-testid="back-button"
+      className={isLargeTablet ? 'p-0' : undefined}
     >
-      <CaretLeftIcon size={isMobile ? 24 : 32} />
+      <CaretLeftIcon size={isMobile || isLargeTablet ? 24 : 32} />
     </Button>
   );
 
@@ -101,6 +102,28 @@ export const RecommendedLessonCreateHeader = ({
           <Text size="sm">{statusText}</Text>
           <div className="flex flex-row gap-2">{actionButtons}</div>
         </div>
+      </div>
+    );
+  }
+
+  if (isLargeTablet) {
+    return (
+      <div className="w-full flex flex-row items-start gap-3 pb-5 flex-shrink-0">
+        <div className="flex h-9 items-center">{backButton}</div>
+        <section className="flex flex-col gap-2 flex-1 min-w-0">
+          <div className="flex flex-row items-center gap-4">
+            <Text size="xl" weight="bold" className="flex-1 text-text-950">
+              {titleText}
+            </Text>
+            <Text size="sm" className="text-text-500 text-right">
+              {statusText}
+            </Text>
+            {actionButtons}
+          </div>
+          <Text size="md" className="text-text-500">
+            {subtitleText}
+          </Text>
+        </section>
       </div>
     );
   }

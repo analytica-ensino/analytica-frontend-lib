@@ -62,8 +62,76 @@ describe('RecommendedLessonCreateHeader', () => {
     onSendLesson: jest.fn(),
   };
 
+  const originalInnerWidth = globalThis.innerWidth;
+
+  /**
+   * Set the viewport width read by useMobile on mount
+   * @param width - Viewport width in pixels
+   */
+  const setViewportWidth = (width: number) => {
+    Object.defineProperty(globalThis, 'innerWidth', {
+      writable: true,
+      configurable: true,
+      value: width,
+    });
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
+    setViewportWidth(1440);
+  });
+
+  afterAll(() => {
+    setViewportWidth(originalInnerWidth);
+  });
+
+  describe('large tablet layout (<= 1024px)', () => {
+    beforeEach(() => {
+      setViewportWidth(1024);
+    });
+
+    it('should render the title as xl and the subtitle as md', () => {
+      render(<RecommendedLessonCreateHeader {...defaultProps} />);
+
+      const textElements = screen.getAllByTestId('text');
+      const title = textElements.find(
+        (el) => el.textContent === 'Criar aula recomendada'
+      );
+      const subtitle = textElements.find((el) =>
+        el.textContent?.includes('manualmente ou automaticamente')
+      );
+      expect(title).toHaveAttribute('data-size', 'xl');
+      expect(subtitle).toHaveAttribute('data-size', 'md');
+    });
+
+    it('should keep status text and action buttons in the header', () => {
+      render(<RecommendedLessonCreateHeader {...defaultProps} />);
+
+      expect(screen.getByText('Nenhum rascunho salvo')).toBeInTheDocument();
+      expect(screen.getByText('Salvar modelo')).toBeInTheDocument();
+      expect(screen.getByText('Enviar aula')).toBeInTheDocument();
+    });
+
+    it('should not use the fixed-height desktop container', () => {
+      const { container } = render(
+        <RecommendedLessonCreateHeader {...defaultProps} />
+      );
+
+      expect(container.firstChild).not.toHaveClass('h-[80px]');
+    });
+  });
+
+  describe('mobile layout (< 500px)', () => {
+    it('should render the stacked mobile header', () => {
+      setViewportWidth(400);
+
+      render(<RecommendedLessonCreateHeader {...defaultProps} />);
+
+      const title = screen
+        .getAllByTestId('text')
+        .find((el) => el.textContent === 'Criar aula recomendada');
+      expect(title).toHaveAttribute('data-size', 'lg');
+    });
   });
 
   describe('rendering', () => {
@@ -112,7 +180,7 @@ describe('RecommendedLessonCreateHeader', () => {
       const textElements = screen.getAllByTestId('text');
       const descriptionElement = textElements.find((el) =>
         el.textContent?.includes(
-          'Crie uma aula recomendada customizada adicionando aulas do banco de aulas.'
+          'Crie uma aula recomendada customizada adicionando aulas manualmente ou automaticamente.'
         )
       );
       expect(descriptionElement).toBeInTheDocument();

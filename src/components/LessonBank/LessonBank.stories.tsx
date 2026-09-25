@@ -612,3 +612,31 @@ export const WithSubjectFilter: Story = () => {
 WithSubjectFilter.meta = {
   name: 'With Subject Filter Only',
 };
+
+/**
+ * Card variant used by the compact (<= 1024px) recommended lesson layout,
+ * with filters applied so the "Adicionar automaticamente" action is enabled
+ */
+export const CardVariant: Story = () => {
+  return (
+    <div className="h-[600px] w-full p-5 bg-background-50">
+      <LessonBank
+        apiClient={createMockApiClient()}
+        filters={{ subjectId: ['subject-1'] }}
+        onAddLesson={(lesson) => console.log('Added lesson:', lesson.id)}
+        variant="card"
+      />
+    </div>
+  );
+};
+
+/**
+ * Card variant without lessons, showing the dashed empty state
+ */
+export const CardVariantEmpty: Story = () => {
+  return (
+    <div className="h-[600px] w-full p-5 bg-background-50">
+      <LessonBank apiClient={createMockApiClient([])} variant="card" />
+    </div>
+  );
+};

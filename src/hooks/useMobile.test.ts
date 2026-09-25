@@ -79,6 +79,36 @@ describe('useMobile', () => {
       expect(result.current.isMobile).toBe(true);
       expect(result.current.isTablet).toBe(true);
     });
+
+    it('should flag large tablet up to and including 1024px', () => {
+      mockInnerWidth(1024);
+
+      const { result } = renderHook(() => useMobile());
+
+      expect(result.current.isLargeTablet).toBe(true);
+      expect(result.current.isTablet).toBe(false);
+    });
+
+    it('should not flag large tablet above 1024px', () => {
+      mockInnerWidth(1025);
+
+      const { result } = renderHook(() => useMobile());
+
+      expect(result.current.isLargeTablet).toBe(false);
+    });
+
+    it('should update large tablet flag when window resizes', () => {
+      mockInnerWidth(1440);
+
+      const { result } = renderHook(() => useMobile());
+
+      expect(result.current.isLargeTablet).toBe(false);
+
+      mockInnerWidth(932);
+      triggerResize();
+
+      expect(result.current.isLargeTablet).toBe(true);
+    });
   });
 
   describe('getFormContainerClasses', () => {

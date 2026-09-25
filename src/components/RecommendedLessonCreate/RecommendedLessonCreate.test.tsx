@@ -355,16 +355,34 @@ jest.mock('../LessonFilters/LessonFilters', () => ({
       </button>
     </div>
   ),
+  LessonFiltersPopover: ({
+    onApplyFilters,
+    onClearFilters,
+  }: {
+    onApplyFilters?: () => void;
+    onClearFilters?: () => void;
+  }) => (
+    <div data-testid="lesson-filters-popover">
+      <button data-testid="popover-apply" onClick={onApplyFilters}>
+        Filtrar
+      </button>
+      <button data-testid="popover-clear" onClick={onClearFilters}>
+        Limpar
+      </button>
+    </div>
+  ),
 }));
 
 // Mock LessonBank
 jest.mock('../LessonBank/LessonBank', () => ({
   LessonBank: ({
     onAddLesson,
+    variant,
   }: {
     onAddLesson: (lesson: { id: string; title: string }) => void;
+    variant?: string;
   }) => (
-    <div data-testid="lesson-bank">
+    <div data-testid="lesson-bank" data-variant={variant ?? 'default'}>
       <button
         data-testid="add-lesson-btn"
         onClick={() => onAddLesson({ id: 'lesson-1', title: 'Test Lesson' })}
@@ -1314,7 +1332,7 @@ describe('RecommendedLessonCreate', () => {
       Object.defineProperty(globalThis, 'innerWidth', {
         writable: true,
         configurable: true,
-        value: 1000,
+        value: 1100,
       });
 
       await act(async () => {
@@ -2131,6 +2149,104 @@ describe('RecommendedLessonCreate', () => {
     });
   });
 
+  describe('compact layout (<= 1024px)', () => {
+    const renderWithCompactScreen = async (
+      ui: React.ReactElement
+    ): Promise<ReturnType<typeof render>> => {
+      Object.defineProperty(globalThis, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 1024,
+      });
+
+      let result: ReturnType<typeof render>;
+      await act(async () => {
+        result = render(ui);
+      });
+
+      return result!;
+    };
+
+    it('should render the filter popover and the two tabs, without the filters tab', async () => {
+      await renderWithCompactScreen(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      expect(screen.getByTestId('lesson-filters-popover')).toBeInTheDocument();
+      expect(screen.getByTestId('menu-item-lessons')).toBeInTheDocument();
+      expect(screen.getByTestId('menu-item-preview')).toBeInTheDocument();
+      expect(screen.queryByTestId('menu-item-filters')).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId('menu-overflow-wrapper')
+      ).not.toBeInTheDocument();
+      expect(screen.queryByTestId('lesson-filters')).not.toBeInTheDocument();
+    });
+
+    it('should show the lesson bank card by default', async () => {
+      await renderWithCompactScreen(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      expect(screen.getByTestId('menu')).toHaveAttribute(
+        'data-value',
+        'lessons'
+      );
+      expect(screen.getByTestId('lesson-bank')).toHaveAttribute(
+        'data-variant',
+        'card'
+      );
+    });
+
+    it('should use the muted page background', async () => {
+      await renderWithCompactScreen(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      expect(screen.getByTestId('create-recommended-class-page')).toHaveClass(
+        'bg-background-50'
+      );
+    });
+
+    it('should switch between lesson bank and preview', async () => {
+      await renderWithCompactScreen(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('menu-item-preview'));
+      });
+
+      expect(screen.getByTestId('compact-preview-card')).toBeInTheDocument();
+      expect(screen.getByTestId('lesson-preview')).toBeInTheDocument();
+      expect(screen.queryByTestId('lesson-bank')).not.toBeInTheDocument();
+
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('menu-item-lessons'));
+      });
+
+      expect(screen.getByTestId('lesson-bank')).toBeInTheDocument();
+      expect(
+        screen.queryByTestId('compact-preview-card')
+      ).not.toBeInTheDocument();
+    });
+
+    it('should apply and clear filters from the popover', async () => {
+      await renderWithCompactScreen(
+        <RecommendedLessonCreate {...defaultProps} />
+      );
+
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('popover-apply'));
+      });
+      expect(mockApplyFilters).toHaveBeenCalled();
+
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('popover-clear'));
+      });
+      expect(mockClearFilters).toHaveBeenCalled();
+    });
+  });
+
   describe('small screen layout', () => {
     const renderWithSmallScreen = async (
       ui: React.ReactElement
@@ -2138,7 +2254,7 @@ describe('RecommendedLessonCreate', () => {
       Object.defineProperty(globalThis, 'innerWidth', {
         writable: true,
         configurable: true,
-        value: 1000,
+        value: 1100,
       });
 
       let result: ReturnType<typeof render>;

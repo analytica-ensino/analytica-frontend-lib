@@ -1039,4 +1039,217 @@ describe('LessonBank', () => {
       expect(screen.queryByText('Já enviada')).not.toBeInTheDocument();
     });
   });
+
+  describe('Adicionar automaticamente', () => {
+    /**
+     * Creates an api client whose random requests return `randomResult`
+     * (or reject when `randomError` is set), while regular list requests
+     * return the default mock lessons.
+     */
+    const createRandomApiClient = (
+      randomResult: Lesson[] = mockLessons,
+      randomError = false
+    ): BaseApiClient => {
+      const baseClient = createMockApiClient();
+      const basePost = baseClient.post as jest.Mock;
+      return {
+        ...baseClient,
+        post: jest
+          .fn()
+          .mockImplementation(
+            async (url: string, body?: Record<string, unknown>) => {
+              if (body?.randomLessons) {
+                if (randomError) throw new Error('Random error');
+                return {
+                  data: {
+                    message: 'Success',
+                    data: { lessons: randomResult, pagination: mockPagination },
+                  },
+                };
+              }
+              return basePost(url, body);
+            }
+          ),
+      } as BaseApiClient;
+    };
+
+    const openAutoAddModal = async () => {
+      await waitFor(() => {
+        expect(
+          screen.getByRole('button', { name: 'Adicionar automaticamente' })
+        ).not.toBeDisabled();
+      });
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Adicionar automaticamente' })
+      );
+    };
+
+    it('should disable the button when there are no lessons', () => {
+      const apiClient = createMockApiClient();
+      render(<LessonBank apiClient={apiClient} />);
+
+      expect(
+        screen.getByRole('button', { name: 'Adicionar automaticamente' })
+      ).toBeDisabled();
+    });
+
+    it('should add the random lessons returned by the API', async () => {
+      const apiClient = createRandomApiClient();
+      const onAddLesson = jest.fn();
+      render(
+        <LessonBank
+          apiClient={apiClient}
+          filters={defaultFilters}
+          onAddLesson={onAddLesson}
+          addedLessonIds={['lesson-9']}
+        />
+      );
+
+      await openAutoAddModal();
+      expect(screen.getByTestId('modal-title')).toHaveTextContent(
+        'Adicionar automaticamente'
+      );
+
+      fireEvent.change(screen.getByRole('spinbutton'), {
+        target: { value: '3' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: 'Adicionar' }));
+
+      await waitFor(() => {
+        expect(onAddLesson).toHaveBeenCalledTimes(3);
+      });
+      expect(apiClient.post).toHaveBeenCalledWith('/lesson/list', {
+        subjectId: ['subject-1'],
+        randomLessons: 3,
+        selectedLessonsIds: ['lesson-9'],
+      });
+      expect(screen.queryByTestId('modal')).not.toBeInTheDocument();
+      expect(
+        screen.getByText('3 aulas adicionadas à aula recomendada')
+      ).toBeInTheDocument();
+    });
+
+    it('should not send selectedLessonsIds when nothing was added yet', async () => {
+      const apiClient = createRandomApiClient([mockLessons[0]]);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
+
+      await openAutoAddModal();
+      fireEvent.click(screen.getByRole('button', { name: 'Adicionar' }));
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('1 aula adicionada à aula recomendada')
+        ).toBeInTheDocument();
+      });
+      expect(apiClient.post).toHaveBeenCalledWith('/lesson/list', {
+        subjectId: ['subject-1'],
+        randomLessons: 1,
+      });
+    });
+
+    it('should warn when the API returns no lessons', async () => {
+      const apiClient = createRandomApiClient([]);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
+
+      await openAutoAddModal();
+      fireEvent.click(screen.getByRole('button', { name: 'Adicionar' }));
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Nenhuma aula disponível para adicionar')
+        ).toBeInTheDocument();
+      });
+    });
+
+    it('should warn when the random request fails', async () => {
+      const consoleSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      const apiClient = createRandomApiClient(mockLessons, true);
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
+
+      await openAutoAddModal();
+      fireEvent.click(screen.getByRole('button', { name: 'Adicionar' }));
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Erro ao adicionar aulas automaticamente')
+        ).toBeInTheDocument();
+      });
+      expect(screen.getByTestId('modal')).toBeInTheDocument();
+      consoleSpy.mockRestore();
+    });
+
+    it('should only accept positive integers and disable submit when empty', async () => {
+      const apiClient = createRandomApiClient();
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
+
+      await openAutoAddModal();
+      const input = screen.getByRole('spinbutton');
+      const submit = screen.getByRole('button', { name: 'Adicionar' });
+
+      fireEvent.change(input, { target: { value: '-2' } });
+      expect(input).toHaveValue(1);
+
+      fireEvent.change(input, { target: { value: '' } });
+      expect(input).toHaveValue(null);
+      expect(submit).toBeDisabled();
+
+      fireEvent.click(submit);
+      expect(apiClient.post).not.toHaveBeenCalledWith(
+        '/lesson/list',
+        expect.objectContaining({ randomLessons: expect.anything() })
+      );
+    });
+
+    it('should close the modal and reset the count on cancel', async () => {
+      const apiClient = createRandomApiClient();
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
+
+      await openAutoAddModal();
+      fireEvent.change(screen.getByRole('spinbutton'), {
+        target: { value: '5' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+      expect(screen.queryByTestId('modal')).not.toBeInTheDocument();
+
+      await openAutoAddModal();
+      expect(screen.getByRole('spinbutton')).toHaveValue(1);
+    });
+  });
+
+  describe('card variant', () => {
+    it('should render the card layout', async () => {
+      const apiClient = createMockApiClient();
+      render(
+        <LessonBank
+          apiClient={apiClient}
+          filters={defaultFilters}
+          variant="card"
+        />
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('3 aulas total')).toBeInTheDocument();
+      });
+
+      const root = screen.getByTestId('lesson-bank');
+      expect(root).toHaveAttribute('data-variant', 'card');
+      expect(root).toHaveClass('bg-background', 'rounded-xl', 'p-6');
+      expect(screen.getByText('Banco de aulas')).toBeInTheDocument();
+      expect(screen.getByText('3 aulas total')).toHaveClass('bg-background-50');
+    });
+
+    it('should center the empty state inside the dashed box', () => {
+      const apiClient = createMockApiClient();
+      render(<LessonBank apiClient={apiClient} variant="card" />);
+
+      const emptyState = screen.getByTestId('empty-state');
+      expect(emptyState.parentElement).toHaveClass(
+        'border-dashed',
+        'justify-center'
+      );
+    });
+  });
 });

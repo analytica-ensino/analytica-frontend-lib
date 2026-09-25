@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useTabletScreen } from '../../hooks/useScreen';
+import { useMobile } from '../../hooks/useMobile';
+import { cn } from '../../utils/utils';
+import { FadersHorizontalIcon } from '@phosphor-icons/react/dist/csr/FadersHorizontal';
+import { ChalkboardTeacherIcon } from '@phosphor-icons/react/dist/csr/ChalkboardTeacher';
+import { BookBookmarkIcon } from '@phosphor-icons/react/dist/csr/BookBookmark';
 import { useSearchParams } from 'react-router-dom';
 import {
   Button,
@@ -12,12 +17,15 @@ import {
 } from '../..';
 import type { ActivityModelTableItem } from '../../types/activitiesHistory';
 import { ActivityType } from '../ActivityCreate/ActivityCreate.types';
-import { MenuItem, MenuOverflow } from '../Menu/Menu';
+import Menu, { MenuContent, MenuItem, MenuOverflow } from '../Menu/Menu';
 import type { BaseApiClient } from '../..';
 import type { LessonFiltersData } from '../../types/lessonFilters';
 import type { Lesson } from '../../types/lessons';
 import type { SendLessonFormData } from '../SendLessonModal';
-import { LessonFilters } from '../LessonFilters/LessonFilters';
+import {
+  LessonFilters,
+  LessonFiltersPopover,
+} from '../LessonFilters/LessonFilters';
 import {
   LessonBank,
   type LessonFilters as LessonBankFilters,
@@ -131,6 +139,8 @@ const RecommendedLessonCreate = ({
 
   // Responsive state for screen width <= 1200px
   const isSmallScreen = useTabletScreen();
+  // Compact layout for screen width <= 1024px
+  const { isLargeTablet: isCompactScreen } = useMobile();
   const [selectedView, setSelectedView] = useState<
     'filters' | 'lessons' | 'preview'
   >('filters');
@@ -1266,25 +1276,120 @@ const RecommendedLessonCreate = ({
     return <RecommendedLessonCreateSkeleton />;
   }
 
-  return (
-    <div
-      data-testid="create-recommended-class-page"
-      className="flex flex-col w-full h-screen overflow-hidden p-5 bg-background"
-    >
-      {/* Header Section */}
-      <RecommendedLessonCreateHeader
-        recommendedLesson={recommendedLesson || undefined}
-        draftType={draftType}
-        lastSavedAt={lastSavedAt}
-        isSaving={isSaving}
-        lessonsCount={lessons.length}
-        onSaveModel={handleSaveModel}
-        onSendLesson={handleOpenSendModal}
-        onBack={handleBack}
-      />
+  // The compact layout has no "filters" tab; filters live in a popover there
+  const compactView = selectedView === 'filters' ? 'lessons' : selectedView;
 
-      {/* Main Content */}
-      {isSmallScreen ? (
+  const previewContent = loadingInitialLessons ? (
+    <div className="flex flex-col gap-4 p-4">
+      <div className="flex flex-col gap-2">
+        <SkeletonText lines={1} width={200} />
+        <SkeletonText lines={1} width={150} />
+      </div>
+      <div className="flex flex-col gap-2">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="p-4 border rounded">
+            <SkeletonText lines={2} />
+          </div>
+        ))}
+      </div>
+    </div>
+  ) : (
+    <LessonPreview
+      lessons={lessons}
+      onRemoveAll={handleRemoveAll}
+      onRemoveLesson={handleRemoveLesson}
+      onReorder={handleReorder}
+      apiClient={apiClient}
+      selectedActivity={selectedActivityForPreview}
+      onActivitySelected={handleActivitySelected}
+      onRemoveActivity={handleRemoveActivity}
+      onEditActivity={handleRedirectToActivity}
+      onCreateNewActivity={handleCreateNewActivity}
+      className="h-full overflow-y-auto"
+    />
+  );
+
+  /**
+   * Renders the main content for the current screen size
+   * @returns Layout JSX for compact (<= 1024px), small (<= 1200px) or desktop screens
+   */
+  const renderMainContent = () => {
+    if (isCompactScreen) {
+      return (
+        /* Compact Layout (<= 1024px) - filter popover + 2 tabs */
+        <div className="flex flex-col w-full flex-1 overflow-hidden min-h-0">
+          {/* Filter trigger and tabs row */}
+          <div className="flex flex-row items-center justify-between gap-2 flex-shrink-0 min-[520px]:gap-4">
+            <div className="flex-shrink-0">
+              <LessonFiltersPopover
+                key={filtersKey}
+                apiClient={apiClient}
+                institutionId={institutionId}
+                onFiltersChange={handleFiltersChange}
+                initialFilters={initialFiltersData || undefined}
+                onClearFilters={handleClearFilters}
+                onApplyFilters={handleApplyFilters}
+                triggerIcon={<FadersHorizontalIcon size={16} />}
+                collapseTriggerLabel
+              />
+            </div>
+            <div className="flex-1 min-w-0 max-w-[585px]">
+              <Menu
+                defaultValue="lessons"
+                value={compactView}
+                onValueChange={(value: string) =>
+                  setSelectedView(value as 'lessons' | 'preview')
+                }
+                variant="menu2"
+                className="bg-transparent shadow-none px-0 py-0"
+              >
+                <MenuContent variant="menu2" className="gap-0">
+                  <MenuItem
+                    value="lessons"
+                    variant="menu2"
+                    className="text-sm whitespace-nowrap"
+                  >
+                    <ChalkboardTeacherIcon size={21} />
+                    Banco de aulas
+                  </MenuItem>
+                  <MenuItem
+                    value="preview"
+                    variant="menu2"
+                    className="text-sm whitespace-nowrap"
+                  >
+                    <BookBookmarkIcon size={21} />
+                    Prévia da aula
+                  </MenuItem>
+                </MenuContent>
+              </Menu>
+            </div>
+          </div>
+
+          {/* Content Area - Single card */}
+          <div className="flex-1 min-w-0 min-h-0 overflow-hidden">
+            {compactView === 'lessons' ? (
+              <LessonBank
+                apiClient={apiClient}
+                onAddLesson={handleAddLesson}
+                addedLessonIds={addedLessonIds}
+                filters={lessonBankFilters}
+                variant="card"
+              />
+            ) : (
+              <div
+                data-testid="compact-preview-card"
+                className="w-full h-full overflow-hidden min-h-0 bg-background rounded-xl"
+              >
+                {previewContent}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    if (isSmallScreen) {
+      return (
         /* Small Screen Layout (<= 1200px) */
         <div className="flex flex-col w-full flex-1 overflow-hidden gap-5 min-h-0">
           {/* Tabs row */}
@@ -1355,119 +1460,90 @@ const RecommendedLessonCreate = ({
             )}
             {selectedView === 'preview' && (
               <div className="w-full h-full overflow-hidden min-h-0">
-                {loadingInitialLessons ? (
-                  <div className="flex flex-col gap-4 p-4">
-                    <div className="flex flex-col gap-2">
-                      <SkeletonText lines={1} width={200} />
-                      <SkeletonText lines={1} width={150} />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="p-4 border rounded">
-                          <SkeletonText lines={2} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <LessonPreview
-                    lessons={lessons}
-                    onRemoveAll={handleRemoveAll}
-                    onRemoveLesson={handleRemoveLesson}
-                    onReorder={handleReorder}
-                    apiClient={apiClient}
-                    selectedActivity={selectedActivityForPreview}
-                    onActivitySelected={handleActivitySelected}
-                    onRemoveActivity={handleRemoveActivity}
-                    onEditActivity={handleRedirectToActivity}
-                    onCreateNewActivity={handleCreateNewActivity}
-                    className="h-full overflow-y-auto"
-                  />
-                )}
+                {previewContent}
               </div>
             )}
           </div>
         </div>
-      ) : (
-        /* Desktop Layout (> 1200px) - 3 columns */
-        <div className="flex flex-row w-full flex-1 overflow-hidden gap-5 min-h-0">
-          {/* First Column - Filters */}
-          <div className="flex flex-col gap-3 overflow-hidden h-full min-h-0 max-h-full relative w-[400px] flex-shrink-0">
-            <div className="flex flex-col overflow-y-auto overflow-x-hidden flex-1 min-h-0 max-h-full">
-              <LessonFilters
-                key={filtersKey}
-                apiClient={apiClient}
-                institutionId={institutionId}
-                variant={'default'}
-                onFiltersChange={handleFiltersChange}
-                initialFilters={initialFiltersData || undefined}
-                onClearFilters={handleClearFilters}
-                onApplyFilters={handleApplyFilters}
-              />
-            </div>
-            <div className="flex-shrink-0 grid grid-cols-2 gap-2">
-              <Button size="medium" variant="link" onClick={handleClearFilters}>
-                Limpar filtros
-              </Button>
-              <Button
-                size="medium"
-                variant="outline"
-                onClick={handleApplyFilters}
-                disabled={!draftFilters}
-              >
-                Filtrar
-              </Button>
-            </div>
-          </div>
+      );
+    }
 
-          <Divider orientation="vertical" />
-
-          {/* Second Column - Center, fills remaining space */}
-          <div className="flex-1 min-w-0 overflow-hidden h-full">
-            <LessonBank
+    return (
+      /* Desktop Layout (> 1200px) - 3 columns */
+      <div className="flex flex-row w-full flex-1 overflow-hidden gap-5 min-h-0">
+        {/* First Column - Filters */}
+        <div className="flex flex-col gap-3 overflow-hidden h-full min-h-0 max-h-full relative w-[400px] flex-shrink-0">
+          <div className="flex flex-col overflow-y-auto overflow-x-hidden flex-1 min-h-0 max-h-full">
+            <LessonFilters
+              key={filtersKey}
               apiClient={apiClient}
-              onAddLesson={handleAddLesson}
-              addedLessonIds={addedLessonIds}
-              filters={lessonBankFilters}
+              institutionId={institutionId}
+              variant={'default'}
+              onFiltersChange={handleFiltersChange}
+              initialFilters={initialFiltersData || undefined}
+              onClearFilters={handleClearFilters}
+              onApplyFilters={handleApplyFilters}
             />
           </div>
-
-          <Divider orientation="vertical" />
-
-          {/* Third Column - Lesson Preview */}
-          <div className="w-[400px] flex-shrink-0 overflow-hidden h-full min-h-0">
-            {loadingInitialLessons ? (
-              <div className="flex flex-col gap-4 p-4">
-                <div className="flex flex-col gap-2">
-                  <SkeletonText lines={1} width={200} />
-                  <SkeletonText lines={1} width={150} />
-                </div>
-                <div className="flex flex-col gap-2">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="p-4 border rounded">
-                      <SkeletonText lines={2} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <LessonPreview
-                lessons={lessons}
-                onRemoveAll={handleRemoveAll}
-                onRemoveLesson={handleRemoveLesson}
-                onReorder={handleReorder}
-                apiClient={apiClient}
-                selectedActivity={selectedActivityForPreview}
-                onActivitySelected={handleActivitySelected}
-                onRemoveActivity={handleRemoveActivity}
-                onEditActivity={handleRedirectToActivity}
-                onCreateNewActivity={handleCreateNewActivity}
-                className="h-full overflow-y-auto"
-              />
-            )}
+          <div className="flex-shrink-0 grid grid-cols-2 gap-2">
+            <Button size="medium" variant="link" onClick={handleClearFilters}>
+              Limpar filtros
+            </Button>
+            <Button
+              size="medium"
+              variant="outline"
+              onClick={handleApplyFilters}
+              disabled={!draftFilters}
+            >
+              Filtrar
+            </Button>
           </div>
         </div>
+
+        <Divider orientation="vertical" />
+
+        {/* Second Column - Center, fills remaining space */}
+        <div className="flex-1 min-w-0 overflow-hidden h-full">
+          <LessonBank
+            apiClient={apiClient}
+            onAddLesson={handleAddLesson}
+            addedLessonIds={addedLessonIds}
+            filters={lessonBankFilters}
+          />
+        </div>
+
+        <Divider orientation="vertical" />
+
+        {/* Third Column - Lesson Preview */}
+        <div className="w-[400px] flex-shrink-0 overflow-hidden h-full min-h-0">
+          {previewContent}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div
+      data-testid="create-recommended-class-page"
+      className={cn(
+        'flex flex-col w-full h-screen overflow-hidden p-5',
+        isCompactScreen ? 'bg-background-50' : 'bg-background'
       )}
+    >
+      {/* Header Section */}
+      <RecommendedLessonCreateHeader
+        recommendedLesson={recommendedLesson || undefined}
+        draftType={draftType}
+        lastSavedAt={lastSavedAt}
+        isSaving={isSaving}
+        lessonsCount={lessons.length}
+        onSaveModel={handleSaveModel}
+        onSendLesson={handleOpenSendModal}
+        onBack={handleBack}
+      />
+
+      {/* Main Content */}
+      {renderMainContent()}
 
       {/* Save Lesson Model Modal */}
       <SaveActivityModelModal
