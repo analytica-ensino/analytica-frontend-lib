@@ -231,6 +231,18 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       (controlledShowDropdown ??
         (dropdownOpen && value && String(value).length > 0));
 
+    /**
+     * Se o campo é um combobox de verdade — isto é, se existe uma lista de
+     * sugestões que pode abrir.
+     *
+     * A condição antiga olhava só `options.length`, e com isso um consumidor
+     * que passa sugestões mas desliga o dropdown (`showDropdown={false}`)
+     * ganhava `role="combobox"` + `aria-haspopup="listbox"`. O leitor de tela
+     * anunciava "combinação, pop-up caixa de lista" prometendo um menu que
+     * nunca ia abrir. Sem lista, o campo é só uma caixa de busca.
+     */
+    const isCombobox = options.length > 0 && controlledShowDropdown !== false;
+
     // Helper to keep all consumers in sync
     const setOpenAndNotify = (open: boolean) => {
       setDropdownOpen(open);
@@ -423,11 +435,14 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
             disabled={disabled}
             readOnly={readOnly}
             placeholder={placeholder}
-            aria-expanded={showDropdown ? 'true' : undefined}
-            aria-haspopup={options.length > 0 ? 'listbox' : undefined}
-            aria-controls={showDropdown ? dropdownId : undefined}
-            aria-autocomplete="list"
-            role={options.length > 0 ? 'combobox' : undefined}
+            // `searchbox` é o que faz o leitor anunciar "caixa de busca". Os
+            // atributos de combobox só entram quando existe lista para abrir —
+            // nenhum deles é suportado em `searchbox`.
+            role={isCombobox ? 'combobox' : 'searchbox'}
+            aria-expanded={isCombobox && showDropdown ? 'true' : undefined}
+            aria-haspopup={isCombobox ? 'listbox' : undefined}
+            aria-controls={isCombobox && showDropdown ? dropdownId : undefined}
+            aria-autocomplete={isCombobox ? 'list' : undefined}
             {...props}
           />
 

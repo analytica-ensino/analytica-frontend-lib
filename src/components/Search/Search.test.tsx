@@ -385,14 +385,14 @@ describe('Search Component', () => {
     it('should handle empty options array', () => {
       render(<Search options={[]} />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('searchbox');
       expect(input).toBeInTheDocument();
     });
 
     it('should handle undefined options', () => {
       render(<Search options={undefined as unknown as string[]} />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('searchbox');
       expect(input).toBeInTheDocument();
     });
 
@@ -630,7 +630,9 @@ describe('Search Component', () => {
         />
       );
 
-      const input = screen.getByRole('combobox');
+      // Com o dropdown desligado o campo é uma caixa de busca, não um
+      // combobox — não há lista para abrir.
+      const input = screen.getByRole('searchbox');
 
       // Press Enter to execute search
       await user.type(input, '{enter}');
@@ -732,7 +734,7 @@ describe('Search Component', () => {
         />
       );
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('searchbox');
 
       await user.type(input, '{Enter}');
 
@@ -967,7 +969,7 @@ describe('Search Component', () => {
 
       render(<Search options={[]} onSearch={onSearch} />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('searchbox');
       await user.type(input, 'a');
 
       expect(onSearch).toHaveBeenCalledTimes(1);
@@ -980,7 +982,7 @@ describe('Search Component', () => {
 
       render(<Search options={[]} onSearch={onSearch} debounceMs={0} />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('searchbox');
       await user.type(input, 'a');
 
       expect(onSearch).toHaveBeenCalledTimes(1);
@@ -992,7 +994,7 @@ describe('Search Component', () => {
 
       render(<Search options={[]} onSearch={onSearch} debounceMs={300} />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('searchbox');
       await user.type(input, 'a');
 
       expect(onSearch).not.toHaveBeenCalled();
@@ -1004,7 +1006,7 @@ describe('Search Component', () => {
 
       render(<Search options={[]} onSearch={onSearch} debounceMs={300} />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('searchbox');
       await user.type(input, 'abc');
 
       expect(onSearch).not.toHaveBeenCalled();
@@ -1021,7 +1023,7 @@ describe('Search Component', () => {
 
       render(<Search options={[]} onSearch={onSearch} debounceMs={300} />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('searchbox');
 
       await user.type(input, 'a');
       jest.advanceTimersByTime(100);
@@ -1055,7 +1057,7 @@ describe('Search Component', () => {
 
       render(<TestWrapper />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('searchbox');
       await user.type(input, 'abc');
 
       expect(onSearch).not.toHaveBeenCalled();
@@ -1092,7 +1094,7 @@ describe('Search Component', () => {
 
       render(<TestWrapper />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('searchbox');
       await user.type(input, 'abc');
 
       expect(onSearch).not.toHaveBeenCalled();
@@ -1106,6 +1108,45 @@ describe('Search Component', () => {
 
       expect(onSearch).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe('Search - papel anunciado pelo leitor de tela', () => {
+  const opcoes = ['Filosofia', 'Fisica'];
+
+  it('é uma caixa de busca quando não há lista para abrir', () => {
+    render(<Search options={[]} value="" onChange={() => {}} />);
+
+    const input = screen.getByRole('searchbox');
+    // Nenhum atributo de combobox: todos descrevem um popup inexistente, e
+    // nenhum deles é suportado em `searchbox`.
+    expect(input).not.toHaveAttribute('aria-haspopup');
+    expect(input).not.toHaveAttribute('aria-expanded');
+    expect(input).not.toHaveAttribute('aria-autocomplete');
+  });
+
+  it('continua caixa de busca com options, se o dropdown está desligado', () => {
+    // O caso real: o consumidor passa sugestões mas desliga a lista. Antes
+    // isso virava "combinação, pop-up caixa de lista" — um menu que nunca abre.
+    render(
+      <Search
+        options={opcoes}
+        showDropdown={false}
+        value="Fi"
+        onChange={() => {}}
+      />
+    );
+
+    expect(screen.getByRole('searchbox')).toBeInTheDocument();
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+  });
+
+  it('vira combobox quando a lista pode de fato abrir', () => {
+    render(<Search options={opcoes} value="Fi" onChange={() => {}} />);
+
+    const input = screen.getByRole('combobox');
+    expect(input).toHaveAttribute('aria-haspopup', 'listbox');
+    expect(input).toHaveAttribute('aria-autocomplete', 'list');
   });
 });
 
@@ -1128,7 +1169,7 @@ describe('Search - teclado e anúncio de resultados', () => {
       const user = userEvent.setup();
       render(<Controlado />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('searchbox');
       await user.type(input, 'teste');
       expect(input).toHaveValue('teste');
 
@@ -1137,18 +1178,18 @@ describe('Search - teclado e anúncio de resultados', () => {
 
       await user.keyboard('{Enter}');
 
-      expect(screen.getByRole('textbox')).toHaveValue('');
+      expect(screen.getByRole('searchbox')).toHaveValue('');
     });
 
     it('devolve o foco ao input, já que o botão desmonta ao limpar', async () => {
       const user = userEvent.setup();
       render(<Controlado />);
 
-      await user.type(screen.getByRole('textbox'), 'teste');
+      await user.type(screen.getByRole('searchbox'), 'teste');
       await user.tab();
       await user.keyboard('{Enter}');
 
-      expect(screen.getByRole('textbox')).toHaveFocus();
+      expect(screen.getByRole('searchbox')).toHaveFocus();
       expect(screen.queryByLabelText('Limpar busca')).not.toBeInTheDocument();
     });
 
@@ -1168,13 +1209,13 @@ describe('Search - teclado e anúncio de resultados', () => {
     render(<Controlado />);
 
     await user.tab();
-    expect(screen.getByRole('textbox')).toHaveFocus();
+    expect(screen.getByRole('searchbox')).toHaveFocus();
     await user.tab();
     expect(screen.getByLabelText('Buscar')).toHaveFocus();
 
     await user.keyboard('{Enter}');
 
-    expect(screen.getByRole('textbox')).toHaveFocus();
+    expect(screen.getByRole('searchbox')).toHaveFocus();
   });
 
   describe('anúncio ao confirmar a busca', () => {
@@ -1186,7 +1227,7 @@ describe('Search - teclado e anúncio de resultados', () => {
       const user = userEvent.setup();
       render(<Controlado resultsCount={count} />);
 
-      await user.type(screen.getByRole('textbox'), 'algo{Enter}');
+      await user.type(screen.getByRole('searchbox'), 'algo{Enter}');
 
       // O texto entra num tick separado, de propósito — ver `announce`.
       await waitFor(() =>
@@ -1209,7 +1250,7 @@ describe('Search - teclado e anúncio de resultados', () => {
       const user = userEvent.setup();
       render(<Controlado />);
 
-      await user.type(screen.getByRole('textbox'), 'algo{Enter}');
+      await user.type(screen.getByRole('searchbox'), 'algo{Enter}');
       await new Promise((resolve) => setTimeout(resolve, 250));
 
       expect(screen.getByRole('status')).toBeEmptyDOMElement();
@@ -1226,8 +1267,9 @@ describe('Search - teclado e anúncio de resultados', () => {
         />
       );
 
-      // Com `options` preenchido o input assume role="combobox".
-      await user.type(screen.getByRole('combobox'), '{Enter}');
+      // `showDropdown={false}` desliga a lista, então o papel é `searchbox`
+      // mesmo com `options` preenchido — mas o filtro interno segue contando.
+      await user.type(screen.getByRole('searchbox'), '{Enter}');
 
       await waitFor(() =>
         expect(screen.getByRole('status')).toHaveTextContent(
@@ -1240,7 +1282,7 @@ describe('Search - teclado e anúncio de resultados', () => {
       const user = userEvent.setup();
       render(<Controlado resultsCount={2} />);
 
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('searchbox');
       await user.type(input, 'algo{Enter}');
       await waitFor(() =>
         expect(screen.getByRole('status')).toHaveTextContent(
