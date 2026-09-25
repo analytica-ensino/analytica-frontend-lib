@@ -1237,7 +1237,10 @@ describe('LessonBank', () => {
       const root = screen.getByTestId('lesson-bank');
       expect(root).toHaveAttribute('data-variant', 'card');
       expect(root).toHaveClass('bg-background', 'rounded-xl', 'p-6');
-      expect(screen.getByText('Banco de aulas')).toBeInTheDocument();
+      expect(screen.getByText('Banco de aulas')).toHaveAttribute(
+        'data-size',
+        'xl'
+      );
       expect(screen.getByText('3 aulas total')).toHaveClass('bg-background-50');
     });
 

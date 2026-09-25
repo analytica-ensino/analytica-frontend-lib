@@ -138,6 +138,7 @@ jest.mock('../../components/ActivityFilters/components', () => ({
     knowledgeStructure,
     knowledgeCategories,
     handleCategoriesChange,
+    showDivider,
   }: {
     knowledgeStructure: {
       loading: boolean;
@@ -153,8 +154,12 @@ jest.mock('../../components/ActivityFilters/components', () => ({
     handleCategoriesChange?: (
       updatedCategories: typeof knowledgeCategories
     ) => void;
+    showDivider?: boolean;
   }) => (
-    <div data-testid="knowledge-structure-filter">
+    <div
+      data-testid="knowledge-structure-filter"
+      data-show-divider={String(showDivider)}
+    >
       <div>Tema, Subtema e Assunto</div>
       {knowledgeStructure.loading && (
         <div>Carregando estrutura de conhecimento...</div>
@@ -186,11 +191,13 @@ jest.mock('../../components/ActivityFilters/components', () => ({
   FilterActions: ({
     onClearFilters,
     onApplyFilters,
+    showDivider,
   }: {
     onClearFilters?: () => void;
     onApplyFilters?: () => void;
+    showDivider?: boolean;
   }) => (
-    <div data-testid="filter-actions">
+    <div data-testid="filter-actions" data-show-divider={String(showDivider)}>
       {onClearFilters && (
         <button onClick={onClearFilters}>Limpar filtros</button>
       )}
@@ -625,8 +632,26 @@ describe('LessonFilters', () => {
     );
   });
 
+  it('drops the row and actions dividers in the popover', () => {
+    renderComponent({ variant: 'popover', onApplyFilters: jest.fn() });
+
+    expect(screen.getByTestId('knowledge-structure-filter')).toHaveAttribute(
+      'data-show-divider',
+      'false'
+    );
+    expect(screen.getByTestId('filter-actions')).toHaveAttribute(
+      'data-show-divider',
+      'false'
+    );
+  });
+
   it('keeps the default 3-column subjects grid outside the popover', () => {
     renderComponent();
+
+    expect(screen.getByTestId('knowledge-structure-filter')).toHaveAttribute(
+      'data-show-divider',
+      'true'
+    );
 
     expect(screen.getByTestId('subjects-filter')).not.toHaveAttribute(
       'data-grid-class'

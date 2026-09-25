@@ -297,7 +297,7 @@ export const LessonBank = ({
           ) : (
             <BookIcon size={24} />
           )}
-          <Text size="lg" weight="bold">
+          <Text size={isCard ? 'xl' : 'lg'} weight="bold">
             {isCard ? 'Banco de aulas' : 'Banco de Aulas'}
           </Text>
         </section>

@@ -90,7 +90,7 @@ describe('RecommendedLessonCreateHeader', () => {
       setViewportWidth(1024);
     });
 
-    it('should render the title as xl and the subtitle as md', () => {
+    it('should render the title as 2xl and the subtitle as md', () => {
       render(<RecommendedLessonCreateHeader {...defaultProps} />);
 
       const textElements = screen.getAllByTestId('text');
@@ -100,7 +100,7 @@ describe('RecommendedLessonCreateHeader', () => {
       const subtitle = textElements.find((el) =>
         el.textContent?.includes('manualmente ou automaticamente')
       );
-      expect(title).toHaveAttribute('data-size', 'xl');
+      expect(title).toHaveAttribute('data-size', '2xl');
       expect(subtitle).toHaveAttribute('data-size', 'md');
     });
 
@@ -137,7 +137,7 @@ describe('RecommendedLessonCreateHeader', () => {
       const subtitle = texts.find((el) =>
         el.textContent?.includes('manualmente ou automaticamente')
       );
-      expect(title).toHaveAttribute('data-size', 'xl');
+      expect(title).toHaveAttribute('data-size', '2xl');
       expect(subtitle).toHaveAttribute('data-size', 'md');
       // Status shares its row with the action buttons
       expect(status?.parentElement).toContainElement(

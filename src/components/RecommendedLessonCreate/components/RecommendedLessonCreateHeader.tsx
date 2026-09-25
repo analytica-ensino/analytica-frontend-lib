@@ -91,9 +91,9 @@ export const RecommendedLessonCreateHeader = ({
   if (isMobile) {
     return (
       <div className="w-full flex flex-row items-start gap-3 pb-5 flex-shrink-0">
-        <div className="flex h-7 items-center">{backButton}</div>
+        <div className="flex h-8 items-center">{backButton}</div>
         <section className="flex flex-col gap-2 flex-1 min-w-0">
-          <Text size="xl" weight="bold" className="text-text-950">
+          <Text size="2xl" weight="bold" className="text-text-950">
             {titleText}
           </Text>
           <div className="flex flex-row items-center gap-2">
@@ -116,7 +116,7 @@ export const RecommendedLessonCreateHeader = ({
         <div className="flex h-9 items-center">{backButton}</div>
         <section className="flex flex-col gap-2 flex-1 min-w-0">
           <div className="flex flex-row items-center gap-4">
-            <Text size="xl" weight="bold" className="flex-1 text-text-950">
+            <Text size="2xl" weight="bold" className="flex-1 text-text-950">
               {titleText}
             </Text>
             <Text size="sm" className="text-text-500 text-right">

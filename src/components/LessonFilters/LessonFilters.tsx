@@ -190,7 +190,7 @@ export const LessonFilters = ({
         {isPopover && (
           <section className="hidden max-[426px]:flex flex-row items-center gap-2 text-text-950 mb-4">
             <FadersHorizontalIcon size={24} />
-            <Text size="lg" weight="bold">
+            <Text size="xl" weight="bold">
               Filtro de aulas
             </Text>
           </section>
@@ -229,12 +229,15 @@ export const LessonFilters = ({
             knowledgeStructure={knowledgeStructure}
             knowledgeCategories={knowledgeCategories}
             handleCategoriesChange={handleCategoriesChange}
+            showDivider={!isPopover}
           />
 
           {isPopover && (
             <FilterActions
               onClearFilters={onClearFilters}
               onApplyFilters={onApplyFilters}
+              showDivider={false}
+              className="max-[426px]:px-0 max-[426px]:pt-0 max-[426px]:gap-4"
             />
           )}
         </section>
@@ -329,7 +332,7 @@ export const LessonFiltersPopover = ({
         portal
         triggerRef={triggerRef}
         maxHeight={LESSON_FILTERS_POPOVER_MAX_HEIGHT}
-        className="w-[calc(100vw-2.5rem)] max-w-[400px] p-0 max-[426px]:rounded-xl max-[426px]:border-0 max-[426px]:shadow-soft-shadow-1"
+        className="w-[calc(100vw-2.5rem)] max-w-[400px] !p-0 max-[426px]:rounded-xl max-[426px]:border-0 max-[426px]:shadow-soft-shadow-1"
         align="start"
       >
         <LessonFilters
