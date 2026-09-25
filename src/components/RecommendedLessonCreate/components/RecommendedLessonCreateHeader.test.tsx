@@ -122,15 +122,36 @@ describe('RecommendedLessonCreateHeader', () => {
   });
 
   describe('mobile layout (< 500px)', () => {
-    it('should render the stacked mobile header', () => {
+    it('should render title, then status with actions, then subtitle', () => {
       setViewportWidth(400);
 
       render(<RecommendedLessonCreateHeader {...defaultProps} />);
 
-      const title = screen
-        .getAllByTestId('text')
-        .find((el) => el.textContent === 'Criar aula recomendada');
-      expect(title).toHaveAttribute('data-size', 'lg');
+      const texts = screen.getAllByTestId('text');
+      const title = texts.find(
+        (el) => el.textContent === 'Criar aula recomendada'
+      );
+      const status = texts.find(
+        (el) => el.textContent === 'Nenhum rascunho salvo'
+      );
+      const subtitle = texts.find((el) =>
+        el.textContent?.includes('manualmente ou automaticamente')
+      );
+      expect(title).toHaveAttribute('data-size', 'xl');
+      expect(subtitle).toHaveAttribute('data-size', 'md');
+      // Status shares its row with the action buttons
+      expect(status?.parentElement).toContainElement(
+        screen.getByText('Enviar aula')
+      );
+      // Order: title -> status row -> subtitle
+      expect(
+        title!.compareDocumentPosition(status!) &
+          Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy();
+      expect(
+        status!.compareDocumentPosition(subtitle!) &
+          Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy();
     });
   });
 

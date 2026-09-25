@@ -6,6 +6,7 @@ import {
   useRef,
   type ReactNode,
 } from 'react';
+import { FadersHorizontalIcon } from '@phosphor-icons/react/dist/csr/FadersHorizontal';
 import Text from '../Text/Text';
 import Button from '../Button/Button';
 import DropdownMenu, {
@@ -171,7 +172,8 @@ export const LessonFilters = ({
       ? 'w-full bg-background'
       : 'w-[400px] flex-shrink-0 p-4 bg-background';
 
-  const contentClassName = variant === 'popover' ? 'p-4' : '';
+  const isPopover = variant === 'popover';
+  const contentClassName = isPopover ? 'p-4 max-[426px]:p-6' : '';
 
   return (
     <div className={containerClassName}>
@@ -184,6 +186,15 @@ export const LessonFilters = ({
       )}
 
       <div className={contentClassName}>
+        {/* Narrow popover (<= 425px) gets its own heading, as on the design */}
+        {isPopover && (
+          <section className="hidden max-[426px]:flex flex-row items-center gap-2 text-text-950 mb-4">
+            <FadersHorizontalIcon size={24} />
+            <Text size="lg" weight="bold">
+              Filtro de aulas
+            </Text>
+          </section>
+        )}
         <section className="flex flex-col gap-4">
           <div>
             <div className="flex flex-row justify-between items-center mb-3">
@@ -210,6 +221,7 @@ export const LessonFilters = ({
               onToggleAllSubjects={handleToggleAllSubjects}
               loading={loadingSubjects}
               error={subjectsError}
+              gridClassName={isPopover ? 'max-[426px]:grid-cols-2' : undefined}
             />
           </div>
 
@@ -219,7 +231,7 @@ export const LessonFilters = ({
             handleCategoriesChange={handleCategoriesChange}
           />
 
-          {variant === 'popover' && (
+          {isPopover && (
             <FilterActions
               onClearFilters={onClearFilters}
               onApplyFilters={onApplyFilters}
@@ -230,6 +242,9 @@ export const LessonFilters = ({
     </div>
   );
 };
+
+/** Tallest the filters popover gets when the viewport has room for it (px). */
+const LESSON_FILTERS_POPOVER_MAX_HEIGHT = 720;
 
 export interface LessonFiltersPopoverProps extends Omit<
   LessonFiltersProps,
@@ -262,6 +277,7 @@ export const LessonFiltersPopover = ({
   ...lessonFiltersProps
 }: LessonFiltersPopoverProps) => {
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const appliedFilters = useLessonFiltersStore((state) => state.appliedFilters);
 
   // Use appliedFilters from store if available, otherwise fall back to initialFilters
@@ -274,7 +290,7 @@ export const LessonFiltersPopover = ({
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild>
+      <DropdownMenuTrigger asChild ref={triggerRef}>
         {/*
           The icon lives in `children` rather than in `iconLeft` because
           `iconLeft` adds an unconditional `mr-2`, which would leave a dangling
@@ -284,7 +300,11 @@ export const LessonFiltersPopover = ({
           variant="outline"
           size="small"
           aria-label={triggerLabel}
-          className={collapseTriggerLabel ? 'px-3 min-[520px]:px-4' : undefined}
+          className={
+            collapseTriggerLabel
+              ? 'size-9 p-0 min-[520px]:size-auto min-[520px]:px-4 min-[520px]:py-2.5'
+              : undefined
+          }
         >
           <span className="flex flex-row items-center gap-2">
             {triggerIcon}
@@ -299,14 +319,17 @@ export const LessonFiltersPopover = ({
         </Button>
       </DropdownMenuTrigger>
       {/*
-        The menu is absolutely positioned inside a page that is `h-screen
-        overflow-hidden`, so anything past the viewport bottom is clipped with
-        no way to scroll to it. The cap discounts the header + tabs row above
-        the trigger (~11rem) plus the page's bottom padding, keeping the whole
-        menu — and the "Filtrar" button — on screen.
+        Portaled (position: fixed) and sized by the menu itself from the room
+        left below the trigger: the page is `h-screen overflow-hidden`, so an
+        absolute menu past the viewport bottom was clipped with "Filtrar" out of
+        reach, and the header above the trigger changes height per breakpoint,
+        which rules out a fixed `max-h` calc.
       */}
       <DropdownMenuContent
-        className="w-[90vw] max-w-[400px] max-h-[calc(100dvh-13rem)] overflow-y-auto p-0"
+        portal
+        triggerRef={triggerRef}
+        maxHeight={LESSON_FILTERS_POPOVER_MAX_HEIGHT}
+        className="w-[calc(100vw-2.5rem)] max-w-[400px] p-0 max-[426px]:rounded-xl max-[426px]:border-0 max-[426px]:shadow-soft-shadow-1"
         align="start"
       >
         <LessonFilters

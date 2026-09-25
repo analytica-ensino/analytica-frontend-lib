@@ -98,6 +98,7 @@ jest.mock('../../components/ActivityFilters/components', () => ({
     onToggleAllSubjects,
     loading,
     error,
+    gridClassName,
   }: {
     knowledgeAreas: Array<{ id: string; name: string }>;
     selectedSubjectIds: string[];
@@ -107,8 +108,9 @@ jest.mock('../../components/ActivityFilters/components', () => ({
     onToggleAllSubjects?: () => void;
     loading?: boolean;
     error?: string | null;
+    gridClassName?: string;
   }) => (
-    <div data-testid="subjects-filter">
+    <div data-testid="subjects-filter" data-grid-class={gridClassName}>
       {loading && <div>Carregando componentes curriculares...</div>}
       {error && <div>{error}</div>}
       {showAllSubjectsOption && (
@@ -244,8 +246,22 @@ jest.mock('../DropdownMenu/DropdownMenu', () => ({
   DropdownMenuTrigger: ({ children }: { children: React.ReactNode }) => (
     <>{children}</>
   ),
-  DropdownMenuContent: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="dropdown-content">{children}</div>
+  DropdownMenuContent: ({
+    children,
+    portal,
+    maxHeight,
+  }: {
+    children: React.ReactNode;
+    portal?: boolean;
+    maxHeight?: number;
+  }) => (
+    <div
+      data-testid="dropdown-content"
+      data-portal={String(portal)}
+      data-max-height={maxHeight}
+    >
+      {children}
+    </div>
   ),
 }));
 
@@ -602,7 +618,19 @@ describe('LessonFilters', () => {
   it('renders popover variant', () => {
     renderComponent({ variant: 'popover' });
 
-    expect(screen.queryByText('Filtro de aulas')).not.toBeInTheDocument();
+    // The popover heading only shows on narrow screens (<= 425px)
+    expect(screen.getByText('Filtro de aulas').closest('section')).toHaveClass(
+      'hidden',
+      'max-[426px]:flex'
+    );
+  });
+
+  it('keeps the default 3-column subjects grid outside the popover', () => {
+    renderComponent();
+
+    expect(screen.getByTestId('subjects-filter')).not.toHaveAttribute(
+      'data-grid-class'
+    );
   });
 
   it('renders default variant with title', () => {
@@ -813,22 +841,51 @@ describe('LessonFiltersPopover', () => {
     expect(screen.getByTestId('trigger-icon')).toBeInTheDocument();
     const label = screen.getByText('Filtros');
     expect(label).toHaveClass('hidden', 'min-[520px]:inline');
-    expect(screen.getByRole('button', { name: 'Filtros' })).toHaveClass('px-3');
+    // Icon-only square trigger below 520px, label layout restored above it
+    expect(screen.getByRole('button', { name: 'Filtros' })).toHaveClass(
+      'size-9',
+      'min-[520px]:px-4'
+    );
   });
 
   it('keeps the label visible when not collapsible', () => {
     renderPopover();
 
-    expect(screen.getByText('Filtro de aulas')).not.toHaveClass('hidden');
+    // [0] is the trigger label; [1] is the narrow-screen popover heading
+    expect(screen.getAllByText('Filtro de aulas')[0]).not.toHaveClass('hidden');
   });
 
   it('renders the popover variant of the filters', () => {
     renderPopover();
 
     expect(screen.getByTestId('dropdown-content')).toBeInTheDocument();
-    // Only the trigger label; the default variant heading is not rendered
-    expect(screen.getAllByText('Filtro de aulas')).toHaveLength(1);
+    // Trigger label + popover heading; the default variant heading (no icon,
+    // shown at every width) is not rendered
+    expect(screen.getAllByText('Filtro de aulas')).toHaveLength(2);
     expect(screen.getByTestId('filter-actions')).toBeInTheDocument();
+  });
+
+  it('portals the menu anchored to the trigger so it is sized to the viewport', () => {
+    renderPopover();
+
+    const content = screen.getByTestId('dropdown-content');
+    expect(content).toHaveAttribute('data-portal', 'true');
+    expect(content).toHaveAttribute('data-max-height', '720');
+  });
+
+  it('renders the heading shown only on narrow screens', () => {
+    renderPopover();
+
+    expect(screen.getByTestId('subjects-filter')).toHaveAttribute(
+      'data-grid-class',
+      'max-[426px]:grid-cols-2'
+    );
+
+    const heading = screen.getAllByText('Filtro de aulas')[1];
+    expect(heading.closest('section')).toHaveClass(
+      'hidden',
+      'max-[426px]:flex'
+    );
   });
 
   it('applies the filters and closes the popover', () => {

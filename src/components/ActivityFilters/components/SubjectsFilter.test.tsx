@@ -100,6 +100,19 @@ describe('SubjectsFilter', () => {
       ).toBeInTheDocument();
     });
 
+    it('appends gridClassName to the grid', () => {
+      const { container } = render(
+        <SubjectsFilter
+          {...defaultProps}
+          gridClassName="max-[426px]:grid-cols-2"
+        />
+      );
+
+      expect(container.querySelector('.grid.grid-cols-3')).toHaveClass(
+        'max-[426px]:grid-cols-2'
+      );
+    });
+
     it('renders each subject icon', () => {
       render(<SubjectsFilter {...defaultProps} />);
 
