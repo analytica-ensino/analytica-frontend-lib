@@ -19,6 +19,21 @@ describe('DateTimeInput', () => {
   });
 
   describe('rendering', () => {
+    it('should let the field shrink to its container (iOS datetime-local)', () => {
+      render(
+        <DateTimeInput
+          {...defaultProps}
+          testId="start"
+          className="w-full custom-wrapper"
+        />
+      );
+
+      const input = screen.getByTestId('start-input');
+      expect(input).toHaveClass('min-w-0', 'appearance-none');
+      // The wrapper keeps the caller's classes and can shrink as a flex item
+      expect(input.closest('.custom-wrapper')).toHaveClass('min-w-0', 'w-full');
+    });
+
     it('should render with label', () => {
       render(<DateTimeInput {...defaultProps} />);
 

@@ -1040,6 +1040,25 @@ describe('LessonBank', () => {
     });
   });
 
+  describe('Lesson card buttons', () => {
+    it('should wrap the buttons instead of breaking their labels', async () => {
+      const apiClient = createMockApiClient();
+      render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Introdução à Álgebra Linear')
+        ).toBeInTheDocument();
+      });
+
+      const watch = screen.getAllByText('Assistir')[0].closest('button')!;
+      const add = screen.getAllByText('Adicionar à aula')[0].closest('button')!;
+      expect(watch.parentElement).toHaveClass('flex', 'flex-wrap');
+      expect(watch).toHaveClass('flex-1', 'whitespace-nowrap');
+      expect(add).toHaveClass('flex-1', 'whitespace-nowrap');
+    });
+  });
+
   describe('Adicionar automaticamente', () => {
     /**
      * Creates an api client whose random requests return `randomResult`

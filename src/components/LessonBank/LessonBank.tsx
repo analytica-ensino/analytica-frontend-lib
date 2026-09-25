@@ -228,13 +228,19 @@ export const LessonBank = ({
               )}
             </div>
 
-            <div className="flex gap-2">
+            {/*
+              Side by side while both labels fit on one line; otherwise the
+              second button wraps and each takes the full width. With
+              `whitespace-nowrap` a flex item's min width is its one-line
+              label, which is what triggers the wrap — no breakpoint needed.
+            */}
+            <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
                 action="secondary"
                 size="small"
                 onClick={() => handleWatch(lesson)}
-                className="flex-1"
+                className="flex-1 whitespace-nowrap"
                 iconLeft={<Video size={16} color="currentColor" />}
               >
                 Assistir
@@ -244,7 +250,7 @@ export const LessonBank = ({
                 action="primary"
                 size="small"
                 onClick={() => handleAddWithToast(lesson)}
-                className="flex-1"
+                className="flex-1 whitespace-nowrap"
                 iconLeft={<PlusIcon size={16} />}
               >
                 Adicionar à aula
