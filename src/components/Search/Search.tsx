@@ -245,6 +245,9 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       (controlledShowDropdown ??
         (dropdownOpen && value && String(value).length > 0));
 
+    /** Se o popup tem sugestões de verdade, ou só a mensagem de vazio. */
+    const hasSuggestions = filteredOptions.length > 0;
+
     // Helper to keep all consumers in sync
     const setOpenAndNotify = (open: boolean) => {
       setDropdownOpen(open);
@@ -443,11 +446,16 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
             disabled={disabled}
             readOnly={readOnly}
             placeholder={placeholder}
-            aria-expanded={showDropdown ? 'true' : undefined}
-            aria-haspopup={options.length > 0 ? 'listbox' : undefined}
-            aria-controls={showDropdown ? dropdownId : undefined}
-            aria-autocomplete="list"
-            role={options.length > 0 ? 'combobox' : undefined}
+            // Este campo é uma caixa de busca, e o leitor de tela precisa
+            // anunciá-lo assim — é o que `searchbox` faz.
+            //
+            // Nenhum atributo de combobox entra aqui. Antes havia
+            // `role="combobox"` + `aria-haspopup="listbox"`, que rendia
+            // "combinação, pop-up caixa de lista" e ainda mentia duas vezes: o
+            // popup é um `menu` (não um listbox), e o campo não tem navegação
+            // por setas nem `aria-activedescendant` — sem isso não existe
+            // combobox conforme, só a promessa dele.
+            role="searchbox"
             {...props}
           />
 
@@ -495,7 +503,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
               style={{ maxHeight: dropdownMaxHeight }}
               align="start"
             >
-              {filteredOptions.length > 0 ? (
+              {hasSuggestions ? (
                 filteredOptions.map((option) => (
                   <DropdownMenuItem
                     key={option}
@@ -506,7 +514,16 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
                   </DropdownMenuItem>
                 ))
               ) : (
-                <div className="px-3 py-3 text-text-700 text-base">
+                // O contêiner é um `role="menu"`, e um menu sem nenhum
+                // `menuitem` é anunciado como menu vazio — a frase dentro dele
+                // se perde. Marcar o próprio texto como item desabilitado
+                // deixa o menu bem-formado e a mensagem audível, sem precisar
+                // trocar o papel do contêiner.
+                <div
+                  role="menuitem"
+                  aria-disabled="true"
+                  className="px-3 py-3 text-text-700 text-base"
+                >
                   {noResultsText}
                 </div>
               )}

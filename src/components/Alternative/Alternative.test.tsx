@@ -257,8 +257,8 @@ describe('AlternativesList', () => {
     });
   });
 
-  describe('Readonly mode', () => {
-    it('renders in readonly mode without RadioGroup', () => {
+  describe('Readonly mode - leitura pelo leitor de tela', () => {
+    const renderResultado = () =>
       render(
         <AlternativesList
           alternatives={mockAlternativesWithStatus}
@@ -267,9 +267,134 @@ describe('AlternativesList', () => {
         />
       );
 
-      // Should not have functional radio elements
-      const radioGroup = screen.queryByRole('radiogroup');
-      expect(radioGroup).not.toBeInTheDocument();
+    it('lê cada alternativa como uma unidade: posição, enunciado e correção', () => {
+      renderResultado();
+
+      const [primeira, segunda, terceira] = screen.getAllByRole('radio');
+
+      // A correta que o aluno NÃO marcou.
+      expect(primeira).toHaveAccessibleName(
+        'Alternativa 1 de 3 Alternativa A Resposta correta'
+      );
+      // A que o aluno marcou, e estava errada.
+      expect(segunda).toHaveAccessibleName(
+        'Alternativa 2 de 3 Alternativa B Resposta incorreta'
+      );
+      // Neutra: sem badge, o nome termina no enunciado em vez de truncar.
+      expect(terceira).toHaveAccessibleName('Alternativa 3 de 3 Alternativa C');
+    });
+
+    it('marca com `aria-checked` apenas a alternativa escolhida pelo aluno', () => {
+      renderResultado();
+
+      const [primeira, segunda, terceira] = screen.getAllByRole('radio');
+      expect(primeira).toHaveAttribute('aria-checked', 'false');
+      expect(segunda).toHaveAttribute('aria-checked', 'true');
+      expect(terceira).toHaveAttribute('aria-checked', 'false');
+    });
+
+    it('agrupa as alternativas, para o leitor contar o conjunto', () => {
+      renderResultado();
+
+      // Sem o `radiogroup` os `role="radio"` ficam órfãos. O rótulo é fixo de
+      // propósito: o `name` dos consumidores é um id gerado.
+      const grupo = screen.getByRole('radiogroup');
+      expect(grupo).toHaveAccessibleName('Alternativas');
+      expect(screen.getAllByRole('radio')).toHaveLength(3);
+    });
+
+    it('mantém o radio decorativo fora da árvore de acessibilidade', () => {
+      const { container } = renderResultado();
+
+      // O estado vem do `aria-checked` do item; o círculo pintado por CSS
+      // duplicaria a informação.
+      const circulo = container.querySelector('.rounded-full.border-2');
+      expect(circulo).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    it('lê a equação, sem o LaTeX de origem junto', () => {
+      const { container } = render(
+        <AlternativesList
+          mode="readonly"
+          selectedValue="a"
+          alternatives={[
+            {
+              value: 'a',
+              label: 'A raiz é $$x = \\frac{-b}{2a}$$ nesse caso',
+              status: OptionStatus.CORRECT,
+            },
+          ]}
+        />
+      );
+
+      // `role="radio"` achata o conteúdo no nome acessível, e o MathML do
+      // KaTeX carrega um `<annotation>` com o LaTeX de origem. Sem escondê-lo,
+      // o leitor falaria a marcação: "…, x = \frac{-b}{2a}, …".
+      // Os matchers do jest-dom só aceitam HTMLElement/SVGElement, e estes são
+      // nós MathML — daí as asserções via DOM puro.
+      const annotation = container.querySelector('annotation');
+      expect(annotation?.textContent).toContain('\\frac{-b}{2a}');
+      expect(annotation?.getAttribute('aria-hidden')).toBe('true');
+
+      // A equação em si continua disponível, pelo MathML.
+      const mathml = container.querySelector('.katex-mathml');
+      expect(mathml).toBeInTheDocument();
+      expect(mathml).not.toHaveAttribute('aria-hidden');
+      expect(container.querySelector('math')).not.toBeNull();
+
+      // E a parte puramente visual segue fora da árvore.
+      expect(container.querySelector('.katex-html')).toHaveAttribute(
+        'aria-hidden',
+        'true'
+      );
+    });
+
+    it('inclui a descrição na leitura, no layout detailed', () => {
+      render(
+        <AlternativesList
+          mode="readonly"
+          layout="detailed"
+          selectedValue="a"
+          alternatives={[
+            {
+              value: 'a',
+              label: 'Alternativa A',
+              description: 'Justificativa da alternativa',
+              status: OptionStatus.CORRECT,
+            },
+          ]}
+        />
+      );
+
+      expect(screen.getByRole('radio')).toHaveAccessibleName(
+        'Alternativa 1 de 1 Alternativa A Justificativa da alternativa Resposta correta'
+      );
+    });
+  });
+
+  describe('Readonly mode', () => {
+    it('renders in readonly mode without functional controls', () => {
+      const { container } = render(
+        <AlternativesList
+          alternatives={mockAlternativesWithStatus}
+          mode="readonly"
+          selectedValue="b"
+        />
+      );
+
+      // Nenhum controle de formulário: o modo readonly não usa o `RadioGroup`
+      // interativo, que renderiza input + button por alternativa.
+      expect(container.querySelector('input')).not.toBeInTheDocument();
+      expect(container.querySelector('button')).not.toBeInTheDocument();
+
+      // A semântica, porém, existe — é o que o leitor de tela lê. Só não é
+      // acionável nem entra na ordem do Tab.
+      const radioGroup = screen.getByRole('radiogroup');
+      expect(radioGroup).toHaveAttribute('aria-readonly', 'true');
+      for (const radio of screen.getAllByRole('radio')) {
+        expect(radio).toHaveAttribute('aria-disabled', 'true');
+        expect(radio).not.toHaveAttribute('tabindex');
+      }
 
       // Should display alternatives
       expect(screen.getByText('Alternativa A')).toBeInTheDocument();

@@ -224,7 +224,7 @@ describe('ColumnFilterMenu', () => {
 
       expect(screen.getByText('Escola Municipal São José')).toBeInTheDocument();
 
-      fireEvent.change(screen.getByRole('textbox'), {
+      fireEvent.change(screen.getByRole('searchbox'), {
         target: { value: 'paraná' },
       });
 
@@ -248,7 +248,7 @@ describe('ColumnFilterMenu', () => {
       openSchools();
 
       // 's1' is the value; searching for it must not match by accident.
-      fireEvent.change(screen.getByRole('textbox'), {
+      fireEvent.change(screen.getByRole('searchbox'), {
         target: { value: 'municipal' },
       });
 
@@ -273,7 +273,7 @@ describe('ColumnFilterMenu', () => {
       );
       openSchools();
 
-      fireEvent.change(screen.getByRole('textbox'), {
+      fireEvent.change(screen.getByRole('searchbox'), {
         target: { value: 'nada casa com isto' },
       });
 

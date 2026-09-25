@@ -2,10 +2,13 @@ import {
   forwardRef,
   HTMLAttributes,
   useEffect,
+  useId,
+  useRef,
   MouseEvent,
   KeyboardEvent,
 } from 'react';
 import Button from '../Button/Button';
+import { useModalFocus } from '../../hooks/useModalFocus';
 import { cn } from '../../utils/utils';
 
 /**
@@ -19,7 +22,7 @@ const SIZE_CLASSES = {
   'extra-large': 'w-screen max-w-[912px]',
 } as const;
 
-interface AlertDialogProps extends HTMLAttributes<HTMLDivElement> {
+interface AlertDialogProps extends HTMLAttributes<HTMLDialogElement> {
   /** Title of the alert dialog */
   title: string;
   /** Whether the alert dialog is open (controlled mode) */
@@ -52,7 +55,7 @@ interface AlertDialogProps extends HTMLAttributes<HTMLDivElement> {
   submitAction?: 'primary' | 'secondary' | 'positive' | 'negative';
 }
 
-const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
+const AlertDialog = forwardRef<HTMLDialogElement, AlertDialogProps>(
   (
     {
       description,
@@ -74,6 +77,42 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
     },
     ref
   ) => {
+    const dialogRef = useRef<HTMLDialogElement>(null);
+
+    /**
+     * Ids por instância. Fixos, dois diálogos abertos ao mesmo tempo — ou um
+     * diálogo convivendo com qualquer outro elemento da página que use o mesmo
+     * id — fariam o `aria-labelledby` apontar para o nó errado, e o leitor de
+     * tela anunciaria o título do outro.
+     */
+    const titleId = useId();
+    const descriptionId = useId();
+
+    /**
+     * Leva o foco pro diálogo ao abrir, prende o Tab lá dentro e devolve o foco
+     * a quem o abriu ao fechar. Sem isto o foco ficava no botão que está ATRÁS
+     * do backdrop: o leitor de tela seguia lendo a página de trás, sem nunca
+     * anunciar que um diálogo abriu, e o Tab passeava pelo conteúdo bloqueado.
+     *
+     * É o mesmo hook que o `Modal` usa — o `AlertDialog` é que tinha ficado de
+     * fora quando o foco foi resolvido lá.
+     */
+    useModalFocus(isOpen, dialogRef);
+
+    /**
+     * O nó é preciso aqui (para o foco) e também no `ref` do consumidor, que
+     * segue sendo encaminhado como antes.
+     */
+    const setDialogRef = (node: HTMLDialogElement | null) => {
+      dialogRef.current = node;
+
+      if (typeof ref === 'function') {
+        ref(node);
+      } else if (ref) {
+        (ref as { current: HTMLDialogElement | null }).current = node;
+      }
+    };
+
     // Handle escape key
     useEffect(() => {
       if (!isOpen || !closeOnEscape) return;
@@ -136,25 +175,40 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
             data-testid="alert-dialog-overlay"
           >
             {/* Alert Dialog Content */}
-            <div
-              ref={ref}
+            <dialog
+              ref={setDialogRef}
+              // `<dialog>` em vez de `role="dialog"`: o papel vem do elemento,
+              // que é o que garante o tratamento correto em qualquer
+              // navegador/leitor. Mesmo padrão do `Modal`.
+              //
+              // `open` (e não `showModal()`) porque o backdrop é nosso; em
+              // troca, o navegador não gerencia foco — quem faz isso é o
+              // `useModalFocus` acima, e é dele o requisito do `tabIndex={-1}`:
+              // o foco inicial vai pro próprio diálogo, não pro primeiro botão,
+              // para o leitor anunciar título e descrição antes das ações.
+              open
+              aria-modal="true"
+              aria-labelledby={titleId}
+              aria-describedby={descriptionId}
+              tabIndex={-1}
               className={cn(
-                'bg-background border border-border-100 rounded-lg shadow-lg p-6 m-3',
+                // `static` anula o `position: absolute` que o navegador aplica
+                // a `<dialog>`; sem isso ele escapa da centralização do
+                // backdrop. As demais regras do UA (padding, borda, fundo) já
+                // são sobrescritas pelas classes abaixo.
+                'static bg-background border border-border-100 rounded-lg shadow-lg p-6 m-3',
                 sizeClasses,
                 className
               )}
               {...props}
             >
               <h2
-                id="alert-dialog-title"
+                id={titleId}
                 className="pb-3 text-xl font-semibold text-text-950"
               >
                 {title}
               </h2>
-              <p
-                id="alert-dialog-description"
-                className="text-text-700 text-sm"
-              >
+              <p id={descriptionId} className="text-text-700 text-sm">
                 {description}
               </p>
 
@@ -172,7 +226,7 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
                   {submitButtonLabel}
                 </Button>
               </div>
-            </div>
+            </dialog>
           </div>
         )}
       </>

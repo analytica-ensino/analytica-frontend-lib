@@ -380,7 +380,7 @@ describe('AlertDialog', () => {
         />
       );
 
-      const dialogContent = screen.getByText('Test Dialog').closest('div');
+      const dialogContent = screen.getByRole('dialog');
       expect(dialogContent).toHaveClass('w-screen', 'max-w-[324px]');
     });
 
@@ -394,7 +394,7 @@ describe('AlertDialog', () => {
         />
       );
 
-      const dialogContent = screen.getByText('Test Dialog').closest('div');
+      const dialogContent = screen.getByRole('dialog');
       expect(dialogContent).toHaveClass('w-screen', 'max-w-[378px]');
     });
 
@@ -403,7 +403,7 @@ describe('AlertDialog', () => {
         <AlertDialog {...defaultProps} isOpen={true} onChangeOpen={jest.fn()} />
       );
 
-      const dialogContent = screen.getByText('Test Dialog').closest('div');
+      const dialogContent = screen.getByRole('dialog');
       expect(dialogContent).toHaveClass('w-screen', 'max-w-[459px]');
     });
 
@@ -417,7 +417,7 @@ describe('AlertDialog', () => {
         />
       );
 
-      const dialogContent = screen.getByText('Test Dialog').closest('div');
+      const dialogContent = screen.getByRole('dialog');
       expect(dialogContent).toHaveClass('w-screen', 'max-w-[578px]');
     });
 
@@ -431,7 +431,7 @@ describe('AlertDialog', () => {
         />
       );
 
-      const dialogContent = screen.getByText('Test Dialog').closest('div');
+      const dialogContent = screen.getByRole('dialog');
       expect(dialogContent).toHaveClass('w-screen', 'max-w-[912px]');
     });
   });
@@ -447,7 +447,7 @@ describe('AlertDialog', () => {
         />
       );
 
-      const dialogContent = screen.getByText('Test Dialog').closest('div');
+      const dialogContent = screen.getByRole('dialog');
       expect(dialogContent).toHaveClass('custom-class');
     });
 
@@ -471,14 +471,123 @@ describe('AlertDialog', () => {
         <AlertDialog {...defaultProps} isOpen={true} onChangeOpen={jest.fn()} />
       );
 
-      expect(screen.getByText('Test Dialog')).toHaveAttribute(
-        'id',
-        'alert-dialog-title'
+      // O que importa é a LIGAÇÃO, não o valor do id: ele vem do `useId` e é
+      // por instância, justamente para dois diálogos não colidirem.
+      const dialogo = screen.getByRole('dialog');
+      const titulo = screen.getByText('Test Dialog');
+      const descricao = screen.getByText('This is a test dialog');
+
+      expect(titulo.id).toBeTruthy();
+      expect(descricao.id).toBeTruthy();
+      expect(dialogo).toHaveAttribute('aria-labelledby', titulo.id);
+      expect(dialogo).toHaveAttribute('aria-describedby', descricao.id);
+    });
+
+    it('dá ids próprios a cada diálogo, para não colidirem', () => {
+      render(
+        <>
+          <AlertDialog
+            {...defaultProps}
+            title="Primeiro"
+            description="Descrição do primeiro"
+            isOpen={true}
+            onChangeOpen={jest.fn()}
+          />
+          <AlertDialog
+            {...defaultProps}
+            title="Segundo"
+            description="Descrição do segundo"
+            isOpen={true}
+            onChangeOpen={jest.fn()}
+          />
+        </>
       );
-      expect(screen.getByText('This is a test dialog')).toHaveAttribute(
-        'id',
-        'alert-dialog-description'
+
+      const [primeiro, segundo] = screen.getAllByRole('dialog');
+
+      expect(primeiro.getAttribute('aria-labelledby')).not.toBe(
+        segundo.getAttribute('aria-labelledby')
       );
+      // Com ids fixos os dois apontariam para o mesmo nó e o leitor anunciaria
+      // "Primeiro" nos dois diálogos.
+      expect(primeiro).toHaveAccessibleName('Primeiro');
+      expect(segundo).toHaveAccessibleName('Segundo');
+      expect(segundo).toHaveAccessibleDescription('Descrição do segundo');
+    });
+
+    it('se anuncia como diálogo, com título e descrição ligados', () => {
+      render(
+        <AlertDialog {...defaultProps} isOpen={true} onChangeOpen={jest.fn()} />
+      );
+
+      const dialogo = screen.getByRole('dialog');
+      expect(dialogo).toHaveAttribute('aria-modal', 'true');
+      expect(dialogo).toHaveAccessibleName('Test Dialog');
+      expect(dialogo).toHaveAccessibleDescription('This is a test dialog');
+    });
+  });
+
+  describe('Foco', () => {
+    it('leva o foco pro diálogo ao abrir', () => {
+      const { rerender } = render(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={false}
+          onChangeOpen={jest.fn()}
+        />
+      );
+
+      rerender(
+        <AlertDialog {...defaultProps} isOpen={true} onChangeOpen={jest.fn()} />
+      );
+
+      // No próprio diálogo, e não no primeiro botão: assim o leitor anuncia
+      // título e descrição antes das ações.
+      expect(screen.getByRole('dialog')).toHaveFocus();
+    });
+
+    it('devolve o foco a quem abriu ao fechar', () => {
+      const gatilho = document.createElement('button');
+      document.body.appendChild(gatilho);
+      gatilho.focus();
+
+      const { rerender } = render(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={false}
+          onChangeOpen={jest.fn()}
+        />
+      );
+      rerender(
+        <AlertDialog {...defaultProps} isOpen={true} onChangeOpen={jest.fn()} />
+      );
+      expect(screen.getByRole('dialog')).toHaveFocus();
+
+      rerender(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={false}
+          onChangeOpen={jest.fn()}
+        />
+      );
+
+      expect(gatilho).toHaveFocus();
+      gatilho.remove();
+    });
+
+    it('prende o Tab dentro do diálogo', () => {
+      render(
+        <AlertDialog {...defaultProps} isOpen={true} onChangeOpen={jest.fn()} />
+      );
+
+      const submeter = screen.getByRole('button', { name: 'Confirm' });
+      submeter.focus();
+
+      // Do último focusável o Tab volta pro primeiro, em vez de escapar pro
+      // conteúdo que está visualmente bloqueado pelo backdrop.
+      fireEvent.keyDown(document, { key: 'Tab' });
+
+      expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus();
     });
   });
 
