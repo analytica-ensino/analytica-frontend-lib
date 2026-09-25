@@ -122,13 +122,19 @@ const CardAccordation = forwardRef<HTMLDivElement, CardAccordationProps>(
           />
         </button>
 
-        {/* Expandable content */}
+        {/*
+          Expandable content. `relative` makes this the containing block of
+          absolutely positioned descendants (e.g. `sr-only` checkbox inputs):
+          otherwise they escape the `max-h-0 overflow-hidden` clip while
+          collapsed and inflate the scroll height of the nearest scrollable
+          ancestor, leaving a blank, scrollable area below the content.
+        */}
         <section
           id={contentId}
           aria-labelledby={headerId}
           aria-hidden={!isExpanded}
           className={cn(
-            'transition-all duration-300 ease-in-out overflow-hidden',
+            'relative transition-all duration-300 ease-in-out overflow-hidden',
             isExpanded ? 'opacity-100' : 'max-h-0 opacity-0'
           )}
           data-testid="accordion-content"

@@ -298,8 +298,15 @@ export const LessonFiltersPopover = ({
           </span>
         </Button>
       </DropdownMenuTrigger>
+      {/*
+        The menu is absolutely positioned inside a page that is `h-screen
+        overflow-hidden`, so anything past the viewport bottom is clipped with
+        no way to scroll to it. The cap discounts the header + tabs row above
+        the trigger (~11rem) plus the page's bottom padding, keeping the whole
+        menu — and the "Filtrar" button — on screen.
+      */}
       <DropdownMenuContent
-        className="w-[90vw] max-w-[400px] max-h-[calc(100vh-8rem)] overflow-y-auto p-0"
+        className="w-[90vw] max-w-[400px] max-h-[calc(100dvh-13rem)] overflow-y-auto p-0"
         align="start"
       >
         <LessonFilters

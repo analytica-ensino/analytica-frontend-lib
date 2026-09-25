@@ -70,6 +70,22 @@ describe('CardAccordation', () => {
   });
 
   describe('Initial state', () => {
+    it('clips absolutely positioned descendants while collapsed', () => {
+      render(
+        <CardAccordation trigger={mockTitle}>
+          <input type="checkbox" className="sr-only" />
+        </CardAccordation>
+      );
+
+      // `relative` makes the clipped section the containing block of `sr-only`
+      // inputs, so they can't inflate a scrollable ancestor while collapsed
+      expect(screen.getByTestId('accordion-content')).toHaveClass(
+        'relative',
+        'overflow-hidden',
+        'max-h-0'
+      );
+    });
+
     it('starts collapsed by default', () => {
       render(
         <CardAccordation trigger={mockTitle}>
