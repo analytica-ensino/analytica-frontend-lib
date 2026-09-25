@@ -506,8 +506,8 @@ const EnemClassroomStartModal = ({
           Boa sorte!
         </Text>
         <Text size="sm" className="text-text-600">
-          Sua simulação do ENEM já está para começar e o cronômetro vai iniciar.
-          Respira fundo e dá o seu melhor!
+          O seu simulado ENEM já vai começar e o cronômetro vai iniciar. Respire
+          fundo e dê o seu melhor!
         </Text>
       </div>
 
