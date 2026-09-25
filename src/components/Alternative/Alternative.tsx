@@ -146,8 +146,28 @@ const AlternativesList = ({
     }
   };
 
-  // Componente para renderizar alternativa no modo readonly
-  const renderReadonlyAlternative = (alternative: Alternative) => {
+  /**
+   * Renderiza uma alternativa no modo readonly (tela de resultado).
+   *
+   * Aqui não há controle de formulário nenhum — o "radio" é um `<div>` pintado
+   * com CSS. Para o leitor de tela isso significava fragmentos soltos: o texto
+   * de um lado, o badge de outro, e nenhuma pista de que aquilo era uma
+   * alternativa, qual o aluno marcou ou se estava certa.
+   *
+   * A correção é dar à linha inteira papel de `radio`. Esse papel computa o
+   * nome acessível A PARTIR DO CONTEÚDO, então a posição (um `sr-only`), o
+   * enunciado e o badge — que já são descendentes — passam a ser lidos como
+   * uma frase só. Com o `aria-checked` fechando o estado, o leitor fala
+   * "Alternativa 1 de 5, <enunciado>, Resposta incorreta, botão de opção,
+   * selecionado", porque a ordem dele é sempre nome, papel, estado.
+   *
+   * Um `aria-labelledby` listando os mesmos nós seria redundante aqui: daria
+   * exatamente o mesmo nome, ao custo de ids e wrappers para sustentá-los.
+   */
+  const renderReadonlyAlternative = (
+    alternative: Alternative,
+    index: number
+  ) => {
     const alternativeId = alternative.value;
     const isUserSelected = selectedValue === alternative.value;
     const isCorrectAnswer = alternative.status === OptionStatus.CORRECT;
@@ -165,6 +185,22 @@ const AlternativesList = ({
     const statusStyles = getStatusStyles(displayStatus, true);
     const statusBadge = getStatusBadge(displayStatus);
 
+    // Primeiro nó do item, para ser a primeira coisa falada.
+    const positionLabel = (
+      <span className="sr-only">
+        Alternativa {index + 1} de {alternatives.length}
+      </span>
+    );
+
+    /** Atributos que transformam a linha inteira num único ponto de leitura. */
+    const radioItemProps = {
+      role: 'radio',
+      'aria-checked': isUserSelected,
+      // Resultado é leitura: não há o que ativar, e o item fica fora da ordem
+      // do Tab. O cursor do leitor de tela alcança do mesmo jeito.
+      'aria-disabled': true,
+    } as const;
+
     // Radio visual - apenas mostra selecionado se o usuário escolheu esta alternativa
     const renderRadio = () => {
       const radioClasses = `w-6 h-6 rounded-full border-2 cursor-default transition-all duration-200 flex items-center justify-center ${
@@ -177,7 +213,9 @@ const AlternativesList = ({
         'w-3 h-3 rounded-full bg-primary-950 transition-all duration-200';
 
       return (
-        <div className={radioClasses}>
+        // Puramente decorativo: quem carrega o estado agora é o `aria-checked`
+        // do item. Deixá-lo na árvore só duplicaria a informação.
+        <div className={radioClasses} aria-hidden="true">
           {isUserSelected && <div className={dotClasses} />}
         </div>
       );
@@ -187,12 +225,14 @@ const AlternativesList = ({
       return (
         <div
           key={alternativeId}
+          {...radioItemProps}
           className={cn(
             'border-2 rounded-lg p-4 w-full',
             statusStyles,
             alternative.disabled ? 'opacity-50' : ''
           )}
         >
+          {positionLabel}
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3 flex-1">
               <div className="mt-1">{renderRadio()}</div>
@@ -222,12 +262,14 @@ const AlternativesList = ({
     return (
       <div
         key={alternativeId}
+        {...radioItemProps}
         className={cn(
           'flex flex-row justify-between items-start gap-2 p-2 rounded-lg w-full',
           statusStyles,
           alternative.disabled ? 'opacity-50' : ''
         )}
       >
+        {positionLabel}
         <div className="flex items-center gap-2 flex-1">
           {renderRadio()}
           <HtmlMathRenderer
@@ -248,11 +290,18 @@ const AlternativesList = ({
   // Se for modo readonly, renderizar sem RadioGroup
   if (isReadonly) {
     return (
+      // `role="radiogroup"` é o que faz o leitor tratar as alternativas como um
+      // conjunto; sem ele os `role="radio"` ficam órfãos. O rótulo é fixo de
+      // propósito: o `name` que os consumidores passam é um id gerado
+      // (`question-<uuid>`), que seria lido em voz alta como lixo.
       <div
+        role="radiogroup"
+        aria-label="Alternativas"
+        aria-readonly="true"
         className={cn('flex flex-col', getLayoutClasses(), 'w-full', className)}
       >
-        {alternatives.map((alternative) =>
-          renderReadonlyAlternative(alternative)
+        {alternatives.map((alternative, index) =>
+          renderReadonlyAlternative(alternative, index)
         )}
       </div>
     );
