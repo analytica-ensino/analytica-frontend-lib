@@ -8,6 +8,7 @@ import {
 } from 'react';
 import { CalendarBlankIcon } from '@phosphor-icons/react/dist/csr/CalendarBlank';
 import Input from '../Input/Input';
+import { cn } from '../../utils/utils';
 import Calendar from '../Calendar/Calendar';
 import DropdownMenu, {
   DropdownMenuContent,
@@ -205,7 +206,14 @@ const DateTimeInput = ({
           from the keyboard too. A pointer click on the field also opens it,
           without taking the focus away (the click lives on the native input:
           the label forwards its click to it). */}
-      <div ref={triggerRef} className={className}>
+      {/*
+        min-w-0 on the wrapper and the input: iOS Safari gives a native
+        datetime-local input an intrinsic min width that ignores `w-full`, so
+        the field overflowed its parent (e.g. past the modal buttons).
+        `appearance-none` drops the native sizing; the value is kept left
+        aligned because iOS centers it once the appearance is removed.
+      */}
+      <div ref={triggerRef} className={cn('min-w-0', className)}>
         <Input
           // A disabled input fires no click; `isOpen` honours `disabled` too
           onClick={() => setIsCalendarOpen((open) => !open)}
@@ -234,7 +242,7 @@ const DateTimeInput = ({
               <CalendarBlankIcon size={14} aria-hidden="true" />
             </button>
           }
-          className="[&::-webkit-calendar-picker-indicator]:hidden"
+          className="min-w-0 appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-date-and-time-value]:text-left"
         />
       </div>
       <DropdownMenuContent
