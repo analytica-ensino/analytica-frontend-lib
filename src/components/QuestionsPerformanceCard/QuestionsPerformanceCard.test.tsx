@@ -5,7 +5,11 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
-import { QuestionsPerformanceCard } from './QuestionsPerformanceCard';
+import {
+  QuestionsBars,
+  QuestionsPerformanceCard,
+  RateCell,
+} from './QuestionsPerformanceCard';
 
 const data = {
   totalAnswered: 20,
@@ -309,5 +313,36 @@ describe('QuestionsPerformanceCard — subtemas', () => {
     );
 
     expect(screen.getByText('Questões do simulado')).toBeInTheDocument();
+  });
+});
+
+describe('QuestionsBars', () => {
+  const values = { total: 40, corretas: 20, incorretas: 16, emBranco: 4 };
+
+  it('draws the four bars and their shares of the total', () => {
+    render(<QuestionsBars values={values} />);
+
+    expect(screen.getByTestId('questions-bar-total')).toHaveAttribute(
+      'aria-label',
+      'Total: 40'
+    );
+    expect(screen.getByText('50% do total')).toBeInTheDocument();
+    expect(screen.getByText('10% do total')).toBeInTheDocument();
+  });
+
+  it('puts what the caller adds under the legend', () => {
+    render(
+      <QuestionsBars values={values} aside={<div data-testid="aside" />} />
+    );
+
+    expect(screen.getByTestId('aside')).toBeInTheDocument();
+  });
+});
+
+describe('RateCell', () => {
+  it('writes the rate with one decimal, pt-BR', () => {
+    render(<RateCell rate={60.25} />);
+
+    expect(screen.getByText('60,3%')).toBeInTheDocument();
   });
 });

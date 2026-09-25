@@ -544,3 +544,67 @@ describe('StudentRanking', () => {
     });
   });
 });
+
+describe('RankingCard slots', () => {
+  const students = [
+    { position: 1, name: 'Ana', percentage: 95 },
+    { position: 2, name: 'Bia', percentage: 90 },
+  ];
+
+  it('draws a row’s own badge in place of the percentage', () => {
+    render(
+      <RankingCard
+        title="Estudantes em destaque"
+        variant="highlight"
+        students={[{ ...students[0], badge: <span>Nota 9,5</span> }]}
+      />
+    );
+
+    expect(screen.getByText('Nota 9,5')).toBeInTheDocument();
+    expect(screen.queryByText('95%')).not.toBeInTheDocument();
+  });
+
+  it('keeps the percentage on the rows without a badge', () => {
+    render(
+      <RankingCard
+        title="Estudantes em destaque"
+        variant="highlight"
+        students={students}
+      />
+    );
+
+    expect(screen.getByText('95%')).toBeInTheDocument();
+  });
+
+  it('takes a header icon, and a footer under the list', () => {
+    render(
+      <RankingCard
+        title="Estudantes em destaque"
+        variant="highlight"
+        students={students}
+        headerIcon={<span data-testid="medal" />}
+        footer={<button type="button">Baixar lista completa</button>}
+      />
+    );
+
+    expect(screen.getByTestId('medal')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Baixar lista completa' })
+    ).toBeInTheDocument();
+  });
+
+  it('says so when there is nobody to rank', () => {
+    render(
+      <RankingCard
+        title="Estudantes em destaque"
+        variant="highlight"
+        students={[]}
+        emptyText="Nenhum estudante finalizou o simulado."
+      />
+    );
+
+    expect(
+      screen.getByText('Nenhum estudante finalizou o simulado.')
+    ).toBeInTheDocument();
+  });
+});

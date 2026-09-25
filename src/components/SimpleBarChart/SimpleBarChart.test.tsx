@@ -219,4 +219,32 @@ describe('SimpleBarChart', () => {
       expect(chart).toHaveAttribute('id', 'chart-1');
     });
   });
+
+  describe('Subtitle', () => {
+    it('writes a gray line under the title', () => {
+      render(
+        <SimpleBarChart
+          data={[{ label: '0 a 2', value: 3 }]}
+          title="Estudantes por faixa de nota"
+          subtitle="200 estudantes"
+        />
+      );
+
+      expect(screen.getByText('200 estudantes')).toHaveClass('text-text-600');
+    });
+
+    it('has no line without one', () => {
+      render(
+        <SimpleBarChart
+          data={[{ label: '0 a 2', value: 3 }]}
+          title="Estudantes por faixa de nota"
+        />
+      );
+
+      const heading = screen.getByRole('heading', {
+        name: 'Estudantes por faixa de nota',
+      });
+      expect(heading.nextElementSibling).toBeNull();
+    });
+  });
 });

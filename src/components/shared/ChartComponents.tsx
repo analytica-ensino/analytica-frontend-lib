@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type HTMLAttributes, type ReactNode } from 'react';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
 import {
@@ -449,3 +449,135 @@ export const LegendPieCard = ({ slices }: { slices: PieSlice[] }) => (
     <SimplePieChart slices={slices} />
   </div>
 );
+
+/**
+ * Props for PieChartCard component
+ */
+export interface PieChartCardProps extends HTMLAttributes<HTMLDivElement> {
+  /** Card heading */
+  title: string;
+  /** Gray line under the title */
+  subtitle?: ReactNode;
+  /** Drawn before the title */
+  icon?: ReactNode;
+  /** The parts of the whole; `displayValue` overrides a row's legend text */
+  slices: PieSlice[];
+  /**
+   * How a count reads in the legend and the total — "9.056 estudantes".
+   * Defaults to the number, pt-BR.
+   */
+  formatValue?: (value: number) => string;
+  /** Caption of the total row under the legend (default: "Total") */
+  totalLabel?: string;
+  /** Pie size in pixels (default: 200) */
+  size?: number;
+  /** Shown in the pie while every value is zero */
+  emptyText?: string;
+  /** Pie label color — see SimplePieChart */
+  labelColor?: string;
+  /** Pie label text shadow — see SimplePieChart */
+  labelTextShadow?: string;
+}
+
+const formatPieValue = (value: number) => value.toLocaleString('pt-BR');
+
+/**
+ * A whole split in parts: the pie, a legend row per part with its count and
+ * share ("9.056 estudantes (49%)") and the total under them. The shares round
+ * the way the pie labels do, so the two never disagree on screen.
+ *
+ * @example
+ * ```tsx
+ * <PieChartCard
+ *   title="Idioma"
+ *   subtitle="Língua estrangeira escolhida"
+ *   slices={[
+ *     { key: 'en', label: 'Inglês', value: 30, colorClass: 'bg-info-300' },
+ *     { key: 'es', label: 'Espanhol', value: 70, colorClass: 'bg-success-300' },
+ *   ]}
+ *   formatValue={(n) => `${n} estudantes`}
+ * />
+ * ```
+ */
+export const PieChartCard = ({
+  title,
+  subtitle,
+  icon,
+  slices,
+  formatValue = formatPieValue,
+  totalLabel = 'Total',
+  size = 200,
+  emptyText,
+  labelColor,
+  labelTextShadow,
+  className,
+  ...props
+}: PieChartCardProps) => {
+  const total = slices.reduce((sum, slice) => sum + slice.value, 0);
+  const share = (value: number) =>
+    total > 0 ? Math.round((value / total) * 100) : 0;
+
+  return (
+    <div
+      className={cn(
+        'flex flex-col min-w-0 p-5 gap-4 bg-background border border-border-50 rounded-xl',
+        className
+      )}
+      {...props}
+    >
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center gap-2 text-text-950">
+          {icon}
+          <Text
+            as="h3"
+            size="lg"
+            weight="bold"
+            className="text-text-950 tracking-[0.2px]"
+          >
+            {title}
+          </Text>
+        </div>
+        {subtitle !== undefined && (
+          <Text size="sm" className="text-text-600">
+            {subtitle}
+          </Text>
+        )}
+      </div>
+
+      <div className="flex justify-center py-2">
+        <SimplePieChart
+          slices={slices}
+          size={size}
+          emptyText={emptyText}
+          labelColor={labelColor}
+          labelTextShadow={labelTextShadow}
+        />
+      </div>
+
+      <div className="flex flex-col gap-3">
+        {slices.map((slice) => (
+          <LegendRow
+            key={slice.key ?? slice.label}
+            colorClass={slice.colorClass}
+            color={slice.color}
+            label={slice.label}
+            value={slice.value}
+            displayValue={
+              slice.displayValue ??
+              `${formatValue(slice.value)} (${share(slice.value)}%)`
+            }
+          />
+        ))}
+      </div>
+
+      <div className="flex items-center justify-between border-t border-border-100 pt-3">
+        <Text size="sm" weight="medium" className="text-text-950">
+          {totalLabel}
+        </Text>
+        <Text size="sm" weight="medium" className="text-text-600">
+          {formatValue(total)}
+        </Text>
+      </div>
+    </div>
+  );
+};

@@ -19,8 +19,10 @@ import {
  * the coloured stat cards and the best/worst subtema pair.
  *
  * Shared by the two modals that show them — the Simulados page modal and the
- * Simulados report modal — so the design is described once. Everything here is
- * presentational: it takes already-fetched numbers and returns markup.
+ * Simulados report modal — and by the apps, through the
+ * `simulation-summary-cards` subpath, so the design is described once.
+ * Everything here is presentational: it takes already-fetched numbers and
+ * returns markup.
  */
 
 /**
@@ -94,7 +96,7 @@ export function DataCard({
 }
 
 /** Tone of a coloured stat card; each maps to one token family. */
-type StatTone = 'grade' | 'correct' | 'incorrect' | 'blank';
+export type StatTone = 'grade' | 'correct' | 'incorrect' | 'blank';
 
 const STAT_TONE_CLASSES: Record<
   StatTone,
@@ -129,8 +131,11 @@ const STAT_TONE_CLASSES: Record<
 /**
  * Coloured stat card, laid out as a centred column: icon in a circle, tiny
  * uppercase label and the large value.
+ *
+ * Exported for the reports that lay their own row of them — a school's or a
+ * student's scores per moment in the Momento ENEM report of the gestor app.
  */
-function SimulationStatCard({
+export function SimulationStatCard({
   tone,
   icon,
   label,

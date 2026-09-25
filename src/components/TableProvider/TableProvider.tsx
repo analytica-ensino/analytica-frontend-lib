@@ -284,6 +284,12 @@ export interface TableProviderProps<T = Record<string, unknown>> {
   readonly onParamsChange?: (params: TableParams) => void;
   /** Callback when row is clicked */
   readonly onRowClick?: (row: T, index: number) => void;
+  /**
+   * With `enableRowClick`, which rows take the click — the others keep the
+   * plain cursor and call nothing. Left out, every row does. For a row with
+   * nothing to open: a student who took no exam, say.
+   */
+  readonly isRowClickable?: (row: T, index: number) => boolean;
 
   /**
    * Content to display in the header area (e.g., action buttons)
@@ -369,6 +375,7 @@ export function TableProvider<T extends Record<string, unknown>>({
   rowKey,
   onParamsChange,
   onRowClick,
+  isRowClickable,
   headerContent,
   containerClassName,
   children,
@@ -540,14 +547,21 @@ export function TableProvider<T extends Record<string, unknown>>({
     setCurrentPage(1); // Reset to first page when changing items per page
   }, []);
 
+  // Whether a row takes the click: every row, unless the caller says otherwise
+  const rowTakesClick = useCallback(
+    (row: T, index: number) =>
+      enableRowClick && (isRowClickable?.(row, index) ?? true),
+    [enableRowClick, isRowClickable]
+  );
+
   // Handle row click
   const handleRowClickInternal = useCallback(
     (row: T, index: number) => {
-      if (enableRowClick && onRowClick) {
+      if (onRowClick && rowTakesClick(row, index)) {
         onRowClick(row, index);
       }
     },
-    [enableRowClick, onRowClick]
+    [onRowClick, rowTakesClick]
   );
 
   // Detect if pagination should be managed internally
@@ -776,7 +790,7 @@ export function TableProvider<T extends Record<string, unknown>>({
                   variant={
                     variant === 'borderless' ? 'defaultBorderless' : 'default'
                   }
-                  clickable={enableRowClick}
+                  clickable={rowTakesClick(row, effectiveIndex)}
                   onClick={() => handleRowClickInternal(row, effectiveIndex)}
                 >
                   {headers.map((header, cellIndex) => {
