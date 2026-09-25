@@ -126,7 +126,7 @@ describe('Search Component', () => {
       render(<Search options={defaultOptions} />);
 
       const container = screen
-        .getByRole('combobox')
+        .getByRole('searchbox')
         .closest('div')?.parentElement;
       expect(container).toHaveClass('w-full', 'max-w-lg', 'md:w-[488px]');
     });
@@ -138,7 +138,7 @@ describe('Search Component', () => {
       // ocupando a linha inteira precisa que o teto saia daqui — é o que a prop
       // faz. Ver `TableHeaderRow`, que assume a largura no lugar do campo.
       const container = screen
-        .getByRole('combobox')
+        .getByRole('searchbox')
         .closest('div')?.parentElement;
       expect(container).toHaveClass('w-full');
       expect(container).not.toHaveClass('max-w-lg');
@@ -154,7 +154,7 @@ describe('Search Component', () => {
       // `max-w-lg` continuaria valendo, porque quem decide é a ordem do CSS
       // gerado e não a ordem escrita.
       const container = screen
-        .getByRole('combobox')
+        .getByRole('searchbox')
         .closest('div')?.parentElement;
       expect(container).toHaveClass('max-w-none');
       expect(container).not.toHaveClass('max-w-lg');
