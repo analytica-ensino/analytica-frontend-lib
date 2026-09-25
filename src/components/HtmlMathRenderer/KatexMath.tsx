@@ -21,6 +21,21 @@ export interface KatexMathProps {
  * the shared, correctly-bundled KaTeX (the same one `rehype-katex` uses), so
  * every command renders. See HtmlMathRenderer for the surrounding pipeline.
  */
+/**
+ * Esconde do leitor de tela o `<annotation encoding="application/x-tex">` que o
+ * KaTeX embute dentro do MathML.
+ *
+ * Esse nó guarda o LaTeX de origem, como metadado. Leitor que entende MathML
+ * pula o `<annotation>` sozinho — mas o cálculo de NOME ACESSÍVEL não pula, e
+ * ele entra em cena sempre que a fórmula está dentro de um elemento cujo papel
+ * achata o conteúdo (`radio`, `button`, `option`, `tab`...). Sem isto a frase
+ * falada sai com a marcação no meio:
+ *
+ *   "x igual a menos b sobre 2 a, x = \frac{-b}{2a}"
+ */
+const hideLatexAnnotation = (html: string) =>
+  html.replaceAll('<annotation ', '<annotation aria-hidden="true" ');
+
 export const KatexMath = ({
   math,
   displayMode = false,
@@ -28,10 +43,12 @@ export const KatexMath = ({
 }: KatexMathProps) => {
   let html: string;
   try {
-    html = katex.renderToString(math, {
-      displayMode,
-      throwOnError: true,
-    });
+    html = hideLatexAnnotation(
+      katex.renderToString(math, {
+        displayMode,
+        throwOnError: true,
+      })
+    );
   } catch (error_) {
     return <>{renderError ? renderError(error_) : null}</>;
   }

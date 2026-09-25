@@ -22,7 +22,7 @@ const SIZE_CLASSES = {
   'extra-large': 'w-screen max-w-[912px]',
 } as const;
 
-interface AlertDialogProps extends HTMLAttributes<HTMLDivElement> {
+interface AlertDialogProps extends HTMLAttributes<HTMLDialogElement> {
   /** Title of the alert dialog */
   title: string;
   /** Whether the alert dialog is open (controlled mode) */
@@ -55,7 +55,7 @@ interface AlertDialogProps extends HTMLAttributes<HTMLDivElement> {
   submitAction?: 'primary' | 'secondary' | 'positive' | 'negative';
 }
 
-const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
+const AlertDialog = forwardRef<HTMLDialogElement, AlertDialogProps>(
   (
     {
       description,
@@ -77,7 +77,7 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
     },
     ref
   ) => {
-    const dialogRef = useRef<HTMLDivElement>(null);
+    const dialogRef = useRef<HTMLDialogElement>(null);
 
     /**
      * Ids por instância. Fixos, dois diálogos abertos ao mesmo tempo — ou um
@@ -103,13 +103,13 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
      * O nó é preciso aqui (para o foco) e também no `ref` do consumidor, que
      * segue sendo encaminhado como antes.
      */
-    const setDialogRef = (node: HTMLDivElement | null) => {
+    const setDialogRef = (node: HTMLDialogElement | null) => {
       dialogRef.current = node;
 
       if (typeof ref === 'function') {
         ref(node);
       } else if (ref) {
-        (ref as { current: HTMLDivElement | null }).current = node;
+        (ref as { current: HTMLDialogElement | null }).current = node;
       }
     };
 
@@ -175,19 +175,28 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
             data-testid="alert-dialog-overlay"
           >
             {/* Alert Dialog Content */}
-            <div
+            <dialog
               ref={setDialogRef}
-              // `tabIndex={-1}` é requisito do `useModalFocus`: o foco inicial
-              // vai pro próprio diálogo, e não pro primeiro botão — assim o
-              // leitor anuncia título e descrição antes das ações, em vez de
-              // abrir já falando "Cancelar".
-              role="dialog"
+              // `<dialog>` em vez de `role="dialog"`: o papel vem do elemento,
+              // que é o que garante o tratamento correto em qualquer
+              // navegador/leitor. Mesmo padrão do `Modal`.
+              //
+              // `open` (e não `showModal()`) porque o backdrop é nosso; em
+              // troca, o navegador não gerencia foco — quem faz isso é o
+              // `useModalFocus` acima, e é dele o requisito do `tabIndex={-1}`:
+              // o foco inicial vai pro próprio diálogo, não pro primeiro botão,
+              // para o leitor anunciar título e descrição antes das ações.
+              open
               aria-modal="true"
               aria-labelledby={titleId}
               aria-describedby={descriptionId}
               tabIndex={-1}
               className={cn(
-                'bg-background border border-border-100 rounded-lg shadow-lg p-6 m-3',
+                // `static` anula o `position: absolute` que o navegador aplica
+                // a `<dialog>`; sem isso ele escapa da centralização do
+                // backdrop. As demais regras do UA (padding, borda, fundo) já
+                // são sobrescritas pelas classes abaixo.
+                'static bg-background border border-border-100 rounded-lg shadow-lg p-6 m-3',
                 sizeClasses,
                 className
               )}
@@ -217,7 +226,7 @@ const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(
                   {submitButtonLabel}
                 </Button>
               </div>
-            </div>
+            </dialog>
           </div>
         )}
       </>

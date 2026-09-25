@@ -380,7 +380,7 @@ describe('AlertDialog', () => {
         />
       );
 
-      const dialogContent = screen.getByText('Test Dialog').closest('div');
+      const dialogContent = screen.getByRole('dialog');
       expect(dialogContent).toHaveClass('w-screen', 'max-w-[324px]');
     });
 
@@ -394,7 +394,7 @@ describe('AlertDialog', () => {
         />
       );
 
-      const dialogContent = screen.getByText('Test Dialog').closest('div');
+      const dialogContent = screen.getByRole('dialog');
       expect(dialogContent).toHaveClass('w-screen', 'max-w-[378px]');
     });
 
@@ -403,7 +403,7 @@ describe('AlertDialog', () => {
         <AlertDialog {...defaultProps} isOpen={true} onChangeOpen={jest.fn()} />
       );
 
-      const dialogContent = screen.getByText('Test Dialog').closest('div');
+      const dialogContent = screen.getByRole('dialog');
       expect(dialogContent).toHaveClass('w-screen', 'max-w-[459px]');
     });
 
@@ -417,7 +417,7 @@ describe('AlertDialog', () => {
         />
       );
 
-      const dialogContent = screen.getByText('Test Dialog').closest('div');
+      const dialogContent = screen.getByRole('dialog');
       expect(dialogContent).toHaveClass('w-screen', 'max-w-[578px]');
     });
 
@@ -431,7 +431,7 @@ describe('AlertDialog', () => {
         />
       );
 
-      const dialogContent = screen.getByText('Test Dialog').closest('div');
+      const dialogContent = screen.getByRole('dialog');
       expect(dialogContent).toHaveClass('w-screen', 'max-w-[912px]');
     });
   });
@@ -447,7 +447,7 @@ describe('AlertDialog', () => {
         />
       );
 
-      const dialogContent = screen.getByText('Test Dialog').closest('div');
+      const dialogContent = screen.getByRole('dialog');
       expect(dialogContent).toHaveClass('custom-class');
     });
 

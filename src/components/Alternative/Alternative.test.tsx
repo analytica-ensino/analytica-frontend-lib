@@ -312,6 +312,43 @@ describe('AlternativesList', () => {
       expect(circulo).toHaveAttribute('aria-hidden', 'true');
     });
 
+    it('lê a equação, sem o LaTeX de origem junto', () => {
+      const { container } = render(
+        <AlternativesList
+          mode="readonly"
+          selectedValue="a"
+          alternatives={[
+            {
+              value: 'a',
+              label: 'A raiz é $$x = \\frac{-b}{2a}$$ nesse caso',
+              status: OptionStatus.CORRECT,
+            },
+          ]}
+        />
+      );
+
+      // `role="radio"` achata o conteúdo no nome acessível, e o MathML do
+      // KaTeX carrega um `<annotation>` com o LaTeX de origem. Sem escondê-lo,
+      // o leitor falaria a marcação: "…, x = \frac{-b}{2a}, …".
+      // Os matchers do jest-dom só aceitam HTMLElement/SVGElement, e estes são
+      // nós MathML — daí as asserções via DOM puro.
+      const annotation = container.querySelector('annotation');
+      expect(annotation?.textContent).toContain('\\frac{-b}{2a}');
+      expect(annotation?.getAttribute('aria-hidden')).toBe('true');
+
+      // A equação em si continua disponível, pelo MathML.
+      const mathml = container.querySelector('.katex-mathml');
+      expect(mathml).toBeInTheDocument();
+      expect(mathml).not.toHaveAttribute('aria-hidden');
+      expect(container.querySelector('math')).not.toBeNull();
+
+      // E a parte puramente visual segue fora da árvore.
+      expect(container.querySelector('.katex-html')).toHaveAttribute(
+        'aria-hidden',
+        'true'
+      );
+    });
+
     it('inclui a descrição na leitura, no layout detailed', () => {
       render(
         <AlternativesList
