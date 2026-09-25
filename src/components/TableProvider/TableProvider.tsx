@@ -207,7 +207,12 @@ export interface TableComponents {
    * independente — ex.: empilhar só a busca no responsivo.
    */
   filters: ReactNode;
-  /** Search field sozinho, sem o wrapper de `controls`. */
+  /**
+   * Search field sozinho, sem o wrapper de `controls`.
+   *
+   * Vem em 100% da largura do slot, sem o teto de 488px: quem recebe este slot é
+   * quem posiciona o campo, e portanto quem escolhe a largura por breakpoint.
+   */
   search: ReactNode;
   /** Table with data */
   table: ReactNode;
@@ -629,20 +634,30 @@ export function TableProvider<T extends Record<string, unknown>>({
     </Button>
   );
 
-  const searchControl = enableSearch && (
-    <Search
-      value={inputValue}
-      onChange={handleInputChange}
-      onSearch={handleSearchChange}
-      onClear={() => {
-        setInputValue('');
-        handleSearchChange('');
-      }}
-      options={[]}
-      placeholder={searchPlaceholder}
-      debounceMs={300}
-    />
-  );
+  const handleSearchClear = useCallback(() => {
+    setInputValue('');
+    handleSearchChange('');
+  }, [handleSearchChange]);
+
+  // O campo é o mesmo nas duas composições; só a estratégia de largura muda.
+  const searchProps = {
+    value: inputValue,
+    onChange: handleInputChange,
+    onSearch: handleSearchChange,
+    onClear: handleSearchClear,
+    options: [],
+    placeholder: searchPlaceholder,
+    debounceMs: 300,
+  };
+
+  // Usado por `controls`/`headerSection`, a composição interna: o campo carrega
+  // a própria largura de 488px porque ali ninguém a define por ele.
+  const searchControl = enableSearch && <Search {...searchProps} />;
+
+  // Usado pelo slot `search` do render prop: quem posiciona o campo é a linha de
+  // header do consumidor (`TableHeaderRow`), que já escolhe a largura por
+  // breakpoint — então aqui ele ocupa 100% do espaço que recebe.
+  const searchSlot = enableSearch && <Search {...searchProps} fullWidth />;
 
   const controls = (enableSearch || enableFilters) && (
     <div className="flex items-center gap-4">
@@ -838,7 +853,7 @@ export function TableProvider<T extends Record<string, unknown>>({
         {children({
           controls: headerSection || controls || null,
           filters: filtersControl || null,
-          search: searchControl || null,
+          search: searchSlot || null,
           table,
           pagination,
         })}

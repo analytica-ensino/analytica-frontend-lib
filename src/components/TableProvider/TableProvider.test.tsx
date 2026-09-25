@@ -1281,6 +1281,58 @@ describe('TableProvider', () => {
       ).toBeInTheDocument();
     });
 
+    it('should hand the search slot over at full width', () => {
+      render(
+        <TableProvider
+          data={testData}
+          headers={testHeaders}
+          enableSearch={true}
+        >
+          {({ search, table }) => (
+            <div>
+              <div data-testid="slot-search">{search}</div>
+              {table}
+            </div>
+          )}
+        </TableProvider>
+      );
+
+      // Quem recebe o slot é quem posiciona o campo, então é ele quem escolhe a
+      // largura por breakpoint — o campo chega sem o teto de 488px. É o que
+      // deixa a busca ocupar a linha inteira no `TableHeaderRow`.
+      const container = within(screen.getByTestId('slot-search'))
+        .getByPlaceholderText('Buscar...')
+        .closest('div')?.parentElement;
+      expect(container).toHaveClass('w-full');
+      expect(container).not.toHaveClass('md:w-[488px]');
+    });
+
+    it('should keep the 488px width on the search inside controls', () => {
+      render(
+        <TableProvider
+          data={testData}
+          headers={testHeaders}
+          enableSearch={true}
+        >
+          {({ controls, table }) => (
+            <div data-testid="slot-controls">
+              {controls}
+              {table}
+            </div>
+          )}
+        </TableProvider>
+      );
+
+      // `controls` é a composição interna, usada pelas telas que não montam o
+      // próprio header: ali ninguém define largura pelo campo, então ele mantém
+      // a sua. Sem esta asserção, largar `fullWidth` nos dois caminhos passaria
+      // batido e esticaria a busca em todas essas telas.
+      const container = within(screen.getByTestId('slot-controls'))
+        .getByPlaceholderText('Buscar...')
+        .closest('div')?.parentElement;
+      expect(container).toHaveClass('md:w-[488px]');
+    });
+
     it('should still bundle search and filters inside controls', () => {
       render(
         <TableProvider
