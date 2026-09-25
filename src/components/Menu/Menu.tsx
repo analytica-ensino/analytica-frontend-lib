@@ -12,6 +12,7 @@ import {
   Children,
   cloneElement,
   useState,
+  useId,
 } from 'react';
 import { CaretLeftIcon } from '@phosphor-icons/react/dist/csr/CaretLeft';
 import { CaretRightIcon } from '@phosphor-icons/react/dist/csr/CaretRight';
@@ -164,6 +165,12 @@ const MenuContent = forwardRef<HTMLUListElement, MenuContentProps>(
     return (
       <ul
         ref={ref}
+        // Sem isto cada `<li role="menuitem">` fica órfão — `menuitem` precisa
+        // de um `menu`/`menubar` que o possua. Com o papel correto no pai, o
+        // leitor de tela também deriva a posição ("1 de 2") sozinho, sem
+        // `aria-posinset`/`aria-setsize` na mão. Vem antes de `...props` para o
+        // consumidor poder trocar por `tablist` quando for o caso.
+        role="menu"
         className={`
           ${baseClasses}
           ${variantClasses}
@@ -218,9 +225,31 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
       props.onClick?.(e as MouseEvent<HTMLLIElement>);
     };
 
+    const isSelected = selectedValue === value;
+
+    /**
+     * A seleção só existia como classe de fundo e barrinha — invisível para
+     * leitor de tela. O estado sai por descrição porque `aria-selected` não é
+     * válido em `role="menuitem"` (os leitores o ignoram) e `aria-checked`
+     * exigiria `menuitemradio`, o que trocaria o papel anunciado. Descrição é o
+     * único slot lido depois do papel e da posição, fechando a frase na ordem
+     * esperada: "próximas atividades, item de menu, 1 de 2, selecionado".
+     *
+     * Só vale para item com `aria-label` explícito: o span vive dentro do
+     * `<li>`, então em quem deriva o nome do conteúdo o "selecionado" vazaria
+     * para dentro do nome ("Próximas selecionado"). Uma descrição do consumidor
+     * tem precedência — `...props` já resolve isso, e aqui o estado sai de cena
+     * para não competir.
+     */
+    const stateId = `menu-item-state-${useId()}`;
+    const describesState =
+      props['aria-label'] !== undefined &&
+      props['aria-describedby'] === undefined;
+
     const commonProps = {
       role: 'menuitem',
       'aria-disabled': disabled,
+      ...(describesState && { 'aria-describedby': stateId }),
       ref,
       onClick: handleClick,
       onKeyDown: (e: KeyboardEvent<HTMLLIElement>) => {
@@ -343,7 +372,26 @@ const MenuItem = forwardRef<HTMLLIElement, MenuItemProps>(
       ),
     };
 
-    return variants[variant] ?? variants['menu'];
+    const rendered = (variants[variant] ?? variants['menu']) as ReactElement<{
+      children?: ReactNode;
+    }>;
+
+    if (!describesState) {
+      return rendered;
+    }
+
+    // Um ponto único de injeção em vez de repetir o span nas cinco variantes,
+    // que diferem só no envelope visual dos children.
+    return cloneElement(
+      rendered,
+      undefined,
+      <>
+        {rendered.props.children}
+        <span id={stateId} className="sr-only">
+          {isSelected ? 'selecionado' : 'não selecionado'}
+        </span>
+      </>
+    );
   }
 );
 MenuItem.displayName = 'MenuItem';

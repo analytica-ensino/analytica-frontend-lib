@@ -585,6 +585,123 @@ describe('MenuContent', () => {
     const menuContent = screen.getByTestId('menu-content');
     expect(menuContent).toHaveClass('custom-class');
   });
+
+  // Sem `role="menu"` no container, cada `<li role="menuitem">` fica órfão —
+  // ARIA inválido, e o leitor de tela não deriva a posição ("1 de 2"). Com o
+  // papel correto no pai a posição sai sozinha, sem aria-posinset na mão.
+  it('anuncia o container como menu', () => {
+    render(
+      <Menu defaultValue="home">
+        <MenuContent data-testid="menu-content">
+          <MenuItem value="home">Home</MenuItem>
+        </MenuContent>
+      </Menu>
+    );
+
+    expect(screen.getByTestId('menu-content')).toHaveAttribute('role', 'menu');
+    expect(screen.getByRole('menuitem')).toBeInTheDocument();
+  });
+
+  it('deixa o consumidor sobrepor o papel', () => {
+    render(
+      <Menu defaultValue="home">
+        <MenuContent role="tablist" data-testid="menu-content">
+          <MenuItem value="home">Home</MenuItem>
+        </MenuContent>
+      </Menu>
+    );
+
+    expect(screen.getByTestId('menu-content')).toHaveAttribute(
+      'role',
+      'tablist'
+    );
+  });
+});
+
+describe('MenuItem — estado selecionado acessível', () => {
+  // A seleção só existia como classe de fundo e barrinha: quem usa leitor de
+  // tela não sabia qual item está ativo. O estado sai por `aria-describedby`
+  // porque `aria-selected` não é válido em `role="menuitem"` e os leitores o
+  // ignoram; descrição é o único slot lido depois do papel e da posição,
+  // fechando "próximas atividades, item de menu, 1 de 2, selecionado".
+  const renderMenu = () =>
+    render(
+      <Menu defaultValue="near">
+        <MenuContent>
+          <MenuItem value="near" aria-label="Próximas atividades">
+            Próximas
+          </MenuItem>
+          <MenuItem value="done" aria-label="Atividades concluídas">
+            Concluídas
+          </MenuItem>
+        </MenuContent>
+      </Menu>
+    );
+
+  const descriptionOf = (item: HTMLElement) => {
+    const id = item.getAttribute('aria-describedby');
+    return id ? document.getElementById(id)?.textContent : undefined;
+  };
+
+  it('descreve o item ativo como selecionado e o outro como não selecionado', () => {
+    renderMenu();
+
+    const [near, done] = screen.getAllByRole('menuitem');
+    expect(descriptionOf(near)).toBe('selecionado');
+    expect(descriptionOf(done)).toBe('não selecionado');
+  });
+
+  it('acompanha a troca de seleção', () => {
+    renderMenu();
+
+    fireEvent.click(screen.getByRole('menuitem', { name: /concluídas/i }));
+
+    const [near, done] = screen.getAllByRole('menuitem');
+    expect(descriptionOf(near)).toBe('não selecionado');
+    expect(descriptionOf(done)).toBe('selecionado');
+  });
+
+  // O span de estado vive dentro do `<li>`, então entraria no nome acessível
+  // de quem deriva o nome do conteúdo. Só é emitido para itens com
+  // `aria-label` explícito — aí o nome não vem do conteúdo e não há vazamento.
+  it('não descreve itens sem aria-label, para não vazar no nome', () => {
+    render(
+      <Menu defaultValue="home">
+        <MenuContent>
+          <MenuItem value="home">Home</MenuItem>
+        </MenuContent>
+      </Menu>
+    );
+
+    const item = screen.getByRole('menuitem');
+    expect(item).not.toHaveAttribute('aria-describedby');
+    expect(item).toHaveAccessibleName('Home');
+  });
+
+  it('mantém o nome acessível do item rotulado livre do estado', () => {
+    renderMenu();
+
+    expect(
+      screen.getByRole('menuitem', { name: 'Próximas atividades' })
+    ).toBeInTheDocument();
+  });
+
+  it('deixa o consumidor somar a própria descrição', () => {
+    render(
+      <Menu defaultValue="home">
+        <MenuContent>
+          <MenuItem value="home" aria-label="Início" aria-describedby="extra">
+            Home
+          </MenuItem>
+        </MenuContent>
+      </Menu>
+    );
+
+    expect(screen.getByRole('menuitem')).toHaveAttribute(
+      'aria-describedby',
+      'extra'
+    );
+  });
 });
 
 describe('MenuOverflow', () => {
