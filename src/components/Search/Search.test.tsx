@@ -13,8 +13,6 @@ interface MockDropdownContentProps {
   children: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
-  /** Repassado porque o Search o sobrescreve conforme haja sugestões. */
-  role?: string;
 }
 
 interface MockDropdownItemProps {
@@ -44,14 +42,8 @@ jest.mock('../DropdownMenu/DropdownMenu', () => {
       children,
       className,
       style,
-      role,
     }: MockDropdownContentProps) => (
-      <div
-        data-testid="dropdown-content"
-        className={className}
-        style={style}
-        role={role}
-      >
+      <div data-testid="dropdown-content" className={className} style={style}>
         {children}
       </div>
     ),
@@ -1150,25 +1142,23 @@ describe('Search - papel anunciado pelo leitor de tela', () => {
     expect(input).not.toHaveAttribute('aria-controls');
   });
 
-  it('não anuncia um menu vazio quando não há sugestões', () => {
+  it('não deixa o menu sem itens quando não há sugestões', () => {
     render(<Search options={opcoes} value="xyz" onChange={() => {}} />);
 
-    // Sem nenhuma sugestão o popup carrega só uma frase. Anunciá-lo como menu
-    // daria um menu sem itens; como `presentation` sobra o texto, que é o que
-    // interessa.
-    const popup = screen.getByTestId('dropdown-content');
-    expect(popup).toHaveAttribute('role', 'presentation');
-    expect(screen.getByText('Nenhum resultado encontrado')).toBeInTheDocument();
+    // O contêiner é um menu; sem nenhum `menuitem` dentro, a frase se perderia.
+    // Marcada como item desabilitado, ela é anunciada e não é acionável.
+    const mensagem = screen.getByText('Nenhum resultado encontrado');
+    expect(mensagem).toHaveAttribute('role', 'menuitem');
+    expect(mensagem).toHaveAttribute('aria-disabled', 'true');
   });
 
-  it('mantém o popup como menu quando há sugestões', () => {
+  it('lista as sugestões como itens quando existem', () => {
     render(<Search options={opcoes} value="Fi" onChange={() => {}} />);
 
-    expect(screen.getByTestId('dropdown-content')).toHaveAttribute(
-      'role',
-      'menu'
-    );
     expect(screen.getAllByTestId('dropdown-item')).toHaveLength(2);
+    expect(
+      screen.queryByText('Nenhum resultado encontrado')
+    ).not.toBeInTheDocument();
   });
 });
 

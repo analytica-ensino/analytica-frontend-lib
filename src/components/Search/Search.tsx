@@ -479,12 +479,6 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
           <DropdownMenu open={showDropdown} onOpenChange={setDropdownOpen}>
             <DropdownMenuContent
               id={dropdownId}
-              // `DropdownMenuContent` é um `role="menu"` por padrão, o que só
-              // faz sentido quando há sugestões — itens que dá para escolher.
-              // Sem nenhuma, o popup carrega apenas uma frase, e um menu vazio
-              // seria anunciado como menu sem nenhum item dentro. Como
-              // `presentation`, o contêiner some da árvore e sobra o texto.
-              role={hasSuggestions ? 'menu' : 'presentation'}
               className="w-full mt-1"
               style={{ maxHeight: dropdownMaxHeight }}
               align="start"
@@ -500,7 +494,16 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
                   </DropdownMenuItem>
                 ))
               ) : (
-                <div className="px-3 py-3 text-text-700 text-base">
+                // O contêiner é um `role="menu"`, e um menu sem nenhum
+                // `menuitem` é anunciado como menu vazio — a frase dentro dele
+                // se perde. Marcar o próprio texto como item desabilitado
+                // deixa o menu bem-formado e a mensagem audível, sem precisar
+                // trocar o papel do contêiner.
+                <div
+                  role="menuitem"
+                  aria-disabled="true"
+                  className="px-3 py-3 text-text-700 text-base"
+                >
                   {noResultsText}
                 </div>
               )}
