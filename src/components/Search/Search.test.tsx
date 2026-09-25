@@ -13,6 +13,8 @@ interface MockDropdownContentProps {
   children: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
+  /** Repassado porque o Search o sobrescreve conforme haja sugestões. */
+  role?: string;
 }
 
 interface MockDropdownItemProps {
@@ -42,8 +44,14 @@ jest.mock('../DropdownMenu/DropdownMenu', () => {
       children,
       className,
       style,
+      role,
     }: MockDropdownContentProps) => (
-      <div data-testid="dropdown-content" className={className} style={style}>
+      <div
+        data-testid="dropdown-content"
+        className={className}
+        style={style}
+        role={role}
+      >
         {children}
       </div>
     ),
@@ -79,7 +87,7 @@ describe('Search Component', () => {
     it('should render search input with default props', () => {
       render(<Search options={defaultOptions} />);
 
-      const input = screen.getByRole('combobox');
+      const input = screen.getByRole('searchbox');
       expect(input).toBeInTheDocument();
       expect(input).toHaveAttribute('placeholder', 'Buscar...');
       expect(input).toHaveClass('border-border-300', 'bg-background');
@@ -104,7 +112,7 @@ describe('Search Component', () => {
     it('should render with custom className', () => {
       render(<Search options={defaultOptions} className="custom-class" />);
 
-      const input = screen.getByRole('combobox');
+      const input = screen.getByRole('searchbox');
       expect(input).toHaveClass('custom-class');
     });
 
@@ -117,7 +125,7 @@ describe('Search Component', () => {
       );
 
       const container = screen
-        .getByRole('combobox')
+        .getByRole('searchbox')
         .closest('div')?.parentElement;
       expect(container).toHaveClass('custom-container');
     });
@@ -130,7 +138,7 @@ describe('Search Component', () => {
 
       render(<Search options={defaultOptions} onChange={handleChange} />);
 
-      const input = screen.getByRole('combobox');
+      const input = screen.getByRole('searchbox');
       await user.type(input, 'Fi');
 
       expect(handleChange).toHaveBeenCalledTimes(2);
@@ -143,7 +151,7 @@ describe('Search Component', () => {
 
       render(<Search options={defaultOptions} onSearch={handleSearch} />);
 
-      const input = screen.getByRole('combobox');
+      const input = screen.getByRole('searchbox');
       await user.type(input, 'Fi');
 
       expect(handleSearch).toHaveBeenCalledWith('F');
@@ -336,7 +344,7 @@ describe('Search Component', () => {
     it('should be disabled when disabled prop is true', () => {
       render(<Search options={defaultOptions} disabled />);
 
-      const input = screen.getByRole('combobox');
+      const input = screen.getByRole('searchbox');
       expect(input).toBeDisabled();
       expect(input).toHaveClass('cursor-not-allowed', 'opacity-40');
     });
@@ -344,7 +352,7 @@ describe('Search Component', () => {
     it('should be read-only when readOnly prop is true', () => {
       render(<Search options={defaultOptions} readOnly />);
 
-      const input = screen.getByRole('combobox');
+      const input = screen.getByRole('searchbox');
       expect(input).toHaveAttribute('readonly');
       expect(input).toHaveClass('cursor-default');
     });
@@ -366,18 +374,24 @@ describe('Search Component', () => {
     it('should have correct ARIA attributes', () => {
       render(<Search options={defaultOptions} />);
 
-      const input = screen.getByRole('combobox');
-      expect(input).toHaveAttribute('role', 'combobox');
-      expect(input).toHaveAttribute('aria-haspopup', 'listbox');
+      const input = screen.getByRole('searchbox');
+      expect(input).toHaveAttribute('role', 'searchbox');
+      expect(input).not.toHaveAttribute('aria-haspopup');
     });
 
-    it('should have correct ARIA attributes when dropdown is open', async () => {
+    it('não vira combobox ao abrir o dropdown', async () => {
       render(<Search options={defaultOptions} value="F" onChange={() => {}} />);
 
-      const input = screen.getByRole('combobox');
       await waitFor(() => {
-        expect(input).toHaveAttribute('aria-expanded', 'true');
+        expect(screen.getByTestId('dropdown-menu')).toBeInTheDocument();
       });
+
+      // Com o popup aberto o campo segue sendo caixa de busca: nenhum atributo
+      // de combobox entra, nem mesmo com sugestões na tela.
+      const input = screen.getByRole('searchbox');
+      expect(input).not.toHaveAttribute('aria-expanded');
+      expect(input).not.toHaveAttribute('aria-controls');
+      expect(input).not.toHaveAttribute('aria-autocomplete');
     });
   });
 
@@ -424,7 +438,7 @@ describe('Search Component', () => {
     it('should generate unique ID when not provided', () => {
       render(<Search options={defaultOptions} />);
 
-      const input = screen.getByRole('combobox');
+      const input = screen.getByRole('searchbox');
       expect(input).toHaveAttribute('id');
       expect(input.id).toMatch(/^search-/);
     });
@@ -432,7 +446,7 @@ describe('Search Component', () => {
     it('should use provided ID', () => {
       render(<Search options={defaultOptions} id="custom-search" />);
 
-      const input = screen.getByRole('combobox');
+      const input = screen.getByRole('searchbox');
       expect(input).toHaveAttribute('id', 'custom-search');
     });
   });
@@ -602,7 +616,7 @@ describe('Search Component', () => {
         />
       );
 
-      const input = screen.getByRole('combobox');
+      const input = screen.getByRole('searchbox');
 
       // Wait for dropdown to open
       await waitFor(() => {
@@ -654,7 +668,7 @@ describe('Search Component', () => {
         />
       );
 
-      const input = screen.getByRole('combobox');
+      const input = screen.getByRole('searchbox');
 
       // Wait for dropdown to show "no results"
       await waitFor(() => {
@@ -686,7 +700,7 @@ describe('Search Component', () => {
         />
       );
 
-      const input = screen.getByRole('combobox');
+      const input = screen.getByRole('searchbox');
 
       await user.type(input, '{Enter}');
 
@@ -710,7 +724,7 @@ describe('Search Component', () => {
         />
       );
 
-      const input = screen.getByRole('combobox');
+      const input = screen.getByRole('searchbox');
 
       await user.type(input, '{Enter}');
 
@@ -752,7 +766,7 @@ describe('Search Component', () => {
         <Search options={defaultOptions} value="Fi" onSelect={handleSelect} />
       );
 
-      const input = screen.getByRole('combobox');
+      const input = screen.getByRole('searchbox');
 
       await user.type(input, '{Enter}');
 
@@ -1114,39 +1128,47 @@ describe('Search Component', () => {
 describe('Search - papel anunciado pelo leitor de tela', () => {
   const opcoes = ['Filosofia', 'Fisica'];
 
-  it('é uma caixa de busca quando não há lista para abrir', () => {
-    render(<Search options={[]} value="" onChange={() => {}} />);
+  // O leitor de tela precisa dizer "caixa de busca" — em qualquer
+  // configuração de props, com ou sem sugestões.
+  it.each([
+    ['sem sugestões', { options: [] as string[] }],
+    ['com sugestões', { options: opcoes }],
+    [
+      'com sugestões e dropdown desligado',
+      { options: opcoes, showDropdown: false },
+    ],
+  ])('é uma caixa de busca %s', (_, props) => {
+    render(<Search {...props} value="Fi" onChange={() => {}} />);
 
     const input = screen.getByRole('searchbox');
-    // Nenhum atributo de combobox: todos descrevem um popup inexistente, e
-    // nenhum deles é suportado em `searchbox`.
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+    // Nenhum atributo de combobox sobrevive: todos descrevem um popup que o
+    // componente não sabe operar, e nenhum é sequer suportado em `searchbox`.
     expect(input).not.toHaveAttribute('aria-haspopup');
     expect(input).not.toHaveAttribute('aria-expanded');
     expect(input).not.toHaveAttribute('aria-autocomplete');
+    expect(input).not.toHaveAttribute('aria-controls');
   });
 
-  it('continua caixa de busca com options, se o dropdown está desligado', () => {
-    // O caso real: o consumidor passa sugestões mas desliga a lista. Antes
-    // isso virava "combinação, pop-up caixa de lista" — um menu que nunca abre.
-    render(
-      <Search
-        options={opcoes}
-        showDropdown={false}
-        value="Fi"
-        onChange={() => {}}
-      />
-    );
+  it('não anuncia um menu vazio quando não há sugestões', () => {
+    render(<Search options={opcoes} value="xyz" onChange={() => {}} />);
 
-    expect(screen.getByRole('searchbox')).toBeInTheDocument();
-    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+    // Sem nenhuma sugestão o popup carrega só uma frase. Anunciá-lo como menu
+    // daria um menu sem itens; como `presentation` sobra o texto, que é o que
+    // interessa.
+    const popup = screen.getByTestId('dropdown-content');
+    expect(popup).toHaveAttribute('role', 'presentation');
+    expect(screen.getByText('Nenhum resultado encontrado')).toBeInTheDocument();
   });
 
-  it('vira combobox quando a lista pode de fato abrir', () => {
+  it('mantém o popup como menu quando há sugestões', () => {
     render(<Search options={opcoes} value="Fi" onChange={() => {}} />);
 
-    const input = screen.getByRole('combobox');
-    expect(input).toHaveAttribute('aria-haspopup', 'listbox');
-    expect(input).toHaveAttribute('aria-autocomplete', 'list');
+    expect(screen.getByTestId('dropdown-content')).toHaveAttribute(
+      'role',
+      'menu'
+    );
+    expect(screen.getAllByTestId('dropdown-item')).toHaveLength(2);
   });
 });
 

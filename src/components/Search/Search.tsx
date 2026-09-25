@@ -231,17 +231,8 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
       (controlledShowDropdown ??
         (dropdownOpen && value && String(value).length > 0));
 
-    /**
-     * Se o campo é um combobox de verdade — isto é, se existe uma lista de
-     * sugestões que pode abrir.
-     *
-     * A condição antiga olhava só `options.length`, e com isso um consumidor
-     * que passa sugestões mas desliga o dropdown (`showDropdown={false}`)
-     * ganhava `role="combobox"` + `aria-haspopup="listbox"`. O leitor de tela
-     * anunciava "combinação, pop-up caixa de lista" prometendo um menu que
-     * nunca ia abrir. Sem lista, o campo é só uma caixa de busca.
-     */
-    const isCombobox = options.length > 0 && controlledShowDropdown !== false;
+    /** Se o popup tem sugestões de verdade, ou só a mensagem de vazio. */
+    const hasSuggestions = filteredOptions.length > 0;
 
     // Helper to keep all consumers in sync
     const setOpenAndNotify = (open: boolean) => {
@@ -435,14 +426,16 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
             disabled={disabled}
             readOnly={readOnly}
             placeholder={placeholder}
-            // `searchbox` é o que faz o leitor anunciar "caixa de busca". Os
-            // atributos de combobox só entram quando existe lista para abrir —
-            // nenhum deles é suportado em `searchbox`.
-            role={isCombobox ? 'combobox' : 'searchbox'}
-            aria-expanded={isCombobox && showDropdown ? 'true' : undefined}
-            aria-haspopup={isCombobox ? 'listbox' : undefined}
-            aria-controls={isCombobox && showDropdown ? dropdownId : undefined}
-            aria-autocomplete={isCombobox ? 'list' : undefined}
+            // Este campo é uma caixa de busca, e o leitor de tela precisa
+            // anunciá-lo assim — é o que `searchbox` faz.
+            //
+            // Nenhum atributo de combobox entra aqui. Antes havia
+            // `role="combobox"` + `aria-haspopup="listbox"`, que rendia
+            // "combinação, pop-up caixa de lista" e ainda mentia duas vezes: o
+            // popup é um `menu` (não um listbox), e o campo não tem navegação
+            // por setas nem `aria-activedescendant` — sem isso não existe
+            // combobox conforme, só a promessa dele.
+            role="searchbox"
             {...props}
           />
 
@@ -486,11 +479,17 @@ const Search = forwardRef<HTMLInputElement, SearchProps>(
           <DropdownMenu open={showDropdown} onOpenChange={setDropdownOpen}>
             <DropdownMenuContent
               id={dropdownId}
+              // `DropdownMenuContent` é um `role="menu"` por padrão, o que só
+              // faz sentido quando há sugestões — itens que dá para escolher.
+              // Sem nenhuma, o popup carrega apenas uma frase, e um menu vazio
+              // seria anunciado como menu sem nenhum item dentro. Como
+              // `presentation`, o contêiner some da árvore e sobra o texto.
+              role={hasSuggestions ? 'menu' : 'presentation'}
               className="w-full mt-1"
               style={{ maxHeight: dropdownMaxHeight }}
               align="start"
             >
-              {filteredOptions.length > 0 ? (
+              {hasSuggestions ? (
                 filteredOptions.map((option) => (
                   <DropdownMenuItem
                     key={option}
