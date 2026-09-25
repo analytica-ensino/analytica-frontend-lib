@@ -281,7 +281,9 @@ export const LessonBank = ({
       data-variant={variant}
       className={cn(
         'w-full flex flex-col overflow-hidden h-full min-h-0',
-        isCard ? 'p-6 gap-6 bg-background rounded-xl' : 'p-4 gap-2',
+        isCard
+          ? 'p-6 max-[376px]:p-4 gap-6 bg-background rounded-xl'
+          : 'p-4 gap-2',
         className
       )}
     >
@@ -302,12 +304,12 @@ export const LessonBank = ({
           </Text>
         </section>
 
-        <section className="flex flex-row justify-between items-center gap-4">
+        <section className="flex flex-row flex-wrap justify-between items-center gap-4">
           <Text
             size="sm"
             className={cn(
               isCard
-                ? 'text-text-700 bg-background-50 rounded-sm px-2 py-1'
+                ? 'text-text-700 bg-background-50 rounded-sm px-2 py-1 whitespace-nowrap'
                 : 'text-text-800'
             )}
           >
@@ -318,6 +320,7 @@ export const LessonBank = ({
             size="small"
             onClick={() => setIsAutoAddModalOpen(true)}
             disabled={totalLessons === 0}
+            className="whitespace-nowrap"
           >
             Adicionar automaticamente
           </Button>

@@ -74,6 +74,7 @@ export const RecommendedLessonCreateHeader = ({
         variant="outline"
         onClick={onSaveModel}
         disabled={!recommendedLesson || isSaving}
+        className="whitespace-nowrap"
       >
         Salvar modelo
       </Button>
@@ -82,6 +83,7 @@ export const RecommendedLessonCreateHeader = ({
         iconLeft={<PaperPlaneTiltIcon />}
         onClick={onSendLesson}
         disabled={lessonsCount === 0}
+        className="whitespace-nowrap"
       >
         Enviar aula
       </Button>
@@ -96,11 +98,16 @@ export const RecommendedLessonCreateHeader = ({
           <Text size="2xl" weight="bold" className="text-text-950">
             {titleText}
           </Text>
-          <div className="flex flex-row items-center gap-2">
-            <Text size="sm" className="flex-1 min-w-0 text-text-500">
+          {/*
+            Wraps instead of squeezing: when the status can't keep ~7rem next
+            to the buttons, the buttons drop to their own line (and to one
+            per line on the narrowest phones) rather than overlapping it.
+          */}
+          <div className="flex flex-row flex-wrap items-center gap-2">
+            <Text size="sm" className="flex-1 min-w-28 text-text-500">
               {statusText}
             </Text>
-            {actionButtons}
+            <div className="flex flex-row flex-wrap gap-2">{actionButtons}</div>
           </div>
           <Text size="md" className="text-text-500">
             {subtitleText}

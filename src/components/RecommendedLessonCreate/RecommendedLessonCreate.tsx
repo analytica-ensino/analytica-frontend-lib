@@ -1350,21 +1350,27 @@ const RecommendedLessonCreate = ({
                 variant="menu2"
                 className="bg-transparent shadow-none px-0 py-0"
               >
-                <MenuContent variant="menu2" className="gap-0">
+                <MenuContent variant="menu2" className="!gap-0">
                   <MenuItem
                     value="lessons"
                     variant="menu2"
-                    className="text-sm whitespace-nowrap"
+                    className="text-sm whitespace-nowrap max-[426px]:px-0"
                   >
-                    <ChalkboardTeacherIcon size={21} />
+                    <ChalkboardTeacherIcon
+                      size={21}
+                      className="max-[376px]:hidden"
+                    />
                     Banco de aulas
                   </MenuItem>
                   <MenuItem
                     value="preview"
                     variant="menu2"
-                    className="text-sm whitespace-nowrap"
+                    className="text-sm whitespace-nowrap max-[426px]:px-0"
                   >
-                    <BookBookmarkIcon size={21} />
+                    <BookBookmarkIcon
+                      size={21}
+                      className="max-[376px]:hidden"
+                    />
                     Prévia da aula
                   </MenuItem>
                 </MenuContent>

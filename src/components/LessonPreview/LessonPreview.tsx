@@ -335,7 +335,9 @@ export const LessonPreview = ({
         data-variant={variant}
         className={cn(
           'w-full flex-shrink-0 bg-background flex flex-col',
-          isCard ? 'px-7.5 py-6 gap-6 rounded-xl' : 'p-4 gap-4 rounded-lg',
+          isCard
+            ? 'px-7.5 max-[376px]:px-4 py-6 gap-6 rounded-xl'
+            : 'p-4 gap-4 rounded-lg',
           className
         )}
       >
@@ -347,12 +349,12 @@ export const LessonPreview = ({
             </Text>
           </section>
 
-          <section className="flex flex-row justify-between items-center gap-4">
+          <section className="flex flex-row flex-wrap justify-between items-center gap-4">
             <Text
               size="sm"
               className={cn(
                 isCard
-                  ? 'text-text-700 bg-background-50 rounded-sm px-2 py-1'
+                  ? 'text-text-700 bg-background-50 rounded-sm px-2 py-1 whitespace-nowrap'
                   : 'text-text-800'
               )}
             >
@@ -370,6 +372,7 @@ export const LessonPreview = ({
                 iconLeft={<TrashIcon size={16} />}
                 onClick={onRemoveAll}
                 disabled={orderedLessons.length === 0}
+                className="whitespace-nowrap"
               >
                 Remover tudo
               </Button>

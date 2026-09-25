@@ -41,12 +41,19 @@ jest.mock('../../..', () => ({
     children,
     size,
     weight,
+    className,
   }: {
     children: React.ReactNode;
     size?: string;
     weight?: string;
+    className?: string;
   }) => (
-    <span data-testid="text" data-size={size} data-weight={weight}>
+    <span
+      data-testid="text"
+      data-size={size}
+      data-weight={weight}
+      className={className}
+    >
       {children}
     </span>
   ),
@@ -122,6 +129,17 @@ describe('RecommendedLessonCreateHeader', () => {
   });
 
   describe('mobile layout (< 500px)', () => {
+    it('wraps the buttons below the status instead of squeezing it', () => {
+      setViewportWidth(320);
+
+      render(<RecommendedLessonCreateHeader {...defaultProps} />);
+
+      const status = screen.getByText('Nenhum rascunho salvo');
+      // The status keeps a minimum width and the row is allowed to wrap
+      expect(status).toHaveClass('flex-1', 'min-w-28');
+      expect(status.parentElement).toHaveClass('flex-wrap');
+    });
+
     it('should render title, then status with actions, then subtitle', () => {
       setViewportWidth(400);
 
