@@ -46,7 +46,14 @@ describe('TableHeaderRow', () => {
   it('should drop the search to its own line below lg and inline it from lg up', () => {
     const { row } = renderHeader();
 
-    expect(row.children[2]).toHaveClass('basis-full', 'lg:basis-auto');
+    // `lg:w-[488px]` mora no slot, não no campo: o `Search` do render prop vem em
+    // `fullWidth`, então na linha própria ele ocupa 100% e de `lg` para cima é o
+    // slot que devolve a largura fixa.
+    expect(row.children[2]).toHaveClass(
+      'basis-full',
+      'lg:basis-auto',
+      'lg:w-[488px]'
+    );
     // A busca não carrega `order-*`: quem a desce é a quebra natural do
     // `flex-wrap`, já que ela ocupa a linha inteira.
     expect(row.children[2].className).not.toMatch(/(^|\s|:)order-/);

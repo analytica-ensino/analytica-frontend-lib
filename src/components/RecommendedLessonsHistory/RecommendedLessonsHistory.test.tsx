@@ -1438,6 +1438,20 @@ describe('RecommendedLessonsHistory', () => {
       });
     });
 
+    it('should give the tab row the full width and never center it', async () => {
+      render(<RecommendedLessonsHistory {...defaultProps} />);
+
+      const wrapper = (await screen.findByTestId('menu')).parentElement;
+
+      // O `self-center` é exatamente o que o design reprovou: sem largura, o
+      // wrapper encolhia para o tamanho do conteúdo e o grupo de abas aparecia
+      // centralizado, enquanto o título ao lado ficava à esquerda. Abaixo de
+      // `lg` a linha das abas ocupa 100% e começa na borda esquerda; de `lg`
+      // para cima volta a acompanhar o título, com largura de conteúdo.
+      expect(wrapper).toHaveClass('w-full', 'lg:w-auto');
+      expect(wrapper?.className).not.toMatch(/self-center/);
+    });
+
     it('should call setActiveTab when menu value changes', async () => {
       render(<RecommendedLessonsHistory {...defaultProps} />);
 

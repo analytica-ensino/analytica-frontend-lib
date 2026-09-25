@@ -8,6 +8,8 @@ import {
   Divider,
 } from '../../..';
 import { FunnelIcon } from '@phosphor-icons/react/dist/csr/Funnel';
+import { NotebookIcon } from '@phosphor-icons/react/dist/csr/Notebook';
+import { FileIcon } from '@phosphor-icons/react/dist/csr/File';
 import Menu, { MenuContent, MenuItem } from '../../Menu/Menu';
 import { ActivityListQuestions } from '../../ActivityListQuestions/ActivityListQuestions';
 import type {
@@ -95,11 +97,31 @@ export const SmallScreenLayout = ({
 }: SmallScreenLayoutProps) => (
   <div className="flex flex-col w-full flex-1 overflow-hidden gap-5 min-h-0">
     {/*
-      Filters and Menu Row — the trigger and the tabs always share this line.
-      Neither shrinks; instead the trigger drops its label below 520px and
-      becomes the funnel icon alone, which is what buys back the room.
+      Filters and Menu Row — o gatilho de filtro e as abas dividem a linha
+      enquanto couberem, nessa ordem de recuo:
+
+      1. Abaixo de 660px o gatilho esconde o rótulo e vira só o funil. Medido:
+         as duas abas do `menu2` pedem 385px e o gatilho com rótulo ocupa 227px,
+         então é a partir daí que ele precisa sair da frente. Colapsado cai para
+         54px e a linha volta a caber.
+      2. Abaixo de 480px nem isso basta — os rótulos por extenso passam do que
+         sobra. Aí o `flex-wrap` desce as abas para a linha de baixo, onde elas
+         ocupam a largura toda. Deixar o `flex-wrap` decidir, em vez de amarrar a
+         quebra num breakpoint, faz ela acontecer exatamente quando o conteúdo
+         não cabe — mudar um rótulo depois não desalinha a conta.
+      3. Nesse ponto o gatilho ficou sozinho na primeira linha e volta a mostrar
+         o rótulo: não há mais nada disputando espaço com ele, e um botão só de
+         ícone é mais difícil de reconhecer. Daí o colapso ser uma faixa fechada
+         (480–660) e não um "abaixo de".
     */}
-    <div className="flex flex-row items-center justify-between gap-2 flex-shrink-0 min-[520px]:gap-4">
+    {/*
+      `mt-5` porque esta linha é o primeiro filho e o `gap-5` do pai não vale
+      acima dela: ela encostava no texto de apoio do header, e os poucos pixels
+      que pareciam separá-los eram só a centralização do botão dentro da linha,
+      não respiro. O valor repete o `gap-5` para manter o mesmo ritmo que separa
+      a linha do conteúdo abaixo.
+    */}
+    <div className="mt-5 flex flex-row flex-wrap items-center justify-between gap-2 flex-shrink-0 min-[660px]:gap-4">
       <div className="flex-shrink-0">
         <ActivityFiltersPopover
           key={filtersKey}
@@ -118,24 +140,63 @@ export const SmallScreenLayout = ({
         />
       </div>
       {/*
-        Must not shrink: the breadcrumb Menu applies `flex-wrap` to its own
-        items (Menu.tsx:170), so squeezing this box makes the two tabs stack
-        into a second line instead of the row staying intact.
+        Dois regimes, e o `480px` é o ponto onde a linha única deixa de caber.
+
+        Dividindo a linha com o filtro (>= 480px), `w-fit` encolhe a caixa: o
+        variant `menu2` deixa lista e itens `w-full`, então sem isso cada aba
+        ocuparia metade da linha e a barra do indicador esticaria junto.
+
+        Na linha própria (< 480px), o `w-fit` sai e as abas assumem a largura
+        toda, metade para cada uma. Não é só estética: as duas juntas pedem
+        385px no tamanho natural e um celular de 375px oferece 343px de área
+        útil — encolhidas ao tamanho natural elas vazariam para fora da tela.
+        Ocupando metade cada, o rótulo cabe com folga.
       */}
-      <div className="flex-shrink-0">
+      <div className="basis-full min-[480px]:basis-auto min-[480px]:w-fit flex-shrink-0">
         <Menu
           defaultValue="questions"
           value={selectedView}
           onValueChange={(value) =>
             onViewChange(value as 'questions' | 'preview')
           }
-          variant="breadcrumb"
+          variant="menu2"
+          className="bg-transparent shadow-none px-0"
         >
-          <MenuContent variant="breadcrumb">
-            <MenuItem value="questions" variant="breadcrumb">
+          <MenuContent variant="menu2">
+            {/*
+              Os ícones só entram de 480px para cima. Eles custam 52px nas duas
+              abas somadas, e é justamente esse excedente que faz os rótulos não
+              caberem na linha própria de um celular: 385px de abas contra 343px
+              de área útil em 375px. Sem eles, 333px — sobra.
+
+              `whitespace-nowrap` pelo mesmo corte: acima de 480px ele impede que
+              "Prévia da atividade" vire duas linhas e desalinhe as barras.
+              Abaixo, fica solto de propósito — é a última válvula de escape num
+              aparelho ainda mais estreito, onde é melhor o rótulo quebrar do que
+              vazar para fora da tela.
+            */}
+            <MenuItem
+              value="questions"
+              variant="menu2"
+              className="min-[480px]:whitespace-nowrap"
+            >
+              <NotebookIcon
+                size={18}
+                aria-hidden
+                className="hidden min-[480px]:block"
+              />
               Banco de questões
             </MenuItem>
-            <MenuItem value="preview" variant="breadcrumb">
+            <MenuItem
+              value="preview"
+              variant="menu2"
+              className="min-[480px]:whitespace-nowrap"
+            >
+              <FileIcon
+                size={18}
+                aria-hidden
+                className="hidden min-[480px]:block"
+              />
               {enableExamMode ? 'Prévia da prova' : 'Prévia da atividade'}
             </MenuItem>
           </MenuContent>
