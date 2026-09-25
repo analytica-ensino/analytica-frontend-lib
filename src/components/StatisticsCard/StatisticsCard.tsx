@@ -11,7 +11,7 @@ import { PlusIcon } from '@phosphor-icons/react/dist/csr/Plus';
 /**
  * Statistics data item
  */
-interface StatItem {
+export interface StatItem {
   /** Statistic label */
   label: string;
   /** Statistic value */
@@ -76,14 +76,19 @@ const VALUE_TEXT_COLORS = {
 } as const;
 
 /**
- * Internal StatCard component
+ * One figure of the card: the value large, the label tiny and uppercase, on
+ * the tile of its variant.
+ *
+ * Exported for the reports that show a headline figure beside their own
+ * charts — the "Nota média" and times of the Momento ENEM report of the
+ * gestor app — so the tile is not redrawn there.
  */
-interface StatCardProps {
+export interface StatCardProps {
   item: StatItem;
   showPlaceholder?: boolean;
 }
 
-const StatCard = ({ item, showPlaceholder = false }: StatCardProps) => {
+export const StatCard = ({ item, showPlaceholder = false }: StatCardProps) => {
   return (
     <div
       className={`rounded-xl py-[17px] px-6 min-h-[105px] flex flex-col justify-center items-start gap-1 ${VARIANT_STYLES[item.variant]}`}

@@ -1925,6 +1925,27 @@
       "require": "./dist/ModalComponents/index.js",
       "default": "./dist/ModalComponents/index.mjs"
     },
+    "./simulation-summary-cards": {
+      "types": "./dist/SimulationSummaryCards/index.d.ts",
+      "module": "./dist/SimulationSummaryCards/index.mjs",
+      "import": "./dist/SimulationSummaryCards/index.mjs",
+      "require": "./dist/SimulationSummaryCards/index.js",
+      "default": "./dist/SimulationSummaryCards/index.mjs"
+    },
+    "./report-tabs": {
+      "types": "./dist/ReportTabs/index.d.ts",
+      "module": "./dist/ReportTabs/index.mjs",
+      "import": "./dist/ReportTabs/index.mjs",
+      "require": "./dist/ReportTabs/index.js",
+      "default": "./dist/ReportTabs/index.mjs"
+    },
+    "./multi-check-select": {
+      "types": "./dist/MultiCheckSelect/index.d.ts",
+      "module": "./dist/MultiCheckSelect/index.mjs",
+      "import": "./dist/MultiCheckSelect/index.mjs",
+      "require": "./dist/MultiCheckSelect/index.js",
+      "default": "./dist/MultiCheckSelect/index.mjs"
+    },
     "./activity-create/activitycreatecontent": {
       "types": "./dist/ActivityCreate/ActivityCreateContent/index.d.ts",
       "module": "./dist/ActivityCreate/ActivityCreateContent/index.mjs",

@@ -9,6 +9,7 @@ import {
   SimplePieChart,
   LegendRow,
   LegendPieCard,
+  PieChartCard,
   type PieSlice,
 } from './ChartComponents';
 
@@ -275,5 +276,68 @@ describe('LegendPieCard', () => {
     expect(
       container.querySelector('svg[aria-hidden="true"]')
     ).toBeInTheDocument();
+  });
+});
+
+describe('PieChartCard', () => {
+  const languages: PieSlice[] = [
+    { key: 'en', label: 'Inglês', value: 9056, colorClass: 'bg-info-300' },
+    { key: 'es', label: 'Espanhol', value: 9410, colorClass: 'bg-success-300' },
+  ];
+  const students = (n: number) => `${n.toLocaleString('pt-BR')} estudantes`;
+
+  it('heads the card with its icon, title and subtitle', () => {
+    render(
+      <PieChartCard
+        title="Idioma"
+        subtitle="Língua estrangeira escolhida"
+        icon={<span data-testid="icon" />}
+        slices={languages}
+      />
+    );
+
+    expect(
+      screen.getByRole('heading', { level: 3, name: 'Idioma' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Língua estrangeira escolhida')
+    ).toBeInTheDocument();
+    expect(screen.getByTestId('icon')).toBeInTheDocument();
+  });
+
+  it('writes each part with its count and rounded share, then the total', () => {
+    render(
+      <PieChartCard title="Idioma" slices={languages} formatValue={students} />
+    );
+
+    expect(screen.getByText('9.056 estudantes (49%)')).toBeInTheDocument();
+    expect(screen.getByText('9.410 estudantes (51%)')).toBeInTheDocument();
+    expect(screen.getByText('Total')).toBeInTheDocument();
+    expect(screen.getByText('18.466 estudantes')).toBeInTheDocument();
+  });
+
+  it('keeps a part’s own legend text', () => {
+    render(
+      <PieChartCard
+        title="Idioma"
+        slices={[{ ...languages[0], displayValue: 'nove mil' }, languages[1]]}
+      />
+    );
+
+    expect(screen.getByText('nove mil')).toBeInTheDocument();
+  });
+
+  it('reads 0% and the empty pie while there is nothing to split', () => {
+    render(
+      <PieChartCard
+        title="Idioma"
+        slices={languages.map((slice) => ({ ...slice, value: 0 }))}
+        emptyText="Ninguém fez a prova"
+        totalLabel="Soma"
+      />
+    );
+
+    expect(screen.getAllByText('0 (0%)')).toHaveLength(2);
+    expect(screen.getByText('Soma')).toBeInTheDocument();
   });
 });

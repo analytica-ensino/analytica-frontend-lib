@@ -5,7 +5,11 @@ import {
   waitFor,
   act,
 } from '@testing-library/react';
-import { SimulationsDetailModal } from './SimulationsDetailModal';
+import {
+  SimulationsDetailModal,
+  SimulationQuestionItem,
+} from './SimulationsDetailModal';
+import type { SimulationDetailQuestion } from '../../types/simulations';
 import type { BaseApiClient } from '../../types/api';
 
 const listPayload = {
@@ -1355,5 +1359,38 @@ describe('SimulationsDetailModal', () => {
       ).toBeInTheDocument();
       expect(screen.getByText('Alternativas')).toBeInTheDocument();
     });
+  });
+});
+
+describe('SimulationQuestionItem', () => {
+  const question = {
+    ...detailPayload.data.questions[0],
+    subject: null,
+    timeSpent: 107,
+  } as SimulationDetailQuestion;
+
+  it('offers the teacher comment when it can be saved', () => {
+    render(
+      <SimulationQuestionItem
+        question={question}
+        index={0}
+        onSaveComment={jest.fn()}
+      />
+    );
+    fireEvent.click(screen.getByText('Questão 1'));
+
+    expect(screen.getByText('Comentário para o estudante')).toBeInTheDocument();
+  });
+
+  it('is read-only, with no comment field, without a save', () => {
+    render(<SimulationQuestionItem question={question} index={0} />);
+    fireEvent.click(screen.getByText('Questão 1'));
+
+    expect(
+      screen.getByText('Um carro inicia do repouso...')
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText('Comentário para o estudante')
+    ).not.toBeInTheDocument();
   });
 });

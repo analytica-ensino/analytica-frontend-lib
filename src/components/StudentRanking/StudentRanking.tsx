@@ -1,4 +1,4 @@
-import { type HTMLAttributes } from 'react';
+import { type HTMLAttributes, type ReactNode } from 'react';
 import { TrendUpIcon } from '@phosphor-icons/react/dist/csr/TrendUp';
 import { TrendDownIcon } from '@phosphor-icons/react/dist/csr/TrendDown';
 import Text from '../Text/Text';
@@ -32,6 +32,11 @@ export type StudentRankingItem = Pick<
    * can open that student's details.
    */
   id?: string;
+  /**
+   * Drawn in place of the percentage badge — for a ranking that is not about
+   * a percentage, a score ("Nota 9,0"), say.
+   */
+  badge?: ReactNode;
 };
 
 /** Fired when a ranking row is clicked; the variant names which card it was. */
@@ -94,8 +99,9 @@ const StudentCard = ({
         {student.name}
       </Text>
 
-      {/* Percentage badge */}
-      {showPercentage && (
+      {/* The row's own badge, or the percentage one */}
+      {student.badge}
+      {student.badge === undefined && showPercentage && (
         <Text
           size="xs"
           weight="bold"
@@ -133,6 +139,12 @@ export interface RankingCardProps extends HTMLAttributes<HTMLDivElement> {
   showPercentage?: boolean;
   /** Makes every row clickable and reports which student was clicked. */
   onStudentClick?: StudentRankingClickHandler;
+  /** Replaces the default header icon (Trophy/Warning). */
+  headerIcon?: ReactNode;
+  /** Shown in place of the list when there is no student. */
+  emptyText?: ReactNode;
+  /** Under the list — a "download the whole ranking" button, say. */
+  footer?: ReactNode;
 }
 
 /**
@@ -144,6 +156,9 @@ export const RankingCard = ({
   students,
   showPercentage = true,
   onStudentClick,
+  headerIcon,
+  emptyText,
+  footer,
   className,
   ...props
 }: RankingCardProps) => (
@@ -151,6 +166,9 @@ export const RankingCard = ({
     title={title}
     variant={variant}
     items={students}
+    headerIcon={headerIcon}
+    emptyText={emptyText}
+    footer={footer}
     renderItem={(student, v, index) => (
       <StudentCard
         key={`${v}-${index}-${student.position}`}

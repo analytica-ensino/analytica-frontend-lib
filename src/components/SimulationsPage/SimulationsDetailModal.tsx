@@ -93,19 +93,24 @@ export interface SimulationQuestionItemProps {
   readonly question: SimulationDetailQuestion;
   /** Zero-based position in the simulation; shown as "Questão N". */
   readonly index: number;
-  /** Persist the teacher comment on this question; an empty string clears it. */
-  readonly onSaveComment: (comment: string) => Promise<void>;
+  /**
+   * Persist the teacher comment on this question; an empty string clears it.
+   * Left out, the question is read-only and has no comment field — a report
+   * that shows the answers but has nobody to write to (the Momento ENEM
+   * report of the gestor app).
+   */
+  readonly onSaveComment?: (comment: string) => Promise<void>;
 }
 
 /**
  * One question of a student's simulation: an accordion with the status badge
  * in its header and, inside, the statement, the student's answer (alternatives,
- * true/false marks, essay text or image click, by question type) and the
- * teacher comment field.
+ * true/false marks, essay text or image click, by question type) and, when
+ * the caller can save it, the teacher comment field.
  *
  * Exported so consumers that list a student's simulations in their own layout
- * (the Desempenho report of the teacher app) render questions exactly as the
- * Simulados page does.
+ * (the Desempenho report of the teacher app, the Momento ENEM report of the
+ * gestor app) render questions exactly as the Simulados page does.
  */
 export function SimulationQuestionItem({
   question,
@@ -267,10 +272,12 @@ export function SimulationQuestionItem({
         >
           {renderAnswerArea()}
         </CardAccordation>
-        <QuestionCommentField
-          value={question.teacherComment ?? ''}
-          onSave={onSaveComment}
-        />
+        {onSaveComment && (
+          <QuestionCommentField
+            value={question.teacherComment ?? ''}
+            onSave={onSaveComment}
+          />
+        )}
       </div>
     </CardAccordation>
   );

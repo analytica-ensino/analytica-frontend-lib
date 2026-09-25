@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
 import { CaretUpIcon } from '@phosphor-icons/react/dist/csr/CaretUp';
 import Text from '../Text/Text';
@@ -50,6 +50,9 @@ const BARS = [
 ] as const;
 
 type BarKey = (typeof BARS)[number]['key'];
+
+/** What each of the four bars counts. */
+export type QuestionsBarsValues = Record<BarKey, number>;
 
 const CHART_HEIGHT = 235;
 
@@ -108,12 +111,22 @@ function LegendCard({
   );
 }
 
-/** The bars with their axes, plus the four legend cards on the right. */
-function QuestionsBars({
-  values,
-}: {
-  readonly values: Record<BarKey, number>;
-}) {
+export interface QuestionsBarsProps {
+  readonly values: QuestionsBarsValues;
+  /**
+   * Shown under the legend cards — the "Nota média" of a report that has one
+   * (the Momento ENEM report of the gestor app).
+   */
+  readonly aside?: ReactNode;
+}
+
+/**
+ * The bars with their axes, plus the four legend cards on the right.
+ *
+ * Exported for the reports that pair the same chart with a select and a
+ * table of their own, not a subject's subtemas.
+ */
+export function QuestionsBars({ values, aside }: QuestionsBarsProps) {
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
 
   const ticks = calculateYAxisTicks(values.total);
@@ -212,20 +225,23 @@ function QuestionsBars({
 
       <div aria-hidden="true" className="hidden w-px bg-border-200 lg:block" />
 
-      {/* Legend cards */}
-      <div
-        data-testid="questions-legend"
-        className="grid flex-1 grid-cols-1 content-center gap-2 sm:grid-cols-2"
-      >
-        {BARS.map((bar) => (
-          <LegendCard
-            key={bar.key}
-            color={bar.color}
-            label={bar.legendLabel}
-            value={values[bar.key]}
-            percentage={shareOfTotal(values[bar.key], values.total)}
-          />
-        ))}
+      {/* Legend cards, and whatever the caller adds under them */}
+      <div className="flex flex-1 flex-col justify-center gap-2">
+        <div
+          data-testid="questions-legend"
+          className="grid grid-cols-1 gap-2 sm:grid-cols-2"
+        >
+          {BARS.map((bar) => (
+            <LegendCard
+              key={bar.key}
+              color={bar.color}
+              label={bar.legendLabel}
+              value={values[bar.key]}
+              percentage={shareOfTotal(values[bar.key], values.total)}
+            />
+          ))}
+        </div>
+        {aside}
       </div>
     </div>
   );
@@ -250,8 +266,11 @@ interface SubtopicRow {
 
 type SubtopicSortKey = 'name' | 'correct' | 'incorrect' | 'blank' | 'rate';
 
-/** Taxa de acerto cell: the rate over a green bar. */
-function RateCell({ rate }: { readonly rate: number }) {
+/**
+ * Taxa de acerto cell: the rate (0–100) over a green bar. Exported for the
+ * other tables that print a rate the same way.
+ */
+export function RateCell({ rate }: { readonly rate: number }) {
   return (
     <div className="flex w-32 flex-col gap-1">
       <Text size="xs" weight="bold" className="text-success-500">
@@ -492,7 +511,7 @@ export function QuestionsPerformanceCard({
     [subtopics, activeTopicId]
   );
 
-  const values = useMemo<Record<BarKey, number>>(() => {
+  const values = useMemo<QuestionsBarsValues>(() => {
     if (activeTopicId === ALL_TOPICS) {
       return {
         total: data.totalAnswered,

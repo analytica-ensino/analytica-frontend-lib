@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { StatisticsCard } from './StatisticsCard';
+import { StatCard, StatisticsCard } from './StatisticsCard';
 
 describe('StatisticsCard', () => {
   const defaultProps = {
@@ -689,5 +689,31 @@ describe('StatisticsCard', () => {
       const card = container.firstChild as HTMLElement;
       expect(card).toHaveClass('bg-background');
     });
+  });
+});
+
+describe('StatCard', () => {
+  it('shows the value over its label, on the tile of its variant', () => {
+    const { container } = render(
+      <StatCard
+        item={{ label: 'Nota média', value: '6,4', variant: 'total' }}
+      />
+    );
+
+    expect(screen.getByText('6,4')).toHaveClass('text-info-700');
+    expect(screen.getByText('Nota média')).toBeInTheDocument();
+    expect(container.firstChild).toHaveClass('bg-info-background');
+  });
+
+  it('shows a dash in place of the value while there is none', () => {
+    render(
+      <StatCard
+        item={{ label: 'Nota média', value: '6,4', variant: 'high' }}
+        showPlaceholder
+      />
+    );
+
+    expect(screen.getByText('-')).toBeInTheDocument();
+    expect(screen.queryByText('6,4')).not.toBeInTheDocument();
   });
 });

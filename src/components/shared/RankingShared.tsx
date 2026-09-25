@@ -68,6 +68,10 @@ export interface BaseRankingCardProps<
   renderItem: (item: T, variant: RankingVariant, index: number) => ReactNode;
   /** Override the default header icon (Trophy/Warning) */
   headerIcon?: ReactNode;
+  /** Shown in place of the list when there is no item. */
+  emptyText?: ReactNode;
+  /** Under the list — a "download the whole ranking" button, say. */
+  footer?: ReactNode;
 }
 
 export function BaseRankingCard<T>({
@@ -76,6 +80,8 @@ export function BaseRankingCard<T>({
   items,
   renderItem,
   headerIcon,
+  emptyText,
+  footer,
   className,
   ...props
 }: Readonly<BaseRankingCardProps<T>>) {
@@ -119,9 +125,17 @@ export function BaseRankingCard<T>({
       </div>
 
       {/* Items list */}
-      <div className="flex flex-col gap-2">
-        {items.map((item, index) => renderItem(item, variant, index))}
-      </div>
+      {items.length === 0 && emptyText ? (
+        <Text size="sm" className="text-text-500 text-center py-4">
+          {emptyText}
+        </Text>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {items.map((item, index) => renderItem(item, variant, index))}
+        </div>
+      )}
+
+      {footer}
     </div>
   );
 }

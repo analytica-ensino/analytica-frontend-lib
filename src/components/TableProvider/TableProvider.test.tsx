@@ -1097,6 +1097,48 @@ describe('TableProvider', () => {
 
       expect(onRowClick).not.toHaveBeenCalled();
     });
+
+    it('leaves the rows it is told to out of the click, cursor and all', () => {
+      const onRowClick = jest.fn();
+      const isRowClickable = jest.fn(
+        (row: (typeof testData)[number]) => row.name !== 'Alice'
+      );
+      render(
+        <TableProvider
+          data={testData}
+          headers={testHeaders}
+          enableRowClick
+          onRowClick={onRowClick}
+          isRowClickable={isRowClickable}
+        />
+      );
+
+      const alice = screen.getByText('Alice').closest('tr')!;
+      const bob = screen.getByText('Bob').closest('tr')!;
+      expect(alice).not.toHaveClass('cursor-pointer');
+      expect(bob).toHaveClass('cursor-pointer');
+
+      fireEvent.click(alice);
+      expect(onRowClick).not.toHaveBeenCalled();
+
+      fireEvent.click(bob);
+      expect(onRowClick).toHaveBeenCalledWith(testData[1], 1);
+    });
+
+    it('keeps every row unclickable without enableRowClick, whatever it is told', () => {
+      const isRowClickable = jest.fn(() => true);
+      const { container } = render(
+        <TableProvider
+          data={testData}
+          headers={testHeaders}
+          isRowClickable={isRowClickable}
+        />
+      );
+
+      for (const row of container.querySelectorAll('tbody tr')) {
+        expect(row).not.toHaveClass('cursor-pointer');
+      }
+    });
   });
 
   // ======================

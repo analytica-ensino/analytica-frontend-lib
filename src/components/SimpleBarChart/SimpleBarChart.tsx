@@ -1,4 +1,4 @@
-import { type HTMLAttributes } from 'react';
+import { type HTMLAttributes, type ReactNode } from 'react';
 import Text from '../Text/Text';
 import { Tooltip } from '../Tooltip/Tooltip';
 import { cn } from '../../utils/utils';
@@ -20,6 +20,8 @@ export interface SimpleBarChartProps extends HTMLAttributes<HTMLDivElement> {
   data: SimpleBarChartDataItem[];
   /** Title for the chart card */
   title: string;
+  /** A gray line under the title — the total the bars add up to, say. */
+  subtitle?: ReactNode;
   /** Height of the bar chart area in pixels */
   chartHeight?: number;
   /** Tailwind bg- color class for the bars (e.g., "bg-info-500") */
@@ -174,6 +176,7 @@ const Bar = ({
 export const SimpleBarChart = ({
   data,
   title,
+  subtitle,
   chartHeight = 180,
   barColor = 'bg-info-500',
   className,
@@ -192,14 +195,21 @@ export const SimpleBarChart = ({
       aria-label={title}
       {...props}
     >
-      <Text
-        as="h3"
-        size="lg"
-        weight="bold"
-        className="text-text-950 tracking-[0.2px]"
-      >
-        {title}
-      </Text>
+      <div className="flex flex-col gap-1">
+        <Text
+          as="h3"
+          size="lg"
+          weight="bold"
+          className="text-text-950 tracking-[0.2px]"
+        >
+          {title}
+        </Text>
+        {subtitle !== undefined && (
+          <Text size="sm" className="text-text-600">
+            {subtitle}
+          </Text>
+        )}
+      </div>
       <div className="flex flex-row min-w-0">
         <YAxis ticks={yAxisTicks} chartHeight={chartHeight} />
         <div className="w-2 shrink-0 sm:w-4" />

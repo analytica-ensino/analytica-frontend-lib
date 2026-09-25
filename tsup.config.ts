@@ -23,8 +23,7 @@ export default defineConfig({
     'LatexRenderer/index': 'src/components/LatexRenderer/LatexRenderer.tsx',
     'SubjectInfo/index': 'src/components/SubjectInfo/SubjectInfo.tsx',
     'SubjectIcons/index': 'src/components/SubjectIcons/SubjectIcons.tsx',
-    'SubjectMenuOverflow/index':
-      'src/components/SubjectMenuOverflow/index.ts',
+    'SubjectMenuOverflow/index': 'src/components/SubjectMenuOverflow/index.ts',
     'NavButton/index': 'src/components/NavButton/NavButton.tsx',
     'Search/index': 'src/components/Search/Search.tsx',
     'ProgressBar/index': 'src/components/ProgressBar/ProgressBar.tsx',
@@ -67,6 +66,11 @@ export default defineConfig({
     // in gestor looks like the ones that live here.
     'MetricBox/index': 'src/components/shared/MetricBox.tsx',
     'ModalComponents/index': 'src/components/shared/ModalComponents.tsx',
+    'SimulationSummaryCards/index':
+      'src/components/shared/SimulationSummaryCards.tsx',
+    'ReportTabs/index': 'src/components/shared/ReportTabs.tsx',
+    'MultiCheckSelect/index':
+      'src/components/MultiCheckSelect/MultiCheckSelect.tsx',
     'VerticalBarChart/index':
       'src/components/VerticalBarChart/VerticalBarChart.tsx',
     'ProficiencyChart/index':

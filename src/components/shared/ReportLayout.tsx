@@ -1,5 +1,5 @@
 import { type HTMLAttributes, type ReactNode, useState } from 'react';
-import Menu, { MenuContent, MenuItem } from '../Menu/Menu';
+import { ReportTabs } from './ReportTabs';
 import { cn } from '../../utils/utils';
 import { getGridColumnsClass } from './ReportGridUtils';
 
@@ -71,30 +71,12 @@ export const ReportLayout = <TCard extends { id: string }>({
     <div className={cn('flex flex-col gap-4', className)} {...props}>
       {/* Tab Navigation */}
       {tabs.length > 1 && (
-        <Menu
+        <ReportTabs
+          tabs={tabs}
           defaultValue={defaultTab ?? firstTabValue}
           value={controlledTab}
-          variant="menu2"
           onValueChange={handleTabChange}
-        >
-          <MenuContent variant="menu2">
-            {tabs.map((tab) => (
-              <MenuItem
-                key={tab.value}
-                value={tab.value}
-                variant="menu-overflow"
-                className="!text-sm !leading-[100%] !tracking-[0.2px]"
-              >
-                {tab.icon && (
-                  <span className="[&>svg]:w-[21px] [&>svg]:h-[21px]">
-                    {tab.icon}
-                  </span>
-                )}
-                {tab.label}
-              </MenuItem>
-            ))}
-          </MenuContent>
-        </Menu>
+        />
       )}
 
       {/* Cards Grid */}
