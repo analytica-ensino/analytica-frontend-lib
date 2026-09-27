@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { SimpleBarChart, type SimpleBarChartDataItem } from './SimpleBarChart';
 
@@ -217,6 +218,42 @@ describe('SimpleBarChart', () => {
 
       const chart = screen.getByTestId('custom-chart');
       expect(chart).toHaveAttribute('id', 'chart-1');
+    });
+  });
+
+  describe('Tooltip', () => {
+    it('opens the balloon in a portal, on one line', async () => {
+      const user = userEvent.setup();
+      render(
+        <SimpleBarChart
+          data={[{ label: '4 a 6', value: 670 }]}
+          title="Estudantes por faixa de nota"
+        />
+      );
+
+      await user.hover(screen.getByTestId('bar-4 a 6'));
+
+      const balloon = screen.getByRole('tooltip');
+      expect(balloon).toHaveTextContent('4 a 6: 670');
+      // A column of this chart is a fifth of a card wide; in place, the
+      // balloon was bounded by it and broke over three lines.
+      expect(balloon.parentElement).toBe(document.body);
+      expect(balloon).toHaveClass('whitespace-nowrap');
+      expect(balloon).not.toHaveClass('whitespace-normal');
+    });
+
+    it('has no balloon for a bar with nothing in it', async () => {
+      const user = userEvent.setup();
+      render(
+        <SimpleBarChart
+          data={[{ label: '0 a 2', value: 0 }]}
+          title="Estudantes por faixa de nota"
+        />
+      );
+
+      await user.hover(screen.getByText('0 a 2'));
+
+      expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
     });
   });
 

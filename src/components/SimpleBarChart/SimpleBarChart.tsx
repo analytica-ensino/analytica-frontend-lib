@@ -121,7 +121,11 @@ const Bar = ({
       disabled={!tooltipContent}
       position="top"
       className="flex-1 min-w-0"
-      contentClassName="whitespace-normal"
+      // A column of this chart is a fifth of a card wide, and a balloon
+      // rendered inside it is bounded by that: "4 a 6: 670" came out broken
+      // over three lines. In the portal it is bounded by the viewport, so it
+      // keeps the one line the tooltip is styled for.
+      usePortal
     >
       <div className="flex flex-col items-center gap-2 w-full min-w-0 cursor-pointer group/bar">
         <div
