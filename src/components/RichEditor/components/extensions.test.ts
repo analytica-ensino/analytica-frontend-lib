@@ -148,6 +148,80 @@ describe('createRichEditorExtensions', () => {
     });
   });
 
+  describe('coloração', () => {
+    // Nada na toolbar pinta texto: toda cor que aparecia numa questão veio
+    // colada de fora (Word, PDF, export antigo do ENEM) e era gravada no HTML
+    // salvo. O schema é o filtro — sem atributo onde cair, a declaração morre
+    // na entrada, tanto no Ctrl+V quanto ao abrir uma questão já salva.
+    it('deve descartar a cor da fonte de um trecho colado', () => {
+      const html = roundTrip('<p><span style="color: red">vermelho</span></p>');
+
+      expect(html).toContain('vermelho');
+      expect(html).not.toContain('color');
+    });
+
+    it('deve descartar a cor escrita em rgb e hexadecimal', () => {
+      const rgb = roundTrip(
+        '<p><span style="color: rgb(192, 0, 0)">a</span></p>'
+      );
+      const hex = roundTrip('<p><span style="color: #C00000">b</span></p>');
+
+      expect(rgb).toEqual('<p>a</p>');
+      expect(hex).toEqual('<p>b</p>');
+    });
+
+    it('deve descartar a cor da tag font legada', () => {
+      const html = roundTrip('<p><font color="red">enunciado</font></p>');
+
+      expect(html).toEqual('<p>enunciado</p>');
+    });
+
+    it('deve descartar o marca-texto colado junto', () => {
+      const html = roundTrip(
+        '<p><mark data-color="yellow" style="background-color: yellow">grifado</mark></p>'
+      );
+
+      expect(html).toEqual('<p>grifado</p>');
+    });
+
+    it('deve descartar a cor de fundo de um trecho colado', () => {
+      const html = roundTrip(
+        '<p><span style="background-color: yellow">fundo</span></p>'
+      );
+
+      expect(html).toEqual('<p>fundo</p>');
+    });
+
+    it('deve manter o negrito que veio no mesmo trecho colorido', () => {
+      // Formato típico do Word: a cor viaja no mesmo span do negrito.
+      const html = roundTrip(
+        '<p><span style="color:#C00000;font-weight:700">Atenção</span></p>'
+      );
+
+      expect(html).toContain('<strong>Atenção</strong>');
+      expect(html).not.toContain('color');
+    });
+
+    it('não deve deixar span vazio no lugar do trecho colorido', () => {
+      const html = roundTrip('<p><span style="color: red">texto</span></p>');
+
+      expect(html).not.toContain('<span');
+    });
+
+    it('deve limpar a cor de uma questão já salva ao reabrir para edição', () => {
+      const salvo =
+        '<p>Leia o texto <span style="color: #ff0000">destacado</span>:</p>' +
+        '<table><tbody><tr><td style="background-color: #ffff00"><p>célula</p></td></tr></tbody></table>';
+
+      const html = roundTrip(salvo);
+
+      expect(html).toContain('destacado');
+      expect(html).toContain('célula');
+      expect(html).not.toContain('#ff0000');
+      expect(html).not.toContain('#ffff00');
+    });
+  });
+
   describe('tabelas', () => {
     // Recorte do enunciado que expôs o bug: sem os nós de tabela no schema o
     // editor devolvia `<p>AutoescolaAula teóricaI10II30</p>` — e o próximo
