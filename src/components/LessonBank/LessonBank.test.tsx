@@ -1296,15 +1296,13 @@ describe('LessonBank', () => {
       expect(screen.getByText('3 aulas total')).toHaveClass('bg-background-50');
     });
 
-    it('should center the empty state inside the dashed box', () => {
+    it('should center the empty state in the card variant', () => {
       const apiClient = createMockApiClient();
       render(<LessonBank apiClient={apiClient} variant="card" />);
 
       const emptyState = screen.getByTestId('empty-state');
-      expect(emptyState.parentElement).toHaveClass(
-        'border-dashed',
-        'justify-center'
-      );
+      expect(emptyState.parentElement).toHaveClass('justify-center');
+      expect(emptyState.parentElement).not.toHaveClass('border-dashed');
     });
   });
 });
