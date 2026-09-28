@@ -338,7 +338,6 @@ export const LessonBank = ({
       <div
         className={cn(
           'flex flex-col gap-3 overflow-auto flex-1 min-h-0',
-          isCard && 'p-6 border border-dashed border-border-300 rounded-lg',
           isCard && isEmpty && 'justify-center'
         )}
       >
