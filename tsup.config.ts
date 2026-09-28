@@ -149,6 +149,8 @@ export default defineConfig({
       'src/components/ActivityPreview/ActivityPreview.tsx',
     'ActivityCardQuestionPreview/index':
       'src/components/ActivityCardQuestionPreview/ActivityCardQuestionPreview.tsx',
+    'LessonCardPreview/index':
+      'src/components/LessonCardPreview/LessonCardPreview.tsx',
     'ActivityCardQuestionBanks/index':
       'src/components/ActivityCardQuestionBanks/ActivityCardQuestionBanks.tsx',
     // Toast utils

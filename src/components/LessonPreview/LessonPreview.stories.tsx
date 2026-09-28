@@ -32,6 +32,13 @@ const mockLessons: (Lesson & {
   {
     id: 'lesson-1',
     title: 'Introdução à Álgebra Linear',
+    subject: {
+      id: 'math',
+      name: 'Matemática',
+      color: '#2271C4',
+      icon: 'Calculator',
+    },
+    topic: { id: 'algebra', name: 'Álgebra Linear' },
     videoSrc: 'https://www.w3schools.com/html/mov_bbb.mp4',
     videoPoster:
       'https://via.placeholder.com/800x450/2271C4/FFFFFF?text=Introdução+à+Álgebra+Linear',
@@ -60,6 +67,8 @@ const mockLessons: (Lesson & {
   {
     id: 'lesson-2',
     title: 'Fotossíntese: Processo e Importância',
+    subject: { id: 'bio', name: 'Biologia', color: '#5E8D17', icon: 'Leaf' },
+    topic: { id: 'botany', name: 'Botânica' },
     videoSrc: 'https://www.w3schools.com/html/mov_bbb.mp4',
     videoPoster:
       'https://via.placeholder.com/800x450/00A651/FFFFFF?text=Fotossíntese',
@@ -81,6 +90,7 @@ const mockLessons: (Lesson & {
   {
     id: 'lesson-3',
     title: 'Revolução Francesa e seus Impactos',
+    subject: { id: 'hist', name: 'História', color: '#6366F1', icon: 'Globe' },
     videoSrc: 'https://www.w3schools.com/html/mov_bbb.mp4',
     videoPoster:
       'https://via.placeholder.com/800x450/6366F1/FFFFFF?text=Revolução+Francesa',
