@@ -2907,12 +2907,10 @@ describe('VideoPlayer', () => {
 
       // Now toggle mute again - this should trigger line 179 with volume = 0
       // The ternary should choose 0.5 since volume is 0
-      const unmuteButton = screen.queryByRole('button', {
+      const unmuteButton = screen.getByRole('button', {
         name: /ativar áudio/i,
       });
-      if (unmuteButton) {
-        fireEvent.click(unmuteButton);
-      }
+      fireEvent.click(unmuteButton);
 
       expect(container.querySelector('video')).toBeInTheDocument();
     });
@@ -3215,10 +3213,9 @@ describe('VideoPlayer', () => {
         fireEvent.click(speedButton);
       });
 
-      // Menu should be rendered (either in document body or in component)
-      const menu =
-        document.querySelector('[role="menu"]') || screen.queryByRole('menu');
-      expect(menu).toBeTruthy();
+      // Menu should be rendered; `screen` covers the portal too, since it
+      // queries document.body
+      expect(screen.getByRole('menu')).toBeInTheDocument();
 
       // Restore
       Element.prototype.getBoundingClientRect = originalGetBoundingClientRect;
@@ -3699,7 +3696,7 @@ describe('VideoPlayer', () => {
       });
 
       // Should show exit fullscreen button (proves isFullscreen = true)
-      const exitButton = screen.queryByRole('button', {
+      const exitButton = screen.getByRole('button', {
         name: /desativar tela cheia/i,
       });
       expect(exitButton).toBeInTheDocument();
@@ -3716,7 +3713,7 @@ describe('VideoPlayer', () => {
 
       // Verify we're in fullscreen
       expect(
-        screen.queryByRole('button', { name: /desativar tela cheia/i })
+        screen.getByRole('button', { name: /desativar tela cheia/i })
       ).toBeInTheDocument();
 
       // Exit fullscreen
@@ -3725,7 +3722,7 @@ describe('VideoPlayer', () => {
       });
 
       // Should show enter fullscreen button (proves isFullscreen = false)
-      const enterButton = screen.queryByRole('button', {
+      const enterButton = screen.getByRole('button', {
         name: /ativar tela cheia/i,
       });
       expect(enterButton).toBeInTheDocument();
@@ -3956,9 +3953,7 @@ describe('VideoPlayer - leitura pelo leitor de tela', () => {
 
       // Focar um controle revela a barra: sem isto dava para operar o volume
       // pelas setas com a barra invisível, e nada aparecia na tela.
-      act(() => {
-        fireEvent.focus(slider(container));
-      });
+      fireEvent.focus(slider(container));
       expect(
         container.querySelector('.absolute.bottom-0')!.className
       ).toContain('opacity-100');
@@ -3984,11 +3979,9 @@ describe('VideoPlayer - leitura pelo leitor de tela', () => {
         simulateMediaEvent(video, 'play');
       });
 
-      act(() => {
-        fireEvent.click(
-          screen.getByRole('button', { name: 'Velocidade de reprodução' })
-        );
-      });
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Velocidade de reprodução' })
+      );
       // O menu é portalizado para o body e recebe o foco num setTimeout(0).
       act(() => {
         jest.advanceTimersByTime(0);
