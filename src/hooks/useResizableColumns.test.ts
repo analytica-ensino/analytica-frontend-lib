@@ -414,15 +414,50 @@ describe('useResizableColumns', () => {
   });
 
   describe('keyboard', () => {
-    it('should widen the preview with the left arrow', () => {
-      const { result } = renderWithContainer(1920);
+    // Uma tecla sobre o divisor da prévia, numa tela onde há espaço de sobra.
+    it.each([
+      {
+        caso: 'widens with the left arrow',
+        key: 'ArrowLeft',
+        shift: false,
+        expected: DEFAULT + RESIZE_KEYBOARD_STEP,
+      },
+      {
+        caso: 'uses a larger step with Shift',
+        key: 'ArrowLeft',
+        shift: true,
+        expected: DEFAULT + RESIZE_KEYBOARD_STEP_LARGE,
+      },
+      {
+        caso: 'does not shrink below the default with the right arrow',
+        key: 'ArrowRight',
+        shift: false,
+        expected: DEFAULT,
+      },
+      {
+        caso: 'jumps to the maximum with End',
+        key: 'End',
+        shift: false,
+        expected: getMaxPanelWidth(1920, DEFAULT),
+      },
+      {
+        caso: 'ignores keys that do not resize',
+        key: 'Enter',
+        shift: false,
+        expected: DEFAULT,
+      },
+    ])(
+      'should handle the preview divider: $caso',
+      ({ key, shift, expected }) => {
+        const { result } = renderWithContainer(1920);
 
-      act(() =>
-        result.current.previewDividerProps.onKeyDown(keyEvent('ArrowLeft'))
-      );
+        act(() =>
+          result.current.previewDividerProps.onKeyDown(keyEvent(key, shift))
+        );
 
-      expect(result.current.previewWidth).toBe(DEFAULT + RESIZE_KEYBOARD_STEP);
-    });
+        expect(result.current.previewWidth).toBe(expected);
+      }
+    );
 
     it('should widen the filters with the right arrow', () => {
       const { result } = renderWithContainer(1920);
@@ -434,30 +469,6 @@ describe('useResizableColumns', () => {
       expect(result.current.filtersWidth).toBe(DEFAULT + RESIZE_KEYBOARD_STEP);
     });
 
-    it('should use a larger step with Shift', () => {
-      const { result } = renderWithContainer(1920);
-
-      act(() =>
-        result.current.previewDividerProps.onKeyDown(
-          keyEvent('ArrowLeft', true)
-        )
-      );
-
-      expect(result.current.previewWidth).toBe(
-        DEFAULT + RESIZE_KEYBOARD_STEP_LARGE
-      );
-    });
-
-    it('should not shrink below the default with the right arrow', () => {
-      const { result } = renderWithContainer(1920);
-
-      act(() =>
-        result.current.previewDividerProps.onKeyDown(keyEvent('ArrowRight'))
-      );
-
-      expect(result.current.previewWidth).toBe(DEFAULT);
-    });
-
     it('should reset to the default with Home', () => {
       const { result } = renderWithContainer(1920);
 
@@ -467,24 +478,6 @@ describe('useResizableColumns', () => {
         )
       );
       act(() => result.current.previewDividerProps.onKeyDown(keyEvent('Home')));
-
-      expect(result.current.previewWidth).toBe(DEFAULT);
-    });
-
-    it('should jump to the maximum with End', () => {
-      const { result } = renderWithContainer(1920);
-
-      act(() => result.current.previewDividerProps.onKeyDown(keyEvent('End')));
-
-      expect(result.current.previewWidth).toBe(getMaxPanelWidth(1920, DEFAULT));
-    });
-
-    it('should ignore keys that do not resize', () => {
-      const { result } = renderWithContainer(1920);
-
-      act(() =>
-        result.current.previewDividerProps.onKeyDown(keyEvent('Enter'))
-      );
 
       expect(result.current.previewWidth).toBe(DEFAULT);
     });

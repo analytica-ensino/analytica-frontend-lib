@@ -266,7 +266,7 @@ describe('RecommendedLessonCreateSkeleton', () => {
         '[style*="width: 400px"].flex-shrink-0'
       );
       // Filtros e prévia começam ambos na largura padrão
-      expect(sideColumns.length).toBe(2);
+      expect(sideColumns).toHaveLength(2);
     });
   });
 

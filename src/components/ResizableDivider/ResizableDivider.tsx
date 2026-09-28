@@ -23,6 +23,13 @@ export type ResizableDividerProps = ResizableDividerHandlers & {
  * Toda a interação vem de `useResizableColumns`, que é quem conhece os limites
  * das duas colunas ao mesmo tempo; aqui só existe a aparência.
  *
+ * O `NOSONAR` na raiz é por causa da regra "elementos não interativos não devem
+ * receber listeners": na ARIA, `separator` só é estrutural enquanto **não** é
+ * focável — com `tabindex` e `aria-valuenow` ele vira o widget window splitter,
+ * e aí os listeners são exigidos pelo próprio padrão. A regra não modela essa
+ * distinção. Não existe tag nativa para um splitter, e trocar por `slider`
+ * calaria o aviso à custa de anunciar o papel errado no leitor de tela.
+ *
  * @param value - Largura atual da coluna controlada
  * @param min - Largura mínima (também a padrão)
  * @param max - Largura máxima que cabe na tela
@@ -52,7 +59,7 @@ const ResizableDivider = ({
   onKeyDown,
   onDoubleClick,
 }: ResizableDividerProps) => (
-  <div
+  <div // NOSONAR — ARIA window splitter pattern, no native tag fits (see JSDoc)
     role="separator"
     aria-orientation="vertical"
     aria-label={label}
