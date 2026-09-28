@@ -21,14 +21,17 @@ export const PreviewCardTag = ({
   children: ReactNode;
   className?: string;
 }) => (
-  <span
+  <Text
+    as="span"
+    size="sm"
+    color="text-text-650"
     className={cn(
       'min-w-0 max-w-full py-1 px-2 rounded-md bg-background-50 flex flex-row items-center gap-1',
       className
     )}
   >
     {children}
-  </span>
+  </Text>
 );
 
 /**
@@ -47,11 +50,15 @@ export const PreviewCardOrderRow = ({
   return (
     <div className="flex flex-row items-center gap-2 min-h-8 px-3 pt-2">
       {typeof position === 'number' && (
-        <span className="shrink-0 py-0.5 px-2 rounded-md bg-primary-50">
-          <Text size="sm" weight="medium" className="text-primary-950">
-            {position}º
-          </Text>
-        </span>
+        <Text
+          as="span"
+          size="sm"
+          weight="medium"
+          color="text-primary-950"
+          className="shrink-0 py-0.5 px-2 rounded-md bg-primary-50"
+        >
+          {position}º
+        </Text>
       )}
 
       {actions && (
@@ -67,13 +74,15 @@ export const PreviewCardOrderRow = ({
  * Visual drag cue. The draggable element is the list wrapper, not this icon.
  */
 export const PreviewCardDragHandle = () => (
-  <span
+  <Text
+    as="span"
     data-drag-handle="true"
     aria-hidden="true"
-    className="size-6 flex items-center justify-center shrink-0 text-text-600 cursor-grab active:cursor-grabbing"
+    color="text-text-600"
+    className="size-6 flex items-center justify-center shrink-0 cursor-grab active:cursor-grabbing"
   >
     <DotsSixVerticalIcon size={16} />
-  </span>
+  </Text>
 );
 
 /**
@@ -149,12 +158,12 @@ export const usePreviewCardToggle = (defaultExpanded: boolean) => {
 
   const toggleExpanded = () => setIsExpanded((previous) => !previous);
 
-  const handleCardClick = (event: MouseEvent<HTMLDivElement>) => {
+  const handleCardClick = (event: MouseEvent<HTMLElement>) => {
     if ((event.target as HTMLElement | null)?.closest('button')) return;
     toggleExpanded();
   };
 
-  const handleCardKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+  const handleCardKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     if (event.key !== 'Enter' && event.key !== ' ') return;
     if ((event.target as HTMLElement | null)?.closest('button')) return;
     event.preventDefault();
@@ -162,7 +171,7 @@ export const usePreviewCardToggle = (defaultExpanded: boolean) => {
   };
 
   /** Lets a drag start inside a draggable list; otherwise avoids the focus ring. */
-  const handleCardMouseDown = (event: MouseEvent<HTMLDivElement>) => {
+  const handleCardMouseDown = (event: MouseEvent<HTMLElement>) => {
     const draggableAncestor = (event.target as HTMLElement).closest(
       '[data-draggable="true"]'
     );

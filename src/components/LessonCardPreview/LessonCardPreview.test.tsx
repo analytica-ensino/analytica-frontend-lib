@@ -10,8 +10,12 @@ jest.mock('../../index', () => ({
   IconRender: ({ iconName }: { iconName: string }) => (
     <span data-testid="icon">{iconName}</span>
   ),
-  Text: ({ children, ...rest }: React.HTMLAttributes<HTMLParagraphElement>) => (
-    <p {...rest}>{children}</p>
+  Text: ({
+    as: Tag = 'p',
+    children,
+    ...rest
+  }: React.HTMLAttributes<HTMLElement> & { as?: React.ElementType }) => (
+    <Tag {...rest}>{children}</Tag>
   ),
   getSubjectColorWithOpacity: (color: string) =>
     mockGetSubjectColorWithOpacity(color),
@@ -19,9 +23,11 @@ jest.mock('../../index', () => ({
 
 const subject = { name: 'Biologia', color: '#00aa00', icon: 'Leaf' };
 
-/** Outer interactive card element (the drag ghost has no role). */
+/** Native summary button (subject + title) that toggles the card. */
 const getCard = (container: HTMLElement) =>
-  container.querySelector('[role="button"]') as HTMLElement;
+  container.querySelector(
+    'button[aria-controls]:not([aria-label])'
+  ) as HTMLElement;
 
 const getContent = () => screen.getByTestId('lesson-preview-content');
 
@@ -45,10 +51,19 @@ describe('LessonCardPreview', () => {
     expect(screen.getAllByTestId('icon')[0]).toHaveTextContent('Leaf');
 
     const titles = screen.getAllByText('Estratégias para Preservação');
-    // Ghost title, visible truncated title and the full title of the content
-    expect(titles).toHaveLength(3);
+    // Drag ghost title + visible title
+    expect(titles).toHaveLength(2);
     expect(titles[1].className).toContain('truncate');
-    expect(titles[2].className).not.toContain('truncate');
+  });
+
+  it('shows the full title when expanded', () => {
+    const { container } = render(<LessonCardPreview title="Aula longa" />);
+
+    fireEvent.click(getCard(container));
+
+    const visibleTitle = screen.getAllByText('Aula longa')[1];
+    expect(visibleTitle.className).toContain('break-words');
+    expect(visibleTitle.className).not.toContain('truncate');
   });
 
   it('falls back to default title, icon and color', () => {
@@ -116,23 +131,20 @@ describe('LessonCardPreview', () => {
     expect(card.getAttribute('aria-controls')).toBe(getContent().id);
   });
 
-  it('toggles with Enter and Space, ignoring other keys and buttons', () => {
-    const { container } = render(<LessonCardPreview title="Aula" />);
+  it('uses a native button for the summary, outside the action buttons', () => {
+    const { container } = render(
+      <LessonCardPreview
+        title="Aula"
+        onWatch={jest.fn()}
+        onRemove={jest.fn()}
+      />
+    );
     const card = getCard(container);
 
-    fireEvent.keyDown(card, { key: 'Tab' });
-    expect(card).toHaveAttribute('aria-expanded', 'false');
-
-    fireEvent.keyDown(card, { key: 'Enter' });
-    expect(card).toHaveAttribute('aria-expanded', 'true');
-
-    fireEvent.keyDown(card, { key: ' ' });
-    expect(card).toHaveAttribute('aria-expanded', 'false');
-
-    fireEvent.keyDown(screen.getByLabelText('Expandir aula'), {
-      key: 'Enter',
-    });
-    expect(card).toHaveAttribute('aria-expanded', 'false');
+    expect(card.tagName).toBe('BUTTON');
+    expect(card).toHaveAttribute('type', 'button');
+    expect(card.querySelector('button')).not.toBeInTheDocument();
+    expect(container.querySelector('[role="button"]')).not.toBeInTheDocument();
   });
 
   it('calls onWatch without toggling the card', () => {

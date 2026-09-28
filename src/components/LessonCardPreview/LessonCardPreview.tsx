@@ -1,5 +1,6 @@
-import { useId, type ReactNode } from 'react';
+import { useId } from 'react';
 import { IconRender, Text, getSubjectColorWithOpacity } from '../../index';
+import Button from '../Button/Button';
 import IconButton from '../IconButton/IconButton';
 import Video from '../../assets/icons/subjects/Video';
 import { cn } from '../../utils/utils';
@@ -53,23 +54,22 @@ const LessonSubjectTag = ({
   const badgeColor = getSubjectColorWithOpacity(color, isDark) ?? color;
 
   return (
-    <div className="flex flex-row flex-wrap items-center gap-1 text-text-650">
-      <PreviewCardTag>
-        <span
-          className="size-4 rounded-sm flex items-center justify-center shrink-0 text-text-950"
-          style={{ backgroundColor: badgeColor }}
-        >
-          <IconRender
-            iconName={subject.icon ?? 'Book'}
-            size={14}
-            color="currentColor"
-          />
-        </span>
-        <Text size="sm" className="truncate">
-          {subject.name}
-        </Text>
-      </PreviewCardTag>
-    </div>
+    <PreviewCardTag className="self-start">
+      <Text
+        as="span"
+        className="size-4 rounded-sm flex items-center justify-center shrink-0"
+        style={{ backgroundColor: badgeColor }}
+      >
+        <IconRender
+          iconName={subject.icon ?? 'Book'}
+          size={14}
+          color="currentColor"
+        />
+      </Text>
+      <Text as="span" size="sm" color="text-text-650" className="truncate">
+        {subject.name}
+      </Text>
+    </PreviewCardTag>
   );
 };
 
@@ -91,38 +91,25 @@ export const LessonCardPreview = ({
   onRemove,
   className,
 }: LessonCardPreviewProps) => {
-  const {
-    isExpanded,
-    toggleExpanded,
-    handleCardClick,
-    handleCardKeyDown,
-    handleCardMouseDown,
-  } = usePreviewCardToggle(defaultExpanded);
+  const { isExpanded, toggleExpanded, handleCardMouseDown } =
+    usePreviewCardToggle(defaultExpanded);
   const generatedId = useId();
   const contentId = value ? `lesson-preview-content-${value}` : generatedId;
 
-  const renderCardHeader = ({
-    actions,
-    withTitle,
-  }: {
-    actions?: ReactNode;
-    withTitle: boolean;
-  }) => (
-    <div className="w-full min-w-0 flex flex-col gap-2 pb-2">
-      <PreviewCardOrderRow position={position} actions={actions} />
+  /** Subject badge + title. Truncated title while collapsed, full when expanded. */
+  const renderSummary = (expanded: boolean) => (
+    <>
+      {subject?.name && <LessonSubjectTag subject={subject} isDark={isDark} />}
 
-      {subject?.name && (
-        <div className="px-3">
-          <LessonSubjectTag subject={subject} isDark={isDark} />
-        </div>
-      )}
-
-      {withTitle && (
-        <Text size="md" weight="bold" className="text-text-950 truncate px-3">
-          {title}
-        </Text>
-      )}
-    </div>
+      <Text
+        as="span"
+        size="md"
+        weight="bold"
+        className={cn('block', expanded ? 'break-words' : 'truncate')}
+      >
+        {title}
+      </Text>
+    </>
   );
 
   const actions = (
@@ -165,35 +152,40 @@ export const LessonCardPreview = ({
   );
 
   return (
-    <div
-      className="w-full"
-      data-position={position}
-      role="button"
-      tabIndex={0}
-      aria-expanded={isExpanded}
-      aria-controls={contentId}
-      onClick={handleCardClick}
-      onMouseDown={handleCardMouseDown}
-      onKeyDown={handleCardKeyDown}
-    >
+    <div className="w-full" data-position={position}>
       {/* Hidden drag preview with header + truncated title (closed state) */}
       <div
         data-drag-preview="true"
         aria-hidden="true"
         className="fixed -left-[9999px] -top-[9999px] pointer-events-none z-[9999] w-[440px]"
       >
-        <div className="w-full rounded-lg border border-border-200 bg-background">
-          {renderCardHeader({ withTitle: true })}
+        <div className="w-full rounded-lg border border-border-200 bg-background flex flex-col gap-2 pb-2">
+          <PreviewCardOrderRow position={position} />
+          <div className="px-3 flex flex-col gap-2 min-w-0">
+            {renderSummary(false)}
+          </div>
         </div>
       </div>
 
       <div
         className={cn(
-          'w-full rounded-lg border border-border-200 bg-background overflow-hidden cursor-pointer',
+          'w-full rounded-lg border border-border-200 bg-background overflow-hidden',
           className
         )}
       >
-        {renderCardHeader({ withTitle: !isExpanded, actions })}
+        <PreviewCardOrderRow position={position} actions={actions} />
+
+        {/* Native button: the actions above stay outside it (no nested buttons) */}
+        <Button
+          variant="raw"
+          aria-expanded={isExpanded}
+          aria-controls={contentId}
+          onClick={toggleExpanded}
+          onMouseDown={handleCardMouseDown}
+          className="w-full min-w-0 flex flex-col gap-2 px-3 pt-2 pb-2 text-left cursor-pointer"
+        >
+          {renderSummary(isExpanded)}
+        </Button>
 
         <section
           id={contentId}
@@ -206,11 +198,8 @@ export const LessonCardPreview = ({
             isExpanded ? 'opacity-100' : 'max-h-0 opacity-0'
           )}
         >
-          <div className="px-3 pb-4 flex flex-col gap-2">
-            <Text size="md" weight="bold" className="text-text-950 break-words">
-              {title}
-            </Text>
-            {trail.length > 0 && (
+          {trail.length > 0 && (
+            <div className="px-3 pb-4">
               <Text
                 size="sm"
                 className="text-text-700 break-words"
@@ -218,8 +207,8 @@ export const LessonCardPreview = ({
               >
                 {trail.join(' › ')}
               </Text>
-            )}
-          </div>
+            </div>
+          )}
         </section>
       </div>
     </div>
