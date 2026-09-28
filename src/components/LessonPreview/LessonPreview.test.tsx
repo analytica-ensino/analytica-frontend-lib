@@ -99,6 +99,8 @@ jest.mock('../LessonCardPreview/LessonCardPreview', () => ({
     showDragHandle,
     onWatch,
     onRemove,
+    onMoveUp,
+    onMoveDown,
   }: {
     title?: string;
     value?: string;
@@ -108,6 +110,8 @@ jest.mock('../LessonCardPreview/LessonCardPreview', () => ({
     showDragHandle?: boolean;
     onWatch?: () => void;
     onRemove?: () => void;
+    onMoveUp?: () => void;
+    onMoveDown?: () => void;
   }) => (
     <div
       data-testid="lesson-card-preview"
@@ -131,6 +135,21 @@ jest.mock('../LessonCardPreview/LessonCardPreview', () => ({
           onClick={onRemove}
         >
           remove
+        </button>
+      )}
+      <span
+        data-testid={`move-state-${value}`}
+        data-can-move-up={onMoveUp ? 'true' : 'false'}
+        data-can-move-down={onMoveDown ? 'true' : 'false'}
+      />
+      {onMoveUp && (
+        <button data-testid={`move-up-${value}`} onClick={onMoveUp}>
+          up
+        </button>
+      )}
+      {onMoveDown && (
+        <button data-testid={`move-down-${value}`} onClick={onMoveDown}>
+          down
         </button>
       )}
     </div>
@@ -907,9 +926,9 @@ describe('LessonPreview', () => {
       };
 
       setRect(screen.getByTestId('lessons-list'), 0, 320);
-      setRect(screen.getByLabelText('Mover aula Lesson 1'), 0, 100);
-      setRect(screen.getByLabelText('Mover aula Lesson 2'), 110, 100);
-      setRect(screen.getByLabelText('Mover aula Lesson 3'), 220, 100);
+      setRect(screen.getByTestId('lesson-draggable-lesson-1'), 0, 100);
+      setRect(screen.getByTestId('lesson-draggable-lesson-2'), 110, 100);
+      setRect(screen.getByTestId('lesson-draggable-lesson-3'), 220, 100);
     };
 
     /** jsdom drops `clientY` from the init, so define it on the event. */
@@ -967,7 +986,7 @@ describe('LessonPreview', () => {
       const dataTransfer = createDataTransfer();
       render(<LessonPreview {...defaultProps} />);
 
-      const firstCard = screen.getByLabelText('Mover aula Lesson 1');
+      const firstCard = screen.getByTestId('lesson-draggable-lesson-1');
       fireEvent.dragStart(firstCard, { dataTransfer });
 
       expect(dataTransfer.setData).toHaveBeenCalledWith(
@@ -996,7 +1015,7 @@ describe('LessonPreview', () => {
       await waitFor(() => expect(onPositionsChange).toHaveBeenCalled());
       onPositionsChange.mockClear();
 
-      const firstCard = screen.getByLabelText('Mover aula Lesson 1');
+      const firstCard = screen.getByTestId('lesson-draggable-lesson-1');
       stubListGeometry();
 
       fireEvent.dragStart(firstCard, { dataTransfer });
@@ -1035,7 +1054,7 @@ describe('LessonPreview', () => {
       const dataTransfer = createDataTransfer();
       render(<LessonPreview {...defaultProps} onReorder={onReorder} />);
 
-      const firstCard = screen.getByLabelText('Mover aula Lesson 1');
+      const firstCard = screen.getByTestId('lesson-draggable-lesson-1');
       stubListGeometry();
 
       fireEvent.dragStart(firstCard, { dataTransfer });
@@ -1057,7 +1076,7 @@ describe('LessonPreview', () => {
       const dataTransfer = createDataTransfer();
       render(<LessonPreview {...defaultProps} />);
 
-      const firstCard = screen.getByLabelText('Mover aula Lesson 1');
+      const firstCard = screen.getByTestId('lesson-draggable-lesson-1');
       stubListGeometry();
 
       fireEvent.dragStart(firstCard, { dataTransfer });
@@ -1076,7 +1095,7 @@ describe('LessonPreview', () => {
       const dataTransfer = createDataTransfer();
       render(<LessonPreview {...defaultProps} onReorder={onReorder} />);
 
-      const firstCard = screen.getByLabelText('Mover aula Lesson 1');
+      const firstCard = screen.getByTestId('lesson-draggable-lesson-1');
       stubListGeometry();
 
       fireEvent.dragStart(firstCard, { dataTransfer });
@@ -1092,7 +1111,7 @@ describe('LessonPreview', () => {
       const dataTransfer = createDataTransfer();
       render(<LessonPreview {...defaultProps} onRemoveLesson={jest.fn()} />);
 
-      const firstCard = screen.getByLabelText('Mover aula Lesson 1');
+      const firstCard = screen.getByTestId('lesson-draggable-lesson-1');
       fireEvent.mouseDown(screen.getByTestId('button-Remover aula 1'));
 
       const event = createEvent.dragStart(firstCard, { dataTransfer });
@@ -1104,110 +1123,53 @@ describe('LessonPreview', () => {
     });
   });
 
-  describe('keyboard navigation', () => {
-    it('should move lesson up with ArrowUp key', () => {
-      const onReorder = jest.fn();
-      render(<LessonPreview {...defaultProps} onReorder={onReorder} />);
+  describe('keyboard reordering', () => {
+    const getOrder = () =>
+      screen
+        .getAllByTestId('lesson-card-preview')
+        .map((el) => el.getAttribute('data-value'));
 
-      const draggables = screen
-        .getAllByRole('button')
-        .filter((btn) => btn.getAttribute('draggable') === 'true');
+    it('lets the card own the keyboard: the drag wrapper is not focusable', () => {
+      render(<LessonPreview {...defaultProps} />);
 
-      expect(draggables.length).toBeGreaterThanOrEqual(2);
-
-      fireEvent.keyDown(draggables[1], {
-        key: 'ArrowUp',
-      });
-
-      expect(onReorder).toHaveBeenCalled();
+      const wrapper = screen.getByTestId('lesson-draggable-lesson-1');
+      expect(wrapper).not.toHaveAttribute('role');
+      expect(wrapper).not.toHaveAttribute('tabindex');
     });
 
-    it('should move lesson down with ArrowDown key', () => {
+    it('moves a lesson up and down through the card callbacks', () => {
       const onReorder = jest.fn();
       render(<LessonPreview {...defaultProps} onReorder={onReorder} />);
 
-      const draggables = screen
-        .getAllByRole('button')
-        .filter((btn) => btn.getAttribute('draggable') === 'true');
+      fireEvent.click(screen.getByTestId('move-up-lesson-2'));
+      expect(getOrder()).toEqual(['lesson-2', 'lesson-1', 'lesson-3']);
 
-      expect(draggables.length).toBeGreaterThanOrEqual(2);
+      fireEvent.click(screen.getByTestId('move-down-lesson-2'));
+      expect(getOrder()).toEqual(['lesson-1', 'lesson-2', 'lesson-3']);
 
-      fireEvent.keyDown(draggables[0], {
-        key: 'ArrowDown',
-      });
-
-      expect(onReorder).toHaveBeenCalled();
+      expect(onReorder).toHaveBeenCalledTimes(2);
+      expect(onReorder).toHaveBeenLastCalledWith([
+        expect.objectContaining({ id: 'lesson-1', position: 1 }),
+        expect.objectContaining({ id: 'lesson-2', position: 2 }),
+        expect.objectContaining({ id: 'lesson-3', position: 3 }),
+      ]);
     });
 
-    it('should not move first lesson up', () => {
-      const onReorder = jest.fn();
-      render(<LessonPreview {...defaultProps} onReorder={onReorder} />);
+    it('does not offer moving the first lesson up or the last one down', () => {
+      render(<LessonPreview {...defaultProps} />);
 
-      const draggables = screen
-        .getAllByRole('button')
-        .filter((btn) => btn.getAttribute('draggable') === 'true');
-
-      expect(draggables.length).toBeGreaterThan(0);
-
-      fireEvent.keyDown(draggables[0], {
-        key: 'ArrowUp',
-      });
-
-      expect(onReorder).not.toHaveBeenCalled();
-    });
-
-    it('should not move last lesson down', () => {
-      const onReorder = jest.fn();
-      render(<LessonPreview {...defaultProps} onReorder={onReorder} />);
-
-      const draggables = screen
-        .getAllByRole('button')
-        .filter((btn) => btn.getAttribute('draggable') === 'true');
-
-      expect(draggables.length).toBeGreaterThan(0);
-
-      const lastLesson = draggables[draggables.length - 1];
-      fireEvent.keyDown(lastLesson, {
-        key: 'ArrowDown',
-      });
-
-      expect(onReorder).not.toHaveBeenCalled();
-    });
-
-    it('should handle Enter key without action', () => {
-      const onReorder = jest.fn();
-      render(<LessonPreview {...defaultProps} onReorder={onReorder} />);
-
-      const draggables = screen
-        .getAllByRole('button')
-        .filter((btn) => btn.getAttribute('draggable') === 'true');
-
-      expect(draggables.length).toBeGreaterThan(0);
-
-      fireEvent.keyDown(draggables[0], {
-        key: 'Enter',
-      });
-
-      // Enter key should not trigger reorder
-      expect(onReorder).not.toHaveBeenCalled();
-    });
-
-    it('should handle Space key without action', () => {
-      const onReorder = jest.fn();
-      render(<LessonPreview {...defaultProps} onReorder={onReorder} />);
-
-      const draggables = screen
-        .getAllByRole('button')
-        .filter((btn) => btn.getAttribute('draggable') === 'true');
-
-      expect(draggables.length).toBeGreaterThan(0);
-
-      fireEvent.keyDown(draggables[0], {
-        key: ' ',
-      });
-
-      // Space key should not trigger reorder
-      expect(onReorder).not.toHaveBeenCalled();
+      expect(screen.getByTestId('move-state-lesson-1')).toHaveAttribute(
+        'data-can-move-up',
+        'false'
+      );
+      expect(screen.getByTestId('move-state-lesson-1')).toHaveAttribute(
+        'data-can-move-down',
+        'true'
+      );
+      expect(screen.getByTestId('move-state-lesson-3')).toHaveAttribute(
+        'data-can-move-down',
+        'false'
+      );
     });
   });
 

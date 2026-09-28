@@ -314,7 +314,6 @@ export const LessonPreview = ({
     dropIndex,
     listRef,
     registerItem,
-    handlePointerDown,
     handleDragStart,
     handleDragOver,
     handleDrop,
@@ -444,27 +443,9 @@ export const LessonPreview = ({
                     ref={registerItem(id)}
                     draggable
                     data-draggable="true"
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Mover aula ${lessonTitle}`}
-                    onMouseDown={handlePointerDown}
+                    data-testid={`lesson-draggable-${id}`}
                     onDragStart={handleDragStart(id)}
                     onDragEnd={handleDragEnd}
-                    onKeyDown={(e) => {
-                      if (e.key === 'ArrowUp' && index > 0) {
-                        e.preventDefault();
-                        handleMove(index, index - 1);
-                      } else if (
-                        e.key === 'ArrowDown' &&
-                        index < orderedLessons.length - 1
-                      ) {
-                        e.preventDefault();
-                        handleMove(index, index + 1);
-                      } else if (e.key === 'Enter' || e.key === ' ') {
-                        // Keyboard grab/drop noop; prevent scroll on space
-                        e.preventDefault();
-                      }
-                    }}
                     className={cn(
                       'rounded-lg cursor-grab transition-shadow duration-150',
                       'active:cursor-grabbing active:shadow-hard-shadow-2',
@@ -481,6 +462,16 @@ export const LessonPreview = ({
                       onWatch={() => handleWatch(lesson)}
                       onRemove={
                         onRemoveLesson ? () => onRemoveLesson(id) : undefined
+                      }
+                      onMoveUp={
+                        index > 0
+                          ? () => handleMove(index, index - 1)
+                          : undefined
+                      }
+                      onMoveDown={
+                        index < orderedLessons.length - 1
+                          ? () => handleMove(index, index + 1)
+                          : undefined
                       }
                     />
                   </div>

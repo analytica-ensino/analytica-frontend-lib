@@ -147,6 +147,42 @@ describe('LessonCardPreview', () => {
     expect(container.querySelector('[role="button"]')).not.toBeInTheDocument();
   });
 
+  it('reorders with the arrow keys on the summary button', () => {
+    const onMoveUp = jest.fn();
+    const onMoveDown = jest.fn();
+    const { container } = render(
+      <LessonCardPreview
+        title="Aula"
+        onMoveUp={onMoveUp}
+        onMoveDown={onMoveDown}
+      />
+    );
+    const card = getCard(container);
+
+    const up = createEvent.keyDown(card, { key: 'ArrowUp' });
+    fireEvent(card, up);
+    expect(onMoveUp).toHaveBeenCalledTimes(1);
+    expect(up.defaultPrevented).toBe(true);
+
+    fireEvent.keyDown(card, { key: 'ArrowDown' });
+    expect(onMoveDown).toHaveBeenCalledTimes(1);
+
+    const enter = createEvent.keyDown(card, { key: 'Enter' });
+    fireEvent(card, enter);
+    // Native activation stays untouched
+    expect(enter.defaultPrevented).toBe(false);
+  });
+
+  it('ignores arrows when the lesson cannot move that way', () => {
+    const { container } = render(<LessonCardPreview title="Aula" />);
+    const card = getCard(container);
+
+    const up = createEvent.keyDown(card, { key: 'ArrowUp' });
+    fireEvent(card, up);
+
+    expect(up.defaultPrevented).toBe(false);
+  });
+
   it('calls onWatch without toggling the card', () => {
     const onWatch = jest.fn();
     const { container, rerender } = render(<LessonCardPreview title="Aula" />);

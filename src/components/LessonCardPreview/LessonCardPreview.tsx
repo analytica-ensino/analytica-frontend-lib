@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, type KeyboardEvent } from 'react';
 import { IconRender, Text, getSubjectColorWithOpacity } from '../../index';
 import Button from '../Button/Button';
 import IconButton from '../IconButton/IconButton';
@@ -39,6 +39,10 @@ export interface LessonCardPreviewProps {
   onWatch?: () => void;
   /** Removes the lesson; the trash action is hidden when missing. */
   onRemove?: () => void;
+  /** Moves the lesson one slot up (ArrowUp on the card). */
+  onMoveUp?: () => void;
+  /** Moves the lesson one slot down (ArrowDown on the card). */
+  onMoveDown?: () => void;
   className?: string;
 }
 
@@ -89,6 +93,8 @@ export const LessonCardPreview = ({
   showDragHandle = false,
   onWatch,
   onRemove,
+  onMoveUp,
+  onMoveDown,
   className,
 }: LessonCardPreviewProps) => {
   const { isExpanded, toggleExpanded, handleCardMouseDown } =
@@ -111,6 +117,14 @@ export const LessonCardPreview = ({
       </Text>
     </>
   );
+
+  /** The summary button is the single keyboard owner: arrows reorder the lesson. */
+  const handleSummaryKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    const move = { ArrowUp: onMoveUp, ArrowDown: onMoveDown }[event.key];
+    if (!move) return;
+    event.preventDefault();
+    move();
+  };
 
   const actions = (
     <>
@@ -182,6 +196,7 @@ export const LessonCardPreview = ({
           aria-controls={contentId}
           onClick={toggleExpanded}
           onMouseDown={handleCardMouseDown}
+          onKeyDown={handleSummaryKeyDown}
           className="w-full min-w-0 flex flex-col gap-2 px-3 pt-2 pb-2 text-left cursor-pointer"
         >
           {renderSummary(isExpanded)}
