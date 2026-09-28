@@ -1011,6 +1011,10 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
     const speedMenuListRef = useRef<HTMLDivElement>(null);
 
     const formatTime = (time: number) => {
+      // Transmissão ao vivo reporta duração `Infinity`, e antes dos metadados,
+      // `NaN` — sem esta guarda a tela mostrava "Infinity:NaN".
+      if (!Number.isFinite(time) || time < 0) return '0:00';
+
       const minutes = Math.floor(time / 60);
       const seconds = Math.floor(time % 60);
       return `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -1048,6 +1052,15 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
       setCurrentTime(0);
       onEnded?.();
     };
+
+    /**
+     * `audio.duration` vem `Infinity` em transmissão ao vivo e `NaN` antes dos
+     * metadados — e o `?? 0` dos handlers não pega nenhum dos dois, porque só
+     * trata `null`/`undefined`. O que é exibido e anunciado passa por aqui; o
+     * valor cru segue indo para `seekTo`, senão saturar a duração em zero
+     * prenderia o avanço de mídia ao vivo no início.
+     */
+    const hasKnownDuration = Number.isFinite(duration) && duration > 0;
 
     /** Move a reprodução para `time`, preso à faixa [0, duração]. */
     const seekTo = (time: number) => {
@@ -1324,9 +1337,15 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
             role="slider"
             aria-label="Barra de progresso do áudio"
             aria-valuemin={0}
-            aria-valuemax={Math.round(duration)}
-            aria-valuenow={Math.round(currentTime)}
-            aria-valuetext={`${formatTime(currentTime)} de ${formatTime(duration)}`}
+            aria-valuemax={hasKnownDuration ? Math.round(duration) : 0}
+            aria-valuenow={hasKnownDuration ? Math.round(currentTime) : 0}
+            // Sem duração conhecida, anuncia só o decorrido: dizer "de 0:00"
+            // afirmaria um total que não existe.
+            aria-valuetext={
+              hasKnownDuration
+                ? `${formatTime(currentTime)} de ${formatTime(duration)}`
+                : formatTime(currentTime)
+            }
           >
             <div
               className="h-full bg-primary-600 rounded-full transition-all duration-100"

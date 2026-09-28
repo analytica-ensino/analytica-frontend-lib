@@ -2464,6 +2464,45 @@ describe('CardAudio', () => {
     const getProgress = () =>
       screen.getByRole('slider', { name: 'Barra de progresso do áudio' });
 
+    it('não expõe duração infinita de mídia ao vivo', () => {
+      render(<CardAudio src="stream.mp3" />);
+      setUpAudio(Number.POSITIVE_INFINITY);
+
+      expect(getProgress().getAttribute('aria-valuemax')).not.toMatch(
+        /Infinity|NaN/
+      );
+      expect(getProgress().getAttribute('aria-valuetext')).not.toMatch(
+        /Infinity|NaN/
+      );
+      // E nem na tela, onde a duração aparece ao lado da barra
+      expect(document.body.textContent).not.toMatch(/Infinity|NaN/);
+    });
+
+    it('continua avançando em mídia ao vivo, sem prender o tempo em zero', () => {
+      render(<CardAudio src="stream.mp3" />);
+      setUpAudio(Number.POSITIVE_INFINITY);
+
+      fireEvent.keyDown(getProgress(), { key: 'ArrowRight' });
+
+      // Sem duração conhecida, anuncia só o decorrido — mas anda.
+      expect(getProgress()).toHaveAttribute('aria-valuetext', '0:05');
+    });
+
+    it('não expõe NaN antes de os metadados chegarem', () => {
+      render(<CardAudio src="audio.mp3" />);
+      const audio = screen.getByTestId('audio-element');
+      Object.defineProperty(audio, 'duration', {
+        get: () => Number.NaN,
+        configurable: true,
+      });
+
+      fireEvent.timeUpdate(audio);
+
+      expect(getProgress().getAttribute('aria-valuemax')).not.toMatch(/NaN/);
+      expect(getProgress().getAttribute('aria-valuetext')).not.toMatch(/NaN/);
+      expect(document.body.textContent).not.toMatch(/NaN/);
+    });
+
     it('anuncia a posição da barra de progresso como tempo, não como número', () => {
       render(<CardAudio src="audio.mp3" />);
       setUpAudio(120);

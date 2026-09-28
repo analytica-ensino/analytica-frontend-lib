@@ -3971,5 +3971,38 @@ describe('VideoPlayer - leitura pelo leitor de tela', () => {
 
       jest.useRealTimers();
     });
+
+    it('mantém os controles visíveis com o menu de velocidade aberto', () => {
+      jest.useFakeTimers();
+      const { container } = render(<VideoPlayer {...props} />);
+      const video = container.querySelector('video') as HTMLVideoElement;
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+      act(() => {
+        simulateMediaEvent(video, 'play');
+      });
+
+      act(() => {
+        fireEvent.click(
+          screen.getByRole('button', { name: 'Velocidade de reprodução' })
+        );
+      });
+      // O menu é portalizado para o body e recebe o foco num setTimeout(0).
+      act(() => {
+        jest.advanceTimersByTime(0);
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(CONTROLS_HIDE_TIMEOUT);
+      });
+
+      expect(
+        container.querySelector('.absolute.bottom-0')!.className
+      ).toContain('opacity-100');
+
+      jest.useRealTimers();
+    });
   });
 });
