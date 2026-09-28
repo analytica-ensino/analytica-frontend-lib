@@ -1,9 +1,6 @@
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
-import { Color } from '@tiptap/extension-color';
-import { TextStyle } from '@tiptap/extension-text-style';
-import Highlight from '@tiptap/extension-highlight';
 import Subscript from '@tiptap/extension-subscript';
 import Superscript from '@tiptap/extension-superscript';
 import Link from '@tiptap/extension-link';
@@ -82,14 +79,22 @@ const ResizableImage = Image.extend({
  * silently discards any node it cannot match. Anything the editor must be able
  * to *load* has to be registered here, not only what it can create — omitting
  * Image is what made `<img>` tags disappear from existing content.
+ *
+ * That same rule is what keeps colour out of the content, and it is why
+ * TextStyle/Color/Highlight are deliberately absent. The toolbar has never
+ * offered a colour control, so every coloured run in the question bank arrived
+ * pasted from Word, a PDF or an old ENEM export (`<span style="color: red">`,
+ * `<mark style="background-color: yellow">`) and then survived into the saved
+ * HTML, where it fights the app's own typography. Without a schema attribute
+ * to land in, the declaration is dropped on the way in — on paste, on
+ * drag-and-drop and when an existing question is loaded for editing — while
+ * the text itself is kept. Bold, italic, alignment and the rest are unaffected:
+ * they are separate marks.
  */
 export function createRichEditorExtensions(placeholder: string) {
   return [
     StarterKit,
     Underline,
-    TextStyle,
-    Color,
-    Highlight.configure({ multicolor: true }),
     Subscript,
     Superscript,
     TextAlign.configure({ types: ['heading', 'paragraph'] }),
