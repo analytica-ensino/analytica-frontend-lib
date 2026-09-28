@@ -160,6 +160,16 @@ export function RichEditor({
   const [pasteError, setPasteError] = useState('');
   const lastContentRef = useRef(content);
   /**
+   * Último `content` recebido cuja cor já foi verificada.
+   *
+   * Separado do `lastContentRef` — que guarda o HTML que o consumidor tem em
+   * mãos, e por isso muda quando devolvemos a versão limpa — para que uma nova
+   * execução do efeito com o mesmo conteúdo (o editor sendo recriado, ou um
+   * consumidor que ignore o `onChange` e siga mandando o HTML colorido) não
+   * notifique a mesma limpeza duas vezes.
+   */
+  const colorCheckedRef = useRef<string | undefined>(undefined);
+  /**
    * `editorProps` is captured once, when `useEditor` runs, so a handler reading
    * the props directly would keep serving the first render's values. The editor
    * calls through this ref, which the effect below repoints whenever the paste
@@ -266,7 +276,11 @@ export function RichEditor({
       lastContentRef.current = content;
     }
 
-    emitColorlessContent(content);
+    // Uma vez por conteúdo recebido, e não a cada execução do efeito.
+    if (content !== colorCheckedRef.current) {
+      colorCheckedRef.current = content;
+      emitColorlessContent(content);
+    }
     // `emitColorlessContent` é recriada a cada render e fica fora das
     // dependências de propósito: só fecha sobre o editor e o `onChange` do
     // consumidor, e reagir a eles reemitiria o mesmo conteúdo.

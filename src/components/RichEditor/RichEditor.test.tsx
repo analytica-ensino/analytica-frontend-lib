@@ -732,6 +732,22 @@ describe('Sincronização de conteúdo', () => {
       expect(onChange).toHaveBeenCalledTimes(1);
     });
 
+    it('não deve reemitir quando o efeito roda de novo com o mesmo conteúdo', () => {
+      const onChange = jest.fn();
+      const { rerender } = render(
+        <RichEditor content={coloridoDaApi} onChange={onChange} />
+      );
+
+      // Editor recriado com o mesmo `content`: identidade nova refaz o efeito.
+      // Sem o guarda de "cor já verificada", o consumidor receberia a mesma
+      // limpeza duas vezes — e um consumidor que ignore o onChange a receberia
+      // a cada reexecução.
+      (useEditor as jest.Mock).mockReturnValue({ ...mockEditor });
+      rerender(<RichEditor content={coloridoDaApi} onChange={onChange} />);
+
+      expect(onChange).toHaveBeenCalledTimes(1);
+    });
+
     it('não deve quebrar sem onChange informado', () => {
       expect(() =>
         render(<RichEditor content={coloridoDaApi} />)
