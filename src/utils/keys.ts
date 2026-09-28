@@ -34,4 +34,10 @@ export enum KEYS {
    * (volume/mute), shared by the video and podcast players.
    */
   MEDIA_PREFERENCES_STORAGE = '@media-preferences:analytica:v1',
+
+  /**
+   * Key for the Zustand persist storage for layout preferences (widths of the
+   * resizable side panels in the activity/lesson creation screens).
+   */
+  LAYOUT_PREFERENCES_STORAGE = '@layout-preferences:analytica:v1',
 }

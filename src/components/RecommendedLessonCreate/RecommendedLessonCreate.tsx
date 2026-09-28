@@ -13,8 +13,9 @@ import {
   useToastStore,
   SendLessonModal,
   SaveActivityModelModal,
-  Divider,
 } from '../..';
+import ResizableDivider from '../ResizableDivider/ResizableDivider';
+import { useResizableColumns } from '../../hooks/useResizableColumns';
 import type { ActivityModelTableItem } from '../../types/activitiesHistory';
 import { ActivityType } from '../ActivityCreate/ActivityCreate.types';
 import Menu, { MenuContent, MenuItem, MenuOverflow } from '../Menu/Menu';
@@ -141,6 +142,14 @@ const RecommendedLessonCreate = ({
   const isSmallScreen = useTabletScreen();
   // Compact layout for screen width <= 1024px
   const { isLargeTablet: isCompactScreen } = useMobile();
+  // Larguras arrastáveis das colunas laterais (só usadas no layout desktop)
+  const {
+    containerRef: columnsContainerRef,
+    filtersWidth,
+    previewWidth,
+    filtersDividerProps,
+    previewDividerProps,
+  } = useResizableColumns('lesson');
   const [selectedView, setSelectedView] = useState<
     'filters' | 'lessons' | 'preview'
   >('filters');
@@ -1445,7 +1454,13 @@ const RecommendedLessonCreate = ({
           <div className="flex-1 min-w-0 overflow-hidden h-full">
             {selectedView === 'filters' && (
               <div className="flex flex-col gap-3 overflow-hidden h-full min-h-0">
-                <div className="flex-1 min-h-0 overflow-y-auto">
+                {/*
+                  A largura agora é do layout, não do componente: `LessonFilters`
+                  virou fluido para a coluna redimensionável do desktop poder
+                  comandá-lo. Aqui os 400px são repetidos de propósito, para esta
+                  aba continuar exatamente como era.
+                */}
+                <div className="flex-1 min-h-0 overflow-y-auto w-[400px] max-w-full">
                   <LessonFilters
                     key={filtersKey}
                     apiClient={apiClient}
@@ -1496,9 +1511,15 @@ const RecommendedLessonCreate = ({
 
     return (
       /* Desktop Layout (> 1200px) - 3 columns */
-      <div className="flex flex-row w-full flex-1 overflow-hidden gap-5 min-h-0">
+      <div
+        ref={columnsContainerRef}
+        className="flex flex-row w-full flex-1 overflow-hidden gap-5 min-h-0"
+      >
         {/* First Column - Filters */}
-        <div className="flex flex-col gap-3 overflow-hidden h-full min-h-0 max-h-full relative w-[400px] flex-shrink-0">
+        <div
+          style={{ width: filtersWidth }}
+          className="flex flex-col gap-3 overflow-hidden h-full min-h-0 max-h-full relative flex-shrink-0"
+        >
           <div className="flex flex-col overflow-y-auto overflow-x-hidden flex-1 min-h-0 max-h-full">
             <LessonFilters
               key={filtersKey}
@@ -1526,7 +1547,10 @@ const RecommendedLessonCreate = ({
           </div>
         </div>
 
-        <Divider orientation="vertical" />
+        <ResizableDivider
+          label="Redimensionar filtros"
+          {...filtersDividerProps}
+        />
 
         {/* Second Column - Center, fills remaining space */}
         <div className="flex-1 min-w-0 overflow-hidden h-full">
@@ -1538,10 +1562,16 @@ const RecommendedLessonCreate = ({
           />
         </div>
 
-        <Divider orientation="vertical" />
+        <ResizableDivider
+          label="Redimensionar prévia da aula"
+          {...previewDividerProps}
+        />
 
         {/* Third Column - Lesson Preview */}
-        <div className="w-[400px] flex-shrink-0 overflow-hidden h-full min-h-0">
+        <div
+          style={{ width: previewWidth }}
+          className="flex-shrink-0 overflow-hidden h-full min-h-0"
+        >
           {renderPreview()}
         </div>
       </div>

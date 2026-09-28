@@ -5,13 +5,14 @@ import {
   Button,
   SkeletonText,
   QUESTION_TYPE,
-  Divider,
 } from '../../..';
 import { FunnelIcon } from '@phosphor-icons/react/dist/csr/Funnel';
 import { NotebookIcon } from '@phosphor-icons/react/dist/csr/Notebook';
 import { FileIcon } from '@phosphor-icons/react/dist/csr/File';
 import Menu, { MenuContent, MenuItem } from '../../Menu/Menu';
 import { ActivityListQuestions } from '../../ActivityListQuestions/ActivityListQuestions';
+import ResizableDivider from '../../ResizableDivider/ResizableDivider';
+import { useResizableColumns } from '../../../hooks/useResizableColumns';
 import type {
   ActivityFiltersData,
   BaseApiClient,
@@ -282,10 +283,22 @@ export const DesktopLayout = ({
   onReorder,
   filtersKey = 0,
   questionsInstitutionId,
-}: DesktopLayoutProps) => (
-  <div className="flex flex-row w-full flex-1 overflow-hidden gap-5 min-h-0">
-    {/* First Column - Filters */}
-    {/*
+}: DesktopLayoutProps) => {
+  const {
+    containerRef,
+    filtersWidth,
+    previewWidth,
+    filtersDividerProps,
+    previewDividerProps,
+  } = useResizableColumns('activity');
+
+  return (
+    <div
+      ref={containerRef}
+      className="flex flex-row w-full flex-1 overflow-hidden gap-5 min-h-0"
+    >
+      {/* First Column - Filters */}
+      {/*
       overflow-clip (not overflow-hidden): an overflow-hidden box is still a
       scroll container, so when a descendant (accordion/checkbox) receives focus
       while the content transiently overflows, the browser scrolls this box via
@@ -293,66 +306,79 @@ export const DesktopLayout = ({
       appears blank until a zoom forces a reflow. overflow-clip clips identically
       but never becomes scrollable, so the offset can't get stuck.
     */}
-    <div className="flex flex-col gap-3 overflow-clip h-full min-h-0 max-h-full relative w-[400px] flex-shrink-0">
-      <div className="flex flex-col overflow-y-auto overflow-x-hidden flex-1 min-h-0 max-h-full">
-        <ActivityFilters
-          key={filtersKey}
-          apiClient={apiClient}
-          institutionId={institutionId}
-          variant={'default'}
-          onFiltersChange={onFiltersChange}
-          initialFilters={initialFiltersData || undefined}
-          allowedQuestionTypes={
-            isInPersonExam ? [QUESTION_TYPE.ALTERNATIVA] : undefined
-          }
-        />
+      <div
+        style={{ width: filtersWidth }}
+        className="flex flex-col gap-3 overflow-clip h-full min-h-0 max-h-full relative flex-shrink-0"
+      >
+        <div className="flex flex-col overflow-y-auto overflow-x-hidden flex-1 min-h-0 max-h-full">
+          <ActivityFilters
+            key={filtersKey}
+            apiClient={apiClient}
+            institutionId={institutionId}
+            variant={'default'}
+            onFiltersChange={onFiltersChange}
+            initialFilters={initialFiltersData || undefined}
+            allowedQuestionTypes={
+              isInPersonExam ? [QUESTION_TYPE.ALTERNATIVA] : undefined
+            }
+          />
+        </div>
+        <div className="flex-shrink-0 grid grid-cols-2 gap-2">
+          <Button size="medium" variant="link" onClick={onClearFilters}>
+            Limpar filtros
+          </Button>
+          <Button
+            size="medium"
+            variant="outline"
+            onClick={onApplyFilters}
+            disabled={!draftFilters}
+          >
+            Filtrar
+          </Button>
+        </div>
       </div>
-      <div className="flex-shrink-0 grid grid-cols-2 gap-2">
-        <Button size="medium" variant="link" onClick={onClearFilters}>
-          Limpar filtros
-        </Button>
-        <Button
-          size="medium"
-          variant="outline"
-          onClick={onApplyFilters}
-          disabled={!draftFilters}
-        >
-          Filtrar
-        </Button>
+
+      <ResizableDivider
+        label="Redimensionar filtros"
+        {...filtersDividerProps}
+      />
+
+      {/* Second Column - Center, fills remaining space */}
+      <div className="flex-1 min-w-0 relative">
+        <div className="absolute inset-0 overflow-hidden">
+          <ActivityListQuestions
+            apiClient={apiClient}
+            onAddQuestion={onAddQuestion}
+            addedQuestionIds={addedQuestionIds}
+            enableExamMode={enableExamMode}
+            institutionId={questionsInstitutionId}
+          />
+        </div>
+      </div>
+
+      <ResizableDivider
+        label="Redimensionar prévia da atividade"
+        {...previewDividerProps}
+      />
+
+      {/* Third Column - Activity Preview */}
+      <div
+        style={{ width: previewWidth }}
+        className="flex-shrink-0 overflow-hidden h-full min-h-0"
+      >
+        {loadingInitialQuestions ? (
+          <LoadingSkeleton />
+        ) : (
+          <ActivityPreview
+            questions={questions}
+            onRemoveAll={onRemoveAll}
+            onRemoveQuestion={onRemoveQuestion}
+            onReorder={onReorder}
+            isDark={isDark}
+            className="h-full overflow-y-auto"
+          />
+        )}
       </div>
     </div>
-
-    <Divider orientation="vertical" />
-
-    {/* Second Column - Center, fills remaining space */}
-    <div className="flex-1 min-w-0 relative">
-      <div className="absolute inset-0 overflow-hidden">
-        <ActivityListQuestions
-          apiClient={apiClient}
-          onAddQuestion={onAddQuestion}
-          addedQuestionIds={addedQuestionIds}
-          enableExamMode={enableExamMode}
-          institutionId={questionsInstitutionId}
-        />
-      </div>
-    </div>
-
-    <Divider orientation="vertical" />
-
-    {/* Third Column - Activity Preview */}
-    <div className="w-[400px] flex-shrink-0 overflow-hidden h-full min-h-0">
-      {loadingInitialQuestions ? (
-        <LoadingSkeleton />
-      ) : (
-        <ActivityPreview
-          questions={questions}
-          onRemoveAll={onRemoveAll}
-          onRemoveQuestion={onRemoveQuestion}
-          onReorder={onReorder}
-          isDark={isDark}
-          className="h-full overflow-y-auto"
-        />
-      )}
-    </div>
-  </div>
-);
+  );
+};

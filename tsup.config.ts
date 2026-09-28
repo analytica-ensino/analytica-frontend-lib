@@ -15,6 +15,8 @@ export default defineConfig({
     'DropdownMenu/index': 'src/components/DropdownMenu/DropdownMenu.tsx',
     'DragHandleButton/index':
       'src/components/DragHandleButton/DragHandleButton.tsx',
+    'ResizableDivider/index':
+      'src/components/ResizableDivider/ResizableDivider.tsx',
     'IconButton/index': 'src/components/IconButton/IconButton.tsx',
     'IconRoundedButton/index':
       'src/components/IconRoundedButton/IconRoundedButton.tsx',

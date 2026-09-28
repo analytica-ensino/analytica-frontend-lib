@@ -167,10 +167,11 @@ export const LessonFilters = ({
     }
   }, [selectedSubjectIds, knowledgeCategories, getSelectedKnowledgeIds]);
 
+  // A largura do variant `default` é ditada pela coluna que o contém — ela é
+  // redimensionável pelo usuário (ver `useResizableColumns`), então fixá-la
+  // aqui anularia o arraste.
   const containerClassName =
-    variant === 'popover'
-      ? 'w-full bg-background'
-      : 'w-[400px] flex-shrink-0 p-4 bg-background';
+    variant === 'popover' ? 'w-full bg-background' : 'w-full p-4 bg-background';
 
   const isPopover = variant === 'popover';
   const contentClassName = isPopover ? 'p-4 max-[426px]:p-6' : '';
