@@ -299,8 +299,9 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
 
         {/* Error message */}
         {errorMessage && (
-          <p className="flex gap-1 items-center text-sm text-indicator-error mt-1.5">
-            <WarningCircleIcon size={16} /> {errorMessage}
+          <p className="flex gap-1 items-start text-sm text-indicator-error mt-1.5">
+            <WarningCircleIcon size={16} className="shrink-0 mt-0.5" />{' '}
+            {errorMessage}
           </p>
         )}
 

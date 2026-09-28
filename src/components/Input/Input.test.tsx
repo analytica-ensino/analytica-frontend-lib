@@ -129,7 +129,16 @@ describe('Input', () => {
     it('renders error message with warning icon', () => {
       render(<Input errorMessage="This is an error" />);
       const errorContainer = screen.getByText('This is an error').closest('p');
-      expect(errorContainer).toHaveClass('flex', 'gap-1', 'items-center');
+      expect(errorContainer).toHaveClass('flex', 'gap-1', 'items-start');
+    });
+
+    it('keeps the warning icon from shrinking on long error messages', () => {
+      render(<Input errorMessage="This is an error" />);
+      const errorContainer = screen.getByText('This is an error').closest('p');
+      expect(errorContainer?.querySelector('svg')).toHaveClass(
+        'shrink-0',
+        'mt-0.5'
+      );
     });
 
     it('shows both helper text and error message when both provided', () => {

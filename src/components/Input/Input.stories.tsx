@@ -70,6 +70,12 @@ export const AllInputs: Story = () => (
           errorMessage="Este valor não é válido"
         />
         <Input
+          label="Erro com mensagem longa"
+          type="password"
+          value="senha"
+          errorMessage="Login ou senha incorretos. A senha deve ter pelo menos 8 caracteres.; A senha deve conter pelo menos 1 letra maiúscula.; A senha deve conter pelo menos 1 número.; A senha deve conter pelo menos 1 caractere especial."
+        />
+        <Input
           label="Estado desabilitado"
           placeholder="Campo desabilitado"
           disabled
