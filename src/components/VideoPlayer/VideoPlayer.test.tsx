@@ -52,7 +52,7 @@ const enterFullscreen = (videoContainer: Element) => {
 // Helper for async fullscreen operations
 const performAsyncFullscreenExit = async () => {
   const exitFullscreenButton = await screen.findByRole('button', {
-    name: /exit fullscreen/i,
+    name: /desativar tela cheia/i,
   });
   fireEvent.click(exitFullscreenButton);
 };
@@ -294,7 +294,9 @@ describe('VideoPlayer', () => {
     it('should play video when play button is clicked', async () => {
       const { container } = render(<VideoPlayer {...defaultProps} />);
       const video = container.querySelector('video') as HTMLVideoElement;
-      const playButton = screen.getByRole('button', { name: /play video/i });
+      const playButton = screen.getByRole('button', {
+        name: /reproduzir vídeo/i,
+      });
 
       // Mock video.paused property to return true (paused)
       Object.defineProperty(video, 'paused', {
@@ -369,13 +371,17 @@ describe('VideoPlayer', () => {
   describe('Volume controls', () => {
     it('should render mute button', () => {
       render(<VideoPlayer {...defaultProps} />);
-      const muteButton = screen.getByRole('button', { name: /mute/i });
+      const muteButton = screen.getByRole('button', {
+        name: /desativar áudio/i,
+      });
       expect(muteButton).toBeInTheDocument();
     });
 
     it('should toggle mute when button is clicked', () => {
       const { container } = render(<VideoPlayer {...defaultProps} />);
-      const muteButton = screen.getByRole('button', { name: /mute/i });
+      const muteButton = screen.getByRole('button', {
+        name: /desativar áudio/i,
+      });
       const video = container.querySelector('video')!;
 
       fireEvent.click(muteButton);
@@ -386,7 +392,7 @@ describe('VideoPlayer', () => {
     it('should change volume with slider', () => {
       const { container } = render(<VideoPlayer {...defaultProps} />);
       const volumeSlider = container.querySelector(
-        'input[type="range"][aria-label="Volume control"]'
+        'input[type="range"][aria-label="Volume"]'
       )!;
       const video = container.querySelector('video')!;
 
@@ -398,7 +404,7 @@ describe('VideoPlayer', () => {
     it('should mute when volume is set to 0', () => {
       const { container } = render(<VideoPlayer {...defaultProps} />);
       const volumeSlider = container.querySelector(
-        'input[type="range"][aria-label="Volume control"]'
+        'input[type="range"][aria-label="Volume"]'
       )!;
       const video = container.querySelector('video')!;
 
@@ -409,9 +415,11 @@ describe('VideoPlayer', () => {
 
     it('should unmute when volume is increased while muted', () => {
       const { container } = render(<VideoPlayer {...defaultProps} />);
-      const muteButton = screen.getByRole('button', { name: /mute/i });
+      const muteButton = screen.getByRole('button', {
+        name: /desativar áudio/i,
+      });
       const volumeSlider = container.querySelector(
-        'input[type="range"][aria-label="Volume control"]'
+        'input[type="range"][aria-label="Volume"]'
       )!;
       const video = container.querySelector('video')!;
 
@@ -426,7 +434,7 @@ describe('VideoPlayer', () => {
   });
 
   describe('Volume preference across videos', () => {
-    const VOLUME_SLIDER = 'input[type="range"][aria-label="Volume control"]';
+    const VOLUME_SLIDER = 'input[type="range"][aria-label="Volume"]';
 
     const getSlider = (container: HTMLElement) =>
       container.querySelector(VOLUME_SLIDER) as HTMLInputElement;
@@ -444,14 +452,14 @@ describe('VideoPlayer', () => {
 
     it('should keep the muted state on the next video', () => {
       const first = render(<VideoPlayer {...defaultProps} />);
-      fireEvent.click(screen.getByRole('button', { name: 'Mute' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Desativar áudio' }));
       expect(useMediaPreferencesStore.getState().isMuted).toBe(true);
       first.unmount();
 
       render(<VideoPlayer src="https://example.com/next.mp4" />);
 
       expect(
-        screen.getByRole('button', { name: 'Unmute' })
+        screen.getByRole('button', { name: 'Ativar áudio' })
       ).toBeInTheDocument();
     });
 
@@ -520,7 +528,7 @@ describe('VideoPlayer', () => {
     it('should show speed menu when button is clicked', () => {
       render(<VideoPlayer {...defaultProps} />);
       const speedButton = screen.getByRole('button', {
-        name: /playback speed/i,
+        name: /velocidade de reprodução/i,
       });
 
       fireEvent.click(speedButton);
@@ -536,7 +544,7 @@ describe('VideoPlayer', () => {
     it('should change playback speed when speed option is clicked', () => {
       const { container } = render(<VideoPlayer {...defaultProps} />);
       const speedButton = screen.getByRole('button', {
-        name: /playback speed/i,
+        name: /velocidade de reprodução/i,
       });
       const video = container.querySelector('video')!;
 
@@ -550,7 +558,7 @@ describe('VideoPlayer', () => {
     it('should hide speed menu after selecting speed', () => {
       render(<VideoPlayer {...defaultProps} />);
       const speedButton = screen.getByRole('button', {
-        name: /playback speed/i,
+        name: /velocidade de reprodução/i,
       });
 
       fireEvent.click(speedButton);
@@ -565,7 +573,7 @@ describe('VideoPlayer', () => {
     it('should enter fullscreen when button is clicked', () => {
       render(<VideoPlayer {...defaultProps} />);
       const fullscreenButton = screen.getByRole('button', {
-        name: /enter fullscreen/i,
+        name: /ativar tela cheia/i,
       });
 
       fireEvent.click(fullscreenButton);
@@ -577,7 +585,7 @@ describe('VideoPlayer', () => {
       const { container } = render(<VideoPlayer {...defaultProps} />);
       const videoContainer = container.querySelector('.group')!;
       const fullscreenButton = screen.getByRole('button', {
-        name: /enter fullscreen/i,
+        name: /ativar tela cheia/i,
       });
 
       // First enter fullscreen
@@ -593,7 +601,7 @@ describe('VideoPlayer', () => {
       // Now test exit fullscreen
       await act(async () => {
         const exitButton = await screen.findByRole('button', {
-          name: /exit fullscreen/i,
+          name: /desativar tela cheia/i,
         });
         fireEvent.click(exitButton);
       });
@@ -612,7 +620,7 @@ describe('VideoPlayer', () => {
       });
 
       const fullscreenButton = screen.getByRole('button', {
-        name: /enter fullscreen/i,
+        name: /ativar tela cheia/i,
       });
 
       // Should not throw error when requestFullscreen is not available
@@ -632,7 +640,7 @@ describe('VideoPlayer', () => {
       });
 
       const fullscreenButton = screen.getByRole('button', {
-        name: /enter fullscreen/i,
+        name: /ativar tela cheia/i,
       });
 
       // First click to enter fullscreen
@@ -654,7 +662,7 @@ describe('VideoPlayer', () => {
       const { container } = render(<VideoPlayer {...defaultProps} />);
       const video = container.querySelector('video')!;
       const progressBar = container.querySelector(
-        'input[type="range"][aria-label="Video progress"]'
+        'input[type="range"][aria-label="Progresso do vídeo"]'
       )!;
 
       Object.defineProperty(video, 'currentTime', {
@@ -670,7 +678,7 @@ describe('VideoPlayer', () => {
     it('should seek when progress bar is changed', () => {
       const { container } = render(<VideoPlayer {...defaultProps} />);
       const progressBar = container.querySelector(
-        'input[type="range"][aria-label="Video progress"]'
+        'input[type="range"][aria-label="Progresso do vídeo"]'
       ) as HTMLInputElement;
       const video = container.querySelector('video')!;
 
@@ -1030,7 +1038,7 @@ describe('VideoPlayer', () => {
 
       // Wait for subtitle validation to complete
       const captionsButton = await screen.findByRole('button', {
-        name: /show captions/i,
+        name: /exibir legendas/i,
       });
       const track = container.querySelector('track')!;
 
@@ -1063,7 +1071,7 @@ describe('VideoPlayer', () => {
 
       // Wait for subtitle validation to complete
       const captionsButton = await screen.findByRole('button', {
-        name: /show captions/i,
+        name: /exibir legendas/i,
       });
       const track = container.querySelector('track')!;
 
@@ -1075,7 +1083,7 @@ describe('VideoPlayer', () => {
 
       fireEvent.click(captionsButton);
       const hideCaptionsButton = screen.getByRole('button', {
-        name: /hide captions/i,
+        name: /ocultar legendas/i,
       });
       fireEvent.click(hideCaptionsButton);
 
@@ -1100,7 +1108,7 @@ describe('VideoPlayer', () => {
 
       // Wait for subtitle validation to complete
       const captionsButton = await screen.findByRole('button', {
-        name: /show captions/i,
+        name: /exibir legendas/i,
       });
       const track = container.querySelector('track')!;
 
@@ -1134,7 +1142,7 @@ describe('VideoPlayer', () => {
 
       // Wait for subtitle validation to complete
       const captionsButton = await screen.findByRole('button', {
-        name: /show captions/i,
+        name: /exibir legendas/i,
       });
 
       // Mock trackRef.current as null by removing the track element
@@ -1153,7 +1161,9 @@ describe('VideoPlayer', () => {
   describe('Visibility and focus handling', () => {
     it('should pause video when document becomes hidden', async () => {
       render(<VideoPlayer {...defaultProps} />);
-      const playButton = screen.getByRole('button', { name: /play video/i });
+      const playButton = screen.getByRole('button', {
+        name: /reproduzir vídeo/i,
+      });
 
       await act(async () => {
         fireEvent.click(playButton);
@@ -1171,7 +1181,9 @@ describe('VideoPlayer', () => {
 
     it('should pause video when window loses focus', async () => {
       render(<VideoPlayer {...defaultProps} />);
-      const playButton = screen.getByRole('button', { name: /play video/i });
+      const playButton = screen.getByRole('button', {
+        name: /reproduzir vídeo/i,
+      });
 
       await act(async () => {
         fireEvent.click(playButton);
@@ -1546,7 +1558,7 @@ describe('VideoPlayer', () => {
 
       // Enter fullscreen
       const fullscreenButton = screen.getByRole('button', {
-        name: /enter fullscreen/i,
+        name: /ativar tela cheia/i,
       });
       fireEvent.click(fullscreenButton);
 
@@ -1640,7 +1652,7 @@ describe('VideoPlayer', () => {
       const { container } = render(<VideoPlayer {...defaultProps} />);
       const videoContainer = container.querySelector('.group')!;
       const fullscreenButton = screen.getByRole('button', {
-        name: /enter fullscreen/i,
+        name: /ativar tela cheia/i,
       });
 
       // Enter fullscreen
@@ -1664,9 +1676,11 @@ describe('VideoPlayer', () => {
     it('should auto unmute when volume is changed to > 0 while muted', () => {
       const { container } = render(<VideoPlayer {...defaultProps} />);
       const video = container.querySelector('video') as HTMLVideoElement;
-      const muteButton = screen.getByRole('button', { name: /mute/i });
+      const muteButton = screen.getByRole('button', {
+        name: /desativar áudio/i,
+      });
       const volumeSlider = container.querySelector(
-        'input[aria-label="Volume control"]'
+        'input[aria-label="Volume"]'
       )!;
 
       // First mute the video
@@ -1715,7 +1729,7 @@ describe('VideoPlayer', () => {
 
       // Wait for subtitle validation to complete
       const captionsButton = await screen.findByRole('button', {
-        name: /show captions/i,
+        name: /exibir legendas/i,
       });
       const track = container.querySelector('track')!;
 
@@ -1734,7 +1748,7 @@ describe('VideoPlayer', () => {
 
       // Toggle captions off
       const hideCaptionsButton = screen.getByRole('button', {
-        name: /hide captions/i,
+        name: /ocultar legendas/i,
       });
       fireEvent.click(hideCaptionsButton);
 
@@ -1773,7 +1787,7 @@ describe('VideoPlayer', () => {
 
       // Check that captions button appears (subtitles are valid)
       const captionsButton = await screen.findByRole('button', {
-        name: /show captions/i,
+        name: /exibir legendas/i,
       });
       expect(captionsButton).toBeInTheDocument();
 
@@ -1807,7 +1821,7 @@ describe('VideoPlayer', () => {
 
       // Captions button should not appear (invalid subtitles)
       const captionsButton = screen.queryByRole('button', {
-        name: /show captions/i,
+        name: /exibir legendas/i,
       });
       expect(captionsButton).not.toBeInTheDocument();
 
@@ -1843,7 +1857,7 @@ describe('VideoPlayer', () => {
 
       // Captions button should not appear (invalid subtitles)
       const captionsButton = screen.queryByRole('button', {
-        name: /show captions/i,
+        name: /exibir legendas/i,
       });
       expect(captionsButton).not.toBeInTheDocument();
 
@@ -1877,7 +1891,7 @@ describe('VideoPlayer', () => {
 
       // Captions button should not appear (invalid subtitles)
       const captionsButton = screen.queryByRole('button', {
-        name: /show captions/i,
+        name: /exibir legendas/i,
       });
       expect(captionsButton).not.toBeInTheDocument();
 
@@ -1913,7 +1927,7 @@ describe('VideoPlayer', () => {
 
       // Captions button should appear (valid subtitles)
       const captionsButton = await screen.findByRole('button', {
-        name: /show captions/i,
+        name: /exibir legendas/i,
       });
       expect(captionsButton).toBeInTheDocument();
     });
@@ -1941,7 +1955,7 @@ describe('VideoPlayer', () => {
 
       // Captions button should appear (valid subtitles)
       const captionsButton = await screen.findByRole('button', {
-        name: /show captions/i,
+        name: /exibir legendas/i,
       });
       expect(captionsButton).toBeInTheDocument();
     });
@@ -1970,7 +1984,7 @@ describe('VideoPlayer', () => {
 
       // Captions button should appear (valid subtitles)
       const captionsButton = await screen.findByRole('button', {
-        name: /show captions/i,
+        name: /exibir legendas/i,
       });
       expect(captionsButton).toBeInTheDocument();
     });
@@ -2434,7 +2448,7 @@ describe('VideoPlayer', () => {
 
       // Open speed menu
       const speedButton = screen.getByRole('button', {
-        name: /playback speed/i,
+        name: /velocidade de reprodução/i,
       });
       fireEvent.click(speedButton);
 
@@ -2473,7 +2487,7 @@ describe('VideoPlayer', () => {
       });
 
       // Focus on a control button
-      const playButton = screen.getByRole('button', { name: /pause/i });
+      const playButton = screen.getByRole('button', { name: /pausar/i });
       act(() => {
         playButton.focus();
       });
@@ -2675,11 +2689,13 @@ describe('VideoPlayer', () => {
     it('should handle unmute with proper volume restoration', () => {
       const { container } = render(<VideoPlayer {...defaultProps} />);
       const video = container.querySelector('video')!;
-      const muteButton = screen.getByRole('button', { name: /mute/i });
+      const muteButton = screen.getByRole('button', {
+        name: /desativar áudio/i,
+      });
 
       // First set volume to 0
       const volumeSlider = container.querySelector(
-        'input[type="range"][aria-label="Volume control"]'
+        'input[type="range"][aria-label="Volume"]'
       )!;
       fireEvent.change(volumeSlider, { target: { value: '0' } });
 
@@ -2701,7 +2717,7 @@ describe('VideoPlayer', () => {
       });
 
       const fullscreenButton = screen.getByRole('button', {
-        name: /enter fullscreen/i,
+        name: /ativar tela cheia/i,
       });
 
       // Should not throw error when parentElement is null
@@ -2713,7 +2729,7 @@ describe('VideoPlayer', () => {
     it('should handle speed change when video ref is null', () => {
       render(<VideoPlayer {...defaultProps} />);
       const speedButton = screen.getByRole('button', {
-        name: /playback speed/i,
+        name: /velocidade de reprodução/i,
       });
 
       fireEvent.click(speedButton);
@@ -2741,17 +2757,19 @@ describe('VideoPlayer', () => {
 
         // Test handleVolumeChange with null videoRef (line 154)
         const volumeSlider = container.querySelector(
-          'input[aria-label="Volume control"]'
+          'input[aria-label="Volume"]'
         )!;
         fireEvent.change(volumeSlider, { target: { value: '50' } });
 
         // Test toggleMute with null videoRef (line 175)
-        const muteButton = screen.getByRole('button', { name: /mute/i });
+        const muteButton = screen.getByRole('button', {
+          name: /desativar áudio/i,
+        });
         fireEvent.click(muteButton);
 
         // Test handleSpeedChange with null videoRef (line 212)
         const speedButton = screen.getByRole('button', {
-          name: /playback speed/i,
+          name: /velocidade de reprodução/i,
         });
         fireEvent.click(speedButton);
         const speedOption = screen.getByText('1.5x');
@@ -2768,9 +2786,11 @@ describe('VideoPlayer', () => {
     it('should restore volume to 0.5 when unmuting with zero volume', () => {
       const { container } = render(<VideoPlayer {...defaultProps} />);
       const video = container.querySelector('video')!;
-      const muteButton = screen.getByRole('button', { name: /mute/i });
+      const muteButton = screen.getByRole('button', {
+        name: /desativar áudio/i,
+      });
       const volumeSlider = container.querySelector(
-        'input[aria-label="Volume control"]'
+        'input[aria-label="Volume"]'
       )!;
 
       // First, manually set volume to 0 and mute the video to simulate the condition
@@ -2815,7 +2835,9 @@ describe('VideoPlayer', () => {
       expect(bottomControls?.className).toContain('opacity-100');
 
       // Start playing video
-      const playButton = screen.getByRole('button', { name: /play video/i });
+      const playButton = screen.getByRole('button', {
+        name: /reproduzir vídeo/i,
+      });
       act(() => {
         fireEvent.click(playButton);
       });
@@ -2827,7 +2849,9 @@ describe('VideoPlayer', () => {
 
     it('should render controls with opacity-0 when playing and controls hidden', () => {
       const { container } = render(<VideoPlayer {...defaultProps} />);
-      const playButton = screen.getByRole('button', { name: /play video/i });
+      const playButton = screen.getByRole('button', {
+        name: /reproduzir vídeo/i,
+      });
 
       // Start playing
       act(() => {
@@ -2868,9 +2892,11 @@ describe('VideoPlayer', () => {
 
     it('should achieve 100% branch coverage for volume restoration', () => {
       const { container } = render(<VideoPlayer {...defaultProps} />);
-      const muteButton = screen.getByRole('button', { name: /mute/i });
+      const muteButton = screen.getByRole('button', {
+        name: /desativar áudio/i,
+      });
       const volumeSlider = container.querySelector(
-        'input[aria-label="Volume control"]'
+        'input[aria-label="Volume"]'
       )!;
 
       // Set volume to exactly 0 to trigger the branch: volume > 0 ? volume : 0.5
@@ -2881,7 +2907,9 @@ describe('VideoPlayer', () => {
 
       // Now toggle mute again - this should trigger line 179 with volume = 0
       // The ternary should choose 0.5 since volume is 0
-      const unmuteButton = screen.queryByRole('button', { name: /unmute/i });
+      const unmuteButton = screen.queryByRole('button', {
+        name: /ativar áudio/i,
+      });
       if (unmuteButton) {
         fireEvent.click(unmuteButton);
       }
@@ -2891,7 +2919,9 @@ describe('VideoPlayer', () => {
 
     it('should render controls with correct opacity classes for all states', () => {
       const { container } = render(<TestComponentWithControlsState />);
-      const playButton = screen.getByRole('button', { name: /play video/i });
+      const playButton = screen.getByRole('button', {
+        name: /reproduzir vídeo/i,
+      });
 
       // Start playing to test the conditional classes (lines 429 and 454)
       act(() => {
@@ -2975,7 +3005,7 @@ describe('VideoPlayer', () => {
 
       // Abrir menu de velocidade
       const speedButton = screen.getByRole('button', {
-        name: /playback speed/i,
+        name: /velocidade de reprodução/i,
       });
       fireEvent.click(speedButton);
 
@@ -2994,7 +3024,7 @@ describe('VideoPlayer', () => {
 
       // Abrir menu de velocidade
       const speedButton = screen.getByRole('button', {
-        name: /playback speed/i,
+        name: /velocidade de reprodução/i,
       });
       fireEvent.click(speedButton);
 
@@ -3109,12 +3139,14 @@ describe('VideoPlayer', () => {
       expect(progressBar).toBeInTheDocument();
 
       // Test Volume controls (covers lines 128-129)
-      const muteButton = screen.getByRole('button', { name: /mute/i });
+      const muteButton = screen.getByRole('button', {
+        name: /desativar áudio/i,
+      });
       expect(muteButton).toBeInTheDocument();
 
       // Test Speed menu (covers lines 184-185)
       const speedButton = screen.getByRole('button', {
-        name: /playback speed/i,
+        name: /velocidade de reprodução/i,
       });
       expect(speedButton).toBeInTheDocument();
     });
@@ -3134,7 +3166,7 @@ describe('VideoPlayer', () => {
 
       // Trigger responsive functions by interacting with controls
       const speedButton = screen.getByRole('button', {
-        name: /playback speed/i,
+        name: /velocidade de reprodução/i,
       });
       act(() => {
         fireEvent.click(speedButton);
@@ -3177,7 +3209,7 @@ describe('VideoPlayer', () => {
 
       // Open speed menu to trigger positioning calculations
       const speedButton = screen.getByRole('button', {
-        name: /playback speed/i,
+        name: /velocidade de reprodução/i,
       });
       act(() => {
         fireEvent.click(speedButton);
@@ -3210,7 +3242,7 @@ describe('VideoPlayer', () => {
 
       // Open speed menu
       const speedButton = screen.getByRole('button', {
-        name: /playback speed/i,
+        name: /velocidade de reprodução/i,
       });
       act(() => {
         fireEvent.click(speedButton);
@@ -3309,7 +3341,7 @@ describe('VideoPlayer', () => {
 
       const { container } = render(<VideoPlayer {...defaultProps} />);
       const fullscreenButton = screen.getByRole('button', {
-        name: /enter fullscreen/i,
+        name: /ativar tela cheia/i,
       });
 
       // Click fullscreen button - should use Safari iOS API
@@ -3329,7 +3361,7 @@ describe('VideoPlayer', () => {
 
       const { container } = render(<VideoPlayer {...defaultProps} />);
       const fullscreenButton = screen.getByRole('button', {
-        name: /enter fullscreen/i,
+        name: /ativar tela cheia/i,
       });
 
       // Click fullscreen button
@@ -3349,7 +3381,7 @@ describe('VideoPlayer', () => {
 
       const { container } = render(<VideoPlayer {...defaultProps} />);
       const fullscreenButton = screen.getByRole('button', {
-        name: /enter fullscreen/i,
+        name: /ativar tela cheia/i,
       });
 
       // Click fullscreen button
@@ -3369,7 +3401,7 @@ describe('VideoPlayer', () => {
 
       render(<VideoPlayer {...defaultProps} />);
       const fullscreenButton = screen.getByRole('button', {
-        name: /enter fullscreen/i,
+        name: /ativar tela cheia/i,
       });
 
       // Click fullscreen button - should use standard API
@@ -3389,7 +3421,7 @@ describe('VideoPlayer', () => {
 
       render(<VideoPlayer {...defaultProps} />);
       const fullscreenButton = screen.getByRole('button', {
-        name: /enter fullscreen/i,
+        name: /ativar tela cheia/i,
       });
 
       // Click fullscreen button
@@ -3409,7 +3441,7 @@ describe('VideoPlayer', () => {
 
       render(<VideoPlayer {...defaultProps} />);
       const fullscreenButton = screen.getByRole('button', {
-        name: /enter fullscreen/i,
+        name: /ativar tela cheia/i,
       });
 
       // Click fullscreen button
@@ -3465,7 +3497,7 @@ describe('VideoPlayer', () => {
       });
 
       const fullscreenButton = screen.getByRole('button', {
-        name: /enter fullscreen/i,
+        name: /ativar tela cheia/i,
       });
 
       // Click fullscreen button
@@ -3493,7 +3525,7 @@ describe('VideoPlayer', () => {
       });
 
       const fullscreenButton = screen.getByRole('button', {
-        name: /enter fullscreen/i,
+        name: /ativar tela cheia/i,
       });
 
       // Enter fullscreen first
@@ -3504,7 +3536,7 @@ describe('VideoPlayer', () => {
 
       // Now exit fullscreen
       const exitButton = screen.getByRole('button', {
-        name: /exit fullscreen/i,
+        name: /desativar tela cheia/i,
       });
       fireEvent.click(exitButton);
 
@@ -3523,7 +3555,7 @@ describe('VideoPlayer', () => {
       });
 
       const fullscreenButton = screen.getByRole('button', {
-        name: /enter fullscreen/i,
+        name: /ativar tela cheia/i,
       });
 
       // Should not throw when webkit API is unavailable
@@ -3548,7 +3580,7 @@ describe('VideoPlayer', () => {
       });
 
       const fullscreenButton = screen.getByRole('button', {
-        name: /enter fullscreen/i,
+        name: /ativar tela cheia/i,
       });
 
       // Enter fullscreen
@@ -3559,7 +3591,7 @@ describe('VideoPlayer', () => {
 
       // Try to exit - should not throw
       const exitButton = screen.getByRole('button', {
-        name: /exit fullscreen/i,
+        name: /desativar tela cheia/i,
       });
 
       expect(() => {
@@ -3587,7 +3619,7 @@ describe('VideoPlayer', () => {
       });
 
       const fullscreenButton = screen.getByRole('button', {
-        name: /enter fullscreen/i,
+        name: /ativar tela cheia/i,
       });
 
       // Click fullscreen button
@@ -3668,7 +3700,7 @@ describe('VideoPlayer', () => {
 
       // Should show exit fullscreen button (proves isFullscreen = true)
       const exitButton = screen.queryByRole('button', {
-        name: /exit fullscreen/i,
+        name: /desativar tela cheia/i,
       });
       expect(exitButton).toBeInTheDocument();
     });
@@ -3684,7 +3716,7 @@ describe('VideoPlayer', () => {
 
       // Verify we're in fullscreen
       expect(
-        screen.queryByRole('button', { name: /exit fullscreen/i })
+        screen.queryByRole('button', { name: /desativar tela cheia/i })
       ).toBeInTheDocument();
 
       // Exit fullscreen
@@ -3694,7 +3726,7 @@ describe('VideoPlayer', () => {
 
       // Should show enter fullscreen button (proves isFullscreen = false)
       const enterButton = screen.queryByRole('button', {
-        name: /enter fullscreen/i,
+        name: /ativar tela cheia/i,
       });
       expect(enterButton).toBeInTheDocument();
     });
@@ -3741,7 +3773,9 @@ describe('VideoPlayer', () => {
   describe('Speed menu keyboard and screen reader', () => {
     const openSpeedMenu = () => {
       render(<VideoPlayer {...defaultProps} />);
-      const button = screen.getByRole('button', { name: /playback speed/i });
+      const button = screen.getByRole('button', {
+        name: /velocidade de reprodução/i,
+      });
       fireEvent.click(button);
       return button;
     };
@@ -3829,6 +3863,113 @@ describe('VideoPlayer', () => {
       fireEvent.click(screen.getByRole('menuitemradio', { name: '1.5x' }));
 
       expect(button).toHaveFocus();
+    });
+  });
+});
+
+describe('VideoPlayer - leitura pelo leitor de tela', () => {
+  const props = { src: 'https://example.com/aula.mp4', title: 'Aula 1' };
+
+  const slider = (container: HTMLElement) =>
+    container.querySelector('input[type="range"][aria-label="Volume"]')!;
+
+  describe('rótulos em português', () => {
+    it.each([
+      ['Ativar tela cheia'],
+      ['Reproduzir vídeo'],
+      ['Desativar áudio'],
+      ['Velocidade de reprodução'],
+    ])('expõe "%s"', (nome) => {
+      render(<VideoPlayer {...props} />);
+      expect(screen.getByRole('button', { name: nome })).toBeInTheDocument();
+    });
+
+    it('rotula o reprodutor e a barra de progresso', () => {
+      const { container } = render(<VideoPlayer {...props} />);
+
+      expect(
+        screen.getByRole('region', { name: 'Reprodutor de vídeo: Aula 1' })
+      ).toBeInTheDocument();
+      expect(
+        container.querySelector('input[aria-label="Progresso do vídeo"]')
+      ).toBeInTheDocument();
+    });
+  });
+
+  describe('mudo como botão alternar', () => {
+    it('diz a ação no rótulo e o estado no aria-pressed', () => {
+      render(<VideoPlayer {...props} />);
+
+      // Sem estar mudo: "Desativar áudio, botão alternar, não pressionado".
+      const botao = screen.getByRole('button', { name: 'Desativar áudio' });
+      expect(botao).toHaveAttribute('aria-pressed', 'false');
+
+      fireEvent.click(botao);
+
+      // Depois de mudar: "Ativar áudio, botão alternar, pressionado".
+      const mudo = screen.getByRole('button', { name: 'Ativar áudio' });
+      expect(mudo).toHaveAttribute('aria-pressed', 'true');
+    });
+  });
+
+  describe('volume', () => {
+    it('anuncia o valor com unidade, não o número cru', () => {
+      const { container } = render(<VideoPlayer {...props} />);
+
+      // O papel "controle deslizante" já vem do type="range"; o que falta ao
+      // leitor é a unidade.
+      const volume = slider(container);
+      expect(volume).toHaveAttribute('type', 'range');
+      expect(volume.getAttribute('aria-valuetext')).toMatch(/por cento$/);
+
+      fireEvent.change(volume, { target: { value: '40' } });
+
+      expect(slider(container)).toHaveAttribute(
+        'aria-valuetext',
+        '40 por cento'
+      );
+    });
+
+    it('mantém os controles visíveis enquanto o foco estiver neles', () => {
+      jest.useFakeTimers();
+      const { container } = render(<VideoPlayer {...props} />);
+      const video = container.querySelector('video') as HTMLVideoElement;
+
+      // A barra só se auto-oculta com o vídeo tocando.
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+      act(() => {
+        simulateMediaEvent(video, 'play');
+      });
+
+      const esconder = () => {
+        act(() => {
+          jest.advanceTimersByTime(CONTROLS_HIDE_TIMEOUT);
+        });
+      };
+
+      esconder();
+      expect(
+        container.querySelector('.absolute.bottom-0')!.className
+      ).toContain('opacity-0');
+
+      // Focar um controle revela a barra: sem isto dava para operar o volume
+      // pelas setas com a barra invisível, e nada aparecia na tela.
+      act(() => {
+        fireEvent.focus(slider(container));
+      });
+      expect(
+        container.querySelector('.absolute.bottom-0')!.className
+      ).toContain('opacity-100');
+
+      // E ela continua acesa mesmo com o timer de auto-ocultar disparando.
+      esconder();
+      expect(
+        container.querySelector('.absolute.bottom-0')!.className
+      ).toContain('opacity-100');
+
+      jest.useRealTimers();
     });
   });
 });
