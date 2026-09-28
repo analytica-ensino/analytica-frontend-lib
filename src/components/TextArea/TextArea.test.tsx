@@ -323,10 +323,14 @@ describe('TextArea', () => {
       expect(errorElement).toHaveClass(
         'flex',
         'gap-1',
-        'items-center',
+        'items-start',
         'text-sm',
         'text-indicator-error',
         'mt-1.5'
+      );
+      expect(errorElement?.querySelector('svg')).toHaveClass(
+        'shrink-0',
+        'mt-0.5'
       );
     });
 

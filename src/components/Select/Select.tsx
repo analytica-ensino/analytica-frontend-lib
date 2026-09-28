@@ -453,8 +453,9 @@ const Select = ({
         <div className="mt-1.5 gap-1.5">
           {helperText && <p className="text-sm text-text-500">{helperText}</p>}
           {errorMessage && (
-            <p className="flex gap-1 items-center text-sm text-indicator-error">
-              <WarningCircleIcon size={16} /> {errorMessage}
+            <p className="flex gap-1 items-start text-sm text-indicator-error">
+              <WarningCircleIcon size={16} className="shrink-0 mt-0.5" />{' '}
+              {errorMessage}
             </p>
           )}
         </div>

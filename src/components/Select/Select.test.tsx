@@ -59,7 +59,11 @@ describe('Select component', () => {
     const errorElement = screen
       .getByText('This field is required')
       .closest('p');
-    expect(errorElement).toHaveClass('text-indicator-error');
+    expect(errorElement).toHaveClass('items-start', 'text-indicator-error');
+    expect(errorElement?.querySelector('svg')).toHaveClass(
+      'shrink-0',
+      'mt-0.5'
+    );
   });
 
   it('should render with all text elements', () => {

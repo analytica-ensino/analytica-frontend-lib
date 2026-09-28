@@ -328,9 +328,14 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             <p
               id={errorMessageId}
               role="alert"
-              className="flex gap-1 items-center text-sm text-indicator-error"
+              className="flex gap-1 items-start text-sm text-indicator-error"
             >
-              <WarningCircleIcon size={16} aria-hidden="true" /> {errorMessage}
+              <WarningCircleIcon
+                size={16}
+                aria-hidden="true"
+                className="shrink-0 mt-0.5"
+              />{' '}
+              {errorMessage}
             </p>
           )}
         </div>
