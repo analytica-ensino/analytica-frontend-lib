@@ -37,6 +37,7 @@ import { FormulaDialog } from './components/FormulaDialog';
 import { ImageDialog } from './components/ImageDialog';
 import { createPastedImageHandler } from './components/pastedImage';
 import { resolveInsertWidth } from './components/imageSize';
+import { hasColorMarkup } from '../../utils/htmlColors';
 import Button from '../Button/Button';
 import Text from '../Text/Text';
 
@@ -113,6 +114,12 @@ const GENERIC_PASTE_ERROR = 'Erro ao enviar a imagem.';
 
 interface RichEditorProps {
   readonly content?: string;
+  /**
+   * Notificado a cada edição do autor e, na carga, quando o `content` recebido
+   * trazia cor: o editor descarta a cor ao parsear e devolve aqui o HTML limpo,
+   * para que salvar sem editar nada não regrave a cor. Carregar conteúdo sem cor
+   * não dispara nada.
+   */
   readonly onChange?: (data: { json: object; html: string }) => void;
   readonly placeholder?: string;
   /**
@@ -222,14 +229,47 @@ export function RichEditor({
     }),
   });
 
+  /**
+   * Devolve ao consumidor o HTML já sem cor quando o conteúdo carregado vinha
+   * colorido.
+   *
+   * O schema descarta a cor ao parsear, então a tela aparece limpa sozinha — mas
+   * o valor que o consumidor guarda continuaria sendo o HTML colorido que veio
+   * da API, e salvar sem editar nada regravaria o vermelho no banco. Emitir aqui
+   * alinha os dois: o próximo salvamento persiste a questão sem cor, mesmo que o
+   * autor só tenha aberto e clicado em salvar.
+   *
+   * `emitUpdate: false` na sincronização abaixo é justamente o que torna este
+   * passo necessário, e o `onChange` só dispara quando havia cor de fato —
+   * qualquer outro conteúdo continua sendo carregado em silêncio, sem reescrever
+   * o que já está salvo.
+   * @param loaded - O HTML como chegou na prop `content`
+   */
+  const emitColorlessContent = (loaded: string) => {
+    if (!editor || !hasColorMarkup(loaded)) return;
+
+    const html = editor.getHTML();
+    lastContentRef.current = html;
+    onChange?.({ json: editor.getJSON(), html });
+  };
+
   // Update editor content when prop changes externally (e.g., from loadQuestion)
   useEffect(() => {
-    if (editor && content !== undefined && content !== lastContentRef.current) {
+    if (!editor || content === undefined) return;
+
+    // Na primeira renderização o conteúdo já entrou pelo `useEditor`, então só
+    // o que chega depois precisa ser reaplicado.
+    if (content !== lastContentRef.current) {
       editor.commands.setContent(prepareContent(content), {
         emitUpdate: false,
       });
       lastContentRef.current = content;
     }
+
+    emitColorlessContent(content);
+    // `emitColorlessContent` é recriada a cada render e fica fora das
+    // dependências de propósito: só fecha sobre o editor e o `onChange` do
+    // consumidor, e reagir a eles reemitiria o mesmo conteúdo.
   }, [content, editor]);
 
   const insertFormula = (latex: string, display: boolean) => {

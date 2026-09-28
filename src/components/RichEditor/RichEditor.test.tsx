@@ -680,6 +680,64 @@ describe('Sincronização de conteúdo', () => {
 
     expect(mockEditor.commands.setContent).not.toHaveBeenCalled();
   });
+
+  describe('conteúdo colorido vindo de fora', () => {
+    const coloridoDaApi =
+      '<p><span style="color: #ff0000">Enunciado</span></p>';
+
+    it('deve devolver o HTML sem cor ao carregar da API', () => {
+      const onChange = jest.fn();
+      const { rerender } = render(<RichEditor onChange={onChange} />);
+
+      rerender(<RichEditor content={coloridoDaApi} onChange={onChange} />);
+
+      // O editor já parseou sem a cor; é esse HTML que o formulário precisa
+      // guardar para o próximo salvamento não regravar o vermelho.
+      expect(onChange).toHaveBeenCalledWith({
+        json: { type: 'doc', content: [] },
+        html: '<p>Test content</p>',
+      });
+    });
+
+    it('deve limpar a cor já na primeira renderização', () => {
+      const onChange = jest.fn();
+
+      render(<RichEditor content={coloridoDaApi} onChange={onChange} />);
+
+      expect(onChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('não deve avisar o consumidor ao carregar conteúdo sem cor', () => {
+      const onChange = jest.fn();
+      const { rerender } = render(<RichEditor onChange={onChange} />);
+
+      rerender(
+        <RichEditor content="<p>Sem cor nenhuma</p>" onChange={onChange} />
+      );
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('não deve reemitir quando o HTML limpo volta como conteúdo', () => {
+      const onChange = jest.fn();
+      const { rerender } = render(
+        <RichEditor content={coloridoDaApi} onChange={onChange} />
+      );
+
+      // Simula o consumidor guardando o que recebeu no onChange e devolvendo.
+      rerender(
+        <RichEditor content="<p>Test content</p>" onChange={onChange} />
+      );
+
+      expect(onChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('não deve quebrar sem onChange informado', () => {
+      expect(() =>
+        render(<RichEditor content={coloridoDaApi} />)
+      ).not.toThrow();
+    });
+  });
 });
 
 describe('Tabela', () => {
