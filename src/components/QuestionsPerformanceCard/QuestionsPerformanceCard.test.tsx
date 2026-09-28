@@ -316,6 +316,38 @@ describe('QuestionsPerformanceCard — subtemas', () => {
   });
 });
 
+describe('QuestionsBars — eixo Y', () => {
+  it('encurta o rótulo em vez de estourar a coluna', () => {
+    // O que quebrou a tela: a coluna do eixo tem largura mínima fixa e o
+    // número cru de 4.192.250 não cabe nela. Na rede inteira, com mais de
+    // quatro milhões de respostas, o gráfico saiu deformado.
+    render(
+      <QuestionsBars
+        values={{
+          total: 4192250,
+          corretas: 2165516,
+          incorretas: 1900000,
+          emBranco: 126734,
+        }}
+      />
+    );
+
+    expect(screen.getByText('4,2 mi')).toBeInTheDocument();
+    expect(screen.queryByText('4192250')).not.toBeInTheDocument();
+  });
+
+  it('deixa as centenas como estão', () => {
+    render(
+      <QuestionsBars
+        values={{ total: 672, corretas: 400, incorretas: 200, emBranco: 72 }}
+      />
+    );
+
+    // Os gráficos que contam estudantes ou escolas continuam idênticos.
+    expect(screen.getByText('672')).toBeInTheDocument();
+  });
+});
+
 describe('QuestionsBars', () => {
   const values = { total: 40, corretas: 20, incorretas: 16, emBranco: 4 };
 

@@ -15,6 +15,7 @@ import { SkeletonCard } from '../Skeleton/Skeleton';
 import { TableProvider } from '../TableProvider/TableProvider';
 import type { ColumnConfig } from '../TableProvider/TableProvider';
 import { calculateYAxisTicks } from '../shared/ChartComponents';
+import { formatAxisTick } from '../../utils/chartUtils';
 import { cn } from '../../utils/utils';
 import type { ActivitiesQuestionsData, SubtopicPerformanceItem } from './types';
 
@@ -138,13 +139,21 @@ export function QuestionsBars({ values, aside }: QuestionsBarsProps) {
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <div className="flex flex-row">
           {/* Y axis */}
+          {/* `min-w-12` e não `w-12`: a largura fixa cortava o rótulo assim
+              que a rede passou de um milhão de respostas. O formato compacto
+              resolve a leitura; o mínimo preserva o desenho dos gráficos que
+              contam centenas. */}
           <div
-            className="flex w-12 shrink-0 flex-col items-end justify-between pr-2"
+            className="flex min-w-12 shrink-0 flex-col items-end justify-between pr-2"
             style={{ height: CHART_HEIGHT }}
           >
             {ticks.map((tick) => (
-              <Text key={tick} size="md" className="text-text-700">
-                {tick}
+              <Text
+                key={tick}
+                size="md"
+                className="whitespace-nowrap text-text-700"
+              >
+                {formatAxisTick(tick)}
               </Text>
             ))}
           </div>

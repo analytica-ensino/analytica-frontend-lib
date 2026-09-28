@@ -1,4 +1,9 @@
-import { bgClassToCssVar, polarToCartesian, describeArc } from './chartUtils';
+import {
+  bgClassToCssVar,
+  polarToCartesian,
+  describeArc,
+  formatAxisTick,
+} from './chartUtils';
 
 describe('bgClassToCssVar', () => {
   it.each([
@@ -88,5 +93,29 @@ describe('describeArc', () => {
   it('uses the correct center when cx and cy differ from 50', () => {
     const path = describeArc(30, 70, 20, 0, 90);
     expect(path).toMatch(/^M 30 70/);
+  });
+});
+
+describe('formatAxisTick', () => {
+  // O `Intl` separa número e unidade com espaço NÃO-SEPARÁVEL (U+00A0), que na
+  // tela é o certo — o rótulo nunca quebra em duas linhas — e num teste é uma
+  // armadilha: "4,2 mi" e "4,2 mi" parecem iguais e não são.
+  const legivel = (tick: number) =>
+    formatAxisTick(tick).replace(/\u00a0/g, ' ');
+
+  it('deixa as centenas inteiras', () => {
+    expect(formatAxisTick(0)).toBe('0');
+    expect(formatAxisTick(672)).toBe('672');
+  });
+
+  it('encurta o que não caberia no eixo', () => {
+    // 4.192.250 cru tem nove caracteres e estourava a coluna do eixo, que é o
+    // que deformou o gráfico de "Dados de questões" da rede inteira.
+    expect(legivel(4192250)).toBe('4,2 mi');
+    expect(legivel(1048063)).toBe('1 mi');
+  });
+
+  it('usa a escala curta do pt-BR nos milhares', () => {
+    expect(legivel(2362)).toBe('2,4 mil');
   });
 });

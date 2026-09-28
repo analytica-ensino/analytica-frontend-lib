@@ -2,7 +2,7 @@ import { type HTMLAttributes, type ReactNode } from 'react';
 import Text from '../Text/Text';
 import { Tooltip } from '../Tooltip/Tooltip';
 import { cn } from '../../utils/utils';
-import { bgClassToCssVar } from '../../utils/chartUtils';
+import { bgClassToCssVar, formatAxisTick } from '../../utils/chartUtils';
 
 /**
  * Data item for SimpleBarChart
@@ -63,7 +63,7 @@ const YAxis = ({
         weight="medium"
         className="text-text-500 whitespace-nowrap sm:text-xs"
       >
-        {tick}
+        {formatAxisTick(tick)}
       </Text>
     ))}
   </div>
