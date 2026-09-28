@@ -964,6 +964,15 @@ interface CardAudioProps extends HTMLAttributes<HTMLDivElement> {
   }>;
 }
 
+/** Salto do avanço/retrocesso da barra de progresso pelo teclado. */
+const AUDIO_SEEK_STEP_SECONDS = 5;
+
+const AUDIO_SPEED_OPTIONS = [
+  { speed: 1, label: '1x' },
+  { speed: 1.5, label: '1.5x' },
+  { speed: 2, label: '2x' },
+];
+
 const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
   (
     {
@@ -994,6 +1003,12 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
     const audioRef = useRef<HTMLAudioElement>(null);
     const volumeControlRef = useRef<HTMLDivElement>(null);
     const speedMenuRef = useRef<HTMLDivElement>(null);
+    // Gatilhos e conteúdo dos dois popups: o foco precisa entrar ao abrir e
+    // voltar ao gatilho ao fechar, senão o teclado fica preso fora deles.
+    const volumeButtonRef = useRef<HTMLButtonElement>(null);
+    const volumeSliderRef = useRef<HTMLInputElement>(null);
+    const speedButtonRef = useRef<HTMLButtonElement>(null);
+    const speedMenuListRef = useRef<HTMLDivElement>(null);
 
     const formatTime = (time: number) => {
       const minutes = Math.floor(time / 60);
@@ -1034,16 +1049,40 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
       onEnded?.();
     };
 
+    /** Move a reprodução para `time`, preso à faixa [0, duração]. */
+    const seekTo = (time: number) => {
+      const clamped = Math.min(Math.max(time, 0), duration);
+
+      if (audioRef.current && Number.isFinite(clamped)) {
+        audioRef.current.currentTime = clamped;
+        setCurrentTime(clamped);
+      }
+    };
+
     const handleProgressClick = (e: MouseEvent<HTMLButtonElement>) => {
       const rect = e.currentTarget.getBoundingClientRect();
       const clickX = e.clientX - rect.left;
-      const width = rect.width;
-      const percentage = clickX / width;
-      const newTime = percentage * duration;
 
-      if (audioRef.current && Number.isFinite(newTime)) {
-        audioRef.current.currentTime = newTime;
-        setCurrentTime(newTime);
+      seekTo((clickX / rect.width) * duration);
+    };
+
+    /**
+     * Avanço e retrocesso pelo teclado. Antes, Enter e Espaço sintetizavam um
+     * clique — que chega com `clientX` 0 e rebobinava o áudio para o início.
+     */
+    const handleProgressKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
+      const timeByKey: Record<string, number> = {
+        ArrowRight: currentTime + AUDIO_SEEK_STEP_SECONDS,
+        ArrowUp: currentTime + AUDIO_SEEK_STEP_SECONDS,
+        ArrowLeft: currentTime - AUDIO_SEEK_STEP_SECONDS,
+        ArrowDown: currentTime - AUDIO_SEEK_STEP_SECONDS,
+        Home: 0,
+        End: duration,
+      };
+
+      if (e.key in timeByKey) {
+        e.preventDefault();
+        seekTo(timeByKey[e.key]);
       }
     };
 
@@ -1074,13 +1113,92 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
       setShowVolumeControl(false);
     };
 
+    const closeVolumeControl = () => {
+      setShowVolumeControl(false);
+      volumeButtonRef.current?.focus();
+    };
+
+    const closeSpeedMenu = () => {
+      setShowSpeedMenu(false);
+      speedButtonRef.current?.focus();
+    };
+
+    const handleVolumeKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+      const stepUp = Math.min(1, Math.round((displayVolume + 0.1) * 10) / 10);
+      const stepDown = Math.max(0, Math.round((displayVolume - 0.1) * 10) / 10);
+      const volumeByKey: Record<string, number> = {
+        ArrowUp: stepUp,
+        ArrowRight: stepUp,
+        ArrowDown: stepDown,
+        ArrowLeft: stepDown,
+      };
+
+      if (e.key in volumeByKey) {
+        e.preventDefault();
+        applyVolume(volumeByKey[e.key]);
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        closeVolumeControl();
+      }
+    };
+
+    /** Navegação do menu de velocidade, no mesmo padrão da videoaula. */
+    const handleSpeedMenuKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeSpeedMenu();
+        return;
+      }
+
+      const items = [
+        ...(speedMenuListRef.current?.querySelectorAll<HTMLButtonElement>(
+          '[role="menuitemradio"]'
+        ) ?? []),
+      ];
+      if (items.length === 0) return;
+
+      const currentIndex = items.indexOf(
+        document.activeElement as HTMLButtonElement
+      );
+      const nextIndexByKey: Record<string, number> = {
+        ArrowDown: (currentIndex + 1) % items.length,
+        ArrowUp: (currentIndex - 1 + items.length) % items.length,
+        Home: 0,
+        End: items.length - 1,
+      };
+
+      if (e.key in nextIndexByKey) {
+        e.preventDefault();
+        items[nextIndexByKey[e.key]]?.focus();
+      }
+    };
+
     const handleSpeedChange = (speed: number) => {
       setPlaybackRate(speed);
       if (audioRef.current) {
         audioRef.current.playbackRate = speed;
       }
-      setShowSpeedMenu(false);
+      closeSpeedMenu();
     };
+
+    // Abrir um popup sem levar o foco deixa o conteúdo dele fora do alcance de
+    // quem abriu pelo teclado — o Escape, inclusive, não teria onde ser ouvido.
+    useEffect(() => {
+      if (showVolumeControl) volumeSliderRef.current?.focus();
+    }, [showVolumeControl]);
+
+    useEffect(() => {
+      if (!showSpeedMenu) return;
+
+      const list = speedMenuListRef.current;
+      const checked = list?.querySelector<HTMLButtonElement>(
+        '[aria-checked="true"]'
+      );
+      (
+        checked ??
+        list?.querySelector<HTMLButtonElement>('[role="menuitemradio"]')
+      )?.focus();
+    }, [showSpeedMenu]);
 
     const getVolumeIcon = () => {
       if (displayVolume === 0) {
@@ -1200,13 +1318,15 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
             type="button"
             className="w-full h-2 bg-border-100 rounded-full cursor-pointer"
             onClick={handleProgressClick}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                e.currentTarget.click();
-              }
-            }}
+            onKeyDown={handleProgressKeyDown}
+            // O papel nativo de botão não carrega posição nem duração: o leitor
+            // anunciava só o rótulo, sem dizer em que ponto do áudio se está.
+            role="slider"
             aria-label="Barra de progresso do áudio"
+            aria-valuemin={0}
+            aria-valuemax={Math.round(duration)}
+            aria-valuenow={Math.round(currentTime)}
+            aria-valuetext={`${formatTime(currentTime)} de ${formatTime(duration)}`}
           >
             <div
               className="h-full bg-primary-600 rounded-full transition-all duration-100"
@@ -1226,10 +1346,12 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
         {/* Volume Control */}
         <div className="relative h-6" ref={volumeControlRef}>
           <button
+            ref={volumeButtonRef}
             type="button"
             onClick={toggleVolumeControl}
             className="cursor-pointer text-text-950 hover:text-primary-600"
             aria-label="Controle de volume"
+            aria-expanded={showVolumeControl}
           >
             <div className="w-6 h-6 flex items-center justify-center">
               {getVolumeIcon()}
@@ -1237,36 +1359,19 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
           </button>
 
           {showVolumeControl && (
-            <button
-              type="button"
-              className="absolute bottom-full right-0 mb-2 p-2 bg-background border border-border-100 rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-              onKeyDown={(e) => {
-                if (e.key === 'Escape') {
-                  setShowVolumeControl(false);
-                }
-              }}
-            >
+            // Era um <button> envolvendo o slider: além de HTML inválido, o
+            // papel de botão achata os filhos, e o slider não chegava ao leitor.
+            <div className="absolute bottom-full right-0 mb-2 p-2 bg-background border border-border-100 rounded-lg shadow-lg">
               <input
+                ref={volumeSliderRef}
                 type="range"
                 min="0"
                 max="1"
                 step="0.1"
                 value={displayVolume}
                 onChange={handleVolumeChange}
-                onKeyDown={(e) => {
-                  if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
-                    e.preventDefault();
-                    applyVolume(
-                      Math.min(1, Math.round((displayVolume + 0.1) * 10) / 10)
-                    );
-                  } else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') {
-                    e.preventDefault();
-                    applyVolume(
-                      Math.max(0, Math.round((displayVolume - 0.1) * 10) / 10)
-                    );
-                  }
-                }}
-                className="w-20 h-2 bg-border-100 rounded-lg appearance-none cursor-pointer"
+                onKeyDown={handleVolumeKeyDown}
+                className="w-20 h-2 bg-border-100 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500"
                 style={{
                   background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${displayVolume * 100}%, #e5e7eb ${displayVolume * 100}%, #e5e7eb 100%)`,
                 }}
@@ -1274,33 +1379,49 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
                 aria-valuenow={Math.round(displayVolume * 100)}
                 aria-valuemin={0}
                 aria-valuemax={100}
+                // Sem isto o leitor fala o número cru — e aqui seria "0,5",
+                // porque a faixa nativa vai de 0 a 1, não de 0 a 100.
+                aria-valuetext={`${Math.round(displayVolume * 100)} por cento`}
               />
-            </button>
+            </div>
           )}
         </div>
 
         {/* Menu Button */}
         <div className="relative h-6" ref={speedMenuRef}>
           <button
+            ref={speedButtonRef}
             type="button"
             onClick={toggleSpeedMenu}
             className="cursor-pointer text-text-950 hover:text-primary-600"
             aria-label="Opções de velocidade"
+            aria-haspopup="menu"
+            aria-expanded={showSpeedMenu}
           >
             <DotsThreeVerticalIcon size={24} />
           </button>
 
           {showSpeedMenu && (
             <div className="absolute bottom-full right-0 mb-2 p-2 bg-background border border-border-100 rounded-lg shadow-lg min-w-24 z-10">
-              <div className="flex flex-col gap-1">
-                {[
-                  { speed: 1, label: '1x' },
-                  { speed: 1.5, label: '1.5x' },
-                  { speed: 2, label: '2x' },
-                ].map(({ speed, label }) => (
+              <div
+                ref={speedMenuListRef}
+                role="menu"
+                aria-label="Velocidade de reprodução"
+                // Focável só por script: o foco vive nas velocidades
+                tabIndex={-1}
+                onKeyDown={handleSpeedMenuKeyDown}
+                className="flex flex-col gap-1"
+              >
+                {AUDIO_SPEED_OPTIONS.map(({ speed, label }) => (
                   <button
                     key={speed}
                     type="button"
+                    // A velocidade ativa só se distinguia pela cor de fundo:
+                    // `aria-checked` é o que a torna audível.
+                    role="menuitemradio"
+                    aria-checked={playbackRate === speed}
+                    // Tabindex móvel: as setas andam entre as velocidades
+                    tabIndex={-1}
                     onClick={() => handleSpeedChange(speed)}
                     className={cn(
                       'px-3 py-1 text-sm text-left rounded hover:bg-border-50 transition-colors',
