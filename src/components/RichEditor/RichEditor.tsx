@@ -9,6 +9,12 @@ const RichEditorCore = lazy(() =>
 
 interface RichEditorProps {
   readonly content?: string;
+  /**
+   * Notificado a cada edição do autor e, na carga, quando o `content` recebido
+   * trazia cor: o editor descarta a cor ao parsear e devolve aqui o HTML limpo,
+   * para que salvar sem editar nada não regrave a cor. Carregar conteúdo sem cor
+   * não dispara nada.
+   */
   readonly onChange?: (data: { json: object; html: string }) => void;
   readonly placeholder?: string;
   /**
@@ -72,9 +78,6 @@ const TIPTAP_DEPENDENCIES = [
   '@tiptap/starter-kit',
   '@tiptap/extension-underline',
   '@tiptap/extension-text-align',
-  '@tiptap/extension-color',
-  '@tiptap/extension-text-style',
-  '@tiptap/extension-highlight',
   '@tiptap/extension-subscript',
   '@tiptap/extension-superscript',
   '@tiptap/extension-link',

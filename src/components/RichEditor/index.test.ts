@@ -13,15 +13,6 @@ jest.mock('@tiptap/extension-underline', () => jest.fn());
 jest.mock('@tiptap/extension-text-align', () => ({
   configure: jest.fn(),
 }));
-jest.mock('@tiptap/extension-color', () => ({
-  Color: jest.fn(),
-}));
-jest.mock('@tiptap/extension-text-style', () => ({
-  TextStyle: jest.fn(),
-}));
-jest.mock('@tiptap/extension-highlight', () => ({
-  configure: jest.fn(),
-}));
 jest.mock('@tiptap/extension-subscript', () => jest.fn());
 jest.mock('@tiptap/extension-superscript', () => jest.fn());
 jest.mock('@tiptap/extension-link', () => ({
