@@ -1,4 +1,11 @@
-import { RefObject, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Fragment,
+  RefObject,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { BookIcon } from '@phosphor-icons/react/dist/csr/Book';
 import { BookBookmarkIcon } from '@phosphor-icons/react/dist/csr/BookBookmark';
 import { TrashIcon } from '@phosphor-icons/react/dist/csr/Trash';
@@ -7,7 +14,6 @@ import { Button, Text, Divider, EmptyState } from '../../index';
 import type { Lesson } from '../../types/lessons';
 import type { WhiteboardImage } from '../Whiteboard/Whiteboard';
 import { cn } from '../../utils/utils';
-import Video from '../../assets/icons/subjects/Video';
 import { LessonWatchModal } from '../shared/LessonWatchModal';
 import { AddActivityOptionModal, type ActivityOption } from './components';
 import { ChooseActivityModelModal } from '../ChooseActivityModelModal';
@@ -16,6 +22,10 @@ import type { ActivityModelTableItem } from '../../types/activitiesHistory';
 import { ToastNotification } from '../shared/ToastNotification/ToastNotification';
 import { useToastNotification } from '../shared/ToastNotification/useToastNotification';
 import Activities from '../../assets/icons/Activities';
+import { useReorderDragAndDrop } from '../../hooks/useReorderDragAndDrop';
+import { DropPlaceholder } from '../DropPlaceholder/DropPlaceholder';
+import { LessonCardPreview } from '../LessonCardPreview/LessonCardPreview';
+import { buildLessonTrail } from '../../utils/lessonTrail';
 
 /**
  * Extended lesson type with optional media properties
@@ -94,7 +104,7 @@ interface LessonPreviewProps {
 }
 
 export const LessonPreview = ({
-  title = 'Prévia das aulas',
+  title = 'Prévia da aula recomendada',
   lessons = [],
   onRemoveAll,
   onRemoveLesson,
@@ -278,20 +288,37 @@ export const LessonPreview = ({
     hasMarkedPodcast.current = false;
   };
 
-  const handleReorder = (fromId: string, toId: string) => {
-    if (fromId === toId) return;
-    const current = [...orderedLessons];
-    const fromIndex = current.findIndex((l) => l.id === fromId);
-    const toIndex = current.findIndex((l) => l.id === toId);
-    if (fromIndex === -1 || toIndex === -1) return;
+  /** Moves a lesson to its new final index and renumbers the list. */
+  const handleMove = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return;
+    if (fromIndex < 0 || fromIndex >= orderedLessons.length) return;
+    if (toIndex < 0 || toIndex >= orderedLessons.length) return;
 
-    const [moved] = current.splice(fromIndex, 1);
-    current.splice(toIndex, 0, moved);
-    const normalized = normalizeWithPositions(current);
+    const next = [...orderedLessons];
+    const [moved] = next.splice(fromIndex, 1);
+    next.splice(toIndex, 0, moved);
+
+    const normalized = normalizeWithPositions(next);
     setOrderedLessons(normalized);
     onReorder?.(normalized);
     onPositionsChange?.(normalized);
   };
+
+  const lessonIds = useMemo(
+    () => orderedLessons.map((lesson) => lesson.id),
+    [orderedLessons]
+  );
+
+  const {
+    draggingId,
+    dropIndex,
+    listRef,
+    registerItem,
+    handleDragStart,
+    handleDragOver,
+    handleDrop,
+    handleDragEnd,
+  } = useReorderDragAndDrop({ itemIds: lessonIds, onMove: handleMove });
 
   const handleSelectActivityOption = (option: ActivityOption) => {
     setIsActivityOptionModalOpen(false);
@@ -340,6 +367,10 @@ export const LessonPreview = ({
             : 'p-4 gap-4 rounded-lg',
           className
         )}
+        // The whole panel accepts the drop: while auto-scrolling, the pointer
+        // often sits over the header instead of the list itself
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
       >
         <div className="flex flex-col gap-4">
           <section className="flex flex-row items-center gap-2 text-text-950">
@@ -352,11 +383,7 @@ export const LessonPreview = ({
           <section className="flex flex-row flex-wrap justify-between items-center gap-4">
             <Text
               size="sm"
-              className={cn(
-                isCard
-                  ? 'text-text-700 bg-background-50 rounded-sm px-2 py-1 whitespace-nowrap'
-                  : 'text-text-800'
-              )}
+              className="text-text-700 bg-background-50 rounded-sm px-2 py-1 whitespace-nowrap"
             >
               {totalLabel}
             </Text>
@@ -395,124 +422,64 @@ export const LessonPreview = ({
             />
           </div>
         ) : (
-          <section className="flex flex-col gap-3">
-            {orderedLessons.map(
-              (
-                { id, title: lessonTitle = 'Aula sem título', position },
-                index
-              ) => (
-                <div
-                  key={id}
-                  draggable
-                  data-draggable="true"
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Mover aula ${lessonTitle}`}
-                  onDragStart={(e) => {
-                    e.dataTransfer.setData('text/plain', id);
-                    if (e.currentTarget instanceof HTMLElement) {
-                      const preview = e.currentTarget.querySelector(
-                        '[data-drag-preview="true"]'
-                      );
-                      if (preview) {
-                        e.dataTransfer.setDragImage(preview, 8, 8);
-                      } else {
-                        e.dataTransfer.setDragImage(e.currentTarget, 8, 8);
-                      }
-                    }
-                  }}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                  }}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    const fromId = e.dataTransfer.getData('text/plain');
-                    handleReorder(fromId, id);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'ArrowUp' && index > 0) {
-                      e.preventDefault();
-                      const targetId = orderedLessons[index - 1].id;
-                      handleReorder(id, targetId);
-                    } else if (
-                      e.key === 'ArrowDown' &&
-                      index < orderedLessons.length - 1
-                    ) {
-                      e.preventDefault();
-                      const targetId = orderedLessons[index + 1].id;
-                      handleReorder(id, targetId);
-                    } else if (e.key === 'Enter' || e.key === ' ') {
-                      // Keyboard grab/drop noop; prevent scroll on space
-                      e.preventDefault();
-                    }
-                  }}
-                  className="rounded-lg border border-border-200 bg-background relative group"
-                >
-                  {/* Hidden drag preview with visual representation of the card */}
-                  <div
-                    data-drag-preview="true"
-                    className="fixed -left-[9999px] -top-[9999px] pointer-events-none z-[9999] w-[440px]"
-                  >
-                    <div className="w-full rounded-lg border border-border-200 bg-background">
-                      <div className="p-4 flex flex-row items-center justify-between gap-4">
-                        <div className="flex flex-row items-center gap-3 flex-1">
-                          <Text
-                            size="md"
-                            weight="bold"
-                            className="text-text-950 truncate"
-                          >
-                            {lessonTitle}
-                          </Text>
-                        </div>
-                        <div className="flex flex-row items-center text-text-950">
-                          <Video size={24} color="currentColor" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+          <section
+            ref={listRef}
+            data-testid="lessons-list"
+            className="flex flex-col gap-3"
+          >
+            {orderedLessons.map((lesson, index) => {
+              const {
+                id,
+                title: lessonTitle = 'Aula sem título',
+                position,
+                subject,
+              } = lesson;
 
-                  <div className="p-4 flex flex-row items-center justify-between gap-4">
-                    <div className="flex flex-row items-center gap-3 flex-1">
-                      <Text size="md" weight="bold" className="text-text-950">
-                        {lessonTitle}
-                      </Text>
-                    </div>
-                    <div className="flex flex-row items-center text-text-950 gap-1">
-                      <Button
-                        variant="link"
-                        action="secondary"
-                        onClick={() => {
-                          const lesson = orderedLessons.find(
-                            (l) => l.id === id
-                          );
-                          if (lesson) {
-                            handleWatch(lesson);
-                          }
-                        }}
-                        aria-label="Assistir aula"
-                        className="px-0 cursor-pointer"
-                      >
-                        <Video size={24} color="currentColor" />
-                      </Button>
-                      {onRemoveLesson && (
-                        <Button
-                          variant="link"
-                          action="secondary"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onRemoveLesson(id);
-                          }}
-                          aria-label={`Remover aula ${position ?? index + 1}`}
-                          className="px-0 cursor-pointer"
-                        >
-                          <TrashIcon size={24} color="currentColor" />
-                        </Button>
-                      )}
-                    </div>
+              return (
+                <Fragment key={id}>
+                  {dropIndex === index && <DropPlaceholder />}
+
+                  <div
+                    ref={registerItem(id)}
+                    draggable
+                    data-draggable="true"
+                    data-testid={`lesson-draggable-${id}`}
+                    onDragStart={handleDragStart(id)}
+                    onDragEnd={handleDragEnd}
+                    className={cn(
+                      'rounded-lg cursor-grab transition-shadow duration-150',
+                      'active:cursor-grabbing active:shadow-hard-shadow-2',
+                      draggingId === id && 'opacity-40 shadow-hard-shadow-2'
+                    )}
+                  >
+                    <LessonCardPreview
+                      title={lessonTitle}
+                      position={position}
+                      subject={subject}
+                      trail={buildLessonTrail(lesson)}
+                      value={id}
+                      showDragHandle
+                      onWatch={() => handleWatch(lesson)}
+                      onRemove={
+                        onRemoveLesson ? () => onRemoveLesson(id) : undefined
+                      }
+                      onMoveUp={
+                        index > 0
+                          ? () => handleMove(index, index - 1)
+                          : undefined
+                      }
+                      onMoveDown={
+                        index < orderedLessons.length - 1
+                          ? () => handleMove(index, index + 1)
+                          : undefined
+                      }
+                    />
                   </div>
-                </div>
-              )
-            )}
+                </Fragment>
+              );
+            })}
+
+            {dropIndex === orderedLessons.length && <DropPlaceholder />}
           </section>
         )}
 

@@ -165,23 +165,37 @@ export const useReorderDragAndDrop = ({
     return index === -1 ? geometry.midpoints.length : index;
   }, []);
 
+  const handlePointerDown = useCallback(
+    (event: { target: EventTarget | null }) => {
+      const target = event.target as HTMLElement | null;
+      pointerOnNoDragRef.current = Boolean(
+        target?.closest?.('[data-no-drag="true"]')
+      );
+    },
+    []
+  );
+
+  /**
+   * Registers an item element. It also listens to `mousedown` natively, so the
+   * item needs no JSX mouse handler (which would make it a non-native
+   * interactive element) to know whether the press started on a no-drag control.
+   */
   const registerItem = useCallback(
     (id: string) => (element: HTMLElement | null) => {
+      const previous = itemRefs.current.get(id);
+      if (previous && previous !== element) {
+        previous.removeEventListener('mousedown', handlePointerDown);
+      }
+
       if (element) {
+        element.addEventListener('mousedown', handlePointerDown);
         itemRefs.current.set(id, element);
       } else {
         itemRefs.current.delete(id);
       }
     },
-    []
+    [handlePointerDown]
   );
-
-  const handlePointerDown = useCallback((event: { target: EventTarget }) => {
-    const target = event.target as HTMLElement | null;
-    pointerOnNoDragRef.current = Boolean(
-      target?.closest?.('[data-no-drag="true"]')
-    );
-  }, []);
 
   const handleDragStart = useCallback(
     (id: string) => (event: DragEvent<HTMLElement>) => {

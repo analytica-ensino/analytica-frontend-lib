@@ -1047,6 +1047,11 @@ export type {
   PreviewQuestion,
 } from './components/ActivityPreview/ActivityPreview';
 
+export { LessonCardPreview } from './components/LessonCardPreview/LessonCardPreview';
+export type {
+  LessonCardPreviewProps,
+  LessonCardPreviewSubject,
+} from './components/LessonCardPreview/LessonCardPreview';
 export { LessonPreview } from './components/LessonPreview/LessonPreview';
 export type {
   LessonPreviewProps,

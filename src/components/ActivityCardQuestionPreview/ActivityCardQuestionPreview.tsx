@@ -1,34 +1,31 @@
-import {
-  useId,
-  useMemo,
-  useState,
-  type KeyboardEvent,
-  type MouseEvent,
-  type ReactNode,
-} from 'react';
+import { useId, useMemo, type ReactNode } from 'react';
 import {
   IconRender,
   Text,
   getSubjectColorWithOpacity,
   Badge,
 } from '../../index';
-import IconButton from '../IconButton/IconButton';
 import { QUESTION_TYPE } from '../Quiz/useQuizStore';
 import { questionTypeLabels } from '../../types/questionTypes';
 import { cn } from '../../utils/utils';
 import { AlternativesList, type Alternative } from '../Alternative/Alternative';
 import { OptionStatus } from '../../enums/Options';
 import { MultipleChoiceList } from '../MultipleChoice/MultipleChoice';
-import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
 import { CheckCircleIcon } from '@phosphor-icons/react/dist/csr/CheckCircle';
-import { DotsSixVerticalIcon } from '@phosphor-icons/react/dist/csr/DotsSixVertical';
-import { TrashIcon } from '@phosphor-icons/react/dist/csr/Trash';
 import { XCircleIcon } from '@phosphor-icons/react/dist/csr/XCircle';
 import {
   renderFromMap,
   type QuestionRendererMap,
 } from '../../utils/questionRenderer/index';
 import { HtmlMathRenderer, stripHtml } from '../HtmlMathRenderer';
+import {
+  PreviewCardDragHandle,
+  PreviewCardExpandButton,
+  PreviewCardOrderRow,
+  PreviewCardRemoveButton,
+  PreviewCardTag,
+  usePreviewCardToggle,
+} from '../PreviewCard/PreviewCardParts';
 
 export interface MatchingPairPreview {
   id: string;
@@ -83,56 +80,6 @@ interface ActivityCardQuestionPreviewProps {
   showDragHandle?: boolean;
 }
 
-/** Chip used for every metadata tag of the card header. */
-const QuestionTag = ({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) => (
-  <span
-    className={cn(
-      'min-w-0 max-w-full py-1 px-2 rounded-md bg-background-50 flex flex-row items-center gap-1',
-      className
-    )}
-  >
-    {children}
-  </span>
-);
-
-/**
- * Top row of the card: question order on the left, actions on the right.
- * The drag ghost reuses it without actions, so it renders no buttons twice.
- */
-const QuestionOrderRow = ({
-  position,
-  actions,
-}: {
-  position?: number;
-  actions?: ReactNode;
-}) => {
-  if (typeof position !== 'number' && !actions) return null;
-
-  return (
-    <div className="flex flex-row items-center gap-2 min-h-8 px-3 pt-2">
-      {typeof position === 'number' && (
-        <span className="shrink-0 py-0.5 px-2 rounded-md bg-primary-50">
-          <Text size="sm" weight="medium" className="text-primary-950">
-            {position}º
-          </Text>
-        </span>
-      )}
-
-      {actions && (
-        <div className="ml-auto flex flex-row items-center gap-1 text-text-700">
-          {actions}
-        </div>
-      )}
-    </div>
-  );
-};
-
 /** Drag / remove / expand controls of the card header. */
 const QuestionActions = ({
   position,
@@ -150,52 +97,26 @@ const QuestionActions = ({
   contentId: string;
 }) => (
   <>
-    {showDragHandle && (
-      <span
-        data-drag-handle="true"
-        aria-hidden="true"
-        className="size-6 flex items-center justify-center shrink-0 text-text-600 cursor-grab active:cursor-grabbing"
-      >
-        <DotsSixVerticalIcon size={16} />
-      </span>
-    )}
+    {showDragHandle && <PreviewCardDragHandle />}
 
     {onRemove && (
-      <IconButton
-        size="sm"
-        data-no-drag="true"
-        icon={<TrashIcon size={16} />}
-        aria-label={
+      <PreviewCardRemoveButton
+        label={
           typeof position === 'number'
             ? `Remover questão ${position}`
             : 'Remover questão'
         }
-        onClick={(event) => {
-          event.stopPropagation();
-          onRemove();
-        }}
+        onRemove={onRemove}
       />
     )}
 
-    <IconButton
-      size="sm"
-      aria-label={isExpanded ? 'Recolher questão' : 'Expandir questão'}
-      aria-expanded={isExpanded}
-      aria-controls={contentId}
-      icon={
-        <CaretDownIcon
-          size={16}
-          className={cn(
-            'transition-transform duration-200',
-            isExpanded ? 'rotate-180' : 'rotate-0'
-          )}
-          data-testid="question-caret"
-        />
-      }
-      onClick={(event) => {
-        event.stopPropagation();
-        onToggleExpanded();
-      }}
+    <PreviewCardExpandButton
+      isExpanded={isExpanded}
+      contentId={contentId}
+      expandLabel="Expandir questão"
+      collapseLabel="Recolher questão"
+      caretTestId="question-caret"
+      onToggle={onToggleExpanded}
     />
   </>
 );
@@ -217,7 +138,7 @@ const QuestionTags = ({
   year?: string;
 }) => (
   <div className="flex flex-row flex-wrap items-center gap-1 text-text-650">
-    <QuestionTag>
+    <PreviewCardTag>
       <span
         className="size-4 rounded-sm flex items-center justify-center shrink-0 text-text-950"
         style={{
@@ -233,20 +154,20 @@ const QuestionTags = ({
       <Text size="sm" className="truncate">
         {subjectName ?? 'Assunto não informado'}
       </Text>
-    </QuestionTag>
+    </PreviewCardTag>
 
-    <QuestionTag>
+    <PreviewCardTag>
       <Text size="sm" className="truncate">
         {resolvedQuestionTypeLabel ?? 'Tipo de questão'}
       </Text>
-    </QuestionTag>
+    </PreviewCardTag>
 
     {(bank || year) && (
-      <QuestionTag>
+      <PreviewCardTag>
         <Text size="sm" className="truncate">
           {[bank, year].filter(Boolean).join(' - ')}
         </Text>
-      </QuestionTag>
+      </PreviewCardTag>
     )}
   </div>
 );
@@ -274,7 +195,13 @@ export const ActivityCardQuestionPreview = ({
 }: ActivityCardQuestionPreviewProps) => {
   const badgeColor =
     getSubjectColorWithOpacity(subjectColor, isDark) ?? subjectColor;
-  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  const {
+    isExpanded,
+    toggleExpanded,
+    handleCardClick,
+    handleCardKeyDown,
+    handleCardMouseDown,
+  } = usePreviewCardToggle(defaultExpanded);
   const generatedId = useId();
   const contentId = value ? `question-preview-content-${value}` : generatedId;
   const correctOptionIds = question?.correctOptionIds || [];
@@ -465,24 +392,6 @@ export const ActivityCardQuestionPreview = ({
     [QUESTION_TYPE.IMAGEM]: renderImage,
   };
 
-  const toggleExpanded = () => setIsExpanded((previous) => !previous);
-
-  /**
-   * The whole card toggles, except the header buttons (remove / expand), which
-   * already handle their own click.
-   */
-  const handleCardClick = (event: MouseEvent<HTMLDivElement>) => {
-    if ((event.target as HTMLElement | null)?.closest('button')) return;
-    toggleExpanded();
-  };
-
-  const handleCardKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key !== 'Enter' && event.key !== ' ') return;
-    if ((event.target as HTMLElement | null)?.closest('button')) return;
-    event.preventDefault();
-    toggleExpanded();
-  };
-
   const renderCardHeader = ({
     actions,
     withStatement,
@@ -491,7 +400,7 @@ export const ActivityCardQuestionPreview = ({
     withStatement: boolean;
   }) => (
     <div className="w-full min-w-0 flex flex-col gap-2 pb-2">
-      <QuestionOrderRow position={position} actions={actions} />
+      <PreviewCardOrderRow position={position} actions={actions} />
 
       <div className="px-3">
         <QuestionTags
@@ -521,15 +430,7 @@ export const ActivityCardQuestionPreview = ({
       aria-expanded={isExpanded}
       aria-controls={contentId}
       onClick={handleCardClick}
-      onMouseDown={(event) => {
-        // Allow drag to start if inside a draggable container; otherwise avoid focus outline
-        const draggableAncestor = (event.target as HTMLElement).closest(
-          '[data-draggable="true"]'
-        );
-        if (!draggableAncestor) {
-          event.preventDefault();
-        }
-      }}
+      onMouseDown={handleCardMouseDown}
       onKeyDown={handleCardKeyDown}
     >
       {/* Hidden drag preview with header + truncated statement (closed state) */}

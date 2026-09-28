@@ -1,5 +1,4 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowDownIcon } from '@phosphor-icons/react/dist/csr/ArrowDown';
 import { FileIcon } from '@phosphor-icons/react/dist/csr/File';
 import { DownloadSimpleIcon } from '@phosphor-icons/react/dist/csr/DownloadSimple';
 import { TrashIcon } from '@phosphor-icons/react/dist/csr/Trash';
@@ -12,20 +11,8 @@ import {
   QuestionsPdfContent,
 } from '../QuestionsPdfGenerator';
 import Activities from '../../assets/icons/Activities';
-import { useReorderDragAndDrop } from './useReorderDragAndDrop';
-
-/** Slot that shows where the dragged question will land. */
-const DropPlaceholder = () => (
-  <div
-    data-testid="drop-placeholder"
-    className="rounded-lg border border-dashed border-primary-600 bg-primary-50 py-3 px-2 flex flex-row items-center justify-center gap-2 text-primary-950"
-  >
-    <ArrowDownIcon size={16} />
-    <Text size="sm" weight="medium" className="text-primary-950">
-      Soltar aqui
-    </Text>
-  </div>
-);
+import { useReorderDragAndDrop } from '../../hooks/useReorderDragAndDrop';
+import { DropPlaceholder } from '../DropPlaceholder/DropPlaceholder';
 
 type PreviewQuestion = {
   id: string;
