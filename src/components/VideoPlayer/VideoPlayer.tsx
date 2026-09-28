@@ -5,6 +5,7 @@ import {
   useCallback,
   MouseEvent,
   KeyboardEvent,
+  FocusEvent,
 } from 'react';
 import { createPortal } from 'react-dom';
 import { PlayIcon } from '@phosphor-icons/react/dist/csr/Play';
@@ -124,7 +125,7 @@ const ProgressBar = ({
       value={currentTime}
       onChange={(e) => onSeek(Number.parseFloat(e.target.value))}
       className="w-full h-1 bg-neutral-600 rounded-full appearance-none cursor-pointer slider:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
-      aria-label="Video progress"
+      aria-label="Progresso do vídeo"
       style={{
         background: `linear-gradient(to right, var(--color-primary-700) ${progressPercentage}%, var(--color-secondary-300) ${progressPercentage}%)`,
       }}
@@ -165,7 +166,11 @@ const VolumeControls = ({
         )
       }
       onClick={onToggleMute}
-      aria-label={isMuted ? 'Unmute' : 'Mute'}
+      // O rótulo diz a AÇÃO, o `aria-pressed` diz o ESTADO — e é ele que faz o
+      // leitor anunciar "botão alternar". Sem o `aria-pressed` não dá para
+      // saber se está mudo sem acionar o botão e ouvir o rótulo mudar.
+      aria-label={isMuted ? 'Ativar áudio' : 'Desativar áudio'}
+      aria-pressed={isMuted}
       className="!bg-transparent !text-white hover:!bg-white/20"
     />
 
@@ -177,7 +182,11 @@ const VolumeControls = ({
         value={Math.round(volume * 100)}
         onChange={(e) => onVolumeChange(Number.parseInt(e.target.value))}
         className="w-20 h-1 bg-neutral-600 rounded-full appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500"
-        aria-label="Volume control"
+        aria-label="Volume"
+        // O papel de "controle deslizante" já vem do `type="range"`. O que
+        // falta é a unidade: sem `aria-valuetext` o leitor fala o número cru
+        // ("100") em vez de "100 por cento".
+        aria-valuetext={`${Math.round(volume * 100)} por cento`}
         style={{
           background: `linear-gradient(to right, var(--color-primary-700) ${volume * 100}%, var(--color-secondary-300) ${volume * 100}%)`,
         }}
@@ -318,7 +327,7 @@ const SpeedMenu = ({
     <div
       ref={speedMenuRef}
       role="menu"
-      aria-label="Playback speed"
+      aria-label="Velocidade de reprodução"
       // Focusable by script only: focus lives on the speeds (roving tabindex)
       tabIndex={-1}
       onKeyDown={handleMenuKeyDown}
@@ -375,7 +384,7 @@ const SpeedMenu = ({
         ref={buttonRef}
         icon={<DotsThreeVerticalIcon size={iconSize} />}
         onClick={onToggleMenu}
-        aria-label="Playback speed"
+        aria-label="Velocidade de reprodução"
         aria-haspopup="menu"
         aria-expanded={showSpeedMenu}
         className="!bg-transparent !text-white hover:!bg-white/20"
@@ -1140,18 +1149,43 @@ const VideoPlayer = ({
   }, [isTinyMobile, isUltraSmallMobile]);
 
   /**
+   * Barra de controles visível.
+   *
+   * A barra some por `opacity-0`, mas continua no DOM e focável — dá para
+   * chegar nela por Tab enquanto está invisível. Aí as teclas até funcionam
+   * (as setas mudam o volume, por exemplo), só que nada aparece na tela e a
+   * impressão é de que o controle está quebrado.
+   *
+   * Manter a barra acesa enquanto o foco estiver dentro dela resolve sem
+   * torná-la inalcançável: escondê-la de verdade (`invisible`) impediria o Tab
+   * de entrar, e aí não haveria foco para revelá-la de volta.
+   */
+  const [controlsHaveFocus, setControlsHaveFocus] = useState(false);
+  const controlsVisible = showControls || controlsHaveFocus;
+
+  /** Handlers de foco da barra; `onBlur` só apaga ao sair do subtree. */
+  const controlsFocusProps = {
+    onFocus: () => setControlsHaveFocus(true),
+    onBlur: (event: FocusEvent<HTMLDivElement>) => {
+      if (!event.currentTarget.contains(event.relatedTarget)) {
+        setControlsHaveFocus(false);
+      }
+    },
+  };
+
+  /**
    * Calculate top controls opacity based on state
    */
   const getTopControlsOpacity = useCallback(() => {
-    return showControls ? 'opacity-100' : 'opacity-0';
-  }, [showControls]);
+    return controlsVisible ? 'opacity-100' : 'opacity-0';
+  }, [controlsVisible]);
 
   /**
    * Calculate bottom controls opacity based on state
    */
   const getBottomControlsOpacity = useCallback(() => {
-    return showControls ? 'opacity-100' : 'opacity-0';
-  }, [showControls]);
+    return controlsVisible ? 'opacity-100' : 'opacity-0';
+  }, [controlsVisible]);
 
   /**
    * Seek video backward
@@ -1285,7 +1319,9 @@ const VideoPlayer = ({
             ? 'cursor-none group-hover:cursor-default'
             : 'cursor-default'
         )}
-        aria-label={title ? `Video player: ${title}` : 'Video player'}
+        aria-label={
+          title ? `Reprodutor de vídeo: ${title}` : 'Reprodutor de vídeo'
+        }
         onMouseMove={handleMouseMove}
         onMouseEnter={handleMouseEnter}
         onTouchStart={handleMouseEnter}
@@ -1304,7 +1340,7 @@ const VideoPlayer = ({
           onClick={togglePlayPause}
           onKeyDown={handleVideoKeyDown}
           tabIndex={0}
-          aria-label={title ? `Video: ${title}` : 'Video player'}
+          aria-label={title ? `Vídeo: ${title}` : 'Vídeo'}
         >
           <track
             ref={trackRef}
@@ -1344,7 +1380,7 @@ const VideoPlayer = ({
             <IconButton
               icon={<PlayIcon size={32} weight="regular" className="ml-1" />}
               onClick={togglePlayPause}
-              aria-label="Play video"
+              aria-label="Reproduzir vídeo"
               className="!bg-transparent !text-white !w-auto !h-auto hover:!bg-transparent hover:!text-gray-200"
             />
           </div>
@@ -1356,6 +1392,7 @@ const VideoPlayer = ({
             'absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/70 to-transparent transition-opacity',
             getTopControlsOpacity()
           )}
+          {...controlsFocusProps}
         >
           <div className="flex justify-start">
             <IconButton
@@ -1367,7 +1404,9 @@ const VideoPlayer = ({
                 )
               }
               onClick={toggleFullscreen}
-              aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+              aria-label={
+                isFullscreen ? 'Desativar tela cheia' : 'Ativar tela cheia'
+              }
               className="!bg-transparent !text-white hover:!bg-white/20"
             />
           </div>
@@ -1379,6 +1418,7 @@ const VideoPlayer = ({
             'absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent transition-opacity',
             getBottomControlsOpacity()
           )}
+          {...controlsFocusProps}
         >
           {/* Progress Bar */}
           <ProgressBar
@@ -1408,7 +1448,7 @@ const VideoPlayer = ({
                   )
                 }
                 onClick={togglePlayPause}
-                aria-label={isPlaying ? 'Pause' : 'Play'}
+                aria-label={isPlaying ? 'Pausar' : 'Reproduzir'}
                 className="!bg-transparent !text-white hover:!bg-white/20"
               />
 
@@ -1427,7 +1467,13 @@ const VideoPlayer = ({
                 <IconButton
                   icon={<ClosedCaptioningIcon size={getIconSize()} />}
                   onClick={toggleCaptions}
-                  aria-label={showCaptions ? 'Hide captions' : 'Show captions'}
+                  // Mesma natureza do mudo: ação no rótulo, estado no
+                  // `aria-pressed` — hoje o único sinal de que as legendas
+                  // estão ligadas é a cor do ícone.
+                  aria-label={
+                    showCaptions ? 'Ocultar legendas' : 'Exibir legendas'
+                  }
+                  aria-pressed={showCaptions}
                   className={cn(
                     '!bg-transparent hover:!bg-white/20',
                     showCaptions ? '!text-primary-400' : '!text-white'

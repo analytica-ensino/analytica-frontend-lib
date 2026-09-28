@@ -1543,7 +1543,7 @@ describe('CardAudio', () => {
     });
     fireEvent.click(volumeButton);
 
-    expect(screen.getByRole('slider')).toBeInTheDocument();
+    expect(screen.getByRole('slider', { name: 'Volume' })).toBeInTheDocument();
   });
 
   it('should hide volume control when clicked again', () => {
@@ -1555,7 +1555,9 @@ describe('CardAudio', () => {
     fireEvent.click(volumeButton); // Show
     fireEvent.click(volumeButton); // Hide
 
-    expect(screen.queryByRole('slider')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('slider', { name: 'Volume' })
+    ).not.toBeInTheDocument();
   });
 
   it('should handle volume change', () => {
@@ -1566,7 +1568,7 @@ describe('CardAudio', () => {
     });
     fireEvent.click(volumeButton);
 
-    const volumeSlider = screen.getByRole('slider');
+    const volumeSlider = screen.getByRole('slider', { name: 'Volume' });
     fireEvent.change(volumeSlider, { target: { value: '0.5' } });
 
     expect(volumeSlider).toHaveValue('0.5');
@@ -1580,7 +1582,7 @@ describe('CardAudio', () => {
     });
     fireEvent.click(volumeButton);
 
-    const volumeSlider = screen.getByRole('slider');
+    const volumeSlider = screen.getByRole('slider', { name: 'Volume' });
 
     // Test mute (volume = 0)
     fireEvent.change(volumeSlider, { target: { value: '0' } });
@@ -1600,7 +1602,7 @@ describe('CardAudio', () => {
       fireEvent.click(
         screen.getByRole('button', { name: /controle de volume/i })
       );
-      return screen.getByRole('slider');
+      return screen.getByRole('slider', { name: 'Volume' });
     };
 
     it('should start the audio at the volume saved by another player', () => {
@@ -1822,7 +1824,9 @@ describe('CardAudio', () => {
     });
     fireEvent.click(volumeButton);
 
-    const volumeControl = screen.getByRole('slider').closest('button');
+    const volumeControl = screen.getByRole('slider', {
+      name: 'Volume',
+    }).parentElement;
     expect(volumeControl).toHaveClass('absolute', 'bottom-full', 'right-0');
   });
 
@@ -1884,7 +1888,7 @@ describe('CardAudio', () => {
     });
     fireEvent.click(volumeButton);
 
-    const volumeSlider = screen.getByRole('slider');
+    const volumeSlider = screen.getByRole('slider', { name: 'Volume' });
 
     // Test different volume levels
     const testValues = ['0', '0.25', '0.5', '0.75', '1'];
@@ -1915,7 +1919,7 @@ describe('CardAudio', () => {
     });
     fireEvent.click(volumeButton);
 
-    const volumeSlider = screen.getByRole('slider');
+    const volumeSlider = screen.getByRole('slider', { name: 'Volume' });
 
     // Test volume change
     fireEvent.change(volumeSlider, { target: { value: '0.7' } });
@@ -2143,29 +2147,22 @@ describe('CardAudio', () => {
       }
     });
 
-    it('onKeyDown não executa handleProgressClick com outras teclas', () => {
+    it('onKeyDown ignora teclas que não movem a reprodução', () => {
       render(<CardAudio src="audio.mp3" />);
       const audio = screen.getByTestId('audio-element');
       Object.defineProperty(audio, 'duration', {
         get: () => 100,
         configurable: true,
       });
-      const progressBar = screen.getByTestId('progress-bar');
-      const progressButton = progressBar.querySelector('button');
+      const progressButton = screen.getByRole('slider', {
+        name: 'Barra de progresso do áudio',
+      });
 
-      if (progressButton) {
-        Object.defineProperty(progressButton, 'getBoundingClientRect', {
-          value: () => ({ left: 0, top: 0, width: 100, height: 10 }),
-        });
+      fireEvent.keyDown(progressButton, { key: 'Tab' });
+      fireEvent.keyDown(progressButton, { key: 'Escape' });
 
-        // Simula pressionar outras teclas que não devem executar handleProgressClick
-        fireEvent.keyDown(progressButton, { key: 'ArrowRight' });
-        fireEvent.keyDown(progressButton, { key: 'Tab' });
-        fireEvent.keyDown(progressButton, { key: 'Escape' });
-
-        // O tempo deve permanecer inalterado
-        expect(screen.getAllByText('0:00').length).toBeGreaterThan(0);
-      }
+      // O tempo deve permanecer inalterado
+      expect(screen.getAllByText('0:00').length).toBeGreaterThan(0);
     });
 
     it('barra de progresso tem atributos de acessibilidade corretos', () => {
@@ -2224,11 +2221,14 @@ describe('CardAudio', () => {
         name: /controle de volume/i,
       });
       fireEvent.click(volumeButton);
-      const popup = screen.getByRole('slider').closest('button');
-      expect(popup).toBeInTheDocument();
-      fireEvent.keyDown(popup!, { key: 'Escape' });
-      // O controle de volume deve sumir
-      expect(screen.queryByRole('slider')).not.toBeInTheDocument();
+      const slider = screen.getByRole('slider', { name: 'Volume' });
+      expect(slider).toBeInTheDocument();
+      fireEvent.keyDown(slider, { key: 'Escape' });
+      // O controle de volume deve sumir e o foco voltar para o gatilho
+      expect(
+        screen.queryByRole('slider', { name: 'Volume' })
+      ).not.toBeInTheDocument();
+      expect(volumeButton).toHaveFocus();
     });
 
     it('aumenta e diminui o volume com as setas do teclado', () => {
@@ -2237,7 +2237,9 @@ describe('CardAudio', () => {
         name: /controle de volume/i,
       });
       fireEvent.click(volumeButton);
-      const slider = screen.getByRole('slider') as HTMLInputElement;
+      const slider = screen.getByRole('slider', {
+        name: 'Volume',
+      }) as HTMLInputElement;
       expect(slider).toBeInTheDocument();
       // Volume inicial
       expect(Number(slider.value)).toBeCloseTo(1);
@@ -2261,7 +2263,7 @@ describe('CardAudio', () => {
         name: /controle de volume/i,
       });
       fireEvent.click(volumeButton);
-      const slider = screen.getByRole('slider');
+      const slider = screen.getByRole('slider', { name: 'Volume' });
       expect(slider).toHaveAttribute('aria-label', 'Volume');
       expect(slider).toHaveAttribute('aria-valuenow');
       expect(slider).toHaveAttribute('aria-valuemin', '0');
@@ -2434,6 +2436,207 @@ describe('CardAudio', () => {
       expect(screen.queryByText('1x')).not.toBeInTheDocument();
       // Verificar que o volume control está aberto
       expect(screen.getByLabelText('Volume')).toBeInTheDocument();
+    });
+  });
+
+  describe('leitura pelo leitor de tela', () => {
+    /** Deixa o elemento com duração conhecida e tempo gravável. */
+    const setUpAudio = (duration = 120) => {
+      const audio = screen.getByTestId('audio-element');
+      let currentTime = 0;
+
+      Object.defineProperty(audio, 'duration', {
+        get: () => duration,
+        configurable: true,
+      });
+      Object.defineProperty(audio, 'currentTime', {
+        get: () => currentTime,
+        set: (value: number) => {
+          currentTime = value;
+        },
+        configurable: true,
+      });
+      fireEvent.loadedMetadata(audio);
+
+      return audio;
+    };
+
+    const getProgress = () =>
+      screen.getByRole('slider', { name: 'Barra de progresso do áudio' });
+
+    it('não expõe duração infinita de mídia ao vivo', () => {
+      render(<CardAudio src="stream.mp3" />);
+      setUpAudio(Number.POSITIVE_INFINITY);
+
+      expect(getProgress().getAttribute('aria-valuemax')).not.toMatch(
+        /Infinity|NaN/
+      );
+      expect(getProgress().getAttribute('aria-valuetext')).not.toMatch(
+        /Infinity|NaN/
+      );
+      // E nem na tela, onde a duração aparece ao lado da barra
+      expect(document.body.textContent).not.toMatch(/Infinity|NaN/);
+    });
+
+    it('continua avançando em mídia ao vivo, sem prender o tempo em zero', () => {
+      render(<CardAudio src="stream.mp3" />);
+      setUpAudio(Number.POSITIVE_INFINITY);
+
+      fireEvent.keyDown(getProgress(), { key: 'ArrowRight' });
+
+      // Sem duração conhecida, anuncia só o decorrido — mas anda.
+      expect(getProgress()).toHaveAttribute('aria-valuetext', '0:05');
+    });
+
+    it('não expõe NaN antes de os metadados chegarem', () => {
+      render(<CardAudio src="audio.mp3" />);
+      const audio = screen.getByTestId('audio-element');
+      Object.defineProperty(audio, 'duration', {
+        get: () => Number.NaN,
+        configurable: true,
+      });
+
+      fireEvent.timeUpdate(audio);
+
+      expect(getProgress().getAttribute('aria-valuemax')).not.toMatch(/NaN/);
+      expect(getProgress().getAttribute('aria-valuetext')).not.toMatch(/NaN/);
+      expect(document.body.textContent).not.toMatch(/NaN/);
+    });
+
+    it('anuncia a posição da barra de progresso como tempo, não como número', () => {
+      render(<CardAudio src="audio.mp3" />);
+      setUpAudio(120);
+
+      expect(getProgress()).toHaveAttribute('aria-valuemin', '0');
+      expect(getProgress()).toHaveAttribute('aria-valuemax', '120');
+      expect(getProgress()).toHaveAttribute('aria-valuenow', '0');
+      expect(getProgress()).toHaveAttribute('aria-valuetext', '0:00 de 2:00');
+    });
+
+    it('avança e retrocede a reprodução com as setas', () => {
+      render(<CardAudio src="audio.mp3" />);
+      setUpAudio(120);
+
+      fireEvent.keyDown(getProgress(), { key: 'ArrowRight' });
+      expect(getProgress()).toHaveAttribute('aria-valuetext', '0:05 de 2:00');
+
+      fireEvent.keyDown(getProgress(), { key: 'ArrowLeft' });
+      expect(getProgress()).toHaveAttribute('aria-valuetext', '0:00 de 2:00');
+
+      // Não passa das bordas
+      fireEvent.keyDown(getProgress(), { key: 'ArrowLeft' });
+      expect(getProgress()).toHaveAttribute('aria-valuetext', '0:00 de 2:00');
+
+      fireEvent.keyDown(getProgress(), { key: 'End' });
+      expect(getProgress()).toHaveAttribute('aria-valuetext', '2:00 de 2:00');
+
+      fireEvent.keyDown(getProgress(), { key: 'Home' });
+      expect(getProgress()).toHaveAttribute('aria-valuetext', '0:00 de 2:00');
+    });
+
+    it('não rebobina o áudio ao pressionar Enter na barra de progresso', () => {
+      render(<CardAudio src="audio.mp3" />);
+      const audio = setUpAudio(120);
+
+      // Leva a reprodução para o meio do áudio
+      (audio as HTMLAudioElement).currentTime = 60;
+      fireEvent.timeUpdate(audio);
+      expect(getProgress()).toHaveAttribute('aria-valuetext', '1:00 de 2:00');
+
+      // Enter sintetizava um clique, que chega com clientX 0 — e a largura
+      // precisa ser real para que esse clique caia em 0:00.
+      Object.defineProperty(getProgress(), 'getBoundingClientRect', {
+        value: () => ({ left: 0, width: 100 }),
+        configurable: true,
+      });
+
+      fireEvent.keyDown(getProgress(), { key: 'Enter' });
+      fireEvent.keyDown(getProgress(), { key: ' ' });
+
+      expect(getProgress()).toHaveAttribute('aria-valuetext', '1:00 de 2:00');
+    });
+
+    it('anuncia o volume em porcentagem', () => {
+      render(<CardAudio src="audio.mp3" />);
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Controle de volume' })
+      );
+
+      const slider = screen.getByRole('slider', { name: 'Volume' });
+      expect(slider).toHaveAttribute('aria-valuetext', '100 por cento');
+
+      fireEvent.keyDown(slider, { key: 'ArrowDown' });
+      expect(slider).toHaveAttribute('aria-valuetext', '90 por cento');
+    });
+
+    it('leva o foco ao slider ao abrir o controle de volume', () => {
+      render(<CardAudio src="audio.mp3" />);
+      const button = screen.getByRole('button', { name: 'Controle de volume' });
+      expect(button).toHaveAttribute('aria-expanded', 'false');
+
+      fireEvent.click(button);
+
+      expect(button).toHaveAttribute('aria-expanded', 'true');
+      expect(screen.getByRole('slider', { name: 'Volume' })).toHaveFocus();
+    });
+
+    it('marca qual velocidade está ativa', () => {
+      render(<CardAudio src="audio.mp3" />);
+      const button = screen.getByRole('button', {
+        name: 'Opções de velocidade',
+      });
+      expect(button).toHaveAttribute('aria-expanded', 'false');
+
+      fireEvent.click(button);
+
+      expect(button).toHaveAttribute('aria-expanded', 'true');
+      expect(
+        screen.getByRole('menu', { name: 'Velocidade de reprodução' })
+      ).toBeInTheDocument();
+      expect(screen.getByRole('menuitemradio', { name: '1x' })).toHaveAttribute(
+        'aria-checked',
+        'true'
+      );
+      expect(screen.getByRole('menuitemradio', { name: '2x' })).toHaveAttribute(
+        'aria-checked',
+        'false'
+      );
+
+      fireEvent.click(screen.getByRole('menuitemradio', { name: '2x' }));
+      fireEvent.click(button);
+
+      expect(screen.getByRole('menuitemradio', { name: '2x' })).toHaveAttribute(
+        'aria-checked',
+        'true'
+      );
+      expect(screen.getByRole('menuitemradio', { name: '1x' })).toHaveAttribute(
+        'aria-checked',
+        'false'
+      );
+    });
+
+    it('navega as velocidades com as setas e devolve o foco ao fechar', () => {
+      render(<CardAudio src="audio.mp3" />);
+      const button = screen.getByRole('button', {
+        name: 'Opções de velocidade',
+      });
+      fireEvent.click(button);
+
+      // Abre com o foco na velocidade atual
+      expect(screen.getByRole('menuitemradio', { name: '1x' })).toHaveFocus();
+
+      fireEvent.keyDown(screen.getByRole('menu'), { key: 'ArrowDown' });
+      expect(screen.getByRole('menuitemradio', { name: '1.5x' })).toHaveFocus();
+
+      fireEvent.keyDown(screen.getByRole('menu'), { key: 'End' });
+      expect(screen.getByRole('menuitemradio', { name: '2x' })).toHaveFocus();
+
+      fireEvent.keyDown(screen.getByRole('menu'), { key: 'Home' });
+      expect(screen.getByRole('menuitemradio', { name: '1x' })).toHaveFocus();
+
+      fireEvent.keyDown(screen.getByRole('menu'), { key: 'Escape' });
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+      expect(button).toHaveFocus();
     });
   });
 });
