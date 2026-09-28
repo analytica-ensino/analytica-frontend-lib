@@ -326,6 +326,12 @@ const Calendar = ({
   const monthPickerRef = useRef<HTMLDialogElement>(null);
   const monthPickerContainerRef = useRef<HTMLDivElement>(null);
   const monthTriggerRef = useRef<HTMLButtonElement>(null);
+  // Intenção de devolver o foco ao gatilho depois de escolher um mês. O foco é
+  // a confirmação da escolha: o leitor de tela lê o gatilho no instante em que
+  // ele o recebe, então focar dentro de `goToMonth` — antes do commit —
+  // anunciava o mês anterior. Um clique fora não marca a intenção: ali o
+  // usuário já levou o foco para outro lugar.
+  const focusTriggerOnCloseRef = useRef(false);
   const monthPickerId = `month-picker-${useId()}`;
 
   // Keyboard support while the month picker is open: focus goes to the
@@ -355,6 +361,17 @@ const Calendar = ({
       cancelAnimationFrame(frame);
       document.removeEventListener('keydown', handleEscape, true);
     };
+  }, [isMonthPickerOpen]);
+
+  // O botão do mês escolhido sai do DOM junto com o seletor, então o foco volta
+  // para o gatilho — mas só depois do commit, quando ele já mostra o mês novo.
+  // Declarado depois do efeito acima de propósito: o cleanup dele cancela o
+  // requestAnimationFrame que focaria o mês pressionado, e essa ordem garante
+  // que o cancelamento precede este foco.
+  useEffect(() => {
+    if (isMonthPickerOpen || !focusTriggerOnCloseRef.current) return;
+    focusTriggerOnCloseRef.current = false;
+    monthTriggerRef.current?.focus();
   }, [isMonthPickerOpen]);
 
   // Close month picker when clicking outside
@@ -450,11 +467,10 @@ const Calendar = ({
   // Month/Year selection functions
   const goToMonth = (month: number, year: number) => {
     const newDate = new Date(year, month, 1);
+    // O foco volta ao gatilho num efeito, não aqui: ver `focusTriggerOnCloseRef`
+    focusTriggerOnCloseRef.current = true;
     setCurrentDate(newDate);
     setIsMonthPickerOpen(false);
-    // The chosen month button unmounts with the picker; hand focus back to
-    // the trigger, as Escape does, so it doesn't fall out of the calendar
-    monthTriggerRef.current?.focus();
     onMonthChange?.(newDate);
   };
 
@@ -643,6 +659,14 @@ const Calendar = ({
                   onClick={() => handleDateSelect(day)}
                   aria-label={getDayLabel(day, announcesActivities)}
                   aria-current={day.isToday ? 'date' : undefined}
+                  // A seleção é só cor de fundo na tela; sem isto quem usa
+                  // leitor de tela não sabe qual dia está escolhido. Estado, e
+                  // não sufixo no rótulo, para o anúncio sair depois do papel:
+                  // "Dia 15 de Setembro, botão, selecionado".
+                  // Só o dia selecionado carrega o estado: marcar os outros
+                  // faria o leitor dizer "não selecionado" nos ~30 dias
+                  // restantes, ruído sobre o único que interessa.
+                  aria-pressed={day.isSelected || undefined}
                   tabIndex={0}
                 >
                   <span className={spanClass}>{day.date.getDate()}</span>
@@ -805,6 +829,9 @@ const Calendar = ({
                 onClick={() => handleDateSelect(day)}
                 aria-label={getDayLabel(day, announcesActivities)}
                 aria-current={day.isToday ? 'date' : undefined}
+                // Ver a variante `navigation`: a seleção precisa de estado, não
+                // de sufixo no rótulo, e só no dia selecionado
+                aria-pressed={day.isSelected || undefined}
                 tabIndex={0}
               >
                 {day.date.getDate()}

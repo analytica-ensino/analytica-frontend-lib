@@ -635,6 +635,28 @@ describe('Calendar', () => {
         screen.queryByLabelText(/sem atividade|com atividade/)
       ).not.toBeInTheDocument();
     });
+
+    // A seleção era só uma cor de fundo, e cor não chega a quem usa leitor de
+    // tela. O estado vem depois do papel ("Dia 1 de Janeiro, botão,
+    // selecionado"), que é onde um sufixo no rótulo não conseguiria entrar.
+    // Só o dia selecionado carrega o atributo: com `aria-pressed="false"` nos
+    // outros, o leitor diria "não selecionado" nos ~30 dias restantes.
+    // Rótulos ancorados por regex porque `renderMonth` acrescenta ", sem
+    // atividade" na variante navigation.
+    it.each(['navigation', 'selection'] as const)(
+      'expõe o dia selecionado como estado (%s)',
+      (variant) => {
+        renderMonth({}, { variant });
+
+        expect(screen.getByLabelText(/^Dia 1 de Janeiro/)).toHaveAttribute(
+          'aria-pressed',
+          'true'
+        );
+        expect(screen.getByLabelText(/^Dia 2 de Janeiro/)).not.toHaveAttribute(
+          'aria-pressed'
+        );
+      }
+    );
   });
 });
 
@@ -725,5 +747,56 @@ describe('Calendar — seletor de mês/ano acessível', () => {
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
+  });
+
+  // O foco que volta ao gatilho é a confirmação da escolha: o leitor de tela lê
+  // o nome acessível no instante em que o foco chega. Focar dentro do onClick —
+  // antes do commit — anunciava o mês anterior, e nenhuma asserção posterior ao
+  // clique distingue isso, porque o `act` do fireEvent já deu flush em tudo.
+  it('devolve o foco ao gatilho já anunciando o mês escolhido', async () => {
+    const trigger = openPicker();
+    const namesAtFocus: string[] = [];
+    trigger.addEventListener('focus', () => {
+      namesAtFocus.push(trigger.textContent?.replace(/\s+/g, ' ').trim() ?? '');
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Maio' }));
+
+    await waitFor(() => expect(trigger).toHaveFocus());
+    // Um único item também pega a regressão de manter o focus() síncrono e
+    // somar o efeito: o segundo focus() não dispara evento, então sobraria o
+    // nome antigo sozinho.
+    expect(namesAtFocus).toEqual(['Maio 2025']);
+  });
+
+  // O efeito que devolve o foco é atrelado ao fechamento do seletor, não a
+  // `currentDate`: trocar o ano mantém o seletor aberto e o foco no ano.
+  it('escolher um ano não tira o foco do seletor', async () => {
+    openPicker();
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Março' })).toHaveFocus()
+    );
+    const year = screen.getByRole('button', { name: '2024' });
+    // fireEvent.click não move o foco no jsdom, ao contrário do userEvent
+    year.focus();
+
+    fireEvent.click(year);
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(year).toHaveAttribute('aria-pressed', 'true');
+    expect(year).toHaveFocus();
+  });
+
+  it('clicar fora fecha o seletor sem trazer o foco de volta ao gatilho', () => {
+    const trigger = openPicker();
+    const outside = document.createElement('button');
+    document.body.appendChild(outside);
+    outside.focus();
+
+    fireEvent.mouseDown(outside);
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(trigger).not.toHaveFocus();
+    outside.remove();
   });
 });
