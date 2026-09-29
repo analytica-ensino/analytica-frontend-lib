@@ -1,4 +1,5 @@
 import { SkeletonText, Skeleton, SkeletonCard } from '../../..';
+import { usePanelWidthPreference } from '../../../store/layoutPreferencesStore';
 
 /**
  * Loading skeleton component for ActivityCreate page
@@ -6,6 +7,10 @@ import { SkeletonText, Skeleton, SkeletonCard } from '../../..';
  * @returns Skeleton JSX element
  */
 export const ActivityCreateSkeleton = () => {
+  // Espelha as larguras que o usuário arrastou, senão o conteúdo real entra
+  // com colunas de tamanho diferente do esqueleto e a tela "pula".
+  const { filtersWidth, previewWidth } = usePanelWidthPreference('activity');
+
   return (
     <div
       data-testid="create-activity-page"
@@ -45,7 +50,10 @@ export const ActivityCreateSkeleton = () => {
       */}
       <div className="flex flex-row w-full flex-1 overflow-hidden gap-5 min-h-0">
         {/* First Column - Filters Skeleton */}
-        <div className="hidden min-[1200px]:flex flex-col gap-3 overflow-hidden h-full min-h-0 max-h-full relative w-[400px] flex-shrink-0 p-4 bg-background">
+        <div
+          style={{ width: filtersWidth }}
+          className="hidden min-[1200px]:flex flex-col gap-3 overflow-hidden h-full min-h-0 max-h-full relative flex-shrink-0 p-4 bg-background"
+        >
           <SkeletonText width={150} height={20} />
           <div className="flex flex-col gap-4 mt-4">
             <div className="flex flex-col gap-3">
@@ -112,7 +120,10 @@ export const ActivityCreateSkeleton = () => {
         </div>
 
         {/* Third Column - Activity Preview Skeleton */}
-        <div className="hidden min-[1200px]:block w-[470px] flex-shrink-0 overflow-hidden h-full min-h-0 p-4">
+        <div
+          style={{ width: previewWidth }}
+          className="hidden min-[1200px]:block flex-shrink-0 overflow-hidden h-full min-h-0 p-4"
+        >
           <div className="flex flex-col gap-4 h-full">
             <div className="flex flex-col gap-2">
               <SkeletonText width={200} height={20} />

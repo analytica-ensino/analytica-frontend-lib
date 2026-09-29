@@ -60,7 +60,7 @@ describe('SendLessonModal validation', () => {
       const errors = validateStep(2, formData);
 
       expect(errors.students).toBe(
-        'Campo obrigatório! Por favor, selecione pelo menos um aluno para continuar.'
+        'Campo obrigatório! Por favor, selecione pelo menos um estudante para continuar.'
       );
     });
 
@@ -71,7 +71,7 @@ describe('SendLessonModal validation', () => {
       const errors = validateStep(2, formData);
 
       expect(errors.students).toBe(
-        'Campo obrigatório! Por favor, selecione pelo menos um aluno para continuar.'
+        'Campo obrigatório! Por favor, selecione pelo menos um estudante para continuar.'
       );
     });
 

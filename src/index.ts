@@ -42,6 +42,21 @@ export type {
   DragHandleButtonProps,
   DragMoveDirection,
 } from './components/DragHandleButton/DragHandleButton';
+export { default as ResizableDivider } from './components/ResizableDivider/ResizableDivider';
+export type { ResizableDividerProps } from './components/ResizableDivider/ResizableDivider';
+export {
+  useResizableColumns,
+  getMaxPanelWidth,
+  clampPanelToContainer,
+  resolveColumnWidths,
+  BANK_MIN_WIDTH,
+  RESIZE_KEYBOARD_STEP,
+  RESIZE_KEYBOARD_STEP_LARGE,
+} from './hooks/useResizableColumns';
+export type {
+  ResizableDividerHandlers,
+  UseResizableColumnsResult,
+} from './hooks/useResizableColumns';
 export { default as IconButton } from './components/IconButton/IconButton';
 export { Tooltip } from './components/Tooltip/Tooltip';
 export type { TooltipProps } from './components/Tooltip/Tooltip';
@@ -1002,6 +1017,20 @@ export {
   UNMUTE_FALLBACK_VOLUME,
 } from './store/mediaPreferencesStore';
 export type { MediaPreferencesState } from './store/mediaPreferencesStore';
+
+export {
+  useLayoutPreferencesStore,
+  usePanelWidthPreference,
+  clampPanelWidth,
+  SIDE_PANEL_DEFAULT_WIDTH,
+} from './store/layoutPreferencesStore';
+export type {
+  LayoutPreferencesState,
+  LayoutScope,
+  LayoutPanel,
+  PanelWidths,
+} from './store/layoutPreferencesStore';
+
 export { useModulesStore } from './store/modulesStore';
 export type { ModulesState } from './store/modulesStore';
 export {

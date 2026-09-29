@@ -12,7 +12,7 @@ export const ERROR_MESSAGES = {
   TITLE_REQUIRED:
     'Campo obrigatório! Por favor, preencha este campo para continuar.',
   STUDENTS_REQUIRED:
-    'Campo obrigatório! Por favor, selecione pelo menos um aluno para continuar.',
+    'Campo obrigatório! Por favor, selecione pelo menos um estudante para continuar.',
   START_DATE_REQUIRED:
     'Campo obrigatório! Por favor, preencha este campo para continuar.',
   FINAL_DATE_REQUIRED:

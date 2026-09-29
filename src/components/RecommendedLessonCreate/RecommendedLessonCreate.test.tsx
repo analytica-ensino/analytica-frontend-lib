@@ -694,7 +694,7 @@ describe('RecommendedLessonCreate', () => {
       );
 
       // Desktop layout should have 2 dividers to separate 3 columns (filters, bank, preview)
-      const dividers = screen.getAllByTestId('divider');
+      const dividers = screen.getAllByTestId('resizable-divider');
       expect(dividers.length).toBeGreaterThanOrEqual(2);
     });
   });

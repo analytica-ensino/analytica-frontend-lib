@@ -253,7 +253,7 @@ describe('SendLessonModal', () => {
 
       expect(
         screen.getByText(
-          'Campo obrigatório! Por favor, selecione pelo menos um aluno para continuar.'
+          'Campo obrigatório! Por favor, selecione pelo menos um estudante para continuar.'
         )
       ).toBeInTheDocument();
     });

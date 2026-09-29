@@ -241,11 +241,13 @@ describe('RecommendedLessonCreateSkeleton', () => {
       expect(mainContent).toBeInTheDocument();
     });
 
-    it('should have first column with fixed width', () => {
+    it('should have first column at the default panel width', () => {
       const { container } = render(<RecommendedLessonCreateSkeleton />);
 
-      const firstColumn = container.querySelector(
-        '.w-\\[400px\\].flex-shrink-0'
+      // A largura vem do store de preferências (style inline), não mais de uma
+      // classe fixa, para o esqueleto espelhar o divisor que o usuário arrastou.
+      const firstColumn = container.querySelector<HTMLElement>(
+        '[style*="width: 400px"].flex-shrink-0'
       );
       expect(firstColumn).toBeInTheDocument();
     });
@@ -257,14 +259,14 @@ describe('RecommendedLessonCreateSkeleton', () => {
       expect(middleColumn).toBeInTheDocument();
     });
 
-    it('should have third column with fixed width', () => {
+    it('should have third column at the default panel width', () => {
       const { container } = render(<RecommendedLessonCreateSkeleton />);
 
-      const thirdColumns = container.querySelectorAll(
-        '.w-\\[400px\\].flex-shrink-0'
+      const sideColumns = container.querySelectorAll(
+        '[style*="width: 400px"].flex-shrink-0'
       );
-      // First column and third column both have w-[400px]
-      expect(thirdColumns.length).toBe(2);
+      // Filtros e prévia começam ambos na largura padrão
+      expect(sideColumns).toHaveLength(2);
     });
   });
 
