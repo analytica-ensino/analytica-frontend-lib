@@ -304,3 +304,146 @@ describe('PerformanceDistributionChart colours', () => {
     }
   });
 });
+
+describe('PerformanceDistributionChart "Não participou"', () => {
+  // Who took nothing, a fifth tier of the Momento ENEM report: counted apart
+  // from the four bands, and only when the counters carry it.
+  const withAbsent: SimulatedPerformanceCounters = {
+    highlight: 1,
+    aboveAverage: 1,
+    belowAverage: 1,
+    attentionPoint: 1,
+    notParticipated: 4,
+  };
+
+  it('adds a fifth legend row after the four bands', () => {
+    render(<PerformanceDistributionChart counters={withAbsent} />);
+
+    const labels = [
+      'Destaque',
+      'Acima da média',
+      'Abaixo da média',
+      'Ponto de atenção',
+      'Não participou',
+    ];
+    const positions = labels.map((label) =>
+      Array.from(document.body.querySelectorAll('*')).indexOf(
+        screen.getByText(label)
+      )
+    );
+    expect([...positions].sort((a, b) => a - b)).toEqual(positions);
+    expect(screen.getByText('4 estudantes (50%)')).toBeInTheDocument();
+  });
+
+  it('takes the share of every tier over the five, and totals them', () => {
+    render(<PerformanceDistributionChart counters={withAbsent} />);
+
+    // 1 of 8 each, not 1 of the 4 who took it.
+    expect(screen.getAllByText('1 estudante (13%)')).toHaveLength(4);
+    expect(screen.queryByText('1 estudante (25%)')).not.toBeInTheDocument();
+    expect(screen.getByText('8 estudantes')).toBeInTheDocument();
+  });
+
+  it('draws a fifth slice, and its legend dot, in the indicator colour', () => {
+    const { container } = render(
+      <PerformanceDistributionChart counters={withAbsent} />
+    );
+
+    expect(container.querySelectorAll('svg path')).toHaveLength(5);
+    expect(
+      container.querySelector('path[fill="var(--color-indicator-primary)"]')
+    ).not.toBeNull();
+    const legendRow = screen
+      .getByText('Não participou')
+      .closest('div')?.parentElement;
+    expect(legendRow?.querySelector('.bg-indicator-primary')).not.toBeNull();
+  });
+
+  it('labels each slice with its share of the five', () => {
+    const { container } = render(
+      <PerformanceDistributionChart
+        counters={{
+          highlight: 10,
+          aboveAverage: 25,
+          belowAverage: 15,
+          attentionPoint: 5,
+          notParticipated: 45,
+        }}
+      />
+    );
+
+    expect(
+      Array.from(container.querySelectorAll('svg text')).map(
+        (text) => text.textContent
+      )
+    ).toEqual(['10%', '25%', '15%', '45%']);
+    expect(screen.getByText('45 estudantes (45%)')).toBeInTheDocument();
+    expect(screen.getByText('100 estudantes')).toBeInTheDocument();
+  });
+
+  it('keeps the row, with no slice, when nobody missed it', () => {
+    const { container } = render(
+      <PerformanceDistributionChart
+        counters={{ ...withAbsent, notParticipated: 0 }}
+      />
+    );
+
+    expect(screen.getByText('Não participou')).toBeInTheDocument();
+    expect(screen.getByText('0 estudantes (0%)')).toBeInTheDocument();
+    expect(screen.getAllByText('1 estudante (25%)')).toHaveLength(4);
+    expect(
+      container.querySelector('path[fill="var(--color-indicator-primary)"]')
+    ).toBeNull();
+  });
+
+  it('reads a count the API sent as null as zero, keeping its row', () => {
+    render(
+      <PerformanceDistributionChart
+        counters={{
+          ...withAbsent,
+          notParticipated: null as unknown as number,
+        }}
+      />
+    );
+
+    expect(screen.getByText('Não participou')).toBeInTheDocument();
+    expect(screen.getByText('0 estudantes (0%)')).toBeInTheDocument();
+    expect(screen.getAllByText('1 estudante (25%)')).toHaveLength(4);
+  });
+
+  it('fills the whole pie when nobody took the exam', () => {
+    const { container } = render(
+      <PerformanceDistributionChart
+        counters={{ ...createEmptyCounters(), notParticipated: 12 }}
+      />
+    );
+
+    expect(
+      container.querySelector('circle[fill="var(--color-indicator-primary)"]')
+    ).not.toBeNull();
+    expect(screen.getByText('12 estudantes (100%)')).toBeInTheDocument();
+    expect(screen.queryByText('Sem dados')).not.toBeInTheDocument();
+  });
+
+  it('shows no data when every tier, "Não participou" included, is zero', () => {
+    render(
+      <PerformanceDistributionChart
+        counters={{ ...createEmptyCounters(), notParticipated: 0 }}
+      />
+    );
+
+    expect(screen.getByText('Sem dados')).toBeInTheDocument();
+    expect(screen.queryByText('Não participou')).not.toBeInTheDocument();
+  });
+
+  it('has no fifth tier when the counters leave it out', () => {
+    const { container } = render(
+      <PerformanceDistributionChart counters={createMockCounters()} />
+    );
+
+    expect(screen.queryByText('Não participou')).not.toBeInTheDocument();
+    expect(container.querySelectorAll('svg path')).toHaveLength(4);
+    expect(container.querySelector('.bg-indicator-primary')).toBeNull();
+    expect(screen.getByText('55 estudantes')).toBeInTheDocument();
+  });
+});

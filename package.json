@@ -861,6 +861,20 @@
       "require": "./dist/SimulationsPage/index.js",
       "default": "./dist/SimulationsPage/index.mjs"
     },
+    "./enem-moment": {
+      "types": "./dist/EnemMoment/index.d.ts",
+      "module": "./dist/EnemMoment/index.mjs",
+      "import": "./dist/EnemMoment/index.mjs",
+      "require": "./dist/EnemMoment/index.js",
+      "default": "./dist/EnemMoment/index.mjs"
+    },
+    "./enem-moment-student-modal": {
+      "types": "./dist/EnemMomentStudentModal/index.d.ts",
+      "module": "./dist/EnemMomentStudentModal/index.mjs",
+      "import": "./dist/EnemMomentStudentModal/index.mjs",
+      "require": "./dist/EnemMomentStudentModal/index.js",
+      "default": "./dist/EnemMomentStudentModal/index.mjs"
+    },
     "./hooks/usesimulations": {
       "types": "./dist/hooks/useSimulations/index.d.ts",
       "module": "./dist/hooks/useSimulations/index.mjs",
