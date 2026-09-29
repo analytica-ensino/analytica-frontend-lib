@@ -567,7 +567,7 @@ describe('LessonBank', () => {
       });
     });
 
-    it('should close modal when clicking Cancelar button', async () => {
+    it('should close modal when clicking Continuar planejando a aula button', async () => {
       const apiClient = createMockApiClient();
       render(<LessonBank apiClient={apiClient} filters={defaultFilters} />);
 
@@ -584,13 +584,7 @@ describe('LessonBank', () => {
         expect(screen.getByTestId('modal')).toBeInTheDocument();
       });
 
-      const cancelButtons = screen.getAllByText('Cancelar');
-      const cancelButton = cancelButtons.find((btn) =>
-        btn.closest('[data-testid="modal-footer"]')
-      );
-      if (cancelButton) {
-        fireEvent.click(cancelButton);
-      }
+      fireEvent.click(screen.getByText('Continuar planejando a aula'));
 
       await waitFor(() => {
         expect(screen.queryByTestId('modal')).not.toBeInTheDocument();
@@ -948,13 +942,7 @@ describe('LessonBank', () => {
       });
 
       // Close modal
-      const cancelButtons = screen.getAllByText('Cancelar');
-      const cancelButton = cancelButtons.find((btn) =>
-        btn.closest('[data-testid="modal-footer"]')
-      );
-      if (cancelButton) {
-        fireEvent.click(cancelButton);
-      }
+      fireEvent.click(screen.getByText('Continuar planejando a aula'));
 
       await waitFor(() => {
         expect(screen.queryByTestId('modal')).not.toBeInTheDocument();

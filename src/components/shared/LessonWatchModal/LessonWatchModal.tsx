@@ -1,4 +1,4 @@
-import React, { type RefObject } from 'react';
+import type { ReactNode, RefObject } from 'react';
 import { Button, Modal, Text, Alert } from '../../../index';
 import type { Lesson } from '../../../types/lessons';
 import type { WhiteboardImage } from '../../Whiteboard/Whiteboard';
@@ -29,9 +29,9 @@ export interface LessonWatchModalProps {
     total: number
   ) => RefObject<HTMLDivElement | null> | null;
   /**
-   * Custom footer content. If not provided, defaults to a Cancel button.
+   * Custom footer content. If not provided, defaults to a 'Continuar planejando a aula' button.
    */
-  footer?: React.ReactNode;
+  footer?: ReactNode;
   /**
    * Modal title. Defaults to selectedLesson?.title || 'Assistir Aula'
    */
@@ -115,7 +115,7 @@ export const LessonWatchModal = ({
   const defaultFooter = (
     <div className="flex gap-3">
       <Button variant="outline" onClick={onClose}>
-        Cancelar
+        Continuar planejando a aula
       </Button>
     </div>
   );
@@ -126,7 +126,6 @@ export const LessonWatchModal = ({
       onClose={onClose}
       title={title || selectedLesson?.title || 'Assistir Aula'}
       size="lg"
-      hideCloseButton={true}
       footer={footer ?? defaultFooter}
     >
       <div className="flex flex-col gap-4 max-h-[70vh] overflow-auto">
