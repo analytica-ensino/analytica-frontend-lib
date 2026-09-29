@@ -190,6 +190,13 @@ export interface PieSlice {
    * something else — "1h 20min" rather than "45". Falls back to `value`.
    */
   displayValue?: string | number;
+  /**
+   * Como o balão chama esta fatia, quando a legenda a chama de outro jeito.
+   *
+   * A legenda tem espaço para a frase inteira — "Escolheram Inglês" —, o
+   * balão não. Cai para `label` quando ausente.
+   */
+  tooltipLabel?: string;
 }
 
 /** Default radius ratio (44% of size) */
@@ -513,9 +520,13 @@ export const PieChartCard = ({
   className,
   ...props
 }: PieChartCardProps) => {
+  const [hoveredKey, setHoveredKey] = useState<string | null>(null);
+
   const total = slices.reduce((sum, slice) => sum + slice.value, 0);
   const share = (value: number) =>
     total > 0 ? Math.round((value / total) * 100) : 0;
+  const hoveredSlice =
+    slices.find((slice) => (slice.key ?? slice.label) === hoveredKey) ?? null;
 
   return (
     <div
@@ -544,13 +555,25 @@ export const PieChartCard = ({
         )}
       </div>
 
-      <div className="flex justify-center py-2">
+      <div className="relative flex justify-center py-2">
+        {/* O balão é ancorado no topo do gráfico, e não na fatia: a fatia é um
+            arco, o ponteiro entra nela por qualquer lado, e um balão que
+            persegue o arco fica pulando. Ancorado, ele só troca de texto. */}
+        {hoveredSlice !== null && (
+          <div className="pointer-events-none absolute left-1/2 top-0 z-10 -translate-x-1/2 rounded-md bg-text-950 px-2 py-1 shadow-md">
+            <Text as="span" size="xs" weight="medium" color="text-white">
+              {`${hoveredSlice.tooltipLabel ?? hoveredSlice.label}: ${formatValue(hoveredSlice.value)}`}
+            </Text>
+          </div>
+        )}
         <SimplePieChart
           slices={slices}
           size={size}
           emptyText={emptyText}
           labelColor={labelColor}
           labelTextShadow={labelTextShadow}
+          hoveredSlice={hoveredKey}
+          onSliceHover={setHoveredKey}
         />
       </div>
 

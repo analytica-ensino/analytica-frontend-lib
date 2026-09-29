@@ -242,6 +242,27 @@ describe('SimpleBarChart', () => {
       expect(balloon).not.toHaveClass('whitespace-normal');
     });
 
+    it('lets the caller write the balloon, when "rótulo: valor" is not enough', async () => {
+      const user = userEvent.setup();
+      render(
+        <SimpleBarChart
+          data={[{ label: '2 a 4', value: 24845 }]}
+          title="Estudantes por faixa de nota"
+          formatTooltip={(item) =>
+            `Média de ${item.label}: ${item.value.toLocaleString('pt-BR')} estudantes`
+          }
+        />
+      );
+
+      await user.hover(screen.getByTestId('bar-2 a 4'));
+
+      // O eixo só comporta "2 a 4"; o balão é onde a barra se explica — e
+      // onde o número ganha separador de milhar.
+      expect(screen.getByRole('tooltip')).toHaveTextContent(
+        'Média de 2 a 4: 24.845 estudantes'
+      );
+    });
+
     it('has no balloon for a bar with nothing in it', async () => {
       const user = userEvent.setup();
       render(

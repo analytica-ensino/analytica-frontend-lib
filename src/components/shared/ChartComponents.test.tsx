@@ -280,6 +280,42 @@ describe('LegendPieCard', () => {
 });
 
 describe('PieChartCard', () => {
+  it('mostra o balão da fatia sob o ponteiro', () => {
+    const { container } = render(
+      <PieChartCard
+        title="Idioma"
+        formatValue={(n) => `${n.toLocaleString('pt-BR')} estudantes`}
+        slices={[
+          {
+            key: 'english',
+            label: 'Escolheram Inglês',
+            tooltipLabel: 'Inglês',
+            value: 35711,
+            colorClass: 'bg-info-300',
+          },
+          {
+            key: 'spanish',
+            label: 'Escolheram Espanhol',
+            tooltipLabel: 'Espanhol',
+            value: 42151,
+            colorClass: 'bg-info-700',
+          },
+        ]}
+      />
+    );
+
+    const fatias = container.querySelectorAll('svg g');
+    fireEvent.mouseEnter(fatias[0]);
+
+    // A legenda tem espaço para "Escolheram Inglês"; o balão não, e por isso
+    // a fatia pode se chamar de outro jeito ali.
+    expect(screen.getByText('Inglês: 35.711 estudantes')).toBeInTheDocument();
+
+    fireEvent.mouseLeave(container.querySelector('svg')!);
+    expect(
+      screen.queryByText('Inglês: 35.711 estudantes')
+    ).not.toBeInTheDocument();
+  });
   const languages: PieSlice[] = [
     { key: 'en', label: 'Inglês', value: 9056, colorClass: 'bg-info-300' },
     { key: 'es', label: 'Espanhol', value: 9410, colorClass: 'bg-success-300' },

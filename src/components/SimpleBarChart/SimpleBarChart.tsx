@@ -26,6 +26,15 @@ export interface SimpleBarChartProps extends HTMLAttributes<HTMLDivElement> {
   chartHeight?: number;
   /** Tailwind bg- color class for the bars (e.g., "bg-info-500") */
   barColor?: string;
+  /**
+   * O texto do balão, quando "rótulo: valor" não diz o suficiente.
+   *
+   * O rótulo do eixo é curto por necessidade — cabe um quinto da largura do
+   * card —, e o balão é onde a barra pode se explicar por extenso: "2 a 4"
+   * no eixo, "Média de 2 a 4: 24.845 estudantes" no balão. Sem isto, o
+   * número do balão também sai sem separador de milhar.
+   */
+  formatTooltip?: (item: SimpleBarChartDataItem) => string;
 }
 
 /**
@@ -90,6 +99,7 @@ const GridLines = ({
 );
 
 const Bar = ({
+  formatTooltip,
   item,
   maxValue,
   chartHeight,
@@ -99,6 +109,7 @@ const Bar = ({
   maxValue: number;
   chartHeight: number;
   barColor: string;
+  formatTooltip?: (item: SimpleBarChartDataItem) => string;
 }) => {
   const barHeight = maxValue === 0 ? 0 : (item.value / maxValue) * chartHeight;
 
@@ -110,7 +121,7 @@ const Bar = ({
           style={{ background: bgClassToCssVar(barColor) }}
         />
         <Text as="span" size="xs" weight="medium" color="text-white">
-          {item.label}: {item.value}
+          {formatTooltip ? formatTooltip(item) : `${item.label}: ${item.value}`}
         </Text>
       </div>
     ) : null;
@@ -183,6 +194,7 @@ export const SimpleBarChart = ({
   subtitle,
   chartHeight = 180,
   barColor = 'bg-info-500',
+  formatTooltip,
   className,
   ...props
 }: SimpleBarChartProps) => {
@@ -233,6 +245,7 @@ export const SimpleBarChart = ({
                   maxValue={adjustedMax}
                   chartHeight={chartHeight}
                   barColor={barColor}
+                  formatTooltip={formatTooltip}
                 />
               </div>
             ))}
