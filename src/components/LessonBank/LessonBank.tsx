@@ -406,7 +406,7 @@ export const LessonBank = ({
         footer={
           <div className="flex gap-3">
             <Button variant="outline" onClick={handleCloseModal}>
-              Cancelar
+              Continuar planejando a aula
             </Button>
             <Button variant="solid" onClick={handleAddFromModalWithToast}>
               Adicionar à aula
