@@ -84,15 +84,25 @@ jest.mock('../Alternative/Alternative', () => ({
     title,
     subTitle,
     content,
+    titleId,
+    contentId,
+    titleRef,
   }: {
     title: string;
     subTitle: string;
     content: string;
+    titleId?: string;
+    contentId?: string;
+    titleRef?: React.Ref<HTMLHeadingElement>;
   }) => (
     <div data-testid="header-alternative">
-      <div data-testid="title">{title}</div>
+      <h2 data-testid="title" id={titleId} ref={titleRef} tabIndex={-1}>
+        {title}
+      </h2>
       <div data-testid="subtitle">{subTitle}</div>
-      <div data-testid="content">{content}</div>
+      <div data-testid="content" id={contentId}>
+        {content}
+      </div>
     </div>
   ),
   AlternativesList: ({
@@ -1257,6 +1267,49 @@ describe('Quiz', () => {
       expect(screen.getByTestId('content')).toHaveTextContent(
         'Qual é a capital do Brasil?'
       );
+    });
+
+    it('should expose the heading and statement ids used by the answer controls', () => {
+      mockGetCurrentQuestion.mockReturnValue({
+        id: 'question-1',
+        statement: 'Enunciado',
+      });
+      mockGetQuestionIndex.mockReturnValue(1);
+
+      render(<QuizHeader />);
+
+      expect(screen.getByTestId('title')).toHaveAttribute(
+        'id',
+        'quiz-question-title-question-1'
+      );
+      expect(screen.getByTestId('content')).toHaveAttribute(
+        'id',
+        'quiz-question-statement-question-1'
+      );
+    });
+
+    it('should move focus to the heading only when the question changes', () => {
+      mockGetCurrentQuestion.mockReturnValue({
+        id: 'question-1',
+        statement: 'Enunciado',
+      });
+      mockGetQuestionIndex.mockReturnValue(1);
+
+      const { rerender } = render(<QuizHeader />);
+      // Opening the quiz must not steal focus
+      expect(screen.getByTestId('title')).not.toHaveFocus();
+
+      rerender(<QuizHeader />);
+      expect(screen.getByTestId('title')).not.toHaveFocus();
+
+      mockUseQuizStore.mockReturnValue({
+        getCurrentQuestion: mockGetCurrentQuestion,
+        getQuestionIndex: mockGetQuestionIndex,
+        currentQuestionIndex: 1,
+      });
+      rerender(<QuizHeader />);
+
+      expect(screen.getByTestId('title')).toHaveFocus();
     });
 
     it('should render correct question number based on currentQuestionIndex', () => {

@@ -8,6 +8,10 @@ import Badge from '../Badge/Badge';
 import { HtmlMathRenderer } from '../HtmlMathRenderer';
 import { QuizVariant } from '../Quiz/Quiz.types';
 import { OptionStatus } from '../../enums/Options';
+import {
+  ROW_INTERACTION_CLASSES,
+  STRETCHED_LABEL_CLASSES,
+} from '../Alternative/choiceRowClasses';
 
 interface Choice {
   value: string;
@@ -23,6 +27,10 @@ interface MultipleChoiceListProps extends HtmlHTMLAttributes<HTMLDivElement> {
   selectedValues?: string[];
   onHandleSelectedValues?: (values: string[]) => void;
   mode?: 'interactive' | 'readonly';
+  /** Id of the element that names the group (e.g. the question heading) */
+  labelledBy?: string;
+  /** Id(s) of the element(s) that describe the group (e.g. the statement) */
+  describedBy?: string;
 }
 
 const MultipleChoiceList = ({
@@ -33,7 +41,18 @@ const MultipleChoiceList = ({
   selectedValues,
   onHandleSelectedValues,
   mode = QuizVariant.INTERACTIVE,
+  labelledBy,
+  describedBy,
 }: MultipleChoiceListProps) => {
+  // A heading passed by the consumer names the group; otherwise fall back to
+  // a fixed, readable label instead of the generated group name.
+  const groupA11yProps = {
+    role: 'group',
+    ...(labelledBy
+      ? { 'aria-labelledby': labelledBy, 'aria-label': undefined }
+      : { 'aria-label': 'Alternativas' }),
+    'aria-describedby': describedBy,
+  };
   const [actualValue, setActualValue] = useState(selectedValues);
 
   // Mirror the incoming prop into local state, but only when its *value*
@@ -99,7 +118,7 @@ const MultipleChoiceList = ({
 
   if (mode === 'readonly') {
     return (
-      <div className={cn('flex flex-col gap-2', className)}>
+      <div {...groupA11yProps} className={cn('flex flex-col gap-2', className)}>
         {choices.map((choice, i) => {
           const isSelected = actualValue?.includes(choice.value) || false;
           const statusStyles = getStatusStyles(choice.status);
@@ -149,6 +168,7 @@ const MultipleChoiceList = ({
     >
       <CheckboxList
         name={name}
+        {...groupA11yProps}
         values={actualValue}
         onValuesChange={(v) => {
           setActualValue(v);
@@ -159,7 +179,13 @@ const MultipleChoiceList = ({
         {choices.map((choice, i) => (
           <div
             key={`interactive-${choice.value}-${i}`}
-            className="flex flex-row gap-2 items-center"
+            className={cn(
+              'flex flex-row gap-2 items-center p-2 rounded-lg transition-all',
+              ROW_INTERACTION_CLASSES,
+              choice.disabled || disabled
+                ? 'cursor-not-allowed'
+                : 'cursor-pointer hover:bg-background-50'
+            )}
           >
             <CheckboxListItem
               value={choice.value}
@@ -171,6 +197,7 @@ const MultipleChoiceList = ({
               htmlFor={`interactive-${choice.value}-${i}`}
               className={cn(
                 'flex-1',
+                STRETCHED_LABEL_CLASSES,
                 actualValue?.includes(choice.value)
                   ? 'text-text-950'
                   : 'text-text-600',

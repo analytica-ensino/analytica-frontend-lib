@@ -2,11 +2,15 @@ import { CheckCircleIcon } from '@phosphor-icons/react/dist/csr/CheckCircle';
 import { XCircleIcon } from '@phosphor-icons/react/dist/csr/XCircle';
 import Badge from '../Badge/Badge';
 import { RadioGroup, RadioGroupItem } from '../Radio/Radio';
-import { forwardRef, HTMLAttributes, useId, useState } from 'react';
+import { forwardRef, HTMLAttributes, Ref, useId, useState } from 'react';
 import { cn } from '../../utils/utils';
 import { HtmlMathRenderer } from '../HtmlMathRenderer';
 import { QuizVariant } from '../Quiz/Quiz.types';
 import { OptionStatus } from '../../enums/Options';
+import {
+  ROW_INTERACTION_CLASSES,
+  STRETCHED_LABEL_CLASSES,
+} from './choiceRowClasses';
 
 /**
  * Interface para definir uma alternativa
@@ -43,7 +47,15 @@ export interface AlternativesListProps {
   mode?: 'interactive' | 'readonly';
   /** Valor selecionado pelo usuário (apenas para modo readonly) */
   selectedValue?: string;
+  /** Id of the element that names the group (e.g. the question heading) */
+  labelledBy?: string;
+  /** Id(s) of the element(s) that describe the group (e.g. the statement) */
+  describedBy?: string;
 }
+
+/** Arrow-key hint read to keyboard users when they Tab into the group. */
+export const ALTERNATIVES_KEYBOARD_HINT =
+  'Use as setas para ouvir e escolher as outras alternativas.';
 
 /**
  * Componente reutilizável para exibir lista de alternativas com RadioGroup
@@ -89,10 +101,18 @@ const AlternativesList = ({
   className = '',
   mode = QuizVariant.INTERACTIVE,
   selectedValue,
+  labelledBy,
+  describedBy,
 }: AlternativesListProps) => {
   // Gerar um ID único para garantir que cada instância tenha seu próprio grupo
   const uniqueId = useId();
   const groupName = name || `alternatives-${uniqueId}`;
+  const hintId = `alternatives-hint-${uniqueId}`;
+  // A heading passed by the consumer names the group; otherwise fall back to
+  // a fixed, readable label instead of the generated group name.
+  const groupNameProps = labelledBy
+    ? { 'aria-labelledby': labelledBy, 'aria-label': undefined }
+    : { 'aria-label': 'Alternativas' };
   const [actualValue, setActualValue] = useState(value);
   // No modo readonly, não precisamos de interação
   const isReadonly = mode === 'readonly';
@@ -296,7 +316,8 @@ const AlternativesList = ({
       // (`question-<uuid>`), que seria lido em voz alta como lixo.
       <div
         role="radiogroup"
-        aria-label="Alternativas"
+        {...groupNameProps}
+        aria-describedby={describedBy}
         aria-readonly="true"
         className={cn('flex flex-col', getLayoutClasses(), 'w-full', className)}
       >
@@ -307,106 +328,129 @@ const AlternativesList = ({
     );
   }
 
-  return (
-    <RadioGroup
-      name={groupName}
-      defaultValue={defaultValue}
-      value={value}
-      onValueChange={(value) => {
-        setActualValue(value);
-        onValueChange?.(value);
-      }}
-      disabled={disabled}
-      className={cn('flex flex-col', getLayoutClasses(), className)}
-    >
-      {alternatives.map((alternative, index) => {
-        const alternativeId = alternative.value || `alt-${index}`;
-        const statusStyles = getStatusStyles(alternative.status, false);
-        const statusBadge = getStatusBadge(alternative.status);
+  // Radios are a single Tab stop: without the hint, a keyboard-only user hears
+  // one alternative and Tabs out of the group without knowing arrows exist.
+  const interactiveDescribedBy = [describedBy, hintId]
+    .filter(Boolean)
+    .join(' ');
 
-        if (layout === 'detailed') {
+  return (
+    <>
+      <RadioGroup
+        name={groupName}
+        {...groupNameProps}
+        aria-describedby={interactiveDescribedBy}
+        defaultValue={defaultValue}
+        value={value}
+        onValueChange={(value) => {
+          setActualValue(value);
+          onValueChange?.(value);
+        }}
+        disabled={disabled}
+        className={cn('flex flex-col', getLayoutClasses(), className)}
+      >
+        {alternatives.map((alternative, index) => {
+          const alternativeId = alternative.value || `alt-${index}`;
+          const statusStyles = getStatusStyles(alternative.status, false);
+          const statusBadge = getStatusBadge(alternative.status);
+
+          if (layout === 'detailed') {
+            return (
+              <div
+                key={alternativeId}
+                className={cn(
+                  'border-2 rounded-lg p-4 transition-all',
+                  ROW_INTERACTION_CLASSES,
+                  statusStyles,
+                  alternative.disabled
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'cursor-pointer'
+                )}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3 flex-1">
+                    <RadioGroupItem
+                      value={alternative.value}
+                      id={alternativeId}
+                      disabled={alternative.disabled}
+                      className="mt-1"
+                    />
+                    <div className="flex-1">
+                      <label
+                        htmlFor={alternativeId}
+                        className={cn(
+                          'block font-medium',
+                          STRETCHED_LABEL_CLASSES,
+                          actualValue === alternative.value
+                            ? 'text-text-950'
+                            : 'text-text-600',
+                          alternative.disabled
+                            ? 'cursor-not-allowed'
+                            : 'cursor-pointer'
+                        )}
+                      >
+                        <HtmlMathRenderer content={alternative.label} inline />
+                      </label>
+                      {alternative.description && (
+                        <p className="text-sm text-text-600 mt-1">
+                          {alternative.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  {statusBadge && (
+                    <div className="flex-shrink-0">{statusBadge}</div>
+                  )}
+                </div>
+              </div>
+            );
+          }
+
           return (
             <div
               key={alternativeId}
               className={cn(
-                'border-2 rounded-lg p-4 transition-all',
+                'flex flex-row justify-between gap-2 items-start p-2 rounded-lg transition-all',
+                ROW_INTERACTION_CLASSES,
                 statusStyles,
                 alternative.disabled
                   ? 'opacity-50 cursor-not-allowed'
                   : 'cursor-pointer'
               )}
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-start gap-3 flex-1">
-                  <RadioGroupItem
-                    value={alternative.value}
-                    id={alternativeId}
-                    disabled={alternative.disabled}
-                    className="mt-1"
-                  />
-                  <div className="flex-1">
-                    <label
-                      htmlFor={alternativeId}
-                      className={cn(
-                        'block font-medium',
-                        actualValue === alternative.value
-                          ? 'text-text-950'
-                          : 'text-text-600',
-                        alternative.disabled
-                          ? 'cursor-not-allowed'
-                          : 'cursor-pointer'
-                      )}
-                    >
-                      <HtmlMathRenderer content={alternative.label} inline />
-                    </label>
-                    {alternative.description && (
-                      <p className="text-sm text-text-600 mt-1">
-                        {alternative.description}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                {statusBadge && (
-                  <div className="flex-shrink-0">{statusBadge}</div>
-                )}
+              <div className="flex items-center gap-2 flex-1">
+                <RadioGroupItem
+                  value={alternative.value}
+                  id={alternativeId}
+                  disabled={alternative.disabled}
+                />
+                <label
+                  htmlFor={alternativeId}
+                  className={cn(
+                    'flex-1',
+                    STRETCHED_LABEL_CLASSES,
+                    actualValue === alternative.value
+                      ? 'text-text-950'
+                      : 'text-text-600',
+                    alternative.disabled
+                      ? 'cursor-not-allowed'
+                      : 'cursor-pointer'
+                  )}
+                >
+                  <HtmlMathRenderer content={alternative.label} inline />
+                </label>
               </div>
+              {statusBadge && (
+                <div className="flex-shrink-0">{statusBadge}</div>
+              )}
             </div>
           );
-        }
-
-        return (
-          <div
-            key={alternativeId}
-            className={cn(
-              'flex flex-row justify-between gap-2 items-start p-2 rounded-lg transition-all',
-              statusStyles,
-              alternative.disabled ? 'opacity-50 cursor-not-allowed' : ''
-            )}
-          >
-            <div className="flex items-center gap-2 flex-1">
-              <RadioGroupItem
-                value={alternative.value}
-                id={alternativeId}
-                disabled={alternative.disabled}
-              />
-              <label
-                htmlFor={alternativeId}
-                className={cn(
-                  'flex-1',
-                  actualValue === alternative.value
-                    ? 'text-text-950'
-                    : 'text-text-600',
-                  alternative.disabled ? 'cursor-not-allowed' : 'cursor-pointer'
-                )}
-              >
-                <HtmlMathRenderer content={alternative.label} inline />
-              </label>
-            </div>
-            {statusBadge && <div className="flex-shrink-0">{statusBadge}</div>}
-          </div>
-        );
-      })}
-    </RadioGroup>
+        })}
+      </RadioGroup>
+      <span id={hintId} className="sr-only">
+        {ALTERNATIVES_KEYBOARD_HINT}
+      </span>
+    </>
   );
 };
 
@@ -414,10 +458,34 @@ interface HeaderAlternativeProps extends HTMLAttributes<HTMLDivElement> {
   title: string;
   subTitle: string;
   content: string;
+  /** Id of the heading, referenced by the answer controls' `aria-labelledby` */
+  titleId?: string;
+  /** Id of the statement, referenced by the answer controls' `aria-describedby` */
+  contentId?: string;
+  /** Ref to the heading, used to move focus to it when the question changes */
+  titleRef?: Ref<HTMLHeadingElement>;
 }
 
 const HeaderAlternative = forwardRef<HTMLDivElement, HeaderAlternativeProps>(
-  ({ className, title, subTitle, content, ...props }, ref) => {
+  (
+    {
+      className,
+      title,
+      subTitle,
+      content,
+      titleId,
+      contentId,
+      titleRef,
+      ...props
+    },
+    ref
+  ) => {
+    const subTitleId = titleId && subTitle ? `${titleId}-subtitle` : undefined;
+    // Read after the heading name when it gets focus: the topic, then the
+    // whole statement. `undefined` keeps the attribute off when nothing is set.
+    const headingDescribedBy =
+      [subTitleId, contentId].filter(Boolean).join(' ') || undefined;
+
     return (
       <div
         ref={ref}
@@ -428,11 +496,32 @@ const HeaderAlternative = forwardRef<HTMLDivElement, HeaderAlternativeProps>(
         {...props}
       >
         <span className="flex flex-col">
-          <p className="text-text-950 font-bold text-lg">{title}</p>
-          <p className="text-text-700 text-sm ">{subTitle}</p>
+          {/*
+           * Heading so screen-reader users can jump between questions. It is
+           * not in the Tab order (it is not a control); it only takes focus
+           * programmatically when the question changes, and then announces
+           * "Questão 01, heading level 2, <topic>, <statement>".
+           */}
+          <h2
+            id={titleId}
+            ref={titleRef}
+            tabIndex={-1}
+            aria-describedby={headingDescribedBy}
+            className="text-text-950 font-bold text-lg focus:outline-none"
+          >
+            {title}
+          </h2>
+          <p id={subTitleId} className="text-text-700 text-sm ">
+            {subTitle}
+          </p>
         </span>
 
-        <HtmlMathRenderer content={content} className="text-text-950 text-md" />
+        <div id={contentId}>
+          <HtmlMathRenderer
+            content={content}
+            className="text-text-950 text-md"
+          />
+        </div>
       </div>
     );
   }

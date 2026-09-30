@@ -24,6 +24,8 @@ jest.mock('../MultipleChoice/MultipleChoice', () => ({
     selectedValues,
     onHandleSelectedValues,
     mode,
+    labelledBy,
+    describedBy,
   }: {
     choices: {
       value: string;
@@ -32,8 +34,14 @@ jest.mock('../MultipleChoice/MultipleChoice', () => ({
     selectedValues: string[];
     onHandleSelectedValues: (values: string[]) => void;
     mode: string;
+    labelledBy?: string;
+    describedBy?: string;
   }) => (
-    <div data-testid="multiple-choice-list">
+    <div
+      data-testid="multiple-choice-list"
+      aria-labelledby={labelledBy}
+      aria-describedby={describedBy}
+    >
       {choices?.map(
         (
           choice: {
@@ -163,6 +171,8 @@ jest.mock('../Alternative/Alternative', () => ({
     alternatives,
     onValueChange,
     value,
+    labelledBy,
+    describedBy,
   }: {
     alternatives: {
       value: string;
@@ -170,8 +180,14 @@ jest.mock('../Alternative/Alternative', () => ({
     }[];
     onValueChange: (value: string) => void;
     value: string;
+    labelledBy?: string;
+    describedBy?: string;
   }) => (
-    <div data-testid="alternatives-list">
+    <div
+      data-testid="alternatives-list"
+      aria-labelledby={labelledBy}
+      aria-describedby={describedBy}
+    >
       {alternatives?.map(
         (
           alt: {
@@ -678,6 +694,27 @@ describe('QuizContent', () => {
       expect(screen.getByTestId('alternative-opt3')).toBeInTheDocument();
     });
 
+    it('should link the alternatives to the question heading and statement', () => {
+      mockGetCurrentQuestion.mockReturnValue({
+        id: 'question-1',
+        options: [{ id: 'opt1', option: 'Option A' }],
+      });
+      mockGetCurrentAnswer.mockReturnValue(null);
+      mockGetQuestionResultByQuestionId.mockReturnValue(null);
+
+      render(<QuizAlternative />);
+
+      const list = screen.getByTestId('alternatives-list');
+      expect(list).toHaveAttribute(
+        'aria-labelledby',
+        'quiz-question-title-question-1'
+      );
+      expect(list).toHaveAttribute(
+        'aria-describedby',
+        'quiz-question-statement-question-1'
+      );
+    });
+
     it('should handle question without alternatives', () => {
       const mockQuestion = {
         id: 'question-1',
@@ -898,6 +935,26 @@ describe('QuizContent', () => {
       expect(screen.getByTestId('choice-opt1')).toBeInTheDocument();
       expect(screen.getByTestId('choice-opt2')).toBeInTheDocument();
       expect(screen.getByTestId('choice-opt3')).toBeInTheDocument();
+    });
+
+    it('should link the choices to the question heading and statement', () => {
+      mockGetCurrentQuestion.mockReturnValue({
+        id: 'question-1',
+        options: [{ id: 'opt1', option: 'Option A' }],
+      });
+      mockGetQuestionResultByQuestionId.mockReturnValue(null);
+
+      render(<QuizMultipleChoice />);
+
+      const list = screen.getByTestId('multiple-choice-list');
+      expect(list).toHaveAttribute(
+        'aria-labelledby',
+        'quiz-question-title-question-1'
+      );
+      expect(list).toHaveAttribute(
+        'aria-describedby',
+        'quiz-question-statement-question-1'
+      );
     });
 
     it('should handle question without choices', () => {
@@ -1159,6 +1216,27 @@ describe('QuizContent', () => {
       } as unknown as ReturnType<typeof useQuizStore>);
 
       jest.clearAllMocks();
+    });
+
+    it('should name the answer field by the question heading and statement', () => {
+      mockGetCurrentQuestion.mockReturnValue({
+        id: 'question-1',
+        statement: 'Explain the concept of React hooks',
+      });
+      mockGetCurrentAnswer.mockReturnValue(null);
+      mockGetQuestionResultByQuestionId.mockReturnValue(null);
+
+      render(<QuizDissertative />);
+
+      const textarea = screen.getByTestId('quiz-textarea');
+      expect(textarea).toHaveAttribute(
+        'aria-labelledby',
+        'quiz-question-title-question-1'
+      );
+      expect(textarea).toHaveAttribute(
+        'aria-describedby',
+        'quiz-question-statement-question-1'
+      );
     });
 
     it('should render dissertative question correctly', () => {

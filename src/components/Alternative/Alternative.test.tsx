@@ -4,6 +4,7 @@ import '@testing-library/jest-dom';
 import {
   AlternativesList,
   Alternative,
+  ALTERNATIVES_KEYBOARD_HINT,
   HeaderAlternative,
 } from './Alternative';
 import { OptionStatus } from '../../enums/Options';
@@ -1219,7 +1220,8 @@ describe('HeaderAlternative', () => {
         'Resolva a equação quadrática x² + 5x + 6 = 0.'
       );
 
-      expect(titleElement.tagName).toBe('P');
+      // The title is a heading so screen-reader users can jump between questions
+      expect(titleElement.tagName).toBe('H2');
       expect(subtitleElement.tagName).toBe('P');
       // HtmlMathRenderer uses a div wrapper for proper HTML/LaTeX rendering
       expect(contentElement.tagName).toBe('DIV');
@@ -1400,5 +1402,187 @@ describe('HeaderAlternative', () => {
         )
       ).toBeInTheDocument();
     });
+  });
+});
+
+describe('AlternativesList - whole row selection (a11y)', () => {
+  const alternatives: Alternative[] = [
+    { value: 'a', label: 'Alternativa A' },
+    { value: 'b', label: 'Alternativa B', status: OptionStatus.INCORRECT },
+    { value: 'c', label: 'Alternativa C', disabled: true },
+  ];
+
+  it('names the radiogroup with a readable label instead of the group name', () => {
+    render(
+      <AlternativesList name="question-123" alternatives={alternatives} />
+    );
+
+    expect(
+      screen.getByRole('radiogroup', { name: 'Alternativas' })
+    ).toBeInTheDocument();
+  });
+
+  it('exposes each alternative as a radio named by its text', () => {
+    render(<AlternativesList alternatives={alternatives} />);
+
+    expect(
+      screen.getByRole('radio', { name: 'Alternativa A' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('radio', { name: 'Alternativa B' })
+    ).toBeInTheDocument();
+  });
+
+  it.each(['default', 'detailed'] as const)(
+    'stretches the label over the whole row in %s layout',
+    (layout) => {
+      render(<AlternativesList layout={layout} alternatives={alternatives} />);
+
+      const radio = screen.getByRole('radio', { name: 'Alternativa B' });
+      const label = document.querySelector(
+        `label[for="${radio.id}"]:not([aria-hidden])`
+      );
+      const row = label?.closest('.relative.rounded-lg');
+
+      expect(label).toHaveClass('after:absolute', 'after:inset-0');
+      expect(row).toHaveClass('relative', 'cursor-pointer');
+      expect(row).toContainElement(screen.getByText('Resposta incorreta'));
+    }
+  );
+
+  it('selects the alternative when the row label is clicked', async () => {
+    const user = userEvent.setup();
+    const onValueChange = jest.fn();
+    render(
+      <AlternativesList
+        alternatives={alternatives}
+        onValueChange={onValueChange}
+      />
+    );
+
+    await user.click(screen.getByText('Alternativa B'));
+
+    expect(screen.getByRole('radio', { name: 'Alternativa B' })).toBeChecked();
+    expect(onValueChange).toHaveBeenLastCalledWith('b');
+  });
+
+  it('does not select a disabled alternative and shows not-allowed cursor', async () => {
+    const user = userEvent.setup();
+    const onValueChange = jest.fn();
+    render(
+      <AlternativesList
+        alternatives={alternatives}
+        onValueChange={onValueChange}
+      />
+    );
+
+    const radio = screen.getByRole('radio', { name: 'Alternativa C' });
+    await user.click(screen.getByText('Alternativa C'));
+
+    expect(radio).not.toBeChecked();
+    expect(onValueChange).not.toHaveBeenCalled();
+    expect(radio.closest('.relative.rounded-lg')).toHaveClass(
+      'cursor-not-allowed'
+    );
+  });
+});
+
+describe('Question linkage for keyboard/screen-reader users', () => {
+  const alternatives: Alternative[] = [
+    { value: 'a', label: 'Alternativa A' },
+    { value: 'b', label: 'Alternativa B' },
+  ];
+
+  const renderWithHeader = (mode: 'interactive' | 'readonly') =>
+    render(
+      <>
+        <HeaderAlternative
+          title="Questão 01"
+          subTitle="Álgebra"
+          content="Quanto é 2 + 2?"
+          titleId="q-title"
+          contentId="q-statement"
+        />
+        <AlternativesList
+          mode={mode}
+          labelledBy="q-title"
+          describedBy="q-statement"
+          alternatives={alternatives}
+          selectedValue="a"
+        />
+      </>
+    );
+
+  it('renders the title as a level-2 heading focusable only programmatically', async () => {
+    const user = userEvent.setup();
+    renderWithHeader('interactive');
+
+    const heading = screen.getByRole('heading', {
+      level: 2,
+      name: 'Questão 01',
+    });
+    expect(heading).toHaveAttribute('id', 'q-title');
+    expect(heading).toHaveAttribute('tabindex', '-1');
+
+    // Not a control: Tab goes straight to the answer controls
+    await user.tab();
+    expect(heading).not.toHaveFocus();
+    expect(screen.getByRole('radio', { name: 'Alternativa A' })).toHaveFocus();
+    expect(document.getElementById('q-statement')).toHaveTextContent(
+      'Quanto é 2 + 2?'
+    );
+  });
+
+  it('describes the focused heading with the topic and the statement', () => {
+    renderWithHeader('interactive');
+
+    const heading = screen.getByRole('heading', { name: 'Questão 01' });
+    expect(heading).toHaveAttribute(
+      'aria-describedby',
+      'q-title-subtitle q-statement'
+    );
+    expect(heading).toHaveAccessibleDescription('Álgebra Quanto é 2 + 2?');
+  });
+
+  it('leaves the heading without description when no ids are given', () => {
+    render(
+      <HeaderAlternative
+        title="Questão 01"
+        subTitle="Álgebra"
+        content="Texto"
+      />
+    );
+
+    expect(
+      screen.getByRole('heading', { name: 'Questão 01' })
+    ).not.toHaveAttribute('aria-describedby');
+  });
+
+  it('names the interactive group by the heading and describes it with the statement and the arrow hint', () => {
+    renderWithHeader('interactive');
+
+    const group = screen.getByRole('radiogroup', { name: 'Questão 01' });
+    expect(group).toHaveAccessibleDescription(
+      `Quanto é 2 + 2? ${ALTERNATIVES_KEYBOARD_HINT}`
+    );
+    expect(group).not.toHaveAttribute('aria-label');
+  });
+
+  it('keeps only the arrow hint as description when no statement is linked', () => {
+    render(<AlternativesList alternatives={alternatives} />);
+
+    expect(
+      screen.getByRole('radiogroup', { name: 'Alternativas' })
+    ).toHaveAccessibleDescription(ALTERNATIVES_KEYBOARD_HINT);
+  });
+
+  it('links the readonly group to heading and statement without the arrow hint', () => {
+    renderWithHeader('readonly');
+
+    const group = screen.getByRole('radiogroup', { name: 'Questão 01' });
+    expect(group).toHaveAccessibleDescription('Quanto é 2 + 2?');
+    expect(
+      screen.queryByText(ALTERNATIVES_KEYBOARD_HINT)
+    ).not.toBeInTheDocument();
   });
 });

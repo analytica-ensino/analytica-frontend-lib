@@ -144,3 +144,15 @@ export const getTrueOrFalseOptionState = (
     variantCorrect,
   };
 };
+
+/**
+ * DOM ids that tie a question's heading and statement to its answer controls
+ * (`aria-labelledby` / `aria-describedby`). Keyboard users reach only the
+ * controls with Tab, so without this link the statement is never announced.
+ * @param questionId - Id of the question being rendered
+ * @returns The heading id and the statement id
+ */
+export const getQuestionA11yIds = (questionId = 'current') => ({
+  titleId: `quiz-question-title-${questionId}`,
+  statementId: `quiz-question-statement-${questionId}`,
+});

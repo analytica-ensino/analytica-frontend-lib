@@ -652,219 +652,75 @@ describe('Radio', () => {
     });
   });
 
-  describe('Custom label click handling', () => {
-    it('prevents default and triggers input click when button is clicked', () => {
-      render(<Radio name="test" value="1" label="Click test" />);
+  describe('Native radio semantics', () => {
+    it('exposes the input as an accessible radio named by its label', () => {
+      render(<Radio name="test" value="1" label="Accessible option" />);
 
-      const radio = screen.getByRole('radio', { hidden: true });
-      const button = radio.nextElementSibling as HTMLElement;
-
-      // Spy on input methods
-      const clickSpy = jest.spyOn(radio, 'click');
-      const blurSpy = jest.spyOn(radio, 'blur');
-
-      // Spy on preventDefault
-      const preventDefaultSpy = jest.fn();
-
-      // Create a custom event with preventDefault
-      const clickEvent = new MouseEvent('click', { bubbles: true });
-      Object.defineProperty(clickEvent, 'preventDefault', {
-        value: preventDefaultSpy,
-      });
-
-      // Trigger click on custom button
-      button.dispatchEvent(clickEvent);
-
-      expect(preventDefaultSpy).toHaveBeenCalled();
-      expect(clickSpy).toHaveBeenCalled();
-      expect(blurSpy).toHaveBeenCalled();
-
-      clickSpy.mockRestore();
-      blurSpy.mockRestore();
+      const radio = screen.getByRole('radio', { name: 'Accessible option' });
+      expect(radio).toHaveAttribute('id', 'radio-test-id');
+      expect(radio).not.toHaveStyle({ visibility: 'hidden' });
+      expect(screen.queryByRole('button')).not.toBeInTheDocument();
     });
 
-    it('does not trigger input click when disabled radio button is clicked', () => {
-      render(
-        <Radio disabled name="test" value="1" label="Disabled click test" />
-      );
+    it('renders the visual indicator as a decorative label for the input', () => {
+      render(<Radio name="test" value="1" label="Indicator option" />);
 
-      const radio = screen.getByRole('radio', { hidden: true });
-      const button = radio.nextElementSibling as HTMLElement;
+      const radio = screen.getByRole('radio', { name: 'Indicator option' });
+      const indicator = radio.nextElementSibling as HTMLElement;
 
-      // Spy on input methods
-      const clickSpy = jest.spyOn(radio, 'click');
-      const blurSpy = jest.spyOn(radio, 'blur');
-
-      // For disabled buttons, we can't use dispatchEvent as it won't work
-      // Let's use fireEvent.click which will properly handle the disabled state
-      fireEvent.click(button);
-
-      // When button is disabled, onClick should not be triggered
-      expect(clickSpy).not.toHaveBeenCalled();
-      expect(blurSpy).not.toHaveBeenCalled();
-
-      clickSpy.mockRestore();
-      blurSpy.mockRestore();
+      expect(indicator.tagName).toBe('LABEL');
+      expect(indicator).toHaveAttribute('for', radio.id);
+      expect(indicator).toHaveAttribute('aria-hidden', 'true');
     });
 
-    it('handles case when input element is not found', () => {
-      render(<Radio name="test" value="1" label="Edge case test" />);
-
-      const radio = screen.getByRole('radio', { hidden: true });
-      const button = radio.nextElementSibling as HTMLElement;
-
-      // Mock getElementById to return null
-      const getElementByIdSpy = jest
-        .spyOn(document, 'getElementById')
-        .mockReturnValue(null);
-
-      // Spy on preventDefault
-      const preventDefaultSpy = jest.fn();
-
-      // Create a custom event with preventDefault
-      const clickEvent = new MouseEvent('click', { bubbles: true });
-      Object.defineProperty(clickEvent, 'preventDefault', {
-        value: preventDefaultSpy,
-      });
-
-      // Should not throw error when input is not found
-      expect(() => {
-        button.dispatchEvent(clickEvent);
-      }).not.toThrow();
-
-      expect(preventDefaultSpy).toHaveBeenCalled();
-
-      getElementByIdSpy.mockRestore();
-    });
-
-    it('calls blur on input after click simulation', () => {
-      render(<Radio name="test" value="1" label="Blur test" />);
-
-      const radio = screen.getByRole('radio', { hidden: true });
-      const button = radio.nextElementSibling as HTMLElement;
-
-      // Spy on blur method specifically
-      const blurSpy = jest.spyOn(radio, 'blur');
-
-      // Trigger click on custom button
-      fireEvent.click(button);
-
-      expect(blurSpy).toHaveBeenCalled();
-
-      blurSpy.mockRestore();
-    });
-
-    it('prevents scroll when handleChange is called', async () => {
-      const handleChange = jest.fn();
+    it('checks the radio when the visual indicator is clicked', async () => {
       const user = userEvent.setup();
+      const handleChange = jest.fn();
       render(
         <Radio
           name="test"
           value="1"
-          label="Scroll test"
+          label="Indicator click"
           onChange={handleChange}
         />
       );
 
-      const radio = screen.getByRole('radio', { hidden: true });
+      const radio = screen.getByRole('radio', { name: 'Indicator click' });
+      await user.click(radio.nextElementSibling as HTMLElement);
 
-      // Spy on blur method
-      const blurSpy = jest.spyOn(radio, 'blur');
+      expect(radio).toBeChecked();
+      expect(handleChange).toHaveBeenCalledTimes(1);
+    });
 
-      // Trigger click event which will cause change
+    it('keeps focus on the input after a change', async () => {
+      const user = userEvent.setup();
+      render(<Radio name="test" value="1" label="Focus kept" />);
+
+      const radio = screen.getByRole('radio', { name: 'Focus kept' });
       await user.click(radio);
 
-      expect(handleChange).toHaveBeenCalled();
-      expect(blurSpy).toHaveBeenCalled();
-
-      blurSpy.mockRestore();
+      expect(radio).toBeChecked();
+      expect(radio).toHaveFocus();
     });
 
-    it('maintains scroll prevention functionality through ref usage', () => {
-      render(<Radio name="test" value="1" label="Ref test" />);
-
-      const radio = screen.getByRole('radio', { hidden: true });
-      const button = radio.nextElementSibling as HTMLElement;
-
-      // Spy on blur method
-      const blurSpy = jest.spyOn(radio, 'blur');
-
-      // Trigger click on custom button which should use ref to call blur
-      fireEvent.click(button);
-
-      // The blur should be called via inputRef.current.blur()
-      expect(blurSpy).toHaveBeenCalled();
-
-      blurSpy.mockRestore();
-    });
-
-    it('handles keyboard events for accessibility (Enter and Space)', () => {
+    it('does not check a disabled radio when the indicator is clicked', async () => {
+      const user = userEvent.setup();
       const handleChange = jest.fn();
       render(
         <Radio
+          disabled
           name="test"
           value="1"
-          label="Keyboard test"
+          label="Disabled click test"
           onChange={handleChange}
         />
       );
 
-      const radio = screen.getByRole('radio', { hidden: true });
-      const label = radio.nextElementSibling as HTMLElement;
+      const radio = screen.getByRole('radio', { name: 'Disabled click test' });
+      await user.click(radio.nextElementSibling as HTMLElement);
 
-      // Spy on input methods
-      const clickSpy = jest.spyOn(radio, 'click');
-      const blurSpy = jest.spyOn(radio, 'blur');
-
-      // Test Enter key
-      fireEvent.keyDown(label, { key: 'Enter' });
-      expect(clickSpy).toHaveBeenCalled();
-      expect(blurSpy).toHaveBeenCalled();
-
-      // Reset spies
-      clickSpy.mockClear();
-      blurSpy.mockClear();
-
-      // Test Space key
-      fireEvent.keyDown(label, { key: ' ' });
-      expect(clickSpy).toHaveBeenCalled();
-      expect(blurSpy).toHaveBeenCalled();
-
-      // Test other keys (should not trigger)
-      clickSpy.mockClear();
-      blurSpy.mockClear();
-      fireEvent.keyDown(label, { key: 'Tab' });
-      expect(clickSpy).not.toHaveBeenCalled();
-      expect(blurSpy).not.toHaveBeenCalled();
-
-      clickSpy.mockRestore();
-      blurSpy.mockRestore();
-    });
-
-    it('does not handle keyboard events when disabled', () => {
-      render(
-        <Radio disabled name="test" value="1" label="Disabled keyboard test" />
-      );
-
-      const radio = screen.getByRole('radio', { hidden: true });
-      const label = radio.nextElementSibling as HTMLElement;
-
-      // Spy on input methods
-      const clickSpy = jest.spyOn(radio, 'click');
-      const blurSpy = jest.spyOn(radio, 'blur');
-
-      // Test Enter key with disabled radio
-      fireEvent.keyDown(label, { key: 'Enter' });
-      expect(clickSpy).not.toHaveBeenCalled();
-      expect(blurSpy).not.toHaveBeenCalled();
-
-      // Test Space key with disabled radio
-      fireEvent.keyDown(label, { key: ' ' });
-      expect(clickSpy).not.toHaveBeenCalled();
-      expect(blurSpy).not.toHaveBeenCalled();
-
-      clickSpy.mockRestore();
-      blurSpy.mockRestore();
+      expect(radio).not.toBeChecked();
+      expect(handleChange).not.toHaveBeenCalled();
     });
   });
 });
@@ -1233,27 +1089,50 @@ describe('RadioGroup Component', () => {
     });
   });
 
-  describe('RadioGroupItem Ref Functionality', () => {
-    it('uses ref for input interaction instead of getElementById', () => {
-      render(
-        <RadioGroup>
-          <RadioGroupItem value="option1" />
+  describe('Disabled store guard', () => {
+    it('ignores controlled value changes while the group is disabled', () => {
+      const onValueChange = jest.fn();
+      const { rerender } = render(
+        <RadioGroup disabled value="a" onValueChange={onValueChange}>
+          <RadioGroupItem value="a" id="guard-a" label="Guard A" />
+          <RadioGroupItem value="b" id="guard-b" label="Guard B" />
         </RadioGroup>
       );
 
-      const hiddenInput = screen.getByDisplayValue('option1');
-      const clickSpy = jest.spyOn(hiddenInput, 'click');
-      const blurSpy = jest.spyOn(hiddenInput, 'blur');
+      rerender(
+        <RadioGroup disabled value="b" onValueChange={onValueChange}>
+          <RadioGroupItem value="a" id="guard-a" label="Guard A" />
+          <RadioGroupItem value="b" id="guard-b" label="Guard B" />
+        </RadioGroup>
+      );
 
-      // Find the label element and click it
-      const label = hiddenInput.nextElementSibling as HTMLElement;
-      fireEvent.click(label);
+      expect(screen.getByRole('radio', { name: 'Guard B' })).not.toBeChecked();
+      expect(onValueChange).not.toHaveBeenCalledWith('b');
+    });
+  });
 
-      expect(clickSpy).toHaveBeenCalled();
-      expect(blurSpy).toHaveBeenCalled();
+  describe('Keyboard navigation', () => {
+    it('moves the selection with arrow keys like a native radio group', async () => {
+      const user = userEvent.setup();
+      const onValueChange = jest.fn();
+      render(
+        <RadioGroup
+          name="keyboard"
+          defaultValue="a"
+          onValueChange={onValueChange}
+        >
+          <RadioGroupItem value="a" id="kb-a" label="Option A" />
+          <RadioGroupItem value="b" id="kb-b" label="Option B" />
+        </RadioGroup>
+      );
 
-      clickSpy.mockRestore();
-      blurSpy.mockRestore();
+      await user.click(screen.getByRole('radio', { name: 'Option A' }));
+      await user.keyboard('{ArrowDown}');
+
+      const optionB = screen.getByRole('radio', { name: 'Option B' });
+      expect(optionB).toBeChecked();
+      expect(optionB).toHaveFocus();
+      expect(onValueChange).toHaveBeenLastCalledWith('b');
     });
   });
 
