@@ -199,6 +199,11 @@ export default defineConfig({
     'ModalComponents/index': 'src/components/shared/ModalComponents.tsx',
     'QuestionsPerformanceCard/index':
       'src/components/QuestionsPerformanceCard/index.ts',
+    // Simulados Momento ENEM: the report's sections (gestor and professor) and
+    // the student's modal, apart because it carries KaTeX.
+    'EnemMoment/index': 'src/components/EnemMoment/index.ts',
+    'EnemMomentStudentModal/index':
+      'src/components/EnemMomentStudentModal/index.ts',
     'hooks/useSimulations/index': 'src/hooks/useSimulations.ts',
     'types/simulations/index': 'src/types/simulations.ts',
 

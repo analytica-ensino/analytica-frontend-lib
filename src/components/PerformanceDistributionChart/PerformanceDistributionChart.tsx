@@ -28,49 +28,55 @@ const HOVER_OPACITY = 0.3;
 // HELPERS
 // ============================================================================
 
+/** The tiers of the pie, best first, in the colors of the map's legend. */
+const TIERS: ReadonlyArray<{
+  key: keyof SimulatedPerformanceCounters;
+  label: string;
+  colorClass: string;
+}> = [
+  { key: 'highlight', label: 'Destaque', colorClass: 'bg-map-highlight' },
+  {
+    key: 'aboveAverage',
+    label: 'Acima da média',
+    colorClass: 'bg-map-above-avg',
+  },
+  {
+    key: 'belowAverage',
+    label: 'Abaixo da média',
+    colorClass: 'bg-map-below-avg',
+  },
+  {
+    key: 'attentionPoint',
+    label: 'Ponto de atenção',
+    colorClass: 'bg-map-attention',
+  },
+  {
+    key: 'notParticipated',
+    label: 'Não participou',
+    colorClass: 'bg-indicator-primary',
+  },
+];
+
 /**
- * Build slices from counters
+ * Build slices from counters — "Não participou" only when the counters have
+ * it. Best band first, as the legend and the pie read top-down / clockwise.
  */
 function buildSlices(counters: SimulatedPerformanceCounters): SliceData[] {
-  const total =
-    counters.attentionPoint +
-    counters.belowAverage +
-    counters.aboveAverage +
-    counters.highlight;
+  const tiers = TIERS.filter((tier) => counters[tier.key] !== undefined);
+  const total = tiers.reduce((sum, tier) => sum + (counters[tier.key] ?? 0), 0);
 
   if (total === 0) return [];
 
-  // Best band first, as the legend and the pie read top-down / clockwise
-  return [
-    {
-      key: 'highlight',
-      label: 'Destaque',
-      value: counters.highlight,
-      percentage: (counters.highlight / total) * 100,
-      colorClass: 'bg-map-highlight',
-    },
-    {
-      key: 'aboveAverage',
-      label: 'Acima da média',
-      value: counters.aboveAverage,
-      percentage: (counters.aboveAverage / total) * 100,
-      colorClass: 'bg-map-above-avg',
-    },
-    {
-      key: 'belowAverage',
-      label: 'Abaixo da média',
-      value: counters.belowAverage,
-      percentage: (counters.belowAverage / total) * 100,
-      colorClass: 'bg-map-below-avg',
-    },
-    {
-      key: 'attentionPoint',
-      label: 'Ponto de atenção',
-      value: counters.attentionPoint,
-      percentage: (counters.attentionPoint / total) * 100,
-      colorClass: 'bg-map-attention',
-    },
-  ];
+  return tiers.map((tier) => {
+    const value = counters[tier.key] ?? 0;
+    return {
+      key: tier.key,
+      label: tier.label,
+      value,
+      percentage: (value / total) * 100,
+      colorClass: tier.colorClass,
+    };
+  });
 }
 
 /**

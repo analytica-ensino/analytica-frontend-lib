@@ -6,6 +6,11 @@ export interface SimulatedPerformanceCounters {
   aboveAverage: number;
   belowAverage: number;
   attentionPoint: number;
+  /**
+   * Students who took nothing — a fifth slice, "Não participou", when given
+   * (the Momento ENEM report). Left out, the chart has the four tiers alone.
+   */
+  notParticipated?: number;
 }
 
 /**

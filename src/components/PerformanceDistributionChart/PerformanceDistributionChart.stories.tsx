@@ -138,6 +138,17 @@ export const SmallValues: Story = () => (
 );
 
 /**
+ * With "Não participou" - the fifth slice, who took nothing (Momento ENEM)
+ */
+export const WithNotParticipated: Story = () => (
+  <div className="max-w-xl">
+    <PerformanceDistributionChart
+      counters={{ ...balancedCounters, notParticipated: 20 }}
+    />
+  </div>
+);
+
+/**
  * Loading State
  */
 export const Loading: Story = () => (
