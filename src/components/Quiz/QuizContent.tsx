@@ -245,6 +245,7 @@ const QuizAlternative = ({ paddingBottom }: QuizVariantInterface) => {
         <div className="space-y-4">
           <AlternativesList
             labelledBy={a11yIds.titleId}
+            describedBy={a11yIds.statementId}
             mode={variant === QuizVariant.DEFAULT ? 'interactive' : 'readonly'}
             key={`question-${currentQuestion?.id || '1'}`}
             name={`question-${currentQuestion?.id || '1'}`}
@@ -428,6 +429,7 @@ const QuizMultipleChoice = ({ paddingBottom }: QuizVariantInterface) => {
         <div className="space-y-4">
           <MultipleChoiceList
             labelledBy={a11yIds.titleId}
+            describedBy={a11yIds.statementId}
             choices={choices}
             key={questionKey}
             name={questionKey}
@@ -519,6 +521,7 @@ const QuizDissertative = ({ paddingBottom }: QuizVariantInterface) => {
               <TextArea
                 ref={textareaRef}
                 aria-labelledby={a11yIds.titleId}
+                aria-describedby={a11yIds.statementId}
                 placeholder="Escreva sua resposta"
                 value={localAnswer}
                 onChange={(e) => handleAnswerChange(e.target.value)}

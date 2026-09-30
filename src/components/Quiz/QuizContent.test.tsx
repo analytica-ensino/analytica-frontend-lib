@@ -694,7 +694,7 @@ describe('QuizContent', () => {
       expect(screen.getByTestId('alternative-opt3')).toBeInTheDocument();
     });
 
-    it('should name the alternatives by the question heading', () => {
+    it('should link the alternatives to the question heading and statement', () => {
       mockGetCurrentQuestion.mockReturnValue({
         id: 'question-1',
         options: [{ id: 'opt1', option: 'Option A' }],
@@ -709,8 +709,10 @@ describe('QuizContent', () => {
         'aria-labelledby',
         'quiz-question-title-question-1'
       );
-      // The statement is read on the question heading, not repeated here
-      expect(list).not.toHaveAttribute('aria-describedby');
+      expect(list).toHaveAttribute(
+        'aria-describedby',
+        'quiz-question-statement-question-1'
+      );
     });
 
     it('should handle question without alternatives', () => {
@@ -935,7 +937,7 @@ describe('QuizContent', () => {
       expect(screen.getByTestId('choice-opt3')).toBeInTheDocument();
     });
 
-    it('should name the choices by the question heading', () => {
+    it('should link the choices to the question heading and statement', () => {
       mockGetCurrentQuestion.mockReturnValue({
         id: 'question-1',
         options: [{ id: 'opt1', option: 'Option A' }],
@@ -949,8 +951,10 @@ describe('QuizContent', () => {
         'aria-labelledby',
         'quiz-question-title-question-1'
       );
-      // The statement is read on the question heading, not repeated here
-      expect(list).not.toHaveAttribute('aria-describedby');
+      expect(list).toHaveAttribute(
+        'aria-describedby',
+        'quiz-question-statement-question-1'
+      );
     });
 
     it('should handle question without choices', () => {
@@ -1214,7 +1218,7 @@ describe('QuizContent', () => {
       jest.clearAllMocks();
     });
 
-    it('should name the answer field by the question heading', () => {
+    it('should name the answer field by the question heading and statement', () => {
       mockGetCurrentQuestion.mockReturnValue({
         id: 'question-1',
         statement: 'Explain the concept of React hooks',
@@ -1229,8 +1233,10 @@ describe('QuizContent', () => {
         'aria-labelledby',
         'quiz-question-title-question-1'
       );
-      // The statement is read on the question heading, not repeated here
-      expect(textarea).not.toHaveAttribute('aria-describedby');
+      expect(textarea).toHaveAttribute(
+        'aria-describedby',
+        'quiz-question-statement-question-1'
+      );
     });
 
     it('should render dissertative question correctly', () => {

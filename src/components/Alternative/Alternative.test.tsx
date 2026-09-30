@@ -1513,7 +1513,7 @@ describe('Question linkage for keyboard/screen-reader users', () => {
       </>
     );
 
-  it('renders the title as a level-2 heading reachable with Tab', async () => {
+  it('renders the title as a level-2 heading focusable only programmatically', async () => {
     const user = userEvent.setup();
     renderWithHeader('interactive');
 
@@ -1522,10 +1522,12 @@ describe('Question linkage for keyboard/screen-reader users', () => {
       name: 'Questão 01',
     });
     expect(heading).toHaveAttribute('id', 'q-title');
-    expect(heading).toHaveAttribute('tabindex', '0');
+    expect(heading).toHaveAttribute('tabindex', '-1');
 
+    // Not a control: Tab goes straight to the answer controls
     await user.tab();
-    expect(heading).toHaveFocus();
+    expect(heading).not.toHaveFocus();
+    expect(screen.getByRole('radio', { name: 'Alternativa A' })).toHaveFocus();
     expect(document.getElementById('q-statement')).toHaveTextContent(
       'Quanto é 2 + 2?'
     );

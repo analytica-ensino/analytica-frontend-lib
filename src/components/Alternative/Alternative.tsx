@@ -497,17 +497,17 @@ const HeaderAlternative = forwardRef<HTMLDivElement, HeaderAlternativeProps>(
       >
         <span className="flex flex-col">
           {/*
-           * Heading in the Tab order: keyboard-only screen-reader users have no
-           * other way to hear the statement, which is plain text. On focus it
-           * announces "Questão 01, heading level 2, <topic>, <statement>". It
-           * also receives focus programmatically when the question changes.
+           * Heading so screen-reader users can jump between questions. It is
+           * not in the Tab order (it is not a control); it only takes focus
+           * programmatically when the question changes, and then announces
+           * "Questão 01, heading level 2, <topic>, <statement>".
            */}
           <h2
             id={titleId}
             ref={titleRef}
-            tabIndex={0}
+            tabIndex={-1}
             aria-describedby={headingDescribedBy}
-            className="text-text-950 font-bold text-lg rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indicator-info focus-visible:ring-offset-2"
+            className="text-text-950 font-bold text-lg focus:outline-none"
           >
             {title}
           </h2>
