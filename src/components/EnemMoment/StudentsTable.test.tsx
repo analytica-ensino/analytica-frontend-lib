@@ -519,6 +519,45 @@ describe('StudentsTableSection', () => {
     });
   });
 
+  it('offers no download unless the app can fetch the list', () => {
+    renderSection();
+
+    expect(
+      screen.queryByRole('button', { name: /Baixar tabela/ })
+    ).not.toBeInTheDocument();
+  });
+
+  it('offers the download beside the search when the app can fetch the list', () => {
+    renderSection({ loadExport: jest.fn() });
+
+    const button = screen.getByRole('button', { name: /Baixar tabela/ });
+    const search = screen.getByRole('searchbox');
+    expect(
+      button.compareDocumentPosition(search) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+    expect(
+      screen.getByRole('heading', {
+        level: 3,
+        name: 'Desempenho por estudante',
+      })
+    ).toBeInTheDocument();
+  });
+
+  it('keeps searching with the download in the header', () => {
+    const { props } = renderSection({ loadExport: jest.fn() });
+
+    jest.useFakeTimers();
+    fireEvent.change(screen.getByRole('searchbox'), {
+      target: { value: 'Ana' },
+    });
+    act(() => {
+      jest.advanceTimersByTime(300);
+    });
+    jest.useRealTimers();
+
+    expect(lastQuery(props.onQueryChange)).toMatchObject({ search: 'Ana' });
+  });
+
   it('asks for the students whose name matches the search', () => {
     const { props } = renderSection();
 

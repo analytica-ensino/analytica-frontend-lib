@@ -24,6 +24,7 @@ import {
   type EnemMomentRankedStudent,
   type EnemMomentSectionState,
   type EnemMomentStudentRow,
+  type EnemMomentStudentsExport,
   type EnemMomentStudentsTableQuery,
   type EnemMomentSummary,
   type EnemMomentTab,
@@ -500,11 +501,52 @@ export const PerformanceDistribution: Story = () => (
   </Frame>
 );
 
+/**
+ * The whole list for "Baixar tabela", as the API would hand it: every student,
+ * whatever the table is filtering, with a status per moment.
+ */
+const loadStudentsExport = (): Promise<EnemMomentStudentsExport> =>
+  new Promise((resolve) => {
+    setTimeout(
+      () =>
+        resolve({
+          exams: [
+            { examId: 'exam-1', title: 'Simulado ENEM — 1º dia' },
+            { examId: 'exam-2', title: 'Simulado ENEM — 2º dia' },
+          ],
+          students: students.map((row) => {
+            let statuses: Array<'DONE' | 'PARTIAL' | 'NOT_DONE'>;
+            if (row.participatedExams === 0)
+              statuses = ['NOT_DONE', 'NOT_DONE'];
+            else if (row.partialParticipation) statuses = ['DONE', 'NOT_DONE'];
+            else if (row.blank > 0) statuses = ['DONE', 'PARTIAL'];
+            else statuses = ['DONE', 'DONE'];
+            return {
+              userInstitutionId: row.userInstitutionId,
+              studentName: row.studentName,
+              email: `${row.studentName.toLowerCase().replaceAll(' ', '.')}@escola.pr.gov.br`,
+              className: row.className,
+              moments: statuses.map((status, index) => ({
+                examId: `exam-${index + 1}`,
+                status,
+              })),
+            };
+          }),
+        }),
+      600
+    );
+  });
+
 /** The table, paged and filtered here the way the API does it. */
 function StudentsTable({
   statusColumn,
   loadingRows = false,
-}: Readonly<{ statusColumn: StudentStatusColumn; loadingRows?: boolean }>) {
+  withDownload = false,
+}: Readonly<{
+  statusColumn: StudentStatusColumn;
+  loadingRows?: boolean;
+  withDownload?: boolean;
+}>) {
   const [query, setQuery] = useState<EnemMomentStudentsTableQuery | null>(null);
   const matching = useMemo(
     () =>
@@ -540,6 +582,7 @@ function StudentsTable({
       onQueryChange={setQuery}
       onStudentClick={() => undefined}
       statusColumn={statusColumn}
+      loadExport={withDownload ? loadStudentsExport : undefined}
     />
   );
 }
@@ -548,6 +591,16 @@ function StudentsTable({
 export const StudentsTableUnit: Story = () => (
   <Frame>
     <StudentsTable statusColumn="performance" />
+  </Frame>
+);
+
+/**
+ * The unit report and the professor's view, with "Baixar tabela": every
+ * student in scope, as XLSX or PDF, whatever the table is filtering.
+ */
+export const StudentsTableWithDownload: Story = () => (
+  <Frame>
+    <StudentsTable statusColumn="performance" withDownload />
   </Frame>
 );
 

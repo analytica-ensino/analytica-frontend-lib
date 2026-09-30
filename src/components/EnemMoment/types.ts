@@ -498,3 +498,29 @@ export interface EnemMomentOverview {
   blank: number;
   participation: EnemMomentParticipation;
 }
+
+/**
+ * Where a student stands on one exam, for the download of the students table:
+ * handed in with every question answered, opened and left with blanks (or not
+ * handed in), or never opened.
+ */
+export type EnemMomentExamStatus = 'DONE' | 'PARTIAL' | 'NOT_DONE';
+
+/**
+ * The students table, whole, for its download.
+ *
+ * `GET /enem-moment-report/students/export`: every student in the caller's
+ * scope — a teacher's classes, a unit manager's schools — whatever the screen
+ * is filtering. `exams` are the exams of the flag, in its order; each student
+ * carries one status per exam.
+ */
+export interface EnemMomentStudentsExport {
+  exams: Array<{ examId: string; title: string }>;
+  students: Array<{
+    userInstitutionId: string;
+    studentName: string;
+    email: string;
+    className: string | null;
+    moments: Array<{ examId: string; status: EnemMomentExamStatus }>;
+  }>;
+}

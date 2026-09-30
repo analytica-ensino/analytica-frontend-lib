@@ -60,6 +60,14 @@ export {
   type EnemMomentStudentsTableQuery,
   type StudentStatusColumn,
 } from './StudentsTable';
+export {
+  ENEM_MOMENT_EXAM_STATUS_LABELS,
+  StudentsTableDownload,
+  studentsExportFileName,
+  studentsExportHeaders,
+  studentsExportRows,
+  studentsExportSheet,
+} from './StudentsDownload';
 export { classOptionLabel, listFilter, pickedValue } from './tableFilters';
 export {
   PerformanceDistributionSection,
