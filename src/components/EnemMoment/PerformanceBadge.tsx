@@ -117,7 +117,9 @@ export function ParticipationBadge({
 
   if (participation === 'PARTIAL') {
     return (
-      <Tooltip content={PARTIAL_HINT} position="top">
+      // In a portal: a table cell clips what overflows it, and the last column
+      // is where the balloon needs room on the right.
+      <Tooltip content={PARTIAL_HINT} position="top" usePortal>
         <EnemMomentTierBadge performance="HIGHLIGHT">
           <span className="inline-flex items-center gap-1">
             PARTICIPOU

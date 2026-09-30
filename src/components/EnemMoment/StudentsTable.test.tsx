@@ -1,6 +1,7 @@
 import type { ComponentProps } from 'react';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import userEvent from '@testing-library/user-event';
 import {
   StudentsTableSection,
   createStudentColumns,
@@ -153,8 +154,11 @@ describe('createStudentColumns', () => {
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
   });
 
-  it('explains, on hover, a student who took one moment only', () => {
+  it('explains, on hover, a student who took one moment only', async () => {
+    const user = userEvent.setup();
     render(<>{cellOf(byKey('participatedExams'), partial)}</>);
+
+    await user.hover(screen.getByText('PARTICIPOU'));
 
     expect(screen.getByRole('tooltip')).toHaveTextContent(
       'Participou em somente 1 momento'

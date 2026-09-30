@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import {
   ExamCardsRow,
@@ -75,6 +76,24 @@ describe('showsLanguageCard', () => {
 });
 
 describe('ScoreBandChart', () => {
+  it('explains a band in its balloon, the count with thousands', async () => {
+    const user = userEvent.setup();
+    render(
+      <ScoreBandChart
+        title="Estudantes por faixa de nota"
+        bands={bands([10, 40, 2480, 50, 20])}
+        formatTotal={students}
+        barColor="bg-info-500"
+      />
+    );
+
+    await user.hover(screen.getByTestId('bar-4 a 6'));
+
+    expect(screen.getByRole('tooltip')).toHaveTextContent(
+      'Média de 4 a 6: 2.480 estudantes'
+    );
+  });
+
   it('draws one bar per band, in the color handed, with the total under the title', () => {
     render(
       <ScoreBandChart
@@ -134,6 +153,17 @@ describe('ScoreBandChart', () => {
 });
 
 describe('LanguageCard', () => {
+  it('names a slice short in its balloon, with how many', () => {
+    const { container } = render(<LanguageCard language={examData.language} />);
+
+    fireEvent.mouseEnter(container.querySelectorAll('svg g')[0]);
+
+    // The legend has room for "Escolheram Inglês"; the balloon does not.
+    expect(
+      screen.getByText('Inglês: 9.056 estudantes', { exact: true })
+    ).toBeInTheDocument();
+  });
+
   it('splits the foreign language with shares, in the colors of the pie', () => {
     const { container } = render(<LanguageCard language={examData.language} />);
 
