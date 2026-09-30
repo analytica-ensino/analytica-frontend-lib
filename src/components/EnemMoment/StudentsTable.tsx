@@ -17,6 +17,7 @@ import {
 } from '../TableProvider/TableProvider';
 import { RateCell } from '../QuestionsPerformanceCard';
 import { SectionContent } from './SectionContent';
+import { StudentsTableDownload } from './StudentsDownload';
 import {
   ENEM_MOMENT_PERFORMANCE_LABELS,
   ENEM_MOMENT_PERFORMANCE_ORDER,
@@ -30,6 +31,7 @@ import type {
   EnemMomentParticipationFilter,
   EnemMomentPerformance,
   EnemMomentStudentRow,
+  EnemMomentStudentsExport,
   EnemMomentStudentsOrderBy,
   EnemMomentStudentsQuery,
 } from './types';
@@ -267,6 +269,9 @@ function useHasSettled(loading: boolean): boolean {
  * starts it over from page 1. While a page loads the previous rows stay on
  * screen, dimmed: swapping them for a skeleton would collapse the page and
  * throw the scroll back to the top.
+ *
+ * With `loadExport` the header offers "Baixar tabela", left of the search:
+ * the whole list of the caller's students, whatever the table is showing.
  */
 export function StudentsTableSection({
   rows,
@@ -278,6 +283,7 @@ export function StudentsTableSection({
   onStudentClick,
   statusColumn = 'participation',
   tableId = 'enemMomentStudents',
+  loadExport,
 }: Readonly<{
   rows: EnemMomentStudentRow[];
   pagination: EnemMomentPagination | null;
@@ -291,6 +297,8 @@ export function StudentsTableSection({
   statusColumn?: StudentStatusColumn;
   /** Namespaces the table's params in the URL. */
   tableId?: string;
+  /** Fetches the whole list for "Baixar tabela"; without it, no button. */
+  loadExport?: () => Promise<EnemMomentStudentsExport>;
 }>) {
   const columns = useMemo(
     () => createStudentColumns(classes, statusColumn),
@@ -311,9 +319,32 @@ export function StudentsTableSection({
     [onQueryChange]
   );
 
+  const title = (
+    <Text as="h3" size="lg" weight="bold" className="text-text-950">
+      Desempenho por estudante
+    </Text>
+  );
+
+  // The provider's own header has no room for an action by the search, so
+  // the download brings its own row: title left, button and search right.
+  const renderHeader = (components: TableComponents): ReactNode =>
+    loadExport ? (
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+        {title}
+        <div className="flex flex-wrap items-center justify-end gap-4">
+          <StudentsTableDownload loadExport={loadExport} />
+          <div className="flex-1 lg:flex-none lg:w-[488px] print:hidden">
+            {components.search}
+          </div>
+        </div>
+      </div>
+    ) : (
+      components.controls
+    );
+
   const renderLayout = (components: TableComponents): ReactNode => (
     <div className="bg-background border border-border-50 rounded-xl p-6 space-y-4">
-      {components.controls}
+      {renderHeader(components)}
       <div
         aria-busy={isRefreshing}
         className={cn(
@@ -348,11 +379,7 @@ export function StudentsTableSection({
         rowKey="userInstitutionId"
         searchPlaceholder="Buscar"
         searchContainerClassName="print:hidden"
-        headerContent={
-          <Text as="h3" size="lg" weight="bold" className="text-text-950">
-            Desempenho por estudante
-          </Text>
-        }
+        headerContent={title}
         paginationConfig={{
           itemLabel: 'estudantes',
           itemsPerPageOptions: [10, 20, 50, 100],

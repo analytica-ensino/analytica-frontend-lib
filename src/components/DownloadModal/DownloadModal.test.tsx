@@ -176,6 +176,46 @@ describe('DownloadModal', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
+  it('should keep the modal open on PDF when the PDF is async', () => {
+    render(
+      <DownloadModal
+        isOpen={true}
+        onClose={mockOnClose}
+        isDownloading={false}
+        error={null}
+        onDownloadPdf={mockOnDownloadPdf}
+        onDownloadExcel={mockOnDownloadExcel}
+        asyncPdf
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('download-pdf-option'));
+    fireEvent.click(screen.getByTestId('download-confirm-btn'));
+
+    expect(mockOnDownloadPdf).toHaveBeenCalledTimes(1);
+    expect(mockOnClose).not.toHaveBeenCalled();
+  });
+
+  it('should render the title it is given', () => {
+    render(
+      <DownloadModal
+        isOpen={true}
+        onClose={mockOnClose}
+        isDownloading={false}
+        error={null}
+        onDownloadPdf={mockOnDownloadPdf}
+        title="Como deseja baixar a tabela?"
+      />
+    );
+
+    expect(
+      screen.getByText('Como deseja baixar a tabela?')
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText('Como deseja baixar o relatório?')
+    ).not.toBeInTheDocument();
+  });
+
   /**
    * Verifies that selecting Excel and clicking download calls onDownloadExcel.
    */

@@ -30,6 +30,15 @@ export interface DownloadModalProps {
    * format that has nothing behind it.
    */
   readonly onDownloadExcel?: () => void;
+  /** Modal title. Defaults to "Como deseja baixar o relatório?". */
+  readonly title?: string;
+  /**
+   * Whether the PDF is produced asynchronously too. When true, "Baixar" keeps
+   * the modal open on the PDF path as well and it closes like the Excel one,
+   * once `isDownloading` falls back to false with no error. Defaults to false:
+   * the PDF of most reports is the print of the page already on screen.
+   */
+  readonly asyncPdf?: boolean;
 }
 
 /**
@@ -43,6 +52,8 @@ const DownloadModal = ({
   error,
   onDownloadPdf,
   onDownloadExcel,
+  title = 'Como deseja baixar o relatório?',
+  asyncPdf = false,
 }: DownloadModalProps) => {
   const [selectedFormat, setSelectedFormat] = useState<DownloadFormat | null>(
     null
@@ -71,13 +82,13 @@ const DownloadModal = ({
   const handleDownload = useCallback(() => {
     if (selectedFormat === DOWNLOAD_FORMAT.PDF) {
       onDownloadPdf();
-      handleClose();
+      if (!asyncPdf) handleClose();
     } else if (selectedFormat === DOWNLOAD_FORMAT.EXCEL) {
       // Excel generation is async. The useEffect above auto-closes the modal
       // once `isDownloading` transitions back to false and there is no error.
       onDownloadExcel?.();
     }
-  }, [selectedFormat, onDownloadPdf, onDownloadExcel, handleClose]);
+  }, [selectedFormat, onDownloadPdf, onDownloadExcel, asyncPdf, handleClose]);
 
   const cardBase =
     'flex flex-1 items-center justify-center h-20 rounded-xl border bg-background shadow-soft-shadow-1 cursor-pointer transition-colors';
@@ -88,7 +99,7 @@ const DownloadModal = ({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Como deseja baixar o relatório?"
+      title={title}
       size="lg"
       footer={
         <div className="flex justify-end gap-2">
