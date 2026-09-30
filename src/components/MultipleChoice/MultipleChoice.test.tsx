@@ -475,3 +475,94 @@ describe('MultipleChoiceList', () => {
     });
   });
 });
+
+describe('MultipleChoiceList - whole row selection (a11y)', () => {
+  const choices = [
+    { value: 'a', label: 'Alternativa A' },
+    { value: 'b', label: 'Alternativa B' },
+    { value: 'c', label: 'Alternativa C', disabled: true },
+  ];
+
+  it('names the checkbox group with a readable label', () => {
+    render(<MultipleChoiceList name="question-123" choices={choices} />);
+
+    expect(
+      screen.getByRole('group', { name: 'Alternativas' })
+    ).toBeInTheDocument();
+  });
+
+  it('stretches the label over the whole row', () => {
+    render(<MultipleChoiceList choices={choices} />);
+
+    const checkbox = screen.getByRole('checkbox', { name: 'Alternativa A' });
+    const label = screen.getByText('Alternativa A').closest('label');
+
+    expect(label).toHaveAttribute('for', checkbox.id);
+    expect(label).toHaveClass('after:absolute', 'after:inset-0');
+    expect(label?.parentElement).toHaveClass('relative', 'cursor-pointer');
+  });
+
+  it('toggles the choice when the row label is clicked', async () => {
+    const user = userEvent.setup();
+    const onHandleSelectedValues = jest.fn();
+    render(
+      <MultipleChoiceList
+        choices={choices}
+        onHandleSelectedValues={onHandleSelectedValues}
+      />
+    );
+
+    await user.click(screen.getByText('Alternativa B'));
+    expect(
+      screen.getByRole('checkbox', { name: 'Alternativa B' })
+    ).toBeChecked();
+    expect(onHandleSelectedValues).toHaveBeenLastCalledWith(['b']);
+
+    await user.click(screen.getByText('Alternativa B'));
+    expect(onHandleSelectedValues).toHaveBeenLastCalledWith([]);
+  });
+
+  it('uses not-allowed cursor on disabled rows', () => {
+    render(<MultipleChoiceList choices={choices} />);
+
+    const label = screen.getByText('Alternativa C').closest('label');
+    expect(label?.parentElement).toHaveClass('cursor-not-allowed');
+  });
+});
+
+describe('MultipleChoiceList - question linkage', () => {
+  const choices = [
+    { value: 'a', label: 'Alternativa A' },
+    { value: 'b', label: 'Alternativa B' },
+  ];
+
+  it.each(['interactive', 'readonly'] as const)(
+    'names the %s group by the heading and describes it with the statement',
+    (mode) => {
+      render(
+        <>
+          <h2 id="q-title">Questão 02</h2>
+          <p id="q-statement">Marque as corretas.</p>
+          <MultipleChoiceList
+            mode={mode}
+            labelledBy="q-title"
+            describedBy="q-statement"
+            choices={choices}
+          />
+        </>
+      );
+
+      const group = screen.getByRole('group', { name: 'Questão 02' });
+      expect(group).toHaveAccessibleDescription('Marque as corretas.');
+      expect(group).not.toHaveAttribute('aria-label');
+    }
+  );
+
+  it('falls back to a readable label in readonly mode', () => {
+    render(<MultipleChoiceList mode="readonly" choices={choices} />);
+
+    expect(
+      screen.getByRole('group', { name: 'Alternativas' })
+    ).toBeInTheDocument();
+  });
+});

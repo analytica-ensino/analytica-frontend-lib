@@ -621,33 +621,22 @@ describe('SendActivityModal', () => {
     });
 
     it('should toggle retry option', () => {
-      // Find radio buttons by their labels
-      const simLabel = screen.getByText('Sim');
-      const naoLabel = screen.getByText('Não');
-
-      // Find the button elements with aria-pressed attribute
-      const simContainer = simLabel.closest('.flex.items-center');
-      const naoContainer = naoLabel.closest('.flex.items-center');
-      const simButton = simContainer?.querySelector('button[aria-pressed]');
-      const naoButton = naoContainer?.querySelector('button[aria-pressed]');
-
-      // Verify buttons exist
-      expect(simButton).toBeInTheDocument();
-      expect(naoButton).toBeInTheDocument();
+      const simRadio = screen.getByRole('radio', { name: 'Sim' });
+      const naoRadio = screen.getByRole('radio', { name: 'Não' });
 
       // Initial state: Não should be selected (canRetry = false by default)
-      expect(naoButton).toHaveAttribute('aria-pressed', 'true');
-      expect(simButton).toHaveAttribute('aria-pressed', 'false');
+      expect(naoRadio).toBeChecked();
+      expect(simRadio).not.toBeChecked();
 
-      // Click Sim button directly to enable retry
-      fireEvent.click(simButton!);
-      expect(simButton).toHaveAttribute('aria-pressed', 'true');
-      expect(naoButton).toHaveAttribute('aria-pressed', 'false');
+      // Click Sim label to enable retry
+      fireEvent.click(screen.getByText('Sim'));
+      expect(simRadio).toBeChecked();
+      expect(naoRadio).not.toBeChecked();
 
-      // Click Não button directly to disable retry
-      fireEvent.click(naoButton!);
-      expect(naoButton).toHaveAttribute('aria-pressed', 'true');
-      expect(simButton).toHaveAttribute('aria-pressed', 'false');
+      // Click Não label to disable retry
+      fireEvent.click(screen.getByText('Não'));
+      expect(naoRadio).toBeChecked();
+      expect(simRadio).not.toBeChecked();
     });
   });
 

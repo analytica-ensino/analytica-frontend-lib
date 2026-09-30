@@ -4,6 +4,7 @@ import {
   getTrueOrFalseOptionState,
   formatExamInfo,
   shouldShowExamInfo,
+  getQuestionA11yIds,
 } from './Quiz.utils';
 import { QuizVariant } from './Quiz.types';
 import { QUIZ_TYPE } from './useQuizStore';
@@ -360,5 +361,18 @@ describe('formatExamInfo', () => {
 
   it('should return empty string when both are empty strings', () => {
     expect(formatExamInfo('', '')).toBe('');
+  });
+});
+
+describe('getQuestionA11yIds', () => {
+  it('builds the heading and statement ids from the question id', () => {
+    expect(getQuestionA11yIds('q1')).toEqual({
+      titleId: 'quiz-question-title-q1',
+      statementId: 'quiz-question-statement-q1',
+    });
+  });
+
+  it('falls back to a stable id when there is no question yet', () => {
+    expect(getQuestionA11yIds().titleId).toBe('quiz-question-title-current');
   });
 });

@@ -9,6 +9,7 @@ import {
   forwardRef,
   ReactNode,
   useEffect,
+  useRef,
   useState,
   ComponentType,
 } from 'react';
@@ -44,7 +45,11 @@ import {
 import { CardStatus } from '../Card/Card';
 import Text from '../Text/Text';
 import HtmlMathRenderer from '../HtmlMathRenderer/HtmlMathRenderer';
-import { formatExamInfo, shouldShowExamInfo } from './Quiz.utils';
+import {
+  formatExamInfo,
+  getQuestionA11yIds,
+  shouldShowExamInfo,
+} from './Quiz.utils';
 import QuizTimer from '../QuizTimer/QuizTimer';
 import { useMobile } from '../../hooks/useMobile';
 
@@ -236,8 +241,21 @@ const QuizTitle = forwardRef<
 });
 
 const QuizHeader = () => {
-  const { getCurrentQuestion, getQuestionIndex, quiz } = useQuizStore();
+  const { getCurrentQuestion, getQuestionIndex, quiz, currentQuestionIndex } =
+    useQuizStore();
   const currentQuestion = getCurrentQuestion();
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const previousIndexRef = useRef(currentQuestionIndex);
+
+  // After "Próxima"/"Anterior" focus would stay on the footer button and the
+  // new question would go unannounced. Moving it to the heading makes the
+  // screen reader read it, and the next Tab lands on the answer controls.
+  // The first render is skipped so opening the quiz does not steal focus.
+  useEffect(() => {
+    if (previousIndexRef.current === currentQuestionIndex) return;
+    previousIndexRef.current = currentQuestionIndex;
+    titleRef.current?.focus();
+  }, [currentQuestionIndex]);
   let currentId =
     currentQuestion && 'questionId' in currentQuestion
       ? (currentQuestion.questionId as string)
@@ -255,8 +273,13 @@ const QuizHeader = () => {
 
   const title = examInfo ? `${questionNumber} ${examInfo}` : questionNumber;
 
+  const { titleId, statementId } = getQuestionA11yIds(currentQuestion?.id);
+
   return (
     <HeaderAlternative
+      titleId={titleId}
+      contentId={statementId}
+      titleRef={titleRef}
       title={title}
       subTitle={currentQuestion?.knowledgeMatrix?.[0]?.topic?.name ?? ''}
       content={currentQuestion?.statement ?? ''}

@@ -74,7 +74,7 @@ const SIZE_CLASSES = {
  * Base radio styling classes using design system colors
  */
 const BASE_RADIO_CLASSES =
-  'rounded-full border cursor-pointer transition-all duration-200 flex items-center justify-center focus:outline-none';
+  'shrink-0 rounded-full border cursor-pointer transition-all duration-200 flex items-center justify-center peer-focus-visible:ring-2 peer-focus-visible:ring-indicator-info peer-focus-visible:ring-offset-1';
 
 /**
  * State-based styling classes using design system colors from styles.css
@@ -191,24 +191,17 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
     // Generate unique ID if not provided
     const generatedId = useId();
     const inputId = id ?? `radio-${generatedId}`;
-    const inputRef = useRef<HTMLInputElement>(null);
 
     // Handle controlled vs uncontrolled behavior
     const [internalChecked, setInternalChecked] = useState(defaultChecked);
     const isControlled = checkedProp !== undefined;
     const checked = isControlled ? checkedProp : internalChecked;
 
-    // Handle change events
+    // Handle change events. Focus is kept on the input so arrow keys keep
+    // moving the selection inside the group.
     const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-      const newChecked = event.target.checked;
-
       if (!isControlled) {
-        setInternalChecked(newChecked);
-      }
-
-      // Prevent automatic scroll when input changes
-      if (event.target) {
-        event.target.blur();
+        setInternalChecked(event.target.checked);
       }
 
       onChange?.(event);
@@ -289,20 +282,20 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
       <div className="flex flex-col">
         <div
           className={cn(
-            'flex flex-row items-center',
+            'relative flex flex-row items-center',
             isWrapperNeeded
               ? cn('p-1 border-2', wrapperBorderColor, 'rounded-lg gap-1.5')
               : sizeClasses.spacing,
             disabled ? 'opacity-40' : ''
           )}
         >
-          {/* Hidden native input for accessibility and form submission */}
+          {/*
+           * Visually hidden native input: it is the element that receives
+           * focus and is exposed as `radio` to assistive technologies, so
+           * arrow-key navigation inside the group works natively.
+           */}
           <input
-            ref={(node) => {
-              inputRef.current = node;
-              if (typeof ref === 'function') ref(node);
-              else if (ref) ref.current = node;
-            }}
+            ref={ref}
             type="radio"
             id={inputId}
             checked={checked}
@@ -310,47 +303,15 @@ const Radio = forwardRef<HTMLInputElement, RadioProps>(
             name={name}
             value={value}
             onChange={handleChange}
-            className="sr-only"
-            style={{
-              position: 'absolute',
-              left: '-9999px',
-              visibility: 'hidden',
-            }}
+            className="sr-only peer"
             {...props}
           />
 
-          {/* Custom styled radio */}
-          <button
-            type="button"
-            className={radioClasses}
-            disabled={disabled}
-            aria-pressed={checked}
-            onClick={(e) => {
-              // Prevent scroll when radio is clicked
-              e.preventDefault();
-              if (!disabled) {
-                // Simulate click on hidden input
-                if (inputRef.current) {
-                  inputRef.current.click();
-                  // Remove focus to prevent scroll behavior
-                  inputRef.current.blur();
-                }
-              }
-            }}
-            onKeyDown={(e) => {
-              // Handle keyboard activation (Enter or Space)
-              if ((e.key === 'Enter' || e.key === ' ') && !disabled) {
-                e.preventDefault();
-                if (inputRef.current) {
-                  inputRef.current.click();
-                  inputRef.current.blur();
-                }
-              }
-            }}
-          >
+          {/* Custom styled radio: decorative, activates the input natively */}
+          <label htmlFor={inputId} aria-hidden="true" className={radioClasses}>
             {/* Show dot when checked */}
-            {checked && <div className={dotClasses} />}
-          </button>
+            {checked && <span className={dotClasses} />}
+          </label>
 
           {/* Label text */}
           {label && (

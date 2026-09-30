@@ -17,6 +17,7 @@ import { TrueFalseEnum } from '../../enums/Quiz';
 import {
   prependLetterToHtml,
   getTrueOrFalseOptionState,
+  getQuestionA11yIds,
   shuffleWithSeed,
 } from './Quiz.utils';
 import { cn } from '../../utils/utils';
@@ -185,6 +186,7 @@ const QuizAlternative = ({ paddingBottom }: QuizVariantInterface) => {
     variant,
   } = useQuizStore();
   const currentQuestion = getCurrentQuestion();
+  const a11yIds = getQuestionA11yIds(currentQuestion?.id);
   const currentQuestionResult = getQuestionResultByQuestionId(
     currentQuestion?.id || ''
   );
@@ -242,6 +244,7 @@ const QuizAlternative = ({ paddingBottom }: QuizVariantInterface) => {
       <QuizContainer className={cn('', paddingBottom)}>
         <div className="space-y-4">
           <AlternativesList
+            labelledBy={a11yIds.titleId}
             mode={variant === QuizVariant.DEFAULT ? 'interactive' : 'readonly'}
             key={`question-${currentQuestion?.id || '1'}`}
             name={`question-${currentQuestion?.id || '1'}`}
@@ -277,6 +280,7 @@ const QuizMultipleChoice = ({ paddingBottom }: QuizVariantInterface) => {
     variant,
   } = useQuizStore();
   const currentQuestion = getCurrentQuestion();
+  const a11yIds = getQuestionA11yIds(currentQuestion?.id);
   // Derive the current question's answers from the stable `userAnswers` slice
   // instead of calling getAllCurrentAnswer(), which allocates a fresh array on
   // every render. That fresh identity propagated through the memos below and,
@@ -423,6 +427,7 @@ const QuizMultipleChoice = ({ paddingBottom }: QuizVariantInterface) => {
       <QuizContainer className={cn('', paddingBottom)}>
         <div className="space-y-4">
           <MultipleChoiceList
+            labelledBy={a11yIds.titleId}
             choices={choices}
             key={questionKey}
             name={questionKey}
@@ -447,6 +452,7 @@ const QuizDissertative = ({ paddingBottom }: QuizVariantInterface) => {
   } = useQuizStore();
 
   const currentQuestion = getCurrentQuestion();
+  const a11yIds = getQuestionA11yIds(currentQuestion?.id);
   const currentQuestionResult = getQuestionResultByQuestionId(
     currentQuestion?.id || ''
   );
@@ -512,6 +518,7 @@ const QuizDissertative = ({ paddingBottom }: QuizVariantInterface) => {
             <div className="space-y-4">
               <TextArea
                 ref={textareaRef}
+                aria-labelledby={a11yIds.titleId}
                 placeholder="Escreva sua resposta"
                 value={localAnswer}
                 onChange={(e) => handleAnswerChange(e.target.value)}
