@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import {
   ENEM_MOMENT_PERFORMANCE_LABELS,
@@ -124,7 +125,8 @@ describe('ParticipationBadge', () => {
     });
   });
 
-  it('explains, on hover, a student who took one moment only', () => {
+  it('explains, on hover, a student who took one moment only', async () => {
+    const user = userEvent.setup();
     render(<ParticipationBadge participation="PARTIAL" />);
 
     const label = screen.getByText('PARTICIPOU');
@@ -132,8 +134,19 @@ describe('ParticipationBadge', () => {
     expect(
       screen.getByLabelText('Participou em somente 1 momento')
     ).toBeInTheDocument();
+
+    await user.hover(label);
     expect(screen.getByRole('tooltip')).toHaveTextContent(
       'Participou em somente 1 momento'
     );
+  });
+
+  it('puts the hint in a portal, out of the cell that would clip it', async () => {
+    const user = userEvent.setup();
+    render(<ParticipationBadge participation="PARTIAL" />);
+
+    await user.hover(screen.getByText('PARTICIPOU'));
+
+    expect(screen.getByRole('tooltip').parentElement).toBe(document.body);
   });
 });

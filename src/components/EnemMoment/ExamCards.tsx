@@ -55,9 +55,25 @@ function CardHeader({
   );
 }
 
-/** A part of a pie of students, in a CSS color. */
-const slice = (key: string, label: string, value: number, color: string) =>
-  ({ key, label, value, color, colorClass: '' }) satisfies PieSlice;
+/**
+ * A part of a pie of students, in a CSS color — with a shorter name for the
+ * slice's balloon when the legend's does not fit there.
+ */
+const slice = (
+  key: string,
+  label: string,
+  value: number,
+  color: string,
+  tooltipLabel?: string
+) =>
+  ({
+    key,
+    label,
+    value,
+    color,
+    colorClass: '',
+    ...(tooltipLabel === undefined ? {} : { tooltipLabel }),
+  }) satisfies PieSlice;
 
 /**
  * Whether the Idioma card shows: the cut has a day 1, with a language to pick.
@@ -80,17 +96,21 @@ export function LanguageCard({
       emptyText="Ninguém fez a prova"
       formatValue={students}
       slices={[
+        // The legend has room for "Escolheram Inglês"; the slice's balloon
+        // does not.
         slice(
           'english',
           'Escolheram Inglês',
           language.ingles,
-          'var(--color-info-300)'
+          'var(--color-info-300)',
+          'Inglês'
         ),
         slice(
           'spanish',
           'Escolheram Espanhol',
           language.espanhol,
-          'var(--color-indicator-positive)'
+          'var(--color-indicator-positive)',
+          'Espanhol'
         ),
       ]}
     />
@@ -244,6 +264,11 @@ export function ScoreBandChart({
       subtitle={formatTotal(total)}
       data={bands.map((band) => ({ label: band.label, value: band.count }))}
       barColor={barColor}
+      // The axis shows the band alone ("2 a 4"), which says neither what it
+      // bands nor how many; the balloon has room for the whole sentence.
+      formatTooltip={(item) =>
+        `Média de ${item.label}: ${formatTotal(item.value)}`
+      }
     />
   );
 }
