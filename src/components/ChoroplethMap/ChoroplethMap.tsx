@@ -213,6 +213,9 @@ const defaultCenter = {
  * the region carries the parts of its rate, the per-profile access breakdown
  * when it carries one, and the bare count otherwise.
  *
+ * Qualquer uma delas pode vir precedida de `headline`, para o mapa cuja cor não
+ * é a taxa que ele mostra — ver {@link RegionData.headline}.
+ *
  * @param region - Region under the cursor
  * @param activeProfile - Profile whose breakdown line to show, if only one
  * @param breakdownLabels - Wording of both sides of a split
@@ -230,6 +233,12 @@ const RegionTooltipDetails = ({
   breakdownLabels: ChoroplethBreakdownLabels;
   countLabel: string;
 }) => {
+  const headline = region.headline ? (
+    <Text size="md" weight="bold" color="text-text-50">
+      {region.headline}
+    </Text>
+  ) : null;
+
   if (region.participation) {
     const { withAction, total } = region.participation;
     // The people left over are the other side of the same population the colour
@@ -239,15 +248,19 @@ const RegionTooltipDetails = ({
       `${withAction.toLocaleString('pt-BR')} ${breakdownLabels.withAccess} / ` +
       `${withoutAction.toLocaleString('pt-BR')} ${breakdownLabels.withoutAccess}`;
     return (
-      <Text size="md" color="text-text-50">
-        {line}
-      </Text>
+      <div className="flex flex-col gap-1">
+        {headline}
+        <Text size="md" color="text-text-50">
+          {line}
+        </Text>
+      </div>
     );
   }
 
   if (region.accessBreakdown) {
     return (
       <div className="flex flex-col gap-1">
+        {headline}
         {TOOLTIP_PROFILE_LINES.filter(
           (line) => !activeProfile || line.key === activeProfile
         ).map((line) => {
@@ -266,9 +279,12 @@ const RegionTooltipDetails = ({
   }
 
   return (
-    <Text size="md" color="text-text-50">
-      {countLabel}: {region.accessCount.toLocaleString('pt-BR')}
-    </Text>
+    <div className="flex flex-col gap-1">
+      {headline}
+      <Text size="md" color="text-text-50">
+        {countLabel}: {region.accessCount.toLocaleString('pt-BR')}
+      </Text>
+    </div>
   );
 };
 
@@ -399,7 +415,7 @@ const ChoroplethMap = ({
             : '';
           return `${d.id}:${d.value}:${d.name}:${d.groupName ?? ''}:${d.accessCount}:${
             d.isManagedRegion === false ? 0 : 1
-          }:${breakdown}:${participation}`;
+          }:${breakdown}:${participation}:${d.headline ?? ''}`;
         })
         .join('|'),
     [data]

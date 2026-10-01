@@ -64,6 +64,19 @@ export interface RegionData {
    * access breakdown, which counts something else entirely.
    */
   participation?: RegionParticipation;
+  /**
+   * Linha extra no topo do tooltip, acima da divisão da população.
+   *
+   * Existe para o mapa cuja cor **não** é a taxa que ele mostra. O de
+   * desempenho do Momento ENEM pinta a faixa de nota da cidade: o `value` dali
+   * é o centro da banda da faixa, um número sintético que não serve para
+   * mostrar a ninguém, e sem esta linha o tooltip repetia palavra por palavra o
+   * do mapa de provas realizadas — mesma frase, outra cor.
+   *
+   * Texto já formatado, porque quem o escreve é quem sabe a unidade: "Nota
+   * média: 7,2". Omitido, o tooltip é o de sempre.
+   */
+  headline?: string;
 }
 
 /**
