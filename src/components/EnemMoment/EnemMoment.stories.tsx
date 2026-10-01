@@ -361,12 +361,15 @@ export const UnitReport: Story = () => {
   );
 };
 
-/** The "Tempo de prova" and "Série" picks of the header. */
+/**
+ * The "Tempo de prova" and "Série" picks of the header — in a row that wraps,
+ * like the gestor's, where both must stay on one line while there is room.
+ */
 export const HeaderFilters: Story = () => {
   const [durations, setDurations] = useState<number[]>([60, 90]);
   const [stage, setStage] = useState<EnemMomentEducationStage>('REGULAR');
   return (
-    <div className="flex flex-row gap-3 p-4">
+    <div className="flex flex-row flex-wrap items-center gap-3 p-4">
       <EnemMomentHeaderFilters
         durations={durations}
         onDurationsChange={setDurations}

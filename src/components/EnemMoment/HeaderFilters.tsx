@@ -42,11 +42,15 @@ export function EnemMomentHeaderFilters({
         aria-label="Tempo de prova"
       />
 
+      {/* The width goes on the root, not only on the trigger: the root is
+          `w-full`, and in a header that wraps (the gestor's) a full-width item
+          drops to a line of its own, far from "Tempo de prova". */}
       <Select
         value={educationStage}
         onValueChange={(value) =>
           onEducationStageChange(value as EnemMomentEducationStage)
         }
+        className="w-auto"
       >
         <SelectTrigger className="w-auto min-w-45 gap-2" aria-label="Série">
           <SelectValue placeholder="Série" />
