@@ -73,9 +73,8 @@ export const LessonFilters = ({
     loadSubtopics,
     loadContents,
   } = useActivityFiltersData({
-    // Tema/subtema/assunto hang off a single subject's knowledge tree, so the
-    // structure is only loaded while exactly one subject is selected.
-    selectedSubjects: selectedSubjectIds.length === 1 ? selectedSubjectIds : [],
+    // Topics of every selected subject are loaded together (union).
+    selectedSubjects: selectedSubjectIds,
     institutionId,
   });
 

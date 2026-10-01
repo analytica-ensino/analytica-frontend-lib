@@ -434,14 +434,30 @@ const useActivityFiltersDataImpl = (
           name: topic.name,
         }));
 
-        setKnowledgeStructure((prev) => ({
-          ...prev,
-          topics,
-          subtopics: [],
-          contents: [],
-          loading: false,
-          error: null,
-        }));
+        // Adding/removing a subject reloads the topic list; keep the already
+        // loaded subtopics/contents whose parent is still listed so the
+        // selection of the remaining subjects survives.
+        setKnowledgeStructure((prev) => {
+          const topicIdSet = new Set(topics.map((topic) => topic.id));
+          const subtopics = prev.subtopics.filter((subtopic) =>
+            topicIdSet.has(subtopic.topicId as string)
+          );
+          const subtopicIdSet = new Set(
+            subtopics.map((subtopic) => subtopic.id)
+          );
+          const contents = prev.contents.filter((content) =>
+            subtopicIdSet.has(content.subtopicId as string)
+          );
+
+          return {
+            ...prev,
+            topics,
+            subtopics,
+            contents,
+            loading: false,
+            error: null,
+          };
+        });
       } catch (error) {
         console.error('Erro ao carregar temas:', error);
         setKnowledgeStructure((prev) => ({

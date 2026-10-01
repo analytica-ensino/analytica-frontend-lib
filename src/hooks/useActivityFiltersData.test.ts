@@ -546,6 +546,77 @@ describe('useActivityFiltersData', () => {
       expect(result.current.knowledgeStructure.error).toBeNull();
     });
 
+    it('should keep subtopics and contents of topics still listed after reloading topics', async () => {
+      (mockApiClient.post as jest.Mock)
+        .mockResolvedValueOnce({
+          data: {
+            message: 'Success',
+            data: [
+              { id: 'topic-1', name: 'Álgebra' },
+              { id: 'topic-2', name: 'Geometria' },
+            ],
+          },
+        })
+        .mockResolvedValueOnce({
+          data: {
+            message: 'Success',
+            data: [
+              { id: 'subtopic-1', name: 'Equações', topicId: 'topic-1' },
+              { id: 'subtopic-2', name: 'Ângulos', topicId: 'topic-2' },
+            ],
+          },
+        })
+        .mockResolvedValueOnce({
+          data: {
+            message: 'Success',
+            data: [
+              { id: 'content-1', name: '1º grau', subtopicId: 'subtopic-1' },
+              { id: 'content-2', name: 'Retos', subtopicId: 'subtopic-2' },
+            ],
+          },
+        })
+        .mockResolvedValueOnce({
+          data: {
+            message: 'Success',
+            data: [
+              { id: 'topic-1', name: 'Álgebra' },
+              { id: 'topic-3', name: 'Cinemática' },
+            ],
+          },
+        });
+
+      const { result } = renderHook(() =>
+        useActivityFiltersData({
+          selectedSubjects: [],
+          institutionId: null,
+        })
+      );
+
+      await act(async () => {
+        await result.current.loadTopics(['subject-1']);
+      });
+      await act(async () => {
+        await result.current.loadSubtopics(['topic-1', 'topic-2']);
+      });
+      await act(async () => {
+        await result.current.loadContents(['subtopic-1', 'subtopic-2']);
+      });
+      await act(async () => {
+        await result.current.loadTopics(['subject-1', 'subject-2']);
+      });
+
+      expect(result.current.knowledgeStructure.topics).toEqual([
+        { id: 'topic-1', name: 'Álgebra' },
+        { id: 'topic-3', name: 'Cinemática' },
+      ]);
+      expect(result.current.knowledgeStructure.subtopics).toEqual([
+        { id: 'subtopic-1', name: 'Equações', topicId: 'topic-1' },
+      ]);
+      expect(result.current.knowledgeStructure.contents).toEqual([
+        { id: 'content-1', name: '1º grau', subtopicId: 'subtopic-1' },
+      ]);
+    });
+
     it('should clear knowledge structure when subject IDs are empty', async () => {
       const { result } = renderHook(() =>
         useActivityFiltersData({
