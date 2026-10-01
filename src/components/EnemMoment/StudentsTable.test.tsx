@@ -111,6 +111,9 @@ describe('createStudentColumns', () => {
       'Em branco',
       'Taxa de acerto',
       'Nota',
+      // Both, always: it used to be one, and which one depended on where the
+      // manager had come into the report from.
+      'Desempenho',
       'Participação',
     ]);
   });
@@ -218,17 +221,18 @@ describe('createStudentColumns', () => {
   });
 });
 
-describe('createStudentColumns — unit report', () => {
-  const columns = createStudentColumns([], 'performance');
+describe('createStudentColumns — both status columns', () => {
+  const columns = createStudentColumns([]);
   const performance = byKey('performance', columns);
 
-  it('ends with Desempenho in place of Participação', () => {
-    expect(columns.map((column) => column.label).slice(-2)).toEqual([
+  it('ends in Desempenho and Participação, without picking between them', () => {
+    expect(columns.map((column) => column.label).slice(-3)).toEqual([
       'Nota',
       'Desempenho',
+      'Participação',
     ]);
     expect(columns.some((column) => column.key === 'participatedExams')).toBe(
-      false
+      true
     );
   });
 
@@ -443,6 +447,7 @@ describe('StudentsTableSection', () => {
       '5',
       '60,2%',
       '7,0',
+      'ACIMA DA MÉDIA',
       'PARTICIPOU',
     ]);
     expect(
@@ -458,6 +463,11 @@ describe('StudentsTableSection', () => {
       '—',
       '—',
       '—',
+      // Someone who took nothing reads "NÃO PARTICIPOU" in both columns: the
+      // performance tier of a student with no score IS "não participou", and
+      // the column beside it says the same. That repetition is the price of
+      // showing both.
+      'NÃO PARTICIPOU',
       'NÃO PARTICIPOU',
     ]);
   });
@@ -531,15 +541,17 @@ describe('StudentsTableSection', () => {
     });
   });
 
-  it('ends with Desempenho, asking for the tiers picked', () => {
-    const { props } = renderSection({ statusColumn: 'performance' });
+  it('brings Desempenho beside Participação, with both filters', () => {
+    const { props } = renderSection();
 
     expect(
       screen.getByRole('columnheader', { name: /Desempenho/ })
     ).toBeInTheDocument();
+    // And the other one is still there: a school's page and the unit report
+    // became the same table, with the same columns.
     expect(
-      screen.queryByRole('button', { name: 'Filtrar por Participação' })
-    ).not.toBeInTheDocument();
+      screen.getByRole('button', { name: 'Filtrar por Participação' })
+    ).toBeInTheDocument();
     expect(
       within(rowOf('Ana Beatriz')).getByText('ACIMA DA MÉDIA')
     ).toBeInTheDocument();
