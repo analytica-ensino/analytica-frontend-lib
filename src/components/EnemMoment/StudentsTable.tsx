@@ -219,6 +219,30 @@ export type EnemMomentStudentsTableQuery = Pick<
   | 'order'
 >;
 
+/**
+ * What the table is filtering by, without the page it is on: the search, the
+ * column filters and the order. The PDF of "Baixar tabela" asks for every
+ * page under these.
+ */
+export type EnemMomentStudentsTableFilters = Omit<
+  EnemMomentStudentsTableQuery,
+  'page' | 'limit'
+>;
+
+/** The filters of a table query — the query without its page. */
+export function toStudentsTableFilters(
+  query: EnemMomentStudentsTableQuery
+): EnemMomentStudentsTableFilters {
+  return {
+    search: query.search,
+    classIds: query.classIds,
+    participation: query.participation,
+    performances: query.performances,
+    orderBy: query.orderBy,
+    order: query.order,
+  };
+}
+
 /** The table's params as the students list reads them. */
 export function toStudentsTableQuery(
   params: TableParams
@@ -271,7 +295,10 @@ function useHasSettled(loading: boolean): boolean {
  * throw the scroll back to the top.
  *
  * With `loadExport` the header offers "Baixar tabela", left of the search:
- * the whole list of the caller's students, whatever the table is showing.
+ * the spreadsheet carries the whole list of the caller's students, whatever
+ * the table is showing. With `loadFilteredStudents` too, the PDF prints only
+ * the students the table lists under its current filters — every page, in
+ * its order.
  */
 export function StudentsTableSection({
   rows,
@@ -284,6 +311,7 @@ export function StudentsTableSection({
   statusColumn = 'participation',
   tableId = 'enemMomentStudents',
   loadExport,
+  loadFilteredStudents,
 }: Readonly<{
   rows: EnemMomentStudentRow[];
   pagination: EnemMomentPagination | null;
@@ -299,6 +327,14 @@ export function StudentsTableSection({
   tableId?: string;
   /** Fetches the whole list for "Baixar tabela"; without it, no button. */
   loadExport?: () => Promise<EnemMomentStudentsExport>;
+  /**
+   * Every student the table lists under these filters, all pages, in its
+   * order — the app adds the cut, as for `onQueryChange`. Narrows the PDF;
+   * without it the PDF carries the whole list, like the spreadsheet.
+   */
+  loadFilteredStudents?: (
+    filters: EnemMomentStudentsTableFilters
+  ) => Promise<EnemMomentStudentRow[]>;
 }>) {
   const columns = useMemo(
     () => createStudentColumns(classes, statusColumn),
@@ -314,9 +350,22 @@ export function StudentsTableSection({
     [onStudentClick]
   );
 
+  // Read when the PDF is asked for, not rendered: a ref, so the download
+  // prints what the table is filtering at that moment.
+  const filtersRef = useRef<EnemMomentStudentsTableFilters>({});
+
   const handleParamsChange = useCallback(
-    (params: TableParams) => onQueryChange(toStudentsTableQuery(params)),
+    (params: TableParams) => {
+      const query = toStudentsTableQuery(params);
+      filtersRef.current = toStudentsTableFilters(query);
+      onQueryChange(query);
+    },
     [onQueryChange]
+  );
+
+  const loadPdfStudents = useCallback(
+    () => loadFilteredStudents?.(filtersRef.current) ?? Promise.resolve([]),
+    [loadFilteredStudents]
   );
 
   const title = (
@@ -332,7 +381,10 @@ export function StudentsTableSection({
       <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
         {title}
         <div className="flex flex-wrap items-center justify-end gap-4">
-          <StudentsTableDownload loadExport={loadExport} />
+          <StudentsTableDownload
+            loadExport={loadExport}
+            loadPdfStudents={loadFilteredStudents ? loadPdfStudents : undefined}
+          />
           <div className="flex-1 lg:flex-none lg:w-[488px] print:hidden">
             {components.search}
           </div>

@@ -8,7 +8,11 @@ import {
   formatDateForFileName,
   formatTimestamp,
 } from '../../utils/exportFormat';
-import type { EnemMomentExamStatus, EnemMomentStudentsExport } from './types';
+import type {
+  EnemMomentExamStatus,
+  EnemMomentStudentRow,
+  EnemMomentStudentsExport,
+} from './types';
 import { MISSING_VALUE } from './utils';
 
 /** How a status reads in the download. */
@@ -28,6 +32,13 @@ const STATUS_LEGEND = [
 ].join(' · ');
 
 const DOWNLOAD_ERROR = 'Não foi possível baixar a tabela. Tente novamente.';
+
+const NOTHING_LISTED = 'Nenhum estudante corresponde aos filtros da tabela.';
+
+const NOBODY = 'Não há estudantes para baixar.';
+
+/** A student the table lists — all the PDF needs to pick them out. */
+type ListedStudent = Pick<EnemMomentStudentRow, 'userInstitutionId'>;
 
 /**
  * The columns of the download: the student, then one status per exam — as
@@ -67,6 +78,24 @@ export function studentsExportRows(data: EnemMomentStudentsExport): string[][] {
   });
 }
 
+/**
+ * The whole list cut down to the students the table lists, in the table's
+ * order. A listed student missing from the list is left out: there is no
+ * e-mail or status to print for them.
+ */
+export function narrowStudentsExport(
+  data: EnemMomentStudentsExport,
+  listed: readonly ListedStudent[]
+): EnemMomentStudentsExport {
+  const byId = new Map(
+    data.students.map((student) => [student.userInstitutionId, student])
+  );
+  return {
+    exams: data.exams,
+    students: listed.flatMap((row) => byId.get(row.userInstitutionId) ?? []),
+  };
+}
+
 /** The download as a spreadsheet sheet. */
 export function studentsExportSheet(
   data: EnemMomentStudentsExport
@@ -95,8 +124,14 @@ const PAGE_STYLE = `
 /** The list the PDF prints: the same columns as the spreadsheet. */
 function StudentsExportPrintable({
   data,
+  filtered,
   generatedAt,
-}: Readonly<{ data: EnemMomentStudentsExport; generatedAt: Date }>) {
+}: Readonly<{
+  data: EnemMomentStudentsExport;
+  /** Whether the list is the table's, under its filters. */
+  filtered: boolean;
+  generatedAt: Date;
+}>) {
   const headers = studentsExportHeaders(data);
   const rows = studentsExportRows(data);
 
@@ -104,8 +139,9 @@ function StudentsExportPrintable({
     <div className="p-2 text-text-950 font-sans">
       <h1 className="text-lg font-bold">Simulados Momento ENEM</h1>
       <p className="text-sm text-text-700">
-        Desempenho por estudante · Gerado em {formatTimestamp(generatedAt)} ·{' '}
-        {rows.length} estudantes
+        Desempenho por estudante
+        {filtered && ' · Conforme os filtros da tabela'} · Gerado em{' '}
+        {formatTimestamp(generatedAt)} · {rows.length} estudantes
       </p>
       <table className="mt-4 w-full border-collapse text-xs">
         <thead>
@@ -144,25 +180,33 @@ function StudentsExportPrintable({
 }
 
 /**
- * "Baixar tabela" of the students table: every student in the caller's
- * scope with their status in each exam, as a spreadsheet or a PDF —
- * whatever the table is showing, searching or filtering.
+ * "Baixar tabela" of the students table: the students with their status in
+ * each exam, as a spreadsheet or a PDF.
  *
- * The app fetches (`loadExport`); both formats ask for the list when the user
- * confirms, never before, and the modal holds its skeleton while it arrives.
- * The PDF is the browser's print of a list rendered off screen for it.
+ * The spreadsheet carries every student in the caller's scope, whatever the
+ * table is showing — it can be filtered in the spreadsheet itself. The PDF,
+ * given `loadPdfStudents`, carries only the students the table lists under
+ * its filters, in its order; without it, the whole list too.
+ *
+ * The app fetches; both formats ask when the user confirms, never before, and
+ * the modal holds its skeleton while the lists arrive. The PDF is the
+ * browser's print of a list rendered off screen for it.
  */
 export function StudentsTableDownload({
   loadExport,
+  loadPdfStudents,
 }: Readonly<{
   /** `GET /enem-moment-report/students/export`, through the app's client. */
   loadExport: () => Promise<EnemMomentStudentsExport>;
+  /** Every student the table lists under its filters, all pages, in order. */
+  loadPdfStudents?: () => Promise<ListedStudent[]>;
 }>) {
   const [isOpen, setIsOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [printData, setPrintData] = useState<{
     data: EnemMomentStudentsExport;
+    filtered: boolean;
     generatedAt: Date;
   } | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -194,32 +238,47 @@ export function StudentsTableDownload({
 
   const close = useCallback(() => setIsOpen(false), []);
 
-  const download = useCallback(
-    async (deliver: (data: EnemMomentStudentsExport) => void) => {
-      setIsDownloading(true);
-      setError(null);
-      try {
-        deliver(await loadExport());
-      } catch {
-        setError(DOWNLOAD_ERROR);
-      } finally {
-        setIsDownloading(false);
-      }
-    },
-    [loadExport]
-  );
+  const run = useCallback(async (task: () => Promise<void>) => {
+    setIsDownloading(true);
+    setError(null);
+    try {
+      await task();
+    } catch {
+      setError(DOWNLOAD_ERROR);
+    } finally {
+      setIsDownloading(false);
+    }
+  }, []);
 
   const downloadExcelFile = useCallback(
     () =>
-      download((data) =>
-        downloadExcel(studentsExportFileName(), [studentsExportSheet(data)])
-      ),
-    [download]
+      run(async () => {
+        const data = await loadExport();
+        downloadExcel(studentsExportFileName(), [studentsExportSheet(data)]);
+      }),
+    [run, loadExport]
   );
 
   const downloadPdf = useCallback(
-    () => download((data) => setPrintData({ data, generatedAt: new Date() })),
-    [download]
+    () =>
+      run(async () => {
+        const [data, listed] = await Promise.all([
+          loadExport(),
+          loadPdfStudents?.() ?? null,
+        ]);
+        const printed = listed ? narrowStudentsExport(data, listed) : data;
+        // Nothing to print: say so in the modal rather than open an empty page.
+        if (printed.students.length === 0) {
+          setError(listed ? NOTHING_LISTED : NOBODY);
+          return;
+        }
+        setPrintData({
+          data: printed,
+          filtered: listed !== null,
+          generatedAt: new Date(),
+        });
+      }),
+    [run, loadExport, loadPdfStudents]
   );
 
   return (
@@ -253,6 +312,7 @@ export function StudentsTableDownload({
           <div ref={contentRef} data-testid="enem-moment-students-printable">
             <StudentsExportPrintable
               data={printData.data}
+              filtered={printData.filtered}
               generatedAt={printData.generatedAt}
             />
           </div>

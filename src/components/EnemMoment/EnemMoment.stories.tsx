@@ -25,6 +25,7 @@ import {
   type EnemMomentSectionState,
   type EnemMomentStudentRow,
   type EnemMomentStudentsExport,
+  type EnemMomentStudentsTableFilters,
   type EnemMomentStudentsTableQuery,
   type EnemMomentSummary,
   type EnemMomentTab,
@@ -537,6 +538,25 @@ const loadStudentsExport = (): Promise<EnemMomentStudentsExport> =>
     );
   });
 
+/** The students a table filter lets through, the way the API reads it. */
+const filterStudents = (filters: EnemMomentStudentsTableFilters | null) =>
+  students.filter(
+    (row) =>
+      (!filters?.search ||
+        row.studentName.toLowerCase().includes(filters.search.toLowerCase())) &&
+      (!filters?.classIds?.length ||
+        filters.classIds.includes(row.classId ?? '')) &&
+      (!filters?.performances?.length ||
+        (row.performance !== null &&
+          filters.performances.includes(row.performance)))
+  );
+
+/** Every page the table lists under its filters, for the PDF. */
+const loadFilteredStudents = (filters: EnemMomentStudentsTableFilters) =>
+  new Promise<EnemMomentStudentRow[]>((resolve) => {
+    setTimeout(() => resolve(filterStudents(filters)), 300);
+  });
+
 /** The table, paged and filtered here the way the API does it. */
 function StudentsTable({
   statusColumn,
@@ -548,22 +568,7 @@ function StudentsTable({
   withDownload?: boolean;
 }>) {
   const [query, setQuery] = useState<EnemMomentStudentsTableQuery | null>(null);
-  const matching = useMemo(
-    () =>
-      students.filter(
-        (row) =>
-          (!query?.search ||
-            row.studentName
-              .toLowerCase()
-              .includes(query.search.toLowerCase())) &&
-          (!query?.classIds?.length ||
-            query.classIds.includes(row.classId ?? '')) &&
-          (!query?.performances?.length ||
-            (row.performance !== null &&
-              query.performances.includes(row.performance)))
-      ),
-    [query]
-  );
+  const matching = useMemo(() => filterStudents(query), [query]);
   const page = query?.page ?? 1;
   const limit = query?.limit ?? 10;
 
@@ -583,6 +588,7 @@ function StudentsTable({
       onStudentClick={() => undefined}
       statusColumn={statusColumn}
       loadExport={withDownload ? loadStudentsExport : undefined}
+      loadFilteredStudents={withDownload ? loadFilteredStudents : undefined}
     />
   );
 }
@@ -595,8 +601,9 @@ export const StudentsTableUnit: Story = () => (
 );
 
 /**
- * The unit report and the professor's view, with "Baixar tabela": every
- * student in scope, as XLSX or PDF, whatever the table is filtering.
+ * The unit report and the professor's view, with "Baixar tabela": the XLSX
+ * carries every student in scope; the PDF, the ones the table lists under its
+ * filters.
  */
 export const StudentsTableWithDownload: Story = () => (
   <Frame>

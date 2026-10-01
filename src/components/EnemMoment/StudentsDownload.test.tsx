@@ -6,6 +6,7 @@ import { downloadExcel } from '../../utils/exportExcel';
 import {
   ENEM_MOMENT_EXAM_STATUS_LABELS,
   StudentsTableDownload,
+  narrowStudentsExport,
   studentsExportFileName,
   studentsExportHeaders,
   studentsExportRows,
@@ -114,6 +115,24 @@ describe('studentsExport helpers', () => {
     });
   });
 
+  it('cuts the list down to the students the table lists, in its order', () => {
+    expect(
+      narrowStudentsExport(data, [
+        { userInstitutionId: 'student-2' },
+        { userInstitutionId: 'student-1' },
+      ])
+    ).toEqual({ exams: data.exams, students: [...data.students].reverse() });
+  });
+
+  it('leaves out a listed student the whole list does not carry', () => {
+    expect(
+      narrowStudentsExport(data, [
+        { userInstitutionId: 'student-9' },
+        { userInstitutionId: 'student-2' },
+      ]).students
+    ).toEqual([data.students[1]]);
+  });
+
   it('stamps the file with the day of the download', () => {
     expect(studentsExportFileName(new Date(2026, 8, 30))).toBe(
       'relatorio-simulados-momento-enem-tabela-estudantes-30-09-2026'
@@ -126,12 +145,34 @@ describe('StudentsTableDownload', () => {
     jest.clearAllMocks();
   });
 
-  const openModal = async (loadExport = jest.fn().mockResolvedValue(data)) => {
+  const openModal = async (
+    loadExport = jest.fn().mockResolvedValue(data),
+    loadPdfStudents?: jest.Mock
+  ) => {
     const user = userEvent.setup();
-    render(<StudentsTableDownload loadExport={loadExport} />);
+    render(
+      <StudentsTableDownload
+        loadExport={loadExport}
+        loadPdfStudents={loadPdfStudents}
+      />
+    );
     await user.click(screen.getByRole('button', { name: /Baixar tabela/ }));
     return { user, loadExport };
   };
+
+  const confirm = async (
+    user: ReturnType<typeof userEvent.setup>,
+    format: 'pdf' | 'excel'
+  ) => {
+    await user.click(screen.getByTestId(`download-${format}-option`));
+    await user.click(screen.getByTestId('download-confirm-btn'));
+  };
+
+  const printedRows = (printable: HTMLElement) =>
+    within(printable)
+      .getAllByRole('row')
+      .slice(1)
+      .map((row) => row.textContent);
 
   it('asks for the format under the table title, before fetching anything', async () => {
     const { loadExport } = await openModal();
@@ -198,6 +239,107 @@ describe('StudentsTableDownload', () => {
     expect(
       screen.queryByTestId('enem-moment-students-printable')
     ).not.toBeInTheDocument();
+  });
+
+  it('says the whole list was printed, not a filtered one', async () => {
+    const { user } = await openModal();
+
+    await confirm(user, 'pdf');
+
+    const printable = await screen.findByTestId(
+      'enem-moment-students-printable'
+    );
+    expect(printable).toHaveTextContent('2 estudantes');
+    expect(printable).not.toHaveTextContent('Conforme os filtros da tabela');
+  });
+
+  describe('with the table’s filtered list', () => {
+    it('prints only the students the table lists, in its order', async () => {
+      const loadPdfStudents = jest
+        .fn()
+        .mockResolvedValue([{ userInstitutionId: 'student-2' }]);
+      const { user, loadExport } = await openModal(undefined, loadPdfStudents);
+
+      await confirm(user, 'pdf');
+
+      const printable = await screen.findByTestId(
+        'enem-moment-students-printable'
+      );
+      expect(printedRows(printable)).toEqual([
+        'Bruno Limabruno@escola.pr.gov.br—Não fezNão fez',
+      ]);
+      expect(printable).toHaveTextContent('Conforme os filtros da tabela');
+      expect(printable).toHaveTextContent('1 estudantes');
+      expect(loadExport).toHaveBeenCalledTimes(1);
+      expect(loadPdfStudents).toHaveBeenCalledTimes(1);
+      expect(mockPrint).toHaveBeenCalledTimes(1);
+    });
+
+    it('still downloads the whole list as a spreadsheet', async () => {
+      const loadPdfStudents = jest
+        .fn()
+        .mockResolvedValue([{ userInstitutionId: 'student-2' }]);
+      const { user } = await openModal(undefined, loadPdfStudents);
+
+      await confirm(user, 'excel');
+
+      await waitFor(() => expect(downloadExcel).toHaveBeenCalledTimes(1));
+      expect((downloadExcel as jest.Mock).mock.calls[0][1]).toEqual([
+        studentsExportSheet(data),
+      ]);
+      expect(loadPdfStudents).not.toHaveBeenCalled();
+    });
+
+    it('prints nothing and says so when the table lists nobody', async () => {
+      const { user } = await openModal(
+        undefined,
+        jest.fn().mockResolvedValue([])
+      );
+
+      await confirm(user, 'pdf');
+
+      expect(
+        await screen.findByText(
+          'Nenhum estudante corresponde aos filtros da tabela.'
+        )
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('Como deseja baixar a tabela?')
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByTestId('enem-moment-students-printable')
+      ).not.toBeInTheDocument();
+      expect(mockPrint).not.toHaveBeenCalled();
+    });
+
+    it('fails the PDF when the filtered list does not come', async () => {
+      const { user } = await openModal(
+        undefined,
+        jest.fn().mockRejectedValue(new Error('boom'))
+      );
+
+      await confirm(user, 'pdf');
+
+      expect(
+        await screen.findByText(
+          'Não foi possível baixar a tabela. Tente novamente.'
+        )
+      ).toBeInTheDocument();
+      expect(mockPrint).not.toHaveBeenCalled();
+    });
+  });
+
+  it('says there is nobody to download when the whole list is empty', async () => {
+    const { user } = await openModal(
+      jest.fn().mockResolvedValue({ ...data, students: [] })
+    );
+
+    await confirm(user, 'pdf');
+
+    expect(
+      await screen.findByText('Não há estudantes para baixar.')
+    ).toBeInTheDocument();
+    expect(mockPrint).not.toHaveBeenCalled();
   });
 
   it('keeps the modal open with the error when the list does not come', async () => {
