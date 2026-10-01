@@ -1124,6 +1124,69 @@ describe('ChoroplethMap animations', () => {
     ).toBeInTheDocument();
   });
 
+  it('puts the headline above the split, for a map whose colour is not the rate', async () => {
+    // O mapa de desempenho do Momento ENEM: a cor é a faixa de nota, e o
+    // `value` dali é o centro da banda — número sintético, que não se mostra.
+    // Sem a headline o tooltip repetia palavra por palavra o do mapa de provas
+    // realizadas: mesma frase, outra cor.
+    await renderAndHoverRegion({
+      breakdownLabels: {
+        withAccess: 'fizeram simulados',
+        withoutAccess: 'não fizeram simulados',
+      },
+      data: [
+        {
+          id: 'r1',
+          name: 'Adrianópolis',
+          value: 0.375,
+          accessCount: 20,
+          headline: 'Nota média: 5,4',
+          participation: { withAction: 20, total: 84 },
+          geoJson: {
+            type: 'Feature',
+            properties: {},
+            geometry: { type: 'Polygon', coordinates: [[]] },
+          },
+        },
+      ],
+    });
+
+    expect(screen.getByText('Nota média: 5,4')).toBeInTheDocument();
+    // E a divisão da população continua lá: ela é verdade nas duas
+    // visualizações.
+    expect(
+      screen.getByText('20 fizeram simulados / 64 não fizeram simulados')
+    ).toBeInTheDocument();
+  });
+
+  it('leaves the tooltip as it was when there is no headline', async () => {
+    await renderAndHoverRegion({
+      breakdownLabels: {
+        withAccess: 'fizeram simulados',
+        withoutAccess: 'não fizeram simulados',
+      },
+      data: [
+        {
+          id: 'r1',
+          name: 'Adrianópolis',
+          value: 0.24,
+          accessCount: 20,
+          participation: { withAction: 20, total: 84 },
+          geoJson: {
+            type: 'Feature',
+            properties: {},
+            geometry: { type: 'Polygon', coordinates: [[]] },
+          },
+        },
+      ],
+    });
+
+    expect(
+      screen.getByText('20 fizeram simulados / 64 não fizeram simulados')
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Nota média/)).not.toBeInTheDocument();
+  });
+
   it('prefers the participation split over the access breakdown', async () => {
     await renderAndHoverRegion({
       breakdownLabels: {
