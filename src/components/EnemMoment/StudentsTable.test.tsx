@@ -105,7 +105,9 @@ describe('createStudentColumns', () => {
     expect(STUDENT_COLUMNS.map((column) => column.label)).toEqual([
       'Nome',
       'Turma',
-      'Tempo',
+      // No "Tempo": ten columns did not fit the card once the second status
+      // one arrived, and a column reachable only by dragging sideways is the
+      // same as a column that is not there.
       'Corretas',
       'Incorretas',
       'Em branco',
@@ -119,7 +121,6 @@ describe('createStudentColumns', () => {
   });
 
   it('writes the numbers of a student who took the exam', () => {
-    expect(cellOf(byKey('totalElapsedSeconds'), row)).toBe('01:20:05');
     expect(cellOf(byKey('correct'), row)).toBe('65');
     expect(cellOf(byKey('incorrect'), row)).toBe('38');
     expect(cellOf(byKey('blank'), row)).toBe('5');
@@ -142,7 +143,6 @@ describe('createStudentColumns', () => {
 
   it('marks every number of a student who took nothing, zeros included', () => {
     for (const key of [
-      'totalElapsedSeconds',
       'correct',
       'incorrect',
       'blank',
@@ -327,7 +327,6 @@ describe('toStudentsTableQuery', () => {
   });
 
   it.each([
-    ['totalElapsedSeconds', 'totalElapsedSeconds'],
     ['blank', 'blank'],
     ['correct', 'correct'],
     ['incorrect', 'incorrect'],
@@ -441,7 +440,6 @@ describe('StudentsTableSection', () => {
     ).toEqual([
       'Ana Beatriz',
       'A',
-      '01:20:05',
       '65',
       '38',
       '5',
@@ -457,7 +455,6 @@ describe('StudentsTableSection', () => {
     ).toEqual([
       'Bruno Lima',
       'A',
-      '—',
       '—',
       '—',
       '—',
@@ -480,7 +477,6 @@ describe('StudentsTableSection', () => {
       .filter((header) => header.hasAttribute('aria-sort'));
     expect(sortable.map((header) => header.textContent)).toEqual([
       'Nome',
-      'Tempo',
       'Corretas',
       'Incorretas',
       'Em branco',

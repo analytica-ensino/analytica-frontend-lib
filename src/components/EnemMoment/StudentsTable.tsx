@@ -36,7 +36,7 @@ import type {
   EnemMomentStudentsQuery,
 } from './types';
 import { classOptionLabel, listFilter, pickedValue } from './tableFilters';
-import { formatClock, formatCount, formatScore, MISSING_VALUE } from './utils';
+import { formatCount, formatScore, MISSING_VALUE } from './utils';
 
 export function participationOf(
   row: EnemMomentStudentRow
@@ -48,6 +48,7 @@ export function participationOf(
 const PARTICIPATION_COLUMN: ColumnConfig<EnemMomentStudentRow> = {
   key: 'participatedExams',
   label: 'Participação',
+  className: 'px-2',
   filter: {
     paramKey: 'participation',
     allLabel: 'Todos',
@@ -72,6 +73,7 @@ const PARTICIPATION_COLUMN: ColumnConfig<EnemMomentStudentRow> = {
 const PERFORMANCE_COLUMN: ColumnConfig<EnemMomentStudentRow> = {
   key: 'performance',
   label: 'Desempenho',
+  className: 'px-2',
   filter: {
     paramKey: 'performances',
     multiple: true,
@@ -105,7 +107,6 @@ const count = (row: EnemMomentStudentRow, value: number) =>
  */
 const ORDER_BY: Readonly<Record<string, EnemMomentStudentsOrderBy>> = {
   studentName: 'name',
-  totalElapsedSeconds: 'totalElapsedSeconds',
   correct: 'correct',
   incorrect: 'incorrect',
   blank: 'blank',
@@ -117,8 +118,24 @@ const PARTICIPATION_FILTERS: ReadonlySet<string> =
   new Set<EnemMomentParticipationFilter>(['PARTICIPATED', 'NOT_PARTICIPATED']);
 
 /**
+ * Tighter side padding than the default `px-4`, on every column of this table.
+ *
+ * Ten columns at 16px a side is 320px spent on air, and the table stopped
+ * fitting its own card when it grew the second status column: measured in
+ * Chrome at a 1440px viewport, 1418px of table in 1270px of space. Halving it
+ * buys back 144px without touching a single number on screen.
+ *
+ * `cn` merges with tailwind-merge, so this wins over the cell's default.
+ */
+const TIGHT = 'px-2';
+
+/**
  * Columns of the table. The Turma filter offers the school's classes; until
  * they arrive there is nothing to offer, and it waits.
+ *
+ * **It has to fit without sideways scrolling**, which is why the widths below
+ * are capped and the padding is tight: the last column being reachable only by
+ * dragging is the same as it not being there.
  */
 export function createStudentColumns(
   classes: EnemMomentFilterOptions['classes']
@@ -127,7 +144,10 @@ export function createStudentColumns(
     {
       key: 'studentName',
       label: 'Nome',
-      className: 'min-w-[220px] max-w-[320px]',
+      // Capped tighter than it was: the cell already truncates, and the widest
+      // real names — "Antonio Joaquim Baptista Duarte" — were taking 276px of a
+      // table that had none to spare.
+      className: `${TIGHT} min-w-[180px] max-w-[240px]`,
       render: (_value, row) => (
         <div className="flex items-center gap-2 min-w-0">
           <UserIcon size={24} className="shrink-0" />
@@ -140,6 +160,7 @@ export function createStudentColumns(
     {
       key: 'className',
       label: 'Turma',
+      className: `${TIGHT} max-w-[140px] truncate`,
       filter: listFilter(
         'classIds',
         'Todas as turmas',
@@ -152,34 +173,33 @@ export function createStudentColumns(
       render: (_value, row) => row.className ?? MISSING_VALUE,
     },
     {
-      key: 'totalElapsedSeconds',
-      label: 'Tempo',
-      render: (_value, row) => formatClock(row.totalElapsedSeconds),
-    },
-    {
       key: 'correct',
+      className: TIGHT,
       label: 'Corretas',
       render: (_value, row) => count(row, row.correct),
     },
     {
       key: 'incorrect',
+      className: TIGHT,
       label: 'Incorretas',
       render: (_value, row) => count(row, row.incorrect),
     },
     {
       key: 'blank',
+      className: TIGHT,
       label: 'Em branco',
       render: (_value, row) => count(row, row.blank),
     },
     {
       key: 'hitRate',
       label: 'Taxa de acerto',
-      className: 'min-w-[160px]',
+      className: `${TIGHT} min-w-[120px]`,
       render: (_value, row) =>
         row.hitRate === null ? MISSING_VALUE : <RateCell rate={row.hitRate} />,
     },
     {
       key: 'averageScore',
+      className: TIGHT,
       label: 'Nota',
       render: (_value, row) =>
         row.averageScore === null
