@@ -788,6 +788,161 @@ describe('Modal', () => {
       outside.remove();
     });
   });
+
+  describe('Navegação presa no modal', () => {
+    /**
+     * Conteúdo "da página de trás": um irmão do container do RTL, ou seja, fora
+     * do caminho do diálogo até o `<body>`.
+     */
+    const renderBackground = () => {
+      const background = document.createElement('div');
+      background.innerHTML = '<button type="button">Atrás do modal</button>';
+      document.body.appendChild(background);
+      return background;
+    };
+
+    it('torna o conteúdo de trás inerte e fora da árvore de acessibilidade', () => {
+      const background = renderBackground();
+
+      render(<Modal {...defaultProps} />);
+
+      expect(background).toHaveAttribute('inert');
+      expect(background).toHaveAttribute('aria-hidden', 'true');
+
+      background.remove();
+    });
+
+    it('não marca o diálogo nem o backdrop que o envolve', () => {
+      const { container } = render(<Modal {...defaultProps} />);
+      const dialog = container.querySelector('dialog');
+
+      expect(dialog).not.toHaveAttribute('inert');
+      expect(dialog?.parentElement).not.toHaveAttribute('inert');
+
+      // O backdrop precisa seguir clicável pra fechar no clique de fora.
+      expect(dialog?.parentElement).not.toHaveAttribute('aria-hidden');
+    });
+
+    it('devolve a página quando o modal fecha', () => {
+      const background = renderBackground();
+
+      const { rerender } = render(<Modal {...defaultProps} />);
+      rerender(<Modal {...defaultProps} isOpen={false} />);
+
+      expect(background).not.toHaveAttribute('inert');
+      expect(background).not.toHaveAttribute('aria-hidden');
+
+      background.remove();
+    });
+
+    it('restaura o aria-hidden que o elemento já tinha', () => {
+      const background = renderBackground();
+      background.setAttribute('aria-hidden', 'false');
+
+      const { rerender } = render(<Modal {...defaultProps} />);
+      expect(background).toHaveAttribute('aria-hidden', 'true');
+
+      rerender(<Modal {...defaultProps} isOpen={false} />);
+      expect(background).toHaveAttribute('aria-hidden', 'false');
+
+      background.remove();
+    });
+
+    it('não mexe em quem a aplicação já havia marcado como inerte', () => {
+      const background = renderBackground();
+      background.setAttribute('inert', '');
+
+      const { rerender } = render(<Modal {...defaultProps} />);
+      // Não é nosso pra marcar — e portanto nem pra desmarcar no fechamento.
+      expect(background).not.toHaveAttribute('aria-hidden');
+
+      rerender(<Modal {...defaultProps} isOpen={false} />);
+      expect(background).toHaveAttribute('inert');
+
+      background.remove();
+    });
+
+    it('devolve a página antes de devolver o foco a quem abriu', () => {
+      const trigger = document.createElement('button');
+      document.body.appendChild(trigger);
+      trigger.focus();
+
+      const { rerender } = render(<Modal {...defaultProps} />);
+      expect(trigger).toHaveAttribute('inert');
+
+      rerender(<Modal {...defaultProps} isOpen={false} />);
+
+      // Um `focus()` num elemento ainda inerte não faria nada no navegador.
+      expect(trigger).not.toHaveAttribute('inert');
+      expect(trigger).toHaveFocus();
+
+      trigger.remove();
+    });
+
+    it('com dois modais abertos, só o de cima mantém o resto inerte', () => {
+      const background = renderBackground();
+
+      const { container } = render(
+        <>
+          <Modal isOpen onClose={jest.fn()} title="Lista">
+            conteúdo da lista
+          </Modal>
+          <Modal isOpen onClose={jest.fn()} title="Detalhe">
+            conteúdo do detalhe
+          </Modal>
+        </>
+      );
+
+      const [lista, detalhe] = Array.from(container.querySelectorAll('dialog'));
+
+      expect(background).toHaveAttribute('inert');
+      // O modal de baixo é "lado de fora" do de cima e vira inerte junto; o de
+      // cima segue utilizável. Sem a pilha, os dois se marcariam e nada na
+      // página responderia.
+      expect(lista.parentElement).toHaveAttribute('inert');
+      expect(detalhe.parentElement).not.toHaveAttribute('inert');
+
+      background.remove();
+    });
+
+    it('o modal de baixo retoma o controle quando o de cima fecha', () => {
+      const background = renderBackground();
+
+      const Modals = ({ detalheAberto }: { detalheAberto: boolean }) => (
+        <>
+          <Modal isOpen onClose={jest.fn()} title="Lista">
+            conteúdo da lista
+          </Modal>
+          <Modal isOpen={detalheAberto} onClose={jest.fn()} title="Detalhe">
+            conteúdo do detalhe
+          </Modal>
+        </>
+      );
+
+      const { container, rerender } = render(<Modals detalheAberto />);
+      rerender(<Modals detalheAberto={false} />);
+
+      const lista = container.querySelector('dialog');
+      expect(lista?.parentElement).not.toHaveAttribute('inert');
+      expect(background).toHaveAttribute('inert');
+
+      background.remove();
+    });
+
+    it('deixa utilizável o que é montado depois da abertura (portais)', () => {
+      render(<Modal {...defaultProps} />);
+
+      // Select, DropdownMenu e afins renderizam em `document.body` só quando
+      // abrem, já com o modal de pé.
+      const portal = document.createElement('div');
+      document.body.appendChild(portal);
+
+      expect(portal).not.toHaveAttribute('inert');
+      expect(portal).not.toHaveAttribute('aria-hidden');
+
+      portal.remove();
+    });
+  });
 });
 
 // ======================================================================
@@ -972,6 +1127,18 @@ describe('MicPermissionModalReadingFluency', () => {
     expect(screen.getByText('Título custom')).toBeInTheDocument();
     expect(screen.getByText('Descrição custom')).toBeInTheDocument();
   });
+
+  it('leva o foco pro diálogo e tira o resto da página do caminho', () => {
+    const background = document.createElement('div');
+    document.body.appendChild(background);
+
+    const { container } = render(<MicPermissionModalReadingFluency isOpen />);
+
+    expect(container.querySelector('dialog')).toHaveFocus();
+    expect(background).toHaveAttribute('inert');
+
+    background.remove();
+  });
 });
 
 // ======================================================================
@@ -1057,6 +1224,20 @@ describe('MicOffModalReadingFluency', () => {
   it('renders a custom title', () => {
     render(<MicOffModalReadingFluency {...defaultProps} title="Sem áudio" />);
     expect(screen.getByText('Sem áudio')).toBeInTheDocument();
+  });
+
+  it('leva o foco pro diálogo e tira o resto da página do caminho', () => {
+    const background = document.createElement('div');
+    document.body.appendChild(background);
+
+    const { container } = render(
+      <MicOffModalReadingFluency {...defaultProps} />
+    );
+
+    expect(container.querySelector('dialog')).toHaveFocus();
+    expect(background).toHaveAttribute('inert');
+
+    background.remove();
   });
 });
 
@@ -1322,6 +1503,20 @@ describe('AudioPlaybackModalReadingFluency', () => {
     expect(onRetry).toHaveBeenCalledTimes(1);
     expect(onClose).toHaveBeenCalledTimes(2);
   });
+
+  it('leva o foco pro diálogo e tira o resto da página do caminho', () => {
+    const background = document.createElement('div');
+    document.body.appendChild(background);
+
+    const { container } = render(
+      <AudioPlaybackModalReadingFluency {...defaultProps} />
+    );
+
+    expect(container.querySelector('dialog')).toHaveFocus();
+    expect(background).toHaveAttribute('inert');
+
+    background.remove();
+  });
 });
 
 // ======================================================================
@@ -1386,5 +1581,19 @@ describe('SuccessModalReadingFluency', () => {
     );
     expect(screen.getByText('Muito bem!')).toBeInTheDocument();
     expect(screen.getByText('Continue assim!')).toBeInTheDocument();
+  });
+
+  it('leva o foco pro diálogo e tira o resto da página do caminho', () => {
+    const background = document.createElement('div');
+    document.body.appendChild(background);
+
+    const { container } = render(
+      <SuccessModalReadingFluency {...defaultProps} />
+    );
+
+    expect(container.querySelector('dialog')).toHaveFocus();
+    expect(background).toHaveAttribute('inert');
+
+    background.remove();
   });
 });
