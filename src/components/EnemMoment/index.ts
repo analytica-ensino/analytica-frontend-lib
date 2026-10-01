@@ -60,7 +60,6 @@ export {
   tookAnyExam,
   type EnemMomentStudentsTableFilters,
   type EnemMomentStudentsTableQuery,
-  type StudentStatusColumn,
 } from './StudentsTable';
 export {
   ENEM_MOMENT_EXAM_STATUS_LABELS,

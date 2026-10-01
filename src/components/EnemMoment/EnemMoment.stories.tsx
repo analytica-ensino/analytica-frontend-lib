@@ -29,7 +29,6 @@ import {
   type EnemMomentStudentsTableQuery,
   type EnemMomentSummary,
   type EnemMomentTab,
-  type StudentStatusColumn,
 } from './index';
 
 // ============================================================================
@@ -356,7 +355,7 @@ export const UnitReport: Story = () => {
         struggling={ready(struggling)}
       />
       <PerformanceDistributionSection examData={ready(examData)} />
-      <StudentsTable statusColumn="performance" />
+      <StudentsTable />
     </Frame>
   );
 };
@@ -559,11 +558,9 @@ const loadFilteredStudents = (filters: EnemMomentStudentsTableFilters) =>
 
 /** The table, paged and filtered here the way the API does it. */
 function StudentsTable({
-  statusColumn,
   loadingRows = false,
   withDownload = false,
 }: Readonly<{
-  statusColumn: StudentStatusColumn;
   loadingRows?: boolean;
   withDownload?: boolean;
 }>) {
@@ -586,7 +583,6 @@ function StudentsTable({
       classes={classes}
       onQueryChange={setQuery}
       onStudentClick={() => undefined}
-      statusColumn={statusColumn}
       loadExport={withDownload ? loadStudentsExport : undefined}
       loadFilteredStudents={withDownload ? loadFilteredStudents : undefined}
     />
@@ -596,7 +592,7 @@ function StudentsTable({
 /** "Desempenho por estudante" of the unit report: the Desempenho column. */
 export const StudentsTableUnit: Story = () => (
   <Frame>
-    <StudentsTable statusColumn="performance" />
+    <StudentsTable />
   </Frame>
 );
 
@@ -607,20 +603,20 @@ export const StudentsTableUnit: Story = () => (
  */
 export const StudentsTableWithDownload: Story = () => (
   <Frame>
-    <StudentsTable statusColumn="performance" withDownload />
+    <StudentsTable withDownload />
   </Frame>
 );
 
 /** The same table on a school's page: the Participação column. */
 export const StudentsTableSchoolPage: Story = () => (
   <Frame>
-    <StudentsTable statusColumn="participation" />
+    <StudentsTable />
   </Frame>
 );
 
 export const StudentsTableLoading: Story = () => (
   <Frame>
-    <StudentsTable statusColumn="performance" loadingRows />
+    <StudentsTable loadingRows />
   </Frame>
 );
 

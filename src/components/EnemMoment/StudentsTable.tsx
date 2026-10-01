@@ -45,18 +45,6 @@ export function participationOf(
   return row.partialParticipation ? 'PARTIAL' : 'PARTICIPATED';
 }
 
-/**
- * @deprecated The table shows BOTH columns now, so there is nothing to pick.
- * Still exported so the apps that pass the prop keep compiling; the value is
- * ignored.
- *
- * They were two tables in practice: a school's page — the one a Gestor Regional
- * and a Gestor Geral open — ended in "Participação", and the unit report, which
- * a Gestor de Unidade and a teacher see, ended in "Desempenho". Same query,
- * same endpoint, different columns, and no way to ask for the other one.
- */
-export type StudentStatusColumn = 'participation' | 'performance';
-
 const PARTICIPATION_COLUMN: ColumnConfig<EnemMomentStudentRow> = {
   key: 'participatedExams',
   label: 'Participação',
@@ -334,11 +322,6 @@ export function StudentsTableSection({
   classes: EnemMomentFilterOptions['classes'];
   onQueryChange: (query: EnemMomentStudentsTableQuery) => void;
   onStudentClick?: (student: EnemMomentStudentRow) => void;
-  /**
-   * @deprecated Ignored: the table always shows Desempenho and Participação.
-   * Still accepted so the apps that pass it keep building.
-   */
-  statusColumn?: StudentStatusColumn;
   /** Namespaces the table's params in the URL. */
   tableId?: string;
   /** Fetches the whole list for "Baixar tabela"; without it, no button. */
