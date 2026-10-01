@@ -91,6 +91,15 @@ describe('EnemMomentHeaderFilters', () => {
       });
     });
 
+    it('takes only its own width, so a wrapping header keeps it in line', () => {
+      renderFilters();
+
+      // Select root → its container → the trigger.
+      const root = screen.getByRole('combobox').parentElement!.parentElement!;
+      expect(root).toHaveClass('w-auto');
+      expect(root).not.toHaveClass('w-full');
+    });
+
     it('reports the stage picked', () => {
       const { onEducationStageChange } = renderFilters();
       fireEvent.click(screen.getByRole('combobox'));
