@@ -45,12 +45,6 @@ export function participationOf(
   return row.partialParticipation ? 'PARTIAL' : 'PARTICIPATED';
 }
 
-/**
- * The last column: whether the student took the exams (a school's page) or
- * the tier they scored in (the unit report), each with its filter.
- */
-export type StudentStatusColumn = 'participation' | 'performance';
-
 const PARTICIPATION_COLUMN: ColumnConfig<EnemMomentStudentRow> = {
   key: 'participatedExams',
   label: 'Participação',
@@ -127,8 +121,7 @@ const PARTICIPATION_FILTERS: ReadonlySet<string> =
  * they arrive there is nothing to offer, and it waits.
  */
 export function createStudentColumns(
-  classes: EnemMomentFilterOptions['classes'],
-  statusColumn: StudentStatusColumn = 'participation'
+  classes: EnemMomentFilterOptions['classes']
 ): ColumnConfig<EnemMomentStudentRow>[] {
   return [
     {
@@ -193,7 +186,11 @@ export function createStudentColumns(
           ? MISSING_VALUE
           : formatScore(row.averageScore),
     },
-    statusColumn === 'performance' ? PERFORMANCE_COLUMN : PARTICIPATION_COLUMN,
+    // Both, in this order: the tier summarises the score beside it, and the
+    // participation is what explains an entirely empty row. Only one used to
+    // show, and which one depended on where the manager had come in from.
+    PERFORMANCE_COLUMN,
+    PARTICIPATION_COLUMN,
   ];
 }
 
@@ -294,6 +291,11 @@ function useHasSettled(loading: boolean): boolean {
  * screen, dimmed: swapping them for a skeleton would collapse the page and
  * throw the scroll back to the top.
  *
+ * It always ends in both status columns — Desempenho and Participação. It used
+ * to end in one, and which one depended on where the manager had come in from:
+ * a school's page showed the participation, the unit report showed the tier.
+ * Same query and same endpoint, different columns.
+ *
  * With `loadExport` the header offers "Baixar tabela", left of the search:
  * the spreadsheet carries the whole list of the caller's students, whatever
  * the table is showing. With `loadFilteredStudents` too, the PDF prints only
@@ -308,7 +310,6 @@ export function StudentsTableSection({
   classes,
   onQueryChange,
   onStudentClick,
-  statusColumn = 'participation',
   tableId = 'enemMomentStudents',
   loadExport,
   loadFilteredStudents,
@@ -321,8 +322,6 @@ export function StudentsTableSection({
   classes: EnemMomentFilterOptions['classes'];
   onQueryChange: (query: EnemMomentStudentsTableQuery) => void;
   onStudentClick?: (student: EnemMomentStudentRow) => void;
-  /** The last column — Participação unless told otherwise. */
-  statusColumn?: StudentStatusColumn;
   /** Namespaces the table's params in the URL. */
   tableId?: string;
   /** Fetches the whole list for "Baixar tabela"; without it, no button. */
@@ -336,10 +335,7 @@ export function StudentsTableSection({
     filters: EnemMomentStudentsTableFilters
   ) => Promise<EnemMomentStudentRow[]>;
 }>) {
-  const columns = useMemo(
-    () => createStudentColumns(classes, statusColumn),
-    [classes, statusColumn]
-  );
+  const columns = useMemo(() => createStudentColumns(classes), [classes]);
 
   const hasSettled = useHasSettled(loading);
   const showSkeleton = loading && (!hasSettled || rows.length === 0);
