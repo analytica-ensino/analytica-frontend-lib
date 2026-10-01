@@ -130,6 +130,20 @@ const PARTICIPATION_FILTERS: ReadonlySet<string> =
 const TIGHT = 'px-2';
 
 /**
+ * Lets a two-word header break into two lines, on this table only.
+ *
+ * The `<th>` is `whitespace-nowrap` by default, so "Em branco" and "Taxa de
+ * acerto" reserved the width of their whole label for columns whose values are
+ * two digits and a bar. Breaking them is what turns a table that fits by a
+ * hair into one that fits with room: measured at a 1280px viewport, the three
+ * numeric columns went from 284px to 190px.
+ *
+ * Only where the label is wider than the data. A single word has nothing to
+ * break and keeps the default.
+ */
+const WRAPS = 'whitespace-normal';
+
+/**
  * Columns of the table. The Turma filter offers the school's classes; until
  * they arrive there is nothing to offer, and it waits.
  *
@@ -147,7 +161,7 @@ export function createStudentColumns(
       // Capped tighter than it was: the cell already truncates, and the widest
       // real names — "Antonio Joaquim Baptista Duarte" — were taking 276px of a
       // table that had none to spare.
-      className: `${TIGHT} min-w-[180px] max-w-[240px]`,
+      className: `${TIGHT} min-w-[160px] max-w-[200px]`,
       render: (_value, row) => (
         <div className="flex items-center gap-2 min-w-0">
           <UserIcon size={24} className="shrink-0" />
@@ -160,7 +174,7 @@ export function createStudentColumns(
     {
       key: 'className',
       label: 'Turma',
-      className: `${TIGHT} max-w-[140px] truncate`,
+      className: `${TIGHT} max-w-[120px] truncate`,
       filter: listFilter(
         'classIds',
         'Todas as turmas',
@@ -186,16 +200,23 @@ export function createStudentColumns(
     },
     {
       key: 'blank',
-      className: TIGHT,
+      className: `${TIGHT} ${WRAPS}`,
       label: 'Em branco',
       render: (_value, row) => count(row, row.blank),
     },
     {
       key: 'hitRate',
       label: 'Taxa de acerto',
-      className: `${TIGHT} min-w-[120px]`,
+      className: `${TIGHT} ${WRAPS} min-w-[100px]`,
+      // Narrower than the default: a fixed-width cell is the floor of its
+      // column in auto table layout, and 128px of bar was more than this table
+      // could pay.
       render: (_value, row) =>
-        row.hitRate === null ? MISSING_VALUE : <RateCell rate={row.hitRate} />,
+        row.hitRate === null ? (
+          MISSING_VALUE
+        ) : (
+          <RateCell rate={row.hitRate} className="w-20" />
+        ),
     },
     {
       key: 'averageScore',

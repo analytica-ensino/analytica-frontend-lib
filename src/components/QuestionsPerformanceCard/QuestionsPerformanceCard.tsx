@@ -278,10 +278,21 @@ type SubtopicSortKey = 'name' | 'correct' | 'incorrect' | 'blank' | 'rate';
 /**
  * Taxa de acerto cell: the rate (0–100) over a green bar. Exported for the
  * other tables that print a rate the same way.
+ *
+ * `className` exists for the table that cannot afford the default 128px. In
+ * auto table layout a fixed-width cell is the floor of its column, so this one
+ * number decides how narrow "Taxa de acerto" can ever get — it was 144px of the
+ * students table, which stopped fitting its card.
  */
-export function RateCell({ rate }: { readonly rate: number }) {
+export function RateCell({
+  rate,
+  className,
+}: {
+  readonly rate: number;
+  readonly className?: string;
+}) {
   return (
-    <div className="flex w-32 flex-col gap-1">
+    <div className={cn('flex w-32 flex-col gap-1', className)}>
       <Text size="xs" weight="bold" className="text-success-500">
         {formatRate(rate)}
       </Text>
