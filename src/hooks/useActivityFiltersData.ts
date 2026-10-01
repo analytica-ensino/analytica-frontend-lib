@@ -399,12 +399,19 @@ const useActivityFiltersDataImpl = (
   >([]);
 
   const previousSubjectsRef = useRef<string[] | null>(null);
+  // Bumped on every topics request (and on clear) so only the latest response
+  // is applied; an older, slower response would otherwise overwrite the
+  // current topic union and prune valid subtopic/content selections.
+  const topicsRequestIdRef = useRef(0);
 
   /**
    * Load topics for given subject IDs
    */
   const loadTopics = useCallback(
     async (subjectIds: string[]) => {
+      topicsRequestIdRef.current += 1;
+      const requestId = topicsRequestIdRef.current;
+
       if (subjectIds.length === 0) {
         setKnowledgeStructure({
           topics: [],
@@ -429,20 +436,39 @@ const useActivityFiltersDataImpl = (
           { subjectIds }
         );
 
+        if (requestId !== topicsRequestIdRef.current) return;
+
         const topics: KnowledgeItem[] = response.data.data.map((topic) => ({
           id: topic.id,
           name: topic.name,
         }));
 
-        setKnowledgeStructure((prev) => ({
-          ...prev,
-          topics,
-          subtopics: [],
-          contents: [],
-          loading: false,
-          error: null,
-        }));
+        // Adding/removing a subject reloads the topic list; keep the already
+        // loaded subtopics/contents whose parent is still listed so the
+        // selection of the remaining subjects survives.
+        setKnowledgeStructure((prev) => {
+          const topicIdSet = new Set(topics.map((topic) => topic.id));
+          const subtopics = prev.subtopics.filter((subtopic) =>
+            topicIdSet.has(subtopic.topicId as string)
+          );
+          const subtopicIdSet = new Set(
+            subtopics.map((subtopic) => subtopic.id)
+          );
+          const contents = prev.contents.filter((content) =>
+            subtopicIdSet.has(content.subtopicId as string)
+          );
+
+          return {
+            ...prev,
+            topics,
+            subtopics,
+            contents,
+            loading: false,
+            error: null,
+          };
+        });
       } catch (error) {
+        if (requestId !== topicsRequestIdRef.current) return;
         console.error('Erro ao carregar temas:', error);
         setKnowledgeStructure((prev) => ({
           ...prev,
@@ -592,6 +618,7 @@ const useActivityFiltersDataImpl = (
       return;
     }
 
+    topicsRequestIdRef.current += 1;
     setKnowledgeStructure({
       topics: [],
       subtopics: [],

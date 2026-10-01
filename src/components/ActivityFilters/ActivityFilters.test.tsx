@@ -329,8 +329,13 @@ describe('ActivityFilters', () => {
 
     // Force getSelectedIdsFromCategories to return an object without the
     // `bankIds`/`yearIds` keys so the `bankIds.bankIds || []` and
-    // `bankIds.yearIds || []` fallbacks are exercised.
-    mockGetSelectedIdsImpl = () => ({});
+    // `bankIds.yearIds || []` fallbacks are exercised. Knowledge keys are kept
+    // because the real util always returns them.
+    mockGetSelectedIdsImpl = () => ({
+      topicIds: [],
+      subtopicIds: [],
+      contentIds: [],
+    });
 
     renderComponent({ onFiltersChange });
 
@@ -465,9 +470,8 @@ describe('ActivityFilters', () => {
       });
     });
 
-    // Tema/subtema/assunto hang off one subject's knowledge tree, so they only
-    // make sense while exactly one is picked.
-    it('shows tema/subtema/assunto only while exactly one subject is selected', async () => {
+    // Tema/subtema/assunto list the union of every selected subject's topics.
+    it('shows tema/subtema/assunto while one or more subjects are selected', async () => {
       renderComponent();
 
       expect(
@@ -481,14 +485,28 @@ describe('ActivityFilters', () => {
 
       toggleSubject('subject2');
       await waitFor(() => {
+        expect(screen.getByText('Tema, Subtema e Assunto')).toBeInTheDocument();
+      });
+
+      toggleSubject('subject1');
+      toggleSubject('subject2');
+      await waitFor(() => {
         expect(
           screen.queryByText('Tema, Subtema e Assunto')
         ).not.toBeInTheDocument();
       });
     });
 
-    it('drops the knowledge selection while several subjects are picked', async () => {
+    it('keeps the knowledge selection while several subjects are picked', async () => {
       const onFiltersChange = jest.fn();
+      const base = buildMockReturn();
+      mockUseActivityFiltersDataReturn = {
+        ...base,
+        knowledgeCategories: base.knowledgeCategories.map((category) => ({
+          ...category,
+          selectedIds: [category.itens[1].id],
+        })),
+      } as typeof mockUseActivityFiltersDataReturn;
       renderComponent({
         onFiltersChange,
         initialFilters: {
@@ -508,9 +526,9 @@ describe('ActivityFilters', () => {
         expect(onFiltersChange).toHaveBeenLastCalledWith(
           expect.objectContaining({
             subjectIds: ['subject1', 'subject2'],
-            topicIds: [],
-            subtopicIds: [],
-            contentIds: [],
+            topicIds: ['topic-2'],
+            subtopicIds: ['sub-2'],
+            contentIds: ['content-2'],
           })
         );
       });

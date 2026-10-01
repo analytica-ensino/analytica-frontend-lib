@@ -301,9 +301,8 @@ export const ActivityFilters = ({
     loadingQuestionTypes,
     questionTypesError,
   } = useActivityFiltersData({
-    // Tema/subtema/assunto only make sense for a single subject, so only load
-    // the knowledge structure when exactly one subject is selected.
-    selectedSubjects: selectedSubjectIds.length === 1 ? selectedSubjectIds : [],
+    // Topics of every selected subject are loaded together (union).
+    selectedSubjects: selectedSubjectIds,
     institutionId,
   });
 
@@ -551,9 +550,6 @@ export const ActivityFilters = ({
   useEffect(() => {
     const knowledgeIds = getSelectedKnowledgeIds();
     const bankIds = getSelectedBankIds();
-    // Tema/subtema/assunto only apply to a single subject; with 0 or 2+ (or
-    // "Todos") the knowledge selection is irrelevant and must not be sent.
-    const isSingleSubject = selectedSubjectIds.length === 1;
     const selectedBankIds = bankIds.bankIds || [];
     const selectedYearIds = bankIds.yearIds || [];
     const filters: ActivityFiltersData = {
@@ -569,9 +565,9 @@ export const ActivityFilters = ({
         selectedYearIds
       ),
       subjectIds: selectedSubjectIds,
-      topicIds: isSingleSubject ? knowledgeIds.topicIds : [],
-      subtopicIds: isSingleSubject ? knowledgeIds.subtopicIds : [],
-      contentIds: isSingleSubject ? knowledgeIds.contentIds : [],
+      topicIds: knowledgeIds.topicIds,
+      subtopicIds: knowledgeIds.subtopicIds,
+      contentIds: knowledgeIds.contentIds,
     };
 
     if (!areFiltersEqual(prevFiltersRef.current, filters)) {
@@ -674,7 +670,7 @@ export const ActivityFilters = ({
             />
           </div>
 
-          {selectedSubjectIds.length === 1 && (
+          {selectedSubjectIds.length > 0 && (
             <KnowledgeStructureFilter
               knowledgeStructure={knowledgeStructure}
               knowledgeCategories={knowledgeCategories}
