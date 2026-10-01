@@ -55,14 +55,17 @@ export {
   StudentsTableSection,
   createStudentColumns,
   participationOf,
+  toStudentsTableFilters,
   toStudentsTableQuery,
   tookAnyExam,
+  type EnemMomentStudentsTableFilters,
   type EnemMomentStudentsTableQuery,
   type StudentStatusColumn,
 } from './StudentsTable';
 export {
   ENEM_MOMENT_EXAM_STATUS_LABELS,
   StudentsTableDownload,
+  narrowStudentsExport,
   studentsExportFileName,
   studentsExportHeaders,
   studentsExportRows,

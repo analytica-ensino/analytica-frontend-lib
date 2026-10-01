@@ -1,15 +1,28 @@
 import type { ComponentProps } from 'react';
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import {
   StudentsTableSection,
   createStudentColumns,
   participationOf,
+  toStudentsTableFilters,
   toStudentsTableQuery,
   tookAnyExam,
 } from './StudentsTable';
-import type { EnemMomentStudentRow } from './types';
+import type { EnemMomentStudentRow, EnemMomentStudentsExport } from './types';
+
+const mockPrint = jest.fn();
+jest.mock('react-to-print', () => ({
+  useReactToPrint: jest.fn(() => mockPrint),
+}));
 
 const row: EnemMomentStudentRow = {
   userInstitutionId: 'student-1',
@@ -378,6 +391,30 @@ const pickFilter = (column: string, option: string) => {
   );
 };
 
+describe('toStudentsTableFilters', () => {
+  it('keeps what the table filters by and drops the page it is on', () => {
+    expect(
+      toStudentsTableFilters({
+        page: 3,
+        limit: 20,
+        search: 'Ana',
+        classIds: ['class-1'],
+        participation: 'PARTICIPATED',
+        performances: ['HIGHLIGHT'],
+        orderBy: 'averageScore',
+        order: 'desc',
+      })
+    ).toEqual({
+      search: 'Ana',
+      classIds: ['class-1'],
+      participation: 'PARTICIPATED',
+      performances: ['HIGHLIGHT'],
+      orderBy: 'averageScore',
+      order: 'desc',
+    });
+  });
+});
+
 describe('StudentsTableSection', () => {
   beforeEach(() => {
     // The table keeps its sort and filters in the URL: start each test clean.
@@ -541,6 +578,48 @@ describe('StudentsTableSection', () => {
         name: 'Desempenho por estudante',
       })
     ).toBeInTheDocument();
+  });
+
+  it('prints in the PDF what the table is filtering when it is asked for', async () => {
+    const exportData: EnemMomentStudentsExport = {
+      exams: [{ examId: 'exam-1', title: 'Simulado 1' }],
+      students: [
+        {
+          userInstitutionId: row.userInstitutionId,
+          studentName: row.studentName,
+          email: 'ana@escola.pr.gov.br',
+          className: 'A',
+          moments: [{ examId: 'exam-1', status: 'DONE' }],
+        },
+      ],
+    };
+    const loadFilteredStudents = jest.fn().mockResolvedValue([row]);
+    renderSection({
+      loadExport: jest.fn().mockResolvedValue(exportData),
+      loadFilteredStudents,
+    });
+
+    jest.useFakeTimers();
+    fireEvent.change(screen.getByRole('searchbox'), {
+      target: { value: 'Ana' },
+    });
+    act(() => {
+      jest.advanceTimersByTime(300);
+    });
+    jest.useRealTimers();
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: /Baixar tabela/ }));
+    await user.click(screen.getByTestId('download-pdf-option'));
+    await user.click(screen.getByTestId('download-confirm-btn'));
+
+    await waitFor(() => expect(mockPrint).toHaveBeenCalledTimes(1));
+    expect(loadFilteredStudents).toHaveBeenCalledTimes(1);
+    expect(loadFilteredStudents).toHaveBeenCalledWith({
+      search: 'Ana',
+      orderBy: 'name',
+      order: 'asc',
+    });
   });
 
   it('keeps searching with the download in the header', () => {
