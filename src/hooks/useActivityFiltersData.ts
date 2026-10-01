@@ -399,12 +399,19 @@ const useActivityFiltersDataImpl = (
   >([]);
 
   const previousSubjectsRef = useRef<string[] | null>(null);
+  // Bumped on every topics request (and on clear) so only the latest response
+  // is applied; an older, slower response would otherwise overwrite the
+  // current topic union and prune valid subtopic/content selections.
+  const topicsRequestIdRef = useRef(0);
 
   /**
    * Load topics for given subject IDs
    */
   const loadTopics = useCallback(
     async (subjectIds: string[]) => {
+      topicsRequestIdRef.current += 1;
+      const requestId = topicsRequestIdRef.current;
+
       if (subjectIds.length === 0) {
         setKnowledgeStructure({
           topics: [],
@@ -428,6 +435,8 @@ const useActivityFiltersDataImpl = (
           '/knowledge/topics',
           { subjectIds }
         );
+
+        if (requestId !== topicsRequestIdRef.current) return;
 
         const topics: KnowledgeItem[] = response.data.data.map((topic) => ({
           id: topic.id,
@@ -459,6 +468,7 @@ const useActivityFiltersDataImpl = (
           };
         });
       } catch (error) {
+        if (requestId !== topicsRequestIdRef.current) return;
         console.error('Erro ao carregar temas:', error);
         setKnowledgeStructure((prev) => ({
           ...prev,
@@ -608,6 +618,7 @@ const useActivityFiltersDataImpl = (
       return;
     }
 
+    topicsRequestIdRef.current += 1;
     setKnowledgeStructure({
       topics: [],
       subtopics: [],

@@ -617,6 +617,150 @@ describe('useActivityFiltersData', () => {
       ]);
     });
 
+    it('should ignore a stale topics response that resolves after a newer one', async () => {
+      let resolveStale: (value: unknown) => void = () => {};
+      (mockApiClient.post as jest.Mock)
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              resolveStale = resolve;
+            })
+        )
+        .mockResolvedValueOnce({
+          data: {
+            message: 'Success',
+            data: [
+              { id: 'topic-1', name: 'Álgebra' },
+              { id: 'topic-3', name: 'Cinemática' },
+            ],
+          },
+        })
+        .mockResolvedValueOnce({
+          data: {
+            message: 'Success',
+            data: [
+              { id: 'subtopic-1', name: 'Equações', topicId: 'topic-1' },
+              { id: 'subtopic-3', name: 'MRU', topicId: 'topic-3' },
+            ],
+          },
+        });
+
+      const { result } = renderHook(() =>
+        useActivityFiltersData({
+          selectedSubjects: [],
+          institutionId: null,
+        })
+      );
+
+      let staleRequest: Promise<void> = Promise.resolve();
+      act(() => {
+        staleRequest = result.current.loadTopics(['subject-1']);
+      });
+      await act(async () => {
+        await result.current.loadTopics(['subject-1', 'subject-2']);
+      });
+      await act(async () => {
+        await result.current.loadSubtopics(['topic-1', 'topic-3']);
+      });
+
+      await act(async () => {
+        resolveStale({
+          data: {
+            message: 'Success',
+            data: [{ id: 'topic-1', name: 'Álgebra' }],
+          },
+        });
+        await staleRequest;
+      });
+
+      expect(result.current.knowledgeStructure.topics).toEqual([
+        { id: 'topic-1', name: 'Álgebra' },
+        { id: 'topic-3', name: 'Cinemática' },
+      ]);
+      expect(result.current.knowledgeStructure.subtopics).toEqual([
+        { id: 'subtopic-1', name: 'Equações', topicId: 'topic-1' },
+        { id: 'subtopic-3', name: 'MRU', topicId: 'topic-3' },
+      ]);
+    });
+
+    it('should ignore a stale topics error that rejects after a newer response', async () => {
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      let rejectStale: (reason: unknown) => void = () => {};
+      (mockApiClient.post as jest.Mock)
+        .mockImplementationOnce(
+          () =>
+            new Promise((_resolve, reject) => {
+              rejectStale = reject;
+            })
+        )
+        .mockResolvedValueOnce({
+          data: {
+            message: 'Success',
+            data: [{ id: 'topic-1', name: 'Álgebra' }],
+          },
+        });
+
+      const { result } = renderHook(() =>
+        useActivityFiltersData({
+          selectedSubjects: [],
+          institutionId: null,
+        })
+      );
+
+      let staleRequest: Promise<void> = Promise.resolve();
+      act(() => {
+        staleRequest = result.current.loadTopics(['subject-1']);
+      });
+      await act(async () => {
+        await result.current.loadTopics(['subject-1', 'subject-2']);
+      });
+
+      await act(async () => {
+        rejectStale(new Error('Network error'));
+        await staleRequest;
+      });
+
+      expect(result.current.knowledgeStructure.topics).toEqual([
+        { id: 'topic-1', name: 'Álgebra' },
+      ]);
+      expect(result.current.knowledgeStructure.error).toBeNull();
+      expect(consoleErrorSpy).not.toHaveBeenCalled();
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should ignore a pending topics response once the subjects are cleared', async () => {
+      let resolvePending: (value: unknown) => void = () => {};
+      (mockApiClient.post as jest.Mock).mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolvePending = resolve;
+          })
+      );
+
+      const { result, rerender } = renderHook(
+        ({ selectedSubjects }: { selectedSubjects: string[] }) =>
+          useActivityFiltersData({ selectedSubjects, institutionId: null }),
+        { initialProps: { selectedSubjects: ['subject-1'] } }
+      );
+
+      rerender({ selectedSubjects: [] });
+
+      await act(async () => {
+        resolvePending({
+          data: {
+            message: 'Success',
+            data: [{ id: 'topic-1', name: 'Álgebra' }],
+          },
+        });
+      });
+
+      expect(result.current.knowledgeStructure.topics).toEqual([]);
+      expect(result.current.knowledgeStructure.loading).toBe(false);
+    });
+
     it('should clear knowledge structure when subject IDs are empty', async () => {
       const { result } = renderHook(() =>
         useActivityFiltersData({
