@@ -12,7 +12,10 @@ import { FileIcon } from '@phosphor-icons/react/dist/csr/File';
 import Menu, { MenuContent, MenuItem } from '../../Menu/Menu';
 import { ActivityListQuestions } from '../../ActivityListQuestions/ActivityListQuestions';
 import ResizableDivider from '../../ResizableDivider/ResizableDivider';
-import { useResizableColumns } from '../../../hooks/useResizableColumns';
+import {
+  BANK_MIN_WIDTH,
+  useResizableColumns,
+} from '../../../hooks/useResizableColumns';
 import type {
   ActivityFiltersData,
   BaseApiClient,
@@ -344,7 +347,7 @@ export const DesktopLayout = ({
       />
 
       {/* Second Column - Center, fills remaining space */}
-      <div className="flex-1 min-w-0 relative">
+      <div style={{ minWidth: BANK_MIN_WIDTH }} className="flex-1 relative">
         <div className="absolute inset-0 overflow-hidden">
           <ActivityListQuestions
             apiClient={apiClient}

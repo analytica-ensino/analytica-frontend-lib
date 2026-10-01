@@ -594,8 +594,8 @@ export const ActivityListQuestions = ({
     <div
       className={`w-full flex flex-col p-4 gap-2 overflow-hidden h-full min-h-0 ${className || ''}`}
     >
-      <div className="flex flex-col gap-2 flex-shrink-0">
-        <section className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-text-950">
+      <div className="@container flex flex-col gap-2 flex-shrink-0">
+        <section className="flex flex-col @md:flex-row @md:items-center @md:justify-between gap-2 text-text-950">
           <div className="flex items-center gap-2 flex-shrink-0">
             <NotebookIcon size={24} />
             <Text size="lg" weight="bold">
@@ -615,18 +615,19 @@ export const ActivityListQuestions = ({
               showDropdown={false}
               placeholder="Buscar questão"
               debounceMs={300}
-              containerClassName="w-full sm:w-64 sm:max-w-xs max-w-full"
+              containerClassName="w-full @md:w-64 @md:max-w-xs max-w-full"
             />
           )}
         </section>
 
-        <section className="flex flex-row justify-between items-center">
+        <section className="flex flex-col @md:flex-row @md:justify-between @md:items-center gap-2">
           <Text size="sm" className="text-text-800">
             {getStatusText()}
           </Text>
 
           <Button
             size="small"
+            className="w-full @md:w-auto whitespace-nowrap"
             onClick={() => setIsModalOpen(true)}
             disabled={totalQuestions === 0}
           >

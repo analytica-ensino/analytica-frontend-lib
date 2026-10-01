@@ -17,11 +17,15 @@ import {
  * Largura mínima da coluna central (banco de questões/aulas) — o quanto os
  * divisores deixam de espaço antes de travar.
  *
- * O valor é ditado pela menor tela que ainda usa o layout desktop: em 1201px,
- * com as duas laterais no padrão de 400px, sobram 279px para o banco. Um
- * mínimo maior que isso já estaria violado antes de qualquer arraste.
+ * O valor é ditado pelo conteúdo: abaixo disso o rótulo do botão "Adicionar à
+ * atividade" do card de questão quebra em duas linhas, e o toolbar do banco
+ * fica apertado demais para título e busca na mesma linha.
+ *
+ * Quem garante que esse mínimo é alcançável é `DESKTOP_MIN_WIDTH`: abaixo
+ * dele as telas de criação trocam as três colunas pelo layout empilhado, em
+ * vez de espremer o banco.
  */
-export const BANK_MIN_WIDTH = 240;
+export const BANK_MIN_WIDTH = 320;
 
 /** Ajuste por seta do teclado, em px. */
 export const RESIZE_KEYBOARD_STEP = 16;
@@ -38,6 +42,18 @@ const DIVIDERS_WIDTH = 2;
 
 /** Espaço consumido pelo layout antes de sobrar largura para as colunas. */
 const LAYOUT_OVERHEAD = COLUMN_GAP * GAP_COUNT + DIVIDERS_WIDTH;
+
+/**
+ * Menor largura em que as três colunas cabem com todas no mínimo: as duas
+ * laterais no padrão e o banco em `BANK_MIN_WIDTH`.
+ *
+ * É o limiar que `useTabletScreen` usa para escolher entre o layout de três
+ * colunas e o empilhado. Derivar daqui, em vez de repetir um número solto,
+ * é o que impede o caso de o layout desktop aparecer numa largura onde o
+ * banco já nasceria abaixo do mínimo.
+ */
+export const DESKTOP_MIN_WIDTH =
+  SIDE_PANEL_DEFAULT_WIDTH * 2 + BANK_MIN_WIDTH + LAYOUT_OVERHEAD;
 
 /**
  * Sentido em que cada coluna cresce: arrastar para a direita alarga os
