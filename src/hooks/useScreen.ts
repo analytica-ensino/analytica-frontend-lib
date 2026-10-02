@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { DESKTOP_MIN_WIDTH } from './useResizableColumns';
 
 type ScreenSize = {
   width: number;
@@ -18,8 +19,15 @@ type UseScreenSizeReturn = {
 
 // Mobile width in pixels
 const MOBILE_WIDTH = 931;
-// Small screen width in pixels (for ActivityCreate and RecommendedLessonCreate)
-const SMALL_SCREEN_WIDTH = 1200;
+/**
+ * Largest width that still gets the stacked layout on the creation screens.
+ *
+ * Derived from the three-column geometry instead of a number of its own: one
+ * pixel above it the two side panels and the question bank all fit at their
+ * minimum. It used to be a loose 1200, which let the desktop layout render in
+ * a width where the bank was already below its floor.
+ */
+const SMALL_SCREEN_WIDTH = DESKTOP_MIN_WIDTH - 1;
 
 /**
  * Hook para capturar o tamanho da tela do usuário
@@ -114,9 +122,12 @@ export const useMobile = () => {
 };
 
 /**
- * Hook to detect small screen size (width <= 1200px)
- * Used by ActivityCreate and RecommendedLessonCreate components
- * @returns true if the screen width is <= 1200px, false otherwise
+ * Hook to detect the width below which the creation screens stack their
+ * columns instead of showing the three resizable ones.
+ *
+ * Used by ActivityCreate and RecommendedLessonCreate components.
+ *
+ * @returns true when the three-column layout would not fit at its minimums
  */
 export const useTabletScreen = () => {
   /*

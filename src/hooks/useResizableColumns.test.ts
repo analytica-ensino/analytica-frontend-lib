@@ -3,6 +3,7 @@ import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { act, renderHook } from '@testing-library/react';
 import {
   BANK_MIN_WIDTH,
+  DESKTOP_MIN_WIDTH,
   RESIZE_KEYBOARD_STEP,
   RESIZE_KEYBOARD_STEP_LARGE,
   clampPanelToContainer,
@@ -90,6 +91,13 @@ describe('useResizableColumns', () => {
       );
     });
 
+    it('should leave no room to drag at the three-column minimum', () => {
+      expect(getMaxPanelWidth(DESKTOP_MIN_WIDTH, DEFAULT)).toBe(DEFAULT);
+      expect(getMaxPanelWidth(DESKTOP_MIN_WIDTH + 100, DEFAULT)).toBe(
+        DEFAULT + 100
+      );
+    });
+
     it('should never return less than the default width', () => {
       expect(getMaxPanelWidth(900, DEFAULT)).toBe(DEFAULT);
     });
@@ -138,14 +146,12 @@ describe('useResizableColumns', () => {
     });
 
     it('should give back the excess proportionally to each slack', () => {
-      // budget = 1920 - 82 - 240 = 1598; pedidos 2000, excesso 402, folga igual
+      const budget = 1920 - LAYOUT_OVERHEAD - BANK_MIN_WIDTH;
       const resolved = resolveColumnWidths(1920, 1000, 1000);
 
-      expect(resolved.filters).toBe(799);
-      expect(resolved.preview).toBe(799);
-      expect(resolved.filters + resolved.preview).toBe(
-        1920 - LAYOUT_OVERHEAD - BANK_MIN_WIDTH
-      );
+      expect(resolved.filters).toBe(budget / 2);
+      expect(resolved.preview).toBe(budget / 2);
+      expect(resolved.filters + resolved.preview).toBe(budget);
     });
 
     it('should take more from the panel that is further above the default', () => {

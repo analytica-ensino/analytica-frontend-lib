@@ -439,6 +439,49 @@ describe('ActivityListQuestions', () => {
       expect(mainDiv.className).toContain('custom-class');
     });
 
+    /**
+     * O banco vive na coluna redimensionável das telas de criação, então o que
+     * decide o empilhamento é a largura da coluna, não a da viewport: num
+     * monitor largo dá para arrastar o divisor até a coluna ficar estreita, e
+     * um `sm:` continuaria achando que há espaço. Daí container query.
+     */
+    it('should stack the toolbar by the column width, not the viewport', () => {
+      const { container } = render(<ActivityListQuestions {...defaultProps} />);
+
+      const toolbarWrapper = container.querySelector('.\\@container');
+      expect(toolbarWrapper).not.toBeNull();
+
+      const sections = container.querySelectorAll('section');
+      const toolbar = sections[0];
+      expect(toolbar.className).toContain('flex-col');
+      expect(toolbar.className).toContain('@md:flex-row');
+      expect(toolbar.className).not.toMatch(/\bsm:flex-row\b/);
+    });
+
+    it('should stack the status line and its button by the column width', () => {
+      const { container } = render(<ActivityListQuestions {...defaultProps} />);
+
+      const statusRow = container.querySelectorAll('section')[1];
+      expect(statusRow.className).toContain('flex-col');
+      expect(statusRow.className).toContain('@md:flex-row');
+    });
+
+    /**
+     * `container-type: inline-size` implica `contain: layout`, que torna o
+     * elemento containing block para descendentes `fixed`. O `Modal` da lib é
+     * `fixed inset-0` e não usa portal, então um `@container` na raiz deste
+     * componente faria o modal cobrir só a coluna do banco em vez da tela.
+     */
+    it('should keep the container context off the modal', () => {
+      const { container } = render(<ActivityListQuestions {...defaultProps} />);
+
+      const root = container.firstChild as HTMLElement;
+      expect(root.className).not.toContain('@container');
+
+      const toolbarWrapper = container.querySelector('.\\@container');
+      expect(toolbarWrapper?.querySelector('section')).not.toBeNull();
+    });
+
     it('should display total questions count when not loading', () => {
       Object.assign(mockUseQuestionsListReturn, {
         pagination: { total: 5, hasNext: false },

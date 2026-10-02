@@ -7,6 +7,7 @@ import {
   useMobile,
   useTabletScreen,
 } from '../../src/hooks/useScreen';
+import { DESKTOP_MIN_WIDTH } from '../../src/hooks/useResizableColumns';
 
 const setInnerWidth = (value: number) => {
   Object.defineProperty(window, 'innerWidth', {
@@ -275,16 +276,16 @@ describe('useScreen hooks', () => {
       expect(result.current).toBe(false);
     });
 
-    it('should treat exactly 1200px as a small screen', () => {
-      setInnerWidth(1200);
+    it('should treat one pixel below the three-column minimum as small', () => {
+      setInnerWidth(DESKTOP_MIN_WIDTH - 1);
 
       const { result } = renderHook(() => useTabletScreen());
 
       expect(result.current).toBe(true);
     });
 
-    it('should treat 1201px as a large screen', () => {
-      setInnerWidth(1201);
+    it('should treat the three-column minimum as a large screen', () => {
+      setInnerWidth(DESKTOP_MIN_WIDTH);
 
       const { result } = renderHook(() => useTabletScreen());
 
