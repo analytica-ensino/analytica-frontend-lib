@@ -87,17 +87,14 @@ export type ProgressCircleProps = {
    * dentro do círculo (curto por caber em ~85px) e nem sempre serve de nome.
    *
    * Default: o próprio `label`, quando é string; senão, `Progresso`.
+   *
+   * Tudo o que precisa ser anunciado entra AQUI — inclusive texto que vem
+   * depois do número, como o tempo de conclusão. Não use `aria-valuetext` para
+   * isso: num `<progress>` nativo ele não substitui o valor (o elemento expõe o
+   * próprio `AXValue` e o `valuetext` vira `AXValueDescription`), e o VoiceOver
+   * acaba lendo o percentual duas vezes.
    */
   accessibleLabel?: string;
-  /**
-   * Substitui a leitura do valor ("50 por cento") por uma frase própria, via
-   * `aria-valuetext`. É o que permite anunciar o percentual com o rótulo que o
-   * design pede ("Desempenho: 80 por cento.") e emendar nele informação que só
-   * existe dentro do círculo, como o tempo de conclusão.
-   *
-   * Sem isto, o leitor anuncia o percentual cru depois do nome.
-   */
-  accessibleValueText?: string;
   /** Show percentage text */
   showPercentage?: boolean;
   /** Additional CSS classes */
@@ -151,7 +148,6 @@ const ProgressCircle = ({
   trackColor,
   label,
   accessibleLabel,
-  accessibleValueText,
   showPercentage = true,
   className = '',
   labelClassName = '',
@@ -275,7 +271,6 @@ const ProgressCircle = ({
         tabIndex={0}
         aria-label={nameFromLabelNode ? undefined : resolveAccessibleLabel()}
         aria-labelledby={nameFromLabelNode ? labelId : undefined}
-        aria-valuetext={accessibleValueText}
         className="absolute inset-0 h-full w-full appearance-none opacity-0 focus:outline-none"
       />
 
