@@ -112,10 +112,10 @@ describe('LoadingModal', () => {
   });
 
   it('forwards ref correctly', () => {
-    const ref = createRef<HTMLDivElement>();
+    const ref = createRef<HTMLDialogElement>();
     render(<LoadingModal {...defaultProps} ref={ref} />);
 
-    expect(ref.current).toBeInstanceOf(HTMLDivElement);
+    expect(ref.current).toBeInstanceOf(HTMLDialogElement);
   });
 
   it('renders with empty title and subtitle', () => {
@@ -186,9 +186,57 @@ describe('LoadingModal', () => {
       render(<LoadingModal {...defaultProps} />);
 
       const modalContainer = document.querySelector('.fixed.inset-0.z-50');
+      // O papel vem do elemento `<dialog>`, não de um `role="dialog"` num
+      // `<div>` — é o que garante o tratamento certo em qualquer
+      // navegador/leitor. `aria-modal`, que num `<div>` genérico era ignorado,
+      // agora tem onde valer.
+      expect(modalContainer?.tagName).toBe('DIALOG');
+      expect(screen.getByRole('dialog')).toBe(modalContainer);
       expect(modalContainer).toHaveAttribute('aria-modal', 'true');
       expect(modalContainer).toHaveAttribute('aria-labelledby');
       expect(modalContainer).toHaveAttribute('aria-describedby');
+    });
+
+    it('anula o user-agent do <dialog> para cobrir a tela', () => {
+      render(<LoadingModal {...defaultProps} />);
+
+      // `<dialog open>` vem com `position: absolute`, `margin: auto` e
+      // `width/height: fit-content`: sem os resets o overlay encolhia no
+      // conteúdo em vez de cobrir a tela.
+      expect(document.querySelector('.fixed.inset-0.z-50')).toHaveClass(
+        'fixed',
+        'inset-0',
+        'm-0',
+        'h-full',
+        'w-full',
+        'max-w-none',
+        'border-none',
+        'p-0'
+      );
+    });
+
+    it('gives each instance its own ids, so they cannot collide', () => {
+      render(
+        <>
+          <LoadingModal
+            open
+            title="Primeiro"
+            subtitle="Subtítulo do primeiro"
+          />
+          <LoadingModal open title="Segundo" subtitle="Subtítulo do segundo" />
+        </>
+      );
+
+      const [first, second] = screen.getAllByRole('dialog');
+
+      expect(first.getAttribute('aria-labelledby')).not.toBe(
+        second.getAttribute('aria-labelledby')
+      );
+      // With fixed ids both pointed at the same node and the screen reader
+      // announced "Primeiro" on both dialogs.
+      expect(first).toHaveAccessibleName('Primeiro');
+      expect(second).toHaveAccessibleName('Segundo');
+      expect(second).toHaveAccessibleDescription('Subtítulo do segundo');
     });
 
     it('has proper ID attributes linking title and description', () => {

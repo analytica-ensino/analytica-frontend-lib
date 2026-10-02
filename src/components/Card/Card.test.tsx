@@ -755,6 +755,30 @@ describe('CardPerformance', () => {
     expect(screen.getByText('80%')).toBeInTheDocument();
   });
 
+  it('não repete o percentual no nome acessível da barra', () => {
+    render(<CardPerformance {...baseProps} progress={80} />);
+
+    // O label visível da barra já começa com o percentual; o nome padrão sairia
+    // "80% : 80%".
+    expect(
+      screen.getByRole('progressbar', { name: 'Progresso: 80%' })
+    ).toBeInTheDocument();
+  });
+
+  it('usa o labelProgress no nome acessível quando ele existe', () => {
+    render(
+      <CardPerformance
+        {...baseProps}
+        progress={80}
+        labelProgress="de acertos"
+      />
+    );
+
+    expect(
+      screen.getByRole('progressbar', { name: 'de acertos: 80%' })
+    ).toBeInTheDocument();
+  });
+
   it('should show button "Ver Aula" when progress exists', () => {
     render(<CardPerformance {...baseProps} progress={50} />);
     expect(
@@ -2661,6 +2685,21 @@ describe('CardSimulado', () => {
     // Clock icon should be present
     const clockIcon = screen.getByText('3h00min').previousElementSibling;
     expect(clockIcon).toBeInTheDocument();
+  });
+
+  it('esconde os ícones decorativos do leitor de tela', () => {
+    render(
+      <CardSimulado {...baseProps} duration="3h00min" onClick={jest.fn()} />
+    );
+
+    // O relógio repete a duração que está escrita ao lado, e o chevron é
+    // enfeite do card clicável. O Phosphor não marca nada sozinho.
+    const clockIcon = screen.getByText('3h00min').previousElementSibling;
+    expect(clockIcon).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.getByTestId('caret-icon')).toHaveAttribute(
+      'aria-hidden',
+      'true'
+    );
   });
 
   it('should render without duration', () => {

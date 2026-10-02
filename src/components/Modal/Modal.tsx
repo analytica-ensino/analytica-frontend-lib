@@ -425,6 +425,7 @@ const MicPermissionModalReadingFluency = ({
   imageSrc = readingFluencyBird,
 }: MicPermissionModalReadingFluencyProps) => {
   const titleId = useId();
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const { shouldAsk, requestPermission } = useMicrophonePermission();
   const [dismissed, setDismissed] = useState(false);
 
@@ -451,12 +452,18 @@ const MicPermissionModalReadingFluency = ({
 
   useEscapeToClose(open && closeOnEscape, handleClose);
   useBodyScrollLock(open);
+  useModalFocus(open, dialogRef);
 
   if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
       <dialog
+        ref={dialogRef}
+        // `tabIndex={-1}` é requisito do `useModalFocus`: o foco inicial vai
+        // pro próprio diálogo, pro leitor anunciar título e texto antes das
+        // ações.
+        tabIndex={-1}
         open
         aria-labelledby={titleId}
         aria-modal="true"
@@ -579,15 +586,20 @@ const MicOffModalReadingFluency = ({
   title = 'Parece que o microfone está desligado',
 }: MicOffModalReadingFluencyProps) => {
   const titleId = useId();
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEscapeToClose(isOpen && closeOnEscape, onClose);
   useBodyScrollLock(isOpen);
+  useModalFocus(isOpen, dialogRef);
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
       <dialog
+        ref={dialogRef}
+        // Ver a nota sobre `tabIndex={-1}` no MicPermissionModalReadingFluency.
+        tabIndex={-1}
         open
         aria-labelledby={titleId}
         aria-modal="true"
@@ -700,6 +712,7 @@ const AudioPlaybackModalReadingFluency = ({
   onRetry,
   closeOnEscape = true,
 }: AudioPlaybackModalReadingFluencyProps) => {
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -711,6 +724,7 @@ const AudioPlaybackModalReadingFluency = ({
 
   useEscapeToClose(isOpen && closeOnEscape, onClose);
   useBodyScrollLock(isOpen);
+  useModalFocus(isOpen, dialogRef);
 
   // `src` File/Blob → object URL same-origin (criado/revogado aqui).
   useEffect(() => {
@@ -764,6 +778,9 @@ const AudioPlaybackModalReadingFluency = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
       <dialog
+        ref={dialogRef}
+        // Ver a nota sobre `tabIndex={-1}` no MicPermissionModalReadingFluency.
+        tabIndex={-1}
         open
         aria-label="Ouvir gravação"
         aria-modal="true"
@@ -906,15 +923,20 @@ const SuccessModalReadingFluency = ({
   imageSrc = readingFluencyFallback,
 }: SuccessModalReadingFluencyProps) => {
   const titleId = useId();
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEscapeToClose(isOpen && closeOnEscape, onClose);
   useBodyScrollLock(isOpen);
+  useModalFocus(isOpen, dialogRef);
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
       <dialog
+        ref={dialogRef}
+        // Ver a nota sobre `tabIndex={-1}` no MicPermissionModalReadingFluency.
+        tabIndex={-1}
         open
         aria-labelledby={titleId}
         aria-modal="true"

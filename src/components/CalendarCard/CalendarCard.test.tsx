@@ -193,19 +193,28 @@ describe('CalendarCard', () => {
       ).toHaveAttribute('aria-expanded', 'true');
     });
 
-    it.each([
-      ['collapsed', false, 'false'],
-      ['expanded', true, 'true'],
-    ])(
-      'names the mobile trigger and reports it %s',
-      (_case, isOpen, expected) => {
-        mockUseMobile.mockReturnValue(makeUseMobileMock({ isMobile: true }));
-        renderCalendarCard({ isOpen });
+    it('names the mobile trigger and reports it collapsed', () => {
+      mockUseMobile.mockReturnValue(makeUseMobileMock({ isMobile: true }));
+      renderCalendarCard();
 
-        expect(
-          screen.getByRole('button', { name: 'Calendário de atividades' })
-        ).toHaveAttribute('aria-expanded', expected);
-      }
-    );
+      expect(
+        screen.getByRole('button', { name: 'Calendário de atividades' })
+      ).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('reports the expanded state on the mobile trigger', () => {
+      mockUseMobile.mockReturnValue(makeUseMobileMock({ isMobile: true }));
+      renderCalendarCard({ isOpen: true });
+
+      // Aqui o gatilho fica ATRÁS do Modal, e sai da árvore de acessibilidade
+      // junto com o resto da página (ver `useModalFocus`) — é o que prende a
+      // navegação no modal. Por isso a busca é pelo `aria-label` e não por
+      // role + nome: um nó fora da árvore não tem nome acessível. O atributo
+      // segue no DOM, que é o que este teste verifica.
+      expect(screen.getByLabelText('Calendário de atividades')).toHaveAttribute(
+        'aria-expanded',
+        'true'
+      );
+    });
   });
 });

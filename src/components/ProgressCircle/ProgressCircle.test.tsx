@@ -303,9 +303,12 @@ describe('ProgressCircle', () => {
       render(<ProgressCircle value={75} />);
       const progressBar = screen.getByRole('progressbar');
 
+      // O papel e o valor vêm do `<progress>` nativo, não de um
+      // `role="progressbar"` com `aria-value*` à mão.
+      expect(progressBar.tagName).toBe('PROGRESS');
       expect(progressBar).toHaveAttribute('value', '75');
       expect(progressBar).toHaveAttribute('max', '100');
-      expect(progressBar).toHaveAttribute('aria-label', 'Progress');
+      expect(progressBar).toHaveAttribute('aria-label', 'Progresso');
     });
 
     it('sets correct aria attributes with custom max', () => {
@@ -316,18 +319,49 @@ describe('ProgressCircle', () => {
       expect(progressBar).toHaveAttribute('max', '10');
     });
 
-    it('sets custom aria-label when label is provided as string', () => {
-      render(<ProgressCircle value={50} label="Custom Label" />);
+    it('nomeia pelo label visível, em português, quando ele é string', () => {
+      render(<ProgressCircle value={50} label="corretas" />);
       const progressBar = screen.getByRole('progressbar');
 
-      expect(progressBar).toHaveAttribute('aria-label', 'Custom Label');
+      expect(progressBar).toHaveAttribute('aria-label', 'Progresso: corretas');
     });
 
-    it('uses default aria-label when label is ReactNode', () => {
+    it('deixa o consumidor nomear o círculo por inteiro', () => {
+      render(
+        <ProgressCircle
+          value={0}
+          label="corretas"
+          accessibleLabel="Progresso em História"
+        />
+      );
+
+      // É o que liga o percentual à matéria: sem isso o leitor lia "0%" solto.
+      expect(
+        screen.getByRole('progressbar', { name: 'Progresso em História' })
+      ).toBeInTheDocument();
+    });
+
+    it('nomeia pelo label renderizado quando ele é um nó, não string', () => {
       render(<ProgressCircle value={50} label={<span>Custom</span>} />);
       const progressBar = screen.getByRole('progressbar');
 
-      expect(progressBar).toHaveAttribute('aria-label', 'Progress');
+      // De um `ReactNode` não se extrai texto pra montar `aria-label`, e o miolo
+      // do círculo é `aria-hidden` — o nome cairia no genérico "Progresso" e o
+      // label se perderia. `aria-labelledby` resgata o texto: referência por id
+      // conta pro nome mesmo dentro de região escondida.
+      expect(progressBar).not.toHaveAttribute('aria-label');
+      expect(progressBar).toHaveAccessibleName('Custom');
+    });
+
+    it('ignora accessibleLabel em branco em vez de ficar sem nome', () => {
+      render(
+        <ProgressCircle value={50} label="corretas" accessibleLabel="   " />
+      );
+
+      expect(screen.getByRole('progressbar')).toHaveAttribute(
+        'aria-label',
+        'Progresso: corretas'
+      );
     });
 
     it('sets svg as aria-hidden', () => {
@@ -335,6 +369,41 @@ describe('ProgressCircle', () => {
       const svg = container.querySelector('svg');
 
       expect(svg).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    it('não entra no ciclo de Tab: não há o que operar num progresso', () => {
+      const { container } = render(
+        <ProgressCircle value={0} accessibleLabel="Progresso em História" />
+      );
+
+      // `tabIndex` em conteúdo estático só adiciona paradas para quem navega por
+      // teclado e já VÊ o gráfico. Leitor de tela chega aqui pelo cursor de
+      // leitura (VO + setas, navegação do NVDA, swipe no iOS), que visita
+      // conteúdo não focável — é por isso que o nome e o valor acima bastam.
+      expect(screen.getByRole('progressbar')).not.toHaveAttribute('tabindex');
+      // Nem anel de foco no wrapper, que só existiria para indicar essa parada.
+      expect((container.firstChild as HTMLElement).className).not.toMatch(
+        /focus-within:ring/
+      );
+    });
+
+    it('ocupa a área do círculo, pra não ser um alvo de tamanho zero', () => {
+      render(<ProgressCircle value={0} />);
+
+      // O `<progress>` antigo era `w-0 h-0`: elemento de área zero é ignorado
+      // por parte das ferramentas de leitura, e era o que deixava o valor fora
+      // do alcance delas.
+      expect(screen.getByRole('progressbar').className).toMatch(
+        /inset-0 h-full w-full/
+      );
+    });
+
+    it('esconde o texto visível, que o progressbar já anuncia', () => {
+      render(<ProgressCircle value={42} label="MÉDIA" showPercentage />);
+
+      // O "42%" e o "MÉDIA" do centro são duplicata visual do nome + valor.
+      const overlay = screen.getByText('42%').parentElement;
+      expect(overlay).toHaveAttribute('aria-hidden', 'true');
     });
   });
 

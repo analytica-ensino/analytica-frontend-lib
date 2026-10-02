@@ -129,6 +129,73 @@ describe('LessonPodcastSection', () => {
     const { container } = render(<LessonPodcastSection />);
     expect(container).toBeEmptyDOMElement();
   });
+
+  describe('a11y: o card é uma seção nomeada e o título não repete', () => {
+    it('agrupa o player numa seção e anuncia que é um podcast', () => {
+      render(
+        <LessonPodcastSection
+          podcast={{ src: 'https://cdn.test/a.mp3', title: 'Episódio 3' }}
+        />
+      );
+
+      expect(
+        screen.getByRole('region', { name: 'Podcast: Episódio 3' })
+      ).toBeInTheDocument();
+    });
+
+    it('não prefixa um título que já diz "Podcast"', () => {
+      render(
+        <LessonPodcastSection
+          podcast={{ src: 'https://cdn.test/a.mp3', title: 'Podcast da aula' }}
+        />
+      );
+
+      // Prefixar sempre produziria "Podcast: Podcast da aula".
+      expect(
+        screen.getByRole('region', { name: 'Podcast da aula' })
+      ).toBeInTheDocument();
+    });
+
+    it('cai em "Podcast" quando o título vem vazio', () => {
+      render(
+        <LessonPodcastSection
+          podcast={{ src: 'https://cdn.test/a.mp3', title: '   ' }}
+        />
+      );
+
+      expect(
+        screen.getByRole('region', { name: 'Podcast' })
+      ).toBeInTheDocument();
+    });
+
+    it('não repete o título num rótulo do <audio>', () => {
+      render(
+        <LessonPodcastSection
+          podcast={{ src: 'https://cdn.test/a.mp3', title: 'Episódio 3' }}
+        />
+      );
+
+      // O título aparecia duas vezes na árvore: no texto visível e num
+      // `aria-label` do `<audio>`, que não tem `controls` e portanto não tinha
+      // o que anunciar.
+      expect(screen.getByTestId('audio-element')).not.toHaveAttribute(
+        'aria-label'
+      );
+      expect(screen.getAllByText('Episódio 3')).toHaveLength(1);
+    });
+
+    it('nomeia o play/pause com o podcast, pra ele se descrever sozinho', () => {
+      render(
+        <LessonPodcastSection
+          podcast={{ src: 'https://cdn.test/a.mp3', title: 'Episódio 3' }}
+        />
+      );
+
+      expect(
+        screen.getByRole('button', { name: 'Reproduzir Episódio 3' })
+      ).toBeInTheDocument();
+    });
+  });
 });
 
 describe('LessonBoardImagesSection', () => {
@@ -212,7 +279,7 @@ describe('LessonBoardImagesSection', () => {
       );
 
       expect(
-        screen.getByRole('button', { name: 'Download Quadro final' })
+        screen.getByRole('button', { name: 'Baixar Quadro final' })
       ).toBeInTheDocument();
     });
 

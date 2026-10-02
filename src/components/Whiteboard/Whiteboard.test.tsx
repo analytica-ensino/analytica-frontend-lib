@@ -52,14 +52,14 @@ describe('Whiteboard Component', () => {
     it('should render download buttons by default', () => {
       render(<Whiteboard {...defaultProps} />);
 
-      const downloadButtons = screen.getAllByLabelText(/Download/);
+      const downloadButtons = screen.getAllByLabelText(/Baixar/);
       expect(downloadButtons).toHaveLength(2);
     });
 
     it('should not render download buttons when showDownload is false', () => {
       render(<Whiteboard {...defaultProps} showDownload={false} />);
 
-      const downloadButtons = screen.queryAllByLabelText(/Download/);
+      const downloadButtons = screen.queryAllByLabelText(/Baixar/);
       expect(downloadButtons).toHaveLength(0);
     });
 
@@ -165,20 +165,20 @@ describe('Whiteboard Component', () => {
       const onDownloadMock = jest.fn();
       render(<Whiteboard {...defaultProps} onDownload={onDownloadMock} />);
 
-      const downloadButton = screen.getAllByLabelText(/Download/)[0];
+      const downloadButton = screen.getAllByLabelText(/Baixar/)[0];
       fireEvent.click(downloadButton);
 
       expect(onDownloadMock).toHaveBeenCalledWith(mockImages[0]);
     });
 
-    it('should call onDownload when clicking on the image', () => {
+    it('não baixa ao clicar na imagem — isso é o botão do canto', () => {
       const onDownloadMock = jest.fn();
       render(<Whiteboard {...defaultProps} onDownload={onDownloadMock} />);
 
-      const image = screen.getByAltText('Board 1');
-      fireEvent.click(image);
+      fireEvent.click(screen.getByAltText('Board 1'));
 
-      expect(onDownloadMock).toHaveBeenCalledWith(mockImages[0]);
+      // O rótulo da imagem diz "Ampliar"; antes ela baixava o arquivo.
+      expect(onDownloadMock).not.toHaveBeenCalled();
     });
 
     it('should report activation without replacing the download', () => {
@@ -192,7 +192,7 @@ describe('Whiteboard Component', () => {
         />
       );
 
-      fireEvent.click(screen.getByAltText('Board 1'));
+      fireEvent.click(screen.getAllByLabelText(/Baixar/)[0]);
 
       // Both run: `onImageActivate` observes the interaction, it does not
       // take it over the way `onDownload` does.
@@ -206,7 +206,7 @@ describe('Whiteboard Component', () => {
         <Whiteboard {...defaultProps} onImageActivate={onImageActivateMock} />
       );
 
-      fireEvent.click(screen.getAllByLabelText(/Download/)[1]);
+      fireEvent.click(screen.getAllByLabelText(/Baixar/)[1]);
 
       expect(onImageActivateMock).toHaveBeenCalledWith(mockImages[1]);
     });
@@ -215,7 +215,7 @@ describe('Whiteboard Component', () => {
       const onDownloadMock = jest.fn();
       render(<Whiteboard {...defaultProps} onDownload={onDownloadMock} />);
 
-      const downloadButtons = screen.getAllByLabelText(/Download/);
+      const downloadButtons = screen.getAllByLabelText(/Baixar/);
 
       fireEvent.click(downloadButtons[0]);
       expect(onDownloadMock).toHaveBeenCalledWith(mockImages[0]);
@@ -229,7 +229,7 @@ describe('Whiteboard Component', () => {
     it('should render download button when no callback provided', () => {
       render(<Whiteboard {...defaultProps} />);
 
-      const downloadButtons = screen.getAllByLabelText(/Download/);
+      const downloadButtons = screen.getAllByLabelText(/Baixar/);
       expect(downloadButtons).toHaveLength(2);
       expect(downloadButtons[0]).toBeInTheDocument();
     });
@@ -254,7 +254,7 @@ describe('Whiteboard Component', () => {
         .spyOn(document.body, 'removeChild')
         .mockImplementation(jest.fn());
 
-      const downloadButton = screen.getAllByLabelText(/Download/)[0];
+      const downloadButton = screen.getAllByLabelText(/Baixar/)[0];
       fireEvent.click(downloadButton);
 
       // Verify DOM operations
@@ -298,7 +298,7 @@ describe('Whiteboard Component', () => {
         .spyOn(document.body, 'removeChild')
         .mockImplementation(jest.fn());
 
-      const downloadButton = screen.getByLabelText(/Download/);
+      const downloadButton = screen.getByLabelText(/Baixar/);
       fireEvent.click(downloadButton);
 
       expect(linkEl.download).toBe('whiteboard-1');
@@ -311,12 +311,110 @@ describe('Whiteboard Component', () => {
     });
   });
 
+  describe('Ampliar o quadro', () => {
+    it('abre o quadro ampliado ao clicar na imagem', () => {
+      render(<Whiteboard {...defaultProps} />);
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByLabelText('Ampliar Board 1'));
+
+      const dialog = screen.getByRole('dialog');
+      expect(dialog).toHaveAccessibleName('Board 1');
+      // A imagem ampliada é a mesma do card, em tamanho cheio.
+      expect(dialog.querySelector('img')).toHaveAttribute(
+        'src',
+        mockImages[0].imageUrl
+      );
+    });
+
+    it('avisa o consumidor ao ampliar, pra marcar o quadro como visto', () => {
+      const onImageActivateMock = jest.fn();
+      render(
+        <Whiteboard {...defaultProps} onImageActivate={onImageActivateMock} />
+      );
+
+      fireEvent.click(screen.getByLabelText('Ampliar Board 2'));
+
+      expect(onImageActivateMock).toHaveBeenCalledWith(mockImages[1]);
+    });
+
+    it('fecha o quadro ampliado pelo botão de fechar', () => {
+      render(<Whiteboard {...defaultProps} />);
+
+      fireEvent.click(screen.getByLabelText('Ampliar Board 1'));
+      fireEvent.click(screen.getByRole('button', { name: 'Fechar modal' }));
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    it('cai num título genérico quando o quadro não tem título', () => {
+      render(
+        <Whiteboard images={[{ id: '1', imageUrl: 'https://x/1.jpg' }]} />
+      );
+
+      fireEvent.click(screen.getByLabelText('Ampliar imagem'));
+
+      expect(screen.getByRole('dialog')).toHaveAccessibleName('Quadro da aula');
+    });
+
+    it('descreve a imagem ampliada quando o quadro não tem título', () => {
+      render(
+        <Whiteboard images={[{ id: '1', imageUrl: 'https://x/1.jpg' }]} />
+      );
+
+      fireEvent.click(screen.getByLabelText('Ampliar imagem'));
+
+      // Sem título o diálogo tem nome genérico; um `alt` vazio esconderia do
+      // leitor a imagem, que é todo o conteúdo dele.
+      expect(screen.getByRole('dialog').querySelector('img')).toHaveAttribute(
+        'alt',
+        'Quadro da aula ampliado'
+      );
+    });
+
+    it('não repete o título no alt quando o diálogo já é nomeado por ele', () => {
+      render(<Whiteboard {...defaultProps} />);
+
+      fireEvent.click(screen.getByLabelText('Ampliar Board 1'));
+
+      const dialog = screen.getByRole('dialog');
+      expect(dialog).toHaveAccessibleName('Board 1');
+      expect(dialog.querySelector('img')).toHaveAttribute('alt', '');
+    });
+
+    it('fecha o preview quando o quadro sai da lista', () => {
+      const { rerender } = render(<Whiteboard {...defaultProps} />);
+
+      fireEvent.click(screen.getByLabelText('Ampliar Board 1'));
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+      // Trocar a lista (outra aula, por exemplo) deixava o preview exibindo uma
+      // imagem que já não está mais ali.
+      rerender(<Whiteboard images={[mockImages[1]]} />);
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    it('não reabre o preview quando a lista volta a ter imagens', () => {
+      const { rerender } = render(<Whiteboard {...defaultProps} />);
+
+      fireEvent.click(screen.getByLabelText('Ampliar Board 1'));
+      rerender(<Whiteboard images={[]} />);
+      expect(screen.getByText('Nenhuma imagem disponível')).toBeInTheDocument();
+
+      rerender(<Whiteboard images={[mockImages[1]]} />);
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+  });
+
   describe('Accessibility', () => {
     it('should have proper aria-label for download buttons', () => {
       render(<Whiteboard {...defaultProps} />);
 
-      expect(screen.getByLabelText('Download Board 1')).toBeInTheDocument();
-      expect(screen.getByLabelText('Download Board 2')).toBeInTheDocument();
+      expect(screen.getByLabelText('Baixar Board 1')).toBeInTheDocument();
+      expect(screen.getByLabelText('Baixar Board 2')).toBeInTheDocument();
     });
 
     it('should have fallback aria-label when title is not provided', () => {
@@ -326,7 +424,7 @@ describe('Whiteboard Component', () => {
 
       render(<Whiteboard images={imagesWithoutTitle} />);
 
-      expect(screen.getByLabelText('Download imagem')).toBeInTheDocument();
+      expect(screen.getByLabelText('Baixar imagem')).toBeInTheDocument();
     });
 
     it('should have semantic HTML structure', () => {

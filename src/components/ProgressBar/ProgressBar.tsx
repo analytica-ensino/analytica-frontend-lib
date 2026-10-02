@@ -67,6 +67,7 @@ type VariantClassType = (typeof VARIANT_CLASSES)[keyof typeof VARIANT_CLASSES];
 interface BaseLayoutProps {
   className: string;
   label: ReactNode;
+  accessibleLabel?: string;
   showPercentage: boolean;
   showHitCount: boolean;
   labelClassName: string;
@@ -108,6 +109,7 @@ interface DefaultLayoutProps {
   sizeClasses: SizeClassType;
   variantClasses: VariantClassType;
   label: ReactNode;
+  accessibleLabel?: string;
   showPercentage: boolean;
   labelClassName: string;
   percentageClassName: string;
@@ -132,6 +134,13 @@ export type ProgressBarProps = {
   layout?: ProgressBarLayout;
   /** Optional label to display */
   label?: ReactNode;
+  /**
+   * Nome acessível da barra. Por padrão ele é montado a partir do `label`
+   * visível mais o percentual (`"Fáceis: 45%"`), ou `"Progresso: 45%"` sem
+   * label. Passe este quando o label visível JÁ contém o percentual — senão o
+   * leitor de tela anuncia o número duas vezes.
+   */
+  accessibleLabel?: string;
   /** Show percentage text */
   showPercentage?: boolean;
   /**
@@ -350,6 +359,38 @@ const renderStackedHitCountDisplay = (
 };
 
 /**
+ * Nome acessível da barra.
+ *
+ * Em português, como todo o resto da interface: o leitor de tela lia
+ * "Progress: 0% of 100" na lista de aulas. O "of 100" também saiu — o percentual
+ * já é relativo ao máximo, e o `max` do `<progress>` segue exposto pra quem
+ * quiser o valor cru.
+ *
+ * `accessibleLabel` só vence quando tem conteúdo: com `??` um `''` (ou só
+ * espaços) virava o nome da barra, deixando-a sem nome nenhum em vez de cair no
+ * padrão. O valor passado é usado como veio, sem trim.
+ *
+ * @param accessibleLabel - Nome pronto, vindo do consumidor
+ * @param label - Texto visível da barra, usado como prefixo quando é string
+ * @param percentage - Percentual já calculado
+ * @returns O nome a anunciar
+ */
+const resolveAccessibleLabel = (
+  accessibleLabel: string | undefined,
+  label: ReactNode,
+  percentage: number
+): string => {
+  if (accessibleLabel?.trim()) {
+    return accessibleLabel;
+  }
+
+  const prefix =
+    typeof label === 'string' && label.trim() ? label.trim() : 'Progresso';
+
+  return `${prefix}: ${Math.round(percentage)}%`;
+};
+
+/**
  * Base progress bar component with common rendering logic
  */
 const ProgressBarBase = ({
@@ -357,6 +398,7 @@ const ProgressBarBase = ({
   max,
   percentage,
   label,
+  accessibleLabel,
   variantClasses,
   containerClassName,
   fillClassName,
@@ -365,6 +407,7 @@ const ProgressBarBase = ({
   max: number;
   percentage: number;
   label: ReactNode;
+  accessibleLabel?: string;
   variantClasses: VariantClassType;
   containerClassName: string;
   fillClassName: string;
@@ -379,11 +422,7 @@ const ProgressBarBase = ({
     <progress
       value={clampedValue}
       max={max}
-      aria-label={
-        typeof label === 'string'
-          ? `${label}: ${Math.round(percentage)}% complete`
-          : `Progress: ${Math.round(percentage)}% of ${max}`
-      }
+      aria-label={resolveAccessibleLabel(accessibleLabel, label, percentage)}
       className="absolute inset-0 w-full h-full opacity-0"
     />
     <div
@@ -403,6 +442,7 @@ const ProgressBarBase = ({
 const StackedLayout = ({
   className,
   label,
+  accessibleLabel,
   showPercentage,
   showHitCount,
   labelClassName,
@@ -450,6 +490,7 @@ const StackedLayout = ({
       max={max}
       percentage={percentage}
       label={label}
+      accessibleLabel={accessibleLabel}
       variantClasses={variantClasses}
       containerClassName="w-full h-2 rounded-lg"
       fillClassName="h-2 rounded-lg shadow-hard-shadow-3"
@@ -463,6 +504,7 @@ const StackedLayout = ({
 const CompactLayout = ({
   className,
   label,
+  accessibleLabel,
   showPercentage,
   showHitCount,
   labelClassName,
@@ -514,6 +556,7 @@ const CompactLayout = ({
         max={max}
         percentage={percentage}
         label={label}
+        accessibleLabel={accessibleLabel}
         variantClasses={variantClasses}
         containerClassName="w-full h-1 rounded-full"
         fillClassName="h-1 rounded-full"
@@ -531,6 +574,7 @@ const DefaultLayout = ({
   sizeClasses,
   variantClasses,
   label,
+  accessibleLabel,
   showPercentage,
   labelClassName,
   percentageClassName,
@@ -584,6 +628,7 @@ const DefaultLayout = ({
         max={max}
         percentage={percentage}
         label={label}
+        accessibleLabel={accessibleLabel}
         variantClasses={variantClasses}
         containerClassName={cn(
           progressBarClass,
@@ -670,6 +715,7 @@ const ProgressBar = ({
   variant = 'blue',
   layout = 'default',
   label,
+  accessibleLabel,
   showPercentage = false,
   showHitCount = false,
   className = '',
@@ -689,6 +735,7 @@ const ProgressBar = ({
       <StackedLayout
         className={className}
         label={label}
+        accessibleLabel={accessibleLabel}
         showPercentage={showPercentage}
         showHitCount={showHitCount}
         labelClassName={labelClassName}
@@ -710,6 +757,7 @@ const ProgressBar = ({
       <CompactLayout
         className={className}
         label={label}
+        accessibleLabel={accessibleLabel}
         showPercentage={showPercentage}
         showHitCount={showHitCount}
         labelClassName={labelClassName}
@@ -733,6 +781,7 @@ const ProgressBar = ({
       sizeClasses={sizeClasses}
       variantClasses={variantClasses}
       label={label}
+      accessibleLabel={accessibleLabel}
       showPercentage={showPercentage}
       labelClassName={labelClassName}
       percentageClassName={percentageClassName}

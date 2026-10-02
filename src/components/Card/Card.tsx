@@ -622,6 +622,9 @@ const CardPerformance = forwardRef<HTMLDivElement, CardPerformanceProps>(
               <ProgressBar
                 value={progress}
                 label={`${progress}% ${labelProgress}`}
+                // O label visível já começa com o percentual, então o nome
+                // padrão da barra ("85% : 85%") anunciava o número duas vezes.
+                accessibleLabel={`${labelProgress.trim() || 'Progresso'}: ${progress}%`}
                 variant={progressVariant}
               />
             ) : (
@@ -1255,6 +1258,16 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
       };
     }, []);
 
+    /**
+     * Rótulo do play/pause. O título entra nele pro botão se descrever sozinho:
+     * quem chega ali pela navegação do leitor de tela, sem ter passado pelo nome
+     * do grupo, ouvia só "Reproduzir" sem saber o quê.
+     */
+    const playPauseAction = isPlaying ? 'Pausar' : 'Reproduzir';
+    const playPauseLabel = title
+      ? `${playPauseAction} ${title}`
+      : playPauseAction;
+
     return (
       <CardBase
         ref={ref}
@@ -1277,7 +1290,11 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
           onLoadedMetadata={handleLoadedMetadata}
           onEnded={handleEnded}
           data-testid="audio-element"
-          aria-label={title}
+          // Sem `aria-label`: este `<audio>` não tem `controls`, então não há
+          // nada pro leitor de tela fazer com ele — e o rótulo repetia o título
+          // que o container já anuncia, aparecendo duas vezes na árvore (o caso
+          // do card de podcast). Quem nomeia o conjunto é o consumidor, com um
+          // `<section>` nomeada em volta (ver `LessonPodcastSection`).
         >
           {tracks ? (
             tracks.map((track) => (
@@ -1306,7 +1323,7 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
           onClick={handlePlayPause}
           disabled={!src}
           className="cursor-pointer text-text-950 hover:text-primary-600 disabled:text-text-400 disabled:cursor-not-allowed"
-          aria-label={isPlaying ? 'Pausar' : 'Reproduzir'}
+          aria-label={playPauseLabel}
         >
           {isPlaying ? (
             <div className="w-6 h-6 flex items-center justify-center">
@@ -1553,7 +1570,14 @@ const CardSimulado = forwardRef<HTMLDivElement, CardSimuladoProps>(
             <div className="flex items-center gap-4 text-text-700">
               {duration && (
                 <div className="flex items-center gap-1">
-                  <ClockIcon size={16} className="flex-shrink-0" />
+                  {/* Decorativo: a duração está no texto ao lado. O Phosphor não
+                      marca os ícones sozinho — sem `alt` ele nem emite
+                      `<title>`, então o leitor anunciava um gráfico sem nome. */}
+                  <ClockIcon
+                    size={16}
+                    className="flex-shrink-0"
+                    aria-hidden="true"
+                  />
                   <Text size="sm">{duration}</Text>
                 </div>
               )}
@@ -1569,6 +1593,7 @@ const CardSimulado = forwardRef<HTMLDivElement, CardSimuladoProps>(
               size={24}
               className="text-text-800 flex-shrink-0"
               data-testid="caret-icon"
+              aria-hidden="true"
             />
           )}
         </div>
@@ -1656,7 +1681,11 @@ const CardTest = forwardRef<HTMLElement, CardTestProps>(
             <div className="flex flex-row justify-start items-end gap-4 w-full">
               {duration && (
                 <div className="flex flex-row items-center gap-1 flex-shrink-0">
-                  <ClockIcon size={16} className="text-text-700" />
+                  <ClockIcon
+                    size={16}
+                    className="text-text-700"
+                    aria-hidden="true"
+                  />
                   <Text
                     size="sm"
                     className="text-text-700 leading-[21px] whitespace-nowrap"
@@ -1696,7 +1725,11 @@ const CardTest = forwardRef<HTMLElement, CardTestProps>(
           <div className="flex flex-row justify-start items-end gap-4 w-full">
             {duration && (
               <div className="flex flex-row items-center gap-1 flex-shrink-0">
-                <ClockIcon size={16} className="text-text-700" />
+                <ClockIcon
+                  size={16}
+                  className="text-text-700"
+                  aria-hidden="true"
+                />
                 <Text
                   size="sm"
                   className="text-text-700 leading-[21px] whitespace-nowrap"

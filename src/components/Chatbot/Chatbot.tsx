@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import ChatbotFab from './ChatbotFab';
 import ChatbotPanel from './ChatbotPanel';
 import ChatbotMessageList from './ChatbotMessageList';
@@ -83,10 +83,41 @@ export default function Chatbot({
     sendMessage(text, currentContext).catch(() => undefined);
   };
 
+  const fabRef = useRef<HTMLButtonElement>(null);
+  const wasOpenRef = useRef(false);
+
+  /**
+   * Returns focus to the FAB when the panel closes.
+   *
+   * The panel restores focus on its own (`useModalFocus` remembers whoever
+   * opened it), but when that was the FAB the remembered node is gone — the FAB
+   * is unmounted while the panel is open, and the hook only restores focus to an
+   * element still on the page, so focus would be left on the `<body>`.
+   *
+   * The `<body>` guard keeps any other opener intact: if something else still
+   * holds the focus the hook already handled it, and this effect stays out of
+   * the way.
+   */
+  useEffect(() => {
+    if (isOpen) {
+      wasOpenRef.current = true;
+      return;
+    }
+
+    if (!wasOpenRef.current) return;
+    wasOpenRef.current = false;
+
+    const active = document.activeElement;
+    if (!active || active === document.body) {
+      fabRef.current?.focus();
+    }
+  }, [isOpen]);
+
   return (
     <>
       {!isOpen && (
         <ChatbotFab
+          ref={fabRef}
           onClick={togglePanel}
           isOpen={isOpen}
           className={fabClassName}

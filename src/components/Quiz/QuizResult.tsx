@@ -310,6 +310,21 @@ const QuizResultPerformance = forwardRef<
       ? Math.round((stats.correctAnswers / totalQuestions) * 100)
       : 0;
 
+  const resultStatistics = getQuestionResultStatistics();
+  const correctAnswers = resultStatistics?.correctAnswers ?? '--';
+  // Só formata quando o tempo vai aparecer: numa prova feita no papel não há
+  // cronômetro, e `formatTime` de um zero inventado não serve pra nada.
+  const timeSpent = showTimeSpent
+    ? formatTime((resultStatistics?.timeSpent ?? 0) * 60)
+    : null;
+
+  const circleAccessibleLabel = [
+    `${correctAnswers} de ${totalQuestions} corretas`,
+    timeSpent ? `tempo ${timeSpent}` : null,
+  ]
+    .filter(Boolean)
+    .join(', ');
+
   const classesJustifyBetween = showDetails
     ? 'justify-between'
     : 'justify-center';
@@ -329,23 +344,27 @@ const QuizResultPerformance = forwardRef<
           value={percentage}
           showPercentage={false}
           label=""
+          accessibleLabel={circleAccessibleLabel}
         />
 
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
+        {/* Duplicata visual do que o anel já anuncia (ver
+            `circleAccessibleLabel`): fora da árvore de acessibilidade para o
+            leitor não ler o mesmo resultado em pedaços. */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 flex flex-col items-center justify-center"
+        >
           {showTimeSpent && (
             <div className="flex items-center gap-1 mb-1">
               <ClockIcon size={12} weight="regular" className="text-text-800" />
               <span className="text-2xs font-medium text-text-800">
-                {formatTime(
-                  (getQuestionResultStatistics()?.timeSpent ?? 0) * 60
-                )}
+                {timeSpent}
               </span>
             </div>
           )}
 
           <div className="text-2xl font-medium text-text-800 leading-7">
-            {getQuestionResultStatistics()?.correctAnswers ?? '--'} de{' '}
-            {totalQuestions}
+            {correctAnswers} de {totalQuestions}
           </div>
 
           <div className="text-2xs font-medium text-text-600 mt-1">

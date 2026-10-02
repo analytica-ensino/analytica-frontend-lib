@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import ChatbotPanel from './ChatbotPanel';
@@ -123,20 +123,72 @@ describe('ChatbotPanel', () => {
     const props = baseProps();
     render(<ChatbotPanel {...props} />);
 
-    // Dispatch Escape at the document level — the listener is attached on
-    // globalThis inside the panel's mount effect.
-    const event = new KeyboardEvent('keydown', { key: 'Escape' });
-    globalThis.dispatchEvent(event);
+    // On `document`, which is where `useEscapeToClose` listens — the same place
+    // the rest of the lib's dialogs are driven from in tests.
+    fireEvent.keyDown(document, { key: 'Escape' });
 
     expect(props.onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the panel open on an Escape another handler already took', () => {
+    const props = baseProps();
+    render(<ChatbotPanel {...props} />);
+
+    // A popover inside the panel (Select, DropdownMenu...) consumes the Escape
+    // and marks it: only the popover closes, the panel stays open.
+    const inner = screen.getByTestId('slot-input');
+    inner.addEventListener('keydown', (event) => event.preventDefault());
+    fireEvent.keyDown(inner, { key: 'Escape' });
+
+    expect(props.onClose).not.toHaveBeenCalled();
   });
 
   it('ignores non-Escape key presses', () => {
     const props = baseProps();
     render(<ChatbotPanel {...props} />);
 
-    globalThis.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    fireEvent.keyDown(document, { key: 'Enter' });
 
     expect(props.onClose).not.toHaveBeenCalled();
+  });
+
+  describe('focus and trapped navigation', () => {
+    it('declares itself modal and moves focus to the dialog on open', () => {
+      const { container } = render(<ChatbotPanel {...baseProps()} />);
+      const dialog = container.querySelector('dialog');
+
+      expect(dialog).toHaveAttribute('aria-modal', 'true');
+      expect(dialog).toHaveAttribute('tabindex', '-1');
+      expect(dialog).toHaveFocus();
+      expect(
+        screen.getByRole('button', { name: 'Fechar assistente' })
+      ).not.toHaveFocus();
+    });
+
+    it('takes the page behind it out of the way while open', () => {
+      const background = document.createElement('div');
+      document.body.appendChild(background);
+
+      const { rerender } = render(<ChatbotPanel {...baseProps()} />);
+      expect(background).toHaveAttribute('inert');
+      expect(background).toHaveAttribute('aria-hidden', 'true');
+
+      rerender(<ChatbotPanel {...baseProps()} isOpen={false} />);
+      expect(background).not.toHaveAttribute('inert');
+
+      background.remove();
+    });
+
+    it('returns focus to whoever opened it', () => {
+      const trigger = document.createElement('button');
+      document.body.appendChild(trigger);
+      trigger.focus();
+
+      const { rerender } = render(<ChatbotPanel {...baseProps()} />);
+      rerender(<ChatbotPanel {...baseProps()} isOpen={false} />);
+
+      expect(trigger).toHaveFocus();
+      trigger.remove();
+    });
   });
 });

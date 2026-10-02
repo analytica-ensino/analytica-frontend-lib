@@ -185,7 +185,7 @@ describe('ProgressBar', () => {
 
       expect(progressBar).toHaveAttribute('value', '75');
       expect(progressBar).toHaveAttribute('max', '100');
-      expect(progressBar).toHaveAttribute('aria-label', 'Progress: 75% of 100');
+      expect(progressBar).toHaveAttribute('aria-label', 'Progresso: 75%');
     });
 
     it('sets correct aria attributes with custom max', () => {
@@ -199,10 +199,7 @@ describe('ProgressBar', () => {
     it('sets custom aria-label when label is provided as string', () => {
       render(<ProgressBar value={50} label="Custom Label" />);
       const progressBar = screen.getByRole('progressbar');
-      expect(progressBar).toHaveAttribute(
-        'aria-label',
-        'Custom Label: 50% complete'
-      );
+      expect(progressBar).toHaveAttribute('aria-label', 'Custom Label: 50%');
     });
 
     it('uses default aria-label when label is ReactNode', () => {
@@ -213,7 +210,33 @@ describe('ProgressBar', () => {
       );
       render(<ProgressBar value={50} label={complexLabel} />);
       const progressBar = screen.getByRole('progressbar');
-      expect(progressBar).toHaveAttribute('aria-label', 'Progress: 50% of 100');
+      expect(progressBar).toHaveAttribute('aria-label', 'Progresso: 50%');
+    });
+
+    it('ignora accessibleLabel em branco em vez de ficar sem nome', () => {
+      render(<ProgressBar value={50} label="Fáceis" accessibleLabel="   " />);
+
+      // Com `??` um `''` virava o nome da barra e ela ficava sem nome nenhum,
+      // em vez de cair no padrão.
+      expect(screen.getByRole('progressbar')).toHaveAttribute(
+        'aria-label',
+        'Fáceis: 50%'
+      );
+    });
+
+    it('deixa o consumidor nomear a barra quando o label já traz o número', () => {
+      render(
+        <ProgressBar
+          value={85}
+          label="85% de acertos"
+          accessibleLabel="Desempenho: 85%"
+        />
+      );
+
+      // Sem isto o nome sairia "85% de acertos: 85%".
+      expect(
+        screen.getByRole('progressbar', { name: 'Desempenho: 85%' })
+      ).toBeInTheDocument();
     });
 
     it('sets correct aria attributes with clamped values', () => {
@@ -484,10 +507,7 @@ describe('ProgressBar', () => {
       expect(progressBar).toBeInTheDocument();
       expect(progressBar).toHaveAttribute('value', '67');
       expect(progressBar).toHaveAttribute('max', '150');
-      expect(progressBar).toHaveAttribute(
-        'aria-label',
-        'Test Progress: 45% complete'
-      );
+      expect(progressBar).toHaveAttribute('aria-label', 'Test Progress: 45%');
 
       expect(label).toBeInTheDocument();
       expect(label).toHaveClass('text-xs', 'custom-label');

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import {
   ArrowCounterClockwiseIcon,
   CaretDownIcon,
@@ -17,6 +17,8 @@ import IconButton from '../IconButton/IconButton';
 import AccessibilityToggleRow from './AccessibilityToggleRow';
 import TTSSection from './TTSSection';
 import { cn } from '../../utils/utils';
+import { useModalFocus } from '../../hooks/useModalFocus';
+import { useEscapeToClose } from '../../hooks/useEscapeToClose';
 import {
   useAccessibilityStore,
   type ContrastMode,
@@ -306,8 +308,7 @@ export default function AccessibilityPanel({
   position = 'right',
   className,
 }: Readonly<AccessibilityPanelProps>) {
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const previouslyFocusedRef = useRef<Element | null>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   const {
     contrastMode,
@@ -335,30 +336,29 @@ export default function AccessibilityPanel({
     resetPreferences,
   } = useAccessibilityStore();
 
-  // Foco e Escape: ao abrir, lembra o elemento anteriormente focado,
-  // move o foco para o botão de fechar e escuta a tecla Esc. Restaura
-  // o foco anterior ao fechar.
-  useEffect(() => {
-    if (!isOpen) return;
-    previouslyFocusedRef.current = document.activeElement;
-    closeButtonRef.current?.focus();
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.stopPropagation();
-        onClose();
-      }
-    };
-    globalThis.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      globalThis.removeEventListener('keydown', handleKeyDown);
-      const previous = previouslyFocusedRef.current as HTMLElement | null;
-      if (previous && typeof previous.focus === 'function') {
-        previous.focus();
-      }
-    };
-  }, [isOpen, onClose]);
+  /**
+   * Foco e navegação, pelos mesmos hooks que o `Modal` e o `AlertDialog` usam.
+   * O `useModalFocus` leva o foco pro diálogo ao abrir, prende Tab e Shift+Tab
+   * no ciclo (de "Redefinir ajustes" volta pro "Fechar opções de
+   * acessibilidade", e vice-versa) e torna o resto da página `inert` —
+   * necessário porque este é um `<dialog open>` sem top layer: sem isso o
+   * cursor virtual do VoiceOver continua passeando pelo menu atrás, e o Tab
+   * escapa pra ele. Também devolve o foco a quem abriu o painel.
+   *
+   * O foco inicial vai pro próprio diálogo (daí o `tabIndex={-1}` abaixo), e
+   * não pro botão de fechar: assim o leitor anuncia "Opções de acessibilidade,
+   * diálogo" antes de cair nos controles.
+   *
+   * `useEscapeToClose` em vez do listener manual de antes: ele ignora um
+   * Escape já tratado (`defaultPrevented`), então fechar o `Select` de voz do
+   * TTS não fecha mais o painel inteiro junto.
+   *
+   * Sem `useBodyScrollLock` de propósito: ele cobre a faixa da scrollbar com um
+   * overlay escuro combinando com o backdrop dos modais, e este painel não tem
+   * backdrop — a tarja apareceria solta na borda da tela.
+   */
+  useModalFocus(isOpen, dialogRef);
+  useEscapeToClose(isOpen, onClose);
 
   if (!isOpen) return null;
 
@@ -369,7 +369,17 @@ export default function AccessibilityPanel({
 
   return (
     <dialog
+      ref={dialogRef}
       open
+      // Requisito do `useModalFocus` (ver a nota acima): o foco inicial vai pro
+      // próprio diálogo, que precisa ser focável sem entrar no ciclo de Tab.
+      tabIndex={-1}
+      // `open` sem `showModal()` não cria top layer nem marca o diálogo como
+      // modal, então o papel é declarado aqui — como no `Modal` e no
+      // `AlertDialog`. Quem realmente prende a navegação é o `inert` aplicado
+      // pelo hook; o atributo é o que anuncia ao leitor que a página atrás
+      // saiu do caminho.
+      aria-modal="true"
       aria-label="Opções de acessibilidade"
       data-testid="accessibility-panel"
       // `<dialog>` não estica automaticamente com `top` + `bottom`, por
@@ -418,7 +428,6 @@ export default function AccessibilityPanel({
           </div>
         </div>
         <IconButton
-          ref={closeButtonRef}
           size="sm"
           aria-label="Fechar opções de acessibilidade"
           onClick={onClose}

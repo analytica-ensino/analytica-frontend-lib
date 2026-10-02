@@ -484,7 +484,7 @@ describe('AlertDialog', () => {
     });
 
     it('dá ids próprios a cada diálogo, para não colidirem', () => {
-      render(
+      const { container } = render(
         <>
           <AlertDialog
             {...defaultProps}
@@ -503,7 +503,12 @@ describe('AlertDialog', () => {
         </>
       );
 
-      const [primeiro, segundo] = screen.getAllByRole('dialog');
+      // Busca no DOM em vez de por `role`: com dois diálogos abertos, só o do
+      // topo fica navegável — o de baixo recebe `aria-hidden` e sai da árvore
+      // de acessibilidade (ver `useModalFocus`). O assunto aqui são os ids.
+      const [primeiro, segundo] = Array.from(
+        container.querySelectorAll('dialog')
+      );
 
       expect(primeiro.getAttribute('aria-labelledby')).not.toBe(
         segundo.getAttribute('aria-labelledby')

@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useId } from 'react';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
 
@@ -80,6 +80,15 @@ export type ProgressCircleProps = {
   trackColor?: string;
   /** Optional label to display below percentage */
   label?: ReactNode;
+  /**
+   * Nome acessível do círculo, anunciado antes do valor (ex.: "Progresso em
+   * História, 0%"). Sem ele, o leitor de tela lê o percentual solto e não há
+   * como saber de que matéria/assunto ele é — o `label` abaixo é texto VISÍVEL
+   * dentro do círculo (curto por caber em ~85px) e nem sempre serve de nome.
+   *
+   * Default: `Progresso` — ou `Progresso: <label>` quando `label` é string.
+   */
+  accessibleLabel?: string;
   /** Show percentage text */
   showPercentage?: boolean;
   /** Additional CSS classes */
@@ -121,6 +130,7 @@ const ProgressCircle = ({
   fillColor,
   trackColor,
   label,
+  accessibleLabel,
   showPercentage = true,
   className = '',
   labelClassName = '',
@@ -146,6 +156,34 @@ const ProgressCircle = ({
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
   const center = size === 'small' ? 53.5 : 76;
   const svgSize = size === 'small' ? 107 : 152;
+
+  /**
+   * Nome acessível: o do consumidor vence; senão, o texto visível do `label`
+   * (quando é string) em português; senão, só "Progresso".
+   */
+  const resolveAccessibleLabel = () => {
+    if (accessibleLabel?.trim()) return accessibleLabel;
+    if (typeof label === 'string' && label.trim()) {
+      return `Progresso: ${label.trim()}`;
+    }
+    return 'Progresso';
+  };
+
+  /**
+   * `label` aceita `ReactNode`, e desse não há como extrair texto para montar um
+   * `aria-label`. Como o miolo do círculo é `aria-hidden` (ele duplica o que o
+   * `<progress>` anuncia), um label em nó ficaria invisível pro leitor de tela —
+   * o nome cairia no genérico "Progresso" e a informação se perderia.
+   *
+   * Nesse caso o nome passa a ser montado por `aria-labelledby` apontando pro
+   * próprio label renderizado: texto referenciado por id conta pro nome mesmo
+   * dentro de uma região `aria-hidden`, então ele volta a ser anunciado sem
+   * ganhar uma parada própria. Com `accessibleLabel` ou com label string, nada
+   * muda.
+   */
+  const labelId = useId();
+  const nameFromLabelNode =
+    !accessibleLabel?.trim() && label != null && typeof label !== 'string';
 
   return (
     <div
@@ -192,16 +230,35 @@ const ProgressCircle = ({
         />
       </svg>
 
-      {/* Native progress element for accessibility */}
+      {/*
+        A semântica é o `<progress>` nativo, não um `role="progressbar"` num
+        `<div>`: o papel e o valor vêm do elemento, que é o que garante o
+        tratamento correto em qualquer navegador/leitor.
+
+        SEM parada de Tab, de propósito. `<progress>` não é interativo — não há o
+        que operar aqui — e `tabIndex` em conteúdo estático só adiciona paradas
+        para quem navega por teclado e já VÊ o gráfico. Quem usa leitor de tela
+        alcança isto pelo cursor de leitura (VO + setas, modo de navegação do
+        NVDA, swipe no iOS), que visita conteúdo não focável; é onde o nome e o
+        valor abaixo são anunciados.
+
+        Ocupa o círculo inteiro (`inset-0`) em vez do antigo `w-0 h-0`: um
+        elemento de área zero é ignorado por parte das ferramentas de leitura, e
+        era o que deixava este valor fora do alcance delas.
+      */}
       <progress
         value={clampedValue}
         max={max}
-        aria-label={typeof label === 'string' ? label : 'Progress'}
-        className="absolute opacity-0 w-0 h-0"
+        aria-label={nameFromLabelNode ? undefined : resolveAccessibleLabel()}
+        aria-labelledby={nameFromLabelNode ? labelId : undefined}
+        className="absolute inset-0 h-full w-full appearance-none opacity-0"
       />
 
       {/* Content overlay - centered content */}
       <div
+        // Duplicata visual do que o `<progress>` acima já anuncia (valor e
+        // nome). Sem isto, o leitor lia o percentual uma segunda vez, solto.
+        aria-hidden="true"
         className={cn(
           'relative z-10 flex flex-col items-center justify-center',
           sizeClasses.spacing,
@@ -227,6 +284,7 @@ const ProgressCircle = ({
         {label && (
           <Text
             as="span"
+            id={labelId}
             size={sizeClasses.labelSize}
             weight={sizeClasses.labelWeight}
             className={cn(
