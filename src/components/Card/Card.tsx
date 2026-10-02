@@ -1294,7 +1294,7 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
           // nada pro leitor de tela fazer com ele — e o rótulo repetia o título
           // que o container já anuncia, aparecendo duas vezes na árvore (o caso
           // do card de podcast). Quem nomeia o conjunto é o consumidor, com um
-          // `role="group"` em volta (ver `LessonPodcastSection`).
+          // `<section>` nomeada em volta (ver `LessonPodcastSection`).
         >
           {tracks ? (
             tracks.map((track) => (

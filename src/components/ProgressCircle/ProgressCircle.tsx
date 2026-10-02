@@ -172,8 +172,8 @@ const ProgressCircle = ({
   /**
    * `label` aceita `ReactNode`, e desse não há como extrair texto para montar um
    * `aria-label`. Como o miolo do círculo é `aria-hidden` (ele duplica o que o
-   * `progressbar` anuncia), um label em nó ficaria invisível pro leitor de tela
-   * — o nome cairia no genérico "Progresso" e a informação se perderia.
+   * `<progress>` anuncia), um label em nó ficaria invisível pro leitor de tela —
+   * o nome cairia no genérico "Progresso" e a informação se perderia.
    *
    * Nesse caso o nome passa a ser montado por `aria-labelledby` apontando pro
    * próprio label renderizado: texto referenciado por id conta pro nome mesmo
@@ -186,34 +186,16 @@ const ProgressCircle = ({
     !accessibleLabel?.trim() && label != null && typeof label !== 'string';
 
   return (
-    // A semântica vive no wrapper, não num `<progress>` escondido: assim o
-    // leitor de tela anuncia nome + valor numa única parada, em vez de ler o
-    // "0%" do centro do círculo solto, sem dizer de que progresso se trata.
-    // Mesma forma que o `ScoreCircle` usa.
-    //
-    // `tabIndex={0}` num elemento não interativo é deliberado. Um
-    // `role="progressbar"` não entra no ciclo de Tab, e este círculo é a única
-    // coisa na tela que carrega o número — não existe botão ou link em volta
-    // que o anuncie de carona. Sem a parada de Tab, quem navega pelo teclado
-    // (e o VoiceOver seguindo o foco) simplesmente nunca chega nele: o dado
-    // ficava inalcançável. É a mesma troca que os componentes de gráfico fazem:
-    // uma parada a mais, em troca de uma informação que de outro modo só existe
-    // para quem vê.
+    // O anel de foco vive no wrapper, e não no `<progress>`: o elemento está
+    // `opacity-0` (quem desenha o círculo é o SVG), e `opacity` apaga o anel
+    // junto. `focus-within` desenha no pai quando o `<progress>` recebe o foco —
+    // parada de Tab sem indicador visível quebra o WCAG 2.4.7.
     <div
-      role="progressbar"
-      tabIndex={0}
-      aria-valuemin={0}
-      aria-valuenow={clampedValue}
-      aria-valuemax={max}
-      aria-label={nameFromLabelNode ? undefined : resolveAccessibleLabel()}
-      aria-labelledby={nameFromLabelNode ? labelId : undefined}
       className={cn(
         'relative flex flex-col items-center justify-center',
         sizeClasses.container,
         'rounded-lg',
-        // Parada de Tab precisa de indicador visível (WCAG 2.4.7). Só no
-        // `focus-visible` pra não desenhar anel em clique de mouse.
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indicator-info focus-visible:ring-offset-2',
+        'focus-within:ring-2 focus-within:ring-indicator-info focus-within:ring-offset-2',
         className
       )}
     >
@@ -253,9 +235,33 @@ const ProgressCircle = ({
         />
       </svg>
 
+      {/*
+        A semântica é o `<progress>` nativo, não um `role="progressbar"` num
+        `<div>`: o papel e o valor vêm do elemento, que é o que garante o
+        tratamento correto em qualquer navegador/leitor.
+
+        Ele cobre o círculo inteiro (`inset-0`) em vez do antigo `w-0 h-0`
+        escondido, por dois motivos: é o que dá área pro anel de foco do wrapper
+        aparecer, e é o que faz a parada de Tab cair visualmente sobre o gráfico.
+
+        `tabIndex={0}` é deliberado: `<progress>` não entra no ciclo de Tab por
+        padrão, e este círculo é a única coisa na tela que carrega o número — não
+        há botão nem link em volta que o anuncie de carona. Sem a parada, quem
+        navega pelo teclado (e o leitor de tela seguindo o foco) nunca chega no
+        valor.
+      */}
+      <progress
+        value={clampedValue}
+        max={max}
+        tabIndex={0}
+        aria-label={nameFromLabelNode ? undefined : resolveAccessibleLabel()}
+        aria-labelledby={nameFromLabelNode ? labelId : undefined}
+        className="absolute inset-0 h-full w-full appearance-none opacity-0 focus:outline-none"
+      />
+
       {/* Content overlay - centered content */}
       <div
-        // Duplicata visual do que o `progressbar` acima já anuncia (valor e
+        // Duplicata visual do que o `<progress>` acima já anuncia (valor e
         // nome). Sem isto, o leitor lia o percentual uma segunda vez, solto.
         aria-hidden="true"
         className={cn(

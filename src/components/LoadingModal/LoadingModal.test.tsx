@@ -112,10 +112,10 @@ describe('LoadingModal', () => {
   });
 
   it('forwards ref correctly', () => {
-    const ref = createRef<HTMLDivElement>();
+    const ref = createRef<HTMLDialogElement>();
     render(<LoadingModal {...defaultProps} ref={ref} />);
 
-    expect(ref.current).toBeInstanceOf(HTMLDivElement);
+    expect(ref.current).toBeInstanceOf(HTMLDialogElement);
   });
 
   it('renders with empty title and subtitle', () => {
@@ -186,12 +186,33 @@ describe('LoadingModal', () => {
       render(<LoadingModal {...defaultProps} />);
 
       const modalContainer = document.querySelector('.fixed.inset-0.z-50');
-      // `aria-modal` only counts on a node with a dialog role; on a bare
-      // `<div>` it was being ignored.
-      expect(modalContainer).toHaveAttribute('role', 'dialog');
+      // O papel vem do elemento `<dialog>`, não de um `role="dialog"` num
+      // `<div>` — é o que garante o tratamento certo em qualquer
+      // navegador/leitor. `aria-modal`, que num `<div>` genérico era ignorado,
+      // agora tem onde valer.
+      expect(modalContainer?.tagName).toBe('DIALOG');
+      expect(screen.getByRole('dialog')).toBe(modalContainer);
       expect(modalContainer).toHaveAttribute('aria-modal', 'true');
       expect(modalContainer).toHaveAttribute('aria-labelledby');
       expect(modalContainer).toHaveAttribute('aria-describedby');
+    });
+
+    it('anula o user-agent do <dialog> para cobrir a tela', () => {
+      render(<LoadingModal {...defaultProps} />);
+
+      // `<dialog open>` vem com `position: absolute`, `margin: auto` e
+      // `width/height: fit-content`: sem os resets o overlay encolhia no
+      // conteúdo em vez de cobrir a tela.
+      expect(document.querySelector('.fixed.inset-0.z-50')).toHaveClass(
+        'fixed',
+        'inset-0',
+        'm-0',
+        'h-full',
+        'w-full',
+        'max-w-none',
+        'border-none',
+        'p-0'
+      );
     });
 
     it('gives each instance its own ids, so they cannot collide', () => {

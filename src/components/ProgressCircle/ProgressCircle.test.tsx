@@ -303,12 +303,11 @@ describe('ProgressCircle', () => {
       render(<ProgressCircle value={75} />);
       const progressBar = screen.getByRole('progressbar');
 
-      // O valor vive no próprio wrapper: antes havia um `<progress>` escondido
-      // só pra isso, e o leitor anunciava o percentual duas vezes (uma dele,
-      // uma do texto visível do centro).
-      expect(progressBar).toHaveAttribute('aria-valuenow', '75');
-      expect(progressBar).toHaveAttribute('aria-valuemin', '0');
-      expect(progressBar).toHaveAttribute('aria-valuemax', '100');
+      // O papel e o valor vêm do `<progress>` nativo, não de um
+      // `role="progressbar"` com `aria-value*` à mão.
+      expect(progressBar.tagName).toBe('PROGRESS');
+      expect(progressBar).toHaveAttribute('value', '75');
+      expect(progressBar).toHaveAttribute('max', '100');
       expect(progressBar).toHaveAttribute('aria-label', 'Progresso');
     });
 
@@ -316,8 +315,8 @@ describe('ProgressCircle', () => {
       render(<ProgressCircle value={8} max={10} />);
       const progressBar = screen.getByRole('progressbar');
 
-      expect(progressBar).toHaveAttribute('aria-valuenow', '8');
-      expect(progressBar).toHaveAttribute('aria-valuemax', '10');
+      expect(progressBar).toHaveAttribute('value', '8');
+      expect(progressBar).toHaveAttribute('max', '10');
     });
 
     it('nomeia pelo label visível, em português, quando ele é string', () => {
@@ -388,11 +387,13 @@ describe('ProgressCircle', () => {
     });
 
     it('mostra indicador de foco visível na parada de Tab', () => {
-      render(<ProgressCircle value={0} />);
+      const { container } = render(<ProgressCircle value={0} />);
 
-      // Parada de Tab sem indicador visível quebra o WCAG 2.4.7.
-      expect(screen.getByRole('progressbar').className).toMatch(
-        /focus-visible:ring-2/
+      // Parada de Tab sem indicador visível quebra o WCAG 2.4.7. O anel fica no
+      // wrapper porque o `<progress>` é `opacity-0`, e `opacity` apagaria o anel
+      // junto com o elemento.
+      expect((container.firstChild as HTMLElement).className).toMatch(
+        /focus-within:ring-2/
       );
     });
 

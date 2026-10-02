@@ -130,8 +130,8 @@ describe('LessonPodcastSection', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  describe('a11y: o card é um grupo e o título não repete', () => {
-    it('agrupa o player e anuncia que é um podcast', () => {
+  describe('a11y: o card é uma seção nomeada e o título não repete', () => {
+    it('agrupa o player numa seção e anuncia que é um podcast', () => {
       render(
         <LessonPodcastSection
           podcast={{ src: 'https://cdn.test/a.mp3', title: 'Episódio 3' }}
@@ -139,7 +139,7 @@ describe('LessonPodcastSection', () => {
       );
 
       expect(
-        screen.getByRole('group', { name: 'Podcast: Episódio 3' })
+        screen.getByRole('region', { name: 'Podcast: Episódio 3' })
       ).toBeInTheDocument();
     });
 
@@ -152,7 +152,7 @@ describe('LessonPodcastSection', () => {
 
       // Prefixar sempre produziria "Podcast: Podcast da aula".
       expect(
-        screen.getByRole('group', { name: 'Podcast da aula' })
+        screen.getByRole('region', { name: 'Podcast da aula' })
       ).toBeInTheDocument();
     });
 
@@ -164,7 +164,7 @@ describe('LessonPodcastSection', () => {
       );
 
       expect(
-        screen.getByRole('group', { name: 'Podcast' })
+        screen.getByRole('region', { name: 'Podcast' })
       ).toBeInTheDocument();
     });
 

@@ -122,21 +122,25 @@ export const LessonPodcastSection = ({
   }
 
   return (
-    // O card inteiro é um grupo nomeado, pro leitor de tela anunciar "Podcast:
+    // O card inteiro é uma seção nomeada, pro leitor de tela anunciar "Podcast:
     // <título>" uma vez ao entrar e tratar player, tempos e controles como um
     // conjunto — em vez de botões soltos sem contexto. O nome fica SÓ aqui: o
     // `<audio>` do `CardAudio` não tem `controls`, então não leva rótulo
     // próprio, que era a origem do título duplicado na árvore.
-    <div
+    //
+    // `<section>` com nome acessível (elemento nativo, papel `region`) em vez de
+    // um `<div role="group">`: o papel vem do elemento. Das alternativas nativas
+    // de agrupamento, `region` é a que serve — `<fieldset>` existe pra conjunto
+    // de campos de formulário, e isto é um player de mídia.
+    <section
       className="w-full"
-      role="group"
       aria-label={getPodcastGroupLabel(podcast.title)}
     >
       <Text size="md" weight="bold" className="pb-2">
         {podcast.title}
       </Text>
       <CardAudio src={podcast.src} title={podcast.title} onEnded={onEnded} />
-    </div>
+    </section>
   );
 };
 

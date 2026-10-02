@@ -1,12 +1,15 @@
 import { forwardRef, HTMLAttributes, useId } from 'react';
 
-interface LoadingModalProps extends HTMLAttributes<HTMLDivElement> {
+interface LoadingModalProps extends Omit<
+  HTMLAttributes<HTMLDialogElement>,
+  'open'
+> {
   open: boolean;
   title?: string;
   subtitle?: string;
 }
 
-const LoadingModal = forwardRef<HTMLDivElement, LoadingModalProps>(
+const LoadingModal = forwardRef<HTMLDialogElement, LoadingModalProps>(
   ({ open, title = 'Titulo...', subtitle = 'Subtitulo...', ...props }, ref) => {
     /**
      * Ids por instância. Fixos, duas telas de carregamento montadas ao mesmo
@@ -19,17 +22,26 @@ const LoadingModal = forwardRef<HTMLDivElement, LoadingModalProps>(
     if (!open) return null;
 
     return (
-      <div
+      <dialog
         ref={ref}
-        // `aria-modal` só tem efeito em quem tem papel de diálogo; num `<div>`
-        // genérico ele era ignorado. Não há foco nem trap aqui de propósito:
-        // não existe nada focável dentro — é um bloqueio de carregamento, e o
-        // texto é anunciado pelo nome/descrição abaixo.
-        role="dialog"
+        // `<dialog>` em vez de `role="dialog"`: o papel vem do elemento, que é o
+        // que garante o tratamento correto em qualquer navegador/leitor. Mesmo
+        // padrão do `Modal` e do `AlertDialog`.
+        //
+        // `open` (e não `showModal()`) porque o overlay é esta própria tela
+        // cheia; `aria-modal` declara o papel modal que o `open` sozinho não
+        // marca. Não há foco nem trap aqui de propósito: não existe nada
+        // focável dentro — é um bloqueio de carregamento, e o texto é anunciado
+        // pelo nome/descrição abaixo.
+        open
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={subtitleId}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 backdrop-blur-xs"
+        // Os resets anulam o user-agent do `<dialog>`, que vem com
+        // `position: absolute`, `margin: auto`, `width/height: fit-content`,
+        // padding, borda e fundo próprios — sem eles o overlay encolhia no
+        // conteúdo em vez de cobrir a tela.
+        className="fixed inset-0 z-50 m-0 h-full w-full max-w-none border-none bg-background/90 p-0 flex items-center justify-center backdrop-blur-xs"
         {...props}
       >
         <div className="w-full max-w-[364px] flex flex-col items-center justify-center gap-14">
@@ -64,7 +76,7 @@ const LoadingModal = forwardRef<HTMLDivElement, LoadingModalProps>(
             </p>
           </span>
         </div>
-      </div>
+      </dialog>
     );
   }
 );
