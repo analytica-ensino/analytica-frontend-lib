@@ -9,6 +9,7 @@ import {
   forwardRef,
   ReactNode,
   useEffect,
+  useId,
   useRef,
   useState,
   ComponentType,
@@ -398,13 +399,16 @@ const QuizQuestionList = ({
         ([subjectId, questions]) => (
           <section key={subjectId} className="flex flex-col gap-2">
             <span className="pt-6 pb-4 flex flex-row gap-2">
-              <div className="bg-primary-500 p-1 rounded-sm flex items-center justify-center">
+              <div
+                className="bg-primary-500 p-1 rounded-sm flex items-center justify-center"
+                aria-hidden="true"
+              >
                 <BookOpenIcon size={17} className="text-white" />
               </div>
-              <p className="text-text-800 font-bold text-lg">
+              <h3 className="text-text-800 font-bold text-lg">
                 {questions?.[0]?.knowledgeMatrix?.[0]?.subject?.name ??
                   'Sem componente curricular'}
-              </p>
+              </h3>
             </span>
 
             <ul className="flex flex-col gap-2">
@@ -419,15 +423,16 @@ const QuizQuestionList = ({
                   ? `${questionTitle} ${examInfo}`
                   : questionTitle;
                 return (
-                  <CardStatus
-                    key={question.id}
-                    header={header}
-                    label={getStatusLabel(status)}
-                    onClick={() => {
-                      goToQuestion(questionNumber - 1);
-                      onQuestionClick?.();
-                    }}
-                  />
+                  <li key={question.id}>
+                    <CardStatus
+                      header={header}
+                      label={getStatusLabel(status)}
+                      onClick={() => {
+                        goToQuestion(questionNumber - 1);
+                        onQuestionClick?.();
+                      }}
+                    />
+                  </li>
                 );
               })}
             </ul>
@@ -459,37 +464,46 @@ const QuizResultModal = ({
   title: ReactNode;
   description: ReactNode;
   footer: ReactNode;
-}) => (
-  <Modal
-    isOpen={isOpen}
-    onClose={onClose}
-    title=""
-    closeOnEscape={false}
-    hideCloseButton
-    size={'md'}
-  >
-    <div className="flex flex-col w-full h-full items-center justify-center gap-4">
-      {image ? (
-        <div className="w-[282px] h-auto">{image}</div>
-      ) : (
-        showImagePlaceholder && (
-          <div className="w-[282px] h-[200px] bg-gray-100 rounded-md flex items-center justify-center">
-            <Text as="span" size="sm" color="text-gray-500">
-              Imagem de resultado
-            </Text>
+}) => {
+  const titleId = useId();
+  const descriptionId = useId();
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title=""
+      labelledBy={titleId}
+      describedBy={descriptionId}
+      closeOnEscape={false}
+      hideCloseButton
+      size={'md'}
+    >
+      <div className="flex flex-col w-full h-full items-center justify-center gap-4">
+        {image ? (
+          <div className="w-[282px] h-auto">{image}</div>
+        ) : (
+          showImagePlaceholder && (
+            <div className="w-[282px] h-[200px] bg-gray-100 rounded-md flex items-center justify-center">
+              <Text as="span" size="sm" color="text-gray-500">
+                Imagem de resultado
+              </Text>
+            </div>
+          )
+        )}
+        <div className="flex flex-col gap-2 text-center">
+          <Text as="h2" id={titleId} size="lg" weight="bold">
+            {title}
+          </Text>
+          <div id={descriptionId} className="flex flex-col gap-2">
+            {description}
           </div>
-        )
-      )}
-      <div className="flex flex-col gap-2 text-center">
-        <Text as="h2" size="lg" weight="bold">
-          {title}
-        </Text>
-        {description}
+        </div>
+        {footer}
       </div>
-      {footer}
-    </div>
-  </Modal>
-);
+    </Modal>
+  );
+};
 
 /**
  * Correction of the question currently on screen, resolved once.
@@ -695,6 +709,7 @@ const QuizFooter = forwardRef<
     // Sistema unificado de controle de modais
     const [activeModal, setActiveModal] = useState<string | null>(null);
     const [filterType, setFilterType] = useState<string>('all');
+    const filterLabelId = useId();
 
     // Funções para controlar modais
     const openModal = (modalName: string) => setActiveModal(modalName);
@@ -792,6 +807,8 @@ const QuizFooter = forwardRef<
                 <IconButton
                   icon={<SquaresFourIcon size={24} className="text-text-950" />}
                   size="md"
+                  aria-label="Lista de todas as questões"
+                  aria-haspopup="dialog"
                   onClick={() => openModal('modalNavigate')}
                 />
 
@@ -799,6 +816,7 @@ const QuizFooter = forwardRef<
                   <Button
                     variant="outline"
                     size="small"
+                    aria-label="Pular questão"
                     onClick={() => {
                       skipQuestion();
                       goToNextQuestion();
@@ -811,7 +829,8 @@ const QuizFooter = forwardRef<
                     size="medium"
                     variant="link"
                     action="primary"
-                    iconLeft={<CaretLeftIcon size={18} />}
+                    iconLeft={<CaretLeftIcon size={18} aria-hidden="true" />}
+                    aria-label="Questão anterior"
                     onClick={() => {
                       goToPreviousQuestion();
                     }}
@@ -826,6 +845,7 @@ const QuizFooter = forwardRef<
                   size="small"
                   variant="outline"
                   action="primary"
+                  aria-label="Pular questão"
                   onClick={() => {
                     skipQuestion();
                     goToNextQuestion();
@@ -840,6 +860,7 @@ const QuizFooter = forwardRef<
                   size="medium"
                   variant="solid"
                   action="primary"
+                  aria-label={`Finalizar ${quizTypeLabel.toLowerCase()}`}
                   onClick={handleFinishQuiz}
                 >
                   Finalizar
@@ -849,7 +870,8 @@ const QuizFooter = forwardRef<
                   size="medium"
                   variant="link"
                   action="primary"
-                  iconRight={<CaretRightIcon size={18} />}
+                  iconRight={<CaretRightIcon size={18} aria-hidden="true" />}
+                  aria-label="Próxima questão"
                   disabled={!currentAnswer && !isCurrentQuestionSkipped}
                   onClick={() => {
                     goToNextQuestion();
@@ -985,10 +1007,13 @@ const QuizFooter = forwardRef<
         >
           <div className="flex flex-col w-full not-lg:h-[calc(100vh-200px)] lg:max-h-[687px] lg:h-[687px]">
             <div className="flex flex-row justify-between items-center py-6 pt-6 pb-4 border-b border-border-200 flex-shrink-0">
-              <p className="text-text-950 font-bold text-lg">Filtrar por</p>
+              <p id={filterLabelId} className="text-text-950 font-bold text-lg">
+                Filtrar por
+              </p>
               <span className="max-w-[266px]">
                 <Select value={filterType} onValueChange={setFilterType}>
                   <SelectTrigger
+                    aria-labelledby={filterLabelId}
                     variant="rounded"
                     className="max-w-[266px] min-w-[160px]"
                   >

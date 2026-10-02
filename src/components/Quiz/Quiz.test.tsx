@@ -44,11 +44,17 @@ jest.mock('../Select/Select', () => ({
   SelectTrigger: ({
     children,
     className,
+    'aria-labelledby': ariaLabelledBy,
   }: {
     children: React.ReactNode;
     className: string;
+    'aria-labelledby'?: string;
   }) => (
-    <div data-testid="select-trigger" className={className}>
+    <div
+      data-testid="select-trigger"
+      className={className}
+      aria-labelledby={ariaLabelledBy}
+    >
       {children}
     </div>
   ),
@@ -363,19 +369,40 @@ jest.mock('../Modal/Modal', () => {
       onClose: () => void;
       size: string;
       hideCloseButton?: boolean;
+      labelledBy?: string;
+      describedBy?: string;
     }
-  >(({ isOpen, title, children, onClose, size, hideCloseButton }, ref) =>
-    isOpen ? (
-      <div ref={ref} data-testid="quiz-modal" data-size={size}>
-        {title && <h2 data-testid="modal-title">{title}</h2>}
-        {!hideCloseButton && (
-          <button data-testid="modal-close" onClick={onClose}>
-            Close
-          </button>
-        )}
-        <div data-testid="modal-content">{children}</div>
-      </div>
-    ) : null
+  >(
+    (
+      {
+        isOpen,
+        title,
+        children,
+        onClose,
+        size,
+        hideCloseButton,
+        labelledBy,
+        describedBy,
+      },
+      ref
+    ) =>
+      isOpen ? (
+        <div
+          ref={ref}
+          data-testid="quiz-modal"
+          data-size={size}
+          aria-labelledby={labelledBy}
+          aria-describedby={describedBy}
+        >
+          {title && <h2 data-testid="modal-title">{title}</h2>}
+          {!hideCloseButton && (
+            <button data-testid="modal-close" onClick={onClose}>
+              Close
+            </button>
+          )}
+          <div data-testid="modal-content">{children}</div>
+        </div>
+      ) : null
   );
 });
 
@@ -1850,6 +1877,16 @@ describe('Quiz', () => {
       expect(screen.getByText('Questão 01')).toBeInTheDocument();
       expect(screen.getByText('Questão 02')).toBeInTheDocument();
       expect(screen.getByText('Questão 03')).toBeInTheDocument();
+
+      // Subjects are headings and each card is a proper list item, so screen
+      // readers can jump between subjects and count the questions
+      expect(
+        screen.getByRole('heading', { level: 3, name: 'Matemática' })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { level: 3, name: 'Física' })
+      ).toBeInTheDocument();
+      expect(screen.getAllByRole('listitem')).toHaveLength(3);
     });
 
     it('should filter questions correctly by filterType', () => {
@@ -2811,6 +2848,90 @@ describe('Quiz', () => {
 
         const button = resolutionButtons[0];
         expect(button).toHaveAttribute('data-variant', 'solid');
+      });
+    });
+
+    describe('Accessible names', () => {
+      it('labels the navigation controls on the first question', () => {
+        render(<QuizFooter />);
+
+        const listButton = screen.getByTestId('quiz-icon-button');
+        expect(listButton).toHaveAttribute(
+          'aria-label',
+          'Lista de todas as questões'
+        );
+        expect(listButton).toHaveAttribute('aria-haspopup', 'dialog');
+        expect(
+          screen.getByRole('button', { name: 'Pular questão' })
+        ).toBeInTheDocument();
+        expect(
+          screen.getByRole('button', { name: 'Próxima questão' })
+        ).toBeInTheDocument();
+      });
+
+      it('labels the previous and skip buttons on a middle question', () => {
+        mockUseQuizStore.mockReturnValue({
+          ...defaultStoreState,
+          currentQuestionIndex: 2,
+        });
+
+        render(<QuizFooter />);
+
+        expect(
+          screen.getByRole('button', { name: 'Questão anterior' })
+        ).toBeInTheDocument();
+        expect(
+          screen.getByRole('button', { name: 'Pular questão' })
+        ).toBeInTheDocument();
+      });
+
+      it('labels the finish button with the quiz type', () => {
+        mockUseQuizStore.mockReturnValue({
+          ...defaultStoreState,
+          currentQuestionIndex: 4,
+        });
+
+        render(<QuizFooter />);
+
+        expect(
+          screen.getByRole('button', { name: 'Finalizar simulado' })
+        ).toBeInTheDocument();
+      });
+
+      it('names the filter select by the visible "Filtrar por" text', () => {
+        render(<QuizFooter />);
+
+        clickElement(screen.getByTestId('quiz-icon-button'));
+
+        const label = screen.getByText('Filtrar por');
+        expect(label.id).not.toBe('');
+        expect(screen.getByTestId('select-trigger')).toHaveAttribute(
+          'aria-labelledby',
+          label.id
+        );
+      });
+
+      it('names and describes the result modal by its visible content', async () => {
+        mockUseQuizStore.mockReturnValue({
+          ...defaultStoreState,
+          currentQuestionIndex: 4,
+        });
+        mockGetUnansweredQuestionsFromUserAnswers.mockReturnValue([]);
+
+        render(<QuizFooter />);
+
+        await clickElementAsync(screen.getByText('Finalizar'));
+
+        const modal = screen.getByTestId('quiz-modal');
+        const titleId = modal.getAttribute('aria-labelledby');
+        const descriptionId = modal.getAttribute('aria-describedby');
+
+        expect(document.getElementById(titleId as string)).toHaveTextContent(
+          /Você concluiu o/
+        );
+        expect(
+          document.getElementById(descriptionId as string)
+        ).toHaveTextContent('Você acertou 3 de 5 questões.');
       });
     });
 

@@ -64,10 +64,7 @@ export type IconButtonProps = {
  * ```
  */
 const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
-  (
-    { icon, size = 'md', active = false, className = '', disabled, ...props },
-    ref
-  ) => {
+  ({ icon, size = 'md', active, className = '', disabled, ...props }, ref) => {
     // Classes base para todos os estados
     const baseClasses = [
       'inline-flex',
@@ -115,6 +112,9 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         type="button"
         className={cn(allClasses, className)}
         disabled={disabled}
+        // Only expose toggle semantics when the caller actually controls the
+        // state; a hardcoded `false` makes screen readers announce every
+        // icon button as a toggle ("botão alternar").
         aria-pressed={active}
         aria-label={ariaLabel}
         {...props}

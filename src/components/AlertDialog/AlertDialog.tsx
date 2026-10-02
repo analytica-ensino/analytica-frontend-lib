@@ -5,9 +5,9 @@ import {
   useId,
   useRef,
   MouseEvent,
-  KeyboardEvent,
 } from 'react';
 import Button from '../Button/Button';
+import { useEscapeToClose } from '../../hooks/useEscapeToClose';
 import { useModalFocus } from '../../hooks/useModalFocus';
 import { cn } from '../../utils/utils';
 
@@ -113,19 +113,9 @@ const AlertDialog = forwardRef<HTMLDialogElement, AlertDialogProps>(
       }
     };
 
-    // Handle escape key
-    useEffect(() => {
-      if (!isOpen || !closeOnEscape) return;
-
-      const handleEscape = (event: globalThis.KeyboardEvent) => {
-        if (event.key === 'Escape') {
-          onChangeOpen(false);
-        }
-      };
-
-      document.addEventListener('keydown', handleEscape);
-      return () => document.removeEventListener('keydown', handleEscape);
-    }, [isOpen, closeOnEscape]);
+    // Same Escape handling as `Modal`: a single document listener that leaves
+    // alone an Escape already handled (`preventDefault`) by a popup inside.
+    useEscapeToClose(isOpen && closeOnEscape, () => onChangeOpen(false));
 
     // Prevent body scroll when modal is open
     useEffect(() => {
@@ -142,12 +132,6 @@ const AlertDialog = forwardRef<HTMLDialogElement, AlertDialogProps>(
 
     const handleBackdropClick = (event: MouseEvent<HTMLDivElement>) => {
       if (event.target === event.currentTarget && closeOnBackdropClick) {
-        onChangeOpen(false);
-      }
-    };
-
-    const handleBackdropKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-      if (event.key === 'Escape' && closeOnEscape) {
         onChangeOpen(false);
       }
     };
@@ -171,7 +155,6 @@ const AlertDialog = forwardRef<HTMLDialogElement, AlertDialogProps>(
           <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
             onClick={handleBackdropClick}
-            onKeyDown={handleBackdropKeyDown}
             data-testid="alert-dialog-overlay"
           >
             {/* Alert Dialog Content */}

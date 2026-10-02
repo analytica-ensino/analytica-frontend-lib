@@ -575,6 +575,46 @@ describe('Modal', () => {
     });
   });
 
+  describe('nome e descrição acessíveis', () => {
+    it('não deixa um heading vazio quando o title é vazio', () => {
+      const { container } = render(<Modal {...defaultProps} title="" />);
+      expect(container.querySelector('h2')).not.toBeInTheDocument();
+    });
+
+    it('usa labelledBy e describedBy quando o título mora no conteúdo', () => {
+      const { container } = render(
+        <Modal {...defaultProps} title="" labelledBy="t" describedBy="d">
+          <h2 id="t">Você concluiu o simulado!</h2>
+          <p id="d">Você acertou 3 de 5 questões.</p>
+        </Modal>
+      );
+      const dialog = container.querySelector('dialog');
+      expect(dialog).toHaveAttribute('aria-labelledby', 't');
+      expect(dialog).toHaveAttribute('aria-describedby', 'd');
+    });
+
+    it('aplica labelledBy e describedBy também no variant activity', () => {
+      const { container } = render(
+        <Modal
+          {...defaultProps}
+          variant="activity"
+          labelledBy="t"
+          describedBy="d"
+        />
+      );
+      const dialog = container.querySelector('dialog');
+      expect(dialog).toHaveAttribute('aria-labelledby', 't');
+      expect(dialog).toHaveAttribute('aria-describedby', 'd');
+    });
+
+    it('não define aria-describedby por padrão', () => {
+      const { container } = render(<Modal {...defaultProps} />);
+      expect(container.querySelector('dialog')).not.toHaveAttribute(
+        'aria-describedby'
+      );
+    });
+  });
+
   describe('Gerenciamento de foco', () => {
     it('leva o foco pro diálogo quando abre', () => {
       const { container } = render(<Modal {...defaultProps} />);
