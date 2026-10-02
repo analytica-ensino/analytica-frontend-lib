@@ -2865,7 +2865,7 @@ describe('Quiz', () => {
           screen.getByRole('button', { name: 'Pular questão' })
         ).toBeInTheDocument();
         expect(
-          screen.getByRole('button', { name: 'Próxima questão' })
+          screen.getByRole('button', { name: 'Avançar para a próxima questão' })
         ).toBeInTheDocument();
       });
 
@@ -2878,7 +2878,7 @@ describe('Quiz', () => {
         render(<QuizFooter />);
 
         expect(
-          screen.getByRole('button', { name: 'Questão anterior' })
+          screen.getByRole('button', { name: 'Voltar à questão anterior' })
         ).toBeInTheDocument();
         expect(
           screen.getByRole('button', { name: 'Pular questão' })

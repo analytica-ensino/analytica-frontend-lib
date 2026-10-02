@@ -99,10 +99,10 @@ describe('QuizTimer', () => {
   });
 
   describe('accessibility', () => {
-    it('is focusable so the time can be read on demand', () => {
+    it('stays out of the Tab order, being read by the screen reader cursor', () => {
       render(<QuizTimer />);
 
-      expect(screen.getByRole('timer')).toHaveAttribute('tabindex', '0');
+      expect(screen.getByRole('timer')).not.toHaveAttribute('tabindex');
     });
 
     it('hides the icon and digits from assistive tech', () => {
@@ -151,7 +151,7 @@ describe('QuizTimer', () => {
       expect(region).toHaveTextContent('Tempo de prova: 00:10:00');
     });
 
-    it('announces when the time is exceeded', () => {
+    it('announces the moment the time was exceeded, not the stale boundary', () => {
       act(() => {
         useQuizStore.getState().setTimeWarning(60);
         useQuizStore.getState().updateTime(61);
@@ -159,8 +159,25 @@ describe('QuizTimer', () => {
 
       render(<QuizTimer />);
 
-      expect(screen.getByTestId('quiz-timer-announcement')).toHaveTextContent(
-        'Tempo de prova: 00:00:00 — tempo excedido'
+      const region = screen.getByTestId('quiz-timer-announcement');
+      expect(region).toHaveTextContent(
+        'Tempo de prova: 00:01:00 — tempo excedido'
+      );
+
+      // Stays put until the next boundary, so it is announced only once
+      act(() => {
+        useQuizStore.getState().updateTime(TIMER_ANNOUNCE_INTERVAL_SECONDS - 1);
+      });
+      expect(region).toHaveTextContent(
+        'Tempo de prova: 00:01:00 — tempo excedido'
+      );
+
+      // Then resumes the regular cadence
+      act(() => {
+        useQuizStore.getState().updateTime(TIMER_ANNOUNCE_INTERVAL_SECONDS);
+      });
+      expect(region).toHaveTextContent(
+        'Tempo de prova: 00:05:00 — tempo excedido'
       );
     });
   });

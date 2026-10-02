@@ -1,11 +1,4 @@
-import {
-  forwardRef,
-  HTMLAttributes,
-  useEffect,
-  useId,
-  useRef,
-  MouseEvent,
-} from 'react';
+import { forwardRef, HTMLAttributes, useEffect, useId, useRef } from 'react';
 import Button from '../Button/Button';
 import { useEscapeToClose } from '../../hooks/useEscapeToClose';
 import { useModalFocus } from '../../hooks/useModalFocus';
@@ -130,10 +123,8 @@ const AlertDialog = forwardRef<HTMLDialogElement, AlertDialogProps>(
       };
     }, [isOpen]);
 
-    const handleBackdropClick = (event: MouseEvent<HTMLDivElement>) => {
-      if (event.target === event.currentTarget && closeOnBackdropClick) {
-        onChangeOpen(false);
-      }
+    const handleBackdropClick = () => {
+      onChangeOpen(false);
     };
 
     const handleSubmit = () => {
@@ -154,9 +145,23 @@ const AlertDialog = forwardRef<HTMLDialogElement, AlertDialogProps>(
         {isOpen && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-            onClick={handleBackdropClick}
             data-testid="alert-dialog-overlay"
           >
+            {/* Click-outside-to-close is a native button behind the dialog
+                instead of a click handler on this <div>: it is interactive by
+                nature (mouse, touch and keyboard) and stays out of the Tab
+                cycle, since Escape (`useEscapeToClose`) already covers the
+                keyboard. */}
+            {closeOnBackdropClick && (
+              <button
+                type="button"
+                tabIndex={-1}
+                aria-label="Fechar diálogo"
+                className="absolute inset-0 w-full h-full cursor-default"
+                onClick={handleBackdropClick}
+                data-testid="alert-dialog-backdrop"
+              />
+            )}
             {/* Alert Dialog Content */}
             <dialog
               ref={setDialogRef}
@@ -175,11 +180,12 @@ const AlertDialog = forwardRef<HTMLDialogElement, AlertDialogProps>(
               aria-describedby={descriptionId}
               tabIndex={-1}
               className={cn(
-                // `static` anula o `position: absolute` que o navegador aplica
-                // a `<dialog>`; sem isso ele escapa da centralização do
-                // backdrop. As demais regras do UA (padding, borda, fundo) já
-                // são sobrescritas pelas classes abaixo.
-                'static bg-background border border-border-100 rounded-lg shadow-lg p-6 m-3',
+                // `relative` anula o `position: absolute` que o navegador aplica
+                // a `<dialog>` (sem isso ele escapa da centralização do
+                // backdrop) e o põe acima do botão de fechar do backdrop. As
+                // demais regras do UA (padding, borda, fundo) já são
+                // sobrescritas pelas classes abaixo.
+                'relative bg-background border border-border-100 rounded-lg shadow-lg p-6 m-3',
                 sizeClasses,
                 className
               )}

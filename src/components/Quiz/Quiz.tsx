@@ -830,7 +830,7 @@ const QuizFooter = forwardRef<
                     variant="link"
                     action="primary"
                     iconLeft={<CaretLeftIcon size={18} aria-hidden="true" />}
-                    aria-label="Questão anterior"
+                    aria-label="Voltar à questão anterior"
                     onClick={() => {
                       goToPreviousQuestion();
                     }}
@@ -871,7 +871,7 @@ const QuizFooter = forwardRef<
                   variant="link"
                   action="primary"
                   iconRight={<CaretRightIcon size={18} aria-hidden="true" />}
-                  aria-label="Próxima questão"
+                  aria-label="Avançar para a próxima questão"
                   disabled={!currentAnswer && !isCurrentQuestionSkipped}
                   onClick={() => {
                     goToNextQuestion();

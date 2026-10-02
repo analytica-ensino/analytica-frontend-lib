@@ -23,15 +23,16 @@ export interface QuizTimerProps {
  * display turns red and keeps going — going over time is reported, never
  * enforced.
  *
- * Accessibility: the badge is focusable and read on demand ("Tempo de prova:
- * 00:53:49"), its icon and digits are hidden from assistive tech so the reader
+ * Accessibility: the badge is a named `timer`, read on demand when the screen
+ * reader reaches it ("Tempo de prova: 00:53:49"), its icon and digits are hidden from assistive tech so the reader
  * does not announce them as an image plus a number, and a polite live region
  * announces the time every {@link TIMER_ANNOUNCE_INTERVAL_SECONDS} seconds and
  * once more when the time is exceeded.
  */
 const QuizTimer = forwardRef<HTMLDivElement, QuizTimerProps>(
   ({ className, ...props }, ref) => {
-    const { timeElapsed, isTimeExceeded } = useQuizStore();
+    const { timeElapsed, isTimeExceeded, timeWarningThreshold } =
+      useQuizStore();
     const exceeded = isTimeExceeded();
     const formatted = formatTimeSpent(timeElapsed);
     const exceededSuffix = exceeded ? ' — tempo excedido' : '';
@@ -39,9 +40,18 @@ const QuizTimer = forwardRef<HTMLDivElement, QuizTimerProps>(
     // Derived from the elapsed time snapped to the announce interval, so the
     // live region text (and therefore the announcement) only changes once per
     // interval, or when the time becomes exceeded.
-    const announcedSeconds =
+    const snappedSeconds =
       Math.floor(timeElapsed / TIMER_ANNOUNCE_INTERVAL_SECONDS) *
       TIMER_ANNOUNCE_INTERVAL_SECONDS;
+    // When the warning starts between two boundaries, announce the moment it
+    // was crossed (the threshold) instead of the stale boundary; it stays put
+    // until the next boundary, so it is still announced only once.
+    const announcedSeconds =
+      exceeded &&
+      timeWarningThreshold !== null &&
+      snappedSeconds < timeWarningThreshold
+        ? timeWarningThreshold
+        : snappedSeconds;
     const announcement =
       announcedSeconds > 0 || exceeded
         ? `Tempo de prova: ${formatTimeSpent(announcedSeconds)}${exceededSuffix}`
@@ -53,7 +63,6 @@ const QuizTimer = forwardRef<HTMLDivElement, QuizTimerProps>(
           ref={ref}
           role="timer"
           aria-live="off"
-          tabIndex={0}
           aria-label={`Tempo de prova: ${formatted}${exceededSuffix}`}
           className={cn(
             'inline-flex flex-row items-center gap-1 tabular-nums',
@@ -61,7 +70,6 @@ const QuizTimer = forwardRef<HTMLDivElement, QuizTimerProps>(
             exceeded
               ? 'bg-error-background border-error-300 text-error-700'
               : 'bg-info border-info-300 text-info-800',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indicator-info',
             className
           )}
           {...props}
