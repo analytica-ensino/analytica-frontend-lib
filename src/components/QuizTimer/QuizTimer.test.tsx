@@ -161,7 +161,7 @@ describe('QuizTimer', () => {
 
       const region = screen.getByTestId('quiz-timer-announcement');
       expect(region).toHaveTextContent(
-        'Tempo de prova: 00:01:00 — tempo excedido'
+        'Tempo de prova: 00:01:01 — tempo excedido'
       );
 
       // Stays put until the next boundary, so it is announced only once
@@ -169,7 +169,7 @@ describe('QuizTimer', () => {
         useQuizStore.getState().updateTime(TIMER_ANNOUNCE_INTERVAL_SECONDS - 1);
       });
       expect(region).toHaveTextContent(
-        'Tempo de prova: 00:01:00 — tempo excedido'
+        'Tempo de prova: 00:01:01 — tempo excedido'
       );
 
       // Then resumes the regular cadence
@@ -179,6 +179,30 @@ describe('QuizTimer', () => {
       expect(region).toHaveTextContent(
         'Tempo de prova: 00:05:00 — tempo excedido'
       );
+    });
+
+    it('captures the elapsed time when the warning starts after mount and clears it on reset', () => {
+      act(() => {
+        useQuizStore.getState().setTimeWarning(60);
+        useQuizStore.getState().updateTime(59);
+      });
+
+      render(<QuizTimer />);
+
+      const region = screen.getByTestId('quiz-timer-announcement');
+      expect(region).toHaveTextContent('');
+
+      act(() => {
+        useQuizStore.getState().updateTime(62);
+      });
+      expect(region).toHaveTextContent(
+        'Tempo de prova: 00:01:02 — tempo excedido'
+      );
+
+      act(() => {
+        useQuizStore.getState().updateTime(0);
+      });
+      expect(region).toHaveTextContent('');
     });
   });
 });
