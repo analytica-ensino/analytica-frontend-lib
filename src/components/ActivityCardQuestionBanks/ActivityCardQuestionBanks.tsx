@@ -301,8 +301,8 @@ export const ActivityCardQuestionBanks = ({
 
   return (
     <div className="w-full flex flex-col gap-2 px-4 py-6">
-      <section className="flex flex-row gap-2 text-text-650">
-        <div className="py-1 px-2 flex flex-row items-center gap-1">
+      <section className="flex flex-row flex-wrap items-center gap-2 text-text-650">
+        <div className="py-1 px-2 flex flex-row items-center gap-1 min-w-0">
           <span
             className="size-4 rounded-sm flex items-center justify-center shrink-0 text-text-950"
             style={{
@@ -314,8 +314,8 @@ export const ActivityCardQuestionBanks = ({
           <Text size="sm">{content || 'Assunto não informado'}</Text>
         </div>
 
-        <div className="py-1 px-2 flex flex-row items-center gap-1">
-          <Text size="sm" className="">
+        <div className="py-1 px-2 flex flex-row items-center gap-1 shrink-0">
+          <Text size="sm" className="whitespace-nowrap">
             {questionType
               ? questionTypeLabels[questionType]
               : 'Tipo de questão'}
@@ -323,13 +323,15 @@ export const ActivityCardQuestionBanks = ({
         </div>
 
         {(bank || year) && (
-          <div className="py-1 px-2 flex flex-row items-center gap-1">
-            <Text size="sm">{[bank, year].filter(Boolean).join(' - ')}</Text>
+          <div className="py-1 px-2 flex flex-row items-center gap-1 shrink-0">
+            <Text size="sm" className="whitespace-nowrap">
+              {[bank, year].filter(Boolean).join(' - ')}
+            </Text>
           </div>
         )}
 
         {alreadySent && (
-          <div className="py-1 flex flex-row items-center">
+          <div className="py-1 flex flex-row items-center shrink-0">
             <Badge variant="solid" action="info" size="small">
               Já enviada
             </Badge>

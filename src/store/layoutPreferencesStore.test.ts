@@ -134,73 +134,47 @@ describe('layoutPreferencesStore', () => {
     expect(widths.activity.preview).toBe(680);
   });
 
-  it('should persist the widths in localStorage', () => {
+  it('should not write the widths to localStorage', () => {
     useLayoutPreferencesStore
       .getState()
       .setPanelWidth('lesson', 'preview', 540);
 
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}');
-    expect(saved.state.widths.lesson.preview).toBe(540);
+    expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
+    expect(localStorage.length).toBe(0);
   });
 
-  it('should rehydrate previously saved widths', async () => {
+  it('should drop an entry left by the persisted version', async () => {
     localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({
-        state: {
-          widths: {
-            activity: { filters: 480, preview: 640 },
-            lesson: { filters: 520, preview: 500 },
-          },
-        },
+        state: { widths: { activity: { filters: 480, preview: 640 } } },
         version: 0,
       })
     );
 
-    await useLayoutPreferencesStore.persist.rehydrate();
+    jest.resetModules();
+    await import('./layoutPreferencesStore');
 
-    const { widths } = useLayoutPreferencesStore.getState();
-    expect(widths.activity).toEqual({ filters: 480, preview: 640 });
-    expect(widths.lesson).toEqual({ filters: 520, preview: 500 });
+    expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
   });
 
-  it('should sanitize corrupted persisted widths', async () => {
+  it('should ignore an entry left by the persisted version', async () => {
     localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({
-        state: {
-          widths: {
-            activity: { filters: 'abc', preview: -5 },
-            lesson: { filters: null },
-          },
-        },
+        state: { widths: { activity: { filters: 480, preview: 640 } } },
         version: 0,
       })
     );
 
-    await useLayoutPreferencesStore.persist.rehydrate();
+    jest.resetModules();
+    const reloaded = await import('./layoutPreferencesStore');
 
-    const { widths } = useLayoutPreferencesStore.getState();
-    expect(widths.activity).toEqual({
+    expect(
+      reloaded.useLayoutPreferencesStore.getState().widths.activity
+    ).toEqual({
       filters: SIDE_PANEL_DEFAULT_WIDTH,
       preview: SIDE_PANEL_DEFAULT_WIDTH,
     });
-    expect(widths.lesson).toEqual({
-      filters: SIDE_PANEL_DEFAULT_WIDTH,
-      preview: SIDE_PANEL_DEFAULT_WIDTH,
-    });
-  });
-
-  it('should fall back to the defaults when the persisted widths are absent', async () => {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ state: {}, version: 0 })
-    );
-
-    await useLayoutPreferencesStore.persist.rehydrate();
-
-    const { widths } = useLayoutPreferencesStore.getState();
-    expect(widths.activity.filters).toBe(SIDE_PANEL_DEFAULT_WIDTH);
-    expect(widths.lesson.preview).toBe(SIDE_PANEL_DEFAULT_WIDTH);
   });
 });

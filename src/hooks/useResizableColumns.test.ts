@@ -598,6 +598,45 @@ describe('useResizableColumns', () => {
     });
   });
 
+  describe('unmount', () => {
+    it('should drop the dragged widths of its own screen', () => {
+      const { result, unmount } = renderWithContainer(1920);
+
+      act(() =>
+        result.current.previewDividerProps.onKeyDown(keyEvent('ArrowLeft'))
+      );
+      act(() =>
+        result.current.filtersDividerProps.onKeyDown(keyEvent('ArrowRight'))
+      );
+      expect(useLayoutPreferencesStore.getState().widths.activity).toEqual({
+        filters: DEFAULT + RESIZE_KEYBOARD_STEP,
+        preview: DEFAULT + RESIZE_KEYBOARD_STEP,
+      });
+
+      unmount();
+
+      expect(useLayoutPreferencesStore.getState().widths.activity).toEqual({
+        filters: DEFAULT,
+        preview: DEFAULT,
+      });
+    });
+
+    it('should leave the other screen untouched', () => {
+      const { unmount } = renderWithContainer(1920);
+      act(() =>
+        useLayoutPreferencesStore
+          .getState()
+          .setPanelWidth('lesson', 'preview', 700)
+      );
+
+      unmount();
+
+      expect(useLayoutPreferencesStore.getState().widths.lesson.preview).toBe(
+        700
+      );
+    });
+  });
+
   describe('scopes', () => {
     it('should read and write the widths of its own screen', () => {
       const { result } = renderHook(() => useResizableColumns('lesson'));
