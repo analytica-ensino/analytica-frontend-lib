@@ -94,6 +94,23 @@ export interface LessonPodcastSectionProps {
 }
 
 /**
+ * Nome acessível do grupo do podcast.
+ *
+ * O título vem do backend (`podCastTitle`) e muitas vezes já é "Podcast" — é o
+ * default do catálogo e o literal usado na trilha. Prefixar sempre produziria
+ * "Podcast: Podcast"; prefixar nunca deixaria um título como "Episódio 3" sem
+ * dizer do que se trata. Daí o prefixo condicional.
+ */
+export const getPodcastGroupLabel = (title: string) => {
+  const trimmed = title.trim();
+  if (!trimmed) return 'Podcast';
+
+  return trimmed.toLowerCase().startsWith('podcast')
+    ? trimmed
+    : `Podcast: ${trimmed}`;
+};
+
+/**
  * Podcast player for a lesson. Renders nothing when the lesson has no audio.
  */
 export const LessonPodcastSection = ({
@@ -105,7 +122,16 @@ export const LessonPodcastSection = ({
   }
 
   return (
-    <div className="w-full">
+    // O card inteiro é um grupo nomeado, pro leitor de tela anunciar "Podcast:
+    // <título>" uma vez ao entrar e tratar player, tempos e controles como um
+    // conjunto — em vez de botões soltos sem contexto. O nome fica SÓ aqui: o
+    // `<audio>` do `CardAudio` não tem `controls`, então não leva rótulo
+    // próprio, que era a origem do título duplicado na árvore.
+    <div
+      className="w-full"
+      role="group"
+      aria-label={getPodcastGroupLabel(podcast.title)}
+    >
       <Text size="md" weight="bold" className="pb-2">
         {podcast.title}
       </Text>

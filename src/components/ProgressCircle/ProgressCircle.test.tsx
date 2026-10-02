@@ -303,31 +303,50 @@ describe('ProgressCircle', () => {
       render(<ProgressCircle value={75} />);
       const progressBar = screen.getByRole('progressbar');
 
-      expect(progressBar).toHaveAttribute('value', '75');
-      expect(progressBar).toHaveAttribute('max', '100');
-      expect(progressBar).toHaveAttribute('aria-label', 'Progress');
+      // O valor vive no próprio wrapper: antes havia um `<progress>` escondido
+      // só pra isso, e o leitor anunciava o percentual duas vezes (uma dele,
+      // uma do texto visível do centro).
+      expect(progressBar).toHaveAttribute('aria-valuenow', '75');
+      expect(progressBar).toHaveAttribute('aria-valuemin', '0');
+      expect(progressBar).toHaveAttribute('aria-valuemax', '100');
+      expect(progressBar).toHaveAttribute('aria-label', 'Progresso');
     });
 
     it('sets correct aria attributes with custom max', () => {
       render(<ProgressCircle value={8} max={10} />);
       const progressBar = screen.getByRole('progressbar');
 
-      expect(progressBar).toHaveAttribute('value', '8');
-      expect(progressBar).toHaveAttribute('max', '10');
+      expect(progressBar).toHaveAttribute('aria-valuenow', '8');
+      expect(progressBar).toHaveAttribute('aria-valuemax', '10');
     });
 
-    it('sets custom aria-label when label is provided as string', () => {
-      render(<ProgressCircle value={50} label="Custom Label" />);
+    it('nomeia pelo label visível, em português, quando ele é string', () => {
+      render(<ProgressCircle value={50} label="corretas" />);
       const progressBar = screen.getByRole('progressbar');
 
-      expect(progressBar).toHaveAttribute('aria-label', 'Custom Label');
+      expect(progressBar).toHaveAttribute('aria-label', 'Progresso: corretas');
+    });
+
+    it('deixa o consumidor nomear o círculo por inteiro', () => {
+      render(
+        <ProgressCircle
+          value={0}
+          label="corretas"
+          accessibleLabel="Progresso em História"
+        />
+      );
+
+      // É o que liga o percentual à matéria: sem isso o leitor lia "0%" solto.
+      expect(
+        screen.getByRole('progressbar', { name: 'Progresso em História' })
+      ).toBeInTheDocument();
     });
 
     it('uses default aria-label when label is ReactNode', () => {
       render(<ProgressCircle value={50} label={<span>Custom</span>} />);
       const progressBar = screen.getByRole('progressbar');
 
-      expect(progressBar).toHaveAttribute('aria-label', 'Progress');
+      expect(progressBar).toHaveAttribute('aria-label', 'Progresso');
     });
 
     it('sets svg as aria-hidden', () => {
@@ -335,6 +354,14 @@ describe('ProgressCircle', () => {
       const svg = container.querySelector('svg');
 
       expect(svg).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    it('esconde o texto visível, que o progressbar já anuncia', () => {
+      render(<ProgressCircle value={42} label="MÉDIA" showPercentage />);
+
+      // O "42%" e o "MÉDIA" do centro são duplicata visual do nome + valor.
+      const overlay = screen.getByText('42%').parentElement;
+      expect(overlay).toHaveAttribute('aria-hidden', 'true');
     });
   });
 

@@ -1,5 +1,6 @@
 import { HTMLAttributes, useCallback, useState } from 'react';
-import { ArrowsOutIcon } from '@phosphor-icons/react/dist/csr/ArrowsOut';
+import { DownloadSimpleIcon } from '@phosphor-icons/react/dist/csr/DownloadSimple';
+import Modal from '../Modal/Modal';
 import { cn } from '../../utils/utils';
 
 // Design constants for critical layout dimensions
@@ -28,7 +29,7 @@ export interface WhiteboardProps extends HTMLAttributes<HTMLDivElement> {
   /** Callback when download button is clicked */
   onDownload?: (image: WhiteboardImage) => void;
   /**
-   * Called when the user activates an image, in addition to the download.
+   * Called when the user activates an image — ao ampliar OU ao baixar.
    * Lets a consumer observe the interaction (marking a board as viewed, say)
    * without wrapping these buttons in an outer control of its own.
    */
@@ -53,6 +54,10 @@ const Whiteboard = ({
 }: WhiteboardProps) => {
   // State to track images that failed to load
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
+  // Imagem aberta em tamanho grande, ou `null` quando nenhuma está.
+  const [previewImage, setPreviewImage] = useState<WhiteboardImage | null>(
+    null
+  );
 
   /**
    * Handle image download
@@ -76,11 +81,24 @@ const Whiteboard = ({
   );
 
   /**
-   * Handle activation of an image: download it, then let the consumer observe
-   * the interaction. Both of the buttons below route through here, so keyboard
-   * activation is native and no wrapper control is needed.
+   * Clique na imagem: abre o quadro ampliado.
+   *
+   * Antes isto baixava o arquivo, igual ao botão do canto — o rótulo dizia
+   * "Ampliar" e nada ampliava. Cada um dos dois botões agora faz o que o seu
+   * rótulo promete, e os dois seguem avisando o consumidor: `onImageActivate` é
+   * "o aluno interagiu com este quadro" (quem marca progresso de quadro visto),
+   * então ampliar e baixar continuam valendo igual.
    */
-  const handleActivate = useCallback(
+  const handleExpand = useCallback(
+    (image: WhiteboardImage) => {
+      setPreviewImage(image);
+      onImageActivate?.(image);
+    },
+    [onImageActivate]
+  );
+
+  /** Clique no botão do canto: baixa o arquivo. */
+  const handleDownloadClick = useCallback(
     (image: WhiteboardImage) => {
       handleDownload(image);
       onImageActivate?.(image);
@@ -153,7 +171,7 @@ const Whiteboard = ({
               ) : (
                 <button
                   type="button"
-                  onClick={() => handleActivate(image)}
+                  onClick={() => handleExpand(image)}
                   className="absolute inset-0 w-full h-full cursor-pointer border-none p-0 bg-transparent"
                   aria-label={`Ampliar ${image.title || 'imagem'}`}
                 >
@@ -171,13 +189,17 @@ const Whiteboard = ({
             {showDownload && (
               <button
                 type="button"
-                onClick={() => handleActivate(image)}
+                onClick={() => handleDownloadClick(image)}
                 className="cursor-pointer absolute bottom-3 right-3 flex items-center justify-center bg-black/20 backdrop-blur-sm rounded hover:bg-black/30 transition-colors duration-200 group/button w-6 h-6"
-                aria-label={`Download ${image.title || 'imagem'}`}
+                aria-label={`Baixar ${image.title || 'imagem'}`}
               >
-                <ArrowsOutIcon
+                {/* Ícone de download. Era o `ArrowsOut` (expandir) num botão que
+                    baixava — quem olhava esperava ampliar. Decorativo: o rótulo
+                    do botão já diz o que ele faz. */}
+                <DownloadSimpleIcon
                   size={24}
                   weight="regular"
+                  aria-hidden="true"
                   className="text-white group-hover/button:scale-110 transition-transform duration-200"
                 />
               </button>
@@ -185,6 +207,25 @@ const Whiteboard = ({
           </div>
         ))}
       </div>
+
+      {/* Quadro ampliado. Usa o `Modal` da lib, que já traz Escape, trava de
+          scroll e gerenciamento de foco (`useModalFocus`). */}
+      <Modal
+        isOpen={previewImage !== null}
+        onClose={() => setPreviewImage(null)}
+        title={previewImage?.title || 'Quadro da aula'}
+        size="xl"
+      >
+        {previewImage && (
+          <img
+            src={previewImage.imageUrl}
+            // O `<dialog>` já é nomeado pelo título; repetir o título aqui faria
+            // o leitor anunciar a mesma coisa duas vezes.
+            alt=""
+            className="w-full h-auto rounded-lg"
+          />
+        )}
+      </Modal>
     </div>
   );
 };

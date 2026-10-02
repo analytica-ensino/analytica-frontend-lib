@@ -1,4 +1,4 @@
-import { forwardRef, HTMLAttributes } from 'react';
+import { forwardRef, HTMLAttributes, useId } from 'react';
 
 interface LoadingModalProps extends HTMLAttributes<HTMLDivElement> {
   open: boolean;
@@ -8,14 +8,27 @@ interface LoadingModalProps extends HTMLAttributes<HTMLDivElement> {
 
 const LoadingModal = forwardRef<HTMLDivElement, LoadingModalProps>(
   ({ open, title = 'Titulo...', subtitle = 'Subtitulo...', ...props }, ref) => {
+    /**
+     * Ids por instância. Fixos, duas telas de carregamento montadas ao mesmo
+     * tempo — ou um id igual em qualquer outro lugar da página — fariam o
+     * `aria-labelledby` apontar pro nó errado.
+     */
+    const titleId = useId();
+    const subtitleId = useId();
+
     if (!open) return null;
 
     return (
       <div
         ref={ref}
+        // `aria-modal` só tem efeito em quem tem papel de diálogo; num `<div>`
+        // genérico ele era ignorado. Não há foco nem trap aqui de propósito:
+        // não existe nada focável dentro — é um bloqueio de carregamento, e o
+        // texto é anunciado pelo nome/descrição abaixo.
+        role="dialog"
         aria-modal="true"
-        aria-labelledby="loading-modal-title"
-        aria-describedby="loading-modal-subtitle"
+        aria-labelledby={titleId}
+        aria-describedby={subtitleId}
         className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 backdrop-blur-xs"
         {...props}
       >
@@ -42,11 +55,11 @@ const LoadingModal = forwardRef<HTMLDivElement, LoadingModalProps>(
           </span>
 
           <span className="flex flex-col gap-4 text-center">
-            <p id="loading-modal-title" className="text-text-950 text-lg">
+            <p id={titleId} className="text-text-950 text-lg">
               {title}
             </p>
 
-            <p id="loading-modal-subtitle" className="text-text-600 text-lg">
+            <p id={subtitleId} className="text-text-600 text-lg">
               {subtitle}
             </p>
           </span>

@@ -80,6 +80,15 @@ export type ProgressCircleProps = {
   trackColor?: string;
   /** Optional label to display below percentage */
   label?: ReactNode;
+  /**
+   * Nome acessível do círculo, anunciado antes do valor (ex.: "Progresso em
+   * História, 0%"). Sem ele, o leitor de tela lê o percentual solto e não há
+   * como saber de que matéria/assunto ele é — o `label` abaixo é texto VISÍVEL
+   * dentro do círculo (curto por caber em ~85px) e nem sempre serve de nome.
+   *
+   * Default: `Progresso` — ou `Progresso: <label>` quando `label` é string.
+   */
+  accessibleLabel?: string;
   /** Show percentage text */
   showPercentage?: boolean;
   /** Additional CSS classes */
@@ -121,6 +130,7 @@ const ProgressCircle = ({
   fillColor,
   trackColor,
   label,
+  accessibleLabel,
   showPercentage = true,
   className = '',
   labelClassName = '',
@@ -147,8 +157,29 @@ const ProgressCircle = ({
   const center = size === 'small' ? 53.5 : 76;
   const svgSize = size === 'small' ? 107 : 152;
 
+  /**
+   * Nome acessível: o do consumidor vence; senão, o texto visível do `label`
+   * (quando é string) em português; senão, só "Progresso".
+   */
+  const resolveAccessibleLabel = () => {
+    if (accessibleLabel) return accessibleLabel;
+    if (typeof label === 'string' && label.trim()) {
+      return `Progresso: ${label.trim()}`;
+    }
+    return 'Progresso';
+  };
+
   return (
+    // A semântica vive no wrapper, não num `<progress>` escondido: assim o
+    // leitor de tela anuncia nome + valor numa única parada, em vez de ler o
+    // "0%" do centro do círculo solto, sem dizer de que progresso se trata.
+    // Mesma forma que o `ScoreCircle` usa.
     <div
+      role="progressbar"
+      aria-valuemin={0}
+      aria-valuenow={clampedValue}
+      aria-valuemax={max}
+      aria-label={resolveAccessibleLabel()}
       className={cn(
         'relative flex flex-col items-center justify-center',
         sizeClasses.container,
@@ -192,16 +223,11 @@ const ProgressCircle = ({
         />
       </svg>
 
-      {/* Native progress element for accessibility */}
-      <progress
-        value={clampedValue}
-        max={max}
-        aria-label={typeof label === 'string' ? label : 'Progress'}
-        className="absolute opacity-0 w-0 h-0"
-      />
-
       {/* Content overlay - centered content */}
       <div
+        // Duplicata visual do que o `progressbar` acima já anuncia (valor e
+        // nome). Sem isto, o leitor lia o percentual uma segunda vez, solto.
+        aria-hidden="true"
         className={cn(
           'relative z-10 flex flex-col items-center justify-center',
           sizeClasses.spacing,

@@ -186,9 +186,36 @@ describe('LoadingModal', () => {
       render(<LoadingModal {...defaultProps} />);
 
       const modalContainer = document.querySelector('.fixed.inset-0.z-50');
+      // `aria-modal` only counts on a node with a dialog role; on a bare
+      // `<div>` it was being ignored.
+      expect(modalContainer).toHaveAttribute('role', 'dialog');
       expect(modalContainer).toHaveAttribute('aria-modal', 'true');
       expect(modalContainer).toHaveAttribute('aria-labelledby');
       expect(modalContainer).toHaveAttribute('aria-describedby');
+    });
+
+    it('gives each instance its own ids, so they cannot collide', () => {
+      render(
+        <>
+          <LoadingModal
+            open
+            title="Primeiro"
+            subtitle="Subtítulo do primeiro"
+          />
+          <LoadingModal open title="Segundo" subtitle="Subtítulo do segundo" />
+        </>
+      );
+
+      const [first, second] = screen.getAllByRole('dialog');
+
+      expect(first.getAttribute('aria-labelledby')).not.toBe(
+        second.getAttribute('aria-labelledby')
+      );
+      // With fixed ids both pointed at the same node and the screen reader
+      // announced "Primeiro" on both dialogs.
+      expect(first).toHaveAccessibleName('Primeiro');
+      expect(second).toHaveAccessibleName('Segundo');
+      expect(second).toHaveAccessibleDescription('Subtítulo do segundo');
     });
 
     it('has proper ID attributes linking title and description', () => {

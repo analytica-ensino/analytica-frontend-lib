@@ -129,11 +129,21 @@ jest.mock('../ProgressCircle/ProgressCircle', () => {
       value: number;
       showPercentage: boolean;
       label: string;
+      accessibleLabel?: string;
       className: string;
     }
   >(
     (
-      { size, variant, value, showPercentage, label, className, ...props },
+      {
+        size,
+        variant,
+        value,
+        showPercentage,
+        label,
+        accessibleLabel,
+        className,
+        ...props
+      },
       ref
     ) => (
       <div
@@ -144,6 +154,7 @@ jest.mock('../ProgressCircle/ProgressCircle', () => {
         data-value={value}
         data-show-percentage={showPercentage}
         data-label={label}
+        data-accessible-label={accessibleLabel}
         className={className}
         {...props}
       />
@@ -1683,6 +1694,78 @@ describe('Quiz', () => {
 
       // Prova de papel: tem desempenho por dificuldade, mas não tem
       // cronômetro — qualquer tempo ali seria inventado.
+      it('lê o resultado do anel numa parada só, com o tempo', () => {
+        mockGetTotalQuestions.mockReturnValue(5);
+        mockGetQuestionResult.mockReturnValue({
+          answers: [
+            {
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            },
+          ],
+        });
+        mockGetQuestionResultStatistics.mockReturnValue({
+          correctAnswers: 5,
+          timeSpent: 150,
+        });
+        mockFormatTime.mockReturnValue('02:30');
+
+        render(<QuizResultPerformance showDetails showTimeSpent />);
+
+        // "5 de 5" e "Corretas" eram textos soltos no miolo do anel: o leitor
+        // anunciava um por parada, nenhum fazendo sentido sozinho.
+        expect(screen.getByTestId('progress-circle')).toHaveAttribute(
+          'data-accessible-label',
+          '5 de 5 corretas, tempo 02:30'
+        );
+      });
+
+      it('tira o texto do miolo da árvore, pra não repetir o resultado', () => {
+        mockGetTotalQuestions.mockReturnValue(5);
+        mockGetQuestionResult.mockReturnValue({
+          answers: [
+            {
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            },
+          ],
+        });
+        mockGetQuestionResultStatistics.mockReturnValue({ correctAnswers: 5 });
+
+        render(<QuizResultPerformance showDetails={false} />);
+
+        // O texto segue visível — só sai da leitura, que agora vem do anel.
+        const visibleLabel = screen.getByText('Corretas');
+        expect(visibleLabel).toBeInTheDocument();
+        expect(visibleLabel.parentElement).toHaveAttribute(
+          'aria-hidden',
+          'true'
+        );
+      });
+
+      it('omite o tempo do rótulo quando não há cronômetro', () => {
+        mockGetTotalQuestions.mockReturnValue(4);
+        mockGetQuestionResult.mockReturnValue({
+          answers: [
+            {
+              answerStatus: ANSWER_STATUS.RESPOSTA_CORRETA,
+              difficultyLevel: QUESTION_DIFFICULTY.FACIL,
+            },
+          ],
+        });
+        mockGetQuestionResultStatistics.mockReturnValue({
+          correctAnswers: 1,
+          timeSpent: 150,
+        });
+
+        render(<QuizResultPerformance showDetails showTimeSpent={false} />);
+
+        expect(screen.getByTestId('progress-circle')).toHaveAttribute(
+          'data-accessible-label',
+          '1 de 4 corretas'
+        );
+      });
+
       it('should keep the difficulty bars while hiding the time', () => {
         mockGetTotalQuestions.mockReturnValue(4);
         mockGetQuestionResult.mockReturnValue({
