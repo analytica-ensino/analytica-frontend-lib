@@ -240,7 +240,11 @@ const SpeedMenu = ({
     };
   };
 
-  const position = getMenuPosition();
+  // `getBoundingClientRect` obriga o browser a recalcular o layout na hora.
+  // Medir só quando o menu vai abrir evita esse reflow síncrono em todo render
+  // do player — e o player re-renderiza acompanhando o tempo do vídeo, no
+  // mesmo thread que decodifica a mídia.
+  const position = showSpeedMenu ? getMenuPosition() : { top: 0, left: 0 };
 
   useEffect(() => {
     const handleClickOutside = (event: Event) => {
@@ -441,6 +445,17 @@ const VideoPlayer = ({
     'idle' | 'validating' | 'valid' | 'invalid'
   >('idle');
 
+  /**
+   * Estado da retomada desta mídia: `pending` enquanto a posição salva ainda
+   * precisa ser aplicada, `done` depois que o `<video>` já a aceitou.
+   *
+   * É um ref, e não estado, porque é exatamente o que impede o restore de
+   * rodar de novo no meio da reprodução (ver `applyResumeTime`).
+   */
+  const resumeStateRef = useRef<'pending' | 'done'>('pending');
+  /** Espelho de `hasStarted` legível de dentro dos callbacks de mídia. */
+  const hasStartedRef = useRef(false);
+
   // Reset completion flag when changing videos.
   //
   // `storageKey` is part of the identity here because two different items can
@@ -451,6 +466,10 @@ const VideoPlayer = ({
   useEffect(() => {
     setHasCompleted(false);
     setHasStarted(false);
+    hasStartedRef.current = false;
+    // Mídia nova, retomada nova: é a troca de mídia — e só ela — que libera
+    // um novo restore de posição.
+    resumeStateRef.current = 'pending';
   }, [src, storageKey]);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
@@ -612,6 +631,7 @@ const VideoPlayer = ({
     const onPlay = () => {
       setIsPlaying(true);
       setHasStarted(true);
+      hasStartedRef.current = true;
     };
     const onPause = () => setIsPlaying(false);
     const onEnded = () => setIsPlaying(false);
@@ -762,15 +782,70 @@ const VideoPlayer = ({
   }, [autoSave, storageKey, userId, src, initialTime]);
 
   /**
-   * Load saved progress from localStorage
+   * Última versão de `getInitialTime`, lida sem amarrar a retomada à
+   * identidade do callback.
    */
+  const getInitialTimeRef = useRef(getInitialTime);
   useEffect(() => {
-    const start = getInitialTime();
-    if (start !== undefined && Number.isFinite(start) && videoRef.current) {
-      videoRef.current.currentTime = start;
-      setCurrentTime(start);
-    }
+    getInitialTimeRef.current = getInitialTime;
   }, [getInitialTime]);
+
+  /**
+   * Aplica a posição de retomada — no máximo uma vez por mídia, sempre antes
+   * de a reprodução começar.
+   *
+   * O que estava acontecendo: `initialTime` é realimentado pelo consumidor com
+   * o valor que ele recebe de `onTimeUpdate` (a página da aula guarda o
+   * `lastWatchedTimestamp` e devolve a cada 2s). Com o restore num efeito
+   * dependente de `getInitialTime` — que muda junto com `initialTime` —, cada
+   * atualização dessas virava uma escrita em `video.currentTime` no meio da
+   * reprodução. Toda escrita em `currentTime` é um seek: o browser descarta o
+   * buffer decodificado e volta a bufferizar daquele ponto. Resultado, um
+   * engasgo a cada 2 segundos num arquivo que não tem defeito nenhum.
+   *
+   * Por isso a retomada agora é um evento da mídia, não uma reação a props:
+   * `resumeStateRef` só volta a `pending` quando `src`/`storageKey` mudam.
+   */
+  const applyResumeTime = useCallback(() => {
+    const video = videoRef.current;
+    if (!video || resumeStateRef.current === 'done') return;
+
+    // Depois que o aluno deu play, a posição dele é a que vale — não a salva.
+    if (hasStartedRef.current) {
+      resumeStateRef.current = 'done';
+      return;
+    }
+
+    const start = getInitialTimeRef.current();
+    const isUsable =
+      start !== undefined &&
+      Number.isFinite(start) &&
+      start > 0 &&
+      // Retomar no fim deixaria o vídeo parado no último frame, com cara de
+      // travado; nesse caso é melhor começar do zero.
+      (!Number.isFinite(video.duration) || start < video.duration - 0.5);
+
+    if (!isUsable) {
+      resumeStateRef.current = 'done';
+      return;
+    }
+
+    video.currentTime = start;
+    setCurrentTime(start);
+
+    // Sem metadados o browser trata a atribuição como "posição inicial padrão"
+    // e alguns a descartam no load; só damos a retomada por concluída quando
+    // existe uma linha de tempo de verdade. Até lá, `loadedmetadata` repete.
+    if (video.readyState >= 1) {
+      resumeStateRef.current = 'done';
+    }
+  }, []);
+
+  // Tentativa na montagem/troca de mídia: cobre o caso em que os metadados já
+  // chegaram (vídeo em cache, player remontado) e o evento não vai mais vir.
+  useEffect(() => {
+    applyResumeTime();
+  }, [applyResumeTime, src, storageKey]);
 
   /**
    * Save progress to localStorage periodically
@@ -863,6 +938,10 @@ const VideoPlayer = ({
     const video = videoRef.current;
     if (video && Number.isFinite(newTime)) {
       video.currentTime = newTime;
+      // A barra é um input controlado: sem o valor exato aqui, o `timeupdate`
+      // (que só reporta o segundo cheio) devolveria o thumb para o passo
+      // anterior durante o arraste.
+      setCurrentTime(newTime);
     }
   }, []);
 
@@ -965,7 +1044,15 @@ const VideoPlayer = ({
     if (!video) return;
 
     const current = video.currentTime;
-    setCurrentTime(current);
+
+    // `timeupdate` dispara ~4x por segundo, e a UI só mostra segundos inteiros
+    // (`formatTime` trunca). Re-renderizar o player a cada evento gastaria
+    // três renders inúteis por segundo no mesmo thread que decodifica o vídeo
+    // — custo que aparece como queda de frames. Sai apenas quando o segundo
+    // exibido muda de fato; `handleSeek` cuida da precisão ao arrastar.
+    setCurrentTime((previous) =>
+      Math.floor(previous) === Math.floor(current) ? previous : current
+    );
 
     // Save progress periodically
     saveProgress(current);
@@ -984,10 +1071,13 @@ const VideoPlayer = ({
    * Handle loaded metadata
    */
   const handleLoadedMetadata = useCallback(() => {
-    if (videoRef.current) {
-      setDuration(videoRef.current.duration);
-    }
-  }, []);
+    if (!videoRef.current) return;
+
+    setDuration(videoRef.current.duration);
+    // Agora existe linha de tempo: é aqui que o seek de retomada realmente
+    // pega, e é a última vez que ele acontece nesta mídia.
+    applyResumeTime();
+  }, [applyResumeTime]);
 
   /**
    * Validate subtitles URL before showing the button
