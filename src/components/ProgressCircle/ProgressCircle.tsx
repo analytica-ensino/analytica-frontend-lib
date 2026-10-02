@@ -130,6 +130,17 @@ export type ProgressCircleProps = {
  * // Small size with custom max value
  * <ProgressCircle size="small" value={3} max={5} showPercentage />
  * ```
+ *
+ * O `NOSONAR` no `<progress>` é por causa da regra "tabIndex só em elemento
+ * interativo": `<progress>` de fato não é operável, e a regra existe porque
+ * leitor de tela alcança conteúdo estático pelo cursor de leitura, sem precisar
+ * de foco. A exceção aqui é deliberada — este círculo é a única coisa na tela
+ * que carrega o número (não há botão nem link em volta que o anuncie de
+ * carona), e a validação de acessibilidade do time é feita tabulando, com o
+ * leitor seguindo o foco do teclado. Sem a parada, esse percurso nunca chega no
+ * valor. O custo é uma parada a mais por círculo para quem navega por teclado e
+ * já vê o gráfico; o anel de `focus-within` no wrapper existe para que essa
+ * parada tenha indicador visível (WCAG 2.4.7).
  */
 const ProgressCircle = ({
   value,
@@ -254,24 +265,11 @@ const ProgressCircle = ({
         `<div>`: o papel e o valor vêm do elemento, que é o que garante o
         tratamento correto em qualquer navegador/leitor.
 
-        `tabIndex={0}` é parada de Tab DELIBERADA, e contraria de propósito a
-        regra "tabIndex só em elemento interativo": `<progress>` não é
-        interativo, e a regra existe porque leitor de tela alcança conteúdo
-        estático pelo cursor de leitura (VO + setas, navegação do NVDA, swipe no
-        iOS), sem precisar de foco.
-
-        A decisão aqui é outra: o círculo é a única coisa na tela que carrega o
-        número — não há botão nem link em volta que o anuncie de carona — e a
-        validação de acessibilidade do time é feita tabulando, com o VoiceOver
-        seguindo o foco do teclado. Sem a parada, esse percurso nunca chega no
-        valor. O custo aceito é uma parada a mais por círculo para quem navega
-        por teclado e já vê o gráfico.
-
         Ocupa o círculo inteiro (`inset-0`) em vez do antigo `w-0 h-0`: além de
         dar área pro anel de foco, um elemento de área zero é ignorado por parte
         das ferramentas de leitura.
       */}
-      <progress
+      <progress // NOSONAR — parada de Tab deliberada em elemento não interativo (see JSDoc)
         value={clampedValue}
         max={max}
         tabIndex={0}
