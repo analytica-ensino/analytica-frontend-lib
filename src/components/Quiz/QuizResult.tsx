@@ -350,21 +350,19 @@ const QuizResultPerformance = forwardRef<
   );
 
   /**
-   * Leitura do anel, na forma que o design especifica:
+   * Leitura do anel: o conteúdo do miolo escrito como frase, mais o tempo por
+   * extenso. O percentual NÃO entra aqui — ele vem do valor do próprio
+   * `<progress>`, que o leitor anuncia logo depois do nome.
    *
-   *   nome  → "0 de 0 questões corretas."
-   *   valor → "Desempenho: 0 por cento." + "Tempo de conclusão: 0 horas e 0 minutos."
+   * Já esteve num `aria-valuetext` junto com "Desempenho: X por cento", e o
+   * resultado foi o percentual falado duas vezes: em elemento nativo o
+   * `valuetext` não substitui o valor, ele soma.
    *
-   * O nome é o conteúdo visível do miolo ("0 de 0" + "Corretas") escrito como
-   * frase, porque solto o leitor anunciava um pedaço por parada. O percentual e
-   * o tempo vão no `aria-valuetext`: o percentual não está escrito no círculo
-   * (só no desenho do arco) e o tempo aparece como "00:00", que seria lido como
-   * número de relógio.
+   * O tempo precisa estar escrito aqui porque no círculo ele aparece como
+   * "00:00", que o leitor anunciaria como hora em vez de duração.
    */
-  const circleAccessibleLabel = `${correctAnswers} de ${totalQuestions} questões corretas.`;
-
-  const circleAccessibleValueText = [
-    `Desempenho: ${percentage} por cento.`,
+  const circleAccessibleLabel = [
+    `${correctAnswers} de ${totalQuestions} questões corretas.`,
     timeSpent ? `Tempo de conclusão: ${spokenTimeSpent}.` : null,
   ]
     .filter(Boolean)
@@ -390,7 +388,6 @@ const QuizResultPerformance = forwardRef<
           showPercentage={false}
           label=""
           accessibleLabel={circleAccessibleLabel}
-          accessibleValueText={circleAccessibleValueText}
         />
 
         {/* Duplicata visual do que o anel já anuncia (ver

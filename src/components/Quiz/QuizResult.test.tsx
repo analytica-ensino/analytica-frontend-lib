@@ -130,7 +130,6 @@ jest.mock('../ProgressCircle/ProgressCircle', () => {
       showPercentage: boolean;
       label: string;
       accessibleLabel?: string;
-      accessibleValueText?: string;
       className: string;
     }
   >(
@@ -142,7 +141,6 @@ jest.mock('../ProgressCircle/ProgressCircle', () => {
         showPercentage,
         label,
         accessibleLabel,
-        accessibleValueText,
         className,
         ...props
       },
@@ -157,7 +155,6 @@ jest.mock('../ProgressCircle/ProgressCircle', () => {
         data-show-percentage={showPercentage}
         data-label={label}
         data-accessible-label={accessibleLabel}
-        data-accessible-value-text={accessibleValueText}
         className={className}
         {...props}
       />
@@ -1720,16 +1717,12 @@ describe('Quiz', () => {
 
         // "1 de 5" e "Corretas" eram textos soltos no miolo do anel: o leitor
         // anunciava um por parada, nenhum fazendo sentido sozinho.
-        const circle = screen.getByTestId('progress-circle');
-        expect(circle).toHaveAttribute(
+        // O tempo entra no nome porque no círculo ele aparece como "02:30", que
+        // o leitor anunciaria como hora. O percentual NÃO entra: vem do valor do
+        // `<progress>`, e repeti-lo aqui fazia o VoiceOver falar duas vezes.
+        expect(screen.getByTestId('progress-circle')).toHaveAttribute(
           'data-accessible-label',
-          '1 de 5 questões corretas.'
-        );
-        // O percentual não está escrito no círculo, e o tempo aparece como
-        // "02:30" — que o leitor anunciaria como hora, não como duração.
-        expect(circle).toHaveAttribute(
-          'data-accessible-value-text',
-          'Desempenho: 20 por cento. Tempo de conclusão: 2 horas e 30 minutos.'
+          '1 de 5 questões corretas. Tempo de conclusão: 2 horas e 30 minutos.'
         );
       });
 
@@ -1773,14 +1766,9 @@ describe('Quiz', () => {
 
         render(<QuizResultPerformance showDetails showTimeSpent={false} />);
 
-        const circle = screen.getByTestId('progress-circle');
-        expect(circle).toHaveAttribute(
+        expect(screen.getByTestId('progress-circle')).toHaveAttribute(
           'data-accessible-label',
           '1 de 4 questões corretas.'
-        );
-        expect(circle).toHaveAttribute(
-          'data-accessible-value-text',
-          'Desempenho: 25 por cento.'
         );
       });
 
