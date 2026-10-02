@@ -319,11 +319,15 @@ describe('ProgressCircle', () => {
       expect(progressBar).toHaveAttribute('max', '10');
     });
 
-    it('nomeia pelo label visível, em português, quando ele é string', () => {
+    it('nomeia pelo label visível, sem prefixo, quando ele é string', () => {
       render(<ProgressCircle value={50} label="corretas" />);
-      const progressBar = screen.getByRole('progressbar');
 
-      expect(progressBar).toHaveAttribute('aria-label', 'Progresso: corretas');
+      // Anúncio: "corretas, 50 por cento" — o papel do elemento já diz que é
+      // progresso, então o prefixo "Progresso:" só alongava a frase.
+      expect(screen.getByRole('progressbar')).toHaveAttribute(
+        'aria-label',
+        'corretas'
+      );
     });
 
     it('deixa o consumidor nomear o círculo por inteiro', () => {
@@ -360,7 +364,7 @@ describe('ProgressCircle', () => {
 
       expect(screen.getByRole('progressbar')).toHaveAttribute(
         'aria-label',
-        'Progresso: corretas'
+        'corretas'
       );
     });
 
@@ -401,6 +405,23 @@ describe('ProgressCircle', () => {
       // do alcance delas.
       expect(screen.getByRole('progressbar').className).toMatch(
         /inset-0 h-full w-full/
+      );
+    });
+
+    it('troca a leitura do valor quando o consumidor manda um texto próprio', () => {
+      render(
+        <ProgressCircle
+          value={80}
+          accessibleLabel="Nota final: 800 de 1000."
+          accessibleValueText="Desempenho: 80 por cento."
+        />
+      );
+
+      // Sem isto o leitor anuncia o percentual cru ("80 por cento") depois do
+      // nome; o design pede a frase com rótulo.
+      expect(screen.getByRole('progressbar')).toHaveAttribute(
+        'aria-valuetext',
+        'Desempenho: 80 por cento.'
       );
     });
 

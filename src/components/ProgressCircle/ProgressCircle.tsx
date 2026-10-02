@@ -86,9 +86,18 @@ export type ProgressCircleProps = {
    * como saber de que matéria/assunto ele é — o `label` abaixo é texto VISÍVEL
    * dentro do círculo (curto por caber em ~85px) e nem sempre serve de nome.
    *
-   * Default: `Progresso` — ou `Progresso: <label>` quando `label` é string.
+   * Default: o próprio `label`, quando é string; senão, `Progresso`.
    */
   accessibleLabel?: string;
+  /**
+   * Substitui a leitura do valor ("50 por cento") por uma frase própria, via
+   * `aria-valuetext`. É o que permite anunciar o percentual com o rótulo que o
+   * design pede ("Desempenho: 80 por cento.") e emendar nele informação que só
+   * existe dentro do círculo, como o tempo de conclusão.
+   *
+   * Sem isto, o leitor anuncia o percentual cru depois do nome.
+   */
+  accessibleValueText?: string;
   /** Show percentage text */
   showPercentage?: boolean;
   /** Additional CSS classes */
@@ -131,6 +140,7 @@ const ProgressCircle = ({
   trackColor,
   label,
   accessibleLabel,
+  accessibleValueText,
   showPercentage = true,
   className = '',
   labelClassName = '',
@@ -159,12 +169,16 @@ const ProgressCircle = ({
 
   /**
    * Nome acessível: o do consumidor vence; senão, o texto visível do `label`
-   * (quando é string) em português; senão, só "Progresso".
+   * (quando é string); senão, só "Progresso".
+   *
+   * O label visível entra como veio, sem prefixo: o anúncio fica "corretas, 50
+   * por cento", e não "Progresso: corretas, 50 por cento" — o papel do elemento
+   * já diz que é progresso, e o design pede a frase curta.
    */
   const resolveAccessibleLabel = () => {
     if (accessibleLabel?.trim()) return accessibleLabel;
     if (typeof label === 'string' && label.trim()) {
-      return `Progresso: ${label.trim()}`;
+      return label.trim();
     }
     return 'Progresso';
   };
@@ -263,6 +277,7 @@ const ProgressCircle = ({
         tabIndex={0}
         aria-label={nameFromLabelNode ? undefined : resolveAccessibleLabel()}
         aria-labelledby={nameFromLabelNode ? labelId : undefined}
+        aria-valuetext={accessibleValueText}
         className="absolute inset-0 h-full w-full appearance-none opacity-0 focus:outline-none"
       />
 

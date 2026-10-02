@@ -78,12 +78,22 @@ const ScoreCircle = ({
   const strokeDashoffset = circumference - percentage * circumference;
   const styles = VARIANT_CLASSES[variant];
 
+  /**
+   * Leitura do anel: a nota escrita como frase, mais o desempenho em por cento.
+   *
+   * O percentual não está escrito em lugar nenhum do círculo — só no desenho do
+   * arco —, então sem esta parte ele não existe pra quem não enxerga. "800 de
+   * 1000" sozinho também não diz o quanto isso representa.
+   */
+  const score = label ? `${label}: ${value} de ${max}` : `${value} de ${max}`;
+  const accessibleLabel = `${score}. Desempenho: ${Math.round(percentage * 100)} por cento.`;
+
   return (
     <div
       className={`relative flex flex-col items-center justify-center ${className}`}
       style={{ width: size, height: size }}
       role="img"
-      aria-label={label ? `${label}: ${value} de ${max}` : `${value} de ${max}`}
+      aria-label={accessibleLabel}
     >
       <svg
         className="absolute inset-0 -rotate-90"

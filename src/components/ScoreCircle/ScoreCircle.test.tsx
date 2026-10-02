@@ -44,7 +44,10 @@ describe('ScoreCircle', () => {
       render(<ScoreCircle value={1200} max={1000} />);
       expect(screen.getByText('1200')).toBeInTheDocument();
       const region = screen.getByRole('img');
-      expect(region).toHaveAttribute('aria-label', '1200 de 1000');
+      expect(region).toHaveAttribute(
+        'aria-label',
+        '1200 de 1000. Desempenho: 100 por cento.'
+      );
     });
 
     it('clamps negative values to 0 (visual only, value text preserved)', () => {
@@ -97,16 +100,22 @@ describe('ScoreCircle', () => {
   });
 
   describe('Accessibility', () => {
-    it('has img role with aria-label combining label and score', () => {
+    it('anuncia a nota e o desempenho em por cento', () => {
       render(<ScoreCircle value={800} max={1000} label="Nota final" />);
       const region = screen.getByRole('img');
-      expect(region).toHaveAttribute('aria-label', 'Nota final: 800 de 1000');
+      expect(region).toHaveAttribute(
+        'aria-label',
+        'Nota final: 800 de 1000. Desempenho: 80 por cento.'
+      );
     });
 
-    it('falls back to "X de Y" aria-label without label prop', () => {
+    it('cai em "X de Y" sem a prop label, mantendo o desempenho', () => {
       render(<ScoreCircle value={600} max={800} />);
       const region = screen.getByRole('img');
-      expect(region).toHaveAttribute('aria-label', '600 de 800');
+      expect(region).toHaveAttribute(
+        'aria-label',
+        '600 de 800. Desempenho: 75 por cento.'
+      );
     });
   });
 });
