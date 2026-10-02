@@ -408,20 +408,14 @@ describe('ProgressCircle', () => {
       );
     });
 
-    it('troca a leitura do valor quando o consumidor manda um texto próprio', () => {
-      render(
-        <ProgressCircle
-          value={80}
-          accessibleLabel="Nota final: 800 de 1000."
-          accessibleValueText="Desempenho: 80 por cento."
-        />
-      );
+    it('não declara aria-valuetext: num <progress> ele soma, não substitui', () => {
+      render(<ProgressCircle value={80} accessibleLabel="Nota final." />);
 
-      // Sem isto o leitor anuncia o percentual cru ("80 por cento") depois do
-      // nome; o design pede a frase com rótulo.
-      expect(screen.getByRole('progressbar')).toHaveAttribute(
-        'aria-valuetext',
-        'Desempenho: 80 por cento.'
+      // O elemento nativo expõe o próprio valor; um `valuetext` por cima fazia o
+      // VoiceOver anunciar o percentual duas vezes. Tudo o que precisa ser dito
+      // vai no nome.
+      expect(screen.getByRole('progressbar')).not.toHaveAttribute(
+        'aria-valuetext'
       );
     });
 
