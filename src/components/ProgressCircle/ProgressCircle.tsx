@@ -186,16 +186,11 @@ const ProgressCircle = ({
     !accessibleLabel?.trim() && label != null && typeof label !== 'string';
 
   return (
-    // O anel de foco vive no wrapper, e não no `<progress>`: o elemento está
-    // `opacity-0` (quem desenha o círculo é o SVG), e `opacity` apaga o anel
-    // junto. `focus-within` desenha no pai quando o `<progress>` recebe o foco —
-    // parada de Tab sem indicador visível quebra o WCAG 2.4.7.
     <div
       className={cn(
         'relative flex flex-col items-center justify-center',
         sizeClasses.container,
         'rounded-lg',
-        'focus-within:ring-2 focus-within:ring-indicator-info focus-within:ring-offset-2',
         className
       )}
     >
@@ -240,23 +235,23 @@ const ProgressCircle = ({
         `<div>`: o papel e o valor vêm do elemento, que é o que garante o
         tratamento correto em qualquer navegador/leitor.
 
-        Ele cobre o círculo inteiro (`inset-0`) em vez do antigo `w-0 h-0`
-        escondido, por dois motivos: é o que dá área pro anel de foco do wrapper
-        aparecer, e é o que faz a parada de Tab cair visualmente sobre o gráfico.
+        SEM parada de Tab, de propósito. `<progress>` não é interativo — não há o
+        que operar aqui — e `tabIndex` em conteúdo estático só adiciona paradas
+        para quem navega por teclado e já VÊ o gráfico. Quem usa leitor de tela
+        alcança isto pelo cursor de leitura (VO + setas, modo de navegação do
+        NVDA, swipe no iOS), que visita conteúdo não focável; é onde o nome e o
+        valor abaixo são anunciados.
 
-        `tabIndex={0}` é deliberado: `<progress>` não entra no ciclo de Tab por
-        padrão, e este círculo é a única coisa na tela que carrega o número — não
-        há botão nem link em volta que o anuncie de carona. Sem a parada, quem
-        navega pelo teclado (e o leitor de tela seguindo o foco) nunca chega no
-        valor.
+        Ocupa o círculo inteiro (`inset-0`) em vez do antigo `w-0 h-0`: um
+        elemento de área zero é ignorado por parte das ferramentas de leitura, e
+        era o que deixava este valor fora do alcance delas.
       */}
       <progress
         value={clampedValue}
         max={max}
-        tabIndex={0}
         aria-label={nameFromLabelNode ? undefined : resolveAccessibleLabel()}
         aria-labelledby={nameFromLabelNode ? labelId : undefined}
-        className="absolute inset-0 h-full w-full appearance-none opacity-0 focus:outline-none"
+        className="absolute inset-0 h-full w-full appearance-none opacity-0"
       />
 
       {/* Content overlay - centered content */}

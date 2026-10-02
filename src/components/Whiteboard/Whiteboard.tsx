@@ -228,11 +228,6 @@ const Whiteboard = ({
         {previewImage && (
           <img
             src={previewImage.imageUrl}
-            // Com título, o `<dialog>` já é nomeado por ele e repetir aqui faria
-            // o leitor anunciar a mesma coisa duas vezes. Sem título, o diálogo
-            // cai num nome genérico e um `alt` vazio tornaria a imagem — que é
-            // todo o conteúdo dele — invisível pro leitor; daí a descrição
-            // própria.
             alt={previewImage.title ? '' : 'Quadro da aula ampliado'}
             className="w-full h-auto rounded-lg"
           />

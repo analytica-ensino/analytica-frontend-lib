@@ -359,6 +359,38 @@ const renderStackedHitCountDisplay = (
 };
 
 /**
+ * Nome acessível da barra.
+ *
+ * Em português, como todo o resto da interface: o leitor de tela lia
+ * "Progress: 0% of 100" na lista de aulas. O "of 100" também saiu — o percentual
+ * já é relativo ao máximo, e o `max` do `<progress>` segue exposto pra quem
+ * quiser o valor cru.
+ *
+ * `accessibleLabel` só vence quando tem conteúdo: com `??` um `''` (ou só
+ * espaços) virava o nome da barra, deixando-a sem nome nenhum em vez de cair no
+ * padrão. O valor passado é usado como veio, sem trim.
+ *
+ * @param accessibleLabel - Nome pronto, vindo do consumidor
+ * @param label - Texto visível da barra, usado como prefixo quando é string
+ * @param percentage - Percentual já calculado
+ * @returns O nome a anunciar
+ */
+const resolveAccessibleLabel = (
+  accessibleLabel: string | undefined,
+  label: ReactNode,
+  percentage: number
+): string => {
+  if (accessibleLabel?.trim()) {
+    return accessibleLabel;
+  }
+
+  const prefix =
+    typeof label === 'string' && label.trim() ? label.trim() : 'Progresso';
+
+  return `${prefix}: ${Math.round(percentage)}%`;
+};
+
+/**
  * Base progress bar component with common rendering logic
  */
 const ProgressBarBase = ({
@@ -390,19 +422,7 @@ const ProgressBarBase = ({
     <progress
       value={clampedValue}
       max={max}
-      // Em português, como todo o resto da interface: o leitor de tela lia
-      // "Progress: 0% of 100" na lista de aulas. O "of 100" também saiu — o
-      // percentual já é relativo ao máximo, e o `max` do `<progress>` segue
-      // exposto pra quem quiser o valor cru.
-      //
-      // `accessibleLabel` só vence quando tem conteúdo: com `??` um `''` (ou só
-      // espaços) virava o nome da barra, deixando-a sem nome nenhum em vez de
-      // cair no padrão. O valor passado é usado como veio, sem trim.
-      aria-label={
-        accessibleLabel?.trim()
-          ? accessibleLabel
-          : `${typeof label === 'string' && label.trim() ? label.trim() : 'Progresso'}: ${Math.round(percentage)}%`
-      }
+      aria-label={resolveAccessibleLabel(accessibleLabel, label, percentage)}
       className="absolute inset-0 w-full h-full opacity-0"
     />
     <div

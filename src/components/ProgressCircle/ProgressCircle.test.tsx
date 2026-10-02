@@ -371,29 +371,30 @@ describe('ProgressCircle', () => {
       expect(svg).toHaveAttribute('aria-hidden', 'true');
     });
 
-    it('entra no ciclo de Tab, senão o número é inalcançável', () => {
-      render(
+    it('não entra no ciclo de Tab: não há o que operar num progresso', () => {
+      const { container } = render(
         <ProgressCircle value={0} accessibleLabel="Progresso em História" />
       );
 
-      const progressBar = screen.getByRole('progressbar');
-      // `role="progressbar"` não é focável por padrão, e não há controle em volta
-      // que anuncie o círculo de carona: sem a parada, quem navega por teclado
-      // (e o leitor de tela seguindo o foco) nunca chega no valor.
-      expect(progressBar).toHaveAttribute('tabindex', '0');
-
-      progressBar.focus();
-      expect(progressBar).toHaveFocus();
+      // `tabIndex` em conteúdo estático só adiciona paradas para quem navega por
+      // teclado e já VÊ o gráfico. Leitor de tela chega aqui pelo cursor de
+      // leitura (VO + setas, navegação do NVDA, swipe no iOS), que visita
+      // conteúdo não focável — é por isso que o nome e o valor acima bastam.
+      expect(screen.getByRole('progressbar')).not.toHaveAttribute('tabindex');
+      // Nem anel de foco no wrapper, que só existiria para indicar essa parada.
+      expect((container.firstChild as HTMLElement).className).not.toMatch(
+        /focus-within:ring/
+      );
     });
 
-    it('mostra indicador de foco visível na parada de Tab', () => {
-      const { container } = render(<ProgressCircle value={0} />);
+    it('ocupa a área do círculo, pra não ser um alvo de tamanho zero', () => {
+      render(<ProgressCircle value={0} />);
 
-      // Parada de Tab sem indicador visível quebra o WCAG 2.4.7. O anel fica no
-      // wrapper porque o `<progress>` é `opacity-0`, e `opacity` apagaria o anel
-      // junto com o elemento.
-      expect((container.firstChild as HTMLElement).className).toMatch(
-        /focus-within:ring-2/
+      // O `<progress>` antigo era `w-0 h-0`: elemento de área zero é ignorado
+      // por parte das ferramentas de leitura, e era o que deixava o valor fora
+      // do alcance delas.
+      expect(screen.getByRole('progressbar').className).toMatch(
+        /inset-0 h-full w-full/
       );
     });
 
