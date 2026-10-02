@@ -54,10 +54,19 @@ const Whiteboard = ({
 }: WhiteboardProps) => {
   // State to track images that failed to load
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
-  // Imagem aberta em tamanho grande, ou `null` quando nenhuma está.
-  const [previewImage, setPreviewImage] = useState<WhiteboardImage | null>(
-    null
-  );
+  /**
+   * Quadro aberto em tamanho grande, guardado pelo ID e resolvido na lista
+   * ATUAL — não pelo objeto.
+   *
+   * Guardar o objeto deixava o preview exibindo uma imagem que já não está mais
+   * em `images` (a aula muda, a lista é trocada e o modal segue mostrando a
+   * antiga). Resolvendo por ID, o preview fecha sozinho quando o quadro sai da
+   * lista, e uma lista vazia não deixa o diálogo armado para reabrir sozinho
+   * depois.
+   */
+  const [previewImageId, setPreviewImageId] = useState<string | null>(null);
+  const previewImage =
+    images?.find((image) => image.id === previewImageId) ?? null;
 
   /**
    * Handle image download
@@ -91,7 +100,7 @@ const Whiteboard = ({
    */
   const handleExpand = useCallback(
     (image: WhiteboardImage) => {
-      setPreviewImage(image);
+      setPreviewImageId(image.id);
       onImageActivate?.(image);
     },
     [onImageActivate]
@@ -212,16 +221,19 @@ const Whiteboard = ({
           scroll e gerenciamento de foco (`useModalFocus`). */}
       <Modal
         isOpen={previewImage !== null}
-        onClose={() => setPreviewImage(null)}
+        onClose={() => setPreviewImageId(null)}
         title={previewImage?.title || 'Quadro da aula'}
         size="xl"
       >
         {previewImage && (
           <img
             src={previewImage.imageUrl}
-            // O `<dialog>` já é nomeado pelo título; repetir o título aqui faria
-            // o leitor anunciar a mesma coisa duas vezes.
-            alt=""
+            // Com título, o `<dialog>` já é nomeado por ele e repetir aqui faria
+            // o leitor anunciar a mesma coisa duas vezes. Sem título, o diálogo
+            // cai num nome genérico e um `alt` vazio tornaria a imagem — que é
+            // todo o conteúdo dele — invisível pro leitor; daí a descrição
+            // própria.
+            alt={previewImage.title ? '' : 'Quadro da aula ampliado'}
             className="w-full h-auto rounded-lg"
           />
         )}

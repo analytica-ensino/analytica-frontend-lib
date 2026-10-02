@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useId } from 'react';
 import Text from '../Text/Text';
 import { cn } from '../../utils/utils';
 
@@ -162,12 +162,28 @@ const ProgressCircle = ({
    * (quando é string) em português; senão, só "Progresso".
    */
   const resolveAccessibleLabel = () => {
-    if (accessibleLabel) return accessibleLabel;
+    if (accessibleLabel?.trim()) return accessibleLabel;
     if (typeof label === 'string' && label.trim()) {
       return `Progresso: ${label.trim()}`;
     }
     return 'Progresso';
   };
+
+  /**
+   * `label` aceita `ReactNode`, e desse não há como extrair texto para montar um
+   * `aria-label`. Como o miolo do círculo é `aria-hidden` (ele duplica o que o
+   * `progressbar` anuncia), um label em nó ficaria invisível pro leitor de tela
+   * — o nome cairia no genérico "Progresso" e a informação se perderia.
+   *
+   * Nesse caso o nome passa a ser montado por `aria-labelledby` apontando pro
+   * próprio label renderizado: texto referenciado por id conta pro nome mesmo
+   * dentro de uma região `aria-hidden`, então ele volta a ser anunciado sem
+   * ganhar uma parada própria. Com `accessibleLabel` ou com label string, nada
+   * muda.
+   */
+  const labelId = useId();
+  const nameFromLabelNode =
+    !accessibleLabel?.trim() && label != null && typeof label !== 'string';
 
   return (
     // A semântica vive no wrapper, não num `<progress>` escondido: assim o
@@ -189,7 +205,8 @@ const ProgressCircle = ({
       aria-valuemin={0}
       aria-valuenow={clampedValue}
       aria-valuemax={max}
-      aria-label={resolveAccessibleLabel()}
+      aria-label={nameFromLabelNode ? undefined : resolveAccessibleLabel()}
+      aria-labelledby={nameFromLabelNode ? labelId : undefined}
       className={cn(
         'relative flex flex-col items-center justify-center',
         sizeClasses.container,
@@ -266,6 +283,7 @@ const ProgressCircle = ({
         {label && (
           <Text
             as="span"
+            id={labelId}
             size={sizeClasses.labelSize}
             weight={sizeClasses.labelWeight}
             className={cn(

@@ -1704,19 +1704,22 @@ describe('Quiz', () => {
             },
           ],
         });
+        // Uma resposta correta entre cinco questões: o mesmo número que o anel
+        // usa para o percentual, senão a fixture descreve dois resultados
+        // diferentes ao mesmo tempo.
         mockGetQuestionResultStatistics.mockReturnValue({
-          correctAnswers: 5,
+          correctAnswers: 1,
           timeSpent: 150,
         });
         mockFormatTime.mockReturnValue('02:30');
 
         render(<QuizResultPerformance showDetails showTimeSpent />);
 
-        // "5 de 5" e "Corretas" eram textos soltos no miolo do anel: o leitor
+        // "1 de 5" e "Corretas" eram textos soltos no miolo do anel: o leitor
         // anunciava um por parada, nenhum fazendo sentido sozinho.
         expect(screen.getByTestId('progress-circle')).toHaveAttribute(
           'data-accessible-label',
-          '5 de 5 corretas, tempo 02:30'
+          '1 de 5 corretas, tempo 02:30'
         );
       });
 
@@ -1730,7 +1733,7 @@ describe('Quiz', () => {
             },
           ],
         });
-        mockGetQuestionResultStatistics.mockReturnValue({ correctAnswers: 5 });
+        mockGetQuestionResultStatistics.mockReturnValue({ correctAnswers: 1 });
 
         render(<QuizResultPerformance showDetails={false} />);
 

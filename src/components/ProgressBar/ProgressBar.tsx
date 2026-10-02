@@ -394,11 +394,14 @@ const ProgressBarBase = ({
       // "Progress: 0% of 100" na lista de aulas. O "of 100" também saiu — o
       // percentual já é relativo ao máximo, e o `max` do `<progress>` segue
       // exposto pra quem quiser o valor cru.
+      //
+      // `accessibleLabel` só vence quando tem conteúdo: com `??` um `''` (ou só
+      // espaços) virava o nome da barra, deixando-a sem nome nenhum em vez de
+      // cair no padrão. O valor passado é usado como veio, sem trim.
       aria-label={
-        accessibleLabel ??
-        (typeof label === 'string'
-          ? `${label}: ${Math.round(percentage)}%`
-          : `Progresso: ${Math.round(percentage)}%`)
+        accessibleLabel?.trim()
+          ? accessibleLabel
+          : `${typeof label === 'string' && label.trim() ? label.trim() : 'Progresso'}: ${Math.round(percentage)}%`
       }
       className="absolute inset-0 w-full h-full opacity-0"
     />

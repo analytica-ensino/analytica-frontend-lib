@@ -318,16 +318,6 @@ const QuizResultPerformance = forwardRef<
     ? formatTime((resultStatistics?.timeSpent ?? 0) * 60)
     : null;
 
-  /**
-   * Nome acessível do anel, montado com TODO o conteúdo que aparece dentro
-   * dele.
-   *
-   * O miolo do anel são três textos soltos — tempo, "5 de 5" e "Corretas" — que
-   * o leitor de tela anunciava um a um, cada parada sem a anterior: "5 de 5" sem
-   * dizer de quê, "Corretas" sem o número. Juntando tudo num rótulo só, a
-   * parada vira "5 de 5 corretas, tempo 2min" e o texto visível sai da árvore
-   * (`aria-hidden` abaixo) para não repetir.
-   */
   const circleAccessibleLabel = [
     `${correctAnswers} de ${totalQuestions} corretas`,
     timeSpent ? `tempo ${timeSpent}` : null,

@@ -357,6 +357,56 @@ describe('Whiteboard Component', () => {
 
       expect(screen.getByRole('dialog')).toHaveAccessibleName('Quadro da aula');
     });
+
+    it('descreve a imagem ampliada quando o quadro não tem título', () => {
+      render(
+        <Whiteboard images={[{ id: '1', imageUrl: 'https://x/1.jpg' }]} />
+      );
+
+      fireEvent.click(screen.getByLabelText('Ampliar imagem'));
+
+      // Sem título o diálogo tem nome genérico; um `alt` vazio esconderia do
+      // leitor a imagem, que é todo o conteúdo dele.
+      expect(screen.getByRole('dialog').querySelector('img')).toHaveAttribute(
+        'alt',
+        'Quadro da aula ampliado'
+      );
+    });
+
+    it('não repete o título no alt quando o diálogo já é nomeado por ele', () => {
+      render(<Whiteboard {...defaultProps} />);
+
+      fireEvent.click(screen.getByLabelText('Ampliar Board 1'));
+
+      const dialog = screen.getByRole('dialog');
+      expect(dialog).toHaveAccessibleName('Board 1');
+      expect(dialog.querySelector('img')).toHaveAttribute('alt', '');
+    });
+
+    it('fecha o preview quando o quadro sai da lista', () => {
+      const { rerender } = render(<Whiteboard {...defaultProps} />);
+
+      fireEvent.click(screen.getByLabelText('Ampliar Board 1'));
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+      // Trocar a lista (outra aula, por exemplo) deixava o preview exibindo uma
+      // imagem que já não está mais ali.
+      rerender(<Whiteboard images={[mockImages[1]]} />);
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    it('não reabre o preview quando a lista volta a ter imagens', () => {
+      const { rerender } = render(<Whiteboard {...defaultProps} />);
+
+      fireEvent.click(screen.getByLabelText('Ampliar Board 1'));
+      rerender(<Whiteboard images={[]} />);
+      expect(screen.getByText('Nenhuma imagem disponível')).toBeInTheDocument();
+
+      rerender(<Whiteboard images={[mockImages[1]]} />);
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
   });
 
   describe('Accessibility', () => {

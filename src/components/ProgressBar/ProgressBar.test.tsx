@@ -213,6 +213,17 @@ describe('ProgressBar', () => {
       expect(progressBar).toHaveAttribute('aria-label', 'Progresso: 50%');
     });
 
+    it('ignora accessibleLabel em branco em vez de ficar sem nome', () => {
+      render(<ProgressBar value={50} label="Fáceis" accessibleLabel="   " />);
+
+      // Com `??` um `''` virava o nome da barra e ela ficava sem nome nenhum,
+      // em vez de cair no padrão.
+      expect(screen.getByRole('progressbar')).toHaveAttribute(
+        'aria-label',
+        'Fáceis: 50%'
+      );
+    });
+
     it('deixa o consumidor nomear a barra quando o label já traz o número', () => {
       render(
         <ProgressBar

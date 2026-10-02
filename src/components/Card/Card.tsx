@@ -1258,6 +1258,16 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
       };
     }, []);
 
+    /**
+     * Rótulo do play/pause. O título entra nele pro botão se descrever sozinho:
+     * quem chega ali pela navegação do leitor de tela, sem ter passado pelo nome
+     * do grupo, ouvia só "Reproduzir" sem saber o quê.
+     */
+    const playPauseAction = isPlaying ? 'Pausar' : 'Reproduzir';
+    const playPauseLabel = title
+      ? `${playPauseAction} ${title}`
+      : playPauseAction;
+
     return (
       <CardBase
         ref={ref}
@@ -1313,10 +1323,7 @@ const CardAudio = forwardRef<HTMLDivElement, CardAudioProps>(
           onClick={handlePlayPause}
           disabled={!src}
           className="cursor-pointer text-text-950 hover:text-primary-600 disabled:text-text-400 disabled:cursor-not-allowed"
-          // O título entra no rótulo pro botão se descrever sozinho: quem chega
-          // nele pela navegação do leitor de tela, sem ter passado pelo nome do
-          // grupo, ouvia só "Reproduzir" sem saber o quê.
-          aria-label={`${isPlaying ? 'Pausar' : 'Reproduzir'}${title ? ` ${title}` : ''}`}
+          aria-label={playPauseLabel}
         >
           {isPlaying ? (
             <div className="w-6 h-6 flex items-center justify-center">

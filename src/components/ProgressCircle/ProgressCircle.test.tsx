@@ -342,11 +342,27 @@ describe('ProgressCircle', () => {
       ).toBeInTheDocument();
     });
 
-    it('uses default aria-label when label is ReactNode', () => {
+    it('nomeia pelo label renderizado quando ele é um nó, não string', () => {
       render(<ProgressCircle value={50} label={<span>Custom</span>} />);
       const progressBar = screen.getByRole('progressbar');
 
-      expect(progressBar).toHaveAttribute('aria-label', 'Progresso');
+      // De um `ReactNode` não se extrai texto pra montar `aria-label`, e o miolo
+      // do círculo é `aria-hidden` — o nome cairia no genérico "Progresso" e o
+      // label se perderia. `aria-labelledby` resgata o texto: referência por id
+      // conta pro nome mesmo dentro de região escondida.
+      expect(progressBar).not.toHaveAttribute('aria-label');
+      expect(progressBar).toHaveAccessibleName('Custom');
+    });
+
+    it('ignora accessibleLabel em branco em vez de ficar sem nome', () => {
+      render(
+        <ProgressCircle value={50} label="corretas" accessibleLabel="   " />
+      );
+
+      expect(screen.getByRole('progressbar')).toHaveAttribute(
+        'aria-label',
+        'Progresso: corretas'
+      );
     });
 
     it('sets svg as aria-hidden', () => {
