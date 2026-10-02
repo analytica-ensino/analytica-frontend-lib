@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import Button from '../Button/Button';
 import { Tooltip } from '../Tooltip/Tooltip';
 import { cn } from '../../utils/utils';
@@ -32,54 +33,68 @@ export interface AccessibilityFabProps {
  * Inspirado no padrão HandTalk: quadrado azul escuro colado na
  * lateral da viewport (direita por padrão), com o ícone universal
  * de acessibilidade. Verticalmente centralizado.
+ *
+ * A ref vai pro `<button>` em si: o FAB é desmontado enquanto o painel está
+ * aberto, então quem devolve o foco pra ele no fechamento é o
+ * `AccessibilityWidget`, que precisa alcançar o nó recém-remontado.
  */
-export default function AccessibilityFab({
-  onClick,
-  isOpen = false,
-  position = 'right',
-  verticalAlign = 'center',
-  className,
-}: Readonly<AccessibilityFabProps>) {
-  const label = isOpen
-    ? 'Fechar opções de acessibilidade'
-    : 'Opções de acessibilidade';
+const AccessibilityFab = forwardRef<HTMLButtonElement, AccessibilityFabProps>(
+  (
+    {
+      onClick,
+      isOpen = false,
+      position = 'right',
+      verticalAlign = 'center',
+      className,
+    },
+    ref
+  ) => {
+    const label = isOpen
+      ? 'Fechar opções de acessibilidade'
+      : 'Opções de acessibilidade';
 
-  return (
-    <Tooltip
-      content={label}
-      position={FAB_TOOLTIP_POSITION[position]}
-      className={cn(
-        'fixed z-40',
-        FAB_VERTICAL_ALIGN_CLASSES[verticalAlign],
-        FAB_POSITION_CLASSES[position]
-      )}
-    >
-      <Button
-        variant="raw"
-        onClick={onClick}
-        aria-label={label}
-        aria-expanded={isOpen}
-        data-testid="accessibility-fab"
+    return (
+      <Tooltip
+        content={label}
+        position={FAB_TOOLTIP_POSITION[position]}
         className={cn(
-          'a11y-widget-shield',
-          FAB_POSITION_CLASSES[position],
-          'flex h-10 w-10 cursor-pointer items-center justify-center',
-          // `text-text-50` flipa junto com `bg-info-900` (claro no light,
-          // escuro no dark). `text-white` deixaria o ícone branco sumindo
-          // no tema escuro, onde `bg-info-900` resolve pra azul-claro.
-          'bg-info-900 text-text-50 shadow-lg',
-          'transition-all duration-200 hover:scale-110 hover:bg-info-800',
-          'focus:outline-none focus:ring-4 focus:ring-info-300',
-          className
+          'fixed z-40',
+          FAB_VERTICAL_ALIGN_CLASSES[verticalAlign],
+          FAB_POSITION_CLASSES[position]
         )}
       >
-        <img
-          src={accessibilityIcon}
-          alt=""
-          aria-hidden="true"
-          className="h-7 w-7"
-        />
-      </Button>
-    </Tooltip>
-  );
-}
+        <Button
+          ref={ref}
+          variant="raw"
+          onClick={onClick}
+          aria-label={label}
+          aria-expanded={isOpen}
+          data-testid="accessibility-fab"
+          className={cn(
+            'a11y-widget-shield',
+            FAB_POSITION_CLASSES[position],
+            'flex h-10 w-10 cursor-pointer items-center justify-center',
+            // `text-text-50` flipa junto com `bg-info-900` (claro no light,
+            // escuro no dark). `text-white` deixaria o ícone branco sumindo
+            // no tema escuro, onde `bg-info-900` resolve pra azul-claro.
+            'bg-info-900 text-text-50 shadow-lg',
+            'transition-all duration-200 hover:scale-110 hover:bg-info-800',
+            'focus:outline-none focus:ring-4 focus:ring-info-300',
+            className
+          )}
+        >
+          <img
+            src={accessibilityIcon}
+            alt=""
+            aria-hidden="true"
+            className="h-7 w-7"
+          />
+        </Button>
+      </Tooltip>
+    );
+  }
+);
+
+AccessibilityFab.displayName = 'AccessibilityFab';
+
+export default AccessibilityFab;

@@ -210,4 +210,77 @@ describe('AccessibilityPanel', () => {
     expect(state.highlightLinks).toBe(false);
     expect(state.bigCursor).toBe(false);
   });
+
+  describe('foco e navegação presa no painel', () => {
+    /** Conteúdo "da página de trás", fora do caminho do painel até o body. */
+    const renderBackground = () => {
+      const background = document.createElement('div');
+      background.innerHTML = '<button type="button">Painel</button>';
+      document.body.appendChild(background);
+      return background;
+    };
+
+    it('se declara modal e leva o foco pro diálogo ao abrir', () => {
+      renderPanel();
+      const panel = screen.getByTestId('accessibility-panel');
+
+      expect(panel).toHaveAttribute('aria-modal', 'true');
+      expect(panel).toHaveAttribute('tabindex', '-1');
+      // No diálogo, e não no X: o leitor anuncia "Opções de acessibilidade,
+      // diálogo" antes de cair nos controles.
+      expect(panel).toHaveFocus();
+      expect(
+        screen.getByRole('button', { name: /fechar opções de acessibilidade/i })
+      ).not.toHaveFocus();
+    });
+
+    it('tira o menu de trás do caminho enquanto está aberto', () => {
+      const background = renderBackground();
+
+      const { rerender } = renderPanel();
+      expect(background).toHaveAttribute('inert');
+      expect(background).toHaveAttribute('aria-hidden', 'true');
+
+      rerender(<AccessibilityPanel isOpen={false} onClose={() => undefined} />);
+      expect(background).not.toHaveAttribute('inert');
+
+      background.remove();
+    });
+
+    it('prende o Tab: de "Redefinir ajustes" volta pro botão de fechar', async () => {
+      renderPanel();
+
+      screen.getByTestId('a11y-reset').focus();
+      await userEvent.tab();
+
+      expect(
+        screen.getByRole('button', { name: /fechar opções de acessibilidade/i })
+      ).toHaveFocus();
+    });
+
+    it('prende o Shift+Tab: do botão de fechar volta pro "Redefinir ajustes"', async () => {
+      renderPanel();
+
+      screen
+        .getByRole('button', { name: /fechar opções de acessibilidade/i })
+        .focus();
+      await userEvent.tab({ shift: true });
+
+      expect(screen.getByTestId('a11y-reset')).toHaveFocus();
+    });
+
+    it('devolve o foco a quem abriu o painel quando fecha', () => {
+      const trigger = document.createElement('button');
+      document.body.appendChild(trigger);
+      trigger.focus();
+
+      const { rerender } = renderPanel();
+      expect(screen.getByTestId('accessibility-panel')).toHaveFocus();
+
+      rerender(<AccessibilityPanel isOpen={false} onClose={() => undefined} />);
+      expect(trigger).toHaveFocus();
+
+      trigger.remove();
+    });
+  });
 });
