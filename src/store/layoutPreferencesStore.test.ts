@@ -140,7 +140,7 @@ describe('layoutPreferencesStore', () => {
       .setPanelWidth('lesson', 'preview', 540);
 
     expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
-    expect(localStorage.length).toBe(0);
+    expect(localStorage).toHaveLength(0);
   });
 
   it('should drop an entry left by the persisted version', async () => {
