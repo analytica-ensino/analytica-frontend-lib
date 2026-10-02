@@ -399,7 +399,8 @@ export interface EnemMomentSchoolsQuery extends EnemMomentRequest {
 }
 
 /**
- * What the tables' filters offer: the municipalities and classes of the cut.
+ * What the filters offer: the municipalities, classes and teaching stages of
+ * the cut.
  *
  * `POST /enem-moment-report/filter-options`.
  */
@@ -411,6 +412,14 @@ export interface EnemMomentFilterOptions {
     className: string | null;
     schoolYearName: string | null;
   }>;
+  /**
+   * The "Série" options the school has, for `EnemMomentHeaderFilters`.
+   *
+   * Optional because it genuinely can be absent: an API older than the field
+   * answers without it, and that reading must keep meaning "not known", which
+   * leaves every stage on offer.
+   */
+  educationStages?: EnemMomentEducationStage[];
 }
 
 /** `POST /enem-moment-report/schools`. */
