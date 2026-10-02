@@ -10,6 +10,8 @@ import {
 import Text from '../Text/Text';
 import IconButton from '../IconButton/IconButton';
 import { cn } from '../../utils/utils';
+import { useModalFocus } from '../../hooks/useModalFocus';
+import { useEscapeToClose } from '../../hooks/useEscapeToClose';
 
 const HEADER_ICON_BUTTON_CLASSES =
   '!text-white hover:!bg-white/15 hover:!text-white focus-visible:!ring-white/60';
@@ -49,8 +51,7 @@ export default function ChatbotPanel({
 }: Readonly<ChatbotPanelProps>) {
   const [showHistory, setShowHistory] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const previouslyFocusedRef = useRef<Element | null>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const previousErrorRef = useRef<string | null | undefined>(errorMessage);
 
   // Reset the minimized state every time the panel is reopened so the
@@ -75,36 +76,33 @@ export default function ChatbotPanel({
     previousErrorRef.current = errorMessage;
   }, [errorMessage]);
 
-  // Escape-key dismissal + focus management: when the panel opens we
-  // remember the previously focused element, move focus to the close
-  // button, and listen for Escape to close. On close, focus is restored.
-  useEffect(() => {
-    if (!isOpen) return;
-    previouslyFocusedRef.current = document.activeElement;
-    closeButtonRef.current?.focus();
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.stopPropagation();
-        onClose();
-      }
-    };
-    globalThis.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      globalThis.removeEventListener('keydown', handleKeyDown);
-      const previous = previouslyFocusedRef.current as HTMLElement | null;
-      if (previous && typeof previous.focus === 'function') {
-        previous.focus();
-      }
-    };
-  }, [isOpen, onClose]);
+  /**
+   * Foco e navegação pelos hooks compartilhados, os mesmos do `Modal` e do
+   * `AlertDialog`: `useModalFocus` leva o foco pro diálogo ao abrir, prende Tab
+   * e Shift+Tab lá dentro, torna o resto da página `inert` (um `<dialog open>`
+   * sem `showModal()` não tem top layer, então nada impedia o cursor virtual do
+   * leitor de tela de passear pela página atrás) e devolve o foco a quem abriu.
+   *
+   * `useEscapeToClose` respeita um Escape já tratado, então fechar um popover
+   * de dentro do painel não fecha o painel junto.
+   */
+  useModalFocus(isOpen, dialogRef);
+  useEscapeToClose(isOpen, onClose);
 
   if (!isOpen) return null;
 
   return (
     <dialog
+      ref={dialogRef}
       open
+      // Requisito do `useModalFocus`: o foco inicial vai pro próprio diálogo,
+      // pro leitor anunciar "Assistente de estudos, diálogo" antes dos
+      // controles do header.
+      tabIndex={-1}
+      // `open` sem `showModal()` não marca o diálogo como modal; quem prende a
+      // navegação é o `inert` do hook, e este atributo é o que conta isso ao
+      // leitor de tela. Mesmo par usado no `Modal` e no `AlertDialog`.
+      aria-modal="true"
       aria-label="Assistente de estudos"
       // Height uses an inline style instead of a Tailwind arbitrary
       // class so host apps don't need to add an `@source` directive
@@ -186,7 +184,6 @@ export default function ChatbotPanel({
             className={HEADER_ICON_BUTTON_CLASSES}
           />
           <IconButton
-            ref={closeButtonRef}
             size="sm"
             aria-label="Fechar assistente"
             onClick={onClose}

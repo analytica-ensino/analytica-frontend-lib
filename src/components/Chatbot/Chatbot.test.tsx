@@ -55,6 +55,24 @@ describe('Chatbot', () => {
     await waitFor(() => expect(client.listConversations).toHaveBeenCalled());
   });
 
+  it('returns focus to the FAB when the panel is closed', async () => {
+    const client = buildClient();
+    render(<Chatbot apiClient={client} user={{ id: 'u', name: 'Ana' }} />);
+
+    await userEvent.click(
+      screen.getByRole('button', { name: /abrir assistente/i })
+    );
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Fechar assistente' })
+    );
+
+    // The FAB is unmounted while the panel is open, so the panel has nobody to
+    // hand the focus back to — the Chatbot shell remounts it and focuses it.
+    expect(
+      screen.getByRole('button', { name: /abrir assistente/i })
+    ).toHaveFocus();
+  });
+
   it('shows a personalized empty hint using the first name', async () => {
     const client = buildClient();
     render(
