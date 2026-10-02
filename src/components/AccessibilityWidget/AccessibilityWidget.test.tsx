@@ -64,6 +64,44 @@ describe('AccessibilityWidget', () => {
     expect(fab.className).toMatch(/left-0/);
   });
 
+  describe('devolução do foco ao fechar o painel', () => {
+    it('devolve o foco ao botão "Opções de acessibilidade"', async () => {
+      render(<AccessibilityWidget />);
+
+      await userEvent.click(screen.getByTestId('accessibility-fab'));
+      await userEvent.click(
+        screen.getByRole('button', { name: /fechar opções de acessibilidade/i })
+      );
+
+      // O FAB é desmontado enquanto o painel está aberto, então o painel não
+      // tem a quem devolver o foco — quem remonta é o widget, e é ele quem
+      // precisa focar o botão de novo.
+      expect(screen.getByTestId('accessibility-fab')).toHaveFocus();
+    });
+
+    it('não rouba o foco de quem já o tem (painel aberto pelo atalho)', async () => {
+      const outside = document.createElement('button');
+      document.body.appendChild(outside);
+
+      render(<AccessibilityWidget />);
+
+      // Abertura sem passar pelo FAB, como faz o Alt+A: quem tinha o foco
+      // sobrevive à abertura e recebe de volta pelo próprio useModalFocus.
+      outside.focus();
+      useAccessibilityStore.setState({ isPanelOpen: true });
+      await screen.findByTestId('accessibility-panel');
+
+      await userEvent.click(
+        screen.getByRole('button', { name: /fechar opções de acessibilidade/i })
+      );
+
+      expect(outside).toHaveFocus();
+      expect(screen.getByTestId('accessibility-fab')).not.toHaveFocus();
+
+      outside.remove();
+    });
+  });
+
   describe('Libras integration', () => {
     afterEach(() => {
       // O VLibrasLoader injeta DOM no <body>; limpa entre os testes

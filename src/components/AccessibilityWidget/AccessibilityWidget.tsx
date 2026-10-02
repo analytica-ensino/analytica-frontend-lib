@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import AccessibilityFab, {
   type AccessibilityFabPosition,
 } from './AccessibilityFab';
@@ -79,10 +80,43 @@ export default function AccessibilityWidget({
     document.querySelector<HTMLElement>('[vw-access-button]')?.click();
   };
 
+  const fabRef = useRef<HTMLButtonElement>(null);
+  const wasPanelOpenRef = useRef(false);
+
+  /**
+   * Devolve o foco ao FAB quando o painel fecha.
+   *
+   * O painel já faz isso sozinho (`useModalFocus` guarda quem o abriu), mas
+   * quando quem abriu foi o próprio FAB o nó guardado não existe mais: o FAB é
+   * desmontado enquanto o painel está aberto, e o hook — que só devolve o foco
+   * se o elemento ainda está na página — deixa o foco no `<body>`. Daí o Tab
+   * recomeçava do topo da página.
+   *
+   * A guarda do `<body>` é o que mantém o caminho do atalho `Alt+A` intacto:
+   * ali quem tinha o foco era um elemento qualquer da página, que sobrevive à
+   * abertura e recebe o foco de volta do próprio hook. Nesse caso o foco não
+   * está no `<body>` e este efeito sai do caminho.
+   */
+  useEffect(() => {
+    if (isPanelOpen) {
+      wasPanelOpenRef.current = true;
+      return;
+    }
+
+    if (!wasPanelOpenRef.current) return;
+    wasPanelOpenRef.current = false;
+
+    const active = document.activeElement;
+    if (!active || active === document.body) {
+      fabRef.current?.focus();
+    }
+  }, [isPanelOpen]);
+
   return (
     <>
       {!isPanelOpen && (
         <AccessibilityFab
+          ref={fabRef}
           onClick={togglePanel}
           isOpen={isPanelOpen}
           position={position}
