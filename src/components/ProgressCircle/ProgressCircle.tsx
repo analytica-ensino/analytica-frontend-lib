@@ -186,11 +186,16 @@ const ProgressCircle = ({
     !accessibleLabel?.trim() && label != null && typeof label !== 'string';
 
   return (
+    // O anel de foco fica no wrapper, e não no `<progress>`: o elemento é
+    // `opacity-0` (quem desenha o círculo é o SVG) e `opacity` apagaria o anel
+    // junto. `focus-within` desenha aqui quando o `<progress>` recebe o foco —
+    // parada de Tab sem indicador visível quebra o WCAG 2.4.7.
     <div
       className={cn(
         'relative flex flex-col items-center justify-center',
         sizeClasses.container,
         'rounded-lg',
+        'focus-within:ring-2 focus-within:ring-indicator-info focus-within:ring-offset-2',
         className
       )}
     >
@@ -235,23 +240,30 @@ const ProgressCircle = ({
         `<div>`: o papel e o valor vêm do elemento, que é o que garante o
         tratamento correto em qualquer navegador/leitor.
 
-        SEM parada de Tab, de propósito. `<progress>` não é interativo — não há o
-        que operar aqui — e `tabIndex` em conteúdo estático só adiciona paradas
-        para quem navega por teclado e já VÊ o gráfico. Quem usa leitor de tela
-        alcança isto pelo cursor de leitura (VO + setas, modo de navegação do
-        NVDA, swipe no iOS), que visita conteúdo não focável; é onde o nome e o
-        valor abaixo são anunciados.
+        `tabIndex={0}` é parada de Tab DELIBERADA, e contraria de propósito a
+        regra "tabIndex só em elemento interativo": `<progress>` não é
+        interativo, e a regra existe porque leitor de tela alcança conteúdo
+        estático pelo cursor de leitura (VO + setas, navegação do NVDA, swipe no
+        iOS), sem precisar de foco.
 
-        Ocupa o círculo inteiro (`inset-0`) em vez do antigo `w-0 h-0`: um
-        elemento de área zero é ignorado por parte das ferramentas de leitura, e
-        era o que deixava este valor fora do alcance delas.
+        A decisão aqui é outra: o círculo é a única coisa na tela que carrega o
+        número — não há botão nem link em volta que o anuncie de carona — e a
+        validação de acessibilidade do time é feita tabulando, com o VoiceOver
+        seguindo o foco do teclado. Sem a parada, esse percurso nunca chega no
+        valor. O custo aceito é uma parada a mais por círculo para quem navega
+        por teclado e já vê o gráfico.
+
+        Ocupa o círculo inteiro (`inset-0`) em vez do antigo `w-0 h-0`: além de
+        dar área pro anel de foco, um elemento de área zero é ignorado por parte
+        das ferramentas de leitura.
       */}
       <progress
         value={clampedValue}
         max={max}
+        tabIndex={0}
         aria-label={nameFromLabelNode ? undefined : resolveAccessibleLabel()}
         aria-labelledby={nameFromLabelNode ? labelId : undefined}
-        className="absolute inset-0 h-full w-full appearance-none opacity-0"
+        className="absolute inset-0 h-full w-full appearance-none opacity-0 focus:outline-none"
       />
 
       {/* Content overlay - centered content */}
