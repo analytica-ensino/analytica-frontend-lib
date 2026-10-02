@@ -86,9 +86,18 @@ export type ProgressCircleProps = {
    * como saber de que matéria/assunto ele é — o `label` abaixo é texto VISÍVEL
    * dentro do círculo (curto por caber em ~85px) e nem sempre serve de nome.
    *
-   * Default: `Progresso` — ou `Progresso: <label>` quando `label` é string.
+   * Default: o próprio `label`, quando é string; senão, `Progresso`.
    */
   accessibleLabel?: string;
+  /**
+   * Substitui a leitura do valor ("50 por cento") por uma frase própria, via
+   * `aria-valuetext`. É o que permite anunciar o percentual com o rótulo que o
+   * design pede ("Desempenho: 80 por cento.") e emendar nele informação que só
+   * existe dentro do círculo, como o tempo de conclusão.
+   *
+   * Sem isto, o leitor anuncia o percentual cru depois do nome.
+   */
+  accessibleValueText?: string;
   /** Show percentage text */
   showPercentage?: boolean;
   /** Additional CSS classes */
@@ -121,6 +130,17 @@ export type ProgressCircleProps = {
  * // Small size with custom max value
  * <ProgressCircle size="small" value={3} max={5} showPercentage />
  * ```
+ *
+ * O `NOSONAR` no `<progress>` é por causa da regra "tabIndex só em elemento
+ * interativo": `<progress>` de fato não é operável, e a regra existe porque
+ * leitor de tela alcança conteúdo estático pelo cursor de leitura, sem precisar
+ * de foco. A exceção aqui é deliberada — este círculo é a única coisa na tela
+ * que carrega o número (não há botão nem link em volta que o anuncie de
+ * carona), e a validação de acessibilidade do time é feita tabulando, com o
+ * leitor seguindo o foco do teclado. Sem a parada, esse percurso nunca chega no
+ * valor. O custo é uma parada a mais por círculo para quem navega por teclado e
+ * já vê o gráfico; o anel de `focus-within` no wrapper existe para que essa
+ * parada tenha indicador visível (WCAG 2.4.7).
  */
 const ProgressCircle = ({
   value,
@@ -131,6 +151,7 @@ const ProgressCircle = ({
   trackColor,
   label,
   accessibleLabel,
+  accessibleValueText,
   showPercentage = true,
   className = '',
   labelClassName = '',
@@ -159,12 +180,16 @@ const ProgressCircle = ({
 
   /**
    * Nome acessível: o do consumidor vence; senão, o texto visível do `label`
-   * (quando é string) em português; senão, só "Progresso".
+   * (quando é string); senão, só "Progresso".
+   *
+   * O label visível entra como veio, sem prefixo: o anúncio fica "corretas, 50
+   * por cento", e não "Progresso: corretas, 50 por cento" — o papel do elemento
+   * já diz que é progresso, e o design pede a frase curta.
    */
   const resolveAccessibleLabel = () => {
     if (accessibleLabel?.trim()) return accessibleLabel;
     if (typeof label === 'string' && label.trim()) {
-      return `Progresso: ${label.trim()}`;
+      return label.trim();
     }
     return 'Progresso';
   };
@@ -186,11 +211,16 @@ const ProgressCircle = ({
     !accessibleLabel?.trim() && label != null && typeof label !== 'string';
 
   return (
+    // O anel de foco fica no wrapper, e não no `<progress>`: o elemento é
+    // `opacity-0` (quem desenha o círculo é o SVG) e `opacity` apagaria o anel
+    // junto. `focus-within` desenha aqui quando o `<progress>` recebe o foco —
+    // parada de Tab sem indicador visível quebra o WCAG 2.4.7.
     <div
       className={cn(
         'relative flex flex-col items-center justify-center',
         sizeClasses.container,
         'rounded-lg',
+        'focus-within:ring-2 focus-within:ring-indicator-info focus-within:ring-offset-2',
         className
       )}
     >
@@ -235,23 +265,18 @@ const ProgressCircle = ({
         `<div>`: o papel e o valor vêm do elemento, que é o que garante o
         tratamento correto em qualquer navegador/leitor.
 
-        SEM parada de Tab, de propósito. `<progress>` não é interativo — não há o
-        que operar aqui — e `tabIndex` em conteúdo estático só adiciona paradas
-        para quem navega por teclado e já VÊ o gráfico. Quem usa leitor de tela
-        alcança isto pelo cursor de leitura (VO + setas, modo de navegação do
-        NVDA, swipe no iOS), que visita conteúdo não focável; é onde o nome e o
-        valor abaixo são anunciados.
-
-        Ocupa o círculo inteiro (`inset-0`) em vez do antigo `w-0 h-0`: um
-        elemento de área zero é ignorado por parte das ferramentas de leitura, e
-        era o que deixava este valor fora do alcance delas.
+        Ocupa o círculo inteiro (`inset-0`) em vez do antigo `w-0 h-0`: além de
+        dar área pro anel de foco, um elemento de área zero é ignorado por parte
+        das ferramentas de leitura.
       */}
-      <progress
+      <progress // NOSONAR — parada de Tab deliberada em elemento não interativo (see JSDoc)
         value={clampedValue}
         max={max}
+        tabIndex={0}
         aria-label={nameFromLabelNode ? undefined : resolveAccessibleLabel()}
         aria-labelledby={nameFromLabelNode ? labelId : undefined}
-        className="absolute inset-0 h-full w-full appearance-none opacity-0"
+        aria-valuetext={accessibleValueText}
+        className="absolute inset-0 h-full w-full appearance-none opacity-0 focus:outline-none"
       />
 
       {/* Content overlay - centered content */}

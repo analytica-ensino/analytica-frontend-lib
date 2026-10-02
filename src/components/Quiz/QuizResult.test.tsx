@@ -130,6 +130,7 @@ jest.mock('../ProgressCircle/ProgressCircle', () => {
       showPercentage: boolean;
       label: string;
       accessibleLabel?: string;
+      accessibleValueText?: string;
       className: string;
     }
   >(
@@ -141,6 +142,7 @@ jest.mock('../ProgressCircle/ProgressCircle', () => {
         showPercentage,
         label,
         accessibleLabel,
+        accessibleValueText,
         className,
         ...props
       },
@@ -155,6 +157,7 @@ jest.mock('../ProgressCircle/ProgressCircle', () => {
         data-show-percentage={showPercentage}
         data-label={label}
         data-accessible-label={accessibleLabel}
+        data-accessible-value-text={accessibleValueText}
         className={className}
         {...props}
       />
@@ -1717,9 +1720,16 @@ describe('Quiz', () => {
 
         // "1 de 5" e "Corretas" eram textos soltos no miolo do anel: o leitor
         // anunciava um por parada, nenhum fazendo sentido sozinho.
-        expect(screen.getByTestId('progress-circle')).toHaveAttribute(
+        const circle = screen.getByTestId('progress-circle');
+        expect(circle).toHaveAttribute(
           'data-accessible-label',
-          '1 de 5 corretas, tempo 02:30'
+          '1 de 5 questões corretas.'
+        );
+        // O percentual não está escrito no círculo, e o tempo aparece como
+        // "02:30" — que o leitor anunciaria como hora, não como duração.
+        expect(circle).toHaveAttribute(
+          'data-accessible-value-text',
+          'Desempenho: 20 por cento. Tempo de conclusão: 2 horas e 30 minutos.'
         );
       });
 
@@ -1763,9 +1773,14 @@ describe('Quiz', () => {
 
         render(<QuizResultPerformance showDetails showTimeSpent={false} />);
 
-        expect(screen.getByTestId('progress-circle')).toHaveAttribute(
+        const circle = screen.getByTestId('progress-circle');
+        expect(circle).toHaveAttribute(
           'data-accessible-label',
-          '1 de 4 corretas'
+          '1 de 4 questões corretas.'
+        );
+        expect(circle).toHaveAttribute(
+          'data-accessible-value-text',
+          'Desempenho: 25 por cento.'
         );
       });
 

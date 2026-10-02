@@ -237,6 +237,34 @@ const updateDifficultyStats = (
 };
 
 /**
+ * Duração falada, para leitor de tela: "0 horas e 0 minutos".
+ *
+ * O tempo aparece no círculo como "00:00", que o leitor anuncia como número de
+ * relógio ("zero dois pontos zero") em vez de duração. Isto escreve por extenso.
+ *
+ * @param totalMinutes - Minutos gastos, como o store guarda
+ * @returns A duração em palavras
+ *
+ * @example
+ * ```typescript
+ * formatSpokenDuration(0);  // '0 horas e 0 minutos'
+ * formatSpokenDuration(91); // '1 hora e 31 minutos'
+ * ```
+ */
+const formatSpokenDuration = (totalMinutes: number): string => {
+  const safeMinutes = Number.isFinite(totalMinutes)
+    ? Math.max(0, Math.round(totalMinutes))
+    : 0;
+  const hours = Math.floor(safeMinutes / 60);
+  const minutes = safeMinutes % 60;
+
+  const hoursLabel = hours === 1 ? 'hora' : 'horas';
+  const minutesLabel = minutes === 1 ? 'minuto' : 'minutos';
+
+  return `${hours} ${hoursLabel} e ${minutes} ${minutesLabel}`;
+};
+
+/**
  * Calculate answer statistics by difficulty level
  * @param answers - Array of question answers
  * @returns Statistics object with counts by difficulty
@@ -317,13 +345,30 @@ const QuizResultPerformance = forwardRef<
   const timeSpent = showTimeSpent
     ? formatTime((resultStatistics?.timeSpent ?? 0) * 60)
     : null;
+  const spokenTimeSpent = formatSpokenDuration(
+    resultStatistics?.timeSpent ?? 0
+  );
 
-  const circleAccessibleLabel = [
-    `${correctAnswers} de ${totalQuestions} corretas`,
-    timeSpent ? `tempo ${timeSpent}` : null,
+  /**
+   * Leitura do anel, na forma que o design especifica:
+   *
+   *   nome  → "0 de 0 questões corretas."
+   *   valor → "Desempenho: 0 por cento." + "Tempo de conclusão: 0 horas e 0 minutos."
+   *
+   * O nome é o conteúdo visível do miolo ("0 de 0" + "Corretas") escrito como
+   * frase, porque solto o leitor anunciava um pedaço por parada. O percentual e
+   * o tempo vão no `aria-valuetext`: o percentual não está escrito no círculo
+   * (só no desenho do arco) e o tempo aparece como "00:00", que seria lido como
+   * número de relógio.
+   */
+  const circleAccessibleLabel = `${correctAnswers} de ${totalQuestions} questões corretas.`;
+
+  const circleAccessibleValueText = [
+    `Desempenho: ${percentage} por cento.`,
+    timeSpent ? `Tempo de conclusão: ${spokenTimeSpent}.` : null,
   ]
     .filter(Boolean)
-    .join(', ');
+    .join(' ');
 
   const classesJustifyBetween = showDetails
     ? 'justify-between'
@@ -345,6 +390,7 @@ const QuizResultPerformance = forwardRef<
           showPercentage={false}
           label=""
           accessibleLabel={circleAccessibleLabel}
+          accessibleValueText={circleAccessibleValueText}
         />
 
         {/* Duplicata visual do que o anel já anuncia (ver

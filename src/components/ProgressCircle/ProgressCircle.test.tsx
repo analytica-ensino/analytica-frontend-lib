@@ -319,11 +319,15 @@ describe('ProgressCircle', () => {
       expect(progressBar).toHaveAttribute('max', '10');
     });
 
-    it('nomeia pelo label visível, em português, quando ele é string', () => {
+    it('nomeia pelo label visível, sem prefixo, quando ele é string', () => {
       render(<ProgressCircle value={50} label="corretas" />);
-      const progressBar = screen.getByRole('progressbar');
 
-      expect(progressBar).toHaveAttribute('aria-label', 'Progresso: corretas');
+      // Anúncio: "corretas, 50 por cento" — o papel do elemento já diz que é
+      // progresso, então o prefixo "Progresso:" só alongava a frase.
+      expect(screen.getByRole('progressbar')).toHaveAttribute(
+        'aria-label',
+        'corretas'
+      );
     });
 
     it('deixa o consumidor nomear o círculo por inteiro', () => {
@@ -360,7 +364,7 @@ describe('ProgressCircle', () => {
 
       expect(screen.getByRole('progressbar')).toHaveAttribute(
         'aria-label',
-        'Progresso: corretas'
+        'corretas'
       );
     });
 
@@ -371,19 +375,25 @@ describe('ProgressCircle', () => {
       expect(svg).toHaveAttribute('aria-hidden', 'true');
     });
 
-    it('não entra no ciclo de Tab: não há o que operar num progresso', () => {
+    it('entra no ciclo de Tab, com indicador de foco visível', () => {
       const { container } = render(
         <ProgressCircle value={0} accessibleLabel="Progresso em História" />
       );
 
-      // `tabIndex` em conteúdo estático só adiciona paradas para quem navega por
-      // teclado e já VÊ o gráfico. Leitor de tela chega aqui pelo cursor de
-      // leitura (VO + setas, navegação do NVDA, swipe no iOS), que visita
-      // conteúdo não focável — é por isso que o nome e o valor acima bastam.
-      expect(screen.getByRole('progressbar')).not.toHaveAttribute('tabindex');
-      // Nem anel de foco no wrapper, que só existiria para indicar essa parada.
-      expect((container.firstChild as HTMLElement).className).not.toMatch(
-        /focus-within:ring/
+      // Parada deliberada (ver a nota no componente): o círculo é a única coisa
+      // na tela que carrega o número, e a validação é feita tabulando com o
+      // VoiceOver seguindo o foco. Sem ela, esse percurso nunca chega no valor.
+      const progressBar = screen.getByRole('progressbar');
+      expect(progressBar).toHaveAttribute('tabindex', '0');
+
+      progressBar.focus();
+      expect(progressBar).toHaveFocus();
+
+      // Parada de Tab sem indicador visível quebra o WCAG 2.4.7. O anel fica no
+      // wrapper porque o `<progress>` é `opacity-0`, e `opacity` apagaria o anel
+      // junto com o elemento.
+      expect((container.firstChild as HTMLElement).className).toMatch(
+        /focus-within:ring-2/
       );
     });
 
@@ -395,6 +405,23 @@ describe('ProgressCircle', () => {
       // do alcance delas.
       expect(screen.getByRole('progressbar').className).toMatch(
         /inset-0 h-full w-full/
+      );
+    });
+
+    it('troca a leitura do valor quando o consumidor manda um texto próprio', () => {
+      render(
+        <ProgressCircle
+          value={80}
+          accessibleLabel="Nota final: 800 de 1000."
+          accessibleValueText="Desempenho: 80 por cento."
+        />
+      );
+
+      // Sem isto o leitor anuncia o percentual cru ("80 por cento") depois do
+      // nome; o design pede a frase com rótulo.
+      expect(screen.getByRole('progressbar')).toHaveAttribute(
+        'aria-valuetext',
+        'Desempenho: 80 por cento.'
       );
     });
 
