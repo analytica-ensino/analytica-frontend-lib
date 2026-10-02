@@ -234,11 +234,28 @@ describe('AlertDialog', () => {
         />
       );
 
-      const overlay = screen.getByTestId('alert-dialog-overlay');
-      fireEvent.click(overlay);
+      const backdrop = screen.getByTestId('alert-dialog-backdrop');
+      expect(backdrop.tagName).toBe('BUTTON');
+      expect(backdrop).toHaveAttribute('tabindex', '-1');
+      fireEvent.click(backdrop);
 
       expect(onChangeOpen).toHaveBeenCalledTimes(1);
       expect(onChangeOpen).toHaveBeenCalledWith(false);
+    });
+
+    it('should not close when the dialog content is clicked', () => {
+      const onChangeOpen = jest.fn();
+      render(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={true}
+          onChangeOpen={onChangeOpen}
+        />
+      );
+
+      fireEvent.click(screen.getByRole('dialog'));
+
+      expect(onChangeOpen).not.toHaveBeenCalled();
     });
 
     it('should not call onChangeOpen when backdrop is clicked and closeOnBackdropClick is false', () => {
@@ -252,8 +269,10 @@ describe('AlertDialog', () => {
         />
       );
 
-      const overlay = screen.getByTestId('alert-dialog-overlay');
-      fireEvent.click(overlay);
+      expect(
+        screen.queryByTestId('alert-dialog-backdrop')
+      ).not.toBeInTheDocument();
+      fireEvent.click(screen.getByTestId('alert-dialog-overlay'));
 
       expect(onChangeOpen).not.toHaveBeenCalled();
     });
@@ -307,12 +326,12 @@ describe('AlertDialog', () => {
       const overlay = screen.getByTestId('alert-dialog-overlay');
       fireEvent.keyDown(overlay, { key: 'Escape' });
 
-      // The backdrop keydown should trigger onChangeOpen through setIsOpen(false)
-      // Note: There are two Escape listeners (document and backdrop), so onChangeOpen might be called twice
-      expect(onChangeOpen).toHaveBeenCalled();
+      // A single document listener handles Escape: closing fires exactly once
+      expect(onChangeOpen).toHaveBeenCalledTimes(1);
+      expect(onChangeOpen).toHaveBeenCalledWith(false);
     });
 
-    it('should not call onChangeOpen when backdrop keydown is not Escape', () => {
+    it('should stay open when a popup inside already handled Escape', () => {
       const onChangeOpen = jest.fn();
       render(
         <AlertDialog
@@ -322,8 +341,28 @@ describe('AlertDialog', () => {
         />
       );
 
-      const overlay = screen.getByTestId('alert-dialog-overlay');
-      fireEvent.keyDown(overlay, { key: 'Enter' });
+      const event = new KeyboardEvent('keydown', {
+        key: 'Escape',
+        bubbles: true,
+        cancelable: true,
+      });
+      event.preventDefault();
+      document.dispatchEvent(event);
+
+      expect(onChangeOpen).not.toHaveBeenCalled();
+    });
+
+    it('should not call onChangeOpen when a key other than Escape is pressed', () => {
+      const onChangeOpen = jest.fn();
+      render(
+        <AlertDialog
+          {...defaultProps}
+          isOpen={true}
+          onChangeOpen={onChangeOpen}
+        />
+      );
+
+      fireEvent.keyDown(document, { key: 'Enter' });
 
       expect(onChangeOpen).not.toHaveBeenCalled();
     });

@@ -216,6 +216,11 @@ describe('IconButton', () => {
       rerender(<IconButton icon={<TestIcon />} active={true} />);
       expect(button).toHaveAttribute('aria-pressed', 'true');
     });
+
+    it('omits aria-pressed when active is not provided', () => {
+      render(<IconButton icon={<TestIcon />} aria-label="Voltar" />);
+      expect(screen.getByRole('button')).not.toHaveAttribute('aria-pressed');
+    });
   });
 
   describe('Accessibility', () => {

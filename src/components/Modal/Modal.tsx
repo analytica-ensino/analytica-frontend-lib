@@ -89,6 +89,16 @@ type ModalProps = {
    * side-effect free when omitted: the link still opens either way.
    */
   onActionClick?: () => void;
+  /**
+   * Id of the element that names the dialog. Overrides the built-in `<h2>`
+   * title — use it when the visible title lives inside `children`.
+   */
+  labelledBy?: string;
+  /**
+   * Id of the element that describes the dialog, read by screen readers right
+   * after the title when the dialog receives focus.
+   */
+  describedBy?: string;
 };
 
 /**
@@ -143,6 +153,8 @@ const Modal = ({
   actionLabel,
   onActionClick,
   contentClassName = '',
+  labelledBy,
+  describedBy,
 }: ModalProps) => {
   const titleId = useId();
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -185,7 +197,8 @@ const Modal = ({
           ref={dialogRef}
           tabIndex={-1}
           className={modalClasses}
-          aria-labelledby={titleId}
+          aria-labelledby={labelledBy ?? titleId}
+          aria-describedby={describedBy}
           aria-modal="true"
           open
         >
@@ -293,15 +306,22 @@ const Modal = ({
         ref={dialogRef}
         tabIndex={-1}
         className={modalClasses}
-        aria-labelledby={titleId}
+        aria-labelledby={labelledBy ?? titleId}
+        aria-describedby={describedBy}
         aria-modal="true"
         open
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-6">
-          <h2 id={titleId} className="text-lg font-semibold text-text-950">
-            {title}
-          </h2>
+          {title ? (
+            <h2 id={titleId} className="text-lg font-semibold text-text-950">
+              {title}
+            </h2>
+          ) : (
+            // Keeps the header height when the title lives in `children`,
+            // without leaving an empty heading in the accessibility tree.
+            <span />
+          )}
           {!hideCloseButton && (
             <button
               onClick={onClose}

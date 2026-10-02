@@ -1,5 +1,5 @@
 import { render, screen, cleanup, act } from '@testing-library/react';
-import QuizTimer from './QuizTimer';
+import QuizTimer, { TIMER_ANNOUNCE_INTERVAL_SECONDS } from './QuizTimer';
 import { useQuizStore } from '../Quiz/useQuizStore';
 
 const FIVE_HOURS = 5 * 60 * 60;
@@ -96,5 +96,113 @@ describe('QuizTimer', () => {
     render(<QuizTimer className="ml-2" />);
 
     expect(screen.getByRole('timer').className).toContain('ml-2');
+  });
+
+  describe('accessibility', () => {
+    it('stays out of the Tab order, being read by the screen reader cursor', () => {
+      render(<QuizTimer />);
+
+      expect(screen.getByRole('timer')).not.toHaveAttribute('tabindex');
+    });
+
+    it('hides the icon and digits from assistive tech', () => {
+      render(<QuizTimer />);
+
+      const timer = screen.getByRole('timer');
+      expect(timer.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+      expect(screen.getByText('00:00:00')).toHaveAttribute(
+        'aria-hidden',
+        'true'
+      );
+    });
+
+    it('announces nothing before the first interval', () => {
+      act(() => {
+        useQuizStore.getState().updateTime(TIMER_ANNOUNCE_INTERVAL_SECONDS - 1);
+      });
+
+      render(<QuizTimer />);
+
+      const region = screen.getByTestId('quiz-timer-announcement');
+      expect(region).toHaveAttribute('aria-live', 'polite');
+      expect(region).toHaveTextContent('');
+    });
+
+    it('only updates the announcement once per interval', () => {
+      act(() => {
+        useQuizStore.getState().updateTime(TIMER_ANNOUNCE_INTERVAL_SECONDS);
+      });
+
+      render(<QuizTimer />);
+
+      const region = screen.getByTestId('quiz-timer-announcement');
+      expect(region).toHaveTextContent('Tempo de prova: 00:05:00');
+
+      act(() => {
+        useQuizStore
+          .getState()
+          .updateTime(TIMER_ANNOUNCE_INTERVAL_SECONDS * 2 - 1);
+      });
+      expect(region).toHaveTextContent('Tempo de prova: 00:05:00');
+
+      act(() => {
+        useQuizStore.getState().updateTime(TIMER_ANNOUNCE_INTERVAL_SECONDS * 2);
+      });
+      expect(region).toHaveTextContent('Tempo de prova: 00:10:00');
+    });
+
+    it('announces the moment the time was exceeded, not the stale boundary', () => {
+      act(() => {
+        useQuizStore.getState().setTimeWarning(60);
+        useQuizStore.getState().updateTime(61);
+      });
+
+      render(<QuizTimer />);
+
+      const region = screen.getByTestId('quiz-timer-announcement');
+      expect(region).toHaveTextContent(
+        'Tempo de prova: 00:01:01 — tempo excedido'
+      );
+
+      // Stays put until the next boundary, so it is announced only once
+      act(() => {
+        useQuizStore.getState().updateTime(TIMER_ANNOUNCE_INTERVAL_SECONDS - 1);
+      });
+      expect(region).toHaveTextContent(
+        'Tempo de prova: 00:01:01 — tempo excedido'
+      );
+
+      // Then resumes the regular cadence
+      act(() => {
+        useQuizStore.getState().updateTime(TIMER_ANNOUNCE_INTERVAL_SECONDS);
+      });
+      expect(region).toHaveTextContent(
+        'Tempo de prova: 00:05:00 — tempo excedido'
+      );
+    });
+
+    it('captures the elapsed time when the warning starts after mount and clears it on reset', () => {
+      act(() => {
+        useQuizStore.getState().setTimeWarning(60);
+        useQuizStore.getState().updateTime(59);
+      });
+
+      render(<QuizTimer />);
+
+      const region = screen.getByTestId('quiz-timer-announcement');
+      expect(region).toHaveTextContent('');
+
+      act(() => {
+        useQuizStore.getState().updateTime(62);
+      });
+      expect(region).toHaveTextContent(
+        'Tempo de prova: 00:01:02 — tempo excedido'
+      );
+
+      act(() => {
+        useQuizStore.getState().updateTime(0);
+      });
+      expect(region).toHaveTextContent('');
+    });
   });
 });

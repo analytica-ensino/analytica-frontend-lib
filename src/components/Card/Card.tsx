@@ -800,7 +800,10 @@ const CardStatus = forwardRef<HTMLDivElement, CardStatusProps>(
             )}
             {label && <p className="text-sm text-text-800">{label}</p>}
           </span>
-          <CaretRightIcon className="min-w-6 min-h-6 text-text-800 cursor-pointer flex-shrink-0 ml-2" />
+          <CaretRightIcon
+            aria-hidden="true"
+            className="min-w-6 min-h-6 text-text-800 cursor-pointer flex-shrink-0 ml-2"
+          />
         </div>
       </CardBase>
     );
