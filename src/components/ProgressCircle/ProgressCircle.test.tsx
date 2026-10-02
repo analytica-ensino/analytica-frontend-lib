@@ -356,6 +356,30 @@ describe('ProgressCircle', () => {
       expect(svg).toHaveAttribute('aria-hidden', 'true');
     });
 
+    it('entra no ciclo de Tab, senão o número é inalcançável', () => {
+      render(
+        <ProgressCircle value={0} accessibleLabel="Progresso em História" />
+      );
+
+      const progressBar = screen.getByRole('progressbar');
+      // `role="progressbar"` não é focável por padrão, e não há controle em volta
+      // que anuncie o círculo de carona: sem a parada, quem navega por teclado
+      // (e o leitor de tela seguindo o foco) nunca chega no valor.
+      expect(progressBar).toHaveAttribute('tabindex', '0');
+
+      progressBar.focus();
+      expect(progressBar).toHaveFocus();
+    });
+
+    it('mostra indicador de foco visível na parada de Tab', () => {
+      render(<ProgressCircle value={0} />);
+
+      // Parada de Tab sem indicador visível quebra o WCAG 2.4.7.
+      expect(screen.getByRole('progressbar').className).toMatch(
+        /focus-visible:ring-2/
+      );
+    });
+
     it('esconde o texto visível, que o progressbar já anuncia', () => {
       render(<ProgressCircle value={42} label="MÉDIA" showPercentage />);
 

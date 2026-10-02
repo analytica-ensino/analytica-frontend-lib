@@ -174,8 +174,18 @@ const ProgressCircle = ({
     // leitor de tela anuncia nome + valor numa única parada, em vez de ler o
     // "0%" do centro do círculo solto, sem dizer de que progresso se trata.
     // Mesma forma que o `ScoreCircle` usa.
+    //
+    // `tabIndex={0}` num elemento não interativo é deliberado. Um
+    // `role="progressbar"` não entra no ciclo de Tab, e este círculo é a única
+    // coisa na tela que carrega o número — não existe botão ou link em volta
+    // que o anuncie de carona. Sem a parada de Tab, quem navega pelo teclado
+    // (e o VoiceOver seguindo o foco) simplesmente nunca chega nele: o dado
+    // ficava inalcançável. É a mesma troca que os componentes de gráfico fazem:
+    // uma parada a mais, em troca de uma informação que de outro modo só existe
+    // para quem vê.
     <div
       role="progressbar"
+      tabIndex={0}
       aria-valuemin={0}
       aria-valuenow={clampedValue}
       aria-valuemax={max}
@@ -184,6 +194,9 @@ const ProgressCircle = ({
         'relative flex flex-col items-center justify-center',
         sizeClasses.container,
         'rounded-lg',
+        // Parada de Tab precisa de indicador visível (WCAG 2.4.7). Só no
+        // `focus-visible` pra não desenhar anel em clique de mouse.
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indicator-info focus-visible:ring-offset-2',
         className
       )}
     >
