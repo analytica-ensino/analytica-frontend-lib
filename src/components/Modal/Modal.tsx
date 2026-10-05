@@ -182,16 +182,19 @@ const Modal = ({
   // DOM nas duas montagens e volta ao topo à direita pelo CSS.
   const dialogResetClasses = 'm-0 border-none outline-none relative';
   /**
+   * Espaço acima do conteúdo na montagem activity: 24px de padding, mais os
+   * 26px do botão quando ele aparece. É o que o header do X reservava antes de
+   * ele virar `absolute`.
+   */
+  const activityTopPadding = hideCloseButton ? 'pt-6' : 'pt-12.5';
+  /**
    * Padding do diálogo. Na montagem activity o X não tem mais um header pra
-   * ocupar, então o espaço que aquele header reservava (24px de padding + 26px
-   * do botão) vira padding do PRÓPRIO diálogo — fora da área que rola, pro
-   * conteúdo não passar por baixo do X quando ele transborda. `px-0`/`pb-0` no
-   * lugar de `p-0` pra não disputar com o `pt-*`.
+   * ocupar, então o espaço acima vira padding do PRÓPRIO diálogo — fora da área
+   * que rola, pro conteúdo não passar por baixo do X quando ele transborda.
+   * `px-0`/`pb-0` no lugar de `p-0` pra não disputar com o `pt-*`.
    */
   const dialogPaddingClasses =
-    variant === 'activity'
-      ? cn('px-0 pb-0', hideCloseButton ? 'pt-6' : 'pt-12.5')
-      : 'p-0';
+    variant === 'activity' ? cn('px-0 pb-0', activityTopPadding) : 'p-0';
   const modalClasses = cn(
     baseClasses,
     sizeClasses,
