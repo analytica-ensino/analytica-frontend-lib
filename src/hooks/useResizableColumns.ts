@@ -17,15 +17,22 @@ import {
  * Largura mínima da coluna central (banco de questões/aulas) — o quanto os
  * divisores deixam de espaço antes de travar.
  *
- * O valor é ditado pelo conteúdo: abaixo disso o rótulo do botão "Adicionar à
- * atividade" do card de questão quebra em duas linhas, e o toolbar do banco
- * fica apertado demais para título e busca na mesma linha.
+ * O valor é ditado pelo conteúdo. Em 320px o banco ainda cabia, mas lido: o
+ * enunciado e as alternativas do card quebravam a cada três ou quatro
+ * palavras, e o cabeçalho da questão virava uma coluna de seis linhas. 400px
+ * é o mesmo piso das laterais, o que mantém as três colunas comparáveis e dá
+ * ao card uma linha de texto de leitura razoável.
+ *
+ * Abaixo de 480px o toolbar do banco empilha título, busca, contador e botão
+ * (`@md` = 28rem sobre a largura do container, já descontado o `p-4`), então
+ * a faixa entre este piso e 480px continua sendo atendida pelo layout
+ * empilhado do toolbar, e não por compressão.
  *
  * Quem garante que esse mínimo é alcançável é `DESKTOP_MIN_WIDTH`: abaixo
  * dele as telas de criação trocam as três colunas pelo layout empilhado, em
  * vez de espremer o banco.
  */
-export const BANK_MIN_WIDTH = 320;
+export const BANK_MIN_WIDTH = 400;
 
 /** Ajuste por seta do teclado, em px. */
 export const RESIZE_KEYBOARD_STEP = 16;
@@ -103,11 +110,11 @@ export const clampPanelToContainer = (
  * Resolve as larguras que serão realmente aplicadas.
  *
  * As duas laterais disputam o mesmo espaço, então não basta clampar uma de
- * cada vez. Quando a soma não cabe — janela encolhida, ou larguras salvas num
- * monitor maior — o excesso é devolvido proporcionalmente ao quanto cada
- * coluna está **acima** do padrão, e nenhuma desce abaixo dele.
+ * cada vez. Quando a soma não cabe — a janela encolheu depois do arraste — o
+ * excesso é devolvido proporcionalmente ao quanto cada coluna está **acima**
+ * do padrão, e nenhuma desce abaixo dele.
  *
- * O resultado é derivado a cada render em vez de sobrescrever o valor salvo:
+ * O resultado é derivado a cada render em vez de sobrescrever o valor do store:
  * alargar a janela de volta restaura a largura que o usuário escolheu.
  *
  * @param containerWidth - Largura medida do container (0 se ainda não medido)
@@ -188,7 +195,11 @@ export interface UseResizableColumnsResult {
  * Um hook só para os dois divisores porque os limites são acoplados: o quanto
  * a prévia pode crescer depende de quanto os filtros já ocuparam.
  *
- * @param scope - Tela cujas larguras devem ser lidas e salvas
+ * As larguras valem só enquanto a tela está montada: ao desmontar, as duas
+ * colunas voltam ao padrão, de modo que a próxima visita não herda o arraste
+ * da anterior.
+ *
+ * @param scope - Tela cujas larguras devem ser lidas
  * @returns Larguras aplicáveis e as props de cada divisor
  */
 export const useResizableColumns = (
@@ -234,6 +245,14 @@ export const useResizableColumns = (
   }, []);
 
   useEffect(() => () => observerRef.current?.disconnect(), []);
+
+  useEffect(
+    () => () => {
+      resetPanelWidth(scope, 'filters');
+      resetPanelWidth(scope, 'preview');
+    },
+    [resetPanelWidth, scope]
+  );
 
   const preferredFilters =
     draft?.panel === 'filters' ? draft.width : filtersWidth;
@@ -349,7 +368,7 @@ export const useResizableColumns = (
       dragRef.current = null;
 
       setDraft(null);
-      // Escrito no storage só no fim do arraste, não a cada frame.
+      // Escrito no store só no fim do arraste, não a cada frame.
       commitWidth(drag.panel, drag.currentWidth);
     },
     [commitWidth]

@@ -7,6 +7,9 @@ import type { EnemMomentEducationStage } from './types';
 function renderFilters({
   durations = [] as number[],
   educationStage = 'REGULAR' as EnemMomentEducationStage,
+  availableStages = undefined as
+    | readonly EnemMomentEducationStage[]
+    | undefined,
 } = {}) {
   const onDurationsChange = jest.fn();
   const onEducationStageChange = jest.fn();
@@ -16,6 +19,7 @@ function renderFilters({
       onDurationsChange={onDurationsChange}
       educationStage={educationStage}
       onEducationStageChange={onEducationStageChange}
+      availableStages={availableStages}
     />
   );
   return { onDurationsChange, onEducationStageChange };
@@ -107,6 +111,97 @@ describe('EnemMomentHeaderFilters', () => {
       fireEvent.click(screen.getByRole('option', { name: 'Subsequente' }));
 
       expect(onEducationStageChange).toHaveBeenCalledWith('SUBSEQUENTE');
+    });
+  });
+
+  describe('Série, against what the school has', () => {
+    it('offers only the stages of the school', () => {
+      renderFilters({ availableStages: ['REGULAR', 'SUBSEQUENTE'] });
+      fireEvent.click(screen.getByRole('combobox'));
+
+      expect(
+        screen.getAllByRole('option').map((option) => option.textContent)
+      ).toEqual(['3ª série regular', 'Subsequente']);
+    });
+
+    it('keeps the canonical order, not the order received', () => {
+      renderFilters({ availableStages: ['SUBSEQUENTE', 'REGULAR', 'EJA'] });
+      fireEvent.click(screen.getByRole('combobox'));
+
+      expect(
+        screen.getAllByRole('option').map((option) => option.textContent)
+      ).toEqual(EDUCATION_STAGE_OPTIONS.map((option) => option.label));
+    });
+
+    it.each([
+      ['a single modality', ['EJA'] as EnemMomentEducationStage[]],
+      ['no modality at all', [] as EnemMomentEducationStage[]],
+    ])('hides the select for %s', (_label, availableStages) => {
+      renderFilters({ availableStages });
+
+      expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+    });
+
+    it('keeps "Tempo de prova" when the select is hidden', () => {
+      renderFilters({ availableStages: ['EJA'] });
+
+      expect(durationTrigger()).toBeInTheDocument();
+    });
+
+    it('offers every stage while the school is not known yet', () => {
+      renderFilters({ availableStages: undefined });
+      fireEvent.click(screen.getByRole('combobox'));
+
+      expect(screen.getAllByRole('option')).toHaveLength(
+        EDUCATION_STAGE_OPTIONS.length
+      );
+    });
+  });
+
+  describe('cut left on a stage the school does not have', () => {
+    it('falls back to the only stage there is', () => {
+      const { onEducationStageChange } = renderFilters({
+        educationStage: 'REGULAR',
+        availableStages: ['EJA'],
+      });
+
+      expect(onEducationStageChange).toHaveBeenCalledWith('EJA');
+    });
+
+    it('falls back to the first of the stages there are', () => {
+      const { onEducationStageChange } = renderFilters({
+        educationStage: 'REGULAR',
+        availableStages: ['SUBSEQUENTE', 'EJA'],
+      });
+
+      expect(onEducationStageChange).toHaveBeenCalledWith('EJA');
+    });
+
+    it('leaves a cut the school does have alone', () => {
+      const { onEducationStageChange } = renderFilters({
+        educationStage: 'EJA',
+        availableStages: ['REGULAR', 'EJA'],
+      });
+
+      expect(onEducationStageChange).not.toHaveBeenCalled();
+    });
+
+    it('leaves the cut alone while the school is not known yet', () => {
+      const { onEducationStageChange } = renderFilters({
+        educationStage: 'REGULAR',
+        availableStages: undefined,
+      });
+
+      expect(onEducationStageChange).not.toHaveBeenCalled();
+    });
+
+    it('has nothing to fall back to when the scope has no stage', () => {
+      const { onEducationStageChange } = renderFilters({
+        educationStage: 'REGULAR',
+        availableStages: [],
+      });
+
+      expect(onEducationStageChange).not.toHaveBeenCalled();
     });
   });
 });
