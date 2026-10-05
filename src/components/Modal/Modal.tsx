@@ -158,24 +158,56 @@ const Modal = ({
 }: ModalProps) => {
   const titleId = useId();
   const dialogRef = useRef<HTMLDialogElement>(null);
+  /**
+   * O título é quem recebe o foco na abertura (ver `useModalFocus`). Guardado
+   * como `HTMLElement` porque as duas montagens o renderizam com tags
+   * diferentes — `<h2>` na default, `<Text>` (um `<p>`) na activity.
+   */
+  const titleRef = useRef<HTMLElement | null>(null);
 
   useEscapeToClose(isOpen && closeOnEscape, onClose);
   useBodyScrollLock(isOpen);
-  useModalFocus(isOpen, dialogRef);
+  useModalFocus(isOpen, dialogRef, titleRef);
 
   if (!isOpen) return null;
 
   const sizeClasses = SIZE_CLASSES[size];
   const baseClasses =
     'bg-secondary-50 rounded-3xl shadow-hard-shadow-2 border border-border-100 w-full mx-4 max-h-[calc(100dvh-2rem)] flex flex-col overflow-hidden';
-  // Reset dialog default styles to prevent positioning issues
-  const dialogResetClasses = 'p-0 m-0 border-none outline-none static';
+  // Reset dialog default styles to prevent positioning issues.
+  //
+  // `relative` (antes era `static`) segue anulando o `position: absolute` que o
+  // navegador aplica ao <dialog> aberto — sem isso ele escapa da centralização
+  // do backdrop — e agora também ancora o botão de fechar, que é o ÚLTIMO do
+  // DOM nas duas montagens e volta ao topo à direita pelo CSS.
+  const dialogResetClasses = 'm-0 border-none outline-none relative';
+  /**
+   * Padding do diálogo. Na montagem activity o X não tem mais um header pra
+   * ocupar, então o espaço que aquele header reservava (24px de padding + 26px
+   * do botão) vira padding do PRÓPRIO diálogo — fora da área que rola, pro
+   * conteúdo não passar por baixo do X quando ele transborda. `px-0`/`pb-0` no
+   * lugar de `p-0` pra não disputar com o `pt-*`.
+   */
+  const dialogPaddingClasses =
+    variant === 'activity'
+      ? cn('px-0 pb-0', hideCloseButton ? 'pt-6' : 'pt-12.5')
+      : 'p-0';
   const modalClasses = cn(
     baseClasses,
     sizeClasses,
     dialogResetClasses,
+    dialogPaddingClasses,
     className
   );
+
+  /**
+   * Classes do botão de fechar. Ele é o último elemento do DOM nas duas
+   * montagens — pro leitor de tela percorrer título → conteúdo → ações e só
+   * então chegar nele — e volta ao canto superior direito por `absolute`. As
+   * coordenadas reproduzem onde ele estava: 24px do topo e da direita.
+   */
+  const closeButtonClasses =
+    'absolute right-6 top-6 p-1 text-text-500 hover:text-text-700 hover:bg-background-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-indicator-info focus:ring-offset-2';
 
   // Normalize URLs missing protocol
   const normalizeUrl = (href: string) =>
@@ -202,21 +234,6 @@ const Modal = ({
           aria-modal="true"
           open
         >
-          {/* Header simples com XIcon */}
-          <div className="flex justify-end p-6 pb-0">
-            {!hideCloseButton && (
-              <button
-                onClick={onClose}
-                // Ver a nota sobre `data-print-hide` na montagem default abaixo.
-                data-print-hide
-                className="p-1 text-text-500 hover:text-text-700 hover:bg-background-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-indicator-info focus:ring-offset-2"
-                aria-label="Fechar modal"
-              >
-                <XIcon size={18} />
-              </button>
-            )}
-          </div>
-
           {/* Conteúdo centralizado */}
           <div className="flex flex-col items-center px-6 pb-6 gap-5 flex-1 min-h-0 overflow-y-auto">
             {/* Imagem ilustrativa */}
@@ -233,8 +250,15 @@ const Modal = ({
             {/* Título */}
             <Text
               id={titleId}
+              ref={(node: HTMLParagraphElement | null) => {
+                titleRef.current = node;
+              }}
+              // Alvo do foco inicial (`useModalFocus`), e não um controle:
+              // recebe foco por código, fica fora do ciclo de Tab e não mostra
+              // anel.
+              tabIndex={-1}
               size="lg"
-              className="font-semibold text-text-950 text-center"
+              className="font-semibold text-text-950 text-center focus:outline-none"
             >
               {title}
             </Text>
@@ -294,6 +318,19 @@ const Modal = ({
               </div>
             )}
           </div>
+
+          {/* Fechar: ÚLTIMO no DOM — ver `closeButtonClasses` */}
+          {!hideCloseButton && (
+            <button
+              onClick={onClose}
+              // Ver a nota sobre `data-print-hide` na montagem default abaixo.
+              data-print-hide
+              className={closeButtonClasses}
+              aria-label="Fechar modal"
+            >
+              <XIcon size={18} />
+            </button>
+          )}
         </dialog>
       </div>
     );
@@ -311,43 +348,38 @@ const Modal = ({
         aria-modal="true"
         open
       >
-        {/* Header */}
+        {/* Header — só o título: o X é o último do DOM, lá embaixo */}
         <div className="flex items-center justify-between px-6 py-6">
           {title ? (
-            <h2 id={titleId} className="text-lg font-semibold text-text-950">
+            <h2
+              id={titleId}
+              ref={(node) => {
+                titleRef.current = node;
+              }}
+              // Alvo do foco inicial (`useModalFocus`), e não um controle:
+              // recebe foco por código, fica fora do ciclo de Tab e não mostra
+              // anel.
+              tabIndex={-1}
+              className={cn(
+                'text-lg font-semibold text-text-950 focus:outline-none',
+                // Reserva a faixa do X, que era um irmão no `justify-between` e
+                // agora flutua por cima do header: sem isso um título longo
+                // passaria por baixo dele.
+                !hideCloseButton && 'pr-8'
+              )}
+            >
               {title}
             </h2>
           ) : (
             // Keeps the header height when the title lives in `children`,
             // without leaving an empty heading in the accessibility tree.
-            <span />
-          )}
-          {!hideCloseButton && (
-            <button
-              onClick={onClose}
-              /*
-               * O X não sai no PDF. Quando este modal é a região de impressão
-               * (`js-print-region` + `body.printing-modal`), o print.css revela
-               * o <dialog> INTEIRO — o botão mora dentro dele e nada mais o
-               * esconderia.
-               *
-               * Exceção deliberada ao contrato do print.css, que manda pôr
-               * `data-print-hide` no CONTAINER e não no botão: aqui o container
-               * é o header, e ele carrega o <h2> do título, que É conteúdo do
-               * relatório. Marcá-lo apagaria o título junto. A razão do contrato
-               * — colapsar o espaçamento do flex — não se aplica: o header usa
-               * `justify-between`, sem `gap`, então o título simplesmente ocupa
-               * a linha sozinho.
-               *
-               * Inerte fora de `@media print`, e só surte efeito em quem importa
-               * `analytica-frontend-lib/print.css`.
-               */
-              data-print-hide
-              className="p-1 text-text-500 hover:text-text-700 hover:bg-background-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-indicator-info focus:ring-offset-2"
-              aria-label="Fechar modal"
-            >
-              <XIcon size={18} />
-            </button>
+            //
+            // A altura é a do X (18px do ícone + 2x4px do `p-1`), que ocupava
+            // esta linha e hoje flutua por cima dela: sem reservá-la, um modal
+            // sem título próprio encolheria e o botão encostaria no conteúdo.
+            // Com título não é preciso — a linha do `text-lg` (28px) já é mais
+            // alta que o botão, como antes.
+            <span className={cn('block', !hideCloseButton && 'h-6.5')} />
           )}
         </div>
 
@@ -374,6 +406,33 @@ const Modal = ({
         {/* Footer */}
         {footer && (
           <div className="flex justify-end gap-3 px-6 pb-6">{footer}</div>
+        )}
+
+        {/* Fechar: ÚLTIMO no DOM — ver `closeButtonClasses` */}
+        {!hideCloseButton && (
+          <button
+            onClick={onClose}
+            /*
+             * O X não sai no PDF. Quando este modal é a região de impressão
+             * (`js-print-region` + `body.printing-modal`), o print.css revela
+             * o <dialog> INTEIRO — o botão mora dentro dele e nada mais o
+             * esconderia.
+             *
+             * O atributo vai no próprio botão, e não num container, como manda
+             * o contrato do print.css: ele É o elemento inteiro a esconder.
+             * A razão do contrato — colapsar junto o espaçamento do flex — não
+             * se aplica, porque o botão está fora do fluxo (`absolute`) e não
+             * ocupa espaço nenhum para colapsar.
+             *
+             * Inerte fora de `@media print`, e só surte efeito em quem importa
+             * `analytica-frontend-lib/print.css`.
+             */
+            data-print-hide
+            className={closeButtonClasses}
+            aria-label="Fechar modal"
+          >
+            <XIcon size={18} />
+          </button>
         )}
       </dialog>
     </div>
