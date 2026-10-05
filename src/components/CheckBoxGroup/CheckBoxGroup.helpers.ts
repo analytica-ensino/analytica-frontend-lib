@@ -165,10 +165,14 @@ export const groupItemsByField = (
   itens: Item[],
   groupBy: CategoryGroupBy
 ): { groupLabel?: string; itens: Item[] }[] => {
+  // Both matching steps share this key so an item is either grouped or kept
+  // ungrouped, never dropped (e.g. numeric ids against string group ids)
+  const getGroupKey = (item: Item) => String(item[groupBy.internalField]);
+
   const groupedItems = groupBy.groups
     .map((group) => ({
       groupLabel: group.name,
-      itens: itens.filter((item) => item[groupBy.internalField] === group.id),
+      itens: itens.filter((item) => getGroupKey(item) === group.id),
     }))
     .filter((group) => group.itens.length > 0);
 
@@ -178,7 +182,7 @@ export const groupItemsByField = (
 
   const groupIds = new Set(groupBy.groups.map((group) => group.id));
   const ungroupedItems = itens.filter(
-    (item) => !groupIds.has(String(item[groupBy.internalField]))
+    (item) => !groupIds.has(getGroupKey(item))
   );
 
   return ungroupedItems.length > 0

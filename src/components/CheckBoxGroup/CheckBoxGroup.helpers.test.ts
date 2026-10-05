@@ -681,6 +681,19 @@ describe('CheckBoxGroup Helpers', () => {
       ]);
     });
 
+    it('matches non-string field values against the group ids', () => {
+      const itens: Item[] = [
+        { id: 't-1', name: 'Análise química', subjectId: 1 },
+      ];
+
+      expect(
+        groupItemsByField(itens, {
+          internalField: 'subjectId',
+          groups: [{ id: '1', name: 'Química' }],
+        })
+      ).toEqual([{ groupLabel: 'Química', itens }]);
+    });
+
     it('returns a single unlabeled group when no item matches a group', () => {
       const itens: Item[] = [{ id: 't-1', name: 'Sem componente' }];
 
