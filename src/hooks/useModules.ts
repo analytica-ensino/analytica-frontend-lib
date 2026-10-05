@@ -44,6 +44,9 @@ export interface UseModulesReturn {
   // In-classroom ENEM simulation (institution-wide). Off by default.
   hasEnemClassroom: boolean;
 
+  // "Guia do Vestiba" video playlist (institution-wide). Off by default.
+  hasVestibaGuide: boolean;
+
   // AI correction of dissertative answers (institution-wide). Off by default:
   // an institution that wants its teachers to be the only graders must be able
   // to say so, and with it off the essays keep landing in the manual queue.
@@ -150,6 +153,9 @@ export const useModules = (): UseModulesReturn => {
 
     // In-classroom ENEM simulation (opt-in per institution, defaults off)
     hasEnemClassroom: modules.enemClassroom ?? false,
+
+    // "Guia do Vestiba" playlist (opt-in per institution, defaults off)
+    hasVestibaGuide: modules.vestibaGuide ?? false,
 
     // AI correction of dissertative answers (opt-in per institution, defaults
     // off — with it off only the teacher grades an essay)

@@ -195,6 +195,13 @@ export interface ModulesConfig {
    */
   enemClassroom: boolean;
 
+  /**
+   * "Guia do Vestiba" video playlist (opt-in per institution, off by default).
+   * When `true`, the student menu shows the playlist the backoffice curates
+   * for the institution. Consumed via `useModules().hasVestibaGuide`.
+   */
+  vestibaGuide: boolean;
+
   // Nested configurations
   exams: boolean;
   simulations: SimulationsConfig;
@@ -246,6 +253,9 @@ export const DEFAULT_MODULES: ModulesConfig = {
 
   // In-classroom ENEM simulation off by default (opt-in per institution)
   enemClassroom: false,
+
+  // "Guia do Vestiba" playlist off by default (opt-in per institution)
+  vestibaGuide: false,
 
   // Nested configurations
   exams: DEFAULT_EXAMS,
