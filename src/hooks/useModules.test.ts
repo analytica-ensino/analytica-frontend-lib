@@ -935,4 +935,39 @@ describe('useModules', () => {
       expect(result.current.hasAiDissertativeCorrection).toBe(false);
     });
   });
+
+  describe('"Guia do Vestiba" playlist', () => {
+    it('hasVestibaGuide is false by default (opt-in per institution)', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: defaultModules,
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasVestibaGuide).toBe(false);
+    });
+
+    it('hasVestibaGuide is true when enabled', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: { ...defaultModules, vestibaGuide: true },
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasVestibaGuide).toBe(true);
+    });
+
+    it('hasVestibaGuide defaults to false when the field is missing', () => {
+      mockUseModulesStore.mockReturnValue({
+        modules: legacyModules, // no vestibaGuide key (old persisted state)
+        loading: false,
+      });
+
+      const { result } = renderHook(() => useModules());
+
+      expect(result.current.hasVestibaGuide).toBe(false);
+    });
+  });
 });
