@@ -138,12 +138,25 @@ const applyTopmostInert = () => {
  * de tela continua lendo a página atrás e o Tab escapa pro conteúdo que está
  * visualmente bloqueado pelo backdrop.
  *
- * O foco inicial vai pro próprio container (que precisa de `tabIndex={-1}`), e
- * não pro primeiro botão: como esses modais quase sempre são uma mensagem, cair
- * no "Fechar modal" faria o leitor anunciar só o botão e engolir o texto. No
- * container, ele anuncia título + papel de diálogo e o conteúdo fica legível a
- * partir do topo. Um `autoFocus` no conteúdo do modal tem prioridade e não é
- * sobrescrito.
+ * O foco inicial vai pro TÍTULO (`initialFocusRef`) — não pro primeiro botão e
+ * não pro container. Cair no "Fechar modal" faz o leitor anunciar só o botão e
+ * engolir o texto. E o container, que era o padrão daqui, resolvia isso só pela
+ * metade: o VoiceOver anuncia o nome do diálogo, mas o cursor virtual
+ * (VO + setas) fica ANTES do primeiro nó e a leitura começa por ele — que, nos
+ * modais da lib, era justamente o X. Daí o relato de ler o modal de baixo pra
+ * cima. Pousando no título, a leitura segue dali pra descrição, o conteúdo e as
+ * ações, na mesma ordem em que aparecem.
+ *
+ * O título precisa de `tabIndex={-1}` para poder receber foco, e de
+ * `focus:outline-none` porque não é um controle — não deve mostrar anel. Em
+ * compensação ele fica FORA do ciclo de Tab (o seletor acima descarta
+ * `tabindex="-1"`): o Tab a partir dele cai no primeiro focusável seguinte pelo
+ * caminho normal do navegador, e o "Fechar modal" só chega no fim — contanto
+ * que ele seja o último no DOM, como é no `Modal`.
+ *
+ * Sem `initialFocusRef`, ou enquanto o título não montou, o foco cai no
+ * container (que segue precisando de `tabIndex={-1}`). Um `autoFocus` no
+ * conteúdo do modal tem prioridade e não é sobrescrito.
  *
  * A navegação fica presa por duas vias complementares:
  *
@@ -159,16 +172,26 @@ const applyTopmostInert = () => {
  *
  * @param enabled - Liga o gerenciamento. Normalmente `isOpen`.
  * @param containerRef - Ref do elemento do diálogo.
+ * @param initialFocusRef - Ref do elemento que recebe o foco na abertura,
+ *   tipicamente o título. Opcional: sem ele o foco vai pro container.
  */
 export const useModalFocus = (
   enabled: boolean,
-  containerRef: RefObject<HTMLElement | null>
+  containerRef: RefObject<HTMLElement | null>,
+  initialFocusRef?: RefObject<HTMLElement | null>
 ) => {
   useEffect(() => {
     if (!enabled) return;
 
     const container = containerRef.current;
     if (!container) return;
+
+    /**
+     * Resolvido a cada uso, e não uma vez na abertura: o título pode ser
+     * trocado por um re-render com o modal aberto, e um nó guardado aqui
+     * ficaria pendurado fora do documento.
+     */
+    const resolveInitialFocus = () => initialFocusRef?.current ?? container;
 
     const activeOnOpen = document.activeElement as HTMLElement | null;
 
@@ -194,7 +217,7 @@ export const useModalFocus = (
     applyTopmostInert();
 
     if (focusWasOutside) {
-      container.focus();
+      resolveInitialFocus().focus();
     }
 
     const handleKeyDown = (event: globalThis.KeyboardEvent) => {
@@ -207,7 +230,7 @@ export const useModalFocus = (
 
       if (focusables.length === 0) {
         event.preventDefault();
-        container.focus();
+        resolveInitialFocus().focus();
         return;
       }
 
@@ -217,9 +240,15 @@ export const useModalFocus = (
       const last = focusables.at(-1) as HTMLElement;
 
       if (event.shiftKey) {
-        // O container entra no ciclo pra que voltar do topo caia no fim, em vez
-        // de sair do modal.
-        if (active === first || active === container) {
+        // O título e o container entram no ciclo pra que voltar do topo caia no
+        // fim, em vez de sair do modal. Nenhum dos dois é focusável por Tab,
+        // então eles só aparecem aqui — é o Shift+Tab a partir deles que fecha
+        // o anel.
+        if (
+          active === first ||
+          active === container ||
+          active === initialFocusRef?.current
+        ) {
           event.preventDefault();
           last.focus();
         }
@@ -250,5 +279,5 @@ export const useModalFocus = (
         previouslyFocused.focus();
       }
     };
-  }, [enabled, containerRef]);
+  }, [enabled, containerRef, initialFocusRef]);
 };
