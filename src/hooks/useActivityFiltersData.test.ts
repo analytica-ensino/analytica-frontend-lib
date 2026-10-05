@@ -1298,6 +1298,67 @@ describe('useActivityFiltersData', () => {
       expect(result.current.knowledgeCategories[2].key).toBe('assunto');
     });
 
+    it('should group topics by subject using the loaded knowledge areas', async () => {
+      (mockApiClient.post as jest.Mock).mockResolvedValueOnce({
+        data: {
+          message: 'Success',
+          data: [
+            { id: 'topic-1', name: 'Álgebra', subjectId: 'subject-1' },
+            { id: 'topic-2', name: 'Cinemática', subjectId: 'subject-2' },
+          ],
+        },
+      });
+
+      const { result } = renderHook(() =>
+        useActivityFiltersData({
+          selectedSubjects: [],
+          institutionId: null,
+        })
+      );
+
+      await act(async () => {
+        await result.current.loadTopics(['subject-1', 'subject-2']);
+      });
+
+      await waitFor(() => {
+        expect(result.current.knowledgeCategories).toHaveLength(3);
+      });
+
+      expect(result.current.knowledgeStructure.topics).toEqual([
+        { id: 'topic-1', name: 'Álgebra', subjectId: 'subject-1' },
+        { id: 'topic-2', name: 'Cinemática', subjectId: 'subject-2' },
+      ]);
+      expect(result.current.knowledgeCategories[0].groupBy).toEqual({
+        internalField: 'subjectId',
+        groups: [],
+      });
+
+      // Knowledge areas arriving after the topics must refresh the groups
+      (mockApiClient.get as jest.Mock).mockResolvedValueOnce({
+        data: {
+          message: 'Success',
+          data: [
+            { id: 'subject-1', name: 'Matemática', color: '#000' },
+            { id: 'subject-2', name: 'Física', color: '#fff' },
+          ],
+        },
+      });
+
+      await act(async () => {
+        await result.current.loadKnowledgeAreas();
+      });
+
+      await waitFor(() => {
+        expect(result.current.knowledgeCategories[0].groupBy).toEqual({
+          internalField: 'subjectId',
+          groups: [
+            { id: 'subject-1', name: 'Matemática' },
+            { id: 'subject-2', name: 'Física' },
+          ],
+        });
+      });
+    });
+
     it('should clear categories when topics are cleared', async () => {
       const { result } = renderHook(() =>
         useActivityFiltersData({

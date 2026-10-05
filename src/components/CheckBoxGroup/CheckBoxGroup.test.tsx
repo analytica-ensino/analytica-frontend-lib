@@ -1662,6 +1662,105 @@ describe('CheckboxGroup', () => {
     });
   });
 
+  describe('Grouped category (groupBy)', () => {
+    const groupedItems: Item[] = [
+      { id: 't-1', name: 'História geral', subjectId: 'sub-2' },
+      { id: 't-2', name: 'Análise química', subjectId: 'sub-1' },
+      { id: 't-3', name: 'História do Brasil', subjectId: 'sub-2' },
+    ];
+
+    const groupedCategories: CategoryConfig[] = [
+      {
+        key: 'tema',
+        label: 'Tema',
+        dependsOn: [],
+        itens: groupedItems,
+        selectedIds: [],
+        searchable: true,
+        groupBy: {
+          internalField: 'subjectId',
+          groups: [
+            { id: 'sub-1', name: 'Química' },
+            { id: 'sub-2', name: 'História' },
+          ],
+        },
+      },
+    ];
+
+    it('renders a heading per group above its items', () => {
+      render(
+        <CheckboxGroup
+          categories={groupedCategories}
+          onCategoriesChange={jest.fn()}
+          compactSingleItem={false}
+        />
+      );
+
+      const headingQuimica = screen.getByText('Química');
+      const headingHistoria = screen.getByText('História');
+      expect(
+        headingQuimica.compareDocumentPosition(
+          screen.getByText('Análise química')
+        )
+      ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+      expect(headingQuimica.compareDocumentPosition(headingHistoria)).toBe(
+        Node.DOCUMENT_POSITION_FOLLOWING
+      );
+      expect(
+        headingHistoria.compareDocumentPosition(
+          screen.getByText('História do Brasil')
+        )
+      ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    });
+
+    it('counts every grouped item in the badge', () => {
+      render(
+        <CheckboxGroup
+          categories={[{ ...groupedCategories[0], selectedIds: ['t-2'] }]}
+          onCategoriesChange={jest.fn()}
+          compactSingleItem={false}
+        />
+      );
+
+      expect(screen.getByText('1 de 3 selecionado')).toBeInTheDocument();
+    });
+
+    it('selects the items of every group with "select all"', async () => {
+      const user = userEvent.setup();
+      const onCategoriesChange = jest.fn();
+      render(
+        <CheckboxGroup
+          categories={groupedCategories}
+          onCategoriesChange={onCategoriesChange}
+          compactSingleItem={false}
+        />
+      );
+
+      await user.click(screen.getAllByRole('checkbox')[0]);
+
+      expect(onCategoriesChange).toHaveBeenCalledWith([
+        { ...groupedCategories[0], selectedIds: ['t-2', 't-1', 't-3'] },
+      ]);
+    });
+
+    it('hides groups left without items by the search', async () => {
+      const user = userEvent.setup();
+      render(
+        <CheckboxGroup
+          categories={groupedCategories}
+          onCategoriesChange={jest.fn()}
+          compactSingleItem={false}
+        />
+      );
+
+      await user.type(screen.getByPlaceholderText('Buscar'), 'química');
+
+      expect(screen.getByText('Análise química')).toBeInTheDocument();
+      expect(screen.queryByText('História')).not.toBeInTheDocument();
+      expect(screen.queryByText('História geral')).not.toBeInTheDocument();
+    });
+  });
+
   describe('Searchable category', () => {
     const searchableItems: Item[] = [
       { id: 'aluno-1', name: 'André Silva' },

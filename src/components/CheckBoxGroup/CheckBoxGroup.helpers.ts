@@ -1,4 +1,4 @@
-import type { CategoryConfig, Item } from './CheckBoxGroup';
+import type { CategoryConfig, CategoryGroupBy, Item } from './CheckBoxGroup';
 
 /**
  * Helper function to efficiently compare selectedIds arrays
@@ -149,4 +149,43 @@ export const calculateFormattedItemsForAutoSelection = (
   );
 
   return filteredItems;
+};
+
+/**
+ * Groups items under a heading per group, following the order of
+ * `groupBy.groups`. Groups without items are omitted, and items whose
+ * `internalField` matches no group are kept in a trailing unlabeled group so
+ * nothing disappears from the list.
+ *
+ * @param itens - Items of the category
+ * @param groupBy - Field to match and the ordered groups to match against
+ * @returns Formatted groups; a single unlabeled group when nothing matches
+ */
+export const groupItemsByField = (
+  itens: Item[],
+  groupBy: CategoryGroupBy
+): { groupLabel?: string; itens: Item[] }[] => {
+  // Both matching steps share this key so an item is either grouped or kept
+  // ungrouped, never dropped (e.g. numeric ids against string group ids)
+  const getGroupKey = (item: Item) => String(item[groupBy.internalField]);
+
+  const groupedItems = groupBy.groups
+    .map((group) => ({
+      groupLabel: group.name,
+      itens: itens.filter((item) => getGroupKey(item) === group.id),
+    }))
+    .filter((group) => group.itens.length > 0);
+
+  if (groupedItems.length === 0) {
+    return [{ itens }];
+  }
+
+  const groupIds = new Set(groupBy.groups.map((group) => group.id));
+  const ungroupedItems = itens.filter(
+    (item) => !groupIds.has(getGroupKey(item))
+  );
+
+  return ungroupedItems.length > 0
+    ? [...groupedItems, { itens: ungroupedItems }]
+    : groupedItems;
 };

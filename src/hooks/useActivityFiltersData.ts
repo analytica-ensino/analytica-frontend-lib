@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { BaseApiClient } from '../types/api';
 import type { CategoryConfig } from '../components/CheckBoxGroup/CheckBoxGroup';
+import { areSelectedIdsEqual } from '../components/CheckBoxGroup/CheckBoxGroup.helpers';
 import type {
   KnowledgeItem,
   KnowledgeStructureState,
@@ -20,7 +21,7 @@ import { mapQuestionTypeToEnum } from '../utils/questionTypeUtils';
  */
 interface KnowledgeApiResponse {
   message: string;
-  data: Array<{ id: string; name: string }>;
+  data: Array<{ id: string; name: string; subjectId?: string }>;
 }
 
 /**
@@ -166,7 +167,15 @@ const areCategoriesSame = (
     );
 
     if (prevIds.length !== currentIds.length) return false;
-    return currentIds.every((id) => prevIds.includes(id));
+    if (!currentIds.every((id) => prevIds.includes(id))) return false;
+
+    const prevGroupIds = (prevCategory.groupBy?.groups || []).map(
+      (group) => group.id
+    );
+    const currentGroupIds = (category.groupBy?.groups || []).map(
+      (group) => group.id
+    );
+    return areSelectedIdsEqual(prevGroupIds, currentGroupIds);
   });
 };
 
@@ -438,9 +447,11 @@ const useActivityFiltersDataImpl = (
 
         if (requestId !== topicsRequestIdRef.current) return;
 
+        // subjectId lets the topic list be grouped by subject
         const topics: KnowledgeItem[] = response.data.data.map((topic) => ({
           id: topic.id,
           name: topic.name,
+          subjectId: topic.subjectId,
         }));
 
         // Adding/removing a subject reloads the topic list; keep the already
@@ -710,6 +721,13 @@ const useActivityFiltersDataImpl = (
         label: 'Tema',
         dependsOn: [],
         itens: knowledgeStructure.topics,
+        groupBy: {
+          internalField: 'subjectId',
+          groups: areasState.knowledgeAreas.map(({ id, name }) => ({
+            id,
+            name,
+          })),
+        },
         selectedIds: [],
       },
       {
@@ -740,6 +758,7 @@ const useActivityFiltersDataImpl = (
     knowledgeStructure.topics,
     knowledgeStructure.subtopics,
     knowledgeStructure.contents,
+    areasState.knowledgeAreas,
   ]);
 
   /**
