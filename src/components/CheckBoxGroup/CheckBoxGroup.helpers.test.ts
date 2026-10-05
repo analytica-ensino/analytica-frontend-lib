@@ -5,6 +5,7 @@ import {
   getBadgeText,
   handleAccordionValueChange,
   calculateFormattedItemsForAutoSelection,
+  groupItemsByField,
 } from './CheckBoxGroup.helpers';
 import type { CategoryConfig, Item } from './CheckBoxGroup';
 
@@ -641,6 +642,52 @@ describe('CheckBoxGroup Helpers', () => {
       );
 
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('groupItemsByField', () => {
+    const groupBy = {
+      internalField: 'subjectId',
+      groups: [
+        { id: 'sub-1', name: 'Química' },
+        { id: 'sub-2', name: 'História' },
+        { id: 'sub-3', name: 'Filosofia' },
+      ],
+    };
+
+    it('groups items following the order of the groups', () => {
+      const itens: Item[] = [
+        { id: 't-1', name: 'História geral', subjectId: 'sub-2' },
+        { id: 't-2', name: 'Análise química', subjectId: 'sub-1' },
+        { id: 't-3', name: 'História do Brasil', subjectId: 'sub-2' },
+      ];
+
+      expect(groupItemsByField(itens, groupBy)).toEqual([
+        { groupLabel: 'Química', itens: [itens[1]] },
+        { groupLabel: 'História', itens: [itens[0], itens[2]] },
+      ]);
+    });
+
+    it('keeps unmatched items in a trailing unlabeled group', () => {
+      const itens: Item[] = [
+        { id: 't-1', name: 'Análise química', subjectId: 'sub-1' },
+        { id: 't-2', name: 'Sem componente' },
+        { id: 't-3', name: 'Componente desconhecido', subjectId: 'sub-9' },
+      ];
+
+      expect(groupItemsByField(itens, groupBy)).toEqual([
+        { groupLabel: 'Química', itens: [itens[0]] },
+        { itens: [itens[1], itens[2]] },
+      ]);
+    });
+
+    it('returns a single unlabeled group when no item matches a group', () => {
+      const itens: Item[] = [{ id: 't-1', name: 'Sem componente' }];
+
+      expect(groupItemsByField(itens, groupBy)).toEqual([{ itens }]);
+      expect(
+        groupItemsByField(itens, { internalField: 'subjectId', groups: [] })
+      ).toEqual([{ itens }]);
     });
   });
 });

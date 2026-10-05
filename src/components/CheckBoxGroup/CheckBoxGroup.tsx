@@ -16,6 +16,7 @@ import {
   getBadgeText as getBadgeTextHelper,
   handleAccordionValueChange as handleAccordionValueChangeHelper,
   calculateFormattedItemsForAutoSelection,
+  groupItemsByField,
 } from './CheckBoxGroup.helpers';
 
 export type Item = {
@@ -33,6 +34,17 @@ export type CategoryConfig = {
   filteredBy?: { key: string; internalField: string }[];
   /** When true, renders a search input to filter this category's items by name */
   searchable?: boolean;
+  /**
+   * Groups this category's own items under a heading per group, matching
+   * `item[internalField]` against each group id. Only applies to categories
+   * without `dependsOn` (dependent categories are grouped by `filteredBy`).
+   */
+  groupBy?: CategoryGroupBy;
+};
+
+export type CategoryGroupBy = {
+  internalField: string;
+  groups: { id: string; name: string }[];
 };
 
 export const CheckboxGroup = ({
@@ -287,6 +299,9 @@ export const CheckboxGroup = ({
     const category = categories.find((c) => c.key === categoryKey);
 
     if (!category?.dependsOn || category.dependsOn.length === 0) {
+      if (category?.groupBy) {
+        return groupItemsByField(category.itens || [], category.groupBy);
+      }
       return [{ itens: category?.itens || [] }];
     }
 
@@ -800,9 +815,12 @@ export const CheckboxGroup = ({
       );
     }
 
-    return displayGroups.map((formattedGroup, idx) =>
-      renderFormattedGroup(formattedGroup, idx, category.key)
-    );
+    // Skip groups emptied by the search so their headings do not linger
+    return displayGroups
+      .filter((formattedGroup) => formattedGroup.itens.length > 0)
+      .map((formattedGroup, idx) =>
+        renderFormattedGroup(formattedGroup, idx, category.key)
+      );
   };
 
   // Auto-collapse accordion when category becomes disabled
